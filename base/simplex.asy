@@ -65,7 +65,7 @@ struct simplex {
         real e=E[i][J];
         if(e > epsilonA) {
           real v=E[i][N]/e;
-          if(v < M) {M=v; I=i;}
+          if(v <= M) {M=v; I=i;}
         }
       }
       if(I == -1)

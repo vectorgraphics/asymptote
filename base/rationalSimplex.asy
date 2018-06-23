@@ -1,4 +1,4 @@
-import math;
+// Rational simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 import rational;
 
 struct simplex {
@@ -79,16 +79,25 @@ struct simplex {
     return 0;
   }
 
-  // Try to find a solution x to Ax=b that minimizes the cost c^T x.
-  // A is an m x n matrix
+  // Try to find a solution x to Ax=b that minimizes the cost c^T x,
+  // where A is an m x n matrix, x is a vector of length n, b is a
+  // vector of length m, and c is a vector of length n.
   void operator init(rational[] c, rational[][] A, rational[] b,
                      bool phase1=true) {
     // Phase 1    
-    assert(rectangular(A));
-    //    assert(all(b >= 0)); // FIXME
-  
     m=A.length;
     n=A[0].length;
+
+    for(int i=0; i < m; ++i) { 
+      if(b[i] < 0) {
+        b[i] = -b[i];
+        rational[] Ai=A[i];
+        for(int j=0; j < n; ++j) {
+          Ai[j]=-Ai[j];
+        }
+      }
+    }
+  
     int N=phase1 ? n+m : n;
     rational[][] E=new rational[m+1][N+1];
 
@@ -121,12 +130,12 @@ struct simplex {
         Em[n+j]=0;
     Em[N]=-sum(b);
    
-    int[] Bindices=sequence(N-m,N-1);
+    int[] Bindices=sequence(new int(int x){return x;},m)+n;
 
     if(phase1) {
       iterate(E,N,Bindices);
   
-      if(abs(Em[J]) > 0) {
+      if(Em[J] != 0) {
       case=INFEASIBLE;
       return;
       }
@@ -165,7 +174,7 @@ struct simplex {
         Dm[j]=c[j]-sum;
       }
 
-      write("Done with Phase 1");
+      // Done with Phase 1
     }
    
     rational sum=0;
@@ -189,7 +198,8 @@ struct simplex {
   }
 
   // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost
-  // c^T x.
+  // c^T x, where A is an m x n matrix, x is a vector of length n, b is a
+  // vector of length m, and c is a vector of length n.
   void operator init(rational[] c, rational[][] A, int[] s, rational[] b) {
     int m=A.length;
     int n=A[0].length;
