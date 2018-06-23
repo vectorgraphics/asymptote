@@ -5,6 +5,8 @@ import PyQt5.QtCore as Qc
 import PyQt5.QtGui as Qg
 import PyQt5.QtWidgets as Qw
 
+import Widg_editBezier as Web
+
 import InplaceAddObj
 
 import math
@@ -18,6 +20,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
     def __init__(self, parent: Qc.QObject, obj: x2a.xasyDrawnItem, info: dict={}):
         super().__init__(parent)
         self.info = info
+        self.asyPathBackup = x2a.asyPath.fromPath(obj.path)
         self.asyPath = obj.path
         assert isinstance(self.asyPath, x2a.asyPath)
         self.transf = obj.transfKeymap[obj.transfKey][0]
@@ -37,6 +40,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.preCtrlOffset = None
         self.postCtrlOffset = None
         self.inTransformMode = False
+        self.opt = None
 
         self.prosectiveNodes = []
         self.prospectiveCtrlPts = []
@@ -101,6 +105,11 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         if self.info['magnification'] != 1:
             canvas.setWorldTransform(Qg.QTransform.fromScale(self.info['magnification'], self.info['magnification']), True) 
 
+        if self.info['autoRecompute']:
+            ctrlPtsColor = 'gray'
+        else:
+            ctrlPtsColor = 'red'
+
         canvas.setPen(dashedPen)
 
         canvas.drawPath(self.asyPath.toQPainterPath())
@@ -115,7 +124,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             canvas.drawEllipse(basePoint, 5, 5)
 
             if index != 0:
-                canvas.setPen(Qg.QColor('red'))
+                canvas.setPen(Qg.QColor(ctrlPtsColor))
                 postCtrolSet = self.asyPath.controlSet[index - 1][1]
                 postCtrlPoint = Qc.QPointF(postCtrolSet[0], postCtrolSet[1])
                 canvas.drawEllipse(postCtrlPoint, 5, 5)
@@ -124,7 +133,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                 canvas.drawLine(basePoint, postCtrlPoint)
 
             if index != len(self.asyPath.nodeSet) - 1:
-                canvas.setPen(Qg.QColor('red'))
+                canvas.setPen(Qg.QColor(ctrlPtsColor))
                 preCtrlSet = self.asyPath.controlSet[index][0]
                 preCtrlPoint = Qc.QPointF(preCtrlSet[0], preCtrlSet[1])
                 canvas.drawEllipse(preCtrlPoint, 5, 5)
@@ -154,6 +163,10 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             return index
         else:
             return index + 1
+
+    def resetObj(self):
+        self.asyPath.setInfo(self.asyPathBackup)
+        self.setSelectionBoundaries()
 
     def mouseDown(self, pos, info):
         self.lastSelPoint = pos
@@ -205,16 +218,19 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
             self.prosectiveNodes = prospectiveNodes
 
-            for i in range(len(self.ctrlSelRects)):
-                recta, rectb = self.ctrlSelRects[i]
+            if not self.info['autoRecompute']:
+                for i in range(len(self.ctrlSelRects)):
+                    recta, rectb = self.ctrlSelRects[i]
 
-                if recta.contains(pos):
-                    prospectiveCtrlpts.append((i, 0))
+                    if recta.contains(pos):
+                        prospectiveCtrlpts.append((i, 0))
 
-                if rectb.contains(pos):
-                    prospectiveCtrlpts.append((i, 1))
+                    if rectb.contains(pos):
+                        prospectiveCtrlpts.append((i, 1))
 
-            self.prospectiveCtrlPts = prospectiveCtrlpts
+                self.prospectiveCtrlPts = prospectiveCtrlpts
+            else:
+                self.prospectiveCtrlPts = []
 
 
         if self.inTransformMode:
@@ -240,6 +256,9 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                         self.asyPath.controlSet[index][0] = xu.funcOnList(
                             newNode, self.postCtrlOffset, lambda a, b: a + b
                         )
+
+                if self.info['autoRecompute']:
+                    self.quickRecalculateCtrls()
                     
 
             elif self.currentSelMode == CurrentlySelctedType.ctrlPoint:
@@ -273,9 +292,12 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                                 newPnt, parentNode, lambda a, b: a + b)
         
     def recalculateCtrls(self):
+        self.quickRecalculateCtrls()
+        self.setSelectionBoundaries()
+
+    def quickRecalculateCtrls(self):
         self.asyPath.controlSet.clear()
         self.asyPath.computeControls()
-        self.setSelectionBoundaries()
 
     def mouseRelease(self):
         if self.inTransformMode:
@@ -286,6 +308,13 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             
     def forceFinalize(self):
         self.objectUpdated.emit()
+
+    def createOptWidget(self, info):
+        self.opt = Web.Widg_editBezier(self.info)
+
+        self.opt.ui.btnForceRecompute.clicked.connect(self.recalculateCtrls)
+
+        return self.opt
 
     def getObject(self):
         pass

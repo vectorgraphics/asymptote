@@ -212,7 +212,9 @@ class MainWindow1(Qw.QMainWindow):
             'fill': self.ui.btnFill.isChecked(),
             'closedPath': False,
             'useBezier': True, 
-            'magnification': self.magnification
+            'magnification': self.magnification,
+            'editBezierlockMode': xbi.Web.LockMode.angleLock, 
+            'autoRecompute': False
         }
 
 
@@ -495,6 +497,9 @@ class MainWindow1(Qw.QMainWindow):
             self.addMode.objectCreated.disconnect()
         except Exception:
             pass
+
+        self.currentModeStack[-1] = None
+        self.updateModeBtnsOnly()
 
         self.addMode.objectCreated.connect(self.addInPlace)
         if self.currAddOptionsWgt is not None:
@@ -1175,6 +1180,7 @@ class MainWindow1(Qw.QMainWindow):
             # bezier path
             self.addMode = xbi.InteractiveBezierEditor(self, obj, self.currAddOptions)
             self.addMode.objectUpdated.connect(self.objectUpdated)
+            self.updateOptionWidget()
         else:
             self.clearSelection()
         self.quickUpdate()
@@ -1528,8 +1534,7 @@ class MainWindow1(Qw.QMainWindow):
 
         painter.fillPath(newCirclePath, Qg.QColor.fromRgb(0, 0, 0))
 
-    def updateChecks(self):
-        self.addMode = None
+    def updateModeBtnsOnly(self):
         if self.currentModeStack[-1] == SelectionMode.translate:
             activeBtn = self.ui.btnTranslate
         elif self.currentModeStack[-1] == SelectionMode.rotate:
@@ -1542,8 +1547,6 @@ class MainWindow1(Qw.QMainWindow):
             activeBtn = self.ui.btnAnchor
         elif self.currentModeStack[-1] == SelectionMode.delete:
             activeBtn = self.ui.btnDeleteMode
-        # elif self.currentModeStack[-1] == SelectionMode.select:
-            # activeBtn = self.ui.btnSelect
         else:
             activeBtn = None
 
@@ -1552,6 +1555,10 @@ class MainWindow1(Qw.QMainWindow):
                 button.setChecked(False)
             else:
                 button.setChecked(True)
+
+    def updateChecks(self):
+        self.addMode = None
+        self.updateModeBtnsOnly()
 
     def btnAlignXOnClick(self, checked):
         self.lockY = checked

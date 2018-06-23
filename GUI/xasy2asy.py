@@ -23,16 +23,15 @@ import string
 import subprocess
 import tempfile
 import re
+import copy
 import queue
 import io
 import DebugFlags
 
-import CubicBezier
 import xasyUtils as xu
 import xasyArgs as xa
 import xasyOptions as xo
 
-import BezierCurveEditor
 import uuid
 
 
@@ -396,6 +395,17 @@ class asyPath(asyObj):
         self.asyengine = asyengine
 
     @classmethod
+    def fromPath(cls, oldPath):
+        newObj = cls(None)
+        newObj.nodeSet = copy.copy(oldPath.nodeSet)
+        newObj.linkSet = copy.copy(oldPath.linkSet)
+        newObj.controlSet = copy.copy(oldPath.controlSet)
+        newObj.computed = oldPath.computed
+        newObj.asyengine = oldPath.asyengine
+
+        return newObj
+
+    @classmethod
     def fromBezierPoints(cls, pointList: list, engine=None):
         if not pointList:
             return None
@@ -411,6 +421,12 @@ class asyPath(asyObj):
         newPath = asyPath(asyengine=engine)
         newPath.initFromControls(nodeList, controlList)
         return newPath
+
+    def setInfo(self, path):
+        self.nodeSet = copy.copy(path.nodeSet)
+        self.linkSet = copy.copy(path.linkSet)
+        self.controlSet = copy.copy(path.controlSet)
+        self.computed = path.computed
 
     @property
     def isEmpty(self):
