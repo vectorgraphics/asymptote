@@ -76,7 +76,7 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  if(settings.inpipe >= 0) { // Detect xasy
+  if(settings.xasy) {
     erase();
     add(f,group=false);
     return;

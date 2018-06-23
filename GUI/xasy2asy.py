@@ -774,7 +774,7 @@ class xasyItem(Qc.QObject):
         fileformat = 'png'
 
         while raw_text != "Done\n" and raw_text != "Error\n":
-            print(raw_text)
+#            print(raw_text)
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
