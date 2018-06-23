@@ -238,9 +238,9 @@ struct power<Int> {
   }
 };
  
-template <typename>
+template <typename T>
 struct mod {
-  Int operator() (Int x, Int y,  size_t i=0) {
+  T operator() (T x, T y,  size_t i=0) {
     if(y == 0) dividebyzero(i);
     return portableMod(x,y);
   }

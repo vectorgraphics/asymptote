@@ -1,3 +1,5 @@
+// Asymptote module implementing rational arithmetic.
+
 int gcd(int m, int n)
 {
   if(m < n) {

@@ -6,11 +6,12 @@ shared via virtualbox to the cygwin build environment.
 
 Install these cygwin packages:
 
+git
 wget
 make
 patch
 gcc-g++
-autoconf
+autoconf2.5
 bison
 flex
 w32api-headers
@@ -18,30 +19,21 @@ w32api-runtime
 zlib-devel
 libGLU-devel
 libtirpc-devel (SRC)
-libncurses-devel (SRC)
 libreadline-devel (SRC)
 libfftw3-devel (SRC)
 libgsl-devel (SRC)
-automake
+automake1.15
 libtool
-
-ln -s /usr/include/tirpc/rpc /usr/include/rpc
-ln -s /usr/include/tirpc/netconfig.h /usr/include/netconfig.h
-ln -s /usr/lib/libtirpc.a /usr/lib/librpc.a
 
 mv /usr/include/GL /usr/include/GL.orig
 
-Build and install from /usr/local/src:
+Build and install static libraries from /usr/local/src:
 
-gsl-devel
+gsl-devel:
 ./configure --prefix=/usr
 make install
 
-ncurses-devel
-./configure --prefix=/usr
-make install
-
-readline-devel
+readline-devel:
 ./configure --prefix=/usr --without-curses --disable-shared
 make install
 
@@ -49,12 +41,14 @@ fftw3-devel:
 ./configure --prefix=/usr --enable-shared 
 make install
 
-Compile static libraries from source:
-tirpc-devel
+tirpc-devel (if rpc library is unavailable):
 ./configure --prefix=/usr --disable-gssapi
 make install
+ln -s /usr/include/tirpc/rpc /usr/include/rpc
+ln -s /usr/include/tirpc/netconfig.h /usr/include/netconfig.h
+ln -s /usr/lib/libtirpc.a /usr/lib/librpc.a
 
-termcap-1.3.1
+termcap-1.3.1:
 ./configure --prefix=/usr
 make install
 
@@ -63,24 +57,26 @@ git clone http://github.com/vectorgraphics/asymptote
 cd /usr/include
 patch -p0 < ~/asymptote/patches/cygwin_glu.patch
 
-cd
-~/asymptote/build-scripts/build-freeglut
 mkdir -p ~/dll/cygwin
 cp /usr/bin/cygwin1.dll ~/dll/cygwin
+
+cd
+~/asymptote/build-scripts/build-freeglut
 
 install texlive
 
 mkdir ~/CTAN
-cp -a ~/asymptote/buildscripts/README-binaries ~/CTAN
+cp -a ~/asymptote/build-scripts/README-binaries ~/CTAN
 
 GCVERSION=7.6.2
+wget http://hboehm.info/gc/gc_source/gc-$GCVERSION.tar.gz
+wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$GCVERSION.tar.gz
 tar -zxf gc-$GCVERSION.tar.gz
 tar -zxf libatomic_ops-$GCVERSION.tar.gz
 mv libatomic_ops-$GCVERSION gc-$GCVERSION/libatomic_ops
 cd gc-$GCVERSION
-patch < ~/asymptote/patches/cygwin_gc.patch
+patch -p1 < ~/asymptote/patches/cygwin_gc.patch
 ./configure --disable-shared
 make check
 
-VERSION=2.42
-~/asymptote/build-scripts/build-asymptote.dos $VERSION
+~/asymptote/build-scripts/build-asymptote.dos 2.43

@@ -67,8 +67,8 @@ cp -a /usr/local/share/info/asymptote/asymptote.info $SHARED/asydoc/png
 cp -a /usr/local/share/info/asy-faq.info $SHARED/asydoc/FAQ
 cd $BUILD
 tar cfz $SRC asymptote-$VERSION
-tar cfz asymptote-$VERSION.i386.tgz $BINDIR
+tar cfz asymptote-$VERSION.x86_64.tgz $BINDIR
 cp $SRC $SHARED
 rm -rf $BUILD/$BINDIR
-tar -zxf asymptote-$VERSION.i386.tgz
+tar -zxf asymptote-$VERSION.x86_64.tgz
 su rpmbuild -c "rpmbuild -ta --nodeps $SRC && rm -rf ~/rpms/BUILD/asymptote-$VERSION"
