@@ -4,30 +4,18 @@ p = property
 
 class xasyString:
     def __init__(self, lang=None):
+        s = self
         if lang is None:
-            self._ = gettext.gettext
+            _ = lambda x:  x 
         else:
             lng = gettext.translation('base', localedir='GUI/locale', languages=[lang])
             lng.install()
-            self._ = lng.gettext
+            _ = lng.gettext
+            
+        s.rotate = _('Rotate')
+        s.scale = _('Scale')
+        s.translate = _('Translate')
 
-    @p
-    def rotate(s):
-        return s._('Rotate')
-
-    @p
-    def scale(s):
-        return s._('Scale')
-
-    @p
-    def translate(s):
-        return s._('Translate')
-
-    @p
-    def fileOpenFailed(s):
-        return s._('File Opening Failed.')
-
-    @p
-    def fileOpenFailedText(s):
-        return s._('File could not be opened.')
-
+        s.fileOpenFailed = _('File Opening Failed.')
+        s.fileOpenFailedText = _('File could not be opened.')
+        s.asyfyComplete = _('Asymptote Redraw successful.')
