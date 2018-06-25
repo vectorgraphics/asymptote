@@ -752,7 +752,9 @@ class iprompt : public icore {
   // line and is being continued (either because of a backslash or the parser
   // detecting it in multiline mode).
   string getline(bool continuation) {
-    string prompt=getSetting<string>(continuation ? "prompt2" : "prompt");
+    string prompt;
+    if(!getSetting<bool>("xasy"))
+      prompt=getSetting<string>(continuation ? "prompt2" : "prompt");
     string line=interact::simpleline(prompt);
 
     if (continuation)
@@ -783,7 +785,7 @@ class iprompt : public icore {
     string s;
     while((s=getline(true)) != "xasy();\n")
       line += s;
-    return parser::parseString(line+"\n", "-", true);
+    return parser::parseString(line, "-", true);
   }
 
   void runLine(coenv &e, istack &s, string line) {
