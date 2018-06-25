@@ -105,9 +105,6 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.save()
         canvas.setWorldTransform(self.transf.toQTransform(), True)
 
-        if self.info['magnification'] != 1:
-            canvas.setWorldTransform(Qg.QTransform.fromScale(self.info['magnification'], self.info['magnification']), True) 
-
         if self.info['autoRecompute']:
             ctrlPtsColor = 'gray'
         else:

@@ -16,7 +16,7 @@ import datetime
 import string
 import uuid
 
-import xasyUtils
+import xasyUtils as xu
 import xasy2asy as x2a
 import xasyFile as xf
 import xasyOptions as xo
@@ -265,6 +265,21 @@ class MainWindow1(Qw.QMainWindow):
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
 
+    def getScrsTransform(self):
+        # pipeline:
+        # assuming origin <==> top left
+        # (Pan) * (Translate) * (Flip the images) * (Zoom) * (Obj transform) * (Base Information) 
+
+        cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
+
+        newTransf = Qg.QTransform()
+        newTransf.translate(*self.panOffset)
+        newTransf.translate(cx, cy)
+        newTransf.scale(1, -1)
+        newTransf.scale(self.magnification, self.magnification)
+
+        return newTransf
+
     def finalizeCurve(self):
         if self.addMode is not None:
             if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
@@ -291,7 +306,7 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.magnification = float(commandText)
             self.currAddOptions['magnification'] = self.magnification
-            self.asyfyCanvas(True)
+            self.quickUpdate()
 
     def btnTogglePythonOnClick(self, checked):
         self.terminalPythonMode = checked
@@ -473,11 +488,6 @@ class MainWindow1(Qw.QMainWindow):
         obj.onCanvas = self.xasyDrawObj
         obj.setKey('x' + str(self.globalObjectCounter))
         self.globalObjectCounter = self.globalObjectCounter + 1
-
-        if self.magnification != 1:
-            assert self.magnification != 0
-            # Convert screen level to asy coordinate level
-            obj.asyfied = False
 
         self.fileItems.append(obj)
         self.addObjCreationUrs(obj)
@@ -818,7 +828,7 @@ class MainWindow1(Qw.QMainWindow):
             self.updateFrameDispColor()
 
     def txtLineWithEdited(self, text):
-        new_val = xasyUtils.tryParse(text, float)
+        new_val = xu.tryParse(text, float)
         if new_val is not None:
             if new_val > 0:
                 self._currentPen.setWidth(new_val)
@@ -833,19 +843,9 @@ class MainWindow1(Qw.QMainWindow):
         if self.isReady():
             self.canvSize = self.ui.imgFrame.size()
             self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
-            x, y = self.canvSize.width() / 2, self.canvSize.height() / 2
-
             self.canvasPixmap = Qg.QPixmap(self.canvSize)
             self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
 
-            self.mainTransformation.reset()
-            self.mainTransformation.scale(1, -1)
-            self.mainTransformation.translate(x, -y)
-
-            self.screenTransformation = self.mainTransformation * self.panTranslation
-
-            self.mainCanvas.setTransform(self.screenTransformation, True)
-            # self.createMainCanvas()
             self.quickUpdate()
 
     def show(self):
@@ -871,13 +871,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def getAsyCoordinates(self):
         canvasPosOrig = self.getCanvasCoordinates()
-        if self.magnification != 1:
-            assert self.magnification != 0
-            invmag = 1 / self.magnification
-            canvasPos = canvasPosOrig * Qg.QTransform.fromScale(invmag, invmag)
-            return canvasPos, canvasPosOrig
-        else:
-            return canvasPosOrig, canvasPosOrig
+        return canvasPosOrig, canvasPosOrig
 
     def mouseMoveEvent(self, mouseEvent: Qg.QMouseEvent):  # TODO: Actually refine grid snapping...
         if not self.ui.imgLabel.underMouse() and not self.mouseDown:
@@ -899,13 +893,16 @@ class MainWindow1(Qw.QMainWindow):
         if self.currentModeStack[-1] == SelectionMode.pan and int(mouseEvent.buttons()) and self.savedWindowMousePos is not None:
             mousePos = self.getWindowCoordinates()
             newPos = mousePos - self.savedWindowMousePos
+
             tx, ty = newPos.x(), newPos.y()
+
             if self.lockX:
                 tx = 0
             if self.lockY:
                 ty = 0
-            self.panTranslation = Qg.QTransform.fromTranslate(tx, ty)
-            self.screenTransformation = self.currScreenTransform * self.panTranslation
+
+            self.panOffset = xu.funcOnList(self.panOffset, (tx, ty), lambda a, b: a + b)
+            self.savedWindowMousePos = self.getWindowCoordinates()
             self.quickUpdate()
             return
 
@@ -1062,7 +1059,6 @@ class MainWindow1(Qw.QMainWindow):
             self.addMode.mouseDown(asyPos, self.currAddOptions)
         elif self.currentModeStack[-1] == SelectionMode.pan:
             self.savedWindowMousePos = self.getWindowCoordinates()
-            self.currScreenTransform = self.screenTransformation * Qg.QTransform()
         elif self.currentModeStack[-1] == SelectionMode.setAnchor:
             self.customAnchor = self.savedMousePosition
             self.currentModeStack.pop()
@@ -1176,9 +1172,7 @@ class MainWindow1(Qw.QMainWindow):
         self.mainTransformation.scale(1, -1)
         self.mainTransformation.translate(x, -y)
 
-        self.screenTransformation = self.mainTransformation * Qg.QTransform()
-
-        self.mainCanvas.setTransform(self.screenTransformation, True)
+        self.mainCanvas.setTransform(self.getScrsTransform(), True)
 
         self.ui.imgLabel.setPixmap(self.canvasPixmap)
 
@@ -1224,7 +1218,7 @@ class MainWindow1(Qw.QMainWindow):
         canvasPos = self.ui.imgLabel.mapFrom(self, uiPos)
 
         # Issue: For magnification, should xasy treats this at xasy level, or asy level?
-        return canvasPos * self.screenTransformation.inverted()[0]
+        return canvasPos * self.getScrsTransform().inverted()[0]
 
     def getWindowCoordinates(self):
         # assert self.ui.imgLabel.underMouse()
@@ -1232,7 +1226,7 @@ class MainWindow1(Qw.QMainWindow):
         
     def refreshCanvas(self):
         self.mainCanvas.begin(self.canvasPixmap)
-        self.mainCanvas.setTransform(self.screenTransformation)
+        self.mainCanvas.setTransform(self.getScrsTransform())
 
     def asyfyCanvas(self, force=False):
         self.drawObjects = []
@@ -1301,7 +1295,7 @@ class MainWindow1(Qw.QMainWindow):
         majorGridCol = Qg.QColor(self.settings['gridMajorAxesColor'])
         minorGridCol = Qg.QColor(self.settings['gridMinorAxesColor'])
 
-        panX, panY = self.screenTransformation.dx(), self.screenTransformation.dy()
+        panX, panY = self.panOffset
 
         x_range = self.canvSize.width() / 2 + (2 * abs(panX))
         y_range = self.canvSize.height() / 2 + (2 * abs(panY))
@@ -1373,7 +1367,7 @@ class MainWindow1(Qw.QMainWindow):
         preCanvas = painter
 
         # preCanvas = Qg.QPainter(self.preCanvasPixmap)
-        preCanvas.setTransform(self.screenTransformation)
+        preCanvas.setTransform(self.getScrsTransform())
 
         if self.drawAxes:
             preCanvas.setPen(Qc.Qt.gray)
@@ -1396,14 +1390,8 @@ class MainWindow1(Qw.QMainWindow):
             if self.addMode.active:
                 # Preview Object
                 if self.addMode.getPreview() is not None:
-                    if self.magnification != 1:
-                        assert self.magnification != 0
-                        painter.save()
-                        painter.scale(self.magnification, self.magnification)
                     painter.setPen(self.currentPen.toQPen())
                     painter.drawPath(self.addMode.getPreview())
-                    if self.magnification != 1:
-                        painter.restore()
                 self.addMode.postDrawPreview(painter)
                 
 
@@ -1434,7 +1422,7 @@ class MainWindow1(Qw.QMainWindow):
     def postDraw(self):
         self.postCanvasPixmap.fill(Qc.Qt.transparent)
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
-            postCanvas.setTransform(self.screenTransformation)
+            postCanvas.setTransform(self.getScrsTransform())
 
             self.drawTransformPreview(postCanvas)
 
@@ -1633,12 +1621,6 @@ class MainWindow1(Qw.QMainWindow):
             obj_transform = transform
 
         scr_transform = obj_transform
-        if self.magnification != 1.0:
-            assert self.magnification != 0
-            invmag = 1/self.magnification
-            mag = self.magnification
-            obj_transform = x2a.asyTransform((0, 0, invmag, 0, 0, invmag)) * obj_transform * \
-                x2a.asyTransform((0, 0, mag, 0, 0, mag))
 
         if not applyFirst:
             item.transfKeymap[key][keyIndex] = obj_transform * \
@@ -1705,4 +1687,4 @@ class MainWindow1(Qw.QMainWindow):
     def populateCanvasWithItems(self, forceUpdate=False):
         self.itemCount = 0
         for item in self.fileItems:
-            self.drawObjects.append(item.generateDrawObjects(self.magnification, forceUpdate))
+            self.drawObjects.append(item.generateDrawObjects(1.0, forceUpdate))
