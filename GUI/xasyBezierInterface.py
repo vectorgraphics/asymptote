@@ -271,23 +271,33 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
                 rawNewNode = xu.funcOnList(newNode, parentNode, lambda a, b: a - b)
                 rawAngle = math.atan2(rawNewNode[1], rawNewNode[0])
+                newNorm = xu.twonorm(rawNewNode)
 
-                if 1 == 1:  # TODO: Replace this with angle-preservation option.
-                    # TODO: 2. Also, can make this more elegant, and scaling by a factor? 
+                if self.info['editBezierlockMode'] >= Web.LockMode.angleLock:
                     otherIndex = 1 - subindex       # 1 if 0, 0 otherwise. 
                     if otherIndex == 0:
                         if index < len(self.asyPath.controlSet) - 1:
                             oldOtherCtrlPnt = xu.funcOnList(
                                 self.asyPath.controlSet[index + 1][0] , parentNode, lambda a, b: a - b)
-                            rawNorm = xu.twonorm(oldOtherCtrlPnt)
+                        
+                            if self.info['editBezierlockMode'] >= Web.LockMode.angleAndScaleLock:
+                                rawNorm = newNorm
+                            else:
+                                rawNorm = xu.twonorm(oldOtherCtrlPnt)
 
-                            newPnt = (rawNorm * math.cos(rawAngle + math.pi), rawNorm * math.sin(rawAngle + math.pi))
+                            newPnt = (rawNorm * math.cos(rawAngle + math.pi), 
+                                rawNorm * math.sin(rawAngle + math.pi))
+                                
                             self.asyPath.controlSet[index + 1][0] = xu.funcOnList(newPnt, parentNode, lambda a, b: a + b)
                     else:
                         if index > 0:
                             oldOtherCtrlPnt = xu.funcOnList(
                                 self.asyPath.controlSet[index-1][1], parentNode, lambda a, b: a - b)
-                            rawNorm = xu.twonorm(oldOtherCtrlPnt)
+
+                            if self.info['editBezierlockMode'] >= Web.LockMode.angleAndScaleLock:
+                                rawNorm = newNorm
+                            else:
+                                rawNorm = xu.twonorm(oldOtherCtrlPnt)
 
                             newPnt = (rawNorm * math.cos(rawAngle + math.pi),
                                       rawNorm * math.sin(rawAngle + math.pi))
