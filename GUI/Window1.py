@@ -317,17 +317,6 @@ class MainWindow1(Qw.QMainWindow):
 
     def initDebug(self):
         debugFunc = {
-            'debug:addLineGuide': self.debugAddLineGuide,
-            'debug:addArcGuide': self.debugAddArcGuide,
-            'debug:pause': self.debug,
-            'debug:execPythonCmd': self.execPythonCmd,
-            'debug:setPolarGrid': self.debugSetPolarGrid,
-            'debug:addUnitCircle': self.dbgAddUnitCircle,
-            'debug:addCircle': self.dbgAddCircle,
-            'debug:addPoly': self.dbgAddPoly,
-            'debug:addLabel': self.debugAddLabel,
-            'debug:addFillCircle': self.dbgAddFillCirc, 
-            'debug:recomputeCtrl': self.dbgRecomputeCtrl
         }
         self.commandsFunc = {**self.commandsFunc, **debugFunc}
 
@@ -450,45 +439,8 @@ class MainWindow1(Qw.QMainWindow):
     def currentPen(self):
         return x2a.asyPen.fromAsyPen(self._currentPen)
 
-    def dbgAddUnitCircle(self):
-        newCirclePath = PrimitiveShape.PrimitiveShape.circle((0, 0), 1)
-        newCircle = x2a.xasyShape(newCirclePath, asyengine=self.asyEngine)
-        self.fileItems.append(newCircle)
-        self.asyfyCanvas()
-
-    def dbgAddFillCirc(self):
-        newCirclePath = PrimitiveShape.PrimitiveShape.circle((0, 0), 100)
-        newCircle = x2a.xasyFilledShape(newCirclePath, pen=self.currentPen, asyengine=self.asyEngine)
-        self.fileItems.append(newCircle)
-        self.asyfyCanvas()
-
-    def dbgAddCircle(self):
-        commandText, result = Qw.QInputDialog.getText(self, '', 'enter python cmd')
-        if result:
-            rawArray = [float(rawResult) for rawResult in commandText.split()]
-            x, y, rad = rawArray
-            newCirclePath = PrimitiveShape.PrimitiveShape.circle((x, y), rad)
-            newCircle = x2a.xasyShape(newCirclePath, pen=self.currentPen, asyengine=self.asyEngine)
-            self.fileItems.append(newCircle)
-            self.asyfyCanvas()
-
-    def dbgAddPoly(self):
-        newSquarePath = PrimitiveShape.PrimitiveShape.exscribedRegPolygon(6, (0, 0), 100, 0)
-        newSquare = x2a.xasyShape(newSquarePath, pen=self.currentPen, asyengine=self.asyEngine)
-        self.fileItems.append(newSquare)
-        self.asyfyCanvas()
-
-    def debugAddLabel(self):
-        testText = '$\\displaystyle{\\int_{\\varphi(F)} f = \\int_F (f \\circ \\varphi) \\left| \\det J_{\\varphi} \\right|}$'
-        newPath = x2a.xasyText(testText, (0, 0), asyengine=self.asyEngine)
-        self.fileItems.append(newPath)
-        self.asyfyCanvas()
-
     def debug(self):
         print('Put a breakpoint here.')
-
-    def debugSetPolarGrid(self):
-        self.drawGridMode = GridMode.polar
 
     def execPythonCmd(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'enter python cmd')
@@ -527,23 +479,13 @@ class MainWindow1(Qw.QMainWindow):
             obj.asyfied = False
 
         self.fileItems.append(obj)
+        self.addObjCreationUrs(obj)
         self.asyfyCanvas()
 
-    def debugAddLineGuide(self):
-        commandText, result = Qw.QInputDialog.getText(self, '', 'enter <originx> <originy> <angle>')
-        if result:
-            px, py, ang = [float(val) for val in commandText.split()]
-            newLineGuide = GuidesManager.LineGuide(Qc.QPointF(px, py), ang, Qg.QPen(Qg.QColor('red')))
-            self.currentGuides.append(newLineGuide)
-        self.quickUpdate()
-
-    def debugAddArcGuide(self):
-        commandText, result = Qw.QInputDialog.getText(self, '', 'enter <originx> <originy> <rad> <sang> <eang>')
-        if result:
-            px, py, rad, sang, eang = [float(val) for val in commandText.split()]
-            newArcGuide = GuidesManager.ArcGuide(Qc.QPoint(px, py), rad, sang, eang, Qg.QPen(Qg.QColor('red')))
-            self.currentGuides.append(newArcGuide)
-        self.quickUpdate()
+    def addObjCreationUrs(self, obj):
+        newAction = self.createAction(ObjCreationChanges(obj))
+        self.undoRedoStack.add(newAction)
+        self.checkUndoRedoButtons()
 
     def clearGuides(self):
         self.currentGuides.clear()
@@ -701,7 +643,7 @@ class MainWindow1(Qw.QMainWindow):
         if isinstance(change, TransformationChanges):
             self.transformObject(change.objIndex, change.transformation.inverted(), change.isLocal)
         elif isinstance(change, ObjCreationChanges):
-            pass  # for now, until we implement a remove object/add object. This will be trivial
+            self.fileItems.pop()
         elif isinstance(change, HardDeletionChanges):
             self.fileItems.insert(change.objIndex, change.item)
         self.asyfyCanvas()
@@ -712,7 +654,7 @@ class MainWindow1(Qw.QMainWindow):
             self.transformObject(
                  change.objIndex, change.transformation, change.isLocal)
         elif isinstance(change, ObjCreationChanges):
-            pass  # for now, until we implement a remove/add method. By then, this will be trivial.
+            self.fileItems.append(change.object)
         elif isinstance(change, HardDeletionChanges):
             self.fileItems.remove(change.item)
         self.asyfyCanvas()
@@ -1694,6 +1636,7 @@ class MainWindow1(Qw.QMainWindow):
 
         # newItem.replaceKey(str(self.globalObjectCounter) + ':')
         self.fileItems.append(newItem)
+        self.addObjCreationUrs(newItem)
         self.asyfyCanvas()
 
         self.globalObjectCounter = self.globalObjectCounter + 1
