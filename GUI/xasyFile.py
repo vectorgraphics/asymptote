@@ -77,5 +77,5 @@ def saveFile(file, xasyItems):
         file.write(item.getTransformCode())
 
     for item in xasyItems:
-        file.write(item.getObjectCode() + '\n\n')
+        file.write(item.getObjectCode() + '\n')
 
