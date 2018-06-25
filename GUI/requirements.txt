@@ -1,0 +1,4 @@
+numpy==1.11.0
+cson==0.7
+PyQt5==5.11
+typing==3.6.4

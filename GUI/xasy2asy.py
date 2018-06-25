@@ -23,16 +23,15 @@ import string
 import subprocess
 import tempfile
 import re
+import copy
 import queue
 import io
 import DebugFlags
 
-import CubicBezier
 import xasyUtils as xu
 import xasyArgs as xa
 import xasyOptions as xo
 
-import BezierCurveEditor
 import uuid
 
 
@@ -77,6 +76,7 @@ class AsymptoteEngine:
 
         self.args = args
 
+#TODO: change inpipe setting to xasy in asy
         if keepDefaultArgs:
             self.args = args + ['-xasy', '-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
 
@@ -344,6 +344,7 @@ class asyPen(asyObj):
         fout.write("write(fout,colorspace(p),newl);\n")
         fout.write("write(fout,colors(p));\n")
         fout.write("flush(fout);\n")
+        fout.write("xasy();\n")
         fout.flush()
 
         colorspace = fin.readline()
@@ -394,6 +395,17 @@ class asyPath(asyObj):
         self.asyengine = asyengine
 
     @classmethod
+    def fromPath(cls, oldPath):
+        newObj = cls(None)
+        newObj.nodeSet = copy.copy(oldPath.nodeSet)
+        newObj.linkSet = copy.copy(oldPath.linkSet)
+        newObj.controlSet = copy.copy(oldPath.controlSet)
+        newObj.computed = oldPath.computed
+        newObj.asyengine = oldPath.asyengine
+
+        return newObj
+
+    @classmethod
     def fromBezierPoints(cls, pointList: list, engine=None):
         if not pointList:
             return None
@@ -409,6 +421,12 @@ class asyPath(asyObj):
         newPath = asyPath(asyengine=engine)
         newPath.initFromControls(nodeList, controlList)
         return newPath
+
+    def setInfo(self, path):
+        self.nodeSet = copy.copy(path.nodeSet)
+        self.linkSet = copy.copy(path.linkSet)
+        self.controlSet = copy.copy(path.controlSet)
+        self.computed = path.computed
 
     @property
     def isEmpty(self):
@@ -645,7 +663,7 @@ class xasyItem(Qc.QObject):
         """Update the item's code: to be overriden"""
         with io.StringIO() as rawCode:
             rawCode.write(self.getTransformCode())
-            rawCode.write('\n' + self.getObjectCode())
+            rawCode.write(self.getObjectCode())
             self.asyCode = rawCode.getvalue()
 
     @property
@@ -736,9 +754,7 @@ class xasyItem(Qc.QObject):
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
-        fout.write("atexit(null);\n")
-        fout.write("xasy();\n")
-        fout.write("reset")
+        fout.write("reset\n")
         fout.flush();
         for line in self.getCode().splitlines():
             if DebugFlags.printDeconstTranscript:
@@ -774,7 +790,7 @@ class xasyItem(Qc.QObject):
         fileformat = 'png'
 
         while raw_text != "Done\n" and raw_text != "Error\n":
-            print(raw_text)
+#            print(raw_text)
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
@@ -792,7 +808,7 @@ class xasyItem(Qc.QObject):
             imageInfos.append((text, keydata, keyCounts[keydata]))      # key-data pair
 
             # for the next item
-            keyCounts[keydata] = keyCounts[keydata] + 1
+            keyCounts[keydata] += 1
 
             raw_text = fin.readline()
 
@@ -907,7 +923,7 @@ class xasyShape(xasyDrawnItem):
         if transf == identity():
             return ''
         else:
-            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())+"\n"
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
@@ -989,7 +1005,7 @@ class xasyText(xasyItem):
             # return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
             return ''
         else:
-            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())+"\n"
 
     def getObjectCode(self):
         return 'label(KEY="{0}",(0,0),{1});'.format(self.transfKey, self.label.getCode())
@@ -1053,7 +1069,7 @@ class xasyScript(xasyItem):
                         if (transf != identity()) or transf.deleted:
                             writeTransf = True
                     # need to map all transforms in a list if there is any non-identity
-                    # unfortuanetly, have to check all transformations in the list. 
+                    # unfortunately, have to check all transformations in the list. 
                     if writeTransf:
                         for transf in val:
                             if transf.deleted:
@@ -1121,7 +1137,7 @@ class xasyScript(xasyItem):
         """Generate the list of images described by this object and adjust the length of the transform list."""
         super().asyfy(mag, keyOnly)
 
-        # remove any unnessecary keys
+        # remove any unnecessary keys
         # not anymore - transfKeymap is supposed to be storing the raw transform data
         # and the rest, to be interpreted case by case.
 

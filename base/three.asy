@@ -1,6 +1,6 @@
 private import math;
 
-if(settings.inpipe >= 0) // Detect xasy
+if(settings.xasy)
   settings.render=0;
 
 if(prc0()) {
