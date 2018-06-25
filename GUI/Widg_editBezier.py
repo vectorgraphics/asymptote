@@ -28,11 +28,16 @@ class Widg_editBezier(Qw.QWidget):
     def lockMode(self) -> int:
         return self.ui.cmbLockMode.currentIndex()
 
+    @Qc.pyqtSlot(int)
     def cmbLockIndexChange(self, index: int):
         self.info['editBezierlockMode'] = index
 
+    @Qc.pyqtSlot(int)
     def chkRecomputeChanged(self, checked: int):
         isChecked = (checked == 2)
         for obj in self.disableOnAutoRecompute:
             obj.setEnabled(not checked)
         self.info['autoRecompute'] = checked
+        
+        if isChecked:
+            self.ui.btnForceRecompute.clicked.emit()

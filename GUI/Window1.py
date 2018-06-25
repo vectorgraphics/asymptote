@@ -106,7 +106,7 @@ class MainWindow1(Qw.QMainWindow):
         self.raw_args = Qc.QCoreApplication.arguments()
         self.args = xa.parseArgs(self.raw_args)
 
-        self.strings = None
+        self.strings = xs.xasyString(self.args.language)
 
         if self.settings['asyBaseLocation'] is not None:
             os.environ['ASYMPTOTE_DIR'] = self.settings['asyBaseLocation']
@@ -193,8 +193,12 @@ class MainWindow1(Qw.QMainWindow):
         self.drawObjects = []
         self.xasyDrawObj = {'drawDict': self.drawObjects}
 
-        self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, # self.ui.btnSelect,
-                            self.ui.btnPan, self.ui.btnDeleteMode, self.ui.btnAnchor}
+        self.modeButtons = {
+            self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, # self.ui.btnSelect,
+            self.ui.btnPan, self.ui.btnDeleteMode, self.ui.btnAnchor, 
+            self.ui.btnSelectEdit
+                            }
+
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
                            self.ui.btnSendBackwards, self.ui.btnToggleVisible
                            }
@@ -300,8 +304,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.initializeEmptyFile()
 
-        if self.args.language is not None:
-            self.strings = xs.xasyString(self.args.language)
+        if self.args.language != 'en':
             self.internationalize()
 
     def initPenInterface(self):
@@ -1172,6 +1175,15 @@ class MainWindow1(Qw.QMainWindow):
 
         self.quickUpdate()
 
+    def editFinalized(self):
+        self.addMode.forceFinalize()
+        self.addMode = None
+        self.quickUpdate()
+
+    def editRejected(self):
+        self.addMode.resetObj()
+        self.editFinalized()
+
     def setupSelectEdit(self):
         """For Select-Edit mode. For now, if the object selected is a bezier curve, opens up a bezier editor"""
         maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -1180,6 +1192,8 @@ class MainWindow1(Qw.QMainWindow):
             # bezier path
             self.addMode = xbi.InteractiveBezierEditor(self, obj, self.currAddOptions)
             self.addMode.objectUpdated.connect(self.objectUpdated)
+            self.addMode.editAccepted.connect(self.editFinalized)
+            self.addMode.editRejected.connect(self.editRejected)
             self.updateOptionWidget()
         else:
             self.clearSelection()
@@ -1319,6 +1333,7 @@ class MainWindow1(Qw.QMainWindow):
         self.drawObjects = []
         self.populateCanvasWithItems(force)
         self.quickUpdate()
+        self.ui.statusbar.showMessage(self.strings.asyfyComplete)
 
     def quickUpdate(self):
         self.refreshCanvas()
@@ -1547,14 +1562,13 @@ class MainWindow1(Qw.QMainWindow):
             activeBtn = self.ui.btnAnchor
         elif self.currentModeStack[-1] == SelectionMode.delete:
             activeBtn = self.ui.btnDeleteMode
+        elif self.currentModeStack[-1] == SelectionMode.selectEdit:
+            activeBtn = self.ui.btnSelectEdit
         else:
             activeBtn = None
 
         for button in self.modeButtons:
-            if button is not activeBtn:
-                button.setChecked(False)
-            else:
-                button.setChecked(True)
+            button.setChecked(button is activeBtn)
 
     def updateChecks(self):
         self.addMode = None

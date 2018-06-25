@@ -17,6 +17,9 @@ class CurrentlySelctedType:
     ctrlPoint = 1
 
 class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
+    editAccepted = Qc.pyqtSignal()
+    editRejected = Qc.pyqtSignal()
+
     def __init__(self, parent: Qc.QObject, obj: x2a.xasyDrawnItem, info: dict={}):
         super().__init__(parent)
         self.info = info
@@ -312,6 +315,8 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
     def createOptWidget(self, info):
         self.opt = Web.Widg_editBezier(self.info)
 
+        self.opt.ui.btnOk.clicked.connect(self.editAccepted)
+        self.opt.ui.btnCancel.clicked.connect(self.editRejected)
         self.opt.ui.btnForceRecompute.clicked.connect(self.recalculateCtrls)
 
         return self.opt
