@@ -59,12 +59,13 @@ class HardDeletionChanges(ActionChanges):
 
 class AnchorMode:
     origin = 0
-    topLeft = 1
-    topRight = 2
-    bottomRight = 3
-    bottomLeft = 4
-    customAnchor = 5
-    center = 6
+    center = 1
+    topLeft = 2
+    topRight = 3
+    bottomRight = 4
+    bottomLeft = 5
+    customAnchor = 6
+    
 
 class GridMode:
     cartesian = 0
@@ -373,7 +374,7 @@ class MainWindow1(Qw.QMainWindow):
         # self.ui.btnDebug.clicked.connect(self.pauseBtnOnClick)
         self.ui.btnAlignX.clicked.connect(self.btnAlignXOnClick)
         self.ui.btnAlignY.clicked.connect(self.btnAlignYOnClick)
-        self.ui.comboAnchor.currentTextChanged.connect(self.handleAnchorCombo)
+        self.ui.comboAnchor.currentIndexChanged.connect(self.handleAnchorComboIndex)
         self.ui.btnWorldCoords.clicked.connect(self.btnWorldCoordsOnClick)
 
         self.ui.btnCustTransform.clicked.connect(self.btnCustTransformOnClick)
@@ -800,39 +801,15 @@ class MainWindow1(Qw.QMainWindow):
         if fileName[0]:
             self.loadFile(fileName[0])
 
-    def handleAnchorCombo(self, text):
-        if text == 'Origin':
-            self.anchorMode = AnchorMode.origin
-        elif text == 'Center':
-            self.anchorMode = AnchorMode.center
-        elif text == 'Top Left':
-            self.anchorMode = AnchorMode.topLeft
-        elif text == 'Bottom Left':
-            self.anchorMode = AnchorMode.bottomLeft
-        elif text == 'Bottom Right':
-            self.anchorMode = AnchorMode.bottomRight
-        elif text == 'Custom Anchor':
+    @Qc.pyqtSlot(int)
+    def handleAnchorComboIndex(self, index: int):
+        self.anchorMode = index
+        if self.anchorMode == AnchorMode.customAnchor:
             if self.customAnchor is not None:
                 self.anchorMode = AnchorMode.customAnchor
             else:
-                result = self.btnCustomAnchorOnClick()
-                if not result:
-                    self.ui.comboAnchor.setCurrentIndex(0)
-                    self.anchorMode = AnchorMode.origin
-                else:
-                    self.anchorMode = AnchorMode.customAnchor
-
-    def btnCustomAnchorOnClick(self, text=''):
-        custAnchorDialog = SetCustomAnchor.CustomAnchorDialog()
-        custAnchorDialog.show()
-        result = custAnchorDialog.exec()
-        if result == Qw.QDialog.Accepted:
-            self.customAnchor = custAnchorDialog.getPoint()
-            self.ui.comboAnchor.setCurrentText('Custom Anchor')
-            return True
-        else:
-            return False
-
+                self.ui.comboAnchor.setCurrentIndex(AnchorMode.center)
+                self.anchorMode = AnchorMode.center
     def btnColorSelectOnClick(self):
         self.colorDialog.show()
         result = self.colorDialog.exec()
@@ -1068,7 +1045,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             return False
 
-    def mousePressEvent(self, mouseEvent):
+    def mousePressEvent(self, mouseEvent: Qg.QMouseEvent):
         # we make an exception for bezier curve
         bezierException = False
         if self.addMode is not None:
@@ -1089,6 +1066,9 @@ class MainWindow1(Qw.QMainWindow):
         elif self.currentModeStack[-1] == SelectionMode.setAnchor:
             self.customAnchor = self.savedMousePosition
             self.currentModeStack.pop()
+
+            self.anchorMode = AnchorMode.customAnchor
+            self.ui.comboAnchor.setCurrentIndex(AnchorMode.customAnchor)
             self.updateChecks()
             self.quickUpdate()
         elif self.inMidTransformation:
@@ -1249,24 +1229,7 @@ class MainWindow1(Qw.QMainWindow):
     def getWindowCoordinates(self):
         # assert self.ui.imgLabel.underMouse()
         return self.mapFromGlobal(Qg.QCursor.pos())
-    # def rotateBtnOnClick(self):
-    #     theta = float(self.ui.txtTheta.toPlainText())
-    #     objectID = int(self.ui.txtObjectID.toPlainText())
-    #     self.rotateObject(0, objectID, theta, (0, 0))
-    #     self.populateCanvasWithItems()
-    #     self.ui.imgLabel.setPixmap(self.canvasPixmap)
-
-    # def custTransformBtnOnClick(self):
-    #     xx = float(self.ui.lineEditMatXX.text())
-    #     xy = float(self.ui.lineEditMatXY.text())
-    #     yx = float(self.ui.lineEditMatYX.text())
-    #     yy = float(self.ui.lineEditMatYY.text())
-    #     tx = float(self.ui.lineEditTX.text())
-    #     ty = float(self.ui.lineEditTY.text())
-    #     objectID = int(self.ui.txtObjectID.toPlainText())
-    #     self.transformObject(0, objectID, x2a.asyTransform((tx, ty, xx, xy,
-    #                          yx, yy)))
-
+        
     def refreshCanvas(self):
         self.mainCanvas.begin(self.canvasPixmap)
         self.mainCanvas.setTransform(self.screenTransformation)
