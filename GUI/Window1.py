@@ -166,7 +166,7 @@ class MainWindow1(Qw.QMainWindow):
         self.origBboxTransform = None
         self.deltaAngle = 0
         self.scaleFactor = 1
-        self.panOffset = 0, 0
+        self.panOffset = [0, 0]
 
         super().setMouseTracking(True)
         # setMouseTracking(True)
@@ -887,9 +887,6 @@ class MainWindow1(Qw.QMainWindow):
 
         asyPos, canvasPos = self.getAsyCoordinates()
 
-        self.coordLabel.setText('{0:d}, {1:d}    '.format(
-            canvasPos.x(), canvasPos.y()))
-
         # add mode 
         if self.addMode is not None:
             if self.addMode.active:
@@ -909,7 +906,9 @@ class MainWindow1(Qw.QMainWindow):
             if self.lockY:
                 ty = 0
 
-            self.panOffset = xu.funcOnList(self.panOffset, (tx, ty), lambda a, b: a + b)
+            self.panOffset[0] += tx
+            self.panOffset[1] += ty
+
             self.savedWindowMousePos = self.getWindowCoordinates()
             self.quickUpdate()
             return
@@ -1013,17 +1012,27 @@ class MainWindow1(Qw.QMainWindow):
             else:
                 if self.pendingSelectedObjIndex + offset >= -len(self.pendingSelectedObjList):
                     self.pendingSelectedObjIndex = self.pendingSelectedObjIndex + offset
-            self.quickUpdate()
+            # self.quickUpdate()
     
-    def wheelEvent(self, event):
-        assert isinstance(event, Qg.QWheelEvent)
+    def wheelEvent(self, event: Qg.QWheelEvent):
         rawAngle = event.angleDelta().y() / 8
-
-        if rawAngle >= 15:
-            self.changeSelection(1)
-        elif rawAngle <= -15:
-            self.changeSelection(-1)
-
+        rawAngleX = event.angleDelta().x() / 8
+        keyModifiers = int(Qw.QApplication.keyboardModifiers())
+        if keyModifiers & int(Qc.Qt.ControlModifier):
+            self.magnification += (rawAngle/100)
+            if self.magnification <= 0.0001:
+                self.magnification = 0.0001
+        elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
+            self.panOffset[1] += rawAngle/1
+            self.panOffset[0] += rawAngleX/1
+        # handle scrolling
+        else:
+            # process selection layer change
+            if rawAngle >= 15:
+                self.changeSelection(1)
+            elif rawAngle <= -15:
+                self.changeSelection(-1)
+        self.quickUpdate()
     def selectOnHover(self):
         """Returns True if selection happened, False otherwise.
         """
@@ -1243,6 +1252,9 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.statusbar.showMessage(self.strings.asyfyComplete)
 
     def quickUpdate(self):
+        *args, canvasPos = self.getAsyCoordinates()
+        self.coordLabel.setText('{0:d}, {1:d}    '.format(
+            canvasPos.x(), canvasPos.y()))
         self.refreshCanvas()
 
         self.preDraw(self.mainCanvas)

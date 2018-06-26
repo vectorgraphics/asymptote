@@ -23,6 +23,7 @@ import string
 import subprocess
 import tempfile
 import re
+import shutil
 import copy
 import queue
 import io
@@ -62,8 +63,8 @@ class AsymptoteEngine:
         self.keepFiles = keepFiles
         self.useTmpDir = customOutdir is None
         if customOutdir is None:
-            self.tmpdir = tempfile.TemporaryDirectory(prefix='xasyData_')
-            oargs = self.tmpdir.name + os.sep
+            self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')
+            oargs = self.tmpdir + os.sep
         else:
             self.tmpdir = customOutdir
             oargs = customOutdir
@@ -106,7 +107,7 @@ class AsymptoteEngine:
 
     @property
     def tempDirName(self):
-        return self.tmpdir.name + os.sep
+        return self.tmpdir + os.sep
 
     def startThenStop(self):
         self.start()
@@ -148,15 +149,13 @@ class AsymptoteEngine:
     def stop(self):
         if self.active:
             self.asyProcess.terminate()
-            if not self.keepFiles:
-                try:
-                    os.rmdir(self.tempDirName)
-                finally:
-                    pass
 
     def cleanup(self):
         self.stop()
         self.asyProcess.wait()
+        if not self.keepFiles:
+            if os.path.isdir(self.tempDirName + os.sep):
+                shutil.rmtree(self.tempDirName, ignore_errors=True)
 
 class asyTransform(Qc.QObject):
     """A python implementation of an asy transform"""
