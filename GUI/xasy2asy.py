@@ -148,11 +148,15 @@ class AsymptoteEngine:
     def stop(self):
         if self.active:
             self.asyProcess.terminate()
-            if not self.keepFiles and not self.useTmpDir:
+            if not self.keepFiles:
                 try:
                     os.rmdir(self.tempDirName)
                 finally:
                     pass
+
+    def cleanup(self):
+        self.stop()
+        self.asyProcess.wait()
 
 class asyTransform(Qc.QObject):
     """A python implementation of an asy transform"""

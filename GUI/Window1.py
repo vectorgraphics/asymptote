@@ -15,6 +15,7 @@ import tempfile
 import datetime
 import string
 import uuid
+import atexit
 
 import xasyUtils as xu
 import xasy2asy as x2a
@@ -119,7 +120,11 @@ class MainWindow1(Qw.QMainWindow):
 
         self.asyPath = asyPath
         self.asyEngine = x2a.AsymptoteEngine(self.asyPath)
-        self.asyEngine.start()
+
+        try:
+            self.asyEngine.start()
+        finally:
+            atexit.register(self.asyEngine.cleanup)
 
         # For initialization purposes
         self.canvSize = Qc.QSize()
@@ -264,6 +269,9 @@ class MainWindow1(Qw.QMainWindow):
 
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
+
+    def cleanup(self):
+        self.asyengine.cleanup()
 
     def getScrsTransform(self):
         # pipeline:
