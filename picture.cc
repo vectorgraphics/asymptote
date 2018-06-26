@@ -672,7 +672,25 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
   return true;
 }               
   
-  
+int picture::epstosvg(const string& epsname, const string& outname)
+{  
+  mem::vector<string> cmd;
+  cmd.push_back(getSetting<string>("dvisvgm"));
+  cmd.push_back("-n");
+  cmd.push_back("-E");
+  cmd.push_back("--verbosity=3");
+  string libgs=getSetting<string>("libgs");
+  if(!libgs.empty())
+    cmd.push_back("--libgs="+libgs);
+  push_split(cmd,getSetting<string>("dvisvgmOptions"));
+  cmd.push_back("-o"+outname);
+  cmd.push_back(epsname);
+  int status=System(cmd,0,true,"dvisvgm");
+  if(!getSetting<bool>("keep"))
+    unlink(epsname.c_str());
+  return status;
+}
+
 bool picture::postprocess(const string& prename, const string& outname,
                           const string& outputformat, double magnification,
                           bool wait, bool view, bool pdftex, 
@@ -695,19 +713,9 @@ bool picture::postprocess(const string& prename, const string& outname,
       if(svg) {
         string epsname=stripExt(prename)+".eps";
         status=pdftoeps(prename,epsname);
-        cmd.push_back(getSetting<string>("dvisvgm"));
-        cmd.push_back("-n");
-        cmd.push_back("-E");
-        cmd.push_back("--verbosity=3");
-        string libgs=getSetting<string>("libgs");
-        if(!libgs.empty())
-          cmd.push_back("--libgs="+libgs);
-        push_split(cmd,getSetting<string>("dvisvgmOptions"));
-        cmd.push_back("-o"+outname);
-        cmd.push_back(epsname);
-        status=System(cmd,0,true,"dvisvgm");
-        if(!getSetting<bool>("keep"))
-          unlink(epsname.c_str());
+        if(status != 0) return false;
+        
+        status=epstosvg(epsname,outname);
         epsformat=false;
       } else 
         status=pdftoeps(prename,outname);

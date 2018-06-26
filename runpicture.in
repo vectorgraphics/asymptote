@@ -511,7 +511,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
   unsigned n=0;
 
   string prefix=outname();
-  const string xformat="png";
+  const string xformat="svg";
 
   static long arg_max=sysconf(_SC_ARG_MAX);
   const unsigned maxargs=::min(arg_max/(prefix.size()+xformat.size()+25ul),
@@ -543,10 +543,12 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
     for(picture::nodelist::iterator p=f->nodes.begin();;) {
       if(p == f->nodes.end()) break;
       if(arg == 0) {
+        /*
         cmd.clear();
         ostringstream buf;
         buf << batch << "_";
         outname=buildname(prefix+buf.str()+"%d",xformat,"");
+      
         converter="gs";
         hint="Ghostscript";
         cmd.push_back(getSetting<string>(converter));
@@ -560,6 +562,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
           cmd.push_back("-dSAFER");
         cmd.push_back("-r"+String(res)+"x"+String(res));
         cmd.push_back("-sOutputFile="+outname);
+*/        
       }
       
       picture *group=new picture;
@@ -605,7 +608,17 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
           string Preformat=group->Transparency() ? "pdf" : preformat;
           string name=buildname(buf.str(),Preformat);
           nameStack.push_back(name);
-          cmd.push_back(name);
+          ostringstream Buf;
+          Buf << prefix << batch << "_" << arg;
+          outname=buildname(Buf.str(),xformat,"");
+          int status=f->epstosvg(name,outname);
+//          cmd.push_back(name);
+        if(status) {
+          fprintf(pipeout,"%s\n",Error.c_str());
+          fflush(pipeout);
+          error("deconstruct failed");
+        }
+          
           b=group->bounds();
           b *= magnification;
       
@@ -635,12 +648,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
         ++batch;
         fflush(pipeout);
   
-        int status=System(cmd,0,true,converter,hint);
-        if(status) {
-          fprintf(pipeout,"%s\n",Error.c_str());
-          fflush(pipeout);
-          error("deconstruct failed");
-        }
+//        int status=System(cmd,0,true,converter,hint);
       }
     }
     

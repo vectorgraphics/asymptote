@@ -68,6 +68,7 @@ public:
     return transparency;
   }
   
+  int epstosvg(const string& epsname, const string& outname);
   int epstopdf(const string& epsname, const string& pdfname);
   int pdftoeps(const string& pdfname, const string& epsname);
   
