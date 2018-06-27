@@ -702,7 +702,7 @@ class xasyItem(Qc.QObject):
             svgobj = xs.SvgObject(file)
             svgobj.scale(1, -1)
 
-            if DebugFlags.forceRasterizationSVG:
+            if svgobj.containsClip:
                 image = svgobj
             else:
                 image = Qs.QSvgRenderer(svgobj.dump())
@@ -1308,9 +1308,9 @@ class DrawObject(Qc.QObject):
         elif isinstance(self.drawObject, xs.SvgObject):
             # canvas.save()
             # canvas.scale(1, -1)
-            if self.cachedSvgImg is None or 1 == 1:
-                self.cachedSvgImg = Qg.QImage(self.explicitBoundingBox.size().toSize() * 12, 6)
-                self.cachedSvgImg.loadFromData(self.drawObject.dump(), 'SVG')
+            if self.cachedSvgImg is None:
+                self.cachedSvgImg = self.drawObject.render(500)
+                # self.cachedSvgImg.loadFromData(self.drawObject.dump(), 'SVG')
             canvas.drawImage(self.explicitBoundingBox, self.cachedSvgImg)
             # canvas.restore()
         elif isinstance(self.drawObject, Qs.QSvgRenderer):

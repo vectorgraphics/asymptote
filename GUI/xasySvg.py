@@ -12,6 +12,20 @@ class SvgObject():
         self._cachedDump = None
         self._changed = False
 
+    @property
+    def containsClip(self) -> bool:
+        return self._recContainsClip(self._root)
+
+    def _recContainsClip(self, root: xet.Element) -> bool:
+        if root is None:
+            return False 
+        elif 'clip-path'.format(self.xmlns) in root.attrib:
+            return True
+        else:
+            for child in root:
+                if self._recContainsClip(child):
+                    return True
+            return False
     def scale(self, sx: float, sy: float):
         # <root> <g><g transf=..> ... 
         self._changed = True
