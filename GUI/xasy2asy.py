@@ -1228,7 +1228,7 @@ class DrawObject(Qc.QObject):
         self.useCanvasTransformation = False
         self.key = key
         self.cachedSvgImg = None
-        self.maxDPI = 100
+        self.cachedDPI = None
         self.keyIndex = keyIndex
         self.pen = pen
         self.fill = fill
@@ -1279,7 +1279,7 @@ class DrawObject(Qc.QObject):
         scrTransf = self.baseTransform.toQTransform().inverted()[0] * self.pTransform.toQTransform()
         return asyTransform.fromQTransform(scrTransf)
 
-    def draw(self, additionalTransformation=None, applyReverse=False, canvas: Qg.QPainter=None):
+    def draw(self, additionalTransformation=None, applyReverse=False, canvas: Qg.QPainter=None, dpi=300):
         if canvas is None:
             canvas = self.mainCanvas
         if additionalTransformation is None:
@@ -1308,8 +1308,9 @@ class DrawObject(Qc.QObject):
         elif isinstance(self.drawObject, xs.SvgObject):
             # canvas.save()
             # canvas.scale(1, -1)
-            if self.cachedSvgImg is None:
-                self.cachedSvgImg = self.drawObject.render(500)
+            if self.cachedSvgImg is None or dpi != self.cachedDPI:
+                self.cachedDPI = dpi
+                self.cachedSvgImg = self.drawObject.render(dpi)
                 # self.cachedSvgImg.loadFromData(self.drawObject.dump(), 'SVG')
             canvas.drawImage(self.explicitBoundingBox, self.cachedSvgImg)
             # canvas.restore()

@@ -2,3 +2,5 @@ numpy==1.11.0
 cson==0.7
 PyQt5==5.11
 typing==3.6.4
+pycairo==1.16.3
+cairocffi==0.8.1

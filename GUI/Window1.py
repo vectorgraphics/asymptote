@@ -131,6 +131,7 @@ class MainWindow1(Qw.QMainWindow):
         self.filename = None
         self.currDir = None
         self.mainCanvas = None
+        self.dpi = 300
         self.canvasPixmap = None
 
         # Actions
@@ -1281,11 +1282,11 @@ class MainWindow1(Qw.QMainWindow):
                 if isSelected and self.settings['enableImmediatePreview']:
                     activeItem = item
                     if self.useGlobalCoords:
-                        item.draw(self.newTransform, canvas=self.mainCanvas)
+                        item.draw(self.newTransform, canvas=self.mainCanvas, dpi=self.dpi)
                     else:
-                        item.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas)
+                        item.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas, dpi=self.dpi)
                 else:
-                    item.draw(canvas=self.mainCanvas)
+                    item.draw(canvas=self.mainCanvas, dpi=self.dpi)
 
         if self.settings['drawSelectedOnTop']:
             if self.pendingSelectedObjList:
