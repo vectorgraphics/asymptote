@@ -692,21 +692,20 @@ class xasyItem(Qc.QObject):
     def generateDrawObjects(self, mag=1.0):
         raise NotImplementedError
 
-    def handleImageReception(self, file, fileformat, bbox, count, key=None, localCount=0):
+    def handleImageReception(self, file, fileformat, bbox, count, key=None, localCount=0, containsClip=False):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
         if fileformat == 'png':
-            image = Qg.QImage(file).mirrored(False, True)
+            image = Qg.QImage(file)
         elif fileformat == 'svg':
             # and don't forget to flip this... 
             svgobj = xs.SvgObject(file)
-            svgobj.scale(1, -1)
 
-            if svgobj.containsClip:
+            if containsClip:
                 image = svgobj
             else:
-                image = Qs.QSvgRenderer(svgobj.dump())
-            # assert image.isValid()
+                image = Qs.QSvgRenderer(svgobj._data)
+                assert image.isValid()
         else:
             raise Exception('Format not supported!')
         self.imageList.append(asyImage(image, fileformat, bbox, transfKey=key, keyIndex=localCount))
@@ -793,11 +792,11 @@ class xasyItem(Qc.QObject):
 
         def render():
             for i in range(len(imageInfos)):
-                box, key, localCount = imageInfos[i]
+                box, key, localCount, useClip = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
                 name = "{:s}{:d}_{:d}.{:s}".format(self.asyengine.tempDirName, batch, i, fileformat)
 
-                self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key, localCount))
+                self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key, localCount, useClip))
 
         # key first, box second.
         # if key is "Done"
@@ -815,8 +814,9 @@ class xasyItem(Qc.QObject):
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
 
-            keyflag = keydata[-1]       # last char
-            keydata = keydata[:-2]
+            clipflag = keydata[-1] == '1'
+            keyflag = keydata[-2] == '1'   # last char
+            keydata = keydata[:-3]
             if keyflag == '0':
                 self.unsetKeys.add(keydata)
             
@@ -825,7 +825,7 @@ class xasyItem(Qc.QObject):
             if keydata not in keyCounts.keys():
                 keyCounts[keydata] = 0
 
-            imageInfos.append((text, keydata, keyCounts[keydata]))      # key-data pair
+            imageInfos.append((text, keydata, keyCounts[keydata], clipflag))      # key-data pair
 
             # for the next item
             keyCounts[keydata] += 1
@@ -1306,21 +1306,19 @@ class DrawObject(Qc.QObject):
         if isinstance(self.drawObject, Qg.QImage):
             canvas.drawImage(self.explicitBoundingBox, self.drawObject)
         elif isinstance(self.drawObject, xs.SvgObject):
-            # canvas.save()
-            # canvas.scale(1, -1)
             if dpi > 10000:
                 dpi = 10000
             
-            needsRedraw=False;
-#            needsRedraw = self.cachedDPI <= 0
+            needsRedraw = self.cachedDPI is None or self.cachedSvgImg is None
+
+            if not needsRedraw:
+                needsRedraw = not 1/2 <= abs(dpi/self.cachedDPI) <= 2
+        
             if needsRedraw:
-                 needsRedraw = needsRedraw and 1/2 <= abs(dpi/self.cachedDPI) >= 2
-            if self.cachedSvgImg is None or needsRedraw:
                 self.cachedDPI = dpi
                 self.cachedSvgImg = self.drawObject.render(dpi)
                 # self.cachedSvgImg.loadFromData(self.drawObject.dump(), 'SVG')
             canvas.drawImage(self.explicitBoundingBox, self.cachedSvgImg)
-            # canvas.restore()
         elif isinstance(self.drawObject, Qs.QSvgRenderer):
             self.drawObject.render(canvas, self.explicitBoundingBox)
         elif isinstance(self.drawObject, Qg.QPainterPath):
