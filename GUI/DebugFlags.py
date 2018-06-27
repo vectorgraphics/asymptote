@@ -1,4 +1,4 @@
-keepFiles = True
+keepFiles = False
 printFoutTranscript = False
-printDeconstTranscript = True
+printDeconstTranscript = False
 forceRasterizationSVG = False
