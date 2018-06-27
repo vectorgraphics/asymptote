@@ -1311,7 +1311,8 @@ class DrawObject(Qc.QObject):
             if dpi > 10000:
                 dpi = 10000
             
-            needsRedraw = self.cachedDPI <= 0
+            needsRedraw=False;
+#            needsRedraw = self.cachedDPI <= 0
             if needsRedraw:
                  needsRedraw = needsRedraw and 1/2 <= abs(dpi/self.cachedDPI) >= 2
             if self.cachedSvgImg is None or needsRedraw:

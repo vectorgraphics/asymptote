@@ -60,7 +60,7 @@ frame enclose(string prefix=defaultfilename, object F, string format="")
 
 void deconstruct(picture pic=currentpicture, real magnification=1)
 {
-  deconstruct(pic.fit(),currentpatterns,magnification);
+  deconstruct(yscale(-1)*pic.fit(),currentpatterns,magnification);
 }
 
 void shipout(string prefix=defaultfilename, frame f,

@@ -34,3 +34,4 @@ draw(z--z1,Arrow,Margin(0,m));
 draw(z--z2,Arrow,Margin(0,m));
 
 //shipout(bbox(0.25cm));
+deconstruct();

@@ -575,12 +575,14 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
         fflush(pipeout);
         error(nobegin);
       }
+      bool clip=false;
       if((*p)->begingroup()) {
         ++level;
         while(p != f->nodes.end() && level) {
           if(!Delete) {
             drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
             group->append(e);
+            if((*p)->endclip()) clip=true;
           }
           ++p;
           if(p == f->nodes.end()) break;
@@ -599,7 +601,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
       if(p != f->nodes.end()) {
         if(!Delete) {
           drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-          fprintf(pipeout,"KEY=%s\n",e->KEY.c_str());
+          fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip);
           group->append(e);
           bbox b;
           ostringstream buf;
