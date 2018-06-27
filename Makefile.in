@@ -47,10 +47,10 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 
 FILES = $(COREFILES) main
 
-SYMBOLSH = opsymbols.h allsymbols.h
+SYMBOLSH = opsymbols.h allsymbols.h $(SYMBOL_FILES:=.symbols.h)
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
-        $(SYMBOLSH) $(SYMBOL_FILES:=.symbols.h)
+        $(SYMBOLSH)
 NAME = asy
 XNAME = x$(NAME)
 UIFILES = $(wildcard GUI/windows/*.ui)
