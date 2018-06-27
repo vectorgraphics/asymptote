@@ -126,7 +126,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-arrow-back.svg</normaloff>:/icons/ionicons-2.0.1/src/android-arrow-back.svg</iconset>
             </property>
             <property name="iconSize">
@@ -170,7 +170,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-arrow-forward.svg</normaloff>:/icons/ionicons-2.0.1/src/android-arrow-forward.svg</iconset>
             </property>
             <property name="flat">
@@ -205,7 +205,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-folder-open.svg</normaloff>:/icons/ionicons-2.0.1/src/android-folder-open.svg</iconset>
             </property>
             <property name="flat">
@@ -240,7 +240,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/entypo/Entypo+/Entypo+/save.svg</normaloff>:/entypo/Entypo+/Entypo+/save.svg</iconset>
             </property>
             <property name="flat">
@@ -275,7 +275,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/entypo/Entypo+/Entypo+/code.svg</normaloff>:/entypo/Entypo+/Entypo+/code.svg</iconset>
             </property>
             <property name="flat">
@@ -310,7 +310,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-camera.svg</normaloff>:/icons/ionicons-2.0.1/src/android-camera.svg</iconset>
             </property>
             <property name="flat">
@@ -368,7 +368,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/plus-round.svg</normaloff>:/icons/ionicons-2.0.1/src/plus-round.svg</iconset>
             </property>
             <property name="checkable">
@@ -416,7 +416,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/grid.svg</normaloff>:/icons/ionicons-2.0.1/src/grid.svg</iconset>
             </property>
             <property name="checkable">
@@ -457,7 +457,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-sync.svg</normaloff>:/icons/ionicons-2.0.1/src/android-sync.svg</iconset>
             </property>
             <property name="flat">
@@ -492,7 +492,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/entypo/Entypo+/Entypo+/magnifying-glass.svg</normaloff>:/entypo/Entypo+/Entypo+/magnifying-glass.svg</iconset>
             </property>
             <property name="flat">
@@ -624,7 +624,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-globe.svg</normaloff>:/icons/ionicons-2.0.1/src/android-globe.svg</iconset>
             </property>
             <property name="checkable">
@@ -768,7 +768,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-hand.svg</normaloff>:/icons/ionicons-2.0.1/src/android-hand.svg</iconset>
             </property>
             <property name="checkable">
@@ -806,7 +806,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/arrow-move.svg</normaloff>:/icons/ionicons-2.0.1/src/arrow-move.svg</iconset>
             </property>
             <property name="checkable">
@@ -847,7 +847,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-refresh.svg</normaloff>:/icons/ionicons-2.0.1/src/android-refresh.svg</iconset>
             </property>
             <property name="checkable">
@@ -885,7 +885,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/arrow-resize.svg</normaloff>:/icons/ionicons-2.0.1/src/arrow-resize.svg</iconset>
             </property>
             <property name="checkable">
@@ -923,7 +923,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-delete.svg</normaloff>:/icons/ionicons-2.0.1/src/android-delete.svg</iconset>
             </property>
             <property name="checkable">
@@ -996,7 +996,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/edit.svg</normaloff>:/icons/ionicons-2.0.1/src/edit.svg</iconset>
             </property>
             <property name="flat">
@@ -1047,7 +1047,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/eye.svg</normaloff>:/icons/ionicons-2.0.1/src/eye.svg</iconset>
             </property>
             <property name="checkable">
@@ -1085,7 +1085,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/icons/ionicons-2.0.1/src/android-expand.svg</normaloff>:/icons/ionicons-2.0.1/src/android-expand.svg</iconset>
             </property>
             <property name="flat">
@@ -1123,7 +1123,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-left.svg</normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-left.svg</iconset>
             </property>
             <property name="flat">
@@ -1161,7 +1161,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
+             <iconset>
               <normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-right.svg</normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-right.svg</iconset>
             </property>
             <property name="flat">
@@ -1245,7 +1245,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../res/icons.qrc">
+                <iconset>
                  <normaloff>:/maki/mapbox-maki-463a9ff/icons/circle-stroked-15.svg</normaloff>
                  <normalon>:/maki/mapbox-maki-463a9ff/icons/circle-15.svg</normalon>:/maki/mapbox-maki-463a9ff/icons/circle-stroked-15.svg</iconset>
                </property>
@@ -1373,7 +1373,7 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../res/icons.qrc">
+                <iconset>
                  <normaloff>:/icons/ionicons-2.0.1/src/android-color-palette.svg</normaloff>:/icons/ionicons-2.0.1/src/android-color-palette.svg</iconset>
                </property>
                <property name="default">
@@ -1548,7 +1548,7 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
+                   <iconset>
                     <normaloff>:/maki/mapbox-maki-463a9ff/icons/triangle-stroked-15.svg</normaloff>:/maki/mapbox-maki-463a9ff/icons/triangle-stroked-15.svg</iconset>
                   </property>
                   <property name="flat">
@@ -1577,7 +1577,7 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
+                   <iconset>
                     <normaloff>:/entypo/Entypo+/Entypo+/circle.svg</normaloff>:/entypo/Entypo+/Entypo+/circle.svg</iconset>
                   </property>
                   <property name="flat">
@@ -1606,7 +1606,7 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
+                   <iconset>
                     <normaloff>:/openiconic/open-iconic-master/svg/text.svg</normaloff>:/openiconic/open-iconic-master/svg/text.svg</iconset>
                   </property>
                   <property name="flat">
@@ -1635,7 +1635,7 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
+                   <iconset>
                     <normaloff>:/icons/ionicons-2.0.1/src/code.svg</normaloff>:/icons/ionicons-2.0.1/src/code.svg</iconset>
                   </property>
                   <property name="flat">
@@ -1732,7 +1732,7 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../res/icons.qrc">
+                <iconset>
                  <normaloff>:/icons/ionicons-2.0.1/src/social-python.svg</normaloff>:/icons/ionicons-2.0.1/src/social-python.svg</iconset>
                </property>
                <property name="iconSize">
@@ -1799,7 +1799,7 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1030</width>
-     <height>27</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
@@ -1932,7 +1932,7 @@ background: rgb(0, 0, 0)
   </action>
   <action name="actionExportAsymptote">
    <property name="text">
-    <string>Export Asymptote</string>
+    <string>Export</string>
    </property>
   </action>
  </widget>

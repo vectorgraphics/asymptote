@@ -852,6 +852,7 @@ class MainWindow1(Qw.QMainWindow):
             self.canvSize = self.ui.imgFrame.size()
             self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
             self.canvasPixmap = Qg.QPixmap(self.canvSize)
+            # self.canvasPixmap.setDevicePixelRatio(3)
             self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
 
             self.quickUpdate()

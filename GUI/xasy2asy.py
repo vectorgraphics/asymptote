@@ -13,6 +13,7 @@ import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
 import PyQt5.QtSvg as Qs
 
+import cairosvg as csvg
 import numpy as np
 
 import sys
@@ -32,6 +33,7 @@ import DebugFlags
 import xasyUtils as xu
 import xasyArgs as xa
 import xasyOptions as xo
+import xasySvg as xs
 
 import uuid
 
@@ -638,7 +640,6 @@ class asyImage:
         self.key = transfKey
         self.keyIndex = keyIndex
 
-
 class xasyItem(Qc.QObject):
     """A base class for items in the xasy GUI"""
     mapString = 'xmap'
@@ -691,16 +692,29 @@ class xasyItem(Qc.QObject):
     def generateDrawObjects(self, mag=1.0):
         raise NotImplementedError
 
-    def handleImageReception(self, file, format, bbox, count, key=None, localCount=0):
+    def handleImageReception(self, file, fileformat, bbox, count, key=None, localCount=0):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
-        image = Qg.QImage(file).mirrored(False, True)
-        self.imageList.append(asyImage(image, format, bbox, transfKey=key, keyIndex=localCount))
+        if fileformat == 'png':
+            image = Qg.QImage(file).mirrored(False, True)
+        elif fileformat == 'svg':
+            # and don't forget to flip this... 
+            svgobj = xs.SvgObject(file)
+            svgobj.scale(1, -1)
+
+            if DebugFlags.forceRasterizationSVG:
+                image = svgobj
+            else:
+                image = Qs.QSvgRenderer(svgobj.dump())
+            # assert image.isValid()
+        else:
+            raise Exception('Format not supported!')
+        self.imageList.append(asyImage(image, fileformat, bbox, transfKey=key, keyIndex=localCount))
         if self.onCanvas is not None:
             # self.imageList[-1].iqt = ImageTk.PhotoImage(image)
             currImage = self.imageList[-1]
             currImage.iqt = image
-            currImage.originalImage = image.copy()
+            currImage.originalImage = image
             currImage.originalImage.theta = 0.0
             currImage.originalImage.bbox = list(bbox)
             currImage.performCanvasTransform = False
@@ -719,6 +733,7 @@ class xasyItem(Qc.QObject):
                 newDrawObj = DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=identity(),
                                         btmRightanchor=Qc.QPointF(bbox[0], bbox[2]), drawOrder=-1, key=key,
                                         parentObj=self, keyIndex=localCount)
+                newDrawObj.setBoundingBoxPs(bbox)
                 newDrawObj.setParent(self)
                 self.drawObjects.append(newDrawObj)
 
@@ -744,6 +759,8 @@ class xasyItem(Qc.QObject):
                 if not DebugFlags.keepFiles:
                     try:
                         os.remove(item[0])
+                    except OSError:
+                        pass
                     finally:
                         pass
             item = self.imageHandleQueue.get()
@@ -778,7 +795,7 @@ class xasyItem(Qc.QObject):
             for i in range(len(imageInfos)):
                 box, key, localCount = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
-                name = "{:s}{:d}_{:d}.{:s}".format(self.asyengine.tempDirName, batch, i + 1, fileformat)
+                name = "{:s}{:d}_{:d}.{:s}".format(self.asyengine.tempDirName, batch, i, fileformat)
 
                 self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key, localCount))
 
@@ -790,7 +807,7 @@ class xasyItem(Qc.QObject):
             print(raw_text.strip())
 
         # template=AsyTempDir+"%d_%d.%s"
-        fileformat = 'png'
+        fileformat = 'svg'
 
         while raw_text != "Done\n" and raw_text != "Error\n":
 #            print(raw_text)
@@ -1207,8 +1224,11 @@ class DrawObject(Qc.QObject):
         self.drawOrder = drawOrder
         self.btmRightAnchor = btmRightanchor
         self.originalObj = parentObj
+        self.explicitBoundingBox = None
         self.useCanvasTransformation = False
         self.key = key
+        self.cachedSvgImg = None
+        self.maxDPI = 100
         self.keyIndex = keyIndex
         self.pen = pen
         self.fill = fill
@@ -1227,15 +1247,23 @@ class DrawObject(Qc.QObject):
     def transform(self, value):
         self.pTransform = value
 
+    def setBoundingBoxPs(self, bbox):
+        l, b, r, t = bbox
+        self.explicitBoundingBox = Qc.QRectF(Qc.QPointF(l, b), Qc.QPointF(r, t))
+        # self.explicitBoundingBox = Qc.QRectF(0, 0, 100, 100)
+
     @property
     def boundingBox(self):
-        if isinstance(self.drawObject, Qg.QImage):
-            testBbox = self.drawObject.rect()
-            testBbox.moveTo(self.btmRightAnchor.toPoint())
-        elif isinstance(self.drawObject, Qg.QPainterPath):
-            testBbox = self.baseTransform.toQTransform().mapRect(self.drawObject.boundingRect())
+        if self.explicitBoundingBox is not None:
+            testBbox = self.explicitBoundingBox
         else:
-            raise TypeError('drawObject is not a valid type!')
+            if isinstance(self.drawObject, Qg.QImage):
+                testBbox = self.drawObject.rect()
+                testBbox.moveTo(self.btmRightAnchor.toPoint())
+            elif isinstance(self.drawObject, Qg.QPainterPath):
+                testBbox = self.baseTransform.toQTransform().mapRect(self.drawObject.boundingRect())
+            else:
+                raise TypeError('drawObject is not a valid type!')
         pointList = [self.getScreenTransform().toQTransform().map(point) for point in [
             testBbox.topLeft(), testBbox.topRight(), testBbox.bottomLeft(), testBbox.bottomRight()
         ]]
@@ -1276,7 +1304,17 @@ class DrawObject(Qc.QObject):
         canvas.setTransform(self.baseTransform.toQTransform().inverted()[0], True)
 
         if isinstance(self.drawObject, Qg.QImage):
-            canvas.drawImage(self.btmRightAnchor, self.drawObject)
+            canvas.drawImage(self.explicitBoundingBox, self.drawObject)
+        elif isinstance(self.drawObject, xs.SvgObject):
+            # canvas.save()
+            # canvas.scale(1, -1)
+            if self.cachedSvgImg is None or 1 == 1:
+                self.cachedSvgImg = Qg.QImage(self.explicitBoundingBox.size().toSize() * 12, 6)
+                self.cachedSvgImg.loadFromData(self.drawObject.dump(), 'SVG')
+            canvas.drawImage(self.explicitBoundingBox, self.cachedSvgImg)
+            # canvas.restore()
+        elif isinstance(self.drawObject, Qs.QSvgRenderer):
+            self.drawObject.render(canvas, self.explicitBoundingBox)
         elif isinstance(self.drawObject, Qg.QPainterPath):
             path = self.baseTransform.toQTransform().map(self.drawObject)
             if self.fill:

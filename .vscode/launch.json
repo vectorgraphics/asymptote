@@ -11,7 +11,14 @@
                 "ASYMPTOTE_DIR": "${workspaceFolder}/base"
             },
             "console": "integratedTerminal"
+        },
+        {
+            "name": "asydbg test",
+            "type": "asy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/venn.asy"
         }
     ],
     "compounds": []
 }
+

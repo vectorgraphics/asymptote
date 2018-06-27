@@ -629,7 +629,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
             setlocale(LC_NUMERIC,"C");
           }
         
-          fprintf(pipeout,"%g %g %g %g\n",b.left,b.right,b.bottom,b.top);
+          fprintf(pipeout,"%g %g %g %g\n",b.left,b.bottom,b.right,b.top);
         
           if(override) {
             setlocale(LC_NUMERIC,oldlocale);
