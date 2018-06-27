@@ -796,7 +796,7 @@ class xasyItem(Qc.QObject):
                 l, b, r, t = [float(a) for a in box.split()]
                 name = "{:s}{:d}_{:d}.{:s}".format(self.asyengine.tempDirName, batch, i, fileformat)
 
-                self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key, localCount, useClip))
+                self.imageHandleQueue.put((name, fileformat, (l, -t, r, -b), i, key, localCount, useClip))
 
         # key first, box second.
         # if key is "Done"
