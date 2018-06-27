@@ -1308,7 +1308,13 @@ class DrawObject(Qc.QObject):
         elif isinstance(self.drawObject, xs.SvgObject):
             # canvas.save()
             # canvas.scale(1, -1)
-            if self.cachedSvgImg is None or dpi != self.cachedDPI:
+            if dpi > 10000:
+                dpi = 10000
+            
+            needsRedraw = self.cachedDPI <= 0
+            if needsRedraw:
+                 needsRedraw = needsRedraw and 1/2 <= abs(dpi/self.cachedDPI) >= 2
+            if self.cachedSvgImg is None or needsRedraw:
                 self.cachedDPI = dpi
                 self.cachedSvgImg = self.drawObject.render(dpi)
                 # self.cachedSvgImg.loadFromData(self.drawObject.dump(), 'SVG')

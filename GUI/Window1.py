@@ -1268,7 +1268,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def quickDraw(self):
         assert self.isReady()
-
+        dpi = self.magnification * self.dpi
         activeItem = None
         for majorItem in self.drawObjects:
             for item in majorItem:
@@ -1282,11 +1282,11 @@ class MainWindow1(Qw.QMainWindow):
                 if isSelected and self.settings['enableImmediatePreview']:
                     activeItem = item
                     if self.useGlobalCoords:
-                        item.draw(self.newTransform, canvas=self.mainCanvas, dpi=self.dpi)
+                        item.draw(self.newTransform, canvas=self.mainCanvas, dpi=dpi)
                     else:
-                        item.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas, dpi=self.dpi)
+                        item.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas, dpi=dpi)
                 else:
-                    item.draw(canvas=self.mainCanvas, dpi=self.dpi)
+                    item.draw(canvas=self.mainCanvas, dpi=dpi)
 
         if self.settings['drawSelectedOnTop']:
             if self.pendingSelectedObjList:
