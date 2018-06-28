@@ -216,6 +216,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.currAddOptionsWgt = None
         self.currAddOptions = {
+            'options': self.settings, 
             'inscribed': True,
             'sides': 3,
             'centermode': True,

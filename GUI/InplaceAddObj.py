@@ -162,6 +162,7 @@ class AddBezierShape(InplaceObjProcess):
         self.pointsList = []
         self.currentPoint = Qc.QPointF(0, 0)
         self.pendingPoint = None
+        self.useLegacy = False
 
     def mouseDown(self, pos, info):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
@@ -174,6 +175,7 @@ class AddBezierShape(InplaceObjProcess):
             self.fill = info['fill']
             self.asyengine = info['asyengine']
             self.closedPath = info['closedPath']
+            self.useLegacy = self.info['options']['useLegacyBezierAddMode']
             self.pointsList.append((x, y, None))
 
     def _getLinkType(self):
@@ -186,15 +188,13 @@ class AddBezierShape(InplaceObjProcess):
         # in postscript coords.
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
-            if int(event.buttons()) == 0:
-                if (x, y) != (self.currentPoint.x(), self.currentPoint.y()):
-                    self.forceFinalize()
-                    return
-                else:
-                    return 
 
-            self.currentPoint.setX(x)
-            self.currentPoint.setY(y)
+            if self.useLegacy or int(event.buttons()) != 0:
+                self.currentPoint.setX(x)
+                self.currentPoint.setY(y)
+            else:
+                self.forceFinalize()
+
 
     def createOptWidget(self, info):
         return None
@@ -215,6 +215,9 @@ class AddBezierShape(InplaceObjProcess):
         self.basePath = x2a.asyPath(asyengine=self.asyengine)
         newNode = [(x, y) for x, y, _ in self.pointsList]
         newLink = [lnk for *args, lnk in self.pointsList[1:]]
+        if self.useLegacy:
+            newNode += [(self.currentPoint.x(), self.currentPoint.y())]
+            newLink += [self._getLinkType()]
         if self.closedPath:
             newNode.append('cycle')
             newLink.append(self._getLinkType())

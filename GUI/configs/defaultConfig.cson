@@ -21,6 +21,7 @@ defaultPenColor: "#000000"
 
 # 
 defaultPenWidth: 0.5
+useLegacyBezierAddMode: false
 enableImmediatePreview: true
 useDegrees: false
 groupObjDefault: false
