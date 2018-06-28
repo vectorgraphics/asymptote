@@ -947,7 +947,7 @@ terminated with an arrowhead:
 @center @image{quartercircle}
 @noindent
 Here the directions @code{up} and @code{left} in braces specify the
-incoming and outgoing directions at the points @code{(1,0)} and
+outgoing and incoming directions at the points @code{(1,0)} and
 @code{(0,1)}, respectively.
 
 In general, a path is specified as a list of points (or other paths)

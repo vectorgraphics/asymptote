@@ -98,7 +98,7 @@ string defaultPDFViewer="open";
 string defaultPDFViewer="acroread";
 #endif  
 string defaultGhostscript="gs";
-string defaultGhostscriptLibrary="/usr/lib/libgs.so";
+string defaultGhostscriptLibrary="";
 string defaultDisplay="display";
 string defaultAnimate="animate";
 void queryRegistry() {}

@@ -87,6 +87,11 @@ bool operator ==(rational r, rational s)
   return r.p == s.p && r.q == s.q;
 }
 
+bool operator !=(rational r, rational s)
+{
+  return r.p != s.p || r.q != s.q;
+}
+
 bool operator <(rational r, rational s)
 {
   return r.p*s.q-s.p*r.q < 0;

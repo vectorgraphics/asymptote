@@ -485,11 +485,12 @@ bool picture::texprocess(const string& texname, const string& outname,
           cmd.push_back("-Pdownload35");
           cmd.push_back("-D600");
           cmd.push_back("-O"+String(hoffset)+"bp,"+String(voffset)+"bp");
-          cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
-                        String(paperHeight)+"bp");
+          cmd.push_back("-E");
+//          cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
+//                        String(paperHeight)+"bp");
           push_split(cmd,getSetting<string>("dvipsOptions"));
-          if(getSetting<string>("papertype") != "")
-            cmd.push_back("-t"+papertype);
+//          if(getSetting<string>("papertype") != "")
+//            cmd.push_back("-t"+papertype);
           if(verbose <= 1) cmd.push_back("-q");
           cmd.push_back("-o"+psname);
           cmd.push_back(dviname);
