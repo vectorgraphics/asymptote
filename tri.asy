@@ -182,6 +182,7 @@ bool sameside(triple[] vertex, triple A, triple B, triple C,
 {
   dot(vertex,green);
   dot(third*sum(vertex),red);
+  write(orient(A,B,C,third*sum(vertex)),orient(A,B,C,P.camera));
   return sgn(orient(A,B,C,third*sum(vertex))) == sgn(orient(A,B,C,P.camera));
 }
 
@@ -190,6 +191,14 @@ bool sameside(triple v, triple[] vertex, triple A, triple B, triple C,
 {
   vertex.push(v);
   return sameside(vertex,A,B,C,P);
+}
+
+bool inside(pair a, pair b, pair c, pair z) {
+  pair A=a-c;
+  pair B=b-c;
+  real[][] M={{A.x,B.x},{A.y,B.y}};
+  real[] t=inverse(M)*new real[] {z.x-c.x,z.y-c.y};
+  return t[0] > 0 && t[1] > 0 && t[0]+t[1] < 1;
 }
 
 // Return true if triangle abc can be rendered in front of triangle ABC,
@@ -227,11 +236,11 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
       return !sameside(inside(t,project(C,P)) ? C : A,Vertex,a,b,c,P);
 
     if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)
-      return sameside(inside(t,project(b,P)) ? b : a,vertex,A,B,C,P);
+      return sameside(inside(T,project(b,P)) ? b : a,vertex,A,B,C,P);
     if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)
-      return sameside(inside(t,project(a,P)) ? a : b,vertex,A,B,C,P);
+      return sameside(inside(T,project(a,P)) ? a : b,vertex,A,B,C,P);
     if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)
-      return sameside(inside(t,project(c,P)) ? c : a,vertex,A,B,C,P);
+      return sameside(inside(T,project(c,P)) ? c : a,vertex,A,B,C,P);
     
     if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)
       return sameside(a,vertex,A,B,C,P);
@@ -398,6 +407,8 @@ write(front(a,b,t0,T0,T1,T2));
 
 while(true) {
   currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));     
+  //  currentprojection=orthographic((0.96492136982056,0.243104307203911,-0.0991314575829508));
+
   write(currentprojection.camera);
   erase();
   draw(surface(t0--a--b--cycle),red);//),blue+opacity(0.5));

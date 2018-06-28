@@ -1255,8 +1255,7 @@ bool checkcurve(const pair& z0, const pair& c0, const pair& c1,
 }
 
 // Return the winding number of the region bounded by the (cyclic) path
-// relative to the point z, or the largest odd integer if the point lies on
-// the path.
+// relative to the point z, or the largest odd integer if z lies on the path.
 Int path::windingnumber(const pair& z) const
 {
   static const Int undefined=Int_MAX % 2 ? Int_MAX : Int_MAX-1;
