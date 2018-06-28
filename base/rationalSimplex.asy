@@ -88,28 +88,29 @@ struct simplex {
     m=A.length;
     n=A[0].length;
 
-    for(int i=0; i < m; ++i) { 
-      if(b[i] < 0) {
-        b[i] = -b[i];
-        rational[] Ai=A[i];
-        for(int j=0; j < n; ++j) {
-          Ai[j]=-Ai[j];
-        }
-      }
-    }
-  
     int N=phase1 ? n+m : n;
     rational[][] E=new rational[m+1][N+1];
-
     rational[] Em=E[m];
-    for(int j=0; j < n; ++j) {
-      rational sum=0;
-      for(int i=0; i < m; ++i) { 
-        rational Aij=A[i][j];
-        E[i][j]=Aij;
-        sum += Aij;
+
+    for(int j=0; j < n; ++j)
+      Em[j]=0;
+
+    for(int i=0; i < m; ++i) {
+      rational[] Ai=A[i];
+      rational[] Ei=E[i];
+      if(b[i] >= 0) {
+        for(int j=0; j < n; ++j) {
+          rational Aij=Ai[j];
+          Ei[j]=Aij;
+          Em[j] -= Aij;
+        }
+      } else {
+        for(int j=0; j < n; ++j) {
+          rational Aij=-Ai[j];
+          Ei[j]=Aij;
+          Em[j] -= Aij;
+        }
       }
-      Em[j]=-sum;
     }
 
     if(phase1) {
@@ -123,12 +124,17 @@ struct simplex {
       }
     }
 
-    for(int i=0; i < m; ++i)
-      E[i][N]=b[i];
+    rational sum=0;
+    for(int i=0; i < m; ++i) {
+      rational B=abs(b[i]);
+      E[i][N]=B;
+      sum -= B;
+    }
+    Em[N]=sum;
+
     if(phase1)
       for(int j=0; j < m; ++j)
         Em[n+j]=0;
-    Em[N]=-sum(b);
    
     int[] Bindices=sequence(new int(int x){return x;},m)+n;
 
