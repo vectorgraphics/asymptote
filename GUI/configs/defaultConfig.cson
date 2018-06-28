@@ -20,14 +20,14 @@ defaultPenOptions: ""
 defaultPenColor: "#000000"
 
 # 
-defaultPenWidth: 1.0
+defaultPenWidth: 0.5
 enableImmediatePreview: true
 useDegrees: false
 groupObjDefault: false
 
 # 
 terminalFont: "Courier"
-terminalFontSize: 10
+terminalFontSize: 9
 
 # 
 defaultShowAxes: true
@@ -53,7 +53,3 @@ debugMode: true
 # Settings Override for Windows
 windows:
     externalEditor: "notepad.exe"
-
-# Settings Override for Linux
-linux:
-    externalEditor: 'emacs'
