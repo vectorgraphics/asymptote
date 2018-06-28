@@ -1291,13 +1291,13 @@ class MainWindow1(Qw.QMainWindow):
         if self.settings['drawSelectedOnTop']:
             if self.pendingSelectedObjList:
                 maj, minor = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
-                self.drawObjects[maj][minor].draw(canvas=self.mainCanvas)
+                self.drawObjects[maj][minor].draw(canvas=self.mainCanvas, dpi=dpi)
             # and apply the preview too... 
             elif activeItem is not None:
                 if self.useGlobalCoords:
-                    activeItem.draw(self.newTransform, canvas=self.mainCanvas)
+                    activeItem.draw(self.newTransform, canvas=self.mainCanvas, dpi=dpi)
                 else:
-                    activeItem.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas)
+                    activeItem.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas, dpi=dpi)
                 activeItem = None
 
     def updateScreen(self):
