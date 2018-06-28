@@ -1186,6 +1186,9 @@ class MainWindow1(Qw.QMainWindow):
         self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
 
         self.mainCanvas = Qg.QPainter(self.canvasPixmap)
+        self.mainCanvas.setRenderHint(Qg.QPainter.Antialiasing)
+        self.mainCanvas.setRenderHint(Qg.QPainter.SmoothPixmapTransform)
+        self.mainCanvas.setRenderHint(Qg.QPainter.HighQualityAntialiasing)
         self.xasyDrawObj['canvas'] = self.mainCanvas
 
         self.mainTransformation = Qg.QTransform()
@@ -1445,6 +1448,7 @@ class MainWindow1(Qw.QMainWindow):
     def postDraw(self):
         self.postCanvasPixmap.fill(Qc.Qt.transparent)
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
+            postCanvas.setRenderHints(self.mainCanvas.renderHints())
             postCanvas.setTransform(self.getScrsTransform())
 
             self.drawTransformPreview(postCanvas)
