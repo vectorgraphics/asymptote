@@ -311,6 +311,12 @@ class MainWindow1(Qw.QMainWindow):
             if self.addMode.active:
                 self.addMode.forceFinalize()
 
+    def openAndReloadSettings(self):
+        settingsFile = self.settings.settingsFileLocation()
+        subprocess.run(args=self.getExternalEditor(asypath=settingsFile))
+        self.settings.load()
+        self.quickUpdate()
+
     def setMagPrompt(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'Enter magnification:')
         if result:
@@ -364,6 +370,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
         self.ui.actionManual.triggered.connect(self.actionManual)
+        self.ui.actionSettings.triggered.connect(self.openAndReloadSettings)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
         self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsyOnClick)
 
@@ -1590,22 +1597,14 @@ class MainWindow1(Qw.QMainWindow):
 // Your code here
 """
         header = string.Template(header).substitute(time=str(datetime.datetime.now()), uid=str(self.globalObjectCounter))
-
-        rawExternalEditor = self.settings['externalEditor']
-        rawExtEditorArgs = self.settings['externalEditorArgs']
-        execEditor = [rawExternalEditor]
-
+                
         with tempfile.TemporaryDirectory() as tmpdir:
             newPath = os.path.join(tmpdir, 'tmpcode.asy')
-
-            for arg in rawExtEditorArgs:
-                execEditor.append(string.Template(arg).substitute(asypath=newPath))
-
             f = io.open(newPath, 'w')
             f.write(header)
             f.close()
 
-            subprocess.run(args=execEditor)
+            subprocess.run(args=self.getExternalEditor(asypath=newPath))
 
             f = io.open(newPath, 'r')
             newItem = x2a.xasyScript(engine=self.asyEngine, canvas=self.xasyDrawObj)
@@ -1683,6 +1682,17 @@ class MainWindow1(Qw.QMainWindow):
 
     def initializeEmptyFile(self):
         pass
+
+    def getExternalEditor(self, **kwargs) -> str:
+        rawExternalEditor = self.settings['externalEditor']
+        rawExtEditorArgs = self.settings['externalEditorArgs']
+        execEditor = [rawExternalEditor]
+
+        for arg in rawExtEditorArgs:
+            execEditor.append(string.Template(arg).substitute(**kwargs))
+
+        return execEditor
+
 
     def loadFile(self, name):
         self.ui.statusbar.showMessage('Load {0}'.format(name))
