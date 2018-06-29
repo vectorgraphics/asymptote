@@ -732,7 +732,8 @@ class xasyItem(Qc.QObject):
             transfExists = key in self.transfKeymap.keys()
             if transfExists:
                 transfExists = localCount <= len(self.transfKeymap[key]) - 1
-                validKey = not self.transfKeymap[key][localCount].deleted
+                if transfExists:
+                    validKey = not self.transfKeymap[key][localCount].deleted
             else:
                 validKey = False
 
