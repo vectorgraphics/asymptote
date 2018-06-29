@@ -1031,8 +1031,10 @@ class MainWindow1(Qw.QMainWindow):
         keyModifiers = int(Qw.QApplication.keyboardModifiers())
         if keyModifiers & int(Qc.Qt.ControlModifier):
             self.magnification += (rawAngle/100)
-            if self.magnification <= 0.0001:
-                self.magnification = 0.0001
+            if self.magnification < self.settings['minimumMagnification']:
+                self.magnification = self.settings['minimumMagnification']
+            elif self.magnification > self.settings['maximumMagnification']:
+                self.magnification = self.settings['maximumMagnification']
         elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
             self.panOffset[1] += rawAngle/1
             self.panOffset[0] += rawAngleX/1
@@ -1267,8 +1269,8 @@ class MainWindow1(Qw.QMainWindow):
 
     def quickUpdate(self):
         *args, canvasPos = self.getAsyCoordinates()
-        self.coordLabel.setText('{0:d}, {1:d}    '.format(
-            canvasPos.x(), canvasPos.y()))
+        nx, ny = self.asy2psmap.inverted() * (canvasPos.x(), canvasPos.y())
+        self.coordLabel.setText('{0:.2f}, {1:.2f}    '.format(nx, ny))
         self.refreshCanvas()
 
         self.preDraw(self.mainCanvas)
@@ -1323,7 +1325,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.imgLabel.setPixmap(self.finalPixmap)
 
     def drawCartesianGrid(self, preCanvas):
-        majorGrid = self.settings['gridMajorAxesSpacing']
+        majorGrid = self.settings['gridMajorAxesSpacing'] * self.asy2psmap.xx
         minorGridCount = self.settings['gridMinorAxesCount']
 
         majorGridCol = Qg.QColor(self.settings['gridMajorAxesColor'])
@@ -1331,21 +1333,21 @@ class MainWindow1(Qw.QMainWindow):
 
         panX, panY = self.panOffset
 
-        x_range = self.canvSize.width() / 2 + (2 * abs(panX))
-        y_range = self.canvSize.height() / 2 + (2 * abs(panY))
+        x_range = (self.canvSize.width() / 2 + (2 * abs(panX)))/self.magnification
+        y_range = (self.canvSize.height() / 2 + (2 * abs(panY)))/self.magnification
 
-        for x in range(0, 2 * round(x_range) + 1, majorGrid):  # have to do
+        for x in np.arange(0, 2 * x_range + 1, majorGrid):  # have to do
             # this in two stages...
             preCanvas.setPen(minorGridCol)
             for xMinor in range(1, minorGridCount + 1):
-                xCoord = round(x + ((xMinor / (minorGridCount + 1)) * majorGrid))
+                xCoord = x + ((xMinor / (minorGridCount + 1)) * majorGrid)
                 preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
                 preCanvas.drawLine(Qc.QLine(-xCoord, -9999, -xCoord, 9999))
 
-        for y in range(0, 2 * round(y_range) + 1, majorGrid):
+        for y in np.arange(0, 2 * y_range + 1, majorGrid):
             preCanvas.setPen(minorGridCol)
             for yMinor in range(1, minorGridCount + 1):
-                yCoord = round(y + ((yMinor / (minorGridCount + 1)) * majorGrid))
+                yCoord = y + ((yMinor / (minorGridCount + 1)) * majorGrid)
                 preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
                 preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
 
@@ -1353,7 +1355,7 @@ class MainWindow1(Qw.QMainWindow):
             preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
             preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
 
-        for x in range(0, 2 * round(x_range) + 1, majorGrid):
+        for x in np.arange(0, 2 * x_range + 1, majorGrid):
             preCanvas.setPen(majorGridCol)
             preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
             preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))

@@ -40,13 +40,14 @@ drawSelectedOnTop: true
 
 # Grid Settings
 
-# Use 'ps' or 'asy' to specify Postscript or Asymptote coordinates 
-gridCoordinateScale: 'ps'
-
-gridMajorAxesColor: "#000000"
-gridMinorAxesColor: "#AAAAAA"
-gridMajorAxesSpacing: 100
+gridMajorAxesColor: "#858585"
+gridMinorAxesColor: "#dddddd"
+gridMajorAxesSpacing: 5
 gridMinorAxesCount: 9
+
+# Magnification Settings
+minimumMagnification: 0.01
+maximumMagnification: 100
 
 # Debug Mode
 debugMode: true

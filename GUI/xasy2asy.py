@@ -875,6 +875,7 @@ class xasyDrawnItem(xasyItem):
             pen = asyPen()
         self.path = path
         self.path.asyengine = engine
+        self.asyfied = True
         self.pen = pen
         self._asyengine = engine
         self.rawIdentifier = 'x' + str(uuid.uuid4())
