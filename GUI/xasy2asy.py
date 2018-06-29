@@ -205,12 +205,14 @@ class asyTransform(Qc.QObject):
     def getRawCode(self):
         return '({0})'.format(','.join([str(val) for val in self.t]))
 
-    def getCode(self):
+    def getCode(self, asy2psmap=None):
         """Obtain the asy code that represents this transform"""
+        if asy2psmap is None:
+            asy2psmap = asyTransform((0, 0, 1, 0, 0, 1))
         if self.deleted:
             return 'zeroTransform'
         else:
-            return self.getRawCode()
+            return (asy2psmap.inverted() * self * asy2psmap).getRawCode()
 
     def scale(self, s):
         return asyTransform((0, 0, s, 0, 0, s)) * self
@@ -251,8 +253,13 @@ class asyTransform(Qc.QObject):
             result.yy = self.yx * other.xy + self.yy * other.yy
             result.t = (result.x, result.y, result.xx, result.xy, result.yx, result.yy)
             return result
+        elif isinstance(other, str):
+            if other != 'cycle':
+                raise TypeError
+            else:
+                return 'cycle'
         else:
-            raise Exception("Illegal multiplier of {:s}".format(str(type(other))))
+            raise TypeError("Illegal multiplier of {:s}".format(str(type(other))))
 
 
 def identity():
@@ -265,13 +272,13 @@ class asyObj(Qc.QObject):
         super().__init__()
         self.asyCode = ''
 
-    def updateCode(self, mag=1.0):
+    def updateCode(self, ps2asymap=identity()):
         """Update the object's code: should be overriden."""
         raise NotImplementedError
 
-    def getCode(self):
+    def getCode(self, ps2asymap=identity()):
         """Return the code describing the object"""
-        self.updateCode()
+        self.updateCode(ps2asymap)
         return self.asyCode
 
 
@@ -312,7 +319,7 @@ class asyPen(asyObj):
     def asyEngine(self, value):
         self._asyengine = value
 
-    def updateCode(self, mag=1.0):
+    def updateCode(self, asy2psmap=identity()):
         """Generate the pen's code"""
         if self._deferAsyfy:
             self.computeColor()
@@ -479,21 +486,23 @@ class asyPath(asyObj):
         else:
             return '({0}, {1})'.format(str(node[0]), str(node[1]))
 
-    def updateCode(self, mag=1.0):
+    def updateCode(self, ps2asymap=identity()):
         """Generate the code describing the path"""
+        # currently at postscript. Convert to asy
+        asy2psmap =  ps2asymap.inverted()
         with io.StringIO() as rawAsyCode:
             count = 0
-            rawAsyCode.write(self.makeNodeStr(self.nodeSet[0]))
+            rawAsyCode.write(self.makeNodeStr(asy2psmap * self.nodeSet[0]))
             for node in self.nodeSet[1:]:
                 if not self.computed or count >= len(self.controlSet):
                     rawAsyCode.write(self.linkSet[count])
-                    rawAsyCode.write(self.makeNodeStr(node))
+                    rawAsyCode.write(self.makeNodeStr(asy2psmap * node))
                 else:
                     rawAsyCode.write('..controls ')
-                    rawAsyCode.write(self.makeNodeStr(self.controlSet[count][0]))
+                    rawAsyCode.write(self.makeNodeStr(asy2psmap *  self.controlSet[count][0]))
                     rawAsyCode.write(' and ')
-                    rawAsyCode.write(self.makeNodeStr(self.controlSet[count][1]))
-                    rawAsyCode.write(".." + self.makeNodeStr(node) + "\n")
+                    rawAsyCode.write(self.makeNodeStr(asy2psmap * self.controlSet[count][1]))
+                    rawAsyCode.write(".." + self.makeNodeStr(asy2psmap * node) + "\n")
                 count = count + 1
             self.asyCode = rawAsyCode.getvalue()
 
@@ -610,7 +619,7 @@ class asyLabel(asyObj):
         self.text = text
         self.location = location
 
-    def updateCode(self, mag=1.0):
+    def updateCode(self, asy2psmap=identity()):
         """Generate the code describing the label"""
         self.asyCode = 'Label("{0}", {1}, p={2}, align={3})'.format(self.text, tuple(self.location), self.pen.getCode(),
                                                                     self.align)
@@ -663,7 +672,7 @@ class xasyItem(Qc.QObject):
         self.unsetKeys = set()
         self.imageHandleQueue = queue.Queue()
 
-    def updateCode(self, mag=1.0):
+    def updateCode(self, ps2asymap=identity()):
         """Update the item's code: to be overriden"""
         with io.StringIO() as rawCode:
             rawCode.write(self.getTransformCode())
@@ -678,18 +687,18 @@ class xasyItem(Qc.QObject):
     def asyengine(self, value):
         self._asyengine = value
 
-    def getCode(self):
+    def getCode(self, ps2asymap=identity()):
         """Return the code describing the item"""
-        self.updateCode()
+        self.updateCode(ps2asymap)
         return self.asyCode
 
-    def getTransformCode(self):
+    def getTransformCode(self, asy2psmap=identity()):
         raise NotImplementedError
 
-    def getObjectCode(self):
+    def getObjectCode(self, asy2psmap=identity()):
         raise NotImplementedError
 
-    def generateDrawObjects(self, mag=1.0):
+    def generateDrawObjects(self):
         raise NotImplementedError
 
     def handleImageReception(self, file, fileformat, bbox, count, key=None, localCount=0, containsClip=False):
@@ -736,7 +745,7 @@ class xasyItem(Qc.QObject):
                 newDrawObj.setParent(self)
                 self.drawObjects.append(newDrawObj)
 
-    def asyfy(self, mag=1.0, force=False):
+    def asyfy(self, force=False):
         if self.asyengine is None:
             return 1
         if self.asyfied and not force:
@@ -747,7 +756,7 @@ class xasyItem(Qc.QObject):
         self.unsetKeys.clear()
 
         self.imageHandleQueue = queue.Queue()
-        worker = threading.Thread(target=self.asyfyThread, args=[mag])
+        worker = threading.Thread(target=self.asyfyThread, args=[])
         worker.start()
         item = self.imageHandleQueue.get()
         while item != (None,) and item[0] != "ERROR":
@@ -766,7 +775,7 @@ class xasyItem(Qc.QObject):
         # self.imageHandleQueue.task_done()
         worker.join()
 
-    def asyfyThread(self, mag=1.0):
+    def asyfyThread(self):
         """Convert the item to a list of images by deconstructing this item's code"""
         assert self.asyengine.active
 
@@ -779,7 +788,9 @@ class xasyItem(Qc.QObject):
             if DebugFlags.printDeconstTranscript:
                 print('fout:', line)
             fout.write(line+"\n")
-        fout.write("deconstruct({:f});\n".format(mag))
+        fout.write("deconstruct();\n".format())
+        fout.write('write(output(mode="pipe"),currentpicture.calculateTransform(), endl);\n');
+        fout.write('flush(output(mode="pipe"));\n')
         fout.write("xasy();\n")
         fout.flush()
 
@@ -847,6 +858,9 @@ class xasyItem(Qc.QObject):
             self.imageHandleQueue.put(("ERROR", fin.readline()))
         else:
             render()
+
+        self.asy2psmap = fin.readline().rstrip()
+        self.asy2psmap = asyTransform(xu.listize(self.asy2psmap, float))
         self.imageHandleQueue.put((None,))
         self.asyfied = True
 
@@ -889,7 +903,7 @@ class xasyDrawnItem(xasyItem):
         self.transfKey = newKey
         self.transfKeymap = {self.transfKey: [transform]}
 
-    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
+    def generateDrawObjects(self, forceUpdate=False):
         raise NotImplementedError
 
     def appendPoint(self, point, link=None):
@@ -935,22 +949,19 @@ class xasyShape(xasyDrawnItem):
         """Initialize the shape with a path, pen, and transform"""
         super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
 
-    def getObjectCode(self, mag=1.0):
-        return 'draw(KEY="{0}",(0,0),{1},{2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode())
+    def getObjectCode(self, asy2psmap=identity()):
+        return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())
 
-    def getTransformCode(self):
+    def getTransformCode(self, asy2psmap=identity()):
         transf = self.transfKeymap[self.transfKey][0]
         if transf == identity():
             return ''
         else:
-            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())+"\n"
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+"\n"
 
-    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
+    def generateDrawObjects(self, forceUpdate=False):
         self.path.computeControls()
         transf = self.transfKeymap[self.transfKey][0]
-        if mag != 1.0:
-            assert mag != 0
-            transf = transf * asyTransform((0, 0, mag, 0, 0, mag))
 
         newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=transf, pen=self.pen,
                             key=self.transfKey)
@@ -972,10 +983,10 @@ class xasyFilledShape(xasyShape):
             raise Exception("Filled paths must be cyclic")
         super().__init__(path, asyengine, pen, transform)
 
-    def getObjectCode(self, mag=1.0):
-        return 'fill(KEY="{0}",(0,0),{1},{2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode())
+    def getObjectCode(self, asy2psmap=identity()):
+        return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())
 
-    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
+    def generateDrawObjects(self, forceUpdate=False):
         self.path.computeControls()
         newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey][0],
                             pen=self.pen, key=self.transfKey, fill=True)
@@ -1019,7 +1030,7 @@ class xasyText(xasyItem):
         self.transfKey = newKey
         self.transfKeymap = {self.transfKey: [transform]}
 
-    def getTransformCode(self):
+    def getTransformCode(self, asy2psmap=identity()):
         transf = self.transfKeymap[self.transfKey][0]
         if transf == identity():
             # return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
@@ -1027,15 +1038,15 @@ class xasyText(xasyItem):
         else:
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())+"\n"
 
-    def getObjectCode(self):
-        return 'label(KEY="{0}",(0,0),{1});'.format(self.transfKey, self.label.getCode())
+    def getObjectCode(self, asy2psmap=identity()):
+        return 'label(KEY="{0}",{1});'.format(self.transfKey, self.label.getCode())
 
-    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
-        self.asyfy(mag, forceUpdate)
+    def generateDrawObjects(self, forceUpdate=False):
+        self.asyfy(forceUpdate)
         return self.drawObjects
 
-    def getBoundingBox(self, mag=1.0):
-        self.asyfy(mag)
+    def getBoundingBox(self):
+        self.asyfy()
         return self.imageList[0].bbox
 
     def __str__(self):
@@ -1079,7 +1090,7 @@ class xasyScript(xasyItem):
                 maxCounter = max(maxCounter, int(testNum.group(1)))
         return maxCounter + 1
 
-    def getTransformCode(self):
+    def getTransformCode(self, asy2psmap=identity()):
         with io.StringIO() as rawAsyCode:
             if self.transfKeymap:
                 for key in self.transfKeymap.keys():
@@ -1093,16 +1104,16 @@ class xasyScript(xasyItem):
                     if writeTransf:
                         for transf in val:
                             if transf.deleted:
-                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode()) + '\n//')
+                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)) + '\n//')
                             if transf == identity() and not transf.deleted:
                                 rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
                             else:
-                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getRawCode()))
+                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)))
                             rawAsyCode.write('\n')
             result = rawAsyCode.getvalue()
             return result
 
-    def getObjectCode(self):
+    def getObjectCode(self, asy2psmap=identity()):
         with io.StringIO() as rawAsyCode:
             for line in self.script.splitlines():
                 raw_line = line.rstrip().replace('\t', ' ' * 4)
@@ -1153,9 +1164,9 @@ class xasyScript(xasyItem):
         self.unsetKeys.clear()
         self.setKeyed = True
 
-    def asyfy(self, mag=1.0, keyOnly=False):
+    def asyfy(self, keyOnly=False):
         """Generate the list of images described by this object and adjust the length of the transform list."""
-        super().asyfy(mag, keyOnly)
+        super().asyfy(keyOnly)
 
         # remove any unnecessary keys
         # not anymore - transfKeymap is supposed to be storing the raw transform data
@@ -1200,8 +1211,8 @@ class xasyScript(xasyItem):
 
         self.updateCode()
 
-    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
-        self.asyfy(mag, forceUpdate)
+    def generateDrawObjects(self, forceUpdate=False):
+        self.asyfy(forceUpdate)
         return self.drawObjects
 
     def __str__(self):

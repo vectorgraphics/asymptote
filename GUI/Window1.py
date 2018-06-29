@@ -109,6 +109,7 @@ class MainWindow1(Qw.QMainWindow):
         self.args = xa.parseArgs(self.raw_args)
 
         self.strings = xs.xasyString(self.args.language)
+        self.asy2psmap = x2a.identity()
 
         if self.settings['asyBaseLocation'] is not None:
             os.environ['ASYMPTOTE_DIR'] = self.settings['asyBaseLocation']
@@ -764,7 +765,7 @@ class MainWindow1(Qw.QMainWindow):
         finalFiles = diag.selectedFiles()
 
         with io.StringIO() as finalCode:
-            xf.saveFile(finalCode, self.fileItems)
+            xf.saveFile(finalCode, self.fileItems, self.asy2psmap)
             finalString = finalCode.getvalue()
 
         for file in finalFiles:
@@ -1711,12 +1712,12 @@ class MainWindow1(Qw.QMainWindow):
             rawText, transfDict, maxKey = xf.extractTransformsFromFile(rawFileStr)
             item = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
 
-            
             item.setScript(rawText)
             self.fileItems.append(item)
             self.asyfyCanvas(True)
 
             maxKey2 = item.getMaxKeyCounter()
+            self.asy2psmap = item.asy2psmap
             self.globalObjectCounter = max(maxKey + 1, maxKey2)
         finally:
             f.close()
@@ -1724,4 +1725,4 @@ class MainWindow1(Qw.QMainWindow):
     def populateCanvasWithItems(self, forceUpdate=False):
         self.itemCount = 0
         for item in self.fileItems:
-            self.drawObjects.append(item.generateDrawObjects(1.0, forceUpdate))
+            self.drawObjects.append(item.generateDrawObjects(forceUpdate))

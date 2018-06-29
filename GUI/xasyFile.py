@@ -71,11 +71,12 @@ def extractTransformsFromFile(fileStr):
     return final_str, transfDict, maxItemCount
 
 
-def saveFile(file, xasyItems):
+def saveFile(file, xasyItems, asy2psmap=x2a.identity()):
     """Write a list of xasyItems to a file"""
     for item in xasyItems:
+        # add asy2psmap here once map handles asy transforms. 
         file.write(item.getTransformCode())
 
     for item in xasyItems:
-        file.write(item.getObjectCode() + '\n')
+        file.write(item.getObjectCode(asy2psmap) + '\n')
 
