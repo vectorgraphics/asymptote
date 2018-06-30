@@ -168,7 +168,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.asyPath.setInfo(self.asyPathBackup)
         self.setSelectionBoundaries()
 
-    def mouseDown(self, pos, info):
+    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
         self.lastSelPoint = pos
         if self.inTransformMode:
             return
