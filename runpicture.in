@@ -456,7 +456,7 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
     }
   }
     
-  result->shipout(preamble,prefix,format,0.0,wait,view);
+  result->shipout(preamble,prefix,format,wait,view);
 }
 
 void shipout3(string prefix, picture *f, string format=emptystring,
@@ -505,7 +505,7 @@ void xmap(string key, transform t=identity)
   }
 }
 
-void deconstruct(picture *f, picture *preamble=NULL, real magnification=1) 
+void deconstruct(picture *f, picture *preamble=NULL) 
 {
   unsigned level=0;
   unsigned n=0;
@@ -527,93 +527,68 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
   
   mem::vector<string> cmd;
   
-  // Enforce ghostscript limitations.
-  magnification=::max(magnification,0.0001);
-  real res=::min(::max(magnification*72.0,2.0),8192.0);
-  
   const char *converter=NULL, *hint=NULL;
   
-  if(magnification > 0.0) {
-    mem::list<string> nameStack;
-    string outname;
-    unsigned arg=0;
-    unsigned batch=0;
-    xmap_t xmap=processData().xmap;
+  mem::list<string> nameStack;
+  string outname;
+  unsigned arg=0;
+  unsigned batch=0;
+  xmap_t xmap=processData().xmap;
     
-    for(picture::nodelist::iterator p=f->nodes.begin();;) {
-      if(p == f->nodes.end()) break;
-      if(arg == 0) {
-        /*
-        cmd.clear();
-        ostringstream buf;
-        buf << batch << "_";
-        outname=buildname(prefix+buf.str()+"%d",xformat,"");
+  for(picture::nodelist::iterator p=f->nodes.begin();;) {
+    if(p == f->nodes.end()) break;
+    if(arg == 0) {
+    }
       
-        converter="gs";
-        hint="Ghostscript";
-        cmd.push_back(getSetting<string>(converter));
-        cmd.push_back("-q");
-        cmd.push_back("-dNOPAUSE");
-        cmd.push_back("-dBATCH");
-        cmd.push_back("-P");
-        cmd.push_back("-sDEVICE=pngalpha");
-        cmd.push_back("-dEPSCrop");
-        if(safe)
-          cmd.push_back("-dSAFER");
-        cmd.push_back("-r"+String(res)+"x"+String(res));
-        cmd.push_back("-sOutputFile="+outname);
-*/        
-      }
-      
-      picture *group=new picture;
-      transform t=getTransform(xmap,p);
-      bool Delete=(t == ZeroTransform);
+    picture *group=new picture;
+    transform t=getTransform(xmap,p);
+    bool Delete=(t == ZeroTransform);
 
-      assert(*p);
-      if((*p)->endgroup()) {
-        fprintf(pipeout,"%s\n",Error.c_str());
-        fflush(pipeout);
-        error(nobegin);
-      }
-      bool clip=false;
-      if((*p)->begingroup()) {
-        ++level;
-        while(p != f->nodes.end() && level) {
-          if(!Delete) {
-            drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-            group->append(e);
-            if((*p)->endclip()) clip=true;
-          }
-          ++p;
-          if(p == f->nodes.end()) break;
-          assert(*p);
-          if((*p)->begingroup()) ++level;
-          if((*p)->endgroup()) {
-            if(level) --level;
-            else {
-              fprintf(pipeout,"%s\n",Error.c_str());
-              fflush(pipeout);
-              error(nobegin);
-            }
+    assert(*p);
+    if((*p)->endgroup()) {
+      fprintf(pipeout,"%s\n",Error.c_str());
+      fflush(pipeout);
+      error(nobegin);
+    }
+    bool clip=false;
+    if((*p)->begingroup()) {
+      ++level;
+      while(p != f->nodes.end() && level) {
+        if(!Delete) {
+          drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+          group->append(e);
+          if((*p)->endclip()) clip=true;
+        }
+        ++p;
+        if(p == f->nodes.end()) break;
+        assert(*p);
+        if((*p)->begingroup()) ++level;
+        if((*p)->endgroup()) {
+          if(level) --level;
+          else {
+            fprintf(pipeout,"%s\n",Error.c_str());
+            fflush(pipeout);
+            error(nobegin);
           }
         }
       }
-      if(p != f->nodes.end()) {
-        if(!Delete) {
-          drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-          fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip);
-          group->append(e);
-          bbox b;
-          ostringstream buf;
-          buf << prefix << "_" << n;
-          group->shipout(preamble,buf.str(),preformat,magnification,false,false);
-          string Preformat=group->Transparency() ? "pdf" : preformat;
-          string name=buildname(buf.str(),Preformat);
-          nameStack.push_back(name);
-          ostringstream Buf;
-          Buf << prefix << batch << "_" << arg;
-          outname=buildname(Buf.str(),xformat,"");
-          int status=f->epstosvg(name,outname);
+    }
+    if(p != f->nodes.end()) {
+      if(!Delete) {
+        drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+        fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip);
+        group->append(e);
+        bbox b;
+        ostringstream buf;
+        buf << prefix << "_" << n;
+        group->shipout(preamble,buf.str(),preformat,false,false);
+        string Preformat=group->Transparency() ? "pdf" : preformat;
+        string name=buildname(buf.str(),Preformat);
+        nameStack.push_back(name);
+        ostringstream Buf;
+        Buf << prefix << batch << "_" << arg;
+        outname=buildname(Buf.str(),xformat,"");
+        int status=f->epstosvg(name,outname);
 //          cmd.push_back(name);
         if(status) {
           fprintf(pipeout,"%s\n",Error.c_str());
@@ -621,48 +596,46 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1)
           error("deconstruct failed");
         }
           
-          b=group->bounds();
-          b *= magnification;
+        b=group->bounds();
       
-          const char *oldlocale=setlocale(LC_NUMERIC,NULL);
-          bool override=oldlocale && strcmp(oldlocale,"C") != 0;
-          if(override) {
-            oldlocale=StrdupNoGC(oldlocale);
-            setlocale(LC_NUMERIC,"C");
-          }
-        
-          fprintf(pipeout,"%g %g %g %g\n",b.left,b.bottom,b.right,b.top);
-        
-          if(override) {
-            setlocale(LC_NUMERIC,oldlocale);
-            delete[] oldlocale;
-          }
-        
-          fflush(pipeout);
-          ++n;
+        const char *oldlocale=setlocale(LC_NUMERIC,NULL);
+        bool override=oldlocale && strcmp(oldlocale,"C") != 0;
+        if(override) {
+          oldlocale=StrdupNoGC(oldlocale);
+          setlocale(LC_NUMERIC,"C");
         }
-        ++p;
-        ++arg;
-      }
-      
-      if(p == f->nodes.end() || arg >= maxargs) {
-        arg=0;
-        ++batch;
+        
+        fprintf(pipeout,"%g %g %g %g\n",b.left,b.bottom,b.right,b.top);
+        
+        if(override) {
+          setlocale(LC_NUMERIC,oldlocale);
+          delete[] oldlocale;
+        }
+        
         fflush(pipeout);
+        ++n;
+      }
+      ++p;
+      ++arg;
+    }
+      
+    if(p == f->nodes.end() || arg >= maxargs) {
+      arg=0;
+      ++batch;
+      fflush(pipeout);
   
 //        int status=System(cmd,0,true,converter,hint);
-      }
     }
-    
-    if(!getSetting<bool>("keep")) {
-      for(mem::list<string>::iterator p=nameStack.begin();
-          p != nameStack.end(); ++p)
-        unlink(p->c_str());
-    }
-    
-    fprintf(pipeout,"%s\n",Done.c_str());
-    fflush(pipeout);
   }
+    
+  if(!getSetting<bool>("keep")) {
+    for(mem::list<string>::iterator p=nameStack.begin();
+        p != nameStack.end(); ++p)
+      unlink(p->c_str());
+  }
+    
+  fprintf(pipeout,"%s\n",Done.c_str());
+  fflush(pipeout);
 }
 
 

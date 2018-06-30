@@ -62,9 +62,9 @@ frame enclose(string prefix=defaultfilename, object F, string format="")
   } return F.f;
 }
 
-void deconstruct(picture pic=currentpicture, real magnification=1)
+void deconstruct(picture pic=currentpicture)
 {
-  deconstruct(yscale(-1)*pic.fit(),currentpatterns,magnification);
+  deconstruct(yscale(-1)*pic.fit(),currentpatterns);
 }
 
 void shipout(string prefix=defaultfilename, frame f,

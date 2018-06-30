@@ -76,14 +76,12 @@ public:
                   const string& prefix, const pair& bboxshift, bool svgformat); 
     
   bool postprocess(const string& prename, const string& outname, 
-                   const string& outputformat, double magnification,
-                   bool wait, bool view, bool pdftex, bool epsformat,
-                   bool svg);
+                   const string& outputformat, bool wait, bool view,
+                   bool pdftex, bool epsformat, bool svg);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
-               const string& format, double magnification=0.0,
-               bool wait=false, bool view=true);
+               const string& format, bool wait=false, bool view=true);
  
   void render(GLUnurbs *nurb, double size2,
               const triple &Min, const triple& Max, double perspective,

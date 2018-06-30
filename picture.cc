@@ -657,7 +657,7 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
     needReload=false;
     string texengine=getSetting<string>("tex");
     Setting("tex")=string("pdflatex");
-    haveReload=f.shipout(NULL,reloadprefix,"pdf",0.0,false,false);
+    haveReload=f.shipout(NULL,reloadprefix,"pdf",false,false);
     Setting("tex")=texengine;
   }
   if(haveReload) {
@@ -692,7 +692,7 @@ int picture::epstosvg(const string& epsname, const string& outname)
 }
 
 bool picture::postprocess(const string& prename, const string& outname,
-                          const string& outputformat, double magnification,
+                          const string& outputformat,
                           bool wait, bool view, bool pdftex, 
                           bool epsformat, bool svg)
 {
@@ -829,8 +829,7 @@ string Outname(const string& prefix, const string& outputformat,
 }
 
 bool picture::shipout(picture *preamble, const string& Prefix,
-                      const string& format, double magnification,
-                      bool wait, bool view)
+                      const string& format, bool wait, bool view)
 {
   b=bounds();
   
@@ -855,7 +854,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     else dvi=true;
   }
   
-  bool xobject=magnification > 0;
   string outname=Outname(prefix,outputformat,standardout);
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
@@ -865,12 +863,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   if(b.empty && !Labels) { // Output a null file
     bbox b;
     b.left=b.bottom=0;
-    b.right=b.top=xobject ? 18 : 1;
+    b.right=b.top=1;
     psfile out(epsname,false);
     out.prologue(b);
     out.epilogue();
     out.close();
-    return postprocess(epsname,outname,outputformat,1.0,wait,view,false,
+    return postprocess(epsname,outname,outputformat,wait,view,false,
                        epsformat,false);
   }
   
@@ -882,13 +880,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
     auxname(prefix,preformat);
   
-  if(xobject) {
-    double fuzz=0.5/magnification;
-    b.top += fuzz;
-    b.right += fuzz;
-    b.bottom -= fuzz;
-  }
-    
   SetPageDimensions();
   
   pair aligndir=getSetting<pair>("aligndir");
@@ -1032,7 +1023,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
           buf << prefix << "_" << svgcount;
           ++svgcount;
           string pngname=buildname(buf.str(),"png");
-          f->shipout(preamble,buf.str(),"png",0.0,false,false);
+          f->shipout(preamble,buf.str(),"png",false,false);
           pair m=f->bounds().Min();
           pair M=f->bounds().Max();
           delete f;
@@ -1111,17 +1102,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
         }
       }
       if(status) {
-        if(xobject) {
-          if(pdf || transparency)
-            status=(epstopdf(prename,Outname(prefix,"pdf",standardout)) == 0);
-        } else {
-          if(context) prename=stripDir(prename);
-          status=postprocess(prename,outname,outputformat,magnification,wait,
-                             view,pdf && Labels,epsformat,svg);
-          if(pdfformat && !getSetting<bool>("keep")) {
-            unlink(auxname(prefix,"m9").c_str());
-            unlink(auxname(prefix,"pbsdat").c_str());
-          }
+        if(context) prename=stripDir(prename);
+        status=postprocess(prename,outname,outputformat,wait,
+                           view,pdf && Labels,epsformat,svg);
+        if(pdfformat && !getSetting<bool>("keep")) {
+          unlink(auxname(prefix,"m9").c_str());
+          unlink(auxname(prefix,"pbsdat").c_str());
         }
       }
     }
