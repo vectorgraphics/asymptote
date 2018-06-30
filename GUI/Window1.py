@@ -1080,7 +1080,7 @@ class MainWindow1(Qw.QMainWindow):
         asyPos, self.savedMousePosition = self.getAsyCoordinates()
 
         if self.addMode is not None:
-            self.addMode.mouseDown(asyPos, self.currAddOptions)
+            self.addMode.mouseDown(asyPos, self.currAddOptions, mouseEvent)
         elif self.currentModeStack[-1] == SelectionMode.pan:
             self.savedWindowMousePos = self.getWindowCoordinates()
         elif self.currentModeStack[-1] == SelectionMode.setAnchor:

@@ -23,7 +23,7 @@ class InplaceObjProcess(Qc.QObject):
     def active(self):
         return self._active
 
-    def mouseDown(self, pos, info):
+    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
         raise NotImplementedError
 
     def mouseMove(self, pos, event: Qg.QMouseEvent):
@@ -57,7 +57,7 @@ class AddCircle(InplaceObjProcess):
         self.center = Qc.QPointF(0, 0)
         self.radius = 0
 
-    def mouseDown(self, pos, info):
+    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.center.setX(x)
         self.center.setY(y)
@@ -119,7 +119,7 @@ class AddLabel(InplaceObjProcess):
         self.anchor.setX(x)
         self.anchor.setY(y)
 
-    def mouseDown(self, pos, info):
+    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
         if self.opt is not None:
             self.text = self.opt.labelText
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
@@ -164,7 +164,7 @@ class AddBezierShape(InplaceObjProcess):
         self.pendingPoint = None
         self.useLegacy = False
 
-    def mouseDown(self, pos, info):
+    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.currentPoint.setX(x)
         self.currentPoint.setY(y)
@@ -176,7 +176,12 @@ class AddBezierShape(InplaceObjProcess):
             self.asyengine = info['asyengine']
             self.closedPath = info['closedPath']
             self.useLegacy = self.info['options']['useLegacyBezierAddMode']
+            self.pointsList.clear()
             self.pointsList.append((x, y, None))
+        else:
+            # see http://doc.qt.io/archives/qt-4.8/qt.html#MouseButton-enum
+            if (int(mouseEvent.buttons()) if mouseEvent is not None else 0) & 0x2 and self.useLegacy:
+                self.forceFinalize()
 
     def _getLinkType(self):
         if self.info['useBezier']:
@@ -273,7 +278,7 @@ class AddPoly(InplaceObjProcess):
         self.fill = None
         self.opt = None
 
-    def mouseDown(self, pos, info):
+    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
         self._active = True
         self.sides = info['sides']
         self.inscribed = info['inscribed']
