@@ -353,10 +353,9 @@ class asyPen(asyObj):
         fin = self.asyEngine.istream
 
         fout.write("pen p=" + self.getCode() + ';\n')
-        fout.write("file _fout=output(mode='pipe');\n")
-        fout.write("write(_fout,colorspace(p),newl);\n")
-        fout.write("write(_fout,colors(p));\n")
-        fout.write("flush(_fout);\n")
+        fout.write("write(_outpipe,colorspace(p),newl);\n")
+        fout.write("write(_outpipe,colors(p));\n")
+        fout.write("flush(_outpipe);\n")
         fout.write(self.asyEngine.xasy)
         fout.flush()
 
@@ -574,10 +573,9 @@ class asyPath(asyObj):
         fout = asy.ostream
         fin = asy.istream
 
-        fout.write("file _fout=output(mode='pipe');\n")
         fout.write("path p=" + self.getCode() + ';\n')
-        fout.write("write(_fout,length(p),newl);\n")
-        fout.write("write(_fout,unstraighten(p),endl);\n")
+        fout.write("write(_outpipe,length(p),newl);\n")
+        fout.write("write(_outpipe,unstraighten(p),endl);\n")
         fout.write(asy.xasy)
         fout.flush()
 
@@ -791,9 +789,8 @@ class xasyItem(Qc.QObject):
                 print('fout:', line)
             fout.write(line+"\n")
         fout.write("deconstruct();\n")
-        fout.write("file _fout=output(mode='pipe');\n")
-        fout.write('write(_fout,currentpicture.calculateTransform(),endl);\n');
-        fout.write('flush(_fout);\n')
+        fout.write('write(_outpipe,currentpicture.calculateTransform(),endl);\n');
+        fout.write('flush(_outpipe);\n')
         fout.write(self.asyengine.xasy)
         fout.flush()
 

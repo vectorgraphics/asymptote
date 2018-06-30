@@ -1,6 +1,10 @@
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
+file _outpipe;
+if(settings.xasy)
+  _outpipe=output(mode="pipe");
+
 string[] file3;
 
 string outprefix(string prefix=defaultfilename) {
