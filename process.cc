@@ -782,8 +782,9 @@ class iprompt : public icore {
 
   // Continue taking input until a termination command is received from xasy.
   block *parseXasyLine(string line) {
+    
     string s;
-    while((s=getline(true)) != "xasy();\n")
+    while((s=getline(true)) != "\x04\n") // End of transmission
       line += s;
     return parser::parseString(line, "-", true);
   }

@@ -37,8 +37,9 @@ import xasySvg as xs
 
 import uuid
 
-
 class AsymptoteEngine:
+    xasy=chr(4)+"\n"
+
     def __init__(self, path=None, args: list=None, customOutdir=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True,
                  stdoutMode=None, stdinMode=None, stderrMode=None, endargs=None):
         if path is None:
@@ -352,11 +353,11 @@ class asyPen(asyObj):
         fin = self.asyEngine.istream
 
         fout.write("pen p=" + self.getCode() + ';\n')
-        fout.write("file fout=output(mode='pipe');\n")
-        fout.write("write(fout,colorspace(p),newl);\n")
-        fout.write("write(fout,colors(p));\n")
-        fout.write("flush(fout);\n")
-        fout.write("xasy();\n")
+        fout.write("file _fout=output(mode='pipe');\n")
+        fout.write("write(_fout,colorspace(p),newl);\n")
+        fout.write("write(_fout,colors(p));\n")
+        fout.write("flush(_fout);\n")
+        fout.write(self.asyEngine.xasy)
         fout.flush()
 
         colorspace = fin.readline()
@@ -573,11 +574,11 @@ class asyPath(asyObj):
         fout = asy.ostream
         fin = asy.istream
 
-        fout.write("file fout=output(mode='pipe');\n")
+        fout.write("file _fout=output(mode='pipe');\n")
         fout.write("path p=" + self.getCode() + ';\n')
-        fout.write("write(fout,length(p),newl);\n")
-        fout.write("write(fout,unstraighten(p),endl);\n")
-        fout.write("xasy();\n")
+        fout.write("write(_fout,length(p),newl);\n")
+        fout.write("write(_fout,unstraighten(p),endl);\n")
+        fout.write(asy.xasy)
         fout.flush()
 
         lengthStr = fin.readline()
@@ -789,10 +790,11 @@ class xasyItem(Qc.QObject):
             if DebugFlags.printDeconstTranscript:
                 print('fout:', line)
             fout.write(line+"\n")
-        fout.write("deconstruct();\n".format())
-        fout.write('write(output(mode="pipe"),currentpicture.calculateTransform(), endl);\n');
-        fout.write('flush(output(mode="pipe"));\n')
-        fout.write("xasy();\n")
+        fout.write("deconstruct();\n")
+        fout.write("file _fout=output(mode='pipe');\n")
+        fout.write('write(_fout,currentpicture.calculateTransform(),endl);\n');
+        fout.write('flush(_fout);\n')
+        fout.write(self.asyengine.xasy)
         fout.flush()
 
         maxargs = int(fin.readline().split()[0])        # should be 256, for now.
