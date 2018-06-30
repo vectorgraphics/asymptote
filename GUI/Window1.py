@@ -838,6 +838,7 @@ class MainWindow1(Qw.QMainWindow):
             else:
                 self.ui.comboAnchor.setCurrentIndex(AnchorMode.center)
                 self.anchorMode = AnchorMode.center
+        self.quickUpdate()
     def btnColorSelectOnClick(self):
         self.colorDialog.show()
         result = self.colorDialog.exec()
@@ -1469,7 +1470,7 @@ class MainWindow1(Qw.QMainWindow):
                 
             self.drawAddModePreview(postCanvas)
 
-            if self.customAnchor is not None:
+            if self.customAnchor is not None and self.anchorMode == AnchorMode.customAnchor:
                 self.drawAnchorCursor(postCanvas)
 
     def drawAnchorCursor(self, painter):
@@ -1503,6 +1504,7 @@ class MainWindow1(Qw.QMainWindow):
     def updateChecks(self):
         self.addMode = None
         self.updateModeBtnsOnly()
+        self.quickUpdate()
 
     def btnAlignXOnClick(self, checked):
         self.lockY = checked
