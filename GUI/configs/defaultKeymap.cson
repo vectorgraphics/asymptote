@@ -1,15 +1,13 @@
 # Default Keymaps for xasy
-
-
 commandPalette: "F1"
 quit: "Ctrl+Q"
 deleteObject: "Del"
-
-# toggleFill: "i"
-
 
 finalizeCurve: "Return"
 finalizeCurveClosed: "c"
 cancelCurve: "a"
 
 anchorMode: "Ctrl+A"
+
+undo: 'Ctrl+Z'
+redo: 'Ctrl+Y'

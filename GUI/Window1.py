@@ -241,8 +241,8 @@ class MainWindow1(Qw.QMainWindow):
         # commands switchboard
         self.commandsFunc = {
             'quit': Qc.QCoreApplication.quit,
-            'undo': self.undoRedoStack.undo,
-            'redo': self.undoRedoStack.redo,
+            'undo': self.btnUndoOnClick,
+            'redo': self.btnRedoOnClick,
             'manual': self.actionManual,
             'loadFile': self.btnLoadFileonClick,
             'save': self.btnSaveOnClick,
@@ -653,19 +653,11 @@ class MainWindow1(Qw.QMainWindow):
         self.checkUndoRedoButtons()
 
     def checkUndoRedoButtons(self):
-        if self.undoRedoStack.changesMade():
-            self.ui.btnUndo.setEnabled(True)
-            self.ui.actionUndo.setEnabled(True)
-        else:
-            self.ui.btnUndo.setEnabled(False)
-            self.ui.actionUndo.setEnabled(False)
+        self.ui.btnUndo.setEnabled(self.undoRedoStack.changesMade())
+        self.ui.actionUndo.setEnabled(self.undoRedoStack.changesMade())
 
-        if len(self.undoRedoStack.redoStack) > 0:
-            self.ui.btnRedo.setEnabled(True)
-            self.ui.actionRedo.setEnabled(True)
-        else:
-            self.ui.btnRedo.setEnabled(False)
-            self.ui.actionRedo.setEnabled(False)
+        self.ui.btnRedo.setEnabled(len(self.undoRedoStack.redoStack) > 0)
+        self.ui.actionRedo.setEnabled(len(self.undoRedoStack.redoStack) > 0)
 
     def handleUndoChanges(self, change):
         assert isinstance(change, ActionChanges)
