@@ -897,6 +897,7 @@ class MainWindow1(Qw.QMainWindow):
         if not self.ui.imgLabel.underMouse() and not self.mouseDown:
             return 
 
+        self.updateMouseCoordLabel()
         asyPos, canvasPos = self.getAsyCoordinates()
 
         # add mode 
@@ -1268,10 +1269,13 @@ class MainWindow1(Qw.QMainWindow):
         self.quickUpdate()
         self.ui.statusbar.showMessage(self.strings.asyfyComplete)
 
-    def quickUpdate(self):
+    def updateMouseCoordLabel(self):
         *args, canvasPos = self.getAsyCoordinates()
         nx, ny = self.asy2psmap.inverted() * (canvasPos.x(), canvasPos.y())
         self.coordLabel.setText('{0:.2f}, {1:.2f}    '.format(nx, ny))
+
+    def quickUpdate(self):
+        self.updateMouseCoordLabel()
         self.refreshCanvas()
 
         self.preDraw(self.mainCanvas)
