@@ -361,7 +361,7 @@ class MainWindow1(Qw.QMainWindow):
     def objectUpdated(self):
         self.addMode = None
         self.clearSelection()
-        self.asyfyCanvas(True)
+        self.asyfyCanvas()
 
     def connectActions(self):
         self.ui.actionQuit.triggered.connect(lambda: self.execCustomCommand('quit'))

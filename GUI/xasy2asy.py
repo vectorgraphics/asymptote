@@ -409,10 +409,10 @@ class asyPath(asyObj):
 
     @classmethod
     def fromPath(cls, oldPath):
-        newObj = cls(None)
+        newObj = asyPath(None)
         newObj.nodeSet = copy.copy(oldPath.nodeSet)
         newObj.linkSet = copy.copy(oldPath.linkSet)
-        newObj.controlSet = copy.copy(oldPath.controlSet)
+        newObj.controlSet = copy.deepcopy(oldPath.controlSet)
         newObj.computed = oldPath.computed
         newObj.asyengine = oldPath.asyengine
 
@@ -438,7 +438,7 @@ class asyPath(asyObj):
     def setInfo(self, path):
         self.nodeSet = copy.copy(path.nodeSet)
         self.linkSet = copy.copy(path.linkSet)
-        self.controlSet = copy.copy(path.controlSet)
+        self.controlSet = copy.deepcopy(path.controlSet)
         self.computed = path.computed
 
     @property
