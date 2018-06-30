@@ -8,7 +8,7 @@ deleteObject: "Del"
 # toggleFill: "i"
 
 
-finalizeCurve: "f"
+finalizeCurve: "Return"
 finalizeCurveClosed: "c"
 cancelCurve: "a"
 
