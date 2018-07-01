@@ -1105,7 +1105,7 @@ class xasyScript(xasyItem):
                                 rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)))
                             rawAsyCode.write('\n')
             result = rawAsyCode.getvalue()
-            return result
+        return result
 
     def getObjectCode(self, asy2psmap=identity()):
         with io.StringIO() as rawAsyCode:
@@ -1152,7 +1152,7 @@ class xasyScript(xasyItem):
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.
                 raw_str.write(curr_str + '\n')
-                self.script = raw_str.getvalue()
+            self.script = raw_str.getvalue()
                 
         self.updateCode()
         self.unsetKeys.clear()
