@@ -513,15 +513,8 @@ void deconstruct(picture *f, picture *preamble=NULL)
   string prefix=outname();
   const string xformat="svg";
 
-  static long arg_max=sysconf(_SC_ARG_MAX);
-  const unsigned maxargs=::min(arg_max/(prefix.size()+xformat.size()+25ul),
-                               256ul);
   openpipeout();
 
-  fprintf(pipeout,"%d\n",maxargs);
-  fflush(pipeout);
-  
-  string preformat=nativeformat();
   const string Done="Done";
   const string Error="Error";
   
@@ -532,14 +525,11 @@ void deconstruct(picture *f, picture *preamble=NULL)
   mem::list<string> nameStack;
   string outname;
   unsigned arg=0;
-  unsigned batch=0;
   xmap_t xmap=processData().xmap;
     
   for(picture::nodelist::iterator p=f->nodes.begin();;) {
     if(p == f->nodes.end()) break;
-    if(arg == 0) {
-    }
-      
+       
     picture *group=new picture;
     transform t=getTransform(xmap,p);
     bool Delete=(t == ZeroTransform);
@@ -580,22 +570,9 @@ void deconstruct(picture *f, picture *preamble=NULL)
         group->append(e);
         bbox b;
         ostringstream buf;
-        buf << prefix << "_" << n;
-        group->shipout(preamble,buf.str(),preformat,false,false);
-        string Preformat=group->Transparency() ? "pdf" : preformat;
-        string name=buildname(buf.str(),Preformat);
-        nameStack.push_back(name);
-        ostringstream Buf;
-        Buf << prefix << batch << "_" << arg;
-        outname=buildname(Buf.str(),xformat,"");
-        int status=f->epstosvg(name,outname);
-//          cmd.push_back(name);
-        if(status) {
-          fprintf(pipeout,"%s\n",Error.c_str());
-          fflush(pipeout);
-          error("deconstruct failed");
-        }
-          
+        buf << prefix << "_" << arg;
+        outname=buildname(buf.str(),xformat,"");
+        group->shipout(preamble,outname,xformat,false,false);
         b=group->bounds();
       
         const char *oldlocale=setlocale(LC_NUMERIC,NULL);
@@ -618,22 +595,8 @@ void deconstruct(picture *f, picture *preamble=NULL)
       ++p;
       ++arg;
     }
+  }
       
-    if(p == f->nodes.end() || arg >= maxargs) {
-      arg=0;
-      ++batch;
-      fflush(pipeout);
-  
-//        int status=System(cmd,0,true,converter,hint);
-    }
-  }
-    
-  if(!getSetting<bool>("keep")) {
-    for(mem::list<string>::iterator p=nameStack.begin();
-        p != nameStack.end(); ++p)
-      unlink(p->c_str());
-  }
-    
   fprintf(pipeout,"%s\n",Done.c_str());
   fflush(pipeout);
 }

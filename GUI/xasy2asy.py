@@ -794,9 +794,7 @@ class xasyItem(Qc.QObject):
         fout.write(self.asyengine.xasy)
         fout.flush()
 
-        maxargs = int(fin.readline().split()[0])        # should be 256, for now.
         imageInfos = []                                 # of (box, key)
-        batch = 0
         n = 0
 
         keyCounts = {}
@@ -805,7 +803,7 @@ class xasyItem(Qc.QObject):
             for i in range(len(imageInfos)):
                 box, key, localCount, useClip = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
-                name = "{:s}{:d}_{:d}.{:s}".format(self.asyengine.tempDirName, batch, i, fileformat)
+                name = "{:s}_{:d}.{:s}".format(self.asyengine.tempDirName, i, fileformat)
 
                 self.imageHandleQueue.put((name, fileformat, (l, -t, r, -b), i, key, localCount, useClip))
 
@@ -848,11 +846,6 @@ class xasyItem(Qc.QObject):
                 print(raw_text.rstrip())
 
             n += 1
-            if n >= maxargs:
-                render()
-                imageInfos = []
-                batch += 1
-                n = 0
 
         if text == "Error\n":
             self.imageHandleQueue.put(("ERROR", fin.readline()))
