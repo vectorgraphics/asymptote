@@ -685,9 +685,28 @@ int picture::epstosvg(const string& epsname, const string& outname)
   push_split(cmd,getSetting<string>("dvisvgmOptions"));
   cmd.push_back("-o"+outname);
   cmd.push_back(epsname);
-  int status=System(cmd,0,true,"dvisvgm");
+  int status=System(cmd,2,true,"dvisvgm");
   if(!getSetting<bool>("keep"))
     unlink(epsname.c_str());
+  return status;
+}
+
+int picture::pdftosvg(const string& pdfname, const string& outname)
+{  
+  mem::vector<string> cmd;
+  cmd.push_back(getSetting<string>("dvisvgm"));
+  cmd.push_back("-n");
+  cmd.push_back("--pdf");
+  cmd.push_back("--verbosity=3");
+  string libgs=getSetting<string>("libgs");
+  if(!libgs.empty())
+    cmd.push_back("--libgs="+libgs);
+  push_split(cmd,getSetting<string>("dvisvgmOptions"));
+  cmd.push_back("-o"+outname);
+  cmd.push_back(pdfname);
+  int status=System(cmd,2,true,"dvisvgm");
+  if(status == 0 && !getSetting<bool>("keep"))
+    unlink(pdfname.c_str());
   return status;
 }
 
@@ -711,11 +730,13 @@ bool picture::postprocess(const string& prename, const string& outname,
       } else status=epstopdf(prename,outname);
     } else if(epsformat) {
       if(svg) {
-        string epsname=stripExt(prename)+".eps";
-        status=pdftoeps(prename,epsname);
-        if(status != 0) return false;
-        
-        status=epstosvg(epsname,outname);
+        status=pdftosvg(prename,outname);
+        if(status != 0) { // Dvisvgm version < 2.4 doesn't support --pdf
+          string epsname=stripExt(prename)+".eps";
+          status=pdftoeps(prename,epsname);
+          if(status != 0) return false;
+          status=epstosvg(epsname,outname);
+        }
         epsformat=false;
       } else 
         status=pdftoeps(prename,outname);

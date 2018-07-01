@@ -1,6 +1,8 @@
 size(0,150);
 import geometry;
 
+settings.tex="xelatex";
+
 real a=3;
 real b=4;
 real c=hypot(a,b);
