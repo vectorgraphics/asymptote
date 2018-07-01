@@ -80,11 +80,8 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  if(settings.xasy) {
-    erase();
-    add(f,group=false);
+  if(settings.xasy)
     return;
-  }
   
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);

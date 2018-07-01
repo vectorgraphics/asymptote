@@ -484,7 +484,7 @@ class asyPath(asyObj):
         if node == 'cycle':
             return node
         else:
-            return '({0}, {1})'.format(str(node[0]), str(node[1]))
+            return '({0},{1})'.format(str(node[0]), str(node[1]))
 
     def updateCode(self, ps2asymap=identity()):
         """Generate the code describing the path"""
@@ -502,7 +502,7 @@ class asyPath(asyObj):
                     rawAsyCode.write(self.makeNodeStr(asy2psmap *  self.controlSet[count][0]))
                     rawAsyCode.write(' and ')
                     rawAsyCode.write(self.makeNodeStr(asy2psmap * self.controlSet[count][1]))
-                    rawAsyCode.write(".." + self.makeNodeStr(asy2psmap * node) + "\n")
+                    rawAsyCode.write(".." + self.makeNodeStr(asy2psmap * node))
                 count = count + 1
             self.asyCode = rawAsyCode.getvalue()
 
@@ -602,7 +602,6 @@ class asyPath(asyObj):
         if startUp:
             asy.stop()
 
-
 class asyLabel(asyObj):
     """A python wrapper for an asy label"""
 
@@ -620,8 +619,7 @@ class asyLabel(asyObj):
 
     def updateCode(self, asy2psmap=identity()):
         """Generate the code describing the label"""
-        self.asyCode = 'Label("{0}", {1}, p={2}, align={3})'.format(self.text, tuple(self.location), self.pen.getCode(),
-                                                                    self.align)
+        self.asyCode = 'Label("{0}",{1},p={2},align={3})'.format(self.text, tuple(self.location), self.pen.getCode(), self.align)
 
     def setText(self, text):
         """Set the label's text"""
@@ -653,7 +651,8 @@ class xasyItem(Qc.QObject):
     mapString = 'xmap'
     setKeyFormatStr = string.Template('$map("{:s}",{:s});').substitute(map=mapString)
     setKeyAloneFormatStr = string.Template('$map("{:s}");').substitute(map=mapString)
-
+    resizeComment="// Resize to initial xasy transform"
+    asySize=""
     def __init__(self, canvas=None, asyengine=None):
         """Initialize the item to an empty item"""
         super().__init__()
@@ -676,7 +675,7 @@ class xasyItem(Qc.QObject):
         with io.StringIO() as rawCode:
             rawCode.write(self.getTransformCode())
             rawCode.write(self.getObjectCode())
-            self.asyCode = rawCode.getvalue()
+            self.asyCode = rawCode.getvalue() 
 
     @property
     def asyengine(self):
@@ -701,7 +700,7 @@ class xasyItem(Qc.QObject):
         raise NotImplementedError
 
     def handleImageReception(self, file, fileformat, bbox, count, key=None, localCount=0, containsClip=False):
-        """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
+        """Receive an image from an asy deconstruction. It replaces the default n asyProcess."""
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
         if fileformat == 'png':
             image = Qg.QImage(file)
@@ -788,9 +787,9 @@ class xasyItem(Qc.QObject):
             if DebugFlags.printDeconstTranscript:
                 print('fout:', line)
             fout.write(line+"\n")
+        fout.write(self.asySize)
         fout.write("deconstruct();\n")
-        fout.write('write(_outpipe,currentpicture.calculateTransform(),endl);\n');
-        fout.write('flush(_outpipe);\n')
+        fout.write('write(_outpipe,currentpicture.calculateTransform(),endl);\n')
         fout.write(self.asyengine.xasy)
         fout.flush()
 
@@ -852,11 +851,9 @@ class xasyItem(Qc.QObject):
         else:
             render()
 
-        self.asy2psmap = fin.readline().rstrip()
-        self.asy2psmap = asyTransform(xu.listize(self.asy2psmap, float))
+        self.asy2psmap = asyTransform(xu.listize(fin.readline().rstrip(),float))
         self.imageHandleQueue.put((None,))
         self.asyfied = True
-
 
 class xasyDrawnItem(xasyItem):
     """A base class for GUI items was drawn by the user. It combines a path, a pen, and a transform."""
@@ -944,14 +941,14 @@ class xasyShape(xasyDrawnItem):
         super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
 
     def getObjectCode(self, asy2psmap=identity()):
-        return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())
+        return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
     def getTransformCode(self, asy2psmap=identity()):
         transf = self.transfKeymap[self.transfKey][0]
         if transf == identity():
             return ''
         else:
-            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+"\n"
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+'\n'
 
     def generateDrawObjects(self, forceUpdate=False):
         self.path.computeControls()
@@ -978,7 +975,7 @@ class xasyFilledShape(xasyShape):
         super().__init__(path, asyengine, pen, transform)
 
     def getObjectCode(self, asy2psmap=identity()):
-        return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())
+        return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
     def generateDrawObjects(self, forceUpdate=False):
         self.path.computeControls()
@@ -1033,7 +1030,7 @@ class xasyText(xasyItem):
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())+"\n"
 
     def getObjectCode(self, asy2psmap=identity()):
-        return 'label(KEY="{0}",{1});'.format(self.transfKey, self.label.getCode())
+        return 'label(KEY="{0}",{1});'.format(self.transfKey, self.label.getCode())+'\n\n'
 
     def generateDrawObjects(self, forceUpdate=False):
         self.asyfy(forceUpdate)
@@ -1108,10 +1105,17 @@ class xasyScript(xasyItem):
             return result
 
     def getObjectCode(self, asy2psmap=identity()):
+        numeric="([-+]?(?:(?:\d*\.\d+)|(?:\d+\.?)))"
+        rSize=re.compile("size\(\("+numeric+","+numeric+","+numeric+","
+                         +numeric+","+numeric+","+numeric+"\)\); "+
+                         self.resizeComment)
         with io.StringIO() as rawAsyCode:
             for line in self.script.splitlines():
-                raw_line = line.rstrip().replace('\t', ' ' * 4)
-                rawAsyCode.write(raw_line + '\n')
+                if(rSize.match(line)):
+                    self.asySize=line.rstrip()+'\n'
+                else:
+                    raw_line = line.rstrip().replace('\t', ' ' * 4)
+                    rawAsyCode.write(raw_line + '\n')
 
             return rawAsyCode.getvalue()
 
