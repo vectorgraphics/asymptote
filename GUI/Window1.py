@@ -245,7 +245,7 @@ class MainWindow1(Qw.QMainWindow):
             'redo': self.btnRedoOnClick,
             'manual': self.actionManual,
             'loadFile': self.btnLoadFileonClick,
-            'save': self.btnSaveOnClick,
+            'save': self.actionSave,
             'saveAs': self.actionSaveAs,
             'transform': self.btnCustTransformOnClick,
             'commandPalette': self.enterCustomCommand,
@@ -369,6 +369,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionRedo.triggered.connect(lambda: self.execCustomCommand('redo'))
         self.ui.actionTransform.triggered.connect(lambda: self.execCustomCommand('transform'))
 
+        self.ui.actionSave.triggered.connect(self.actionSave)
         self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
         self.ui.actionManual.triggered.connect(self.actionManual)
         self.ui.actionSettings.triggered.connect(self.openAndReloadSettings)
@@ -389,7 +390,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnUndo.clicked.connect(self.btnUndoOnClick)
         self.ui.btnRedo.clicked.connect(self.btnRedoOnClick)
         self.ui.btnLoadFile.clicked.connect(self.btnLoadFileonClick)
-        self.ui.btnSave.clicked.connect(self.btnSaveOnClick)
         self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
 
         # self.ui.btnExportAsy.clicked.connect(self.btnExportAsyOnClick)
@@ -795,7 +795,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnDrawGrid.setChecked(self.settings['defaultShowGrid'])
         self.btnDrawGridOnClick(self.settings['defaultShowGrid'])
 
-    def btnSaveOnClick(self):
+    def actionSave(self):
         if self.filename is None:
             self.actionSaveAs()
         else:
@@ -804,7 +804,7 @@ class MainWindow1(Qw.QMainWindow):
             saveFile.close()
 
     def actionSaveAs(self):
-        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', Qc.QDir.homePath())[0]
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File')[0]
         if saveLocation[1]:
             saveFile = io.open(saveLocation, 'w')
             xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
