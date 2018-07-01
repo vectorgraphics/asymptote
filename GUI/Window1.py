@@ -1031,7 +1031,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.magnification = self.settings['maximumMagnification']
         elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
             self.panOffset[1] += rawAngle/1
-            self.panOffset[0] += rawAngleX/1
+            self.panOffset[0] -= rawAngleX/1
         # handle scrolling
         else:
             # process selection layer change

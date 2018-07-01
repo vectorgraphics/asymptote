@@ -93,7 +93,7 @@
       <widget class="QComboBox" name="cmbAlign">
        <item>
         <property name="text">
-         <string>None</string>
+         <string>Center</string>
         </property>
        </item>
        <item>
