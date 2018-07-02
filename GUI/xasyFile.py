@@ -74,8 +74,7 @@ def extractTransformsFromFile(fileStr):
 def saveFile(file, xasyItems, asy2psmap):
     """Write a list of xasyItems to a file"""
     for item in xasyItems:
-        # add asy2psmap here once map handles asy transforms. 
-        file.write(item.getTransformCode())
+        file.write(item.getTransformCode(asy2psmap))
 
     for item in xasyItems:
         file.write(item.getObjectCode(asy2psmap))

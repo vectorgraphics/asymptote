@@ -414,7 +414,8 @@ bool pdf()
 }
 
 void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
-             string format=emptystring, bool wait=false, bool view=true)
+              string format=emptystring, bool wait=false, bool view=true,
+              transform T=identity)
 {
   if(prefix.empty()) prefix=outname();
 
@@ -423,10 +424,12 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   picture::nodelist::iterator p;
   
   xmap_t xmap=processData().xmap;
+  transform Tinv=inverse(T);
 
   for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
     transform t=getTransform(xmap,p);
     bool Delete=(t == ZeroTransform);
+    if(!Delete && !t.isIdentity()) t=T*t*Tinv;
     picture *group=new picture;
     assert(*p);
     if((*p)->endgroup()) error(nobegin);
@@ -505,7 +508,7 @@ void xmap(string key, transform t=identity)
   }
 }
 
-void deconstruct(picture *f, picture *preamble=NULL) 
+void deconstruct(picture *f, picture *preamble=NULL, transform T=identity) 
 {
   unsigned level=0;
 
@@ -519,6 +522,7 @@ void deconstruct(picture *f, picture *preamble=NULL)
   
   unsigned arg=0;
   xmap_t xmap=processData().xmap;
+  transform Tinv=inverse(T);
     
   for(picture::nodelist::iterator p=f->nodes.begin();;) {
     if(p == f->nodes.end()) break;
@@ -526,6 +530,7 @@ void deconstruct(picture *f, picture *preamble=NULL)
     picture *group=new picture;
     transform t=getTransform(xmap,p);
     bool Delete=(t == ZeroTransform);
+    if(!Delete && !t.isIdentity()) t=T*t*Tinv;
 
     assert(*p);
     if((*p)->endgroup()) {
