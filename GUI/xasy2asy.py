@@ -823,9 +823,9 @@ class xasyItem(Qc.QObject):
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
 
             clipflag = keydata[-1] == '1'
-            keyflag = keydata[-2] == '1'   # last char
+            userkey = keydata[-2] == '1'
             keydata = keydata[:-3]
-            if keyflag == False:
+            if not userkey:
                 self.unsetKeys.add(keydata)
             
 #                print(line, col)
