@@ -204,7 +204,7 @@ class asyTransform(Qc.QObject):
         return asyTransform((tx, ty, xx, xy, yx, yy))
 
     def getRawCode(self):
-        return '({0})'.format(','.join([str(val) for val in self.t]))
+        return xu.tuple2StrWOspaces(self.t)
 
     def getCode(self, asy2psmap=None):
         """Obtain the asy code that represents this transform"""
@@ -619,7 +619,9 @@ class asyLabel(asyObj):
 
     def updateCode(self, asy2psmap=identity()):
         """Generate the code describing the label"""
-        self.asyCode = 'Label("{0}",{1},p={2},align={3})'.format(self.text, tuple(self.location), self.pen.getCode(), self.align)
+        newLoc = asy2psmap.inverted() * self.location
+        locStr = xu.tuple2StrWOspaces(newLoc)
+        self.asyCode = 'Label("{0}",{1},p={2},align={3})'.format(self.text, locStr, self.pen.getCode(), self.align)
 
     def setText(self, text):
         """Set the label's text"""
@@ -1027,10 +1029,10 @@ class xasyText(xasyItem):
             # return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
             return ''
         else:
-            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())+"\n"
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+"\n"
 
     def getObjectCode(self, asy2psmap=identity()):
-        return 'label(KEY="{0}",{1});'.format(self.transfKey, self.label.getCode())+'\n\n'
+        return 'label(KEY="{0}",{1});'.format(self.transfKey, self.label.getCode(asy2psmap))+'\n'
 
     def generateDrawObjects(self, forceUpdate=False):
         self.asyfy(forceUpdate)
