@@ -1106,13 +1106,18 @@ class xasyScript(xasyItem):
             result = rawAsyCode.getvalue()
         return result
 
+    def findNonIdKeys(self):
+        return {key for key in self.transfKeymap if not all(transf == identity() for transf in self.transfKeymap[key]) }
+
     def getObjectCode(self, asy2psmap=identity()):
-        numeric="([-+]?(?:(?:\d*\.\d+)|(?:\d+\.?)))"
+        numeric=r'([-+]?(?:(?:\d*\.\d+)|(?:\d+\.?)))'
         rSize=re.compile("size\(\("+numeric+","+numeric+","+numeric+","
                          +numeric+","+numeric+","+numeric+"\)\); "+
                          self.resizeComment)
+
+        newScript = self.getReplacedKeysCode(self.findNonIdKeys())
         with io.StringIO() as rawAsyCode:
-            for line in self.script.splitlines():
+            for line in newScript.splitlines():
                 if(rSize.match(line)):
                     self.asySize=line.rstrip()+'\n'
                 else:
@@ -1131,12 +1136,15 @@ class xasyScript(xasyItem):
         self.keyPrefix = newPrefix
         self.updatedPrefix = False
 
-    def replaceKeysInCode(self):
+    def getReplacedKeysCode(self, key2replace: set=None) -> str:
         keylist = {}
         prefix = ''
+        key2replaceSet = self.unsetKeys if key2replace is None else \
+                        self.unsetKeys & key2replace
+
         if not self.updatedPrefix:
             prefix = self.keyPrefix
-        for key in self.unsetKeys:
+        for key in key2replaceSet:
             raw_parsed = xu.tryParseKey(key)
             assert raw_parsed is not None
             line, col = [int(val) for val in raw_parsed.groups()]
@@ -1154,12 +1162,15 @@ class xasyScript(xasyItem):
                         for j in range(len(curr_str)):
                             raw_line.write(curr_str[j])
                             if j + 1 in keylist[i + 1]:
-                                raw_line.write('KEY="{2:s}{0:d}.{1:d}",'.format(i + 1, j + 1, prefix))
+                                raw_line.write('KEY="{2:s}{0:d}.{1:d}",'.format(
+                                    i + 1, j + 1, prefix))
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.
                 raw_str.write(curr_str + '\n')
-            self.script = raw_str.getvalue()
-                
+            return raw_str.getvalue()
+
+    def replaceKeysInCode(self):
+        self.script = self.getReplacedKeysCode()
         self.updateCode()
         self.unsetKeys.clear()
         self.setKeyed = True
@@ -1188,8 +1199,8 @@ class xasyScript(xasyItem):
 
         # add in any missng key:
 
-        if self.unsetKeys:
-            self.replaceKeysInCode()
+        # if self.unsetKeys:
+            # self.replaceKeysInCode()
 
         keyCount = {}
 
