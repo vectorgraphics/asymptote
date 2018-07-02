@@ -825,7 +825,7 @@ class xasyItem(Qc.QObject):
             clipflag = keydata[-1] == '1'
             keyflag = keydata[-2] == '1'   # last char
             keydata = keydata[:-3]
-            if keyflag == '0':
+            if keyflag == False:
                 self.unsetKeys.add(keydata)
             
 #                print(line, col)
