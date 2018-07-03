@@ -484,7 +484,9 @@ class asyPath(asyObj):
         if node == 'cycle':
             return node
         else:
-            return '({0},{1})'.format(str(node[0]), str(node[1]))
+            # if really want to, disable this rounding
+            # shouldn't be to much of a problem since 10e-6 is quite small... 
+            return '({:.6g},{:.6g})'.format(node[0], node[1])
 
     def updateCode(self, ps2asymap=identity()):
         """Generate the code describing the path"""
