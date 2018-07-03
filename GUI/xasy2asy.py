@@ -605,11 +605,12 @@ class asyPath(asyObj):
 class asyLabel(asyObj):
     """A python wrapper for an asy label"""
 
-    def __init__(self, text="", location=(0, 0), pen=None, align=None):
+    def __init__(self, text="", location=(0, 0), pen=None, align=None, fontSize:int=None):
         """Initialize the label with the given test, location, and pen"""
         asyObj.__init__(self)
         self.align = align
         self.pen = pen
+        self.fontSize = fontSize
         if align is None:
             self.align = 'SE'
         if pen is None:
@@ -621,7 +622,14 @@ class asyLabel(asyObj):
         """Generate the code describing the label"""
         newLoc = asy2psmap.inverted() * self.location
         locStr = xu.tuple2StrWOspaces(newLoc)
-        self.asyCode = 'Label("{0}",{1},p={2},align={3})'.format(self.text, locStr, self.pen.getCode(), self.align)
+        self.asyCode = 'Label("{0}",{1},p={2}{4},align={3})'.format(self.text, locStr, self.pen.getCode(), self.align,
+        self.getFontSizeText())
+
+    def getFontSizeText(self):
+        if self.fontSize is not None:
+            return '+fontsize({:.6g})'.format(self.fontSize)
+        else:
+            return ''
 
     def setText(self, text):
         """Set the label's text"""
@@ -995,14 +1003,14 @@ class xasyFilledShape(xasyShape):
 class xasyText(xasyItem):
     """Text created by the GUI"""
 
-    def __init__(self, text, location, asyengine, pen=None, transform=identity(), key=None, align=None):
+    def __init__(self, text, location, asyengine, pen=None, transform=identity(), key=None, align=None, fontsize:int=None):
         """Initialize this item with text, a location, pen, and transform"""
         super().__init__(asyengine=asyengine)
         if pen is None:
             pen = asyPen(asyengine=asyengine)
         if pen.asyEngine is None:
             pen.asyEngine = asyengine
-        self.label = asyLabel(text, location, pen, align)
+        self.label = asyLabel(text, location, pen, align, fontSize=fontsize)
         # self.transform = [transform]
         if key is None:
             self.transfKey = 'x:' + str(uuid.uuid4())

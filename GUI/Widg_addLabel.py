@@ -3,6 +3,7 @@ import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 
 import labelEditor
+import xasyUtils as xu
 
 
 class Widg_addLabel(Qw.QWidget):
@@ -31,20 +32,28 @@ class Widg_addLabel(Qw.QWidget):
         if self.info['shift_y'] is not None:
             self.ui.txtShiftY.setText(str(self.info['shift_y']))
 
+        
+        self.ui.cmbFontSize.setCurrentText(str(self.info['fontSize']) if self.info['fontSize'] is not None else '-')
         self.ui.cmbAlign.setCurrentIndex(self.info['alignIndex'])
 
         validator = Qg.QDoubleValidator()
 
         self.ui.txtShiftX.setValidator(validator)
         self.ui.txtShiftY.setValidator(validator)
+        self.ui.cmbFontSize.setValidator(validator)
 
         self.ui.cmbAlign.currentTextChanged.connect(self.updateCheck)
         self.ui.cmbAlign.currentIndexChanged.connect(self.cmbIndexUpdate)
         self.ui.txtShiftX.textEdited.connect(self.shftXUpdate)
         self.ui.txtShiftY.textEdited.connect(self.shftYUpdate)
         self.ui.btnAdvancedEdit.clicked.connect(self.btnAdvancedEditClicked)
+        self.ui.cmbFontSize.currentTextChanged.connect(self.cmbFontSizeTextChanged)
 
         self.updateCheck(self.ui.cmbAlign.currentText())
+
+    def cmbFontSizeTextChanged(self, text: str): 
+        tryParseVal = xu.tryParse(text, float)
+        self.info['fontSize'] = tryParseVal
 
     def btnAdvancedEditClicked(self):
         advancedEditDialog = labelEditor.labelEditor()

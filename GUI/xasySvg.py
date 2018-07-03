@@ -25,6 +25,6 @@ class SvgObject():
         if not self.cached:
             self.outData = xet.ElementTree.tostring(self.xmlRoot, encoding='utf-8')
             self.cached = True 
-            xet.ElementTree.dump(self.xmlRoot)
+            # xet.ElementTree.dump(self.xmlRoot)
         raw_data = csvg.svg2png(bytestring=self.outData, dpi=dpi)
         return Qg.QImage.fromData(raw_data, 'PNG')

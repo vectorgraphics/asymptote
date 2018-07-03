@@ -127,6 +127,7 @@ class AddLabel(InplaceObjProcess):
         self.anchor.setY(y)
 
         self.alignMode = info['align']
+        self.fontSize = info['fontSize']
         self._active = True
 
     def getObject(self):
@@ -137,7 +138,8 @@ class AddLabel(InplaceObjProcess):
         text = self.text
         align = str(self.alignMode)
         anchor = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.anchor)
-        newLabel = x2a.xasyText(text=text, location=anchor, pen=None, align=align, asyengine=None)
+        newLabel = x2a.xasyText(text=text, location=anchor, pen=None,
+                                align=align, asyengine=None, fontsize=self.fontSize)
         newLabel.asyfied = False
         return newLabel
 

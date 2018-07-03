@@ -221,6 +221,7 @@ class MainWindow1(Qw.QMainWindow):
             'inscribed': True,
             'sides': 3,
             'centermode': True,
+            'fontSize': None, 
             'asyengine': self.asyEngine,
             'fill': self.ui.btnFill.isChecked(),
             'closedPath': False,
