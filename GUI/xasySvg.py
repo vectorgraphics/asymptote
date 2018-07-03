@@ -9,17 +9,18 @@ class SvgObject():
             self._data = f.read().encode('utf-8')
         self.xmlRoot = xet.ElementTree.fromstring(self._data.decode('utf-8'))
 
-        # once we use pdflatex, uncomment this line to remove any clip-path='url(#clip1)'
-        # self.cleanclip()
+        self.cleanclip()
         self.cached = False
 
     def cleanclip(self):
-        # remove any clip-path url1 as cairo bug
+        # For pdf tex engines, remove spurious clip-path='url(#clip1)'
+        # to work around cairo bug
         self.cached = False 
 
         # see xpath for info. 
         for elem in self.xmlRoot.findall(".//*[@clip-path='url(#clip1)']"):
-            elem.attrib.pop('clip-path')
+            if 'id' in elem.attrib:
+                elem.attrib.pop('clip-path')
     
     def render(self, dpi:int) -> Qg.QImage:
         if not self.cached:
