@@ -36,11 +36,14 @@ class labelEditor(Qw.QDialog):
         rawText.replace('\n', ' ')
         if self.ui.chkMathMode.isChecked():
             prefix = ''
+            suffix = ''
             if self.ui.cmbMathStyle.currentText() == 'Display Style':
-                prefix = '\\displaystyle'
+                prefix = '\\displaystyle{'
+                suffix = '}'
             elif self.ui.cmbMathStyle.currentText() == 'Script Style':
-                prefix = '\\scriptstyle'
-            return '${0}{{{1}}}$'.format(prefix, rawText)
+                prefix = '\\scriptstyle{'
+                suffix = '}'
+            return '${0}{1}{2}$'.format(prefix, rawText, suffix)
         else:
             return rawText
 
