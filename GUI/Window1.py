@@ -951,8 +951,9 @@ class MainWindow1(Qw.QMainWindow):
                     x, y = int(round(canvasPos.x())), int(round(canvasPos.y()))  # otherwise it crashes...
                     canvasPos = Qc.QPoint(x, y)
 
-                scaleFactor = Qc.QPoint.dotProduct(canvasPos, self.savedMousePosition) /\
-                                   (self.savedMousePosition.manhattanLength() ** 2)
+                originalDeltaPts = self.savedMousePosition - self.currentAnchor
+                scaleFactor = Qc.QPointF.dotProduct(canvasPos - self.currentAnchor, originalDeltaPts) /\
+                    (xu.twonorm((originalDeltaPts.x(), originalDeltaPts.y())) ** 2)
                 if not self.lockX:
                     self.scaleFactorX = scaleFactor
                 else:
