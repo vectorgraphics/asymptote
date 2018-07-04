@@ -1375,7 +1375,14 @@ class DrawObject(Qc.QObject):
         canvas.restore()
 
     def collide(self, coords, canvasCoordinates=True):
-        return self.boundingBox.contains(coords)
+        # modify these values to grow/shrink the fuzz. 
+        fuzzTolerance = 1
+        marginGrowth = 1
+        leftMargin = marginGrowth if self.boundingBox.width() < fuzzTolerance else 0
+        topMargin = marginGrowth if self.boundingBox.height() < fuzzTolerance else 0
+
+        newMargin = Qc.QMarginsF(leftMargin, topMargin, leftMargin, topMargin)
+        return self.boundingBox.marginsAdded(newMargin).contains(coords)
 
     def getID(self):
         return self.originalObj
