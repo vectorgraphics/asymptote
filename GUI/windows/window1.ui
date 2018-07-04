@@ -501,6 +501,37 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="btnResetPan">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Synchronize with Asymptote</string>
+            </property>
+            <property name="text">
+             <string>C</string>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="horizontalSpacer_6">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -961,7 +992,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons2/zondicons/anchor.svg</normaloff>:/icons2/zondicons/anchor.svg</iconset>
             </property>
             <property name="checkable">
@@ -1774,7 +1805,7 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="../res/icons.qrc">
                  <normaloff>:/icons2/zondicons/subdirectory-left.svg</normaloff>:/icons2/zondicons/subdirectory-left.svg</iconset>
                </property>
                <property name="flat">

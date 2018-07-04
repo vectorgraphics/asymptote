@@ -398,6 +398,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
         self.ui.btnAsyfy.clicked.connect(lambda: self.asyfyCanvas(True))
         self.ui.btnSetZoom.clicked.connect(self.setMagPrompt)
+        self.ui.btnResetPan.clicked.connect(self.resetPan)
 
         self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
         self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
@@ -1204,6 +1205,10 @@ class MainWindow1(Qw.QMainWindow):
         self.mainCanvas.setTransform(self.getScrsTransform(), True)
 
         self.ui.imgLabel.setPixmap(self.canvasPixmap)
+
+    def resetPan(self):
+        self.panOffset = [0, 0]
+        self.quickUpdate()
 
     def selectObject(self):
         if not self.ui.imgLabel.underMouse():
