@@ -15,7 +15,7 @@ import io
 
 
 class labelEditor(Qw.QDialog):
-    def __init__(self):
+    def __init__(self, text=''):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
@@ -27,6 +27,7 @@ class labelEditor(Qw.QDialog):
         self.ui.btnGetText.clicked.connect(self.btnGetTextOnClick)
 
         self.svgPreview = None
+        self.ui.txtLabelEdit.setPlainText(text)
 
     def chkMathModeChecked(self, checked):
         self.ui.cmbMathStyle.setEnabled(checked)

@@ -56,7 +56,7 @@ class Widg_addLabel(Qw.QWidget):
         self.info['fontSize'] = tryParseVal
 
     def btnAdvancedEditClicked(self):
-        advancedEditDialog = labelEditor.labelEditor()
+        advancedEditDialog = labelEditor.labelEditor(self.ui.txtLabelText.text())
         advancedEditDialog.show()
         result = advancedEditDialog.exec_()
         if result == Qw.QDialog.Accepted:
