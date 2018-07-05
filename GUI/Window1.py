@@ -1219,6 +1219,8 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnPanCenterOnClick(self):
         newCenter = self.getAllBoundingBox().center()
+
+        # pan in qt coordinates. 
         self.panOffset = [-newCenter.x(), newCenter.y()]
         
         self.quickUpdate()

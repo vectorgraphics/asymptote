@@ -27,6 +27,22 @@ class labelEditor(Qw.QDialog):
         self.ui.btnGetText.clicked.connect(self.btnGetTextOnClick)
 
         self.svgPreview = None
+        self.initializeText(text)
+
+    def initializeText(self, text: str):
+        if text[0] == '$' and text[-1] == '$':
+            self.ui.chkMathMode.setChecked(True)
+            text = text.strip('$')
+
+            if text.startswith('\\displaystyle{'):
+                self.ui.cmbMathStyle.setCurrentText('Display Style')
+                text = text.rstrip('}')
+                text = text.replace('\\displaystyle{', '', 1)
+            elif text.startswith('\\scriptstyle{'):
+                self.ui.cmbMathStyle.setCurrentText('Script Style')
+                text = text.rstrip('}')
+                text = text.replace('\\scriptstyle{', '', 1)
+
         self.ui.txtLabelEdit.setPlainText(text)
 
     def chkMathModeChecked(self, checked):
