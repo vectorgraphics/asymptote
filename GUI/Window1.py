@@ -1034,11 +1034,18 @@ class MainWindow1(Qw.QMainWindow):
         rawAngleX = event.angleDelta().x() / 8
         keyModifiers = int(Qw.QApplication.keyboardModifiers())
         if keyModifiers & int(Qc.Qt.ControlModifier):
+            oldMag = self.magnification 
             self.magnification += (rawAngle/100)
+            
+
             if self.magnification < self.settings['minimumMagnification']:
                 self.magnification = self.settings['minimumMagnification']
             elif self.magnification > self.settings['maximumMagnification']:
                 self.magnification = self.settings['maximumMagnification']
+
+            self.panOffset = [(self.magnification/oldMag) * self.panOffset[0],
+                              (self.magnification/oldMag) * self.panOffset[1]]
+
         elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
             self.panOffset[1] += rawAngle/1
             self.panOffset[0] -= rawAngleX/1
