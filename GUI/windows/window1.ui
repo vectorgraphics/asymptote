@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>xasy2</string>
+   <string>xasy</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -521,7 +521,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Synchronize with Asymptote</string>
+             <string>Recenter about origin</string>
             </property>
             <property name="text">
              <string>R</string>
@@ -552,7 +552,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Synchronize with Asymptote</string>
+             <string>Recenter</string>
             </property>
             <property name="text">
              <string>C</string>
@@ -1861,7 +1861,7 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1030</width>
-     <height>23</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
