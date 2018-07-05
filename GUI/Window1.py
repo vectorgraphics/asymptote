@@ -366,7 +366,7 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
 
     def objectUpdated(self):
-        self.addMode = None
+        self.removeAddMode()
         self.clearSelection()
         self.asyfyCanvas()
 
@@ -490,6 +490,12 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             exec(commandText)
 
+    def deleteAddOptions(self):
+        if self.currAddOptionsWgt is not None:
+            self.currAddOptionsWgt.hide()
+            self.ui.addOptionLayout.removeWidget(self.currAddOptionsWgt)
+            self.currAddOptionsWgt = None
+
     def updateOptionWidget(self):
         try:
             self.addMode.objectCreated.disconnect()
@@ -497,13 +503,10 @@ class MainWindow1(Qw.QMainWindow):
             pass
 
         self.currentModeStack[-1] = None
+        self.addMode.objectCreated.connect(self.addInPlace)
         self.updateModeBtnsOnly()
 
-        self.addMode.objectCreated.connect(self.addInPlace)
-        if self.currAddOptionsWgt is not None:
-            self.currAddOptionsWgt.hide()
-            self.ui.addOptionLayout.removeWidget(self.currAddOptionsWgt)
-            self.currAddOptionsWgt = None
+        self.deleteAddOptions()
 
         self.currAddOptionsWgt = self.addMode.createOptWidget(self.currAddOptions)
         if self.currAddOptionsWgt is not None:
@@ -1134,9 +1137,14 @@ class MainWindow1(Qw.QMainWindow):
 
         self.quickUpdate()
 
+    def removeAddMode(self):
+        self.addMode = None
+        self.deleteAddOptions()
+
     def editFinalized(self):
         self.addMode.forceFinalize()
-        self.addMode = None
+        self.removeAddMode()
+
         self.quickUpdate()
 
     def editRejected(self):
@@ -1529,7 +1537,7 @@ class MainWindow1(Qw.QMainWindow):
             button.setChecked(button is activeBtn)
 
     def updateChecks(self):
-        self.addMode = None
+        self.removeAddMode()
         self.updateModeBtnsOnly()
         self.quickUpdate()
 

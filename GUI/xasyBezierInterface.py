@@ -321,7 +321,6 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
     def createOptWidget(self, info):
         self.opt = Web.Widg_editBezier(self.info)
-
         self.opt.ui.btnOk.clicked.connect(self.editAccepted)
         self.opt.ui.btnCancel.clicked.connect(self.editRejected)
         self.opt.ui.btnForceRecompute.clicked.connect(self.recalculateCtrls)
