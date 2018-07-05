@@ -307,6 +307,12 @@ class MainWindow1(Qw.QMainWindow):
             if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
                 self.addMode.active = False
 
+    def getAllBoundingBox(self) -> Qc.QRectF:
+        newRect = Qc.QRectF()
+        for majitem in self.drawObjects:
+            for minitem in majitem:
+                newRect = newRect.united(minitem.boundingBox)
+        return newRect
 
     def finalizeAddObj(self):
         if self.addMode is not None:
@@ -399,6 +405,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAsyfy.clicked.connect(lambda: self.asyfyCanvas(True))
         self.ui.btnSetZoom.clicked.connect(self.setMagPrompt)
         self.ui.btnResetPan.clicked.connect(self.resetPan)
+        self.ui.btnPanCenter.clicked.connect(self.btnPanCenterOnClick)
 
         self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
         self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
@@ -1210,6 +1217,12 @@ class MainWindow1(Qw.QMainWindow):
         self.panOffset = [0, 0]
         self.quickUpdate()
 
+    def btnPanCenterOnClick(self):
+        newCenter = self.getAllBoundingBox().center()
+        self.panOffset = [-newCenter.x(), newCenter.y()]
+        
+        self.quickUpdate()
+
     def selectObject(self):
         if not self.ui.imgLabel.underMouse():
             return None, []
@@ -1475,6 +1488,8 @@ class MainWindow1(Qw.QMainWindow):
 
             if self.customAnchor is not None and self.anchorMode == AnchorMode.customAnchor:
                 self.drawAnchorCursor(postCanvas)
+
+            # postCanvas.drawRect(self.getAllBoundingBox())
 
     def drawAnchorCursor(self, painter):
         painter.drawEllipse(self.customAnchor, 6, 6)
