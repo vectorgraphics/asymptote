@@ -1043,7 +1043,7 @@ class MainWindow1(Qw.QMainWindow):
 
             cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
             centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
-            
+
             self.magnification += (rawAngle/100)
 
             if self.magnification < self.settings['minimumMagnification']:
@@ -1250,7 +1250,11 @@ class MainWindow1(Qw.QMainWindow):
     def btnPanCenterOnClick(self):
         newCenter = self.getAllBoundingBox().center()
 
-        # pan in qt coordinates. 
+        # adjust to new magnification
+        # technically, doable through getscrstransform()
+        # and subtract pan offset and center points
+        # but it's much more work...
+        newCenter = self.magnification * newCenter
         self.panOffset = [-newCenter.x(), newCenter.y()]
         
         self.quickUpdate()
