@@ -282,6 +282,8 @@ class MainWindow1(Qw.QMainWindow):
         # assuming origin <==> top left
         # (Pan) * (Translate) * (Flip the images) * (Zoom) * (Obj transform) * (Base Information) 
 
+        # pipeline --> let x, y be the postscript point
+        # p = (mx + cx + panoffset, -ny + cy + panoffset)
         cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
 
         newTransf = Qg.QTransform()
@@ -1038,16 +1040,29 @@ class MainWindow1(Qw.QMainWindow):
         keyModifiers = int(Qw.QApplication.keyboardModifiers())
         if keyModifiers & int(Qc.Qt.ControlModifier):
             oldMag = self.magnification 
-            self.magnification += (rawAngle/100)
+
+            cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
+            centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
             
+            self.magnification += (rawAngle/100)
 
             if self.magnification < self.settings['minimumMagnification']:
                 self.magnification = self.settings['minimumMagnification']
             elif self.magnification > self.settings['maximumMagnification']:
                 self.magnification = self.settings['maximumMagnification']
 
-            self.panOffset = [(self.magnification/oldMag) * self.panOffset[0],
-                              (self.magnification/oldMag) * self.panOffset[1]]
+            # set the new pan. Let c be the fixed point (center point), 
+            # Let m the old mag, n the new mag
+            
+            # find t2 such that 
+            # mc + t1 = nc + t2 ==> t2 = (m - n)c + t1
+
+            centerPoint = (oldMag - self.magnification) * centerPoint
+
+            self.panOffset = [
+                self.panOffset[0] + centerPoint.x(),
+                self.panOffset[1] - centerPoint.y()
+            ]
 
         elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
             self.panOffset[1] += rawAngle/1
