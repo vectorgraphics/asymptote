@@ -59,6 +59,7 @@ class AddCircle(InplaceObjProcess):
 
     def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+        self.radius = 0
         self.center.setX(x)
         self.center.setY(y)
         self.fill = info['fill']
@@ -287,9 +288,11 @@ class AddPoly(InplaceObjProcess):
         self.centermode = info['centermode']
         self.fill = info['fill']
 
+        
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.center.setX(x)
         self.center.setY(y)
+        self.currPos = Qc.QPointF(self.center)
 
     def mouseMove(self, pos, event):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
