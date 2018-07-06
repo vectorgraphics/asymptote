@@ -115,15 +115,47 @@
      </item>
      <item>
       <widget class="QPushButton" name="btnOk">
-       <property name="text">
-        <string>Ok</string>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="icon">
+        <iconset resource="../res/icons.qrc">
+         <normaloff>:/entypo/Entypo+/Entypo+/check.svg</normaloff>:/entypo/Entypo+/Entypo+/check.svg</iconset>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btnCancel">
-       <property name="text">
-        <string>Cancel</string>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="icon">
+        <iconset resource="../res/icons.qrc">
+         <normaloff>:/icons/ionicons-2.0.1/src/close-round.svg</normaloff>:/icons/ionicons-2.0.1/src/close-round.svg</iconset>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -131,6 +163,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../res/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
