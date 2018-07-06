@@ -718,12 +718,12 @@ class xasyItem(Qc.QObject):
             image = Qg.QImage(file)
         elif fileformat == 'svg':
             # and don't forget to flip this... 
-            svgobj = xs.SvgObject(file)
+            # svgobj = xs.SvgObject(file)
 
             if containsClip:
-                image = svgobj
+                image = xs.SvgObject(file)
             else:
-                image = Qs.QSvgRenderer(svgobj._data)
+                image = Qs.QSvgRenderer(file)
                 assert image.isValid()
         else:
             raise Exception('Format not supported!')
@@ -755,7 +755,7 @@ class xasyItem(Qc.QObject):
                 newDrawObj.setBoundingBoxPs(bbox)
                 newDrawObj.setParent(self)
                 self.drawObjects.append(newDrawObj)
-
+        return containsClip
     def asyfy(self, force=False):
         if self.asyengine is None:
             return 1
@@ -774,10 +774,11 @@ class xasyItem(Qc.QObject):
             if item[0] == "OUTPUT":
                 print(item[1])
             else:
-                self.handleImageReception(*item)
-                if not DebugFlags.keepFiles:
+                keepFile = self.handleImageReception(*item)
+                if not DebugFlags.keepFiles and not keepFile:
                     try:
                         os.remove(item[0])
+                        pass
                     except OSError:
                         pass
                     finally:
