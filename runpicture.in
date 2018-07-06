@@ -565,6 +565,7 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
       if(!Delete) {
         drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
         group->append(e);
+        if((*p)->endclip()) clip=true;
         ostringstream buf;
         buf << prefix << "_" << arg;
         string outname=buildname(buf.str(),xformat);
