@@ -1262,6 +1262,7 @@ class DrawObject(Qc.QObject):
         self.key = key
         self.cachedSvgImg = None
         self.cachedDPI = None
+        self.maxDPI=0
         self.keyIndex = keyIndex
         self.pen = pen
         self.fill = fill
@@ -1339,23 +1340,13 @@ class DrawObject(Qc.QObject):
         if isinstance(self.drawObject, Qg.QImage):
             canvas.drawImage(self.explicitBoundingBox, self.drawObject)
         elif isinstance(self.drawObject, xs.SvgObject):
-            if dpi > 10000:
-                dpi = 10000
-
-            if dpi < 50:
-                dpi = 50
-
             threshold = 1.44
             
-            needsRedraw = self.cachedDPI is None or self.cachedSvgImg is None
-
-            if not needsRedraw:
-                needsRedraw = not 1/threshold <= abs(dpi/self.cachedDPI) <= threshold
-        
-            if needsRedraw:
+            if self.cachedDPI is None or self.cachedSvgImg is None \
+               or dpi > self.maxDPI*threshold:
                 self.cachedDPI = dpi
+                self.maxDPI=max(self.maxDPI,dpi)
                 self.cachedSvgImg = self.drawObject.render(dpi)
-                # self.cachedSvgImg.loadFromData(self.drawObject.dump(), 'SVG')
 
             canvas.drawImage(self.explicitBoundingBox, self.cachedSvgImg)
         elif isinstance(self.drawObject, Qs.QSvgRenderer):
