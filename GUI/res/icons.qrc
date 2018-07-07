@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/filledbucket.svg</file>
+    <file>icons/bucket.svg</file>
     <file>ionicons-2.0.1/src/alert.svg</file>
     <file>ionicons-2.0.1/src/alert-circled.svg</file>
     <file>ionicons-2.0.1/src/android-add.svg</file>

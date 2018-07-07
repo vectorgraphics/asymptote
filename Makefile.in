@@ -110,6 +110,7 @@ endif
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy:	version
+	-pyrcc5 GUI/res/icons.qrc -o GUI/icons_rc.py
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -335,9 +336,8 @@ check-all: asy FORCE
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 %.py: %.ui
-	mkdir -p GUI/pyUIClass
-	pyuic5 -o GUI/pyUIClass/$(notdir $@) $<
-
+	-mkdir -p GUI/pyUIClass
+	-pyuic5 -o GUI/pyUIClass/$(notdir $@) $<
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
 %.pic.o: %.cc

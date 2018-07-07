@@ -521,7 +521,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Recenter about origin</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Center about origin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>R</string>
@@ -552,7 +552,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Recenter</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Center&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>C</string>
@@ -1308,8 +1308,8 @@
                </property>
                <property name="icon">
                 <iconset resource="../res/icons.qrc">
-                 <normaloff>:/maki/mapbox-maki-463a9ff/icons/circle-stroked-15.svg</normaloff>
-                 <normalon>:/maki/mapbox-maki-463a9ff/icons/circle-15.svg</normalon>:/maki/mapbox-maki-463a9ff/icons/circle-stroked-15.svg</iconset>
+                 <normaloff>:/icons/icons/bucket.svg</normaloff>
+                 <normalon>:/icons/icons/filledbucket.svg</normalon>:/icons/icons/bucket.svg</iconset>
                </property>
                <property name="checkable">
                 <bool>true</bool>
