@@ -501,37 +501,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnResetPan">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>25</width>
-              <height>25</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Center about origin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>R</string>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="btnPanCenter">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -555,7 +524,46 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Center&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>C</string>
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/icons.qrc">
+              <normaloff>:/icons/icons/center.svg</normaloff>:/icons/icons/center.svg</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnResetPan">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Center about origin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/icons.qrc">
+              <normaloff>:/icons/icons/centerorigin.svg</normaloff>:/icons/icons/centerorigin.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1284,8 +1292,8 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>25</width>
-                 <height>25</height>
+                 <width>32</width>
+                 <height>32</height>
                 </size>
                </property>
                <property name="baseSize">
@@ -1507,7 +1515,11 @@ background: rgb(0, 0, 0)
                    </size>
                   </property>
                   <property name="text">
-                   <string>OP</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../res/icons.qrc">
+                    <normaloff>:/icons/icons/openpolygon.svg</normaloff>:/icons/icons/openpolygon.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1532,7 +1544,11 @@ background: rgb(0, 0, 0)
                    </size>
                   </property>
                   <property name="text">
-                   <string>CP</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../res/icons.qrc">
+                    <normaloff>:/icons/icons/closedpolygon.svg</normaloff>:/icons/icons/closedpolygon.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1557,7 +1573,11 @@ background: rgb(0, 0, 0)
                    </size>
                   </property>
                   <property name="text">
-                   <string>OC</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../res/icons.qrc">
+                    <normaloff>:/icons/icons/opencurve.svg</normaloff>:/icons/icons/opencurve.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1582,7 +1602,11 @@ background: rgb(0, 0, 0)
                    </size>
                   </property>
                   <property name="text">
-                   <string>CC</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../res/icons.qrc">
+                    <normaloff>:/icons/icons/closedcurve.svg</normaloff>:/icons/icons/closedcurve.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>

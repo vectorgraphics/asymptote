@@ -1,5 +1,11 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/opencurve.svg</file>
+    <file>icons/closedcurve.svg</file>
+    <file>icons/openpolygon.svg</file>
+    <file>icons/closedpolygon.svg</file>
+    <file>icons/center.svg</file>
+    <file>icons/centerorigin.svg</file>
     <file>icons/filledbucket.svg</file>
     <file>icons/bucket.svg</file>
     <file>ionicons-2.0.1/src/alert.svg</file>
@@ -1057,7 +1063,6 @@
     <file>Entypo+/Entypo+/help-with-circle.svg</file>
     <file>Entypo+/Entypo+/home.svg</file>
     <file>Entypo+/Entypo+/hour-glass.svg</file>
-    <file>Entypo+/Entypo+/Icon&#xd;</file>
     <file>Entypo+/Entypo+/image.svg</file>
     <file>Entypo+/Entypo+/image-inverted.svg</file>
     <file>Entypo+/Entypo+/images.svg</file>
