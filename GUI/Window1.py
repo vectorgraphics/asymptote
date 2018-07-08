@@ -1187,7 +1187,6 @@ class MainWindow1(Qw.QMainWindow):
     def editFinalized(self):
         self.addMode.forceFinalize()
         self.removeAddMode()
-
         self.quickUpdate()
 
     def editRejected(self):
@@ -1205,9 +1204,11 @@ class MainWindow1(Qw.QMainWindow):
             self.addMode.editAccepted.connect(self.editFinalized)
             self.addMode.editRejected.connect(self.editRejected)
             self.updateOptionWidget()
+            self.currentModeStack[-1] = SelectionMode.selectEdit
         else:
             self.clearSelection()
         self.quickUpdate()
+
     def setAnchor(self):
         if self.anchorMode == AnchorMode.center:
             self.currentAnchor = self.currentBoundingBox.center()
