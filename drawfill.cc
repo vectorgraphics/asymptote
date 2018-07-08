@@ -52,19 +52,19 @@ bool drawFill::draw(psfile *out)
   
 drawElement *drawFill::transformed(const transform& t)
 {
-  return new drawFill(transpath(t),stroke,transpen(t));
+  return new drawFill(transpath(t),stroke,transpen(t),KEY);
 }
   
 drawElement *drawLatticeShade::transformed(const transform& t)
 {
-  return new drawLatticeShade(transpath(t),stroke,pentype,pens,t*T);
+  return new drawLatticeShade(transpath(t),stroke,pentype,pens,t*T,KEY);
 }
 
 drawElement *drawAxialShade::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;
   return new drawAxialShade(transpath(t),stroke,pentype,A,extenda,penb,B,
-                            extendb);
+                            extendb,KEY);
 }
   
 drawElement *drawRadialShade::transformed(const transform& t)
@@ -72,8 +72,8 @@ drawElement *drawRadialShade::transformed(const transform& t)
   pair A=t*a, B=t*b;
   double RA=length(t*(a+ra)-A);
   double RB=length(t*(b+rb)-B);
-  return new drawRadialShade(transpath(t),stroke,pentype,A,RA,extenda,penb,B,RB,
-                             extendb);
+  return new drawRadialShade(transpath(t),stroke,pentype,A,RA,extenda,penb,B,
+                             RB,extendb,KEY);
 }
 
 drawElement *drawGouraudShade::transformed(const transform& t)
@@ -83,7 +83,8 @@ drawElement *drawGouraudShade::transformed(const transform& t)
   for(size_t i=0; i < size; i++)
     (*Vertices)[i]=t*vm::read<pair>(vertices,i);
 
-  return new drawGouraudShade(transpath(t),stroke,pentype,pens,*Vertices,edges);
+  return new drawGouraudShade(transpath(t),stroke,pentype,pens,*Vertices,
+                              edges,KEY);
 }
 
 drawElement *drawTensorShade::transformed(const transform& t)
@@ -105,7 +106,8 @@ drawElement *drawTensorShade::transformed(const transform& t)
       (*Zi)[j]=t*vm::read<pair>(zi,j);
   }
 
-  return new drawTensorShade(transpath(t),stroke,pentype,pens,*Boundaries,*Z);
+  return new drawTensorShade(transpath(t),stroke,pentype,pens,*Boundaries,*Z,
+    KEY);
 }
 
 bool drawFunctionShade::write(texfile *out, const bbox& box)
@@ -165,7 +167,7 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
 
 drawElement *drawFunctionShade::transformed(const transform& t)
 {
-  return new drawFunctionShade(transpath(t),stroke,pentype,shader);
+  return new drawFunctionShade(transpath(t),stroke,pentype,shader,KEY);
 }
 
 } // namespace camp

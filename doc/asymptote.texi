@@ -2812,6 +2812,12 @@ interval [0,1], with 0.0 denoting black and 1.0 denoting white.
 This produces an @acronym{RGB} color, where each of the red, green,
 and blue intensities @code{r}, @code{g}, @code{b}, lies in the interval [0,1].
 
+@item pen RGB(int r, int g, int b);
+@cindex @code{rgb}
+This produces an @acronym{RGB} color, where each of the red, green,
+and blue intensities @code{r}, @code{g}, @code{b}, lies in the
+interval [0,255].
+
 @item pen cmyk(real c, real m, real y, real k);
 @cindex @code{cmyk}
 This produces a @acronym{CMYK} color, where each of the cyan, magenta,
@@ -3262,7 +3268,7 @@ integer power with the @code{^} operator.
 The built-in transforms are:
 
 @table @code
-@item transform identity();
+@item transform identity;
 @cindex @code{identity}
 the identity transform;
 @item transform shift(pair z);
@@ -3292,6 +3298,9 @@ rotates by @code{angle} in degrees about @code{z};
 @item transform reflect(pair a, pair b);
 @cindex @code{reflect}
 reflects about the line @code{a--b}.
+@item transform zero;
+@cindex @code{zero}
+the zero transform;
 @end table
 
 @cindex @code{shift}
@@ -5100,6 +5109,8 @@ each iteration are printed if @code{verbose=true}.
 If the iteration fails after the maximum allowed number of loops
 (@code{iterations}), @code{realMax} is returned.
 
+@cindex integral
+@cindex integrate
 @cindex @code{simpson}
 @item @code{real simpson(real f(real), real a, real b, real acc=realEpsilon, real dxmax=b-a)}
 returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpson integration.

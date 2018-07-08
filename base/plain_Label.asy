@@ -485,6 +485,15 @@ void label(picture pic=currentpicture, Label L, align align=NoAlign,
 {
   label(pic,L,L.position,align,p,filltype);
 }
+
+// Label, but with postscript coords instead of asy
+void label(pair origin, picture pic=currentpicture, Label L, align align=NoAlign,
+           pen p=currentpen, filltype filltype=NoFill)
+{
+  picture opic;
+  label(opic,L,L.position,align,p,filltype);
+  add(pic,opic,origin);
+}
   
 void label(picture pic=currentpicture, Label L, explicit path g,
            align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)

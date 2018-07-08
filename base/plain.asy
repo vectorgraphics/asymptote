@@ -42,7 +42,7 @@ include plain_debugger;
 typedef void exitfcn();
 
 bool needshipout() {
-  return !shipped && !currentpicture.empty();
+  return (!shipped || !currentpicture.uptodate) && !currentpicture.empty();
 }
 
 void updatefunction()

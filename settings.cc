@@ -1231,6 +1231,8 @@ void initSettings() {
                               ".."));
   addOption(new boolSetting("multiline", 0,
                             "Input code over multiple lines at the prompt"));
+  addOption(new boolSetting("xasy", 0,
+                            "Special interactive mode for xasy"));
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));
@@ -1330,7 +1332,7 @@ void setInteractive()
 {
   if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
+     (isatty(STDIN_FILENO) || getSetting<Int>("xasy")))
     interact::interactive=true;
   
   if(getSetting<bool>("localhistory"))
@@ -1657,9 +1659,6 @@ void setOptions(int argc, char *argv[])
   
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
-  
-  if(getSetting<Int>("outpipe") == 2) // Redirect cerr to cout
-    std::cerr.rdbuf(std::cout.rdbuf());
   
   Setting("sysdir")=sysdir;
   

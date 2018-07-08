@@ -88,7 +88,9 @@ struct simplex {
 
     // Phase 1    
     m=A.length;
+    if(m == 0) {case=INFEASIBLE; return;}
     n=A[0].length;
+    if(n == 0) {case=INFEASIBLE; return;}
 
     int N=phase1 ? n+m : n;
     real[][] E=new real[m+1][N+1];
@@ -210,7 +212,9 @@ struct simplex {
   // vector of length m, and c is a vector of length n.
   void operator init(real[] c, real[][] A, int[] s, real[] b) {
     int m=A.length;
+    if(m == 0) {case=INFEASIBLE; return;}
     int n=A[0].length;
+    if(n == 0) {case=INFEASIBLE; return;}
 
     int count=0;
     for(int i=0; i < m; ++i)

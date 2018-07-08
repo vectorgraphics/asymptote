@@ -50,10 +50,8 @@ extern FILE *pipeout;
 
 inline void openpipeout() 
 {
-  int fd=settings::getSetting<Int>("outpipe");
-  if(!pipeout) {
-    if(fd >= 0) pipeout=fdopen(intcast(fd),"w");
-  }
+  int fd=intcast(settings::getSetting<Int>("outpipe"));
+  if(!pipeout && fd >= 0) pipeout=fdopen(fd,"w");
   if(!pipeout) {
     ostringstream buf;
     buf << "Cannot open outpipe " << fd;

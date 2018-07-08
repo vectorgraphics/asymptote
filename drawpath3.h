@@ -26,13 +26,14 @@ protected:
   Interaction interaction;
   triple Min,Max;
 public:
-  drawPath3(path3 g, triple center, const pen& p, Interaction interaction) :
-    g(g), center(center), straight(g.piecewisestraight()), color(rgba(p)),
-    invisible(p.invisible()), interaction(interaction),
+  drawPath3(path3 g, triple center, const pen& p, Interaction interaction,
+            const string& key="") :
+    drawElement(key), g(g), center(center), straight(g.piecewisestraight()),
+    color(rgba(p)), invisible(p.invisible()), interaction(interaction),
     Min(g.min()), Max(g.max()) {}
     
   drawPath3(const double* t, const drawPath3 *s) :
-    g(camp::transformed(t,s->g)), straight(s->straight),
+    drawElement(s->KEY), g(camp::transformed(t,s->g)), straight(s->straight),
     color(s->color), invisible(s->invisible), interaction(s->interaction),
     Min(g.min()), Max(g.max()) {
     center=t*s->center;
@@ -93,8 +94,8 @@ protected:
   
 public:
   drawNurbsPath3(const vm::array& g, const vm::array* knot,
-                 const vm::array* weight, const pen& p) :
-    color(rgba(p)), invisible(p.invisible()) {
+                 const vm::array* weight, const pen& p, const string& key="") :
+    drawElement(key), color(rgba(p)), invisible(p.invisible()) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
@@ -131,8 +132,8 @@ public:
   }
   
   drawNurbsPath3(const double* t, const drawNurbsPath3 *s) :
-    degree(s->degree), n(s->n), weights(s->weights), knots(s->knots),
-    color(s->color), invisible(s->invisible) {
+    drawElement(s->KEY), degree(s->degree), n(s->n), weights(s->weights),
+    knots(s->knots), color(s->color), invisible(s->invisible) {
     controls=new(UseGC) triple[n];
     for(unsigned int i=0; i < n; ++i)
       controls[i]=t*s->controls[i];

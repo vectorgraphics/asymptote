@@ -1,6 +1,10 @@
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
+file _outpipe;
+if(settings.xasy)
+  _outpipe=output(mode="pipe");
+
 string[] file3;
 
 string outprefix(string prefix=defaultfilename) {
@@ -58,12 +62,23 @@ frame enclose(string prefix=defaultfilename, object F, string format="")
   } return F.f;
 }
 
-include plain_xasy;
+void deconstruct(picture pic=currentpicture)
+{
+  frame f;
+  transform t=pic.calculateTransform();
+  if(currentpicture.fitter == null)
+    f=pic.fit(t);
+  else
+    f=pic.fit();
+  transform yflip=yscale(-1);
+  deconstruct(yflip*f,currentpatterns,yflip*t);
+}
 
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=false, bool view=true,
 	     string options="", string script="",
-	     light light=currentlight, projection P=currentprojection)
+	     light light=currentlight, projection P=currentprojection,
+             transform t=identity)
 {
   if(is3D(f)) {
     f=enclose(prefix,embed3(prefix,f,format,options,script,light,P));
@@ -73,19 +88,15 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  if(inXasyMode) {
-    erase();
-    add(f,group=false);
+  if(settings.xasy)
     return;
-  }
   
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
   int limit=2000;
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
-  shipout(prefix,f,currentpatterns,format,wait,view,
-          xformStack.empty() ? null : xformStack.pop0);
+  _shipout(prefix,f,currentpatterns,format,wait,view,t);
   shipped=true;
 }
 
@@ -110,9 +121,15 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
       }
       settings.inlinetex=settings.inlineimage;
     }
-    frame f=pic.fit(prefix,format,view=view,options,script,light,P);
+    frame f;
+    transform t=pic.calculateTransform();
+    if(currentpicture.fitter == null)
+      f=pic.fit(t);
+    else
+      f=pic.fit(prefix,format,view=view,options,script,light,P);
+
     if(!prconly() && (!pic.empty2() || settings.render == 0 || prc || empty3))
-      shipout(prefix,orientation(f),format,wait,view);
+      shipout(prefix,orientation(f),format,wait,view,t);
     settings.inlinetex=inlinetex;
   }
   

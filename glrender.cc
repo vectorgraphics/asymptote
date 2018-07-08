@@ -376,7 +376,7 @@ void Export()
                                            transform(0.0,0.0,w,0.0,0.0,h),
                                            antialias);
       pic.append(Image);
-      pic.shipout(NULL,Prefix,Format,0.0,false,View);
+      pic.shipout(NULL,Prefix,Format,false,View);
       delete Image;
       delete[] data;
     } 

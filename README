@@ -57,3 +57,16 @@ https://cygwin.com/snapshots/x86/cygwin-20171219-src.tar.xz
 
 The source code for freeglut.dll is available under the X-Consortium license:
 http://prdownloads.sourceforge.net/freeglut/freeglut-2.8.1.tar.gz
+
+The source for ionicons is available under the MIT license:
+https://github.com/driftyco/ionicons/archive/v2.0.1.zip
+
+The source for open-iconic is available under the MIT license:
+https://github.com/iconic/open-iconic/archive/master.zip
+
+The source for Entypo icons is available under the CC-BY-SA 4.0 license:
+https://dl.dropboxusercontent.com/u/4339492/entypo.zip
+
+TODO: Find the right license (if possible)
+The source for Zondicons is available under (?) license:
+http://www.zondicons.com/zondicons.zip

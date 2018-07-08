@@ -1,0 +1,13 @@
+# Default Keymaps for xasy
+
+commandPalette: "Esc"
+quit: "Ctrl+Q"
+deleteObject: "Del"
+
+finalizeCurve: "Space"
+finalizeCurveClosed: "c"
+
+anchorMode: "Ctrl+A"
+
+undo: 'Ctrl+Z'
+redo: 'Ctrl+Y'

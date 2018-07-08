@@ -89,11 +89,11 @@ public:
   }
   
   drawSurface(const double* t, const drawSurface *s) :
-    ncontrols(s->ncontrols), straight(s->straight), diffuse(s->diffuse),
-    ambient(s->ambient), emissive(s->emissive), specular(s->specular),
-    colors(s->colors), opacity(s->opacity), shininess(s->shininess),
-    PRCshininess(s->PRCshininess), invisible(s->invisible),
-    interaction(s->interaction), prc(s->prc) { 
+    drawElement(s->KEY), ncontrols(s->ncontrols), straight(s->straight),
+    diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
+    specular(s->specular), colors(s->colors), opacity(s->opacity),
+    shininess(s->shininess), PRCshininess(s->PRCshininess),
+    invisible(s->invisible), interaction(s->interaction), prc(s->prc) { 
     
     if(s->controls) {
       controls=new(UseGC) triple[ncontrols];
@@ -271,8 +271,8 @@ public:
   }
   
   drawNurbs(const double* t, const drawNurbs *s) :
-    udegree(s->udegree), vdegree(s->vdegree), nu(s->nu), nv(s->nv),
-    weights(s->weights), uknots(s->uknots), vknots(s->vknots),
+    drawElement(s->KEY), udegree(s->udegree), vdegree(s->vdegree), nu(s->nu),
+    nv(s->nv), weights(s->weights), uknots(s->uknots), vknots(s->vknots),
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
@@ -361,7 +361,7 @@ public:
     drawPRC(t,p,opacity,shininess), half(half), type(type) {}
 
   drawSphere(const double* t, const drawSphere *s) :
-    drawPRC(t,s), half(s->half), type(s->type) {}
+    drawElement(s->KEY), drawPRC(t,s), half(s->half), type(s->type) {}
     
   void P(triple& t, double x, double y, double z);
   
@@ -436,7 +436,8 @@ public:
   }
   
   drawTube(const double* t, const drawTube *s) :
-    center(camp::transformed(t,s->center)), g(camp::transformed(t,s->g)), 
+    drawElement(s->KEY), center(camp::transformed(t,s->center)),
+    g(camp::transformed(t,s->g)), 
     diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), invisible(s->invisible) {
@@ -462,7 +463,7 @@ public:
     invisible=p.invisible();
   }
 
-  drawPixel(const double* t, const drawPixel *s) :
+  drawPixel(const double* t, const drawPixel *s) : drawElement(s->KEY),
     c(s->c), width(s->width), invisible(s->invisible) {
     v=t*s->v;
   }
@@ -550,7 +551,7 @@ public:
   }
 
   drawBaseTriangles(const double* t, const drawBaseTriangles *s) :
-    nP(s->nP), nN(s->nN), nI(s->nI) {
+    drawElement(s->KEY), nP(s->nP), nN(s->nN), nI(s->nI) {
     P=new(UseGC) triple[nP];
     for(size_t i=0; i < nP; i++)
       P[i]=t*s->P[i];

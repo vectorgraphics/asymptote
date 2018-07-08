@@ -11,6 +11,7 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <deque>
 #include <string>
 #include <sstream>
 
@@ -124,6 +125,7 @@ namespace mem {
 
 GC_CONTAINER(list);
 GC_CONTAINER(vector);
+GC_CONTAINER(deque);
 
 template <typename T, typename Container = vector<T> >
 struct stack : public std::stack<T, Container>, public gc {
