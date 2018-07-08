@@ -831,7 +831,18 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnDrawGrid.setChecked(self.settings['defaultShowGrid'])
         self.btnDrawGridOnClick(self.settings['defaultShowGrid'])
 
+    def erase(self):
+        self.fileItems = []
+
     def actionOpen(self):
+        save="Save current file?"
+        reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
+                                      Qw.QMessageBox.No)
+        if reply == Qw.QMessageBox.Yes:
+            self.actionSave()
+
+        self.erase()
+
         fileName = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
         if fileName[0]:
             self.loadFile(fileName[0])
