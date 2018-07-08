@@ -477,7 +477,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnOpenPoly.setEnabled(not checked)
 
     def btnSelectEditOnClick(self):
-        self.ui.statusbar.showMessage('Edit Mode')
+        self.ui.statusbar.showMessage('Edit mode')
         self.currentModeStack = [SelectionMode.selectEdit]
         self.updateChecks()
 
@@ -1595,25 +1595,25 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnTranslateonClick(self):
         self.currentModeStack = [SelectionMode.translate]
-        self.ui.statusbar.showMessage('Translate Mode')
+        self.ui.statusbar.showMessage('Translate mode')
         self.clearSelection()
         self.updateChecks()
 
     def btnRotateOnClick(self):
         self.currentModeStack = [SelectionMode.rotate]
-        self.ui.statusbar.showMessage('Rotate Mode')
+        self.ui.statusbar.showMessage('Rotate mode')
         self.clearSelection()
         self.updateChecks()
 
     def btnScaleOnClick(self):
         self.currentModeStack = [SelectionMode.scale]
-        self.ui.statusbar.showMessage('Scale Mode')
+        self.ui.statusbar.showMessage('Scale mode')
         self.clearSelection()
         self.updateChecks()
 
     def btnPanOnClick(self):
         self.currentModeStack = [SelectionMode.pan]
-        self.ui.statusbar.showMessage('Pan Mode')
+        self.ui.statusbar.showMessage('Pan mode')
         self.clearSelection()
         self.updateChecks()
 

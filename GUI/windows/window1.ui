@@ -199,7 +199,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Open File</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -234,7 +234,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Save File</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -269,7 +269,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Edit Code</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit code&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -304,7 +304,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Quick Screenshot</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Screenshot&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -362,7 +362,7 @@
              </font>
             </property>
             <property name="toolTip">
-             <string>Toggle Display Axes</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle display axes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -410,7 +410,7 @@
              </font>
             </property>
             <property name="toolTip">
-             <string>Toggle Display Axes</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -563,7 +563,7 @@
              </font>
             </property>
             <property name="toolTip">
-             <string>Lock Transform to X axis</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lock transform to X axis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>X</string>
@@ -603,7 +603,7 @@
              </font>
             </property>
             <property name="toolTip">
-             <string>Lock transformation to Y axis</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lock transform to Y axis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>Y</string>
@@ -650,7 +650,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bézier Editor&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bézier editor&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -913,7 +913,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Set Custom Anchor</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set custom anchor&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -1267,7 +1267,7 @@
                 </size>
                </property>
                <property name="toolTip">
-                <string>Toggle Fill/Outline</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle fill/outline&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="autoFillBackground">
                 <bool>false</bool>
@@ -1335,7 +1335,7 @@
                 </size>
                </property>
                <property name="toolTip">
-                <string>Curren Pen Width</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Current pen width&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
               </widget>
              </item>
@@ -1354,7 +1354,7 @@
                 </size>
                </property>
                <property name="toolTip">
-                <string>Current Pen Color</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Current pen color&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="autoFillBackground">
                 <bool>false</bool>
@@ -1395,7 +1395,7 @@ background: rgb(0, 0, 0)
                 </size>
                </property>
                <property name="toolTip">
-                <string>Set Color</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set color&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="autoFillBackground">
                 <bool>false</bool>
@@ -1478,6 +1478,9 @@ background: rgb(0, 0, 0)
                     <height>32</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open polygon&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string/>
                   </property>
@@ -1506,6 +1509,9 @@ background: rgb(0, 0, 0)
                     <width>32</width>
                     <height>32</height>
                    </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Closed polygon&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string/>
@@ -1536,6 +1542,9 @@ background: rgb(0, 0, 0)
                     <height>32</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open Bézier curve&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string/>
                   </property>
@@ -1564,6 +1573,9 @@ background: rgb(0, 0, 0)
                     <width>32</width>
                     <height>32</height>
                    </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Closed Bézier curve&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string/>
@@ -1594,6 +1606,9 @@ background: rgb(0, 0, 0)
                     <height>32</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Regular polygon&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string/>
                   </property>
@@ -1623,6 +1638,9 @@ background: rgb(0, 0, 0)
                     <height>32</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Circle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string/>
                   </property>
@@ -1651,6 +1669,9 @@ background: rgb(0, 0, 0)
                     <width>32</width>
                     <height>32</height>
                    </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Text&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string/>
