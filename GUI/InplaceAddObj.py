@@ -178,7 +178,7 @@ class AddBezierShape(InplaceObjProcess):
             self.fill = info['fill']
             self.asyengine = info['asyengine']
             self.closedPath = info['closedPath']
-            self.useLegacy = self.info['options']['useLegacyBezierAddMode']
+            self.useLegacy = self.info['options']['useLegacyDrawMode']
             self.pointsList.clear()
             self.pointsList.append((x, y, None))
         else:

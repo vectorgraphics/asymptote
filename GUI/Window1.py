@@ -305,11 +305,6 @@ class MainWindow1(Qw.QMainWindow):
             if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
                 self.addMode.finalizeClosure()
 
-    def cancelCurve(self):
-        if self.addMode is not None:
-            if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
-                self.addMode.active = False
-
     def getAllBoundingBox(self) -> Qc.QRectF:
         newRect = Qc.QRectF()
         for majitem in self.drawObjects:
@@ -553,7 +548,24 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnAddCircleOnClick(self):
         self.addMode = InplaceAddObj.AddCircle(self)
+        self.ui.statusbar.showMessage('')
         self.updateOptionWidget()
+
+    LegacyHint='Click and drag to draw; right click or space bar to finalize'
+    Hint='Click and drag to draw; release and click in place to add node; continue dragging'
+    HintClose=' or c to close.'
+
+    def drawHint(self):
+        if self.settings['useLegacyDrawMode']:
+            self.ui.statusbar.showMessage(self.LegacyHint+'.')
+        else:
+            self.ui.statusbar.showMessage(self.Hint+'.')
+
+    def drawHintOpen(self):
+        if self.settings['useLegacyDrawMode']:
+            self.ui.statusbar.showMessage(self.LegacyHint+self.HintClose)
+        else:
+            self.ui.statusbar.showMessage(self.Hint+self.HintClose)
 
     def btnAddBezierInplaceOnClick(self):
         self.addMode = InplaceAddObj.AddBezierShape(self)
@@ -562,29 +574,35 @@ class MainWindow1(Qw.QMainWindow):
     def btnAddOpenLineOnClick(self):
         self.currAddOptions['useBezier'] = False
         self.currAddOptions['closedPath'] = False
+        self.drawHintOpen()
         self.btnAddBezierInplaceOnClick()
 
     def btnAddClosedLineOnClick(self):
         self.currAddOptions['useBezier'] = False
         self.currAddOptions['closedPath'] = True
+        self.drawHint()
         self.btnAddBezierInplaceOnClick()
 
     def btnAddOpenCurveOnClick(self):
         self.currAddOptions['useBezier'] = True
         self.currAddOptions['closedPath'] = False
+        self.drawHintOpen()
         self.btnAddBezierInplaceOnClick()
 
     def btnAddClosedCurveOnClick(self):
         self.currAddOptions['useBezier'] = True
         self.currAddOptions['closedPath'] = True
+        self.drawHint()
         self.btnAddBezierInplaceOnClick()
 
     def btnAddPolyOnClick(self):
         self.addMode = InplaceAddObj.AddPoly(self)
+        self.ui.statusbar.showMessage('')
         self.updateOptionWidget()
 
     def btnAddLabelOnClick(self):
         self.addMode = InplaceAddObj.AddLabel(self)
+        self.ui.statusbar.showMessage('')
         self.updateOptionWidget()
 
     def updateCurve(self, valid, newCurve):
@@ -1326,7 +1344,8 @@ class MainWindow1(Qw.QMainWindow):
         self.drawObjects = []
         self.populateCanvasWithItems(force)
         self.quickUpdate()
-        self.ui.statusbar.showMessage(self.strings.asyfyComplete)
+        if self.currentModeStack[-1] == SelectionMode.translate:
+            self.ui.statusbar.showMessage(self.strings.asyfyComplete)
 
     def updateMouseCoordLabel(self):
         *args, canvasPos = self.getAsyCoordinates()

@@ -18,4 +18,4 @@ class xasyString:
 
         s.fileOpenFailed = _('File Opening Failed.')
         s.fileOpenFailedText = _('File could not be opened.')
-        s.asyfyComplete = _('Asymptote file loaded.')
+        s.asyfyComplete = _('Ready.')

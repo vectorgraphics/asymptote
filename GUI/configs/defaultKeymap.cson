@@ -1,11 +1,11 @@
 # Default Keymaps for xasy
-commandPalette: "F1"
+
+commandPalette: "Esc"
 quit: "Ctrl+Q"
 deleteObject: "Del"
 
-finalizeCurve: "Return"
+finalizeCurve: "Space"
 finalizeCurveClosed: "c"
-cancelCurve: "a"
 
 anchorMode: "Ctrl+A"
 
