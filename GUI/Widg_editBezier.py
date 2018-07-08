@@ -15,6 +15,10 @@ class Widg_editBezier(Qw.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         self.info = info
+
+        self.ui.chkRecompute.setChecked(self.info['autoRecompute'])
+        self.ui.cmbLockMode.setCurrentIndex(self.info['editBezierlockMode'])
+
         self.ui.cmbLockMode.currentIndexChanged[int].connect(self.cmbLockIndexChange)
         self.ui.chkRecompute.stateChanged.connect(self.chkRecomputeChanged)
 

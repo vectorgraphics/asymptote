@@ -37,16 +37,20 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.ctrlSelRects = []
 
         self.setSelectionBoundaries()
-        
 
         self.lastSelPoint = None
         self.preCtrlOffset = None
         self.postCtrlOffset = None
         self.inTransformMode = False
+
+        self.info['autoRecompute'] = not self.containsCurvedLinkage()
         self.opt = None
 
         self.prosectiveNodes = []
         self.prospectiveCtrlPts = []
+
+    def containsCurvedLinkage(self):
+        return '..' in self.asyPath.linkSet
 
     def setSelectionBoundaries(self):
         self.nodeSelRects = self.handleNodeSelectionBounds()
