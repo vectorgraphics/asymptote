@@ -245,6 +245,7 @@ class MainWindow1(Qw.QMainWindow):
             'undo': self.btnUndoOnClick,
             'redo': self.btnRedoOnClick,
             'manual': self.actionManual,
+            'about': self.actionAbout,
             'loadFile': self.btnLoadFileonClick,
             'save': self.actionSave,
             'saveAs': self.actionSaveAs,
@@ -378,9 +379,11 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionRedo.triggered.connect(lambda: self.execCustomCommand('redo'))
         self.ui.actionTransform.triggered.connect(lambda: self.execCustomCommand('transform'))
 
+        self.ui.actionOpen.triggered.connect(self.actionOpen)
         self.ui.actionSave.triggered.connect(self.actionSave)
         self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
         self.ui.actionManual.triggered.connect(self.actionManual)
+        self.ui.actionAbout.triggered.connect(self.actionAbout)
         self.ui.actionSettings.triggered.connect(self.openAndReloadSettings)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
         self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsyOnClick)
@@ -399,12 +402,13 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnUndo.clicked.connect(self.btnUndoOnClick)
         self.ui.btnRedo.clicked.connect(self.btnRedoOnClick)
         self.ui.btnLoadFile.clicked.connect(self.btnLoadFileonClick)
+        self.ui.btnSave.clicked.connect(self.btnSaveonClick)
         self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
 
         # self.ui.btnExportAsy.clicked.connect(self.btnExportAsyOnClick)
 
         self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
-        self.ui.btnAsyfy.clicked.connect(lambda: self.asyfyCanvas(True))
+#        self.ui.btnAsyfy.clicked.connect(lambda: self.asyfyCanvas(True))
         self.ui.btnSetZoom.clicked.connect(self.setMagPrompt)
         self.ui.btnResetPan.clicked.connect(self.resetPan)
         self.ui.btnPanCenter.clicked.connect(self.btnPanCenterOnClick)
@@ -419,8 +423,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAlignX.clicked.connect(self.btnAlignXOnClick)
         self.ui.btnAlignY.clicked.connect(self.btnAlignYOnClick)
         self.ui.comboAnchor.currentIndexChanged.connect(self.handleAnchorComboIndex)
-        self.ui.btnWorldCoords.clicked.connect(self.btnWorldCoordsOnClick)
-
         self.ui.btnCustTransform.clicked.connect(self.btnCustTransformOnClick)
         self.ui.btnViewCode.clicked.connect(self.btnLoadEditorOnClick)
 
@@ -440,8 +442,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnOpenCurve.clicked.connect(self.btnAddOpenCurveOnClick)
         self.ui.btnClosedPoly.clicked.connect(self.btnAddClosedLineOnClick)
         self.ui.btnOpenPoly.clicked.connect(self.btnAddOpenLineOnClick)
-
-        self.ui.btnAddCode.clicked.connect(self.btnAddCodeOnClick)
 
         self.ui.btnFill.clicked.connect(self.btnFillOnClick)
 
@@ -477,6 +477,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnOpenPoly.setEnabled(not checked)
 
     def btnSelectEditOnClick(self):
+        self.ui.statusbar.showMessage('Edit Mode')
         self.currentModeStack = [SelectionMode.selectEdit]
         self.updateChecks()
 
@@ -724,6 +725,9 @@ class MainWindow1(Qw.QMainWindow):
         asyManualURL = 'http://asymptote.sourceforge.net/asymptote.pdf'
         webbrowser.open_new(asyManualURL)
 
+    def actionAbout(self):
+        Qw.QMessageBox.about(self,"xasy","This is xasy 2.45; a graphical front end to the Asymptote vector graphics language: http://asymptote.sourceforge.net/")
+
     def btnExportAsyOnClick(self):
         diag = Qw.QFileDialog(self)
         diag.setAcceptMode(Qw.QFileDialog.AcceptSave)
@@ -809,6 +813,11 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnDrawGrid.setChecked(self.settings['defaultShowGrid'])
         self.btnDrawGridOnClick(self.settings['defaultShowGrid'])
 
+    def actionOpen(self):
+        fileName = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
+        if fileName[0]:
+            self.loadFile(fileName[0])
+
     def actionSave(self):
         if self.filename is None:
             self.actionSaveAs()
@@ -826,14 +835,15 @@ class MainWindow1(Qw.QMainWindow):
             self.filename = saveLocation
 
     def btnQuickScreenshotOnClick(self):
-        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot', Qc.QDir.homePath())
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot','')
         if saveLocation[0]:
             self.ui.imgLabel.pixmap().save(saveLocation[0])
 
     def btnLoadFileonClick(self):
-        fileName = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File', Qc.QDir.homePath(), '*.asy')
-        if fileName[0]:
-            self.loadFile(fileName[0])
+        self.actionOpen()
+
+    def btnSaveonClick(self):
+        self.actionSave()
 
     @Qc.pyqtSlot(int)
     def handleAnchorComboIndex(self, index: int):
@@ -1275,7 +1285,8 @@ class MainWindow1(Qw.QMainWindow):
                         collidedObjKey = (objKeyMaj, objKeyMin)
         if collidedObjKey is not None:
             rawKey = self.drawObjects[collidedObjKey[0]][collidedObjKey[1]].key
-            self.ui.statusbar.showMessage('Collide with {0}, Key is {1}.'.format(str(collidedObjKey), rawKey), 2500)
+#            self.ui.statusbar.showMessage('Collide with {0}, Key is {1}'.format(str(collidedObjKey), rawKey), 2500)
+            self.ui.statusbar.showMessage('Key: {0}'.format(rawKey), 2500)
             return collidedObjKey, [rawObj[0] for rawObj in sorted(rawObjNumList, key=lambda ordobj: ordobj[1])]
         else:
             return None, []
@@ -1602,6 +1613,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnPanOnClick(self):
         self.currentModeStack = [SelectionMode.pan]
+        self.ui.statusbar.showMessage('Pan Mode')
         self.clearSelection()
         self.updateChecks()
 

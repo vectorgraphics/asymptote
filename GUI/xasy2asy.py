@@ -3,8 +3,7 @@
 # xasy2asy provides a Python interface to Asymptote
 #
 #
-# Author: Orest Shardt
-# Created: June 29, 2007
+# Authors: Orest Shardt, Supakorn Rassameemasmuang, and John C. Bowman
 #
 ###########################################################################
 
@@ -13,7 +12,6 @@ import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
 import PyQt5.QtSvg as Qs
 
-import cairosvg as csvg
 import numpy as np
 
 import sys
