@@ -145,3 +145,6 @@ xasydev
 
 ### SVG Icons
 !GUI/res/*/*.svg
+
+### RC Icons
+GUI/icons_rc.py
