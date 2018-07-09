@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from pyUIClass.window1 import Ui_MainWindow
 
 import PyQt5.QtWidgets as Qw

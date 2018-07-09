@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from pyUIClass.labelTextEditor import Ui_Dialog
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtSvg as Qs

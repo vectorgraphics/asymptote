@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import PyQt5.QtCore as Qc
 import PyQt5.QtGui as Qg
 import xasy2asy as x2a

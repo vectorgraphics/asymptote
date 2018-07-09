@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Python module to feed Asymptote with commands
 # (modified from gnuplot.py)
 from subprocess import *

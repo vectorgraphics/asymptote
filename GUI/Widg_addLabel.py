@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from pyUIClass.widg_addLabel import Ui_Form
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg

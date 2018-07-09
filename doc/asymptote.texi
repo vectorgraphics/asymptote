@@ -9499,27 +9499,12 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 @cindex GUI installation
 
 As @code{xasy} is written in the interactive scripting language
-@code{Python/TK}, it requires @code{Python} (@url{http://www.python.org}),
-the @code{Pillow} fork of the @code{Python Imaging Library},and the
-@code{tkinter} package (included with @code{Python} under
-@code{Microsoft Windows}). @code{Fedora Linux} users can
-either install @code{tkinter} and @code{Pillow} with the commands
-@verbatim
-dnf install tkinter
-dnf install tk-devel
-dnf install python-pillow-tk
-@end verbatim
-@noindent
-or manually install the @code{tkinter}, @code{tix}, @code{tk},
-and @code{tk-devel} packages.
+@code{Python/Qt}, it requires @code{Python} (@url{http://www.python.org}),
+and the @code{Qt5} package (included with @code{Python} under
+@code{Microsoft Windows}).
 
-Pictures are deconstructed into the @acronym{PNG} image format, which
-supports full alpha channel transparency. Under @code{Microsoft Windows},
-this requires @code{Python 2.7.4} or later and version @code{3.1.0} of the
-@code{Pillow} fork of the @code{Python Imaging Library}, available from
-@quotation
-@url{http://pypi.python.org/pypi/Pillow}
-@end quotation
+Pictures are deconstructed into the @acronym{SVG} image format, which
+supports full alpha channel transparency.
 
 @node GUI usage,  , GUI installation, GUI
 @section GUI usage
@@ -9527,11 +9512,7 @@ this requires @code{Python 2.7.4} or later and version @code{3.1.0} of the
 @cindex @code{deconstruct}
 
 A wheel mouse is convenient for raising and lowering objects within
-@code{xasy}, to expose the object to be moved. If a wheel mouse is not
-available, mouse @code{Button-2} can be used to repeatedly lower an
-object instead. When run from the command line, @code{xasy} accepts
-a command line option @code{-x n}, which sets the initial magnification
-to @code{n}.
+@code{xasy}, to expose the object to be moved.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
 by enclosing them within the commands

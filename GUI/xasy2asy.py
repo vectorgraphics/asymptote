@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ###########################################################################
 #
 # xasy2asy provides a Python interface to Asymptote
