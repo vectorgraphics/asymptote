@@ -3,6 +3,7 @@ from pyUIClass.window1 import Ui_MainWindow
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
+import xasyVersion
 
 import numpy as np
 import os
@@ -744,7 +745,7 @@ class MainWindow1(Qw.QMainWindow):
         webbrowser.open_new(asyManualURL)
 
     def actionAbout(self):
-        Qw.QMessageBox.about(self,"xasy","This is xasy 2.45; a graphical front end to the Asymptote vector graphics language: http://asymptote.sourceforge.net/")
+        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: http://asymptote.sourceforge.net/")
 
     def btnExportAsyOnClick(self):
         diag = Qw.QFileDialog(self)
