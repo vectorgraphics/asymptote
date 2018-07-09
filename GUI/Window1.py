@@ -188,6 +188,8 @@ class MainWindow1(Qw.QMainWindow):
         self.drawGrid = False
         self.gridSnap = False  # TODO: for now. turn it on later
 
+        self.fileChanged = False
+
         self.terminalPythonMode = self.ui.btnTogglePython.isChecked()
 
         self.savedWindowMousePos = None
@@ -302,11 +304,13 @@ class MainWindow1(Qw.QMainWindow):
         if self.addMode is not None:
             if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
                 self.addMode.forceFinalize()
+                self.fileChanged = True
 
     def finalizeCurveClosed(self):
         if self.addMode is not None:
             if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
                 self.addMode.finalizeClosure()
+                self.fileChanged = True
 
     def getAllBoundingBox(self) -> Qc.QRectF:
         newRect = Qc.QRectF()
@@ -319,6 +323,7 @@ class MainWindow1(Qw.QMainWindow):
         if self.addMode is not None:
             if self.addMode.active:
                 self.addMode.forceFinalize()
+                self.fileChanged = True
 
     def openAndReloadSettings(self):
         settingsFile = self.settings.settingsFileLocation()
@@ -463,6 +468,7 @@ class MainWindow1(Qw.QMainWindow):
     def btnTerminalCommandOnClick(self):
         if self.terminalPythonMode:
             exec(self.ui.txtTerminalPrompt.text())
+            self.fileChanged = True
         else:
             pass
             # TODO: How to handle this case?
@@ -521,6 +527,7 @@ class MainWindow1(Qw.QMainWindow):
         self.globalObjectCounter = self.globalObjectCounter + 1
 
         self.fileItems.append(obj)
+        self.fileChanged = True
         self.addObjCreationUrs(obj)
         self.asyfyCanvas()
 
@@ -532,22 +539,6 @@ class MainWindow1(Qw.QMainWindow):
     def clearGuides(self):
         self.currentGuides.clear()
         self.quickUpdate()
-
-    def btnCreateCurveOnClick(self):
-        self.inCurveCreationMode = True
-        curveDialog = BezierCurveEditor.BezierCurveEditor(useDegrees=self.settings['useDegrees'])
-        curveDialog.curveChanged.connect(self.updateCurve)
-        curveDialog.show()
-        result = curveDialog.exec_()
-
-        if result == Qw.QDialog.Accepted:
-            asyCurve = x2a.asyPath.fromBezierPoints(curveDialog.createPointList(), engine=self.asyEngine)
-            newXasyObjCurve = x2a.xasyShape(asyCurve, asyengine=self.asyEngine)
-            # print(newXasyObjCurve.getCode())
-            self.fileItems.append(newXasyObjCurve)
-        self.inCurveCreationMode = False
-        self.previewCurve = None
-        self.asyfyCanvas()
 
     def btnAddCircleOnClick(self):
         self.addMode = InplaceAddObj.AddCircle(self)
@@ -650,6 +641,7 @@ class MainWindow1(Qw.QMainWindow):
                 
                 self.fileItems.remove(selectedObj.parent())
 
+            self.fileChanged = True
             self.clearSelection()
             self.asyfyCanvas()
         else:
@@ -740,6 +732,7 @@ class MainWindow1(Qw.QMainWindow):
     def addItemFromPath(self, path):
         newItem = x2a.xasyShape(path, self.asyEngine, pen=self.currentPen)
         self.fileItems.append(newItem)
+        self.fileChanged = True
         self.asyfyCanvas()
 
     def actionManual(self):
@@ -835,16 +828,15 @@ class MainWindow1(Qw.QMainWindow):
         self.btnDrawGridOnClick(self.settings['defaultShowGrid'])
 
     def erase(self):
-        self.fileItems = []
+        self.fileItems.clear()
 
     def actionOpen(self):
-        save="Save current file?"
-        reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
-                                      Qw.QMessageBox.No)
-        if reply == Qw.QMessageBox.Yes:
-            self.actionSave()
-
-        self.erase()
+        if self.fileChanged:
+            save="Save current file?"
+            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
+                                        Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.Yes:
+                self.actionSave()
 
         fileName = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
         if fileName[0]:
@@ -1201,6 +1193,7 @@ class MainWindow1(Qw.QMainWindow):
     def editFinalized(self):
         self.addMode.forceFinalize()
         self.removeAddMode()
+        self.fileChanged = True
         self.quickUpdate()
 
     def editRejected(self):
@@ -1219,6 +1212,7 @@ class MainWindow1(Qw.QMainWindow):
             self.addMode.editRejected.connect(self.editRejected)
             self.updateOptionWidget()
             self.currentModeStack[-1] = SelectionMode.selectEdit
+            self.fileChanged = True
         else:
             self.clearSelection()
         self.quickUpdate()
@@ -1684,6 +1678,13 @@ class MainWindow1(Qw.QMainWindow):
         self.quickUpdate()
 
     def btnLoadEditorOnClick(self):
+        if self.fileChanged:
+            save = "Save current file?"
+            reply = Qw.QMessageBox.question(self, 'Message', save, Qw.QMessageBox.Yes,
+                                            Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.Yes:
+                self.actionSave()
+                
         rawExternalEditor = self.settings['externalEditor']
         rawExtEditorArgs = self.settings['externalEditorArgs']
         execEditor = [rawExternalEditor]
@@ -1777,6 +1778,7 @@ class MainWindow1(Qw.QMainWindow):
                     item.transfKeymap[key][newIndex] = item.transfKeymap[key][newIndex] * obj_transform
                     obj.transform = obj.transform * scr_transform
 
+        self.fileChanged = True
         self.quickUpdate()
 
     def transformObject(self, objKey, transform, applyFirst=False):
@@ -1803,6 +1805,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.statusbar.showMessage('Load {0}'.format(name))
         self.filename = os.path.abspath(name)
         self.currDir = os.path.dirname(self.filename)
+
+        self.erase()
 
         if not os.path.isfile(self.filename):
             self.filename = self.filename + '.asy'
