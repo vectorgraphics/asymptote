@@ -829,6 +829,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def erase(self):
         self.fileItems.clear()
+        self.fileChanged = False
 
     def actionOpen(self):
         if self.fileChanged:

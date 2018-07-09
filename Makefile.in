@@ -336,7 +336,7 @@ check-all: asy FORCE
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 %.py: %.ui
-	-mkdir -p GUI/pyUIClass
+	mkdir -p GUI/pyUIClass
 	-pyuic5 -o GUI/pyUIClass/$(notdir $@) $<
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.

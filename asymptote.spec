@@ -1,4 +1,5 @@
 %{!?_texmf: %global _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFLOCAL'`")}
+%global _python_bytecompile_errors_terminate_build 0
 
 Name:           asymptote
 Version:        2.45
