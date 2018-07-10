@@ -9,7 +9,6 @@ import math
 
 import Widg_addPolyOpt
 import Widg_addLabel
-import Widg_addBezierInPlace
 
 
 class InplaceObjProcess(Qc.QObject):
