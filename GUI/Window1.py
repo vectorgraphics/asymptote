@@ -1347,6 +1347,7 @@ class MainWindow1(Qw.QMainWindow):
         return self.mapFromGlobal(Qg.QCursor.pos())
         
     def refreshCanvas(self):
+        self.mainCanvas.end()
         self.mainCanvas.begin(self.canvasPixmap)
         self.mainCanvas.setTransform(self.getScrsTransform())
 
@@ -1368,7 +1369,6 @@ class MainWindow1(Qw.QMainWindow):
 
         self.preDraw(self.mainCanvas)
         self.quickDraw()
-        self.mainCanvas.end()
 
         self.postDraw()
         self.updateScreen()
