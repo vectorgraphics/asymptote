@@ -27,6 +27,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.info = info
         self.asyPathBackup = x2a.asyPath.fromPath(obj.path)
         self.asyPath = obj.path
+        self.curveMode = self.asyPath.containsCurve
         assert isinstance(self.asyPath, x2a.asyPath)
         self.transf = obj.transfKeymap[obj.transfKey][0]
         self._active = True
@@ -45,18 +46,16 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.postCtrlOffset = None
         self.inTransformMode = False
 
-        self.info['autoRecompute'] = not self.containsCurvedLinkage()
         self.opt = None
 
         self.prosectiveNodes = []
         self.prospectiveCtrlPts = []
 
-    def containsCurvedLinkage(self):
-        return '..' in self.asyPath.linkSet
-
     def setSelectionBoundaries(self):
         self.nodeSelRects = self.handleNodeSelectionBounds()
-        self.ctrlSelRects = self.handleCtrlSelectionBoundaries()
+
+        if self.curveMode:
+            self.ctrlSelRects = self.handleCtrlSelectionBoundaries()
 
     def handleNodeSelectionBounds(self):
         nodeSelectionBoundaries = []
@@ -111,7 +110,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.save()
         canvas.setWorldTransform(self.transf.toQTransform(), True)
 
-        if self.info['autoRecompute']:
+        if self.info['autoRecompute'] or not self.curveMode:
             ctrlPtsColor = 'gray'
         else:
             ctrlPtsColor = 'red'
@@ -119,6 +118,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.setPen(dashedPen)
 
         canvas.drawPath(self.asyPath.toQPainterPath())
+
         for index in range(len(self.asyPath.nodeSet)):
             point = self.asyPath.nodeSet[index]
             
@@ -129,24 +129,24 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             canvas.setPen(Qg.QColor('blue'))
             canvas.drawEllipse(basePoint, 5, 5)
 
-            if index != 0:
-                canvas.setPen(Qg.QColor(ctrlPtsColor))
-                postCtrolSet = self.asyPath.controlSet[index - 1][1]
-                postCtrlPoint = Qc.QPointF(postCtrolSet[0], postCtrolSet[1])
-                canvas.drawEllipse(postCtrlPoint, 5, 5)
+            if self.curveMode:   
+                if index != 0:
+                    canvas.setPen(Qg.QColor(ctrlPtsColor))
+                    postCtrolSet = self.asyPath.controlSet[index - 1][1]
+                    postCtrlPoint = Qc.QPointF(postCtrolSet[0], postCtrolSet[1])
+                    canvas.drawEllipse(postCtrlPoint, 5, 5)
 
-                canvas.setPen(dashedPen)
-                canvas.drawLine(basePoint, postCtrlPoint)
+                    canvas.setPen(dashedPen)
+                    canvas.drawLine(basePoint, postCtrlPoint)
 
-            if index != len(self.asyPath.nodeSet) - 1:
-                canvas.setPen(Qg.QColor(ctrlPtsColor))
-                preCtrlSet = self.asyPath.controlSet[index][0]
-                preCtrlPoint = Qc.QPointF(preCtrlSet[0], preCtrlSet[1])
-                canvas.drawEllipse(preCtrlPoint, 5, 5)
+                if index != len(self.asyPath.nodeSet) - 1:
+                    canvas.setPen(Qg.QColor(ctrlPtsColor))
+                    preCtrlSet = self.asyPath.controlSet[index][0]
+                    preCtrlPoint = Qc.QPointF(preCtrlSet[0], preCtrlSet[1])
+                    canvas.drawEllipse(preCtrlPoint, 5, 5)
 
-                canvas.setPen(dashedPen)
-                canvas.drawLine(basePoint, preCtrlPoint)
-
+                    canvas.setPen(dashedPen)
+                    canvas.drawLine(basePoint, preCtrlPoint)
 
         canvas.restore()
 
@@ -184,8 +184,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             self.currentSelIndex = (self.prosectiveNodes[0], 0)
             self.inTransformMode = True
             self.parentNodeIndex = self.currentSelIndex[0]
-
-        if self.prospectiveCtrlPts and not self.inTransformMode:
+        elif self.prospectiveCtrlPts and not self.inTransformMode:
             self.currentSelMode = CurrentlySelctedType.ctrlPoint
             self.currentSelIndex = self.prospectiveCtrlPts[0]
             self.inTransformMode = True
@@ -195,6 +194,9 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             parentNode = self.asyPath.nodeSet[self.parentNodeIndex]
 
             # find the offset of each control point to the node
+            if not self.curveMode:
+                return 
+
             preCtrl, postCtrl = self.getPreAndPostCtrlPts(self.parentNodeIndex)
             
             if preCtrl is not None:
@@ -224,7 +226,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
             self.prosectiveNodes = prospectiveNodes
 
-            if not self.info['autoRecompute']:
+            if not self.info['autoRecompute'] and self.curveMode:
                 for i in range(len(self.ctrlSelRects)):
                     recta, rectb = self.ctrlSelRects[i]
 
@@ -251,23 +253,24 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                 self.asyPath.setNode(index, newNode)
                 # if also move node: 
 
-                checkPre, checkPost = self.getPreAndPostCtrlPts(index)
+                if self.curveMode:
+                    checkPre, checkPost = self.getPreAndPostCtrlPts(index)
 
-                if 1 == 1: # TODO: Replace this with an option to also move control pts. 
-                    if checkPre is not None:
-                        self.asyPath.controlSet[index - 1][1] = xu.funcOnList(
-                            newNode, self.preCtrlOffset, lambda a, b: a + b
-                        )
-                    if checkPost is not None:
-                        self.asyPath.controlSet[index][0] = xu.funcOnList(
-                            newNode, self.postCtrlOffset, lambda a, b: a + b
-                        )
+                    if 1 == 1: # TODO: Replace this with an option to also move control pts. 
+                        if checkPre is not None:
+                            self.asyPath.controlSet[index - 1][1] = xu.funcOnList(
+                                newNode, self.preCtrlOffset, lambda a, b: a + b
+                            )
+                        if checkPost is not None:
+                            self.asyPath.controlSet[index][0] = xu.funcOnList(
+                                newNode, self.postCtrlOffset, lambda a, b: a + b
+                            )
 
-                if self.info['autoRecompute']:
-                    self.quickRecalculateCtrls()
-                    
+                    if self.info['autoRecompute']:
+                        self.quickRecalculateCtrls()
+                        
 
-            elif self.currentSelMode == CurrentlySelctedType.ctrlPoint:
+            elif self.currentSelMode == CurrentlySelctedType.ctrlPoint and self.curveMode:
                 self.asyPath.controlSet[index][subindex] = newNode
 
                 parentNode = self.asyPath.nodeSet[self.parentNodeIndex]
@@ -326,7 +329,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.objectUpdated.emit()
 
     def createOptWidget(self, info):
-        self.opt = Web.Widg_editBezier(self.info)
+        self.opt = Web.Widg_editBezier(self.info, self.curveMode)
         self.opt.ui.btnOk.clicked.connect(self.editAccepted)
         self.opt.ui.btnCancel.clicked.connect(self.editRejected)
         self.opt.ui.btnForceRecompute.clicked.connect(self.recalculateCtrls)

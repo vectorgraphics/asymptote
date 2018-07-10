@@ -12,7 +12,7 @@ class LockMode:
     angleAndScaleLock = 2
 
 class Widg_editBezier(Qw.QWidget):
-    def __init__(self, info: dict):
+    def __init__(self, info: dict, enableCurveFeatures: bool=True):
         super().__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
@@ -25,6 +25,10 @@ class Widg_editBezier(Qw.QWidget):
         self.ui.chkRecompute.stateChanged.connect(self.chkRecomputeChanged)
 
         self.disableOnAutoRecompute = {self.ui.cmbLockMode, self.ui.btnForceRecompute}
+        self.curveBtnsOnly = {self.ui.cmbLockMode, self.ui.btnForceRecompute, self.ui.chkRecompute}
+
+        for elem in self.curveBtnsOnly:
+            elem.setEnabled(enableCurveFeatures)
 
     @property
     def autoRecompute(self) -> bool:

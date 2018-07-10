@@ -180,6 +180,7 @@ class AddBezierShape(InplaceObjProcess):
             self.fill = info['fill']
             self.asyengine = info['asyengine']
             self.closedPath = info['closedPath']
+            self.useBezierBase = info['useBezier']
             self.useLegacy = self.info['options']['useLegacyDrawMode']
             self.pointsList.clear()
             self.pointsList.append((x, y, None))
@@ -222,7 +223,7 @@ class AddBezierShape(InplaceObjProcess):
         # self.updateBasePath()
 
     def updateBasePath(self):
-        self.basePath = x2a.asyPath(asyengine=self.asyengine)
+        self.basePath = x2a.asyPath(asyengine=self.asyengine, forceCurve=self.useBezierBase)
         newNode = [(x, y) for x, y, _ in self.pointsList]
         newLink = [lnk for *args, lnk in self.pointsList[1:]]
         if self.useLegacy:
@@ -232,17 +233,22 @@ class AddBezierShape(InplaceObjProcess):
             newNode.append('cycle')
             newLink.append(self._getLinkType())
         self.basePath.initFromNodeList(newNode, newLink)
-        self.basePath.computeControls()
+
+        if self.useBezierBase:
+            self.basePath.computeControls()
 
     def updateBasePathPreview(self):
-        self.basePathPreview = x2a.asyPath(asyengine=self.asyengine)
+        self.basePathPreview = x2a.asyPath(
+            asyengine=self.asyengine, forceCurve=self.useBezierBase)
         newNode = [(x, y) for x, y, _ in self.pointsList] + [(self.currentPoint.x(), self.currentPoint.y())]
         newLink = [lnk for *args, lnk in self.pointsList[1:]] + [self._getLinkType()]
         if self.closedPath:
             newNode.append('cycle')
             newLink.append(self._getLinkType())
         self.basePathPreview.initFromNodeList(newNode, newLink)
-        self.basePathPreview.computeControls()
+
+        if self.useBezierBase:
+            self.basePathPreview.computeControls()
 
     def forceFinalize(self):
         self.updateBasePath()

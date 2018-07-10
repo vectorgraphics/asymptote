@@ -397,11 +397,12 @@ class asyPen(asyObj):
 class asyPath(asyObj):
     """A python wrapper for an asymptote path"""
 
-    def __init__(self, asyengine: AsymptoteEngine=None):
+    def __init__(self, asyengine: AsymptoteEngine=None, forceCurve=False):
         """Initialize the path to be an empty path: a path with no nodes, control points, or links."""
         super().__init__()
         self.nodeSet = []
         self.linkSet = []
+        self.forceCurve = forceCurve
         self.controlSet = []
         self.computed = False
         self.asyengine = asyengine
@@ -448,7 +449,24 @@ class asyPath(asyObj):
     def isDrawable(self):
         return len(self.nodeSet) >= 2
 
-    def toQPainterPath(self):
+    def toQPainterPath(self) -> Qg.QPainterPath:
+        return self.toQPainterPathCurve() if self.containsCurve else self.toQPainterPathLine()
+
+    def toQPainterPathLine(self):
+        baseX, baseY = self.nodeSet[0]
+        painterPath = Qg.QPainterPath(Qc.QPointF(baseX, baseY))
+
+        for pointIndex in range(1, len(self.nodeSet)):
+            node = self.nodeSet[pointIndex]
+            if self.nodeSet[pointIndex] == 'cycle':
+                node = self.nodeSet[0]
+
+            painterPath.lineTo(*node)
+
+        return painterPath
+
+
+    def toQPainterPathCurve(self):
         if not self.computed:
             self.computeControls()
 
@@ -507,6 +525,10 @@ class asyPath(asyObj):
                     rawAsyCode.write(".." + self.makeNodeStr(asy2psmap * node))
                 count = count + 1
             self.asyCode = rawAsyCode.getvalue()
+
+    @property
+    def containsCurve(self):
+        return '..' in self.linkSet or self.forceCurve
 
     def getNode(self, index):
         """Return the requested node"""
@@ -964,7 +986,8 @@ class xasyShape(xasyDrawnItem):
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+'\n'
 
     def generateDrawObjects(self, forceUpdate=False):
-        self.path.computeControls()
+        if self.path.containsCurve:
+            self.path.computeControls()
         transf = self.transfKeymap[self.transfKey][0]
 
         newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=transf, pen=self.pen,
@@ -991,7 +1014,8 @@ class xasyFilledShape(xasyShape):
         return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
     def generateDrawObjects(self, forceUpdate=False):
-        self.path.computeControls()
+        if self.path.containsCurve:
+            self.path.computeControls()
         newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey][0],
                             pen=self.pen, key=self.transfKey, fill=True)
         newObj.originalObj = self
