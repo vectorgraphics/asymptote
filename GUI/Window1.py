@@ -1808,7 +1808,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def loadFile(self, name):
         filename = os.path.abspath(name)
-        if not os.path.isfile(fileName):
+        if not os.path.isfile(filename):
             filename = filename + '.asy'
 
         if not os.path.isfile(filename):
