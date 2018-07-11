@@ -75,7 +75,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>:/entypo/Entypo+/Entypo+/edit.svg</normaloff>:/entypo/Entypo+/Entypo+/edit.svg</iconset>
+         <normaloff>:/icons/edit.svg</normaloff>:/icons/edit.svg</iconset>
        </property>
        <property name="flat">
         <bool>true</bool>

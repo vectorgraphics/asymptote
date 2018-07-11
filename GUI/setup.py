@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import xasyVersion
 from setuptools import setup
 

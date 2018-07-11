@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import xasy2asy as x2a
 import numpy as np
 import math

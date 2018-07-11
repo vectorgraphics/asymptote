@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###########################################################################
 #
 # UndoRedoStack implements the usual undo/redo capabilities of a GUI

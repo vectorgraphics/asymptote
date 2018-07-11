@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###########################################################################
 #
 # xasyFile implements the loading, parsing, and saving of an xasy file.
