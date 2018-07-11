@@ -82,7 +82,8 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         for nodes in self.asyPath.controlSet:
             nodea, nodeb = nodes
 
-            selEpsilon = 6
+            selEpsilon = 6/self.info['magnification']
+
             newRect = Qc.QRect(0, 0, 2 * selEpsilon, 2 * selEpsilon)
             newRectb = Qc.QRect(0, 0, 2 * selEpsilon, 2 * selEpsilon)
 
@@ -110,6 +111,8 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.save()
         canvas.setWorldTransform(self.transf.toQTransform(), True)
 
+        epsilonSize = 6/self.info['magnification']
+
         if self.info['autoRecompute'] or not self.curveMode:
             ctrlPtsColor = 'gray'
         else:
@@ -127,14 +130,14 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
             basePoint = Qc.QPointF(point[0], point[1])
             canvas.setPen(Qg.QColor('blue'))
-            canvas.drawEllipse(basePoint, 5, 5)
+            canvas.drawEllipse(basePoint, epsilonSize, epsilonSize)
 
             if self.curveMode:   
                 if index != 0:
                     canvas.setPen(Qg.QColor(ctrlPtsColor))
                     postCtrolSet = self.asyPath.controlSet[index - 1][1]
                     postCtrlPoint = Qc.QPointF(postCtrolSet[0], postCtrolSet[1])
-                    canvas.drawEllipse(postCtrlPoint, 5, 5)
+                    canvas.drawEllipse(postCtrlPoint, epsilonSize, epsilonSize)
 
                     canvas.setPen(dashedPen)
                     canvas.drawLine(basePoint, postCtrlPoint)
@@ -143,7 +146,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                     canvas.setPen(Qg.QColor(ctrlPtsColor))
                     preCtrlSet = self.asyPath.controlSet[index][0]
                     preCtrlPoint = Qc.QPointF(preCtrlSet[0], preCtrlSet[1])
-                    canvas.drawEllipse(preCtrlPoint, 5, 5)
+                    canvas.drawEllipse(preCtrlPoint, epsilonSize, epsilonSize)
 
                     canvas.setPen(dashedPen)
                     canvas.drawLine(basePoint, preCtrlPoint)

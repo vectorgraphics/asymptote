@@ -1101,6 +1101,11 @@ class MainWindow1(Qw.QMainWindow):
                 self.panOffset[1] - centerPoint.y()
             ]
 
+            self.currAddOptions['magnification'] = self.magnification
+
+            if self.addMode is xbi.InteractiveBezierEditor:
+                self.addMode.setSelectionBoundaries()
+
         elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
             self.panOffset[1] += rawAngle/1
             self.panOffset[0] -= rawAngleX/1
@@ -1812,11 +1817,11 @@ class MainWindow1(Qw.QMainWindow):
             filename = filename + '.asy'
 
         if not os.path.isfile(filename):
-            self.ui.statusbar.showMessage('File {0} not found'.format(fileName))
+            self.ui.statusbar.showMessage('File {0} not found'.format(filename))
             return
 
-        self.ui.statusbar.showMessage('Load {0}'.format(fileName))
-        self.filename = fileName
+        self.ui.statusbar.showMessage('Load {0}'.format(filename))
+        self.filename = filename
         self.currDir = os.path.dirname(self.filename)
 
         self.erase()
