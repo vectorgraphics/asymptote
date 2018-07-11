@@ -153,6 +153,6 @@ def setAsyPathFromWindowsRegistry():
 class BasicConfigs:
     _configPath = list(configs.__path__)[0]
     defaultOpt = xasyOptions(
-        'xasyconf', os.path.join(_configPath, 'defaultConfig.cson'))
+        'xasyconfig', os.path.join(_configPath, 'xasyconfig.cson'))
     keymaps = xasyOptions('xasykeymap', os.path.join(
-        _configPath, 'defaultKeymap.cson'))
+        _configPath, 'xasykeymap.cson'))

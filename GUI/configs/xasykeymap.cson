@@ -1,6 +1,6 @@
 # Default Keymaps for xasy
 
-commandPalette: "Esc"
+commandPalette: "Ctrl+P"
 quit: "Ctrl+Q"
 deleteObject: "Del"
 
