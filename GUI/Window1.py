@@ -839,9 +839,9 @@ class MainWindow1(Qw.QMainWindow):
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
 
-        fileName = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
-        if fileName[0]:
-            self.loadFile(fileName[0])
+        filename = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
+        if filename[0]:
+            self.loadFile(filename[0])
 
     def actionSave(self):
         if self.filename is None:
@@ -1812,11 +1812,11 @@ class MainWindow1(Qw.QMainWindow):
             filename = filename + '.asy'
 
         if not os.path.isfile(filename):
-            self.ui.statusbar.showMessage('File {0} not found'.format(fileName))
+            self.ui.statusbar.showMessage('File {0} not found'.format(filename))
             return
 
-        self.ui.statusbar.showMessage('Load {0}'.format(fileName))
-        self.filename = fileName
+        self.ui.statusbar.showMessage('Load {0}'.format(filename))
+        self.filename = filename
         self.currDir = os.path.dirname(self.filename)
 
         self.erase()
