@@ -1807,14 +1807,20 @@ class MainWindow1(Qw.QMainWindow):
 
 
     def loadFile(self, name):
-        self.ui.statusbar.showMessage('Load {0}'.format(name))
-        self.filename = os.path.abspath(name)
+
+        fileName = os.path.abspath(name)
+        if not os.path.isfile(fileName):
+            filename = filename + '.asy'
+
+        if not os.path.isfile(filename):
+            self.ui.statusbar.showMessage('File {0} not found'.format(fileName))
+            return
+
+        self.ui.statusbar.showMessage('Load {0}'.format(fileName))
+        self.filename = fileName
         self.currDir = os.path.dirname(self.filename)
 
         self.erase()
-
-        if not os.path.isfile(self.filename):
-            self.filename = self.filename + '.asy'
 
         f = open(self.filename, 'rt')
         try:
