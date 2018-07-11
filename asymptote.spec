@@ -37,7 +37,7 @@ that LaTeX does for scientific text.
 
 %prep
 %setup -q
-%{__sed} -i 's|^#!/usr/bin/env python3$|#!%{__python}|' GUI/xasy.py
+%{__sed} -i 's|^#!/usr/bin/env python3$|#!%{__python3}|' GUI/xasy.py
 
 
 %build
