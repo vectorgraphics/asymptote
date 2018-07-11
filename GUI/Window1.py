@@ -902,8 +902,7 @@ class MainWindow1(Qw.QMainWindow):
 
         if self.isReady():
             if self.mainCanvas.isActive():
-                # self.mainCanvas.end()
-                pass
+                self.mainCanvas.end()
             self.canvSize = self.ui.imgFrame.size()
             self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
             self.canvasPixmap = Qg.QPixmap(self.canvSize)
