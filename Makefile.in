@@ -225,7 +225,9 @@ asy-keywords.el: asy
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
 	$(PERL) ./asy-list.pl asy.list $(revision)
 
-install: asy-keywords.el install-texhash install-man
+install-notexhash: asy-keywords.el install-asy install-man
+
+install: install-notexhash install-texhash
 
 install-all: install install-html
 

@@ -48,7 +48,7 @@ make %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
+make install-notexhash DESTDIR=$RPM_BUILD_ROOT
 
 %{__install} -p -m 644 BUGS ChangeLog LICENSE README ReleaseNotes TODO \
     $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}/
