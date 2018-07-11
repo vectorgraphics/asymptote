@@ -65,7 +65,8 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                 nodeSelectionBoundaries.append(None)
                 continue
 
-            selEpsilon = 6
+            selEpsilon = 6/self.info['magnification']
+            
             newRect = Qc.QRect(0, 0, 2 * selEpsilon, 2 * selEpsilon)
             x, y = self.transf * node
             x = int(round(x))
