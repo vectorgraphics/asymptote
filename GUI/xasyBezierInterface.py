@@ -66,7 +66,6 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                 continue
 
             selEpsilon = 6/self.info['magnification']
-            
             newRect = Qc.QRect(0, 0, 2 * selEpsilon, 2 * selEpsilon)
             x, y = self.transf * node
             x = int(round(x))
@@ -108,6 +107,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         assert canvas.isActive()
 
         dashedPen = Qg.QPen(Qc.Qt.DashLine)
+        dashedPen.setWidthF(1/self.info['magnification'])
         # draw the base points
         canvas.save()
         canvas.setWorldTransform(self.transf.toQTransform(), True)
@@ -123,6 +123,12 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         canvas.drawPath(self.asyPath.toQPainterPath())
 
+        nodePen = Qg.QPen(Qg.QColor('blue'))
+        nodePen.setWidthF(1/self.info['magnification'])
+
+        ctlPtsPen = Qg.QPen(Qg.QColor(ctrlPtsColor))
+        ctlPtsPen.setWidthF(1/self.info['magnification'])
+
         for index in range(len(self.asyPath.nodeSet)):
             point = self.asyPath.nodeSet[index]
             
@@ -130,12 +136,13 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                 continue
 
             basePoint = Qc.QPointF(point[0], point[1])
-            canvas.setPen(Qg.QColor('blue'))
+            canvas.setPen(nodePen)
+
             canvas.drawEllipse(basePoint, epsilonSize, epsilonSize)
 
             if self.curveMode:   
                 if index != 0:
-                    canvas.setPen(Qg.QColor(ctrlPtsColor))
+                    canvas.setPen(ctlPtsPen)
                     postCtrolSet = self.asyPath.controlSet[index - 1][1]
                     postCtrlPoint = Qc.QPointF(postCtrolSet[0], postCtrolSet[1])
                     canvas.drawEllipse(postCtrlPoint, epsilonSize, epsilonSize)
@@ -144,7 +151,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                     canvas.drawLine(basePoint, postCtrlPoint)
 
                 if index != len(self.asyPath.nodeSet) - 1:
-                    canvas.setPen(Qg.QColor(ctrlPtsColor))
+                    canvas.setPen(ctlPtsPen)
                     preCtrlSet = self.asyPath.controlSet[index][0]
                     preCtrlPoint = Qc.QPointF(preCtrlSet[0], preCtrlSet[1])
                     canvas.drawEllipse(preCtrlPoint, epsilonSize, epsilonSize)
