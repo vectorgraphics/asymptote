@@ -132,14 +132,13 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         for index in range(len(self.asyPath.nodeSet)):
             point = self.asyPath.nodeSet[index]
             
-            if point == 'cycle':
-                continue
-
-            basePoint = Qc.QPointF(point[0], point[1])
-            canvas.setPen(nodePen)
-
-            canvas.drawEllipse(basePoint, epsilonSize, epsilonSize)
-
+            if point != 'cycle':
+                basePoint = Qc.QPointF(point[0], point[1])
+                canvas.setPen(nodePen)
+                canvas.drawEllipse(basePoint, epsilonSize, epsilonSize)
+            else:
+                point = self.asyPath.nodeSet[0]
+                basePoint = Qc.QPointF(point[0], point[1])
             if self.curveMode:   
                 if index != 0:
                     canvas.setPen(ctlPtsPen)
@@ -162,15 +161,17 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.restore()
 
     def getPreAndPostCtrlPts(self, index):
-        if index == 0:
+        isCycle = self.asyPath.nodeSet[-1] == 'cycle'
+
+        if index == 0 and not isCycle:
             preCtrl = None
         else:
             preCtrl = self.asyPath.controlSet[index - 1][1]
 
-        if index == len(self.asyPath.nodeSet) - 1:
+        if index == len(self.asyPath.nodeSet) - 1 and not isCycle:
             postCtrl = None
         else:
-            postCtrl = self.asyPath.controlSet[index][0]
+            postCtrl = self.asyPath.controlSet[index % (len(self.asyPath.nodeSet) - 1)][0]
 
         return preCtrl, postCtrl
 
@@ -179,7 +180,10 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         if subindex == 0:
             return index
         else:
-            return index + 1
+            if self.asyPath.nodeSet[index + 1] == 'cycle':
+                return 0
+            else:
+                return index + 1
 
     def resetObj(self):
         self.asyPath.setInfo(self.asyPathBackup)
@@ -209,7 +213,11 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                 return 
 
             preCtrl, postCtrl = self.getPreAndPostCtrlPts(self.parentNodeIndex)
-            
+
+            if parentNode == 'cycle':
+                parentNode = self.asyPath.nodeSet[0]
+                self.parentNodeIndex = 0
+
             if preCtrl is not None:
                 self.preCtrlOffset = xu.funcOnList(
                     preCtrl, parentNode, lambda a, b: a - b)
@@ -283,19 +291,30 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
             elif self.currentSelMode == CurrentlySelctedType.ctrlPoint and self.curveMode:
                 self.asyPath.controlSet[index][subindex] = newNode
-
                 parentNode = self.asyPath.nodeSet[self.parentNodeIndex]
+
+                if parentNode == 'cycle':
+                    parentNode = self.asyPath.nodeSet[0]
+                    isCycle = True
+                else:
+                    isCycle = False
+
+                if self.parentNodeIndex == 0 and self.asyPath.nodeSet[-1] == 'cycle':
+                    isCycle = True
 
                 rawNewNode = xu.funcOnList(newNode, parentNode, lambda a, b: a - b)
                 rawAngle = math.atan2(rawNewNode[1], rawNewNode[0])
                 newNorm = xu.twonorm(rawNewNode)
 
+
                 if self.info['editBezierlockMode'] >= Web.LockMode.angleLock:
                     otherIndex = 1 - subindex       # 1 if 0, 0 otherwise. 
                     if otherIndex == 0:
-                        if index < len(self.asyPath.controlSet) - 1:
+                        if index < (len(self.asyPath.controlSet) - 1) or isCycle:
+                            newIndex = 0 if isCycle else index + 1
+
                             oldOtherCtrlPnt = xu.funcOnList(
-                                self.asyPath.controlSet[index + 1][0] , parentNode, lambda a, b: a - b)
+                                self.asyPath.controlSet[newIndex][0], parentNode, lambda a, b: a - b)
                         
                             if self.info['editBezierlockMode'] >= Web.LockMode.angleAndScaleLock:
                                 rawNorm = newNorm
@@ -305,11 +324,13 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                             newPnt = (rawNorm * math.cos(rawAngle + math.pi), 
                                 rawNorm * math.sin(rawAngle + math.pi))
                                 
-                            self.asyPath.controlSet[index + 1][0] = xu.funcOnList(newPnt, parentNode, lambda a, b: a + b)
+                            self.asyPath.controlSet[newIndex][0] = xu.funcOnList(
+                                newPnt, parentNode, lambda a, b: a + b)
                     else:
-                        if index > 0:
+                        if index > 0 or isCycle:
+                            newIndex = -1 if isCycle else index - 1
                             oldOtherCtrlPnt = xu.funcOnList(
-                                self.asyPath.controlSet[index-1][1], parentNode, lambda a, b: a - b)
+                                self.asyPath.controlSet[newIndex][1], parentNode, lambda a, b: a - b)
 
                             if self.info['editBezierlockMode'] >= Web.LockMode.angleAndScaleLock:
                                 rawNorm = newNorm
@@ -318,7 +339,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
                             newPnt = (rawNorm * math.cos(rawAngle + math.pi),
                                       rawNorm * math.sin(rawAngle + math.pi))
-                            self.asyPath.controlSet[index - 1][1] = xu.funcOnList(
+                            self.asyPath.controlSet[newIndex][1] = xu.funcOnList(
                                 newPnt, parentNode, lambda a, b: a + b)
         
     def recalculateCtrls(self):
