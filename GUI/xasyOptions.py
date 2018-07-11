@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###########################################################################
 #
 # xasyOptions provides a mechanism for storing and restoring a user's
@@ -151,7 +151,7 @@ def setAsyPathFromWindowsRegistry():
 
 
 class BasicConfigs:
-    _configPath = configs.__path__[0]
+    _configPath = list(configs.__path__)[0]
     defaultOpt = xasyOptions(
         'xasyconf', os.path.join(_configPath, 'defaultConfig.cson'))
     keymaps = xasyOptions('xasykeymap', os.path.join(

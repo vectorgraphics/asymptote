@@ -149,7 +149,7 @@
           </property>
           <property name="icon">
            <iconset resource="../res/icons.qrc">
-            <normaloff>:/entypo/Entypo+/Entypo+/text.svg</normaloff>:/entypo/Entypo+/Entypo+/text.svg</iconset>
+            <normaloff>:/icons/text.svg</normaloff>:/icons/text.svg</iconset>
           </property>
           <property name="flat">
            <bool>true</bool>
@@ -169,7 +169,7 @@
           </property>
           <property name="icon">
            <iconset resource="../res/icons.qrc">
-            <normaloff>:/icons/ionicons-2.0.1/src/eye.svg</normaloff>:/icons/ionicons-2.0.1/src/eye.svg</iconset>
+            <normaloff>:/icons/eye.svg</normaloff>:/icons/eye.svg</iconset>
           </property>
           <property name="flat">
            <bool>true</bool>
@@ -189,7 +189,7 @@
           </property>
           <property name="icon">
            <iconset resource="../res/icons.qrc">
-            <normaloff>:/icons/ionicons-2.0.1/src/android-close.svg</normaloff>:/icons/ionicons-2.0.1/src/android-close.svg</iconset>
+            <normaloff>:/icons/android-close.svg</normaloff>:/icons/android-close.svg</iconset>
           </property>
           <property name="flat">
            <bool>true</bool>
@@ -209,7 +209,7 @@
           </property>
           <property name="icon">
            <iconset resource="../res/icons.qrc">
-            <normaloff>:/icons/ionicons-2.0.1/src/android-done.svg</normaloff>:/icons/ionicons-2.0.1/src/android-done.svg</iconset>
+            <normaloff>:/icons/android-done.svg</normaloff>:/icons/android-done.svg</iconset>
           </property>
           <property name="flat">
            <bool>true</bool>

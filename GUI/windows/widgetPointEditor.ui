@@ -80,7 +80,7 @@
        </property>
        <property name="icon">
         <iconset resource="../res/icons.qrc">
-         <normaloff>:/icons/ionicons-2.0.1/src/android-locate.svg</normaloff>:/icons/ionicons-2.0.1/src/android-locate.svg</iconset>
+         <normaloff>:/icons/android-locate.svg</normaloff>:/icons/android-locate.svg</iconset>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -106,7 +106,7 @@
        </property>
        <property name="icon">
         <iconset resource="../res/icons.qrc">
-         <normaloff>:/icons/ionicons-2.0.1/src/android-radio-button-off.svg</normaloff>:/icons/ionicons-2.0.1/src/android-radio-button-off.svg</iconset>
+         <normaloff>:/icons/android-radio-button-off.svg</normaloff>:/icons/android-radio-button-off.svg</iconset>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -129,7 +129,7 @@
        </property>
        <property name="icon">
         <iconset resource="../res/icons.qrc">
-         <normaloff>:/icons/ionicons-2.0.1/src/edit.svg</normaloff>:/icons/ionicons-2.0.1/src/edit.svg</iconset>
+         <normaloff>:/icons/edit.svg</normaloff>:/icons/edit.svg</iconset>
        </property>
        <property name="checkable">
         <bool>true</bool>

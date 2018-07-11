@@ -126,8 +126,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-arrow-back.svg</normaloff>:/icons/ionicons-2.0.1/src/android-arrow-back.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/android-arrow-back.svg</normaloff>:/icons/android-arrow-back.svg</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -170,8 +170,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-arrow-forward.svg</normaloff>:/icons/ionicons-2.0.1/src/android-arrow-forward.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/android-arrow-forward.svg</normaloff>:/icons/android-arrow-forward.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -205,8 +205,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-folder-open.svg</normaloff>:/icons/ionicons-2.0.1/src/android-folder-open.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/android-folder-open.svg</normaloff>:/icons/android-folder-open.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -240,8 +240,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/entypo/Entypo+/Entypo+/save.svg</normaloff>:/entypo/Entypo+/Entypo+/save.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -275,8 +275,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/entypo/Entypo+/Entypo+/code.svg</normaloff>:/entypo/Entypo+/Entypo+/code.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/code.svg</normaloff>:/icons/code.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -310,8 +310,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-camera.svg</normaloff>:/icons/ionicons-2.0.1/src/android-camera.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/android-camera.svg</normaloff>:/icons/android-camera.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -368,8 +368,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/plus-round.svg</normaloff>:/icons/ionicons-2.0.1/src/plus-round.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/plus-round.svg</normaloff>:/icons/plus-round.svg</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -416,8 +416,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/grid.svg</normaloff>:/icons/ionicons-2.0.1/src/grid.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/grid.svg</normaloff>:/icons/grid.svg</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -457,8 +457,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/entypo/Entypo+/Entypo+/magnifying-glass.svg</normaloff>:/entypo/Entypo+/Entypo+/magnifying-glass.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/magnifying-glass.svg</normaloff>:/icons/magnifying-glass.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -492,8 +492,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/icons/center.svg</normaloff>:/icons/icons/center.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/center.svg</normaloff>:/icons/center.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -527,8 +527,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/icons/centerorigin.svg</normaloff>:/icons/icons/centerorigin.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/centerorigin.svg</normaloff>:/icons/centerorigin.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -656,8 +656,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/edit.svg</normaloff>:/icons/ionicons-2.0.1/src/edit.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/edit.svg</normaloff>:/icons/edit.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -694,8 +694,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-delete.svg</normaloff>:/icons/ionicons-2.0.1/src/android-delete.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/android-delete.svg</normaloff>:/icons/android-delete.svg</iconset>
             </property>
             <property name="checkable">
              <bool>false</bool>
@@ -748,8 +748,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-hand.svg</normaloff>:/icons/ionicons-2.0.1/src/android-hand.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/android-hand.svg</normaloff>:/icons/android-hand.svg</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -786,8 +786,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/arrow-move.svg</normaloff>:/icons/ionicons-2.0.1/src/arrow-move.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/arrow-move.svg</normaloff>:/icons/arrow-move.svg</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -827,8 +827,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/arrow-resize.svg</normaloff>:/icons/ionicons-2.0.1/src/arrow-resize.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/arrow-resize.svg</normaloff>:/icons/arrow-resize.svg</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -865,8 +865,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-refresh.svg</normaloff>:/icons/ionicons-2.0.1/src/android-refresh.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/android-refresh.svg</normaloff>:/icons/android-refresh.svg</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -919,8 +919,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons2/zondicons/anchor.svg</normaloff>:/icons2/zondicons/anchor.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/anchor.svg</normaloff>:/icons/anchor.svg</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -1053,8 +1053,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/eye.svg</normaloff>:/icons/ionicons-2.0.1/src/eye.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/eye.svg</normaloff>:/icons/eye.svg</iconset>
             </property>
             <property name="checkable">
              <bool>false</bool>
@@ -1091,8 +1091,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-expand.svg</normaloff>:/icons/ionicons-2.0.1/src/android-expand.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/android-expand.svg</normaloff>:/icons/android-expand.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1129,8 +1129,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-left.svg</normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-left.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/chevron-with-circle-left.svg</normaloff>:/icons/chevron-with-circle-left.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1167,8 +1167,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-right.svg</normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-right.svg</iconset>
+             <iconset>
+              <normaloff>:/icons/chevron-with-circle-right.svg</normaloff>:/icons/chevron-with-circle-right.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1279,9 +1279,9 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../res/icons.qrc">
-                 <normaloff>:/icons/icons/bucket.svg</normaloff>
-                 <normalon>:/icons/icons/filledbucket.svg</normalon>:/icons/icons/bucket.svg</iconset>
+                <iconset>
+                 <normaloff>:/icons/bucket.svg</normaloff>
+                 <normalon>:/icons/filledbucket.svg</normalon>:/icons/bucket.svg</iconset>
                </property>
                <property name="checkable">
                 <bool>true</bool>
@@ -1407,8 +1407,8 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../res/icons.qrc">
-                 <normaloff>:/icons/ionicons-2.0.1/src/android-color-palette.svg</normaloff>:/icons/ionicons-2.0.1/src/android-color-palette.svg</iconset>
+                <iconset>
+                 <normaloff>:/icons/android-color-palette.svg</normaloff>:/icons/android-color-palette.svg</iconset>
                </property>
                <property name="default">
                 <bool>false</bool>
@@ -1485,8 +1485,8 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/icons/icons/openpolygon.svg</normaloff>:/icons/icons/openpolygon.svg</iconset>
+                   <iconset>
+                    <normaloff>:/icons/openpolygon.svg</normaloff>:/icons/openpolygon.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1517,8 +1517,8 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/icons/icons/closedpolygon.svg</normaloff>:/icons/icons/closedpolygon.svg</iconset>
+                   <iconset>
+                    <normaloff>:/icons/closedpolygon.svg</normaloff>:/icons/closedpolygon.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1549,8 +1549,8 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/icons/icons/opencurve.svg</normaloff>:/icons/icons/opencurve.svg</iconset>
+                   <iconset>
+                    <normaloff>:/icons/opencurve.svg</normaloff>:/icons/opencurve.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1581,8 +1581,8 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/icons/icons/closedcurve.svg</normaloff>:/icons/icons/closedcurve.svg</iconset>
+                   <iconset>
+                    <normaloff>:/icons/closedcurve.svg</normaloff>:/icons/closedcurve.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1613,8 +1613,8 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/maki/mapbox-maki-463a9ff/icons/triangle-stroked-15.svg</normaloff>:/maki/mapbox-maki-463a9ff/icons/triangle-stroked-15.svg</iconset>
+                   <iconset>
+                    <normaloff>:/icons/triangle-stroked-15.svg</normaloff>:/icons/triangle-stroked-15.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1645,8 +1645,8 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/entypo/Entypo+/Entypo+/circle.svg</normaloff>:/entypo/Entypo+/Entypo+/circle.svg</iconset>
+                   <iconset>
+                    <normaloff>:/icons/circle.svg</normaloff>:/icons/circle.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1677,8 +1677,8 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/openiconic/open-iconic-master/svg/text.svg</normaloff>:/openiconic/open-iconic-master/svg/text.svg</iconset>
+                   <iconset>
+                    <normaloff>:/icons/text.svg</normaloff>:/icons/text.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1774,8 +1774,8 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../res/icons.qrc">
-                 <normaloff>:/icons/ionicons-2.0.1/src/social-python.svg</normaloff>:/icons/ionicons-2.0.1/src/social-python.svg</iconset>
+                <iconset>
+                 <normaloff>:/icons/social-python.svg</normaloff>:/icons/social-python.svg</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -1816,8 +1816,8 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../res/icons.qrc">
-                 <normaloff>:/icons2/zondicons/subdirectory-left.svg</normaloff>:/icons2/zondicons/subdirectory-left.svg</iconset>
+                <iconset>
+                 <normaloff>:/icons/subdirectory-left.svg</normaloff>:/icons/subdirectory-left.svg</iconset>
                </property>
                <property name="flat">
                 <bool>true</bool>

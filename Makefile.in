@@ -128,7 +128,7 @@ version: $(GCLIB) $(FILES:=.o) $(UIFILES:.ui=.py)
 	echo @set VERSION $(revision) > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
 
-	echo "#!/usr/bin/env python" > GUI/xasyVersion.py
+	echo "#!/usr/bin/env python3" > GUI/xasyVersion.py
 	echo xasyVersion = \"$(revision)\" >> GUI/xasyVersion.py
 
 	if test -n "$(MSDOS)"; then \
@@ -235,14 +235,19 @@ install-texhash: install-asy
 	fi
 
 install-asy: asy sty
-	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
-          $(animationsdir)
+	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
+	${INSTALL} -d $(GUIdir) $(GUIdir)/pyUIClass $(GUIdir)/configs \
+			$(GUIdir)/res $(GUIdir)/res/icons
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
+	${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
+	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
+	${INSTALL} -p -m 644 GUI/res/icons.qrc $(GUIdir)/res
+	${INSTALL} -p -m 644 GUI/res/icons/*.svg $(GUIdir)/res/icons
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
 	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
 	  doc/extra/*.asy $(addprefix doc/,$(DOCEXTRA)) $(exampledir)

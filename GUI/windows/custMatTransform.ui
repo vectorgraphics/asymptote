@@ -36,7 +36,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../res/icons.qrc">
-    <normaloff>:/icons/ionicons-2.0.1/src/android-expand.svg</normaloff>:/icons/ionicons-2.0.1/src/android-expand.svg</iconset>
+    <normaloff>:/icons/android-expand.svg</normaloff>:/icons/android-expand.svg</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>

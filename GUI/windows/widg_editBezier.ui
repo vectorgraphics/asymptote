@@ -129,7 +129,7 @@
        </property>
        <property name="icon">
         <iconset resource="../res/icons.qrc">
-         <normaloff>:/entypo/Entypo+/Entypo+/check.svg</normaloff>:/entypo/Entypo+/Entypo+/check.svg</iconset>
+         <normaloff>:/icons/check.svg</normaloff>:/icons/check.svg</iconset>
        </property>
        <property name="flat">
         <bool>true</bool>
@@ -152,7 +152,7 @@
        </property>
        <property name="icon">
         <iconset resource="../res/icons.qrc">
-         <normaloff>:/icons/ionicons-2.0.1/src/close-round.svg</normaloff>:/icons/ionicons-2.0.1/src/close-round.svg</iconset>
+         <normaloff>:/icons/close-round.svg</normaloff>:/icons/close-round.svg</iconset>
        </property>
        <property name="flat">
         <bool>true</bool>

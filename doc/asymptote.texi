@@ -384,7 +384,7 @@ The @code{ImageMagick} package from
 @noindent
 is required to support output formats other than @acronym{EPS},
 @acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
-The @code{Python 2} interpreter from @url{http://www.python.org} is only required
+The @code{Python 3} interpreter from @url{http://www.python.org} is only required
 if you wish to try out the graphical user interface (@pxref{GUI}).
 
 @noindent
@@ -3298,8 +3298,8 @@ rotates by @code{angle} in degrees about @code{z};
 @item transform reflect(pair a, pair b);
 @cindex @code{reflect}
 reflects about the line @code{a--b}.
-@item transform zero;
-@cindex @code{zero}
+@item transform zeroTransform;
+@cindex @code{zeroTransform}
 the zero transform;
 @end table
 
@@ -9462,7 +9462,7 @@ The file @code{asymptote.py} in the @code{Asymptote} system directory
 provides an alternative way of entering @code{Asymptote} commands
 interactively, coupled with the full power of @code{Python}. Copy this
 file to your @code{Python path} and then execute from within
-@code{Python} the commands 
+@code{Python 3} the commands 
 @verbatim
 from asymptote import *
 g=asy()
@@ -9500,17 +9500,25 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 
 As @code{xasy} is written in the interactive scripting language
 @code{Python/Qt}, it requires @code{Python} (@url{http://www.python.org}),
-and the @code{Qt5} package (included with @code{Python} under
-@code{Microsoft Windows}).
+along with the @code{Python} packages @code{pyqt5}, @code{cson}, and
+@code{numpy}:
 
-Pictures are deconstructed into the @acronym{SVG} image format, which
-supports full alpha channel transparency.
+@verbatim
+pip3 install pyqt5 cson numpy
+@end verbatim
+
+Pictures are deconstructed into the @acronym{SVG} image format.
+Since @code{Qt5} does not suport @code{SVG} clipping, you will need
+the @code{rsvg-convert} utility, which is part of the
+@code{librsvg2-tools} package on @code{UNIX} systems; under
+@code{Microsoft Windows}, it is available as
+
+@url{https://opensourcepack.blogspot.com/2012/06/rsvg-convert-svg-image-conversion-tool.html}
 
 @node GUI usage,  , GUI installation, GUI
 @section GUI usage
 @cindex GUI usage
 @cindex @code{deconstruct}
-
 A wheel mouse is convenient for raising and lowering objects within
 @code{xasy}, to expose the object to be moved.
 
