@@ -839,9 +839,9 @@ class MainWindow1(Qw.QMainWindow):
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
 
-        fileName = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
-        if fileName[0]:
-            self.loadFile(fileName[0])
+        filename = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
+        if filename[0]:
+            self.loadFile(filename[0])
 
     def actionSave(self):
         if self.filename is None:
