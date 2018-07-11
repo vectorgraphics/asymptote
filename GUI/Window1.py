@@ -901,6 +901,9 @@ class MainWindow1(Qw.QMainWindow):
         assert isinstance(resizeEvent, Qg.QResizeEvent)
 
         if self.isReady():
+            if self.mainCanvas.isActive():
+                # self.mainCanvas.end()
+                pass
             self.canvSize = self.ui.imgFrame.size()
             self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
             self.canvasPixmap = Qg.QPixmap(self.canvSize)
@@ -1347,7 +1350,8 @@ class MainWindow1(Qw.QMainWindow):
         return self.mapFromGlobal(Qg.QCursor.pos())
         
     def refreshCanvas(self):
-        self.mainCanvas.end()
+        if self.mainCanvas.isActive():
+            self.mainCanvas.end()
         self.mainCanvas.begin(self.canvasPixmap)
         self.mainCanvas.setTransform(self.getScrsTransform())
 
@@ -1370,6 +1374,7 @@ class MainWindow1(Qw.QMainWindow):
         self.preDraw(self.mainCanvas)
         self.quickDraw()
 
+        self.mainCanvas.end()
         self.postDraw()
         self.updateScreen()
 
