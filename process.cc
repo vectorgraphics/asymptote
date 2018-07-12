@@ -784,8 +784,11 @@ class iprompt : public icore {
   block *parseXasyLine(string line) {
     
     string s;
-    while((s=getline(true)) != "\x04\n") // End of transmission
+//    while((s=getline(true)) != "\x04\n") {// End of transmission
+    while((s=getline(true)) != "xasy\n") {// End of transmission
+      cout << s << endl;
       line += s;
+    }
     return parser::parseString(line, "-", true);
   }
 

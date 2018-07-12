@@ -38,10 +38,10 @@ import xasySvg as xs
 import uuid
 
 class AsymptoteEngine:
-    xasy=chr(4)+"\n"
+#    xasy=chr(4)+"\n"
+    xasy="xasy\n"
 
-    def __init__(self, path=None, args: list=None, customOutdir=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True,
-                 stdoutMode=None, stdinMode=None, stderrMode=None, endargs=None):
+    def __init__(self, path=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True):
         if path is None:
             path = xa.getArgs().asypath
             if path is None:
@@ -49,56 +49,45 @@ class AsymptoteEngine:
                 opt.load()
                 path = opt['asyPath']
 
-        rx, wx = os.pipe()
-        ra, wa = os.pipe()
-
-        os.set_inheritable(rx, True)
-        os.set_inheritable(wx, True)
-        os.set_inheritable(ra, True)
-        os.set_inheritable(wa, True)
-
-        self._stdoutMode = stdoutMode
-        self._stdinMode = stdinMode
-        self._stderrMode = stderrMode
-
-        self._ostream = os.fdopen(wx, 'w')
-        self._istream = os.fdopen(ra, 'r')
-        self.keepFiles = keepFiles
-        self.useTmpDir = customOutdir is None
-        if customOutdir is None:
-            self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')
-            oargs = self.tmpdir + os.sep
+        if sys.platform[:3] == 'win':
+            rx = 0  # stdin
+            wa = 2  # stderr
         else:
-            self.tmpdir = customOutdir
-            oargs = customOutdir
+            rx, wx = os.pipe()
+            ra, wa = os.pipe()
+            os.set_inheritable(rx, True)
+            os.set_inheritable(wx, True)
+            os.set_inheritable(ra, True)
+            os.set_inheritable(wa, True)
+            self.ostream = os.fdopen(wx, 'w')
+            self.istream = os.fdopen(ra, 'r')
+            
+        self.keepFiles = keepFiles
+        if sys.platform[:3] == 'win':
+            self.tmpdir = tempfile.mkdtemp(prefix='xasyData_',dir='./')+'/'
+        else:
+            self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
 
-        if args is None:
-            args = []
-
-        if endargs is None:
-            endargs = []
-
-        self.args = args
-
-#TODO: change inpipe setting to xasy in asy
-        if keepDefaultArgs:
-            self.args = args + ['-xasy', '-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
+        self.args=['-vv','-xasy', '-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
 
         self.asyPath = path
         self.asyProcess = None
 
-        self.rx = rx
-        self.wa = wa
+    def start(self):
+        if sys.platform[:3] == 'win':
+            self.asyProcess = subprocess.Popen([self.asyPath] + self.args,
+                                               stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                                               universal_newlines=True)
+            self.ostream = self.asyProcess.stdin
+            self.istream = self.asyProcess.stderr
+        else:
+            self.asyProcess = subprocess.Popen([self.asyPath] + self.args,close_fds=False)
 
     def wait(self):
         if self.asyProcess.returncode is not None:
             return
         else:
             return self.asyProcess.wait()
-
-    def start(self):
-        self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False,
-                                           stdin=self._stdinMode, stderr=self._stderrMode)
 
     def __enter__(self):
         self.start()
@@ -110,7 +99,7 @@ class AsymptoteEngine:
 
     @property
     def tempDirName(self):
-        return self.tmpdir + os.sep
+        return self.tmpdir
 
     def startThenStop(self):
         self.start()
@@ -118,36 +107,10 @@ class AsymptoteEngine:
         self.wait()
 
     @property
-    def stdout(self):
-        if self.asyProcess is None:
-            return None
-        return self.asyProcess.stdout
-
-    @property
-    def stdin(self):
-        if self.asyProcess is None:
-            return None
-        return self.asyProcess.stdin
-
-    @property
-    def stderr(self):
-        if self.asyProcess is None:
-            return None
-        return self.asyProcess.stderr
-
-    @property
     def active(self):
         if self.asyProcess is None:
             return False
         return self.asyProcess.returncode is None
-
-    @property
-    def ostream(self):
-        return self._ostream
-
-    @property
-    def istream(self):
-        return self._istream
 
     def stop(self):
         if self.active:
