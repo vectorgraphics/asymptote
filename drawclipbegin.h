@@ -23,9 +23,9 @@ public:
   }
   
   drawClipBegin(const vm::array& src, bool stroke, pen pentype,
-                bool gsave=true, const string& key="")
-    : drawElement(KEY), drawSuperPathPenBase(src,pentype), gsave(gsave),
-      stroke(stroke) {
+                bool gsave=true, const string& key="") :
+    drawElement(key), drawSuperPathPenBase(src,pentype), gsave(gsave),
+    stroke(stroke) {
     if(!stroke && !cyclic()) noncyclic();
   }
 
