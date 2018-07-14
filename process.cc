@@ -783,12 +783,14 @@ class iprompt : public icore {
   // Continue taking input until a termination command is received from xasy.
   block *parseXasyLine(string line) {
     
+#ifdef __MSDOS__  
+    const string EOT="\x04\r\n";
+#else    
+    const string EOT="\x04\n";
+#endif
     string s;
-//    while((s=getline(true)) != "\x04\n") {// End of transmission
-    while((s=getline(true)) != "xasy\n") {// End of transmission
-      cout << s << endl;
+    while((s=getline(true)) != EOT)
       line += s;
-    }
     return parser::parseString(line, "-", true);
   }
 

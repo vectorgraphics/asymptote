@@ -38,8 +38,7 @@ import xasySvg as xs
 import uuid
 
 class AsymptoteEngine:
-#    xasy=chr(4)+"\n"
-    xasy="xasy\n"
+    xasy=chr(4)+"\n"
 
     def __init__(self, path=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True):
         if path is None:
@@ -68,7 +67,7 @@ class AsymptoteEngine:
         else:
             self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
 
-        self.args=['-vv','-xasy', '-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
+        self.args=['-xasy', '-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
 
         self.asyPath = path
         self.asyProcess = None
