@@ -1070,8 +1070,10 @@ void size(picture pic=currentpicture, real x, real y=x,
 
 void size(picture pic=currentpicture, transform t)
 {
-  pair z=size(pic.fit(t));
-  pic.size(z.x,z.y);
+  if(pic.empty3()) {
+    pair z=size(pic.fit(t));
+    pic.size(z.x,z.y);
+  }
 }
 
 void size3(picture pic=currentpicture, real x, real y=x, real z=y,
