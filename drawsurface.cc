@@ -114,7 +114,7 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
   double X,Y,Z;
   
   if(straight) {
-    triple Vertices[3];
+    triple Vertices[4];
     if(t == NULL) {
       Vertices[0]=controls[0];
       Vertices[1]=controls[3];
