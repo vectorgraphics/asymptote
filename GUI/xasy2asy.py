@@ -662,8 +662,10 @@ class xasyItem(Qc.QObject):
         self.keyBuffer = None
         self._asyengine = asyengine
         self.drawObjects = []
+        self.drawObjectsMap = {}
         self.setKeyed = True
         self.unsetKeys = set()
+        self.userKeys = set()
         self.imageHandleQueue = queue.Queue()
 
     def updateCode(self, ps2asymap=identity()):
@@ -738,7 +740,13 @@ class xasyItem(Qc.QObject):
                                         parentObj=self, keyIndex=localCount)
                 newDrawObj.setBoundingBoxPs(bbox)
                 newDrawObj.setParent(self)
+
                 self.drawObjects.append(newDrawObj)
+
+                if key not in self.drawObjectsMap.keys():
+                    self.drawObjectsMap[key] = [newDrawObj]
+                else:
+                    self.drawObjectsMap[key].append(newDrawObj)
         return containsClip
     def asyfy(self, force=False):
         if self.asyengine is None:
@@ -746,6 +754,7 @@ class xasyItem(Qc.QObject):
         if self.asyfied and not force:
             return
         self.drawObjects = []
+        self.drawObjectsMap.clear()
         assert isinstance(self.asyengine, AsymptoteEngine)
         self.imageList = []
         self.unsetKeys.clear()
@@ -823,7 +832,9 @@ class xasyItem(Qc.QObject):
             userkey = keydata[-2] == '1'
             keydata = keydata[:-3]
             if not userkey:
-                self.unsetKeys.add(keydata)
+                self.unsetKeys.add(keydata)     # the line and column to replace. 
+            else:
+                self.userKeys.add(keydata)
             
 #                print(line, col)
 
@@ -1055,6 +1066,8 @@ class xasyScript(xasyItem):
             self.transfKeymap = {}
 
         self.script = script
+        self.key2imagemap = {}
+        self.namedUnsetKeys = {}
         self.keyPrefix = ''
         self.updatedPrefix = True
 
@@ -1136,18 +1149,28 @@ class xasyScript(xasyItem):
     def getReplacedKeysCode(self, key2replace: set=None) -> str:
         keylist = {}
         prefix = ''
+
         key2replaceSet = self.unsetKeys if key2replace is None else \
                         self.unsetKeys & key2replace
 
+        linenum2key = {}
+
         if not self.updatedPrefix:
             prefix = self.keyPrefix
+
         for key in key2replaceSet:
+            actualkey = key
+
+            key = key.split(':')[0][1:]         # remove the 'x' and anything after :
             raw_parsed = xu.tryParseKey(key)
             assert raw_parsed is not None
             line, col = [int(val) for val in raw_parsed.groups()]
             if line not in keylist:
                 keylist[line] = set()
             keylist[line].add(col)
+            linenum2key[(line, col)] = actualkey
+            self.unsetKeys.discard(key)
+
 
         raw_code_lines = self.script.splitlines()
         with io.StringIO() as raw_str:
@@ -1159,53 +1182,67 @@ class xasyScript(xasyItem):
                         for j in range(len(curr_str)):
                             raw_line.write(curr_str[j])
                             if j + 1 in keylist[i + 1]:
-                                raw_line.write('KEY="{2:s}{0:d}.{1:d}",'.format(
-                                    i + 1, j + 1, prefix))
+                                # at this point, replace keys with xkey
+                                raw_line.write('KEY="{0:s}",'.format(linenum2key[(i + 1, j + 1)]))
+                                self.userKeys.add(linenum2key[(i + 1, j + 1)])
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.
                 raw_str.write(curr_str + '\n')
             return raw_str.getvalue()
 
+    def getUnusedKey(self, oldkey) -> str:
+        baseCounter = 0
+        oldkey = 'x' + oldkey
+        newKey = oldkey
+        while newKey in self.userKeys:
+            newKey = oldkey + ':' + str(baseCounter)
+            baseCounter += 1
+        return newKey
+
     def replaceKeysInCode(self):
         self.script = self.getReplacedKeysCode()
         self.updateCode()
-        self.unsetKeys.clear()
         self.setKeyed = True
 
     def asyfy(self, keyOnly=False):
         """Generate the list of images described by this object and adjust the length of the transform list."""
-        super().asyfy(keyOnly)
-
-        # remove any unnecessary keys
-        # not anymore - transfKeymap is supposed to be storing the raw transform data
-        # and the rest, to be interpreted case by case.
+        super().asyfy()
 
         # Id --> Transf --> asy-fied --> Transf
         # Transf should keep the original, raw transformation
         # but for all new drawn objects - assign Id as transform.
 
-        # key_set = set([im.key for im in self.imageList])
-        # keys_to_remove = []
-        #
-        # for key in self.transfKeymap.keys():
-        #     if key not in key_set:
-        #         keys_to_remove.append(key)
-        #
-        # for key in keys_to_remove:
-        #     self.transfKeymap.pop(key)
-
-        # add in any missng key:
-
-        # if self.unsetKeys:
-            # self.replaceKeysInCode()
-
         keyCount = {}
+        settedKey = {}
 
         for im in self.imageList:
+            if im.key in self.unsetKeys and im.key not in settedKey.keys():
+                oldkey = im.key
+                self.unsetKeys.discard(im.key)
+                im.key = self.getUnusedKey(im.key)
+                self.unsetKeys.add(im.key)
+
+                for drawobj in self.drawObjectsMap[oldkey]:
+                    drawobj.key = im.key
+
+                self.drawObjectsMap[im.key] = self.drawObjectsMap[oldkey]
+                self.drawObjectsMap[oldkey].pop()
+
+                settedKey[oldkey] = im.key
+            elif im.key in settedKey.keys():
+                im.key = settedKey[im.key]
+
             if im.key not in keyCount.keys():
                 keyCount[im.key] = 1
             else:
                 keyCount[im.key] += 1
+
+            if im.key not in self.key2imagemap.keys():
+                self.key2imagemap[im.key] = [im]
+            else:
+                self.key2imagemap[im.key].append(im)
+
+            
 
         for key in keyCount:
             if key not in self.transfKeymap.keys():
