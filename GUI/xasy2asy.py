@@ -28,6 +28,7 @@ import shutil
 import copy
 import queue
 import io
+import atexit
 import DebugFlags
 
 import xasyUtils as xu
@@ -73,14 +74,17 @@ class AsymptoteEngine:
         self.asyProcess = None
 
     def start(self):
-        if sys.platform[:3] == 'win':
-            self.asyProcess = subprocess.Popen([self.asyPath] + self.args,
-                                               stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               universal_newlines=True)
-            self.ostream = self.asyProcess.stdin
-            self.istream = self.asyProcess.stderr
-        else:
-            self.asyProcess = subprocess.Popen([self.asyPath] + self.args,close_fds=False)
+        try:
+            if sys.platform[:3] == 'win':
+                self.asyProcess = subprocess.Popen([self.asyPath] + self.args,
+                                                stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                                                universal_newlines=True)
+                self.ostream = self.asyProcess.stdin
+                self.istream = self.asyProcess.stderr
+            else:
+                self.asyProcess = subprocess.Popen([self.asyPath] + self.args,close_fds=False)
+        finally:
+            atexit.register(self.cleanup)
 
     def wait(self):
         if self.asyProcess.returncode is not None:
@@ -113,11 +117,12 @@ class AsymptoteEngine:
 
     def stop(self):
         if self.active:
-            self.asyProcess.terminate()
+            self.asyProcess.kill()
 
     def cleanup(self):
         self.stop()
-        self.asyProcess.wait()
+        if self.asyProcess is not None:
+            self.asyProcess.wait()
         if not self.keepFiles:
             if os.path.isdir(self.tempDirName + os.sep):
                 shutil.rmtree(self.tempDirName, ignore_errors=True)
