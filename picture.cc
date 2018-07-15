@@ -444,6 +444,7 @@ bool picture::texprocess(const string& texname, const string& outname,
         string libgs=getSetting<string>("libgs");
         if(!libgs.empty())
           cmd.push_back("--libgs="+libgs);
+        cmd.push_back("-v0");
         push_split(cmd,getSetting<string>("dvisvgmOptions"));
         cmd.push_back("-o"+outname);
         ostringstream buf;
