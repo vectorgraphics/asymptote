@@ -671,14 +671,20 @@ class xasyItem(Qc.QObject):
         self.setKeyed = True
         self.unsetKeys = set()
         self.userKeys = set()
+        self.lineOffset = 0
         self.imageHandleQueue = queue.Queue()
 
     def updateCode(self, ps2asymap=identity()):
         """Update the item's code: to be overriden"""
         with io.StringIO() as rawCode:
-            rawCode.write(self.getTransformCode())
-            rawCode.write(self.getObjectCode())
+            transfCode = self.getTransformCode()
+            objCode = self.getObjectCode()
+
+            rawCode.write(transfCode)
+            rawCode.write(objCode)
             self.asyCode = rawCode.getvalue() 
+
+        return len(transfCode.splitlines()), len(objCode.splitlines())
 
     @property
     def asyengine(self):
@@ -762,7 +768,9 @@ class xasyItem(Qc.QObject):
         self.drawObjectsMap.clear()
         assert isinstance(self.asyengine, AsymptoteEngine)
         self.imageList = []
+
         self.unsetKeys.clear()
+        self.userKeys.clear()
 
         self.imageHandleQueue = queue.Queue()
         worker = threading.Thread(target=self.asyfyThread, args=[])
@@ -791,6 +799,8 @@ class xasyItem(Qc.QObject):
 
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
+
+        self.lineOffset = len(self.getTransformCode().splitlines())
 
         fout.write("reset\n")
         fout.flush();
@@ -836,6 +846,7 @@ class xasyItem(Qc.QObject):
             clipflag = keydata[-1] == '1'
             userkey = keydata[-2] == '1'
             keydata = keydata[:-3]
+
             if not userkey:
                 self.unsetKeys.add(keydata)     # the line and column to replace. 
             else:
@@ -1179,8 +1190,9 @@ class xasyScript(xasyItem):
 
         raw_code_lines = self.script.splitlines()
         with io.StringIO() as raw_str:
-            for i in range(len(raw_code_lines)):
-                curr_str = raw_code_lines[i]
+            for i_0 in range(len(raw_code_lines)):
+                i = i_0 + self.lineOffset
+                curr_str = raw_code_lines[i_0]
                 if i + 1 in keylist.keys():
                     # this case, we have a key.
                     with io.StringIO() as raw_line:
@@ -1218,7 +1230,7 @@ class xasyScript(xasyItem):
         for im in self.imageList:
             if im.key in self.unsetKeys and im.key not in settedKey.keys():
                 oldkey = im.key
-                self.unsetKeys.discard(im.key)
+                self.unsetKeys.remove(im.key)
                 im.key = self.getUnusedKey(im.key)
                 self.unsetKeys.add(im.key)
 
