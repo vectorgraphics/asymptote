@@ -1204,11 +1204,6 @@ class xasyScript(xasyItem):
             baseCounter += 1
         return newKey
 
-    def replaceKeysInCode(self):
-        self.script = self.getReplacedKeysCode()
-        self.updateCode()
-        self.setKeyed = True
-
     def asyfy(self, keyOnly=False):
         """Generate the list of images described by this object and adjust the length of the transform list."""
         super().asyfy()
@@ -1262,7 +1257,8 @@ class xasyScript(xasyItem):
         # change of basis 
         for keylist in self.transfKeymap.values():
             for i in range(len(keylist)):
-                keylist[i] = self.asy2psmap * keylist[i] * self.asy2psmap.inverted()
+                if keylist[i] != identity():
+                    keylist[i] = self.asy2psmap * keylist[i] * self.asy2psmap.inverted()
 
         self.updateCode()
 
