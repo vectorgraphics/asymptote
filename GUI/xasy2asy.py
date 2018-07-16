@@ -1231,7 +1231,7 @@ class xasyScript(xasyItem):
                     drawobj.key = im.key
 
                 self.drawObjectsMap[im.key] = self.drawObjectsMap[oldkey]
-                self.drawObjectsMap.pop(oldKey)
+                self.drawObjectsMap.pop(oldkey)
 
                 settedKey[oldkey] = im.key
             elif im.key in settedKey.keys():

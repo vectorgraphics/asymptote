@@ -29,7 +29,8 @@ def extractTransform(line):
     """Returns key and the new transform."""
     # see https://regex101.com/r/6DqkRJ/4 for info
     mapString = x2a.xasyItem.mapString
-    testMatch = re.match(r'^{0:s}\s*\(\s*\"([^\"]+)\"\s*,\s*\(([\d, ]+)\)\s*\)'.format(mapString), line.strip())
+    testMatch = re.match(
+        r'^{0:s}\s*\(\s*\"([^\"]+)\"\s*,\s*\(([-\d, .]+)\)\s*\)'.format(mapString), line.strip())
     if testMatch is None:
         mapOnlyMatch = re.match(r'^{0:s}\s*\(\s *\"([^\"]+)\"\s*\)'.format(mapString), line.strip())
         if mapOnlyMatch is None:
@@ -44,7 +45,7 @@ def extractTransform(line):
 
         if len(rawStrArray) != 6:
             return None
-        transf = [int(val.strip()) for val in rawStrArray]
+        transf = [float(val.strip()) for val in rawStrArray]
         return key, x2a.asyTransform(transf)
 
 
@@ -53,7 +54,7 @@ def extractTransformsFromFile(fileStr):
     maxItemCount = 0
     with io.StringIO() as rawCode:
         for line in fileStr.splitlines():
-            test_transf = extractTransform(line)
+            test_transf = extractTransform(line.rstrip())
             if test_transf is None:
                 rawCode.write(line + '\n')
             else:
