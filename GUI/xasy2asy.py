@@ -764,6 +764,7 @@ class xasyItem(Qc.QObject):
             return 1
         if self.asyfied and not force:
             return
+
         self.drawObjects = []
         self.drawObjectsMap.clear()
         assert isinstance(self.asyengine, AsymptoteEngine)
@@ -1085,6 +1086,7 @@ class xasyScript(xasyItem):
         self.key2imagemap = {}
         self.namedUnsetKeys = {}
         self.keyPrefix = ''
+        self.scriptAsyfied = False
         self.updatedPrefix = True
 
     def clearTransform(self):
@@ -1165,7 +1167,7 @@ class xasyScript(xasyItem):
     def getReplacedKeysCode(self, key2replace: set=None) -> str:
         keylist = {}
         prefix = ''
-
+        
         key2replaceSet = self.unsetKeys if key2replace is None else \
                         self.unsetKeys & key2replace
 
@@ -1224,6 +1226,9 @@ class xasyScript(xasyItem):
         # Transf should keep the original, raw transformation
         # but for all new drawn objects - assign Id as transform.
 
+        if self.scriptAsyfied:
+            return
+
         keyCount = {}
         settedKey = {}
 
@@ -1273,6 +1278,7 @@ class xasyScript(xasyItem):
                     keylist[i] = self.asy2psmap * keylist[i] * self.asy2psmap.inverted()
 
         self.updateCode()
+        self.scriptAsyfied = True
 
     def generateDrawObjects(self, forceUpdate=False):
         self.asyfy(forceUpdate)
