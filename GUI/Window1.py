@@ -513,6 +513,7 @@ class MainWindow1(Qw.QMainWindow):
         self.addMode.objectCreated.connect(self.addInPlace)
         self.updateModeBtnsOnly()
 
+
         self.deleteAddOptions()
 
         self.currAddOptionsWgt = self.addMode.createOptWidget(self.currAddOptions)
@@ -1600,6 +1601,13 @@ class MainWindow1(Qw.QMainWindow):
             activeBtn = self.ui.btnSelectEdit
         else:
             activeBtn = None
+
+        
+        disableFill = isinstance(self.addMode, InplaceAddObj.AddBezierShape) and not self.currAddOptions['closedPath']
+        self.ui.btnFill.setEnabled(not disableFill)
+        if disableFill and self.ui.btnFill.isEnabled():
+            self.ui.btnFill.setChecked(not disableFill)
+
 
         for button in self.modeButtons:
             button.setChecked(button is activeBtn)
