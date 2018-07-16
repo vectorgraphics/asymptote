@@ -1259,6 +1259,11 @@ class xasyScript(xasyItem):
                 # while len(self.transfKeymap[key]) > keyCount[key]:
                     # self.transfKeymap[key].pop()
 
+        # change of basis 
+        for keylist in self.transfKeymap.values():
+            for i in range(len(keylist)):
+                keylist[i] = self.asy2psmap * keylist[i] * self.asy2psmap.inverted()
+
         self.updateCode()
 
     def generateDrawObjects(self, forceUpdate=False):
