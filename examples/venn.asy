@@ -34,4 +34,3 @@ draw(z--z1,Arrow,Margin(0,m));
 draw(z--z2,Arrow,Margin(0,m));
 
 //shipout(bbox(0.25cm));
-size((0,0,30.8743,0,0,30.8743)); // Resize to initial xasy transform
