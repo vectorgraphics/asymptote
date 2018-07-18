@@ -233,6 +233,9 @@ class asyTransform(Qc.QObject):
 def identity():
     return asyTransform((0, 0, 1, 0, 0, 1))
 
+def yflip():
+    return asyTransform((0, 0, 1, 0, 0, -1))
+
 class asyObj(Qc.QObject):
     """A base class for asy objects: an item represented by asymptote code."""
     def __init__(self):
@@ -714,9 +717,6 @@ class xasyItem(Qc.QObject):
         if fileformat == 'png':
             image = Qg.QImage(file)
         elif fileformat == 'svg':
-            # and don't forget to flip this... 
-            # svgobj = xs.SvgObject(file)
-
             if containsClip:
                 image = xs.SvgObject(file)
             else:
@@ -811,7 +811,7 @@ class xasyItem(Qc.QObject):
             fout.write(line+"\n")
         fout.write(self.asySize)
         fout.write("deconstruct();\n")
-        fout.write('write(_outpipe,currentpicture.calculateTransform(),endl);\n')
+        fout.write('write(_outpipe,yscale(-1)*currentpicture.calculateTransform(),endl);\n')
         fout.write(self.asyengine.xasy)
         fout.flush()
 
@@ -1020,7 +1020,7 @@ class xasyFilledShape(xasyShape):
 class xasyText(xasyItem):
     """Text created by the GUI"""
 
-    def __init__(self, text, location, asyengine, pen=None, transform=identity(), key=None, align=None, fontsize:int=None):
+    def __init__(self, text, location, asyengine, pen=None, transform=yflip(), key=None, align=None, fontsize:int=None):
         """Initialize this item with text, a location, pen, and transform"""
         super().__init__(asyengine=asyengine)
         if pen is None:
@@ -1048,15 +1048,15 @@ class xasyText(xasyItem):
         self.transfKey = newKey
         self.transfKeymap = {self.transfKey: [transform]}
 
-    def getTransformCode(self, asy2psmap=identity()):
+    def getTransformCode(self, asy2psmap=yflip()):
         transf = self.transfKeymap[self.transfKey][0]
-        if transf == identity():
+        if transf == yflip():
             # return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
             return ''
         else:
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+"\n"
 
-    def getObjectCode(self, asy2psmap=identity()):
+    def getObjectCode(self, asy2psmap=yflip()):
         return 'label(KEY="{0}",{1});'.format(self.transfKey, self.label.getCode(asy2psmap))+'\n'
 
     def generateDrawObjects(self, forceUpdate=False):

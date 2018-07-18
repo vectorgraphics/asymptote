@@ -70,8 +70,7 @@ void deconstruct(picture pic=currentpicture)
     f=pic.fit(t);
   else
     f=pic.fit();
-  transform yflip=yscale(-1);
-  deconstruct(yflip*f,currentpatterns,yflip*t);
+  deconstruct(f,currentpatterns,t);
 }
 
 void shipout(string prefix=defaultfilename, frame f,

@@ -151,7 +151,7 @@ class MainWindow1(Qw.QMainWindow):
         # Base Transformations
 
         self.mainTransformation = Qg.QTransform()
-        self.mainTransformation.scale(1, -1)
+        self.mainTransformation.scale(1, 1)
         self.localTransform = Qg.QTransform()
         self.screenTransformation = Qg.QTransform()
         self.panTranslation = Qg.QTransform()
@@ -295,7 +295,7 @@ class MainWindow1(Qw.QMainWindow):
         newTransf = Qg.QTransform()
         newTransf.translate(*self.panOffset)
         newTransf.translate(cx, cy)
-        newTransf.scale(1, -1)
+        newTransf.scale(1, 1)
         newTransf.scale(self.magnification, self.magnification)
 
         return newTransf
@@ -1282,8 +1282,8 @@ class MainWindow1(Qw.QMainWindow):
         self.xasyDrawObj['canvas'] = self.mainCanvas
 
         self.mainTransformation = Qg.QTransform()
-        self.mainTransformation.scale(1, -1)
-        self.mainTransformation.translate(x, -y)
+        self.mainTransformation.scale(1, 1)
+        self.mainTransformation.translate(x, y)
 
         self.mainCanvas.setTransform(self.getScrsTransform(), True)
 

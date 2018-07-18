@@ -79,4 +79,4 @@ def saveFile(file, xasyItems, asy2psmap):
 
     for item in xasyItems:
         file.write(item.getObjectCode(asy2psmap))
-    file.write('size('+str(asy2psmap)+'); '+item.resizeComment+'\n')
+    file.write('size('+str(asy2psmap*x2a.yflip())+'); '+item.resizeComment+'\n')
