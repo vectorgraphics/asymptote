@@ -869,6 +869,14 @@ class MainWindow1(Qw.QMainWindow):
             saveFile = io.open(self.filename, 'w')
             xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
             saveFile.close()
+            self.updateScript()
+
+    def updateScript(self):
+        for item in self.fileItems:
+            if isinstance(item, x2a.xasyScript):
+                if item.updatedCode:
+                    item.setScript(item.updatedCode)
+                    item.updatedCode = None
 
     def actionSaveAs(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File')[0]
@@ -877,6 +885,8 @@ class MainWindow1(Qw.QMainWindow):
             xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
             saveFile.close()
             self.filename = saveLocation
+            self.updateScript()
+            
 
     def btnQuickScreenshotOnClick(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot','')

@@ -1146,8 +1146,8 @@ class xasyScript(xasyItem):
                     raw_line = line.rstrip().replace('\t', ' ' * 4)
                     rawAsyCode.write(raw_line + '\n')
 
-            return rawAsyCode.getvalue()
-
+            self.updatedCode = rawAsyCode.getvalue()
+            return self.updatedCode
 
     def setScript(self, script):
         """Sets the content of the script item."""
