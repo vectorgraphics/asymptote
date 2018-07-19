@@ -1,5 +1,3 @@
-xmap("12.5",(6.21876,0.0647788,1,0,0,1));
-xmap("13.5",(-6.28354,-0.129558,1,0,0,1));
 size(0,150);
 
 pen colour1=red;
@@ -11,8 +9,8 @@ pair z2=(1,0);
 real r=1.5;
 path c1=circle(z1,r);
 path c2=circle(z2,r);
-fill(KEY="12.5",c1,colour1);
-fill(KEY="13.5",c2,colour2);
+fill(c1,colour1);
+fill(c2,colour2);
 
 picture intersection;
 fill(intersection,c1,colour1+colour2);
@@ -36,4 +34,3 @@ draw(z--z1,Arrow,Margin(0,m));
 draw(z--z2,Arrow,Margin(0,m));
 
 //shipout(bbox(0.25cm));
-size((0,0,30.8743,0,0,30.8743)); // Resize to initial xasy transform
