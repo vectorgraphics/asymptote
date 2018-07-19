@@ -14,3 +14,11 @@ redo: 'Ctrl+Y'
 
 moveUp: 'Up'
 moveDown: 'Down'
+
+scrollUp: 'Shift+Up'
+scrollDown: 'Shift+Down'
+scrollLeft: 'Shift+Left'
+scrollRight: 'Shift+Right'
+
+zoomIn: 'Ctrl+Up'
+zoomOut: 'Ctrl+Down'

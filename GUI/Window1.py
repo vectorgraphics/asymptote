@@ -263,8 +263,16 @@ class MainWindow1(Qw.QMainWindow):
             'setMag': self.setMagPrompt,
             'deleteObject': self.btnSelectiveDeleteOnClick, 
             'anchorMode': self.switchToAnchorMode,
-            'moveUp': lambda: self.changeSelection(1), 
-            'moveDown': lambda: self.changeSelection(-1)
+            'moveUp': lambda: self.arrowButtons(0, 1, False), 
+            'moveDown': lambda: self.arrowButtons(0, -1, False),
+
+            'scrollLeft': lambda: self.arrowButtons(-1, 0, True),
+            'scrollRight': lambda: self.arrowButtons(1, 0, True),
+            'scrollUp': lambda: self.arrowButtons(0, 1, True),
+            'scrollDown': lambda: self.arrowButtons(0, -1, True), 
+
+            'zoomIn': lambda: self.arrowButtons(0, 1, False, True), 
+            'zoomOut': lambda: self.arrowButtons(0, -1, False, True)
         }
 
         self.hiddenKeys = set()
@@ -281,6 +289,14 @@ class MainWindow1(Qw.QMainWindow):
 
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
+
+    def arrowButtons(self, x:int , y:int, shift: bool=False, ctrl: bool=False):
+        "x, y indicates update button orientation on the cartesian plane."
+        if not (shift or ctrl):
+            self.changeSelection(y)
+        else:
+            self.mouseWheel(30*x, 30*y)
+        self.quickUpdate()
 
     def cleanup(self):
         self.asyengine.cleanup()
@@ -1072,7 +1088,6 @@ class MainWindow1(Qw.QMainWindow):
             else:
                 if self.pendingSelectedObjIndex + offset >= -len(self.pendingSelectedObjList):
                     self.pendingSelectedObjIndex = self.pendingSelectedObjIndex + offset
-            self.quickUpdate()
 
     def mouseWheel(self, rawAngleX: float, rawAngle: float, defaultModifiers: int=0):
         keyModifiers = int(Qw.QApplication.keyboardModifiers())
