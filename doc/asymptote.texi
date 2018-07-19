@@ -9518,9 +9518,14 @@ the @code{rsvg-convert} utility, which is part of the
 @node GUI usage,  , GUI installation, GUI
 @section GUI usage
 @cindex GUI usage
+@cindex arrow keys
+@cindex mouse wheel
 @cindex @code{deconstruct}
-A wheel mouse is convenient for raising and lowering objects within
-@code{xasy}, to expose the object to be moved.
+The arrow keys (or mouse wheel) are convenient for temporarily
+raising and lowering objects within @code{xasy}, allowing an object to
+be selected. Pressing the arrow keys will pan while the shift key is held
+and zoom while the control key is held. The mouse wheel will pan while
+the alt or shift keys is held and zoom while the control key is held.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
 by enclosing them within the commands
