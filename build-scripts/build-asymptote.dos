@@ -44,7 +44,7 @@ make MSDOS=1 install-asy DESTDIR="$BUILD/" docdir="$BUILD/"
 cp asy.ico README LICENSE* $BUILD
 pushd $BUILD
 mv usr/local/bin/* .
-mv usr/local/share/asymptote/GUI/ .
+mv usr/local/share/asymptote/GUI .
 rm -rf usr/local/share/asymptote/GUI
 mv usr/local/share/asymptote/* .
 cp $SHARED/asydoc/*.pdf .
