@@ -128,17 +128,32 @@ bool intersect(pair a, pair b, pair c, pair A, pair B, pair C)
     sameside(C,A,S0,a,b,c);
 }
 
-real[] Intersect(triple a, triple b, triple A, triple B,
-                 projection P=currentprojection) {
-  //  return intersect((a.x,a.y)--(b.x,b.y),(A.x,A.y)--(B.x,B.y));
-  return intersect(project(a,P)--project(b,P),project(A,P)--project(B,P));
-}
-
 triple[] vertex;
-triple[] Vertex;
 
-real dist(triple a, projection P=currentprojection) {
-  return -abs(a-P.camera);
+// Check if line p--q intersects with line P--Q.
+// If it does, push the intersection point onto the vertex array.
+bool Intersect(triple p0, triple q0, triple P0, triple Q0,
+               projection C=currentprojection)
+{
+  pair p=project(p0,C);
+  pair q=project(q0,C);
+  pair P=project(P0,C);
+  pair Q=project(Q0,C);
+
+  real a=q.x-p.x;
+  real b=P.x-Q.x;
+  real c=q.y-p.y;
+  real d=P.y-Q.y;
+  real e=P.x-p.x;
+  real f=P.y-p.y;
+  real det=a*d-b*c;
+  if(det == 0) return false;
+  real detinv=1/det;
+  real t=(d*e-b*f)*detinv;
+  real T=(a*f-e*c)*detinv;
+  if(t < 0 || t > 1 || T < 0 || T > 1) return false;
+  vertex.push(interp(p0,q0,t));
+  return true;
 }
 
 // Find all projected intersections of a--b with triangle ABC.
@@ -147,50 +162,37 @@ int intersect(triple a, triple b, triple A, triple B, triple C,
 {
   int count=0;
   int sum=0;
-  real[] t=Intersect(a,b,A,B,P);
-  if(t.length > 0) {
-    vertex.push(interp(a,b,t[0]));
-    Vertex.push(interp(A,B,t[1]));
+  if(Intersect(a,b,A,B,P)) {
     ++count;
     sum += 1;
     if(vertex.length == 3) return sum;
   }
-  real[] t=Intersect(a,b,B,C,P);
-  if(t.length > 0) {
-    //    dot(interp(a,b,t[0]));
-    vertex.push(interp(a,b,t[0]));
-    Vertex.push(interp(B,C,t[1]));
+  if(Intersect(a,b,B,C,P)) {
     ++count;
     sum += 2;
     if(count == 2 || vertex.length == 3) return sum;
   }
-  real[] t=Intersect(a,b,C,A,P);
-  if(t.length > 0) {
-    vertex.push(interp(a,b,t[0]));
-    Vertex.push(interp(C,A,t[1]));
+  if(Intersect(a,b,C,A,P))
     sum += 4;
-    return sum;
-  }
   return sum;
 }
 
 
 real third=1.0/3.0;
 
-bool sameside(triple[] vertex, triple A, triple B, triple C,
+bool sameside(triple A, triple B, triple C,
               projection P=currentprojection)
 {
   dot(vertex,green);
   dot(third*sum(vertex),red);
-  write(orient(A,B,C,third*sum(vertex)),orient(A,B,C,P.camera));
   return sgn(orient(A,B,C,third*sum(vertex))) == sgn(orient(A,B,C,P.camera));
 }
 
-bool sameside(triple v, triple[] vertex, triple A, triple B, triple C,
+bool sameside(triple v, triple A, triple B, triple C,
               projection P=currentprojection)
 {
   vertex.push(v);
-  return sameside(vertex,A,B,C,P);
+  return sameside(A,B,C,P);
 }
 
 bool inside(pair a, pair b, pair c, pair z) {
@@ -207,21 +209,20 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
            projection P=currentprojection) {
   int sum;
   vertex.delete();
-  Vertex.delete();
 // Find vertices of a triangle common to the projections of triangle abc
 // and ABC.
 
   sum=intersect(a,b,A,B,C,P);
   write(vertex.length);
-  if(vertex.length == 3) return sameside(vertex,A,B,C,P);
+  if(vertex.length == 3) return sameside(A,B,C,P);
 
   sum += 8*intersect(b,c,A,B,C,P);
   write(vertex.length);
-  if(vertex.length == 3) return sameside(vertex,A,B,C,P);
+  if(vertex.length == 3) return sameside(A,B,C,P);
 
   sum += 64*intersect(c,a,A,B,C,P);
   write(vertex.length);
-  if(vertex.length == 3) return sameside(vertex,A,B,C,P);
+  if(vertex.length == 3) return sameside(A,B,C,P);
 
   if(vertex.length == 2) {
     path t=project(a,P)--project(b,P)--project(c,P)--cycle;
@@ -229,25 +230,25 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
 
     write("sum=",sum);
     if(sum == 1*3 || sum == 8*3 || sum == 64*3)
-      return !sameside(inside(t,project(B,P)) ? B : A,Vertex,a,b,c,P);
+      return !sameside(inside(t,project(B,P)) ? B : A,a,b,c,P);
     if(sum == 1*5 || sum == 8*5 || sum == 64*5)
-      return !sameside(inside(t,project(A,P)) ? A : B,Vertex,a,b,c,P);
+      return !sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
     if(sum == 1*6 || sum == 8*6 || sum == 64*6)
-      return !sameside(inside(t,project(C,P)) ? C : A,Vertex,a,b,c,P);
+      return !sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
 
     if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)
-      return sameside(inside(T,project(b,P)) ? b : a,vertex,A,B,C,P);
+      return sameside(inside(T,project(b,P)) ? b : a,A,B,C,P);
     if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)
-      return sameside(inside(T,project(a,P)) ? a : b,vertex,A,B,C,P);
+      return sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
     if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)
-      return sameside(inside(T,project(c,P)) ? c : a,vertex,A,B,C,P);
+      return sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
     
     if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)
-      return sameside(a,vertex,A,B,C,P);
+      return sameside(a,A,B,C,P);
     if(sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1)
-      return sameside(b,vertex,A,B,C,P);
+      return sameside(b,A,B,C,P);
     if(sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1)
-      return sameside(c,vertex,A,B,C,P);
+      return sameside(c,A,B,C,P);
   }
   return true; // Triangles do not intersect;
 }

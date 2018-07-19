@@ -5,6 +5,7 @@
  * Render Bezier patches and triangles.
  *****/
 
+#include <numeric>
 #include "bezierpatch.h"
 #include "predicates.h"
 
@@ -39,6 +40,8 @@ std::vector<GLfloat> ybuffer;
 std::vector<GLfloat> xmin,ymin,zmin;
 std::vector<GLfloat> xmax,ymax,zmax;
 std::vector<GLfloat> zsum;
+
+std::vector<triple> vertex;
 
 inline double min(double a, double b, double c)
 {
@@ -125,104 +128,120 @@ bool inside(const double *a, const double *b, const double *c, const double *z) 
   return u > 0 && v > 0 && u+v < sign*det;
 }
 
-#if 0
-// Find all projected intersections of a--b with triangle ABC.
-int intersect3D(const double *a, const double *b, const double *A, const double *B, const double *C)
+inline triple interp(const double *a, const double *b, double t)
 {
-  int count=0;
-  int sum=0;
-  real[] t=Intersect(a,b,A,B,P);
-  if(t.length > 0) {
-    vertex.push(interp(a,b,t[0]));
-    Vertex.push(interp(A,B,t[1]));
+  double onemt=1.0-t;
+  return triple(onemt*a[0]+t*b[0],onemt*a[1]+t*b[1],onemt*a[2]+t*b[2]);
+}
+
+// Check if line p--q intersects with line P--Q.
+// If it does, push the intersection point onto the vertex array.
+bool Intersect(const double *p, const double *q, const double *P, 
+               const double *Q)
+{
+  double a=q[0]-p[0];
+  double b=P[0]-Q[0];
+  double c=q[1]-p[1];
+  double d=P[1]-Q[1];
+  double e=P[0]-p[0];
+  double f=P[1]-p[1];
+  double det=a*d-b*c;
+  if(det == 0) return false;
+  double detinv=1/det;
+  double t=(d*e-b*f)*detinv;
+  double T=(a*f-e*c)*detinv;
+  if(t < 0 || t > 1 || T < 0 || T > 1) return false;
+  vertex.push_back(interp(p,q,t));
+  return true;
+}
+
+// Find all projected intersections of a--b with triangle ABC.
+unsigned intersect(const double *a, const double *b, const double *A,
+                   const double *B, const double *C)
+{
+  unsigned count=0;
+  unsigned sum=0;
+  if(Intersect(a,b,A,B)) {
     ++count;
     sum += 1;
-    if(vertex.length == 3) return sum;
+    if(vertex.size() == 3) return sum;
   }
-  real[] t=Intersect(a,b,B,C,P);
-  if(t.length > 0) {
-    //    dot(interp(a,b,t[0]));
-    vertex.push(interp(a,b,t[0]));
-    Vertex.push(interp(B,C,t[1]));
+  if(Intersect(a,b,B,C)) {
     ++count;
     sum += 2;
-    if(count == 2 || vertex.length == 3) return sum;
+    if(count == 2 || vertex.size() == 3) return sum;
   }
-  real[] t=Intersect(a,b,C,A,P);
-  if(t.length > 0) {
-    vertex.push(interp(a,b,t[0]));
-    Vertex.push(interp(C,A,t[1]));
+  if(Intersect(a,b,C,A))
     sum += 4;
-    return sum;
-  }
   return sum;
 }
 
-
-real third=1.0/3.0;
-
-bool sameside(triple[] vertex, const double *A, const double *B,
-              const double *C)
+bool sameside(const double *A, const double *B, const double *C)
 {
-  triple camera(0,0,0);
-  return sgn(orient(A,B,C,third*sum(vertex))) == sgn(orient(A,B,C,camera));
+  double camera[]={0.0,0.0,0.0};
+  size_t n=vertex.size();
+  double sum[3]={0.0,0.0,0.0};
+  for(size_t i=0; i < n; ++i) {
+    triple v=vertex[i];
+    sum[0] += v.getx();
+    sum[1] += v.gety();
+    sum[2] += v.getz();
+  }
+  sum[0]=third*sum[0];
+  sum[1]=third*sum[1];
+  sum[2]=third*sum[2];
+  return sgn(orient3d(A,B,C,sum)) == sgn(orient3d(A,B,C,camera));
 }
 
-bool sameside(const double *v, triple[] vertex, const double *A,
+bool sameside(const double *v, const double *A,
               const double *B, const double *C)
 {
-  vertex.push(v);
-  return sameside(vertex,A,B,C);
+  vertex.push_back(triple(v[0],v[1],v[2]));
+  return sameside(A,B,C);
 }
 
 // Return true if triangle abc can be rendered in front of triangle ABC,
 // using projection P.
-bool front(const double *a, const double *b, const double *c, const double *A, const double *B, const double *C,
-           projection P=currentprojection) {
-  int sum;
-  vertex.delete();
-  Vertex.delete();
+bool front(const double *a, const double *b, const double *c, const double *A,
+           const double *B, const double *C)
+{
+  vertex.clear();
 // Find vertices of a triangle common to the projections of triangle abc
 // and ABC.
 
-  sum=intersect(a,b,A,B,C,P);
-  if(vertex.length == 3) return sameside(vertex,A,B,C,P);
+  unsigned sum=intersect(a,b,A,B,C);
+  if(vertex.size() == 3) return sameside(A,B,C);
 
-  sum += 8*intersect(b,c,A,B,C,P);
-  if(vertex.length == 3) return sameside(vertex,A,B,C,P);
+  sum += 8*intersect(b,c,A,B,C);
+  if(vertex.size() == 3) return sameside(A,B,C);
 
-  sum += 64*intersect(c,a,A,B,C,P);
-  if(vertex.length == 3) return sameside(vertex,A,B,C,P);
+  sum += 64*intersect(c,a,A,B,C);
+  if(vertex.size() == 3) return sameside(A,B,C);
 
-  if(vertex.length == 2) {
-    path t=project(a,P)--project(b,P)--project(c,P)--cycle;
-    path T=project(A,P)--project(B,P)--project(C,P)--cycle;
-
-    write("sum=",sum);
+  if(vertex.size() == 2) {
     if(sum == 1*3 || sum == 8*3 || sum == 64*3)
-      return !sameside(inside(t,project(B,P)) ? B : A,Vertex,a,b,c,P);
+      return !sameside(inside(a,b,c,B) ? B : A,a,b,c);
     if(sum == 1*5 || sum == 8*5 || sum == 64*5)
-      return !sameside(inside(t,project(A,P)) ? A : B,Vertex,a,b,c,P);
+      return !sameside(inside(a,b,c,A) ? A : B,a,b,c);
     if(sum == 1*6 || sum == 8*6 || sum == 64*6)
-      return !sameside(inside(t,project(C,P)) ? C : A,Vertex,a,b,c,P);
+      return !sameside(inside(a,b,c,C) ? C : A,a,b,c);
 
     if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)
-      return sameside(inside(t,project(b,P)) ? b : a,vertex,A,B,C,P);
+      return sameside(inside(A,B,C,b) ? b : a,A,B,C);
     if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)
-      return sameside(inside(t,project(a,P)) ? a : b,vertex,A,B,C,P);
+      return sameside(inside(A,B,C,a) ? a : b,A,B,C);
     if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)
-      return sameside(inside(t,project(c,P)) ? c : a,vertex,A,B,C,P);
+      return sameside(inside(A,B,C,c) ? c : a,A,B,C);
     
     if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)
-      return sameside(a,vertex,A,B,C,P);
+      return sameside(a,A,B,C);
     if(sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1)
-      return sameside(b,vertex,A,B,C,P);
+      return sameside(b,A,B,C);
     if(sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1)
-      return sameside(c,vertex,A,B,C,P);
+      return sameside(c,A,B,C);
   }
   return true; // Triangles do not intersect;
 }
-#endif
 
 // returns true iff 3D triangle abc is pierced by line segment AB.
 bool pierce(const double *a, const double *b, const double *c, const double *A, const double *B)
@@ -279,12 +298,6 @@ inline double intersect(const double *P, const double *Q, const double *n,
   return denom == 0 ? DBL_MAX : (d-n[0]*P[0]-n[1]*P[1]-n[2]*P[2])/denom;
 }
                     
-inline triple interp(const double *a, const double *b, double t)
-{
-  double onemt=1.0-t;
-  return triple(onemt*a[0]+t*b[0],onemt*a[1]+t*b[1],onemt*a[2]+t*b[2]);
-}
-
 inline void interp(GLfloat *dest,
                    const GLfloat *a, const GLfloat *b, double t)
 {
@@ -340,6 +353,8 @@ int compare(const void *p, const void *P)
   double B[]={xbuffer[IB],ybuffer[IB],zbuffer[IB]};
   double C[]={xbuffer[IC],ybuffer[IC],zbuffer[IC]};
 
+  return front(a,b,c,A,B,C) ? -1 : 1;
+    
   double viewpoint[]={0,0,0};
   
   double sa=-orient3d(A,B,C,a);
