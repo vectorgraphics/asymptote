@@ -36,8 +36,6 @@ import xasyArgs as xa
 import xasyOptions as xo
 import xasySvg as xs
 
-import uuid
-
 class AsymptoteEngine:
     xasy=chr(4)+"\n"
 
@@ -893,10 +891,8 @@ class xasyDrawnItem(xasyItem):
         self.asyfied = True
         self.pen = pen
         self._asyengine = engine
-        self.rawIdentifier = str(uuid.uuid4())
+        self.rawIdentifier = ''
         self.transfKey = key
-        if key is None:
-            self.transfKey = self.rawIdentifier
         self.transfKeymap = {self.transfKey: [transform]}
 
     @property
@@ -909,9 +905,6 @@ class xasyDrawnItem(xasyItem):
         self.path.asyengine = value
 
     def setKey(self, newKey=None):
-        if newKey is None:
-            newKey = str(uuid.uuid4())
-
         transform = self.transfKeymap[self.transfKey][0]
 
         self.transfKey = newKey
@@ -1027,18 +1020,12 @@ class xasyText(xasyItem):
             pen.asyEngine = asyengine
         self.label = asyLabel(text, location, pen, align, fontSize=fontsize)
         # self.transform = [transform]
-        if key is None:
-            self.transfKey = 'x:' + str(uuid.uuid4())
-        else:
-            self.transfKey = key
+        self.transfKey = key
         self.transfKeymap = {self.transfKey: [transform]}
         self.asyfied = False
         self.onCanvas = None
     
     def setKey(self, newKey=None):
-        if newKey is None:
-            newKey = str(uuid.uuid4())
-
         transform = self.transfKeymap[self.transfKey][0]
 
         self.transfKey = newKey

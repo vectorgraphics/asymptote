@@ -17,7 +17,6 @@ import subprocess
 import tempfile
 import datetime
 import string
-import uuid
 import atexit
 
 import xasyUtils as xu
