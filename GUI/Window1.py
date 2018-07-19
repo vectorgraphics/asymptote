@@ -294,7 +294,7 @@ class MainWindow1(Qw.QMainWindow):
         "x, y indicates update button orientation on the cartesian plane."
         if not (shift or ctrl):
             self.changeSelection(y)
-        else:
+        elif not (shift and ctrl):
             self.mouseWheel(30*x, 30*y)
         self.quickUpdate()
 
@@ -1096,8 +1096,7 @@ class MainWindow1(Qw.QMainWindow):
             oldMag = self.magnification
 
             cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
-            centerPoint = Qc.QPointF(
-                cx, cy) * self.getScrsTransform().inverted()[0]
+            centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
 
             self.magnification += (rawAngle/100)
 
@@ -1116,7 +1115,7 @@ class MainWindow1(Qw.QMainWindow):
 
             self.panOffset = [
                 self.panOffset[0] + centerPoint.x(),
-                self.panOffset[1] - centerPoint.y()
+                self.panOffset[1] + centerPoint.y()
             ]
 
             self.currAddOptions['magnification'] = self.magnification
