@@ -1112,21 +1112,19 @@ class xasyScript(xasyItem):
             if self.transfKeymap:
                 for key in self.transfKeymap.keys():
                     val = self.transfKeymap[key]
-                    writeTransf = False
-                    for transf in val:
-                        if (transf != identity()) or transf.deleted:
-                            writeTransf = True
+
+                    writeval = list(reversed(val))
                     # need to map all transforms in a list if there is any non-identity
                     # unfortunately, have to check all transformations in the list. 
-                    if writeTransf:
-                        for transf in val:
-                            if transf.deleted:
-                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)) + '\n//')
-                            if transf == identity() and not transf.deleted:
-                                rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
-                            else:
-                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)))
-                            rawAsyCode.write('\n')
+                    while not all(checktransf == identity() for checktransf in writeval) and writeval:
+                        transf = writeval.pop()
+                        if transf.deleted:
+                            rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)) + '\n//')
+                        if transf == identity() and not transf.deleted:
+                            rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
+                        else:
+                            rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)))
+                        rawAsyCode.write('\n')
             result = rawAsyCode.getvalue()
         return result
 
