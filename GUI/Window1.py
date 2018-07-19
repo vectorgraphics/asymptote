@@ -262,7 +262,9 @@ class MainWindow1(Qw.QMainWindow):
             'finalizeCurveClosed': self.finalizeCurveClosed, 
             'setMag': self.setMagPrompt,
             'deleteObject': self.btnSelectiveDeleteOnClick, 
-            'anchorMode': self.switchToAnchorMode
+            'anchorMode': self.switchToAnchorMode,
+            'moveUp': lambda: self.changeSelection(1), 
+            'moveDown': lambda: self.changeSelection(-1)
         }
 
         self.hiddenKeys = set()
@@ -488,7 +490,7 @@ class MainWindow1(Qw.QMainWindow):
     @property
     def currentPen(self):
         return x2a.asyPen.fromAsyPen(self._currentPen)
-
+        pass
     def debug(self):
         print('Put a breakpoint here.')
 
@@ -1070,17 +1072,17 @@ class MainWindow1(Qw.QMainWindow):
             else:
                 if self.pendingSelectedObjIndex + offset >= -len(self.pendingSelectedObjList):
                     self.pendingSelectedObjIndex = self.pendingSelectedObjIndex + offset
-            # self.quickUpdate()
-    
-    def wheelEvent(self, event: Qg.QWheelEvent):
-        rawAngle = event.angleDelta().y() / 8
-        rawAngleX = event.angleDelta().x() / 8
+            self.quickUpdate()
+
+    def mouseWheel(self, rawAngleX: float, rawAngle: float, defaultModifiers: int=0):
         keyModifiers = int(Qw.QApplication.keyboardModifiers())
+        keyModifiers = keyModifiers | defaultModifiers
         if keyModifiers & int(Qc.Qt.ControlModifier):
-            oldMag = self.magnification 
+            oldMag = self.magnification
 
             cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
-            centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
+            centerPoint = Qc.QPointF(
+                cx, cy) * self.getScrsTransform().inverted()[0]
 
             self.magnification += (rawAngle/100)
 
@@ -1089,10 +1091,10 @@ class MainWindow1(Qw.QMainWindow):
             elif self.magnification > self.settings['maximumMagnification']:
                 self.magnification = self.settings['maximumMagnification']
 
-            # set the new pan. Let c be the fixed point (center point), 
+            # set the new pan. Let c be the fixed point (center point),
             # Let m the old mag, n the new mag
-            
-            # find t2 such that 
+
+            # find t2 such that
             # mc + t1 = nc + t2 ==> t2 = (m - n)c + t1
 
             centerPoint = (oldMag - self.magnification) * centerPoint
@@ -1118,6 +1120,12 @@ class MainWindow1(Qw.QMainWindow):
             elif rawAngle <= -15:
                 self.changeSelection(-1)
         self.quickUpdate()
+
+    def wheelEvent(self, event: Qg.QWheelEvent):
+        rawAngle = event.angleDelta().y() / 8
+        rawAngleX = event.angleDelta().x() / 8
+        self.mouseWheel(rawAngleX, rawAngle)
+
     def selectOnHover(self):
         """Returns True if selection happened, False otherwise.
         """

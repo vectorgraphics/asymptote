@@ -11,3 +11,6 @@ anchorMode: "Ctrl+A"
 
 undo: 'Ctrl+Z'
 redo: 'Ctrl+Y'
+
+moveUp: 'Up'
+moveDown: 'Down'
