@@ -880,7 +880,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def actionSaveAs(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File')[0]
-        if saveLocation[1]:
+        if saveLocation:
             saveFile = io.open(saveLocation, 'w')
             xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
             saveFile.close()
