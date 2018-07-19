@@ -893,7 +893,7 @@ class xasyDrawnItem(xasyItem):
         self.asyfied = True
         self.pen = pen
         self._asyengine = engine
-        self.rawIdentifier = 'x' + str(uuid.uuid4())
+        self.rawIdentifier = str(uuid.uuid4())
         self.transfKey = key
         if key is None:
             self.transfKey = self.rawIdentifier
@@ -910,9 +910,7 @@ class xasyDrawnItem(xasyItem):
 
     def setKey(self, newKey=None):
         if newKey is None:
-            newKey = 'x' + str(uuid.uuid4())
-        if not newKey.startswith('x'):
-            newKey = 'x' + newKey
+            newKey = str(uuid.uuid4())
 
         transform = self.transfKeymap[self.transfKey][0]
 
@@ -1039,9 +1037,7 @@ class xasyText(xasyItem):
     
     def setKey(self, newKey=None):
         if newKey is None:
-            newKey = 'x' + str(uuid.uuid4())
-        if not newKey.startswith('x'):
-            newKey = 'x' + newKey
+            newKey = str(uuid.uuid4())
 
         transform = self.transfKeymap[self.transfKey][0]
 
@@ -1179,7 +1175,7 @@ class xasyScript(xasyItem):
         for key in key2replaceSet:
             actualkey = key
 
-            key = key.split(':')[0][1:]         # remove the 'x' and anything after :
+            key = key.split(':')[0]
             raw_parsed = xu.tryParseKey(key)
             assert raw_parsed is not None
             line, col = [int(val) for val in raw_parsed.groups()]
@@ -1211,7 +1207,6 @@ class xasyScript(xasyItem):
 
     def getUnusedKey(self, oldkey) -> str:
         baseCounter = 0
-        oldkey = 'x' + oldkey
         newKey = oldkey
         while newKey in self.userKeys:
             newKey = oldkey + ':' + str(baseCounter)

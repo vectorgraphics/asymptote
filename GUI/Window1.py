@@ -542,7 +542,7 @@ class MainWindow1(Qw.QMainWindow):
         obj.asyengine = self.asyEngine
         obj.pen = self.currentPen
         obj.onCanvas = self.xasyDrawObj
-        obj.setKey('x' + str(self.globalObjectCounter))
+        obj.setKey(str(self.globalObjectCounter))
         self.globalObjectCounter = self.globalObjectCounter + 1
 
         self.fileItems.append(obj)
