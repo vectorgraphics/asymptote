@@ -9513,7 +9513,7 @@ the @code{rsvg-convert} utility, which is part of the
 @code{librsvg2-tools} package on @code{UNIX} systems; under
 @code{Microsoft Windows}, it is available as
 
-@url{https://opensourcepack.blogspot.com/2012/06/rsvg-convert-svg-image-conversion-tool.html}
+@url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
 
 @node GUI usage,  , GUI installation, GUI
 @section GUI usage
