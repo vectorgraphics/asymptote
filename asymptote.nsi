@@ -110,8 +110,8 @@ Section "Asymptote" SEC01
   ${lnkX64IconFix} "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk"
   CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
   ${lnkX64IconFix} "$DESKTOP\Asymptote.lnk"
-  CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\GUI\xasy.py"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\GUI\xasy.py"
+  CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\xasy.py"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
   SetOutPath "$INSTDIR"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
