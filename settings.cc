@@ -184,7 +184,7 @@ string getEntry(const string& key)
 
 void queryRegistry()
 {
-  defaultGhostscriptLibrary=getEntry("GPL Ghostscript/*/GS_DLL");
+  string defaultGhostscriptLibrary=getEntry("GPL Ghostscript/*/GS_DLL");
   if(defaultGhostscriptLibrary.empty())
     defaultGhostscriptLibrary=getEntry("AFPL Ghostscript/*/GS_DLL");
   
