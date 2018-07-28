@@ -18,8 +18,6 @@ string outformat(string format="")
   return format;
 }
 
-bool shipped; // Was a picture or frame already shipped out?
-
 frame currentpatterns;
 
 frame Portrait(frame f) {return f;};
@@ -73,6 +71,8 @@ void deconstruct(picture pic=currentpicture)
   deconstruct(f,currentpatterns,t);
 }
 
+bool implicitshipout=false;
+
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=false, bool view=true,
 	     string options="", string script="",
@@ -82,13 +82,17 @@ void shipout(string prefix=defaultfilename, frame f,
   if(is3D(f)) {
     f=enclose(prefix,embed3(prefix,f,format,options,script,light,P));
     if(settings.render != 0 && !prc(format)) {
-      shipped=true;
       return;
     }
   }
 
-  if(settings.xasy)
+  if(settings.xasy || (!implicitshipout && prefix == defaultfilename)) {
+    if(prefix == defaultfilename) {
+      currentpicture.clear();
+      add(f,group=false);
+    }
     return;
+  }
   
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
@@ -96,7 +100,6 @@ void shipout(string prefix=defaultfilename, frame f,
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
   _shipout(prefix,f,currentpatterns,format,wait,view,t);
-  shipped=true;
 }
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
@@ -133,7 +136,6 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
   }
   
   pic.uptodate=true;
-  shipped=true;
 }
 
 void newpage(picture pic=currentpicture)

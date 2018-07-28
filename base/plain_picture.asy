@@ -284,15 +284,20 @@ struct picture { // <<<1
   }
   init();
   
-  // Erase the current picture, retaining any size specification.
-  void erase() {
+  // Erase the current picture, retaining bounds.
+  void clear() {
     nodes.delete();
     nodes3.delete();
+    legend.delete();
+  }
+
+  // Erase the current picture, retaining any size specification.
+  void erase() {
+    clear();
     bounds.erase();
     bounds3.erase();
     T=identity();
     scale=new ScaleT;
-    legend.delete();
     init();
   }
   
