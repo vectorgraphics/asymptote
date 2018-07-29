@@ -339,8 +339,8 @@ struct Label {
     }
 
     pic.add(new void (frame f, transform t) {
-        out(f,t,point(g,position),
-            alignrelative ? -Align*dir(t*g,position)*I : Align);
+        out(f,t,point(g,position),alignrelative ?
+            inverse(rotation(t))*-Align*dir(t*g,position)*I : Align);
       },!alignrelative);
 
     frame f;
