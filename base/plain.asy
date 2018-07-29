@@ -50,8 +50,10 @@ void updatefunction()
 
 void exitfunction()
 {
+  implicitshipout=true;
   if(!currentpicture.empty())
-    updatefunction();
+    shipout();
+  implicitshipout=false;
 }
 
 atupdate(updatefunction);
