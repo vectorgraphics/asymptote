@@ -12,7 +12,7 @@ triple f(pair t) {
   real r=t.x;
   real phi=t.y;
   real f=f(r);
-  real s=max(min(c0/f,1),-1);
+  real s=max(min(f != 0 ? c0/f : 1,1),-1);
   real R=r*sqrt(1-s^2);
   return (R*cos(phi),R*sin(phi),r*s);
 }

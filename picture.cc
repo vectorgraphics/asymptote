@@ -248,6 +248,16 @@ bool picture::havepng()
   return false;
 }
 
+bool picture::havenewpage()
+{
+  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    if((*p)->isnewpage())
+      return true;
+  }
+  return false;
+}
+
 bbox picture::bounds()
 {
   size_t n=nodes.size();
@@ -485,12 +495,15 @@ bool picture::texprocess(const string& texname, const string& outname,
           cmd.push_back("-Pdownload35");
           cmd.push_back("-D600");
           cmd.push_back("-O"+String(hoffset)+"bp,"+String(voffset)+"bp");
-          cmd.push_back("-E");
-//          cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
-//                        String(paperHeight)+"bp");
+          bool ps=havenewpage();
+          if(ps)
+            cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
+                          String(paperHeight)+"bp");
+          else
+            cmd.push_back("-E");
           push_split(cmd,getSetting<string>("dvipsOptions"));
-//          if(getSetting<string>("papertype") != "")
-//            cmd.push_back("-t"+papertype);
+          if(ps && getSetting<string>("papertype") != "")
+            cmd.push_back("-t"+papertype);
           if(verbose <= 1) cmd.push_back("-q");
           cmd.push_back("-o"+psname);
           cmd.push_back(dviname);
@@ -515,7 +528,7 @@ bool picture::texprocess(const string& texname, const string& outname,
                   continue;
 
                 if(s.find("%!PS-Adobe-") == 0) {
-                  fout.header();
+                  fout.header(!ps);
                   continue;
                 }
 

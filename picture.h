@@ -57,6 +57,7 @@ public:
   bool havelabels();
   bool have3D();
   bool havepng();
+  bool havenewpage();
 
   bbox bounds();
   bbox3 bounds3();

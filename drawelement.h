@@ -164,6 +164,8 @@ public:
 
   virtual bool islabel() {return false;}
 
+  virtual bool isnewpage() {return false;}
+  
   virtual bool islayer() {return false;}
 
   virtual bool is3D() {return false;}
