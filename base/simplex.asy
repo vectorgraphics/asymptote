@@ -80,8 +80,8 @@ struct simplex {
   }
 
   // Try to find a solution x to Ax=b that minimizes the cost c^T x,
-  // where A is an m x n matrix, x is a vector of length n, b is a
-  // vector of length m, and c is a vector of length n.
+  // where A is an m x n matrix, x is a vector of n non-negative numbers,
+  // b is a vector of length m, and c is a vector of length n.
   void operator init(real[] c, real[][] A, real[] b, bool phase1=true) {
     static real epsilon=sqrt(realEpsilon);
     epsilonA=epsilon*norm(A);
@@ -208,8 +208,8 @@ struct simplex {
   }
 
   // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost
-  // c^T x, where A is an m x n matrix, x is a vector of length n, b is a
-  // vector of length m, and c is a vector of length n.
+  // c^T x, where A is an m x n matrix, x is a vector of n non-negative
+  // numbers, b is a vector of length m, and c is a vector of length n.
   void operator init(real[] c, real[][] A, int[] s, real[] b) {
     int m=A.length;
     if(m == 0) {case=INFEASIBLE; return;}
@@ -243,7 +243,8 @@ struct simplex {
       if(s[i] != 0) ++k;
     }
 
-    bool phase1=!all(s == -1);
+    //    bool phase1=!all(s == -1); // TODO: Check
+    bool phase1=true;
     operator init(concat(c,array(count,0.0)),a,b,phase1);
 
     if(case == OPTIMAL)

@@ -205,16 +205,16 @@ real calculateScaling(string dir, coord[] m, coord[] M, real size,
                       bool warn=true) {
   real[][] A;
   real[] b;
-  real[] c=new real[] {-1,0};
+  real[] c=new real[] {-1,0,0};
 
   void addMinCoord(coord c) {
     // (a*user + b) + truesize >= 0:
-    A.push(new real[] {c.user,1});
+    A.push(new real[] {c.user,1,-1});
     b.push(-c.truesize);
   }     
   void addMaxCoord(coord c) {
     // (a*user + b) + truesize <= size:
-    A.push(new real[] {-c.user,-1});
+    A.push(new real[] {-c.user,-1,1});
     b.push(c.truesize-size);
   }
 
