@@ -66,6 +66,7 @@ GUI/*/__pycache__
 /opsymbols.h
 /types.symbols.h
 *.dSYM
+.DS_Store
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:

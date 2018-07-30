@@ -108,6 +108,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
+  pic.uptodate=true;
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format);
@@ -134,8 +135,6 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
       shipout(prefix,orientation(f),format,wait,view,t);
     settings.inlinetex=inlinetex;
   }
-  
-  pic.uptodate=true;
 }
 
 void newpage(picture pic=currentpicture)
