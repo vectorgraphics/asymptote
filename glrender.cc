@@ -309,7 +309,8 @@ void setProjection()
     projMat = glm::frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
     // glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   }
-  glMatrixMode(GL_MODELVIEW);
+  
+  // glMatrixMode(GL_MODELVIEW);
 #ifdef HAVE_LIBGLUT
   double arcballRadius=getSetting<double>("arcballradius");
   arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius*Zoom);
@@ -726,9 +727,16 @@ void update()
   lastzoom=Zoom;
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
-  glTranslatef(cx,cy,cz);
-  glMultMatrixf(Rotate);
-  glTranslatef(0,0,-cz);
+  
+  viewMat=glm::mat4(1.f);
+  viewMat=glm::translate(viewMat,glm::vec3(cx,cy,cz));
+  viewMat=viewMat*rotateMat;
+  viewMat=glm::translate(viewMat,glm::vec3(0,0,-cz));
+  
+  //glTranslatef(cx,cy,cz);
+  //glMultMatrixf(Rotate);
+  //glTranslatef(0,0,-cz);
+  
   setProjection();
   glutPostRedisplay();
 }
@@ -879,7 +887,7 @@ void rotate(int x, int y)
       const vec4& roti=arcball.rot[i];
       int i4=4*i;
       for(int j=0; j < 4; ++j)
-        Rotate[i4+j]=roti[j];
+        glm::value_ptr(rotateMat)[i4+j]=roti[j];
     }
     
     update();
@@ -897,35 +905,32 @@ void updateArcball()
     int i4=4*i;
     vec4& roti=arcball.rot[i];
     for(int j=0; j < 4; ++j)
-      roti[j]=Rotate[i4+j];
+      roti[j]=glm::value_ptr(rotateMat)[i4+j];
   }
   update();
 }
 
 void rotateX(double step) 
 {
-  glLoadIdentity();
-  glRotatef(step,1,0,0);
-  glMultMatrixf(Rotate);
-  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  glm::mat4 tmpRot(1.0f);
+  tmpRot=glm::rotate(tmpRot,glm::radians((float)step),glm::vec3(1,0,0));
+  rotateMat=tmpRot*rotateMat;
   updateArcball();
 }
 
 void rotateY(double step) 
 {
-  glLoadIdentity();
-  glRotatef(step,0,1,0);
-  glMultMatrixf(Rotate);
-  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  glm::mat4 tmpRot(1.0f);
+  tmpRot=glm::rotate(tmpRot,glm::radians((float)step),glm::vec3(0,1,0));
+  rotateMat=tmpRot*rotateMat;
   updateArcball();
 }
 
 void rotateZ(double step) 
 {
-  glLoadIdentity();
-  glRotatef(step,0,0,1);
-  glMultMatrixf(Rotate);
-  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  glm::mat4 tmpRot(1.0f);
+  tmpRot=glm::rotate(tmpRot,glm::radians((float)step),glm::vec3(0,0,1));
+  rotateMat=tmpRot*rotateMat;
   updateArcball();
 }
 
@@ -1648,6 +1653,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   glewExperimental = GL_TRUE;
   auto result = glewInit();
+  if (result!=GLEW_OK)
+  {
+    cerr<<"GLEW Error!"<<endl;
+    throw 1;
+  }
   std::cout << "Renderer init" << std::endl;
   
   shaderProg=glCreateProgram();
