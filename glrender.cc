@@ -47,6 +47,12 @@ namespace camp {
 billboard BB;
 }
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "shaders.h"
+
 namespace gl {
   
 bool outlinemode=false;
@@ -144,6 +150,14 @@ double Zoom;
 double Zoom0;
 double lastzoom;
 
+glm::mat4 projMat;
+glm::mat4 viewMat;
+glm::mat4 modelMat;
+
+glm::mat4 rotateMat; 
+
+GLint shaderProg;
+
 GLfloat Rotate[16];  
 GLUnurbs *nurb=NULL;
 
@@ -192,6 +206,7 @@ inline T max(T a, T b)
 
 void lighting()
 {
+  return; 
   for(size_t i=0; i < Nlights; ++i) {
     GLenum index=GL_LIGHT0+i;
     triple Lighti=Lights[i];
@@ -203,6 +218,7 @@ void lighting()
 
 void initlighting() 
 {
+  return; 
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
   glEnable(GL_LIGHTING);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,getSetting<bool>("twosided"));
@@ -277,13 +293,22 @@ void setDimensions(int Width, int Height, double X, double Y)
 
 void setProjection()
 {
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
+  projMat = glm::mat4(1.f);
+
+  // glMatrixMode(GL_PROJECTION);
+  // glLoadIdentity();
+
   setDimensions(Width,Height,X,Y);
   if(orthographic)
-    glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  {
+    projMat = glm::ortho(xmin,xmax,ymin,ymax,-zmax,-zmin); 
+    // glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  }
   else
-    glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  {
+    projMat = glm::frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
+    // glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  }
   glMatrixMode(GL_MODELVIEW);
 #ifdef HAVE_LIBGLUT
   double arcballRadius=getSetting<double>("arcballradius");
@@ -416,8 +441,13 @@ void home()
     arcball.init();
   }
 #endif
-  glLoadIdentity();
-  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  // glLoadIdentity();
+  // glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  
+  rotateMat=glm::mat4(1.f); 
+  viewMat=glm::mat4(1.f);
+  modelMat=glm::mat4(1.f);
+  
   lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
   initlighting();
@@ -647,6 +677,16 @@ void display()
     if(!Animate) screen();
     queueScreen=false;
   }
+  
+  auto getShaderUnifs = [=](std::string const& name) -> GLint {
+    return glGetUniformLocation(shaderProg,name.c_str()); 
+  }; 
+  
+  glUniformMatrix4fv(getShaderUnifs("viewMat"), 1, GL_FALSE, glm::value_ptr(viewMat));
+  glUniformMatrix4fv(getShaderUnifs("projMat"), 1, GL_FALSE, glm::value_ptr(projMat));
+  glUniformMatrix4fv(getShaderUnifs("modelMat"), 1, GL_FALSE, glm::value_ptr(modelMat));
+  
+  
   drawscene(Width,Height);
   glutSwapBuffers();
 #ifdef HAVE_PTHREAD
@@ -1385,6 +1425,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 {
   bool offscreen=getSetting<bool>("offscreen");
   Iconify=getSetting<bool>("iconify");
+
+  
   
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
@@ -1604,8 +1646,22 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif // HAVE_LIBGLUT
   initialized=true;
   
-  glMatrixMode(GL_MODELVIEW);
-    
+  glewExperimental = GL_TRUE;
+  auto result = glewInit();
+  std::cout << "Renderer init" << std::endl;
+  
+  shaderProg=glCreateProgram();
+  
+  GLuint vertShader=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER);
+  GLuint fragShader=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER);
+  
+  glAttachShader(shaderProg,vertShader);
+  glAttachShader(shaderProg,fragShader);
+
+  glLinkProgram(shaderProg);
+  glUseProgram(shaderProg);
+  
+  // glMatrixMode(GL_MODELVIEW);
   home();
     
 #ifdef HAVE_LIBGLUT

@@ -10,7 +10,8 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@
+LFLAGS = @LDFLAGS@ -lGLEW
+# TODO: Move this to a place better suited. 
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS)
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -s -static
 
@@ -43,7 +44,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr arcball algebra3 quaternion
+	$(PRC) glrender tr arcball algebra3 quaternion shaders
 
 FILES = $(COREFILES) main
 

@@ -1,0 +1,157 @@
+errortest.asy: 476.34: unnamed argument after rest argument
+errortest.asy: 477.37: additional rest argument
+errortest.asy: 478.28: unnamed argument after rest argument
+errortest.asy: 479.31: additional rest argument
+errortest.asy: 482.22: normal parameter after rest parameter
+errortest.asy: 483.22: normal parameter after rest parameter
+errortest.asy: 484.31: normal parameter after rest parameter
+errortest.asy: 485.31: normal parameter after rest parameter
+errortest.asy: 486.24: normal parameter after keyword-only parameter
+errortest.asy: 487.24: normal parameter after keyword-only parameter
+errortest.asy: 488.24: normal parameter after keyword-only parameter
+errortest.asy: 488.31: normal parameter after keyword-only parameter
+errortest.asy: 489.24: normal parameter after keyword-only parameter
+errortest.asy: 489.31: normal parameter after keyword-only parameter
+errortest.asy: 490.32: normal parameter after keyword-only parameter
+errortest.asy: 491.32: normal parameter after keyword-only parameter
+errortest.asy: 492.32: normal parameter after keyword-only parameter
+errortest.asy: 492.39: normal parameter after keyword-only parameter
+errortest.asy: 493.32: normal parameter after keyword-only parameter
+errortest.asy: 493.39: normal parameter after keyword-only parameter
+errortest.asy: 496.13: expected 'keyword' here
+errortest.asy: 497.13: expected 'keyword' here
+errortest.asy: 498.21: expected 'keyword' here
+errortest.asy: 499.21: expected 'keyword' here
+errortest.asy: 500.36: expected 'keyword' here
+errortest.asy: 500.32: normal parameter after keyword-only parameter
+errortest.asy: 501.36: expected 'keyword' here
+errortest.asy: 501.32: normal parameter after keyword-only parameter
+errortest.asy: 502.21: expected 'keyword' here
+errortest.asy: 503.21: expected 'keyword' here
+errortest.asy: 504.13: expected 'keyword' here
+errortest.asy: 505.13: expected 'keyword' here
+errortest.asy: 506.13: expected 'keyword' here
+errortest.asy: 507.13: expected 'keyword' here
+errortest.asy: 508.13: expected 'keyword' here
+errortest.asy: 509.13: expected 'keyword' here
+errortest.asy: 510.21: expected 'keyword' here
+errortest.asy: 511.21: expected 'keyword' here
+errortest.asy: 512.21: expected 'keyword' here
+errortest.asy: 513.21: expected 'keyword' here
+errortest.asy: 12.4: no matching variable 'x.y'
+errortest.asy: 16.11: no matching variable of name 'z'
+errortest.asy: 20.3: no matching variable 'x'
+errortest.asy: 27.3: no type of name 'x'
+errortest.asy: 28.3: no type of name 'x'
+errortest.asy: 29.3: no type of name 'x'
+errortest.asy: 30.10: no type of name 'x'
+errortest.asy: 32.5: no type of name 'x'
+errortest.asy: 33.5: no type of name 'x'
+errortest.asy: 34.5: no type of name 'x'
+errortest.asy: 35.12: no type of name 'x'
+errortest.asy: 41.4: no matching variable 'x.y'
+errortest.asy: 48.6: no matching variable 'm.u.v'
+errortest.asy: 55.12: no matching field of name 'z' in 'm'
+errortest.asy: 62.4: no matching variable 'm.z'
+errortest.asy: 75.4: no matching field or type of name 'u' in 'm'
+errortest.asy: 77.5: no matching field or type of name 'u' in 'm'
+errortest.asy: 84.3: expression cannot be used as an address
+errortest.asy: 89.3: use of variable 'f' is ambiguous
+errortest.asy: 91.4: use of variable 'm.f' is ambiguous
+errortest.asy: 97.11: array initializer used for non-array
+errortest.asy: 98.12: array initializer used for non-array
+errortest.asy: 103.4: no matching variable 'f.m'
+errortest.asy: 108.4: no matching variable 'x.m'
+errortest.asy: 116.12: no matching field of name 'z' in 'point'
+errortest.asy: 124.4: no matching variable 'p.z'
+errortest.asy: 132.4: use of variable 'p.f' is ambiguous
+errortest.asy: 140.4: no matching variable 'p.z'
+errortest.asy: 151.4: no matching function 'f()'
+errortest.asy: 152.4: no matching function 'f(string)'
+errortest.asy: 160.4: cannot call 'void f(int)' without parameters
+errortest.asy: 168.7: no matching function 'operator +(point)'
+errortest.asy: 173.10: types in conditional expression do not match
+errortest.asy: 178.10: type of conditional expression is ambiguous
+errortest.asy: 183.5: cannot convert 'int()' to 'int' in assignment
+errortest.asy: 188.5: assignment is ambiguous
+errortest.asy: 194.24: function must return a value
+errortest.asy: 200.11: type 'int' is not a structure
+errortest.asy: 209.3: allocation of struct 'b' is not in a valid scope
+errortest.asy: 219.3: break statement outside of a loop
+errortest.asy: 223.3: continue statement outside of a loop
+errortest.asy: 228.5: function cannot return a value
+errortest.asy: 234.5: function must return a value
+errortest.asy: 241.11: function must return a value
+errortest.asy: 244.11: function must return a value
+errortest.asy: 290.3: built-in functions cannot be modified
+errortest.asy: 298.11: cannot cast 'string' to 'int'
+errortest.asy: 312.4: accessing private field outside of structure
+errortest.asy: 313.4: accessing private field outside of structure
+errortest.asy: 314.4: accessing private field outside of structure
+errortest.asy: 314.4: accessing private field outside of structure
+errortest.asy: 315.4: modifying non-public field outside of structure
+errortest.asy: 316.4: modifying non-public field outside of structure
+errortest.asy: 318.4: accessing private field outside of structure
+errortest.asy: 319.4: accessing private field outside of structure
+errortest.asy: 320.4: accessing private field outside of structure
+errortest.asy: 321.4: modifying non-public field outside of structure
+errortest.asy: 330.18: no matching types or fields of name 'x'
+errortest.asy: 331.18: no matching types or fields of name 'f'
+errortest.asy: 341.3: modifying non-public field outside of structure
+errortest.asy: 342.3: modifying non-public field outside of structure
+errortest.asy: 344.3: modifying non-public field outside of structure
+errortest.asy: 350.4: accessing private field outside of structure
+errortest.asy: 351.4: accessing private field outside of structure
+errortest.asy: 353.4: accessing private field outside of structure
+errortest.asy: 354.4: accessing private field outside of structure
+errortest.asy: 360.18: no matching types or fields of name 'T'
+errortest.asy: 367.4: accessing private field outside of structure
+errortest.asy: 368.4: accessing private field outside of structure
+errortest.asy: 370.4: accessing private field outside of structure
+errortest.asy: 371.4: accessing private field outside of structure
+errortest.asy: 378.18: no matching types or fields of name 'T'
+errortest.asy: 386.11: modifying non-public field outside of structure
+errortest.asy: 387.11: modifying non-public field outside of structure
+errortest.asy: 388.11: modifying non-public field outside of structure
+errortest.asy: 389.11: modifying non-public field outside of structure
+errortest.asy: 393.3: modifying non-public field outside of structure
+errortest.asy: 394.3: modifying non-public field outside of structure
+errortest.asy: 395.3: modifying non-public field outside of structure
+errortest.asy: 396.3: modifying non-public field outside of structure
+errortest.asy: 400.3: modifying non-public field outside of structure
+errortest.asy: 401.3: modifying non-public field outside of structure
+errortest.asy: 402.3: modifying non-public field outside of structure
+errortest.asy: 403.3: modifying non-public field outside of structure
+errortest.asy: 407.11: modifying non-public field outside of structure
+errortest.asy: 408.11: modifying non-public field outside of structure
+errortest.asy: 409.11: modifying non-public field outside of structure
+errortest.asy: 410.11: modifying non-public field outside of structure
+errortest.asy: 411.3: modifying non-public field outside of structure
+errortest.asy: 412.3: modifying non-public field outside of structure
+errortest.asy: 413.3: modifying non-public field outside of structure
+errortest.asy: 414.3: modifying non-public field outside of structure
+errortest.asy: 419.7: inferred variable declaration without initializer
+errortest.asy: 422.20: cannot cast 'int' to 'var'
+errortest.asy: 425.4: cannot cast 'int' to 'var'
+errortest.asy: 426.12: cannot cast 'int' to 'var'
+errortest.asy: 427.12: cannot cast 'var' to 'int'
+errortest.asy: 430.25: cannot cast 'int' to 'var'
+errortest.asy: 430.28: cannot cast 'int' to 'var'
+errortest.asy: 430.31: cannot cast 'int' to 'var'
+errortest.asy: 431.13: cannot cast 'int[]' to 'var[]'
+errortest.asy: 432.14: cannot cast 'int' to 'var'
+errortest.asy: 432.17: cannot cast 'int' to 'var'
+errortest.asy: 432.20: cannot cast 'int' to 'var'
+errortest.asy: 433.15: cannot cast 'int' to 'var'
+errortest.asy: 433.18: cannot cast 'int' to 'var'
+errortest.asy: 433.21: cannot cast 'int' to 'var'
+errortest.asy: 434.13: cannot cast 'var[]' to 'int[]'
+errortest.asy: 435.3: type 'var' is not a structure
+errortest.asy: 438.17: cannot cast 'int' to 'var'
+errortest.asy: 442.7: could not infer type of initializer
+errortest.asy: 446.7: could not infer type of initializer
+errortest.asy: 448.7: could not infer type of initializer
+errortest.asy: 452.16: expression is not an array of inferable type
+errortest.asy: 457.16: expression is not an array of inferable type
+errortest.asy: 463.16: expression is not an array of inferable type
+errortest.asy: 470.7: array expression cannot be used as an address
