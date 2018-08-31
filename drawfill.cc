@@ -9,6 +9,9 @@
 
 namespace camp {
 
+using settings::ps2tex;
+using settings::tex2ps;
+
 void drawAxialShade::palette(psfile *out)
 {
   pentype.convert();

@@ -457,8 +457,18 @@ bool picture::texprocess(const string& texname, const string& outname,
         push_split(cmd,getSetting<string>("dvisvgmOptions"));
         cmd.push_back("-o"+outname);
         ostringstream buf;
+        bbox B=svgbbox(b,bboxshift);
+        /*
+        double height=b.top-b.bottom;
+        double threshold=12.0*tex2ps;
+        if(height < threshold) {
+          double offset=threshold-height;
+          b.top += offset;
+          b.bottom += offset;
+        }
         bbox B=b;
         B.shift(bboxshift+pair(1.99*cm,1.9*cm));
+        */
         buf << "--bbox=" 
             << B.left << "bp " 
             << B.bottom << "bp "
