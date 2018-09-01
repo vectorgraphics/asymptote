@@ -43,16 +43,17 @@
 #endif
 #endif
 
-namespace camp {
-billboard BB;
-}
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shaders.h"
 
+namespace camp {
+billboard BB;
+GLint noColorShader;
+GLint colorShader;
+}
 namespace gl {
   
 bool outlinemode=false;
@@ -156,7 +157,7 @@ glm::mat4 modelMat;
 
 glm::mat4 rotateMat; 
 
-GLint shaderProg;
+GLint shaderProg,shaderProgColor;
 
 GLfloat Rotate[16];  
 GLUnurbs *nurb=NULL;
@@ -678,16 +679,7 @@ void display()
     if(!Animate) screen();
     queueScreen=false;
   }
-  
-  auto getShaderUnifs = [=](std::string const& name) -> GLint {
-    return glGetUniformLocation(shaderProg,name.c_str()); 
-  }; 
-  
-  glUniformMatrix4fv(getShaderUnifs("viewMat"), 1, GL_FALSE, glm::value_ptr(viewMat));
-  glUniformMatrix4fv(getShaderUnifs("projMat"), 1, GL_FALSE, glm::value_ptr(projMat));
-  glUniformMatrix4fv(getShaderUnifs("modelMat"), 1, GL_FALSE, glm::value_ptr(modelMat));
-  
-  
+
   drawscene(Width,Height);
   glutSwapBuffers();
 #ifdef HAVE_PTHREAD
@@ -1374,6 +1366,9 @@ void init()
   char **argv=args(cmd,true);
   int argc=cmd.size();
   glutInit(&argc,argv);
+
+  // NOTE: Change version if needed. 
+  // glutInitContextVersion(4,5);
   
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
@@ -1650,26 +1645,39 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #endif // HAVE_LIBGLUT
   initialized=true;
+
   
   glewExperimental = GL_TRUE;
   auto result = glewInit();
+
   if (result!=GLEW_OK)
   {
     cerr<<"GLEW Error!"<<endl;
     throw 1;
   }
   std::cout << "Renderer init" << std::endl;
+
   
   shaderProg=glCreateProgram();
   
   GLuint vertShader=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER);
   GLuint fragShader=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER);
-  
   glAttachShader(shaderProg,vertShader);
   glAttachShader(shaderProg,fragShader);
 
   glLinkProgram(shaderProg);
-  glUseProgram(shaderProg);
+
+    
+  shaderProgColor=glCreateProgram();
+  GLuint vertShaderCol=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER,{"EXPLICIT_COLOR"});
+  GLuint fragShaderCol=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER,{"EXPLICIT_COLOR"});
+  glAttachShader(shaderProgColor,vertShaderCol);
+  glAttachShader(shaderProgColor,fragShaderCol);
+
+  glLinkProgram(shaderProgColor);
+
+  camp::noColorShader=shaderProg;
+  camp::colorShader=shaderProgColor;
   
   // glMatrixMode(GL_MODELVIEW);
   home();
@@ -1771,5 +1779,18 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 }
 
 } // namespace gl
+
+namespace camp {
+void setUniforms(GLint shader)
+{
+  auto getShaderUnifs = [=](std::string const& name) -> GLint {
+    return glGetUniformLocation(shader,name.c_str()); 
+  }; 
+
+  glUniformMatrix4fv(getShaderUnifs("viewMat"), 1, GL_FALSE, glm::value_ptr(gl::viewMat));
+  glUniformMatrix4fv(getShaderUnifs("projMat"), 1, GL_FALSE, glm::value_ptr(gl::projMat));
+  glUniformMatrix4fv(getShaderUnifs("modelMat"), 1, GL_FALSE, glm::value_ptr(gl::modelMat));
+} 
+}
 
 #endif

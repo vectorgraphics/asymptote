@@ -1,5 +1,16 @@
 {
     "python.pythonPath": "/usr/bin/python3",
     "python.linting.pylintEnabled": false,
-    "python.jediEnabled": false
+    "python.jediEnabled": false,
+    "files.associations": {
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "system_error": "cpp"
+    }
 }

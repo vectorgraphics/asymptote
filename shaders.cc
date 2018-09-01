@@ -8,12 +8,13 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <unordered_set>
 
 #include <iostream>
 
 #include "shaders.h"
 
-GLuint createShaders(GLchar const *src, int shaderType)
+GLuint createShaders(GLchar const* src, int shaderType)
 {
     GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, &src, nullptr);
@@ -44,11 +45,20 @@ GLuint createShaders(GLchar const *src, int shaderType)
     return shader;
 }
 
-GLuint createShaderFile(std::string file, int shaderType)
+GLuint createShaderFile(std::string file, int shaderType, std::unordered_set<std::string> compilerFlags)
 {
     std::ifstream shaderFile;
     shaderFile.open(file);
     std::stringstream shaderSrc;
+
+    shaderSrc << "#version 140" << std::endl;
+
+    
+    for(std::string const& flag : compilerFlags)
+    {
+        shaderSrc << "#define " << flag << std::endl;
+    }
+    
 
     if (shaderFile)
     {

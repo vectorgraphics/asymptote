@@ -19,6 +19,17 @@ double viewpoint[3];
 
 #ifdef HAVE_GL
 
+
+//FIXME: Find a nicer way to pass the shader program number.
+// preferably without global variables...
+
+// Sarah Nadi: If you're reading this, I'm sorry. I tried.
+// I couldn't figure out all calls to draw() function to pass the shaders
+// number properly... :( 
+extern GLint noColorShader;
+extern GLint colorShader;
+extern void setUniforms(GLint shader); 
+
 std::vector<GLfloat> BezierPatch::buffer;
 std::vector<GLfloat> BezierPatch::Buffer;
 std::vector<GLuint> BezierPatch::indices;
@@ -307,7 +318,7 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   Epsilon=FillFactor*res;
   this->Min=Min;
   this->Max=Max;
-  
+
   const size_t nbuffer=10000;
   indices.reserve(nbuffer);
   if(transparent) {
@@ -897,57 +908,135 @@ void BezierPatch::draw()
   const size_t bytestride=stride*size;
   const size_t Bytestride=Stride*size;
     
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  
+  // glEnableClientState(GL_NORMAL_ARRAY);
+  // glEnableClientState(GL_VERTEX_ARRAY);
+
+  // FIXME: Find a way to pass uniforms... 
+  // GLint posAttribNC=glGetAttribLocation(colorShader, "position");
+  // GLint normalAttribNC=glGetAttribLocation(colorShader, "normal");
+
+  glUseProgram(noColorShader);
+  //camp::setUniforms(noColorShader); 
+
+  GLint posAttrib=glGetAttribLocation(noColorShader, "position");
+  GLint normalAttrib=glGetAttribLocation(noColorShader, "normal");
+
+  glUseProgram(colorShader);
+  //camp::setUniforms(colorShader); 
+
+  GLint posAttribCol=glGetAttribLocation(colorShader, "position");
+  GLint normalAttribCol=glGetAttribLocation(colorShader, "normal");
+  GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
+
+
   if(nvertices > 0) {
-    glVertexPointer(3,GL_FLOAT,bytestride,&buffer[0]);
-    glNormalPointer(GL_FLOAT,bytestride,&buffer[3]);
+    glUseProgram(noColorShader);
+    camp::setUniforms(noColorShader); 
+
+    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,&buffer[0]);
+    glEnableVertexAttribArray(posAttrib);
+    // glVertexPointer(3,GL_FLOAT,bytestride,&buffer[0]);
+    // glNormalPointer(GL_FLOAT,bytestride,&buffer[3]);
+    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,&buffer[3]);
+    glEnableVertexAttribArray(normalAttrib);
+
     glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,&indices[0]);
+
+    glDisableVertexAttribArray(posAttrib);
+    glDisableVertexAttribArray(normalAttrib);
   }
-  
+
   if(Nvertices > 0) {
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnable(GL_COLOR_MATERIAL);
-    glVertexPointer(3,GL_FLOAT,Bytestride,&Buffer[0]);
-    glNormalPointer(GL_FLOAT,Bytestride,&Buffer[3]);
-    glColorPointer(4,GL_FLOAT,Bytestride,&Buffer[6]);
+    glUseProgram(colorShader);
+    camp::setUniforms(colorShader); 
+    // glEnableClientState(GL_COLOR_ARRAY);
+    // glEnable(GL_COLOR_MATERIAL);
+
+    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,&Buffer[0]);
+    glEnableVertexAttribArray(posAttribCol);
+
+    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,&Buffer[3]);
+    glEnableVertexAttribArray(normalAttribCol);
+
+    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,&Buffer[6]);
+    glEnableVertexAttribArray(colorAttribCol);
+
+    //glVertexPointer(3,GL_FLOAT,Bytestride,&Buffer[0]);
+    //glNormalPointer(GL_FLOAT,Bytestride,&Buffer[3]);
+    //glColorPointer(4,GL_FLOAT,Bytestride,&Buffer[6]);
     glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,&Indices[0]);
-    glDisable(GL_COLOR_MATERIAL);
-    glDisableClientState(GL_COLOR_ARRAY);
+
+    glDisableVertexAttribArray(posAttribCol);
+    glDisableVertexAttribArray(normalAttribCol);
+    glDisableVertexAttribArray(colorAttribCol);
+
+    // glDisable(GL_COLOR_MATERIAL);
+    // glDisableClientState(GL_COLOR_ARRAY);
   }
-  
+
   if(ntvertices > 0) {
+    glUseProgram(noColorShader);
+    camp::setUniforms(noColorShader); 
+    // cerr<<"Transparent no color called"<<endl;
+
     tstride=stride;
     transform(tbuffer); 
 //    bounds(tindices);
     
     qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
       
-    glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
-    glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
+    //glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
+    //glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
+
+    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,&tbuffer[0]);
+    glEnableVertexAttribArray(posAttrib);
+
+    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,&tbuffer[3]);
+    glEnableVertexAttribArray(normalAttrib);
+
     glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,&tindices[0]);
+
+    glDisableVertexAttribArray(posAttrib);
+    glDisableVertexAttribArray(normalAttrib);
   }
   
   if(Ntvertices > 0) {
+    glUseProgram(colorShader);
+    camp::setUniforms(colorShader); 
+    // cerr<<"Transparent color called"<<endl;
     tstride=Stride;
     transform(tBuffer);
 //    bounds(tIndices);
     
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
     
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnable(GL_COLOR_MATERIAL);
-    glVertexPointer(3,GL_FLOAT,Bytestride,&tBuffer[0]);
-    glNormalPointer(GL_FLOAT,Bytestride,&tBuffer[3]);
-    glColorPointer(4,GL_FLOAT,Bytestride,&tBuffer[6]);
+    // glEnableClientState(GL_COLOR_ARRAY);
+    // glEnable(GL_COLOR_MATERIAL);
+
+    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,&tBuffer[0]);
+    glEnableVertexAttribArray(posAttribCol);
+
+    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,&tBuffer[3]);
+    glEnableVertexAttribArray(normalAttribCol);
+
+    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,&tBuffer[6]);
+    glEnableVertexAttribArray(colorAttribCol);    
+
+    //glVertexPointer(3,GL_FLOAT,Bytestride,&tBuffer[0]);
+    //glNormalPointer(GL_FLOAT,Bytestride,&tBuffer[3]);
+    //glColorPointer(4,GL_FLOAT,Bytestride,&tBuffer[6]);
     glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,&tIndices[0]);
-    glDisable(GL_COLOR_MATERIAL);
-    glDisableClientState(GL_COLOR_ARRAY);
+    // glDisable(GL_COLOR_MATERIAL);
+    // glDisableClientState(GL_COLOR_ARRAY);
+
+    glDisableVertexAttribArray(posAttribCol);
+    glDisableVertexAttribArray(normalAttribCol);
+    glDisableVertexAttribArray(colorAttribCol);
   }
-  
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
+
+  glUseProgram(0);
+  // glDisableClientState(GL_VERTEX_ARRAY);
+  // glDisableClientState(GL_NORMAL_ARRAY);
   
   clear();
 }
