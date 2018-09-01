@@ -134,6 +134,7 @@ public:
              double fuzz, bool &first);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out, unsigned int *, groupsmap&);
   
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);

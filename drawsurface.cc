@@ -247,6 +247,26 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
+bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
+{
+  if(invisible)
+    return true;
+
+//  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+
+//  if(straight) {
+//    triple vertices[]={controls[0],controls[12],controls[3],controls[15]};
+//    if(colors)
+//      out->addQuad(vertices,colors);
+//    else
+//    out->addRectangle(vertices,m);
+//  } else
+  
+  out->addPatch(controls);
+                    
+  return true;
+}
+
 void drawBezierPatch::render(GLUnurbs *nurb, double size2,
                              const triple& b, const triple& B,
                              double perspective, bool lighton,

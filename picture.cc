@@ -1346,29 +1346,43 @@ bool picture::shipout3(const string& prefix, const string& format,
   return false;
 }
 
-bool picture::shipout3(const string& prefix)
+bool picture::shipout3(const string& prefix, const string format)
 {
   bounds3();
-  bool status = true;
+  bool status;
+  string name;
   
-  string prcname=buildname(prefix,"prc");
-  prcfile prc(prcname);
+  if(format == "prc") {
+    name=buildname(prefix,"prc");
+    prcfile prc(name);
   
-  static const double limit=2.5*10.0/INT_MAX;
-  double compressionlimit=max(length(b3.Max()),length(b3.Min()))*limit;
+    static const double limit=2.5*10.0/INT_MAX;
+    double compressionlimit=max(length(b3.Max()),length(b3.Min()))*limit;
   
-  groups.push_back(groupmap());
-  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    (*p)->write(&prc,&billboard,compressionlimit,groups);
-  }
-  groups.pop_back();
-  if(status)
+    groups.push_back(groupmap());
+    for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+      assert(*p);
+      (*p)->write(&prc,&billboard,compressionlimit,groups);
+    }
+    groups.pop_back();
     status=prc.finish();
-    
+  } else {
+    name=buildname(prefix,"html");
+    jsfile js(name);
+  
+    groups.push_back(groupmap());
+    for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+      assert(*p);
+      (*p)->write(&js,&billboard,groups);
+    }
+    groups.pop_back();
+    status=true;
+//    status=js.finish();
+  }    
+  
   if(!status) reportError("shipout3 failed");
     
-  if(verbose > 0) cout << "Wrote " << prcname << endl;
+  if(verbose > 0) cout << "Wrote " << name << endl;
   
   return true;
 }

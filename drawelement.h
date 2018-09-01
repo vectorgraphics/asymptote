@@ -17,6 +17,7 @@
 #include "psfile.h"
 #include "texfile.h"
 #include "prcfile.h"
+#include "jsfile.h"
 #include "glrender.h"
 #include "arrayop.h"
 
@@ -202,6 +203,11 @@ public:
   // Output to a PRC file
   virtual bool write(prcfile *out, unsigned int *count, double compressionlimit,
                      groupsmap& groups) {
+    return false;
+  }
+  
+  // Output to a JS file
+  virtual bool write(jsfile *out, unsigned int *count, groupsmap& groups) {
     return false;
   }
   

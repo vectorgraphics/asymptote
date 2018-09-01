@@ -96,8 +96,8 @@ public:
                 double *diffuse, double *ambient, double *specular,
                 bool viewportlighting, bool view);
   
-  // PRC output
-  bool shipout3(const string& prefix);
+  // 3D output
+  bool shipout3(const string& prefix, const string format);
   
   bool reloadPDF(const string& Viewer, const string& outname) const;
   

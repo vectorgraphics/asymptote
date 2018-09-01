@@ -11,6 +11,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <cstring>
 
@@ -24,6 +25,13 @@ void inverse(double *a, size_t n);
 }
 
 namespace camp {
+
+class jsofstream : public std::ofstream {
+public:
+  jsofstream() {}
+  jsofstream(const string& name) : std::ofstream(name.c_str()) {}
+  void open(const string& name) {std::ofstream::open(name.c_str());}
+};
 
 typedef double Triple[3];
   
@@ -290,6 +298,12 @@ public:
   friend ostream& operator << (ostream& out, const triple& z)
   {
     out << "(" << z.x << "," << z.y << "," << z.z << ")";
+    return out;
+  }
+  
+  friend jsofstream& operator << (jsofstream& out, const triple& z)
+  {
+    out << "[" << z.x << "," << z.y << "," << z.z << "]";
     return out;
   }
   

@@ -90,7 +90,7 @@ GUI/*/__pycache__
 *.pdf
 *.pre
 *.m9
-*-[0-9].*
+#*-[0-9].*
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
