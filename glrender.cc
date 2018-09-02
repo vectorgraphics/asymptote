@@ -1365,11 +1365,13 @@ void init()
   push_split(cmd,getSetting<string>("glOptions"));
   char **argv=args(cmd,true);
   int argc=cmd.size();
-  glutInit(&argc,argv);
 
+  glutInitContextFlags(GLUT_CORE_PROFILE);
+  //glutInitContextVersion(4,5);
+
+  glutInit(&argc,argv);
   // NOTE: Change version if needed. 
-  // glutInitContextVersion(4,5);
-  
+
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 #endif
@@ -1426,8 +1428,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   bool offscreen=getSetting<bool>("offscreen");
   Iconify=getSetting<bool>("iconify");
 
-  
-  
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
 #endif  
@@ -1583,6 +1583,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
       ostringstream buf;
       int samples;
+
 #ifdef FREEGLUT
 #ifdef GLUT_INIT_MAJOR_VERSION
       while(true) {
@@ -1612,6 +1613,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         title += " ["+suffix+"]";
     
         window=glutCreateWindow(title.c_str());
+
         GLint samplebuf[1];
         glGetIntegerv(GL_SAMPLES,samplebuf);
         samples=samplebuf[0];
@@ -1646,7 +1648,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif // HAVE_LIBGLUT
   initialized=true;
 
-  
   glewExperimental = GL_TRUE;
   auto result = glewInit();
 
@@ -1655,9 +1656,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     cerr<<"GLEW Error!"<<endl;
     throw 1;
   }
+
+  if(!GLEW_VERSION_4_5)
+  {
+    cerr<<"OpenGL Version 4.5 not available!"<<endl;
+    throw 1;
+  }
+  
   std::cout << "Renderer init" << std::endl;
 
-  
   shaderProg=glCreateProgram();
   
   GLuint vertShader=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER);
@@ -1667,7 +1674,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   glLinkProgram(shaderProg);
 
-    
   shaderProgColor=glCreateProgram();
   GLuint vertShaderCol=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER,{"EXPLICIT_COLOR"});
   GLuint fragShaderCol=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER,{"EXPLICIT_COLOR"});

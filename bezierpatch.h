@@ -33,6 +33,17 @@ struct BezierPatch
   static GLuint ntvertices;
   static GLuint Nvertices;
   static GLuint Ntvertices;
+
+  // 0 - vbo
+  // 1 - Vbo
+  // 2 - tvbo
+  // 3 - tVbo
+  static std::array<GLuint,4> vertsBufferIndex; 
+
+  // ebo in the same order. 
+  static std::array<GLuint,4> elemBufferIndex; 
+  
+
   std::vector<GLuint> *pindices;
   triple u,v,w;
   double epsilon;
@@ -189,6 +200,40 @@ struct BezierPatch
       Y < Min.gety() || y > Max.gety() ||
       Z < Min.getz() || z > Max.getz();
   }
+
+  // FIXME: Add in a VBO-ize function.
+
+  void createBuffers() {
+    glGenBuffers(4,vertsBufferIndex.data());
+    glGenBuffers(4,elemBufferIndex.data());
+
+    auto registerBufferFloat=[&](std::vector<GLfloat>& buffervector, GLuint bufferIndex)
+    {
+      glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
+      glBufferData(GL_ARRAY_BUFFER,sizeof(GLfloat)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
+      glBindBuffer(GL_ARRAY_BUFFER,0);
+    };
+
+    auto registerBufferUint=[&](std::vector<GLuint>& buffervector, GLuint bufferIndex)
+    {
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,bufferIndex);
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(GLuint)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    };
+
+    //vbo 
+    registerBufferFloat(buffer,vertsBufferIndex[0]);
+    registerBufferFloat(Buffer,vertsBufferIndex[1]);
+    registerBufferFloat(tbuffer,vertsBufferIndex[2]);
+    registerBufferFloat(tBuffer,vertsBufferIndex[3]);
+
+    //ebo
+    registerBufferUint(indices,elemBufferIndex[0]);
+    registerBufferUint(Indices,elemBufferIndex[1]);
+    registerBufferUint(tindices,elemBufferIndex[2]);
+    registerBufferUint(tIndices,elemBufferIndex[3]);
+    
+  }
   
   void clear() {
     nvertices=ntvertices=Nvertices=Ntvertices=0;
@@ -200,6 +245,11 @@ struct BezierPatch
     tindices.clear();
     tBuffer.clear();
     tIndices.clear();
+
+    
+    glDeleteBuffers(4,vertsBufferIndex.data());
+    glDeleteBuffers(4,elemBufferIndex.data());
+    
   }
   
   ~BezierPatch() {}
