@@ -914,6 +914,10 @@ void BezierPatch::draw()
   const size_t bytestride=stride*size;
   const size_t Bytestride=Stride*size;
 
+  GLuint vao;
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
   createBuffers();
     
   // glEnableClientState(GL_NORMAL_ARRAY);
@@ -923,14 +927,8 @@ void BezierPatch::draw()
   // GLint posAttribNC=glGetAttribLocation(colorShader, "position");
   // GLint normalAttribNC=glGetAttribLocation(colorShader, "normal");
 
-  glUseProgram(noColorShader);
-  //camp::setUniforms(noColorShader); 
-
   GLint posAttrib=glGetAttribLocation(noColorShader, "position");
   GLint normalAttrib=glGetAttribLocation(noColorShader, "normal");
-
-  glUseProgram(colorShader);
-  //camp::setUniforms(colorShader); 
 
   GLint posAttribCol=glGetAttribLocation(colorShader, "position");
   GLint normalAttribCol=glGetAttribLocation(colorShader, "normal");
@@ -948,14 +946,14 @@ void BezierPatch::draw()
 
     bindBuffers(vertsBufferIndex[0],elemBufferIndex[0]);
 
-    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void const*)(0));
+    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0));
     glEnableVertexAttribArray(posAttrib);
     // glVertexPointer(3,GL_FLOAT,bytestride,&buffer[0]);
     // glNormalPointer(GL_FLOAT,bytestride,&buffer[3]);
-    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void const*)(3*sizeof(GLfloat)));
+    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(normalAttrib);
 
-    glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void const*)(0));
+    glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void*)(0));
 
     glDisableVertexAttribArray(posAttrib);
     glDisableVertexAttribArray(normalAttrib);
@@ -969,19 +967,19 @@ void BezierPatch::draw()
     // glEnableClientState(GL_COLOR_ARRAY);
     // glEnable(GL_COLOR_MATERIAL);
 
-    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void const*)(0*sizeof(GLfloat)));
+    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0*sizeof(GLfloat)));
     glEnableVertexAttribArray(posAttribCol);
 
-    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void const*)(3*sizeof(GLfloat)));
+    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(normalAttribCol);
 
-    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void const*)(6*sizeof(GLfloat)));
+    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void*)(6*sizeof(GLfloat)));
     glEnableVertexAttribArray(colorAttribCol);
 
     //glVertexPointer(3,GL_FLOAT,Bytestride,&Buffer[0]);
     //glNormalPointer(GL_FLOAT,Bytestride,&Buffer[3]);
     //glColorPointer(4,GL_FLOAT,Bytestride,&Buffer[6]);
-    glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void const*)(0*sizeof(GLuint)));
+    glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void*)(0*sizeof(GLuint)));
 
     glDisableVertexAttribArray(posAttribCol);
     glDisableVertexAttribArray(normalAttribCol);
@@ -1006,13 +1004,13 @@ void BezierPatch::draw()
     //glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
     //glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
 
-    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void const*)(0*sizeof(GLfloat)));
+    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0*sizeof(GLfloat)));
     glEnableVertexAttribArray(posAttrib);
 
-    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void const*)(3*sizeof(GLfloat)));
+    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(normalAttrib);
 
-    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,(void const*)(0*sizeof(GLuint)));
+    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,(void*)(0*sizeof(GLuint)));
 
     glDisableVertexAttribArray(posAttrib);
     glDisableVertexAttribArray(normalAttrib);
@@ -1033,19 +1031,19 @@ void BezierPatch::draw()
     // glEnableClientState(GL_COLOR_ARRAY);
     // glEnable(GL_COLOR_MATERIAL);
 
-    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void const*)(0*sizeof(GLfloat)));
+    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0*sizeof(GLfloat)));
     glEnableVertexAttribArray(posAttribCol);
 
-    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void const*)(3*sizeof(GLfloat)));
+    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(normalAttribCol);
 
-    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void const*)(6*sizeof(GLfloat)));
+    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void*)(6*sizeof(GLfloat)));
     glEnableVertexAttribArray(colorAttribCol);    
 
     //glVertexPointer(3,GL_FLOAT,Bytestride,&tBuffer[0]);
     //glNormalPointer(GL_FLOAT,Bytestride,&tBuffer[3]);
     //glColorPointer(4,GL_FLOAT,Bytestride,&tBuffer[6]);
-    glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,(void const*)(0*sizeof(GLuint)));
+    glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,(void*)(0*sizeof(GLuint)));
     // glDisable(GL_COLOR_MATERIAL);
     // glDisableClientState(GL_COLOR_ARRAY);
 
@@ -1056,6 +1054,9 @@ void BezierPatch::draw()
 
   bindBuffers(0,0);
   glUseProgram(0);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1,&vao);
   // glDisableClientState(GL_VERTEX_ARRAY);
   // glDisableClientState(GL_NORMAL_ARRAY);
   

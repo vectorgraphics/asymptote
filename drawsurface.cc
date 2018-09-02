@@ -74,12 +74,14 @@ void setcolors(bool colors, bool lighton,
     lastspecular=specular;
     lastshininess=shininess;
   }
-
+#ifdef OLD_MATERIAL
   if(colors) {
+
     if(!lighton) 
       glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
 
     GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
+
     glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
     glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Black);
@@ -87,6 +89,7 @@ void setcolors(bool colors, bool lighton,
     GLfloat Diffuse[]={(GLfloat) diffuse.R,(GLfloat) diffuse.G,
 		       (GLfloat) diffuse.B,(GLfloat) diffuse.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+
   
     GLfloat Ambient[]={(GLfloat) ambient.R,(GLfloat) ambient.G,
 		       (GLfloat) ambient.B,(GLfloat) ambient.A};
@@ -104,6 +107,7 @@ void setcolors(bool colors, bool lighton,
   
     glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
   }
+#endif
 }
 
 #endif  
@@ -913,6 +917,7 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
                        double perspective, bool lighton, bool transparent) 
 {
 #ifdef HAVE_GL
+#ifdef OLD_MATERIAL
   if(invisible)
     return;
   
@@ -938,6 +943,7 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
   
   glPointSize(1.0);
   glDisable(GL_COLOR_MATERIAL);
+#endif
 #endif
 }
 

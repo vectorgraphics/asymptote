@@ -209,19 +209,24 @@ struct BezierPatch
 
     auto registerBufferFloat=[&](std::vector<GLfloat>& buffervector, GLuint bufferIndex)
     {
-      glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
-      glBufferData(GL_ARRAY_BUFFER,sizeof(GLfloat)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
-      glBindBuffer(GL_ARRAY_BUFFER,0);
+      if (!buffervector.empty()) {
+        glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
+        glBufferData(GL_ARRAY_BUFFER,sizeof(GLfloat)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,0);
+      }
     };
 
     auto registerBufferUint=[&](std::vector<GLuint>& buffervector, GLuint bufferIndex)
     {
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,bufferIndex);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(GLuint)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+      if (!buffervector.empty()) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,bufferIndex);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(GLuint)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+      }
     };
 
-    //vbo 
+    //vbo
+    
     registerBufferFloat(buffer,vertsBufferIndex[0]);
     registerBufferFloat(Buffer,vertsBufferIndex[1]);
     registerBufferFloat(tbuffer,vertsBufferIndex[2]);

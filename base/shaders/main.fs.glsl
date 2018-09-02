@@ -1,7 +1,7 @@
 //#version 140
 in vec3 Normal;
 
-#ifdef EXPLICIT_COLOR
+#if EXPLICIT_COLOR==1
 in vec4 Color; 
 #endif
 
@@ -9,7 +9,7 @@ out vec4 outColor;
 
 void main()
 {
-#ifdef EXPLICIT_COLOR
+#if EXPLICIT_COLOR==1
     outColor=Color;
 #else
     outColor=vec4(Normal,1);

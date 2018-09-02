@@ -511,16 +511,20 @@ void mode()
 {
   switch(Mode) {
     case 0:
+#ifdef OLD_MATERIAL
       for(size_t i=0; i < Nlights; ++i) 
         glEnable(GL_LIGHT0+i);
+#endif
       outlinemode=false;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       ++Mode;
       break;
     case 1:
+#ifdef OLD_MATERIAL
       for(size_t i=0; i < Nlights; ++i) 
         glDisable(GL_LIGHT0+i);
+#endif
       outlinemode=true;
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
@@ -1308,6 +1312,7 @@ void exportHandler(int=0)
 }
 
 static bool glinitialize=true;
+static bool shaderinit=false;
 
 projection camera(bool user)
 {
@@ -1366,14 +1371,16 @@ void init()
   char **argv=args(cmd,true);
   int argc=cmd.size();
 
-  glutInitContextFlags(GLUT_CORE_PROFILE);
-  //glutInitContextVersion(4,5);
+  glutInitContextVersion(4,5);
+  glutInitContextProfile(GLUT_CORE_PROFILE);
+  //glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
 
   glutInit(&argc,argv);
   // NOTE: Change version if needed. 
 
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
+  
 #endif
 }
 
@@ -1649,6 +1656,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   initialized=true;
 
   glewExperimental = GL_TRUE;
+
+  
   auto result = glewInit();
 
   if (result!=GLEW_OK)
@@ -1656,35 +1665,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     cerr<<"GLEW Error!"<<endl;
     throw 1;
   }
-
+  
   if(!GLEW_VERSION_4_5)
   {
     cerr<<"OpenGL Version 4.5 not available!"<<endl;
     throw 1;
   }
-  
+
   std::cout << "Renderer init" << std::endl;
-
-  shaderProg=glCreateProgram();
-  
-  GLuint vertShader=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER);
-  GLuint fragShader=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER);
-  glAttachShader(shaderProg,vertShader);
-  glAttachShader(shaderProg,fragShader);
-
-  glLinkProgram(shaderProg);
-
-  shaderProgColor=glCreateProgram();
-  GLuint vertShaderCol=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER,{"EXPLICIT_COLOR"});
-  GLuint fragShaderCol=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER,{"EXPLICIT_COLOR"});
-  glAttachShader(shaderProgColor,vertShaderCol);
-  glAttachShader(shaderProgColor,fragShaderCol);
-
-  glLinkProgram(shaderProgColor);
-
-  camp::noColorShader=shaderProg;
-  camp::colorShader=shaderProgColor;
-  
   // glMatrixMode(GL_MODELVIEW);
   home();
     
@@ -1700,14 +1688,37 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     }
   }
 #endif
+
+  if(!shaderinit) {
+    shaderProg=glCreateProgram();
+    GLuint vertShader=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER);
+    GLuint fragShader=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER);
+    glAttachShader(shaderProg,vertShader);
+    glAttachShader(shaderProg,fragShader);
+    
+    shaderProgColor=glCreateProgram();
+    GLuint vertShaderCol=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER,{"EXPLICIT_COLOR"});
+    GLuint fragShaderCol=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER,{"EXPLICIT_COLOR"});
+    glAttachShader(shaderProgColor,vertShaderCol);
+    glAttachShader(shaderProgColor,fragShaderCol);
+
+    camp::noColorShader=shaderProg;
+    camp::colorShader=shaderProgColor;
+    shaderinit=true;
+    glLinkProgram(shaderProgColor);
+    glLinkProgram(shaderProg);
+  }
   
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
+
+#ifdef OLD_MATERIAL
   glEnable(GL_MAP1_VERTEX_3);
   glEnable(GL_MAP1_VERTEX_4);
   glEnable(GL_MAP2_VERTEX_3);
   glEnable(GL_MAP2_VERTEX_4);
   glEnable(GL_MAP2_COLOR_4);
+#endif
   
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
