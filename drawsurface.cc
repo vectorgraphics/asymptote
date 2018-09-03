@@ -11,9 +11,24 @@
 #include <iomanip>
 #include <fstream>
 
+#include <glm/glm.hpp>
+
 using namespace prc;
 
 namespace camp {
+
+// FIXME: Eventually create a PBR rendering pipeline instead... 
+
+/*
+struct PBRMaterial {
+public:
+  glm::vec3 diffuse, emission;
+  float metallic, roughness; 
+};
+*/
+#ifdef HAVE_GL
+camp::Material objMaterial;
+#endif
 
 const triple drawElement::zero;
 
@@ -74,40 +89,59 @@ void setcolors(bool colors, bool lighton,
     lastspecular=specular;
     lastshininess=shininess;
   }
-#ifdef OLD_MATERIAL
+// #ifdef OLD_MATERIAL
   if(colors) {
 
     if(!lighton) 
       glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
 
-    GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
+    // GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
+    glm::vec4 blackMat(0,0,0,(GLfloat)diffuse.A);
 
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Black);
+    // glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
+    // glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
+    // glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Black);
+
+    objMaterial.diffuse=blackMat;
+    objMaterial.specular=blackMat;
+    objMaterial.emission=blackMat;
+
   } else {
-    GLfloat Diffuse[]={(GLfloat) diffuse.R,(GLfloat) diffuse.G,
-		       (GLfloat) diffuse.B,(GLfloat) diffuse.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+    // GLfloat Diffuse[]={(GLfloat) diffuse.R,(GLfloat) diffuse.G,
+		//       (GLfloat) diffuse.B,(GLfloat) diffuse.A};
+    // glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
 
+    objMaterial.diffuse=glm::vec4((GLfloat) diffuse.R,(GLfloat) diffuse.G,
+		       (GLfloat) diffuse.B,(GLfloat) diffuse.A);
+
+    // GLfloat Ambient[]={(GLfloat) ambient.R,(GLfloat) ambient.G,
+		//       (GLfloat) ambient.B,(GLfloat) ambient.A};
+    // glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+
+    objMaterial.ambient=glm::vec4((GLfloat) ambient.R,(GLfloat) ambient.G,
+		       (GLfloat) ambient.B,(GLfloat) ambient.A);
   
-    GLfloat Ambient[]={(GLfloat) ambient.R,(GLfloat) ambient.G,
-		       (GLfloat) ambient.B,(GLfloat) ambient.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
-  
-    GLfloat Emissive[]={(GLfloat) emissive.R,(GLfloat) emissive.G,
-			(GLfloat) emissive.B,(GLfloat) emissive.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+    // GLfloat Emissive[]={(GLfloat) emissive.R,(GLfloat) emissive.G,
+		//	(GLfloat) emissive.B,(GLfloat) emissive.A};
+    // glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+
+    objMaterial.emission=glm::vec4((GLfloat) emissive.R,(GLfloat) emissive.G,
+			(GLfloat) emissive.B,(GLfloat) emissive.A);
   }
     
   if(lighton) {
-    GLfloat Specular[]={(GLfloat) specular.R,(GLfloat) specular.G,
-			(GLfloat) specular.B,(GLfloat) specular.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+    // GLfloat Specular[]={(GLfloat) specular.R,(GLfloat) specular.G,
+		//	(GLfloat) specular.B,(GLfloat) specular.A};
+    // glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+
+    objMaterial.specular=glm::vec4((GLfloat) specular.R,(GLfloat) specular.G,
+			(GLfloat) specular.B,(GLfloat) specular.A);
+
+    objMaterial.shininess=128.0*shininess;
   
-    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+    // glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
   }
-#endif
+// #endif
 }
 
 #endif  

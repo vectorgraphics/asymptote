@@ -53,6 +53,9 @@ namespace camp {
 billboard BB;
 GLint noColorShader;
 GLint colorShader;
+
+struct Material;
+extern Material objMaterial;
 }
 namespace gl {
   
@@ -1672,7 +1675,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     throw 1;
   }
 
+  if(settings::verbose>1)
+  {
   std::cout << "Renderer init" << std::endl;
+  }
   // glMatrixMode(GL_MODELVIEW);
   home();
     
@@ -1807,6 +1813,8 @@ void setUniforms(GLint shader)
   glUniformMatrix4fv(getShaderUnifs("viewMat"), 1, GL_FALSE, glm::value_ptr(gl::viewMat));
   glUniformMatrix4fv(getShaderUnifs("projMat"), 1, GL_FALSE, glm::value_ptr(gl::projMat));
   glUniformMatrix4fv(getShaderUnifs("modelMat"), 1, GL_FALSE, glm::value_ptr(gl::modelMat));
+
+  
 } 
 }
 

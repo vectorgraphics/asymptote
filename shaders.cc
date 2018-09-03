@@ -56,7 +56,7 @@ GLuint createShaderFile(std::string file, int shaderType, std::unordered_set<std
     
     for(std::string const& flag : compilerFlags)
     {
-        shaderSrc << "#define " << flag << " " << "1" << "\r\n";
+        shaderSrc << "#define " << flag << "\r\n";
     }
     
 
