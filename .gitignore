@@ -149,3 +149,7 @@ xasydev
 
 ### RC Icons
 GUI/icons_rc.py
+
+
+# apitrace outputs
+*.trace
