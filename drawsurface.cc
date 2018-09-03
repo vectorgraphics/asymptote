@@ -14,7 +14,7 @@
 #include <glm/glm.hpp>
 
 using namespace prc;
-
+#include "material.h"
 namespace camp {
 
 // FIXME: Eventually create a PBR rendering pipeline instead... 

@@ -48,13 +48,13 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shaders.h"
+#include "material.h"
 
 namespace camp {
 billboard BB;
 GLint noColorShader;
 GLint colorShader;
 
-struct Material;
 extern Material objMaterial;
 }
 namespace gl {
@@ -1814,7 +1814,13 @@ void setUniforms(GLint shader)
   glUniformMatrix4fv(getShaderUnifs("projMat"), 1, GL_FALSE, glm::value_ptr(gl::projMat));
   glUniformMatrix4fv(getShaderUnifs("modelMat"), 1, GL_FALSE, glm::value_ptr(gl::modelMat));
 
-  
+  glUniform4fv(getShaderUnifs("materialData.diffuse"),1,glm::value_ptr(objMaterial.diffuse));
+  glUniform4fv(getShaderUnifs("materialData.specular"),1,glm::value_ptr(objMaterial.specular));
+  glUniform4fv(getShaderUnifs("materialData.ambient"),1,glm::value_ptr(objMaterial.ambient));
+  glUniform4fv(getShaderUnifs("materialData.emissive"),1,glm::value_ptr(objMaterial.emission));
+
+  glUniform1f(getShaderUnifs("materialData.shininess"),objMaterial.shininess);
+
 } 
 }
 

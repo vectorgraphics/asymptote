@@ -1,4 +1,13 @@
-//#version 140
+//#version 450
+
+struct Material
+{
+    vec4 diffuse, specular, emissive, ambient;
+    float shininess; 
+};
+
+uniform Material materialData;
+
 in vec3 Normal;
 
 #ifdef EXPLICIT_COLOR
@@ -12,7 +21,7 @@ void main()
 #ifdef EXPLICIT_COLOR
     outColor=Color;
 #else
-    outColor=vec4(Normal,1);
+    outColor=materialData.diffuse;
 #endif
 
 }
