@@ -222,8 +222,8 @@ void lighting()
 
 void initlighting() 
 {
-  return; 
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
+  return; 
   glEnable(GL_LIGHTING);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,getSetting<bool>("twosided"));
     
@@ -1810,16 +1810,47 @@ void setUniforms(GLint shader)
     return glGetUniformLocation(shader,name.c_str()); 
   }; 
 
-  glUniformMatrix4fv(getShaderUnifs("viewMat"), 1, GL_FALSE, glm::value_ptr(gl::viewMat));
-  glUniformMatrix4fv(getShaderUnifs("projMat"), 1, GL_FALSE, glm::value_ptr(gl::projMat));
-  glUniformMatrix4fv(getShaderUnifs("modelMat"), 1, GL_FALSE, glm::value_ptr(gl::modelMat));
+  // 
+  glUniformMatrix4fv(getShaderUnifs("viewMat"),1,GL_FALSE, glm::value_ptr(gl::viewMat));
+  glUniformMatrix4fv(getShaderUnifs("projMat"),1,GL_FALSE, glm::value_ptr(gl::projMat));
+  glUniformMatrix4fv(getShaderUnifs("modelMat"),1,GL_FALSE, glm::value_ptr(gl::modelMat));
 
+  // materials 
   glUniform4fv(getShaderUnifs("materialData.diffuse"),1,glm::value_ptr(objMaterial.diffuse));
   glUniform4fv(getShaderUnifs("materialData.specular"),1,glm::value_ptr(objMaterial.specular));
   glUniform4fv(getShaderUnifs("materialData.ambient"),1,glm::value_ptr(objMaterial.ambient));
   glUniform4fv(getShaderUnifs("materialData.emissive"),1,glm::value_ptr(objMaterial.emission));
 
   glUniform1f(getShaderUnifs("materialData.shininess"),objMaterial.shininess);
+
+  // lights
+
+  glUniform1i(getShaderUnifs("lightCount"),gl::ViewportLighting ? gl::Nlights : 0);
+
+  auto getLightIndex=[](uint32_t const& index,std::string const& fieldName)->std::string {
+    return "lights["+std::to_string(index)+"]."+fieldName;
+  };
+
+  if (gl::ViewportLighting) {
+    for(size_t i=0; i<gl::Nlights; ++i) {
+      triple Lighti=gl::Lights[i];
+      size_t i4=4*i;
+      glUniform3f(getShaderUnifs(getLightIndex(i,"direction")),
+        (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),(GLfloat) Lighti.getz());
+
+      glUniform4f(getShaderUnifs(getLightIndex(i,"diffuse")),
+        (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
+		       (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
+      
+      glUniform4f(getShaderUnifs(getLightIndex(i,"ambient")),
+        (GLfloat) gl::Ambient[i4],(GLfloat) gl::Ambient[i4+1],
+		       (GLfloat) gl::Ambient[i4+2],(GLfloat) gl::Ambient[i4+3]);
+      
+      glUniform4f(getShaderUnifs(getLightIndex(i,"specular")),
+        (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
+		       (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
+    }
+  }
 
 } 
 }

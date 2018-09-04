@@ -12,6 +12,8 @@ uniform mat4 projMat;
 uniform mat4 modelMat;
 
 out vec3 Normal;
+out vec3 ViewPosition;
+// out mat4 invtranspViewMat;
 
 #ifdef EXPLICIT_COLOR
 out vec4 Color;
@@ -25,7 +27,11 @@ mat4 invtransp(mat4 inmat)
 void main()
 {
     gl_Position=projMat * viewMat * modelMat * vec4(position, 1.0);
+
+    ViewPosition=(viewMat * modelMat * vec4(position, 1.0)).xyz;
     vec4 rawNormal=invtransp(viewMat * modelMat) * vec4(normal,0);
+
+    // invtranspViewMat=invtransp(viewMat);
 
     Normal=normalize(rawNormal.xyz);
     
