@@ -24,7 +24,6 @@ uniform int lightCount;
 uniform Light lights[100];
 
 uniform Material materialData;
-uniform mat4 viewMat;
 
 // in mat4 invtranspViewMat;
 in vec3 Normal;
@@ -49,17 +48,19 @@ void main()
     // FIXME: CHange this to a PBR model
     // ==> Diffuse, metallic, roughness, fresnelIOR 
 
-    // for now, the old Blinn-Phong model.
+    // for now, the old Phong model.
     if(lightCount>0) {
         vec3 diffuse=vec3(0,0,0);
         vec3 specular=vec3(0,0,0);
         vec4 ambient=vec4(0,0,0,1);
 
+        // FIXME: Surely, PBR fixes this problem by using reflection maps
+        // does this get fixed by other shading models like Blinn-Phong?
         vec3 incidence=normalize(ViewPosition);
         
         for(int i=0;i<lightCount;++i)
         {
-            vec4 viewLightDir=normalize(viewMat*vec4(lights[i].direction,0));
+            vec4 viewLightDir=normalize(vec4(-lights[i].direction,0));
 
             float lambertPower=dot(Normal,-viewLightDir.xyz);
             lambertPower=clamp(lambertPower,0,1);
