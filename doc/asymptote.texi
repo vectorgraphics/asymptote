@@ -6162,7 +6162,7 @@ An even better method for processing a @code{LaTeX} file with embedded
 @end quotation
 @noindent
 after putting the contents of
-@url{http://sourceforge.net/p/asymptote/code/HEAD/tree/trunk/asymptote/doc/latexmkrc}
+@url{https://raw.githubusercontent.com/vectorgraphics/asymptote/master/doc/latexmkrc}
 @noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
@@ -9736,7 +9736,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo. Other
 contributors include Orest Shardt, Jesse Frohlich, Michail Vidiassov,
 Charles Staats, Philippe Ivaldi, Olivier Guib@'e, Radoslav Marinov,
 Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
-Martin Wiebusch, and Stefan Knorr.
+Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 
 @node Index,  , Credits, Top
 @unnumbered Index
