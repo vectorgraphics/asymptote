@@ -247,7 +247,7 @@ struct simplex {
     bool phase1=true;
     operator init(concat(c,array(count,0.0)),a,b,phase1);
 
-    if(case == OPTIMAL)
+    if(case == OPTIMAL && count > 0)
       x.delete(n,n+count-1);
   }
 }
