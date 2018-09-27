@@ -742,7 +742,7 @@ can be enabled by running @code{asy-kate.sh} in the
 The following commands are needed to install the latest development version of
 @code{Asymptote} using @code{git}:
 @verbatim
-git clone http://github.com/vectorgraphics/asymptote
+git clone https://github.com/vectorgraphics/asymptote
 
 cd asymptote
 ./autogen.sh
@@ -6162,7 +6162,7 @@ An even better method for processing a @code{LaTeX} file with embedded
 @end quotation
 @noindent
 after putting the contents of
-@url{https://raw.githubusercontent.com/vectorgraphics/asymptote/master/doc/latexmkrc}
+@url{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/latexmkrc}
 @noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
