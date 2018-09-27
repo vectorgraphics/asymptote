@@ -373,10 +373,6 @@ public:
   }
   
   void strokepath(psfile *out) {
-    // strokepath and evenodd are incompatible
-    static pen zerowinding=pen((FillRule) ZEROWINDING);
-    pentype=pentype+zerowinding;
-    out->setpen(pentype);
     out->strokepath();
   }
   
