@@ -151,11 +151,11 @@ struct simplex {
       case=INFEASIBLE;
       return;
       }
-    } else Bindices=new int[m];
+    } else Bindices=sequence(new int(int x){return x;},m)+n-m;
     
     real[][] D=phase1 ? new real[m+1][n+1] : E;
     real[] Dm=D[m];
-    real[] cb=phase1 ? new real[m] : array(m,0.0);
+    real[] cb=phase1 ? new real[m] : c[n-m:n];
     if(phase1) {
       int ip=0; // reduced i
       for(int i=0; i < m; ++i) {
