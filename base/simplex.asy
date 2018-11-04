@@ -82,6 +82,7 @@ struct simplex {
   // Try to find a solution x to Ax=b that minimizes the cost c^T x,
   // where A is an m x n matrix, x is a vector of n non-negative numbers,
   // b is a vector of length m, and c is a vector of length n.
+  // Can set phase1=false if the last m columns of A form the identity matrix.
   void operator init(real[] c, real[][] A, real[] b, bool phase1=true) {
     static real epsilon=sqrt(realEpsilon);
     epsilonA=epsilon*norm(A);
