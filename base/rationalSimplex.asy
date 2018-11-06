@@ -1,6 +1,29 @@
 // Rational simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 import rational;
 
+void simplexTableau(rational[][] E, int[] Bindices) {}
+void simplexPhase2() {}
+
+void simplexWrite(rational[][] E, int[] Bindicies)
+{
+ int m=E.length-1;
+ int n=E[0].length-1;
+
+ write(E[m][n],tab);
+ for(int j=0; j < n; ++j)
+   write(E[m][j],tab);
+ write();
+
+ for(int i=0; i < m; ++i) {
+   write(E[i][n],tab);
+   for(int j=0; j < n; ++j) {
+     write(E[i][j],tab);
+   }
+   write();
+ }
+ write();
+};
+
 struct simplex {
   static int OPTIMAL=0;
   static int UNBOUNDED=1;
@@ -42,8 +65,7 @@ struct simplex {
   }
 
   int iterate(rational[][] E, int N, int[] Bindices) {
-    //    write(E);
-    //    write();
+    simplexTableau(E,Bindices);
     while(true) {
       // Find first negative entry in bottom (reduced cost) row
       rational[] Em=E[m];
@@ -67,7 +89,7 @@ struct simplex {
         rational e=E[i][J];
         if(e > 0) {
           rational v=E[i][N]/e;
-          if(v <= M) {M=v; I=i;}
+          if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
         }
       }
       if(I == -1)
@@ -77,8 +99,7 @@ struct simplex {
 
       // Generate new tableau
       rowreduce(E,N,I,J);
-      //      write(E);
-      //      write();
+      simplexTableau(E,Bindices);
     }
     return 0;
   }
@@ -193,6 +214,8 @@ struct simplex {
     for(int k=0; k < m; ++k)
       sum += cb[k]*D[k][n];
     Dm[n]=-sum;
+
+    simplexPhase2();
 
     if(iterate(D,n,Bindices) == UNBOUNDED) {
     case=UNBOUNDED;

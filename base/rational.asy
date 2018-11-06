@@ -156,36 +156,34 @@ string texstring(rational r)
  return s+"\frac{"+string(abs(r.p))+"}{"+string(r.q)+"}";
 }
 
- 
-
-void write(string s="", rational r, suffix suffix=endl)
+void write(file fout=stdout, string s="", rational r, suffix suffix=none)
 {
- write(s+string(r),suffix);
+ write(fout,s+string(r),suffix);
 }
 
-void write(string s="", rational[] a, suffix suffix=endl)
+void write(file fout=stdout, string s="", rational[] a, suffix suffix=none)
 {
   if(s != "")
-    write(s);
+    write(fout,s);
   for(int i=0; i < a.length; ++i) {
-    write(i,none);
-    write(':\t',a[i]);
+    write(fout,i,none);
+    write(fout,':\t',a[i],endl);
   }
-  write(suffix);
+  write(fout,suffix);
 }
 
-void write(string s="", rational[][] a, suffix suffix=endl)
+void write(file fout=stdout, string s="", rational[][] a, suffix suffix=none)
 {
   if(s != "")
-    write(s);
+    write(fout,s);
   for(int i=0; i < a.length; ++i) {
     rational[] ai=a[i];
     for(int j=0; j < ai.length; ++j) {
-      write(ai[j],tab);
+      write(fout,ai[j],tab);
     }
-    write();
+    write(fout,endl);
   }
-  write(suffix);
+  write(fout,suffix);
 }
 
 bool rectangular(rational[][] m)
