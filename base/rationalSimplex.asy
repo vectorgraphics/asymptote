@@ -1,10 +1,10 @@
 // Rational simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 import rational;
 
-void simplexTableau(rational[][] E, int[] Bindices) {}
+void simplexTableau(rational[][] E, int[] Bindices, int I=-1, int J=-1) {}
 void simplexPhase2() {}
 
-void simplexWrite(rational[][] E, int[] Bindicies)
+void simplexWrite(rational[][] E, int[] Bindicies, int, int)
 {
  int m=E.length-1;
  int n=E[0].length-1;
@@ -65,7 +65,7 @@ struct simplex {
   }
 
   int iterate(rational[][] E, int N, int[] Bindices) {
-    simplexTableau(E,Bindices);
+    int rc=0;
     while(true) {
       // Find first negative entry in bottom (reduced cost) row
       rational[] Em=E[m];
@@ -73,7 +73,7 @@ struct simplex {
         if(Em[J] < 0) break;
 
       if(J == N)
-        return 0;
+        break;
 
       int I=-1;
       rational M;
@@ -92,16 +92,19 @@ struct simplex {
           if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
         }
       }
-      if(I == -1)
-        return UNBOUNDED; // Can only happen in Phase 2.
+      if(I == -1) {
+        rc=UNBOUNDED; // Can only happen in Phase 2.
+        break;
+      }
 
-      Bindices[I]=J;
+      simplexTableau(E,Bindices,I,J);
 
       // Generate new tableau
+      Bindices[I]=J;
       rowreduce(E,N,I,J);
-      simplexTableau(E,Bindices);
     }
-    return 0;
+    simplexTableau(E,Bindices);
+    return rc;
   }
 
   // Try to find a solution x to Ax=b that minimizes the cost c^T x,
@@ -200,7 +203,10 @@ struct simplex {
         Dip[j]=Em[j];
       Dip[n]=Em[N];
 
-      m=ip;
+      if(m > ip) {
+        Bindices.delete(ip,m-1);
+        m=ip;
+      }
     }
 
     for(int j=0; j < n; ++j) {
@@ -306,6 +312,7 @@ simplex S=simplex(new rational[] {1,1,1,0},
 
 write();
 write("case:",S.case);
-write("x:",S.x);
+write("x:");
+write(S.x);
 write("Cost=",S.cost);
 */
