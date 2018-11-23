@@ -162,7 +162,7 @@ glm::mat4 rotateMat;
 
 GLint shaderProg,shaderProgColor;
 
-GLfloat Rotate[16];  
+GLfloat *Rotate=new GLfloat(16);  
 GLUnurbs *nurb=NULL;
 
 void *glrenderWrapper(void *a);
@@ -297,7 +297,7 @@ void setDimensions(int Width, int Height, double X, double Y)
 
 void setProjection()
 {
-  projMat = glm::mat4(1.f);
+  projMat = glm::mat4(1.0f);
 
   // glMatrixMode(GL_PROJECTION);
   // glLoadIdentity();
@@ -449,10 +449,11 @@ void home()
   // glLoadIdentity();
   // glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
   
-  rotateMat=glm::mat4(1.f); 
-  viewMat=glm::mat4(1.f);
-  modelMat=glm::mat4(1.f);
+  rotateMat=glm::mat4(1.0f); 
+  viewMat=glm::mat4(1.0f);
+  modelMat=glm::mat4(1.0f);
   
+  Rotate=glm::value_ptr(rotateMat);
   lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
   initlighting();
@@ -900,11 +901,13 @@ double Degrees(int x, int y)
 
 void updateArcball() 
 {
+  Rotate=glm::value_ptr(rotateMat);
   for(int i=0; i < 4; ++i) {
     int i4=4*i;
     vec4& roti=arcball.rot[i];
     for(int j=0; j < 4; ++j)
-      roti[j]=glm::value_ptr(rotateMat)[i4+j];
+      roti[j]=Rotate[i4+j];
+//      roti[j]=glm::value_ptr(rotateMat)[i4+j];
   }
   update();
 }
