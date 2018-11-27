@@ -2,7 +2,7 @@
 %global _python_bytecompile_errors_terminate_build 0
 
 Name:           asymptote
-Version:        2.47
+Version:        2.48
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 

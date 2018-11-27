@@ -45,7 +45,7 @@ void texdim(iopipestream& tex, double& dest, const string command,
   if (dim1 != string::npos && dim2 != string::npos) {
     string n=buffer.substr(dim1+start.size(),dim2-dim1-start.size());
     try {
-      dest=lexical::cast<double>(n,true)*camp::tex2ps;
+      dest=lexical::cast<double>(n,true)*tex2ps;
     } catch(lexical::bad_cast&) {
       camp::reportError(cannotread);
     }
