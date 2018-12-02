@@ -1,4 +1,4 @@
-// General simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
+// Real simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 
 struct simplex {
   static int OPTIMAL=0;
@@ -82,6 +82,7 @@ struct simplex {
   // Try to find a solution x to Ax=b that minimizes the cost c^T x,
   // where A is an m x n matrix, x is a vector of n non-negative numbers,
   // b is a vector of length m, and c is a vector of length n.
+  // Can set phase1=false if the last m columns of A form the identity matrix.
   void operator init(real[] c, real[][] A, real[] b, bool phase1=true) {
     static real epsilon=sqrt(realEpsilon);
     epsilonA=epsilon*norm(A);
@@ -140,16 +141,17 @@ struct simplex {
       for(int j=0; j < m; ++j)
         Em[n+j]=0.0;
    
-    int[] Bindices=sequence(new int(int x){return x;},m)+n;
+    int[] Bindices;
 
     if(phase1) {
+      Bindices=sequence(new int(int x){return x;},m)+n;
       iterate(E,N,Bindices);
   
       if(abs(Em[J]) > epsilonA) {
       case=INFEASIBLE;
       return;
       }
-    }
+    } else Bindices=sequence(new int(int x){return x;},m)+n-m;
     
     real[][] D=phase1 ? new real[m+1][n+1] : E;
     real[] Dm=D[m];
@@ -176,17 +178,15 @@ struct simplex {
       Dip[n]=Em[N];
 
       m=ip;
-
-      for(int j=0; j < n; ++j) {
-        real sum=0;
-        for(int k=0; k < m; ++k)
-          sum += cb[k]*D[k][j];
-        Dm[j]=c[j]-sum;
-      }
-
-      // Done with Phase 1
     }
-   
+
+    for(int j=0; j < n; ++j) {
+      real sum=0;
+      for(int k=0; k < m; ++k)
+        sum += cb[k]*D[k][j];
+      Dm[j]=c[j]-sum;
+    }
+
     real sum=0;
     for(int k=0; k < m; ++k)
       sum += cb[k]*D[k][n];
@@ -243,11 +243,10 @@ struct simplex {
       if(s[i] != 0) ++k;
     }
 
-    //    bool phase1=!all(s == -1); // TODO: Check
-    bool phase1=true;
+    bool phase1=!all(s == -1);
     operator init(concat(c,array(count,0.0)),a,b,phase1);
 
-    if(case == OPTIMAL)
+    if(case == OPTIMAL && count > 0)
       x.delete(n,n+count-1);
   }
 }

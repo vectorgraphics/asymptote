@@ -742,7 +742,7 @@ can be enabled by running @code{asy-kate.sh} in the
 The following commands are needed to install the latest development version of
 @code{Asymptote} using @code{git}:
 @verbatim
-git clone http://github.com/vectorgraphics/asymptote
+git clone https://github.com/vectorgraphics/asymptote
 
 cd asymptote
 ./autogen.sh
@@ -1297,7 +1297,7 @@ void latticeshade(picture pic=currentpicture, path g, bool stroke=false,
 @end verbatim
 @cindex @code{stroke}
 If @code{stroke=true}, the region filled is the same as the region that
-would be drawn by @code{draw(pic,g,fillrule+zerowinding)}; in this case the path
+would be drawn by @code{draw(pic,g,zerowinding)}; in this case the path
 @code{g} need not be cyclic.
 The pens in @code{p} must belong to the same color space. One can use the
 functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
@@ -1425,7 +1425,7 @@ void clip(picture pic=currentpicture, path g, stroke=false,
 Clip the current contents of picture @code{pic} to the region bounded
 by the path @code{g}, using fill rule @code{fillrule} (@pxref{fillrule}).
 If @code{stroke=true}, the clipped portion is the same as the region
-that would be drawn with @code{draw(pic,g,fillrule+zerowinding)}; in
+that would be drawn with @code{draw(pic,g,zerowinding)}; in
 this case the path @code{g} need not be cyclic. For an illustration of
 picture clipping, see the first example in @ref{LaTeX usage}.
 
@@ -6162,7 +6162,7 @@ An even better method for processing a @code{LaTeX} file with embedded
 @end quotation
 @noindent
 after putting the contents of
-@url{http://sourceforge.net/p/asymptote/code/HEAD/tree/trunk/asymptote/doc/latexmkrc}
+@url{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/latexmkrc}
 @noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
@@ -9736,7 +9736,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo. Other
 contributors include Orest Shardt, Jesse Frohlich, Michail Vidiassov,
 Charles Staats, Philippe Ivaldi, Olivier Guib@'e, Radoslav Marinov,
 Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
-Martin Wiebusch, and Stefan Knorr.
+Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 
 @node Index,  , Credits, Top
 @unnumbered Index

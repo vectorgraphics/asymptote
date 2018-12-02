@@ -1,6 +1,29 @@
 // Rational simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 import rational;
 
+void simplexTableau(rational[][] E, int[] Bindices) {}
+void simplexPhase2() {}
+
+void simplexWrite(rational[][] E, int[] Bindicies)
+{
+ int m=E.length-1;
+ int n=E[0].length-1;
+
+ write(E[m][n],tab);
+ for(int j=0; j < n; ++j)
+   write(E[m][j],tab);
+ write();
+
+ for(int i=0; i < m; ++i) {
+   write(E[i][n],tab);
+   for(int j=0; j < n; ++j) {
+     write(E[i][j],tab);
+   }
+   write();
+ }
+ write();
+};
+
 struct simplex {
   static int OPTIMAL=0;
   static int UNBOUNDED=1;
@@ -42,6 +65,7 @@ struct simplex {
   }
 
   int iterate(rational[][] E, int N, int[] Bindices) {
+    simplexTableau(E,Bindices);
     while(true) {
       // Find first negative entry in bottom (reduced cost) row
       rational[] Em=E[m];
@@ -65,7 +89,7 @@ struct simplex {
         rational e=E[i][J];
         if(e > 0) {
           rational v=E[i][N]/e;
-          if(v <= M) {M=v; I=i;}
+          if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
         }
       }
       if(I == -1)
@@ -75,18 +99,22 @@ struct simplex {
 
       // Generate new tableau
       rowreduce(E,N,I,J);
+      simplexTableau(E,Bindices);
     }
     return 0;
   }
 
   // Try to find a solution x to Ax=b that minimizes the cost c^T x,
-  // where A is an m x n matrix, x is a vector of length n, b is a
-  // vector of length m, and c is a vector of length n.
+  // where A is an m x n matrix, x is a vector of n non-negative numbers,
+  // b is a vector of length m, and c is a vector of length n.
+  // Can set phase1=false if the last m columns of A form the identity matrix.
   void operator init(rational[] c, rational[][] A, rational[] b,
                      bool phase1=true) {
     // Phase 1    
     m=A.length;
+    if(m == 0) {case=INFEASIBLE; return;}
     n=A[0].length;
+    if(n == 0) {case=INFEASIBLE; return;}
 
     int N=phase1 ? n+m : n;
     rational[][] E=new rational[m+1][N+1];
@@ -136,17 +164,18 @@ struct simplex {
       for(int j=0; j < m; ++j)
         Em[n+j]=0;
    
-    int[] Bindices=sequence(new int(int x){return x;},m)+n;
+    int[] Bindices;
 
     if(phase1) {
+      Bindices=sequence(new int(int x){return x;},m)+n;
       iterate(E,N,Bindices);
   
       if(Em[J] != 0) {
       case=INFEASIBLE;
       return;
       }
-    }
-    
+    } else Bindices=sequence(new int(int x){return x;},m)+n-m;
+
     rational[][] D=phase1 ? new rational[m+1][n+1] : E;
     rational[] Dm=D[m];
     rational[] cb=phase1 ? new rational[m] : c[n-m:n];
@@ -172,21 +201,21 @@ struct simplex {
       Dip[n]=Em[N];
 
       m=ip;
-
-      for(int j=0; j < n; ++j) {
-        rational sum=0;
-        for(int k=0; k < m; ++k)
-          sum += cb[k]*D[k][j];
-        Dm[j]=c[j]-sum;
-      }
-
-      // Done with Phase 1
     }
-   
+
+    for(int j=0; j < n; ++j) {
+      rational sum=0;
+      for(int k=0; k < m; ++k)
+        sum += cb[k]*D[k][j];
+      Dm[j]=c[j]-sum;
+    }
+
     rational sum=0;
     for(int k=0; k < m; ++k)
       sum += cb[k]*D[k][n];
     Dm[n]=-sum;
+
+    simplexPhase2();
 
     if(iterate(D,n,Bindices) == UNBOUNDED) {
     case=UNBOUNDED;
@@ -204,11 +233,13 @@ struct simplex {
   }
 
   // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost
-  // c^T x, where A is an m x n matrix, x is a vector of length n, b is a
-  // vector of length m, and c is a vector of length n.
+  // c^T x, where A is an m x n matrix, x is a vector of n non-negative
+  // numbers, b is a vector of length m, and c is a vector of length n.
   void operator init(rational[] c, rational[][] A, int[] s, rational[] b) {
     int m=A.length;
+    if(m == 0) {case=INFEASIBLE; return;}
     int n=A[0].length;
+    if(n == 0) {case=INFEASIBLE; return;}
 
     int count=0;
     for(int i=0; i < m; ++i)
@@ -240,7 +271,7 @@ struct simplex {
     bool phase1=!all(s == -1);
     operator init(concat(c,array(count,rational(0))),a,b,phase1);
 
-    if(case == OPTIMAL)
+    if(case == OPTIMAL && count > 0)
       x.delete(n,n+count-1);
   }
 }

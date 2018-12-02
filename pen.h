@@ -18,9 +18,6 @@
 
 namespace camp {
 
-extern const double tex2ps;
-extern const double ps2tex;
-  
 class LineType
 {
 public:  
@@ -405,7 +402,7 @@ public:
   
   static pen initialpen() {
     return pen(LineType(vm::array(0),0.0,true,true),0.5,nullpath,"",
-               12.0*tex2ps,12.0*1.2*tex2ps,GRAYSCALE,
+               12.0*settings::tex2ps,12.0*1.2*settings::tex2ps,GRAYSCALE,
                0.0,0.0,0.0,0.0,"",ZEROWINDING,NOBASEALIGN,
                Transparency(),1,1,10.0,ALLOW,identity);
   }
@@ -443,11 +440,11 @@ public:
   // Work around misalignment in ConTeXt switchtobodyfont if font is not found.
           if(texengine == "context")
             buf << "\\switchtobodyfont[" 
-                << DEFCONTEXTFONT << "," << size()*ps2tex 
+                << DEFCONTEXTFONT << "," << size()*settings::ps2tex 
                 << "pt]\\removeunwantedspaces%" << newl;
           else
             buf << "\\font\\ASYfont=" << DEFTEXFONT
-              << " at " << size()*ps2tex << "pt\\ASYfont";
+                << " at " << size()*settings::ps2tex << "pt\\ASYfont";
           return buf.str();
         }
       }

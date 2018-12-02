@@ -240,3 +240,10 @@ int main(int argc, char *argv[])
 #endif
   asymain(&args);
 }
+
+#ifdef USEGC
+GC_API void GC_CALL GC_throw_bad_alloc() {
+  std::bad_alloc();
+}
+#endif
+
