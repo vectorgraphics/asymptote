@@ -30,10 +30,11 @@ typedef GLvoid (* _GLUfuncptr)();
 #endif
 #else
 #define GLEW_OSMESA
+#define GLEW_STATIC
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <GL/glext.h>
 #include <GL/glu.h>
+//#include <GL/glext.h>
 #undef HAVE_LIBOSMESA // TODO: Turn this off/ 
 #ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
