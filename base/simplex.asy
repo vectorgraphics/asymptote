@@ -71,12 +71,11 @@ struct simplex {
       if(I == -1)
         return UNBOUNDED; // Can only happen in Phase 2.
 
-      Bindices[I]=J;
-
       // Generate new tableau
+      Bindices[I]=J;
       rowreduce(E,N,I,J);
     }
-    return 0;
+    return OPTIMAL;
   }
 
   // Try to find a solution x to Ax=b that minimizes the cost c^T x,
@@ -157,6 +156,19 @@ struct simplex {
     real[] Dm=D[m];
     real[] cb=phase1 ? new real[m] : c[n-m:n];
     if(phase1) {
+      // Drive artificial variables out of basis.
+      for(int i=0; i < m; ++i) {
+        int k=Bindices[i];
+        if(k >= n) {
+          real[] Ei=E[i];
+          int j;
+          for(j=0; j < n; ++j)
+            if(Ei[j] != 0) break;
+          if(j == n) continue;
+          Bindices[i]=j;
+          rowreduce(E,n,i,j);
+        }
+      }
       int ip=0; // reduced i
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
@@ -177,7 +189,10 @@ struct simplex {
         Dip[j]=Em[j];
       Dip[n]=Em[N];
 
-      m=ip;
+      if(m > ip) {
+        Bindices.delete(ip,m-1);
+        m=ip;
+      }
     }
 
     for(int j=0; j < n; ++j) {
@@ -192,10 +207,9 @@ struct simplex {
       sum += cb[k]*D[k][n];
     Dm[n]=-sum;
 
-    if(iterate(D,n,Bindices) == UNBOUNDED) {
-    case=UNBOUNDED;
-    return;
-    }
+    case=iterate(D,n,Bindices);
+    if(case == UNBOUNDED)
+      return;
 
     for(int j=0; j < n; ++j)
       x[j]=0;
@@ -204,7 +218,6 @@ struct simplex {
       x[Bindices[k]]=D[k][n];
 
     cost=-Dm[n];
-    case=OPTIMAL;
   }
 
   // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost
