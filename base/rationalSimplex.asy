@@ -217,6 +217,7 @@ struct simplex {
         Bindices.delete(ip,m-1);
         m=ip;
       }
+      simplexTableau(D,Bindices);
     }
 
     for(int j=0; j < n; ++j) {
@@ -231,7 +232,6 @@ struct simplex {
       sum += cb[k]*D[k][n];
     Dm[n]=-sum;
 
-    simplexTableau(D,Bindices);
     simplexPhase2();
 
     case=iterate(D,n,Bindices);
