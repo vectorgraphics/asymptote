@@ -179,6 +179,7 @@ struct simplex {
     rational[] Dm=D[m];
     rational[] cb=phase1 ? new rational[m] : c[n-m:n];
     if(phase1) {
+      bool output=true;
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
@@ -188,11 +189,13 @@ struct simplex {
           for(j=0; j < n; ++j)
             if(Ei[j] != 0) break;
           if(j == n) continue;
+          output=false;
           simplexTableau(E,Bindices,i,j);
           Bindices[i]=j;
           rowreduce(E,n,i,j);
         }
       }
+      if(output) simplexTableau(E,Bindices);
       int ip=0; // reduced i
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
@@ -217,7 +220,7 @@ struct simplex {
         Bindices.delete(ip,m-1);
         m=ip;
       }
-      simplexTableau(D,Bindices);
+      if(!output) simplexTableau(D,Bindices);
     }
 
     for(int j=0; j < n; ++j) {
