@@ -78,6 +78,45 @@ struct simplex {
     return OPTIMAL;
   }
 
+  int iterateDual(real[][] E, int N, int[] Bindices) {
+    while(true) {
+      // Find first negative entry in right (basic variable) column
+      real[] Em=E[m];
+      int I;
+      for(I=0; I < m; ++I) {
+        if(E[I][N] < 0) break;
+      }
+
+      if(I == m)
+        break;
+
+      int J=-1;
+      real M;
+      for(int j=0; j < N; ++j) {
+        real e=E[I][j];
+        if(e < epsilonA) {
+          M=-E[m][j]/e;
+          J=j;
+          break;
+        }
+      }
+      for(int j=J+1; j < N; ++j) {
+        real e=E[I][j];
+        if(e < epsilonA) {
+          real v=-E[m][j]/e;
+          if(v < M) {M=v; J=j;} // Bland's rule: choose smallest argmin
+        }
+      }
+      if(J == -1)
+        return UNBOUNDED; // Can only happen in Phase 2.
+
+      // Generate new tableau
+      Bindices[I]=J;
+      rowreduce(E,N,I,J);
+    }
+    return OPTIMAL;
+  }
+
   // Try to find a solution x to Ax=b that minimizes the cost c^T x,
   // where A is an m x n matrix, x is a vector of n non-negative numbers,
   // b is a vector of length m, and c is a vector of length n.
@@ -99,10 +138,13 @@ struct simplex {
     for(int j=0; j < n; ++j)
       Em[j]=0;
 
+    real[] cB=phase1 ? new real[m] : c[n-m:n];
+    bool dual=!phase1 && all(cB == 0) && all(c >= 0);
+
     for(int i=0; i < m; ++i) {
       real[] Ai=A[i];
       real[] Ei=E[i];
-      if(b[i] >= 0) {
+      if(b[i] >= 0 || dual) {
         for(int j=0; j < n; ++j) {
           real Aij=Ai[j];
           Ei[j]=Aij;
@@ -130,7 +172,7 @@ struct simplex {
 
     real sum=0;
     for(int i=0; i < m; ++i) {
-      real B=abs(b[i]);
+      real B=dual ? b[i] : abs(b[i]);
       E[i][N]=B;
       sum -= B;
     }
@@ -154,7 +196,6 @@ struct simplex {
     
     real[][] D=phase1 ? new real[m+1][n+1] : E;
     real[] Dm=D[m];
-    real[] cb=phase1 ? new real[m] : c[n-m:n];
     if(phase1) {
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
@@ -174,7 +215,7 @@ struct simplex {
         int k=Bindices[i];
         if(k >= n) continue;
         Bindices[ip]=k; 
-        cb[ip]=c[k];
+        cB[ip]=c[k];
         real[] Dip=D[ip];
         real[] Ei=E[i];
         for(int j=0; j < n; ++j)
@@ -198,16 +239,16 @@ struct simplex {
     for(int j=0; j < n; ++j) {
       real sum=0;
       for(int k=0; k < m; ++k)
-        sum += cb[k]*D[k][j];
+        sum += cB[k]*D[k][j];
       Dm[j]=c[j]-sum;
     }
 
     real sum=0;
     for(int k=0; k < m; ++k)
-      sum += cb[k]*D[k][n];
+      sum += cB[k]*D[k][n];
     Dm[n]=-sum;
 
-    case=iterate(D,n,Bindices);
+    case=(dual ? iterateDual : iterate)(D,n,Bindices);
     if(case == UNBOUNDED)
       return;
 
@@ -245,6 +286,7 @@ struct simplex {
   
     int k=0;
 
+    bool phase1=false;
     for(int i=0; i < m; ++i) {
       real[] ai=a[i];
       for(int j=0; j < k; ++j)
@@ -253,10 +295,22 @@ struct simplex {
         ai[n+k]=-s[i];
       for(int j=k+1; j < count; ++j)
         ai[n+j]=0;
-      if(s[i] != 0) ++k;
+      int si=s[i];
+      if(si == 0) phase1=true;
+      else {
+        ++k;
+        real bi=b[i];
+        if(bi == 0) {
+          if(si == 1) {
+            s[i]=-1;
+            for(int j=0; j < n+count; ++j)
+              a[i]=-a[i];
+          }
+        } else if(si*bi > 0)
+          phase1=true;
+       }
     }
 
-    bool phase1=!all(s == -1);
     operator init(concat(c,array(count,0.0)),a,b,phase1);
 
     if(case == OPTIMAL && count > 0)
