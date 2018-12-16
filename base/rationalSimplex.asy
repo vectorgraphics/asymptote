@@ -149,7 +149,8 @@ struct simplex {
   // b is a vector of length m, and c is a vector of length n.
   // Can set phase1=false if the last m columns of A form the identity matrix.
   void operator init(rational[] c, rational[][] A, rational[] b,
-                     bool phase1=true) {
+                     bool phase1=true, bool dual=false) {
+    if(dual) phase1=false;
     // Phase 1
     m=A.length;
     if(m == 0) {case=INFEASIBLE; return;}
@@ -162,9 +163,6 @@ struct simplex {
 
     for(int j=0; j < n; ++j)
       Em[j]=0;
-
-    rational[] cB=phase1 ? new rational[m] : c[n-m:n];
-    bool dual=!phase1 && all(cB == 0) && all(c >= 0);
 
     for(int i=0; i < m; ++i) {
       rational[] Ai=A[i];
@@ -214,11 +212,13 @@ struct simplex {
       iterate(E,N,Bindices);
   
       if(Em[J] != 0) {
+        simplexTableau(E,Bindices);
       case=INFEASIBLE;
       return;
       }
     } else Bindices=sequence(new int(int x){return x;},m)+n-m;
 
+    rational[] cB=phase1 ? new rational[m] : c[n-m:n];
     rational[][] D=phase1 ? new rational[m+1][n+1] : E;
     rational[] Dm=D[m];
     if(phase1) {
@@ -320,6 +320,8 @@ struct simplex {
     int k=0;
 
     bool phase1=false;
+    bool dual=count == m && all(c >= 0);
+
     for(int i=0; i < m; ++i) {
       rational[] ai=a[i];
       for(int j=0; j < k; ++j)
@@ -337,14 +339,21 @@ struct simplex {
           if(si == 1) {
             s[i]=-1;
             for(int j=0; j < n+count; ++j)
-              a[i]=-a[i];
+              ai[j]=-ai[j];
           }
-        } else if(si*bi > 0)
-          phase1=true;
-       }
+        } else if(si*bi > 0) {
+          if(dual && si == 1) {
+            b[i]=-bi;
+            s[i]=-1;
+            for(int j=0; j < n+count; ++j)
+              ai[j]=-ai[j];
+          } else
+            phase1=true;
+        }
+      }
     }
 
-    operator init(concat(c,array(count,rational(0))),a,b,phase1);
+    operator init(concat(c,array(count,rational(0))),a,b,phase1,dual);
 
     if(case == OPTIMAL && count > 0)
       x.delete(n,n+count-1);

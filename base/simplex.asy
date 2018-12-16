@@ -121,7 +121,9 @@ struct simplex {
   // where A is an m x n matrix, x is a vector of n non-negative numbers,
   // b is a vector of length m, and c is a vector of length n.
   // Can set phase1=false if the last m columns of A form the identity matrix.
-  void operator init(real[] c, real[][] A, real[] b, bool phase1=true) {
+  void operator init(real[] c, real[][] A, real[] b, bool phase1=true,
+                     bool dual=false) {
+    if(dual) phase1=false;
     static real epsilon=sqrt(realEpsilon);
     epsilonA=epsilon*norm(A);
 
@@ -137,9 +139,6 @@ struct simplex {
 
     for(int j=0; j < n; ++j)
       Em[j]=0;
-
-    real[] cB=phase1 ? new real[m] : c[n-m:n];
-    bool dual=!phase1 && all(cB == 0) && all(c >= 0);
 
     for(int i=0; i < m; ++i) {
       real[] Ai=A[i];
@@ -194,6 +193,7 @@ struct simplex {
       }
     } else Bindices=sequence(new int(int x){return x;},m)+n-m;
     
+    real[] cB=phase1 ? new real[m] : c[n-m:n];
     real[][] D=phase1 ? new real[m+1][n+1] : E;
     real[] Dm=D[m];
     if(phase1) {
@@ -287,6 +287,8 @@ struct simplex {
     int k=0;
 
     bool phase1=false;
+    bool dual=count == m && all(c >= 0);
+
     for(int i=0; i < m; ++i) {
       real[] ai=a[i];
       for(int j=0; j < k; ++j)
@@ -304,11 +306,18 @@ struct simplex {
           if(si == 1) {
             s[i]=-1;
             for(int j=0; j < n+count; ++j)
-              a[i]=-a[i];
+              ai[j]=-ai[j];
           }
-        } else if(si*bi > 0)
-          phase1=true;
-       }
+        } else if(si*bi > 0) {
+          if(dual && si == 1) {
+            b[i]=-bi;
+            s[i]=-1;
+            for(int j=0; j < n+count; ++j)
+              ai[j]=-ai[j];
+          } else
+            phase1=true;
+        }
+      }
     }
 
     operator init(concat(c,array(count,0.0)),a,b,phase1);
