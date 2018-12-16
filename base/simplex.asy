@@ -320,7 +320,7 @@ struct simplex {
       }
     }
 
-    operator init(concat(c,array(count,0.0)),a,b,phase1);
+    operator init(concat(c,array(count,0.0)),a,b,phase1,dual);
 
     if(case == OPTIMAL && count > 0)
       x.delete(n,n+count-1);
