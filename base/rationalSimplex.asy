@@ -133,7 +133,7 @@ struct simplex {
         }
       }
       if(J == -1)
-        return UNBOUNDED; // Can only happen in Phase 2.
+        return INFEASIBLE; // Can only happen in Phase 2.
 
       simplexTableau(E,Bindices,I,J);
 
@@ -282,7 +282,7 @@ struct simplex {
 
     case=(dual ? iterateDual : iterate)(D,n,Bindices);
     simplexTableau(D,Bindices);
-    if(case == UNBOUNDED)
+    if(case != OPTIMAL)
       return;
 
     for(int j=0; j < n; ++j)

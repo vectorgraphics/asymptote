@@ -108,7 +108,7 @@ struct simplex {
         }
       }
       if(J == -1)
-        return UNBOUNDED; // Can only happen in Phase 2.
+        return INFEASIBLE; // Can only happen in Phase 2.
 
       // Generate new tableau
       Bindices[I]=J;
@@ -249,7 +249,7 @@ struct simplex {
     Dm[n]=-sum;
 
     case=(dual ? iterateDual : iterate)(D,n,Bindices);
-    if(case == UNBOUNDED)
+    if(case != OPTIMAL)
       return;
 
     for(int j=0; j < n; ++j)
