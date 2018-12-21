@@ -20,8 +20,6 @@ namespace gl {
   double mvDual[16];
   double mvDualInv[16];
   double tz[3];
-  glm::mat4 modelViewMatrix;
-  glm::mat4 mvMatrixInvDual;
 };
 
   extern transfData transfdata;
