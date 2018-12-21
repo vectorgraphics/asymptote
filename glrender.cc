@@ -162,7 +162,39 @@ glm::mat4 viewMat;
 glm::mat4 modelMat;
 
 glm::mat4 rotateMat; 
-glm::mat4 modelViewMatrix;
+
+
+struct transfData {
+  double mvDual[16];
+  double mvDualInv[16];
+  double tz[3];
+};
+
+transfData transfdata;
+
+void updateModelViewData();
+
+void updateModelViewData()
+{
+  glm::mat4 modelViewMatrix=viewMat*modelMat;
+
+  glm::mat4 mvMatrixDual=glm::transpose(modelViewMatrix);
+  glm::mat4 mvMatrixInvDual=glm::inverse(mvMatrixDual);
+
+  float* tmpPtrDual=glm::value_ptr(mvMatrixDual);
+  float* tmpPtrInvdual=glm::value_ptr(mvMatrixInvDual);
+
+  transfdata.tz[0]=tmpPtrDual[8];
+  transfdata.tz[1]=tmpPtrDual[9];
+  transfdata.tz[2]=tmpPtrDual[10];
+
+  for(int j=0;j<16;++j)
+  {
+    transfdata.mvDual[j]=tmpPtrDual[j];
+    transfdata.mvDualInv[j]=tmpPtrInvdual[j];
+  }
+}
+
 
 GLint shaderProg,shaderProgColor;
 
@@ -458,9 +490,8 @@ void home()
   modelMat=glm::mat4(1.0f);
   
   Rotate=glm::value_ptr(rotateMat);
-  // updateModelView();
-  
-  modelViewMatrix=glm::mat4(1.0f);
+  updateModelViewData();
+
   lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
   initlighting();
@@ -740,9 +771,7 @@ void update()
   viewMat=viewMat*rotateMat;
   viewMat=glm::translate(viewMat,glm::vec3(0,0,-cz));
 
-
-  modelViewMatrix=viewMat*modelMat;
-  // updateModelView();
+  updateModelViewData();
   
   //glTranslatef(cx,cy,cz);
   //glMultMatrixf(Rotate);

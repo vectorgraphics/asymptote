@@ -16,7 +16,15 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace gl {
-  extern glm::mat4 modelViewMatrix;
+  struct transfData {
+  double mvDual[16];
+  double mvDualInv[16];
+  double tz[3];
+  glm::mat4 modelViewMatrix;
+  glm::mat4 mvMatrixInvDual;
+};
+
+  extern transfData transfdata;
 }
 
 using namespace prc;
@@ -37,18 +45,10 @@ camp::Material objMaterial;
 #endif
 
 const triple drawElement::zero;
-inline void cpymvmat(double* t);
-
-inline void cpymvmat(double* t) {
-  float* tmpMvMatptr=glm::value_ptr(gl::modelViewMatrix);
-  for(int j=0;j<16;++j) {
-    t[j]=tmpMvMatptr[j];
-  }
-}
 
 //double Tx[3]; // x-component of current transform
 //double Ty[3]; // y-component of current transform
-double Tz[3]; // z-component of current transform
+double* Tz=gl::transfdata.tz; // z-component of current transform
 
 using vm::array;
 
@@ -328,26 +328,8 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  double t[16];
-  cpymvmat(t);
-  // glGetDoublev(GL_MODELVIEW_MATRIX,t);
-// Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
-/*  
-  Tx[0]=t[0];
-  Tx[1]=t[1];
-  Tx[2]=t[2];
-  
-  Ty[0]=t[4];
-  Ty[1]=t[5];
-  Ty[2]=t[6];
-*/
-  
-  Tz[0]=t[8];
-  Tz[1]=t[9];
-  Tz[2]=t[10];
-  
-  run::inverse(t,4);
+  double* t=gl::transfdata.mvDualInv;
+
   bbox3 box(m,M);
   box.transform(t);
   m=box.Min();
@@ -567,25 +549,8 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  double t[16];
-  cpymvmat(t);
-// Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
-/*  
-  Tx[0]=t[0];
-  Tx[1]=t[1];
-  Tx[2]=t[2];
-  
-  Ty[0]=t[4];
-  Ty[1]=t[5];
-  Ty[2]=t[6];
-*/
-  
-  Tz[0]=t[8];
-  Tz[1]=t[9];
-  Tz[2]=t[10];
+  double* t=gl::transfdata.mvDualInv;
 
-  run::inverse(t,4);
   bbox3 box(m,M);
   box.transform(t);
   m=box.Min();
@@ -746,9 +711,7 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
 
-  double t[16];
-  cpymvmat(t);
-  run::transpose(t,4);
+  double* t=gl::transfdata.mvDual;
 
   bbox3 B(this->Min,this->Max);
   B.transform(t);
@@ -1073,9 +1036,7 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
 
   triple m,M;
 
-  double t[16];
-  cpymvmat(t);
-  run::transpose(t,4);
+  double* t=gl::transfdata.mvDual;
 
   bbox3 B(this->Min,this->Max);
   B.transform(t);
