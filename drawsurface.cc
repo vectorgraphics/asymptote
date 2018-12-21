@@ -12,7 +12,14 @@
 #include <fstream>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
+namespace gl {
+  extern glm::mat4 projMat;
+  extern glm::mat4 viewMat;
+  extern glm::mat4 modelMat;
+}
 using namespace prc;
 #include "material.h"
 namespace camp {
@@ -313,9 +320,13 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
+
+  glm::mat4 mvMatrix=gl::viewMat*gl::modelMat; 
+  float* t0=glm::value_ptr(mvMatrix); // current transform
+
+  double t[16];
+  for(int j=0;j<16;++j) {t[j]=t0[j]; }
+  // glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
   run::transpose(t,4);
 /*  
@@ -552,8 +563,10 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
   
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
+  glm::mat4 mvMatrix=gl::viewMat*gl::modelMat; 
+  float* t0=glm::value_ptr(mvMatrix); // current transform
+  double t[16];
+  for(int j=0;j<16;++j) {t[j]=t0[j]; }
 // Like Fortran, OpenGL uses transposed (column-major) format!
   run::transpose(t,4);
 /*  
@@ -730,9 +743,10 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
 #ifdef HAVE_GL
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
-  
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
+  glm::mat4 mvMatrix=gl::viewMat*gl::modelMat; 
+  float* t0=glm::value_ptr(mvMatrix); // current transform
+  double t[16];
+  for(int j=0;j<16;++j) {t[j]=t0[j]; }
   run::transpose(t,4);
 
   bbox3 B(this->Min,this->Max);
@@ -1057,8 +1071,11 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
   if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
 
   triple m,M;
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
+  glm::mat4 mvMatrix=gl::viewMat*gl::modelMat; 
+  float* t0=glm::value_ptr(mvMatrix); // current transform
+
+  double t[16];
+  for(int j=0;j<16;++j) {t[j]=t0[j]; }
   run::transpose(t,4);
 
   bbox3 B(this->Min,this->Max);

@@ -12,5 +12,6 @@
         "unordered_set": "cpp",
         "vector": "cpp",
         "system_error": "cpp"
-    }
+    },
+    "C_Cpp.dimInactiveRegions": false
 }
