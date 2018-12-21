@@ -159,10 +159,11 @@ glm::mat4 viewMat;
 glm::mat4 modelMat;
 
 glm::mat4 rotateMat; 
+glm::mat4 modelViewMatrix;
 
 GLint shaderProg,shaderProgColor;
 
-GLfloat *Rotate=new GLfloat(16);  
+GLfloat *Rotate;
 GLUnurbs *nurb=NULL;
 
 void *glrenderWrapper(void *a);
@@ -454,6 +455,9 @@ void home()
   modelMat=glm::mat4(1.0f);
   
   Rotate=glm::value_ptr(rotateMat);
+  // updateModelView();
+  
+  modelViewMatrix=glm::mat4(1.0f);
   lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
   initlighting();
@@ -732,6 +736,10 @@ void update()
   viewMat=glm::translate(viewMat,glm::vec3(cx,cy,cz));
   viewMat=viewMat*rotateMat;
   viewMat=glm::translate(viewMat,glm::vec3(0,0,-cz));
+
+
+  modelViewMatrix=viewMat*modelMat;
+  // updateModelView();
   
   //glTranslatef(cx,cy,cz);
   //glMultMatrixf(Rotate);

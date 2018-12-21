@@ -13,6 +13,14 @@ struct Light
 };
 
 /*
+struct Material
+{
+    vec4 diffuse, normal, ambient;
+    float metallic, roughness;
+}
+*/
+
+/*
 // FIXME: Add SSBO rather than hard light limit
 layout(std430,binding=1) buffer lightData
 {
