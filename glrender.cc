@@ -14,6 +14,7 @@
 #include <sys/time.h>
 
 #include "common.h"
+#include "locate.h"
 
 #ifdef HAVE_GL
 
@@ -49,6 +50,8 @@
 
 #include "shaders.h"
 #include "material.h"
+
+using settings::locateFile;
 
 namespace camp {
 billboard BB;
@@ -1708,14 +1711,16 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   if(!shaderinit) {
     shaderProg=glCreateProgram();
-    GLuint vertShader=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER);
-    GLuint fragShader=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER);
+    GLuint vertShader=createShaderFile(
+      locateFile("shaders/main.vs.glsl").c_str(),GL_VERTEX_SHADER);
+    GLuint fragShader=createShaderFile(
+      locateFile("shaders/main.fs.glsl").c_str(),GL_FRAGMENT_SHADER);
     glAttachShader(shaderProg,vertShader);
     glAttachShader(shaderProg,fragShader);
     
     shaderProgColor=glCreateProgram();
-    GLuint vertShaderCol=createShaderFile("base/shaders/main.vs.glsl",GL_VERTEX_SHADER,{"EXPLICIT_COLOR"});
-    GLuint fragShaderCol=createShaderFile("base/shaders/main.fs.glsl",GL_FRAGMENT_SHADER,{"EXPLICIT_COLOR"});
+    GLuint vertShaderCol=createShaderFile(locateFile("shaders/main.vs.glsl").c_str(),GL_VERTEX_SHADER,{"EXPLICIT_COLOR"});
+    GLuint fragShaderCol=createShaderFile(locateFile("shaders/main.fs.glsl").c_str(),GL_FRAGMENT_SHADER,{"EXPLICIT_COLOR"});
     glAttachShader(shaderProgColor,vertShaderCol);
     glAttachShader(shaderProgColor,fragShaderCol);
 
