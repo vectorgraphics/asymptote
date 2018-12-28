@@ -605,8 +605,10 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dNOPAUSE");
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");
-  if(safe)
-    cmd.push_back("-dSAFER -dDELAYSAFER"); // Support transparency extensions.
+  if(safe) {
+    cmd.push_back("-dSAFER");
+    cmd.push_back("-dDELAYSAFER"); // Support transparency extensions.
+  }
   cmd.push_back("-sDEVICE=pdfwrite");
   cmd.push_back("-dEPSCrop");
   cmd.push_back("-dSubsetFonts=true");
