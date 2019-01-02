@@ -605,8 +605,10 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dNOPAUSE");
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");
-  if(safe)
+  if(safe) {
     cmd.push_back("-dSAFER");
+    cmd.push_back("-dDELAYSAFER"); // Support transparency extensions.
+  }
   cmd.push_back("-sDEVICE=pdfwrite");
   cmd.push_back("-dEPSCrop");
   cmd.push_back("-dSubsetFonts=true");
@@ -622,6 +624,11 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dDEVICEHEIGHTPOINTS="+String(max(b.top-b.bottom,3.0)));
   push_split(cmd,getSetting<string>("gsOptions"));
   cmd.push_back("-sOutputFile="+stripDir(pdfname));
+  if(safe) {
+    cmd.push_back("-c");
+    cmd.push_back(".setsafe");
+    cmd.push_back("-f");
+  }
   cmd.push_back(stripDir(epsname));
 
   char *oldPath=NULL;

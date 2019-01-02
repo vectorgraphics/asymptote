@@ -65,7 +65,6 @@ struct simplex {
   }
 
   int iterate(rational[][] E, int N, int[] Bindices) {
-    int rc=0;
     while(true) {
       // Find first negative entry in bottom (reduced cost) row
       rational[] Em=E[m];
@@ -92,10 +91,8 @@ struct simplex {
           if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
         }
       }
-      if(I == -1) {
-        rc=UNBOUNDED; // Can only happen in Phase 2.
-        break;
-      }
+      if(I == -1)
+        return UNBOUNDED; // Can only happen in Phase 2.
 
       simplexTableau(E,Bindices,I,J);
 
@@ -103,8 +100,48 @@ struct simplex {
       Bindices[I]=J;
       rowreduce(E,N,I,J);
     }
-    simplexTableau(E,Bindices);
-    return rc;
+    return OPTIMAL;
+  }
+
+  int iterateDual(rational[][] E, int N, int[] Bindices) {
+    while(true) {
+      // Find first negative entry in right (basic variable) column
+      rational[] Em=E[m];
+      int I;
+      for(I=0; I < m; ++I) {
+        if(E[I][N] < 0) break;
+      }
+
+      if(I == m)
+        break;
+
+      int J=-1;
+      rational M;
+      for(int j=0; j < N; ++j) {
+        rational e=E[I][j];
+        if(e < 0) {
+          M=-E[m][j]/e;
+          J=j;
+          break;
+        }
+      }
+      for(int j=J+1; j < N; ++j) {
+        rational e=E[I][j];
+        if(e < 0) {
+          rational v=-E[m][j]/e;
+          if(v < M) {M=v; J=j;} // Bland's rule: choose smallest argmin
+        }
+      }
+      if(J == -1)
+        return INFEASIBLE; // Can only happen in Phase 2.
+
+      simplexTableau(E,Bindices,I,J);
+
+      // Generate new tableau
+      Bindices[I]=J;
+      rowreduce(E,N,I,J);
+    }
+    return OPTIMAL;
   }
 
   // Try to find a solution x to Ax=b that minimizes the cost c^T x,
@@ -112,8 +149,9 @@ struct simplex {
   // b is a vector of length m, and c is a vector of length n.
   // Can set phase1=false if the last m columns of A form the identity matrix.
   void operator init(rational[] c, rational[][] A, rational[] b,
-                     bool phase1=true) {
-    // Phase 1    
+                     bool phase1=true, bool dual=false) {
+    if(dual) phase1=false;
+    // Phase 1
     m=A.length;
     if(m == 0) {case=INFEASIBLE; return;}
     n=A[0].length;
@@ -129,7 +167,7 @@ struct simplex {
     for(int i=0; i < m; ++i) {
       rational[] Ai=A[i];
       rational[] Ei=E[i];
-      if(b[i] >= 0) {
+      if(b[i] >= 0 || dual) {
         for(int j=0; j < n; ++j) {
           rational Aij=Ai[j];
           Ei[j]=Aij;
@@ -157,7 +195,7 @@ struct simplex {
 
     rational sum=0;
     for(int i=0; i < m; ++i) {
-      rational B=abs(b[i]);
+      rational B=dual ? b[i] : abs(b[i]);
       E[i][N]=B;
       sum -= B;
     }
@@ -174,21 +212,39 @@ struct simplex {
       iterate(E,N,Bindices);
   
       if(Em[J] != 0) {
+        simplexTableau(E,Bindices);
       case=INFEASIBLE;
       return;
       }
     } else Bindices=sequence(new int(int x){return x;},m)+n-m;
 
+    rational[] cB=phase1 ? new rational[m] : c[n-m:n];
     rational[][] D=phase1 ? new rational[m+1][n+1] : E;
     rational[] Dm=D[m];
-    rational[] cb=phase1 ? new rational[m] : c[n-m:n];
     if(phase1) {
+      bool output=true;
+      // Drive artificial variables out of basis.
+      for(int i=0; i < m; ++i) {
+        int k=Bindices[i];
+        if(k >= n) {
+          rational[] Ei=E[i];
+          int j;
+          for(j=0; j < n; ++j)
+            if(Ei[j] != 0) break;
+          if(j == n) continue;
+          output=false;
+          simplexTableau(E,Bindices,i,j);
+          Bindices[i]=j;
+          rowreduce(E,n,i,j);
+        }
+      }
+      if(output) simplexTableau(E,Bindices);
       int ip=0; // reduced i
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
         if(k >= n) continue;
         Bindices[ip]=k; 
-        cb[ip]=c[k];
+        cB[ip]=c[k];
         rational[] Dip=D[ip];
         rational[] Ei=E[i];
         for(int j=0; j < n; ++j)
@@ -207,26 +263,27 @@ struct simplex {
         Bindices.delete(ip,m-1);
         m=ip;
       }
+      if(!output) simplexTableau(D,Bindices);
     }
 
     for(int j=0; j < n; ++j) {
       rational sum=0;
       for(int k=0; k < m; ++k)
-        sum += cb[k]*D[k][j];
+        sum += cB[k]*D[k][j];
       Dm[j]=c[j]-sum;
     }
 
     rational sum=0;
     for(int k=0; k < m; ++k)
-      sum += cb[k]*D[k][n];
+      sum += cB[k]*D[k][n];
     Dm[n]=-sum;
 
     simplexPhase2();
 
-    if(iterate(D,n,Bindices) == UNBOUNDED) {
-    case=UNBOUNDED;
-    return;
-    }
+    case=(dual ? iterateDual : iterate)(D,n,Bindices);
+    simplexTableau(D,Bindices);
+    if(case != OPTIMAL)
+      return;
 
     for(int j=0; j < n; ++j)
       x[j]=0;
@@ -235,7 +292,6 @@ struct simplex {
       x[Bindices[k]]=D[k][n];
 
     cost=-Dm[n];
-    case=OPTIMAL;
   }
 
   // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost
@@ -263,6 +319,9 @@ struct simplex {
   
     int k=0;
 
+    bool phase1=false;
+    bool dual=count == m && all(c >= 0);
+
     for(int i=0; i < m; ++i) {
       rational[] ai=a[i];
       for(int j=0; j < k; ++j)
@@ -271,11 +330,30 @@ struct simplex {
         ai[n+k]=-s[i];
       for(int j=k+1; j < count; ++j)
         ai[n+j]=0;
-      if(s[i] != 0) ++k;
+      int si=s[i];
+      if(si == 0) phase1=true;
+      else {
+        ++k;
+        rational bi=b[i];
+        if(bi == 0) {
+          if(si == 1) {
+            s[i]=-1;
+            for(int j=0; j < n+count; ++j)
+              ai[j]=-ai[j];
+          }
+        } else if(si*bi > 0) {
+          if(dual && si == 1) {
+            b[i]=-bi;
+            s[i]=-1;
+            for(int j=0; j < n+count; ++j)
+              ai[j]=-ai[j];
+          } else
+            phase1=true;
+        }
+      }
     }
 
-    bool phase1=!all(s == -1);
-    operator init(concat(c,array(count,rational(0))),a,b,phase1);
+    operator init(concat(c,array(count,rational(0))),a,b,phase1,dual);
 
     if(case == OPTIMAL && count > 0)
       x.delete(n,n+count-1);
