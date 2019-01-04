@@ -7963,7 +7963,7 @@ The keyboard shortcuts are:
 @cindex @code{maxviewport}
 @cindex @code{maxtile}
 @cindex @code{glOptions}
-@cindex @code{iconic}
+@cindex @code{iconify}
 @cindex @code{black stripes}
 @item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
