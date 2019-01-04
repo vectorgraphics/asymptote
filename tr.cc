@@ -66,6 +66,15 @@
 #define DEFAULT_TILE_HEIGHT 256
 #define DEFAULT_TILE_BORDER 0
 
+namespace gl {
+void frustum(GLdouble left, GLdouble right, GLdouble bottom,
+             GLdouble top, GLdouble nearVal, GLdouble farVal);
+void ortho(GLdouble left, GLdouble right, GLdouble bottom,
+           GLdouble top, GLdouble nearVal, GLdouble farVal);
+}
+
+using gl::frustum;
+using gl::ortho;
 
 struct _TRctx {
    /* Final image parameters */
@@ -362,9 +371,9 @@ void trBeginTile(TRcontext *tr)
    top = bottom + (tr->Top - tr->Bottom) * tileHeight / tr->ImageHeight;
 
    if (tr->Perspective)
-      glFrustum(left, right, bottom, top, tr->Near, tr->Far);
+      frustum(left, right, bottom, top, tr->Near, tr->Far);
    else
-      glOrtho(left, right, bottom, top, tr->Near, tr->Far);
+      ortho(left, right, bottom, top, tr->Near, tr->Far);
 
    /* restore user's matrix mode */
    glMatrixMode(matrixMode);

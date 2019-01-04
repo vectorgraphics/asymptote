@@ -322,13 +322,23 @@ void setDimensions(int Width, int Height, double X, double Y)
   }
 }
 
+void frustum(GLdouble left, GLdouble right, GLdouble bottom,
+             GLdouble top, GLdouble nearVal, GLdouble farVal)
+{
+  projMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
+}
+
+void ortho(GLdouble left, GLdouble right, GLdouble bottom,
+             GLdouble top, GLdouble nearVal, GLdouble farVal)
+{
+  projMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
+}
+
 void setProjection()
 {
   setDimensions(Width,Height,X,Y);
-  if(orthographic)
-    projMat=glm::ortho(xmin,xmax,ymin,ymax,-zmax,-zmin); 
-  else 
-    projMat=glm::frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  if(orthographic) ortho(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  else frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   
 #ifdef HAVE_LIBGLUT
   double arcballRadius=getSetting<double>("arcballradius");
