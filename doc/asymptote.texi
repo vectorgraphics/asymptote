@@ -1217,13 +1217,19 @@ default line width magnified by @code{dotfactor} (6 by default),
 using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
 (@code{Fill} by default):
 @verbatim
+void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
          filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
          string format=defaultformat, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
          align align=NoAlign, string format=defaultformat, pen p=currentpen,
-         filltype filltype=dotfilltype)
+         filltype filltype=dotfilltype);
+void dot(picture pic=currentpicture, Label[] L=new Label[],
+         explicit path g, align align=RightSide, string format=defaultformat,
+         pen p=currentpen, filltype filltype=dotfilltype);
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
+         filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pen p=currentpen,
          filltype filltype=dotfilltype);
 @end verbatim
