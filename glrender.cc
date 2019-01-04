@@ -157,12 +157,18 @@ double Zoom;
 double Zoom0;
 double lastzoom;
 
-glm::mat4 projMat;
-glm::mat4 viewMat;
-glm::mat4 modelMat;
+using glm::dvec3;
+using glm::mat4;
+using glm::dmat4;
+using glm::value_ptr;
 
-glm::mat4 rotateMat; 
+mat4 projMat;
+mat4 viewMat;
+mat4 modelMat;
 
+dmat4 dprojMat;
+dmat4 dviewMat;
+dmat4 drotateMat; 
 
 struct transfData {
   double mvDual[16];
@@ -172,24 +178,19 @@ struct transfData {
 
 transfData transfdata;
 
-void updateModelViewData();
-
 void updateModelViewData()
 {
-  glm::mat4 modelViewMatrix=viewMat*modelMat;
+  dmat4 mvMatrixDual=glm::transpose(dviewMat);
+  dmat4 mvMatrixInvDual=glm::inverse(mvMatrixDual);
 
-  glm::mat4 mvMatrixDual=glm::transpose(modelViewMatrix);
-  glm::mat4 mvMatrixInvDual=glm::inverse(mvMatrixDual);
-
-  float* tmpPtrDual=glm::value_ptr(mvMatrixDual);
-  float* tmpPtrInvdual=glm::value_ptr(mvMatrixInvDual);
+  double* tmpPtrDual=value_ptr(mvMatrixDual);
+  double* tmpPtrInvdual=value_ptr(mvMatrixInvDual);
 
   transfdata.tz[0]=tmpPtrDual[8];
   transfdata.tz[1]=tmpPtrDual[9];
   transfdata.tz[2]=tmpPtrDual[10];
 
-  for(int j=0;j<16;++j)
-  {
+  for(int j=0; j < 16; ++j) {
     transfdata.mvDual[j]=tmpPtrDual[j];
     transfdata.mvDualInv[j]=tmpPtrInvdual[j];
   }
@@ -198,7 +199,7 @@ void updateModelViewData()
 
 GLint shaderProg,shaderProgColor;
 
-GLfloat *Rotate;
+double *Rotate;
 GLUnurbs *nurb=NULL;
 
 void *glrenderWrapper(void *a);
@@ -333,24 +334,14 @@ void setDimensions(int Width, int Height, double X, double Y)
 
 void setProjection()
 {
-  projMat = glm::mat4(1.0f);
-
-  // glMatrixMode(GL_PROJECTION);
-  // glLoadIdentity();
+  projMat=mat4(1.0f);
 
   setDimensions(Width,Height,X,Y);
   if(orthographic)
-  {
-    projMat = glm::ortho(xmin,xmax,ymin,ymax,-zmax,-zmin); 
-    // glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
-  }
-  else
-  {
-    projMat = glm::frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
-    // glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
-  }
+    projMat=glm::ortho(xmin,xmax,ymin,ymax,-zmax,-zmin); 
+  else 
+    projMat=glm::frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   
-  // glMatrixMode(GL_MODELVIEW);
 #ifdef HAVE_LIBGLUT
   double arcballRadius=getSetting<double>("arcballradius");
   arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius*Zoom);
@@ -482,14 +473,13 @@ void home()
     arcball.init();
   }
 #endif
-  // glLoadIdentity();
-  // glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  viewMat=mat4(1.0f);
+  modelMat=mat4(1.0f);
   
-  rotateMat=glm::mat4(1.0f); 
-  viewMat=glm::mat4(1.0f);
-  modelMat=glm::mat4(1.0f);
+  dviewMat=dmat4(1.0);
+  drotateMat=dmat4(1.0); 
   
-  Rotate=glm::value_ptr(rotateMat);
+  Rotate=value_ptr(drotateMat);
   updateModelViewData();
 
   lastzoom=Zoom=Zoom0;
@@ -766,16 +756,14 @@ void update()
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
   
-  viewMat=glm::mat4(1.f);
-  viewMat=glm::translate(viewMat,glm::vec3(cx,cy,cz));
-  viewMat=viewMat*rotateMat;
-  viewMat=glm::translate(viewMat,glm::vec3(0,0,-cz));
+  dviewMat=dmat4(1.0);
+  dviewMat=glm::translate(dviewMat,dvec3(cx,cy,cz));
+  dviewMat=dviewMat*drotateMat;
+  dviewMat=glm::translate(dviewMat,dvec3(0,0,-cz));
 
-  updateModelViewData();
+  viewMat=mat4(dviewMat);
   
-  //glTranslatef(cx,cy,cz);
-  //glMultMatrixf(Rotate);
-  //glTranslatef(0,0,-cz);
+  updateModelViewData();
   
   setProjection();
   glutPostRedisplay();
@@ -927,7 +915,7 @@ void rotate(int x, int y)
       const vec4& roti=arcball.rot[i];
       int i4=4*i;
       for(int j=0; j < 4; ++j)
-        glm::value_ptr(rotateMat)[i4+j]=roti[j];
+        value_ptr(drotateMat)[i4+j]=roti[j];
     }
     
     update();
@@ -941,38 +929,37 @@ double Degrees(int x, int y)
 
 void updateArcball() 
 {
-  Rotate=glm::value_ptr(rotateMat);
+  Rotate=value_ptr(drotateMat);
   for(int i=0; i < 4; ++i) {
     int i4=4*i;
     vec4& roti=arcball.rot[i];
     for(int j=0; j < 4; ++j)
       roti[j]=Rotate[i4+j];
-//      roti[j]=glm::value_ptr(rotateMat)[i4+j];
   }
   update();
 }
 
 void rotateX(double step) 
 {
-  glm::mat4 tmpRot(1.0f);
-  tmpRot=glm::rotate(tmpRot,glm::radians((float)step),glm::vec3(1,0,0));
-  rotateMat=tmpRot*rotateMat;
+  dmat4 tmpRot(1.0);
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(1,0,0));
+  drotateMat=tmpRot*drotateMat;
   updateArcball();
 }
 
 void rotateY(double step) 
 {
-  glm::mat4 tmpRot(1.0f);
-  tmpRot=glm::rotate(tmpRot,glm::radians((float)step),glm::vec3(0,1,0));
-  rotateMat=tmpRot*rotateMat;
+  dmat4 tmpRot(1.0);
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,1,0));
+  drotateMat=tmpRot*drotateMat;
   updateArcball();
 }
 
 void rotateZ(double step) 
 {
-  glm::mat4 tmpRot(1.0f);
-  tmpRot=glm::rotate(tmpRot,glm::radians((float)step),glm::vec3(0,0,1));
-  rotateMat=tmpRot*rotateMat;
+  dmat4 tmpRot(1.0);
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,0,1));
+  drotateMat=tmpRot*drotateMat;
   updateArcball();
 }
 
@@ -1722,7 +1709,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   {
   std::cout << "Renderer init" << std::endl;
   }
-  // glMatrixMode(GL_MODELVIEW);
   home();
     
 #ifdef HAVE_LIBGLUT
@@ -1856,15 +1842,15 @@ void setUniforms(GLint shader)
   }; 
 
   // 
-  glUniformMatrix4fv(getShaderUnifs("viewMat"),1,GL_FALSE, glm::value_ptr(gl::viewMat));
-  glUniformMatrix4fv(getShaderUnifs("projMat"),1,GL_FALSE, glm::value_ptr(gl::projMat));
-  glUniformMatrix4fv(getShaderUnifs("modelMat"),1,GL_FALSE, glm::value_ptr(gl::modelMat));
+  glUniformMatrix4fv(getShaderUnifs("viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
+  glUniformMatrix4fv(getShaderUnifs("projMat"),1,GL_FALSE, value_ptr(gl::projMat));
+  glUniformMatrix4fv(getShaderUnifs("modelMat"),1,GL_FALSE, value_ptr(gl::modelMat));
 
   // materials 
-  glUniform4fv(getShaderUnifs("materialData.diffuse"),1,glm::value_ptr(objMaterial.diffuse));
-  glUniform4fv(getShaderUnifs("materialData.specular"),1,glm::value_ptr(objMaterial.specular));
-  glUniform4fv(getShaderUnifs("materialData.ambient"),1,glm::value_ptr(objMaterial.ambient));
-  glUniform4fv(getShaderUnifs("materialData.emissive"),1,glm::value_ptr(objMaterial.emission));
+  glUniform4fv(getShaderUnifs("materialData.diffuse"),1,value_ptr(objMaterial.diffuse));
+  glUniform4fv(getShaderUnifs("materialData.specular"),1,value_ptr(objMaterial.specular));
+  glUniform4fv(getShaderUnifs("materialData.ambient"),1,value_ptr(objMaterial.ambient));
+  glUniform4fv(getShaderUnifs("materialData.emissive"),1,value_ptr(objMaterial.emission));
 
   glUniform1f(getShaderUnifs("materialData.shininess"),objMaterial.shininess);
 
