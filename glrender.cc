@@ -166,7 +166,6 @@ mat4 projMat;
 mat4 viewMat;
 mat4 modelMat;
 
-dmat4 dprojMat;
 dmat4 dviewMat;
 dmat4 drotateMat; 
 
@@ -334,8 +333,6 @@ void setDimensions(int Width, int Height, double X, double Y)
 
 void setProjection()
 {
-  projMat=mat4(1.0f);
-
   setDimensions(Width,Height,X,Y);
   if(orthographic)
     projMat=glm::ortho(xmin,xmax,ymin,ymax,-zmax,-zmin); 
