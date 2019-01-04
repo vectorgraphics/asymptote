@@ -1225,9 +1225,6 @@ void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
 void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
          align align=NoAlign, string format=defaultformat, pen p=currentpen,
          filltype filltype=dotfilltype);
-void dot(picture pic=currentpicture, Label[] L=new Label[],
-         explicit path g, align align=RightSide, string format=defaultformat,
-         pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
          filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pen p=currentpen,
@@ -1236,14 +1233,14 @@ void dot(picture pic=currentpicture, Label L, pen p=currentpen,
 
 @cindex @code{Label}
 If the variable @code{Label} is given as the @code{Label}
-argument to the second routine, the @code{format} argument will be
+argument to the third routine, the @code{format} argument will be
 used to format a string based on the dot location (here @code{defaultformat}
 is @code{"$%.4g$"}). 
-The third routine draws a dot at every point of a pair array @code{z}.
+The fourth routine draws a dot at every point of a pair array @code{z}.
 One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, Label[] L=new Label[],
-         path g, align align=RightSide, string format=defaultformat,
+         explicit path g, align align=RightSide, string format=defaultformat,
          pen p=currentpen, filltype filltype=dotfilltype);
 @end verbatim
 See @ref{pathmarkers} and @ref{markers} for more general
