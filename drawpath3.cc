@@ -12,6 +12,8 @@ namespace camp {
 using vm::array;
 using namespace prc;
   
+using gl::modelView;
+
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   Int n=g.length();
@@ -71,13 +73,8 @@ void drawPath3::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
   
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-// Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
-  run::inverse(t,4);
   bbox3 box(m,M);
-  box.transform(t);
+  box.transform(modelView.Tinv);
   m=box.Min();
   M=box.Max();
 

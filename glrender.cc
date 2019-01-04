@@ -169,29 +169,20 @@ mat4 modelMat;
 dmat4 dviewMat;
 dmat4 drotateMat; 
 
-struct transfData {
-  double mvDual[16];
-  double mvDualInv[16];
-  double tz[3];
-};
-
-transfData transfdata;
+ModelView modelView;
 
 void updateModelViewData()
 {
-  dmat4 mvMatrixDual=glm::transpose(dviewMat);
-  dmat4 mvMatrixInvDual=glm::inverse(mvMatrixDual);
+  // Like Fortran, OpenGL uses transposed (column-major) format!
+  dmat4 MV=glm::transpose(dviewMat);
+  dmat4 MVinv=glm::inverse(MV);
 
-  double* tmpPtrDual=value_ptr(mvMatrixDual);
-  double* tmpPtrInvdual=value_ptr(mvMatrixInvDual);
-
-  transfdata.tz[0]=tmpPtrDual[8];
-  transfdata.tz[1]=tmpPtrDual[9];
-  transfdata.tz[2]=tmpPtrDual[10];
+  double* T=value_ptr(MV);
+  double* Tinv=value_ptr(MVinv);
 
   for(int j=0; j < 16; ++j) {
-    transfdata.mvDual[j]=tmpPtrDual[j];
-    transfdata.mvDualInv[j]=tmpPtrInvdual[j];
+    modelView.T[j]=T[j];
+    modelView.Tinv[j]=Tinv[j];
   }
 }
 

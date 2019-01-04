@@ -15,16 +15,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace gl {
-  struct transfData {
-  double mvDual[16];
-  double mvDualInv[16];
-  double tz[3];
-};
-
-  extern transfData transfdata;
-}
-
 using namespace prc;
 #include "material.h"
 namespace camp {
@@ -44,9 +34,11 @@ camp::Material objMaterial;
 
 const triple drawElement::zero;
 
-//double Tx[3]; // x-component of current transform
-//double Ty[3]; // y-component of current transform
-double* Tz=gl::transfdata.tz; // z-component of current transform
+using gl::modelView;
+
+//double* Tx=modelView.T;   // x-component of current transform
+//double* Ty=modelView.T+4; // y-component of current transform
+double* Tz=modelView.T+8; // z-component of current transform
 
 using vm::array;
 
@@ -326,10 +318,9 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  double* t=gl::transfdata.mvDualInv;
 
   bbox3 box(m,M);
-  box.transform(t);
+  box.transform(modelView.Tinv);
   m=box.Min();
   M=box.Max();
   
@@ -547,10 +538,8 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  double* t=gl::transfdata.mvDualInv;
-
   bbox3 box(m,M);
-  box.transform(t);
+  box.transform(modelView.Tinv);
   m=box.Min();
   M=box.Max();
 
@@ -709,10 +698,8 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
 
-  double* t=gl::transfdata.mvDual;
-
   bbox3 B(this->Min,this->Max);
-  B.transform(t);
+  B.transform(modelView.T);
     
   triple m=B.Min();
   triple M=B.Max();
@@ -1009,7 +996,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
   
-  if (nC) {
+  if(nC) {
     const RGBAColour white(1,1,1,opacity);
     const RGBAColour black(0,0,0,opacity);
     const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
@@ -1034,10 +1021,8 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
 
   triple m,M;
 
-  double* t=gl::transfdata.mvDual;
-
   bbox3 B(this->Min,this->Max);
-  B.transform(t);
+  B.transform(modelView.T);
 
   m=B.Min();
   M=B.Max();

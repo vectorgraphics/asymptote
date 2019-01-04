@@ -103,6 +103,14 @@ void glrender(const string& prefix, const camp::picture* pic,
               size_t nlights, camp::triple *lights, double *diffuse,
               double *ambient, double *specular, bool viewportlighting,
               bool view, int oldpid=0);
+
+struct ModelView {
+  double T[16];
+  double Tinv[16];
+};
+
+extern ModelView modelView;
+
 }
 
 namespace camp {
