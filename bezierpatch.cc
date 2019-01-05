@@ -23,9 +23,6 @@ double viewpoint[3];
 //FIXME: Find a nicer way to pass the shader program number.
 // preferably without global variables...
 
-// Sarah Nadi: If you're reading this, I'm sorry. I tried.
-// I couldn't figure out all calls to draw() function to pass the shaders
-// number properly... :( 
 extern GLint noColorShader;
 extern GLint colorShader;
 extern void setUniforms(GLint shader); 
@@ -979,7 +976,7 @@ void BezierPatch::draw()
 
     bindBuffers(vertsBufferIndex[1],elemBufferIndex[1]);
 
-    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0*sizeof(GLfloat)));
+    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0));
     glEnableVertexAttribArray(posAttribCol);
 
     glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(3*sizeof(GLfloat)));
@@ -988,7 +985,7 @@ void BezierPatch::draw()
     glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void*)(6*sizeof(GLfloat)));
     glEnableVertexAttribArray(colorAttribCol);
 
-    glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void*)(0*sizeof(GLuint)));
+    glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void*)(0));
 
     glDisableVertexAttribArray(posAttribCol);
     glDisableVertexAttribArray(normalAttribCol);

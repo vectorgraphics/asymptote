@@ -5,14 +5,24 @@
  * Render a Bezier curve.
  *****/
 
+#include "bezierpatch.h"
 #include "beziercurve.h"
+
+extern void createBuffers();
 
 namespace camp {
 
 #ifdef HAVE_GL
 
+extern GLint noColorShader;
+extern GLint colorShader;
+extern void setUniforms(GLint shader); 
+
 std::vector<GLfloat> BezierCurve::buffer;
 std::vector<GLuint> BezierCurve::indices;
+
+std::array<GLuint,1> BezierCurve::vertsBufferIndex;
+std::array<GLuint,1> BezierCurve::elemBufferIndex;
 
 void BezierCurve::init(double res, const triple& Min, const triple& Max)
 {
@@ -76,10 +86,40 @@ void BezierCurve::draw()
 {
   size_t stride=3*sizeof(GLfloat);
 
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(3,GL_FLOAT,stride,&buffer[0]);
-  glDrawElements(GL_LINES,indices.size(),GL_UNSIGNED_INT,&indices[0]);
-  glDisableClientState(GL_VERTEX_ARRAY);
+  GLuint vao;
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
+  createBuffers();
+    
+  GLint posAttrib=glGetAttribLocation(noColorShader, "position");
+
+  GLint posAttribCol=glGetAttribLocation(colorShader, "position");
+  GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
+
+  auto bindBuffers=[&](GLuint vbo, GLuint ebo)
+  {
+    glBindBuffer(GL_ARRAY_BUFFER,vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ebo);
+  };
+
+  glUseProgram(noColorShader);
+  camp::setUniforms(noColorShader); 
+
+  bindBuffers(vertsBufferIndex[0],elemBufferIndex[0]);
+
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,stride,(void*)(0));
+  glEnableVertexAttribArray(posAttrib);
+  glDrawElements(GL_LINES,indices.size(),GL_UNSIGNED_INT,(void*)(0));
+
+  glDisableVertexAttribArray(posAttrib);
+  
+  bindBuffers(0,0);
+  glUseProgram(0);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1,&vao);
+  
   clear();
 }
 

@@ -28,8 +28,9 @@ public:
   float metallic, roughness; 
 };
 */
+
 #ifdef HAVE_GL
-camp::Material objMaterial;
+extern Material objMaterial;
 #endif
 
 const triple drawElement::zero;
@@ -93,59 +94,29 @@ void setcolors(bool colors, bool lighton,
     lastspecular=specular;
     lastshininess=shininess;
   }
-// #ifdef OLD_MATERIAL
   if(colors) {
 
     if(!lighton) 
       glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
 
-    // GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
-    glm::vec4 blackMat(0,0,0,(GLfloat)diffuse.A);
-
-    // glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
-    // glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
-    // glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Black);
-
-    objMaterial.diffuse=blackMat;
-    objMaterial.specular=blackMat;
-    objMaterial.emission=blackMat;
+    glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
+    objMaterial.diffuse=Black;
+    objMaterial.specular=Black;
+    objMaterial.emission=Black;
 
   } else {
-    // GLfloat Diffuse[]={(GLfloat) diffuse.R,(GLfloat) diffuse.G,
-		//       (GLfloat) diffuse.B,(GLfloat) diffuse.A};
-    // glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
-
-    objMaterial.diffuse=glm::vec4((GLfloat) diffuse.R,(GLfloat) diffuse.G,
-		       (GLfloat) diffuse.B,(GLfloat) diffuse.A);
-
-    // GLfloat Ambient[]={(GLfloat) ambient.R,(GLfloat) ambient.G,
-		//       (GLfloat) ambient.B,(GLfloat) ambient.A};
-    // glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
-
-    objMaterial.ambient=glm::vec4((GLfloat) ambient.R,(GLfloat) ambient.G,
-		       (GLfloat) ambient.B,(GLfloat) ambient.A);
-  
-    // GLfloat Emissive[]={(GLfloat) emissive.R,(GLfloat) emissive.G,
-		//	(GLfloat) emissive.B,(GLfloat) emissive.A};
-    // glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
-
-    objMaterial.emission=glm::vec4((GLfloat) emissive.R,(GLfloat) emissive.G,
-			(GLfloat) emissive.B,(GLfloat) emissive.A);
+    objMaterial.diffuse=glm::vec4(diffuse.R,diffuse.G,
+		       diffuse.B,diffuse.A);
+    objMaterial.ambient=glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A);
+    objMaterial.emission=glm::vec4(emissive.R,emissive.G,emissive.B,
+                                   emissive.A);
   }
     
   if(lighton) {
-    // GLfloat Specular[]={(GLfloat) specular.R,(GLfloat) specular.G,
-		//	(GLfloat) specular.B,(GLfloat) specular.A};
-    // glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
-
-    objMaterial.specular=glm::vec4((GLfloat) specular.R,(GLfloat) specular.G,
-			(GLfloat) specular.B,(GLfloat) specular.A);
-
+    objMaterial.specular=glm::vec4(specular.R,specular.G,specular.B,
+                                   specular.A);
     objMaterial.shininess=128.0*shininess;
-  
-    // glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
   }
-// #endif
 }
 
 #endif  
@@ -318,7 +289,6 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-
   bbox3 box(m,M);
   box.transform(modelView.Tinv);
   m=box.Min();
@@ -332,6 +302,7 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
   
   if(billboard) BB.init(center);
+  drawBezierPatch::S.draw();
   
   GLfloat v[16];
   if(colors)
