@@ -78,8 +78,6 @@ using settings::getSetting;
 using settings::Setting;
 
 bool Iconify=false;
-bool Menu;
-bool Motion;
 bool ignorezoom;
 int Fitscreen;
 
@@ -99,7 +97,6 @@ bool queueScreen=false;
 
 int x0,y0;
 string Action;
-int MenuButton;
 
 double lastangle;
 Arcball arcball;
@@ -844,7 +841,6 @@ void zoom(int x, int y)
 {
   if(ignorezoom) {ignorezoom=false; y0=y; return;}
   if(x > 0 && y > 0) {
-    Motion=true;
     double zoomFactor=getSetting<double>("zoomfactor");
     if(zoomFactor > 0.0) {
       double zoomStep=getSetting<double>("zoomstep");
@@ -880,7 +876,6 @@ void mousewheel(int wheel, int direction, int x, int y)
 void rotate(int x, int y)
 {
   if(x > 0 && y > 0) {
-    Motion=true;
     arcball.mouse_motion(x,Height-y,0,
                          Action == "rotateX", // X rotation only
                          Action == "rotateY");  // Y rotation only
@@ -940,7 +935,6 @@ void rotateZ(double step)
 void rotateZ(int x, int y)
 {
   if(x > 0 && y > 0) {
-    Motion=true;
     double angle=Degrees(x,y);
     rotateZ(angle-lastangle);
     lastangle=angle;
@@ -1218,63 +1212,6 @@ void keyboard(unsigned char key, int x, int y)
   }
 }
  
-enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,CAMERA,
-           PLAY,STEP,REVERSE,QUIT};
-
-void menu(int choice)
-{
-  ignorezoom=true;
-  Motion=true;
-  switch (choice) {
-    case HOME: // Home
-      home();
-      update();
-      break;
-    case FITSCREEN:
-      togglefitscreen();
-      break;
-    case XSPIN:
-      spinx();
-      break;
-    case YSPIN:
-      spiny();
-      break;
-    case ZSPIN:
-      spinz();
-      break;
-    case STOP:
-      idle();
-      break;
-    case MODE:
-      mode();
-      break;
-    case EXPORT:
-      queueExport=true;
-      break;
-    case CAMERA:
-      showCamera();
-      break;
-    case PLAY:
-      if(getSetting<bool>("reverse")) Animate=false;
-      Setting("reverse")=Step=false;
-      animate();
-      break;
-    case REVERSE:
-      if(!getSetting<bool>("reverse")) Animate=false;
-      Setting("reverse")=true;
-      Step=false;
-      animate();
-      break;
-    case STEP:
-      Step=true;
-      animate();
-      break;
-    case QUIT:
-      quit();
-      break;
-  }
-}
-
 void setosize()
 {
   oldWidth=(int) ceil(oWidth);
@@ -1462,8 +1399,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   orthographic=Angle == 0.0;
   H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
     
-  Menu=false;
-  Motion=true;
   ignorezoom=false;
   Mode=0;
   Xfactor=Yfactor=1.0;
