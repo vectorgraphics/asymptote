@@ -7913,8 +7913,8 @@ maximum screen dimension. The default settings
 @verbatim
 import settings;
 leftbutton=new string[] {"rotate","zoom","shift","pan"};
-middlebutton=new string[] {"menu"};
-rightbutton=new string[] {"zoom/menu","rotateX","rotateY","rotateZ"};
+middlebutton=new string[] {""};
+rightbutton=new string[] {"zoom","rotateX","rotateY","rotateZ"};
 wheelup=new string[] {"zoomin"};
 wheeldown=new string[] {"zoomout"};
 @end verbatim

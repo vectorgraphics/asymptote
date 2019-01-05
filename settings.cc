@@ -1067,14 +1067,14 @@ void initSettings() {
 // ALT LEFT: pan
   const char *leftbutton[]={"rotate","zoom","shift","pan",NULL};
   
-// MIDDLE: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
-  const char *middlebutton[]={"menu",NULL};
+// MIDDLE:
+  const char *middlebutton[]={NULL};
   
-// RIGHT: zoom/menu (must be unmodified)
+// RIGHT: zoom
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
 // ALT RIGHT: rotateZ
-  const char *rightbutton[]={"zoom/menu","rotateX","rotateY","rotateZ",NULL};
+  const char *rightbutton[]={"zoom","rotateX","rotateY","rotateZ",NULL};
   
 // WHEEL_UP: zoomin
   const char *wheelup[]={"zoomin",NULL};

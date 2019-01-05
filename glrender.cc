@@ -840,29 +840,10 @@ void capzoom()
   
 }
 
-int menustatus=GLUT_MENU_NOT_IN_USE;
-
-void menuStatus(int status, int x, int y) 
-{
-  menustatus=status;
-}
-  
-void disableMenu() 
-{
-  Menu=false;
-  if(menustatus == GLUT_MENU_NOT_IN_USE)
-    glutDetachMenu(MenuButton);
-}
-
 void zoom(int x, int y)
 {
   if(ignorezoom) {ignorezoom=false; y0=y; return;}
   if(x > 0 && y > 0) {
-    if(Menu) {
-      disableMenu();
-      y0=y;
-      return;
-    }
     Motion=true;
     double zoomFactor=getSetting<double>("zoomfactor");
     if(zoomFactor > 0.0) {
@@ -899,11 +880,6 @@ void mousewheel(int wheel, int direction, int x, int y)
 void rotate(int x, int y)
 {
   if(x > 0 && y > 0) {
-    if(Menu) {
-      disableMenu();
-      arcball.mouse_down(x,Height-y);
-      return;
-    }
     Motion=true;
     arcball.mouse_motion(x,Height-y,0,
                          Action == "rotateX", // X rotation only
@@ -964,10 +940,6 @@ void rotateZ(double step)
 void rotateZ(int x, int y)
 {
   if(x > 0 && y > 0) {
-    if(Menu) {
-      disableMenu();
-      return;
-    }
     Motion=true;
     double angle=Degrees(x,y);
     rotateZ(angle-lastangle);
@@ -1043,7 +1015,6 @@ string action(int button, int mod)
 
 void timeout(int)
 {
-  if(Menu) disableMenu();
 }
 
 void mouse(int button, int state, int x, int y)
@@ -1051,19 +1022,6 @@ void mouse(int button, int state, int x, int y)
   int mod=glutGetModifiers();
   string Action=action(button,mod);
 
-  if(!Menu) {
-    if(mod == 0 && state == GLUT_UP && !Motion && Action == "zoom/menu") {
-      MenuButton=button;
-      glutMotionFunc(NULL);
-      glutTimerFunc(getSetting<Int>("doubleclick"),timeout,0);
-      glutAttachMenu(button);
-      Menu=true;
-      return;
-    } else Motion=false;
-  }
-  
-  disableMenu();
-  
   if(Action == "zoomin") {
     glutMotionFunc(NULL);
     mousewheel(0,1,x,y);
@@ -1265,7 +1223,6 @@ enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,CAMERA,
 
 void menu(int choice)
 {
-  if(Menu) disableMenu();
   ignorezoom=true;
   Motion=true;
   switch (choice) {
@@ -1588,10 +1545,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
 #ifdef HAVE_LIBGLUT    
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
-  
-  int buttons[]={GLUT_LEFT_BUTTON,GLUT_MIDDLE_BUTTON,GLUT_RIGHT_BUTTON};
   string buttonnames[]={"left","middle","right"};
-  size_t nbuttons=sizeof(buttons)/sizeof(int);
 #endif  
   
 #ifdef HAVE_PTHREAD
@@ -1630,26 +1584,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif      
 #endif      
         string title=string(settings::PROGRAM)+": "+prefix;
-        string suffix;
-        for(size_t i=0; i < nbuttons; ++i) {
-          int button=buttons[i];
-          if(action(button,0) == "zoom/menu") {
-            suffix="Double click "+buttonnames[i]+" button for menu";
-            break;
-          }
-        }
-        if(suffix.empty()) {
-          for(size_t i=0; i < nbuttons; ++i) {
-            int button=buttons[i];
-            if(action(button,0) == "menu") {
-              suffix="Click "+buttonnames[i]+" button for menu";
-              break;
-            }
-          }
-        }
-      
-        title += " ["+suffix+"]";
-    
         window=glutCreateWindow(title.c_str());
 
         GLint samplebuf[1];
@@ -1786,28 +1720,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
   
-    glutCreateMenu(menu);
-    glutAddMenuEntry("(h) Home",HOME);
-    glutAddMenuEntry("(f) Fitscreen",FITSCREEN);
-    glutAddMenuEntry("(x) X spin",XSPIN);
-    glutAddMenuEntry("(y) Y spin",YSPIN);
-    glutAddMenuEntry("(z) Z spin",ZSPIN);
-    glutAddMenuEntry("(s) Stop",STOP);
-    glutAddMenuEntry("(m) Mode",MODE);
-    glutAddMenuEntry("(e) Export",EXPORT);
-    glutAddMenuEntry("(c) Camera",CAMERA);
-    glutAddMenuEntry("(p) Play",PLAY);
-    glutAddMenuEntry("(r) Reverse",REVERSE);
-    glutAddMenuEntry("( ) Step",STEP);
-    glutAddMenuEntry("(q) Quit" ,QUIT);
-    glutMenuStatusFunc(menuStatus);
-  
-    for(size_t i=0; i < nbuttons; ++i) {
-      int button=buttons[i];
-      if(action(button,0) == "menu")
-        glutAttachMenu(button);
-    }
-    
     glutMainLoop();
 #endif // HAVE_LIBGLUT
   } else {
