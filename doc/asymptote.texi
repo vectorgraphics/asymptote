@@ -7924,11 +7924,9 @@ bind the mouse buttons as follows:
 @item Shift Left: zoom
 @item Ctrl Left: shift viewport
 @item Alt Left: pan
-@item Middle: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
 @item Wheel Up: zoom in
 @item Wheel Down: zoom out
-@item Right: zoom/menu (must be unmodified)
-@item Right double click: menu
+@item Right: zoom
 @item Shift Right: rotate about the X axis
 @item Ctrl Right: rotate about the Y axis
 @item Alt Right: rotate about the Z axis
