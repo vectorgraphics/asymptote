@@ -29,7 +29,7 @@ layout(std430,binding=1) buffer lightData
 };
 */
 uniform int lightCount; 
-uniform Light lights[100];
+uniform Light lights[100];// FIXME
 
 uniform Material materialData;
 
@@ -53,44 +53,32 @@ void main()
 #ifdef EXPLICIT_COLOR
     outColor=Color;
 #else
-    // FIXME: CHange this to a PBR model
+    // TODO: Change this to a PBR model
     // ==> Diffuse, metallic, roughness, fresnelIOR 
 
-    // for now, the old Phong model.
+    // for now, the old Phong-Blinn model.
     if(lightCount>0) {
         vec3 diffuse=vec3(0,0,0);
         vec3 specular=vec3(0,0,0);
-        vec4 ambient=vec4(0,0,0,1);
-
-        // FIXME: Surely, PBR fixes this problem by using reflection maps
-        // does this get fixed by other shading models like Blinn-Phong?
-        vec3 incidence=normalize(ViewPosition);
+        vec3 ambient=vec3(0,0,0);
+        vec3 Z=vec3(0,0,1);
         
-        for(int i=0;i<lightCount;++i)
-        {
-            vec4 viewLightDir=normalize(vec4(-lights[i].direction,0));
-
-            float lambertPower=dot(Normal,-viewLightDir.xyz);
-            lambertPower=clamp(lambertPower,0,1);
-            vec3 rawDiffuse=lights[i].diffuse.rgb*lambertPower;
-            diffuse+=clamp(rawDiffuse,0,1);
-
-            vec3 reflVector=reflect(viewLightDir.xyz,Normal);
-
-            float specularPower=pow(dot(-incidence,reflVector),materialData.shininess);
-            specularPower=clamp(specularPower,0,1);
-            vec3 rawSpec=lights[i].specular.rgb*specularPower; 
-            specular+=clamp(rawSpec,0,1);
+        for(int i=0; i < lightCount; ++i) {
+            vec3 L=normalize(lights[i].direction);
+            float lambertPower=max(dot(Normal,L),0);
+            diffuse += lights[i].diffuse.rgb*lambertPower;
+            ambient += lights[i].ambient.rgb;
+            float dotproduct=dot(Normal,normalize(L+Z));
+            if(dotproduct > 0)
+               specular += pow(dotproduct,materialData.shininess)*
+                   lights[i].specular.rgb;
         }
 
-        diffuse=clamp(diffuse,0,1);
-
-        outColor=vec4(diffuse,1)*materialData.diffuse;
-        outColor+=lights[0].ambient*materialData.ambient;
-        outColor+=materialData.specular*vec4(specular,1);
-        outColor+=materialData.emissive;
-
-        outColor=clamp(outColor,0,1);
+        vec3 color=diffuse*materialData.diffuse.rgb+
+             ambient*materialData.ambient.rgb
+             +materialData.specular.rgb*specular
+             +materialData.emissive.rgb;
+        outColor=vec4(color,materialData.diffuse[3]);
     } else {
         outColor=materialData.diffuse;
     }

@@ -105,8 +105,7 @@ void setcolors(bool colors, bool lighton,
     objMaterial.emission=Black;
 
   } else {
-    objMaterial.diffuse=glm::vec4(diffuse.R,diffuse.G,
-		       diffuse.B,diffuse.A);
+    objMaterial.diffuse=glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A);
     objMaterial.ambient=glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A);
     objMaterial.emission=glm::vec4(emissive.R,emissive.G,emissive.B,
                                    emissive.A);
