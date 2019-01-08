@@ -1,5 +1,3 @@
-//#version 450
-
 struct Material
 {
     vec4 diffuse, specular, emissive, ambient;
@@ -33,7 +31,6 @@ uniform Light lights[100];// FIXME
 
 uniform Material materialData;
 
-// in mat4 invtranspViewMat;
 in vec3 Normal;
 in vec3 ViewPosition;
 
@@ -42,11 +39,6 @@ in vec4 Color;
 #endif
 
 out vec4 outColor;
-
-mat4 invtransp(mat4 inmat)
-{
-    return transpose(inverse(inmat));
-}
 
 void main()
 {

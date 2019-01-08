@@ -858,7 +858,6 @@ void transform(const std::vector<GLfloat>& b)
 //    ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
     zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];
   }
-  
 }
 
 // precompute min and max bounds of each triangle
@@ -923,14 +922,14 @@ void BezierPatch::draw()
   if(ntvertices > 0) {
     tstride=stride;
     transform(tbuffer); 
-    bounds(tindices);
+//    bounds(tindices);
     qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
   }
 
   if(Ntvertices > 0) {
     tstride=Stride;
     transform(tBuffer);
-    bounds(tIndices);
+//    bounds(tIndices);
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
   }
     

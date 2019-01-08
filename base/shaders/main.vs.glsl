@@ -1,5 +1,3 @@
-//#version 450
-
 in vec3 position;
 in vec3 normal;
 
@@ -17,17 +15,11 @@ out vec3 ViewPosition;
 out vec4 Color;
 #endif
 
-mat4 invtransp(mat4 inmat)
-{
-    return transpose(inverse(inmat));
-}
-
 void main()
 {
     gl_Position=projMat*viewMat*vec4(position,1.0);
     ViewPosition=(viewMat*vec4(position,1.0)).xyz;
-    vec4 rawNormal=invtransp(viewMat)*vec4(normal,0);
-    Normal=normalize(rawNormal.xyz);
+    Normal=normalize((transpose(inverse(viewMat))*vec4(normal,0)).xyz);
     
 #ifdef EXPLICIT_COLOR
     Color=color;
