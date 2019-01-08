@@ -15,7 +15,6 @@ namespace camp {
 #ifdef HAVE_GL
 
 extern GLint noColorShader;
-extern GLint colorShader;
 extern void setUniforms(GLint shader); 
 
 std::vector<GLfloat> BezierCurve::buffer;
@@ -93,9 +92,6 @@ void BezierCurve::draw()
   createBuffers();
     
   GLint posAttrib=glGetAttribLocation(noColorShader, "position");
-
-  GLint posAttribCol=glGetAttribLocation(colorShader, "position");
-  GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
 
   auto bindBuffers=[&](GLuint vbo, GLuint ebo)
   {
