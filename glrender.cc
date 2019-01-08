@@ -158,6 +158,7 @@ using glm::dvec3;
 using glm::mat4;
 using glm::dmat4;
 using glm::value_ptr;
+using glm::translate;
 
 mat4 projMat;
 mat4 viewMat;
@@ -749,10 +750,8 @@ void update()
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
   
-  dviewMat=dmat4(1.0);
-  dviewMat=glm::translate(dviewMat,dvec3(cx,cy,cz));
-  dviewMat=dviewMat*drotateMat;
-  dviewMat=glm::translate(dviewMat,dvec3(0,0,-cz));
+  dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
+                     dvec3(0,0,-cz));
 
   viewMat=mat4(dviewMat);
   
