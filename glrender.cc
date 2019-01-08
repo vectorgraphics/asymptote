@@ -161,7 +161,6 @@ using glm::value_ptr;
 
 mat4 projMat;
 mat4 viewMat;
-mat4 modelMat;
 
 dmat4 dviewMat;
 dmat4 drotateMat; 
@@ -469,7 +468,6 @@ void home()
   }
 #endif
   viewMat=mat4(1.0f);
-  modelMat=mat4(1.0f);
   
   dviewMat=dmat4(1.0);
   drotateMat=dmat4(1.0); 
@@ -1689,7 +1687,6 @@ void setUniforms(GLint shader)
   // 
   glUniformMatrix4fv(getShaderUnifs("viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   glUniformMatrix4fv(getShaderUnifs("projMat"),1,GL_FALSE, value_ptr(gl::projMat));
-  glUniformMatrix4fv(getShaderUnifs("modelMat"),1,GL_FALSE, value_ptr(gl::modelMat));
 
   // materials 
   glUniform4fv(getShaderUnifs("materialData.diffuse"),1,value_ptr(objMaterial.diffuse));

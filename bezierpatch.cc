@@ -15,7 +15,7 @@ using ::orient3d;
 
 size_t tstride;
 
-double viewpoint[3];
+//double viewpoint[3];
 
 #ifdef HAVE_GL
 
