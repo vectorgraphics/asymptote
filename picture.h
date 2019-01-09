@@ -57,6 +57,7 @@ public:
   bool havelabels();
   bool have3D();
   bool havepng();
+  bool havenewpage();
 
   bbox bounds();
   bbox3 bounds3();
@@ -68,6 +69,9 @@ public:
     return transparency;
   }
   
+  int epstosvg(const string& epsname, const string& outname);
+  int pdftosvg(const string& pdfname, const string& outname);
+  
   int epstopdf(const string& epsname, const string& pdfname);
   int pdftoeps(const string& pdfname, const string& epsname);
   
@@ -75,14 +79,12 @@ public:
                   const string& prefix, const pair& bboxshift, bool svgformat); 
     
   bool postprocess(const string& prename, const string& outname, 
-                   const string& outputformat, double magnification,
-                   bool wait, bool view, bool pdftex, bool epsformat,
-                   bool svg);
+                   const string& outputformat, bool wait, bool view,
+                   bool pdftex, bool epsformat, bool svg);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
-               const string& format, double magnification=0.0,
-               bool wait=false, bool view=true);
+               const string& format, bool wait=false, bool view=true);
  
   void render(GLUnurbs *nurb, double size2,
               const triple &Min, const triple& Max, double perspective,

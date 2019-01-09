@@ -16,9 +16,17 @@ using ::orient3d;
 
 size_t tstride;
 
-double viewpoint[3];
+//double viewpoint[3];
 
 #ifdef HAVE_GL
+
+
+//FIXME: Find a nicer way to pass the shader program number.
+// preferably without global variables...
+
+extern GLint noColorShader;
+extern GLint colorShader;
+extern void setUniforms(GLint shader); 
 
 std::vector<GLfloat> BezierPatch::buffer;
 std::vector<GLfloat> BezierPatch::Buffer;
@@ -41,7 +49,10 @@ std::vector<GLfloat> xmin,ymin,zmin;
 std::vector<GLfloat> xmax,ymax,zmax;
 std::vector<GLfloat> zsum;
 
+
 std::vector<triple> vertex;
+std::array<GLuint,4> BezierPatch::vertsBufferIndex;
+std::array<GLuint,4> BezierPatch::elemBufferIndex;
 
 inline double min(double a, double b, double c)
 {
@@ -469,11 +480,13 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   res2=res*res;
   Res2=BezierFactor*BezierFactor*res2;
   Epsilon=FillFactor*res;
+
   this->Min=Min;
   this->Max=Max;
-  
+
   const size_t nbuffer=10000;
   indices.reserve(nbuffer);
+  
   if(transparent) {
     tbuffer.reserve(nbuffer);
     tindices.reserve(nbuffer);
@@ -1007,17 +1020,19 @@ void transform(const std::vector<GLfloat>& b)
     ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
     zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];
   }
-  
 }
 
 // precompute min and max bounds of each triangle
 void bounds(const std::vector<GLuint>& I)
 {
   unsigned n=I.size()/3;
+/*  
   xmin.resize(n);
   xmax.resize(n);
   ymin.resize(n);
   ymax.resize(n);
+*/
+  
   zmin.resize(n);
   zmax.resize(n);
   
@@ -1027,6 +1042,8 @@ void bounds(const std::vector<GLuint>& I)
     unsigned Ib=I[i3+1];
     unsigned Ic=I[i3+2];
     
+    
+    /*
     double xa=xbuffer[Ia];
     double xb=xbuffer[Ib];
     double xc=xbuffer[Ic];
@@ -1034,16 +1051,19 @@ void bounds(const std::vector<GLuint>& I)
     double ya=ybuffer[Ia];
     double yb=ybuffer[Ib];
     double yc=ybuffer[Ic];
+    */
     
     double za=zbuffer[Ia];
     double zb=zbuffer[Ib];
     double zc=zbuffer[Ic];
     
+    /*
     xmin[i]=min(xa,xb,xc);
     xmax[i]=max(xa,xb,xc);
     
     ymin[i]=min(ya,yb,yc);
     ymax[i]=max(ya,yb,yc);
+    */
     
     zmin[i]=min(za,zb,zc);
     zmax[i]=max(za,zb,zc);
@@ -1060,58 +1080,124 @@ void BezierPatch::draw()
   const size_t size=sizeof(GLfloat);
   const size_t bytestride=stride*size;
   const size_t Bytestride=Stride*size;
-    
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  
-  if(nvertices > 0) {
-    glVertexPointer(3,GL_FLOAT,bytestride,&buffer[0]);
-    glNormalPointer(GL_FLOAT,bytestride,&buffer[3]);
-    glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,&indices[0]);
-  }
-  
-  if(Nvertices > 0) {
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnable(GL_COLOR_MATERIAL);
-    glVertexPointer(3,GL_FLOAT,Bytestride,&Buffer[0]);
-    glNormalPointer(GL_FLOAT,Bytestride,&Buffer[3]);
-    glColorPointer(4,GL_FLOAT,Bytestride,&Buffer[6]);
-    glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,&Indices[0]);
-    glDisable(GL_COLOR_MATERIAL);
-    glDisableClientState(GL_COLOR_ARRAY);
-  }
-  
+
   if(ntvertices > 0) {
     tstride=stride;
     transform(tbuffer); 
 //    bounds(tindices);
-    
     qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
-      
-    glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
-    glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
-    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,&tindices[0]);
   }
-  
+
   if(Ntvertices > 0) {
     tstride=Stride;
     transform(tBuffer);
 //    bounds(tIndices);
-    
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
+  }
     
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnable(GL_COLOR_MATERIAL);
-    glVertexPointer(3,GL_FLOAT,Bytestride,&tBuffer[0]);
-    glNormalPointer(GL_FLOAT,Bytestride,&tBuffer[3]);
-    glColorPointer(4,GL_FLOAT,Bytestride,&tBuffer[6]);
-    glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,&tIndices[0]);
-    glDisable(GL_COLOR_MATERIAL);
-    glDisableClientState(GL_COLOR_ARRAY);
+  GLuint vao;
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
+  createBuffers();
+    
+  GLint posAttrib=glGetAttribLocation(noColorShader, "position");
+  GLint normalAttrib=glGetAttribLocation(noColorShader, "normal");
+
+  GLint posAttribCol=glGetAttribLocation(colorShader, "position");
+  GLint normalAttribCol=glGetAttribLocation(colorShader, "normal");
+  GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
+
+  auto bindBuffers=[&](GLuint vbo, GLuint ebo)
+  {
+    glBindBuffer(GL_ARRAY_BUFFER,vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ebo);
+  };
+
+  if(nvertices > 0) {
+    glUseProgram(noColorShader);
+    camp::setUniforms(noColorShader); 
+
+    bindBuffers(vertsBufferIndex[0],elemBufferIndex[0]);
+
+    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0));
+    glEnableVertexAttribArray(posAttrib);
+    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(3*sizeof(GLfloat)));
+    glEnableVertexAttribArray(normalAttrib);
+
+    glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void*)(0));
+
+    glDisableVertexAttribArray(posAttrib);
+    glDisableVertexAttribArray(normalAttrib);
+  }
+
+  if(Nvertices > 0) {
+    glUseProgram(colorShader);
+    camp::setUniforms(colorShader); 
+
+    bindBuffers(vertsBufferIndex[1],elemBufferIndex[1]);
+
+    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0));
+    glEnableVertexAttribArray(posAttribCol);
+
+    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(3*sizeof(GLfloat)));
+    glEnableVertexAttribArray(normalAttribCol);
+
+    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void*)(6*sizeof(GLfloat)));
+    glEnableVertexAttribArray(colorAttribCol);
+
+    glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void*)(0));
+
+    glDisableVertexAttribArray(posAttribCol);
+    glDisableVertexAttribArray(normalAttribCol);
+    glDisableVertexAttribArray(colorAttribCol);
+  }
+
+  if(ntvertices > 0) {
+    glUseProgram(noColorShader);
+    camp::setUniforms(noColorShader); 
+
+    bindBuffers(vertsBufferIndex[2],elemBufferIndex[2]);
+
+    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0*sizeof(GLfloat)));
+    glEnableVertexAttribArray(posAttrib);
+
+    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(3*sizeof(GLfloat)));
+    glEnableVertexAttribArray(normalAttrib);
+
+    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,(void*)(0*sizeof(GLuint)));
+
+    glDisableVertexAttribArray(posAttrib);
+    glDisableVertexAttribArray(normalAttrib);
   }
   
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
+  if(Ntvertices > 0) {
+    glUseProgram(colorShader);
+    camp::setUniforms(colorShader); 
+
+    bindBuffers(vertsBufferIndex[3],elemBufferIndex[3]);
+
+    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0*sizeof(GLfloat)));
+    glEnableVertexAttribArray(posAttribCol);
+
+    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(3*sizeof(GLfloat)));
+    glEnableVertexAttribArray(normalAttribCol);
+
+    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void*)(6*sizeof(GLfloat)));
+    glEnableVertexAttribArray(colorAttribCol);    
+
+    glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,(void*)(0*sizeof(GLuint)));
+
+    glDisableVertexAttribArray(posAttribCol);
+    glDisableVertexAttribArray(normalAttribCol);
+    glDisableVertexAttribArray(colorAttribCol);
+  }
+
+  bindBuffers(0,0);
+  glUseProgram(0);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1,&vao);
   
   clear();
 }

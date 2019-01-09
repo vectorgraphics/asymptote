@@ -150,7 +150,7 @@ public:
   
   void prologue(const bbox& box);
   void epilogue();
-  void header();
+  void header(bool eps);
 
   void close();
   

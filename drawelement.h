@@ -22,9 +22,9 @@
 
 namespace camp {
 
-extern double Tx[3]; // x-component of current transform
-extern double Ty[3]; // y-component of current transform
-extern double Tz[3]; // z-component of current transform
+extern double *Tx; // x-component of current transform
+extern double *Ty; // y-component of current transform
+extern double* Tz; // z-component of current transform
 
 static const double pixel=1.0; // Adaptive rendering constant.
 
@@ -121,6 +121,11 @@ typedef mem::vector<groupmap> groupsmap;
 class drawElement : public gc
 {
 public:
+  string KEY;
+  
+  drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key)
+  {}
+  
   virtual ~drawElement() {}
   
   static pen lastpen;  
@@ -159,6 +164,8 @@ public:
 
   virtual bool islabel() {return false;}
 
+  virtual bool isnewpage() {return false;}
+  
   virtual bool islayer() {return false;}
 
   virtual bool is3D() {return false;}
@@ -232,7 +239,8 @@ public:
     copyArray4x4C(T,&t);
   }
 
-  drawElementLC(const double* t, const drawElementLC *s) : T(NULL) {
+  drawElementLC(const double* t, const drawElementLC *s) : 
+    drawElement(s->KEY), T(NULL) {
     multiplyTransform3(T,t,s->T);
   }
 
@@ -365,10 +373,6 @@ public:
   }
   
   void strokepath(psfile *out) {
-    // strokepath and evenodd are incompatible
-    static pen zerowinding=pen((FillRule) ZEROWINDING);
-    pentype=pentype+zerowinding;
-    out->setpen(pentype);
     out->strokepath();
   }
   

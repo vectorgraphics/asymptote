@@ -173,8 +173,8 @@ template<class T>
 bool setlatexfont(T& out, const pen& p, const pen& lastpen)
 {
   if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
-    out <<  "\\fontsize{" << p.size()*ps2tex << "}{" << p.Lineskip()*ps2tex
-        << "}\\selectfont\n";
+    out <<  "\\fontsize{" << p.size()*settings::ps2tex << "}{" 
+        << p.Lineskip()*settings::ps2tex << "}\\selectfont\n";
     return true;
   }
   return false;
@@ -278,7 +278,7 @@ public:
   void dot(path p, pen, bool newPath=true);
   
   void writeshifted(pair z) {
-    write(conj(z)*ps2tex);
+    write(conj(z)*settings::ps2tex);
   }
   
   void translate(pair z) {}

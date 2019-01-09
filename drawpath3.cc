@@ -6,12 +6,23 @@
 
 #include "drawpath3.h"
 #include "drawsurface.h"
+#include "material.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace camp {
+
+#ifdef HAVE_GL
+Material objMaterial;
+#endif
 
 using vm::array;
 using namespace prc;
   
+using gl::modelView;
+
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   Int n=g.length();
@@ -71,13 +82,8 @@ void drawPath3::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
   
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-// Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
-  run::inverse(t,4);
   bbox3 box(m,M);
-  box.transform(t);
+  box.transform(modelView.Tinv);
   m=box.Min();
   M=box.Max();
 
@@ -88,17 +94,12 @@ void drawPath3::render(GLUnurbs *nurb, double size2,
   
   drawBezierPatch::S.draw();
   
-  GLfloat Diffuse[]={0.0,0.0,0.0,(GLfloat) color.A};
-  glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
-  static GLfloat Black[]={0.0,0.0,0.0,1.0};
-  glMaterialfv(GL_FRONT,GL_AMBIENT,Black);
-  GLfloat Emissive[]={(GLfloat) color.R,(GLfloat) color.G,(GLfloat) color.B,
-		      (GLfloat) color.A};
-  glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
-  glMaterialfv(GL_FRONT,GL_SPECULAR,Black);
-  glMaterialf(GL_FRONT,GL_SHININESS,128.0);
-  
-  
+  glm::vec4 Black(0.0,0.0,0.0,1.0);
+  objMaterial.diffuse=glm::vec4(0.0,0.0,0.0,color.A);
+  objMaterial.ambient=Black;
+  objMaterial.emission=glm::vec4(color.R,color.G,color.B,color.A);
+  objMaterial.specular=Black;
+  objMaterial.shininess=128.0;
   
   if(billboard) {
     for(Int i=0; i < n; ++i) {

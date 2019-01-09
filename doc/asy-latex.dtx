@@ -435,8 +435,8 @@ Licence: GPL2+
     \next%
   }
 \endgroup
-\def\asy@init{
-  \def\ASYlatexdir{}
+\def\asy@init{%
+  \def\ASYlatexdir{}%
   \ifx\asylatexdir\empty\else
     \def\ASYlatexdir{\asylatexdir/}%
   \fi
@@ -466,7 +466,7 @@ Licence: GPL2+
   \immediate\write\AsyPreStream{%
     \noexpand\InputIfFileExists{%
       \ASYprefix\noexpand\jobname-\the\c@asy.pre}{}{}%
-  }
+  }%
   \asy@write@graphic@header
   \let\ThisAsymptote\WriteAsyLine
   \ProcessAsymptote{asy}%

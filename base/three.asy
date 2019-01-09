@@ -1,6 +1,7 @@
 private import math;
 
-if(inXasyMode) settings.render=0;
+if(settings.xasy)
+  settings.render=0;
 
 if(prc0()) {
   if(!latex()) settings.prc=false;
@@ -2916,9 +2917,9 @@ object embed(string prefix=outprefix(), string label=prefix,
   if((preview || (prc && settings.render == 0)) && settings.embed) {
     image=prefix;
     if(settings.inlinetex) image += "_0";
-    if(!preview && !shipped && !S.pic2.empty2()) {
+    if(!preview && !S.pic2.empty2()) {
       transform T=S.pic2.scaling(S.width,S.height);
-      shipout(image,S.pic2.fit(T),newframe,nativeformat(),false,false,null);
+      _shipout(image,S.pic2.fit(T),newframe,nativeformat(),false,false);
     }
     
     image += "."+nativeformat();

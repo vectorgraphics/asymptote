@@ -131,7 +131,9 @@ frame bbox(picture pic=currentpicture,
            real xmargin=0, real ymargin=xmargin,
            pen p=currentpen, filltype filltype=NoFill)
 {
-  frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
+  real penwidth=linewidth(p);
+  frame f=pic.fit(max(pic.xsize-2*(xmargin+penwidth),0),
+                  max(pic.ysize-2*(ymargin+penwidth),0));
   box(f,xmargin,ymargin,p,filltype,above=false);
   return f;
 }

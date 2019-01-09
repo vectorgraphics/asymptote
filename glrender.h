@@ -29,9 +29,13 @@ typedef GLvoid (* _GLUfuncptr)(...);
 typedef GLvoid (* _GLUfuncptr)();
 #endif
 #else
+#define GLEW_OSMESA
+#define GLEW_STATIC
+#include <GL/glew.h>
 #include <GL/gl.h>
-#include <GL/glext.h>
 #include <GL/glu.h>
+//#include <GL/glext.h>
+#undef HAVE_LIBOSMESA // TODO: Turn this off/ 
 #ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
 #endif
@@ -99,6 +103,14 @@ void glrender(const string& prefix, const camp::picture* pic,
               size_t nlights, camp::triple *lights, double *diffuse,
               double *ambient, double *specular, bool viewportlighting,
               bool view, int oldpid=0);
+
+struct ModelView {
+  double T[16];
+  double Tinv[16];
+};
+
+extern ModelView modelView;
+
 }
 
 namespace camp {

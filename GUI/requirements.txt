@@ -1,0 +1,4 @@
+numpy==1.11.0
+cson==0.7
+PyQt5==5.11
+rsvg-convert==2.42.3

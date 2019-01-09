@@ -184,7 +184,7 @@ string getEntry(const string& key)
 
 void queryRegistry()
 {
-  defaultGhostscriptLibrary=getEntry("GPL Ghostscript/*/GS_DLL");
+  string defaultGhostscriptLibrary=getEntry("GPL Ghostscript/*/GS_DLL");
   if(defaultGhostscriptLibrary.empty())
     defaultGhostscriptLibrary=getEntry("AFPL Ghostscript/*/GS_DLL");
   
@@ -1067,14 +1067,14 @@ void initSettings() {
 // ALT LEFT: pan
   const char *leftbutton[]={"rotate","zoom","shift","pan",NULL};
   
-// MIDDLE: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
-  const char *middlebutton[]={"menu",NULL};
+// MIDDLE:
+  const char *middlebutton[]={NULL};
   
-// RIGHT: zoom/menu (must be unmodified)
+// RIGHT: zoom
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
 // ALT RIGHT: rotateZ
-  const char *rightbutton[]={"zoom/menu","rotateX","rotateY","rotateZ",NULL};
+  const char *rightbutton[]={"zoom","rotateX","rotateY","rotateZ",NULL};
   
 // WHEEL_UP: zoomin
   const char *wheelup[]={"zoomin",NULL};
@@ -1231,6 +1231,8 @@ void initSettings() {
                               ".."));
   addOption(new boolSetting("multiline", 0,
                             "Input code over multiple lines at the prompt"));
+  addOption(new boolSetting("xasy", 0,
+                            "Special interactive mode for xasy"));
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));
@@ -1330,7 +1332,7 @@ void setInteractive()
 {
   if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
+     (isatty(STDIN_FILENO) || getSetting<Int>("xasy")))
     interact::interactive=true;
   
   if(getSetting<bool>("localhistory"))

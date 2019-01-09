@@ -86,15 +86,22 @@ pen color(triple normal, material m, light light, transform3 T=light.T) {
   real[] Ambient=rgba(m.ambient());
   real[] Specular=rgba(m.specular());
   real[] p=rgba(m.emissive());
+  real[] diffuse={0,0,0,0};
+  real[] ambient={0,0,0,0};
+  real[] specular={0,0,0,0};
   for(int i=0; i < position.length; ++i) {
     triple L=light.viewport ? position[i] : T*position[i];
     real Ldotn=max(dot(normal,L),0);
-    p += light.ambient[i]*Ambient+Ldotn*light.diffuse[i]*Diffuse;
-    // Apply specularfactor to partially compensate non-pixel-based rendering.
-    if(Ldotn > 0) // Phong-Blinn model of specular reflection
-      p += dot(normal,unit(L+Z))^s*light.specularfactor*
-        light.specular[i]*Specular;
+    diffuse += Ldotn*light.diffuse[i];
+    ambient += light.ambient[i];
+    real dotproduct=dot(normal,unit(L+Z));
+    if(dotproduct > 0) // Phong-Blinn model of specular reflection
+      specular += dotproduct^s*light.specular[i];
   }
+  p += diffuse*Diffuse;
+  p += ambient*Ambient;
+  // Apply specularfactor to partially compensate non-pixel-based rendering.
+  p += specular*Specular*light.specularfactor;
   return rgb(p[0],p[1],p[2])+opacity(opacity(m.diffuse()));
 }
 

@@ -11,15 +11,35 @@
 #include <iomanip>
 #include <fstream>
 
-using namespace prc;
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
+using namespace prc;
+#include "material.h"
 namespace camp {
+
+// FIXME: Eventually create a PBR rendering pipeline instead... 
+
+/*
+struct PBRMaterial {
+public:
+  glm::vec3 diffuse, emission;
+  float metallic, roughness; 
+};
+*/
+
+#ifdef HAVE_GL
+extern Material objMaterial;
+#endif
 
 const triple drawElement::zero;
 
-double Tx[3]; // x-component of current transform
-double Ty[3]; // y-component of current transform
-double Tz[3]; // z-component of current transform
+using gl::modelView;
+
+double* Tx=modelView.T;   // x-component of current transform
+double* Ty=modelView.T+4; // y-component of current transform
+double* Tz=modelView.T+8; // z-component of current transform
 
 using vm::array;
 
@@ -74,35 +94,27 @@ void setcolors(bool colors, bool lighton,
     lastspecular=specular;
     lastshininess=shininess;
   }
-
   if(colors) {
+
     if(!lighton) 
       glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
 
-    GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Black);
+    glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
+    objMaterial.diffuse=Black;
+    objMaterial.specular=Black;
+    objMaterial.emission=Black;
+
   } else {
-    GLfloat Diffuse[]={(GLfloat) diffuse.R,(GLfloat) diffuse.G,
-		       (GLfloat) diffuse.B,(GLfloat) diffuse.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
-  
-    GLfloat Ambient[]={(GLfloat) ambient.R,(GLfloat) ambient.G,
-		       (GLfloat) ambient.B,(GLfloat) ambient.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
-  
-    GLfloat Emissive[]={(GLfloat) emissive.R,(GLfloat) emissive.G,
-			(GLfloat) emissive.B,(GLfloat) emissive.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+    objMaterial.diffuse=glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A);
+    objMaterial.ambient=glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A);
+    objMaterial.emission=glm::vec4(emissive.R,emissive.G,emissive.B,
+                                   emissive.A);
   }
     
   if(lighton) {
-    GLfloat Specular[]={(GLfloat) specular.R,(GLfloat) specular.G,
-			(GLfloat) specular.B,(GLfloat) specular.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
-  
-    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+    objMaterial.specular=glm::vec4(specular.R,specular.G,specular.B,
+                                   specular.A);
+    objMaterial.shininess=128.0*shininess;
   }
 }
 
@@ -114,7 +126,7 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
   double X,Y,Z;
   
   if(straight) {
-    triple Vertices[3];
+    triple Vertices[4];
     if(t == NULL) {
       Vertices[0]=controls[0];
       Vertices[1]=controls[3];
@@ -275,27 +287,8 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-// Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
-
-  Tx[0]=t[0];
-  Tx[1]=t[1];
-  Tx[2]=t[2];
-  
-  Ty[0]=t[4];
-  Ty[1]=t[5];
-  Ty[2]=t[6];
-  
-  Tz[0]=t[8];
-  Tz[1]=t[9];
-  Tz[2]=t[10];
-  
-  run::inverse(t,4);
   bbox3 box(m,M);
-  box.transform(t);
+  box.transform(modelView.Tinv);
   m=box.Min();
   M=box.Max();
   
@@ -512,27 +505,9 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-// Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
 
-  Tx[0]=t[0];
-  Tx[1]=t[1];
-  Tx[2]=t[2];
-  
-  Ty[0]=t[4];
-  Ty[1]=t[5];
-  Ty[2]=t[6];
-  
-  Tz[0]=t[8];
-  Tz[1]=t[9];
-  Tz[2]=t[10];
-
-  run::inverse(t,4);
   bbox3 box(m,M);
-  box.transform(t);
+  box.transform(modelView.Tinv);
   m=box.Min();
   M=box.Max();
 
@@ -690,13 +665,9 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
 #ifdef HAVE_GL
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
-  
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-  run::transpose(t,4);
 
   bbox3 B(this->Min,this->Max);
-  B.transform(t);
+  B.transform(modelView.T);
     
   triple m=B.Min();
   triple M=B.Max();
@@ -911,6 +882,7 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
                        double perspective, bool lighton, bool transparent) 
 {
 #ifdef HAVE_GL
+#ifdef OLD_MATERIAL
   if(invisible)
     return;
   
@@ -936,6 +908,7 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
   
   glPointSize(1.0);
   glDisable(GL_COLOR_MATERIAL);
+#endif
 #endif
 }
 
@@ -991,7 +964,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
   
-  if (nC) {
+  if(nC) {
     const RGBAColour white(1,1,1,opacity);
     const RGBAColour black(0,0,0,opacity);
     const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
@@ -1015,12 +988,9 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
   if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
 
   triple m,M;
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-  run::transpose(t,4);
 
   bbox3 B(this->Min,this->Max);
-  B.transform(t);
+  B.transform(modelView.T);
 
   m=B.Min();
   M=B.Max();

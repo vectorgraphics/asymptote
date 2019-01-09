@@ -76,6 +76,28 @@ using types::pathArray;
 using types::penArray;
 using types::penArray2;
 
+static transform ZeroTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);
+//static int tag=0;
+
+transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
+{
+    string s=(*p)->KEY;
+    transform t;
+    // Don't apply xmap without an explicit corresponding key
+    if(s.substr(s.length()-1) != "1") return t;
+
+    xmap_t::iterator q=xmap.find(s.substr(0,s.length()-2));
+    if(q != xmap.end()) {
+      xtransform_t& v=q->second;
+      if(!v.empty()) {
+        t=v.front();
+        v.pop_front();      
+      }
+    }
+    return t;
+}
+
+
 function *transformFunction()
 {
   return new function(primTransform());
@@ -139,7 +161,7 @@ void _draw(picture *f, path g, pen p)
 
 void fill(picture *f, patharray *g, pen p=CURRENTPEN, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawFill(*copyarray(g),false,p));
 }
 
@@ -147,7 +169,7 @@ void latticeshade(picture *f, patharray *g, bool stroke=false,
                   pen fillrule=CURRENTPEN, penarray2 *p, transform t=identity, 
                   bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawLatticeShade(*copyarray(g),stroke,fillrule,*copyarray(p),
                                  t));
 }
@@ -156,7 +178,7 @@ void axialshade(picture *f, patharray *g, bool stroke=false, pen pena, pair a,
                 bool extenda=true, pen penb, pair b, bool extendb=true,
                 bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawAxialShade(*copyarray(g),stroke,pena,a,extenda,penb,b,
                                extendb));
 }
@@ -165,7 +187,7 @@ void radialshade(picture *f, patharray *g, bool stroke=false, pen pena,
                  pair a, real ra, bool extenda=true, pen penb, pair b, real rb,
                  bool extendb=true, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawRadialShade(*copyarray(g),stroke,pena,a,ra,extenda,
                                 penb,b,rb,extendb));
 }
@@ -174,7 +196,7 @@ void gouraudshade(picture *f, patharray *g, bool stroke=false,
                   pen fillrule=CURRENTPEN, penarray *p, pairarray *z,
                   Intarray *edges, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   checkArrays(p,z);
   checkArrays(z,edges);
   f->append(new drawGouraudShade(*copyarray(g),stroke,fillrule,*copyarray(p),
@@ -185,7 +207,7 @@ void gouraudshade(picture *f, patharray *g, bool stroke=false,
                   pen fillrule=CURRENTPEN, penarray *p, Intarray *edges,
                   bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   size_t n=checkArrays(p,edges);
   size_t m=checkArray(g);
   array *z=new array(n);
@@ -209,8 +231,8 @@ void tensorshade(picture *f, patharray *g, bool stroke=false,
                  pen fillrule=CURRENTPEN, penarray2 *p, patharray *b=NULL,
                  pairarray2 *z=emptyarray, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
+  array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
   if(b == NULL) b=g;
   size_t n=checkArrays(p,b);
   size_t nz=checkArray(z);
@@ -224,7 +246,7 @@ void functionshade(picture *f, patharray *g, bool stroke=false,
                    pen fillrule=CURRENTPEN, string shader=emptystring,
                    bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawFunctionShade(*copyarray(g),stroke,fillrule,shader));
 }
 
@@ -233,7 +255,7 @@ void functionshade(picture *f, patharray *g, bool stroke=false,
 void clip(picture *f, patharray *g, bool stroke=false,
           pen fillrule=CURRENTPEN, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   drawClipBegin *begin=new drawClipBegin(*copyarray(g),stroke,fillrule,true);
   f->enclose(begin,new drawClipEnd(true,begin));
 }
@@ -241,7 +263,7 @@ void clip(picture *f, patharray *g, bool stroke=false,
 void beginclip(picture *f, patharray *g, bool stroke=false,
                pen fillrule=CURRENTPEN, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawClipBegin(*copyarray(g),stroke,fillrule,false));
 }
 
@@ -357,8 +379,8 @@ void _image(picture *f, realarray2 *data, pair initial, pair final,
             penarray *palette=NULL, transform t=identity, bool copy=true,
             bool antialias=false)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
+  array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
   f->append(new drawPaletteImage(*copyarray2(data),*copyarray(palette),
                             t*matrix(initial,final),antialias));
 }
@@ -366,7 +388,7 @@ void _image(picture *f, realarray2 *data, pair initial, pair final,
 void _image(picture *f, penarray2 *data, pair initial, pair final,
             transform t=identity, bool copy=true, bool antialias=false)
 {
-  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
+  array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
   f->append(new drawNoPaletteImage(*copyarray2(data),t*matrix(initial,final),
                                    antialias));
 }
@@ -393,26 +415,23 @@ bool pdf()
   return pdf(getSetting<string>("tex"));
 }
 
-void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
-             string format=emptystring, bool wait=false, bool view=true,
-             callableTransform *xform)
+void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
+              string format=emptystring, bool wait=false, bool view=true,
+              transform T=identity)
 {
   if(prefix.empty()) prefix=outname();
 
   picture *result=new picture;
   unsigned level=0;
   picture::nodelist::iterator p;
-
-  // If null is given as an xform, just use the identity transformation.
-  bool xformIsNull = xform == nullfunc::instance();
+  
+  xmap_t xmap=processData().xmap;
+  transform Tinv=inverse(T);
 
   for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
-    if (!xformIsNull)
-      xform->call(Stack);
-    transform t=xformIsNull ? camp::identity : pop<transform>(Stack);
-
-    static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
-    bool Delete=(t == Zero);
+    transform t=getTransform(xmap,p);
+    bool Delete=(t == ZeroTransform);
+    if(!Delete && !t.isIdentity()) t=T*t*Tinv;
     picture *group=new picture;
     assert(*p);
     if((*p)->endgroup()) error(nobegin);
@@ -442,7 +461,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
     }
   }
     
-  result->shipout(preamble,prefix,format,0.0,wait,view);
+  result->shipout(preamble,prefix,format,wait,view);
 }
 
 void shipout3(string prefix, picture *f, string format=emptystring,
@@ -478,148 +497,109 @@ void shipout3(string prefix, picture *f)
   f->shipout3(prefix);
 }
 
-void deconstruct(picture *f, picture *preamble=NULL, real magnification=1, 
-                 callableTransform *xform)
+void xmap(string key, transform t=identity)
+{
+  xmap_t &xmap=processData().xmap;
+  xmap_t::iterator p=xmap.find(key);
+  if(p != xmap.end())
+    p->second.push_back(t); 
+  else {
+    xtransform_t *v=new xtransform_t();
+    v->push_back(t);
+    xmap[key]=*v;
+  }
+}
+
+void deconstruct(picture *f, picture *preamble=NULL, transform T=identity) 
 {
   unsigned level=0;
-  unsigned n=0;
 
   string prefix=outname();
-  const string xformat="png";
+  const string xformat="svg";
 
-  static long arg_max=sysconf(_SC_ARG_MAX);
-  const unsigned maxargs=::min(arg_max/(prefix.size()+xformat.size()+25ul),
-                               256ul);
   openpipeout();
 
-  fprintf(pipeout,"%d\n",maxargs);
-  fflush(pipeout);
-  
-  string preformat=nativeformat();
   const string Done="Done";
   const string Error="Error";
   
-  mem::vector<string> cmd;
-  
-  // Enforce ghostscript limitations.
-  magnification=::max(magnification,0.0001);
-  real res=::min(::max(magnification*72.0,2.0),8192.0);
-  
-  const char *converter=NULL, *hint=NULL;
-  
-  if(magnification > 0.0) {
-    mem::list<string> nameStack;
-    string outname;
-    unsigned arg=0;
-    unsigned batch=0;
-    for(picture::nodelist::iterator p=f->nodes.begin();;) {
-      if(p == f->nodes.end()) break;
-      if(arg == 0) {
-        cmd.clear();
-        ostringstream buf;
-        buf << batch << "_";
-        outname=buildname(prefix+buf.str()+"%d",xformat,"");
-        converter="gs";
-        hint="Ghostscript";
-        cmd.push_back(getSetting<string>(converter));
-        cmd.push_back("-q");
-        cmd.push_back("-dNOPAUSE");
-        cmd.push_back("-dBATCH");
-        cmd.push_back("-P");
-        cmd.push_back("-sDEVICE=pngalpha");
-        cmd.push_back("-dEPSCrop");
-        if(safe)
-          cmd.push_back("-dSAFER");
-        cmd.push_back("-r"+String(res)+"x"+String(res));
-        cmd.push_back("-sOutputFile="+outname);
-      }
-      
-      picture *group=new picture;
-      xform->call(Stack);
-      transform t=pop<transform>(Stack);
-      assert(*p);
-      if((*p)->endgroup()) {
-        fprintf(pipeout,"%s\n",Error.c_str());
-        fflush(pipeout);
-        error(nobegin);
-      }
-      if((*p)->begingroup()) {
-        ++level;
-        while(p != f->nodes.end() && level) {
+  unsigned arg=0;
+  xmap_t xmap=processData().xmap;
+  transform Tinv=inverse(T);
+    
+  for(picture::nodelist::iterator p=f->nodes.begin();;) {
+    if(p == f->nodes.end()) break;
+       
+    picture *group=new picture;
+    transform t=getTransform(xmap,p);
+    bool Delete=(t == ZeroTransform);
+    if(!Delete && !t.isIdentity()) t=T*t*Tinv;
+
+    assert(*p);
+    if((*p)->endgroup()) {
+      fprintf(pipeout,"%s\n",Error.c_str());
+      fflush(pipeout);
+      error(nobegin);
+    }
+    bool clip=false;
+    if((*p)->begingroup()) {
+      ++level;
+      while(p != f->nodes.end() && level) {
+        if(!Delete) {
           drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
           group->append(e);
-          ++p;
-          if(p == f->nodes.end()) break;
-          assert(*p);
-          if((*p)->begingroup()) ++level;
-          if((*p)->endgroup()) {
-            if(level) --level;
-            else {
-              fprintf(pipeout,"%s\n",Error.c_str());
-              fflush(pipeout);
-              error(nobegin);
-            }
+          if((*p)->endclip()) clip=true;
+        }
+        ++p;
+        if(p == f->nodes.end()) break;
+        assert(*p);
+        if((*p)->begingroup()) ++level;
+        if((*p)->endgroup()) {
+          if(level) --level;
+          else {
+            fprintf(pipeout,"%s\n",Error.c_str());
+            fflush(pipeout);
+            error(nobegin);
           }
         }
       }
-      if(p != f->nodes.end()) {
-        assert(*p);
+    }
+    if(p != f->nodes.end()) {
+      if(!Delete) {
         drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
         group->append(e);
-        bbox b;
+        if((*p)->endclip()) clip=true;
         ostringstream buf;
-        buf << prefix << "_" << n;
-        group->shipout(preamble,buf.str(),preformat,magnification,false,false);
-        string Preformat=group->Transparency() ? "pdf" : preformat;
-        string name=buildname(buf.str(),Preformat);
-        nameStack.push_back(name);
-        cmd.push_back(name);
-        b=group->bounds();
-        b *= magnification;
+        buf << prefix << "_" << arg;
+        string outname=buildname(buf.str(),xformat);
+        group->shipout(preamble,outname,xformat,false,false);
+        bbox b=group->bounds();
+        if(!b.empty) {
+          fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip);
       
-        const char *oldlocale=setlocale(LC_NUMERIC,NULL);
-        bool override=oldlocale && strcmp(oldlocale,"C") != 0;
-        if(override) {
-          oldlocale=StrdupNoGC(oldlocale);
-          setlocale(LC_NUMERIC,"C");
-        }
+          const char *oldlocale=setlocale(LC_NUMERIC,NULL);
+          bool override=oldlocale && strcmp(oldlocale,"C") != 0;
+          if(override) {
+            oldlocale=StrdupNoGC(oldlocale);
+            setlocale(LC_NUMERIC,"C");
+          }
         
-        fprintf(pipeout,"%g %g %g %g\n",b.left,b.right,b.bottom,b.top);
+          fprintf(pipeout,"%g %g %g %g\n",b.left,b.bottom,b.right,b.top);
         
-        if(override) {
-          setlocale(LC_NUMERIC,oldlocale);
-          delete[] oldlocale;
-        }
+          if(override) {
+            setlocale(LC_NUMERIC,oldlocale);
+            delete[] oldlocale;
+          }
         
-        fflush(pipeout);
-        ++n;
-        ++p;
-        ++arg;
-      }
-      
-      if(p == f->nodes.end() || arg >= maxargs) {
-        arg=0;
-        ++batch;
-        fflush(pipeout);
-  
-        int status=System(cmd,0,true,converter,hint);
-        if(status) {
-          fprintf(pipeout,"%s\n",Error.c_str());
           fflush(pipeout);
-          error("deconstruct failed");
+          ++arg;
         }
       }
+      ++p;
     }
-    
-    if(!getSetting<bool>("keep")) {
-      for(mem::list<string>::iterator p=nameStack.begin();
-          p != nameStack.end(); ++p)
-        unlink(p->c_str());
-    }
-    
-    fprintf(pipeout,"%s\n",Done.c_str());
-    fflush(pipeout);
   }
+      
+  fprintf(pipeout,"%s\n",Done.c_str());
+  fflush(pipeout);
 }
 
 
