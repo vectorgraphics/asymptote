@@ -301,7 +301,6 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
   
   if(billboard) BB.init(center);
-  drawBezierPatch::S.draw();
   
   GLfloat v[16];
   if(colors)
