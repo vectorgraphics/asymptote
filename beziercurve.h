@@ -85,6 +85,9 @@ struct BezierCurve
     nvertices=0;
     buffer.clear();
     indices.clear();
+    
+    glDeleteBuffers(1,vertsBufferIndex.data());
+    glDeleteBuffers(1,elemBufferIndex.data());
   }
   
   ~BezierCurve() {

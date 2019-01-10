@@ -255,7 +255,6 @@ struct BezierPatch
     
     glDeleteBuffers(4,vertsBufferIndex.data());
     glDeleteBuffers(4,elemBufferIndex.data());
-    
   }
   
   ~BezierPatch() {}
