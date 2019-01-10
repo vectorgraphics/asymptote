@@ -109,6 +109,15 @@ struct BezierCurve
   }
 };
 
+struct Pixel
+{
+  Pixel() {}
+  
+  ~Pixel() {}
+  
+  void draw(const triple& p);
+};
+
 #endif
 
 } //namespace camp

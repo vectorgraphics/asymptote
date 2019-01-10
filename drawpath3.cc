@@ -267,33 +267,19 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
                        double perspective, bool lighton, bool transparent) 
 {
 #ifdef HAVE_GL
-#ifdef OLD_MATERIAL
   if(invisible)
     return;
   
-  GLfloat V[4];
-
-  glEnable(GL_COLOR_MATERIAL);
-  glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+  glm::vec4 Black(0.0,0.0,0.0,1.0);
+  objMaterial.diffuse=glm::vec4(c.R,c.G,c.B,c.A);
+  objMaterial.ambient=Black;
+  objMaterial.emission=Black;
+  objMaterial.specular=Black;
+  objMaterial.shininess=128.0;
   
-  static GLfloat Black[]={0,0,0,1};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Black);
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.0);
-
   glPointSize(1.0+width);
-  
-  glBegin(GL_POINT);
-  storecolor(V,0,c);
-  glColor4fv(V);
-  store(V,v);
-  glVertex3fv(V);
-  glEnd();
-  
+  R.draw(v);
   glPointSize(1.0);
-  glDisable(GL_COLOR_MATERIAL);
-#endif
 #endif
 }
 

@@ -164,6 +164,9 @@ public:
 
 // Draw a pixel.
 class drawPixel : public drawElement {
+#ifdef HAVE_GL
+  Pixel R;
+#endif  
   triple v;
   prc::RGBAColour c;
   double width;

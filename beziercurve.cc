@@ -119,6 +119,40 @@ void BezierCurve::draw()
   clear();
 }
 
+void Pixel::draw(const triple& p)
+{
+  size_t stride=3*sizeof(GLfloat);
+  GLfloat point[]={(GLfloat) p.getx(),(GLfloat) p.gety(),(GLfloat) p.getz()};
+
+  GLuint vbo;
+  glGenBuffers(1,&vbo);
+  
+  glUseProgram(noColorShader);
+  camp::setUniforms(noColorShader); 
+
+  glBindBuffer(GL_ARRAY_BUFFER,vbo);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(point),point,GL_STATIC_DRAW);
+  
+  GLuint vao;
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
+  GLint posAttrib=glGetAttribLocation(noColorShader, "position");
+
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,stride,(void*)(0));
+  glEnableVertexAttribArray(posAttrib);
+  
+  glDrawArrays(GL_POINTS,0,1);
+
+  glDisableVertexAttribArray(posAttrib);
+  
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+  glUseProgram(0);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1,&vao);
+}
+
 #endif
 
 } //namespace camp
