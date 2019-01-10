@@ -251,7 +251,6 @@ struct BezierPatch
     tindices.clear();
     tBuffer.clear();
     tIndices.clear();
-
     
     glDeleteBuffers(4,vertsBufferIndex.data());
     glDeleteBuffers(4,elemBufferIndex.data());

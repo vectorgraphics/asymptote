@@ -90,9 +90,7 @@ struct BezierCurve
     glDeleteBuffers(1,elemBufferIndex.data());
   }
   
-  ~BezierCurve() {
-    clear();
-  }
+  ~BezierCurve() {}
   
   void render(const triple *p, GLuint I0, GLuint I1);
   void render(const triple *p, bool straight);
