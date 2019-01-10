@@ -162,6 +162,48 @@ public:
   drawElement *transformed(const double* t);
 };
 
+// Draw a pixel.
+class drawPixel : public drawElement {
+  triple v;
+  prc::RGBAColour c;
+  double width;
+  bool invisible;
+public:
+  drawPixel(const triple& v0, const pen& p, double width) :
+    c(rgba(p)), width(width) {
+    v=v0;
+    invisible=p.invisible();
+  }
+
+  drawPixel(const double* t, const drawPixel *s) : drawElement(s->KEY),
+    c(s->c), width(s->width), invisible(s->invisible) {
+    v=t*s->v;
+  }
+    
+  void bounds(const double* t, bbox3& b) {
+    const triple R=0.5*width*triple(1.0,1.0,1.0);
+    if (t != NULL) {
+      triple tv;
+      tv=t*v;
+      b.add(tv-R);
+      b.add(tv+R);
+    } else {
+      b.add(v-R);
+      b.add(v+R);
+    }    
+  }    
+  
+  void render(GLUnurbs *nurb, double size2, const triple& Min,
+              const triple& Max, double perspective, bool lighton,
+              bool transparent);
+  
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  
+  drawElement *transformed(const double* t) {
+    return new drawPixel(t,this);
+  }
+};
+
 }
 
 #endif

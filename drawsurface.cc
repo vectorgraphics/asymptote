@@ -868,51 +868,6 @@ bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
-{
-  if(invisible)
-    return true;
-
-  out->addPoint(v,c,width);
-  
-  return true;
-}
-  
-void drawPixel::render(GLUnurbs *nurb, double size2,
-                       const triple& Min, const triple& Max,
-                       double perspective, bool lighton, bool transparent) 
-{
-#ifdef HAVE_GL
-#ifdef OLD_MATERIAL
-  if(invisible)
-    return;
-  
-  GLfloat V[4];
-
-  glEnable(GL_COLOR_MATERIAL);
-  glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-  
-  static GLfloat Black[]={0,0,0,1};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Black);
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.0);
-
-  glPointSize(1.0+width);
-  
-  glBegin(GL_POINT);
-  storecolor(V,0,c);
-  glColor4fv(V);
-  store(V,v);
-  glVertex3fv(V);
-  glEnd();
-  
-  glPointSize(1.0);
-  glDisable(GL_COLOR_MATERIAL);
-#endif
-#endif
-}
-
 const string drawBaseTriangles::wrongsize=
   "triangle indices require 3 components";
 const string drawBaseTriangles::outofrange="index out of range";
