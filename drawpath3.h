@@ -168,43 +168,39 @@ class drawPixel : public drawElement {
   Pixel R;
 #endif  
   triple v;
+  pen p;
   prc::RGBAColour c;
   double width;
   bool invisible;
+  triple Min,Max;
 public:
-  drawPixel(const triple& v0, const pen& p, double width) :
-    c(rgba(p)), width(width) {
-    v=v0;
-    invisible=p.invisible();
-  }
+  drawPixel(const triple& v, const pen& p, double width, const string& key="")
+    : drawElement(key), v(v), p(p), c(rgba(p)), width(width),
+      invisible(p.invisible()) {}
 
-  drawPixel(const double* t, const drawPixel *s) : drawElement(s->KEY),
-    c(s->c), width(s->width), invisible(s->invisible) {
-    v=t*s->v;
+  void bounds(const double* t, bbox3& B) {
+    Min=Max=(t != NULL) ? t*v : v;
+    B.add(Min);
   }
-    
-  void bounds(const double* t, bbox3& b) {
-    const triple R=0.5*width*triple(1.0,1.0,1.0);
-    if (t != NULL) {
-      triple tv;
-      tv=t*v;
-      b.add(tv-R);
-      b.add(tv+R);
-    } else {
-      b.add(v-R);
-      b.add(v+R);
-    }    
-  }    
   
-  void render(GLUnurbs *nurb, double size2, const triple& Min,
-              const triple& Max, double perspective, bool lighton,
+  void ratio(const double* t, pair &b, double (*m)(double, double), double,
+             bool &first) {
+    triple V=(t != NULL) ? t*v : v;
+    pair z=pair(xratio(V),yratio(V));
+              
+    if(first) {
+      b=z;
+      first=false;
+    } else b=pair(m(b.getx(),z.getx()),m(b.gety(),z.gety()));
+  }
+  
+  void render(GLUnurbs *nurb, double size2, const triple& b,
+              const triple& B, double perspective, bool lighton,
               bool transparent);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
-  drawElement *transformed(const double* t) {
-    return new drawPixel(t,this);
-  }
+  drawElement *transformed(const double* t);
 };
 
 }

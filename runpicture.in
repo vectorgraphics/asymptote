@@ -84,9 +84,10 @@ transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
     string s=(*p)->KEY;
     transform t;
     // Don't apply xmap without an explicit corresponding key
-    if(s.substr(s.length()-1) != "1") return t;
+    size_t n=s.length();
+    if(n == 0 || s.substr(n-1) != "1") return t;
 
-    xmap_t::iterator q=xmap.find(s.substr(0,s.length()-2));
+    xmap_t::iterator q=xmap.find(s.substr(0,n-2));
     if(q != xmap.end()) {
       xtransform_t& v=q->second;
       if(!v.empty()) {

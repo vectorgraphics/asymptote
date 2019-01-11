@@ -52,10 +52,10 @@ public:
   drawSurface(const vm::array& g, size_t ncontrols, triple center,
               bool straight, const vm::array&p, double opacity,
               double shininess, double PRCshininess, const vm::array &pens,
-              Interaction interaction, bool prc) :
-    ncontrols(ncontrols), center(center), straight(straight), opacity(opacity),
-    shininess(shininess), PRCshininess(PRCshininess), interaction(interaction),
-    prc(prc) {
+              Interaction interaction, bool prc, const string& key="") :
+    drawElement(key), ncontrols(ncontrols), center(center), straight(straight),
+    opacity(opacity), shininess(shininess), PRCshininess(PRCshininess),
+    interaction(interaction), prc(prc) {
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize());
     
@@ -198,9 +198,10 @@ protected:
 public:
   drawNurbs(const vm::array& g, const vm::array* uknot, const vm::array* vknot,
             const vm::array* weight, const vm::array&p, double opacity,
-            double shininess, double PRCshininess, const vm::array &pens)
-            : opacity(opacity), shininess(shininess),
-              PRCshininess(PRCshininess) {
+            double shininess, double PRCshininess, const vm::array &pens,
+            const string& key="") 
+    : drawElement(key), opacity(opacity), shininess(shininess),
+      PRCshininess(PRCshininess) {
     size_t weightsize=checkArray(weight);
     
     const string wrongsize="Inconsistent NURBS data";

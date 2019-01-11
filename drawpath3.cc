@@ -263,17 +263,42 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
   
 void drawPixel::render(GLUnurbs *nurb, double size2,
-                       const triple& Min, const triple& Max,
+                       const triple& b, const triple& B,
                        double perspective, bool lighton, bool transparent) 
 {
 #ifdef HAVE_GL
-  if(invisible)
+  if(invisible || ((c.A < 1.0) ^ transparent)) return;
+  triple m,M;
+  
+  double f,F,s;
+  if(perspective) {
+    f=Min.getz()*perspective;
+    F=Max.getz()*perspective;
+    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
+    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
+    s=max(f,F);
+  } else {
+    m=b;
+    M=B;
+    s=1.0;
+  }
+  
+  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+  
+  bbox3 box(m,M);
+  box.transform(modelView.Tinv);
+  m=box.Min();
+  M=box.Max();
+
+  if((Max.getx() < m.getx() || Min.getx() > M.getx() ||
+      Max.gety() < m.gety() || Min.gety() > M.gety() ||
+      Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
   
   glm::vec4 Black(0.0,0.0,0.0,1.0);
   objMaterial.diffuse=glm::vec4(c.R,c.G,c.B,c.A);
   objMaterial.ambient=Black;
-  objMaterial.emission=Black;
+  objMaterial.emission=objMaterial.diffuse;
   objMaterial.specular=Black;
   objMaterial.shininess=128.0;
   
@@ -283,4 +308,9 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
 #endif
 }
 
+drawElement *drawPixel::transformed(const double* t)
+{
+  return new drawPixel(t*v,p,width,KEY);
+}
+  
 } //namespace camp

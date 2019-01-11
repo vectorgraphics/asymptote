@@ -1557,22 +1557,16 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   auto result = glewInit();
 
-  if (result!=GLEW_OK)
-  {
-    cerr<<"GLEW Error!"<<endl;
-    throw 1;
+  if (result!=GLEW_OK) {
+    cerr << "GLEW Error!" << endl;
+    exit(-1);
   }
   
-  if(!GLEW_VERSION_4_5)
-  {
-    cerr<<"OpenGL Version 4.5 not available!"<<endl;
-    throw 1;
+  if(!GLEW_VERSION_4_5) {
+    cerr << "OpenGL Version 4.5 not available!" << endl;
+    exit(-1);
   }
 
-  if(settings::verbose>1)
-  {
-  std::cout << "Renderer init" << std::endl;
-  }
   home();
     
 #ifdef HAVE_LIBGLUT

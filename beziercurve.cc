@@ -8,8 +8,6 @@
 #include "bezierpatch.h"
 #include "beziercurve.h"
 
-extern void createBuffers();
-
 namespace camp {
 
 #ifdef HAVE_GL
@@ -121,7 +119,6 @@ void BezierCurve::draw()
 
 void Pixel::draw(const triple& p)
 {
-  size_t stride=3*sizeof(GLfloat);
   GLfloat point[]={(GLfloat) p.getx(),(GLfloat) p.gety(),(GLfloat) p.getz()};
 
   GLuint vbo;
@@ -132,14 +129,14 @@ void Pixel::draw(const triple& p)
 
   glBindBuffer(GL_ARRAY_BUFFER,vbo);
   glBufferData(GL_ARRAY_BUFFER,sizeof(point),point,GL_STATIC_DRAW);
-  
+
   GLuint vao;
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
   GLint posAttrib=glGetAttribLocation(noColorShader, "position");
 
-  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,stride,(void*)(0));
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,0,(void*)(0));
   glEnableVertexAttribArray(posAttrib);
   
   glDrawArrays(GL_POINTS,0,1);
