@@ -1554,10 +1554,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   glewExperimental = GL_TRUE;
 
-  
-  auto result = glewInit();
+  int result = glewInit();
 
-  if (result!=GLEW_OK) {
+  if (result != GLEW_OK) {
     cerr << "GLEW Error!" << endl;
     exit(-1);
   }
@@ -1685,25 +1684,20 @@ glm::vec4 vec4(double *v)
 // FIXME: this is being called too often!
 void setUniforms(GLint shader)
 {
-  auto getShaderUnifs = [=](std::string const& name) -> GLint {
-    return glGetUniformLocation(shader,name.c_str()); 
-  }; 
-
-  // 
-  glUniformMatrix4fv(getShaderUnifs("viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
-  glUniformMatrix4fv(getShaderUnifs("projMat"),1,GL_FALSE, value_ptr(gl::projMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"projMat"),1,GL_FALSE, value_ptr(gl::projMat));
 
   // materials 
-  glUniform4fv(getShaderUnifs("materialData.diffuse"),1,value_ptr(objMaterial.diffuse));
-  glUniform4fv(getShaderUnifs("materialData.specular"),1,value_ptr(objMaterial.specular));
-  glUniform4fv(getShaderUnifs("materialData.ambient"),1,value_ptr(objMaterial.ambient));
-  glUniform4fv(getShaderUnifs("materialData.emissive"),1,value_ptr(objMaterial.emission));
+  glUniform4fv(glGetUniformLocation(shader,"materialData.diffuse"),1,value_ptr(objMaterial.diffuse));
+  glUniform4fv(glGetUniformLocation(shader,"materialData.specular"),1,value_ptr(objMaterial.specular));
+  glUniform4fv(glGetUniformLocation(shader,"materialData.ambient"),1,value_ptr(objMaterial.ambient));
+  glUniform4fv(glGetUniformLocation(shader,"materialData.emissive"),1,value_ptr(objMaterial.emission));
 
-  glUniform1f(getShaderUnifs("materialData.shininess"),objMaterial.shininess);
+  glUniform1f(glGetUniformLocation(shader,"materialData.shininess"),objMaterial.shininess);
 
   // lights
 
-  glUniform1i(getShaderUnifs("Nlights"),gl::ViewportLighting ? 
+  glUniform1i(glGetUniformLocation(shader,"Nlights"),gl::ViewportLighting ? 
               gl::Nlights : 0);
 
   struct Light

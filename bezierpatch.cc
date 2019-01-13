@@ -946,17 +946,12 @@ void BezierPatch::draw()
   GLint normalAttribCol=glGetAttribLocation(colorShader, "normal");
   GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
 
-  auto bindBuffers=[&](GLuint vbo, GLuint ebo)
-  {
-    glBindBuffer(GL_ARRAY_BUFFER,vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ebo);
-  };
-
   if(nvertices > 0) {
     glUseProgram(noColorShader);
     camp::setUniforms(noColorShader); 
 
-    bindBuffers(vertsBufferIndex[0],elemBufferIndex[0]);
+    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[0]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[0]);
 
     glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0));
     glEnableVertexAttribArray(posAttrib);
@@ -973,7 +968,8 @@ void BezierPatch::draw()
     glUseProgram(colorShader);
     camp::setUniforms(colorShader); 
 
-    bindBuffers(vertsBufferIndex[1],elemBufferIndex[1]);
+    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[1]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[1]);
 
     glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0));
     glEnableVertexAttribArray(posAttribCol);
@@ -995,7 +991,8 @@ void BezierPatch::draw()
     glUseProgram(noColorShader);
     camp::setUniforms(noColorShader); 
 
-    bindBuffers(vertsBufferIndex[2],elemBufferIndex[2]);
+    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[2]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[2]);
 
     glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0*sizeof(GLfloat)));
     glEnableVertexAttribArray(posAttrib);
@@ -1013,7 +1010,8 @@ void BezierPatch::draw()
     glUseProgram(colorShader);
     camp::setUniforms(colorShader); 
 
-    bindBuffers(vertsBufferIndex[3],elemBufferIndex[3]);
+    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[3]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[3]);
 
     glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0*sizeof(GLfloat)));
     glEnableVertexAttribArray(posAttribCol);
@@ -1031,7 +1029,8 @@ void BezierPatch::draw()
     glDisableVertexAttribArray(colorAttribCol);
   }
 
-  bindBuffers(0,0);
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
   glUseProgram(0);
 
   glBindVertexArray(0);

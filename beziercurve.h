@@ -44,29 +44,11 @@ struct BezierCurve
     glGenBuffers(1,vertsBufferIndex.data());
     glGenBuffers(1,elemBufferIndex.data());
 
-    auto registerBufferFloat=[&](std::vector<GLfloat>& buffervector, GLuint bufferIndex)
-    {
-      if (!buffervector.empty()) {
-        glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
-        glBufferData(GL_ARRAY_BUFFER,sizeof(GLfloat)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER,0);
-      }
-    };
-
-    auto registerBufferUint=[&](std::vector<GLuint>& buffervector, GLuint bufferIndex)
-    {
-      if (!buffervector.empty()) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,bufferIndex);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(GLuint)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-      }
-    };
-
     //vbo
-    registerBufferFloat(buffer,vertsBufferIndex[0]);
+    registerBuffer(buffer,vertsBufferIndex[0]);
 
     //ebo
-    registerBufferUint(indices,elemBufferIndex[0]);
+    registerBuffer(indices,elemBufferIndex[0]);
   }
   
 // Approximate bounds by bounding box of control polyhedron.

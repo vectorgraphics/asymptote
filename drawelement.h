@@ -400,6 +400,16 @@ public:
   }
 };
  
+template<class T>
+void registerBuffer(std::vector<T>& buffervector,GLuint bufferIndex) {
+  if (!buffervector.empty()) {
+    glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(T)*buffervector.size(),
+                 buffervector.data(),GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+  }
+}
+
 }
 
 GC_DECLARE_PTRFREE(camp::box);

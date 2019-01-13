@@ -202,42 +202,22 @@ struct BezierPatch
       Z < Min.getz() || z > Max.getz();
   }
 
-  // FIXME: Add in a VBO-ize function.
-
   void createBuffers() {
     glGenBuffers(4,vertsBufferIndex.data());
     glGenBuffers(4,elemBufferIndex.data());
 
-    auto registerBufferFloat=[&](std::vector<GLfloat>& buffervector, GLuint bufferIndex)
-    {
-      if (!buffervector.empty()) {
-        glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
-        glBufferData(GL_ARRAY_BUFFER,sizeof(GLfloat)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER,0);
-      }
-    };
-
-    auto registerBufferUint=[&](std::vector<GLuint>& buffervector, GLuint bufferIndex)
-    {
-      if (!buffervector.empty()) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,bufferIndex);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(GLuint)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-      }
-    };
-
     //vbo
     
-    registerBufferFloat(buffer,vertsBufferIndex[0]);
-    registerBufferFloat(Buffer,vertsBufferIndex[1]);
-    registerBufferFloat(tbuffer,vertsBufferIndex[2]);
-    registerBufferFloat(tBuffer,vertsBufferIndex[3]);
+    registerBuffer(buffer,vertsBufferIndex[0]);
+    registerBuffer(Buffer,vertsBufferIndex[1]);
+    registerBuffer(tbuffer,vertsBufferIndex[2]);
+    registerBuffer(tBuffer,vertsBufferIndex[3]);
 
     //ebo
-    registerBufferUint(indices,elemBufferIndex[0]);
-    registerBufferUint(Indices,elemBufferIndex[1]);
-    registerBufferUint(tindices,elemBufferIndex[2]);
-    registerBufferUint(tIndices,elemBufferIndex[3]);
+    registerBuffer(indices,elemBufferIndex[0]);
+    registerBuffer(Indices,elemBufferIndex[1]);
+    registerBuffer(tindices,elemBufferIndex[2]);
+    registerBuffer(tIndices,elemBufferIndex[3]);
   }
   
   void clear() {
