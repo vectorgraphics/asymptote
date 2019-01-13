@@ -959,33 +959,7 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
   }
 
   setcolors(nC,!nC,diffuse,ambient,emissive,specular,shininess);
-  if(!nN) lighton=false;
-  
-  glBegin(GL_TRIANGLES);
-  for(size_t i=0; i < nI; i++) {
-    const uint32_t *pi=PI[i];
-    const uint32_t *ni=NI[i];
-    const uint32_t *ci=nC ? CI[i] : 0;
-    if(lighton)
-      glNormal3f(N[ni[0]].getx(),N[ni[0]].gety(),N[ni[0]].getz());
-    if(nC)
-      glColor4f(C[ci[0]].R,C[ci[0]].G,C[ci[0]].B,C[ci[0]].A);
-    glVertex3f(P[pi[0]].getx(),P[pi[0]].gety(),P[pi[0]].getz());
-    if(lighton)
-      glNormal3f(N[ni[1]].getx(),N[ni[1]].gety(),N[ni[1]].getz());
-    if(nC)
-      glColor4f(C[ci[1]].R,C[ci[1]].G,C[ci[1]].B,C[ci[1]].A);
-    glVertex3f(P[pi[1]].getx(),P[pi[1]].gety(),P[pi[1]].getz());
-    if(lighton)
-      glNormal3f(N[ni[2]].getx(),N[ni[2]].gety(),N[ni[2]].getz());
-    if(nC)
-      glColor4f(C[ci[2]].R,C[ci[2]].G,C[ci[2]].B,C[ci[2]].A);
-    glVertex3f(P[pi[2]].getx(),P[pi[2]].gety(),P[pi[2]].getz());
-  }
-  glEnd();
-
-  if(nC)
-    glDisable(GL_COLOR_MATERIAL);
+  R.draw(nP,P,nN,N,nC,C,nI,PI,NI,CI);
 #endif
 }
 

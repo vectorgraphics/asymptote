@@ -454,6 +454,10 @@ public:
   
 class drawBaseTriangles : public drawElement {
 protected:
+#ifdef HAVE_GL
+  Triangles R;
+#endif  
+  
   size_t nP;
   triple* P;
   size_t nN;
