@@ -18,8 +18,8 @@ extern void setUniforms(GLint shader);
 std::vector<GLfloat> BezierCurve::buffer;
 std::vector<GLuint> BezierCurve::indices;
 
-std::array<GLuint,1> BezierCurve::vertsBufferIndex;
-std::array<GLuint,1> BezierCurve::elemBufferIndex;
+GLuint BezierCurve::vertsBufferIndex;
+GLuint BezierCurve::elemBufferIndex;
 
 void BezierCurve::init(double res, const triple& Min, const triple& Max)
 {
@@ -94,8 +94,8 @@ void BezierCurve::draw()
   glUseProgram(noColorShader);
   camp::setUniforms(noColorShader); 
 
-  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[0]);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[0]);
+  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
 
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,stride,(void*)(0));
   glEnableVertexAttribArray(posAttrib);

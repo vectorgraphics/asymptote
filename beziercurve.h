@@ -25,8 +25,8 @@ struct BezierCurve
   double res,res2;
   triple Min,Max;
 
-  static std::array<GLuint,1> vertsBufferIndex; 
-  static std::array<GLuint,1> elemBufferIndex; 
+  static GLuint vertsBufferIndex; 
+  static GLuint elemBufferIndex; 
   
   BezierCurve() : nvertices(0) {}
   
@@ -41,14 +41,14 @@ struct BezierCurve
   }
   
   void createBuffers() {
-    glGenBuffers(1,vertsBufferIndex.data());
-    glGenBuffers(1,elemBufferIndex.data());
+    glGenBuffers(1,&vertsBufferIndex);
+    glGenBuffers(1,&elemBufferIndex);
 
     //vbo
-    registerBuffer(buffer,vertsBufferIndex[0]);
+    registerBuffer(buffer,vertsBufferIndex);
 
     //ebo
-    registerBuffer(indices,elemBufferIndex[0]);
+    registerBuffer(indices,elemBufferIndex);
   }
   
 // Approximate bounds by bounding box of control polyhedron.
@@ -68,8 +68,8 @@ struct BezierCurve
     buffer.clear();
     indices.clear();
     
-    glDeleteBuffers(1,vertsBufferIndex.data());
-    glDeleteBuffers(1,elemBufferIndex.data());
+    glDeleteBuffers(1,&vertsBufferIndex);
+    glDeleteBuffers(1,&elemBufferIndex);
   }
   
   ~BezierCurve() {}
