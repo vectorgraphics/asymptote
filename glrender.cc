@@ -281,6 +281,46 @@ void initlighting()
     lighting();
 }
 
+glm::vec4 vec4(triple v)
+{
+  return glm::vec4(v.getx(),v.gety(),v.getz(),0);
+}
+
+glm::vec4 vec4(double *v)
+{
+  return glm::vec4(v[0],v[1],v[2],v[3]);
+}
+
+void setLights()
+{  
+  struct Light
+  {
+    glm::vec4 direction;
+    glm::vec4 diffuse, ambient, specular; 
+    Light() {}
+    Light(triple direction, double *diffuse, double *ambient, double *specular)
+      : direction(vec4(direction)), diffuse(vec4(diffuse)),
+        ambient(vec4(ambient)), specular(vec4(specular)) {}
+  };
+
+  Light *lights=new Light[gl::Nlights];
+
+  if (gl::ViewportLighting) {
+    for(size_t i=0; i < gl::Nlights; ++i) {
+      size_t i4=4*i;
+      lights[i]=Light(gl::Lights[i],gl::Diffuse+i4,gl::Ambient+i4,gl::Specular+i4);
+    }
+  }
+  
+  GLuint ssbo;
+  glGenBuffers(1,&ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,ssbo);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Light)*gl::Nlights,lights,
+               GL_STATIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+} 
+
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
@@ -356,6 +396,7 @@ void drawscene(double Width, double Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  setLights();
   if(!ViewportLighting) 
     lighting();
     
@@ -878,7 +919,7 @@ void rotate(int x, int y)
                          Action == "rotateY");  // Y rotation only
 
     for(int i=0; i < 4; ++i) {
-      const vec4& roti=arcball.rot[i];
+      const ::vec4& roti=arcball.rot[i];
       int i4=4*i;
       for(int j=0; j < 4; ++j)
         value_ptr(drotateMat)[i4+j]=roti[j];
@@ -898,7 +939,7 @@ void updateArcball()
   Rotate=value_ptr(drotateMat);
   for(int i=0; i < 4; ++i) {
     int i4=4*i;
-    vec4& roti=arcball.rot[i];
+    ::vec4& roti=arcball.rot[i];
     for(int j=0; j < 4; ++j)
       roti[j]=Rotate[i4+j];
   }
@@ -1671,17 +1712,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 namespace camp {
 
-glm::vec4 vec4(triple v)
-{
-  return glm::vec4(v.getx(),v.gety(),v.getz(),0);
-}
-
-glm::vec4 vec4(double *v)
-{
-  return glm::vec4(v[0],v[1],v[2],v[3]);
-}
-
-// FIXME: this is being called too often!
 void setUniforms(GLint shader)
 {
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
@@ -1694,39 +1724,10 @@ void setUniforms(GLint shader)
   glUniform4fv(glGetUniformLocation(shader,"materialData.emissive"),1,value_ptr(objMaterial.emission));
 
   glUniform1f(glGetUniformLocation(shader,"materialData.shininess"),objMaterial.shininess);
-
-  // lights
-
   glUniform1i(glGetUniformLocation(shader,"Nlights"),gl::ViewportLighting ? 
               gl::Nlights : 0);
+}
 
-  struct Light
-  {
-    glm::vec4 direction;
-    glm::vec4 diffuse, ambient, specular; 
-    Light() {}
-    Light(triple direction, double *diffuse, double *ambient, double *specular)
-      : direction(vec4(direction)), diffuse(vec4(diffuse)),
-        ambient(vec4(ambient)), specular(vec4(specular)) {}
-  };
-
-  Light *lights=new Light[gl::Nlights];
-
-  if (gl::ViewportLighting) {
-  for(size_t i=0; i < gl::Nlights; ++i) {
-    size_t i4=4*i;
-    lights[i]=Light(gl::Lights[i],gl::Diffuse+i4,gl::Ambient+i4,gl::Specular+i4);
-  }
-  }
-  
-  GLuint ssbo;
-  glGenBuffers(1,&ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,ssbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Light)*gl::Nlights,lights,
-               GL_STATIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-} 
 }
 
 #endif
