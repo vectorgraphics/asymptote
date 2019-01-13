@@ -324,9 +324,6 @@ case "$OSTYPE" in
 		     [Define if you have the `opengl32' library (-lopengl32).])
 			     LIBS=$LIBS"-lopengl32 "],
 				   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
-	    AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
-		              [Define to 1 if you have the `glu32' library (-lglu32).]) LIBS=$LIBS"-lglu32 "],
-	    AC_MSG_NOTICE([*** Could not find libglu32: will compile without OpenGL support ***]))
 	       	       AC_CHECK_HEADER(GL/glut.h,
 				  [AC_DEFINE(HAVE_LIBGLUT, 1,
 		     [Define if you have the `freeglut' library (-lfreeglut).])
@@ -337,27 +334,12 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL, 1,
 		             [Define if you have the `OpenGL' library.])])
-              AC_CHECK_HEADER(OpenGL/glu.h,
-                              [AC_DEFINE(HAVE_LIBGLU, 1,
-			      [Define if you have the `GLU' library.])])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `GLUT' library.])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#ifndef GLU_TESS_CALLBACK_TRIPLEDOT
-typedef GLvoid (* _GLUfuncptr)(...);
-void f(void) {
-  gluNurbsCallback(gluNewNurbsRenderer(),GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
-}
-#endif
-])],[AC_DEFINE(GLU_TESS_CALLBACK_TRIPLEDOT, 1, [Define if gluNurbsCallback expects a variadic function.])])
 			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
 				 AC_MSG_NOTICE([*** Could not find glut: will compile without GLUT support ***]))
         ;;                                 
      *) AC_CHECK_LIB([GL], [glDepthMask])
-        AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],,
-	             AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
 	  AC_CHECK_LIB([glut], [glutMainLoop],,
 		       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
 esac

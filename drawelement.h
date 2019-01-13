@@ -209,8 +209,7 @@ public:
   virtual void displacement() {}
 
   // Render with OpenGL
-  virtual void render(GLUnurbs *nurb, double size2, 
-                      const triple& Min, const triple& Max,
+  virtual void render(double size2, const triple& Min, const triple& Max,
                       double perspective, bool lighton, bool transparent) {}
 
   // Transform as part of a picture.
@@ -401,7 +400,7 @@ public:
 };
  
 template<class T>
-void registerBuffer(std::vector<T>& buffervector,GLuint bufferIndex) {
+void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
   if (!buffervector.empty()) {
     glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
     glBufferData(GL_ARRAY_BUFFER,sizeof(T)*buffervector.size(),

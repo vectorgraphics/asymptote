@@ -155,7 +155,6 @@ extern billboard BB;
 }
 
 #else
-typedef void GLUnurbs;
 typedef float GLfloat;
 #endif
 

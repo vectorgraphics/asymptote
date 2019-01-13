@@ -135,7 +135,7 @@ public:
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
-  void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
+  void render(double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);
   drawElement *transformed(const double* t);
 };
@@ -164,7 +164,7 @@ public:
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
-  void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
+  void render(double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);
   drawElement *transformed(const double* t);
 };
@@ -302,9 +302,8 @@ public:
   void ratio(const double* t, pair &b, double (*m)(double, double), double,
              bool &first);
 
-  void render(GLUnurbs *nurb, double size2, const triple& Min,
-              const triple& Max, double perspective, bool lighton,
-              bool transparent);
+  void render(double size2, const triple& Min, const triple& Max,
+              double perspective, bool lighton, bool transparent);
     
   drawElement *transformed(const double* t);
 };
@@ -640,9 +639,8 @@ public:
  
   virtual ~drawTriangles() {}
  
-  void render(GLUnurbs *nurb, double size2, const triple& Min,
-              const triple& Max, double perspective, bool lighton,
-              bool transparent);
+  void render(double size2, const triple& Min, const triple& Max,
+              double perspective, bool lighton, bool transparent);
  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
  

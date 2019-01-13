@@ -1157,7 +1157,7 @@ void Triangles::draw(size_t nP, triple* P, size_t nN, triple* N,
   glEnableVertexAttribArray(posAttrib);
   if(nN) {
     glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(3 *sizeof(GLfloat)));
-  glEnableVertexAttribArray(normalAttrib);
+    glEnableVertexAttribArray(normalAttrib);
   }
   if(nC) {
     glVertexAttribPointer(colorAttrib,4,GL_FLOAT,GL_FALSE,bytestride,(void*)((nN ? 6 : 3)*sizeof(GLfloat)));
@@ -1167,7 +1167,8 @@ void Triangles::draw(size_t nP, triple* P, size_t nN, triple* N,
   glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void*)(0));
 
   glDisableVertexAttribArray(posAttrib);
-  glDisableVertexAttribArray(normalAttrib);
+  if(nN)
+    glDisableVertexAttribArray(normalAttrib);
   if(nC)
     glDisableVertexAttribArray(colorAttrib);
 

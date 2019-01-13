@@ -187,8 +187,6 @@ void updateModelViewData()
 GLint shaderProg,shaderProgColor;
 
 double *Rotate;
-GLUnurbs *nurb=NULL;
-
 void *glrenderWrapper(void *a);
 
 #ifdef HAVE_LIBOSMESA
@@ -407,13 +405,13 @@ void drawscene(double Width, double Height)
   double size2=hypot(Width,Height);
   
   // Render opaque objects
-  Picture->render(nurb,size2,m,M,perspective,Nlights,false);
+  Picture->render(size2,m,M,perspective,Nlights,false);
   
   // Enable transparency
   glDepthMask(GL_FALSE);
   
   // Render transparent objects
-  Picture->render(nurb,size2,m,M,perspective,Nlights,true);
+  Picture->render(size2,m,M,perspective,Nlights,true);
   glDepthMask(GL_TRUE);
 }
 
@@ -584,7 +582,6 @@ void mode()
 #endif
       outlinemode=false;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       ++Mode;
       break;
     case 1:
@@ -594,12 +591,10 @@ void mode()
 #endif
       outlinemode=true;
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
       ++Mode;
       break;
     case 2:
       outlinemode=false;
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
       Mode=0;
       break;
   }
@@ -1656,25 +1651,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
   
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-  
-  if(nurb == NULL) {
-    nurb=gluNewNurbsRenderer();
-    if(nurb == NULL) 
-      outOfMemory();
-    gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
-    gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,0.5);
-    gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
-    gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
-  
-    // The callback tessellation algorithm avoids artifacts at degenerate
-    // control points.
-    gluNurbsProperty(nurb,GLU_NURBS_MODE,GLU_NURBS_TESSELLATOR);
-    gluNurbsCallback(nurb,GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
-    gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
-    gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
-    gluNurbsCallback(nurb,GLU_NURBS_COLOR,(_GLUfuncptr) glColor4fv);
-  }
-  
   mode();
   
   if(View && !offscreen) {

@@ -70,7 +70,7 @@ public:
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
-  void render(GLUnurbs*, double, const triple&, const triple&, double,
+  void render(double, const triple&, const triple&, double,
               bool lighton, bool transparent);
 
   drawElement *transformed(const double* t);
@@ -155,8 +155,7 @@ public:
   void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
              bool &first);
     
-  void render(GLUnurbs *nurb, double size2,
-              const triple& Min, const triple& Max,
+  void render(double size2, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);
     
   drawElement *transformed(const double* t);
@@ -194,9 +193,8 @@ public:
     } else b=pair(m(b.getx(),z.getx()),m(b.gety(),z.gety()));
   }
   
-  void render(GLUnurbs *nurb, double size2, const triple& b,
-              const triple& B, double perspective, bool lighton,
-              bool transparent);
+  void render(double size2, const triple& b, const triple& B,
+              double perspective, bool lighton, bool transparent);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   

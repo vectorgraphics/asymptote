@@ -249,8 +249,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawBezierPatch::render(GLUnurbs *nurb, double size2,
-                             const triple& b, const triple& B,
+void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                              double perspective, bool lighton,
                              bool transparent)
 {
@@ -468,8 +467,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   return true;
 }
 
-void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
-                                const triple& b, const triple& B,
+void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool lighton,
                                 bool transparent)
 {
@@ -649,8 +647,7 @@ void drawNurbs::displacement()
 #endif  
 }
 
-void drawNurbs::render(GLUnurbs *nurb, double size2,
-                       const triple& Min, const triple& Max,
+void drawNurbs::render(double size2, const triple& Min, const triple& Max,
                        double perspective, bool lighton, bool transparent)
 {
 #ifdef HAVE_GL
@@ -679,26 +676,7 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   }
 
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
-  
-  gluBeginSurface(nurb);
-  int uorder=udegree+1;
-  int vorder=vdegree+1;
-  size_t stride=weights ? 4 : 3;
-  gluNurbsSurface(nurb,uorder+nu,uKnots,vorder+nv,vKnots,stride*nv,stride,
-                  Controls,uorder,vorder,
-                  weights ? GL_MAP2_VERTEX_4 : GL_MAP2_VERTEX_3);
-  if(lighton)
-    gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
-  
-  if(colors) {
-    static GLfloat linear[]={0.0,0.0,1.0,1.0};
-    gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
-  }
-    
-  gluEndSurface(nurb);
-  
-  if(colors)
-    glDisable(GL_COLOR_MATERIAL);
+// TODO: implement NURBS renderer
 #endif
 }
 
@@ -923,7 +901,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
+void drawTriangles::render(double size2, const triple& Min,
                            const triple& Max, double perspective, bool lighton,
                            bool transparent)
 {
