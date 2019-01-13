@@ -19,16 +19,6 @@ using namespace prc;
 #include "material.h"
 namespace camp {
 
-// FIXME: Eventually create a PBR rendering pipeline instead... 
-
-/*
-struct PBRMaterial {
-public:
-  glm::vec3 diffuse, emission;
-  float metallic, roughness; 
-};
-*/
-
 #ifdef HAVE_GL
 extern Material objMaterial;
 #endif

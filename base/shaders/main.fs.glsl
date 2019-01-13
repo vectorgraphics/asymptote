@@ -6,28 +6,16 @@ struct Material
 
 struct Light
 {
-    vec3 direction;
-    vec4 diffuse, specular, ambient; 
+    vec4 direction;
+    vec4 diffuse, ambient, specular;  
 };
 
-/*
-struct Material
+layout(std430,binding=1) buffer data
 {
-    vec4 diffuse, normal, ambient;
-    float metallic, roughness;
-}
-*/
-
-/*
-// FIXME: Add SSBO rather than hard light limit
-layout(std430,binding=1) buffer lightData
-{
-    int numLights;
-    Light lights[];   
+ Light lights[];
 };
-*/
-uniform int lightCount; 
-uniform Light lights[100];// FIXME
+
+uniform int Nlights;
 
 uniform Material materialData;
 
@@ -49,14 +37,14 @@ void main()
     // ==> Diffuse, metallic, roughness, fresnelIOR 
 
     // for now, the old Phong-Blinn model.
-    if(lightCount>0) {
+    if(Nlights > 0) {
         vec3 diffuse=vec3(0,0,0);
         vec3 specular=vec3(0,0,0);
         vec3 ambient=vec3(0,0,0);
         vec3 Z=vec3(0,0,1);
         
-        for(int i=0; i < lightCount; ++i) {
-            vec3 L=normalize(lights[i].direction);
+        for(int i=0; i < Nlights; ++i) {
+            vec3 L=normalize(lights[i].direction.xyz);
             float lambertPower=max(dot(Normal,L),0);
             diffuse += lights[i].diffuse.rgb*lambertPower;
             ambient += lights[i].ambient.rgb;

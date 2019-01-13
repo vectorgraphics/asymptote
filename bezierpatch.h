@@ -238,7 +238,6 @@ struct BezierPatch
     registerBufferUint(Indices,elemBufferIndex[1]);
     registerBufferUint(tindices,elemBufferIndex[2]);
     registerBufferUint(tIndices,elemBufferIndex[3]);
-    
   }
   
   void clear() {

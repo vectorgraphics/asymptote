@@ -77,7 +77,6 @@ using types::penArray;
 using types::penArray2;
 
 static transform ZeroTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);
-//static int tag=0;
 
 transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
 {

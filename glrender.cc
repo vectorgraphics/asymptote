@@ -1671,6 +1671,18 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 } // namespace gl
 
 namespace camp {
+
+glm::vec4 vec4(triple v)
+{
+  return glm::vec4(v.getx(),v.gety(),v.getz(),0);
+}
+
+glm::vec4 vec4(double *v)
+{
+  return glm::vec4(v[0],v[1],v[2],v[3]);
+}
+
+// FIXME: this is being called too often!
 void setUniforms(GLint shader)
 {
   auto getShaderUnifs = [=](std::string const& name) -> GLint {
@@ -1691,33 +1703,35 @@ void setUniforms(GLint shader)
 
   // lights
 
-  glUniform1i(getShaderUnifs("lightCount"),gl::ViewportLighting ? gl::Nlights : 0);
+  glUniform1i(getShaderUnifs("Nlights"),gl::ViewportLighting ? 
+              gl::Nlights : 0);
 
-  auto getLightIndex=[](uint32_t const& index,std::string const& fieldName)->std::string {
-    return "lights["+std::to_string(index)+"]."+fieldName;
+  struct Light
+  {
+    glm::vec4 direction;
+    glm::vec4 diffuse, ambient, specular; 
+    Light() {}
+    Light(triple direction, double *diffuse, double *ambient, double *specular)
+      : direction(vec4(direction)), diffuse(vec4(diffuse)),
+        ambient(vec4(ambient)), specular(vec4(specular)) {}
   };
 
+  Light *lights=new Light[gl::Nlights];
+
   if (gl::ViewportLighting) {
-    for(size_t i=0; i<gl::Nlights; ++i) {
-      triple Lighti=gl::Lights[i];
-      size_t i4=4*i;
-      glUniform3f(getShaderUnifs(getLightIndex(i,"direction")),
-        (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),(GLfloat) Lighti.getz());
-
-      glUniform4f(getShaderUnifs(getLightIndex(i,"diffuse")),
-        (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
-		       (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
-      
-      glUniform4f(getShaderUnifs(getLightIndex(i,"ambient")),
-        (GLfloat) gl::Ambient[i4],(GLfloat) gl::Ambient[i4+1],
-		       (GLfloat) gl::Ambient[i4+2],(GLfloat) gl::Ambient[i4+3]);
-      
-      glUniform4f(getShaderUnifs(getLightIndex(i,"specular")),
-        (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
-		       (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
-    }
+  for(size_t i=0; i < gl::Nlights; ++i) {
+    size_t i4=4*i;
+    lights[i]=Light(gl::Lights[i],gl::Diffuse+i4,gl::Ambient+i4,gl::Specular+i4);
   }
-
+  }
+  
+  GLuint ssbo;
+  glGenBuffers(1,&ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,ssbo);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Light)*gl::Nlights,lights,
+               GL_STATIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 } 
 }
 
