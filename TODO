@@ -38,6 +38,6 @@ Supakorn: Eventually create a PBR rendering pipeline
 struct PBRMaterial {
 public:
   glm::vec3 diffuse, emission;
-  float metallic, roughness; 
+  float metallic, roughness, fresnelIOR 
 };
 

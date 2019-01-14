@@ -14,7 +14,7 @@ pen[] p={red+opacity(0.5),green+opacity(0.5),blue+opacity(0.5),
 
 int[][] pi={{0,1,2},{2,3,0}};
 draw(v,vi,n,ni,red);
-draw(v+Z,vi,p,pi);
+draw(v+Z,vi,n,ni,p,pi);
+//draw(v+Z,vi,p,pi);
 //draw(v,vi,red);
-//draw(v+Z,vi,n,ni,p,pi);
 //draw(v+Z,vi);

@@ -74,27 +74,17 @@ void setcolors(bool colors, bool lighton,
     lastcolors=colors;
   }
   
-  if(!colors && (diffuse != lastdiffuse || ambient != lastambient || 
-                 emissive != lastemissive || specular != lastspecular ||
-                 shininess != lastshininess)) {
-    drawBezierPatch::S.draw(); 
-    lastdiffuse=diffuse;
-    lastambient=ambient;
-    lastemissive=emissive;
-    lastspecular=specular;
-    lastshininess=shininess;
-  }
-  if(colors) {
-
-    if(!lighton) 
-      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-
-    glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
-    objMaterial.diffuse=Black;
-    objMaterial.specular=Black;
-    objMaterial.emission=Black;
-
-  } else {
+  if(!colors) {
+    if(diffuse != lastdiffuse || ambient != lastambient || 
+       emissive != lastemissive || specular != lastspecular ||
+       shininess != lastshininess) {
+      drawBezierPatch::S.draw(); 
+      lastdiffuse=diffuse;
+      lastambient=ambient;
+      lastemissive=emissive;
+      lastspecular=specular;
+      lastshininess=shininess;
+    }
     objMaterial.diffuse=glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A);
     objMaterial.ambient=glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A);
     objMaterial.emission=glm::vec4(emissive.R,emissive.G,emissive.B,
