@@ -913,11 +913,11 @@ void BezierPatch::draw()
   if(nvertices == 0 && ntvertices == 0 && Nvertices == 0 && Ntvertices == 0)
     return;
   
-  const size_t stride=6;
-  const size_t Stride=10;
-  const size_t size=sizeof(GLfloat);
-  const size_t bytestride=stride*size;
-  const size_t Bytestride=Stride*size;
+  static const size_t stride=6;
+  static const size_t Stride=10;
+  static const size_t size=sizeof(GLfloat);
+  static const size_t bytestride=stride*size;
+  static const size_t Bytestride=Stride*size;
 
   if(ntvertices > 0) {
     tstride=stride;
@@ -937,15 +937,15 @@ void BezierPatch::draw()
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
+  static const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
+  static const GLint normalAttrib=glGetAttribLocation(noColorShader, "normal");
+
+  static const GLint posAttribCol=glGetAttribLocation(colorShader, "position");
+  static const GLint normalAttribCol=glGetAttribLocation(colorShader, "normal");
+  static const GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
+
   createBuffers();
     
-  GLint posAttrib=glGetAttribLocation(noColorShader, "position");
-  GLint normalAttrib=glGetAttribLocation(noColorShader, "normal");
-
-  GLint posAttribCol=glGetAttribLocation(colorShader, "position");
-  GLint normalAttribCol=glGetAttribLocation(colorShader, "normal");
-  GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
-
   if(nvertices > 0) {
     glUseProgram(noColorShader);
     camp::setUniforms(noColorShader); 

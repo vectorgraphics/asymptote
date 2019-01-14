@@ -240,8 +240,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
-                             double perspective, bool lighton,
-                             bool transparent)
+                             double perspective, bool lighton, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
