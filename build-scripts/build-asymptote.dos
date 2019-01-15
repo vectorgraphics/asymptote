@@ -1,5 +1,5 @@
 #!/bin/sh -x
-GC=7.6.2
+GC=8.0.2
 
 MACHINE=`uname -m`
 if [ $MACHINE == i686 ]; then
