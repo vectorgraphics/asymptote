@@ -126,12 +126,12 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 
 case "${host_os}" in
     darwin*)
-      GCVERSION=7.6.0
-      ATOMICVERSION=7.6.0
+      GCVERSION=8.0.2
+      ATOMICVERSION=7.6.8
         ;;
    *)
-      GCVERSION=7.6.2
-      ATOMICVERSION=7.6.2
+      GCVERSION=8.0.2
+      ATOMICVERSION=7.6.8
         ;;
 esac
 
@@ -331,12 +331,13 @@ case "$OSTYPE" in
 				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without GLUT support ***]))
         ;;                                 
      darwin*) 
+              LIBS=$LIBS"-lgccpp "
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL, 1,
 		             [Define if you have the `OpenGL' library.])])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `GLUT' library.])
-			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
+			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "],
 				 AC_MSG_NOTICE([*** Could not find glut: will compile without GLUT support ***]))
         ;;                                 
      *) AC_CHECK_LIB([GL], [glDepthMask])
