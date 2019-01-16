@@ -13,27 +13,22 @@
 
 #include <csignal>
 
+#define GLEW_NO_GLU
+#define GLEW_OSMESA
+#define GLEW_STATIC
+
 #ifdef __APPLE__
+#include <OpenGL/glew.h>
 #include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
 #ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
 #include <GL/osmesa.h> // TODO: where would you find osmesa on a mac?
 #endif
-#ifdef GLU_TESS_CALLBACK_TRIPLEDOT
-typedef GLvoid (* _GLUfuncptr)(...);
 #else
-typedef GLvoid (* _GLUfuncptr)();
-#endif
-#else
-#define GLEW_OSMESA
-#define GLEW_STATIC
 #include <GL/glew.h>
 #include <GL/gl.h>
-//#include <GL/glext.h>
-#undef HAVE_LIBOSMESA // TODO: Turn this off/ 
 #ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
 #endif
