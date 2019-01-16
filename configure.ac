@@ -154,6 +154,7 @@ enable system Boehm garbage collector)]
 OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
 GCPPLIB=
+INCL="-I."
 GCNAME="Boehm Garbage Collector"
 GCOPTIONS="--disable-shared"
 if test "x$ac_cv_use_gc" != "xno" ; then
@@ -161,7 +162,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    case _$ac_cv_use_gc in
    _|_system|_*[[\\/]]*)
       if test "x$ac_cv_use_gc" = "xsystem" ; then
-         INCL="-I$prefix/include/gc -I/usr/include/gc"
+         INCL="-I. -I$prefix/include/gc -I/usr/include/gc"
          LIBS=$LIBS"-L$prefix/lib " 
       else 
          INCL="-I$ac_cv_use_gc/include/gc"
@@ -174,12 +175,12 @@ if test "x$ac_cv_use_gc" != "xno" ; then
 	  LIBS=$LIBS"-lgc "
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
         GCDIR=$GCFILE
-        INCL="-I\$(GC)/include"
+        INCL="-I. -I\$(GC)/include"
 	GCLIB="\$(GC)/.libs/libgc.a"
 	AC_MSG_NOTICE($GCNAME library not found)]),
       GCDIR=$GCFILE
       GCLIB="\$(GC)/.libs/libgc.a"
-      INCL="-I\$(GC)/include"
+      INCL="-I. -I\$(GC)/include"
       AC_MSG_NOTICE($GCNAME header file not found))
       CPPFLAGS=$CPPFLAGS_SAVE
       ;;
@@ -189,7 +190,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       GCDIR=$GCFILE
       AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
-      INCL="-I\$(GC)/include"
+      INCL="-I. -I\$(GC)/include"
       ;;
    esac
 else
@@ -218,7 +219,7 @@ AC_ARG_ENABLE(gc-full-debug,
  fi
 ])
 
-INCL=$INCL" -I/usr/include/tirpc"
+#INCL=$INCL" -I/usr/include/tirpc"
 
 if test "$OSTYPE" = "msdos"; then
 CPPFLAGS=$CPPFLAGS" -D__MSDOS__ $INCL"

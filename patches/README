@@ -14,8 +14,6 @@ prototype in the file gc6.8/include/gc.h (version 6.8).
 The file gc-7.0nomem.patch avoids segmentation faults with gc-7.0 on
 out-of-memory errors.
 
-The file cygwin_gc.patch fixes redefined symbols in the Boehm garbage collector.
-
 The file cygwin_freeglut-2.8.1.patch fixes undefined symbols when compiling the
 freeglut library under cygwin.
 

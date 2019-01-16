@@ -14,8 +14,7 @@
 #include <csignal>
 
 #define GLEW_NO_GLU
-#define GLEW_OSMESA
-#define GLEW_STATIC
+//#define GLEW_OSMESA
 
 #ifdef __APPLE__
 #include <OpenGL/glew.h>
