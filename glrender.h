@@ -16,7 +16,6 @@
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glext.h>
-#include <OpenGL/glu.h>
 #ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
 #endif
@@ -33,7 +32,6 @@ typedef GLvoid (* _GLUfuncptr)();
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <GL/glu.h>
 //#include <GL/glext.h>
 #undef HAVE_LIBOSMESA // TODO: Turn this off/ 
 #ifdef HAVE_LIBGLUT
