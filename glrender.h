@@ -23,7 +23,7 @@
 #include <GLUT/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
-#include <GL/osmesa.h> // TODO: where would you find osmesa on a mac?
+#include <OpenGL/osmesa.h>
 #endif
 #else
 #include <GL/glew.h>

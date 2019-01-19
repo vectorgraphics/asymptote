@@ -45,7 +45,7 @@ fftw3-devel:
 ./configure --prefix=/usr --enable-shared 
 make install
 
-tirpc-devel (if rpc library is unavailable):
+tirpc-devel
 ./configure --prefix=/usr --disable-gssapi
 make install
 ln -s /usr/include/tirpc/rpc /usr/include/rpc
@@ -79,8 +79,7 @@ tar -zxf gc-$GCVERSION.tar.gz
 tar -zxf libatomic_ops-$GCVERSION.tar.gz
 mv libatomic_ops-$GCVERSION gc-$GCVERSION/libatomic_ops
 cd gc-$GCVERSION
-patch -p1 < ~/asymptote/patches/cygwin_gc.patch
 ./configure --disable-shared
 make check
 
-~/asymptote/build-scripts/build-asymptote.dos 2.43
+~/asymptote/build-scripts/build-asymptote.dos 2.48

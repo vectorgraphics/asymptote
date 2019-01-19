@@ -219,7 +219,7 @@ AC_ARG_ENABLE(gc-full-debug,
  fi
 ])
 
-#INCL=$INCL" -I/usr/include/tirpc"
+INCL=$INCL" -I/usr/include/tirpc"
 
 if test "$OSTYPE" = "msdos"; then
 CPPFLAGS=$CPPFLAGS" -D__MSDOS__ $INCL"
@@ -329,7 +329,12 @@ case "$OSTYPE" in
 				  [AC_DEFINE(HAVE_LIBGLUT, 1,
 		     [Define if you have the `freeglut' library (-lfreeglut).])
 			     LIBS=$LIBS"-lfreeglut "],
-				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without GLUT support ***]))
+				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
+              AC_CHECK_HEADER(GL/glew.h,
+				  [AC_DEFINE(HAVE_LIBGLEW, 1,
+		     [Define if you have the `GLEW' library (-lGLEW).])
+			     LIBS=$LIBS"-lGLEW "],
+				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;                                 
      darwin*) 
               LIBS=$LIBS"-lgccpp "
@@ -339,11 +344,21 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `GLUT' library.])
 			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "],
-				 AC_MSG_NOTICE([*** Could not find glut: will compile without GLUT support ***]))
+				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGLLUT support ***]))
+              AC_CHECK_HEADER(OpenGL/glew.h,
+				  [AC_DEFINE(HAVE_LIBGLEW, 1,
+		     [Define if you have the `GLEW' library (-lGLEW).])
+			     LIBS=$LIBS"-lGLEW "],
+				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;                                 
      *) AC_CHECK_LIB([GL], [glDepthMask])
 	  AC_CHECK_LIB([glut], [glutMainLoop],,
 		       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
+        AC_CHECK_HEADER(GL/glew.h,
+	  [AC_DEFINE(HAVE_LIBGLEW, 1,
+	    [Define if you have the `GLEW' library (-lGLEW).])
+	    LIBS=$LIBS"-lGLEW "],
+            AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" == "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
