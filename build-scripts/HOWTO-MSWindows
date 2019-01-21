@@ -45,7 +45,7 @@ fftw3-devel:
 ./configure --prefix=/usr --enable-shared 
 make install
 
-tirpc-devel
+tirpc-devel:
 ./configure --prefix=/usr --disable-gssapi
 make install
 ln -s /usr/include/tirpc/rpc /usr/include/rpc
@@ -57,15 +57,20 @@ termcap-1.3.1:
 make install
 
 glew-2.1.0:
-make install
+make CFLAGS=-D_WIN32 glew.lib.static
+cp lib/libGLEW.a /usr/lib
+
+freeglut-3.0.0:
+patch -p1 < ~/asymptote/patches/cygwin_freeglut-3.0.0.patch
+cmake CMakeLists.txt
+make
+cp lib/libfreeglut_static.a /usr/lib/libfreeglut.a
+cp -a include/GL/*.h /usr/include/w32api/GL/
 
 git clone http://github.com/vectorgraphics/asymptote
 
 mkdir -p ~/dll/cygwin
 cp /usr/bin/cygwin1.dll ~/dll/cygwin
-
-cd
-~/asymptote/build-scripts/build-freeglut
 
 install texlive
 
