@@ -8,8 +8,6 @@
 #include "bezierpatch.h"
 #include "beziercurve.h"
 
-extern void createBuffers();
-
 namespace camp {
 
 #ifdef HAVE_GL
@@ -20,8 +18,8 @@ extern void setUniforms(GLint shader);
 std::vector<GLfloat> BezierCurve::buffer;
 std::vector<GLuint> BezierCurve::indices;
 
-std::array<GLuint,1> BezierCurve::vertsBufferIndex;
-std::array<GLuint,1> BezierCurve::elemBufferIndex;
+GLuint BezierCurve::vertsBufferIndex;
+GLuint BezierCurve::elemBufferIndex;
 
 void BezierCurve::init(double res, const triple& Min, const triple& Max)
 {
@@ -93,16 +91,11 @@ void BezierCurve::draw()
     
   GLint posAttrib=glGetAttribLocation(noColorShader, "position");
 
-  auto bindBuffers=[&](GLuint vbo, GLuint ebo)
-  {
-    glBindBuffer(GL_ARRAY_BUFFER,vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ebo);
-  };
-
   glUseProgram(noColorShader);
   camp::setUniforms(noColorShader); 
 
-  bindBuffers(vertsBufferIndex[0],elemBufferIndex[0]);
+  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
 
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,stride,(void*)(0));
   glEnableVertexAttribArray(posAttrib);
@@ -110,13 +103,47 @@ void BezierCurve::draw()
 
   glDisableVertexAttribArray(posAttrib);
   
-  bindBuffers(0,0);
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
   glUseProgram(0);
 
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);
   
   clear();
+}
+
+void Pixel::draw(const triple& p)
+{
+  GLfloat point[]={(GLfloat) p.getx(),(GLfloat) p.gety(),(GLfloat) p.getz()};
+
+  GLuint vbo;
+  glGenBuffers(1,&vbo);
+  
+  glUseProgram(noColorShader);
+  camp::setUniforms(noColorShader); 
+
+  glBindBuffer(GL_ARRAY_BUFFER,vbo);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(point),point,GL_STATIC_DRAW);
+
+  GLuint vao;
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
+  GLint posAttrib=glGetAttribLocation(noColorShader, "position");
+
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,0,(void*)(0));
+  glEnableVertexAttribArray(posAttrib);
+  
+  glDrawArrays(GL_POINTS,0,1);
+
+  glDisableVertexAttribArray(posAttrib);
+  
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+  glUseProgram(0);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1,&vao);
 }
 
 #endif

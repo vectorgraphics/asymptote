@@ -90,12 +90,12 @@ pen color(triple normal, material m, light light, transform3 T=light.T) {
   real[] ambient={0,0,0,0};
   real[] specular={0,0,0,0};
   for(int i=0; i < position.length; ++i) {
-    triple L=light.viewport ? position[i] : T*position[i];
-    real Ldotn=max(dot(normal,L),0);
-    diffuse += Ldotn*light.diffuse[i];
+    triple L=position[i];
+    real dotproduct=abs(dot(normal,L));
+    diffuse += dotproduct*light.diffuse[i];
     ambient += light.ambient[i];
-    real dotproduct=dot(normal,unit(L+Z));
-    if(dotproduct > 0) // Phong-Blinn model of specular reflection
+    dotproduct=abs(dot(normal,unit(L+Z)));
+    // Phong-Blinn model of specular reflection
       specular += dotproduct^s*light.specular[i];
   }
   p += diffuse*Diffuse;
@@ -108,21 +108,19 @@ pen color(triple normal, material m, light light, transform3 T=light.T) {
 light operator * (transform3 t, light light)
 {
   light light=light(light);
-  if(!light.viewport) light.position=shiftless(t)*light.position;
   return light;
 }
 
 light operator cast(triple v) {return light(v);}
 
-light Viewport=light(ambient=gray(0.1),specularfactor=3,viewport=true,
-                     (0.25,-0.25,1));
+light Viewport=light(ambient=gray(0.1),specularfactor=3,(0.25,-0.25,1));
 
 light White=light(new pen[] {rgb(0.38,0.38,0.45),rgb(0.6,0.6,0.67),
                              rgb(0.5,0.5,0.57)},specularfactor=3,
   new triple[] {(-2,-1.5,-0.5),(2,1.1,-2.5),(-0.5,0,2)});
 
 light Headlamp=light(gray(0.8),ambient=gray(0.1),specular=gray(0.7),
-                     specularfactor=3,viewport=true,dir(42,48));
+                     specularfactor=3,dir(42,48));
 
 currentlight=Headlamp;
 

@@ -25,8 +25,8 @@ struct BezierCurve
   double res,res2;
   triple Min,Max;
 
-  static std::array<GLuint,1> vertsBufferIndex; 
-  static std::array<GLuint,1> elemBufferIndex; 
+  static GLuint vertsBufferIndex; 
+  static GLuint elemBufferIndex; 
   
   BezierCurve() : nvertices(0) {}
   
@@ -41,32 +41,14 @@ struct BezierCurve
   }
   
   void createBuffers() {
-    glGenBuffers(1,vertsBufferIndex.data());
-    glGenBuffers(1,elemBufferIndex.data());
-
-    auto registerBufferFloat=[&](std::vector<GLfloat>& buffervector, GLuint bufferIndex)
-    {
-      if (!buffervector.empty()) {
-        glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
-        glBufferData(GL_ARRAY_BUFFER,sizeof(GLfloat)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER,0);
-      }
-    };
-
-    auto registerBufferUint=[&](std::vector<GLuint>& buffervector, GLuint bufferIndex)
-    {
-      if (!buffervector.empty()) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,bufferIndex);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(GLuint)*buffervector.size(),buffervector.data(),GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-      }
-    };
+    glGenBuffers(1,&vertsBufferIndex);
+    glGenBuffers(1,&elemBufferIndex);
 
     //vbo
-    registerBufferFloat(buffer,vertsBufferIndex[0]);
+    registerBuffer(buffer,vertsBufferIndex);
 
     //ebo
-    registerBufferUint(indices,elemBufferIndex[0]);
+    registerBuffer(indices,elemBufferIndex);
   }
   
 // Approximate bounds by bounding box of control polyhedron.
@@ -85,11 +67,12 @@ struct BezierCurve
     nvertices=0;
     buffer.clear();
     indices.clear();
+    
+    glDeleteBuffers(1,&vertsBufferIndex);
+    glDeleteBuffers(1,&elemBufferIndex);
   }
   
-  ~BezierCurve() {
-    clear();
-  }
+  ~BezierCurve() {}
   
   void render(const triple *p, GLuint I0, GLuint I1);
   void render(const triple *p, bool straight);
@@ -106,6 +89,14 @@ struct BezierCurve
     queue(g,straight,ratio,Min,Max);
     draw();
   }
+};
+
+struct Pixel
+{
+  Pixel() {}
+  ~Pixel() {}
+  
+  void draw(const triple& p);
 };
 
 #endif

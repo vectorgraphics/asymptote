@@ -1,3 +1,5 @@
+//version 450
+
 in vec3 position;
 in vec3 normal;
 
@@ -17,11 +19,11 @@ out vec4 Color;
 
 void main()
 {
-    gl_Position=projMat*viewMat*vec4(position,1.0);
-    ViewPosition=(viewMat*vec4(position,1.0)).xyz;
-    Normal=normalize((transpose(inverse(viewMat))*vec4(normal,0)).xyz);
-    
+  gl_Position=projMat*viewMat*vec4(position,1.0);
+  ViewPosition=(viewMat*vec4(position,1.0)).xyz;
+  Normal=normalize((transpose(inverse(viewMat))*vec4(normal,0)).xyz);
+
 #ifdef EXPLICIT_COLOR
-    Color=color;
+  Color=color;
 #endif
 }

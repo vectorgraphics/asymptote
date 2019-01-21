@@ -19,16 +19,6 @@ using namespace prc;
 #include "material.h"
 namespace camp {
 
-// FIXME: Eventually create a PBR rendering pipeline instead... 
-
-/*
-struct PBRMaterial {
-public:
-  glm::vec3 diffuse, emission;
-  float metallic, roughness; 
-};
-*/
-
 #ifdef HAVE_GL
 extern Material objMaterial;
 #endif
@@ -84,27 +74,17 @@ void setcolors(bool colors, bool lighton,
     lastcolors=colors;
   }
   
-  if(!colors && (diffuse != lastdiffuse || ambient != lastambient || 
-                 emissive != lastemissive || specular != lastspecular ||
-                 shininess != lastshininess)) {
-    drawBezierPatch::S.draw(); 
-    lastdiffuse=diffuse;
-    lastambient=ambient;
-    lastemissive=emissive;
-    lastspecular=specular;
-    lastshininess=shininess;
-  }
-  if(colors) {
-
-    if(!lighton) 
-      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-
-    glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
-    objMaterial.diffuse=Black;
-    objMaterial.specular=Black;
-    objMaterial.emission=Black;
-
-  } else {
+  if(!colors) {
+    if(diffuse != lastdiffuse || ambient != lastambient || 
+       emissive != lastemissive || specular != lastspecular ||
+       shininess != lastshininess) {
+      drawBezierPatch::S.draw(); 
+      lastdiffuse=diffuse;
+      lastambient=ambient;
+      lastemissive=emissive;
+      lastspecular=specular;
+      lastshininess=shininess;
+    }
     objMaterial.diffuse=glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A);
     objMaterial.ambient=glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A);
     objMaterial.emission=glm::vec4(emissive.R,emissive.G,emissive.B,
@@ -259,10 +239,8 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawBezierPatch::render(GLUnurbs *nurb, double size2,
-                             const triple& b, const triple& B,
-                             double perspective, bool lighton,
-                             bool transparent)
+void drawBezierPatch::render(double size2, const triple& b, const triple& B,
+                             double perspective, bool lighton, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -477,8 +455,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   return true;
 }
 
-void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
-                                const triple& b, const triple& B,
+void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool lighton,
                                 bool transparent)
 {
@@ -658,8 +635,7 @@ void drawNurbs::displacement()
 #endif  
 }
 
-void drawNurbs::render(GLUnurbs *nurb, double size2,
-                       const triple& Min, const triple& Max,
+void drawNurbs::render(double size2, const triple& Min, const triple& Max,
                        double perspective, bool lighton, bool transparent)
 {
 #ifdef HAVE_GL
@@ -688,26 +664,7 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   }
 
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
-  
-  gluBeginSurface(nurb);
-  int uorder=udegree+1;
-  int vorder=vdegree+1;
-  size_t stride=weights ? 4 : 3;
-  gluNurbsSurface(nurb,uorder+nu,uKnots,vorder+nv,vKnots,stride*nv,stride,
-                  Controls,uorder,vorder,
-                  weights ? GL_MAP2_VERTEX_4 : GL_MAP2_VERTEX_3);
-  if(lighton)
-    gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
-  
-  if(colors) {
-    static GLfloat linear[]={0.0,0.0,1.0,1.0};
-    gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
-  }
-    
-  gluEndSurface(nurb);
-  
-  if(colors)
-    glDisable(GL_COLOR_MATERIAL);
+// TODO: implement NURBS renderer
 #endif
 }
 
@@ -867,51 +824,6 @@ bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
-{
-  if(invisible)
-    return true;
-
-  out->addPoint(v,c,width);
-  
-  return true;
-}
-  
-void drawPixel::render(GLUnurbs *nurb, double size2,
-                       const triple& Min, const triple& Max,
-                       double perspective, bool lighton, bool transparent) 
-{
-#ifdef HAVE_GL
-#ifdef OLD_MATERIAL
-  if(invisible)
-    return;
-  
-  GLfloat V[4];
-
-  glEnable(GL_COLOR_MATERIAL);
-  glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-  
-  static GLfloat Black[]={0,0,0,1};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Black);
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.0);
-
-  glPointSize(1.0+width);
-  
-  glBegin(GL_POINT);
-  storecolor(V,0,c);
-  glColor4fv(V);
-  store(V,v);
-  glVertex3fv(V);
-  glEnd();
-  
-  glPointSize(1.0);
-  glDisable(GL_COLOR_MATERIAL);
-#endif
-#endif
-}
-
 const string drawBaseTriangles::wrongsize=
   "triangle indices require 3 components";
 const string drawBaseTriangles::outofrange="index out of range";
@@ -977,7 +889,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
+void drawTriangles::render(double size2, const triple& Min,
                            const triple& Max, double perspective, bool lighton,
                            bool transparent)
 {
@@ -1013,33 +925,7 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
   }
 
   setcolors(nC,!nC,diffuse,ambient,emissive,specular,shininess);
-  if(!nN) lighton=false;
-  
-  glBegin(GL_TRIANGLES);
-  for(size_t i=0; i < nI; i++) {
-    const uint32_t *pi=PI[i];
-    const uint32_t *ni=NI[i];
-    const uint32_t *ci=nC ? CI[i] : 0;
-    if(lighton)
-      glNormal3f(N[ni[0]].getx(),N[ni[0]].gety(),N[ni[0]].getz());
-    if(nC)
-      glColor4f(C[ci[0]].R,C[ci[0]].G,C[ci[0]].B,C[ci[0]].A);
-    glVertex3f(P[pi[0]].getx(),P[pi[0]].gety(),P[pi[0]].getz());
-    if(lighton)
-      glNormal3f(N[ni[1]].getx(),N[ni[1]].gety(),N[ni[1]].getz());
-    if(nC)
-      glColor4f(C[ci[1]].R,C[ci[1]].G,C[ci[1]].B,C[ci[1]].A);
-    glVertex3f(P[pi[1]].getx(),P[pi[1]].gety(),P[pi[1]].getz());
-    if(lighton)
-      glNormal3f(N[ni[2]].getx(),N[ni[2]].gety(),N[ni[2]].getz());
-    if(nC)
-      glColor4f(C[ci[2]].R,C[ci[2]].G,C[ci[2]].B,C[ci[2]].A);
-    glVertex3f(P[pi[2]].getx(),P[pi[2]].gety(),P[pi[2]].getz());
-  }
-  glEnd();
-
-  if(nC)
-    glDisable(GL_COLOR_MATERIAL);
+  R.draw(nP,P,nN,N,nC,C,nI,PI,NI,CI);
 #endif
 }
 

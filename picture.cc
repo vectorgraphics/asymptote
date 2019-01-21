@@ -1174,13 +1174,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 }
 
 // render viewport with width x height pixels.
-void picture::render(GLUnurbs *nurb, double size2,
-                     const triple& Min, const triple& Max,
+void picture::render(double size2, const triple& Min, const triple& Max,
                      double perspective, bool lighton, bool transparent) const
 {
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->render(nurb,size2,Min,Max,perspective,lighton,transparent);
+    (*p)->render(size2,Min,Max,perspective,lighton,transparent);
   }
 #ifdef HAVE_GL
   drawBezierPatch::S.draw();
@@ -1205,7 +1204,6 @@ struct Communicate : public gc {
   double *diffuse;
   double *ambient;
   double *specular;
-  bool viewportlighting;
   bool view;
 };
 
@@ -1220,8 +1218,7 @@ void glrenderWrapper()
 #endif  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
            com.zoom,com.m,com.M,com.shift,com.t,com.background,com.nlights,
-           com.lights,com.diffuse,com.ambient,com.specular,com.viewportlighting,
-           com.view);
+           com.lights,com.diffuse,com.ambient,com.specular,com.view);
 #endif  
 }
 
@@ -1230,7 +1227,7 @@ bool picture::shipout3(const string& prefix, const string& format,
                        const triple& m, const triple& M, const pair& shift,
                        double *t, double *background, size_t nlights,
                        triple *lights, double *diffuse, double *ambient,
-                       double *specular, bool viewportlighting, bool view)
+                       double *specular, bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
@@ -1305,7 +1302,6 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.diffuse=diffuse;
       com.ambient=ambient;
       com.specular=specular;
-      com.viewportlighting=viewportlighting;
       com.view=View;
       if(Wait)
         pthread_mutex_lock(&readyLock);
@@ -1339,8 +1335,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #ifdef HAVE_GL  
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
-           background,nlights,lights,diffuse,ambient,specular,viewportlighting,
-           View,oldpid);
+           background,nlights,lights,diffuse,ambient,specular,View,oldpid);
 #ifdef HAVE_PTHREAD
   if(glthread && !offscreen && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);

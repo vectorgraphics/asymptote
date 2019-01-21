@@ -165,7 +165,6 @@ struct light {
   real[][] specular;
   pen background=nullpen; // Background color of the 3D canvas.
   real specularfactor;
-  bool viewport; // Are the lights specified (and fixed) in the viewport frame?
   triple[] position; // Only directional lights are currently implemented.
 
   transform3 T=identity(4); // Transform to apply to normal vectors.
@@ -176,7 +175,7 @@ struct light {
                      pen[] ambient=array(diffuse.length,black),
                      pen[] specular=diffuse, pen background=nullpen,
                      real specularfactor=1,
-                     bool viewport=false, triple[] position) {
+                     triple[] position) {
     int n=diffuse.length;
     assert(ambient.length == n && specular.length == n && position.length == n);
     
@@ -192,21 +191,18 @@ struct light {
       this.position[i]=unit(position[i]);
     }
     this.specularfactor=specularfactor;
-    this.viewport=viewport;
   }
 
   void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
-                     pen background=nullpen, real specularfactor=1,
-                     bool viewport=false...triple[] position) {
+                     pen background=nullpen, real specularfactor=1 ...triple[] position) {
     int n=position.length;
     operator init(array(n,diffuse),array(n,ambient),array(n,specular),
-                  background,specularfactor,viewport,position);
+                  background,specularfactor,position);
   }
 
   void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
-                     pen background=nullpen, bool viewport=false,
-                     real x, real y, real z) {
-    operator init(diffuse,ambient,specular,background,viewport,(x,y,z));
+                     pen background=nullpen, real x, real y, real z) {
+    operator init(diffuse,ambient,specular,background,(x,y,z));
   }
 
   void operator init(explicit light light) {
@@ -215,7 +211,6 @@ struct light {
     specular=copy(light.specular);
     background=light.background;
     specularfactor=light.specularfactor;
-    viewport=light.viewport;
     position=copy(light.position);
   }
 

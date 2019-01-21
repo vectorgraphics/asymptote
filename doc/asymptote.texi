@@ -9502,7 +9502,7 @@ along with the @code{Python} packages @code{pyqt5}, @code{cson}, and
 @code{numpy}:
 
 @verbatim
-pip3 install pyqt5 cson numpy
+pip3 install cson numpy pyqt5 PyQt5.sip
 @end verbatim
 
 Pictures are deconstructed into the @acronym{SVG} image format.

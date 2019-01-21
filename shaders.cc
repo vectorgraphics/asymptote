@@ -1,8 +1,5 @@
 // shader handling
-// Author: Supakorn "Jamie" Ras. 
-
-
-#include <GL/glew.h>
+// Author: Supakorn "Jamie" Rassameemasmuang
 
 #include <fstream>
 #include <sstream>

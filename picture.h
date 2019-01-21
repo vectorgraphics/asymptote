@@ -86,15 +86,14 @@ public:
   bool shipout(picture* preamble, const string& prefix,
                const string& format, bool wait=false, bool view=true);
  
-  void render(GLUnurbs *nurb, double size2,
-              const triple &Min, const triple& Max, double perspective,
-              bool lighton, bool transparent) const;
+  void render(double size2, const triple &Min, const triple& Max,
+              double perspective, bool lighton, bool transparent) const;
   bool shipout3(const string& prefix, const string& format,
                 double width, double height, double angle, double zoom,
                 const triple& m, const triple& M, const pair& shift, double *t,
                 double *background, size_t nlights, triple *lights,
                 double *diffuse, double *ambient, double *specular,
-                bool viewportlighting, bool view);
+                bool view);
   
   // PRC output
   bool shipout3(const string& prefix);

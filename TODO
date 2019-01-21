@@ -33,3 +33,11 @@ Andy: operator tuple, to let people define their own tuples
 Andy: Decide if we should change vm::error to em in application.cc
 
 John or Andy: Add unit test for AddOps.
+
+Supakorn: Eventually create a PBR rendering pipeline
+struct PBRMaterial {
+public:
+  glm::vec3 diffuse, emission;
+  float metallic, roughness, fresnelIOR 
+};
+

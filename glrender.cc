@@ -147,7 +147,6 @@ triple *Lights;
 double *Diffuse;
 double *Ambient;
 double *Specular;
-bool ViewportLighting;
 bool antialias;
 
 double Zoom;
@@ -187,8 +186,6 @@ void updateModelViewData()
 GLint shaderProg,shaderProgColor;
 
 double *Rotate;
-GLUnurbs *nurb=NULL;
-
 void *glrenderWrapper(void *a);
 
 #ifdef HAVE_LIBOSMESA
@@ -232,54 +229,43 @@ inline T max(T a, T b)
   return (a > b) ? a : b;
 }
 
-void lighting()
+glm::vec4 vec4(triple v)
 {
-  return; 
-  for(size_t i=0; i < Nlights; ++i) {
-    GLenum index=GL_LIGHT0+i;
-    triple Lighti=Lights[i];
-    GLfloat position[]={(GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
-			(GLfloat) Lighti.getz(),0.0};
-    glLightfv(index,GL_POSITION,position);
-  }
+  return glm::vec4(v.getx(),v.gety(),v.getz(),0);
 }
 
-void initlighting() 
+glm::vec4 vec4(double *v)
 {
-  glClearColor(Background[0],Background[1],Background[2],Background[3]);
-  return; 
-  glEnable(GL_LIGHTING);
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,getSetting<bool>("twosided"));
-    
-  for(size_t i=0; i < Nlights; ++i) {
-    GLenum index=GL_LIGHT0+i;
-    glEnable(index);
-    
-    size_t i4=4*i;
-    
-    GLfloat diffuse[]={(GLfloat) Diffuse[i4],(GLfloat) Diffuse[i4+1],
-		       (GLfloat) Diffuse[i4+2],(GLfloat) Diffuse[i4+3]};
-    glLightfv(index,GL_DIFFUSE,diffuse);
-    
-    GLfloat ambient[]={(GLfloat) Ambient[i4],(GLfloat) Ambient[i4+1],
-		       (GLfloat) Ambient[i4+2],(GLfloat) Ambient[i4+3]};
-    glLightfv(index,GL_AMBIENT,ambient);
-    
-    GLfloat specular[]={(GLfloat) Specular[i4],(GLfloat) Specular[i4+1],
-			(GLfloat) Specular[i4+2],(GLfloat) Specular[i4+3]};
-    glLightfv(index,GL_SPECULAR,specular);
-  }
-  
-  static size_t lastNlights=0;
-  for(size_t i=Nlights; i < lastNlights; ++i) {
-    GLenum index=GL_LIGHT0+i;
-    glDisable(index);
-  }
-  lastNlights=Nlights;
-  
-  if(ViewportLighting)
-    lighting();
+  return glm::vec4(v[0],v[1],v[2],v[3]);
 }
+
+void setLights()
+{  
+  struct Light
+  {
+    glm::vec4 direction;
+    glm::vec4 diffuse, ambient, specular; 
+    Light() {}
+    Light(triple direction, double *diffuse, double *ambient, double *specular)
+      : direction(vec4(direction)), diffuse(vec4(diffuse)),
+        ambient(vec4(ambient)), specular(vec4(specular)) {}
+  };
+
+  Light *lights=new Light[gl::Nlights];
+
+  for(size_t i=0; i < gl::Nlights; ++i) {
+    size_t i4=4*i;
+    lights[i]=Light(gl::Lights[i],gl::Diffuse+i4,gl::Ambient+i4,gl::Specular+i4);
+  }
+  
+  GLuint ssbo;
+  glGenBuffers(1,&ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,ssbo);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Light)*gl::Nlights,lights,
+               GL_STATIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+} 
 
 void setDimensions(int Width, int Height, double X, double Y)
 {
@@ -356,8 +342,7 @@ void drawscene(double Width, double Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  if(!ViewportLighting) 
-    lighting();
+  setLights();
     
   triple m(xmin,ymin,zmin);
   triple M(xmax,ymax,zmax);
@@ -366,13 +351,13 @@ void drawscene(double Width, double Height)
   double size2=hypot(Width,Height);
   
   // Render opaque objects
-  Picture->render(nurb,size2,m,M,perspective,Nlights,false);
+  Picture->render(size2,m,M,perspective,Nlights,false);
   
   // Enable transparency
   glDepthMask(GL_FALSE);
   
   // Render transparent objects
-  Picture->render(nurb,size2,m,M,perspective,Nlights,true);
+  Picture->render(size2,m,M,perspective,Nlights,true);
   glDepthMask(GL_TRUE);
 }
 
@@ -478,7 +463,7 @@ void home()
 
   lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
-  initlighting();
+  glClearColor(Background[0],Background[1],Background[2],Background[3]);
 }
 
 void nodisplay()
@@ -537,28 +522,17 @@ void mode()
 {
   switch(Mode) {
     case 0:
-#ifdef OLD_MATERIAL
-      for(size_t i=0; i < Nlights; ++i) 
-        glEnable(GL_LIGHT0+i);
-#endif
       outlinemode=false;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       ++Mode;
       break;
     case 1:
-#ifdef OLD_MATERIAL
-      for(size_t i=0; i < Nlights; ++i) 
-        glDisable(GL_LIGHT0+i);
-#endif
       outlinemode=true;
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
       ++Mode;
       break;
     case 2:
       outlinemode=false;
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
       Mode=0;
       break;
   }
@@ -878,7 +852,7 @@ void rotate(int x, int y)
                          Action == "rotateY");  // Y rotation only
 
     for(int i=0; i < 4; ++i) {
-      const vec4& roti=arcball.rot[i];
+      const ::vec4& roti=arcball.rot[i];
       int i4=4*i;
       for(int j=0; j < 4; ++j)
         value_ptr(drotateMat)[i4+j]=roti[j];
@@ -898,7 +872,7 @@ void updateArcball()
   Rotate=value_ptr(drotateMat);
   for(int i=0; i < 4; ++i) {
     int i4=4*i;
-    vec4& roti=arcball.rot[i];
+    ::vec4& roti=arcball.rot[i];
     for(int j=0; j < 4; ++j)
       roti[j]=Rotate[i4+j];
   }
@@ -1352,7 +1326,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               const triple& m, const triple& M, const pair& shift, double *t,
               double *background, size_t nlights, triple *lights,
               double *diffuse, double *ambient, double *specular,
-              bool Viewportlighting, bool view, int oldpid)
+              bool view, int oldpid)
 {
   bool offscreen=getSetting<bool>("offscreen");
   Iconify=getSetting<bool>("iconify");
@@ -1379,7 +1353,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Diffuse=diffuse;
   Ambient=ambient;
   Specular=specular;
-  ViewportLighting=Viewportlighting;
   View=view;
   Angle=angle*radians;
   Zoom0=zoom;
@@ -1554,25 +1527,13 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   glewExperimental = GL_TRUE;
 
-  
-  auto result = glewInit();
+  int result = glewInit();
 
-  if (result!=GLEW_OK)
-  {
-    cerr<<"GLEW Error!"<<endl;
-    throw 1;
+  if (result != GLEW_OK) {
+    cerr << "GLEW Error!" << endl;
+    exit(-1);
   }
   
-  if(!GLEW_VERSION_4_5)
-  {
-    cerr<<"OpenGL Version 4.5 not available!"<<endl;
-    throw 1;
-  }
-
-  if(settings::verbose>1)
-  {
-  std::cout << "Renderer init" << std::endl;
-  }
   home();
     
 #ifdef HAVE_LIBGLUT
@@ -1613,34 +1574,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
 
-#ifdef OLD_MATERIAL
-  glEnable(GL_MAP1_VERTEX_3);
-  glEnable(GL_MAP1_VERTEX_4);
-  glEnable(GL_MAP2_VERTEX_3);
-  glEnable(GL_MAP2_VERTEX_4);
-  glEnable(GL_MAP2_COLOR_4);
-#endif
-  
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-  
-  if(nurb == NULL) {
-    nurb=gluNewNurbsRenderer();
-    if(nurb == NULL) 
-      outOfMemory();
-    gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
-    gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,0.5);
-    gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
-    gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
-  
-    // The callback tessellation algorithm avoids artifacts at degenerate
-    // control points.
-    gluNurbsProperty(nurb,GLU_NURBS_MODE,GLU_NURBS_TESSELLATOR);
-    gluNurbsCallback(nurb,GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
-    gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
-    gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
-    gluNurbsCallback(nurb,GLU_NURBS_COLOR,(_GLUfuncptr) glColor4fv);
-  }
-  
   mode();
   
   if(View && !offscreen) {
@@ -1677,54 +1611,22 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 } // namespace gl
 
 namespace camp {
+
 void setUniforms(GLint shader)
 {
-  auto getShaderUnifs = [=](std::string const& name) -> GLint {
-    return glGetUniformLocation(shader,name.c_str()); 
-  }; 
-
-  // 
-  glUniformMatrix4fv(getShaderUnifs("viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
-  glUniformMatrix4fv(getShaderUnifs("projMat"),1,GL_FALSE, value_ptr(gl::projMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"projMat"),1,GL_FALSE, value_ptr(gl::projMat));
 
   // materials 
-  glUniform4fv(getShaderUnifs("materialData.diffuse"),1,value_ptr(objMaterial.diffuse));
-  glUniform4fv(getShaderUnifs("materialData.specular"),1,value_ptr(objMaterial.specular));
-  glUniform4fv(getShaderUnifs("materialData.ambient"),1,value_ptr(objMaterial.ambient));
-  glUniform4fv(getShaderUnifs("materialData.emissive"),1,value_ptr(objMaterial.emission));
+  glUniform4fv(glGetUniformLocation(shader,"materialData.diffuse"),1,value_ptr(objMaterial.diffuse));
+  glUniform4fv(glGetUniformLocation(shader,"materialData.specular"),1,value_ptr(objMaterial.specular));
+  glUniform4fv(glGetUniformLocation(shader,"materialData.ambient"),1,value_ptr(objMaterial.ambient));
+  glUniform4fv(glGetUniformLocation(shader,"materialData.emissive"),1,value_ptr(objMaterial.emission));
 
-  glUniform1f(getShaderUnifs("materialData.shininess"),objMaterial.shininess);
+  glUniform1f(glGetUniformLocation(shader,"materialData.shininess"),objMaterial.shininess);
+  glUniform1i(glGetUniformLocation(shader,"Nlights"),gl::Nlights);
+}
 
-  // lights
-
-  glUniform1i(getShaderUnifs("lightCount"),gl::ViewportLighting ? gl::Nlights : 0);
-
-  auto getLightIndex=[](uint32_t const& index,std::string const& fieldName)->std::string {
-    return "lights["+std::to_string(index)+"]."+fieldName;
-  };
-
-  if (gl::ViewportLighting) {
-    for(size_t i=0; i<gl::Nlights; ++i) {
-      triple Lighti=gl::Lights[i];
-      size_t i4=4*i;
-      glUniform3f(getShaderUnifs(getLightIndex(i,"direction")),
-        (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),(GLfloat) Lighti.getz());
-
-      glUniform4f(getShaderUnifs(getLightIndex(i,"diffuse")),
-        (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
-		       (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
-      
-      glUniform4f(getShaderUnifs(getLightIndex(i,"ambient")),
-        (GLfloat) gl::Ambient[i4],(GLfloat) gl::Ambient[i4+1],
-		       (GLfloat) gl::Ambient[i4+2],(GLfloat) gl::Ambient[i4+3]);
-      
-      glUniform4f(getShaderUnifs(getLightIndex(i,"specular")),
-        (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
-		       (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
-    }
-  }
-
-} 
 }
 
 #endif

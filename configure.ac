@@ -8,7 +8,7 @@ VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 
-test "$CXXFLAGS" || CXXFLAGS="-std=c++14"
+test "$CXXFLAGS" || CXXFLAGS="-std=c++11"
 
 test "$CFLAGS" || CFLAGS="-g -O3"
 
@@ -126,12 +126,12 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 
 case "${host_os}" in
     darwin*)
-      GCVERSION=7.6.0
-      ATOMICVERSION=7.6.0
+      GCVERSION=8.0.2
+      ATOMICVERSION=7.6.8
         ;;
    *)
-      GCVERSION=7.6.2
-      ATOMICVERSION=7.6.2
+      GCVERSION=8.0.2
+      ATOMICVERSION=7.6.8
         ;;
 esac
 
@@ -154,6 +154,7 @@ enable system Boehm garbage collector)]
 OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
 GCPPLIB=
+INCL="-I."
 GCNAME="Boehm Garbage Collector"
 GCOPTIONS="--disable-shared"
 if test "x$ac_cv_use_gc" != "xno" ; then
@@ -161,7 +162,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    case _$ac_cv_use_gc in
    _|_system|_*[[\\/]]*)
       if test "x$ac_cv_use_gc" = "xsystem" ; then
-         INCL="-I$prefix/include/gc -I/usr/include/gc"
+         INCL="-I. -I$prefix/include/gc -I/usr/include/gc"
          LIBS=$LIBS"-L$prefix/lib " 
       else 
          INCL="-I$ac_cv_use_gc/include/gc"
@@ -174,12 +175,12 @@ if test "x$ac_cv_use_gc" != "xno" ; then
 	  LIBS=$LIBS"-lgc "
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
         GCDIR=$GCFILE
-        INCL="-I\$(GC)/include"
+        INCL="-I. -I\$(GC)/include"
 	GCLIB="\$(GC)/.libs/libgc.a"
 	AC_MSG_NOTICE($GCNAME library not found)]),
       GCDIR=$GCFILE
       GCLIB="\$(GC)/.libs/libgc.a"
-      INCL="-I\$(GC)/include"
+      INCL="-I. -I\$(GC)/include"
       AC_MSG_NOTICE($GCNAME header file not found))
       CPPFLAGS=$CPPFLAGS_SAVE
       ;;
@@ -189,7 +190,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       GCDIR=$GCFILE
       AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
-      INCL="-I\$(GC)/include"
+      INCL="-I. -I\$(GC)/include"
       ;;
    esac
 else
@@ -324,42 +325,40 @@ case "$OSTYPE" in
 		     [Define if you have the `opengl32' library (-lopengl32).])
 			     LIBS=$LIBS"-lopengl32 "],
 				   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
-	    AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
-		              [Define to 1 if you have the `glu32' library (-lglu32).]) LIBS=$LIBS"-lglu32 "],
-	    AC_MSG_NOTICE([*** Could not find libglu32: will compile without OpenGL support ***]))
 	       	       AC_CHECK_HEADER(GL/glut.h,
 				  [AC_DEFINE(HAVE_LIBGLUT, 1,
 		     [Define if you have the `freeglut' library (-lfreeglut).])
 			     LIBS=$LIBS"-lfreeglut "],
-				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without GLUT support ***]))
+				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
+              AC_CHECK_HEADER(GL/glew.h,
+				  [AC_DEFINE(HAVE_LIBGLEW, 1,
+		     [Define if you have the `GLEW' library (-lGLEW).])
+			     LIBS=$LIBS"-lGLEW "],
+				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;                                 
      darwin*) 
+              LIBS=$LIBS"-lgccpp "
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL, 1,
 		             [Define if you have the `OpenGL' library.])])
-              AC_CHECK_HEADER(OpenGL/glu.h,
-                              [AC_DEFINE(HAVE_LIBGLU, 1,
-			      [Define if you have the `GLU' library.])])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `GLUT' library.])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#ifndef GLU_TESS_CALLBACK_TRIPLEDOT
-typedef GLvoid (* _GLUfuncptr)(...);
-void f(void) {
-  gluNurbsCallback(gluNewNurbsRenderer(),GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
-}
-#endif
-])],[AC_DEFINE(GLU_TESS_CALLBACK_TRIPLEDOT, 1, [Define if gluNurbsCallback expects a variadic function.])])
-			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
-				 AC_MSG_NOTICE([*** Could not find glut: will compile without GLUT support ***]))
+			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "],
+				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGLLUT support ***]))
+              AC_CHECK_HEADER(OpenGL/glew.h,
+				  [AC_DEFINE(HAVE_LIBGLEW, 1,
+		     [Define if you have the `GLEW' library (-lGLEW).])
+			     LIBS=$LIBS"-lGLEW "],
+				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;                                 
      *) AC_CHECK_LIB([GL], [glDepthMask])
-        AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],,
-	             AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
 	  AC_CHECK_LIB([glut], [glutMainLoop],,
 		       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
+        AC_CHECK_HEADER(GL/glew.h,
+	  [AC_DEFINE(HAVE_LIBGLEW, 1,
+	    [Define if you have the `GLEW' library (-lGLEW).])
+	    LIBS=$LIBS"-lGLEW "],
+            AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" == "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,

@@ -1,7 +1,20 @@
 #ifndef __TOGL_SHADERSPROC
 #define __TOGL_SHADERSPROC
 
-#include <GL/gl.h>
+#define GLEW_STATIC
+#define GLEW_NO_GLU
+
+#ifdef __APPLE__
+#include <OpenGL/glew.h>
+#else
+#include <GL/glew.h>
+#ifdef __MSDOS__
+#include<windows.h>
+#include <GL/wglew.h>
+#include <GL/wglext.h>
+#endif
+#endif
+
 #include <string>
 #include <unordered_set>
 

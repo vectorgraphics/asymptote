@@ -77,16 +77,16 @@ using types::penArray;
 using types::penArray2;
 
 static transform ZeroTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);
-//static int tag=0;
 
 transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
 {
     string s=(*p)->KEY;
     transform t;
     // Don't apply xmap without an explicit corresponding key
-    if(s.substr(s.length()-1) != "1") return t;
+    size_t n=s.length();
+    if(n == 0 || s.substr(n-1) != "1") return t;
 
-    xmap_t::iterator q=xmap.find(s.substr(0,s.length()-2));
+    xmap_t::iterator q=xmap.find(s.substr(0,n-2));
     if(q != xmap.end()) {
       xtransform_t& v=q->second;
       if(!v.empty()) {
@@ -468,8 +468,7 @@ void shipout3(string prefix, picture *f, string format=emptystring,
               real width, real height, real angle, real zoom,
               triple m, triple M, pair shift, realarray2 *t,
               realarray *background, triplearray *lights, realarray2 *diffuse,
-              realarray2 *ambient, realarray2 *specular,
-              bool viewportlighting, bool view=true)
+              realarray2 *ambient, realarray2 *specular, bool view=true)
 {
   size_t n=checkArrays(lights,diffuse);
   checkEqual(n,checkArray(ambient));
@@ -486,7 +485,7 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   copyArray2C(Specular,specular,false,4,UseGC);
     
   f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,T,Background,n,
-              Lights,Diffuse,Ambient,Specular,viewportlighting,view);
+              Lights,Diffuse,Ambient,Specular,view);
   
   delete[] Background;
   delete[] T;

@@ -52,10 +52,10 @@ public:
   drawSurface(const vm::array& g, size_t ncontrols, triple center,
               bool straight, const vm::array&p, double opacity,
               double shininess, double PRCshininess, const vm::array &pens,
-              Interaction interaction, bool prc) :
-    ncontrols(ncontrols), center(center), straight(straight), opacity(opacity),
-    shininess(shininess), PRCshininess(PRCshininess), interaction(interaction),
-    prc(prc) {
+              Interaction interaction, bool prc, const string& key="") :
+    drawElement(key), ncontrols(ncontrols), center(center), straight(straight),
+    opacity(opacity), shininess(shininess), PRCshininess(PRCshininess),
+    interaction(interaction), prc(prc) {
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize());
     
@@ -135,7 +135,7 @@ public:
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
-  void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
+  void render(double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);
   drawElement *transformed(const double* t);
 };
@@ -164,7 +164,7 @@ public:
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
-  void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
+  void render(double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);
   drawElement *transformed(const double* t);
 };
@@ -198,9 +198,10 @@ protected:
 public:
   drawNurbs(const vm::array& g, const vm::array* uknot, const vm::array* vknot,
             const vm::array* weight, const vm::array&p, double opacity,
-            double shininess, double PRCshininess, const vm::array &pens)
-            : opacity(opacity), shininess(shininess),
-              PRCshininess(PRCshininess) {
+            double shininess, double PRCshininess, const vm::array &pens,
+            const string& key="") 
+    : drawElement(key), opacity(opacity), shininess(shininess),
+      PRCshininess(PRCshininess) {
     size_t weightsize=checkArray(weight);
     
     const string wrongsize="Inconsistent NURBS data";
@@ -301,9 +302,8 @@ public:
   void ratio(const double* t, pair &b, double (*m)(double, double), double,
              bool &first);
 
-  void render(GLUnurbs *nurb, double size2, const triple& Min,
-              const triple& Max, double perspective, bool lighton,
-              bool transparent);
+  void render(double size2, const triple& Min, const triple& Max,
+              double perspective, bool lighton, bool transparent);
     
   drawElement *transformed(const double* t);
 };
@@ -450,50 +450,13 @@ public:
   }
 };
 
-// Draw a PRC pixel.
-class drawPixel : public drawElement {
-  triple v;
-  prc::RGBAColour c;
-  double width;
-  bool invisible;
-public:
-  drawPixel(const triple& v0, const pen& p, double width) :
-    c(rgba(p)), width(width) {
-    v=v0;
-    invisible=p.invisible();
-  }
-
-  drawPixel(const double* t, const drawPixel *s) : drawElement(s->KEY),
-    c(s->c), width(s->width), invisible(s->invisible) {
-    v=t*s->v;
-  }
-    
-  void bounds(const double* t, bbox3& b) {
-    const triple R=0.5*width*triple(1.0,1.0,1.0);
-    if (t != NULL) {
-      triple tv;
-      tv=t*v;
-      b.add(tv-R);
-      b.add(tv+R);
-    } else {
-      b.add(v-R);
-      b.add(v+R);
-    }    
-  }    
-  
-  void render(GLUnurbs *nurb, double size2, const triple& Min,
-              const triple& Max, double perspective, bool lighton,
-              bool transparent);
-  
-  bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  
-  drawElement *transformed(const double* t) {
-    return new drawPixel(t,this);
-  }
-};
   
 class drawBaseTriangles : public drawElement {
 protected:
+#ifdef HAVE_GL
+  Triangles R;
+#endif  
+  
   size_t nP;
   triple* P;
   size_t nN;
@@ -676,9 +639,8 @@ public:
  
   virtual ~drawTriangles() {}
  
-  void render(GLUnurbs *nurb, double size2, const triple& Min,
-              const triple& Max, double perspective, bool lighton,
-              bool transparent);
+  void render(double size2, const triple& Min, const triple& Max,
+              double perspective, bool lighton, bool transparent);
  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
  
