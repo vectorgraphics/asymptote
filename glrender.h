@@ -16,6 +16,13 @@
 #define GLEW_NO_GLU
 //#define GLEW_OSMESA
 
+#ifdef __MSDOS__
+#define GLEW_STATIC
+#include <windows.h>
+#define CALLBACK __stdcall
+typedef void (APIENTRY* _GLUfuncptr)();
+#endif
+
 #ifdef __APPLE__
 #include <OpenGL/glew.h>
 #include <OpenGL/gl.h>
@@ -27,8 +34,15 @@
 #endif
 #else
 #include <GL/glew.h>
-#include <GL/gl.h>
+#ifdef __MSDOS__
+#include <GL/wglew.h>
+#include <GL/wglext.h>
+#endif
 #ifdef HAVE_LIBGLUT
+#ifdef __MSDOS__
+#define FREEGLUT_STATIC
+#define APIENTRY
+#endif
 #include <GL/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
@@ -150,5 +164,3 @@ typedef float GLfloat;
 #endif
 
 #endif
-
-

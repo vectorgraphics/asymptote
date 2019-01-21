@@ -1534,11 +1534,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     exit(-1);
   }
   
-  if(!GLEW_VERSION_4_5) {
-    cerr << "OpenGL Version 4.5 not available!" << endl;
-    exit(-1);
-  }
-
   home();
     
 #ifdef HAVE_LIBGLUT
