@@ -90,6 +90,7 @@ infodir = $(DESTDIR)@infodir@
 datadir = $(DESTDIR)@datadir@
 asydir = $(datadir)/asymptote
 GUIdir = $(asydir)/GUI
+shaderdir = $(asydir)/shaders
 docdir = $(DESTDIR)@docdir@
 exampledir = $(docdir)/examples
 animationsdir = $(exampledir)/animations
@@ -238,13 +239,14 @@ install-texhash: install-asy
 install-asy: asy sty
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	${INSTALL} -d $(GUIdir) $(GUIdir)/pyUIClass $(GUIdir)/configs \
-			$(GUIdir)/res $(GUIdir)/res/icons
+			$(GUIdir)/res $(GUIdir)/res/icons $(shaderdir)
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
+	${INSTALL} -p -m 755 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
 	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
 	${INSTALL} -p -m 644 GUI/res/icons.qrc $(GUIdir)/res
@@ -278,6 +280,8 @@ uninstall-asy:
 	-rmdir $(exampledir)
 	-cd $(GUIdir) && rm -f *.py
 	-rmdir $(GUIdir)
+	-cd $(shaderdir) && rm -f *.glsl
+	-rmdir $(shaderdir)
 	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)

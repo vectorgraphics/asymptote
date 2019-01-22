@@ -1530,7 +1530,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   int result = glewInit();
 
   if (result != GLEW_OK) {
-    cerr << "GLEW Error!" << endl;
+    cerr << "GLEW initialization error." << endl;
     exit(-1);
   }
   
@@ -1551,10 +1551,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   if(!shaderinit) {
     shaderProg=glCreateProgram();
-    GLuint vertShader=createShaderFile(
-      locateFile("shaders/main.vs.glsl").c_str(),GL_VERTEX_SHADER);
-    GLuint fragShader=createShaderFile(
-      locateFile("shaders/main.fs.glsl").c_str(),GL_FRAGMENT_SHADER);
+    string vs=locateFile("shaders/main.vs.glsl");
+    string fs=locateFile("shaders/main.fs.glsl");
+    if(vs.empty() || fs.empty()) {
+      cerr << "GLSL shaders not found." << endl;
+      exit(-1);
+    }
+    GLuint vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER);
+    GLuint fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER);
     glAttachShader(shaderProg,vertShader);
     glAttachShader(shaderProg,fragShader);
     
