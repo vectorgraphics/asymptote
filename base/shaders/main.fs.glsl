@@ -1,5 +1,3 @@
-//version 450
-
 struct Material
 {
   vec4 diffuse, specular, emissive, ambient;
