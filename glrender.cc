@@ -159,9 +159,11 @@ using glm::dmat4;
 using glm::value_ptr;
 using glm::translate;
 
-mat4 projMat;
+mat4 projViewMat;
 mat4 viewMat;
+mat4 normMat;
 
+dmat4 dprojMat;
 dmat4 dviewMat;
 dmat4 drotateMat; 
 
@@ -172,6 +174,8 @@ void updateModelViewData()
   // Like Fortran, OpenGL uses transposed (column-major) format!
   dmat4 MV=glm::transpose(dviewMat);
   dmat4 MVinv=glm::inverse(MV);
+  
+  normMat=mat4(MVinv);
 
   double* T=value_ptr(MV);
   double* Tinv=value_ptr(MVinv);
@@ -314,13 +318,13 @@ void setDimensions(int Width, int Height, double X, double Y)
 void frustum(GLdouble left, GLdouble right, GLdouble bottom,
              GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
-  projMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
+  dprojMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
 }
 
 void ortho(GLdouble left, GLdouble right, GLdouble bottom,
-             GLdouble top, GLdouble nearVal, GLdouble farVal)
+           GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
-  projMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
+  dprojMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
 }
 
 void setProjection()
@@ -328,6 +332,8 @@ void setProjection()
   setDimensions(Width,Height,X,Y);
   if(orthographic) ortho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   else frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  
+  projViewMat=mat4(dprojMat*dviewMat);
   
 #ifdef HAVE_LIBGLUT
   double arcballRadius=getSetting<double>("arcballradius");
@@ -460,6 +466,7 @@ void home()
   }
 #endif
   viewMat=mat4(1.0f);
+  normMat=mat4(1.0f);
   
   dviewMat=dmat4(1.0);
   drotateMat=dmat4(1.0); 
@@ -732,12 +739,10 @@ void update()
   
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
-
   viewMat=mat4(dviewMat);
-  
+  setProjection();
   updateModelViewData();
   
-  setProjection();
   glutPostRedisplay();
 }
 
@@ -1624,8 +1629,9 @@ namespace camp {
 
 void setUniforms(GLint shader)
 {
+  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
-  glUniformMatrix4fv(glGetUniformLocation(shader,"projMat"),1,GL_FALSE, value_ptr(gl::projMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
 
     
   // materials 

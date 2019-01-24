@@ -1,5 +1,3 @@
-#extension GL_ARB_gpu_shader5 : enable
-
 in vec3 position;
 in vec3 normal;
 
@@ -7,8 +5,9 @@ in vec3 normal;
 in vec4 color;
 #endif
 
+uniform mat4 projViewMat;
 uniform mat4 viewMat;
-uniform mat4 projMat;
+uniform mat4 normMat;
 
 out vec3 Normal;
 out vec3 ViewPosition;
@@ -19,9 +18,9 @@ out vec4 Color;
 
 void main()
 {
-  gl_Position=projMat*viewMat*vec4(position,1.0);
+  gl_Position=projViewMat*vec4(position,1.0);
   ViewPosition=(viewMat*vec4(position,1.0)).xyz;
-  Normal=normalize((transpose(inverse(viewMat))*vec4(normal,0)).xyz);
+  Normal=normalize((normMat*vec4(normal,0)).xyz);
 
 #ifdef EXPLICIT_COLOR
   Color=color;
