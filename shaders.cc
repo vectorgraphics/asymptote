@@ -42,7 +42,8 @@ GLuint createShaders(GLchar const* src, int shaderType)
     return shader;
 }
 
-GLuint createShaderFile(std::string file, int shaderType, std::unordered_set<std::string> compilerFlags)
+GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
+                        std::unordered_set<std::string> compilerFlags)
 {
     std::ifstream shaderFile;
     shaderFile.open(file);
@@ -55,6 +56,7 @@ GLuint createShaderFile(std::string file, int shaderType, std::unordered_set<std
         shaderSrc << "#define " << flag << "\r\n";
     }
     
+    shaderSrc << "const int Nlights=" << Nlights << ";\r\n";
 
     if (shaderFile)
     {

@@ -10,15 +10,7 @@ struct Light
   vec4 diffuse, ambient, specular;  
 };
 
-/*
-layout(std430,binding=1) buffer data
-{
-  Light lights[];
-};
-*/
-
-uniform int Nlights;
-uniform Light lights[100];// FIXME
+uniform Light lights[Nlights];
 
 uniform Material materialData;
 

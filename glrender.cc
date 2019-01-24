@@ -1568,14 +1568,16 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       cerr << "GLSL shaders not found." << endl;
       exit(-1);
     }
-    GLuint vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER);
-    GLuint fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER);
+    GLuint vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights);
+    GLuint fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights);
     glAttachShader(shaderProg,vertShader);
     glAttachShader(shaderProg,fragShader);
     
     shaderProgColor=glCreateProgram();
-    GLuint vertShaderCol=createShaderFile(locateFile("shaders/main.vs.glsl").c_str(),GL_VERTEX_SHADER,{"EXPLICIT_COLOR"});
-    GLuint fragShaderCol=createShaderFile(locateFile("shaders/main.fs.glsl").c_str(),GL_FRAGMENT_SHADER,{"EXPLICIT_COLOR"});
+    GLuint vertShaderCol=createShaderFile(vs.c_str(),
+                                          GL_VERTEX_SHADER,Nlights,{"EXPLICIT_COLOR"});
+    GLuint fragShaderCol=createShaderFile(fs.c_str(),
+                                          GL_FRAGMENT_SHADER,Nlights,{"EXPLICIT_COLOR"});
     glAttachShader(shaderProgColor,vertShaderCol);
     glAttachShader(shaderProgColor,fragShaderCol);
 
@@ -1641,11 +1643,10 @@ void setUniforms(GLint shader)
   glUniform4fv(glGetUniformLocation(shader,"materialData.emissive"),1,value_ptr(objMaterial.emission));
 
   glUniform1f(glGetUniformLocation(shader,"materialData.shininess"),objMaterial.shininess);
-  glUniform1i(glGetUniformLocation(shader,"Nlights"),gl::Nlights);
   
   auto getLightIndex=[](uint32_t const& index,std::string const& fieldName)->std::string {return "lights["+std::to_string(index)+"]."+fieldName;};
 
-    for(size_t i=0; i<gl::Nlights; ++i) {
+    for(size_t i=0; i< gl::Nlights; ++i) {
       triple Lighti=gl::Lights[i];
       size_t i4=4*i;
       glUniform4f(glGetUniformLocation(shader,getLightIndex(i,"direction").c_str()),
