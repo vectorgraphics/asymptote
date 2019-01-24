@@ -48,7 +48,7 @@ GLuint createShaderFile(std::string file, int shaderType, std::unordered_set<std
     shaderFile.open(file);
     std::stringstream shaderSrc;
 
-    shaderSrc << "#version 330" << "\r\n";
+    shaderSrc << "#version 130" << "\r\n";
     
     for(std::string const& flag : compilerFlags)
     {

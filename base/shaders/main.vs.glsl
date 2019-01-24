@@ -1,3 +1,5 @@
+#extension GL_ARB_gpu_shader5 : enable
+
 in vec3 position;
 in vec3 normal;
 
