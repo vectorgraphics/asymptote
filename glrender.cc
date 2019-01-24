@@ -1273,7 +1273,7 @@ void init()
   char **argv=args(cmd,true);
   int argc=cmd.size();
 
-//  glutInitContextVersion(4,5);
+//  glutInitContextVersion(4,3);
   glutInitContextProfile(GLUT_CORE_PROFILE);
   //glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
 

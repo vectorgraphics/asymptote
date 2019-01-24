@@ -124,16 +124,8 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-case "${host_os}" in
-    darwin*)
-      GCVERSION=8.0.2
-      ATOMICVERSION=7.6.8
-        ;;
-   *)
-      GCVERSION=8.0.2
-      ATOMICVERSION=7.6.8
-        ;;
-esac
+GCVERSION=8.0.2
+ATOMICVERSION=7.6.8
 
 GCFILE=gc-$GCVERSION
 ac_cv_use_gc="system"
@@ -222,7 +214,7 @@ AC_ARG_ENABLE(gc-full-debug,
 INCL=$INCL" -I/usr/include/tirpc"
 
 if test "$OSTYPE" = "msdos"; then
-CPPFLAGS=$CPPFLAGS" -D__MSDOS__ $INCL"
+CPPFLAGS=$CPPFLAGS" -D__MSDOS__ -DCALLBACK=__stdcall $INCL"
 else
 CPPFLAGS=$CPPFLAGS" $INCL"
 fi
@@ -320,12 +312,15 @@ AC_ARG_ENABLE(offscreen,
 if test "x$enable_gl" != "xno"; then
 case "$OSTYPE" in
      msdos)
+              AC_CHECK_HEADER(glm/glm.hpp,
+                         [AC_DEFINE(HAVE_LIBGLM, 1,
+	             [Define if you have the `OpenGL Mathematics' library.])])
               AC_CHECK_HEADER(GL/gl.h,
 				  [AC_DEFINE(HAVE_LIBGL, 1,
 		     [Define if you have the `opengl32' library (-lopengl32).])
 			     LIBS=$LIBS"-lopengl32 "],
 				   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
-	       	       AC_CHECK_HEADER(GL/glut.h,
+      	      AC_CHECK_HEADER(GL/glut.h,
 				  [AC_DEFINE(HAVE_LIBGLUT, 1,
 		     [Define if you have the `freeglut' library (-lfreeglut).])
 			     LIBS=$LIBS"-lfreeglut "],
@@ -333,11 +328,14 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GL/glew.h,
 				  [AC_DEFINE(HAVE_LIBGLEW, 1,
 		     [Define if you have the `GLEW' library (-lGLEW).])
-			     LIBS=$LIBS"-lGLEW "],
+			     LIBS="-lGLEW "$LIBS],
 				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;                                 
      darwin*) 
               LIBS=$LIBS"-lgccpp "
+              AC_CHECK_HEADER(glm/glm.hpp,
+                         [AC_DEFINE(HAVE_LIBGLM, 1,
+	             [Define if you have the `OpenGL Mathematics' library.])])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL, 1,
 		             [Define if you have the `OpenGL' library.])])
@@ -348,16 +346,20 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(OpenGL/glew.h,
 				  [AC_DEFINE(HAVE_LIBGLEW, 1,
 		     [Define if you have the `GLEW' library (-lGLEW).])
-			     LIBS=$LIBS"-lGLEW "],
+			     LIBS="-lGLEW "$LIBS],
 				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;                                 
-     *) AC_CHECK_LIB([GL], [glDepthMask])
+     *)
+         AC_CHECK_HEADER(glm/glm.hpp,
+                         [AC_DEFINE(HAVE_LIBGLM, 1,
+	             [Define if you have the `OpenGL Mathematics' library.])])
+          AC_CHECK_LIB([GL], [glDepthMask])
 	  AC_CHECK_LIB([glut], [glutMainLoop],,
 		       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
-        AC_CHECK_HEADER(GL/glew.h,
-	  [AC_DEFINE(HAVE_LIBGLEW, 1,
+          AC_CHECK_HEADER(GL/glew.h,
+            [AC_DEFINE(HAVE_LIBGLEW, 1,
 	    [Define if you have the `GLEW' library (-lGLEW).])
-	    LIBS=$LIBS"-lGLEW "],
+            LIBS="-lGLEW "$LIBS],
             AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" == "xyes"; then

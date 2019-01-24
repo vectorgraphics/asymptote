@@ -12,13 +12,13 @@ GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS)
-DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lgdi32 -lwinmm -s -static
+DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -s -static
 
 PERL = perl
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
-SHAREDLIBS = $(filter-out -lGL -lglut -pthread $(GCLIBS), $(LIBS))
+SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
 
 vpath %.cc prc
 vpath %.ui GUI/windows

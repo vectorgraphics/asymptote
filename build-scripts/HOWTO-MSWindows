@@ -30,7 +30,6 @@ mv /usr/include/GL /usr/include/GL.orig
 
 Install these cygwin packages:
 
-
 Build and install static libraries from /usr/local/src:
 
 gsl-devel:
@@ -58,6 +57,7 @@ make install
 
 glew-2.1.0:
 make CFLAGS=-D_WIN32 glew.lib.static
+make install
 cp lib/libGLEW.a /usr/lib
 
 freeglut-3.0.0:
