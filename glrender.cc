@@ -243,40 +243,6 @@ glm::vec4 vec4(double *v)
   return glm::vec4(v[0],v[1],v[2],v[3]);
 }
 
-void setLights()
-{  
-  /*
-  struct Light
-  {
-    glm::vec4 direction;
-    glm::vec4 diffuse, ambient, specular; 
-    Light() {}
-    Light(triple direction, double *diffuse, double *ambient, double *specular)
-      : direction(vec4(direction)), diffuse(vec4(diffuse)),
-        ambient(vec4(ambient)), specular(vec4(specular)) {}
-  };
-
-  Light *lights=new Light[gl::Nlights];
-  */
-
-  
-  
-//  for(size_t i=0; i < gl::Nlights; ++i) {
-//    size_t i4=4*i;
-//    lights[i]=Light(gl::Lights[i],gl::Diffuse+i4,gl::Ambient+i4,gl::Specular+i4);
-//  }
-  
-      /*
-  GLuint ssbo;
-  glGenBuffers(1,&ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,ssbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Light)*gl::Nlights,lights,
-               GL_STATIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-      */
-} 
-
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
@@ -354,8 +320,6 @@ void drawscene(double Width, double Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  setLights();
-    
   triple m(xmin,ymin,zmin);
   triple M(xmax,ymax,zmax);
   double perspective=orthographic ? 0.0 : 1.0/zmax;
@@ -1629,23 +1593,23 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 namespace camp {
 
+std::string getLightIndex(size_t const& index, std::string const& fieldName) {
+  return "lights["+std::to_string(index)+"]."+fieldName;
+} 
+
 void setUniforms(GLint shader)
 {
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
 
-    
   // materials 
   glUniform4fv(glGetUniformLocation(shader,"materialData.diffuse"),1,value_ptr(objMaterial.diffuse));
-  glUniform4fv(glGetUniformLocation(shader,"materialData.specular"),1,value_ptr(objMaterial.specular));
   glUniform4fv(glGetUniformLocation(shader,"materialData.ambient"),1,value_ptr(objMaterial.ambient));
   glUniform4fv(glGetUniformLocation(shader,"materialData.emissive"),1,value_ptr(objMaterial.emission));
-
+  glUniform4fv(glGetUniformLocation(shader,"materialData.specular"),1,value_ptr(objMaterial.specular));
   glUniform1f(glGetUniformLocation(shader,"materialData.shininess"),objMaterial.shininess);
   
-  auto getLightIndex=[](uint32_t const& index,std::string const& fieldName)->std::string {return "lights["+std::to_string(index)+"]."+fieldName;};
-
     for(size_t i=0; i< gl::Nlights; ++i) {
       triple Lighti=gl::Lights[i];
       size_t i4=4*i;

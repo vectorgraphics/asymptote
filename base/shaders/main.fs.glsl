@@ -1,13 +1,13 @@
 struct Material
 {
-  vec4 diffuse, specular, emissive, ambient;
+  vec4 diffuse,ambient,emissive,specular;
   float shininess; 
 };
 
 struct Light
 {
   vec4 direction;
-  vec4 diffuse, ambient, specular;  
+  vec4 diffuse,ambient,specular;  
 };
 
 uniform Light lights[Nlights];
