@@ -27,8 +27,8 @@ extern GLint noColorShader;
 extern GLint colorShader;
 extern void setUniforms(GLint shader); 
 
-std::vector<GLfloat> BezierPatch::buffer;
-std::vector<GLfloat> BezierPatch::Buffer;
+std::vector<vertexData> BezierPatch::vertexbuffer;
+std::vector<VertexData> BezierPatch::Vertexbuffer;
 std::vector<GLuint> BezierPatch::indices;
 std::vector<GLuint> BezierPatch::Indices;
 std::vector<GLfloat> BezierPatch::tbuffer;
@@ -337,11 +337,11 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
       pVertex=&tVertex;
     }
   } else {
-    buffer.reserve(nbuffer);
+    vertexbuffer.reserve(nbuffer);
     pindices=&indices;
     pvertex=&vertex;
     if(colors) {
-      Buffer.reserve(nbuffer);
+      Vertexbuffer.reserve(nbuffer);
       Indices.reserve(nbuffer);
       pindices=&Indices;
       pVertex=&Vertex;
@@ -913,11 +913,11 @@ void BezierPatch::draw()
   if(nvertices == 0 && ntvertices == 0 && Nvertices == 0 && Ntvertices == 0)
     return;
   
-  size_t stride=7;
+  size_t stride=6;
   static const size_t Stride=10;
   static const size_t size=sizeof(GLfloat);
-  static const size_t bytestride=stride*size;
-  static const size_t Bytestride=Stride*size;
+  static const size_t bytestride=sizeof(vertexData);
+  static const size_t Bytestride=sizeof(VertexData);
 
   if(ntvertices > 0) {
     tstride=stride;
@@ -937,14 +937,16 @@ void BezierPatch::draw()
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
-  static const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
-  static const GLint normalAttrib=glGetAttribLocation(noColorShader, "normal");
-  static const GLint materialAttrib=glGetAttribLocation(noColorShader, "material");
+  static const GLint posAttrib=glGetAttribLocation(noColorShader,"position");
+  static const GLint normalAttrib=glGetAttribLocation(noColorShader,"normal");
+  static const GLint materialAttrib=glGetAttribLocation(noColorShader,
+                                                        "material");
 
-  static const GLint posAttribCol=glGetAttribLocation(colorShader, "position");
-  static const GLint normalAttribCol=glGetAttribLocation(colorShader, "normal");
-  static const GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
-
+  static const GLint posAttribCol=glGetAttribLocation(colorShader,"position");
+  static const GLint normalAttribCol=glGetAttribLocation(colorShader,"normal");
+  static const GLint colorAttribCol=glGetAttribLocation(colorShader,"color");
+  static const GLint materialAttribCol=glGetAttribLocation(colorShader,
+                                                           "material");
   createBuffers();
     
   if(nvertices > 0) {
@@ -961,8 +963,8 @@ void BezierPatch::draw()
                           (void *) (3*size));
     glEnableVertexAttribArray(normalAttrib);
 
-    glVertexAttribPointer(materialAttrib,1,GL_FLOAT,GL_FALSE,bytestride,
-                          (void *) (6*size));
+    glVertexAttribIPointer(materialAttrib,1,GL_UNSIGNED_INT,bytestride,
+                           (void *) (6*size));
     glEnableVertexAttribArray(materialAttrib);
 
     glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void *) 0);
@@ -987,15 +989,20 @@ void BezierPatch::draw()
                           (void *) (3*size));
     glEnableVertexAttribArray(normalAttribCol);
 
-    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,
-                          (void *) (6*size));
+    glVertexAttribIPointer(colorAttribCol,1,GL_UNSIGNED_INT,Bytestride,
+                           (void *) (6*size));
     glEnableVertexAttribArray(colorAttribCol);
 
+    glVertexAttribIPointer(materialAttribCol,1,GL_UNSIGNED_INT,Bytestride,
+                           (void *) (6*size+sizeof(GLuint)));
+    glEnableVertexAttribArray(materialAttribCol);
+    
     glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
     glDisableVertexAttribArray(posAttribCol);
     glDisableVertexAttribArray(normalAttribCol);
     glDisableVertexAttribArray(colorAttribCol);
+    glDisableVertexAttribArray(materialAttribCol);
   }
 
   if(ntvertices > 0) {

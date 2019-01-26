@@ -28,7 +28,7 @@ public:
            const glm::vec4& emissive, const glm::vec4& specular,
            double shininess) : 
     diffuse(diffuse), ambient(ambient), emissive(emissive), specular(specular),
-    shininess(shininess) {}
+    shininess(128*shininess) {}
 
   Material(Material const& m):
     diffuse(m.diffuse), ambient(m.ambient), emissive(m.emissive),

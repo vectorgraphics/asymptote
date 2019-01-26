@@ -31,4 +31,3 @@ draw((xmin,0,0)--(xmax,0,0),dashed);
 xaxis3("$\mathop{\rm Re} z$",Bounds,InTicks);
 yaxis3("$\mathop{\rm Im} z$",Bounds,InTicks(beginlabel=false));
 zaxis3("$|\Gamma(z)|$",Bounds,InTicks);
-write(currentlight.ambient);

@@ -16,13 +16,12 @@ uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
 
-
 in vec3 Normal;
-in float materialIndex;
 
 #ifdef EXPLICIT_COLOR
 in vec4 Color; 
 #endif
+flat in uint materialIndex;
 
 out vec4 outColor;
 
@@ -33,16 +32,15 @@ void main()
   vec4 Emissive;
   vec4 Specular;
   float Shininess;
+  Material m=Materials[materialIndex];
 
 #ifdef EXPLICIT_COLOR
   Diffuse=Color;
   Ambient=Color;
   Emissive=vec4(0.0,0.0,0.0,1.0);
-  Specular=vec4(0.75,0.75,0.75,1.0);
-  Shininess=32;
+  Specular=m.specular;
+  Shininess=m.shininess;
 #else
-  int imaterial=int(materialIndex+0.5);
-  Material m=Materials[imaterial];
   Diffuse=m.diffuse;
   Ambient=m.ambient;
   Emissive=m.emissive;

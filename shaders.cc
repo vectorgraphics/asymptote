@@ -53,6 +53,8 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
     shaderSrc << "#version 130" << "\r\n";
     shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
               << "\r\n";
+    shaderSrc << "#extension GL_ARB_shading_language_packing : enable"
+              << "\r\n";
 
     for(std::string const& flag : compilerFlags)
     {

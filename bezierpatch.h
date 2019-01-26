@@ -17,10 +17,46 @@ namespace camp {
 extern const double Fuzz;
 extern const double Fuzz2;
 
+class vertexData {
+public:
+  GLfloat position[3];
+  GLfloat normal[3];
+  GLuint  material;
+  vertexData() {};
+  vertexData(const triple& v, const triple& n) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    material=drawElement::materialIndex;
+  }
+};
+
+class VertexData {
+public:
+  GLfloat position[3];
+  GLfloat normal[3];
+  GLuint color;
+  GLuint  material;
+  VertexData() {};
+  VertexData(const triple& v, const triple& n, GLfloat *c) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
+    material=drawElement::materialIndex;
+  }
+};
+
 struct BezierPatch
 {
-  static std::vector<GLfloat> buffer;
-  static std::vector<GLfloat> Buffer;
+  static std::vector<vertexData> vertexbuffer;
+  static std::vector<VertexData> Vertexbuffer;
   static std::vector<GLuint> indices;
   static std::vector<GLuint> Indices;
   static std::vector<GLfloat> tbuffer;
@@ -61,15 +97,7 @@ struct BezierPatch
     
 // Store the vertex v and its normal vector n in the buffer.
   static GLuint vertex(const triple &v, const triple& n) {
-    buffer.push_back(v.getx());
-    buffer.push_back(v.gety());
-    buffer.push_back(v.getz());
-    
-    buffer.push_back(n.getx());
-    buffer.push_back(n.gety());
-    buffer.push_back(n.getz());
-    
-    buffer.push_back((GLfloat) drawElement::materialIndex);
+    vertexbuffer.push_back(vertexData(v,n));
     return nvertices++;
   }
   
@@ -88,19 +116,7 @@ struct BezierPatch
   
 // Store the vertex v and its normal vector n and colour c in the buffer.
   static GLuint Vertex(const triple& v, const triple& n, GLfloat *c) {
-    Buffer.push_back(v.getx());
-    Buffer.push_back(v.gety());
-    Buffer.push_back(v.getz());
-    
-    Buffer.push_back(n.getx());
-    Buffer.push_back(n.gety());
-    Buffer.push_back(n.getz());
-    
-    Buffer.push_back(c[0]);
-    Buffer.push_back(c[1]);
-    Buffer.push_back(c[2]);
-    Buffer.push_back(c[3]);
-    
+    Vertexbuffer.push_back(VertexData(v,n,c));
     return Nvertices++;
   }
   
@@ -211,8 +227,8 @@ struct BezierPatch
 
     //vbo
     
-    registerBuffer(buffer,vertsBufferIndex[0]);
-    registerBuffer(Buffer,vertsBufferIndex[1]);
+    registerBuffer(vertexbuffer,vertsBufferIndex[0]);
+    registerBuffer(Vertexbuffer,vertsBufferIndex[1]);
     registerBuffer(tbuffer,vertsBufferIndex[2]);
     registerBuffer(tBuffer,vertsBufferIndex[3]);
 
@@ -225,9 +241,9 @@ struct BezierPatch
   
   void clear() {
     nvertices=ntvertices=Nvertices=Ntvertices=0;
-    buffer.clear();
+    vertexbuffer.clear();
+    Vertexbuffer.clear();
     indices.clear();
-    Buffer.clear();
     Indices.clear();
     tbuffer.clear();
     tindices.clear();

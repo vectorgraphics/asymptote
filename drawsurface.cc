@@ -65,25 +65,29 @@ void setcolors(bool colors, bool lighton,
                const RGBAColour& specular, double shininess) 
 {
   
-  if(!colors) {
-    Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
-                        glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A),
-                        glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
-                        glm::vec4(specular.R,specular.G,specular.B,specular.A),
-                        128.0*shininess);
+  Material m;
+  if(colors) {
+    static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
+    m=Material(Black,Black,Black,
+               glm::vec4(specular.R,specular.G,specular.B,specular.A),
+               shininess);
+  }  else
+    m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
+               glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A),
+               glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
+               glm::vec4(specular.R,specular.G,specular.B,specular.A),
+               shininess);
           
-    typedef mem::map<CONST Material,size_t> MaterialMap;
-    static MaterialMap materialMap;
-    MaterialMap::iterator p=materialMap.find(m);
-    if(p != materialMap.end()) {
-      drawElement::materialIndex=p->second;
-    }
-    else {
-      materialMap[m]=drawElement::material.size();
-      drawElement::material.push_back(m);
-    }
-//   cout << sizeof(Material)*drawElement::materialIndex << endl;
+  typedef mem::map<CONST Material,size_t> MaterialMap;
+  static MaterialMap materialMap;
+  MaterialMap::iterator p=materialMap.find(m);
+  if(p != materialMap.end())
+    drawElement::materialIndex=p->second;
+  else {
+    materialMap[m]=drawElement::material.size();
+    drawElement::material.push_back(m);
   }
+//  cout << sizeof(Material)*drawElement::materialIndex << endl;
 }
 
 #endif  
@@ -235,7 +239,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(invisible || 
      ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
        diffuse.A < 1.0) ^ transparent)) return;
-//  transparent=false;
   
   const bool billboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
@@ -270,10 +273,10 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   
   if(billboard) BB.init(center);
   
-  GLfloat v[16];
+  GLfloat c[16];
   if(colors)
     for(size_t i=0; i < 4; ++i)
-      storecolor(v,4*i,colors[i]);
+      storecolor(c,4*i,colors[i]);
   
   triple *Controls;
   triple Controls0[16];
@@ -296,7 +299,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     C.draw();
   } else {
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
-            colors ? v : NULL);
+            colors ? c : NULL);
   }
 #endif
 }

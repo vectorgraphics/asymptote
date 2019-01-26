@@ -2,10 +2,10 @@ in vec3 position;
 in vec3 normal;
 
 #ifdef EXPLICIT_COLOR
-in vec4 color;
-#else
-in float material;
+in uint color;
 #endif
+
+in uint material;
 
 uniform mat4 projViewMat;
 uniform mat4 viewMat;
@@ -16,9 +16,9 @@ out vec3 Normal;
     
 #ifdef EXPLICIT_COLOR
 out vec4 Color;
-#else
-out float materialIndex;
 #endif
+
+flat out uint materialIndex;
 
 void main()
 {
@@ -27,8 +27,8 @@ void main()
   Normal=normalize((normMat*vec4(normal,0)).xyz);
 
 #ifdef EXPLICIT_COLOR
-  Color=color;
-#else
-  materialIndex=material;
+  Color=unpackUnorm4x8(color);
 #endif
+
+  materialIndex=material;
 }
