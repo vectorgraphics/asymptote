@@ -96,7 +96,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   glm::vec4 Black(0.0,0.0,0.0,1.0);
   objMaterial.diffuse=glm::vec4(0.0,0.0,0.0,color.A);
   objMaterial.ambient=Black;
-  objMaterial.emission=glm::vec4(color.R,color.G,color.B,color.A);
+  objMaterial.emissive=glm::vec4(color.R,color.G,color.B,color.A);
   objMaterial.specular=Black;
   objMaterial.shininess=128.0;
   
@@ -282,7 +282,7 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
   glm::vec4 Black(0.0,0.0,0.0,1.0);
   objMaterial.diffuse=glm::vec4(c.R,c.G,c.B,c.A);
   objMaterial.ambient=Black;
-  objMaterial.emission=objMaterial.diffuse;
+  objMaterial.emissive=objMaterial.diffuse;
   objMaterial.specular=Black;
   objMaterial.shininess=128.0;
   

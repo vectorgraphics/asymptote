@@ -14,11 +14,8 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-extern int sign;
-
 extern const double Fuzz;
 extern const double Fuzz2;
-
 
 struct BezierPatch
 {
@@ -71,6 +68,8 @@ struct BezierPatch
     buffer.push_back(n.getx());
     buffer.push_back(n.gety());
     buffer.push_back(n.getz());
+    
+    buffer.push_back((GLfloat) drawElement::materialIndex);
     return nvertices++;
   }
   
@@ -82,6 +81,8 @@ struct BezierPatch
     tbuffer.push_back(n.getx());
     tbuffer.push_back(n.gety());
     tbuffer.push_back(n.getz());
+    
+    tbuffer.push_back((GLfloat) drawElement::materialIndex);
     return ntvertices++;
   }
   
@@ -99,6 +100,7 @@ struct BezierPatch
     Buffer.push_back(c[1]);
     Buffer.push_back(c[2]);
     Buffer.push_back(c[3]);
+    
     return Nvertices++;
   }
   
@@ -115,6 +117,7 @@ struct BezierPatch
     tBuffer.push_back(c[1]);
     tBuffer.push_back(c[2]);
     tBuffer.push_back(c[3]);
+    
     return Ntvertices++;
   }
   

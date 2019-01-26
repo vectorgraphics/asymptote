@@ -980,7 +980,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   bbox bshift=b;
   
-  transparency=false;
+//  transparency=false;
   int svgcount=0;
   
   typedef mem::list<drawElement *> clipstack;
@@ -1105,8 +1105,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.epilogue();
     out.close();
     
-    if(out.Transparency())
-      transparency=true;
+//    if(out.Transparency())
+//      transparency=true;
     
     if(Labels) {
       tex->resetpen();

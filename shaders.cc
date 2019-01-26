@@ -43,6 +43,7 @@ GLuint createShaders(GLchar const* src, int shaderType)
 }
 
 GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
+                        size_t Nmaterials,
                         std::unordered_set<std::string> compilerFlags)
 {
     std::ifstream shaderFile;
@@ -50,13 +51,16 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
     std::stringstream shaderSrc;
 
     shaderSrc << "#version 130" << "\r\n";
-    
+    shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
+              << "\r\n";
+
     for(std::string const& flag : compilerFlags)
     {
         shaderSrc << "#define " << flag << "\r\n";
     }
     
     shaderSrc << "const int Nlights=" << Nlights << ";\r\n";
+    shaderSrc << "const int Nmaterials=" << Nmaterials << ";\r\n";
 
     if (shaderFile)
     {

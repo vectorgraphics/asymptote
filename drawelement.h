@@ -19,6 +19,7 @@
 #include "prcfile.h"
 #include "glrender.h"
 #include "arrayop.h"
+#include "material.h"
 
 namespace camp {
 
@@ -128,6 +129,8 @@ public:
   
   virtual ~drawElement() {}
   
+  static mem::vector<Material> material;
+  static size_t materialIndex;
   static pen lastpen;  
   static const triple zero;
   

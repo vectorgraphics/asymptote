@@ -1532,16 +1532,21 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       cerr << "GLSL shaders not found." << endl;
       exit(-1);
     }
-    GLuint vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights);
-    GLuint fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights);
+//    size_t Nmaterials=camp::drawElement::material.size();
+    size_t Nmaterials=100; // FIXME
+    GLuint vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,Nmaterials);
+    GLuint fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,Nmaterials);
     glAttachShader(shaderProg,vertShader);
     glAttachShader(shaderProg,fragShader);
     
     shaderProgColor=glCreateProgram();
     GLuint vertShaderCol=createShaderFile(vs.c_str(),
-                                          GL_VERTEX_SHADER,Nlights,{"EXPLICIT_COLOR"});
+                                          GL_VERTEX_SHADER,Nlights,Nmaterials,
+                                          {"EXPLICIT_COLOR"});
     GLuint fragShaderCol=createShaderFile(fs.c_str(),
-                                          GL_FRAGMENT_SHADER,Nlights,{"EXPLICIT_COLOR"});
+                                          GL_FRAGMENT_SHADER,Nlights,
+                                          Nmaterials,
+                                          {"EXPLICIT_COLOR"});
     glAttachShader(shaderProgColor,vertShaderCol);
     glAttachShader(shaderProgColor,fragShaderCol);
 
@@ -1593,6 +1598,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 namespace camp {
 
+std::string getMaterialIndex(size_t const& index,
+                             std::string const& fieldName)
+{
+  return "materials["+std::to_string(index)+"]."+fieldName;
+} 
+
 std::string getLightIndex(size_t const& index, std::string const& fieldName) {
   return "lights["+std::to_string(index)+"]."+fieldName;
 } 
@@ -1603,31 +1614,41 @@ void setUniforms(GLint shader)
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
 
-  // materials 
-  glUniform4fv(glGetUniformLocation(shader,"materialData.diffuse"),1,value_ptr(objMaterial.diffuse));
-  glUniform4fv(glGetUniformLocation(shader,"materialData.ambient"),1,value_ptr(objMaterial.ambient));
-  glUniform4fv(glGetUniformLocation(shader,"materialData.emissive"),1,value_ptr(objMaterial.emission));
-  glUniform4fv(glGetUniformLocation(shader,"materialData.specular"),1,value_ptr(objMaterial.specular));
-  glUniform1f(glGetUniformLocation(shader,"materialData.shininess"),objMaterial.shininess);
+  GLuint binding=0;
+  GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
+  glUniformBlockBinding(shader,blockindex,binding);
+    
+  GLuint ubo;
+  glGenBuffers(1,&ubo);
+  glBindBuffer(GL_UNIFORM_BUFFER,ubo);
+    
+  glBufferData(GL_UNIFORM_BUFFER,drawElement::material.size()*sizeof(Material),
+               drawElement::material.data(),GL_STATIC_DRAW);
+  glBindBufferBase(GL_UNIFORM_BUFFER,binding,ubo);
   
-    for(size_t i=0; i< gl::Nlights; ++i) {
-      triple Lighti=gl::Lights[i];
-      size_t i4=4*i;
-      glUniform4f(glGetUniformLocation(shader,getLightIndex(i,"direction").c_str()),
-                  (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),(GLfloat) Lighti.getz(),0.0);
+  for(size_t i=0; i < gl::Nlights; ++i) {
+    triple Lighti=gl::Lights[i];
+    size_t i4=4*i;
+    glUniform4f(glGetUniformLocation(shader,
+                                     getLightIndex(i,"direction").c_str()),
+                (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
+                (GLfloat) Lighti.getz(),0.0);
 
-      glUniform4f(glGetUniformLocation(shader,getLightIndex(i,"diffuse").c_str()),
-        (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
-                                                (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
+    glUniform4f(glGetUniformLocation(shader,
+                                     getLightIndex(i,"diffuse").c_str()),
+                (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
+                (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
       
-      glUniform4f(glGetUniformLocation(shader,getLightIndex(i,"ambient").c_str()),
-        (GLfloat) gl::Ambient[i4],(GLfloat) gl::Ambient[i4+1],
-                                                (GLfloat) gl::Ambient[i4+2],(GLfloat) gl::Ambient[i4+3]);
+    glUniform4f(glGetUniformLocation(shader,
+                                     getLightIndex(i,"ambient").c_str()),
+                (GLfloat) gl::Ambient[i4],(GLfloat) gl::Ambient[i4+1],
+                (GLfloat) gl::Ambient[i4+2],(GLfloat) gl::Ambient[i4+3]);
       
-      glUniform4f(glGetUniformLocation(shader,getLightIndex(i,"specular").c_str()),
-        (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
-                                                (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
-    }
+    glUniform4f(glGetUniformLocation(shader,
+                                     getLightIndex(i,"specular").c_str()),
+                (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
+                (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
+  }
 }
 
 }

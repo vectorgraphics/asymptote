@@ -21,6 +21,8 @@ namespace camp {
 
 #ifdef HAVE_GL
 extern Material objMaterial;
+mem::vector<Material> drawElement::material;
+size_t drawElement::materialIndex;
 #endif
 
 const triple drawElement::zero;
@@ -62,39 +64,25 @@ void setcolors(bool colors, bool lighton,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess) 
 {
-  static prc::RGBAColour lastdiffuse;
-  static prc::RGBAColour lastambient;
-  static prc::RGBAColour lastemissive;
-  static prc::RGBAColour lastspecular;
-  static double lastshininess=0.0;
-  static bool lastcolors=false;
-    
-  if(colors != lastcolors) {
-    drawBezierPatch::S.draw();
-    lastcolors=colors;
-  }
   
   if(!colors) {
-    if(diffuse != lastdiffuse || ambient != lastambient || 
-       emissive != lastemissive || specular != lastspecular ||
-       shininess != lastshininess) {
-      drawBezierPatch::S.draw(); 
-      lastdiffuse=diffuse;
-      lastambient=ambient;
-      lastemissive=emissive;
-      lastspecular=specular;
-      lastshininess=shininess;
+    Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
+                        glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A),
+                        glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
+                        glm::vec4(specular.R,specular.G,specular.B,specular.A),
+                        128.0*shininess);
+          
+    typedef mem::map<CONST Material,size_t> MaterialMap;
+    static MaterialMap materialMap;
+    MaterialMap::iterator p=materialMap.find(m);
+    if(p != materialMap.end()) {
+      drawElement::materialIndex=p->second;
     }
-    objMaterial.diffuse=glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A);
-    objMaterial.ambient=glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A);
-    objMaterial.emission=glm::vec4(emissive.R,emissive.G,emissive.B,
-                                   emissive.A);
-  }
-    
-  if(lighton) {
-    objMaterial.specular=glm::vec4(specular.R,specular.G,specular.B,
-                                   specular.A);
-    objMaterial.shininess=128.0*shininess;
+    else {
+      materialMap[m]=drawElement::material.size();
+      drawElement::material.push_back(m);
+    }
+//   cout << sizeof(Material)*drawElement::materialIndex << endl;
   }
 }
 
@@ -240,12 +228,14 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
-                             double perspective, bool lighton, bool transparent)
+                             double perspective, bool lighton,
+                             bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
      ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
        diffuse.A < 1.0) ^ transparent)) return;
+//  transparent=false;
   
   const bool billboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
@@ -307,8 +297,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   } else {
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? v : NULL);
-    if(!transparent) 
-      S.draw();
   }
 #endif
 }
