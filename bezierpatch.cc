@@ -16,12 +16,14 @@ using ::orient3d;
 #ifdef HAVE_GL
 
 
-//FIXME: Find a nicer way to pass the shader program number.
+//FIXME: Find a nicer way to pass the shader program nuber.
 // preferably without global variables...
 
 extern GLint noColorShader;
 extern GLint colorShader;
 extern void setUniforms(GLint shader); 
+
+const size_t nbuffer=10000; // Initial size of dynamic buffers
 
 std::vector<vertexData> BezierPatch::vertexbuffer;
 std::vector<VertexData> BezierPatch::Vertexbuffer;
@@ -202,7 +204,6 @@ inline void cross(double *dest, const double *u, const double *v,
 
 unsigned n;
 unsigned int count;
-const size_t nbuffer=10000;
   
 // Sort nonintersecting triangles by depth.
 int compare(const void *p, const void *P)
@@ -317,10 +318,8 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   this->Min=Min;
   this->Max=Max;
 
-  const size_t nbuffer=10000;
-  
   if(transparent) {
-    Vertexbuffer.reserve(nbuffer);
+    tVertexbuffer.reserve(nbuffer);
     tIndices.reserve(nbuffer);
     pindices=&tIndices;
     pvertex=&tvertex;
@@ -1027,161 +1026,85 @@ void BezierPatch::draw()
   clear();
 }
 
-GLuint Triangles::vertsBufferIndex;
-GLuint Triangles::elemBufferIndex;
-
-void Triangles::draw(size_t nP, triple* P, size_t nN, triple* N, 
-                     size_t nC, prc::RGBAColour* C, size_t nI,
-                     uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3])
+void Triangles::queue(size_t nP, triple* P, size_t nN, triple* N,
+                      size_t nC, prc::RGBAColour* C, size_t nI,
+                      uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3],
+                      bool transparent)
 {
-  size_t stride=nC ? (nN ? 10 : 7) : (nN ? 6 : 3);
-  ++stride; // For material index
+  if(!nN) return;
   const size_t indexstride=3;
-  const size_t size=sizeof(GLfloat);
-  const size_t bytestride=stride*size;
-
-  GLuint vao;
-  glGenVertexArrays(1,&vao);
-  glBindVertexArray(vao);
-
-  static std::vector<GLfloat> buffer;
-  static std::vector<GLuint> indices;
-  
-  buffer.resize(stride*nP);
   size_t nindices=indexstride*nI;
-  indices.resize(nindices);
+  size_t index0;
+
+  if(transparent) {
+    tVertexbuffer.reserve(nbuffer);
+    tVertexbuffer.resize(Ntvertices+nP);
+    tIndices.reserve(nbuffer);
+    index0=tIndices.size();
+    tIndices.resize(index0+nindices);
+  } else {
+    if(nC) {
+      Vertexbuffer.reserve(nbuffer);
+      Vertexbuffer.resize(Nvertices+nP);
+      Indices.reserve(nbuffer);
+      index0=Indices.size();
+      Indices.resize(index0+nindices);
+    } else {
+      vertexbuffer.reserve(nbuffer);
+      vertexbuffer.resize(nvertices+nP);
+      indices.reserve(nbuffer);
+      index0=indices.size();
+      indices.resize(index0+nindices);
+    }
+  }
+
   uint32_t *P0=(uint32_t *) PI;
   uint32_t *N0=(uint32_t *) NI;
   uint32_t *C0=(uint32_t *) CI;
-  if(nC) {
-    if(nN) {
+
+  if(transparent) {
+    if(nC) {
       for(size_t i=0; i < nindices; ++i) {
         uint32_t i0=P0[i];
-        indices[i]=i0;
-        triple v=P[i0];
-        size_t istride=stride*i0;
-        buffer[istride]=(GLfloat) v.getx();
-        buffer[istride+1]=(GLfloat) v.gety();
-        buffer[istride+2]=(GLfloat) v.getz();
-        triple n=N[N0[i]];
-        buffer[istride+3]=(GLfloat) n.getx();
-        buffer[istride+4]=(GLfloat) n.gety();
-        buffer[istride+5]=(GLfloat) n.getz();
         prc::RGBAColour c=C[C0[i]];
-        buffer[istride+6]=(GLfloat) c.R;
-        buffer[istride+7]=(GLfloat) c.G;
-        buffer[istride+8]=(GLfloat) c.B;
-        buffer[istride+9]=(GLfloat) c.A;
+        GLfloat c0[]={(GLfloat) c.R,(GLfloat) c.G,(GLfloat) c.B,(GLfloat) c.A};
+        GLuint index=Ntvertices+i0;
+        tVertexbuffer[index]=VertexData(P[i0],N[N0[i]],c0);
+        tIndices[index0+i]=index;
       }
     } else {
       for(size_t i=0; i < nindices; ++i) {
         uint32_t i0=P0[i];
-        indices[i]=i0;
-        triple v=P[i0];
-        size_t istride=stride*i0;
-        buffer[istride]=(GLfloat) v.getx();
-        buffer[istride+1]=(GLfloat) v.gety();
-        buffer[istride+2]=(GLfloat) v.getz();
-        prc::RGBAColour c=C[C0[i]];
-        buffer[istride+3]=(GLfloat) c.R;
-        buffer[istride+4]=(GLfloat) c.G;
-        buffer[istride+5]=(GLfloat) c.B;
-        buffer[istride+6]=(GLfloat) c.A;
+        GLuint index=Ntvertices+i0;
+        tVertexbuffer[index]=VertexData(P[i0],N[N0[i]]);
+        tIndices[index0+i]=index;
       }
     }
+    Ntvertices += nP;
   } else {
-    if(nN) {
+    if(nC) {
       for(size_t i=0; i < nindices; ++i) {
         uint32_t i0=P0[i];
-        indices[i]=i0;
-        triple v=P[i0];
-        size_t istride=stride*i0;
-        buffer[istride]=(GLfloat) v.getx();
-        buffer[istride+1]=(GLfloat) v.gety();
-        buffer[istride+2]=(GLfloat) v.getz();
-        triple n=N[N0[i]];
-        buffer[istride+3]=(GLfloat) n.getx();
-        buffer[istride+4]=(GLfloat) n.gety();
-        buffer[istride+5]=(GLfloat) n.getz();
+        prc::RGBAColour c=C[C0[i]];
+        GLfloat c0[]={(GLfloat) c.R,(GLfloat) c.G,(GLfloat) c.B,
+                      (GLfloat) c.A};
+        GLuint index=Nvertices+i0;
+        Vertexbuffer[index]=VertexData(P[i0],N[N0[i]],c0);
+        Indices[index0+i]=index;
       }
+      Nvertices += nP;
     } else {
       for(size_t i=0; i < nindices; ++i) {
         uint32_t i0=P0[i];
-        indices[i]=i0;
-        triple v=P[i0];
-        size_t istride=stride*i0;
-        buffer[istride]=(GLfloat) v.getx();
-        buffer[istride+1]=(GLfloat) v.gety();
-        buffer[istride+2]=(GLfloat) v.getz();
+        GLuint index=nvertices+i0;
+        vertexbuffer[index]=vertexData(P[i0],N[N0[i]]);
+        indices[index0+i]=index;
       }
+      nvertices += nP;
     }
   }
-  
-  glGenBuffers(1,&vertsBufferIndex);
-  glGenBuffers(1,&elemBufferIndex);
-  
-  registerBuffer(buffer,vertsBufferIndex);
-  registerBuffer(indices,elemBufferIndex);
-    
-  GLint posAttrib,normalAttrib,colorAttrib,materialAttrib;
-  GLint shader;
-  
-  if(nC) {
-    shader=colorShader;
-    colorAttrib=glGetAttribLocation(shader, "color");
-  } else
-    shader=noColorShader;
-  
-  posAttrib=glGetAttribLocation(shader, "position");
-  materialAttrib=glGetAttribLocation(shader, "material");
-  if(nN)
-    normalAttrib=glGetAttribLocation(shader, "normal");
-  
-  glUseProgram(shader);
-  camp::setUniforms(shader);
-
-  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
-
-  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*) 0);
-  glEnableVertexAttribArray(posAttrib);
-//  glVertexAttribIPointer(materialAttrib,1,GL_UNSIGNED_INT,
-//                        sizeof(unsigned int),(void*) (3*size);
-  // FIXME: Change to unsigned int
-    glVertexAttribPointer(materialAttrib,1,GL_FLOAT,GL_FALSE,bytestride,(void*) (3*size));
-  glEnableVertexAttribArray(materialAttrib);
-  if(nN) {
-    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(4 *size));
-    glEnableVertexAttribArray(normalAttrib);
-  }
-  if(nC) {
-    glVertexAttribPointer(colorAttrib,4,GL_FLOAT,GL_FALSE,bytestride,(void*)((nN ? 7 : 4)*size));
-    glEnableVertexAttribArray(colorAttrib);
-  }
-  
-  glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void*)(0));
-
-  glDisableVertexAttribArray(posAttrib);
-  glDisableVertexAttribArray(materialAttrib);
-  if(nN)
-    glDisableVertexAttribArray(normalAttrib);
-  if(nC)
-    glDisableVertexAttribArray(colorAttrib);
-
-  glBindBuffer(GL_ARRAY_BUFFER,0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-  glUseProgram(0);
-
-  indices.clear();
-  buffer.clear();
-  
-  glBindVertexArray(0);
-  glDeleteVertexArrays(1,&vao);
-  
-  glDeleteBuffers(1,&vertsBufferIndex);
-  glDeleteBuffers(1,&elemBufferIndex);
 }
-
+ 
 #endif
 
 } //namespace camp

@@ -295,10 +295,9 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
     C.queue(edge3,straight,size3.length()/size2,m,M);
     C.draw();
-  } else {
+  } else
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? c : NULL);
-  }
 #endif
 }
 
@@ -508,12 +507,9 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
     C.queue(edge2,straight,size3.length()/size2,m,M);
     C.draw();
-  } else {
+  } else
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? v : NULL);
-    if(!transparent) 
-      S.draw();
-  }
 #endif
 }
 
@@ -914,7 +910,7 @@ void drawTriangles::render(double size2, const triple& Min,
   }
 
   setcolors(nC,diffuse,ambient,emissive,specular,shininess);
-  R.draw(nP,P,nN,N,nC,C,nI,PI,NI,CI);
+  R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
 #endif
 }
 

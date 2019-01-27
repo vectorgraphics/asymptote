@@ -290,17 +290,14 @@ public:
 };
 
 
-struct Triangles
-{
-  static GLuint vertsBufferIndex;
-  static GLuint elemBufferIndex;
-  
-  Triangles() {}
-  ~Triangles() {}
-  
-  void draw(size_t nP, triple* P, size_t nN, triple* N,
-            size_t nC, prc::RGBAColour* C, size_t nI,
-            uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3]);
+struct Triangles : public BezierPatch {
+public:
+  Triangles() : BezierPatch() {}
+
+  void queue(size_t nP, triple* P, size_t nN, triple* N,
+             size_t nC, prc::RGBAColour* C, size_t nI,
+             uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3],
+             bool transparent);
 };
 
 

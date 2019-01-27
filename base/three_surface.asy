@@ -1409,11 +1409,32 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
      PRCshininess,s.colors,interaction.type,prc);
 }
 
+int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
+{
+  triple lastnormal=O;
+  for(int i=0; i < vi.length; ++i) {
+    int[] vii=vi[i];
+    int[] nii=ni[i];
+    triple normal=normal(new triple[] {v[vii[0]],v[vii[1]],v[vii[2]]});
+    if(normal != lastnormal || n.length == 0) {
+      n.push(normal);
+      lastnormal=normal;
+    }
+    nii[0]=nii[1]=nii[2]=n.length-1;
+  }
+  return ni.length;
+}
+
 // Draw triangles on a frame.
 void draw(frame f, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight)
 {
+  bool normals=ni.length > 0;
+  if(!normals) {
+    ni=new int[vi.length][3];
+    normals=computeNormals(v,vi,n,ni) > 0;
+  }
   if(p.length > 0)
     m=mean(p);
   m=material(m,light);
@@ -1428,23 +1449,12 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight)
 {
-  bool colors=pi.length > 0;
   bool normals=ni.length > 0;
-  if(!colors && !normals) {
-    n=new triple[];
+  if(!normals) {
     ni=new int[vi.length][3];
-    triple lastnormal=O;
-    for(int i=0; i < vi.length; ++i) {
-      int[] vii=vi[i];
-      int[] nii=ni[i];
-      triple normal=normal(new triple[] {v[vii[0]],v[vii[1]],v[vii[2]]});
-      if(normal != lastnormal || n.length == 0) {
-        n.push(normal);
-        lastnormal=normal;
-      }
-      nii[0]=nii[1]=nii[2]=n.length-1;
-    }
+    normals=computeNormals(v,vi,n,ni) > 0;
   }
+  bool colors=pi.length > 0;
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple[] v=t*v;
