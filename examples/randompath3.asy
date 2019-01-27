@@ -1,4 +1,4 @@
 import three;
 
 size(300);
-draw(randompath3(100),red+thin(),nolight);
+draw(randompath3(100),red,nolight);
