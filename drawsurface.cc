@@ -20,7 +20,6 @@ using namespace prc;
 namespace camp {
 
 #ifdef HAVE_GL
-extern Material objMaterial;
 mem::vector<Material> drawElement::material;
 size_t drawElement::materialIndex;
 #endif
@@ -58,7 +57,7 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
-void setcolors(bool colors, bool lighton,
+void setcolors(bool colors,
                const RGBAColour& diffuse,
                const RGBAColour& ambient,
                const RGBAColour& emissive,
@@ -232,8 +231,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
-                             double perspective, bool lighton,
-                             bool transparent)
+                             double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -269,7 +267,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
   
   if(billboard) BB.init(center);
   
@@ -448,8 +446,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
 }
 
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
-                                double perspective, bool lighton,
-                                bool transparent)
+                                double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -485,7 +482,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
   
   if(billboard) BB.init(center);
   
@@ -628,7 +625,7 @@ void drawNurbs::displacement()
 }
 
 void drawNurbs::render(double size2, const triple& Min, const triple& Max,
-                       double perspective, bool lighton, bool transparent)
+                       double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
@@ -655,7 +652,7 @@ void drawNurbs::render(double size2, const triple& Min, const triple& Max,
        M.getz() < Min.getz() || m.getz() > Max.getz()) return;
   }
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
 // TODO: implement NURBS renderer
 #endif
 }
@@ -882,7 +879,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 void drawTriangles::render(double size2, const triple& Min,
-                           const triple& Max, double perspective, bool lighton,
+                           const triple& Max, double perspective,
                            bool transparent)
 {
 #ifdef HAVE_GL
@@ -916,7 +913,7 @@ void drawTriangles::render(double size2, const triple& Min,
       return;
   }
 
-  setcolors(nC,!nC,diffuse,ambient,emissive,specular,shininess);
+  setcolors(nC,diffuse,ambient,emissive,specular,shininess);
   R.draw(nP,P,nN,N,nC,C,nI,PI,NI,CI);
 #endif
 }

@@ -136,7 +136,7 @@ public:
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   void render(double, const triple& Min, const triple& Max,
-              double perspective, bool lighton, bool transparent);
+              double perspective, bool transparent);
   drawElement *transformed(const double* t);
 };
   
@@ -165,7 +165,7 @@ public:
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   void render(double, const triple& Min, const triple& Max,
-              double perspective, bool lighton, bool transparent);
+              double perspective, bool transparent);
   drawElement *transformed(const double* t);
 };
   
@@ -303,7 +303,7 @@ public:
              bool &first);
 
   void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool lighton, bool transparent);
+              double perspective, bool transparent);
     
   drawElement *transformed(const double* t);
 };
@@ -640,7 +640,7 @@ public:
   virtual ~drawTriangles() {}
  
   void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool lighton, bool transparent);
+              double perspective, bool transparent);
  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
  

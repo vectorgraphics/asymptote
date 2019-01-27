@@ -57,8 +57,6 @@ namespace camp {
 billboard BB;
 GLint noColorShader;
 GLint colorShader;
-
-extern Material objMaterial;
 }
 namespace gl {
   
@@ -327,13 +325,13 @@ void drawscene(double Width, double Height)
   double size2=hypot(Width,Height);
   
   // Render opaque objects
-  Picture->render(size2,m,M,perspective,Nlights,false);
+  Picture->render(size2,m,M,perspective,false);
   
   // Enable transparency
   glDepthMask(GL_FALSE);
   
   // Render transparent objects
-  Picture->render(size2,m,M,perspective,Nlights,true);
+  Picture->render(size2,m,M,perspective,true);
   glDepthMask(GL_TRUE);
 }
 

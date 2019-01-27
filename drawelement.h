@@ -213,7 +213,7 @@ public:
 
   // Render with OpenGL
   virtual void render(double size2, const triple& Min, const triple& Max,
-                      double perspective, bool lighton, bool transparent) {}
+                      double perspective, bool transparent) {}
 
   // Transform as part of a picture.
   virtual drawElement *transformed(const transform&) {
@@ -411,6 +411,12 @@ void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
     glBindBuffer(GL_ARRAY_BUFFER,0);
   }
 }
+
+void setcolors(bool colors,
+               const prc::RGBAColour& diffuse,
+               const prc::RGBAColour& ambient,
+               const prc::RGBAColour& emissive,
+               const prc::RGBAColour& specular, double shininess);
 
 }
 

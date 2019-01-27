@@ -13,10 +13,6 @@ namespace camp {
 using ::orient2d;
 using ::orient3d;
 
-size_t tstride;
-
-//double viewpoint[3];
-
 #ifdef HAVE_GL
 
 
@@ -29,15 +25,13 @@ extern void setUniforms(GLint shader);
 
 std::vector<vertexData> BezierPatch::vertexbuffer;
 std::vector<VertexData> BezierPatch::Vertexbuffer;
+std::vector<VertexData> BezierPatch::tVertexbuffer;
 std::vector<GLuint> BezierPatch::indices;
 std::vector<GLuint> BezierPatch::Indices;
-std::vector<GLfloat> BezierPatch::tbuffer;
-std::vector<GLuint> BezierPatch::tindices;
-std::vector<GLfloat> BezierPatch::tBuffer;
 std::vector<GLuint> BezierPatch::tIndices;
 
-std::vector<GLuint>& I=BezierPatch::tIndices;
-std::vector<GLfloat>& V=BezierPatch::tBuffer;
+//std::vector<GLuint>& I=BezierPatch::tIndices;
+//std::vector<VertexData>& V=BezierPatch::tVertexbuffer;
 bool colors;
 
 std::vector<GLfloat> zbuffer;
@@ -49,8 +43,8 @@ std::vector<GLfloat> xmax,ymax,zmax;
 std::vector<GLfloat> zsum;
 
   
-std::array<GLuint,4> BezierPatch::vertsBufferIndex;
-std::array<GLuint,4> BezierPatch::elemBufferIndex;
+std::array<GLuint,3> BezierPatch::vertsBufferIndex;
+std::array<GLuint,3> BezierPatch::elemBufferIndex;
 
 
 inline double min(double a, double b, double c)
@@ -77,7 +71,6 @@ struct iz {
 std::vector<iz> IZ;
 
 GLuint BezierPatch::nvertices=0;
-GLuint BezierPatch::ntvertices=0;
 GLuint BezierPatch::Nvertices=0;
 GLuint BezierPatch::Ntvertices=0;
 
@@ -262,6 +255,7 @@ int compare(const void *p, const void *P)
   */
 }
 
+#if 0
 void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
            double *a, double *b, double *c, double *N, double *A) {
   double td=intersect(a,b,N,A);
@@ -295,8 +289,8 @@ void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
     id=BezierPatch::tVertex(d,nd,cd);
     ie=BezierPatch::tVertex(e,ne,ce);
   } else {
-    id=BezierPatch::tvertex(d,nd);
-    ie=BezierPatch::tvertex(e,ne);
+    id=BezierPatch::tVertex(d,nd);
+    ie=BezierPatch::tVertex(e,ne);
   }
       
   I[i3]=ia;
@@ -311,6 +305,7 @@ void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
   I.push_back(ib);
   I.push_back(ic);
 }
+#endif
 
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
                        bool transparent, GLfloat *colors)
@@ -323,28 +318,24 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   this->Max=Max;
 
   const size_t nbuffer=10000;
-  indices.reserve(nbuffer);
   
   if(transparent) {
-    tbuffer.reserve(nbuffer);
-    tindices.reserve(nbuffer);
-    pindices=&tindices;
+    Vertexbuffer.reserve(nbuffer);
+    tIndices.reserve(nbuffer);
+    pindices=&tIndices;
     pvertex=&tvertex;
-    if(colors) {
-      tBuffer.reserve(nbuffer);
-      tIndices.reserve(nbuffer);
-      pindices=&tIndices;
-      pVertex=&tVertex;
-    }
+    pVertex=&tVertex;
   } else {
-    vertexbuffer.reserve(nbuffer);
-    pindices=&indices;
-    pvertex=&vertex;
     if(colors) {
       Vertexbuffer.reserve(nbuffer);
       Indices.reserve(nbuffer);
       pindices=&Indices;
       pVertex=&Vertex;
+    } else {
+      vertexbuffer.reserve(nbuffer);
+      indices.reserve(nbuffer);
+      pindices=&indices;
+      pvertex=&vertex;
     }
   }
 }
@@ -845,18 +836,18 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
   }
 }
 
-void transform(const std::vector<GLfloat>& b)
+void transform(const std::vector<VertexData>& b)
 {
-  unsigned n=b.size()/tstride;
+  unsigned n=b.size();
 //  xbuffer.resize(n);
 //  ybuffer.resize(n);
   zbuffer.resize(n);
   
   for(unsigned i=0; i < n; ++i) {
-    unsigned j=tstride*i;
+    const GLfloat *v=b[i].position;
 //    xbuffer[i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
 //    ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
-    zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];
+    zbuffer[i]=Tz[0]*v[0]+Tz[1]*v[1]+Tz[2]*v[2];
   }
 }
 
@@ -910,26 +901,16 @@ void bounds(const std::vector<GLuint>& I)
   
 void BezierPatch::draw()
 {
-  if(nvertices == 0 && ntvertices == 0 && Nvertices == 0 && Ntvertices == 0)
+  if(nvertices == 0 && Nvertices == 0 && Ntvertices == 0)
     return;
   
-  size_t stride=6;
-  static const size_t Stride=10;
   static const size_t size=sizeof(GLfloat);
   static const size_t bytestride=sizeof(vertexData);
   static const size_t Bytestride=sizeof(VertexData);
 
-  if(ntvertices > 0) {
-    tstride=stride;
-    transform(tbuffer); 
-//    bounds(tindices);
-    qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
-  }
-
   if(Ntvertices > 0) {
-    tstride=Stride;
-    transform(tBuffer);
-//    bounds(tIndices);
+    transform(tVertexbuffer);
+    bounds(tIndices);
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
   }
     
@@ -963,7 +944,7 @@ void BezierPatch::draw()
                           (void *) (3*size));
     glEnableVertexAttribArray(normalAttrib);
 
-    glVertexAttribIPointer(materialAttrib,1,GL_UNSIGNED_INT,bytestride,
+    glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,
                            (void *) (6*size));
     glEnableVertexAttribArray(materialAttrib);
 
@@ -993,7 +974,7 @@ void BezierPatch::draw()
                            (void *) (6*size));
     glEnableVertexAttribArray(colorAttribCol);
 
-    glVertexAttribIPointer(materialAttribCol,1,GL_UNSIGNED_INT,Bytestride,
+    glVertexAttribIPointer(materialAttribCol,1,GL_INT,Bytestride,
                            (void *) (6*size+sizeof(GLuint)));
     glEnableVertexAttribArray(materialAttribCol);
     
@@ -1005,37 +986,12 @@ void BezierPatch::draw()
     glDisableVertexAttribArray(materialAttribCol);
   }
 
-  if(ntvertices > 0) {
-    glUseProgram(noColorShader);
-    camp::setUniforms(noColorShader); 
-
-    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[2]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[2]);
-
-    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
-    glEnableVertexAttribArray(posAttrib);
-    
-    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
-                          (void *) (3*size));
-    glEnableVertexAttribArray(normalAttrib);
-
-    glVertexAttribPointer(materialAttrib,1,GL_FLOAT,GL_FALSE,bytestride,
-                          (void *) (6*size));
-    glEnableVertexAttribArray(materialAttrib);
-
-    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,(void *) 0);
-
-    glDisableVertexAttribArray(posAttrib);
-    glDisableVertexAttribArray(normalAttrib);
-    glDisableVertexAttribArray(materialAttrib);
-  }
-  
   if(Ntvertices > 0) {
     glUseProgram(colorShader);
     camp::setUniforms(colorShader); 
 
-    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[3]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[3]);
+    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[2]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[2]);
 
     glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,
                           (void *) 0);
@@ -1045,17 +1001,22 @@ void BezierPatch::draw()
                           (void *) (3*size));
     glEnableVertexAttribArray(normalAttribCol);
 
-    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,
-                          (void *) (6*size));
-    glEnableVertexAttribArray(colorAttribCol);    
+    glVertexAttribIPointer(colorAttribCol,1,GL_UNSIGNED_INT,Bytestride,
+                           (void *) (6*size));
+    glEnableVertexAttribArray(colorAttribCol);
 
-    glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,(void*) 0);
+    glVertexAttribIPointer(materialAttribCol,1,GL_INT,Bytestride,
+                           (void *) (6*size+sizeof(GLuint)));
+    glEnableVertexAttribArray(materialAttribCol);
+    
+    glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,(void *) 0);
 
     glDisableVertexAttribArray(posAttribCol);
     glDisableVertexAttribArray(normalAttribCol);
     glDisableVertexAttribArray(colorAttribCol);
+    glDisableVertexAttribArray(materialAttribCol);
   }
-
+  
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
   glUseProgram(0);

@@ -5,7 +5,7 @@ in vec3 normal;
 in uint color;
 #endif
 
-in uint material;
+in int material;
 
 uniform mat4 projViewMat;
 uniform mat4 viewMat;
@@ -18,7 +18,7 @@ out vec3 Normal;
 out vec4 Color;
 #endif
 
-flat out uint materialIndex;
+flat out int materialIndex;
 
 void main()
 {

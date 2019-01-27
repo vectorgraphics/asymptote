@@ -10,7 +10,7 @@ struct Light
   vec4 diffuse,ambient,specular;  
 };
 
-uniform Light lights[Nlights];
+uniform Light lights[max(Nlights,1)];
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
@@ -21,7 +21,7 @@ in vec3 Normal;
 #ifdef EXPLICIT_COLOR
 in vec4 Color; 
 #endif
-flat in uint materialIndex;
+flat in int materialIndex;
 
 out vec4 outColor;
 
@@ -32,15 +32,26 @@ void main()
   vec4 Emissive;
   vec4 Specular;
   float Shininess;
-  Material m=Materials[materialIndex];
 
 #ifdef EXPLICIT_COLOR
-  Diffuse=Color;
-  Ambient=Color;
-  Emissive=vec4(0.0,0.0,0.0,1.0);
-  Specular=m.specular;
-  Shininess=m.shininess;
+  if(materialIndex < 0) {
+    int index=-materialIndex-1;
+    Material m=Materials[index];
+    Diffuse=Color;
+    Ambient=Color;
+    Emissive=vec4(0.0,0.0,0.0,1.0);
+    Specular=m.specular;
+    Shininess=m.shininess;
+  } else {
+    Material m=Materials[materialIndex];
+    Diffuse=m.diffuse;
+    Ambient=m.ambient;
+    Emissive=m.emissive;
+    Specular=m.specular;
+    Shininess=m.shininess;
+  }
 #else
+  Material m=Materials[materialIndex];
   Diffuse=m.diffuse;
   Ambient=m.ambient;
   Emissive=m.emissive;
@@ -67,7 +78,6 @@ void main()
       specular*Specular.rgb+
       Emissive.rgb;
     outColor=vec4(color,Diffuse[3]);
-  } else {
+  } else
     outColor=Diffuse;
-  }
 }

@@ -21,7 +21,7 @@ class vertexData {
 public:
   GLfloat position[3];
   GLfloat normal[3];
-  GLuint  material;
+  GLint  material;
   vertexData() {};
   vertexData(const triple& v, const triple& n) {
     position[0]=v.getx();
@@ -39,8 +39,18 @@ public:
   GLfloat position[3];
   GLfloat normal[3];
   GLuint color;
-  GLuint  material;
+  GLint  material;
   VertexData() {};
+  VertexData(const triple& v, const triple& n) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    color=0;
+    material=drawElement::materialIndex;
+  }
   VertexData(const triple& v, const triple& n, GLfloat *c) {
     position[0]=v.getx();
     position[1]=v.gety();
@@ -49,33 +59,30 @@ public:
     normal[1]=n.gety();
     normal[2]=n.getz();
     color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
-    material=drawElement::materialIndex;
+    material=-(int) drawElement::materialIndex-1; // request explicit color
   }
+
 };
 
 struct BezierPatch
 {
   static std::vector<vertexData> vertexbuffer;
   static std::vector<VertexData> Vertexbuffer;
+  static std::vector<VertexData> tVertexbuffer; // for transparent surfaces
   static std::vector<GLuint> indices;
   static std::vector<GLuint> Indices;
-  static std::vector<GLfloat> tbuffer;
-  static std::vector<GLuint> tindices;
-  static std::vector<GLfloat> tBuffer;
   static std::vector<GLuint> tIndices;
   static GLuint nvertices;
-  static GLuint ntvertices;
   static GLuint Nvertices;
   static GLuint Ntvertices;
 
   // 0 - vbo
   // 1 - Vbo
-  // 2 - tvbo
-  // 3 - tVbo
-  static std::array<GLuint,4> vertsBufferIndex; 
+  // 2 - tVbo
+  static std::array<GLuint,3> vertsBufferIndex; 
 
   // ebo in the same order. 
-  static std::array<GLuint,4> elemBufferIndex; 
+  static std::array<GLuint,3> elemBufferIndex; 
   
 
   std::vector<GLuint> *pindices;
@@ -101,39 +108,19 @@ struct BezierPatch
     return nvertices++;
   }
   
-  static GLuint tvertex(const triple &v, const triple& n) {
-    tbuffer.push_back(v.getx());
-    tbuffer.push_back(v.gety());
-    tbuffer.push_back(v.getz());
-    
-    tbuffer.push_back(n.getx());
-    tbuffer.push_back(n.gety());
-    tbuffer.push_back(n.getz());
-    
-    tbuffer.push_back((GLfloat) drawElement::materialIndex);
-    return ntvertices++;
-  }
-  
 // Store the vertex v and its normal vector n and colour c in the buffer.
   static GLuint Vertex(const triple& v, const triple& n, GLfloat *c) {
     Vertexbuffer.push_back(VertexData(v,n,c));
     return Nvertices++;
   }
   
+  static GLuint tvertex(const triple &v, const triple& n) {
+    tVertexbuffer.push_back(VertexData(v,n));
+    return Ntvertices++;
+  }
+  
   static GLuint tVertex(const triple& v, const triple& n, GLfloat *c) {
-    tBuffer.push_back(v.getx());
-    tBuffer.push_back(v.gety());
-    tBuffer.push_back(v.getz());
-    
-    tBuffer.push_back(n.getx());
-    tBuffer.push_back(n.gety());
-    tBuffer.push_back(n.getz());
-    
-    tBuffer.push_back(c[0]);
-    tBuffer.push_back(c[1]);
-    tBuffer.push_back(c[2]);
-    tBuffer.push_back(c[3]);
-    
+    tVertexbuffer.push_back(VertexData(v,n,c));
     return Ntvertices++;
   }
   
@@ -222,36 +209,32 @@ struct BezierPatch
   }
 
   void createBuffers() {
-    glGenBuffers(4,vertsBufferIndex.data());
-    glGenBuffers(4,elemBufferIndex.data());
+    glGenBuffers(3,vertsBufferIndex.data());
+    glGenBuffers(3,elemBufferIndex.data());
 
     //vbo
     
     registerBuffer(vertexbuffer,vertsBufferIndex[0]);
     registerBuffer(Vertexbuffer,vertsBufferIndex[1]);
-    registerBuffer(tbuffer,vertsBufferIndex[2]);
-    registerBuffer(tBuffer,vertsBufferIndex[3]);
+    registerBuffer(tVertexbuffer,vertsBufferIndex[2]);
 
     //ebo
     registerBuffer(indices,elemBufferIndex[0]);
     registerBuffer(Indices,elemBufferIndex[1]);
-    registerBuffer(tindices,elemBufferIndex[2]);
-    registerBuffer(tIndices,elemBufferIndex[3]);
+    registerBuffer(tIndices,elemBufferIndex[2]);
   }
   
   void clear() {
-    nvertices=ntvertices=Nvertices=Ntvertices=0;
+    nvertices=Nvertices=Ntvertices=0;
     vertexbuffer.clear();
     Vertexbuffer.clear();
+    tVertexbuffer.clear();
     indices.clear();
     Indices.clear();
-    tbuffer.clear();
-    tindices.clear();
-    tBuffer.clear();
     tIndices.clear();
     
-    glDeleteBuffers(4,vertsBufferIndex.data());
-    glDeleteBuffers(4,elemBufferIndex.data());
+    glDeleteBuffers(3,vertsBufferIndex.data());
+    glDeleteBuffers(3,elemBufferIndex.data());
   }
   
   ~BezierPatch() {}
