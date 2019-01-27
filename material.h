@@ -58,6 +58,10 @@ public:
   }
       
 }; 
+
+const size_t Nmaterials=GL_MAX_UNIFORM_BLOCK_SIZE/sizeof(camp::Material);
+void clearMaterialBuffer();
+
 }
 #endif
 #endif

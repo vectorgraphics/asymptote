@@ -21,6 +21,7 @@ namespace camp {
 
 #ifdef HAVE_GL
 mem::vector<Material> drawElement::material;
+MaterialMap drawElement::materialMap;
 size_t drawElement::materialIndex;
 #endif
 
@@ -57,13 +58,20 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
+void clearMaterialBuffer()
+{
+  drawElement::material.clear();
+  drawElement::material.reserve(Nmaterials);
+  drawElement::materialMap.clear();
+  drawElement::materialIndex=0;
+}
+
 void setcolors(bool colors,
                const RGBAColour& diffuse,
                const RGBAColour& ambient,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess) 
 {
-  
   Material m;
   if(colors) {
     static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
@@ -77,16 +85,18 @@ void setcolors(bool colors,
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
                shininess);
           
-  typedef mem::map<CONST Material,size_t> MaterialMap;
-  static MaterialMap materialMap;
-  MaterialMap::iterator p=materialMap.find(m);
-  if(p != materialMap.end())
+  MaterialMap::iterator p=drawElement::materialMap.find(m);
+  if(p != drawElement::materialMap.end())
     drawElement::materialIndex=p->second;
   else {
-    materialMap[m]=drawElement::material.size();
+    drawElement::materialIndex=drawElement::material.size();
+    if(drawElement::materialIndex >= Nmaterials) {
+      drawBezierPatch::S.draw();
+      clearMaterialBuffer();
+    }
     drawElement::material.push_back(m);
+    drawElement::materialMap[m]=drawElement::materialIndex;
   }
-//  cout << sizeof(Material)*drawElement::materialIndex << endl;
 }
 
 #endif  
@@ -295,9 +305,10 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
     C.queue(edge3,straight,size3.length()/size2,m,M);
     C.draw();
-  } else
+  } else {
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? c : NULL);
+  }
 #endif
 }
 

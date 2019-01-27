@@ -52,6 +52,7 @@
 #include "material.h"
 
 using settings::locateFile;
+using camp::Nmaterials;
 
 namespace camp {
 billboard BB;
@@ -706,6 +707,7 @@ void update()
   updateModelViewData();
   
   glutPostRedisplay();
+  camp::clearMaterialBuffer();
 }
 
 void updateHandler(int)
@@ -1322,6 +1324,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     Background[i]=background[i];
   
   Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
+  camp::clearMaterialBuffer();
+  
   Lights=lights;
   Diffuse=diffuse;
   Ambient=ambient;
@@ -1530,10 +1534,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       cerr << "GLSL shaders not found." << endl;
       exit(-1);
     }
-//    size_t Nmaterials=camp::drawElement::material.size();
-    size_t Nmaterials=100; // FIXME
-    GLuint vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,Nmaterials);
-    GLuint fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,Nmaterials);
+
+    GLuint vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
+                                       Nmaterials);
+    GLuint fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
+                                       Nmaterials);
     glAttachShader(shaderProg,vertShader);
     glAttachShader(shaderProg,fragShader);
     

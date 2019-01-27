@@ -119,6 +119,8 @@ typedef mem::list<bbox> bboxlist;
 typedef mem::map<CONST string,unsigned> groupmap;
 typedef mem::vector<groupmap> groupsmap;
 
+typedef mem::map<CONST Material,size_t> MaterialMap;
+
 class drawElement : public gc
 {
 public:
@@ -130,6 +132,8 @@ public:
   virtual ~drawElement() {}
   
   static mem::vector<Material> material;
+  static MaterialMap materialMap;
+
   static size_t materialIndex;
   static pen lastpen;  
   static const triple zero;
@@ -417,7 +421,6 @@ void setcolors(bool colors,
                const prc::RGBAColour& ambient,
                const prc::RGBAColour& emissive,
                const prc::RGBAColour& specular, double shininess);
-
 }
 
 GC_DECLARE_PTRFREE(camp::box);
