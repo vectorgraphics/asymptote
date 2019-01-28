@@ -336,7 +336,9 @@ double bound(triple z0, triple c0, triple c1, triple z1,
   b=m(b,m(f(z0),f(z1)));
   if(m(-1.0,1.0)*(b-ratiobound(z0,c0,c1,z1,m,f)) >= -fuzz || depth == 0)
     return b;
+  
   --depth;
+  fuzz *= 2;
 
   triple m0=0.5*(z0+c0);
   triple m1=0.5*(c0+c1);
@@ -352,7 +354,7 @@ double bound(triple z0, triple c0, triple c1, triple z1,
 
 pair path3::ratio(double (*m)(double, double)) const
 {
-  double fuzz=sqrtFuzz*(max()-min()).length();
+  double fuzz=Fuzz*(max()-min()).length();
   checkEmpty3(n);
   
   triple v=point((Int) 0);
@@ -611,6 +613,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     // Overlapping bounding boxes
 
     --depth;
+    fuzz *= 2;
+
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
         s=0.5;
@@ -815,7 +819,9 @@ double bound(double *P, double (*m)(double, double), double b,
   b=m(b,cornerbound(P,m));
   if(m(-1.0,1.0)*(b-controlbound(P,m)) >= -fuzz || depth == 0)
     return b;
+  
   --depth;
+  fuzz *= 2;
 
   Split<double> c0(P[0],P[1],P[2],P[3]);
   Split<double> c1(P[4],P[5],P[6],P[7]);
@@ -894,8 +900,10 @@ double bound(triple *P, double (*m)(double, double),
   b=m(b,cornerbound(P,m,f));
   if(m(-1.0,1.0)*(b-ratiobound(P,m,f,16)) >= -fuzz || depth == 0)
     return b;
-  --depth;
 
+  --depth;
+  fuzz *= 2;
+  
   Split<triple> c0(P[0],P[1],P[2],P[3]);
   Split<triple> c1(P[4],P[5],P[6],P[7]);
   Split<triple> c2(P[8],P[9],P[10],P[11]);
@@ -1038,7 +1046,9 @@ double boundtri(double *P, double (*m)(double, double), double b,
   b=m(b,cornerboundtri(P,m));
   if(m(-1.0,1.0)*(b-controlboundtri(P,m)) >= -fuzz || depth == 0)
     return b;
+  
   --depth;
+  fuzz *= 2;
 
   Splittri<double> s(P);
   
@@ -1065,7 +1075,9 @@ double boundtri(triple *P, double (*m)(double, double),
   b=m(b,cornerboundtri(P,m,f));
   if(m(-1.0,1.0)*(b-ratiobound(P,m,f,10)) >= -fuzz || depth == 0)
     return b;
+  
   --depth;
+  fuzz *= 2;
 
   Splittri<triple> s(P);
   
@@ -1178,6 +1190,8 @@ bool intersections(double& U, double& V, const triple& v, triple *P,
      v.getz()+fuzz >= z) { // Overlapping bounding boxes
     
     --depth;
+    fuzz *= 2;
+
     if(abs2(X-x,Y-y,Z-z) <= fuzz*fuzz || depth == 0) {
       U=0.5;
       V=0.5;
@@ -1271,6 +1285,7 @@ bool intersections(std::vector<double>& T, std::vector<double>& U,
      pmax.getz()+fuzz >= z) { // Overlapping bounding boxes
     
     --depth;
+    fuzz *= 2;
 
     if(((pmax-pmin).length()+sqrt(abs2(X-x,Y-y,Z-z)) <= fuzz) || depth == 0) {
       T.push_back(0.5);

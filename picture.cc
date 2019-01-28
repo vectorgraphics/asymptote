@@ -323,7 +323,7 @@ pair picture::ratio(double (*m)(double, double))
   bool first=true;
   pair b;
   bounds3();
-  double fuzz=sqrtFuzz*(b3.Max()-b3.Min()).length();
+  double fuzz=Fuzz*(b3.Max()-b3.Min()).length();
   matrixstack ms;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);

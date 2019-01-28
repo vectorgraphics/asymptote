@@ -18,10 +18,11 @@
 
 namespace camp {
 
-const double Fuzz=1000.0*DBL_EPSILON;
+const double AFuzz=1000.0*DBL_EPSILON;
+const double Fuzz=sqrt(AFuzz);
+
 const double BigFuzz=10.0*Fuzz;
 const double Fuzz2=Fuzz*Fuzz;
-const double sqrtFuzz=sqrt(Fuzz);
 const double fuzzFactor=10.0;
 
 const double third=1.0/3.0;
@@ -999,6 +1000,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     // Overlapping bounding boxes
 
     --depth;
+    fuzz *= 2;
+
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
         s=0.5;
@@ -1240,6 +1243,7 @@ bool checkcurve(const pair& z0, const pair& c0, const pair& c1,
 {
   if(depth == 0) return true;
   --depth;
+
   if(insidebbox(z0,c0,c1,z1,z)) {
     const pair m0=0.5*(z0+c0);
     const pair m1=0.5*(c0+c1);
