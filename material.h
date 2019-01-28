@@ -59,7 +59,7 @@ public:
       
 }; 
 
-const size_t Nmaterials=GL_MAX_UNIFORM_BLOCK_SIZE/sizeof(camp::Material);
+extern size_t Nmaterials;
 void clearMaterialBuffer();
 
 }

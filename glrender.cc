@@ -58,6 +58,7 @@ namespace camp {
 billboard BB;
 GLint noColorShader;
 GLint colorShader;
+size_t Nmaterials;
 }
 namespace gl {
   
@@ -1324,7 +1325,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     Background[i]=background[i];
   
   Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
-  camp::clearMaterialBuffer();
   
   Lights=lights;
   Diffuse=diffuse;
@@ -1511,6 +1511,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     exit(-1);
   }
   
+  GLint val;
+  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
+  camp::Nmaterials=val/sizeof(camp::Material);
+  camp::clearMaterialBuffer();
+
   home();
     
 #ifdef HAVE_LIBGLUT
