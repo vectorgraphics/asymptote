@@ -967,10 +967,10 @@ void BezierPatch::drawColors(GLuint& Nvertices,
   static const size_t size=sizeof(GLfloat);
   static const size_t bytestride=sizeof(VertexData);
 
-  static const GLint posAttribCol=glGetAttribLocation(colorShader,"position");
-  static const GLint normalAttribCol=glGetAttribLocation(colorShader,"normal");
-  static const GLint colorAttribCol=glGetAttribLocation(colorShader,"color");
-  static const GLint materialAttribCol=glGetAttribLocation(colorShader,
+  static const GLint posAttrib=glGetAttribLocation(colorShader,"position");
+  static const GLint normalAttrib=glGetAttribLocation(colorShader,"normal");
+  static const GLint colorAttrib=glGetAttribLocation(colorShader,"color");
+  static const GLint materialAttrib=glGetAttribLocation(colorShader,
                                                            "material");
   GLuint vertsBufferIndex; 
   GLuint elemBufferIndex; 
@@ -992,28 +992,28 @@ void BezierPatch::drawColors(GLuint& Nvertices,
   glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
 
-  glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,bytestride,
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                         (void *) 0);
-  glEnableVertexAttribArray(posAttribCol);
+  glEnableVertexAttribArray(posAttrib);
 
-  glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,bytestride,
+  glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                         (void *) (3*size));
-  glEnableVertexAttribArray(normalAttribCol);
+  glEnableVertexAttribArray(normalAttrib);
 
-  glVertexAttribIPointer(colorAttribCol,1,GL_UNSIGNED_INT,bytestride,
+  glVertexAttribIPointer(colorAttrib,1,GL_UNSIGNED_INT,bytestride,
                          (void *) (6*size));
-  glEnableVertexAttribArray(colorAttribCol);
+  glEnableVertexAttribArray(colorAttrib);
 
-  glVertexAttribIPointer(materialAttribCol,1,GL_INT,bytestride,
+  glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,
                          (void *) (6*size+sizeof(GLuint)));
-  glEnableVertexAttribArray(materialAttribCol);
+  glEnableVertexAttribArray(materialAttrib);
     
   glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
-  glDisableVertexAttribArray(posAttribCol);
-  glDisableVertexAttribArray(normalAttribCol);
-  glDisableVertexAttribArray(colorAttribCol);
-  glDisableVertexAttribArray(materialAttribCol);
+  glDisableVertexAttribArray(posAttrib);
+  glDisableVertexAttribArray(normalAttrib);
+  glDisableVertexAttribArray(colorAttrib);
+  glDisableVertexAttribArray(materialAttrib);
 
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
