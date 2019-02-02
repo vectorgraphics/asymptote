@@ -75,16 +75,15 @@ struct BezierPatch
   static GLuint nvertices;
   static GLuint Nvertices;
   static GLuint Ntvertices;
-
-  // 0 - vbo
-  // 1 - Vbo
-  // 2 - tVbo
-  static std::array<GLuint,3> vertsBufferIndex; 
-
-  // ebo in the same order. 
-  static std::array<GLuint,3> elemBufferIndex; 
   
-
+  static GLuint vertsBufferIndex; 
+  static GLuint VertsBufferIndex; 
+  static GLuint tVertsBufferIndex; 
+  
+  static GLuint elemBufferIndex; 
+  static GLuint ElemBufferIndex; 
+  static GLuint tElemBufferIndex; 
+  
   std::vector<GLuint> *pindices;
   triple u,v,w;
   double epsilon;
@@ -208,35 +207,6 @@ struct BezierPatch
       Z < Min.getz() || z > Max.getz();
   }
 
-  void createBuffers() {
-    glGenBuffers(3,vertsBufferIndex.data());
-    glGenBuffers(3,elemBufferIndex.data());
-
-    //vbo
-    
-    registerBuffer(vertexbuffer,vertsBufferIndex[0]);
-    registerBuffer(Vertexbuffer,vertsBufferIndex[1]);
-    registerBuffer(tVertexbuffer,vertsBufferIndex[2]);
-
-    //ebo
-    registerBuffer(indices,elemBufferIndex[0]);
-    registerBuffer(Indices,elemBufferIndex[1]);
-    registerBuffer(tIndices,elemBufferIndex[2]);
-  }
-  
-  void clear() {
-    nvertices=Nvertices=Ntvertices=0;
-    vertexbuffer.clear();
-    Vertexbuffer.clear();
-    tVertexbuffer.clear();
-    indices.clear();
-    Indices.clear();
-    tIndices.clear();
-    
-    glDeleteBuffers(3,vertsBufferIndex.data());
-    glDeleteBuffers(3,elemBufferIndex.data());
-  }
-  
   ~BezierPatch() {}
   
   void render(const triple *p,
@@ -254,12 +224,17 @@ struct BezierPatch
     render(g,straight,colors);
   }
   
-  void draw();
-  void draw(const triple *g, bool straight, double ratio,
-            const triple& Min, const triple& Max, bool transparent,
-            GLfloat *colors=NULL) {
-    queue(g,straight,ratio,Min,Max,transparent,colors);
-    draw();
+  void drawMaterials();
+  void drawColors(GLuint& Nvertices,
+                  std::vector<VertexData>& Vertexbuffer,
+                  std::vector<GLuint>& Indices);
+  void sortTriangles();
+  
+  void draw() {
+    drawMaterials();
+    drawColors(Nvertices,Vertexbuffer,Indices);
+    sortTriangles();
+    drawColors(Ntvertices,tVertexbuffer,tIndices);
   }
 };
 
