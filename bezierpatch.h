@@ -230,12 +230,27 @@ struct BezierPatch
                   std::vector<GLuint>& Indices);
   void sortTriangles();
   
-  void draw() {
-    drawMaterials();
+  void drawColors() {
     drawColors(Nvertices,Vertexbuffer,Indices);
+  }
+    
+  void drawOpaque() {
+    drawMaterials();
+    drawColors();
+  }
+    
+  void drawTransparent() {
+    glDepthMask(GL_FALSE);
     sortTriangles();
     drawColors(Ntvertices,tVertexbuffer,tIndices);
+    glDepthMask(GL_TRUE);
   }
+  
+  void draw() {
+    drawOpaque();
+    drawTransparent();
+  }
+  
 };
 
 struct BezierTriangle : public BezierPatch {

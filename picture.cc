@@ -15,6 +15,7 @@
 #include "drawlabel.h"
 #include "drawlayer.h"
 #include "drawsurface.h"
+#include "drawpath3.h"
 
 using std::ifstream;
 using std::ofstream;
@@ -1182,7 +1183,11 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     (*p)->render(size2,Min,Max,perspective,transparent);
   }
 #ifdef HAVE_GL
-  drawBezierPatch::S.draw();
+  if(transparent)
+    drawBezierPatch::S.drawTransparent();
+  else
+    drawBezierPatch::S.drawOpaque();
+  drawPath3::R.draw();
 #endif  
 }
   

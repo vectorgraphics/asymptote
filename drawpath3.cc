@@ -19,6 +19,8 @@ using namespace prc;
   
 using gl::modelView;
 
+BezierCurve drawPath3::R;
+
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   Int n=g.length();

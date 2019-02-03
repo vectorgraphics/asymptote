@@ -15,6 +15,7 @@
 
 #include "common.h"
 #include "locate.h"
+#include "seconds.h"
 
 #ifdef HAVE_GL
 
@@ -53,6 +54,7 @@
 
 using settings::locateFile;
 using camp::Nmaterials;
+using utils::seconds;
 
 namespace camp {
 billboard BB;
@@ -65,6 +67,8 @@ namespace gl {
 bool outlinemode=false;
 bool glthread=false;
 bool initialize=true;
+
+Int maxvertices;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -661,7 +665,15 @@ void display()
     queueScreen=false;
   }
 
+  maxvertices=getSetting<Int>("maxvertices");
+  bool fps=settings::verbose > 3;  
+  if(fps) seconds();
   drawscene(Width,Height);
+  if(fps) {
+    double s=seconds();
+    if(s > 0.0)
+      cout << "FPS=" << 1.0/s << endl;
+  }
   glutSwapBuffers();
 #ifdef HAVE_PTHREAD
   if(glthread && Animate) {
@@ -708,7 +720,6 @@ void update()
   updateModelViewData();
   
   glutPostRedisplay();
-  camp::clearMaterialBuffer();
 }
 
 void updateHandler(int)
@@ -1310,7 +1321,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
 #endif  
-
   width=max(width,1.0);
   height=max(height,1.0);
   

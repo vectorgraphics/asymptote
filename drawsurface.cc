@@ -5,6 +5,7 @@
  *****/
 
 #include "drawsurface.h"
+#include "drawpath3.h"
 #include "arrayop.h"
 
 #include <iostream>
@@ -60,6 +61,9 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
 
 void clearMaterialBuffer()
 {
+  drawBezierPatch::S.draw();
+  drawPath3::R.draw();
+  
   drawElement::material.clear();
   drawElement::material.reserve(Nmaterials);
   drawElement::materialMap.clear();
@@ -90,10 +94,8 @@ void setcolors(bool colors,
     drawElement::materialIndex=p->second;
   else {
     drawElement::materialIndex=drawElement::material.size();
-    if(drawElement::materialIndex >= Nmaterials) {
-      drawBezierPatch::S.draw();
+    if(drawElement::materialIndex >= Nmaterials)
       clearMaterialBuffer();
-    }
     drawElement::material.push_back(m);
     drawElement::materialMap[m]=drawElement::materialIndex;
   }
@@ -308,6 +310,10 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   } else {
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? c : NULL);
+    if(BezierPatch::nvertices >= gl::maxvertices)
+      drawBezierPatch::S.drawMaterials();
+    if(BezierPatch::Nvertices >= gl::maxvertices)
+      drawBezierPatch::S.drawColors();
   }
 #endif
 }
