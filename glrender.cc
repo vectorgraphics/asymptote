@@ -1524,6 +1524,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
   camp::Nmaterials=val/sizeof(camp::Material);
+  if(camp::Nmaterials > 1000) camp::Nmaterials=1000;
   camp::clearMaterialBuffer();
 
   home();
