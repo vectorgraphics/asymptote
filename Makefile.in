@@ -12,7 +12,7 @@ GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS)
-DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -s -static
+DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lgdi32 -lwinmm -s -static
 
 PERL = perl
 

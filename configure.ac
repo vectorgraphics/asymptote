@@ -315,16 +315,16 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(glm/glm.hpp,
                          [AC_DEFINE(HAVE_LIBGLM, 1,
 	             [Define if you have the `OpenGL Mathematics' library.])])
-              AC_CHECK_HEADER(GL/gl.h,
-				  [AC_DEFINE(HAVE_LIBGL, 1,
-		     [Define if you have the `opengl32' library (-lopengl32).])
-			     LIBS=$LIBS"-lopengl32 "],
-				   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
       	      AC_CHECK_HEADER(GL/glut.h,
 				  [AC_DEFINE(HAVE_LIBGLUT, 1,
 		     [Define if you have the `freeglut' library (-lfreeglut).])
 			     LIBS=$LIBS"-lfreeglut "],
 				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
+              AC_CHECK_HEADER(GL/gl.h,
+				  [AC_DEFINE(HAVE_LIBGL, 1,
+		     [Define if you have the `opengl32' library (-lopengl32).])
+			     LIBS=$LIBS"-lopengl32 "],
+				   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
               AC_CHECK_HEADER(GL/glew.h,
 				  [AC_DEFINE(HAVE_LIBGLEW, 1,
 		     [Define if you have the `GLEW' library (-lGLEW).])
