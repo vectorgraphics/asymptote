@@ -936,6 +936,7 @@ void BezierPatch::drawMaterials()
                          (void *) (6*size));
   glEnableVertexAttribArray(materialAttrib);
 
+  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
   glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
   glDisableVertexAttribArray(posAttrib);
@@ -1008,6 +1009,7 @@ void BezierPatch::drawColors(GLuint& Nvertices,
                          (void *) (6*size+sizeof(GLuint)));
   glEnableVertexAttribArray(materialAttrib);
     
+  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
   glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
   glDisableVertexAttribArray(posAttrib);
