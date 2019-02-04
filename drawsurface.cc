@@ -62,7 +62,6 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
 void clearMaterialBuffer()
 {
   drawBezierPatch::S.draw();
-  drawPath3::R.draw();
   
   drawElement::material.clear();
   drawElement::material.reserve(Nmaterials);
