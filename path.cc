@@ -18,12 +18,10 @@
 
 namespace camp {
 
-const double AFuzz=1000.0*DBL_EPSILON;
-const double Fuzz=sqrt(AFuzz);
-
+const double Fuzz2=1000.0*DBL_EPSILON;
+const double Fuzz=sqrt(Fuzz2);
 const double BigFuzz=10.0*Fuzz;
-const double Fuzz2=Fuzz*Fuzz;
-const double fuzzFactor=10.0;
+const double fuzzFactor=100.0;
 
 const double third=1.0/3.0;
 
@@ -954,8 +952,7 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
 void intersections(std::vector<double>& S, path& g,
                    const pair& p, const pair& q, double fuzz)
 {       
-  double fuzz2=max(fuzzFactor*fuzz,Fuzz);
-  fuzz2=fuzz2*fuzz2;
+  double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
   std::vector<double> S1;
   lineintersections(S1,g,p,q,fuzz);
   size_t n=S1.size();
@@ -969,8 +966,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
 {
   if(errorstream::interrupt) throw interrupted();
   
-  double fuzz2=max(fuzzFactor*fuzz,Fuzz);
-  fuzz2=fuzz2*fuzz2;
+  double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
   
   Int lp=p.length();
   if(((lp == 1 && p.straight(0)) || lp == 0) && exact) {
@@ -1000,7 +996,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     // Overlapping bounding boxes
 
     --depth;
-    fuzz *= 2;
+    fuzz *= 2.0;
+    double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
 
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
