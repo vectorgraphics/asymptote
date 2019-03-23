@@ -565,7 +565,8 @@ string endCommentOrString(const string line) {
 
 bool isSlashed(const string line) {
   // NOTE: This doesn't fully handle escaped slashed in a string literal.
-  return line[line.size()-1]=='\\';
+  unsigned n=line.size();
+  return n > 0 ? line[line.size()-1] == '\\' : false;
 }
 string deslash(const string line) {
   return isSlashed(line) ? line.substr(0,line.size()-1) : line;
