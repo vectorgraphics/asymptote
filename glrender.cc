@@ -152,7 +152,7 @@ static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
 double Background[4];
-size_t Nlights=1; // Maximum number of lights compilied in shader
+size_t Nlights=1; // Maximum number of lights compiled in shader
 size_t nlights; // Actual number of lights
 triple *Lights; 
 double *Diffuse;
