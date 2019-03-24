@@ -90,12 +90,10 @@ void BezierCurve::draw()
 
   createBuffers();
     
-  static const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
-  static const GLint materialAttrib=glGetAttribLocation(noColorShader,
-                                                        "material");
-
-  glUseProgram(noColorShader);
   camp::setUniforms(noColorShader); 
+  
+  const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
+  const GLint materialAttrib=glGetAttribLocation(noColorShader,"material");
 
   glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
@@ -135,11 +133,10 @@ void Pixel::draw(const triple& p)
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
-  static const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
-  static const GLint materialAttrib=glGetAttribLocation(noColorShader,
-                                                        "material");
-  glUseProgram(noColorShader);
   camp::setUniforms(noColorShader); 
+  
+  const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
+  const GLint materialAttrib=glGetAttribLocation(noColorShader,"material");
 
   glBindBuffer(GL_ARRAY_BUFFER,vbo);
   glBufferData(GL_ARRAY_BUFFER,bytestride,&point,GL_STATIC_DRAW);

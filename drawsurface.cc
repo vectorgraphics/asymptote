@@ -59,12 +59,11 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
-void clearMaterialBuffer()
+void clearMaterialBuffer(bool draw)
 {
-  drawBezierPatch::S.draw();
-  
+  if(draw) drawBezierPatch::S.draw();
   drawElement::material.clear();
-  drawElement::material.reserve(Nmaterials);
+  drawElement::material.reserve(nmaterials);
   drawElement::materialMap.clear();
   drawElement::materialIndex=0;
 }
@@ -93,8 +92,10 @@ void setcolors(bool colors,
     drawElement::materialIndex=p->second;
   else {
     drawElement::materialIndex=drawElement::material.size();
-    if(drawElement::materialIndex >= Nmaterials)
-      clearMaterialBuffer();
+    if(drawElement::materialIndex >= nmaterials)
+      nmaterials=min(Maxmaterials,2*nmaterials);
+    if(drawElement::materialIndex >= Maxmaterials)
+      clearMaterialBuffer(true);
     drawElement::material.push_back(m);
     drawElement::materialMap[m]=drawElement::materialIndex;
   }

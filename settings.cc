@@ -1269,7 +1269,7 @@ void initSettings() {
   addOption(new userSetting("user", 'u', "string",
                             "General purpose user string"));
   
-  addOption(new IntSetting("maxvertices", 0, "n", "Maximum number of vertices to queue",35000));
+  addOption(new IntSetting("maxvertices", 0, "n", "Maximum number of vertices to queue", 0));
   addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
                             1.05));
   addOption(new realSetting("zoomstep", 0, "step", "Mouse motion zoom step",

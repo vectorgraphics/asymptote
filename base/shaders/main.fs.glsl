@@ -10,7 +10,9 @@ struct Light
   vec4 diffuse,ambient,specular;  
 };
 
-uniform Light lights[max(Nlights,1)];
+uniform int nlights;
+
+uniform Light lights[Nlights];
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
@@ -59,13 +61,13 @@ void main()
   Shininess=m.shininess;
 #endif
   // Phong-Blinn model
-  if(Nlights > 0) {
+  if(nlights > 0) {
     vec3 diffuse=vec3(0,0,0);
     vec3 specular=vec3(0,0,0);
     vec3 ambient=vec3(0,0,0);
     vec3 Z=vec3(0,0,1);
         
-    for(int i=0; i < Nlights; ++i) {
+    for(int i=0; i < nlights; ++i) {
       vec3 L=normalize(lights[i].direction.xyz);
       diffuse += lights[i].diffuse.rgb*abs(dot(Normal,L));
       ambient += lights[i].ambient.rgb;

@@ -53,14 +53,19 @@
 #include "material.h"
 
 using settings::locateFile;
+using camp::Material;
+using camp::Maxmaterials;
 using camp::Nmaterials;
+using camp::nmaterials;
 using utils::seconds;
 
 namespace camp {
 billboard BB;
 GLint noColorShader;
 GLint colorShader;
+size_t Maxmaterials;
 size_t Nmaterials;
+size_t nmaterials;
 }
 namespace gl {
   
@@ -68,6 +73,7 @@ bool outlinemode=false;
 bool glthread=false;
 bool initialize=true;
 
+GLint Maxvertices;
 Int maxvertices;
 
 using camp::picture;
@@ -146,7 +152,8 @@ static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
 double Background[4];
-size_t Nlights;
+size_t Nlights; // Maximum number of lights compilied in shader
+size_t nlights; // Actual number of lights
 triple *Lights; 
 double *Diffuse;
 double *Ambient;
@@ -666,7 +673,9 @@ void display()
   }
 
   maxvertices=getSetting<Int>("maxvertices");
-  bool fps=settings::verbose > 3;  
+  if(maxvertices == 0) maxvertices=Maxvertices;
+
+  bool fps=settings::verbose > 2;  
   if(fps) seconds();
   drawscene(Width,Height);
   if(fps) {
@@ -1195,7 +1204,6 @@ void exportHandler(int=0)
 }
 
 static bool glinitialize=true;
-static bool shaderinit=false;
 
 projection camera(bool user)
 {
@@ -1307,11 +1315,65 @@ void init_osmesa()
 #endif // HAVE_LIBOSMESA
 }
 
+GLuint vertShader,fragShader;
+GLuint vertShaderCol,fragShaderCol;
+
+void initshader()
+{
+  Nlights=max(nlights,1ul);
+  Nmaterials=nmaterials;
+  shaderProg=glCreateProgram();
+  string vs=locateFile("shaders/main.vs.glsl");
+  string fs=locateFile("shaders/main.fs.glsl");
+  if(vs.empty() || fs.empty()) {
+    cerr << "GLSL shaders not found." << endl;
+    exit(-1);
+  }
+
+  vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
+                              Nmaterials);
+  fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
+                              Nmaterials);
+  glAttachShader(shaderProg,vertShader);
+  glAttachShader(shaderProg,fragShader);
+    
+  shaderProgColor=glCreateProgram();
+  vertShaderCol=createShaderFile(vs.c_str(),
+                                 GL_VERTEX_SHADER,Nlights,Nmaterials,
+                                 {"EXPLICIT_COLOR"});
+  fragShaderCol=createShaderFile(fs.c_str(),
+                                 GL_FRAGMENT_SHADER,Nlights,Nmaterials,
+                                 {"EXPLICIT_COLOR"});
+  glAttachShader(shaderProgColor,vertShaderCol);
+  glAttachShader(shaderProgColor,fragShaderCol);
+
+  camp::noColorShader=shaderProg;
+  camp::colorShader=shaderProgColor;
+    
+  glLinkProgram(shaderProg);
+  glDetachShader(shaderProg,vertShader);
+  glDetachShader(shaderProg,fragShader);
+  glDeleteShader(vertShader);
+  glDeleteShader(fragShader);
+    
+  glLinkProgram(shaderProgColor);
+  glDetachShader(shaderProgColor,vertShaderCol);
+  glDetachShader(shaderProgColor,fragShaderCol);
+  glDeleteShader(vertShaderCol);
+  glDeleteShader(fragShaderCol);
+}
+
+void deleteshader() 
+{
+  glDeleteProgram(camp::noColorShader);
+  glDeleteProgram(camp::colorShader);
+}
+  
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
               const triple& m, const triple& M, const pair& shift, double *t,
-              double *background, size_t nlights, triple *lights,
+              double *background, size_t nlights0, triple *lights,
               double *diffuse, double *ambient, double *specular,
               bool view, int oldpid)
 {
@@ -1334,7 +1396,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   for(int i=0; i < 4; ++i)
     Background[i]=background[i];
   
-  Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
+  nlights=min(nlights0,(size_t) GL_MAX_LIGHTS);
   
   Lights=lights;
   Diffuse=diffuse;
@@ -1428,7 +1490,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setosize();
 #endif
     
-    if(View && settings::verbose > 1) 
+    if(View && settings::verbose > 1)
       cout << "Rendering " << stripDir(prefix) << " as "
            << Width << "x" << Height << " image" << endl;
   }
@@ -1439,6 +1501,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
   string buttonnames[]={"left","middle","right"};
 #endif  
+  
+  camp::clearMaterialBuffer();
   
 #ifdef HAVE_PTHREAD
   if(glthread && initializedView && !offscreen) {
@@ -1523,9 +1587,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
-  camp::Nmaterials=val/sizeof(camp::Material);
-  if(camp::Nmaterials > 1000) camp::Nmaterials=1000;
-  camp::clearMaterialBuffer();
+  Maxmaterials=val/sizeof(Material);
+  nmaterials=min(Maxmaterials,16ul);
+
+  glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&Maxvertices);
 
   home();
     
@@ -1542,39 +1607,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #endif
 
-  if(!shaderinit) {
-    shaderProg=glCreateProgram();
-    string vs=locateFile("shaders/main.vs.glsl");
-    string fs=locateFile("shaders/main.fs.glsl");
-    if(vs.empty() || fs.empty()) {
-      cerr << "GLSL shaders not found." << endl;
-      exit(-1);
-    }
-
-    GLuint vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
-                                       Nmaterials);
-    GLuint fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
-                                       Nmaterials);
-    glAttachShader(shaderProg,vertShader);
-    glAttachShader(shaderProg,fragShader);
-    
-    shaderProgColor=glCreateProgram();
-    GLuint vertShaderCol=createShaderFile(vs.c_str(),
-                                          GL_VERTEX_SHADER,Nlights,Nmaterials,
-                                          {"EXPLICIT_COLOR"});
-    GLuint fragShaderCol=createShaderFile(fs.c_str(),
-                                          GL_FRAGMENT_SHADER,Nlights,
-                                          Nmaterials,
-                                          {"EXPLICIT_COLOR"});
-    glAttachShader(shaderProgColor,vertShaderCol);
-    glAttachShader(shaderProgColor,fragShaderCol);
-
-    camp::noColorShader=shaderProg;
-    camp::colorShader=shaderProgColor;
-    shaderinit=true;
-    glLinkProgram(shaderProgColor);
-    glLinkProgram(shaderProg);
-  }
+  initshader();
   
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
@@ -1629,6 +1662,13 @@ std::string getLightIndex(size_t const& index, std::string const& fieldName) {
 
 void setUniforms(GLint shader)
 {
+  if(gl::nlights > gl::Nlights || nmaterials > Nmaterials) {
+    gl::deleteshader();
+    gl::initshader();
+  }
+  
+  glUseProgram(shader);
+  
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
@@ -1645,7 +1685,9 @@ void setUniforms(GLint shader)
                drawElement::material.data(),GL_STATIC_DRAW);
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,ubo);
   
-  for(size_t i=0; i < gl::Nlights; ++i) {
+  glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
+  
+  for(size_t i=0; i < gl::nlights; ++i) {
     triple Lighti=gl::Lights[i];
     size_t i4=4*i;
     glUniform4f(glGetUniformLocation(shader,

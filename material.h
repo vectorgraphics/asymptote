@@ -60,7 +60,9 @@ public:
 }; 
 
 extern size_t Nmaterials;
-void clearMaterialBuffer();
+extern size_t nmaterials;
+extern size_t Maxmaterials;
+void clearMaterialBuffer(bool draw=false);
 
 }
 #endif

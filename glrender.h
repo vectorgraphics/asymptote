@@ -117,6 +117,9 @@ struct ModelView {
 
 extern ModelView modelView;
 
+void initshader();
+void deleteshader();
+
 }
 
 namespace camp {
