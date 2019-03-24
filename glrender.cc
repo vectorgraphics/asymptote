@@ -1323,8 +1323,8 @@ void initshader()
   Nlights=max(nlights,1ul);
   Nmaterials=nmaterials;
   shaderProg=glCreateProgram();
-  string vs=locateFile("shaders/main.vs.glsl");
-  string fs=locateFile("shaders/main.fs.glsl");
+  string vs=locateFile("shaders/vertex.glsl");
+  string fs=locateFile("shaders/fragment.glsl");
   if(vs.empty() || fs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
