@@ -24,15 +24,15 @@ namespace camp {
 mem::vector<Material> drawElement::material;
 MaterialMap drawElement::materialMap;
 size_t drawElement::materialIndex;
-#endif
-
-const triple drawElement::zero;
 
 using gl::modelView;
-
 //double* Tx=modelView.T;   // x-component of current transform
 //double* Ty=modelView.T+4; // y-component of current transform
 double* Tz=modelView.T+8; // z-component of current transform
+
+#endif
+
+const triple drawElement::zero;
 
 using vm::array;
 

@@ -9,6 +9,9 @@
 
 #include <iostream>
 
+#include "common.h"
+#ifdef HAVE_GL
+
 #include "shaders.h"
 
 GLuint createShaders(GLchar const* src, int shaderType)
@@ -76,3 +79,4 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
 
     return createShaders(shaderSrc.str().data(), shaderType);
 }
+#endif

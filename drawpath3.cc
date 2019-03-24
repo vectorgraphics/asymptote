@@ -17,9 +17,11 @@ namespace camp {
 using vm::array;
 using namespace prc;
   
+#ifdef HAVE_GL
 using gl::modelView;
 
 BezierCurve drawPath3::R;
+#endif
 
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
