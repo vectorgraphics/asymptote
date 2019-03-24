@@ -64,7 +64,7 @@ billboard BB;
 GLint noColorShader;
 GLint colorShader;
 size_t Maxmaterials;
-size_t Nmaterials;
+size_t Nmaterials=1;
 size_t nmaterials;
 }
 namespace gl {
@@ -152,7 +152,7 @@ static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
 double Background[4];
-size_t Nlights; // Maximum number of lights compilied in shader
+size_t Nlights=1; // Maximum number of lights compilied in shader
 size_t nlights; // Actual number of lights
 triple *Lights; 
 double *Diffuse;
@@ -1320,8 +1320,8 @@ GLuint vertShaderCol,fragShaderCol;
 
 void initshader()
 {
-  Nlights=max(nlights,1ul);
-  Nmaterials=nmaterials;
+  Nlights=max(Nlights,nlights);
+  Nmaterials=max(Nmaterials,nmaterials);
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
