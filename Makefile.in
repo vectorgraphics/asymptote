@@ -48,12 +48,13 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 FILES = $(COREFILES) main
 
 SYMBOLSH = opsymbols.h allsymbols.h $(SYMBOL_FILES:=.symbols.h)
+UIFILES = $(wildcard GUI/windows/*.ui)
+PYFILES = $(wildcard GUI/pyUIClass/*.py) GUI/icons_rc.py
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
-        $(SYMBOLSH)
+        $(SYMBOLSH) $(PYFILES)
 NAME = asy
 XNAME = x$(NAME)
-UIFILES = $(wildcard GUI/windows/*.ui)
 CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
@@ -79,6 +80,8 @@ CXX = @CXX@ -Wall
 CC = @CC@ -Wall
 MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
 BISON = bison
+PYRCC = pyrcc5
+PYUIC = pyuic5
 LEX = @LEX@
 
 prefix = @prefix@
@@ -110,7 +113,6 @@ endif
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy:	version
-	-pyrcc5 GUI/res/icons.qrc -o GUI/icons_rc.py
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -118,7 +120,7 @@ asy:	version
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
-version: $(GCLIB) $(FILES:=.o) $(UIFILES:.ui=.py)
+version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
 	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	fi
@@ -199,6 +201,9 @@ allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
           $(PERL) ./findsym.pl $@ -
 
 symbol.o: $(SYMBOLSH)
+
+GUI/icons_rc.py: GUI/res/icons.qrc
+	-$(PYRCC) GUI/res/icons.qrc -o GUI/icons_rc.py
 
 camp.tab.cc: camp.y
 	$(BISON) -dvt -b camp camp.y && mv camp.tab.c camp.tab.cc
@@ -319,6 +324,7 @@ cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
 	-rm -f configure config.h.in $(DIST)
 	-rm -rf autom4te.cache
+	-rm -rf GUI/pyUIClass
 
 test: asy FORCE
 	./wce
@@ -347,7 +353,7 @@ check-all: asy FORCE
 	rm -f $@.$$$$
 %.py: %.ui
 	mkdir -p GUI/pyUIClass
-	-pyuic5 -o GUI/pyUIClass/$(notdir $@) $<
+	-$(PYUIC) -o GUI/pyUIClass/$(notdir $@) $<
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
 %.pic.o: %.cc
