@@ -104,6 +104,7 @@ void BezierCurve::draw()
   glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,(void *) (3*size));
   glEnableVertexAttribArray(materialAttrib);
 
+  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
   glDrawElements(GL_LINES,indices.size(),GL_UNSIGNED_INT,(void*)(0));
   
   glDisableVertexAttribArray(posAttrib);
