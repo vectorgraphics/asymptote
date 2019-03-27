@@ -507,10 +507,10 @@ void intersections(std::vector<double>& T, const path3& g, const triple& v,
     size_t m=r.size();
     for(size_t j=0 ; j < m; ++j) {
       double t=r[j];
-      if(t >= -Fuzz && t <= 1.0+Fuzz) {
+      if(t >= -Fuzz2 && t <= 1.0+Fuzz2) {
         double s=i+t;
         if((g.point(s)-v).abs2() <= fuzz2) {
-          if(cycles && s >= n-Fuzz) s=0;
+          if(cycles && s >= n-Fuzz2) s=0;
           T.push_back(s);
         }
       }
@@ -580,8 +580,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
 {
   if(errorstream::interrupt) throw interrupted();
   
-  double fuzz2=max(fuzzFactor*fuzz,Fuzz);
-  fuzz2=fuzz2*fuzz2;
+  double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
   
   Int lp=p.length();
   if(lp == 0 && exact) {
@@ -1302,8 +1301,7 @@ bool intersections(std::vector<double>& T, std::vector<double>& U,
     std::vector<double> T1,U1,V1;
     double tscale,toffset;
 
-    double fuzz2=max(fuzzFactor*fuzz,Fuzz);
-    fuzz2=fuzz2*fuzz2;
+    double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
   
     if(lp <= 1) {
       if(lp == 1) p.halve(p0,p1);
