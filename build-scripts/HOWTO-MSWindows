@@ -4,7 +4,7 @@ First run build-asymptote on Linux. This will build the documentation
 and source tar ball and copy them to a directory ~/shared which needs to be
 shared via virtualbox to the cygwin build environment.
 
-Install these cygwin packages:
+Install TeXLive and these Cygwin packages:
 
 git
 wget
@@ -60,6 +60,8 @@ make CFLAGS=-D_WIN32 glew.lib.static
 make install
 cp lib/libGLEW.a /usr/lib
 
+git clone http://github.com/vectorgraphics/asymptote
+
 freeglut-3.0.0:
 patch -p1 < ~/asymptote/patches/cygwin_freeglut-3.0.0.patch
 cmake CMakeLists.txt
@@ -67,12 +69,8 @@ make
 cp lib/libfreeglut_static.a /usr/lib/libfreeglut.a
 cp -a include/GL/*.h /usr/include/w32api/GL/
 
-git clone http://github.com/vectorgraphics/asymptote
-
 mkdir -p ~/dll/cygwin
 cp /usr/bin/cygwin1.dll ~/dll/cygwin
-
-install texlive
 
 mkdir ~/CTAN
 cp -a ~/asymptote/build-scripts/README-binaries ~/CTAN

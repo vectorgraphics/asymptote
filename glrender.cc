@@ -65,7 +65,7 @@ GLint noColorShader;
 GLint colorShader;
 size_t Maxmaterials;
 size_t Nmaterials=1;
-size_t nmaterials;
+size_t nmaterials=48;
 }
 namespace gl {
   
@@ -1588,7 +1588,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
   Maxmaterials=val/sizeof(Material);
-  nmaterials=min(Maxmaterials,16ul);
+  if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
 
   glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&Maxvertices);
 
