@@ -1263,7 +1263,9 @@ void init()
   int argc=cmd.size();
 
 //  glutInitContextVersion(4,3);
+#ifndef __APPLE__
   glutInitContextProfile(GLUT_CORE_PROFILE);
+#endif  
   //glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
 
   glutInit(&argc,argv);
