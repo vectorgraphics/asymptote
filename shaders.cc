@@ -46,8 +46,7 @@ GLuint createShaders(GLchar const* src, int shaderType)
 }
 
 GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
-                        size_t Nmaterials,
-                        std::unordered_set<std::string> compilerFlags)
+                        size_t Nmaterials,  bool explicitcolor)
 {
     std::ifstream shaderFile;
     shaderFile.open(file);
@@ -59,10 +58,9 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
     shaderSrc << "#extension GL_ARB_shading_language_packing : enable"
               << "\r\n";
 
-    for(std::string const& flag : compilerFlags)
-    {
-        shaderSrc << "#define " << flag << "\r\n";
-    }
+    
+    if(explicitcolor)
+      shaderSrc << "#define EXPLICIT_COLOR" << "\r\n";
     
     shaderSrc << "const int Nlights=" << Nlights << ";\r\n";
     shaderSrc << "const int Nmaterials=" << Nmaterials << ";\r\n";

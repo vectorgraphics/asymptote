@@ -1339,11 +1339,9 @@ void initshader()
     
   shaderProgColor=glCreateProgram();
   vertShaderCol=createShaderFile(vs.c_str(),
-                                 GL_VERTEX_SHADER,Nlights,Nmaterials,
-                                 {"EXPLICIT_COLOR"});
+                                 GL_VERTEX_SHADER,Nlights,Nmaterials,true);
   fragShaderCol=createShaderFile(fs.c_str(),
-                                 GL_FRAGMENT_SHADER,Nlights,Nmaterials,
-                                 {"EXPLICIT_COLOR"});
+                                 GL_FRAGMENT_SHADER,Nlights,Nmaterials,true);
   glAttachShader(shaderProgColor,vertShaderCol);
   glAttachShader(shaderProgColor,fragShaderCol);
 

@@ -20,6 +20,5 @@
 
 GLuint createShaders(GLchar const *src, int shaderType);
 GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
-                        size_t Nmaterials,
-                        std::unordered_set<std::string> compilerFlags={});
+                        size_t Nmaterials,  bool explicitcolor=false);
 #endif

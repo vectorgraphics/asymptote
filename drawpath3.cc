@@ -8,9 +8,11 @@
 #include "drawsurface.h"
 #include "material.h"
 
+#ifdef HAVE_GL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#endif
 
 namespace camp {
 
