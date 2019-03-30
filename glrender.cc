@@ -1499,7 +1499,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
 #ifdef HAVE_LIBGLUT    
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
-  string buttonnames[]={"left","middle","right"};
 #endif  
   
   camp::clearMaterialBuffer();
@@ -1529,7 +1528,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         displaymode |= GLUT_MULTISAMPLE;
       glutInitDisplayMode(displaymode);
 
-      ostringstream buf;
       int samples;
 
 #ifdef FREEGLUT
@@ -1650,14 +1648,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 namespace camp {
 
-std::string getMaterialIndex(size_t const& index,
-                             std::string const& fieldName)
-{
-  return "materials["+std::to_string(index)+"]."+fieldName;
-} 
-
-std::string getLightIndex(size_t const& index, std::string const& fieldName) {
-  return "lights["+std::to_string(index)+"]."+fieldName;
+string getLightIndex(size_t const& index, string const& fieldName) {
+  ostringstream buf;
+  buf << "lights[" << index << "]." << fieldName;
+  return Strdup(buf.str());
 } 
 
 void setUniforms(GLint shader)

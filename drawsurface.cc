@@ -12,9 +12,11 @@
 #include <iomanip>
 #include <fstream>
 
+#ifdef HAVE_GL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#endif
 
 using namespace prc;
 #include "material.h"
