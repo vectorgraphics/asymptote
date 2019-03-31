@@ -4,8 +4,8 @@
 HOME=~bowman
 SHARED=$HOME/shared/asy
 
-GCVERSION=8.0.2
-ATOMICVERSION=7.6.8
+GCVERSION=8.0.4
+ATOMICVERSION=7.6.10
 GC=gc-$GCVERSION
 
 MAKEFLAGS=-j8
@@ -33,14 +33,14 @@ cd $BUILD
 rm -rf asymptote-$VERSION
 rm -rf $BUILD/$BINDIR
 mv asymptote asymptote-$VERSION
-wget http://hboehm.info/gc/gc_source/gc-$GCVERSION.tar.gz
-wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
+wget https://github.com/ivmai/bdwgc/releases/gc-$GCVERSION.tar.gz
+wget https://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
 cp /usr/local/src/$GC.tar.gz asymptote-$VERSION
 cp /usr/local/src/libatomic_ops-$ATOMICVERSION.tar.gz asymptote-$VERSION
 chown -R root.root asymptote-$VERSION
 cd asymptote-$VERSION
 find . -type d -exec /bin/bash -c "cd '{}';rm -rf .git" \;
-rm -f .gitignore .vscode
+rm -rf .gitignore .vscode
 ./autogen.sh
 ./configure
 make $MAKEFLAGS check || exit

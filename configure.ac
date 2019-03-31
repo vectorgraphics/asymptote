@@ -22,7 +22,7 @@ test "$Datadir" = '${prefix}/share' && Datadir=$prefix/share
 AC_SUBST(Datadir)
 
 AC_ARG_WITH(latex,
-	[AS_HELP_STRING(--with-latex=PATH,
+o	[AS_HELP_STRING(--with-latex=PATH,
                         specify path to LaTeX installation)],
                      [if test "x$withval" != "x" ; then
 			latexdir=$withval
@@ -124,8 +124,8 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-GCVERSION=8.0.2
-ATOMICVERSION=7.6.8
+GCVERSION=8.0.4
+ATOMICVERSION=7.6.10
 
 GCFILE=gc-$GCVERSION
 ac_cv_use_gc="system"
@@ -332,7 +332,7 @@ case "$OSTYPE" in
 				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;                                 
      darwin*) 
-              LIBS=$LIBS"-lgccpp "
+              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(glm/glm.hpp,
                          [AC_DEFINE(HAVE_LIBGLM, 1,
 	             [Define if you have the `OpenGL Mathematics' library.])])
@@ -350,6 +350,7 @@ case "$OSTYPE" in
 				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;                                 
      *)
+         AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
          AC_CHECK_HEADER(glm/glm.hpp,
                          [AC_DEFINE(HAVE_LIBGLM, 1,
 	             [Define if you have the `OpenGL Mathematics' library.])])
@@ -401,7 +402,7 @@ if test "x$GCDIR" != "x" ; then
    echo Please put the Boehm garbage collector tar.gz files in the current directory.
    echo FOR EXAMPLE, USE THE COMMANDS:
    echo
-   echo wget http://hboehm.info/gc/gc_source/$GCFILE.tar.gz
+   echo wget https://github.com/ivmai/bdwgc/releases/download/v$GCVERSION/$GCFILE.tar.gz
    echo wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
 
    echo

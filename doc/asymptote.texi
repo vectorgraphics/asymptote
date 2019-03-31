@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-18 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-19 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -585,8 +585,8 @@ cd asymptote-x.xx
 @end verbatim
 By default the system version of the Boehm garbage collector will be
 used; if it is old we recommend first putting
-@url{http://hboehm.info/gc/gc_source/gc-7.4.2.tar.gz}
-@url{http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.4.2.tar.gz}
+@url{https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz}
+@url{https://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.6.10.tar.gz}
 in the @code{Asymptote} source directory.
 
 On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
