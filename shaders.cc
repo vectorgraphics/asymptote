@@ -1,16 +1,15 @@
 // shader handling
 // Author: Supakorn "Jamie" Rassameemasmuang
 
+#include "common.h"
+
+#ifdef HAVE_GL
+
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <string>
-#include <unordered_set>
-
 #include <iostream>
-
-#include "common.h"
-#ifdef HAVE_GL
 
 #include "shaders.h"
 
