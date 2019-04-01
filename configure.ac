@@ -22,12 +22,12 @@ test "$Datadir" = '${prefix}/share' && Datadir=$prefix/share
 AC_SUBST(Datadir)
 
 AC_ARG_WITH(latex,
-o	[AS_HELP_STRING(--with-latex=PATH,
+        [AS_HELP_STRING(--with-latex=PATH,
                         specify path to LaTeX installation)],
                      [if test "x$withval" != "x" ; then
-			latexdir=$withval
-		      fi
-		     ],[
+                        latexdir=$withval
+                      fi
+                     ],[
 AC_CHECK_PROG(kpsewhich,kpsewhich,true)
 if test "x$kpsewhich" = "xtrue"; then
   latexdir=`kpsewhich -expand-var='$TEXMFLOCAL'/tex/latex`
@@ -40,12 +40,12 @@ fi
 ])
 
 AC_ARG_WITH(context,
-	[AS_HELP_STRING(--with-context=PATH,
+        [AS_HELP_STRING(--with-context=PATH,
                         specify path to ConTeXt installation)],
                      [if test "x$withval" != "x" ; then
-			contextdir=$withval
-		      fi
-		     ],[
+                        contextdir=$withval
+                      fi
+                     ],[
 AC_CHECK_PROG(kpsewhich,kpsewhich,true)
 if test "x$kpsewhich" = "xtrue"; then
   contextdir=`kpsewhich -expand-var='$TEXMFLOCAL'/tex/context/third`
@@ -71,12 +71,12 @@ AC_SUBST(contextdir)
 docdir=$Datadir/doc/asymptote
 
 AC_ARG_WITH(docdir,
-	[AS_HELP_STRING(--with-docdir=PATH,
+        [AS_HELP_STRING(--with-docdir=PATH,
 alternate documentation installation directory)],
                      [if test "x$withval" != "x" ; then
-			docdir=$withval
-		      fi
-		     ])
+                        docdir=$withval
+                      fi
+                     ])
 AC_SUBST(docdir)
 
 sysdir=$Datadir/asymptote
@@ -90,9 +90,9 @@ automatically determine sysdir from kpsewhich)],
 ])
 
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$sysdir",
-	[System directory for global .asy files])
+        [System directory for global .asy files])
 AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$docdir",
-	[Directory for documentation])
+        [Directory for documentation])
 
 AC_CONFIG_SRCDIR([absyn.cc])
 
@@ -119,10 +119,10 @@ if test "$GXX" = yes ; then
 fi
 
 AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
-			      [Define to 1 if you have unordered_map]),
+                              [Define to 1 if you have unordered_map]),
         [AC_CHECK_HEADER(tr1/unordered_map,AC_DEFINE(HAVE_TR1_UNORDERED_MAP,1,
-			      [Define to 1 if you have tr1/unordered_map]),
-	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
+                              [Define to 1 if you have tr1/unordered_map]),
+        [AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
 GCVERSION=8.0.4
 ATOMICVERSION=7.6.10
@@ -133,15 +133,15 @@ ac_cv_use_gc="system"
 AC_CHECK_FILE($GCFILE.tar.gz,
 ac_cv_use_gc=$GCVERSION)
 AC_ARG_ENABLE(gc,
-	[AS_HELP_STRING(--enable-gc[[[=system]]],
+        [AS_HELP_STRING(--enable-gc[[[=system]]],
 enable system Boehm garbage collector)]
-	[     [[=VERSION]]   enable local VERSION of Boehm garbage collector]
-	[     [[=PREFIX]]    use Boehm garbage collector installed in PREFIX],
-			[
-			if test "x$enableval" != "xyes" ; then
-			   ac_cv_use_gc=$enableval
-			fi
-			])
+        [     [[=VERSION]]   enable local VERSION of Boehm garbage collector]
+        [     [[=PREFIX]]    use Boehm garbage collector installed in PREFIX],
+                        [
+                        if test "x$enableval" != "xyes" ; then
+                           ac_cv_use_gc=$enableval
+                        fi
+                        ])
 
 OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
@@ -155,21 +155,21 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    _|_system|_*[[\\/]]*)
       if test "x$ac_cv_use_gc" = "xsystem" ; then
          INCL="-I. -I$prefix/include/gc -I/usr/include/gc"
-         LIBS=$LIBS"-L$prefix/lib " 
-      else 
+         LIBS=$LIBS"-L$prefix/lib "
+      else
          INCL="-I$ac_cv_use_gc/include/gc"
          LIBS=$LIBS"-L$ac_cv_use_gc/lib "
       fi
       CPPFLAGS_SAVE=$CPPFLAGS
       CPPFLAGS=$CPPFLAGS" $INCL"
       AC_CHECK_HEADER(gc.h,
-	AC_CHECK_LIB([gc],[GC_malloc],[
-	  LIBS=$LIBS"-lgc "
-	  AC_MSG_NOTICE([enabling system $GCNAME])],[
+        AC_CHECK_LIB([gc],[GC_malloc],[
+          LIBS=$LIBS"-lgc "
+          AC_MSG_NOTICE([enabling system $GCNAME])],[
         GCDIR=$GCFILE
         INCL="-I. -I\$(GC)/include"
-	GCLIB="\$(GC)/.libs/libgc.a"
-	AC_MSG_NOTICE($GCNAME library not found)]),
+        GCLIB="\$(GC)/.libs/libgc.a"
+        AC_MSG_NOTICE($GCNAME library not found)]),
       GCDIR=$GCFILE
       GCLIB="\$(GC)/.libs/libgc.a"
       INCL="-I. -I\$(GC)/include"
@@ -220,8 +220,8 @@ CPPFLAGS=$CPPFLAGS" $INCL"
 fi
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
-			   [Define if getopt.h is the GNU version]),
-			   getopt="getopt getopt1",)
+                           [Define if getopt.h is the GNU version]),
+                           getopt="getopt getopt1",)
 
 AC_SUBST(getopt)
 AC_SUBST(GCVERSION)
@@ -265,8 +265,8 @@ AC_MSG_NOTICE(*** Could not find GNU libreadline 4.3 or later: will compile with
 AC_MSG_NOTICE(*** Could not find GNU readline 4.3 or later: will compile without readline support ***))
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h], [break])
 AC_CHECK_LIB([ncurses], [setupterm], [AC_DEFINE(HAVE_LIBCURSES)
-			 LIBS=$LIBS"-lncurses "],
-			 AC_CHECK_LIB([curses], [setupterm]))
+                         LIBS=$LIBS"-lncurses "],
+                         AC_CHECK_LIB([curses], [setupterm]))
 fi
 
 # Checks for header files.
@@ -278,8 +278,8 @@ AC_CHECK_FUNCS([feenableexcept])
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
-		    AC_DEFINE(HAVE_RPC_RPC_H, 1,
-		   [Define if you have a working <tirpc/rpc/rpc.h> header file])],
+                    AC_DEFINE(HAVE_RPC_RPC_H, 1,
+                   [Define if you have a working <tirpc/rpc/rpc.h> header file])],
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
 
 AC_ARG_ENABLE(gsl,
@@ -312,60 +312,61 @@ AC_ARG_ENABLE(offscreen,
 if test "x$enable_gl" != "xno"; then
 case "$OSTYPE" in
      msdos)
-              AC_CHECK_HEADER(glm/glm.hpp,
-                         [AC_DEFINE(HAVE_LIBGLM, 1,
-	             [Define if you have the `OpenGL Mathematics' library.])])
-      	      AC_CHECK_HEADER(GL/glut.h,
-				  [AC_DEFINE(HAVE_LIBGLUT, 1,
-		     [Define if you have the `freeglut' library (-lfreeglut).])
-			     LIBS=$LIBS"-lfreeglut "],
-				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
-              AC_CHECK_HEADER(GL/gl.h,
-				  [AC_DEFINE(HAVE_LIBGL, 1,
-		     [Define if you have the `opengl32' library (-lopengl32).])
-			     LIBS=$LIBS"-lopengl32 "],
-				   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
-              AC_CHECK_HEADER(GL/glew.h,
-				  [AC_DEFINE(HAVE_LIBGLEW, 1,
-		     [Define if you have the `GLEW' library (-lGLEW).])
-			     LIBS="-lGLEW "$LIBS],
-				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
-        ;;                                 
-     darwin*) 
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(glm/glm.hpp,
                          [AC_DEFINE(HAVE_LIBGLM, 1,
-	             [Define if you have the `OpenGL Mathematics' library.])])
+                     [Define if you have the `OpenGL Mathematics' library.])])
+              AC_CHECK_HEADER(GL/glut.h,
+                                  [AC_DEFINE(HAVE_LIBGLUT, 1,
+                     [Define if you have the `freeglut' library (-lfreeglut).])
+                             LIBS=$LIBS"-lfreeglut "],
+                                   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
+              AC_CHECK_HEADER(GL/gl.h,
+                                  [AC_DEFINE(HAVE_LIBGL, 1,
+                     [Define if you have the `opengl32' library (-lopengl32).])
+                             LIBS=$LIBS"-lopengl32 "],
+                                   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
+              AC_CHECK_HEADER(GL/glew.h,
+                                  [AC_DEFINE(HAVE_LIBGLEW, 1,
+                     [Define if you have the `GLEW' library (-lGLEW).])
+                             LIBS="-lGLEW "$LIBS],
+                                   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
+        ;;
+     darwin*)
+              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+              AC_CHECK_HEADER(glm/glm.hpp,
+                         [AC_DEFINE(HAVE_LIBGLM, 1,
+                     [Define if you have the `OpenGL Mathematics' library.])])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL, 1,
-		             [Define if you have the `OpenGL' library.])])
+                             [Define if you have the `OpenGL' library.])])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT, 1,
-		   [Define if you have the `GLUT' library.])
-			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "],
-				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGLLUT support ***]))
+                   [Define if you have the `GLUT' library.])
+                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "],
+                                 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGLLUT support ***]))
               AC_CHECK_HEADER(OpenGL/glew.h,
-				  [AC_DEFINE(HAVE_LIBGLEW, 1,
-		     [Define if you have the `GLEW' library (-lGLEW).])
-			     LIBS="-lGLEW "$LIBS],
-				   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
-        ;;                                 
+                                  [AC_DEFINE(HAVE_LIBGLEW, 1,
+                     [Define if you have the `GLEW' library (-lGLEW).])
+                             LIBS="-lGLEW "$LIBS],
+                                   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
+        ;;
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
          AC_CHECK_HEADER(glm/glm.hpp,
                          [AC_DEFINE(HAVE_LIBGLM, 1,
-	             [Define if you have the `OpenGL Mathematics' library.])])
+                     [Define if you have the `OpenGL Mathematics' library.])])
           AC_CHECK_LIB([GL], [glDepthMask])
-	  AC_CHECK_LIB([glut], [glutMainLoop],,
-		       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
+          AC_CHECK_LIB([glut], [glutMainLoop],,
+                       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
           AC_CHECK_HEADER(GL/glew.h,
             [AC_DEFINE(HAVE_LIBGLEW, 1,
-	    [Define if you have the `GLEW' library (-lGLEW).])
+            [Define if you have the `GLEW' library (-lGLEW).])
             LIBS="-lGLEW "$LIBS],
             AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" == "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
-			AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
+                        AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
    fi
 fi
 
