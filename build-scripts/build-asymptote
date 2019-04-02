@@ -33,7 +33,7 @@ cd $BUILD
 rm -rf asymptote-$VERSION
 rm -rf $BUILD/$BINDIR
 mv asymptote asymptote-$VERSION
-wget https://github.com/ivmai/bdwgc/releases/gc-$GCVERSION.tar.gz
+wget https://github.com/ivmai/bdwgc/releases/download/v$GCVERSION/gc-$GCVERSION.tar.gz
 wget https://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
 cp /usr/local/src/$GC.tar.gz asymptote-$VERSION
 cp /usr/local/src/libatomic_ops-$ATOMICVERSION.tar.gz asymptote-$VERSION
