@@ -71,4 +71,4 @@ tar cfz asymptote-$VERSION.x86_64.tgz $BINDIR
 cp $SRC $SHARED
 rm -rf $BUILD/$BINDIR
 tar -zxf asymptote-$VERSION.x86_64.tgz
-su rpmbuild -c "rpmbuild -ta --nodeps $SRC && rm -rf ~/rpms/BUILD/asymptote-$VERSION"
+su rpmbuild -c "rpmbuild -ta --nodeps $SRC && rm -rf ~/rpms/BUILD/asymptote-$VERSION&&chmod -R g+r /u/rpmbuild/rpms/RPMS/"
