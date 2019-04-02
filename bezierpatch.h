@@ -14,8 +14,7 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-extern const double Fuzz;
-extern const double Fuzz2;
+extern const double Fuzz4;
 
 class vertexData {
 public:

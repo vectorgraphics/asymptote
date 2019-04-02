@@ -71,8 +71,6 @@ struct iz {
 
 std::vector<iz> IZ;
 
-extern const double Fuzz2;
-
 const double FillFactor=0.1;
 const double BezierFactor=0.4;
 
@@ -534,7 +532,7 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
   for(unsigned i=1; i < 16; ++i)
     epsilon=max(epsilon,abs2(p[i]-p0));
   
-  epsilon *= Fuzz2;
+  epsilon *= Fuzz4;
     
   triple p3=p[3];
   triple p12=p[12];
@@ -793,7 +791,7 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
   for(int i=1; i < 10; ++i)
     epsilon=max(epsilon,abs2(p[i]-p0));
   
-  epsilon *= Fuzz2;
+  epsilon *= Fuzz4;
     
   GLuint I0,I1,I2;
     

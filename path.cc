@@ -998,7 +998,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
 
     --depth;
     fuzz *= 2.0;
-    double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
+    fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
 
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {

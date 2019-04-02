@@ -630,6 +630,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     
     std::vector<double> S1,T1;
     
+    fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
+    
     if(lp <= 1) {
       if(lp == 1) p.halve(p1,p2);
       if(lp == 0 || p1 == p || p2 == p) {
