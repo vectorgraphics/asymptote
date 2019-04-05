@@ -16,7 +16,6 @@
 #endif
 
 #include <string>
-#include <unordered_set>
 
 GLuint createShaders(GLchar const *src, int shaderType);
 GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
