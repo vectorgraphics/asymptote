@@ -344,7 +344,7 @@ case "$OSTYPE" in
                    [Define if you have the `GLUT' library.])
                            LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "],
                                  AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGLLUT support ***]))
-              AC_CHECK_HEADER(OpenGL/glew.h,
+              AC_CHECK_HEADER(GL/glew.h,
                                   [AC_DEFINE(HAVE_LIBGLEW, 1,
                      [Define if you have the `GLEW' library (-lGLEW).])
                              LIBS="-lGLEW "$LIBS],

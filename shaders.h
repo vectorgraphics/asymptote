@@ -5,7 +5,7 @@
 #define GLEW_NO_GLU
 
 #ifdef __APPLE__
-#include <OpenGL/glew.h>
+#include <GL/glew.h>
 #else
 #include <GL/glew.h>
 #ifdef __MSDOS__

@@ -24,13 +24,13 @@ typedef void (APIENTRY* _GLUfuncptr)();
 #endif
 
 #ifdef __APPLE__
-#include <OpenGL/glew.h>
+#include <GL/glew.h>
 #include <OpenGL/gl.h>
 #ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
-#include <OpenGL/osmesa.h>
+#include <GL/osmesa.h>
 #endif
 #else
 #include <GL/glew.h>
