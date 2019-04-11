@@ -400,7 +400,7 @@ AC_OUTPUT
 if test "x$GCDIR" != "x" ; then
    AC_CHECK_FILE($GCDIR.tar.gz,,[
    echo
-   echo Please put the Boehm garbage collector tar.gz files in the current directory.
+   echo Please put the Boehm garbage collector tar.gz files in the asymptote directory.
    echo FOR EXAMPLE, USE THE COMMANDS:
    echo
    echo wget https://github.com/ivmai/bdwgc/releases/download/v$GCVERSION/$GCFILE.tar.gz
