@@ -8,20 +8,22 @@
 #include "drawsurface.h"
 #include "material.h"
 
+#ifdef HAVE_GL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#endif
 
 namespace camp {
-
-#ifdef HAVE_GL
-Material objMaterial;
-#endif
 
 using vm::array;
 using namespace prc;
   
+#ifdef HAVE_GL
 using gl::modelView;
+
+BezierCurve drawPath3::R;
+#endif
 
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
@@ -55,7 +57,7 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 void drawPath3::render(double size2, const triple& b, const triple& B,
-                       double perspective, bool lighton, bool transparent)
+                       double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   Int n=g.length();
@@ -91,14 +93,8 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
   
-  drawBezierPatch::S.draw();
-  
-  glm::vec4 Black(0.0,0.0,0.0,1.0);
-  objMaterial.diffuse=glm::vec4(0.0,0.0,0.0,color.A);
-  objMaterial.ambient=Black;
-  objMaterial.emission=glm::vec4(color.R,color.G,color.B,color.A);
-  objMaterial.specular=Black;
-  objMaterial.shininess=128.0;
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(false,Black,Black,color,Black,1.0);
   
   if(billboard) {
     for(Int i=0; i < n; ++i) {
@@ -215,7 +211,7 @@ void drawNurbsPath3::displacement()
 }
 
 void drawNurbsPath3::render(double, const triple&, const triple&,
-                            double, bool lighton, bool transparent)
+                            double, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || ((color.A < 1.0) ^ transparent))
@@ -242,16 +238,16 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  out->addPoint(v,c,width);
+  out->addPoint(v,color,width);
   
   return true;
 }
   
 void drawPixel::render(double size2, const triple& b, const triple& B,
-                       double perspective, bool lighton, bool transparent) 
+                       double perspective, bool transparent) 
 {
 #ifdef HAVE_GL
-  if(invisible || ((c.A < 1.0) ^ transparent)) return;
+  if(invisible || ((color.A < 1.0) ^ transparent)) return;
   triple m,M;
   
   double f,F,s;
@@ -279,12 +275,8 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
       Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
   
-  glm::vec4 Black(0.0,0.0,0.0,1.0);
-  objMaterial.diffuse=glm::vec4(c.R,c.G,c.B,c.A);
-  objMaterial.ambient=Black;
-  objMaterial.emission=objMaterial.diffuse;
-  objMaterial.specular=Black;
-  objMaterial.shininess=128.0;
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(false,color,Black,color,Black,1.0);
   
   glPointSize(1.0+width);
   R.draw(v);

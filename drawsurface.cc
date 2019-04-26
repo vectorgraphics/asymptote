@@ -5,31 +5,36 @@
  *****/
 
 #include "drawsurface.h"
+#include "drawpath3.h"
 #include "arrayop.h"
 
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
+#ifdef HAVE_GL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#endif
 
 using namespace prc;
 #include "material.h"
 namespace camp {
 
 #ifdef HAVE_GL
-extern Material objMaterial;
-#endif
-
-const triple drawElement::zero;
+mem::vector<Material> drawElement::material;
+MaterialMap drawElement::materialMap;
+size_t drawElement::materialIndex;
 
 using gl::modelView;
-
 //double* Tx=modelView.T;   // x-component of current transform
 //double* Ty=modelView.T+4; // y-component of current transform
 double* Tz=modelView.T+8; // z-component of current transform
+
+#endif
+
+const triple drawElement::zero;
 
 using vm::array;
 
@@ -56,45 +61,45 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
-void setcolors(bool colors, bool lighton,
+void clearMaterialBuffer(bool draw)
+{
+  if(draw) drawBezierPatch::S.draw();
+  drawElement::material.clear();
+  drawElement::material.reserve(nmaterials);
+  drawElement::materialMap.clear();
+  drawElement::materialIndex=0;
+}
+
+void setcolors(bool colors,
                const RGBAColour& diffuse,
                const RGBAColour& ambient,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess) 
 {
-  static prc::RGBAColour lastdiffuse;
-  static prc::RGBAColour lastambient;
-  static prc::RGBAColour lastemissive;
-  static prc::RGBAColour lastspecular;
-  static double lastshininess=0.0;
-  static bool lastcolors=false;
-    
-  if(colors != lastcolors) {
-    drawBezierPatch::S.draw();
-    lastcolors=colors;
-  }
-  
-  if(!colors) {
-    if(diffuse != lastdiffuse || ambient != lastambient || 
-       emissive != lastemissive || specular != lastspecular ||
-       shininess != lastshininess) {
-      drawBezierPatch::S.draw(); 
-      lastdiffuse=diffuse;
-      lastambient=ambient;
-      lastemissive=emissive;
-      lastspecular=specular;
-      lastshininess=shininess;
-    }
-    objMaterial.diffuse=glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A);
-    objMaterial.ambient=glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A);
-    objMaterial.emission=glm::vec4(emissive.R,emissive.G,emissive.B,
-                                   emissive.A);
-  }
-    
-  if(lighton) {
-    objMaterial.specular=glm::vec4(specular.R,specular.G,specular.B,
-                                   specular.A);
-    objMaterial.shininess=128.0*shininess;
+  Material m;
+  if(colors) {
+    static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
+    m=Material(Black,Black,Black,
+               glm::vec4(specular.R,specular.G,specular.B,specular.A),
+               shininess);
+  }  else
+    m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
+               glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A),
+               glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
+               glm::vec4(specular.R,specular.G,specular.B,specular.A),
+               shininess);
+          
+  MaterialMap::iterator p=drawElement::materialMap.find(m);
+  if(p != drawElement::materialMap.end())
+    drawElement::materialIndex=p->second;
+  else {
+    drawElement::materialIndex=drawElement::material.size();
+    if(drawElement::materialIndex >= nmaterials)
+      nmaterials=min(Maxmaterials,2*nmaterials);
+    if(drawElement::materialIndex >= Maxmaterials)
+      clearMaterialBuffer(true);
+    drawElement::material.push_back(m);
+    drawElement::materialMap[m]=drawElement::materialIndex;
   }
 }
 
@@ -142,17 +147,17 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
     }
     
     double c0=cx[0];
-    double fuzz=sqrtFuzz*run::norm(cx,16);
+    double fuzz=Fuzz*run::norm(cx,16);
     x=bound(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
     X=bound(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
     
     c0=cy[0];
-    fuzz=sqrtFuzz*run::norm(cy,16);
+    fuzz=Fuzz*run::norm(cy,16);
     y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
     Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
     
     c0=cz[0];
-    fuzz=sqrtFuzz*run::norm(cz,16);
+    fuzz=Fuzz*run::norm(cz,16);
     z=bound(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
     Z=bound(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
   }  
@@ -240,7 +245,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
-                             double perspective, bool lighton, bool transparent)
+                             double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -276,14 +281,14 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
   
   if(billboard) BB.init(center);
   
-  GLfloat v[16];
+  GLfloat c[16];
   if(colors)
     for(size_t i=0; i < 4; ++i)
-      storecolor(v,4*i,colors[i]);
+      storecolor(c,4*i,colors[i]);
   
   triple *Controls;
   triple Controls0[16];
@@ -306,9 +311,11 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     C.draw();
   } else {
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
-            colors ? v : NULL);
-    if(!transparent) 
-      S.draw();
+            colors ? c : NULL);
+    if(BezierPatch::nvertices >= gl::maxvertices)
+      drawBezierPatch::S.drawMaterials();
+    if(BezierPatch::Nvertices >= gl::maxvertices)
+      drawBezierPatch::S.drawColors();
   }
 #endif
 }
@@ -358,17 +365,17 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
     }
     
     double c0=cx[0];
-    double fuzz=sqrtFuzz*run::norm(cx,10);
+    double fuzz=Fuzz*run::norm(cx,10);
     x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
     X=boundtri(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
     
     c0=cy[0];
-    fuzz=sqrtFuzz*run::norm(cy,10);
+    fuzz=Fuzz*run::norm(cy,10);
     y=boundtri(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
     Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
     
     c0=cz[0];
-    fuzz=sqrtFuzz*run::norm(cz,10);
+    fuzz=Fuzz*run::norm(cz,10);
     z=boundtri(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
     Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
   }
@@ -457,8 +464,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
 }
 
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
-                                double perspective, bool lighton,
-                                bool transparent)
+                                double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -494,7 +500,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
   
   if(billboard) BB.init(center);
   
@@ -520,12 +526,9 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
     C.queue(edge2,straight,size3.length()/size2,m,M);
     C.draw();
-  } else {
+  } else
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? v : NULL);
-    if(!transparent) 
-      S.draw();
-  }
 #endif
 }
 
@@ -637,7 +640,7 @@ void drawNurbs::displacement()
 }
 
 void drawNurbs::render(double size2, const triple& Min, const triple& Max,
-                       double perspective, bool lighton, bool transparent)
+                       double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
@@ -664,7 +667,7 @@ void drawNurbs::render(double size2, const triple& Min, const triple& Max,
        M.getz() < Min.getz() || m.getz() > Max.getz()) return;
   }
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
 // TODO: implement NURBS renderer
 #endif
 }
@@ -891,7 +894,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 void drawTriangles::render(double size2, const triple& Min,
-                           const triple& Max, double perspective, bool lighton,
+                           const triple& Max, double perspective,
                            bool transparent)
 {
 #ifdef HAVE_GL
@@ -925,8 +928,8 @@ void drawTriangles::render(double size2, const triple& Min,
       return;
   }
 
-  setcolors(nC,!nC,diffuse,ambient,emissive,specular,shininess);
-  R.draw(nP,P,nN,N,nC,C,nI,PI,NI,CI);
+  setcolors(nC,diffuse,ambient,emissive,specular,shininess);
+  R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
 #endif
 }
 

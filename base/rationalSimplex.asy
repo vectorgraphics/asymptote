@@ -6,22 +6,22 @@ void simplexPhase2() {}
 
 void simplexWrite(rational[][] E, int[] Bindicies, int, int)
 {
- int m=E.length-1;
- int n=E[0].length-1;
+  int m=E.length-1;
+  int n=E[0].length-1;
 
- write(E[m][n],tab);
- for(int j=0; j < n; ++j)
-   write(E[m][j],tab);
- write();
+  write(E[m][n],tab);
+  for(int j=0; j < n; ++j)
+    write(E[m][j],tab);
+  write();
 
- for(int i=0; i < m; ++i) {
-   write(E[i][n],tab);
-   for(int j=0; j < n; ++j) {
-     write(E[i][j],tab);
-   }
-   write();
- }
- write();
+  for(int i=0; i < m; ++i) {
+    write(E[i][n],tab);
+    for(int j=0; j < n; ++j) {
+      write(E[i][j],tab);
+    }
+    write();
+  }
+  write();
 };
 
 struct simplex {
@@ -220,7 +220,6 @@ struct simplex {
 
     rational[] cB=phase1 ? new rational[m] : c[n-m:n];
     rational[][] D=phase1 ? new rational[m+1][n+1] : E;
-    rational[] Dm=D[m];
     if(phase1) {
       bool output=true;
       // Drive artificial variables out of basis.
@@ -261,11 +260,13 @@ struct simplex {
 
       if(m > ip) {
         Bindices.delete(ip,m-1);
+        D.delete(ip,m-1);
         m=ip;
       }
       if(!output) simplexTableau(D,Bindices);
     }
 
+    rational[] Dm=D[m];
     for(int j=0; j < n; ++j) {
       rational sum=0;
       for(int k=0; k < m; ++k)
@@ -359,38 +360,3 @@ struct simplex {
       x.delete(n,n+count-1);
   }
 }
-
-/*
-simplex S=simplex(new rational[] {4,1,1},
-                  new rational[][] {{2,1,2},{3,3,1}},
-                  new rational[] {4,3});
-
-simplex S=simplex(new rational[] {2,6,1,1},
-                  new rational[][] {{1,2,0,1},{1,2,1,1},{1,3,-1,2},{1,1,1,0}},
-                  new rational[] {6,7,7,5});
-simplex S=simplex(new rational[] {-10,-12,-12,0,0,0},
-                  new rational[][] {{1,2,2,1,0,0},
-                                    {2,1,2,0,1,0},
-                                    {2,2,1,0,0,1}},
-                  new rational[] {20,20,20});
-
-simplex S=simplex(new rational[] {-10,-12,-12},
-                  new rational[][] {{1,2,2},
-                                    {2,1,2},
-                                    {2,2,1}},
-                  new int[] {0,0,-1},
-                  new rational[] {20,20,20});
-
-simplex S=simplex(new rational[] {1,1,1,0},
-                  new rational[][] {{1,2,3,0},
-                                    {-1,2,6,0},
-                                    {0,4,9,0},
-                                    {0,0,3,1}},
-                  new rational[] {3,2,5,1});
-
-write();
-write("case:",S.case);
-write("x:");
-write(S.x);
-write("Cost=",S.cost);
-*/

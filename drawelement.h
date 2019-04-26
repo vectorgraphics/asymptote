@@ -19,6 +19,7 @@
 #include "prcfile.h"
 #include "glrender.h"
 #include "arrayop.h"
+#include "material.h"
 
 namespace camp {
 
@@ -118,6 +119,10 @@ typedef mem::list<bbox> bboxlist;
 typedef mem::map<CONST string,unsigned> groupmap;
 typedef mem::vector<groupmap> groupsmap;
 
+#ifdef HAVE_GL
+typedef mem::map<CONST Material,size_t> MaterialMap;
+#endif
+
 class drawElement : public gc
 {
 public:
@@ -127,6 +132,13 @@ public:
   {}
   
   virtual ~drawElement() {}
+  
+  
+#ifdef HAVE_GL
+  static mem::vector<Material> material;
+  static MaterialMap materialMap;
+  static size_t materialIndex;
+#endif
   
   static pen lastpen;  
   static const triple zero;
@@ -210,7 +222,7 @@ public:
 
   // Render with OpenGL
   virtual void render(double size2, const triple& Min, const triple& Max,
-                      double perspective, bool lighton, bool transparent) {}
+                      double perspective, bool transparent) {}
 
   // Transform as part of a picture.
   virtual drawElement *transformed(const transform&) {
@@ -399,6 +411,7 @@ public:
   }
 };
  
+#ifdef HAVE_GL
 template<class T>
 void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
   if (!buffervector.empty()) {
@@ -409,6 +422,12 @@ void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
   }
 }
 
+void setcolors(bool colors,
+               const prc::RGBAColour& diffuse,
+               const prc::RGBAColour& ambient,
+               const prc::RGBAColour& emissive,
+               const prc::RGBAColour& specular, double shininess);
+#endif
 }
 
 GC_DECLARE_PTRFREE(camp::box);

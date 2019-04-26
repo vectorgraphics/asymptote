@@ -5,32 +5,65 @@
 #include <glm/glm.hpp>
 
 namespace camp {
-    struct Material {
+
+inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
+  return m1[0] < m2[0] || 
+                 (m1[0] == m2[0] &&
+                  (m1[1] < m2[1] || 
+                   (m1[1] == m2[1] &&
+                    (m1[2] < m2[2] || 
+                     (m1[2] == m2[2] &&
+                      (m1[3] < m2[3]))))));
+}
+
+struct Material {
 public:
-  glm::vec4 diffuse, specular, ambient, emission;
-  float shininess; 
+  glm::vec4 diffuse, ambient, emissive, specular;
+  GLfloat shininess; 
+  GLfloat padding[3];
 
   Material() {}
 
-  Material(glm::vec4 diff, glm::vec4 spec, glm::vec4 amb, glm::vec4 emissive, float shininess):
-    diffuse(diff), specular(spec), ambient(amb), emission(emissive), shininess(shininess) {}
+  Material(const glm::vec4& diffuse, const glm::vec4& ambient,
+           const glm::vec4& emissive, const glm::vec4& specular,
+           double shininess) : 
+    diffuse(diffuse), ambient(ambient), emissive(emissive), specular(specular),
+    shininess(128*shininess) {}
 
-  Material(Material const& other):
-    diffuse(other.diffuse), specular(other.specular), ambient(other.ambient), emission(other.emission), shininess(other.shininess) {}
+  Material(Material const& m):
+    diffuse(m.diffuse), ambient(m.ambient), emissive(m.emissive),
+    specular(m.specular), shininess(m.shininess) {}
   ~Material() {}
 
-  Material& operator=(Material const& other)
+  Material& operator=(Material const& m)
   {
-    if(&other!=this) {
-      diffuse=other.diffuse;
-      specular=other.specular;
-      ambient=other.ambient;
-      emission=other.emission;
-      shininess=other.shininess;
-    }
+    diffuse=m.diffuse;
+    ambient=m.ambient;
+    emissive=m.emissive;
+    specular=m.specular;
+    shininess=m.shininess;
     return *this; 
   }
+      
+  friend bool operator < (const Material& m1, const Material& m2) {
+    return m1.diffuse < m2.diffuse ||
+                        (m1.diffuse == m2.diffuse && 
+                         (m1.ambient < m2.ambient ||
+                        (m1.ambient == m2.ambient && 
+                         (m1.emissive < m2.emissive ||
+                        (m1.emissive == m2.emissive && 
+                         (m1.specular < m2.specular ||
+                        (m1.specular == m2.specular && 
+                         (m1.shininess < m2.shininess))))))));
+  }
+      
 }; 
+
+extern size_t Nmaterials; // Number of materials compiled in shader
+extern size_t nmaterials; // Current size of materials buffer
+extern size_t Maxmaterials; // Maxinum size of materials buffer
+void clearMaterialBuffer(bool draw=false);
+
 }
 #endif
 #endif

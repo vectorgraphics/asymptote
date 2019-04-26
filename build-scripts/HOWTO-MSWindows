@@ -4,7 +4,7 @@ First run build-asymptote on Linux. This will build the documentation
 and source tar ball and copy them to a directory ~/shared which needs to be
 shared via virtualbox to the cygwin build environment.
 
-Install these cygwin packages:
+Install TeXLive and these Cygwin packages:
 
 git
 wget
@@ -17,15 +17,18 @@ flex
 w32api-headers
 w32api-runtime
 zlib-devel
-libGLU-devel
 libtirpc-devel (SRC)
 libreadline-devel (SRC)
 libfftw3-devel (SRC)
 libgsl-devel (SRC)
+libGLEW-devel (SRC)
+glm-devel
 automake1.15
 libtool
 
 mv /usr/include/GL /usr/include/GL.orig
+
+Install these cygwin packages:
 
 Build and install static libraries from /usr/local/src:
 
@@ -41,7 +44,7 @@ fftw3-devel:
 ./configure --prefix=/usr --enable-shared 
 make install
 
-tirpc-devel (if rpc library is unavailable):
+tirpc-devel:
 ./configure --prefix=/usr --disable-gssapi
 make install
 ln -s /usr/include/tirpc/rpc /usr/include/rpc
@@ -52,18 +55,22 @@ termcap-1.3.1:
 ./configure --prefix=/usr
 make install
 
+glew-2.1.0:
+make CFLAGS=-D_WIN32 glew.lib.static
+make install
+cp lib/libGLEW.a /usr/lib
+
 git clone http://github.com/vectorgraphics/asymptote
 
-cd /usr/include
-patch -p0 < ~/asymptote/patches/cygwin_glu.patch
+freeglut-3.0.0:
+patch -p1 < ~/asymptote/patches/cygwin_freeglut-3.0.0.patch
+cmake CMakeLists.txt
+make
+cp lib/libfreeglut_static.a /usr/lib/libfreeglut.a
+cp -a include/GL/*.h /usr/include/w32api/GL/
 
 mkdir -p ~/dll/cygwin
 cp /usr/bin/cygwin1.dll ~/dll/cygwin
-
-cd
-~/asymptote/build-scripts/build-freeglut
-
-install texlive
 
 mkdir ~/CTAN
 cp -a ~/asymptote/build-scripts/README-binaries ~/CTAN
@@ -75,8 +82,7 @@ tar -zxf gc-$GCVERSION.tar.gz
 tar -zxf libatomic_ops-$GCVERSION.tar.gz
 mv libatomic_ops-$GCVERSION gc-$GCVERSION/libatomic_ops
 cd gc-$GCVERSION
-patch -p1 < ~/asymptote/patches/cygwin_gc.patch
 ./configure --disable-shared
 make check
 
-~/asymptote/build-scripts/build-asymptote.dos 2.43
+~/asymptote/build-scripts/build-asymptote.dos 2.48

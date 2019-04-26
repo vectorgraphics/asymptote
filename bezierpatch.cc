@@ -13,31 +13,31 @@ namespace camp {
 using ::orient2d;
 using ::orient3d;
 
-size_t tstride;
-
-//double viewpoint[3];
-
 #ifdef HAVE_GL
 
 
-//FIXME: Find a nicer way to pass the shader program number.
+//FIXME: Find a nicer way to pass the shader program number,
 // preferably without global variables...
 
 extern GLint noColorShader;
 extern GLint colorShader;
 extern void setUniforms(GLint shader); 
 
-std::vector<GLfloat> BezierPatch::buffer;
-std::vector<GLfloat> BezierPatch::Buffer;
+const size_t nbuffer=10000; // Initial size of dynamic buffers
+
+std::vector<vertexData> BezierPatch::vertexbuffer;
+std::vector<VertexData> BezierPatch::Vertexbuffer;
+std::vector<VertexData> BezierPatch::tVertexbuffer;
 std::vector<GLuint> BezierPatch::indices;
 std::vector<GLuint> BezierPatch::Indices;
-std::vector<GLfloat> BezierPatch::tbuffer;
-std::vector<GLuint> BezierPatch::tindices;
-std::vector<GLfloat> BezierPatch::tBuffer;
 std::vector<GLuint> BezierPatch::tIndices;
 
-std::vector<GLuint>& I=BezierPatch::tIndices;
-std::vector<GLfloat>& V=BezierPatch::tBuffer;
+GLuint BezierPatch::nvertices=0;
+GLuint BezierPatch::Nvertices=0;
+GLuint BezierPatch::Ntvertices=0;
+
+//std::vector<GLuint>& I=BezierPatch::tIndices;
+//std::vector<VertexData>& V=BezierPatch::tVertexbuffer;
 bool colors;
 
 std::vector<GLfloat> zbuffer;
@@ -47,11 +47,6 @@ std::vector<GLfloat> ybuffer;
 std::vector<GLfloat> xmin,ymin,zmin;
 std::vector<GLfloat> xmax,ymax,zmax;
 std::vector<GLfloat> zsum;
-
-  
-std::array<GLuint,4> BezierPatch::vertsBufferIndex;
-std::array<GLuint,4> BezierPatch::elemBufferIndex;
-
 
 inline double min(double a, double b, double c)
 {
@@ -75,13 +70,6 @@ struct iz {
 };
 
 std::vector<iz> IZ;
-
-GLuint BezierPatch::nvertices=0;
-GLuint BezierPatch::ntvertices=0;
-GLuint BezierPatch::Nvertices=0;
-GLuint BezierPatch::Ntvertices=0;
-
-extern const double Fuzz2;
 
 const double FillFactor=0.1;
 const double BezierFactor=0.4;
@@ -209,7 +197,6 @@ inline void cross(double *dest, const double *u, const double *v,
 
 unsigned n;
 unsigned int count;
-const size_t nbuffer=10000;
   
 // Sort nonintersecting triangles by depth.
 int compare(const void *p, const void *P)
@@ -262,6 +249,7 @@ int compare(const void *p, const void *P)
   */
 }
 
+#if 0
 void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
            double *a, double *b, double *c, double *N, double *A) {
   double td=intersect(a,b,N,A);
@@ -295,8 +283,8 @@ void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
     id=BezierPatch::tVertex(d,nd,cd);
     ie=BezierPatch::tVertex(e,ne,ce);
   } else {
-    id=BezierPatch::tvertex(d,nd);
-    ie=BezierPatch::tvertex(e,ne);
+    id=BezierPatch::tVertex(d,nd);
+    ie=BezierPatch::tVertex(e,ne);
   }
       
   I[i3]=ia;
@@ -311,6 +299,7 @@ void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
   I.push_back(ib);
   I.push_back(ic);
 }
+#endif
 
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
                        bool transparent, GLfloat *colors)
@@ -322,29 +311,23 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   this->Min=Min;
   this->Max=Max;
 
-  const size_t nbuffer=10000;
-  indices.reserve(nbuffer);
-  
   if(transparent) {
-    tbuffer.reserve(nbuffer);
-    tindices.reserve(nbuffer);
-    pindices=&tindices;
+    tVertexbuffer.reserve(nbuffer);
+    tIndices.reserve(nbuffer);
+    pindices=&tIndices;
     pvertex=&tvertex;
-    if(colors) {
-      tBuffer.reserve(nbuffer);
-      tIndices.reserve(nbuffer);
-      pindices=&tIndices;
-      pVertex=&tVertex;
-    }
+    pVertex=&tVertex;
   } else {
-    buffer.reserve(nbuffer);
-    pindices=&indices;
-    pvertex=&vertex;
     if(colors) {
-      Buffer.reserve(nbuffer);
+      Vertexbuffer.reserve(nbuffer);
       Indices.reserve(nbuffer);
       pindices=&Indices;
       pVertex=&Vertex;
+    } else {
+      vertexbuffer.reserve(nbuffer);
+      indices.reserve(nbuffer);
+      pindices=&indices;
+      pvertex=&vertex;
     }
   }
 }
@@ -549,7 +532,7 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
   for(unsigned i=1; i < 16; ++i)
     epsilon=max(epsilon,abs2(p[i]-p0));
   
-  epsilon *= Fuzz2;
+  epsilon *= Fuzz4;
     
   triple p3=p[3];
   triple p12=p[12];
@@ -808,7 +791,7 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
   for(int i=1; i < 10; ++i)
     epsilon=max(epsilon,abs2(p[i]-p0));
   
-  epsilon *= Fuzz2;
+  epsilon *= Fuzz4;
     
   GLuint I0,I1,I2;
     
@@ -845,18 +828,18 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
   }
 }
 
-void transform(const std::vector<GLfloat>& b)
+void transform(const std::vector<VertexData>& b)
 {
-  unsigned n=b.size()/tstride;
+  unsigned n=b.size();
 //  xbuffer.resize(n);
 //  ybuffer.resize(n);
   zbuffer.resize(n);
   
   for(unsigned i=0; i < n; ++i) {
-    unsigned j=tstride*i;
+    const GLfloat *v=b[i].position;
 //    xbuffer[i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
 //    ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
-    zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];
+    zbuffer[i]=Tz[0]*v[0]+Tz[1]*v[1]+Tz[2]*v[2];
   }
 }
 
@@ -908,284 +891,231 @@ void bounds(const std::vector<GLuint>& I)
   }
 }
   
-void BezierPatch::draw()
+void BezierPatch::drawMaterials()
 {
-  if(nvertices == 0 && ntvertices == 0 && Nvertices == 0 && Ntvertices == 0)
+  if(nvertices == 0)
     return;
   
-  static const size_t stride=6;
-  static const size_t Stride=10;
   static const size_t size=sizeof(GLfloat);
-  static const size_t bytestride=stride*size;
-  static const size_t Bytestride=Stride*size;
+  static const size_t bytestride=sizeof(vertexData);
 
-  if(ntvertices > 0) {
-    tstride=stride;
-    transform(tbuffer); 
-//    bounds(tindices);
-    qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
-  }
-
-  if(Ntvertices > 0) {
-    tstride=Stride;
-    transform(tBuffer);
-//    bounds(tIndices);
-    qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
-  }
-    
+  GLuint vertsBufferIndex; 
+  GLuint elemBufferIndex; 
+  
   GLuint vao;
+  
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
-  static const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
-  static const GLint normalAttrib=glGetAttribLocation(noColorShader, "normal");
-
-  static const GLint posAttribCol=glGetAttribLocation(colorShader, "position");
-  static const GLint normalAttribCol=glGetAttribLocation(colorShader, "normal");
-  static const GLint colorAttribCol=glGetAttribLocation(colorShader, "color");
-
-  createBuffers();
-    
-  if(nvertices > 0) {
-    glUseProgram(noColorShader);
-    camp::setUniforms(noColorShader); 
-
-    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[0]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[0]);
-
-    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0));
-    glEnableVertexAttribArray(posAttrib);
-    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(3*sizeof(GLfloat)));
-    glEnableVertexAttribArray(normalAttrib);
-
-    glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void*)(0));
-
-    glDisableVertexAttribArray(posAttrib);
-    glDisableVertexAttribArray(normalAttrib);
-  }
-
-  if(Nvertices > 0) {
-    glUseProgram(colorShader);
-    camp::setUniforms(colorShader); 
-
-    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[1]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[1]);
-
-    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0));
-    glEnableVertexAttribArray(posAttribCol);
-
-    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(3*sizeof(GLfloat)));
-    glEnableVertexAttribArray(normalAttribCol);
-
-    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void*)(6*sizeof(GLfloat)));
-    glEnableVertexAttribArray(colorAttribCol);
-
-    glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void*)(0));
-
-    glDisableVertexAttribArray(posAttribCol);
-    glDisableVertexAttribArray(normalAttribCol);
-    glDisableVertexAttribArray(colorAttribCol);
-  }
-
-  if(ntvertices > 0) {
-    glUseProgram(noColorShader);
-    camp::setUniforms(noColorShader); 
-
-    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[2]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[2]);
-
-    glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0*sizeof(GLfloat)));
-    glEnableVertexAttribArray(posAttrib);
-
-    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(3*sizeof(GLfloat)));
-    glEnableVertexAttribArray(normalAttrib);
-
-    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,(void*)(0*sizeof(GLuint)));
-
-    glDisableVertexAttribArray(posAttrib);
-    glDisableVertexAttribArray(normalAttrib);
-  }
-  
-  if(Ntvertices > 0) {
-    glUseProgram(colorShader);
-    camp::setUniforms(colorShader); 
-
-    glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex[3]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex[3]);
-
-    glVertexAttribPointer(posAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(0*sizeof(GLfloat)));
-    glEnableVertexAttribArray(posAttribCol);
-
-    glVertexAttribPointer(normalAttribCol,3,GL_FLOAT,GL_FALSE,Bytestride,(void*)(3*sizeof(GLfloat)));
-    glEnableVertexAttribArray(normalAttribCol);
-
-    glVertexAttribPointer(colorAttribCol,4,GL_FLOAT,GL_FALSE,Bytestride,(void*)(6*sizeof(GLfloat)));
-    glEnableVertexAttribArray(colorAttribCol);    
-
-    glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,(void*)(0*sizeof(GLuint)));
-
-    glDisableVertexAttribArray(posAttribCol);
-    glDisableVertexAttribArray(normalAttribCol);
-    glDisableVertexAttribArray(colorAttribCol);
-  }
-
-  glBindBuffer(GL_ARRAY_BUFFER,0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-  glUseProgram(0);
-
-  glBindVertexArray(0);
-  glDeleteVertexArrays(1,&vao);
-  
-  clear();
-}
-
-GLuint Triangles::vertsBufferIndex;
-GLuint Triangles::elemBufferIndex;
-
-void Triangles::draw(size_t nP, triple* P, size_t nN, triple* N, 
-                     size_t nC, prc::RGBAColour* C, size_t nI,
-                     uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3])
-{
-  const size_t stride=nC ? (nN ? 10 : 7) : (nN ? 6 : 3);
-  const size_t indexstride=3;
-  const size_t size=sizeof(GLfloat);
-  const size_t bytestride=stride*size;
-
-  GLuint vao;
-  glGenVertexArrays(1,&vao);
-  glBindVertexArray(vao);
-
-  static std::vector<GLfloat> buffer;
-  static std::vector<GLuint> indices;
-  
-  buffer.resize(stride*nP);
-  size_t nindices=indexstride*nI;
-  indices.resize(nindices);
-  uint32_t *P0=(uint32_t *) PI;
-  uint32_t *N0=(uint32_t *) NI;
-  uint32_t *C0=(uint32_t *) CI;
-  if(nC) {
-    if(nN) {
-      for(size_t i=0; i < nindices; ++i) {
-        uint32_t i0=P0[i];
-        indices[i]=i0;
-        triple v=P[i0];
-        size_t istride=stride*i0;
-        buffer[istride]=(GLfloat) v.getx();
-        buffer[istride+1]=(GLfloat) v.gety();
-        buffer[istride+2]=(GLfloat) v.getz();
-        triple n=N[N0[i]];
-        buffer[istride+3]=(GLfloat) n.getx();
-        buffer[istride+4]=(GLfloat) n.gety();
-        buffer[istride+5]=(GLfloat) n.getz();
-        prc::RGBAColour c=C[C0[i]];
-        buffer[istride+6]=(GLfloat) c.R;
-        buffer[istride+7]=(GLfloat) c.G;
-        buffer[istride+8]=(GLfloat) c.B;
-        buffer[istride+9]=(GLfloat) c.A;
-      }
-    } else {
-      for(size_t i=0; i < nindices; ++i) {
-        uint32_t i0=P0[i];
-        indices[i]=i0;
-        triple v=P[i0];
-        size_t istride=stride*i0;
-        buffer[istride]=(GLfloat) v.getx();
-        buffer[istride+1]=(GLfloat) v.gety();
-        buffer[istride+2]=(GLfloat) v.getz();
-        prc::RGBAColour c=C[C0[i]];
-        buffer[istride+3]=(GLfloat) c.R;
-        buffer[istride+4]=(GLfloat) c.G;
-        buffer[istride+5]=(GLfloat) c.B;
-        buffer[istride+6]=(GLfloat) c.A;
-      }
-    }
-  } else {
-    if(nN) {
-      for(size_t i=0; i < nindices; ++i) {
-        uint32_t i0=P0[i];
-        indices[i]=i0;
-        triple v=P[i0];
-        size_t istride=stride*i0;
-        buffer[istride]=(GLfloat) v.getx();
-        buffer[istride+1]=(GLfloat) v.gety();
-        buffer[istride+2]=(GLfloat) v.getz();
-        triple n=N[N0[i]];
-        buffer[istride+3]=(GLfloat) n.getx();
-        buffer[istride+4]=(GLfloat) n.gety();
-        buffer[istride+5]=(GLfloat) n.getz();
-      }
-    } else {
-      for(size_t i=0; i < nindices; ++i) {
-        uint32_t i0=P0[i];
-        indices[i]=i0;
-        triple v=P[i0];
-        size_t istride=stride*i0;
-        buffer[istride]=(GLfloat) v.getx();
-        buffer[istride+1]=(GLfloat) v.gety();
-        buffer[istride+2]=(GLfloat) v.getz();
-      }
-    }
-  }
-  
   glGenBuffers(1,&vertsBufferIndex);
   glGenBuffers(1,&elemBufferIndex);
   
-  registerBuffer(buffer,vertsBufferIndex);
+  registerBuffer(vertexbuffer,vertsBufferIndex);
   registerBuffer(indices,elemBufferIndex);
-    
-  GLint posAttrib,normalAttrib,colorAttrib;
-  GLint shader;
   
-  if(nC) {
-    shader=colorShader;
-    colorAttrib=glGetAttribLocation(shader, "color");
-  } else
-    shader=noColorShader;
-  
-  posAttrib=glGetAttribLocation(shader, "position");
-  if(nN)
-    normalAttrib=glGetAttribLocation(shader, "normal");
-  
-  glUseProgram(shader);
-  camp::setUniforms(shader);
+  camp::setUniforms(noColorShader); 
 
+  const GLint posAttrib=glGetAttribLocation(noColorShader,"position");
+  const GLint normalAttrib=glGetAttribLocation(noColorShader,"normal");
+  const GLint materialAttrib=glGetAttribLocation(noColorShader,"material");
+  
   glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
 
-  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0));
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
   glEnableVertexAttribArray(posAttrib);
-  if(nN) {
-    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(3 *sizeof(GLfloat)));
-    glEnableVertexAttribArray(normalAttrib);
-  }
-  if(nC) {
-    glVertexAttribPointer(colorAttrib,4,GL_FLOAT,GL_FALSE,bytestride,(void*)((nN ? 6 : 3)*sizeof(GLfloat)));
-    glEnableVertexAttribArray(colorAttrib);
-  }
-  
-  glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void*)(0));
+    
+  glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
+                        (void *) (3*size));
+  glEnableVertexAttribArray(normalAttrib);
+
+  glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
+                         (void *) (6*size));
+  glEnableVertexAttribArray(materialAttrib);
+
+  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
+  glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
   glDisableVertexAttribArray(posAttrib);
-  if(nN)
-    glDisableVertexAttribArray(normalAttrib);
-  if(nC)
-    glDisableVertexAttribArray(colorAttrib);
+  glDisableVertexAttribArray(normalAttrib);
+  glDisableVertexAttribArray(materialAttrib);
 
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
   glUseProgram(0);
 
-  indices.clear();
-  buffer.clear();
-  
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);
+  
+  nvertices=0;
+  vertexbuffer.clear();
+  indices.clear();
   
   glDeleteBuffers(1,&vertsBufferIndex);
   glDeleteBuffers(1,&elemBufferIndex);
 }
 
+void BezierPatch::drawColors(GLuint& Nvertices,
+                             std::vector<VertexData>& Vertexbuffer,
+                             std::vector<GLuint>& Indices)
+{
+  if(Nvertices == 0)
+    return;
+
+  static const size_t size=sizeof(GLfloat);
+  static const size_t bytestride=sizeof(VertexData);
+
+  GLuint vertsBufferIndex; 
+  GLuint elemBufferIndex; 
+  
+  GLuint vao;
+  
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
+  glGenBuffers(1,&vertsBufferIndex);
+  glGenBuffers(1,&elemBufferIndex);
+  
+  registerBuffer(Vertexbuffer,vertsBufferIndex);
+  registerBuffer(Indices,elemBufferIndex);
+  
+  camp::setUniforms(colorShader); 
+
+  const GLint posAttrib=glGetAttribLocation(colorShader,"position");
+  const GLint normalAttrib=glGetAttribLocation(colorShader,"normal");
+  const GLint colorAttrib=glGetAttribLocation(colorShader,"color");
+  const GLint materialAttrib=glGetAttribLocation(colorShader,"material");
+  
+  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
+
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
+                        (void *) 0);
+  glEnableVertexAttribArray(posAttrib);
+
+  glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
+                        (void *) (3*size));
+  glEnableVertexAttribArray(normalAttrib);
+
+  glVertexAttribIPointer(colorAttrib,1,GL_UNSIGNED_INT,bytestride,
+                         (void *) (6*size));
+  glEnableVertexAttribArray(colorAttrib);
+
+  glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,
+                         (void *) (6*size+sizeof(GLuint)));
+  glEnableVertexAttribArray(materialAttrib);
+    
+  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
+  glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void *) 0);
+
+  glDisableVertexAttribArray(posAttrib);
+  glDisableVertexAttribArray(normalAttrib);
+  glDisableVertexAttribArray(colorAttrib);
+  glDisableVertexAttribArray(materialAttrib);
+
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+  glUseProgram(0);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1,&vao);
+  
+  Nvertices=0;
+  Vertexbuffer.clear();
+  Indices.clear();
+  
+  glDeleteBuffers(1,&vertsBufferIndex);
+  glDeleteBuffers(1,&elemBufferIndex);
+}
+
+void BezierPatch::sortTriangles()
+{
+  if(Ntvertices > 0) {
+    transform(tVertexbuffer);
+    bounds(tIndices);
+    qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
+  }
+}
+
+void Triangles::queue(size_t nP, triple* P, size_t nN, triple* N,
+                      size_t nC, prc::RGBAColour* C, size_t nI,
+                      uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3],
+                      bool transparent)
+{
+  if(!nN) return;
+  const size_t indexstride=3;
+  size_t nindices=indexstride*nI;
+  size_t index0;
+
+  if(transparent) {
+    tVertexbuffer.reserve(nbuffer);
+    tVertexbuffer.resize(Ntvertices+nP);
+    tIndices.reserve(nbuffer);
+    index0=tIndices.size();
+    tIndices.resize(index0+nindices);
+  } else {
+    if(nC) {
+      Vertexbuffer.reserve(nbuffer);
+      Vertexbuffer.resize(Nvertices+nP);
+      Indices.reserve(nbuffer);
+      index0=Indices.size();
+      Indices.resize(index0+nindices);
+    } else {
+      vertexbuffer.reserve(nbuffer);
+      vertexbuffer.resize(nvertices+nP);
+      indices.reserve(nbuffer);
+      index0=indices.size();
+      indices.resize(index0+nindices);
+    }
+  }
+
+  uint32_t *P0=(uint32_t *) PI;
+  uint32_t *N0=(uint32_t *) NI;
+  uint32_t *C0=(uint32_t *) CI;
+
+  if(transparent) {
+    if(nC) {
+      for(size_t i=0; i < nindices; ++i) {
+        uint32_t i0=P0[i];
+        prc::RGBAColour c=C[C0[i]];
+        GLfloat c0[]={(GLfloat) c.R,(GLfloat) c.G,(GLfloat) c.B,(GLfloat) c.A};
+        GLuint index=Ntvertices+i0;
+        tVertexbuffer[index]=VertexData(P[i0],N[N0[i]],c0);
+        tIndices[index0+i]=index;
+      }
+    } else {
+      for(size_t i=0; i < nindices; ++i) {
+        uint32_t i0=P0[i];
+        GLuint index=Ntvertices+i0;
+        tVertexbuffer[index]=VertexData(P[i0],N[N0[i]]);
+        tIndices[index0+i]=index;
+      }
+    }
+    Ntvertices += nP;
+  } else {
+    if(nC) {
+      for(size_t i=0; i < nindices; ++i) {
+        uint32_t i0=P0[i];
+        prc::RGBAColour c=C[C0[i]];
+        GLfloat c0[]={(GLfloat) c.R,(GLfloat) c.G,(GLfloat) c.B,
+                      (GLfloat) c.A};
+        GLuint index=Nvertices+i0;
+        Vertexbuffer[index]=VertexData(P[i0],N[N0[i]],c0);
+        Indices[index0+i]=index;
+      }
+      Nvertices += nP;
+    } else {
+      for(size_t i=0; i < nindices; ++i) {
+        uint32_t i0=P0[i];
+        GLuint index=nvertices+i0;
+        vertexbuffer[index]=vertexData(P[i0],N[N0[i]]);
+        indices[index0+i]=index;
+      }
+      nvertices += nP;
+    }
+  }
+}
+ 
 #endif
 
 } //namespace camp

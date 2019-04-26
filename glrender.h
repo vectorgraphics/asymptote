@@ -13,30 +13,36 @@
 
 #include <csignal>
 
+#define GLEW_NO_GLU
+//#define GLEW_OSMESA
+
+#ifdef __MSDOS__
+#define GLEW_STATIC
+#include <windows.h>
+#define CALLBACK __stdcall
+typedef void (APIENTRY* _GLUfuncptr)();
+#endif
+
 #ifdef __APPLE__
+#include <GL/glew.h>
 #include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
-#include <OpenGL/glu.h>
 #ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
-#include <GL/osmesa.h> // TODO: where would you find osmesa on a mac?
-#endif
-#ifdef GLU_TESS_CALLBACK_TRIPLEDOT
-typedef GLvoid (* _GLUfuncptr)(...);
-#else
-typedef GLvoid (* _GLUfuncptr)();
+#include <GL/osmesa.h>
 #endif
 #else
-#define GLEW_OSMESA
-#define GLEW_STATIC
 #include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-//#include <GL/glext.h>
-#undef HAVE_LIBOSMESA // TODO: Turn this off/ 
+#ifdef __MSDOS__
+#include <GL/wglew.h>
+#include <GL/wglext.h>
+#endif
 #ifdef HAVE_LIBGLUT
+#ifdef __MSDOS__
+#define FREEGLUT_STATIC
+#define APIENTRY
+#endif
 #include <GL/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
@@ -74,6 +80,7 @@ inline void store(GLfloat *control, const triple& v, double weight)
 namespace gl {
 
 extern bool outlinemode;
+extern Int maxvertices;
 
 struct projection 
 {
@@ -109,6 +116,9 @@ struct ModelView {
 };
 
 extern ModelView modelView;
+
+void initshader();
+void deleteshader();
 
 }
 
@@ -158,5 +168,3 @@ typedef float GLfloat;
 #endif
 
 #endif
-
-

@@ -15,6 +15,7 @@
 #include "drawlabel.h"
 #include "drawlayer.h"
 #include "drawsurface.h"
+#include "drawpath3.h"
 
 using std::ifstream;
 using std::ofstream;
@@ -323,7 +324,7 @@ pair picture::ratio(double (*m)(double, double))
   bool first=true;
   pair b;
   bounds3();
-  double fuzz=sqrtFuzz*(b3.Max()-b3.Min()).length();
+  double fuzz=Fuzz*(b3.Max()-b3.Min()).length();
   matrixstack ms;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
@@ -980,7 +981,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   bbox bshift=b;
   
-  transparency=false;
+//  transparency=false;
   int svgcount=0;
   
   typedef mem::list<drawElement *> clipstack;
@@ -1105,8 +1106,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.epilogue();
     out.close();
     
-    if(out.Transparency())
-      transparency=true;
+//    if(out.Transparency())
+//      transparency=true;
     
     if(Labels) {
       tex->resetpen();
@@ -1175,14 +1176,17 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
 // render viewport with width x height pixels.
 void picture::render(double size2, const triple& Min, const triple& Max,
-                     double perspective, bool lighton, bool transparent) const
+                     double perspective, bool transparent) const
 {
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->render(size2,Min,Max,perspective,lighton,transparent);
+    (*p)->render(size2,Min,Max,perspective,transparent);
   }
 #ifdef HAVE_GL
-  drawBezierPatch::S.draw();
+  if(transparent)
+    drawBezierPatch::S.drawTransparent();
+  else
+    drawBezierPatch::S.drawOpaque();
 #endif  
 }
   

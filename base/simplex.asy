@@ -49,7 +49,7 @@ struct simplex {
         if(Em[J] < 0) break;
 
       if(J == N)
-        return 0;
+        break;
 
       int I=-1;
       real M;
@@ -65,7 +65,7 @@ struct simplex {
         real e=E[i][J];
         if(e > epsilonA) {
           real v=E[i][N]/e;
-          if(v <= M) {M=v; I=i;}
+          if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
         }
       }
       if(I == -1)
@@ -127,7 +127,7 @@ struct simplex {
     static real epsilon=sqrt(realEpsilon);
     epsilonA=epsilon*norm(A);
 
-    // Phase 1    
+    // Phase 1
     m=A.length;
     if(m == 0) {case=INFEASIBLE; return;}
     n=A[0].length;
@@ -195,7 +195,6 @@ struct simplex {
     
     real[] cB=phase1 ? new real[m] : c[n-m:n];
     real[][] D=phase1 ? new real[m+1][n+1] : E;
-    real[] Dm=D[m];
     if(phase1) {
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
@@ -232,10 +231,12 @@ struct simplex {
 
       if(m > ip) {
         Bindices.delete(ip,m-1);
+        D.delete(ip,m-1);
         m=ip;
       }
     }
 
+    real[] Dm=D[m];
     for(int j=0; j < n; ++j) {
       real sum=0;
       for(int k=0; k < m; ++k)

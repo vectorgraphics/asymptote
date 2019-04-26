@@ -1,15 +1,14 @@
 // shader handling
-// Author: Supakorn "Jamie" Ras. 
+// Author: Supakorn "Jamie" Rassameemasmuang
 
+#include "common.h"
 
-#include <GL/glew.h>
+#ifdef HAVE_GL
 
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <string>
-#include <unordered_set>
-
 #include <iostream>
 
 #include "shaders.h"
@@ -17,7 +16,7 @@
 GLuint createShaders(GLchar const* src, int shaderType)
 {
     GLuint shader = glCreateShader(shaderType);
-    glShaderSource(shader, 1, &src, nullptr);
+    glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
     
     GLint status;
@@ -33,9 +32,10 @@ GLuint createShaders(GLchar const* src, int shaderType)
 
         glGetShaderInfoLog(shader, length, &length, msg.data());
 
-        for(GLchar const& cha : msg)
+        size_t n=msg.size();
+        for(size_t i=0; i < n; ++i) 
         {
-            std::cerr << cha;
+          std::cerr << msg[i];
         }
 
         std::cerr << std::endl << "GL Compile error" << std::endl;
@@ -45,20 +45,25 @@ GLuint createShaders(GLchar const* src, int shaderType)
     return shader;
 }
 
-GLuint createShaderFile(std::string file, int shaderType, std::unordered_set<std::string> compilerFlags)
+GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
+                        size_t Nmaterials,  bool explicitcolor)
 {
     std::ifstream shaderFile;
-    shaderFile.open(file);
+    shaderFile.open(file.c_str());
     std::stringstream shaderSrc;
 
-    shaderSrc << "#version 450" << "\r\n";
+    shaderSrc << "#version 130" << "\r\n";
+    shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
+              << "\r\n";
+    shaderSrc << "#extension GL_ARB_shading_language_packing : enable"
+              << "\r\n";
 
     
-    for(std::string const& flag : compilerFlags)
-    {
-        shaderSrc << "#define " << flag << "\r\n";
-    }
+    if(explicitcolor)
+      shaderSrc << "#define EXPLICIT_COLOR" << "\r\n";
     
+    shaderSrc << "const int Nlights=" << Nlights << ";\r\n";
+    shaderSrc << "const int Nmaterials=" << Nmaterials << ";\r\n";
 
     if (shaderFile)
     {
@@ -72,3 +77,4 @@ GLuint createShaderFile(std::string file, int shaderType, std::unordered_set<std
 
     return createShaders(shaderSrc.str().data(), shaderType);
 }
+#endif

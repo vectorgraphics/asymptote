@@ -181,11 +181,7 @@ typedef std::basic_ostringstream<char,std::char_traits<char>,
                                  gc_allocator<char> > ostringstream;
 typedef std::basic_stringbuf<char,std::char_traits<char>,
                              gc_allocator<char> > stringbuf;
-#if GC_TMP_VERSION_MAJOR >= 7 && GC_TMP_VERSION_MINOR > 1
 inline void compact(int x) {GC_set_dont_expand(x);}
-#else
-inline void compact(int x) {GC_dont_expand=x;}
-#endif    
 #else
 inline void compact(int x) {}
 typedef std::string string;

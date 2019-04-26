@@ -24,7 +24,7 @@
 #endif
 
 #if !defined(FOR_SHARED) && \
-  ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT)) || defined(HAVE_LIBOSMESA))
+  ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLEW) && defined(HAVE_LIBGLM)) || defined(HAVE_LIBOSMESA))
 #define HAVE_GL
 #endif
 

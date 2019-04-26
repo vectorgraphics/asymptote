@@ -16,7 +16,7 @@ namespace camp {
 class drawPath3 : public drawElement {
 protected:
 #ifdef HAVE_GL
-  BezierCurve R;
+  static BezierCurve R;
 #endif  
   const path3 g;
   triple center;
@@ -71,7 +71,7 @@ public:
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   void render(double, const triple&, const triple&, double,
-              bool lighton, bool transparent);
+              bool transparent);
 
   drawElement *transformed(const double* t);
 };
@@ -156,7 +156,7 @@ public:
              bool &first);
     
   void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool lighton, bool transparent);
+              double perspective, bool transparent);
     
   drawElement *transformed(const double* t);
 };
@@ -168,13 +168,13 @@ class drawPixel : public drawElement {
 #endif  
   triple v;
   pen p;
-  prc::RGBAColour c;
+  prc::RGBAColour color;
   double width;
   bool invisible;
   triple Min,Max;
 public:
   drawPixel(const triple& v, const pen& p, double width, const string& key="")
-    : drawElement(key), v(v), p(p), c(rgba(p)), width(width),
+    : drawElement(key), v(v), p(p), color(rgba(p)), width(width),
       invisible(p.invisible()) {}
 
   void bounds(const double* t, bbox3& B) {
@@ -194,7 +194,7 @@ public:
   }
   
   void render(double size2, const triple& b, const triple& B,
-              double perspective, bool lighton, bool transparent);
+              double perspective, bool transparent);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   

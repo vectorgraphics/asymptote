@@ -162,9 +162,9 @@ public:
     *out << newl;
   }
   
-  bool Transparency() {
-    return transparency;
-  }
+//  bool Transparency() {
+//    return transparency;
+//  }
   
   void write(pair z) {
     *out << " " << z.getx() << " " << z.gety();

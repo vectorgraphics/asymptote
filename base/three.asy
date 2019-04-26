@@ -2021,7 +2021,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   }
   
   string invalidnormal="invalid normal vector";
-  real fuzz=sqrtEpsilon*max(abs(v1),abs(v2));
+  real fuzz=sqrtEpsilon;
   if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
     abort(invalidnormal);
   

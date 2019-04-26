@@ -15,6 +15,7 @@
 
 #include "common.h"
 #include "locate.h"
+#include "seconds.h"
 
 #ifdef HAVE_GL
 
@@ -52,19 +53,28 @@
 #include "material.h"
 
 using settings::locateFile;
+using camp::Material;
+using camp::Maxmaterials;
+using camp::Nmaterials;
+using camp::nmaterials;
+using utils::seconds;
 
 namespace camp {
 billboard BB;
 GLint noColorShader;
 GLint colorShader;
-
-extern Material objMaterial;
+size_t Maxmaterials;
+size_t Nmaterials=1;
+size_t nmaterials=48;
 }
 namespace gl {
   
 bool outlinemode=false;
 bool glthread=false;
 bool initialize=true;
+
+GLint Maxvertices;
+Int maxvertices;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -142,7 +152,8 @@ static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
 double Background[4];
-size_t Nlights;
+size_t Nlights=1; // Maximum number of lights compiled in shader
+size_t nlights; // Actual number of lights
 triple *Lights; 
 double *Diffuse;
 double *Ambient;
@@ -159,9 +170,11 @@ using glm::dmat4;
 using glm::value_ptr;
 using glm::translate;
 
-mat4 projMat;
+mat4 projViewMat;
 mat4 viewMat;
+mat4 normMat;
 
+dmat4 dprojMat;
 dmat4 dviewMat;
 dmat4 drotateMat; 
 
@@ -172,6 +185,8 @@ void updateModelViewData()
   // Like Fortran, OpenGL uses transposed (column-major) format!
   dmat4 MV=glm::transpose(dviewMat);
   dmat4 MVinv=glm::inverse(MV);
+  
+  normMat=mat4(MVinv);
 
   double* T=value_ptr(MV);
   double* Tinv=value_ptr(MVinv);
@@ -239,34 +254,6 @@ glm::vec4 vec4(double *v)
   return glm::vec4(v[0],v[1],v[2],v[3]);
 }
 
-void setLights()
-{  
-  struct Light
-  {
-    glm::vec4 direction;
-    glm::vec4 diffuse, ambient, specular; 
-    Light() {}
-    Light(triple direction, double *diffuse, double *ambient, double *specular)
-      : direction(vec4(direction)), diffuse(vec4(diffuse)),
-        ambient(vec4(ambient)), specular(vec4(specular)) {}
-  };
-
-  Light *lights=new Light[gl::Nlights];
-
-  for(size_t i=0; i < gl::Nlights; ++i) {
-    size_t i4=4*i;
-    lights[i]=Light(gl::Lights[i],gl::Diffuse+i4,gl::Ambient+i4,gl::Specular+i4);
-  }
-  
-  GLuint ssbo;
-  glGenBuffers(1,&ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,ssbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Light)*gl::Nlights,lights,
-               GL_STATIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-} 
-
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
@@ -308,13 +295,15 @@ void setDimensions(int Width, int Height, double X, double Y)
 void frustum(GLdouble left, GLdouble right, GLdouble bottom,
              GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
-  projMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
+  dprojMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
+  projViewMat=mat4(dprojMat*dviewMat);
 }
 
 void ortho(GLdouble left, GLdouble right, GLdouble bottom,
-             GLdouble top, GLdouble nearVal, GLdouble farVal)
+           GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
-  projMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
+  dprojMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
+  projViewMat=mat4(dprojMat*dviewMat);
 }
 
 void setProjection()
@@ -342,8 +331,6 @@ void drawscene(double Width, double Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  setLights();
-    
   triple m(xmin,ymin,zmin);
   triple M(xmax,ymax,zmax);
   double perspective=orthographic ? 0.0 : 1.0/zmax;
@@ -351,13 +338,13 @@ void drawscene(double Width, double Height)
   double size2=hypot(Width,Height);
   
   // Render opaque objects
-  Picture->render(size2,m,M,perspective,Nlights,false);
+  Picture->render(size2,m,M,perspective,false);
   
   // Enable transparency
   glDepthMask(GL_FALSE);
   
   // Render transparent objects
-  Picture->render(size2,m,M,perspective,Nlights,true);
+  Picture->render(size2,m,M,perspective,true);
   glDepthMask(GL_TRUE);
 }
 
@@ -454,6 +441,7 @@ void home()
   }
 #endif
   viewMat=mat4(1.0f);
+  normMat=mat4(1.0f);
   
   dviewMat=dmat4(1.0);
   drotateMat=dmat4(1.0); 
@@ -684,7 +672,17 @@ void display()
     queueScreen=false;
   }
 
+  maxvertices=getSetting<Int>("maxvertices");
+  if(maxvertices == 0) maxvertices=Maxvertices;
+
+  bool fps=settings::verbose > 2;  
+  if(fps) seconds();
   drawscene(Width,Height);
+  if(fps) {
+    double s=seconds();
+    if(s > 0.0)
+      cout << "FPS=" << 1.0/s << endl;
+  }
   glutSwapBuffers();
 #ifdef HAVE_PTHREAD
   if(glthread && Animate) {
@@ -726,12 +724,10 @@ void update()
   
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
-
   viewMat=mat4(dviewMat);
-  
+  setProjection();
   updateModelViewData();
   
-  setProjection();
   glutPostRedisplay();
 }
 
@@ -1208,7 +1204,6 @@ void exportHandler(int=0)
 }
 
 static bool glinitialize=true;
-static bool shaderinit=false;
 
 projection camera(bool user)
 {
@@ -1267,8 +1262,10 @@ void init()
   char **argv=args(cmd,true);
   int argc=cmd.size();
 
-  glutInitContextVersion(4,5);
+//  glutInitContextVersion(4,3);
+#ifndef __APPLE__
   glutInitContextProfile(GLUT_CORE_PROFILE);
+#endif  
   //glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
 
   glutInit(&argc,argv);
@@ -1320,11 +1317,63 @@ void init_osmesa()
 #endif // HAVE_LIBOSMESA
 }
 
+GLuint vertShader,fragShader;
+GLuint vertShaderCol,fragShaderCol;
+
+void initshader()
+{
+  Nlights=max(Nlights,nlights);
+  Nmaterials=max(Nmaterials,nmaterials);
+  shaderProg=glCreateProgram();
+  string vs=locateFile("shaders/vertex.glsl");
+  string fs=locateFile("shaders/fragment.glsl");
+  if(vs.empty() || fs.empty()) {
+    cerr << "GLSL shaders not found." << endl;
+    exit(-1);
+  }
+
+  vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
+                              Nmaterials);
+  fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
+                              Nmaterials);
+  glAttachShader(shaderProg,vertShader);
+  glAttachShader(shaderProg,fragShader);
+    
+  shaderProgColor=glCreateProgram();
+  vertShaderCol=createShaderFile(vs.c_str(),
+                                 GL_VERTEX_SHADER,Nlights,Nmaterials,true);
+  fragShaderCol=createShaderFile(fs.c_str(),
+                                 GL_FRAGMENT_SHADER,Nlights,Nmaterials,true);
+  glAttachShader(shaderProgColor,vertShaderCol);
+  glAttachShader(shaderProgColor,fragShaderCol);
+
+  camp::noColorShader=shaderProg;
+  camp::colorShader=shaderProgColor;
+    
+  glLinkProgram(shaderProg);
+  glDetachShader(shaderProg,vertShader);
+  glDetachShader(shaderProg,fragShader);
+  glDeleteShader(vertShader);
+  glDeleteShader(fragShader);
+    
+  glLinkProgram(shaderProgColor);
+  glDetachShader(shaderProgColor,vertShaderCol);
+  glDetachShader(shaderProgColor,fragShaderCol);
+  glDeleteShader(vertShaderCol);
+  glDeleteShader(fragShaderCol);
+}
+
+void deleteshader() 
+{
+  glDeleteProgram(camp::noColorShader);
+  glDeleteProgram(camp::colorShader);
+}
+  
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
               const triple& m, const triple& M, const pair& shift, double *t,
-              double *background, size_t nlights, triple *lights,
+              double *background, size_t nlights0, triple *lights,
               double *diffuse, double *ambient, double *specular,
               bool view, int oldpid)
 {
@@ -1334,7 +1383,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
 #endif  
-
   width=max(width,1.0);
   height=max(height,1.0);
   
@@ -1348,7 +1396,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   for(int i=0; i < 4; ++i)
     Background[i]=background[i];
   
-  Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
+  nlights=min(nlights0,(size_t) GL_MAX_LIGHTS);
+  
   Lights=lights;
   Diffuse=diffuse;
   Ambient=ambient;
@@ -1441,7 +1490,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setosize();
 #endif
     
-    if(View && settings::verbose > 1) 
+    if(View && settings::verbose > 1)
       cout << "Rendering " << stripDir(prefix) << " as "
            << Width << "x" << Height << " image" << endl;
   }
@@ -1450,8 +1499,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
 #ifdef HAVE_LIBGLUT    
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
-  string buttonnames[]={"left","middle","right"};
 #endif  
+  
+  camp::clearMaterialBuffer();
   
 #ifdef HAVE_PTHREAD
   if(glthread && initializedView && !offscreen) {
@@ -1478,7 +1528,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         displaymode |= GLUT_MULTISAMPLE;
       glutInitDisplayMode(displaymode);
 
-      ostringstream buf;
       int samples;
 
 #ifdef FREEGLUT
@@ -1530,14 +1579,16 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   int result = glewInit();
 
   if (result != GLEW_OK) {
-    cerr << "GLEW Error!" << endl;
+    cerr << "GLEW initialization error." << endl;
     exit(-1);
   }
   
-  if(!GLEW_VERSION_4_5) {
-    cerr << "OpenGL Version 4.5 not available!" << endl;
-    exit(-1);
-  }
+  GLint val;
+  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
+  Maxmaterials=val/sizeof(Material);
+  if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
+
+  glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&Maxvertices);
 
   home();
     
@@ -1554,27 +1605,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #endif
 
-  if(!shaderinit) {
-    shaderProg=glCreateProgram();
-    GLuint vertShader=createShaderFile(
-      locateFile("shaders/main.vs.glsl").c_str(),GL_VERTEX_SHADER);
-    GLuint fragShader=createShaderFile(
-      locateFile("shaders/main.fs.glsl").c_str(),GL_FRAGMENT_SHADER);
-    glAttachShader(shaderProg,vertShader);
-    glAttachShader(shaderProg,fragShader);
-    
-    shaderProgColor=glCreateProgram();
-    GLuint vertShaderCol=createShaderFile(locateFile("shaders/main.vs.glsl").c_str(),GL_VERTEX_SHADER,{"EXPLICIT_COLOR"});
-    GLuint fragShaderCol=createShaderFile(locateFile("shaders/main.fs.glsl").c_str(),GL_FRAGMENT_SHADER,{"EXPLICIT_COLOR"});
-    glAttachShader(shaderProgColor,vertShaderCol);
-    glAttachShader(shaderProgColor,fragShaderCol);
-
-    camp::noColorShader=shaderProg;
-    camp::colorShader=shaderProgColor;
-    shaderinit=true;
-    glLinkProgram(shaderProgColor);
-    glLinkProgram(shaderProg);
-  }
+  initshader();
   
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
@@ -1617,19 +1648,62 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 namespace camp {
 
+string getLightIndex(size_t const& index, string const& fieldName) {
+  ostringstream buf;
+  buf << "lights[" << index << "]." << fieldName;
+  return Strdup(buf.str());
+} 
+
 void setUniforms(GLint shader)
 {
+  if(gl::nlights > gl::Nlights || nmaterials > Nmaterials) {
+    gl::deleteshader();
+    gl::initshader();
+  }
+  
+  glUseProgram(shader);
+  
+  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
-  glUniformMatrix4fv(glGetUniformLocation(shader,"projMat"),1,GL_FALSE, value_ptr(gl::projMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
 
-  // materials 
-  glUniform4fv(glGetUniformLocation(shader,"materialData.diffuse"),1,value_ptr(objMaterial.diffuse));
-  glUniform4fv(glGetUniformLocation(shader,"materialData.specular"),1,value_ptr(objMaterial.specular));
-  glUniform4fv(glGetUniformLocation(shader,"materialData.ambient"),1,value_ptr(objMaterial.ambient));
-  glUniform4fv(glGetUniformLocation(shader,"materialData.emissive"),1,value_ptr(objMaterial.emission));
+  GLuint binding=0;
+  GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
+  glUniformBlockBinding(shader,blockindex,binding);
+    
+  GLuint ubo;
+  glGenBuffers(1,&ubo);
+  glBindBuffer(GL_UNIFORM_BUFFER,ubo);
+    
+  glBufferData(GL_UNIFORM_BUFFER,drawElement::material.size()*sizeof(Material),
+               drawElement::material.data(),GL_STATIC_DRAW);
+  glBindBufferBase(GL_UNIFORM_BUFFER,binding,ubo);
+  
+  glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
+  
+  for(size_t i=0; i < gl::nlights; ++i) {
+    triple Lighti=gl::Lights[i];
+    size_t i4=4*i;
+    glUniform4f(glGetUniformLocation(shader,
+                                     getLightIndex(i,"direction").c_str()),
+                (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
+                (GLfloat) Lighti.getz(),0.0);
 
-  glUniform1f(glGetUniformLocation(shader,"materialData.shininess"),objMaterial.shininess);
-  glUniform1i(glGetUniformLocation(shader,"Nlights"),gl::Nlights);
+    glUniform4f(glGetUniformLocation(shader,
+                                     getLightIndex(i,"diffuse").c_str()),
+                (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
+                (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
+      
+    glUniform4f(glGetUniformLocation(shader,
+                                     getLightIndex(i,"ambient").c_str()),
+                (GLfloat) gl::Ambient[i4],(GLfloat) gl::Ambient[i4+1],
+                (GLfloat) gl::Ambient[i4+2],(GLfloat) gl::Ambient[i4+3]);
+      
+    glUniform4f(glGetUniformLocation(shader,
+                                     getLightIndex(i,"specular").c_str()),
+                (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
+                (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
+  }
 }
 
 }
