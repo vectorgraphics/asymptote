@@ -1,274 +1,329 @@
-/*****
- * simplex.asy
- * Andy Hammerlindl 2004/07/27
- *
- * Solves the two-variable linear programming problem using the simplex method.
- * This problem is specialized in that the second variable, "b", does not have
- * a non-negativity condition, and the first variable, "a", is the quantity
- * being maximized.
- * Correct execution of the algorithm also assumes that the coefficient of "b"
- * will be +1 or -1 in every added restriction, and that the problem can be
- * initialized to a valid state by pivoting b with one of the slack
- * variables.  This assumption may in fact be incorrect.
- *****/
+// Real simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 
-private real infinity=sqrt(0.25*realMax);
+struct simplex {
+  static int OPTIMAL=0;
+  static int UNBOUNDED=1;
+  static int INFEASIBLE=2;
 
-struct problem {
-  typedef int var;
-  static var VAR_A = 0;
-  static var VAR_B = 1;
+  int case;
+  real[] x;
+  real cost;
 
-  static int OPTIMAL = -1;
-  static var UNBOUNDED = -2;
-  static int INVALID = -3;
+  int m,n;
+  int J;
+  real epsilonA;
 
-  struct row {
-    real c, t[];
+  // Row reduce based on pivot E[I][J]
+  void rowreduce(real[][] E, int N, int I, int J) {
+    real[] EI=E[I];
+    real v=EI[J];
+    for(int j=0; j < J; ++j) EI[j] /= v;
+    EI[J]=1.0;
+    for(int j=J+1; j <= N; ++j) EI[j] /= v;
+
+    for(int i=0; i < I; ++i) {
+      real[] Ei=E[i];
+      real EiJ=Ei[J];
+      for(int j=0; j < J; ++j)
+        Ei[j] -= EI[j]*EiJ;
+      Ei[J]=0.0;
+      for(int j=J+1; j <= N; ++j)
+        Ei[j] -= EI[j]*EiJ;
+    }
+    for(int i=I+1; i <= m; ++i) {
+      real[] Ei=E[i];
+      real EiJ=Ei[J];
+      for(int j=0; j < J; ++j)
+        Ei[j] -= EI[j]*EiJ;
+      Ei[J]=0.0;
+      for(int j=J+1; j <= N; ++j)
+        Ei[j] -= EI[j]*EiJ;
+    }
   }
 
-  // The variables of the rows.
-  // Initialized for the two variable problem.
-  var[] v = {VAR_A, VAR_B};
-
-  // The rows of equalities.
-  row rowA() {
-    row r = new row;
-    r.c = 0;
-    r.t = new real[] {1, 0};
-    return r;
-  }
-  row rowB() {
-    row r = new row;
-    r.c = 0;
-    r.t = new real[] {0, 1};
-    return r;
-  }
-  row[] rows = {rowA(), rowB()};
-
-  // The number of original variables.
-  int n = rows.length;
-
-  // Pivot the variable v[col] with vp.
-  void pivot(int col, var vp)
-  {
-    var vc=v[col];
-
-    // Recalculate rows v[col] and vp for the pivot-swap.
-    row rvc = rows[vc], rvp = rows[vp];
-    real factor=1/rvp.t[col]; // NOTE: Handle rvp.t[col] == 0 case.
-    rvc.c=-rvp.c*factor;
-    rvp.c=0;
-    rvc.t=-rvp.t*factor;
-    rvp.t *= 0;
-    rvc.t[col]=factor;
-    rvp.t[col]=1;
-    
-    var a=min(vc,vp);
-    var b=max(vc,vp);
-    
-    // Recalculate the rows other than the two used for the above pivot.
-    for (var i = 0; i < a; ++i) {
-      row r=rows[i];
-      real m = r.t[col];
-      r.c += m*rvc.c;
-      r.t += m*rvc.t;
-      r.t[col]=m*factor;
-    }
-    for (var i = a+1; i < b; ++i) {
-      row r=rows[i];
-      real m = r.t[col];
-      r.c += m*rvc.c;
-      r.t += m*rvc.t;
-      r.t[col]=m*factor;
-    }
-    for (var i = b+1; i < rows.length; ++i) {
-      row r=rows[i];
-      real m = r.t[col];
-      r.c += m*rvc.c;
-      r.t += m*rvc.t;
-      r.t[col]=m*factor;
-    }
-
-    // Relabel the vars.
-    v[col] = vp;
-  }
-
-  // As b does not have a non-negativity condition, it must initially be
-  // pivoted out for a variable that does.  This selects the initial
-  // variable to pivot with b.  It also assumes that there is a valid
-  // solution with a == 0 to the linear programming problem, and if so, it
-  // picks a pivot to get to that state.  In our case, a == 0 corresponds to
-  // a picture with the user coordinates shrunk down to zero, and if that
-  // doesn't fit, nothing will.
-  var initVar()
-  {
-    real min=infinity, max=-infinity;
-    var argmin=0, argmax=0;
-
-    for (var i = 2; i < rows.length; ++i) {
-      row r=rows[i];
-      if (r.t[VAR_B] > 0) {
-        real val=r.c/r.t[VAR_B];
-        if (val < min) {
-          min=val;
-          argmin=i;
-        }
-      } else if (r.t[VAR_B] < 0) {
-        real val=r.c/r.t[VAR_B];
-        if (val > max) {
-          max=val;
-          argmax=i;
-        }
-      }
-    }
-
-    // If b has a minimal value, choose a pivot that will give b its minimal
-    // value.  Otherwise, if b has maximal value, choose a pivot to give b its
-    // maximal value.
-    return argmin != 0 ? argmin :
-      argmax != 0 ? argmax :
-      UNBOUNDED;
-  }
-
-  // Initialize the linear program problem by moving into an acceptable state
-  // this assumes that b is unrestrained and is the second variable.
-  // NOTE: Works in limited cases, may be bug-ridden.
-  void init()
-  {
-    // Find the lowest constant term in the equations.
-    var lowest = 0;
-    for (var i = 2; i < rows.length; ++i) {
-      if (rows[i].c < rows[lowest].c)
-        lowest = i;
-    }
-
-    // Pivot if necessary.
-    if (lowest != 0)
-      pivot(VAR_B, lowest);
-  }
-
-  // Selects a column to pivot on.  Returns OPTIMAL if the current state is
-  // optimal.  Assumes we are optimizing the first row.
-  int selectColumn()
-  {
-    int i=find(rows[0].t > 0,1);
-    return (i >= 0) ? i : OPTIMAL;
-  }
-
-  // Select the new variable associated with a pivot on the column given.
-  // Returns UNBOUNDED if the space is unbounded.
-  var selectVar(int col)
-  {
-    // We assume that the first two vars (a and b) once swapped out, won't be
-    // swapped back in.  This finds the variable which gives the tightest
-    // non-negativity condition restricting our optimization.  This turns
-    // out to be the max of c/t[col].  Note that as c is positive, and
-    // t[col] is negative, all c/t[col] will be negative, so we are finding
-    // the smallest in magnitude.
-    var vp=UNBOUNDED;
-    real max=-infinity;
-    for (int i = 2; i < rows.length; ++i) {
-      row r=rows[i];
-      if(r.c < max*r.t[col]) {
-        max=r.c/r.t[col]; vp=i;
-      }
-    }
-    
-    return vp;
-  }
-
-  // Checks that the rows are in a valid state.
-  bool valid()
-  {
-    // Checks that constants are valid.
-    bool validConstants() {
-      for (int i = 0; i < rows.length; ++i)
-        // Do not test the row for b, as it does not have a non-negativity
-        // condition.
-        if (i != VAR_B && rows[i].c < 0)
-           return false;
-      return true;
-    }
-
-    // Check a variable to see if its row is simple.
-    // NOTE: Simple rows could be optimized out, since they are not really
-    // used. 
-    bool validVar(int col) {
-
-      var vc = v[col];
-      row rvc = rows[vc];
-
-      if (rvc.c != 0)
-        return false;
-      for (int i = 0; i < n; ++i)
-        if (rvc.t[i] != (i == col ? 1 : 0))
-          return false;
-      
-      return true;
-    }
-
-    if (!validConstants()) {
-      return false;
-    }
-    for (int i = 0; i < n; ++i)
-      if (!validVar(i)) {
-        return false;
-      }
-
-    return true;
-  }
-
-
-  // Perform the algorithm to find the optimal solution.  Returns OPTIMAL,
-  // UNBOUNDED, or INVALID (if no solution is possible).
-  int optimize()
-  {
-    // Put into a valid state to begin and pivot b out.
-    var iv=initVar();
-    if (iv == UNBOUNDED)
-      return iv;
-    pivot(VAR_B, iv);
-
-    if (!valid())
-      return INVALID;
-
+  int iterate(real[][] E, int N, int[] Bindices) {
     while(true) {
-      int col = selectColumn();
-      
-      if (col == OPTIMAL)
-        return col;
-      var vp = selectVar(col);
-      
-      if (vp == UNBOUNDED)
-        return vp;
+      // Find first negative entry in bottom (reduced cost) row
+      real[] Em=E[m];
+      for(J=0; J < N; ++J)
+        if(Em[J] < 0) break;
 
-      pivot(col, vp);
+      if(J == N)
+        break;
+
+      int I=-1;
+      real M;
+      for(int i=0; i < m; ++i) {
+        real e=E[i][J];
+        if(e > epsilonA) {
+          M=E[i][N]/e;
+          I=i;
+          break;
+        }
+      }
+      for(int i=I+1; i < m; ++i) {
+        real e=E[i][J];
+        if(e > epsilonA) {
+          real v=E[i][N]/e;
+          if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
+        }
+      }
+      if(I == -1)
+        return UNBOUNDED; // Can only happen in Phase 2.
+
+      // Generate new tableau
+      Bindices[I]=J;
+      rowreduce(E,N,I,J);
+    }
+    return OPTIMAL;
+  }
+
+  int iterateDual(real[][] E, int N, int[] Bindices) {
+    while(true) {
+      // Find first negative entry in right (basic variable) column
+      real[] Em=E[m];
+      int I;
+      for(I=0; I < m; ++I) {
+        if(E[I][N] < 0) break;
+      }
+
+      if(I == m)
+        break;
+
+      int J=-1;
+      real M;
+      for(int j=0; j < N; ++j) {
+        real e=E[I][j];
+        if(e < epsilonA) {
+          M=-E[m][j]/e;
+          J=j;
+          break;
+        }
+      }
+      for(int j=J+1; j < N; ++j) {
+        real e=E[I][j];
+        if(e < epsilonA) {
+          real v=-E[m][j]/e;
+          if(v < M) {M=v; J=j;} // Bland's rule: choose smallest argmin
+        }
+      }
+      if(J == -1)
+        return INFEASIBLE; // Can only happen in Phase 2.
+
+      // Generate new tableau
+      Bindices[I]=J;
+      rowreduce(E,N,I,J);
+    }
+    return OPTIMAL;
+  }
+
+  // Try to find a solution x to Ax=b that minimizes the cost c^T x,
+  // where A is an m x n matrix, x is a vector of n non-negative numbers,
+  // b is a vector of length m, and c is a vector of length n.
+  // Can set phase1=false if the last m columns of A form the identity matrix.
+  void operator init(real[] c, real[][] A, real[] b, bool phase1=true,
+                     bool dual=false) {
+    if(dual) phase1=false;
+    static real epsilon=sqrt(realEpsilon);
+    epsilonA=epsilon*norm(A);
+
+    // Phase 1
+    m=A.length;
+    if(m == 0) {case=INFEASIBLE; return;}
+    n=A[0].length;
+    if(n == 0) {case=INFEASIBLE; return;}
+
+    int N=phase1 ? n+m : n;
+    real[][] E=new real[m+1][N+1];
+    real[] Em=E[m];
+
+    for(int j=0; j < n; ++j)
+      Em[j]=0;
+
+    for(int i=0; i < m; ++i) {
+      real[] Ai=A[i];
+      real[] Ei=E[i];
+      if(b[i] >= 0 || dual) {
+        for(int j=0; j < n; ++j) {
+          real Aij=Ai[j];
+          Ei[j]=Aij;
+          Em[j] -= Aij;
+        }
+      } else {
+        for(int j=0; j < n; ++j) {
+          real Aij=-Ai[j];
+          Ei[j]=Aij;
+          Em[j] -= Aij;
+        }
+      }
     }
 
-    // Shouldn't reach here.
-    return INVALID;
+    if(phase1) {
+      for(int i=0; i < m; ++i) { 
+        real[] Ei=E[i];
+        for(int j=0; j < i; ++j)
+          Ei[n+j]=0.0;
+        Ei[n+i]=1.0;
+        for(int j=i+1; j < m; ++j)
+          Ei[n+j]=0.0;
+      }
+    }
+
+    real sum=0;
+    for(int i=0; i < m; ++i) {
+      real B=dual ? b[i] : abs(b[i]);
+      E[i][N]=B;
+      sum -= B;
+    }
+    Em[N]=sum;
+
+    if(phase1)
+      for(int j=0; j < m; ++j)
+        Em[n+j]=0.0;
+   
+    int[] Bindices;
+
+    if(phase1) {
+      Bindices=sequence(new int(int x){return x;},m)+n;
+      iterate(E,N,Bindices);
+  
+      if(abs(Em[J]) > epsilonA) {
+      case=INFEASIBLE;
+      return;
+      }
+    } else Bindices=sequence(new int(int x){return x;},m)+n-m;
+    
+    real[] cB=phase1 ? new real[m] : c[n-m:n];
+    real[][] D=phase1 ? new real[m+1][n+1] : E;
+    if(phase1) {
+      // Drive artificial variables out of basis.
+      for(int i=0; i < m; ++i) {
+        int k=Bindices[i];
+        if(k >= n) {
+          real[] Ei=E[i];
+          int j;
+          for(j=0; j < n; ++j)
+            if(Ei[j] != 0) break;
+          if(j == n) continue;
+          Bindices[i]=j;
+          rowreduce(E,n,i,j);
+        }
+      }
+      int ip=0; // reduced i
+      for(int i=0; i < m; ++i) {
+        int k=Bindices[i];
+        if(k >= n) continue;
+        Bindices[ip]=k; 
+        cB[ip]=c[k];
+        real[] Dip=D[ip];
+        real[] Ei=E[i];
+        for(int j=0; j < n; ++j)
+          Dip[j]=Ei[j];
+        Dip[n]=Ei[N];
+        ++ip;
+      }
+
+      real[] Dip=D[ip];
+      real[] Em=E[m];
+      for(int j=0; j < n; ++j)
+        Dip[j]=Em[j];
+      Dip[n]=Em[N];
+
+      if(m > ip) {
+        Bindices.delete(ip,m-1);
+        D.delete(ip,m-1);
+        m=ip;
+      }
+    }
+
+    real[] Dm=D[m];
+    for(int j=0; j < n; ++j) {
+      real sum=0;
+      for(int k=0; k < m; ++k)
+        sum += cB[k]*D[k][j];
+      Dm[j]=c[j]-sum;
+    }
+
+    real sum=0;
+    for(int k=0; k < m; ++k)
+      sum += cB[k]*D[k][n];
+    Dm[n]=-sum;
+
+    case=(dual ? iterateDual : iterate)(D,n,Bindices);
+    if(case != OPTIMAL)
+      return;
+
+    for(int j=0; j < n; ++j)
+      x[j]=0;
+
+    for(int k=0; k < m; ++k)
+      x[Bindices[k]]=D[k][n];
+
+    cost=-Dm[n];
   }
 
-  // Add a restriction to the problem:
-  // t1*a + t2*b + c >= 0
-  void addRestriction(real t1, real t2, real c)
-  {
-    row r = new row;
-    r.c = c;
-    r.t = new real[] {t1, t2};
-    rows.push(r);
-  }
+  // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost
+  // c^T x, where A is an m x n matrix, x is a vector of n non-negative
+  // numbers, b is a vector of length m, and c is a vector of length n.
+  void operator init(real[] c, real[][] A, int[] s, real[] b) {
+    int m=A.length;
+    if(m == 0) {case=INFEASIBLE; return;}
+    int n=A[0].length;
+    if(n == 0) {case=INFEASIBLE; return;}
 
-  // Return the value of a computed.
-  real a()
-  {
-    return rows[VAR_A].c;
-  }
+    int count=0;
+    for(int i=0; i < m; ++i)
+      if(s[i] != 0) ++count;
 
-  // Return the value of b computed.
-  real b()
-  {
-    return rows[VAR_B].c;
+    real[][] a=new real[m][n+count];
+
+    for(int i=0; i < m; ++i) {
+      real[] ai=a[i];
+      real[] Ai=A[i];
+      for(int j=0; j < n; ++j) {
+        ai[j]=Ai[j];
+      }
+    }
+  
+    int k=0;
+
+    bool phase1=false;
+    bool dual=count == m && all(c >= 0);
+
+    for(int i=0; i < m; ++i) {
+      real[] ai=a[i];
+      for(int j=0; j < k; ++j)
+        ai[n+j]=0;
+      if(k < count)
+        ai[n+k]=-s[i];
+      for(int j=k+1; j < count; ++j)
+        ai[n+j]=0;
+      int si=s[i];
+      if(si == 0) phase1=true;
+      else {
+        ++k;
+        real bi=b[i];
+        if(bi == 0) {
+          if(si == 1) {
+            s[i]=-1;
+            for(int j=0; j < n+count; ++j)
+              ai[j]=-ai[j];
+          }
+        } else if(si*bi > 0) {
+          if(dual && si == 1) {
+            b[i]=-bi;
+            s[i]=-1;
+            for(int j=0; j < n+count; ++j)
+              ai[j]=-ai[j];
+          } else
+            phase1=true;
+        }
+      }
+    }
+
+    operator init(concat(c,array(count,0.0)),a,b,phase1,dual);
+
+    if(case == OPTIMAL && count > 0)
+      x.delete(n,n+count-1);
   }
 }

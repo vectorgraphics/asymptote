@@ -13,6 +13,8 @@
 
 using std::ofstream;
 using settings::getSetting;
+using settings::ps2tex;
+using settings::tex2ps;
 using vm::array;
 using vm::read;
 
@@ -349,10 +351,11 @@ void svgtexfile::endspecial()
   
 void svgtexfile::begintransform()
 {
+  bbox b=box;
+  b.left=-Hoffset;
+  b=svgbbox(b);
   *out << "<g transform='matrix(" << tex2ps << " 0 0 " << tex2ps <<" "
-       << (-Hoffset+1.99*settings::cm) << " " 
-       << (1.9*settings::cm+box.top) 
-       << ")'>" << nl;
+       << b.left << " " << b.top << ")'>" << nl;
 }
     
 void svgtexfile::endtransform()

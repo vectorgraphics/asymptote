@@ -34,17 +34,16 @@ ln -sf ../gc-$GC .
 make -n MSDOS=1 >& /dev/null || ./configure OSTYPE=msdos --enable-gc=$GC --with-latex=/usr/local/share --with-context=/usr/local/share
 rm -rf $BUILD
 mkdir -p $BUILD
-cp -a $HOME/dll/cygwin/*.dll $HOME/dll/*.dll $BUILD
+cp -a $HOME/dll/cygwin/*.dll $BUILD
 chmod 0644 $BUILD/*.dll
 cp -a $BUILD/*.dll ~/CTAN/asymptote-$VERSION/binaries/$BINDIR/
-cp -a $HOME/dll/*.dll .
 make MSDOS=1 DESTDIR="$BUILD/" docdir="$BUILD/"
 test -f asy.list || make MSDOS=1 keywords DESTDIR="$BUILD/" docdir="$BUILD/"
 make MSDOS=1 install-asy DESTDIR="$BUILD/" docdir="$BUILD/"
 cp asy.ico README LICENSE* $BUILD
 pushd $BUILD
 mv usr/local/bin/* .
-mv usr/local/share/asymptote/GUI/*.py .
+mv usr/local/share/asymptote/GUI .
 rm -rf usr/local/share/asymptote/GUI
 mv usr/local/share/asymptote/* .
 cp $SHARED/asydoc/*.pdf .

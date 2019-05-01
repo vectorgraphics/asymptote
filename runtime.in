@@ -197,8 +197,8 @@ void writestring(stack *s)
   string S=pop<string>(s);
   vm::item it=pop(s);
   bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
-  if(!f->isOpen()) return;
+  camp::ofile *f=defaultfile ? &camp::Stdout : vm::get<camp::ofile*>(it);
+  if(!f->isOpen() || !f->enabled()) return;
   if(S != "") f->write(S);
   if(f->text()) {
     if(suffix) {
@@ -206,6 +206,13 @@ void writestring(stack *s)
       suffix->call(s);
     } else if(defaultfile) f->writeline();
   }
+}
+
+string toplocation() {
+  ostringstream buf;
+  position& topPos=processData().topPos;
+  buf << topPos.Line() << "." << topPos.Column();
+  return buf.str();
 }
 
 string emptystring;
@@ -735,6 +742,21 @@ void _eval(runnable *s, bool embedded)
       error(noruntime);
   } else
     runCode(ast);
+}
+
+string xasyKEY() {
+  processDataStruct *P=&processData();
+  xkey_t *xkey=&P->xkey;
+  xkey_t::iterator p=xkey->find(P->topPos.LineColumn());
+  return p != xkey->end() ? p->second+" 1" : toplocation()+" 0";
+}
+
+void xasyKEY(string *s) {
+  processData().KEY=*s;
+}
+
+string toplocation() {
+  return toplocation();
 }
 
 string location() {

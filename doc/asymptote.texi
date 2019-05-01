@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-18 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-19 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -384,7 +384,7 @@ The @code{ImageMagick} package from
 @noindent
 is required to support output formats other than @acronym{EPS},
 @acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
-The @code{Python 2} interpreter from @url{http://www.python.org} is only required
+The @code{Python 3} interpreter from @url{http://www.python.org} is only required
 if you wish to try out the graphical user interface (@pxref{GUI}).
 
 @noindent
@@ -585,8 +585,8 @@ cd asymptote-x.xx
 @end verbatim
 By default the system version of the Boehm garbage collector will be
 used; if it is old we recommend first putting
-@url{http://hboehm.info/gc/gc_source/gc-7.4.2.tar.gz}
-@url{http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.4.2.tar.gz}
+@url{https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz}
+@url{https://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.6.10.tar.gz}
 in the @code{Asymptote} source directory.
 
 On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
@@ -742,7 +742,7 @@ can be enabled by running @code{asy-kate.sh} in the
 The following commands are needed to install the latest development version of
 @code{Asymptote} using @code{git}:
 @verbatim
-git clone http://github.com/vectorgraphics/asymptote
+git clone https://github.com/vectorgraphics/asymptote
 
 cd asymptote
 ./autogen.sh
@@ -947,7 +947,7 @@ terminated with an arrowhead:
 @center @image{quartercircle}
 @noindent
 Here the directions @code{up} and @code{left} in braces specify the
-incoming and outgoing directions at the points @code{(1,0)} and
+outgoing and incoming directions at the points @code{(1,0)} and
 @code{(0,1)}, respectively.
 
 In general, a path is specified as a list of points (or other paths)
@@ -1297,7 +1297,7 @@ void latticeshade(picture pic=currentpicture, path g, bool stroke=false,
 @end verbatim
 @cindex @code{stroke}
 If @code{stroke=true}, the region filled is the same as the region that
-would be drawn by @code{draw(pic,g,fillrule+zerowinding)}; in this case the path
+would be drawn by @code{draw(pic,g,zerowinding)}; in this case the path
 @code{g} need not be cyclic.
 The pens in @code{p} must belong to the same color space. One can use the
 functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
@@ -1425,7 +1425,7 @@ void clip(picture pic=currentpicture, path g, stroke=false,
 Clip the current contents of picture @code{pic} to the region bounded
 by the path @code{g}, using fill rule @code{fillrule} (@pxref{fillrule}).
 If @code{stroke=true}, the clipped portion is the same as the region
-that would be drawn with @code{draw(pic,g,fillrule+zerowinding)}; in
+that would be drawn with @code{draw(pic,g,zerowinding)}; in
 this case the path @code{g} need not be cyclic. For an illustration of
 picture clipping, see the first example in @ref{LaTeX usage}.
 
@@ -2812,6 +2812,12 @@ interval [0,1], with 0.0 denoting black and 1.0 denoting white.
 This produces an @acronym{RGB} color, where each of the red, green,
 and blue intensities @code{r}, @code{g}, @code{b}, lies in the interval [0,1].
 
+@item pen RGB(int r, int g, int b);
+@cindex @code{rgb}
+This produces an @acronym{RGB} color, where each of the red, green,
+and blue intensities @code{r}, @code{g}, @code{b}, lies in the
+interval [0,255].
+
 @item pen cmyk(real c, real m, real y, real k);
 @cindex @code{cmyk}
 This produces a @acronym{CMYK} color, where each of the cyan, magenta,
@@ -3262,7 +3268,7 @@ integer power with the @code{^} operator.
 The built-in transforms are:
 
 @table @code
-@item transform identity();
+@item transform identity;
 @cindex @code{identity}
 the identity transform;
 @item transform shift(pair z);
@@ -3292,6 +3298,9 @@ rotates by @code{angle} in degrees about @code{z};
 @item transform reflect(pair a, pair b);
 @cindex @code{reflect}
 reflects about the line @code{a--b}.
+@item transform zeroTransform;
+@cindex @code{zeroTransform}
+the zero transform;
 @end table
 
 @cindex @code{shift}
@@ -5100,6 +5109,8 @@ each iteration are printed if @code{verbose=true}.
 If the iteration fails after the maximum allowed number of loops
 (@code{iterations}), @code{realMax} is returned.
 
+@cindex integral
+@cindex integrate
 @cindex @code{simpson}
 @item @code{real simpson(real f(real), real a, real b, real acc=realEpsilon, real dxmax=b-a)}
 returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpson integration.
@@ -6151,7 +6162,7 @@ An even better method for processing a @code{LaTeX} file with embedded
 @end quotation
 @noindent
 after putting the contents of
-@url{http://sourceforge.net/p/asymptote/code/HEAD/tree/trunk/asymptote/doc/latexmkrc}
+@url{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/latexmkrc}
 @noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
@@ -7902,8 +7913,8 @@ maximum screen dimension. The default settings
 @verbatim
 import settings;
 leftbutton=new string[] {"rotate","zoom","shift","pan"};
-middlebutton=new string[] {"menu"};
-rightbutton=new string[] {"zoom/menu","rotateX","rotateY","rotateZ"};
+middlebutton=new string[] {""};
+rightbutton=new string[] {"zoom","rotateX","rotateY","rotateZ"};
 wheelup=new string[] {"zoomin"};
 wheeldown=new string[] {"zoomout"};
 @end verbatim
@@ -7913,11 +7924,9 @@ bind the mouse buttons as follows:
 @item Shift Left: zoom
 @item Ctrl Left: shift viewport
 @item Alt Left: pan
-@item Middle: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
 @item Wheel Up: zoom in
 @item Wheel Down: zoom out
-@item Right: zoom/menu (must be unmodified)
-@item Right double click: menu
+@item Right: zoom
 @item Shift Right: rotate about the X axis
 @item Ctrl Right: rotate about the Y axis
 @item Alt Right: rotate about the Z axis
@@ -7952,7 +7961,7 @@ The keyboard shortcuts are:
 @cindex @code{maxviewport}
 @cindex @code{maxtile}
 @cindex @code{glOptions}
-@cindex @code{iconic}
+@cindex @code{iconify}
 @cindex @code{black stripes}
 @item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
@@ -9451,7 +9460,7 @@ The file @code{asymptote.py} in the @code{Asymptote} system directory
 provides an alternative way of entering @code{Asymptote} commands
 interactively, coupled with the full power of @code{Python}. Copy this
 file to your @code{Python path} and then execute from within
-@code{Python} the commands 
+@code{Python 3} the commands 
 @verbatim
 from asymptote import *
 g=asy()
@@ -9488,39 +9497,33 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 @cindex GUI installation
 
 As @code{xasy} is written in the interactive scripting language
-@code{Python/TK}, it requires @code{Python} (@url{http://www.python.org}),
-the @code{Pillow} fork of the @code{Python Imaging Library},and the
-@code{tkinter} package (included with @code{Python} under
-@code{Microsoft Windows}). @code{Fedora Linux} users can
-either install @code{tkinter} and @code{Pillow} with the commands
-@verbatim
-dnf install tkinter
-dnf install tk-devel
-dnf install python-pillow-tk
-@end verbatim
-@noindent
-or manually install the @code{tkinter}, @code{tix}, @code{tk},
-and @code{tk-devel} packages.
+@code{Python/Qt}, it requires @code{Python} (@url{http://www.python.org}),
+along with the @code{Python} packages @code{pyqt5}, @code{cson}, and
+@code{numpy}:
 
-Pictures are deconstructed into the @acronym{PNG} image format, which
-supports full alpha channel transparency. Under @code{Microsoft Windows},
-this requires @code{Python 2.7.4} or later and version @code{3.1.0} of the
-@code{Pillow} fork of the @code{Python Imaging Library}, available from
-@quotation
-@url{http://pypi.python.org/pypi/Pillow}
-@end quotation
+@verbatim
+pip3 install cson numpy pyqt5 PyQt5.sip
+@end verbatim
+
+Pictures are deconstructed into the @acronym{SVG} image format.
+Since @code{Qt5} does not suport @code{SVG} clipping, you will need
+the @code{rsvg-convert} utility, which is part of the
+@code{librsvg2-tools} package on @code{UNIX} systems; under
+@code{Microsoft Windows}, it is available as
+
+@url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
 
 @node GUI usage,  , GUI installation, GUI
 @section GUI usage
 @cindex GUI usage
+@cindex arrow keys
+@cindex mouse wheel
 @cindex @code{deconstruct}
-
-A wheel mouse is convenient for raising and lowering objects within
-@code{xasy}, to expose the object to be moved. If a wheel mouse is not
-available, mouse @code{Button-2} can be used to repeatedly lower an
-object instead. When run from the command line, @code{xasy} accepts
-a command line option @code{-x n}, which sets the initial magnification
-to @code{n}.
+The arrow keys (or mouse wheel) are convenient for temporarily
+raising and lowering objects within @code{xasy}, allowing an object to
+be selected. Pressing the arrow keys will pan while the shift key is held
+and zoom while the control key is held. The mouse wheel will pan while
+the alt or shift keys is held and zoom while the control key is held.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
 by enclosing them within the commands
@@ -9731,7 +9734,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo. Other
 contributors include Orest Shardt, Jesse Frohlich, Michail Vidiassov,
 Charles Staats, Philippe Ivaldi, Olivier Guib@'e, Radoslav Marinov,
 Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
-Martin Wiebusch, and Stefan Knorr.
+Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 
 @node Index,  , Credits, Top
 @unnumbered Index

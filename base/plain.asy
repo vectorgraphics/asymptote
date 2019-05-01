@@ -41,18 +41,19 @@ include plain_debugger;
 
 typedef void exitfcn();
 
-bool needshipout() {
-  return !shipped && !currentpicture.empty();
-}
-
 void updatefunction()
 {
+  implicitshipout=true;
   if(!currentpicture.uptodate) shipout();
+  implicitshipout=false;
 }
 
 void exitfunction()
 {
-  if(needshipout()) shipout();
+  implicitshipout=true;
+  if(!currentpicture.empty())
+    shipout();
+  implicitshipout=false;
 }
 
 atupdate(updatefunction);
@@ -273,7 +274,6 @@ if(settings.autoimport != "") {
   string s=settings.autoimport;
   settings.autoimport="";
   eval("import \""+s+"\" as dummy",true);
-  shipped=false;
   atupdate(updatefunction);
   atexit(exitfunction);
   settings.autoimport=s;

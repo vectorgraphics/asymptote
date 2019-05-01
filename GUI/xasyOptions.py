@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###########################################################################
 #
 # xasyOptions provides a mechanism for storing and restoring a user's
@@ -12,49 +12,73 @@
 
 import json
 import sys
+import io
 import os
+import platform
+import shutil
 
+import configs
+
+try:
+    import cson
+except ModuleNotFoundError:
+    cson = None
+
+try:
+    pass
+#     import yaml
+except ModuleNotFoundError:
+    yaml = None
 
 class xasyOptions:
-    defaultOptionsTemplate = {
-        '_comment': 'Note: *ASYPATH will be replaced with the path to Asymptote file.',
+    def defaultOptions(self):
+        if self._defaultOptions is None:
+            f = io.open(self._defualtOptLocation)
+            try:
+                opt = cson.loads(f.read())
+            finally:
+                f.close()
+            self._defaultOptions = opt
+        return self._defaultOptions
 
-        'externalEditor': '',
-        'asyPath': 'asy',
-        'showDebug': False,
-        'defaultPenOptions': '',
-        'defaultPenColor': '#000000',
-        'defaultPenWidth': 1.0,
-        'enableImmediatePreview': True,
-        'useDegrees': False,
-        'terminalFont': 'Courier',
-        'terminalFontSize': 10,
-        'defaultShowAxes': True,
-        'defaultShowGrid': False,
-        'defaultGridSnap': False,
+    def overrideSettings(self):
+        settingsName = platform.system()
 
-        '_GRID_COMMANDS': 'Grid Commands.',
-        'gridMajorAxesColor': '#000000',
-        'gridMinorAxesColor': '#AAAAAA',
-        'gridMajorAxesSpacing': 100,
-        'gridMinorAxesCount': 9,
+        if settingsName not in self.options:
+            return
 
-        'debugMode': True
-    }
-
-    @classmethod
-    def defaultOptions(cls):
-        opt = cls.defaultOptionsTemplate.copy()
-        if os.name == 'nt':
-            opt['externalEditor'] = "notepad.exe *ASYPATH"
-        else:
-            opt['externalEditor'] = "emacs *ASYPATH"
-        return opt
-
-    @classmethod
-    def settingsFileLocation(cls):
+        for key in self.options[settingsName]:
+            self.options[key] = self.options[settingsName][key]
+    
+    
+    def settingsFileLocation(self):
         folder = os.path.expanduser("~/.asy/")
-        return os.path.normcase(os.path.join(folder, "xasyconf.json"))
+
+        searchOrder = ['.cson', '.yaml', '.json', '']
+
+        searchIndex = 0
+        found = False
+        currentFile = ''
+        while searchIndex < len(searchOrder) and not found:
+            currentFile = os.path.join(folder, self.configName + searchOrder[searchIndex])
+            if os.path.isfile(currentFile):
+                found = True
+            searchIndex += 1
+        
+        if found:
+            return os.path.normcase(currentFile)
+        else:
+            return os.path.normcase(os.path.join(folder, self.configName + '.cson'))
+
+    def __init__(self, configName, defaultConfigLocation):
+        self.configName = configName
+        self.defaultConfigName = defaultConfigLocation
+
+        self._defaultOptions = None
+        self._defualtOptLocation = os.path.join(defaultConfigLocation)
+
+        self.options = self.defaultOptions()
+        self.load()
 
     def __getitem__(self, item):
         return self.options[item]
@@ -62,12 +86,8 @@ class xasyOptions:
     def __setitem__(self, key, value):
         self.options[key] = value
 
-    def __init__(self):
-        self.options = xasyOptions.defaultOptions()
-        self.load()
-
     def load(self):
-        fileName = xasyOptions.settingsFileLocation()
+        fileName = self.settingsFileLocation()
         if not os.path.exists(fileName):
             # make folder
             thedir = os.path.dirname(fileName)
@@ -76,27 +96,40 @@ class xasyOptions:
             if not os.path.isdir(thedir):
                 raise Exception("Configuration folder path does not point to a folder")
             self.setDefaults()
+        f = io.open(fileName, 'r')
         try:
-            with open(fileName, 'r') as f:
+            ext = os.path.splitext(fileName)[1]
+            if ext == '.cson':
+                if cson is None:
+                    raise ModuleNotFoundError
+                newOptions = cson.loads(f.read())
+            elif ext in {'.yml', '.yaml'}:
+                if yaml is None:
+                    raise ModuleNotFoundError
+                newOptions = yaml.load(f)
+            else:
                 newOptions = json.loads(f.read())
-        except IOError:
+        except (IOError, ModuleNotFoundError):
             self.setDefaults()
         else:
             for key in self.options.keys():
-                assert isinstance(newOptions[key], type(self.options[key]))
+                if key in newOptions:
+                    assert isinstance(newOptions[key], type(self.options[key]))
+                else:
+                    newOptions[key] = self.options[key]
             self.options = newOptions
+        finally:
+            f.close()
 
     def setDefaults(self):
-        self.options = xasyOptions.defaultOptions()
+        self.options = self.defaultOptions()
         if sys.platform[:3] == 'win':  # for windows, wince, win32, etc
             # setAsyPathFromWindowsRegistry()
             pass
-        self.save()
-
-    def save(self):
-        fileName = xasyOptions.settingsFileLocation()
-        with open(fileName, 'w') as f:
-            f.write(json.dumps(self.options, indent=4))
+        folder = os.path.expanduser("~/.asy/")
+        defaultPath = os.path.join(folder, self.configName + '.cson')
+        shutil.copy2(self._defualtOptLocation, defaultPath)
+        
 
 # TODO: Figure out how to merge this back.
 """
@@ -115,3 +148,11 @@ def setAsyPathFromWindowsRegistry():
             options['asyPath'] = registry.QueryValueEx(key, "InstallLocation")[0] + "\\asy.exe"
             registry.CloseKey(key)
 """
+
+
+class BasicConfigs:
+    _configPath = list(configs.__path__)[0]
+    defaultOpt = xasyOptions(
+        'xasyconfig', os.path.join(_configPath, 'xasyconfig.cson'))
+    keymaps = xasyOptions('xasykeymap', os.path.join(
+        _configPath, 'xasykeymap.cson'))

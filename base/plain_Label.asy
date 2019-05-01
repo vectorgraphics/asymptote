@@ -339,8 +339,8 @@ struct Label {
     }
 
     pic.add(new void (frame f, transform t) {
-        out(f,t,point(g,position),
-            alignrelative ? -Align*dir(t*g,position)*I : Align);
+        out(f,t,point(g,position),alignrelative ?
+            inverse(rotation(t))*-Align*dir(t*g,position)*I : Align);
       },!alignrelative);
 
     frame f;
@@ -484,6 +484,15 @@ void label(picture pic=currentpicture, Label L, align align=NoAlign,
            pen p=currentpen, filltype filltype=NoFill)
 {
   label(pic,L,L.position,align,p,filltype);
+}
+
+// Label, but with postscript coords instead of asy
+void label(pair origin, picture pic=currentpicture, Label L, align align=NoAlign,
+           pen p=currentpen, filltype filltype=NoFill)
+{
+  picture opic;
+  label(opic,L,L.position,align,p,filltype);
+  add(pic,opic,origin);
 }
   
 void label(picture pic=currentpicture, Label L, explicit path g,

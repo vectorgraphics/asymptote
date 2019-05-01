@@ -115,8 +115,11 @@ const char *endspecial();
 string texcommand();
 string texprogram();
   
-const double inches=72;
+const double inches=72.0;
 const double cm=inches/2.54;
+const double tex2ps=72.0/72.27;
+const double ps2tex=1.0/tex2ps;
+
 }
 
 extern const char *REVISION;

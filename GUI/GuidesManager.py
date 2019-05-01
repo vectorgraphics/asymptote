@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc

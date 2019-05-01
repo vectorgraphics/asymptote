@@ -42,6 +42,8 @@ newDrawing.asy
 *.roff
 /doc/png/*.html
 GUI/*.pyc
+GUI/*/*.pyc
+GUI/*/__pycache__
 /.wisdom
 /allsymbols.h
 /asy-keywords.el
@@ -64,6 +66,7 @@ GUI/*.pyc
 /opsymbols.h
 /types.symbols.h
 *.dSYM
+.DS_Store
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
@@ -119,9 +122,34 @@ core.*
 /GUI/__pycache__/*
 /.idea/*
 
+examples/_ig_*.asy
+
+### Shorthand Dev Script
+asydev
+gdb_xasy
+
+_ig_*/*
+
 ### IDE Files
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+### Translation binary files
+*.mo
+
+
+xasydev2
+xasydev
+
+### SVG Icons
+!GUI/res/*/*.svg
+
+### RC Icons
+GUI/icons_rc.py
+
+
+# apitrace outputs
+*.trace

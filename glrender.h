@@ -13,26 +13,36 @@
 
 #include <csignal>
 
+#define GLEW_NO_GLU
+//#define GLEW_OSMESA
+
+#ifdef __MSDOS__
+#define GLEW_STATIC
+#include <windows.h>
+#define CALLBACK __stdcall
+typedef void (APIENTRY* _GLUfuncptr)();
+#endif
+
 #ifdef __APPLE__
+#include <GL/glew.h>
 #include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
-#include <OpenGL/glu.h>
 #ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
-#include <GL/osmesa.h> // TODO: where would you find osmesa on a mac?
-#endif
-#ifdef GLU_TESS_CALLBACK_TRIPLEDOT
-typedef GLvoid (* _GLUfuncptr)(...);
-#else
-typedef GLvoid (* _GLUfuncptr)();
+#include <GL/osmesa.h>
 #endif
 #else
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <GL/glu.h>
+#include <GL/glew.h>
+#ifdef __MSDOS__
+#include <GL/wglew.h>
+#include <GL/wglext.h>
+#endif
 #ifdef HAVE_LIBGLUT
+#ifdef __MSDOS__
+#define FREEGLUT_STATIC
+#define APIENTRY
+#endif
 #include <GL/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
@@ -70,6 +80,7 @@ inline void store(GLfloat *control, const triple& v, double weight)
 namespace gl {
 
 extern bool outlinemode;
+extern Int maxvertices;
 
 struct projection 
 {
@@ -97,8 +108,18 @@ void glrender(const string& prefix, const camp::picture* pic,
               double zoom, const camp::triple& m, const camp::triple& M,
               const camp::pair& shift, double *t, double *background,
               size_t nlights, camp::triple *lights, double *diffuse,
-              double *ambient, double *specular, bool viewportlighting,
-              bool view, int oldpid=0);
+              double *ambient, double *specular, bool view, int oldpid=0);
+
+struct ModelView {
+  double T[16];
+  double Tinv[16];
+};
+
+extern ModelView modelView;
+
+void initshader();
+void deleteshader();
+
 }
 
 namespace camp {
@@ -143,10 +164,7 @@ extern billboard BB;
 }
 
 #else
-typedef void GLUnurbs;
 typedef float GLfloat;
 #endif
 
 #endif
-
-

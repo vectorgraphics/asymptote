@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import xasy2asy as x2a
 import numpy as np
 import math
@@ -32,7 +34,7 @@ class PrimitiveShape:
         pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
         newCircle = x2a.asyPath()
         ptsList = [(pos_x + radius, pos_y), (pos_x, pos_y + radius), (pos_x - radius, pos_y), (pos_x, pos_y - radius),
-                   (pos_x + radius, pos_y)]
+                   'cycle']
         # cycle doesn't work for now.
         lkList = ['..', '..', '..', '..']
         newCircle.initFromNodeList(ptsList, lkList)
@@ -45,12 +47,13 @@ class PrimitiveShape:
         ptsList = []
         for ang in np.linspace(starting_rad, starting_rad + math.tau, sides, endpoint=False):
             ptsList.append((pos_x + radius * math.cos(ang), pos_y + radius * math.sin(ang)))
-        ptsList.append((pos_x + radius * math.cos(starting_rad), pos_y + radius * math.sin(starting_rad)))
 
         if qpoly:
+            ptsList.append((pos_x + radius * math.cos(starting_rad), pos_y + radius * math.sin(starting_rad)))
             qpoints = [Qc.QPointF(x, y) for (x, y) in ptsList]
             return Qg.QPolygonF(qpoints)
         else:
+            ptsList.append('cycle')
             newPoly = x2a.asyPath()
             newPoly.initFromNodeList(ptsList, lkList)
             return newPoly

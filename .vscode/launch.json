@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "xasy with venn",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/GUI/xasy.py",
+            "args": ["_ig_test/test.asy", "-p", "./asy"],
+            "env":{
+                "ASYMPTOTE_DIR": "${workspaceFolder}/base"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "asydbg test",
+            "type": "asy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/venn.asy"
+        }
+    ],
+    "compounds": []
+}
+

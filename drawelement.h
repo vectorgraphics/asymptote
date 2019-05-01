@@ -19,12 +19,13 @@
 #include "prcfile.h"
 #include "glrender.h"
 #include "arrayop.h"
+#include "material.h"
 
 namespace camp {
 
 //extern double Tx[3]; // x-component of current transform
 //extern double Ty[3]; // y-component of current transform
-extern double Tz[3]; // z-component of current transform
+extern double* Tz; // z-component of current transform
 
 static const double pixel=1.0; // Adaptive rendering constant.
 
@@ -118,10 +119,26 @@ typedef mem::list<bbox> bboxlist;
 typedef mem::map<CONST string,unsigned> groupmap;
 typedef mem::vector<groupmap> groupsmap;
 
+#ifdef HAVE_GL
+typedef mem::map<CONST Material,size_t> MaterialMap;
+#endif
+
 class drawElement : public gc
 {
 public:
+  string KEY;
+  
+  drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key)
+  {}
+  
   virtual ~drawElement() {}
+  
+  
+#ifdef HAVE_GL
+  static mem::vector<Material> material;
+  static MaterialMap materialMap;
+  static size_t materialIndex;
+#endif
   
   static pen lastpen;  
   static const triple zero;
@@ -159,6 +176,8 @@ public:
 
   virtual bool islabel() {return false;}
 
+  virtual bool isnewpage() {return false;}
+  
   virtual bool islayer() {return false;}
 
   virtual bool is3D() {return false;}
@@ -202,9 +221,8 @@ public:
   virtual void displacement() {}
 
   // Render with OpenGL
-  virtual void render(GLUnurbs *nurb, double size2, 
-                      const triple& Min, const triple& Max,
-                      double perspective, bool lighton, bool transparent) {}
+  virtual void render(double size2, const triple& Min, const triple& Max,
+                      double perspective, bool transparent) {}
 
   // Transform as part of a picture.
   virtual drawElement *transformed(const transform&) {
@@ -232,7 +250,8 @@ public:
     copyArray4x4C(T,&t);
   }
 
-  drawElementLC(const double* t, const drawElementLC *s) : T(NULL) {
+  drawElementLC(const double* t, const drawElementLC *s) : 
+    drawElement(s->KEY), T(NULL) {
     multiplyTransform3(T,t,s->T);
   }
 
@@ -365,10 +384,6 @@ public:
   }
   
   void strokepath(psfile *out) {
-    // strokepath and evenodd are incompatible
-    static pen zerowinding=pen((FillRule) ZEROWINDING);
-    pentype=pentype+zerowinding;
-    out->setpen(pentype);
     out->strokepath();
   }
   
@@ -396,6 +411,23 @@ public:
   }
 };
  
+#ifdef HAVE_GL
+template<class T>
+void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
+  if (!buffervector.empty()) {
+    glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(T)*buffervector.size(),
+                 buffervector.data(),GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+  }
+}
+
+void setcolors(bool colors,
+               const prc::RGBAColour& diffuse,
+               const prc::RGBAColour& ambient,
+               const prc::RGBAColour& emissive,
+               const prc::RGBAColour& specular, double shininess);
+#endif
 }
 
 GC_DECLARE_PTRFREE(camp::box);

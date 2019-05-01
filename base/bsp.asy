@@ -184,20 +184,20 @@ void add(picture pic=currentpicture, face[] faces,
   for(int i=0; i < n; ++i)
     Faces[i]=faces[i].copy();
   
-  pic.nodes.push(new void (frame f, transform t, transform T,
-                           pair m, pair M) {
-                   // Fit all of the pictures so we know their exact sizes.
-                   face[] faces=new face[n];
-                   for(int i=0; i < n; ++i) {
-                     faces[i]=Faces[i].copy();
-                     face F=faces[i];
-                     F.t=t*T*F.pic.T;
-                     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
-                   }
+  pic.add(new void (frame f, transform t, transform T,
+                                pair m, pair M) {
+                        // Fit all of the pictures so we know their exact sizes.
+                        face[] faces=new face[n];
+                        for(int i=0; i < n; ++i) {
+                          faces[i]=Faces[i].copy();
+                          face F=faces[i];
+                          F.t=t*T*F.pic.T;
+                          F.fit=F.pic.fit(t,T*F.pic.T,m,M);
+                        }
     
-                   bsp bsp=bsp(faces,P);
-                   if(bsp != null) bsp.add(f);
-                 });
+                        bsp bsp=bsp(faces,P);
+                        if(bsp != null) bsp.add(f);
+          });
     
   for(int i=0; i < n; ++i) {
     picture F=Faces[i].pic;
