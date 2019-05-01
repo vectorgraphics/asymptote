@@ -6,7 +6,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/GUI/xasy.py",
-            "args": ["_ig_test/test.asy", "-p", "./asy"],
+            "args": ["examples/venn", "-p", "./asy"],
             "env":{
                 "ASYMPTOTE_DIR": "${workspaceFolder}/base"
             },

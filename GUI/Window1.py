@@ -264,6 +264,8 @@ class MainWindow1(Qw.QMainWindow):
             'anchorMode': self.switchToAnchorMode,
             'moveUp': lambda: self.arrowButtons(0, 1, False), 
             'moveDown': lambda: self.arrowButtons(0, -1, False),
+            'moveLeft': lambda: self.arrowButtons(1, 0, False), 
+            'moveRight': lambda: self.arrowButtons(-1, 0, False),
 
             'scrollLeft': lambda: self.arrowButtons(-1, 0, True),
             'scrollRight': lambda: self.arrowButtons(1, 0, True),
@@ -289,12 +291,19 @@ class MainWindow1(Qw.QMainWindow):
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
 
-    def arrowButtons(self, x:int , y:int, shift: bool=False, ctrl: bool=False):
+    def arrowButtons(self, x:int , y:int, shift: bool=False, ctrl: bool=False, alt: bool=False):
         "x, y indicates update button orientation on the cartesian plane."
         if not (shift or ctrl):
             self.changeSelection(y)
         elif not (shift and ctrl):
             self.mouseWheel(30*x, 30*y)
+        # else here, translate stuff.
+        # TODO: Add formally a hover-translate option.
+        
+        if self.inMidTransformation:
+            if self.currentModeStack[-1] == SelectionMode.translate:
+                self.savedMousePosition += Qc.QPointF(30 * x, 30 * y);
+                self.newTransform.translate(-30 * x, -30 * y);
         self.quickUpdate()
 
     def cleanup(self):
