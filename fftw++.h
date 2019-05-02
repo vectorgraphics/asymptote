@@ -1119,7 +1119,7 @@ public:
     fftw::Normalize<double>(nx,M,ostride,odist,out);
   }
   
-  void fftNormalized(Complex *in, double *out=NULL) {
+  void fftNormalized(Complex *in, double *out=NULL, bool shift=false) {
     fftw::fftNormalized<Complex,double>(nx,M,ostride,odist,in,out,false);
   }
   
