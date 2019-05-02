@@ -453,13 +453,13 @@ public:
     Normalize(out);
   }
   
-  void fftNormalized(Complex *in, double *out, bool shift=false) {
+  virtual void fftNormalized(Complex *in, double *out, bool shift=false) {
     out=(double *) Setout(in,(Complex *) out);
     Execute(in,(Complex *) out,shift);
     Normalize(out);
   }
   
-  void fftNormalized(double *in, Complex *out, bool shift=false) {
+  virtual void fftNormalized(double *in, Complex *out, bool shift=false) {
     fftNormalized((Complex *) in,out,shift);
   }
   
