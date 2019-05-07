@@ -15,7 +15,7 @@
                     "value": "${workspaceFolder}/base"
                 }
             ],
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
                 {
