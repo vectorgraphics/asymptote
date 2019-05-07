@@ -1,7 +1,14 @@
 struct material {
+  // FIXME: Ok, let's be serious here.
+  // For the swtich to PBR,
+  // If we are going to use the Metallic model, we need to rename diffusepen to "baseColorPen"
+  // as base Color is also used for metal reflectance.
+
+  // And yet, (if we have to), maintain compatibility with PRC with non-PBR model...
   pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
   real opacity;
   real shininess;  
+  real metallicness; // TODO: Integrate this into asymptote.
   void operator init(pen diffusepen=black, pen ambientpen=black,
                      pen emissivepen=black, pen specularpen=mediumgray,
                      real opacity=opacity(diffusepen),
