@@ -28,12 +28,7 @@ in vec4 Color;
 flat in int materialIndex;
 out vec4 outColor;
 
-vec4 Diffuse;
-vec4 Ambient;
-vec4 Emissive;
-vec4 Specular;
-float Shininess;
-
+// TODO: Integrate these constants into asy side
 // PBR material parameters
 vec3 PBRBaseColor; // Diffuse for nonmetals, reflectance for metals.
 vec3 PBRSpecular; // Specular tint for nonmetals
@@ -44,10 +39,6 @@ float PBRRoughness; // Roughness.
 // Here is a good paper on BRDF models...
 // https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 
-// TODO: Integrate these constants into asy side
-float metallic=0;
-float ks = 0.15; //specular coefficient
-float kd = (1-ks)*(1-metallic);
 
 // h is the halfway vector between normal and light direction
 float NDF(vec3 h, float roughness) {
@@ -60,7 +51,7 @@ float NDF(vec3 h, float roughness) {
 
 float GGX(vec3 v) {
   float ndotv = max(dot(v,Normal), 0);
-  float ap = pow((2-Shininess),2);
+  float ap = pow((1+PBRRoughness),2);
   float k = ap/8;
 
   return ndotv/((ndotv * (1-k)) + k);
@@ -88,7 +79,7 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
   float omegain = max(dot(viewDirection, Normal),0);
   float omegaln = max(dot(lightDirection, Normal), 0);
 
-  float D = NDF(hn, 1-Shininess);
+  float D = NDF(hn, PBRRoughness);
   float G = Geom(viewDirection, lightDirection);
   float F = Fresnel(h, viewDirection, PBRF0);
 
@@ -102,6 +93,11 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
 
 void main()
 {
+vec4 Diffuse;
+vec4 Ambient;
+vec4 Emissive;
+vec4 Specular;
+float Shininess;
 #ifdef EXPLICIT_COLOR
   if(materialIndex < 0) {
     int index=-materialIndex-1;
