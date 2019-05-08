@@ -130,7 +130,7 @@ float Shininess;
   Specular=m.specular;
   Shininess=m.shininess/128;
 
-  PBRMetallic = 1;
+  PBRMetallic = 0;
   PBRBaseColor = Diffuse.rgb;
   PBRRoughness = 1 - Shininess;
   PBRF0 = 0.04; // Allow for Custom hardcoding in the future?
