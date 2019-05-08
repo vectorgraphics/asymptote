@@ -20,8 +20,6 @@ uniform MaterialBuffer {
 
 in vec3 Normal;
 
-const float PI = 3.14159265359;
-
 #ifdef EXPLICIT_COLOR
 in vec4 Color; 
 #endif
@@ -42,7 +40,7 @@ float PBRRoughness; // Roughness.
 
 // h is the halfway vector between normal and light direction
 float NDF(vec3 h, float roughness) {
-  float ndoth = dot(Normal, h);
+  float ndoth = abs(dot(Normal, h));
   float alpha2 = roughness * roughness;
 
   float denom = pow((pow(ndoth,2) * (alpha2-1)) + 1, 2);
@@ -50,7 +48,7 @@ float NDF(vec3 h, float roughness) {
 }
 
 float GGX(vec3 v) {
-  float ndotv = max(dot(v,Normal), 0);
+  float ndotv = abs(dot(v,Normal));
   float ap = pow((1+PBRRoughness),2);
   float k = ap/8;
 
@@ -74,10 +72,19 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
   vec3 lambertian = PBRBaseColor;
   // Cook-Torrance model
   vec3 h = normalize(lightDirection + viewDirection);
-  vec3 hn = normalize(Normal + lightDirection);
 
-  float omegain = max(dot(viewDirection, Normal),0);
-  float omegaln = max(dot(lightDirection, Normal), 0);
+
+  float omegain = abs(dot(viewDirection, Normal));
+  float omegaln = dot(lightDirection, Normal);
+
+  // correctly flip the normal sign.
+  vec3 hn = vec3(0);
+  if (omegaln >= 0) {
+    hn = normalize(Normal + lightDirection);
+  } else {
+    omegaln = -omegaln;
+    hn = normalize(-Normal + lightDirection);
+  }
 
   float D = NDF(hn, PBRRoughness);
   float G = Geom(viewDirection, lightDirection);
@@ -85,7 +92,7 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
 
   float rawReflectance = (D*G)/(4 * omegain * omegaln);
 
-  vec3 dielectric = mix(lambertian, rawReflectance * PBRSpecular, clamp(F,0,1));
+  vec3 dielectric = mix(lambertian, rawReflectance * PBRSpecular, F);
   vec3 metal = rawReflectance * PBRBaseColor;
   
   return mix(dielectric, metal, PBRMetallic);
@@ -123,7 +130,7 @@ float Shininess;
   Specular=m.specular;
   Shininess=m.shininess/128;
 
-  PBRMetallic = 0;
+  PBRMetallic = 1;
   PBRBaseColor = Diffuse.rgb;
   PBRRoughness = 1 - Shininess;
   PBRF0 = 0.04; // Allow for Custom hardcoding in the future?
@@ -141,7 +148,7 @@ float Shininess;
       // where \Omega is the hemisphere covering a point, f is the BRDF function
       // L is the radiance from a given angle and position.
       vec3 L = normalize(lights[i].direction.xyz);
-      float cosTheta = max(0, dot(Normal, normalize(lights[i].direction.xyz))); // $\omega_i \cdot n$ term
+      float cosTheta = abs(dot(Normal, normalize(lights[i].direction.xyz))); // $\omega_i \cdot n$ term
       float attn = 1; // if we have a good light direction.
       vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
 
