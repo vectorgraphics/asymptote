@@ -136,7 +136,7 @@ _ig_*/*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
+!.vscode/c_cpp_properties.json
 ### Translation binary files
 *.mo
 

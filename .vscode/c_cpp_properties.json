@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "HAVE_GL", 
+                "HAVE_LIBGLUT", 
+                "HAVE_PTHREAD"
+        ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c99",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
