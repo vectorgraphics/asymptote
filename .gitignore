@@ -153,3 +153,7 @@ GUI/icons_rc.py
 
 # apitrace outputs
 *.trace
+
+## TODO: Use git lfs to store a larger HDRi format (but bandwidth)?
+## Or tell people to store it elsewhere?
+base/res
