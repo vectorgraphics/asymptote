@@ -3,12 +3,17 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/usr/include/gc",
+                "/usr/include/tirpc"
             ],
             "defines": [
                 "HAVE_GL", 
                 "HAVE_LIBGLUT", 
-                "HAVE_PTHREAD"
+                "HAVE_PTHREAD",
+                "USEGC",
+                "HAVE_LIBGSL",
+                "HAVE_LIBSIGSEGV"
         ],
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c99",

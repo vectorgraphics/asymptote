@@ -13,6 +13,8 @@
 #include <cstring>
 #include <sys/time.h>
 
+#include <OpenImageIO/imageio.h>
+
 #include "common.h"
 #include "locate.h"
 #include "seconds.h"
@@ -178,7 +180,36 @@ dmat4 dprojMat;
 dmat4 dviewMat;
 dmat4 drotateMat; 
 
+GLuint envMapBuf;
+
 ModelView modelView;
+
+GLuint initHDR() {
+  GLuint tex;
+  glGenTextures(1, &tex);
+
+  auto imagein = OIIO::ImageInput::open(locateFile("res/studio001.hdr").c_str());
+  OIIO::ImageSpec const& imspec = imagein->spec();
+
+  // uses GL_TEXTURE1 for now.
+  glActiveTexture(GL_TEXTURE1);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glBindTexture(GL_TEXTURE_2D, tex);
+  std::vector<float> pixels(imspec.width*imspec.height*3);
+  imagein->read_image(pixels.data());
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imspec.width, imspec.height, 0, 
+    GL_RGB, GL_FLOAT, pixels.data());
+
+  glGenerateMipmap(GL_TEXTURE_2D);
+  imagein->close();
+
+  glActiveTexture(GL_TEXTURE0);
+  return tex;
+}
+
 
 void updateModelViewData()
 {
@@ -1332,6 +1363,8 @@ void initshader()
     exit(-1);
   }
 
+  envMapBuf=initHDR();
+
   vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
                               Nmaterials);
   fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
@@ -1704,6 +1737,12 @@ void setUniforms(GLint shader)
                 (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
                 (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
   }
+
+  // textures
+  glActiveTexture(GL_TEXTURE1);
+  glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
+  glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);
+  glActiveTexture(GL_TEXTURE0);
 }
 
 }

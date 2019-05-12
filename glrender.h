@@ -101,6 +101,8 @@ public:
     zoom(zoom), angle(angle), viewportshift(viewportshift) {}
 };
 
+GLuint initHDR();
+
 projection camera(bool user=true);
 
 void glrender(const string& prefix, const camp::picture* pic,

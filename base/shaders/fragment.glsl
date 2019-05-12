@@ -14,6 +14,8 @@ uniform int nlights;
 
 uniform Light lights[Nlights];
 
+uniform sampler2D environmentMap;
+
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
@@ -25,6 +27,8 @@ in vec4 Color;
 #endif
 flat in int materialIndex;
 out vec4 outColor;
+
+in vec3 ViewPosition;
 
 // TODO: Integrate these constants into asy side
 // PBR material parameters
@@ -160,7 +164,7 @@ float Shininess;
     }
 
     vec3 color = totalRadiance.rgb + Emissive.rgb;
-
+    // vec3 color = texture(environmentMap, ViewPosition.xy / 300).rgb;
     outColor=vec4(color,1);
   } else
     outColor=Diffuse;
