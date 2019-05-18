@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/asy",
-            "args": ["-V", "examples/teapot.asy"],
+            "args": ["-usegl4", "-V", "examples/teapot.asy"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [

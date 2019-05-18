@@ -1293,7 +1293,10 @@ void init()
   char **argv=args(cmd,true);
   int argc=cmd.size();
 
-//  glutInitContextVersion(4,3);
+  if (getSetting<bool>("usegl4")) {
+    glutInitContextVersion(4,5);
+  }
+  
 #ifndef __APPLE__
   glutInitContextProfile(GLUT_CORE_PROFILE);
 #endif  
@@ -1608,7 +1611,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   initialized=true;
 
   glewExperimental = GL_TRUE;
-
   int result = glewInit();
 
   if (result != GLEW_OK) {
@@ -1654,6 +1656,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
+    glutDisplayFunc(display);
   
     glutMainLoop();
 #endif // HAVE_LIBGLUT
