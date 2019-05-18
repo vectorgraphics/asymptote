@@ -188,7 +188,7 @@ GLuint initHDR() {
   GLuint tex;
   glGenTextures(1, &tex);
 
-  auto imagein = OIIO::ImageInput::open(locateFile("res/studio001.hdr").c_str());
+  auto imagein = OIIO::ImageInput::open(locateFile("res/studio006.hdr").c_str());
   OIIO::ImageSpec const& imspec = imagein->spec();
 
   // uses GL_TEXTURE1 for now.

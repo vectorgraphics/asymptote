@@ -13,8 +13,10 @@ struct Light
 uniform int nlights;
 
 uniform Light lights[Nlights];
-
 uniform sampler2D environmentMap;
+
+// I don't think we can put acos(-1)... 
+const float PI = 3.14159265359;
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
@@ -41,6 +43,28 @@ float PBRRoughness; // Roughness.
 // Here is a good paper on BRDF models...
 // https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 
+// (x,y,z) -> (r, theta, phi);
+// theta -> [0,\pi], "height" angle
+// phi -> [0, 2\pi], rotation agnle
+vec3 cart2spher(vec3 cart) {
+  float x = cart.z;
+  float y = cart.x;
+  float z = cart.y;
+
+  float r = length(cart);
+  float phi = atan(y,x);
+  float theta = acos(z/r);
+
+  return vec3(r,phi,theta);
+}
+
+vec2 normalizedAngle(vec3 cartVec) {
+  vec3 sphericalVec = cart2spher(cartVec);
+  sphericalVec.y = sphericalVec.y / (2 * PI) - 0.25;
+  sphericalVec.z = sphericalVec.z / PI;
+  // sphericalVec.z = - sphericalVec.z;
+  return sphericalVec.yz;
+}
 
 // h is the halfway vector between normal and light direction
 float NDF(vec3 h, float roughness) {
@@ -164,8 +188,12 @@ float Shininess;
     }
 
     vec3 color = totalRadiance.rgb + Emissive.rgb;
-    // vec3 color = texture(environmentMap, ViewPosition.xy / 300).rgb;
+    // vec3 lightVector = normalize(reflect(-Z, Normal));
+
+    // vec2 anglemap = normalizedAngle(lightVector);
+    // vec3 color = texture(environmentMap, anglemap).rgb;
     outColor=vec4(color,1);
+    // outColor = vec4(anglemap,1);
   } else
     outColor=Diffuse;
 }
