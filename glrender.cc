@@ -180,10 +180,13 @@ dmat4 dprojMat;
 dmat4 dviewMat;
 dmat4 drotateMat; 
 
+#ifdef HAVE_LIBOIIO
 GLuint envMapBuf;
+#endif
 
 ModelView modelView;
 
+#if HAVE_LIBOIIO
 GLuint initHDR() {
   GLuint tex;
   glGenTextures(1, &tex);
@@ -210,7 +213,7 @@ GLuint initHDR() {
   return tex;
 }
 
-
+#endif 
 void updateModelViewData()
 {
   // Like Fortran, OpenGL uses transposed (column-major) format!
@@ -1371,10 +1374,9 @@ void initshader()
   #if HAVE_LIBOIIO
   if (getSetting<bool>("useenvmap")) {
     shaderParams.push_back("ENABLE_TEXTURE");
+    envMapBuf=initHDR();
   }
   #endif
-
-  envMapBuf=initHDR();
 
   vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
                               Nmaterials,shaderParams);
@@ -1749,11 +1751,15 @@ void setUniforms(GLint shader)
                 (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
   }
 
+#if HAVE_LIBOIIO
   // textures
-  glActiveTexture(GL_TEXTURE1);
-  glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
-  glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);
-  glActiveTexture(GL_TEXTURE0);
+  if (settings::getSetting<bool>("useenvmap")) { 
+    glActiveTexture(GL_TEXTURE1);
+    glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
+    glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);
+    glActiveTexture(GL_TEXTURE0);
+  }
+#endif
 }
 
 }

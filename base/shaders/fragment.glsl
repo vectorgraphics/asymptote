@@ -22,9 +22,9 @@ in vec3 Normal;
 #ifdef EXPLICIT_COLOR
 in vec4 Color; 
 #endif
+
 flat in int materialIndex;
 out vec4 outColor;
-
 in vec3 ViewPosition;
 
 // TODO: Integrate these constants into asy side
@@ -38,13 +38,13 @@ float PBRRoughness; // Roughness.
 // Here is a good paper on BRDF models...
 // https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 
+uniform sampler2D environmentMap;
 
 #ifdef ENABLE_TEXTURE
 // I don't think we can put acos(-1)... 
 const float PI = 3.14159265359;
 // TODO: Enable different samples:
 const int numSamples = 5;
-uniform sampler2D environmentMap;
 
 // (x,y,z) -> (r, theta, phi);
 // theta -> [0,\pi], "height" angle
