@@ -199,8 +199,8 @@ float Shininess;
     color += pointLightRadiance.rgb;
   }
 
-#ifndef EXPLICIT_COLOR
 #ifdef ENABLE_TEXTURE
+#ifdef EXPLICIT_COLOR
     // environment radiance -- riemann sums, for now.
     // can also do importance sampling
     vec3 envRadiance=vec3(0,0,0);
@@ -216,7 +216,6 @@ float Shininess;
     vec3 normalPerp2 = normalize(cross(Normal, normalPerp));
 
     bool useEnvironment = true;
-
 
     if (useEnvironment == true) {
       const float step=1.0/numSamples;
@@ -236,6 +235,7 @@ float Shininess;
         }
       }
       envRadiance *= halfpi*step*step;
+    }
     // vec3 lightVector = normalize(reflect(-Z, Normal));
     // vec2 anglemap = normalizedAngle(lightVector);
     // vec3 color = texture(environmentMap, anglemap).rgb;
