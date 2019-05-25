@@ -41,10 +41,12 @@ float PBRRoughness; // Roughness.
 uniform sampler2D environmentMap;
 
 #ifdef ENABLE_TEXTURE
-// I don't think we can put acos(-1)... 
-const float PI = 3.14159265359;
+const float PI = acos(-1.0);
+const float twopi=2*PI;
+const float halfpi=PI/2;
+
 // TODO: Enable different samples:
-const int numSamples = 5;
+const int numSamples = 7;
 
 // (x,y,z) -> (r, theta, phi);
 // theta -> [0,\pi], "height" angle
@@ -143,7 +145,7 @@ float Shininess;
     Material m=Materials[index];
     Diffuse=Color;
     Ambient=Color;
-    Emissive=vec4(0.0,0.0,0.0,1.0);
+    Emissive=Color;
     Specular=m.specular;
     Shininess=m.shininess;
   } else {
@@ -169,14 +171,16 @@ float Shininess;
   PBRSpecular = Specular.rgb;
 #endif
 
-  if(nlights > 0) {
-    vec3 pointLightRadiance=vec3(0,0,0);
-    vec3 Z=vec3(0,0,1);
-    
     // Formally, the formula given a point x and direction \omega,
-    // L_i = \int_{\Omega} f(x, \omega_i, \omega) L(x,\omega_i) (\hat{n}\cdot \omega_i) \dif \omega_i
+    // L_i = \int_{\Omega} f(x, \omega_i, \omega) L(x,\omega_i) (\hat{n}\cdot \omega_i) d \omega_i
     // where \Omega is the hemisphere covering a point, f is the BRDF function
     // L is the radiance from a given angle and position.
+
+  vec3 color = Emissive.rgb;
+  vec3 Z=vec3(0,0,1);
+
+  if(nlights > 0) {
+    vec3 pointLightRadiance=vec3(0,0,0);
 
     // as a finite point light, we have some simplification to the rendering equation.
     for(int i=0; i < nlights; ++i) {
@@ -192,8 +196,11 @@ float Shininess;
       // totalRadiance += vec3(0,1,0)*Shininess;
       pointLightRadiance += BRDF(Z, L) * radiance;
     }
+    color += pointLightRadiance.rgb;
+  }
 
 #ifdef ENABLE_TEXTURE
+#ifndef EXPLICIT_COLOR
     // environment radiance -- riemann sums, for now.
     // can also do importance sampling
     vec3 envRadiance=vec3(0,0,0);
@@ -211,34 +218,31 @@ float Shininess;
     bool useEnvironment = true;
 
     if (useEnvironment == true) {
-      for (int ix=0; ix<numSamples; ++ix) {
-        float x = ix/float(numSamples);
-        for (int iy=0; iy<numSamples; ++iy) {
-          float y = iy/float(numSamples);
+      const float step=1.0/numSamples;
+      const float phistep=twopi*step;
+      const float thetastep=halfpi*step;
+      for (int iphi=0; iphi < numSamples; ++iphi) {
+        float phi=iphi*phistep;
+        for (int itheta=0; itheta < numSamples; ++itheta) {
+          float theta=itheta*thetastep;
 
-          vec3 azimuth = sin(2*PI*x)*normalPerp + cos(2*PI*x)*normalPerp2;
-          vec3 L = cos(PI*y/2)*azimuth + sin(PI*y/2)*Normal;
+          vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
+          vec3 L=sin(theta)*azimuth+cos(theta)*Normal;
 
-          vec3 rawRadiance = texture(environmentMap, normalizedAngle(L)).rgb;
-          vec3 surfRefl = BRDF(Z, L);
-          envRadiance += (surfRefl * rawRadiance * max(sin(PI*y),0))/(numSamples * numSamples);
+          vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
+          vec3 surfRefl=BRDF(Z,L);
+          envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
         }
       }
+      envRadiance *= halfpi*step*step;
     }
-
-    envRadiance = (PI/2) * envRadiance;
-  #endif
-    vec3 color = Emissive.rgb + pointLightRadiance.rgb;
-
-  #ifdef ENABLE_TEXTURE
     // vec3 lightVector = normalize(reflect(-Z, Normal));
     // vec2 anglemap = normalizedAngle(lightVector);
     // vec3 color = texture(environmentMap, anglemap).rgb;
     color += envRadiance.rgb;
-  #endif 
+#endif
+#endif
 
-    outColor=vec4(color,1);
-  } else
-    outColor=Diffuse;
+  outColor=vec4(color,1);
 }
 
