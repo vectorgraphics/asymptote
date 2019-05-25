@@ -46,7 +46,7 @@ GLuint createShaders(GLchar const* src, int shaderType)
 }
 
 GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
-                        size_t Nmaterials,  bool explicitcolor)
+                        size_t Nmaterials, std::vector<std::string> const& defineflags, bool explicitcolor)
 {
     std::ifstream shaderFile;
     shaderFile.open(file.c_str());
@@ -57,6 +57,14 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
               << "\r\n";
     shaderSrc << "#extension GL_ARB_shading_language_packing : enable"
               << "\r\n";
+
+    // I'm using C++11/14 notation for now, if does not work with Karl
+    // we can change it.
+    // Ideally, we should be using unordered_set but then Karl has some problems...
+
+    for (std::string const& flag : defineflags) {
+        shaderSrc << "#define " << flag << "\r\n";
+    }
 
     
     if(explicitcolor)

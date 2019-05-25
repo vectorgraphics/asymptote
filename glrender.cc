@@ -1366,20 +1366,28 @@ void initshader()
     exit(-1);
   }
 
+  std::vector<std::string> shaderParams;
+
+  #if HAVE_LIBOIIO
+  if (getSetting<bool>("useenvmap")) {
+    shaderParams.push_back("ENABLE_TEXTURE");
+  }
+  #endif
+
   envMapBuf=initHDR();
 
   vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
-                              Nmaterials);
+                              Nmaterials,shaderParams);
   fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
-                              Nmaterials);
+                              Nmaterials,shaderParams);
   glAttachShader(shaderProg,vertShader);
   glAttachShader(shaderProg,fragShader);
     
   shaderProgColor=glCreateProgram();
   vertShaderCol=createShaderFile(vs.c_str(),
-                                 GL_VERTEX_SHADER,Nlights,Nmaterials,true);
+                                 GL_VERTEX_SHADER,Nlights,Nmaterials,shaderParams,true);
   fragShaderCol=createShaderFile(fs.c_str(),
-                                 GL_FRAGMENT_SHADER,Nlights,Nmaterials,true);
+                                 GL_FRAGMENT_SHADER,Nlights,Nmaterials,shaderParams,true);
   glAttachShader(shaderProgColor,vertShaderCol);
   glAttachShader(shaderProgColor,fragShaderCol);
 

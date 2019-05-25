@@ -1113,6 +1113,9 @@ void initSettings() {
                             "Show 3D axes in PDF output", true));
   addOption(new boolSetting("usegl4", 0,
                             "Use OpenGL 4", false));
+  addOption(new boolSetting("useenvmap", 0,
+                            "Enable environment map image-based lighting (Experimental)", false));
+                            
                             
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",

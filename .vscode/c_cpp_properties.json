@@ -9,11 +9,12 @@
             ],
             "defines": [
                 "HAVE_GL", 
-                "HAVE_LIBGLUT", 
-                "HAVE_PTHREAD",
+                "HAVE_LIBGLUT=1", 
+                "HAVE_PTHREAD=1",
                 "USEGC",
-                "HAVE_LIBGSL",
-                "HAVE_LIBSIGSEGV"
+                "HAVE_LIBGSL=1",
+                "HAVE_LIBSIGSEGV=1",
+                "HAVE_LIBOIIO=1"
         ],
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c99",

@@ -11,12 +11,7 @@ struct Light
 };
 
 uniform int nlights;
-
 uniform Light lights[Nlights];
-uniform sampler2D environmentMap;
-
-// I don't think we can put acos(-1)... 
-const float PI = 3.14159265359;
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
@@ -43,6 +38,14 @@ float PBRRoughness; // Roughness.
 // Here is a good paper on BRDF models...
 // https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 
+
+#ifdef ENABLE_TEXTURE
+// I don't think we can put acos(-1)... 
+const float PI = 3.14159265359;
+// TODO: Enable different samples:
+const int numSamples = 5;
+uniform sampler2D environmentMap;
+
 // (x,y,z) -> (r, theta, phi);
 // theta -> [0,\pi], "height" angle
 // phi -> [0, 2\pi], rotation agnle
@@ -65,6 +68,7 @@ vec2 normalizedAngle(vec3 cartVec) {
   // sphericalVec.z = - sphericalVec.z;
   return sphericalVec.yz;
 }
+#endif
 
 // h is the halfway vector between normal and light direction
 float NDF(vec3 h, float roughness) {
@@ -166,15 +170,17 @@ float Shininess;
 #endif
 
   if(nlights > 0) {
-    vec3 totalRadiance=vec3(0,0,0);
+    vec3 pointLightRadiance=vec3(0,0,0);
     vec3 Z=vec3(0,0,1);
+    
+    // Formally, the formula given a point x and direction \omega,
+    // L_i = \int_{\Omega} f(x, \omega_i, \omega) L(x,\omega_i) (\hat{n}\cdot \omega_i) \dif \omega_i
+    // where \Omega is the hemisphere covering a point, f is the BRDF function
+    // L is the radiance from a given angle and position.
 
+    // as a finite point light, we have some simplification to the rendering equation.
     for(int i=0; i < nlights; ++i) {
-      // as a finite point light, we have some simplification to the rendering equation.
-      // Formally, the formula given a point x and direction \omega,
-      // L_i = \int_{\Omega} f(x, \omega_i, \omega) L(x,\omega_i) (\hat{n}\cdot \omega_i) \dif \omega_i
-      // where \Omega is the hemisphere covering a point, f is the BRDF function
-      // L is the radiance from a given angle and position.
+
       vec3 L = normalize(lights[i].direction.xyz);
       float cosTheta = abs(dot(Normal, normalize(lights[i].direction.xyz))); // $\omega_i \cdot n$ term
       float attn = 1; // if we have a good light direction.
@@ -184,16 +190,54 @@ float Shininess;
       // though the viewing angle does not matter in the Lambertian diffuse... 
 
       // totalRadiance += vec3(0,1,0)*Shininess;
-      totalRadiance += BRDF(Z, L) * radiance;
+      pointLightRadiance += BRDF(Z, L) * radiance;
     }
 
-    vec3 color = totalRadiance.rgb + Emissive.rgb;
-    // vec3 lightVector = normalize(reflect(-Z, Normal));
+#ifdef ENABLE_TEXTURE
+    // environment radiance -- riemann sums, for now.
+    // can also do importance sampling
+    vec3 envRadiance=vec3(0,0,0);
 
+    vec3 normalPerp = vec3(-Normal.y, Normal.x, 0);
+    if (length(normalPerp) == 0) { // x, y = 0.
+
+      normalPerp = vec3(1, 0, 0);
+    }
+    // we now have a normal basis for Normal;
+    // Normal;
+    normalPerp = normalize(normalPerp);
+    vec3 normalPerp2 = normalize(cross(Normal, normalPerp));
+
+    bool useEnvironment = true;
+
+    if (useEnvironment == true) {
+      for (int ix=0; ix<numSamples; ++ix) {
+        float x = ix/float(numSamples);
+        for (int iy=0; iy<numSamples; ++iy) {
+          float y = iy/float(numSamples);
+
+          vec3 azimuth = sin(2*PI*x)*normalPerp + cos(2*PI*x)*normalPerp2;
+          vec3 L = cos(PI*y/2)*azimuth + sin(PI*y/2)*Normal;
+
+          vec3 rawRadiance = texture(environmentMap, normalizedAngle(L)).rgb;
+          vec3 surfRefl = BRDF(Z, L);
+          envRadiance += (surfRefl * rawRadiance * max(sin(PI*y),0))/(numSamples * numSamples);
+        }
+      }
+    }
+
+    envRadiance = (PI/2) * envRadiance;
+  #endif
+    vec3 color = Emissive.rgb + pointLightRadiance.rgb;
+
+  #ifdef ENABLE_TEXTURE
+    // vec3 lightVector = normalize(reflect(-Z, Normal));
     // vec2 anglemap = normalizedAngle(lightVector);
     // vec3 color = texture(environmentMap, anglemap).rgb;
+    color += envRadiance.rgb;
+  #endif 
+
     outColor=vec4(color,1);
-    // outColor = vec4(anglemap,1);
   } else
     outColor=Diffuse;
 }
