@@ -233,7 +233,7 @@ AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
 
 # Checks for libraries.
-AC_CHECK_LIB([m], [sqrt],,
+AC_CHECK_LIB([m], [gamma],,
 AC_MSG_ERROR([*** Please install libm on your system ***]))
 AC_CHECK_LIB([z], [deflate],,
 AC_MSG_ERROR([*** Please install libz or zlib-devel on your system ***]))
