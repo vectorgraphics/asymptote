@@ -217,19 +217,7 @@ void drawNurbsPath3::render(double, const triple&, const triple&,
   if(invisible || ((color.A < 1.0) ^ transparent))
     return;
   
-  GLfloat Diffuse[]={0.0,0.0,0.0,(GLfloat) color.A};
-  glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
-  
-  static GLfloat Black[]={0.0,0.0,0.0,1.0};
-  glMaterialfv(GL_FRONT,GL_AMBIENT,Black);
-    
-  GLfloat Emissive[]={(GLfloat) color.R,(GLfloat) color.G,(GLfloat) color.B,
-		      (GLfloat) color.A};
-  glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
-    
-  glMaterialfv(GL_FRONT,GL_SPECULAR,Black);
-  
-  glMaterialf(GL_FRONT,GL_SHININESS,128.0);
+// TODO: implement NURBS renderer
 #endif
 }
 
