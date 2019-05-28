@@ -8,19 +8,29 @@ struct material {
   pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
   real opacity;
   real shininess;  
-  real metallicness; // TODO: Integrate this into asymptote.
+
+  real metallic; // TODO: Integrate this into asymptote.
+  real fresnel0; // Reflectance rate at a perfect normal angle.
+
   void operator init(pen diffusepen=black, pen ambientpen=black,
                      pen emissivepen=black, pen specularpen=mediumgray,
                      real opacity=opacity(diffusepen),
-                     real shininess=defaultshininess) {
+                     real shininess=defaultshininess,
+                     real metallic=defaultmetallic,
+                     real fresnel0=defaultfresnel0) {
+
     p=new pen[] {diffusepen,ambientpen,emissivepen,specularpen};
     this.opacity=opacity;
     this.shininess=shininess;
+    this.metallic=metallic;
+    this.fresnel0=fresnel0;
   }
   void operator init(material m) {
     p=copy(m.p);
     opacity=m.opacity;
     shininess=m.shininess;
+    metallic=m.metallic;
+    fresnel0=m.fresnel0;
   }
   pen diffuse() {return p[0];}
   pen ambient() {return p[1];}
@@ -48,6 +58,8 @@ void write(file file, string s="", material x, suffix suffix=none)
   write(file,", specular=",x.specular());
   write(file,", opacity=",x.opacity);
   write(file,", shininess=",x.shininess);
+  write(file,", metallic=",x.metallic);
+  write(file,", F0=",x.fresnel0);
   write(file,"}",suffix);
 }
 
@@ -59,7 +71,8 @@ void write(string s="", material x, suffix suffix=endl)
 bool operator == (material m, material n)
 {
   return all(m.p == n.p) && m.opacity == n.opacity &&
-  m.shininess == n.shininess;
+  m.shininess == n.shininess && m.metallic == n.metallic &&
+  m.fresnel0 == n.fresnel0;
 }
 
 material operator cast(pen p)

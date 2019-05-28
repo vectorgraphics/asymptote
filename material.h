@@ -20,19 +20,22 @@ struct Material {
 public:
   glm::vec4 diffuse, ambient, emissive, specular;
   GLfloat shininess; 
+  GLfloat metallic;
+  GLfloat fresnel0;
   GLfloat padding[3];
 
   Material() {}
 
   Material(const glm::vec4& diffuse, const glm::vec4& ambient,
            const glm::vec4& emissive, const glm::vec4& specular,
-           double shininess) : 
+           double shininess, double metallic, double fresnel0) : 
     diffuse(diffuse), ambient(ambient), emissive(emissive), specular(specular),
-    shininess(128*shininess) {}
+    shininess(128*shininess), metallic(metallic), fresnel0(fresnel0) {}
 
   Material(Material const& m):
     diffuse(m.diffuse), ambient(m.ambient), emissive(m.emissive),
-    specular(m.specular), shininess(m.shininess) {}
+    specular(m.specular), shininess(m.shininess), metallic(m.metallic),
+    fresnel0(m.fresnel0) {}
   ~Material() {}
 
   Material& operator=(Material const& m)
@@ -42,9 +45,11 @@ public:
     emissive=m.emissive;
     specular=m.specular;
     shininess=m.shininess;
+    metallic=m.metallic;
+    fresnel0=m.fresnel0;
     return *this; 
   }
-      
+  // TODO: What to do with metallic and fresnel0 value for comparsion?
   friend bool operator < (const Material& m1, const Material& m2) {
     return m1.diffuse < m2.diffuse ||
                         (m1.diffuse == m2.diffuse && 

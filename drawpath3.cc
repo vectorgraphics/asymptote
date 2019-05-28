@@ -94,7 +94,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
     return;
   
   RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(false,Black,Black,color,Black,1.0);
+  setcolors(false,Black,Black,color,Black,1.0,0.0,0.04);
   
   if(billboard) {
     for(Int i=0; i < n; ++i) {
@@ -276,7 +276,7 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
     return;
   
   RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(false,color,Black,color,Black,1.0);
+  setcolors(false,color,Black,color,Black,1.0,0.0,0.04);
   
   glPointSize(1.0+width);
   R.draw(v);

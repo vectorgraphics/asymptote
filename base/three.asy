@@ -87,6 +87,10 @@ defaultrender.partnames=false;
 defaultrender.defaultnames=true;
 
 real defaultshininess=0.25;
+real defaultmetallic=0.0;
+real defaultfresnel0=0.04;
+
+
 
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;

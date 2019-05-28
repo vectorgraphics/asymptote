@@ -1,7 +1,9 @@
 struct Material
 {
   vec4 diffuse,ambient,emissive,specular;
-  float shininess; 
+  float shininess;
+  float metallic;
+  float fresnel0;
 };
 
 struct Light
@@ -164,10 +166,11 @@ float Shininess;
   Specular=m.specular;
   Shininess=m.shininess/128;
 
-  PBRMetallic = 0;
+  PBRMetallic = m.metallic;
+  PBRF0 = m.fresnel0;
+
   PBRBaseColor = Diffuse.rgb;
   PBRRoughness = 1 - Shininess;
-  PBRF0 = 0.04; // Allow for Custom hardcoding in the future?
   PBRSpecular = Specular.rgb;
 #endif
 
@@ -186,7 +189,7 @@ float Shininess;
     for(int i=0; i < nlights; ++i) {
 
       vec3 L = normalize(lights[i].direction.xyz);
-      float cosTheta = abs(dot(Normal, normalize(lights[i].direction.xyz))); // $\omega_i \cdot n$ term
+      float cosTheta = abs(dot(Normal, L)); // $\omega_i \cdot n$ term
       float attn = 1; // if we have a good light direction.
       vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
 

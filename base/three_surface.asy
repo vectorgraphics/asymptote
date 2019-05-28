@@ -1406,7 +1406,7 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   
   (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,center,s.straight && s.planar,m.p,m.opacity,m.shininess,
-     PRCshininess,s.colors,interaction.type,prc);
+    m.metallic,m.fresnel0,PRCshininess,s.colors,interaction.type,prc);
 }
 
 int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
@@ -1441,7 +1441,8 @@ void draw(frame f, triple[] v, int[][] vi,
   real PRCshininess;
   if(prc())
     PRCshininess=PRCshininess(m.shininess);
-  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,PRCshininess,p,pi);
+  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+      PRCshininess,p,pi);
 }
   
 // Draw triangles on a picture.
@@ -2437,8 +2438,8 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
         real PRCshininess;
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
-        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
-             colors);
+        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+              PRCshininess,colors);
         if(group)
           endgroup3(f);
         if(pic != null)
