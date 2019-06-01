@@ -36,14 +36,14 @@ vec3 PBRSpecular; // Specular tint for nonmetals
 float PBRMetallic; // Metallic/Nonmetals switch flag
 float PBRF0; // Fresnel at zero for nonmetals
 float PBRRoughness; // Roughness.
+float PBRRoughnessSq; // used value of roughness, for a little bit more "smoothing"
 
 // Here is a good paper on BRDF models...
 // https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 
 uniform sampler2D environmentMap;
-
-#ifdef ENABLE_TEXTURE
 const float PI = acos(-1.0);
+#ifdef ENABLE_TEXTURE
 const float twopi=2*PI;
 const float halfpi=PI/2;
 
@@ -75,15 +75,29 @@ vec2 normalizedAngle(vec3 cartVec) {
 #endif
 
 // h is the halfway vector between normal and light direction
-float NDF(vec3 h, float roughness) {
+// GGX Trowbridge-Reitz Approximation
+float NDF_TRG(vec3 h, float roughness) {
   float ndoth = abs(dot(Normal, h));
-  float alpha2 = roughness * roughness;
+  float alpha2 = PBRRoughnessSq * PBRRoughnessSq;
 
-  float denom = pow((pow(ndoth,2) * (alpha2-1)) + 1, 2);
+  float denom = pow(ndoth * ndoth * (alpha2-1) + 1, 2);
   return alpha2/denom;
 }
+// Beckmann NDF Approximation
+float NDF_B(vec3 h, float roughness) {
+  float ndoth=abs(dot(Normal,h));
+  float alpha2 = PBRRoughnessSq * PBRRoughnessSq;
 
-float GGX(vec3 v) {
+  float expnumer=pow(ndoth,2)-1;
+  float expdenom=alpha2*pow(ndoth,2);
+
+  float exppart=exp(expnumer/expdenom);
+
+  float denom=alpha2*pow(ndoth,4);
+  return exppart/denom;
+}
+
+float GGX_Geom(vec3 v) {
   float ndotv = abs(dot(v,Normal));
   float ap = pow((1+PBRRoughness),2);
   float k = ap/8;
@@ -92,7 +106,7 @@ float GGX(vec3 v) {
 }
 
 float Geom(vec3 v, vec3 l) {
-  return GGX(v) * GGX(l);
+  return GGX_Geom(v) * GGX_Geom(l);
 }
 
 // Schlick's approximation
@@ -109,20 +123,10 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
   // Cook-Torrance model
   vec3 h = normalize(lightDirection + viewDirection);
 
-
   float omegain = abs(dot(viewDirection, Normal));
-  float omegaln = dot(lightDirection, Normal);
+  float omegaln = abs(dot(lightDirection, Normal));
 
-  // correctly flip the normal sign.
-  vec3 hn = vec3(0);
-  if (omegaln >= 0) {
-    hn = normalize(Normal + lightDirection);
-  } else {
-    omegaln = -omegaln;
-    hn = normalize(-Normal + lightDirection);
-  }
-
-  float D = NDF(hn, PBRRoughness);
+  float D = NDF_TRG(h, PBRRoughness);
   float G = Geom(viewDirection, lightDirection);
   float F = Fresnel(h, viewDirection, PBRF0);
 
@@ -171,6 +175,7 @@ float Shininess;
 
   PBRBaseColor = Diffuse.rgb;
   PBRRoughness = 1 - Shininess;
+  PBRRoughnessSq = PBRRoughness * PBRRoughness;
   PBRSpecular = Specular.rgb;
 #endif
 
@@ -181,26 +186,27 @@ float Shininess;
 
   vec3 color = Emissive.rgb;
   vec3 Z=vec3(0,0,1);
+  vec3 pointLightRadiance=vec3(0,0,0);
 
-  if(nlights > 0) {
-    vec3 pointLightRadiance=vec3(0,0,0);
+  // as a finite point light, we have some simplification to the rendering equation.
+  for(int i=0; i < nlights; ++i) {
 
-    // as a finite point light, we have some simplification to the rendering equation.
-    for(int i=0; i < nlights; ++i) {
+    vec3 L = normalize(lights[i].direction.xyz);
+    // what if we use the acutal view from (0,0,0) instead?
+    // vec3 viewDirection = Z;
+    vec3 viewDirection = -normalize(ViewPosition);
+    float cosTheta = abs(dot(Normal, L)); // $\omega_i \cdot n$ term
+    float attn = 1; // if we have a good light direction.
+    vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
 
-      vec3 L = normalize(lights[i].direction.xyz);
-      float cosTheta = abs(dot(Normal, L)); // $\omega_i \cdot n$ term
-      float attn = 1; // if we have a good light direction.
-      vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
+    // in our case, the viewing angle is always (0,0,1)... 
+    // though the viewing angle does not matter in the Lambertian diffuse... 
 
-      // in our case, the viewing angle is always (0,0,1)... 
-      // though the viewing angle does not matter in the Lambertian diffuse... 
-
-      // totalRadiance += vec3(0,1,0)*Shininess;
-      pointLightRadiance += BRDF(Z, L) * radiance;
-    }
-    color += pointLightRadiance.rgb;
+    // totalRadiance += vec3(0,1,0)*Shininess;
+    pointLightRadiance += BRDF(Z, L) * radiance;
   }
+  color += pointLightRadiance.rgb;
+
 
 #ifdef ENABLE_TEXTURE
 #ifndef EXPLICIT_COLOR
@@ -218,27 +224,24 @@ float Shininess;
     normalPerp = normalize(normalPerp);
     vec3 normalPerp2 = normalize(cross(Normal, normalPerp));
 
-    bool useEnvironment = true;
+    const float step=1.0/numSamples;
+    const float phistep=twopi*step;
+    const float thetastep=halfpi*step;
+    for (int iphi=0; iphi < numSamples; ++iphi) {
+      float phi=iphi*phistep;
+      for (int itheta=0; itheta < numSamples; ++itheta) {
+        float theta=itheta*thetastep;
 
-    if (useEnvironment == true) {
-      const float step=1.0/numSamples;
-      const float phistep=twopi*step;
-      const float thetastep=halfpi*step;
-      for (int iphi=0; iphi < numSamples; ++iphi) {
-        float phi=iphi*phistep;
-        for (int itheta=0; itheta < numSamples; ++itheta) {
-          float theta=itheta*thetastep;
+        vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
+        vec3 L=sin(theta)*azimuth+cos(theta)*Normal;
 
-          vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
-          vec3 L=sin(theta)*azimuth+cos(theta)*Normal;
-
-          vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
-          vec3 surfRefl=BRDF(Z,L);
-          envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
-        }
+        vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
+        vec3 surfRefl=BRDF(Z,L);
+        envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
       }
-      envRadiance *= halfpi*step*step;
     }
+    envRadiance *= halfpi*step*step;
+  
     // vec3 lightVector = normalize(reflect(-Z, Normal));
     // vec2 anglemap = normalizedAngle(lightVector);
     // vec3 color = texture(environmentMap, anglemap).rgb;
@@ -246,6 +249,7 @@ float Shininess;
 #endif
 #endif
 
+  // vec3 visNormal = vec3(pow(0.5+Normal.y/2, 20));
   outColor=vec4(color,1);
 }
 
