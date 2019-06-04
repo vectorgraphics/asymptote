@@ -16,26 +16,26 @@ inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
                       (m1[3] < m2[3]))))));
 }
 
+inline glm::vec4 GLparameters(GLfloat shininess, GLfloat metallic,
+                             GLfloat fresnel0) {
+  return glm::vec4(shininess,metallic,fresnel0,0.0);
+}
+
 struct Material {
 public:
   glm::vec4 diffuse, ambient, emissive, specular;
-  GLfloat shininess; 
-  GLfloat metallic;
-  GLfloat fresnel0;
-  GLfloat padding[1];
-
+  glm::vec4 parameters;
   Material() {}
 
   Material(const glm::vec4& diffuse, const glm::vec4& ambient,
            const glm::vec4& emissive, const glm::vec4& specular,
            double shininess, double metallic, double fresnel0) : 
     diffuse(diffuse), ambient(ambient), emissive(emissive), specular(specular),
-    shininess(128*shininess), metallic(metallic), fresnel0(fresnel0) {}
+    parameters(GLparameters(128.0*shininess,metallic,fresnel0)) {}
 
   Material(Material const& m):
     diffuse(m.diffuse), ambient(m.ambient), emissive(m.emissive),
-    specular(m.specular), shininess(m.shininess), metallic(m.metallic),
-    fresnel0(m.fresnel0) {}
+    specular(m.specular), parameters(m.parameters) {}
   ~Material() {}
 
   Material& operator=(Material const& m)
@@ -44,12 +44,9 @@ public:
     ambient=m.ambient;
     emissive=m.emissive;
     specular=m.specular;
-    shininess=m.shininess;
-    metallic=m.metallic;
-    fresnel0=m.fresnel0;
+    parameters=m.parameters;
     return *this; 
   }
-  // TODO: What to do with metallic and fresnel0 value for comparsion?
   friend bool operator < (const Material& m1, const Material& m2) {
     return m1.diffuse < m2.diffuse ||
                         (m1.diffuse == m2.diffuse && 
@@ -59,9 +56,8 @@ public:
                         (m1.emissive == m2.emissive && 
                          (m1.specular < m2.specular ||
                         (m1.specular == m2.specular && 
-                         (m1.shininess < m2.shininess))))))));
+                         (m1.parameters < m2.parameters))))))));
   }
-      
 }; 
 
 extern size_t Nmaterials; // Number of materials compiled in shader
