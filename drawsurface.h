@@ -155,7 +155,7 @@ public:
               double metallic, double fresnel0,
               double PRCshininess, const vm::array &pens,
               Interaction interaction, bool prc) : 
-    drawSurface(g,10,center,straight,p,opacity,metallic,fresnel0,shininess,
+    drawSurface(g,10,center,straight,p,opacity,shininess,metallic,fresnel0,
                 PRCshininess,pens,interaction,prc) {}
   
   drawBezierTriangle(const double* t, const drawBezierTriangle *s) :
