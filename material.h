@@ -22,7 +22,7 @@ public:
   GLfloat shininess; 
   GLfloat metallic;
   GLfloat fresnel0;
-  GLfloat padding[3];
+  GLfloat padding[1];
 
   Material() {}
 
