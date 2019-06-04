@@ -31,7 +31,7 @@ public:
            const glm::vec4& emissive, const glm::vec4& specular,
            double shininess, double metallic, double fresnel0) : 
     diffuse(diffuse), ambient(ambient), emissive(emissive), specular(specular),
-    parameters(GLparameters(128.0*shininess,metallic,fresnel0)) {}
+    parameters(GLparameters(shininess,metallic,fresnel0)) {}
 
   Material(Material const& m):
     diffuse(m.diffuse), ambient(m.ambient), emissive(m.emissive),

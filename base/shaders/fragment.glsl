@@ -168,7 +168,7 @@ float Shininess;
   Ambient=m.ambient;
   Emissive=m.emissive;
   Specular=m.specular;
-  Shininess=m.shininess/128;
+  Shininess=m.shininess;
 
   PBRMetallic = m.metallic;
   PBRF0 = m.fresnel0;
