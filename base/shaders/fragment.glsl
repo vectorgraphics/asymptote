@@ -1,9 +1,7 @@
 struct Material
 {
   vec4 diffuse,ambient,emissive,specular;
-  float shininess;
-  float metallic;
-  float fresnel0;
+  vec4 parameters;
 };
 
 struct Light
@@ -144,7 +142,7 @@ vec4 Diffuse;
 vec4 Ambient;
 vec4 Emissive;
 vec4 Specular;
-float Shininess;
+vec4 parameters;
 #ifdef EXPLICIT_COLOR
   if(materialIndex < 0) {
     int index=-materialIndex-1;
@@ -153,14 +151,14 @@ float Shininess;
     Ambient=Color;
     Emissive=Color;
     Specular=m.specular;
-    Shininess=m.shininess;
+    parameters=m.parameters;
   } else {
     Material m=Materials[materialIndex];
     Diffuse=m.diffuse;
     Ambient=m.ambient;
     Emissive=m.emissive;
     Specular=m.specular;
-    Shininess=m.shininess;
+    parameters=m.parameters;
   }
 #else
   Material m=Materials[materialIndex];
@@ -168,16 +166,15 @@ float Shininess;
   Ambient=m.ambient;
   Emissive=m.emissive;
   Specular=m.specular;
-  Shininess=m.shininess;
-
-  PBRMetallic = m.metallic;
-  PBRF0 = m.fresnel0;
+  parameters=m.parameters;
+#endif
+  PBRRoughness=1-parameters[0];
+  PBRMetallic=parameters[1];
+  PBRF0=parameters[2];
 
   PBRBaseColor = Diffuse.rgb;
-  PBRRoughness = 1 - Shininess;
   PBRRoughnessSq = PBRRoughness * PBRRoughness;
   PBRSpecular = Specular.rgb;
-#endif
 
     // Formally, the formula given a point x and direction \omega,
     // L_i = \int_{\Omega} f(x, \omega_i, \omega) L(x,\omega_i) (\hat{n}\cdot \omega_i) d \omega_i
