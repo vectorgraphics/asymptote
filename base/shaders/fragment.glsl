@@ -247,6 +247,6 @@ vec4 parameters;
 #endif
 
   // vec3 visNormal = vec3(pow(0.5+Normal.y/2, 20));
-  outColor=vec4(color,1);
+  outColor=vec4(color,Diffuse[3]);
 }
 
