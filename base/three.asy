@@ -86,7 +86,7 @@ defaultrender.labelfill=true;
 defaultrender.partnames=false;
 defaultrender.defaultnames=true;
 
-real defaultshininess=0.25;
+real defaultshininess=0.7;
 real defaultmetallic=0.0;
 real defaultfresnel0=0.04;
 
