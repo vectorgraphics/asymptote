@@ -18,7 +18,7 @@ out vec3 Normal;
 out vec4 Color;
 #endif
 
-flat out int materialIndex;
+flat out int MaterialIndex;
 
 void main()
 {
@@ -30,5 +30,5 @@ void main()
   Color=unpackUnorm4x8(color);
 #endif
 
-  materialIndex=material;
+  MaterialIndex=material;
 }

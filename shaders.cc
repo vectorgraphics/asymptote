@@ -52,11 +52,7 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
     shaderFile.open(file.c_str());
     std::stringstream shaderSrc;
 
-    shaderSrc << "#version 130" << "\r\n";
-    shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
-              << "\r\n";
-    shaderSrc << "#extension GL_ARB_shading_language_packing : enable"
-              << "\r\n";
+    shaderSrc << "#version 450" << "\r\n";
 
     // I'm using C++11/14 notation for now, if does not work with Karl
     // we can change it.

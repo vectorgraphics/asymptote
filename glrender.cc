@@ -1354,7 +1354,7 @@ void init_osmesa()
 #endif // HAVE_LIBOSMESA
 }
 
-GLuint vertShader,fragShader;
+GLuint vertShader,ctrlShader,evalShader,fragShader;
 GLuint vertShaderCol,fragShaderCol;
 
 void initshader()
@@ -1363,6 +1363,8 @@ void initshader()
   Nmaterials=max(Nmaterials,nmaterials);
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
+  string cs=locateFile("shaders/control.glsl");
+  string ts=locateFile("shaders/evaluator.glsl");
   string fs=locateFile("shaders/fragment.glsl");
   if(vs.empty() || fs.empty()) {
     cerr << "GLSL shaders not found." << endl;
@@ -1380,9 +1382,15 @@ void initshader()
 
   vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
                               Nmaterials,shaderParams);
+  ctrlShader=createShaderFile(cs.c_str(),GL_TESS_CONTROL_SHADER,Nlights,
+                              Nmaterials,shaderParams);
+  evalShader=createShaderFile(ts.c_str(),GL_TESS_EVALUATION_SHADER,Nlights,
+                              Nmaterials,shaderParams);
   fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
                               Nmaterials,shaderParams);
   glAttachShader(shaderProg,vertShader);
+  glAttachShader(shaderProg,ctrlShader);
+  glAttachShader(shaderProg,evalShader);
   glAttachShader(shaderProg,fragShader);
     
   shaderProgColor=glCreateProgram();
@@ -1398,8 +1406,12 @@ void initshader()
     
   glLinkProgram(shaderProg);
   glDetachShader(shaderProg,vertShader);
+  glDetachShader(shaderProg,ctrlShader);
+  glDetachShader(shaderProg,evalShader);
   glDetachShader(shaderProg,fragShader);
   glDeleteShader(vertShader);
+  glDeleteShader(ctrlShader);
+  glDeleteShader(evalShader);
   glDeleteShader(fragShader);
     
   glLinkProgram(shaderProgColor);

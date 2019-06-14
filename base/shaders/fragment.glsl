@@ -23,9 +23,8 @@ in vec3 Normal;
 in vec4 Color; 
 #endif
 
-flat in int materialIndex;
+flat in int MaterialIndex;
 out vec4 outColor;
-in vec3 ViewPosition;
 
 // TODO: Integrate these constants into asy side
 // PBR material parameters
@@ -144,8 +143,8 @@ vec4 Emissive;
 vec4 Specular;
 vec4 parameters;
 #ifdef EXPLICIT_COLOR
-  if(materialIndex < 0) {
-    int index=-materialIndex-1;
+  if(MaterialIndex < 0) {
+    int index=-MaterialIndex-1;
     Material m=Materials[index];
     Diffuse=Color;
     Ambient=Color;
@@ -153,7 +152,7 @@ vec4 parameters;
     Specular=m.specular;
     parameters=m.parameters;
   } else {
-    Material m=Materials[materialIndex];
+    Material m=Materials[MaterialIndex];
     Diffuse=m.diffuse;
     Ambient=m.ambient;
     Emissive=m.emissive;
@@ -161,7 +160,7 @@ vec4 parameters;
     parameters=m.parameters;
   }
 #else
-  Material m=Materials[materialIndex];
+  Material m=Materials[MaterialIndex];
   Diffuse=m.diffuse;
   Ambient=m.ambient;
   Emissive=m.emissive;
@@ -191,7 +190,6 @@ vec4 parameters;
     vec3 L = normalize(lights[i].direction.xyz);
     // what if we use the acutal view from (0,0,0) instead?
     // vec3 viewDirection = Z;
-    vec3 viewDirection = -normalize(ViewPosition);
     float cosTheta = abs(dot(Normal, L)); // $\omega_i \cdot n$ term
     float attn = 1; // if we have a good light direction.
     vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
