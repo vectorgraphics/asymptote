@@ -17,13 +17,15 @@ uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
 
-in vec3 Normal;
+in vec3 fNormal;
+vec3 Normal;
 
 #ifdef EXPLICIT_COLOR
 in vec4 Color; 
 #endif
 
 flat in int materialIndex;
+in vec3 Barycentric;
 out vec4 outColor;
 // in vec3 ViewPosition;
 
@@ -74,7 +76,7 @@ vec2 normalizedAngle(vec3 cartVec) {
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
 float NDF_TRG(vec3 h, float roughness) {
-  float ndoth = abs(dot(Normal, h));
+  float ndoth = max(dot(Normal, h), 0);
   float alpha2 = PBRRoughnessSq * PBRRoughnessSq;
 
   float denom = pow(ndoth * ndoth * (alpha2-1) + 1, 2);
@@ -95,7 +97,7 @@ float NDF_B(vec3 h, float roughness) {
 }
 
 float GGX_Geom(vec3 v) {
-  float ndotv = abs(dot(v,Normal));
+  float ndotv = max(dot(v,Normal), 0);
   float ap = pow((1+PBRRoughness),2);
   float k = ap/8;
 
@@ -120,8 +122,8 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
   // Cook-Torrance model
   vec3 h = normalize(lightDirection + viewDirection);
 
-  float omegain = abs(dot(viewDirection, Normal));
-  float omegaln = abs(dot(lightDirection, Normal));
+  float omegain = max(dot(viewDirection, Normal), 0);
+  float omegaln = max(dot(lightDirection, Normal), 0);
 
   float D = NDF_TRG(h, PBRRoughness);
   float G = Geom(viewDirection, lightDirection);
@@ -161,7 +163,7 @@ vec4 parameters;
   }
 #else
   Material m=Materials[materialIndex];
-  Diffuse=m.diffuse;
+  Diffuse=m.diffuse; 
   Ambient=m.ambient;
   Emissive=m.emissive;
   Specular=m.specular;
@@ -184,6 +186,7 @@ vec4 parameters;
   vec3 Z=vec3(0,0,1);
   vec3 pointLightRadiance=vec3(0,0,0);
 
+  Normal = gl_FrontFacing ? fNormal : -fNormal;
   // as a finite point light, we have some simplification to the rendering equation.
   for(int i=0; i < nlights; ++i) {
 
@@ -191,7 +194,7 @@ vec4 parameters;
     // what if we use the acutal view from (0,0,0) instead?
     // vec3 viewDirection = Z;
     vec3 viewDirection = -normalize(Z);
-    float cosTheta = abs(dot(Normal, L)); // $\omega_i \cdot n$ term
+    float cosTheta = max(dot(Normal, L), 0); // $\omega_i \cdot n$ term
     float attn = 1; // if we have a good light direction.
     vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
 
