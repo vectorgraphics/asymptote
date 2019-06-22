@@ -158,3 +158,5 @@ GUI/icons_rc.py
 ## Or tell people to store it elsewhere?
 base/res/*.hdr
 base/res/*.exr
+
+renderDocSettings

@@ -13,6 +13,7 @@ namespace camp {
 #ifdef HAVE_GL
 
 extern GLint noColorShader;
+extern GLint outlineShader;
 extern void setUniforms(GLint shader); 
 
 std::vector<vertexData1> BezierCurve::vertexbuffer;
@@ -87,13 +88,12 @@ void BezierCurve::draw()
   GLuint vao;
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
-
   createBuffers();
     
-  camp::setUniforms(noColorShader); 
+  camp::setUniforms(outlineShader); 
   
-  const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
-  const GLint materialAttrib=glGetAttribLocation(noColorShader,"material");
+  const GLint posAttrib=glGetAttribLocation(outlineShader, "position");
+  const GLint materialAttrib=glGetAttribLocation(outlineShader,"material");
 
   glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
@@ -134,10 +134,10 @@ void Pixel::draw(const triple& p)
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
-  camp::setUniforms(noColorShader); 
+  camp::setUniforms(outlineShader); 
   
-  const GLint posAttrib=glGetAttribLocation(noColorShader, "position");
-  const GLint materialAttrib=glGetAttribLocation(noColorShader,"material");
+  const GLint posAttrib=glGetAttribLocation(outlineShader, "position");
+  const GLint materialAttrib=glGetAttribLocation(outlineShader,"material");
 
   glBindBuffer(GL_ARRAY_BUFFER,vbo);
   glBufferData(GL_ARRAY_BUFFER,bytestride,&point,GL_STATIC_DRAW);

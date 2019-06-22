@@ -80,6 +80,7 @@ inline void store(GLfloat *control, const triple& v, double weight)
 namespace gl {
 
 extern bool outlinemode;
+extern bool wireframeMode;
 extern Int maxvertices;
 
 struct projection 

@@ -65,6 +65,8 @@ namespace camp {
 billboard BB;
 GLint noColorShader;
 GLint colorShader;
+// outline shader now directly wires from vertex --> fragment rather than passing through geometry. 
+GLint outlineShader;
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
@@ -72,6 +74,7 @@ size_t nmaterials=48;
 namespace gl {
   
 bool outlinemode=false;
+bool wireframeMode=false;
 bool glthread=false;
 bool initialize=true;
 
@@ -232,7 +235,7 @@ void updateModelViewData()
 }
 
 
-GLint shaderProg,shaderProgColor;
+GLint shaderProg,shaderProgColor,shaderProgOutline;
 
 double *Rotate;
 void *glrenderWrapper(void *a);
@@ -543,18 +546,21 @@ void quit()
 void mode() 
 {
   switch(Mode) {
-    case 0:
+    case 0: // wireframe -> regular
       outlinemode=false;
+      wireframeMode=false;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       ++Mode;
       break;
-    case 1:
+    case 1: // regular -> outline
       outlinemode=true;
+      wireframeMode=false;
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
       break;
-    case 2:
+    case 2: // outline -> wireframe
       outlinemode=false;
+      wireframeMode=true;
       Mode=0;
       break;
   }
@@ -1356,6 +1362,7 @@ void init_osmesa()
 
 GLuint vertShader,fragShader, geomShader;
 GLuint vertShaderCol,fragShaderCol, geomShaderCol;
+GLuint vertShaderOutline, fragShaderOutline;
 
 void initshader()
 {
@@ -1365,6 +1372,8 @@ void initshader()
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
   string gs=locateFile("shaders/geometry.glsl");
+
+  string fsOutline=locateFile("shaders/outline.frag.glsl");
   if(vs.empty() || fs.empty() || gs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
@@ -1401,19 +1410,31 @@ void initshader()
   glAttachShader(shaderProgColor,fragShaderCol);
   glAttachShader(shaderProgColor,geomShaderCol);
 
+  shaderProgOutline=glCreateProgram();
+  
+  vertShaderOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, shaderParams);
+  fragShaderOutline = createShaderFile(fsOutline.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, shaderParams);
+
+  glAttachShader(shaderProgOutline,vertShaderOutline);
+  glAttachShader(shaderProgOutline,fragShaderOutline);
+
   camp::noColorShader=shaderProg;
   camp::colorShader=shaderProgColor;
-    
+  camp::outlineShader=shaderProgOutline;
+
+  // regular shader
   glLinkProgram(shaderProg);
+
   glDetachShader(shaderProg,vertShader);
   glDetachShader(shaderProg,fragShader);
   glDetachShader(shaderProg,geomShader);
 
-
   glDeleteShader(vertShader);
   glDeleteShader(fragShader);
   glDeleteShader(geomShader);
-    
+
+  //color shader
+
   glLinkProgram(shaderProgColor);
 
   glDetachShader(shaderProgColor,vertShaderCol);
@@ -1423,6 +1444,19 @@ void initshader()
   glDeleteShader(vertShaderCol);
   glDeleteShader(fragShaderCol);
   glDeleteShader(geomShaderCol);
+
+  // outline shader
+
+  glLinkProgram(shaderProgOutline);
+
+  glDetachShader(shaderProgOutline, vertShaderOutline);
+  glDetachShader(shaderProgOutline, fragShaderOutline);
+
+  glDeleteShader(vertShaderOutline);
+  glDeleteShader(fragShaderOutline);
+
+  // end outline shaders
+
 }
 
 void deleteshader() 
