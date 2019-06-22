@@ -1354,8 +1354,8 @@ void init_osmesa()
 #endif // HAVE_LIBOSMESA
 }
 
-GLuint vertShader,fragShader;
-GLuint vertShaderCol,fragShaderCol;
+GLuint vertShader,fragShader, geomShader;
+GLuint vertShaderCol,fragShaderCol, geomShaderCol;
 
 void initshader()
 {
@@ -1364,7 +1364,8 @@ void initshader()
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
-  if(vs.empty() || fs.empty()) {
+  string gs=locateFile("shaders/geometry.glsl");
+  if(vs.empty() || fs.empty() || gs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
@@ -1382,16 +1383,23 @@ void initshader()
                               Nmaterials,shaderParams);
   fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
                               Nmaterials,shaderParams);
+  geomShader=createShaderFile(gs.c_str(),GL_GEOMETRY_SHADER,Nlights,
+                              Nmaterials,shaderParams);
   glAttachShader(shaderProg,vertShader);
   glAttachShader(shaderProg,fragShader);
+  glAttachShader(shaderProg,geomShader);
     
   shaderProgColor=glCreateProgram();
   vertShaderCol=createShaderFile(vs.c_str(),
                                  GL_VERTEX_SHADER,Nlights,Nmaterials,shaderParams,true);
   fragShaderCol=createShaderFile(fs.c_str(),
                                  GL_FRAGMENT_SHADER,Nlights,Nmaterials,shaderParams,true);
+  geomShaderCol=createShaderFile(gs.c_str(),
+                                GL_GEOMETRY_SHADER,Nlights,Nmaterials,shaderParams,true);
+
   glAttachShader(shaderProgColor,vertShaderCol);
   glAttachShader(shaderProgColor,fragShaderCol);
+  glAttachShader(shaderProgColor,geomShaderCol);
 
   camp::noColorShader=shaderProg;
   camp::colorShader=shaderProgColor;
@@ -1399,14 +1407,22 @@ void initshader()
   glLinkProgram(shaderProg);
   glDetachShader(shaderProg,vertShader);
   glDetachShader(shaderProg,fragShader);
+  glDetachShader(shaderProg,geomShader);
+
+
   glDeleteShader(vertShader);
   glDeleteShader(fragShader);
+  glDeleteShader(geomShader);
     
   glLinkProgram(shaderProgColor);
+
   glDetachShader(shaderProgColor,vertShaderCol);
   glDetachShader(shaderProgColor,fragShaderCol);
+  glDetachShader(shaderProgColor,geomShaderCol);
+  
   glDeleteShader(vertShaderCol);
   glDeleteShader(fragShaderCol);
+  glDeleteShader(geomShaderCol);
 }
 
 void deleteshader() 

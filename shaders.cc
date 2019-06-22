@@ -13,7 +13,7 @@
 
 #include "shaders.h"
 
-GLuint createShaders(GLchar const* src, int shaderType)
+GLuint createShaders(GLchar const* src, int shaderType, std::string const& filename)
 {
     GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, &src, NULL);
@@ -25,21 +25,17 @@ GLuint createShaders(GLchar const* src, int shaderType)
     if (status != GL_TRUE)
     {
         GLint length; 
-
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-
         std::vector<GLchar> msg(length);
-
         glGetShaderInfoLog(shader, length, &length, msg.data());
+        std::cerr << std::endl << "GL Compile error. File=" << filename << std::endl;
 
         size_t n=msg.size();
         for(size_t i=0; i < n; ++i) 
         {
           std::cerr << msg[i];
         }
-
-        std::cerr << std::endl << "GL Compile error" << std::endl;
-        std::cerr << src << std::endl;
+        // std::cerr << src << std::endl;
         throw 1; 
     }
     return shader;
@@ -52,7 +48,7 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
     shaderFile.open(file.c_str());
     std::stringstream shaderSrc;
 
-    shaderSrc << "#version 130" << "\r\n";
+    shaderSrc << "#version 330" << "\r\n";
     shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
               << "\r\n";
     shaderSrc << "#extension GL_ARB_shading_language_packing : enable"
@@ -83,6 +79,6 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
         throw 1;
     }
 
-    return createShaders(shaderSrc.str().data(), shaderType);
+    return createShaders(shaderSrc.str().data(), shaderType, file);
 }
 #endif

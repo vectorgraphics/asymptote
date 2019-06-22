@@ -17,7 +17,7 @@
 
 #include <string>
 
-GLuint createShaders(GLchar const *src, int shaderType);
+GLuint createShaders(GLchar const *src, int shaderType, std::string const& filename);
 GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
                         size_t Nmaterials,std::vector<std::string> const& defineflags,
                          bool explicitcolor=false);

@@ -25,9 +25,8 @@ in vec4 Color;
 
 flat in int materialIndex;
 out vec4 outColor;
-in vec3 ViewPosition;
+// in vec3 ViewPosition;
 
-// TODO: Integrate these constants into asy side
 // PBR material parameters
 vec3 PBRBaseColor; // Diffuse for nonmetals, reflectance for metals.
 vec3 PBRSpecular; // Specular tint for nonmetals
@@ -191,7 +190,7 @@ vec4 parameters;
     vec3 L = normalize(lights[i].direction.xyz);
     // what if we use the acutal view from (0,0,0) instead?
     // vec3 viewDirection = Z;
-    vec3 viewDirection = -normalize(ViewPosition);
+    vec3 viewDirection = -normalize(Z);
     float cosTheta = abs(dot(Normal, L)); // $\omega_i \cdot n$ term
     float attn = 1; // if we have a good light direction.
     vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
