@@ -364,7 +364,7 @@ case "$OSTYPE" in
             LIBS="-lGLEW "$LIBS],
             AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
 esac
-   if test "x$enable_offscreen" == "xyes"; then
+   if test "x$enable_offscreen" = "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
                         AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
    fi
