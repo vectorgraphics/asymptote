@@ -17,6 +17,8 @@ uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
 
+uniform mat4 normMat;
+
 in vec3 fNormal;
 vec3 Normal;
 
@@ -186,7 +188,9 @@ vec4 parameters;
   vec3 Z=vec3(0,0,1);
   vec3 pointLightRadiance=vec3(0,0,0);
 
-  Normal = gl_FrontFacing ? fNormal : -fNormal;
+  Normal=normalize((normMat*vec4(fNormal,0)).xyz);
+
+  Normal = gl_FrontFacing ? Normal : -Normal;
   // as a finite point light, we have some simplification to the rendering equation.
   for(int i=0; i < nlights; ++i) {
 
