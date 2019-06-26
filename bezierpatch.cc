@@ -603,8 +603,26 @@ void BezierTriangle::render(const triple *p,
     triple P[]={P0,P1,P2};
     if(!offscreen(3,P)) {
       std::vector<GLuint> &p=*pindices;
+      triple zero(0,0,0);
+      
+      // TODO: Report back these indices to parent to allow possible reuse
+      GLuint i1=pvertex(p[1],zero);
+      GLuint i2=pvertex(p[2],zero);
+      GLuint i3=pvertex(p[3],zero);
+      GLuint i4=pvertex(p[4],zero);
+      GLuint i5=pvertex(p[5],zero);
+      GLuint i7=pvertex(p[7],zero);
+      GLuint i8=pvertex(p[8],zero);
+
       p.push_back(I0);
+      p.push_back(i1);
+      p.push_back(i2);
+      p.push_back(i3);
+      p.push_back(i4);
+      p.push_back(i5);
       p.push_back(I1);
+      p.push_back(i7);
+      p.push_back(i8);
       p.push_back(I2);
     }
   } else { // Triangle is not flat
@@ -933,6 +951,8 @@ void BezierPatch::drawMaterials()
                          (void *) (6*size));
   glEnableVertexAttribArray(materialAttrib);
 
+  glPatchParameteri(GL_PATCH_VERTICES,10);
+  
   glFlush(); // Workaround broken MSWindows drivers for Intel GPU
   glDrawElements(GL_PATCHES,indices.size(),GL_UNSIGNED_INT,(void *) 0);
 

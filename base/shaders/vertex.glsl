@@ -11,6 +11,7 @@ uniform mat4 projViewMat;
 uniform mat4 viewMat;
 uniform mat4 normMat;
 
+out vec3 WorldControls;
 out vec3 ViewPosition;
 out vec3 Normal;
     
@@ -22,9 +23,12 @@ flat out int MaterialIndex;
 
 void main()
 {
+  WorldControls=position;
+
   gl_Position=projViewMat*vec4(position,1.0);
   ViewPosition=(viewMat*vec4(position,1.0)).xyz;
-  Normal=normalize((normMat*vec4(normal,0)).xyz);
+//  Normal=normalize((normMat*vec4(normal,0)).xyz);
+  Normal=normal;//normalize((normMat*vec4(normal,0)).xyz);
 
 #ifdef EXPLICIT_COLOR
   Color=unpackUnorm4x8(color);
