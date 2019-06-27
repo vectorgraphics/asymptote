@@ -19,7 +19,6 @@ uniform MaterialBuffer {
 };
 
 in vec3 Normal;
-uniform mat4 normMat;
 
 #ifdef EXPLICIT_COLOR
 in vec4 Color; 
@@ -36,7 +35,7 @@ void main()
   vec4 Specular;
   float Shininess;
 
-  vec3 normal=normalize((normMat*vec4(Normal,0)).xyz);
+  vec3 normal=normalize(Normal);
 
 #ifdef EXPLICIT_COLOR
   if(materialIndex < 0) {

@@ -24,8 +24,7 @@ void main()
 {
   gl_Position=projViewMat*vec4(position,1.0);
   ViewPosition=(viewMat*vec4(position,1.0)).xyz;
-//  Normal=normalize((normMat*vec4(normal,0)).xyz);
-  Normal=normal;
+  Normal=(normMat*vec4(normal,0)).xyz;
 
 #ifdef EXPLICIT_COLOR
   Color=unpackUnorm4x8(color);
