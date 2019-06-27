@@ -125,7 +125,7 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
   vec3 h = normalize(lightDirection + viewDirection);
 
   float omegain = max(dot(viewDirection, Normal), 0);
-  float omegaln = max(dot(lightDirection, Normal), 0);
+  float omegaln = abs(dot(lightDirection, Normal));
 
   float D = NDF_TRG(h, PBRRoughness);
   float G = Geom(viewDirection, lightDirection);
