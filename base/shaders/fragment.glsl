@@ -17,8 +17,6 @@ uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
 
-uniform mat4 normMat;
-
 flat in vec3 p[10];
 in vec3 Normal;
 
@@ -167,8 +165,7 @@ vec3 ComputeNormal(vec3 t) {
 
 void main()
 {
-  normal=normalize((normMat*vec4(Normal,0)).xyz);
-//  normal=normalize((normMat*vec4(ComputeNormal(Parameter),0)).xyz);
+  normal=normalize(Normal);
 
 vec4 Diffuse;
 vec4 Ambient;
