@@ -188,7 +188,7 @@ vec4 parameters;
   vec3 Z=vec3(0,0,1);
   vec3 pointLightRadiance=vec3(0,0,0);
 
-  Normal=normalize((normMat*vec4(fNormal,0)).xyz);
+  Normal=normalize(fNormal);
 
   Normal = gl_FrontFacing ? Normal : -Normal;
   // as a finite point light, we have some simplification to the rendering equation.
