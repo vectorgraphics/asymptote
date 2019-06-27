@@ -19,6 +19,7 @@ uniform MaterialBuffer {
 };
 
 in vec3 Normal;
+uniform mat4 normMat;
 
 #ifdef EXPLICIT_COLOR
 in vec4 Color; 
@@ -34,6 +35,8 @@ void main()
   vec4 Emissive;
   vec4 Specular;
   float Shininess;
+
+  vec3 normal=normalize((normMat*vec4(Normal,0)).xyz);
 
 #ifdef EXPLICIT_COLOR
   if(materialIndex < 0) {
@@ -69,9 +72,9 @@ void main()
         
     for(int i=0; i < nlights; ++i) {
       vec3 L=normalize(lights[i].direction.xyz);
-      diffuse += lights[i].diffuse.rgb*abs(dot(Normal,L));
+      diffuse += lights[i].diffuse.rgb*abs(dot(normal,L));
       ambient += lights[i].ambient.rgb;
-      specular += pow(abs(dot(Normal,normalize(L+Z))),Shininess)*
+      specular += pow(abs(dot(normal,normalize(L+Z))),Shininess)*
         lights[i].specular.rgb;
     }
 
