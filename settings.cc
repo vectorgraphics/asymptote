@@ -1120,6 +1120,11 @@ void initSettings() {
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
                             havegl ? -1.0 : 0.0));
+                            
+  addOption(new realSetting("resScale", 0, "n",
+                            "Resolution Scale of 3D rendering",
+                            1.0));
+                            
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",

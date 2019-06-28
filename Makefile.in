@@ -43,7 +43,8 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr arcball algebra3 quaternion shaders
+	$(PRC) glrender tr arcball algebra3 quaternion shaders \
+	framebuffer
 
 FILES = $(COREFILES) main
 

@@ -53,6 +53,7 @@
 
 #include "shaders.h"
 #include "material.h"
+#include "framebuffer.h"
 
 using settings::locateFile;
 using camp::Material;
@@ -127,11 +128,20 @@ string Format;
 int Width,Height;
 int fullWidth,fullHeight;
 double oWidth,oHeight;
+double resolutionFactor;
 int screenWidth,screenHeight;
 int maxWidth;
 int maxHeight;
 int maxTileWidth;
 int maxTileHeight;
+
+int numSamples;
+
+GLuint outFrameBufferShader;
+GLuint frameBufferObject,texFrameBuffer,rboDepthBuffer; 
+GLuint frameBufferVAO;
+
+GLuint msFrameBufferObject,msTexFrameBuffer,msRboDepthBuffer; 
 
 double T[16];
 
@@ -183,13 +193,11 @@ dmat4 dprojMat;
 dmat4 dviewMat;
 dmat4 drotateMat; 
 
-#ifdef HAVE_LIBOIIO
-GLuint envMapBuf;
-#endif
-
 ModelView modelView;
 
-#if HAVE_LIBOIIO
+#ifdef HAVE_LIBOIIO
+GLuint envMapBuf;
+
 GLuint initHDR() {
   GLuint tex;
   glGenTextures(1, &tex);
@@ -253,6 +261,12 @@ pthread_mutex_t initLock=PTHREAD_MUTEX_INITIALIZER;
 
 pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
+
+inline std::pair<int,int> scaleRound(std::pair<int,int> const& original, double const& scale) {
+  int i1= std::llround(scale * original.first);
+  int i2= std::llround(scale * original.second);
+  return std::pair<int,int>(i1,i2);
+}
 
 void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
 {
@@ -365,8 +379,24 @@ void drawscene(double Width, double Height)
     first=false;
   }
 #endif
+  // drawing pipeline now
+  // [objects] --> [multisampled frame buffer] --> [standard frame buffer] --> [output]
+  // clear main drawing canvas
+  std::pair<int,int> scaledRes = scaleRound(std::pair<int,int>(Width, Height), resolutionFactor);
+  int renderwidth = scaledRes.first;
+  int renderheight = scaledRes.second;
 
+    // clear multisampled fbo
+  glBindFramebuffer(GL_FRAMEBUFFER, msFrameBufferObject);
+  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0,0,renderwidth,renderheight);
+
+  glEnable(GL_DEPTH_TEST);
+  glBindVertexArray(0);
+  glEnable(GL_MULTISAMPLE);
+
+  // rendering begin
 
   triple m(xmin,ymin,zmin);
   triple M(xmax,ymax,zmax);
@@ -383,6 +413,25 @@ void drawscene(double Width, double Height)
   // Render transparent objects
   Picture->render(size2,m,M,perspective,true);
   glDepthMask(GL_TRUE);
+
+  // rendering end
+  //copying the buffer to the final output buffer for processing
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferObject);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, msFrameBufferObject);
+  glBlitFramebuffer(0, 0, renderwidth, renderheight, 
+    0, 0, renderwidth, renderheight,
+    GL_COLOR_BUFFER_BIT,
+    GL_NEAREST);
+  // drawing the final triangle
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  int iWidth = std::llround(Width);
+  int iHeight = std::llround(Height);
+  glViewport(0,0,iWidth,iHeight);
+  glDisable(GL_MULTISAMPLE);
+
+  outFrameBuffer::renderBuffer(outFrameBufferShader, frameBufferVAO, texFrameBuffer);
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -593,9 +642,24 @@ void reshape0(int width, int height)
   
   Width=width;
   Height=height;
-  
+
+  // and don't forget to reset the frame buffer resolution... 
+  outFrameBuffer::deleteFrameBuffer(frameBufferObject, texFrameBuffer, rboDepthBuffer);
+  outFrameBuffer::deleteFrameBuffer(msFrameBufferObject, msTexFrameBuffer, msRboDepthBuffer);
+
+
+  auto newHeight = scaleRound(std::pair<int,int>(width, height), resolutionFactor);
+  auto result = outFrameBuffer::createFrameBuffer(newHeight.first, newHeight.second);
+
+  frameBufferObject = result.first;
+  texFrameBuffer = result.second.first;
+  rboDepthBuffer = result.second.second;
+
+  result=outFrameBuffer::createFrameBufferMultiSample(newHeight.first, newHeight.second, numSamples);
+  msFrameBufferObject=result.first;
+  msTexFrameBuffer=result.second.first;
+  msRboDepthBuffer=result.second.second;
   setProjection();
-  glViewport(0,0,Width,Height);
 }
   
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -624,6 +688,7 @@ void setsize(int w, int h, bool reposition=true)
   }
   glutReshapeWindow(w,h);
   reshape0(w,h);
+
   glutPostRedisplay();
 }
 
@@ -1360,6 +1425,35 @@ void init_osmesa()
 #endif // HAVE_LIBOSMESA
 }
 
+GLuint initFrameBufferShader()
+{
+  GLuint fbShader=glCreateProgram();
+  string fvs=locateFile("shaders/outbuffer/outbuffer.vert.glsl");
+  string ffs=locateFile("shaders/outbuffer/outbuffer.frag.glsl");
+
+  if (fvs.empty() || ffs.empty()) {
+      cerr << "GLSL Frame Buffer shaders not found." << endl;
+      exit(-1);
+  }
+  std::vector<std::string> shaderParams;
+
+  GLuint fvertShader=createShaderFile(fvs.c_str(),GL_VERTEX_SHADER,0,0,shaderParams);
+  GLuint ffragShader=createShaderFile(ffs.c_str(),GL_FRAGMENT_SHADER,0,0,shaderParams);
+  
+  glAttachShader(fbShader,fvertShader);
+  glAttachShader(fbShader,ffragShader);
+
+  glLinkProgram(fbShader);
+
+  glDetachShader(fbShader,fvertShader);
+  glDetachShader(fbShader,ffragShader);
+
+  glDeleteShader(fvertShader);
+  glDeleteShader(ffragShader);
+
+  return fbShader;
+}
+
 GLuint vertShader,fragShader, geomShader;
 GLuint vertShaderCol,fragShaderCol, geomShaderCol;
 GLuint vertShaderOutline, fragShaderOutline;
@@ -1461,6 +1555,7 @@ void initshader()
 
 void deleteshader() 
 {
+  glDeleteProgram(camp::outlineShader);
   glDeleteProgram(camp::noColorShader);
   glDeleteProgram(camp::colorShader);
 }
@@ -1553,6 +1648,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     // Force a hard viewport limit to work around direct rendering bugs.
     // Alternatively, one can use -glOptions=-indirect (with a performance
     // penalty).
+    resolutionFactor=getSetting<double>("resScale");
+
     pair maxViewport=getSetting<pair>("maxviewport");
     maxWidth=(int) ceil(maxViewport.getx());
     maxHeight=(int) ceil(maxViewport.gety());
@@ -1622,6 +1719,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       if(multisample <= 1) multisample=0;
       if(multisample)
         displaymode |= GLUT_MULTISAMPLE;
+      
+      numSamples = max((int)multisample, 1);
       glutInitDisplayMode(displaymode);
 
       int samples;
@@ -1701,7 +1800,21 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
   initshader();
-  
+
+  // initialize frrame buffer
+  outFrameBufferShader=initFrameBufferShader();
+  auto fboResult=outFrameBuffer::createFrameBuffer(Width, Height);
+  frameBufferObject=fboResult.first;
+  texFrameBuffer=fboResult.second.first;
+  rboDepthBuffer=fboResult.second.second;
+
+  fboResult=outFrameBuffer::createFrameBufferMultiSample(Width, Height, numSamples);
+  msFrameBufferObject=fboResult.first;
+  msTexFrameBuffer=fboResult.second.first;
+  msRboDepthBuffer=fboResult.second.second;
+
+  frameBufferVAO=outFrameBuffer::createoutputVAO(outFrameBufferShader);
+
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
 
