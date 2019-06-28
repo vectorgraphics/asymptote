@@ -1808,12 +1808,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   // initialize frrame buffer
   outFrameBufferShader=initFrameBufferShader();
-  auto fboResult=outFrameBuffer::createFrameBuffer(Width, Height);
+  auto renderRes=scaleRound(std::pair<int,int>(Width, Height), settings::getSetting<double>("resScale"));
+
+  auto fboResult=outFrameBuffer::createFrameBuffer(renderRes.first, renderRes.second);
   frameBufferObject=fboResult.first;
   texFrameBuffer=fboResult.second.first;
   rboDepthBuffer=fboResult.second.second;
 
-  fboResult=outFrameBuffer::createFrameBufferMultiSample(Width, Height, numSamples);
+  fboResult=outFrameBuffer::createFrameBufferMultiSample(renderRes.first, renderRes.second, numSamples);
   msFrameBufferObject=fboResult.first;
   msTexFrameBuffer=fboResult.second.first;
   msRboDepthBuffer=fboResult.second.second;
