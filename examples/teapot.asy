@@ -168,4 +168,5 @@ triple[][][] Q={
     {(0,0,0),(40.3937,0,0),(42.51969,0,2.12598),(42.51969,0,4.251961)}
   }
 };
+
 draw(surface(Q),material(blue, shininess=0.85, metallic=0),render(compression=Low));
