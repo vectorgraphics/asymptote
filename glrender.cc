@@ -604,7 +604,7 @@ void mode()
     case 1: // regular -> outline
       outlinemode=true;
       wireframeMode=false;
-      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+      // glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
       break;
     case 2: // outline -> wireframe
@@ -1456,7 +1456,7 @@ GLuint initFrameBufferShader()
 
 GLuint vertShader,fragShader, geomShader;
 GLuint vertShaderCol,fragShaderCol, geomShaderCol;
-GLuint vertShaderOutline, fragShaderOutline;
+GLuint vertShaderOutline, fragShaderOutline, geomShaderOutline;
 
 void initshader()
 {
@@ -1505,12 +1505,16 @@ void initshader()
   glAttachShader(shaderProgColor,geomShaderCol);
 
   shaderProgOutline=glCreateProgram();
-  
-  vertShaderOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, shaderParams);
-  fragShaderOutline = createShaderFile(fsOutline.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, shaderParams);
+
+  std::vector<std::string> wireframeparams = {"WIREFRAME_MODE"};
+
+  vertShaderOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, wireframeparams);
+  geomShaderOutline = createShaderFile(gs.c_str(), GL_GEOMETRY_SHADER, Nlights, Nmaterials, wireframeparams);
+  fragShaderOutline = createShaderFile(fsOutline.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, wireframeparams);
 
   glAttachShader(shaderProgOutline,vertShaderOutline);
   glAttachShader(shaderProgOutline,fragShaderOutline);
+  glAttachShader(shaderProgOutline,geomShaderOutline);
 
   camp::noColorShader=shaderProg;
   camp::colorShader=shaderProgColor;
@@ -1545,10 +1549,11 @@ void initshader()
 
   glDetachShader(shaderProgOutline, vertShaderOutline);
   glDetachShader(shaderProgOutline, fragShaderOutline);
+  glDetachShader(shaderProgOutline, geomShaderOutline);
 
   glDeleteShader(vertShaderOutline);
   glDeleteShader(fragShaderOutline);
-
+  glDeleteShader(geomShaderOutline);
   // end outline shaders
 
 }
