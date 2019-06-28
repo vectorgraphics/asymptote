@@ -84,19 +84,6 @@ float NDF_TRG(vec3 h, float roughness) {
   float denom = pow(ndoth * ndoth * (alpha2-1) + 1, 2);
   return alpha2/denom;
 }
-// Beckmann NDF Approximation
-float NDF_B(vec3 h, float roughness) {
-  float ndoth=abs(dot(Normal,h));
-  float alpha2 = PBRRoughnessSq * PBRRoughnessSq;
-
-  float expnumer=pow(ndoth,2)-1;
-  float expdenom=alpha2*pow(ndoth,2);
-
-  float exppart=exp(expnumer/expdenom);
-
-  float denom=alpha2*pow(ndoth,4);
-  return exppart/denom;
-}
 
 float GGX_Geom(vec3 v) {
   float ndotv = max(dot(v,Normal), 0);
@@ -116,7 +103,6 @@ float Fresnel(vec3 h, vec3 v, float F0) {
   
   return F0 + (1-F0)*pow((1-hdotv),5);
 }
-
 
 vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
   // Lambertian diffuse 
