@@ -420,7 +420,7 @@ void drawscene(double Width, double Height)
   glBindFramebuffer(GL_READ_FRAMEBUFFER, msFrameBufferObject);
   glBlitFramebuffer(0, 0, renderwidth, renderheight, 
     0, 0, renderwidth, renderheight,
-    GL_COLOR_BUFFER_BIT,
+    GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
     GL_NEAREST);
   // drawing the final triangle
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -431,7 +431,8 @@ void drawscene(double Width, double Height)
   glViewport(0,0,iWidth,iHeight);
   glDisable(GL_MULTISAMPLE);
 
-  outFrameBuffer::renderBuffer(outFrameBufferShader, frameBufferVAO, texFrameBuffer);
+  outFrameBuffer::renderBuffer(outFrameBufferShader, frameBufferVAO, texFrameBuffer, 
+    scaledRes, std::pair<int,int>(iWidth, iHeight));
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -1437,6 +1438,10 @@ GLuint initFrameBufferShader()
   }
   std::vector<std::string> shaderParams;
 
+  if (settings::getSetting<bool>("usefxaa")) {
+    shaderParams.push_back("ENABLE_FXAA");
+  }
+
   GLuint fvertShader=createShaderFile(fvs.c_str(),GL_VERTEX_SHADER,0,0,shaderParams);
   GLuint ffragShader=createShaderFile(ffs.c_str(),GL_FRAGMENT_SHADER,0,0,shaderParams);
   
@@ -1463,6 +1468,7 @@ void initshader()
   Nlights=max(Nlights,nlights);
   Nmaterials=max(Nmaterials,nmaterials);
   shaderProg=glCreateProgram();
+
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
   string gs=locateFile("shaders/geometry.glsl");
@@ -1481,6 +1487,10 @@ void initshader()
     envMapBuf=initHDR();
   }
   #endif
+
+  if (getSetting<bool>("usefxaa")) {
+    shaderParams.push_back("OUTPUT_GAMMA");
+  }
 
   vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
                               Nmaterials,shaderParams);
@@ -1824,6 +1834,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
+  // glEnable(GL_FRAMEBUFFER_SRGB);
 
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   mode();

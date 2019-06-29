@@ -1115,6 +1115,8 @@ void initSettings() {
                             "Use OpenGL 4", false));
   addOption(new boolSetting("useenvmap", 0,
                             "Enable environment map image-based lighting (Experimental)", false));
+  addOption(new boolSetting("usefxaa", 0,
+                            "Enable FXAA", false));
                             
                             
   addOption(new realSetting("render", 0, "n",

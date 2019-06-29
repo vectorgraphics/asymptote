@@ -17,7 +17,7 @@ namespace outFrameBuffer {
         glActiveTexture(GL_TEXTURE0+textureunit);
         glGenTextures(1, &texcolbuffer);
         glBindTexture(GL_TEXTURE_2D, texcolbuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB12, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
@@ -45,7 +45,7 @@ namespace outFrameBuffer {
 
         glGenTextures(1, &tcb);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tcb);
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, numSamples, GL_RGB, width, height, true);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, numSamples, GL_RGB12, width, height, true);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, tcb, 0);
@@ -98,7 +98,7 @@ namespace outFrameBuffer {
     }
 
     void renderBuffer(GLuint outputShader, GLuint vao, GLuint textureFboTarget,
-        uint textureNumber) {
+        intpair renderRes, intpair screenRes, uint textureNumber) {
 
         glUseProgram(outputShader);
         glBindVertexArray(vao);
@@ -108,6 +108,11 @@ namespace outFrameBuffer {
         glActiveTexture(finalTextureNumber);
         glBindTexture(finalTextureNumber, textureFboTarget);
         glGenerateMipmap(GL_TEXTURE_2D);
+
+        GLint screenResUnif=glGetUniformLocation(outputShader, "screenResolution");
+        GLint renderResUnif=glGetUniformLocation(outputShader, "renderResolution");
+        glUniform2i(screenResUnif, screenRes.first, screenRes.second);
+        glUniform2i(renderResUnif, renderRes.first , renderRes.second);
 
         GLint fbTextureUni = glGetUniformLocation(outputShader, "texFrameBuffer");
         glUniform1i(fbTextureUni, textureNumber);
