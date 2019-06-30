@@ -28,13 +28,24 @@ uniform ivec2 renderResolution;
 #define FXAA_MIN_EDGE_THRESHOLD 1/16
 #define FXAA_EDGE_THRESHOLD 1/8
 
-#define FXAA_SUBPIXEL_BLEND_FACTOR 0.5
+#define FXAA_BLEND_FACTOR 0.4
+#define FXAA_SUBPIXEL_BLEND_FACTOR 1
+#define FXAA_EDGE_BLEND_FACTOR 1
+#define FXAA_GRADIENT_THRESHOLD_EDGE_SCALE 0.25
 
-// lu
+#define FXAA_EDGE_SEARCH_DISTANCE 14
+
+// lumas
 struct luminancedata {
     float N, E, S, W;
     float NW, NE, SW, SE;
     float M;
+};
+
+struct edgeData {
+    bool isHorizontal;
+    vec2 pixelstep;
+    float oppositeGrad, oppositeLuma;
 };
 
 vec3 gamma2lin(vec3 invec) {
@@ -124,33 +135,95 @@ vec3 fxaa(vec2 coord) {
     // with sufficient contrast
 
     // subpixel aliasing test & blend factor calculation
-    float avgluma = (lumasdata.N + lumasdata.S + lumasdata.E + lumasdata.W);
+    float avgluma = 2 * (lumasdata.N + lumasdata.S + lumasdata.E + lumasdata.W);
     avgluma += (lumasdata.NW + lumasdata.SW + lumasdata.NE + lumasdata.SE);
-    avgluma *= (1/8);
+    avgluma *= (1/12);
     float pixelcontrast = abs(avgluma - lumasdata.M);
     float blendfactor = smoothen(saturate(pixelcontrast / range));
 
+    // edge detection
+    edgeData localEdge;
     // calculating edge direction 
-    bool ishorizontal = ishorizontaledge(lumasdata);
+    localEdge.isHorizontal = ishorizontaledge(lumasdata);
 
     // positive or negative blending
-    float pLuma = ishorizontal ? lumasdata.N : lumasdata.E;
-    float nLuma = ishorizontal ? lumasdata.S : lumasdata.W;
-
+    float pLuma = localEdge.isHorizontal ? lumasdata.N : lumasdata.E;
+    float nLuma = localEdge.isHorizontal ? lumasdata.S : lumasdata.W;
     float pGrad = abs(lumasdata.M - pLuma);
     float nGrad = abs(lumasdata.M - nLuma);
 
-    vec2 pixelstep = vec2(0);
-
-    if (ishorizontal) {
-        float basestep = FXAA_SUBPIXEL_BLEND_FACTOR * blendfactor/(screenResolution.y);
-        pixelstep = (pGrad >= nGrad) ? vec2(0, basestep) : vec2(0, -basestep);
-    } else {
-        float basestep = FXAA_SUBPIXEL_BLEND_FACTOR * blendfactor/(screenResolution.x);
-        pixelstep = (pGrad >= nGrad) ? vec2(basestep, 0) : vec2(-basestep, 0);
+    bool positiveGrad = pGrad >= nGrad;
+    
+    // get what's on the opposite side
+    if (positiveGrad) {
+        localEdge.oppositeGrad = nGrad;
+        localEdge.oppositeLuma = nLuma;
     }
 
-    return textureLod(texFrameBuffer, coord + pixelstep, 0).rgb;
+    float pixelYsize = 1.0/(renderResolution.y);
+    float pixelXsize = 1.0/(renderResolution.x);
+    
+    // calculating the pixel step. 
+    if (localEdge.isHorizontal) {
+        localEdge.pixelstep = positiveGrad ? vec2(0, pixelYsize) : vec2(0, -pixelYsize);
+    } else {
+        localEdge.pixelstep = positiveGrad ? vec2(pixelXsize, 0) : vec2(-pixelXsize, 0);
+    }
+
+    float pixelblendfactor = FXAA_SUBPIXEL_BLEND_FACTOR * blendfactor;
+
+    // edge walking
+    vec2 currentcoords = coord + (0.5 * localEdge.pixelstep);
+    vec2 edgestep = (localEdge.isHorizontal) ? vec2(pixelXsize, 0) : vec2(0, pixelYsize);
+
+    float edgelumen = (lumasdata.M + localEdge.oppositeLuma) * 0.5;
+    float gradientThreshold = FXAA_GRADIENT_THRESHOLD_EDGE_SCALE * localEdge.oppositeGrad;
+
+    // get the edge walk distance
+    bool pEnd = false;
+    float pDelta;
+    for (int j = 0; (j < FXAA_EDGE_SEARCH_DISTANCE) && (!pEnd); ++j) {
+        currentcoords += edgestep;
+        float positiveLuma = getluma(textureLod(texFrameBuffer, currentcoords, 0).rgb);
+        pDelta = positiveLuma - edgelumen;
+        pEnd = (abs(pDelta) >= gradientThreshold);
+    }
+
+    float edgeBlendFactor = 0;
+
+    vec2 currentcoordsneg = coord + (0.5 * localEdge.pixelstep);
+    bool nEnd = false;
+    float nDelta;
+    for (int j = 0; (j < FXAA_EDGE_SEARCH_DISTANCE) && (!nEnd); ++j) {
+        currentcoordsneg -= edgestep;
+        float negativeLuma = getluma(textureLod(texFrameBuffer, currentcoordsneg, 0).rgb);
+        nDelta = negativeLuma - edgelumen;
+        nEnd = (abs(nDelta) >= gradientThreshold);
+    }
+
+    float pDistancediff = (localEdge.isHorizontal) ? 
+        (currentcoords.x - coord.x) : (currentcoords.y - coord.y);
+    float nDistancediff = (localEdge.isHorizontal) ? 
+        (coord.x - currentcoordsneg.x) : (coord.y - currentcoordsneg.y);
+
+    // getting now the final edge blend factor
+    float minDistance;
+    bool deltaSign;
+    if (pDistancediff <= nDistancediff) {
+        minDistance = pDistancediff;
+        deltaSign = (pDelta >= 0);
+    } else {
+        minDistance = nDistancediff;
+        deltaSign = (nDelta >= 0);
+    }
+
+    if (deltaSign == (lumasdata.M < edgelumen)) {
+        edgeBlendFactor = FXAA_EDGE_BLEND_FACTOR * (0.5 - minDistance / (pDistancediff + nDistancediff));
+    }
+
+    float finalBlendFactor = max(edgeBlendFactor, blendfactor);
+    // 
+    return textureLod(texFrameBuffer, coord + (FXAA_BLEND_FACTOR * finalBlendFactor * localEdge.pixelstep), 0).rgb;
 }
 #endif
 

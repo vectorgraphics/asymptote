@@ -390,7 +390,9 @@ void drawscene(double Width, double Height)
   glBindFramebuffer(GL_FRAMEBUFFER, msFrameBufferObject);
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   glViewport(0,0,renderwidth,renderheight);
+  // glClearColor(0,0,0,1);
 
   glEnable(GL_DEPTH_TEST);
   glBindVertexArray(0);
@@ -420,8 +422,8 @@ void drawscene(double Width, double Height)
   glBindFramebuffer(GL_READ_FRAMEBUFFER, msFrameBufferObject);
   glBlitFramebuffer(0, 0, renderwidth, renderheight, 
     0, 0, renderwidth, renderheight,
-    GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
-    GL_NEAREST);
+    GL_COLOR_BUFFER_BIT,
+    GL_LINEAR);
   // drawing the final triangle
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClear(GL_COLOR_BUFFER_BIT);
