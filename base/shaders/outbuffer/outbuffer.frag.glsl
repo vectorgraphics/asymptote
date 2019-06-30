@@ -28,7 +28,7 @@ uniform ivec2 renderResolution;
 #define FXAA_MIN_EDGE_THRESHOLD 1/16
 #define FXAA_EDGE_THRESHOLD 1/8
 
-#define FXAA_SUBPIXEL_BLEND_FACTOR 0.45
+#define FXAA_SUBPIXEL_BLEND_FACTOR 0.5
 
 // lu
 struct luminancedata {
@@ -38,7 +38,7 @@ struct luminancedata {
 };
 
 vec3 gamma2lin(vec3 invec) {
-    return pow(invec, vec3(INVERSE_GAMMA));
+    return pow(invec, vec3(GAMMA));
 }
 
 float getluma(vec3 col) {
@@ -124,9 +124,9 @@ vec3 fxaa(vec2 coord) {
     // with sufficient contrast
 
     // subpixel aliasing test & blend factor calculation
-    float avgluma = 2 * (lumasdata.N + lumasdata.S + lumasdata.E + lumasdata.W);
+    float avgluma = (lumasdata.N + lumasdata.S + lumasdata.E + lumasdata.W);
     avgluma += (lumasdata.NW + lumasdata.SW + lumasdata.NE + lumasdata.SE);
-    avgluma *= (1/12);
+    avgluma *= (1/8);
     float pixelcontrast = abs(avgluma - lumasdata.M);
     float blendfactor = smoothen(saturate(pixelcontrast / range));
 

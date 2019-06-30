@@ -23,7 +23,7 @@ in vec3 fNormal;
 vec3 Normal;
 
 #ifdef OUTPUT_GAMMA
-const float gamma = 2.2;
+const float inversegamma = 1/2.2;
 #endif
 
 #ifdef EXPLICIT_COLOR
@@ -246,7 +246,7 @@ vec4 parameters;
 
   // vec3 visNormal = vec3(pow(0.5+Normal.y/2, 20));
 #ifdef OUTPUT_GAMMA
-  outColor=pow(vec4(color,Diffuse[3]), vec4(vec3(gamma), 1));
+  outColor=pow(vec4(color,Diffuse[3]), vec4(vec3(inversegamma), 1));
 #else
   outColor=vec4(color,Diffuse[3]);
 #endif
