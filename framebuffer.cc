@@ -1,6 +1,7 @@
 /**
- * framebuffer.cc
- * Supakorn "Jamie" Rassameemasmuang, June 27, 2019
+ * @file framebuffer.cc
+ * @author Supakorn "Jamie" Rassameemasmuang <rassamee@ualberta.ca>
+ * @date June 27, 2019
  * 
  * Renders FrameBuffer
  */
@@ -98,7 +99,7 @@ namespace outFrameBuffer {
     }
 
     void renderBuffer(GLuint outputShader, GLuint vao, GLuint textureFboTarget,
-        intpair renderRes, intpair screenRes, uint textureNumber) {
+        intpair renderRes, intpair screenRes, bool disablePostProcessAA, uint textureNumber) {
 
         glUseProgram(outputShader);
         glBindVertexArray(vao);
@@ -116,6 +117,9 @@ namespace outFrameBuffer {
 
         GLint fbTextureUni = glGetUniformLocation(outputShader, "texFrameBuffer");
         glUniform1i(fbTextureUni, textureNumber);
+
+        glUniform1i(glGetUniformLocation(outputShader, "forceNoPostProcessAA"),
+            disablePostProcessAA ? 1 : 0);
 
         glDisable(GL_DEPTH_TEST);
         glDrawArrays(GL_TRIANGLES,0,6);

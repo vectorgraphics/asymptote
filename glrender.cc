@@ -68,6 +68,8 @@ GLint noColorShader;
 GLint colorShader;
 // outline shader now directly wires from vertex --> fragment rather than passing through geometry. 
 GLint outlineShader;
+GLint pathOutlineShader;
+
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
@@ -243,7 +245,7 @@ void updateModelViewData()
 }
 
 
-GLint shaderProg,shaderProgColor,shaderProgOutline;
+GLint shaderProg,shaderProgColor,shaderProgOutline,shaderProgPathOutline;
 
 double *Rotate;
 void *glrenderWrapper(void *a);
@@ -388,7 +390,12 @@ void drawscene(double Width, double Height)
 
     // clear multisampled fbo
   glBindFramebuffer(GL_FRAMEBUFFER, msFrameBufferObject);
-  
+
+  if (outlinemode) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
+  } else {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glViewport(0,0,renderwidth,renderheight);
@@ -426,6 +433,8 @@ void drawscene(double Width, double Height)
     GL_LINEAR);
   // drawing the final triangle
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  glPolygonMode(GL_FRONT,GL_FILL);
   glClear(GL_COLOR_BUFFER_BIT);
 
   int iWidth = std::llround(Width);
@@ -434,7 +443,7 @@ void drawscene(double Width, double Height)
   glDisable(GL_MULTISAMPLE);
 
   outFrameBuffer::renderBuffer(outFrameBufferShader, frameBufferVAO, texFrameBuffer, 
-    scaledRes, std::pair<int,int>(iWidth, iHeight));
+    scaledRes, std::pair<int,int>(iWidth, iHeight), outlinemode || wireframeMode);
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -1465,6 +1474,8 @@ GLuint vertShader,fragShader, geomShader;
 GLuint vertShaderCol,fragShaderCol, geomShaderCol;
 GLuint vertShaderOutline, fragShaderOutline, geomShaderOutline;
 
+GLuint vertShaderPathOutline, fragShaderPathOutline, geomShaderPathOutline;
+
 void initshader()
 {
   Nlights=max(Nlights,nlights);
@@ -1519,6 +1530,7 @@ void initshader()
   shaderProgOutline=glCreateProgram();
 
   std::vector<std::string> wireframeparams = {"WIREFRAME_MODE"};
+  std::vector<std::string> outlineParams = {"OUTLINE_MODE"};
 
   vertShaderOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, wireframeparams);
   geomShaderOutline = createShaderFile(gs.c_str(), GL_GEOMETRY_SHADER, Nlights, Nmaterials, wireframeparams);
@@ -1528,9 +1540,20 @@ void initshader()
   glAttachShader(shaderProgOutline,fragShaderOutline);
   glAttachShader(shaderProgOutline,geomShaderOutline);
 
+  shaderProgPathOutline=glCreateProgram();
+
+  vertShaderPathOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, outlineParams);
+  geomShaderPathOutline = createShaderFile(gs.c_str(), GL_GEOMETRY_SHADER, Nlights, Nmaterials, outlineParams);
+  fragShaderPathOutline = createShaderFile(fsOutline.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, outlineParams);
+
+  glAttachShader(shaderProgPathOutline,vertShaderPathOutline);
+  glAttachShader(shaderProgPathOutline,geomShaderPathOutline);
+  glAttachShader(shaderProgPathOutline,fragShaderPathOutline);
+
   camp::noColorShader=shaderProg;
   camp::colorShader=shaderProgColor;
   camp::outlineShader=shaderProgOutline;
+  camp::pathOutlineShader=shaderProgPathOutline;
 
   // regular shader
   glLinkProgram(shaderProg);
@@ -1568,6 +1591,17 @@ void initshader()
   glDeleteShader(geomShaderOutline);
   // end outline shaders
 
+
+  glLinkProgram(shaderProgPathOutline);
+
+  glDetachShader(shaderProgPathOutline, vertShaderPathOutline);
+  glDetachShader(shaderProgPathOutline, fragShaderPathOutline);
+  glDetachShader(shaderProgPathOutline, geomShaderPathOutline);
+
+  glDeleteShader(vertShaderPathOutline);
+  glDeleteShader(fragShaderPathOutline);
+  glDeleteShader(geomShaderPathOutline);
+
 }
 
 void deleteshader() 
@@ -1575,6 +1609,7 @@ void deleteshader()
   glDeleteProgram(camp::outlineShader);
   glDeleteProgram(camp::noColorShader);
   glDeleteProgram(camp::colorShader);
+  glDeleteProgram(camp::pathOutlineShader);
 }
   
 // angle=0 means orthographic.

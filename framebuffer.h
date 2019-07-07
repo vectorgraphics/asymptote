@@ -40,7 +40,8 @@ namespace outFrameBuffer {
      * 
      */
     void renderBuffer(GLuint outputShader, GLuint vao, GLuint textureFboTarget,
-        intpair renderRes, intpair screenRes, uint textureNumber=TEXTURE_NUMBER);
+        intpair renderRes, intpair screenRes, bool disablePostProcessAA,
+        uint textureNumber=TEXTURE_NUMBER);
 
     void deleteFrameBuffer(GLuint fbo, GLuint texture, GLuint stencil);
 }

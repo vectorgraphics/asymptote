@@ -14,6 +14,7 @@ namespace camp {
 
 extern GLint noColorShader;
 extern GLint outlineShader;
+extern GLint pathOutlineShader;
 extern void setUniforms(GLint shader); 
 
 std::vector<vertexData1> BezierCurve::vertexbuffer;
@@ -90,7 +91,7 @@ void BezierCurve::draw()
   glBindVertexArray(vao);
   createBuffers();
     
-  camp::setUniforms(outlineShader); 
+  camp::setUniforms(pathOutlineShader); 
   
   const GLint posAttrib=glGetAttribLocation(outlineShader, "position");
   const GLint materialAttrib=glGetAttribLocation(outlineShader,"material");

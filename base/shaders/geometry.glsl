@@ -1,9 +1,24 @@
+#ifdef OUTLINE_MODE
+// outline modes
+layout(lines) in;
+layout(line_strip, max_vertices = 2) out;
+
+#else
+// non outlines
 layout(triangles) in;
 
 #ifdef WIREFRAME_MODE
 layout(line_strip, max_vertices = 4) out;
 #else
 layout(triangle_strip, max_vertices = 3) out;
+#endif
+
+#endif
+
+#ifdef OUTLINE_MODE
+#ifdef WIREFRAME_MODE
+#error Why are you enabling both wireframe & outline ? 
+#endif
 #endif
 
 // out values to fragment
@@ -31,6 +46,13 @@ out vec3 Barycentric;
 
 void main()
 {
+#ifdef OUTLINE_MODE
+    gl_Position = gl_in[0].gl_Position;
+    EmitVertex();
+
+    gl_Position = gl_in[1].gl_Position;
+    EmitVertex();
+#else
     for (int i = 0; i < 3; ++i) {
         gl_Position = gl_in[i].gl_Position;
 #ifndef WIREFRAME_MODE
@@ -41,6 +63,7 @@ void main()
         Color = vColor[i];
 #endif
 #endif
+
         EmitVertex();
     }
 
@@ -48,6 +71,8 @@ void main()
     // final vertex loop. 
     gl_Position = gl_in[0].gl_Position;
     EmitVertex();
+#endif
+
 #endif
     EndPrimitive();
 }

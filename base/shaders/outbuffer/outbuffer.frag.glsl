@@ -6,20 +6,31 @@ uniform sampler2D texFrameBuffer;
 uniform ivec2 screenResolution;
 uniform ivec2 renderResolution;
 
+uniform int forceNoPostProcessAA;
+
+vec2 getOffset(float x, float y) {
+    float offsetx = x * (1.0 / screenResolution.x);
+    float offsety = y * (1.0 / screenResolution.y);
+    return vec2(offsetx,offsety);
+}
+
+int positivesign(bool val) {
+    return val ? 1 : -1;
+}
+
 #ifdef ENABLE_FXAA
 
 // based on Timothy Lottes's FXAA paper
 // and https://catlikecoding.com/unity/tutorials/advanced-rendering/fxaa/
 
-
 #define GAMMA 2.2
 #define INVERSE_GAMMA 1/2.2
 
 // offsets
-#define OFFSET_EAST ivec2(1,0)
-#define OFFSET_WEST ivec2(-1,0)
-#define OFFSET_NORTH ivec2(0,1)
-#define OFFSET_SOUTH ivec2(0,-1)
+#define OFFSET_EAST getOffset(1,0)
+#define OFFSET_WEST getOffset(-1,0)
+#define OFFSET_NORTH getOffset(0,1)
+#define OFFSET_SOUTH getOffset(0,-1)
 
 // fxaa parameters
 // "high-quality" by Lottes' paper
@@ -28,13 +39,19 @@ uniform ivec2 renderResolution;
 #define FXAA_MIN_EDGE_THRESHOLD 1/16
 #define FXAA_EDGE_THRESHOLD 1/8
 
-#define FXAA_BLEND_FACTOR 0.4
-#define FXAA_SUBPIXEL_BLEND_FACTOR 1
+#define FXAA_BLEND_FACTOR 0.5
+#define FXAA_SUBPIXEL_BLEND_FACTOR 0.5
 #define FXAA_EDGE_BLEND_FACTOR 1
 #define FXAA_GRADIENT_THRESHOLD_EDGE_SCALE 0.25
 
-#define FXAA_EDGE_SEARCH_DISTANCE 14
+#define FXAA_EDGE_SEARCH_DISTANCE 10
 
+#define FXAA_FINAL_EDGE_GUESS 6
+
+// debug flags
+// #define FXAA_CONTRAST_CHECK_DEBUG
+// #define FXAA_FINAL_EDGE_GUESS_DEBUG
+// #define FXAA_EDGE_BLENDING_DEBUG
 // lumas
 struct luminancedata {
     float N, E, S, W;
@@ -72,15 +89,15 @@ luminancedata getneighborlumas(vec2 coord) {
     luminancedata data;
     data.M = getluma(texture(texFrameBuffer, coord).rgb);
 
-    data.E = getluma(textureOffset(texFrameBuffer, coord, OFFSET_EAST).rgb);
-    data.S = getluma(textureOffset(texFrameBuffer, coord, OFFSET_SOUTH).rgb);
-    data.N = getluma(textureOffset(texFrameBuffer, coord, OFFSET_NORTH).rgb);
-    data.W = getluma(textureOffset(texFrameBuffer, coord, OFFSET_WEST).rgb);
+    data.E = getluma(texture(texFrameBuffer, coord + OFFSET_EAST).rgb);
+    data.S = getluma(texture(texFrameBuffer, coord + OFFSET_SOUTH).rgb);
+    data.N = getluma(texture(texFrameBuffer, coord + OFFSET_NORTH).rgb);
+    data.W = getluma(texture(texFrameBuffer, coord + OFFSET_WEST).rgb);
 
-    data.NW = getluma(textureOffset(texFrameBuffer, coord, OFFSET_NORTH+OFFSET_WEST).rgb);
-    data.SW = getluma(textureOffset(texFrameBuffer, coord, OFFSET_SOUTH+OFFSET_WEST).rgb);
-    data.NE = getluma(textureOffset(texFrameBuffer, coord, OFFSET_NORTH+OFFSET_EAST).rgb);
-    data.SE = getluma(textureOffset(texFrameBuffer, coord, OFFSET_SOUTH+OFFSET_EAST).rgb);
+    data.NW = getluma(texture(texFrameBuffer, coord + OFFSET_NORTH+OFFSET_WEST).rgb);
+    data.SW = getluma(texture(texFrameBuffer, coord + OFFSET_SOUTH+OFFSET_WEST).rgb);
+    data.NE = getluma(texture(texFrameBuffer, coord + OFFSET_NORTH+OFFSET_EAST).rgb);
+    data.SE = getluma(texture(texFrameBuffer, coord + OFFSET_SOUTH+OFFSET_EAST).rgb);
 
     return data;
 }
@@ -127,17 +144,23 @@ vec3 fxaa(vec2 coord) {
     float range = maxluma - minluma;
 
     // ignore areas with low contrast. 
-    if (range < max(FXAA_MIN_EDGE_THRESHOLD, maxluma * FXAA_EDGE_THRESHOLD)) {
+    bool contrastCheckFail = range < max(FXAA_MIN_EDGE_THRESHOLD, maxluma * FXAA_EDGE_THRESHOLD);
+    if (contrastCheckFail) {
         return rawColor;
     }
+#ifdef FXAA_CONTRAST_CHECK_DEBUG
+    else {
+        return vec3(1,0,0);
+    }
+#endif
 
     // at this point, we are only processing pixels
     // with sufficient contrast
 
     // subpixel aliasing test & blend factor calculation
-    float avgluma = 2 * (lumasdata.N + lumasdata.S + lumasdata.E + lumasdata.W);
+    float avgluma = (lumasdata.N + lumasdata.S + lumasdata.E + lumasdata.W);
     avgluma += (lumasdata.NW + lumasdata.SW + lumasdata.NE + lumasdata.SE);
-    avgluma *= (1/12);
+    avgluma *= (1/9);
     float pixelcontrast = abs(avgluma - lumasdata.M);
     float blendfactor = smoothen(saturate(pixelcontrast / range));
 
@@ -158,25 +181,27 @@ vec3 fxaa(vec2 coord) {
     if (positiveGrad) {
         localEdge.oppositeGrad = nGrad;
         localEdge.oppositeLuma = nLuma;
+    } else {
+        localEdge.oppositeGrad = pGrad;
+        localEdge.oppositeLuma = pLuma;
     }
 
-    float pixelYsize = 1.0/(renderResolution.y);
-    float pixelXsize = 1.0/(renderResolution.x);
     
     // calculating the pixel step. 
     if (localEdge.isHorizontal) {
-        localEdge.pixelstep = positiveGrad ? vec2(0, pixelYsize) : vec2(0, -pixelYsize);
+        localEdge.pixelstep = positivesign(positiveGrad) * getOffset(0, 1);
     } else {
-        localEdge.pixelstep = positiveGrad ? vec2(pixelXsize, 0) : vec2(-pixelXsize, 0);
+        localEdge.pixelstep = positivesign(positiveGrad) * getOffset(1, 0);
     }
 
     float pixelblendfactor = FXAA_SUBPIXEL_BLEND_FACTOR * blendfactor;
 
     // edge walking
     vec2 currentcoords = coord + (0.5 * localEdge.pixelstep);
-    vec2 edgestep = (localEdge.isHorizontal) ? vec2(pixelXsize, 0) : vec2(0, pixelYsize);
+    vec2 edgestep = (localEdge.isHorizontal) ?  getOffset(1, 0) : getOffset(0, 1);
 
     float edgelumen = (lumasdata.M + localEdge.oppositeLuma) * 0.5;
+
     float gradientThreshold = FXAA_GRADIENT_THRESHOLD_EDGE_SCALE * localEdge.oppositeGrad;
 
     // get the edge walk distance
@@ -201,6 +226,20 @@ vec3 fxaa(vec2 coord) {
         nEnd = (abs(nDelta) >= gradientThreshold);
     }
 
+    if (!pEnd) {
+        currentcoords += edgestep * FXAA_FINAL_EDGE_GUESS;
+#ifdef FXAA_FINAL_EDGE_GUESS_DEBUG
+        return vec3(0,1,0);
+#endif
+
+    }
+    if (!nEnd) {
+        currentcoordsneg -= edgestep * FXAA_FINAL_EDGE_GUESS;
+#ifdef FXAA_FINAL_EDGE_GUESS_DEBUG
+        return vec3(0,1,0);
+#endif
+    }
+
     float pDistancediff = (localEdge.isHorizontal) ? 
         (currentcoords.x - coord.x) : (currentcoords.y - coord.y);
     float nDistancediff = (localEdge.isHorizontal) ? 
@@ -218,11 +257,19 @@ vec3 fxaa(vec2 coord) {
     }
 
     if (deltaSign == (lumasdata.M < edgelumen)) {
-        edgeBlendFactor = FXAA_EDGE_BLEND_FACTOR * (0.5 - minDistance / (pDistancediff + nDistancediff));
+        edgeBlendFactor = FXAA_EDGE_BLEND_FACTOR * (0.5 - (minDistance / (pDistancediff + nDistancediff)));
+#ifdef FXAA_EDGE_BLENDING_DEBUG
+        return vec3(0,1,0);
+#endif
+    } else {
+        edgeBlendFactor = 0;
+#ifdef FXAA_EDGE_BLENDING_DEBUG
+        return vec3(1,0,0);
+#endif
     }
 
     float finalBlendFactor = max(edgeBlendFactor, blendfactor);
-    // 
+
     return textureLod(texFrameBuffer, coord + (FXAA_BLEND_FACTOR * finalBlendFactor * localEdge.pixelstep), 0).rgb;
 }
 #endif
@@ -230,8 +277,15 @@ vec3 fxaa(vec2 coord) {
 void main() {
 
 #ifdef ENABLE_FXAA
+if (forceNoPostProcessAA == 0) {
     outColor = vec4(gamma2lin(fxaa(Texcoord)) , 1);
-#else
-    outColor = texture(texFrameBuffer, Texcoord);
+} else {
 #endif
+    outColor = texture(texFrameBuffer, Texcoord);
+
+#ifdef ENABLE_FXAA
+    }  
+#endif
+
+
 }
