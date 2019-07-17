@@ -36,17 +36,17 @@ int positivesign(bool val) {
 // "high-quality" by Lottes' paper
 
 // edge thresholds
-#define FXAA_MIN_EDGE_THRESHOLD 1/16
-#define FXAA_EDGE_THRESHOLD 1/8
+#define FXAA_MIN_EDGE_THRESHOLD 1.0/16
+#define FXAA_EDGE_THRESHOLD 1.0/8
 
-#define FXAA_BLEND_FACTOR 0.5
-#define FXAA_SUBPIXEL_BLEND_FACTOR 0.5
+#define FXAA_BLEND_FACTOR 1
+#define FXAA_SUBPIXEL_BLEND_FACTOR 1
 #define FXAA_EDGE_BLEND_FACTOR 1
 #define FXAA_GRADIENT_THRESHOLD_EDGE_SCALE 0.25
 
 #define FXAA_EDGE_SEARCH_DISTANCE 10
 
-#define FXAA_FINAL_EDGE_GUESS 6
+#define FXAA_FINAL_EDGE_GUESS 8
 
 // debug flags
 // #define FXAA_CONTRAST_CHECK_DEBUG
@@ -160,7 +160,7 @@ vec3 fxaa(vec2 coord) {
     // subpixel aliasing test & blend factor calculation
     float avgluma = (lumasdata.N + lumasdata.S + lumasdata.E + lumasdata.W);
     avgluma += (lumasdata.NW + lumasdata.SW + lumasdata.NE + lumasdata.SE);
-    avgluma *= (1/9);
+    avgluma *= (1.0/8);
     float pixelcontrast = abs(avgluma - lumasdata.M);
     float blendfactor = smoothen(saturate(pixelcontrast / range));
 
