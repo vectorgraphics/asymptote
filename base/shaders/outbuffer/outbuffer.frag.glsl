@@ -132,7 +132,7 @@ vec3 fxaa(vec2 coord) {
     float minluma = lumasdata.M;
     float maxluma = lumasdata.M;
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 4; ++i) {
         if (neighborlumas[i] < minluma) {
             minluma = neighborlumas[i];
         }
