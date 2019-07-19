@@ -18,6 +18,7 @@
 #include "common.h"
 #include "locate.h"
 #include "seconds.h"
+#include "statistics.h"
 
 #ifdef HAVE_GL
 
@@ -199,6 +200,9 @@ ModelView modelView;
 
 #ifdef HAVE_LIBOIIO
 GLuint envMapBuf;
+
+using utils::statistics;
+statistics S;
 
 GLuint initHDR() {
   GLuint tex;
@@ -797,8 +801,11 @@ void display()
   drawscene(Width,Height);
   if(fps) {
     double s=seconds();
-    if(s > 0.0)
-      cout << "FPS=" << 1.0/s << endl;
+    if(s > 0.0) {
+      double rate=1.0/s;
+      S.add(rate);
+      cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev() << endl;
+    }
   }
   glutSwapBuffers();
 #ifdef HAVE_PTHREAD
