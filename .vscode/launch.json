@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/asy",
-            "args": ["-usegl4", "-V", "examples/teapot.asy", "-multisample=1", "-usefxaa"],
+            "args": ["-usegl4", "-V", "${input:asyArgFile}", "-multisample=1", "-usefxaa"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [
@@ -36,6 +36,10 @@
                     "description": "Handle additional asy signals",
                     "text": "-interpreter-exec console \"handle SIGXCPU pass nostop noprint\""
                 },
+                {
+                    "description": "Handle additional asy signals",
+                    "text": "-interpreter-exec console \"handle SIGUSR2 pass nostop noprint\""
+                },
             ]
         },
         {
@@ -54,6 +58,14 @@
             "type": "asy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/venn.asy"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "asyArgFile",
+            "type": "promptString",
+            "default": "examples/teapot.asy",
+            "description": "Asymptote Input"
         }
     ],
     "compounds": []

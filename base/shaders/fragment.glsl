@@ -138,13 +138,14 @@ vec4 Ambient;
 vec4 Emissive;
 vec4 Specular;
 vec4 parameters;
+
 #ifdef EXPLICIT_COLOR
   if(materialIndex < 0) {
     int index=-materialIndex-1;
     Material m=Materials[index];
     Diffuse=Color;
-    Ambient=Color;
-    Emissive=Color;
+    Ambient=vec4(0);
+    Emissive=vec4(0);
     Specular=m.specular;
     parameters=m.parameters;
   } else {
@@ -163,6 +164,8 @@ vec4 parameters;
   Specular=m.specular;
   parameters=m.parameters;
 #endif
+
+
   PBRRoughness=1-parameters[0];
   PBRMetallic=parameters[1];
   PBRF0=parameters[2];
