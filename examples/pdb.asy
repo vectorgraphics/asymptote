@@ -2,7 +2,7 @@ import three;
 import cpkcolors;
 
 // A sample Protein Data Bank file for this example is available from
-// http://ndbserver.rutgers.edu/ftp/NDB/coordinates/na-biol/100d.pdb1
+// http://ndbserver.rutgers.edu/files/ftp/NDB/coordinates/na-biol/100d.pdb1
 
 currentlight=White;
 //currentlight=nolight;
