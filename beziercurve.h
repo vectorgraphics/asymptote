@@ -34,19 +34,17 @@ struct BezierCurve
 {
   static std::vector<vertexData1> vertexbuffer;
   static std::vector<GLuint> indices;
-  GLuint nvertices;
+  static GLuint nvertices;
   double res,res2;
   triple Min,Max;
 
   static GLuint vertsBufferIndex; 
   static GLuint elemBufferIndex; 
   
-  BezierCurve() : nvertices(0) {}
-  
   void init(double res, const triple& Min, const triple& Max);
     
 // Store the vertex v in the buffer.
-  GLuint vertex(const triple &v) {
+  static GLuint vertex(const triple &v) {
     vertexbuffer.push_back(vertexData1(v));
     return nvertices++;
   }
@@ -74,13 +72,10 @@ struct BezierCurve
       Z < Min.getz() || z > Max.getz();
   }
   
-  void clear() {
+  static void clear() {
     nvertices=0;
     vertexbuffer.clear();
     indices.clear();
-    
-    glDeleteBuffers(1,&vertsBufferIndex);
-    glDeleteBuffers(1,&elemBufferIndex);
   }
   
   ~BezierCurve() {}

@@ -21,6 +21,7 @@ std::vector<GLuint> BezierCurve::indices;
 
 GLuint BezierCurve::vertsBufferIndex;
 GLuint BezierCurve::elemBufferIndex;
+GLuint BezierCurve::nvertices=0;
 
 void BezierCurve::init(double res, const triple& Min, const triple& Max)
 {
@@ -82,6 +83,9 @@ void BezierCurve::render(const triple *p, bool straight)
   
 void BezierCurve::draw()
 {
+  if(indices.size() == 0)
+    return;
+  
   const size_t size=sizeof(GLfloat);
   static const size_t bytestride=sizeof(vertexData1);
 
@@ -117,7 +121,8 @@ void BezierCurve::draw()
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);
   
-  clear();
+  glDeleteBuffers(1,&vertsBufferIndex);
+  glDeleteBuffers(1,&elemBufferIndex);
 }
 
 void Pixel::draw(const triple& p)

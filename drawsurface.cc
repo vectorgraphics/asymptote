@@ -63,7 +63,10 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
 
 void clearMaterialBuffer(bool draw)
 {
-  if(draw) drawBezierPatch::S.draw();
+  if(draw) {
+    drawBezierPatch::S.draw();
+    drawPath3::R.draw();
+  }
   drawElement::material.clear();
   drawElement::material.reserve(nmaterials);
   drawElement::materialMap.clear();
@@ -313,10 +316,16 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   } else {
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? c : NULL);
-    if(BezierPatch::nvertices >= gl::maxvertices)
-      drawBezierPatch::S.drawMaterials();
-    if(BezierPatch::Nvertices >= gl::maxvertices)
-      drawBezierPatch::S.drawColors();
+    if(BezierPatch::nvertices >= gl::maxvertices) {
+      S.drawMaterials();
+      BezierPatch::clear();
+      gl::forceRemesh=true;
+    }
+    if(BezierPatch::Nvertices >= gl::maxvertices) {
+      S.drawColors();
+      BezierPatch::Clear();
+      gl::forceRemesh=true;
+    }
   }
 #endif
 }
