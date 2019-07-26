@@ -111,7 +111,11 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
       R.queue(controls,straight,size3.length()/size2,m,M);
     }
   }
-  R.draw();
+  if(BezierCurve::nvertices >= gl::maxvertices) {
+    R.draw();
+    BezierCurve::clear();
+    gl::forceRemesh=true;
+  }
 #endif
 }
 

@@ -15,9 +15,6 @@ namespace camp {
 
 class drawPath3 : public drawElement {
 protected:
-#ifdef HAVE_GL
-  static BezierCurve R;
-#endif  
   const path3 g;
   triple center;
   bool straight;
@@ -26,6 +23,9 @@ protected:
   Interaction interaction;
   triple Min,Max;
 public:
+#ifdef HAVE_GL
+  static BezierCurve R;
+#endif  
   drawPath3(path3 g, triple center, const pen& p, Interaction interaction,
             const string& key="") :
     drawElement(key), g(g), center(center), straight(g.piecewisestraight()),

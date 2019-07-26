@@ -29,7 +29,7 @@ namespace outFrameBuffer {
     /**
      * Creates the output VAO of the final drawing.
      * 
-     * @param outputShader Output Shader to bind attribuites to.
+     * @param outputShader Output Shader to bind attributes to.
      * 
      * @returns The output VAO
      */

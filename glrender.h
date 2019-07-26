@@ -82,6 +82,7 @@ namespace gl {
 extern bool outlinemode;
 extern bool wireframeMode;
 extern Int maxvertices;
+extern bool forceRemesh;
 
 struct projection 
 {

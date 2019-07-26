@@ -19,6 +19,8 @@
 #include "locate.h"
 #include "seconds.h"
 #include "statistics.h"
+#include "bezierpatch.h"
+#include "beziercurve.h"
 
 #ifdef HAVE_GL
 
@@ -111,6 +113,8 @@ int oldWidth,oldHeight;
 bool Xspin,Yspin,Zspin;
 bool Animate;
 bool Step;
+bool remesh;
+bool forceRemesh=false;
 
 bool queueScreen=false;
 
@@ -417,16 +421,27 @@ void drawscene(double Width, double Height)
   
   double size2=hypot(Width,Height);
   
+  if(remesh) {
+    camp::BezierPatch::clear();
+    camp::BezierPatch::Clear();
+    camp::BezierPatch::tClear();
+    camp::BezierCurve::clear();
+  }
+  
   // Render opaque objects
-  Picture->render(size2,m,M,perspective,false);
+  Picture->render(size2,m,M,perspective,false,remesh);
   
   // Enable transparency
   glDepthMask(GL_FALSE);
   
   // Render transparent objects
-  Picture->render(size2,m,M,perspective,true);
+  Picture->render(size2,m,M,perspective,true,remesh);
   glDepthMask(GL_TRUE);
 
+  if(!forceRemesh)
+    remesh=false;
+  forceRemesh=false;
+  
   // rendering end
   //copying the buffer to the final output buffer for processing
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferObject);
@@ -551,6 +566,7 @@ void home()
   Rotate=value_ptr(drotateMat);
   updateModelViewData();
 
+  remesh=true;
   lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
@@ -610,6 +626,7 @@ void quit()
   
 void mode() 
 {
+  remesh=true;
   switch(Mode) {
     case 0: // wireframe -> regular
       outlinemode=false;
@@ -799,6 +816,7 @@ void display()
   bool fps=settings::verbose > 2;  
   if(fps) seconds();
   drawscene(Width,Height);
+  glutSwapBuffers();
   if(fps) {
     double s=seconds();
     if(s > 0.0) {
@@ -807,7 +825,6 @@ void display()
       cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev() << endl;
     }
   }
-  glutSwapBuffers();
 #ifdef HAVE_PTHREAD
   if(glthread && Animate) {
     queueExport=false;
@@ -842,6 +859,7 @@ void update()
   glutDisplayFunc(display);
   Animate=getSetting<bool>("autoplay");
   glutShowWindow();
+  if(Zoom != lastzoom) remesh=true;
   lastzoom=Zoom;
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
@@ -926,6 +944,8 @@ void capzoom()
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
+  if(Zoom != lastzoom) remesh=true;
+  lastzoom=Zoom;
 }
 
 void zoom(int x, int y)
@@ -940,7 +960,6 @@ void zoom(int x, int y)
       if(fabs(s) < limit) {
         Zoom *= pow(zoomFactor,s);
         capzoom();
-        lastzoom=Zoom;
         y0=y;
         setProjection();
         glutPostRedisplay();
@@ -958,7 +977,6 @@ void mousewheel(int wheel, int direction, int x, int y)
     else
       Zoom /= zoomFactor;
     capzoom();
-    lastzoom=Zoom;
     setProjection();
     glutPostRedisplay();
   }
@@ -1627,6 +1645,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *diffuse, double *ambient, double *specular,
               bool view, int oldpid)
 {
+  remesh=true;
   bool offscreen=getSetting<bool>("offscreen");
   Iconify=getSetting<bool>("iconify");
 
