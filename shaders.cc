@@ -13,6 +13,30 @@
 
 #include "shaders.h"
 
+GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders, 
+    size_t NLights, size_t NMaterials, std::vector<std::string> const& defineflags,
+    bool explicitcolor)
+{
+    GLuint mainShader = glCreateProgram();
+    std::vector<GLuint> compiledShaders;
+
+    for (auto const& shaderInfo : shaders) {
+        GLint newshader = createShaderFile(shaderInfo.first, shaderInfo.second, NLights, NMaterials,
+            defineflags, explicitcolor);
+        glAttachShader(mainShader, newshader);
+        compiledShaders.push_back(newshader);
+    }
+
+    glLinkProgram(mainShader);
+
+    for (auto const& compiledShader : compiledShaders) {
+        glDetachShader(mainShader, compiledShader);
+        glDeleteShader(compiledShader);
+    }
+
+    return mainShader;
+}
+
 GLuint createShaders(GLchar const* src, int shaderType, std::string const& filename)
 {
     GLuint shader = glCreateShader(shaderType);

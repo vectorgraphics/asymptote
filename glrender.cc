@@ -1536,126 +1536,35 @@ void initshader()
     shaderParams.push_back("OUTPUT_GAMMA");
   }
 
-  vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
-                              Nmaterials,shaderParams);
-  fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
-                              Nmaterials,shaderParams);
-  geomShader=createShaderFile(gs.c_str(),GL_GEOMETRY_SHADER,Nlights,
-                              Nmaterials,shaderParams);
-  glAttachShader(shaderProg,vertShader);
-  glAttachShader(shaderProg,fragShader);
-  glAttachShader(shaderProg,geomShader);
-    
-  shaderProgColor=glCreateProgram();
-  vertShaderCol=createShaderFile(vs.c_str(),
-                                 GL_VERTEX_SHADER,Nlights,Nmaterials,shaderParams,true);
-  fragShaderCol=createShaderFile(fs.c_str(),
-                                 GL_FRAGMENT_SHADER,Nlights,Nmaterials,shaderParams,true);
-  geomShaderCol=createShaderFile(gs.c_str(),
-                                GL_GEOMETRY_SHADER,Nlights,Nmaterials,shaderParams,true);
+  camp::noColorShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
+    ShaderfileModePair(gs.c_str(), GL_GEOMETRY_SHADER),
+  }, Nlights, Nmaterials, shaderParams);
 
-  glAttachShader(shaderProgColor,vertShaderCol);
-  glAttachShader(shaderProgColor,fragShaderCol);
-  glAttachShader(shaderProgColor,geomShaderCol);
+  camp::colorShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
+    ShaderfileModePair(gs.c_str(), GL_GEOMETRY_SHADER),
+  }, Nlights, Nmaterials, shaderParams, true);
 
-  shaderProgOutline=glCreateProgram();
+  camp::outlineShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fsOutline.c_str(), GL_FRAGMENT_SHADER),
+    ShaderfileModePair(gs.c_str(), GL_GEOMETRY_SHADER),
+  }, Nlights, Nmaterials, {"WIREFRAME_MODE"});
 
-  std::vector<std::string> wireframeparams = {"WIREFRAME_MODE"};
-  std::vector<std::string> outlineParams = {"OUTLINE_MODE"};
-  std::vector<std::string> pixelParams = {"PIXEL_MODE"};
+  camp::pathOutlineShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fsOutline.c_str(), GL_FRAGMENT_SHADER),
+    ShaderfileModePair(gs.c_str(), GL_GEOMETRY_SHADER),
+  }, Nlights, Nmaterials, {"OUTLINE_MODE"});
 
-  vertShaderOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, wireframeparams);
-  geomShaderOutline = createShaderFile(gs.c_str(), GL_GEOMETRY_SHADER, Nlights, Nmaterials, wireframeparams);
-  fragShaderOutline = createShaderFile(fsOutline.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, wireframeparams);
-
-  glAttachShader(shaderProgOutline,vertShaderOutline);
-  glAttachShader(shaderProgOutline,fragShaderOutline);
-  glAttachShader(shaderProgOutline,geomShaderOutline);
-
-  shaderProgPathOutline=glCreateProgram();
-
-  vertShaderPathOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, outlineParams);
-  geomShaderPathOutline = createShaderFile(gs.c_str(), GL_GEOMETRY_SHADER, Nlights, Nmaterials, outlineParams);
-  fragShaderPathOutline = createShaderFile(fsOutline.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, outlineParams);
-
-  glAttachShader(shaderProgPathOutline,vertShaderPathOutline);
-  glAttachShader(shaderProgPathOutline,geomShaderPathOutline);
-  glAttachShader(shaderProgPathOutline,fragShaderPathOutline);
-
-  // pixel drawing shader
-  GLuint pixelDrawingShader=glCreateProgram();
-
-  GLuint pxVert = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, pixelParams);
-  GLuint pxGeom = createShaderFile(gsp.c_str(), GL_GEOMETRY_SHADER, Nlights, Nmaterials, pixelParams);
-  GLuint pxFrag = createShaderFile(fsp.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, shaderParams);
-
-  glAttachShader(pixelDrawingShader,pxVert);
-  glAttachShader(pixelDrawingShader,pxGeom);
-  glAttachShader(pixelDrawingShader,pxFrag);
-
-
-  camp::noColorShader=shaderProg;
-  camp::colorShader=shaderProgColor;
-  camp::outlineShader=shaderProgOutline;
-  camp::pathOutlineShader=shaderProgPathOutline;
-  camp::pixelDrawShader=pixelDrawingShader;
-
-  glLinkProgram(pixelDrawingShader);
-  glDetachShader(pixelDrawingShader,pxVert);
-  glDetachShader(pixelDrawingShader,pxGeom);
-  glDetachShader(pixelDrawingShader,pxFrag);
-
-  glDeleteShader(vertShader);
-  glDeleteShader(fragShader);
-  glDeleteShader(geomShader);
-
-  // regular shader
-  glLinkProgram(shaderProg);
-
-  glDetachShader(shaderProg,vertShader);
-  glDetachShader(shaderProg,fragShader);
-  glDetachShader(shaderProg,geomShader);
-
-  glDeleteShader(vertShader);
-  glDeleteShader(fragShader);
-  glDeleteShader(geomShader);
-
-  //color shader
-
-  glLinkProgram(shaderProgColor);
-
-  glDetachShader(shaderProgColor,vertShaderCol);
-  glDetachShader(shaderProgColor,fragShaderCol);
-  glDetachShader(shaderProgColor,geomShaderCol);
-  
-  glDeleteShader(vertShaderCol);
-  glDeleteShader(fragShaderCol);
-  glDeleteShader(geomShaderCol);
-
-  // outline shader
-
-  glLinkProgram(shaderProgOutline);
-
-  glDetachShader(shaderProgOutline, vertShaderOutline);
-  glDetachShader(shaderProgOutline, fragShaderOutline);
-  glDetachShader(shaderProgOutline, geomShaderOutline);
-
-  glDeleteShader(vertShaderOutline);
-  glDeleteShader(fragShaderOutline);
-  glDeleteShader(geomShaderOutline);
-  // end outline shaders
-
-
-  glLinkProgram(shaderProgPathOutline);
-
-  glDetachShader(shaderProgPathOutline, vertShaderPathOutline);
-  glDetachShader(shaderProgPathOutline, fragShaderPathOutline);
-  glDetachShader(shaderProgPathOutline, geomShaderPathOutline);
-
-  glDeleteShader(vertShaderPathOutline);
-  glDeleteShader(fragShaderPathOutline);
-  glDeleteShader(geomShaderPathOutline);
-
+  camp::pixelDrawShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fsp.c_str(), GL_FRAGMENT_SHADER),
+    ShaderfileModePair(gsp.c_str(), GL_GEOMETRY_SHADER),
+  }, Nlights, Nmaterials, shaderParams);
 }
 
 void deleteshader() 
