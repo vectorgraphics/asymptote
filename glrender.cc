@@ -1405,40 +1405,27 @@ void initshader()
   }
   #endif
 
-  vertShader=createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights,
-                              Nmaterials,shaderParams);
-  fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
-                              Nmaterials,shaderParams);
-  glAttachShader(shaderProg,vertShader);
-  glAttachShader(shaderProg,fragShader);
-    
-  shaderProgColor=glCreateProgram();
-  vertShaderCol=createShaderFile(vs.c_str(),
-                                 GL_VERTEX_SHADER,Nlights,Nmaterials,shaderParams,true);
-  fragShaderCol=createShaderFile(fs.c_str(),
-                                 GL_FRAGMENT_SHADER,Nlights,Nmaterials,shaderParams,true);
-  glAttachShader(shaderProgColor,vertShaderCol);
-  glAttachShader(shaderProgColor,fragShaderCol);
+  camp::noColorShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
+  }, Nlights, Nmaterials, shaderParams);
 
-  camp::noColorShader=shaderProg;
-  camp::colorShader=shaderProgColor;
+  camp::colorShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
+  }, Nlights, Nmaterials, shaderParams, true);
 
-  // regular shader
-  glLinkProgram(shaderProg);
+  /*
+  camp::pathOutlineShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fsOutline.c_str(), GL_FRAGMENT_SHADER),
+  }, Nlights, Nmaterials, {"OUTLINE_MODE"});
 
-  glDetachShader(shaderProg,vertShader);
-  glDetachShader(shaderProg,fragShader);
-
-  glDeleteShader(vertShader);
-  glDeleteShader(fragShader);
-
-  //color shader
-
-  glLinkProgram(shaderProgColor);
-  glDetachShader(shaderProgColor,vertShaderCol);
-  glDetachShader(shaderProgColor,fragShaderCol);
-  glDeleteShader(vertShaderCol);
-  glDeleteShader(fragShaderCol);
+  camp::pixelDrawShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fsp.c_str(), GL_FRAGMENT_SHADER),
+  }, Nlights, Nmaterials, shaderParams);
+  */
 }
 
 void deleteshader() 
