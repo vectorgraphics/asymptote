@@ -15,6 +15,7 @@ namespace camp {
 extern GLint noColorShader;
 extern GLint outlineShader;
 extern GLint pathOutlineShader;
+extern GLint pixelDrawShader;
 extern void setUniforms(GLint shader); 
 
 std::vector<vertexData1> BezierCurve::vertexbuffer;
@@ -140,10 +141,9 @@ void Pixel::draw(const triple& p)
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
-  camp::setUniforms(outlineShader); 
-  
-  const GLint posAttrib=glGetAttribLocation(outlineShader, "position");
-  const GLint materialAttrib=glGetAttribLocation(outlineShader,"material");
+  camp::setUniforms(pixelDrawShader); 
+  const GLint posAttrib=glGetAttribLocation(pixelDrawShader, "position");
+  const GLint materialAttrib=glGetAttribLocation(pixelDrawShader,"material");
 
   glBindBuffer(GL_ARRAY_BUFFER,vbo);
   glBufferData(GL_ARRAY_BUFFER,bytestride,&point,GL_STATIC_DRAW);
@@ -153,7 +153,7 @@ void Pixel::draw(const triple& p)
   
   glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,(void *) (3*size));
   glEnableVertexAttribArray(materialAttrib);
-  
+
   glDrawArrays(GL_POINTS,0,1);
 
   glDisableVertexAttribArray(posAttrib);

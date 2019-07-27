@@ -72,6 +72,8 @@ GLint colorShader;
 // outline shader now directly wires from vertex --> fragment rather than passing through geometry. 
 GLint outlineShader;
 GLint pathOutlineShader;
+GLint pixelDrawShader;
+
 
 size_t Maxmaterials;
 size_t Nmaterials=1;
@@ -1511,7 +1513,11 @@ void initshader()
   string fs=locateFile("shaders/fragment.glsl");
   string gs=locateFile("shaders/geometry.glsl");
 
+  string gsp=locateFile("shaders/pixel.geom.glsl");
+  string fsp=locateFile("shaders/pixel.frag.glsl");
+  
   string fsOutline=locateFile("shaders/outline.frag.glsl");
+
   if(vs.empty() || fs.empty() || gs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
@@ -1556,6 +1562,7 @@ void initshader()
 
   std::vector<std::string> wireframeparams = {"WIREFRAME_MODE"};
   std::vector<std::string> outlineParams = {"OUTLINE_MODE"};
+  std::vector<std::string> pixelParams = {"PIXEL_MODE"};
 
   vertShaderOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, wireframeparams);
   geomShaderOutline = createShaderFile(gs.c_str(), GL_GEOMETRY_SHADER, Nlights, Nmaterials, wireframeparams);
@@ -1575,10 +1582,32 @@ void initshader()
   glAttachShader(shaderProgPathOutline,geomShaderPathOutline);
   glAttachShader(shaderProgPathOutline,fragShaderPathOutline);
 
+  // pixel drawing shader
+  GLuint pixelDrawingShader=glCreateProgram();
+
+  GLuint pxVert = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, pixelParams);
+  GLuint pxGeom = createShaderFile(gsp.c_str(), GL_GEOMETRY_SHADER, Nlights, Nmaterials, pixelParams);
+  GLuint pxFrag = createShaderFile(fsp.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, shaderParams);
+
+  glAttachShader(pixelDrawingShader,pxVert);
+  glAttachShader(pixelDrawingShader,pxGeom);
+  glAttachShader(pixelDrawingShader,pxFrag);
+
+
   camp::noColorShader=shaderProg;
   camp::colorShader=shaderProgColor;
   camp::outlineShader=shaderProgOutline;
   camp::pathOutlineShader=shaderProgPathOutline;
+  camp::pixelDrawShader=pixelDrawingShader;
+
+  glLinkProgram(pixelDrawingShader);
+  glDetachShader(pixelDrawingShader,pxVert);
+  glDetachShader(pixelDrawingShader,pxGeom);
+  glDetachShader(pixelDrawingShader,pxFrag);
+
+  glDeleteShader(vertShader);
+  glDeleteShader(fragShader);
+  glDeleteShader(geomShader);
 
   // regular shader
   glLinkProgram(shaderProg);

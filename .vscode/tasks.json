@@ -19,5 +19,11 @@
             },
             "promptOnClose": false
         }
+        {
+            "label": "reconfigure",
+            "type": "shell",
+            "command": "./configure",
+            "promptOnClose": false
+        }
     ]
 }

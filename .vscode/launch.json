@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/asy",
-            "args": ["-usegl4", "-V", "${input:asyArgFile}", "-multisample=1", "-usefxaa"],
+            "args": ["-usegl4", "-V", "${input:asyArgFile}", "-multisample=1", "-usefxaa", "-cd", "examples"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [
@@ -64,7 +64,7 @@
         {
             "id": "asyArgFile",
             "type": "promptString",
-            "default": "examples/teapot.asy",
+            "default": "teapot",
             "description": "Asymptote Input"
         }
     ],
