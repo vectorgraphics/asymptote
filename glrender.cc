@@ -391,6 +391,14 @@ void drawscene(double Width, double Height)
     first=false;
   }
 #endif
+
+// clear multisampled fbo
+    
+  glBindFramebuffer(GL_FRAMEBUFFER, msFrameBufferObject);
+  glPolygonMode(GL_FRONT_AND_BACK, outlinemode ? GL_LINES : GL_FILL);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
   // drawing pipeline now
   // [objects] --> [multisampled frame buffer] --> [standard frame buffer] --> [output]
   // clear main drawing canvas
@@ -398,14 +406,7 @@ void drawscene(double Width, double Height)
   int renderwidth = scaledRes.first;
   int renderheight = scaledRes.second;
 
-    // clear multisampled fbo
-    
-  glBindFramebuffer(GL_FRAMEBUFFER, msFrameBufferObject);
   glViewport(0,0,renderwidth,renderheight);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glPolygonMode(GL_FRONT_AND_BACK, outlinemode ? GL_LINES : GL_FILL);
-
   // glClearColor(0,0,0,1);
 
   glEnable(GL_DEPTH_TEST);
