@@ -440,8 +440,7 @@ void drawscene(double Width, double Height)
   Picture->render(size2,m,M,perspective,true,remesh);
   glDepthMask(GL_TRUE);
 
-  if(!forceRemesh)
-    remesh=false;
+  if(forceRemesh) remesh = true;
   forceRemesh=false;
   
   // rendering end
