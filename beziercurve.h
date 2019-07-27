@@ -30,11 +30,25 @@ public:
   }
 };
 
+class pixelData {
+public:
+  GLfloat position[3];
+//  GLfloat width;
+  GLint  material;
+  pixelData() {};
+//  pixelData(const triple& v, double width) : width(width) {
+  pixelData(const triple& v, double width) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    material=drawElement::materialIndex;
+  }
+};
+
 struct BezierCurve
 {
   static std::vector<vertexData1> vertexbuffer;
   static std::vector<GLuint> indices;
-  static GLuint nvertices;
   double res,res2;
   triple Min,Max;
 
@@ -45,8 +59,9 @@ struct BezierCurve
     
 // Store the vertex v in the buffer.
   static GLuint vertex(const triple &v) {
+    size_t nvertices=vertexbuffer.size();
     vertexbuffer.push_back(vertexData1(v));
-    return nvertices++;
+    return nvertices;
   }
   
   void createBuffers() {
@@ -73,7 +88,6 @@ struct BezierCurve
   }
   
   static void clear() {
-    nvertices=0;
     vertexbuffer.clear();
     indices.clear();
   }
@@ -99,10 +113,22 @@ struct BezierCurve
 
 struct Pixel
 {
+  static std::vector<pixelData> vertexbuffer;
+  
+// Store the vertex v in the buffer.
+  static void vertex(const triple &v, double width) {
+    vertexbuffer.push_back(pixelData(v,width));
+  }
+  
+  static void clear() {
+    vertexbuffer.clear();
+  }
+  
   Pixel() {}
   ~Pixel() {}
   
-  void draw(const triple& p);
+  void queue(const triple& p, double width);
+  void draw();
 };
 
 #endif

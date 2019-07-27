@@ -21,9 +21,10 @@ extern void setUniforms(GLint shader);
 std::vector<vertexData1> BezierCurve::vertexbuffer;
 std::vector<GLuint> BezierCurve::indices;
 
+std::vector<pixelData> Pixel::vertexbuffer;
+
 GLuint BezierCurve::vertsBufferIndex;
 GLuint BezierCurve::elemBufferIndex;
-GLuint BezierCurve::nvertices=0;
 
 void BezierCurve::init(double res, const triple& Min, const triple& Max)
 {
@@ -127,12 +128,18 @@ void BezierCurve::draw()
   glDeleteBuffers(1,&elemBufferIndex);
 }
 
-void Pixel::draw(const triple& p)
+void Pixel::queue(const triple& p, double width)
 {
-  vertexData1 point(p);
+  vertex(p,width);
+}
+
+void Pixel::draw()
+{
+  if(vertexbuffer.size() == 0)
+    return;
 
   const size_t size=sizeof(GLfloat);
-  static const size_t bytestride=sizeof(vertexData1);
+  static const size_t bytestride=sizeof(pixelData);
 
   GLuint vbo;
   glGenBuffers(1,&vbo);
@@ -146,15 +153,19 @@ void Pixel::draw(const triple& p)
   const GLint materialAttrib=glGetAttribLocation(pixelDrawShader,"material");
 
   glBindBuffer(GL_ARRAY_BUFFER,vbo);
-  glBufferData(GL_ARRAY_BUFFER,bytestride,&point,GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,bytestride,vertexbuffer.data(),GL_STATIC_DRAW);
 
-  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,0,(void*)(0));
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0));
   glEnableVertexAttribArray(posAttrib);
   
   glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,(void *) (3*size));
   glEnableVertexAttribArray(materialAttrib);
-
-  glDrawArrays(GL_POINTS,0,1);
+  double width=30.0; // FIXME
+  glPointSize(1.0+width);
+  cout << vertexbuffer.size() << endl;
+  glDrawArrays(GL_POINTS,0,vertexbuffer.size());
+//  glDrawArrays(GL_POINTS,0,1);
+//  glPointSize(1.0);
 
   glDisableVertexAttribArray(posAttrib);
   glDisableVertexAttribArray(materialAttrib);

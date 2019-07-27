@@ -428,6 +428,7 @@ void drawscene(double Width, double Height)
     camp::BezierPatch::Clear();
     camp::BezierPatch::tClear();
     camp::BezierCurve::clear();
+    camp::Pixel::clear();
   }
   
   // Render opaque objects

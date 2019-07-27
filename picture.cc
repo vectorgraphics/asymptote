@@ -1191,6 +1191,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   else {
     drawBezierPatch::S.drawOpaque();
     drawPath3::R.draw();
+    drawPixel::R.draw();
   }
 #endif  
 }

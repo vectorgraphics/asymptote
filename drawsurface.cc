@@ -66,6 +66,7 @@ void clearMaterialBuffer(bool draw)
   if(draw) {
     drawBezierPatch::S.draw();
     drawPath3::R.draw();
+    drawPixel::R.draw();
   }
   drawElement::material.clear();
   drawElement::material.reserve(nmaterials);
