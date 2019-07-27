@@ -440,7 +440,9 @@ void drawscene(double Width, double Height)
   Picture->render(size2,m,M,perspective,true,remesh);
   glDepthMask(GL_TRUE);
 
-  if(forceRemesh) remesh = true;
+  if(!forceRemesh) {
+    remesh = false;
+  }
   forceRemesh=false;
   
   // rendering end
@@ -817,8 +819,8 @@ void display()
   bool fps=settings::verbose > 2;  
   if(fps) seconds();
   drawscene(Width,Height);
-  glutSwapBuffers();
   if(fps) {
+    glFinish();
     double s=seconds();
     if(s > 0.0) {
       double rate=1.0/s;
@@ -826,6 +828,8 @@ void display()
       cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev() << endl;
     }
   }
+  glutSwapBuffers();
+
 #ifdef HAVE_PTHREAD
   if(glthread && Animate) {
     queueExport=false;
@@ -909,6 +913,7 @@ void reshape(int width, int height)
     glutReshapeWindow(width,height);
  
   reshape0(width,height);
+  remesh = true;
 }
   
 void shift(int x, int y)
