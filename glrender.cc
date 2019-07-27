@@ -391,6 +391,14 @@ void drawscene(double Width, double Height)
     first=false;
   }
 #endif
+
+// clear multisampled fbo
+    
+  glBindFramebuffer(GL_FRAMEBUFFER, msFrameBufferObject);
+  glPolygonMode(GL_FRONT_AND_BACK, outlinemode ? GL_LINES : GL_FILL);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
   // drawing pipeline now
   // [objects] --> [multisampled frame buffer] --> [standard frame buffer] --> [output]
   // clear main drawing canvas
@@ -398,23 +406,13 @@ void drawscene(double Width, double Height)
   int renderwidth = scaledRes.first;
   int renderheight = scaledRes.second;
 
-    // clear multisampled fbo
-  glBindFramebuffer(GL_FRAMEBUFFER, msFrameBufferObject);
-
-  if (outlinemode) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
-  } else {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  }
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   glViewport(0,0,renderwidth,renderheight);
   // glClearColor(0,0,0,1);
 
   glEnable(GL_DEPTH_TEST);
-  glBindVertexArray(0);
   glEnable(GL_MULTISAMPLE);
 
+  glBindVertexArray(0);
   // rendering begin
 
   triple m(xmin,ymin,zmin);
@@ -457,7 +455,7 @@ void drawscene(double Width, double Height)
   // drawing the final triangle
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  glPolygonMode(GL_FRONT,GL_FILL);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glClear(GL_COLOR_BUFFER_BIT);
 
   int iWidth = std::llround(Width);
@@ -820,6 +818,7 @@ void display()
   bool fps=settings::verbose > 2;  
   if(fps) seconds();
   drawscene(Width,Height);
+
   if(fps) {
     glFinish();
     double s=seconds();
@@ -830,6 +829,7 @@ void display()
     }
   }
   glutSwapBuffers();
+
 
 #ifdef HAVE_PTHREAD
   if(glthread && Animate) {
@@ -1501,13 +1501,6 @@ GLuint initFrameBufferShader()
 
   return fbShader;
 }
-
-GLuint vertShader,fragShader, geomShader;
-GLuint vertShaderCol,fragShaderCol, geomShaderCol;
-GLuint vertShaderOutline, fragShaderOutline, geomShaderOutline;
-
-GLuint vertShaderPathOutline, fragShaderPathOutline, geomShaderPathOutline;
-
 void initshader()
 {
   Nlights=max(Nlights,nlights);

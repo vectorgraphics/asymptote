@@ -107,7 +107,7 @@ namespace outFrameBuffer {
         GLuint finalTextureNumber = GL_TEXTURE0 + textureNumber;
 
         glActiveTexture(finalTextureNumber);
-        glBindTexture(finalTextureNumber, textureFboTarget);
+        glBindTexture(GL_TEXTURE_2D, textureFboTarget);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         GLint screenResUnif=glGetUniformLocation(outputShader, "screenResolution");
