@@ -1178,7 +1178,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 void picture::render(double size2, const triple& Min, const triple& Max,
                      double perspective, bool transparent, bool remesh) const
 {
-  remesh=true;
   if(remesh) {
     for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
       assert(*p);
