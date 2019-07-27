@@ -163,9 +163,6 @@ public:
 
 // Draw a pixel.
 class drawPixel : public drawElement {
-#ifdef HAVE_GL
-  Pixel R;
-#endif  
   triple v;
   pen p;
   prc::RGBAColour color;
@@ -173,6 +170,9 @@ class drawPixel : public drawElement {
   bool invisible;
   triple Min,Max;
 public:
+#ifdef HAVE_GL
+  static Pixel R;
+#endif  
   drawPixel(const triple& v, const pen& p, double width, const string& key="")
     : drawElement(key), v(v), p(p), color(rgba(p)), width(width),
       invisible(p.invisible()) {}

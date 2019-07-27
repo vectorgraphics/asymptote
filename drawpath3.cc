@@ -23,6 +23,7 @@ using namespace prc;
 using gl::modelView;
 
 BezierCurve drawPath3::R;
+Pixel drawPixel::R;
 #endif
 
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
@@ -111,7 +112,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
       R.queue(controls,straight,size3.length()/size2,m,M);
     }
   }
-  if(BezierCurve::nvertices >= gl::maxvertices) {
+  if(BezierCurve::vertexbuffer.size() >= (unsigned) gl::maxvertices) {
     R.draw();
     BezierCurve::clear();
     gl::forceRemesh=true;
@@ -270,9 +271,13 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
   RGBAColour Black(0.0,0.0,0.0,color.A);
   setcolors(false,color,Black,color,Black,1.0,0.0,0.04);
   
-  glPointSize(1.0+width);
-  R.draw(v);
-  glPointSize(1.0);
+  R.queue(v,width);
+  
+  if(Pixel::vertexbuffer.size() >= (unsigned) gl::maxvertices) {
+    R.draw();
+    Pixel::clear();
+    gl::forceRemesh=true;
+  }
 #endif
 }
 
