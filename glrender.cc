@@ -1573,6 +1573,8 @@ void deleteshader()
   glDeleteProgram(camp::noColorShader);
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::pathOutlineShader);
+  glDeleteProgram(camp::pixelDrawShader);
+  
 }
   
 // angle=0 means orthographic.
