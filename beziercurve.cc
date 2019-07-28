@@ -153,7 +153,7 @@ void Pixel::draw()
   const GLint materialAttrib=glGetAttribLocation(pixelDrawShader,"material");
 
   glBindBuffer(GL_ARRAY_BUFFER,vbo);
-  glBufferData(GL_ARRAY_BUFFER,bytestride,vertexbuffer.data(),GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,bytestride*vertexbuffer.size(),vertexbuffer.data(),GL_STATIC_DRAW);
 
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0));
   glEnableVertexAttribArray(posAttrib);
@@ -162,10 +162,8 @@ void Pixel::draw()
   glEnableVertexAttribArray(materialAttrib);
   double width=30.0; // FIXME
   glPointSize(1.0+width);
-  cout << vertexbuffer.size() << endl;
   glDrawArrays(GL_POINTS,0,vertexbuffer.size());
-//  glDrawArrays(GL_POINTS,0,1);
-//  glPointSize(1.0);
+  glPointSize(1.0);
 
   glDisableVertexAttribArray(posAttrib);
   glDisableVertexAttribArray(materialAttrib);
