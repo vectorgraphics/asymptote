@@ -69,7 +69,6 @@ billboard BB;
 GLint noColorShader;
 GLint colorShader;
 // outline shader now directly wires from vertex --> fragment rather than passing through geometry. 
-GLint outlineShader;
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
@@ -77,7 +76,6 @@ size_t nmaterials=48;
 namespace gl {
   
 bool outlinemode=false;
-bool wireframeMode=false;
 bool glthread=false;
 bool initialize=true;
 
@@ -164,6 +162,7 @@ static const double radians=1.0/degrees;
 double Background[4];
 size_t Nlights=1; // Maximum number of lights compiled in shader
 size_t nlights; // Actual number of lights
+size_t nlights0;
 triple *Lights; 
 double *Diffuse;
 double *Ambient;
@@ -241,7 +240,7 @@ void updateModelViewData()
 }
 
 
-GLint shaderProg,shaderProgColor,shaderProgOutline;
+GLint shaderProg,shaderProgColor;
 
 double *Rotate;
 void *glrenderWrapper(void *a);
@@ -564,19 +563,18 @@ void mode()
   switch(Mode) {
     case 0: // wireframe -> regular
       outlinemode=false;
-      wireframeMode=false;
+      nlights=nlights0;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       ++Mode;
       break;
     case 1: // regular -> outline
       outlinemode=true;
-      wireframeMode=false;
+      nlights=0;
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
       break;
     case 2: // outline -> wireframe
       outlinemode=false;
-      wireframeMode=true;
       Mode=0;
       break;
   }
@@ -1383,9 +1381,8 @@ void init_osmesa()
 #endif // HAVE_LIBOSMESA
 }
 
-GLuint vertShader,fragShader, geomShader;
-GLuint vertShaderCol,fragShaderCol, geomShaderCol;
-GLuint vertShaderOutline, fragShaderOutline;
+GLuint vertShader,fragShader;
+GLuint vertShaderCol,fragShaderCol;
 
 void initshader()
 {
@@ -1394,10 +1391,7 @@ void initshader()
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
-  string gs=locateFile("shaders/geometry.glsl");
-
-  string fsOutline=locateFile("shaders/outline.frag.glsl");
-  if(vs.empty() || fs.empty() || gs.empty()) {
+  if(vs.empty() || fs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
@@ -1415,71 +1409,36 @@ void initshader()
                               Nmaterials,shaderParams);
   fragShader=createShaderFile(fs.c_str(),GL_FRAGMENT_SHADER,Nlights,
                               Nmaterials,shaderParams);
-  geomShader=createShaderFile(gs.c_str(),GL_GEOMETRY_SHADER,Nlights,
-                              Nmaterials,shaderParams);
   glAttachShader(shaderProg,vertShader);
   glAttachShader(shaderProg,fragShader);
-  glAttachShader(shaderProg,geomShader);
     
   shaderProgColor=glCreateProgram();
   vertShaderCol=createShaderFile(vs.c_str(),
                                  GL_VERTEX_SHADER,Nlights,Nmaterials,shaderParams,true);
   fragShaderCol=createShaderFile(fs.c_str(),
                                  GL_FRAGMENT_SHADER,Nlights,Nmaterials,shaderParams,true);
-  geomShaderCol=createShaderFile(gs.c_str(),
-                                GL_GEOMETRY_SHADER,Nlights,Nmaterials,shaderParams,true);
-
   glAttachShader(shaderProgColor,vertShaderCol);
   glAttachShader(shaderProgColor,fragShaderCol);
-  glAttachShader(shaderProgColor,geomShaderCol);
-
-  shaderProgOutline=glCreateProgram();
-  
-  vertShaderOutline = createShaderFile(vs.c_str(),GL_VERTEX_SHADER,Nlights, Nmaterials, shaderParams);
-  fragShaderOutline = createShaderFile(fsOutline.c_str(), GL_FRAGMENT_SHADER, Nlights, Nmaterials, shaderParams);
-
-  glAttachShader(shaderProgOutline,vertShaderOutline);
-  glAttachShader(shaderProgOutline,fragShaderOutline);
 
   camp::noColorShader=shaderProg;
   camp::colorShader=shaderProgColor;
-  camp::outlineShader=shaderProgOutline;
 
   // regular shader
   glLinkProgram(shaderProg);
 
   glDetachShader(shaderProg,vertShader);
   glDetachShader(shaderProg,fragShader);
-  glDetachShader(shaderProg,geomShader);
 
   glDeleteShader(vertShader);
   glDeleteShader(fragShader);
-  glDeleteShader(geomShader);
 
   //color shader
 
   glLinkProgram(shaderProgColor);
-
   glDetachShader(shaderProgColor,vertShaderCol);
   glDetachShader(shaderProgColor,fragShaderCol);
-  glDetachShader(shaderProgColor,geomShaderCol);
-  
   glDeleteShader(vertShaderCol);
   glDeleteShader(fragShaderCol);
-  glDeleteShader(geomShaderCol);
-
-  // outline shader
-
-  glLinkProgram(shaderProgOutline);
-
-  glDetachShader(shaderProgOutline, vertShaderOutline);
-  glDetachShader(shaderProgOutline, fragShaderOutline);
-
-  glDeleteShader(vertShaderOutline);
-  glDeleteShader(fragShaderOutline);
-
-  // end outline shaders
-
 }
 
 void deleteshader() 
@@ -1492,7 +1451,7 @@ void deleteshader()
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
               const triple& m, const triple& M, const pair& shift, double *t,
-              double *background, size_t nlights0, triple *lights,
+              double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *ambient, double *specular,
               bool view, int oldpid)
 {
@@ -1516,7 +1475,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   for(int i=0; i < 4; ++i)
     Background[i]=background[i];
   
-  nlights=min(nlights0,(size_t) GL_MAX_LIGHTS);
+  nlights0=nlights=min(nlightsin,(size_t) GL_MAX_LIGHTS);
   
   Lights=lights;
   Diffuse=diffuse;

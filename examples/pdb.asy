@@ -9,7 +9,7 @@ currentlight=White;
 
 defaultrender.merge=true;  // Fast low-quality rendering
 //defaultrender.merge=false; // Slow high-quality rendering
-bool pixel=true; // Set to true to draw dots as pixels.
+bool pixel=false; // Set to true to draw dots as pixels.
 real width=10*linewidth(currentpen);
 
 size(200);

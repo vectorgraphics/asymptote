@@ -17,7 +17,6 @@ using ::orient3d;
 
 extern GLint noColorShader;
 extern GLint colorShader;
-extern GLint outlineShader;
 extern void setUniforms(GLint shader); 
 
 const size_t nbuffer=10000; // Initial size of dynamic buffers
@@ -899,7 +898,7 @@ void BezierPatch::drawMaterials()
   GLuint vertsBufferIndex; 
   GLuint elemBufferIndex; 
 
-  GLuint shaderToUse = gl::wireframeMode ? outlineShader :noColorShader;
+  GLuint shaderToUse = noColorShader;
   
   GLuint vao;
   
@@ -960,7 +959,7 @@ void BezierPatch::drawColors(GLuint& Nvertices,
   static const size_t size=sizeof(GLfloat);
   static const size_t bytestride=sizeof(VertexData);
 
-  GLuint shaderToUse = gl::wireframeMode ? outlineShader : colorShader;
+  GLuint shaderToUse = colorShader;
   
 
   GLuint vertsBufferIndex; 
