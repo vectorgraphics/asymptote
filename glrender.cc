@@ -13,7 +13,6 @@
 #include <cstring>
 #include <sys/time.h>
 
-#include <OpenImageIO/imageio.h>
 
 #include "common.h"
 #include "locate.h"
@@ -56,6 +55,10 @@
 
 #include "shaders.h"
 #include "material.h"
+
+#ifdef HAVE_LIBOIIO
+#include <OpenImageIO/imageio.h>
+#endif
 
 using settings::locateFile;
 using camp::Material;

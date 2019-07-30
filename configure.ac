@@ -310,12 +310,17 @@ AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],enable experimental offscreen rendering using OSMesa library)])
 
 if test "x$enable_gl" != "xno"; then
+            AC_CHECK_HEADER(glm/glm.hpp,
+                       [AC_DEFINE(HAVE_LIBGLM, 1,
+                    [Define if you have the `OpenGL Mathematics' library.])])
+            AC_CHECK_HEADER(OpenImageIO/imageio.h,
+                         [AC_DEFINE(HAVE_LIBOIIO, 1,
+                     [Define if you have the `OpenImageIO' library.])
+                     LIBS="-lOpenImageIO "$LIBS
+                     ])
 case "$OSTYPE" in
      msdos)
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-              AC_CHECK_HEADER(glm/glm.hpp,
-                         [AC_DEFINE(HAVE_LIBGLM, 1,
-                     [Define if you have the `OpenGL Mathematics' library.])])
               AC_CHECK_HEADER(GL/glut.h,
                                   [AC_DEFINE(HAVE_LIBGLUT, 1,
                      [Define if you have the `freeglut' library (-lfreeglut).])
@@ -334,9 +339,6 @@ case "$OSTYPE" in
         ;;
      darwin*)
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-              AC_CHECK_HEADER(glm/glm.hpp,
-                         [AC_DEFINE(HAVE_LIBGLM, 1,
-                     [Define if you have the `OpenGL Mathematics' library.])])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL, 1,
                              [Define if you have the `OpenGL' library.])])
@@ -352,15 +354,6 @@ case "$OSTYPE" in
         ;;
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-         AC_CHECK_HEADER(glm/glm.hpp,
-                         [AC_DEFINE(HAVE_LIBGLM, 1,
-                     [Define if you have the `OpenGL Mathematics' library.])])
-         AC_CHECK_HEADER(OpenImageIO/imageio.h,
-                         [AC_DEFINE(HAVE_LIBOIIO, 1,
-                     [Define if you have the `OpenImageIO' library.])
-                     LIBS="-lOpenImageIO "$LIBS
-                     ])
-                     
           AC_CHECK_LIB([GL], [glDepthMask])
           AC_CHECK_LIB([glut], [glutMainLoop],,
                        AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
