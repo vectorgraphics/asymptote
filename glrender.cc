@@ -364,7 +364,7 @@ void setProjection()
 #endif
 }
 
-void drawscene(double Width, double Height)
+void drawscene(int Width, int Height)
 {
 #ifdef HAVE_PTHREAD
   static bool first=true;
