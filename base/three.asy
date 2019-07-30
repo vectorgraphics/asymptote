@@ -2889,7 +2889,7 @@ object embed(string prefix=outprefix(), string label=prefix,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
-             Light.diffuse,Light.ambient,Light.specular,
+             Light.diffuse,Light.specular,
              view && !preview);
     if(!preview) return F;
   }

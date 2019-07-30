@@ -112,7 +112,7 @@ void glrender(const string& prefix, const camp::picture* pic,
               double zoom, const camp::triple& m, const camp::triple& M,
               const camp::pair& shift, double *t, double *background,
               size_t nlights, camp::triple *lights, double *diffuse,
-              double *ambient, double *specular, bool view, int oldpid=0);
+              double *specular, bool view, int oldpid=0);
 
 struct ModelView {
   double T[16];

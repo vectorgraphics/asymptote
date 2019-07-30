@@ -23,25 +23,23 @@ inline glm::vec4 GLparameters(GLfloat shininess, GLfloat metallic,
 
 struct Material {
 public:
-  glm::vec4 diffuse, ambient, emissive, specular;
+  glm::vec4 diffuse,emissive,specular;
   glm::vec4 parameters;
   Material() {}
 
-  Material(const glm::vec4& diffuse, const glm::vec4& ambient,
-           const glm::vec4& emissive, const glm::vec4& specular,
-           double shininess, double metallic, double fresnel0) : 
-    diffuse(diffuse), ambient(ambient), emissive(emissive), specular(specular),
+  Material(const glm::vec4& diffuse, const glm::vec4& emissive,
+           const glm::vec4& specular, double shininess, double metallic, double fresnel0) : 
+    diffuse(diffuse), emissive(emissive), specular(specular),
     parameters(GLparameters(shininess,metallic,fresnel0)) {}
 
   Material(Material const& m):
-    diffuse(m.diffuse), ambient(m.ambient), emissive(m.emissive),
+    diffuse(m.diffuse), emissive(m.emissive),
     specular(m.specular), parameters(m.parameters) {}
   ~Material() {}
 
   Material& operator=(Material const& m)
   {
     diffuse=m.diffuse;
-    ambient=m.ambient;
     emissive=m.emissive;
     specular=m.specular;
     parameters=m.parameters;
@@ -50,13 +48,11 @@ public:
   friend bool operator < (const Material& m1, const Material& m2) {
     return m1.diffuse < m2.diffuse ||
                         (m1.diffuse == m2.diffuse && 
-                         (m1.ambient < m2.ambient ||
-                        (m1.ambient == m2.ambient && 
                          (m1.emissive < m2.emissive ||
                         (m1.emissive == m2.emissive && 
                          (m1.specular < m2.specular ||
                         (m1.specular == m2.specular && 
-                         (m1.parameters < m2.parameters))))))));
+                         (m1.parameters < m2.parameters))))));
   }
 }; 
 

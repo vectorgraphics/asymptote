@@ -1,13 +1,13 @@
 struct Material
 {
-  vec4 diffuse,ambient,emissive,specular;
+  vec4 diffuse,emissive,specular;
   vec4 parameters;
 };
 
 struct Light
 {
   vec4 direction;
-  vec4 diffuse,ambient,specular;  
+  vec4 diffuse,specular;  
 };
 
 uniform int nlights;
@@ -126,7 +126,6 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
 void main()
 {
 vec4 Diffuse;
-vec4 Ambient;
 vec4 Emissive;
 vec4 Specular;
 vec4 parameters;
@@ -136,14 +135,12 @@ vec4 parameters;
     int index=-materialIndex-1;
     Material m=Materials[index];
     Diffuse=Color;
-    Ambient=vec4(0);
     Emissive=vec4(0);
     Specular=m.specular;
     parameters=m.parameters;
   } else {
     Material m=Materials[materialIndex];
     Diffuse=m.diffuse;
-    Ambient=m.ambient;
     Emissive=m.emissive;
     Specular=m.specular;
     parameters=m.parameters;
@@ -151,7 +148,6 @@ vec4 parameters;
 #else
   Material m=Materials[materialIndex];
   Diffuse=m.diffuse; 
-  Ambient=m.ambient;
   Emissive=m.emissive;
   Specular=m.specular;
   parameters=m.parameters;

@@ -170,7 +170,6 @@ size_t nlights; // Actual number of lights
 size_t nlights0;
 triple *Lights; 
 double *Diffuse;
-double *Ambient;
 double *Specular;
 bool antialias;
 
@@ -1448,8 +1447,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
               const triple& m, const triple& M, const pair& shift, double *t,
               double *background, size_t nlightsin, triple *lights,
-              double *diffuse, double *ambient, double *specular,
-              bool view, int oldpid)
+              double *diffuse, double *specular, bool view, int oldpid)
 {
   remesh=true;
   bool offscreen=getSetting<bool>("offscreen");
@@ -1475,7 +1473,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   Lights=lights;
   Diffuse=diffuse;
-  Ambient=ambient;
   Specular=specular;
   View=view;
   Angle=angle*radians;
@@ -1769,11 +1766,6 @@ void setUniforms(GLint shader)
                                      getLightIndex(i,"diffuse").c_str()),
                 (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
                 (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
-      
-    glUniform4f(glGetUniformLocation(shader,
-                                     getLightIndex(i,"ambient").c_str()),
-                (GLfloat) gl::Ambient[i4],(GLfloat) gl::Ambient[i4+1],
-                (GLfloat) gl::Ambient[i4+2],(GLfloat) gl::Ambient[i4+3]);
       
     glUniform4f(glGetUniformLocation(shader,
                                      getLightIndex(i,"specular").c_str()),

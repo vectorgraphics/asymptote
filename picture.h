@@ -92,8 +92,7 @@ public:
                 double width, double height, double angle, double zoom,
                 const triple& m, const triple& M, const pair& shift, double *t,
                 double *background, size_t nlights, triple *lights,
-                double *diffuse, double *ambient, double *specular,
-                bool view);
+                double *diffuse, double *specular, bool view);
   
   // PRC output
   bool shipout3(const string& prefix);

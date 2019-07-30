@@ -7784,7 +7784,7 @@ patches in the @acronym{PRC} model tree.
 Here material is a structure defined in @code{three_light.asy}:
 @verbatim
 struct material {
-  pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
+  pen[] p; // diffusepen,emissivepen,specularpen
   real opacity;
   real shininess;  
 ...
@@ -9873,7 +9873,7 @@ Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 @c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals xml
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
-@c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb keyval
+@c  LocalWords:  diffusepen emissivepen specularpen arrowbarb keyval
 @c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin cmd
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate

@@ -1212,7 +1212,6 @@ struct Communicate : public gc {
   size_t nlights;
   triple *lights;
   double *diffuse;
-  double *ambient;
   double *specular;
   bool view;
 };
@@ -1228,7 +1227,7 @@ void glrenderWrapper()
 #endif  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
            com.zoom,com.m,com.M,com.shift,com.t,com.background,com.nlights,
-           com.lights,com.diffuse,com.ambient,com.specular,com.view);
+           com.lights,com.diffuse,com.specular,com.view);
 #endif  
 }
 
@@ -1236,8 +1235,7 @@ bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
                        const triple& m, const triple& M, const pair& shift,
                        double *t, double *background, size_t nlights,
-                       triple *lights, double *diffuse, double *ambient,
-                       double *specular, bool view)
+                       triple *lights, double *diffuse, double *specular, bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
@@ -1310,7 +1308,6 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.nlights=nlights;
       com.lights=lights;
       com.diffuse=diffuse;
-      com.ambient=ambient;
       com.specular=specular;
       com.view=View;
       if(Wait)
@@ -1345,7 +1342,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #ifdef HAVE_GL  
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
-           background,nlights,lights,diffuse,ambient,specular,View,oldpid);
+           background,nlights,lights,diffuse,specular,View,oldpid);
 #ifdef HAVE_PTHREAD
   if(glthread && !offscreen && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);

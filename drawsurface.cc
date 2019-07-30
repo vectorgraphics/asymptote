@@ -76,7 +76,6 @@ void clearMaterialBuffer(bool draw)
 
 void setcolors(bool colors,
                const RGBAColour& diffuse,
-               const RGBAColour& ambient,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess,
                double metallic, double fresnel0) 
@@ -84,12 +83,11 @@ void setcolors(bool colors,
   Material m;
   if(colors) {
     static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
-    m=Material(Black,Black,Black,
+    m=Material(Black,Black,
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
                shininess, metallic, fresnel0);
   }  else
     m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
-               glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A),
                glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
                shininess, metallic, fresnel0);
@@ -235,7 +233,8 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible || !prc)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight) {
     triple vertices[]={controls[0],controls[12],controls[3],controls[15]};
@@ -286,7 +285,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
   if(billboard) BB.init(center);
   
@@ -457,7 +456,8 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
   
   static const double third=1.0/3.0;
   static const double third2=2.0/3.0;
@@ -511,7 +511,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
   if(billboard) BB.init(center);
   
@@ -553,7 +553,8 @@ bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
   out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights);
   
   return true;
@@ -678,7 +679,7 @@ void drawNurbs::render(double size2, const triple& Min, const triple& Max,
        M.getz() < Min.getz() || m.getz() > Max.getz()) return;
   }
 
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
 // TODO: implement NURBS renderer
 #endif
 }
@@ -707,7 +708,8 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   switch(type) {
     case 0: // PRCsphere
@@ -770,7 +772,8 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   out->addCylinder(1.0,1.0,m,NULL,NULL,NULL,1.0,T);
   
@@ -782,7 +785,8 @@ bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   out->addDisk(1.0,m,NULL,NULL,NULL,1.0,T);
   
@@ -794,7 +798,8 @@ bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   Int n=center.length();
   
@@ -897,7 +902,8 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
     const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
   } else {
-    const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+    RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+    const PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,30);
   }
 
@@ -939,7 +945,7 @@ void drawTriangles::render(double size2, const triple& Min,
       return;
   }
 
-  setcolors(nC,diffuse,ambient,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0);
   R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
 #endif
 }
