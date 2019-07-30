@@ -15,7 +15,8 @@
 
 GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders, 
                             size_t NLights, size_t NMaterials,
-                            std::vector<std::string> const& defineflags, bool explicitcolor)
+                            std::vector<std::string> const& defineflags,
+                            bool explicitcolor, bool normal)
 {
   GLuint mainShader = glCreateProgram();
   std::vector<GLuint> compiledShaders;
@@ -23,7 +24,7 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
   for (auto const& shaderInfo : shaders) {
     GLint newshader=createShaderFile(shaderInfo.first,shaderInfo.second,
                                      NLights,NMaterials,defineflags,
-                                     explicitcolor);
+                                     explicitcolor,normal);
     glAttachShader(mainShader,newshader);
     compiledShaders.push_back(newshader);
   }
@@ -72,7 +73,7 @@ GLuint createShaders(GLchar const* src, int shaderType,
 GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
                         size_t Nmaterials,
                         std::vector<std::string> const& defineflags,
-                        bool explicitcolor)
+                        bool explicitcolor, bool normal)
 {
   std::ifstream shaderFile;
   shaderFile.open(file.c_str());
@@ -90,6 +91,9 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
 
   if(explicitcolor)
     shaderSrc << "#define EXPLICIT_COLOR" << "\r\n";
+  
+  if(normal)
+    shaderSrc << "#define NORMAL" << "\r\n";
     
   shaderSrc << "const int Nlights=" << Nlights << ";\r\n";
   shaderSrc << "const int Nmaterials=" << Nmaterials << ";\r\n";

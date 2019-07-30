@@ -17,8 +17,11 @@ uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
 
+
+#ifdef NORMAL
 in vec3 Normal;
 vec3 normal;
+#endif
 
 #ifdef EXPLICIT_COLOR
 in vec4 Color; 
@@ -26,9 +29,7 @@ in vec4 Color;
 
 flat in int materialIndex;
 out vec4 outColor;
-//in vec3 ViewPosition;
 
-// TODO: Integrate these constants into asy side
 // PBR material parameters
 vec3 PBRBaseColor; // Diffuse for nonmetals, reflectance for metals.
 vec3 PBRSpecular; // Specular tint for nonmetals
@@ -37,17 +38,13 @@ float PBRF0; // Fresnel at zero for nonmetals
 float PBRRoughness; // Roughness.
 float PBRRoughnessSq; // used value of roughness, for a little bit more "smoothing"
 
-// Here is a good paper on BRDF models...
-// https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
-
 uniform sampler2D environmentMap;
 const float PI = acos(-1.0);
 #ifdef ENABLE_TEXTURE
 const float twopi=2*PI;
 const float halfpi=PI/2;
 
-// TODO: Enable different samples:
-const int numSamples = 7;
+const int numSamples=7;
 
 // (x,y,z) -> (r, theta, phi);
 // theta -> [0,\pi], "height" angle
@@ -73,6 +70,7 @@ vec2 normalizedAngle(vec3 cartVec) {
 }
 #endif
 
+#ifdef NORMAL
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
 float NDF_TRG(vec3 h, float roughness) {
@@ -123,6 +121,7 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
   
   return mix(dielectric, metal, PBRMetallic);
 }
+#endif
 
 void main()
 {
@@ -173,6 +172,7 @@ vec4 parameters;
     // L is the radiance from a given angle and position.
 
   vec3 color=Emissive.rgb;
+#ifdef NORMAL  
   vec3 Z=vec3(0,0,1);
   vec3 pointLightRadiance=vec3(0,0,0);
 
@@ -186,23 +186,16 @@ vec4 parameters;
         // vec3 viewDirection = Z;
         vec3 viewDirection = -normalize(Z);
         float cosTheta = max(dot(normal, L), 0); // $\omega_i \cdot n$ term
-//    vec3 viewDirection = -normalize(ViewPosition);
-//    float cosTheta = abs(dot(normal, L)); // $\omega_i \cdot n$ term
-        float attn = 1; // if we have a good light direction.
+        float attn = 1; // if we have a good light position.
         vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
-
-        // in our case, the viewing angle is always (0,0,1)... 
-        // though the viewing angle does not matter in the Lambertian diffuse... 
-
-        // totalRadiance += vec3(0,1,0)*Shininess;
         pointLightRadiance += BRDF(Z, L) * radiance;
       }
       color += pointLightRadiance.rgb;
 
 #ifdef ENABLE_TEXTURE
 #ifndef EXPLICIT_COLOR
-      // environment radiance -- Riemann sums, for now.
-      // can also do importance sampling
+      // Experimental environment radiance using Riemann sums;
+      // can also do importance sampling.
       vec3 envRadiance=vec3(0,0,0);
 
       vec3 normalPerp = vec3(-normal.y, normal.x, 0);
@@ -210,8 +203,7 @@ vec4 parameters;
 
         normalPerp = vec3(1, 0, 0);
       }
-      // we now have a normal basis for normal;
-      // normal;
+      // we now have a normal basis;
       normalPerp = normalize(normalPerp);
       vec3 normalPerp2 = normalize(cross(normal, normalPerp));
 
@@ -239,10 +231,12 @@ vec4 parameters;
       color += envRadiance.rgb;
 #endif
 #endif
-
-      // vec3 visnormal = vec3(pow(0.5+normal.y/2, 20));
       outColor=vec4(color,Diffuse.a);
-} else
+    } else {
       outColor=Diffuse;
+    }
+#else    
+    outColor=Emissive;
+#endif      
 }
 

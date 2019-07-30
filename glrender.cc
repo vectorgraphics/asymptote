@@ -68,7 +68,8 @@ namespace camp {
 billboard BB;
 GLint noColorShader;
 GLint colorShader;
-// outline shader now directly wires from vertex --> fragment rather than passing through geometry. 
+GLint noNormalShader;
+
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
@@ -1413,7 +1414,12 @@ void initshader()
   camp::colorShader = compileAndLinkShader({
     ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
     ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
-  }, Nlights, Nmaterials, shaderParams, true);
+  }, Nlights, Nmaterials, shaderParams,true);
+
+  camp::noNormalShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
+    },Nlights,Nmaterials,shaderParams,false,false);
 
   /*
   camp::pathOutlineShader = compileAndLinkShader({
@@ -1432,6 +1438,7 @@ void deleteshader()
 {
   glDeleteProgram(camp::noColorShader);
   glDeleteProgram(camp::colorShader);
+  glDeleteProgram(camp::noNormalShader);
 }
   
 // angle=0 means orthographic.
