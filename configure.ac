@@ -355,6 +355,12 @@ case "$OSTYPE" in
          AC_CHECK_HEADER(glm/glm.hpp,
                          [AC_DEFINE(HAVE_LIBGLM, 1,
                      [Define if you have the `OpenGL Mathematics' library.])])
+         AC_CHECK_HEADER(OpenImageIO/imageio.h,
+                         [AC_DEFINE(HAVE_LIBOIIO, 1,
+                     [Define if you have the `OpenImageIO' library.])
+                     LIBS="-lOpenImageIO "$LIBS
+                     ])
+                     
           AC_CHECK_LIB([GL], [glDepthMask])
           AC_CHECK_LIB([glut], [glutMainLoop],,
                        AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))

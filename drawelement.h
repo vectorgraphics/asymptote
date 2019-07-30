@@ -426,7 +426,8 @@ void setcolors(bool colors,
                const prc::RGBAColour& diffuse,
                const prc::RGBAColour& ambient,
                const prc::RGBAColour& emissive,
-               const prc::RGBAColour& specular, double shininess);
+               const prc::RGBAColour& specular, double shininess,
+               double metallic, double fresnel0);
 #endif
 }
 

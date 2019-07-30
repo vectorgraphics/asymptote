@@ -1176,17 +1176,23 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
 // render viewport with width x height pixels.
 void picture::render(double size2, const triple& Min, const triple& Max,
-                     double perspective, bool transparent) const
+                     double perspective, bool transparent, bool remesh) const
 {
-  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    (*p)->render(size2,Min,Max,perspective,transparent);
+  if(remesh) {
+    for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
+      assert(*p);
+      (*p)->render(size2,Min,Max,perspective,transparent);
+    }
   }
+      
 #ifdef HAVE_GL
   if(transparent)
     drawBezierPatch::S.drawTransparent();
-  else
+  else {
     drawBezierPatch::S.drawOpaque();
+    drawPath3::R.draw();
+    drawPixel::R.draw();
+  }
 #endif  
 }
   

@@ -63,7 +63,11 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
 
 void clearMaterialBuffer(bool draw)
 {
-  if(draw) drawBezierPatch::S.draw();
+  if(draw) {
+    drawBezierPatch::S.draw();
+    drawPath3::R.draw();
+    drawPixel::R.draw();
+  }
   drawElement::material.clear();
   drawElement::material.reserve(nmaterials);
   drawElement::materialMap.clear();
@@ -74,20 +78,21 @@ void setcolors(bool colors,
                const RGBAColour& diffuse,
                const RGBAColour& ambient,
                const RGBAColour& emissive,
-               const RGBAColour& specular, double shininess) 
+               const RGBAColour& specular, double shininess,
+               double metallic, double fresnel0) 
 {
   Material m;
   if(colors) {
     static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
     m=Material(Black,Black,Black,
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
-               shininess);
+               shininess, metallic, fresnel0);
   }  else
     m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
                glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A),
                glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
-               shininess);
+               shininess, metallic, fresnel0);
           
   MaterialMap::iterator p=drawElement::materialMap.find(m);
   if(p != drawElement::materialMap.end())
@@ -281,7 +286,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess,metallic,fresnel0);
   
   if(billboard) BB.init(center);
   
@@ -312,10 +317,16 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   } else {
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? c : NULL);
-    if(BezierPatch::nvertices >= gl::maxvertices)
-      drawBezierPatch::S.drawMaterials();
-    if(BezierPatch::Nvertices >= gl::maxvertices)
-      drawBezierPatch::S.drawColors();
+    if(BezierPatch::nvertices >= gl::maxvertices) {
+      S.drawMaterials();
+      BezierPatch::clear();
+      gl::forceRemesh=true;
+    }
+    if(BezierPatch::Nvertices >= gl::maxvertices) {
+      S.drawColors();
+      BezierPatch::Clear();
+      gl::forceRemesh=true;
+    }
   }
 #endif
 }
@@ -500,7 +511,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess,metallic,fresnel0);
   
   if(billboard) BB.init(center);
   
@@ -667,7 +678,7 @@ void drawNurbs::render(double size2, const triple& Min, const triple& Max,
        M.getz() < Min.getz() || m.getz() > Max.getz()) return;
   }
 
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,ambient,emissive,specular,shininess,metallic,fresnel0);
 // TODO: implement NURBS renderer
 #endif
 }
@@ -928,7 +939,7 @@ void drawTriangles::render(double size2, const triple& Min,
       return;
   }
 
-  setcolors(nC,diffuse,ambient,emissive,specular,shininess);
+  setcolors(nC,diffuse,ambient,emissive,specular,shininess,metallic,fresnel0);
   R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
 #endif
 }

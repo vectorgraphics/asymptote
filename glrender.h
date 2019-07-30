@@ -80,7 +80,9 @@ inline void store(GLfloat *control, const triple& v, double weight)
 namespace gl {
 
 extern bool outlinemode;
+extern bool wireframeMode;
 extern Int maxvertices;
+extern bool forceRemesh;
 
 struct projection 
 {
@@ -100,6 +102,8 @@ public:
     orthographic(orthographic), camera(camera), up(up), target(target),
     zoom(zoom), angle(angle), viewportshift(viewportshift) {}
 };
+
+GLuint initHDR();
 
 projection camera(bool user=true);
 

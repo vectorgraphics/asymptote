@@ -206,6 +206,24 @@ struct BezierPatch
       Z < Min.getz() || z > Max.getz();
   }
 
+  static void clear() {
+    nvertices=0;
+    vertexbuffer.clear();
+    indices.clear();
+  }
+  
+  static void Clear() {
+    Nvertices=0;
+    Vertexbuffer.clear();
+    Indices.clear();
+  }
+  
+  static void tClear() {
+    Ntvertices=0;
+    tVertexbuffer.clear();
+    tIndices.clear();
+  }
+  
   ~BezierPatch() {}
   
   void render(const triple *p,

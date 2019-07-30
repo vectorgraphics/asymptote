@@ -15,11 +15,7 @@ using ::orient3d;
 
 #ifdef HAVE_GL
 
-
-//FIXME: Find a nicer way to pass the shader program number,
-// preferably without global variables...
-
-extern GLint noColorShader;
+extern GLint materialShader;
 extern GLint colorShader;
 extern void setUniforms(GLint shader); 
 
@@ -893,7 +889,7 @@ void bounds(const std::vector<GLuint>& I)
   
 void BezierPatch::drawMaterials()
 {
-  if(nvertices == 0)
+  if(indices.size() == 0)
     return;
   
   static const size_t size=sizeof(GLfloat);
@@ -901,7 +897,7 @@ void BezierPatch::drawMaterials()
 
   GLuint vertsBufferIndex; 
   GLuint elemBufferIndex; 
-  
+
   GLuint vao;
   
   glGenVertexArrays(1,&vao);
@@ -913,11 +909,11 @@ void BezierPatch::drawMaterials()
   registerBuffer(vertexbuffer,vertsBufferIndex);
   registerBuffer(indices,elemBufferIndex);
   
-  camp::setUniforms(noColorShader); 
+  camp::setUniforms(materialShader); 
 
-  const GLint posAttrib=glGetAttribLocation(noColorShader,"position");
-  const GLint normalAttrib=glGetAttribLocation(noColorShader,"normal");
-  const GLint materialAttrib=glGetAttribLocation(noColorShader,"material");
+  const GLint posAttrib=glGetAttribLocation(materialShader,"position");
+  const GLint normalAttrib=glGetAttribLocation(materialShader,"normal");
+  const GLint materialAttrib=glGetAttribLocation(materialShader,"material");
   
   glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
@@ -947,10 +943,6 @@ void BezierPatch::drawMaterials()
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);
   
-  nvertices=0;
-  vertexbuffer.clear();
-  indices.clear();
-  
   glDeleteBuffers(1,&vertsBufferIndex);
   glDeleteBuffers(1,&elemBufferIndex);
 }
@@ -959,7 +951,7 @@ void BezierPatch::drawColors(GLuint& Nvertices,
                              std::vector<VertexData>& Vertexbuffer,
                              std::vector<GLuint>& Indices)
 {
-  if(Nvertices == 0)
+  if(Indices.size() == 0)
     return;
 
   static const size_t size=sizeof(GLfloat);
@@ -1019,10 +1011,6 @@ void BezierPatch::drawColors(GLuint& Nvertices,
 
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);
-  
-  Nvertices=0;
-  Vertexbuffer.clear();
-  Indices.clear();
   
   glDeleteBuffers(1,&vertsBufferIndex);
   glDeleteBuffers(1,&elemBufferIndex);
