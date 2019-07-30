@@ -8,6 +8,10 @@ in vec3 normal;
 in uint color;
 #endif
 
+#ifdef WIDTH
+in float width;
+#endif
+
 in int material;
 
 uniform mat4 projViewMat;
@@ -35,6 +39,10 @@ void main()
 
 #ifdef EXPLICIT_COLOR
   Color=unpackUnorm4x8(color);
+#endif
+
+#ifdef WIDTH
+  gl_PointSize=width;
 #endif
 
   materialIndex=material;

@@ -33,11 +33,10 @@ public:
 class pixelData {
 public:
   GLfloat position[3];
-//  GLfloat width;
   GLint  material;
+  GLfloat width;
   pixelData() {};
-//  pixelData(const triple& v, double width) : width(width) {
-  pixelData(const triple& v, double width) {
+  pixelData(const triple& v, double width) : width(width) {
     position[0]=v.getx();
     position[1]=v.gety();
     position[2]=v.getz();

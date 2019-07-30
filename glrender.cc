@@ -66,9 +66,10 @@ using utils::seconds;
 
 namespace camp {
 billboard BB;
-GLint noColorShader;
+GLint materialShader;
 GLint colorShader;
 GLint noNormalShader;
+GLint pixelShader;
 
 size_t Maxmaterials;
 size_t Nmaterials=1;
@@ -1406,7 +1407,7 @@ void initshader()
   }
   #endif
 
-  camp::noColorShader = compileAndLinkShader({
+  camp::materialShader = compileAndLinkShader({
     ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
     ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
   }, Nlights, Nmaterials, shaderParams);
@@ -1421,22 +1422,16 @@ void initshader()
     ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
     },Nlights,Nmaterials,shaderParams,false,false);
 
-  /*
-  camp::pathOutlineShader = compileAndLinkShader({
+  shaderParams.push_back("WIDTH");
+  camp::pixelShader = compileAndLinkShader({
     ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
-    ShaderfileModePair(fsOutline.c_str(), GL_FRAGMENT_SHADER),
-  }, Nlights, Nmaterials, {"OUTLINE_MODE"});
-
-  camp::pixelDrawShader = compileAndLinkShader({
-    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
-    ShaderfileModePair(fsp.c_str(), GL_FRAGMENT_SHADER),
-  }, Nlights, Nmaterials, shaderParams);
-  */
+    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
+    },Nlights,Nmaterials,shaderParams,false,false);
 }
 
 void deleteshader() 
 {
-  glDeleteProgram(camp::noColorShader);
+  glDeleteProgram(camp::materialShader);
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::noNormalShader);
 }
@@ -1681,6 +1676,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   mode();

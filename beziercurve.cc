@@ -13,6 +13,7 @@ namespace camp {
 #ifdef HAVE_GL
 
 extern GLint noNormalShader;
+extern GLint pixelShader;
 extern void setUniforms(GLint shader); 
 
 std::vector<vertexData1> BezierCurve::vertexbuffer;
@@ -145,10 +146,11 @@ void Pixel::draw()
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
-  camp::setUniforms(noNormalShader); 
+  camp::setUniforms(pixelShader); 
   
-  const GLint posAttrib=glGetAttribLocation(noNormalShader, "position");
-  const GLint materialAttrib=glGetAttribLocation(noNormalShader,"material");
+  const GLint posAttrib=glGetAttribLocation(pixelShader, "position");
+  const GLint materialAttrib=glGetAttribLocation(pixelShader,"material");
+  const GLint widthAttrib=glGetAttribLocation(pixelShader,"width");
 
   glBindBuffer(GL_ARRAY_BUFFER,vbo);
   glBufferData(GL_ARRAY_BUFFER,bytestride*vertexbuffer.size(),vertexbuffer.data(),GL_STATIC_DRAW);
@@ -158,12 +160,15 @@ void Pixel::draw()
   
   glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,(void *) (3*size));
   glEnableVertexAttribArray(materialAttrib);
-  double width=10.0; // FIXME
-  glPointSize(1.0+width);
+  
+  glVertexAttribPointer(widthAttrib,1,GL_FLOAT,GL_FALSE,bytestride,(void *) (4*size));
+  glEnableVertexAttribArray(widthAttrib);
+  
   glDrawArrays(GL_POINTS,0,vertexbuffer.size());
 
   glDisableVertexAttribArray(posAttrib);
   glDisableVertexAttribArray(materialAttrib);
+  glDisableVertexAttribArray(widthAttrib);
   
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glUseProgram(0);

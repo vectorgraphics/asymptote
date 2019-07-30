@@ -15,7 +15,7 @@ using ::orient3d;
 
 #ifdef HAVE_GL
 
-extern GLint noColorShader;
+extern GLint materialShader;
 extern GLint colorShader;
 extern void setUniforms(GLint shader); 
 
@@ -898,8 +898,6 @@ void BezierPatch::drawMaterials()
   GLuint vertsBufferIndex; 
   GLuint elemBufferIndex; 
 
-  GLuint shaderToUse = noColorShader;
-  
   GLuint vao;
   
   glGenVertexArrays(1,&vao);
@@ -911,11 +909,11 @@ void BezierPatch::drawMaterials()
   registerBuffer(vertexbuffer,vertsBufferIndex);
   registerBuffer(indices,elemBufferIndex);
   
-  camp::setUniforms(shaderToUse); 
+  camp::setUniforms(materialShader); 
 
-  const GLint posAttrib=glGetAttribLocation(shaderToUse,"position");
-  const GLint normalAttrib=glGetAttribLocation(shaderToUse,"normal");
-  const GLint materialAttrib=glGetAttribLocation(shaderToUse,"material");
+  const GLint posAttrib=glGetAttribLocation(materialShader,"position");
+  const GLint normalAttrib=glGetAttribLocation(materialShader,"normal");
+  const GLint materialAttrib=glGetAttribLocation(materialShader,"material");
   
   glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
@@ -959,9 +957,6 @@ void BezierPatch::drawColors(GLuint& Nvertices,
   static const size_t size=sizeof(GLfloat);
   static const size_t bytestride=sizeof(VertexData);
 
-  GLuint shaderToUse = colorShader;
-  
-
   GLuint vertsBufferIndex; 
   GLuint elemBufferIndex; 
   
@@ -976,12 +971,12 @@ void BezierPatch::drawColors(GLuint& Nvertices,
   registerBuffer(Vertexbuffer,vertsBufferIndex);
   registerBuffer(Indices,elemBufferIndex);
   
-  camp::setUniforms(shaderToUse); 
+  camp::setUniforms(colorShader); 
 
-  const GLint posAttrib=glGetAttribLocation(shaderToUse,"position");
-  const GLint normalAttrib=glGetAttribLocation(shaderToUse,"normal");
-  const GLint colorAttrib=glGetAttribLocation(shaderToUse,"color");
-  const GLint materialAttrib=glGetAttribLocation(shaderToUse,"material");
+  const GLint posAttrib=glGetAttribLocation(colorShader,"position");
+  const GLint normalAttrib=glGetAttribLocation(colorShader,"normal");
+  const GLint colorAttrib=glGetAttribLocation(colorShader,"color");
+  const GLint materialAttrib=glGetAttribLocation(colorShader,"material");
   
   glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);

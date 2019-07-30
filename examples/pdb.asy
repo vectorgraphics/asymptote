@@ -10,7 +10,7 @@ currentlight=White;
 defaultrender.merge=true;  // Fast low-quality rendering
 //defaultrender.merge=false; // Slow high-quality rendering
 bool pixel=false; // Set to true to draw dots as pixels.
-real width=10*linewidth(currentpen);
+real width=10;
 
 size(200);
 currentprojection=perspective(30,30,15);

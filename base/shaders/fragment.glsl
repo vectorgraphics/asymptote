@@ -106,15 +106,15 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection) {
   // Cook-Torrance model
   vec3 h = normalize(lightDirection + viewDirection);
 
-//  float omegain = max(dot(viewDirection, normal), 0);
-  float omegain = abs(dot(viewDirection, normal));
-  float omegaln = abs(dot(lightDirection, normal));
+  float omegain = max(dot(viewDirection, normal),0);
+  float omegaln = max(dot(lightDirection, normal),0);
 
   float D = NDF_TRG(h, PBRRoughness);
   float G = Geom(viewDirection, lightDirection);
   float F = Fresnel(h, viewDirection, PBRF0);
 
-  float rawReflectance = (D*G)/(4 * omegain * omegaln);
+  float denom=4*omegain*omegaln;
+  float rawReflectance=denom > 0 ? (D*G)/denom : 0;
 
   vec3 dielectric = mix(lambertian, rawReflectance * PBRSpecular, F);
   vec3 metal = rawReflectance * PBRBaseColor;
