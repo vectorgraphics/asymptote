@@ -1407,26 +1407,30 @@ void initshader()
   }
   #endif
 
-  camp::materialShader = compileAndLinkShader({
-    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
-    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
-  }, Nlights, Nmaterials, shaderParams);
-
-  camp::colorShader = compileAndLinkShader({
-    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
-    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
-  }, Nlights, Nmaterials, shaderParams,true);
-
   camp::noNormalShader = compileAndLinkShader({
     ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
     ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
-    },Nlights,Nmaterials,shaderParams,false,false);
+    },Nlights,Nmaterials,shaderParams);
 
   shaderParams.push_back("WIDTH");
   camp::pixelShader = compileAndLinkShader({
     ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
     ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
-    },Nlights,Nmaterials,shaderParams,false,false);
+    },Nlights,Nmaterials,shaderParams);
+  shaderParams.pop_back();
+  
+  shaderParams.push_back("NORMAL");
+  camp::materialShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
+  }, Nlights, Nmaterials, shaderParams);
+
+  shaderParams.push_back("EXPLICIT_COLOR");
+  camp::colorShader = compileAndLinkShader({
+    ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
+    ShaderfileModePair(fs.c_str(), GL_FRAGMENT_SHADER),
+  }, Nlights, Nmaterials, shaderParams);
+
 }
 
 void deleteshader() 
