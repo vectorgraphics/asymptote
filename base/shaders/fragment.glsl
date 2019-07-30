@@ -131,8 +131,6 @@ vec4 Emissive;
 vec4 Specular;
 vec4 parameters;
 
-  vec3 normal=normalize(Normal);
-
 #ifdef EXPLICIT_COLOR
   if(materialIndex < 0) {
     int index=-materialIndex-1;
