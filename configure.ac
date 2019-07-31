@@ -344,7 +344,7 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GL/glew.h,
                                   [AC_DEFINE(HAVE_LIBGLEW, 1,
                      [Define if you have the `GLEW' library (-lGLEW).])
-                             LIBS="-lGLEW "$LIBS],
+                             LIBS=$STATIC"-lGLEW "$DYNAMIC$LIBS],
                                    AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;
      darwin*)
@@ -359,7 +359,7 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GL/glew.h,
                                   [AC_DEFINE(HAVE_LIBGLEW, 1,
                      [Define if you have the `GLEW' library (-lGLEW).])
-                             LIBS="-lGLEW "$LIBS],
+                             LIBS=$STATIC"-lGLEW "$DYNAMIC$LIBS],
                                    AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;
      *)
@@ -370,7 +370,7 @@ case "$OSTYPE" in
           AC_CHECK_HEADER(GL/glew.h,
             [AC_DEFINE(HAVE_LIBGLEW, 1,
             [Define if you have the `GLEW' library (-lGLEW).])
-            LIBS="-lGLEW "$LIBS],
+            LIBS=$STATIC"-lGLEW "$DYNAMIC$LIBS],
             AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then
