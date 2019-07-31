@@ -251,6 +251,16 @@ AC_CHECK_LIB([rt], [sched_yield])
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
 
+AC_ARG_ENABLE(static,
+[AS_HELP_STRING(--enable-static[[[=no]]],link against static libraries)])
+
+STATIC=""
+DYNAMIC=""
+if test "x$enable_static" = "xyes"; then
+  STATIC="-Wl,-Bstatic "
+  DYNAMIC="-Wl,-Bdynamic "
+fi
+
 if test "x$enable_readline" != "xno"; then
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #include <stdio.h>
@@ -260,12 +270,12 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #ifndef RL_READLINE_VERSION
 abort
 #endif
-])],AC_CHECK_LIB([readline], [history_list],,
+])],AC_CHECK_LIB([readline], [history_list],LIBS=$LIBS$STATIC"-lreadline "$DYNAMIC,
 AC_MSG_NOTICE(*** Could not find GNU libreadline 4.3 or later: will compile without readline support ***)),
 AC_MSG_NOTICE(*** Could not find GNU readline 4.3 or later: will compile without readline support ***))
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h], [break])
 AC_CHECK_LIB([ncurses], [setupterm], [AC_DEFINE(HAVE_LIBCURSES)
-                         LIBS=$LIBS"-lncurses "],
+                         LIBS=$LIBS$STATIC"-lncurses -ltinfo "$DYNAMIC],
                          AC_CHECK_LIB([curses], [setupterm]))
 fi
 
@@ -298,7 +308,7 @@ AC_ARG_ENABLE(fftw,
 
 if test "x$enable_fftw" != "xno"; then
   AC_CHECK_HEADER(fftw3.h,
-    AC_CHECK_LIB([fftw3], fftw_execute,,
+    AC_CHECK_LIB([fftw3], fftw_execute,LIBS=$LIBS$STATIC"-lfftw3 "$DYNAMIC,
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
      AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 fi
