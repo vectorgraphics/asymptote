@@ -311,7 +311,7 @@ AC_ARG_ENABLE(fftw,
 
 if test "x$enable_fftw" != "xno"; then
   AC_CHECK_HEADER(fftw3.h,
-    AC_CHECK_LIB([fftw3], fftw_execute,[AC_DEFINE(HAVE_FFTW3,1,
+    AC_CHECK_LIB([fftw3], fftw_execute,[AC_DEFINE(HAVE_LIBFFTW3,1,
                                      [Define to 1 if you have the `fftw3' library (-lfftw3).])
                                      LIBS=$LIBS$STATIC"-lfftw3 "$DYNAMIC],
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
