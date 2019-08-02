@@ -112,7 +112,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version
+asy:	version glew.o
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
