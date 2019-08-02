@@ -3,7 +3,7 @@
 
 #define GLEW_NO_GLU
 
-#include "glew.h"
+#include "GL/glew.h"
 
 #ifdef __MSDOS__
 #define GLEW_STATIC

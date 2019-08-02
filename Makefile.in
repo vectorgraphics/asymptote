@@ -336,7 +336,7 @@ check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
 
-glew.o: glew.c glew.h
+glew.o: glew.c GL/glew.h
 	$(CXX) -I. $(OPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py

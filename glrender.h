@@ -23,7 +23,7 @@
 typedef void (APIENTRY* _GLUfuncptr)();
 #endif
 
-#include "glew.h"
+#include "GL/glew.h"
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
