@@ -26,7 +26,6 @@ BuildRequires:  ImageMagick
 Requires:       tetex-latex
 Requires:       tkinter
 Requires:       freeglut-devel >= 3.0.0
-Requires:       glew-devel
 Requires(post): /usr/bin/texhash /sbin/install-info
 Requires(postun): /usr/bin/texhash /sbin/install-info
 
