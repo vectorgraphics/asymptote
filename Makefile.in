@@ -337,10 +337,9 @@ check-all: asy FORCE
 	$(MAKE) -C tests all
 
 glew.o: glew.c glew.h
+	$(CXX) -I. $(OPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
-%.o: %.c
-	$(CXX) $(OPTS) -o $@ -c $<
 %.o: %.cc
 	$(CXX) $(OPTS) -o $@ -c $<
 %.d: %.cc
