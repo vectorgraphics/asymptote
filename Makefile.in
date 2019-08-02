@@ -336,7 +336,11 @@ check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
 
+glew.o: glew.c glew.h
+
 .SUFFIXES: .c .cc .o .d .ui .py
+%.o: %.c
+	$(CXX) $(OPTS) -o $@ -c $<
 %.o: %.cc
 	$(CXX) $(OPTS) -o $@ -c $<
 %.d: %.cc

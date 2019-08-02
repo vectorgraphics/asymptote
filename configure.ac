@@ -344,13 +344,8 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GL/gl.h,
                                   [AC_DEFINE(HAVE_LIBGL,1,
                      [Define to 1 if you have the `opengl32' library (-lopengl32).])
-                             LIBS=$LIBS"-lopengl32 "],
+                             LIBS=$LIBS"-lopengl32 glew.o"],
                                    AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
-              AC_CHECK_HEADER(GL/glew.h,
-                                  [AC_DEFINE(HAVE_LIBGLEW,1,
-                     [Define to 1 if you have the `GLEW' library (-lGLEW).])
-                             LIBS=$STATIC"-lGLEW "$DYNAMIC$LIBS],
-                                   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;
      darwin*)
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
@@ -359,24 +354,18 @@ case "$OSTYPE" in
                              [Define to 1 if you have the `OpenGL' library.])])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
                    [Define to 1 if you have the `GLUT' library.])
-                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "],
+                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa glew.o "],
                                  AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGLLUT support ***]))
-              AC_CHECK_HEADER(GL/glew.h,
-                                  [AC_DEFINE(HAVE_LIBGLEW,1,
-                     [Define to 1 if you have the `GLEW' library (-lGLEW).])
-                             LIBS=$STATIC"-lGLEW "$DYNAMIC$LIBS],
-                                   AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
         ;;
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-          AC_CHECK_LIB([GL], [glDepthMask])
+         AC_CHECK_LIB([GL], [glDepthMask],
+                                 [AC_DEFINE(HAVE_LIBGL,1,
+                             [Define to 1 if you have the `OpenGL' library (-lGL).])
+                             LIBS=$LIBS"-lGL glew.o "],
+                                   AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
           AC_CHECK_LIB([glut], [glutMainLoop],,
                        AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
-          AC_CHECK_HEADER(GL/glew.h,
-            [AC_DEFINE(HAVE_LIBGLEW,1,
-            [Define to 1 if you have the `GLEW' library (-lGLEW).])
-            LIBS=$STATIC"-lGLEW "$DYNAMIC$LIBS],
-            AC_MSG_NOTICE([*** Could not find libGLEW: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,

@@ -23,8 +23,9 @@
 typedef void (APIENTRY* _GLUfuncptr)();
 #endif
 
+#include "glew.h"
+
 #ifdef __APPLE__
-#include <GL/glew.h>
 #include <OpenGL/gl.h>
 #ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
@@ -33,7 +34,6 @@ typedef void (APIENTRY* _GLUfuncptr)();
 #include <GL/osmesa.h>
 #endif
 #else
-#include <GL/glew.h>
 #ifdef __MSDOS__
 #include <GL/wglew.h>
 #include <GL/wglext.h>
