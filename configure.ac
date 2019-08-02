@@ -359,13 +359,13 @@ case "$OSTYPE" in
         ;;
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+          AC_CHECK_LIB([glut], [glutMainLoop],,
+                       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
          AC_CHECK_LIB([GL], [glDepthMask],
                                  [AC_DEFINE(HAVE_LIBGL,1,
                              [Define to 1 if you have the `OpenGL' library (-lGL).])
                              LIBS=$LIBS"-lGL glew.o "],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
-          AC_CHECK_LIB([glut], [glutMainLoop],,
-                       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
