@@ -29,6 +29,8 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+#define GC_PTHREAD_SIGMASK_NEEDED
+
 #include "common.h"
 
 #ifdef HAVE_LIBSIGSEGV
@@ -178,7 +180,7 @@ void *asymain(void *A)
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
   if(gl::glthread && !getSetting<bool>("offscreen")) {
-    pthread_kill(gl::mainthread,SIGUSR2);
+    pthread_kill(gl::mainthread,SIGURG);
     pthread_join(gl::mainthread,NULL);
   }
 #endif
@@ -226,7 +228,7 @@ int main(int argc, char *argv[])
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
         while(true) {
-          Signal(SIGUSR2,exitHandler);
+          Signal(SIGURG,exitHandler);
           camp::glrenderWrapper();
           gl::initialize=true;
         }
