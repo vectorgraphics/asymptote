@@ -18,6 +18,7 @@ BuildRequires:  readline-devel
 BuildRequires:  fftw-devel >= 3.0
 BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
+BuildRequires:  glm-devel
 BuildRequires:  tetex-latex
 BuildRequires:  ghostscript >= 9.14
 BuildRequires:  texinfo >= 4.7
