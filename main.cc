@@ -195,7 +195,6 @@ void exitHandler(int)
 
 int main(int argc, char *argv[])
 {
-    // cout << "hello?";
 #ifdef HAVE_LIBGSL
   unsetenv("GSL_RNG_SEED");
   unsetenv("GSL_RNG_TYPE");
