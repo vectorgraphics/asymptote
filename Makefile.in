@@ -338,9 +338,9 @@ check-all: asy FORCE
 
 glew.o: glew.c GL/glew.h
 	if test -n "$(MSDOS)"; then \
-	$(CXX) -I. $(OPTS) -o glew.o -D_WIN32 -c glew.c \
+	  $(CXX) -I. $(OPTS) -o glew.o -D_WIN32 -c glew.c; \
 	else \
-	$(CXX) -I. $(OPTS) -o glew.o -c glew.c \
+	  $(CXX) -I. $(OPTS) -o glew.o -c glew.c; \
 	fi
 
 .SUFFIXES: .c .cc .o .d .ui .py
