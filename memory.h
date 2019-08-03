@@ -48,6 +48,9 @@
 #ifdef USEGC
 
 #define GC_THREADS
+#ifdef __FreeBSD__
+#define GC_ATTR_EXPLICIT
+#endif
 #include <gc.h>
 
 #ifdef GC_DEBUG
