@@ -274,7 +274,6 @@ linefit leastsquares(real[] x, real[] y)
   if(n == 1) abort("Least squares fit requires at least 2 data points");
   real sx=sum(x);
   real sy=sum(y);
-  write(n);
   real sxx=n*sum(x^2)-sx^2;
   real sxy=n*sum(x*y)-sx*sy;
   L.m=sxy/sxx;
