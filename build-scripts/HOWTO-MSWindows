@@ -21,7 +21,6 @@ libtirpc-devel (SRC)
 libreadline-devel (SRC)
 libfftw3-devel (SRC)
 libgsl-devel (SRC)
-libGLEW-devel (SRC)
 glm-devel
 automake1.15
 libtool
@@ -54,11 +53,6 @@ ln -s /usr/lib/libtirpc.a /usr/lib/librpc.a
 termcap-1.3.1:
 ./configure --prefix=/usr
 make install
-
-glew-2.1.0:
-make CFLAGS=-D_WIN32 glew.lib.static
-make install
-cp lib/libGLEW.a /usr/lib
 
 git clone http://github.com/vectorgraphics/asymptote
 

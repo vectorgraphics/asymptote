@@ -21,6 +21,7 @@
 #include <windows.h>
 #define CALLBACK __stdcall
 typedef void (APIENTRY* _GLUfuncptr)();
+#undef APIENTRY
 #endif
 
 #include "GL/glew.h"
