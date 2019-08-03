@@ -48,7 +48,7 @@
 #ifdef USEGC
 
 #define GC_THREADS
-#ifdef __FreeBSD__
+#ifdef __clang__
 #define GC_ATTR_EXPLICIT
 #endif
 #include <gc.h>
