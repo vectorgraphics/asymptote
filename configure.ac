@@ -118,10 +118,18 @@ if test "$GXX" = yes ; then
    fi
 fi
 
+AC_DEFUN([DEFINE],[
+Define to 1 if you have $1.
+])
+
+AC_DEFUN([DEFINE_LIB],[
+Define to 1 if you have the `$1' library (-l$1).
+])
+
 AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
-                              [Define to 1 if you have unordered_map]),
+                              DEFINE[<unordered_map>]),
         [AC_CHECK_HEADER(tr1/unordered_map,AC_DEFINE(HAVE_TR1_UNORDERED_MAP,1,
-                              [Define to 1 if you have tr1/unordered_map]),
+                              DEFINE[<tr1/unordered_map>]),
         [AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
 GCVERSION=8.0.4
@@ -220,7 +228,7 @@ CPPFLAGS=$CPPFLAGS" $INCL"
 fi
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
-                           [Define to 1 if getopt.h is the GNU version]),
+                           DEFINE[GNU <getopt.h>]),
                            getopt="getopt getopt1",)
 
 AC_SUBST(getopt)
@@ -267,12 +275,8 @@ AC_DEFUN([READLINE],[
 AC_MSG_NOTICE([*** Could not find GNU readline 4.3 or later: will compile without readline support ***])
 ])
 
-AC_DEFUN([DEFINE],[
-Define to 1 if you have the `$1' library (-l$1).
-])
-
 AC_DEFUN([CHECK_FOUND_STATIC],[
-AC_DEFINE($1,1,DEFINE($2))
+AC_DEFINE($1,1,DEFINE_LIB($2))
 LIBS=$LIBS$STATIC"-l$2 "$DYNAMIC
 ])
 
@@ -334,7 +338,7 @@ AC_CHECK_FUNCS([feenableexcept])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
                     AC_DEFINE(HAVE_RPC_RPC_H,1,
-                   [Define to 1 if you have a working <tirpc/rpc/rpc.h> header file])],
+                   DEFINE[a working <tirpc/rpc/rpc.h> header])],
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
 
 AC_ARG_ENABLE(gsl,
@@ -343,7 +347,7 @@ AC_ARG_ENABLE(gsl,
 if test "x$enable_gsl" != "xno"; then
   AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_debye_6, [AC_DEFINE(HAVE_LIBGSL,1,
-   [Define to 1 if you have the `gsl' library (-lgsl).]) LIBS=$LIBS"-lgsl -lgslcblas "],
+   DEFINE_LIB[gsl]) LIBS=$LIBS"-lgsl -lgslcblas "],
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 fi
@@ -357,10 +361,10 @@ AC_ARG_ENABLE(offscreen,
 if test "x$enable_gl" != "xno"; then
             AC_CHECK_HEADER(glm/glm.hpp,
                        [AC_DEFINE(HAVE_LIBGLM,1,
-                    [Define to 1 if you have the `OpenGL Mathematics' library.])])
+                    DEFINE[the <glm/glm.hpp> header])],AC_MSG_NOTICE([*** Could not find glm header files: will compile without OpenGL support ***]))
             AC_CHECK_HEADER(OpenImageIO/imageio.h,
                          [AC_DEFINE(HAVE_LIBOIIO,1,
-                     [Define to 1 if you have the `OpenImageIO' library.])
+                     DEFINE_LIB[OpenImageIO])
                      LIBS="-lOpenImageIO "$LIBS
                      ])
 case "$OSTYPE" in
@@ -368,12 +372,12 @@ case "$OSTYPE" in
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(GL/glut.h,
                                   [AC_DEFINE(HAVE_LIBGLUT,1,
-                     [Define to 1 if you have the `freeglut' library (-lfreeglut).])
+                     DEFINE_LIB[freeglut])
                              LIBS=$LIBS"-lfreeglut "],
                                    AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
               AC_CHECK_HEADER(GL/gl.h,
                                   [AC_DEFINE(HAVE_LIBGL,1,
-                     [Define to 1 if you have the `opengl32' library (-lopengl32).])
+                     DEFINE_LIB[opengl32])
                              LIBS=$LIBS"-lopengl32 glew.o"],
                                    AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
         ;;
@@ -381,11 +385,11 @@ case "$OSTYPE" in
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
-                             [Define to 1 if you have the `OpenGL' library.])])
+                             DEFINE[<gl.h> header])])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
-                   [Define to 1 if you have the `GLUT' library.])
+                   DEFINE_LIB[GLUT])
                            LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa glew.o "],
-                                 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGLLUT support ***]))
+                                 AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
         ;;
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
@@ -393,7 +397,7 @@ case "$OSTYPE" in
                        AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
          AC_CHECK_LIB([GL], [glDepthMask],
                                  [AC_DEFINE(HAVE_LIBGL,1,
-                             [Define to 1 if you have the `OpenGL' library (-lGL).])
+                             DEFINE_LIB[GL])
                              LIBS=$LIBS"-lGL glew.o "],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
 esac
