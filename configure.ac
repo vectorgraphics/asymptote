@@ -313,7 +313,8 @@ READLINE)
 
 AC_CHECK_LIB_STATIC(tinfo,tgetent,HAVE_LIBTINFO,AC_MSG_NOTICE([perhaps tgetent is in -lncurses]))
 
-AC_CHECK_LIB_STATIC([ncurses],[setupterm],HAVE_LIBNCURSES,
+AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+AC_CHECK_LIB_STATIC([ncurses],[setupterm],HAVE_LIBCURSES,
                     AC_CHECK_LIB([curses],[setupterm]))
 fi
 
