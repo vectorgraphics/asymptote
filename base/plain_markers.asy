@@ -307,11 +307,11 @@ pair[] pairs(real[] x, real[] y)
 
 void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
 {
-  real s=0.5*(dotsize(p)-linewidth(p));
-  if(!(s > 0)) return;
   if(filltype == Fill)
     draw(f,z,dotsize(p)+p);
   else {
+    real s=0.5*(dotsize(p)-linewidth(p));  
+    if(s <= 0) return;
     path g=shift(z)*scale(s)*unitcircle;
     begingroup(f);
     filltype.fill(f,g,p);
