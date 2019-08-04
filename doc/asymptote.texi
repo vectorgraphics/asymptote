@@ -1201,30 +1201,34 @@ To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
 dot having a diameter equal to an explicit pen line width or the
 default line width magnified by @code{dotfactor} (6 by default),
-using the specified filltype (@pxref{filltype}):
+using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
+(@code{Fill} by default):
 @verbatim
+void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
-         filltype filltype=Fill);
+         filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen, filltype filltype=Fill);
+         string format=defaultformat, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
          align align=NoAlign, string format=defaultformat, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype);
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
+         filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pen p=currentpen,
-         filltype filltype=Fill);
+         filltype filltype=dotfilltype);
 @end verbatim
 
 @cindex @code{Label}
 If the variable @code{Label} is given as the @code{Label}
-argument to the second routine, the @code{format} argument will be
+argument to the third routine, the @code{format} argument will be
 used to format a string based on the dot location (here @code{defaultformat}
 is @code{"$%.4g$"}). 
-The third routine draws a dot at every point of a pair array @code{z}.
+The fourth routine draws a dot at every point of a pair array @code{z}.
 One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, Label[] L=new Label[],
-         path g, align align=RightSide, string format=defaultformat,
-         pen p=currentpen, filltype filltype=Fill);
+         explicit path g, align align=RightSide, string format=defaultformat,
+         pen p=currentpen, filltype filltype=dotfilltype);
 @end verbatim
 See @ref{pathmarkers} and @ref{markers} for more general
 methods for marking path nodes.

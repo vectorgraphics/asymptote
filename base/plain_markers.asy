@@ -305,7 +305,9 @@ pair[] pairs(real[] x, real[] y)
   return sequence(new pair(int i) {return (x[i],y[i]);},x.length);
 }
 
-void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
+filltype dotfilltype = Fill;
+
+void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype)
 {
   if(filltype == Fill)
     draw(f,z,dotsize(p)+p);
@@ -321,7 +323,7 @@ void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
 }
 
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype)
 {
   pic.add(new void(frame f, transform t) {
       dot(f,t*z,p,filltype);
@@ -330,7 +332,7 @@ void dot(picture pic=currentpicture, pair z, pen p=currentpen,
 }
 
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen, filltype filltype=Fill)
+         string format=defaultformat, pen p=currentpen, filltype filltype=dotfilltype)
 {
   Label L=L.copy();
   L.position(z);
@@ -346,7 +348,7 @@ void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
 
 void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
 	 align align=NoAlign, string format=defaultformat, pen p=currentpen,
-	 filltype filltype=Fill)
+	 filltype filltype=dotfilltype)
 {
   int stop=min(L.length,z.length);
   for(int i=0; i < stop; ++i)
@@ -357,7 +359,7 @@ void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
 
 void dot(picture pic=currentpicture, Label[] L=new Label[],
 	 explicit path g, align align=RightSide, string format=defaultformat,
-	 pen p=currentpen, filltype filltype=Fill)
+	 pen p=currentpen, filltype filltype=dotfilltype)
 {
   int n=size(g);
   int stop=min(L.length,n);
@@ -368,20 +370,20 @@ void dot(picture pic=currentpicture, Label[] L=new Label[],
 }
 
 void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype)
 {
   for(int i=0; i < g.length; ++i)
     dot(pic,g[i],p,filltype);
 }
 
 void dot(picture pic=currentpicture, Label L, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype)
 {
   dot(pic,L,L.position,p,filltype);
 }
 
 // A dot in a frame.
-frame dotframe(pen p=currentpen, filltype filltype=Fill)
+frame dotframe(pen p=currentpen, filltype filltype=dotfilltype)
 {
   frame f;
   dot(f,(0,0),p,filltype);
@@ -390,7 +392,7 @@ frame dotframe(pen p=currentpen, filltype filltype=Fill)
 
 frame dotframe=dotframe();
 
-marker dot(pen p=currentpen, filltype filltype=Fill)
+marker dot(pen p=currentpen, filltype filltype=dotfilltype)
 {
   return marker(dotframe(p,filltype));
 }
