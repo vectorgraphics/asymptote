@@ -19,8 +19,6 @@
 #ifdef __MSDOS__
 #define GLEW_STATIC
 #include <windows.h>
-#define CALLBACK __stdcall
-typedef void (APIENTRY* _GLUfuncptr)();
 #undef APIENTRY
 #endif
 
