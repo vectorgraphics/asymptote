@@ -18,8 +18,7 @@
 
 #ifdef __MSDOS__
 #define GLEW_STATIC
-#include <windows.h>
-#undef APIENTRY
+#define _WIN32
 #endif
 
 #include "GL/glew.h"
@@ -34,14 +33,12 @@
 #endif
 #else
 #ifdef __MSDOS__
+#undef _WIN32
+#include <GL/gl.h>
 #include <GL/wglew.h>
 #include <GL/wglext.h>
 #endif
 #ifdef HAVE_LIBGLUT
-#ifdef __MSDOS__
-#define FREEGLUT_STATIC
-#define APIENTRY
-#endif
 #include <GL/glut.h>
 #endif
 #ifdef HAVE_LIBOSMESA
