@@ -13,4 +13,4 @@ viewportshift=(0.813449720559684,-0.604674743165144),
 autoadjust=false);
 
 draw(scale3(4)*extrude("$\displaystyle\int\limits_{-\infty}^{+\infty}\!\! e^{-\alpha x^2}\!\!=\sqrt{\frac{\pi}{\alpha}}$",2Z),
-     material(blue,ambientpen=mediumgray));
+     material(blue));
