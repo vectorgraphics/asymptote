@@ -56,7 +56,7 @@
 #include "shaders.h"
 #include "material.h"
 
-#ifdef HAVE_LIBOIIO
+#ifdef HAVE_LIBOPENIMAGEIO
 #include <OpenImageIO/imageio.h>
 #endif
 
@@ -196,7 +196,7 @@ statistics S;
 
 ModelView modelView;
 
-#ifdef HAVE_LIBOIIO
+#ifdef HAVE_LIBOPENIMAGEIO
 GLuint envMapBuf;
 
 GLuint initHDR() {
@@ -1327,18 +1327,11 @@ void init()
   char **argv=args(cmd,true);
   int argc=cmd.size();
 
-  if (getSetting<bool>("usegl4")) {
-    glutInitContextVersion(4,5);
-  }
-  
 #ifndef __APPLE__
   glutInitContextProfile(GLUT_CORE_PROFILE);
 #endif  
-  //glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
 
   glutInit(&argc,argv);
-  // NOTE: Change version if needed. 
-
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
   
@@ -1402,12 +1395,12 @@ void initshader()
 
   std::vector<std::string> shaderParams;
 
-  #if HAVE_LIBOIIO
-  if (getSetting<bool>("useenvmap")) {
+#if HAVE_LIBOPENIMAGEIO
+  if (getSetting<bool>("envmap")) {
     shaderParams.push_back("ENABLE_TEXTURE");
     envMapBuf=initHDR();
   }
-  #endif
+#endif
 
   camp::noNormalShader = compileAndLinkShader({
     ShaderfileModePair(vs.c_str(), GL_VERTEX_SHADER),
@@ -1773,9 +1766,9 @@ void setUniforms(GLint shader)
                 (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
   }
 
-#if HAVE_LIBOIIO
+#if HAVE_LIBOPENIMAGEIO
   // textures
-  if (settings::getSetting<bool>("useenvmap")) { 
+  if (settings::getSetting<bool>("envmap")) { 
     glActiveTexture(GL_TEXTURE1);
     glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
     glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);

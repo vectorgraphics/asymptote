@@ -363,11 +363,11 @@ if test "x$enable_gl" != "xno"; then
             AC_CHECK_HEADER(glm/glm.hpp,
                        [AC_DEFINE(HAVE_LIBGLM,1,
                     DEFINE[the <glm/glm.hpp> header])],AC_MSG_NOTICE([*** Could not find glm header files: will compile without OpenGL support ***]))
-            AC_CHECK_HEADER(OpenImageIO/imageio.h,
-                         [AC_DEFINE(HAVE_LIBOIIO,1,
-                     DEFINE_LIB[OpenImageIO])
-                     LIBS="-lOpenImageIO "$LIBS
-                     ])
+                    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+            AC_CHECK_HEADER([OpenEXR/ImathVec.h],
+                AC_CHECK_HEADER([OpenImageIO/imageio.h],
+                        AC_CHECK_LIB([OpenImageIO],[open])))
+
 case "$OSTYPE" in
      msdos)
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
