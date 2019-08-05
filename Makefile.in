@@ -339,7 +339,7 @@ check-all: asy FORCE
 
 glew.o: glew.c GL/glew.h
 	if test -n "$(MSDOS)"; then \
-	  $(CC) -I. $(GLEWOPTS) -o glew.o -D_WIN32 -c glew.c; \
+	  $(CC) -I. $(GLEWOPTS) -o glew.o -D_WIN32 -D GLEW_BUILD -c glew.c; \
 	else \
 	  $(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c; \
 	fi
