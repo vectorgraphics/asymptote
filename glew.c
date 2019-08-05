@@ -1,8 +1,3 @@
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#ifdef HAVE_LIBGL
 /*
 ** The OpenGL Extension Wrangler Library
 ** Copyright (C) 2008-2017, Nigel Stewart <nigels[]users sourceforge net>
@@ -28584,5 +28579,3 @@ GLboolean eglewIsSupported (const char* name)
 }
 
 #endif /* _WIN32 */
-
-#endif /* HAVE_LIBGL */
