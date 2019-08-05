@@ -1402,11 +1402,10 @@ void initshader()
   }
 #endif
 
-  std::vector<ShaderfileModePair> shaders={
-    ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER),
-    ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER),
-  };
-  
+  std::vector<ShaderfileModePair> shaders;
+  shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
+  shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
+    
   camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                             shaderParams);
 

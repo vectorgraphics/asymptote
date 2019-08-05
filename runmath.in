@@ -415,7 +415,7 @@ Int NOT(Int a)
 Int CLZ(Int a) 
 {
   if((unsigned long long) a > 0xFFFFFFFF)
-    return CLZ((uint32_t) (a >> 32));
+    return CLZ((uint32_t) ((unsigned long long) a >> 32));
   else {
     int bits=intbits();
     if(a != 0) return bits-32+CLZ((uint32_t) a);
