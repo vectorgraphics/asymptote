@@ -69,6 +69,7 @@ ASY = ./asy -dir base -config "" -render=0
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS)
+GLEWOPTS = $(DEFS) $(CFLAGS) -D GLEW_NO_GLU
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -337,11 +338,10 @@ check-all: asy FORCE
 	$(MAKE) -C tests all
 
 glew.o: glew.c GL/glew.h
-	GLEWOPTS = $(OPTS) -D GLEW_NO_GLUE
 	if test -n "$(MSDOS)"; then \
-	  $(CXX) -I. $(GLEWOPTS) -o glew.o -D_WIN32 -c glew.c; \
+	  $(CC) -I. $(GLEWOPTS) -o glew.o -D_WIN32 -c glew.c; \
 	else \
-	  $(CXX) -I. $(GLEWOPTS) -o glew.o -c glew.c; \
+	  $(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c; \
 	fi
 
 .SUFFIXES: .c .cc .o .d .ui .py
