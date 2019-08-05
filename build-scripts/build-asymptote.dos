@@ -70,7 +70,7 @@ cd ~/
 rm -rf asymptote-${VERSION}TL || exit
 cp -a asymptote-$VERSION asymptote-${VERSION}TL
 sed asymptote-$VERSION/config.h -e 's/ASYMPTOTE_SYSDIR ".*"/ASYMPTOTE_SYSDIR ""/g' > asymptote-${VERSION}TL/config.h
-sed asymptote-$VERSION/configure.ac -e 's/\-std=c++11//g' > asymptote-${VERSION}TL/configure.ac
+#sed asymptote-$VERSION/configure.ac -e 's/\-std=c++11//g' > asymptote-${VERSION}TL/configure.ac
 touch -r asymptote-$VERSION/config.h asymptote-${VERSION}TL/config.h
 touch -r asymptote-$VERSION/configure.ac asymptote-${VERSION}TL/configure.ac
 cd asymptote-${VERSION}TL
