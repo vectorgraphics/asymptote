@@ -79,9 +79,9 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 CXX = @CXX@ -Wall
 CC = @CC@ -Wall
 MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
-BISON = bison
-PYRCC = pyrcc5
-PYUIC = pyuic5
+BISON ?= bison
+PYRCC ?= pyrcc5
+PYUIC ?= pyuic5
 LEX = @LEX@
 
 prefix = @prefix@
