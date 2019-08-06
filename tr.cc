@@ -307,7 +307,6 @@ void trPerspective(TRcontext *tr,
 
 void trBeginTile(TRcontext *tr)
 {
-   GLint matrixMode;
    GLint tileWidth, tileHeight, border;
    GLdouble left, right, bottom, top;
 
@@ -355,11 +354,6 @@ void trBeginTile(TRcontext *tr)
 
    glViewport(0, 0, tileWidth, tileHeight);  /* tile size including border */
 
-   /* save current matrix mode */
-   glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-
    /* compute projection parameters */
    left = tr->Left + (tr->Right - tr->Left)
         * (tr->CurrentColumn * tr->TileWidthNB - border) / tr->ImageWidth;
@@ -372,9 +366,6 @@ void trBeginTile(TRcontext *tr)
       frustum(left, right, bottom, top, tr->Near, tr->Far);
    else
       ortho(left, right, bottom, top, tr->Near, tr->Far);
-
-   /* restore user's matrix mode */
-   glMatrixMode(matrixMode);
 }
 
 
