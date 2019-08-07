@@ -1638,7 +1638,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif // HAVE_LIBGLUT
   initialized=true;
 
-  glewExperimental = GL_TRUE;
   int result = glewInit();
 
   if (result != GLEW_OK) {
