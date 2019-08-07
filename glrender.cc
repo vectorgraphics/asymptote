@@ -1561,6 +1561,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
 #endif  
   
+#ifdef __APPLE__
+  displaymode |= GLUT_3_2_CORE_PROFILE;
+#endif  
+  
   camp::clearMaterialBuffer();
   
 #ifdef HAVE_PTHREAD
