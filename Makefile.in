@@ -253,7 +253,7 @@ install-asy: asy sty
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	${INSTALL} -p -m 755 base/shaders/*.glsl $(shaderdir)
-	${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
+	-${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
 	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
 	${INSTALL} -p -m 644 GUI/res/icons.qrc $(GUIdir)/res
 	${INSTALL} -p -m 644 GUI/res/icons/*.svg $(GUIdir)/res/icons
