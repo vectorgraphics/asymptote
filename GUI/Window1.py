@@ -103,6 +103,7 @@ class MainWindow1(Qw.QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.ui.menubar.setNativeMenuBar(False)
 
         self.settings = xo.BasicConfigs.defaultOpt
         self.keyMaps = xo.BasicConfigs.keymaps
@@ -1840,8 +1841,17 @@ class MainWindow1(Qw.QMainWindow):
         pass
 
     def getExternalEditor(self, **kwargs) -> str:
-        rawExternalEditor = self.settings['externalEditor']
-        rawExtEditorArgs = self.settings['externalEditorArgs']
+        editor = os.getenv("VISUAL")
+        if(editor == None) :
+            editor = os.getenv("EDITOR")
+        if(editor == None) :
+            rawExternalEditor = self.settings['externalEditor']
+            rawExtEditorArgs = self.settings['externalEditorArgs']
+        else:
+            s = editor.split()
+            rawExternalEditor = s[0]
+            rawExtEditorArgs = s[1:]+["$asypath"]
+            
         execEditor = [rawExternalEditor]
 
         for arg in rawExtEditorArgs:
