@@ -91,10 +91,11 @@ bool msdos=false;
 string HOME="HOME";
 string docdir=ASYMPTOTE_DOCDIR;
 const char pathSeparator=':';
-string defaultPSViewer="gv";
 #ifdef __APPLE__
+string defaultPSViewer="open";
 string defaultPDFViewer="open";
 #else  
+string defaultPSViewer="gv";
 string defaultPDFViewer="acroread";
 #endif  
 string defaultGhostscript="gs";
