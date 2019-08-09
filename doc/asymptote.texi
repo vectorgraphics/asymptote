@@ -2183,9 +2183,9 @@ used to typeset scientific notation using the
 @code{defaultseparator="\!\times\!";};
 
 @cindex @code{hex}
-@cindex @code{hexidecimal}
+@cindex @code{hexadecimal}
 @item int hex(string s);
-casts a hexidecimal string @code{s} to an integer;
+casts a hexadecimal string @code{s} to an integer;
 
 @cindex @code{ascii}
 @cindex @code{ascii}
@@ -2852,15 +2852,15 @@ arguments to the respective color spaces.
 The function @code{colorless(pen=currentpen)} returns a copy of its argument
 with the color attributes stripped (to avoid color mixing).
 
-A 6-character RGB hexidecimal string can be converted to a pen with
+A 6-character RGB hexadecimal string can be converted to a pen with
 the routine
 @cindex @code{rgb}
-@cindex @code{hexidecimal}
+@cindex @code{hexadecimal}
 @verbatim
 pen rgb(string s);
 @end verbatim
 @noindent
-A pen can be converted to a hexidecimal string with
+A pen can be converted to a hexadecimal string with
 @cindex @code{hex}
 @item string hex(pen p);
 
@@ -9885,7 +9885,7 @@ Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
+@c  LocalWords:  nonintegral gettriple enablerepo hexadecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
 @c  LocalWords:  subregions nonsimply functionshade shader floatingdisk TopView
 @c  LocalWords:  functionshading maxlength LeftView odetest RadialShadeDraw CLZ

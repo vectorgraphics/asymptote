@@ -392,7 +392,7 @@ Int hex(string s)
   Int value;
   if(is && is >> value && ((is >> std::ws).eof())) return value;
   ostringstream buf;
-  buf << "invalid hexidecimal cast from string \"" << s << "\"";
+  buf << "invalid hexadecimal cast from string \"" << s << "\"";
   error(buf);
 }
 
