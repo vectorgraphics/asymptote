@@ -783,7 +783,6 @@ void update()
   glutShowWindow();
   if(Zoom != lastzoom) remesh=true;
   lastzoom=Zoom;
-  glLoadIdentity();
   double cz=0.5*(zmin+zmax);
   
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
@@ -1457,7 +1456,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   for(int i=0; i < 4; ++i)
     Background[i]=background[i];
   
-  nlights0=nlights=min(nlightsin,(size_t) GL_MAX_LIGHTS);
+  nlights0=nlights=nlightsin;
   
   Lights=lights;
   Diffuse=diffuse;
