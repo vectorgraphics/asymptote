@@ -76,7 +76,13 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
   shaderFile.open(file.c_str());
   std::stringstream shaderSrc;
 
-  shaderSrc << "#version 130" << "\r\n";
+#ifdef __APPLE__
+#define GLSL_VERSION "410"
+#else
+#define GLSL_VERSION "130"
+#endif
+  
+  shaderSrc << "#version " << GLSL_VERSION << "\r\n";
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
             << "\r\n";
   shaderSrc << "#extension GL_ARB_shading_language_packing : enable"
