@@ -7,7 +7,6 @@ from Window1 import MainWindow1
 
 def main(args):
     qtApp = Qw.QApplication(args)
-    qtApp.AA_DontUseNativeMenuBar=True
     mainWin1 = MainWindow1()
     mainWin1.show()
     return qtApp.exec_()
