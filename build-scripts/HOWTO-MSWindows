@@ -4,30 +4,11 @@ First run build-asymptote on Linux. This will build the documentation
 and source tar ball and copy them to a directory ~/shared which needs to be
 shared via virtualbox to the cygwin build environment.
 
-Install TeXLive and these Cygwin packages:
+Install TeXLive and required Cygwin packages:
 
-git
-wget
-make
-patch
-gcc-g++
-autoconf2.5
-bison
-flex
-w32api-headers
-w32api-runtime
-zlib-devel
-libtirpc-devel (SRC)
-libreadline-devel (SRC)
-libfftw3-devel (SRC)
-libgsl-devel (SRC)
-glm-devel
-automake1.15
-libtool
+setup-x86_64.exe -q -P git,wget,make,patch,gcc-g++,autoconf2.5,bison,flex,w32api-headers,w32api-runtime,zlib-devel,glm-devel,automake1.15,libtool
 
-mv /usr/include/GL /usr/include/GL.orig
-
-Install these cygwin packages:
+setup-x86_64.exe -q -I -P libtirpc-devel,libreadline-devel,libfftw3-devel,libgsl-devel
 
 Build and install static libraries from /usr/local/src:
 

@@ -31,7 +31,7 @@ fi
 BUILD=build-$VERSION
 ln -sf ../gc-$GC.tar.gz .
 ln -sf ../gc-$GC .
-make -n MSDOS=1 >& /dev/null || ./configure OSTYPE=msdos --enable-gc=$GC --with-latex=/usr/local/share --with-context=/usr/local/share
+make -n MSDOS=1 >& /dev/null || ./configure --enable-gc=$GC --with-latex=/usr/local/share --with-context=/usr/local/share
 rm -rf $BUILD
 mkdir -p $BUILD
 cp -a $HOME/dll/cygwin/*.dll $BUILD

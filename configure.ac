@@ -221,14 +221,14 @@ AC_ARG_ENABLE(gc-full-debug,
 
 INCL=$INCL" -I/usr/include/tirpc"
 
-if test "$OSTYPE" = "msdos"; then
-CPPFLAGS=$CPPFLAGS" -D__MSDOS__ -DCALLBACK=__stdcall $INCL"
+if test "$OSTYPE" = "cygwin"; then
+CPPFLAGS=$CPPFLAGS" -D__MSDOS__ -I/usr/include/w32api -I/usr/include -DCALLBACK=__stdcall $INCL"
 else
 CPPFLAGS=$CPPFLAGS" $INCL"
 fi
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
-                           DEFINE[GNU <getopt.h>]),
+                           DEFINE([GNU <getopt.h>])),
                            getopt="getopt getopt1",)
 
 AC_SUBST(getopt)
@@ -339,7 +339,7 @@ AC_CHECK_FUNCS([feenableexcept])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
                     AC_DEFINE(HAVE_RPC_RPC_H,1,
-                   DEFINE[a working <tirpc/rpc/rpc.h> header])],
+                   DEFINE([a working <tirpc/rpc/rpc.h> header]))],
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
 
 AC_ARG_ENABLE(gsl,
@@ -362,14 +362,14 @@ AC_ARG_ENABLE(offscreen,
 if test "x$enable_gl" != "xno"; then
             AC_CHECK_HEADER(glm/glm.hpp,
                        [AC_DEFINE(HAVE_LIBGLM,1,
-                    DEFINE[the <glm/glm.hpp> header])],AC_MSG_NOTICE([*** Could not find glm header files: will compile without OpenGL support ***]))
+                    DEFINE([the <glm/glm.hpp> header]))],AC_MSG_NOTICE([*** Could not find glm header files: will compile without OpenGL support ***]))
                     AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
             AC_CHECK_HEADER([OpenEXR/ImathVec.h],
                 AC_CHECK_HEADER([OpenImageIO/imageio.h],
                         AC_CHECK_LIB([OpenImageIO],[open])))
 
 case "$OSTYPE" in
-     msdos)
+     cygwin)
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(GL/glut.h,
                                   [AC_DEFINE(HAVE_LIBGLUT,1,
@@ -386,7 +386,7 @@ case "$OSTYPE" in
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
-                             DEFINE[<gl.h> header])])
+                             DEFINE([<gl.h> header]))])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
                    DEFINE_LIB[GLUT])
                            LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa glew.o "],
@@ -398,7 +398,7 @@ case "$OSTYPE" in
                        AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
          AC_CHECK_LIB([GL], [glDepthMask],
                                  [AC_DEFINE(HAVE_LIBGL,1,
-                             DEFINE_LIB[GL])
+                             DEFINE_LIB([GL]))
                              LIBS=$LIBS"-lGL glew.o "],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
 esac
