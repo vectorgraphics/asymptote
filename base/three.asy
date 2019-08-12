@@ -2813,6 +2813,9 @@ object embed(string prefix=outprefix(), string label=prefix,
     P=modelview*P;
     Q=P.copy();
 
+    if(Q.t[2][3] == -1) // PRC can't handle oblique projections
+      Q=orthographic(P.camera,P.up,P.target,P.zoom,P.viewportshift,
+                     P.showtarget,P.center);     
     if(P.infinity) {
       triple m=min3(S.f);
       triple M=max3(S.f);
