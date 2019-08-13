@@ -3,7 +3,7 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        2.52
+Version:        2.53
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
