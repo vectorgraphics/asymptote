@@ -322,6 +322,11 @@ struct revolution {
   }
 }
 
+revolution operator * (transform3 t, revolution r)
+{
+  return revolution(t*r.c,t*r.g,t*r.axis,r.angle1,r.angle2);
+}
+
 surface surface(revolution r, int n=nslice, pen color(int i, real j)=null)
 {
   return r.surface(n,color);
@@ -340,15 +345,15 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
   if(is3D()) {
     pen thin=thin();
     void drawskeleton(frame f, transform3 t, projection P) {
-      skeleton s=r.skeleton(m,n,inverse(t)*P);
+      skeleton s=(t*r).skeleton(m,n,P);
       if(frontpen != nullpen) {
-        draw(f,t*s.transverse.back,thin+defaultbackpen+backpen,light);
-        draw(f,t*s.transverse.front,thin+frontpen,light);
+        draw(f,s.transverse.back,thin+defaultbackpen+backpen,light);
+        draw(f,s.transverse.front,thin+frontpen,light);
       }
       if(longitudinalpen != nullpen) {
-        draw(f,t*s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,
+        draw(f,s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,
              light);
-        draw(f,t*s.longitudinal.front,thin+longitudinalpen,light);
+        draw(f,s.longitudinal.front,thin+longitudinalpen,light);
       }
     }
 
