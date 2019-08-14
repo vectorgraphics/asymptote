@@ -415,6 +415,7 @@ void Export()
   glFinish();
   try {
     size_t ndata=3*fullWidth*fullHeight;
+    unsigned border=1;
     unsigned char *data=new unsigned char[ndata];
     if(data) {
       TRcontext *tr=trNew();
@@ -426,7 +427,7 @@ void Export()
              << fullHeight << " image" << " using tiles of size "
              << width << "x" << height << endl;
 
-      trTileSize(tr,width,height,0);
+      trTileSize(tr,width,height,border);
       trImageSize(tr,fullWidth,fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
