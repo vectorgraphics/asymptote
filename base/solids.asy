@@ -324,7 +324,8 @@ struct revolution {
 
 revolution operator * (transform3 t, revolution r)
 {
-  return revolution(t*r.c,t*r.g,t*r.axis,r.angle1,r.angle2);
+  triple trc=t*r.c;
+  return revolution(trc,t*r.g,t*(r.c+r.axis)-trc,r.angle1,r.angle2);
 }
 
 surface surface(revolution r, int n=nslice, pen color(int i, real j)=null)
@@ -382,12 +383,6 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
       draw(pic,s.longitudinal.front,longitudinalpen,light);
     }
   }
-}
-
-revolution operator * (transform3 t, revolution r)
-{
-  triple trc=t*r.c;
-  return revolution(trc,t*r.g,t*(r.c+r.axis)-trc,r.angle1,r.angle2);
 }
 
 // Return a right circular cylinder of height h in the direction of axis
