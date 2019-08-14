@@ -93,7 +93,7 @@ void iopipestream::eof()
 void iopipestream::pipeclose()
 {
   if(pipeopen) {
-    kill(pid,SIGTERM);
+//    kill(pid,SIGTERM);
     eof();
     close(out[0]);
     Running=false;

@@ -322,6 +322,12 @@ struct revolution {
   }
 }
 
+revolution operator * (transform3 t, revolution r)
+{
+  triple trc=t*r.c;
+  return revolution(trc,t*r.g,t*(r.c+r.axis)-trc,r.angle1,r.angle2);
+}
+
 surface surface(revolution r, int n=nslice, pen color(int i, real j)=null)
 {
   return r.surface(n,color);
@@ -340,15 +346,15 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
   if(is3D()) {
     pen thin=thin();
     void drawskeleton(frame f, transform3 t, projection P) {
-      skeleton s=r.skeleton(m,n,inverse(t)*P);
+      skeleton s=(t*r).skeleton(m,n,P);
       if(frontpen != nullpen) {
-        draw(f,t*s.transverse.back,thin+defaultbackpen+backpen,light);
-        draw(f,t*s.transverse.front,thin+frontpen,light);
+        draw(f,s.transverse.back,thin+defaultbackpen+backpen,light);
+        draw(f,s.transverse.front,thin+frontpen,light);
       }
       if(longitudinalpen != nullpen) {
-        draw(f,t*s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,
+        draw(f,s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,
              light);
-        draw(f,t*s.longitudinal.front,thin+longitudinalpen,light);
+        draw(f,s.longitudinal.front,thin+longitudinalpen,light);
       }
     }
 
@@ -377,12 +383,6 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
       draw(pic,s.longitudinal.front,longitudinalpen,light);
     }
   }
-}
-
-revolution operator * (transform3 t, revolution r)
-{
-  triple trc=t*r.c;
-  return revolution(trc,t*r.g,t*(r.c+r.axis)-trc,r.angle1,r.angle2);
 }
 
 // Return a right circular cylinder of height h in the direction of axis

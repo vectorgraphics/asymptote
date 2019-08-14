@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-18 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-19 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -585,8 +585,8 @@ cd asymptote-x.xx
 @end verbatim
 By default the system version of the Boehm garbage collector will be
 used; if it is old we recommend first putting
-@url{http://hboehm.info/gc/gc_source/gc-7.4.2.tar.gz}
-@url{http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.4.2.tar.gz}
+@url{https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz}
+@url{https://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.6.10.tar.gz}
 in the @code{Asymptote} source directory.
 
 On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
@@ -639,7 +639,7 @@ with @code{./configure --disable-gc}. For a list of other configuration
 options, say @code{./configure --help}. For example, one can tell
 configure to look for header files and libraries in nonstandard locations:
 @verbatim
-./configure CXXFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
+./configure CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
@@ -742,7 +742,7 @@ can be enabled by running @code{asy-kate.sh} in the
 The following commands are needed to install the latest development version of
 @code{Asymptote} using @code{git}:
 @verbatim
-git clone http://github.com/vectorgraphics/asymptote
+git clone https://github.com/vectorgraphics/asymptote
 
 cd asymptote
 ./autogen.sh
@@ -1201,30 +1201,34 @@ To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
 dot having a diameter equal to an explicit pen line width or the
 default line width magnified by @code{dotfactor} (6 by default),
-using the specified filltype (@pxref{filltype}):
+using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
+(@code{Fill} by default):
 @verbatim
+void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
-         filltype filltype=Fill);
+         filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen, filltype filltype=Fill);
+         string format=defaultformat, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
          align align=NoAlign, string format=defaultformat, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype);
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
+         filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pen p=currentpen,
-         filltype filltype=Fill);
+         filltype filltype=dotfilltype);
 @end verbatim
 
 @cindex @code{Label}
 If the variable @code{Label} is given as the @code{Label}
-argument to the second routine, the @code{format} argument will be
+argument to the third routine, the @code{format} argument will be
 used to format a string based on the dot location (here @code{defaultformat}
 is @code{"$%.4g$"}). 
-The third routine draws a dot at every point of a pair array @code{z}.
+The fourth routine draws a dot at every point of a pair array @code{z}.
 One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, Label[] L=new Label[],
-         path g, align align=RightSide, string format=defaultformat,
-         pen p=currentpen, filltype filltype=Fill);
+         explicit path g, align align=RightSide, string format=defaultformat,
+         pen p=currentpen, filltype filltype=dotfilltype);
 @end verbatim
 See @ref{pathmarkers} and @ref{markers} for more general
 methods for marking path nodes.
@@ -1297,7 +1301,7 @@ void latticeshade(picture pic=currentpicture, path g, bool stroke=false,
 @end verbatim
 @cindex @code{stroke}
 If @code{stroke=true}, the region filled is the same as the region that
-would be drawn by @code{draw(pic,g,fillrule+zerowinding)}; in this case the path
+would be drawn by @code{draw(pic,g,zerowinding)}; in this case the path
 @code{g} need not be cyclic.
 The pens in @code{p} must belong to the same color space. One can use the
 functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
@@ -1425,7 +1429,7 @@ void clip(picture pic=currentpicture, path g, stroke=false,
 Clip the current contents of picture @code{pic} to the region bounded
 by the path @code{g}, using fill rule @code{fillrule} (@pxref{fillrule}).
 If @code{stroke=true}, the clipped portion is the same as the region
-that would be drawn with @code{draw(pic,g,fillrule+zerowinding)}; in
+that would be drawn with @code{draw(pic,g,zerowinding)}; in
 this case the path @code{g} need not be cyclic. For an illustration of
 picture clipping, see the first example in @ref{LaTeX usage}.
 
@@ -2179,9 +2183,9 @@ used to typeset scientific notation using the
 @code{defaultseparator="\!\times\!";};
 
 @cindex @code{hex}
-@cindex @code{hexidecimal}
+@cindex @code{hexadecimal}
 @item int hex(string s);
-casts a hexidecimal string @code{s} to an integer;
+casts a hexadecimal string @code{s} to an integer;
 
 @cindex @code{ascii}
 @cindex @code{ascii}
@@ -2848,15 +2852,15 @@ arguments to the respective color spaces.
 The function @code{colorless(pen=currentpen)} returns a copy of its argument
 with the color attributes stripped (to avoid color mixing).
 
-A 6-character RGB hexidecimal string can be converted to a pen with
+A 6-character RGB hexadecimal string can be converted to a pen with
 the routine
 @cindex @code{rgb}
-@cindex @code{hexidecimal}
+@cindex @code{hexadecimal}
 @verbatim
 pen rgb(string s);
 @end verbatim
 @noindent
-A pen can be converted to a hexidecimal string with
+A pen can be converted to a hexadecimal string with
 @cindex @code{hex}
 @item string hex(pen p);
 
@@ -6162,7 +6166,7 @@ An even better method for processing a @code{LaTeX} file with embedded
 @end quotation
 @noindent
 after putting the contents of
-@url{http://sourceforge.net/p/asymptote/code/HEAD/tree/trunk/asymptote/doc/latexmkrc}
+@url{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/latexmkrc}
 @noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
@@ -7784,7 +7788,7 @@ patches in the @acronym{PRC} model tree.
 Here material is a structure defined in @code{three_light.asy}:
 @verbatim
 struct material {
-  pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
+  pen[] p; // diffusepen,emissivepen,specularpen
   real opacity;
   real shininess;  
 ...
@@ -7913,8 +7917,8 @@ maximum screen dimension. The default settings
 @verbatim
 import settings;
 leftbutton=new string[] {"rotate","zoom","shift","pan"};
-middlebutton=new string[] {"menu"};
-rightbutton=new string[] {"zoom/menu","rotateX","rotateY","rotateZ"};
+middlebutton=new string[] {""};
+rightbutton=new string[] {"zoom","rotateX","rotateY","rotateZ"};
 wheelup=new string[] {"zoomin"};
 wheeldown=new string[] {"zoomout"};
 @end verbatim
@@ -7924,11 +7928,9 @@ bind the mouse buttons as follows:
 @item Shift Left: zoom
 @item Ctrl Left: shift viewport
 @item Alt Left: pan
-@item Middle: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
 @item Wheel Up: zoom in
 @item Wheel Down: zoom out
-@item Right: zoom/menu (must be unmodified)
-@item Right double click: menu
+@item Right: zoom
 @item Shift Right: rotate about the X axis
 @item Ctrl Right: rotate about the Y axis
 @item Alt Right: rotate about the Z axis
@@ -7943,7 +7945,7 @@ The keyboard shortcuts are:
 @item y: spin about the Y axis
 @item z: spin about the Z axis
 @item s: stop spinning
-@item m: rendering mode (solid/mesh/patch)
+@item m: rendering mode (solid/patch/mesh)
 @item e: export
 @item c: show camera parameters
 @item p: play animation
@@ -7963,7 +7965,7 @@ The keyboard shortcuts are:
 @cindex @code{maxviewport}
 @cindex @code{maxtile}
 @cindex @code{glOptions}
-@cindex @code{iconic}
+@cindex @code{iconify}
 @cindex @code{black stripes}
 @item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
@@ -9504,13 +9506,14 @@ along with the @code{Python} packages @code{pyqt5}, @code{cson}, and
 @code{numpy}:
 
 @verbatim
-pip3 install pyqt5 cson numpy
+pip3 install cson numpy pyqt5 PyQt5.sip
 @end verbatim
 
 Pictures are deconstructed into the @acronym{SVG} image format.
 Since @code{Qt5} does not suport @code{SVG} clipping, you will need
 the @code{rsvg-convert} utility, which is part of the
-@code{librsvg2-tools} package on @code{UNIX} systems; under
+@code{librsvg2-tools} package on @code{UNIX} systems
+and the @code{librsvg} package on @code{MacOS}; under
 @code{Microsoft Windows}, it is available as
 
 @url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
@@ -9736,7 +9739,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo. Other
 contributors include Orest Shardt, Jesse Frohlich, Michail Vidiassov,
 Charles Staats, Philippe Ivaldi, Olivier Guib@'e, Radoslav Marinov,
 Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
-Martin Wiebusch, and Stefan Knorr.
+Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 
 @node Index,  , Credits, Top
 @unnumbered Index
@@ -9875,7 +9878,7 @@ Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals xml
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
-@c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb keyval
+@c  LocalWords:  diffusepen emissivepen specularpen arrowbarb keyval
 @c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin cmd
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate
@@ -9883,7 +9886,7 @@ Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
+@c  LocalWords:  nonintegral gettriple enablerepo hexadecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
 @c  LocalWords:  subregions nonsimply functionshade shader floatingdisk TopView
 @c  LocalWords:  functionshading maxlength LeftView odetest RadialShadeDraw CLZ

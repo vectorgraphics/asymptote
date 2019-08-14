@@ -35,11 +35,6 @@ struct solvedKnot3 : public gc {
   }
 };
 
-extern const double BigFuzz;
-extern const double Fuzz;
-extern const double Fuzz2;
-extern const double sqrtFuzz;
-  
 class path3 : public gc {
   bool cycles;  // If the path3 is closed in a loop
 

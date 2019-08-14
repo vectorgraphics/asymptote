@@ -15,6 +15,7 @@
 #include "drawlabel.h"
 #include "drawlayer.h"
 #include "drawsurface.h"
+#include "drawpath3.h"
 
 using std::ifstream;
 using std::ofstream;
@@ -323,7 +324,7 @@ pair picture::ratio(double (*m)(double, double))
   bool first=true;
   pair b;
   bounds3();
-  double fuzz=sqrtFuzz*(b3.Max()-b3.Min()).length();
+  double fuzz=Fuzz*(b3.Max()-b3.Min()).length();
   matrixstack ms;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
@@ -605,8 +606,10 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dNOPAUSE");
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");
-  if(safe)
+  if(safe) {
     cmd.push_back("-dSAFER");
+    cmd.push_back("-dDELAYSAFER"); // Support transparency extensions.
+  }
   cmd.push_back("-sDEVICE=pdfwrite");
   cmd.push_back("-dEPSCrop");
   cmd.push_back("-dSubsetFonts=true");
@@ -622,6 +625,11 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dDEVICEHEIGHTPOINTS="+String(max(b.top-b.bottom,3.0)));
   push_split(cmd,getSetting<string>("gsOptions"));
   cmd.push_back("-sOutputFile="+stripDir(pdfname));
+  if(safe) {
+    cmd.push_back("-c");
+    cmd.push_back(".setsafe");
+    cmd.push_back("-f");
+  }
   cmd.push_back(stripDir(epsname));
 
   char *oldPath=NULL;
@@ -973,7 +981,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   bbox bshift=b;
   
-  transparency=false;
+//  transparency=false;
   int svgcount=0;
   
   typedef mem::list<drawElement *> clipstack;
@@ -1098,8 +1106,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.epilogue();
     out.close();
     
-    if(out.Transparency())
-      transparency=true;
+//    if(out.Transparency())
+//      transparency=true;
     
     if(Labels) {
       tex->resetpen();
@@ -1167,16 +1175,24 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 }
 
 // render viewport with width x height pixels.
-void picture::render(GLUnurbs *nurb, double size2,
-                     const triple& Min, const triple& Max,
-                     double perspective, bool lighton, bool transparent) const
+void picture::render(double size2, const triple& Min, const triple& Max,
+                     double perspective, bool transparent, bool remesh) const
 {
-  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    (*p)->render(nurb,size2,Min,Max,perspective,lighton,transparent);
+  if(remesh) {
+    for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
+      assert(*p);
+      (*p)->render(size2,Min,Max,perspective,transparent);
+    }
   }
+      
 #ifdef HAVE_GL
-  drawBezierPatch::S.draw();
+  if(transparent)
+    drawBezierPatch::S.drawTransparent();
+  else {
+    drawBezierPatch::S.drawOpaque();
+    drawPath3::R.draw();
+    drawPixel::R.draw();
+  }
 #endif  
 }
   
@@ -1196,9 +1212,7 @@ struct Communicate : public gc {
   size_t nlights;
   triple *lights;
   double *diffuse;
-  double *ambient;
   double *specular;
-  bool viewportlighting;
   bool view;
 };
 
@@ -1213,8 +1227,7 @@ void glrenderWrapper()
 #endif  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
            com.zoom,com.m,com.M,com.shift,com.t,com.background,com.nlights,
-           com.lights,com.diffuse,com.ambient,com.specular,com.viewportlighting,
-           com.view);
+           com.lights,com.diffuse,com.specular,com.view);
 #endif  
 }
 
@@ -1222,8 +1235,7 @@ bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
                        const triple& m, const triple& M, const pair& shift,
                        double *t, double *background, size_t nlights,
-                       triple *lights, double *diffuse, double *ambient,
-                       double *specular, bool viewportlighting, bool view)
+                       triple *lights, double *diffuse, double *specular, bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
@@ -1296,9 +1308,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.nlights=nlights;
       com.lights=lights;
       com.diffuse=diffuse;
-      com.ambient=ambient;
       com.specular=specular;
-      com.viewportlighting=viewportlighting;
       com.view=View;
       if(Wait)
         pthread_mutex_lock(&readyLock);
@@ -1332,8 +1342,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #ifdef HAVE_GL  
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
-           background,nlights,lights,diffuse,ambient,specular,viewportlighting,
-           View,oldpid);
+           background,nlights,lights,diffuse,specular,View,oldpid);
 #ifdef HAVE_PTHREAD
   if(glthread && !offscreen && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);

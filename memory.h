@@ -17,17 +17,17 @@
 
 #ifndef NOHASH
 
-#ifdef HAVE_UNORDERED_MAP
+#ifdef HAVE_TR1_UNORDERED_MAP
 
 #include <memory>
-#include <unordered_map>
-#define EXT std
+#include <tr1/unordered_map>
+#define EXT std::tr1
 
 #else
 
-#ifdef HAVE_TR1_UNORDERED_MAP
-#include <tr1/unordered_map>
-#define EXT std::tr1
+#ifdef HAVE_UNORDERED_MAP
+#include <unordered_map>
+#define EXT std
 #else
 #define EXT __gnu_cxx
 #include <ext/hash_map>
@@ -48,6 +48,9 @@
 #ifdef USEGC
 
 #define GC_THREADS
+#ifdef __clang__
+#define GC_ATTR_EXPLICIT
+#endif
 #include <gc.h>
 
 #ifdef GC_DEBUG
@@ -181,11 +184,7 @@ typedef std::basic_ostringstream<char,std::char_traits<char>,
                                  gc_allocator<char> > ostringstream;
 typedef std::basic_stringbuf<char,std::char_traits<char>,
                              gc_allocator<char> > stringbuf;
-#if GC_TMP_VERSION_MAJOR >= 7 && GC_TMP_VERSION_MINOR > 1
 inline void compact(int x) {GC_set_dont_expand(x);}
-#else
-inline void compact(int x) {GC_dont_expand=x;}
-#endif    
 #else
 inline void compact(int x) {}
 typedef std::string string;

@@ -1406,7 +1406,23 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   
   (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,center,s.straight && s.planar,m.p,m.opacity,m.shininess,
-     PRCshininess,s.colors,interaction.type,prc);
+    m.metallic,m.fresnel0,PRCshininess,s.colors,interaction.type,prc);
+}
+
+int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
+{
+  triple lastnormal=O;
+  for(int i=0; i < vi.length; ++i) {
+    int[] vii=vi[i];
+    int[] nii=ni[i];
+    triple normal=normal(new triple[] {v[vii[0]],v[vii[1]],v[vii[2]]});
+    if(normal != lastnormal || n.length == 0) {
+      n.push(normal);
+      lastnormal=normal;
+    }
+    nii[0]=nii[1]=nii[2]=n.length-1;
+  }
+  return ni.length;
 }
 
 // Draw triangles on a frame.
@@ -1414,13 +1430,19 @@ void draw(frame f, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight)
 {
+  bool normals=ni.length > 0;
+  if(!normals) {
+    ni=new int[vi.length][3];
+    normals=computeNormals(v,vi,n,ni) > 0;
+  }
   if(p.length > 0)
     m=mean(p);
   m=material(m,light);
   real PRCshininess;
   if(prc())
     PRCshininess=PRCshininess(m.shininess);
-  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,PRCshininess,p,pi);
+  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+      PRCshininess,p,pi);
 }
   
 // Draw triangles on a picture.
@@ -1428,23 +1450,12 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight)
 {
-  bool colors=pi.length > 0;
   bool normals=ni.length > 0;
-  if(!colors && !normals) {
-    n=new triple[];
+  if(!normals) {
     ni=new int[vi.length][3];
-    triple lastnormal=O;
-    for(int i=0; i < vi.length; ++i) {
-      int[] vii=vi[i];
-      int[] nii=ni[i];
-      triple normal=normal(new triple[] {v[vii[0]],v[vii[1]],v[vii[2]]});
-      if(normal != lastnormal || n.length == 0) {
-        n.push(normal);
-        lastnormal=normal;
-      }
-      nii[0]=nii[1]=nii[2]=n.length-1;
-    }
+    normals=computeNormals(v,vi,n,ni) > 0;
   }
+  bool colors=pi.length > 0;
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple[] v=t*v;
@@ -2427,8 +2438,8 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
         real PRCshininess;
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
-        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
-             colors);
+        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+              PRCshininess,colors);
         if(group)
           endgroup3(f);
         if(pic != null)

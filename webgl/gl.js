@@ -833,42 +833,64 @@ function render(p, I0, I1, I2, I3, P0, P1, P2, P3, flat0, flat1, flat2, flat3,
   }
 }
 
-var p;
+var P=[];
 
 function draw() {
   sceneSetup();
   // mat4.translate(mMatrix,mMatrix,[-0.5,-0.5,-1.5]);
 
   setBuffer();
-  var p0 = p[0];
-  var p3 = p[3];
-  var p12 = p[12];
-  var p15 = p[15];
+    for(var i=1; i < 2; ++i) {
+//        var p=P[i];
+var p = [
+    [0, 0, 1.6],
+    [1, 1.333333333333333, 0],
+    [0, 0.666666666666667, 0],
+    [0, 1, 0],
+    [0.333333333333333, 0, 0],
+    [0.333333333333333, 0.333333333333333, 0],
+    [0.333333333333333, 0.666666666666667, 0],
+    [0.333333333333333, 1, 0],
+    [0.666666666666667, 0, 0],
+    [0.666666666666667, 0.333333333333333, 0],
+    [0.666666666666667, 0.666666666666667, 0],
+    [0.666666666666667, 1, 0],
+    [1, 0, 0],
+    [1, 0.333333333333333, 0],
+    [1, 0.666666666666667, 0],
+    [1, 1, 0.1]
+  ];
 
-  epsilon = 0;
-  for (var i = 1; i < 16; ++i)
-    epsilon = Math.max(epsilon,
-      abs2([p[i][0] - p0[0], p[i][1] - p0[1], p[i][2] - p0[2]]));
-  epsilon *= Fuzz2;
+        var p0 = p[0];
+        var p3 = p[3];
+        var p12 = p[12];
+        var p15 = p[15];
 
-  var n0 = normal(p3, p[2], p[1], p0, p[4], p[8], p12);
-  var n1 = normal(p0, p[4], p[8], p12, p[13], p[14], p15);
-  var n2 = normal(p12, p[13], p[14], p15, p[11], p[7], p3);
-  var n3 = normal(p15, p[11], p[7], p3, p[2], p[1], p0);
+        epsilon = 0;
+        for (var i = 1; i < 16; ++i)
+            epsilon = Math.max(epsilon,
+                               abs2([p[i][0] - p0[0], p[i][1] - p0[1], p[i][2] - p0[2]]));
+        epsilon *= Fuzz2;
 
-  var c0 = color(n0);
-  var c1 = color(n1);
-  var c2 = color(n2);
-  var c3 = color(n3);
+        var n0 = normal(p3, p[2], p[1], p0, p[4], p[8], p12);
+        var n1 = normal(p0, p[4], p[8], p12, p[13], p[14], p15);
+        var n2 = normal(p12, p[13], p[14], p15, p[11], p[7], p3);
+        var n3 = normal(p15, p[11], p[7], p3, p[2], p[1], p0);
 
-  var i0 = vertex(p0, c0, n0);
-  var i1 = vertex(p12, c1, n1);
-  var i2 = vertex(p15, c2, n2);
-  var i3 = vertex(p3, c3, n3);
+        var c0 = color(n0);
+        var c1 = color(n1);
+        var c2 = color(n2);
+        var c3 = color(n3);
 
-  render(p, i0, i1, i2, i3, p0, p12, p15, p3, false, false, false, false,
-    c0, c1, c2, c3);
-  drawBuffer();
+        var i0 = vertex(p0, c0, n0);
+        var i1 = vertex(p12, c1, n1);
+        var i2 = vertex(p15, c2, n2);
+        var i3 = vertex(p3, c3, n3);
+
+        render(p, i0, i1, i2, i3, p0, p12, p15, p3, false, false, false, false,
+               c0, c1, c2, c3);
+        drawBuffer();
+    }
 }
 
 var forceredraw = false;

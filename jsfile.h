@@ -28,7 +28,7 @@ public:
   }
   
   void addPatch(const triple* controls) {
-    out << "p.push([" << endl; 
+    out << "P.push([" << endl; 
     for(size_t i=0; i < 15; ++i)
       out << controls[i] << "," << endl;
     out << controls[15] << endl << "]);" << endl << endl;

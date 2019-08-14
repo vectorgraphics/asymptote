@@ -133,6 +133,26 @@ bool operator ==(rational[][] r, rational[][] s)
   return all(sequence(new bool(int i) {return r[i] == s[i];},r.length));
 }
 
+bool[] operator <(rational[] r, rational s)
+{
+  return sequence(new bool(int i) {return r[i] < s;},r.length);
+}
+
+bool[] operator >(rational[] r, rational s)
+{
+  return sequence(new bool(int i) {return r[i] > s;},r.length);
+}
+
+bool[] operator <=(rational[] r, rational s)
+{
+  return sequence(new bool(int i) {return r[i] <= s;},r.length);
+}
+
+bool[] operator >=(rational[] r, rational s)
+{
+  return sequence(new bool(int i) {return r[i] >= s;},r.length);
+}
+
 rational min(rational a, rational b)
 {
   return a <= b ? a : b;
@@ -143,35 +163,47 @@ rational max(rational a, rational b)
   return a >= b ? a : b;
 }
 
-
-void write(string s="", rational r, suffix suffix=endl) {
-  if(r.q == 1)
-    write(s+string(r.p),suffix);
-  else
-    write(s+string(r.p)+"/"+string(r.q),suffix);
+string string(rational r)
+{
+ return r.q == 1 ? string(r.p) : string(r.p)+"/"+string(r.q);
 }
 
-void write(string s="", rational[] a, suffix suffix=endl) {
+string texstring(rational r)
+{
+ if(r.q == 1) return string(r.p);
+ string s;
+ if(r.p < 0) s="-";
+ return s+"\frac{"+string(abs(r.p))+"}{"+string(r.q)+"}";
+}
+
+void write(file fout=stdout, string s="", rational r, suffix suffix=none)
+{
+ write(fout,s+string(r),suffix);
+}
+
+void write(file fout=stdout, string s="", rational[] a, suffix suffix=none)
+{
   if(s != "")
-    write(s);
+    write(fout,s);
   for(int i=0; i < a.length; ++i) {
-    write(i,none);
-    write(':\t',a[i]);
+    write(fout,i,none);
+    write(fout,':\t',a[i],endl);
   }
-  write(suffix);
+  write(fout,suffix);
 }
 
-void write(string s="", rational[][] a, suffix suffix=endl) {
+void write(file fout=stdout, string s="", rational[][] a, suffix suffix=none)
+{
   if(s != "")
-    write(s);
+    write(fout,s);
   for(int i=0; i < a.length; ++i) {
     rational[] ai=a[i];
     for(int j=0; j < ai.length; ++j) {
-      write(ai[j],tab);
+      write(fout,ai[j],tab);
     }
-    write();
+    write(fout,endl);
   }
-  write(suffix);
+  write(fout,suffix);
 }
 
 bool rectangular(rational[][] m)
@@ -203,9 +235,18 @@ rational max(rational[] a)
 
 rational abs(rational r)
 {
-  return rational(abs(r.p),r.q,false);
+ return rational(abs(r.p),r.q,false);
 }
 
+rational[] operator -(rational[] r)
+{
+ return sequence(new rational(int i) {return -r[i];},r.length);
+}
+
+rational[][] rationalidentity(int n)
+{
+ return sequence(new rational[](int i) {return sequence(new rational(int j) {return j == i ? 1 : 0;},n);},n);
+}
 
 /*
 rational r=rational(1,3)+rational(1,4);

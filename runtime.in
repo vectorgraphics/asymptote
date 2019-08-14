@@ -85,10 +85,6 @@ stringarray2* => stringArray2()
 #include "process.h"
 #include "arrayop.h"
    
-#ifdef __APPLE__
-extern "C" int isnan(double);  
-#endif
-
 #if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   extern "C" {
     void *GC_generate_random_valid_address(void);

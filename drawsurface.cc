@@ -5,21 +5,36 @@
  *****/
 
 #include "drawsurface.h"
+#include "drawpath3.h"
 #include "arrayop.h"
 
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-using namespace prc;
+#ifdef HAVE_GL
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#endif
 
+using namespace prc;
+#include "material.h"
 namespace camp {
 
-const triple drawElement::zero;
+#ifdef HAVE_GL
+mem::vector<Material> drawElement::material;
+MaterialMap drawElement::materialMap;
+size_t drawElement::materialIndex;
 
-//double Tx[3]; // x-component of current transform
-//double Ty[3]; // y-component of current transform
-double Tz[3]; // z-component of current transform
+using gl::modelView;
+//double* Tx=modelView.T;   // x-component of current transform
+//double* Ty=modelView.T+4; // y-component of current transform
+double* Tz=modelView.T+8; // z-component of current transform
+
+#endif
+
+const triple drawElement::zero;
 
 using vm::array;
 
@@ -46,63 +61,48 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
-void setcolors(bool colors, bool lighton,
-               const RGBAColour& diffuse,
-               const RGBAColour& ambient,
-               const RGBAColour& emissive,
-               const RGBAColour& specular, double shininess) 
+void clearMaterialBuffer(bool draw)
 {
-  static prc::RGBAColour lastdiffuse;
-  static prc::RGBAColour lastambient;
-  static prc::RGBAColour lastemissive;
-  static prc::RGBAColour lastspecular;
-  static double lastshininess=0.0;
-  static bool lastcolors=false;
-    
-  if(colors != lastcolors) {
+  if(draw) {
     drawBezierPatch::S.draw();
-    lastcolors=colors;
+    drawPath3::R.draw();
+    drawPixel::R.draw();
   }
-  
-  if(!colors && (diffuse != lastdiffuse || ambient != lastambient || 
-                 emissive != lastemissive || specular != lastspecular ||
-                 shininess != lastshininess)) {
-    drawBezierPatch::S.draw(); 
-    lastdiffuse=diffuse;
-    lastambient=ambient;
-    lastemissive=emissive;
-    lastspecular=specular;
-    lastshininess=shininess;
-  }
+  drawElement::material.clear();
+  drawElement::material.reserve(nmaterials);
+  drawElement::materialMap.clear();
+  drawElement::materialIndex=0;
+}
 
+void setcolors(bool colors,
+               const RGBAColour& diffuse,
+               const RGBAColour& emissive,
+               const RGBAColour& specular, double shininess,
+               double metallic, double fresnel0) 
+{
+  Material m;
   if(colors) {
-    if(!lighton) 
-      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-
-    GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Black);
-  } else {
-    GLfloat Diffuse[]={(GLfloat) diffuse.R,(GLfloat) diffuse.G,
-		       (GLfloat) diffuse.B,(GLfloat) diffuse.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
-  
-    GLfloat Ambient[]={(GLfloat) ambient.R,(GLfloat) ambient.G,
-		       (GLfloat) ambient.B,(GLfloat) ambient.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
-  
-    GLfloat Emissive[]={(GLfloat) emissive.R,(GLfloat) emissive.G,
-			(GLfloat) emissive.B,(GLfloat) emissive.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
-  }
-    
-  if(lighton) {
-    GLfloat Specular[]={(GLfloat) specular.R,(GLfloat) specular.G,
-			(GLfloat) specular.B,(GLfloat) specular.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
-  
-    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+    static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
+    m=Material(Black,Black,
+               glm::vec4(specular.R,specular.G,specular.B,specular.A),
+               shininess, metallic, fresnel0);
+  }  else
+    m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
+               glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
+               glm::vec4(specular.R,specular.G,specular.B,specular.A),
+               shininess, metallic, fresnel0);
+          
+  MaterialMap::iterator p=drawElement::materialMap.find(m);
+  if(p != drawElement::materialMap.end())
+    drawElement::materialIndex=p->second;
+  else {
+    drawElement::materialIndex=drawElement::material.size();
+    if(drawElement::materialIndex >= nmaterials)
+      nmaterials=min(Maxmaterials,2*nmaterials);
+    if(drawElement::materialIndex >= Maxmaterials)
+      clearMaterialBuffer(true);
+    drawElement::material.push_back(m);
+    drawElement::materialMap[m]=drawElement::materialIndex;
   }
 }
 
@@ -150,17 +150,17 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
     }
     
     double c0=cx[0];
-    double fuzz=sqrtFuzz*run::norm(cx,16);
+    double fuzz=Fuzz*run::norm(cx,16);
     x=bound(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
     X=bound(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
     
     c0=cy[0];
-    fuzz=sqrtFuzz*run::norm(cy,16);
+    fuzz=Fuzz*run::norm(cy,16);
     y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
     Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
     
     c0=cz[0];
-    fuzz=sqrtFuzz*run::norm(cz,16);
+    fuzz=Fuzz*run::norm(cz,16);
     z=bound(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
     Z=bound(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
   }  
@@ -233,7 +233,8 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible || !prc)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight) {
     triple vertices[]={controls[0],controls[12],controls[3],controls[15]};
@@ -267,10 +268,8 @@ bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
   return true;
 }
 
-void drawBezierPatch::render(GLUnurbs *nurb, double size2,
-                             const triple& b, const triple& B,
-                             double perspective, bool lighton,
-                             bool transparent)
+void drawBezierPatch::render(double size2, const triple& b, const triple& B,
+                             double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -295,28 +294,9 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-// Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
-/*  
-  Tx[0]=t[0];
-  Tx[1]=t[1];
-  Tx[2]=t[2];
-  
-  Ty[0]=t[4];
-  Ty[1]=t[5];
-  Ty[2]=t[6];
-*/
-  
-  Tz[0]=t[8];
-  Tz[1]=t[9];
-  Tz[2]=t[10];
-  
-  run::inverse(t,4);
+
   bbox3 box(m,M);
-  box.transform(t);
+  box.transform(modelView.Tinv);
   m=box.Min();
   M=box.Max();
   
@@ -325,14 +305,14 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
   if(billboard) BB.init(center);
   
-  GLfloat v[16];
+  GLfloat c[16];
   if(colors)
     for(size_t i=0; i < 4; ++i)
-      storecolor(v,4*i,colors[i]);
+      storecolor(c,4*i,colors[i]);
   
   triple *Controls;
   triple Controls0[16];
@@ -355,9 +335,17 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
     C.draw();
   } else {
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
-            colors ? v : NULL);
-    if(!transparent) 
-      S.draw();
+            colors ? c : NULL);
+    if(BezierPatch::nvertices >= gl::maxvertices) {
+      S.drawMaterials();
+      BezierPatch::clear();
+      gl::forceRemesh=true;
+    }
+    if(BezierPatch::Nvertices >= gl::maxvertices) {
+      S.drawColors();
+      BezierPatch::Clear();
+      gl::forceRemesh=true;
+    }
   }
 #endif
 }
@@ -407,17 +395,17 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
     }
     
     double c0=cx[0];
-    double fuzz=sqrtFuzz*run::norm(cx,10);
+    double fuzz=Fuzz*run::norm(cx,10);
     x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
     X=boundtri(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
     
     c0=cy[0];
-    fuzz=sqrtFuzz*run::norm(cy,10);
+    fuzz=Fuzz*run::norm(cy,10);
     y=boundtri(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
     Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
     
     c0=cz[0];
-    fuzz=sqrtFuzz*run::norm(cz,10);
+    fuzz=Fuzz*run::norm(cz,10);
     z=boundtri(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
     Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
   }
@@ -488,7 +476,8 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
   
   static const double third=1.0/3.0;
   static const double third2=2.0/3.0;
@@ -505,10 +494,8 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   return true;
 }
 
-void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
-                                const triple& b, const triple& B,
-                                double perspective, bool lighton,
-                                bool transparent)
+void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
+                                double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -533,28 +520,9 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-// Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
-/*  
-  Tx[0]=t[0];
-  Tx[1]=t[1];
-  Tx[2]=t[2];
-  
-  Ty[0]=t[4];
-  Ty[1]=t[5];
-  Ty[2]=t[6];
-*/
-  
-  Tz[0]=t[8];
-  Tz[1]=t[9];
-  Tz[2]=t[10];
 
-  run::inverse(t,4);
   bbox3 box(m,M);
-  box.transform(t);
+  box.transform(modelView.Tinv);
   m=box.Min();
   M=box.Max();
 
@@ -563,7 +531,7 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
   if(billboard) BB.init(center);
   
@@ -589,12 +557,9 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
     C.queue(edge2,straight,size3.length()/size2,m,M);
     C.draw();
-  } else {
+  } else
     S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
             colors ? v : NULL);
-    if(!transparent) 
-      S.draw();
-  }
 #endif
 }
 
@@ -608,7 +573,8 @@ bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
   out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights);
   
   return true;
@@ -705,20 +671,15 @@ void drawNurbs::displacement()
 #endif  
 }
 
-void drawNurbs::render(GLUnurbs *nurb, double size2,
-                       const triple& Min, const triple& Max,
-                       double perspective, bool lighton, bool transparent)
+void drawNurbs::render(double size2, const triple& Min, const triple& Max,
+                       double perspective, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
-  
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-  run::transpose(t,4);
 
   bbox3 B(this->Min,this->Max);
-  B.transform(t);
+  B.transform(modelView.T);
     
   triple m=B.Min();
   triple M=B.Max();
@@ -738,27 +699,8 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
        M.getz() < Min.getz() || m.getz() > Max.getz()) return;
   }
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
-  
-  gluBeginSurface(nurb);
-  int uorder=udegree+1;
-  int vorder=vdegree+1;
-  size_t stride=weights ? 4 : 3;
-  gluNurbsSurface(nurb,uorder+nu,uKnots,vorder+nv,vKnots,stride*nv,stride,
-                  Controls,uorder,vorder,
-                  weights ? GL_MAP2_VERTEX_4 : GL_MAP2_VERTEX_3);
-  if(lighton)
-    gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
-  
-  if(colors) {
-    static GLfloat linear[]={0.0,0.0,1.0,1.0};
-    gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
-  }
-    
-  gluEndSurface(nurb);
-  
-  if(colors)
-    glDisable(GL_COLOR_MATERIAL);
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+// TODO: implement NURBS renderer
 #endif
 }
 
@@ -786,7 +728,8 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   switch(type) {
     case 0: // PRCsphere
@@ -849,7 +792,8 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   out->addCylinder(1.0,1.0,m,NULL,NULL,NULL,1.0,T);
   
@@ -861,7 +805,8 @@ bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   out->addDisk(1.0,m,NULL,NULL,NULL,1.0,T);
   
@@ -873,7 +818,8 @@ bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   Int n=center.length();
   
@@ -916,49 +862,6 @@ bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
   }
       
   return true;
-}
-
-bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
-{
-  if(invisible)
-    return true;
-
-  out->addPoint(v,c,width);
-  
-  return true;
-}
-  
-void drawPixel::render(GLUnurbs *nurb, double size2,
-                       const triple& Min, const triple& Max,
-                       double perspective, bool lighton, bool transparent) 
-{
-#ifdef HAVE_GL
-  if(invisible)
-    return;
-  
-  GLfloat V[4];
-
-  glEnable(GL_COLOR_MATERIAL);
-  glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-  
-  static GLfloat Black[]={0,0,0,1};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Black);
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.0);
-
-  glPointSize(1.0+width);
-  
-  glBegin(GL_POINT);
-  storecolor(V,0,c);
-  glColor4fv(V);
-  store(V,v);
-  glVertex3fv(V);
-  glEnd();
-  
-  glPointSize(1.0);
-  glDisable(GL_COLOR_MATERIAL);
-#endif
 }
 
 const string drawBaseTriangles::wrongsize=
@@ -1013,21 +916,22 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
   
-  if (nC) {
+  if(nC) {
     const RGBAColour white(1,1,1,opacity);
     const RGBAColour black(0,0,0,opacity);
     const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
   } else {
-    const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+    RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+    const PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,30);
   }
 
   return true;
 }
 
-void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
-                           const triple& Max, double perspective, bool lighton,
+void drawTriangles::render(double size2, const triple& Min,
+                           const triple& Max, double perspective,
                            bool transparent)
 {
 #ifdef HAVE_GL
@@ -1037,12 +941,9 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
   if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
 
   triple m,M;
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
-  run::transpose(t,4);
 
   bbox3 B(this->Min,this->Max);
-  B.transform(t);
+  B.transform(modelView.T);
 
   m=B.Min();
   M=B.Max();
@@ -1064,34 +965,8 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
       return;
   }
 
-  setcolors(nC,!nC,diffuse,ambient,emissive,specular,shininess);
-  if(!nN) lighton=false;
-  
-  glBegin(GL_TRIANGLES);
-  for(size_t i=0; i < nI; i++) {
-    const uint32_t *pi=PI[i];
-    const uint32_t *ni=NI[i];
-    const uint32_t *ci=nC ? CI[i] : 0;
-    if(lighton)
-      glNormal3f(N[ni[0]].getx(),N[ni[0]].gety(),N[ni[0]].getz());
-    if(nC)
-      glColor4f(C[ci[0]].R,C[ci[0]].G,C[ci[0]].B,C[ci[0]].A);
-    glVertex3f(P[pi[0]].getx(),P[pi[0]].gety(),P[pi[0]].getz());
-    if(lighton)
-      glNormal3f(N[ni[1]].getx(),N[ni[1]].gety(),N[ni[1]].getz());
-    if(nC)
-      glColor4f(C[ci[1]].R,C[ci[1]].G,C[ci[1]].B,C[ci[1]].A);
-    glVertex3f(P[pi[1]].getx(),P[pi[1]].gety(),P[pi[1]].getz());
-    if(lighton)
-      glNormal3f(N[ni[2]].getx(),N[ni[2]].gety(),N[ni[2]].getz());
-    if(nC)
-      glColor4f(C[ci[2]].R,C[ci[2]].G,C[ci[2]].B,C[ci[2]].A);
-    glVertex3f(P[pi[2]].getx(),P[pi[2]].gety(),P[pi[2]].getz());
-  }
-  glEnd();
-
-  if(nC)
-    glDisable(GL_COLOR_MATERIAL);
+  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
 #endif
 }
 

@@ -14,25 +14,75 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-extern int sign;
+extern const double Fuzz4;
 
-extern const double Fuzz;
-extern const double Fuzz2;
+class vertexData {
+public:
+  GLfloat position[3];
+  GLfloat normal[3];
+  GLint  material;
+  vertexData() {};
+  vertexData(const triple& v, const triple& n) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    material=drawElement::materialIndex;
+  }
+};
+
+class VertexData {
+public:
+  GLfloat position[3];
+  GLfloat normal[3];
+  GLuint color;
+  GLint  material;
+  VertexData() {};
+  VertexData(const triple& v, const triple& n) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    color=0;
+    material=drawElement::materialIndex;
+  }
+  VertexData(const triple& v, const triple& n, GLfloat *c) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
+    material=-(int) drawElement::materialIndex-1; // request explicit color
+  }
+
+};
 
 struct BezierPatch
 {
-  static std::vector<GLfloat> buffer;
-  static std::vector<GLfloat> Buffer;
+  static std::vector<vertexData> vertexbuffer;
+  static std::vector<VertexData> Vertexbuffer;
+  static std::vector<VertexData> tVertexbuffer; // for transparent surfaces
   static std::vector<GLuint> indices;
   static std::vector<GLuint> Indices;
-  static std::vector<GLfloat> tbuffer;
-  static std::vector<GLuint> tindices;
-  static std::vector<GLfloat> tBuffer;
   static std::vector<GLuint> tIndices;
   static GLuint nvertices;
-  static GLuint ntvertices;
   static GLuint Nvertices;
   static GLuint Ntvertices;
+  
+  static GLuint vertsBufferIndex; 
+  static GLuint VertsBufferIndex; 
+  static GLuint tVertsBufferIndex; 
+  
+  static GLuint elemBufferIndex; 
+  static GLuint ElemBufferIndex; 
+  static GLuint tElemBufferIndex; 
+  
   std::vector<GLuint> *pindices;
   triple u,v,w;
   double epsilon;
@@ -52,57 +102,23 @@ struct BezierPatch
     
 // Store the vertex v and its normal vector n in the buffer.
   static GLuint vertex(const triple &v, const triple& n) {
-    buffer.push_back(v.getx());
-    buffer.push_back(v.gety());
-    buffer.push_back(v.getz());
-    
-    buffer.push_back(n.getx());
-    buffer.push_back(n.gety());
-    buffer.push_back(n.getz());
+    vertexbuffer.push_back(vertexData(v,n));
     return nvertices++;
-  }
-  
-  static GLuint tvertex(const triple &v, const triple& n) {
-    tbuffer.push_back(v.getx());
-    tbuffer.push_back(v.gety());
-    tbuffer.push_back(v.getz());
-    
-    tbuffer.push_back(n.getx());
-    tbuffer.push_back(n.gety());
-    tbuffer.push_back(n.getz());
-    return ntvertices++;
   }
   
 // Store the vertex v and its normal vector n and colour c in the buffer.
   static GLuint Vertex(const triple& v, const triple& n, GLfloat *c) {
-    Buffer.push_back(v.getx());
-    Buffer.push_back(v.gety());
-    Buffer.push_back(v.getz());
-    
-    Buffer.push_back(n.getx());
-    Buffer.push_back(n.gety());
-    Buffer.push_back(n.getz());
-    
-    Buffer.push_back(c[0]);
-    Buffer.push_back(c[1]);
-    Buffer.push_back(c[2]);
-    Buffer.push_back(c[3]);
+    Vertexbuffer.push_back(VertexData(v,n,c));
     return Nvertices++;
   }
   
+  static GLuint tvertex(const triple &v, const triple& n) {
+    tVertexbuffer.push_back(VertexData(v,n));
+    return Ntvertices++;
+  }
+  
   static GLuint tVertex(const triple& v, const triple& n, GLfloat *c) {
-    tBuffer.push_back(v.getx());
-    tBuffer.push_back(v.gety());
-    tBuffer.push_back(v.getz());
-    
-    tBuffer.push_back(n.getx());
-    tBuffer.push_back(n.gety());
-    tBuffer.push_back(n.getz());
-    
-    tBuffer.push_back(c[0]);
-    tBuffer.push_back(c[1]);
-    tBuffer.push_back(c[2]);
-    tBuffer.push_back(c[3]);
+    tVertexbuffer.push_back(VertexData(v,n,c));
     return Ntvertices++;
   }
   
@@ -189,16 +205,22 @@ struct BezierPatch
       Y < Min.gety() || y > Max.gety() ||
       Z < Min.getz() || z > Max.getz();
   }
-  
-  void clear() {
-    nvertices=ntvertices=Nvertices=Ntvertices=0;
-    buffer.clear();
+
+  static void clear() {
+    nvertices=0;
+    vertexbuffer.clear();
     indices.clear();
-    Buffer.clear();
+  }
+  
+  static void Clear() {
+    Nvertices=0;
+    Vertexbuffer.clear();
     Indices.clear();
-    tbuffer.clear();
-    tindices.clear();
-    tBuffer.clear();
+  }
+  
+  static void tClear() {
+    Ntvertices=0;
+    tVertexbuffer.clear();
     tIndices.clear();
   }
   
@@ -219,13 +241,33 @@ struct BezierPatch
     render(g,straight,colors);
   }
   
-  void draw();
-  void draw(const triple *g, bool straight, double ratio,
-            const triple& Min, const triple& Max, bool transparent,
-            GLfloat *colors=NULL) {
-    queue(g,straight,ratio,Min,Max,transparent,colors);
-    draw();
+  void drawMaterials();
+  void drawColors(GLuint& Nvertices,
+                  std::vector<VertexData>& Vertexbuffer,
+                  std::vector<GLuint>& Indices);
+  void sortTriangles();
+  
+  void drawColors() {
+    drawColors(Nvertices,Vertexbuffer,Indices);
   }
+    
+  void drawOpaque() {
+    drawMaterials();
+    drawColors();
+  }
+    
+  void drawTransparent() {
+    glDepthMask(GL_FALSE);
+    sortTriangles();
+    drawColors(Ntvertices,tVertexbuffer,tIndices);
+    glDepthMask(GL_TRUE);
+  }
+  
+  void draw() {
+    drawOpaque();
+    drawTransparent();
+  }
+  
 };
 
 struct BezierTriangle : public BezierPatch {
@@ -252,6 +294,17 @@ public:
               bool flat0, bool flat1, bool flat2,
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL);
   void render(const triple *p, bool straight, GLfloat *c0=NULL);
+};
+
+
+struct Triangles : public BezierPatch {
+public:
+  Triangles() : BezierPatch() {}
+
+  void queue(size_t nP, triple* P, size_t nN, triple* N,
+             size_t nC, prc::RGBAColour* C, size_t nI,
+             uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3],
+             bool transparent);
 };
 
 

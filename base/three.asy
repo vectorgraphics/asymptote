@@ -86,7 +86,11 @@ defaultrender.labelfill=true;
 defaultrender.partnames=false;
 defaultrender.defaultnames=true;
 
-real defaultshininess=0.25;
+real defaultshininess=0.7;
+real defaultmetallic=0.0;
+real defaultfresnel0=0.04;
+
+
 
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
@@ -2021,7 +2025,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   }
   
   string invalidnormal="invalid normal vector";
-  real fuzz=sqrtEpsilon*max(abs(v1),abs(v2));
+  real fuzz=sqrtEpsilon;
   if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
     abort(invalidnormal);
   
@@ -2558,23 +2562,6 @@ private string Format(transform3 t, string sep=" ")
     Format(t[0][3])+sep+Format(t[1][3])+sep+Format(t[2][3]);
 }
 
-string lightscript(light light) {
-  string script="for(var i=scene.lights.count-1; i >= 0; i--)
-  scene.lights.removeByIndex(i);"+'\n\n';
-  for(int i=0; i < light.position.length; ++i) {
-    string Li="L"+string(i);
-    real[] diffuse=light.diffuse[i];
-    script += Li+"=scene.createLight();"+'\n'+
-      Li+".direction.set("+format(-light.position[i],",")+");"+'\n'+
-      Li+".color.set("+format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
-  }
-  // Work around initialization bug in Adobe Reader 8.0:
-  return script +"
-scene.lightScheme=scene.LIGHT_MODE_HEADLAMP;
-scene.lightScheme=scene.LIGHT_MODE_FILE;
-";
-}
-
 void writeJavaScript(string name, string preamble, string script) 
 {
   file out=output(name);
@@ -2625,10 +2612,6 @@ string embed3D(string prefix, string label=prefix, string text=label,
   shipout3(prefix,f);
 
   string name=prefix+".js";
-  // Adobe Reader doesn't appear to support user-specified viewport lights.
-  bool lightscript=light.on() && !light.viewport;
-  if(lightscript)
-    writeJavaScript(name,lightscript(light),script);
 
   if(!settings.inlinetex && !prconly())
     file3.push(prefix+".prc");
@@ -2637,7 +2620,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
   transform3 inv=inverse(flipxz*P.T.modelview);
 
   string options3="3Dlights="+
-    (light.on() ? (light.viewport ? "Headlamp" : "File") : "None");
+    (light.on() ? "Headlamp" : "None");
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
 
   if((settings.render < 0 || !settings.embed) && settings.auto3D)
@@ -2653,8 +2636,6 @@ string embed3D(string prefix, string label=prefix, string text=label,
   if(options != "") options3 += ","+options;
   if(settings.inlinetex)
     prefix=jobname(prefix);
-  if(lightscript)
-    options3 += ",add3Djscript="+prefix+".js";
   options3 += ",add3Djscript=asylabels.js";
 
   return text == "" ? Embed(prefix+".prc","",options3,width,height) :
@@ -2832,6 +2813,9 @@ object embed(string prefix=outprefix(), string label=prefix,
     P=modelview*P;
     Q=P.copy();
 
+    if(Q.t[2][3] == -1) // PRC can't handle oblique projections
+      Q=orthographic(P.camera,P.up,P.target,P.zoom,P.viewportshift,
+                     P.showtarget,P.center);     
     if(P.infinity) {
       triple m=min3(S.f);
       triple M=max3(S.f);
@@ -2913,8 +2897,8 @@ object embed(string prefix=outprefix(), string label=prefix,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
-             Light.diffuse,Light.ambient,Light.specular,
-             Light.viewport,view && !preview);
+             Light.diffuse,Light.specular,
+             view && !preview);
     if(!preview) return F;
   }
 
