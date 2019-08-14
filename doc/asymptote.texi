@@ -7945,7 +7945,7 @@ The keyboard shortcuts are:
 @item y: spin about the Y axis
 @item z: spin about the Z axis
 @item s: stop spinning
-@item m: rendering mode (solid/mesh/patch)
+@item m: rendering mode (solid/patch/mesh)
 @item e: export
 @item c: show camera parameters
 @item p: play animation
