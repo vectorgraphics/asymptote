@@ -359,14 +359,19 @@ AC_ARG_ENABLE(gl,
 AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],enable experimental offscreen rendering using OSMesa library)])
 
+AC_ARG_ENABLE(OpenImageIO,
+[AS_HELP_STRING(--enable-openimageio[[[=no]]],enable experimental OpenImageIO Library)])
+
 if test "x$enable_gl" != "xno"; then
             AC_CHECK_HEADER(glm/glm.hpp,
                        [AC_DEFINE(HAVE_LIBGLM,1,
                     DEFINE([the <glm/glm.hpp> header]))],AC_MSG_NOTICE([*** Could not find glm header files: will compile without OpenGL support ***]))
                     AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+if test "x$enable_openimageio" = "xyes"; then
             AC_CHECK_HEADER([OpenEXR/ImathVec.h],
                 AC_CHECK_HEADER([OpenImageIO/imageio.h],
                         AC_CHECK_LIB([OpenImageIO],[open])))
+fi
 
 case "$OSTYPE" in
      cygwin)
