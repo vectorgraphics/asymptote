@@ -1500,7 +1500,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
   
   if(glinitialize) {
-    glinitialize=false;
     init();
     Fitscreen=1;
   }
@@ -1638,11 +1637,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif // HAVE_LIBGLUT
   initialized=true;
 
-  int result = glewInit();
+  if(glinitialize) {
+    glinitialize=false;
+    int result = glewInit();
 
-  if (result != GLEW_OK) {
-    cerr << "GLEW initialization error." << endl;
-    exit(-1);
+    if (result != GLEW_OK) {
+      cerr << "GLEW initialization error." << endl;
+      exit(-1);
+    }
   }
   
   GLint val;
