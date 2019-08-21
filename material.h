@@ -1,6 +1,6 @@
 #ifndef MATERIAL_STRUCT
 #define MATERIAL_STRUCT
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 
 #include <glm/glm.hpp>
 

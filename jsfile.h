@@ -2,8 +2,13 @@
 #define JSFILE_H
 
 #include <fstream>
+#include <glm/glm.hpp>
 #include "memory.h"
 #include "locate.h"
+
+namespace gl {
+extern glm::mat4 projViewMat;
+}
 
 namespace camp {
 
@@ -18,9 +23,16 @@ public:
       out << s << endl;
   }
   
-  jsfile(string name) {
+  jsfile() {}
+  
+  void open(string name) {
     out.open(name);
     copy(settings::WebGLheader);
+    for(size_t i=0; i < 4; ++i) {
+      for(size_t j=0; j < 4; ++j)
+        out << gl::projViewMat[i][j] << ", ";
+      out << endl;
+    }
   }
   
   ~jsfile() {

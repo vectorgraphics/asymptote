@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 
 #include <fstream>
 #include <sstream>

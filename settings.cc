@@ -74,7 +74,7 @@ namespace settings {
   
 using camp::pair;
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 const bool havegl=true;  
 #else
 const bool havegl=false;

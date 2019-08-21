@@ -21,6 +21,18 @@
 #include "bezierpatch.h"
 #include "beziercurve.h"
 
+
+#include "picture.h"
+#include "arcball.h"
+#include "bbox3.h"
+#include "drawimage.h"
+#include "interact.h"
+#include "tr.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #ifdef HAVE_GL
 
 #ifdef HAVE_LIBGLUT
@@ -36,22 +48,11 @@
 #define GLUT_BUILDING_LIB
 #endif // HAVE_LIBGLUT
 
-#include "picture.h"
-#include "arcball.h"
-#include "bbox3.h"
-#include "drawimage.h"
-#include "interact.h"
-#include "tr.h"
-
 #ifdef HAVE_LIBGLUT
 #ifdef FREEGLUT
 #include <GL/freeglut_ext.h>
 #endif
 #endif
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "shaders.h"
 #include "material.h"
@@ -78,6 +79,9 @@ size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
 }
+
+#endif /* HAVE_GL */
+
 namespace gl {
   
 bool outlinemode=false;
@@ -104,27 +108,9 @@ int Fitscreen;
 
 bool queueExport=false;
 bool readyAfterExport=false;
-
-#ifdef HAVE_LIBGLUT
-timeval lasttime;
-timeval lastframetime;
-int oldWidth,oldHeight;
-
-bool Xspin,Yspin,Zspin;
-bool Animate;
-bool Step;
 bool remesh;
-bool forceRemesh=false;
 
-bool queueScreen=false;
-
-int x0,y0;
-string Action;
-
-double lastangle;
-Arcball arcball;
-int window;
-#endif
+int Mode;
 
 double Aspect;
 bool View;
@@ -132,18 +118,14 @@ int Oldpid;
 string Prefix;
 const picture* Picture;
 string Format;
-int Width,Height;
 int fullWidth,fullHeight;
+int Width,Height;
 double oWidth,oHeight;
 int screenWidth,screenHeight;
 int maxWidth;
 int maxHeight;
 int maxTileWidth;
 int maxTileHeight;
-
-double T[16];
-
-int Mode;
 
 double Angle;
 bool orthographic;
@@ -171,6 +153,7 @@ size_t nlights0;
 triple *Lights; 
 double *Diffuse;
 double *Specular;
+double *Rotate;
 bool antialias;
 
 double Zoom;
@@ -191,93 +174,10 @@ dmat4 dprojMat;
 dmat4 dviewMat;
 dmat4 drotateMat; 
 
-using utils::statistics;
-statistics S;
-
 ModelView modelView;
 GLuint ubo;
 
-#ifdef HAVE_LIBOPENIMAGEIO
-GLuint envMapBuf;
-
-GLuint initHDR() {
-  GLuint tex;
-  glGenTextures(1, &tex);
-
-  auto imagein = OIIO::ImageInput::open(locateFile("res/studio006.hdr").c_str());
-  OIIO::ImageSpec const& imspec = imagein->spec();
-
-  // uses GL_TEXTURE1 for now.
-  glActiveTexture(GL_TEXTURE1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  glBindTexture(GL_TEXTURE_2D, tex);
-  std::vector<float> pixels(imspec.width*imspec.height*3);
-  imagein->read_image(pixels.data());
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imspec.width, imspec.height, 0, 
-    GL_RGB, GL_FLOAT, pixels.data());
-
-  glGenerateMipmap(GL_TEXTURE_2D);
-  imagein->close();
-
-  glActiveTexture(GL_TEXTURE0);
-  return tex;
-}
-
-#endif 
-void updateModelViewData()
-{
-  // Like Fortran, OpenGL uses transposed (column-major) format!
-  dmat4 MV=glm::transpose(dviewMat);
-  dmat4 MVinv=glm::inverse(MV);
-  
-  normMat=mat4(MVinv);
-
-  double* T=value_ptr(MV);
-  double* Tinv=value_ptr(MVinv);
-
-  for(int j=0; j < 16; ++j) {
-    modelView.T[j]=T[j];
-    modelView.Tinv[j]=Tinv[j];
-  }
-}
-
-
-GLint shaderProg,shaderProgColor;
-
-double *Rotate;
-void *glrenderWrapper(void *a);
-
-#ifdef HAVE_LIBOSMESA
-OSMesaContext ctx;
-unsigned char *osmesa_buffer;
-#endif
-
-#ifdef HAVE_PTHREAD
-pthread_t mainthread;
-
-pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t initLock=PTHREAD_MUTEX_INITIALIZER;
-
-pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
-
-void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
-{
-  pthread_mutex_lock(&lock);
-  pthread_cond_signal(&signal);
-  pthread_mutex_unlock(&lock);
-}
-void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
-{
-  pthread_mutex_lock(&lock);
-  pthread_cond_signal(&signal);
-  pthread_cond_wait(&signal,&lock);
-  pthread_mutex_unlock(&lock);
-}
-#endif
+Arcball arcball;
 
 template<class T>
 inline T min(T a, T b)
@@ -359,11 +259,154 @@ void setProjection()
   if(orthographic) ortho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   else frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   
+#ifdef HAVE_GL
 #ifdef HAVE_LIBGLUT
   double arcballRadius=getSetting<double>("arcballradius");
   arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius*Zoom);
 #endif
+#endif
+  
 }
+
+void updateModelViewData()
+{
+  // Like Fortran, OpenGL uses transposed (column-major) format!
+  dmat4 MV=glm::transpose(dviewMat);
+  dmat4 MVinv=glm::inverse(MV);
+  
+  normMat=mat4(MVinv);
+
+  double* T=value_ptr(MV);
+  double* Tinv=value_ptr(MVinv);
+
+  for(int j=0; j < 16; ++j) {
+    modelView.T[j]=T[j];
+    modelView.Tinv[j]=Tinv[j];
+  }
+}
+
+bool Xspin,Yspin,Zspin;
+bool Animate;
+bool Step;
+
+#ifdef HAVE_LIBGLUT
+void idle() 
+{
+  glutIdleFunc(NULL);
+  Xspin=Yspin=Zspin=Animate=Step=false;
+}
+#endif
+
+void home() 
+{
+  X=Y=cx=cy=0.0;
+#ifdef HAVE_GL  
+#ifdef HAVE_LIBGLUT
+  if(!getSetting<bool>("offscreen")) {
+    idle();
+    arcball.init();
+  }
+#endif
+#endif
+  viewMat=mat4(1.0f);
+  normMat=mat4(1.0f);
+  
+  dviewMat=dmat4(1.0);
+  drotateMat=dmat4(1.0); 
+  
+  Rotate=value_ptr(drotateMat);
+  updateModelViewData();
+
+  remesh=true;
+  lastzoom=Zoom=Zoom0;
+  setDimensions(Width,Height,0,0);
+}
+
+#ifdef HAVE_GL
+
+double T[16];
+
+#ifdef HAVE_LIBGLUT
+timeval lasttime;
+timeval lastframetime;
+int oldWidth,oldHeight;
+
+bool forceRemesh=false;
+
+bool queueScreen=false;
+
+int x0,y0;
+string Action;
+
+double lastangle;
+int window;
+#endif
+
+using utils::statistics;
+statistics S;
+
+#ifdef HAVE_LIBOPENIMAGEIO
+GLuint envMapBuf;
+
+GLuint initHDR() {
+  GLuint tex;
+  glGenTextures(1, &tex);
+
+  auto imagein = OIIO::ImageInput::open(locateFile("res/studio006.hdr").c_str());
+  OIIO::ImageSpec const& imspec = imagein->spec();
+
+  // uses GL_TEXTURE1 for now.
+  glActiveTexture(GL_TEXTURE1);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glBindTexture(GL_TEXTURE_2D, tex);
+  std::vector<float> pixels(imspec.width*imspec.height*3);
+  imagein->read_image(pixels.data());
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imspec.width, imspec.height, 0, 
+    GL_RGB, GL_FLOAT, pixels.data());
+
+  glGenerateMipmap(GL_TEXTURE_2D);
+  imagein->close();
+
+  glActiveTexture(GL_TEXTURE0);
+  return tex;
+}
+
+#endif 
+GLint shaderProg,shaderProgColor;
+
+void *glrenderWrapper(void *a);
+
+#ifdef HAVE_LIBOSMESA
+OSMesaContext ctx;
+unsigned char *osmesa_buffer;
+#endif
+
+#ifdef HAVE_PTHREAD
+pthread_t mainthread;
+
+pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
+pthread_mutex_t initLock=PTHREAD_MUTEX_INITIALIZER;
+
+pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
+pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
+
+void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
+{
+  pthread_mutex_lock(&lock);
+  pthread_cond_signal(&signal);
+  pthread_mutex_unlock(&lock);
+}
+void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
+{
+  pthread_mutex_lock(&lock);
+  pthread_cond_signal(&signal);
+  pthread_cond_wait(&signal,&lock);
+  pthread_mutex_unlock(&lock);
+}
+#endif
 
 void drawscene(int Width, int Height)
 {
@@ -477,38 +520,6 @@ void Export()
     endwait(readySignal,readyLock);
   }
 #endif
-}
-
-#ifdef HAVE_LIBGLUT
-void idle() 
-{
-  glutIdleFunc(NULL);
-  Xspin=Yspin=Zspin=Animate=Step=false;
-}
-#endif
-
-void home() 
-{
-  X=Y=cx=cy=0.0;
-#ifdef HAVE_LIBGLUT
-  if(!getSetting<bool>("offscreen")) {
-    idle();
-    arcball.init();
-  }
-#endif
-  viewMat=mat4(1.0f);
-  normMat=mat4(1.0f);
-  
-  dviewMat=dmat4(1.0);
-  drotateMat=dmat4(1.0); 
-  
-  Rotate=value_ptr(drotateMat);
-  updateModelViewData();
-
-  remesh=true;
-  lastzoom=Zoom=Zoom0;
-  setDimensions(Width,Height,0,0);
-  glClearColor(Background[0],Background[1],Background[2],Background[3]);
 }
 
 void nodisplay()
@@ -1430,21 +1441,19 @@ void deleteshader()
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::noNormalShader);
 }
-  
+
+#endif /* HAVE_GL */
+
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
               const triple& m, const triple& M, const pair& shift, double *t,
               double *background, size_t nlightsin, triple *lights,
-              double *diffuse, double *specular, bool view, int oldpid)
+              double *diffuse, double *specular, bool view, bool webgl,
+              int oldpid)
 {
-  remesh=true;
-  bool offscreen=getSetting<bool>("offscreen");
   Iconify=getSetting<bool>("iconify");
 
-#ifdef HAVE_PTHREAD
-  static bool initializedView=false;
-#endif  
   width=max(width,1.0);
   height=max(height,1.0);
   
@@ -1453,10 +1462,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Prefix=prefix;
   Picture=pic;
   Format=format;
-  for(int i=0; i < 16; ++i)
-    T[i]=t[i];
-  for(int i=0; i < 4; ++i)
-    Background[i]=background[i];
   
   nlights0=nlights=nlightsin;
   
@@ -1479,6 +1484,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   orthographic=Angle == 0.0;
   H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
     
+  
   ignorezoom=false;
   Mode=0;
   Xfactor=Yfactor=1.0;
@@ -1489,6 +1495,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxTileWidth <= 0) maxTileWidth=1024;
   if(maxTileHeight <= 0) maxTileHeight=768;
 
+#ifdef HAVE_GL  
+#ifdef HAVE_PTHREAD
+  static bool initializedView=false;
+#endif  
+  
+  bool offscreen=getSetting<bool>("offscreen");
   if(offscreen) {
     screenWidth=maxTileWidth;
     screenHeight=maxTileHeight;
@@ -1504,6 +1516,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     init();
     Fitscreen=1;
   }
+#endif
 
   static bool initialized=false;
   if(!initialized || !interact::interactive) {
@@ -1542,6 +1555,18 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     else 
       Height=min((int) (ceil(Width/Aspect)),screenHeight);
   
+    home();
+    setProjection();
+    
+    if(webgl) return;
+    
+#ifdef HAVE_GL    
+    for(int i=0; i < 16; ++i)
+      T[i]=t[i];
+    for(int i=0; i < 4; ++i)
+      Background[i]=background[i];
+  
+    remesh=true;
     Aspect=((double) Width)/Height;
 
     if(maxTileWidth <= 0) maxTileWidth=screenWidth;
@@ -1553,8 +1578,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     if(View && settings::verbose > 1)
       cout << "Rendering " << stripDir(prefix) << " as "
            << Width << "x" << Height << " image" << endl;
+#endif    
   }
 
+#ifdef HAVE_GL    
   bool havewindow=initialized && glthread && !offscreen;
   
 #ifdef HAVE_LIBGLUT    
@@ -1658,6 +1685,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
   
   home();
+  glClearColor(Background[0],Background[1],Background[2],Background[3]);
     
 #ifdef HAVE_LIBGLUT
   if(!offscreen) {
@@ -1688,7 +1716,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
     glutDisplayFunc(display);
-  
+
     glutMainLoop();
 #endif // HAVE_LIBGLUT
   } else {
@@ -1709,9 +1737,13 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       quit();
     }
   }
+  
+#endif /* HAVE_GL */  
 }
 
 } // namespace gl
+
+#ifdef HAVE_GL
 
 namespace camp {
 
@@ -1786,4 +1818,5 @@ void deleteUniforms()
   
 }
 
-#endif
+#endif /* HAVE_GL */
+

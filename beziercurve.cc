@@ -10,7 +10,7 @@
 
 namespace camp {
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 
 std::vector<vertexData1> BezierCurve::vertexbuffer;
 std::vector<GLuint> BezierCurve::indices;

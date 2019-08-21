@@ -12,15 +12,15 @@
 
 namespace camp {
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 
 extern const double Fuzz;
 extern const double Fuzz2;
 
 class vertexData1 {
 public:
-  GLfloat position[3];
-  GLint  material;
+  float position[3];
+  int  material;
   vertexData1() {};
   vertexData1(const triple& v) {
     position[0]=v.getx();

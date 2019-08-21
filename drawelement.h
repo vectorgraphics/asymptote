@@ -120,7 +120,7 @@ typedef mem::list<bbox> bboxlist;
 typedef mem::map<CONST string,unsigned> groupmap;
 typedef mem::vector<groupmap> groupsmap;
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 typedef mem::map<CONST Material,size_t> MaterialMap;
 #endif
 
@@ -135,7 +135,7 @@ public:
   virtual ~drawElement() {}
   
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   static mem::vector<Material> material;
   static MaterialMap materialMap;
   static size_t materialIndex;
@@ -417,7 +417,7 @@ public:
   }
 };
  
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 template<class T>
 void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
   if (!buffervector.empty()) {

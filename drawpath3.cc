@@ -8,7 +8,7 @@
 #include "drawsurface.h"
 #include "material.h"
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -19,7 +19,7 @@ namespace camp {
 using vm::array;
 using namespace prc;
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 using gl::modelView;
 
 BezierCurve drawPath3::R;
@@ -60,7 +60,7 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 void drawPath3::render(double size2, const triple& b, const triple& B,
                        double perspective, bool transparent)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   Int n=g.length();
   if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
     return;
@@ -197,7 +197,7 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
 
 void drawNurbsPath3::displacement()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   size_t nknots=degree+n+1;
   if(Controls == NULL) {
     Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
@@ -218,7 +218,7 @@ void drawNurbsPath3::displacement()
 void drawNurbsPath3::render(double, const triple&, const triple&,
                             double, bool transparent)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   if(invisible || ((color.A < 1.0) ^ transparent))
     return;
   
@@ -239,7 +239,7 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
 void drawPixel::render(double size2, const triple& b, const triple& B,
                        double perspective, bool transparent) 
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   if(invisible || ((color.A < 1.0) ^ transparent)) return;
   triple m,M;
   

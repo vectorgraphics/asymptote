@@ -23,7 +23,7 @@ protected:
   Interaction interaction;
   triple Min,Max;
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   static BezierCurve R;
 #endif  
   drawPath3(path3 g, triple center, const pen& p, Interaction interaction,
@@ -87,7 +87,7 @@ protected:
   bool invisible;
   triple Min,Max;
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   GLfloat *Controls;
   GLfloat *Knots;
 #endif  
@@ -126,7 +126,7 @@ public:
     
     run::copyArrayC(knots,knot,0,NoGC);
     
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
     Controls=NULL;
 #endif  
   }
@@ -138,7 +138,7 @@ public:
     for(unsigned int i=0; i < n; ++i)
       controls[i]=t*s->controls[i];
     
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
     Controls=NULL;
 #endif    
   }
@@ -170,7 +170,7 @@ class drawPixel : public drawElement {
   bool invisible;
   triple Min,Max;
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   static Pixel R;
 #endif  
   drawPixel(const triple& v, const pen& p, double width, const string& key="")

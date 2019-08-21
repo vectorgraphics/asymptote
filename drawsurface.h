@@ -15,7 +15,7 @@
 
 namespace camp {
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 #endif  
 
@@ -41,7 +41,7 @@ protected:
   bool prc;
   
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   static BezierCurve C;
 #endif  
   
@@ -102,7 +102,7 @@ public:
         controls[i]=t*s->controls[i];
     } else controls=NULL;
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
     center=t*s->center;
 #endif    
   }
@@ -114,7 +114,7 @@ public:
   
 class drawBezierPatch : public drawSurface {
 public:  
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   static BezierPatch S;
 #endif  
   
@@ -145,7 +145,7 @@ public:
   
 class drawBezierTriangle : public drawSurface {
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   static BezierTriangle S;
 #endif  
   
@@ -193,7 +193,7 @@ protected:
   
   triple Min,Max;
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   GLfloat *colors;
   GLfloat *Controls;
   GLfloat *uKnots;
@@ -261,7 +261,7 @@ public:
     emissive=rgba(vm::read<camp::pen>(p,1));
     specular=rgba(vm::read<camp::pen>(p,2));
     
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
     Controls=NULL;
     int size=checkArray(&pens);
     if(size > 0) {
@@ -288,7 +288,7 @@ public:
     for(unsigned int i=0; i < n; ++i)
       controls[i]=t*s->controls[i];
     
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
     Controls=NULL;
     colors=s->colors;
 #endif    
@@ -453,7 +453,7 @@ public:
   
 class drawBaseTriangles : public drawElement {
 protected:
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   Triangles R;
 #endif  
   

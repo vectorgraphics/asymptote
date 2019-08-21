@@ -1185,7 +1185,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     }
   }
       
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   if(transparent)
     drawBezierPatch::S.drawTransparent();
   else {
@@ -1220,14 +1220,14 @@ Communicate com;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_GL  
+#ifdef HAVE_LIBGLM  
 #ifdef HAVE_PTHREAD
   wait(initSignal,initLock);
   endwait(initSignal,initLock);
 #endif  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
            com.zoom,com.m,com.M,com.shift,com.t,com.background,com.nlights,
-           com.lights,com.diffuse,com.specular,com.view);
+           com.lights,com.diffuse,com.specular,com.view,false);
 #endif  
 }
 
@@ -1278,7 +1278,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   const string outputformat=format.empty() ? 
     getSetting<string>("outformat") : format;
   
-#ifdef HAVE_GL  
   bool View=settings::view() && view;
   static int oldpid=0;
   bool offscreen=getSetting<bool>("offscreen");
@@ -1286,9 +1285,8 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
 #endif  
-#endif  
 
-#if defined(HAVE_LIBGLUT) && defined(HAVE_GL)
+#if defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)
   if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
     if(gl::initialize) {
@@ -1340,9 +1338,27 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
   }
 #endif
-#ifdef HAVE_GL  
+  bool webgl=format == "html";
+  
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
-           background,nlights,lights,diffuse,specular,View,oldpid);
+           background,nlights,lights,diffuse,specular,View,webgl,oldpid);
+  
+  if(webgl) {
+    jsfile js;
+    string name=buildname(prefix,format);
+    js.open(name);
+  
+    groups.push_back(groupmap());
+    for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+      assert(*p);
+      (*p)->write(&js,&billboard,groups);
+    }
+    groups.pop_back();
+    if(verbose > 0) cout << "Wrote " << name << endl;
+    return true;
+  }
+
+#ifdef HAVE_LIBGLM  
 #ifdef HAVE_PTHREAD
   if(glthread && !offscreen && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);
@@ -1351,7 +1367,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   return true;
 #endif
 #endif
-
+  
   return false;
 }
 
@@ -1359,36 +1375,21 @@ bool picture::shipout3(const string& prefix, const string format)
 {
   bounds3();
   bool status;
-  string name;
   
-  if(format == "prc") {
-    name=buildname(prefix,"prc");
-    prcfile prc(name);
+  string name=buildname(prefix,"prc");
+  prcfile prc(name);
   
-    static const double limit=2.5*10.0/INT_MAX;
-    double compressionlimit=max(length(b3.Max()),length(b3.Min()))*limit;
+  static const double limit=2.5*10.0/INT_MAX;
+  double compressionlimit=max(length(b3.Max()),length(b3.Min()))*limit;
   
-    groups.push_back(groupmap());
-    for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-      assert(*p);
-      (*p)->write(&prc,&billboard,compressionlimit,groups);
-    }
-    groups.pop_back();
-    status=prc.finish();
-  } else {
-    name=buildname(prefix,"html");
-    jsfile js(name);
-  
-    groups.push_back(groupmap());
-    for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-      assert(*p);
-      (*p)->write(&js,&billboard,groups);
-    }
-    groups.pop_back();
-    status=true;
-//    status=js.finish();
-  }    
-  
+  groups.push_back(groupmap());
+  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    (*p)->write(&prc,&billboard,compressionlimit,groups);
+  }
+  groups.pop_back();
+  status=prc.finish();
+
   if(!status) reportError("shipout3 failed");
     
   if(verbose > 0) cout << "Wrote " << name << endl;

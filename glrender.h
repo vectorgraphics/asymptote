@@ -47,6 +47,10 @@
 #endif
 #endif
 
+#else
+typedef float GLfloat;
+#endif
+
 namespace camp {
 class picture;
 
@@ -80,6 +84,7 @@ extern bool outlinemode;
 extern bool wireframeMode;
 extern Int maxvertices;
 extern bool forceRemesh;
+
 extern GLuint ubo;
 
 struct projection 
@@ -101,7 +106,9 @@ public:
     zoom(zoom), angle(angle), viewportshift(viewportshift) {}
 };
 
+#ifdef HAVE_GL
 GLuint initHDR();
+#endif
 
 projection camera(bool user=true);
 
@@ -110,7 +117,7 @@ void glrender(const string& prefix, const camp::picture* pic,
               double zoom, const camp::triple& m, const camp::triple& M,
               const camp::pair& shift, double *t, double *background,
               size_t nlights, camp::triple *lights, double *diffuse,
-              double *specular, bool view, int oldpid=0);
+              double *specular, bool view, bool webgl, int oldpid=0);
 
 struct ModelView {
   double T[16];
@@ -172,9 +179,5 @@ void setUniforms(GLint shader);
 void deleteUniforms();
 
 }
-
-#else
-typedef float GLfloat;
-#endif
 
 #endif

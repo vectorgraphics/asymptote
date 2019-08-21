@@ -44,7 +44,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 
 #include <assert.h>
 #include <math.h>

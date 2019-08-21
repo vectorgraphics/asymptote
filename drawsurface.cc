@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <fstream>
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -22,7 +22,7 @@ using namespace prc;
 #include "material.h"
 namespace camp {
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 mem::vector<Material> drawElement::material;
 MaterialMap drawElement::materialMap;
 size_t drawElement::materialIndex;
@@ -38,7 +38,7 @@ const triple drawElement::zero;
 
 using vm::array;
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 BezierCurve drawSurface::C;
 BezierPatch drawBezierPatch::S;
 BezierTriangle drawBezierTriangle::S;
@@ -253,16 +253,6 @@ bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
   if(invisible)
     return true;
 
-//  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-
-//  if(straight) {
-//    triple vertices[]={controls[0],controls[12],controls[3],controls[15]};
-//    if(colors)
-//      out->addQuad(vertices,colors);
-//    else
-//    out->addRectangle(vertices,m);
-//  } else
-  
   out->addPatch(controls);
                     
   return true;
@@ -271,7 +261,7 @@ bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                              double perspective, bool transparent)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   if(invisible || 
      ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
        diffuse.A < 1.0) ^ transparent)) return;
@@ -497,7 +487,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool transparent)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   if(invisible || 
      ((colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
        diffuse.A < 1.0) ^ transparent)) return;
@@ -646,7 +636,7 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
 
 void drawNurbs::displacement()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
@@ -674,7 +664,7 @@ void drawNurbs::displacement()
 void drawNurbs::render(double size2, const triple& Min, const triple& Max,
                        double perspective, bool transparent)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
 
@@ -934,7 +924,7 @@ void drawTriangles::render(double size2, const triple& Min,
                            const triple& Max, double perspective,
                            bool transparent)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   if(invisible)
     return;
 

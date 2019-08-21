@@ -13,7 +13,7 @@ namespace camp {
 using ::orient2d;
 using ::orient3d;
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 
 const size_t nbuffer=10000; // Initial size of dynamic buffers
 
