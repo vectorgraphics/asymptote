@@ -145,6 +145,7 @@ xasydev2
 xasydev
 
 ### SVG Icons
+GUI/res/*
 !GUI/res/*/*.svg
 
 ### RC Icons
@@ -158,5 +159,7 @@ GUI/icons_rc.py
 ## Or tell people to store it elsewhere?
 base/res/*.hdr
 base/res/*.exr
+*.bak
+*.tar.gz.*
 
 renderDocSettings
