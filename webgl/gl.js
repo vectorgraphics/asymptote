@@ -540,7 +540,7 @@ function unit(v) {
 }
 
 // Store the vertex v and its color vector c in the buffer.
-function vertex(v,c) {
+function vertex(v,c,n) {
   vertices.push(v[0]);
   vertices.push(v[1]);
   vertices.push(v[2]);
@@ -549,6 +549,10 @@ function vertex(v,c) {
   colors.push(c[1]);
   colors.push(c[2]);
   colors.push(c[3]);
+
+  normals.push(n[0]);
+  normals.push(n[1]);
+  normals.push(n[2]);
   return nvertices++;
 }
 
@@ -852,11 +856,11 @@ function render(p, I0, I1, I2, I3, P0, P1, P2, P3, flat0, flat1, flat2, flat3,
     var c4=color(n4);
 
 
-    var i0=vertex(m0,c0);
-    var i1=vertex(m1,c1);
-    var i2=vertex(m2,c2);
-    var i3=vertex(m3,c3);
-    var i4=vertex(m4,c4);
+    var i0=vertex(m0,c0,n0);
+    var i1=vertex(m1,c1,n1);
+    var i2=vertex(m2,c2,n2);
+    var i3=vertex(m3,c3,n3);
+    var i4=vertex(m4,c4,n4);
 
     render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
            C0,c0,c4,c3);
@@ -870,7 +874,7 @@ function render(p, I0, I1, I2, I3, P0, P1, P2, P3, flat0, flat1, flat2, flat3,
 }
 
 var p;
-//var P=[];
+var P=[];
 
 function draw() {
   mat4.transpose(pvMatrix,new Float32Array([
@@ -882,7 +886,7 @@ function draw() {
 
   sceneSetup();
   setBuffer();
-//  var p=P[0];
+  p=P[0];
   
   var p0=p[0];
   var p3=p[3];
@@ -904,11 +908,11 @@ function draw() {
   var c1=color(n1);
   var c2=color(n2);
   var c3=color(n3);
-
-  var i0=vertex(p0,c0);
-  var i1=vertex(p12,c1);
-  var i2=vertex(p15,c2);
-  var i3=vertex(p3,c3);
+  
+  var i0=vertex(p0,c0,n0);
+  var i1=vertex(p12,c1,n1);
+  var i2=vertex(p15,c2,n2);
+  var i3=vertex(p3,c3,n3);
 
   render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
          c0,c1,c2,c3);
