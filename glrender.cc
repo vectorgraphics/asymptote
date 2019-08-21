@@ -195,6 +195,7 @@ using utils::statistics;
 statistics S;
 
 ModelView modelView;
+GLuint ubo;
 
 #ifdef HAVE_LIBOPENIMAGEIO
 GLuint envMapBuf;
@@ -1500,7 +1501,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
   
   if(glinitialize) {
-    glinitialize=false;
     init();
     Fitscreen=1;
   }
@@ -1638,13 +1638,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif // HAVE_LIBGLUT
   initialized=true;
 
-  int result = glewInit();
-
-  if (result != GLEW_OK) {
-    cerr << "GLEW initialization error." << endl;
-    exit(-1);
-  }
-  
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
   Maxmaterials=val/sizeof(Material);
@@ -1652,6 +1645,18 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&Maxvertices);
 
+  if(glinitialize) {
+    glinitialize=false;
+    int result = glewInit();
+
+    if (result != GLEW_OK) {
+      cerr << "GLEW initialization error." << endl;
+      exit(-1);
+    }
+    
+    initshader();
+  }
+  
   home();
     
 #ifdef HAVE_LIBGLUT
@@ -1667,8 +1672,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #endif
 
-  initshader();
-  
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
@@ -1735,13 +1738,12 @@ void setUniforms(GLint shader)
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   glUniformBlockBinding(shader,blockindex,binding);
     
-  GLuint ubo;
-  glGenBuffers(1,&ubo);
-  glBindBuffer(GL_UNIFORM_BUFFER,ubo);
+  glGenBuffers(1,&gl::ubo);
+  glBindBuffer(GL_UNIFORM_BUFFER,gl::ubo);
     
   glBufferData(GL_UNIFORM_BUFFER,drawElement::material.size()*sizeof(Material),
                drawElement::material.data(),GL_STATIC_DRAW);
-  glBindBufferBase(GL_UNIFORM_BUFFER,binding,ubo);
+  glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
   
   glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
   
@@ -1775,6 +1777,13 @@ void setUniforms(GLint shader)
 #endif
 }
 
+void deleteUniforms()
+{
+  glBindBuffer(GL_UNIFORM_BUFFER,0);
+  glDeleteBuffers(1,&gl::ubo);
+  glUseProgram(0);
+}
+  
 }
 
 #endif

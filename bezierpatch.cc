@@ -15,10 +15,6 @@ using ::orient3d;
 
 #ifdef HAVE_GL
 
-extern GLint materialShader;
-extern GLint colorShader;
-extern void setUniforms(GLint shader); 
-
 const size_t nbuffer=10000; // Initial size of dynamic buffers
 
 std::vector<vertexData> BezierPatch::vertexbuffer;
@@ -909,15 +905,15 @@ void BezierPatch::drawMaterials()
   registerBuffer(vertexbuffer,vertsBufferIndex);
   registerBuffer(indices,elemBufferIndex);
   
+  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
+
   camp::setUniforms(materialShader); 
 
   const GLint posAttrib=glGetAttribLocation(materialShader,"position");
   const GLint normalAttrib=glGetAttribLocation(materialShader,"normal");
   const GLint materialAttrib=glGetAttribLocation(materialShader,"material");
   
-  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
-
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
   glEnableVertexAttribArray(posAttrib);
     
@@ -936,9 +932,10 @@ void BezierPatch::drawMaterials()
   glDisableVertexAttribArray(normalAttrib);
   glDisableVertexAttribArray(materialAttrib);
 
+  deleteUniforms();
+  
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-  glUseProgram(0);
 
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);
@@ -971,6 +968,9 @@ void BezierPatch::drawColors(GLuint& Nvertices,
   registerBuffer(Vertexbuffer,vertsBufferIndex);
   registerBuffer(Indices,elemBufferIndex);
   
+  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
+
   camp::setUniforms(colorShader); 
 
   const GLint posAttrib=glGetAttribLocation(colorShader,"position");
@@ -978,9 +978,6 @@ void BezierPatch::drawColors(GLuint& Nvertices,
   const GLint colorAttrib=glGetAttribLocation(colorShader,"color");
   const GLint materialAttrib=glGetAttribLocation(colorShader,"material");
   
-  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
-
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                         (void *) 0);
   glEnableVertexAttribArray(posAttrib);
@@ -1005,9 +1002,10 @@ void BezierPatch::drawColors(GLuint& Nvertices,
   glDisableVertexAttribArray(colorAttrib);
   glDisableVertexAttribArray(materialAttrib);
 
+  deleteUniforms();
+
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-  glUseProgram(0);
 
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);

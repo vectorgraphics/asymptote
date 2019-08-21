@@ -90,6 +90,8 @@ inline void *asy_malloc_atomic(size_t n)
 #include <gc_allocator.h>
 #include <gc_cpp.h>
 
+#define gc_allocator gc_allocator_ignore_off_page
+
 #else // USEGC
 
 using std::allocator;

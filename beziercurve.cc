@@ -12,10 +12,6 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-extern GLint noNormalShader;
-extern GLint pixelShader;
-extern void setUniforms(GLint shader); 
-
 std::vector<vertexData1> BezierCurve::vertexbuffer;
 std::vector<GLuint> BezierCurve::indices;
 
@@ -95,13 +91,13 @@ void BezierCurve::draw()
   glBindVertexArray(vao);
   createBuffers();
     
+  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
+
   camp::setUniforms(noNormalShader);
   
   const GLint posAttrib=glGetAttribLocation(noNormalShader, "position");
   const GLint materialAttrib=glGetAttribLocation(noNormalShader,"material");
-
-  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
 
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
   glEnableVertexAttribArray(posAttrib);
@@ -115,9 +111,10 @@ void BezierCurve::draw()
   glDisableVertexAttribArray(posAttrib);
   glDisableVertexAttribArray(materialAttrib);
   
+  deleteUniforms();
+  
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-  glUseProgram(0);
 
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);
@@ -146,14 +143,15 @@ void Pixel::draw()
   glGenVertexArrays(1,&vao);
   glBindVertexArray(vao);
 
+  glBindBuffer(GL_ARRAY_BUFFER,vbo);
+  glBufferData(GL_ARRAY_BUFFER,bytestride*vertexbuffer.size(),
+               vertexbuffer.data(),GL_STATIC_DRAW);
+
   camp::setUniforms(pixelShader); 
   
   const GLint posAttrib=glGetAttribLocation(pixelShader, "position");
   const GLint materialAttrib=glGetAttribLocation(pixelShader,"material");
   const GLint widthAttrib=glGetAttribLocation(pixelShader,"width");
-
-  glBindBuffer(GL_ARRAY_BUFFER,vbo);
-  glBufferData(GL_ARRAY_BUFFER,bytestride*vertexbuffer.size(),vertexbuffer.data(),GL_STATIC_DRAW);
 
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void*)(0));
   glEnableVertexAttribArray(posAttrib);
@@ -170,8 +168,9 @@ void Pixel::draw()
   glDisableVertexAttribArray(materialAttrib);
   glDisableVertexAttribArray(widthAttrib);
   
+  deleteUniforms();
+  
   glBindBuffer(GL_ARRAY_BUFFER,0);
-  glUseProgram(0);
 
   glBindVertexArray(0);
   glDeleteVertexArrays(1,&vao);

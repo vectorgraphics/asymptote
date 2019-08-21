@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[2.53git],[http://sourceforge.net/projects/asymptote])
+AC_INIT([Asymptote],[2.54git],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -241,7 +241,7 @@ AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
 
 # Checks for libraries.
-AC_CHECK_LIB([m], [gamma],,
+AC_SEARCH_LIBS([lgamma],[m c],,
 AC_MSG_ERROR([*** Please install libm on your system ***]))
 AC_CHECK_LIB([z], [deflate],,
 AC_MSG_ERROR([*** Please install libz or zlib-devel on your system ***]))
@@ -359,14 +359,19 @@ AC_ARG_ENABLE(gl,
 AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],enable experimental offscreen rendering using OSMesa library)])
 
+AC_ARG_ENABLE(OpenImageIO,
+[AS_HELP_STRING(--enable-openimageio[[[=no]]],enable experimental OpenImageIO Library)])
+
 if test "x$enable_gl" != "xno"; then
             AC_CHECK_HEADER(glm/glm.hpp,
                        [AC_DEFINE(HAVE_LIBGLM,1,
                     DEFINE([the <glm/glm.hpp> header]))],AC_MSG_NOTICE([*** Could not find glm header files: will compile without OpenGL support ***]))
                     AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+if test "x$enable_openimageio" = "xyes"; then
             AC_CHECK_HEADER([OpenEXR/ImathVec.h],
                 AC_CHECK_HEADER([OpenImageIO/imageio.h],
                         AC_CHECK_LIB([OpenImageIO],[open])))
+fi
 
 case "$OSTYPE" in
      cygwin)

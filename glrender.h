@@ -80,6 +80,7 @@ extern bool outlinemode;
 extern bool wireframeMode;
 extern Int maxvertices;
 extern bool forceRemesh;
+extern GLuint ubo;
 
 struct projection 
 {
@@ -161,6 +162,14 @@ struct billboard
 };
 
 extern billboard BB;
+
+extern GLint materialShader;
+extern GLint colorShader;
+extern GLint noNormalShader;
+extern GLint pixelShader;
+
+void setUniforms(GLint shader);
+void deleteUniforms();
 
 }
 

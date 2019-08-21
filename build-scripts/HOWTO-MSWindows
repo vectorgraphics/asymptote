@@ -50,12 +50,14 @@ cp /usr/bin/cygwin1.dll ~/dll/cygwin
 mkdir ~/CTAN
 cp -a ~/asymptote/build-scripts/README-binaries ~/CTAN
 
+cd ~/
 GCVERSION=7.6.2
+ATOMICVERSION=7.6.10
 wget http://hboehm.info/gc/gc_source/gc-$GCVERSION.tar.gz
-wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$GCVERSION.tar.gz
+wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
 tar -zxf gc-$GCVERSION.tar.gz
-tar -zxf libatomic_ops-$GCVERSION.tar.gz
-mv libatomic_ops-$GCVERSION gc-$GCVERSION/libatomic_ops
+tar -zxf libatomic_ops-$ATOMICVERSION.tar.gz
+mv libatomic_ops-$ATOMICVERSION gc-$GCVERSION/libatomic_ops
 cd gc-$GCVERSION
 ./configure --disable-shared
 make check
