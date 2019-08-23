@@ -862,10 +862,7 @@ function draw() {
   sceneSetup();
   setBuffer();
 
-  for(var j=0; j < P.length; ++j) {
-    console.log(j);
-    var p=P[j];
-    
+  P.forEach(p => {
     var p0=p[0];
     var p3=p[3];
     var p12=p[12];
@@ -895,8 +892,7 @@ function draw() {
     render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
            c0,c1,c2,c3);
 
-  drawBuffer();
-  }
+  drawBuffer(); });
 }
 
 var forceredraw = false;
