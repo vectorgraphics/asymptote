@@ -22,10 +22,6 @@
       float roughness, metallic, f0;
     };
 
-    uniform mat4 uMMatrix; // model matrix
-    uniform mat4 uPMatrix; // projection matrix
-    uniform mat4 uVMatrix; // view matrix
-
     uniform Material objMaterial[100]; // assuming we are doing multiple materials, 
 
     // we can upload them one at a time per call.
@@ -101,7 +97,6 @@
     void main(void)
     {
       // change later.
-
       // assuming for now that the headlamp is always on.
       // light dir=+Z, viewDir=+Z,
 
@@ -140,24 +135,15 @@
     in vec3 aVertexNormal;
     in int aVertexMaterialIndex;
     
-    uniform mat4 uMMatrix; // model matrix
-    uniform mat4 uPMatrix; // projection matrix
-    uniform mat4 uVMatrix; // view matrix
+    uniform mat4 uPVMatrix;
     
     out vec4 vColor;
     out vec3 vNormal;
     flat out int vMaterialIndex;
     
-    mat4 invdual(mat4 invec) {
-      return inverse(transpose(invec));
-    }
     void main(void) {
-      gl_Position=uPMatrix*uVMatrix*uMMatrix*vec4(aVertexPosition,1.0);
-      
-      mat4 invdualmat=invdual(uVMatrix*uMMatrix);
-      vec4 rawNormal=invdualmat*vec4(aVertexNormal, 0);
-      
-      vNormal=normalize(rawNormal.xyz);
+      gl_Position=uPVMatrix*vec4(aVertexPosition,1.0);  
+      vNormal=normalize(aVertexNormal);
       
       vColor=aVertexColor;
       vMaterialIndex=aVertexMaterialIndex;
@@ -165,8 +151,8 @@
     
   </script>
 
-   <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/gl-matrix-min-2.3.2.js"></script>
-   <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/glm-js-min-2.2.2.js"></script>
-   <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/arcball-min-0.01.js"></script>
+  <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/gl-matrix-min-2.3.2.js"></script>
+  <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/glm-js-min-2.2.2.js"></script>
+  <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/arcball-min-0.01.js"></script>
   <script type="text/javascript" src="webgl/gl.js"></script>
-    <script type="text/javascript">
+  <script type="text/javascript">

@@ -1348,12 +1348,12 @@ bool picture::shipout3(const string& prefix, const string& format,
     string name=buildname(prefix,format);
     js.open(name);
   
-    groups.push_back(groupmap());
-    for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+//    pic->groups.push_back(groupmap());
+    for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
       assert(*p);
-      (*p)->write(&js,&billboard,groups);
+      (*p)->write(&js,&pic->billboard,pic->groups);
     }
-    groups.pop_back();
+//    pic->groups.pop_back();
     if(verbose > 0) cout << "Wrote " << name << endl;
     return true;
   }
