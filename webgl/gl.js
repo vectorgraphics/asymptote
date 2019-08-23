@@ -861,47 +861,42 @@ var P=[];
 function draw() {
   sceneSetup();
   setBuffer();
-  var p=P[0];
 
-  /*
-  p.forEach(pts => {
-    vl=[pts[0],pts[1],pts[2],1]
-    vec4.transformMat4(vl,vl,pvMatrix);
-    vec4.scale(vl,vl,1/vl[3]);
-    console.log(vl);
-  });
-  */
-  
-  var p0=p[0];
-  var p3=p[3];
-  var p12=p[12];
-  var p15=p[15];
+  for(var j=0; j < P.length; ++j) {
+    console.log(j);
+    var p=P[j];
+    
+    var p0=p[0];
+    var p3=p[3];
+    var p12=p[12];
+    var p15=p[15];
 
-  epsilon=0;
-  for(var i=1; i < 16; ++i)
-    epsilon=Math.max(epsilon,
-                     abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-  epsilon *= Fuzz2;
+    epsilon=0;
+    for(var i=1; i < 16; ++i)
+      epsilon=Math.max(epsilon,
+                       abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
+    epsilon *= Fuzz2;
 
-  var n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-  var n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-  var n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
-  var n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
+    var n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
+    var n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
+    var n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
+    var n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
 
-  var c0=color(n0);
-  var c1=color(n1);
-  var c2=color(n2);
-  var c3=color(n3);
-  
-  var i0=vertex(p0,c0,n0);
-  var i1=vertex(p12,c1,n1);
-  var i2=vertex(p15,c2,n2);
-  var i3=vertex(p3,c3,n3);
+    var c0=color(n0);
+    var c1=color(n1);
+    var c2=color(n2);
+    var c3=color(n3);
+    
+    var i0=vertex(p0,c0,n0);
+    var i1=vertex(p12,c1,n1);
+    var i2=vertex(p15,c2,n2);
+    var i3=vertex(p3,c3,n3);
 
-  render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
-         c0,c1,c2,c3);
+    render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
+           c0,c1,c2,c3);
 
   drawBuffer();
+  }
 }
 
 var forceredraw = false;
