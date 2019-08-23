@@ -3,18 +3,16 @@
 <head>
   <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
-  <script id="shader-fs" type="x-shader/x-fragment">#version 300 es
-    precision mediump float;
-
+  <script id="shader-fs" type="x-shader/x-fragment">
     in vec4 vColor;
     in vec3 vNormal;
-    out vec4 outColor;
-
     flat in int vMaterialIndex;
 
-    // can also construct an alternative shader,
-    // but would require more work.
-    // FIXME: An ad-hoc solution is to use uniforms... 
+    out vec4 outColor;
+
+    // const int nMaterials = 5;
+    // const int nLights = 1; 
+
     uniform int useColor;
 
     struct Material {
@@ -22,17 +20,7 @@
       float roughness, metallic, f0;
     };
 
-    uniform mat4 uMMatrix; // model matrix
-    uniform mat4 uPMatrix; // projection matrix
-    uniform mat4 uVMatrix; // view matrix
-
-    uniform Material objMaterial[100]; // assuming we are doing multiple materials, 
-
-    // we can upload them one at a time per call.
-    // but, we can also make it an array + pass in an index, 
-    // say uniform Material objMaterial[$nmat];
-
-    // or, even use Uniform Buffer Objects... 
+    uniform Material objMaterial[nMaterials]; // assuming we are doing multiple materials, 
 
     // type, for now
     #define POINT_LIGHT 1
@@ -47,9 +35,7 @@
       float brightness;
       vec4 parameter;
     };
-
-    uniform int unLights; // can be replaced by a constant, or even a fixed array in the final release.
-    uniform Light objLights[100]; // again, can be set at will by the asy generator.
+    uniform Light objLights[nLights]; // again, can be set at will by the asy generator.
 
     float NDF_TRG(vec3 halfv, vec3 normal, float roughness) {
       float ndoth=max(dot(normal, halfv), 0.0);
@@ -100,9 +86,6 @@
     
     void main(void)
     {
-      // change later.
-
-      // assuming for now that the headlamp is always on.
       // light dir=+Z, viewDir=+Z,
 
       float normalSign = gl_FrontFacing ? 1.0 : -1.0;
@@ -117,7 +100,7 @@
         m.baseColor = vColor;
       }
 
-      for (int i=0;i<unLights;++i) {
+      for (int i=0;i<nLights;++i) {
         Light Li=objLights[i];
         float cosTheta = 0.0;
         float atteunation = 1.0;
@@ -133,36 +116,27 @@
     }
   </script>
 
-  <script id="shader-vs" type="x-shader/x-vertex">#version 300 es
-    precision mediump float;
+  <script id="shader-vs" type="x-shader/x-vertex">
     in vec3 aVertexPosition;
     in vec4 aVertexColor;
     in vec3 aVertexNormal;
     in int aVertexMaterialIndex;
-    
-    uniform mat4 uMMatrix; // model matrix
-    uniform mat4 uPMatrix; // projection matrix
-    uniform mat4 uVMatrix; // view matrix
+
+    uniform mat4 uNormMatrix;
+    uniform mat4 uPVMatrix;
     
     out vec4 vColor;
     out vec3 vNormal;
     flat out int vMaterialIndex;
     
-    mat4 invdual(mat4 invec) {
-      return inverse(transpose(invec));
-    }
     void main(void) {
-      gl_Position=uPMatrix*uVMatrix*uMMatrix*vec4(aVertexPosition,1.0);
-      
-      mat4 invdualmat=invdual(uVMatrix*uMMatrix);
-      vec4 rawNormal=invdualmat*vec4(aVertexNormal, 0);
-      
+      gl_Position=uPVMatrix*vec4(aVertexPosition,1.0);  
+      vec4 rawNormal=uNormMatrix*vec4(aVertexNormal,0.0);
       vNormal=normalize(rawNormal.xyz);
       
       vColor=aVertexColor;
       vMaterialIndex=aVertexMaterialIndex;
     }
-    
   </script>
 
    <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/gl-matrix-min-2.3.2.js"></script>
