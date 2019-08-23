@@ -121,23 +121,16 @@ function initShaders() {
 
   shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
   gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
-/*
   shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
   gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
   shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
   gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
-
   shaderProgram.vertexMaterialIndexAttribute = gl.getAttribLocation(shaderProgram, "aVertexMaterialIndex");
   gl.enableVertexAttribArray(shaderProgram.vertexMaterialIndexAttribute);
-*/
-  
-//  shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-//  shaderProgram.mMatrixUniform = gl.getUniformLocation(shaderProgram, "uMMatrix");
-//  shaderProgram.vMatrixUniform = gl.getUniformLocation(shaderProgram, "uVMatrix");
+
   shaderProgram.pvMatrixUniform=gl.getUniformLocation(shaderProgram,"uPVMatrix");
-//  shaderProgram.nlightsUniform = gl.getUniformLocation(shaderProgram, "unLights");
-//  shaderProgram.useColorUniform = gl.getUniformLocation(shaderProgram, "useColor");
+  shaderProgram.nlightsUniform = gl.getUniformLocation(shaderProgram, "unLights");
+  shaderProgram.useColorUniform = gl.getUniformLocation(shaderProgram, "useColor");
 
 }
 
@@ -178,8 +171,6 @@ var vMatrix = mat4.create();
 var mMatrix = mat4.create();
 var pMatrix = mat4.create();
 
-var pvMatrix=mat4.create();
-
 var headlamp = new Light(
   type = enumDirectionalLight,
   lightColor = [1, 0.87, 0.745],
@@ -188,17 +179,13 @@ var headlamp = new Light(
 );
 
 function setUniforms() {
-//  gl.uniformMatrix4fv(shaderProgram.vMatrixUniform, false, vMatrix);
-//  gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-//  gl.uniformMatrix4fv(shaderProgram.mMatrixUniform, false, mMatrix);
   gl.uniformMatrix4fv(shaderProgram.pvMatrixUniform,false,pvMatrix);
-
-//  objMaterial.setUniform(shaderProgram, "objMaterial", 0);
+  objMaterial.setUniform(shaderProgram, "objMaterial", 0);
 
   // for now, if we simulate headlamp. Can also specify custom lights later on...
-//  headlamp.setUniform(shaderProgram, "objLights", 0);
-//  gl.uniform1i(shaderProgram.nlightsUniform, 1);
-//  gl.uniform1i(shaderProgram.useColorUniform, 0);
+    headlamp.setUniform(shaderProgram, "objLights", 0);
+    gl.uniform1i(shaderProgram.nlightsUniform, 1);
+    gl.uniform1i(shaderProgram.useColorUniform, 0);
 
 }
 
@@ -422,16 +409,6 @@ function handleTouchMove(evt) {
 function sceneSetup() {
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-   mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.05, 5.0);
-
-  //mat4.ortho(pMatrix, -1.0, 1.0, -1.0, 1.0, 0.05, 100);
-  //  mat4.frustum(pMatrix, -205.75, 205.75, -150.64, 150.64, 1194.4, 2096.15);
-//  mat4.lookAt(vMatrix, cameraPos, cameraLookAt, cameraUp);
-
-  mat4.identity(vMatrix);
-  mat4.identity(vMatrix);
-  mat4.identity(mMatrix);
 }
 
 var indexExt;
@@ -443,16 +420,14 @@ function setBuffer() {
   VertexBuffer = gl.createBuffer();
   VertexBuffer.itemSize = 3;
 
-/*
-    ColorBuffer = gl.createBuffer();
-    ColorBuffer.itemSize = 4;
+  ColorBuffer = gl.createBuffer();
+  ColorBuffer.itemSize = 4;
 
-    NormalBuffer = gl.createBuffer();
-    NormalBuffer.itemSize = 3;
+  NormalBuffer = gl.createBuffer();
+  NormalBuffer.itemSize = 3;
 
-    MaterialIndexBuffer = gl.createBuffer();
-    MaterialIndexBuffer.itemSize = 1;
-*/
+  MaterialIndexBuffer = gl.createBuffer();
+  MaterialIndexBuffer.itemSize = 1;
 
   indexBuffer = gl.createBuffer();
   indexBuffer.itemSize = 1;
@@ -468,9 +443,9 @@ function drawBuffer() {
                          VertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
   VertexBuffer.numItems = nvertices;
 
-/*
   // FIXME: Some kind of a conditional here for colors??? 
   // along a flag of "useColors or something??? "
+
   gl.bindBuffer(gl.ARRAY_BUFFER, ColorBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
   gl.vertexAttribPointer(shaderProgram.vertexColorAttribute,
@@ -488,7 +463,6 @@ function drawBuffer() {
   gl.vertexAttribIPointer(shaderProgram.vertexMaterialIndexAttribute,
   MaterialIndexBuffer.itemSize, gl.INT, false, 0, 0);
   MaterialIndexBuffer.numItems = nvertices;
-  */
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
@@ -510,7 +484,7 @@ var pixel=1.0; // Adaptive rendering constant.
 var FillFactor=0.1;
 var BezierFactor=0.4;
 //var res=0.0005; // Temporary
-var res=0.001; // Temporary
+var res=0.15; // Temporary
 var res2=res*res;
 var Epsilon=0.1*res;
 var epsilon=0;
@@ -553,6 +527,7 @@ function vertex(v,c,n) {
   normals.push(n[0]);
   normals.push(n[1]);
   normals.push(n[2]);
+  
   return nvertices++;
 }
 
@@ -719,6 +694,7 @@ function render(p, I0, I1, I2, I3, P0, P1, P2, P3, flat0, flat1, flat2, flat3,
   var c1=new Split3(p[4],p[5],p[6],p[7]);
   var c2=new Split3(p[8],p[9],p[10],p[11]);
   var c3=new Split3(p12,p[13],p[14],p15);
+  
   var c4=new Split3(p0,p[4],p[8],p12);
   var c5=new Split3(c0.m0,c1.m0,c2.m0,c3.m0);
   var c6=new Split3(c0.m3,c1.m3,c2.m3,c3.m3);
@@ -873,20 +849,21 @@ function render(p, I0, I1, I2, I3, P0, P1, P2, P3, flat0, flat1, flat2, flat3,
   }
 }
 
-var p;
 var P=[];
 
 function draw() {
-  mat4.transpose(pvMatrix,new Float32Array([
-    5.50,0,0,0,
-    0,7.92,0,0,
-    0,0,-3.649,-1,
-    0,0,-5552.97,0
-  ]));
-
   sceneSetup();
   setBuffer();
-  p=P[0];
+  var p=P[0];
+
+  /*
+  p.forEach(pts => {
+    vl=[pts[0],pts[1],pts[2],1]
+    vec4.transformMat4(vl,vl,pvMatrix);
+    vec4.scale(vl,vl,1/vl[3]);
+    console.log(vl);
+  });
+  */
   
   var p0=p[0];
   var p3=p[3];
@@ -918,7 +895,6 @@ function draw() {
          c0,c1,c2,c3);
 
   drawBuffer();
-  gl.flush();
 }
 
 var forceredraw = false;
