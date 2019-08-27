@@ -85,6 +85,8 @@ extern bool wireframeMode;
 extern Int maxvertices;
 extern bool forceRemesh;
 
+extern double zmin,zmax;
+
 extern GLuint ubo;
 
 struct projection 

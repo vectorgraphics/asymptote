@@ -1,9 +1,7 @@
 #include "jsfile.h"
 
-#include "memory.h"
-#include "triple.h"
 #include "settings.h"
-
+#include "glrender.h"
 
 namespace gl {
 extern glm::mat4 projViewMat;
@@ -20,6 +18,8 @@ namespace camp {
   void jsfile::open(string name) {
         out.open(name);
     copy(settings::WebGLheader);
+    out <<  "target=" << 0.5*(gl::zmin+gl::zmax) << ";" << endl;
+
     out << "pMatrix=new Float32Array([" << endl;
     for(size_t i=0; i < 4; ++i) {
       for(size_t j=0; j < 4; ++j)
