@@ -28,8 +28,10 @@ namespace camp {
     }
     out << "]);" << endl;
     out <<
-"    var materialIndex = 0;"
-"    var objMaterials = [new Material("
+"     canvWidth=800;"
+"     canvHeight=800;"
+"     var materialIndex = 0;"
+"     var objMaterials = [new Material("
 "      baseColor = [1, 1, 0, 1],"
 "      emissive = [0, 0, 0, 1],"
 "      specular = [1, 1, 1, 1],"
