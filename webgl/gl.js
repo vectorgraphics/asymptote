@@ -268,12 +268,18 @@ function handleMouseUpOrTouchEnd(event) {
   mouseDownOrTouchActive = false;
 }
 
-function processDrag(newX, newY, pan = false) {
-  let lastX = (lastMouseX - 400) / 400;
-  let lastY = (lastMouseY - 400) / 400;
+var canvWidth;
+var canvHeight;
 
-  let rawX = (newX - 400) / 400;
-  let rawY = (newY - 400) / 400;
+function processDrag(newX, newY, pan = false) {
+  let halfCanvWidth=canvWidth/2;
+  let halfCanvHeight=canvHeight/2;
+
+  let lastX = (lastMouseX - halfCanvWidth) / halfCanvWidth;
+  let lastY = (lastMouseY - halfCanvHeight) / halfCanvHeight;
+
+  let rawX = (newX - halfCanvWidth) / halfCanvWidth;
+  let rawY = (newY - halfCanvHeight) / halfCanvHeight;
 
   let viewmatInv = mat4.create();
   mat4.invert(viewmatInv, vMatrix);
@@ -920,6 +926,10 @@ function tickNoRedraw() {
 
 function webGLStart() {
   var canvas = document.getElementById("Asymptote");
+
+  canvas.width=canvWidth;
+  canvas.height=canvHeight;
+
   initGL(canvas);
   initShaders();
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
