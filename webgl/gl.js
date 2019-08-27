@@ -892,7 +892,8 @@ function draw() {
     render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
            c0,c1,c2,c3);
 
-  drawBuffer(); });
+  drawBuffer();
+  });
 }
 
 var forceredraw = false;
