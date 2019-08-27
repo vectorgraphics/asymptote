@@ -3,7 +3,8 @@
 
 #include <fstream>
 #include <glm/glm.hpp>
-#include "memory.h"
+
+#include "common.h"
 #include "triple.h"
 #include "locate.h"
 

@@ -492,9 +492,9 @@ var BezierFactor=0.4;
 var res=0.15; // Temporary
 var res2=res*res;
 var Epsilon=0.1*res;
-var epsilon=0;
-var Fuzz=1000*Number.EPSILON;
-var Fuzz2=Fuzz*Fuzz;
+var Fuzz2=1000*Number.EPSILON;
+var Fuzz4=Fuzz2*Fuzz2;
+var epsilon=Fuzz4*1.0; // FIXME
 
 function Split3(z0, c0, c1, z1) {
   this.m0=new Array(3);
@@ -872,7 +872,7 @@ function draw() {
     for(var i=1; i < 16; ++i)
       epsilon=Math.max(epsilon,
                        abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    epsilon *= Fuzz2;
+    epsilon *= Fuzz4;
 
     var n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
     var n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
@@ -892,7 +892,7 @@ function draw() {
     render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
            c0,c1,c2,c3);
 
-  drawBuffer();
+    drawBuffer();
   });
 }
 
