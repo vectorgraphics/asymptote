@@ -270,54 +270,91 @@ function handleMouseUpOrTouchEnd(event) {
 var canvasWidth;
 var canvasHeight;
 
-function processDrag(newX, newY, pan = false) {
-  let halfCanvWidth=canvasWidth/2;
-  let halfCanvHeight=canvasHeight/2;
-
-  let lastX = (lastMouseX - halfCanvWidth) / halfCanvWidth;
-  let lastY = (lastMouseY - halfCanvHeight) / halfCanvHeight;
-
-  let rawX = (newX - halfCanvWidth) / halfCanvWidth;
-  let rawY = (newY - halfCanvHeight) / halfCanvHeight;
-
-  let viewmatInv = mat4.create();
-  mat4.invert(viewmatInv, vMatrix);
-
-  let tmpCameraOffset = vec3.create();
-  vec3.subtract(tmpCameraOffset, cameraPos, cameraLookAt);
-
-  if (!pan) {
+function rotateScene (lastX, lastY, rawX, rawY) {
     let [angle, axis] = arcballLib.arcball([lastX, -lastY], [rawX, -rawY]);
 
     if (isNaN(angle) || isNaN(axis[0]) ||
-      isNaN(axis[1]) || isNaN(axis[2]) ) {
+      isNaN(axis[1]) || isNaN(axis[2])) {
       console.error("Angle or axis NaN!");
       return;
     }
-    var invdual = (mat) => {mat4.invert(mat,mat); mat4.transpose(mat,mat); }
+    var invdual = (mat) => {
+      mat4.invert(mat, mat);
+      mat4.transpose(mat, mat);
+    }
 
-    var rotMat=mat4.create();
-    mat4.fromTranslation(rotMat, [0,0,target]);
+    var rotMat = mat4.create();
+    mat4.fromTranslation(rotMat, [0, 0, target]);
 
-    mat4.rotate(rotMat,rotMat,angle,axis);
-    mat4.translate(rotMat, rotMat, [0, 0,-target]);
+    mat4.rotate(rotMat, rotMat, angle, axis);
+    mat4.translate(rotMat, rotMat, [0, 0, -target]);
 
-    // let projMatInv=mat4.create();
-    // mat4.invert(projMatInv, pMatrix);
-
-    mat4.multiply(vMatrix,rotMat,vMatrix);
+    mat4.multiply(vMatrix, rotMat, vMatrix);
     invdual(rotMat);
     mat4.multiply(normMatrix, rotMat, normMatrix);
 
     console.log("Drag processed")
+}
 
-  } else {
+function translateScene(lastX, lastY, rawX, rawY) {
+    let halfCanvWidth = canvasWidth / 2;
+    let halfCanvHeight = canvasHeight / 2;
     let xTransl = (rawX - lastX);
     let yTransl = (rawY - lastY);
     let translMat = mat4.create();
     mat4.fromTranslation(translMat, [xTransl * halfCanvWidth, -yTransl * halfCanvHeight, 0]);
     mat4.multiply(pMatrix, pMatrix, translMat);
+}
+
+function zoomScene(lastX, lastY, rawX, rawY) {
+  let zoomFactor = 2 ** (rawY - lastY);
+  console.log("Zoom processed. fac=" + zoomFactor);
+  var invdual = (mat) => {
+        mat4.invert(mat, mat);
+        mat4.transpose(mat, mat);
+      }
+
+  var zoomMat = mat4.create();
+  mat4.fromTranslation(zoomMat, [0, 0, target]);
+  mat4.scale(zoomMat, zoomMat, [zoomFactor, zoomFactor, zoomFactor]);
+  mat4.translate(zoomMat, zoomMat, [0, 0, -target]);
+
+  mat4.multiply(vMatrix, zoomMat, vMatrix);
+  invdual(zoomMat);
+  mat4.multiply(normMatrix, zoomMat, normMatrix);
+
+}
+
+// mode:
+var DRAGMODE_ROTATE = 1;
+var DRAGMODE_TRANSLATE = 2;
+var DRAGMODE_ZOOM = 3;
+function processDrag(newX, newY, mode, touch=false) {
+  let dragFunc;
+  switch (mode) {
+    case DRAGMODE_ROTATE:
+      dragFunc=rotateScene;
+      break;
+    case DRAGMODE_TRANSLATE:
+      dragFunc=translateScene;
+      break;
+    case DRAGMODE_ZOOM:
+      dragFunc=zoomScene;
+      break;
+    default:
+      rotateFunc = (_a, _b, _c, _d) => {};
+      break;
   }
+
+  let halfCanvWidth = canvasWidth / 2;
+  let halfCanvHeight = canvasHeight / 2;
+
+  let lastX = (lastMouseX - halfCanvWidth) / halfCanvWidth;
+  let lastY = (lastMouseY - halfCanvHeight) / halfCanvHeight;
+  let rawX = (newX - halfCanvWidth) / halfCanvWidth;
+  let rawY = (newY - halfCanvHeight) / halfCanvHeight;
+
+  dragFunc(lastX, lastY, rawX, rawY);
 
   lastMouseX = newX;
   lastMouseY = newY;
@@ -394,7 +431,16 @@ function handleMouseMove(event) {
   var newX = event.clientX;
   var newY = event.clientY;
 
-  processDrag(newX, newY, event.getModifierState("Alt"));
+  let mode;
+  if (event.getModifierState("Alt")) {
+    mode = DRAGMODE_TRANSLATE;
+  } else if (event.getModifierState("Shift")) {
+    mode = DRAGMODE_ZOOM;
+  } else {
+    mode = DRAGMODE_ROTATE;
+  }
+
+  processDrag(newX, newY, mode, false);
 }
 
 function handleTouchMove(evt) {
@@ -404,7 +450,7 @@ function handleTouchMove(evt) {
   if (touches.length == 1 && touchId == touches[0].identifier) {
     var newX = touches[0].pageX;
     var newY = touches[0].pageY;
-    processDrag(newX, newY);
+    processDrag(newX, newY, DRAGMODE_ROTATE, true);
   }
 }
 
