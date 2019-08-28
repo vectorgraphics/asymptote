@@ -112,7 +112,7 @@ function getShader(gl, id) {
 }
 
 class DrawableObject {
-  draw() {}
+  draw(forceremesh=false) {}
 }
 
 function copyFloatBuffer(buf, data, attrib, nverts) {
@@ -136,6 +136,12 @@ var Fuzz4=Fuzz2*Fuzz2;
 var epsilon=Fuzz4*1.0; // FIXME
 
 class BezierPatch extends DrawableObject {
+
+  /**
+   * Constructor for Bezier Patch
+   * @param {*} controlpoints Array of 16 points for control points.
+   * @param {*} materialIndex Index of Material
+   */
   constructor(controlpoints, materialIndex=0) {
     super();
 
@@ -153,11 +159,15 @@ class BezierPatch extends DrawableObject {
     this.nvertices = 0;
   }
 
-  draw() {
-    if (this.rendered) {
+  draw(forceremesh=false) {
+    if (forceremesh) {
       this.clearBuffer();
     }
-    this.render();
+
+    if (!this.rendered) {
+      this.render();
+    }
+
     this.drawBuffer();
   }
 
@@ -417,7 +427,7 @@ function resetCamera() {
   mat4.identity(normMatrix);
 
   pMatrix=new Float32Array(pMatrixInit);
-  redraw = true;
+  redraw=true;
 }
 
 var shaderProgram;
@@ -455,24 +465,22 @@ function initShaders() {
 /* #pragma region Math Aux Functions */
 // math aux functions 
 
-function Split3(z0, c0, c1, z1) {
-  this.m0=new Array(3);
-  this.m2=new Array(3);
-  this.m3=new Array(3);
-  this.m4=new Array(3);
-  this.m5=new Array(3);
-  for(var i=0; i < 3; ++i) {
-    this.m0[i]=0.5*(z0[i]+c0[i]);
-    var m1=0.5*(c0[i]+c1[i]);
-    this.m2[i]=0.5*(c1[i]+z1[i]);
-    this.m3[i]=0.5*(this.m0[i]+m1);
-    this.m4[i]=0.5*(m1+this.m2[i]);
-    this.m5[i]=0.5*(this.m3[i]+this.m4[i]);
+class Split3 {
+  constructor(z0, c0, c1, z1) {
+    this.m0=new Array(3);
+    this.m2=new Array(3);
+    this.m3=new Array(3);
+    this.m4=new Array(3);
+    this.m5=new Array(3);
+    for(var i=0; i < 3; ++i) {
+      this.m0[i]=0.5*(z0[i]+c0[i]);
+      var m1=0.5*(c0[i]+c1[i]);
+      this.m2[i]=0.5*(c1[i]+z1[i]);
+      this.m3[i]=0.5*(this.m0[i]+m1);
+      this.m4[i]=0.5*(m1+this.m2[i]);
+      this.m5[i]=0.5*(this.m3[i]+this.m4[i]);
+    }
   }
-}
-
-function degToRad(degrees) {
-  return degrees * Math.PI / 180;
 }
 
 function unit(v) {
@@ -698,6 +706,7 @@ var pMatrix = mat4.create();
 var mMatrix = mat4.create();
 
 var redraw = true;
+var remesh=true;
 var mouseDownOrTouchActive = false;
 var lastMouseX = null;
 var lastMouseY = null;
@@ -759,6 +768,8 @@ function translateScene(lastX, lastY, rawX, rawY) {
 function zoomScene(lastX, lastY, rawX, rawY) {
   let zoomFactor = 2 ** (lastY - rawY);
   zoom(zoomFactor);
+
+  remesh=true;
 }
 
 function zoom(zoomFactor) {
@@ -836,14 +847,12 @@ function handleKey(key) {
     mat4.rotate(rotationMatrix, rotationMatrix, 0.1, axis);
     redraw = true;
   }
-
 }
 
 function handleMouseWheel(event) {
   let zoomFactor = event.deltaY / 50;
   zoom(2 ** zoomFactor);
 
-  res = 1 / (vec3.length(cameraShift) + 0.001) * 0.001;
   redraw = true;
 }
 
@@ -920,7 +929,9 @@ function draw() {
   sceneSetup();
   setBuffer();
 
-  P.forEach(p => p.draw());
+  P.forEach(p => p.draw(remesh));
+
+  remesh=false;
 }
 
 var forceredraw = false;
