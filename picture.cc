@@ -1227,7 +1227,7 @@ void glrenderWrapper()
 #endif  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
            com.zoom,com.m,com.M,com.shift,com.t,com.background,com.nlights,
-           com.lights,com.diffuse,com.specular,com.view,false);
+           com.lights,com.diffuse,com.specular,com.view);
 #endif  
 }
 
@@ -1338,12 +1338,10 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
   }
 #endif
-  bool webgl=format == "html";
-  
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
-           background,nlights,lights,diffuse,specular,View,webgl,oldpid);
+           background,nlights,lights,diffuse,specular,View,oldpid);
   
-  if(webgl) {
+  if(format == "html") {
     jsfile js;
     string name=buildname(prefix,format);
     js.open(name);

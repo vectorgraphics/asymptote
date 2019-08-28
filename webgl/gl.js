@@ -267,12 +267,12 @@ function handleMouseUpOrTouchEnd(event) {
   mouseDownOrTouchActive = false;
 }
 
-var canvWidth;
-var canvHeight;
+var canvasWidth;
+var canvasHeight;
 
 function processDrag(newX, newY, pan = false) {
-  let halfCanvWidth=canvWidth/2;
-  let halfCanvHeight=canvHeight/2;
+  let halfCanvWidth=canvasWidth/2;
+  let halfCanvHeight=canvasHeight/2;
 
   let lastX = (lastMouseX - halfCanvWidth) / halfCanvWidth;
   let lastY = (lastMouseY - halfCanvHeight) / halfCanvHeight;
@@ -925,8 +925,8 @@ function tickNoRedraw() {
 function webGLStart() {
   var canvas = document.getElementById("Asymptote");
 
-  canvas.width=canvWidth;
-  canvas.height=canvHeight;
+  canvas.width=canvasWidth;
+  canvas.height=canvasHeight;
 
   initGL(canvas);
   initShaders();

@@ -297,12 +297,12 @@ void idle()
 }
 #endif
 
-void home() 
+void home(bool webgl=false) 
 {
   X=Y=cx=cy=0.0;
 #ifdef HAVE_GL  
 #ifdef HAVE_LIBGLUT
-  if(!getSetting<bool>("offscreen")) {
+  if(!webgl && !getSetting<bool>("offscreen")) {
     idle();
     arcball.init();
   }
@@ -1449,8 +1449,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
               const triple& m, const triple& M, const pair& shift, double *t,
               double *background, size_t nlightsin, triple *lights,
-              double *diffuse, double *specular, bool view, bool webgl,
-              int oldpid)
+              double *diffuse, double *specular, bool view, int oldpid)
 {
   Iconify=getSetting<bool>("iconify");
 
@@ -1495,13 +1494,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxTileWidth <= 0) maxTileWidth=1024;
   if(maxTileHeight <= 0) maxTileHeight=768;
 
+  bool webgl=Format == "html";
+  
 #ifdef HAVE_GL  
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
 #endif  
   
   bool offscreen=getSetting<bool>("offscreen");
-  if(offscreen) {
+  if(offscreen && !webgl) {
     screenWidth=maxTileWidth;
     screenHeight=maxTileHeight;
 
@@ -1513,7 +1514,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
   
   if(glinitialize) {
-    init();
+    if(!webgl) init();
     Fitscreen=1;
   }
 #endif
@@ -1523,9 +1524,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     antialias=getSetting<Int>("antialias") > 1;
     double expand=getSetting<double>("render");
     if(expand < 0)
-      expand *= (Format.empty() || Format == "eps" || Format == "pdf") 
-        ? -2.0 : -1.0;
-    if(antialias) expand *= 2.0;
+      expand *= (Format.empty() || Format == "eps" || Format == "pdf" || webgl)                 ? -2.0 : -1.0;
+    if(antialias && !webgl) expand *= 2.0;
+  
+    oWidth=width;
+    oHeight=height;
+    Aspect=width/height;
   
     // Force a hard viewport limit to work around direct rendering bugs.
     // Alternatively, one can use -glOptions=-indirect (with a performance
@@ -1535,30 +1539,35 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     maxHeight=(int) ceil(maxViewport.gety());
     if(maxWidth <= 0) maxWidth=max(maxHeight,2);
     if(maxHeight <= 0) maxHeight=max(maxWidth,2);
-    if(screenWidth <= 0) screenWidth=maxWidth;
-    else screenWidth=min(screenWidth,maxWidth);
-    if(screenHeight <= 0) screenHeight=maxHeight;
-    else screenHeight=min(screenHeight,maxHeight);
-  
-    oWidth=width;
-    oHeight=height;
-    Aspect=width/height;
-  
+    
     fullWidth=(int) ceil(expand*width);
     fullHeight=(int) ceil(expand*height);
   
-    Width=min(fullWidth,screenWidth);
-    Height=min(fullHeight,screenHeight);
+    if(webgl) {
+      Width=fullWidth;
+      Height=fullHeight;
+    } else {
+      if(screenWidth <= 0) screenWidth=maxWidth;
+      else screenWidth=min(screenWidth,maxWidth);
+      if(screenHeight <= 0) screenHeight=maxHeight;
+      else screenHeight=min(screenHeight,maxHeight);
+
+      Width=min(fullWidth,screenWidth);
+      Height=min(fullHeight,screenHeight);
   
-    if(Width > Height*Aspect) 
-      Width=min((int) (ceil(Height*Aspect)),screenWidth);
-    else 
-      Height=min((int) (ceil(Width/Aspect)),screenHeight);
+      if(Width > Height*Aspect) 
+        Width=min((int) (ceil(Height*Aspect)),screenWidth);
+      else 
+        Height=min((int) (ceil(Width/Aspect)),screenHeight);
+    }
   
-    home();
+    home(webgl);
     setProjection();
     
-    if(webgl) return;
+    if(webgl) {
+      if(glthread) exit(0);
+      return;
+    }
     
 #ifdef HAVE_GL    
     for(int i=0; i < 16; ++i)
@@ -1684,7 +1693,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     initshader();
   }
   
-  home();
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
     
 #ifdef HAVE_LIBGLUT

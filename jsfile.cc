@@ -28,8 +28,9 @@ namespace camp {
     }
     out << "]);" << endl;
     out <<
-"     canvWidth=800;"
-"     canvHeight=800;"
+      "canvasWidth=" << gl::fullWidth << ";" << endl << 
+      "canvasHeight=" << gl::fullHeight << ";" << endl;
+    out <<
 "     var materialIndex = 0;"
 "     var objMaterials = [new Material("
 "      baseColor = [1, 1, 0, 1],"
