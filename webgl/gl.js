@@ -314,20 +314,9 @@ function processDrag(newX, newY, pan = false) {
   } else {
     let xTransl = (rawX - lastX);
     let yTransl = (rawY - lastY);
-    let normCameraUp = vec3.create();
-    vec3.normalize(normCameraUp, cameraUp);
-    vec3.scale(normCameraUp, normCameraUp, yTransl);
-
-    let normCameraLeft = vec3.create();
-    vec3.cross(normCameraLeft, tmpCameraOffset, cameraUp);
-    vec3.normalize(normCameraLeft, normCameraLeft);
-    vec3.scale(normCameraLeft, normCameraLeft, xTransl);
-
-    let cameraShift = vec3.create();
-    vec3.add(cameraShift, normCameraUp, normCameraLeft);
-
-    vec3.add(cameraLookAt, cameraLookAt, cameraShift);
-    vec3.add(cameraPos, cameraPos, cameraShift);
+    let translMat = mat4.create();
+    mat4.fromTranslation(translMat, [xTransl * halfCanvWidth, -yTransl * halfCanvHeight, 0]);
+    mat4.multiply(pMatrix, pMatrix, translMat);
   }
 
   lastMouseX = newX;
