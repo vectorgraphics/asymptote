@@ -1,6 +1,4 @@
-// Contains code from http: //learningwebgl.com/blog/ ? p=28#triangle-vertex-positions 
-// modified to produce a subdivision algorithm for rendering Bezier
-// patches with WebGL
+// Render Bezier patches via subdivision with WebGL.
 
 var gl;
 
@@ -245,7 +243,7 @@ class BezierPatch extends GeometryDrawable {
     epsilon=0;
     for(var i=1; i < 16; ++i)
       epsilon=Math.max(epsilon,
-        AuxMathFuncs.abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
+        abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
     epsilon *= Fuzz4;
 
     var n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
@@ -354,7 +352,7 @@ class BezierPatch extends GeometryDrawable {
     if((flat0=Distance1(p0,p[4],p[8],p12) < res2)) {
     var u=s0[12];
     var v=s2[3];
-    var e=AuxMathFuncs.unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
+    var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
     m0=[0.5*(P0[0]+P1[0])+Epsilon*e[0],0.5*(P0[1]+P1[1])+Epsilon*e[1],
     0.5*(P0[2]+P1[2])+Epsilon*e[2]
     ];
@@ -368,7 +366,7 @@ class BezierPatch extends GeometryDrawable {
     if((flat1=Distance1(p12,p[13],p[14],p15) < res2)) {
     var u=s1[15];
     var v=s3[0];
-    var e=AuxMathFuncs.unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
+    var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
     m1=[0.5*(P1[0]+P2[0])+Epsilon*e[0],0.5*(P1[1]+P2[1])+Epsilon*e[1],
     0.5*(P1[2]+P2[2])+Epsilon*e[2]
     ];
@@ -382,7 +380,7 @@ class BezierPatch extends GeometryDrawable {
     if((flat2=Distance1(p15,p[11],p[7],p3) < res2)) {
     var u=s2[3];
     var v=s0[12];
-    var e=AuxMathFuncs.unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
+    var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
     m2=[0.5*(P2[0]+P3[0])+Epsilon*e[0],0.5*(P2[1]+P3[1])+Epsilon*e[1],
     0.5*(P2[2]+P3[2])+Epsilon*e[2]
     ];
@@ -396,7 +394,7 @@ class BezierPatch extends GeometryDrawable {
     if((flat3=Distance1(p3,p[2],p[1],p0) < res2)) {
     var u=s3[0];
     var v=s1[15];
-    var e=AuxMathFuncs.unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
+    var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
     m3=[0.5*(P3[0]+P0[0])+Epsilon*e[0],
     0.5*(P3[1]+P0[1])+Epsilon*e[1],
     0.5*(P3[2]+P0[2])+Epsilon*e[2]
@@ -491,34 +489,34 @@ class Split3 {
     }
   }
 }
-class AuxMathFuncs {
-  static unit(v) {
-    var norm = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    norm = (norm != 0) ? 1 / norm : 1;
-    return [v[0] * norm, v[1] * norm, v[2] * norm];
-  }
-  static abs2(v) {
-    return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-  }
-  
-  static dot(u, v) {
-    return u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
-  }
-  
-  static cross(u, v) {
-    return [u[1] * v[2] - u[2] * v[1],
-            u[2] * v[0] - u[0] * v[2],
-            u[0] * v[1] - u[1] * v[0]
-           ];
-  }
-  /**
-   * @returns perpendicular distance squared of a point z from the plane
-   * through u with unit normal n.
-   */
-  static Distance2(z, u, n) {
-    var d = AuxMathFuncs.dot([z[0] - u[0], z[1] - u[1], z[2] - u[2]], n);
-    return d * d;
-  }
+
+function unit(v) {
+  var norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  norm=(norm != 0) ? 1 / norm : 1;
+  return [v[0]*norm,v[1]*norm,v[2]*norm];
+}
+function abs2(v) {
+  return v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+}
+
+function dot(u,v) {
+  return u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
+}
+
+function cross(u, v) {
+  return [u[1]*v[2]-u[2]*v[1],
+          u[2]*v[0]-u[0]*v[2],
+          u[0]*v[1]-u[1]*v[0]
+         ];
+}
+
+/**
+ * @Return perpendicular distance squared of a point z from the plane
+ * through u with unit normal n.
+ */
+function Distance2(z,u,n) {
+  var d=dot([z[0]-u[0],z[1]-u[1],z[2]-u[2]],n);
+  return d*d;
 }
 
 function normal(left3, left2, left1, middle, right1, right2, right3) {
@@ -533,8 +531,8 @@ function normal(left3, left2, left1, middle, right1, right2, right3) {
     u2*v0-u0*v2,
     u0*v1-u1*v0
   ];
-  if(AuxMathFuncs.abs2(n) > epsilon)
-    return AuxMathFuncs.unit(n);
+  if(abs2(n) > epsilon)
+    return unit(n);
 
   var lp=[v0,v1,v2];
   var rp=[u0,u1,u2];
@@ -546,14 +544,14 @@ function normal(left3, left2, left1, middle, right1, right2, right3) {
            middle[1]+right2[1]-2*right1[1],
            middle[2]+right2[2]-2*right1[2]
           ];
-  var a=AuxMathFuncs.cross(rpp,lp);
-  var b=AuxMathFuncs.cross(rp,lpp);
+  var a=cross(rpp,lp);
+  var b=cross(rp,lpp);
   n=[a[0]+b[0],
      a[1]+b[1],
      a[2]+b[2]
     ];
-  if(AuxMathFuncs.abs2(n) > epsilon)
-    return AuxMathFuncs.unit(n);
+  if(abs2(n) > epsilon)
+    return unit(n);
 
   var lppp=[left3[0]-middle[0]+3*(left1[0]-left2[0]),
             left3[1]-middle[1]+3*(left1[1]-left2[1]),
@@ -563,42 +561,42 @@ function normal(left3, left2, left1, middle, right1, right2, right3) {
             right3[1]-middle[1]+3*(right1[1]-right2[1]),
             right3[2]-middle[2]+3*(right1[2]-right2[2])
            ];
-  a=AuxMathFuncs.cross(rpp,lpp);
-  b=AuxMathFuncs.cross(rp,lppp);
-  var c=AuxMathFuncs.cross(rppp,lp);
-  var d=AuxMathFuncs.cross(rppp,lpp);
-  var e=AuxMathFuncs.cross(rpp,lppp);
-  var f=AuxMathFuncs.cross(rppp,lppp);
-  return AuxMathFuncs.unit([9*a[0]+3*(b[0]+c[0]+d[0]+e[0])+f[0],
+  a=cross(rpp,lpp);
+  b=cross(rp,lppp);
+  var c=cross(rppp,lp);
+  var d=cross(rppp,lpp);
+  var e=cross(rpp,lppp);
+  var f=cross(rppp,lppp);
+  return unit([9*a[0]+3*(b[0]+c[0]+d[0]+e[0])+f[0],
                9*a[1]+3*(b[1]+c[1]+d[1]+e[1])+f[1],
                9*a[2]+3*(b[2]+c[2]+d[2]+e[2])+f[2]
               ]);
 }
 
 /**
- * @returns the maximum distance squared of points c0 and c1 from 
+ * @Return the maximum distance squared of points c0 and c1 from 
  * the respective internal control points of z0--z1.
 */
 function Straightness(z0,c0,c1,z1)
 {
   var third=1.0/3.0;
   var v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
-  return Math.max(AuxMathFuncs.abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
-    AuxMathFuncs.abs2([z1[0]-v[0]-c1[0],z1[1]-v[1]-c1[1],z1[2]-v[2]-c1[2]]));
+  return Math.max(abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
+    abs2([z1[0]-v[0]-c1[0],z1[1]-v[1]-c1[1],z1[2]-v[2]-c1[2]]));
 }
 
 /**
- * @returns the maximum perpendicular distance squared of points c0 and c1
+ * @Return the maximum perpendicular distance squared of points c0 and c1
  * from z0--z1
 */
 function Distance1(z0, c0, c1, z1) {
   var Z0=[c0[0]-z0[0],c0[1]-z0[1],c0[2]-z0[2]];
-  var Q=AuxMathFuncs.unit([z1[0]-z0[0],z1[1]-z0[1],z1[2]-z0[2]]);
+  var Q=unit([z1[0]-z0[0],z1[1]-z0[1],z1[2]-z0[2]]);
   var Z1=[c1[0]-z0[0],c1[1]-z0[1],c1[2]-z0[2]];
-  var p0=AuxMathFuncs.dot(Z0,Q);
-  var p1=AuxMathFuncs.dot(Z1,Q);
-  return Math.max(AuxMathFuncs.abs2([Z0[0]-p0*Q[0],Z0[1]-p0*Q[1],Z0[2]-p0*Q[2]]),
-    AuxMathFuncs.abs2([Z1[0]-p1*Q[0],Z1[1]-p1*Q[1],Z1[2]-p1*Q[2]]));
+  var p0=dot(Z0,Q);
+  var p1=dot(Z1,Q);
+  return Math.max(abs2([Z0[0]-p0*Q[0],Z0[1]-p0*Q[1],Z0[2]-p0*Q[2]]),
+    abs2([Z1[0]-p1*Q[0],Z1[1]-p1*Q[1],Z1[2]-p1*Q[2]]));
 }
 
 function Distance(p) {
@@ -608,7 +606,7 @@ function Distance(p) {
   var p15=p[15];
 
   // Check the flatness of the quad.
-  var d=AuxMathFuncs.Distance2(p15,p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
+  var d=Distance2(p15,p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
   
   // Determine how straight the edges are.
   d=Math.max(d,Straightness(p0,p[1],p[2],p3));
@@ -630,7 +628,7 @@ function Distance(p) {
  * @param {*} conjMatrix Conjugate Matrix
  * @param {*} mat Matrix
  * 
- * @returns The matrix (conjMatrix) * mat * (conjMatrix)^{-1} 
+ * @Return the matrix (conjMatrix) * mat * (conjMatrix)^{-1} 
  */
 function mat4COB(out,conjMatrix,mat) {
   var cjMatInv=mat4.create();
