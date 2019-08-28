@@ -134,7 +134,7 @@ class GeometryDrawable extends DrawableObject {
     this.iArrIndices=null;
     this.iArrMaterials=null;
 
-    this.floatArrayInitialized=false;
+    this.arraysInitialized=false;
     this.nvertices = 0;
 
     this.materialIndex=materialIndex;
@@ -155,7 +155,6 @@ class GeometryDrawable extends DrawableObject {
     if (forceremesh) {
       this.clearBuffer();
     }
-
     if (!this.rendered) {
       this.render();
     }
@@ -202,7 +201,7 @@ class GeometryDrawable extends DrawableObject {
     this.iArrIndices=null;
     this.iArrMaterials=null;
     
-    this.floatArrayInitialized=false;
+    this.arraysInitialized=false;
     this.rendered = false;
   }
 
@@ -221,7 +220,7 @@ class GeometryDrawable extends DrawableObject {
     this.normals.push(n[2]);
   
     this.materials.push(this.materialIndex);
-    this.floatArrayInitialized=false;
+    this.arraysInitialized=false;
     
     return this.nvertices++;
   }
