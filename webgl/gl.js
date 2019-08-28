@@ -130,9 +130,27 @@ class GeometryDrawable extends DrawableObject {
     this.indices = new Array();
     this.materials = new Array();
 
+    this.fArrVertices = null;
+    this.fArrColors = null;
+    this.fArrNormals = null;
+    this.iArrIndices=null;
+    this.iArrMaterials=null;
+
+    this.floatArrayInitialized=false;
     this.nvertices = 0;
 
     this.materialIndex=materialIndex;
+
+  }
+
+  createArrays() {
+    this.fArrVertices=new Float32Array(this.vertices);
+    this.fArrColors=new Float32Array(this.colors);
+    this.fArrNormals=new Float32Array(this.normals);
+    this.iArrIndices=indexExt ? new Uint32Array(this.indices) : new Uint16Array(this.indices);
+    this.iArrMaterials=new Int32Array(this.materials);
+
+    this.arraysInitialized=true;
   }
 
   draw(forceremesh=false) {
@@ -148,23 +166,24 @@ class GeometryDrawable extends DrawableObject {
   }
 
   drawBuffer() {
-    copyFloatBuffer(VertexBuffer,this.vertices,shaderProgram.vertexPositionAttribute, this.nvertices);
-    copyFloatBuffer(ColorBuffer,this.colors,shaderProgram.vertexColorAttribute, this.nvertices);
-    copyFloatBuffer(NormalBuffer,this.normals,shaderProgram.vertexNormalAttribute, this.nvertices);
+    if (!this.arraysInitialized) {
+      this.createArrays();
+    }
+
+    copyFloatBuffer(VertexBuffer,this.fArrVertices,shaderProgram.vertexPositionAttribute, this.nvertices);
+    copyFloatBuffer(ColorBuffer,this.fArrColors,shaderProgram.vertexColorAttribute, this.nvertices);
+    copyFloatBuffer(NormalBuffer,this.fArrNormals,shaderProgram.vertexNormalAttribute, this.nvertices);
   
     if (shaderProgram.vertexMaterialIndexAttribute !== -1) {
       gl.bindBuffer(gl.ARRAY_BUFFER, MaterialIndexBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Int32Array(this.materials), gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, this.iArrMaterials, gl.STATIC_DRAW);
       gl.vertexAttribIPointer(shaderProgram.vertexMaterialIndexAttribute,
       MaterialIndexBuffer.itemSize, gl.INT, false, 0, 0);
     }
-    
     MaterialIndexBuffer.numItems = this.nvertices;
   
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                  indexExt ? new Uint32Array(this.indices) : new Uint16Array(this.indices),
-                  gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,this.iArrIndices,gl.STATIC_DRAW);
     indexBuffer.numItems = this.indices.length;
   
     gl.drawElements(gl.TRIANGLES, indexBuffer.numItems,
@@ -179,6 +198,13 @@ class GeometryDrawable extends DrawableObject {
     this.materials = [];
     this.nvertices = 0;
 
+    this.fArrVertices=null;
+    this.fArrColors=null;
+    this.fArrNormals=null;
+    this.iArrIndices=null;
+    this.iArrMaterials=null;
+    
+    this.floatArrayInitialized=false;
     this.rendered = false;
   }
 
@@ -197,6 +223,7 @@ class GeometryDrawable extends DrawableObject {
     this.normals.push(n[2]);
   
     this.materials.push(this.materialIndex);
+    this.floatArrayInitialized=false;
     
     return this.nvertices++;
   }
@@ -206,7 +233,7 @@ class GeometryDrawable extends DrawableObject {
 function copyFloatBuffer(buf, data, attrib, nverts) {
   if (attrib !== -1) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
     gl.vertexAttribPointer(attrib, buf.itemSize, gl.FLOAT, false, 0, 0);
     }
     buf.numItems = nverts;
@@ -576,7 +603,7 @@ function normal(left3, left2, left1, middle, right1, right2, right3) {
 }
 
 /**
- * @returns the maximum distance squared of points c0 and c1 from 
+ * @Return the maximum distance squared of points c0 and c1 from 
  * the respective internal control points of z0--z1.
 */
 function Straightness(z0,c0,c1,z1)
@@ -840,9 +867,10 @@ function handleKey(key) {
 }
 
 function handleMouseWheel(event) {
-  let zoomFactor = event.deltaY / 50;
+  let zoomFactor = event.deltaY / 120;
   zoom(2 ** zoomFactor);
 
+  remesh=true;
   redraw = true;
 }
 
