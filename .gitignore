@@ -163,3 +163,6 @@ base/res/*.exr
 *.tar.gz.*
 
 renderDocSettings
+
+./*.html
+!**/WebGL*.html

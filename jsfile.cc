@@ -30,21 +30,20 @@ namespace camp {
     out <<
       "canvasWidth=" << gl::fullWidth << ";" << endl << 
       "canvasHeight=" << gl::fullHeight << ";" << endl;
-    out <<
-"     var materialIndex = 0;"
-"     var objMaterials = [new Material("
-"      baseColor = [1, 1, 0, 1],"
-"      emissive = [0, 0, 0, 1],"
-"      specular = [1, 1, 1, 1],"
-"      roughness = 0.15,"
-"      metallic = 0,"
-"      f0 = 0.04"
+    out << "var materialIndex = 0;\n"
+"     var objMaterials = [new Material(\n"
+"      baseColor = [1, 1, 0, 1],\n"
+"      emissive = [0, 0, 0, 1],\n"
+"      specular = [1, 1, 1, 1],\n"
+"      roughness = 0.15,\n"
+"      metallic = 0,\n"
+"      f0 = 0.04\n"
 "    )];"
-"    var lights = [new Light("
-"      type = enumDirectionalLight,"
-"      lightColor = [1, 0.87, 0.745],"
-"      brightness = 1,"
-"      customParam = [0, 0, 1, 0]"
+"    var lights = [new Light(\n"
+"      type = enumDirectionalLight,\n"
+"      lightColor = [1, 0.87, 0.745],\n"
+"      brightness = 1,\n"
+"      customParam = [0, 0, 1, 0]\n"
 "    )];"
         << endl;
   }

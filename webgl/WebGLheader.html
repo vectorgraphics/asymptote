@@ -92,9 +92,9 @@
       
       vec3 normal=normalSign*normalize(vNormal);
       vec3 Z=vec3(0,0,1.0);
-      vec3 rawCol = vec3(0.0);
-
       Material m=objMaterial[vMaterialIndex];
+
+      vec3 rawCol = m.emissive.xyz;
 
       if (useColor == 1) {
         m.baseColor = vColor;
