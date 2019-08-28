@@ -115,38 +115,13 @@ class DrawableObject {
   draw(forceremesh=false) {}
 }
 
-function copyFloatBuffer(buf, data, attrib, nverts) {
-  if (attrib !== -1) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(attrib, buf.itemSize, gl.FLOAT, false, 0, 0);
-    }
-    buf.numItems = nverts;
-}
-
-var pixel=1.0; // Adaptive rendering constant.
-var FillFactor=0.1;
-var BezierFactor=0.4;
-//var res=0.0005; // Temporary
-var res=0.15; // Temporary
-var res2=res*res;
-var Epsilon=0.1*res;
-var Fuzz2=1000*Number.EPSILON;
-var Fuzz4=Fuzz2*Fuzz2;
-var epsilon=Fuzz4*1.0; // FIXME
-
-class BezierPatch extends DrawableObject {
+class GeometryDrawable extends DrawableObject {
 
   /**
-   * Constructor for Bezier Patch
-   * @param {*} controlpoints Array of 16 points for control points.
    * @param {*} materialIndex Index of Material
    */
-  constructor(controlpoints, materialIndex=0) {
+  constructor(materialIndex) {
     super();
-
-    this.controlpoints = controlpoints;
-    this.materialIndex = 0;
     this.rendered = false;
 
     this.vertices = new Array();
@@ -154,9 +129,10 @@ class BezierPatch extends DrawableObject {
     this.normals = new Array();
     this.indices = new Array();
     this.materials = new Array();
-    this.materialIndex=materialIndex;
 
     this.nvertices = 0;
+
+    this.materialIndex=materialIndex;
   }
 
   draw(forceremesh=false) {
@@ -223,6 +199,39 @@ class BezierPatch extends DrawableObject {
     this.materials.push(this.materialIndex);
     
     return this.nvertices++;
+  }
+
+}
+
+function copyFloatBuffer(buf, data, attrib, nverts) {
+  if (attrib !== -1) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(attrib, buf.itemSize, gl.FLOAT, false, 0, 0);
+    }
+    buf.numItems = nverts;
+}
+
+var pixel=1.0; // Adaptive rendering constant.
+var FillFactor=0.1;
+var BezierFactor=0.4;
+//var res=0.0005; // Temporary
+var res=0.15; // Temporary
+var res2=res*res;
+var Epsilon=0.1*res;
+var Fuzz2=1000*Number.EPSILON;
+var Fuzz4=Fuzz2*Fuzz2;
+var epsilon=Fuzz4*1.0; // FIXME
+
+class BezierPatch extends GeometryDrawable {
+  /**
+   * Constructor for Bezier Patch
+   * @param {*} controlpoints Array of 16 points for control points.
+   * @param {*} materialIndex Index of Material
+   */
+  constructor(controlpoints, materialIndex=0) {
+    super(materialIndex);
+    this.controlpoints = controlpoints;
   }
 
   render() {
