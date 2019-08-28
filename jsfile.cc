@@ -46,22 +46,6 @@ namespace camp {
 "      brightness = 1,"
 "      customParam = [0, 0, 1, 0]"
 "    )];"
-""
-"    var L = [0.447735768366173, 0.497260947684137, 0.743144825477394];"
-"    var Ambient = [0.1, 0.1, 0.1];"
-"    var Diffuse = [0.8, 0.8, 0.8, 1];"
-"    var Specular = [0.7, 0.7, 0.7, 1];"
-"    var specularfactor = 3;"
-""
-"    var emissive = [0, 0, 0, 1];"
-"    var ambient = [0, 0, 0, 1];"
-"    var diffuse = [1, 0, 0, 1];"
-"    var specular = [0.75, 0.75, 0.75, 1];"
-"    var shininess = 0.5;"
-""
-"    var cameraPos = vec3.fromValues(0, 0, 2);"
-"    var cameraLookAt = vec3.fromValues(0, 0, 0);"
-"    var cameraUp = vec3.fromValues(1, 0, 0);"
         << endl;
   }
 
@@ -70,10 +54,10 @@ namespace camp {
   }
 
   void jsfile::addPatch(triple const* controls) {
-    out << "P.push([" << endl; 
+    out << "P.push(new BezierPatch([" << endl; 
     for(size_t i=0; i < 15; ++i)
       out << controls[i] << "," << endl;
-    out << controls[15] << endl << "]);" << endl << endl;
+    out << controls[15] << endl << "]));" << endl << endl;
   }
 
 };
