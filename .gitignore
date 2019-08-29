@@ -165,4 +165,4 @@ base/res/*.exr
 renderDocSettings
 
 *.html
-!**/WebGL*.html
+!webgl/WebGL*.html

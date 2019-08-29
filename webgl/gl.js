@@ -115,20 +115,22 @@ class DrawableObject {
   draw(forceremesh=false) {}
 }
 
-class GeometryDrawable extends DrawableObject {
+class AvertexStructure {
+  addVertex() {}
+  drawBuffer() {}
+  clearBuffer() {}
+}
 
-  /**
-   * @param {*} materialIndex Index of Material
-   */
-  constructor(materialIndex) {
-    super();
-    this.rendered = false;
+class StdVertexStructure extends AvertexStructure {
+  constructor() {
+    super()
 
-    this.vertices = new Array();
-    this.colors = new Array();
-    this.normals = new Array();
-    this.indices = new Array();
-    this.materials = new Array();
+    this.vertices = [];
+    this.materials = [];
+    this.colors = [];
+    this.normals = [];
+    this.indices = [];
+    this.nvertices = 0;
 
     this.fArrVertices = null;
     this.fArrColors = null;
@@ -138,8 +140,26 @@ class GeometryDrawable extends DrawableObject {
 
     this.arraysInitialized=false;
     this.nvertices = 0;
+  }
 
-    this.materialIndex=materialIndex;
+  addVertex(vertData) {
+    vertData.position.forEach( coord => 
+      this.vertices.push(coord)
+    );
+    vertData.normals.forEach( coord => 
+      this.normals.push(coord)
+    );
+
+    this.colors.push(0.0);
+    this.colors.push(0.0);
+    this.colors.push(0.0);
+    this.colors.push(1.0);
+    
+    this.materials.push(vertData.materialIndex);
+
+    this.arraysInitialized=false;
+
+    return this.nvertices++;
   }
 
   createArrays() {
@@ -152,17 +172,6 @@ class GeometryDrawable extends DrawableObject {
     this.arraysInitialized=true;
   }
 
-  draw(forceremesh=false) {
-    if (forceremesh) {
-      this.clearBuffer();
-    }
-    if (!this.rendered) {
-      this.render();
-    }
-
-    this.drawBuffer();
-  }
-
   drawBuffer() {
     if (!this.arraysInitialized) {
       this.createArrays();
@@ -171,7 +180,7 @@ class GeometryDrawable extends DrawableObject {
     copyFloatBuffer(VertexBuffer,this.fArrVertices,shaderProgram.vertexPositionAttribute, this.nvertices);
     copyFloatBuffer(ColorBuffer,this.fArrColors,shaderProgram.vertexColorAttribute, this.nvertices);
     copyFloatBuffer(NormalBuffer,this.fArrNormals,shaderProgram.vertexNormalAttribute, this.nvertices);
-  
+
     if (shaderProgram.vertexMaterialIndexAttribute !== -1) {
       gl.bindBuffer(gl.ARRAY_BUFFER, MaterialIndexBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, this.iArrMaterials, gl.STATIC_DRAW);
@@ -179,21 +188,22 @@ class GeometryDrawable extends DrawableObject {
       MaterialIndexBuffer.itemSize, gl.INT, false, 0, 0);
     }
     MaterialIndexBuffer.numItems = this.nvertices;
-  
+
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,this.iArrIndices,gl.STATIC_DRAW);
     indexBuffer.numItems = this.indices.length;
-  
+
     gl.drawElements(gl.TRIANGLES, indexBuffer.numItems,
                     indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
-  }
-
+    }
+    
   clearBuffer() {
     this.vertices=[];
     this.colors=[];
     this.normals=[];
     this.indices=[];
     this.materials=[];
+
     this.nvertices=0;
 
     this.fArrVertices=null;
@@ -203,27 +213,44 @@ class GeometryDrawable extends DrawableObject {
     this.iArrMaterials=null;
     
     this.arraysInitialized=false;
+  }
+}
+
+class GeometryDrawable extends DrawableObject {
+
+  /**
+   * @param {*} materialIndex Index of Material
+   * @param {*} vertexstructure Vertex Structure (Color, transparent, etc)
+   */
+  constructor(materialIndex, vertexstructure=StdVertexStructure) {
+    super();
+    this.rendered = false;
+    this.materialIndex=materialIndex;
+    this.vertexstructures=new vertexstructure();
+  }
+  
+  clearBuffer() {
+    this.vertexstructures.clearBuffer();
     this.rendered=false;
   }
 
-  addVertex(v,c,n) {
-    this.vertices.push(v[0]);
-    this.vertices.push(v[1]);
-    this.vertices.push(v[2]);
-  
-    this.colors.push(c[0]);
-    this.colors.push(c[1]);
-    this.colors.push(c[2]);
-    this.colors.push(c[3]);
-  
-    this.normals.push(n[0]);
-    this.normals.push(n[1]);
-    this.normals.push(n[2]);
-  
-    this.materials.push(this.materialIndex);
-    this.arraysInitialized=false;
-    
-    return this.nvertices++;
+  drawBuffer() {
+    this.vertexstructures.drawBuffer();
+  }
+
+  render() {
+
+  }
+
+  draw(forceremesh=false) {
+    if (forceremesh) {
+      this.clearBuffer();
+    }
+    if (!this.rendered) {
+      this.render();
+    }
+
+    this.drawBuffer()
   }
 
 }
@@ -254,9 +281,22 @@ class BezierPatch extends GeometryDrawable {
    * @param {*} controlpoints Array of 16 points for control points.
    * @param {*} materialIndex Index of Material
    */
-  constructor(controlpoints, materialIndex=0) {
-    super(materialIndex);
+  constructor(controlpoints, materialIndex, vertexstructure=StdVertexStructure) {
+    super(materialIndex, vertexstructure);
     this.controlpoints=controlpoints;
+  }
+
+  addVertex(pos, color, normal) {
+    return this.vertexstructures.addVertex({
+      position: pos,
+      color: color,
+      normals: normal, 
+      materialIndex: this.materialIndex
+    });
+  }
+
+  pushIndices(ind) {
+    this.vertexstructures.indices.push(ind);
   }
 
   render() {
@@ -290,6 +330,7 @@ class BezierPatch extends GeometryDrawable {
 
     this.render_internal(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
            c0,c1,c2,c3);
+
     this.rendered=true;
   }
 
@@ -297,13 +338,13 @@ class BezierPatch extends GeometryDrawable {
                   C0,C1,C2,C3) {
 
     if(Distance(p) < res2) { // Patch is flat
-      this.indices.push(I0);
-      this.indices.push(I1);
-      this.indices.push(I2);
+      this.pushIndices(I0);
+      this.pushIndices(I1);
+      this.pushIndices(I2);
       
-      this.indices.push(I0);
-      this.indices.push(I2);
-      this.indices.push(I3);
+      this.pushIndices(I0);
+      this.pushIndices(I2);
+      this.pushIndices(I3);
       return;
     }
 
@@ -770,7 +811,7 @@ function translateScene(lastX, lastY, rawX, rawY) {
 }
 
 function zoomScene(lastX, lastY, rawX, rawY) {
-  let zoomFactor = 2 ** (lastY - rawY);
+  let zoomFactor = 2 ** (lastY-rawY);
   zoom(zoomFactor);
 
   remesh=true;
@@ -855,7 +896,7 @@ function handleKey(key) {
 
 function handleMouseWheel(event) {
   let zoomFactor = event.deltaY / 120;
-  zoom(2 ** zoomFactor);
+  zoom(2 ** -zoomFactor);
 
   remesh=true;
   redraw = true;
