@@ -288,7 +288,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  cout << drawElement::materialIndex << endl;
 
   bbox3 box(m,M);
   box.transform(modelView.Tinv);
