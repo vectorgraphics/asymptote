@@ -1564,10 +1564,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     home(webgl);
     setProjection();
     
-    if(webgl) {
-      if(glthread) exit(0);
-      return;
-    }
+    if(webgl) return;
     
 #ifdef HAVE_GL    
     for(int i=0; i < 16; ++i)
