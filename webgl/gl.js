@@ -12,6 +12,8 @@ var mMatrix=mat4.create();
 var normMatrix=mat4.create();
 var target;
 
+var totalZoomFactor=1;
+
 class Material {
   constructor(diffuse, emissive, specular, shininess, metallic, fresnel0) {
     this.diffuse = diffuse;
@@ -810,14 +812,34 @@ function translateScene(lastX, lastY, rawX, rawY) {
     mat4.multiply(pMatrix, pMatrix, translMat);
 }
 
+/**
+ * Mouse Drag Zoom
+ * @param {*} lastX unused
+ * @param {*} lastY 
+ * @param {*} rawX unused
+ * @param {*} rawY 
+ */
 function zoomScene(lastX, lastY, rawX, rawY) {
-  let zoomFactor = 2 ** (lastY-rawY);
-  zoom(zoomFactor);
+  let zoomStep=0.1;
+  let zoomFactor=1.05;
+  let halfCanvHeight = canvasHeight / 2;
+
+  let stepPower=zoomStep*halfCanvHeight*(lastY-rawY);
+  let limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
+
+  if (Math.abs(stepPower) < limit) {
+    zoom(zoomFactor ** stepPower);
+  }
 
   remesh=true;
 }
 
 function zoom(zoomFactor) {
+  if (totalZoomFactor * zoomFactor > Math.sqrt(Number.MAX_VALUE) ||
+    totalZoomFactor * zoomFactor < 0.001) {
+      return;
+  }
+  totalZoomFactor *= zoomFactor;
   var zoomMat = mat4.create();
   mat4.scale(zoomMat, zoomMat, [zoomFactor, zoomFactor, zoomFactor]);
   COBTarget(zoomMat,zoomMat);
@@ -895,8 +917,11 @@ function handleKey(key) {
 }
 
 function handleMouseWheel(event) {
-  let zoomFactor = event.deltaY / 120;
-  zoom(2 ** -zoomFactor);
+  if (event.deltaY < 0) {
+    zoom(1.05);
+  } else {
+    zoom(1/1.05);
+  }
 
   remesh=true;
   redraw = true;
