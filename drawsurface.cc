@@ -253,6 +253,8 @@ bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
   if(invisible)
     return true;
 
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  
   out->addPatch(controls);
                     
   return true;

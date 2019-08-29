@@ -1,6 +1,13 @@
-#ifndef MATERIAL_STRUCT
-#define MATERIAL_STRUCT
+#ifndef MATERIAL_H
+#define MATERIAL_H
+
 #ifdef HAVE_LIBGLM
+
+#include <iostream>
+#include <fstream>
+
+#include "common.h"
+#include "triple.h"
 
 #include <glm/glm.hpp>
 
@@ -19,6 +26,13 @@ inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
 inline glm::vec4 GLparameters(GLfloat shininess, GLfloat metallic,
                              GLfloat fresnel0) {
   return glm::vec4(shininess,metallic,fresnel0,0.0);
+}
+
+inline ostream& operator << (ostream& out, const glm::vec4& v)
+{
+  out << "[" << v[0] << "," << v[1] << "," << v[2] << "," << v[3]
+      << "]";
+  return out;
 }
 
 struct Material {
@@ -45,6 +59,7 @@ public:
     parameters=m.parameters;
     return *this; 
   }
+  
   friend bool operator < (const Material& m1, const Material& m2) {
     return m1.diffuse < m2.diffuse ||
                         (m1.diffuse == m2.diffuse && 
@@ -54,6 +69,17 @@ public:
                         (m1.specular == m2.specular && 
                          (m1.parameters < m2.parameters))))));
   }
+  
+  friend ostream& operator << (ostream& out, const Material& m) {
+    out << "diffuse=" << m.diffuse << "," << newl
+        << "emissive=" << m.emissive << "," << newl
+        << "specular=" << m.specular << "," << newl
+        << "shininess=" << m.parameters[0] << "," << newl
+        << "metallic=" << m.parameters[1] << "," << newl
+        << "fresnel0=" << m.parameters[2] << newl;
+    return out;
+  }
+
 }; 
 
 extern size_t Nmaterials; // Number of materials compiled in shader
@@ -62,5 +88,6 @@ extern size_t Maxmaterials; // Maxinum size of materials buffer
 void clearMaterialBuffer(bool draw=false);
 
 }
+
 #endif
 #endif

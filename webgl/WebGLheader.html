@@ -10,16 +10,16 @@
 
     out vec4 outColor;
 
-    // const int nMaterials = 5;
     // const int nLights = 1; 
 
     uniform int useColor;
 
     struct Material {
-      vec4 baseColor, emissive, specular;
-      float roughness, metallic, f0;
+      vec4 diffuse, emissive, specular;
+      float shininess, metallic, fresnel0;
     };
 
+    const int nMaterials=5;
     uniform Material objMaterial[nMaterials]; // assuming we are doing multiple materials, 
 
     // type, for now
@@ -57,21 +57,22 @@
       return GGX_Geom(v,normal,roughness)*GGX_Geom(l,normal,roughness);
     }
     
-    float Fresnel(vec3 h, vec3 v, float f0) {
+    float Fresnel(vec3 h, vec3 v, float fresnel0) {
       float hdotv=max(dot(h,v), 0.0);
-      return f0+(1.0-f0)*pow((1.0-hdotv),5.0);
+      return fresnel0+(1.0-fresnel0)*pow((1.0-hdotv),5.0);
     }
     
     // physical based shading using UE4 model.
     vec3 physBDRF(Material material, vec3 normal, vec3 lightdir, vec3 lookdir) {
-      vec3 lambertian=material.baseColor.rgb;
+      vec3 lambertian=material.diffuse.rgb;
       vec3 h=normalize(lightdir+lookdir);
       float omegain=max(dot(lookdir, normal), 0.0);
       float omegali=max(dot(lightdir, normal), 0.0);
+      float roughness=1.0-material.shininess;
       
-      float D=NDF_TRG(h, normal, material.roughness*material.roughness);
-      float G=Geom(lookdir, lightdir, normal, material.roughness*material.roughness);
-      float F=Fresnel(h, lookdir, material.f0);
+      float D=NDF_TRG(h, normal, roughness*roughness);
+      float G=Geom(lookdir, lightdir, normal, roughness*roughness);
+      float F=Fresnel(h, lookdir, material.fresnel0);
       
       float denom=4.0*omegain*omegali;
       if (denom == 0.0) {return vec3(0,0,0); }
@@ -79,7 +80,7 @@
       float rawrefl=(D*G) / denom;
       
       vec3 dielectric=mix(lambertian, rawrefl*material.specular.rgb, F);
-      vec3 metal=rawrefl*material.baseColor.rgb;
+      vec3 metal=rawrefl*material.diffuse.rgb;
       
       return mix(dielectric, metal, material.metallic);
     }
@@ -97,7 +98,7 @@
       vec3 rawCol = m.emissive.xyz;
 
       if (useColor == 1) {
-        m.baseColor = vColor;
+        m.diffuse = vColor;
       }
 
       for (int i=0;i<nLights;++i) {
