@@ -967,7 +967,8 @@ function webGLStart() {
 
   initGL(canvas);
   initShaders();
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(1.0, 1.0, 1.0, 1.0);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
 
   canvas.onmousedown = handleMouseDown;

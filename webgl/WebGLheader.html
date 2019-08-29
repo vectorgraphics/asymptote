@@ -113,7 +113,7 @@
         vec3 radiance = cosTheta * Li.color * Li.brightness;
         rawCol += physBDRF(m, normal, lightDirection, Z) * radiance;
       }
-      outColor=vec4(rawCol,1);
+      outColor=vec4(rawCol,m.diffuse.a);
     }
   </script>
 
