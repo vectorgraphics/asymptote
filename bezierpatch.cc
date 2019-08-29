@@ -523,7 +523,6 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
   epsilon=0;
   for(unsigned i=1; i < 16; ++i)
     epsilon=max(epsilon,abs2(p[i]-p0));
-  
   epsilon *= Fuzz4;
     
   triple p3=p[3];
@@ -531,20 +530,28 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
   triple p15=p[15];
 
   triple n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-  if(n0 == 0.0) n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
-  if(n0 == 0.0) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
-    
+  if(n0 == 0.0) {
+    n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+    if(n0 == 0.0) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+  }
+  
   triple n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-  if(n1 == 0.0) n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
-  if(n1 == 0.0) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+  if(n1 == 0.0) {
+    n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+    if(n1 == 0.0) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+  }
     
   triple n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
-  if(n2 == 0.0) n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
-  if(n2 == 0.0) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+  if(n2 == 0.0) {
+    n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+    if(n2 == 0.0) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+  }
     
   triple n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
-  if(n3 == 0.0) n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
-  if(n3 == 0.0) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+  if(n3 == 0.0) {
+    n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+    if(n3 == 0.0) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+  }
     
   GLuint I0,I1,I2,I3;
     

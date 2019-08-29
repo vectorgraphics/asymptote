@@ -23,7 +23,7 @@ public:
   
   void open(string name);
   void copy(string name);
-  void addPatch(const triple* controls);
+  void addPatch(const triple* controls, const triple& Min, const triple& Max);
   void addMaterial(size_t index);
 };
 

@@ -85,6 +85,9 @@ extern bool wireframeMode;
 extern Int maxvertices;
 extern bool forceRemesh;
 
+extern bool orthographic;
+extern double xmin,xmax;
+extern double ymin,ymax;
 extern double zmin,zmax;
 extern int fullWidth,fullHeight;
 
