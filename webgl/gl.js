@@ -140,7 +140,6 @@ class GeometryDrawable extends DrawableObject {
     this.nvertices = 0;
 
     this.materialIndex=materialIndex;
-
   }
 
   createArrays() {
@@ -190,12 +189,12 @@ class GeometryDrawable extends DrawableObject {
   }
 
   clearBuffer() {
-    this.vertices = [];
-    this.colors = [];
-    this.normals = [];
-    this.indices = [];
-    this.materials = [];
-    this.nvertices = 0;
+    this.vertices=[];
+    this.colors=[];
+    this.normals=[];
+    this.indices=[];
+    this.materials=[];
+    this.nvertices=0;
 
     this.fArrVertices=null;
     this.fArrColors=null;
@@ -204,7 +203,7 @@ class GeometryDrawable extends DrawableObject {
     this.iArrMaterials=null;
     
     this.arraysInitialized=false;
-    this.rendered = false;
+    this.rendered=false;
   }
 
   addVertex(v,c,n) {
@@ -235,7 +234,7 @@ function copyFloatBuffer(buf, data, attrib, nverts) {
     gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
     gl.vertexAttribPointer(attrib, buf.itemSize, gl.FLOAT, false, 0, 0);
     }
-    buf.numItems = nverts;
+    buf.numItems=nverts;
 }
 
 var pixel=1.0; // Adaptive rendering constant.
@@ -257,7 +256,7 @@ class BezierPatch extends GeometryDrawable {
    */
   constructor(controlpoints, materialIndex=0) {
     super(materialIndex);
-    this.controlpoints = controlpoints;
+    this.controlpoints=controlpoints;
   }
 
   render() {
@@ -294,11 +293,8 @@ class BezierPatch extends GeometryDrawable {
     this.rendered=true;
   }
 
-  render_internal(p, 
-    I0, I1, I2, I3,
-    P0, P1, P2, P3, 
-    flat0, flat1, flat2, flat3,
-    C0, C1, C2, C3) {
+  render_internal(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,
+                  C0,C1,C2,C3) {
 
     if(Distance(p) < res2) { // Patch is flat
       this.indices.push(I0);
@@ -330,42 +326,38 @@ class BezierPatch extends GeometryDrawable {
     var c10=new Split3(p3,p[7],p[11],p15);
 
     var s0=[p0,c0.m0,c0.m3,c0.m5,c4.m0,c5.m0,c6.m0,c7.m0,
-    c4.m3,c5.m3,c6.m3,c7.m3,c4.m5,c5.m5,c6.m5,c7.m5
-    ];
+            c4.m3,c5.m3,c6.m3,c7.m3,c4.m5,c5.m5,c6.m5,c7.m5];
     var s1=[c4.m5,c5.m5,c6.m5,c7.m5,c4.m4,c5.m4,c6.m4,c7.m4,
-    c4.m2,c5.m2,c6.m2,c7.m2,p12,c3.m0,c3.m3,c3.m5
-    ];
+            c4.m2,c5.m2,c6.m2,c7.m2,p12,c3.m0,c3.m3,c3.m5];
     var s2=[c7.m5,c8.m5,c9.m5,c10.m5,c7.m4,c8.m4,c9.m4,c10.m4,
-    c7.m2,c8.m2,c9.m2,c10.m2,c3.m5,c3.m4,c3.m2,p15
-    ];
+            c7.m2,c8.m2,c9.m2,c10.m2,c3.m5,c3.m4,c3.m2,p15];
     var s3=[c0.m5,c0.m4,c0.m2,p3,c7.m0,c8.m0,c9.m0,c10.m0,
-    c7.m3,c8.m3,c9.m3,c10.m3,c7.m5,c8.m5,c9.m5,c10.m5
-    ];
+            c7.m3,c8.m3,c9.m3,c10.m3,c7.m5,c8.m5,c9.m5,c10.m5];
 
     var m4=s0[15];
 
     var n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
     if(n0 == 0.0) {
-    n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
-    if(n0 == 0.0) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+      n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
+      if(n0 == 0.0) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
     }
 
     var n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
     if(n1 == 0.0) {
-    n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
-    if(n1 == 0.0) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
+      n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
+      if(n1 == 0.0) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
     }
 
     var n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
     if(n2 == 0.0) {
-    n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
-    if(n2 == 0.0) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
+      n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
+      if(n2 == 0.0) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
     }
 
     var n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
     if(n3 == 0.0) {
-    n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
-    if(n3 == 0.0) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
+      n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
+      if(n3 == 0.0) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
     }
 
     var n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
@@ -375,86 +367,82 @@ class BezierPatch extends GeometryDrawable {
     // A kludge to remove subdivision cracks, only applied the first time
     // an edge is found to be flat before the rest of the subpatch is.
     if(flat0)
-    m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
+      m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
     else {
-    if((flat0=Distance1(p0,p[4],p[8],p12) < res2)) {
-    var u=s0[12];
-    var v=s2[3];
-    var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
-    m0=[0.5*(P0[0]+P1[0])+Epsilon*e[0],0.5*(P0[1]+P1[1])+Epsilon*e[1],
-    0.5*(P0[2]+P1[2])+Epsilon*e[2]
-    ];
-    } else
-    m0=s0[12];
+      if((flat0=Distance1(p0,p[4],p[8],p12) < res2)) {
+        var u=s0[12];
+        var v=s2[3];
+        var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
+        m0=[0.5*(P0[0]+P1[0])+Epsilon*e[0],0.5*(P0[1]+P1[1])+Epsilon*e[1],
+            0.5*(P0[2]+P1[2])+Epsilon*e[2]];
+      } else
+        m0=s0[12];
     }
 
     if(flat1)
-    m1=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
+      m1=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
     else {
-    if((flat1=Distance1(p12,p[13],p[14],p15) < res2)) {
-    var u=s1[15];
-    var v=s3[0];
-    var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
-    m1=[0.5*(P1[0]+P2[0])+Epsilon*e[0],0.5*(P1[1]+P2[1])+Epsilon*e[1],
-    0.5*(P1[2]+P2[2])+Epsilon*e[2]
-    ];
-    } else
-    m1=s1[15];
+      if((flat1=Distance1(p12,p[13],p[14],p15) < res2)) {
+        var u=s1[15];
+        var v=s3[0];
+        var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
+        m1=[0.5*(P1[0]+P2[0])+Epsilon*e[0],0.5*(P1[1]+P2[1])+Epsilon*e[1],
+            0.5*(P1[2]+P2[2])+Epsilon*e[2]];
+      } else
+        m1=s1[15];
     }
 
     if(flat2)
-    m2=[0.5*(P2[0]+P3[0]),0.5*(P2[1]+P3[1]),0.5*(P2[2]+P3[2])];
+      m2=[0.5*(P2[0]+P3[0]),0.5*(P2[1]+P3[1]),0.5*(P2[2]+P3[2])];
     else {
-    if((flat2=Distance1(p15,p[11],p[7],p3) < res2)) {
-    var u=s2[3];
-    var v=s0[12];
-    var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
-    m2=[0.5*(P2[0]+P3[0])+Epsilon*e[0],0.5*(P2[1]+P3[1])+Epsilon*e[1],
-    0.5*(P2[2]+P3[2])+Epsilon*e[2]
-    ];
-    } else
-    m2=s2[3];
+      if((flat2=Distance1(p15,p[11],p[7],p3) < res2)) {
+        var u=s2[3];
+        var v=s0[12];
+        var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
+        m2=[0.5*(P2[0]+P3[0])+Epsilon*e[0],0.5*(P2[1]+P3[1])+Epsilon*e[1],
+            0.5*(P2[2]+P3[2])+Epsilon*e[2]];
+      } else
+        m2=s2[3];
     }
 
     if(flat3)
-    m3=[0.5*(P3[0]+P0[0]),0.5*(P3[1]+P0[1]),0.5*(P3[2]+P0[2])];
+      m3=[0.5*(P3[0]+P0[0]),0.5*(P3[1]+P0[1]),0.5*(P3[2]+P0[2])];
     else {
-    if((flat3=Distance1(p3,p[2],p[1],p0) < res2)) {
-    var u=s3[0];
-    var v=s1[15];
-    var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
-    m3=[0.5*(P3[0]+P0[0])+Epsilon*e[0],
-    0.5*(P3[1]+P0[1])+Epsilon*e[1],
-    0.5*(P3[2]+P0[2])+Epsilon*e[2]
-    ];
-    } else
-    m3=s3[0];
+      if((flat3=Distance1(p3,p[2],p[1],p0) < res2)) {
+        var u=s3[0];
+        var v=s1[15];
+        var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
+        m3=[0.5*(P3[0]+P0[0])+Epsilon*e[0],
+            0.5*(P3[1]+P0[1])+Epsilon*e[1],
+            0.5*(P3[2]+P0[2])+Epsilon*e[2]];
+      } else
+        m3=s3[0];
     }
 
     {
-    var c0=color(n0);
-    var c1=color(n1);
-    var c2=color(n2);
-    var c3=color(n3);
-    var c4=color(n4);
+      var c0=color(n0);
+      var c1=color(n1);
+      var c2=color(n2);
+      var c3=color(n3);
+      var c4=color(n4);
 
 
-    var i0=this.addVertex(m0,c0,n0);
-    var i1=this.addVertex(m1,c1,n1);
-    var i2=this.addVertex(m2,c2,n2);
-    var i3=this.addVertex(m3,c3,n3);
-    var i4=this.addVertex(m4,c4,n4);
+      var i0=this.addVertex(m0,c0,n0);
+      var i1=this.addVertex(m1,c1,n1);
+      var i2=this.addVertex(m2,c2,n2);
+      var i3=this.addVertex(m3,c3,n3);
+      var i4=this.addVertex(m4,c4,n4);
 
-    this.render_internal(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
-    C0,c0,c4,c3);
-    this.render_internal(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,
-    c0,C1,c1,c4);
-    this.render_internal(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,
-    c4,c1,C2,c2);
-    this.render_internal(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
-    c3,c4,c2,C3);
+      this.render_internal(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
+                           C0,c0,c4,c3);
+      this.render_internal(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,
+                           c0,C1,c1,c4);
+      this.render_internal(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,
+                           c4,c1,C2,c2);
+      this.render_internal(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
+                           c3,c4,c2,C3);
     }
-    }
+  }
 }
 
 function resetCamera() {

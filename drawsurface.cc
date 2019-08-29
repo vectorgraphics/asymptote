@@ -78,7 +78,7 @@ void setcolors(bool colors,
                const RGBAColour& diffuse,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess,
-               double metallic, double fresnel0) 
+               double metallic, double fresnel0, jsfile *out) 
 {
   Material m;
   if(colors) {
@@ -99,10 +99,12 @@ void setcolors(bool colors,
     drawElement::materialIndex=drawElement::material.size();
     if(drawElement::materialIndex >= nmaterials)
       nmaterials=min(Maxmaterials,2*nmaterials);
-    if(drawElement::materialIndex >= Maxmaterials)
+    if(!out && drawElement::materialIndex >= Maxmaterials)
       clearMaterialBuffer(true);
     drawElement::material.push_back(m);
     drawElement::materialMap[m]=drawElement::materialIndex;
+    if(out) 
+      out->addMaterial(drawElement::materialIndex);
   }
 }
 
@@ -253,7 +255,7 @@ bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
   if(invisible)
     return true;
 
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
   out->addPatch(controls);
                     
@@ -286,6 +288,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+  cout << drawElement::materialIndex << endl;
 
   bbox3 box(m,M);
   box.transform(modelView.Tinv);
