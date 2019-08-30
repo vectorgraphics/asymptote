@@ -303,12 +303,12 @@ class BezierPatch extends GeometryDrawable {
       var perspective=1.0/B[2];
       f=Min[2]*perspective;
       F=Max[2]*perspective;
-      m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[2],F*b[2]),b[2]];
-      M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[2],F*B[2]),B[2]];
+      m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
+      M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
       s=Math.max(f,F);
     }
   
-    res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[2]-b[2]))/size2;
+    res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
     res2=res*res;
     Epsilon=FillFactor*res;
   }
