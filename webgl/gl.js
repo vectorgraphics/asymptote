@@ -8,6 +8,7 @@ var BezierFactor=0.4;
 var FillFactor=0.1;
 var Fuzz2=1000*Number.EPSILON;
 var Fuzz4=Fuzz2*Fuzz2;
+var third=1.0/3.0;
 
 var P=[]; // Array of patches
 var M=[]; // Array of materials
@@ -660,26 +661,22 @@ function derivative(p0,p1,p2,p3)
 
 function normal(left3,left2,left1,middle,right1,right2,right3)
 {
-  var u0=right1[0]-middle[0];
-  var v0=left1[0]-middle[0];
-  var u1=right1[1]-middle[1];
-  var v1=left1[1]-middle[1];
-  var u2=right1[2]-middle[2];
-  var v2=left1[2]-middle[2];
-  var n=[u1*v2-u2*v1,
-         u2*v0-u0*v2,
-         u0*v1-u1*v0];
+  var ux=right1[0]-middle[0];
+  var uy=right1[1]-middle[1];
+  var uz=right1[2]-middle[2];
+  var vx=left1[0]-middle[0];
+  var vy=left1[1]-middle[1];
+  var vz=left1[2]-middle[2];
+  var n=[uy*vz-uz*vy,
+         uz*vx-ux*vz,
+         ux*vy-uy*vx];
   if(abs2(n) > epsilon)
     return unit(n);
 
-  var lp=[v0,v1,v2];
-  var rp=[u0,u1,u2];
-  var lpp=[middle[0]+left2[0]-2*left1[0],
-           middle[1]+left2[1]-2*left1[1],
-           middle[2]+left2[2]-2*left1[2]];
-  var rpp=[middle[0]+right2[0]-2*right1[0],
-           middle[1]+right2[1]-2*right1[1],
-           middle[2]+right2[2]-2*right1[2]];
+  var lp=[vx,vy,vz];
+  var rp=[ux,uy,uz];
+  var lpp=bezierPP(middle,left1,left2);
+  var rpp=bezierPP(middle,right1,right2);
   var a=cross(rpp,lp);
   var b=cross(rp,lpp);
   n=[a[0]+b[0],
@@ -688,12 +685,8 @@ function normal(left3,left2,left1,middle,right1,right2,right3)
   if(abs2(n) > epsilon)
     return unit(n);
 
-  var lppp=[left3[0]-middle[0]+3*(left1[0]-left2[0]),
-            left3[1]-middle[1]+3*(left1[1]-left2[1]),
-            left3[2]-middle[2]+3*(left1[2]-left2[2])];
-  var rppp=[right3[0]-middle[0]+3*(right1[0]-right2[0]),
-            right3[1]-middle[1]+3*(right1[1]-right2[1]),
-            right3[2]-middle[2]+3*(right1[2]-right2[2])];
+  var lppp=bezierPPP(middle,left1,left2,left3);
+  var rppp=bezierPPP(middle,right1,right2,right3);
   a=cross(rpp,lpp);
   b=cross(rp,lppp);
   var c=cross(rppp,lp);
@@ -711,7 +704,6 @@ function normal(left3,left2,left1,middle,right1,right2,right3)
 */
 function Straightness(z0,c0,c1,z1)
 {
-  var third=1.0/3.0;
   var v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
   return Math.max(abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
     abs2([z1[0]-v[0]-c1[0],z1[1]-v[1]-c1[1],z1[2]-v[2]-c1[2]]));
