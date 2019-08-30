@@ -41,7 +41,7 @@ void BezierCurve::render(const triple *p, GLuint I0, GLuint I1)
   triple p1=p[1];
   triple p2=p[2];
   triple p3=p[3];
-  if(Distance1(p0,p1,p2,p3) < res2) { // Segment is flat
+  if(Straightness(p0,p1,p2,p3) < res2) { // Segment is flat
     triple P[]={p0,p3};
     if(!offscreen(2,P)) {
       indices.push_back(I0);

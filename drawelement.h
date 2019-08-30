@@ -37,7 +37,7 @@ inline triple bezierPP(triple a, triple b, triple c) {
 }
 
 // Return one-third of the third derivative of the Bezier curve defined by
-// a,b,c,d.
+// a,b,c,d at 0.
 inline triple bezierPPP(triple a, triple b, triple c, triple d) {
   return d-a+3.0*(b-c);
 }

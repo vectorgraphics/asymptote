@@ -361,17 +361,6 @@ inline double Straightness(const triple& z0, const triple& c0,
   return std::max(abs2(c0-v-z0),abs2(z1-v-c1));
 }
 
-// return the maximum perpendicular distance squared of points c0 and c1
-// from z0--z1.
-inline double Distance1(const triple& z0, const triple& c0,
-                        const triple& c1, const triple& z1)
-{
-  triple Z0=c0-z0;
-  triple Q=unit(z1-z0);
-  triple Z1=c1-z0;
-  return std::max(abs2(Z0-dot(Z0,Q)*Q),abs2(Z1-dot(Z1,Q)*Q));
-}
-
 // return the perpendicular distance squared of a point z from the plane
 // through u with unit normal n.
 inline double Distance2(const triple& z, const triple& u, const triple& n)

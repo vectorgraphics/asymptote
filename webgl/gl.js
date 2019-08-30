@@ -18,12 +18,12 @@ var pMatrixInit;
 var mMatrix=mat4.create();
 var normMatrix=mat4.create();
 
-var epsilon;
 var zmin,zmax;
 var target;
 var size2;
 var b,B; // Scene min,max bounding box corners
 
+var epsilon;
 var pixel=0.5; // Adaptive rendering constant.
 var BezierFactor=0.4;
 var FillFactor=0.1;
@@ -335,52 +335,6 @@ class BezierPatch extends GeometryDrawable {
     this.vertexstructures.indices.push(ind);
   }
 
-  normal(left3, left2, left1, middle, right1, right2, right3) {
-    var u0=right1[0]-middle[0];
-    var v0=left1[0]-middle[0];
-    var u1=right1[1]-middle[1];
-    var v1=left1[1]-middle[1];
-    var u2=right1[2]-middle[2];
-    var v2=left1[2]-middle[2];
-    var n=[u1*v2-u2*v1,
-           u2*v0-u0*v2,
-           u0*v1-u1*v0];
-    if(abs2(n) > this.epsilon)
-      return unit(n);
-
-    var lp=[v0,v1,v2];
-    var rp=[u0,u1,u2];
-    var lpp=[middle[0]+left2[0]-2*left1[0],
-             middle[1]+left2[1]-2*left1[1],
-             middle[2]+left2[2]-2*left1[2]];
-    var rpp=[middle[0]+right2[0]-2*right1[0],
-             middle[1]+right2[1]-2*right1[1],
-             middle[2]+right2[2]-2*right1[2]];
-    var a=cross(rpp,lp);
-    var b=cross(rp,lpp);
-    n=[a[0]+b[0],
-       a[1]+b[1],
-       a[2]+b[2]];
-    if(abs2(n) > this.epsilon)
-      return unit(n);
-
-    var lppp=[left3[0]-middle[0]+3*(left1[0]-left2[0]),
-              left3[1]-middle[1]+3*(left1[1]-left2[1]),
-              left3[2]-middle[2]+3*(left1[2]-left2[2])];
-    var rppp=[right3[0]-middle[0]+3*(right1[0]-right2[0]),
-              right3[1]-middle[1]+3*(right1[1]-right2[1]),
-              right3[2]-middle[2]+3*(right1[2]-right2[2])];
-    a=cross(rpp,lpp);
-    b=cross(rp,lppp);
-    var c=cross(rppp,lp);
-    var d=cross(rppp,lpp);
-    var e=cross(rpp,lppp);
-    var f=cross(rppp,lppp);
-    return unit([9*a[0]+3*(b[0]+c[0]+d[0]+e[0])+f[0],
-                 9*a[1]+3*(b[1]+c[1]+d[1]+e[1])+f[1],
-                 9*a[2]+3*(b[2]+c[2]+d[2]+e[2])+f[2]]);
-  }
-
   Distance(p) {
     var p0=p[0];
     var p3=p[3];
@@ -388,7 +342,7 @@ class BezierPatch extends GeometryDrawable {
     var p15=p[15];
 
     // Check the flatness of the quad.
-    var d=Distance2(p15,p0,this.normal(p3,p[2],p[1],p0,p[4],p[8],p12));
+    var d=Distance2(p15,p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
     
     // Determine how straight the edges are.
     d=Math.max(d,Straightness(p0,p[1],p[2],p3));
@@ -407,31 +361,31 @@ class BezierPatch extends GeometryDrawable {
     let p = this.controlpoints;
 
     var p0=p[0];
-    this.epsilon=0;
+    epsilon=0;
     for(var i=1; i < 16; ++i)
-      this.epsilon=Math.max(this.epsilon,
+      epsilon=Math.max(epsilon,
         abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    this.epsilon *= Fuzz4;
+    epsilon *= Fuzz4;
 
     var p3=p[3];
     var p12=p[12];
     var p15=p[15];
 
-    var n0=this.normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-    if(n0 == 0.0) n0=this.normal(p3,p[2],p[1],p0,p[13],p[14],p15);
-    if(n0 == 0.0) n0=this.normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+    var n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
+    if(n0 == 0.0) n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+    if(n0 == 0.0) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
 
-    var n1=this.normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-    if(n1 == 0.0) n1=this.normal(p0,p[4],p[8],p12,p[11],p[7],p3);
-    if(n1 == 0.0) n1=this.normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+    var n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
+    if(n1 == 0.0) n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+    if(n1 == 0.0) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
 
-    var n2=this.normal(p12,p[13],p[14],p15,p[11],p[7],p3);
-    if(n2 == 0.0) n2=this.normal(p12,p[13],p[14],p15,p[2],p[1],p0);
-    if(n2 == 0.0) n2=this.normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+    var n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
+    if(n2 == 0.0) n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+    if(n2 == 0.0) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
 
-    var n3=this.normal(p15,p[11],p[7],p3,p[2],p[1],p0);
-    if(n3 == 0.0) n3=this.normal(p15,p[11],p[7],p3,p[4],p[8],p12);
-    if(n3 == 0.0) n3=this.normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+    var n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
+    if(n3 == 0.0) n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+    if(n3 == 0.0) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
 
     var c0=color(n0);
     var c1=color(n1);
@@ -443,13 +397,13 @@ class BezierPatch extends GeometryDrawable {
     var i2=this.addVertex(p15,c2,n2);
     var i3=this.addVertex(p3,c3,n3);
 
-    this.render_internal(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
+    this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
            c0,c1,c2,c3);
 
     this.rendered=true;
   }
 
-  render_internal(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,
+  Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,
                   C0,C1,C2,C3) {
 
     if(this.Distance(p) < this.res2) { // Patch is flat
@@ -492,89 +446,72 @@ class BezierPatch extends GeometryDrawable {
 
     var m4=s0[15];
 
-    var n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
+    var n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
     if(n0 == 0.0) {
-      n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
-      if(n0 == 0.0) n0=this.normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+      n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
+      if(n0 == 0.0) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
     }
 
-    var n1=this.normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
+    var n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
     if(n1 == 0.0) {
-      n1=this.normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
-      if(n1 == 0.0) n1=this.normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
+      n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
+      if(n1 == 0.0) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
     }
 
-    var n2=this.normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
+    var n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
     if(n2 == 0.0) {
-      n2=this.normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
-      if(n2 == 0.0) n2=this.normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
+      n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
+      if(n2 == 0.0) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
     }
 
-    var n3=this.normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
+    var n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
     if(n3 == 0.0) {
-      n3=this.normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
-      if(n3 == 0.0) n3=this.normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
+      n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
+      if(n3 == 0.0) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
     }
 
-    var n4=this.normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
+    var n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
 
-    var m0,m1,m2,m3;
+    var e=this.Epsilon;
+
+    var m3;
 
     // A kludge to remove subdivision cracks, only applied the first time
     // an edge is found to be flat before the rest of the subpatch is.
-    if(flat0)
-      m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
-    else {
-      if((flat0=Distance1(p0,p[4],p[8],p12) < this.res2)) {
-        var u=s0[12];
-        var v=s2[3];
-        var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
-        m0=[0.5*(P0[0]+P1[0])+this.Epsilon*e[0],0.5*(P0[1]+P1[1])+this.Epsilon*e[1],
-            0.5*(P0[2]+P1[2])+this.Epsilon*e[2]];
-      } else
-        m0=s0[12];
+    var m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
+    if(!flat0) {
+      if((flat0=Straightness(p0,p[4],p[8],p12) < this.res2)) {
+        var r=unit(derivative(s1[0],s1[1],s1[2],s1[3]));
+        m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
+      }
+      else m0=s0[12];
     }
 
-    if(flat1)
-      m1=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
-    else {
-      if((flat1=Distance1(p12,p[13],p[14],p15) < this.res2)) {
-        var u=s1[15];
-        var v=s3[0];
-        var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
-        m1=[0.5*(P1[0]+P2[0])+this.Epsilon*e[0],
-            0.5*(P1[1]+P2[1])+this.Epsilon*e[1],
-            0.5*(P1[2]+P2[2])+this.Epsilon*e[2]];
-      } else
-        m1=s1[15];
+    var m1=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
+    if(!flat1) {
+      if((flat1=Straightness(p12,p[13],p[14],p15) < this.res2)) {
+        var r=unit(derivative(s2[12],s2[8],s2[4],s2[0]));
+        m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
+      }
+      else m1=s1[15];
     }
 
-    if(flat2)
-      m2=[0.5*(P2[0]+P3[0]),0.5*(P2[1]+P3[1]),0.5*(P2[2]+P3[2])];
-    else {
-      if((flat2=Distance1(p15,p[11],p[7],p3) < this.res2)) {
-        var u=s2[3];
-        var v=s0[12];
-        var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
-        m2=[0.5*(P2[0]+P3[0])+this.Epsilon*e[0],
-            0.5*(P2[1]+P3[1])+this.Epsilon*e[1],
-            0.5*(P2[2]+P3[2])+this.Epsilon*e[2]];
-      } else
-        m2=s2[3];
+    var m2=[0.5*(P2[0]+P3[0]),0.5*(P2[1]+P3[1]),0.5*(P2[2]+P3[2])];
+    if(!flat2) {
+      if((flat2=Straightness(p15,p[11],p[7],p3) < this.res2)) {
+        var r=unit(derivative(s3[15],s2[14],s2[13],s1[12]));
+        m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
+      }
+      else m2=s2[3];
     }
-
-    if(flat3)
-      m3=[0.5*(P3[0]+P0[0]),0.5*(P3[1]+P0[1]),0.5*(P3[2]+P0[2])];
-    else {
-      if((flat3=Distance1(p3,p[2],p[1],p0) < this.res2)) {
-        var u=s3[0];
-        var v=s1[15];
-        var e=unit([u[0]-v[0],u[1]-v[1],u[2]-v[2]]);
-        m3=[0.5*(P3[0]+P0[0])+this.Epsilon*e[0],
-            0.5*(P3[1]+P0[1])+this.Epsilon*e[1],
-            0.5*(P3[2]+P0[2])+this.Epsilon*e[2]];
-      } else
-        m3=s3[0];
+      
+    var m3=[0.5*(P3[0]+P0[0]),0.5*(P3[1]+P0[1]),0.5*(P3[2]+P0[2])];
+    if(!flat3) {
+      if((flat3=Straightness(p0,p[1],p[2],p3) < this.res2)) {
+        var r=unit(derivative(s0[3],s0[7],s0[11],s0[15]));
+        m3=[m3[0]-e*r[0],m3[1]-e*r[1],m3[2]-e*r[2]];
+      }
+      else m3=s3[0];
     }
 
     {
@@ -591,13 +528,13 @@ class BezierPatch extends GeometryDrawable {
       var i3=this.addVertex(m3,c3,n3);
       var i4=this.addVertex(m4,c4,n4);
 
-      this.render_internal(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
+      this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
                            C0,c0,c4,c3);
-      this.render_internal(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,
+      this.Render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,
                            c0,C1,c1,c4);
-      this.render_internal(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,
+      this.Render(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,
                            c4,c1,C2,c2);
-      this.render_internal(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
+      this.Render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
                            c3,c4,c2,C3);
     }
   }
@@ -646,7 +583,7 @@ function initShaders() {
 /* #pragma region math functions */
 
 class Split3 {
-  constructor(z0, c0, c1, z1) {
+  constructor(z0,c0,c1,z1) {
     this.m0=new Array(3);
     this.m2=new Array(3);
     this.m3=new Array(3);
@@ -663,33 +600,106 @@ class Split3 {
   }
 }
 
-function unit(v) {
+function unit(v)
+{
   var norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
   norm=(norm != 0) ? 1 / norm : 1;
   return [v[0]*norm,v[1]*norm,v[2]*norm];
 }
-function abs2(v) {
+
+function abs2(v)
+{
   return v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
 }
 
-function dot(u,v) {
+function dot(u,v)
+{
   return u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
 }
 
-function cross(u, v) {
+function cross(u,v)
+{
   return [u[1]*v[2]-u[2]*v[1],
           u[2]*v[0]-u[0]*v[2],
-          u[0]*v[1]-u[1]*v[0]
-         ];
+          u[0]*v[1]-u[1]*v[0]];
 }
 
-/**
- * @Return perpendicular distance squared of a point z from the plane
- * through u with unit normal n.
- */
-function Distance2(z,u,n) {
-  var d=dot([z[0]-u[0],z[1]-u[1],z[2]-u[2]],n);
-  return d*d;
+// Return one-sixth of the second derivative of the Bezier curve defined
+// by a,b,c,d at 0. 
+function bezierPP(a,b,c)
+{
+  return [a[0]+c[0]-2.0*b[0],
+          a[1]+c[1]-2.0*b[1],
+          a[2]+c[2]-2.0*b[2]];
+}
+
+// Return one-third of the third derivative of the Bezier curve defined by
+// a,b,c,d at 0.
+function bezierPPP(a,b,c,d)
+{
+  return [d[0]-a[0]+3.0*(b[0]-c[0]),
+          d[1]-a[1]+3.0*(b[1]-c[1]),
+          d[2]-a[2]+3.0*(b[2]-c[2])];
+}
+
+function derivative(p0,p1,p2,p3)
+{
+  var lp=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]];
+  if(abs2(lp) > epsilon)
+    return lp;
+  
+  var lpp=bezierPP(p0,p1,p2);
+  if(abs2(lpp) > epsilon)
+    return lpp;
+  
+  return bezierPPP(p0,p1,p2,p3);
+}
+
+function normal(left3,left2,left1,middle,right1,right2,right3)
+{
+  var u0=right1[0]-middle[0];
+  var v0=left1[0]-middle[0];
+  var u1=right1[1]-middle[1];
+  var v1=left1[1]-middle[1];
+  var u2=right1[2]-middle[2];
+  var v2=left1[2]-middle[2];
+  var n=[u1*v2-u2*v1,
+         u2*v0-u0*v2,
+         u0*v1-u1*v0];
+  if(abs2(n) > epsilon)
+    return unit(n);
+
+  var lp=[v0,v1,v2];
+  var rp=[u0,u1,u2];
+  var lpp=[middle[0]+left2[0]-2*left1[0],
+           middle[1]+left2[1]-2*left1[1],
+           middle[2]+left2[2]-2*left1[2]];
+  var rpp=[middle[0]+right2[0]-2*right1[0],
+           middle[1]+right2[1]-2*right1[1],
+           middle[2]+right2[2]-2*right1[2]];
+  var a=cross(rpp,lp);
+  var b=cross(rp,lpp);
+  n=[a[0]+b[0],
+     a[1]+b[1],
+     a[2]+b[2]];
+  if(abs2(n) > epsilon)
+    return unit(n);
+
+  var lppp=[left3[0]-middle[0]+3*(left1[0]-left2[0]),
+            left3[1]-middle[1]+3*(left1[1]-left2[1]),
+            left3[2]-middle[2]+3*(left1[2]-left2[2])];
+  var rppp=[right3[0]-middle[0]+3*(right1[0]-right2[0]),
+            right3[1]-middle[1]+3*(right1[1]-right2[1]),
+            right3[2]-middle[2]+3*(right1[2]-right2[2])];
+  a=cross(rpp,lpp);
+  b=cross(rp,lppp);
+  var c=cross(rppp,lp);
+  var d=cross(rppp,lpp);
+  var e=cross(rpp,lppp);
+  var f=cross(rppp,lppp);
+  return unit([9*a[0]+3*(b[0]+c[0]+d[0]+e[0])+f[0],
+               9*a[1]+3*(b[1]+c[1]+d[1]+e[1])+f[1],
+               9*a[2]+3*(b[2]+c[2]+d[2]+e[2])+f[2]]);
 }
 
 /**
@@ -705,23 +715,19 @@ function Straightness(z0,c0,c1,z1)
 }
 
 /**
- * @Return the maximum perpendicular distance squared of points c0 and c1
- * from z0--z1
-*/
-function Distance1(z0, c0, c1, z1) {
-  var Z0=[c0[0]-z0[0],c0[1]-z0[1],c0[2]-z0[2]];
-  var Q=unit([z1[0]-z0[0],z1[1]-z0[1],z1[2]-z0[2]]);
-  var Z1=[c1[0]-z0[0],c1[1]-z0[1],c1[2]-z0[2]];
-  var p0=dot(Z0,Q);
-  var p1=dot(Z1,Q);
-  return Math.max(abs2([Z0[0]-p0*Q[0],Z0[1]-p0*Q[1],Z0[2]-p0*Q[2]]),
-    abs2([Z1[0]-p1*Q[0],Z1[1]-p1*Q[1],Z1[2]-p1*Q[2]]));
+ * @Return the perpendicular distance squared of a point z from the plane
+ * through u with unit normal n.
+ */
+function Distance2(z,u,n)
+{
+  var d=dot([z[0]-u[0],z[1]-u[1],z[2]-u[2]],n);
+  return d*d;
 }
 
 /* #pragma endregion */
 
 /**
- * Performs a change of basis
+ * Perform a change of basis
  * @param {*} out Out Matrix
  * @param {*} conjMatrix Conjugate Matrix
  * @param {*} mat Matrix
