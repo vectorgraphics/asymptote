@@ -105,7 +105,7 @@ function getShader(gl, id) {
   var str = `#version 300 es
   precision mediump float;
   const int nLights=${lights.length};
-  const int nMaterials=${M.length};
+//  const int nMaterials=${M.length};
   `
   if (orthographic) {
     str += `
