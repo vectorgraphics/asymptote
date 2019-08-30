@@ -10,9 +10,6 @@
     flat in int vMaterialIndex;
 
     out vec4 outColor;
-
-    // const int nLights = 1; 
-
     uniform int useColor;
 
     struct Material {
@@ -20,8 +17,7 @@
       float shininess, metallic, fresnel0;
     };
 
-    const int nMaterials=5; // FIXME
-    uniform Material objMaterial[nMaterials]; // assuming we are doing multiple materials, 
+    uniform Material objMaterial[nMaterials];
 
     // type, for now
     #define POINT_LIGHT 1
@@ -36,7 +32,7 @@
       float brightness;
       vec4 parameter;
     };
-    uniform Light objLights[nLights]; // again, can be set at will by the asy generator.
+    uniform Light objLights[nLights];
 
     float NDF_TRG(vec3 halfv, vec3 normal, float roughness) {
       float ndoth=max(dot(normal, halfv), 0.0);
