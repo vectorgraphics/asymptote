@@ -17,6 +17,13 @@ var target;
 var size2;
 var b,B; // Scene min,max bounding box corners
 
+var pixel=0.5; // Adaptive rendering constant.
+var BezierFactor=0.4;
+var FillFactor=0.1;
+var Fuzz2=1000*Number.EPSILON;
+var Fuzz4=Fuzz2*Fuzz2;
+
+
 var totalZoomFactor=1;
 
 class Material {
@@ -93,6 +100,11 @@ function getShader(gl, id) {
   const int nLights=${lights.length};
 //  const int nMaterials=${M.length};
   `
+  if (orthographic) {
+    str += `
+    #define ORTHOGRAPHIC
+    `;
+  }
 
   var k = shaderScript.firstChild;
   while (k) {
@@ -270,12 +282,6 @@ function copyFloatBuffer(buf, data, attrib, nverts) {
     }
     buf.numItems=nverts;
 }
-
-var pixel=1.0; // Adaptive rendering constant.
-var BezierFactor=0.4;
-var FillFactor=0.1;
-var Fuzz2=1000*Number.EPSILON;
-var Fuzz4=Fuzz2*Fuzz2;
 
 class BezierPatch extends GeometryDrawable {
   /**
@@ -552,10 +558,10 @@ function initShaders() {
   shaderProgram.vertexMaterialIndexAttribute = gl.getAttribLocation(shaderProgram, "aVertexMaterialIndex");
   gl.enableVertexAttribArray(shaderProgram.vertexMaterialIndexAttribute);
 
-  shaderProgram.pvMatrixUniform=gl.getUniformLocation(shaderProgram,"uPVMatrix");
-  shaderProgram.normMatUniform=gl.getUniformLocation(shaderProgram, "uNormMatrix");
 
-  // shaderProgram.nlightsUniform = gl.getUniformLocation(shaderProgram, "unLights");
+  shaderProgram.pvMatrixUniform=gl.getUniformLocation(shaderProgram,"uPVMatrix");
+  shaderProgram.vmMatrixUniform=gl.getUniformLocation(shaderProgram,"uVMMatrix");
+  shaderProgram.normMatUniform=gl.getUniformLocation(shaderProgram, "uNormMatrix");
   shaderProgram.useColorUniform = gl.getUniformLocation(shaderProgram, "useColor");
 
 }
@@ -743,9 +749,11 @@ function setUniforms() {
   var msMatrix = mat4.create();
   COBTarget(msMatrix, mMatrix);
 
+  var vmMatrix=mat4.create();
+  mat4.multiply(vmMatrix,vMatrix,msMatrix);
+
   var pvmMatrix=mat4.create();
-  mat4.multiply(pvmMatrix,pMatrix,vMatrix);
-  mat4.multiply(pvmMatrix,pvmMatrix,msMatrix);
+  mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
 
   var mNormMatrix=mat4.create();
   inversedual(mat4,mMatrix);
@@ -754,6 +762,7 @@ function setUniforms() {
   mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
 
   gl.uniformMatrix4fv(shaderProgram.pvMatrixUniform,false,pvmMatrix);
+  gl.uniformMatrix4fv(shaderProgram.vmMatrixUniform,false,vmMatrix);
   gl.uniformMatrix4fv(shaderProgram.normMatUniform,false,vmNormMatrix);
   
   for (let i=0; i < M.length; ++i) {

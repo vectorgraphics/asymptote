@@ -5,6 +5,7 @@
 
   <script id="shader-fs" type="x-shader/x-fragment">
     in vec4 vColor;
+    in vec4 vViewPosition;
     in vec3 vNormal;
     flat in int vMaterialIndex;
 
@@ -93,6 +94,12 @@
       
       vec3 normal=normalSign*normalize(vNormal);
       vec3 Z=vec3(0,0,1.0);
+    #ifdef ORTHOGRAPHIC
+      vec3 viewDir=Z;
+    #else
+      vec3 viewDir=normalize(vViewPosition.xyz/vViewPosition.z);
+    #endif
+
       Material m=objMaterial[vMaterialIndex];
 
       vec3 rawCol = m.emissive.xyz;
@@ -111,7 +118,7 @@
           cosTheta = max(dot(normal, lightDirection), 0.0);
         }
         vec3 radiance = cosTheta * Li.color * Li.brightness;
-        rawCol += physBDRF(m, normal, lightDirection, Z) * radiance;
+        rawCol += physBDRF(m, normal, lightDirection, viewDir) * radiance;
       }
       outColor=vec4(rawCol,m.diffuse.a);
     }
@@ -124,14 +131,19 @@
     in int aVertexMaterialIndex;
 
     uniform mat4 uNormMatrix;
+    uniform mat4 uVMMatrix;
     uniform mat4 uPVMatrix;
     
     out vec4 vColor;
     out vec3 vNormal;
+    out vec4 vViewPosition;
+
     flat out int vMaterialIndex;
     
     void main(void) {
-      gl_Position=uPVMatrix*vec4(aVertexPosition,1.0);  
+      gl_Position=uPVMatrix*vec4(aVertexPosition,1.0);
+      vViewPosition=uVMMatrix*vec4(aVertexPosition,1.0);
+
       vec4 rawNormal=uNormMatrix*vec4(aVertexNormal,0.0);
       vNormal=normalize(rawNormal.xyz);
       
