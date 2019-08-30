@@ -1,6 +1,6 @@
 /*****
  * glrender.cc
- * John Bowman and Orest Shardt
+ * John Bowman, Orest Shardt, and Supakorn "Jamie" Rassameemasmuang
  * Render 3D Bezier paths and surfaces.
  *****/
 
@@ -1824,4 +1824,3 @@ void deleteUniforms()
 }
 
 #endif /* HAVE_GL */
-
