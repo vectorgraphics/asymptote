@@ -97,7 +97,7 @@
     #ifdef ORTHOGRAPHIC
       vec3 viewDir=Z;
     #else
-      vec3 viewDir=normalize(vViewPosition.xyz/vViewPosition.z);
+      vec3 viewDir=-normalize(vViewPosition.xyz/vViewPosition.w);
     #endif
 
       Material m=objMaterial[vMaterialIndex];
