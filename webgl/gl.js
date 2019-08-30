@@ -1,4 +1,5 @@
 // Render Bezier patches via subdivision with WebGL.
+// Author: John C. Bowman, Supakorn "Jamie" Rassameemasmuang
 
 var gl;
 
