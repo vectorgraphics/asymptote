@@ -373,27 +373,27 @@ class BezierPatch extends GeometryDrawable {
     var p15=p[15];
 
     var n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-    if(n0 == 0.0) {
+    if(iszero(n0)) {
       n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
-      if(n0 == 0.0) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+      if(iszero(n0)) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
     }
 
     var n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-    if(n1 == 0.0) {
+    if(iszero(n1)) {
       n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
-      if(n1 == 0.0) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+      if(iszero(n1)) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
     }
 
     var n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
-    if(n2 == 0.0) {
+    if(iszero(n2)) {
       n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
-      if(n2 == 0.0) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+      if(iszero(n2)) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
     }
 
     var n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
-    if(n3 == 0.0) {
+    if(iszero(n3)) {
       n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
-      if(n3 == 0.0) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+      if(iszero(n3)) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
     }
 
     var c0=color(n0);
@@ -454,27 +454,27 @@ class BezierPatch extends GeometryDrawable {
     var m4=s0[15];
 
     var n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
-    if(n0 == 0.0) {
+    if(iszero(n0)) {
       n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
-      if(n0 == 0.0) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+      if(iszero(n0)) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
     }
 
     var n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
-    if(n1 == 0.0) {
+    if(iszero(n1)) {
       n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
-      if(n1 == 0.0) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
+      if(iszero(n1)) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
     }
 
     var n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
-    if(n2 == 0.0) {
+    if(iszero(n2)) {
       n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
-      if(n2 == 0.0) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
+      if(iszero(n2)) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
     }
 
     var n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
-    if(n3 == 0.0) {
+    if(iszero(n3)) {
       n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
-      if(n3 == 0.0) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
+      if(iszero(n3)) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
     }
 
     var n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
@@ -604,10 +604,15 @@ class Split3 {
   }
 }
 
+function iszero(v)
+{
+  return v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0;
+}
+
 function unit(v)
 {
   var norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  norm=(norm != 0) ? 1 / norm : 1;
+  norm=(norm != 0.0) ? 1 / norm : 1;
   return [v[0]*norm,v[1]*norm,v[2]*norm];
 }
 
