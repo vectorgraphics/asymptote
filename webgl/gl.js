@@ -474,8 +474,6 @@ class BezierPatch extends GeometryDrawable {
 
     var e=this.Epsilon;
 
-    var m3;
-
     // A kludge to remove subdivision cracks, only applied the first time
     // an edge is found to be flat before the rest of the subpatch is.
     var m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
