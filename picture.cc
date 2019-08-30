@@ -459,17 +459,6 @@ bool picture::texprocess(const string& texname, const string& outname,
         cmd.push_back("-o"+outname);
         ostringstream buf;
         bbox B=svgbbox(b,bboxshift);
-        /*
-        double height=b.top-b.bottom;
-        double threshold=12.0*tex2ps;
-        if(height < threshold) {
-          double offset=threshold-height;
-          b.top += offset;
-          b.bottom += offset;
-        }
-        bbox B=b;
-        B.shift(bboxshift+pair(1.99*cm,1.9*cm));
-        */
         buf << "--bbox=" 
             << B.left << "bp " 
             << B.bottom << "bp "
@@ -1286,62 +1275,66 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool Wait=!interact::interactive || !View || animating;
 #endif  
 
+  bool webgl=format == "html";
+  
+  if(!webgl) {
 #if defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)
-  if(glthread && !offscreen) {
+    if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
-    if(gl::initialize) {
-      gl::initialize=false;
-      com.prefix=prefix;
-      com.pic=pic;
-      com.format=outputformat;
-      com.width=width;
-      com.height=height;
-      com.angle=angle;
-      com.zoom=zoom;
-      com.m=m;
-      com.M=M;
-      com.shift=shift;
-      com.t=t;
-      com.background=background;
-      com.nlights=nlights;
-      com.lights=lights;
-      com.diffuse=diffuse;
-      com.specular=specular;
-      com.view=View;
-      if(Wait)
-        pthread_mutex_lock(&readyLock);
-      wait(initSignal,initLock);
-      endwait(initSignal,initLock);
-      static bool initialize=true;
-      if(initialize) {
+      if(gl::initialize) {
+        gl::initialize=false;
+        com.prefix=prefix;
+        com.pic=pic;
+        com.format=outputformat;
+        com.width=width;
+        com.height=height;
+        com.angle=angle;
+        com.zoom=zoom;
+        com.m=m;
+        com.M=M;
+        com.shift=shift;
+        com.t=t;
+        com.background=background;
+        com.nlights=nlights;
+        com.lights=lights;
+        com.diffuse=diffuse;
+        com.specular=specular;
+        com.view=View;
+        if(Wait)
+          pthread_mutex_lock(&readyLock);
         wait(initSignal,initLock);
         endwait(initSignal,initLock);
-        initialize=false;
+        static bool initialize=true;
+        if(initialize) {
+          wait(initSignal,initLock);
+          endwait(initSignal,initLock);
+          initialize=false;
+        }
+        if(Wait) {
+          pthread_cond_wait(&readySignal,&readyLock);
+          pthread_mutex_unlock(&readyLock);
+        }
+        return true;
       }
-      if(Wait) {
-        pthread_cond_wait(&readySignal,&readyLock);
-        pthread_mutex_unlock(&readyLock);
-      }
-      return true;
-    }
-    if(Wait)
-      pthread_mutex_lock(&readyLock);
+      if(Wait)
+        pthread_mutex_lock(&readyLock);
 #endif
-  } else {
-    int pid=fork();
-    if(pid == -1)
-      camp::reportError("Cannot fork process");
-    if(pid != 0)  {
-      oldpid=pid;
-      waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
-      return true;
+    } else {
+      int pid=fork();
+      if(pid == -1)
+        camp::reportError("Cannot fork process");
+      if(pid != 0)  {
+        oldpid=pid;
+        waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
+        return true;
+      }
     }
+#endif
   }
-#endif
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
            background,nlights,lights,diffuse,specular,View,oldpid);
   
-  if(format == "html") {
+  if(webgl) {
     jsfile js;
     string name=buildname(prefix,format);
     js.open(name);
