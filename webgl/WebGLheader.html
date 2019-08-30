@@ -72,12 +72,14 @@
       float F=Fresnel(h, lookdir, material.fresnel0);
       
       float denom=4.0*omegain*omegali;
-      if (denom == 0.0) {return vec3(0,0,0); }
+      float rawReflectance;
+      if(denom > 0.0)
+        rawReflectance=(D*G)/denom;
+      else 
+        rawReflectance=0.0;
       
-      float rawrefl=(D*G) / denom;
-      
-      vec3 dielectric=mix(lambertian, rawrefl*material.specular.rgb, F);
-      vec3 metal=rawrefl*material.diffuse.rgb;
+      vec3 dielectric=mix(lambertian, rawReflectance*material.specular.rgb, F);
+      vec3 metal=rawReflectance*material.diffuse.rgb;
       
       return mix(dielectric, metal, material.metallic);
     }
