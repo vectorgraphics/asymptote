@@ -90,11 +90,11 @@
       
       vec3 normal=normalSign*normalize(vNormal);
       vec3 Z=vec3(0,0,1.0);
-    #ifdef ORTHOGRAPHIC
+#ifdef ORTHOGRAPHIC
       vec3 viewDir=Z;
-    #else
+#else
       vec3 viewDir=-normalize(vViewPosition.xyz/vViewPosition.w);
-    #endif
+#endif
 
       Material m=objMaterial[vMaterialIndex];
 

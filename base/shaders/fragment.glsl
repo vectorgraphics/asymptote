@@ -177,12 +177,9 @@ vec4 parameters;
     if(nlights > 0) {
       for(int i=0; i < nlights; ++i) {
         vec3 L = normalize(lights[i].direction.xyz);
-        // what if we use the acutal view from (0,0,0) instead?
-        // vec3 viewDirection = Z;
-        vec3 viewDirection = -normalize(Z);
+        vec3 viewDirection = -Z;
         float cosTheta = max(dot(normal, L), 0); // $\omega_i \cdot n$ term
-        float attn = 1; // if we have a good light position.
-        vec3 radiance = cosTheta * attn * lights[i].diffuse.rgb;
+        vec3 radiance = cosTheta*lights[i].diffuse.rgb;
         pointLightRadiance += BRDF(Z, L) * radiance;
       }
       color += pointLightRadiance.rgb;
