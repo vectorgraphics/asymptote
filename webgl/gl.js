@@ -372,20 +372,28 @@ class BezierPatch extends GeometryDrawable {
     var p15=p[15];
 
     var n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-    if(n0 == 0.0) n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
-    if(n0 == 0.0) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+    if(n0 == 0.0) {
+      n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+      if(n0 == 0.0) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+    }
 
     var n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-    if(n1 == 0.0) n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
-    if(n1 == 0.0) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+    if(n1 == 0.0) {
+      n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+      if(n1 == 0.0) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+    }
 
     var n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
-    if(n2 == 0.0) n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
-    if(n2 == 0.0) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+    if(n2 == 0.0) {
+      n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+      if(n2 == 0.0) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+    }
 
     var n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
-    if(n3 == 0.0) n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
-    if(n3 == 0.0) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+    if(n3 == 0.0) {
+      n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+      if(n3 == 0.0) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+    }
 
     var c0=color(n0);
     var c1=color(n1);
@@ -403,9 +411,7 @@ class BezierPatch extends GeometryDrawable {
     this.rendered=true;
   }
 
-  Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,
-                  C0,C1,C2,C3) {
-
+  Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
     if(this.Distance(p) < this.res2) { // Patch is flat
       this.pushIndices(I0);
       this.pushIndices(I1);
@@ -518,7 +524,6 @@ class BezierPatch extends GeometryDrawable {
       var c2=color(n2);
       var c3=color(n3);
       var c4=color(n4);
-
 
       var i0=this.addVertex(m0,c0,n0);
       var i1=this.addVertex(m1,c1,n1);
