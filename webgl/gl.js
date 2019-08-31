@@ -3,9 +3,12 @@
 
 var gl;
 
+var epsilon;
 var pixel=1.0; // Adaptive rendering constant.
 var BezierFactor=0.4;
 var FillFactor=0.1;
+var totalZoomFactor=1;
+
 var Fuzz2=1000*Number.EPSILON;
 var Fuzz4=Fuzz2*Fuzz2;
 var third=1.0/3.0;
@@ -23,16 +26,6 @@ var zmin,zmax;
 var target;
 var size2;
 var b,B; // Scene min,max bounding box corners
-
-var epsilon;
-var pixel=0.5; // Adaptive rendering constant.
-var BezierFactor=0.4;
-var FillFactor=0.1;
-var Fuzz2=1000*Number.EPSILON;
-var Fuzz4=Fuzz2*Fuzz2;
-
-
-var totalZoomFactor=1;
 
 class Material {
   constructor(diffuse, emissive, specular, shininess, metallic, fresnel0) {
