@@ -81,7 +81,7 @@ class Light {
 
 function initGL(canvas) {
   try {
-    gl = canvas.getContext("webgl2");
+    gl = canvas.getContext("webgl");
     gl.viewportWidth = canvas.width;
     gl.viewportHeight = canvas.height;
   } catch (e) {}
@@ -96,7 +96,7 @@ function getShader(gl, id) {
     return null;
   }
 
-  var str = `#version 300 es
+  var str = `#version 100
   precision highp float;
   const int nLights=${lights.length};
   const int nMaterials=${M.length};
@@ -156,7 +156,7 @@ class StdVertexStructure extends AvertexStructure {
     this.fArrColors = null;
     this.fArrNormals = null;
     this.iArrIndices=null;
-    this.iArrMaterials=null;
+    this.fArrMaterials=null;
 
     this.arraysInitialized=false;
     this.nvertices = 0;
@@ -187,7 +187,7 @@ class StdVertexStructure extends AvertexStructure {
     this.fArrColors=new Float32Array(this.colors);
     this.fArrNormals=new Float32Array(this.normals);
     this.iArrIndices=indexExt ? new Uint32Array(this.indices) : new Uint16Array(this.indices);
-    this.iArrMaterials=new Int32Array(this.materials);
+    this.fArrMaterials=new Float32Array(this.materials);
 
     this.arraysInitialized=true;
   }
@@ -203,9 +203,9 @@ class StdVertexStructure extends AvertexStructure {
 
     if (shaderProgram.vertexMaterialIndexAttribute !== -1) {
       gl.bindBuffer(gl.ARRAY_BUFFER, MaterialIndexBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, this.iArrMaterials, gl.STATIC_DRAW);
-      gl.vertexAttribIPointer(shaderProgram.vertexMaterialIndexAttribute,
-      MaterialIndexBuffer.itemSize, gl.INT, false, 0, 0);
+      gl.bufferData(gl.ARRAY_BUFFER, this.fArrMaterials, gl.STATIC_DRAW);
+      gl.vertexAttribPointer(shaderProgram.vertexMaterialIndexAttribute,
+      MaterialIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
     }
     MaterialIndexBuffer.numItems = this.nvertices;
 
