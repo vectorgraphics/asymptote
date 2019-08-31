@@ -73,7 +73,7 @@ vec2 normalizedAngle(vec3 cartVec)
 #ifdef NORMAL
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
-float NDF_TRG(vec3 h, float roughness)
+float NDF_TRG(vec3 h)
 {
   float ndoth=max(dot(normal,h),0.0);
   float alpha2=Roughness2*Roughness2;
@@ -111,7 +111,7 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
   float omegain=max(dot(viewDirection,normal),0.0);
   float omegaln=max(dot(lightDirection,normal),0.0);
 
-  float D=NDF_TRG(h,Roughness);
+  float D=NDF_TRG(h);
   float G=Geom(viewDirection,lightDirection);
   float F=Fresnel(h,viewDirection,F0);
 
