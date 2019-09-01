@@ -1194,6 +1194,11 @@ function webGLStart() {
 
   target=0.5*(b[2]+B[2]);
 
+  if(orthographic)
+    mat4.ortho(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
+  else
+    mat4.frustum(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
+
   initGL(canvas);
   initShaders();
   gl.clearColor(1.0,1.0,1.0,1.0);

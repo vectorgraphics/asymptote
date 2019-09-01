@@ -29,14 +29,6 @@ void jsfile::open(string name) {
   out << "orthographic=" << std::boolalpha << gl::orthographic << ";"
       << newl;
 
-  out << "pMatrix=new Float32Array([" << newl;
-  for(size_t i=0; i < 4; ++i) {
-    for(size_t j=0; j < 4; ++j)
-      out << gl::projViewMat[i][j] << ", ";
-    out << newl;
-  }
-  out << "]);" << newl;
-    
   out <<
     "canvasWidth=" << gl::fullWidth << ";" << newl << 
     "canvasHeight=" << gl::fullHeight << ";" << newl << 
