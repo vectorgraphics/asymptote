@@ -4,10 +4,14 @@
 var gl;
 
 var epsilon;
-var pixel=1.0; // Adaptive rendering constant.
+var pixel=0.75; // Adaptive rendering constant.
 var BezierFactor=0.4;
 var FillFactor=0.1;
-var totalZoomFactor=1;
+var Zoom=1;
+const zoomStep=0.1;
+var zoomFactor=1.05;
+var Zoom0=1; // FIXME
+var lastzoom;
 
 var Fuzz2=1000*Number.EPSILON;
 var Fuzz4=Fuzz2*Fuzz2;
@@ -312,8 +316,6 @@ class BezierPatch extends GeometryDrawable {
     }
   
     this.res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
-    this.res2=this.res*this.res;
-    this.Epsilon=FillFactor*this.res;
   }
 
   addVertex(pos, color, normal) {
@@ -352,7 +354,10 @@ class BezierPatch extends GeometryDrawable {
   }
 
   render() {
-    let p = this.controlpoints;
+    let p=this.controlpoints;
+    var res=this.res/Zoom;
+    this.res2=res*res;
+    this.Epsilon=FillFactor*res;
 
     var p0=p[0];
     epsilon=0;
@@ -543,6 +548,8 @@ function resetCamera() {
 
   pMatrix=new Float32Array(pMatrixInit);
   redraw=true;
+  Zoom=Zoom0;
+  lastzoom=Zoom0;
 }
 
 var shaderProgram;
@@ -760,6 +767,12 @@ function setUniforms() {
   var vmMatrix=mat4.create();
   mat4.multiply(vmMatrix,vMatrix,msMatrix);
 
+  var zoomMatrix=mat4.create();
+  mat4.scale(zoomMatrix,zoomMatrix,[Zoom,Zoom,Zoom]);
+  COBTarget(zoomMatrix,zoomMatrix);
+
+  mat4.multiply(vmMatrix,zoomMatrix,vMatrix);
+
   var pvmMatrix=mat4.create();
   mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
 
@@ -853,6 +866,17 @@ function translateScene(lastX, lastY, rawX, rawY) {
     mat4.multiply(pMatrix, pMatrix, translMat);
 }
 
+function capzoom() 
+{
+  var maxzoom=Math.sqrt(Number.MAX_VALUE);
+  var minzoom=1.0/maxzoom;
+  if(Zoom <= minzoom) Zoom=minzoom;
+  if(Zoom >= maxzoom) Zoom=maxzoom;
+  
+  if(Zoom != lastzoom) remesh=true;
+  lastzoom=Zoom;
+}
+
 /**
  * Mouse Drag Zoom
  * @param {*} lastX unused
@@ -861,33 +885,14 @@ function translateScene(lastX, lastY, rawX, rawY) {
  * @param {*} rawY 
  */
 function zoomScene(lastX, lastY, rawX, rawY) {
-  let zoomStep=0.1;
-  let zoomFactor=1.05;
-  let halfCanvHeight = canvasHeight / 2;
-
+  let halfCanvHeight=canvasHeight/2;
   let stepPower=zoomStep*halfCanvHeight*(lastY-rawY);
-  let limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
+  const limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
 
-  if (Math.abs(stepPower) < limit) {
-    zoom(zoomFactor ** stepPower);
+  if(Math.abs(stepPower) < limit) {
+    Zoom *= zoomFactor**stepPower;
+    capzoom();
   }
-
-  remesh=true;
-}
-
-function zoom(zoomFactor) {
-  if (totalZoomFactor * zoomFactor > Math.sqrt(Number.MAX_VALUE) ||
-    totalZoomFactor * zoomFactor < 0.001) {
-      return;
-  }
-  totalZoomFactor *= zoomFactor;
-  var zoomMat = mat4.create();
-  mat4.scale(zoomMat, zoomMat, [zoomFactor, zoomFactor, zoomFactor]);
-  COBTarget(zoomMat,zoomMat);
-
-  mat4.multiply(vMatrix, zoomMat, vMatrix);
-  inversedual(zoomMat,zoomMat);
-  mat4.multiply(normMatrix, zoomMat, normMatrix);
 }
 
 // mode:
@@ -958,14 +963,13 @@ function handleKey(key) {
 }
 
 function handleMouseWheel(event) {
-  if (event.deltaY < 0) {
-    zoom(1.05);
+  if (event.deltaY < 0.0) {
+    Zoom *= zoomFactor;
   } else {
-    zoom(1/1.05);
+    Zoom /= zoomFactor;
   }
-
-  remesh=true;
-  redraw = true;
+  capzoom();
+  redraw=true;
 }
 
 function handleMouseMove(event) {
@@ -1076,9 +1080,9 @@ function webGLStart() {
 
   initGL(canvas);
   initShaders();
-  gl.clearColor(1.0, 1.0, 1.0, 1.0);
+  gl.clearColor(1.0,1.0,1.0,1.0);
   gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
 
   canvas.onmousedown = handleMouseDown;

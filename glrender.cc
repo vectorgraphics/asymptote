@@ -875,7 +875,7 @@ void pan(int x, int y)
 void capzoom() 
 {
   static double maxzoom=sqrt(DBL_MAX);
-  static double minzoom=1/maxzoom;
+  static double minzoom=1.0/maxzoom;
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
@@ -891,9 +891,9 @@ void zoom(int x, int y)
     if(zoomFactor > 0.0) {
       double zoomStep=getSetting<double>("zoomstep");
       const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
-      double s=zoomStep*(y0-y);
-      if(fabs(s) < limit) {
-        Zoom *= pow(zoomFactor,s);
+      double stepPower=zoomStep*(y0-y);
+      if(fabs(stepPower) < limit) {
+        Zoom *= pow(zoomFactor,stepPower);
         capzoom();
         y0=y;
         setProjection();
@@ -1324,8 +1324,8 @@ projection camera(bool user)
   
   return projection(orthographic,vCamera,vUp,vTarget,Zoom,
                     2.0*atan(tan(0.5*Angle)/Zoom)/radians,
-                    pair(X/Width*lastzoom+Shift.getx(),
-                         Y/Height*lastzoom+Shift.gety()));
+                    pair(X/Width+Shift.getx(),
+                         Y/Height+Shift.gety()));
 }
 
 void init() 

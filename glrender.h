@@ -90,6 +90,7 @@ extern double xmin,xmax;
 extern double ymin,ymax;
 extern double zmin,zmax;
 extern int fullWidth,fullHeight;
+extern double Zoom0;
 
 extern GLuint ubo;
 

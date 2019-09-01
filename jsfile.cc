@@ -40,9 +40,10 @@ void jsfile::open(string name) {
   out <<
     "canvasWidth=" << gl::fullWidth << ";" << newl << 
     "canvasHeight=" << gl::fullHeight << ";" << newl << 
-    "size2=Math.hypot(canvasWidth,canvasHeight);" << newl;
+    "size2=Math.hypot(canvasWidth,canvasHeight);" << newl <<
+    "Zoom0=" << gl::Zoom0 << newl;
   
-  out << "var materialIndex = 0;\n"
+  out << 
     "    var lights = [new Light(\n"
     "      type = enumDirectionalLight,\n"
     "      lightColor = [1, 0.87, 0.745],\n"
