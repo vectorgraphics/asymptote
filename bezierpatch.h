@@ -206,8 +206,7 @@ struct BezierPatch
        Z >= Min.getz() && z <= Max.getz())
       return false;
     
-    Offscreen=true;
-    return true;  
+    return Offscreen=true;
   }
 
   static void clear() {
