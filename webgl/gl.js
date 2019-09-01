@@ -1001,7 +1001,7 @@ function capzoom()
  * @param {*} rawY 
  */
 function zoomScene(lastX, lastY, rawX, rawY) {
-  let halfCanvHeight=0.5*canvasHeight/2;
+  let halfCanvHeight=0.5*canvasHeight;
   let stepPower=zoomStep*halfCanvHeight*(lastY-rawY);
   const limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
 
