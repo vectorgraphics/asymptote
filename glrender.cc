@@ -427,6 +427,11 @@ void drawscene(int Width, int Height)
   
   double size2=hypot(Width,Height);
   
+  if(forceRemesh) {
+    remesh=true;
+    forceRemesh=false;
+  }
+  
   if(remesh) {
     camp::BezierPatch::clear();
     camp::BezierPatch::Clear();
@@ -444,6 +449,9 @@ void drawscene(int Width, int Height)
   // Render transparent objects
   Picture->render(size2,m,M,perspective,true,remesh);
   glDepthMask(GL_TRUE);
+  
+  if(!forceRemesh)
+    remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.

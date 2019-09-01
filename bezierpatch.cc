@@ -296,6 +296,7 @@ void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
                        bool transparent, GLfloat *colors)
 {
+  Offscreen=false;
   res2=res*res;
   Res2=BezierFactor*BezierFactor*res2;
   Epsilon=FillFactor*res;

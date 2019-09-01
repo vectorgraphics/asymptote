@@ -128,9 +128,10 @@ class drawElement : public gc
 {
 public:
   string KEY;
+  bool offscreen;
   
-  drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key)
-  {}
+  drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key),
+                                      offscreen(true) {}
   
   virtual ~drawElement() {}
   

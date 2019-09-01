@@ -296,9 +296,11 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   
   if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
                     Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz()))
+                    Max.getz() < m.getz() || Min.getz() > M.getz())) {
+    offscreen=true;
     return;
-
+  }
+  
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
   if(billboard) BB.init(center);
@@ -318,6 +320,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     Controls=controls;
     
   if(gl::outlinemode) {
+    offscreen=true;
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2,m,M);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
@@ -328,8 +331,8 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     C.queue(edge3,straight,size3.length()/size2,m,M);
     C.draw();
   } else {
-    S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
-            colors ? c : NULL);
+    offscreen=S.queue(Controls,straight,size3.length()/size2,m,M,
+                      transparent,colors ? c : NULL);
     if(BezierPatch::nvertices >= gl::maxvertices) {
       S.drawMaterials();
       BezierPatch::clear();

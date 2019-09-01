@@ -94,6 +94,7 @@ struct BezierPatch
   typedef GLuint VertexFunction(const triple &v, const triple& n, GLfloat *c);
   vertexFunction *pvertex;
   VertexFunction *pVertex;
+  bool Offscreen;
   
   BezierPatch() {}
   
@@ -200,10 +201,13 @@ struct BezierPatch
     double X,Y,Z;
     
     boundstriples(x,y,z,X,Y,Z,n,v);
-    return
-      X < Min.getx() || x > Max.getx() ||
-      Y < Min.gety() || y > Max.gety() ||
-      Z < Min.getz() || z > Max.getz();
+    if(X >= Min.getx() && x <= Max.getx() &&
+       Y >= Min.gety() && y <= Max.gety() &&
+       Z >= Min.getz() && z <= Max.getz())
+      return false;
+    
+    Offscreen=true;
+    return true;  
   }
 
   static void clear() {
@@ -234,11 +238,12 @@ struct BezierPatch
               GLfloat *C3=NULL);
   virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
   
-  void queue(const triple *g, bool straight, double ratio,
+  bool queue(const triple *g, bool straight, double ratio,
              const triple& Min, const triple& Max, bool transparent,
              GLfloat *colors=NULL) {
     init(pixel*ratio,Min,Max,transparent,colors);
     render(g,straight,colors);
+    return Offscreen;
   }
   
   void drawMaterials();
