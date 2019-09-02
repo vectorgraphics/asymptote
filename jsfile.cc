@@ -28,6 +28,8 @@ void jsfile::open(string name) {
       << newl;
   out << "orthographic=" << std::boolalpha << gl::orthographic << ";"
       << newl;
+  out << "angle=" << gl::Angle << ";"
+      << newl;
 
   out <<
     "canvasWidth=" << gl::fullWidth << ";" << newl << 
