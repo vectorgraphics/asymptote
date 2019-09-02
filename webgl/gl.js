@@ -1248,6 +1248,9 @@ function initProjection() {
     xmin:b[0],xmax:B[0],ymin:b[1],
     ymax:B[1],zmin:b[2],zmax:B[2]
   };
+  shift={
+    x:0,y:0
+  };
 }
 
 function webGLStart() {
