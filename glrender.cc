@@ -89,7 +89,7 @@ bool glthread=false;
 bool initialize=true;
 
 GLint Maxvertices;
-Int maxvertices;
+size_t maxvertices;
 
 using camp::picture;
 using camp::drawRawImage;

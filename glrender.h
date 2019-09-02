@@ -82,7 +82,7 @@ namespace gl {
 
 extern bool outlinemode;
 extern bool wireframeMode;
-extern Int maxvertices;
+extern size_t maxvertices;
 extern bool forceRemesh;
 
 extern bool orthographic;

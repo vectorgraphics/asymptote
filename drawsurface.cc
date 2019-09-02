@@ -333,12 +333,12 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   } else {
     offscreen=S.queue(Controls,straight,size3.length()/size2,m,M,
                       transparent,colors ? c : NULL);
-    if(BezierPatch::nvertices >= gl::maxvertices) {
+    if(BezierPatch::vertexbuffer.size() >= gl::maxvertices) {
       S.drawMaterials();
       BezierPatch::clear();
       gl::forceRemesh=true;
     }
-    if(BezierPatch::Nvertices >= gl::maxvertices) {
+    if(BezierPatch::Vertexbuffer.size() >= gl::maxvertices) {
       S.drawColors();
       BezierPatch::Clear();
       gl::forceRemesh=true;

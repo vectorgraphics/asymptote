@@ -71,9 +71,6 @@ struct BezierPatch
   static std::vector<GLuint> indices;
   static std::vector<GLuint> Indices;
   static std::vector<GLuint> tIndices;
-  static GLuint nvertices;
-  static GLuint Nvertices;
-  static GLuint Ntvertices;
   
   static GLuint vertsBufferIndex; 
   static GLuint VertsBufferIndex; 
@@ -103,24 +100,28 @@ struct BezierPatch
     
 // Store the vertex v and its normal vector n in the buffer.
   static GLuint vertex(const triple &v, const triple& n) {
+    size_t nvertices=vertexbuffer.size();
     vertexbuffer.push_back(vertexData(v,n));
-    return nvertices++;
+    return nvertices;
   }
   
 // Store the vertex v and its normal vector n and colour c in the buffer.
   static GLuint Vertex(const triple& v, const triple& n, GLfloat *c) {
+    size_t nvertices=Vertexbuffer.size();
     Vertexbuffer.push_back(VertexData(v,n,c));
-    return Nvertices++;
+    return nvertices;
   }
   
   static GLuint tvertex(const triple &v, const triple& n) {
+    size_t nvertices=tVertexbuffer.size();
     tVertexbuffer.push_back(VertexData(v,n));
-    return Ntvertices++;
+    return nvertices;
   }
   
   static GLuint tVertex(const triple& v, const triple& n, GLfloat *c) {
+    size_t nvertices=tVertexbuffer.size();
     tVertexbuffer.push_back(VertexData(v,n,c));
-    return Ntvertices++;
+    return nvertices;
   }
   
   triple normal(triple left3, triple left2, triple left1, triple middle,
@@ -210,19 +211,16 @@ struct BezierPatch
   }
 
   static void clear() {
-    nvertices=0;
     vertexbuffer.clear();
     indices.clear();
   }
   
   static void Clear() {
-    Nvertices=0;
     Vertexbuffer.clear();
     Indices.clear();
   }
   
   static void tClear() {
-    Ntvertices=0;
     tVertexbuffer.clear();
     tIndices.clear();
   }
@@ -246,13 +244,12 @@ struct BezierPatch
   }
   
   void drawMaterials();
-  void drawColors(GLuint& Nvertices,
-                  std::vector<VertexData>& Vertexbuffer,
+  void drawColors(std::vector<VertexData>& Vertexbuffer,
                   std::vector<GLuint>& Indices);
   void sortTriangles();
   
   void drawColors() {
-    drawColors(Nvertices,Vertexbuffer,Indices);
+    drawColors(Vertexbuffer,Indices);
   }
     
   void drawOpaque() {
@@ -263,7 +260,7 @@ struct BezierPatch
   void drawTransparent() {
     glDepthMask(GL_FALSE);
     sortTriangles();
-    drawColors(Ntvertices,tVertexbuffer,tIndices);
+    drawColors(tVertexbuffer,tIndices);
     glDepthMask(GL_TRUE);
   }
   

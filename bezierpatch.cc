@@ -24,10 +24,6 @@ std::vector<GLuint> BezierPatch::indices;
 std::vector<GLuint> BezierPatch::Indices;
 std::vector<GLuint> BezierPatch::tIndices;
 
-GLuint BezierPatch::nvertices=0;
-GLuint BezierPatch::Nvertices=0;
-GLuint BezierPatch::Ntvertices=0;
-
 //std::vector<GLuint>& I=BezierPatch::tIndices;
 //std::vector<VertexData>& V=BezierPatch::tVertexbuffer;
 bool colors;
@@ -893,8 +889,7 @@ void bounds(const std::vector<GLuint>& I)
   
 void BezierPatch::drawMaterials()
 {
-  if(indices.size() == 0)
-    return;
+  if(indices.empty()) return;
   
   static const size_t size=sizeof(GLfloat);
   static const size_t bytestride=sizeof(vertexData);
@@ -952,12 +947,10 @@ void BezierPatch::drawMaterials()
   glDeleteBuffers(1,&elemBufferIndex);
 }
 
-void BezierPatch::drawColors(GLuint& Nvertices,
-                             std::vector<VertexData>& Vertexbuffer,
+void BezierPatch::drawColors(std::vector<VertexData>& Vertexbuffer,
                              std::vector<GLuint>& Indices)
 {
-  if(Indices.size() == 0)
-    return;
+  if(Indices.empty()) return;
 
   static const size_t size=sizeof(GLfloat);
   static const size_t bytestride=sizeof(VertexData);
@@ -1024,7 +1017,7 @@ void BezierPatch::drawColors(GLuint& Nvertices,
 
 void BezierPatch::sortTriangles()
 {
-  if(Ntvertices > 0) {
+  if(!tVertexbuffer.empty()) {
     transform(tVertexbuffer);
     bounds(tIndices);
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
@@ -1040,9 +1033,11 @@ void Triangles::queue(size_t nP, triple* P, size_t nN, triple* N,
   const size_t indexstride=3;
   size_t nindices=indexstride*nI;
   size_t index0;
-
+  size_t nvertices,Nvertices,Ntvertices;
+  
   if(transparent) {
     tVertexbuffer.reserve(nbuffer);
+    Ntvertices=tVertexbuffer.size();
     tVertexbuffer.resize(Ntvertices+nP);
     tIndices.reserve(nbuffer);
     index0=tIndices.size();
@@ -1050,12 +1045,14 @@ void Triangles::queue(size_t nP, triple* P, size_t nN, triple* N,
   } else {
     if(nC) {
       Vertexbuffer.reserve(nbuffer);
+      Nvertices=Vertexbuffer.size();
       Vertexbuffer.resize(Nvertices+nP);
       Indices.reserve(nbuffer);
       index0=Indices.size();
       Indices.resize(index0+nindices);
     } else {
       vertexbuffer.reserve(nbuffer);
+      nvertices=vertexbuffer.size();
       vertexbuffer.resize(nvertices+nP);
       indices.reserve(nbuffer);
       index0=indices.size();
@@ -1085,7 +1082,6 @@ void Triangles::queue(size_t nP, triple* P, size_t nN, triple* N,
         tIndices[index0+i]=index;
       }
     }
-    Ntvertices += nP;
   } else {
     if(nC) {
       for(size_t i=0; i < nindices; ++i) {
@@ -1097,7 +1093,6 @@ void Triangles::queue(size_t nP, triple* P, size_t nN, triple* N,
         Vertexbuffer[index]=VertexData(P[i0],N[N0[i]],c0);
         Indices[index0+i]=index;
       }
-      Nvertices += nP;
     } else {
       for(size_t i=0; i < nindices; ++i) {
         uint32_t i0=P0[i];
@@ -1105,7 +1100,6 @@ void Triangles::queue(size_t nP, triple* P, size_t nN, triple* N,
         vertexbuffer[index]=vertexData(P[i0],N[N0[i]]);
         indices[index0+i]=index;
       }
-      nvertices += nP;
     }
   }
 }
