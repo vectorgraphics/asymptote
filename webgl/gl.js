@@ -32,6 +32,15 @@ var target;
 var size2;
 var b,B; // Scene min,max bounding box corners
 
+var viewParam = {
+  xmin:0,
+  xmax:0,
+  ymin:0,
+  ymax:0,
+  zmin:0,
+  zmax:0
+};
+
 class Material {
   constructor(diffuse, emissive, specular, shininess, metallic, fresnel0) {
     this.diffuse = diffuse;
@@ -882,20 +891,13 @@ function setUniforms() {
 
   var vmMatrix=mat4.create();
   mat4.multiply(vmMatrix,vMatrix,msMatrix);
-
-  var zoomMatrix=mat4.create();
-  mat4.scale(zoomMatrix,zoomMatrix,[Zoom,Zoom,Zoom]);
-  COBTarget(zoomMatrix,zoomMatrix);
-
-  mat4.multiply(vmMatrix,zoomMatrix,vMatrix);
   mat4.invert(T,vmMatrix);
 
   var pvmMatrix=mat4.create();
   mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
 
   var mNormMatrix=mat4.create();
-  inversetranspose(mat4,mMatrix);
-
+  inversetranspose(mNormMatrix,mMatrix);
   var vmNormMatrix=mat4.create();
   mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
 
@@ -1008,6 +1010,8 @@ function zoomScene(lastX, lastY, rawX, rawY) {
   if(Math.abs(stepPower) < limit) {
     Zoom *= zoomFactor**stepPower;
     capzoom();
+    setDimensions();
+    setProjection();
   }
 }
 
@@ -1085,6 +1089,9 @@ function handleMouseWheel(event) {
     Zoom /= zoomFactor;
   }
   capzoom();
+  setDimensions();
+  setProjection();
+  
   redraw=true;
 }
 
@@ -1186,19 +1193,63 @@ function tickNoRedraw() {
   }
 }
 
+function setDimensions(width=canvasWidth,height=canvasHeight,
+  X=0,Y=0) {
+  let Aspect=width/height;
+  let zoominv=1.0/lastzoom;
+
+  if (orthographic) {
+    let xsize=B[0]-b[0];
+    let ysize=B[0]-b[0];
+    if (xsize < ysize*Aspect) {
+      let r=0.5*ysize*Aspect*zoominv;
+      viewParam.xmin=-r;
+      viewParam.xmax=r;
+      viewParam.ymin=b[1]*zoominv;
+      viewParam.ymax=B[1]*zoominv;
+    } else {
+      let r=0.5*xsize/(Aspect*Zoom);
+      viewParam.xmin=b[0]*zoominv;
+      viewParam.xmax=B[0]*zoominv;
+      viewParam.ymin=-r;
+      viewParam.ymax=r;
+    }
+  } else {
+      let H=-Math.tan(0.5*angle)*B[2];
+      let r=H*zoominv;
+      let rAspect=r*Aspect;
+      viewParam.xmin=-rAspect;
+      viewParam.xmax=rAspect;
+      viewParam.ymin=-r;
+      viewParam.ymax=r;
+  }
+}
+
+function setProjection() {
+  let fn=orthographic ? mat4.ortho : mat4.frustum;
+  fn(pMatrix,viewParam.xmin,viewParam.xmax,
+    viewParam.ymin,viewParam.ymax,
+    -viewParam.zmax,-viewParam.zmin);
+}
+
+function initProjection() {
+  target=0.5*(b[2]+B[2]);
+  let fn=orthographic ? mat4.ortho : mat4.frustum;
+  fn(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
+
+  viewParam={
+    xmin:b[0],xmax:B[0],ymin:b[1],
+    ymax:B[1],zmin:b[2],zmax:B[2]
+  };
+}
+
 function webGLStart() {
   var canvas = document.getElementById("Asymptote");
 
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
 
-  target=0.5*(b[2]+B[2]);
-
-  if(orthographic)
-    mat4.ortho(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
-  else
-    mat4.frustum(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
-
+  initProjection();
   initGL(canvas);
   initShaders();
   gl.clearColor(1.0,1.0,1.0,1.0);
