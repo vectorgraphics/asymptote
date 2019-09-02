@@ -3,6 +3,7 @@
     "python.linting.pylintEnabled": false,
     "python.jediEnabled": false,
     "files.associations": {
+        "latexmkrc": "perl",
         "hash_map": "cpp",
         "hash_set": "cpp",
         "*.tcc": "cpp",
@@ -11,7 +12,10 @@
         "unordered_map": "cpp",
         "unordered_set": "cpp",
         "vector": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "optional": "cpp",
+        "complex": "cpp",
+        "memory": "cpp"
     },
     "C_Cpp.dimInactiveRegions": true,
     "editor.tabSize": 2,
