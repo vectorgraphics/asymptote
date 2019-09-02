@@ -31,15 +31,16 @@ var zmin,zmax;
 var target;
 var size2;
 var b,B; // Scene min,max bounding box corners
+var shift={
+  x:0,y:0
+};
 
 var viewParam = {
-  xmin:0,
-  xmax:0,
-  ymin:0,
-  ymax:0,
-  zmin:0,
-  zmax:0
+  xmin:0,xmax:0,
+  ymin:0,ymax:0,
+  zmin:0,zmax:0
 };
+
 
 class Material {
   constructor(diffuse, emissive, specular, shininess, metallic, fresnel0) {
@@ -633,9 +634,8 @@ function resetCamera()
   mat4.identity(vMatrix);
   mat4.identity(normMatrix);
 
-  pMatrix=new Float32Array(pMatrixInit);
+  initProjection();
   redraw=true;
-  lastzoom=Zoom=Zoom0;
 }
 
 var shaderProgram;
@@ -975,13 +975,10 @@ function rotateScene (lastX, lastY, rawX, rawY) {
 }
 
 function translateScene(lastX, lastY, rawX, rawY) {
-  let halfCanvWidth=0.5*canvasWidth;
-  let halfCanvHeight=0.5*canvasHeight;
-    let xTransl = (rawX - lastX);
-    let yTransl = (rawY - lastY);
-    let translMat = mat4.create();
-    mat4.fromTranslation(translMat, [xTransl * halfCanvWidth, -yTransl * halfCanvHeight, 0]);
-    mat4.multiply(vMatrix, vMatrix, translMat);
+  let xTransl = (rawX - lastX);
+  let yTransl = (rawY - lastY);
+  shift.x+=xTransl;
+  shift.y-=yTransl;
 }
 
 function capzoom() 
@@ -1010,8 +1007,6 @@ function zoomScene(lastX, lastY, rawX, rawY) {
   if(Math.abs(stepPower) < limit) {
     Zoom *= zoomFactor**stepPower;
     capzoom();
-    setDimensions();
-    setProjection();
   }
 }
 
@@ -1048,6 +1043,9 @@ function processDrag(newX, newY, mode, touch=false) {
 
   lastMouseX = newX;
   lastMouseY = newY;
+
+  setDimensions();
+  setProjection();
   redraw = true;
 }
 
@@ -1091,7 +1089,7 @@ function handleMouseWheel(event) {
   capzoom();
   setDimensions();
   setProjection();
-  
+
   redraw=true;
 }
 
@@ -1197,31 +1195,39 @@ function setDimensions(width=canvasWidth,height=canvasHeight,
   X=0,Y=0) {
   let Aspect=width/height;
   let zoominv=1.0/lastzoom;
+  let xshift=shift.x;
+  let yshift=shift.y;
 
   if (orthographic) {
     let xsize=B[0]-b[0];
-    let ysize=B[0]-b[0];
+    let ysize=B[1]-b[1];
     if (xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*zoominv;
-      viewParam.xmin=-r;
-      viewParam.xmax=r;
-      viewParam.ymin=b[1]*zoominv;
-      viewParam.ymax=B[1]*zoominv;
+      let X0=2*r*xshift;
+      let Y0=ysize*zooominv*yshift;
+      viewParam.xmin=-r-X0;
+      viewParam.xmax=r-X0;
+      viewParam.ymin=b[1]*zoominv-Y0;
+      viewParam.ymax=B[1]*zoominv-Y0;
     } else {
       let r=0.5*xsize/(Aspect*Zoom);
-      viewParam.xmin=b[0]*zoominv;
-      viewParam.xmax=B[0]*zoominv;
-      viewParam.ymin=-r;
-      viewParam.ymax=r;
+      let X0=xsize*zoominv*xshift;
+      let Y0=2*r*yshift;
+      viewParam.xmin=b[0]*zoominv-X0;
+      viewParam.xmax=B[0]*zoominv-X0;
+      viewParam.ymin=-r-Y0;
+      viewParam.ymax=r-Y0;
     }
   } else {
       let H=-Math.tan(0.5*angle)*B[2];
       let r=H*zoominv;
       let rAspect=r*Aspect;
-      viewParam.xmin=-rAspect;
-      viewParam.xmax=rAspect;
-      viewParam.ymin=-r;
-      viewParam.ymax=r;
+      let X0=2*rAspect*xshift;
+      let Y0=2*r*yshift;
+      viewParam.xmin=-rAspect-X0;
+      viewParam.xmax=rAspect-X0;
+      viewParam.ymin=-r-Y0;
+      viewParam.ymax=r-Y0;
   }
 }
 
@@ -1234,6 +1240,7 @@ function setProjection() {
 
 function initProjection() {
   target=0.5*(b[2]+B[2]);
+  lastzoom=Zoom=Zoom0;
   let fn=orthographic ? mat4.ortho : mat4.frustum;
   fn(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
 
