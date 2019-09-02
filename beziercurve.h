@@ -50,9 +50,12 @@ struct BezierCurve
   static std::vector<GLuint> indices;
   double res,res2;
   triple Min,Max;
+  bool Offscreen;
 
   static GLuint vertsBufferIndex; 
   static GLuint elemBufferIndex; 
+  
+  BezierCurve() {}
   
   void init(double res, const triple& Min, const triple& Max);
     
@@ -80,10 +83,13 @@ struct BezierCurve
     double X,Y,Z;
     
     boundstriples(x,y,z,X,Y,Z,n,v);
-    return
-      X < Min.getx() || x > Max.getx() ||
-      Y < Min.gety() || y > Max.gety() ||
-      Z < Min.getz() || z > Max.getz();
+    
+    if(X >= Min.getx() && x <= Max.getx() &&
+       Y >= Min.gety() && y <= Max.gety() &&
+       Z >= Min.getz() && z <= Max.getz())
+      return false;
+    
+    return Offscreen=true;
   }
   
   static void clear() {
@@ -96,10 +102,11 @@ struct BezierCurve
   void render(const triple *p, GLuint I0, GLuint I1);
   void render(const triple *p, bool straight);
   
-  void queue(const triple *g, bool straight, double ratio,
+  bool queue(const triple *g, bool straight, double ratio,
               const triple& Min, const triple& Max) {
     init(pixel*ratio,Min,Max);
     render(g,straight);
+    return Offscreen;
   }
   
   void draw();

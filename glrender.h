@@ -164,15 +164,6 @@ struct billboard
                   cy+u.gety()*x+v.gety()*y+w.gety()*z,
                   cz+u.getz()*x+v.getz()*y+w.getz()*z);
   }
-  
-  void store(GLfloat* C, const triple& V) {
-    double x=V.getx()-cx;
-    double y=V.gety()-cy;
-    double z=V.getz()-cz;
-    C[0]=cx+u.getx()*x+v.getx()*y+w.getx()*z;
-    C[1]=cy+u.gety()*x+v.gety()*y+w.gety()*z;
-    C[2]=cz+u.getz()*x+v.getz()*y+w.getz()*z;
-  }
 };
 
 extern billboard BB;

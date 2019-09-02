@@ -525,8 +525,10 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
                     Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz()))
+                    Max.getz() < m.getz() || Min.getz() > M.getz())) {
+    offscreen=true;
     return;
+  }
 
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
@@ -547,6 +549,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     Controls=controls;
   
   if(gl::outlinemode) {
+    offscreen=true;
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2,m,M);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
@@ -555,8 +558,8 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     C.queue(edge2,straight,size3.length()/size2,m,M);
     C.draw();
   } else
-    S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
-            colors ? v : NULL);
+    offscreen=S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
+                      colors ? v : NULL);
 #endif
 }
 

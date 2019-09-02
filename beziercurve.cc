@@ -22,6 +22,7 @@ GLuint BezierCurve::elemBufferIndex;
 
 void BezierCurve::init(double res, const triple& Min, const triple& Max)
 {
+  Offscreen=false;
   this->res=res;
   res2=res*res;
   this->Min=Min;

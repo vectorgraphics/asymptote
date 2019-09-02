@@ -91,8 +91,10 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
 
   if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
                     Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz()))
+                    Max.getz() < m.getz() || Min.getz() > M.getz())) {
+    offscreen=true;
     return;
+  }
   
   RGBAColour Black(0.0,0.0,0.0,color.A);
   setcolors(false,Black,color,Black,1.0,0.0,0.04);
@@ -102,14 +104,14 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
       triple controls[]={BB.transform(g.point(i)),BB.transform(g.postcontrol(i)),
                          BB.transform(g.precontrol(i+1)),
                          BB.transform(g.point(i+1))};
-      R.queue(controls,straight,size3.length()/size2,m,M);
+      offscreen |= R.queue(controls,straight,size3.length()/size2,m,M);
     }
   } else {
     BB.init(center);
     for(Int i=0; i < n; ++i) {
       triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
                          g.point(i+1)};
-      R.queue(controls,straight,size3.length()/size2,m,M);
+      offscreen |= R.queue(controls,straight,size3.length()/size2,m,M);
     }
   }
   if(BezierCurve::vertexbuffer.size() >= (unsigned) gl::maxvertices) {
@@ -265,8 +267,10 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
 
   if((Max.getx() < m.getx() || Min.getx() > M.getx() ||
       Max.gety() < m.gety() || Min.gety() > M.gety() ||
-      Max.getz() < m.getz() || Min.getz() > M.getz()))
+      Max.getz() < m.getz() || Min.getz() > M.getz())) {
+    offscreen=true;
     return;
+  }
   
   RGBAColour Black(0.0,0.0,0.0,color.A);
   setcolors(false,color,color,Black,1.0,0.0,0.04);
