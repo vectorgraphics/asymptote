@@ -2,14 +2,13 @@ in vec3 position;
 
 #ifdef NORMAL
 in vec3 normal;
+out vec3 Normal;
+uniform mat4 normMat;
 #endif
 
 #ifdef EXPLICIT_COLOR
 in uint color;
-#endif
-
-#ifdef BILLBOARD
-in int center;
+out vec4 Color;
 #endif
 
 #ifdef WIDTH
@@ -20,19 +19,15 @@ in int material;
 
 uniform mat4 projViewMat;
 uniform mat4 viewMat;
-uniform mat4 normMat;
-uniform mat3 billboardMat;
 
 out vec3 ViewPosition;
-#ifdef NORMAL
-out vec3 Normal;
-#endif
-    
-#ifdef EXPLICIT_COLOR
-out vec4 Color;
+
+#ifdef BILLBOARD
+in int center;
+uniform mat3 billboardMat;
+uniform vec3 Center[Ncenter];
 #endif
 
-uniform vec3 Center[Ncenter];
 flat out int materialIndex;
 
 void main()

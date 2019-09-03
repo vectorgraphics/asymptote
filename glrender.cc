@@ -1793,10 +1793,18 @@ void setUniforms(GLint shader)
   
   glUseProgram(shader);
   
+  bool billboard=shader == colorShader || shader == noNormalShader;
+  bool normal=shader == colorShader || shader == materialShader;
+    
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
+  
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
-  glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
-  glUniformMatrix3fv(glGetUniformLocation(shader,"billboardMat"),1,GL_FALSE, value_ptr(gl::billboardMat));
+  
+  if(normal)
+    glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
+  
+  if(billboard)
+    glUniformMatrix3fv(glGetUniformLocation(shader,"billboardMat"),1,GL_FALSE, value_ptr(gl::billboardMat));
 
   GLuint binding=0;
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
@@ -1830,11 +1838,13 @@ void setUniforms(GLint shader)
                 (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
   }
 
-  size_t ncenter=drawElement::center.size();
-  for(size_t i=0; i < ncenter; ++i) {
-    triple v=drawElement::center[i];
-    glUniform3f(glGetUniformLocation(shader,getCenterIndex(i).c_str()),
-                (GLfloat) v.getx(),(GLfloat) v.gety(),(GLfloat) v.getz());
+  if(billboard) {
+    size_t ncenter=drawElement::center.size();
+    for(size_t i=0; i < ncenter; ++i) {
+      triple v=drawElement::center[i];
+      glUniform3f(glGetUniformLocation(shader,getCenterIndex(i).c_str()),
+                  (GLfloat) v.getx(),(GLfloat) v.gety(),(GLfloat) v.getz());
+    }
   }
   
 #if HAVE_LIBOPENIMAGEIO
