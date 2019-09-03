@@ -23,6 +23,11 @@ using namespace prc;
 namespace camp {
 
 #ifdef HAVE_LIBGLM
+mem::vector<triple> drawElement::center;
+size_t drawElement::centerIndex=0;
+triple drawElement::lastcenter=0;
+size_t drawElement::lastcenterIndex=0;
+
 mem::vector<Material> drawElement::material;
 MaterialMap drawElement::materialMap;
 size_t drawElement::materialIndex;
@@ -270,8 +275,9 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
      ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
        diffuse.A < 1.0) ^ transparent)) return;
   
-  const bool billboard=interaction == BILLBOARD &&
-    !settings::getSetting<bool>("offscreen");
+  if(billboard)
+    drawElement::centerIndex=centerIndex;
+
   triple m,M;
   
   double f,F,s;
@@ -303,36 +309,25 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
-  if(billboard) BB.init(center);
-  
   GLfloat c[16];
   if(colors)
     for(size_t i=0; i < 4; ++i)
       storecolor(c,4*i,colors[i]);
   
-  triple *Controls;
-  triple Controls0[16];
-  if(billboard) {
-    Controls=Controls0;
-    for(size_t i=0; i < 16; i++)
-      Controls[i]=BB.transform(controls[i]);
-  } else
-    Controls=controls;
-    
   if(gl::outlinemode) {
     offscreen=true;
-    triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
+    triple edge0[]={controls[0],controls[4],controls[8],controls[12]};
     C.queue(edge0,straight,size3.length()/size2,m,M);
-    triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
+    triple edge1[]={controls[12],controls[13],controls[14],controls[15]};
     C.queue(edge1,straight,size3.length()/size2,m,M);
-    triple edge2[]={Controls[15],Controls[11],Controls[7],Controls[3]};
+    triple edge2[]={controls[15],controls[11],controls[7],controls[3]};
     C.queue(edge2,straight,size3.length()/size2,m,M);
-    triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
+    triple edge3[]={controls[3],controls[2],controls[1],controls[0]};
     C.queue(edge3,straight,size3.length()/size2,m,M);
     C.draw();
   } else {
-    offscreen=S.queue(Controls,straight,size3.length()/size2,m,M,
-                      transparent,colors ? c : NULL);
+    offscreen=S.queue(controls,straight,size3.length()/size2,m,M,
+                      transparent,colors ? c : NULL,billboard);
     if(BezierPatch::vertexbuffer.size() >= gl::maxvertices) {
       S.drawMaterials();
       BezierPatch::clear();
@@ -499,8 +494,9 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
      ((colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
        diffuse.A < 1.0) ^ transparent)) return;
   
-  const bool billboard=interaction == BILLBOARD &&
-    !settings::getSetting<bool>("offscreen");
+  if(billboard)
+    drawElement::centerIndex=centerIndex;
+
   triple m,M;
   
   double f,F,s;
@@ -532,34 +528,23 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
-  if(billboard) BB.init(center);
-  
   GLfloat v[12];
   if(colors)
     for(size_t i=0; i < 3; ++i)
       storecolor(v,4*i,colors[i]);
     
-  triple *Controls;
-  triple Controls0[10];
-  if(billboard) {
-    Controls=Controls0;
-    for(size_t i=0; i < 10; i++)
-      Controls[i]=BB.transform(controls[i]);
-  } else 
-    Controls=controls;
-  
   if(gl::outlinemode) {
     offscreen=true;
-    triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
+    triple edge0[]={controls[0],controls[1],controls[3],controls[6]};
     C.queue(edge0,straight,size3.length()/size2,m,M);
-    triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
+    triple edge1[]={controls[6],controls[7],controls[8],controls[9]};
     C.queue(edge1,straight,size3.length()/size2,m,M);
-    triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
+    triple edge2[]={controls[9],controls[5],controls[2],controls[0]};
     C.queue(edge2,straight,size3.length()/size2,m,M);
     C.draw();
   } else
-    offscreen=S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
-                      colors ? v : NULL);
+    offscreen=S.queue(controls,straight,size3.length()/size2,m,M,transparent,
+                      colors ? v : NULL,billboard);
 #endif
 }
 

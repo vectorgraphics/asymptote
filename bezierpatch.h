@@ -16,7 +16,8 @@ namespace camp {
 
 extern const double Fuzz4;
 
-class vertexData {
+class vertexData
+{
 public:
   GLfloat position[3];
   GLfloat normal[3];
@@ -33,12 +34,14 @@ public:
   }
 };
 
-class VertexData {
+class VertexData
+{
 public:
   GLfloat position[3];
   GLfloat normal[3];
   GLuint color;
-  GLint  material;
+  GLint material;
+  GLint center; // Index to center of billboard label
   VertexData() {};
   VertexData(const triple& v, const triple& n) {
     position[0]=v.getx();
@@ -49,6 +52,18 @@ public:
     normal[2]=n.getz();
     color=0;
     material=drawElement::materialIndex;
+    center=0;
+  }
+  VertexData(const triple& v, const triple& n, billboard_t) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    color=0;
+    material=drawElement::materialIndex;
+    center=drawElement::centerIndex;
   }
   VertexData(const triple& v, const triple& n, GLfloat *c) {
     position[0]=v.getx();
@@ -59,8 +74,19 @@ public:
     normal[2]=n.getz();
     color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
     material=-(int) drawElement::materialIndex-1; // request explicit color
+    center=0;
   }
-
+  VertexData(const triple& v, const triple& n, GLfloat *c, billboard_t) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
+    material=-(int) drawElement::materialIndex-1; // request explicit color
+    center=drawElement::centerIndex;
+  }
 };
 
 struct BezierPatch
@@ -96,7 +122,7 @@ struct BezierPatch
   BezierPatch() {}
   
   void init(double res, const triple& Min, const triple& Max,
-            bool transparent, GLfloat *colors=NULL);
+            bool transparent, GLfloat *colors=NULL, bool billboard=false);
     
 // Store the vertex v and its normal vector n in the buffer.
   static GLuint vertex(const triple &v, const triple& n) {
@@ -112,6 +138,13 @@ struct BezierPatch
     return nvertices;
   }
   
+// Store the vertex v and its normal vector n and colour c in the buffer.
+  static GLuint bVertex(const triple& v, const triple& n) {
+    size_t nvertices=Vertexbuffer.size();
+    Vertexbuffer.push_back(VertexData(v,n,billboard));
+    return nvertices;
+  }
+  
   static GLuint tvertex(const triple &v, const triple& n) {
     size_t nvertices=tVertexbuffer.size();
     tVertexbuffer.push_back(VertexData(v,n));
@@ -121,6 +154,12 @@ struct BezierPatch
   static GLuint tVertex(const triple& v, const triple& n, GLfloat *c) {
     size_t nvertices=tVertexbuffer.size();
     tVertexbuffer.push_back(VertexData(v,n,c));
+    return nvertices;
+  }
+  
+  static GLuint tbVertex(const triple& v, const triple& n) {
+    size_t nvertices=tVertexbuffer.size();
+    tVertexbuffer.push_back(VertexData(v,n,billboard));
     return nvertices;
   }
   
@@ -237,8 +276,8 @@ struct BezierPatch
   
   bool queue(const triple *g, bool straight, double ratio,
              const triple& Min, const triple& Max, bool transparent,
-             GLfloat *colors=NULL) {
-    init(pixel*ratio,Min,Max,transparent,colors);
+             GLfloat *colors=NULL, bool billboard=false) {
+    init(pixel*ratio,Min,Max,transparent,colors,billboard);
     render(g,straight,colors);
     return Offscreen;
   }

@@ -1167,8 +1167,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 void picture::render(double size2, const triple& Min, const triple& Max,
                      double perspective, bool transparent, bool remesh) const
 {
+  bool init=remesh && !transparent;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
+    if(init) (*p)->meshinit();
     if(remesh || (*p)->offscreen)
       (*p)->render(size2,Min,Max,perspective,transparent);
   }

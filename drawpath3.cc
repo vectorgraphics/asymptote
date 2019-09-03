@@ -65,8 +65,9 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
     return;
 
-  const bool billboard=interaction == BILLBOARD &&
-    !settings::getSetting<bool>("offscreen");
+  if(billboard)
+    drawElement::centerIndex=centerIndex;
+  
   triple m,M;
   
   double f,F,s;
@@ -99,21 +100,12 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   RGBAColour Black(0.0,0.0,0.0,color.A);
   setcolors(false,Black,color,Black,1.0,0.0,0.04);
   
-  if(billboard) {
-    for(Int i=0; i < n; ++i) {
-      triple controls[]={BB.transform(g.point(i)),BB.transform(g.postcontrol(i)),
-                         BB.transform(g.precontrol(i+1)),
-                         BB.transform(g.point(i+1))};
-      offscreen |= R.queue(controls,straight,size3.length()/size2,m,M);
-    }
-  } else {
-    BB.init(center);
-    for(Int i=0; i < n; ++i) {
-      triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
-                         g.point(i+1)};
-      offscreen |= R.queue(controls,straight,size3.length()/size2,m,M);
-    }
+  for(Int i=0; i < n; ++i) {
+    triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
+                       g.point(i+1)};
+    offscreen |= R.queue(controls,straight,size3.length()/size2,m,M,billboard);
   }
+
   if(BezierCurve::vertexbuffer.size() >= (unsigned) gl::maxvertices) {
     R.draw();
     BezierCurve::clear();

@@ -14,7 +14,7 @@
 #include "shaders.h"
 
 GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders, 
-                            size_t NLights, size_t NMaterials,
+                            size_t Nlights, size_t NMaterials, size_t Ncenter,
                             std::vector<std::string> const& defineflags)
 {
   GLuint mainShader = glCreateProgram();
@@ -23,7 +23,7 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
   size_t n=shaders.size();
   for(size_t i=0; i < n; ++i) {
     GLint newshader=createShaderFile(shaders[i].first,shaders[i].second,
-                                     NLights,NMaterials,defineflags);
+                                     Nlights,NMaterials,Ncenter,defineflags);
     glAttachShader(mainShader,newshader);
     compiledShaders.push_back(newshader);
   }
@@ -70,7 +70,7 @@ GLuint createShaders(GLchar const* src, int shaderType,
 }
 
 GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
-                        size_t Nmaterials,
+                        size_t Nmaterials, size_t Ncenter,
                         std::vector<std::string> const& defineflags)
 {
   std::ifstream shaderFile;
@@ -96,6 +96,7 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
 
   shaderSrc << "const int Nlights=" << Nlights << ";\r\n";
   shaderSrc << "const int Nmaterials=" << Nmaterials << ";\r\n";
+  shaderSrc << "const int Ncenter=" << Ncenter << ";\r\n";
 
   if(shaderFile) {
     shaderSrc << shaderFile.rdbuf();

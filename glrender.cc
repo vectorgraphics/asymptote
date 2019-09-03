@@ -69,7 +69,6 @@ using camp::nmaterials;
 using utils::seconds;
 
 namespace camp {
-billboard BB;
 GLint materialShader;
 GLint colorShader;
 GLint noNormalShader;
@@ -90,6 +89,8 @@ bool initialize=true;
 
 GLint Maxvertices;
 size_t maxvertices;
+
+size_t Ncenter=100;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -139,6 +140,7 @@ double Ymin,Ymax;
 
 pair Shift;
 double X,Y;
+int x0,y0;
 double cx,cy;
 double Xfactor,Yfactor;
 
@@ -161,6 +163,7 @@ double Zoom0;
 double lastzoom;
 
 using glm::dvec3;
+using glm::mat3;
 using glm::mat4;
 using glm::dmat4;
 using glm::value_ptr;
@@ -169,6 +172,7 @@ using glm::translate;
 mat4 projViewMat;
 mat4 viewMat;
 mat4 normMat;
+mat3 billboardMat;
 
 dmat4 dprojMat;
 dmat4 dviewMat;
@@ -335,7 +339,6 @@ bool forceRemesh=false;
 
 bool queueScreen=false;
 
-int x0,y0;
 string Action;
 
 double lastangle;
@@ -438,6 +441,7 @@ void drawscene(int Width, int Height)
     camp::BezierPatch::tClear();
     camp::BezierCurve::clear();
     camp::Pixel::clear();
+    camp::drawElement::center.clear();
   }
   
   // Render opaque objects
@@ -803,12 +807,15 @@ void update()
   Animate=getSetting<bool>("autoplay");
   glutShowWindow();
   if(Zoom != lastzoom) remesh=true;
+
   lastzoom=Zoom;
   double cz=0.5*(zmin+zmax);
   
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
   viewMat=mat4(dviewMat);
+  billboardMat=glm::inverse(mat3(dviewMat));
+
   setProjection();
   updateModelViewData();
   
@@ -1405,6 +1412,7 @@ void initshader()
 {
   Nlights=max(Nlights,nlights);
   Nmaterials=max(Nmaterials,nmaterials);
+  Ncenter=max(Ncenter,camp::drawElement::center.size());
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
@@ -1426,20 +1434,23 @@ void initshader()
   shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
   shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
     
-  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+  shaderParams.push_back("BILLBOARD");
+  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenter,
                                             shaderParams);
+  shaderParams.pop_back();
 
   shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenter,
                                          shaderParams);
   shaderParams.pop_back();
   
   shaderParams.push_back("NORMAL");
-  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenter,
                                             shaderParams);
 
   shaderParams.push_back("EXPLICIT_COLOR");
-  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+  shaderParams.push_back("BILLBOARD");
+  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenter,
                                          shaderParams);
 }
 
@@ -1766,9 +1777,16 @@ string getLightIndex(size_t const& index, string const& fieldName) {
   return Strdup(buf.str());
 } 
 
+string getCenterIndex(size_t const& index) {
+  ostringstream buf;
+  buf << "Center[" << index << "]";
+  return Strdup(buf.str());
+} 
+
 void setUniforms(GLint shader)
 {
-  if(gl::nlights > gl::Nlights || nmaterials > Nmaterials) {
+  if(gl::nlights > gl::Nlights || nmaterials > Nmaterials || 
+     drawElement::center.size() > gl::Ncenter) {
     gl::deleteshader();
     gl::initshader();
   }
@@ -1778,6 +1796,7 @@ void setUniforms(GLint shader)
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
+  glUniformMatrix3fv(glGetUniformLocation(shader,"billboardMat"),1,GL_FALSE, value_ptr(gl::billboardMat));
 
   GLuint binding=0;
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
@@ -1811,6 +1830,13 @@ void setUniforms(GLint shader)
                 (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
   }
 
+  size_t ncenter=drawElement::center.size();
+  for(size_t i=0; i < ncenter; ++i) {
+    triple v=drawElement::center[i];
+    glUniform3f(glGetUniformLocation(shader,getCenterIndex(i).c_str()),
+                (GLfloat) v.getx(),(GLfloat) v.gety(),(GLfloat) v.getz());
+  }
+  
 #if HAVE_LIBOPENIMAGEIO
   // textures
   if (settings::getSetting<bool>("envmap")) { 

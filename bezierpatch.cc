@@ -290,7 +290,7 @@ void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
 #endif
 
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
-                       bool transparent, GLfloat *colors)
+                       bool transparent, GLfloat *colors, bool billboard)
 {
   Offscreen=false;
   res2=res*res;
@@ -307,11 +307,14 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
     pvertex=&tvertex;
     pVertex=&tVertex;
   } else {
-    if(colors) {
+    if(colors || billboard) {
       Vertexbuffer.reserve(nbuffer);
       Indices.reserve(nbuffer);
       pindices=&Indices;
-      pVertex=&Vertex;
+      if(billboard)
+        pvertex=&bVertex;
+      else
+        pVertex=&Vertex;
     } else {
       vertexbuffer.reserve(nbuffer);
       indices.reserve(nbuffer);
@@ -891,8 +894,8 @@ void BezierPatch::drawMaterials()
 {
   if(indices.empty()) return;
   
-  static const size_t size=sizeof(GLfloat);
-  static const size_t bytestride=sizeof(vertexData);
+  const size_t size=sizeof(GLfloat);
+  const size_t bytestride=sizeof(vertexData);
 
   GLuint vertsBufferIndex; 
   GLuint elemBufferIndex; 
@@ -952,8 +955,9 @@ void BezierPatch::drawColors(std::vector<VertexData>& Vertexbuffer,
 {
   if(Indices.empty()) return;
 
-  static const size_t size=sizeof(GLfloat);
-  static const size_t bytestride=sizeof(VertexData);
+  const size_t size=sizeof(GLfloat);
+  const size_t intsize=sizeof(GLint);
+  const size_t bytestride=sizeof(VertexData);
 
   GLuint vertsBufferIndex; 
   GLuint elemBufferIndex; 
@@ -978,6 +982,7 @@ void BezierPatch::drawColors(std::vector<VertexData>& Vertexbuffer,
   const GLint normalAttrib=glGetAttribLocation(colorShader,"normal");
   const GLint colorAttrib=glGetAttribLocation(colorShader,"color");
   const GLint materialAttrib=glGetAttribLocation(colorShader,"material");
+  const GLint centerAttrib=glGetAttribLocation(colorShader,"center");
   
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                         (void *) 0);
@@ -992,8 +997,12 @@ void BezierPatch::drawColors(std::vector<VertexData>& Vertexbuffer,
   glEnableVertexAttribArray(colorAttrib);
 
   glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,
-                         (void *) (6*size+sizeof(GLuint)));
+                         (void *) (6*size+intsize));
   glEnableVertexAttribArray(materialAttrib);
+    
+  glVertexAttribIPointer(centerAttrib,1,GL_INT,bytestride,
+                         (void *) (6*size+2*intsize));
+  glEnableVertexAttribArray(centerAttrib);
     
   glFlush(); // Workaround broken MSWindows drivers for Intel GPU
   glDrawElements(GL_TRIANGLES,Indices.size(),GL_UNSIGNED_INT,(void *) 0);
@@ -1002,6 +1011,7 @@ void BezierPatch::drawColors(std::vector<VertexData>& Vertexbuffer,
   glDisableVertexAttribArray(normalAttrib);
   glDisableVertexAttribArray(colorAttrib);
   glDisableVertexAttribArray(materialAttrib);
+  glDisableVertexAttribArray(centerAttrib);
 
   deleteUniforms();
 

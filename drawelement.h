@@ -42,6 +42,8 @@ inline triple bezierPPP(triple a, triple b, triple c, triple d) {
   return d-a+3.0*(b-c);
 }
 
+static const struct billboard_t {} billboard={};
+
 enum Interaction {EMBEDDED=0,BILLBOARD};
 
 void copyArray4x4C(double*& dest, const vm::array *a);
@@ -131,12 +133,17 @@ public:
   bool offscreen;
   
   drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key),
-                                      offscreen(true) {}
+                                      offscreen(false) {}
   
   virtual ~drawElement() {}
   
   
 #ifdef HAVE_LIBGLM
+  static mem::vector<triple> center;
+  static size_t centerIndex;
+  static triple lastcenter;
+  static size_t lastcenterIndex;
+  
   static mem::vector<Material> material;
   static MaterialMap materialMap;
   static size_t materialIndex;
@@ -156,24 +163,24 @@ public:
                      double fuzz, bool &first) {}
   
   virtual void minratio(const double *t, pair &b, double fuzz, bool &first) {
-    ratio(t, b, camp::min, fuzz, first);
+    ratio(t,b,camp::min,fuzz,first);
   }
   
   virtual void maxratio(const double *t,pair &b, double fuzz, bool &first) {
-    ratio(t, b, camp::max, fuzz, first);
+    ratio(t,b,camp::max,fuzz,first);
   }
   
   virtual void ratio(pair &b, double (*m)(double, double), double fuzz,
                      bool &first) {
-    ratio(NULL, b, m, fuzz, first);
+    ratio(NULL,b,m,fuzz,first);
   }
 
   virtual void minratio(pair &b, double fuzz, bool &first) {
-    minratio(NULL, b, fuzz, first);
+    minratio(NULL,b,fuzz,first);
   }
 
   virtual void maxratio(pair &b, double fuzz, bool &first) {
-    maxratio(NULL, b, fuzz, first);
+    maxratio(NULL,b,fuzz,first);
   }
 
   virtual bool islabel() {return false;}
@@ -230,6 +237,17 @@ public:
   // Render with OpenGL
   virtual void render(double size2, const triple& Min, const triple& Max,
                       double perspective, bool transparent) {}
+
+  virtual void meshinit() {}
+  
+  size_t centerindex(const triple& center) {
+    if(drawElement::center.empty() || center != drawElement::lastcenter) {
+      drawElement::lastcenter=center;
+      drawElement::center.push_back(center);
+      drawElement::lastcenterIndex=drawElement::center.size();
+    }
+    return drawElement::lastcenterIndex;
+  }
 
   // Transform as part of a picture.
   virtual drawElement *transformed(const transform&) {

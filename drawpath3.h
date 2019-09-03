@@ -22,20 +22,31 @@ protected:
   bool invisible;
   Interaction interaction;
   triple Min,Max;
+  bool billboard;
+  size_t centerIndex;  
 public:
 #ifdef HAVE_LIBGLM
   static BezierCurve R;
 #endif  
+  void init() {
+    billboard=interaction == BILLBOARD &&
+      !settings::getSetting<bool>("offscreen");
+    centerIndex=0;
+  }
+  
   drawPath3(path3 g, triple center, const pen& p, Interaction interaction,
             const string& key="") :
     drawElement(key), g(g), center(center), straight(g.piecewisestraight()),
     color(rgba(p)), invisible(p.invisible()), interaction(interaction),
-    Min(g.min()), Max(g.max()) {}
+    Min(g.min()), Max(g.max()) {
+    init();
+  }
     
   drawPath3(const double* t, const drawPath3 *s) :
     drawElement(s->KEY), g(camp::transformed(t,s->g)), straight(s->straight),
     color(s->color), invisible(s->invisible), interaction(s->interaction),
     Min(g.min()), Max(g.max()) {
+    init();
     center=t*s->center;
   }
   
@@ -66,6 +77,11 @@ public:
       b=z;
       first=false;
     } else b=pair(m(b.getx(),z.getx()),m(b.gety(),z.gety()));
+  }
+  
+  void meshinit() {
+    if(billboard)
+      centerIndex=centerindex(center);
   }
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);

@@ -137,37 +137,10 @@ extern ModelView modelView;
 void initshader();
 void deleteshader();
 
+extern size_t Ncenter;
 }
 
 namespace camp {
-
-struct billboard 
-{
-  double cx,cy,cz;
-  triple u,v,w;
-  
-  void init(const triple& center) {
-    cx=center.getx();
-    cy=center.gety();
-    cz=center.getz();
-    gl::projection P=gl::camera(false);
-    w=unit(P.camera-P.target);
-    v=unit(perp(P.up,w));
-    u=cross(v,w);
-  }
-    
-  triple transform(const triple& V) {
-    double x=V.getx()-cx;
-    double y=V.gety()-cy;
-    double z=V.getz()-cz;
-    
-    return triple(cx+u.getx()*x+v.getx()*y+w.getx()*z,
-                  cy+u.gety()*x+v.gety()*y+w.gety()*z,
-                  cz+u.getz()*x+v.getz()*y+w.getz()*z);
-  }
-};
-
-extern billboard BB;
 
 extern GLint materialShader;
 extern GLint colorShader;

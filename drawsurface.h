@@ -36,6 +36,8 @@ protected:
   double PRCshininess;
   bool invisible;
   Interaction interaction;
+  bool billboard;
+  size_t centerIndex;  
   
   triple Min,Max;
   bool prc;
@@ -50,13 +52,22 @@ public:
       string(" array of triples and array of 4 pens required");
   }
   
+  void init() {
+    billboard=interaction == BILLBOARD &&
+      !settings::getSetting<bool>("offscreen");
+    centerIndex=0;
+  }
+  
   drawSurface(const vm::array& g, size_t ncontrols, triple center,
               bool straight, const vm::array&p, double opacity,
-              double shininess, double metallic, double fresnel0, double PRCshininess, const vm::array &pens,
+              double shininess, double metallic, double fresnel0,
+              double PRCshininess, const vm::array &pens,
               Interaction interaction, bool prc, const string& key="") :
     drawElement(key), ncontrols(ncontrols), center(center), straight(straight),
-    opacity(opacity), shininess(shininess), metallic(metallic), fresnel0(fresnel0), PRCshininess(PRCshininess),
-    interaction(interaction), prc(prc) {
+    opacity(opacity), shininess(shininess), metallic(metallic),
+    fresnel0(fresnel0), PRCshininess(PRCshininess), interaction(interaction),
+    prc(prc) {
+    init();
     if(checkArray(&g) != 4 || checkArray(&p) != 3)
       reportError(wrongsize());
     
@@ -81,7 +92,7 @@ public:
     size_t nodes=(ncontrols == 16 ? 4 : 3);
     size_t size=checkArray(&pens);
     if(size > 0) {
-      if(size != nodes) reportError("4 vertex pens required");
+      if(size != nodes) reportError("one vertex pen required per node");
       colors=new(UseGC) prc::RGBAColour[nodes];
       for(size_t i=0; i < nodes; ++i)
       colors[i]=rgba(vm::read<camp::pen>(pens,i));
@@ -96,15 +107,14 @@ public:
     PRCshininess(s->PRCshininess), invisible(s->invisible),
     interaction(s->interaction), prc(s->prc) { 
     
+    init();
     if(s->controls) {
       controls=new(UseGC) triple[ncontrols];
       for(unsigned int i=0; i < ncontrols; ++i)
         controls[i]=t*s->controls[i];
     } else controls=NULL;
   
-#ifdef HAVE_LIBGLM
     center=t*s->center;
-#endif    
   }
   
   virtual ~drawSurface() {}
@@ -124,7 +134,8 @@ public:
               double PRCshininess, const vm::array &pens,
               Interaction interaction, bool prc) : 
     drawSurface(g,16,center,straight,p,opacity,
-                shininess,metallic,fresnel0,PRCshininess,pens,interaction,prc) {}
+                shininess,metallic,fresnel0,PRCshininess,pens,interaction,prc) {
+  }
 
   drawBezierPatch(const double* t, const drawBezierPatch *s) :
     drawSurface(t,s) {
@@ -134,6 +145,11 @@ public:
   
   void ratio(const double* t, pair &b, double (*m)(double, double),
              double fuzz, bool &first);
+  
+  void meshinit() {
+    if(billboard)
+      centerIndex=centerindex(center);
+  }
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out, unsigned int *, groupsmap&);
@@ -158,8 +174,7 @@ public:
                 PRCshininess,pens,interaction,prc) {}
   
   drawBezierTriangle(const double* t, const drawBezierTriangle *s) :
-    drawSurface(t,s) {
-  }
+    drawSurface(t,s) {}
   
   void bounds(const double* t, bbox3& b);
   
@@ -167,6 +182,11 @@ public:
              double fuzz, bool &first);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  
+  void meshinit() {
+    if(billboard)
+      centerIndex=centerindex(center);
+  }
   
   void render(double, const triple& Min, const triple& Max,
               double perspective, bool transparent);
