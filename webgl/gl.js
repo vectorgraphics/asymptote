@@ -1235,7 +1235,7 @@ function setDimensions(width=canvasWidth,height=canvasHeight,
     if (xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*zoominv;
       let X0=2*r*xshift;
-      let Y0=ysize*zooominv*yshift;
+      let Y0=ysize*zoominv*yshift;
       viewParam.xmin=-r-X0;
       viewParam.xmax=r-X0;
       viewParam.ymin=b[1]*zoominv-Y0;
