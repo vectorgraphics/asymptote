@@ -315,15 +315,14 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
       storecolor(c,4*i,colors[i]);
   
   if(gl::outlinemode) {
-    offscreen=true;
     triple edge0[]={controls[0],controls[4],controls[8],controls[12]};
-    C.queue(edge0,straight,size3.length()/size2,m,M);
+    offscreen=C.queue(edge0,straight,size3.length()/size2,m,M);
     triple edge1[]={controls[12],controls[13],controls[14],controls[15]};
-    C.queue(edge1,straight,size3.length()/size2,m,M);
+    offscreen |= C.queue(edge1,straight,size3.length()/size2,m,M);
     triple edge2[]={controls[15],controls[11],controls[7],controls[3]};
-    C.queue(edge2,straight,size3.length()/size2,m,M);
+    offscreen |= C.queue(edge2,straight,size3.length()/size2,m,M);
     triple edge3[]={controls[3],controls[2],controls[1],controls[0]};
-    C.queue(edge3,straight,size3.length()/size2,m,M);
+    offscreen |= C.queue(edge3,straight,size3.length()/size2,m,M);
     C.draw();
   } else {
     offscreen=S.queue(controls,straight,size3.length()/size2,m,M,

@@ -4,7 +4,7 @@
 var gl;
 
 var epsilon;
-var pixel=0.75; // Adaptive rendering constant.
+var pixel=1.0; // Adaptive rendering constant.
 var BezierFactor=0.4;
 var FillFactor=0.1;
 var Zoom=1;
@@ -214,7 +214,7 @@ class StdVertexStructure extends AvertexStructure {
     }
 
     copyFloatBuffer(VertexBuffer,this.fArrVertices,shaderProgram.vertexPositionAttribute, this.nvertices);
-    copyFloatBuffer(ColorBuffer,this.fArrColors,shaderProgram.vertexColorAttribute, this.nvertices);
+//   copyFloatBuffer(ColorBuffer,this.fArrColors,shaderProgram.vertexColorAttribute, this.nvertices);
     copyFloatBuffer(NormalBuffer,this.fArrNormals,shaderProgram.vertexNormalAttribute, this.nvertices);
 
     if (shaderProgram.vertexMaterialIndexAttribute !== -1) {
@@ -311,25 +311,8 @@ class BezierPatch extends GeometryDrawable {
               vertexstructure=StdVertexStructure) {
     super(materialIndex,vertexstructure);
     this.controlpoints=controlpoints;
-
     this.Min=Min;
     this.Max=Max;
-
-    var f,F,s;
-    if(orthographic) {
-      this.m=b;
-      this.M=B;
-      s=1.0;
-    } else {
-      var perspective=1.0/B[2];
-      f=Min[2]*perspective;
-      F=Max[2]*perspective;
-      this.m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
-      this.M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
-      s=Math.max(f,F);
-    }
-  
-    this.res0=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
   }
 
   addVertex(pos, color, normal) {
@@ -358,12 +341,25 @@ class BezierPatch extends GeometryDrawable {
 
   render() {
     this.Offscreen=false;
-    let p=this.controlpoints;
-    var res=this.res0/Zoom;
-    this.res2=res*res;
-    this.Epsilon=FillFactor*res;
+    var f,F,s;
 
-    [this.x,this.y,this.z,this.X,this.Y,this.Z]=bboxtransformed(this.m,this.M);
+    var b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
+    var B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
+
+    if(orthographic) {
+      this.m=b;
+      this.M=B;
+      s=1.0;
+    } else {
+      var perspective=1.0/B[2];
+      f=this.Min[2]*perspective;
+      F=this.Max[2]*perspective;
+      this.m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
+      this.M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
+      s=Math.max(f,F);
+    }
+
+   [this.x,this.y,this.z,this.X,this.Y,this.Z]=bboxtransformed(this.m,this.M);
 
     var billboard=false;
     if(!billboard && (this.Max[0] < this.x || this.Min[0] > this.X ||
@@ -372,6 +368,11 @@ class BezierPatch extends GeometryDrawable {
       this.Offscreen=true;
       return;
     }
+
+    let p=this.controlpoints;
+    var res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
+    this.res2=res*res;
+    this.Epsilon=FillFactor*res;
 
     var p0=p[0];
     epsilon=0;
@@ -656,8 +657,8 @@ function initShaders() {
 
   shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
   gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-  shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
-  gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+//  shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+//  gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
   shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
   gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
   shaderProgram.vertexMaterialIndexAttribute = gl.getAttribLocation(shaderProgram, "aVertexMaterialIndex");
@@ -1013,6 +1014,7 @@ function capzoom()
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
+  remesh=true;
   if(Zoom != lastzoom) remesh=true;
   lastzoom=Zoom;
 }
@@ -1169,8 +1171,8 @@ function setBuffer() {
   VertexBuffer = gl.createBuffer();
   VertexBuffer.itemSize = 3;
 
-  ColorBuffer = gl.createBuffer();
-  ColorBuffer.itemSize = 4;
+//  ColorBuffer = gl.createBuffer();
+//  ColorBuffer.itemSize = 4;
 
   NormalBuffer = gl.createBuffer();
   NormalBuffer.itemSize = 3;
@@ -1222,8 +1224,7 @@ function tickNoRedraw() {
   }
 }
 
-function setDimensions(width=canvasWidth,height=canvasHeight,
-  X=0,Y=0) {
+function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
   let Aspect=width/height;
   let zoominv=1.0/lastzoom;
   let xshift=X/width*lastzoom
@@ -1266,8 +1267,8 @@ function setProjection() {
   setDimensions(canvasWidth,canvasHeight,shift.x,shift.y);
   let fn=orthographic ? mat4.ortho : mat4.frustum;
   fn(pMatrix,viewParam.xmin,viewParam.xmax,
-    viewParam.ymin,viewParam.ymax,
-    -viewParam.zmax,-viewParam.zmin);
+     viewParam.ymin,viewParam.ymax,
+     -viewParam.zmax,-viewParam.zmin);
 }
 
 function initProjection() {
@@ -1277,8 +1278,9 @@ function initProjection() {
   fn(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
 
   viewParam={
-    xmin:b[0],xmax:B[0],ymin:b[1],
-    ymax:B[1],zmin:b[2],zmax:B[2]
+    xmin:b[0],xmax:B[0],
+    ymin:b[1],ymax:B[1],
+    zmin:b[2],zmax:B[2]
   };
   shift={
     x:0,y:0
