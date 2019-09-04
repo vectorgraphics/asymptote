@@ -10,7 +10,7 @@ var FillFactor=0.1;
 var Zoom=1;
 const zoomStep=0.1;
 var zoomFactor=1.05;
-var Zoom0=1; // FIXME
+var Zoom0;
 var lastzoom;
 
 var Fuzz2=1000*Number.EPSILON;
@@ -151,51 +151,14 @@ class DrawableObject {
   draw(remesh=false) {}
 }
 
-class AvertexStructure {
-  addVertex() {}
-  drawBuffer() {}
-  clearBuffer() {}
-}
-
-class StdVertexStructure extends AvertexStructure {
-  constructor() {
-    super()
-
-    this.vertices = [];
-    this.materials = [];
-    this.colors = [];
-    this.normals = [];
-    this.indices = [];
-    this.nvertices = 0;
-
-    this.fArrVertices = null;
-    this.fArrColors = null;
-    this.fArrNormals = null;
-    this.iArrIndices=null;
-    this.fArrMaterials=null;
-
-    this.arraysInitialized=false;
-    this.nvertices = 0;
-  }
-
-  addVertex(vertData) {
-    vertData.position.forEach( coord => 
-      this.vertices.push(coord)
-    );
-    vertData.normals.forEach( coord => 
-      this.normals.push(coord)
-    );
-
-    this.colors.push(0.0);
-    this.colors.push(0.0);
-    this.colors.push(0.0);
-    this.colors.push(1.0);
-    
-    this.materials.push(vertData.materialIndex);
-
-    this.arraysInitialized=false;
-
-    return this.nvertices++;
+class GeometryDrawable extends DrawableObject {
+  /**
+   * @param {*} materialIndex Index of Material
+   */
+  constructor(materialIndex) {
+    super();
+    this.rendered = false;
+    this.materialIndex=materialIndex;
   }
 
   createArrays() {
@@ -208,10 +171,19 @@ class StdVertexStructure extends AvertexStructure {
     this.arraysInitialized=true;
   }
 
+  draw(remesh=false) {
+    if(remesh || this.Offscreen)
+      this.clearBuffer();
+
+    if(!this.rendered)
+      this.render();
+
+    this.drawBuffer()
+  }
+
   drawBuffer() {
-    if (!this.arraysInitialized) {
+    if(!this.arraysInitialized)
       this.createArrays();
-    }
 
     copyFloatBuffer(VertexBuffer,this.fArrVertices,shaderProgram.vertexPositionAttribute, this.nvertices);
 //   copyFloatBuffer(ColorBuffer,this.fArrColors,shaderProgram.vertexColorAttribute, this.nvertices);
@@ -249,44 +221,8 @@ class StdVertexStructure extends AvertexStructure {
     this.iArrMaterials=null;
     
     this.arraysInitialized=false;
-  }
-}
-
-class GeometryDrawable extends DrawableObject {
-
-  /**
-   * @param {*} materialIndex Index of Material
-   * @param {*} vertexstructure Vertex Structure (Color, transparent, etc)
-   */
-  constructor(materialIndex, vertexstructure=StdVertexStructure) {
-    super();
-    this.Offscreen=true;
-    this.rendered=false;
-    this.materialIndex=materialIndex;
-    this.vertexstructures=new vertexstructure();
-  }
-  
-  clearBuffer() {
-    this.vertexstructures.clearBuffer();
     this.rendered=false;
   }
-
-  drawBuffer() {
-    this.vertexstructures.drawBuffer();
-  }
-
-  render() {}
-
-  draw(remesh=false) {
-    if(remesh || this.Offscreen)
-      this.clearBuffer();
-
-    if(!this.rendered)
-      this.render();
-
-    this.drawBuffer()
-  }
-
 }
 
 function copyFloatBuffer(buf, data, attrib, nverts) {
@@ -307,25 +243,36 @@ class BezierPatch extends GeometryDrawable {
    * @param {*} Minimum bounding box corner
    * @param {*} Maximum bounding box corner
    */
-  constructor(controlpoints,materialIndex,Min,Max,
-              vertexstructure=StdVertexStructure) {
-    super(materialIndex,vertexstructure);
+  constructor(controlpoints,materialIndex,Min,Max) {
+    super();
+    this.Offscreen=true;
+    this.materialIndex=materialIndex;
     this.controlpoints=controlpoints;
+    this.rendered=false;
     this.Min=Min;
     this.Max=Max;
   }
 
-  addVertex(pos, color, normal) {
-    return this.vertexstructures.addVertex({
-      position: pos,
-      color: color,
-      normals: normal, 
-      materialIndex: this.materialIndex
-    });
-  }
+  vertex(v,n) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+  
+/*
+    this.colors.push(c[0]);
+    this.colors.push(c[1]);
+    this.colors.push(c[2]);
+    this.colors.push(c[3]);
+*/
+  
+    this.normals.push(n[0]);
+    this.normals.push(n[1]);
+    this.normals.push(n[2]);
+  
+    this.materials.push(this.materialIndex);
+    this.arraysInitialized=false;
 
-  pushIndices(ind) {
-    this.vertexstructures.indices.push(ind);
+    return this.nvertices++;
   }
 
   // Approximate bounds by bounding box of control polyhedron.
@@ -409,18 +356,24 @@ class BezierPatch extends GeometryDrawable {
       if(iszero(n3)) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
     }
 
-    var c0=color(n0);
-    var c1=color(n1);
-    var c2=color(n2);
-    var c3=color(n3);
-    
-    var i0=this.addVertex(p0,c0,n0);
-    var i1=this.addVertex(p12,c1,n1);
-    var i2=this.addVertex(p15,c2,n2);
-    var i3=this.addVertex(p3,c3,n3);
+/*
+    if(c0) {
+      var i0=this.vertex(p0,n0,c0);
+      var i1=this.vertex(p12,n1,c1);
+      var i2=this.vertex(p15,n2,c2);
+      var i3=this.vertex(p3,n3,c3);
 
-    this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
-           c0,c1,c2,c3);
+      this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
+                  c0,c1,c2,c3);
+    } else {
+*/
+      var i0=this.vertex(p0,n0);
+      var i1=this.vertex(p12,n1);
+      var i2=this.vertex(p15,n2);
+      var i3=this.vertex(p3,n3);
+
+      this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
+//    }
 
     this.rendered=true;
   }
@@ -429,13 +382,13 @@ class BezierPatch extends GeometryDrawable {
     if(this.Distance(p) < this.res2) { // Patch is flat
       var P=[P0,P1,P2,P3];
       if(!this.offscreen(4,P)) {
-        this.pushIndices(I0);
-        this.pushIndices(I1);
-        this.pushIndices(I2);
+        this.indices.push(I0);
+        this.indices.push(I1);
+        this.indices.push(I2);
         
-        this.pushIndices(I0);
-        this.pushIndices(I2);
-        this.pushIndices(I3);
+        this.indices.push(I0);
+        this.indices.push(I2);
+        this.indices.push(I3);
       }
     } else {
       if(this.offscreen(16,p)) return;
@@ -583,18 +536,26 @@ class BezierPatch extends GeometryDrawable {
         else m3=s3[0];
       }
 
-      {
-        var c0=color(n0);
-        var c1=color(n1);
-        var c2=color(n2);
-        var c3=color(n3);
-        var c4=color(n4);
+      
+/*      if(C0) {
+        var c0=new Array(4);
+        var c1=new Array(4);
+        var c2=new Array(4);
+        var c3=new Array(4);
+        var c4=new Array(4);
+        for(var i=0; i < 4; ++i) {
+          c0[i]=0.5*(C0[i]+C1[i]);
+          c1[i]=0.5*(C1[i]+C2[i]);
+          c2[i]=0.5*(C2[i]+C3[i]);
+          c3[i]=0.5*(C3[i]+C0[i]);
+          c4[i]=0.5*(c0[i]+c2[i]);
+        }
 
-        var i0=this.addVertex(m0,c0,n0);
-        var i1=this.addVertex(m1,c1,n1);
-        var i2=this.addVertex(m2,c2,n2);
-        var i3=this.addVertex(m3,c3,n3);
-        var i4=this.addVertex(m4,c4,n4);
+        var i0=this.vertex(m0,n0,c0);
+        var i1=this.vertex(m1,n1,c1);
+        var i2=this.vertex(m2,n2,c2);
+        var i3=this.vertex(m3,n3,c3);
+        var i4=this.vertex(m4,n4,c4);
 
         this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
                     C0,c0,c4,c3);
@@ -604,7 +565,19 @@ class BezierPatch extends GeometryDrawable {
                     c4,c1,C2,c2);
         this.Render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
                     c3,c4,c2,C3);
-      }
+      } else {
+*/
+        var i0=this.vertex(m0,n0);
+        var i1=this.vertex(m1,n1);
+        var i2=this.vertex(m2,n2);
+        var i3=this.vertex(m3,n3);
+        var i4=this.vertex(m4,n4);
+
+        this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
+        this.Render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
+        this.Render(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
+        this.Render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3);
+//      }
     }
   }
 
@@ -1185,11 +1158,6 @@ function setBuffer() {
 
   setUniforms();
   indexExt = gl.getExtension("OES_element_index_uint");
-}
-
-// Return color associated with unit normal vector n.
-function color(n) {
-  return [0,0,0,1];
 }
 
 function draw() {
