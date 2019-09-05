@@ -132,28 +132,25 @@ vec4 emissive;
 vec4 specular;
 vec4 parameters;
 
+Material m;
 #ifdef EXPLICIT_COLOR
   if(materialIndex < 0) {
     int index=-materialIndex-1;
-    Material m=Materials[index];
+    m=Materials[index];
     diffuse=Color;
     emissive=vec4(0.0);
-    specular=m.specular;
-    parameters=m.parameters;
   } else {
-    Material m=Materials[materialIndex];
+    m=Materials[materialIndex];
     diffuse=m.diffuse;
     emissive=m.emissive;
-    specular=m.specular;
-    parameters=m.parameters;
   }
 #else
-  Material m=Materials[materialIndex];
+  m=Materials[materialIndex];
   diffuse=m.diffuse; 
   emissive=m.emissive;
+#endif
   specular=m.specular;
   parameters=m.parameters;
-#endif
 
   Roughness=1-parameters[0];
   Metallic=parameters[1];

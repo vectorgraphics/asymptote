@@ -55,12 +55,13 @@ jsfile::~jsfile() {
 void jsfile::addPatch(triple const* controls, const triple& Min,
                       const triple& Max, const prc::RGBAColour *c)
 {
+  int index=c ? -(int) drawElement::materialIndex-1 : 
+    drawElement::materialIndex;
   out << "P.push(new BezierPatch([" << newl;
   for(size_t i=0; i < 15; ++i)
     out << controls[i] << "," << newl;
   out << controls[15] << newl << "]," 
-      << drawElement::materialIndex << ",";
-  out << Min << "," << Max;
+      << index << "," << Min << "," << Max;
   if(c) {
     out << ",[" << newl;
     for(int i=0; i < 4; ++i)

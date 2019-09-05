@@ -201,7 +201,7 @@ class GeometryDrawable extends DrawableObject {
                          1,gl.FLOAT,false,this.stride,24);
     if(this.colors) {
       colorShader.vertexColorAttribute=
-        gl.getAttribLocation(colorShader,"aColor");
+        gl.getAttribLocation(colorShader,"color");
       gl.enableVertexAttribArray(colorShader.vertexColorAttribute);
 
       gl.vertexAttribPointer(shader.vertexColorAttribute,
@@ -847,20 +847,20 @@ function inversetranspose(out,mat) {
 
 function setUniforms(shader) {
   shader.vertexPositionAttribute=
-    gl.getAttribLocation(shader,"aVertexPosition");
+    gl.getAttribLocation(shader,"position");
   gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
   shader.vertexMaterialIndexAttribute=
-    gl.getAttribLocation(shader,"aVertexMaterialIndex");
+    gl.getAttribLocation(shader,"materialIndexf");
   gl.enableVertexAttribArray(shader.vertexMaterialIndexAttribute);
 
   shader.vertexNormalAttribute=
-    gl.getAttribLocation(shader,"aVertexNormal");
+    gl.getAttribLocation(shader,"normal");
   gl.enableVertexAttribArray(shader.vertexNormalAttribute);
 
-  shader.pvMatrixUniform=gl.getUniformLocation(shader,"uPVMatrix");
-  shader.vmMatrixUniform=gl.getUniformLocation(shader,"uVMMatrix");
-  shader.normMatUniform=gl.getUniformLocation(shader,"uNormMatrix");
+  shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
+  shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
+  shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
 
   var msMatrix = mat4.create();
   COBTarget(msMatrix, mMatrix);
