@@ -169,6 +169,7 @@ class GeometryDrawable extends DrawableObject {
   constructor(colors) {
     super();
     this.colors=colors;
+    this.stride=colors ? 44 : 28;
     this.rendered=false;
   }
 
@@ -183,32 +184,28 @@ class GeometryDrawable extends DrawableObject {
   }
 
   drawBuffer() {
-    this.shader=this.colors ? colorShader : shaderProgram;
-    gl.useProgram(this.shader);
-    setUniforms(this.shader);
-
-    if(this.colors) {
-    }
+    var shader=this.colors ? colorShader : shaderProgram;
+    gl.useProgram(shader);
+    setUniforms(shader);
 
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
  
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
                   gl.STATIC_DRAW);
-    var stride=this.colors ? 44 : 28;
 
-    gl.vertexAttribPointer(this.shader.vertexPositionAttribute,
-                         3,gl.FLOAT,false,stride,0);
-    gl.vertexAttribPointer(this.shader.vertexNormalAttribute,
-                         3,gl.FLOAT,false,stride,12);
-    gl.vertexAttribPointer(this.shader.vertexMaterialIndexAttribute,
-                         1,gl.FLOAT,false,stride,24);
+    gl.vertexAttribPointer(shader.vertexPositionAttribute,
+                         3,gl.FLOAT,false,this.stride,0);
+    gl.vertexAttribPointer(shader.vertexNormalAttribute,
+                         3,gl.FLOAT,false,this.stride,12);
+    gl.vertexAttribPointer(shader.vertexMaterialIndexAttribute,
+                         1,gl.FLOAT,false,this.stride,24);
     if(this.colors) {
       colorShader.vertexColorAttribute=
         gl.getAttribLocation(colorShader,"aColor");
       gl.enableVertexAttribArray(colorShader.vertexColorAttribute);
 
-      gl.vertexAttribPointer(this.shader.vertexColorAttribute,
-                             4,gl.FLOAT,false,stride,28);
+      gl.vertexAttribPointer(shader.vertexColorAttribute,
+                             4,gl.FLOAT,false,this.stride,28);
     }
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);

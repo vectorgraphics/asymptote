@@ -170,3 +170,6 @@ triple[][][] Q={
 };
 
 draw(surface(Q),material(blue, shininess=0.85, metallic=0),render(compression=Low));
+
+
+
