@@ -3,15 +3,18 @@
 <head>
   <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
-  <script id="shader-fs" type="x-shader/x-fragment">
-    varying vec4 vColor;
+  <script id="fragment" type="x-shader/x-fragment">
     varying vec4 vViewPosition;
     varying vec3 vNormal;
     varying vec4 diffuse,emissive,specular;
     varying float roughness,metallic,fresnel0;
+#ifdef EXPLICIT_COLORS
+    varying vec4 vColor;
+#endif
 
     vec4 outColor;
-    uniform int useColor;
+    vec4 Diffuse;
+
 
     // type, for now
     #define POINT_LIGHT 1
@@ -55,7 +58,7 @@
     
     // physical based shading using UE4 model.
     vec3 physBDRF(vec3 normal, vec3 lightdir, vec3 lookdir) {
-      vec3 lambertian=diffuse.rgb;
+      vec3 lambertian=Diffuse.rgb;
       vec3 h=normalize(lightdir+lookdir);
       float omegain=max(dot(lookdir, normal), 0.0);
       float omegali=max(dot(lightdir, normal), 0.0);
@@ -72,63 +75,63 @@
         rawReflectance=0.0;
       
       vec3 dielectric=mix(lambertian, rawReflectance*specular.rgb, F);
-      vec3 metal=rawReflectance*diffuse.rgb;
+      vec3 metal=rawReflectance*Diffuse.rgb;
       
       return mix(dielectric, metal, metallic);
     }
     
     void main(void)
     {
-      // light dir=+Z, viewDir=+Z,
-
-      float normalSign = gl_FrontFacing ? 1.0 : -1.0;
+      float normalSign=gl_FrontFacing ? 1.0 : -1.0;
       
       vec3 normal=normalSign*normalize(vNormal);
-      vec3 Z=vec3(0,0,1.0);
 #ifdef ORTHOGRAPHIC
-      vec3 viewDir=Z;
+      vec3 viewDir=vec3(0,0,1.0);
 #else
       vec3 viewDir=-normalize(vViewPosition.xyz/vViewPosition.w);
 #endif
 
       vec3 rawCol = emissive.xyz;
 
-//      if(useColor == 1) {
-//        diffuse = vColor;
-//      }
+#ifdef EXPLICIT_COLORS
+        Diffuse=vColor;
+#else
+        Diffuse=diffuse;
+#endif
 
-      for (int i=0;i<nLights;++i) {
+      for (int i=0; i<nLights; ++i) {
         Light Li=objLights[i];
-        float cosTheta = 0.0;
-        float atteunation = 1.0;
+        float cosTheta=0.0;
+        float atteunation=1.0;
         vec3 lightDirection = vec3(0.0);
         if (Li.type == DIRECTIONAL_LIGHT) {
-          lightDirection = Li.parameter.xyz;
-          cosTheta = max(dot(normal, lightDirection), 0.0);
+          lightDirection=Li.parameter.xyz;
+          cosTheta=max(dot(normal,lightDirection),0.0);
         }
-        vec3 radiance = cosTheta * Li.color * Li.brightness;
-        rawCol += physBDRF(normal, lightDirection, viewDir) * radiance;
+        vec3 radiance=cosTheta*Li.color*Li.brightness;
+        rawCol += physBDRF(normal,lightDirection,viewDir)*radiance;
       }
-      gl_FragColor=vec4(rawCol,diffuse.a);
+      gl_FragColor=vec4(rawCol,Diffuse.a);
     }
   </script>
 
-  <script id="shader-vs" type="x-shader/x-vertex">
+  <script id="vertex" type="x-shader/x-vertex">
     attribute vec3 aVertexPosition;
-    attribute vec4 aVertexColor;
     attribute vec3 aVertexNormal;
     attribute float aVertexMaterialIndex;
+    attribute vec4 aColor;
 
     uniform mat4 uNormMatrix;
     uniform mat4 uVMMatrix;
     uniform mat4 uPVMatrix;
     
-    varying vec4 vColor;
-    varying vec3 vNormal;
     varying vec4 vViewPosition;
-
+    varying vec3 vNormal;
     varying vec4 diffuse,emissive,specular;
     varying float roughness,metallic,fresnel0;
+#ifdef EXPLICIT_COLORS
+    varying vec4 vColor;
+#endif
 
     struct Material {
       vec4 diffuse,emissive,specular;
@@ -144,7 +147,6 @@
       vec4 rawNormal=uNormMatrix*vec4(aVertexNormal,0.0);
       vNormal=normalize(rawNormal.xyz);
       
-      vColor=aVertexColor;
       Material m=objMaterial[int(aVertexMaterialIndex)];
       diffuse=m.diffuse;
       emissive=m.emissive;
@@ -152,6 +154,10 @@
       roughness=1.0-m.shininess;
       metallic=m.metallic;
       fresnel0=m.fresnel0;
+
+#ifdef EXPLICIT_COLORS
+      vColor=aColor;
+#endif
     }
   </script>
 

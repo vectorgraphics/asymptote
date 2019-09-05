@@ -262,7 +262,7 @@ bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
 
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
-  out->addPatch(controls,Min,Max);
+  out->addPatch(controls,Min,Max,colors);
                     
   return true;
 }

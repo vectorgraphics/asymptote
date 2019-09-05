@@ -3,8 +3,10 @@
 
 var gl;
 
+var canvasWidth,canvasHeight;
+
 var epsilon;
-var pixel=1.0; // Adaptive rendering constant.
+var pixel=0.75; // Adaptive rendering constant.
 var BezierFactor=0.4;
 var FillFactor=0.1;
 var Zoom=1;
@@ -110,50 +112,46 @@ class Light {
 
 function initGL(canvas) {
   try {
-    gl = canvas.getContext("webgl");
-    gl.viewportWidth = canvas.width;
-    gl.viewportHeight = canvas.height;
+    gl=canvas.getContext("webgl");
+    gl.viewportWidth=canvas.width;
+    gl.viewportHeight=canvas.height;
   } catch (e) {}
-  if (!gl) {
+  if (!gl)
     alert("Could not initialize WebGL");
-  }
 }
 
-function getShader(gl, id) {
+function getShader(gl,id,options=[]) {
   var shaderScript = document.getElementById(id);
-  if (!shaderScript) {
+  if(!shaderScript)
     return null;
-  }
 
-  var str = `#version 100
+  var str=`#version 100
   precision highp float;
   const int nLights=${lights.length};
-  const int nMaterials=${M.length};
-  `
-  if (orthographic) {
-    str += `
-    #define ORTHOGRAPHIC
-    `;
-  }
+  const int nMaterials=${M.length};\n`
 
-  var k = shaderScript.firstChild;
-  while (k) {
-    if (k.nodeType == 3) {
+  if(orthographic)
+    str += `#define ORTHOGRAPHIC\n`;
+
+  options.forEach(s => str += `#define `+s+`\n`);
+
+  var k=shaderScript.firstChild;
+  while(k) {
+    if(k.nodeType == 3)
       str += k.textContent;
-    }
     k = k.nextSibling;
   }
   var shader;
-  if (shaderScript.type == "x-shader/x-fragment") {
+  if(shaderScript.type == "x-shader/x-fragment")
     shader = gl.createShader(gl.FRAGMENT_SHADER);
-  } else if (shaderScript.type == "x-shader/x-vertex") {
+  else if (shaderScript.type == "x-shader/x-vertex")
     shader = gl.createShader(gl.VERTEX_SHADER);
-  } else {
+  else
     return null;
-  }
+
   gl.shaderSource(shader, str);
   gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+  if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)) {
     alert(gl.getShaderInfoLog(shader));
     return null;
   }
@@ -168,10 +166,10 @@ class GeometryDrawable extends DrawableObject {
   /**
    * @param {*} materialIndex Index of Material
    */
-  constructor(materialIndex) {
+  constructor(colors) {
     super();
-    this.rendered = false;
-    this.materialIndex=materialIndex;
+    this.colors=colors;
+    this.rendered=false;
   }
 
   draw(remesh=false) {
@@ -185,15 +183,33 @@ class GeometryDrawable extends DrawableObject {
   }
 
   drawBuffer() {
+    this.shader=this.colors ? colorShader : shaderProgram;
+    gl.useProgram(this.shader);
+    setUniforms(this.shader);
+
+    if(this.colors) {
+    }
+
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
+ 
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
                   gl.STATIC_DRAW);
-    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute,
-                         3,gl.FLOAT,false,28,0);
-    gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute,
-                         3,gl.FLOAT,false,28,12);
-    gl.vertexAttribPointer(shaderProgram.vertexMaterialIndexAttribute,
-                         1,gl.FLOAT,false,28,24);
+    var stride=this.colors ? 44 : 28;
+
+    gl.vertexAttribPointer(this.shader.vertexPositionAttribute,
+                         3,gl.FLOAT,false,stride,0);
+    gl.vertexAttribPointer(this.shader.vertexNormalAttribute,
+                         3,gl.FLOAT,false,stride,12);
+    gl.vertexAttribPointer(this.shader.vertexMaterialIndexAttribute,
+                         1,gl.FLOAT,false,stride,24);
+    if(this.colors) {
+      colorShader.vertexColorAttribute=
+        gl.getAttribLocation(colorShader,"aColor");
+      gl.enableVertexAttribArray(colorShader.vertexColorAttribute);
+
+      gl.vertexAttribPointer(this.shader.vertexColorAttribute,
+                             4,gl.FLOAT,false,stride,28);
+    }
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
@@ -220,15 +236,18 @@ class BezierPatch extends GeometryDrawable {
    * @param {*} materialIndex material index
    * @param {*} Minimum bounding box corner
    * @param {*} Maximum bounding box corner
+   * @param {*} colors array of 4 RGBA color arrays
    */
-  constructor(controlpoints,materialIndex,Min,Max) {
-    super();
+  constructor(controlpoints,materialIndex,Min,Max,colors) {
+    super(colors);
     this.Offscreen=true;
     this.materialIndex=materialIndex;
     this.controlpoints=controlpoints;
     this.rendered=false;
     this.Min=Min;
     this.Max=Max;
+    this.colors=colors;
+    this.pvertex=colors ? this.Vertex : this.vertex;
   }
 
   vertex(v,n) {
@@ -239,6 +258,22 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
     this.vertices.push(this.materialIndex);
+    return this.nvertices++;
+  }
+
+  Vertex(v,n,c) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+    this.vertices.push(n[0]);
+    this.vertices.push(n[1]);
+    this.vertices.push(n[2]);
+    this.vertices.push(this.materialIndex);
+//    color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
+    this.vertices.push(c[0]);
+    this.vertices.push(c[1]);
+    this.vertices.push(c[2]);
+    this.vertices.push(c[3]);
     return this.nvertices++;
   }
 
@@ -323,24 +358,27 @@ class BezierPatch extends GeometryDrawable {
       if(iszero(n3)) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
     }
 
-/*
-    if(c0) {
-      var i0=this.vertex(p0,n0,c0);
-      var i1=this.vertex(p12,n1,c1);
-      var i2=this.vertex(p15,n2,c2);
-      var i3=this.vertex(p3,n3,c3);
+    if(this.colors) {
+      var c0=this.colors[0];
+      var c1=this.colors[1];
+      var c2=this.colors[2];
+      var c3=this.colors[3];
+
+      var i0=this.pvertex(p0,n0,c0);
+      var i1=this.pvertex(p12,n1,c1);
+      var i2=this.pvertex(p15,n2,c2);
+      var i3=this.pvertex(p3,n3,c3);
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
                   c0,c1,c2,c3);
     } else {
-*/
-      var i0=this.vertex(p0,n0);
-      var i1=this.vertex(p12,n1);
-      var i2=this.vertex(p15,n2);
-      var i3=this.vertex(p3,n3);
+      var i0=this.pvertex(p0,n0);
+      var i1=this.pvertex(p12,n1);
+      var i2=this.pvertex(p15,n2);
+      var i3=this.pvertex(p3,n3);
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
-//    }
+    }
 
     this.rendered=true;
   }
@@ -502,9 +540,8 @@ class BezierPatch extends GeometryDrawable {
         }
         else m3=s3[0];
       }
-
       
-/*      if(C0) {
+      if(C0) {
         var c0=new Array(4);
         var c1=new Array(4);
         var c2=new Array(4);
@@ -518,11 +555,11 @@ class BezierPatch extends GeometryDrawable {
           c4[i]=0.5*(c0[i]+c2[i]);
         }
 
-        var i0=this.vertex(m0,n0,c0);
-        var i1=this.vertex(m1,n1,c1);
-        var i2=this.vertex(m2,n2,c2);
-        var i3=this.vertex(m3,n3,c3);
-        var i4=this.vertex(m4,n4,c4);
+        var i0=this.pvertex(m0,n0,c0);
+        var i1=this.pvertex(m1,n1,c1);
+        var i2=this.pvertex(m2,n2,c2);
+        var i3=this.pvertex(m3,n3,c3);
+        var i4=this.pvertex(m4,n4,c4);
 
         this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
                     C0,c0,c4,c3);
@@ -533,18 +570,17 @@ class BezierPatch extends GeometryDrawable {
         this.Render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
                     c3,c4,c2,C3);
       } else {
-*/
-        var i0=this.vertex(m0,n0);
-        var i1=this.vertex(m1,n1);
-        var i2=this.vertex(m2,n2);
-        var i3=this.vertex(m3,n3);
-        var i4=this.vertex(m4,n4);
+        var i0=this.pvertex(m0,n0);
+        var i1=this.pvertex(m1,n1);
+        var i2=this.pvertex(m2,n2);
+        var i3=this.pvertex(m3,n3);
+        var i4=this.pvertex(m4,n4);
 
         this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
         this.Render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
         this.Render(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
         this.Render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3);
-//      }
+      }
     }
   }
 
@@ -580,44 +616,21 @@ function resetCamera()
   redraw=true;
 }
 
-var shaderProgram;
+var shaderProgram,colorShader;
 
-function initShaders() {
-  var fragmentShader = getShader(gl, "shader-fs");
-  var vertexShader = getShader(gl, "shader-vs");
-  shaderProgram = gl.createProgram();
+function initShaders(options) {
+  var fragmentShader=getShader(gl,"fragment",options);
+  var vertexShader=getShader(gl,"vertex",options);
+  var shader=gl.createProgram();
 
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+  gl.attachShader(shader,vertexShader);
+  gl.attachShader(shader,fragmentShader);
+  gl.linkProgram(shader);
+  if (!gl.getProgramParameter(shader,gl.LINK_STATUS)) {
     alert("Could not initialize shaders");
   }
-  gl.useProgram(shaderProgram);
 
-  shaderProgram.vertexPositionAttribute=
-    gl.getAttribLocation(shaderProgram,"aVertexPosition");
-  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
-  //  shaderProgram.vertexColorAttribute=
-//  gl.getAttribLocation(shaderProgram,"aVertexColor");
-//  gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
-
-  shaderProgram.vertexNormalAttribute=
-    gl.getAttribLocation(shaderProgram,"aVertexNormal");
-
-  gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
-  shaderProgram.vertexMaterialIndexAttribute=
-    gl.getAttribLocation(shaderProgram,"aVertexMaterialIndex");
-
-  gl.enableVertexAttribArray(shaderProgram.vertexMaterialIndexAttribute);
-
-
-  shaderProgram.pvMatrixUniform=gl.getUniformLocation(shaderProgram,"uPVMatrix");
-  shaderProgram.vmMatrixUniform=gl.getUniformLocation(shaderProgram,"uVMMatrix");
-  shaderProgram.normMatUniform=gl.getUniformLocation(shaderProgram, "uNormMatrix");
-  shaderProgram.useColorUniform = gl.getUniformLocation(shaderProgram, "useColor");
-
+  return shader;
 }
 
 class Split3 {
@@ -646,7 +659,7 @@ function iszero(v)
 function unit(v)
 {
   var norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  norm=(norm != 0.0) ? 1 / norm : 1;
+  norm=(norm != 0.0) ? 1.0/norm : 1.0;
   return [v[0]*norm,v[1]*norm,v[2]*norm];
 }
 
@@ -835,7 +848,23 @@ function inversetranspose(out,mat) {
   return out;
 }
 
-function setUniforms() {
+function setUniforms(shader) {
+  shader.vertexPositionAttribute=
+    gl.getAttribLocation(shader,"aVertexPosition");
+  gl.enableVertexAttribArray(shader.vertexPositionAttribute);
+
+  shader.vertexMaterialIndexAttribute=
+    gl.getAttribLocation(shader,"aVertexMaterialIndex");
+  gl.enableVertexAttribArray(shader.vertexMaterialIndexAttribute);
+
+  shader.vertexNormalAttribute=
+    gl.getAttribLocation(shader,"aVertexNormal");
+  gl.enableVertexAttribArray(shader.vertexNormalAttribute);
+
+  shader.pvMatrixUniform=gl.getUniformLocation(shader,"uPVMatrix");
+  shader.vmMatrixUniform=gl.getUniformLocation(shader,"uVMMatrix");
+  shader.normMatUniform=gl.getUniformLocation(shader,"uNormMatrix");
+
   var msMatrix = mat4.create();
   COBTarget(msMatrix, mMatrix);
 
@@ -852,47 +881,40 @@ function setUniforms() {
   var vmNormMatrix=mat4.create();
   mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
 
-  gl.uniformMatrix4fv(shaderProgram.pvMatrixUniform,false,pvmMatrix);
-  gl.uniformMatrix4fv(shaderProgram.vmMatrixUniform,false,vmMatrix);
-  gl.uniformMatrix4fv(shaderProgram.normMatUniform,false,vmNormMatrix);
+  gl.uniformMatrix4fv(shader.pvMatrixUniform,false,pvmMatrix);
+  gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vmMatrix);
+  gl.uniformMatrix4fv(shader.normMatUniform,false,vmNormMatrix);
   
   for (let i=0; i < M.length; ++i)
-    M[i].setUniform(shaderProgram, "objMaterial", i);
+    M[i].setUniform(shader,"objMaterial",i);
 
   for (let i=0; i<lights.length; ++i)
-    lights[i].setUniform(shaderProgram, "objLights", i);
-
-  // for now, if we simulate headlamp. Can also specify custom lights later on...
-  gl.uniform1i(shaderProgram.useColorUniform, 0);
-
+    lights[i].setUniform(shader,"objLights",i);
 }
 
 function handleMouseDown(event) {
-  mouseDownOrTouchActive = true;
-  lastMouseX = event.clientX;
-  lastMouseY = event.clientY;
+  mouseDownOrTouchActive=true;
+  lastMouseX=event.clientX;
+  lastMouseY=event.clientY;
 }
 
 function handleTouchStart(evt) {
   evt.preventDefault();
-  var touches = evt.targetTouches;
+  var touches=evt.targetTouches;
 
   if (touches.length == 1 && !mouseDownOrTouchActive) {
-    touchId = touches[0].identifier;
-    lastMouseX = touches[0].pageX,
-    lastMouseY = touches[0].pageY;
+    touchId=touches[0].identifier;
+    lastMouseX=touches[0].pageX,
+    lastMouseY=touches[0].pageY;
   }
 }
 
 function handleMouseUpOrTouchEnd(event) {
-  mouseDownOrTouchActive = false;
+  mouseDownOrTouchActive=false;
 }
 
-var canvasWidth;
-var canvasHeight;
-
 function rotateScene (lastX, lastY, rawX, rawY) {
-    let [angle, axis] = arcballLib.arcball([lastX, -lastY], [rawX, -rawY]);
+    let [angle, axis]=arcballLib.arcball([lastX, -lastY], [rawX, -rawY]);
 
     if (isNaN(angle) || isNaN(axis[0]) ||
       isNaN(axis[1]) || isNaN(axis[2])) {
@@ -900,23 +922,23 @@ function rotateScene (lastX, lastY, rawX, rawY) {
       return;
     }
 
-    var rotMats = mat4.create();
+    var rotMats=mat4.create();
     mat4.fromRotation(rotMats, angle, axis);
     mat4.multiply(rotMat, rotMats, rotMat);
 }
 
-function shiftScene(lastX, lastY, rawX, rawY) {
-  let xTransl = (rawX - lastX);
-  let yTransl = (rawY - lastY);
+function shiftScene(lastX,lastY,rawX,rawY) {
+  let xTransl=(rawX-lastX);
+  let yTransl=(rawY-lastY);
   // equivalent to shift function in asy.
   let zoominv=1/lastzoom;
   shift.x+=xTransl*zoominv*canvasWidth/2;
   shift.y-=yTransl*zoominv*canvasHeight/2;
 }
 
-function panScene(lastX, lastY, rawX, rawY) {
-  let xTransl = (rawX - lastX);
-  let yTransl = (rawY - lastY);
+function panScene(lastX,lastY,rawX,rawY) {
+  let xTransl=(rawX-lastX);
+  let yTransl=(rawY-lastY);
   if (orthographic) {
     shiftScene(lastX,lastY,rawX,rawY);
   } else {
@@ -928,13 +950,13 @@ function panScene(lastX, lastY, rawX, rawY) {
 function updatevMatrix() {
   COBTarget(vMatrix,rotMat);
   mat4.translate(vMatrix,vMatrix,[center.x,center.y,0]);
-  inversetranspose(normMatrix, vMatrix);
+  inversetranspose(normMatrix,vMatrix);
 }
 
 function updateTmatrix() {
   // has to be called every iteration modelmatrix is changed. 
-  var msMatrix = mat4.create();
-  COBTarget(msMatrix, mMatrix);
+  var msMatrix=mat4.create();
+  COBTarget(msMatrix,mMatrix);
 
   mat4.multiply(T,vMatrix,msMatrix);
   mat4.invert(T,T);
@@ -959,7 +981,7 @@ function capzoom()
  * @param {*} rawX unused
  * @param {*} rawY 
  */
-function zoomScene(lastX, lastY, rawX, rawY) {
+function zoomScene(lastX,lastY,rawX,rawY) {
   let halfCanvHeight=0.5*canvasHeight;
   let stepPower=zoomStep*halfCanvHeight*(lastY-rawY);
   const limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
@@ -975,7 +997,7 @@ const DRAGMODE_ROTATE=1;
 const DRAGMODE_SHIFT=2;
 const DRAGMODE_ZOOM=3;
 const DRAGMODE_PAN=4
-function processDrag(newX, newY, mode, touch=false) {
+function processDrag(newX,newY,mode,touch=false) {
   let dragFunc;
   switch (mode) {
     case DRAGMODE_ROTATE:
@@ -991,56 +1013,56 @@ function processDrag(newX, newY, mode, touch=false) {
       dragFunc=panScene;
       break;
     default:
-      dragFunc = (_a, _b, _c, _d) => {};
+      dragFunc=(_a,_b,_c,_d) => {};
       break;
   }
 
-  let halfCanvWidth = canvasWidth / 2;
-  let halfCanvHeight = canvasHeight / 2;
+  let halfCanvWidth=canvasWidth/2.0;
+  let halfCanvHeight=canvasHeight/2.0;
 
-  let lastX = (lastMouseX - halfCanvWidth) / halfCanvWidth;
-  let lastY = (lastMouseY - halfCanvHeight) / halfCanvHeight;
-  let rawX = (newX - halfCanvWidth) / halfCanvWidth;
-  let rawY = (newY - halfCanvHeight) / halfCanvHeight;
+  let lastX=(lastMouseX-halfCanvWidth)/halfCanvWidth;
+  let lastY=(lastMouseY-halfCanvHeight)/halfCanvHeight;
+  let rawX=(newX-halfCanvWidth)/halfCanvWidth;
+  let rawY=(newY-halfCanvHeight)/halfCanvHeight;
 
-  dragFunc(lastX, lastY, rawX, rawY);
+  dragFunc(lastX,lastY,rawX,rawY);
 
-  lastMouseX = newX;
-  lastMouseY = newY;
+  lastMouseX=newX;
+  lastMouseY=newY;
 
   updatevMatrix();
   setProjection();
-  redraw = true;
+  redraw=true;
 }
 
 function handleKey(key) {
-  var keycode = key.key;
-  var rotate = true;
-  var axis = [0, 0, 1];
+  var keycode=key.key;
+  var rotate=true;
+  var axis=[0,0,1];
   switch (keycode) {
   case "w":
-    axis = [-1, 0, 0];
+    axis=[-1,0,0];
     break;
   case "d":
-    axis = [0, 1, 0];
+    axis=[0,1,0];
     break;
   case "a":
-    axis = [0, -1, 0];
+    axis=[0,-1,0];
     break;
   case "s":
-    axis = [1, 0, 0];
+    axis=[1,0,0];
     break;
   case "h":
     resetCamera();
     break;
   default:
-    rotate = false;
+    rotate=false;
     break;
   }
 
-  if (rotate) {
-    mat4.rotate(rotationMatrix, rotationMatrix, 0.1, axis);
-    redraw = true;
+  if(rotate) {
+    mat4.rotate(rotationMatrix,rotationMatrix,0.1,axis);
+    redraw=true;
   }
 }
 
@@ -1057,41 +1079,41 @@ function handleMouseWheel(event) {
 }
 
 function handleMouseMove(event) {
-  if (!mouseDownOrTouchActive) {
+  if(!mouseDownOrTouchActive) {
     return;
   }
 
-  var newX = event.clientX;
-  var newY = event.clientY;
+  var newX=event.clientX;
+  var newY=event.clientY;
 
   let mode;
-  if (event.getModifierState("Control")) {
-    mode = DRAGMODE_SHIFT;
-  } else if (event.getModifierState("Shift")) {
-    mode = DRAGMODE_ZOOM;
-  } else if (event.getModifierState("Alt")) {
-    mode = DRAGMODE_PAN;
+  if(event.getModifierState("Control")) {
+    mode=DRAGMODE_SHIFT;
+  } else if(event.getModifierState("Shift")) {
+    mode=DRAGMODE_ZOOM;
+  } else if(event.getModifierState("Alt")) {
+    mode=DRAGMODE_PAN;
   } else {
-    mode = DRAGMODE_ROTATE;
+    mode=DRAGMODE_ROTATE;
   }
 
-  processDrag(newX, newY, mode, false);
+  processDrag(newX,newY,mode,false);
 }
 
 function handleTouchMove(evt) {
   evt.preventDefault();
-  var touches = evt.targetTouches;
+  var touches=evt.targetTouches;
 
   if (touches.length == 1 && touchId == touches[0].identifier) {
-    var newX = touches[0].pageX;
-    var newY = touches[0].pageY;
-    processDrag(newX, newY, DRAGMODE_ROTATE, true);
+    var newX=touches[0].pageX;
+    var newY=touches[0].pageY;
+    processDrag(newX,newY,DRAGMODE_ROTATE,true);
   }
 }
 
 // Prepare canvas for drawing
 function sceneSetup() {
-  gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+  gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
@@ -1100,11 +1122,9 @@ var indexExt;
 // Create buffer data for the patch and its subdivisions to be pushed to the graphics card
 //Takes as an argument the array of vertices that define the patch to be drawn 
 // Using the vertex position buffer of the above function,draw patch.
-function setBuffer() {
+function setBuffer(shader) {
   positionBuffer=gl.createBuffer();
   indexBuffer=gl.createBuffer();
-
-  setUniforms();
   indexExt=gl.getExtension("OES_element_index_uint");
 }
 
@@ -1128,7 +1148,7 @@ function tick() {
   newtime=performance.now();
   // invariant: every time this loop is called, lasttime stores the
   // last time processloop was called. 
-  processloop(newtime - lasttime);
+  processloop(newtime-lasttime);
   draw();
 }
 
@@ -1181,17 +1201,17 @@ function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
 
 function setProjection() {
   setDimensions(canvasWidth,canvasHeight,shift.x,shift.y);
-  let fn=orthographic ? mat4.ortho : mat4.frustum;
-  fn(pMatrix,viewParam.xmin,viewParam.xmax,
-     viewParam.ymin,viewParam.ymax,
-     -viewParam.zmax,-viewParam.zmin);
+  let f=orthographic ? mat4.ortho : mat4.frustum;
+  f(pMatrix,viewParam.xmin,viewParam.xmax,
+    viewParam.ymin,viewParam.ymax,
+    -viewParam.zmax,-viewParam.zmin);
 }
 
 function initProjection() {
   center={x:0,y:0,z:0.5*(b[2]+B[2])};
   lastzoom=Zoom=Zoom0;
-  let fn=orthographic ? mat4.ortho : mat4.frustum;
-  fn(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
+  let f=orthographic ? mat4.ortho : mat4.frustum;
+  f(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
 
   viewParam={
     xmin:b[0],xmax:B[0],
@@ -1211,7 +1231,10 @@ function webGLStart() {
 
   initProjection();
   initGL(canvas);
-  initShaders();
+
+  shaderProgram=initShaders();
+  colorShader=initShaders(["EXPLICIT_COLORS"]);
+
   gl.clearColor(1.0,1.0,1.0,1.0);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
@@ -1225,19 +1248,19 @@ function webGLStart() {
 
   var supportsPassive=false;
   try {
-    var opts=Object.defineProperty({},'passive',{
+    var opts=Object.defineProperty({},"passive",{
       get: function() {supportsPassive=true;}
     });
     window.addEventListener("testPassive",null,opts);
     window.removeEventListener("testPassive",null,opts);
   } catch (e) {}
 
-  canvas.addEventListener("touchstart", handleTouchStart,
+  canvas.addEventListener("touchstart",handleTouchStart,
                           supportsPassive ? {passive:true} : false);
-  canvas.addEventListener("touchend", handleMouseUpOrTouchEnd, false);
-  canvas.addEventListener("touchcancel", handleMouseUpOrTouchEnd, false);
-  canvas.addEventListener("touchleave", handleMouseUpOrTouchEnd, false);
-  canvas.addEventListener("touchmove", handleTouchMove,
+  canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchmove",handleTouchMove,
                           supportsPassive ? {passive:true} : false);
 
   newtime=performance.now();
