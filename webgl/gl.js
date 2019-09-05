@@ -42,6 +42,19 @@ var viewParam = {
   zmin:0,zmax:0
 };
 
+var positionBuffer;
+var colorBuffer;
+var normalBuffer;
+
+var pMatrix=mat4.create();
+var mMatrix=mat4.create();
+
+var redraw=true;
+var remesh=true;
+var mouseDownOrTouchActive=false;
+var lastMouseX=null;
+var lastMouseY=null;
+var touchID=null;
 
 class Material {
   constructor(diffuse, emissive, specular, shininess, metallic, fresnel0) {
@@ -161,16 +174,6 @@ class GeometryDrawable extends DrawableObject {
     this.materialIndex=materialIndex;
   }
 
-  createArrays() {
-    this.fArrVertices=new Float32Array(this.vertices);
-    this.fArrColors=new Float32Array(this.colors);
-    this.fArrNormals=new Float32Array(this.normals);
-    this.iArrIndices=indexExt ? new Uint32Array(this.indices) : new Uint16Array(this.indices);
-    this.fArrMaterials=new Float32Array(this.materials);
-
-    this.arraysInitialized=true;
-  }
-
   draw(remesh=false) {
     if(remesh || this.Offscreen)
       this.clearBuffer();
@@ -182,58 +185,33 @@ class GeometryDrawable extends DrawableObject {
   }
 
   drawBuffer() {
-    if(!this.arraysInitialized)
-      this.createArrays();
+    gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
+                  gl.STATIC_DRAW);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute,
+                         3,gl.FLOAT,false,28,0);
+    gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute,
+                         3,gl.FLOAT,false,28,12);
+    gl.vertexAttribPointer(shaderProgram.vertexMaterialIndexAttribute,
+                         1,gl.FLOAT,false,28,24);
 
-    copyFloatBuffer(VertexBuffer,this.fArrVertices,shaderProgram.vertexPositionAttribute, this.nvertices);
-//   copyFloatBuffer(ColorBuffer,this.fArrColors,shaderProgram.vertexColorAttribute, this.nvertices);
-    copyFloatBuffer(NormalBuffer,this.fArrNormals,shaderProgram.vertexNormalAttribute, this.nvertices);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+                  indexExt ? new Uint32Array(this.indices) :
+                  new Uint16Array(this.indices),gl.STATIC_DRAW);
 
-    if (shaderProgram.vertexMaterialIndexAttribute !== -1) {
-      gl.bindBuffer(gl.ARRAY_BUFFER, MaterialIndexBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, this.fArrMaterials, gl.STATIC_DRAW);
-      gl.vertexAttribPointer(shaderProgram.vertexMaterialIndexAttribute,
-      MaterialIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    }
-    MaterialIndexBuffer.numItems = this.nvertices;
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,this.iArrIndices,gl.STATIC_DRAW);
-    indexBuffer.numItems = this.indices.length;
-
-    gl.drawElements(gl.TRIANGLES, indexBuffer.numItems,
+    gl.drawElements(gl.TRIANGLES,this.indices.length,
                     indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
     }
     
   clearBuffer() {
     this.vertices=[];
-    this.colors=[];
-    this.normals=[];
     this.indices=[];
-    this.materials=[];
 
     this.nvertices=0;
-
-    this.fArrVertices=null;
-    this.fArrColors=null;
-    this.fArrNormals=null;
-    this.iArrIndices=null;
-    this.iArrMaterials=null;
-    
-    this.arraysInitialized=false;
     this.rendered=false;
   }
 }
-
-function copyFloatBuffer(buf, data, attrib, nverts) {
-  if (attrib !== -1) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(attrib, buf.itemSize, gl.FLOAT, false, 0, 0);
-    }
-    buf.numItems=nverts;
-}
-
 
 class BezierPatch extends GeometryDrawable {
   /**
@@ -257,21 +235,10 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(v[0]);
     this.vertices.push(v[1]);
     this.vertices.push(v[2]);
-  
-/*
-    this.colors.push(c[0]);
-    this.colors.push(c[1]);
-    this.colors.push(c[2]);
-    this.colors.push(c[3]);
-*/
-  
-    this.normals.push(n[0]);
-    this.normals.push(n[1]);
-    this.normals.push(n[2]);
-  
-    this.materials.push(this.materialIndex);
-    this.arraysInitialized=false;
-
+    this.vertices.push(n[0]);
+    this.vertices.push(n[1]);
+    this.vertices.push(n[2]);
+    this.vertices.push(this.materialIndex);
     return this.nvertices++;
   }
 
@@ -628,13 +595,21 @@ function initShaders() {
   }
   gl.useProgram(shaderProgram);
 
-  shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+  shaderProgram.vertexPositionAttribute=
+    gl.getAttribLocation(shaderProgram,"aVertexPosition");
   gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-//  shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+
+  //  shaderProgram.vertexColorAttribute=
+//  gl.getAttribLocation(shaderProgram,"aVertexColor");
 //  gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
-  shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+
+  shaderProgram.vertexNormalAttribute=
+    gl.getAttribLocation(shaderProgram,"aVertexNormal");
+
   gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
-  shaderProgram.vertexMaterialIndexAttribute = gl.getAttribLocation(shaderProgram, "aVertexMaterialIndex");
+  shaderProgram.vertexMaterialIndexAttribute=
+    gl.getAttribLocation(shaderProgram,"aVertexMaterialIndex");
+
   gl.enableVertexAttribArray(shaderProgram.vertexMaterialIndexAttribute);
 
 
@@ -892,21 +867,6 @@ function setUniforms() {
 
 }
 
-/* Buffers */
-var VertexBuffer;
-var ColorBuffer;
-var NormalBuffer;
-
-var pMatrix = mat4.create();
-var mMatrix = mat4.create();
-
-var redraw = true;
-var remesh=true;
-var mouseDownOrTouchActive = false;
-var lastMouseX = null;
-var lastMouseY = null;
-var touchID = null;
-
 function handleMouseDown(event) {
   mouseDownOrTouchActive = true;
   lastMouseX = event.clientX;
@@ -1141,23 +1101,11 @@ var indexExt;
 //Takes as an argument the array of vertices that define the patch to be drawn 
 // Using the vertex position buffer of the above function,draw patch.
 function setBuffer() {
-  VertexBuffer = gl.createBuffer();
-  VertexBuffer.itemSize = 3;
-
-//  ColorBuffer = gl.createBuffer();
-//  ColorBuffer.itemSize = 4;
-
-  NormalBuffer = gl.createBuffer();
-  NormalBuffer.itemSize = 3;
-
-  MaterialIndexBuffer = gl.createBuffer();
-  MaterialIndexBuffer.itemSize = 1;
-
-  indexBuffer = gl.createBuffer();
-  indexBuffer.itemSize = 1;
+  positionBuffer=gl.createBuffer();
+  indexBuffer=gl.createBuffer();
 
   setUniforms();
-  indexExt = gl.getExtension("OES_element_index_uint");
+  indexExt=gl.getExtension("OES_element_index_uint");
 }
 
 function draw() {
@@ -1170,14 +1118,14 @@ function draw() {
   remesh=false;
 }
 
-var forceredraw = false;
+var forceredraw=false;
 var lasttime;
 var newtime;
 
 function tick() {
   requestAnimationFrame(tick);
-  lasttime = newtime;
-  newtime = performance.now();
+  lasttime=newtime;
+  newtime=performance.now();
   // invariant: every time this loop is called, lasttime stores the
   // last time processloop was called. 
   processloop(newtime - lasttime);
@@ -1188,7 +1136,7 @@ function tickNoRedraw() {
   requestAnimationFrame(tickNoRedraw);
   if (redraw) {
     draw();
-    redraw = false;
+    redraw=false;
   }
 }
 
@@ -1256,7 +1204,7 @@ function initProjection() {
 }
 
 function webGLStart() {
-  var canvas = document.getElementById("Asymptote");
+  var canvas=document.getElementById("Asymptote");
 
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
@@ -1269,16 +1217,16 @@ function webGLStart() {
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
 
-  canvas.onmousedown = handleMouseDown;
-  document.onmouseup = handleMouseUpOrTouchEnd;
-  document.onmousemove = handleMouseMove;
-  canvas.onkeydown = handleKey;
-  document.onwheel = handleMouseWheel;
+  canvas.onmousedown=handleMouseDown;
+  document.onmouseup=handleMouseUpOrTouchEnd;
+  document.onmousemove=handleMouseMove;
+  canvas.onkeydown=handleKey;
+  document.onwheel=handleMouseWheel;
 
   var supportsPassive=false;
   try {
     var opts=Object.defineProperty({},'passive',{
-      get: function() {supportsPassive = true;}
+      get: function() {supportsPassive=true;}
     });
     window.addEventListener("testPassive",null,opts);
     window.removeEventListener("testPassive",null,opts);
@@ -1292,7 +1240,7 @@ function webGLStart() {
   canvas.addEventListener("touchmove", handleTouchMove,
                           supportsPassive ? {passive:true} : false);
 
-  newtime = performance.now();
+  newtime=performance.now();
 
   pMatrixInit=new Float32Array(pMatrix);
 
