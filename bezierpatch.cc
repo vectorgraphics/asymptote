@@ -957,6 +957,7 @@ void BezierPatch::drawColors(std::vector<VertexData>& Vertexbuffer,
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
+  const size_t ubytesize=sizeof(GLubyte);
   const size_t bytestride=sizeof(VertexData);
 
   GLuint vertsBufferIndex; 
@@ -992,16 +993,16 @@ void BezierPatch::drawColors(std::vector<VertexData>& Vertexbuffer,
                         (void *) (3*size));
   glEnableVertexAttribArray(normalAttrib);
 
-  glVertexAttribIPointer(colorAttrib,1,GL_UNSIGNED_INT,bytestride,
-                         (void *) (6*size));
-  glEnableVertexAttribArray(colorAttrib);
-
   glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,
-                         (void *) (6*size+intsize));
+                         (void *) (6*size));
   glEnableVertexAttribArray(materialAttrib);
     
+  glVertexAttribPointer(colorAttrib,4,GL_UNSIGNED_BYTE,GL_TRUE,bytestride,
+                        (void *) (6*size+intsize));
+  glEnableVertexAttribArray(colorAttrib);
+
   glVertexAttribIPointer(centerAttrib,1,GL_INT,bytestride,
-                         (void *) (6*size+2*intsize));
+                         (void *) (6*size+intsize+4*ubytesize));
   glEnableVertexAttribArray(centerAttrib);
     
   glFlush(); // Workaround broken MSWindows drivers for Intel GPU

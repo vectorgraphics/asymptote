@@ -7,7 +7,7 @@ uniform mat4 normMat;
 #endif
 
 #ifdef EXPLICIT_COLOR
-in uint color;
+in vec4 color;
 out vec4 Color;
 #endif
 
@@ -47,7 +47,7 @@ void main()
 #endif
 
 #ifdef EXPLICIT_COLOR
-  Color=unpackUnorm4x8(color);
+  Color=color;
 #endif
 
 #ifdef WIDTH

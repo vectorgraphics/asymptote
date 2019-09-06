@@ -39,8 +39,8 @@ class VertexData
 public:
   GLfloat position[3];
   GLfloat normal[3];
-  GLuint color;
   GLint material;
+  GLubyte color[4];
   GLint center; // Index to center of billboard label
   VertexData() {};
   VertexData(const triple& v, const triple& n) {
@@ -50,7 +50,6 @@ public:
     normal[0]=n.getx();
     normal[1]=n.gety();
     normal[2]=n.getz();
-    color=0;
     material=drawElement::materialIndex;
     center=0;
   }
@@ -61,7 +60,6 @@ public:
     normal[0]=n.getx();
     normal[1]=n.gety();
     normal[2]=n.getz();
-    color=0;
     material=drawElement::materialIndex;
     center=drawElement::centerIndex;
   }
@@ -72,8 +70,11 @@ public:
     normal[0]=n.getx();
     normal[1]=n.gety();
     normal[2]=n.getz();
-    color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
     material=-(int) drawElement::materialIndex-1; // request explicit color
+    color[0]=(int)(bytescale*c[0]);
+    color[1]=(int)(bytescale*c[1]);
+    color[2]=(int)(bytescale*c[2]);
+    color[3]=(int)(bytescale*c[3]);
     center=0;
   }
   VertexData(const triple& v, const triple& n, GLfloat *c, billboard_t) {
@@ -83,8 +84,11 @@ public:
     normal[0]=n.getx();
     normal[1]=n.gety();
     normal[2]=n.getz();
-    color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
     material=-(int) drawElement::materialIndex-1; // request explicit color
+    color[0]=(int)(bytescale*c[0]);
+    color[1]=(int)(bytescale*c[1]);
+    color[2]=(int)(bytescale*c[2]);
+    color[3]=(int)(bytescale*c[3]);
     center=drawElement::centerIndex;
   }
 };
