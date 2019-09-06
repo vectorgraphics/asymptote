@@ -86,8 +86,6 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
   shaderSrc << "#version " << GLSL_VERSION << "\r\n";
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
             << "\r\n";
-  shaderSrc << "#extension GL_ARB_shading_language_packing : enable"
-            << "\r\n";
 
   size_t n=defineflags.size();
   for(size_t i=0; i < n; ++i) {
