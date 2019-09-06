@@ -190,8 +190,8 @@ class GeometryDrawable extends DrawableObject {
       gl.useProgram(shader);
       lastshader=shader;
       setUniforms(shader);
-    } else
-      setViewUniforms(shader);
+    }
+    setViewUniforms(shader);
 
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
