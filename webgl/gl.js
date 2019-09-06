@@ -609,7 +609,7 @@ class BezierPatch extends GeometryDrawable {
   }
 }
 
-function resetCamera()
+function home()
 {
   mat4.identity(rotMat);
   initProjection();
@@ -973,7 +973,6 @@ function capzoom()
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
-  remesh=true;
   if(Zoom != lastzoom) remesh=true;
   lastzoom=Zoom;
 }
@@ -1039,33 +1038,29 @@ function processDrag(newX,newY,mode,touch=false) {
   redraw=true;
 }
 
-function handleKey(key) {
-  var keycode=key.key;
-  var rotate=true;
-  var axis=[0,0,1];
-  switch (keycode) {
-  case "w":
-    axis=[-1,0,0];
-    break;
-  case "d":
-    axis=[0,1,0];
-    break;
-  case "a":
-    axis=[0,-1,0];
-    break;
-  case "s":
+function handleKey(event) {
+  var keycode=event.key;
+  var axis=[];
+  switch(keycode) {
+  case "x":
     axis=[1,0,0];
     break;
+  case "y":
+    axis=[0,1,0];
+    break;
+  case "z":
+    axis=[0,0,1];
+    break;
   case "h":
-    resetCamera();
+    home();
     break;
   default:
-    rotate=false;
     break;
   }
 
-  if(rotate) {
-    mat4.rotate(rotationMatrix,rotationMatrix,0.1,axis);
+  if(axis.length > 0) {
+    mat4.rotate(rotMat,rotMat,0.1,axis);
+    updatevMatrix();
     redraw=true;
   }
 }
@@ -1143,23 +1138,9 @@ function draw() {
   remesh=false;
 }
 
-var forceredraw=false;
-var lasttime;
-var newtime;
-
 function tick() {
   requestAnimationFrame(tick);
-  lasttime=newtime;
-  newtime=performance.now();
-  // invariant: every time this loop is called, lasttime stores the
-  // last time processloop was called. 
-  processloop(newtime-lasttime);
-  draw();
-}
-
-function tickNoRedraw() {
-  requestAnimationFrame(tickNoRedraw);
-  if (redraw) {
+  if(redraw) {
     draw();
     redraw=false;
   }
@@ -1228,7 +1209,8 @@ function initProjection() {
   };
 }
 
-function webGLStart() {
+function webGLStart()
+{
   var canvas=document.getElementById("Asymptote");
 
   canvas.width=canvasWidth;
@@ -1267,14 +1249,9 @@ function webGLStart() {
   canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchmove",handleTouchMove,
                           supportsPassive ? {passive:true} : false);
-
-  newtime=performance.now();
+  document.addEventListener("keydown",handleKey,false);
 
   pMatrixInit=new Float32Array(pMatrix);
 
-  if (forceredraw) {
-    tick();
-  } else {
-    tickNoRedraw();
-  }
+  tick();
 }
