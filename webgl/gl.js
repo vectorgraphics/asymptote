@@ -45,8 +45,8 @@ var viewParam = {
 };
 
 var positionBuffer;
+var materialBuffer;
 var colorBuffer;
-var normalBuffer;
 
 var pMatrix=mat4.create();
 var mMatrix=mat4.create();
@@ -166,10 +166,10 @@ class GeometryDrawable extends DrawableObject {
   /**
    * @param {*} materialIndex Index of Material
    */
-  constructor(colors) {
+  constructor(color) {
     super();
-    this.colors=colors;
-    this.stride=colors ? 44 : 28;
+    this.color=color;
+    this.stride=24;
     this.rendered=false;
   }
 
@@ -184,12 +184,11 @@ class GeometryDrawable extends DrawableObject {
   }
 
   drawBuffer() {
-    var shader=this.colors ? colorShader : shaderProgram;
+    var shader=this.color ? colorShader : shaderProgram;
     gl.useProgram(shader);
     setUniforms(shader);
 
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
- 
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
                   gl.STATIC_DRAW);
 
@@ -197,15 +196,24 @@ class GeometryDrawable extends DrawableObject {
                          3,gl.FLOAT,false,this.stride,0);
     gl.vertexAttribPointer(shader.vertexNormalAttribute,
                          3,gl.FLOAT,false,this.stride,12);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(this.materials),
+                  gl.STATIC_DRAW);
     gl.vertexAttribPointer(shader.vertexMaterialIndexAttribute,
-                         1,gl.FLOAT,false,this.stride,24);
-    if(this.colors) {
-      colorShader.vertexColorAttribute=
-        gl.getAttribLocation(colorShader,"color");
-      gl.enableVertexAttribArray(colorShader.vertexColorAttribute);
+                         1,gl.SHORT,false,0,0);
+
+    if(this.color) {
+      shader.vertexColorAttribute=
+        gl.getAttribLocation(shader,"color");
+      gl.enableVertexAttribArray(shader.vertexColorAttribute);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(this.colors),
+                  gl.STATIC_DRAW);
 
       gl.vertexAttribPointer(shader.vertexColorAttribute,
-                             4,gl.FLOAT,false,this.stride,28);
+                             4,gl.UNSIGNED_BYTE,true,0,0);
     }
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
@@ -219,6 +227,8 @@ class GeometryDrawable extends DrawableObject {
     
   clearBuffer() {
     this.vertices=[];
+    this.materials=[];
+    this.colors=[];
     this.indices=[];
 
     this.nvertices=0;
@@ -235,16 +245,16 @@ class BezierPatch extends GeometryDrawable {
    * @param {*} Maximum bounding box corner
    * @param {*} colors array of 4 RGBA color arrays
    */
-  constructor(controlpoints,materialIndex,Min,Max,colors) {
-    super(colors);
+  constructor(controlpoints,materialIndex,Min,Max,color) {
+    super(color);
     this.Offscreen=true;
     this.materialIndex=materialIndex;
     this.controlpoints=controlpoints;
     this.rendered=false;
     this.Min=Min;
     this.Max=Max;
-    this.colors=colors;
-    this.pvertex=colors ? this.Vertex : this.vertex;
+    this.color=color;
+    this.pvertex=color ? this.Vertex : this.vertex;
   }
 
   vertex(v,n) {
@@ -254,7 +264,7 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
-    this.vertices.push(this.materialIndex);
+    this.materials.push(this.materialIndex);
     return this.nvertices++;
   }
 
@@ -265,12 +275,11 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
-    this.vertices.push(this.materialIndex);
-//    color=glm::packUnorm4x8(glm::vec4(c[0],c[1],c[2],c[3]));
-    this.vertices.push(c[0]);
-    this.vertices.push(c[1]);
-    this.vertices.push(c[2]);
-    this.vertices.push(c[3]);
+    this.materials.push(this.materialIndex);
+    this.colors.push(c[0]);
+    this.colors.push(c[1]);
+    this.colors.push(c[2]);
+    this.colors.push(c[3]);
     return this.nvertices++;
   }
 
@@ -355,11 +364,11 @@ class BezierPatch extends GeometryDrawable {
       if(iszero(n3)) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
     }
 
-    if(this.colors) {
-      var c0=this.colors[0];
-      var c1=this.colors[1];
-      var c2=this.colors[2];
-      var c3=this.colors[3];
+    if(this.color) {
+      var c0=this.color[0];
+      var c1=this.color[1];
+      var c2=this.color[2];
+      var c3=this.color[3];
 
       var i0=this.pvertex(p0,n0,c0);
       var i1=this.pvertex(p12,n1,c1);
@@ -538,7 +547,7 @@ class BezierPatch extends GeometryDrawable {
         else m3=s3[0];
       }
       
-      if(C0) {
+      if(this.color) {
         var c0=new Array(4);
         var c1=new Array(4);
         var c2=new Array(4);
@@ -1121,6 +1130,8 @@ var indexExt;
 // Using the vertex position buffer of the above function,draw patch.
 function setBuffer(shader) {
   positionBuffer=gl.createBuffer();
+  materialBuffer=gl.createBuffer();
+  colorBuffer=gl.createBuffer();
   indexBuffer=gl.createBuffer();
   indexExt=gl.getExtension("OES_element_index_uint");
 }

@@ -65,8 +65,8 @@ void jsfile::addPatch(triple const* controls, const triple& Min,
   if(c) {
     out << ",[" << newl;
     for(int i=0; i < 4; ++i)
-      out << "[" << c[i].R << "," << c[i].G << "," << c[i].B << "," << c[i].A
-          << "]," << newl;
+      out << "[" << byte(c[i].R) << "," << byte(c[i].G) << "," << byte(c[i].B)
+          << "," << byte(c[i].A) << "]," << newl;
     out << "]" << newl;
   }
   out << "));" << newl;
