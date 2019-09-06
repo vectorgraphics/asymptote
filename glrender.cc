@@ -1799,24 +1799,54 @@ void setUniforms(GLint shader)
     lastshader=-1;
   }
   
-  if(shader == lastshader) return;
-  lastshader=shader;
-  
-  glUseProgram(shader);
-  
   bool billboard=shader == colorShader || shader == noNormalShader;
   bool normal=shader == colorShader || shader == materialShader;
     
-  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
+  if(shader != lastshader) {
+    glUseProgram(shader);
+    lastshader=shader;
   
-  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
+    glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
   
-  if(normal)
-    glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
-  
-  if(billboard)
-    glUniformMatrix3fv(glGetUniformLocation(shader,"billboardMat"),1,GL_FALSE, value_ptr(gl::billboardMat));
+    for(size_t i=0; i < gl::nlights; ++i) {
+      triple Lighti=gl::Lights[i];
+      size_t i4=4*i;
+      glUniform4f(glGetUniformLocation(shader,
+                                       getLightIndex(i,"direction").c_str()),
+                  (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
+                  (GLfloat) Lighti.getz(),0.0);
 
+      glUniform4f(glGetUniformLocation(shader,
+                                       getLightIndex(i,"diffuse").c_str()),
+                  (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
+                  (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
+      
+      glUniform4f(glGetUniformLocation(shader,
+                                       getLightIndex(i,"specular").c_str()),
+                  (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
+                  (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
+    }
+
+    if(billboard) {
+      size_t ncenter=drawElement::center.size();
+      for(size_t i=0; i < ncenter; ++i) {
+        triple v=drawElement::center[i];
+        glUniform3f(glGetUniformLocation(shader,getCenterIndex(i).c_str()),
+                    (GLfloat) v.getx(),(GLfloat) v.gety(),(GLfloat) v.getz());
+      }
+    }
+  
+#if HAVE_LIBOPENIMAGEIO
+    // textures
+    if (settings::getSetting<bool>("envmap")) { 
+      glActiveTexture(GL_TEXTURE1);
+      glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
+      glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);
+      glActiveTexture(GL_TEXTURE0);
+    }
+#endif
+  }
+  
   GLuint binding=0;
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   glUniformBlockBinding(shader,blockindex,binding);
@@ -1828,45 +1858,15 @@ void setUniforms(GLint shader)
                drawElement::material.data(),GL_STATIC_DRAW);
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
   
-  glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
+  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
   
-  for(size_t i=0; i < gl::nlights; ++i) {
-    triple Lighti=gl::Lights[i];
-    size_t i4=4*i;
-    glUniform4f(glGetUniformLocation(shader,
-                                     getLightIndex(i,"direction").c_str()),
-                (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
-                (GLfloat) Lighti.getz(),0.0);
-
-    glUniform4f(glGetUniformLocation(shader,
-                                     getLightIndex(i,"diffuse").c_str()),
-                (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
-                (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
-      
-    glUniform4f(glGetUniformLocation(shader,
-                                     getLightIndex(i,"specular").c_str()),
-                (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
-                (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
-  }
-
-  if(billboard) {
-    size_t ncenter=drawElement::center.size();
-    for(size_t i=0; i < ncenter; ++i) {
-      triple v=drawElement::center[i];
-      glUniform3f(glGetUniformLocation(shader,getCenterIndex(i).c_str()),
-                  (GLfloat) v.getx(),(GLfloat) v.gety(),(GLfloat) v.getz());
-    }
-  }
+  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   
-#if HAVE_LIBOPENIMAGEIO
-  // textures
-  if (settings::getSetting<bool>("envmap")) { 
-    glActiveTexture(GL_TEXTURE1);
-    glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
-    glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);
-    glActiveTexture(GL_TEXTURE0);
-  }
-#endif
+  if(normal)
+    glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
+  
+  if(billboard)
+    glUniformMatrix3fv(glGetUniformLocation(shader,"billboardMat"),1,GL_FALSE, value_ptr(gl::billboardMat));
 }
 
 void deleteUniforms()

@@ -186,12 +186,7 @@ class GeometryDrawable extends DrawableObject {
   drawBuffer() {
     var shader=this.color ? colorShader : materialShader;
 
-    if(shader != lastshader) {
-      gl.useProgram(shader);
-      lastshader=shader;
-      setUniforms(shader);
-    }
-    setViewUniforms(shader);
+    setUniforms(shader);
 
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
@@ -623,7 +618,6 @@ function resetCamera()
   redraw=true;
 }
 
-var lastshader=-1;
 var materialShader,colorShader;
 
 function initShaders(options) {
@@ -846,8 +840,8 @@ function getTargetOrigMat() {
   return translMat;
 }
 
-function COBTarget(out, mat) {
-  return mat4COB(out, getTargetOrigMat(), mat);
+function COBTarget(out,mat) {
+  return mat4COB(out,getTargetOrigMat(),mat);
 }
 
 function inverseTranspose(out,mat) {
@@ -862,39 +856,43 @@ var pvmMatrix=mat4.create();
 var mNormMatrix=mat4.create();
 var vmNormMatrix=mat4.create();
 
+var lastshader=-1;
+
 function setUniforms(shader)
 {
-  shader.vertexPositionAttribute=
-    gl.getAttribLocation(shader,"position");
-  gl.enableVertexAttribArray(shader.vertexPositionAttribute);
+  if(shader != lastshader) {
+    gl.useProgram(shader);
+    lastshader=shader;
 
-  shader.vertexMaterialIndexAttribute=
-    gl.getAttribLocation(shader,"materialIndexf");
-  gl.enableVertexAttribArray(shader.vertexMaterialIndexAttribute);
+    shader.vertexPositionAttribute=
+      gl.getAttribLocation(shader,"position");
+    gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
-  shader.vertexNormalAttribute=
-    gl.getAttribLocation(shader,"normal");
-  gl.enableVertexAttribArray(shader.vertexNormalAttribute);
+    shader.vertexMaterialIndexAttribute=
+      gl.getAttribLocation(shader,"materialIndexf");
+    gl.enableVertexAttribArray(shader.vertexMaterialIndexAttribute);
 
-  if(shader == colorShader) {
-    colorShader.vertexColorAttribute=
-      gl.getAttribLocation(colorShader,"color");
-    gl.enableVertexAttribArray(colorShader.vertexColorAttribute);
+    shader.vertexNormalAttribute=
+      gl.getAttribLocation(shader,"normal");
+    gl.enableVertexAttribArray(shader.vertexNormalAttribute);
+
+    if(shader == colorShader) {
+      colorShader.vertexColorAttribute=
+        gl.getAttribLocation(colorShader,"color");
+      gl.enableVertexAttribArray(colorShader.vertexColorAttribute);
+    }
+
+    shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
+    shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
+    shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
+
+    for (let i=0; i < M.length; ++i)
+      M[i].setUniform(shader,"objMaterial",i);
+
+    for (let i=0; i < lights.length; ++i)
+      lights[i].setUniform(shader,"objLights",i);
   }
 
-  shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
-  shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
-  shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
-
-  for (let i=0; i < M.length; ++i)
-    M[i].setUniform(shader,"objMaterial",i);
-
-  for (let i=0; i < lights.length; ++i)
-    lights[i].setUniform(shader,"objLights",i);
-}
-
-function setViewUniforms(shader)
-{
   COBTarget(msMatrix,mMatrix);
   mat4.multiply(vmMatrix,vMatrix,msMatrix);
   mat4.invert(T,vmMatrix);
