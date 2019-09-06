@@ -182,6 +182,7 @@ ModelView modelView;
 GLuint ubo;
 
 Arcball arcball;
+unsigned int framecount;
 
 template<class T>
 inline T min(T a, T b)
@@ -324,6 +325,7 @@ void home(bool webgl=false)
   remesh=true;
   lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
+  framecount=0;
 }
 
 #ifdef HAVE_GL
@@ -759,16 +761,20 @@ void display()
   if(maxvertices == 0) maxvertices=Maxvertices;
 
   bool fps=settings::verbose > 2;  
-  if(fps) seconds();
   drawscene(Width,Height);
   if(fps) {
-    glFinish();
-    double s=seconds();
-    if(s > 0.0) {
-      double rate=1.0/s;
-      S.add(rate);
-      cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev() << endl;
+    if(framecount < 10) // Measure steady-state framerate
+      seconds();
+    else {
+      double s=seconds();
+      if(s > 0.0) {
+        double rate=1.0/s;
+        S.add(rate);
+        cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev() 
+             << endl;
+      }
     }
+    ++framecount;
   }
   glutSwapBuffers();
 
@@ -1785,11 +1791,16 @@ string getCenterIndex(size_t const& index) {
 
 void setUniforms(GLint shader)
 {
+  static GLint lastshader=-1;
   if(gl::nlights > gl::Nlights || nmaterials > Nmaterials || 
      drawElement::center.size() > gl::Ncenter) {
     gl::deleteshader();
     gl::initshader();
+    lastshader=-1;
   }
+  
+  if(shader == lastshader) return;
+  lastshader=shader;
   
   glUseProgram(shader);
   
@@ -1862,7 +1873,6 @@ void deleteUniforms()
 {
   glBindBuffer(GL_UNIFORM_BUFFER,0);
   glDeleteBuffers(1,&gl::ubo);
-  glUseProgram(0);
 }
   
 }

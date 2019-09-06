@@ -184,9 +184,14 @@ class GeometryDrawable extends DrawableObject {
   }
 
   drawBuffer() {
-    var shader=this.color ? colorShader : shaderProgram;
-    gl.useProgram(shader);
-    setUniforms(shader);
+    var shader=this.color ? colorShader : materialShader;
+
+    if(shader != lastshader) {
+      gl.useProgram(shader);
+      lastshader=shader;
+      setUniforms(shader);
+    } else
+      setViewUniforms(shader);
 
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
@@ -204,10 +209,6 @@ class GeometryDrawable extends DrawableObject {
                          1,gl.SHORT,false,0,0);
 
     if(this.color) {
-      shader.vertexColorAttribute=
-        gl.getAttribLocation(shader,"color");
-      gl.enableVertexAttribArray(shader.vertexColorAttribute);
-
       gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
       gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(this.colors),
                   gl.STATIC_DRAW);
@@ -622,7 +623,8 @@ function resetCamera()
   redraw=true;
 }
 
-var shaderProgram,colorShader;
+var lastshader=-1;
+var materialShader,colorShader;
 
 function initShaders(options) {
   var fragmentShader=getShader(gl,"fragment",options);
@@ -848,13 +850,20 @@ function COBTarget(out, mat) {
   return mat4COB(out, getTargetOrigMat(), mat);
 }
 
-function inversetranspose(out,mat) {
+function inverseTranspose(out,mat) {
   mat4.invert(out,mat);
   mat4.transpose(out,out);
   return out;
 }
 
-function setUniforms(shader) {
+var msMatrix=mat4.create();
+var vmMatrix=mat4.create();
+var pvmMatrix=mat4.create();
+var mNormMatrix=mat4.create();
+var vmNormMatrix=mat4.create();
+
+function setUniforms(shader)
+{
   shader.vertexPositionAttribute=
     gl.getAttribLocation(shader,"position");
   gl.enableVertexAttribArray(shader.vertexPositionAttribute);
@@ -867,35 +876,35 @@ function setUniforms(shader) {
     gl.getAttribLocation(shader,"normal");
   gl.enableVertexAttribArray(shader.vertexNormalAttribute);
 
+  if(shader == colorShader) {
+    colorShader.vertexColorAttribute=
+      gl.getAttribLocation(colorShader,"color");
+    gl.enableVertexAttribArray(colorShader.vertexColorAttribute);
+  }
+
   shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
   shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
 
-  var msMatrix = mat4.create();
-  COBTarget(msMatrix, mMatrix);
+  for (let i=0; i < M.length; ++i)
+    M[i].setUniform(shader,"objMaterial",i);
 
-  var vmMatrix=mat4.create();
+  for (let i=0; i < lights.length; ++i)
+    lights[i].setUniform(shader,"objLights",i);
+}
+
+function setViewUniforms(shader)
+{
+  COBTarget(msMatrix,mMatrix);
   mat4.multiply(vmMatrix,vMatrix,msMatrix);
   mat4.invert(T,vmMatrix);
-
-  var pvmMatrix=mat4.create();
   mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
-
-  var mNormMatrix=mat4.create();
-  inversetranspose(mNormMatrix,mMatrix);
-
-  var vmNormMatrix=mat4.create();
+  inverseTranspose(mNormMatrix,mMatrix);
   mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
 
   gl.uniformMatrix4fv(shader.pvMatrixUniform,false,pvmMatrix);
   gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vmMatrix);
   gl.uniformMatrix4fv(shader.normMatUniform,false,vmNormMatrix);
-  
-  for (let i=0; i < M.length; ++i)
-    M[i].setUniform(shader,"objMaterial",i);
-
-  for (let i=0; i<lights.length; ++i)
-    lights[i].setUniform(shader,"objLights",i);
 }
 
 function handleMouseDown(event) {
@@ -934,8 +943,8 @@ function rotateScene (lastX, lastY, rawX, rawY) {
 }
 
 function shiftScene(lastX,lastY,rawX,rawY) {
-  let xTransl=(rawX-lastX);
-  let yTransl=(rawY-lastY);
+  let xTransl=rawX-lastX;
+  let yTransl=rawY-lastY;
   // equivalent to shift function in asy.
   let zoominv=1/lastzoom;
   shift.x+=xTransl*zoominv*canvasWidth/2;
@@ -943,8 +952,8 @@ function shiftScene(lastX,lastY,rawX,rawY) {
 }
 
 function panScene(lastX,lastY,rawX,rawY) {
-  let xTransl=(rawX-lastX);
-  let yTransl=(rawY-lastY);
+  let xTransl=rawX-lastX;
+  let yTransl=rawY-lastY;
   if (orthographic) {
     shiftScene(lastX,lastY,rawX,rawY);
   } else {
@@ -956,16 +965,7 @@ function panScene(lastX,lastY,rawX,rawY) {
 function updatevMatrix() {
   COBTarget(vMatrix,rotMat);
   mat4.translate(vMatrix,vMatrix,[center.x,center.y,0]);
-  inversetranspose(normMatrix,vMatrix);
-}
-
-function updateTmatrix() {
-  // has to be called every iteration modelmatrix is changed. 
-  var msMatrix=mat4.create();
-  COBTarget(msMatrix,mMatrix);
-
-  mat4.multiply(T,vMatrix,msMatrix);
-  mat4.invert(T,T);
+  inverseTranspose(normMatrix,vMatrix);
 }
 
 function capzoom() 
@@ -1036,8 +1036,8 @@ function processDrag(newX,newY,mode,touch=false) {
   lastMouseX=newX;
   lastMouseY=newY;
 
-  updatevMatrix();
   setProjection();
+  updatevMatrix();
   redraw=true;
 }
 
@@ -1139,7 +1139,6 @@ function setBuffer(shader) {
 function draw() {
   sceneSetup();
   setBuffer();
-  updateTmatrix();
   
   P.forEach(p => p.draw(remesh));
 
@@ -1240,7 +1239,7 @@ function webGLStart() {
   initProjection();
   initGL(canvas);
 
-  shaderProgram=initShaders();
+  materialShader=initShaders();
   colorShader=initShaders(["EXPLICIT_COLORS"]);
 
   gl.clearColor(1.0,1.0,1.0,1.0);
