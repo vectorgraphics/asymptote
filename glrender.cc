@@ -90,7 +90,7 @@ bool initialize=true;
 GLint Maxvertices;
 size_t maxvertices;
 
-size_t Ncenter=100;
+size_t Ncenters=100;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -171,8 +171,7 @@ using glm::translate;
 
 mat4 projViewMat;
 mat4 viewMat;
-mat4 normMat;
-mat3 billboardMat;
+mat3 normMat;
 
 dmat4 dprojMat;
 dmat4 dviewMat;
@@ -279,7 +278,7 @@ void updateModelViewData()
   dmat4 MV=glm::transpose(dviewMat);
   dmat4 MVinv=glm::inverse(MV);
   
-  normMat=mat4(MVinv);
+  normMat=mat3(MVinv);
 
   double* T=value_ptr(MV);
   double* Tinv=value_ptr(MVinv);
@@ -319,7 +318,6 @@ void home(bool webgl=false)
   dviewMat=dmat4(1.0);
   drotateMat=dmat4(1.0); 
   
-  Rotate=value_ptr(drotateMat);
   updateModelViewData();
 
   remesh=true;
@@ -820,7 +818,6 @@ void update()
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
   viewMat=mat4(dviewMat);
-  billboardMat=glm::inverse(mat3(dviewMat));
 
   setProjection();
   updateModelViewData();
@@ -945,11 +942,13 @@ void rotate(int x, int y)
                          Action == "rotateX", // X rotation only
                          Action == "rotateY");  // Y rotation only
 
+    
+    double *T=value_ptr(drotateMat);
     for(int i=0; i < 4; ++i) {
       const ::vec4& roti=arcball.rot[i];
       int i4=4*i;
       for(int j=0; j < 4; ++j)
-        value_ptr(drotateMat)[i4+j]=roti[j];
+        T[i4+j]=roti[j];
     }
     
     update();
@@ -1367,7 +1366,7 @@ void init()
   glutInit(&argc,argv);
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
-  
+  Rotate=value_ptr(drotateMat);
 #endif
 }
 
@@ -1418,7 +1417,7 @@ void initshader()
 {
   Nlights=max(Nlights,nlights);
   Nmaterials=max(Nmaterials,nmaterials);
-  Ncenter=max(Ncenter,camp::drawElement::center.size());
+  Ncenters=max(Ncenters,camp::drawElement::center.size());
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
@@ -1441,22 +1440,22 @@ void initshader()
   shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
     
   shaderParams.push_back("BILLBOARD");
-  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenter,
+  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
                                             shaderParams);
   shaderParams.pop_back();
 
   shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenter,
+  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
                                          shaderParams);
   shaderParams.pop_back();
   
   shaderParams.push_back("NORMAL");
-  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenter,
+  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
                                             shaderParams);
 
   shaderParams.push_back("EXPLICIT_COLOR");
   shaderParams.push_back("BILLBOARD");
-  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenter,
+  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
                                          shaderParams);
 }
 
@@ -1793,7 +1792,7 @@ void setUniforms(GLint shader)
 {
   static GLint lastshader=-1;
   if(gl::nlights > gl::Nlights || nmaterials > Nmaterials || 
-     drawElement::center.size() > gl::Ncenter) {
+     drawElement::center.size() > gl::Ncenters) {
     gl::deleteshader();
     gl::initshader();
     lastshader=-1;
@@ -1828,8 +1827,8 @@ void setUniforms(GLint shader)
     }
 
     if(billboard) {
-      size_t ncenter=drawElement::center.size();
-      for(size_t i=0; i < ncenter; ++i) {
+      size_t ncenters=drawElement::center.size();
+      for(size_t i=0; i < ncenters; ++i) {
         triple v=drawElement::center[i];
         glUniform3f(glGetUniformLocation(shader,getCenterIndex(i).c_str()),
                     (GLfloat) v.getx(),(GLfloat) v.gety(),(GLfloat) v.getz());
@@ -1863,10 +1862,7 @@ void setUniforms(GLint shader)
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   
   if(normal)
-    glUniformMatrix4fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
-  
-  if(billboard)
-    glUniformMatrix3fv(glGetUniformLocation(shader,"billboardMat"),1,GL_FALSE, value_ptr(gl::billboardMat));
+    glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
 }
 
 void deleteUniforms()

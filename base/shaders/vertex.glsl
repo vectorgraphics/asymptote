@@ -3,7 +3,11 @@ in vec3 position;
 #ifdef NORMAL
 in vec3 normal;
 out vec3 Normal;
-uniform mat4 normMat;
+uniform mat3 normMat;
+#else
+#ifdef BILLBOARD
+uniform mat3 normMat;
+#endif
 #endif
 
 #ifdef EXPLICIT_COLOR
@@ -24,7 +28,6 @@ out vec3 ViewPosition;
 
 #ifdef BILLBOARD
 in int center;
-uniform mat3 billboardMat;
 uniform vec3 Center[Ncenter];
 #endif
 
@@ -33,17 +36,15 @@ flat out int materialIndex;
 void main()
 {
 #ifdef BILLBOARD
-  gl_Position=projViewMat*vec4(position,1.0);
-  if(center > 0 && center <= 100) {
+  if(center > 0) {
     vec3 c=Center[center-1];
-    gl_Position=projViewMat*vec4(c+billboardMat*(position-c),1.0);
+    gl_Position=projViewMat*vec4(c+(position-c)*normMat,1.0);
   } else
-#else
-  gl_Position=projViewMat*vec4(position,1.0);
 #endif
+  gl_Position=projViewMat*vec4(position,1.0);
   ViewPosition=(viewMat*vec4(position,1.0)).xyz;
 #ifdef NORMAL
-  Normal=(normMat*vec4(normal,0)).xyz;
+  Normal=normMat*normal;
 #endif
 
 #ifdef EXPLICIT_COLOR

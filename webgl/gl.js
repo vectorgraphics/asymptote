@@ -21,14 +21,24 @@ var third=1.0/3.0;
 
 var P=[]; // Array of patches
 var M=[]; // Array of materials
+var Centers=[0]; // Array of billboard centers
 
 var rotMat=mat4.create();
 var rMatrix=mat4.create();
 var pMatrix=mat4.create();
+var mMatrix=mat4.create();
 var vMatrix=mat4.create();
 var normMatrix=mat4.create();
 var mMatrix=mat4.create();
 var T=mat4.create(); // Offscreen transformation matrix
+
+var msMatrix=mat4.create();
+var vmMatrix=mat4.create();
+var pvmMatrix=mat4.create();
+var mNormMatrix=mat4.create();
+var vmNormMatrix=mat4.create();
+var normMat=mat3.create();
+
 
 var zmin,zmax;
 var center={x:0,y:0,z:0};
@@ -45,11 +55,8 @@ var viewParam = {
 };
 
 var positionBuffer;
-var materialBuffer;
 var colorBuffer;
-
-var pMatrix=mat4.create();
-var mMatrix=mat4.create();
+var indexBuffer;
 
 var redraw=true;
 var remesh=true;
@@ -59,24 +66,23 @@ var lastMouseY=null;
 var touchID=null;
 
 class Material {
-  constructor(diffuse, emissive, specular, shininess, metallic, fresnel0) {
-    this.diffuse = diffuse;
-    this.emissive = emissive;
-    this.specular = specular;
-    this.shininess = shininess;
-    this.metallic = metallic;
-    this.fresnel0 = fresnel0;
+  constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
+    this.diffuse=diffuse;
+    this.emissive=emissive;
+    this.specular=specular;
+    this.shininess=shininess;
+    this.metallic=metallic;
+    this.fresnel0=fresnel0;
   }
 
-  setUniform(program, stringLoc, index = null) {
+  setUniform(program,stringLoc,index=null) {
     var getLoc;
-    if (index === null) {
+    if (index === null)
       getLoc =
-        param => gl.getUniformLocation(program, stringLoc + "." + param);
-    } else {
+        param => gl.getUniformLocation(program,stringLoc+"."+param);
+    else
       getLoc =
-        param => gl.getUniformLocation(program, stringLoc + "[" + index + "]." + param);
-    }
+        param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+ param);
 
     gl.uniform4fv(getLoc("diffuse"), new Float32Array(this.diffuse));
     gl.uniform4fv(getLoc("emissive"), new Float32Array(this.emissive));
@@ -88,25 +94,25 @@ class Material {
   }
 }
 
-var enumPointLight = 1;
-var enumDirectionalLight = 2;
+var enumPointLight=1;
+var enumDirectionalLight=2;
 
 class Light {
-  constructor(type, lightColor, brightness, customParam) {
-    this.type = type;
-    this.lightColor = lightColor;
-    this.brightness = brightness;
-    this.customParam = customParam;
+  constructor(type,lightColor,brightness,customParam) {
+    this.type=type;
+    this.lightColor=lightColor;
+    this.brightness=brightness;
+    this.customParam=customParam;
   }
 
   setUniform(program, stringLoc, index) {
-    var getLoc =
-        param => gl.getUniformLocation(program, stringLoc + "[" + index + "]." + param);
+    var getLoc=
+        param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
 
-    gl.uniform1i(getLoc("type"), this.type);
-    gl.uniform3fv(getLoc("color"), new Float32Array(this.lightColor));
-    gl.uniform1f(getLoc("brightness"), this.brightness);
-    gl.uniform4fv(getLoc("parameter"), new Float32Array(this.customParam));
+    gl.uniform1i(getLoc("type"),this.type);
+    gl.uniform3fv(getLoc("color"),new Float32Array(this.lightColor));
+    gl.uniform1f(getLoc("brightness"),this.brightness);
+    gl.uniform4fv(getLoc("parameter"),new Float32Array(this.customParam));
   }
 }
 
@@ -115,20 +121,21 @@ function initGL(canvas) {
     gl=canvas.getContext("webgl");
     gl.viewportWidth=canvas.width;
     gl.viewportHeight=canvas.height;
-  } catch (e) {}
+  } catch(e) {}
   if (!gl)
     alert("Could not initialize WebGL");
 }
 
 function getShader(gl,id,options=[]) {
-  var shaderScript = document.getElementById(id);
+  var shaderScript=document.getElementById(id);
   if(!shaderScript)
     return null;
 
   var str=`#version 100
   precision highp float;
   const int nLights=${lights.length};
-  const int nMaterials=${M.length};\n`
+  const int nMaterials=${M.length};
+  const int nCenters=${Centers.length};\n`
 
   if(orthographic)
     str += `#define ORTHOGRAPHIC\n`;
@@ -139,7 +146,7 @@ function getShader(gl,id,options=[]) {
   while(k) {
     if(k.nodeType == 3)
       str += k.textContent;
-    k = k.nextSibling;
+    k=k.nextSibling;
   }
   var shader;
   if(shaderScript.type == "x-shader/x-fragment")
@@ -149,7 +156,7 @@ function getShader(gl,id,options=[]) {
   else
     return null;
 
-  gl.shaderSource(shader, str);
+  gl.shaderSource(shader,str);
   gl.compileShader(shader);
   if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)) {
     alert(gl.getShaderInfoLog(shader));
@@ -158,18 +165,9 @@ function getShader(gl,id,options=[]) {
   return shader;
 }
 
-class DrawableObject {
-  draw(remesh=false) {}
-}
-
-class GeometryDrawable extends DrawableObject {
-  /**
-   * @param {*} materialIndex Index of Material
-   */
+class GeometryDrawable {
   constructor(color) {
-    super();
     this.color=color;
-    this.stride=24;
     this.rendered=false;
   }
 
@@ -188,20 +186,18 @@ class GeometryDrawable extends DrawableObject {
 
     setUniforms(shader);
 
+    gl.uniform1i(gl.getUniformLocation(shader,"materialIndex"),
+                 this.materialIndex);
+    gl.uniform1i(gl.getUniformLocation(shader,"centerIndex"),
+                 this.centerIndex);
+
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
                   gl.STATIC_DRAW);
-
     gl.vertexAttribPointer(shader.vertexPositionAttribute,
-                         3,gl.FLOAT,false,this.stride,0);
+                         3,gl.FLOAT,false,24,0);
     gl.vertexAttribPointer(shader.vertexNormalAttribute,
-                         3,gl.FLOAT,false,this.stride,12);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(this.materials),
-                  gl.STATIC_DRAW);
-    gl.vertexAttribPointer(shader.vertexMaterialIndexAttribute,
-                         1,gl.SHORT,false,0,0);
+                         3,gl.FLOAT,false,24,12);
 
     if(this.color) {
       gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
@@ -223,7 +219,7 @@ class GeometryDrawable extends DrawableObject {
     
   clearBuffer() {
     this.vertices=[];
-    this.materials=[];
+    this.centers=[];
     this.colors=[];
     this.indices=[];
 
@@ -241,12 +237,13 @@ class BezierPatch extends GeometryDrawable {
    * @param {*} Maximum bounding box corner
    * @param {*} colors array of 4 RGBA color arrays
    */
-  constructor(controlpoints,materialIndex,Min,Max,color) {
+  constructor(controlpoints,centerIndex,materialIndex,Min,Max,color) {
     super(color);
-    this.Offscreen=true;
-    this.materialIndex=materialIndex;
-    this.controlpoints=controlpoints;
     this.rendered=false;
+    this.Offscreen=true;
+    this.controlpoints=controlpoints;
+    this.centerIndex=centerIndex;
+    this.materialIndex=materialIndex;
     this.Min=Min;
     this.Max=Max;
     this.color=color;
@@ -260,7 +257,6 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
-    this.materials.push(this.materialIndex);
     return this.nvertices++;
   }
 
@@ -271,7 +267,6 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
-    this.materials.push(this.materialIndex);
     this.colors.push(c[0]);
     this.colors.push(c[1]);
     this.colors.push(c[2]);
@@ -312,10 +307,10 @@ class BezierPatch extends GeometryDrawable {
 
    [this.x,this.y,this.z,this.X,this.Y,this.Z]=bboxtransformed(this.m,this.M);
 
-    var billboard=false;
-    if(!billboard && (this.Max[0] < this.x || this.Min[0] > this.X ||
-                      this.Max[1] < this.y || this.Min[1] > this.Y ||
-                      this.Max[2] < this.z || this.Min[2] > this.Z)) {
+    if(this.centerIndex == 0 &&
+       (this.Max[0] < this.x || this.Min[0] > this.X ||
+        this.Max[1] < this.y || this.Min[1] > this.Y ||
+        this.Max[2] < this.z || this.Min[2] > this.Z)) {
       this.Offscreen=true;
       return;
     }
@@ -543,7 +538,7 @@ class BezierPatch extends GeometryDrawable {
         else m3=s3[0];
       }
       
-      if(this.color) {
+      if(C0) {
         var c0=new Array(4);
         var c1=new Array(4);
         var c2=new Array(4);
@@ -850,12 +845,6 @@ function inverseTranspose(out,mat) {
   return out;
 }
 
-var msMatrix=mat4.create();
-var vmMatrix=mat4.create();
-var pvmMatrix=mat4.create();
-var mNormMatrix=mat4.create();
-var vmNormMatrix=mat4.create();
-
 var lastshader=-1;
 
 function setUniforms(shader)
@@ -868,29 +857,28 @@ function setUniforms(shader)
       gl.getAttribLocation(shader,"position");
     gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
-    shader.vertexMaterialIndexAttribute=
-      gl.getAttribLocation(shader,"materialIndexf");
-    gl.enableVertexAttribArray(shader.vertexMaterialIndexAttribute);
-
     shader.vertexNormalAttribute=
       gl.getAttribLocation(shader,"normal");
     gl.enableVertexAttribArray(shader.vertexNormalAttribute);
-
-    if(shader == colorShader) {
-      colorShader.vertexColorAttribute=
-        gl.getAttribLocation(colorShader,"color");
-      gl.enableVertexAttribArray(colorShader.vertexColorAttribute);
-    }
 
     shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
     shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
     shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
 
-    for (let i=0; i < M.length; ++i)
+    if(shader == colorShader) {
+      shader.vertexColorAttribute=
+        gl.getAttribLocation(shader,"color");
+      gl.enableVertexAttribArray(shader.vertexColorAttribute);
+    }
+
+    for(let i=0; i < M.length; ++i)
       M[i].setUniform(shader,"objMaterial",i);
 
-    for (let i=0; i < lights.length; ++i)
+    for(let i=0; i < lights.length; ++i)
       lights[i].setUniform(shader,"objLights",i);
+
+    for(let i=0; i < Centers.length; ++i)
+      gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
   }
 
   COBTarget(msMatrix,mMatrix);
@@ -899,10 +887,11 @@ function setUniforms(shader)
   mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
   inverseTranspose(mNormMatrix,mMatrix);
   mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
+  mat3.fromMat4(normMat,vmNormMatrix);
 
   gl.uniformMatrix4fv(shader.pvMatrixUniform,false,pvmMatrix);
   gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vmMatrix);
-  gl.uniformMatrix4fv(shader.normMatUniform,false,vmNormMatrix);
+  gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
 }
 
 function handleMouseDown(event) {
@@ -1123,7 +1112,6 @@ var indexExt;
 // Using the vertex position buffer of the above function,draw patch.
 function setBuffer(shader) {
   positionBuffer=gl.createBuffer();
-  materialBuffer=gl.createBuffer();
   colorBuffer=gl.createBuffer();
   indexBuffer=gl.createBuffer();
   indexExt=gl.getExtension("OES_element_index_uint");
@@ -1240,7 +1228,7 @@ function webGLStart()
     });
     window.addEventListener("testPassive",null,opts);
     window.removeEventListener("testPassive",null,opts);
-  } catch (e) {}
+  } catch(e) {}
 
   canvas.addEventListener("touchstart",handleTouchStart,
                           supportsPassive ? {passive:true} : false);

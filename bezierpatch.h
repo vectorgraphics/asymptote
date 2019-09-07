@@ -142,7 +142,6 @@ struct BezierPatch
     return nvertices;
   }
   
-// Store the vertex v and its normal vector n and colour c in the buffer.
   static GLuint bVertex(const triple& v, const triple& n) {
     size_t nvertices=Vertexbuffer.size();
     Vertexbuffer.push_back(VertexData(v,n,billboard));

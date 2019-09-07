@@ -147,7 +147,7 @@ public:
              double fuzz, bool &first);
   
   void meshinit() {
-    if(billboard)
+    if(billboard && centerIndex == 0)
       centerIndex=centerindex(center);
   }
   

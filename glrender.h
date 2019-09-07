@@ -137,7 +137,6 @@ extern ModelView modelView;
 void initshader();
 void deleteshader();
 
-extern size_t Ncenter;
 }
 
 namespace camp {
