@@ -152,7 +152,7 @@ Material m;
   specular=m.specular;
   parameters=m.parameters;
 
-  Roughness=1-parameters[0];
+  Roughness=1.0-parameters[0];
   Metallic=parameters[1];
   F0=parameters[2];
 
@@ -190,7 +190,7 @@ Material m;
       vec3 envRadiance=vec3(0.0,0.0,0.0);
 
       vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
-      if (length(normalPerp) == 0.0)
+      if(length(normalPerp) == 0.0)
         normalPerp=vec3(1.0,0.0,0.0);
 
       // we now have a normal basis;
