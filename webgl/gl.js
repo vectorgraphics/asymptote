@@ -55,6 +55,7 @@ var viewParam = {
 };
 
 var positionBuffer;
+var materialBuffer;
 var colorBuffer;
 var indexBuffer;
 
@@ -186,11 +187,6 @@ class GeometryDrawable {
 
     setUniforms(shader);
 
-    gl.uniform1i(gl.getUniformLocation(shader,"materialIndex"),
-                 this.materialIndex);
-    gl.uniform1i(gl.getUniformLocation(shader,"centerIndex"),
-                 this.centerIndex);
-
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
                   gl.STATIC_DRAW);
@@ -198,6 +194,14 @@ class GeometryDrawable {
                          3,gl.FLOAT,false,24,0);
     gl.vertexAttribPointer(shader.vertexNormalAttribute,
                          3,gl.FLOAT,false,24,12);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(this.materials),
+                  gl.STATIC_DRAW);
+    gl.vertexAttribPointer(shader.vertexMaterialAttribute,
+                         1,gl.SHORT,false,4,0);
+    gl.vertexAttribPointer(shader.vertexCenterAttribute,
+                         1,gl.SHORT,false,4,2);
 
     if(this.color) {
       gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
@@ -219,6 +223,7 @@ class GeometryDrawable {
     
   clearBuffer() {
     this.vertices=[];
+    this.materials=[];
     this.centers=[];
     this.colors=[];
     this.indices=[];
@@ -257,6 +262,8 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
+    this.materials.push(this.materialIndex);
+    this.materials.push(this.centerIndex);
     return this.nvertices++;
   }
 
@@ -267,6 +274,8 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
+    this.materials.push(this.materialIndex-1);
+    this.materials.push(this.centerIndex);
     this.colors.push(c[0]);
     this.colors.push(c[1]);
     this.colors.push(c[2]);
@@ -861,6 +870,14 @@ function setUniforms(shader)
       gl.getAttribLocation(shader,"normal");
     gl.enableVertexAttribArray(shader.vertexNormalAttribute);
 
+    shader.vertexMaterialAttribute=
+      gl.getAttribLocation(shader,"materialIndex");
+    gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
+
+    shader.vertexCenterAttribute=
+      gl.getAttribLocation(shader,"centerIndex");
+    gl.enableVertexAttribArray(shader.vertexCenterAttribute);
+
     shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
     shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
     shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
@@ -1112,6 +1129,7 @@ var indexExt;
 // Using the vertex position buffer of the above function,draw patch.
 function setBuffer(shader) {
   positionBuffer=gl.createBuffer();
+  materialBuffer=gl.createBuffer();
   colorBuffer=gl.createBuffer();
   indexBuffer=gl.createBuffer();
   indexExt=gl.getExtension("OES_element_index_uint");

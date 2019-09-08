@@ -107,6 +107,8 @@
   <script id="vertex" type="x-shader/x-vertex">
     attribute vec3 position;
     attribute vec3 normal;
+    attribute float materialIndex;
+    attribute float centerIndex;
 #ifdef EXPLICIT_COLORS
     attribute vec4 color;
 #endif
@@ -115,9 +117,6 @@
     uniform mat4 viewMat;
     uniform mat4 projViewMat;
 
-    uniform int materialIndex;
-    uniform int centerIndex;
-    
     varying vec4 ViewPosition;
     varying vec3 Normal;
     varying vec4 diffuse,emissive,specular;
@@ -132,20 +131,29 @@
     uniform vec3 Centers[nCenters];
 
     void main(void) {
-      if(centerIndex > 0) {
-        vec3 c=Centers[centerIndex-1];
+      int index=int(centerIndex);
+      if(index > 0) {
+        vec3 c=Centers[index-1];
         gl_Position=projViewMat*vec4(c+(position-c)*normMat,1.0);
       } else
         gl_Position=projViewMat*vec4(position,1.0);
       
       ViewPosition=viewMat*vec4(position,1.0);
       Normal=normMat*normal;
-      
-      Material m=objMaterial[materialIndex];
-#ifdef EXPLICIT_COLORS
-      diffuse=color;
-      emissive=vec4(0.0);
-#else
+        
+      Material m;
+#ifdef EXPLICIT_COLOR
+      if(materialIndex < 0) {
+        m=Materials[-int(materialIndex)-1];
+        diffuse=color;
+        emissive=vec4(0.0);
+      } else {
+        m=objMaterial[int(materialIndex)];
+        diffuse=m.diffuse;
+        emissive=m.emissive;
+      }
+#else  
+      m=objMaterial[int(materialIndex)];
       diffuse=m.diffuse;
       emissive=m.emissive;
 #endif
@@ -154,7 +162,7 @@
       metallic=m.metallic;
       fresnel0=m.fresnel0;
     }
-  </script>
+</script>
 
   <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/gl-matrix-min-2.3.2.js"></script>
   <script type="text/javascript" src="https://vectorgraphics.github.io/asymptote/webgl/glm-js-min-2.2.2.js"></script>
