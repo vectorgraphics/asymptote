@@ -38,9 +38,9 @@ void jsfile::open(string name) {
   out << 
     "    var lights = [new Light(\n"
     "      type = enumDirectionalLight,\n"
-    "      lightColor = [1, 0.87, 0.745],\n"
+    "      lightColor = [1, 1, 1],\n"
     "      brightness = 1,\n"
-    "      customParam = [0, 0, 1, 0]\n"
+    "      customParam = [0.235702260395516,-0.235702260395516,0.942809041582063, 0]\n"
     "    )];"
       << newl;
 }

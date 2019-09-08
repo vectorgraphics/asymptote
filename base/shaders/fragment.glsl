@@ -6,8 +6,8 @@ struct Material
 
 struct Light
 {
-  vec4 direction;
-  vec4 diffuse,specular;  // Change to vec3?
+  vec4 direction; // Change to vec3?
+  vec4 diffuse,specular;  // Change to vec3? Remove specular.
 };
 
 uniform int nlights;
