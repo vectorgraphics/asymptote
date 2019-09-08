@@ -26,19 +26,12 @@ var Centers=[]; // Array of billboard centers
 var rotMat=mat4.create();
 var rMatrix=mat4.create();
 var pMatrix=mat4.create();
-var mMatrix=mat4.create();
 var vMatrix=mat4.create();
-var normMatrix=mat4.create();
-var mMatrix=mat4.create();
 var T=mat4.create(); // Offscreen transformation matrix
 
-var msMatrix=mat4.create();
-var vmMatrix=mat4.create();
 var pvmMatrix=mat4.create();
-var mNormMatrix=mat4.create();
-var vmNormMatrix=mat4.create();
 var normMat=mat3.create();
-
+var vMatrix3=mat3.create();
 
 var zmin,zmax;
 var center={x:0,y:0,z:0};
@@ -321,12 +314,28 @@ class BezierPatch {
 
   // Approximate bounds by bounding box of control polyhedron.
   offscreen(n,v) {
-    var [x,y,z,X,Y,Z]=boundstriples(n,v);
+    let x,y,z;
+    let X,Y,Z;
+
+    X=x=v[0][0];
+    Y=y=v[0][1];
+    Z=z=v[0][2];
+    
+    for(let i=1; i < n; ++i) {
+      let V=v[i];
+      if(V[0] < x) x=V[0];
+      else if(V[0] > X) X=V[0];
+      if(V[1] < y) y=V[1];
+      else if(V[1] > Y) Y=V[1];
+      if(V[2] < z) z=V[2];
+      else if(V[2] > Z) Z=V[2];
+    }
 
     if(X >= this.x && x <= this.X &&
        Y >= this.y && y <= this.Y &&
        Z >= this.z && z <= this.Z)
       return false;
+
     return this.Offscreen=true;
   }
 
@@ -342,10 +351,11 @@ class BezierPatch {
     materialIndex=this.MaterialIndex;
 
     this.Offscreen=false;
-    var f,F,s;
 
-    var b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
-    var B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
+    let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
+    let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
+
+    let s;
 
     if(orthographic) {
       this.m=b;
@@ -353,16 +363,17 @@ class BezierPatch {
       s=1.0;
     } else {
       var perspective=1.0/B[2];
-      f=this.Min[2]*perspective;
-      F=this.Max[2]*perspective;
+      var f=this.Min[2]*perspective;
+      var F=this.Max[2]*perspective;
       this.m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
       this.M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
       s=Math.max(f,F);
     }
 
-   [this.x,this.y,this.z,this.X,this.Y,this.Z]=bboxtransformed(this.m,this.M);
+    [this.x,this.y,this.z,this.X,this.Y,this.Z]=
+      new bbox(this.m,this.M).bounds();
 
-    if(this.centerIndex == 0 &&
+    if(centerIndex == 0 &&
        (this.Max[0] < this.x || this.Min[0] > this.X ||
         this.Max[1] < this.y || this.Min[1] > this.Y ||
         this.Max[2] < this.z || this.Min[2] > this.Z)) {
@@ -822,47 +833,37 @@ function Distance2(z,u,n)
   return d*d;
 }
 
-function bboxtransformed(m,M)
-{
-  var m0=[], m1=[], m2=[], m3=[], m4=[], m5=[], m6=[], m7=[];
-  vec3.transformMat4(m0,m,T);
-  vec3.transformMat4(m1,[m[0],m[1],M[2]],T);
-  vec3.transformMat4(m2,[m[0],M[1],m[2]],T);
-  vec3.transformMat4(m3,[m[0],M[1],M[2]],T);
-  vec3.transformMat4(m4,[M[0],m[1],m[2]],T);
-  vec3.transformMat4(m5,[M[0],m[1],M[2]],T);
-  vec3.transformMat4(m6,[M[0],M[1],m[2]],T);
-  vec3.transformMat4(m7,M,T);
-  return boundstriples(8,[m0,m1,m2,m3,m4,m5,m6,m7]);
-}
+class bbox {
+  constructor(m,M) {
+    var V=[];
+    vec3.transformMat4(V,m,T);
+    this.x=this.X=V[0];
+    this.y=this.Y=V[1];
+    this.z=this.Z=V[2];
+    this.transformed([m[0],m[1],M[2]]);
+    this.transformed([m[0],m[1],M[2]]);
+    this.transformed([m[0],M[1],m[2]]);
+    this.transformed([m[0],M[1],M[2]]);
+    this.transformed([M[0],m[1],m[2]]);
+    this.transformed([M[0],m[1],M[2]]);
+    this.transformed([M[0],M[1],m[2]]);
+    this.transformed(M);
+  }
 
-function boundstriples(n,v)
-{
-  var x,y,z;
-  var X,Y,Z;
+  bounds() {
+    return [this.x,this.y,this.z,this.X,this.Y,this.Z];
+  }
 
-  X=x=v[0][0];
-  Y=y=v[0][1];
-  Z=z=v[0][2];
-    
-  for(var i=1; i < n; ++i)
-    [x,y,z,X,Y,Z]=boundstriple(x,y,z,X,Y,Z,v[i]);
-  return [x,y,z,X,Y,Z];
-}
-
-function boundstriple(x,y,z,X,Y,Z,v)
-{
-  [x,X]=bounds(x,X,v[0]);
-  [y,Y]=bounds(y,Y,v[1]);
-  [z,Z]=bounds(z,Z,v[2]);
-  return [x,y,z,X,Y,Z];
-}
-
-function bounds(x,X,v)
-{
-  if(v < x) x=v;
-  else if(v > X) X=v;
-  return [x,X];
+  transformed(v) {
+    var V=[];
+    vec3.transformMat4(V,v,T);
+    if(V[0] < this.x) this.x=V[0];
+    else if(V[0] > this.X) this.X=V[0];
+    if(V[1] < this.y) this.y=V[1];
+    else if(V[1] > this.Y) this.Y=V[1];
+    if(V[2] < this.z) this.z=V[2];
+    else if(V[2] > this.Z) this.Z=V[2];
+  }
 }
 
 /**
@@ -893,11 +894,6 @@ function COBTarget(out,mat) {
   return mat4COB(out,getTargetOrigMat(),mat);
 }
 
-function inverseTranspose(out,mat) {
-  mat4.invert(out,mat);
-  mat4.transpose(out,out);
-  return out;
-}
 
 var lastshader=-1;
 
@@ -943,16 +939,14 @@ function setUniforms(shader)
       gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
   }
 
-  COBTarget(msMatrix,mMatrix);
-  mat4.multiply(vmMatrix,vMatrix,msMatrix);
-  mat4.invert(T,vmMatrix);
-  mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
-  inverseTranspose(mNormMatrix,mMatrix);
-  mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
-  mat3.fromMat4(normMat,vmNormMatrix);
+  mat4.invert(T,vMatrix);
+  mat4.multiply(pvmMatrix,pMatrix,vMatrix);
+  mat3.fromMat4(normMat,vMatrix);
+  mat3.invert(vMatrix3,normMat);
+  mat3.transpose(normMat,vMatrix3);
 
   gl.uniformMatrix4fv(shader.pvMatrixUniform,false,pvmMatrix);
-  gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vmMatrix);
+  gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vMatrix);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
 }
 
@@ -1014,7 +1008,7 @@ function panScene(lastX,lastY,rawX,rawY) {
 function updatevMatrix() {
   COBTarget(vMatrix,rotMat);
   mat4.translate(vMatrix,vMatrix,[center.x,center.y,0]);
-  inverseTranspose(normMatrix,vMatrix);
+  mat4.invert(T,vMatrix);
 }
 
 function capzoom() 

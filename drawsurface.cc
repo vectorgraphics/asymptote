@@ -285,10 +285,10 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 
   triple m,M;
   
-  double f,F,s;
+  double s;
   if(perspective) {
-    f=Min.getz()*perspective;
-    F=Max.getz()*perspective;
+    double f=Min.getz()*perspective;
+    double F=Max.getz()*perspective;
     m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
     M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
     s=max(f,F);
@@ -298,8 +298,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     s=1.0;
   }
   
-  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-
   bbox3 box(m,M);
   box.transform(modelView.Tinv);
   m=box.Min();
@@ -312,6 +310,8 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     return;
   }
   
+  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
   GLfloat c[16];
@@ -503,10 +503,10 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   triple m,M;
   
-  double f,F,s;
+  double s;
   if(perspective) {
-    f=Min.getz()*perspective;
-    F=Max.getz()*perspective;
+    double f=Min.getz()*perspective;
+    double F=Max.getz()*perspective;
     m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
     M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
     s=max(f,F);
@@ -516,8 +516,6 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     s=1.0;
   }
   
-  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-
   bbox3 box(m,M);
   box.transform(modelView.Tinv);
   m=box.Min();
@@ -529,6 +527,8 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     offscreen=true;
     return;
   }
+
+  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
