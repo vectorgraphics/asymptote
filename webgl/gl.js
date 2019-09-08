@@ -274,7 +274,7 @@ class BezierPatch extends GeometryDrawable {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
-    this.materials.push(this.materialIndex-1);
+    this.materials.push(-this.materialIndex-1);
     this.materials.push(this.centerIndex);
     this.colors.push(c[0]);
     this.colors.push(c[1]);
@@ -1226,7 +1226,7 @@ function webGLStart()
   initGL(canvas);
 
   materialShader=initShaders();
-  colorShader=initShaders(["EXPLICIT_COLORS"]);
+  colorShader=initShaders(["EXPLICIT_COLOR"]);
 
   gl.clearColor(1.0,1.0,1.0,1.0);
   gl.enable(gl.BLEND);

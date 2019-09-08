@@ -109,7 +109,7 @@
     attribute vec3 normal;
     attribute float materialIndex;
     attribute float centerIndex;
-#ifdef EXPLICIT_COLORS
+#ifdef EXPLICIT_COLOR
     attribute vec4 color;
 #endif
 
@@ -142,18 +142,19 @@
       Normal=normMat*normal;
         
       Material m;
+      int Index=int(materialIndex);
 #ifdef EXPLICIT_COLOR
-      if(materialIndex < 0) {
-        m=Materials[-int(materialIndex)-1];
+      if(Index < 0) {
+        m=objMaterial[-Index-1];
         diffuse=color;
         emissive=vec4(0.0);
       } else {
-        m=objMaterial[int(materialIndex)];
+        m=objMaterial[Index];
         diffuse=m.diffuse;
         emissive=m.emissive;
       }
 #else  
-      m=objMaterial[int(materialIndex)];
+      m=objMaterial[Index];
       diffuse=m.diffuse;
       emissive=m.emissive;
 #endif
