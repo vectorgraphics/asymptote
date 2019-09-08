@@ -21,7 +21,7 @@ var third=1.0/3.0;
 
 var P=[]; // Array of patches
 var M=[]; // Array of materials
-var Centers=[0]; // Array of billboard centers
+var Centers=[]; // Array of billboard centers
 
 var rotMat=mat4.create();
 var rMatrix=mat4.create();
@@ -136,7 +136,7 @@ function getShader(gl,id,options=[]) {
   precision highp float;
   const int nLights=${lights.length};
   const int nMaterials=${M.length};
-  const int nCenters=${Centers.length};\n`
+  const int nCenters=${Math.max(Centers.length,1)};\n`
 
   if(orthographic)
     str += `#define ORTHOGRAPHIC\n`;
