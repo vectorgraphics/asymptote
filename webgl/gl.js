@@ -1312,7 +1312,5 @@ function webGLStart()
                           supportsPassive ? {passive:true} : false);
   document.addEventListener("keydown",handleKey,false);
 
-  pMatrixInit=new Float32Array(pMatrix);
-
   tick();
 }
