@@ -209,17 +209,16 @@ function drawBuffer(color)
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
 }
 
-  var vertices=[];
-  var materials=[];
-  indices=[];
-  var nvertices;
+var vertices=[];
+var materials=[];
+var indices=[];
+var nvertices;
 
-  var Vertices=[];
-  var Materials=[];
-  var Colors=[];
-  Indices=[];
-  var nVertices;
-
+var Vertices=[];
+var Materials=[];
+var Colors=[];
+var Indices=[];
+var nVertices;
 
 function clearVertexBuffers() {
   vertices=[];
@@ -286,10 +285,6 @@ function Vertex(v,n,c)
   Colors.push(c[3]);
   return nVertices++;
 }
-
-
-indices.push(1);
-indices.push(2);
 
 class BezierPatch {
   /**
