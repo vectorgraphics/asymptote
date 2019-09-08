@@ -1505,7 +1505,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   orthographic=Angle == 0.0;
   H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
-    
   
   ignorezoom=false;
   Mode=0;

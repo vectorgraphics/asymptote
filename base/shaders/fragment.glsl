@@ -7,7 +7,7 @@ struct Material
 struct Light
 {
   vec4 direction;
-  vec4 diffuse,specular;  
+  vec4 diffuse,specular;  // Change to vec3?
 };
 
 uniform int nlights;
@@ -33,8 +33,7 @@ out vec4 outColor;
 vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
 vec3 Specular; // Specular tint for nonmetals
 float Metallic; // Metallic/Nonmetals parameter
-float F0; // Fresnel at zero for nonmetals
-float Roughness;
+float Fresnel0; // Fresnel at zero for nonmetals
 float Roughness2; // roughness squared, for smoothing
 
 #ifdef ENABLE_TEXTURE
@@ -84,7 +83,7 @@ float NDF_TRG(vec3 h)
 float GGX_Geom(vec3 v)
 {
   float ndotv=max(dot(v,normal),0.0);
-  float ap=1.0+Roughness;
+  float ap=1.0+Roughness2;
   float k=0.125*ap*ap;
   return ndotv/((ndotv*(1.0-k))+k);
 }
@@ -95,11 +94,11 @@ float Geom(vec3 v, vec3 l)
 }
 
 // Schlick's approximation
-float Fresnel(vec3 h, vec3 v, float F0)
+float Fresnel(vec3 h, vec3 v, float fresnel0)
 {
   float a=1.0-max(dot(h,v),0.0);
   float b=a*a;
-  return F0+(1.0-F0)*b*b*a;
+  return fresnel0+(1.0-fresnel0)*b*b*a;
 }
 
 vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
@@ -113,7 +112,7 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   float D=NDF_TRG(h);
   float G=Geom(viewDirection,lightDirection);
-  float F=Fresnel(h,viewDirection,F0);
+  float F=Fresnel(h,viewDirection,Fresnel0);
 
   float denom=4.0*omegain*omegaln;
   float rawReflectance=denom > 0.0 ? (D*G)/denom : 0.0;
@@ -152,12 +151,13 @@ Material m;
   specular=m.specular;
   parameters=m.parameters;
 
-  Roughness=1.0-parameters[0];
+  Roughness2=1.0-parameters[0];
+  Roughness2=Roughness2*Roughness2;
+  
   Metallic=parameters[1];
-  F0=parameters[2];
+  Fresnel0=parameters[2];
 
   Diffuse=diffuse.rgb;
-  Roughness2=Roughness*Roughness;
   Specular=specular.rgb;
 
     // Given a point x and direction \omega,
@@ -168,20 +168,18 @@ Material m;
   vec3 color=emissive.rgb;
 #ifdef NORMAL  
   vec3 Z=vec3(0.0,0.0,1.0);
-  vec3 pointLightRadiance=vec3(0.0,0.0,0.0);
 
   normal=normalize(Normal);
   normal=gl_FrontFacing ? normal : -normal;
   // For a finite point light, the rendering equation simplifies.
     if(nlights > 0) {
       for(int i=0; i < nlights; ++i) {
-        vec3 L=normalize(lights[i].direction.xyz);
+        vec3 L=lights[i].direction.xyz;
         vec3 viewDirection=-Z;
         float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
         vec3 radiance=cosTheta*lights[i].diffuse.rgb;
-        pointLightRadiance += BRDF(Z,L)*radiance;
+        color += BRDF(Z,L)*radiance;
       }
-      color += pointLightRadiance.rgb;
 
 #ifdef ENABLE_TEXTURE
 #ifndef EXPLICIT_COLOR

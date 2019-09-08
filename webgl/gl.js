@@ -14,6 +14,7 @@ const zoomStep=0.1;
 var zoomFactor=1.05;
 var Zoom0;
 var lastzoom;
+var H; // maximum camera view half-height
 
 var Fuzz2=1000*Number.EPSILON;
 var Fuzz4=Fuzz2*Fuzz2;
@@ -24,13 +25,13 @@ var M=[]; // Array of materials
 var Centers=[]; // Array of billboard centers
 
 var rotMat=mat4.create();
-var pMatrix=mat4.create();
-var vMatrix=mat4.create();
+var pMatrix=mat4.create(); // projection matrix
+var vMatrix=mat4.create(); // view matrix
 var T=mat4.create(); // Offscreen transformation matrix
 
-var pvmMatrix=mat4.create();
+var pvmMatrix=mat4.create(); // projection view matrix
 var normMat=mat3.create();
-var vMatrix3=mat3.create();
+var vMatrix3=mat3.create(); // 3x3 view matrix
 
 var zmin,zmax;
 var center={x:0,y:0,z:0};
@@ -937,7 +938,7 @@ function setUniforms(shader)
   mat4.multiply(pvmMatrix,pMatrix,vMatrix);
   mat3.fromMat4(normMat,vMatrix);
   mat3.invert(vMatrix3,normMat);
-  mat3.transpose(normMat,vMatrix3);
+  mat3.transpose(normMat,vMatrix3); // Optimize this away
 /*
   COBTarget(msMatrix,mMatrix);
   mat4.multiply(vmMatrix,vMatrix,msMatrix);
@@ -1231,7 +1232,6 @@ function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
       viewParam.ymax=r-Y0;
     }
   } else {
-      let H=-Math.tan(0.5*angle)*B[2];
       let r=H*zoominv;
       let rAspect=r*Aspect;
       let X0=2*rAspect*xshift;
@@ -1252,6 +1252,8 @@ function setProjection() {
 }
 
 function initProjection() {
+  H=-Math.tan(0.5*angle)*B[2];
+
   center={x:0,y:0,z:0.5*(b[2]+B[2])};
   lastzoom=Zoom=Zoom0;
   let f=orthographic ? mat4.ortho : mat4.frustum;
