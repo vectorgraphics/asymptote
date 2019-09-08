@@ -24,7 +24,6 @@ var M=[]; // Array of materials
 var Centers=[]; // Array of billboard centers
 
 var rotMat=mat4.create();
-var rMatrix=mat4.create();
 var pMatrix=mat4.create();
 var vMatrix=mat4.create();
 var T=mat4.create(); // Offscreen transformation matrix
@@ -944,6 +943,16 @@ function setUniforms(shader)
   mat3.fromMat4(normMat,vMatrix);
   mat3.invert(vMatrix3,normMat);
   mat3.transpose(normMat,vMatrix3);
+/*
+  COBTarget(msMatrix,mMatrix);
+  mat4.multiply(vmMatrix,vMatrix,msMatrix);
+  mat4.invert(T,vmMatrix);
+  mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
+
+  inverseTranspose(mNormMatrix,msMatrix);
+  mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
+  mat3.fromMat4(normMat,vmNormMatrix);
+*/
 
   gl.uniformMatrix4fv(shader.pvMatrixUniform,false,pvmMatrix);
   gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vMatrix);
@@ -1118,6 +1127,7 @@ function handleMouseWheel(event) {
   }
   capzoom();
   setProjection();
+  updatevMatrix();
 
   redraw=true;
 }
