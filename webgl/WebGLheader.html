@@ -132,29 +132,24 @@
 
     void main(void) {
       int index=int(centerIndex);
-      if(index > 0) {
-        vec3 c=Centers[index-1];
-        gl_Position=projViewMat*vec4(c+(position-c)*normMat,1.0);
-      } else
-        gl_Position=projViewMat*vec4(position,1.0);
-      
-      ViewPosition=viewMat*vec4(position,1.0);
+      vec4 v=vec4(index == 0 ? position :
+                  Centers[index-1]+(position-Centers[index-1])*normMat,1.0);
+      gl_Position=projViewMat*v;
+      ViewPosition=viewMat*v;
       Normal=normMat*normal;
         
       Material m;
-      int Index=int(materialIndex);
 #ifdef EXPLICIT_COLOR
-      if(Index < 0) {
-        m=objMaterial[-Index-1];
-        diffuse=color;
-        emissive=vec4(0.0);
-      } else {
-        m=objMaterial[Index];
+      m=objMaterial[int(abs(materialIndex))-1];
+      if(materialIndex >= 0.0) {
         diffuse=m.diffuse;
         emissive=m.emissive;
+      } else {
+        diffuse=color;
+        emissive=vec4(0.0);
       }
-#else  
-      m=objMaterial[Index];
+#else      
+      m=objMaterial[int(materialIndex)];
       diffuse=m.diffuse;
       emissive=m.emissive;
 #endif

@@ -183,12 +183,21 @@ class GeometryDrawable {
   }
 
   drawBuffer() {
-    var shader=this.color ? colorShader : materialShader;
+    var vertices,materials,shader;
+    if(this.color) {
+      vertices=this.Vertices;
+      materials=this.Materials;
+      shader=colorShader;
+    } else {
+      vertices=this.vertices;
+      materials=this.materials;
+      shader=materialShader;
+    }
 
     setUniforms(shader);
 
     gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertices),
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),
                   gl.STATIC_DRAW);
     gl.vertexAttribPointer(shader.vertexPositionAttribute,
                          3,gl.FLOAT,false,24,0);
@@ -196,7 +205,7 @@ class GeometryDrawable {
                          3,gl.FLOAT,false,24,12);
 
     gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(this.materials),
+    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(materials),
                   gl.STATIC_DRAW);
     gl.vertexAttribPointer(shader.vertexMaterialAttribute,
                          1,gl.SHORT,false,4,0);
@@ -205,7 +214,7 @@ class GeometryDrawable {
 
     if(this.color) {
       gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(this.colors),
+      gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(this.Colors),
                   gl.STATIC_DRAW);
 
       gl.vertexAttribPointer(shader.vertexColorAttribute,
@@ -224,8 +233,11 @@ class GeometryDrawable {
   clearBuffer() {
     this.vertices=[];
     this.materials=[];
-    this.centers=[];
-    this.colors=[];
+
+    this.Vertices=[];
+    this.Materials=[];
+    this.Colors=[];
+
     this.indices=[];
 
     this.nvertices=0;
@@ -252,9 +264,10 @@ class BezierPatch extends GeometryDrawable {
     this.Min=Min;
     this.Max=Max;
     this.color=color;
-    this.pvertex=color ? this.Vertex : this.vertex;
+    this.pvertex=this.color ? this.Vertex : this.vertex;
   }
 
+  // material vertex 
   vertex(v,n) {
     this.vertices.push(v[0]);
     this.vertices.push(v[1]);
@@ -267,21 +280,40 @@ class BezierPatch extends GeometryDrawable {
     return this.nvertices++;
   }
 
-  Vertex(v,n,c) {
-    this.vertices.push(v[0]);
-    this.vertices.push(v[1]);
-    this.vertices.push(v[2]);
-    this.vertices.push(n[0]);
-    this.vertices.push(n[1]);
-    this.vertices.push(n[2]);
-    this.materials.push(-this.materialIndex-1);
-    this.materials.push(this.centerIndex);
-    this.colors.push(c[0]);
-    this.colors.push(c[1]);
-    this.colors.push(c[2]);
-    this.colors.push(c[3]);
+  // transparent material vertex
+  tvertex(v,n) {
+    this.Vertices.push(v[0]);
+    this.Vertices.push(v[1]);
+    this.Vertices.push(v[2]);
+    this.Vertices.push(n[0]);
+    this.Vertices.push(n[1]);
+    this.Vertices.push(n[2]);
+    this.Materials.push(this.materialIndex+1);
+    this.Materials.push(this.centerIndex);
+    this.Colors.push(0.0);
+    this.Colors.push(0.0);
+    this.Colors.push(0.0);
+    this.Colors.push(0.0);
     return this.nvertices++;
   }
+
+  // colored vertex
+  Vertex(v,n,c) {
+    this.Vertices.push(v[0]);
+    this.Vertices.push(v[1]);
+    this.Vertices.push(v[2]);
+    this.Vertices.push(n[0]);
+    this.Vertices.push(n[1]);
+    this.Vertices.push(n[2]);
+    this.Materials.push(-this.materialIndex-1);
+    this.Materials.push(this.centerIndex);
+    this.Colors.push(c[0]);
+    this.Colors.push(c[1]);
+    this.Colors.push(c[2]);
+    this.Colors.push(c[3]);
+    return this.nvertices++;
+  }
+
 
   // Approximate bounds by bounding box of control polyhedron.
   offscreen(n,v) {
@@ -1124,9 +1156,7 @@ function sceneSetup() {
 
 var indexExt;
 
-// Create buffer data for the patch and its subdivisions to be pushed to the graphics card
-//Takes as an argument the array of vertices that define the patch to be drawn 
-// Using the vertex position buffer of the above function,draw patch.
+// Create buffer data for the patch and its subdivisions.
 function setBuffer(shader) {
   positionBuffer=gl.createBuffer();
   materialBuffer=gl.createBuffer();
