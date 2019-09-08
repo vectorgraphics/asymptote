@@ -947,7 +947,8 @@ function setUniforms(shader)
   mat4.multiply(vmMatrix,vMatrix,msMatrix);
   mat4.invert(T,vmMatrix);
   mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
-  inverseTranspose(mNormMatrix,mMatrix);
+
+  inverseTranspose(mNormMatrix,msMatrix);
   mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
   mat3.fromMat4(normMat,vmNormMatrix);
 
@@ -1124,6 +1125,7 @@ function handleMouseWheel(event) {
   }
   capzoom();
   setProjection();
+  updatevMatrix();
 
   redraw=true;
 }
