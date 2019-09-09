@@ -159,26 +159,13 @@ function getShader(gl,id,options=[]) {
   return shader;
 }
 
-function drawBuffer(color)
+
+function drawBuffer(vertices,materials,colors,indices,shader)
 {
-  var pvertices,pmaterials,pindices,shader;
-
-  if(color) {
-    pvertices=Vertices;
-    pmaterials=Materials;
-    pindices=Indices;
-    shader=colorShader;
-  } else {
-    pvertices=vertices;
-    pmaterials=materials;
-    pindices=indices;
-    shader=materialShader;
-  }
-
   setUniforms(shader);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pvertices),
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexPositionAttribute,
                          3,gl.FLOAT,false,24,0);
@@ -186,16 +173,16 @@ function drawBuffer(color)
                          3,gl.FLOAT,false,24,12);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(pmaterials),
+  gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(materials),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexMaterialAttribute,
                          1,gl.SHORT,false,4,0);
   gl.vertexAttribPointer(shader.vertexCenterAttribute,
                          1,gl.SHORT,false,4,2);
 
-  if(color) {
+  if(shader == colorShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(Colors),
+    gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(colors),
                   gl.STATIC_DRAW);
     gl.vertexAttribPointer(shader.vertexColorAttribute,
                            4,gl.UNSIGNED_BYTE,true,0,0);
@@ -203,10 +190,10 @@ function drawBuffer(color)
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                indexExt ? new Uint32Array(pindices) :
-                new Uint16Array(pindices),gl.STATIC_DRAW);
+                indexExt ? new Uint32Array(indices) :
+                new Uint16Array(indices),gl.STATIC_DRAW);
 
-  gl.drawElements(gl.TRIANGLES,pindices.length,
+  gl.drawElements(gl.TRIANGLES,indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
 }
 
@@ -221,6 +208,12 @@ var Colors=[];
 var Indices=[];
 var nVertices;
 
+var tVertices=[];
+var tMaterials=[];
+var tColors=[];
+var tIndices=[];
+var ntVertices;
+
 function clearVertexBuffers() {
   vertices=[];
   materials=[];
@@ -231,7 +224,13 @@ function clearVertexBuffers() {
   Materials=[];
   Colors=[];
   Indices=[];
-  nVertices=0;
+
+  tnVertices=0;
+  tVertices=[];
+  tMaterials=[];
+  tColors=[];
+  tIndices=[];
+  ntVertices=0;
 }
 
 var materialIndex;
@@ -249,24 +248,6 @@ function vertex(v,n)
   materials.push(materialIndex);
   materials.push(centerIndex);
   return nvertices++;
-}
-
-// transparent material vertex
-function tvertex(v,n)
-{
-  Vertices.push(v[0]);
-  Vertices.push(v[1]);
-  Vertices.push(v[2]);
-  Vertices.push(n[0]);
-  Vertices.push(n[1]);
-  Vertices.push(n[2]);
-  Materials.push(materialIndex+1);
-  Materials.push(centerIndex);
-  Colors.push(0.0);
-  Colors.push(0.0);
-  Colors.push(0.0);
-  Colors.push(0.0);
-  return nVertices++;
 }
 
 // colored vertex
@@ -287,6 +268,42 @@ function Vertex(v,n,c)
   return nVertices++;
 }
 
+// transparent material vertex
+function tvertex(v,n)
+{
+  tVertices.push(v[0]);
+  tVertices.push(v[1]);
+  tVertices.push(v[2]);
+  tVertices.push(n[0]);
+  tVertices.push(n[1]);
+  tVertices.push(n[2]);
+  tMaterials.push(materialIndex+1);
+  tMaterials.push(centerIndex);
+  tColors.push(0.0);
+  tColors.push(0.0);
+  tColors.push(0.0);
+  tColors.push(0.0);
+  return ntVertices++;
+}
+
+// transparent colored vertex
+function tVertex(v,n,c)
+{
+  tVertices.push(v[0]);
+  tVertices.push(v[1]);
+  tVertices.push(v[2]);
+  tVertices.push(n[0]);
+  tVertices.push(n[1]);
+  tVertices.push(n[2]);
+  tMaterials.push(-materialIndex-1);
+  tMaterials.push(centerIndex);
+  tColors.push(c[0]);
+  tColors.push(c[1]);
+  tColors.push(c[2]);
+  tColors.push(c[3]);
+  return ntVertices++;
+}
+
 class BezierPatch {
   /**
    * Constructor for Bezier Patch
@@ -305,6 +322,13 @@ class BezierPatch {
     this.color=color;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
+    let m=M[MaterialIndex];
+    this.transparent=color ?
+      color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
+      m.diffuse[3] < 1.0;
+    this.vertex=this.transparent ?
+      (this.color ? tVertex : tvertex) :
+      (this.color ? Vertex : vertex);
   }
 
   // Approximate bounds by bounding box of control polyhedron.
@@ -332,13 +356,9 @@ class BezierPatch {
   }
 
   render() {
-    if(this.color) {
-      this.vertex=Vertex;
-      this.pindices=Indices;
-    } else {
-      this.vertex=vertex;
-      this.pindices=indices;
-    }
+    this.pindices=this.transparent ? tIndices :
+      (this.color ? Indices : indices);
+
     centerIndex=this.CenterIndex;
     materialIndex=this.MaterialIndex;
 
@@ -1172,8 +1192,9 @@ function draw() {
   });
 
 
-  drawBuffer(color=false);
-  drawBuffer(color=true);
+  drawBuffer(vertices,materials,null,indices,materialShader);
+  drawBuffer(Vertices,Materials,Colors,Indices,colorShader);
+  drawBuffer(tVertices,tMaterials,tColors,tIndices,colorShader);
 
   remesh=false;
 }
