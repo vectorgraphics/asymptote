@@ -32,8 +32,8 @@ std::vector<GLfloat> zbuffer;
 std::vector<GLfloat> xbuffer;
 std::vector<GLfloat> ybuffer;
 
-std::vector<GLfloat> xmin,ymin,zmin;
-std::vector<GLfloat> xmax,ymax,zmax;
+//std::vector<GLfloat> xmin,ymin,zmin;
+//std::vector<GLfloat> xmax,ymax,zmax;
 std::vector<GLfloat> zsum;
 
 inline double min(double a, double b, double c)
@@ -842,6 +842,7 @@ void transform(const std::vector<VertexData>& b)
   }
 }
 
+#if 0
 // precompute min and max bounds of each triangle
 void bounds(const std::vector<GLuint>& I)
 {
@@ -889,6 +890,7 @@ void bounds(const std::vector<GLuint>& I)
     zmax[i]=max(za,zb,zc);
   }
 }
+#endif
   
 void BezierPatch::drawMaterials()
 {
@@ -1030,7 +1032,7 @@ void BezierPatch::sortTriangles()
 {
   if(!tVertexbuffer.empty()) {
     transform(tVertexbuffer);
-    bounds(tIndices);
+//    bounds(tIndices);
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
   }
 }

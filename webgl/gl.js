@@ -614,11 +614,11 @@ class BezierPatch {
       }
       
       if(C0) {
-        var c0=new Array(4);
-        var c1=new Array(4);
-        var c2=new Array(4);
-        var c3=new Array(4);
-        var c4=new Array(4);
+        var c0=Array(4);
+        var c1=Array(4);
+        var c2=Array(4);
+        var c3=Array(4);
+        var c4=Array(4);
         for(var i=0; i < 4; ++i) {
           c0[i]=0.5*(C0[i]+C1[i]);
           c1[i]=0.5*(C1[i]+C2[i]);
@@ -708,11 +708,11 @@ function initShaders(options)
 
 class Split3 {
   constructor(z0,c0,c1,z1) {
-    this.m0=new Array(3);
-    this.m2=new Array(3);
-    this.m3=new Array(3);
-    this.m4=new Array(3);
-    this.m5=new Array(3);
+    this.m0=Array(3);
+    this.m2=Array(3);
+    this.m3=Array(3);
+    this.m4=Array(3);
+    this.m5=Array(3);
     for(var i=0; i < 3; ++i) {
       this.m0[i]=0.5*(z0[i]+c0[i]);
       var m1=0.5*(c0[i]+c1[i]);
@@ -978,8 +978,8 @@ function handleMouseUpOrTouchEnd(event) {
   mouseDownOrTouchActive=false;
 }
 
-function rotateScene (lastX, lastY, rawX, rawY) {
-    let [angle, axis]=arcballLib.arcball([lastX, -lastY], [rawX, -rawY]);
+function rotateScene(lastX,lastY,rawX,rawY) {
+    let [angle, axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
 
     if (isNaN(angle) || isNaN(axis[0]) ||
       isNaN(axis[1]) || isNaN(axis[2])) {
@@ -988,8 +988,8 @@ function rotateScene (lastX, lastY, rawX, rawY) {
     }
 
     var rotMats=mat4.create();
-    mat4.fromRotation(rotMats, angle, axis);
-    mat4.multiply(rotMat, rotMats, rotMat);
+    mat4.fromRotation(rotMats,angle,axis);
+    mat4.multiply(rotMat,rotMats,rotMat);
 }
 
 function shiftScene(lastX,lastY,rawX,rawY) {
@@ -1172,7 +1172,8 @@ function sceneSetup() {
 var indexExt;
 
 // Create buffers for the patch and its subdivisions.
-function setBuffer() {
+function setBuffer()
+{
   positionBuffer=gl.createBuffer();
   materialBuffer=gl.createBuffer();
   colorBuffer=gl.createBuffer();
@@ -1180,7 +1181,23 @@ function setBuffer() {
   indexExt=gl.getExtension("OES_element_index_uint");
 }
 
-function draw() {
+function transformVertices()
+{
+  var Tz0=vMatrix[2];
+  var Tz1=vMatrix[6];
+  var Tz2=vMatrix[10];
+  zbuffer.length=ntVertices;
+  for(var i=0; i < ntVertices; ++i) {
+    var i6=6*i;
+    zbuffer[i]=Tz0*tVertices[i6]+Tz1*tVertices[i6+1]+Tz2*tVertices[i6+2];
+  }
+}
+
+var zbuffer=[];
+var sortedIndices=[];
+
+function draw()
+{
   sceneSetup();
   setBuffer(); // Required each iteration?
   
@@ -1193,9 +1210,46 @@ function draw() {
   });
 
 
-  drawBuffer(vertices,materials,null,indices,materialShader);
-  drawBuffer(Vertices,Materials,Colors,Indices,colorShader);
-  drawBuffer(tVertices,tMaterials,tColors,tIndices,colorShader);
+  if(indices.length > 0)
+    drawBuffer(vertices,materials,null,indices,materialShader);
+  
+  if(Indices.length > 0)
+    drawBuffer(Vertices,Materials,Colors,Indices,colorShader);
+
+  if(tIndices.length > 0) {
+    transformVertices();
+    
+    var n=tIndices.length/3;
+    let triangles=Array(n).fill().map((_,i)=>i);
+
+    triangles.sort(function(a,b) {
+      let a3=3*a;
+      Ia=tIndices[a3];
+      Ib=tIndices[a3+1];
+      Ic=tIndices[a3+2];
+
+      let b3=3*b;
+      IA=tIndices[b3];
+      IB=tIndices[b3+1];
+      IC=tIndices[b3+2];
+
+      return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] < 
+        zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
+    });
+
+    if(sortedIndices.length == 0)
+      sortedIndices=Array(tIndices.length);
+
+    for(var i=0; i < n; ++i) {
+      var i3=3*i;
+      var t=3*triangles[i];
+      sortedIndices[3*i]=tIndices[t];
+      sortedIndices[3*i+1]=tIndices[t+1];
+      sortedIndices[3*i+2]=tIndices[t+2];
+    }
+
+    drawBuffer(tVertices,tMaterials,tColors,sortedIndices,colorShader);
+  }
 
   remesh=false;
 }
