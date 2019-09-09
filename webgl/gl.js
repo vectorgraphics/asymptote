@@ -180,7 +180,7 @@ function drawBuffer(vertices,materials,colors,indices,shader)
   gl.vertexAttribPointer(shader.vertexCenterAttribute,
                          1,gl.SHORT,false,4,2);
 
-  if(shader == colorShader) {
+  if(shader == colorShader || shader == generalShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(colors),
                   gl.STATIC_DRAW);
@@ -226,7 +226,6 @@ function clearVertexBuffers() {
   Indices=[];
   nVertices=0;
 
-  tnVertices=0;
   tVertices=[];
   tMaterials=[];
   tColors=[];
@@ -260,7 +259,7 @@ function Vertex(v,n,c)
   Vertices.push(n[0]);
   Vertices.push(n[1]);
   Vertices.push(n[2]);
-  Materials.push(-materialIndex-1);
+  Materials.push(materialIndex);
   Materials.push(centerIndex);
   Colors.push(c[0]);
   Colors.push(c[1]);
@@ -278,7 +277,7 @@ function tvertex(v,n)
   tVertices.push(n[0]);
   tVertices.push(n[1]);
   tVertices.push(n[2]);
-  tMaterials.push(materialIndex+1);
+  tMaterials.push(1+materialIndex);
   tMaterials.push(centerIndex);
   tColors.push(0.0);
   tColors.push(0.0);
@@ -296,7 +295,7 @@ function tVertex(v,n,c)
   tVertices.push(n[0]);
   tVertices.push(n[1]);
   tVertices.push(n[2]);
-  tMaterials.push(-materialIndex-1);
+  tMaterials.push(-1-materialIndex);
   tMaterials.push(centerIndex);
   tColors.push(c[0]);
   tColors.push(c[1]);
@@ -316,7 +315,6 @@ class BezierPatch {
    * @param {*} colors array of 4 RGBA color arrays
    */
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
-    this.Offscreen=true;
     this.controlpoints=controlpoints;
     this.Min=Min;
     this.Max=Max;
@@ -688,9 +686,9 @@ function home()
   redraw=true;
 }
 
-var materialShader,colorShader;
+var materialShader,colorShader,generalShader;
 
-function initShaders(options)
+function initShader(options)
 {
   var fragmentShader=getShader(gl,"fragment",options);
   var vertexShader=getShader(gl,"vertex",options);
@@ -902,50 +900,44 @@ function COBTarget(out,mat) {
   return mat4COB(out,getTargetOrigMat(),mat);
 }
 
-
-var lastshader=-1;
-
 function setUniforms(shader)
 {
-  if(shader != lastshader) {
-    gl.useProgram(shader);
-    lastshader=shader;
+  gl.useProgram(shader);
 
-    shader.vertexPositionAttribute=
-      gl.getAttribLocation(shader,"position");
-    gl.enableVertexAttribArray(shader.vertexPositionAttribute);
+  shader.vertexPositionAttribute=
+    gl.getAttribLocation(shader,"position");
+  gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
-    shader.vertexNormalAttribute=
-      gl.getAttribLocation(shader,"normal");
-    gl.enableVertexAttribArray(shader.vertexNormalAttribute);
+  shader.vertexNormalAttribute=
+    gl.getAttribLocation(shader,"normal");
+  gl.enableVertexAttribArray(shader.vertexNormalAttribute);
 
-    shader.vertexMaterialAttribute=
-      gl.getAttribLocation(shader,"materialIndex");
-    gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
+  shader.vertexMaterialAttribute=
+    gl.getAttribLocation(shader,"materialIndex");
+  gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
 
-    shader.vertexCenterAttribute=
-      gl.getAttribLocation(shader,"centerIndex");
-    gl.enableVertexAttribArray(shader.vertexCenterAttribute);
+  shader.vertexCenterAttribute=
+    gl.getAttribLocation(shader,"centerIndex");
+  gl.enableVertexAttribArray(shader.vertexCenterAttribute);
 
-    shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
-    shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
-    shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
+  shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
+  shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
+  shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
 
-    if(shader == colorShader) {
-      shader.vertexColorAttribute=
-        gl.getAttribLocation(shader,"color");
-      gl.enableVertexAttribArray(shader.vertexColorAttribute);
-    }
-
-    for(let i=0; i < M.length; ++i)
-      M[i].setUniform(shader,"objMaterial",i);
-
-    for(let i=0; i < lights.length; ++i)
-      lights[i].setUniform(shader,"objLights",i);
-
-    for(let i=0; i < Centers.length; ++i)
-      gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
+  if(shader == colorShader || shader == generalShader) {
+    shader.vertexColorAttribute=
+      gl.getAttribLocation(shader,"color");
+    gl.enableVertexAttribArray(shader.vertexColorAttribute);
   }
+
+  for(let i=0; i < M.length; ++i)
+    M[i].setUniform(shader,"objMaterial",i);
+
+  for(let i=0; i < lights.length; ++i)
+    lights[i].setUniform(shader,"objLights",i);
+
+  for(let i=0; i < Centers.length; ++i)
+    gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
 
   mat4.invert(T,vMatrix);
   mat4.multiply(pvmMatrix,pMatrix,vMatrix);
@@ -1194,7 +1186,6 @@ function transformVertices()
 }
 
 var zbuffer=[];
-var sortedIndices=[];
 
 function draw()
 {
@@ -1209,7 +1200,6 @@ function draw()
       p.render();
   });
 
-
   if(indices.length > 0)
     drawBuffer(vertices,materials,null,indices,materialShader);
   
@@ -1219,7 +1209,7 @@ function draw()
   if(tIndices.length > 0) {
     transformVertices();
     
-    var n=tIndices.length/3;
+    let n=tIndices.length/3;
     let triangles=Array(n).fill().map((_,i)=>i);
 
     triangles.sort(function(a,b) {
@@ -1237,21 +1227,20 @@ function draw()
         zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
     });
 
-    if(sortedIndices.length == 0)
-      sortedIndices=Array(tIndices.length);
+    let sortedIndices=Array(tIndices.length);
 
-    for(var i=0; i < n; ++i) {
-      var i3=3*i;
-      var t=3*triangles[i];
+    for(let i=0; i < n; ++i) {
+      let i3=3*i;
+      let t=3*triangles[i];
       sortedIndices[3*i]=tIndices[t];
       sortedIndices[3*i+1]=tIndices[t+1];
       sortedIndices[3*i+2]=tIndices[t+2];
     }
 
-    drawBuffer(tVertices,tMaterials,tColors,sortedIndices,colorShader);
+    drawBuffer(tVertices,tMaterials,tColors,sortedIndices,generalShader);
   }
 
-  remesh=false;
+//  remesh=false;
 }
 
 function tick() {
@@ -1336,8 +1325,9 @@ function webGLStart()
   initProjection();
   initGL(canvas);
 
-  materialShader=initShaders();
-  colorShader=initShaders(["EXPLICIT_COLOR"]);
+  materialShader=initShader();
+  colorShader=initShader(["COLOR"]);
+  generalShader=initShader(["GENERAL"]);
 
   gl.clearColor(1.0,1.0,1.0,1.0);
   gl.enable(gl.BLEND);
