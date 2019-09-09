@@ -224,6 +224,7 @@ function clearVertexBuffers() {
   Materials=[];
   Colors=[];
   Indices=[];
+  nVertices=0;
 
   tnVertices=0;
   tVertices=[];
