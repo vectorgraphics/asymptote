@@ -322,13 +322,10 @@ class BezierPatch {
       else if(V[0] > X) X=V[0];
       if(V[1] < y) y=V[1];
       else if(V[1] > Y) Y=V[1];
-      if(V[2] < z) z=V[2];
-      else if(V[2] > Z) Z=V[2];
     }
 
     if(X >= this.x && x <= this.X &&
-       Y >= this.y && y <= this.Y &&
-       Z >= this.z && z <= this.Z)
+       Y >= this.y && y <= this.Y)
       return false;
 
     return this.Offscreen=true;
@@ -365,13 +362,11 @@ class BezierPatch {
       s=Math.max(f,F);
     }
 
-    [this.x,this.y,this.z,this.X,this.Y,this.Z]=
-      new bbox(this.m,this.M).bounds();
+    [this.x,this.y,this.X,this.Y]=new bbox2(this.m,this.M).bounds();
 
     if(centerIndex == 0 &&
        (this.Max[0] < this.x || this.Min[0] > this.X ||
-        this.Max[1] < this.y || this.Min[1] > this.Y ||
-        this.Max[2] < this.z || this.Min[2] > this.Z)) {
+        this.Max[1] < this.y || this.Min[1] > this.Y)) {
       this.Offscreen=true;
       return;
     }
@@ -828,13 +823,12 @@ function Distance2(z,u,n)
   return d*d;
 }
 
-class bbox {
+class bbox2 {
   constructor(m,M) {
     var V=[];
     vec3.transformMat4(V,m,T);
     this.x=this.X=V[0];
     this.y=this.Y=V[1];
-    this.z=this.Z=V[2];
     this.transformed([m[0],m[1],M[2]]);
     this.transformed([m[0],m[1],M[2]]);
     this.transformed([m[0],M[1],m[2]]);
@@ -846,7 +840,7 @@ class bbox {
   }
 
   bounds() {
-    return [this.x,this.y,this.z,this.X,this.Y,this.Z];
+    return [this.x,this.y,this.X,this.Y];
   }
 
   transformed(v) {
@@ -856,8 +850,6 @@ class bbox {
     else if(V[0] > this.X) this.X=V[0];
     if(V[1] < this.y) this.y=V[1];
     else if(V[1] > this.Y) this.Y=V[1];
-    if(V[2] < this.z) this.z=V[2];
-    else if(V[2] > this.Z) this.Z=V[2];
   }
 }
 
