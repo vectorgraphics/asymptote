@@ -983,7 +983,7 @@ void BezierPatch::drawColors(std::vector<VertexData>& Vertexbuffer,
   const GLint normalAttrib=glGetAttribLocation(colorShader,"normal");
   const GLint colorAttrib=glGetAttribLocation(colorShader,"color");
   const GLint materialAttrib=glGetAttribLocation(colorShader,"material");
-  const GLint centerAttrib=glGetAttribLocation(colorShader,"center");
+  const GLint centerAttrib=glGetAttribLocation(colorShader,"centerIndex");
   
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                         (void *) 0);

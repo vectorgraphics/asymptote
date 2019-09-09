@@ -112,7 +112,7 @@ void BezierCurve::draw()
   
   const GLint posAttrib=glGetAttribLocation(noNormalShader, "position");
   const GLint materialAttrib=glGetAttribLocation(noNormalShader,"material");
-  const GLint centerAttrib=glGetAttribLocation(noNormalShader,"center");
+  const GLint centerAttrib=glGetAttribLocation(noNormalShader,"centerIndex");
 
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
   glEnableVertexAttribArray(posAttrib);

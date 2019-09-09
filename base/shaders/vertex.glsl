@@ -24,11 +24,11 @@ in int material;
 uniform mat4 projViewMat;
 uniform mat4 viewMat;
 
-out vec3 ViewPosition;
+out vec4 ViewPosition;
 
 #ifdef BILLBOARD
-in int center;
-uniform vec3 Center[Ncenter];
+in int centerIndex;
+uniform vec3 Centers[Ncenter];
 #endif
 
 flat out int materialIndex;
@@ -36,13 +36,14 @@ flat out int materialIndex;
 void main()
 {
 #ifdef BILLBOARD
-  if(center > 0) {
-    vec3 c=Center[center-1];
-    gl_Position=projViewMat*vec4(c+(position-c)*normMat,1.0);
-  } else
+  int index=int(centerIndex);
+  vec4 v=vec4(index == 0 ? position :
+              Centers[index-1]+(position-Centers[index-1])*normMat,1.0);
+#else    
+  vec4 v=vec4(position,1.0);
 #endif
-  gl_Position=projViewMat*vec4(position,1.0);
-  ViewPosition=(viewMat*vec4(position,1.0)).xyz;
+  gl_Position=projViewMat*v;
+  ViewPosition=viewMat*v;
 #ifdef NORMAL
   Normal=normMat*normal;
 #endif

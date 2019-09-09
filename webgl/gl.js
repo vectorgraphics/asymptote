@@ -936,19 +936,8 @@ function setUniforms(shader)
 
   mat4.invert(T,vMatrix);
   mat4.multiply(pvmMatrix,pMatrix,vMatrix);
-  mat3.fromMat4(normMat,vMatrix);
-  mat3.invert(vMatrix3,normMat);
-  mat3.transpose(normMat,vMatrix3); // Optimize this away
-/*
-  COBTarget(msMatrix,mMatrix);
-  mat4.multiply(vmMatrix,vMatrix,msMatrix);
-  mat4.invert(T,vmMatrix);
-  mat4.multiply(pvmMatrix,pMatrix,vmMatrix);
-
-  inverseTranspose(mNormMatrix,msMatrix);
-  mat4.multiply(vmNormMatrix,normMatrix,mNormMatrix)
-  mat3.fromMat4(normMat,vmNormMatrix);
-*/
+  mat3.fromMat4(vMatrix3,vMatrix);
+  mat3.invert(normMat,vMatrix3);
 
   gl.uniformMatrix4fv(shader.pvMatrixUniform,false,pvmMatrix);
   gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vMatrix);

@@ -1782,7 +1782,7 @@ string getLightIndex(size_t const& index, string const& fieldName) {
 
 string getCenterIndex(size_t const& index) {
   ostringstream buf;
-  buf << "Center[" << index << "]";
+  buf << "Centers[" << index << "]";
   return Strdup(buf.str());
 } 
 
