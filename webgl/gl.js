@@ -160,12 +160,12 @@ function getShader(gl,id,options=[]) {
 }
 
 
-function drawBuffer(vertices,materials,colors,indices,shader)
+function drawBuffer(data,shader,indices=data.indices)
 {
   setUniforms(shader);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexPositionAttribute,
                          3,gl.FLOAT,false,24,0);
@@ -173,7 +173,7 @@ function drawBuffer(vertices,materials,colors,indices,shader)
                          3,gl.FLOAT,false,24,12);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(materials),
+  gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexMaterialAttribute,
                          1,gl.SHORT,false,4,0);
@@ -182,7 +182,7 @@ function drawBuffer(vertices,materials,colors,indices,shader)
 
   if(shader == colorShader || shader == generalShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(colors),
+    gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(data.colors),
                   gl.STATIC_DRAW);
     gl.vertexAttribPointer(shader.vertexColorAttribute,
                            4,gl.UNSIGNED_BYTE,true,0,0);
@@ -197,112 +197,56 @@ function drawBuffer(vertices,materials,colors,indices,shader)
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
 }
 
-var vertices=[];
-var materials=[];
-var indices=[];
-var nvertices;
+class vertexData {
+  clear() {
+    this.vertices=[];
+    this.materials=[];
+    this.colors=[];
+    this.indices=[];
+    this.nvertices=0;
+  }
 
-var Vertices=[];
-var Materials=[];
-var Colors=[];
-var Indices=[];
-var nVertices;
+  // material vertex 
+  vertex(v,n) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+    this.vertices.push(n[0]);
+    this.vertices.push(n[1]);
+    this.vertices.push(n[2]);
+    this.materials.push(materialIndex);
+    this.materials.push(centerIndex);
+    return this.nvertices++;
+  }
 
-var tVertices=[];
-var tMaterials=[];
-var tColors=[];
-var tIndices=[];
-var ntVertices;
-
-function clearVertexBuffers() {
-  vertices=[];
-  materials=[];
-  indices=[];
-  nvertices=0;
-
-  Vertices=[];
-  Materials=[];
-  Colors=[];
-  Indices=[];
-  nVertices=0;
-
-  tVertices=[];
-  tMaterials=[];
-  tColors=[];
-  tIndices=[];
-  ntVertices=0;
+  // colored vertex
+  Vertex(v,n,c=[0,0,0,0]) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+    this.vertices.push(n[0]);
+    this.vertices.push(n[1]);
+    this.vertices.push(n[2]);
+    this.materials.push(materialIndex);
+    this.materials.push(centerIndex);
+    this.colors.push(c[0]);
+    this.colors.push(c[1]);
+    this.colors.push(c[2]);
+    this.colors.push(c[3]);
+    return this.nvertices++;
+  }
 }
+
+var materialOn=new vertexData();
+materialOn.clear();
+
+console.log(materialOn.vertices.length);
+
+var colorOn=new vertexData();
+var transparentOn=new vertexData();
 
 var materialIndex;
 var centerIndex;
-
-// material vertex 
-function vertex(v,n)
-{
-  vertices.push(v[0]);
-  vertices.push(v[1]);
-  vertices.push(v[2]);
-  vertices.push(n[0]);
-  vertices.push(n[1]);
-  vertices.push(n[2]);
-  materials.push(materialIndex);
-  materials.push(centerIndex);
-  return nvertices++;
-}
-
-// colored vertex
-function Vertex(v,n,c)
-{
-  Vertices.push(v[0]);
-  Vertices.push(v[1]);
-  Vertices.push(v[2]);
-  Vertices.push(n[0]);
-  Vertices.push(n[1]);
-  Vertices.push(n[2]);
-  Materials.push(materialIndex);
-  Materials.push(centerIndex);
-  Colors.push(c[0]);
-  Colors.push(c[1]);
-  Colors.push(c[2]);
-  Colors.push(c[3]);
-  return nVertices++;
-}
-
-// transparent material vertex
-function tvertex(v,n)
-{
-  tVertices.push(v[0]);
-  tVertices.push(v[1]);
-  tVertices.push(v[2]);
-  tVertices.push(n[0]);
-  tVertices.push(n[1]);
-  tVertices.push(n[2]);
-  tMaterials.push(1+materialIndex);
-  tMaterials.push(centerIndex);
-  tColors.push(0.0);
-  tColors.push(0.0);
-  tColors.push(0.0);
-  tColors.push(0.0);
-  return ntVertices++;
-}
-
-// transparent colored vertex
-function tVertex(v,n,c)
-{
-  tVertices.push(v[0]);
-  tVertices.push(v[1]);
-  tVertices.push(v[2]);
-  tVertices.push(n[0]);
-  tVertices.push(n[1]);
-  tVertices.push(n[2]);
-  tMaterials.push(-1-materialIndex);
-  tMaterials.push(centerIndex);
-  tColors.push(c[0]);
-  tColors.push(c[1]);
-  tColors.push(c[2]);
-  tColors.push(c[3]);
-  return ntVertices++;
-}
 
 class BezierPatch {
   /**
@@ -320,14 +264,15 @@ class BezierPatch {
     this.Max=Max;
     this.color=color;
     this.CenterIndex=CenterIndex;
-    this.MaterialIndex=MaterialIndex;
-    let m=M[MaterialIndex];
     this.transparent=color ?
       color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
-      m.diffuse[3] < 1.0;
+      M[MaterialIndex].diffuse[3] < 1.0;
+    this.MaterialIndex=this.transparent ?
+      (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
     this.vertex=this.transparent ?
-      (this.color ? tVertex : tvertex) :
-      (this.color ? Vertex : vertex);
+      transparentOn.Vertex.bind(transparentOn) :
+      (this.color ? colorOn.Vertex.bind(colorOn) :
+       materialOn.vertex.bind(materialOn));
   }
 
   // Approximate bounds by bounding box of control polyhedron.
@@ -355,8 +300,8 @@ class BezierPatch {
   }
 
   render() {
-    this.pindices=this.transparent ? tIndices :
-      (this.color ? Indices : indices);
+    this.pindices=this.transparent ? transparentOn.indices :
+      (this.color ? colorOn.indices : materialOn.indices);
 
     centerIndex=this.CenterIndex;
     materialIndex=this.MaterialIndex;
@@ -1173,15 +1118,15 @@ function setBuffer()
   indexExt=gl.getExtension("OES_element_index_uint");
 }
 
-function transformVertices()
+function transformVertices(vertices)
 {
   var Tz0=vMatrix[2];
   var Tz1=vMatrix[6];
   var Tz2=vMatrix[10];
-  zbuffer.length=ntVertices;
-  for(var i=0; i < ntVertices; ++i) {
+  zbuffer.length=vertices.length;
+  for(var i=0; i < vertices.length; ++i) {
     var i6=6*i;
-    zbuffer[i]=Tz0*tVertices[i6]+Tz1*tVertices[i6+1]+Tz2*tVertices[i6+2];
+    zbuffer[i]=Tz0*vertices[i6]+Tz1*vertices[i6+1]+Tz2*vertices[i6+2];
   }
 }
 
@@ -1192,55 +1137,61 @@ function draw()
   sceneSetup();
   setBuffer(); // Required each iteration?
   
-  if(remesh)
-    clearVertexBuffers();
+  if(remesh) {
+    materialOn.clear();
+    colorOn.clear();
+    transparentOn.clear();
+  }
 
   P.forEach(function(p) {
     if(remesh || p.Offscreen)
       p.render();
   });
 
-  if(indices.length > 0)
-    drawBuffer(vertices,materials,null,indices,materialShader);
-  
-  if(Indices.length > 0)
-    drawBuffer(Vertices,Materials,Colors,Indices,colorShader);
+  console.log(materialOn.indices.length,colorOn.indices.length);
 
-  if(tIndices.length > 0) {
-    transformVertices();
+  if(materialOn.indices.length > 0)
+    drawBuffer(materialOn,materialShader);
+  
+  if(colorOn.indices.length > 0)
+    drawBuffer(colorOn,colorShader);
+
+  let Indices=transparentOn.indices;
+  if(Indices.length > 0) {
+    transformVertices(transparentOn.vertices);
     
-    let n=tIndices.length/3;
+    let n=Indices.length/3;
     let triangles=Array(n).fill().map((_,i)=>i);
 
     triangles.sort(function(a,b) {
       let a3=3*a;
-      Ia=tIndices[a3];
-      Ib=tIndices[a3+1];
-      Ic=tIndices[a3+2];
+      Ia=Indices[a3];
+      Ib=Indices[a3+1];
+      Ic=Indices[a3+2];
 
       let b3=3*b;
-      IA=tIndices[b3];
-      IB=tIndices[b3+1];
-      IC=tIndices[b3+2];
+      IA=Indices[b3];
+      IB=Indices[b3+1];
+      IC=Indices[b3+2];
 
       return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] < 
         zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
     });
 
-    let sortedIndices=Array(tIndices.length);
+    let sortedIndices=Array(Indices.length);
 
     for(let i=0; i < n; ++i) {
       let i3=3*i;
       let t=3*triangles[i];
-      sortedIndices[3*i]=tIndices[t];
-      sortedIndices[3*i+1]=tIndices[t+1];
-      sortedIndices[3*i+2]=tIndices[t+2];
+      sortedIndices[3*i]=Indices[t];
+      sortedIndices[3*i+1]=Indices[t+1];
+      sortedIndices[3*i+2]=Indices[t+2];
     }
 
-    drawBuffer(tVertices,tMaterials,tColors,sortedIndices,generalShader);
+    drawBuffer(transparentOn,generalShader,sortedIndices);
   }
 
-//  remesh=false;
+  remesh=false;
 }
 
 function tick() {
