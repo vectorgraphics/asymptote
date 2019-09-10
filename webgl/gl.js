@@ -312,6 +312,7 @@ class BezierPatch {
       (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
     this.vertex=(this.color || this.transparent) ?
       data.Vertex.bind(data) : data.vertex.bind(data);
+    this.L2norm();
   }
 
   // Approximate bounds by bounding box of control polyhedron.
@@ -338,101 +339,113 @@ class BezierPatch {
     return this.Offscreen=true;
   }
 
-// Render a Bezier patch via subdivision.
-  render() {
-    this.Offscreen=false;
+  OffScreen() {
     centerIndex=this.CenterIndex;
     materialIndex=this.MaterialIndex;
 
     let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
     let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
 
-    let s;
+    let s,m,M;
 
     if(orthographic) {
-      this.m=b;
-      this.M=B;
+      m=b;
+      M=B;
       s=1.0;
     } else {
-      var perspective=1.0/B[2];
-      var f=this.Min[2]*perspective;
-      var F=this.Max[2]*perspective;
-      this.m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
-      this.M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
+      let perspective=1.0/B[2];
+      let f=this.Min[2]*perspective;
+      let F=this.Max[2]*perspective;
+      m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
+      M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
       s=Math.max(f,F);
     }
 
-    [this.x,this.y,this.X,this.Y]=new bbox2(this.m,this.M).bounds();
+    [this.x,this.y,this.X,this.Y]=new bbox2(m,M).bounds();
 
     if(centerIndex == 0 &&
        (this.Max[0] < this.x || this.Min[0] > this.X ||
         this.Max[1] < this.y || this.Min[1] > this.Y)) {
-      this.Offscreen=true;
-      return;
+      return this.Offscreen=true;
     }
 
-    let p=this.controlpoints;
-    var res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
+    let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
+    return this.Offscreen=false;
+  }
 
-    var p0=p[0];
+// Render a Bezier patch via subdivision.
+  L2norm(n) {
+    let p=this.controlpoints;
+    let p0=p[0];
     epsilon=0;
-    for(var i=1; i < 16; ++i)
+    for(let i=1; i < n; ++i)
       epsilon=Math.max(epsilon,
         abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
     epsilon *= Fuzz4;
+  }
 
-    var p3=p[3];
-    var p12=p[12];
-    var p15=p[15];
+  render() {
+    if(this.OffScreen()) return;
 
-    var n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
+    let p=this.controlpoints;
+    if(p.length == 10) return render3();
+    
+    let p0=p[0];
+    let p3=p[3];
+    let p12=p[12];
+    let p15=p[15];
+
+    let n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
     if(iszero(n0)) {
       n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
       if(iszero(n0)) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
     }
 
-    var n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
+    let n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
     if(iszero(n1)) {
       n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
       if(iszero(n1)) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
     }
 
-    var n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
+    let n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
     if(iszero(n2)) {
       n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
       if(iszero(n2)) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
     }
 
-    var n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
+    let n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
     if(iszero(n3)) {
       n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
       if(iszero(n3)) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
     }
 
     if(this.color) {
-      var c0=this.color[0];
-      var c1=this.color[1];
-      var c2=this.color[2];
-      var c3=this.color[3];
+      let c0=this.color[0];
+      let c1=this.color[1];
+      let c2=this.color[2];
+      let c3=this.color[3];
 
-      var i0=data.Vertex(p0,n0,c0);
-      var i1=data.Vertex(p12,n1,c1);
-      var i2=data.Vertex(p15,n2,c2);
-      var i3=data.Vertex(p3,n3,c3);
+      let i0=data.Vertex(p0,n0,c0);
+      let i1=data.Vertex(p12,n1,c1);
+      let i2=data.Vertex(p15,n2,c2);
+      let i3=data.Vertex(p3,n3,c3);
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
                   c0,c1,c2,c3);
     } else {
-      var i0=this.vertex(p0,n0);
-      var i1=this.vertex(p12,n1);
-      var i2=this.vertex(p15,n2);
-      var i3=this.vertex(p3,n3);
+      let i0=this.vertex(p0,n0);
+      let i1=this.vertex(p12,n1);
+      let i2=this.vertex(p15,n2);
+      let i3=this.vertex(p3,n3);
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
-
     }
+    if(data.nvertices > 0) this.append();
+  }
+
+  append() {
     if(this.transparent) {
       if(this.Offscreen)
         transparentOff.append(data);
@@ -456,7 +469,7 @@ class BezierPatch {
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
     if(this.Distance(p) < this.res2) { // Bezier patch is flat
-      var P=[P0,P1,P2,P3];
+      let P=[P0,P1,P2,P3];
       if(!this.offscreen(4,P)) {
         data.indices.push(I0);
         data.indices.push(I1);
@@ -657,49 +670,9 @@ class BezierPatch {
 
 // Render a Bezier triangle via subdivision.
   render3() {
-    this.Offscreen=false;
-    centerIndex=this.CenterIndex;
-    materialIndex=this.MaterialIndex;
-
-    let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
-    let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
-
-    let s;
-
-    if(orthographic) {
-      this.m=b;
-      this.M=B;
-      s=1.0;
-    } else {
-      let perspective=1.0/B[2];
-      let f=this.Min[2]*perspective;
-      let F=this.Max[2]*perspective;
-      this.m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
-      this.M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
-      s=Math.max(f,F);
-    }
-
-    [this.x,this.y,this.X,this.Y]=new bbox2(this.m,this.M).bounds();
-
-    if(centerIndex == 0 &&
-       (this.Max[0] < this.x || this.Min[0] > this.X ||
-        this.Max[1] < this.y || this.Min[1] > this.Y)) {
-      this.Offscreen=true;
-      return;
-    }
-
     let p=this.controlpoints;
-    let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
-    this.res2=res*res;
-    this.Epsilon=FillFactor*res;
 
     let p0=p[0];
-    epsilon=0;
-    for(let i=1; i < 10; ++i)
-      epsilon=Math.max(epsilon,
-        abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    epsilon *= Fuzz4;
-
     let p6=p[6];
     let p9=p[9];
 
@@ -725,25 +698,7 @@ class BezierPatch {
 
       this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false);
     }
-    if(this.transparent) {
-      if(this.Offscreen)
-        transparentOff.append(data);
-      else
-        transparentOn.append(data);
-    } else {
-      if(this.color) {
-        if(this.Offscreen)
-          colorOff.append(data);
-        else
-          colorOn.append(data);
-      } else {
-        if(this.Offscreen)
-          materialOff.append(data);
-        else
-          materialOn.append(data);
-      }
-    }
-    data.clear();
+    if(data.nvertices > 0) this.append();
   }
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
@@ -943,6 +898,7 @@ class BezierPatch {
     }
   }
 
+  // Check the flatness of a Bezier patch
   Distance(p) {
     let p0=p[0];
     let p3=p[3];
@@ -965,6 +921,7 @@ class BezierPatch {
     return Math.max(d,Straightness(p[2],p[6],p[10],p[14]));
   }
 
+  // Check the flatness of a Bezier triangle
   Distance3(p) {
     let p0=p[0];
     let p6=p[6];
