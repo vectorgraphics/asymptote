@@ -376,10 +376,11 @@ class BezierPatch {
   }
 
 // Render a Bezier patch via subdivision.
-  L2norm(n) {
+  L2norm() {
     let p=this.controlpoints;
     let p0=p[0];
     epsilon=0;
+    let n=p.length;
     for(let i=1; i < n; ++i)
       epsilon=Math.max(epsilon,
         abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
