@@ -5,7 +5,6 @@ var gl;
 
 var canvasWidth,canvasHeight;
 
-var epsilon;
 var pixel=0.75; // Adaptive rendering constant.
 var BezierFactor=0.4;
 var FillFactor=0.1;
@@ -379,12 +378,12 @@ class BezierPatch {
   L2norm() {
     let p=this.controlpoints;
     let p0=p[0];
-    epsilon=0;
+    this.epsilon=0;
     let n=p.length;
     for(let i=1; i < n; ++i)
-      epsilon=Math.max(epsilon,
+      this.epsilon=Math.max(this.epsilon,
         abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    epsilon *= Fuzz4;
+    this.epsilon *= Fuzz4;
   }
 
   render() {
@@ -398,28 +397,28 @@ class BezierPatch {
     let p12=p[12];
     let p15=p[15];
 
-    let n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
+    let n0=this.normal(p3,p[2],p[1],p0,p[4],p[8],p12);
     if(iszero(n0)) {
-      n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
-      if(iszero(n0)) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+      n0=this.normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+      if(iszero(n0)) n0=this.normal(p15,p[11],p[7],p3,p[4],p[8],p12);
     }
 
-    let n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
+    let n1=this.normal(p0,p[4],p[8],p12,p[13],p[14],p15);
     if(iszero(n1)) {
-      n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
-      if(iszero(n1)) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+      n1=this.normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+      if(iszero(n1)) n1=this.normal(p3,p[2],p[1],p0,p[13],p[14],p15);
     }
 
-    let n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
+    let n2=this.normal(p12,p[13],p[14],p15,p[11],p[7],p3);
     if(iszero(n2)) {
-      n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
-      if(iszero(n2)) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+      n2=this.normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+      if(iszero(n2)) n2=this.normal(p0,p[4],p[8],p12,p[11],p[7],p3);
     }
 
-    let n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
+    let n3=this.normal(p15,p[11],p[7],p3,p[2],p[1],p0);
     if(iszero(n3)) {
-      n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
-      if(iszero(n3)) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+      n3=this.normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+      if(iszero(n3)) n3=this.normal(p12,p[13],p[14],p15,p[2],p[1],p0);
     }
 
     if(this.color) {
@@ -560,31 +559,35 @@ class BezierPatch {
 
       let m4=s0[15];
 
-      let n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
+      let n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
       if(iszero(n0)) {
-        n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
-        if(iszero(n0)) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+        n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
+        if(iszero(n0))
+          n0=this.normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
       }
 
-      let n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
+      let n1=this.normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
       if(iszero(n1)) {
-        n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
-        if(iszero(n1)) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
+        n1=this.normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
+        if(iszero(n1))
+          n1=this.normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
       }
 
-      let n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
+      let n2=this.normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
       if(iszero(n2)) {
-        n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
-        if(iszero(n2)) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
+        n2=this.normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
+        if(iszero(n2))
+          n2=this.normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
       }
 
-      let n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
+      let n3=this.normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
       if(iszero(n3)) {
-        n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
-        if(iszero(n3)) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
+        n3=this.normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
+        if(iszero(n3))
+          n3=this.normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
       }
 
-      let n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
+      let n4=this.normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
 
       let e=this.Epsilon;
 
@@ -593,7 +596,7 @@ class BezierPatch {
       let m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
       if(!flat0) {
         if((flat0=Straightness(p0,p[4],p[8],p12) < this.res2)) {
-          let r=unit(derivative(s1[0],s1[1],s1[2],s1[3]));
+          let r=unit(this.derivative(s1[0],s1[1],s1[2],s1[3]));
           m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
         }
         else m0=s0[12];
@@ -602,7 +605,7 @@ class BezierPatch {
       let m1=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
       if(!flat1) {
         if((flat1=Straightness(p12,p[13],p[14],p15) < this.res2)) {
-          let r=unit(derivative(s2[12],s2[8],s2[4],s2[0]));
+          let r=unit(this.derivative(s2[12],s2[8],s2[4],s2[0]));
           m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
         }
         else m1=s1[15];
@@ -611,7 +614,7 @@ class BezierPatch {
       let m2=[0.5*(P2[0]+P3[0]),0.5*(P2[1]+P3[1]),0.5*(P2[2]+P3[2])];
       if(!flat2) {
         if((flat2=Straightness(p15,p[11],p[7],p3) < this.res2)) {
-          let r=unit(derivative(s3[15],s2[14],s2[13],s1[12]));
+          let r=unit(this.derivative(s3[15],s2[14],s2[13],s1[12]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=s2[3];
@@ -620,7 +623,7 @@ class BezierPatch {
       let m3=[0.5*(P3[0]+P0[0]),0.5*(P3[1]+P0[1]),0.5*(P3[2]+P0[2])];
       if(!flat3) {
         if((flat3=Straightness(p0,p[1],p[2],p3) < this.res2)) {
-          let r=unit(derivative(s0[3],s0[7],s0[11],s0[15]));
+          let r=unit(this.derivative(s0[3],s0[7],s0[11],s0[15]));
           m3=[m3[0]-e*r[0],m3[1]-e*r[1],m3[2]-e*r[2]];
         }
         else m3=s3[0];
@@ -677,9 +680,9 @@ class BezierPatch {
     let p6=p[6];
     let p9=p[9];
 
-    let n0=normal(p9,p[5],p[2],p0,p[1],p[3],p6);
-    let n1=normal(p0,p[1],p[3],p6,p[7],p[8],p9);    
-    let n2=normal(p6,p[7],p[8],p9,p[5],p[2],p0);
+    let n0=this.normal(p9,p[5],p[2],p0,p[1],p[3],p6);
+    let n1=this.normal(p0,p[1],p[3],p6,p[7],p[8],p9);    
+    let n2=this.normal(p6,p[7],p[8],p9,p[5],p[2],p0);
     
     if(this.color) {
       let c0=this.color[0];
@@ -829,9 +832,9 @@ class BezierPatch {
       let u=[l030,u102,u012,u201,u111,u021,r030,u210,u120,u030]; // up
       let c=[r030,u201,r021,u102,c111,r012,l030,l120,l210,l300]; // center
 
-      let n0=normal(l300,r012,r021,r030,u201,u102,l030);
-      let n1=normal(r030,u201,u102,l030,l120,l210,l300);
-      let n2=normal(l030,l120,l210,l300,r012,r021,r030);
+      let n0=this.normal(l300,r012,r021,r030,u201,u102,l030);
+      let n1=this.normal(r030,u201,u102,l030,l120,l210,l300);
+      let n2=this.normal(l030,l120,l210,l300,r012,r021,r030);
       
       let e=this.Epsilon;
 
@@ -841,8 +844,8 @@ class BezierPatch {
       let m0=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
       if(!flat0) {
         if((flat0=Straightness(r300,p210,p120,u030) < this.res2)) {
-          let r=unit(derivative(c[0],c[2],c[5],c[9])+
-                     derivative(c[0],c[1],c[3],c[6]));
+          let r=unit(this.derivative(c[0],c[2],c[5],c[9])+
+                     this.derivative(c[0],c[1],c[3],c[6]));
           m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
         }
         else m0=r030;
@@ -851,8 +854,8 @@ class BezierPatch {
       let m1=[0.5*(P2[0]+P0[0]),0.5*(P2[1]+P0[1]),0.5*(P2[2]+P0[2])];
       if(!flat1) {
         if((flat1=Straightness(l003,p012,p021,u030) < this.res2)) {
-          let r=unit(derivative(c[6],c[3],c[1],c[0])+
-                     derivative(c[6],c[7],c[8],c[9]));
+          let r=unit(this.derivative(c[6],c[3],c[1],c[0])+
+                     this.derivative(c[6],c[7],c[8],c[9]));
           m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
         }
         else m1=l030;
@@ -861,8 +864,8 @@ class BezierPatch {
       let m2=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
       if(!flat2) {
         if((flat2=Straightness(l003,p102,p201,r300) < this.res2)) {
-          let r=unit(derivative(c[9],c[8],c[7],c[6])+
-                     derivative(c[9],c[5],c[2],c[0]));
+          let r=unit(this.derivative(c[9],c[8],c[7],c[6])+
+                     this.derivative(c[9],c[5],c[2],c[0]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=l300;
@@ -907,7 +910,7 @@ class BezierPatch {
     let p15=p[15];
 
     // Check the flatness of a patch.
-    let d=Distance2(p15,p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
+    let d=Distance2(p15,p0,this.normal(p3,p[2],p[1],p0,p[4],p[8],p12));
     
     // Determine how straight the edges are.
     d=Math.max(d,Straightness(p0,p[1],p[2],p3));
@@ -935,6 +938,56 @@ class BezierPatch {
     d=Math.max(d,Straightness(p0,p[1],p[3],p6));
     d=Math.max(d,Straightness(p0,p[2],p[5],p9));
     return Math.max(d,Straightness(p6,p[7],p[8],p9));
+  }
+
+  derivative(p0,p1,p2,p3) {
+    let lp=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]];
+    if(abs2(lp) > this.epsilon)
+      return lp;
+    
+    let lpp=bezierPP(p0,p1,p2);
+    if(abs2(lpp) > this.epsilon)
+      return lpp;
+    
+    return bezierPPP(p0,p1,p2,p3);
+  }
+
+  normal(left3,left2,left1,middle,right1,right2,right3) {
+    let ux=right1[0]-middle[0];
+    let uy=right1[1]-middle[1];
+    let uz=right1[2]-middle[2];
+    let vx=left1[0]-middle[0];
+    let vy=left1[1]-middle[1];
+    let vz=left1[2]-middle[2];
+    let n=[uy*vz-uz*vy,
+           uz*vx-ux*vz,
+           ux*vy-uy*vx];
+    if(abs2(n) > this.epsilon)
+      return unit(n);
+
+    let lp=[vx,vy,vz];
+    let rp=[ux,uy,uz];
+    let lpp=bezierPP(middle,left1,left2);
+    let rpp=bezierPP(middle,right1,right2);
+    let a=cross(rpp,lp);
+    let b=cross(rp,lpp);
+    n=[a[0]+b[0],
+       a[1]+b[1],
+       a[2]+b[2]];
+    if(abs2(n) > this.epsilon)
+      return unit(n);
+
+    let lppp=bezierPPP(middle,left1,left2,left3);
+    let rppp=bezierPPP(middle,right1,right2,right3);
+    a=cross(rpp,lpp);
+    b=cross(rp,lppp);
+    let c=cross(rppp,lp);
+    let d=cross(rppp,lpp);
+    let e=cross(rpp,lppp);
+    let f=cross(rppp,lppp);
+    return unit([9*a[0]+3*(b[0]+c[0]+d[0]+e[0])+f[0],
+                 9*a[1]+3*(b[1]+c[1]+d[1]+e[1])+f[1],
+                 9*a[2]+3*(b[2]+c[2]+d[2]+e[2])+f[2]]);
   }
 }
 
@@ -1028,58 +1081,6 @@ function bezierPPP(a,b,c,d)
   return [d[0]-a[0]+3.0*(b[0]-c[0]),
           d[1]-a[1]+3.0*(b[1]-c[1]),
           d[2]-a[2]+3.0*(b[2]-c[2])];
-}
-
-function derivative(p0,p1,p2,p3)
-{
-  var lp=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]];
-  if(abs2(lp) > epsilon)
-    return lp;
-  
-  var lpp=bezierPP(p0,p1,p2);
-  if(abs2(lpp) > epsilon)
-    return lpp;
-  
-  return bezierPPP(p0,p1,p2,p3);
-}
-
-function normal(left3,left2,left1,middle,right1,right2,right3)
-{
-  var ux=right1[0]-middle[0];
-  var uy=right1[1]-middle[1];
-  var uz=right1[2]-middle[2];
-  var vx=left1[0]-middle[0];
-  var vy=left1[1]-middle[1];
-  var vz=left1[2]-middle[2];
-  var n=[uy*vz-uz*vy,
-         uz*vx-ux*vz,
-         ux*vy-uy*vx];
-  if(abs2(n) > epsilon)
-    return unit(n);
-
-  var lp=[vx,vy,vz];
-  var rp=[ux,uy,uz];
-  var lpp=bezierPP(middle,left1,left2);
-  var rpp=bezierPP(middle,right1,right2);
-  var a=cross(rpp,lp);
-  var b=cross(rp,lpp);
-  n=[a[0]+b[0],
-     a[1]+b[1],
-     a[2]+b[2]];
-  if(abs2(n) > epsilon)
-    return unit(n);
-
-  var lppp=bezierPPP(middle,left1,left2,left3);
-  var rppp=bezierPPP(middle,right1,right2,right3);
-  a=cross(rpp,lpp);
-  b=cross(rp,lppp);
-  var c=cross(rppp,lp);
-  var d=cross(rppp,lpp);
-  var e=cross(rpp,lppp);
-  var f=cross(rppp,lppp);
-  return unit([9*a[0]+3*(b[0]+c[0]+d[0]+e[0])+f[0],
-               9*a[1]+3*(b[1]+c[1]+d[1]+e[1])+f[1],
-               9*a[2]+3*(b[2]+c[2]+d[2]+e[2])+f[2]]);
 }
 
 /**
@@ -1416,12 +1417,6 @@ function handleTouchMove(evt) {
   }
 }
 
-// Prepare canvas for drawing
-function sceneSetup() {
-  gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-}
-
 var indexExt;
 
 // Create buffers for the patch and its subdivisions.
@@ -1450,9 +1445,6 @@ var zbuffer=[];
 
 function draw()
 {
-  sceneSetup();
-  setBuffer(); // Required each iteration?
-  
   materialOff.clear();
   colorOff.clear();
   transparentOff.clear();
@@ -1603,14 +1595,18 @@ function webGLStart()
   initProjection();
   initGL(canvas);
 
-  materialShader=initShader();
-  colorShader=initShader(["COLOR"]);
-  transparentShader=initShader(["TRANSPARENT"]);
-
   gl.clearColor(1.0,1.0,1.0,1.0);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
+  gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  materialShader=initShader();
+  colorShader=initShader(["COLOR"]);
+  transparentShader=initShader(["TRANSPARENT"]);
+
+  setBuffer();
 
   canvas.onmousedown=handleMouseDown;
   document.onmouseup=handleMouseUpOrTouchEnd;
