@@ -162,6 +162,8 @@ double Zoom;
 double Zoom0;
 double lastzoom;
 
+GLint lastshader=-1;
+
 using glm::dvec3;
 using glm::mat3;
 using glm::dmat3;
@@ -589,19 +591,20 @@ void mode()
 {
   remesh=true;
   switch(Mode) {
-    case 0: // wireframe -> regular
+    case 0: // regular
       outlinemode=false;
       nlights=nlights0;
+      lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       ++Mode;
       break;
-    case 1: // regular -> outline
+    case 1: // outline
       outlinemode=true;
       nlights=0;
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
       break;
-    case 2: // outline -> wireframe
+    case 2: // wireframe
       outlinemode=false;
       Mode=0;
       break;
@@ -1788,20 +1791,19 @@ string getCenterIndex(size_t const& index) {
 
 void setUniforms(GLint shader)
 {
-  static GLint lastshader=-1;
   if(gl::nlights > gl::Nlights || nmaterials > Nmaterials || 
      drawElement::center.size() > gl::Ncenters) {
     gl::deleteshader();
     gl::initshader();
-    lastshader=-1;
+    gl::lastshader=-1;
   }
   
   bool billboard=shader == colorShader || shader == noNormalShader;
   bool normal=shader == colorShader || shader == materialShader;
     
-  if(shader != lastshader) {
+  if(shader != gl::lastshader) {
     glUseProgram(shader);
-    lastshader=shader;
+    gl::lastshader=shader;
   
     glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
   
