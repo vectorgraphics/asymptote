@@ -268,7 +268,7 @@ bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
-  out->addPatch(controls,Min,Max,colors);
+  out->addPatch(controls,16,Min,Max,colors);
                     
   return true;
 }
@@ -487,6 +487,24 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
                      controls[5],controls[6],controls[7],
                      controls[8],controls[9]};
   out->addPatch(Controls,m);
+                    
+  return true;
+}
+
+bool drawBezierTriangle::write(jsfile *out, unsigned int *, groupsmap&)
+{
+  if(invisible)
+    return true;
+
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+    
+  } else drawElement::centerIndex=0;
+  
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  
+  out->addPatch(controls,10,Min,Max,colors);
                     
   return true;
 }

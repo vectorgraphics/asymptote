@@ -390,7 +390,7 @@ class BezierPatch {
     if(this.OffScreen()) return;
 
     let p=this.controlpoints;
-    if(p.length == 10) return render3();
+    if(p.length == 10) return this.render3();
     
     let p0=p[0];
     let p3=p[3];
@@ -593,7 +593,9 @@ class BezierPatch {
 
       // A kludge to remove subdivision cracks, only applied the first time
       // an edge is found to be flat before the rest of the subpatch is.
-      let m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
+      let m0=[0.5*(P0[0]+P1[0]),
+              0.5*(P0[1]+P1[1]),
+              0.5*(P0[2]+P1[2])];
       if(!flat0) {
         if((flat0=Straightness(p0,p[4],p[8],p12) < this.res2)) {
           let r=unit(this.derivative(s1[0],s1[1],s1[2],s1[3]));
@@ -602,7 +604,9 @@ class BezierPatch {
         else m0=s0[12];
       }
 
-      let m1=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
+      let m1=[0.5*(P1[0]+P2[0]),
+              0.5*(P1[1]+P2[1]),
+              0.5*(P1[2]+P2[2])];
       if(!flat1) {
         if((flat1=Straightness(p12,p[13],p[14],p15) < this.res2)) {
           let r=unit(this.derivative(s2[12],s2[8],s2[4],s2[0]));
@@ -611,7 +615,9 @@ class BezierPatch {
         else m1=s1[15];
       }
 
-      let m2=[0.5*(P2[0]+P3[0]),0.5*(P2[1]+P3[1]),0.5*(P2[2]+P3[2])];
+      let m2=[0.5*(P2[0]+P3[0]),
+              0.5*(P2[1]+P3[1]),
+              0.5*(P2[2]+P3[2])];
       if(!flat2) {
         if((flat2=Straightness(p15,p[11],p[7],p3) < this.res2)) {
           let r=unit(this.derivative(s3[15],s2[14],s2[13],s1[12]));
@@ -620,7 +626,9 @@ class BezierPatch {
         else m2=s2[3];
       }
       
-      let m3=[0.5*(P3[0]+P0[0]),0.5*(P3[1]+P0[1]),0.5*(P3[2]+P0[2])];
+      let m3=[0.5*(P3[0]+P0[0]),
+              0.5*(P3[1]+P0[1]),
+              0.5*(P3[2]+P0[2])];
       if(!flat3) {
         if((flat3=Straightness(p0,p[1],p[2],p3) < this.res2)) {
           let r=unit(this.derivative(s0[3],s0[7],s0[11],s0[15]));
@@ -783,49 +791,117 @@ class BezierPatch {
       let p120=p[8];
       let u030=p[9];
 
-      let u021=0.5*(u030+p021);
-      let u120=0.5*(u030+p120);
+      let u021=[0.5*(u030[0]+p021[0]),
+                0.5*(u030[1]+p021[1]),
+                0.5*(u030[2]+p021[2])];
+      let u120=[0.5*(u030[0]+p120[0]),
+                0.5*(u030[1]+p120[1]),
+                0.5*(u030[2]+p120[2])];
 
-      let p033=0.5*(p021+p012);
-      let p231=0.5*(p120+p111);
-      let p330=0.5*(p120+p210);
+      let p033=[0.5*(p021[0]+p012[0]),
+                0.5*(p021[1]+p012[1]),
+                0.5*(p021[2]+p012[2])];
+      let p231=[0.5*(p120[0]+p111[0]),
+                0.5*(p120[1]+p111[1]),
+                0.5*(p120[2]+p111[2])];
+      let p330=[0.5*(p120[0]+p210[0]),
+                0.5*(p120[1]+p210[1]),
+                0.5*(p120[2]+p210[2])];
 
-      let p123=0.5*(p012+p111);
+      let p123=[0.5*(p012[0]+p111[0]),
+                0.5*(p012[1]+p111[1]),
+                0.5*(p012[2]+p111[2])];
 
-      let l012=0.5*(p012+l003);
-      let p312=0.5*(p111+p201);
-      let r210=0.5*(p210+r300);
+      let l012=[0.5*(p012[0]+l003[0]),
+                0.5*(p012[1]+l003[1]),
+                0.5*(p012[2]+l003[2])];
+      let p312=[0.5*(p111[0]+p201[0]),
+                0.5*(p111[1]+p201[1]),
+                0.5*(p111[2]+p201[2])];
+      let r210=[0.5*(p210[0]+r300[0]),
+                0.5*(p210[1]+r300[1]),
+                0.5*(p210[2]+r300[2])];
 
-      let l102=0.5*(l003+p102);
-      let p303=0.5*(p102+p201);
-      let r201=0.5*(p201+r300);
+      let l102=[0.5*(l003[0]+p102[0]),
+                0.5*(l003[1]+p102[1]),
+                0.5*(l003[2]+p102[2])];
+      let p303=[0.5*(p102[0]+p201[0]),
+                0.5*(p102[1]+p201[1]),
+                0.5*(p102[2]+p201[2])];
+      let r201=[0.5*(p201[0]+r300[0]),
+                0.5*(p201[1]+r300[1]),
+                0.5*(p201[2]+r300[2])];
 
-      let u012=0.5*(u021+p033);
-      let u210=0.5*(u120+p330);
-      let l021=0.5*(p033+l012);
-      let p4xx=0.5*p231+0.25*(p111+p102);
-      let r120=0.5*(p330+r210);
-      let px4x=0.5*p123+0.25*(p111+p210);
-      let pxx4=0.25*(p021+p111)+0.5*p312;
-      let l201=0.5*(l102+p303);
-      let r102=0.5*(p303+r201);
+      let u012=[0.5*(u021[0]+p033[0]),
+                0.5*(u021[1]+p033[1]),
+                0.5*(u021[2]+p033[2])];
+      let u210=[0.5*(u120[0]+p330[0]),
+                0.5*(u120[1]+p330[1]),
+                0.5*(u120[2]+p330[2])];
+      let l021=[0.5*(p033[0]+l012[0]),
+                0.5*(p033[1]+l012[1]),
+                0.5*(p033[2]+l012[2])];
+      let p4xx=[0.5*p231[0]+0.25*(p111[0]+p102[0]),
+                0.5*p231[1]+0.25*(p111[1]+p102[1]),
+                0.5*p231[2]+0.25*(p111[2]+p102[2])];
+      let r120=[0.5*(p330[0]+r210[0]),
+                0.5*(p330[1]+r210[1]),
+                0.5*(p330[2]+r210[2])];
+      let px4x=[0.5*p123[0]+0.25*(p111[0]+p210[0]),
+                0.5*p123[1]+0.25*(p111[1]+p210[1]),
+                0.5*p123[2]+0.25*(p111[2]+p210[2])];
+      let pxx4=[0.25*(p021[0]+p111[0])+0.5*p312[0],
+                0.25*(p021[1]+p111[1])+0.5*p312[1],
+                0.25*(p021[2]+p111[2])+0.5*p312[2]];
+      let l201=[0.5*(l102[0]+p303[0]),
+                0.5*(l102[1]+p303[1]),
+                0.5*(l102[2]+p303[2])];
+      let r102=[0.5*(p303[0]+r201[0]),
+                0.5*(p303[1]+r201[1]),
+                0.5*(p303[2]+r201[2])];
 
-      let l210=0.5*(px4x+l201); // =c120
-      let r012=0.5*(px4x+r102); // =c021
-      let l300=0.5*(l201+r102); // =r003=c030
+      let l210=[0.5*(px4x[0]+l201[0]),
+                0.5*(px4x[1]+l201[1]),
+                0.5*(px4x[2]+l201[2])]; // =c120
+      let r012=[0.5*(px4x[0]+r102[0]),
+                0.5*(px4x[1]+r102[1]),
+                0.5*(px4x[2]+r102[2])]; // =c021
+      let l300=[0.5*(l201[0]+r102[0]),
+                0.5*(l201[1]+r102[1]),
+                0.5*(l201[2]+r102[2])]; // =r003=c030
 
-      let r021=0.5*(pxx4+r120); // =c012
-      let u201=0.5*(u210+pxx4); // =c102
-      let r030=0.5*(u210+r120); // =u300=c003
+      let r021=[0.5*(pxx4[0]+r120[0]),
+                0.5*(pxx4[1]+r120[1]),
+                0.5*(pxx4[2]+r120[2])]; // =c012
+      let u201=[0.5*(u210[0]+pxx4[0]),
+                0.5*(u210[1]+pxx4[1]),
+                0.5*(u210[2]+pxx4[2])]; // =c102
+      let r030=[0.5*(u210[0]+r120[0]),
+                0.5*(u210[1]+r120[1]),
+                0.5*(u210[2]+r120[2])]; // =u300=c003
 
-      let u102=0.5*(u012+p4xx); // =c201
-      let l120=0.5*(l021+p4xx); // =c210
-      let l030=0.5*(u012+l021); // =u003=c300
+      let u102=[0.5*(u012[0]+p4xx[0]),
+                0.5*(u012[1]+p4xx[1]),
+                0.5*(u012[2]+p4xx[2])]; // =c201
+      let l120=[0.5*(l021[0]+p4xx[0]),
+                0.5*(l021[1]+p4xx[1]),
+                0.5*(l021[2]+p4xx[2])]; // =c210
+      let l030=[0.5*(u012[0]+l021[0]),
+                0.5*(u012[1]+l021[1]),
+                0.5*(u012[2]+l021[2])]; // =u003=c300
 
-      let l111=0.5*(p123+l102);
-      let r111=0.5*(p312+r210);
-      let u111=0.5*(u021+p231);
-      let c111=0.25*(p033+p330+p303+p111);
+      let l111=[0.5*(p123[0]+l102[0]),
+                0.5*(p123[1]+l102[1]),
+                0.5*(p123[2]+l102[2])];
+      let r111=[0.5*(p312[0]+r210[0]),
+                0.5*(p312[1]+r210[1]),
+                0.5*(p312[2]+r210[2])];
+      let u111=[0.5*(u021[0]+p231[0]),
+                0.5*(u021[1]+p231[1]),
+                0.5*(u021[2]+p231[2])];
+      let c111=[0.25*(p033[0]+p330[0]+p303[0]+p111[0]),
+                0.25*(p033[1]+p330[1]+p303[1]+p111[1]),
+                0.25*(p033[2]+p330[2]+p303[2]+p111[2])];
 
       let l=[l003,l102,l012,l201,l111,l021,l300,l210,l120,l030]; // left
       let r=[l300,r102,r012,r201,r111,r021,r300,r210,r120,r030]; // right
@@ -841,36 +917,40 @@ class BezierPatch {
       // A kludge to remove subdivision cracks, only applied the first time
       // an edge is found to be flat before the rest of the subpatch is.
 
-      let m0=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
+      let m0=[0.5*(P1[0]+P2[0]),
+              0.5*(P1[1]+P2[1]),
+              0.5*(P1[2]+P2[2])];
       if(!flat0) {
         if((flat0=Straightness(r300,p210,p120,u030) < this.res2)) {
-          let r=unit(this.derivative(c[0],c[2],c[5],c[9])+
-                     this.derivative(c[0],c[1],c[3],c[6]));
+          let r=unit(this.sumderivative(c[0],c[2],c[5],c[9],c[1],c[3],c[6]));
           m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
         }
         else m0=r030;
       }
 
-      let m1=[0.5*(P2[0]+P0[0]),0.5*(P2[1]+P0[1]),0.5*(P2[2]+P0[2])];
+
+      let m1=[0.5*(P2[0]+P0[0]),
+              0.5*(P2[1]+P0[1]),
+              0.5*(P2[2]+P0[2])];
       if(!flat1) {
         if((flat1=Straightness(l003,p012,p021,u030) < this.res2)) {
-          let r=unit(this.derivative(c[6],c[3],c[1],c[0])+
-                     this.derivative(c[6],c[7],c[8],c[9]));
+          let r=unit(this.sumderivative(c[6],c[3],c[1],c[0],c[7],c[8],c[9]));
           m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
         }
         else m1=l030;
       }
 
-      let m2=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
+      let m2=[0.5*(P0[0]+P1[0]),
+              0.5*(P0[1]+P1[1]),
+              0.5*(P0[2]+P1[2])];
       if(!flat2) {
         if((flat2=Straightness(l003,p102,p201,r300) < this.res2)) {
-          let r=unit(this.derivative(c[9],c[8],c[7],c[6])+
-                     this.derivative(c[9],c[5],c[2],c[0]));
+          let r=unit(this.sumderivative(c[9],c[8],c[7],c[6],c[5],c[2],c[0]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=l300;
       }
-      
+
       if(C0) {
         let c0=Array(4);
         let c1=Array(4);
@@ -928,11 +1008,14 @@ class BezierPatch {
   // Check the flatness of a Bezier triangle
   Distance3(p) {
     let p0=p[0];
+    let p4=p[4];
     let p6=p[6];
     let p9=p[9];
 
     // Check how far the internal point is from the centroid of the vertices.
-    let d=Math.abs2((p0+p6+p9)/3-p[4]);
+    let d=abs2([(p0[0]+p6[0]+p9[0])*third-p4[0],
+                (p0[1]+p6[1]+p9[1])*third-p4[1],
+                (p0[2]+p6[2]+p9[2])*third-p4[2]]);
 
     // Determine how straight the edges are.
     d=Math.max(d,Straightness(p0,p[1],p[3],p6));
@@ -952,6 +1035,12 @@ class BezierPatch {
     return bezierPPP(p0,p1,p2,p3);
   }
 
+  sumderivative(p0,p1,p2,p3,p4,p5,p6) {
+    let d0=this.derivative(p0,p1,p2,p3);
+    let d1=this.derivative(p0,p4,p5,p6);
+    return [d0[0]+d1[0],d0[1]+d1[1],d0[2]+d1[2]];
+  }
+  
   normal(left3,left2,left1,middle,right1,right2,right3) {
     let ux=right1[0]-middle[0];
     let uy=right1[1]-middle[1];

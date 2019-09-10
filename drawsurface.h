@@ -182,6 +182,7 @@ public:
              double fuzz, bool &first);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out, unsigned int *, groupsmap&);
   
   void meshinit() {
     if(billboard)

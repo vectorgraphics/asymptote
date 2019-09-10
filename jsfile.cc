@@ -56,14 +56,15 @@ jsfile::~jsfile() {
   copy(settings::WebGLfooter);
 }
 
-void jsfile::addPatch(triple const* controls,
+void jsfile::addPatch(triple const* controls, size_t n,
                       const triple& Min, const triple& Max,
                       const prc::RGBAColour *c)
 {
   out << "P.push(new BezierPatch([" << newl;
-  for(size_t i=0; i < 15; ++i)
+  size_t last=n-1;
+  for(size_t i=0; i < last; ++i)
     out << controls[i] << "," << newl;
-  out << controls[15] << newl << "]," 
+  out << controls[last] << newl << "]," 
       << drawElement::centerIndex << "," << drawElement::materialIndex << ","
       << Min << "," << Max;
   if(c) {
