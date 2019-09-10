@@ -180,7 +180,7 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.vertexAttribPointer(shader.vertexCenterAttribute,
                          1,gl.SHORT,false,4,2);
 
-  if(shader == colorShader || shader == generalShader) {
+  if(shader == colorShader || shader == transparentShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(data.colors),
                   gl.STATIC_DRAW);
@@ -206,6 +206,7 @@ class vertexData {
     this.materials=[];
     this.colors=[];
     this.indices=[];
+
     this.nvertices=0;
   }
 
@@ -238,14 +239,55 @@ class vertexData {
     this.colors.push(c[3]);
     return this.nvertices++;
   }
+
+  copy(data) {
+    this.vertices=data.vertices.slice();
+    this.materials=data.materials.slice();
+    this.colors=data.colors.slice();
+    this.indices=data.indices.slice();
+    this.nvertices=data.nvertices;
+  }
+
+  append(data) {
+    append(this.vertices,data.vertices);
+    append(this.materials,data.materials);
+    append(this.colors,data.colors);
+    appendOffset(this.indices,data.indices,this.nvertices);
+    this.nvertices += data.nvertices;
+  }
 }
 
-var materialOn=new vertexData();
-var colorOn=new vertexData();
-var transparentOn=new vertexData();
+var data=new vertexData();
+
+var materialOn=new vertexData();     // Onscreen material data
+var materialOff=new vertexData();    // Partially offscreen material data
+
+var colorOn=new vertexData();        // Onscreen color data
+var colorOff=new vertexData();       // Partially offscreen color data
+
+var transparentOn=new vertexData();  // Onscreen transparent data
+var transparentOff=new vertexData(); // Partially offscreen transparent data
 
 var materialIndex;
 var centerIndex;
+
+// efficiently append array b onto array a
+function append(a,b)
+{
+  let n=a.length;
+  a.length += b.length;
+  for(let i=0, m=b.length; i < m; ++i)
+    a[n+i]=b[i];
+}
+
+// efficiently append array b onto array a
+function appendOffset(a,b,o)
+{
+  let n=a.length;
+  a.length += b.length;
+  for(let i=0, m=b.length; i < m; ++i)
+    a[n+i]=b[i]+o;
+}
 
 class BezierPatch {
   /**
@@ -268,9 +310,8 @@ class BezierPatch {
       M[MaterialIndex].diffuse[3] < 1.0;
     this.MaterialIndex=this.transparent ?
       (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
-    this.vertex=this.transparent ? transparentOn.Vertex.bind(transparentOn) :
-      (this.color ?
-       colorOn.Vertex.bind(colorOn) : materialOn.vertex.bind(materialOn));
+    this.vertex=(this.color || this.transparent) ?
+      data.Vertex.bind(data) : data.vertex.bind(data);
   }
 
   // Approximate bounds by bounding box of control polyhedron.
@@ -298,13 +339,9 @@ class BezierPatch {
   }
 
   render() {
-    this.pindices=this.transparent ? transparentOn.indices :
-      (this.color ? colorOn.indices : materialOn.indices);
-
+    this.Offscreen=false;
     centerIndex=this.CenterIndex;
     materialIndex=this.MaterialIndex;
-
-    this.Offscreen=false;
 
     let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
     let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
@@ -379,10 +416,10 @@ class BezierPatch {
       var c2=this.color[2];
       var c3=this.color[3];
 
-      var i0=this.vertex(p0,n0,c0);
-      var i1=this.vertex(p12,n1,c1);
-      var i2=this.vertex(p15,n2,c2);
-      var i3=this.vertex(p3,n3,c3);
+      var i0=data.Vertex(p0,n0,c0);
+      var i1=data.Vertex(p12,n1,c1);
+      var i2=data.Vertex(p15,n2,c2);
+      var i3=data.Vertex(p3,n3,c3);
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
                   c0,c1,c2,c3);
@@ -393,20 +430,40 @@ class BezierPatch {
       var i3=this.vertex(p3,n3);
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
+
     }
+    if(this.transparent) {
+      if(this.Offscreen)
+        transparentOff.append(data);
+      else
+        transparentOn.append(data);
+    } else {
+      if(this.color) {
+        if(this.Offscreen)
+          colorOff.append(data);
+        else
+          colorOn.append(data);
+      } else {
+        if(this.Offscreen)
+          materialOff.append(data);
+        else
+          materialOn.append(data);
+      }
+    }
+    data.clear();
   }
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
     if(this.Distance(p) < this.res2) { // Patch is flat
       var P=[P0,P1,P2,P3];
       if(!this.offscreen(4,P)) {
-        this.pindices.push(I0);
-        this.pindices.push(I1);
-        this.pindices.push(I2);
+        data.indices.push(I0);
+        data.indices.push(I1);
+        data.indices.push(I2);
         
-        this.pindices.push(I0);
-        this.pindices.push(I2);
-        this.pindices.push(I3);
+        data.indices.push(I0);
+        data.indices.push(I2);
+        data.indices.push(I3);
       }
     } else {
       if(this.offscreen(16,p)) return;
@@ -568,11 +625,11 @@ class BezierPatch {
           c4[i]=0.5*(c0[i]+c2[i]);
         }
 
-        var i0=this.vertex(m0,n0,c0);
-        var i1=this.vertex(m1,n1,c1);
-        var i2=this.vertex(m2,n2,c2);
-        var i3=this.vertex(m3,n3,c3);
-        var i4=this.vertex(m4,n4,c4);
+        var i0=data.Vertex(m0,n0,c0);
+        var i1=data.Vertex(m1,n1,c1);
+        var i2=data.Vertex(m2,n2,c2);
+        var i3=data.Vertex(m3,n3,c3);
+        var i4=data.Vertex(m4,n4,c4);
 
         this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
                     C0,c0,c4,c3);
@@ -629,7 +686,7 @@ function home()
   redraw=true;
 }
 
-var materialShader,colorShader,generalShader;
+var materialShader,colorShader,transparentShader;
 
 function initShader(options)
 {
@@ -867,7 +924,7 @@ function setUniforms(shader)
   shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
 
-  if(shader == colorShader || shader == generalShader) {
+  if(shader == colorShader || shader == transparentShader) {
     shader.vertexColorAttribute=
       gl.getAttribLocation(shader,"color");
     gl.enableVertexAttribArray(shader.vertexColorAttribute);
@@ -1135,6 +1192,10 @@ function draw()
   sceneSetup();
   setBuffer(); // Required each iteration?
   
+  materialOff.clear();
+  colorOff.clear();
+  transparentOff.clear();
+
   if(remesh) {
     materialOn.clear();
     colorOn.clear();
@@ -1146,47 +1207,54 @@ function draw()
       p.render();
   });
 
-  console.log(materialOn.indices.length,colorOn.indices.length);
-
   if(materialOn.indices.length > 0)
     drawBuffer(materialOn,materialShader);
   
+  if(materialOff.indices.length > 0)
+    drawBuffer(materialOff,materialShader);
+
   if(colorOn.indices.length > 0)
     drawBuffer(colorOn,colorShader);
 
-  let Indices=transparentOn.indices;
-  if(Indices.length > 0) {
-    transformVertices(transparentOn.vertices);
+  if(colorOff.indices.length > 0)
+    drawBuffer(colorOff,colorShader);
+
+  data.copy(transparentOn);
+  data.append(transparentOff);
+  let indices=data.indices;
+  if(indices.length > 0) {
+    transformVertices(data.vertices);
     
-    let n=Indices.length/3;
+    let n=indices.length/3;
     let triangles=Array(n).fill().map((_,i)=>i);
 
     triangles.sort(function(a,b) {
       let a3=3*a;
-      Ia=Indices[a3];
-      Ib=Indices[a3+1];
-      Ic=Indices[a3+2];
+      Ia=indices[a3];
+      Ib=indices[a3+1];
+      Ic=indices[a3+2];
 
       let b3=3*b;
-      IA=Indices[b3];
-      IB=Indices[b3+1];
-      IC=Indices[b3+2];
+      IA=indices[b3];
+      IB=indices[b3+1];
+      IC=indices[b3+2];
 
       return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] < 
         zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
     });
 
-    let sortedIndices=Array(Indices.length);
+    let Indices=Array(indices.length);
 
     for(let i=0; i < n; ++i) {
       let i3=3*i;
       let t=3*triangles[i];
-      sortedIndices[3*i]=Indices[t];
-      sortedIndices[3*i+1]=Indices[t+1];
-      sortedIndices[3*i+2]=Indices[t+2];
+      Indices[3*i]=indices[t];
+      Indices[3*i+1]=indices[t+1];
+      Indices[3*i+2]=indices[t+2];
     }
 
-    drawBuffer(transparentOn,generalShader,sortedIndices);
+    drawBuffer(data,transparentShader,Indices);
+    data.clear();
   }
 
   remesh=false;
@@ -1276,7 +1344,7 @@ function webGLStart()
 
   materialShader=initShader();
   colorShader=initShader(["COLOR"]);
-  generalShader=initShader(["GENERAL"]);
+  transparentShader=initShader(["TRANSPARENT"]);
 
   gl.clearColor(1.0,1.0,1.0,1.0);
   gl.enable(gl.BLEND);

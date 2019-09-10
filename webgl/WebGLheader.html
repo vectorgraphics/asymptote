@@ -9,8 +9,6 @@
     varying vec4 diffuse,emissive,specular;
     varying float roughness,metallic,fresnel0;
 
-    vec4 outColor;
-
     float Roughness2;
     vec3 normal;
 
@@ -104,7 +102,7 @@
     attribute vec3 normal;
     attribute float materialIndex;
     attribute float centerIndex;
-#ifdef GENERAL
+#ifdef TRANSPARENT
     attribute vec4 color;
 #endif
 #ifdef COLOR
@@ -137,7 +135,7 @@
       Normal=normal*normMat;
         
       Material m;
-#ifdef GENERAL
+#ifdef TRANSPARENT
       m=objMaterial[int(abs(materialIndex))-1];
       if(materialIndex >= 0.0) {
         diffuse=m.diffuse;
