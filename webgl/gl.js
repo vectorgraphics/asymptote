@@ -198,6 +198,9 @@ function drawBuffer(data,shader,indices=data.indices)
 }
 
 class vertexData {
+  constructor() {
+    this.clear();
+  }
   clear() {
     this.vertices=[];
     this.materials=[];
@@ -238,10 +241,6 @@ class vertexData {
 }
 
 var materialOn=new vertexData();
-materialOn.clear();
-
-console.log(materialOn.vertices.length);
-
 var colorOn=new vertexData();
 var transparentOn=new vertexData();
 
@@ -269,10 +268,9 @@ class BezierPatch {
       M[MaterialIndex].diffuse[3] < 1.0;
     this.MaterialIndex=this.transparent ?
       (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
-    this.vertex=this.transparent ?
-      transparentOn.Vertex.bind(transparentOn) :
-      (this.color ? colorOn.Vertex.bind(colorOn) :
-       materialOn.vertex.bind(materialOn));
+    this.vertex=this.transparent ? transparentOn.Vertex.bind(transparentOn) :
+      (this.color ?
+       colorOn.Vertex.bind(colorOn) : materialOn.vertex.bind(materialOn));
   }
 
   // Approximate bounds by bounding box of control polyhedron.
