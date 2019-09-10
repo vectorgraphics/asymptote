@@ -334,7 +334,7 @@ void BezierPatch::render(const triple *p,
                          bool flat0, bool flat1, bool flat2, bool flat3,
                          GLfloat *C0, GLfloat *C1, GLfloat *C2, GLfloat *C3)
 {
-  if(Distance(p) < res2) { // Patch is flat
+  if(Distance(p) < res2) { // Bezier patch is flat
     triple P[]={P0,P1,P2,P3};
     if(!offscreen(4,P)) {
       std::vector<GLuint> &p=*pindices;
@@ -598,7 +598,7 @@ void BezierTriangle::render(const triple *p,
                             bool flat0, bool flat1, bool flat2,
                             GLfloat *C0, GLfloat *C1, GLfloat *C2)
 {
-  if(Distance(p) < Res2) { // Triangle is flat
+  if(Distance(p) < Res2) { // Bezier triangle is flat
     triple P[]={P0,P1,P2};
     if(!offscreen(3,P)) {
       std::vector<GLuint> &p=*pindices;
@@ -730,55 +730,55 @@ void BezierTriangle::render(const triple *p,
     // A kludge to remove subdivision cracks, only applied the first time
     // an edge is found to be flat before the rest of the subpatch is.
     
-    triple p0=0.5*(P1+P2);
+    triple m0=0.5*(P1+P2);
     if(!flat0) {
       if((flat0=Straightness(r300,p210,p120,u030) < res2))
-        p0 -= Epsilon*unit(derivative(c[0],c[2],c[5],c[9])+
+        m0 -= Epsilon*unit(derivative(c[0],c[2],c[5],c[9])+
                            derivative(c[0],c[1],c[3],c[6]));
-      else p0=r030;
+      else m0=r030;
     }
 
-    triple p1=0.5*(P2+P0);
+    triple m1=0.5*(P2+P0);
     if(!flat1) {
       if((flat1=Straightness(l003,p012,p021,u030) < res2))
-        p1 -= Epsilon*unit(derivative(c[6],c[3],c[1],c[0])+
+        m1 -= Epsilon*unit(derivative(c[6],c[3],c[1],c[0])+
                            derivative(c[6],c[7],c[8],c[9]));
-      else p1=l030;
+      else m1=l030;
     }
 
-    triple p2=0.5*(P0+P1);
+    triple m2=0.5*(P0+P1);
     if(!flat2) {
       if((flat2=Straightness(l003,p102,p201,r300) < res2))
-        p2 -= Epsilon*unit(derivative(c[9],c[8],c[7],c[6])+
+        m2 -= Epsilon*unit(derivative(c[9],c[8],c[7],c[6])+
                            derivative(c[9],c[5],c[2],c[0]));
-      else p2=l300;
+      else m2=l300;
     }
 
     if(C0) {
       GLfloat c0[4],c1[4],c2[4];
       for(int i=0; i < 4; ++i) {
         c0[i]=0.5*(C1[i]+C2[i]);
-        c1[i]=0.5*(C0[i]+C2[i]);
+        c1[i]=0.5*(C2[i]+C0[i]);
         c2[i]=0.5*(C0[i]+C1[i]);
       }
       
-      GLuint i0=pVertex(p0,n0,c0);
-      GLuint i1=pVertex(p1,n1,c1);
-      GLuint i2=pVertex(p2,n2,c2);
+      GLuint i0=pVertex(m0,n0,c0);
+      GLuint i1=pVertex(m1,n1,c1);
+      GLuint i2=pVertex(m2,n2,c2);
           
-      render(l,I0,i2,i1,P0,p2,p1,false,flat1,flat2,C0,c2,c1);
-      render(r,i2,I1,i0,p2,P1,p0,flat0,false,flat2,c2,C1,c0);
-      render(u,i1,i0,I2,p1,p0,P2,flat0,flat1,false,c1,c0,C2);
-      render(c,i0,i1,i2,p0,p1,p2,false,false,false,c0,c1,c2);
+      render(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2,C0,c2,c1);
+      render(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2,c2,C1,c0);
+      render(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false,c1,c0,C2);
+      render(c,i0,i1,i2,m0,m1,m2,false,false,false,c0,c1,c2);
     } else {
-      GLuint i0=pvertex(p0,n0);
-      GLuint i1=pvertex(p1,n1);
-      GLuint i2=pvertex(p2,n2);
+      GLuint i0=pvertex(m0,n0);
+      GLuint i1=pvertex(m1,n1);
+      GLuint i2=pvertex(m2,n2);
           
-      render(l,I0,i2,i1,P0,p2,p1,false,flat1,flat2);
-      render(r,i2,I1,i0,p2,P1,p0,flat0,false,flat2);
-      render(u,i1,i0,I2,p1,p0,P2,flat0,flat1,false);
-      render(c,i0,i1,i2,p0,p1,p2,false,false,false);
+      render(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2);
+      render(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2);
+      render(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false);
+      render(c,i0,i1,i2,m0,m1,m2,false,false,false);
     }
   }
 }
@@ -792,7 +792,7 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
   
   epsilon *= Fuzz4;
     
-  GLuint I0,I1,I2;
+  GLuint i0,i1,i2;
     
   triple p6=p[6];
   triple p9=p[9];
@@ -805,25 +805,25 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
     GLfloat *c1=c0+4;
     GLfloat *c2=c0+8;
     
-    I0=pVertex(p0,n0,c0);
-    I1=pVertex(p6,n1,c1);
-    I2=pVertex(p9,n2,c2);
+    i0=pVertex(p0,n0,c0);
+    i1=pVertex(p6,n1,c1);
+    i2=pVertex(p9,n2,c2);
     
     if(!straight)
-      render(p,I0,I1,I2,p0,p6,p9,false,false,false,c0,c1,c2);
+      render(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
   } else {
-    I0=pvertex(p0,n0);
-    I1=pvertex(p6,n1);
-    I2=pvertex(p9,n2);
+    i0=pvertex(p0,n0);
+    i1=pvertex(p6,n1);
+    i2=pvertex(p9,n2);
     
     if(!straight)
-      render(p,I0,I1,I2,p0,p6,p9,false,false,false);
+      render(p,i0,i1,i2,p0,p6,p9,false,false,false);
   }
     
   if(straight) {
-    pindices->push_back(I0);
-    pindices->push_back(I1);
-    pindices->push_back(I2);
+    pindices->push_back(i0);
+    pindices->push_back(i1);
+    pindices->push_back(i2);
   }
 }
 

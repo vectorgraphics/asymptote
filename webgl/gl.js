@@ -338,6 +338,7 @@ class BezierPatch {
     return this.Offscreen=true;
   }
 
+// Render a Bezier patch via subdivision.
   render() {
     this.Offscreen=false;
     centerIndex=this.CenterIndex;
@@ -454,7 +455,7 @@ class BezierPatch {
   }
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
-    if(this.Distance(p) < this.res2) { // Patch is flat
+    if(this.Distance(p) < this.res2) { // Bezier patch is flat
       var P=[P0,P1,P2,P3];
       if(!this.offscreen(4,P)) {
         data.indices.push(I0);
@@ -516,108 +517,108 @@ class BezierPatch {
     
       // Subdivide patch:
 
-      var p0=p[0];
-      var p3=p[3];
-      var p12=p[12];
-      var p15=p[15];
+      let p0=p[0];
+      let p3=p[3];
+      let p12=p[12];
+      let p15=p[15];
 
-      var c0=new Split3(p0,p[1],p[2],p3);
-      var c1=new Split3(p[4],p[5],p[6],p[7]);
-      var c2=new Split3(p[8],p[9],p[10],p[11]);
-      var c3=new Split3(p12,p[13],p[14],p15);
+      let c0=new Split3(p0,p[1],p[2],p3);
+      let c1=new Split3(p[4],p[5],p[6],p[7]);
+      let c2=new Split3(p[8],p[9],p[10],p[11]);
+      let c3=new Split3(p12,p[13],p[14],p15);
 
-      var c4=new Split3(p0,p[4],p[8],p12);
-      var c5=new Split3(c0.m0,c1.m0,c2.m0,c3.m0);
-      var c6=new Split3(c0.m3,c1.m3,c2.m3,c3.m3);
-      var c7=new Split3(c0.m5,c1.m5,c2.m5,c3.m5);
-      var c8=new Split3(c0.m4,c1.m4,c2.m4,c3.m4);
-      var c9=new Split3(c0.m2,c1.m2,c2.m2,c3.m2);
-      var c10=new Split3(p3,p[7],p[11],p15);
+      let c4=new Split3(p0,p[4],p[8],p12);
+      let c5=new Split3(c0.m0,c1.m0,c2.m0,c3.m0);
+      let c6=new Split3(c0.m3,c1.m3,c2.m3,c3.m3);
+      let c7=new Split3(c0.m5,c1.m5,c2.m5,c3.m5);
+      let c8=new Split3(c0.m4,c1.m4,c2.m4,c3.m4);
+      let c9=new Split3(c0.m2,c1.m2,c2.m2,c3.m2);
+      let c10=new Split3(p3,p[7],p[11],p15);
 
-      var s0=[p0,c0.m0,c0.m3,c0.m5,c4.m0,c5.m0,c6.m0,c7.m0,
+      let s0=[p0,c0.m0,c0.m3,c0.m5,c4.m0,c5.m0,c6.m0,c7.m0,
               c4.m3,c5.m3,c6.m3,c7.m3,c4.m5,c5.m5,c6.m5,c7.m5];
-      var s1=[c4.m5,c5.m5,c6.m5,c7.m5,c4.m4,c5.m4,c6.m4,c7.m4,
+      let s1=[c4.m5,c5.m5,c6.m5,c7.m5,c4.m4,c5.m4,c6.m4,c7.m4,
               c4.m2,c5.m2,c6.m2,c7.m2,p12,c3.m0,c3.m3,c3.m5];
-      var s2=[c7.m5,c8.m5,c9.m5,c10.m5,c7.m4,c8.m4,c9.m4,c10.m4,
+      let s2=[c7.m5,c8.m5,c9.m5,c10.m5,c7.m4,c8.m4,c9.m4,c10.m4,
               c7.m2,c8.m2,c9.m2,c10.m2,c3.m5,c3.m4,c3.m2,p15];
-      var s3=[c0.m5,c0.m4,c0.m2,p3,c7.m0,c8.m0,c9.m0,c10.m0,
+      let s3=[c0.m5,c0.m4,c0.m2,p3,c7.m0,c8.m0,c9.m0,c10.m0,
               c7.m3,c8.m3,c9.m3,c10.m3,c7.m5,c8.m5,c9.m5,c10.m5];
 
-      var m4=s0[15];
+      let m4=s0[15];
 
-      var n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
+      let n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
       if(iszero(n0)) {
         n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
         if(iszero(n0)) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
       }
 
-      var n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
+      let n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
       if(iszero(n1)) {
         n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
         if(iszero(n1)) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
       }
 
-      var n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
+      let n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
       if(iszero(n2)) {
         n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
         if(iszero(n2)) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
       }
 
-      var n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
+      let n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
       if(iszero(n3)) {
         n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
         if(iszero(n3)) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
       }
 
-      var n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
+      let n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
 
-      var e=this.Epsilon;
+      let e=this.Epsilon;
 
       // A kludge to remove subdivision cracks, only applied the first time
       // an edge is found to be flat before the rest of the subpatch is.
-      var m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
+      let m0=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
       if(!flat0) {
         if((flat0=Straightness(p0,p[4],p[8],p12) < this.res2)) {
-          var r=unit(derivative(s1[0],s1[1],s1[2],s1[3]));
+          let r=unit(derivative(s1[0],s1[1],s1[2],s1[3]));
           m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
         }
         else m0=s0[12];
       }
 
-      var m1=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
+      let m1=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
       if(!flat1) {
         if((flat1=Straightness(p12,p[13],p[14],p15) < this.res2)) {
-          var r=unit(derivative(s2[12],s2[8],s2[4],s2[0]));
+          let r=unit(derivative(s2[12],s2[8],s2[4],s2[0]));
           m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
         }
         else m1=s1[15];
       }
 
-      var m2=[0.5*(P2[0]+P3[0]),0.5*(P2[1]+P3[1]),0.5*(P2[2]+P3[2])];
+      let m2=[0.5*(P2[0]+P3[0]),0.5*(P2[1]+P3[1]),0.5*(P2[2]+P3[2])];
       if(!flat2) {
         if((flat2=Straightness(p15,p[11],p[7],p3) < this.res2)) {
-          var r=unit(derivative(s3[15],s2[14],s2[13],s1[12]));
+          let r=unit(derivative(s3[15],s2[14],s2[13],s1[12]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=s2[3];
       }
       
-      var m3=[0.5*(P3[0]+P0[0]),0.5*(P3[1]+P0[1]),0.5*(P3[2]+P0[2])];
+      let m3=[0.5*(P3[0]+P0[0]),0.5*(P3[1]+P0[1]),0.5*(P3[2]+P0[2])];
       if(!flat3) {
         if((flat3=Straightness(p0,p[1],p[2],p3) < this.res2)) {
-          var r=unit(derivative(s0[3],s0[7],s0[11],s0[15]));
+          let r=unit(derivative(s0[3],s0[7],s0[11],s0[15]));
           m3=[m3[0]-e*r[0],m3[1]-e*r[1],m3[2]-e*r[2]];
         }
         else m3=s3[0];
       }
       
       if(C0) {
-        var c0=Array(4);
-        var c1=Array(4);
-        var c2=Array(4);
-        var c3=Array(4);
-        var c4=Array(4);
-        for(var i=0; i < 4; ++i) {
+        let c0=Array(4);
+        let c1=Array(4);
+        let c2=Array(4);
+        let c3=Array(4);
+        let c4=Array(4);
+        for(let i=0; i < 4; ++i) {
           c0[i]=0.5*(C0[i]+C1[i]);
           c1[i]=0.5*(C1[i]+C2[i]);
           c2[i]=0.5*(C2[i]+C3[i]);
@@ -625,11 +626,11 @@ class BezierPatch {
           c4[i]=0.5*(c0[i]+c2[i]);
         }
 
-        var i0=data.Vertex(m0,n0,c0);
-        var i1=data.Vertex(m1,n1,c1);
-        var i2=data.Vertex(m2,n2,c2);
-        var i3=data.Vertex(m3,n3,c3);
-        var i4=data.Vertex(m4,n4,c4);
+        let i0=data.Vertex(m0,n0,c0);
+        let i1=data.Vertex(m1,n1,c1);
+        let i2=data.Vertex(m2,n2,c2);
+        let i3=data.Vertex(m3,n3,c3);
+        let i4=data.Vertex(m4,n4,c4);
 
         this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
                     C0,c0,c4,c3);
@@ -640,11 +641,11 @@ class BezierPatch {
         this.Render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
                     c3,c4,c2,C3);
       } else {
-        var i0=this.vertex(m0,n0);
-        var i1=this.vertex(m1,n1);
-        var i2=this.vertex(m2,n2);
-        var i3=this.vertex(m3,n3);
-        var i4=this.vertex(m4,n4);
+        let i0=this.vertex(m0,n0);
+        let i1=this.vertex(m1,n1);
+        let i2=this.vertex(m2,n2);
+        let i3=this.vertex(m3,n3);
+        let i4=this.vertex(m4,n4);
 
         this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
         this.Render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
@@ -654,14 +655,302 @@ class BezierPatch {
     }
   }
 
-  Distance(p) {
-    var p0=p[0];
-    var p3=p[3];
-    var p12=p[12];
-    var p15=p[15];
+// Render a Bezier triangle via subdivision.
+  render3() {
+    this.Offscreen=false;
+    centerIndex=this.CenterIndex;
+    materialIndex=this.MaterialIndex;
 
-    // Check the flatness of the quad.
-    var d=Distance2(p15,p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
+    let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
+    let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
+
+    let s;
+
+    if(orthographic) {
+      this.m=b;
+      this.M=B;
+      s=1.0;
+    } else {
+      let perspective=1.0/B[2];
+      let f=this.Min[2]*perspective;
+      let F=this.Max[2]*perspective;
+      this.m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
+      this.M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
+      s=Math.max(f,F);
+    }
+
+    [this.x,this.y,this.X,this.Y]=new bbox2(this.m,this.M).bounds();
+
+    if(centerIndex == 0 &&
+       (this.Max[0] < this.x || this.Min[0] > this.X ||
+        this.Max[1] < this.y || this.Min[1] > this.Y)) {
+      this.Offscreen=true;
+      return;
+    }
+
+    let p=this.controlpoints;
+    let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
+    this.res2=res*res;
+    this.Epsilon=FillFactor*res;
+
+    let p0=p[0];
+    epsilon=0;
+    for(let i=1; i < 10; ++i)
+      epsilon=Math.max(epsilon,
+        abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
+    epsilon *= Fuzz4;
+
+    let p6=p[6];
+    let p9=p[9];
+
+    let n0=normal(p9,p[5],p[2],p0,p[1],p[3],p6);
+    let n1=normal(p0,p[1],p[3],p6,p[7],p[8],p9);    
+    let n2=normal(p6,p[7],p[8],p9,p[5],p[2],p0);
+    
+    if(this.color) {
+      let c0=this.color[0];
+      let c1=this.color[1];
+      let c2=this.color[2];
+
+      let i0=data.Vertex(p0,n0,c0);
+      let i1=data.Vertex(p6,n1,c1);
+      let i2=data.Vertex(p9,n2,c2);
+    
+      this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
+
+    } else {
+      let i0=this.vertex(p0,n0);
+      let i1=this.vertex(p6,n1);
+      let i2=this.vertex(p9,n2);
+
+      this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false);
+    }
+    if(this.transparent) {
+      if(this.Offscreen)
+        transparentOff.append(data);
+      else
+        transparentOn.append(data);
+    } else {
+      if(this.color) {
+        if(this.Offscreen)
+          colorOff.append(data);
+        else
+          colorOn.append(data);
+      } else {
+        if(this.Offscreen)
+          materialOff.append(data);
+        else
+          materialOn.append(data);
+      }
+    }
+    data.clear();
+  }
+
+  Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
+    if(this.Distance3(p) < this.res2) { // Bezier triangle is flat
+      let P=[P0,P1,P2];
+      if(!this.offscreen(3,P)) {
+        data.indices.push(I0);
+        data.indices.push(I1);
+        data.indices.push(I2);
+      }
+    } else {
+      if(this.offscreen(10,p)) return;
+
+    /* Control points are indexed as follows:
+
+       Coordinate
+        Index
+
+                                  030
+                                   9
+                                   /\
+                                  /  \
+                                 /    \
+                                /      \
+                               /        \
+                          021 +          + 120
+                           5 /            \ 8
+                            /              \
+                           /                \
+                          /                  \
+                         /                    \
+                    012 +          +           + 210
+                     2 /          111           \ 7
+                      /            4             \
+                     /                            \
+                    /                              \
+                   /                                \
+                  /__________________________________\
+                003         102           201        300
+                 0           1             3          6
+
+
+       Subdivision:
+                                   P2
+                                   030
+                                   /\
+                                  /  \
+                                 /    \
+                                /      \
+                               /        \
+                              /    up    \
+                             /            \
+                            /              \
+                        p1 /________________\ p0
+                          /\               / \
+                         /  \             /   \
+                        /    \           /     \
+                       /      \  center /       \
+                      /        \       /         \
+                     /          \     /           \
+                    /    left    \   /    right    \
+                   /              \ /               \
+                  /________________V_________________\
+                003               p2                300
+                P0                                    P1
+    */
+      
+      // Subdivide triangle:
+
+      let l003=p[0];
+      let p102=p[1];
+      let p012=p[2];
+      let p201=p[3];
+      let p111=p[4];
+      let p021=p[5];
+      let r300=p[6];
+      let p210=p[7];
+      let p120=p[8];
+      let u030=p[9];
+
+      let u021=0.5*(u030+p021);
+      let u120=0.5*(u030+p120);
+
+      let p033=0.5*(p021+p012);
+      let p231=0.5*(p120+p111);
+      let p330=0.5*(p120+p210);
+
+      let p123=0.5*(p012+p111);
+
+      let l012=0.5*(p012+l003);
+      let p312=0.5*(p111+p201);
+      let r210=0.5*(p210+r300);
+
+      let l102=0.5*(l003+p102);
+      let p303=0.5*(p102+p201);
+      let r201=0.5*(p201+r300);
+
+      let u012=0.5*(u021+p033);
+      let u210=0.5*(u120+p330);
+      let l021=0.5*(p033+l012);
+      let p4xx=0.5*p231+0.25*(p111+p102);
+      let r120=0.5*(p330+r210);
+      let px4x=0.5*p123+0.25*(p111+p210);
+      let pxx4=0.25*(p021+p111)+0.5*p312;
+      let l201=0.5*(l102+p303);
+      let r102=0.5*(p303+r201);
+
+      let l210=0.5*(px4x+l201); // =c120
+      let r012=0.5*(px4x+r102); // =c021
+      let l300=0.5*(l201+r102); // =r003=c030
+
+      let r021=0.5*(pxx4+r120); // =c012
+      let u201=0.5*(u210+pxx4); // =c102
+      let r030=0.5*(u210+r120); // =u300=c003
+
+      let u102=0.5*(u012+p4xx); // =c201
+      let l120=0.5*(l021+p4xx); // =c210
+      let l030=0.5*(u012+l021); // =u003=c300
+
+      let l111=0.5*(p123+l102);
+      let r111=0.5*(p312+r210);
+      let u111=0.5*(u021+p231);
+      let c111=0.25*(p033+p330+p303+p111);
+
+      let l=[l003,l102,l012,l201,l111,l021,l300,l210,l120,l030]; // left
+      let r=[l300,r102,r012,r201,r111,r021,r300,r210,r120,r030]; // right
+      let u=[l030,u102,u012,u201,u111,u021,r030,u210,u120,u030]; // up
+      let c=[r030,u201,r021,u102,c111,r012,l030,l120,l210,l300]; // center
+
+      let n0=normal(l300,r012,r021,r030,u201,u102,l030);
+      let n1=normal(r030,u201,u102,l030,l120,l210,l300);
+      let n2=normal(l030,l120,l210,l300,r012,r021,r030);
+      
+      let e=this.Epsilon;
+
+      // A kludge to remove subdivision cracks, only applied the first time
+      // an edge is found to be flat before the rest of the subpatch is.
+
+      let m0=[0.5*(P1[0]+P2[0]),0.5*(P1[1]+P2[1]),0.5*(P1[2]+P2[2])];
+      if(!flat0) {
+        if((flat0=Straightness(r300,p210,p120,u030) < this.res2)) {
+          let r=unit(derivative(c[0],c[2],c[5],c[9])+
+                     derivative(c[0],c[1],c[3],c[6]));
+          m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
+        }
+        else m0=r030;
+      }
+
+      let m1=[0.5*(P2[0]+P0[0]),0.5*(P2[1]+P0[1]),0.5*(P2[2]+P0[2])];
+      if(!flat1) {
+        if((flat1=Straightness(l003,p012,p021,u030) < this.res2)) {
+          let r=unit(derivative(c[6],c[3],c[1],c[0])+
+                     derivative(c[6],c[7],c[8],c[9]));
+          m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
+        }
+        else m1=l030;
+      }
+
+      let m2=[0.5*(P0[0]+P1[0]),0.5*(P0[1]+P1[1]),0.5*(P0[2]+P1[2])];
+      if(!flat2) {
+        if((flat2=Straightness(l003,p102,p201,r300) < this.res2)) {
+          let r=unit(derivative(c[9],c[8],c[7],c[6])+
+                     derivative(c[9],c[5],c[2],c[0]));
+          m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
+        }
+        else m2=l300;
+      }
+      
+      if(C0) {
+        let c0=Array(4);
+        let c1=Array(4);
+        let c2=Array(4);
+        for(let i=0; i < 4; ++i) {
+          c0[i]=0.5*(C1[i]+C2[i]);
+          c1[i]=0.5*(C2[i]+C0[i]);
+          c2[i]=0.5*(C0[i]+C1[i]);
+        }
+        
+        let i0=data.Vertex(m0,n0,c0);
+        let i1=data.Vertex(m1,n1,c1);
+        let i2=data.Vertex(m2,n2,c2);
+        
+        this.Render3(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2,C0,c2,c1);
+        this.Render3(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2,c2,C1,c0);
+        this.Render3(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false,c1,c0,C2);
+        this.Render3(c,i0,i1,i2,m0,m1,m2,false,false,false,c0,c1,c2);
+      } else {
+        let i0=this.vertex(m0,n0);
+        let i1=this.vertex(m1,n1);
+        let i2=this.vertex(m2,n2);
+        
+        this.Render3(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2);
+        this.Render3(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2);
+        this.Render3(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false);
+        this.Render3(c,i0,i1,i2,m0,m1,m2,false,false,false);
+      }
+    }
+  }
+
+  Distance(p) {
+    let p0=p[0];
+    let p3=p[3];
+    let p12=p[12];
+    let p15=p[15];
+
+    // Check the flatness of a patch.
+    let d=Distance2(p15,p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
     
     // Determine how straight the edges are.
     d=Math.max(d,Straightness(p0,p[1],p[2],p3));
@@ -674,6 +963,20 @@ class BezierPatch {
     d=Math.max(d,Straightness(p[8],p[9],p[10],p[11]));
     d=Math.max(d,Straightness(p[1],p[5],p[9],p[13]));
     return Math.max(d,Straightness(p[2],p[6],p[10],p[14]));
+  }
+
+  Distance3(p) {
+    let p0=p[0];
+    let p6=p[6];
+    let p9=p[9];
+
+    // Check how far the internal point is from the centroid of the vertices.
+    let d=Math.abs2((p0+p6+p9)/3-p[4]);
+
+    // Determine how straight the edges are.
+    d=Math.max(d,Straightness(p0,p[1],p[3],p6));
+    d=Math.max(d,Straightness(p0,p[2],p[5],p9));
+    return Math.max(d,Straightness(p6,p[7],p[8],p9));
   }
 }
 
