@@ -1741,22 +1741,11 @@ function webGLStart()
   canvas.onkeydown=handleKey;
   document.onwheel=handleMouseWheel;
 
-  var supportsPassive=false;
-  try {
-    var opts=Object.defineProperty({},"passive",{
-      get: function() {supportsPassive=true;}
-    });
-    window.addEventListener("testPassive",null,opts);
-    window.removeEventListener("testPassive",null,opts);
-  } catch(e) {}
-
-  canvas.addEventListener("touchstart",handleTouchStart,
-                          supportsPassive ? {passive:true} : false);
+  canvas.addEventListener("touchstart",handleTouchStart,false);
   canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchmove",handleTouchMove,
-                          supportsPassive ? {passive:true} : false);
+  canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
 
   tick();
