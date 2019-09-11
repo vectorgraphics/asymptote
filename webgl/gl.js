@@ -4,6 +4,7 @@
 var gl;
 
 var canvasWidth,canvasHeight;
+var halfCanvWidth,halfCanvHeight;
 
 var pixel=0.75; // Adaptive rendering constant.
 var BezierFactor=0.4;
@@ -12,6 +13,8 @@ var Zoom;
 var Zoom0;
 const zoomStep=0.1;
 var zoomFactor=1.05;
+var zoomPinchThreshold=1;
+var zoomPinchFactor=0.001;
 var lastzoom;
 var H; // maximum camera view half-height
 
@@ -1306,25 +1309,42 @@ function handleMouseDown(event) {
   lastMouseY=event.clientY;
 }
 
+var pinch=false;
+var pinchStart;
+
+function pinchDistance(touches)
+{
+  return Math.hypot(
+    touches[0].pageX-touches[1].pageX,
+    touches[0].pageY-touches[1].pageY);
+}
+
 function handleTouchStart(evt) {
   evt.preventDefault();
   var touches=evt.targetTouches;
 
-  if (touches.length == 1 && !mouseDownOrTouchActive) {
+  if(touches.length == 1 && !mouseDownOrTouchActive) {
     touchId=touches[0].identifier;
     lastMouseX=touches[0].pageX,
     lastMouseY=touches[0].pageY;
+  }
+
+  if(!pinch && touches.length == 2 && !mouseDownOrTouchActive) {
+    touchId=touches[0].identifier;
+    pinchStart=pinchDistance(touches);
+    pinch=true;
   }
 }
 
 function handleMouseUpOrTouchEnd(event) {
   mouseDownOrTouchActive=false;
+  pinch=false;
 }
 
 function rotateScene(lastX,lastY,rawX,rawY) {
     let [angle, axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
 
-    if (isNaN(angle) || isNaN(axis[0]) ||
+    if(isNaN(angle) || isNaN(axis[0]) ||
       isNaN(axis[1]) || isNaN(axis[2])) {
       console.error("Angle or axis NaN!");
       return;
@@ -1372,6 +1392,16 @@ function capzoom()
   lastzoom=Zoom;
 }
 
+function zoomImage(diff) {
+  let stepPower=zoomStep*halfCanvHeight*diff;
+  const limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
+
+  if(Math.abs(stepPower) < limit) {
+    Zoom *= zoomFactor**stepPower;
+    capzoom();
+  }
+}
+
 /**
  * Mouse Drag Zoom
  * @param {*} lastX unused
@@ -1380,14 +1410,7 @@ function capzoom()
  * @param {*} rawY 
  */
 function zoomScene(lastX,lastY,rawX,rawY) {
-  let halfCanvHeight=0.5*canvasHeight;
-  let stepPower=zoomStep*halfCanvHeight*(lastY-rawY);
-  const limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
-
-  if(Math.abs(stepPower) < limit) {
-    Zoom *= zoomFactor**stepPower;
-    capzoom();
-  }
+  zoomImage(lastY-rawY);
 }
 
 // mode:
@@ -1414,9 +1437,6 @@ function processDrag(newX,newY,mode,touch=false) {
       dragFunc=(_a,_b,_c,_d) => {};
       break;
   }
-
-  let halfCanvWidth=canvasWidth/2.0;
-  let halfCanvHeight=canvasHeight/2.0;
 
   let lastX=(lastMouseX-halfCanvWidth)/halfCanvWidth;
   let lastY=(lastMouseY-halfCanvHeight)/halfCanvHeight;
@@ -1495,14 +1515,30 @@ function handleMouseMove(event) {
   processDrag(newX,newY,mode,false);
 }
 
+var zooming=false;
 function handleTouchMove(evt) {
   evt.preventDefault();
   var touches=evt.targetTouches;
 
-  if (touches.length == 1 && touchId == touches[0].identifier) {
+  if(touches.length == 1 && touchId == touches[0].identifier) {
     var newX=touches[0].pageX;
     var newY=touches[0].pageY;
     processDrag(newX,newY,DRAGMODE_ROTATE,true);
+  }
+
+  if(pinch && !zooming &&
+     touches.length == 2 && touchId == touches[0].identifier) {
+    let distance=pinchDistance(touches);
+    let diff=distance-pinchStart;
+    if(Math.abs(diff) > zoomPinchThreshold) {
+      zooming=true;
+      zoomImage(zoomPinchFactor*diff);
+      pinchStart=distance;
+      zooming=false;
+    }
+    setProjection();
+    updatevMatrix();
+    redraw=true;
   }
 }
 
@@ -1679,6 +1715,9 @@ function webGLStart()
 
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
+
+  halfCanvWidth=canvasWidth/2.0;
+  halfCanvHeight=canvasHeight/2.0;
 
   initProjection();
   initGL(canvas);
