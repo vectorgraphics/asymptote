@@ -8,10 +8,10 @@ var canvasWidth,canvasHeight;
 var pixel=0.75; // Adaptive rendering constant.
 var BezierFactor=0.4;
 var FillFactor=0.1;
-var Zoom=1;
+var Zoom;
+var Zoom0;
 const zoomStep=0.1;
 var zoomFactor=1.05;
-var Zoom0;
 var lastzoom;
 var H; // maximum camera view half-height
 
@@ -1661,8 +1661,6 @@ function initProjection() {
 
   center={x:0,y:0,z:0.5*(b[2]+B[2])};
   lastzoom=Zoom=Zoom0;
-  let f=orthographic ? mat4.ortho : mat4.frustum;
-  f(pMatrix,b[0],B[0],b[1],B[1],-B[2],-b[2]);
 
   viewParam={
     xmin:b[0],xmax:B[0],
@@ -1672,6 +1670,7 @@ function initProjection() {
   shift={
     x:0,y:0
   };
+  setProjection();
 }
 
 function webGLStart()
