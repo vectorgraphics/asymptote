@@ -25,33 +25,18 @@ var arcballLib = {
             newMouseNew[1] = newmouse[1];
         }
 
-        var z1squared = 1 - (oldMouseNew[1] ** 2) - (oldMouseNew[0] ** 2);
-        if (z1squared < 0 && z1squared > -0.00001) {
-            z1squared = 0;
-        }
+        var z1squared = 1 - oldMouseNew[1] ** 2 - oldMouseNew[0] ** 2;
+        var z2squared = 1 - newMouseNew[1] ** 2 - newMouseNew[0] ** 2;
 
-        var z2squared = 1 - (newMouseNew[1] ** 2) - (newMouseNew[0] ** 2);
-        if (z2squared < 0 && z2squared > -0.00001) {
-            z2squared = 0;
-        }
+        oldMouseNew[2] = Math.sqrt(Math.max(z1squared,0));
+        newMouseNew[2] = Math.sqrt(Math.max(z2squared,0));
 
-
-        oldMouseNew[2] = Math.sqrt(z1squared);
-        newMouseNew[2] = Math.sqrt(z2squared);
-
-        if (isNaN(oldMouseNew[2]) || isNaN(newMouseNew[2])) {
-
-            alert('Error!');
-        }
-
-        
         let oldMouseVec = glm.vec3(...oldMouseNew);
         let newMouseVec = glm.vec3(...newMouseNew);
         let axis = glm.normalize(glm.cross(oldMouseVec, newMouseVec));
 
-        // console.log(axis[0], axis[1], axis[2]);
-
-        let angle = Math.acos(glm.dot(oldMouseVec, newMouseVec));
+        let dot=Math.abs(glm.dot(oldMouseVec, newMouseVec));
+        let angle = Math.acos(Math.min(dot,1));
 
         return [angle, axis]
 
@@ -60,7 +45,7 @@ var arcballLib = {
     twonorm: function(v) {
         let normSq = 0
         for (let i = 0; i < v.length; i++) {
-            normSq += (v[i] ** 2);
+            normSq += v[i] ** 2;
         }
         return Math.sqrt(normSq);
     }
