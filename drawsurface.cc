@@ -255,7 +255,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawBezierPatch::write(jsfile *out, unsigned int *, groupsmap&)
+bool drawBezierPatch::write(jsfile *out)
 {
   if(invisible)
     return true;
@@ -491,7 +491,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   return true;
 }
 
-bool drawBezierTriangle::write(jsfile *out, unsigned int *, groupsmap&)
+bool drawBezierTriangle::write(jsfile *out)
 {
   if(invisible)
     return true;

@@ -152,7 +152,7 @@ public:
   }
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out, unsigned int *, groupsmap&);
+  bool write(jsfile *out);
   
   void render(double, const triple& Min, const triple& Max,
               double perspective, bool transparent);
@@ -182,7 +182,7 @@ public:
              double fuzz, bool &first);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out, unsigned int *, groupsmap&);
+  bool write(jsfile *out);
   
   void meshinit() {
     if(billboard)

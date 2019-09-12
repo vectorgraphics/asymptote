@@ -1340,12 +1340,10 @@ bool picture::shipout3(const string& prefix, const string& format,
     string name=buildname(prefix,format);
     js.open(name);
   
-//    pic->groups.push_back(groupmap());
     for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
       assert(*p);
-      (*p)->write(&js,&pic->billboard,pic->groups);
+      (*p)->write(&js);
     }
-//    pic->groups.pop_back();
     if(verbose > 0) cout << "Wrote " << name << endl;
     return true;
   }

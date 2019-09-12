@@ -227,7 +227,7 @@ public:
   }
   
   // Output to a JS file
-  virtual bool write(jsfile *out, unsigned int *count, groupsmap& groups) {
+  virtual bool write(jsfile *out) {
     return false;
   }
   
