@@ -13,8 +13,8 @@ var Zoom;
 var Zoom0;
 const zoomStep=0.1;
 var zoomFactor=1.05;
-var zoomPinchThreshold=1;
-var zoomPinchFactor=0.001;
+var zoomPinchFactor=10;
+var zoomPinchCap=100;
 var lastzoom;
 var H; // maximum camera view half-height
 
@@ -1530,12 +1530,13 @@ function handleTouchMove(evt) {
      touches.length == 2 && touchId == touches[0].identifier) {
     let distance=pinchDistance(touches);
     let diff=distance-pinchStart;
-    if(Math.abs(diff) > zoomPinchThreshold) {
-      zooming=true;
-      zoomImage(zoomPinchFactor*diff);
-      pinchStart=distance;
-      zooming=false;
-    }
+    zooming=true;
+    diff *= zoomPinchFactor;
+    if(diff > zoomPinchCap) diff=zoomPinchCap;
+    if(diff < -zoomPinchCap) diff=-zoomPinchCap;
+    zoomImage(diff/size2);
+    pinchStart=distance;
+    zooming=false;
     setProjection();
     updatevMatrix();
     redraw=true;
