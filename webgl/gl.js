@@ -15,8 +15,8 @@ const zoomStep=0.1;
 var zoomFactor=1.05;
 var zoomPinchFactor=10;
 var zoomPinchCap=100;
-var shiftHoldDistance=5;
-var shiftWaitTime=150; // ms
+var shiftHoldDistance=2;
+var shiftWaitTime=300; // ms
 var lastzoom;
 var H; // maximum camera view half-height
 
@@ -36,6 +36,7 @@ var T=mat4.create(); // Offscreen transformation matrix
 var pvmMatrix=mat4.create(); // projection view matrix
 var normMat=mat3.create();
 var vMatrix3=mat3.create(); // 3x3 view matrix
+var rotMats=mat4.create();
 
 var zmin,zmax;
 var center={x:0,y:0,z:0};
@@ -1348,18 +1349,10 @@ function handleMouseUpOrTouchEnd(event) {
   swipe=pinch=false;
 }
 
-function rotateScene(lastX,lastY,rawX,rawY) {
-    let f=2.0/lastzoom;
-    let [angle, axis]=arcballLib.arcball([f*lastX,-f*lastY],[f*rawX,-f*rawY]);
+function rotateScene(lastX,lastY,rawX,rawY,factor) {
+    let [angle, axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
 
-    if(isNaN(angle) || isNaN(axis[0]) ||
-      isNaN(axis[1]) || isNaN(axis[2])) {
-      console.error("Angle or axis NaN!");
-      return;
-    }
-
-    var rotMats=mat4.create();
-    mat4.fromRotation(rotMats,angle,axis);
+    mat4.fromRotation(rotMats,angle*2.0*factor/lastzoom,axis);
     mat4.multiply(rotMat,rotMats,rotMat);
 }
 
@@ -1421,7 +1414,7 @@ const DRAGMODE_ROTATE=1;
 const DRAGMODE_SHIFT=2;
 const DRAGMODE_ZOOM=3;
 const DRAGMODE_PAN=4
-function processDrag(newX,newY,mode) {
+function processDrag(newX,newY,mode,factor=1) {
   let dragFunc;
   switch (mode) {
     case DRAGMODE_ROTATE:
@@ -1446,7 +1439,7 @@ function processDrag(newX,newY,mode) {
   let rawX=(newX-halfCanvWidth)/halfCanvWidth;
   let rawY=(newY-halfCanvHeight)/halfCanvHeight;
 
-  dragFunc(lastX,lastY,rawX,rawY);
+  dragFunc(lastX,lastY,rawX,rawY,factor);
 
   lastMouseX=newX;
   lastMouseY=newY;
@@ -1539,7 +1532,7 @@ function handleTouchMove(evt) {
     else {
       var newX=touches[0].pageX;
       var newY=touches[0].pageY;
-      processDrag(newX,newY,DRAGMODE_ROTATE);
+      processDrag(newX,newY,DRAGMODE_ROTATE,0.5);
     }
   }
 
