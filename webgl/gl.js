@@ -15,6 +15,8 @@ const zoomStep=0.1;
 var zoomFactor=1.05;
 var zoomPinchFactor=10;
 var zoomPinchCap=100;
+var shiftHoldDistance=5;
+var shiftWaitTime=150; // ms
 var lastzoom;
 var H; // maximum camera view half-height
 
@@ -1319,17 +1321,22 @@ function pinchDistance(touches)
     touches[0].pageY-touches[1].pageY);
 }
 
+
+var touchStartTime;
+
 function handleTouchStart(evt) {
   evt.preventDefault();
   var touches=evt.targetTouches;
+  if(pinch) return;
 
   if(touches.length == 1 && !mouseDownOrTouchActive) {
+    touchStartTime=new Date().getTime();
     touchId=touches[0].identifier;
     lastMouseX=touches[0].pageX,
     lastMouseY=touches[0].pageY;
   }
 
-  if(!pinch && touches.length == 2 && !mouseDownOrTouchActive) {
+  if(touches.length == 2 && !mouseDownOrTouchActive) {
     touchId=touches[0].identifier;
     pinchStart=pinchDistance(touches);
     pinch=true;
@@ -1338,11 +1345,12 @@ function handleTouchStart(evt) {
 
 function handleMouseUpOrTouchEnd(event) {
   mouseDownOrTouchActive=false;
-  pinch=false;
+  swipe=pinch=false;
 }
 
 function rotateScene(lastX,lastY,rawX,rawY) {
-    let [angle, axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
+    let f=2.0/lastzoom;
+    let [angle, axis]=arcballLib.arcball([f*lastX,-f*lastY],[f*rawX,-f*rawY]);
 
     if(isNaN(angle) || isNaN(axis[0]) ||
       isNaN(axis[1]) || isNaN(axis[2])) {
@@ -1356,22 +1364,17 @@ function rotateScene(lastX,lastY,rawX,rawY) {
 }
 
 function shiftScene(lastX,lastY,rawX,rawY) {
-  let xTransl=rawX-lastX;
-  let yTransl=rawY-lastY;
-  // equivalent to shift function in asy.
   let zoominv=1/lastzoom;
-  shift.x+=xTransl*zoominv*canvasWidth/2;
-  shift.y-=yTransl*zoominv*canvasHeight/2;
+  shift.x += (rawX-lastX)*zoominv*canvasWidth/2;
+  shift.y -= (rawY-lastY)*zoominv*canvasHeight/2;
 }
 
 function panScene(lastX,lastY,rawX,rawY) {
-  let xTransl=rawX-lastX;
-  let yTransl=rawY-lastY;
   if (orthographic) {
     shiftScene(lastX,lastY,rawX,rawY);
   } else {
-    center.x+=xTransl*(viewParam.xmax-viewParam.xmin)/2;
-    center.y-=yTransl*(viewParam.ymax-viewParam.ymin)/2;
+    center.x += (rawX-lastX)*(viewParam.xmax-viewParam.xmin);
+    center.y -= (rawY-lastY)*(viewParam.ymax-viewParam.ymin);
   }
 }
 
@@ -1418,7 +1421,7 @@ const DRAGMODE_ROTATE=1;
 const DRAGMODE_SHIFT=2;
 const DRAGMODE_ZOOM=3;
 const DRAGMODE_PAN=4
-function processDrag(newX,newY,mode,touch=false) {
+function processDrag(newX,newY,mode) {
   let dragFunc;
   switch (mode) {
     case DRAGMODE_ROTATE:
@@ -1512,21 +1515,35 @@ function handleMouseMove(event) {
     mode=DRAGMODE_ROTATE;
   }
 
-  processDrag(newX,newY,mode,false);
+  processDrag(newX,newY,mode);
 }
 
 var zooming=false;
+var swipe=false;
+
 function handleTouchMove(evt) {
   evt.preventDefault();
+  if(zooming) return;
   var touches=evt.targetTouches;
 
-  if(touches.length == 1 && touchId == touches[0].identifier) {
+  if(!pinch && touches.length == 1 && touchId == touches[0].identifier) {
     var newX=touches[0].pageX;
     var newY=touches[0].pageY;
-    processDrag(newX,newY,DRAGMODE_ROTATE,true);
+    var dx=newX-lastMouseX;
+    var dy=newY-lastMouseY;
+    var stationary=dx*dx+dy*dy <= shiftHoldDistance*shiftHoldDistance;
+    if(stationary && new Date().getTime()-touchStartTime > shiftWaitTime)
+      swipe=true;
+    if(swipe)
+      processDrag(newX,newY,DRAGMODE_SHIFT);
+    else {
+      var newX=touches[0].pageX;
+      var newY=touches[0].pageY;
+      processDrag(newX,newY,DRAGMODE_ROTATE);
+    }
   }
 
-  if(pinch && !zooming &&
+  if(pinch && !swipe &&
      touches.length == 2 && touchId == touches[0].identifier) {
     let distance=pinchDistance(touches);
     let diff=distance-pinchStart;
@@ -1536,7 +1553,7 @@ function handleTouchMove(evt) {
     if(diff < -zoomPinchCap) diff=-zoomPinchCap;
     zoomImage(diff/size2);
     pinchStart=distance;
-    zooming=false;
+    swipe=zooming=false;
     setProjection();
     updatevMatrix();
     redraw=true;
