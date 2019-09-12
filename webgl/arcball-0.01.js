@@ -35,8 +35,10 @@ var arcballLib = {
         let newMouseVec = glm.vec3(...newMouseNew);
         let axis = glm.normalize(glm.cross(oldMouseVec, newMouseVec));
 
-        let dot=Math.abs(glm.dot(oldMouseVec, newMouseVec));
-        let angle = Math.acos(Math.min(dot,1));
+        let dot=glm.dot(oldMouseVec, newMouseVec);
+        if(dot > 1) dot=1;
+        else if(dot < -1) dot=-1;
+        let angle = Math.acos(dot);
 
         return [angle, axis]
 
