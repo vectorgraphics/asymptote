@@ -15,8 +15,9 @@ const zoomStep=0.1;
 var zoomFactor=1.05;
 var zoomPinchFactor=10;
 var zoomPinchCap=100;
-var shiftHoldDistance=2;
-var shiftWaitTime=300; // ms
+var shiftHoldDistance=20;
+var shiftWaitTime=200; // ms
+var vibrateTime=25; // ms
 var lastzoom;
 var H; // maximum camera view half-height
 
@@ -1328,7 +1329,8 @@ var touchStartTime;
 function handleTouchStart(evt) {
   evt.preventDefault();
   var touches=evt.targetTouches;
-  if(pinch) return;
+  swipe=rotate=pinch=false;
+  if(zooming) return;
 
   if(touches.length == 1 && !mouseDownOrTouchActive) {
     touchStartTime=new Date().getTime();
@@ -1346,7 +1348,6 @@ function handleTouchStart(evt) {
 
 function handleMouseUpOrTouchEnd(event) {
   mouseDownOrTouchActive=false;
-  swipe=pinch=false;
 }
 
 function rotateScene(lastX,lastY,rawX,rawY,factor) {
@@ -1513,6 +1514,7 @@ function handleMouseMove(event) {
 
 var zooming=false;
 var swipe=false;
+var rotate=false;
 
 function handleTouchMove(evt) {
   evt.preventDefault();
@@ -1525,11 +1527,17 @@ function handleTouchMove(evt) {
     var dx=newX-lastMouseX;
     var dy=newY-lastMouseY;
     var stationary=dx*dx+dy*dy <= shiftHoldDistance*shiftHoldDistance;
-    if(stationary && new Date().getTime()-touchStartTime > shiftWaitTime)
-      swipe=true;
+    if(stationary) {
+      if(!swipe && !rotate &&
+         new Date().getTime()-touchStartTime > shiftWaitTime) {
+        window.navigator.vibrate(vibrateTime);
+        swipe=true;
+      }
+    }
     if(swipe)
       processDrag(newX,newY,DRAGMODE_SHIFT);
-    else {
+    else if(!stationary) {
+      rotate=true;
       var newX=touches[0].pageX;
       var newY=touches[0].pageY;
       processDrag(newX,newY,DRAGMODE_ROTATE,0.5);
@@ -1546,7 +1554,7 @@ function handleTouchMove(evt) {
     if(diff < -zoomPinchCap) diff=-zoomPinchCap;
     zoomImage(diff/size2);
     pinchStart=distance;
-    swipe=zooming=false;
+    swipe=rotate=zooming=false;
     setProjection();
     updatevMatrix();
     redraw=true;
