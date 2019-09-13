@@ -1530,7 +1530,8 @@ function handleTouchMove(evt) {
     if(stationary) {
       if(!swipe && !rotate &&
          new Date().getTime()-touchStartTime > shiftWaitTime) {
-        window.navigator.vibrate(vibrateTime);
+        if(navigator.vibrate)
+          window.navigator.vibrate(vibrateTime);
         swipe=true;
       }
     }
