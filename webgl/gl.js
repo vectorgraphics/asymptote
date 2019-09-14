@@ -1,69 +1,69 @@
 // Render Bezier patches via subdivision with WebGL.
 // Author: John C. Bowman, Supakorn "Jamie" Rassameemasmuang
 
-var gl;
+let gl;
 
-var canvasWidth,canvasHeight;
-var halfCanvWidth,halfCanvHeight;
+let canvasWidth,canvasHeight;
+let halfCanvWidth,halfCanvHeight;
 
-var pixel=0.75; // Adaptive rendering constant.
-var BezierFactor=0.4;
-var FillFactor=0.1;
-var Zoom;
-var Zoom0;
+let pixel=0.75; // Adaptive rendering constant.
+let BezierFactor=0.4;
+let FillFactor=0.1;
+let Zoom;
+let Zoom0;
 const zoomStep=0.1;
-var zoomFactor=1.05;
-var zoomPinchFactor=10;
-var zoomPinchCap=100;
-var shiftHoldDistance=20;
-var shiftWaitTime=200; // ms
-var vibrateTime=25; // ms
-var lastzoom;
-var H; // maximum camera view half-height
+let zoomFactor=1.05;
+let zoomPinchFactor=10;
+let zoomPinchCap=100;
+let shiftHoldDistance=20;
+let shiftWaitTime=200; // ms
+let vibrateTime=25; // ms
+let lastzoom;
+let H; // maximum camera view half-height
 
-var Fuzz2=1000*Number.EPSILON;
-var Fuzz4=Fuzz2*Fuzz2;
-var third=1.0/3.0;
+let Fuzz2=1000*Number.EPSILON;
+let Fuzz4=Fuzz2*Fuzz2;
+let third=1.0/3.0;
 
-var P=[]; // Array of Bezier patches, triangles, and curves
-var M=[]; // Array of materials
-var Centers=[]; // Array of billboard centers
+let P=[]; // Array of Bezier patches, triangles, and curves
+let M=[]; // Array of materials
+let Centers=[]; // Array of billboard centers
 
-var rotMat=mat4.create();
-var pMatrix=mat4.create(); // projection matrix
-var vMatrix=mat4.create(); // view matrix
-var T=mat4.create(); // Offscreen transformation matrix
+let rotMat=mat4.create();
+let pMatrix=mat4.create(); // projection matrix
+let vMatrix=mat4.create(); // view matrix
+let T=mat4.create(); // Offscreen transformation matrix
 
-var pvmMatrix=mat4.create(); // projection view matrix
-var normMat=mat3.create();
-var vMatrix3=mat3.create(); // 3x3 view matrix
-var rotMats=mat4.create();
+let pvmMatrix=mat4.create(); // projection view matrix
+let normMat=mat3.create();
+let vMatrix3=mat3.create(); // 3x3 view matrix
+let rotMats=mat4.create();
 
-var zmin,zmax;
-var center={x:0,y:0,z:0};
-var size2;
-var b,B; // Scene min,max bounding box corners
-var shift={
+let zmin,zmax;
+let center={x:0,y:0,z:0};
+let size2;
+let b,B; // Scene min,max bounding box corners
+let shift={
   x:0,y:0
 };
 
-var viewParam = {
+let viewParam = {
   xmin:0,xmax:0,
   ymin:0,ymax:0,
   zmin:0,zmax:0
 };
 
-var positionBuffer;
-var materialBuffer;
-var colorBuffer;
-var indexBuffer;
+let positionBuffer;
+let materialBuffer;
+let colorBuffer;
+let indexBuffer;
 
-var redraw=true;
-var remesh=true;
-var mouseDownOrTouchActive=false;
-var lastMouseX=null;
-var lastMouseY=null;
-var touchID=null;
+let redraw=true;
+let remesh=true;
+let mouseDownOrTouchActive=false;
+let lastMouseX=null;
+let lastMouseY=null;
+let touchID=null;
 
 class Material {
   constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
@@ -76,7 +76,7 @@ class Material {
   }
 
   setUniform(program,stringLoc,index=null) {
-    var getLoc;
+    let getLoc;
     if (index === null)
       getLoc =
         param => gl.getUniformLocation(program,stringLoc+"."+param);
@@ -94,8 +94,8 @@ class Material {
   }
 }
 
-var enumPointLight=1;
-var enumDirectionalLight=2;
+let enumPointLight=1;
+let enumDirectionalLight=2;
 
 class Light {
   constructor(type,lightColor,brightness,customParam) {
@@ -106,7 +106,7 @@ class Light {
   }
 
   setUniform(program,stringLoc,index) {
-    var getLoc=
+    let getLoc=
         param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
 
     gl.uniform1i(getLoc("type"),this.type);
@@ -127,11 +127,11 @@ function initGL(canvas) {
 }
 
 function getShader(gl,id,options=[]) {
-  var shaderScript=document.getElementById(id);
+  let shaderScript=document.getElementById(id);
   if(!shaderScript)
     return null;
 
-  var str=`#version 100
+  let str=`#version 100
   precision highp float;
   const int nLights=${lights.length};
   const int nMaterials=${M.length};
@@ -142,13 +142,13 @@ function getShader(gl,id,options=[]) {
 
   options.forEach(s => str += `#define `+s+`\n`);
 
-  var k=shaderScript.firstChild;
+  let k=shaderScript.firstChild;
   while(k) {
     if(k.nodeType == 3)
       str += k.textContent;
     k=k.nextSibling;
   }
-  var shader;
+  let shader;
   if(shaderScript.type == "x-shader/x-fragment")
     shader = gl.createShader(gl.FRAGMENT_SHADER);
   else if (shaderScript.type == "x-shader/x-vertex")
@@ -276,22 +276,22 @@ class vertexData {
   }
 }
 
-var data=new vertexData();
+let data=new vertexData();
 
-var materialOn=new vertexData();     // Onscreen material data
-var materialOff=new vertexData();    // Partially offscreen material data
+let materialOn=new vertexData();     // Onscreen material data
+let materialOff=new vertexData();    // Partially offscreen material data
 
-var colorOn=new vertexData();        // Onscreen color data
-var colorOff=new vertexData();       // Partially offscreen color data
+let colorOn=new vertexData();        // Onscreen color data
+let colorOff=new vertexData();       // Partially offscreen color data
 
-var transparentOn=new vertexData();  // Onscreen transparent data
-var transparentOff=new vertexData(); // Partially offscreen transparent data
+let transparentOn=new vertexData();  // Onscreen transparent data
+let transparentOff=new vertexData(); // Partially offscreen transparent data
 
-var material1On=new vertexData();     // Onscreen material 1D data
-var material1Off=new vertexData();    // Partially offscreen material 1D data
+let material1On=new vertexData();     // Onscreen material 1D data
+let material1Off=new vertexData();    // Partially offscreen material 1D data
 
-var materialIndex;
-var centerIndex;
+let materialIndex;
+let centerIndex;
 
 // efficiently append array b onto array a
 function append(a,b)
@@ -1177,8 +1177,8 @@ class BezierCurve {
 
     let p=this.controlpoints;
     
-    var i0=data.vertex1(p[0]);
-    var i3=data.vertex1(p[3]);
+    let i0=data.vertex1(p[0]);
+    let i3=data.vertex1(p[3]);
     
     this.Render(p,i0,i3);
     if(data.nvertices > 0) this.append();
@@ -1236,9 +1236,9 @@ function home()
 
 function initShader(options)
 {
-  var fragmentShader=getShader(gl,"fragment",options);
-  var vertexShader=getShader(gl,"vertex",options);
-  var shader=gl.createProgram();
+  let fragmentShader=getShader(gl,"fragment",options);
+  let vertexShader=getShader(gl,"vertex",options);
+  let shader=gl.createProgram();
 
   gl.attachShader(shader,vertexShader);
   gl.attachShader(shader,fragmentShader);
@@ -1273,7 +1273,7 @@ function iszero(v)
 
 function unit(v)
 {
-  var norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  let norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
   norm=(norm != 0.0) ? 1.0/norm : 1.0;
   return [v[0]*norm,v[1]*norm,v[2]*norm];
 }
@@ -1319,7 +1319,7 @@ function bezierPPP(a,b,c,d)
 */
 function Straightness(z0,c0,c1,z1)
 {
-  var v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
+  let v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
   return Math.max(abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
     abs2([z1[0]-v[0]-c1[0],z1[1]-v[1]-c1[1],z1[2]-v[2]-c1[2]]));
 }
@@ -1330,13 +1330,13 @@ function Straightness(z0,c0,c1,z1)
  */
 function Distance2(z,u,n)
 {
-  var d=dot([z[0]-u[0],z[1]-u[1],z[2]-u[2]],n);
+  let d=dot([z[0]-u[0],z[1]-u[1],z[2]-u[2]],n);
   return d*d;
 }
 
 class bbox2 {
   constructor(m,M) {
-    var V=[];
+    let V=[];
     vec3.transformMat4(V,m,T);
     this.x=this.X=V[0];
     this.y=this.Y=V[1];
@@ -1355,7 +1355,7 @@ class bbox2 {
   }
 
   transformed(v) {
-    var V=[];
+    let V=[];
     vec3.transformMat4(V,v,T);
     if(V[0] < this.x) this.x=V[0];
     else if(V[0] > this.X) this.X=V[0];
@@ -1373,7 +1373,7 @@ class bbox2 {
  * @Return the matrix (conjMatrix) * mat * (conjMatrix)^{-1} 
  */
 function mat4COB(out,conjMatrix,mat) {
-  var cjMatInv=mat4.create();
+  let cjMatInv=mat4.create();
   mat4.invert(cjMatInv,conjMatrix);
 
   mat4.multiply(out,mat,cjMatInv);
@@ -1383,7 +1383,7 @@ function mat4COB(out,conjMatrix,mat) {
 }
 
 function getTargetOrigMat() {
-  var translMat=mat4.create();
+  let translMat=mat4.create();
   mat4.fromTranslation(translMat,[center.x,center.y,center.z])
   return translMat;
 }
@@ -1449,8 +1449,8 @@ function handleMouseDown(event) {
   lastMouseY=event.clientY;
 }
 
-var pinch=false;
-var pinchStart;
+let pinch=false;
+let pinchStart;
 
 function pinchDistance(touches)
 {
@@ -1460,11 +1460,11 @@ function pinchDistance(touches)
 }
 
 
-var touchStartTime;
+let touchStartTime;
 
 function handleTouchStart(evt) {
   evt.preventDefault();
-  var touches=evt.targetTouches;
+  let touches=evt.targetTouches;
   swipe=rotate=pinch=false;
   if(zooming) return;
 
@@ -1516,8 +1516,8 @@ function updatevMatrix() {
 
 function capzoom() 
 {
-  var maxzoom=Math.sqrt(Number.MAX_VALUE);
-  var minzoom=1.0/maxzoom;
+  let maxzoom=Math.sqrt(Number.MAX_VALUE);
+  let minzoom=1.0/maxzoom;
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
@@ -1587,8 +1587,8 @@ function processDrag(newX,newY,mode,factor=1) {
 }
 
 function handleKey(event) {
-  var keycode=event.key;
-  var axis=[];
+  let keycode=event.key;
+  let axis=[];
   switch(keycode) {
   case "x":
     axis=[1,0,0];
@@ -1631,8 +1631,8 @@ function handleMouseMove(event) {
     return;
   }
 
-  var newX=event.clientX;
-  var newY=event.clientY;
+  let newX=event.clientX;
+  let newY=event.clientY;
 
   let mode;
   if(event.getModifierState("Control")) {
@@ -1648,21 +1648,21 @@ function handleMouseMove(event) {
   processDrag(newX,newY,mode);
 }
 
-var zooming=false;
-var swipe=false;
-var rotate=false;
+let zooming=false;
+let swipe=false;
+let rotate=false;
 
 function handleTouchMove(evt) {
   evt.preventDefault();
   if(zooming) return;
-  var touches=evt.targetTouches;
+  let touches=evt.targetTouches;
 
   if(!pinch && touches.length == 1 && touchId == touches[0].identifier) {
-    var newX=touches[0].pageX;
-    var newY=touches[0].pageY;
-    var dx=newX-lastMouseX;
-    var dy=newY-lastMouseY;
-    var stationary=dx*dx+dy*dy <= shiftHoldDistance*shiftHoldDistance;
+    let newX=touches[0].pageX;
+    let newY=touches[0].pageY;
+    let dx=newX-lastMouseX;
+    let dy=newY-lastMouseY;
+    let stationary=dx*dx+dy*dy <= shiftHoldDistance*shiftHoldDistance;
     if(stationary) {
       if(!swipe && !rotate &&
          new Date().getTime()-touchStartTime > shiftWaitTime) {
@@ -1675,8 +1675,8 @@ function handleTouchMove(evt) {
       processDrag(newX,newY,DRAGMODE_SHIFT);
     else if(!stationary) {
       rotate=true;
-      var newX=touches[0].pageX;
-      var newY=touches[0].pageY;
+      let newX=touches[0].pageX;
+      let newY=touches[0].pageY;
       processDrag(newX,newY,DRAGMODE_ROTATE,0.5);
     }
   }
@@ -1698,7 +1698,7 @@ function handleTouchMove(evt) {
   }
 }
 
-var indexExt;
+let indexExt;
 
 // Create buffers for the patch and its subdivisions.
 function setBuffer()
@@ -1712,17 +1712,17 @@ function setBuffer()
 
 function transformVertices(vertices)
 {
-  var Tz0=vMatrix[2];
-  var Tz1=vMatrix[6];
-  var Tz2=vMatrix[10];
+  let Tz0=vMatrix[2];
+  let Tz1=vMatrix[6];
+  let Tz2=vMatrix[10];
   zbuffer.length=vertices.length;
-  for(var i=0; i < vertices.length; ++i) {
-    var i6=6*i;
+  for(let i=0; i < vertices.length; ++i) {
+    let i6=6*i;
     zbuffer[i]=Tz0*vertices[i6]+Tz1*vertices[i6+1]+Tz2*vertices[i6+2];
   }
 }
 
-var zbuffer=[];
+let zbuffer=[];
 
 function draw()
 {
@@ -1873,11 +1873,11 @@ function initProjection() {
   setProjection();
 }
 
-var materialShader,colorShader,noNormalShader,transparentShader;
+let materialShader,colorShader,noNormalShader,transparentShader;
 
 function webGLStart()
 {
-  var canvas=document.getElementById("Asymptote");
+  let canvas=document.getElementById("Asymptote");
 
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
