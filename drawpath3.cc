@@ -57,6 +57,27 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
+bool drawPath3::write(jsfile *out)
+{
+  Int n=g.length();
+  if(n == 0 || invisible)
+    return true;
+
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+    
+  } else drawElement::centerIndex=0;
+  
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(false,Black,color,Black,1.0,0.0,0.04,out);
+  
+  for(Int i=0; i < n; ++i)
+    out->addCurve(g.point(i),g.postcontrol(i),
+                  g.precontrol(i+1),g.point(i+1),Min,Max,color);
+  return true;
+}
+
 void drawPath3::render(double size2, const triple& b, const triple& B,
                        double perspective, bool transparent)
 {

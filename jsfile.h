@@ -24,8 +24,15 @@ public:
   
   void open(string name);
   void copy(string name);
+  
   void addPatch(const triple* controls, size_t n, const triple& Min,
                 const triple& Max, const prc::RGBAColour *colors);
+  
+  void addCurve(const triple& z0, const triple& c0,
+                const triple& c1, const triple& z1,
+                const triple& Min, const triple& Max,
+                const prc::RGBAColour color);
+  
   void addMaterial(size_t index);
 };
 

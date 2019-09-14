@@ -216,9 +216,7 @@ Material m;
 #endif
 #endif
       outColor=vec4(color,diffuse.a);
-    } else {
-      outColor=diffuse;
-    }
+    } else outColor=diffuse;
 #else    
     outColor=emissive;
 #endif      

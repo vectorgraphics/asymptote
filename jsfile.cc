@@ -77,6 +77,20 @@ void jsfile::addPatch(triple const* controls, size_t n,
   out << "));" << newl << newl;
 }
 
+void jsfile::addCurve(const triple& z0, const triple& c0,
+                      const triple& c1, const triple& z1,
+                      const triple& Min, const triple& Max,
+                      const prc::RGBAColour color)
+{
+  out << "P.push(new BezierCurve([" << newl;
+  out << z0 << "," << newl
+      << c0 << "," << newl
+      << c1 << "," << newl
+      << z1 << newl << "],"
+      << drawElement::centerIndex << "," << drawElement::materialIndex << ","
+      << Min << "," << Max << "));" << newl << newl;
+}
+
 void jsfile::addMaterial(size_t index) {
   out << "M.push(new Material("
       << drawElement::material[index]

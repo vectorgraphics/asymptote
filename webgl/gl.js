@@ -25,7 +25,7 @@ var Fuzz2=1000*Number.EPSILON;
 var Fuzz4=Fuzz2*Fuzz2;
 var third=1.0/3.0;
 
-var P=[]; // Array of patches
+var P=[]; // Array of Bezier patches, triangles, and curves
 var M=[]; // Array of materials
 var Centers=[]; // Array of billboard centers
 
@@ -82,15 +82,15 @@ class Material {
         param => gl.getUniformLocation(program,stringLoc+"."+param);
     else
       getLoc =
-        param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+ param);
+        param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
 
-    gl.uniform4fv(getLoc("diffuse"), new Float32Array(this.diffuse));
-    gl.uniform4fv(getLoc("emissive"), new Float32Array(this.emissive));
-    gl.uniform4fv(getLoc("specular"), new Float32Array(this.specular));
+    gl.uniform4fv(getLoc("diffuse"),new Float32Array(this.diffuse));
+    gl.uniform4fv(getLoc("emissive"),new Float32Array(this.emissive));
+    gl.uniform4fv(getLoc("specular"),new Float32Array(this.specular));
 
-    gl.uniform1f(getLoc("shininess"), this.shininess);
-    gl.uniform1f(getLoc("metallic"), this.metallic);
-    gl.uniform1f(getLoc("fresnel0"), this.fresnel0);
+    gl.uniform1f(getLoc("shininess"),this.shininess);
+    gl.uniform1f(getLoc("metallic"),this.metallic);
+    gl.uniform1f(getLoc("fresnel0"),this.fresnel0);
   }
 }
 
@@ -105,7 +105,7 @@ class Light {
     this.customParam=customParam;
   }
 
-  setUniform(program, stringLoc, index) {
+  setUniform(program,stringLoc,index) {
     var getLoc=
         param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
 
@@ -168,15 +168,17 @@ function getShader(gl,id,options=[]) {
 
 function drawBuffer(data,shader,indices=data.indices)
 {
+  let normal=shader != noNormalShader;
   setUniforms(shader);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexPositionAttribute,
-                         3,gl.FLOAT,false,24,0);
-  gl.vertexAttribPointer(shader.vertexNormalAttribute,
-                         3,gl.FLOAT,false,24,12);
+                         3,gl.FLOAT,false,normal ? 24 : 12,0);
+  if(normal)
+    gl.vertexAttribPointer(shader.vertexNormalAttribute,
+                           3,gl.FLOAT,false,24,12);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
@@ -199,8 +201,9 @@ function drawBuffer(data,shader,indices=data.indices)
                 indexExt ? new Uint32Array(indices) :
                 new Uint16Array(indices),gl.STATIC_DRAW);
 
-  gl.drawElements(gl.TRIANGLES,indices.length,
-                  indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
+  gl.drawElements(shader == noNormalShader ? gl.LINES : gl.TRIANGLES,
+                  indices.length,
+                  indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
 }
 
 class vertexData {
@@ -246,7 +249,17 @@ class vertexData {
     return this.nvertices++;
   }
 
-  copy(data) {
+   // material vertex without normal
+  vertex1(v) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+    this.materials.push(materialIndex);
+    this.materials.push(centerIndex);
+    return this.nvertices++;
+  }
+
+ copy(data) {
     this.vertices=data.vertices.slice();
     this.materials=data.materials.slice();
     this.colors=data.colors.slice();
@@ -273,6 +286,9 @@ var colorOff=new vertexData();       // Partially offscreen color data
 
 var transparentOn=new vertexData();  // Onscreen transparent data
 var transparentOff=new vertexData(); // Partially offscreen transparent data
+
+var material1On=new vertexData();     // Onscreen material 1D data
+var material1Off=new vertexData();    // Partially offscreen material 1D data
 
 var materialIndex;
 var centerIndex;
@@ -689,6 +705,7 @@ class BezierPatch {
 
 // Render a Bezier triangle via subdivision.
   render3() {
+    this.Res2=BezierFactor*BezierFactor*this.res2;
     let p=this.controlpoints;
 
     let p0=p[0];
@@ -721,7 +738,7 @@ class BezierPatch {
   }
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
-    if(this.Distance3(p) < this.res2) { // Bezier triangle is flat
+    if(this.Distance3(p) < this.Res2) { // Bezier triangle is flat
       let P=[P0,P1,P2];
       if(!this.offscreen(3,P)) {
         data.indices.push(I0);
@@ -1087,6 +1104,127 @@ class BezierPatch {
   }
 }
 
+class BezierCurve {
+  constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
+    this.controlpoints=controlpoints;
+    this.Min=Min;
+    this.Max=Max;
+    this.CenterIndex=CenterIndex;
+    this.MaterialIndex=MaterialIndex;
+  }
+
+  // Approximate bounds by bounding box of control polyhedron.
+  offscreen(n,v) {
+    let x,y,z;
+    let X,Y,Z;
+
+    X=x=v[0][0];
+    Y=y=v[0][1];
+    Z=z=v[0][2];
+    
+    for(let i=1; i < n; ++i) {
+      let V=v[i];
+      if(V[0] < x) x=V[0];
+      else if(V[0] > X) X=V[0];
+      if(V[1] < y) y=V[1];
+      else if(V[1] > Y) Y=V[1];
+    }
+
+    if(X >= this.x && x <= this.X &&
+       Y >= this.y && y <= this.Y)
+      return false;
+
+    return this.Offscreen=true;
+  }
+
+  OffScreen() {
+    centerIndex=this.CenterIndex;
+    materialIndex=this.MaterialIndex;
+
+    let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
+    let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
+
+    let s,m,M;
+
+    if(orthographic) {
+      m=b;
+      M=B;
+      s=1.0;
+    } else {
+      let perspective=1.0/B[2];
+      let f=this.Min[2]*perspective;
+      let F=this.Max[2]*perspective;
+      m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
+      M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
+      s=Math.max(f,F);
+    }
+
+    [this.x,this.y,this.X,this.Y]=new bbox2(m,M).bounds();
+
+    if(centerIndex == 0 &&
+       (this.Max[0] < this.x || this.Min[0] > this.X ||
+        this.Max[1] < this.y || this.Min[1] > this.Y)) {
+      return this.Offscreen=true;
+    }
+
+    let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
+    this.res2=res*res;
+    return this.Offscreen=false;
+  }
+
+  render() {
+    if(this.OffScreen()) return;
+
+    let p=this.controlpoints;
+    
+    var i0=data.vertex1(p[0]);
+    var i3=data.vertex1(p[3]);
+    
+    this.Render(p,i0,i3);
+    if(data.nvertices > 0) this.append();
+  }
+  
+  append() {
+    if(this.Offscreen)
+      material1Off.append(data);
+    else
+      material1On.append(data);
+    data.clear();
+  }
+
+  Render(p,I0,I1) {
+    let p0=p[0];
+    let p1=p[1];
+    let p2=p[2];
+    let p3=p[3];
+
+    if(Straightness(p0,p1,p2,p3) < this.res2) { // Segment is flat
+      let P=[p0,p3];
+      if(!this.offscreen(2,P)) {
+        data.indices.push(I0);
+        data.indices.push(I1);
+      }
+    } else { // Segment is not flat
+      if(this.offscreen(4,p)) return;
+
+      let m0=[0.5*(p0[0]+p1[0]),0.5*(p0[1]+p1[1]),0.5*(p0[2]+p1[2])];
+      let m1=[0.5*(p1[0]+p2[0]),0.5*(p1[1]+p2[1]),0.5*(p1[2]+p2[2])];
+      let m2=[0.5*(p2[0]+p3[0]),0.5*(p2[1]+p3[1]),0.5*(p2[2]+p3[2])];
+      let m3=[0.5*(m0[0]+m1[0]),0.5*(m0[1]+m1[1]),0.5*(m0[2]+m1[2])];
+      let m4=[0.5*(m1[0]+m2[0]),0.5*(m1[1]+m2[1]),0.5*(m1[2]+m2[2])];
+      let m5=[0.5*(m3[0]+m4[0]),0.5*(m3[1]+m4[1]),0.5*(m3[2]+m4[2])];
+      
+      let s0=[p0,m0,m3,m5];
+      let s1=[m5,m4,m2,p3];
+      
+      let i0=data.vertex1(m5);
+      
+      this.Render(s0,I0,i0);
+      this.Render(s1,i0,I1);
+    }
+  }
+}
+
 function home()
 {
   mat4.identity(rotMat);
@@ -1095,8 +1233,6 @@ function home()
   updatevMatrix();
   redraw=true;
 }
-
-var materialShader,colorShader,transparentShader;
 
 function initShader(options)
 {
@@ -1266,9 +1402,11 @@ function setUniforms(shader)
     gl.getAttribLocation(shader,"position");
   gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
-  shader.vertexNormalAttribute=
-    gl.getAttribLocation(shader,"normal");
-  gl.enableVertexAttribArray(shader.vertexNormalAttribute);
+  if(shader != noNormalShader) {
+    shader.vertexNormalAttribute=
+      gl.getAttribLocation(shader,"normal");
+    gl.enableVertexAttribArray(shader.vertexNormalAttribute);
+  }
 
   shader.vertexMaterialAttribute=
     gl.getAttribLocation(shader,"materialIndex");
@@ -1351,7 +1489,7 @@ function handleMouseUpOrTouchEnd(event) {
 }
 
 function rotateScene(lastX,lastY,rawX,rawY,factor) {
-    let [angle, axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
+    let [angle,axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
 
     mat4.fromRotation(rotMats,angle*2.0*factor/lastzoom,axis);
     mat4.multiply(rotMat,rotMats,rotMat);
@@ -1590,11 +1728,13 @@ var zbuffer=[];
 
 function draw()
 {
+  material1Off.clear();
   materialOff.clear();
   colorOff.clear();
   transparentOff.clear();
 
   if(remesh) {
+    material1On.clear();
     materialOn.clear();
     colorOn.clear();
     transparentOn.clear();
@@ -1604,6 +1744,12 @@ function draw()
     if(remesh || p.Offscreen)
       p.render();
   });
+
+  if(material1On.indices.length > 0)
+    drawBuffer(material1On,noNormalShader);
+  
+  if(material1Off.indices.length > 0)
+    drawBuffer(material1Off,noNormalShader);
 
   if(materialOn.indices.length > 0)
     drawBuffer(materialOn,materialShader);
@@ -1729,6 +1875,8 @@ function initProjection() {
   setProjection();
 }
 
+var materialShader,colorShader,noNormalShader,transparentShader;
+
 function webGLStart()
 {
   var canvas=document.getElementById("Asymptote");
@@ -1749,9 +1897,10 @@ function webGLStart()
   gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  materialShader=initShader();
-  colorShader=initShader(["COLOR"]);
-  transparentShader=initShader(["TRANSPARENT"]);
+  noNormalShader=initShader();
+  materialShader=initShader(["NORMAL"]);
+  colorShader=initShader(["NORMAL","COLOR"]);
+  transparentShader=initShader(["NORMAL","TRANSPARENT"]);
 
   setBuffer();
 

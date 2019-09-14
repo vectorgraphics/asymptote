@@ -5,9 +5,11 @@
   <meta name="viewport" content="user-scalable=no"/>
 
   <script id="fragment" type="x-shader/x-fragment">
+#ifdef NORMAL
     varying vec4 ViewPosition;
     varying vec3 Normal;
-    varying vec4 diffuse,emissive,specular;
+    varying vec4 diffuse;
+    varying vec4 specular;
     varying float roughness,metallic,fresnel0;
 
     float Roughness2;
@@ -72,9 +74,12 @@
       
       return mix(dielectric,metal,metallic);
     }
+#endif
+    varying vec4 emissive;
     
     void main(void)
     {
+#ifdef NORMAL
       normal=normalize(Normal);
       normal=gl_FrontFacing ? normal : -normal;
 //#ifdef ORTHOGRAPHIC
@@ -95,6 +100,9 @@
         color += BRDF(viewDir,L)*radiance;
       }
       gl_FragColor=vec4(color,diffuse.a);
+#else
+      gl_FragColor=emissive;
+#endif
     }
   </script>
 
@@ -114,10 +122,14 @@
     uniform mat4 viewMat;
     uniform mat4 projViewMat;
 
+#ifdef NORMAL
     varying vec4 ViewPosition;
     varying vec3 Normal;
-    varying vec4 diffuse,emissive,specular;
+    varying vec4 diffuse;
+    varying vec4 specular;
     varying float roughness,metallic,fresnel0;
+#endif
+    varying vec4 emissive;
 
     struct Material {
       vec4 diffuse,emissive,specular;
@@ -132,6 +144,7 @@
       vec4 v=vec4(index == 0 ? position :
                   Centers[index-1]+normMat*(position-Centers[index-1]),1.0);
       gl_Position=projViewMat*v;
+#ifdef NORMAL
       ViewPosition=viewMat*v;
       Normal=normal*normMat;
         
@@ -159,6 +172,9 @@
       roughness=1.0-m.shininess;
       metallic=m.metallic;
       fresnel0=m.fresnel0;
+#else
+      emissive=objMaterial[int(materialIndex)].emissive;
+#endif
     }
 </script>
 
