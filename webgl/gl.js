@@ -1252,19 +1252,15 @@ function initShader(options)
 
 class Split3 {
   constructor(z0,c0,c1,z1) {
-    this.m0=Array(3);
-    this.m2=Array(3);
-    this.m3=Array(3);
-    this.m4=Array(3);
-    this.m5=Array(3);
-    for(var i=0; i < 3; ++i) {
-      this.m0[i]=0.5*(z0[i]+c0[i]);
-      var m1=0.5*(c0[i]+c1[i]);
-      this.m2[i]=0.5*(c1[i]+z1[i]);
-      this.m3[i]=0.5*(this.m0[i]+m1);
-      this.m4[i]=0.5*(m1+this.m2[i]);
-      this.m5[i]=0.5*(this.m3[i]+this.m4[i]);
-    }
+    this.m0=[0.5*(z0[0]+c0[0]),0.5*(z0[1]+c0[1]),0.5*(z0[2]+c0[2])];
+    let m1=[0.5*(c0[0]+c1[0]),0.5*(c0[1]+c1[1]),0.5*(c0[2]+c1[2])];
+    this.m2=[0.5*(c1[0]+z1[0]),0.5*(c1[1]+z1[1]),0.5*(c1[2]+z1[2])];
+    this.m3=[0.5*(this.m0[0]+m1[0]),0.5*(this.m0[1]+m1[1]),
+             0.5*(this.m0[2]+m1[2])];
+    this.m4=[0.5*(m1[0]+this.m2[0]),0.5*(m1[1]+this.m2[1]),
+             0.5*(m1[2]+this.m2[2])];
+    this.m5=[0.5*(this.m3[0]+this.m4[0]),0.5*(this.m3[1]+this.m4[1]),
+             0.5*(this.m3[2]+this.m4[2])];
   }
 }
 
