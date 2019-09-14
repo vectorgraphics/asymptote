@@ -20,6 +20,7 @@ void jsfile::copy(string name) {
 
 void jsfile::open(string name) {
   out.open(name);
+  out.precision(settings::getSetting<Int>("digits"));
   copy(settings::WebGLheader);
   out << newl
       <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];" 
