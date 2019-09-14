@@ -30,13 +30,13 @@ let M=[]; // Array of materials
 let Centers=[]; // Array of billboard centers
 
 let rotMat=mat4.create();
-let pMatrix=mat4.create(); // projection matrix
-let vMatrix=mat4.create(); // view matrix
+let projMat=mat4.create(); // projection matrix
+let viewMat=mat4.create(); // view matrix
 let T=mat4.create(); // Offscreen transformation matrix
 
-let pvmMatrix=mat4.create(); // projection view matrix
+let projView=mat4.create(); // projection view matrix
 let normMat=mat3.create();
-let vMatrix3=mat3.create(); // 3x3 view matrix
+let viewMat3=mat3.create(); // 3x3 view matrix
 let rotMats=mat4.create();
 
 let zmin,zmax;
@@ -1230,7 +1230,7 @@ function home()
   mat4.identity(rotMat);
   initProjection();
   setProjection();
-  updatevMatrix();
+  updateViewMatrix();
   redraw=true;
 }
 
@@ -1372,12 +1372,12 @@ class bbox2 {
  * 
  * @Return the matrix (conjMatrix) * mat * (conjMatrix)^{-1} 
  */
-function mat4COB(out,conjMatrix,mat) {
+function mat4COB(out,conjMat,mat) {
   let cjMatInv=mat4.create();
-  mat4.invert(cjMatInv,conjMatrix);
+  mat4.invert(cjMatInv,conjMat);
 
   mat4.multiply(out,mat,cjMatInv);
-  mat4.multiply(out,conjMatrix,out);
+  mat4.multiply(out,conjMat,out);
 
   return out;
 }
@@ -1414,8 +1414,8 @@ function setUniforms(shader)
     gl.getAttribLocation(shader,"centerIndex");
   gl.enableVertexAttribArray(shader.vertexCenterAttribute);
 
-  shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
-  shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
+  shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
+  shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
 
   if(shader == colorShader || shader == transparentShader) {
@@ -1433,13 +1433,13 @@ function setUniforms(shader)
   for(let i=0; i < Centers.length; ++i)
     gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
 
-  mat4.invert(T,vMatrix);
-  mat4.multiply(pvmMatrix,pMatrix,vMatrix);
-  mat3.fromMat4(vMatrix3,vMatrix);
-  mat3.invert(normMat,vMatrix3);
+  mat4.invert(T,viewMat);
+  mat4.multiply(projView,projMat,viewMat);
+  mat3.fromMat4(viewMat3,viewMat);
+  mat3.invert(normMat,viewMat3);
 
-  gl.uniformMatrix4fv(shader.pvMatrixUniform,false,pvmMatrix);
-  gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vMatrix);
+  gl.uniformMatrix4fv(shader.projViewMatUniform,false,projView);
+  gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
 }
 
@@ -1508,10 +1508,10 @@ function panScene(lastX,lastY,rawX,rawY) {
   }
 }
 
-function updatevMatrix() {
-  COBTarget(vMatrix,rotMat);
-  mat4.translate(vMatrix,vMatrix,[center.x,center.y,0]);
-  mat4.invert(T,vMatrix);
+function updateViewMatrix() {
+  COBTarget(viewMat,rotMat);
+  mat4.translate(viewMat,viewMat,[center.x,center.y,0]);
+  mat4.invert(T,viewMat);
 }
 
 function capzoom() 
@@ -1582,7 +1582,7 @@ function processDrag(newX,newY,mode,factor=1) {
   lastMouseY=newY;
 
   setProjection();
-  updatevMatrix();
+  updateViewMatrix();
   redraw=true;
 }
 
@@ -1608,7 +1608,7 @@ function handleKey(event) {
 
   if(axis.length > 0) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
-    updatevMatrix();
+    updateViewMatrix();
     redraw=true;
   }
 }
@@ -1621,7 +1621,7 @@ function handleMouseWheel(event) {
   }
   capzoom();
   setProjection();
-  updatevMatrix();
+  updateViewMatrix();
 
   redraw=true;
 }
@@ -1693,7 +1693,7 @@ function handleTouchMove(evt) {
     pinchStart=distance;
     swipe=rotate=zooming=false;
     setProjection();
-    updatevMatrix();
+    updateViewMatrix();
     redraw=true;
   }
 }
@@ -1712,9 +1712,9 @@ function setBuffer()
 
 function transformVertices(vertices)
 {
-  let Tz0=vMatrix[2];
-  let Tz1=vMatrix[6];
-  let Tz2=vMatrix[10];
+  let Tz0=viewMat[2];
+  let Tz1=viewMat[6];
+  let Tz2=viewMat[10];
   zbuffer.length=vertices.length;
   for(let i=0; i < vertices.length; ++i) {
     let i6=6*i;
@@ -1851,7 +1851,7 @@ function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
 function setProjection() {
   setDimensions(canvasWidth,canvasHeight,shift.x,shift.y);
   let f=orthographic ? mat4.ortho : mat4.frustum;
-  f(pMatrix,viewParam.xmin,viewParam.xmax,
+  f(projMat,viewParam.xmin,viewParam.xmax,
     viewParam.ymin,viewParam.ymax,
     -viewParam.zmax,-viewParam.zmin);
 }
