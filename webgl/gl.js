@@ -1439,7 +1439,7 @@ function setUniforms(shader)
   mat3.invert(normMat,viewMat3);
 
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projView);
-  gl.uniformMatrix3fv(shader.viewMatUniform,false,viewMat3);
+  gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
 }
 

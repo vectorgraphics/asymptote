@@ -173,7 +173,7 @@ using glm::value_ptr;
 using glm::translate;
 
 mat4 projViewMat;
-mat3 viewMat;
+mat4 viewMat;
 mat3 normMat;
 
 dmat4 dprojMat;
@@ -818,7 +818,7 @@ void update()
   
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*dmat4(drotateMat),
                      dvec3(0,0,-cz));
-  viewMat=mat3(dviewMat);
+  viewMat=mat4(dviewMat);
 
   setProjection();
   updateModelViewData();
@@ -1860,7 +1860,7 @@ void setUniforms(GLint shader)
   
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
   
-  glUniformMatrix3fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));

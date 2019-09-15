@@ -25,7 +25,7 @@ in float width;
 in int material;
 
 uniform mat4 projViewMat;
-uniform mat3 viewMat;
+uniform mat4 viewMat;
 
 #ifdef BILLBOARD
 in int centerIndex;
@@ -38,16 +38,15 @@ void main()
 {
 #ifdef BILLBOARD
   int index=int(centerIndex);
-  vec3 v=index == 0 ? position :
-    Centers[index-1]+(position-Centers[index-1])*normMat;
-  gl_Position=projViewMat*vec4(v,1.0);
+  vec4 v=vec4(index == 0 ? position :
+    Centers[index-1]+(position-Centers[index-1])*normMat,1.0);
 #else    
-  vec3 v=position;
+  vec4 v=vec4(position,1.0);
 #endif
-  gl_Position=projViewMat*vec4(v,1.0);
+  gl_Position=projViewMat*v;
 #ifdef NORMAL
 #ifndef ORTHOGRAPHIC
-  ViewPosition=viewMat*v;
+  ViewPosition=(viewMat*v).xyz;
 #endif
   Normal=normMat*normal;
 #endif
