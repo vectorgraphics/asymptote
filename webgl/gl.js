@@ -311,32 +311,7 @@ function appendOffset(a,b,o)
     a[n+i]=b[i]+o;
 }
 
-class BezierPatch {
-  /**
-   * Constructor for Bezier Patch
-   * @param {*} controlpoints array of 16 control points
-   * @param {*} CenterIndex center index of billboard labels (or 0)
-   * @param {*} MaterialIndex material index (>= 0)
-   * @param {*} Minimum bounding box corner
-   * @param {*} Maximum bounding box corner
-   * @param {*} colors array of 4 RGBA color arrays
-   */
-  constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
-    this.controlpoints=controlpoints;
-    this.Min=Min;
-    this.Max=Max;
-    this.color=color;
-    this.CenterIndex=CenterIndex;
-    this.transparent=color ?
-      color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
-      M[MaterialIndex].diffuse[3] < 1.0;
-    this.MaterialIndex=this.transparent ?
-      (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
-    this.vertex=(this.color || this.transparent) ?
-      data.Vertex.bind(data) : data.vertex.bind(data);
-    this.L2norm();
-  }
-
+class Geometry {
   // Approximate bounds by bounding box of control polyhedron.
   offscreen(n,v) {
     let x,y,z;
@@ -395,6 +370,34 @@ class BezierPatch {
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
     return this.Offscreen=false;
+  }
+}
+
+class BezierPatch extends Geometry {
+  /**
+   * Constructor for Bezier Patch
+   * @param {*} controlpoints array of 16 control points
+   * @param {*} CenterIndex center index of billboard labels (or 0)
+   * @param {*} MaterialIndex material index (>= 0)
+   * @param {*} Minimum bounding box corner
+   * @param {*} Maximum bounding box corner
+   * @param {*} colors array of 4 RGBA color arrays
+   */
+  constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
+    super();
+    this.controlpoints=controlpoints;
+    this.Min=Min;
+    this.Max=Max;
+    this.color=color;
+    this.CenterIndex=CenterIndex;
+    this.transparent=color ?
+      color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
+      M[MaterialIndex].diffuse[3] < 1.0;
+    this.MaterialIndex=this.transparent ?
+      (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
+    this.vertex=(this.color || this.transparent) ?
+      data.Vertex.bind(data) : data.vertex.bind(data);
+    this.L2norm();
   }
 
 // Render a Bezier patch via subdivision.
@@ -1104,72 +1107,14 @@ class BezierPatch {
   }
 }
 
-class BezierCurve {
+class BezierCurve extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
+    super();
     this.controlpoints=controlpoints;
     this.Min=Min;
     this.Max=Max;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
-  }
-
-  // Approximate bounds by bounding box of control polyhedron.
-  offscreen(n,v) {
-    let x,y,z;
-    let X,Y,Z;
-
-    X=x=v[0][0];
-    Y=y=v[0][1];
-    Z=z=v[0][2];
-    
-    for(let i=1; i < n; ++i) {
-      let V=v[i];
-      if(V[0] < x) x=V[0];
-      else if(V[0] > X) X=V[0];
-      if(V[1] < y) y=V[1];
-      else if(V[1] > Y) Y=V[1];
-    }
-
-    if(X >= this.x && x <= this.X &&
-       Y >= this.y && y <= this.Y)
-      return false;
-
-    return this.Offscreen=true;
-  }
-
-  OffScreen() {
-    centerIndex=this.CenterIndex;
-    materialIndex=this.MaterialIndex;
-
-    let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
-    let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
-
-    let s,m,M;
-
-    if(orthographic) {
-      m=b;
-      M=B;
-      s=1.0;
-    } else {
-      let perspective=1.0/B[2];
-      let f=this.Min[2]*perspective;
-      let F=this.Max[2]*perspective;
-      m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
-      M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
-      s=Math.max(f,F);
-    }
-
-    [this.x,this.y,this.X,this.Y]=new bbox2(m,M).bounds();
-
-    if(centerIndex == 0 &&
-       (this.Max[0] < this.x || this.Min[0] > this.X ||
-        this.Max[1] < this.y || this.Min[1] > this.Y)) {
-      return this.Offscreen=true;
-    }
-
-    let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
-    this.res2=res*res;
-    return this.Offscreen=false;
   }
 
   render() {
