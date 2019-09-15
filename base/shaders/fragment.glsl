@@ -6,8 +6,8 @@ struct Material
 
 struct Light
 {
-  vec4 direction; // Change to vec3?
-  vec4 diffuse,specular;  // Change to vec3? Remove specular.
+  vec3 direction;
+  vec3 color;
 };
 
 uniform int nlights;
@@ -50,7 +50,7 @@ const int numSamples=7;
 // (x,y,z) -> (r,theta,phi);
 // theta -> [0,\pi]: colatitude
 // phi -> [0, 2\pi]: longitude
-vec3 cart2spher(vec3 cart)
+vec3 cart2sphere(vec3 cart)
 {
   float x=cart.z;
   float y=cart.x;
@@ -65,7 +65,7 @@ vec3 cart2spher(vec3 cart)
 
 vec2 normalizedAngle(vec3 cartVec)
 {
-  vec3 sphericalVec=cart2spher(cartVec);
+  vec3 sphericalVec=cart2sphere(cartVec);
   sphericalVec.y=sphericalVec.y/(2*PI)-0.25;
   sphericalVec.z=sphericalVec.z/PI;
   return sphericalVec.yz;
@@ -131,7 +131,6 @@ void main()
 {
   vec4 diffuse;
   vec4 emissive;
-  vec4 specular;
   vec4 parameters;
 
   Material m;
@@ -151,7 +150,7 @@ void main()
   diffuse=m.diffuse; 
   emissive=m.emissive;
 #endif
-  specular=m.specular;
+  Specular=m.specular.rgb;
   parameters=m.parameters;
 
   Roughness2=1.0-parameters[0];
@@ -161,7 +160,6 @@ void main()
   Fresnel0=parameters[2];
 
   Diffuse=diffuse.rgb;
-  Specular=specular.rgb;
 
   // Given a point x and direction \omega,
   // L_i=\int_{\Omega}f(x,\omega_i,\omega) L(x,\omega_i)(\hat{n}\cdot \omega_i)
@@ -180,9 +178,10 @@ void main()
   // For a finite point light, the rendering equation simplifies.
   if(nlights > 0) {
     for(int i=0; i < nlights; ++i) {
-      vec3 L=lights[i].direction.xyz;
+      Light Li=lights[i];
+      vec3 L=Li.direction;
       float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
-      vec3 radiance=cosTheta*lights[i].diffuse.rgb;
+      vec3 radiance=cosTheta*Li.color;
       color += BRDF(viewDir,L)*radiance;
     }
 

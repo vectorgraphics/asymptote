@@ -93,6 +93,10 @@ extern int fullWidth,fullHeight;
 extern double Zoom0;
 extern double Angle;
 
+extern camp::triple *Lights; 
+extern size_t nlights;
+extern double *Diffuse;
+
 extern GLuint ubo;
 
 struct projection 

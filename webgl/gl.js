@@ -98,27 +98,23 @@ let enumPointLight=1;
 let enumDirectionalLight=2;
 
 class Light {
-  constructor(type,lightColor,brightness,customParam) {
-    this.type=type;
-    this.lightColor=lightColor;
-    this.brightness=brightness;
-    this.customParam=customParam;
+  constructor(direction,color) {
+    this.direction=direction;
+    this.color=color;
   }
 
   setUniform(program,stringLoc,index) {
     let getLoc=
         param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
 
-    gl.uniform1i(getLoc("type"),this.type);
-    gl.uniform3fv(getLoc("color"),new Float32Array(this.lightColor));
-    gl.uniform1f(getLoc("brightness"),this.brightness);
-    gl.uniform4fv(getLoc("parameter"),new Float32Array(this.customParam));
+    gl.uniform3fv(getLoc("direction"),new Float32Array(this.direction));
+    gl.uniform3fv(getLoc("color"),new Float32Array(this.color));
   }
 }
 
 function initGL(canvas) {
   try {
-    gl=canvas.getContext("webgl");
+    gl=canvas.getContext("webgl",{alpha: false}); // Don't composite background
     gl.viewportWidth=canvas.width;
     gl.viewportHeight=canvas.height;
   } catch(e) {}
@@ -132,7 +128,11 @@ function getShader(gl,id,options=[]) {
     return null;
 
   let str=`#version 100
+#ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
+#else
+  precision mediump float;
+#endif
   const int nLights=${lights.length};
   const int nMaterials=${M.length};
   const int nCenters=${Math.max(Centers.length,1)};\n`
@@ -1425,10 +1425,10 @@ function setUniforms(shader)
   }
 
   for(let i=0; i < M.length; ++i)
-    M[i].setUniform(shader,"objMaterial",i);
+    M[i].setUniform(shader,"Materials",i);
 
   for(let i=0; i < lights.length; ++i)
-    lights[i].setUniform(shader,"objLights",i);
+    lights[i].setUniform(shader,"Lights",i);
 
   for(let i=0; i < Centers.length; ++i)
     gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
@@ -1726,6 +1726,9 @@ let zbuffer=[];
 
 function draw()
 {
+  gl.clearColor(1,1,1,1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
   material1Off.clear();
   materialOff.clear();
   colorOff.clear();
@@ -1765,6 +1768,9 @@ function draw()
   data.append(transparentOff);
   let indices=data.indices;
   if(indices.length > 0) {
+    // Enable transparency
+    gl.depthMask(false);
+  
     transformVertices(data.vertices);
     
     let n=indices.length/3;
@@ -1797,6 +1803,7 @@ function draw()
 
     drawBuffer(data,transparentShader,Indices);
     data.clear();
+    gl.depthMask(true);
   }
 
   remesh=false;
@@ -1888,12 +1895,10 @@ function webGLStart()
   initProjection();
   initGL(canvas);
 
-  gl.clearColor(1.0,1.0,1.0,1.0);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
   gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   noNormalShader=initShader();
   materialShader=initShader(["NORMAL"]);

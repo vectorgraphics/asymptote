@@ -11,26 +11,17 @@
 #endif
     varying vec3 Normal;
     varying vec4 diffuse;
-    varying vec4 specular;
+    varying vec3 specular;
     varying float roughness,metallic,fresnel0;
 
     float Roughness2;
     vec3 normal;
 
-    // type, for now
-    #define POINT_LIGHT 1
-    #define DIRECTIONAL_LIGHT 2
-
-    // for direction, parameter is direction
-    // for point light, parameter is position (in homoeg coords?)
-    // are these given in world coords, or view coords? - I can do both 
     struct Light {
-      int type;
+      vec3 direction;
       vec3 color;
-      float brightness;
-      vec4 parameter;
     };
-    uniform Light objLights[nLights];
+    uniform Light Lights[nLights];
 
     float NDF_TRG(vec3 h) {
       float ndoth=max(dot(normal,h),0.0);
@@ -71,7 +62,7 @@
       float denom=4.0*omegain*omegali;
       float rawReflectance=denom > 0.0 ? (D*G)/denom : 0.0;
       
-      vec3 dielectric=mix(lambertian,rawReflectance*specular.rgb,F);
+      vec3 dielectric=mix(lambertian,rawReflectance*specular,F);
       vec3 metal=rawReflectance*diffuse.rgb;
       
       return mix(dielectric,metal,metallic);
@@ -92,10 +83,10 @@
       Roughness2=roughness*roughness;
       vec3 color=emissive.rgb;
       for (int i=0; i < nLights; ++i) {
-        Light Li=objLights[i];
-        vec3 L=Li.parameter.xyz;
+        Light Li=Lights[i];
+        vec3 L=Li.direction;
         float cosTheta=max(dot(normal,L),0.0);
-        vec3 radiance=cosTheta*Li.color*Li.brightness;
+        vec3 radiance=cosTheta*Li.color;
         color += BRDF(viewDir,L)*radiance;
       }
       gl_FragColor=vec4(color,diffuse.a);
@@ -127,7 +118,7 @@
 #endif
     varying vec3 Normal;
     varying vec4 diffuse;
-    varying vec4 specular;
+    varying vec3 specular;
     varying float roughness,metallic,fresnel0;
 #endif
     varying vec4 emissive;
@@ -137,7 +128,7 @@
       float shininess,metallic,fresnel0;
     };
 
-    uniform Material objMaterial[nMaterials];
+    uniform Material Materials[nMaterials];
     uniform vec3 Centers[nCenters];
 
     void main(void) {
@@ -154,7 +145,7 @@
         
       Material m;
 #ifdef TRANSPARENT
-      m=objMaterial[int(abs(materialIndex))-1];
+      m=Materials[int(abs(materialIndex))-1];
       if(materialIndex >= 0.0) {
         diffuse=m.diffuse;
         emissive=m.emissive;
@@ -163,7 +154,7 @@
         emissive=vec4(0.0);
       }
 #else      
-      m=objMaterial[int(materialIndex)];
+      m=Materials[int(materialIndex)];
 #ifdef COLOR
       diffuse=color;
       emissive=vec4(0.0);
@@ -172,12 +163,12 @@
       emissive=m.emissive;
 #endif
 #endif
-      specular=m.specular;
+      specular=m.specular.rgb;
       roughness=1.0-m.shininess;
       metallic=m.metallic;
       fresnel0=m.fresnel0;
 #else
-      emissive=objMaterial[int(materialIndex)].emissive;
+      emissive=Materials[int(materialIndex)].emissive;
 #endif
     }
 </script>
