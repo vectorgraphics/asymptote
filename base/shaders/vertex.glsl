@@ -1,6 +1,9 @@
 in vec3 position;
 
 #ifdef NORMAL
+#ifndef ORTHOGRAPHIC
+out vec3 ViewPosition;
+#endif
 in vec3 normal;
 out vec3 Normal;
 uniform mat3 normMat;
@@ -24,8 +27,6 @@ in int material;
 uniform mat4 projViewMat;
 uniform mat4 viewMat;
 
-out vec4 ViewPosition;
-
 #ifdef BILLBOARD
 in int centerIndex;
 uniform vec3 Centers[Ncenter];
@@ -38,13 +39,15 @@ void main()
 #ifdef BILLBOARD
   int index=int(centerIndex);
   vec4 v=vec4(index == 0 ? position :
-              Centers[index-1]+(position-Centers[index-1])*normMat,1.0);
+    Centers[index-1]+(position-Centers[index-1])*normMat,1.0);
 #else    
   vec4 v=vec4(position,1.0);
 #endif
   gl_Position=projViewMat*v;
-  ViewPosition=viewMat*v;
 #ifdef NORMAL
+#ifndef ORTHOGRAPHIC
+  ViewPosition=(viewMat*v).xyz;
+#endif
   Normal=normMat*normal;
 #endif
 

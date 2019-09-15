@@ -85,6 +85,7 @@ public:
   }
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out);
   
   void render(double, const triple&, const triple&, double,
               bool transparent);

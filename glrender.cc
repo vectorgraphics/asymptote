@@ -315,7 +315,6 @@ void home(bool webgl=false)
   }
 #endif
 #endif
-  viewMat=mat4(1.0f);
   dviewMat=dmat4(1.0);
   drotateMat=dmat3(1.0); 
   
@@ -1440,25 +1439,27 @@ void initshader()
   std::vector<ShaderfileModePair> shaders;
   shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
   shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
+  if(orthographic)
+    shaderParams.push_back("ORTHOGRAPHIC");
     
   shaderParams.push_back("BILLBOARD");
-  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
-                                            shaderParams);
+  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                            Ncenters,shaderParams);
   shaderParams.pop_back();
 
   shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
-                                         shaderParams);
+  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                         Ncenters,shaderParams);
   shaderParams.pop_back();
   
   shaderParams.push_back("NORMAL");
-  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
-                                            shaderParams);
+  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                            Ncenters,shaderParams);
 
   shaderParams.push_back("EXPLICIT_COLOR");
   shaderParams.push_back("BILLBOARD");
-  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
-                                         shaderParams);
+  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                         Ncenters,shaderParams);
 }
 
 void deleteshader() 
@@ -1810,20 +1811,15 @@ void setUniforms(GLint shader)
     for(size_t i=0; i < gl::nlights; ++i) {
       triple Lighti=gl::Lights[i];
       size_t i4=4*i;
-      glUniform4f(glGetUniformLocation(shader,
+      glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"direction").c_str()),
                   (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
-                  (GLfloat) Lighti.getz(),0.0);
+                  (GLfloat) Lighti.getz());
 
-      glUniform4f(glGetUniformLocation(shader,
-                                       getLightIndex(i,"diffuse").c_str()),
+      glUniform3f(glGetUniformLocation(shader,
+                                       getLightIndex(i,"color").c_str()),
                   (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
-                  (GLfloat) gl::Diffuse[i4+2],(GLfloat) gl::Diffuse[i4+3]);
-      
-      glUniform4f(glGetUniformLocation(shader,
-                                       getLightIndex(i,"specular").c_str()),
-                  (GLfloat) gl::Specular[i4],(GLfloat) gl::Specular[i4+1],
-                  (GLfloat) gl::Specular[i4+2],(GLfloat) gl::Specular[i4+3]);
+                  (GLfloat) gl::Diffuse[i4+2]);
     }
 
     if(billboard) {

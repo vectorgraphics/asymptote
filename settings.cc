@@ -1288,8 +1288,8 @@ void initSettings() {
   addOption(new realSetting("arcballradius", 0, "pixels",
                             "Arcball radius", 750.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
-  addOption(new IntSetting("doubleclick", 0, "ms",
-                           "Emulated double-click timeout", 200));
+  addOption(new IntSetting("digits", 0, "n",
+                           "Default output file precision", 6));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));

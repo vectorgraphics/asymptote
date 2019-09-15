@@ -1455,6 +1455,7 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight)
 {
+  bool prc=prc();
   bool normals=ni.length > 0;
   if(!normals) {
     ni=new int[vi.length][3];
@@ -1501,7 +1502,7 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
                 project(v[vii[2]],P)--cycle;
               pen p=color(n[ni[i][0]],m,light);
               fill(pic,g,p);
-              if(opacity(m.diffuse()) == 1) // Fill subdivision cracks
+              if(prc && opacity(m.diffuse()) == 1) // Fill subdivision cracks
                 draw(pic,g,p);
             }
           }
@@ -1843,6 +1844,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
            interaction interaction=LabelInteraction(),
            projection P=currentprojection)
 {
+  bool prc=prc();
   Label L=L.copy();
   L.align(align);
   L.p(p);
@@ -1873,7 +1875,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
         S=centering*S;
         draw3D(f3,S,position,L.p,light,interaction);
         // Fill subdivision cracks
-        if(render.labelfill && opacity(L.p) == 1 && !lighton)
+        if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
           _draw(f3,S.external(),position,L.p,interaction.type);
       }
       endgroup3(f3);
@@ -1893,7 +1895,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
           position;
         draw3D(f,S,V,L.p,light,interaction);
         // Fill subdivision cracks
-        if(render.labelfill && opacity(L.p) == 1 && !lighton)
+        if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
           _draw(f,S.external(),V,L.p,interaction.type);
       }
       endgroup3(f);
@@ -1927,6 +1929,7 @@ void label(picture pic=currentpicture, Label L, triple position,
   
   pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
       // Handle relative projected 3D alignments.
+      bool prc=prc();
       Label L=L.copy();
       triple v=t*position;
       if(!align.is3D && L.align.relative && L.align.dir3 != O &&
@@ -1942,7 +1945,7 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(is3D()) {
         bool lighton=light.on();
         if(name == "") name=L.s;
-        if(prc() && interaction.type == Billboard.type) {
+        if(prc && interaction.type == Billboard.type) {
           surface s=surface(texpath(L,bbox=P.bboxonly));
           transform3 centering=L.align.is3D ?
             alignshift(s,L.T3,v,L.align.dir3) : identity4;
@@ -1960,7 +1963,7 @@ void label(picture pic=currentpicture, Label L, triple position,
             S=centering*S;
             draw3D(f3,S,v,L.p,light,interaction);
             // Fill subdivision cracks
-            if(render.labelfill && opacity(L.p) == 1 && !lighton)
+            if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
               _draw(f3,S.external(),v,L.p,interaction.type);
           }
           endgroup3(f3);
@@ -1979,7 +1982,7 @@ void label(picture pic=currentpicture, Label L, triple position,
             triple V=L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v;
             draw3D(f,S,V,L.p,light,interaction);
             // Fill subdivision cracks
-            if(render.labelfill && opacity(L.p) == 1 && !lighton)
+            if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
               _draw(f,S.external(),V,L.p,interaction.type);
           }
           endgroup3(f);

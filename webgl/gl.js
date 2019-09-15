@@ -1,68 +1,69 @@
 // Render Bezier patches via subdivision with WebGL.
 // Author: John C. Bowman, Supakorn "Jamie" Rassameemasmuang
 
-var gl;
+let gl;
 
-var canvasWidth,canvasHeight;
-var halfCanvWidth,halfCanvHeight;
+let canvasWidth,canvasHeight;
+let halfCanvWidth,halfCanvHeight;
 
-var pixel=0.75; // Adaptive rendering constant.
-var BezierFactor=0.4;
-var FillFactor=0.1;
-var Zoom;
-var Zoom0;
+let pixel=0.75; // Adaptive rendering constant.
+let BezierFactor=0.4;
+let FillFactor=0.1;
+let Zoom;
+let Zoom0;
 const zoomStep=0.1;
-var zoomFactor=1.05;
-var zoomPinchFactor=10;
-var zoomPinchCap=100;
-var shiftHoldDistance=2;
-var shiftWaitTime=300; // ms
-var lastzoom;
-var H; // maximum camera view half-height
+let zoomFactor=1.05;
+let zoomPinchFactor=10;
+let zoomPinchCap=100;
+let shiftHoldDistance=20;
+let shiftWaitTime=200; // ms
+let vibrateTime=25; // ms
+let lastzoom;
+let H; // maximum camera view half-height
 
-var Fuzz2=1000*Number.EPSILON;
-var Fuzz4=Fuzz2*Fuzz2;
-var third=1.0/3.0;
+let Fuzz2=1000*Number.EPSILON;
+let Fuzz4=Fuzz2*Fuzz2;
+let third=1.0/3.0;
 
-var P=[]; // Array of patches
-var M=[]; // Array of materials
-var Centers=[]; // Array of billboard centers
+let P=[]; // Array of Bezier patches, triangles, and curves
+let M=[]; // Array of materials
+let Centers=[]; // Array of billboard centers
 
-var rotMat=mat4.create();
-var pMatrix=mat4.create(); // projection matrix
-var vMatrix=mat4.create(); // view matrix
-var T=mat4.create(); // Offscreen transformation matrix
+let rotMat=mat4.create();
+let projMat=mat4.create(); // projection matrix
+let viewMat=mat4.create(); // view matrix
+let T=mat4.create(); // Offscreen transformation matrix
 
-var pvmMatrix=mat4.create(); // projection view matrix
-var normMat=mat3.create();
-var vMatrix3=mat3.create(); // 3x3 view matrix
-var rotMats=mat4.create();
+let projView=mat4.create(); // projection view matrix
+let normMat=mat3.create();
+let viewMat3=mat3.create(); // 3x3 view matrix
+let rotMats=mat4.create();
 
-var zmin,zmax;
-var center={x:0,y:0,z:0};
-var size2;
-var b,B; // Scene min,max bounding box corners
-var shift={
+let zmin,zmax;
+let center={x:0,y:0,z:0};
+let size2;
+let b,B; // Scene min,max bounding box corners
+let shift={
   x:0,y:0
 };
 
-var viewParam = {
+let viewParam = {
   xmin:0,xmax:0,
   ymin:0,ymax:0,
   zmin:0,zmax:0
 };
 
-var positionBuffer;
-var materialBuffer;
-var colorBuffer;
-var indexBuffer;
+let positionBuffer;
+let materialBuffer;
+let colorBuffer;
+let indexBuffer;
 
-var redraw=true;
-var remesh=true;
-var mouseDownOrTouchActive=false;
-var lastMouseX=null;
-var lastMouseY=null;
-var touchID=null;
+let redraw=true;
+let remesh=true;
+let mouseDownOrTouchActive=false;
+let lastMouseX=null;
+let lastMouseY=null;
+let touchID=null;
 
 class Material {
   constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
@@ -75,49 +76,45 @@ class Material {
   }
 
   setUniform(program,stringLoc,index=null) {
-    var getLoc;
+    let getLoc;
     if (index === null)
       getLoc =
         param => gl.getUniformLocation(program,stringLoc+"."+param);
     else
       getLoc =
-        param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+ param);
+        param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
 
-    gl.uniform4fv(getLoc("diffuse"), new Float32Array(this.diffuse));
-    gl.uniform4fv(getLoc("emissive"), new Float32Array(this.emissive));
-    gl.uniform4fv(getLoc("specular"), new Float32Array(this.specular));
+    gl.uniform4fv(getLoc("diffuse"),new Float32Array(this.diffuse));
+    gl.uniform4fv(getLoc("emissive"),new Float32Array(this.emissive));
+    gl.uniform4fv(getLoc("specular"),new Float32Array(this.specular));
 
-    gl.uniform1f(getLoc("shininess"), this.shininess);
-    gl.uniform1f(getLoc("metallic"), this.metallic);
-    gl.uniform1f(getLoc("fresnel0"), this.fresnel0);
+    gl.uniform1f(getLoc("shininess"),this.shininess);
+    gl.uniform1f(getLoc("metallic"),this.metallic);
+    gl.uniform1f(getLoc("fresnel0"),this.fresnel0);
   }
 }
 
-var enumPointLight=1;
-var enumDirectionalLight=2;
+let enumPointLight=1;
+let enumDirectionalLight=2;
 
 class Light {
-  constructor(type,lightColor,brightness,customParam) {
-    this.type=type;
-    this.lightColor=lightColor;
-    this.brightness=brightness;
-    this.customParam=customParam;
+  constructor(direction,color) {
+    this.direction=direction;
+    this.color=color;
   }
 
-  setUniform(program, stringLoc, index) {
-    var getLoc=
+  setUniform(program,stringLoc,index) {
+    let getLoc=
         param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
 
-    gl.uniform1i(getLoc("type"),this.type);
-    gl.uniform3fv(getLoc("color"),new Float32Array(this.lightColor));
-    gl.uniform1f(getLoc("brightness"),this.brightness);
-    gl.uniform4fv(getLoc("parameter"),new Float32Array(this.customParam));
+    gl.uniform3fv(getLoc("direction"),new Float32Array(this.direction));
+    gl.uniform3fv(getLoc("color"),new Float32Array(this.color));
   }
 }
 
 function initGL(canvas) {
   try {
-    gl=canvas.getContext("webgl");
+    gl=canvas.getContext("webgl",{alpha: false}); // Don't composite background
     gl.viewportWidth=canvas.width;
     gl.viewportHeight=canvas.height;
   } catch(e) {}
@@ -126,12 +123,16 @@ function initGL(canvas) {
 }
 
 function getShader(gl,id,options=[]) {
-  var shaderScript=document.getElementById(id);
+  let shaderScript=document.getElementById(id);
   if(!shaderScript)
     return null;
 
-  var str=`#version 100
+  let str=`#version 100
+#ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
+#else
+  precision mediump float;
+#endif
   const int nLights=${lights.length};
   const int nMaterials=${M.length};
   const int nCenters=${Math.max(Centers.length,1)};\n`
@@ -141,13 +142,13 @@ function getShader(gl,id,options=[]) {
 
   options.forEach(s => str += `#define `+s+`\n`);
 
-  var k=shaderScript.firstChild;
+  let k=shaderScript.firstChild;
   while(k) {
     if(k.nodeType == 3)
       str += k.textContent;
     k=k.nextSibling;
   }
-  var shader;
+  let shader;
   if(shaderScript.type == "x-shader/x-fragment")
     shader = gl.createShader(gl.FRAGMENT_SHADER);
   else if (shaderScript.type == "x-shader/x-vertex")
@@ -167,15 +168,17 @@ function getShader(gl,id,options=[]) {
 
 function drawBuffer(data,shader,indices=data.indices)
 {
+  let normal=shader != noNormalShader;
   setUniforms(shader);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexPositionAttribute,
-                         3,gl.FLOAT,false,24,0);
-  gl.vertexAttribPointer(shader.vertexNormalAttribute,
-                         3,gl.FLOAT,false,24,12);
+                         3,gl.FLOAT,false,normal ? 24 : 12,0);
+  if(normal)
+    gl.vertexAttribPointer(shader.vertexNormalAttribute,
+                           3,gl.FLOAT,false,24,12);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
@@ -198,8 +201,9 @@ function drawBuffer(data,shader,indices=data.indices)
                 indexExt ? new Uint32Array(indices) :
                 new Uint16Array(indices),gl.STATIC_DRAW);
 
-  gl.drawElements(gl.TRIANGLES,indices.length,
-                  indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
+  gl.drawElements(shader == noNormalShader ? gl.LINES : gl.TRIANGLES,
+                  indices.length,
+                  indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
 }
 
 class vertexData {
@@ -245,7 +249,17 @@ class vertexData {
     return this.nvertices++;
   }
 
-  copy(data) {
+   // material vertex without normal
+  vertex1(v) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+    this.materials.push(materialIndex);
+    this.materials.push(centerIndex);
+    return this.nvertices++;
+  }
+
+ copy(data) {
     this.vertices=data.vertices.slice();
     this.materials=data.materials.slice();
     this.colors=data.colors.slice();
@@ -262,19 +276,22 @@ class vertexData {
   }
 }
 
-var data=new vertexData();
+let data=new vertexData();
 
-var materialOn=new vertexData();     // Onscreen material data
-var materialOff=new vertexData();    // Partially offscreen material data
+let materialOn=new vertexData();     // Onscreen material data
+let materialOff=new vertexData();    // Partially offscreen material data
 
-var colorOn=new vertexData();        // Onscreen color data
-var colorOff=new vertexData();       // Partially offscreen color data
+let colorOn=new vertexData();        // Onscreen color data
+let colorOff=new vertexData();       // Partially offscreen color data
 
-var transparentOn=new vertexData();  // Onscreen transparent data
-var transparentOff=new vertexData(); // Partially offscreen transparent data
+let transparentOn=new vertexData();  // Onscreen transparent data
+let transparentOff=new vertexData(); // Partially offscreen transparent data
 
-var materialIndex;
-var centerIndex;
+let material1On=new vertexData();     // Onscreen material 1D data
+let material1Off=new vertexData();    // Partially offscreen material 1D data
+
+let materialIndex;
+let centerIndex;
 
 // efficiently append array b onto array a
 function append(a,b)
@@ -688,6 +705,7 @@ class BezierPatch {
 
 // Render a Bezier triangle via subdivision.
   render3() {
+    this.Res2=BezierFactor*BezierFactor*this.res2;
     let p=this.controlpoints;
 
     let p0=p[0];
@@ -720,7 +738,7 @@ class BezierPatch {
   }
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
-    if(this.Distance3(p) < this.res2) { // Bezier triangle is flat
+    if(this.Distance3(p) < this.Res2) { // Bezier triangle is flat
       let P=[P0,P1,P2];
       if(!this.offscreen(3,P)) {
         data.indices.push(I0);
@@ -1086,22 +1104,141 @@ class BezierPatch {
   }
 }
 
+class BezierCurve {
+  constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
+    this.controlpoints=controlpoints;
+    this.Min=Min;
+    this.Max=Max;
+    this.CenterIndex=CenterIndex;
+    this.MaterialIndex=MaterialIndex;
+  }
+
+  // Approximate bounds by bounding box of control polyhedron.
+  offscreen(n,v) {
+    let x,y,z;
+    let X,Y,Z;
+
+    X=x=v[0][0];
+    Y=y=v[0][1];
+    Z=z=v[0][2];
+    
+    for(let i=1; i < n; ++i) {
+      let V=v[i];
+      if(V[0] < x) x=V[0];
+      else if(V[0] > X) X=V[0];
+      if(V[1] < y) y=V[1];
+      else if(V[1] > Y) Y=V[1];
+    }
+
+    if(X >= this.x && x <= this.X &&
+       Y >= this.y && y <= this.Y)
+      return false;
+
+    return this.Offscreen=true;
+  }
+
+  OffScreen() {
+    centerIndex=this.CenterIndex;
+    materialIndex=this.MaterialIndex;
+
+    let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
+    let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
+
+    let s,m,M;
+
+    if(orthographic) {
+      m=b;
+      M=B;
+      s=1.0;
+    } else {
+      let perspective=1.0/B[2];
+      let f=this.Min[2]*perspective;
+      let F=this.Max[2]*perspective;
+      m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
+      M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
+      s=Math.max(f,F);
+    }
+
+    [this.x,this.y,this.X,this.Y]=new bbox2(m,M).bounds();
+
+    if(centerIndex == 0 &&
+       (this.Max[0] < this.x || this.Min[0] > this.X ||
+        this.Max[1] < this.y || this.Min[1] > this.Y)) {
+      return this.Offscreen=true;
+    }
+
+    let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
+    this.res2=res*res;
+    return this.Offscreen=false;
+  }
+
+  render() {
+    if(this.OffScreen()) return;
+
+    let p=this.controlpoints;
+    
+    let i0=data.vertex1(p[0]);
+    let i3=data.vertex1(p[3]);
+    
+    this.Render(p,i0,i3);
+    if(data.nvertices > 0) this.append();
+  }
+  
+  append() {
+    if(this.Offscreen)
+      material1Off.append(data);
+    else
+      material1On.append(data);
+    data.clear();
+  }
+
+  Render(p,I0,I1) {
+    let p0=p[0];
+    let p1=p[1];
+    let p2=p[2];
+    let p3=p[3];
+
+    if(Straightness(p0,p1,p2,p3) < this.res2) { // Segment is flat
+      let P=[p0,p3];
+      if(!this.offscreen(2,P)) {
+        data.indices.push(I0);
+        data.indices.push(I1);
+      }
+    } else { // Segment is not flat
+      if(this.offscreen(4,p)) return;
+
+      let m0=[0.5*(p0[0]+p1[0]),0.5*(p0[1]+p1[1]),0.5*(p0[2]+p1[2])];
+      let m1=[0.5*(p1[0]+p2[0]),0.5*(p1[1]+p2[1]),0.5*(p1[2]+p2[2])];
+      let m2=[0.5*(p2[0]+p3[0]),0.5*(p2[1]+p3[1]),0.5*(p2[2]+p3[2])];
+      let m3=[0.5*(m0[0]+m1[0]),0.5*(m0[1]+m1[1]),0.5*(m0[2]+m1[2])];
+      let m4=[0.5*(m1[0]+m2[0]),0.5*(m1[1]+m2[1]),0.5*(m1[2]+m2[2])];
+      let m5=[0.5*(m3[0]+m4[0]),0.5*(m3[1]+m4[1]),0.5*(m3[2]+m4[2])];
+      
+      let s0=[p0,m0,m3,m5];
+      let s1=[m5,m4,m2,p3];
+      
+      let i0=data.vertex1(m5);
+      
+      this.Render(s0,I0,i0);
+      this.Render(s1,i0,I1);
+    }
+  }
+}
+
 function home()
 {
   mat4.identity(rotMat);
   initProjection();
   setProjection();
-  updatevMatrix();
+  updateViewMatrix();
   redraw=true;
 }
 
-var materialShader,colorShader,transparentShader;
-
 function initShader(options)
 {
-  var fragmentShader=getShader(gl,"fragment",options);
-  var vertexShader=getShader(gl,"vertex",options);
-  var shader=gl.createProgram();
+  let fragmentShader=getShader(gl,"fragment",options);
+  let vertexShader=getShader(gl,"vertex",options);
+  let shader=gl.createProgram();
 
   gl.attachShader(shader,vertexShader);
   gl.attachShader(shader,fragmentShader);
@@ -1115,19 +1252,17 @@ function initShader(options)
 
 class Split3 {
   constructor(z0,c0,c1,z1) {
-    this.m0=Array(3);
-    this.m2=Array(3);
-    this.m3=Array(3);
-    this.m4=Array(3);
-    this.m5=Array(3);
-    for(var i=0; i < 3; ++i) {
-      this.m0[i]=0.5*(z0[i]+c0[i]);
-      var m1=0.5*(c0[i]+c1[i]);
-      this.m2[i]=0.5*(c1[i]+z1[i]);
-      this.m3[i]=0.5*(this.m0[i]+m1);
-      this.m4[i]=0.5*(m1+this.m2[i]);
-      this.m5[i]=0.5*(this.m3[i]+this.m4[i]);
-    }
+    this.m0=[0.5*(z0[0]+c0[0]),0.5*(z0[1]+c0[1]),0.5*(z0[2]+c0[2])];
+    let m1_0=0.5*(c0[0]+c1[0]);
+    let m1_1=0.5*(c0[1]+c1[1]);
+    let m1_2=0.5*(c0[2]+c1[2]);
+    this.m2=[0.5*(c1[0]+z1[0]),0.5*(c1[1]+z1[1]),0.5*(c1[2]+z1[2])];
+    this.m3=[0.5*(this.m0[0]+m1_0),0.5*(this.m0[1]+m1_1),
+             0.5*(this.m0[2]+m1_2)];
+    this.m4=[0.5*(m1_0+this.m2[0]),0.5*(m1_1+this.m2[1]),
+             0.5*(m1_2+this.m2[2])];
+    this.m5=[0.5*(this.m3[0]+this.m4[0]),0.5*(this.m3[1]+this.m4[1]),
+             0.5*(this.m3[2]+this.m4[2])];
   }
 }
 
@@ -1138,7 +1273,7 @@ function iszero(v)
 
 function unit(v)
 {
-  var norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  let norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
   norm=(norm != 0.0) ? 1.0/norm : 1.0;
   return [v[0]*norm,v[1]*norm,v[2]*norm];
 }
@@ -1184,7 +1319,7 @@ function bezierPPP(a,b,c,d)
 */
 function Straightness(z0,c0,c1,z1)
 {
-  var v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
+  let v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
   return Math.max(abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
     abs2([z1[0]-v[0]-c1[0],z1[1]-v[1]-c1[1],z1[2]-v[2]-c1[2]]));
 }
@@ -1195,13 +1330,13 @@ function Straightness(z0,c0,c1,z1)
  */
 function Distance2(z,u,n)
 {
-  var d=dot([z[0]-u[0],z[1]-u[1],z[2]-u[2]],n);
+  let d=dot([z[0]-u[0],z[1]-u[1],z[2]-u[2]],n);
   return d*d;
 }
 
 class bbox2 {
   constructor(m,M) {
-    var V=[];
+    let V=[];
     vec3.transformMat4(V,m,T);
     this.x=this.X=V[0];
     this.y=this.Y=V[1];
@@ -1220,7 +1355,7 @@ class bbox2 {
   }
 
   transformed(v) {
-    var V=[];
+    let V=[];
     vec3.transformMat4(V,v,T);
     if(V[0] < this.x) this.x=V[0];
     else if(V[0] > this.X) this.X=V[0];
@@ -1237,18 +1372,18 @@ class bbox2 {
  * 
  * @Return the matrix (conjMatrix) * mat * (conjMatrix)^{-1} 
  */
-function mat4COB(out,conjMatrix,mat) {
-  var cjMatInv=mat4.create();
-  mat4.invert(cjMatInv,conjMatrix);
+function mat4COB(out,conjMat,mat) {
+  let cjMatInv=mat4.create();
+  mat4.invert(cjMatInv,conjMat);
 
   mat4.multiply(out,mat,cjMatInv);
-  mat4.multiply(out,conjMatrix,out);
+  mat4.multiply(out,conjMat,out);
 
   return out;
 }
 
 function getTargetOrigMat() {
-  var translMat=mat4.create();
+  let translMat=mat4.create();
   mat4.fromTranslation(translMat,[center.x,center.y,center.z])
   return translMat;
 }
@@ -1265,9 +1400,11 @@ function setUniforms(shader)
     gl.getAttribLocation(shader,"position");
   gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
-  shader.vertexNormalAttribute=
-    gl.getAttribLocation(shader,"normal");
-  gl.enableVertexAttribArray(shader.vertexNormalAttribute);
+  if(shader != noNormalShader) {
+    shader.vertexNormalAttribute=
+      gl.getAttribLocation(shader,"normal");
+    gl.enableVertexAttribArray(shader.vertexNormalAttribute);
+  }
 
   shader.vertexMaterialAttribute=
     gl.getAttribLocation(shader,"materialIndex");
@@ -1277,8 +1414,8 @@ function setUniforms(shader)
     gl.getAttribLocation(shader,"centerIndex");
   gl.enableVertexAttribArray(shader.vertexCenterAttribute);
 
-  shader.pvMatrixUniform=gl.getUniformLocation(shader,"projViewMat");
-  shader.vmMatrixUniform=gl.getUniformLocation(shader,"viewMat");
+  shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
+  shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
 
   if(shader == colorShader || shader == transparentShader) {
@@ -1288,21 +1425,21 @@ function setUniforms(shader)
   }
 
   for(let i=0; i < M.length; ++i)
-    M[i].setUniform(shader,"objMaterial",i);
+    M[i].setUniform(shader,"Materials",i);
 
   for(let i=0; i < lights.length; ++i)
-    lights[i].setUniform(shader,"objLights",i);
+    lights[i].setUniform(shader,"Lights",i);
 
   for(let i=0; i < Centers.length; ++i)
     gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
 
-  mat4.invert(T,vMatrix);
-  mat4.multiply(pvmMatrix,pMatrix,vMatrix);
-  mat3.fromMat4(vMatrix3,vMatrix);
-  mat3.invert(normMat,vMatrix3);
+  mat4.invert(T,viewMat);
+  mat4.multiply(projView,projMat,viewMat);
+  mat3.fromMat4(viewMat3,viewMat);
+  mat3.invert(normMat,viewMat3);
 
-  gl.uniformMatrix4fv(shader.pvMatrixUniform,false,pvmMatrix);
-  gl.uniformMatrix4fv(shader.vmMatrixUniform,false,vMatrix);
+  gl.uniformMatrix4fv(shader.projViewMatUniform,false,projView);
+  gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
 }
 
@@ -1312,8 +1449,8 @@ function handleMouseDown(event) {
   lastMouseY=event.clientY;
 }
 
-var pinch=false;
-var pinchStart;
+let pinch=false;
+let pinchStart;
 
 function pinchDistance(touches)
 {
@@ -1323,12 +1460,13 @@ function pinchDistance(touches)
 }
 
 
-var touchStartTime;
+let touchStartTime;
 
 function handleTouchStart(evt) {
   evt.preventDefault();
-  var touches=evt.targetTouches;
-  if(pinch) return;
+  let touches=evt.targetTouches;
+  swipe=rotate=pinch=false;
+  if(zooming) return;
 
   if(touches.length == 1 && !mouseDownOrTouchActive) {
     touchStartTime=new Date().getTime();
@@ -1346,11 +1484,10 @@ function handleTouchStart(evt) {
 
 function handleMouseUpOrTouchEnd(event) {
   mouseDownOrTouchActive=false;
-  swipe=pinch=false;
 }
 
 function rotateScene(lastX,lastY,rawX,rawY,factor) {
-    let [angle, axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
+    let [angle,axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
 
     mat4.fromRotation(rotMats,angle*2.0*factor/lastzoom,axis);
     mat4.multiply(rotMat,rotMats,rotMat);
@@ -1371,16 +1508,16 @@ function panScene(lastX,lastY,rawX,rawY) {
   }
 }
 
-function updatevMatrix() {
-  COBTarget(vMatrix,rotMat);
-  mat4.translate(vMatrix,vMatrix,[center.x,center.y,0]);
-  mat4.invert(T,vMatrix);
+function updateViewMatrix() {
+  COBTarget(viewMat,rotMat);
+  mat4.translate(viewMat,viewMat,[center.x,center.y,0]);
+  mat4.invert(T,viewMat);
 }
 
 function capzoom() 
 {
-  var maxzoom=Math.sqrt(Number.MAX_VALUE);
-  var minzoom=1.0/maxzoom;
+  let maxzoom=Math.sqrt(Number.MAX_VALUE);
+  let minzoom=1.0/maxzoom;
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
@@ -1445,13 +1582,13 @@ function processDrag(newX,newY,mode,factor=1) {
   lastMouseY=newY;
 
   setProjection();
-  updatevMatrix();
+  updateViewMatrix();
   redraw=true;
 }
 
 function handleKey(event) {
-  var keycode=event.key;
-  var axis=[];
+  let keycode=event.key;
+  let axis=[];
   switch(keycode) {
   case "x":
     axis=[1,0,0];
@@ -1471,7 +1608,7 @@ function handleKey(event) {
 
   if(axis.length > 0) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
-    updatevMatrix();
+    updateViewMatrix();
     redraw=true;
   }
 }
@@ -1484,7 +1621,7 @@ function handleMouseWheel(event) {
   }
   capzoom();
   setProjection();
-  updatevMatrix();
+  updateViewMatrix();
 
   redraw=true;
 }
@@ -1494,8 +1631,8 @@ function handleMouseMove(event) {
     return;
   }
 
-  var newX=event.clientX;
-  var newY=event.clientY;
+  let newX=event.clientX;
+  let newY=event.clientY;
 
   let mode;
   if(event.getModifierState("Control")) {
@@ -1511,27 +1648,35 @@ function handleMouseMove(event) {
   processDrag(newX,newY,mode);
 }
 
-var zooming=false;
-var swipe=false;
+let zooming=false;
+let swipe=false;
+let rotate=false;
 
 function handleTouchMove(evt) {
   evt.preventDefault();
   if(zooming) return;
-  var touches=evt.targetTouches;
+  let touches=evt.targetTouches;
 
   if(!pinch && touches.length == 1 && touchId == touches[0].identifier) {
-    var newX=touches[0].pageX;
-    var newY=touches[0].pageY;
-    var dx=newX-lastMouseX;
-    var dy=newY-lastMouseY;
-    var stationary=dx*dx+dy*dy <= shiftHoldDistance*shiftHoldDistance;
-    if(stationary && new Date().getTime()-touchStartTime > shiftWaitTime)
-      swipe=true;
+    let newX=touches[0].pageX;
+    let newY=touches[0].pageY;
+    let dx=newX-lastMouseX;
+    let dy=newY-lastMouseY;
+    let stationary=dx*dx+dy*dy <= shiftHoldDistance*shiftHoldDistance;
+    if(stationary) {
+      if(!swipe && !rotate &&
+         new Date().getTime()-touchStartTime > shiftWaitTime) {
+        if(navigator.vibrate)
+          window.navigator.vibrate(vibrateTime);
+        swipe=true;
+      }
+    }
     if(swipe)
       processDrag(newX,newY,DRAGMODE_SHIFT);
-    else {
-      var newX=touches[0].pageX;
-      var newY=touches[0].pageY;
+    else if(!stationary) {
+      rotate=true;
+      let newX=touches[0].pageX;
+      let newY=touches[0].pageY;
       processDrag(newX,newY,DRAGMODE_ROTATE,0.5);
     }
   }
@@ -1546,14 +1691,14 @@ function handleTouchMove(evt) {
     if(diff < -zoomPinchCap) diff=-zoomPinchCap;
     zoomImage(diff/size2);
     pinchStart=distance;
-    swipe=zooming=false;
+    swipe=rotate=zooming=false;
     setProjection();
-    updatevMatrix();
+    updateViewMatrix();
     redraw=true;
   }
 }
 
-var indexExt;
+let indexExt;
 
 // Create buffers for the patch and its subdivisions.
 function setBuffer()
@@ -1567,25 +1712,30 @@ function setBuffer()
 
 function transformVertices(vertices)
 {
-  var Tz0=vMatrix[2];
-  var Tz1=vMatrix[6];
-  var Tz2=vMatrix[10];
+  let Tz0=viewMat[2];
+  let Tz1=viewMat[6];
+  let Tz2=viewMat[10];
   zbuffer.length=vertices.length;
-  for(var i=0; i < vertices.length; ++i) {
-    var i6=6*i;
+  for(let i=0; i < vertices.length; ++i) {
+    let i6=6*i;
     zbuffer[i]=Tz0*vertices[i6]+Tz1*vertices[i6+1]+Tz2*vertices[i6+2];
   }
 }
 
-var zbuffer=[];
+let zbuffer=[];
 
 function draw()
 {
+  gl.clearColor(1,1,1,1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  material1Off.clear();
   materialOff.clear();
   colorOff.clear();
   transparentOff.clear();
 
   if(remesh) {
+    material1On.clear();
     materialOn.clear();
     colorOn.clear();
     transparentOn.clear();
@@ -1595,6 +1745,12 @@ function draw()
     if(remesh || p.Offscreen)
       p.render();
   });
+
+  if(material1On.indices.length > 0)
+    drawBuffer(material1On,noNormalShader);
+  
+  if(material1Off.indices.length > 0)
+    drawBuffer(material1Off,noNormalShader);
 
   if(materialOn.indices.length > 0)
     drawBuffer(materialOn,materialShader);
@@ -1612,6 +1768,9 @@ function draw()
   data.append(transparentOff);
   let indices=data.indices;
   if(indices.length > 0) {
+    // Enable transparency
+    gl.depthMask(false);
+  
     transformVertices(data.vertices);
     
     let n=indices.length/3;
@@ -1644,6 +1803,7 @@ function draw()
 
     drawBuffer(data,transparentShader,Indices);
     data.clear();
+    gl.depthMask(true);
   }
 
   remesh=false;
@@ -1698,7 +1858,7 @@ function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
 function setProjection() {
   setDimensions(canvasWidth,canvasHeight,shift.x,shift.y);
   let f=orthographic ? mat4.ortho : mat4.frustum;
-  f(pMatrix,viewParam.xmin,viewParam.xmax,
+  f(projMat,viewParam.xmin,viewParam.xmax,
     viewParam.ymin,viewParam.ymax,
     -viewParam.zmax,-viewParam.zmin);
 }
@@ -1720,9 +1880,11 @@ function initProjection() {
   setProjection();
 }
 
+let materialShader,colorShader,noNormalShader,transparentShader;
+
 function webGLStart()
 {
-  var canvas=document.getElementById("Asymptote");
+  let canvas=document.getElementById("Asymptote");
 
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
@@ -1733,16 +1895,15 @@ function webGLStart()
   initProjection();
   initGL(canvas);
 
-  gl.clearColor(1.0,1.0,1.0,1.0);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
   gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  materialShader=initShader();
-  colorShader=initShader(["COLOR"]);
-  transparentShader=initShader(["TRANSPARENT"]);
+  noNormalShader=initShader();
+  materialShader=initShader(["NORMAL"]);
+  colorShader=initShader(["NORMAL","COLOR"]);
+  transparentShader=initShader(["NORMAL","TRANSPARENT"]);
 
   setBuffer();
 

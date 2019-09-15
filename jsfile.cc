@@ -20,29 +20,30 @@ void jsfile::copy(string name) {
 
 void jsfile::open(string name) {
   out.open(name);
+  out.precision(settings::getSetting<Int>("digits"));
   copy(settings::WebGLheader);
   out << newl
       <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];" 
-      << newl;
-  out <<  "B=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];" 
-      << newl;
-  out << "orthographic=" << std::boolalpha << gl::orthographic << ";"
-      << newl;
-  out << "angle=" << gl::Angle << ";"
+      << newl
+      <<  "B=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];" 
+      << newl
+      << "orthographic=" << std::boolalpha << gl::orthographic << ";"
+      << newl
+      << "angle=" << gl::Angle << ";"
       << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
       << "size2=Math.hypot(canvasWidth,canvasHeight);" << newl
-      << "Zoom0=" << gl::Zoom0 << ";" << newl;
-  
-  out << 
-    "    var lights = [new Light(\n"
-    "      type = enumDirectionalLight,\n"
-    "      lightColor = [1, 1, 1],\n"
-    "      brightness = 1,\n"
-    "      customParam = [0.235702260395516,-0.235702260395516,0.942809041582063, 0]\n"
-    "    )];"
-      << newl;
+      << "Zoom0=" << gl::Zoom0 << ";" << newl << newl
+      << "var lights=[";
+  for(size_t i=0; i < gl::nlights; ++i) {
+    size_t i4=4*i;
+    out << "new Light(" << newl
+        << "direction=" << gl::Lights[i] << "," << newl 
+        << "color=[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1]
+        << "," << gl::Diffuse[i4+2] << "])," << newl;
+  }
+  out << "];" << newl << newl;
 }
 
 jsfile::~jsfile() {
@@ -77,9 +78,23 @@ void jsfile::addPatch(triple const* controls, size_t n,
   out << "));" << newl << newl;
 }
 
+void jsfile::addCurve(const triple& z0, const triple& c0,
+                      const triple& c1, const triple& z1,
+                      const triple& Min, const triple& Max,
+                      const prc::RGBAColour color)
+{
+  out << "P.push(new BezierCurve([" << newl;
+  out << z0 << "," << newl
+      << c0 << "," << newl
+      << c1 << "," << newl
+      << z1 << newl << "],"
+      << drawElement::centerIndex << "," << drawElement::materialIndex << ","
+      << Min << "," << Max << "));" << newl << newl;
+}
+
 void jsfile::addMaterial(size_t index) {
-  out << "M.push(new Material("
-      << drawElement::material[index]
+  out << "M.push(new Material(" << newl
+       << drawElement::material[index]
       << "));" << newl << newl;
 }
 
