@@ -6,7 +6,9 @@
 
   <script id="fragment" type="x-shader/x-fragment">
 #ifdef NORMAL
-    varying vec4 ViewPosition;
+#ifndef ORTHOGRAPHIC
+    varying vec3 ViewPosition;
+#endif
     varying vec3 Normal;
     varying vec4 diffuse;
     varying vec4 specular;
@@ -82,16 +84,13 @@
 #ifdef NORMAL
       normal=normalize(Normal);
       normal=gl_FrontFacing ? normal : -normal;
-//#ifdef ORTHOGRAPHIC
-      vec3 viewDir=vec3(0,0,1.0);
-//#else
-//      vec3 viewDir=-normalize(ViewPosition.xyz/ViewPosition.w);
-//#endif
-
+#ifdef ORTHOGRAPHIC
+      vec3 viewDir=vec3(0.0,0.0,1.0);
+#else
+      vec3 viewDir=-normalize(ViewPosition);
+#endif
       Roughness2=roughness*roughness;
       vec3 color=emissive.rgb;
-      vec3 Z=vec3(0.0,0.0,1.0);
-
       for (int i=0; i < nLights; ++i) {
         Light Li=objLights[i];
         vec3 L=Li.parameter.xyz;
@@ -119,11 +118,13 @@
 #endif
 
     uniform mat3 normMat;
-    uniform mat4 viewMat;
+    uniform mat3 viewMat;
     uniform mat4 projViewMat;
 
 #ifdef NORMAL
-    varying vec4 ViewPosition;
+#ifndef ORTHOGRAPHIC
+    varying vec3 ViewPosition;
+#endif
     varying vec3 Normal;
     varying vec4 diffuse;
     varying vec4 specular;
@@ -141,11 +142,13 @@
 
     void main(void) {
       int index=int(centerIndex);
-      vec4 v=vec4(index == 0 ? position :
-                  Centers[index-1]+normMat*(position-Centers[index-1]),1.0);
-      gl_Position=projViewMat*v;
+      vec3 v=index == 0 ? position :
+                        Centers[index-1]+normMat*(position-Centers[index-1]);
+      gl_Position=projViewMat*vec4(v,1.0);
 #ifdef NORMAL
+#ifndef ORTHOGRAPHIC
       ViewPosition=viewMat*v;
+#endif      
       Normal=normal*normMat;
         
       Material m;

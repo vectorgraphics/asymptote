@@ -173,7 +173,7 @@ using glm::value_ptr;
 using glm::translate;
 
 mat4 projViewMat;
-mat4 viewMat;
+mat3 viewMat;
 mat3 normMat;
 
 dmat4 dprojMat;
@@ -315,7 +315,6 @@ void home(bool webgl=false)
   }
 #endif
 #endif
-  viewMat=mat4(1.0f);
   dviewMat=dmat4(1.0);
   drotateMat=dmat3(1.0); 
   
@@ -819,7 +818,7 @@ void update()
   
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*dmat4(drotateMat),
                      dvec3(0,0,-cz));
-  viewMat=mat4(dviewMat);
+  viewMat=mat3(dviewMat);
 
   setProjection();
   updateModelViewData();
@@ -1440,6 +1439,8 @@ void initshader()
   std::vector<ShaderfileModePair> shaders;
   shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
   shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
+  if(orthographic)
+    shaderParams.push_back("ORTHOGRAPHIC");
     
   shaderParams.push_back("BILLBOARD");
   camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,Ncenters,
@@ -1859,7 +1860,7 @@ void setUniforms(GLint shader)
   
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
   
-  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
+  glUniformMatrix3fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
   
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));

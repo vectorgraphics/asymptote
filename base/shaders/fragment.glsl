@@ -18,6 +18,9 @@ uniform MaterialBuffer {
 };
 
 #ifdef NORMAL
+#ifndef ORTHOGRAPHIC
+in vec3 ViewPosition;
+#endif
 in vec3 Normal;
 vec3 normal;
 #endif
@@ -126,12 +129,12 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
 void main()
 {
-vec4 diffuse;
-vec4 emissive;
-vec4 specular;
-vec4 parameters;
+  vec4 diffuse;
+  vec4 emissive;
+  vec4 specular;
+  vec4 parameters;
 
-Material m;
+  Material m;
 #ifdef EXPLICIT_COLOR
   if(materialIndex < 0) {
     int index=-materialIndex-1;
@@ -160,65 +163,66 @@ Material m;
   Diffuse=diffuse.rgb;
   Specular=specular.rgb;
 
-    // Given a point x and direction \omega,
-    // L_i=\int_{\Omega} f(x, \omega_i, \omega) L(x,\omega_i) (\hat{n}\cdot \omega_i) d \omega_i
-    // where \Omega is the hemisphere covering a point, f is the BRDF function
-    // L is the radiance from a given angle and position.
+  // Given a point x and direction \omega,
+  // L_i=\int_{\Omega}f(x,\omega_i,\omega) L(x,\omega_i)(\hat{n}\cdot \omega_i)
+  // d\omega_i, where \Omega is the hemisphere covering a point,
+  // f is the BRDF function, L is the radiance from a given angle and position.
 
   vec3 color=emissive.rgb;
 #ifdef NORMAL  
-  vec3 Z=vec3(0.0,0.0,1.0);
-
   normal=normalize(Normal);
   normal=gl_FrontFacing ? normal : -normal;
+#ifdef ORTHOGRAPHIC
+  vec3 viewDir=vec3(0.0,0.0,1.0);
+#else
+  vec3 viewDir=-normalize(ViewPosition);
+#endif
   // For a finite point light, the rendering equation simplifies.
-    if(nlights > 0) {
-      for(int i=0; i < nlights; ++i) {
-        vec3 L=lights[i].direction.xyz;
-        vec3 viewDirection=-Z;
-        float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
-        vec3 radiance=cosTheta*lights[i].diffuse.rgb;
-        color += BRDF(Z,L)*radiance;
-      }
+  if(nlights > 0) {
+    for(int i=0; i < nlights; ++i) {
+      vec3 L=lights[i].direction.xyz;
+      float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
+      vec3 radiance=cosTheta*lights[i].diffuse.rgb;
+      color += BRDF(viewDir,L)*radiance;
+    }
 
 #ifdef ENABLE_TEXTURE
 #ifndef EXPLICIT_COLOR
-      // Experimental environment radiance using Riemann sums;
-      // can also do importance sampling.
-      vec3 envRadiance=vec3(0.0,0.0,0.0);
+    // Experimental environment radiance using Riemann sums;
+    // can also do importance sampling.
+    vec3 envRadiance=vec3(0.0,0.0,0.0);
 
-      vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
-      if(length(normalPerp) == 0.0)
-        normalPerp=vec3(1.0,0.0,0.0);
+    vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
+    if(length(normalPerp) == 0.0)
+      normalPerp=vec3(1.0,0.0,0.0);
 
-      // we now have a normal basis;
-      normalPerp=normalize(normalPerp);
-      vec3 normalPerp2=normalize(cross(normal,normalPerp));
+    // we now have a normal basis;
+    normalPerp=normalize(normalPerp);
+    vec3 normalPerp2=normalize(cross(normal,normalPerp));
 
-      const float step=1.0/numSamples;
-      const float phistep=twopi*step;
-      const float thetastep=halfpi*step;
-      for (int iphi=0; iphi < numSamples; ++iphi) {
-        float phi=iphi*phistep;
-        for (int itheta=0; itheta < numSamples; ++itheta) {
-          float theta=itheta*thetastep;
+    const float step=1.0/numSamples;
+    const float phistep=twopi*step;
+    const float thetastep=halfpi*step;
+    for (int iphi=0; iphi < numSamples; ++iphi) {
+      float phi=iphi*phistep;
+      for (int itheta=0; itheta < numSamples; ++itheta) {
+        float theta=itheta*thetastep;
 
-          vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
-          vec3 L=sin(theta)*azimuth+cos(theta)*normal;
+        vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
+        vec3 L=sin(theta)*azimuth+cos(theta)*normal;
 
-          vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
-          vec3 surfRefl=BRDF(Z,L);
-          envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
-        }
+        vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
+        vec3 surfRefl=BRDF(Z,L);
+        envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
       }
-      envRadiance *= halfpi*step*step;
-      color += envRadiance.rgb;
+    }
+    envRadiance *= halfpi*step*step;
+    color += envRadiance.rgb;
 #endif
 #endif
-      outColor=vec4(color,diffuse.a);
-    } else outColor=diffuse;
+    outColor=vec4(color,diffuse.a);
+  } else outColor=diffuse;
 #else    
-    outColor=emissive;
+  outColor=emissive;
 #endif      
 }
-
