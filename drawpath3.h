@@ -214,6 +214,7 @@ public:
               double perspective, bool transparent);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out);
   
   drawElement *transformed(const double* t);
 };

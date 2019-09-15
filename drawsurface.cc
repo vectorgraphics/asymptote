@@ -90,12 +90,12 @@ void setcolors(bool colors,
     static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
     m=Material(Black,Black,
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
-               shininess, metallic, fresnel0);
-  }  else
+               shininess,metallic,fresnel0);
+  } else
     m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
                glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
-               shininess, metallic, fresnel0);
+               shininess,metallic,fresnel0);
           
   MaterialMap::iterator p=drawElement::materialMap.find(m);
   if(p != drawElement::materialMap.end())
@@ -108,7 +108,7 @@ void setcolors(bool colors,
       clearMaterialBuffer(true);
     drawElement::material.push_back(m);
     drawElement::materialMap[m]=drawElement::materialIndex;
-    if(out) 
+    if(out)
       out->addMaterial(drawElement::materialIndex);
   }
 }

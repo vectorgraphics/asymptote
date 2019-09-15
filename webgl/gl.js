@@ -25,8 +25,7 @@ let Fuzz2=1000*Number.EPSILON;
 let Fuzz4=Fuzz2*Fuzz2;
 let third=1.0/3.0;
 
-let P=[]; // Array of Bezier patches, triangles, and curves
-let M=[]; // Array of materials
+let P=[]; // Array of Bezier patches, triangles, curves, and pixels
 let Centers=[]; // Array of billboard centers
 
 let rotMat=mat4.create();
@@ -134,7 +133,7 @@ function getShader(gl,id,options=[]) {
   precision mediump float;
 #endif
   const int nLights=${lights.length};
-  const int nMaterials=${M.length};
+  const int nMaterials=${Materials.length};
   const int nCenters=${Math.max(Centers.length,1)};\n`
 
   if(orthographic)
@@ -168,15 +167,20 @@ function getShader(gl,id,options=[]) {
 
 function drawBuffer(data,shader,indices=data.indices)
 {
-  let normal=shader != noNormalShader;
+  let pixel=shader == pixelShader;
+  let normal=!pixel && (shader != noNormalShader);
+
   setUniforms(shader);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexPositionAttribute,
-                         3,gl.FLOAT,false,normal ? 24 : 12,0);
-  if(normal)
+                         3,gl.FLOAT,false,normal ? 24 : (pixel ? 16 : 12),0);
+  if(pixel)
+    gl.vertexAttribPointer(shader.vertexWidthAttribute,
+                           1,gl.FLOAT,false,16,12);
+  else if(normal)
     gl.vertexAttribPointer(shader.vertexNormalAttribute,
                            3,gl.FLOAT,false,24,12);
 
@@ -184,9 +188,10 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexMaterialAttribute,
-                         1,gl.SHORT,false,4,0);
-  gl.vertexAttribPointer(shader.vertexCenterAttribute,
-                         1,gl.SHORT,false,4,2);
+                         1,gl.SHORT,false,pixel ? 2 : 4,0);
+  if(!pixel)
+    gl.vertexAttribPointer(shader.vertexCenterAttribute,
+                           1,gl.SHORT,false,4,2);
 
   if(shader == colorShader || shader == transparentShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
@@ -201,7 +206,7 @@ function drawBuffer(data,shader,indices=data.indices)
                 indexExt ? new Uint32Array(indices) :
                 new Uint16Array(indices),gl.STATIC_DRAW);
 
-  gl.drawElements(shader == noNormalShader ? gl.LINES : gl.TRIANGLES,
+  gl.drawElements(normal ? gl.TRIANGLES : (pixel ? gl.POINTS : gl.LINES),
                   indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
 }
@@ -259,6 +264,16 @@ class vertexData {
     return this.nvertices++;
   }
 
+  // material vertex with width and without normal 
+  vertex0(v,width) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+    this.vertices.push(width);
+    this.materials.push(materialIndex);
+    return this.nvertices++;
+  }
+
  copy(data) {
     this.vertices=data.vertices.slice();
     this.materials=data.materials.slice();
@@ -289,6 +304,9 @@ let transparentOff=new vertexData(); // Partially offscreen transparent data
 
 let material1On=new vertexData();     // Onscreen material 1D data
 let material1Off=new vertexData();    // Partially offscreen material 1D data
+
+let material0On=new vertexData();     // Onscreen material 0D data
+let material0Off=new vertexData();    // Partially offscreen material 0D data
 
 let materialIndex;
 let centerIndex;
@@ -392,7 +410,7 @@ class BezierPatch extends Geometry {
     this.CenterIndex=CenterIndex;
     this.transparent=color ?
       color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
-      M[MaterialIndex].diffuse[3] < 1.0;
+      Materials[MaterialIndex].diffuse[3] < 1.0;
     this.MaterialIndex=this.transparent ?
       (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
     this.vertex=(this.color || this.transparent) ?
@@ -468,7 +486,7 @@ class BezierPatch extends Geometry {
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
     }
-    if(data.nvertices > 0) this.append();
+    this.append();
   }
 
   append() {
@@ -737,7 +755,7 @@ class BezierPatch extends Geometry {
 
       this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false);
     }
-    if(data.nvertices > 0) this.append();
+    this.append();
   }
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
@@ -1126,7 +1144,7 @@ class BezierCurve extends Geometry {
     let i3=data.vertex1(p[3]);
     
     this.Render(p,i0,i3);
-    if(data.nvertices > 0) this.append();
+    this.append();
   }
   
   append() {
@@ -1167,6 +1185,33 @@ class BezierCurve extends Geometry {
       this.Render(s0,I0,i0);
       this.Render(s1,i0,I1);
     }
+  }
+}
+
+class Pixel extends Geometry {
+  constructor(controlpoint,width,MaterialIndex,Min,Max) {
+    super();
+    this.controlpoint=controlpoint;
+    this.width=width;
+    this.MaterialIndex=MaterialIndex;
+    this.Min=Min;
+    this.Max=Max;
+    this.CenterIndex=0;
+  }
+
+  render() {
+    if(this.OffScreen()) return;
+
+    data.indices.push(data.vertex0(this.controlpoint,this.width));
+    this.append();
+  }
+  
+  append() {
+    if(this.Offscreen)
+      material0Off.append(data);
+    else
+      material0On.append(data);
+    data.clear();
   }
 }
 
@@ -1339,13 +1384,20 @@ function COBTarget(out,mat) {
 
 function setUniforms(shader)
 {
+  let pixel=shader == pixelShader;
   gl.useProgram(shader);
 
   shader.vertexPositionAttribute=
     gl.getAttribLocation(shader,"position");
   gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
-  if(shader != noNormalShader) {
+  if(pixel) {
+    shader.vertexWidthAttribute=
+      gl.getAttribLocation(shader,"width");
+    gl.enableVertexAttribArray(shader.vertexWidthAttribute);
+  }
+
+  if(shader != noNormalShader && !pixel) {
     shader.vertexNormalAttribute=
       gl.getAttribLocation(shader,"normal");
     gl.enableVertexAttribArray(shader.vertexNormalAttribute);
@@ -1355,9 +1407,11 @@ function setUniforms(shader)
     gl.getAttribLocation(shader,"materialIndex");
   gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
 
-  shader.vertexCenterAttribute=
-    gl.getAttribLocation(shader,"centerIndex");
-  gl.enableVertexAttribArray(shader.vertexCenterAttribute);
+  if(!pixel) {
+    shader.vertexCenterAttribute=
+      gl.getAttribLocation(shader,"centerIndex");
+    gl.enableVertexAttribArray(shader.vertexCenterAttribute);
+  }
 
   shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
   shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
@@ -1369,8 +1423,8 @@ function setUniforms(shader)
     gl.enableVertexAttribArray(shader.vertexColorAttribute);
   }
 
-  for(let i=0; i < M.length; ++i)
-    M[i].setUniform(shader,"Materials",i);
+  for(let i=0; i < Materials.length; ++i)
+    Materials[i].setUniform(shader,"Materials",i);
 
   for(let i=0; i < lights.length; ++i)
     lights[i].setUniform(shader,"Lights",i);
@@ -1674,12 +1728,14 @@ function draw()
   gl.clearColor(1,1,1,1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  material0Off.clear();
   material1Off.clear();
   materialOff.clear();
   colorOff.clear();
   transparentOff.clear();
 
   if(remesh) {
+    material0On.clear();
     material1On.clear();
     materialOn.clear();
     colorOn.clear();
@@ -1690,6 +1746,12 @@ function draw()
     if(remesh || p.Offscreen)
       p.render();
   });
+
+  if(material0On.indices.length > 0)
+    drawBuffer(material0On,pixelShader);
+  
+  if(material0Off.indices.length > 0)
+    drawBuffer(material0Off,pixelShader);
 
   if(material1On.indices.length > 0)
     drawBuffer(material1On,noNormalShader);
@@ -1825,7 +1887,7 @@ function initProjection() {
   setProjection();
 }
 
-let materialShader,colorShader,noNormalShader,transparentShader;
+let materialShader,colorShader,noNormalShader,transparentShader,pixelShader;
 
 function webGLStart()
 {
@@ -1849,6 +1911,7 @@ function webGLStart()
   materialShader=initShader(["NORMAL"]);
   colorShader=initShader(["NORMAL","COLOR"]);
   transparentShader=initShader(["NORMAL","TRANSPARENT"]);
+  pixelShader=initShader(["WIDTH"]);
 
   setBuffer();
 
