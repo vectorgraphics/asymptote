@@ -72,9 +72,13 @@ bool drawPath3::write(jsfile *out)
   RGBAColour Black(0.0,0.0,0.0,color.A);
   setcolors(false,Black,color,Black,1.0,0.0,0.04,out);
   
-  for(Int i=0; i < n; ++i)
-    out->addCurve(g.point(i),g.postcontrol(i),
-                  g.precontrol(i+1),g.point(i+1),Min,Max,color);
+  for(Int i=0; i < n; ++i) {
+    if(g.straight(i)) {
+      out->addCurve(g.point(i),g.point(i+1),Min,Max);
+    } else
+      out->addCurve(g.point(i),g.postcontrol(i),
+                    g.precontrol(i+1),g.point(i+1),Min,Max);
+  }
   return true;
 }
 
@@ -251,6 +255,18 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
   
+bool drawPixel::write(jsfile *out)
+{
+  if(invisible)
+    return true;
+
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(false,color,color,Black,1.0,0.0,0.04,out);
+  
+  out->addPixel(v,width,Min,Max);
+  return true;
+}
+
 void drawPixel::render(double size2, const triple& b, const triple& B,
                        double perspective, bool transparent) 
 {

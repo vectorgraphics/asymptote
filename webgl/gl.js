@@ -25,8 +25,7 @@ let Fuzz2=1000*Number.EPSILON;
 let Fuzz4=Fuzz2*Fuzz2;
 let third=1.0/3.0;
 
-let P=[]; // Array of Bezier patches, triangles, and curves
-let M=[]; // Array of materials
+let P=[]; // Array of Bezier patches, triangles, curves, and pixels
 let Centers=[]; // Array of billboard centers
 
 let rotMat=mat4.create();
@@ -134,7 +133,7 @@ function getShader(gl,id,options=[]) {
   precision mediump float;
 #endif
   const int nLights=${lights.length};
-  const int nMaterials=${M.length};
+  const int nMaterials=${Materials.length};
   const int nCenters=${Math.max(Centers.length,1)};\n`
 
   if(orthographic)
@@ -168,15 +167,20 @@ function getShader(gl,id,options=[]) {
 
 function drawBuffer(data,shader,indices=data.indices)
 {
-  let normal=shader != noNormalShader;
+  let pixel=shader == pixelShader;
+  let normal=!pixel && (shader != noNormalShader);
+
   setUniforms(shader);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexPositionAttribute,
-                         3,gl.FLOAT,false,normal ? 24 : 12,0);
-  if(normal)
+                         3,gl.FLOAT,false,normal ? 24 : (pixel ? 16 : 12),0);
+  if(pixel)
+    gl.vertexAttribPointer(shader.vertexWidthAttribute,
+                           1,gl.FLOAT,false,16,12);
+  else if(normal)
     gl.vertexAttribPointer(shader.vertexNormalAttribute,
                            3,gl.FLOAT,false,24,12);
 
@@ -184,9 +188,10 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexMaterialAttribute,
-                         1,gl.SHORT,false,4,0);
-  gl.vertexAttribPointer(shader.vertexCenterAttribute,
-                         1,gl.SHORT,false,4,2);
+                         1,gl.SHORT,false,pixel ? 2 : 4,0);
+  if(!pixel)
+    gl.vertexAttribPointer(shader.vertexCenterAttribute,
+                           1,gl.SHORT,false,4,2);
 
   if(shader == colorShader || shader == transparentShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
@@ -201,7 +206,7 @@ function drawBuffer(data,shader,indices=data.indices)
                 indexExt ? new Uint32Array(indices) :
                 new Uint16Array(indices),gl.STATIC_DRAW);
 
-  gl.drawElements(shader == noNormalShader ? gl.LINES : gl.TRIANGLES,
+  gl.drawElements(normal ? gl.TRIANGLES : (pixel ? gl.POINTS : gl.LINES),
                   indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
 }
@@ -259,6 +264,16 @@ class vertexData {
     return this.nvertices++;
   }
 
+  // material vertex with width and without normal 
+  vertex0(v,width) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+    this.vertices.push(width);
+    this.materials.push(materialIndex);
+    return this.nvertices++;
+  }
+
  copy(data) {
     this.vertices=data.vertices.slice();
     this.materials=data.materials.slice();
@@ -290,6 +305,9 @@ let transparentOff=new vertexData(); // Partially offscreen transparent data
 let material1On=new vertexData();     // Onscreen material 1D data
 let material1Off=new vertexData();    // Partially offscreen material 1D data
 
+let material0On=new vertexData();     // Onscreen material 0D data
+let material0Off=new vertexData();    // Partially offscreen material 0D data
+
 let materialIndex;
 let centerIndex;
 
@@ -311,32 +329,7 @@ function appendOffset(a,b,o)
     a[n+i]=b[i]+o;
 }
 
-class BezierPatch {
-  /**
-   * Constructor for Bezier Patch
-   * @param {*} controlpoints array of 16 control points
-   * @param {*} CenterIndex center index of billboard labels (or 0)
-   * @param {*} MaterialIndex material index (>= 0)
-   * @param {*} Minimum bounding box corner
-   * @param {*} Maximum bounding box corner
-   * @param {*} colors array of 4 RGBA color arrays
-   */
-  constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
-    this.controlpoints=controlpoints;
-    this.Min=Min;
-    this.Max=Max;
-    this.color=color;
-    this.CenterIndex=CenterIndex;
-    this.transparent=color ?
-      color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
-      M[MaterialIndex].diffuse[3] < 1.0;
-    this.MaterialIndex=this.transparent ?
-      (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
-    this.vertex=(this.color || this.transparent) ?
-      data.Vertex.bind(data) : data.vertex.bind(data);
-    this.L2norm();
-  }
-
+class Geometry {
   // Approximate bounds by bounding box of control polyhedron.
   offscreen(n,v) {
     let x,y,z;
@@ -396,6 +389,34 @@ class BezierPatch {
     this.Epsilon=FillFactor*res;
     return this.Offscreen=false;
   }
+}
+
+class BezierPatch extends Geometry {
+  /**
+   * Constructor for Bezier Patch
+   * @param {*} controlpoints array of 16 control points
+   * @param {*} CenterIndex center index of billboard labels (or 0)
+   * @param {*} MaterialIndex material index (>= 0)
+   * @param {*} Minimum bounding box corner
+   * @param {*} Maximum bounding box corner
+   * @param {*} colors array of 4 RGBA color arrays
+   */
+  constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
+    super();
+    this.controlpoints=controlpoints;
+    this.Min=Min;
+    this.Max=Max;
+    this.color=color;
+    this.CenterIndex=CenterIndex;
+    this.transparent=color ?
+      color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
+      Materials[MaterialIndex].diffuse[3] < 1.0;
+    this.MaterialIndex=this.transparent ?
+      (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
+    this.vertex=(this.color || this.transparent) ?
+      data.Vertex.bind(data) : data.vertex.bind(data);
+    this.L2norm();
+  }
 
 // Render a Bezier patch via subdivision.
   L2norm() {
@@ -409,11 +430,66 @@ class BezierPatch {
     this.epsilon *= Fuzz4;
   }
 
+  renderTriangle() {
+    let p=this.controlpoints;
+    let p0=p[0];
+    let p1=p[1];
+    let p2=p[2];
+    let n=unit(cross([p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],
+                     [p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]]));
+    if(this.color) {
+      data.indices.push(data.Vertex(p0,n,this.color[0]));
+      data.indices.push(data.Vertex(p1,n,this.color[1]));
+      data.indices.push(data.Vertex(p2,n,this.color[2]));
+    } else {
+      data.indices.push(this.vertex(p0,n));
+      data.indices.push(this.vertex(p1,n));
+      data.indices.push(this.vertex(p2,n));
+    }
+    this.append();
+  }
+
+  renderQuad() {
+    let p=this.controlpoints;
+    let p0=p[0];
+    let p1=p[1];
+    let p2=p[2];
+    let p3=p[3];
+    let n1=cross([p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],
+                 [p3[0]-p1[0],p3[1]-p1[1],p3[2]-p1[2]]);
+    let n2=cross([p3[0]-p2[0],p3[1]-p2[1],p3[2]-p2[2]],
+                 [p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]]);
+    let n=unit([n1[0]+n2[0],n1[1]+n2[1],n1[2]+n2[2]]);
+    let i0,i1,i2,i3;
+    if(this.color) {
+      i0=data.Vertex(p0,n,this.color[0]);
+      i1=data.Vertex(p1,n,this.color[1]);
+      i2=data.Vertex(p2,n,this.color[2]);
+      i3=data.Vertex(p3,n,this.color[3]);
+    } else {
+      i0=this.vertex(p0,n);
+      i1=this.vertex(p1,n);
+      i2=this.vertex(p2,n);
+      i3=this.vertex(p3,n);
+    }
+    data.indices.push(i0);
+    data.indices.push(i1);
+    data.indices.push(i3);
+
+    data.indices.push(i0);
+    data.indices.push(i3);
+    data.indices.push(i2);
+
+    this.append();
+  }
+
   render() {
     if(this.OffScreen()) return;
 
     let p=this.controlpoints;
     if(p.length == 10) return this.render3();
+    if(p.length == 3) return this.renderTriangle();
+    if(p.length == 4) return this.renderQuad();
     
     let p0=p[0];
     let p3=p[3];
@@ -465,7 +541,7 @@ class BezierPatch {
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
     }
-    if(data.nvertices > 0) this.append();
+    this.append();
   }
 
   append() {
@@ -734,7 +810,7 @@ class BezierPatch {
 
       this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false);
     }
-    if(data.nvertices > 0) this.append();
+    this.append();
   }
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
@@ -1104,8 +1180,9 @@ class BezierPatch {
   }
 }
 
-class BezierCurve {
+class BezierCurve extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
+    super();
     this.controlpoints=controlpoints;
     this.Min=Min;
     this.Max=Max;
@@ -1113,75 +1190,26 @@ class BezierCurve {
     this.MaterialIndex=MaterialIndex;
   }
 
-  // Approximate bounds by bounding box of control polyhedron.
-  offscreen(n,v) {
-    let x,y,z;
-    let X,Y,Z;
-
-    X=x=v[0][0];
-    Y=y=v[0][1];
-    Z=z=v[0][2];
-    
-    for(let i=1; i < n; ++i) {
-      let V=v[i];
-      if(V[0] < x) x=V[0];
-      else if(V[0] > X) X=V[0];
-      if(V[1] < y) y=V[1];
-      else if(V[1] > Y) Y=V[1];
-    }
-
-    if(X >= this.x && x <= this.X &&
-       Y >= this.y && y <= this.Y)
-      return false;
-
-    return this.Offscreen=true;
-  }
-
-  OffScreen() {
-    centerIndex=this.CenterIndex;
-    materialIndex=this.MaterialIndex;
-
-    let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
-    let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
-
-    let s,m,M;
-
-    if(orthographic) {
-      m=b;
-      M=B;
-      s=1.0;
-    } else {
-      let perspective=1.0/B[2];
-      let f=this.Min[2]*perspective;
-      let F=this.Max[2]*perspective;
-      m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
-      M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
-      s=Math.max(f,F);
-    }
-
-    [this.x,this.y,this.X,this.Y]=new bbox2(m,M).bounds();
-
-    if(centerIndex == 0 &&
-       (this.Max[0] < this.x || this.Min[0] > this.X ||
-        this.Max[1] < this.y || this.Min[1] > this.Y)) {
-      return this.Offscreen=true;
-    }
-
-    let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
-    this.res2=res*res;
-    return this.Offscreen=false;
+  renderLine() {
+    let p=this.controlpoints;
+    let p0=p[0];
+    let p1=p[1];
+    data.indices.push(data.vertex1(p0));
+    data.indices.push(data.vertex1(p1));
+    this.append();
   }
 
   render() {
     if(this.OffScreen()) return;
 
     let p=this.controlpoints;
+    if(p.length == 2) return this.renderLine();
     
     let i0=data.vertex1(p[0]);
     let i3=data.vertex1(p[3]);
     
     this.Render(p,i0,i3);
-    if(data.nvertices > 0) this.append();
+    this.append();
   }
   
   append() {
@@ -1222,6 +1250,33 @@ class BezierCurve {
       this.Render(s0,I0,i0);
       this.Render(s1,i0,I1);
     }
+  }
+}
+
+class Pixel extends Geometry {
+  constructor(controlpoint,width,MaterialIndex,Min,Max) {
+    super();
+    this.controlpoint=controlpoint;
+    this.width=width;
+    this.MaterialIndex=MaterialIndex;
+    this.Min=Min;
+    this.Max=Max;
+    this.CenterIndex=0;
+  }
+
+  render() {
+    if(this.OffScreen()) return;
+
+    data.indices.push(data.vertex0(this.controlpoint,this.width));
+    this.append();
+  }
+  
+  append() {
+    if(this.Offscreen)
+      material0Off.append(data);
+    else
+      material0On.append(data);
+    data.clear();
   }
 }
 
@@ -1394,13 +1449,20 @@ function COBTarget(out,mat) {
 
 function setUniforms(shader)
 {
+  let pixel=shader == pixelShader;
   gl.useProgram(shader);
 
   shader.vertexPositionAttribute=
     gl.getAttribLocation(shader,"position");
   gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
-  if(shader != noNormalShader) {
+  if(pixel) {
+    shader.vertexWidthAttribute=
+      gl.getAttribLocation(shader,"width");
+    gl.enableVertexAttribArray(shader.vertexWidthAttribute);
+  }
+
+  if(shader != noNormalShader && !pixel) {
     shader.vertexNormalAttribute=
       gl.getAttribLocation(shader,"normal");
     gl.enableVertexAttribArray(shader.vertexNormalAttribute);
@@ -1410,9 +1472,11 @@ function setUniforms(shader)
     gl.getAttribLocation(shader,"materialIndex");
   gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
 
-  shader.vertexCenterAttribute=
-    gl.getAttribLocation(shader,"centerIndex");
-  gl.enableVertexAttribArray(shader.vertexCenterAttribute);
+  if(!pixel) {
+    shader.vertexCenterAttribute=
+      gl.getAttribLocation(shader,"centerIndex");
+    gl.enableVertexAttribArray(shader.vertexCenterAttribute);
+  }
 
   shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
   shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
@@ -1424,8 +1488,8 @@ function setUniforms(shader)
     gl.enableVertexAttribArray(shader.vertexColorAttribute);
   }
 
-  for(let i=0; i < M.length; ++i)
-    M[i].setUniform(shader,"Materials",i);
+  for(let i=0; i < Materials.length; ++i)
+    Materials[i].setUniform(shader,"Materials",i);
 
   for(let i=0; i < lights.length; ++i)
     lights[i].setUniform(shader,"Lights",i);
@@ -1729,12 +1793,14 @@ function draw()
   gl.clearColor(1,1,1,1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  material0Off.clear();
   material1Off.clear();
   materialOff.clear();
   colorOff.clear();
   transparentOff.clear();
 
   if(remesh) {
+    material0On.clear();
     material1On.clear();
     materialOn.clear();
     colorOn.clear();
@@ -1745,6 +1811,12 @@ function draw()
     if(remesh || p.Offscreen)
       p.render();
   });
+
+  if(material0On.indices.length > 0)
+    drawBuffer(material0On,pixelShader);
+  
+  if(material0Off.indices.length > 0)
+    drawBuffer(material0Off,pixelShader);
 
   if(material1On.indices.length > 0)
     drawBuffer(material1On,noNormalShader);
@@ -1880,7 +1952,7 @@ function initProjection() {
   setProjection();
 }
 
-let materialShader,colorShader,noNormalShader,transparentShader;
+let materialShader,colorShader,noNormalShader,transparentShader,pixelShader;
 
 function webGLStart()
 {
@@ -1904,6 +1976,7 @@ function webGLStart()
   materialShader=initShader(["NORMAL"]);
   colorShader=initShader(["NORMAL","COLOR"]);
   transparentShader=initShader(["NORMAL","TRANSPARENT"]);
+  pixelShader=initShader(["WIDTH"]);
 
   setBuffer();
 

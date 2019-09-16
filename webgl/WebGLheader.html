@@ -98,9 +98,14 @@
 
   <script id="vertex" type="x-shader/x-vertex">
     attribute vec3 position;
+#ifdef WIDTH
+    attribute float width;
+#endif
     attribute vec3 normal;
     attribute float materialIndex;
+#ifndef WIDTH
     attribute float centerIndex;
+#endif
 #ifdef TRANSPARENT
     attribute vec4 color;
 #endif
@@ -132,10 +137,14 @@
     uniform vec3 Centers[nCenters];
 
     void main(void) {
+#ifdef WIDTH
+      vec4 v=vec4(position,1.0);
+#else      
       int index=int(centerIndex);
       vec4 v=vec4(index == 0 ? position :
                         Centers[index-1]+normMat*(position-Centers[index-1]),
                         1.0);
+#endif
       gl_Position=projViewMat*v;
 #ifdef NORMAL
 #ifndef ORTHOGRAPHIC
@@ -169,6 +178,9 @@
       fresnel0=m.fresnel0;
 #else
       emissive=Materials[int(materialIndex)].emissive;
+#endif
+#ifdef WIDTH
+      gl_PointSize=width;
 #endif
     }
 </script>

@@ -35,7 +35,7 @@ void jsfile::open(string name) {
       << "canvasHeight=" << gl::fullHeight << ";" << newl
       << "size2=Math.hypot(canvasWidth,canvasHeight);" << newl
       << "Zoom0=" << gl::Zoom0 << ";" << newl << newl
-      << "var lights=[";
+      << "let lights=[";
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;
     out << "new Light(" << newl
@@ -43,6 +43,13 @@ void jsfile::open(string name) {
         << "color=[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1]
         << "," << gl::Diffuse[i4+2] << "])," << newl;
   }
+  out << "];" << newl << newl;
+  size_t nmaterials=drawElement::material.size();
+  out << "let Materials=[";
+  for(size_t i=0; i < nmaterials; ++i)
+    out << "new Material(" << newl
+        << drawElement::material[i]
+        << ")," << newl;
   out << "];" << newl << newl;
 }
 
@@ -80,8 +87,7 @@ void jsfile::addPatch(triple const* controls, size_t n,
 
 void jsfile::addCurve(const triple& z0, const triple& c0,
                       const triple& c1, const triple& z1,
-                      const triple& Min, const triple& Max,
-                      const prc::RGBAColour color)
+                      const triple& Min, const triple& Max)
 {
   out << "P.push(new BezierCurve([" << newl;
   out << z0 << "," << newl
@@ -92,8 +98,27 @@ void jsfile::addCurve(const triple& z0, const triple& c0,
       << Min << "," << Max << "));" << newl << newl;
 }
 
+void jsfile::addCurve(const triple& z0, const triple& z1,
+                      const triple& Min, const triple& Max)
+{
+  out << "P.push(new BezierCurve([" << newl;
+  out << z0 << "," << newl
+      << z1 << newl << "],"
+      << drawElement::centerIndex << "," << drawElement::materialIndex << ","
+      << Min << "," << Max << "));" << newl << newl;
+}
+
+void jsfile::addPixel(const triple& z0, double width,
+                      const triple& Min, const triple& Max)
+{
+  out << "P.push(new Pixel(" << newl;
+  out << z0 << "," << width << "," << newl
+      << drawElement::materialIndex << ","
+      << Min << "," << Max << "));" << newl << newl;
+}
+
 void jsfile::addMaterial(size_t index) {
-  out << "M.push(new Material(" << newl
+  out << "Materials.push(new Material(" << newl
        << drawElement::material[index]
       << "));" << newl << newl;
 }
