@@ -430,11 +430,68 @@ class BezierPatch extends Geometry {
     this.epsilon *= Fuzz4;
   }
 
+  renderTriangle() {
+    let p=this.controlpoints;
+    let p0=p[0];
+    let p1=p[1];
+    let p2=p[2];
+    let n=unit(cross([p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],
+                     [p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]]));
+    if(this.color) {
+      data.indices.push(data.Vertex(p0,n,this.color[0]));
+      data.indices.push(data.Vertex(p1,n,this.color[1]));
+      data.indices.push(data.Vertex(p2,n,this.color[2]));
+    } else {
+      data.indices.push(this.vertex(p0,n));
+      data.indices.push(this.vertex(p1,n));
+      data.indices.push(this.vertex(p2,n));
+    }
+    this.append();
+  }
+
+  renderQuad() {
+    let p=this.controlpoints;
+    let p0=p[0];
+    let p1=p[1];
+    let p2=p[2];
+    let p3=p[3];
+    let v1=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]];
+    let v2=[p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]];
+    let v3=[p3[0]-p0[0],p3[1]-p0[1],p3[2]-p0[2]];
+    let n1=cross(v1,v2);
+    let n2=cross(v2,v3);
+    let n=unit([n1[0]+n2[0],n1[1]+n2[1],n1[2]+n2[2]]);
+
+    let i0,i1,i2,i3;
+    if(this.color) {
+      i0=data.Vertex(p0,n,this.color[0]);
+      i1=data.Vertex(p1,n,this.color[1]);
+      i2=data.Vertex(p2,n,this.color[2]);
+      i3=data.Vertex(p3,n,this.color[3]);
+    } else {
+      i0=this.vertex(p0,n);
+      i1=this.vertex(p1,n);
+      i2=this.vertex(p2,n);
+      i3=this.vertex(p3,n);
+    }
+    data.indices.push(i0);
+    data.indices.push(i1);
+    data.indices.push(i3);
+
+    data.indices.push(i0);
+    data.indices.push(i3);
+    data.indices.push(i2);
+
+    this.append();
+  }
+
   render() {
     if(this.OffScreen()) return;
 
     let p=this.controlpoints;
     if(p.length == 10) return this.render3();
+    if(p.length == 3) return this.renderTriangle();
+    if(p.length == 4) return this.renderQuad();
     
     let p0=p[0];
     let p3=p[3];

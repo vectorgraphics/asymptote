@@ -268,7 +268,11 @@ bool drawBezierPatch::write(jsfile *out)
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
-  out->addPatch(controls,16,Min,Max,colors);
+  if(straight) {
+    triple Controls[]={controls[0],controls[3],controls[12],controls[15]};
+    out->addPatch(Controls,4,Min,Max,colors);
+  } else
+    out->addPatch(controls,16,Min,Max,colors);
                     
   return true;
 }
@@ -504,7 +508,11 @@ bool drawBezierTriangle::write(jsfile *out)
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
-  out->addPatch(controls,10,Min,Max,colors);
+  if(straight) {
+    triple Controls[]={controls[0],controls[6],controls[9]};
+    out->addPatch(Controls,3,Min,Max,colors);
+  } else
+    out->addPatch(controls,10,Min,Max,colors);
                     
   return true;
 }
