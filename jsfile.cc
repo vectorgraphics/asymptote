@@ -98,6 +98,16 @@ void jsfile::addCurve(const triple& z0, const triple& c0,
       << Min << "," << Max << "));" << newl << newl;
 }
 
+void jsfile::addCurve(const triple& z0, const triple& z1,
+                      const triple& Min, const triple& Max)
+{
+  out << "P.push(new BezierCurve([" << newl;
+  out << z0 << "," << newl
+      << z1 << newl << "],"
+      << drawElement::centerIndex << "," << drawElement::materialIndex << ","
+      << Min << "," << Max << "));" << newl << newl;
+}
+
 void jsfile::addPixel(const triple& z0, double width,
                       const triple& Min, const triple& Max)
 {

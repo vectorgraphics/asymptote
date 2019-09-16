@@ -1190,10 +1190,20 @@ class BezierCurve extends Geometry {
     this.MaterialIndex=MaterialIndex;
   }
 
+  renderLine() {
+    let p=this.controlpoints;
+    let p0=p[0];
+    let p1=p[1];
+    data.indices.push(data.vertex1(p0));
+    data.indices.push(data.vertex1(p1));
+    this.append();
+  }
+
   render() {
     if(this.OffScreen()) return;
 
     let p=this.controlpoints;
+    if(p.length == 2) return this.renderLine();
     
     let i0=data.vertex1(p[0]);
     let i3=data.vertex1(p[3]);

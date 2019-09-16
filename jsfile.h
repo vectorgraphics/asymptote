@@ -32,6 +32,9 @@ public:
                 const triple& c1, const triple& z1,
                 const triple& Min, const triple& Max);
   
+  void addCurve(const triple& z0, const triple& z1,
+                const triple& Min, const triple& Max);
+  
   void addPixel(const triple& z0, double width,
                 const triple& Min, const triple& Max);
   
