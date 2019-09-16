@@ -94,9 +94,11 @@ const char pathSeparator=':';
 #ifdef __APPLE__
 string defaultPSViewer="open";
 string defaultPDFViewer="open";
+string defaultHTMLViewer="open";
 #else  
 string defaultPSViewer="gv";
 string defaultPDFViewer="acroread";
+string defaultHTMLViewer="google-chrome";
 #endif  
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="";
@@ -1299,6 +1301,7 @@ void initSettings() {
   addOption(new stringSetting("convertOptions", 0, "string", ""));
   addOption(new stringSetting("gsOptions", 0, "string", ""));
   addOption(new stringSetting("psviewerOptions", 0, "string", ""));
+  addOption(new stringSetting("htmlviewerOptions", 0, "string", ""));
   addOption(new stringSetting("pdfviewerOptions", 0, "string", ""));
   addOption(new stringSetting("pdfreloadOptions", 0, "string", ""));
   addOption(new stringSetting("glOptions", 0, "string", ""));
@@ -1306,6 +1309,7 @@ void initSettings() {
                               "","setpagesize=false,unicode,pdfborder=0 0 0"));
   
   addOption(new envSetting("config","config."+suffix));
+  addOption(new envSetting("htmlviewer", defaultHTMLViewer));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
