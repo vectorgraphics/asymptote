@@ -245,9 +245,10 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 
   if(straight) {
     triple vertices[]={controls[0],controls[12],controls[3],controls[15]};
-    if(colors)
-      out->addQuad(vertices,colors);
-    else
+    if(colors) {
+      prc::RGBAColour Colors[]={colors[0],colors[1],colors[3],colors[2]};
+      out->addQuad(vertices,Colors);
+    } else
       out->addRectangle(vertices,m);
   } else
     out->addPatch(controls,m);
@@ -269,7 +270,7 @@ bool drawBezierPatch::write(jsfile *out)
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
   if(straight) {
-    triple Controls[]={controls[0],controls[3],controls[12],controls[15]};
+    triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addPatch(Controls,4,Min,Max,colors);
   } else
     out->addPatch(controls,16,Min,Max,colors);

@@ -455,9 +455,9 @@ class BezierPatch extends Geometry {
     let p2=p[2];
     let p3=p[3];
     let n1=cross([p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],
-                 [p3[0]-p1[0],p3[1]-p1[1],p3[2]-p1[2]]);
-    let n2=cross([p3[0]-p2[0],p3[1]-p2[1],p3[2]-p2[2]],
-                 [p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]]);
+                 [p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]]);
+    let n2=cross([p2[0]-p3[0],p2[1]-p3[1],p2[2]-p3[2]],
+                 [p3[0]-p0[0],p3[1]-p0[1],p3[2]-p0[2]]);
     let n=unit([n1[0]+n2[0],n1[1]+n2[1],n1[2]+n2[2]]);
     let i0,i1,i2,i3;
     if(this.color) {
@@ -473,11 +473,11 @@ class BezierPatch extends Geometry {
     }
     data.indices.push(i0);
     data.indices.push(i1);
-    data.indices.push(i3);
+    data.indices.push(i2);
 
     data.indices.push(i0);
-    data.indices.push(i3);
     data.indices.push(i2);
+    data.indices.push(i3);
 
     this.append();
   }
