@@ -289,7 +289,7 @@ void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
 }
 #endif
 
-void BezierPatch::init(double res, const triple& Min, const triple& Max,
+void BezierPatch::init(double res, const pair& Min, const pair& Max,
                        bool transparent, GLfloat *colors, bool billboard)
 {
   Offscreen=false;

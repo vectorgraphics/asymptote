@@ -283,13 +283,13 @@ public:
   triple mintimes() const {
     checkEmpty3(n);
     bounds();
-    return camp::triple(times.left,times.bottom,times.lower);
+    return camp::triple(times.left,times.bottom,times.near);
   }
   
   triple maxtimes() const {
     checkEmpty3(n);
     bounds();
-    return camp::triple(times.right,times.top,times.upper);
+    return camp::triple(times.right,times.top,times.far);
   }
   
   template<class T>

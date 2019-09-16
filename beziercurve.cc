@@ -19,7 +19,7 @@ std::vector<pixelData> Pixel::vertexbuffer;
 GLuint BezierCurve::vertsBufferIndex;
 GLuint BezierCurve::elemBufferIndex;
 
-void BezierCurve::init(double res, const triple& Min, const triple& Max,
+void BezierCurve::init(double res, const pair& Min, const pair& Max,
                        bool billboard)
 {
   const size_t nbuffer=1000; // Initial size of dynamic buffers

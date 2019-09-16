@@ -116,7 +116,7 @@ struct BezierPatch
   double Epsilon;
   double res2;
   double Res2; // Reduced resolution for Bezier triangles flatness test.
-  triple Min,Max;
+  pair Min,Max;
   typedef GLuint vertexFunction(const triple &v, const triple& n);
   typedef GLuint VertexFunction(const triple &v, const triple& n, GLfloat *c);
   vertexFunction *pvertex;
@@ -125,7 +125,7 @@ struct BezierPatch
   
   BezierPatch() {}
   
-  void init(double res, const triple& Min, const triple& Max,
+  void init(double res, const pair& Min, const pair& Max,
             bool transparent, GLfloat *colors=NULL, bool billboard=false);
     
 // Store the vertex v and its normal vector n in the buffer.
@@ -260,7 +260,6 @@ struct BezierPatch
        Y >= Min.gety() && y <= Max.gety())
       return false;
 
-    cout << "offscreen" << endl;
     return Offscreen=true;
   }
 
@@ -290,7 +289,7 @@ struct BezierPatch
   virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
   
   bool queue(const triple *g, bool straight, double ratio,
-             const triple& Min, const triple& Max, bool transparent,
+             const pair& Min, const pair& Max, bool transparent,
              GLfloat *colors=NULL, bool billboard=false) {
     init(pixel*ratio,Min,Max,transparent,colors,billboard);
     render(g,straight,colors);

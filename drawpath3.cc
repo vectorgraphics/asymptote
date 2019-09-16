@@ -93,31 +93,30 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(billboard)
     drawElement::centerIndex=centerIndex;
   
-  triple m,M;
+  triple m3,M3;
   
   double f,F,s;
   if(perspective) {
     f=Min.getz()*perspective;
     F=Max.getz()*perspective;
-    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
+    m3=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
+    M3=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
     s=max(f,F);
   } else {
-    m=b;
-    M=B;
+    m3=b;
+    M3=B;
     s=1.0;
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
   
-  bbox3 box(m,M);
-  box.transform(modelView.Tinv);
-  m=box.Min();
-  M=box.Max();
-
+  bbox3 box(m3,M3);
+  box.transform2(modelView.Tinv);
+  pair m=box.Min2();
+  pair M=box.Max2();
+  
   if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                    Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz())) {
+                    Max.gety() < m.gety() || Min.gety() > M.gety())) {
     offscreen=true;
     return;
   }
@@ -272,31 +271,30 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
 {
 #ifdef HAVE_LIBGLM
   if(invisible || ((color.A < 1.0) ^ transparent)) return;
-  triple m,M;
+  triple m3,M3;
   
   double f,F,s;
   if(perspective) {
     f=Min.getz()*perspective;
     F=Max.getz()*perspective;
-    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
+    m3=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
+    M3=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
     s=max(f,F);
   } else {
-    m=b;
-    M=B;
+    m3=b;
+    M3=B;
     s=1.0;
   }
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
   
-  bbox3 box(m,M);
-  box.transform(modelView.Tinv);
-  m=box.Min();
-  M=box.Max();
-
-  if((Max.getx() < m.getx() || Min.getx() > M.getx() ||
-      Max.gety() < m.gety() || Min.gety() > M.gety() ||
-      Max.getz() < m.getz() || Min.getz() > M.getz())) {
+  bbox3 box(m3,M3);
+  box.transform2(modelView.Tinv);
+  pair m=box.Min2();
+  pair M=box.Max2();
+  
+  if(Max.getx() < m.getx() || Min.getx() > M.getx() ||
+     Max.gety() < m.gety() || Min.gety() > M.gety()) {
     offscreen=true;
     return;
   }

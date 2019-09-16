@@ -134,12 +134,10 @@ public:
               double PRCshininess, const vm::array &pens,
               Interaction interaction, bool prc) : 
     drawSurface(g,16,center,straight,p,opacity,
-                shininess,metallic,fresnel0,PRCshininess,pens,interaction,prc) {
-  }
+                shininess,metallic,fresnel0,PRCshininess,pens,interaction,prc)  {}
 
   drawBezierPatch(const double* t, const drawBezierPatch *s) :
-    drawSurface(t,s) {
-  }
+    drawSurface(t,s) {}
   
   void bounds(const double* t, bbox3& b);
   
@@ -147,7 +145,7 @@ public:
              double fuzz, bool &first);
   
   void meshinit() {
-    if(billboard && centerIndex == 0)
+    if(billboard)
       centerIndex=centerindex(center);
   }
   
@@ -181,13 +179,13 @@ public:
   void ratio(const double* t, pair &b, double (*m)(double, double),
              double fuzz, bool &first);
   
-  bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out);
-  
   void meshinit() {
     if(billboard)
       centerIndex=centerindex(center);
   }
+  
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out);
   
   void render(double, const triple& Min, const triple& Max,
               double perspective, bool transparent);

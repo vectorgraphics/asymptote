@@ -168,8 +168,8 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
     
     c0=cz[0];
     fuzz=Fuzz*run::norm(cz,16);
-    z=bound(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
-    Z=bound(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
+    z=bound(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
+    Z=bound(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
   }  
   
   b.add(x,y,z);
@@ -289,29 +289,28 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(billboard)
     drawElement::centerIndex=centerIndex;
 
-  triple m,M;
+  triple m3,M3;
   
   double s;
   if(perspective) {
     double f=Min.getz()*perspective;
     double F=Max.getz()*perspective;
-    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
+    m3=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
+    M3=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
     s=max(f,F);
   } else {
-    m=b;
-    M=B;
+    m3=b;
+    M3=B;
     s=1.0;
   }
   
-  bbox3 box(m,M);
-  box.transform(modelView.Tinv);
-  m=box.Min();
-  M=box.Max();
+  bbox3 box(m3,M3);
+  box.transform2(modelView.Tinv);
+  pair m=box.Min2();
+  pair M=box.Max2();
   
   if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                    Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz())) {
+                    Max.gety() < m.gety() || Min.gety() > M.gety())) {
     offscreen=true;
     return;
   }
@@ -408,8 +407,8 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
     
     c0=cz[0];
     fuzz=Fuzz*run::norm(cz,10);
-    z=boundtri(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
-    Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
+    z=boundtri(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
+    Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
   }
     
   b.add(x,y,z);
@@ -504,7 +503,6 @@ bool drawBezierTriangle::write(jsfile *out)
   if(billboard) {
     meshinit();
     drawElement::centerIndex=centerIndex;
-    
   } else drawElement::centerIndex=0;
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
@@ -529,33 +527,32 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   if(billboard)
     drawElement::centerIndex=centerIndex;
 
-  triple m,M;
+  triple m3,M3;
   
   double s;
   if(perspective) {
     double f=Min.getz()*perspective;
     double F=Max.getz()*perspective;
-    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
+    m3=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
+    M3=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
     s=max(f,F);
   } else {
-    m=b;
-    M=B;
+    m3=b;
+    M3=B;
     s=1.0;
   }
   
-  bbox3 box(m,M);
-  box.transform(modelView.Tinv);
-  m=box.Min();
-  M=box.Max();
-
+  bbox3 box(m3,M3);
+  box.transform2(modelView.Tinv);
+  pair m=box.Min2();
+  pair M=box.Max2();
+  
   if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                    Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz())) {
+                    Max.gety() < m.gety() || Min.gety() > M.gety())) {
     offscreen=true;
     return;
   }
-
+  
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
@@ -566,17 +563,26 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
       storecolor(v,4*i,colors[i]);
     
   if(gl::outlinemode) {
-    offscreen=true;
     triple edge0[]={controls[0],controls[1],controls[3],controls[6]};
-    C.queue(edge0,straight,size3.length()/size2,m,M);
+    offscreen |= C.queue(edge0,straight,size3.length()/size2,m,M);
     triple edge1[]={controls[6],controls[7],controls[8],controls[9]};
-    C.queue(edge1,straight,size3.length()/size2,m,M);
+    offscreen |= C.queue(edge1,straight,size3.length()/size2,m,M);
     triple edge2[]={controls[9],controls[5],controls[2],controls[0]};
-    C.queue(edge2,straight,size3.length()/size2,m,M);
+    offscreen |= C.queue(edge2,straight,size3.length()/size2,m,M);
     C.draw();
   } else
     offscreen=S.queue(controls,straight,size3.length()/size2,m,M,transparent,
                       colors ? v : NULL,billboard);
+  if(BezierPatch::vertexbuffer.size() >= gl::maxvertices) {
+    S.drawMaterials();
+    BezierPatch::clear();
+    gl::forceRemesh=true;
+  }
+  if(BezierPatch::Vertexbuffer.size() >= gl::maxvertices) {
+    S.drawColors();
+    BezierPatch::Clear();
+    gl::forceRemesh=true;
+  }
 #endif
 }
 

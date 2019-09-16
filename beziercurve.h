@@ -58,7 +58,7 @@ struct BezierCurve
   static std::vector<vertexData1> vertexbuffer;
   static std::vector<GLuint> indices;
   double res,res2;
-  triple Min,Max;
+  pair Min,Max;
   typedef GLuint vertexFunction(const triple &v);
   vertexFunction *pvertex;
 
@@ -70,7 +70,7 @@ struct BezierCurve
   
   BezierCurve() {}
   
-  void init(double res, const triple& Min, const triple& Max,
+  void init(double res, const pair& Min, const pair& Max,
             bool billboard=false);
     
 // Store the vertex v in the buffer.
@@ -86,21 +86,31 @@ struct BezierCurve
     return nvertices;
   }
   
-// Approximate bounds by bounding box of control polyhedron.
+  // Approximate bounds by bounding box of control polyhedron.
   bool offscreen(size_t n, const triple *v) {
-    double x,y,z;
-    double X,Y,Z;
+    double x,y;
+    double X,Y;
+
+    X=x=v[0].getx();
+    Y=y=v[0].gety();
     
-    boundstriples(x,y,z,X,Y,Z,n,v);
-    
+    for(size_t i=1; i < n; ++i) {
+      triple V=v[i];
+      double vx=V.getx();
+      double vy=V.gety();
+      if(vx < x) x=vx;
+      else if(vx > X) X=vx;
+      if(vy < y) y=vy;
+      else if(vy > Y) Y=vy;
+    }
+
     if(X >= Min.getx() && x <= Max.getx() &&
-       Y >= Min.gety() && y <= Max.gety() &&
-       Z >= Min.getz() && z <= Max.getz())
+       Y >= Min.gety() && y <= Max.gety())
       return false;
-    
+
     return Offscreen=true;
   }
-  
+
   static void clear() {
     vertexbuffer.clear();
     indices.clear();
@@ -112,7 +122,7 @@ struct BezierCurve
   void render(const triple *p, bool straight);
   
   bool queue(const triple *g, bool straight, double ratio,
-             const triple& Min, const triple& Max, bool billboard=false) {
+             const pair& Min, const pair& Max, bool billboard=false) {
     init(pixel*ratio,Min,Max,billboard);
     render(g,straight);
     return Offscreen;

@@ -77,14 +77,28 @@ public:
       return v;
 
     double f=t[12]*v.x+t[13]*v.y+t[14]*v.z+t[15];
-    if(f == 0.0)
-      reportError("division by 0 in transform of a triple");
-    
-    f=1.0/f;
-    
-    return triple((t[0]*v.x+t[1]*v.y+t[2]*v.z+t[3])*f,
-                  (t[4]*v.x+t[5]*v.y+t[6]*v.z+t[7])*f,
-                  (t[8]*v.x+t[9]*v.y+t[10]*v.z+t[11])*f);
+    if(f != 0.0) {
+      f=1.0/f;
+      
+      return triple((t[0]*v.x+t[1]*v.y+t[2]*v.z+t[3])*f,
+                    (t[4]*v.x+t[5]*v.y+t[6]*v.z+t[7])*f,
+                    (t[8]*v.x+t[9]*v.y+t[10]*v.z+t[11])*f);
+    }
+    reportError("division by 0 in transform of a triple");
+    return 0.0;
+  }
+  
+  // return first two rows of operator *
+  friend pair Transform2(const double* t, const triple& v)
+  {
+    double f=t[12]*v.x+t[13]*v.y+t[14]*v.z+t[15];
+    if(f != 0.0) {
+      f=1.0/f;
+      return pair((t[0]*v.x+t[1]*v.y+t[2]*v.z+t[3])*f,
+                  (t[4]*v.x+t[5]*v.y+t[6]*v.z+t[7])*f);
+    }
+    reportError("division by 0 in transform of a triple");
+    return 0.0;
   }
   
   friend triple transformNormal(const double* t, const triple& v)
