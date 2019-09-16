@@ -332,12 +332,11 @@ function appendOffset(a,b,o)
 class Geometry {
   // Approximate bounds by bounding box of control polyhedron.
   offscreen(n,v) {
-    let x,y,z;
-    let X,Y,Z;
+    let x,y;
+    let X,Y;
 
     X=x=v[0][0];
     Y=y=v[0][1];
-    Z=z=v[0][2];
     
     for(let i=1; i < n; ++i) {
       let V=v[i];

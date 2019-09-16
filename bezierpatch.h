@@ -238,17 +238,29 @@ struct BezierPatch
     }
   };
   
-// Approximate bounds by bounding box of control polyhedron.
+  // Approximate bounds by bounding box of control polyhedron.
   bool offscreen(size_t n, const triple *v) {
-    double x,y,z;
-    double X,Y,Z;
+    double x,y;
+    double X,Y;
+
+    X=x=v[0].getx();
+    Y=y=v[0].gety();
     
-    boundstriples(x,y,z,X,Y,Z,n,v);
+    for(size_t i=1; i < n; ++i) {
+      triple V=v[i];
+      double vx=V.getx();
+      double vy=V.gety();
+      if(vx < x) x=vx;
+      else if(vx > X) X=vx;
+      if(vy < y) y=vy;
+      else if(vy > Y) Y=vy;
+    }
+
     if(X >= Min.getx() && x <= Max.getx() &&
-       Y >= Min.gety() && y <= Max.gety() &&
-       Z >= Min.getz() && z <= Max.getz())
+       Y >= Min.gety() && y <= Max.gety())
       return false;
-    
+
+    cout << "offscreen" << endl;
     return Offscreen=true;
   }
 
