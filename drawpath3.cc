@@ -128,7 +128,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   for(Int i=0; i < n; ++i) {
     triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
                        g.point(i+1)};
-    offscreen |= R.queue(controls,straight,size3.length()/size2,m,M,billboard);
+    offscreen |= R.queue(controls,g.straight(i),size3.length()/size2,m,M,billboard);
   }
 
   if(BezierCurve::vertexbuffer.size() >= (unsigned) gl::maxvertices) {
