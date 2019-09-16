@@ -66,7 +66,6 @@ bool drawPath3::write(jsfile *out)
   if(billboard) {
     meshinit();
     drawElement::centerIndex=centerIndex;
-    
   } else drawElement::centerIndex=0;
   
   RGBAColour Black(0.0,0.0,0.0,color.A);

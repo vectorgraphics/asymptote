@@ -264,7 +264,6 @@ bool drawBezierPatch::write(jsfile *out)
   if(billboard) {
     meshinit();
     drawElement::centerIndex=centerIndex;
-    
   } else drawElement::centerIndex=0;
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
