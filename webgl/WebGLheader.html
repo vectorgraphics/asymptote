@@ -9,13 +9,13 @@ attribute vec3 position;
 #ifdef WIDTH
 attribute float width;
 #endif
+#ifdef NORMAL
 attribute vec3 normal;
-attribute float materialIndex;
-#ifndef WIDTH
-attribute float centerIndex;
 #endif
-#ifdef TRANSPARENT
-attribute vec4 color;
+attribute float materialIndex;
+#ifdef BILLBOARD
+attribute float centerIndex;
+uniform vec3 Centers[nCenters];
 #endif
 #ifdef COLOR
 attribute vec4 color;
@@ -30,10 +30,10 @@ uniform mat4 projViewMat;
 varying vec3 ViewPosition;
 #endif
 varying vec3 Normal;
+#endif
 varying vec4 diffuse;
 varying vec3 specular;
 varying float roughness,metallic,fresnel0;
-#endif
 varying vec4 emissive;
 
 struct Material {
@@ -42,17 +42,15 @@ struct Material {
 };
 
 uniform Material Materials[nMaterials];
-uniform vec3 Centers[nCenters];
 
 void main(void)
 {
-#ifdef WIDTH
-  vec4 v=vec4(position,1.0);
-#else      
+#ifdef BILLBOARD
   int index=int(centerIndex);
   vec4 v=vec4(index == 0 ? position :
-              Centers[index-1]+normMat*(position-Centers[index-1]),
-              1.0);
+              Centers[index-1]+normMat*(position-Centers[index-1]),1.0);
+#else      
+  vec4 v=vec4(position,1.0);
 #endif
   gl_Position=projViewMat*v;
 #ifdef NORMAL
@@ -71,7 +69,7 @@ void main(void)
     diffuse=color;
     emissive=vec4(0.0);
   }
-#else      
+#else
   m=Materials[int(materialIndex)];
 #ifdef COLOR
   diffuse=color;

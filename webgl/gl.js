@@ -168,6 +168,7 @@ function getShader(gl,id,options=[]) {
 function drawBuffer(data,shader,indices=data.indices)
 {
   let pixel=shader == pixelShader;
+  let billboard=!pixel && shader != materialShader;
   let normal=!pixel && (shader != noNormalShader);
 
   setUniforms(shader);
@@ -188,8 +189,8 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexMaterialAttribute,
-                         1,gl.SHORT,false,pixel ? 2 : 4,0);
-  if(!pixel)
+                         1,gl.SHORT,false,billboard ? 4 : 2,0);
+  if(billboard)
     gl.vertexAttribPointer(shader.vertexCenterAttribute,
                            1,gl.SHORT,false,4,2);
 
@@ -211,7 +212,7 @@ function drawBuffer(data,shader,indices=data.indices)
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
 }
 
-class vertexData {
+class vertexBuffer {
   constructor() {
     this.clear();
   }
@@ -220,12 +221,23 @@ class vertexData {
     this.materials=[];
     this.colors=[];
     this.indices=[];
-
     this.nvertices=0;
   }
 
   // material vertex 
   vertex(v,n) {
+    this.vertices.push(v[0]);
+    this.vertices.push(v[1]);
+    this.vertices.push(v[2]);
+    this.vertices.push(n[0]);
+    this.vertices.push(n[1]);
+    this.vertices.push(n[2]);
+    this.materials.push(materialIndex);
+    return this.nvertices++;
+  }
+
+  // billboard material vertex 
+  bvertex(v,n) {
     this.vertices.push(v[0]);
     this.vertices.push(v[1]);
     this.vertices.push(v[2]);
@@ -291,22 +303,25 @@ class vertexData {
   }
 }
 
-let data=new vertexData();
+let data=new vertexBuffer();
 
-let materialOn=new vertexData();     // Onscreen material data
-let materialOff=new vertexData();    // Partially offscreen material data
+let materialOn=new vertexBuffer();     // Onscreen material data
+let materialOff=new vertexBuffer();    // Partially offscreen material data
 
-let colorOn=new vertexData();        // Onscreen color data
-let colorOff=new vertexData();       // Partially offscreen color data
+let billboardOn=new vertexBuffer();     // Onscreen billboard material data
+let billboardOff=new vertexBuffer();    // Partially offscreen billboard data
 
-let transparentOn=new vertexData();  // Onscreen transparent data
-let transparentOff=new vertexData(); // Partially offscreen transparent data
+let colorOn=new vertexBuffer();        // Onscreen color data
+let colorOff=new vertexBuffer();       // Partially offscreen color data
 
-let material1On=new vertexData();     // Onscreen material 1D data
-let material1Off=new vertexData();    // Partially offscreen material 1D data
+let transparentOn=new vertexBuffer();  // Onscreen transparent data
+let transparentOff=new vertexBuffer(); // Partially offscreen transparent data
 
-let material0On=new vertexData();     // Onscreen material 0D data
-let material0Off=new vertexData();    // Partially offscreen material 0D data
+let material1On=new vertexBuffer();     // Onscreen material 1D data
+let material1Off=new vertexBuffer();    // Partially offscreen material 1D data
+
+let material0On=new vertexBuffer();     // Onscreen material 0D data
+let material0Off=new vertexBuffer();    // Partially offscreen material 0D data
 
 let materialIndex;
 let centerIndex;
@@ -315,8 +330,9 @@ let centerIndex;
 function append(a,b)
 {
   let n=a.length;
-  a.length += b.length;
-  for(let i=0, m=b.length; i < m; ++i)
+  let m=b.length;
+  a.length += m;
+  for(let i=0; i < m; ++i)
     a[n+i]=b[i];
 }
 
@@ -324,8 +340,9 @@ function append(a,b)
 function appendOffset(a,b,o)
 {
   let n=a.length;
+  let m=b.length;
   a.length += b.length;
-  for(let i=0, m=b.length; i < m; ++i)
+  for(let i=0; i < m; ++i)
     a[n+i]=b[i]+o;
 }
 
@@ -377,9 +394,8 @@ class Geometry {
 
     [this.x,this.y,this.X,this.Y]=new bbox2(m,M).bounds();
 
-    if(centerIndex == 0 &&
-       (this.Max[0] < this.x || this.Min[0] > this.X ||
-        this.Max[1] < this.y || this.Min[1] > this.Y)) {
+    if(this.Max[0] < this.x || this.Min[0] > this.X ||
+       this.Max[1] < this.y || this.Min[1] > this.Y) {
       return this.Offscreen=true;
     }
 
@@ -413,7 +429,8 @@ class BezierPatch extends Geometry {
     this.MaterialIndex=this.transparent ?
       (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
     this.vertex=(this.color || this.transparent) ?
-      data.Vertex.bind(data) : data.vertex.bind(data);
+      data.Vertex.bind(data) :
+      (CenterIndex > 0 ? data.bvertex.bind(data) : data.vertex.bind(data));
     this.L2norm();
   }
 
@@ -556,10 +573,17 @@ class BezierPatch extends Geometry {
         else
           colorOn.append(data);
       } else {
-        if(this.Offscreen)
-          materialOff.append(data);
-        else
-          materialOn.append(data);
+        if(this.CenterIndex > 0) {
+          if(this.Offscreen)
+            billboardOff.append(data);
+          else
+            billboardOn.append(data);
+        } else {
+          if(this.Offscreen)
+            materialOff.append(data);
+          else
+            materialOn.append(data);
+        }
       }
     }
     data.clear();
@@ -1449,6 +1473,8 @@ function COBTarget(out,mat) {
 function setUniforms(shader)
 {
   let pixel=shader == pixelShader;
+  let billboard=!pixel && shader != materialShader;
+
   gl.useProgram(shader);
 
   shader.vertexPositionAttribute=
@@ -1471,7 +1497,7 @@ function setUniforms(shader)
     gl.getAttribLocation(shader,"materialIndex");
   gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
 
-  if(!pixel) {
+  if(billboard) {
     shader.vertexCenterAttribute=
       gl.getAttribLocation(shader,"centerIndex");
     gl.enableVertexAttribArray(shader.vertexCenterAttribute);
@@ -1795,6 +1821,7 @@ function draw()
   material0Off.clear();
   material1Off.clear();
   materialOff.clear();
+  billboardOff.clear();
   colorOff.clear();
   transparentOff.clear();
 
@@ -1802,6 +1829,7 @@ function draw()
     material0On.clear();
     material1On.clear();
     materialOn.clear();
+    billboardOn.clear();
     colorOn.clear();
     transparentOn.clear();
   }
@@ -1828,6 +1856,12 @@ function draw()
   
   if(materialOff.indices.length > 0)
     drawBuffer(materialOff,materialShader);
+
+  if(billboardOn.indices.length > 0)
+    drawBuffer(billboardOn,billboardShader);
+  
+  if(billboardOff.indices.length > 0)
+    drawBuffer(billboardOff,billboardShader);
 
   if(colorOn.indices.length > 0)
     drawBuffer(colorOn,colorShader);
@@ -1951,7 +1985,8 @@ function initProjection() {
   setProjection();
 }
 
-let materialShader,colorShader,noNormalShader,transparentShader,pixelShader;
+let pixelShader,noNormalShader,materialShader,billboardShader,colorShader,
+    transparentShader;
 
 function webGLStart()
 {
@@ -1971,11 +2006,12 @@ function webGLStart()
   gl.enable(gl.DEPTH_TEST);
   gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
 
-  noNormalShader=initShader();
-  materialShader=initShader(["NORMAL"]);
-  colorShader=initShader(["NORMAL","COLOR"]);
-  transparentShader=initShader(["NORMAL","TRANSPARENT"]);
   pixelShader=initShader(["WIDTH"]);
+  noNormalShader=initShader(["BILLBOARD"]);
+  materialShader=initShader(["NORMAL"]);
+  billboardShader=initShader(["NORMAL","BILLBOARD"]);
+  colorShader=initShader(["NORMAL","BILLBOARD","COLOR"]);
+  transparentShader=initShader(["NORMAL","BILLBOARD","COLOR","TRANSPARENT"]);
 
   setBuffer();
 
