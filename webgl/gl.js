@@ -4,7 +4,7 @@
 let gl;
 
 let canvasWidth,canvasHeight;
-let halfCanvWidth,halfCanvHeight;
+let halfCanvasWidth,halfCanvasHeight;
 
 let pixel=0.75; // Adaptive rendering constant.
 let BezierFactor=0.4;
@@ -23,7 +23,7 @@ let H; // maximum camera view half-height
 
 let Fuzz2=1000*Number.EPSILON;
 let Fuzz4=Fuzz2*Fuzz2;
-let third=1.0/3.0;
+let third=1/3;
 
 let P=[]; // Array of Bezier patches, triangles, curves, and pixels
 let Centers=[]; // Array of billboard centers
@@ -348,8 +348,8 @@ class Geometry {
     return true;
   }
 
-  // Check whether patch is fully offscreen
-  OffScreen() {
+  // Check if re-rendering is required
+  remesh() {
     centerIndex=this.CenterIndex;
     materialIndex=this.MaterialIndex;
 
@@ -357,31 +357,23 @@ class Geometry {
     let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
 
     if(new bbox2(corners(this.Min,this.Max)).offscreen()) {
+      this.data.clear();
       this.Onscreen=false;
       return true;
     }
 
-    let s=orthographic ? 1.0 : this.Min[2]/B[2];
+    let s=orthographic ? 1 : this.Min[2]/B[2];
     let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
-    return false;
-  }
-
-  // Check if re-rendering is required
-  norender() {
-    if(this.OffScreen()) {
-        this.data.clear();
-      return false;
-    }
     
     if(!remesh && this.Onscreen) { // Fully onscreen; no need to re-render
       this.append();
-      return true;
+      return false;
     }
 
-    this.Onscreen=true;
     this.data.clear();
+    return this.Onscreen=true;
   }
 }
 
@@ -404,7 +396,7 @@ class BezierPatch extends Geometry {
     this.CenterIndex=CenterIndex;
     this.transparent=color ?
       color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
-      Materials[MaterialIndex].diffuse[3] < 1.0;
+      Materials[MaterialIndex].diffuse[3] < 1;
     this.MaterialIndex=this.transparent ?
       (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
     this.vertex=(this.color || this.transparent) ?
@@ -480,8 +472,6 @@ class BezierPatch extends Geometry {
   }
 
   render() {
-    if(this.norender()) return;
-
     let p=this.controlpoints;
     if(p.length == 10) return this.render3();
     if(p.length == 3) return this.renderTriangle();
@@ -1186,8 +1176,6 @@ class BezierCurve extends Geometry {
   }
 
   render() {
-   if(this.norender()) return;
-
     let p=this.controlpoints;
     if(p.length == 2) return this.renderLine();
     
@@ -1247,8 +1235,6 @@ class Pixel extends Geometry {
   }
 
   render() {
-    if(this.norender()) return;
-
     this.data.indices.push(this.data.vertex0(this.controlpoint,this.width));
     this.append();
   }
@@ -1300,13 +1286,12 @@ class Split3 {
 
 function iszero(v)
 {
-  return v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0;
+  return v[0] == 0 && v[1] == 0 && v[2] == 0;
 }
 
 function unit(v)
 {
-  let norm=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  norm=(norm != 0.0) ? 1.0/norm : 1.0;
+  let norm=1/(Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]) || 1);
   return [v[0]*norm,v[1]*norm,v[2]*norm];
 }
 
@@ -1331,18 +1316,18 @@ function cross(u,v)
 // by a,b,c,d at 0. 
 function bezierPP(a,b,c)
 {
-  return [a[0]+c[0]-2.0*b[0],
-          a[1]+c[1]-2.0*b[1],
-          a[2]+c[2]-2.0*b[2]];
+  return [a[0]+c[0]-2*b[0],
+          a[1]+c[1]-2*b[1],
+          a[2]+c[2]-2*b[2]];
 }
 
 // Return one-third of the third derivative of the Bezier curve defined by
 // a,b,c,d at 0.
 function bezierPPP(a,b,c,d)
 {
-  return [d[0]-a[0]+3.0*(b[0]-c[0]),
-          d[1]-a[1]+3.0*(b[1]-c[1]),
-          d[2]-a[2]+3.0*(b[2]-c[2])];
+  return [d[0]-a[0]+3*(b[0]-c[0]),
+          d[1]-a[1]+3*(b[1]-c[1]),
+          d[2]-a[2]+3*(b[2]-c[2])];
 }
 
 /**
@@ -1366,6 +1351,7 @@ function Distance2(z,u,n)
   return d*d;
 }
 
+// Return the vertices of the box containing 3d points m and M.
 function corners(m,M) {
   return [m,[m[0],m[1],M[2]],[m[0],M[1],m[2]],[m[0],M[1],M[2]],
           [M[0],m[1],m[2]],[M[0],m[1],M[2]],[M[0],M[1],m[2]],M];
@@ -1374,10 +1360,23 @@ function corners(m,M) {
 // Construct a 2D bounding box obtained by projecting 3d points in vector v.
 class bbox2 {
   constructor(v) {
-    this.m=projViewMat;
-    this.init(v[0]);
-    for(let i=1, n=v.length; i < n; ++i)
-      this.bbox(v[i]);
+    let m=projViewMat;
+    let v0=v[0];
+    let x=v0[0], y=v0[1], z=v0[2];
+    let f=1/(m[3]*x+m[7]*y+m[11]*z+m[15]);
+    this.x=this.X=(m[0]*x+m[4]*y+m[8]*z+m[12])*f;
+    this.y=this.Y=(m[1]*x+m[5]*y+m[9]*z+m[13])*f;
+    for(let i=1, n=v.length; i < n; ++i) {
+      let vi=v[i];
+      let x=vi[0], y=vi[1], z=vi[2];
+      let f=1/(m[3]*x+m[7]*y+m[11]*z+m[15]);
+      let X=(m[0]*x+m[4]*y+m[8]*z+m[12])*f;
+      let Y=(m[1]*x+m[5]*y+m[9]*z+m[13])*f;
+      if(X < this.x) this.x=X;
+      else if(X > this.X) this.X=X;
+      if(Y < this.y) this.y=Y;
+      else if(Y > this.Y) this.Y=Y;
+    }
   }
   // Check whether bounding box of transformed box is offscreen.
   offscreen() {
@@ -1385,24 +1384,6 @@ class bbox2 {
     let min=-1-eps;
     let max=1+eps;
     return this.X < min || this.x > max || this.Y < min || this.y > max;
-  }
-
-  init(v) {
-    let x=v[0], y=v[1], z=v[2];
-    let f=1.0/(this.m[3]*x+this.m[7]*y+this.m[11]*z+this.m[15]);
-    this.x=this.X=(this.m[0]*x+this.m[4]*y+this.m[8]*z+this.m[12])*f;
-    this.y=this.Y=(this.m[1]*x+this.m[5]*y+this.m[9]*z+this.m[13])*f;
-  }
-  bbox(v) {
-    let V=[];
-    let x=v[0], y=v[1], z=v[2];
-    let f=1.0/(this.m[3]*x+this.m[7]*y+this.m[11]*z+this.m[15]);
-    let X=(this.m[0]*x+this.m[4]*y+this.m[8]*z+this.m[12])*f;
-    let Y=(this.m[1]*x+this.m[5]*y+this.m[9]*z+this.m[13])*f;
-    if(X < this.x) this.x=X;
-    else if(X > this.X) this.X=X;
-    if(Y < this.y) this.y=Y;
-    else if(Y > this.Y) this.Y=Y;
   }
 }
 
@@ -1543,14 +1524,14 @@ function handleMouseUpOrTouchEnd(event) {
 function rotateScene(lastX,lastY,rawX,rawY,factor) {
     let [angle,axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
 
-    mat4.fromRotation(rotMats,angle*2.0*factor/lastzoom,axis);
+    mat4.fromRotation(rotMats,2*factor*angle/lastzoom,axis);
     mat4.multiply(rotMat,rotMats,rotMat);
 }
 
 function shiftScene(lastX,lastY,rawX,rawY) {
   let zoominv=1/lastzoom;
-  shift.x += (rawX-lastX)*zoominv*canvasWidth/2;
-  shift.y -= (rawY-lastY)*zoominv*canvasHeight/2;
+  shift.x += (rawX-lastX)*zoominv*halfCanvasWidth;
+  shift.y -= (rawY-lastY)*zoominv*halfCanvasHeight;
 }
 
 function panScene(lastX,lastY,rawX,rawY) {
@@ -1571,7 +1552,7 @@ function updateViewMatrix() {
 function capzoom() 
 {
   let maxzoom=Math.sqrt(Number.MAX_VALUE);
-  let minzoom=1.0/maxzoom;
+  let minzoom=1/maxzoom;
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
@@ -1580,7 +1561,7 @@ function capzoom()
 }
 
 function zoomImage(diff) {
-  let stepPower=zoomStep*halfCanvHeight*diff;
+  let stepPower=zoomStep*halfCanvasHeight*diff;
   const limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
 
   if(Math.abs(stepPower) < limit) {
@@ -1625,10 +1606,10 @@ function processDrag(newX,newY,mode,factor=1) {
       break;
   }
 
-  let lastX=(lastMouseX-halfCanvWidth)/halfCanvWidth;
-  let lastY=(lastMouseY-halfCanvHeight)/halfCanvHeight;
-  let rawX=(newX-halfCanvWidth)/halfCanvWidth;
-  let rawY=(newY-halfCanvHeight)/halfCanvHeight;
+  let lastX=(lastMouseX-halfCanvasWidth)/halfCanvasWidth;
+  let lastY=(lastMouseY-halfCanvasHeight)/halfCanvasHeight;
+  let rawX=(newX-halfCanvasWidth)/halfCanvasWidth;
+  let rawY=(newY-halfCanvasHeight)/halfCanvasHeight;
 
   dragFunc(lastX,lastY,rawX,rawY,factor);
 
@@ -1667,7 +1648,7 @@ function handleKey(event) {
 }
 
 function handleMouseWheel(event) {
-  if (event.deltaY < 0.0) {
+  if (event.deltaY < 0) {
     Zoom *= zoomFactor;
   } else {
     Zoom /= zoomFactor;
@@ -1788,7 +1769,7 @@ function draw()
   transparentData.clear();
 
   P.forEach(function(p) {
-    p.render();
+    if(p.remesh()) p.render();
   });
 
   drawBuffer(material0Data,pixelShader);
@@ -1849,7 +1830,7 @@ function tick() {
 
 function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
   let Aspect=width/height;
-  let zoominv=1.0/lastzoom;
+  let zoominv=1/lastzoom;
   let xshift=X/width*lastzoom
   let yshift=Y/height*lastzoom
 
@@ -1918,8 +1899,8 @@ function webGLStart()
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
 
-  halfCanvWidth=canvasWidth/2.0;
-  halfCanvHeight=canvasHeight/2.0;
+  halfCanvasWidth=0.5*canvasWidth;
+  halfCanvasHeight=0.5*canvasHeight;
 
   initGL(canvas);
 
