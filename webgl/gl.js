@@ -33,7 +33,7 @@ let projMat=mat4.create(); // projection matrix
 let viewMat=mat4.create(); // view matrix
 let T=mat4.create(); // Offscreen transformation matrix
 
-let projView=mat4.create(); // projection view matrix
+let projViewMat=mat4.create(); // projection view matrix
 let normMat=mat3.create();
 let viewMat3=mat3.create(); // 3x3 view matrix
 let rotMats=mat4.create();
@@ -167,6 +167,7 @@ function getShader(gl,id,options=[]) {
 
 function drawBuffer(data,shader,indices=data.indices)
 {
+  if(data.indices.length == 0) return;
   let pixel=shader == pixelShader;
   let billboard=!pixel && shader != materialShader;
   let normal=!pixel && (shader != noNormalShader);
@@ -178,12 +179,12 @@ function drawBuffer(data,shader,indices=data.indices)
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexPositionAttribute,
                          3,gl.FLOAT,false,normal ? 24 : (pixel ? 16 : 12),0);
-  if(pixel)
-    gl.vertexAttribPointer(shader.vertexWidthAttribute,
-                           1,gl.FLOAT,false,16,12);
-  else if(normal)
+  if(normal)
     gl.vertexAttribPointer(shader.vertexNormalAttribute,
                            3,gl.FLOAT,false,24,12);
+  else if(pixel)
+    gl.vertexAttribPointer(shader.vertexWidthAttribute,
+                           1,gl.FLOAT,false,16,12);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
@@ -303,25 +304,13 @@ class vertexBuffer {
   }
 }
 
-let data=new vertexBuffer();
+let material0Data=new vertexBuffer();    // Material 0D data
+let material1Data=new vertexBuffer();    // Material 1D data
+let materialData=new vertexBuffer();
+let billboardData=new vertexBuffer();
+let colorData=new vertexBuffer();
+let transparentData=new vertexBuffer();
 
-let materialOn=new vertexBuffer();     // Onscreen material data
-let materialOff=new vertexBuffer();    // Partially offscreen material data
-
-let billboardOn=new vertexBuffer();     // Onscreen billboard material data
-let billboardOff=new vertexBuffer();    // Partially offscreen billboard data
-
-let colorOn=new vertexBuffer();        // Onscreen color data
-let colorOff=new vertexBuffer();       // Partially offscreen color data
-
-let transparentOn=new vertexBuffer();  // Onscreen transparent data
-let transparentOff=new vertexBuffer(); // Partially offscreen transparent data
-
-let material1On=new vertexBuffer();     // Onscreen material 1D data
-let material1Off=new vertexBuffer();    // Partially offscreen material 1D data
-
-let material0On=new vertexBuffer();     // Onscreen material 0D data
-let material0Off=new vertexBuffer();    // Partially offscreen material 0D data
 
 let materialIndex;
 let centerIndex;
@@ -347,29 +336,19 @@ function appendOffset(a,b,o)
 }
 
 class Geometry {
-  // Approximate bounds by bounding box of control polyhedron.
-  offscreen(n,v) {
-    let x,y;
-    let X,Y;
-
-    X=x=v[0][0];
-    Y=y=v[0][1];
-    
-    for(let i=1; i < n; ++i) {
-      let V=v[i];
-      if(V[0] < x) x=V[0];
-      else if(V[0] > X) X=V[0];
-      if(V[1] < y) y=V[1];
-      else if(V[1] > Y) Y=V[1];
-    }
-
-    if(X >= this.x && x <= this.X &&
-       Y >= this.y && y <= this.Y)
-      return false;
-
-    return this.Offscreen=true;
+  constructor() {
+    this.data=new vertexBuffer();
+    this.Onscreen=false;
   }
 
+  // Check whether bounding box of 3D points in vector v is partially onscreen.
+  onscreen(v) {
+    if(new bbox2(v).offscreen())
+      return this.Onscreen=false;
+    return true;
+  }
+
+  // Check whether patch is fully offscreen
   OffScreen() {
     centerIndex=this.CenterIndex;
     materialIndex=this.MaterialIndex;
@@ -377,32 +356,32 @@ class Geometry {
     let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
     let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
 
-    let s,m,M;
-
-    if(orthographic) {
-      m=b;
-      M=B;
-      s=1.0;
-    } else {
-      let perspective=1.0/B[2];
-      let f=this.Min[2]*perspective;
-      let F=this.Max[2]*perspective;
-      m=[Math.min(f*b[0],F*b[0]),Math.min(f*b[1],F*b[1]),b[2]];
-      M=[Math.max(f*B[0],F*B[0]),Math.max(f*B[1],F*B[1]),B[2]];
-      s=Math.max(f,F);
+    if(new bbox2(corners(this.Min,this.Max)).offscreen()) {
+      this.Onscreen=false;
+      return true;
     }
 
-    [this.x,this.y,this.X,this.Y]=new bbox2(m,M).bounds();
-
-    if(this.Max[0] < this.x || this.Min[0] > this.X ||
-       this.Max[1] < this.y || this.Min[1] > this.Y) {
-      return this.Offscreen=true;
-    }
-
+    let s=orthographic ? 1.0 : this.Min[2]/B[2];
     let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
-    return this.Offscreen=false;
+    return false;
+  }
+
+  // Check if re-rendering is required
+  norender() {
+    if(this.OffScreen()) {
+        this.data.clear();
+      return false;
+    }
+    
+    if(!remesh && this.Onscreen) { // Fully onscreen; no need to re-render
+      this.append();
+      return true;
+    }
+
+    this.Onscreen=true;
+    this.data.clear();
   }
 }
 
@@ -429,8 +408,9 @@ class BezierPatch extends Geometry {
     this.MaterialIndex=this.transparent ?
       (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
     this.vertex=(this.color || this.transparent) ?
-      data.Vertex.bind(data) :
-      (CenterIndex > 0 ? data.bvertex.bind(data) : data.vertex.bind(data));
+      this.data.Vertex.bind(this.data) :
+      (CenterIndex == 0 ? this.data.vertex.bind(this.data) :
+       this.data.bvertex.bind(this.data));
     this.L2norm();
   }
 
@@ -454,13 +434,13 @@ class BezierPatch extends Geometry {
     let n=unit(cross([p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],
                      [p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]]));
     if(this.color) {
-      data.indices.push(data.Vertex(p0,n,this.color[0]));
-      data.indices.push(data.Vertex(p1,n,this.color[1]));
-      data.indices.push(data.Vertex(p2,n,this.color[2]));
+      this.data.indices.push(this.data.Vertex(p0,n,this.color[0]));
+      this.data.indices.push(this.data.Vertex(p1,n,this.color[1]));
+      this.data.indices.push(this.data.Vertex(p2,n,this.color[2]));
     } else {
-      data.indices.push(this.vertex(p0,n));
-      data.indices.push(this.vertex(p1,n));
-      data.indices.push(this.vertex(p2,n));
+      this.data.indices.push(this.vertex(p0,n));
+      this.data.indices.push(this.vertex(p1,n));
+      this.data.indices.push(this.vertex(p2,n));
     }
     this.append();
   }
@@ -478,29 +458,29 @@ class BezierPatch extends Geometry {
     let n=unit([n1[0]+n2[0],n1[1]+n2[1],n1[2]+n2[2]]);
     let i0,i1,i2,i3;
     if(this.color) {
-      i0=data.Vertex(p0,n,this.color[0]);
-      i1=data.Vertex(p1,n,this.color[1]);
-      i2=data.Vertex(p2,n,this.color[2]);
-      i3=data.Vertex(p3,n,this.color[3]);
+      i0=this.data.Vertex(p0,n,this.color[0]);
+      i1=this.data.Vertex(p1,n,this.color[1]);
+      i2=this.data.Vertex(p2,n,this.color[2]);
+      i3=this.data.Vertex(p3,n,this.color[3]);
     } else {
       i0=this.vertex(p0,n);
       i1=this.vertex(p1,n);
       i2=this.vertex(p2,n);
       i3=this.vertex(p3,n);
     }
-    data.indices.push(i0);
-    data.indices.push(i1);
-    data.indices.push(i2);
+    this.data.indices.push(i0);
+    this.data.indices.push(i1);
+    this.data.indices.push(i2);
 
-    data.indices.push(i0);
-    data.indices.push(i2);
-    data.indices.push(i3);
+    this.data.indices.push(i0);
+    this.data.indices.push(i2);
+    this.data.indices.push(i3);
 
     this.append();
   }
 
   render() {
-    if(this.OffScreen()) return;
+    if(this.norender()) return;
 
     let p=this.controlpoints;
     if(p.length == 10) return this.render3();
@@ -542,10 +522,10 @@ class BezierPatch extends Geometry {
       let c2=this.color[2];
       let c3=this.color[3];
 
-      let i0=data.Vertex(p0,n0,c0);
-      let i1=data.Vertex(p12,n1,c1);
-      let i2=data.Vertex(p15,n2,c2);
-      let i3=data.Vertex(p3,n3,c3);
+      let i0=this.data.Vertex(p0,n0,c0);
+      let i1=this.data.Vertex(p12,n1,c1);
+      let i2=this.data.Vertex(p15,n2,c2);
+      let i3=this.data.Vertex(p3,n3,c3);
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
                   c0,c1,c2,c3);
@@ -561,48 +541,31 @@ class BezierPatch extends Geometry {
   }
 
   append() {
-    if(this.transparent) {
-      if(this.Offscreen)
-        transparentOff.append(data);
-      else
-        transparentOn.append(data);
-    } else {
-      if(this.color) {
-        if(this.Offscreen)
-          colorOff.append(data);
-        else
-          colorOn.append(data);
-      } else {
-        if(this.CenterIndex > 0) {
-          if(this.Offscreen)
-            billboardOff.append(data);
-          else
-            billboardOn.append(data);
-        } else {
-          if(this.Offscreen)
-            materialOff.append(data);
-          else
-            materialOn.append(data);
-        }
-      }
-    }
-    data.clear();
+    if(this.transparent)
+      transparentData.append(this.data);
+    else if(this.color)
+      colorData.append(this.data);
+    else if(this.CenterIndex == 0)
+      materialData.append(this.data);
+    else
+      billboardData.append(this.data);
   }
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
     if(this.Distance(p) < this.res2) { // Bezier patch is flat
-      let P=[P0,P1,P2,P3];
-      if(!this.offscreen(4,P)) {
-        data.indices.push(I0);
-        data.indices.push(I1);
-        data.indices.push(I2);
-        
-        data.indices.push(I0);
-        data.indices.push(I2);
-        data.indices.push(I3);
+      if(this.onscreen([P0,P1,P2])) {
+        this.data.indices.push(I0);
+        this.data.indices.push(I1);
+        this.data.indices.push(I2);
+      }        
+      if(this.onscreen([P0,P2,P3])) {
+        this.data.indices.push(I0);
+        this.data.indices.push(I2);
+        this.data.indices.push(I3);
       }
     } else {
-      if(this.offscreen(16,p)) return;
+  // Approximate bounds by bounding box of control polyhedron.
+      if(!this.onscreen(p)) return;
 
     /* Control points are indexed as follows:
          
@@ -773,11 +736,11 @@ class BezierPatch extends Geometry {
           c4[i]=0.5*(c0[i]+c2[i]);
         }
 
-        let i0=data.Vertex(m0,n0,c0);
-        let i1=data.Vertex(m1,n1,c1);
-        let i2=data.Vertex(m2,n2,c2);
-        let i3=data.Vertex(m3,n3,c3);
-        let i4=data.Vertex(m4,n4,c4);
+        let i0=this.data.Vertex(m0,n0,c0);
+        let i1=this.data.Vertex(m1,n1,c1);
+        let i2=this.data.Vertex(m2,n2,c2);
+        let i3=this.data.Vertex(m3,n3,c3);
+        let i4=this.data.Vertex(m4,n4,c4);
 
         this.Render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
                     C0,c0,c4,c3);
@@ -820,9 +783,9 @@ class BezierPatch extends Geometry {
       let c1=this.color[1];
       let c2=this.color[2];
 
-      let i0=data.Vertex(p0,n0,c0);
-      let i1=data.Vertex(p6,n1,c1);
-      let i2=data.Vertex(p9,n2,c2);
+      let i0=this.data.Vertex(p0,n0,c0);
+      let i1=this.data.Vertex(p6,n1,c1);
+      let i2=this.data.Vertex(p9,n2,c2);
     
       this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
 
@@ -838,14 +801,14 @@ class BezierPatch extends Geometry {
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
     if(this.Distance3(p) < this.Res2) { // Bezier triangle is flat
-      let P=[P0,P1,P2];
-      if(!this.offscreen(3,P)) {
-        data.indices.push(I0);
-        data.indices.push(I1);
-        data.indices.push(I2);
+      if(this.onscreen([P0,P1,P2])) {
+        this.data.indices.push(I0);
+        this.data.indices.push(I1);
+        this.data.indices.push(I2);
       }
     } else {
-      if(this.offscreen(10,p)) return;
+  // Approximate bounds by bounding box of control polyhedron.
+      if(!this.onscreen(p)) return;
 
     /* Control points are indexed as follows:
 
@@ -1084,9 +1047,9 @@ class BezierPatch extends Geometry {
           c2[i]=0.5*(C0[i]+C1[i]);
         }
         
-        let i0=data.Vertex(m0,n0,c0);
-        let i1=data.Vertex(m1,n1,c1);
-        let i2=data.Vertex(m2,n2,c2);
+        let i0=this.data.Vertex(m0,n0,c0);
+        let i1=this.data.Vertex(m1,n1,c1);
+        let i2=this.data.Vertex(m2,n2,c2);
         
         this.Render3(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2,C0,c2,c1);
         this.Render3(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2,c2,C1,c0);
@@ -1217,30 +1180,26 @@ class BezierCurve extends Geometry {
     let p=this.controlpoints;
     let p0=p[0];
     let p1=p[1];
-    data.indices.push(data.vertex1(p0));
-    data.indices.push(data.vertex1(p1));
+    this.data.indices.push(this.data.vertex1(p0));
+    this.data.indices.push(this.data.vertex1(p1));
     this.append();
   }
 
   render() {
-    if(this.OffScreen()) return;
+   if(this.norender()) return;
 
     let p=this.controlpoints;
     if(p.length == 2) return this.renderLine();
     
-    let i0=data.vertex1(p[0]);
-    let i3=data.vertex1(p[3]);
+    let i0=this.data.vertex1(p[0]);
+    let i3=this.data.vertex1(p[3]);
     
     this.Render(p,i0,i3);
     this.append();
   }
   
   append() {
-    if(this.Offscreen)
-      material1Off.append(data);
-    else
-      material1On.append(data);
-    data.clear();
+    material1Data.append(this.data);
   }
 
   Render(p,I0,I1) {
@@ -1251,12 +1210,12 @@ class BezierCurve extends Geometry {
 
     if(Straightness(p0,p1,p2,p3) < this.res2) { // Segment is flat
       let P=[p0,p3];
-      if(!this.offscreen(2,P)) {
-        data.indices.push(I0);
-        data.indices.push(I1);
+      if(this.onscreen(P)) {
+        this.data.indices.push(I0);
+        this.data.indices.push(I1);
       }
     } else { // Segment is not flat
-      if(this.offscreen(4,p)) return;
+      if(!this.onscreen(p)) return;
 
       let m0=[0.5*(p0[0]+p1[0]),0.5*(p0[1]+p1[1]),0.5*(p0[2]+p1[2])];
       let m1=[0.5*(p1[0]+p2[0]),0.5*(p1[1]+p2[1]),0.5*(p1[2]+p2[2])];
@@ -1268,7 +1227,7 @@ class BezierCurve extends Geometry {
       let s0=[p0,m0,m3,m5];
       let s1=[m5,m4,m2,p3];
       
-      let i0=data.vertex1(m5);
+      let i0=this.data.vertex1(m5);
       
       this.Render(s0,I0,i0);
       this.Render(s1,i0,I1);
@@ -1288,18 +1247,14 @@ class Pixel extends Geometry {
   }
 
   render() {
-    if(this.OffScreen()) return;
+    if(this.norender()) return;
 
-    data.indices.push(data.vertex0(this.controlpoint,this.width));
+    this.data.indices.push(this.data.vertex0(this.controlpoint,this.width));
     this.append();
   }
   
   append() {
-    if(this.Offscreen)
-      material0Off.append(data);
-    else
-      material0On.append(data);
-    data.clear();
+    material0Data.append(this.data);
   }
 }
 
@@ -1308,7 +1263,6 @@ function home()
   mat4.identity(rotMat);
   initProjection();
   setProjection();
-  updateViewMatrix();
   redraw=true;
 }
 
@@ -1412,33 +1366,43 @@ function Distance2(z,u,n)
   return d*d;
 }
 
+function corners(m,M) {
+  return [m,[m[0],m[1],M[2]],[m[0],M[1],m[2]],[m[0],M[1],M[2]],
+          [M[0],m[1],m[2]],[M[0],m[1],M[2]],[M[0],M[1],m[2]],M];
+}
+
+// Construct a 2D bounding box obtained by projecting 3d points in vector v.
 class bbox2 {
-  constructor(m,M) {
-    let V=[];
-    vec3.transformMat4(V,m,T);
-    this.x=this.X=V[0];
-    this.y=this.Y=V[1];
-    this.transformed([m[0],m[1],M[2]]);
-    this.transformed([m[0],m[1],M[2]]);
-    this.transformed([m[0],M[1],m[2]]);
-    this.transformed([m[0],M[1],M[2]]);
-    this.transformed([M[0],m[1],m[2]]);
-    this.transformed([M[0],m[1],M[2]]);
-    this.transformed([M[0],M[1],m[2]]);
-    this.transformed(M);
+  constructor(v) {
+    this.m=projViewMat;
+    this.init(v[0]);
+    for(let i=1, n=v.length; i < n; ++i)
+      this.bbox(v[i]);
+  }
+  // Check whether bounding box of transformed box is offscreen.
+  offscreen() {
+    let eps=1e-2;
+    let min=-1-eps;
+    let max=1+eps;
+    return this.X < min || this.x > max || this.Y < min || this.y > max;
   }
 
-  bounds() {
-    return [this.x,this.y,this.X,this.Y];
+  init(v) {
+    let x=v[0], y=v[1], z=v[2];
+    let f=1.0/(this.m[3]*x+this.m[7]*y+this.m[11]*z+this.m[15]);
+    this.x=this.X=(this.m[0]*x+this.m[4]*y+this.m[8]*z+this.m[12])*f;
+    this.y=this.Y=(this.m[1]*x+this.m[5]*y+this.m[9]*z+this.m[13])*f;
   }
-
-  transformed(v) {
+  bbox(v) {
     let V=[];
-    vec3.transformMat4(V,v,T);
-    if(V[0] < this.x) this.x=V[0];
-    else if(V[0] > this.X) this.X=V[0];
-    if(V[1] < this.y) this.y=V[1];
-    else if(V[1] > this.Y) this.Y=V[1];
+    let x=v[0], y=v[1], z=v[2];
+    let f=1.0/(this.m[3]*x+this.m[7]*y+this.m[11]*z+this.m[15]);
+    let X=(this.m[0]*x+this.m[4]*y+this.m[8]*z+this.m[12])*f;
+    let Y=(this.m[1]*x+this.m[5]*y+this.m[9]*z+this.m[13])*f;
+    if(X < this.x) this.x=X;
+    else if(X > this.X) this.X=X;
+    if(Y < this.y) this.y=Y;
+    else if(Y > this.Y) this.Y=Y;
   }
 }
 
@@ -1519,15 +1483,16 @@ function setUniforms(shader)
   for(let i=0; i < lights.length; ++i)
     lights[i].setUniform(shader,"Lights",i);
 
-  for(let i=0; i < Centers.length; ++i)
-    gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
+  if(billboard) {
+    for(let i=0; i < Centers.length; ++i)
+      gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
+  }
 
   mat4.invert(T,viewMat);
-  mat4.multiply(projView,projMat,viewMat);
   mat3.fromMat4(viewMat3,viewMat);
   mat3.invert(normMat,viewMat3);
 
-  gl.uniformMatrix4fv(shader.projViewMatUniform,false,projView);
+  gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
   gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
 }
@@ -1671,7 +1636,6 @@ function processDrag(newX,newY,mode,factor=1) {
   lastMouseY=newY;
 
   setProjection();
-  updateViewMatrix();
   redraw=true;
 }
 
@@ -1710,7 +1674,6 @@ function handleMouseWheel(event) {
   }
   capzoom();
   setProjection();
-  updateViewMatrix();
 
   redraw=true;
 }
@@ -1782,7 +1745,6 @@ function handleTouchMove(evt) {
     pinchStart=distance;
     swipe=rotate=zooming=false;
     setProjection();
-    updateViewMatrix();
     redraw=true;
   }
 }
@@ -1818,65 +1780,29 @@ function draw()
   gl.clearColor(1,1,1,1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  material0Off.clear();
-  material1Off.clear();
-  materialOff.clear();
-  billboardOff.clear();
-  colorOff.clear();
-  transparentOff.clear();
-
-  if(remesh) {
-    material0On.clear();
-    material1On.clear();
-    materialOn.clear();
-    billboardOn.clear();
-    colorOn.clear();
-    transparentOn.clear();
-  }
+  material0Data.clear();
+  material1Data.clear();
+  materialData.clear();
+  billboardData.clear();
+  colorData.clear();
+  transparentData.clear();
 
   P.forEach(function(p) {
-    if(remesh || p.Offscreen)
-      p.render();
+    p.render();
   });
 
-  if(material0On.indices.length > 0)
-    drawBuffer(material0On,pixelShader);
-  
-  if(material0Off.indices.length > 0)
-    drawBuffer(material0Off,pixelShader);
+  drawBuffer(material0Data,pixelShader);
+  drawBuffer(material1Data,noNormalShader);
+  drawBuffer(materialData,materialShader);
+  drawBuffer(billboardData,billboardShader);
+  drawBuffer(colorData,colorShader);
 
-  if(material1On.indices.length > 0)
-    drawBuffer(material1On,noNormalShader);
-  
-  if(material1Off.indices.length > 0)
-    drawBuffer(material1Off,noNormalShader);
-
-  if(materialOn.indices.length > 0)
-    drawBuffer(materialOn,materialShader);
-  
-  if(materialOff.indices.length > 0)
-    drawBuffer(materialOff,materialShader);
-
-  if(billboardOn.indices.length > 0)
-    drawBuffer(billboardOn,billboardShader);
-  
-  if(billboardOff.indices.length > 0)
-    drawBuffer(billboardOff,billboardShader);
-
-  if(colorOn.indices.length > 0)
-    drawBuffer(colorOn,colorShader);
-
-  if(colorOff.indices.length > 0)
-    drawBuffer(colorOff,colorShader);
-
-  data.copy(transparentOn);
-  data.append(transparentOff);
-  let indices=data.indices;
+  let indices=transparentData.indices;
   if(indices.length > 0) {
     // Enable transparency
     gl.depthMask(false);
   
-    transformVertices(data.vertices);
+    transformVertices(transparentData.vertices);
     
     let n=indices.length/3;
     let triangles=Array(n).fill().map((_,i)=>i);
@@ -1906,8 +1832,7 @@ function draw()
       Indices[3*i+2]=indices[t+2];
     }
 
-    drawBuffer(data,transparentShader,Indices);
-    data.clear();
+    drawBuffer(transparentData,transparentShader,Indices);
     gl.depthMask(true);
   }
 
@@ -1962,27 +1887,25 @@ function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
 
 function setProjection() {
   setDimensions(canvasWidth,canvasHeight,shift.x,shift.y);
+  updateViewMatrix();
   let f=orthographic ? mat4.ortho : mat4.frustum;
   f(projMat,viewParam.xmin,viewParam.xmax,
     viewParam.ymin,viewParam.ymax,
     -viewParam.zmax,-viewParam.zmin);
+  mat4.multiply(projViewMat,projMat,viewMat);
 }
 
 function initProjection() {
   H=-Math.tan(0.5*angle)*B[2];
 
-  center={x:0,y:0,z:0.5*(b[2]+B[2])};
+  center.x=center.y=0;
+  center.z=0.5*(b[2]+B[2]);
   lastzoom=Zoom=Zoom0;
 
-  viewParam={
-    xmin:b[0],xmax:B[0],
-    ymin:b[1],ymax:B[1],
-    zmin:b[2],zmax:B[2]
-  };
-  shift={
-    x:0,y:0
-  };
-  setProjection();
+  viewParam.zmin=b[2];
+  viewParam.zmax=B[2];
+
+  shift.x=shift.y=0;
 }
 
 let pixelShader,noNormalShader,materialShader,billboardShader,colorShader,
@@ -1998,8 +1921,9 @@ function webGLStart()
   halfCanvWidth=canvasWidth/2.0;
   halfCanvHeight=canvasHeight/2.0;
 
-  initProjection();
   initGL(canvas);
+
+  home();
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
