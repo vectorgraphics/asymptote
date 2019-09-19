@@ -341,11 +341,33 @@ class Geometry {
     this.Onscreen=false;
   }
 
-  // Check whether bounding box of 3D points in vector v is partially onscreen.
-  onscreen(v) {
-    if(new bbox2(v).offscreen())
-      return this.Onscreen=false;
-    return true;
+  // Is 2D bounding box formed by projecting 3d points in vector v offscreen?
+  offscreen(v) {
+    let m=projViewMat;
+    let v0=v[0];
+    let x=v0[0], y=v0[1], z=v0[2];
+    let f=1/(m[3]*x+m[7]*y+m[11]*z+m[15]);
+    this.x=this.X=(m[0]*x+m[4]*y+m[8]*z+m[12])*f;
+    this.y=this.Y=(m[1]*x+m[5]*y+m[9]*z+m[13])*f;
+    for(let i=1, n=v.length; i < n; ++i) {
+      let vi=v[i];
+      let x=vi[0], y=vi[1], z=vi[2];
+      let f=1/(m[3]*x+m[7]*y+m[11]*z+m[15]);
+      let X=(m[0]*x+m[4]*y+m[8]*z+m[12])*f;
+      let Y=(m[1]*x+m[5]*y+m[9]*z+m[13])*f;
+      if(X < this.x) this.x=X;
+      else if(X > this.X) this.X=X;
+      if(Y < this.y) this.y=Y;
+      else if(Y > this.Y) this.Y=Y;
+    }
+    let eps=1e-2;
+    let min=-1-eps;
+    let max=1+eps;
+    if(this.X < min || this.x > max || this.Y < min || this.y > max) {
+      this.Onscreen=false;
+      return true;
+    }
+    return false;
   }
 
   // Check if re-rendering is required
@@ -356,7 +378,7 @@ class Geometry {
     let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
     let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
 
-    if(new bbox2(corners(this.Min,this.Max)).offscreen()) {
+    if(this.offscreen(corners(this.Min,this.Max))) {
       this.data.clear();
       this.Onscreen=false;
       return true;
@@ -543,19 +565,19 @@ class BezierPatch extends Geometry {
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
     if(this.Distance(p) < this.res2) { // Bezier patch is flat
-      if(this.onscreen([P0,P1,P2])) {
+      if(!this.offscreen([P0,P1,P2])) {
         this.data.indices.push(I0);
         this.data.indices.push(I1);
         this.data.indices.push(I2);
       }        
-      if(this.onscreen([P0,P2,P3])) {
+      if(!this.offscreen([P0,P2,P3])) {
         this.data.indices.push(I0);
         this.data.indices.push(I2);
         this.data.indices.push(I3);
       }
     } else {
   // Approximate bounds by bounding box of control polyhedron.
-      if(!this.onscreen(p)) return;
+      if(this.offscreen(p)) return;
 
     /* Control points are indexed as follows:
          
@@ -791,14 +813,14 @@ class BezierPatch extends Geometry {
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
     if(this.Distance3(p) < this.Res2) { // Bezier triangle is flat
-      if(this.onscreen([P0,P1,P2])) {
+      if(!this.offscreen([P0,P1,P2])) {
         this.data.indices.push(I0);
         this.data.indices.push(I1);
         this.data.indices.push(I2);
       }
     } else {
   // Approximate bounds by bounding box of control polyhedron.
-      if(!this.onscreen(p)) return;
+      if(this.offscreen(p)) return;
 
     /* Control points are indexed as follows:
 
@@ -1197,13 +1219,12 @@ class BezierCurve extends Geometry {
     let p3=p[3];
 
     if(Straightness(p0,p1,p2,p3) < this.res2) { // Segment is flat
-      let P=[p0,p3];
-      if(this.onscreen(P)) {
+      if(!this.offscreen([p0,p3])) {
         this.data.indices.push(I0);
         this.data.indices.push(I1);
       }
     } else { // Segment is not flat
-      if(!this.onscreen(p)) return;
+      if(this.offscreen(p)) return;
 
       let m0=[0.5*(p0[0]+p1[0]),0.5*(p0[1]+p1[1]),0.5*(p0[2]+p1[2])];
       let m1=[0.5*(p1[0]+p2[0]),0.5*(p1[1]+p2[1]),0.5*(p1[2]+p2[2])];
@@ -1357,35 +1378,6 @@ function corners(m,M) {
           [M[0],m[1],m[2]],[M[0],m[1],M[2]],[M[0],M[1],m[2]],M];
 }
 
-// Construct a 2D bounding box obtained by projecting 3d points in vector v.
-class bbox2 {
-  constructor(v) {
-    let m=projViewMat;
-    let v0=v[0];
-    let x=v0[0], y=v0[1], z=v0[2];
-    let f=1/(m[3]*x+m[7]*y+m[11]*z+m[15]);
-    this.x=this.X=(m[0]*x+m[4]*y+m[8]*z+m[12])*f;
-    this.y=this.Y=(m[1]*x+m[5]*y+m[9]*z+m[13])*f;
-    for(let i=1, n=v.length; i < n; ++i) {
-      let vi=v[i];
-      let x=vi[0], y=vi[1], z=vi[2];
-      let f=1/(m[3]*x+m[7]*y+m[11]*z+m[15]);
-      let X=(m[0]*x+m[4]*y+m[8]*z+m[12])*f;
-      let Y=(m[1]*x+m[5]*y+m[9]*z+m[13])*f;
-      if(X < this.x) this.x=X;
-      else if(X > this.X) this.X=X;
-      if(Y < this.y) this.y=Y;
-      else if(Y > this.Y) this.Y=Y;
-    }
-  }
-  // Check whether bounding box of transformed box is offscreen.
-  offscreen() {
-    let eps=1e-2;
-    let min=-1-eps;
-    let max=1+eps;
-    return this.X < min || this.x > max || this.Y < min || this.y > max;
-  }
-}
 
 /**
  * Perform a change of basis
