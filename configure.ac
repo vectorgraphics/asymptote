@@ -429,7 +429,7 @@ AC_DEFUN([ac_FUNC_STRPTIME], [
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_CHECK_FUNCS([dup2 floor memset pow sqrt strchr tgamma memrchr])
+AC_CHECK_FUNCS([dup2 floor memset strchr tgamma lgamma memrchr])
 AC_FUNC_STRFTIME
 ac_FUNC_STRPTIME
 AC_FUNC_ERROR_AT_LINE
