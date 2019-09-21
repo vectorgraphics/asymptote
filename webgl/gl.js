@@ -375,10 +375,7 @@ class Geometry {
     centerIndex=this.CenterIndex;
     materialIndex=this.MaterialIndex;
 
-    let b=[viewParam.xmin,viewParam.ymin,viewParam.zmin];
-    let B=[viewParam.xmax,viewParam.ymax,viewParam.zmax];
-
-    if(this.offscreen(corners(this.Min,this.Max))) {
+    if(this.offscreen(corners(this.Min,this.Max))) { // Fully offscreen
       this.data.clear();
       return true;
     }
@@ -389,7 +386,8 @@ class Geometry {
     }
 
     let s=orthographic ? 1 : this.Min[2]/B[2];
-    let res=pixel*Math.hypot(s*(B[0]-b[0]),s*(B[1]-b[1]))/size2;
+    let res=pixel*Math.hypot(s*(viewParam.xmax-viewParam.xmin),
+                             s*(viewParam.ymax-viewParam.ymin))/size2;
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
     
