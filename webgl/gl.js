@@ -380,8 +380,12 @@ class Geometry {
 
     if(this.offscreen(corners(this.Min,this.Max))) {
       this.data.clear();
-      this.Onscreen=false;
       return true;
+    }
+
+    if(!remesh && this.Onscreen) { // Fully onscreen; no need to re-render
+      this.append();
+      return false;
     }
 
     let s=orthographic ? 1 : this.Min[2]/B[2];
@@ -389,11 +393,6 @@ class Geometry {
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
     
-    if(!remesh && this.Onscreen) { // Fully onscreen; no need to re-render
-      this.append();
-      return false;
-    }
-
     this.data.clear();
     return this.Onscreen=true;
   }
