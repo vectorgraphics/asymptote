@@ -117,7 +117,7 @@ public:
   file(const string& name, bool check=true, Mode type=NOMODE, bool binary=false,
        bool closed=false) : 
     name(name), check(check), type(type), linemode(false), csvmode(false),
-    singlereal(false), singleint(true), signedint(true),
+    wordmode(false), singlereal(false), singleint(true), signedint(true),
     closed(closed), standard(name.empty()),
     binary(binary), nullfield(false), whitespace("") {dimension();}
   

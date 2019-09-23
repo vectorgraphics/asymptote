@@ -5585,7 +5585,7 @@ real[] A=fin;
 Another useful mode is comma-separated-value mode,
 @code{file csv(bool b=true)}, which causes reads to respect comma delimiters:
 @verbatim
-file fin=csv(input("test.txt"));
+file fin=input("test.txt").csv();
 real[] A=fin;
 @end verbatim
 
@@ -5594,7 +5594,7 @@ To restrict the number of values read, use the @code{file dimension(int)}
 function: 
 @verbatim
 file fin=input("test.txt");
-real[] A=dimension(fin,10);
+real[] A=fin.dimension(10);
 @end verbatim
 
 This reads 10 values into A, unless end-of-file (or end-of-line in line mode)
