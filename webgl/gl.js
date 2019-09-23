@@ -31,7 +31,6 @@ let Centers=[]; // Array of billboard centers
 let rotMat=mat4.create();
 let projMat=mat4.create(); // projection matrix
 let viewMat=mat4.create(); // view matrix
-let T=mat4.create(); // Offscreen transformation matrix
 
 let projViewMat=mat4.create(); // projection view matrix
 let normMat=mat3.create();
@@ -133,8 +132,7 @@ function getShader(gl,id,options=[]) {
   precision mediump float;
 #endif
   const int nLights=${lights.length};
-  const int nMaterials=${Materials.length};
-  const int nCenters=${Math.max(Centers.length,1)};\n`
+  const int nMaterials=${Materials.length};\n`
 
   if(orthographic)
     str += `#define ORTHOGRAPHIC\n`;
@@ -169,7 +167,6 @@ function drawBuffer(data,shader,indices=data.indices)
 {
   if(data.indices.length == 0) return;
   let pixel=shader == pixelShader;
-  let billboard=!pixel && shader != materialShader;
   let normal=!pixel && (shader != noNormalShader);
 
   setUniforms(shader);
@@ -190,10 +187,7 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexMaterialAttribute,
-                         1,gl.SHORT,false,billboard ? 4 : 2,0);
-  if(billboard)
-    gl.vertexAttribPointer(shader.vertexCenterAttribute,
-                           1,gl.SHORT,false,4,2);
+                         1,gl.SHORT,false,2,0);
 
   if(shader == colorShader || shader == transparentShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
@@ -237,19 +231,6 @@ class vertexBuffer {
     return this.nvertices++;
   }
 
-  // billboard material vertex 
-  bvertex(v,n) {
-    this.vertices.push(v[0]);
-    this.vertices.push(v[1]);
-    this.vertices.push(v[2]);
-    this.vertices.push(n[0]);
-    this.vertices.push(n[1]);
-    this.vertices.push(n[2]);
-    this.materials.push(materialIndex);
-    this.materials.push(centerIndex);
-    return this.nvertices++;
-  }
-
   // colored vertex
   Vertex(v,n,c=[0,0,0,0]) {
     this.vertices.push(v[0]);
@@ -259,7 +240,6 @@ class vertexBuffer {
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
     this.materials.push(materialIndex);
-    this.materials.push(centerIndex);
     this.colors.push(c[0]);
     this.colors.push(c[1]);
     this.colors.push(c[2]);
@@ -273,7 +253,6 @@ class vertexBuffer {
     this.vertices.push(v[1]);
     this.vertices.push(v[2]);
     this.materials.push(materialIndex);
-    this.materials.push(centerIndex);
     return this.nvertices++;
   }
 
@@ -285,14 +264,6 @@ class vertexBuffer {
     this.vertices.push(width);
     this.materials.push(materialIndex);
     return this.nvertices++;
-  }
-
- copy(data) {
-    this.vertices=data.vertices.slice();
-    this.materials=data.materials.slice();
-    this.colors=data.colors.slice();
-    this.indices=data.indices.slice();
-    this.nvertices=data.nvertices;
   }
 
   append(data) {
@@ -307,13 +278,11 @@ class vertexBuffer {
 let material0Data=new vertexBuffer();    // Material 0D data
 let material1Data=new vertexBuffer();    // Material 1D data
 let materialData=new vertexBuffer();
-let billboardData=new vertexBuffer();
 let colorData=new vertexBuffer();
 let transparentData=new vertexBuffer();
 
 
 let materialIndex;
-let centerIndex;
 
 // efficiently append array b onto array a
 function append(a,b)
@@ -339,6 +308,7 @@ class Geometry {
   constructor() {
     this.data=new vertexBuffer();
     this.Onscreen=false;
+    this.m=[];
   }
 
   // Is 2D bounding box formed by projecting 3d points in vector v offscreen?
@@ -370,20 +340,58 @@ class Geometry {
     return false;
   }
 
-  // Check if re-rendering is required
-  remesh() {
-    centerIndex=this.CenterIndex;
-    materialIndex=this.MaterialIndex;
+  T(v) {
+    let c0=this.c[0];
+    let c1=this.c[1];
+    let c2=this.c[2];
+    let x=v[0]-c0;
+    let y=v[1]-c1;
+    let z=v[2]-c2;
+    return [x*normMat[0]+y*normMat[3]+z*normMat[6]+c0,
+            x*normMat[1]+y*normMat[4]+z*normMat[7]+c1,
+            x*normMat[2]+y*normMat[5]+z*normMat[8]+c2];
+  }
 
-    if(this.offscreen(corners(this.Min,this.Max))) { // Fully offscreen
+  Tcorners(m,M) {
+    return [this.T(m),this.T([m[0],m[1],M[2]]),this.T([m[0],M[1],m[2]]),
+            this.T([m[0],M[1],M[2]]),this.T([M[0],m[1],m[2]]),
+            this.T([M[0],m[1],M[2]]),this.T([M[0],M[1],m[2]]),this.T(M)];
+
+  }
+
+  render() {
+    // First check if re-rendering is required
+    let v;
+    if(this.CenterIndex == 0)
+      v=corners(this.Min,this.Max);
+    else {
+      this.c=Centers[this.CenterIndex-1];
+      v=this.Tcorners(this.Min,this.Max);
+    }
+
+    if(this.offscreen(v)) { // Fully offscreen
       this.data.clear();
-      return true;
+      return;
     }
 
-    if(!remesh && this.Onscreen) { // Fully onscreen; no need to re-render
-      this.append();
-      return false;
+    let p=this.controlpoints;
+    let P;
+
+    if(this.CenterIndex == 0) {
+      if(!remesh && this.Onscreen) {
+        // Fully onscreen; no need to re-render
+        this.append();
+        return;
+      }
+      P=p;
+    } else { // Transform billboard labels
+      let n=p.length;
+      P=Array(n);
+      for(let i=0; i < n; ++i)
+        P[i]=this.T(p[i]);
     }
+
+    materialIndex=this.MaterialIndex;
 
     let s=orthographic ? 1 : this.Min[2]/B[2];
     let res=pixel*Math.hypot(s*(viewParam.xmax-viewParam.xmin),
@@ -392,7 +400,8 @@ class Geometry {
     this.Epsilon=FillFactor*res;
     
     this.data.clear();
-    return this.Onscreen=true;
+    this.Onscreen=true;
+    this.process(P);
   }
 }
 
@@ -416,18 +425,18 @@ class BezierPatch extends Geometry {
     this.transparent=color ?
       color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
       Materials[MaterialIndex].diffuse[3] < 1;
-    this.MaterialIndex=this.transparent ?
-      (color ? -1-MaterialIndex : 1+MaterialIndex) : MaterialIndex;
-    this.vertex=(this.color || this.transparent) ?
-      this.data.Vertex.bind(this.data) :
-      (CenterIndex == 0 ? this.data.vertex.bind(this.data) :
-       this.data.bvertex.bind(this.data));
-    this.L2norm();
+    if(this.transparent) {
+      this.MaterialIndex=color ? -1-MaterialIndex : 1+MaterialIndex;
+      this.vertex=this.data.Vertex.bind(this.data);
+    } else {
+      this.MaterialIndex=MaterialIndex;
+      this.vertex=this.data.vertex.bind(this.data);
+    }
+    this.L2norm(this.controlpoints);
   }
 
 // Render a Bezier patch via subdivision.
-  L2norm() {
-    let p=this.controlpoints;
+  L2norm(p) {
     let p0=p[0];
     this.epsilon=0;
     let n=p.length;
@@ -437,8 +446,7 @@ class BezierPatch extends Geometry {
     this.epsilon *= Fuzz4;
   }
 
-  renderTriangle() {
-    let p=this.controlpoints;
+  processTriangle(p) {
     let p0=p[0];
     let p1=p[1];
     let p2=p[2];
@@ -456,8 +464,7 @@ class BezierPatch extends Geometry {
     this.append();
   }
 
-  renderQuad() {
-    let p=this.controlpoints;
+  processQuad(p) {
     let p0=p[0];
     let p1=p[1];
     let p2=p[2];
@@ -490,11 +497,10 @@ class BezierPatch extends Geometry {
     this.append();
   }
 
-  render() {
-    let p=this.controlpoints;
-    if(p.length == 10) return this.render3();
-    if(p.length == 3) return this.renderTriangle();
-    if(p.length == 4) return this.renderQuad();
+  process(p) {
+    if(p.length == 10) return this.process3(p);
+    if(p.length == 3) return this.processTriangle(p);
+    if(p.length == 4) return this.processQuad(p);
     
     let p0=p[0];
     let p3=p[3];
@@ -554,10 +560,8 @@ class BezierPatch extends Geometry {
       transparentData.append(this.data);
     else if(this.color)
       colorData.append(this.data);
-    else if(this.CenterIndex == 0)
-      materialData.append(this.data);
     else
-      billboardData.append(this.data);
+      materialData.append(this.data);
   }
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
@@ -775,9 +779,8 @@ class BezierPatch extends Geometry {
   }
 
 // Render a Bezier triangle via subdivision.
-  render3() {
+  process3(p) {
     this.Res2=BezierFactor*BezierFactor*this.res2;
-    let p=this.controlpoints;
 
     let p0=p[0];
     let p6=p[6];
@@ -1185,8 +1188,7 @@ class BezierCurve extends Geometry {
     this.MaterialIndex=MaterialIndex;
   }
 
-  renderLine() {
-    let p=this.controlpoints;
+  processLine(p) {
     let p0=p[0];
     let p1=p[1];
     this.data.indices.push(this.data.vertex1(p0));
@@ -1194,9 +1196,8 @@ class BezierCurve extends Geometry {
     this.append();
   }
 
-  render() {
-    let p=this.controlpoints;
-    if(p.length == 2) return this.renderLine();
+  process(p) {
+    if(p.length == 2) return this.processLine(p);
     
     let i0=this.data.vertex1(p[0]);
     let i3=this.data.vertex1(p[3]);
@@ -1246,13 +1247,13 @@ class Pixel extends Geometry {
     super();
     this.controlpoint=controlpoint;
     this.width=width;
+    this.CenterIndex=0;
     this.MaterialIndex=MaterialIndex;
     this.Min=Min;
     this.Max=Max;
-    this.CenterIndex=0;
   }
 
-  render() {
+  process(p) {
     this.data.indices.push(this.data.vertex0(this.controlpoint,this.width));
     this.append();
   }
@@ -1270,7 +1271,7 @@ function home()
   redraw=true;
 }
 
-function initShader(options)
+function initShader(options=[])
 {
   let fragmentShader=getShader(gl,"fragment",options);
   let vertexShader=getShader(gl,"vertex",options);
@@ -1375,7 +1376,6 @@ function corners(m,M) {
           [M[0],m[1],m[2]],[M[0],m[1],M[2]],[M[0],M[1],m[2]],M];
 }
 
-
 /**
  * Perform a change of basis
  * @param {*} out Out Matrix
@@ -1407,7 +1407,6 @@ function COBTarget(out,mat) {
 function setUniforms(shader)
 {
   let pixel=shader == pixelShader;
-  let billboard=!pixel && shader != materialShader;
 
   gl.useProgram(shader);
 
@@ -1431,12 +1430,6 @@ function setUniforms(shader)
     gl.getAttribLocation(shader,"materialIndex");
   gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
 
-  if(billboard) {
-    shader.vertexCenterAttribute=
-      gl.getAttribLocation(shader,"centerIndex");
-    gl.enableVertexAttribArray(shader.vertexCenterAttribute);
-  }
-
   shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
   shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
@@ -1452,15 +1445,6 @@ function setUniforms(shader)
 
   for(let i=0; i < lights.length; ++i)
     lights[i].setUniform(shader,"Lights",i);
-
-  if(billboard) {
-    for(let i=0; i < Centers.length; ++i)
-      gl.uniform3fv(gl.getUniformLocation(shader,"Centers["+i+"]"),Centers[i]);
-  }
-
-  mat4.invert(T,viewMat);
-  mat3.fromMat4(viewMat3,viewMat);
-  mat3.invert(normMat,viewMat3);
 
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
   gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
@@ -1535,7 +1519,8 @@ function panScene(lastX,lastY,rawX,rawY) {
 function updateViewMatrix() {
   COBTarget(viewMat,rotMat);
   mat4.translate(viewMat,viewMat,[center.x,center.y,0]);
-  mat4.invert(T,viewMat);
+  mat3.fromMat4(viewMat3,viewMat);
+  mat3.invert(normMat,viewMat3);
 }
 
 function capzoom() 
@@ -1731,6 +1716,8 @@ function setBuffer()
   indexExt=gl.getExtension("OES_element_index_uint");
 }
 
+let zbuffer=[];
+
 function transformVertices(vertices)
 {
   let Tz0=viewMat[2];
@@ -1743,8 +1730,6 @@ function transformVertices(vertices)
   }
 }
 
-let zbuffer=[];
-
 function draw()
 {
   gl.clearColor(1,1,1,1);
@@ -1753,18 +1738,16 @@ function draw()
   material0Data.clear();
   material1Data.clear();
   materialData.clear();
-  billboardData.clear();
   colorData.clear();
   transparentData.clear();
 
   P.forEach(function(p) {
-    if(p.remesh()) p.render();
+    p.render();
   });
 
   drawBuffer(material0Data,pixelShader);
   drawBuffer(material1Data,noNormalShader);
   drawBuffer(materialData,materialShader);
-  drawBuffer(billboardData,billboardShader);
   drawBuffer(colorData,colorShader);
 
   let indices=transparentData.indices;
@@ -1878,7 +1861,7 @@ function initProjection() {
   shift.x=shift.y=0;
 }
 
-let pixelShader,noNormalShader,materialShader,billboardShader,colorShader,
+let pixelShader,noNormalShader,materialShader,colorShader,
     transparentShader;
 
 function webGLStart()
@@ -1900,12 +1883,11 @@ function webGLStart()
   gl.enable(gl.DEPTH_TEST);
   gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
 
+  noNormalShader=initShader();
   pixelShader=initShader(["WIDTH"]);
-  noNormalShader=initShader(["BILLBOARD"]);
   materialShader=initShader(["NORMAL"]);
-  billboardShader=initShader(["NORMAL","BILLBOARD"]);
-  colorShader=initShader(["NORMAL","BILLBOARD","COLOR"]);
-  transparentShader=initShader(["NORMAL","BILLBOARD","COLOR","TRANSPARENT"]);
+  colorShader=initShader(["NORMAL","COLOR"]);
+  transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
 
   setBuffer();
 

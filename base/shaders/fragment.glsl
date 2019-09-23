@@ -25,7 +25,7 @@ in vec3 Normal;
 vec3 normal;
 #endif
 
-#ifdef EXPLICIT_COLOR
+#ifdef COLOR
 in vec4 Color; 
 #endif
 
@@ -134,31 +134,31 @@ void main()
   vec4 parameters;
 
   Material m;
-#ifdef EXPLICIT_COLOR
-  if(materialIndex < 0) {
-    int index=-materialIndex-1;
-    m=Materials[index];
-    diffuse=Color;
-    emissive=vec4(0.0);
-  } else {
-    m=Materials[materialIndex];
+#ifdef TRANSPARENT
+  m=Materials[abs(materialIndex)-1];
+  if(materialIndex >= 0) {
     diffuse=m.diffuse;
     emissive=m.emissive;
+  } else {
+    diffuse=Color;
+    emissive=vec4(0.0);
   }
 #else
-  m=Materials[materialIndex];
+  m=Materials[int(materialIndex)];
+#ifdef COLOR
+  diffuse=Color;
+  emissive=vec4(0.0);
+#else  
   diffuse=m.diffuse; 
   emissive=m.emissive;
 #endif
+#endif
   Specular=m.specular.rgb;
   parameters=m.parameters;
-
   Roughness2=1.0-parameters[0];
   Roughness2=Roughness2*Roughness2;
-  
   Metallic=parameters[1];
   Fresnel0=parameters[2];
-
   Diffuse=diffuse.rgb;
 
   // Given a point x and direction \omega,
@@ -186,7 +186,7 @@ void main()
     }
 
 #ifdef ENABLE_TEXTURE
-#ifndef EXPLICIT_COLOR
+#ifndef COLOR
     // Experimental environment radiance using Riemann sums;
     // can also do importance sampling.
     vec3 envRadiance=vec3(0.0,0.0,0.0);

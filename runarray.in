@@ -347,8 +347,44 @@ void transpose(double *a, size_t n)
 }
 
 // Invert an n x n array in place.
-void inverse(double *a, size_t n)
+void inverse(double *M, size_t n)
 {
+  if(n == 2) {
+    real a=M[0];
+    real b=M[1];
+    real c=M[2];
+    real d=M[3];
+    real det=a*d-b*c;
+    if(det == 0.0)
+      error(singular);
+    det=1.0/det;
+    M[0]=d*det;
+    M[1]=-b*det;
+    M[2]=-c*det;
+    M[3]=a*det;
+    return;
+  }
+
+  if(n == 3) {
+    real a=M[0], b=M[1], c=M[2];
+    real d=M[3], e=M[4], f=M[5];
+    real g=M[6], h=M[7], i=M[8];
+    
+    real A=e*i-f*h;
+    real B=f*g-d*i;
+    real C=d*h-e*g;
+    
+    real det=a*A+b*B+c*C;
+    if(det == 0.0)
+      error(singular);
+    det=1.0/det;
+    
+    M[0]=A*det; M[1]=(c*h-b*i)*det; M[2]=(b*f-c*e)*det;
+    M[3]=B*det; M[4]=(a*i-c*g)*det; M[5]=(c*d-a*f)*det;
+    M[6]=C*det; M[7]=(b*g-a*h)*det; M[8]=(a*e-b*d)*det;
+    return;
+  }
+
   inverseAllocate(n);
   
   for(size_t i=0; i < n; i++)
@@ -360,7 +396,7 @@ void inverse(double *a, size_t n)
     real big=0.0;
     // This is the outer loop of the search for a pivot element.
     for(size_t j=0; j < n; j++) {
-      double *aj=a+n*j;
+      double *aj=M+n*j;
       if(pivot[j] != 1) {
         for(size_t k=0; k < n; k++) {
           if(pivot[k] == 0) {
@@ -380,9 +416,9 @@ void inverse(double *a, size_t n)
     ++(pivot[col]);
     
     // Interchange rows, if needed, to put the pivot element on the diagonal.
-    double *acol=a+n*col;
+    double *acol=M+n*col;
     if(row != col) {
-      double *arow=a+n*row;
+      double *arow=M+n*row;
       for(size_t k=0; k < n; k++) {
         real temp=arow[k];
         arow[k]=acol[k];
@@ -407,7 +443,7 @@ void inverse(double *a, size_t n)
     // Reduce all rows except for the pivoted one.
     for(size_t k=0; k < n; k++) {
       if(k != col) { 
-        double *ak=a+n*k;
+        double *ak=M+n*k;
         real akcol=ak[col];
         ak[col]=0.0;
         for(size_t j=0; j < n; j++)
@@ -423,7 +459,7 @@ void inverse(double *a, size_t n)
     size_t c=Col[k];
     if(r != c) {
       for(size_t j=0; j < n; j++) {
-        double *aj=a+n*j;
+        double *aj=M+n*j;
         real temp=aj[r];
         aj[r]=aj[c];
         aj[c]=temp;

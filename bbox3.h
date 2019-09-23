@@ -178,48 +178,6 @@ struct bbox3 {
     return pair(right,top);
   }
   
-  // transform bbox3 by 4x4 matrix
-  void transform(const double* m)
-  {
-    const double xmin = left;
-    const double ymin = bottom;
-    const double zmin = near;
-    const double xmax = right;
-    const double ymax = top;
-    const double zmax = far;
-    
-    empty = true;
-    add(m*triple(xmin,ymin,zmin));
-    addnonempty(m*triple(xmin,ymin,zmax));
-    addnonempty(m*triple(xmin,ymax,zmin));
-    addnonempty(m*triple(xmin,ymax,zmax));
-    addnonempty(m*triple(xmax,ymin,zmin));
-    addnonempty(m*triple(xmax,ymin,zmax));
-    addnonempty(m*triple(xmax,ymax,zmin));
-    addnonempty(m*triple(xmax,ymax,zmax));
-  }
-  
-  void transform2(const double* m)
-  {
-    const double xmin = left;
-    const double ymin = bottom;
-    const double zmin = near;
-    const double xmax = right;
-    const double ymax = top;
-    const double zmax = far;
-    
-    pair V=Transform2(m,triple(xmin,ymin,zmin));
-    left=right=V.getx();
-    bottom=top=V.gety();
-    addnonempty(Transform2(m,triple(xmin,ymin,zmax)));
-    addnonempty(Transform2(m,triple(xmin,ymax,zmin)));
-    addnonempty(Transform2(m,triple(xmin,ymax,zmax)));
-    addnonempty(Transform2(m,triple(xmax,ymin,zmin)));
-    addnonempty(Transform2(m,triple(xmax,ymin,zmax)));
-    addnonempty(Transform2(m,triple(xmax,ymax,zmin)));
-    addnonempty(Transform2(m,triple(xmax,ymax,zmax)));
-  }
-  
   friend ostream& operator << (ostream& out, const bbox3& b)
   {
     out << "Min " << b.Min() << " Max " << b.Max();

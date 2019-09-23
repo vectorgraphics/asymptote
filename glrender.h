@@ -9,6 +9,12 @@
 #include "common.h"
 #include "triple.h"
 
+#ifdef HAVE_LIBGLM
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#endif
+
 #ifdef HAVE_GL
 
 #include <csignal>
@@ -50,6 +56,8 @@
 #else
 typedef float GLfloat;
 #endif
+
+#include "material.h"
 
 namespace camp {
 class picture;
@@ -131,27 +139,233 @@ void glrender(const string& prefix, const camp::picture* pic,
               size_t nlights, camp::triple *lights, double *diffuse,
               double *specular, bool view, int oldpid=0);
 
-struct ModelView {
-  double T[16];
-  double Tinv[16];
-};
-
-extern ModelView modelView;
+extern const double *dprojView;
 
 void initshader();
 void deleteshader();
+
+extern const double *BBT;
 
 }
 
 namespace camp {
 
+struct Billboard {
+  double cx,cy,cz;
+  
+  void init(const triple& center) {
+    cx=center.getx();
+    cy=center.gety();
+    cz=center.getz();
+  }
+    
+  triple transform(const triple& v) const {
+    double x=v.getx()-cx;
+    double y=v.gety()-cy;
+    double z=v.getz()-cz;
+    
+    return triple(x*gl::BBT[0]+y*gl::BBT[3]+z*gl::BBT[6]+cx,
+                  x*gl::BBT[1]+y*gl::BBT[4]+z*gl::BBT[7]+cy,
+                  x*gl::BBT[2]+y*gl::BBT[5]+z*gl::BBT[8]+cz);
+  }
+};
+
+extern Billboard BB;
+
+extern GLint pixelShader;
+extern GLint noNormalShader;
 extern GLint materialShader;
 extern GLint colorShader;
-extern GLint noNormalShader;
-extern GLint pixelShader;
+extern GLint transparentShader;
 
 void setUniforms(GLint shader);
 void deleteUniforms();
+
+typedef mem::map<CONST Material,size_t> MaterialMap;
+
+extern mem::vector<Material> material;
+extern MaterialMap materialMap;
+extern size_t materialIndex;
+extern int MaterialIndex;
+
+extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
+extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers
+
+class vertexData 
+{
+public:
+  GLfloat position[3];
+  GLfloat normal[3];
+  GLint material;
+  vertexData() {};
+  vertexData(const triple& v, const triple& n) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    material=MaterialIndex;
+  }
+};
+
+class VertexData
+{
+public:
+  GLfloat position[3];
+  GLfloat normal[3];
+  GLint material;
+  GLubyte color[4];
+  VertexData() {};
+  VertexData(const triple& v, const triple& n) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    material=MaterialIndex;
+  }
+  VertexData(const triple& v, const triple& n, GLfloat *c) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    normal[0]=n.getx();
+    normal[1]=n.gety();
+    normal[2]=n.getz();
+    material=MaterialIndex;
+    color[0]=(int)(bytescale*c[0]);
+    color[1]=(int)(bytescale*c[1]);
+    color[2]=(int)(bytescale*c[2]);
+    color[3]=(int)(bytescale*c[3]);
+  }
+};
+
+class vertexData1 {
+public:
+  GLfloat position[3];
+  GLint material;
+  vertexData1() {};
+  vertexData1(const triple& v) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    material=MaterialIndex;
+  }
+};
+
+class vertexData0 {
+public:
+  GLfloat position[3];
+  GLfloat width;
+  GLint  material;
+  vertexData0() {};
+  vertexData0(const triple& v, double width) : width(width) {
+    position[0]=v.getx();
+    position[1]=v.gety();
+    position[2]=v.getz();
+    material=MaterialIndex;
+  }
+};
+
+class vertexBuffer {
+public:  
+  std::vector<vertexData> vertices;
+  std::vector<VertexData> Vertices;
+  std::vector<vertexData1> vertices1;
+  std::vector<vertexData0> vertices0;
+  std::vector<GLuint> indices;
+  void clear() {
+    vertices.clear();
+    Vertices.clear();
+    vertices1.clear();
+    vertices0.clear();
+    indices.clear();
+    vertices.reserve(Nbuffer);
+    Vertices.reserve(Nbuffer);
+    vertices1.reserve(nbuffer);
+    vertices0.reserve(nbuffer);
+    indices.reserve(Nbuffer);
+  }
+  
+// Store the vertex v and its normal vector n.
+  GLuint vertex(const triple &v, const triple& n) {
+    size_t nvertices=vertices.size();
+    vertices.push_back(vertexData(v,n));
+    return nvertices;
+  }     
+  
+// Store the vertex v and its normal vector n, without an explicit color.
+  GLuint tvertex(const triple &v, const triple& n) {
+    size_t nvertices=Vertices.size();
+    Vertices.push_back(VertexData(v,n));
+    return nvertices;
+  }
+  
+// Store the vertex v, its normal vector n, and colors c.
+  GLuint Vertex(const triple &v, const triple& n, GLfloat *c) {
+    size_t nvertices=Vertices.size();
+    Vertices.push_back(VertexData(v,n,c));
+    return nvertices;
+  }     
+  
+// Store the vertex v.
+  GLuint vertex1(const triple &v) {
+    size_t nvertices=vertices1.size();
+    vertices1.push_back(vertexData1(v));
+    return nvertices;
+  }     
+  
+// Store the pixel v and its width.
+  GLuint vertex0(const triple &v, double width) {
+    size_t nvertices=vertices0.size();
+    vertices0.push_back(vertexData0(v,width));
+    return nvertices;
+  }     
+  
+  // append array b onto array a with offset
+  void appendOffset(std::vector<GLuint>& a,
+                    const std::vector<GLuint>& b, size_t offset) {
+    size_t n=a.size();
+    size_t m=b.size();
+    a.resize(n+m);
+    for(size_t i=0; i < m; ++i)
+      a[n+i]=b[i]+offset;
+  }
+
+  // append array b onto array a
+  void append(const vertexBuffer& b) {
+    appendOffset(indices,b.indices,vertices.size());
+    vertices.insert(vertices.end(),b.vertices.begin(),b.vertices.end());
+  }
+  
+  void Append(const vertexBuffer& b) {
+    appendOffset(indices,b.indices,Vertices.size());
+    Vertices.insert(Vertices.end(),b.Vertices.begin(),b.Vertices.end());
+  }
+  
+  void append1(const vertexBuffer& b) {
+    appendOffset(indices,b.indices,vertices1.size());
+    vertices1.insert(vertices1.end(),b.vertices1.begin(),b.vertices1.end());
+  }
+  
+  void append0(const vertexBuffer& b) {
+    appendOffset(indices,b.indices,vertices0.size());
+    vertices0.insert(vertices0.end(),b.vertices0.begin(),b.vertices0.end());
+  }
+
+};
+
+extern vertexBuffer material0Data; // pixels
+extern vertexBuffer material1Data; // Material Bezier curves
+extern vertexBuffer materialData;  // Material Bezier patches & triangles
+extern vertexBuffer colorData;     // Colored Bezier patches & triangles
+extern vertexBuffer transparentData;//Transparent patches & triangles
+
+extern void drawBuffer(vertexBuffer& data, GLint shader);
+extern void drawBuffers(); 
+extern void clearBuffers();
+extern void clearMaterialBuffer(bool draw=false);
 
 }
 

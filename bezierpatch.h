@@ -16,156 +16,23 @@ namespace camp {
 
 extern const double Fuzz4;
 
-class vertexData
-{
-public:
-  GLfloat position[3];
-  GLfloat normal[3];
-  GLint  material;
-  vertexData() {};
-  vertexData(const triple& v, const triple& n) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    normal[0]=n.getx();
-    normal[1]=n.gety();
-    normal[2]=n.getz();
-    material=drawElement::materialIndex;
-  }
-};
-
-class VertexData
-{
-public:
-  GLfloat position[3];
-  GLfloat normal[3];
-  GLint material;
-  GLubyte color[4];
-  GLint center; // Index to center of billboard label
-  VertexData() {};
-  VertexData(const triple& v, const triple& n) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    normal[0]=n.getx();
-    normal[1]=n.gety();
-    normal[2]=n.getz();
-    material=drawElement::materialIndex;
-    center=0;
-  }
-  VertexData(const triple& v, const triple& n, billboard_t) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    normal[0]=n.getx();
-    normal[1]=n.gety();
-    normal[2]=n.getz();
-    material=drawElement::materialIndex;
-    center=drawElement::centerIndex;
-  }
-  VertexData(const triple& v, const triple& n, GLfloat *c) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    normal[0]=n.getx();
-    normal[1]=n.gety();
-    normal[2]=n.getz();
-    material=-(int) drawElement::materialIndex-1; // request explicit color
-    color[0]=(int)(bytescale*c[0]);
-    color[1]=(int)(bytescale*c[1]);
-    color[2]=(int)(bytescale*c[2]);
-    color[3]=(int)(bytescale*c[3]);
-    center=0;
-  }
-  VertexData(const triple& v, const triple& n, GLfloat *c, billboard_t) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    normal[0]=n.getx();
-    normal[1]=n.gety();
-    normal[2]=n.getz();
-    material=-(int) drawElement::materialIndex-1; // request explicit color
-    color[0]=(int)(bytescale*c[0]);
-    color[1]=(int)(bytescale*c[1]);
-    color[2]=(int)(bytescale*c[2]);
-    color[3]=(int)(bytescale*c[3]);
-    center=drawElement::centerIndex;
-  }
-};
-
 struct BezierPatch
 {
-  static std::vector<vertexData> vertexbuffer;
-  static std::vector<VertexData> Vertexbuffer;
-  static std::vector<VertexData> tVertexbuffer; // for transparent surfaces
-  static std::vector<GLuint> indices;
-  static std::vector<GLuint> Indices;
-  static std::vector<GLuint> tIndices;
-  
-  static GLuint vertsBufferIndex; 
-  static GLuint VertsBufferIndex; 
-  static GLuint tVertsBufferIndex; 
-  
-  static GLuint elemBufferIndex; 
-  static GLuint ElemBufferIndex; 
-  static GLuint tElemBufferIndex; 
-  
-  std::vector<GLuint> *pindices;
-  triple u,v,w;
+  vertexBuffer data;
+
+  bool transparent;
+  bool color;
   double epsilon;
   double Epsilon;
   double res2;
   double Res2; // Reduced resolution for Bezier triangles flatness test.
-  pair Min,Max;
-  typedef GLuint vertexFunction(const triple &v, const triple& n);
-  typedef GLuint VertexFunction(const triple &v, const triple& n, GLfloat *c);
-  vertexFunction *pvertex;
-  VertexFunction *pVertex;
-  bool Offscreen;
-  
-  BezierPatch() {}
-  
-  void init(double res, const pair& Min, const pair& Max,
-            bool transparent, GLfloat *colors=NULL, bool billboard=false);
+  typedef GLuint (vertexBuffer::*vertexFunction)(const triple &v,
+                                                 const triple& n);
+  vertexFunction pvertex;
+  bool Onscreen;
+
+   void init(double res);
     
-// Store the vertex v and its normal vector n in the buffer.
-  static GLuint vertex(const triple &v, const triple& n) {
-    size_t nvertices=vertexbuffer.size();
-    vertexbuffer.push_back(vertexData(v,n));
-    return nvertices;
-  }
-  
-// Store the vertex v and its normal vector n and colour c in the buffer.
-  static GLuint Vertex(const triple& v, const triple& n, GLfloat *c) {
-    size_t nvertices=Vertexbuffer.size();
-    Vertexbuffer.push_back(VertexData(v,n,c));
-    return nvertices;
-  }
-  
-  static GLuint bVertex(const triple& v, const triple& n) {
-    size_t nvertices=Vertexbuffer.size();
-    Vertexbuffer.push_back(VertexData(v,n,billboard));
-    return nvertices;
-  }
-  
-  static GLuint tvertex(const triple &v, const triple& n) {
-    size_t nvertices=tVertexbuffer.size();
-    tVertexbuffer.push_back(VertexData(v,n));
-    return nvertices;
-  }
-  
-  static GLuint tVertex(const triple& v, const triple& n, GLfloat *c) {
-    size_t nvertices=tVertexbuffer.size();
-    tVertexbuffer.push_back(VertexData(v,n,c));
-    return nvertices;
-  }
-  
-  static GLuint tbVertex(const triple& v, const triple& n) {
-    size_t nvertices=tVertexbuffer.size();
-    tVertexbuffer.push_back(VertexData(v,n,billboard));
-    return nvertices;
-  }
-  
   triple normal(triple left3, triple left2, triple left1, triple middle,
                 triple right1, triple right2, triple right3) {
     triple rp=right1-middle;
@@ -240,86 +107,49 @@ struct BezierPatch
   
   // Approximate bounds by bounding box of control polyhedron.
   bool offscreen(size_t n, const triple *v) {
-    double x,y;
-    double X,Y;
-
-    X=x=v[0].getx();
-    Y=y=v[0].gety();
-    
-    for(size_t i=1; i < n; ++i) {
-      triple V=v[i];
-      double vx=V.getx();
-      double vy=V.gety();
-      if(vx < x) x=vx;
-      else if(vx > X) X=vx;
-      if(vy < y) y=vy;
-      else if(vy > Y) Y=vy;
+    if(bbox2(n,v).offscreen()) {
+      Onscreen=false;
+      return true;
     }
-
-    if(X >= Min.getx() && x <= Max.getx() &&
-       Y >= Min.gety() && y <= Max.gety())
-      return false;
-
-    return Offscreen=true;
+    return false;
   }
 
-  static void clear() {
-    vertexbuffer.clear();
-    indices.clear();
-  }
-  
-  static void Clear() {
-    Vertexbuffer.clear();
-    Indices.clear();
-  }
-  
-  static void tClear() {
-    tVertexbuffer.clear();
-    tIndices.clear();
-  }
-  
-  ~BezierPatch() {}
-  
+  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
   void render(const triple *p,
               GLuint I0, GLuint I1, GLuint I2, GLuint I3,
               triple P0, triple P1, triple P2, triple P3,
               bool flat0, bool flat1, bool flat2, bool flat3,
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL,
               GLfloat *C3=NULL);
-  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
   
-  bool queue(const triple *g, bool straight, double ratio,
-             const pair& Min, const pair& Max, bool transparent,
-             GLfloat *colors=NULL, bool billboard=false) {
-    init(pixel*ratio,Min,Max,transparent,colors,billboard);
+  void append() {
+    if(transparent)
+      transparentData.Append(data);
+    else if(color)
+      colorData.Append(data);
+    else
+      materialData.append(data);
+
+    if(materialData.vertices.size() >= gl::maxvertices) {
+      drawBuffer(materialData,materialShader);
+      materialData.clear();
+      gl::forceRemesh=true;
+    }
+    if(colorData.Vertices.size() >= gl::maxvertices) {
+      drawBuffer(colorData,colorShader);
+      colorData.clear();
+      gl::forceRemesh=true;
+    }
+  }
+  
+  void queue(const triple *g, bool straight, double ratio, bool Transparent,
+             GLfloat *colors=NULL) {
+    data.clear();
+    Onscreen=true;
+    transparent=Transparent;
+    color=colors;
+    init(pixel*ratio);
     render(g,straight,colors);
-    return Offscreen;
-  }
-  
-  void drawMaterials();
-  void drawColors(std::vector<VertexData>& Vertexbuffer,
-                  std::vector<GLuint>& Indices);
-  void sortTriangles();
-  
-  void drawColors() {
-    drawColors(Vertexbuffer,Indices);
-  }
-    
-  void drawOpaque() {
-    drawMaterials();
-    drawColors();
-  }
-    
-  void drawTransparent() {
-    glDepthMask(GL_FALSE);
-    sortTriangles();
-    drawColors(tVertexbuffer,tIndices);
-    glDepthMask(GL_TRUE);
-  }
-  
-  void draw() {
-    drawOpaque();
-    drawTransparent();
   }
   
 };
@@ -342,14 +172,13 @@ public:
     return max(d,Straightness(p6,p[7],p[8],p9));
   }
   
+  void render(const triple *p, bool straight, GLfloat *c0=NULL);
   void render(const triple *p,
               GLuint I0, GLuint I1, GLuint I2,
               triple P0, triple P1, triple P2,
               bool flat0, bool flat1, bool flat2,
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL);
-  void render(const triple *p, bool straight, GLfloat *c0=NULL);
 };
-
 
 struct Triangles : public BezierPatch {
 public:
@@ -361,6 +190,7 @@ public:
              bool transparent);
 };
 
+extern void sortTriangles();
 
 #endif
 

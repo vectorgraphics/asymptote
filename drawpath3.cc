@@ -19,13 +19,6 @@ namespace camp {
 using vm::array;
 using namespace prc;
   
-#ifdef HAVE_LIBGLM
-using gl::modelView;
-
-BezierCurve drawPath3::R;
-Pixel drawPixel::R;
-#endif
-
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   Int n=g.length();
@@ -82,58 +75,50 @@ bool drawPath3::write(jsfile *out)
 }
 
 void drawPath3::render(double size2, const triple& b, const triple& B,
-                       double perspective, bool transparent)
+                       double perspective, bool transparent, bool remesh)
 {
 #ifdef HAVE_LIBGLM
   Int n=g.length();
   if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
     return;
 
-  if(billboard)
+  bool offscreen;
+  if(billboard) {
     drawElement::centerIndex=centerIndex;
+    BB.init(center);
+    offscreen=bbox2(Min,Max,BB).offscreen();
+  } else
+    offscreen=bbox2(Min,Max).offscreen();
   
-  triple m3,M3;
-  
-  double f,F,s;
-  if(perspective) {
-    f=Min.getz()*perspective;
-    F=Max.getz()*perspective;
-    m3=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M3=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
-    s=max(f,F);
-  } else {
-    m3=b;
-    M3=B;
-    s=1.0;
-  }
-  
-  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  bbox3 box(m3,M3);
-  box.transform2(modelView.Tinv);
-  pair m=box.Min2();
-  pair M=box.Max2();
-  
-  if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                    Max.gety() < m.gety() || Min.gety() > M.gety())) {
-    offscreen=true;
+  if(offscreen) { // Fully offscreen
+    R.Onscreen=false;
+    R.data.clear();
     return;
   }
-  
-  RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(false,Black,color,Black,1.0,0.0,0.04);
-  
+
   for(Int i=0; i < n; ++i) {
     triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
                        g.point(i+1)};
-    offscreen |= R.queue(controls,g.straight(i),size3.length()/size2,m,M,billboard);
-  }
+    triple *Controls;
+    triple Controls0[4];
+    if(billboard) {
+      Controls=Controls0;
+      for(size_t i=0; i < 4; i++) {
+        Controls[i]=BB.transform(controls[i]);
+      }
+    } else
+      Controls=controls;
 
-  if(BezierCurve::vertexbuffer.size() >= (unsigned) gl::maxvertices) {
-    R.draw();
-    BezierCurve::clear();
-    gl::forceRemesh=true;
+    double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
+  
+    const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+  
+    RGBAColour Black(0.0,0.0,0.0,color.A);
+    setcolors(false,Black,color,Black,1.0,0.0,0.04);
+  
+    R.queue(controls,g.straight(i),size3.length()/size2);
   }
+  
 #endif
 }
 
@@ -233,7 +218,7 @@ void drawNurbsPath3::displacement()
 }
 
 void drawNurbsPath3::render(double, const triple&, const triple&,
-                            double, bool transparent)
+                            double, bool transparent, bool remesh)
 {
 #ifdef HAVE_LIBGLM
   if(invisible || ((color.A < 1.0) ^ transparent))
@@ -266,48 +251,20 @@ bool drawPixel::write(jsfile *out)
 }
 
 void drawPixel::render(double size2, const triple& b, const triple& B,
-                       double perspective, bool transparent) 
+                       double perspective, bool transparent, bool remesh) 
 {
 #ifdef HAVE_LIBGLM
   if(invisible || ((color.A < 1.0) ^ transparent)) return;
-  triple m3,M3;
   
-  double f,F,s;
-  if(perspective) {
-    f=Min.getz()*perspective;
-    F=Max.getz()*perspective;
-    m3=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M3=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
-    s=max(f,F);
-  } else {
-    m3=b;
-    M3=B;
-    s=1.0;
-  }
-  
-  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  bbox3 box(m3,M3);
-  box.transform2(modelView.Tinv);
-  pair m=box.Min2();
-  pair M=box.Max2();
-  
-  if(Max.getx() < m.getx() || Min.getx() > M.getx() ||
-     Max.gety() < m.gety() || Min.gety() > M.gety()) {
-    offscreen=true;
+  if(bbox2(Min,Max).offscreen()) { // Fully offscreen
+    R.data.clear();
     return;
   }
-  
+
   RGBAColour Black(0.0,0.0,0.0,color.A);
   setcolors(false,color,color,Black,1.0,0.0,0.04);
   
   R.queue(v,width);
-  
-  if(Pixel::vertexbuffer.size() >= (unsigned) gl::maxvertices) {
-    R.draw();
-    Pixel::clear();
-    gl::forceRemesh=true;
-  }
 #endif
 }
 

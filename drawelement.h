@@ -24,10 +24,6 @@
 
 namespace camp {
 
-//extern double Tx[3]; // x-component of current transform
-//extern double Ty[3]; // y-component of current transform
-extern double* Tz; // z-component of current transform
-
 static const double pixel=1.0; // Adaptive rendering constant.
 
 // Return one-sixth of the second derivative of the Bezier curve defined
@@ -41,8 +37,6 @@ inline triple bezierPP(triple a, triple b, triple c) {
 inline triple bezierPPP(triple a, triple b, triple c, triple d) {
   return d-a+3.0*(b-c);
 }
-
-static const struct billboard_t {} billboard={};
 
 enum Interaction {EMBEDDED=0,BILLBOARD};
 
@@ -115,6 +109,62 @@ public:
   
 };
   
+class bbox2 {
+public:
+  double x,y,X,Y;
+  bbox2(size_t n, const triple *v) {
+    Bounds(v[0]);
+    for(size_t i=1; i < n; ++i)
+      bounds(v[i]);
+  }
+    
+  bbox2(const triple& m, const triple& M) {
+    Bounds(m);
+    bounds(triple(m.getx(),m.gety(),M.getz()));
+    bounds(triple(m.getx(),M.gety(),m.getz()));
+    bounds(triple(m.getx(),M.gety(),M.getz()));
+    bounds(triple(M.getx(),m.gety(),m.getz()));
+    bounds(triple(M.getx(),m.gety(),M.getz()));
+    bounds(triple(M.getx(),M.gety(),m.getz()));
+    bounds(M);
+  }
+    
+  bbox2(const triple& m, const triple& M, const Billboard& BB) {
+    Bounds(BB.transform(m));
+    bounds(BB.transform(triple(m.getx(),m.gety(),M.getz())));
+    bounds(BB.transform(triple(m.getx(),M.gety(),m.getz())));
+    bounds(BB.transform(triple(m.getx(),M.gety(),M.getz())));
+    bounds(BB.transform(triple(M.getx(),m.gety(),m.getz())));
+    bounds(BB.transform(triple(M.getx(),m.gety(),M.getz())));
+    bounds(BB.transform(triple(M.getx(),M.gety(),m.getz())));
+    bounds(BB.transform(M));
+  }
+    
+// Is 2D bounding box formed by projecting 3d points in vector v offscreen?
+  bool offscreen() {
+    double eps=1.0e-2;
+    double min=-1.0-eps;
+    double max=1.0+eps;
+    return X < min || x > max || Y < min || y > max;
+  }
+    
+  void Bounds(const triple& v) {
+    pair V=Transform2T(gl::dprojView,v);
+    x=X=V.getx();
+    y=Y=V.gety();
+  }
+  
+  void bounds(const triple& v) {
+    pair V=Transform2T(gl::dprojView,v);
+    double a=V.getx();
+    double b=V.gety();
+    if(a < x) x=a;
+    else if(a > X) X=a;
+    if(b < y) y=b;
+    else if(b > Y) Y=b;
+  }
+};
+
 typedef mem::vector<box> boxvector;
   
 typedef mem::list<bbox> bboxlist;
@@ -122,18 +172,13 @@ typedef mem::list<bbox> bboxlist;
 typedef mem::map<CONST string,unsigned> groupmap;
 typedef mem::vector<groupmap> groupsmap;
 
-#ifdef HAVE_LIBGLM
-typedef mem::map<CONST Material,size_t> MaterialMap;
-#endif
-
 class drawElement : public gc
 {
 public:
   string KEY;
-  bool offscreen;
   
-  drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key),
-                                      offscreen(false) {}
+  drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key)
+                                      {}
   
   virtual ~drawElement() {}
   
@@ -144,9 +189,6 @@ public:
   static triple lastcenter;
   static size_t lastcenterIndex;
   
-  static mem::vector<Material> material;
-  static MaterialMap materialMap;
-  static size_t materialIndex;
 #endif
   
   static pen lastpen;  
@@ -236,7 +278,8 @@ public:
 
   // Render with OpenGL
   virtual void render(double size2, const triple& Min, const triple& Max,
-                      double perspective, bool transparent) {}
+                      double perspective, bool transparent, bool remesh) 
+  {}
 
   virtual void meshinit() {}
   
@@ -453,6 +496,9 @@ void setcolors(bool colors,
                const prc::RGBAColour& specular, double shininess,
                double metallic, double fresnel0, jsfile *out=NULL);
 #endif
+
+  
+
 }
 
 GC_DECLARE_PTRFREE(camp::box);

@@ -26,7 +26,7 @@ protected:
   size_t centerIndex;  
 public:
 #ifdef HAVE_LIBGLM
-  static BezierCurve R;
+  BezierCurve R;
 #endif  
   void init() {
     billboard=interaction == BILLBOARD &&
@@ -88,7 +88,7 @@ public:
   bool write(jsfile *out);
   
   void render(double, const triple&, const triple&, double,
-              bool transparent);
+              bool transparent, bool remesh);
 
   drawElement *transformed(const double* t);
 };
@@ -173,7 +173,7 @@ public:
              bool &first);
     
   void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool transparent, bool remesh);
     
   drawElement *transformed(const double* t);
 };
@@ -188,7 +188,7 @@ class drawPixel : public drawElement {
   triple Min,Max;
 public:
 #ifdef HAVE_LIBGLM
-  static Pixel R;
+  Pixel R;
 #endif  
   drawPixel(const triple& v, const pen& p, double width, const string& key="")
     : drawElement(key), v(v), p(p), color(rgba(p)), width(width),
@@ -211,7 +211,7 @@ public:
   }
   
   void render(double size2, const triple& b, const triple& B,
-              double perspective, bool transparent);
+              double perspective, bool transparent, bool remesh);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);

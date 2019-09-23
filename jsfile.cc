@@ -44,11 +44,11 @@ void jsfile::open(string name) {
         << "," << gl::Diffuse[i4+2] << "])," << newl;
   }
   out << "];" << newl << newl;
-  size_t nmaterials=drawElement::material.size();
+  size_t nmaterials=material.size();
   out << "let Materials=[";
   for(size_t i=0; i < nmaterials; ++i)
     out << "new Material(" << newl
-        << drawElement::material[i]
+        << material[i]
         << ")," << newl;
   out << "];" << newl << newl;
 }
@@ -73,7 +73,7 @@ void jsfile::addPatch(triple const* controls, size_t n,
   for(size_t i=0; i < last; ++i)
     out << controls[i] << "," << newl;
   out << controls[last] << newl << "]," 
-      << drawElement::centerIndex << "," << drawElement::materialIndex << ","
+      << drawElement::centerIndex << "," << materialIndex << ","
       << Min << "," << Max;
   if(c) {
     out << ",[" << newl;
@@ -94,7 +94,7 @@ void jsfile::addCurve(const triple& z0, const triple& c0,
       << c0 << "," << newl
       << c1 << "," << newl
       << z1 << newl << "],"
-      << drawElement::centerIndex << "," << drawElement::materialIndex << ","
+      << drawElement::centerIndex << "," << materialIndex << ","
       << Min << "," << Max << "));" << newl << newl;
 }
 
@@ -104,7 +104,7 @@ void jsfile::addCurve(const triple& z0, const triple& z1,
   out << "P.push(new BezierCurve([" << newl;
   out << z0 << "," << newl
       << z1 << newl << "],"
-      << drawElement::centerIndex << "," << drawElement::materialIndex << ","
+      << drawElement::centerIndex << "," << materialIndex << ","
       << Min << "," << Max << "));" << newl << newl;
 }
 
@@ -113,13 +113,13 @@ void jsfile::addPixel(const triple& z0, double width,
 {
   out << "P.push(new Pixel(" << newl;
   out << z0 << "," << width << "," << newl
-      << drawElement::materialIndex << ","
+      << materialIndex << ","
       << Min << "," << Max << "));" << newl << newl;
 }
 
 void jsfile::addMaterial(size_t index) {
   out << "Materials.push(new Material(" << newl
-       << drawElement::material[index]
+       << material[index]
       << "));" << newl << newl;
 }
 

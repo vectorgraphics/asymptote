@@ -13,6 +13,10 @@
 #include "beziercurve.h"
 #include "bezierpatch.h"
 
+namespace run {
+void inverse(double *a, size_t n);
+}
+
 namespace camp {
 
 #ifdef HAVE_LIBGLM
@@ -44,7 +48,7 @@ protected:
   
 public:
 #ifdef HAVE_LIBGLM
-  static BezierCurve C;
+  BezierCurve C;
 #endif  
   
   string wrongsize() {
@@ -125,7 +129,7 @@ public:
 class drawBezierPatch : public drawSurface {
 public:  
 #ifdef HAVE_LIBGLM
-  static BezierPatch S;
+  BezierPatch S;
 #endif  
   
   drawBezierPatch(const vm::array& g, triple center, bool straight,
@@ -153,14 +157,14 @@ public:
   bool write(jsfile *out);
   
   void render(double, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool transparent, bool remesh);
   drawElement *transformed(const double* t);
 };
   
 class drawBezierTriangle : public drawSurface {
 public:
 #ifdef HAVE_LIBGLM
-  static BezierTriangle S;
+  BezierTriangle S;
 #endif  
   
   drawBezierTriangle(const vm::array& g, triple center, bool straight,
@@ -188,7 +192,7 @@ public:
   bool write(jsfile *out);
   
   void render(double, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool transparent, bool remesh);
   drawElement *transformed(const double* t);
 };
   
@@ -326,7 +330,7 @@ public:
              bool &first);
 
   void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool transparent, bool remesh);
     
   drawElement *transformed(const double* t);
 };
@@ -548,9 +552,18 @@ public:
 
     if(nN) {
       N=new(UseGC) triple[nN];
-      for(size_t i=0; i < nN; i++)
-        N[i]=transformNormal(t,s->N[i]);
-    
+      if(t == NULL) {
+        for(size_t i=0; i < nN; i++)
+          N[i]=s->N[i];
+      } else {
+        double T[]={t[0],t[1],t[2],
+                    t[4],t[5],t[6],
+                    t[8],t[9],t[10]};
+        run::inverse(T,3);
+        for(size_t i=0; i < nN; i++)
+          N[i]=unit(Transform3(s->N[i],T));
+      }
+
       NI=new(UseGC) uint32_t[nI][3];
       for(size_t i=0; i < nI; ++i) {
         uint32_t *NIi=NI[i];
@@ -661,7 +674,7 @@ public:
   virtual ~drawTriangles() {}
  
   void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool transparent, bool remesh);
  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
  

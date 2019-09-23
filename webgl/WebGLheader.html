@@ -13,10 +13,6 @@ attribute float width;
 attribute vec3 normal;
 #endif
 attribute float materialIndex;
-#ifdef BILLBOARD
-attribute float centerIndex;
-uniform vec3 Centers[nCenters];
-#endif
 #ifdef COLOR
 attribute vec4 color;
 #endif
@@ -45,13 +41,7 @@ uniform Material Materials[nMaterials];
 
 void main(void)
 {
-#ifdef BILLBOARD
-  int index=int(centerIndex);
-  vec4 v=vec4(index == 0 ? position :
-              Centers[index-1]+normMat*(position-Centers[index-1]),1.0);
-#else      
   vec4 v=vec4(position,1.0);
-#endif
   gl_Position=projViewMat*v;
 #ifdef NORMAL
 #ifndef ORTHOGRAPHIC

@@ -29,10 +29,6 @@
 #include "interact.h"
 #include "tr.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #ifdef HAVE_GL
 
 #ifdef HAVE_LIBGLUT
@@ -69,14 +65,30 @@ using camp::nmaterials;
 using utils::seconds;
 
 namespace camp {
+Billboard BB;
+
+GLint pixelShader;
+GLint noNormalShader;
 GLint materialShader;
 GLint colorShader;
-GLint noNormalShader;
-GLint pixelShader;
+GLint transparentShader;
+
+mem::vector<Material> material;
+MaterialMap materialMap;
+size_t materialIndex;
 
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
+
+vertexBuffer material0Data;
+vertexBuffer material1Data;
+vertexBuffer materialData;
+vertexBuffer colorData;
+vertexBuffer transparentData;
+
+const size_t Nbuffer=10000;
+const size_t nbuffer=1000;
 }
 
 #endif /* HAVE_GL */
@@ -89,8 +101,6 @@ bool initialize=true;
 
 GLint Maxvertices;
 size_t maxvertices;
-
-size_t Ncenters=100;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -177,10 +187,14 @@ mat4 viewMat;
 mat3 normMat;
 
 dmat4 dprojMat;
+dmat4 dprojViewMat;
 dmat4 dviewMat;
+dmat3 dnormMat=dmat3();
 dmat3 drotateMat; 
 
-ModelView modelView;
+const double *dprojView;
+const double *BBT=value_ptr(dnormMat);
+
 GLuint ubo;
 
 Arcball arcball;
@@ -250,14 +264,12 @@ void frustum(GLdouble left, GLdouble right, GLdouble bottom,
              GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
   dprojMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
-  projViewMat=mat4(dprojMat*dviewMat);
 }
 
 void ortho(GLdouble left, GLdouble right, GLdouble bottom,
            GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
   dprojMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
-  projViewMat=mat4(dprojMat*dviewMat);
 }
 
 void setProjection()
@@ -265,6 +277,9 @@ void setProjection()
   setDimensions(Width,Height,X,Y);
   if(orthographic) ortho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   else frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  dprojViewMat=dprojMat*dviewMat;
+  projViewMat=mat4(dprojViewMat);
+  dprojView=value_ptr(dprojViewMat);
   
 #ifdef HAVE_GL
 #ifdef HAVE_LIBGLUT
@@ -278,18 +293,10 @@ void setProjection()
 void updateModelViewData()
 {
   // Like Fortran, OpenGL uses transposed (column-major) format!
-  dmat4 MV=glm::transpose(dviewMat);
-  dmat4 MVinv=glm::inverse(MV);
-  
-  normMat=mat3(MVinv);
-
-  double* T=value_ptr(MV);
-  double* Tinv=value_ptr(MVinv);
-
-  for(int j=0; j < 16; ++j) {
-    modelView.T[j]=T[j];
-    modelView.Tinv[j]=Tinv[j];
-  }
+  dmat4 MVinv=glm::inverse(dviewMat);
+  dnormMat=dmat3(MVinv);
+  BBT=value_ptr(dnormMat);
+  normMat=mat3(dnormMat);
 }
 
 bool Xspin,Yspin,Zspin;
@@ -435,14 +442,10 @@ void drawscene(int Width, int Height)
     forceRemesh=false;
   }
   
-  if(remesh) {
-    camp::BezierPatch::clear();
-    camp::BezierPatch::Clear();
-    camp::BezierPatch::tClear();
-    camp::BezierCurve::clear();
-    camp::Pixel::clear();
+  camp::clearBuffers();
+  
+  if(remesh)
     camp::drawElement::center.clear();
-  }
   
   // Render opaque objects
   Picture->render(size2,m,M,perspective,false,remesh);
@@ -1189,11 +1192,6 @@ void spinz()
   }
 }
 
-void write(const char *text, const double *v)
-{
-  cout << text << "=(" << v[0] << "," << v[1] << "," << v[2] << ")";
-}
-
 void showCamera()
 {
   projection P=camera();
@@ -1410,15 +1408,10 @@ void init_osmesa()
   }
 #endif // HAVE_LIBOSMESA
 }
-
-GLuint vertShader,fragShader;
-GLuint vertShaderCol,fragShaderCol;
-
 void initshader()
 {
   Nlights=max(Nlights,nlights);
   Nmaterials=max(Nmaterials,nmaterials);
-  Ncenters=max(Ncenters,camp::drawElement::center.size());
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
@@ -1442,30 +1435,29 @@ void initshader()
   if(orthographic)
     shaderParams.push_back("ORTHOGRAPHIC");
     
-  shaderParams.push_back("BILLBOARD");
-  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            Ncenters,shaderParams);
-  shaderParams.pop_back();
-
   shaderParams.push_back("WIDTH");
   camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         Ncenters,shaderParams);
+                                         shaderParams);
   shaderParams.pop_back();
-  
+  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                            shaderParams);
   shaderParams.push_back("NORMAL");
   camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            Ncenters,shaderParams);
-
-  shaderParams.push_back("EXPLICIT_COLOR");
-  shaderParams.push_back("BILLBOARD");
+                                            shaderParams);
+  shaderParams.push_back("COLOR");
   camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         Ncenters,shaderParams);
+                                         shaderParams);
+  shaderParams.push_back("TRANSPARENT");
+  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                               shaderParams);
 }
 
 void deleteshader() 
 {
-  glDeleteProgram(camp::materialShader);
+  glDeleteProgram(camp::transparentShader);
   glDeleteProgram(camp::colorShader);
+  glDeleteProgram(camp::materialShader);
+  glDeleteProgram(camp::pixelShader);
   glDeleteProgram(camp::noNormalShader);
 }
 
@@ -1792,15 +1784,13 @@ string getCenterIndex(size_t const& index) {
 
 void setUniforms(GLint shader)
 {
-  if(gl::nlights > gl::Nlights || nmaterials > Nmaterials || 
-     drawElement::center.size() > gl::Ncenters) {
+  if(gl::nlights > gl::Nlights || nmaterials > Nmaterials) {
     gl::deleteshader();
     gl::initshader();
     gl::lastshader=-1;
   }
   
-  bool billboard=shader == colorShader || shader == noNormalShader;
-  bool normal=shader == colorShader || shader == materialShader;
+  bool normal=shader != pixelShader && shader != noNormalShader;
     
   if(shader != gl::lastshader) {
     glUseProgram(shader);
@@ -1822,15 +1812,6 @@ void setUniforms(GLint shader)
                   (GLfloat) gl::Diffuse[i4+2]);
     }
 
-    if(billboard) {
-      size_t ncenters=drawElement::center.size();
-      for(size_t i=0; i < ncenters; ++i) {
-        triple v=drawElement::center[i];
-        glUniform3f(glGetUniformLocation(shader,getCenterIndex(i).c_str()),
-                    (GLfloat) v.getx(),(GLfloat) v.gety(),(GLfloat) v.getz());
-      }
-    }
-  
 #if HAVE_LIBOPENIMAGEIO
     // textures
     if (settings::getSetting<bool>("envmap")) { 
@@ -1849,8 +1830,8 @@ void setUniforms(GLint shader)
   glGenBuffers(1,&gl::ubo);
   glBindBuffer(GL_UNIFORM_BUFFER,gl::ubo);
     
-  glBufferData(GL_UNIFORM_BUFFER,drawElement::material.size()*sizeof(Material),
-               drawElement::material.data(),GL_STATIC_DRAW);
+  glBufferData(GL_UNIFORM_BUFFER,material.size()*sizeof(Material),
+               material.data(),GL_STATIC_DRAW);
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
   
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
@@ -1867,6 +1848,128 @@ void deleteUniforms()
   glDeleteBuffers(1,&gl::ubo);
 }
   
+void drawBuffer(vertexBuffer& data, GLint shader)
+{
+  if(data.indices.empty()) return;
+  
+  bool pixel=shader == pixelShader;
+  bool normal=!pixel && (shader != noNormalShader);
+  bool color=shader == colorShader || shader == transparentShader;
+  
+  const size_t size=sizeof(GLfloat);
+  const size_t intsize=sizeof(GLint);
+  const size_t bytestride=color ? sizeof(VertexData) :
+    (normal ? sizeof(vertexData) :
+     (pixel ? sizeof(vertexData0) : sizeof(vertexData1)));
+
+  GLuint vertsBufferIndex;
+  GLuint elemBufferIndex; 
+
+  GLuint vao;
+  
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
+  glGenBuffers(1,&vertsBufferIndex);
+  glGenBuffers(1,&elemBufferIndex);
+  
+  if(color) registerBuffer(data.Vertices,vertsBufferIndex);
+  else if(normal) registerBuffer(data.vertices,vertsBufferIndex);
+  else if(pixel) registerBuffer(data.vertices0,vertsBufferIndex);
+  else registerBuffer(data.vertices1,vertsBufferIndex);
+  
+  registerBuffer(data.indices,elemBufferIndex);
+  
+  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
+
+  camp::setUniforms(shader);
+
+  const GLint posAttrib=glGetAttribLocation(shader,"position");
+  const GLint materialAttrib=glGetAttribLocation(shader,"material");
+  GLint normalAttrib,colorAttrib,widthAttrib=0;
+  
+  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
+  glEnableVertexAttribArray(posAttrib);
+    
+  if(normal) {
+    normalAttrib=glGetAttribLocation(shader,"normal");
+    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
+                          (void *) (3*size));
+    glEnableVertexAttribArray(normalAttrib);
+  } else if(pixel) {
+    widthAttrib=glGetAttribLocation(shader,"width");
+    glVertexAttribPointer(widthAttrib,1,GL_FLOAT,GL_FALSE,bytestride,
+                          (void *) (3*size));
+    glEnableVertexAttribArray(widthAttrib);
+  }
+    
+  glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
+                         (void *) ((normal ? 6 : (pixel ? 4 : 3))*size));
+  glEnableVertexAttribArray(materialAttrib);
+
+  if(color) {
+    colorAttrib=glGetAttribLocation(shader,"color");
+    glVertexAttribPointer(colorAttrib,4,GL_UNSIGNED_BYTE,GL_TRUE,bytestride,
+                          (void *) (6*size+intsize));
+    glEnableVertexAttribArray(colorAttrib);
+  }
+  
+  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
+  glDrawElements(normal ? GL_TRIANGLES : (pixel ? GL_POINTS : GL_LINES),
+                 data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
+
+  glDisableVertexAttribArray(posAttrib);
+  if(normal)
+   glDisableVertexAttribArray(normalAttrib);
+  if(pixel)
+   glDisableVertexAttribArray(widthAttrib);
+  glDisableVertexAttribArray(materialAttrib);
+  if(color)
+    glDisableVertexAttribArray(colorAttrib);
+  
+  deleteUniforms();
+  
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1,&vao);
+  
+  glDeleteBuffers(1,&vertsBufferIndex);
+  glDeleteBuffers(1,&elemBufferIndex);
+}
+
+void drawBuffers() 
+{
+  drawBuffer(material0Data,pixelShader);
+  drawBuffer(material1Data,noNormalShader);
+  drawBuffer(materialData,materialShader);
+  drawBuffer(colorData,colorShader);
+  sortTriangles();
+  drawBuffer(transparentData,transparentShader);
+}
+
+void clearBuffers()
+{
+  material0Data.clear();
+  material1Data.clear();
+  materialData.clear();
+  colorData.clear();
+  transparentData.clear();
+}
+
+void clearMaterialBuffer(bool draw)
+{
+  if(draw)
+    drawBuffers();
+  material.clear();
+  material.reserve(nmaterials);
+  materialMap.clear();
+  materialIndex=0;
+}
+
+
 }
 
 #endif /* HAVE_GL */
