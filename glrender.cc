@@ -260,16 +260,25 @@ void setDimensions(int Width, int Height, double X, double Y)
   }
 }
 
+void updateProjection()
+{
+  dprojViewMat=dprojMat*dviewMat;
+  projViewMat=mat4(dprojViewMat);
+  dprojView=value_ptr(dprojViewMat);
+}
+
 void frustum(GLdouble left, GLdouble right, GLdouble bottom,
              GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
   dprojMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
+  updateProjection();
 }
 
 void ortho(GLdouble left, GLdouble right, GLdouble bottom,
            GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
   dprojMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
+  updateProjection();
 }
 
 void setProjection()
@@ -277,9 +286,6 @@ void setProjection()
   setDimensions(Width,Height,X,Y);
   if(orthographic) ortho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   else frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
-  dprojViewMat=dprojMat*dviewMat;
-  projViewMat=mat4(dprojViewMat);
-  dprojView=value_ptr(dprojViewMat);
   
 #ifdef HAVE_GL
 #ifdef HAVE_LIBGLUT
