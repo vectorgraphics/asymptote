@@ -1134,6 +1134,8 @@ void initSettings() {
                             "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",
                             "Maximum viewport size",pair(2048,2048)));
+  addOption(new pairSetting("viewportmargin", 0, "pair",
+                            "Horizontal and vertical 3D viewport margin",pair(0.1,0.1)));
   addOption(new pairSetting("maxtile", 0, "pair",
                             "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
