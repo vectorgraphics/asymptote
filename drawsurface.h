@@ -653,8 +653,8 @@ public:
     drawBaseTriangles(t,s), nC(s->nC),
     diffuse(s->diffuse), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity), shininess(s->shininess), 
-    metallic(s->metallic), fresnel0(s->fresnel0), PRCshininess(s->PRCshininess),
-    invisible(s->invisible) {
+    metallic(s->metallic), fresnel0(s->fresnel0),
+    PRCshininess(s->PRCshininess), invisible(s->invisible) {
     
     if(nC) {
       C=new(UseGC) prc::RGBAColour[nC];

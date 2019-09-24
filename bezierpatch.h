@@ -189,6 +189,20 @@ public:
              size_t nC, const prc::RGBAColour* C, size_t nI,
              const uint32_t (*PI)[3], const uint32_t (*NI)[3],
              const uint32_t (*CI)[3], bool transparent);
+  
+  void append() {
+    if(transparent)
+      transparentData.Append(data);
+    else {
+      triangleData.Append(data);
+      if(triangleData.Vertices.size() >= gl::maxvertices) {
+        drawBuffer(triangleData,transparentShader);
+        triangleData.clear();
+        gl::forceRemesh=true;
+      }
+    }
+  }
+
 };
 
 extern void sortTriangles();

@@ -906,7 +906,7 @@ void drawTriangles::render(double size2, const triple& b,
     return;
   }
 
-  if(!remesh && R.Onscreen) { // No need to re-render
+  if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
     R.append();
     return;
   }

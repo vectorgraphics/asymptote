@@ -888,53 +888,55 @@ void sortTriangles()
 
 void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
                       size_t nC, const prc::RGBAColour* C, size_t nI,
-                      const uint32_t (*PI)[3], const uint32_t (*NI)[3],
-                      const uint32_t (*CI)[3], bool transparent)
+                      const uint32_t (*PP)[3], const uint32_t (*NN)[3],
+                      const uint32_t (*CC)[3], bool Transparent)
 {
   if(!nN) return;
   
   data.clear();
   Onscreen=true;
-    
-  color=nC;
+  transparent=Transparent;
   
-  MaterialIndex=transparent ?
-    (color ? -1-materialIndex : 1+materialIndex) : materialIndex;
+  data.Vertices.resize(nP);
+  data.indices.resize(3*nI);
   
-  size_t nindices=3*nI;
-  
-  if(color || transparent)
-    data.Vertices.resize(nP);
-  else
-    data.vertices.resize(nP);
- 
-  data.indices.resize(nindices);
-  
-  uint32_t *P0=(uint32_t *) PI;
-  uint32_t *N0=(uint32_t *) NI;
-  uint32_t *C0=(uint32_t *) CI;
-
-  if(color || transparent) {
-    if(color) {
-      for(size_t i=0; i < nindices; ++i) {
-        uint32_t index=P0[i];
-        prc::RGBAColour c=C[C0[i]];
-        GLfloat c0[]={(GLfloat) c.R,(GLfloat) c.G,(GLfloat) c.B,(GLfloat) c.A};
-        data.Vertices[index]=VertexData(P[index],N[N0[i]],c0);
-        data.indices[i]=index;
+  MaterialIndex=nC ? -1-materialIndex : 1+materialIndex; 
+        
+  for(size_t i=0; i < nI; ++i) {
+    const uint32_t *PI=PP[i];
+    uint32_t PI0=PI[0];
+    uint32_t PI1=PI[1];
+    uint32_t PI2=PI[2];
+    triple P0=P[PI0];
+    triple P1=P[PI1];
+    triple P2=P[PI2];
+    triple Q[]={P0,P1,P2};
+    if(!offscreen(3,Q)) {
+      const uint32_t *NI=NN[i];
+      if(nC) {
+        const uint32_t *CI=CC[i];
+        prc::RGBAColour C0=C[CI[0]];
+        prc::RGBAColour C1=C[CI[1]];
+        prc::RGBAColour C2=C[CI[2]];
+        GLfloat c0[]={(GLfloat) C0.R,(GLfloat) C0.G,(GLfloat) C0.B,
+                      (GLfloat) C0.A};
+        GLfloat c1[]={(GLfloat) C1.R,(GLfloat) C1.G,(GLfloat) C1.B,
+                      (GLfloat) C1.A};
+        GLfloat c2[]={(GLfloat) C2.R,(GLfloat) C2.G,(GLfloat) C2.B,
+                      (GLfloat) C2.A};
+        transparent |= c0[3]+c1[3]+c2[3] < 765;
+        data.Vertices[PI0]=VertexData(P0,N[NI[0]],c0);
+        data.Vertices[PI1]=VertexData(P1,N[NI[1]],c1);
+        data.Vertices[PI2]=VertexData(P2,N[NI[2]],c2);
+      } else {
+        data.Vertices[PI0]=VertexData(P0,N[NI[0]]);
+        data.Vertices[PI1]=VertexData(P1,N[NI[1]]);
+        data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
       }
-    } else {
-      for(size_t i=0; i < nindices; ++i) {
-        uint32_t index=P0[i];
-        data.Vertices[index]=VertexData(P[index],N[N0[i]]);
-        data.indices[i]=index;
-      }
-    }
-  } else {
-    for(size_t i=0; i < nindices; ++i) {
-      uint32_t index=P0[i];
-      data.vertices[index]=vertexData(P[index],N[N0[i]]);
-      data.indices[i]=index;
+      size_t i3=3*i;
+      data.indices[i3]=PI0;
+      data.indices[i3+1]=PI1;
+      data.indices[i3+2]=PI2;
     }
   }
   append();

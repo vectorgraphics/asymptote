@@ -86,6 +86,7 @@ vertexBuffer material1Data;
 vertexBuffer materialData;
 vertexBuffer colorData;
 vertexBuffer transparentData;
+vertexBuffer triangleData;
 
 const size_t Nbuffer=10000;
 const size_t nbuffer=1000;
@@ -1952,6 +1953,7 @@ void drawBuffers()
   drawBuffer(material1Data,noNormalShader);
   drawBuffer(materialData,materialShader);
   drawBuffer(colorData,colorShader);
+  drawBuffer(triangleData,transparentShader);
   sortTriangles();
   drawBuffer(transparentData,transparentShader);
 }
@@ -1962,6 +1964,7 @@ void clearBuffers()
   material1Data.clear();
   materialData.clear();
   colorData.clear();
+  triangleData.clear();
   transparentData.clear();
 }
 
