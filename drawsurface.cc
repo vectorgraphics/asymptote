@@ -882,6 +882,17 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
+bool drawTriangles::write(jsfile *out)
+{
+  if(invisible)
+    return true;
+  
+  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  
+  out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
+  return true;
+}
+
 void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
                            bool transparent, bool remesh)

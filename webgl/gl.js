@@ -63,6 +63,12 @@ let lastMouseX=null;
 let lastMouseY=null;
 let touchID=null;
 
+// Indexed triangles:
+let Positions=[];
+let Normals=[];
+let Colors=[];
+let Indices=[];
+
 class Material {
   constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
     this.diffuse=diffuse;
@@ -266,6 +272,24 @@ class vertexBuffer {
     return this.nvertices++;
   }
 
+  // indexed color vertex 
+  iVertex(i,v,n,c=[0,0,0,0]) {
+    let i6=6*i;
+    this.vertices[i6]=v[0];
+    this.vertices[i6+1]=v[1];
+    this.vertices[i6+2]=v[2];
+    this.vertices[i6+3]=n[0];
+    this.vertices[i6+4]=n[1];
+    this.vertices[i6+5]=n[2];
+    this.materials[i]=materialIndex;
+    let i4=4*i;
+    this.colors[i4]=c[0];
+    this.colors[i4+1]=c[1];
+    this.colors[i4+2]=c[2];
+    this.colors[i4+3]=c[3];
+    this.indices.push(i);
+  }
+
   append(data) {
     append(this.vertices,data.vertices);
     append(this.materials,data.materials);
@@ -275,11 +299,12 @@ class vertexBuffer {
   }
 }
 
-let material0Data=new vertexBuffer();    // Material 0D data
-let material1Data=new vertexBuffer();    // Material 1D data
-let materialData=new vertexBuffer();
-let colorData=new vertexBuffer();
-let transparentData=new vertexBuffer();
+let material0Data=new vertexBuffer();    // pixels
+let material1Data=new vertexBuffer();    // material Bezier curves
+let materialData=new vertexBuffer();     // material Bezier patches & triangles
+let colorData=new vertexBuffer();        // colored Bezier patches & triangles
+let transparentData=new vertexBuffer();  // transparent patches & triangles
+let triangleData=new vertexBuffer();     // opaque indexed triangles
 
 
 let materialIndex;
@@ -422,9 +447,13 @@ class BezierPatch extends Geometry {
     this.Max=Max;
     this.color=color;
     this.CenterIndex=CenterIndex;
-    this.transparent=color ?
-      color[0][3]+color[1][3]+color[2][3]+color[3][3] < 1020 :
-      Materials[MaterialIndex].diffuse[3] < 1;
+    let n=controlpoints.length;
+    if(color) {
+      let sum=color[0][3]+color[1][3]+color[2][3];
+      this.transparent=(n == 16 || n == 4) ?
+                        sum+color[3][3] < 1020 : sum < 765;
+    } else
+      this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
     if(this.transparent) {
       this.MaterialIndex=color ? -1-MaterialIndex : 1+MaterialIndex;
       this.vertex=this.data.Vertex.bind(this.data);
@@ -1263,6 +1292,63 @@ class Pixel extends Geometry {
   }
 }
 
+class Triangles extends Geometry {
+  constructor(Indices0,MaterialIndex,Min,Max) {
+    super();
+    this.Indices=Indices0;
+    this.CenterIndex=0;
+    this.MaterialIndex=MaterialIndex;
+    this.Min=Min;
+    this.Max=Max;
+    this.Positions=Positions.slice();
+    this.Normals=Normals.slice();
+    this.Colors=Colors.slice();
+    this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
+    Indices=[];
+    Positions=[];
+    Normals=[];
+    Colors=[];
+  }
+    
+  process(p) {
+    for(let i=0, n=this.Indices.length; i < n; ++i) {
+      let index=this.Indices[i];
+      let PI=index[0];
+      let P0=this.Positions[PI[0]];
+      let P1=this.Positions[PI[1]];
+      let P2=this.Positions[PI[2]];
+      if(!this.offscreen([P0,P1,P2])) {
+        let NI=index[1];
+        if(index.length > 2) {
+          let CI=index[2];
+          let C0=this.Colors[CI[0]];
+          let C1=this.Colors[CI[1]];
+          let C2=this.Colors[CI[2]];
+          this.transparent |= C0[3]+C1[3]+C2[3] < 765;
+          materialIndex=-1-this.MaterialIndex;
+          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
+          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
+          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+        } else {
+          materialIndex=1+this.MaterialIndex;
+          this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
+          this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
+          this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+        }
+      }
+    }
+    this.data.nvertices=this.Positions.length;
+    this.append();
+  }
+
+  append() {
+    if(this.transparent)
+      transparentData.append(this.data);
+    else
+      triangleData.append(this.data);
+  }
+}
+
 function home()
 {
   mat4.identity(rotMat);
@@ -1739,6 +1825,7 @@ function draw()
   material1Data.clear();
   materialData.clear();
   colorData.clear();
+  triangleData.clear();
   transparentData.clear();
 
   P.forEach(function(p) {
@@ -1749,6 +1836,7 @@ function draw()
   drawBuffer(material1Data,noNormalShader);
   drawBuffer(materialData,materialShader);
   drawBuffer(colorData,colorShader);
+  drawBuffer(triangleData,transparentShader);
 
   let indices=transparentData.indices;
   if(indices.length > 0) {
@@ -1861,8 +1949,7 @@ function initProjection() {
   shift.x=shift.y=0;
 }
 
-let pixelShader,noNormalShader,materialShader,colorShader,
-    transparentShader;
+let pixelShader,noNormalShader,materialShader,colorShader,transparentShader;
 
 function webGLStart()
 {

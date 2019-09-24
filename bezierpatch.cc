@@ -886,10 +886,10 @@ void sortTriangles()
   }
 }
 
-void Triangles::queue(size_t nP, triple* P, size_t nN, triple* N,
-                      size_t nC, prc::RGBAColour* C, size_t nI,
-                      uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3],
-                      bool transparent)
+void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
+                      size_t nC, const prc::RGBAColour* C, size_t nI,
+                      const uint32_t (*PI)[3], const uint32_t (*NI)[3],
+                      const uint32_t (*CI)[3], bool transparent)
 {
   if(!nN) return;
   

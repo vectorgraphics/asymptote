@@ -356,11 +356,11 @@ public:
 
 };
 
-extern vertexBuffer material0Data; // pixels
-extern vertexBuffer material1Data; // Material Bezier curves
-extern vertexBuffer materialData;  // Material Bezier patches & triangles
-extern vertexBuffer colorData;     // Colored Bezier patches & triangles
-extern vertexBuffer transparentData;//Transparent patches & triangles
+extern vertexBuffer material0Data;  // pixels
+extern vertexBuffer material1Data;  // material Bezier curves
+extern vertexBuffer materialData;   // material Bezier patches & triangles
+extern vertexBuffer colorData;      // colored Bezier patches & triangles
+extern vertexBuffer transparentData;// transparent patches & triangles
 
 extern void drawBuffer(vertexBuffer& data, GLint shader);
 extern void drawBuffers(); 

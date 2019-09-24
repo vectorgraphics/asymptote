@@ -25,6 +25,9 @@ public:
   void open(string name);
   void copy(string name);
   
+  void addColor(const prc::RGBAColour& c); 
+  void addIndices(const uint32_t *I); 
+    
   void addPatch(const triple* controls, size_t n, const triple& Min,
                 const triple& Max, const prc::RGBAColour *colors);
   
@@ -39,6 +42,12 @@ public:
                 const triple& Min, const triple& Max);
   
   void addMaterial(size_t index);
+  
+  void addTriangles(size_t nP, const triple* P, size_t nN, const triple* N,
+                    size_t nC, const prc::RGBAColour* C, size_t nI,
+                    const uint32_t (*PI)[3], const uint32_t (*NI)[3],
+                    const uint32_t (*CI)[3],
+                    const triple& Min, const triple& Max);
 };
 
 } //namespace camp

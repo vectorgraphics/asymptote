@@ -677,6 +677,7 @@ public:
               double perspective, bool transparent, bool remesh);
  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out);
  
   drawElement *transformed(const double* t) {
     return new drawTriangles(t,this);

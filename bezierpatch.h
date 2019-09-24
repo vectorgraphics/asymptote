@@ -31,7 +31,7 @@ struct BezierPatch
   vertexFunction pvertex;
   bool Onscreen;
 
-   void init(double res);
+  void init(double res);
     
   triple normal(triple left3, triple left2, triple left1, triple middle,
                 triple right1, triple right2, triple right3) {
@@ -125,20 +125,21 @@ struct BezierPatch
   void append() {
     if(transparent)
       transparentData.Append(data);
-    else if(color)
+    else if(color) {
       colorData.Append(data);
-    else
-      materialData.append(data);
-
-    if(materialData.vertices.size() >= gl::maxvertices) {
-      drawBuffer(materialData,materialShader);
-      materialData.clear();
-      gl::forceRemesh=true;
+      if(colorData.Vertices.size() >= gl::maxvertices) {
+        drawBuffer(colorData,colorShader);
+        colorData.clear();
+        gl::forceRemesh=true;
+      }
     }
-    if(colorData.Vertices.size() >= gl::maxvertices) {
-      drawBuffer(colorData,colorShader);
-      colorData.clear();
-      gl::forceRemesh=true;
+    else {
+      materialData.append(data);
+      if(materialData.vertices.size() >= gl::maxvertices) {
+        drawBuffer(materialData,materialShader);
+        materialData.clear();
+        gl::forceRemesh=true;
+      }
     }
   }
   
@@ -184,10 +185,10 @@ struct Triangles : public BezierPatch {
 public:
   Triangles() : BezierPatch() {}
 
-  void queue(size_t nP, triple* P, size_t nN, triple* N,
-             size_t nC, prc::RGBAColour* C, size_t nI,
-             uint32_t (*PI)[3], uint32_t (*NI)[3], uint32_t (*CI)[3],
-             bool transparent);
+  void queue(size_t nP, const triple* P, size_t nN, const triple* N,
+             size_t nC, const prc::RGBAColour* C, size_t nI,
+             const uint32_t (*PI)[3], const uint32_t (*NI)[3],
+             const uint32_t (*CI)[3], bool transparent);
 };
 
 extern void sortTriangles();

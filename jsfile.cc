@@ -64,6 +64,17 @@ jsfile::~jsfile() {
   copy(settings::WebGLfooter);
 }
 
+void jsfile::addColor(const prc::RGBAColour& c) 
+{
+  out << "[" << byte(c.R) << "," << byte(c.G) << "," << byte(c.B)
+      << "," << byte(c.A) << "]";
+}
+
+void jsfile::addIndices(const uint32_t *I) 
+{
+  out << "[" << I[0] << "," << I[1] << "," << I[2] << "]";
+}
+
 void jsfile::addPatch(triple const* controls, size_t n,
                       const triple& Min, const triple& Max,
                       const prc::RGBAColour *c)
@@ -77,10 +88,11 @@ void jsfile::addPatch(triple const* controls, size_t n,
       << Min << "," << Max;
   if(c) {
     out << ",[" << newl;
-    for(int i=0; i < 4; ++i)
-      out << "[" << byte(c[i].R) << "," << byte(c[i].G) << "," << byte(c[i].B)
-          << "," << byte(c[i].A) << "]," << newl;
-    out << "]" << newl;
+    for(int i=0; i < 4; ++i) {
+      addColor(c[i]);
+      out << "," << newl;
+    }
+    out << "]";
   }
   out << "));" << newl << newl;
 }
@@ -113,14 +125,47 @@ void jsfile::addPixel(const triple& z0, double width,
 {
   out << "P.push(new Pixel(" << newl;
   out << z0 << "," << width << "," << newl
-      << materialIndex << ","
-      << Min << "," << Max << "));" << newl << newl;
+      << materialIndex << "," << Min << "," << Max << "));" << newl << newl;
 }
 
-void jsfile::addMaterial(size_t index) {
+void jsfile::addMaterial(size_t index)
+{
   out << "Materials.push(new Material(" << newl
        << material[index]
       << "));" << newl << newl;
+}
+
+void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
+                          const triple* N, size_t nC, const prc::RGBAColour* C,
+                          size_t nI, const uint32_t (*PI)[3],
+                          const uint32_t (*NI)[3], const uint32_t (*CI)[3],
+                          const triple& Min, const triple& Max)
+{
+  for(size_t i=0; i < nP; ++i)
+    out << "Positions.push(" << P[i] << ");" << newl;
+  
+  for(size_t i=0; i < nN; ++i)
+    out << "Normals.push(" << N[i] << ");" << newl;
+  
+  for(size_t i=0; i < nC; ++i) {
+    out << "Colors.push(";
+    addColor(C[i]);
+    out << ");" << newl;
+  }
+  
+  for(size_t i=0; i < nI; ++i) {
+    out << "Indices.push(["; 
+    addIndices(PI[i]);
+    out << ",";
+    addIndices(NI[i]);
+    if(nC) {
+      out << ",";
+      addIndices(CI[i]);
+    }
+    out << "]);" << newl;
+  }
+  out << "P.push(new Triangles(Indices,"
+      << materialIndex << "," << Min << "," << Max << "));" << newl;
 }
 
 }
