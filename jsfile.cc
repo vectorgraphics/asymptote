@@ -84,12 +84,9 @@ void jsfile::addIndices(const uint32_t *I)
   out << "[" << I[0] << "," << I[1] << "," << I[2] << "]";
 }
 
-void jsfile::addIndices(const uint32_t *I, const uint32_t *J) 
+bool distinct(const uint32_t *I, const uint32_t *J) 
 {
-  if(I[0] != J[0] || I[1] != J[1] || I[2] != J[2])
-    out << ",[" << I[0] << "," << I[1] << "," << I[2] << "]";
-  else
-    out << ",[]";
+  return I[0] != J[0] || I[1] != J[1] || I[2] != J[2];
 }
 
 void jsfile::addPatch(triple const* controls, size_t n,
@@ -173,10 +170,18 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
   for(size_t i=0; i < nI; ++i) {
     out << "Indices.push(["; 
     const uint32_t *PIi=PI[i];
+    const uint32_t *NIi=NI[i];
+    bool keepNI=distinct(NIi,PIi);
+    bool keepCI=nC && distinct(CI[i],PIi);
     addIndices(PIi);
-    addIndices(NI[i],PIi);
-    if(nC)
-      addIndices(CI[i],PIi);
+    if(keepNI || keepCI) {
+      out << ",";
+      if(keepNI) addIndices(NIi);
+    }
+    if(keepCI) {
+      out << ",";
+      addIndices(CI[i]);
+    }
     out << "]);" << newl;
   }
   out << "P.push(new Triangles("
