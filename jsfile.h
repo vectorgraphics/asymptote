@@ -27,6 +27,7 @@ public:
   
   void addColor(const prc::RGBAColour& c); 
   void addIndices(const uint32_t *I); 
+  void addIndices(const uint32_t *I, const uint32_t *J); 
     
   void addPatch(const triple* controls, size_t n, const triple& Min,
                 const triple& Max, const prc::RGBAColour *colors);

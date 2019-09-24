@@ -487,6 +487,7 @@ protected:
   size_t nN;
   triple* N;
   size_t nI;
+  size_t Ni;
   uint32_t (*PI)[3];
   uint32_t (*NI)[3];
   
@@ -522,24 +523,29 @@ public:
       for(size_t i=0; i < nN; ++i)
         N[i]=vm::read<triple>(n,i);
     
-      if(checkArray(&ni) != nI)
-        reportError("Index arrays have different lengths");
-      NI=new(UseGC) uint32_t[nI][3];
-      for(size_t i=0; i < nI; ++i) {
-        vm::array *nii=vm::read<vm::array*>(ni,i);
-        if(checkArray(nii) != 3) reportError(wrongsize);
-        uint32_t *NIi=NI[i];
-        for(size_t j=0; j < 3; ++j) {
-          size_t index=unsignedcast(vm::read<Int>(nii,j));
-          if(index >= nN) reportError(outofrange);
-          NIi[j]=index;
+      Ni=checkArray(&ni);
+      if(Ni == 0 && nN == nP)
+        NI=PI;
+      else {
+        if(Ni != nI)
+          reportError("Index arrays have different lengths");
+        NI=new(UseGC) uint32_t[nI][3];
+        for(size_t i=0; i < nI; ++i) {
+          vm::array *nii=vm::read<vm::array*>(ni,i);
+          if(checkArray(nii) != 3) reportError(wrongsize);
+          uint32_t *NIi=NI[i];
+          for(size_t j=0; j < 3; ++j) {
+            size_t index=unsignedcast(vm::read<Int>(nii,j));
+            if(index >= nN) reportError(outofrange);
+            NIi[j]=index;
+          }
         }
       }
-    }
+    } else Ni=0;
   }
 
   drawBaseTriangles(const double* t, const drawBaseTriangles *s) :
-    drawElement(s->KEY), nP(s->nP), nN(s->nN), nI(s->nI) {
+    drawElement(s->KEY), nP(s->nP), nN(s->nN), nI(s->nI), Ni(s->Ni) {
     P=new(UseGC) triple[nP];
     for(size_t i=0; i < nP; i++)
       P[i]=t*s->P[i];
@@ -566,12 +572,16 @@ public:
           N[i]=unit(Transform3(s->N[i],T));
       }
 
-      NI=new(UseGC) uint32_t[nI][3];
-      for(size_t i=0; i < nI; ++i) {
-        uint32_t *NIi=NI[i];
-        uint32_t *sNIi=s->NI[i];
-        for(size_t j=0; j < 3; ++j)
-          NIi[j]=sNIi[j];
+      if(Ni == 0) {
+        NI=PI;
+      } else {
+        NI=new(UseGC) uint32_t[nI][3];
+        for(size_t i=0; i < nI; ++i) {
+          uint32_t *NIi=NI[i];
+          uint32_t *sNIi=s->NI[i];
+          for(size_t j=0; j < 3; ++j)
+            NIi[j]=sNIi[j];
+        }
       }
     }
   }
@@ -594,6 +604,7 @@ class drawTriangles : public drawBaseTriangles {
   size_t nC;
   prc::RGBAColour*C;
   uint32_t (*CI)[3];
+  size_t Ci;
    
   // Asymptote material data
   prc::RGBAColour diffuse;
@@ -632,17 +643,22 @@ public:
     
       size_t nI=checkArray(&vi);
     
-      if(checkArray(&ci) != nI)
-        reportError("Index arrays have different lengths");
-      CI=new(UseGC) uint32_t[nI][3];
-      for(size_t i=0; i < nI; ++i) {
-        vm::array *cii=vm::read<vm::array*>(ci,i);
-        if(checkArray(cii) != 3) reportError(wrongsize);
-        uint32_t *CIi=CI[i];
-        for(size_t j=0; j < 3; ++j) {
-          size_t index=unsignedcast(vm::read<Int>(cii,j));
-          if(index >= nC) reportError(outofrange);
-          CIi[j]=index;
+      Ci=checkArray(&ci);
+      if(Ci == 0 && nC == nP)
+        CI=PI;
+      else {
+        if(Ci != nI)
+          reportError("Index arrays have different lengths");
+        CI=new(UseGC) uint32_t[nI][3];
+        for(size_t i=0; i < nI; ++i) {
+          vm::array *cii=vm::read<vm::array*>(ci,i);
+          if(checkArray(cii) != 3) reportError(wrongsize);
+          uint32_t *CIi=CI[i];
+          for(size_t j=0; j < 3; ++j) {
+            size_t index=unsignedcast(vm::read<Int>(cii,j));
+            if(index >= nC) reportError(outofrange);
+            CIi[j]=index;
+          }
         }
       }
     } else {

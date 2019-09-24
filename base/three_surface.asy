@@ -1435,7 +1435,7 @@ void draw(frame f, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight)
 {
-  bool normals=ni.length > 0;
+  bool normals=n.length > 0;
   if(!normals) {
     ni=new int[vi.length][3];
     normals=computeNormals(v,vi,n,ni) > 0;
@@ -1456,7 +1456,7 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           int[][] pi={}, light light=currentlight)
 {
   bool prc=prc();
-  bool normals=ni.length > 0;
+  bool normals=n.length > 0;
   if(!normals) {
     ni=new int[vi.length][3];
     normals=computeNormals(v,vi,n,ni) > 0;

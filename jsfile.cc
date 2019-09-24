@@ -84,6 +84,14 @@ void jsfile::addIndices(const uint32_t *I)
   out << "[" << I[0] << "," << I[1] << "," << I[2] << "]";
 }
 
+void jsfile::addIndices(const uint32_t *I, const uint32_t *J) 
+{
+  if(I[0] != J[0] || I[1] != J[1] || I[2] != J[2])
+    out << ",[" << I[0] << "," << I[1] << "," << I[2] << "]";
+  else
+    out << ",[]";
+}
+
 void jsfile::addPatch(triple const* controls, size_t n,
                       const triple& Min, const triple& Max,
                       const prc::RGBAColour *c)
@@ -164,13 +172,11 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
   
   for(size_t i=0; i < nI; ++i) {
     out << "Indices.push(["; 
-    addIndices(PI[i]);
-    out << ",";
-    addIndices(NI[i]);
-    if(nC) {
-      out << ",";
-      addIndices(CI[i]);
-    }
+    const uint32_t *PIi=PI[i];
+    addIndices(PIi);
+    addIndices(NI[i],PIi);
+    if(nC)
+      addIndices(CI[i],PIi);
     out << "]);" << newl;
   }
   out << "P.push(new Triangles("

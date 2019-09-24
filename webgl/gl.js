@@ -1324,9 +1324,11 @@ class Triangles extends Geometry {
       let P1=this.Positions[PI[1]];
       let P2=this.Positions[PI[2]];
       if(!this.offscreen([P0,P1,P2])) {
-        let NI=index[1];
-        if(index.length > 2) {
-          let CI=index[2];
+        let NI=index.length > 1 ? index[1] : PI;
+        if(NI.length == 0) NI=PI;
+        if(this.Colors.length > 0) {
+          let CI=index.length > 2 ? index[2] : PI;
+          if(CI.length == 0) CI=PI;
           let C0=this.Colors[CI[0]];
           let C1=this.Colors[CI[1]];
           let C2=this.Colors[CI[2]];

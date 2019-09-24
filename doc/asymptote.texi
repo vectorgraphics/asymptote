@@ -7863,8 +7863,8 @@ normals or vertex colors:
 @cindex @code{tessellation}
 @verbatim
 void draw(picture pic=currentpicture, triple[] v, int[][] vi,
-          triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
-          int[][] pi={}, light light=currentlight);
+          triple[] n={}, int[][] ni=vi, material m=currentpen, pen[] p={},
+          int[][] pi=vi, light light=currentlight);
 @end verbatim
 Here, the triple array @code{v} lists the (typically distinct) vertices, while
 the array @code{vi} contains integer arrays of length 3 containing
