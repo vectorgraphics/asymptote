@@ -481,16 +481,18 @@ class BezierPatch extends Geometry {
     let p2=p[2];
     let n=unit(cross([p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],
                      [p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]]));
-    if(this.color) {
-      this.data.indices.push(this.data.Vertex(p0,n,this.color[0]));
-      this.data.indices.push(this.data.Vertex(p1,n,this.color[1]));
-      this.data.indices.push(this.data.Vertex(p2,n,this.color[2]));
-    } else {
-      this.data.indices.push(this.vertex(p0,n));
-      this.data.indices.push(this.vertex(p1,n));
-      this.data.indices.push(this.vertex(p2,n));
+    if(!this.offscreen([p0,p1,p2])) {
+      if(this.color) {
+        this.data.indices.push(this.data.Vertex(p0,n,this.color[0]));
+        this.data.indices.push(this.data.Vertex(p1,n,this.color[1]));
+        this.data.indices.push(this.data.Vertex(p2,n,this.color[2]));
+      } else {
+        this.data.indices.push(this.vertex(p0,n));
+        this.data.indices.push(this.vertex(p1,n));
+        this.data.indices.push(this.vertex(p2,n));
+      }
+      this.append();
     }
-    this.append();
   }
 
   processQuad(p) {
@@ -503,27 +505,29 @@ class BezierPatch extends Geometry {
     let n2=cross([p2[0]-p3[0],p2[1]-p3[1],p2[2]-p3[2]],
                  [p3[0]-p0[0],p3[1]-p0[1],p3[2]-p0[2]]);
     let n=unit([n1[0]+n2[0],n1[1]+n2[1],n1[2]+n2[2]]);
-    let i0,i1,i2,i3;
-    if(this.color) {
-      i0=this.data.Vertex(p0,n,this.color[0]);
-      i1=this.data.Vertex(p1,n,this.color[1]);
-      i2=this.data.Vertex(p2,n,this.color[2]);
-      i3=this.data.Vertex(p3,n,this.color[3]);
-    } else {
-      i0=this.vertex(p0,n);
-      i1=this.vertex(p1,n);
-      i2=this.vertex(p2,n);
-      i3=this.vertex(p3,n);
+    if(!this.offscreen([p0,p1,p2,p3])) {
+      let i0,i1,i2,i3;
+      if(this.color) {
+        i0=this.data.Vertex(p0,n,this.color[0]);
+        i1=this.data.Vertex(p1,n,this.color[1]);
+        i2=this.data.Vertex(p2,n,this.color[2]);
+        i3=this.data.Vertex(p3,n,this.color[3]);
+      } else {
+        i0=this.vertex(p0,n);
+        i1=this.vertex(p1,n);
+        i2=this.vertex(p2,n);
+        i3=this.vertex(p3,n);
+      }
+      this.data.indices.push(i0);
+      this.data.indices.push(i1);
+      this.data.indices.push(i2);
+
+      this.data.indices.push(i0);
+      this.data.indices.push(i2);
+      this.data.indices.push(i3);
+
+      this.append();
     }
-    this.data.indices.push(i0);
-    this.data.indices.push(i1);
-    this.data.indices.push(i2);
-
-    this.data.indices.push(i0);
-    this.data.indices.push(i2);
-    this.data.indices.push(i3);
-
-    this.append();
   }
 
   process(p) {
@@ -581,7 +585,7 @@ class BezierPatch extends Geometry {
 
       this.Render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
     }
-    this.append();
+    if(this.data.indices.length > 0) this.append();
   }
 
   append() {
@@ -837,7 +841,7 @@ class BezierPatch extends Geometry {
 
       this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false);
     }
-    this.append();
+    if(this.data.indices.length > 0) this.append();
   }
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
@@ -1220,9 +1224,11 @@ class BezierCurve extends Geometry {
   processLine(p) {
     let p0=p[0];
     let p1=p[1];
-    this.data.indices.push(this.data.vertex1(p0));
-    this.data.indices.push(this.data.vertex1(p1));
-    this.append();
+    if(!this.offscreen([p0,p1])) {
+      this.data.indices.push(this.data.vertex1(p0));
+      this.data.indices.push(this.data.vertex1(p1));
+      this.append();
+    }
   }
 
   process(p) {
@@ -1232,7 +1238,7 @@ class BezierCurve extends Geometry {
     let i3=this.data.vertex1(p[3]);
     
     this.Render(p,i0,i3);
-    this.append();
+    if(this.data.indices.length > 0) this.append();
   }
   
   append() {
@@ -1338,7 +1344,7 @@ class Triangles extends Geometry {
       }
     }
     this.data.nvertices=this.Positions.length;
-    this.append();
+    if(this.data.indices.length > 0) this.append();
   }
 
   append() {
