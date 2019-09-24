@@ -20,9 +20,20 @@ void jsfile::copy(string name) {
 
 void jsfile::open(string name) {
   out.open(name);
+  out << "<!DOCTYPE html>" << newl << newl
+    
+      << "<!-- Use the following line to include this file within another web page:" << newl
+      << newl
+      << "<object data=\"" << name <<"\" style=\"width:"
+      << gl::fullWidth << ";height:" << gl::fullHeight
+      << ";position:relative;top:0;left:0;\"></object>" << newl << newl
+      << "-->" << newl << newl;
+
   out.precision(settings::getSetting<Int>("digits"));
   copy(settings::WebGLheader);
   out << newl
+      << "canvasWidth=" << gl::fullWidth << ";" << newl
+      << "canvasHeight=" << gl::fullHeight << ";" << newl << newl
       <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];" 
       << newl
       <<  "B=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];" 
@@ -31,10 +42,8 @@ void jsfile::open(string name) {
       << newl
       << "angle=" << gl::Angle << ";"
       << newl
-      << "canvasWidth=" << gl::fullWidth << ";" << newl
-      << "canvasHeight=" << gl::fullHeight << ";" << newl
-      << "size2=Math.hypot(canvasWidth,canvasHeight);" << newl
-      << "Zoom0=" << gl::Zoom0 << ";" << newl << newl
+       << "Zoom0=" << gl::Zoom0 << ";" << newl << newl
+      << "size2=Math.hypot(canvasWidth,canvasHeight);" << newl << newl
       << "let lights=[";
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;
