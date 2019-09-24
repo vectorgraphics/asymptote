@@ -252,12 +252,12 @@ bool drawBezierPatch::write(jsfile *out)
 }
 
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
-                             double perspective, bool transparent, bool remesh)
+                             double perspective, bool remesh)
 {
 #ifdef HAVE_LIBGLM
-  if(invisible || 
-     ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
-       diffuse.A < 1.0) ^ transparent)) return;
+  if(invisible) return; 
+  transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
+    diffuse.A < 1.0;
   
   bool offscreen;
   if(billboard) {
@@ -481,13 +481,12 @@ bool drawBezierTriangle::write(jsfile *out)
 }
 
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
-                                double perspective, bool transparent,
-                                bool remesh)
+                                double perspective, bool remesh)
 {
 #ifdef HAVE_LIBGLM
-  if(invisible || 
-     ((colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
-       diffuse.A < 1.0) ^ transparent)) return;
+  if(invisible) return;
+  transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
+    diffuse.A < 1.0;
   
   bool offscreen;
   if(billboard) {
@@ -650,8 +649,8 @@ void drawNurbs::displacement()
 #endif  
 }
 
-void drawNurbs::render(double size2, const triple& Min, const triple& Max,
-                       double perspective, bool transparent, bool remesh)
+void drawNurbs::render(double size2, const triple& b, const triple& B,
+                       double perspective, bool remesh)
 {
 // TODO: implement NURBS renderer
 }
@@ -895,10 +894,12 @@ bool drawTriangles::write(jsfile *out)
 
 void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
-                           bool transparent, bool remesh)
+                           bool remesh)
 {
 #ifdef HAVE_LIBGLM
-  if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
+  if(invisible) return;
+  
+  transparent=diffuse.A < 1.0;
 
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen
     R.Onscreen=false;

@@ -278,7 +278,7 @@ public:
 
   // Render with OpenGL
   virtual void render(double size2, const triple& Min, const triple& Max,
-                      double perspective, bool transparent, bool remesh) 
+                      double perspective, bool remesh) 
   {}
 
   virtual void meshinit() {}

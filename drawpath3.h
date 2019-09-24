@@ -88,7 +88,7 @@ public:
   bool write(jsfile *out);
   
   void render(double, const triple&, const triple&, double,
-              bool transparent, bool remesh);
+              bool remesh);
 
   drawElement *transformed(const double* t);
 };
@@ -173,7 +173,7 @@ public:
              bool &first);
     
   void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent, bool remesh);
+              double perspective, bool remesh);
     
   drawElement *transformed(const double* t);
 };
@@ -211,7 +211,7 @@ public:
   }
   
   void render(double size2, const triple& b, const triple& B,
-              double perspective, bool transparent, bool remesh);
+              double perspective, bool remesh);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);

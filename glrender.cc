@@ -454,15 +454,7 @@ void drawscene(int Width, int Height)
   if(remesh)
     camp::drawElement::center.clear();
   
-  // Render opaque objects
-  Picture->render(size2,m,M,perspective,false,remesh);
-  
-  // Enable transparency
-  glDepthMask(GL_FALSE);
-  
-  // Render transparent objects
-  Picture->render(size2,m,M,perspective,true,remesh);
-  glDepthMask(GL_TRUE);
+  Picture->render(size2,m,M,perspective,remesh);
   
   if(!forceRemesh)
     remesh=false;
@@ -1955,7 +1947,10 @@ void drawBuffers()
   drawBuffer(colorData,colorShader);
   drawBuffer(triangleData,transparentShader);
   sortTriangles();
+  
+  glDepthMask(GL_FALSE); // Enable transparency
   drawBuffer(transparentData,transparentShader);
+  glDepthMask(GL_TRUE); // Disable transparency
 }
 
 void clearBuffers()

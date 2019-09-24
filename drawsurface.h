@@ -49,6 +49,7 @@ protected:
 public:
 #ifdef HAVE_LIBGLM
   BezierCurve C;
+  bool transparent;
 #endif  
   
   string wrongsize() {
@@ -156,8 +157,8 @@ public:
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);
   
-  void render(double, const triple& Min, const triple& Max,
-              double perspective, bool transparent, bool remesh);
+  void render(double, const triple& b, const triple& B,
+              double perspective, bool remesh);
   drawElement *transformed(const double* t);
 };
   
@@ -191,8 +192,8 @@ public:
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);
   
-  void render(double, const triple& Min, const triple& Max,
-              double perspective, bool transparent, bool remesh);
+  void render(double, const triple& b, const triple& B,
+              double perspective, bool remesh);
   drawElement *transformed(const double* t);
 };
   
@@ -329,8 +330,8 @@ public:
   void ratio(const double* t, pair &b, double (*m)(double, double), double,
              bool &first);
 
-  void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent, bool remesh);
+  void render(double size2, const triple& b, const triple& B,
+              double perspective, bool remesh);
     
   drawElement *transformed(const double* t);
 };
@@ -478,6 +479,7 @@ class drawBaseTriangles : public drawElement {
 protected:
 #ifdef HAVE_LIBGLM
   Triangles R;
+  bool transparent;
 #endif  
   
   size_t nP;
@@ -673,8 +675,8 @@ public:
  
   virtual ~drawTriangles() {}
  
-  void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent, bool remesh);
+  void render(double size2, const triple& b, const triple& B,
+              double perspective, bool remesh);
  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);

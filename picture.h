@@ -87,7 +87,7 @@ public:
                const string& format, bool wait=false, bool view=true);
  
   void render(double size2, const triple &Min, const triple& Max,
-              double perspective, bool transparent, bool remesh) const;
+              double perspective, bool remesh) const;
   bool shipout3(const string& prefix, const string& format,
                 double width, double height, double angle, double zoom,
                 const triple& m, const triple& M, const pair& shift, double *t,

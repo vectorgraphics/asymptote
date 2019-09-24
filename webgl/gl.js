@@ -1840,9 +1840,6 @@ function draw()
 
   let indices=transparentData.indices;
   if(indices.length > 0) {
-    // Enable transparency
-    gl.depthMask(false);
-  
     transformVertices(transparentData.vertices);
     
     let n=indices.length/3;
@@ -1873,8 +1870,9 @@ function draw()
       Indices[3*i+2]=indices[t+2];
     }
 
+    gl.depthMask(false); // Enable transparency
     drawBuffer(transparentData,transparentShader,Indices);
-    gl.depthMask(true);
+    gl.depthMask(true); // Disable transparency
   }
 
   remesh=false;

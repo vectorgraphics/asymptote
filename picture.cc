@@ -1165,13 +1165,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
 // render viewport with width x height pixels.
 void picture::render(double size2, const triple& Min, const triple& Max,
-                     double perspective, bool transparent, bool remesh) const
+                     double perspective, bool remesh) const
 {
-  bool init=remesh && !transparent;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if(init) (*p)->meshinit();
-    (*p)->render(size2,Min,Max,perspective,transparent,remesh);
+    if(remesh) (*p)->meshinit();
+    (*p)->render(size2,Min,Max,perspective,remesh);
   }
       
 #ifdef HAVE_LIBGLM
