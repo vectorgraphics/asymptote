@@ -1293,21 +1293,21 @@ class Pixel extends Geometry {
 }
 
 class Triangles extends Geometry {
-  constructor(Indices0,MaterialIndex,Min,Max) {
+  constructor(MaterialIndex,Min,Max) {
     super();
-    this.Indices=Indices0;
     this.CenterIndex=0;
     this.MaterialIndex=MaterialIndex;
     this.Min=Min;
     this.Max=Max;
-    this.Positions=Positions.slice();
-    this.Normals=Normals.slice();
-    this.Colors=Colors.slice();
-    this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
-    Indices=[];
+    this.Positions=Positions;
+    this.Normals=Normals;
+    this.Colors=Colors;
+    this.Indices=Indices;
     Positions=[];
     Normals=[];
     Colors=[];
+    Indices=[];
+    this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
   }
     
   process(p) {

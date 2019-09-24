@@ -164,8 +164,10 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
     }
     out << "]);" << newl;
   }
-  out << "P.push(new Triangles(Indices,"
-      << materialIndex << "," << Min << "," << Max << "));" << newl;
+  out << "P.push(new Triangles("
+      << materialIndex << "," << newl
+      << Min << "," << Max << "));" << newl;
+  out << newl;
 }
 
 }
