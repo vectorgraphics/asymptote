@@ -84,6 +84,8 @@ mode_t mask;
   
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultEPSdriver="eps2write";
+string defaultAsyGL="https://vectorgraphics.github.io/asymptote/webgl/asygl-"+
+  AsyGLVersion+".js";
 
 #ifndef __MSDOS__
   
@@ -1265,6 +1267,8 @@ void initSettings() {
   addOption(new boolSetting("autorotate", 0,
                             "Enable automatic PDF page rotation",
                             false));
+  addOption(new boolSetting("offline", 0,
+                            "Produce (larger) offline html files",false));
   addOption(new boolSetting("pdfreload", 0,
                             "Automatically reload document in pdfviewer",
                             false));
@@ -1317,6 +1321,7 @@ void initSettings() {
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("libgs", defaultGhostscriptLibrary));
   addOption(new envSetting("epsdriver", defaultEPSdriver));
+  addOption(new envSetting("asygl", defaultAsyGL));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));

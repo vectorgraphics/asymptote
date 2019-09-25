@@ -8,11 +8,12 @@ namespace gl {
 extern glm::mat4 projViewMat;
 };
 
+using namespace settings;
 
 namespace camp {
 
 void jsfile::copy(string name) {
-  std::ifstream fin(settings::locateFile(name).c_str());
+  std::ifstream fin(locateFile(name).c_str());
   string s;
   while(getline(fin,s))
     out << s << newl;
@@ -29,8 +30,18 @@ void jsfile::open(string name) {
       << ";position:relative;top:0;left:0;\"></object>" << newl << newl
       << "-->" << newl << newl;
 
-  out.precision(settings::getSetting<Int>("digits"));
-  copy(settings::WebGLheader);
+  out.precision(getSetting<Int>("digits"));
+  copy(WebGLheader);
+  
+  if(getSetting<bool>("offline")) {
+    out << "<script>" << newl;
+    copy(AsyGL);
+    out << "</script>" << newl;
+  } else {
+    out << "<script type=\"text/javascript\"" << newl << "src=\""
+        << getSetting<string>("asygl") << "\"></script>" << newl;
+  }
+  out << "<script type=\"text/javascript\">" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl << newl
@@ -70,7 +81,7 @@ jsfile::~jsfile() {
       out << newl << drawElement::center[i] << ",";
     out << newl << "];" << newl;
   }
-  copy(settings::WebGLfooter);
+  copy(WebGLfooter);
 }
 
 void jsfile::addColor(const prc::RGBAColour& c) 
