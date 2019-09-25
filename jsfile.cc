@@ -31,11 +31,11 @@ void jsfile::open(string name) {
       << "-->" << newl << newl;
 
   out.precision(getSetting<Int>("digits"));
-  copy(WebGLheader);
+  copy(locateFile(WebGLheader));
   
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
-    copy(AsyGL);
+    copy(locateFile(AsyGL));
     out << "</script>" << newl;
   } else {
     out << "<script type=\"text/javascript\"" << newl << "src=\""
@@ -81,7 +81,7 @@ jsfile::~jsfile() {
       out << newl << drawElement::center[i] << ",";
     out << newl << "];" << newl;
   }
-  copy(WebGLfooter);
+  copy(locateFile(WebGLfooter));
 }
 
 void jsfile::addColor(const prc::RGBAColour& c) 

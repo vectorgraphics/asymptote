@@ -9,4 +9,4 @@ if test ! -r $GL_MATRIX_DIR; then \
 tar -zxf $TARFILE
 rm -r $TEMPDIR
 fi
-sed -e 's|\/\*!|/*@license|' $GL_MATRIX_DIR/dist/gl-matrix-min.js gl.js | uglifyjs -m -c -o asygl-$1.js --comments
+sed -e 's|\/\*!|/*@license|' $GL_MATRIX_DIR/dist/gl-matrix-min.js webgl/gl.js | uglifyjs -m -c -o base/webgl/asygl-$1.js --comments
