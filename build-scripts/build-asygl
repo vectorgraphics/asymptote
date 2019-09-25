@@ -1,0 +1,9 @@
+#!/bin/sh
+if [ ! $# = 1 ]; then echo Usage: "$0 asyglVersion"; exit 1; fi
+GL_MATRIX_VERSION=2.8.1
+mkdir -p build
+wget https://github.com/toji/gl-matrix/archive/v$GL_MATRIX_VERSION.tar.gz --output-document=build/gl-matrix.tar.gz
+cd build
+tar -zxf gl-matrix.tar.gz
+cd ..
+sed -e 's|\/\*!|/*@license|' build/gl-matrix-$GL_MATRIX_VERSION/dist/gl-matrix-min.js gl.js | uglifyjs -m -c -o asygl-$1.js --comments
