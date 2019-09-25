@@ -1,5 +1,22 @@
-// Render Bezier patches via subdivision with WebGL.
-// Author: John C. Bowman, Supakorn "Jamie" Rassameemasmuang
+/*!
+ gl.js: Render Bezier patches via subdivision with WebGL.
+  Copyright 2019: John C. Bowman and Supakorn "Jamie" Rassameemasmuang
+  University of Alberta
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 
 let gl;
 
@@ -36,6 +53,8 @@ let projViewMat=mat4.create(); // projection view matrix
 let normMat=mat3.create();
 let viewMat3=mat3.create(); // 3x3 view matrix
 let rotMats=mat4.create();
+let cjMatInv=mat4.create();
+let translMat=mat4.create();
 
 let zmin,zmax;
 let center={x:0,y:0,z:0};
@@ -436,8 +455,8 @@ class BezierPatch extends Geometry {
    * @param {*} controlpoints array of 16 control points
    * @param {*} CenterIndex center index of billboard labels (or 0)
    * @param {*} MaterialIndex material index (>= 0)
-   * @param {*} Minimum bounding box corner
-   * @param {*} Maximum bounding box corner
+   * @param {*} Min bounding box corner
+   * @param {*} Max bounding box corner
    * @param {*} colors array of 4 RGBA color arrays
    */
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
@@ -1444,7 +1463,7 @@ function bezierPPP(a,b,c,d)
 }
 
 /**
- * @Return the maximum distance squared of points c0 and c1 from 
+ * Return the maximum distance squared of points c0 and c1 from 
  * the respective internal control points of z0--z1.
 */
 function Straightness(z0,c0,c1,z1)
@@ -1455,7 +1474,7 @@ function Straightness(z0,c0,c1,z1)
 }
 
 /**
- * @Return the perpendicular distance squared of a point z from the plane
+ * Return the perpendicular distance squared of a point z from the plane
  * through u with unit normal n.
  */
 function Distance2(z,u,n)
@@ -1473,29 +1492,16 @@ function corners(m,M) {
 /**
  * Perform a change of basis
  * @param {*} out Out Matrix
- * @param {*} conjMatrix Conjugate Matrix
  * @param {*} mat Matrix
  * 
- * @Return the matrix (conjMatrix) * mat * (conjMatrix)^{-1} 
+ * Compute the matrix (translMatrix) * mat * (translMatrix)^{-1} 
  */
-function mat4COB(out,conjMat,mat) {
-  let cjMatInv=mat4.create();
-  mat4.invert(cjMatInv,conjMat);
-
-  mat4.multiply(out,mat,cjMatInv);
-  mat4.multiply(out,conjMat,out);
-
-  return out;
-}
-
-function getTargetOrigMat() {
-  let translMat=mat4.create();
-  mat4.fromTranslation(translMat,[center.x,center.y,center.z])
-  return translMat;
-}
 
 function COBTarget(out,mat) {
-  return mat4COB(out,getTargetOrigMat(),mat);
+  mat4.fromTranslation(translMat,[center.x,center.y,center.z])
+  mat4.invert(cjMatInv,translMat);
+  mat4.multiply(out,mat,cjMatInv);
+  mat4.multiply(out,translMat,out);
 }
 
 function setUniforms(shader)
@@ -1589,7 +1595,7 @@ function handleMouseUpOrTouchEnd(event) {
 }
 
 function rotateScene(lastX,lastY,rawX,rawY,factor) {
-    let [angle,axis]=arcballLib.arcball([lastX,-lastY],[rawX,-rawY]);
+    let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
 
     mat4.fromRotation(rotMats,2*factor*angle/lastzoom,axis);
     mat4.multiply(rotMat,rotMats,rotMat);
@@ -1636,6 +1642,31 @@ function zoomImage(diff) {
     Zoom *= zoomFactor**stepPower;
     capzoom();
   }
+}
+
+function normMouse(v)
+{
+  let v0=v[0];
+  let v1=v[1];
+  let norm=Math.sqrt(v0*v0+v1*v1+v[2]*v[2]);
+  if(norm > 1) {
+    denom=1/norm;
+    v0 *= denom;
+    v1 *= denom;
+  }
+  return [v0,v1,Math.sqrt(Math.max(1-v1*v1-v0*v0,0))];
+}
+
+function arcball(oldmouse,newmouse)
+{
+  let oldMouse=normMouse(oldmouse);
+  let newMouse=normMouse(newmouse);
+  let axis=unit(cross(oldMouse,newMouse));
+  let Dot=dot(oldMouse,newMouse);
+  if(Dot > 1) Dot=1;
+  else if(Dot < -1) Dot=-1;
+  let angle=Math.acos(Dot);
+  return [angle,axis]
 }
 
 /**
