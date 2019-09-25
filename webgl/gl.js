@@ -291,7 +291,7 @@ class vertexBuffer {
     return this.nvertices++;
   }
 
-  // indexed color vertex 
+  // indexed colored vertex 
   iVertex(i,v,n,c=[0,0,0,0]) {
     let i6=6*i;
     this.vertices[i6]=v[0];
@@ -1648,7 +1648,7 @@ function normMouse(v)
 {
   let v0=v[0];
   let v1=v[1];
-  let norm=Math.sqrt(v0*v0+v1*v1+v[2]*v[2]);
+  let norm=Math.hypot(v0,v1);
   if(norm > 1) {
     denom=1/norm;
     v0 *= denom;
@@ -1661,12 +1661,10 @@ function arcball(oldmouse,newmouse)
 {
   let oldMouse=normMouse(oldmouse);
   let newMouse=normMouse(newmouse);
-  let axis=unit(cross(oldMouse,newMouse));
   let Dot=dot(oldMouse,newMouse);
   if(Dot > 1) Dot=1;
   else if(Dot < -1) Dot=-1;
-  let angle=Math.acos(Dot);
-  return [angle,axis]
+  return [Math.acos(Dot),unit(cross(oldMouse,newMouse))]
 }
 
 /**
