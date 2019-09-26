@@ -176,22 +176,23 @@ double lastzoom;
 GLint lastshader=-1;
 
 using glm::dvec3;
-using glm::mat3;
 using glm::dmat3;
+using glm::mat3;
 using glm::mat4;
 using glm::dmat4;
 using glm::value_ptr;
 using glm::translate;
 
+mat3 normMat;
+dmat3 dnormMat=dmat3();
+
 mat4 projViewMat;
 mat4 viewMat;
-mat3 normMat;
 
 dmat4 dprojMat;
 dmat4 dprojViewMat;
 dmat4 dviewMat;
-dmat3 dnormMat=dmat3();
-dmat3 drotateMat; 
+dmat4 drotateMat; 
 
 const double *dprojView;
 const double *BBT=value_ptr(dnormMat);
@@ -330,7 +331,7 @@ void home(bool webgl=false)
 #endif
 #endif
   dviewMat=dmat4(1.0);
-  drotateMat=dmat3(1.0); 
+  drotateMat=dmat4(1.0); 
   
   updateModelViewData();
 
@@ -818,7 +819,7 @@ void update()
   lastzoom=Zoom;
   double cz=0.5*(zmin+zmax);
   
-  dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*dmat4(drotateMat),
+  dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
   viewMat=mat4(dviewMat);
 
@@ -947,11 +948,11 @@ void rotate(int x, int y)
 
     
     double *T=value_ptr(drotateMat);
-    for(int i=0; i < 3; ++i) {
+    for(int i=0; i < 4; ++i) {
       const ::vec4& roti=arcball.rot[i];
-      int i3=3*i;
-      for(int j=0; j < 3; ++j)
-        T[i3+j]=roti[j];
+      int i4=4*i;
+      for(int j=0; j < 4; ++j)
+        T[i4+j]=roti[j];
     }
     
     update();
@@ -966,11 +967,11 @@ double Degrees(int x, int y)
 void updateArcball() 
 {
   Rotate=value_ptr(drotateMat);
-  for(int i=0; i < 3; ++i) {
-    int i3=3*i;
+  for(int i=0; i < 4; ++i) {
+    int i4=4*i;
     ::vec4& roti=arcball.rot[i];
-    for(int j=0; j < 3; ++j)
-      roti[j]=Rotate[i3+j];
+    for(int j=0; j < 4; ++j)
+      roti[j]=Rotate[i4+j];
   }
   update();
 }
@@ -978,24 +979,24 @@ void updateArcball()
 void rotateX(double step) 
 {
   dmat4 tmpRot(1.0);
-  drotateMat=dmat3(glm::rotate(tmpRot,glm::radians(step),dvec3(1,0,0)))
-    *drotateMat;
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(1,0,0));
+  drotateMat=tmpRot*drotateMat;
   updateArcball();
 }
 
 void rotateY(double step) 
 {
   dmat4 tmpRot(1.0);
-  drotateMat=dmat3(glm::rotate(tmpRot,glm::radians(step),dvec3(0,1,0)))
-    *drotateMat;
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,1,0));
+  drotateMat=tmpRot*drotateMat;
   updateArcball();
 }
 
 void rotateZ(double step) 
 {
   dmat4 tmpRot(1.0);
-  drotateMat=dmat3(glm::rotate(tmpRot,glm::radians(step),dvec3(0,0,1)))
-    *drotateMat;
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,0,1));
+  drotateMat=tmpRot*drotateMat;
   updateArcball();
 }
 
@@ -1313,11 +1314,11 @@ projection camera(bool user)
       double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
       int i4=4*i;
       for(int j=0; j < 4; ++j) {
-        int j3=3*j;
-        double R0=Rotate[j3];
-        double R1=Rotate[j3+1];
-        double R2=Rotate[j3+2];
-        double R3=j == 3;
+        int j4=4*j;
+        double R0=Rotate[j4];
+        double R1=Rotate[j4+1];
+        double R2=Rotate[j4+2];
+        double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
         sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
         sumUp += T4ij*R1;
@@ -1328,15 +1329,15 @@ projection camera(bool user)
       vTarget[i]=sumTarget;
     }
   } else {
-    for(int j=0; j < 3; ++j) {
-      int j3=3*j;
-      double R0=Rotate[j3];
-      double R1=Rotate[j3+1];
-      double R2=Rotate[j3+2];
-      double R3=j == 3;
-      vCamera[j]=R3-cx*R0-cy*R1-cz*R2;
-      vUp[j]=R1;
-      vTarget[j]=R3-cx*R0-cy*R1;
+    for(int i=0; i < 3; ++i) {
+      int i4=4*i;
+      double R0=Rotate[i4];
+      double R1=Rotate[i4+1];
+      double R2=Rotate[i4+2];
+      double R3=Rotate[i4+3];
+      vCamera[i]=R3-cx*R0-cy*R1-cz*R2;
+      vUp[i]=R1;
+      vTarget[i]=R3-cx*R0-cy*R1;
     }
   }
   
