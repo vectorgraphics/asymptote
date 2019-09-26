@@ -144,7 +144,7 @@ extern const double *dprojView;
 void initshader();
 void deleteshader();
 
-extern const double *BBT;
+extern double BBT[9];
 
 }
 

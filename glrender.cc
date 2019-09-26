@@ -195,7 +195,7 @@ dmat4 dviewMat;
 dmat4 drotateMat; 
 
 const double *dprojView;
-const double *BBT=value_ptr(dnormMat);
+double BBT[9];
 
 GLuint ubo;
 
@@ -301,9 +301,10 @@ void setProjection()
 void updateModelViewData()
 {
   // Like Fortran, OpenGL uses transposed (column-major) format!
-  dmat4 MVinv=glm::inverse(dviewMat);
-  dnormMat=dmat3(MVinv);
-  BBT=value_ptr(dnormMat);
+  dnormMat=dmat3(glm::inverse(dviewMat));
+  double *T=value_ptr(dnormMat);
+  for(size_t i=0; i < 9; ++i)
+    BBT[i]=T[i];
   normMat=mat3(dnormMat);
 }
 

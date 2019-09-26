@@ -503,10 +503,10 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   }
 
   triple *Controls;
-  triple Controls0[16];
+  triple Controls0[10];
   if(billboard) {
     Controls=Controls0;
-    for(size_t i=0; i < 16; i++) {
+    for(size_t i=0; i < 10; i++) {
      Controls[i]=BB.transform(controls[i]);
     }
   } else {
