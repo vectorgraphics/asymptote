@@ -47,7 +47,7 @@ protected:
   bool prc;
   
 public:
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_GL
   BezierCurve C;
   bool transparent;
 #endif  
@@ -129,7 +129,7 @@ public:
   
 class drawBezierPatch : public drawSurface {
 public:  
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_GL
   BezierPatch S;
 #endif  
   
@@ -164,7 +164,7 @@ public:
   
 class drawBezierTriangle : public drawSurface {
 public:
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_GL
   BezierTriangle S;
 #endif  
   
@@ -477,7 +477,7 @@ public:
   
 class drawBaseTriangles : public drawElement {
 protected:
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_GL
   Triangles R;
   bool transparent;
 #endif  

@@ -362,10 +362,11 @@ AC_ARG_ENABLE(offscreen,
 AC_ARG_ENABLE(OpenImageIO,
 [AS_HELP_STRING(--enable-openimageio[[[=no]]],enable experimental OpenImageIO Library)])
 
-if test "x$enable_gl" != "xno"; then
             AC_CHECK_HEADER(glm/glm.hpp,
                        [AC_DEFINE(HAVE_LIBGLM,1,
-                    DEFINE([the <glm/glm.hpp> header]))],AC_MSG_NOTICE([*** Could not find glm header files: will compile without OpenGL support ***]))
+                    DEFINE([the <glm/glm.hpp> header]))],AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL support ***]))
+
+if test "x$enable_gl" != "xno"; then
                     AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 if test "x$enable_openimageio" = "xyes"; then
             AC_CHECK_HEADER([OpenEXR/ImathVec.h],
@@ -400,7 +401,7 @@ case "$OSTYPE" in
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([glut], [glutMainLoop],,
-                       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
+                       AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
          AC_CHECK_LIB([GL], [glDepthMask],
                                  [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE_LIB([GL]))

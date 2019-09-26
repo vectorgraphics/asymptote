@@ -13,14 +13,12 @@
 #include <cstring>
 #include <sys/time.h>
 
-
 #include "common.h"
 #include "locate.h"
 #include "seconds.h"
 #include "statistics.h"
 #include "bezierpatch.h"
 #include "beziercurve.h"
-
 
 #include "picture.h"
 #include "bbox3.h"
@@ -50,17 +48,12 @@
 #endif
 
 #include "shaders.h"
-#include "material.h"
 
 #ifdef HAVE_LIBOPENIMAGEIO
 #include <OpenImageIO/imageio.h>
 #endif
 
 using settings::locateFile;
-using camp::Material;
-using camp::Maxmaterials;
-using camp::Nmaterials;
-using camp::nmaterials;
 using utils::seconds;
 
 namespace camp {
@@ -71,14 +64,6 @@ GLint noNormalShader;
 GLint materialShader;
 GLint colorShader;
 GLint transparentShader;
-
-mem::vector<Material> material;
-MaterialMap materialMap;
-size_t materialIndex;
-
-size_t Maxmaterials;
-size_t Nmaterials=1;
-size_t nmaterials=48;
 
 vertexBuffer material0Data;
 vertexBuffer material1Data;
@@ -92,6 +77,23 @@ const size_t nbuffer=1000;
 }
 
 #endif /* HAVE_GL */
+
+#ifdef HAVE_LIBGLM
+using camp::Material;
+using camp::Maxmaterials;
+using camp::Nmaterials;
+using camp::nmaterials;
+using camp::MaterialMap;
+
+namespace camp {
+mem::vector<Material> material;
+MaterialMap materialMap;
+size_t materialIndex;
+
+size_t Maxmaterials;
+size_t Nmaterials=1;
+size_t nmaterials=48;
+}
 
 namespace gl {
   
@@ -1553,10 +1555,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   static bool initialized=false;
   if(!initialized || !interact::interactive) {
     antialias=getSetting<Int>("antialias") > 1;
-    double expand=getSetting<double>("render");
-    if(expand < 0)
-      expand *= (Format.empty() || Format == "eps" || Format == "pdf" || webgl)                 ? -2.0 : -1.0;
-    if(antialias && !webgl) expand *= 2.0;
+    double expand;
+    if(webgl)
+      expand=1;
+    else {
+      expand=getSetting<double>("render");
+      if(expand < 0)
+        expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
+      if(antialias) expand *= 2.0;
+    }
   
     oWidth=width;
     oHeight=height;
@@ -1778,6 +1785,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 }
 
 } // namespace gl
+
+#endif
 
 #ifdef HAVE_GL
 

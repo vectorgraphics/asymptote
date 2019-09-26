@@ -4,9 +4,7 @@
 #include "glrender.h"
 #include "drawelement.h"
 
-namespace gl {
-extern glm::mat4 projViewMat;
-};
+#ifdef HAVE_LIBGLM
 
 using namespace settings;
 
@@ -54,7 +52,6 @@ void jsfile::open(string name) {
       << "angle=" << gl::Angle << ";"
       << newl
        << "Zoom0=" << gl::Zoom0 << ";" << newl << newl
-      << "size2=Math.hypot(canvasWidth,canvasHeight);" << newl << newl
       << "let lights=[";
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;
@@ -202,3 +199,4 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
 }
 
 }
+#endif

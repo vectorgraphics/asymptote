@@ -1173,7 +1173,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
       
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   drawBuffers();
 #endif  
 }
@@ -1202,7 +1202,7 @@ Communicate com;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_LIBGLM  
+#ifdef HAVE_LIBGL  
 #ifdef HAVE_PTHREAD
   wait(initSignal,initLock);
   endwait(initSignal,initLock);
@@ -1222,9 +1222,16 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(getSetting<bool>("interrupt"))
     return true;
   
-#ifndef HAVE_LIBGLUT
-  if(!getSetting<bool>("offscreen"))
+  bool webgl=format == "html";
+  
+#ifndef HAVE_GL
+  if(!webgl && !getSetting<bool>("offscreen"))
     camp::reportError("to support onscreen rendering, please install glut library, run ./configure, and recompile");
+#endif
+  
+#ifndef HAVE_LIBGLM
+  if(webgl)
+    camp::reportError("to support WebGL rendering, please install glm header files, run ./configure, and recompile");
 #endif
   
 #ifndef HAVE_LIBOSMESA
@@ -1260,18 +1267,21 @@ bool picture::shipout3(const string& prefix, const string& format,
   const string outputformat=format.empty() ? 
     getSetting<string>("outformat") : format;
   
-  bool View=settings::view() && view;
+#ifdef HAVE_LIBGLM
   static int oldpid=0;
+  bool View=settings::view() && view;
+#endif  
+  
+#ifdef HAVE_GL
   bool offscreen=getSetting<bool>("offscreen");
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
 #endif  
+#endif 
 
-  bool webgl=format == "html";
-  
   if(!webgl) {
-#if defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)
+#ifdef HAVE_GL
     if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(gl::initialize) {
@@ -1324,6 +1334,8 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
 #endif
   }
+  
+#if HAVE_LIBGLM  
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
            background,nlights,lights,diffuse,specular,View,oldpid);
   
@@ -1347,8 +1359,9 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
     return true;
   }
+#endif  
 
-#ifdef HAVE_LIBGLM  
+#ifdef HAVE_GL  
 #ifdef HAVE_PTHREAD
   if(glthread && !offscreen && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);

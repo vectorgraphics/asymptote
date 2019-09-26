@@ -12,7 +12,7 @@
 
 namespace camp {
 
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_GL
 
 extern const double Fuzz;
 extern const double Fuzz2;

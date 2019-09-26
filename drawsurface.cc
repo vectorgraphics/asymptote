@@ -23,12 +23,10 @@ using namespace prc;
 
 namespace camp {
 
-#ifdef HAVE_LIBGLM
 mem::vector<triple> drawElement::center;
 size_t drawElement::centerIndex=0;
 triple drawElement::lastcenter=0;
 size_t drawElement::lastcenterIndex=0;
-#endif
 
 const triple drawElement::zero;
 
@@ -78,8 +76,10 @@ void setcolors(bool colors,
     materialIndex=material.size();
     if(materialIndex >= nmaterials)
       nmaterials=min(Maxmaterials,2*nmaterials);
+#ifdef HAVE_LIBGL
     if(!out && materialIndex >= Maxmaterials)
       clearMaterialBuffer(true);
+#endif    
     material.push_back(m);
     materialMap[m]=materialIndex;
     if(out)
@@ -232,6 +232,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 
 bool drawBezierPatch::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -248,13 +249,14 @@ bool drawBezierPatch::write(jsfile *out)
   } else
     out->addPatch(controls,16,Min,Max,colors);
                     
+#endif  
   return true;
 }
 
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                              double perspective, bool remesh)
 {
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   if(invisible) return; 
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
@@ -461,6 +463,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
 
 bool drawBezierTriangle::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -477,13 +480,14 @@ bool drawBezierTriangle::write(jsfile *out)
   } else
     out->addPatch(controls,10,Min,Max,colors);
                     
+#endif  
   return true;
 }
 
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool remesh)
 {
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
@@ -624,7 +628,7 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
 
 void drawNurbs::displacement()
 {
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
@@ -883,12 +887,14 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
 
 bool drawTriangles::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
   
   setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
+#endif 
   return true;
 }
 
@@ -896,7 +902,7 @@ void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
                            bool remesh)
 {
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   if(invisible) return;
   
   transparent=diffuse.A < 1.0;

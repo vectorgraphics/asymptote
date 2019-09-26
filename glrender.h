@@ -58,7 +58,9 @@
 typedef float GLfloat;
 #endif
 
+#ifdef HAVE_LIBGLM
 #include "material.h"
+#endif
 
 namespace camp {
 class picture;
@@ -106,8 +108,6 @@ extern camp::triple *Lights;
 extern size_t nlights;
 extern double *Diffuse;
 
-extern GLuint ubo;
-
 struct projection 
 {
 public:
@@ -128,7 +128,11 @@ public:
 };
 
 #ifdef HAVE_GL
+extern GLuint ubo;
 GLuint initHDR();
+
+void setUniforms(GLint shader);
+void deleteUniforms();
 #endif
 
 projection camera(bool user=true);
@@ -173,21 +177,16 @@ struct Billboard {
 
 extern Billboard BB;
 
-extern GLint pixelShader;
-extern GLint noNormalShader;
-extern GLint materialShader;
-extern GLint colorShader;
-extern GLint transparentShader;
-
-void setUniforms(GLint shader);
-void deleteUniforms();
-
+#ifdef HAVE_LIBGLM
 typedef mem::map<CONST Material,size_t> MaterialMap;
 
 extern mem::vector<Material> material;
 extern MaterialMap materialMap;
 extern size_t materialIndex;
 extern int MaterialIndex;
+#endif
+
+#ifdef HAVE_GL
 
 extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
 extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers
@@ -357,6 +356,12 @@ public:
 
 };
 
+extern GLint pixelShader;
+extern GLint noNormalShader;
+extern GLint materialShader;
+extern GLint colorShader;
+extern GLint transparentShader;
+
 extern vertexBuffer material0Data;   // pixels
 extern vertexBuffer material1Data;   // material Bezier curves
 extern vertexBuffer materialData;    // material Bezier patches & triangles
@@ -368,6 +373,8 @@ extern void drawBuffer(vertexBuffer& data, GLint shader);
 extern void drawBuffers(); 
 extern void clearBuffers();
 extern void clearMaterialBuffer(bool draw=false);
+
+#endif
 
 }
 

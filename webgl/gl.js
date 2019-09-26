@@ -137,7 +137,7 @@ class Light {
 
 function initGL(canvas) {
   try {
-    gl=canvas.getContext("webgl",{alpha: false}); // Don't composite background
+    gl=canvas.getContext("webgl",{alpha:false}); // Don't composite background
     gl.viewportWidth=canvas.width;
     gl.viewportHeight=canvas.height;
   } catch(e) {}
@@ -1990,6 +1990,11 @@ let pixelShader,noNormalShader,materialShader,colorShader,transparentShader;
 function webGLStart()
 {
   let canvas=document.getElementById("Asymptote");
+
+  canvasWidth *= window.devicePixelRatio;
+  canvasHeight *= window.devicePixelRatio;
+
+  size2=Math.hypot(canvasWidth,canvasHeight);
 
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;

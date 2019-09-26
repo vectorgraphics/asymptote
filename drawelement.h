@@ -182,14 +182,10 @@ public:
   
   virtual ~drawElement() {}
   
-  
-#ifdef HAVE_LIBGLM
   static mem::vector<triple> center;
   static size_t centerIndex;
   static triple lastcenter;
   static size_t lastcenterIndex;
-  
-#endif
   
   static pen lastpen;  
   static const triple zero;
@@ -479,7 +475,7 @@ public:
   }
 };
  
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_GL
 template<class T>
 void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
   if (!buffervector.empty()) {
@@ -489,7 +485,9 @@ void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
     glBindBuffer(GL_ARRAY_BUFFER,0);
   }
 }
+#endif
 
+#ifdef HAVE_LIBGLM
 void setcolors(bool colors,
                const prc::RGBAColour& diffuse,
                const prc::RGBAColour& emissive,

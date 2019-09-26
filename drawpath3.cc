@@ -52,6 +52,7 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 
 bool drawPath3::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   Int n=g.length();
   if(n == 0 || invisible)
     return true;
@@ -71,13 +72,14 @@ bool drawPath3::write(jsfile *out)
       out->addCurve(g.point(i),g.postcontrol(i),
                     g.precontrol(i+1),g.point(i+1),Min,Max);
   }
+#endif  
   return true;
 }
 
 void drawPath3::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh)
 {
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   Int n=g.length();
   if(n == 0 || invisible) return;
 
@@ -198,7 +200,7 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
 
 void drawNurbsPath3::displacement()
 {
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   size_t nknots=degree+n+1;
   if(Controls == NULL) {
     Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
@@ -219,7 +221,7 @@ void drawNurbsPath3::displacement()
 void drawNurbsPath3::render(double, const triple&, const triple&,
                             double, bool remesh)
 {
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   if(invisible) return;
   
 // TODO: implement NURBS renderer
@@ -238,6 +240,7 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
   
 bool drawPixel::write(jsfile *out)
 {
+#ifdef HAVE_LIBGL
   if(invisible)
     return true;
 
@@ -245,13 +248,14 @@ bool drawPixel::write(jsfile *out)
   setcolors(false,color,color,Black,1.0,0.0,0.04,out);
   
   out->addPixel(v,width,Min,Max);
+#endif  
   return true;
 }
 
 void drawPixel::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh) 
 {
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   if(invisible) return;
   
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen

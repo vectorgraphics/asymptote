@@ -2,8 +2,6 @@ import graph3;
 
 size(469pt);
 
-viewportmargin=0;
-
 currentprojection=perspective(
 camera=(25.0851928432063,-30.3337528952473,19.3728775115443),
 up=Z,

@@ -72,7 +72,7 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
   if(gl::glthread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
@@ -177,7 +177,7 @@ void *asymain(void *A)
     int status;
     while(wait(&status) > 0);
   }
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
 #ifdef HAVE_PTHREAD
   if(gl::glthread && !getSetting<bool>("offscreen")) {
     pthread_kill(gl::mainthread,SIGURG);
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
   }
 
   Args args(argc,argv);
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_LIBGL
 #ifdef __APPLE__
   bool usethreads=true;
 #else
