@@ -1595,10 +1595,11 @@ function handleMouseUpOrTouchEnd(event) {
 }
 
 function rotateScene(lastX,lastY,rawX,rawY,factor) {
-    let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
+  if(lastX == rawX && lastY == rawY) return;
+  let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
 
-    mat4.fromRotation(rotMats,2*factor*angle/lastzoom,axis);
-    mat4.multiply(rotMat,rotMats,rotMat);
+  mat4.fromRotation(rotMats,2*factor*angle/lastzoom,axis);
+  mat4.multiply(rotMat,rotMats,rotMat);
 }
 
 function shiftScene(lastX,lastY,rawX,rawY) {

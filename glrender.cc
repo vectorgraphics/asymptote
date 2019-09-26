@@ -23,7 +23,6 @@
 
 
 #include "picture.h"
-#include "arcball.h"
 #include "bbox3.h"
 #include "drawimage.h"
 #include "interact.h"
@@ -166,7 +165,6 @@ size_t nlights0;
 triple *Lights; 
 double *Diffuse;
 double *Specular;
-double *Rotate;
 bool antialias;
 
 double Zoom;
@@ -199,7 +197,6 @@ double BBT[9];
 
 GLuint ubo;
 
-Arcball arcball;
 unsigned int framecount;
 
 template<class T>
@@ -288,14 +285,6 @@ void setProjection()
   setDimensions(Width,Height,X,Y);
   if(orthographic) ortho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   else frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
-  
-#ifdef HAVE_GL
-#ifdef HAVE_LIBGLUT
-  double arcballRadius=getSetting<double>("arcballradius");
-  arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius*Zoom);
-#endif
-#endif
-  
 }
 
 void updateModelViewData()
@@ -325,10 +314,8 @@ void home(bool webgl=false)
   X=Y=cx=cy=0.0;
 #ifdef HAVE_GL  
 #ifdef HAVE_LIBGLUT
-  if(!webgl && !getSetting<bool>("offscreen")) {
+  if(!webgl && !getSetting<bool>("offscreen"))
     idle();
-    arcball.init();
-  }
 #endif
 #endif
   dviewMat=dmat4(1.0);
@@ -870,29 +857,25 @@ void reshape(int width, int height)
   
 void shift(int x, int y)
 {
-  if(x > 0 && y > 0) {
-    double Zoominv=1.0/Zoom;
-    X += (x-x0)*Zoominv;
-    Y += (y0-y)*Zoominv;
-    x0=x; y0=y;
-    update();
-  }
+  double Zoominv=1.0/Zoom;
+  X += (x-x0)*Zoominv;
+  Y += (y0-y)*Zoominv;
+  x0=x; y0=y;
+  update();
 }
   
 void pan(int x, int y)
 {
-  if(x > 0 && y > 0) {
-    if(orthographic) {
-      double Zoominv=1.0/Zoom;
-      X += (x-x0)*Zoominv;
-      Y += (y0-y)*Zoominv;
-    } else {
-      cx += (x-x0)*(xmax-xmin)/Width;
-      cy += (y0-y)*(ymax-ymin)/Height;
-    }
-    x0=x; y0=y;
-    update();
+  if(orthographic) {
+    double Zoominv=1.0/Zoom;
+    X += (x-x0)*Zoominv;
+    Y += (y0-y)*Zoominv;
+  } else {
+    cx += (x-x0)*(xmax-xmin)/Width;
+    cy += (y0-y)*(ymax-ymin)/Height;
   }
+  x0=x; y0=y;
+  update();
 }
   
 void capzoom() 
@@ -909,19 +892,17 @@ void capzoom()
 void zoom(int x, int y)
 {
   if(ignorezoom) {ignorezoom=false; y0=y; return;}
-  if(x > 0 && y > 0) {
-    double zoomFactor=getSetting<double>("zoomfactor");
-    if(zoomFactor > 0.0) {
-      double zoomStep=getSetting<double>("zoomstep");
-      const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
-      double stepPower=zoomStep*(y0-y);
-      if(fabs(stepPower) < limit) {
-        Zoom *= pow(zoomFactor,stepPower);
-        capzoom();
-        y0=y;
-        setProjection();
-        glutPostRedisplay();
-      }
+  double zoomFactor=getSetting<double>("zoomfactor");
+  if(zoomFactor > 0.0) {
+    double zoomStep=getSetting<double>("zoomstep");
+    const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
+    double stepPower=zoomStep*(y0-y);
+    if(fabs(stepPower) < limit) {
+      Zoom *= pow(zoomFactor,stepPower);
+      capzoom();
+      y0=y;
+      setProjection();
+      glutPostRedisplay();
     }
   }
 }
@@ -940,22 +921,47 @@ void mousewheel(int wheel, int direction, int x, int y)
   }
 }
 
+struct arcball {
+  double angle;
+  triple axis;
+  
+  arcball(double x0, double y0, double x, double y) {
+    triple v0=norm(x0,y0);
+    triple v1=norm(x,y);
+    double Dot=dot(v0,v1);
+    if(Dot > 1.0) Dot=1.0;
+    else if(Dot < -1.0) Dot=-1.0;
+    angle=acos(Dot);
+    axis=unit(cross(v0,v1));
+  }
+  
+  triple norm(double x, double y) {
+    double norm=hypot(x,y);
+    if(norm > 1.0) {
+      double denom=1.0/norm;
+      x *= denom;
+      y *= denom;
+    }
+    return triple(x,y,sqrt(max(1.0-x*x-y*y,0.0)));
+  }
+};
+
+inline double glx(int x) {
+  return 2.0*x/Width-1.0;
+}
+
+inline double gly(int y) {
+  return 1.0-2.0*y/Height;
+}
+
 void rotate(int x, int y)
 {
-  if(x > 0 && y > 0) {
-    arcball.mouse_motion(x,Height-y,0,
-                         Action == "rotateX", // X rotation only
-                         Action == "rotateY");  // Y rotation only
-
-    
-    double *T=value_ptr(drotateMat);
-    for(int i=0; i < 4; ++i) {
-      const ::vec4& roti=arcball.rot[i];
-      int i4=4*i;
-      for(int j=0; j < 4; ++j)
-        T[i4+j]=roti[j];
-    }
-    
+  if(x != x0 || y != y0) {
+    arcball A(glx(x0),gly(y0),glx(x),gly(y));
+    triple v=A.axis;
+    drotateMat=glm::rotate<double>(2*A.angle/lastzoom,
+                                   glm::dvec3(v.getx(),v.gety(),v.getz()))*drotateMat;
+    x0=x; y0=y;
     update();
   }
 }
@@ -965,24 +971,12 @@ double Degrees(int x, int y)
   return atan2(0.5*Height-y-Y,x-0.5*Width-X)*degrees;
 }
 
-void updateArcball() 
-{
-  Rotate=value_ptr(drotateMat);
-  for(int i=0; i < 4; ++i) {
-    int i4=4*i;
-    ::vec4& roti=arcball.rot[i];
-    for(int j=0; j < 4; ++j)
-      roti[j]=Rotate[i4+j];
-  }
-  update();
-}
-
 void rotateX(double step) 
 {
   dmat4 tmpRot(1.0);
   tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(1,0,0));
   drotateMat=tmpRot*drotateMat;
-  updateArcball();
+  update();
 }
 
 void rotateY(double step) 
@@ -990,7 +984,7 @@ void rotateY(double step)
   dmat4 tmpRot(1.0);
   tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,1,0));
   drotateMat=tmpRot*drotateMat;
-  updateArcball();
+  update();
 }
 
 void rotateZ(double step) 
@@ -998,16 +992,28 @@ void rotateZ(double step)
   dmat4 tmpRot(1.0);
   tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,0,1));
   drotateMat=tmpRot*drotateMat;
-  updateArcball();
+  update();
+}
+
+void rotateX(int x, int y)
+{
+  double angle=Degrees(x,y);
+  rotateX(angle-lastangle);
+  lastangle=angle;
+}
+
+void rotateY(int x, int y)
+{
+  double angle=Degrees(x,y);
+  rotateY(angle-lastangle);
+  lastangle=angle;
 }
 
 void rotateZ(int x, int y)
 {
-  if(x > 0 && y > 0) {
-    double angle=Degrees(x,y);
-    rotateZ(angle-lastangle);
-    lastangle=angle;
-  }
+  double angle=Degrees(x,y);
+  rotateZ(angle-lastangle);
+  lastangle=angle;
 }
 
 #ifndef GLUT_WHEEL_UP
@@ -1097,8 +1103,8 @@ void mouse(int button, int state, int x, int y)
   }     
   
   if(state == GLUT_DOWN) {
-    if(Action == "rotate" || Action == "rotateX" || Action == "rotateY") {
-      arcball.mouse_down(x,Height-y);
+    if(Action == "rotate") {
+      x0=x; y0=y;
       glutMotionFunc(rotate);
     } else if(Action == "shift") {
       x0=x; y0=y;
@@ -1109,13 +1115,18 @@ void mouse(int button, int state, int x, int y)
     } else if(Action == "zoom" || Action == "zoom/menu") {
       y0=y;
       glutMotionFunc(zoom);
+    } else if(Action == "rotateX") {
+      lastangle=Degrees(x,y);
+      glutMotionFunc(rotateX);
+    } else if(Action == "rotateY") {
+      lastangle=Degrees(x,y);
+      glutMotionFunc(rotateY);
     } else if(Action == "rotateZ") {
       lastangle=Degrees(x,y);
       glutMotionFunc(rotateZ);
     }
   } else {
-    arcball.mouse_up();
-    glutMotionFunc(NULL);
+     glutMotionFunc(NULL);
   }
 }
 
@@ -1310,6 +1321,8 @@ projection camera(bool user)
   
   double cz=0.5*(zmin+zmax);
 
+  double *Rotate=value_ptr(drotateMat);
+
   if(user) {
     for(int i=0; i < 3; ++i) {
       double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
@@ -1366,7 +1379,6 @@ void init()
   glutInit(&argc,argv);
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
-  Rotate=value_ptr(drotateMat);
 #endif
 }
 
