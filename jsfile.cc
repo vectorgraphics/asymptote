@@ -21,14 +21,14 @@ void jsfile::open(string name) {
   out.open(name);
   out << "<!DOCTYPE html>" << newl << newl;
     
-  bool devicepixels=getSetting<bool>("devicepixels");
-  if(!devicepixels)
+  bool absolute=getSetting<bool>("absolute");
+  if(!absolute)
     out << "<!-- Use the following line to include this file within another web page:" << newl
-        << newl
-        << "<object data=\"" << name <<"\" style=\"width:"
-        << gl::fullWidth << ";height:" << gl::fullHeight
-        << ";position:relative;top:0;left:0;\"></object>" << newl << newl
-        << "-->" << newl << newl;
+      << newl
+      << "<object data=\"" << name <<"\" style=\"width:"
+      << gl::fullWidth << ";height:" << gl::fullHeight
+      << ";position:relative;top:0;left:0;\"></object>" << newl << newl
+      << "-->" << newl << newl;
 
   out.precision(getSetting<Int>("digits"));
   copy(locateFile(WebGLheader));
@@ -45,7 +45,7 @@ void jsfile::open(string name) {
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
-      << "devicepixels=" <<  std::boolalpha << devicepixels << ";" << newl
+      << "absolute=" << std::boolalpha << absolute << ";" << newl
       << newl
       <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];" 
       << newl

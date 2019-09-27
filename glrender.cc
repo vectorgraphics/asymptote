@@ -1556,10 +1556,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(!initialized || !interact::interactive) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
-    if(webgl) {
-      expand=getSetting<double>("webglscale");
-      if(expand <= 0.0) expand=1.0;
-    } else {
+    if(webgl)
+      expand=1.0;
+    else {
       expand=getSetting<double>("render");
       if(expand < 0)
         expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;

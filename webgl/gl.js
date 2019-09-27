@@ -32,6 +32,8 @@ let Zoom0;
 
 let maxViewportWidth=window.innerWidth;
 let maxViewportHeight=window.innerHeight;
+
+const windowTrim=10;
 const zoomStep=0.1;
 const resizeStep=1.2;
 const zoomFactor=1.05;
@@ -2049,6 +2051,9 @@ function setsize(w,h)
   if(h > maxViewportHeight)
     h=maxViewportHeight;
 
+  shift.x *= w/canvasWidth;
+  shift.y *= h/canvasHeight;
+
   canvasWidth=w;
   canvasHeight=h;
   setCanvas();
@@ -2072,16 +2077,22 @@ function webGLStart()
 {
   canvas=document.getElementById("Asymptote");
 
- if(devicepixels) {
-   canvasWidth *= window.devicePixelRatio;
-   canvasHeight *= window.devicePixelRatio;
+  if(absolute) {
+    canvasWidth *= window.devicePixelRatio;
+    canvasHeight *= window.devicePixelRatio;
+  } else {
+    if(canvas.width == 0) 
+      canvas.width=Math.max(window.innerWidth-windowTrim,windowTrim);
+
+    if(canvas.height == 0) 
+      canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
+
+    if(canvas.width > 0) 
+      canvasWidth=canvas.width;
+
+    if(canvas.height > 0) 
+      canvasHeight=canvas.height;
   }
-
-  if(canvas.width > 0) 
-    canvasWidth=canvas.width;
-
-  if(canvas.height > 0) 
-    canvasHeight=canvas.height;
 
   setCanvas();
 
