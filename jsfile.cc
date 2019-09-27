@@ -19,14 +19,16 @@ void jsfile::copy(string name) {
 
 void jsfile::open(string name) {
   out.open(name);
-  out << "<!DOCTYPE html>" << newl << newl
+  out << "<!DOCTYPE html>" << newl << newl;
     
-      << "<!-- Use the following line to include this file within another web page:" << newl
-      << newl
-      << "<object data=\"" << name <<"\" style=\"width:"
-      << gl::fullWidth << ";height:" << gl::fullHeight
-      << ";position:relative;top:0;left:0;\"></object>" << newl << newl
-      << "-->" << newl << newl;
+  bool devicepixels=getSetting<bool>("devicepixels");
+  if(!devicepixels)
+    out << "<!-- Use the following line to include this file within another web page:" << newl
+        << newl
+        << "<object data=\"" << name <<"\" style=\"width:"
+        << gl::fullWidth << ";height:" << gl::fullHeight
+        << ";position:relative;top:0;left:0;\"></object>" << newl << newl
+        << "-->" << newl << newl;
 
   out.precision(getSetting<Int>("digits"));
   copy(locateFile(WebGLheader));
@@ -42,17 +44,19 @@ void jsfile::open(string name) {
   out << "<script type=\"text/javascript\">" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
-      << "canvasHeight=" << gl::fullHeight << ";" << newl << newl
+      << "canvasHeight=" << gl::fullHeight << ";" << newl
+      << "devicepixels=" <<  std::boolalpha << devicepixels << ";" << newl
+      << newl
       <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];" 
       << newl
       <<  "B=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];" 
       << newl
-      << "orthographic=" << std::boolalpha << gl::orthographic << ";"
+      << "orthographic=" << gl::orthographic << ";"
       << newl
       << "angle=" << gl::Angle << ";"
       << newl
        << "Zoom0=" << gl::Zoom0 << ";" << newl << newl
-      << "let lights=[";
+      << "Lights=[";
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;
     out << "new Light(" << newl
@@ -62,7 +66,7 @@ void jsfile::open(string name) {
   }
   out << "];" << newl << newl;
   size_t nmaterials=material.size();
-  out << "let Materials=[";
+  out << "Materials=[";
   for(size_t i=0; i < nmaterials; ++i)
     out << "new Material(" << newl
         << material[i]

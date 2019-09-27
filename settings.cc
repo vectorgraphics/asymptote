@@ -1138,6 +1138,10 @@ void initSettings() {
                             "Maximum viewport size",pair(2048,2048)));
   addOption(new pairSetting("viewportmargin", 0, "pair",
                             "Horizontal and vertical 3D viewport margin",pair(0.5,0.5)));
+  addOption(new realSetting("webglscale", 0, "factor",
+                            "WebGL scaling factor: px/bp",1.0));
+  addOption(new boolSetting("devicepixels", 0,
+                            "Account for WebGL device pixels",false));
   addOption(new pairSetting("maxtile", 0, "pair",
                             "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
@@ -1293,8 +1297,6 @@ void initSettings() {
                             30.0));
   addOption(new realSetting("framedelay", 0, "ms",
                             "Additional frame delay", 0.0));
-  addOption(new realSetting("arcballradius", 0, "pixels",
-                            "Arcball radius", 750.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
   addOption(new IntSetting("digits", 0, "n",
                            "Default output file precision", 6));

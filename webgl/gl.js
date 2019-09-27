@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 let gl;
 
+let canvas;
 let canvasWidth,canvasHeight;
 let halfCanvasWidth,halfCanvasHeight;
 
@@ -28,13 +29,19 @@ let BezierFactor=0.4;
 let FillFactor=0.1;
 let Zoom;
 let Zoom0;
+
+let maxViewportWidth=window.innerWidth;
+let maxViewportHeight=window.innerHeight;
 const zoomStep=0.1;
-let zoomFactor=1.05;
-let zoomPinchFactor=10;
-let zoomPinchCap=100;
-let shiftHoldDistance=20;
-let shiftWaitTime=200; // ms
-let vibrateTime=25; // ms
+const resizeStep=1.2;
+const zoomFactor=1.05;
+const zoomPinchFactor=10;
+const zoomPinchCap=100;
+
+const shiftHoldDistance=20;
+const shiftWaitTime=200; // ms
+const vibrateTime=25; // ms
+
 let lastzoom;
 let H; // maximum camera view half-height
 
@@ -43,7 +50,12 @@ let Fuzz4=Fuzz2*Fuzz2;
 let third=1/3;
 
 let P=[]; // Array of Bezier patches, triangles, curves, and pixels
+let Materials=[]; // Array of materials
+let Lights=[]; // Array of lights
 let Centers=[]; // Array of billboard centers
+
+// Don't use device pixels when embedding in another html document
+let devicepixels=false;
 
 let rotMat=mat4.create();
 let projMat=mat4.create(); // projection matrix
@@ -135,11 +147,9 @@ class Light {
   }
 }
 
-function initGL(canvas) {
+function initGL() {
   try {
     gl=canvas.getContext("webgl",{alpha:false}); // Don't composite background
-    gl.viewportWidth=canvas.width;
-    gl.viewportHeight=canvas.height;
   } catch(e) {}
   if (!gl)
     alert("Could not initialize WebGL");
@@ -156,7 +166,7 @@ function getShader(gl,id,options=[]) {
 #else
   precision mediump float;
 #endif
-  const int nLights=${lights.length};
+  const int nLights=${Lights.length};
   const int nMaterials=${Materials.length};\n`
 
   if(orthographic)
@@ -1484,7 +1494,8 @@ function Distance2(z,u,n)
 }
 
 // Return the vertices of the box containing 3d points m and M.
-function corners(m,M) {
+function corners(m,M)
+{
   return [m,[m[0],m[1],M[2]],[m[0],M[1],m[2]],[m[0],M[1],M[2]],
           [M[0],m[1],m[2]],[M[0],m[1],M[2]],[M[0],M[1],m[2]],M];
 }
@@ -1497,7 +1508,8 @@ function corners(m,M) {
  * Compute the matrix (translMatrix) * mat * (translMatrix)^{-1} 
  */
 
-function COBTarget(out,mat) {
+function COBTarget(out,mat)
+{
   mat4.fromTranslation(translMat,[center.x,center.y,center.z])
   mat4.invert(cjMatInv,translMat);
   mat4.multiply(out,mat,cjMatInv);
@@ -1543,15 +1555,16 @@ function setUniforms(shader)
   for(let i=0; i < Materials.length; ++i)
     Materials[i].setUniform(shader,"Materials",i);
 
-  for(let i=0; i < lights.length; ++i)
-    lights[i].setUniform(shader,"Lights",i);
+  for(let i=0; i < Lights.length; ++i)
+    Lights[i].setUniform(shader,"Lights",i);
 
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
   gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
 }
 
-function handleMouseDown(event) {
+function handleMouseDown(event)
+{
   mouseDownOrTouchActive=true;
   lastMouseX=event.clientX;
   lastMouseY=event.clientY;
@@ -1570,7 +1583,8 @@ function pinchDistance(touches)
 
 let touchStartTime;
 
-function handleTouchStart(evt) {
+function handleTouchStart(evt)
+{
   evt.preventDefault();
   let touches=evt.targetTouches;
   swipe=rotate=pinch=false;
@@ -1594,7 +1608,8 @@ function handleMouseUpOrTouchEnd(event) {
   mouseDownOrTouchActive=false;
 }
 
-function rotateScene(lastX,lastY,rawX,rawY,factor) {
+function rotateScene(lastX,lastY,rawX,rawY,factor)
+{
   if(lastX == rawX && lastY == rawY) return;
   let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
 
@@ -1602,13 +1617,15 @@ function rotateScene(lastX,lastY,rawX,rawY,factor) {
   mat4.multiply(rotMat,rotMats,rotMat);
 }
 
-function shiftScene(lastX,lastY,rawX,rawY) {
+function shiftScene(lastX,lastY,rawX,rawY)
+{
   let zoominv=1/lastzoom;
   shift.x += (rawX-lastX)*zoominv*halfCanvasWidth;
   shift.y -= (rawY-lastY)*zoominv*halfCanvasHeight;
 }
 
-function panScene(lastX,lastY,rawX,rawY) {
+function panScene(lastX,lastY,rawX,rawY)
+{
   if (orthographic) {
     shiftScene(lastX,lastY,rawX,rawY);
   } else {
@@ -1617,11 +1634,13 @@ function panScene(lastX,lastY,rawX,rawY) {
   }
 }
 
-function updateViewMatrix() {
+function updateViewMatrix()
+{
   COBTarget(viewMat,rotMat);
   mat4.translate(viewMat,viewMat,[center.x,center.y,0]);
   mat3.fromMat4(viewMat3,viewMat);
   mat3.invert(normMat,viewMat3);
+  mat4.multiply(projViewMat,projMat,viewMat);
 }
 
 function capzoom() 
@@ -1635,7 +1654,8 @@ function capzoom()
   lastzoom=Zoom;
 }
 
-function zoomImage(diff) {
+function zoomImage(diff)
+{
   let stepPower=zoomStep*halfCanvasHeight*diff;
   const limit=Math.log(0.1*Number.MAX_VALUE)/Math.log(zoomFactor);
 
@@ -1675,7 +1695,8 @@ function arcball(oldmouse,newmouse)
  * @param {*} rawX unused
  * @param {*} rawY 
  */
-function zoomScene(lastX,lastY,rawX,rawY) {
+function zoomScene(lastX,lastY,rawX,rawY)
+{
   zoomImage(lastY-rawY);
 }
 
@@ -1684,7 +1705,8 @@ const DRAGMODE_ROTATE=1;
 const DRAGMODE_SHIFT=2;
 const DRAGMODE_ZOOM=3;
 const DRAGMODE_PAN=4
-function processDrag(newX,newY,mode,factor=1) {
+function processDrag(newX,newY,mode,factor=1)
+{
   let dragFunc;
   switch (mode) {
     case DRAGMODE_ROTATE:
@@ -1718,21 +1740,32 @@ function processDrag(newX,newY,mode,factor=1) {
   redraw=true;
 }
 
-function handleKey(event) {
+function handleKey(event)
+{
   let keycode=event.key;
   let axis=[];
   switch(keycode) {
-  case "x":
+  case 'x':
     axis=[1,0,0];
     break;
-  case "y":
+  case 'y':
     axis=[0,1,0];
     break;
-  case "z":
+  case 'z':
     axis=[0,0,1];
     break;
-  case "h":
+  case 'h':
     home();
+    break;
+  case '+':
+  case '=':
+  case '>':
+    expand();
+    break;
+  case '-':
+  case '_':
+  case '<':
+    shrink();
     break;
   default:
     break;
@@ -1745,7 +1778,8 @@ function handleKey(event) {
   }
 }
 
-function handleMouseWheel(event) {
+function handleMouseWheel(event)
+{
   if (event.deltaY < 0) {
     Zoom *= zoomFactor;
   } else {
@@ -1757,7 +1791,8 @@ function handleMouseWheel(event) {
   redraw=true;
 }
 
-function handleMouseMove(event) {
+function handleMouseMove(event)
+{
   if(!mouseDownOrTouchActive) {
     return;
   }
@@ -1783,7 +1818,8 @@ let zooming=false;
 let swipe=false;
 let rotate=false;
 
-function handleTouchMove(evt) {
+function handleTouchMove(evt)
+{
   evt.preventDefault();
   if(zooming) return;
   let touches=evt.targetTouches;
@@ -1916,7 +1952,8 @@ function draw()
   remesh=false;
 }
 
-function tick() {
+function tick()
+{
   requestAnimationFrame(tick);
   if(redraw) {
     draw();
@@ -1924,7 +1961,8 @@ function tick() {
   }
 }
 
-function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
+function setDimensions(width,height,X,Y)
+{
   let Aspect=width/height;
   let zoominv=1/lastzoom;
   let xshift=X/width*lastzoom
@@ -1962,17 +2000,18 @@ function setDimensions(width=canvasWidth,height=canvasHeight,X=0,Y=0) {
   }
 }
 
-function setProjection() {
+function setProjection()
+{
   setDimensions(canvasWidth,canvasHeight,shift.x,shift.y);
-  updateViewMatrix();
   let f=orthographic ? mat4.ortho : mat4.frustum;
   f(projMat,viewParam.xmin,viewParam.xmax,
     viewParam.ymin,viewParam.ymax,
     -viewParam.zmax,-viewParam.zmin);
-  mat4.multiply(projViewMat,projMat,viewMat);
+  updateViewMatrix();
 }
 
-function initProjection() {
+function initProjection()
+{
   H=-Math.tan(0.5*angle)*B[2];
 
   center.x=center.y=0;
@@ -1985,31 +2024,73 @@ function initProjection() {
   shift.x=shift.y=0;
 }
 
+function setViewport()
+{
+  gl.viewportWidth=canvasWidth;
+  gl.viewportHeight=canvasHeight;
+  gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
+  home();
+}
+
+function setCanvas()
+{
+  canvas.width=canvasWidth;
+  canvas.height=canvasHeight;
+  size2=Math.hypot(canvasWidth,canvasHeight);
+  halfCanvasWidth=0.5*canvasWidth;
+  halfCanvasHeight=0.5*canvasHeight;
+}
+
+function setsize(w,h)
+{
+  if(w > maxViewportWidth)
+    w=maxViewportWidth;
+
+  if(h > maxViewportHeight)
+    h=maxViewportHeight;
+
+  canvasWidth=w;
+  canvasHeight=h;
+  setCanvas();
+  setViewport();
+}
+
+function expand() 
+{
+  setsize(canvasWidth*resizeStep+0.5,canvasHeight*resizeStep+0.5);
+}
+
+function shrink() 
+{
+  setsize(Math.max((canvasWidth/resizeStep+0.5),1),
+          Math.max((canvasHeight/resizeStep+0.5),1));
+}
+
 let pixelShader,noNormalShader,materialShader,colorShader,transparentShader;
 
 function webGLStart()
 {
-  let canvas=document.getElementById("Asymptote");
+  canvas=document.getElementById("Asymptote");
 
-  canvasWidth *= window.devicePixelRatio;
-  canvasHeight *= window.devicePixelRatio;
+ if(devicepixels) {
+   canvasWidth *= window.devicePixelRatio;
+   canvasHeight *= window.devicePixelRatio;
+  }
 
-  size2=Math.hypot(canvasWidth,canvasHeight);
+  if(canvas.width > 0) 
+    canvasWidth=canvas.width;
 
-  canvas.width=canvasWidth;
-  canvas.height=canvasHeight;
+  if(canvas.height > 0) 
+    canvasHeight=canvas.height;
 
-  halfCanvasWidth=0.5*canvasWidth;
-  halfCanvasHeight=0.5*canvasHeight;
+  setCanvas();
 
-  initGL(canvas);
-
-  home();
+  initGL();
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
-  gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
+  setViewport();
 
   noNormalShader=initShader();
   pixelShader=initShader(["WIDTH"]);
