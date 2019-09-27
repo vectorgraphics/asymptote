@@ -1,6 +1,7 @@
+Only in gl-matrix-2.4.0-pruned: LICENSE.js
 diff -r -u gl-matrix-2.4.0/src/gl-matrix/mat3.js gl-matrix-2.4.0-pruned/src/gl-matrix/mat3.js
 --- gl-matrix-2.4.0/src/gl-matrix/mat3.js	2017-07-22 13:02:47.000000000 -0600
-+++ gl-matrix-2.4.0-pruned/src/gl-matrix/mat3.js	2019-09-27 15:25:27.909366599 -0600
++++ gl-matrix-2.4.0-pruned/src/gl-matrix/mat3.js	2019-09-27 15:41:24.534735384 -0600
 @@ -70,7 +70,7 @@
   * @param {mat3} a matrix to clone
   * @returns {mat3} a new 3x3 matrix
@@ -259,7 +260,7 @@ diff -r -u gl-matrix-2.4.0/src/gl-matrix/mat3.js gl-matrix-2.4.0-pruned/src/gl-m
 +const sub = subtract;
 diff -r -u gl-matrix-2.4.0/src/gl-matrix/mat4.js gl-matrix-2.4.0-pruned/src/gl-matrix/mat4.js
 --- gl-matrix-2.4.0/src/gl-matrix/mat4.js	2017-07-22 13:02:47.000000000 -0600
-+++ gl-matrix-2.4.0-pruned/src/gl-matrix/mat4.js	2019-09-27 15:25:27.910366602 -0600
++++ gl-matrix-2.4.0-pruned/src/gl-matrix/mat4.js	2019-09-27 15:41:24.534735384 -0600
 @@ -57,7 +57,7 @@
   * @param {mat4} a matrix to clone
   * @returns {mat4} a new 4x4 matrix
@@ -581,7 +582,7 @@ diff -r -u gl-matrix-2.4.0/src/gl-matrix/mat4.js gl-matrix-2.4.0-pruned/src/gl-m
 +const sub = subtract;
 diff -r -u gl-matrix-2.4.0/src/gl-matrix.js gl-matrix-2.4.0-pruned/src/gl-matrix.js
 --- gl-matrix-2.4.0/src/gl-matrix.js	2017-07-22 13:02:47.000000000 -0600
-+++ gl-matrix-2.4.0-pruned/src/gl-matrix.js	2019-09-27 15:25:43.977423187 -0600
++++ gl-matrix-2.4.0-pruned/src/gl-matrix.js	2019-09-27 17:04:06.477164503 -0600
 @@ -26,19 +26,9 @@
  THE SOFTWARE. */
  // END HEADER

@@ -1,4 +1,4 @@
-/*!
+/*@license
  gl.js: Render Bezier patches via subdivision with WebGL.
   Copyright 2019: John C. Bowman and Supakorn "Jamie" Rassameemasmuang
   University of Alberta
