@@ -1,7 +1,7 @@
 import three;
 
-size(105,50,IgnoreAspect);
-//size(560,320,IgnoreAspect); // Fullsize
+//size(105,50,IgnoreAspect);
+size(560,320,IgnoreAspect); // Fullsize
 size3(140,80,15);
 currentprojection=perspective(-2,20,10,up=Y);
 currentlight=White;

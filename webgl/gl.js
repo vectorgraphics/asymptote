@@ -56,8 +56,8 @@ let Materials=[]; // Array of materials
 let Lights=[]; // Array of lights
 let Centers=[]; // Array of billboard centers
 
-// Don't use device pixels when embedding in another html document
-let devicepixels=false;
+// Don't account for device pixels when embedding in another html document
+let absolute=false;
 
 let rotMat=mat4.create();
 let projMat=mat4.create(); // projection matrix
