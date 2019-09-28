@@ -95,6 +95,7 @@ datadir = $(DESTDIR)@datadir@
 asydir = $(datadir)/asymptote
 GUIdir = $(asydir)/GUI
 shaderdir = $(asydir)/shaders
+webgldir = $(asydir)/webgl
 docdir = $(DESTDIR)@docdir@
 exampledir = $(docdir)/examples
 animationsdir = $(exampledir)/animations
@@ -245,7 +246,8 @@ install-texhash: install-asy
 install-asy: asy sty
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	${INSTALL} -d $(GUIdir) $(GUIdir)/pyUIClass $(GUIdir)/configs \
-			$(GUIdir)/res $(GUIdir)/res/icons $(shaderdir)
+			$(GUIdir)/res $(GUIdir)/res/icons $(shaderdir) \
+			$(webgldir)
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
@@ -253,6 +255,7 @@ install-asy: asy sty
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	${INSTALL} -p -m 755 base/shaders/*.glsl $(shaderdir)
+	${INSTALL} -p -m 644 base/webgl/*.html base/webgl/*.js $(webgldir)
 	-${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
 	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
 	${INSTALL} -p -m 644 GUI/res/icons.qrc $(GUIdir)/res
@@ -285,9 +288,19 @@ uninstall-asy:
 	-cd $(exampledir) && rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
 	-cd $(GUIdir) && rm -f *.py
+	-cd $(GUIdir)/pyUIClass && rm -f *.py
+	-rmdir $(GUIdir)/pyUIClass
+	-cd $(GUIdir)/configs && rm -f *.cson
+	-rmdir $(GUIdir)/configs
+	-cd $(GUIdir)/res/icons && rm -f *.svg
+	-rmdir $(GUIdir)/res/icons
+	-cd $(GUIdir)/res && rm -f icons.qrc
+	-rmdir $(GUIdir)/res
 	-rmdir $(GUIdir)
 	-cd $(shaderdir) && rm -f *.glsl
 	-rmdir $(shaderdir)
+	-cd $(webgldir) && rm -f *.html *.js
+	-rmdir $(webgldir)
 	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
