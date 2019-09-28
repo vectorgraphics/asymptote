@@ -1320,8 +1320,8 @@ void initSettings() {
   addOption(new stringSetting("dvisvgmOptions", 0, "string", ""));
   addOption(new stringSetting("convertOptions", 0, "string", ""));
   addOption(new stringSetting("gsOptions", 0, "string", ""));
-  addOption(new stringSetting("psviewerOptions", 0, "string", ""));
   addOption(new stringSetting("htmlviewerOptions", 0, "string", ""));
+  addOption(new stringSetting("psviewerOptions", 0, "string", ""));
   addOption(new stringSetting("pdfviewerOptions", 0, "string", ""));
   addOption(new stringSetting("pdfreloadOptions", 0, "string", ""));
   addOption(new stringSetting("glOptions", 0, "string", ""));
