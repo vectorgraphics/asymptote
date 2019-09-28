@@ -151,10 +151,12 @@ double Xmin,Xmax;
 double Ymin,Ymax;
 
 pair Shift;
+pair Margin;
 double X,Y;
 int x0,y0;
 double cx,cy;
 double Xfactor,Yfactor;
+double ArcballFactor;
 
 static const double pi=acos(-1.0);
 static const double degrees=180.0/pi;
@@ -961,8 +963,9 @@ void rotate(int x, int y)
   if(x != x0 || y != y0) {
     arcball A(glx(x0),gly(y0),glx(x),gly(y));
     triple v=A.axis;
-    drotateMat=glm::rotate<double>(2*A.angle/lastzoom,
-                                   glm::dvec3(v.getx(),v.gety(),v.getz()))*drotateMat;
+    drotateMat=glm::rotate<double>(2*A.angle/lastzoom*ArcballFactor,
+                                   glm::dvec3(v.getx(),v.gety(),v.getz()))*
+      drotateMat;
     x0=x; y0=y;
     update();
   }
@@ -1481,7 +1484,8 @@ void deleteshader()
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
-              const triple& m, const triple& M, const pair& shift, double *t,
+              const triple& m, const triple& M, const pair& shift,
+              const pair& margin, double *t,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
@@ -1506,6 +1510,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Zoom0=zoom;
   Oldpid=oldpid;
   Shift=shift;
+  Margin=margin;
   
   Xmin=m.getx();
   Xmax=M.getx();
@@ -1604,6 +1609,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     
     if(webgl) return;
     
+    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
+
 #ifdef HAVE_GL    
     for(int i=0; i < 16; ++i)
       T[i]=t[i];

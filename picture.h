@@ -90,7 +90,8 @@ public:
               double perspective, bool remesh) const;
   bool shipout3(const string& prefix, const string& format,
                 double width, double height, double angle, double zoom,
-                const triple& m, const triple& M, const pair& shift, double *t,
+                const triple& m, const triple& M, const pair& shift,
+                const pair& margin, double *t,
                 double *background, size_t nlights, triple *lights,
                 double *diffuse, double *specular, bool view);
   

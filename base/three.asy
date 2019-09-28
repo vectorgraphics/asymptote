@@ -2893,7 +2893,7 @@ object embed(string prefix=outprefix(), string label=prefix,
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
-             P.zoom,m,M,P.viewportshift,
+             P.zoom,m,M,P.viewportshift,S.viewportmargin,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
              Light.diffuse,Light.specular,
              view && !preview);

@@ -55,7 +55,19 @@ void jsfile::open(string name) {
       << newl
       << "angle=" << gl::Angle << ";"
       << newl
-       << "Zoom0=" << gl::Zoom0 << ";" << newl << newl
+      << "Zoom0=" << gl::Zoom0 << ";" << newl
+       << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
+      << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
+      << newl
+      << "zoomPinchCap=" << getSetting<double>("zoomPinchCap") << ";" << newl
+      << "zoomStep=" << getSetting<double>("zoomstep") << ";" << newl
+      << "shiftHoldDistance=" << getSetting<double>("shiftHoldDistance") << ";"
+      << newl
+      << "shiftWaitTime=" << getSetting<double>("shiftWaitTime") << ";"
+      << newl
+      << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
+      << newl
+     << "viewportmargin=" << gl::Margin << ";" << newl << newl
       << "Lights=[";
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;

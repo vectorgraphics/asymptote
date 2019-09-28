@@ -32,17 +32,18 @@ let Zoom0;
 
 let maxViewportWidth=window.innerWidth;
 let maxViewportHeight=window.innerHeight;
+let viewportmargin=0;
 
 const windowTrim=10;
-const zoomStep=0.1;
-const resizeStep=1.2;
-const zoomFactor=1.05;
-const zoomPinchFactor=10;
-const zoomPinchCap=100;
+let resizeStep=1.2;
+let zoomFactor;
+let zoomPinchFactor;
+let zoomPinchCap;
+let zoomStep;
 
-const shiftHoldDistance=20;
-const shiftWaitTime=200; // ms
-const vibrateTime=25; // ms
+let shiftHoldDistance;
+let shiftWaitTime;
+let vibrateTime;
 
 let lastzoom;
 let H; // maximum camera view half-height
@@ -73,6 +74,7 @@ let translMat=mat4.create();
 let zmin,zmax;
 let center={x:0,y:0,z:0};
 let size2;
+let ArcballFactor;
 let b,B; // Scene min,max bounding box corners
 let shift={
   x:0,y:0
@@ -1606,7 +1608,8 @@ function handleTouchStart(evt)
   }
 }
 
-function handleMouseUpOrTouchEnd(event) {
+function handleMouseUpOrTouchEnd(event)
+{
   mouseDownOrTouchActive=false;
 }
 
@@ -1615,7 +1618,7 @@ function rotateScene(lastX,lastY,rawX,rawY,factor)
   if(lastX == rawX && lastY == rawY) return;
   let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
 
-  mat4.fromRotation(rotMats,2*factor*angle/lastzoom,axis);
+  mat4.fromRotation(rotMats,2*factor*ArcballFactor*angle/lastzoom,axis);
   mat4.multiply(rotMat,rotMats,rotMat);
 }
 
@@ -2087,14 +2090,23 @@ function webGLStart()
     if(canvas.height == 0) 
       canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
 
+    let Aspect=canvasWidth/canvasHeight;
+    if(canvas.width > canvas.height*Aspect) 
+      canvas.width=Math.min(canvas.height*Aspect,canvas.width);
+    else 
+      canvas.height=Math.min(canvas.width/Aspect,canvas.height);
+
     if(canvas.width > 0) 
       canvasWidth=canvas.width;
 
     if(canvas.height > 0) 
       canvasHeight=canvas.height;
+
+
   }
 
   setCanvas();
+  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
 
   initGL();
 

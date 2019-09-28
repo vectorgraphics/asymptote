@@ -103,6 +103,8 @@ extern double zmin,zmax;
 extern int fullWidth,fullHeight;
 extern double Zoom0;
 extern double Angle;
+extern double Zoom0;
+extern camp::pair Margin;
 
 extern camp::triple *Lights; 
 extern size_t nlights;
@@ -140,9 +142,9 @@ projection camera(bool user=true);
 void glrender(const string& prefix, const camp::picture* pic,
               const string& format, double width, double height, double angle,
               double zoom, const camp::triple& m, const camp::triple& M,
-              const camp::pair& shift, double *t, double *background,
-              size_t nlights, camp::triple *lights, double *diffuse,
-              double *specular, bool view, int oldpid=0);
+              const camp::pair& shift, const camp::pair& margin, double *t,
+              double *background, size_t nlights, camp::triple *lights,
+              double *diffuse, double *specular, bool view, int oldpid=0);
 
 extern const double *dprojView;
 

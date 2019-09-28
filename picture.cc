@@ -735,6 +735,8 @@ bool picture::postprocess(const string& prename, const string& outname,
                           bool wait, bool view, bool pdftex, 
                           bool epsformat, bool svg)
 {
+  if(outputformat == "html")
+    reportError("Use svg instead of html output format for 2D pictures.");
   static mem::map<CONST string,int> pids;
   int status=0;
   bool pdfformat=(settings::pdf(getSetting<string>("tex")) 
@@ -1189,6 +1191,7 @@ struct Communicate : public gc {
   triple m;
   triple M;
   pair shift;
+  pair margin;
   double *t;
   double *background;
   size_t nlights;
@@ -1208,16 +1211,17 @@ void glrenderWrapper()
   endwait(initSignal,initLock);
 #endif  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-           com.zoom,com.m,com.M,com.shift,com.t,com.background,com.nlights,
-           com.lights,com.diffuse,com.specular,com.view);
+           com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
+           com.nlights,com.lights,com.diffuse,com.specular,com.view);
 #endif  
 }
 
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
                        const triple& m, const triple& M, const pair& shift,
-                       double *t, double *background, size_t nlights,
-                       triple *lights, double *diffuse, double *specular, bool view)
+                       const pair& margin, double *t, double *background,
+                       size_t nlights, triple *lights, double *diffuse,
+                       double *specular, bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
@@ -1296,6 +1300,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.m=m;
         com.M=M;
         com.shift=shift;
+        com.margin=margin;
         com.t=t;
         com.background=background;
         com.nlights=nlights;
@@ -1336,7 +1341,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
   
 #if HAVE_LIBGLM  
-  glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
+  glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
            background,nlights,lights,diffuse,specular,View,oldpid);
   
   if(webgl) {
@@ -1355,7 +1360,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       push_command(cmd,getSetting<string>("htmlviewer"));
       cmd.push_back(name);
       push_split(cmd,getSetting<string>("htmlviewerOptions"));
-      System(cmd,2,false,"html viewer");
+      System(cmd,2,false);
     }
     return true;
   }

@@ -1288,8 +1288,21 @@ void initSettings() {
   addOption(new IntSetting("maxvertices", 0, "n", "Maximum number of vertices to queue", 0));
   addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
                             1.05));
+  addOption(new realSetting("zoomPinchFactor", 0, "n",
+                            "WebGL zoom pinch sensitivity", 10));
+  addOption(new realSetting("zoomPinchCap", 0, "limit",
+                            "WebGL maximum zoom pinch", 100));
   addOption(new realSetting("zoomstep", 0, "step", "Mouse motion zoom step",
                             0.1));
+  addOption(new realSetting("shiftHoldDistance", 0, "n",
+                            "WebGL touch screen distance limit for shift mode",
+                            20));
+  addOption(new realSetting("shiftWaitTime", 0, "ms",
+                            "WebGL touch screen shift mode delay",
+                            200));
+  addOption(new realSetting("vibrateTime", 0, "ms",
+                            "WebGL shift mode vibrate duration",
+                            25));
   addOption(new realSetting("spinstep", 0, "deg/s", "Spin speed",
                             60.0));
   addOption(new realSetting("framerate", 0, "frames/s", "Animation speed",
