@@ -399,15 +399,11 @@ subdirectory of the installation directory (by default,
 @section Configuring
 @cindex configuring
 @cindex @code{-V}
-@cindex @code{psviewer}
-@cindex @code{pdfviewer}
-@cindex @code{gs}
 In interactive mode, or when given the @code{-V} option (the default
 when running @code{Asymptote} on a single file under @code{MSDOS}),
 @code{Asymptote} will automatically invoke the @code{PostScript}
 viewer @code{gv} (under @code{UNIX}) or @code{gsview} (under
-@code{MSDOS} to display graphical output. These defaults may be
-overridden with the configuration variable @code{psviewer}. 
+@code{MSDOS} to display graphical output.
 The @code{PostScript} viewer should be capable of automatically
 redrawing whenever the output file is updated. The default @code{UNIX}
 @code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
@@ -421,48 +417,58 @@ Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
 @code{gsview} window; under @code{UNIX} one must manually redisplay by
 pressing the @code{r} key).
 
+@cindex @code{psviewer}
+@cindex @code{pdfviewer}
 @cindex @code{htmlviewer}
-The configuration variable @code{htmlviewer} specifies the 
-browser to use to display 3D @code{WebGL} output.
-The default setting is @code{google-chrome}. Note that
-@code{Internet Explorer} does not support @code{WebGL};
-@code{Microsoft} users should instead use @code{google-chrome} or @code{Edge}.
- 
+@cindex @code{gs}
+@cindex @code{display}
+@cindex @code{animate}
 @cindex @code{settings}
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
 variables in an optional configuration file @code{config.asy}
 @pxref{configuration file}).
-Here are the default values of several important configuration
-variables under @code{UNIX}:
+For example, the setting @code{pdfviewer} specifies the location of
+the @acronym{PDF} viewer. Here are the default values of several
+important configuration variables under @code{UNIX}:
 
 @noindent
 @verbatim
 import settings;
+pdfviewer="acroread";
 htmlviewer="google-chrome";
 psviewer="gv";
-pdfviewer="acroread";
+display="display";
+animate="animate";
 gs="gs";
+libgs="";
 @end verbatim
 
 @noindent
 @cindex @code{cmd}
-Under @code{MSDOS}, the (installation-dependent) default values of
-these configuration variables are determined automatically from the
-@code{Microsoft Windows} registry. Viewer settings (such as
-@code{htmlviewer}, @code{psviewer}, and @code{pdfviewer}) can be set
-to the string @code{cmd} to request the application normally
-associated with the corresponding file type.
-
-The @code{gs} setting specifies the location of the
+Under @code{MSDOS}, the viewer settings
+@code{htmlviewer}, @code{pdfviewer}, @code{psviewer},
+@code{display}, and @code{animate} default to the string @code{cmd},
+requesting the application normally associated with each file type.
+The (installation-dependent) default values of @code{gs}
+and @code{libgs} are determined automatically from the @code{Microsoft
+Windows} registry. The @code{gs} setting specifies the location of the
 @code{PostScript} processor @code{Ghostscript}, available from
 @url{https://www.ghostscript.com/}.
 
-The setting @code{pdfviewer} specifies the location of the @acronym{PDF}
-viewer. On @code{UNIX} systems, to support automatic document
-reloading in @code{Adobe Reader}, we recommend copying the file
-@code{reload.js} from the @code{Asymptote} system directory (by default,
-@code{@value{Datadir}/asymptote} under @code{UNIX} to
+@noindent
+@cindex @code{htmlviewer}
+The configuration variable @code{htmlviewer} specifies the 
+browser to use to display 3D @code{WebGL} output.
+The default setting is @code{google-chrome} under @code{UNIX} and
+@code{cmd} under @code{Microsoft Windows}. Note that @code{Internet Explorer}
+does not support @code{WebGL}; @code{Microsoft Windows} users should set their
+default html browser to @code{chrome} or @code{microsoft-edge}.
+ 
+On @code{UNIX} systems, to support automatic document
+reloading of @code{PDF} files in @code{Adobe Reader}, we recommend
+copying the file @code{reload.js} from the @code{Asymptote} system
+directory (by default, @code{@value{Datadir}/asymptote} under @code{UNIX} to
 @code{~/.adobe/Acrobat/x.x/JavaScripts/},
 where @code{x.x} represents the appropriate @code{Adobe Reader}
 version number. The automatic document reload feature must then be
@@ -496,23 +502,17 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 @cindex @code{texcommand}
 @cindex @code{dvips}
 @cindex @code{dvisvgm}
-@cindex @code{libgs}
 @cindex @code{convert}
-@cindex @code{display}
-@cindex @code{animate}
 @cindex @code{ImageMagick}
 @cindex @code{asygl}
-The following configuration variables normally do not require adjustment:
+These additional configuration variables normally do not require adjustment:
 @verbatim
 config
 texpath
 texcommand
 dvips
 dvisvgm
-libgs
 convert
-display
-animate
 @end verbatim
 @noindent
 

@@ -119,6 +119,7 @@ const char pathSeparator=';';
 string defaultPSViewer="cmd";
 //string defaultPDFViewer="AcroRd32.exe";
 string defaultPDFViewer="cmd";
+string defaultHTMLViewer="cmd";
 string defaultGhostscript;
 string defaultGhostscriptLibrary;
 //string defaultDisplay="imdisplay";
@@ -1271,7 +1272,7 @@ void initSettings() {
                             "Enable automatic PDF page rotation",
                             false));
   addOption(new boolSetting("offline", 0,
-                            "Produce (larger) offline html files",false));
+                            "Produce offline html files",false));
   addOption(new boolSetting("pdfreload", 0,
                             "Automatically reload document in pdfviewer",
                             false));

@@ -17,6 +17,10 @@
 #include "path.h"
 #include "arrayop.h"
 
+// For CYGWIN
+#undef near
+#undef far
+
 namespace camp {
   
 void checkEmpty3(Int n);

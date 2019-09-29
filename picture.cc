@@ -1358,7 +1358,11 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(View) {
       mem::vector<string> cmd;
       push_command(cmd,getSetting<string>("htmlviewer"));
-      cmd.push_back(name);
+#ifdef __MSDOS__
+      cmd.push_back("file://%CD%/"+name);
+#else        
+        cmd.push_back(name);
+#endif
       push_split(cmd,getSetting<string>("htmlviewerOptions"));
       System(cmd,2,false);
     }

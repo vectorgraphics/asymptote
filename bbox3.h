@@ -10,6 +10,10 @@
 
 #include "triple.h"
 
+// For CYGWIN
+#undef near
+#undef far
+
 namespace camp {
 
 // The box that encloses a path
