@@ -1402,15 +1402,20 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
             light light=currentlight, interaction interaction=Embedded,
             bool prc=true)
 {
-  if(s.colors.length > 0)
+  bool straight=s.straight && s.planar;
+  bool prc=prc();
+  if(s.colors.length > 0) {
+    if(prc && light.on())
+        straight=false; // PRC vertex colors (for quads only) ignore lighting
     m=mean(s.colors);
+  }
   m=material(m,light);
-  real PRCshininess;
-  if(prc())
-    PRCshininess=PRCshininess(m.shininess);
   
+  real PRCshininess;
+  if(prc) PRCshininess=PRCshininess(m.shininess);
+
   (s.triangular ? drawbeziertriangle : draw)
-    (f,s.P,center,s.straight && s.planar,m.p,m.opacity,m.shininess,
+    (f,s.P,center,straight,m.p,m.opacity,m.shininess,
     m.metallic,m.fresnel0,PRCshininess,s.colors,interaction.type,prc);
 }
 
