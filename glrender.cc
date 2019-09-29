@@ -24,9 +24,9 @@
 #include "bbox3.h"
 #include "drawimage.h"
 #include "interact.h"
-#include "tr.h"
 
 #ifdef HAVE_GL
+#include "tr.h"
 
 #ifdef HAVE_LIBGLUT
 #ifdef __MSDOS__

@@ -55,7 +55,10 @@
 #endif
 
 #else
+typedef unsigned int GLuint;
+typedef int GLint;
 typedef float GLfloat;
+typedef double GLdouble;
 #endif
 
 #ifdef HAVE_LIBGLM
