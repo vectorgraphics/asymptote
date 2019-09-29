@@ -1947,35 +1947,37 @@ void label(picture pic=currentpicture, Label L, triple position,
         if(name == "") name=L.s;
         if(prc && interaction.type == Billboard.type) {
           surface s=surface(texpath(L,bbox=P.bboxonly));
-          transform3 centering=L.align.is3D ?
-            alignshift(s,L.T3,v,L.align.dir3) : identity4;
-          transform3 positioning=
-            shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
-          frame f1,f2,f3;
-          begingroup3(f1,name,render);
-          if(L.defaulttransform3)
-            begingroup3(f3,render,v,interaction.type);
-          else {
-            begingroup3(f2,render,v,interaction.type);
-            begingroup3(f3,render,v);
+          if(s.s.length > 0) {
+            transform3 centering=L.align.is3D ?
+              alignshift(s,L.T3,v,L.align.dir3) : identity4;
+            transform3 positioning=
+              shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
+            frame f1,f2,f3;
+            begingroup3(f1,name,render);
+            if(L.defaulttransform3)
+              begingroup3(f3,render,v,interaction.type);
+            else {
+              begingroup3(f2,render,v,interaction.type);
+              begingroup3(f3,render,v);
+            }
+            for(patch S : s.s) {
+              S=centering*S;
+              draw3D(f3,S,v,L.p,light,interaction);
+              // Fill subdivision cracks
+              if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
+                _draw(f3,S.external(),v,L.p,interaction.type);
+            }
+            endgroup3(f3);
+            if(L.defaulttransform3)
+              add(f1,T*f3);
+            else {
+              add(f2,inverse(T)*L.T3*f3);
+              endgroup3(f2);
+              add(f1,T*f2);
+            }
+            endgroup3(f1);
+            add(f,positioning*f1);
           }
-          for(patch S : s.s) {
-            S=centering*S;
-            draw3D(f3,S,v,L.p,light,interaction);
-            // Fill subdivision cracks
-            if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-              _draw(f3,S.external(),v,L.p,interaction.type);
-          }
-          endgroup3(f3);
-          if(L.defaulttransform3)
-            add(f1,T*f3);
-          else {
-            add(f2,inverse(T)*L.T3*f3);
-            endgroup3(f2);
-            add(f1,T*f2);
-          }
-          endgroup3(f1);
-          add(f,positioning*f1);
         } else {
           begingroup3(f,name,render);
           for(patch S : surface(L,v,bbox=P.bboxonly).s) {

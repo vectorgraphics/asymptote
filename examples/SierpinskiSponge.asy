@@ -82,18 +82,15 @@ for(int n3=0; n3 < 20; ++n3) {
   for(int n2=0; n2 < 20; ++n2) {
     surface s1;
     for(int n1=0; n1 < 20; ++n1) {
-      for(int k=0; k < 6; ++k){
-        transform3 T=scale3(u)*shift(M[n1])*scale3(0.5);
+      for(int k=0; k < 6; ++k) {
         if(Sponge3[n3][n2][n1][k] > 0) {
-          s1.append(T*Squares[k]);
+          s1.append(scale3(u)*shift(M[n1])*scale3(0.5)*Squares[k]);
         }
       }
     }
-    transform3 T=scale3(u)*shift(M[n2])*scale3(0.5);
-    s2.append(T*s1);
+    s2.append(scale3(u)*shift(M[n2])*scale3(0.5)*s1);
   }
-  transform3 T=scale3(u)*shift(M[n3])*scale3(0.5);
-  s3.append(T*s2);
+  s3.append(scale3(u)*shift(M[n3])*scale3(0.5)*s2);
 }
 s3.colors(palette(s3.map(abs),Rainbow()));
 draw(s3);
