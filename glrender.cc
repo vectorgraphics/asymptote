@@ -186,7 +186,7 @@ using glm::value_ptr;
 using glm::translate;
 
 mat3 normMat;
-dmat3 dnormMat=dmat3();
+dmat3 dnormMat;
 
 mat4 projViewMat;
 mat4 viewMat;
@@ -323,6 +323,8 @@ void home(bool webgl=false)
 #endif
 #endif
   dviewMat=dmat4(1.0);
+  viewMat=mat4(dviewMat);
+  
   drotateMat=dmat4(1.0); 
   
   updateModelViewData();
