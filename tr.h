@@ -77,7 +77,12 @@
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/gl.h>
 #else
+
+#ifdef __MSDOS__
+#include </usr/include/w32api/GL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 #endif
 
 
