@@ -43,7 +43,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr arcball algebra3 quaternion shaders
+	$(PRC) glrender tr shaders jsfile
 
 FILES = $(COREFILES) main
 
@@ -69,6 +69,7 @@ ASY = ./asy -dir base -config "" -render=0
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS)
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -79,9 +80,9 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 CXX = @CXX@ -Wall
 CC = @CC@ -Wall
 MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
-BISON = bison
-PYRCC = pyrcc5
-PYUIC = pyuic5
+BISON ?= bison
+PYRCC ?= pyrcc5
+PYUIC ?= pyuic5
 LEX = @LEX@
 
 prefix = @prefix@
@@ -94,6 +95,7 @@ datadir = $(DESTDIR)@datadir@
 asydir = $(datadir)/asymptote
 GUIdir = $(asydir)/GUI
 shaderdir = $(asydir)/shaders
+webgldir = $(asydir)/webgl
 docdir = $(DESTDIR)@docdir@
 exampledir = $(docdir)/examples
 animationsdir = $(exampledir)/animations
@@ -112,7 +114,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version
+asy:	version glew.o
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -244,7 +246,8 @@ install-texhash: install-asy
 install-asy: asy sty
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	${INSTALL} -d $(GUIdir) $(GUIdir)/pyUIClass $(GUIdir)/configs \
-			$(GUIdir)/res $(GUIdir)/res/icons $(shaderdir)
+			$(GUIdir)/res $(GUIdir)/res/icons $(shaderdir) \
+			$(webgldir)
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
@@ -252,7 +255,8 @@ install-asy: asy sty
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	${INSTALL} -p -m 755 base/shaders/*.glsl $(shaderdir)
-	${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
+	${INSTALL} -p -m 644 base/webgl/*.html base/webgl/*.js $(webgldir)
+	-${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
 	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
 	${INSTALL} -p -m 644 GUI/res/icons.qrc $(GUIdir)/res
 	${INSTALL} -p -m 644 GUI/res/icons/*.svg $(GUIdir)/res/icons
@@ -284,9 +288,19 @@ uninstall-asy:
 	-cd $(exampledir) && rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
 	-cd $(GUIdir) && rm -f *.py
+	-cd $(GUIdir)/pyUIClass && rm -f *.py
+	-rmdir $(GUIdir)/pyUIClass
+	-cd $(GUIdir)/configs && rm -f *.cson
+	-rmdir $(GUIdir)/configs
+	-cd $(GUIdir)/res/icons && rm -f *.svg
+	-rmdir $(GUIdir)/res/icons
+	-cd $(GUIdir)/res && rm -f icons.qrc
+	-rmdir $(GUIdir)/res
 	-rmdir $(GUIdir)
 	-cd $(shaderdir) && rm -f *.glsl
 	-rmdir $(shaderdir)
+	-cd $(webgldir) && rm -f *.html *.js
+	-rmdir $(webgldir)
 	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
@@ -335,6 +349,9 @@ check: test
 check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
+
+glew.o: glew.c GL/glew.h
+	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc

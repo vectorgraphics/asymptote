@@ -15,9 +15,6 @@ namespace camp {
 
 class drawPath3 : public drawElement {
 protected:
-#ifdef HAVE_GL
-  static BezierCurve R;
-#endif  
   const path3 g;
   triple center;
   bool straight;
@@ -25,17 +22,31 @@ protected:
   bool invisible;
   Interaction interaction;
   triple Min,Max;
+  bool billboard;
+  size_t centerIndex;  
 public:
+#ifdef HAVE_GL
+  BezierCurve R;
+#endif  
+  void init() {
+    billboard=interaction == BILLBOARD &&
+      !settings::getSetting<bool>("offscreen");
+    centerIndex=0;
+  }
+  
   drawPath3(path3 g, triple center, const pen& p, Interaction interaction,
             const string& key="") :
     drawElement(key), g(g), center(center), straight(g.piecewisestraight()),
     color(rgba(p)), invisible(p.invisible()), interaction(interaction),
-    Min(g.min()), Max(g.max()) {}
+    Min(g.min()), Max(g.max()) {
+    init();
+  }
     
   drawPath3(const double* t, const drawPath3 *s) :
     drawElement(s->KEY), g(camp::transformed(t,s->g)), straight(s->straight),
     color(s->color), invisible(s->invisible), interaction(s->interaction),
     Min(g.min()), Max(g.max()) {
+    init();
     center=t*s->center;
   }
   
@@ -68,10 +79,16 @@ public:
     } else b=pair(m(b.getx(),z.getx()),m(b.gety(),z.gety()));
   }
   
+  void meshinit() {
+    if(billboard)
+      centerIndex=centerindex(center);
+  }
+  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out);
   
   void render(double, const triple&, const triple&, double,
-              bool transparent);
+              bool remesh);
 
   drawElement *transformed(const double* t);
 };
@@ -87,7 +104,7 @@ protected:
   bool invisible;
   triple Min,Max;
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   GLfloat *Controls;
   GLfloat *Knots;
 #endif  
@@ -126,7 +143,7 @@ public:
     
     run::copyArrayC(knots,knot,0,NoGC);
     
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
     Controls=NULL;
 #endif  
   }
@@ -138,7 +155,7 @@ public:
     for(unsigned int i=0; i < n; ++i)
       controls[i]=t*s->controls[i];
     
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
     Controls=NULL;
 #endif    
   }
@@ -156,16 +173,13 @@ public:
              bool &first);
     
   void render(double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool remesh);
     
   drawElement *transformed(const double* t);
 };
 
 // Draw a pixel.
 class drawPixel : public drawElement {
-#ifdef HAVE_GL
-  Pixel R;
-#endif  
   triple v;
   pen p;
   prc::RGBAColour color;
@@ -173,6 +187,9 @@ class drawPixel : public drawElement {
   bool invisible;
   triple Min,Max;
 public:
+#ifdef HAVE_GL
+  Pixel R;
+#endif  
   drawPixel(const triple& v, const pen& p, double width, const string& key="")
     : drawElement(key), v(v), p(p), color(rgba(p)), width(width),
       invisible(p.invisible()) {}
@@ -194,9 +211,10 @@ public:
   }
   
   void render(double size2, const triple& b, const triple& B,
-              double perspective, bool transparent);
+              double perspective, bool remesh);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out);
   
   drawElement *transformed(const double* t);
 };

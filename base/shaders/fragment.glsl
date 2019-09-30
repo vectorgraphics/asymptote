@@ -1,85 +1,227 @@
 struct Material
 {
-  vec4 diffuse,ambient,emissive,specular;
-  float shininess; 
+  vec4 diffuse,emissive,specular;
+  vec4 parameters;
 };
 
 struct Light
 {
-  vec4 direction;
-  vec4 diffuse,ambient,specular;  
+  vec3 direction;
+  vec3 color;
 };
 
 uniform int nlights;
-
 uniform Light lights[Nlights];
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
 
+#ifdef NORMAL
+#ifndef ORTHOGRAPHIC
+in vec3 ViewPosition;
+#endif
 in vec3 Normal;
+vec3 normal;
+#endif
 
-#ifdef EXPLICIT_COLOR
+#ifdef COLOR
 in vec4 Color; 
 #endif
-flat in int materialIndex;
 
+flat in int materialIndex;
 out vec4 outColor;
+
+// PBR material parameters
+vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
+vec3 Specular; // Specular tint for nonmetals
+float Metallic; // Metallic/Nonmetals parameter
+float Fresnel0; // Fresnel at zero for nonmetals
+float Roughness2; // roughness squared, for smoothing
+
+#ifdef ENABLE_TEXTURE
+uniform sampler2D environmentMap;
+const float PI=acos(-1.0);
+const float twopi=2*PI;
+const float halfpi=PI/2;
+
+const int numSamples=7;
+
+// (x,y,z) -> (r,theta,phi);
+// theta -> [0,\pi]: colatitude
+// phi -> [0, 2\pi]: longitude
+vec3 cart2sphere(vec3 cart)
+{
+  float x=cart.z;
+  float y=cart.x;
+  float z=cart.y;
+
+  float r=length(cart);
+  float phi=atan(y,x);
+  float theta=acos(z/r);
+
+  return vec3(r,phi,theta);
+}
+
+vec2 normalizedAngle(vec3 cartVec)
+{
+  vec3 sphericalVec=cart2sphere(cartVec);
+  sphericalVec.y=sphericalVec.y/(2*PI)-0.25;
+  sphericalVec.z=sphericalVec.z/PI;
+  return sphericalVec.yz;
+}
+#endif
+
+#ifdef NORMAL
+// h is the halfway vector between normal and light direction
+// GGX Trowbridge-Reitz Approximation
+float NDF_TRG(vec3 h)
+{
+  float ndoth=max(dot(normal,h),0.0);
+  float alpha2=Roughness2*Roughness2;
+  float denom=ndoth*ndoth*(alpha2-1.0)+1.0;
+  return denom != 0.0 ? alpha2/(denom*denom) : 0.0;
+}
+
+float GGX_Geom(vec3 v)
+{
+  float ndotv=max(dot(v,normal),0.0);
+  float ap=1.0+Roughness2;
+  float k=0.125*ap*ap;
+  return ndotv/((ndotv*(1.0-k))+k);
+}
+
+float Geom(vec3 v, vec3 l)
+{
+  return GGX_Geom(v)*GGX_Geom(l);
+}
+
+// Schlick's approximation
+float Fresnel(vec3 h, vec3 v, float fresnel0)
+{
+  float a=1.0-max(dot(h,v),0.0);
+  float b=a*a;
+  return fresnel0+(1.0-fresnel0)*b*b*a;
+}
+
+vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
+{
+  vec3 lambertian=Diffuse;
+  // Cook-Torrance model
+  vec3 h=normalize(lightDirection+viewDirection);
+
+  float omegain=max(dot(viewDirection,normal),0.0);
+  float omegaln=max(dot(lightDirection,normal),0.0);
+
+  float D=NDF_TRG(h);
+  float G=Geom(viewDirection,lightDirection);
+  float F=Fresnel(h,viewDirection,Fresnel0);
+
+  float denom=4.0*omegain*omegaln;
+  float rawReflectance=denom > 0.0 ? (D*G)/denom : 0.0;
+
+  vec3 dielectric=mix(lambertian,rawReflectance*Specular,F);
+  vec3 metal=rawReflectance*Diffuse;
+  
+  return mix(dielectric,metal,Metallic);
+}
+#endif
 
 void main()
 {
-  vec4 Diffuse;
-  vec4 Ambient;
-  vec4 Emissive;
-  vec4 Specular;
-  float Shininess;
+  vec4 diffuse;
+  vec4 emissive;
+  vec4 parameters;
 
-#ifdef EXPLICIT_COLOR
-  if(materialIndex < 0) {
-    int index=-materialIndex-1;
-    Material m=Materials[index];
-    Diffuse=Color;
-    Ambient=Color;
-    Emissive=vec4(0.0,0.0,0.0,1.0);
-    Specular=m.specular;
-    Shininess=m.shininess;
+  Material m;
+#ifdef TRANSPARENT
+  m=Materials[abs(materialIndex)-1];
+  if(materialIndex >= 0) {
+    diffuse=m.diffuse;
+    emissive=m.emissive;
   } else {
-    Material m=Materials[materialIndex];
-    Diffuse=m.diffuse;
-    Ambient=m.ambient;
-    Emissive=m.emissive;
-    Specular=m.specular;
-    Shininess=m.shininess;
+    diffuse=Color;
+    emissive=vec4(0.0);
   }
 #else
-  Material m=Materials[materialIndex];
-  Diffuse=m.diffuse;
-  Ambient=m.ambient;
-  Emissive=m.emissive;
-  Specular=m.specular;
-  Shininess=m.shininess;
+  m=Materials[int(materialIndex)];
+#ifdef COLOR
+  diffuse=Color;
+  emissive=vec4(0.0);
+#else  
+  diffuse=m.diffuse; 
+  emissive=m.emissive;
 #endif
-  // Phong-Blinn model
+#endif
+  Specular=m.specular.rgb;
+  parameters=m.parameters;
+  Roughness2=1.0-parameters[0];
+  Roughness2=Roughness2*Roughness2;
+  Metallic=parameters[1];
+  Fresnel0=parameters[2];
+  Diffuse=diffuse.rgb;
+
+  // Given a point x and direction \omega,
+  // L_i=\int_{\Omega}f(x,\omega_i,\omega) L(x,\omega_i)(\hat{n}\cdot \omega_i)
+  // d\omega_i, where \Omega is the hemisphere covering a point,
+  // f is the BRDF function, L is the radiance from a given angle and position.
+
+  vec3 color=emissive.rgb;
+#ifdef NORMAL  
+  normal=normalize(Normal);
+  normal=gl_FrontFacing ? normal : -normal;
+#ifdef ORTHOGRAPHIC
+  vec3 viewDir=vec3(0.0,0.0,1.0);
+#else
+  vec3 viewDir=-normalize(ViewPosition);
+#endif
+  // For a finite point light, the rendering equation simplifies.
   if(nlights > 0) {
-    vec3 diffuse=vec3(0,0,0);
-    vec3 specular=vec3(0,0,0);
-    vec3 ambient=vec3(0,0,0);
-    vec3 Z=vec3(0,0,1);
-        
     for(int i=0; i < nlights; ++i) {
-      vec3 L=normalize(lights[i].direction.xyz);
-      diffuse += lights[i].diffuse.rgb*abs(dot(Normal,L));
-      ambient += lights[i].ambient.rgb;
-      specular += pow(abs(dot(Normal,normalize(L+Z))),Shininess)*
-        lights[i].specular.rgb;
+      Light Li=lights[i];
+      vec3 L=Li.direction;
+      float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
+      vec3 radiance=cosTheta*Li.color;
+      color += BRDF(viewDir,L)*radiance;
     }
 
-    vec3 color=diffuse*Diffuse.rgb+
-      ambient*Ambient.rgb+
-      specular*Specular.rgb+
-      Emissive.rgb;
-    outColor=vec4(color,Diffuse[3]);
-  } else
-    outColor=Diffuse;
+#ifdef ENABLE_TEXTURE
+#ifndef COLOR
+    // Experimental environment radiance using Riemann sums;
+    // can also do importance sampling.
+    vec3 envRadiance=vec3(0.0,0.0,0.0);
+
+    vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
+    if(length(normalPerp) == 0.0)
+      normalPerp=vec3(1.0,0.0,0.0);
+
+    // we now have a normal basis;
+    normalPerp=normalize(normalPerp);
+    vec3 normalPerp2=normalize(cross(normal,normalPerp));
+
+    const float step=1.0/numSamples;
+    const float phistep=twopi*step;
+    const float thetastep=halfpi*step;
+    for (int iphi=0; iphi < numSamples; ++iphi) {
+      float phi=iphi*phistep;
+      for (int itheta=0; itheta < numSamples; ++itheta) {
+        float theta=itheta*thetastep;
+
+        vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
+        vec3 L=sin(theta)*azimuth+cos(theta)*normal;
+
+        vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
+        vec3 surfRefl=BRDF(Z,L);
+        envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
+      }
+    }
+    envRadiance *= halfpi*step*step;
+    color += envRadiance.rgb;
+#endif
+#endif
+    outColor=vec4(color,diffuse.a);
+  } else outColor=diffuse;
+#else    
+  outColor=emissive;
+#endif      
 }

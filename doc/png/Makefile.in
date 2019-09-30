@@ -13,9 +13,9 @@ all:	html info
 %.png:	../%.asy
 	cd .. && $(ASY) -f png -o png/ $(notdir $<)
 
-latexusage.png: ../latexusage.eps
+latexusage.png: ../latexusage.pdf
 	gs -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop -dSAFER -r72x72 \
-           -sOutputFile=latexusage.png ../latexusage.eps
+           -sOutputFile=latexusage.png ../latexusage.pdf
 
 index.html: $(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
 	makeinfo --html ../asymptote -o .

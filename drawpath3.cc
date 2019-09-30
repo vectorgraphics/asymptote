@@ -8,7 +8,7 @@
 #include "drawsurface.h"
 #include "material.h"
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -19,12 +19,6 @@ namespace camp {
 using vm::array;
 using namespace prc;
   
-#ifdef HAVE_GL
-using gl::modelView;
-
-BezierCurve drawPath3::R;
-#endif
-
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   Int n=g.length();
@@ -56,62 +50,76 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawPath3::render(double size2, const triple& b, const triple& B,
-                       double perspective, bool transparent)
+bool drawPath3::write(jsfile *out)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   Int n=g.length();
-  if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
-    return;
+  if(n == 0 || invisible)
+    return true;
 
-  const bool billboard=interaction == BILLBOARD &&
-    !settings::getSetting<bool>("offscreen");
-  triple m,M;
-  
-  double f,F,s;
-  if(perspective) {
-    f=Min.getz()*perspective;
-    F=Max.getz()*perspective;
-    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
-    s=max(f,F);
-  } else {
-    m=b;
-    M=B;
-    s=1.0;
-  }
-  
-  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  bbox3 box(m,M);
-  box.transform(modelView.Tinv);
-  m=box.Min();
-  M=box.Max();
-
-  if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                    Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz()))
-    return;
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
   
   RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(false,Black,Black,color,Black,1.0);
+  setcolors(false,Black,color,Black,1.0,0.0,0.04,out);
   
-  if(billboard) {
-    for(Int i=0; i < n; ++i) {
-      triple controls[]={BB.transform(g.point(i)),BB.transform(g.postcontrol(i)),
-                         BB.transform(g.precontrol(i+1)),
-                         BB.transform(g.point(i+1))};
-      R.queue(controls,straight,size3.length()/size2,m,M);
-    }
-  } else {
-    BB.init(center);
-    for(Int i=0; i < n; ++i) {
-      triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
-                         g.point(i+1)};
-      R.queue(controls,straight,size3.length()/size2,m,M);
-    }
+  for(Int i=0; i < n; ++i) {
+    if(g.straight(i)) {
+      out->addCurve(g.point(i),g.point(i+1),Min,Max);
+    } else
+      out->addCurve(g.point(i),g.postcontrol(i),
+                    g.precontrol(i+1),g.point(i+1),Min,Max);
   }
-  R.draw();
+#endif  
+  return true;
+}
+
+void drawPath3::render(double size2, const triple& b, const triple& B,
+                       double perspective, bool remesh)
+{
+#ifdef HAVE_LIBGL
+  Int n=g.length();
+  if(n == 0 || invisible) return;
+
+  bool offscreen;
+  if(billboard) {
+    drawElement::centerIndex=centerIndex;
+    BB.init(center);
+    offscreen=bbox2(Min,Max,BB).offscreen();
+  } else
+    offscreen=bbox2(Min,Max).offscreen();
+  
+  if(offscreen) { // Fully offscreen
+    R.Onscreen=false;
+    R.data.clear();
+    return;
+  }
+
+  for(Int i=0; i < n; ++i) {
+    triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
+                       g.point(i+1)};
+    triple *Controls;
+    triple Controls0[4];
+    if(billboard) {
+      Controls=Controls0;
+      for(size_t i=0; i < 4; i++) {
+        Controls[i]=BB.transform(controls[i]);
+      }
+    } else
+      Controls=controls;
+
+    double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
+  
+    const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+  
+    RGBAColour Black(0.0,0.0,0.0,color.A);
+    setcolors(false,Black,color,Black,1.0,0.0,0.04);
+  
+    R.queue(controls,g.straight(i),size3.length()/size2);
+  }
+  
 #endif
 }
 
@@ -192,7 +200,7 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
 
 void drawNurbsPath3::displacement()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGL
   size_t nknots=degree+n+1;
   if(Controls == NULL) {
     Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
@@ -211,11 +219,10 @@ void drawNurbsPath3::displacement()
 }
 
 void drawNurbsPath3::render(double, const triple&, const triple&,
-                            double, bool transparent)
+                            double, bool remesh)
 {
-#ifdef HAVE_GL
-  if(invisible || ((color.A < 1.0) ^ transparent))
-    return;
+#ifdef HAVE_LIBGL
+  if(invisible) return;
   
 // TODO: implement NURBS renderer
 #endif
@@ -231,44 +238,35 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
   
-void drawPixel::render(double size2, const triple& b, const triple& B,
-                       double perspective, bool transparent) 
+bool drawPixel::write(jsfile *out)
 {
-#ifdef HAVE_GL
-  if(invisible || ((color.A < 1.0) ^ transparent)) return;
-  triple m,M;
-  
-  double f,F,s;
-  if(perspective) {
-    f=Min.getz()*perspective;
-    F=Max.getz()*perspective;
-    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
-    s=max(f,F);
-  } else {
-    m=b;
-    M=B;
-    s=1.0;
-  }
-  
-  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-  bbox3 box(m,M);
-  box.transform(modelView.Tinv);
-  m=box.Min();
-  M=box.Max();
+#ifdef HAVE_LIBGL
+  if(invisible)
+    return true;
 
-  if((Max.getx() < m.getx() || Min.getx() > M.getx() ||
-      Max.gety() < m.gety() || Min.gety() > M.gety() ||
-      Max.getz() < m.getz() || Min.getz() > M.getz()))
-    return;
-  
   RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(false,color,Black,color,Black,1.0);
+  setcolors(false,color,color,Black,1.0,0.0,0.04,out);
   
-  glPointSize(1.0+width);
-  R.draw(v);
-  glPointSize(1.0);
+  out->addPixel(v,width,Min,Max);
+#endif  
+  return true;
+}
+
+void drawPixel::render(double size2, const triple& b, const triple& B,
+                       double perspective, bool remesh) 
+{
+#ifdef HAVE_LIBGL
+  if(invisible) return;
+  
+  if(bbox2(Min,Max).offscreen()) { // Fully offscreen
+    R.data.clear();
+    return;
+  }
+
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(false,color,color,Black,1.0,0.0,0.04);
+  
+  R.queue(v,width);
 #endif
 }
 

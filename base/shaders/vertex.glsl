@@ -1,33 +1,48 @@
 in vec3 position;
-in vec3 normal;
 
-#ifdef EXPLICIT_COLOR
-in uint color;
+uniform mat3 normMat;
+
+#ifdef NORMAL
+#ifndef ORTHOGRAPHIC
+out vec3 ViewPosition;
+#endif
+in vec3 normal;
+out vec3 Normal;
 #endif
 
 in int material;
 
-uniform mat4 projViewMat;
-uniform mat4 viewMat;
-uniform mat4 normMat;
-
-out vec3 ViewPosition;
-out vec3 Normal;
-    
-#ifdef EXPLICIT_COLOR
+#ifdef COLOR
+in vec4 color;
 out vec4 Color;
 #endif
+
+#ifdef WIDTH
+in float width;
+#endif
+
+uniform mat4 projViewMat;
+uniform mat4 viewMat;
 
 flat out int materialIndex;
 
 void main()
 {
-  gl_Position=projViewMat*vec4(position,1.0);
-  ViewPosition=(viewMat*vec4(position,1.0)).xyz;
-  Normal=normalize((normMat*vec4(normal,0)).xyz);
+  vec4 v=vec4(position,1.0);
+  gl_Position=projViewMat*v;
+#ifdef NORMAL
+#ifndef ORTHOGRAPHIC
+  ViewPosition=(viewMat*v).xyz;
+#endif
+  Normal=normal*normMat;
+#endif
 
-#ifdef EXPLICIT_COLOR
-  Color=unpackUnorm4x8(color);
+#ifdef COLOR
+  Color=color;
+#endif
+
+#ifdef WIDTH
+  gl_PointSize=width;
 #endif
 
   materialIndex=material;

@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <fstream>
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -20,28 +20,19 @@
 
 using namespace prc;
 #include "material.h"
+
 namespace camp {
 
-#ifdef HAVE_GL
-mem::vector<Material> drawElement::material;
-MaterialMap drawElement::materialMap;
-size_t drawElement::materialIndex;
-
-using gl::modelView;
-//double* Tx=modelView.T;   // x-component of current transform
-//double* Ty=modelView.T+4; // y-component of current transform
-double* Tz=modelView.T+8; // z-component of current transform
-
-#endif
+mem::vector<triple> drawElement::center;
+size_t drawElement::centerIndex=0;
+triple drawElement::lastcenter=0;
+size_t drawElement::lastcenterIndex=0;
 
 const triple drawElement::zero;
 
 using vm::array;
 
-#ifdef HAVE_GL
-BezierCurve drawSurface::C;
-BezierPatch drawBezierPatch::S;
-BezierTriangle drawBezierTriangle::S;
+#ifdef HAVE_LIBGLM
 
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
@@ -61,45 +52,38 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
-void clearMaterialBuffer(bool draw)
-{
-  if(draw) drawBezierPatch::S.draw();
-  drawElement::material.clear();
-  drawElement::material.reserve(nmaterials);
-  drawElement::materialMap.clear();
-  drawElement::materialIndex=0;
-}
-
 void setcolors(bool colors,
                const RGBAColour& diffuse,
-               const RGBAColour& ambient,
                const RGBAColour& emissive,
-               const RGBAColour& specular, double shininess) 
+               const RGBAColour& specular, double shininess,
+               double metallic, double fresnel0, jsfile *out) 
 {
   Material m;
   if(colors) {
     static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
-    m=Material(Black,Black,Black,
+    m=Material(Black,Black,
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
-               shininess);
-  }  else
+               shininess,metallic,fresnel0);
+  } else
     m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
-               glm::vec4(ambient.R,ambient.G,ambient.B,ambient.A),
                glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
                glm::vec4(specular.R,specular.G,specular.B,specular.A),
-               shininess);
+               shininess,metallic,fresnel0);
           
-  MaterialMap::iterator p=drawElement::materialMap.find(m);
-  if(p != drawElement::materialMap.end())
-    drawElement::materialIndex=p->second;
+  MaterialMap::iterator p=materialMap.find(m);
+  if(p != materialMap.end()) materialIndex=p->second;
   else {
-    drawElement::materialIndex=drawElement::material.size();
-    if(drawElement::materialIndex >= nmaterials)
+    materialIndex=material.size();
+    if(materialIndex >= nmaterials)
       nmaterials=min(Maxmaterials,2*nmaterials);
-    if(drawElement::materialIndex >= Maxmaterials)
+#ifdef HAVE_LIBGL
+    if(!out && materialIndex >= Maxmaterials)
       clearMaterialBuffer(true);
-    drawElement::material.push_back(m);
-    drawElement::materialMap[m]=drawElement::materialIndex;
+#endif    
+    material.push_back(m);
+    materialMap[m]=materialIndex;
+    if(out)
+      out->addMaterial(materialIndex);
   }
 }
 
@@ -158,8 +142,8 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
     
     c0=cz[0];
     fuzz=Fuzz*run::norm(cz,16);
-    z=bound(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
-    Z=bound(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
+    z=bound(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
+    Z=bound(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
   }  
   
   b.add(x,y,z);
@@ -230,13 +214,15 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible || !prc)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight) {
     triple vertices[]={controls[0],controls[12],controls[3],controls[15]};
-    if(colors)
-      out->addQuad(vertices,colors);
-    else
+    if(colors) {
+      prc::RGBAColour Colors[]={colors[0],colors[1],colors[3],colors[2]};
+      out->addQuad(vertices,Colors);
+    } else
       out->addRectangle(vertices,m);
   } else
     out->addPatch(controls,m);
@@ -244,78 +230,89 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawBezierPatch::render(double size2, const triple& b, const triple& B,
-                             double perspective, bool transparent)
+bool drawBezierPatch::write(jsfile *out)
 {
-#ifdef HAVE_GL
-  if(invisible || 
-     ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
-       diffuse.A < 1.0) ^ transparent)) return;
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
   
-  const bool billboard=interaction == BILLBOARD &&
-    !settings::getSetting<bool>("offscreen");
-  triple m,M;
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
-  double f,F,s;
-  if(perspective) {
-    f=Min.getz()*perspective;
-    F=Max.getz()*perspective;
-    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
-    s=max(f,F);
-  } else {
-    m=b;
-    M=B;
-    s=1.0;
+  if(straight) {
+    triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
+    out->addPatch(Controls,4,Min,Max,colors);
+  } else
+    out->addPatch(controls,16,Min,Max,colors);
+                    
+#endif  
+  return true;
+}
+
+void drawBezierPatch::render(double size2, const triple& b, const triple& B,
+                             double perspective, bool remesh)
+{
+#ifdef HAVE_LIBGL
+  if(invisible) return; 
+  transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
+    diffuse.A < 1.0;
+  
+  bool offscreen;
+  if(billboard) {
+    drawElement::centerIndex=centerIndex;
+    BB.init(center);
+    offscreen=bbox2(Min,Max,BB).offscreen();
+  } else
+    offscreen=bbox2(Min,Max).offscreen();
+  
+  if(offscreen) { // Fully offscreen
+    S.Onscreen=false;
+    S.data.clear();
+    return;
   }
-  
+
+  triple *Controls;
+  triple Controls0[16];
+  if(billboard) {
+    Controls=Controls0;
+    for(size_t i=0; i < 16; i++) {
+     Controls[i]=BB.transform(controls[i]);
+    }
+  } else {
+    Controls=controls;
+    if(!remesh && S.Onscreen) { // Fully onscreen; no need to re-render
+      S.append();
+      return;
+    }
+  }
+
+  double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
+    
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  bbox3 box(m,M);
-  box.transform(modelView.Tinv);
-  m=box.Min();
-  M=box.Max();
-  
-  if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                    Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz()))
-    return;
-
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
-  
-  if(billboard) BB.init(center);
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
   GLfloat c[16];
   if(colors)
     for(size_t i=0; i < 4; ++i)
       storecolor(c,4*i,colors[i]);
   
-  triple *Controls;
-  triple Controls0[16];
-  if(billboard) {
-    Controls=Controls0;
-    for(size_t i=0; i < 16; i++)
-      Controls[i]=BB.transform(controls[i]);
-  } else
-    Controls=controls;
-    
   if(gl::outlinemode) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
-    C.queue(edge0,straight,size3.length()/size2,m,M);
+    C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
-    C.queue(edge1,straight,size3.length()/size2,m,M);
+    C.queue(edge1,straight,size3.length()/size2);
     triple edge2[]={Controls[15],Controls[11],Controls[7],Controls[3]};
-    C.queue(edge2,straight,size3.length()/size2,m,M);
+    C.queue(edge2,straight,size3.length()/size2);
     triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
-    C.queue(edge3,straight,size3.length()/size2,m,M);
-    C.draw();
+    C.queue(edge3,straight,size3.length()/size2);
   } else {
-    S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
+    S.queue(Controls,straight,size3.length()/size2,transparent,
             colors ? c : NULL);
-    if(BezierPatch::nvertices >= gl::maxvertices)
-      drawBezierPatch::S.drawMaterials();
-    if(BezierPatch::Nvertices >= gl::maxvertices)
-      drawBezierPatch::S.drawColors();
   }
 #endif
 }
@@ -376,8 +373,8 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
     
     c0=cz[0];
     fuzz=Fuzz*run::norm(cz,10);
-    z=boundtri(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
-    Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
+    z=boundtri(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
+    Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
   }
     
   b.add(x,y,z);
@@ -446,7 +443,8 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
   
   static const double third=1.0/3.0;
   static const double third2=2.0/3.0;
@@ -463,72 +461,87 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   return true;
 }
 
-void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
-                                double perspective, bool transparent)
+bool drawBezierTriangle::write(jsfile *out)
 {
-#ifdef HAVE_GL
-  if(invisible || 
-     ((colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
-       diffuse.A < 1.0) ^ transparent)) return;
-  
-  const bool billboard=interaction == BILLBOARD &&
-    !settings::getSetting<bool>("offscreen");
-  triple m,M;
-  
-  double f,F,s;
-  if(perspective) {
-    f=Min.getz()*perspective;
-    F=Max.getz()*perspective;
-    m=triple(min(f*b.getx(),F*b.getx()),min(f*b.gety(),F*b.gety()),b.getz());
-    M=triple(max(f*B.getx(),F*B.getx()),max(f*B.gety(),F*B.gety()),B.getz());
-    s=max(f,F);
-  } else {
-    m=b;
-    M=B;
-    s=1.0;
-  }
-  
-  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
 
-  bbox3 box(m,M);
-  box.transform(modelView.Tinv);
-  m=box.Min();
-  M=box.Max();
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
+  
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  
+  if(straight) {
+    triple Controls[]={controls[0],controls[6],controls[9]};
+    out->addPatch(Controls,3,Min,Max,colors);
+  } else
+    out->addPatch(controls,10,Min,Max,colors);
+                    
+#endif  
+  return true;
+}
 
-  if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                    Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                    Max.getz() < m.getz() || Min.getz() > M.getz()))
+void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
+                                double perspective, bool remesh)
+{
+#ifdef HAVE_LIBGL
+  if(invisible) return;
+  transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
+    diffuse.A < 1.0;
+  
+  bool offscreen;
+  if(billboard) {
+    drawElement::centerIndex=centerIndex;
+    BB.init(center);
+    offscreen=bbox2(Min,Max,BB).offscreen();
+  } else
+    offscreen=bbox2(Min,Max).offscreen();
+  
+  if(offscreen) { // Fully offscreen
+    S.Onscreen=false;
+    S.data.clear();
     return;
+  }
 
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
-  
-  if(billboard) BB.init(center);
-  
-  GLfloat v[12];
-  if(colors)
-    for(size_t i=0; i < 3; ++i)
-      storecolor(v,4*i,colors[i]);
-    
   triple *Controls;
   triple Controls0[10];
   if(billboard) {
     Controls=Controls0;
-    for(size_t i=0; i < 10; i++)
-      Controls[i]=BB.transform(controls[i]);
-  } else 
+    for(size_t i=0; i < 10; i++) {
+     Controls[i]=BB.transform(controls[i]);
+    }
+  } else {
     Controls=controls;
+    if(!remesh && S.Onscreen) { // Fully onscreen; no need to re-render
+      S.append();
+      return;
+    }
+  }
+
+  double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
+    
+  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
   
+  GLfloat c[12];
+  if(colors)
+    for(size_t i=0; i < 3; ++i)
+      storecolor(c,4*i,colors[i]);
+    
   if(gl::outlinemode) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
-    C.queue(edge0,straight,size3.length()/size2,m,M);
+    C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
-    C.queue(edge1,straight,size3.length()/size2,m,M);
+    C.queue(edge1,straight,size3.length()/size2);
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
-    C.queue(edge2,straight,size3.length()/size2,m,M);
-    C.draw();
+    C.queue(edge2,straight,size3.length()/size2);
   } else
-    S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
-            colors ? v : NULL);
+    S.queue(Controls,straight,size3.length()/size2,transparent,
+            colors ? c : NULL);
 #endif
 }
 
@@ -542,7 +555,8 @@ bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
   out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights);
   
   return true;
@@ -614,7 +628,7 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
 
 void drawNurbs::displacement()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGL
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
@@ -639,37 +653,10 @@ void drawNurbs::displacement()
 #endif  
 }
 
-void drawNurbs::render(double size2, const triple& Min, const triple& Max,
-                       double perspective, bool transparent)
+void drawNurbs::render(double size2, const triple& b, const triple& B,
+                       double perspective, bool remesh)
 {
-#ifdef HAVE_GL
-  if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
-                    : diffuse.A < 1.0) ^ transparent)) return;
-
-  bbox3 B(this->Min,this->Max);
-  B.transform(modelView.T);
-    
-  triple m=B.Min();
-  triple M=B.Max();
-  
-  if(perspective) {
-    double f=m.getz()*perspective;
-    double F=M.getz()*perspective;
-    if(M.getx() < min(f*Min.getx(),F*Min.getx()) || 
-       m.getx() > max(f*Max.getx(),F*Max.getx()) ||
-       M.gety() < min(f*Min.gety(),F*Min.gety()) ||
-       m.gety() > max(f*Max.gety(),F*Max.gety()) ||
-       M.getz() < Min.getz() ||
-       m.getz() > Max.getz()) return;
-  } else {
-    if(M.getx() < Min.getx() || m.getx() > Max.getx() ||
-       M.gety() < Min.gety() || m.gety() > Max.gety() ||
-       M.getz() < Min.getz() || m.getz() > Max.getz()) return;
-  }
-
-  setcolors(colors,diffuse,ambient,emissive,specular,shininess);
 // TODO: implement NURBS renderer
-#endif
 }
 
 void drawSphere::P(triple& t, double x, double y, double z)
@@ -696,7 +683,8 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   switch(type) {
     case 0: // PRCsphere
@@ -759,7 +747,8 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   out->addCylinder(1.0,1.0,m,NULL,NULL,NULL,1.0,T);
   
@@ -771,7 +760,8 @@ bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   out->addDisk(1.0,m,NULL,NULL,NULL,1.0,T);
   
@@ -783,7 +773,8 @@ bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   Int n=center.length();
   
@@ -886,49 +877,48 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
     const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
   } else {
-    const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+    RGBAColour Black(0.0,0.0,0.0,diffuse.A);
+    const PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,30);
   }
 
   return true;
 }
 
-void drawTriangles::render(double size2, const triple& Min,
-                           const triple& Max, double perspective,
-                           bool transparent)
+bool drawTriangles::write(jsfile *out)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   if(invisible)
+    return true;
+  
+  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  
+  out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
+#endif 
+  return true;
+}
+
+void drawTriangles::render(double size2, const triple& b,
+                           const triple& B, double perspective,
+                           bool remesh)
+{
+#ifdef HAVE_LIBGL
+  if(invisible) return;
+  
+  transparent=diffuse.A < 1.0;
+
+  if(bbox2(Min,Max).offscreen()) { // Fully offscreen
+    R.Onscreen=false;
+    R.data.clear();
     return;
-
-  if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
-
-  triple m,M;
-
-  bbox3 B(this->Min,this->Max);
-  B.transform(modelView.T);
-
-  m=B.Min();
-  M=B.Max();
-
-  if(perspective) {
-    const double f=m.getz()*perspective;
-    const double F=M.getz()*perspective;
-    if((M.getx() < min(f*Min.getx(),F*Min.getx()) ||
-        m.getx() > max(f*Max.getx(),F*Max.getx()) ||
-        M.gety() < min(f*Min.gety(),F*Min.gety()) ||
-        m.gety() > max(f*Max.gety(),F*Max.gety()) ||
-        M.getz() < Min.getz() ||
-        m.getz() > Max.getz()))
-      return;
-  } else {
-    if((M.getx() < Min.getx() || m.getx() > Max.getx() ||
-        M.gety() < Min.gety() || m.gety() > Max.gety() ||
-        M.getz() < Min.getz() || m.getz() > Max.getz()))
-      return;
   }
 
-  setcolors(nC,diffuse,ambient,emissive,specular,shininess);
+  if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
+    R.append();
+    return;
+  }
+    
+  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0);
   R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
 #endif
 }

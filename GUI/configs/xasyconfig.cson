@@ -52,6 +52,11 @@ maximumMagnification: 100
 # Debug Mode
 debugMode: true
 
-# Settings Override for Windows
+# Overrides
+
 windows:
     externalEditor: "notepad.exe"
+
+Darwin:
+    externalEditor: "open"
+    externalEditorArgs: ["-a","TextEdit","$asypath"]

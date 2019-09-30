@@ -74,7 +74,7 @@ namespace settings {
   
 using camp::pair;
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 const bool havegl=true;  
 #else
 const bool havegl=false;
@@ -84,6 +84,8 @@ mode_t mask;
   
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultEPSdriver="eps2write";
+string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
+  AsyGLVersion+".js";
 
 #ifndef __MSDOS__
   
@@ -91,11 +93,14 @@ bool msdos=false;
 string HOME="HOME";
 string docdir=ASYMPTOTE_DOCDIR;
 const char pathSeparator=':';
-string defaultPSViewer="gv";
 #ifdef __APPLE__
+string defaultPSViewer="open";
 string defaultPDFViewer="open";
+string defaultHTMLViewer="open";
 #else  
+string defaultPSViewer="gv";
 string defaultPDFViewer="acroread";
+string defaultHTMLViewer="google-chrome";
 #endif  
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="";
@@ -114,6 +119,7 @@ const char pathSeparator=';';
 string defaultPSViewer="cmd";
 //string defaultPDFViewer="AcroRd32.exe";
 string defaultPDFViewer="cmd";
+string defaultHTMLViewer="cmd";
 string defaultGhostscript;
 string defaultGhostscriptLibrary;
 //string defaultDisplay="imdisplay";
@@ -1111,6 +1117,10 @@ void initSettings() {
                             "Show 3D toolbar in PDF output", true));
   addOption(new boolSetting("axes3", 0,
                             "Show 3D axes in PDF output", true));
+  addOption(new boolSetting("envmap", 0,
+                            "Enable environment map image-based lighting (Experimental)", false));
+                            
+                            
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
                             havegl ? -1.0 : 0.0));
@@ -1127,6 +1137,11 @@ void initSettings() {
                             "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",
                             "Maximum viewport size",pair(2048,2048)));
+  addOption(new pairSetting("viewportmargin", 0, "pair",
+                            "Horizontal and vertical 3D viewport margin",
+                            pair(0.5,0.5)));
+  addOption(new boolSetting("absolute", 0,
+                            "Use absolute WebGL dimensions", false));
   addOption(new pairSetting("maxtile", 0, "pair",
                             "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
@@ -1256,6 +1271,8 @@ void initSettings() {
   addOption(new boolSetting("autorotate", 0,
                             "Enable automatic PDF page rotation",
                             false));
+  addOption(new boolSetting("offline", 0,
+                            "Produce offline html files",false));
   addOption(new boolSetting("pdfreload", 0,
                             "Automatically reload document in pdfviewer",
                             false));
@@ -1272,19 +1289,30 @@ void initSettings() {
   addOption(new IntSetting("maxvertices", 0, "n", "Maximum number of vertices to queue", 0));
   addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
                             1.05));
+  addOption(new realSetting("zoomPinchFactor", 0, "n",
+                            "WebGL zoom pinch sensitivity", 10));
+  addOption(new realSetting("zoomPinchCap", 0, "limit",
+                            "WebGL maximum zoom pinch", 100));
   addOption(new realSetting("zoomstep", 0, "step", "Mouse motion zoom step",
                             0.1));
+  addOption(new realSetting("shiftHoldDistance", 0, "n",
+                            "WebGL touch screen distance limit for shift mode",
+                            20));
+  addOption(new realSetting("shiftWaitTime", 0, "ms",
+                            "WebGL touch screen shift mode delay",
+                            200));
+  addOption(new realSetting("vibrateTime", 0, "ms",
+                            "WebGL shift mode vibrate duration",
+                            25));
   addOption(new realSetting("spinstep", 0, "deg/s", "Spin speed",
                             60.0));
   addOption(new realSetting("framerate", 0, "frames/s", "Animation speed",
                             30.0));
   addOption(new realSetting("framedelay", 0, "ms",
                             "Additional frame delay", 0.0));
-  addOption(new realSetting("arcballradius", 0, "pixels",
-                            "Arcball radius", 750.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
-  addOption(new IntSetting("doubleclick", 0, "ms",
-                           "Emulated double-click timeout", 200));
+  addOption(new IntSetting("digits", 0, "n",
+                           "Default output file precision", 6));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
@@ -1293,6 +1321,7 @@ void initSettings() {
   addOption(new stringSetting("dvisvgmOptions", 0, "string", ""));
   addOption(new stringSetting("convertOptions", 0, "string", ""));
   addOption(new stringSetting("gsOptions", 0, "string", ""));
+  addOption(new stringSetting("htmlviewerOptions", 0, "string", ""));
   addOption(new stringSetting("psviewerOptions", 0, "string", ""));
   addOption(new stringSetting("pdfviewerOptions", 0, "string", ""));
   addOption(new stringSetting("pdfreloadOptions", 0, "string", ""));
@@ -1301,11 +1330,13 @@ void initSettings() {
                               "","setpagesize=false,unicode,pdfborder=0 0 0"));
   
   addOption(new envSetting("config","config."+suffix));
+  addOption(new envSetting("htmlviewer", defaultHTMLViewer));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("libgs", defaultGhostscriptLibrary));
   addOption(new envSetting("epsdriver", defaultEPSdriver));
+  addOption(new envSetting("asygl", defaultAsyGL));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));

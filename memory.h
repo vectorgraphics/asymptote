@@ -17,17 +17,17 @@
 
 #ifndef NOHASH
 
-#ifdef HAVE_UNORDERED_MAP
+#ifdef HAVE_TR1_UNORDERED_MAP
 
 #include <memory>
-#include <unordered_map>
-#define EXT std
+#include <tr1/unordered_map>
+#define EXT std::tr1
 
 #else
 
-#ifdef HAVE_TR1_UNORDERED_MAP
-#include <tr1/unordered_map>
-#define EXT std::tr1
+#ifdef HAVE_UNORDERED_MAP
+#include <unordered_map>
+#define EXT std
 #else
 #define EXT __gnu_cxx
 #include <ext/hash_map>
@@ -48,6 +48,9 @@
 #ifdef USEGC
 
 #define GC_THREADS
+#ifdef __clang__
+#define GC_ATTR_EXPLICIT
+#endif
 #include <gc.h>
 
 #ifdef GC_DEBUG
@@ -86,6 +89,8 @@ inline void *asy_malloc_atomic(size_t n)
 
 #include <gc_allocator.h>
 #include <gc_cpp.h>
+
+#define gc_allocator gc_allocator_ignore_off_page
 
 #else // USEGC
 

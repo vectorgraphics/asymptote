@@ -459,17 +459,6 @@ bool picture::texprocess(const string& texname, const string& outname,
         cmd.push_back("-o"+outname);
         ostringstream buf;
         bbox B=svgbbox(b,bboxshift);
-        /*
-        double height=b.top-b.bottom;
-        double threshold=12.0*tex2ps;
-        if(height < threshold) {
-          double offset=threshold-height;
-          b.top += offset;
-          b.bottom += offset;
-        }
-        bbox B=b;
-        B.shift(bboxshift+pair(1.99*cm,1.9*cm));
-        */
         buf << "--bbox=" 
             << B.left << "bp " 
             << B.bottom << "bp "
@@ -746,6 +735,8 @@ bool picture::postprocess(const string& prename, const string& outname,
                           bool wait, bool view, bool pdftex, 
                           bool epsformat, bool svg)
 {
+  if(outputformat == "html")
+    reportError("Use svg instead of html output format for 2D pictures.");
   static mem::map<CONST string,int> pids;
   int status=0;
   bool pdfformat=(settings::pdf(getSetting<string>("tex")) 
@@ -1176,17 +1167,16 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
 // render viewport with width x height pixels.
 void picture::render(double size2, const triple& Min, const triple& Max,
-                     double perspective, bool transparent) const
+                     double perspective, bool remesh) const
 {
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->render(size2,Min,Max,perspective,transparent);
+    if(remesh) (*p)->meshinit();
+    (*p)->render(size2,Min,Max,perspective,remesh);
   }
-#ifdef HAVE_GL
-  if(transparent)
-    drawBezierPatch::S.drawTransparent();
-  else
-    drawBezierPatch::S.drawOpaque();
+      
+#ifdef HAVE_LIBGL
+  drawBuffers();
 #endif  
 }
   
@@ -1201,12 +1191,12 @@ struct Communicate : public gc {
   triple m;
   triple M;
   pair shift;
+  pair margin;
   double *t;
   double *background;
   size_t nlights;
   triple *lights;
   double *diffuse;
-  double *ambient;
   double *specular;
   bool view;
 };
@@ -1215,30 +1205,37 @@ Communicate com;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_GL  
+#ifdef HAVE_LIBGL  
 #ifdef HAVE_PTHREAD
   wait(initSignal,initLock);
   endwait(initSignal,initLock);
 #endif  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-           com.zoom,com.m,com.M,com.shift,com.t,com.background,com.nlights,
-           com.lights,com.diffuse,com.ambient,com.specular,com.view);
+           com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
+           com.nlights,com.lights,com.diffuse,com.specular,com.view);
 #endif  
 }
 
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
                        const triple& m, const triple& M, const pair& shift,
-                       double *t, double *background, size_t nlights,
-                       triple *lights, double *diffuse, double *ambient,
+                       const pair& margin, double *t, double *background,
+                       size_t nlights, triple *lights, double *diffuse,
                        double *specular, bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
   
-#ifndef HAVE_LIBGLUT
-  if(!getSetting<bool>("offscreen"))
+  bool webgl=format == "html";
+  
+#ifndef HAVE_GL
+  if(!webgl && !getSetting<bool>("offscreen"))
     camp::reportError("to support onscreen rendering, please install glut library, run ./configure, and recompile");
+#endif
+  
+#ifndef HAVE_LIBGLM
+  if(webgl)
+    camp::reportError("to support WebGL rendering, please install glm header files, run ./configure, and recompile");
 #endif
   
 #ifndef HAVE_LIBOSMESA
@@ -1274,72 +1271,106 @@ bool picture::shipout3(const string& prefix, const string& format,
   const string outputformat=format.empty() ? 
     getSetting<string>("outformat") : format;
   
-#ifdef HAVE_GL  
-  bool View=settings::view() && view;
+#ifdef HAVE_LIBGLM
   static int oldpid=0;
+  bool View=settings::view() && view;
+#endif  
+  
+#ifdef HAVE_GL
   bool offscreen=getSetting<bool>("offscreen");
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
 #endif  
-#endif  
+#endif 
 
-#if defined(HAVE_LIBGLUT) && defined(HAVE_GL)
-  if(glthread && !offscreen) {
+  if(!webgl) {
+#ifdef HAVE_GL
+    if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
-    if(gl::initialize) {
-      gl::initialize=false;
-      com.prefix=prefix;
-      com.pic=pic;
-      com.format=outputformat;
-      com.width=width;
-      com.height=height;
-      com.angle=angle;
-      com.zoom=zoom;
-      com.m=m;
-      com.M=M;
-      com.shift=shift;
-      com.t=t;
-      com.background=background;
-      com.nlights=nlights;
-      com.lights=lights;
-      com.diffuse=diffuse;
-      com.ambient=ambient;
-      com.specular=specular;
-      com.view=View;
-      if(Wait)
-        pthread_mutex_lock(&readyLock);
-      wait(initSignal,initLock);
-      endwait(initSignal,initLock);
-      static bool initialize=true;
-      if(initialize) {
+      if(gl::initialize) {
+        gl::initialize=false;
+        com.prefix=prefix;
+        com.pic=pic;
+        com.format=outputformat;
+        com.width=width;
+        com.height=height;
+        com.angle=angle;
+        com.zoom=zoom;
+        com.m=m;
+        com.M=M;
+        com.shift=shift;
+        com.margin=margin;
+        com.t=t;
+        com.background=background;
+        com.nlights=nlights;
+        com.lights=lights;
+        com.diffuse=diffuse;
+        com.specular=specular;
+        com.view=View;
+        if(Wait)
+          pthread_mutex_lock(&readyLock);
         wait(initSignal,initLock);
         endwait(initSignal,initLock);
-        initialize=false;
+        static bool initialize=true;
+        if(initialize) {
+          wait(initSignal,initLock);
+          endwait(initSignal,initLock);
+          initialize=false;
+        }
+        if(Wait) {
+          pthread_cond_wait(&readySignal,&readyLock);
+          pthread_mutex_unlock(&readyLock);
+        }
+        return true;
       }
-      if(Wait) {
-        pthread_cond_wait(&readySignal,&readyLock);
-        pthread_mutex_unlock(&readyLock);
-      }
-      return true;
-    }
-    if(Wait)
-      pthread_mutex_lock(&readyLock);
+      if(Wait)
+        pthread_mutex_lock(&readyLock);
 #endif
-  } else {
-    int pid=fork();
-    if(pid == -1)
-      camp::reportError("Cannot fork process");
-    if(pid != 0)  {
-      oldpid=pid;
-      waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
-      return true;
+    } else {
+      int pid=fork();
+      if(pid == -1)
+        camp::reportError("Cannot fork process");
+      if(pid != 0)  {
+        oldpid=pid;
+        waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
+        return true;
+      }
     }
+#endif
   }
+  
+#if HAVE_LIBGLM  
+  glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
+           background,nlights,lights,diffuse,specular,View,oldpid);
+  
+  if(webgl) {
+    jsfile js;
+    string name=buildname(prefix,format);
+    js.open(name);
+  
+    for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
+      assert(*p);
+      (*p)->write(&js);
+    }
+    if(verbose > 0)
+      cout << "Wrote " << name << endl;
+    if(View) {
+      mem::vector<string> cmd;
+      push_command(cmd,getSetting<string>("htmlviewer"));
+#ifdef __MSDOS__
+      cmd.push_back("file://%CD%/"+name);
+#else        
+        cmd.push_back(name);
 #endif
+      push_split(cmd,getSetting<string>("htmlviewerOptions"));
+      System(cmd,2,false);
+    }
+    return true;
+  }
+#endif  
+
 #ifdef HAVE_GL  
-  glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
-           background,nlights,lights,diffuse,ambient,specular,View,oldpid);
 #ifdef HAVE_PTHREAD
   if(glthread && !offscreen && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);
@@ -1348,17 +1379,17 @@ bool picture::shipout3(const string& prefix, const string& format,
   return true;
 #endif
 #endif
-
+  
   return false;
 }
 
-bool picture::shipout3(const string& prefix)
+bool picture::shipout3(const string& prefix, const string format)
 {
   bounds3();
-  bool status = true;
+  bool status;
   
-  string prcname=buildname(prefix,"prc");
-  prcfile prc(prcname);
+  string name=buildname(prefix,"prc");
+  prcfile prc(name);
   
   static const double limit=2.5*10.0/INT_MAX;
   double compressionlimit=max(length(b3.Max()),length(b3.Min()))*limit;
@@ -1369,12 +1400,11 @@ bool picture::shipout3(const string& prefix)
     (*p)->write(&prc,&billboard,compressionlimit,groups);
   }
   groups.pop_back();
-  if(status)
-    status=prc.finish();
-    
+  status=prc.finish();
+
   if(!status) reportError("shipout3 failed");
     
-  if(verbose > 0) cout << "Wrote " << prcname << endl;
+  if(verbose > 0) cout << "Wrote " << name << endl;
   
   return true;
 }

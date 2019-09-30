@@ -86,7 +86,11 @@ defaultrender.labelfill=true;
 defaultrender.partnames=false;
 defaultrender.defaultnames=true;
 
-real defaultshininess=0.25;
+real defaultshininess=0.7;
+real defaultmetallic=0.0;
+real defaultfresnel0=0.04;
+
+
 
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
@@ -2809,6 +2813,9 @@ object embed(string prefix=outprefix(), string label=prefix,
     P=modelview*P;
     Q=P.copy();
 
+    if(Q.t[2][3] == -1) // PRC can't handle oblique projections
+      Q=orthographic(P.camera,P.up,P.target,P.zoom,P.viewportshift,
+                     P.showtarget,P.center);     
     if(P.infinity) {
       triple m=min3(S.f);
       triple M=max3(S.f);
@@ -2880,12 +2887,15 @@ object embed(string prefix=outprefix(), string label=prefix,
       m -= margin;
     } else if(M.z >= 0) abort("camera too close");
 
+    if(settings.outformat == "html")
+      format="html";
+
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
-             P.zoom,m,M,P.viewportshift,
+             P.zoom,m,M,P.viewportshift,S.viewportmargin,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
-             Light.diffuse,Light.ambient,Light.specular,
+             Light.diffuse,Light.specular,
              view && !preview);
     if(!preview) return F;
   }

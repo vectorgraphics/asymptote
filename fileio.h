@@ -117,7 +117,7 @@ public:
   file(const string& name, bool check=true, Mode type=NOMODE, bool binary=false,
        bool closed=false) : 
     name(name), check(check), type(type), linemode(false), csvmode(false),
-    singlereal(false), singleint(true), signedint(true),
+    wordmode(false), singlereal(false), singleint(true), signedint(true),
     closed(closed), standard(name.empty()),
     binary(binary), nullfield(false), whitespace("") {dimension();}
   
@@ -423,7 +423,8 @@ public:
     ifile(name,comment,true,UPDATE,std::ios::in | std::ios::out) {}
 
   Int precision(Int p) {
-    return p == 0 ? stream->precision() : stream->precision(p);
+    return p == 0 ? stream->precision(settings::getSetting<Int>("digits")) :
+      stream->precision(p);
   }
   void flush() {if(fstream) fstream->flush();}
   
@@ -463,6 +464,7 @@ public:
     } else {
       name=outpath(name);
       stream=fstream=new std::ofstream(name.c_str(),mode | std::ios::trunc);
+      stream->precision(settings::getSetting<Int>("digits"));
       index=processData().ofile.add(fstream);
       Check();
     }
@@ -483,7 +485,8 @@ public:
   }
   void clear() {stream->clear();}
   Int precision(Int p) {
-    return p == 0 ? stream->precision() : stream->precision(p);
+    return p == 0 ? stream->precision(settings::getSetting<Int>("digits")) :
+      stream->precision(p);
   }
   void flush() {stream->flush();}
   

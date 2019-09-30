@@ -17,97 +17,67 @@ namespace camp {
 extern const double Fuzz;
 extern const double Fuzz2;
 
-class vertexData1 {
-public:
-  GLfloat position[3];
-  GLint  material;
-  vertexData1() {};
-  vertexData1(const triple& v) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    material=drawElement::materialIndex;
-  }
-};
-
 struct BezierCurve
 {
-  static std::vector<vertexData1> vertexbuffer;
-  static std::vector<GLuint> indices;
-  GLuint nvertices;
+  vertexBuffer data;
   double res,res2;
-  triple Min,Max;
-
-  static GLuint vertsBufferIndex; 
-  static GLuint elemBufferIndex; 
+  bool Onscreen;
   
-  BezierCurve() : nvertices(0) {}
-  
-  void init(double res, const triple& Min, const triple& Max);
+  void init(double res);
     
-// Store the vertex v in the buffer.
-  GLuint vertex(const triple &v) {
-    vertexbuffer.push_back(vertexData1(v));
-    return nvertices++;
-  }
-  
-  void createBuffers() {
-    glGenBuffers(1,&vertsBufferIndex);
-    glGenBuffers(1,&elemBufferIndex);
-
-    //vbo
-    registerBuffer(vertexbuffer,vertsBufferIndex);
-
-    //ebo
-    registerBuffer(indices,elemBufferIndex);
-  }
-  
-// Approximate bounds by bounding box of control polyhedron.
+  // Approximate bounds by bounding box of control polyhedron.
   bool offscreen(size_t n, const triple *v) {
-    double x,y,z;
-    double X,Y,Z;
-    
-    boundstriples(x,y,z,X,Y,Z,n,v);
-    return
-      X < Min.getx() || x > Max.getx() ||
-      Y < Min.gety() || y > Max.gety() ||
-      Z < Min.getz() || z > Max.getz();
+    if(bbox2(n,v).offscreen()) {
+      Onscreen=false;
+      return true;
+    }
+    return false;
   }
-  
-  void clear() {
-    nvertices=0;
-    vertexbuffer.clear();
-    indices.clear();
-    
-    glDeleteBuffers(1,&vertsBufferIndex);
-    glDeleteBuffers(1,&elemBufferIndex);
-  }
-  
-  ~BezierCurve() {}
-  
-  void render(const triple *p, GLuint I0, GLuint I1);
+
   void render(const triple *p, bool straight);
+  void render(const triple *p, GLuint I0, GLuint I1);
   
-  void queue(const triple *g, bool straight, double ratio,
-              const triple& Min, const triple& Max) {
-    init(pixel*ratio,Min,Max);
+  void append() {
+    material1Data.append1(data);
+    
+    if(material1Data.vertices1.size() >= gl::maxvertices) {
+      drawBuffer(material1Data,noNormalShader);
+      material1Data.clear();
+      gl::forceRemesh=true;
+    }
+  }
+  
+  void queue(const triple *g, bool straight, double ratio) {
+    data.clear();
+    Onscreen=true;
+    init(pixel*ratio);
     render(g,straight);
   }
   
-  void draw();
-  void draw(const triple *g, bool straight, double ratio,
-            const triple& Min, const triple& Max) {
-    queue(g,straight,ratio,Min,Max);
-    draw();
-  }
 };
 
 struct Pixel
 {
-  Pixel() {}
-  ~Pixel() {}
+  vertexBuffer data;
   
-  void draw(const triple& p);
+  void append() {
+    material0Data.append0(data);
+    
+    if(material0Data.vertices0.size() >= gl::maxvertices) {
+      drawBuffer(material0Data,pixelShader);
+      material0Data.clear();
+      gl::forceRemesh=true;
+    }
+  }
+  
+  void queue(const triple& p, double width) {
+    data.clear();
+    MaterialIndex=materialIndex;
+    data.indices.push_back(data.vertex0(p,width));
+    append();
+  }
+  
+  void draw();
 };
 
 #endif

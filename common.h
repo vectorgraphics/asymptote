@@ -12,19 +12,12 @@
 #include <iostream>
 #include <climits>
 
-#ifdef __CYGWIN__
-#undef LONG_LONG_MAX
-#define LONG_LONG_MAX __LONG_LONG_MAX__
-#undef LONG_LONG_MIN
-#define LONG_LONG_MIN (-LONG_LONG_MAX-1)
-#endif
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #if !defined(FOR_SHARED) && \
-  ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLEW) && defined(HAVE_LIBGLM)) || defined(HAVE_LIBOSMESA))
+  ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)) || defined(HAVE_LIBOSMESA))
 #define HAVE_GL
 #endif
 
@@ -34,9 +27,9 @@
 
 #include "memory.h"
 
-#if defined(HAVE_LONG_LONG) && defined(LONG_LONG_MAX) && defined(LONG_LONG_MIN)
-#define Int_MAX2 LONG_LONG_MAX
-#define Int_MIN LONG_LONG_MIN
+#if defined(HAVE_LONG_LONG) && defined(LLONG_MAX) && defined(LLONG_MIN)
+#define Int_MAX2 LLONG_MAX
+#define Int_MIN LLONG_MIN
 typedef long long Int;
 typedef unsigned long long unsignedInt;
 #else

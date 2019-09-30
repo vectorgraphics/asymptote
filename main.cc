@@ -29,6 +29,8 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+#define GC_PTHREAD_SIGMASK_NEEDED
+
 #include "common.h"
 
 #ifdef HAVE_LIBSIGSEGV
@@ -70,7 +72,7 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGL
   if(gl::glthread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
@@ -175,10 +177,10 @@ void *asymain(void *A)
     int status;
     while(wait(&status) > 0);
   }
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGL
 #ifdef HAVE_PTHREAD
   if(gl::glthread && !getSetting<bool>("offscreen")) {
-    pthread_kill(gl::mainthread,SIGUSR2);
+    pthread_kill(gl::mainthread,SIGURG);
     pthread_join(gl::mainthread,NULL);
   }
 #endif
@@ -193,7 +195,6 @@ void exitHandler(int)
 
 int main(int argc, char *argv[])
 {
-    // cout << "hello?";
 #ifdef HAVE_LIBGSL
   unsetenv("GSL_RNG_SEED");
   unsetenv("GSL_RNG_TYPE");
@@ -207,7 +208,7 @@ int main(int argc, char *argv[])
   }
 
   Args args(argc,argv);
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGL
 #ifdef __APPLE__
   bool usethreads=true;
 #else
@@ -226,7 +227,7 @@ int main(int argc, char *argv[])
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
         while(true) {
-          Signal(SIGUSR2,exitHandler);
+          Signal(SIGURG,exitHandler);
           camp::glrenderWrapper();
           gl::initialize=true;
         }

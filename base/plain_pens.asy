@@ -321,7 +321,7 @@ pen rgba(real[] a)
   return rgb(a[0],a[1],a[2])+opacity(a[3]);
 }
 
-// Return a pen corresponding to a given 6-character RGB hexidecimal string.
+// Return a pen corresponding to a given 6-character RGB hexadecimal string.
 pen rgb(string s) 
 {
   int offset=substr(s,0,1) == '#' ? 1 : 0;

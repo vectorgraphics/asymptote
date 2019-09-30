@@ -17,6 +17,8 @@ pairarray* => pairArray()
 #ifdef __CYGWIN__
 extern "C" double yn(int, double);
 extern "C" double jn(int, double);
+extern "C" int __signgam;
+#define signgam __signgam
 #endif
 
 using namespace camp;
@@ -130,21 +132,16 @@ unsigned long long bitreverse64(unsigned long long a)
     ((unsigned long long) BitReverseTable8[(a >> 56)]);
 }
 
-// From Warren, Jr., Henry S. (2013) [2002]. Hacker's Delight (2 ed.).
-// Addison Wesley - Pearson Education, Inc. pp. 81-96. 
-Int popcount(Int a)
+// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+#define T unsignedInt
+Int popcount(T a)
 {
-  const uint64_t m1  = 0x5555555555555555; //binary: 0101...
-  const uint64_t m2  = 0x3333333333333333; //binary: 00110011..
-  const uint64_t m4  = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
-  const uint64_t h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
-
-// This algorithm uses 12 arithmetic operations, one of which is a multiply.
-  a -= (a >> 1) & m1;         //put count of each 2 bits into those 2 bits
-  a=(a & m2)+((a >> 2) & m2); //put count of each 4 bits into those 4 bits 
-  a=(a+(a >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
-  return (a * h01) >> 56;  //returns left 8 bits of a+(a << 8)+(a << 16)+(a << 24)+... 
+  a=a-((a >> 1) & (T)~(T)0/3);
+  a=(a & (T)~(T)0/15*3)+((a >> 2) & (T)~(T)0/15*3);
+  a=(a+(a >> 4)) & (T)~(T)0/255*15;
+return (T)(a*((T)~(T)0/255)) >> (sizeof(T)-1)*CHAR_BIT;
 }
+#undef T
 
 // Return the factorial of a non-negative integer using a lookup table.
 Int factorial(Int n)
@@ -413,7 +410,7 @@ Int NOT(Int a)
 Int CLZ(Int a) 
 {
   if((unsigned long long) a > 0xFFFFFFFF)
-    return CLZ((uint32_t) (a >> 32));
+    return CLZ((uint32_t) ((unsigned long long) a >> 32));
   else {
     int bits=intbits();
     if(a != 0) return bits-32+CLZ((uint32_t) a);

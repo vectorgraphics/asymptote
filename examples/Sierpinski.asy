@@ -14,4 +14,4 @@ void Sierpinski(pair A, real s, int q, bool top=true)
   }
 }
 
-Sierpinski((0,1),1,9);
+Sierpinski((0,1),1,5);

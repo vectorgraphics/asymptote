@@ -84,7 +84,7 @@ Installation
 Tutorial
 
 * Drawing in batch mode::       Run @code{Asymptote} on a text file
-* Drawing in interactive mode:: Running @code{Asymptote} interactively
+* Drawing in interactive mode::  Running @code{Asymptote} interactively
 * Figure size::                 Specifying the figure size
 * Labels::                      Adding @code{LaTeX} labels
 * Paths::                       Drawing lines and curves
@@ -221,6 +221,9 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 
 @item @code{LaTeX} typesetting of labels, for overall document consistency;
 
+@item the ability to generate and embed 3D vector @acronym{WebGL}
+graphics within @acronym{HTML} files;
+
 @item the ability to generate and embed 3D vector @acronym{PRC}
 graphics within @acronym{PDF} files;
 
@@ -254,7 +257,7 @@ Many of the features of @code{Asymptote} are written in the
 @code{Asymptote} language itself. While the stock version of
 @code{Asymptote} is designed for mathematics typesetting needs, one can
 write @code{Asymptote} modules that tailor it to specific
-applications. A scientific graphing module has already been written
+applications; for example, a scientific graphing module is available
 (@pxref{graph}). Examples of @code{Asymptote} code and output,
 including animations, are available at
 @quotation
@@ -382,7 +385,7 @@ The @code{ImageMagick} package from
 @url{http://www.imagemagick.org/script/binary-releases.php} 
 
 @noindent
-is required to support output formats other than @acronym{EPS},
+is required to support output formats other than @acronym{HTML},
 @acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
 The @code{Python 3} interpreter from @url{http://www.python.org} is only required
 if you wish to try out the graphical user interface (@pxref{GUI}).
@@ -396,15 +399,11 @@ subdirectory of the installation directory (by default,
 @section Configuring
 @cindex configuring
 @cindex @code{-V}
-@cindex @code{psviewer}
-@cindex @code{pdfviewer}
-@cindex @code{gs}
 In interactive mode, or when given the @code{-V} option (the default
 when running @code{Asymptote} on a single file under @code{MSDOS}),
 @code{Asymptote} will automatically invoke the @code{PostScript}
 viewer @code{gv} (under @code{UNIX}) or @code{gsview} (under
-@code{MSDOS} to display graphical output. These defaults may be
-overridden with the configuration variable @code{psviewer}. 
+@code{MSDOS} to display graphical output.
 The @code{PostScript} viewer should be capable of automatically
 redrawing whenever the output file is updated. The default @code{UNIX}
 @code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
@@ -418,40 +417,58 @@ Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
 @code{gsview} window; under @code{UNIX} one must manually redisplay by
 pressing the @code{r} key).
 
+@cindex @code{psviewer}
+@cindex @code{pdfviewer}
+@cindex @code{htmlviewer}
+@cindex @code{gs}
+@cindex @code{display}
+@cindex @code{animate}
 @cindex @code{settings}
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
 variables in an optional configuration file @code{config.asy}
 @pxref{configuration file}).
-Here are the default values of several important configuration
-variables under @code{UNIX}:
+For example, the setting @code{pdfviewer} specifies the location of
+the @acronym{PDF} viewer. Here are the default values of several
+important configuration variables under @code{UNIX}:
 
 @noindent
 @verbatim
 import settings;
-psviewer="gv";
 pdfviewer="acroread";
+htmlviewer="google-chrome";
+psviewer="gv";
+display="display";
+animate="animate";
 gs="gs";
+libgs="";
 @end verbatim
 
 @noindent
 @cindex @code{cmd}
-Under @code{MSDOS}, the (installation-dependent) default values of
-these configuration variables are determined automatically from the
-@code{Microsoft Windows} registry. Viewer settings (such as
-@code{psviewer} and @code{pdfviewer}) can be set to the string
-@code{cmd} to request the application normally associated with the
-corresponding file type.
+Under @code{MSDOS}, the viewer settings
+@code{htmlviewer}, @code{pdfviewer}, @code{psviewer},
+@code{display}, and @code{animate} default to the string @code{cmd},
+requesting the application normally associated with each file type.
+The (installation-dependent) default values of @code{gs}
+and @code{libgs} are determined automatically from the @code{Microsoft
+Windows} registry. The @code{gs} setting specifies the location of the
+@code{PostScript} processor @code{Ghostscript}, available from
+@url{https://www.ghostscript.com/}.
 
-For @acronym{PDF} format output, the @code{gs} setting specifies the
-location of the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
-available from @url{http://downloads.ghostscript.com/public}.
-
-The setting @code{pdfviewer} specifies the location of the @acronym{PDF}
-viewer. On @code{UNIX} systems, to support automatic document
-reloading in @code{Adobe Reader}, we recommend copying the file
-@code{reload.js} from the @code{Asymptote} system directory (by default,
-@code{@value{Datadir}/asymptote} under @code{UNIX} to
+@noindent
+@cindex @code{htmlviewer}
+The configuration variable @code{htmlviewer} specifies the 
+browser to use to display 3D @code{WebGL} output.
+The default setting is @code{google-chrome} under @code{UNIX} and
+@code{cmd} under @code{Microsoft Windows}. Note that @code{Internet Explorer}
+does not support @code{WebGL}; @code{Microsoft Windows} users should set their
+default html browser to @code{chrome} or @code{microsoft-edge}.
+ 
+On @code{UNIX} systems, to support automatic document
+reloading of @code{PDF} files in @code{Adobe Reader}, we recommend
+copying the file @code{reload.js} from the @code{Asymptote} system
+directory (by default, @code{@value{Datadir}/asymptote} under @code{UNIX} to
 @code{~/.adobe/Acrobat/x.x/JavaScripts/},
 where @code{x.x} represents the appropriate @code{Adobe Reader}
 version number. The automatic document reload feature must then be
@@ -485,22 +502,17 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 @cindex @code{texcommand}
 @cindex @code{dvips}
 @cindex @code{dvisvgm}
-@cindex @code{libgs}
 @cindex @code{convert}
-@cindex @code{display}
-@cindex @code{animate}
 @cindex @code{ImageMagick}
-The following configuration variables normally do not require adjustment:
+@cindex @code{asygl}
+These additional configuration variables normally do not require adjustment:
 @verbatim
 config
 texpath
 texcommand
 dvips
 dvisvgm
-libgs
 convert
-display
-animate
 @end verbatim
 @noindent
 
@@ -639,7 +651,7 @@ with @code{./configure --disable-gc}. For a list of other configuration
 options, say @code{./configure --help}. For example, one can tell
 configure to look for header files and libraries in nonstandard locations:
 @verbatim
-./configure CXXFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
+./configure CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
@@ -777,7 +789,7 @@ make uninstall
 
 @menu
 * Drawing in batch mode::       Run @code{Asymptote} on a text file
-* Drawing in interactive mode:: Running @code{Asymptote} interactively
+* Drawing in interactive mode::  Running @code{Asymptote} interactively
 * Figure size::                 Specifying the figure size
 * Labels::                      Adding @code{LaTeX} labels
 * Paths::                       Drawing lines and curves
@@ -1201,30 +1213,34 @@ To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
 dot having a diameter equal to an explicit pen line width or the
 default line width magnified by @code{dotfactor} (6 by default),
-using the specified filltype (@pxref{filltype}):
+using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
+(@code{Fill} by default):
 @verbatim
+void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
-         filltype filltype=Fill);
+         filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen, filltype filltype=Fill);
+         string format=defaultformat, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
          align align=NoAlign, string format=defaultformat, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype);
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
+         filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, Label L, pen p=currentpen,
-         filltype filltype=Fill);
+         filltype filltype=dotfilltype);
 @end verbatim
 
 @cindex @code{Label}
 If the variable @code{Label} is given as the @code{Label}
-argument to the second routine, the @code{format} argument will be
+argument to the third routine, the @code{format} argument will be
 used to format a string based on the dot location (here @code{defaultformat}
 is @code{"$%.4g$"}). 
-The third routine draws a dot at every point of a pair array @code{z}.
+The fourth routine draws a dot at every point of a pair array @code{z}.
 One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, Label[] L=new Label[],
-         path g, align align=RightSide, string format=defaultformat,
-         pen p=currentpen, filltype filltype=Fill);
+         explicit path g, align align=RightSide, string format=defaultformat,
+         pen p=currentpen, filltype filltype=dotfilltype);
 @end verbatim
 See @ref{pathmarkers} and @ref{markers} for more general
 methods for marking path nodes.
@@ -2179,9 +2195,9 @@ used to typeset scientific notation using the
 @code{defaultseparator="\!\times\!";};
 
 @cindex @code{hex}
-@cindex @code{hexidecimal}
+@cindex @code{hexadecimal}
 @item int hex(string s);
-casts a hexidecimal string @code{s} to an integer;
+casts a hexadecimal string @code{s} to an integer;
 
 @cindex @code{ascii}
 @cindex @code{ascii}
@@ -2848,15 +2864,15 @@ arguments to the respective color spaces.
 The function @code{colorless(pen=currentpen)} returns a copy of its argument
 with the color attributes stripped (to avoid color mixing).
 
-A 6-character RGB hexidecimal string can be converted to a pen with
+A 6-character RGB hexadecimal string can be converted to a pen with
 the routine
 @cindex @code{rgb}
-@cindex @code{hexidecimal}
+@cindex @code{hexadecimal}
 @verbatim
 pen rgb(string s);
 @end verbatim
 @noindent
-A pen can be converted to a hexidecimal string with
+A pen can be converted to a hexadecimal string with
 @cindex @code{hex}
 @item string hex(pen p);
 
@@ -4380,7 +4396,7 @@ type of the result:
 addition
 @cindex @code{-}
 @item -
-subtractiona
+subtraction
 @cindex @code{*}
 @item *
 multiplication
@@ -5581,7 +5597,7 @@ real[] A=fin;
 Another useful mode is comma-separated-value mode,
 @code{file csv(bool b=true)}, which causes reads to respect comma delimiters:
 @verbatim
-file fin=csv(input("test.txt"));
+file fin=input("test.txt").csv();
 real[] A=fin;
 @end verbatim
 
@@ -5590,7 +5606,7 @@ To restrict the number of values read, use the @code{file dimension(int)}
 function: 
 @verbatim
 file fin=input("test.txt");
-real[] A=dimension(fin,10);
+real[] A=fin.dimension(10);
 @end verbatim
 
 This reads 10 values into A, unless end-of-file (or end-of-line in line mode)
@@ -7784,7 +7800,7 @@ patches in the @acronym{PRC} model tree.
 Here material is a structure defined in @code{three_light.asy}:
 @verbatim
 struct material {
-  pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
+  pen[] p; // diffusepen,emissivepen,specularpen
   real opacity;
   real shininess;  
 ...
@@ -7859,14 +7875,16 @@ normals or vertex colors:
 @cindex @code{tessellation}
 @verbatim
 void draw(picture pic=currentpicture, triple[] v, int[][] vi,
-          triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
-          int[][] pi={}, light light=currentlight);
+          triple[] n={}, int[][] ni=vi, material m=currentpen, pen[] p={},
+          int[][] pi=vi, light light=currentlight);
 @end verbatim
-Here, the triple array @code{v} lists the distinct vertices, while
-the array @code{vi} lists integer arrays of length 3 containing
-the indices of @code{v} corresponding to the vertices of each
+Here, the triple array @code{v} lists the (typically distinct) vertices, while
+the array @code{vi} contains integer arrays of length 3 containing
+the indices of the elements in @code{v} that form the vertices of each
 triangle. Similarly, the arguments @code{n} and @code{ni} contain
-optional normal data and @code{p} and @code{pi} contain optional pen vertex data.
+optional normal data and @code{p} and @code{pi} contain optional pen
+vertex data. If more than one normal or pen is specified for a vertex, the
+last one specified is used.
 An example of this tessellation facility is given in @code{@uref{http://asymptote.sourceforge.net/gallery/triangles.pdf,,triangles}@uref{http://asymptote.sourceforge.net/gallery/triangles.asy,,.asy}}.
 
 @cindex @code{thin}
@@ -7893,18 +7911,17 @@ parameter or the setting @code{thin} is set to @code{false}. The pens
 also be used to override these defaults for specific draw commands. 
 
 @noindent
-There are four choices for viewing 3D @code{Asymptote} output: 
+There are five choices for viewing 3D @code{Asymptote} output: 
 @enumerate
+
 @cindex @code{OpenGL}
 @cindex @code{render}
 @cindex @code{outformat}
 @cindex @code{multisample}
 @item Use the native @code{Asymptote} adaptive @code{OpenGL}-based
 renderer (with the command-line option @code{-V} and the default settings
-@code{outformat=""} and @code{render=-1}). If you encounter warnings
-from your graphics card driver, try specifying @code{-glOptions=-indirect}
-on the command line. On @code{UNIX} systems with graphics support for
-multisampling, the sample width can be
+@code{outformat=""} and @code{render=-1}). On @code{UNIX} systems with
+graphics support for multisampling, the sample width can be
 controlled with the setting @code{multisample}. An initial screen
 position can be specified with the pair setting @code{position}, where
 negative values are interpreted as relative to the corresponding
@@ -7941,7 +7958,7 @@ The keyboard shortcuts are:
 @item y: spin about the Y axis
 @item z: spin about the Z axis
 @item s: stop spinning
-@item m: rendering mode (solid/mesh/patch)
+@item m: rendering mode (solid/patch/mesh)
 @item e: export
 @item c: show camera parameters
 @item p: play animation
@@ -7956,6 +7973,40 @@ The keyboard shortcuts are:
 @item q: exit
 @item Ctrl-q: exit
 @end itemize
+
+@cindex @code{WebGL}
+@cindex @code{HTML5}
+@cindex @code{mobile browser}
+@item Generate @code{WebGL} interactive vector graphics
+output with the the command-line option and @code{-f html}
+(or the setting @code{outformat="html"}). The resulting 
+3D @acronym{HTML} file can then be viewed directly in any modern desktop or
+mobile browser, or even embedded within another web page:
+@verbatim
+<div>
+<object data="logo3.html"
+        style="width:210;height:140;position:relative;top:0;left:0;">
+</object>
+</div>
+@end verbatim
+
+Normally, @code{WebGL} files generated by @code{Asymptote} are
+dynamically remeshed to fit the browser window dimensions.
+However, the setting @code{absolute=true} can be used to force the image to be
+rendered at its designed size (accounting for multiple device pixels
+per @code{css} pixel). This setting should not be used when
+embedding a @code{WebGL} file within another @acronym{HTML} document.
+
+The interactive @code{WebGL} files produced by @code{Asymptote} use the
+default mouse and (many of the same) key bindings as the @code{OpenGL}
+renderer.
+
+By default, viewing the 3D @acronym{HTML} files generated by Asymptote requires
+network access to download the @code{asygl} rendering library, which
+is normally cached by the browser for future use.
+However, the setting @code{offline=true} can be used to embed this
+small (about 42kB) library within a stand-alone @acronym{HTML} file
+that can be viewed offline.
 
 @cindex @code{antialias}
 @cindex @code{maxviewport}
@@ -7981,8 +8032,6 @@ setting @code{maxviewport}, which restricts the maximum width and
 height of the viewport. On @code{UNIX} systems some graphics
 drivers support batch mode (@code{-noV}) rendering in an
 iconified window; this can be enabled with the setting @code{iconify=true}.
-Some (broken) @code{UNIX} graphics drivers may require the command line setting
-@code{-glOptions=-indirect}, which requests (slower) indirect rendering.
 
 @cindex @code{prc}
 @cindex @code{views}
@@ -8029,7 +8078,7 @@ void size3(picture pic=currentpicture, real x, real y=x, real z=y,
 @cindex margins
 @cindex @code{viewportmargin}
 @cindex @code{viewportsize}
-The resulting simplex linear programming problem is then solved to
+A simplex linear programming problem is then solved to
 produce a 3D version of a frame (actually implemented as a 3D picture). 
 The result is then fit with another application of deferred drawing
 to the viewport dimensions corresponding to the usual two-dimensional
@@ -9223,6 +9272,7 @@ variables may also be changed at runtime.
 @cindex @code{hyperrefOptions}
 @cindex @code{convertOptions}
 @cindex @code{gsOptions}
+@cindex @code{htmlviewerOptions}
 @cindex @code{psviewerOptions}
 @cindex @code{pdfviewerOptions}
 @cindex @code{pdfreloadOptions}
@@ -9230,7 +9280,8 @@ variables may also be changed at runtime.
 @cindex @code{dvisvgmOptions}
 The advanced configuration variables @code{dvipsOptions},
 @code{hyperrefOptions}, @code{convertOptions}, @code{gsOptions},
-@code{psviewerOptions}, @code{pdfviewerOptions}, @code{pdfreloadOptions},
+@code{htmlviewerOptions}, @code{psviewerOptions},
+@code{pdfviewerOptions}, @code{pdfreloadOptions},
 @code{glOptions}, and @code{dvisvgmOptions} allow specialized options
 to be passed as a string to the respective applications or
 libraries. The default value of @code{hyperrefOptions} is
@@ -9506,9 +9557,10 @@ pip3 install cson numpy pyqt5 PyQt5.sip
 @end verbatim
 
 Pictures are deconstructed into the @acronym{SVG} image format.
-Since @code{Qt5} does not suport @code{SVG} clipping, you will need
+Since @code{Qt5} does not support @code{SVG} clipping, you will need
 the @code{rsvg-convert} utility, which is part of the
-@code{librsvg2-tools} package on @code{UNIX} systems; under
+@code{librsvg2-tools} package on @code{UNIX} systems
+and the @code{librsvg} package on @code{MacOS}; under
 @code{Microsoft Windows}, it is available as
 
 @url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
@@ -9873,7 +9925,7 @@ Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 @c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals xml
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
-@c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb keyval
+@c  LocalWords:  diffusepen emissivepen specularpen arrowbarb keyval
 @c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin cmd
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate
@@ -9881,7 +9933,7 @@ Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
+@c  LocalWords:  nonintegral gettriple enablerepo hexadecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
 @c  LocalWords:  subregions nonsimply functionshade shader floatingdisk TopView
 @c  LocalWords:  functionshading maxlength LeftView odetest RadialShadeDraw CLZ
@@ -9940,10 +9992,21 @@ Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 @c  LocalWords:  5unit 144x144 aligndir smoothcontour3 's 3D 2D cmake
 @c  LocalWords:  'load 'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t nan 3x
 @c  LocalWords:  12pt 5mm 25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai
-@c  LocalWords:  Ai Ai Ai Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y nz
+@c  LocalWords:  Ai Ai Ai Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y nz '
 @c  LocalWords:  5unit Staats implicitsurface overlapedges maxdepth
 @c  LocalWords:  through'' genustwo 144x144 0pt 1filll 's 3D 2D 'load
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t 12pt 5mm 3x
 @c  LocalWords:  25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai
 @c  LocalWords:  Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y 5unit 144x144
-@c  LocalWords:  Frohlich
+@c  LocalWords:  Frohlich codequoteundirected center 0pt 1filll 's 3D
+@c  LocalWords:  acknowledgments Colors 2D Color WebGL uref x86 dnf
+@c  LocalWords:  htmlviewer asygl CPPFLAGS 'load 'asy 'lasy 'auto 5bp
+@c  LocalWords:  1cm labeling dotfilltype 4g color colors centered 2S
+@c  LocalWords:  100pt 3t forcemath gray colorless miter 12pt 5mm 3x
+@c  LocalWords:  zeroTransform 25cm Python3 popcount bitreverse 5x 3y
+@c  LocalWords:  602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai
+@c  LocalWords:  Ai findall ax 5a centers 5E 5cm 2N 2E 2n HTML5 html
+@c  LocalWords:  logo3 remeshed css 42kB 100d 5z 5y 5unit colored Qt5
+@c  LocalWords:  behavior beveled usetriangles htmlviewerOptions cson
+@c  LocalWords:  144x144 pyqt5 numpy pip3 PyQt5 rsvg librsvg2
+@c  LocalWords:  librsvg Supakorn Jamie'' Rassameemasmuang

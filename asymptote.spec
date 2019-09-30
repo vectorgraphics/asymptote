@@ -3,7 +3,7 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        2.48
+Version:        2.54
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -18,6 +18,7 @@ BuildRequires:  readline-devel
 BuildRequires:  fftw-devel >= 3.0
 BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
+BuildRequires:  glm-devel
 BuildRequires:  tetex-latex
 BuildRequires:  ghostscript >= 9.14
 BuildRequires:  texinfo >= 4.7
@@ -26,7 +27,6 @@ BuildRequires:  ImageMagick
 Requires:       tetex-latex
 Requires:       tkinter
 Requires:       freeglut-devel >= 3.0.0
-Requires:       glew-devel
 Requires(post): /usr/bin/texhash /sbin/install-info
 Requires(postun): /usr/bin/texhash /sbin/install-info
 

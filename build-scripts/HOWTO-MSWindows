@@ -4,31 +4,11 @@ First run build-asymptote on Linux. This will build the documentation
 and source tar ball and copy them to a directory ~/shared which needs to be
 shared via virtualbox to the cygwin build environment.
 
-Install TeXLive and these Cygwin packages:
+Install TeXLive and required Cygwin packages:
 
-git
-wget
-make
-patch
-gcc-g++
-autoconf2.5
-bison
-flex
-w32api-headers
-w32api-runtime
-zlib-devel
-libtirpc-devel (SRC)
-libreadline-devel (SRC)
-libfftw3-devel (SRC)
-libgsl-devel (SRC)
-libGLEW-devel (SRC)
-glm-devel
-automake1.15
-libtool
+setup-x86_64.exe -q -P git,wget,make,patch,gcc-g++,autoconf2.5,bison,flex,w32api-headers,w32api-runtime,zlib-devel,glm-devel,automake1.15,libtool
 
-mv /usr/include/GL /usr/include/GL.orig
-
-Install these cygwin packages:
+setup-x86_64.exe -q -I -P libtirpc-devel,libreadline-devel,libfftw3-devel,libgsl-devel
 
 Build and install static libraries from /usr/local/src:
 
@@ -55,11 +35,6 @@ termcap-1.3.1:
 ./configure --prefix=/usr
 make install
 
-glew-2.1.0:
-make CFLAGS=-D_WIN32 glew.lib.static
-make install
-cp lib/libGLEW.a /usr/lib
-
 git clone http://github.com/vectorgraphics/asymptote
 
 freeglut-3.0.0:
@@ -75,12 +50,14 @@ cp /usr/bin/cygwin1.dll ~/dll/cygwin
 mkdir ~/CTAN
 cp -a ~/asymptote/build-scripts/README-binaries ~/CTAN
 
+cd ~/
 GCVERSION=7.6.2
+ATOMICVERSION=7.6.10
 wget http://hboehm.info/gc/gc_source/gc-$GCVERSION.tar.gz
-wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$GCVERSION.tar.gz
+wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
 tar -zxf gc-$GCVERSION.tar.gz
-tar -zxf libatomic_ops-$GCVERSION.tar.gz
-mv libatomic_ops-$GCVERSION gc-$GCVERSION/libatomic_ops
+tar -zxf libatomic_ops-$ATOMICVERSION.tar.gz
+mv libatomic_ops-$ATOMICVERSION gc-$GCVERSION/libatomic_ops
 cd gc-$GCVERSION
 ./configure --disable-shared
 make check

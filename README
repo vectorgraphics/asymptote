@@ -47,6 +47,8 @@ the GNU Scientific Library, GNU Readline library, and other GPL
 libraries. This version of Asymptote also ships with the cygwin1.dll libraries
 noted below.
 
+========================================================================
+
 Source code for the x86_64 and i386 3.0.4 cygwin1.dll libraries is
 available under the GPL license:
 https://cygwin.com/snapshots/
@@ -58,4 +60,3 @@ under the CC-BY-SA 4.0 license:
 http://www.entypo.com/
 and under a CC license:
 http://www.zondicons.com/zondicons.zip
- 

@@ -87,16 +87,16 @@ public:
                const string& format, bool wait=false, bool view=true);
  
   void render(double size2, const triple &Min, const triple& Max,
-              double perspective, bool transparent) const;
+              double perspective, bool remesh) const;
   bool shipout3(const string& prefix, const string& format,
                 double width, double height, double angle, double zoom,
-                const triple& m, const triple& M, const pair& shift, double *t,
+                const triple& m, const triple& M, const pair& shift,
+                const pair& margin, double *t,
                 double *background, size_t nlights, triple *lights,
-                double *diffuse, double *ambient, double *specular,
-                bool view);
+                double *diffuse, double *specular, bool view);
   
-  // PRC output
-  bool shipout3(const string& prefix);
+  // 3D output
+  bool shipout3(const string& prefix, const string format);
   
   bool reloadPDF(const string& Viewer, const string& outname) const;
   

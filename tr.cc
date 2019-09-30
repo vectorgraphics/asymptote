@@ -44,21 +44,16 @@
 
 #include "common.h"
 
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGL
 
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "tr.h"
 #ifdef WIN32
 #include <windows.h>
 #endif
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-#include "tr.h"
 
 #define DEFAULT_TILE_WIDTH  256
 #define DEFAULT_TILE_HEIGHT 256
@@ -307,7 +302,6 @@ void trPerspective(TRcontext *tr,
 
 void trBeginTile(TRcontext *tr)
 {
-   GLint matrixMode;
    GLint tileWidth, tileHeight, border;
    GLdouble left, right, bottom, top;
 
@@ -355,11 +349,6 @@ void trBeginTile(TRcontext *tr)
 
    glViewport(0, 0, tileWidth, tileHeight);  /* tile size including border */
 
-   /* save current matrix mode */
-   glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-
    /* compute projection parameters */
    left = tr->Left + (tr->Right - tr->Left)
         * (tr->CurrentColumn * tr->TileWidthNB - border) / tr->ImageWidth;
@@ -372,9 +361,6 @@ void trBeginTile(TRcontext *tr)
       frustum(left, right, bottom, top, tr->Near, tr->Far);
    else
       ortho(left, right, bottom, top, tr->Near, tr->Far);
-
-   /* restore user's matrix mode */
-   glMatrixMode(matrixMode);
 }
 
 

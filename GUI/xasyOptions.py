@@ -33,7 +33,7 @@ except ModuleNotFoundError:
 class xasyOptions:
     def defaultOptions(self):
         if self._defaultOptions is None:
-            f = io.open(self._defualtOptLocation)
+            f = io.open(self._defaultOptLocation)
             try:
                 opt = cson.loads(f.read())
             finally:
@@ -75,10 +75,11 @@ class xasyOptions:
         self.defaultConfigName = defaultConfigLocation
 
         self._defaultOptions = None
-        self._defualtOptLocation = os.path.join(defaultConfigLocation)
+        self._defaultOptLocation = os.path.join(defaultConfigLocation)
 
         self.options = self.defaultOptions()
         self.load()
+        self.overrideSettings()
 
     def __getitem__(self, item):
         return self.options[item]
@@ -128,7 +129,7 @@ class xasyOptions:
             pass
         folder = os.path.expanduser("~/.asy/")
         defaultPath = os.path.join(folder, self.configName + '.cson')
-        shutil.copy2(self._defualtOptLocation, defaultPath)
+        shutil.copy2(self._defaultOptLocation, defaultPath)
         
 
 # TODO: Figure out how to merge this back.

@@ -18,7 +18,7 @@ real x2=1.7787;
 real x3=1.8043;
 
 path[] p={graph(F,x1,x2,Spline),
-          graph(F,0.7,x1,Spline)--graph(F,x2,x3,Spline),
+          graph(F,0.7,x1,Spline)--graph(F,x2,x3,Spline)&cycle,
           graph(F,0,0.7,Spline)--graph(F,x3,2,Spline)};
 
 pen[] pn=new pen[] {color1,color2,color1};
