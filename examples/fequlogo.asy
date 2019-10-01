@@ -14,7 +14,7 @@ texpreamble("\usepackage{ccfonts,eulervm}");
 
 currentprojection=perspective(4,1,2);
 currentlight=(4,0,2);
-currentlight.background=blue;
+currentlight.background=blue+opacity(0.1);
 
 real R=4;
 
@@ -35,6 +35,6 @@ draw(surface(rotate(0)*xscale(-0.45)*yscale(0.3)*hi,s,0.8*pi,0.25,h),blue);
 
 add(new void(frame f, transform3 t, picture pic, projection P) {
     draw(f,surface(invert(box(min(f,P),max(f,P)),min3(f),P),
-                   new pen[] {orange,red,yellow,brown}));
+                   new pen[] {orange,red,yellow,brown}+opacity(0.75)));
   }
 );

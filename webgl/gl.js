@@ -154,7 +154,7 @@ class Light {
 
 function initGL() {
   try {
-    gl=canvas.getContext("webgl",{alpha:false}); // Don't composite background
+    gl=canvas.getContext("webgl",{alpha:Background[3] < 1});
   } catch(e) {}
   if (!gl)
     alert("Could not initialize WebGL");
