@@ -305,7 +305,7 @@ bool Xspin,Yspin,Zspin;
 bool Animate;
 bool Step;
 
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_GL
 void idle() 
 {
   glutIdleFunc(NULL);

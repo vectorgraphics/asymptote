@@ -2,16 +2,10 @@
 #define JSFILE_H
 
 #include <fstream>
-#include <glm/glm.hpp>
-
 #include "common.h"
 #include "triple.h"
 #include "locate.h"
 #include "prcfile.h"
-
-namespace gl {
-extern glm::mat4 projViewMat;
-}
 
 namespace camp {
 

@@ -13,7 +13,7 @@ namespace camp {
 using ::orient2d;
 using ::orient3d;
 
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 
 int MaterialIndex;
 

@@ -10,7 +10,7 @@
 
 namespace camp {
 
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 
 void BezierCurve::init(double res)
 {
