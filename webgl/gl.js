@@ -56,6 +56,7 @@ let P=[]; // Array of Bezier patches, triangles, curves, and pixels
 let Materials=[]; // Array of materials
 let Lights=[]; // Array of lights
 let Centers=[]; // Array of billboard centers
+let Background=[1,1,1,1]; // Background color
 
 // Don't account for device pixels when embedding in another html document
 let absolute=false;
@@ -1897,7 +1898,7 @@ function transformVertices(vertices)
 
 function draw()
 {
-  gl.clearColor(1,1,1,1);
+  gl.clearColor(Background[0],Background[1],Background[2],Background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   material0Data.clear();

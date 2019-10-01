@@ -73,10 +73,14 @@ void jsfile::open(string name) {
     size_t i4=4*i;
     out << "new Light(" << newl
         << "direction=" << gl::Lights[i] << "," << newl 
-        << "color=[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1]
-        << "," << gl::Diffuse[i4+2] << "])," << newl;
+        << "color=[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
+        << gl::Diffuse[i4+2] << "])," << newl;
   }
   out << "];" << newl << newl;
+  out << "Background=[" << gl::Background[0] << "," << gl::Background[1] << ","
+      << gl::Background[2] << "," << gl::Background[3] << "];"
+      << newl;
+
   size_t nmaterials=material.size();
   out << "Materials=[";
   for(size_t i=0; i < nmaterials; ++i)

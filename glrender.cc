@@ -162,7 +162,7 @@ static const double pi=acos(-1.0);
 static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
-double Background[4];
+double *Background;
 size_t Nlights=1; // Maximum number of lights compiled in shader
 size_t nlights; // Actual number of lights
 size_t nlights0;
@@ -1513,6 +1513,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Oldpid=oldpid;
   Shift=shift;
   Margin=margin;
+  Background=background;
   
   Xmin=m.getx();
   Xmax=M.getx();
@@ -1616,8 +1617,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef HAVE_GL    
     for(int i=0; i < 16; ++i)
       T[i]=t[i];
-    for(int i=0; i < 4; ++i)
-      Background[i]=background[i];
   
     remesh=true;
     Aspect=((double) Width)/Height;
