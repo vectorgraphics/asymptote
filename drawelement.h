@@ -79,18 +79,6 @@ public:
     return false;
   }
   
-// Returns true iff the point z lies in the region bounded by b.
-  bool inside(const pair& z) const {
-    bool c=false;
-    for(Int i=0; i < 3; ++i) {
-      pair pi=p[i];
-      pair pj=p[i < 3 ? i+1 : 0];
-      if(((pi.y <= z.y && z.y < pj.y) || (pj.y <= z.y && z.y < pi.y)) &&
-         z.x < pi.x+(pj.x-pi.x)*(z.y-pi.y)/(pj.y-pi.y)) c=!c;
-    }
-    return c;
-  }
-  
   double xmax() {
     return max(max(max(p[0].x,p[1].x),p[2].x),p[3].x);
   }
