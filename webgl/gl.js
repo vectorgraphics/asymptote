@@ -1588,10 +1588,10 @@ function pinchDistance(touches)
 
 let touchStartTime;
 
-function handleTouchStart(evt)
+function handleTouchStart(event)
 {
-  evt.preventDefault();
-  let touches=evt.targetTouches;
+  event.preventDefault();
+  let touches=event.targetTouches;
   swipe=rotate=pinch=false;
   if(zooming) return;
 
@@ -1786,6 +1786,8 @@ function handleKey(event)
 
 function handleMouseWheel(event)
 {
+  event.preventDefault();
+  
   if (event.deltaY < 0) {
     Zoom *= zoomFactor;
   } else {
@@ -1824,11 +1826,11 @@ let zooming=false;
 let swipe=false;
 let rotate=false;
 
-function handleTouchMove(evt)
+function handleTouchMove(event)
 {
-  evt.preventDefault();
+  event.preventDefault();
   if(zooming) return;
-  let touches=evt.targetTouches;
+  let touches=event.targetTouches;
 
   if(!pinch && touches.length == 1 && touchId == touches[0].identifier) {
     let newX=touches[0].pageX;
@@ -2128,8 +2130,8 @@ function webGLStart()
   document.onmouseup=handleMouseUpOrTouchEnd;
   document.onmousemove=handleMouseMove;
   canvas.onkeydown=handleKey;
-  document.onwheel=handleMouseWheel;
 
+  canvas.addEventListener("wheel",handleMouseWheel,false);
   canvas.addEventListener("touchstart",handleTouchStart,false);
   canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
