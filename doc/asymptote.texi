@@ -7859,7 +7859,7 @@ light nolight;
 The @code{background} pen can be use to set the 3D @code{OpenGL}
 background colour (the default is white). In the case of
 3D @code{WebGL} images one can request a completely transparent background with
-@code{currentlight.background=opacity(0.0);}
+@code{currentlight.background=black+opacity(0.0);}
 
 Sample Bezier surfaces are
 contained in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/BezierSurface.pdf,,BezierSurface}@uref{http://asymptote.sourceforge.net/gallery/BezierSurface.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/teapot.pdf,,teapot}@uref{http://asymptote.sourceforge.net/gallery/teapot.asy,,.asy}},
