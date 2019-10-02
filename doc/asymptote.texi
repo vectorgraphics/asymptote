@@ -7798,17 +7798,70 @@ for drawing optional mesh lines for each Bezier patch. The optional
 @code{name} parameter is used as a prefix for naming the surface
 patches in the @acronym{PRC} model tree.
 Here material is a structure defined in @code{three_light.asy}:
+@cindex @code{material}
+@cindex @code{diffusepen}
+@cindex @code{emissivepen}
+@cindex @code{specularpen}
+@cindex @code{opacity}
+@cindex @code{shininess}
+@cindex @code{metallic}
+@cindex @code{freshnel0}
 @verbatim
 struct material {
   pen[] p; // diffusepen,emissivepen,specularpen
   real opacity;
   real shininess;  
-...
+  real metallic;
+  real fresnel0;
 }
 @end verbatim
 @noindent
-These material properties are used to implement @code{OpenGL}-style lighting,
-based on the Phong-Blinn specular model. Sample Bezier surfaces are
+@cindex @code{PBR}
+@cindex @code{physically based rendering}
+These material properties are used to implement physically based
+rendering (PBR) using light properties defined in @code{plain_prethree.asy}
+and @code{three_light.asy}:
+@cindex @code{light}
+@cindex @code{diffuse}
+@cindex @code{specular}
+@cindex @code{background}
+@cindex @code{specularfactor}
+@cindex @code{position}
+@cindex @code{currentlight}
+@cindex @code{Viewport}
+@cindex @code{White}
+@cindex @code{Headlamp}
+@cindex @code{nolight}
+@verbatim
+struct light {
+  real[][] diffuse;
+  real[][] specular;
+  pen background=nullpen; // Background color of the 3D canvas.
+  real specularfactor;
+  triple[] position; // Only directional lights are currently implemented.
+}
+
+light Viewport=light(specularfactor=3,(0.25,-0.25,1));
+
+light White=light(new pen[] {rgb(0.38,0.38,0.45),rgb(0.6,0.6,0.67),
+                             rgb(0.5,0.5,0.57)},specularfactor=3,
+  new triple[] {(-2,-1.5,-0.5),(2,1.1,-2.5),(-0.5,0,2)});
+
+light Headlamp=light(gray(0.8),specular=gray(0.7),
+                     specularfactor=3,dir(42,48));
+
+currentlight=Headlamp;
+
+light nolight;
+@end verbatim
+@cindex @code{background}
+@cindex @code{transparent}
+The @code{background} pen can be use to set the 3D @code{OpenGL}
+background colour (the default is white). In the case of
+3D @code{WebGL} images one can request a completely transparent background with
+@code{currentlight.background=opacity(0.0);}
+
+Sample Bezier surfaces are
 contained in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/BezierSurface.pdf,,BezierSurface}@uref{http://asymptote.sourceforge.net/gallery/BezierSurface.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/teapot.pdf,,teapot}@uref{http://asymptote.sourceforge.net/gallery/teapot.asy,,.asy}},
 and @code{@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.pdf,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.asy,,.asy}}. The structure @code{render} contains
 specialized rendering options documented at the beginning of module 
@@ -9918,7 +9971,7 @@ Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 @c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb TEXMFCONFIG Jn
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile Yn
-@c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
+@c  LocalWords:  pdfreloadOptions deferred OpenGL renderer unitbox
 @c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
 @c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
 @c  LocalWords:  DPostScript YZZero externalprc nonrendered nosafe KDE
