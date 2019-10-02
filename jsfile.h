@@ -23,7 +23,7 @@ public:
   void addIndices(const uint32_t *I); 
     
   void addPatch(const triple* controls, size_t n, const triple& Min,
-                const triple& Max, const prc::RGBAColour *colors);
+                const triple& Max, const prc::RGBAColour *colors, size_t nc);
   
   void addCurve(const triple& z0, const triple& c0,
                 const triple& c1, const triple& z1,

@@ -245,9 +245,9 @@ bool drawBezierPatch::write(jsfile *out)
   
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
-    out->addPatch(Controls,4,Min,Max,colors);
+    out->addPatch(Controls,4,Min,Max,colors,4);
   } else
-    out->addPatch(controls,16,Min,Max,colors);
+    out->addPatch(controls,16,Min,Max,colors,4);
                     
 #endif  
   return true;
@@ -476,9 +476,9 @@ bool drawBezierTriangle::write(jsfile *out)
   
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
-    out->addPatch(Controls,3,Min,Max,colors);
+    out->addPatch(Controls,3,Min,Max,colors,3);
   } else
-    out->addPatch(controls,10,Min,Max,colors);
+    out->addPatch(controls,10,Min,Max,colors,3);
                     
 #endif  
   return true;

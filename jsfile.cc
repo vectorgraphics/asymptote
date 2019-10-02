@@ -119,7 +119,7 @@ bool distinct(const uint32_t *I, const uint32_t *J)
 
 void jsfile::addPatch(triple const* controls, size_t n,
                       const triple& Min, const triple& Max,
-                      const prc::RGBAColour *c)
+                      const prc::RGBAColour *c, size_t nc)
 {
   out << "P.push(new BezierPatch([" << newl;
   size_t last=n-1;
@@ -130,7 +130,7 @@ void jsfile::addPatch(triple const* controls, size_t n,
       << Min << "," << Max;
   if(c) {
     out << ",[" << newl;
-    for(int i=0; i < 4; ++i) {
+    for(size_t i=0; i < nc; ++i) {
       addColor(c[i]);
       out << "," << newl;
     }
