@@ -1,5 +1,4 @@
 #!/bin/sh -x
-# Usage: build-asymptote [suffix]
 
 HOME=~bowman
 SHARED=$HOME/shared/asy
@@ -26,9 +25,7 @@ cat configure.ac | sed -e "s/$VERSIONgit/$VERSION/" > configure.ac_
 mv configure.ac_ configure.ac
 cat $ASYMPTOTE/asymptote.spec | sed -e "s|Version:.*|Version:        $VERSION|" > asymptote.spec
 SRC=asymptote-$VERSION.src.tgz
-if [ $# == 0 ]; then
-  cp asymptote.spec $ASYMPTOTE
-fi
+cp asymptote.spec $ASYMPTOTE
 cd $BUILD
 rm -rf asymptote-$VERSION
 rm -rf $BUILD/$BINDIR
