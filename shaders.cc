@@ -92,7 +92,7 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
     shaderSrc << "#define " << defineflags[i] << "\n";
   }
 
-  shaderSrc << "const int Nlights=" << Nlights << ";\n";
+  shaderSrc << "#define Nlights " << Nlights << "\n";
   shaderSrc << "const int Nmaterials=" << Nmaterials << ";\n";
 
   if(shaderFile) {

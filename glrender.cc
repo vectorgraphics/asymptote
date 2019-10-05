@@ -420,6 +420,60 @@ void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 }
 #endif
 
+void initshaders()
+{
+  Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
+
+  Nmaterials=max(Nmaterials,nmaterials);
+  shaderProg=glCreateProgram();
+  string vs=locateFile("shaders/vertex.glsl");
+  string fs=locateFile("shaders/fragment.glsl");
+  if(vs.empty() || fs.empty()) {
+    cerr << "GLSL shaders not found." << endl;
+    exit(-1);
+  }
+
+  std::vector<std::string> shaderParams;
+
+#if HAVE_LIBOPENIMAGEIO
+  if (getSetting<bool>("envmap")) {
+    shaderParams.push_back("ENABLE_TEXTURE");
+    envMapBuf=initHDR();
+  }
+#endif
+
+  std::vector<ShaderfileModePair> shaders;
+  shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
+  shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
+  if(orthographic)
+    shaderParams.push_back("ORTHOGRAPHIC");
+    
+  shaderParams.push_back("WIDTH");
+  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                         shaderParams);
+  shaderParams.pop_back();
+  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                            shaderParams);
+  shaderParams.push_back("NORMAL");
+  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                            shaderParams);
+  shaderParams.push_back("COLOR");
+  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                         shaderParams);
+  shaderParams.push_back("TRANSPARENT");
+  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                               shaderParams);
+}
+
+void deleteshaders() 
+{
+  glDeleteProgram(camp::transparentShader);
+  glDeleteProgram(camp::colorShader);
+  glDeleteProgram(camp::materialShader);
+  glDeleteProgram(camp::pixelShader);
+  glDeleteProgram(camp::noNormalShader);
+}
+
 void drawscene(int Width, int Height)
 {
 #ifdef HAVE_PTHREAD
@@ -430,6 +484,13 @@ void drawscene(int Width, int Height)
     first=false;
   }
 #endif
+
+  if((nlights == 0 && Nlights > 0) || nlights > Nlights || 
+     nmaterials > Nmaterials) {
+    deleteshaders();
+    initshaders();
+    lastshader=-1;
+  }
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -752,9 +813,6 @@ void display()
     if(!Animate) screen();
     queueScreen=false;
   }
-
-  maxvertices=getSetting<Int>("maxvertices");
-  if(maxvertices == 0) maxvertices=Maxvertices;
 
   bool fps=settings::verbose > 2;  
   drawscene(Width,Height);
@@ -1386,6 +1444,9 @@ void init()
   glutInit(&argc,argv);
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
+  
+  maxvertices=getSetting<Int>("maxvertices");
+  if(maxvertices == 0) maxvertices=Maxvertices;
 #endif
 }
 
@@ -1427,58 +1488,6 @@ void init_osmesa()
     exit(-1);
   }
 #endif // HAVE_LIBOSMESA
-}
-void initshader()
-{
-  Nlights=max(Nlights,nlights);
-  Nmaterials=max(Nmaterials,nmaterials);
-  shaderProg=glCreateProgram();
-  string vs=locateFile("shaders/vertex.glsl");
-  string fs=locateFile("shaders/fragment.glsl");
-  if(vs.empty() || fs.empty()) {
-    cerr << "GLSL shaders not found." << endl;
-    exit(-1);
-  }
-
-  std::vector<std::string> shaderParams;
-
-#if HAVE_LIBOPENIMAGEIO
-  if (getSetting<bool>("envmap")) {
-    shaderParams.push_back("ENABLE_TEXTURE");
-    envMapBuf=initHDR();
-  }
-#endif
-
-  std::vector<ShaderfileModePair> shaders;
-  shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
-  shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
-  if(orthographic)
-    shaderParams.push_back("ORTHOGRAPHIC");
-    
-  shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
-  shaderParams.pop_back();
-  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            shaderParams);
-  shaderParams.push_back("NORMAL");
-  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            shaderParams);
-  shaderParams.push_back("COLOR");
-  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
-  shaderParams.push_back("TRANSPARENT");
-  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                               shaderParams);
-}
-
-void deleteshader() 
-{
-  glDeleteProgram(camp::transparentShader);
-  glDeleteProgram(camp::colorShader);
-  glDeleteProgram(camp::materialShader);
-  glDeleteProgram(camp::pixelShader);
-  glDeleteProgram(camp::noNormalShader);
 }
 
 #endif /* HAVE_GL */
@@ -1561,6 +1570,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
   static bool initialized=false;
+
   if(!initialized || !interact::interactive) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
@@ -1609,7 +1619,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
     home(webgl);
     setProjection();
-    
     if(webgl) return;
     
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
@@ -1733,7 +1742,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       exit(-1);
     }
     
-    initshader();
+    initshaders();
   }
   
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
@@ -1814,12 +1823,6 @@ string getCenterIndex(size_t const& index) {
 
 void setUniforms(GLint shader)
 {
-  if(gl::nlights > gl::Nlights || nmaterials > Nmaterials) {
-    gl::deleteshader();
-    gl::initshader();
-    gl::lastshader=-1;
-  }
-  
   bool normal=shader != pixelShader && shader != noNormalShader;
     
   if(shader != gl::lastshader) {

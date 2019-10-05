@@ -11,7 +11,7 @@ struct Light
 };
 
 uniform int nlights;
-uniform Light lights[Nlights];
+uniform Light lights[max(Nlights,1)];
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
@@ -141,13 +141,21 @@ void main()
     emissive=m.emissive;
   } else {
     diffuse=Color;
-    emissive=nlights > 0 ? vec4(0.0) : Color;
+#if Nlights > 0
+    emissive=vec4(0.0);
+#else    
+    emissive=Color;
+#endif
   }
 #else
   m=Materials[int(materialIndex)];
 #ifdef COLOR
   diffuse=Color;
-  emissive=nlights > 0 ? vec4(0.0) : Color;
+#if Nlights > 0
+    emissive=vec4(0.0);
+#else    
+    emissive=Color;
+#endif
 #else  
   diffuse=m.diffuse; 
   emissive=m.emissive;
