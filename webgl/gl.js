@@ -171,8 +171,9 @@ function getShader(gl,id,options=[]) {
 #else
   precision mediump float;
 #endif
-  const int nLights=${Lights.length};
-  const int nMaterials=${Materials.length};\n`
+  #define nlights ${Lights.length}\n
+  const int nLights=${Math.max(Lights.length,1)};\n
+  const int nMaterials=${Math.max(Materials.length,1)};\n`
 
   if(orthographic)
     str += `#define ORTHOGRAPHIC\n`;
