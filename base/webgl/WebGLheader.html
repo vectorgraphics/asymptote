@@ -57,13 +57,21 @@ void main(void)
     emissive=m.emissive;
   } else {
     diffuse=color;
+#if nlights > 0
     emissive=vec4(0.0);
+#else
+    emissive=color;
+#endif
   }
 #else
   m=Materials[int(materialIndex)];
 #ifdef COLOR
   diffuse=color;
+#if nlights > 0
   emissive=vec4(0.0);
+#else
+  emissive=color;
+#endif
 #else
   diffuse=m.diffuse;
   emissive=m.emissive;
@@ -155,7 +163,7 @@ varying vec4 emissive;
     
 void main(void)
 {
-#ifdef NORMAL
+#if defined(NORMAL) && nlights > 0
   normal=normalize(Normal);
   normal=gl_FrontFacing ? normal : -normal;
 #ifdef ORTHOGRAPHIC
@@ -165,7 +173,7 @@ void main(void)
 #endif
   Roughness2=roughness*roughness;
   vec3 color=emissive.rgb;
-  for (int i=0; i < nLights; ++i) {
+  for(int i=0; i < nlights; ++i) {
     Light Li=Lights[i];
     vec3 L=Li.direction;
     float cosTheta=max(dot(normal,L),0.0);
