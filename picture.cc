@@ -735,10 +735,6 @@ bool picture::postprocess(const string& prename, const string& outname,
                           bool wait, bool view, bool pdftex, 
                           bool epsformat, bool svg)
 {
-  if(outputformat == "html") {
-    if(getSetting<Int>("render") == 0)
-      reportError("For 2D pictures, use outformat=\"svg\" instead of \"html\"; if this is a 3D picture, use settings.render=1 or the -render=1 command-line option");
-  }
   static mem::map<CONST string,int> pids;
   int status=0;
   bool pdfformat=(settings::pdf(getSetting<string>("tex")) 
