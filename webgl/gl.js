@@ -33,6 +33,7 @@ let Zoom0;
 let maxViewportWidth=window.innerWidth;
 let maxViewportHeight=window.innerHeight;
 let viewportmargin=0;
+let viewportshift=[0,0];
 
 const windowTrim=10;
 let resizeStep=1.2;
@@ -1974,8 +1975,8 @@ function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
   let zoominv=1/lastzoom;
-  let xshift=X/width*lastzoom
-  let yshift=Y/height*lastzoom
+  let xshift=X/width*lastzoom+viewportshift[0];
+  let yshift=Y/height*lastzoom+viewportshift[1];
 
   if (orthographic) {
     let xsize=B[0]-b[0];
