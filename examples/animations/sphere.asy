@@ -40,3 +40,4 @@ for(int phi=0; phi < 360; phi += angle) {
 }
 
 A.movie(0,200);
+currentpicture.erase();

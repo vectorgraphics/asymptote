@@ -1,5 +1,7 @@
 import trembling; 
-settings.outformat="pdf"; 
+if(settings.outformat == "") 
+  settings.outformat="pdf"; 
+
 size(6cm,0); 
  
 real R=1/5; 
