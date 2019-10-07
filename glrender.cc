@@ -899,7 +899,7 @@ void animate()
       togglefitscreen();
     }
     update();
-  }
+  } else idle();
 }
 
 void reshape(int width, int height)
@@ -1571,7 +1571,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   static bool initialized=false;
 
-  if(!initialized || !interact::interactive) {
+  if(!(initialized && (interact::interactive || 
+                       getSetting<bool>("animating")))) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
     if(webgl)
