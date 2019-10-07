@@ -127,7 +127,9 @@ version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
 	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
-	  cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
+	  if test ! -e base/webgl/asygl.js; then \
+	    cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
+	  fi \
 	fi
 	$(CXX) $(OPTS) -o revision.o -c revision.cc;
 
