@@ -1,5 +1,7 @@
 import fontsize;
 
+settings.outformat="pdf";
+
 defaultpen(Helvetica());
 
 picture pic;
