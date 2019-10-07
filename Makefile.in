@@ -3,6 +3,7 @@
 ARCH = unix
 POLL = poll
 
+ASYGLVERSION = @ASYGLVERSION@
 GCVERSION = @GCVERSION@
 GC = gc-$(GCVERSION)
 LIBATOMIC = libatomic_ops-@ATOMICVERSION@
@@ -125,6 +126,8 @@ asy:	version glew.o
 version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
 	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
+	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
+	  cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
 	fi
 	$(CXX) $(OPTS) -o revision.o -c revision.cc;
 
