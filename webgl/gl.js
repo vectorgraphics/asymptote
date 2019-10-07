@@ -1398,6 +1398,7 @@ function home()
   mat4.identity(rotMat);
   initProjection();
   setProjection();
+  remesh=true;
   redraw=true;
 }
 
@@ -2106,8 +2107,6 @@ function webGLStart()
 
     if(canvas.height > 0) 
       canvasHeight=canvas.height;
-
-
   }
 
   setCanvas();
