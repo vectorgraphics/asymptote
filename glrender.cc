@@ -228,8 +228,8 @@ glm::vec4 vec4(double *v)
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
-  double xshift=X/Width*lastzoom+Shift.getx()*Xfactor;
-  double yshift=Y/Height*lastzoom+Shift.gety()*Yfactor;
+  double xshift=(X/Width+Shift.getx()*Xfactor)*Zoom;
+  double yshift=(Y/Height+Shift.gety()*Yfactor)*Zoom;
   double Zoominv=1.0/lastzoom;
   if(orthographic) {
     double xsize=Xmax-Xmin;
@@ -1282,7 +1282,7 @@ void showCamera()
   if(!orthographic)
     cout << "," << endl << "angle=" << P.angle;
   if(P.viewportshift != pair(0.0,0.0))
-    cout << "," << endl << "viewportshift=" << P.viewportshift;
+    cout << "," << endl << "viewportshift=" << P.viewportshift*Zoom;
   if(!orthographic)
     cout << "," << endl << "autoadjust=false";
   cout << ");" << endl;
@@ -1520,7 +1520,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Angle=angle*radians;
   Zoom0=zoom;
   Oldpid=oldpid;
-  Shift=shift;
+  Shift=shift/zoom;
   Margin=margin;
   Background=background;
   

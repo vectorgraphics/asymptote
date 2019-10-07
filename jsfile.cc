@@ -58,7 +58,7 @@ void jsfile::open(string name) {
       << "Zoom0=" << gl::Zoom0 << ";" << newl
       << "viewportmargin=" << gl::Margin << ";" << newl;
   if(gl::Shift != pair(0.0,0.0))
-    out << "viewportshift=" << gl::Shift << ";" << newl;
+    out << "viewportshift=" << gl::Shift*gl::Zoom0 << ";" << newl;
   out << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
       << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl

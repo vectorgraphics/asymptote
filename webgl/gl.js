@@ -1975,8 +1975,8 @@ function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
   let zoominv=1/lastzoom;
-  let xshift=X/width*lastzoom+viewportshift[0];
-  let yshift=Y/height*lastzoom+viewportshift[1];
+  let xshift=(X/width+viewportshift[0])*lastzoom;
+  let yshift=(Y/height+viewportshift[1])*lastzoom;
 
   if (orthographic) {
     let xsize=B[0]-b[0];
@@ -2112,6 +2112,9 @@ function webGLStart()
 
   setCanvas();
   ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
+
+  viewportshift[0] /= Zoom0;
+  viewportshift[1] /= Zoom0;
 
   initGL();
 
