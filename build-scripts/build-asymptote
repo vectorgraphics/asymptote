@@ -43,6 +43,11 @@ rm -rf .gitignore .vscode
 make $MAKEFLAGS check || exit
 make uninstall
 make $MAKEFLAGS asy
+build-scripts/build-asygl
+GLMATRIX=`/bin/ls -d gl-matrix-*-pruned`
+mkdir -p $BUILD/$GLMATRIX/dist
+cp $GLMATRIX/LICENSE.js $BUILD/$GLMATRIX/LICENSE.js
+cp $GLMATRIX/dist/gl-matrix.js $BUILD/$GLMATRIX/dist
 make -j1 all
 make -j1 install
 #rm asy

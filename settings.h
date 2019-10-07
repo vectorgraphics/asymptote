@@ -121,7 +121,7 @@ const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
 
 const string AsyGLVersion="1.00";
-const string AsyGL="webgl/asygl-"+ AsyGLVersion+".js";
+const string AsyGL="webgl/asygl.js";
 const string WebGLheader="webgl/WebGLheader.html";
 const string WebGLfooter="webgl/WebGLfooter.html";
 }
