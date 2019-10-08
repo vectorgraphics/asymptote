@@ -6603,11 +6603,8 @@ point[] intersectionpoints(conic co, line l)
 point[] intersectionpoints(bqe bqe1, bqe bqe2)
 {/*<asyxml></code><documentation>Return the intersection of the two conic sections whose equations are 'bqe1' and 'bqe2'.</documentation></function></asyxml>*/
   coordsys R=canonicalcartesiansystem(conic(bqe1));
-  bqe lbqe1,lbqe2;
-  real[] a,b;
-
-  a=changecoordsys(R,bqe1).a;
-  b=changecoordsys(R,bqe2).a;
+  real[] a=changecoordsys(R,bqe1).a;
+  real[] b=changecoordsys(R,bqe2).a;
 
   static real e=100 * sqrt(realEpsilon);
   real[] x,y,c;
@@ -6642,10 +6639,10 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
         real D=b[3]-a[3];
         c=new real[] {a[2],0,a[0]*(a[5]-b[5])^2/D^2-a[3]*b[5]/D+a[5]};
         y=quadraticroots(c[0],c[1],c[2]);
-        for (int i=0; i < y.length; ++i) {
+        for(int i=0; i < y.length; ++i) {
           c=new real[] {a[0],a[3],a[2]*y[i]^2+a[5]};
           x=quadraticroots(c[0],c[1],c[2]);
-          for (int j=0; j < x.length; ++j) {
+          for(int j=0; j < x.length; ++j) {
             if(abs(b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]
                    +b[4]*y[i]+b[5]) < 1e-5)
               P.push(point(R,(x[j],y[i])));
@@ -6658,10 +6655,10 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
       }
     }
   }
-  for (int i=0; i < x.length; ++i) {
+  for(int i=0; i < x.length; ++i) {
     c=new real[] {a[2],0,a[0]*x[i]^2+a[3]*x[i]+a[5]};
     y=quadraticroots(c[0],c[1],c[2]);
-    for (int j=0; j < y.length; ++j) {
+    for(int j=0; j < y.length; ++j) {
       if(abs(b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5])
          < 1e-5)
         P.push(point(R,(x[i],y[j])));
