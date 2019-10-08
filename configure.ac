@@ -238,7 +238,6 @@ fi
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
                            DEFINE([GNU <getopt.h>])),
                            getopt="getopt getopt1",)
-
 AC_SUBST(getopt)
 AC_SUBST(GCVERSION)
 AC_SUBST(ASYGLVERSION)
@@ -248,6 +247,7 @@ AC_SUBST(GCLIB)
 AC_SUBST(GCPPLIB)
 AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
+AC_SUBST(GLEW)
 
 # Checks for libraries.
 AC_SEARCH_LIBS([lgamma],[m c],,
@@ -411,11 +411,13 @@ case "$OSTYPE" in
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([glut], [glutMainLoop],,
                        AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
-         AC_CHECK_LIB([GLX],[glXGetProcAddressARB])
          AC_CHECK_LIB([GL], [glDepthMask],
                                  [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE_LIB([GL]))
-                             LIBS=$LIBS"-lGL glew.o "],
+                             LIBS=$LIBS"-lGL "
+                             GLEW="glew.o "
+                             AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
+                             GLEW=$GLEW"-lGLX ")],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then
