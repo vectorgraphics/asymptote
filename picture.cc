@@ -735,8 +735,6 @@ bool picture::postprocess(const string& prename, const string& outname,
                           bool wait, bool view, bool pdftex, 
                           bool epsformat, bool svg)
 {
-  if(outputformat == "html")
-    reportError("Use svg instead of html output format for 2D pictures.");
   static mem::map<CONST string,int> pids;
   int status=0;
   bool pdfformat=(settings::pdf(getSetting<string>("tex")) 
@@ -1175,7 +1173,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
       
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   drawBuffers();
 #endif  
 }
@@ -1205,7 +1203,7 @@ Communicate com;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_LIBGL  
+#ifdef HAVE_GL  
 #ifdef HAVE_PTHREAD
   wait(initSignal,initLock);
   endwait(initSignal,initLock);

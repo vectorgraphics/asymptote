@@ -11,7 +11,7 @@ struct Light
 };
 
 uniform int nlights;
-uniform Light lights[Nlights];
+uniform Light lights[max(Nlights,1)];
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
@@ -141,18 +141,28 @@ void main()
     emissive=m.emissive;
   } else {
     diffuse=Color;
+#if Nlights > 0
     emissive=vec4(0.0);
+#else    
+    emissive=Color;
+#endif
   }
 #else
   m=Materials[int(materialIndex)];
 #ifdef COLOR
   diffuse=Color;
-  emissive=vec4(0.0);
+#if Nlights > 0
+    emissive=vec4(0.0);
+#else    
+    emissive=Color;
+#endif
 #else  
   diffuse=m.diffuse; 
   emissive=m.emissive;
 #endif
 #endif
+  
+#ifdef NORMAL
   Specular=m.specular.rgb;
   parameters=m.parameters;
   Roughness2=1.0-parameters[0];
@@ -166,8 +176,6 @@ void main()
   // d\omega_i, where \Omega is the hemisphere covering a point,
   // f is the BRDF function, L is the radiance from a given angle and position.
 
-  vec3 color=emissive.rgb;
-#ifdef NORMAL  
   normal=normalize(Normal);
   normal=gl_FrontFacing ? normal : -normal;
 #ifdef ORTHOGRAPHIC
@@ -176,51 +184,48 @@ void main()
   vec3 viewDir=-normalize(ViewPosition);
 #endif
   // For a finite point light, the rendering equation simplifies.
-  if(nlights > 0) {
-    for(int i=0; i < nlights; ++i) {
-      Light Li=lights[i];
-      vec3 L=Li.direction;
-      float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
-      vec3 radiance=cosTheta*Li.color;
-      color += BRDF(viewDir,L)*radiance;
+  vec3 color=emissive.rgb;
+  for(int i=0; i < nlights; ++i) {
+    Light Li=lights[i];
+    vec3 L=Li.direction;
+    float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
+    vec3 radiance=cosTheta*Li.color;
+    color += BRDF(viewDir,L)*radiance;
+  }
+
+#if defined(ENABLE_TEXTURE) && !defined(COLOR)
+  // Experimental environment radiance using Riemann sums;
+  // can also do importance sampling.
+  vec3 envRadiance=vec3(0.0,0.0,0.0);
+
+  vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
+  if(length(normalPerp) == 0.0)
+    normalPerp=vec3(1.0,0.0,0.0);
+
+  // we now have a normal basis;
+  normalPerp=normalize(normalPerp);
+  vec3 normalPerp2=normalize(cross(normal,normalPerp));
+
+  const float step=1.0/numSamples;
+  const float phistep=twopi*step;
+  const float thetastep=halfpi*step;
+  for (int iphi=0; iphi < numSamples; ++iphi) {
+    float phi=iphi*phistep;
+    for (int itheta=0; itheta < numSamples; ++itheta) {
+      float theta=itheta*thetastep;
+
+      vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
+      vec3 L=sin(theta)*azimuth+cos(theta)*normal;
+
+      vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
+      vec3 surfRefl=BRDF(Z,L);
+      envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
     }
-
-#ifdef ENABLE_TEXTURE
-#ifndef COLOR
-    // Experimental environment radiance using Riemann sums;
-    // can also do importance sampling.
-    vec3 envRadiance=vec3(0.0,0.0,0.0);
-
-    vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
-    if(length(normalPerp) == 0.0)
-      normalPerp=vec3(1.0,0.0,0.0);
-
-    // we now have a normal basis;
-    normalPerp=normalize(normalPerp);
-    vec3 normalPerp2=normalize(cross(normal,normalPerp));
-
-    const float step=1.0/numSamples;
-    const float phistep=twopi*step;
-    const float thetastep=halfpi*step;
-    for (int iphi=0; iphi < numSamples; ++iphi) {
-      float phi=iphi*phistep;
-      for (int itheta=0; itheta < numSamples; ++itheta) {
-        float theta=itheta*thetastep;
-
-        vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
-        vec3 L=sin(theta)*azimuth+cos(theta)*normal;
-
-        vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
-        vec3 surfRefl=BRDF(Z,L);
-        envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
-      }
-    }
-    envRadiance *= halfpi*step*step;
-    color += envRadiance.rgb;
+  }
+  envRadiance *= halfpi*step*step;
+  color += envRadiance.rgb;
 #endif
-#endif
-    outColor=vec4(color,diffuse.a);
-  } else outColor=diffuse;
+  outColor=vec4(color,diffuse.a);
 #else    
   outColor=emissive;
 #endif      

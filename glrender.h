@@ -106,12 +106,13 @@ extern double zmin,zmax;
 extern int fullWidth,fullHeight;
 extern double Zoom0;
 extern double Angle;
-extern double Zoom0;
+extern camp::pair Shift;
 extern camp::pair Margin;
 
 extern camp::triple *Lights; 
 extern size_t nlights;
 extern double *Diffuse;
+extern double *Background;
 
 struct projection 
 {

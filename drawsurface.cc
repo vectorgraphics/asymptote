@@ -76,7 +76,7 @@ void setcolors(bool colors,
     materialIndex=material.size();
     if(materialIndex >= nmaterials)
       nmaterials=min(Maxmaterials,2*nmaterials);
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
     if(!out && materialIndex >= Maxmaterials)
       clearMaterialBuffer(true);
 #endif    
@@ -245,9 +245,9 @@ bool drawBezierPatch::write(jsfile *out)
   
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
-    out->addPatch(Controls,4,Min,Max,colors);
+    out->addPatch(Controls,4,Min,Max,colors,4);
   } else
-    out->addPatch(controls,16,Min,Max,colors);
+    out->addPatch(controls,16,Min,Max,colors,4);
                     
 #endif  
   return true;
@@ -256,7 +256,7 @@ bool drawBezierPatch::write(jsfile *out)
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                              double perspective, bool remesh)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(invisible) return; 
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
@@ -476,9 +476,9 @@ bool drawBezierTriangle::write(jsfile *out)
   
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
-    out->addPatch(Controls,3,Min,Max,colors);
+    out->addPatch(Controls,3,Min,Max,colors,3);
   } else
-    out->addPatch(controls,10,Min,Max,colors);
+    out->addPatch(controls,10,Min,Max,colors,3);
                     
 #endif  
   return true;
@@ -487,7 +487,7 @@ bool drawBezierTriangle::write(jsfile *out)
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool remesh)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
@@ -628,7 +628,7 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
 
 void drawNurbs::displacement()
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
@@ -902,7 +902,7 @@ void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
                            bool remesh)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(invisible) return;
   
   transparent=diffuse.A < 1.0;

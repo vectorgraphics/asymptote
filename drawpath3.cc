@@ -79,7 +79,7 @@ bool drawPath3::write(jsfile *out)
 void drawPath3::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   Int n=g.length();
   if(n == 0 || invisible) return;
 
@@ -200,7 +200,7 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
 
 void drawNurbsPath3::displacement()
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   size_t nknots=degree+n+1;
   if(Controls == NULL) {
     Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
@@ -221,7 +221,7 @@ void drawNurbsPath3::displacement()
 void drawNurbsPath3::render(double, const triple&, const triple&,
                             double, bool remesh)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(invisible) return;
   
 // TODO: implement NURBS renderer
@@ -240,7 +240,7 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
   
 bool drawPixel::write(jsfile *out)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -255,7 +255,7 @@ bool drawPixel::write(jsfile *out)
 void drawPixel::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh) 
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(invisible) return;
   
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen

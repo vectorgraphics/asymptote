@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 
 #include <fstream>
 #include <sstream>
@@ -83,17 +83,17 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
 #define GLSL_VERSION "130"
 #endif
   
-  shaderSrc << "#version " << GLSL_VERSION << "\r\n";
+  shaderSrc << "#version " << GLSL_VERSION << "\n";
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
-            << "\r\n";
+            << "\n";
 
   size_t n=defineflags.size();
   for(size_t i=0; i < n; ++i) {
-    shaderSrc << "#define " << defineflags[i] << "\r\n";
+    shaderSrc << "#define " << defineflags[i] << "\n";
   }
 
-  shaderSrc << "const int Nlights=" << Nlights << ";\r\n";
-  shaderSrc << "const int Nmaterials=" << Nmaterials << ";\r\n";
+  shaderSrc << "#define Nlights " << Nlights << "\n";
+  shaderSrc << "const int Nmaterials=" << Nmaterials << ";\n";
 
   if(shaderFile) {
     shaderSrc << shaderFile.rdbuf();

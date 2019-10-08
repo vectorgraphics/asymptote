@@ -86,6 +86,12 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
+  if(outformat(format) == "html") {
+    warning("htmltosvg",
+            "html output requested for 2D picture; generating svg image instead...");
+    format="svg";
+  }
+  
   if(settings.xasy || (!implicitshipout && prefix == defaultfilename)) {
     if(prefix == defaultfilename) {
       currentpicture.clear();

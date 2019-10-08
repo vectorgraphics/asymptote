@@ -33,6 +33,7 @@ let Zoom0;
 let maxViewportWidth=window.innerWidth;
 let maxViewportHeight=window.innerHeight;
 let viewportmargin=0;
+let viewportshift=[0,0];
 
 const windowTrim=10;
 let resizeStep=1.2;
@@ -56,6 +57,7 @@ let P=[]; // Array of Bezier patches, triangles, curves, and pixels
 let Materials=[]; // Array of materials
 let Lights=[]; // Array of lights
 let Centers=[]; // Array of billboard centers
+let Background=[1,1,1,1]; // Background color
 
 // Don't account for device pixels when embedding in another html document
 let absolute=false;
@@ -153,7 +155,7 @@ class Light {
 
 function initGL() {
   try {
-    gl=canvas.getContext("webgl",{alpha:false}); // Don't composite background
+    gl=canvas.getContext("webgl",{alpha:Background[3] < 1});
   } catch(e) {}
   if (!gl)
     alert("Could not initialize WebGL");
@@ -170,8 +172,9 @@ function getShader(gl,id,options=[]) {
 #else
   precision mediump float;
 #endif
-  const int nLights=${Lights.length};
-  const int nMaterials=${Materials.length};\n`
+  #define nlights ${Lights.length}\n
+  const int nLights=${Math.max(Lights.length,1)};\n
+  const int nMaterials=${Math.max(Materials.length,1)};\n`
 
   if(orthographic)
     str += `#define ORTHOGRAPHIC\n`;
@@ -1395,6 +1398,7 @@ function home()
   mat4.identity(rotMat);
   initProjection();
   setProjection();
+  remesh=true;
   redraw=true;
 }
 
@@ -1587,10 +1591,10 @@ function pinchDistance(touches)
 
 let touchStartTime;
 
-function handleTouchStart(evt)
+function handleTouchStart(event)
 {
-  evt.preventDefault();
-  let touches=evt.targetTouches;
+  event.preventDefault();
+  let touches=event.targetTouches;
   swipe=rotate=pinch=false;
   if(zooming) return;
 
@@ -1785,6 +1789,8 @@ function handleKey(event)
 
 function handleMouseWheel(event)
 {
+  event.preventDefault();
+  
   if (event.deltaY < 0) {
     Zoom *= zoomFactor;
   } else {
@@ -1823,11 +1829,11 @@ let zooming=false;
 let swipe=false;
 let rotate=false;
 
-function handleTouchMove(evt)
+function handleTouchMove(event)
 {
-  evt.preventDefault();
+  event.preventDefault();
   if(zooming) return;
-  let touches=evt.targetTouches;
+  let touches=event.targetTouches;
 
   if(!pinch && touches.length == 1 && touchId == touches[0].identifier) {
     let newX=touches[0].pageX;
@@ -1897,7 +1903,7 @@ function transformVertices(vertices)
 
 function draw()
 {
-  gl.clearColor(1,1,1,1);
+  gl.clearColor(Background[0],Background[1],Background[2],Background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   material0Data.clear();
@@ -1970,8 +1976,8 @@ function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
   let zoominv=1/lastzoom;
-  let xshift=X/width*lastzoom
-  let yshift=Y/height*lastzoom
+  let xshift=(X/width+viewportshift[0])*lastzoom;
+  let yshift=(Y/height+viewportshift[1])*lastzoom;
 
   if (orthographic) {
     let xsize=B[0]-b[0];
@@ -2101,12 +2107,13 @@ function webGLStart()
 
     if(canvas.height > 0) 
       canvasHeight=canvas.height;
-
-
   }
 
   setCanvas();
   ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
+
+  viewportshift[0] /= Zoom0;
+  viewportshift[1] /= Zoom0;
 
   initGL();
 
@@ -2127,8 +2134,8 @@ function webGLStart()
   document.onmouseup=handleMouseUpOrTouchEnd;
   document.onmousemove=handleMouseMove;
   canvas.onkeydown=handleKey;
-  document.onwheel=handleMouseWheel;
 
+  canvas.addEventListener("wheel",handleMouseWheel,false);
   canvas.addEventListener("touchstart",handleTouchStart,false);
   canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);

@@ -56,7 +56,10 @@ void jsfile::open(string name) {
       << "angle=" << gl::Angle << ";"
       << newl
       << "Zoom0=" << gl::Zoom0 << ";" << newl
-       << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
+      << "viewportmargin=" << gl::Margin << ";" << newl;
+  if(gl::Shift != pair(0.0,0.0))
+    out << "viewportshift=" << gl::Shift*gl::Zoom0 << ";" << newl;
+  out << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
       << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
       << "zoomPinchCap=" << getSetting<double>("zoomPinchCap") << ";" << newl
@@ -66,17 +69,20 @@ void jsfile::open(string name) {
       << "shiftWaitTime=" << getSetting<double>("shiftWaitTime") << ";"
       << newl
       << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
-      << newl
-     << "viewportmargin=" << gl::Margin << ";" << newl << newl
+      << newl << newl
       << "Lights=[";
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;
     out << "new Light(" << newl
         << "direction=" << gl::Lights[i] << "," << newl 
-        << "color=[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1]
-        << "," << gl::Diffuse[i4+2] << "])," << newl;
+        << "color=[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
+        << gl::Diffuse[i4+2] << "])," << newl;
   }
   out << "];" << newl << newl;
+  out << "Background=[" << gl::Background[0] << "," << gl::Background[1] << ","
+      << gl::Background[2] << "," << gl::Background[3] << "];"
+      << newl;
+
   size_t nmaterials=material.size();
   out << "Materials=[";
   for(size_t i=0; i < nmaterials; ++i)
@@ -115,7 +121,7 @@ bool distinct(const uint32_t *I, const uint32_t *J)
 
 void jsfile::addPatch(triple const* controls, size_t n,
                       const triple& Min, const triple& Max,
-                      const prc::RGBAColour *c)
+                      const prc::RGBAColour *c, size_t nc)
 {
   out << "P.push(new BezierPatch([" << newl;
   size_t last=n-1;
@@ -126,7 +132,7 @@ void jsfile::addPatch(triple const* controls, size_t n,
       << Min << "," << Max;
   if(c) {
     out << ",[" << newl;
-    for(int i=0; i < 4; ++i) {
+    for(size_t i=0; i < nc; ++i) {
       addColor(c[i]);
       out << "," << newl;
     }

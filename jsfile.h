@@ -2,16 +2,10 @@
 #define JSFILE_H
 
 #include <fstream>
-#include <glm/glm.hpp>
-
 #include "common.h"
 #include "triple.h"
 #include "locate.h"
 #include "prcfile.h"
-
-namespace gl {
-extern glm::mat4 projViewMat;
-}
 
 namespace camp {
 
@@ -29,7 +23,7 @@ public:
   void addIndices(const uint32_t *I); 
     
   void addPatch(const triple* controls, size_t n, const triple& Min,
-                const triple& Max, const prc::RGBAColour *colors);
+                const triple& Max, const prc::RGBAColour *colors, size_t nc);
   
   void addCurve(const triple& z0, const triple& c0,
                 const triple& c1, const triple& z1,

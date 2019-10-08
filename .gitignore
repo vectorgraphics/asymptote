@@ -106,7 +106,6 @@ GUI/*/__pycache__
 *.run.xml
 
 ### Data files
-*.obj
 *.pdb1
 
 ### Debugging files

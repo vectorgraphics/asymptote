@@ -1,4 +1,3 @@
-settings.outformat="pdf";
 size(20cm);
 
 // The required data file is available here:

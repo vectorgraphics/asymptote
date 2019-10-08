@@ -86,7 +86,7 @@ struct animation {
   }
 
   void glmovie(string prefix=prefix, projection P=currentprojection) {
-    if(!view() || settings.render == 0) return;
+    if(!view() || settings.render == 0 || settings.outformat == "html") return;
     fit(prefix,pictures,view=true,P);
   }
 

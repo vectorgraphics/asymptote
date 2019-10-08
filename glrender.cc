@@ -162,7 +162,7 @@ static const double pi=acos(-1.0);
 static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
-double Background[4];
+double *Background;
 size_t Nlights=1; // Maximum number of lights compiled in shader
 size_t nlights; // Actual number of lights
 size_t nlights0;
@@ -228,8 +228,8 @@ glm::vec4 vec4(double *v)
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
-  double xshift=X/Width*lastzoom+Shift.getx()*Xfactor;
-  double yshift=Y/Height*lastzoom+Shift.gety()*Yfactor;
+  double xshift=(X/Width+Shift.getx()*Xfactor)*Zoom;
+  double yshift=(Y/Height+Shift.gety()*Yfactor)*Zoom;
   double Zoominv=1.0/lastzoom;
   if(orthographic) {
     double xsize=Xmax-Xmin;
@@ -305,7 +305,7 @@ bool Xspin,Yspin,Zspin;
 bool Animate;
 bool Step;
 
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_GL
 void idle() 
 {
   glutIdleFunc(NULL);
@@ -420,6 +420,60 @@ void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 }
 #endif
 
+void initshaders()
+{
+  Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
+
+  Nmaterials=max(Nmaterials,nmaterials);
+  shaderProg=glCreateProgram();
+  string vs=locateFile("shaders/vertex.glsl");
+  string fs=locateFile("shaders/fragment.glsl");
+  if(vs.empty() || fs.empty()) {
+    cerr << "GLSL shaders not found." << endl;
+    exit(-1);
+  }
+
+  std::vector<std::string> shaderParams;
+
+#if HAVE_LIBOPENIMAGEIO
+  if (getSetting<bool>("envmap")) {
+    shaderParams.push_back("ENABLE_TEXTURE");
+    envMapBuf=initHDR();
+  }
+#endif
+
+  std::vector<ShaderfileModePair> shaders;
+  shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
+  shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
+  if(orthographic)
+    shaderParams.push_back("ORTHOGRAPHIC");
+    
+  shaderParams.push_back("WIDTH");
+  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                         shaderParams);
+  shaderParams.pop_back();
+  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                            shaderParams);
+  shaderParams.push_back("NORMAL");
+  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                            shaderParams);
+  shaderParams.push_back("COLOR");
+  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                         shaderParams);
+  shaderParams.push_back("TRANSPARENT");
+  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                               shaderParams);
+}
+
+void deleteshaders() 
+{
+  glDeleteProgram(camp::transparentShader);
+  glDeleteProgram(camp::colorShader);
+  glDeleteProgram(camp::materialShader);
+  glDeleteProgram(camp::pixelShader);
+  glDeleteProgram(camp::noNormalShader);
+}
+
 void drawscene(int Width, int Height)
 {
 #ifdef HAVE_PTHREAD
@@ -430,6 +484,13 @@ void drawscene(int Width, int Height)
     first=false;
   }
 #endif
+
+  if((nlights == 0 && Nlights > 0) || nlights > Nlights || 
+     nmaterials > Nmaterials) {
+    deleteshaders();
+    initshaders();
+    lastshader=-1;
+  }
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -468,7 +529,6 @@ void Export()
   glFinish();
   try {
     size_t ndata=3*fullWidth*fullHeight;
-    unsigned border=1;
     unsigned char *data=new unsigned char[ndata];
     if(data) {
       TRcontext *tr=trNew();
@@ -480,6 +540,7 @@ void Export()
              << fullHeight << " image" << " using tiles of size "
              << width << "x" << height << endl;
 
+      unsigned border=min(min(1,width/2),height/2);
       trTileSize(tr,width,height,border);
       trImageSize(tr,fullWidth,fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
@@ -753,9 +814,6 @@ void display()
     queueScreen=false;
   }
 
-  maxvertices=getSetting<Int>("maxvertices");
-  if(maxvertices == 0) maxvertices=Maxvertices;
-
   bool fps=settings::verbose > 2;  
   drawscene(Width,Height);
   if(fps) {
@@ -841,7 +899,7 @@ void animate()
       togglefitscreen();
     }
     update();
-  }
+  } else idle();
 }
 
 void reshape(int width, int height)
@@ -1224,7 +1282,7 @@ void showCamera()
   if(!orthographic)
     cout << "," << endl << "angle=" << P.angle;
   if(P.viewportshift != pair(0.0,0.0))
-    cout << "," << endl << "viewportshift=" << P.viewportshift;
+    cout << "," << endl << "viewportshift=" << P.viewportshift*Zoom;
   if(!orthographic)
     cout << "," << endl << "autoadjust=false";
   cout << ");" << endl;
@@ -1386,6 +1444,9 @@ void init()
   glutInit(&argc,argv);
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
+  
+  maxvertices=getSetting<Int>("maxvertices");
+  if(maxvertices == 0) maxvertices=Maxvertices;
 #endif
 }
 
@@ -1428,58 +1489,6 @@ void init_osmesa()
   }
 #endif // HAVE_LIBOSMESA
 }
-void initshader()
-{
-  Nlights=max(Nlights,nlights);
-  Nmaterials=max(Nmaterials,nmaterials);
-  shaderProg=glCreateProgram();
-  string vs=locateFile("shaders/vertex.glsl");
-  string fs=locateFile("shaders/fragment.glsl");
-  if(vs.empty() || fs.empty()) {
-    cerr << "GLSL shaders not found." << endl;
-    exit(-1);
-  }
-
-  std::vector<std::string> shaderParams;
-
-#if HAVE_LIBOPENIMAGEIO
-  if (getSetting<bool>("envmap")) {
-    shaderParams.push_back("ENABLE_TEXTURE");
-    envMapBuf=initHDR();
-  }
-#endif
-
-  std::vector<ShaderfileModePair> shaders;
-  shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
-  shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
-  if(orthographic)
-    shaderParams.push_back("ORTHOGRAPHIC");
-    
-  shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
-  shaderParams.pop_back();
-  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            shaderParams);
-  shaderParams.push_back("NORMAL");
-  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            shaderParams);
-  shaderParams.push_back("COLOR");
-  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
-  shaderParams.push_back("TRANSPARENT");
-  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                               shaderParams);
-}
-
-void deleteshader() 
-{
-  glDeleteProgram(camp::transparentShader);
-  glDeleteProgram(camp::colorShader);
-  glDeleteProgram(camp::materialShader);
-  glDeleteProgram(camp::pixelShader);
-  glDeleteProgram(camp::noNormalShader);
-}
 
 #endif /* HAVE_GL */
 
@@ -1511,8 +1520,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Angle=angle*radians;
   Zoom0=zoom;
   Oldpid=oldpid;
-  Shift=shift;
+  Shift=shift/zoom;
   Margin=margin;
+  Background=background;
   
   Xmin=m.getx();
   Xmax=M.getx();
@@ -1560,7 +1570,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
   static bool initialized=false;
-  if(!initialized || !interact::interactive) {
+
+  if(!(initialized && (interact::interactive || 
+                       getSetting<bool>("animating")))) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
     if(webgl)
@@ -1608,7 +1620,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
     home(webgl);
     setProjection();
-    
     if(webgl) return;
     
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
@@ -1616,8 +1627,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef HAVE_GL    
     for(int i=0; i < 16; ++i)
       T[i]=t[i];
-    for(int i=0; i < 4; ++i)
-      Background[i]=background[i];
   
     remesh=true;
     Aspect=((double) Width)/Height;
@@ -1734,7 +1743,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       exit(-1);
     }
     
-    initshader();
+    initshaders();
   }
   
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
@@ -1815,12 +1824,6 @@ string getCenterIndex(size_t const& index) {
 
 void setUniforms(GLint shader)
 {
-  if(gl::nlights > gl::Nlights || nmaterials > Nmaterials) {
-    gl::deleteshader();
-    gl::initshader();
-    gl::lastshader=-1;
-  }
-  
   bool normal=shader != pixelShader && shader != noNormalShader;
     
   if(shader != gl::lastshader) {
