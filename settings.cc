@@ -933,10 +933,10 @@ struct versionOption : public option {
 
     cerr << endl << "ENABLED OPTIONS:" << endl;
 #ifdef HAVE_LIBGLM
-    feature("WebGL    HTML rendering");
+    feature("WebGL    3D HTML rendering");
 #endif
 #ifdef HAVE_GL
-    feature("OpenGL   3D rendering");
+    feature("OpenGL   3D OpenGL rendering");
 #endif
 #ifdef HAVE_LIBGSL
     feature("GSL      GNU Scientific Library (special functions)");
