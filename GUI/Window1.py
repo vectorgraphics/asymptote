@@ -1735,15 +1735,7 @@ class MainWindow1(Qw.QMainWindow):
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
                 
-        rawExternalEditor = self.settings['externalEditor']
-        rawExtEditorArgs = self.settings['externalEditorArgs']
-        execEditor = [rawExternalEditor]
-
-        for arg in rawExtEditorArgs:
-            execEditor.append(string.Template(
-                arg).substitute(asypath=(self.filename)))
-
-        subprocess.Popen(args=execEditor)
+        subprocess.Popen(args=self.getExternalEditor(asypath=self.filename));
 
     def btnAddCodeOnClick(self):
         header = """
