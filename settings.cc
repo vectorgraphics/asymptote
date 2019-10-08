@@ -926,8 +926,36 @@ struct versionOption : public option {
   versionOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
 
+  const void feature(const char *s) {cerr << s << endl;}
+
   bool getOption() {
     version();
+
+    cerr << endl << "ENABLED OPTIONS:" << endl;
+#ifdef HAVE_LIBGLM
+    feature("WebGL    HTML rendering");
+#endif
+#ifdef HAVE_GL
+    feature("OpenGL   3D rendering");
+#endif
+#ifdef HAVE_LIBGSL
+    feature("GSL      GNU Scientific Library (special functions)");
+#endif
+#ifdef HAVE_LIBFFTW3
+    feature("FFTW3    Fast Fourier transforms");
+#endif
+#ifdef HAVE_RPC_RPC_H
+    feature("XDR      external data representation (portable binary file format)");
+#endif
+#ifdef HAVE_LIBREADLINE
+    feature("Readline interactive history and editing");
+#endif
+#ifdef HAVE_LIBSIGSEGV
+    feature("Sigsegv  distinguish stack overflows from segmentation faults");
+#endif
+#ifdef USEGC
+    feature("GC       Boehm garbage collector");
+#endif
     exit(0);
 
     // Unreachable code.
@@ -944,7 +972,7 @@ struct divisorOption : public option {
 #ifdef USEGC
       Int n=lexical::cast<Int>(optarg);
       if(n > 0) GC_set_free_space_divisor((GC_word) n);
-#endif      
+#endif
     } catch (lexical::bad_cast&) {
       error("option requires an int as an argument");
       return false;
