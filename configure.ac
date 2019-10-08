@@ -411,6 +411,7 @@ case "$OSTYPE" in
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([glut], [glutMainLoop],,
                        AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
+         AC_CHECK_LIB([GLX],[glXGetProcAddressARB])
          AC_CHECK_LIB([GL], [glDepthMask],
                                  [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE_LIB([GL]))
