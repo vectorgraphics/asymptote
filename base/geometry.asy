@@ -2477,81 +2477,6 @@ real[] realquarticroots(real a, real b, real c, real d, real e)
   return roots;
 }
 
-/*<asyxml><function type="point[]" signature="intersectionpoints(bqe,bqe)"><code></asyxml>*/
-point[] intersectionpoints(bqe bqe1, bqe bqe2)
-{/*<asyxml></code><documentation>Return the interscetion of the two conic sections whose equations are 'bqe1' and 'bqe2'.</documentation></function></asyxml>*/
-  coordsys R = bqe1.coordsys;
-  bqe lbqe1, lbqe2;
-  real[] a, b;
-  if(R != bqe2.coordsys) {
-    R = currentcoordsys;
-    a = changecoordsys(R, bqe1).a;
-    b = changecoordsys(R, bqe2).a;
-  } else {
-    a = bqe1.a;
-    b = bqe2.a;
-  }
-  static real e = 100 * sqrt(realEpsilon);
-  real[] x, y, c;
-  point[] P;
-  if(abs(a[0]-b[0]) > e || abs(a[1]-b[1]) > e || abs(a[2]-b[2]) > e) {
-    c = new real[] {-2 * a[0]*a[2]*b[0]*b[2]+a[0]*a[2]*b[1]^2 - a[0]*a[1]*b[2]*b[1]+a[1]^2 * b[0]*b[2]-
-                  a[2]*a[1]*b[0]*b[1]+a[0]^2 * b[2]^2 + a[2]^2 * b[0]^2,
-                  -a[2]*a[1]*b[0]*b[4]-a[2]*a[4]*b[0]*b[1]-a[1]*a[3]*b[2]*b[1]+2 * a[0]*a[2]*b[1]*b[4]-
-                  a[0]*a[1]*b[2]*b[4]+a[1]^2 * b[2]*b[3]-2 * a[2]*a[3]*b[0]*b[2]-2 * a[0]*a[2]*b[2]*b[3]+
-                  a[2]*a[3]*b[1]^2 - a[2]*a[1]*b[1]*b[3]+2 * a[1]*a[4]*b[0]*b[2]+2 * a[2]^2 * b[0]*b[3]-
-                  a[0]*a[4]*b[2]*b[1]+2 * a[0]*a[3]*b[2]^2,
-                  -a[3]*a[4]*b[2]*b[1]+a[2]*a[5]*b[1]^2 - a[1]*a[5]*b[2]*b[1]-a[1]*a[3]*b[2]*b[4]+
-                  a[1]^2 * b[2]*b[5]-2 * a[2]*a[3]*b[2]*b[3]+2 * a[2]^2 * b[0]*b[5]+2 * a[0]*a[5]*b[2]^2 + a[3]^2 * b[2]^2-
-                  2 * a[2]*a[5]*b[0]*b[2]+2 * a[1]*a[4]*b[2]*b[3]-a[2]*a[4]*b[1]*b[3]-2 * a[0]*a[2]*b[2]*b[5]+
-                  a[2]^2 * b[3]^2 + 2 * a[2]*a[3]*b[1]*b[4]-a[2]*a[4]*b[0]*b[4]+a[4]^2 * b[0]*b[2]-a[2]*a[1]*b[3]*b[4]-
-                  a[2]*a[1]*b[1]*b[5]-a[0]*a[4]*b[2]*b[4]+a[0]*a[2]*b[4]^2,
-                  -a[4]*a[5]*b[2]*b[1]+a[2]*a[3]*b[4]^2 + 2 * a[3]*a[5]*b[2]^2 - a[2]*a[1]*b[4]*b[5]-
-                  a[2]*a[4]*b[3]*b[4]+2 * a[2]^2 * b[3]*b[5]-2 * a[2]*a[3]*b[2]*b[5]-a[3]*a[4]*b[2]*b[4]-
-                  2 * a[2]*a[5]*b[2]*b[3]-a[2]*a[4]*b[1]*b[5]+2 * a[1]*a[4]*b[2]*b[5]-a[1]*a[5]*b[2]*b[4]+
-                  a[4]^2 * b[2]*b[3]+2 * a[2]*a[5]*b[1]*b[4],
-                  -2 * a[2]*a[5]*b[2]*b[5]+a[4]^2 * b[2]*b[5]+a[5]^2 * b[2]^2 - a[4]*a[5]*b[2]*b[4]+a[2]*a[5]*b[4]^2+
-                  a[2]^2 * b[5]^2 - a[2]*a[4]*b[4]*b[5]};
-    x = realquarticroots(c[0], c[1], c[2], c[3], c[4]);
-  } else {
-    if(abs(b[4]-a[4]) > e){
-      real D = (b[4]-a[4])^2;
-      c = new real[] {(a[0]*b[4]^2 + (-a[1]*b[3]-2 * a[0]*a[4]+a[1]*a[3]) * b[4]+a[2]*b[3]^2+
-                     (a[1]*a[4]-2 * a[2]*a[3]) * b[3]+a[0]*a[4]^2 - a[1]*a[3]*a[4]+a[2]*a[3]^2)/D,
-                    -((a[1]*b[4]-2 * a[2]*b[3]-a[1]*a[4]+2 * a[2]*a[3]) * b[5]-a[3]*b[4]^2 + (a[4]*b[3]-a[1]*a[5]+a[3]*a[4]) * b[4]+(2 * a[2]*a[5]-a[4]^2) * b[3]+(a[1]*a[4]-2 * a[2]*a[3]) * a[5])/D,
-                    a[2]*(a[5]-b[5])^2/D + a[4]*(a[5]-b[5])/(b[4]-a[4]) + a[5]};
-      x = quadraticroots(c[0], c[1], c[2]);
-    } else {
-      if(abs(a[3]-b[3]) > e) {
-        real D = b[3]-a[3];
-        c = new real[] {a[2], (-a[1]*b[5] + a[4]*b[3] + a[1]*a[5] - a[3]*a[4])/D,
-                      a[0]*(a[5]-b[5])^2/D^2 + a[3]*(a[5]-b[5])/D + a[5]};
-        y = quadraticroots(c[0], c[1], c[2]);
-        for (int i = 0; i < y.length; ++i) {
-          c = new real[] {a[0], a[1]*y[i]+a[3], a[2]*y[i]^2 + a[4]*y[i]+a[5]};
-          x = quadraticroots(c[0], c[1], c[2]);
-          for (int j = 0; j < x.length; ++j) {
-            if(abs(b[0]*x[j]^2 + b[1]*x[j]*y[i]+b[2]*y[i]^2 + b[3]*x[j]+b[4]*y[i]+b[5]) < 1e-5)
-              P.push(point(R, (x[j], y[i])));
-          }
-        }
-        return P;
-      } else {
-        if(abs(a[5]-b[5]) < e) abort("intersectionpoints: intersection of identical conics.");
-      }
-    }
-  }
-  for (int i = 0; i < x.length; ++i) {
-    c = new real[] {a[2], a[1]*x[i]+a[4], a[0]*x[i]^2 + a[3]*x[i]+a[5]};
-    y = quadraticroots(c[0], c[1], c[2]);
-    for (int j = 0; j < y.length; ++j) {
-      if(abs(b[0]*x[i]^2 + b[1]*x[i]*y[j]+b[2]*y[j]^2 + b[3]*x[i]+b[4]*y[j]+b[5]) < 1e-5)
-        P.push(point(R, (x[i], y[j])));
-    }
-  }
-  return P;
-}
-
 /*<asyxml><struct signature="conic"><code></asyxml>*/
 struct conic
 {/*<asyxml></code><documentation></documentation><property type = "real" signature="e,p,h"><code></asyxml>*/
@@ -6674,6 +6599,77 @@ point[] intersectionpoints(conic co, line l)
   return intersectionpoints(l, co);
 }
 
+/*<asyxml><function type="point[]" signature="intersectionpoints(bqe,bqe)"><code></asyxml>*/
+point[] intersectionpoints(bqe bqe1, bqe bqe2)
+{/*<asyxml></code><documentation>Return the intersection of the two conic sections whose equations are 'bqe1' and 'bqe2'.</documentation></function></asyxml>*/
+  coordsys R=canonicalcartesiansystem(conic(bqe1));
+  bqe lbqe1,lbqe2;
+  real[] a,b;
+
+  a=changecoordsys(R,bqe1).a;
+  b=changecoordsys(R,bqe2).a;
+
+  static real e=100 * sqrt(realEpsilon);
+  real[] x,y,c;
+  point[] P;
+  if(abs(a[0]-b[0]) > e || abs(a[1]-b[1]) > e || abs(a[2]-b[2]) > e) {
+    c=new real[] {a[0]*a[2]*(-2*b[0]*b[2]+b[1]^2)+a[0]^2*b[2]^2+a[2]^2*b[0]^2,
+
+                  2*a[0]*a[2]*b[1]*b[4]-2*a[2]*a[3]*b[0]*b[2]
+                  -2*a[0]*a[2]*b[2]*b[3]+a[2]*a[3]*b[1]^2+2*a[2]^2*b[0]*b[3],
+
+                  a[2]*a[5]*b[1]^2-2*a[2]*a[3]*b[2]*b[3]+2*a[2]^2*b[0]*b[5]
+                  +2*a[0]*a[5]*b[2]^2+a[3]^2*b[2]^2-2*a[2]*a[5]*b[0]*b[2]
+                  -2*a[0]*a[2]*b[2]*b[5]+a[2]^2*b[3]^2+2*a[2]*a[3]*b[1]*b[4]
+                  +a[0]*a[2]*b[4]^2,
+
+                  a[2]*a[3]*b[4]^2+2*a[2]^2*b[3]*b[5]-2*a[2]*a[3]*b[2]*b[5]
+                  -2*a[2]*a[5]*b[2]*b[3]+2*a[2]*a[5]*b[1]*b[4],
+
+                  -2*a[2]*a[5]*b[2]*b[5]+a[5]^2*b[2]^2+a[2]*a[5]*b[4]^2
+                  +a[2]^2*b[5]^2};
+    x=realquarticroots(c[0],c[1],c[2],c[3],c[4]);
+  } else {
+    if(abs(b[4]) > e) {
+      real D=b[4]^2;
+      c=new real[] {(a[0]*b[4]^2+a[2]*b[3]^2+
+                       (-2*a[2]*a[3])*b[3]+a[2]*a[3]^2)/D,
+                    -((-2*a[2]*b[3]+2*a[2]*a[3])*b[5]-a[3]*b[4]^2+
+                      (2*a[2]*a[5])*b[3])/D,a[2]*(a[5]-b[5])^2/D+a[5]};
+      x=quadraticroots(c[0],c[1],c[2]);
+    } else {
+      if(abs(a[3]-b[3]) > e) {
+        real D=b[3]-a[3];
+        c=new real[] {a[2],0,a[0]*(a[5]-b[5])^2/D^2-a[3]*b[5]/D+a[5]};
+        y=quadraticroots(c[0],c[1],c[2]);
+        for (int i=0; i < y.length; ++i) {
+          c=new real[] {a[0],a[3],a[2]*y[i]^2+a[5]};
+          x=quadraticroots(c[0],c[1],c[2]);
+          for (int j=0; j < x.length; ++j) {
+            if(abs(b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]
+                   +b[4]*y[i]+b[5]) < 1e-5)
+              P.push(point(R,(x[j],y[i])));
+          }
+        }
+        return P;
+      } else {
+        if(abs(a[5]-b[5]) < e)
+          abort("intersectionpoints: intersection of identical conics.");
+      }
+    }
+  }
+  for (int i=0; i < x.length; ++i) {
+    c=new real[] {a[2],0,a[0]*x[i]^2+a[3]*x[i]+a[5]};
+    y=quadraticroots(c[0],c[1],c[2]);
+    for (int j=0; j < y.length; ++j) {
+      if(abs(b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5])
+         < 1e-5)
+        P.push(point(R,(x[i],y[j])));
+    }
+  }
+  return P;
+};
+
 /*<asyxml><function type="point[]" signature="intersectionpoints(conic,conic)"><code></asyxml>*/
 point[] intersectionpoints(conic co1, conic co2)
 {/*<asyxml></code><documentation>Return the intersection points of the two conics.</documentation></function></asyxml>*/
@@ -7190,3 +7186,4 @@ path arc(explicit pair B, explicit pair A, explicit pair C, real r)
 
 // *........................FOOTER.........................*
 // *=======================================================*
+
