@@ -926,36 +926,66 @@ struct versionOption : public option {
   versionOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
 
-  const void feature(const char *s) {cerr << s << endl;}
+  bool disabled;
+  
+  const void feature(const char *s, bool enabled) {
+    if(enabled ^ disabled)
+      cerr << s << endl;
+  }
 
-  bool getOption() {
-    version();
+  void features(bool enabled) {
+    disabled=!enabled;
+    cerr << endl << (disabled ? "DIS" : "EN") << "ABLED OPTIONS:" << endl;
 
-    cerr << endl << "ENABLED OPTIONS:" << endl;
-#ifdef HAVE_LIBGLM
-    feature("WebGL    3D HTML rendering");
+    bool glm=false;
+    bool gl=false;
+    bool gsl=false;
+    bool fftw3=false;
+    bool xdr=false;
+    bool readline=false;
+    bool sigsegv=false;
+    bool usegc=false;
+
+#if HAVE_LIBGLM
+    glm=true;
 #endif
 #ifdef HAVE_GL
-    feature("OpenGL   3D OpenGL rendering");
+    gl=true;
 #endif
 #ifdef HAVE_LIBGSL
-    feature("GSL      GNU Scientific Library (special functions)");
+    gsl=true;
 #endif
 #ifdef HAVE_LIBFFTW3
-    feature("FFTW3    Fast Fourier transforms");
+    fftw3=true;
 #endif
 #ifdef HAVE_RPC_RPC_H
-    feature("XDR      external data representation (portable binary file format)");
+    xdr=true;
 #endif
 #ifdef HAVE_LIBREADLINE
-    feature("Readline interactive history and editing");
+    readline=true;
 #endif
 #ifdef HAVE_LIBSIGSEGV
-    feature("Sigsegv  distinguish stack overflows from segmentation faults");
+    sigsegv=true;
 #endif
 #ifdef USEGC
-    feature("GC       Boehm garbage collector");
+    usegc=true;
 #endif
+
+    feature("WebGL    3D HTML rendering",glm);
+    feature("OpenGL   3D OpenGL rendering",gl);
+    feature("GSL      GNU Scientific Library (special functions)",gsl);
+    feature("FFTW3    Fast Fourier transforms",fftw3);
+    feature("XDR      external data representation (portable binary file format)",xdr);
+    feature("Readline interactive history and editing",readline);
+    feature("Sigsegv  distinguish stack overflows from segmentation faults",
+            sigsegv);
+    feature("GC       Boehm garbage collector",usegc);
+  }
+  
+  bool getOption() {
+    version();
+    features(1);
+    features(0);
     exit(0);
 
     // Unreachable code.
