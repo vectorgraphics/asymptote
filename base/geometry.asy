@@ -6645,7 +6645,7 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
           for(int j=0; j < x.length; ++j) {
             if(abs(b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]
                    +b[4]*y[i]+b[5]) < 1e-5)
-              P.push(point(R,(x[j],y[i])));
+              P.push(changecoordsys(currentcoordsys,point(R,(x[j],y[i]))));
           }
         }
         return P;
@@ -6661,7 +6661,7 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
     for(int j=0; j < y.length; ++j) {
       if(abs(b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5])
          < 1e-5)
-        P.push(point(R,(x[i],y[j])));
+        P.push(changecoordsys(currentcoordsys,point(R,(x[i],y[j]))));
     }
   }
   return P;
