@@ -229,7 +229,7 @@ AC_ARG_ENABLE(gc-full-debug,
 
 INCL=$INCL" -I/usr/include/tirpc"
 
-if test "$OSTYPE" = "cygwin"; then
+if test "$OSTYPE" = "msdos"; then
 CPPFLAGS=$CPPFLAGS" -D__MSDOS__ -I/usr/include/w32api -I/usr/include -DCALLBACK=__stdcall $INCL"
 else
 CPPFLAGS=$CPPFLAGS" $INCL"
@@ -384,7 +384,7 @@ if test "x$enable_openimageio" = "xyes"; then
 fi
 
 case "$OSTYPE" in
-     cygwin)
+     msdos)
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(GL/glut.h,
                                   [AC_DEFINE(HAVE_LIBGLUT,1,
