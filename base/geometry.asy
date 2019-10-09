@@ -3275,7 +3275,7 @@ ellipse operator cast(circle c)
 }
 
 /*<asyxml><operator type = "circle" signature="cast(ellipse)"><code></asyxml>*/
-circle operator cast(ellipse el)
+circle operator ecast(ellipse el)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   circle oc;
   bool infb = (!finite(el.a) || !finite(el.b));
@@ -3287,7 +3287,7 @@ circle operator cast(ellipse el)
 }
 
 /*<asyxml><operator type = "ellipse" signature="cast(conic)"><code></asyxml>*/
-ellipse operator cast(conic co)
+ellipse operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic to an ellipse (can be a circle).</documentation></operator></asyxml>*/
   if(degenerate(co) && co.e < 1) return ellipse(co.l[0].A, co.l[0].B, infinity);
   ellipse oe;
@@ -3305,7 +3305,7 @@ ellipse operator cast(conic co)
 }
 
 /*<asyxml><operator type = "parabola" signature="cast(conic)"><code></asyxml>*/
-parabola operator cast(conic co)
+parabola operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic to a parabola.</documentation></operator></asyxml>*/
   parabola op;
   if(abs(co.e - 1) > epsgeo) abort("casting: The conic section is not a parabola.");
@@ -3320,7 +3320,7 @@ conic operator cast(parabola p)
 }
 
 /*<asyxml><operator type = "hyperbola" signature="cast(conic)"><code></asyxml>*/
-hyperbola operator cast(conic co)
+hyperbola operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic section to an hyperbola.</documentation></operator></asyxml>*/
   hyperbola oh;
   if(co.e > 1) {
@@ -3372,7 +3372,7 @@ conic operator cast(circle c)
 }
 
 /*<asyxml><operator type = "circle" signature="cast(conic)"><code></asyxml>*/
-circle operator cast(conic c)
+circle operator ecast(conic c)
 {/*<asyxml></code><documentation>Conic section to circle.</documentation></operator></asyxml>*/
   ellipse el = (ellipse)c;
   circle oc;
@@ -3588,7 +3588,7 @@ bqe equation(parabola p)
    bqe.a[0] * x^2 + bqe.a[1] * x * y + bqe.a[2] * y^2 + bqe.a[3] * x + bqe.a[4] * y + bqe.a[5] = 0
    One can change the coordinate system of 'bqe' using the routine 'changecoordsys'.</documentation></function></asyxml>*/
   coordsys R = canonicalcartesiansystem(p);
-  parabola tp = changecoordsys(R, p);
+  parabola tp = (parabola) changecoordsys(R, p);
   point A = projection(tp.D) * point(R, (0, 0));
   real a = abs(A);
   return changecoordsys(coordsys(p),
@@ -6488,7 +6488,7 @@ point[] intersectionpoints(line l, ellipse el)
   coordsys R = samecoordsys(l.A, el.C) ? l.A.coordsys : defaultcoordsys;
   coordsys Rp = defaultcoordsys;
   line ll = changecoordsys(Rp, l);
-  ellipse ell = changecoordsys(Rp, el);
+  ellipse ell = (ellipse) changecoordsys(Rp, el);
   circle C = circle(ell.C, ell.a);
   point[] Ip = intersectionpoints(ll, C);
   if (Ip.length > 0 &&
