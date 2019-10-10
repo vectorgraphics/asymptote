@@ -184,13 +184,6 @@ string jobname(string name)
 
 string graphic(string name, string options="")
 {
-  if(settings.xasy) {
-    string prefix=stripextension(name);
-    if(name == prefix)
-      name += "." +nativeformat();
-    string s=locatefile(name);
-    name=s == "" ? name : s;
-  }
   if(latex()) {
     if(options != "") options="["+options+"]";
     string includegraphics="\includegraphics"+options;
