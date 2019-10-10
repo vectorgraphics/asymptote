@@ -31,6 +31,8 @@
 import math;
 import markers;
 
+real Infinity=1.0/(1000*realEpsilon);
+
 // A rotation in the direction dir limited to [-90,90]
 // This is useful for rotating text along a line in the direction dir.
 private transform rotate(explicit pair dir)
@@ -722,6 +724,11 @@ real degrees(explicit point M, coordsys R = M.coordsys, bool warn = true)
 real angle(explicit point M, coordsys R = M.coordsys, bool warn = true)
 {/*<asyxml></code><documentation>Return the angle of M (in radians) relatively to 'R'.</documentation></function></asyxml>*/
   return radians(degrees(M, R, warn));
+}
+
+bool Finite(explicit point z)
+{
+  return abs(z.x) < Infinity && abs(z.y) < Infinity;
 }
 
 /*<asyxml><function type="bool" signature="finite(explicit point)"><code></asyxml>*/
@@ -6562,7 +6569,7 @@ point[] intersectionpoints(line l, hyperbola h)
   coordsys R = coordsys(h);
   point A = intersectionpoint(l, h.A1), B = intersectionpoint(l, h.A2);
   point M = midpoint(segment(A, B));
-  bool tgt = M @ h;
+  bool tgt = Finite(M) ? M @ h : false;
   if(tgt) {
     if(M @ l) op.push(M);
   } else {
