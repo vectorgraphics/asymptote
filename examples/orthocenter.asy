@@ -3,6 +3,8 @@ import math;
 
 size(7cm,0);
 
+asy(nativeformat(),"examples/Pythagoras");
+
 real theta=degrees(asin(0.5/sqrt(7)));
 
 pair B=(0,sqrt(7));
@@ -35,4 +37,4 @@ dot("$A'$",Ap,dir(A--Ap),red);
 dot("$B'$",Bp,dir(B--Bp),red);
 dot("$C'$",Cp,dir(C--Cp),red);
 
-label(graphic("piicon","width=2.5cm"),Ap,5ENE);
+label(graphic(outdirectory()+"Pythagoras","width=2.5cm"),Ap,5ENE);
