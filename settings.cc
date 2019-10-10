@@ -1514,7 +1514,7 @@ void initDir() {
   
 void setPath() {
   searchPath.clear();
-  searchPath.push_back(".");
+  searchPath.push_back(getPath());
   string asydir=getSetting<string>("dir");
   if(asydir != "") {
     size_t p,i=0;
