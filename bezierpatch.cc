@@ -910,29 +910,29 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
     triple P0=P[PI0];
     triple P1=P[PI1];
     triple P2=P[PI2];
+    const uint32_t *NI=NN[i];
+    if(nC) {
+      const uint32_t *CI=CC[i];
+      prc::RGBAColour C0=C[CI[0]];
+      prc::RGBAColour C1=C[CI[1]];
+      prc::RGBAColour C2=C[CI[2]];
+      GLfloat c0[]={(GLfloat) C0.R,(GLfloat) C0.G,(GLfloat) C0.B,
+                    (GLfloat) C0.A};
+      GLfloat c1[]={(GLfloat) C1.R,(GLfloat) C1.G,(GLfloat) C1.B,
+                    (GLfloat) C1.A};
+      GLfloat c2[]={(GLfloat) C2.R,(GLfloat) C2.G,(GLfloat) C2.B,
+                    (GLfloat) C2.A};
+      transparent |= c0[3]+c1[3]+c2[3] < 765;
+      data.Vertices[PI0]=VertexData(P0,N[NI[0]],c0);
+      data.Vertices[PI1]=VertexData(P1,N[NI[1]],c1);
+      data.Vertices[PI2]=VertexData(P2,N[NI[2]],c2);
+    } else {
+      data.Vertices[PI0]=VertexData(P0,N[NI[0]]);
+      data.Vertices[PI1]=VertexData(P1,N[NI[1]]);
+      data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
+    }
     triple Q[]={P0,P1,P2};
     if(!offscreen(3,Q)) {
-      const uint32_t *NI=NN[i];
-      if(nC) {
-        const uint32_t *CI=CC[i];
-        prc::RGBAColour C0=C[CI[0]];
-        prc::RGBAColour C1=C[CI[1]];
-        prc::RGBAColour C2=C[CI[2]];
-        GLfloat c0[]={(GLfloat) C0.R,(GLfloat) C0.G,(GLfloat) C0.B,
-                      (GLfloat) C0.A};
-        GLfloat c1[]={(GLfloat) C1.R,(GLfloat) C1.G,(GLfloat) C1.B,
-                      (GLfloat) C1.A};
-        GLfloat c2[]={(GLfloat) C2.R,(GLfloat) C2.G,(GLfloat) C2.B,
-                      (GLfloat) C2.A};
-        transparent |= c0[3]+c1[3]+c2[3] < 765;
-        data.Vertices[PI0]=VertexData(P0,N[NI[0]],c0);
-        data.Vertices[PI1]=VertexData(P1,N[NI[1]],c1);
-        data.Vertices[PI2]=VertexData(P2,N[NI[2]],c2);
-      } else {
-        data.Vertices[PI0]=VertexData(P0,N[NI[0]]);
-        data.Vertices[PI1]=VertexData(P1,N[NI[1]]);
-        data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
-      }
       size_t i3=3*i;
       data.indices[i3]=PI0;
       data.indices[i3+1]=PI1;
