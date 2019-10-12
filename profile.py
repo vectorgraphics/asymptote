@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 from pprint import pprint
 
@@ -30,8 +32,8 @@ def computeTotals(tree):
                      + sum(child['nsecsTotal'] for child in tree['children']))
 
 def printName(name, prefix=''):
-    print prefix+"fl=", name[1]
-    print prefix+"fn=", name[0]
+    print (prefix+"fl=", name[1])
+    print (prefix+"fn=", name[0])
 
 class Arc:
     def __init__(self):
@@ -61,13 +63,13 @@ class Func:
             self.addChildTime(child)
 
     def dump(self):
-        print POS, self.instructions, self.nsecs
+        print (POS, self.instructions, self.nsecs)
         for name in self.arcs:
             printName(name, prefix='c')
             arc = self.arcs[name]
-            print "calls="+str(arc.calls), POS
-            print POS, arc.instTotal, arc.nsecsTotal
-        print
+            print ("calls="+str(arc.calls), POS)
+            print (POS, arc.instTotal, arc.nsecsTotal)
+        print ()
 
 def analyse(funcs, tree):
     funcs[nameFromNode(tree)].analyse(tree)
@@ -75,7 +77,7 @@ def analyse(funcs, tree):
         analyse(funcs, child)
 
 def dump(funcs):
-    print "events: Instructions Nanoseconds"
+    print ("events: Instructions Nanoseconds")
     for name in funcs:
         printName(name)
         funcs[name].dump()
