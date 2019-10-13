@@ -17,29 +17,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-let embedded; // Is image embedded within another window?
-
-let gl; // WebGL rendering context
-let canvas; // Rendering canvas
-let offscreen; // Offscreen rendering canvas for embedded images
-let context; // 2D context for copying embedded offscreen images
+let P=[]; // Array of Bezier patches, triangles, curves, and pixels
+let Materials=[]; // Array of materials
+let Lights=[]; // Array of lights
+let Centers=[]; // Array of billboard centers
+let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
-let halfCanvasWidth,halfCanvasHeight;
 
-let pixel=0.75; // Adaptive rendering constant.
-let BezierFactor=0.4;
-let FillFactor=0.1;
-let Zoom;
-let Zoom0;
+let absolute=false;
 
-let maxViewportWidth=window.innerWidth;
-let maxViewportHeight=window.innerHeight;
-let viewportmargin=0;
-let viewportshift=[0,0];
+let b,B; // Scene min,max bounding box corners (3-tuples)
+let angle; // Field of view angle
+let Zoom0; // Initial zoom
+let viewportmargin; // Margin around viewport (2-tuple)
+let viewportshift=[0,0]; // Viewport shift (for perspective projection)
 
-const windowTrim=10;
-let resizeStep=1.2;
 let zoomFactor;
 let zoomPinchFactor;
 let zoomPinchCap;
@@ -49,21 +42,32 @@ let shiftHoldDistance;
 let shiftWaitTime;
 let vibrateTime;
 
+let embedded; // Is image embedded within another window?
+
+let gl; // WebGL rendering context
+let canvas; // Rendering canvas
+let offscreen; // Offscreen rendering canvas for embedded images
+let context; // 2D context for copying embedded offscreen images
+
+let halfCanvasWidth,halfCanvasHeight;
+
+let pixel=0.75; // Adaptive rendering constant.
+let BezierFactor=0.4;
+let FillFactor=0.1;
+let Zoom;
+
+let maxViewportWidth=window.innerWidth;
+let maxViewportHeight=window.innerHeight;
+
+const windowTrim=10;
+let resizeStep=1.2;
+
 let lastzoom;
 let H; // maximum camera view half-height
 
 let Fuzz2=1000*Number.EPSILON;
 let Fuzz4=Fuzz2*Fuzz2;
 let third=1/3;
-
-let P=[]; // Array of Bezier patches, triangles, curves, and pixels
-let Materials=[]; // Array of materials
-let Lights=[]; // Array of lights
-let Centers=[]; // Array of billboard centers
-let Background=[1,1,1,1]; // Background color
-
-// Don't account for device pixels when embedding in another html document
-let absolute=false;
 
 let rotMat=mat4.create();
 let projMat=mat4.create(); // projection matrix
@@ -80,7 +84,6 @@ let zmin,zmax;
 let center={x:0,y:0,z:0};
 let size2;
 let ArcballFactor;
-let b,B; // Scene min,max bounding box corners
 let shift={
   x:0,y:0
 };
@@ -2173,3 +2176,4 @@ function webGLStart()
 
   tick();
 }
+
