@@ -17,10 +17,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+let embedded; // Is image embedded within another window?
 
-let gl;
+let gl; // WebGL rendering context
+let canvas; // Rendering canvas
+let offscreen; // Offscreen rendering canvas for embedded images
+let context; // 2D context for copying embedded offscreen images
 
-let canvas;
 let canvasWidth,canvasHeight;
 let halfCanvasWidth,halfCanvasHeight;
 
@@ -154,9 +157,27 @@ class Light {
 }
 
 function initGL() {
-  try {
-    gl=canvas.getContext("webgl",{alpha:Background[3] < 1});
-  } catch(e) {}
+  let alpha=Background[3] < 1;
+
+  if(embedded) {
+    context=canvas.getContext("2d");
+    offscreen=window.parent.document.offscreen;
+    if(!offscreen) {
+      offscreen=window.parent.document.createElement("canvas");
+      window.parent.document.offscreen=offscreen;
+    }
+
+    gl=alpha ? window.parent.document.glalpha : window.parent.document.gl;
+    if(!gl) {
+      gl=offscreen.getContext("webgl",{alpha:alpha});
+      if(alpha)
+        window.parent.document.glalpha=gl;
+      else
+        window.parent.document.gl=gl;
+    }
+  } else
+    gl=canvas.getContext("webgl",{alpha:alpha});
+
   if (!gl)
     alert("Could not initialize WebGL");
 }
@@ -247,6 +268,8 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.drawElements(normal ? gl.TRIANGLES : (pixel ? gl.POINTS : gl.LINES),
                   indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
+  if(embedded)
+    context.drawImage(offscreen,0,0);
 }
 
 class vertexBuffer {
@@ -2047,6 +2070,10 @@ function setCanvas()
 {
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
+  if(embedded) {
+    offscreen.width=canvasWidth;
+    offscreen.height=canvasHeight;
+  }
   size2=Math.hypot(canvasWidth,canvasHeight);
   halfCanvasWidth=0.5*canvasWidth;
   halfCanvasHeight=0.5*canvasHeight;
@@ -2085,8 +2112,11 @@ let pixelShader,noNormalShader,materialShader,colorShader,transparentShader;
 function webGLStart()
 {
   canvas=document.getElementById("Asymptote");
+  embedded=window.parent.document != document;
 
-  if(absolute) {
+  initGL();
+
+  if(absolute && !embedded) {
     canvasWidth *= window.devicePixelRatio;
     canvasHeight *= window.devicePixelRatio;
   } else {
@@ -2114,8 +2144,6 @@ function webGLStart()
 
   viewportshift[0] /= Zoom0;
   viewportshift[1] /= Zoom0;
-
-  initGL();
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);

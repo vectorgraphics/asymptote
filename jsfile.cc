@@ -21,9 +21,7 @@ void jsfile::open(string name) {
   out.open(name);
   out << "<!DOCTYPE html>" << newl << newl;
     
-  bool absolute=getSetting<bool>("absolute");
-  if(!absolute)
-    out << "<!-- Use the following line to include this file within another web page:" << newl
+  out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<object data=\"" << name <<"\" style=\"width:"
       << gl::fullWidth << ";height:" << gl::fullHeight
@@ -45,8 +43,8 @@ void jsfile::open(string name) {
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
-      << "absolute=" << std::boolalpha << absolute << ";" << newl
-      << newl
+      << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
+      << newl << newl
       <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];" 
       << newl
       <<  "B=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];" 
