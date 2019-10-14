@@ -7874,11 +7874,11 @@ The examples
 @code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/elevation.html,,elevation}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/elevation.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/sphericalharmonic.html,,sphericalharmonic}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/sphericalharmonic.asy,,.asy}} 
 illustrate how to draw a surface with patch-dependent colors.
 The examples @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/vertexshading.html,,vertexshading}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/vertexshading.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/smoothelevation.asy,,.asy}} illustrate
-vertex-dependent colors, which is supported for both
-@code{Asymptote}'s native @code{OpenGL} renderer and two-dimensional
-projections. Since the @acronym{PRC} output format does not currently support
-vertex shading of Bezier surfaces, @acronym{PRC} patches are shaded
-with the mean of the four vertex colors.
+vertex-dependent colors, which are supported by
+@code{Asymptote}'s native @code{OpenGL}/@code{WebGL} renderers
+and the two-dimensional vector output format (@code{settings.render=0}). Since
+the @acronym{PRC} output format does not currently support vertex
+shading of Bezier surfaces, @acronym{PRC} patches are shaded with the mean of the four vertex colors.
 
 @cindex @code{surface}
 @cindex @code{planar}
