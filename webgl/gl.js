@@ -44,8 +44,9 @@ let vibrateTime;
 
 let embedded; // Is image embedded within another window?
 
-let gl; // WebGL rendering context
 let canvas; // Rendering canvas
+let gl; // WebGL rendering context
+
 let offscreen; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
 
@@ -1929,6 +1930,12 @@ function transformVertices(vertices)
 
 function draw()
 {
+  if(embedded) {
+    offscreen.width=canvas.width;
+    offscreen.height=canvas.height;
+    setViewport();
+  }
+
   gl.clearColor(Background[0],Background[1],Background[2],Background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -2066,7 +2073,6 @@ function setViewport()
   gl.viewportWidth=canvasWidth;
   gl.viewportHeight=canvasHeight;
   gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
-  home();
 }
 
 function setCanvas()
@@ -2097,6 +2103,7 @@ function setsize(w,h)
   canvasHeight=h;
   setCanvas();
   setViewport();
+  home();
 }
 
 function expand() 
@@ -2143,6 +2150,7 @@ function webGLStart()
   }
 
   setCanvas();
+
   ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
 
   viewportshift[0] /= Zoom0;
@@ -2151,7 +2159,9 @@ function webGLStart()
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
+
   setViewport();
+  home();
 
   noNormalShader=initShader();
   pixelShader=initShader(["WIDTH"]);
@@ -2176,4 +2186,3 @@ function webGLStart()
 
   tick();
 }
-
