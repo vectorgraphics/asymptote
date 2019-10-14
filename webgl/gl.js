@@ -2073,6 +2073,7 @@ function setViewport()
   gl.viewportWidth=canvasWidth;
   gl.viewportHeight=canvasHeight;
   gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
+  gl.scissor(0,0,gl.viewportWidth,gl.viewportHeight);
 }
 
 function setCanvas()
@@ -2159,6 +2160,7 @@ function webGLStart()
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.SCISSOR_TEST);
 
   setViewport();
   home();
