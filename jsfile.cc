@@ -29,7 +29,11 @@ void jsfile::open(string name) {
       << "-->" << newl << newl;
 
   out.precision(getSetting<Int>("digits"));
-  copy(locateFile(WebGLheader));
+  out << "<html>"
+      << newl << newl << "<head>"
+      << newl << "<meta http-equiv=\"content-type\" content=\"text/html; charset=ISO-8859-1\">"
+      << newl<< "<meta name=\"viewport\" content=\"user-scalable=no\"/>"
+      << newl << newl;
   
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
@@ -98,7 +102,13 @@ jsfile::~jsfile() {
       out << newl << drawElement::center[i] << ",";
     out << newl << "];" << newl;
   }
-  copy(locateFile(WebGLfooter));
+  out << "</script>"
+      << newl << newl << "</head>"
+      << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
+      << newl << "<canvas id=\"Asymptote\" style=\"border: none;\" width=\"0\" height=\"0\" />"
+      << newl << "</body>"
+      << newl << newl << "</html>"
+      << newl;
 }
 
 void jsfile::addColor(const prc::RGBAColour& c) 

@@ -260,7 +260,7 @@ install-asy: asy sty
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	${INSTALL} -p -m 755 base/shaders/*.glsl $(shaderdir)
-	${INSTALL} -p -m 644 base/webgl/WebGL*.html base/webgl/asygl.js \
+	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
 	-${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
 	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs

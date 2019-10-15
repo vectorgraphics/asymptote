@@ -1,22 +1,3 @@
-/*@license
- gl.js: Render Bezier patches via subdivision with WebGL.
-  Copyright 2019: John C. Bowman and Supakorn "Jamie" Rassameemasmuang
-  University of Alberta
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 let P=[]; // Array of Bezier patches, triangles, curves, and pixels
 let Materials=[]; // Array of materials
 let Lights=[]; // Array of lights
@@ -46,9 +27,13 @@ let embedded; // Is image embedded within another window?
 
 let canvas; // Rendering canvas
 let gl; // WebGL rendering context
+let alpha; // Is background opaque?
 
 let offscreen; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
+
+let nlights=0; // Number of lights compiled in shader
+let Nmaterials=1; // Maximum number of materials compiled in shader
 
 let halfCanvasWidth,halfCanvasHeight;
 
@@ -160,10 +145,49 @@ class Light {
   }
 }
 
-function initGL() {
-  let alpha=Background[3] < 1;
+function initShaders()
+{
+  Nmaterials=Math.max(Nmaterials,Materials.length);
+
+  noNormalShader=initShader();
+  pixelShader=initShader(["WIDTH"]);
+  materialShader=initShader(["NORMAL"]);
+  colorShader=initShader(["NORMAL","COLOR"]);
+  transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
 
   if(embedded) {
+    window.parent.document.asygl[alpha].nlights=Lights.length;
+    window.parent.document.asygl[alpha].Nmaterials=Nmaterials;
+    window.parent.document.asygl[alpha].noNormalShader=noNormalShader;
+    window.parent.document.asygl[alpha].pixelShader=pixelShader;
+    window.parent.document.asygl[alpha].materialShader=materialShader;
+    window.parent.document.asygl[alpha].colorShader=colorShader;
+    window.parent.document.asygl[alpha].transparentShader=transparentShader;
+  }
+}
+
+function deleteShaders()
+{
+  gl.deleteProgram(noNormalShader);
+  gl.deleteProgram(pixelShader);
+  gl.deleteProgram(materialShader);
+  gl.deleteProgram(colorShader);
+  gl.deleteProgram(transparentShader);
+}
+
+function noGL() {
+  if (!gl)
+    alert("Could not initialize WebGL");
+}
+
+function initGL()
+{
+  alpha=Background[3] < 1;
+
+  if(embedded) {
+    if(window.parent.document.asygl == null)
+      window.parent.document.asygl=Array(2);
+  
     context=canvas.getContext("2d");
     offscreen=window.parent.document.offscreen;
     if(!offscreen) {
@@ -171,26 +195,45 @@ function initGL() {
       window.parent.document.offscreen=offscreen;
     }
 
-    gl=alpha ? window.parent.document.glalpha : window.parent.document.gl;
+    gl=window.parent.document.asygl[alpha].gl;
     if(!gl) {
       gl=offscreen.getContext("webgl",{alpha:alpha});
-      if(alpha)
-        window.parent.document.glalpha=gl;
-      else
-        window.parent.document.gl=gl;
-    }
-  } else
-    gl=canvas.getContext("webgl",{alpha:alpha});
+      if(!gl) noGL();
+      window.parent.document.asygl[alpha]=gl;
+      initShaders();
+      setBuffers();
+    } else {
+      if((Lights.length != window.parent.document.asygl[alpha].nlights) ||
+         Materials.length > Nmaterials) {
+        deleteShaders();
+        initShaders();
+      }
 
-  if (!gl)
-    alert("Could not initialize WebGL");
+      Nmaterials=window.parent.document.asygl[alpha].Nmaterials;
+
+      noNormalShader=window.parent.document.asygl[alpha].noNormalShader;
+      pixelShader=window.parent.document.asygl[alpha].pixelShader;
+      materialShader=window.parent.document.asygl[alpha].materialShader;
+      colorShader=window.parent.document.asygl[alpha].colorShader;
+      transparentShader=window.parent.document.asygl[alpha].transparentShader;
+
+      positionBuffer=window.parent.document.asygl[alpha].positionBuffer;
+      materialBuffer=window.parent.document.asygl[alpha].materialBuffer;
+      colorBuffer=window.parent.document.asygl[alpha].colorBuffer;
+      indexBuffer=window.parent.document.asygl[alpha].indexBuffer;
+    }
+  } else {
+    gl=canvas.getContext("webgl",{alpha:alpha});
+    if(!gl) noGL();
+    initShaders();
+    setBuffers();
+  }
+
+  indexExt=gl.getExtension("OES_element_index_uint");
 }
 
-function getShader(gl,id,options=[]) {
-  let shaderScript=document.getElementById(id);
-  if(!shaderScript)
-    return null;
-
+function getShader(gl,shaderScript,type,options=[])
+{
   let str=`#version 100
 #ifdef GL_FRAGMENT_PRECISION_HIGH
   precision highp float;
@@ -198,29 +241,16 @@ function getShader(gl,id,options=[]) {
   precision mediump float;
 #endif
   #define nlights ${Lights.length}\n
-  const int nLights=${Math.max(Lights.length,1)};\n
-  const int nMaterials=${Math.max(Materials.length,1)};\n`
+  const int Nlights=${Math.max(Lights.length,1)};\n
+  #define Nmaterials ${Nmaterials}\n`;
 
   if(orthographic)
     str += `#define ORTHOGRAPHIC\n`;
 
   options.forEach(s => str += `#define `+s+`\n`);
 
-  let k=shaderScript.firstChild;
-  while(k) {
-    if(k.nodeType == 3)
-      str += k.textContent;
-    k=k.nextSibling;
-  }
-  let shader;
-  if(shaderScript.type == "x-shader/x-fragment")
-    shader = gl.createShader(gl.FRAGMENT_SHADER);
-  else if (shaderScript.type == "x-shader/x-vertex")
-    shader = gl.createShader(gl.VERTEX_SHADER);
-  else
-    return null;
-
-  gl.shaderSource(shader,str);
+  let shader=gl.createShader(type);
+  gl.shaderSource(shader,str+shaderScript);
   gl.compileShader(shader);
   if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)) {
     alert(gl.getShaderInfoLog(shader));
@@ -233,8 +263,9 @@ function getShader(gl,id,options=[]) {
 function drawBuffer(data,shader,indices=data.indices)
 {
   if(data.indices.length == 0) return;
+  
   let pixel=shader == pixelShader;
-  let normal=!pixel && (shader != noNormalShader);
+  let normal=shader != noNormalShader && !pixel;
 
   setUniforms(shader);
 
@@ -243,18 +274,20 @@ function drawBuffer(data,shader,indices=data.indices)
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(shader.vertexPositionAttribute,
                          3,gl.FLOAT,false,normal ? 24 : (pixel ? 16 : 12),0);
-  if(normal)
+  if(normal && Lights.length > 0)
     gl.vertexAttribPointer(shader.vertexNormalAttribute,
                            3,gl.FLOAT,false,24,12);
   else if(pixel)
     gl.vertexAttribPointer(shader.vertexWidthAttribute,
                            1,gl.FLOAT,false,16,12);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
-                gl.STATIC_DRAW);
-  gl.vertexAttribPointer(shader.vertexMaterialAttribute,
-                         1,gl.SHORT,false,2,0);
+  if(shader.vertexMaterialAttribute > 0) {
+    gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
+                  gl.STATIC_DRAW);
+    gl.vertexAttribPointer(shader.vertexMaterialAttribute,
+                           1,gl.SHORT,false,2,0);
+  }
 
   if(shader == colorShader || shader == transparentShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
@@ -1431,8 +1464,8 @@ function home()
 
 function initShader(options=[])
 {
-  let fragmentShader=getShader(gl,"fragment",options);
-  let vertexShader=getShader(gl,"vertex",options);
+  let vertexShader=getShader(gl,vertex,gl.VERTEX_SHADER,options);
+  let fragmentShader=getShader(gl,fragment,gl.FRAGMENT_SHADER,options);
   let shader=gl.createProgram();
 
   gl.attachShader(shader,vertexShader);
@@ -1557,26 +1590,25 @@ function setUniforms(shader)
 
   gl.useProgram(shader);
 
-  shader.vertexPositionAttribute=
-    gl.getAttribLocation(shader,"position");
+  shader.vertexPositionAttribute=gl.getAttribLocation(shader,"position");
   gl.enableVertexAttribArray(shader.vertexPositionAttribute);
 
   if(pixel) {
-    shader.vertexWidthAttribute=
-      gl.getAttribLocation(shader,"width");
+    shader.vertexWidthAttribute=gl.getAttribLocation(shader,"width");
     gl.enableVertexAttribArray(shader.vertexWidthAttribute);
   }
 
-  if(shader != noNormalShader && !pixel) {
-    shader.vertexNormalAttribute=
-      gl.getAttribLocation(shader,"normal");
+  let normals=shader != noNormalShader && !pixel && Lights.length > 0;
+  if(normals) {
+    shader.vertexNormalAttribute=gl.getAttribLocation(shader,"normal");
     gl.enableVertexAttribArray(shader.vertexNormalAttribute);
   }
 
-  shader.vertexMaterialAttribute=
-    gl.getAttribLocation(shader,"materialIndex");
-  gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
+  shader.vertexMaterialAttribute=gl.getAttribLocation(shader,"materialIndex");
+  if(shader.vertexMaterialAttribute >= 0)
+    gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
 
+  shader.nlightsUniform=gl.getUniformLocation(shader,"nlights");
   shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
   shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
@@ -1587,11 +1619,15 @@ function setUniforms(shader)
     gl.enableVertexAttribArray(shader.vertexColorAttribute);
   }
 
-  for(let i=0; i < Materials.length; ++i)
-    Materials[i].setUniform(shader,"Materials",i);
+  if(normals) {
+    for(let i=0; i < Lights.length; ++i)
+      Lights[i].setUniform(shader,"Lights",i);
+  }
 
-  for(let i=0; i < Lights.length; ++i)
-    Lights[i].setUniform(shader,"Lights",i);
+  if(shader.vertexMaterialAttribute >= 0) {
+    for(let i=0; i < Materials.length; ++i)
+      Materials[i].setUniform(shader,"Materials",i);
+  }
 
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
   gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
@@ -1905,13 +1941,19 @@ function handleTouchMove(event)
 let indexExt;
 
 // Create buffers for the patch and its subdivisions.
-function setBuffer()
+function setBuffers()
 {
   positionBuffer=gl.createBuffer();
   materialBuffer=gl.createBuffer();
   colorBuffer=gl.createBuffer();
   indexBuffer=gl.createBuffer();
-  indexExt=gl.getExtension("OES_element_index_uint");
+
+  if(embedded) {
+    window.parent.document.asygl[alpha].positionBuffer=positionBuffer;
+    window.parent.document.asygl[alpha].materialBuffer=materialBuffer;
+    window.parent.document.asygl[alpha].colorBuffer=colorBuffer;
+    window.parent.document.asygl[alpha].indexBuffer=indexBuffer;
+  }
 }
 
 let zbuffer=[];
@@ -2164,14 +2206,6 @@ function webGLStart()
 
   setViewport();
   home();
-
-  noNormalShader=initShader();
-  pixelShader=initShader(["WIDTH"]);
-  materialShader=initShader(["NORMAL"]);
-  colorShader=initShader(["NORMAL","COLOR"]);
-  transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
-
-  setBuffer();
 
   canvas.onmousedown=handleMouseDown;
   document.onmouseup=handleMouseUpOrTouchEnd;
