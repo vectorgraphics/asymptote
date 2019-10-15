@@ -27,7 +27,6 @@ let embedded; // Is image embedded within another window?
 
 let canvas; // Rendering canvas
 let gl; // WebGL rendering context
-let alpha; // Is background opaque?
 
 let offscreen; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
@@ -145,6 +144,30 @@ class Light {
   }
 }
 
+class GLattributes {
+  constructor() {
+    this.gl=gl;
+    this.nlights=Lights.length;
+    this.Nmaterials=Nmaterials;
+
+    this.noNormalShader=noNormalShader;
+    this.pixelShader=pixelShader;
+    this.materialShader=materialShader;
+    this.colorShader=colorShader;
+    this.transparentShader=transparentShader;
+  }
+
+  restoreAttributes() {
+    Nmaterials=this.Nmaterials;
+
+    noNormalShader=this.noNormalShader;
+    pixelShader=this.pixelShader;
+    materialShader=this.materialShader;
+    colorShader=this.colorShader;
+    transparentShader=this.transparentShader;
+  }
+}
+
 function initShaders()
 {
   Nmaterials=Math.max(Nmaterials,Materials.length);
@@ -154,16 +177,6 @@ function initShaders()
   materialShader=initShader(["NORMAL"]);
   colorShader=initShader(["NORMAL","COLOR"]);
   transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
-
-  if(embedded) {
-    window.parent.document.asygl[alpha].nlights=Lights.length;
-    window.parent.document.asygl[alpha].Nmaterials=Nmaterials;
-    window.parent.document.asygl[alpha].noNormalShader=noNormalShader;
-    window.parent.document.asygl[alpha].pixelShader=pixelShader;
-    window.parent.document.asygl[alpha].materialShader=materialShader;
-    window.parent.document.asygl[alpha].colorShader=colorShader;
-    window.parent.document.asygl[alpha].transparentShader=transparentShader;
-  }
 }
 
 function deleteShaders()
@@ -175,6 +188,15 @@ function deleteShaders()
   gl.deleteProgram(transparentShader);
 }
 
+// Create buffers for the patch and its subdivisions.
+function setBuffers()
+{
+  positionBuffer=gl.createBuffer();
+  materialBuffer=gl.createBuffer();
+  colorBuffer=gl.createBuffer();
+  indexBuffer=gl.createBuffer();
+}
+
 function noGL() {
   if (!gl)
     alert("Could not initialize WebGL");
@@ -182,53 +204,39 @@ function noGL() {
 
 function initGL()
 {
-  alpha=Background[3] < 1;
+  let alpha=Background[3] < 1; // Is background opaque?
 
   if(embedded) {
-    if(window.parent.document.asygl == null)
-      window.parent.document.asygl=Array(2);
-  
     context=canvas.getContext("2d");
     offscreen=window.parent.document.offscreen;
     if(!offscreen) {
+      window.parent.document.asygl=Array(2);
       offscreen=window.parent.document.createElement("canvas");
       window.parent.document.offscreen=offscreen;
     }
-
-    gl=window.parent.document.asygl[alpha].gl;
+    gl=window.parent.document.asygl[alpha] ?
+      window.parent.document.asygl[alpha].gl : null;
     if(!gl) {
       gl=offscreen.getContext("webgl",{alpha:alpha});
       if(!gl) noGL();
-      window.parent.document.asygl[alpha]=gl;
       initShaders();
-      setBuffers();
+      window.parent.document.asygl[alpha]=new GLattributes();
     } else {
+      window.parent.document.asygl[alpha].restoreAttributes();
       if((Lights.length != window.parent.document.asygl[alpha].nlights) ||
          Materials.length > Nmaterials) {
         deleteShaders();
         initShaders();
+        window.parent.document.asygl[alpha]=new GLattributes();
       }
-
-      Nmaterials=window.parent.document.asygl[alpha].Nmaterials;
-
-      noNormalShader=window.parent.document.asygl[alpha].noNormalShader;
-      pixelShader=window.parent.document.asygl[alpha].pixelShader;
-      materialShader=window.parent.document.asygl[alpha].materialShader;
-      colorShader=window.parent.document.asygl[alpha].colorShader;
-      transparentShader=window.parent.document.asygl[alpha].transparentShader;
-
-      positionBuffer=window.parent.document.asygl[alpha].positionBuffer;
-      materialBuffer=window.parent.document.asygl[alpha].materialBuffer;
-      colorBuffer=window.parent.document.asygl[alpha].colorBuffer;
-      indexBuffer=window.parent.document.asygl[alpha].indexBuffer;
     }
   } else {
     gl=canvas.getContext("webgl",{alpha:alpha});
     if(!gl) noGL();
     initShaders();
-    setBuffers();
   }
 
+  setBuffers();
   indexExt=gl.getExtension("OES_element_index_uint");
 }
 
@@ -1939,22 +1947,6 @@ function handleTouchMove(event)
 }
 
 let indexExt;
-
-// Create buffers for the patch and its subdivisions.
-function setBuffers()
-{
-  positionBuffer=gl.createBuffer();
-  materialBuffer=gl.createBuffer();
-  colorBuffer=gl.createBuffer();
-  indexBuffer=gl.createBuffer();
-
-  if(embedded) {
-    window.parent.document.asygl[alpha].positionBuffer=positionBuffer;
-    window.parent.document.asygl[alpha].materialBuffer=materialBuffer;
-    window.parent.document.asygl[alpha].colorBuffer=colorBuffer;
-    window.parent.document.asygl[alpha].indexBuffer=indexBuffer;
-  }
-}
 
 let zbuffer=[];
 
