@@ -180,23 +180,13 @@ extern Billboard BB;
 #ifdef HAVE_LIBGLM
 typedef mem::map<CONST Material,size_t> MaterialMap;
 
-extern mem::vector<Material> material;
+extern std::vector<Material> material;
 extern MaterialMap materialMap;
 extern size_t materialIndex;
 extern int MaterialIndex;
 #endif
 
 #ifdef HAVE_GL
-
-template<class T>
-void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
-  if(!buffervector.empty()) {
-    glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(T)*buffervector.size(),
-                 buffervector.data(),GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER,0);
-  }
-}
 
 extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
 extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers

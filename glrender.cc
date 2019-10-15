@@ -74,6 +74,9 @@ vertexBuffer triangleData;
 
 const size_t Nbuffer=10000;
 const size_t nbuffer=1000;
+
+GLuint attributeBuffer;
+GLuint indicesBuffer; 
 }
 
 #endif /* HAVE_GL */
@@ -86,7 +89,7 @@ using camp::nmaterials;
 using camp::MaterialMap;
 
 namespace camp {
-mem::vector<Material> material;
+std::vector<Material> material;
 MaterialMap materialMap;
 size_t materialIndex;
 
@@ -472,6 +475,13 @@ void deleteShaders()
   glDeleteProgram(camp::materialShader);
   glDeleteProgram(camp::pixelShader);
   glDeleteProgram(camp::noNormalShader);
+}
+
+void setBuffers()
+{
+  glGenBuffers(1,&camp::attributeBuffer);
+  glGenBuffers(1,&camp::indicesBuffer);
+  glGenBuffers(1,&ubo);
 }
 
 void drawscene(int Width, int Height)
@@ -1744,6 +1754,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     }
     
     initShaders();
+    setBuffers();
   }
   
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
@@ -1822,7 +1833,18 @@ string getCenterIndex(size_t const& index) {
   return Strdup(buf.str());
 } 
 
-void setUniforms(GLint shader)
+template<class T>
+void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex,
+                    GLint type=GL_ARRAY_BUFFER) {
+  if(!buffervector.empty()) {
+    glBindBuffer(type,bufferIndex);
+    glBufferData(type,buffervector.size()*sizeof(T),
+                 buffervector.data(),GL_STATIC_DRAW);
+    glBindBuffer(type,0);
+  }
+}
+
+void setUniforms(GLint shader, GLint materialAttrib)
 {
   bool normal=shader != pixelShader && shader != noNormalShader;
     
@@ -1857,31 +1879,25 @@ void setUniforms(GLint shader)
 #endif
   }
   
-  GLuint binding=0;
-  GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
-  glUniformBlockBinding(shader,blockindex,binding);
-    
-  glGenBuffers(1,&gl::ubo);
-  glBindBuffer(GL_UNIFORM_BUFFER,gl::ubo);
-    
-  glBufferData(GL_UNIFORM_BUFFER,material.size()*sizeof(Material),
-               material.data(),GL_STATIC_DRAW);
-  glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
+  if(materialAttrib >= 0) {
+    GLuint binding=0;
+    GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
+    glUniformBlockBinding(shader,blockindex,binding);
+    registerBuffer(material,gl::ubo,GL_UNIFORM_BUFFER);
+    glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
+  }
   
-  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE, value_ptr(gl::projViewMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
+                     value_ptr(gl::projViewMat));
   
-  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE, value_ptr(gl::viewMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
+                     value_ptr(gl::viewMat));
   
   if(normal)
-    glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE, value_ptr(gl::normMat));
+    glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
+                       value_ptr(gl::normMat));
 }
 
-void deleteUniforms()
-{
-  glBindBuffer(GL_UNIFORM_BUFFER,0);
-  glDeleteBuffers(1,&gl::ubo);
-}
-  
 void drawBuffer(vertexBuffer& data, GLint shader)
 {
   if(data.indices.empty()) return;
@@ -1896,28 +1912,22 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     (normal ? sizeof(vertexData) :
      (pixel ? sizeof(vertexData0) : sizeof(vertexData1)));
 
-  GLuint vertsBufferIndex;
-  GLuint elemBufferIndex; 
-
-  glGenBuffers(1,&vertsBufferIndex);
-  glGenBuffers(1,&elemBufferIndex);
+  if(color) registerBuffer(data.Vertices,attributeBuffer);
+  else if(normal) registerBuffer(data.vertices,attributeBuffer);
+  else if(pixel) registerBuffer(data.vertices0,attributeBuffer);
+  else registerBuffer(data.vertices1,attributeBuffer);
   
-  if(color) registerBuffer(data.Vertices,vertsBufferIndex);
-  else if(normal) registerBuffer(data.vertices,vertsBufferIndex);
-  else if(pixel) registerBuffer(data.vertices0,vertsBufferIndex);
-  else registerBuffer(data.vertices1,vertsBufferIndex);
+  registerBuffer(data.indices,indicesBuffer);
   
-  registerBuffer(data.indices,elemBufferIndex);
-  
-  glBindBuffer(GL_ARRAY_BUFFER,vertsBufferIndex);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elemBufferIndex);
-
-  camp::setUniforms(shader);
+  glBindBuffer(GL_ARRAY_BUFFER,attributeBuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,indicesBuffer);
 
   const GLint posAttrib=glGetAttribLocation(shader,"position");
   const GLint materialAttrib=glGetAttribLocation(shader,"material");
   GLint normalAttrib=0,colorAttrib=0,widthAttrib=0;
   
+  camp::setUniforms(shader,materialAttrib);
+
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
   glEnableVertexAttribArray(posAttrib);
     
@@ -1933,7 +1943,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(widthAttrib);
   }
     
-  if(materialAttrib) {
+  if(materialAttrib >= 0) {
     glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
                            (void *) ((normal ? 6 : (pixel ? 4 : 3))*size));
     glEnableVertexAttribArray(materialAttrib);
@@ -1961,13 +1971,11 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   if(color)
     glDisableVertexAttribArray(colorAttrib);
   
-  deleteUniforms();
+  if(materialAttrib >= 0)
+    glBindBuffer(GL_UNIFORM_BUFFER,0);
   
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-
-  glDeleteBuffers(1,&vertsBufferIndex);
-  glDeleteBuffers(1,&elemBufferIndex);
 }
 
 void drawBuffers() 
