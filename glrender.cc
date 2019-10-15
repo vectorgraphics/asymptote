@@ -420,11 +420,11 @@ void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 }
 #endif
 
-void initshaders()
+void initShaders()
 {
   Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
-
   Nmaterials=max(Nmaterials,nmaterials);
+  
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
@@ -465,7 +465,7 @@ void initshaders()
                                                shaderParams);
 }
 
-void deleteshaders() 
+void deleteShaders() 
 {
   glDeleteProgram(camp::transparentShader);
   glDeleteProgram(camp::colorShader);
@@ -487,8 +487,8 @@ void drawscene(int Width, int Height)
 
   if((nlights == 0 && Nlights > 0) || nlights > Nlights || 
      nmaterials > Nmaterials) {
-    deleteshaders();
-    initshaders();
+    deleteShaders();
+    initShaders();
     lastshader=-1;
   }
 
@@ -1743,7 +1743,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       exit(-1);
     }
     
-    initshaders();
+    initShaders();
   }
   
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
@@ -1887,7 +1887,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   if(data.indices.empty()) return;
   
   bool pixel=shader == pixelShader;
-  bool normal=!pixel && (shader != noNormalShader);
+  bool normal=shader != noNormalShader && !pixel;
   bool color=shader == colorShader || shader == transparentShader;
   
   const size_t size=sizeof(GLfloat);
@@ -1898,11 +1898,6 @@ void drawBuffer(vertexBuffer& data, GLint shader)
 
   GLuint vertsBufferIndex;
   GLuint elemBufferIndex; 
-
-  GLuint vao;
-  
-  glGenVertexArrays(1,&vao);
-  glBindVertexArray(vao);
 
   glGenBuffers(1,&vertsBufferIndex);
   glGenBuffers(1,&elemBufferIndex);
@@ -1921,12 +1916,12 @@ void drawBuffer(vertexBuffer& data, GLint shader)
 
   const GLint posAttrib=glGetAttribLocation(shader,"position");
   const GLint materialAttrib=glGetAttribLocation(shader,"material");
-  GLint normalAttrib,colorAttrib,widthAttrib=0;
+  GLint normalAttrib=0,colorAttrib=0,widthAttrib=0;
   
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
   glEnableVertexAttribArray(posAttrib);
     
-  if(normal) {
+  if(normal && gl::Nlights > 0) {
     normalAttrib=glGetAttribLocation(shader,"normal");
     glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                           (void *) (3*size));
@@ -1938,9 +1933,11 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(widthAttrib);
   }
     
-  glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
-                         (void *) ((normal ? 6 : (pixel ? 4 : 3))*size));
-  glEnableVertexAttribArray(materialAttrib);
+  if(materialAttrib) {
+    glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
+                           (void *) ((normal ? 6 : (pixel ? 4 : 3))*size));
+    glEnableVertexAttribArray(materialAttrib);
+  }
 
   if(color) {
     colorAttrib=glGetAttribLocation(shader,"color");
@@ -1949,13 +1946,15 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(colorAttrib);
   }
   
+#ifdef __MSDOS__
   glFlush(); // Workaround broken MSWindows drivers for Intel GPU
+#endif  
   glDrawElements(normal ? GL_TRIANGLES : (pixel ? GL_POINTS : GL_LINES),
                  data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
   glDisableVertexAttribArray(posAttrib);
-  if(normal)
-   glDisableVertexAttribArray(normalAttrib);
+  if(normal && gl::Nlights > 0)
+    glDisableVertexAttribArray(normalAttrib);
   if(pixel)
    glDisableVertexAttribArray(widthAttrib);
   glDisableVertexAttribArray(materialAttrib);
@@ -1967,9 +1966,6 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
-  glBindVertexArray(0);
-  glDeleteVertexArrays(1,&vao);
-  
   glDeleteBuffers(1,&vertsBufferIndex);
   glDeleteBuffers(1,&elemBufferIndex);
 }

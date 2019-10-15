@@ -463,18 +463,6 @@ public:
   }
 };
  
-#ifdef HAVE_GL
-template<class T>
-void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
-  if (!buffervector.empty()) {
-    glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(T)*buffervector.size(),
-                 buffervector.data(),GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER,0);
-  }
-}
-#endif
-
 #ifdef HAVE_LIBGLM
 void setcolors(bool colors,
                const prc::RGBAColour& diffuse,

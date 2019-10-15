@@ -136,9 +136,6 @@ public:
 #ifdef HAVE_GL
 extern GLuint ubo;
 GLuint initHDR();
-
-void setUniforms(GLint shader);
-void deleteUniforms();
 #endif
 
 projection camera(bool user=true);
@@ -151,9 +148,6 @@ void glrender(const string& prefix, const camp::picture* pic,
               double *diffuse, double *specular, bool view, int oldpid=0);
 
 extern const double *dprojView;
-
-void initshader();
-void deleteshader();
 
 extern double BBT[9];
 
@@ -193,6 +187,16 @@ extern int MaterialIndex;
 #endif
 
 #ifdef HAVE_GL
+
+template<class T>
+void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex) {
+  if(!buffervector.empty()) {
+    glBindBuffer(GL_ARRAY_BUFFER,bufferIndex);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(T)*buffervector.size(),
+                 buffervector.data(),GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+  }
+}
 
 extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
 extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers

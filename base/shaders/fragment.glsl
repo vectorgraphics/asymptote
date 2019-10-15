@@ -162,7 +162,7 @@ void main()
 #endif
 #endif
   
-#ifdef NORMAL
+#if defined(NORMAL) && Nlights > 0
   Specular=m.specular.rgb;
   parameters=m.parameters;
   Roughness2=1.0-parameters[0];
