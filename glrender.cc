@@ -1879,7 +1879,7 @@ void setUniforms(GLint shader, GLint materialAttrib)
 #endif
   }
   
-  if(materialAttrib >= 0) {
+  if(materialAttrib != -1) {
     GLuint binding=0;
     GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
     glUniformBlockBinding(shader,blockindex,binding);
@@ -1943,7 +1943,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(widthAttrib);
   }
     
-  if(materialAttrib >= 0) {
+  if(materialAttrib != -1) {
     glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
                            (void *) ((normal ? 6 : (pixel ? 4 : 3))*size));
     glEnableVertexAttribArray(materialAttrib);
@@ -1971,7 +1971,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   if(color)
     glDisableVertexAttribArray(colorAttrib);
   
-  if(materialAttrib >= 0)
+  if(materialAttrib != -1)
     glBindBuffer(GL_UNIFORM_BUFFER,0);
   
   glBindBuffer(GL_ARRAY_BUFFER,0);
