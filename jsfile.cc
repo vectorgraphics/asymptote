@@ -38,10 +38,10 @@ void jsfile::open(string name) {
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
     copy(locateFile(AsyGL));
-    out << "</script>" << newl;
+    out << newl << "</script>" << newl;
   } else {
     out << "<script type=\"text/javascript\"" << newl << "src=\""
-        << getSetting<string>("asygl") << "\"></script>" << newl;
+        << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
   }
   out << "<script type=\"text/javascript\">" << newl;
   out << newl

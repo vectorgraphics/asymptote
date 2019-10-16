@@ -1,5 +1,5 @@
 /*@license
- asygl: Render Bezier patches and triangles via subdivision with WebGL.
+ AsyGL: Render Bezier patches and triangles via subdivision with WebGL.
   Copyright 2019: John C. Bowman and Supakorn "Jamie" Rassameemasmuang
   University of Alberta
 
