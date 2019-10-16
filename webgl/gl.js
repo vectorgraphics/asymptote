@@ -27,6 +27,7 @@ let embedded; // Is image embedded within another window?
 
 let canvas; // Rendering canvas
 let gl; // WebGL rendering context
+let alpha; // Is background opaque?
 
 let offscreen; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
@@ -144,30 +145,6 @@ class Light {
   }
 }
 
-class GLattributes {
-  constructor() {
-    this.gl=gl;
-    this.nlights=Lights.length;
-    this.Nmaterials=Nmaterials;
-
-    this.noNormalShader=noNormalShader;
-    this.pixelShader=pixelShader;
-    this.materialShader=materialShader;
-    this.colorShader=colorShader;
-    this.transparentShader=transparentShader;
-  }
-
-  restoreAttributes() {
-    Nmaterials=this.Nmaterials;
-
-    noNormalShader=this.noNormalShader;
-    pixelShader=this.pixelShader;
-    materialShader=this.materialShader;
-    colorShader=this.colorShader;
-    transparentShader=this.transparentShader;
-  }
-}
-
 function initShaders()
 {
   Nmaterials=Math.max(Nmaterials,Materials.length);
@@ -177,15 +154,6 @@ function initShaders()
   materialShader=initShader(["NORMAL"]);
   colorShader=initShader(["NORMAL","COLOR"]);
   transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
-}
-
-function deleteShaders()
-{
-  gl.deleteProgram(noNormalShader);
-  gl.deleteProgram(pixelShader);
-  gl.deleteProgram(materialShader);
-  gl.deleteProgram(colorShader);
-  gl.deleteProgram(transparentShader);
 }
 
 // Create buffers for the patch and its subdivisions.
@@ -202,32 +170,71 @@ function noGL() {
     alert("Could not initialize WebGL");
 }
 
+function saveAttributes()
+{
+  let a=window.parent.document.asygl[alpha];
+
+  a.gl=gl;
+  a.nlights=Lights.length;
+  a.Nmaterials=Nmaterials;
+
+  a.noNormalShader=noNormalShader;
+  a.pixelShader=pixelShader;
+  a.materialShader=materialShader;
+  a.colorShader=colorShader;
+  a.transparentShader=transparentShader;
+}
+
+function restoreAttributes()
+{
+  let a=window.parent.document.asygl[alpha];
+
+  gl=a.gl;
+  nlights=a.nlights;
+  Nmaterials=a.Nmaterials;
+
+  noNormalShader=a.noNormalShader;
+  pixelShader=a.pixelShader;
+  materialShader=a.materialShader;
+  colorShader=a.colorShader;
+  transparentShader=a.transparentShader;
+
+  positionBuffer=a.positionBuffer;
+  materialBuffer=a.materialBuffer;
+  colorBuffer=a.colorBuffer;
+  indexBuffer=a.indexBuffer;
+}
+
+let indexExt;
+
 function initGL()
 {
-  let alpha=Background[3] < 1; // Is background opaque?
+  alpha=Background[3] < 1;
 
   if(embedded) {
+    let p=window.parent.document;
+
+    if(p.asygl == null)
+      p.asygl=Array(2);
+  
     context=canvas.getContext("2d");
-    offscreen=window.parent.document.offscreen;
+    offscreen=p.offscreen;
     if(!offscreen) {
-      window.parent.document.asygl=Array(2);
-      offscreen=window.parent.document.createElement("canvas");
-      window.parent.document.offscreen=offscreen;
+      offscreen=p.createElement("canvas");
+      p.offscreen=offscreen;
     }
-    gl=window.parent.document.asygl[alpha] ?
-      window.parent.document.asygl[alpha].gl : null;
-    if(!gl) {
+
+    if(!p.asygl[alpha] || !p.asygl[alpha].gl) {
       gl=offscreen.getContext("webgl",{alpha:alpha});
       if(!gl) noGL();
       initShaders();
-      window.parent.document.asygl[alpha]=new GLattributes();
+      p.asygl[alpha]={};
+      saveAttributes();
     } else {
-      window.parent.document.asygl[alpha].restoreAttributes();
-      if((Lights.length != window.parent.document.asygl[alpha].nlights) ||
-         Materials.length > Nmaterials) {
-        deleteShaders();
+      restoreAttributes();
+      if((Lights.length != nlights) || Materials.length > Nmaterials) {
         initShaders();
-        window.parent.document.asygl[alpha]=new GLattributes();
+        saveAttributes();
       }
     }
   } else {
@@ -289,7 +296,7 @@ function drawBuffer(data,shader,indices=data.indices)
     gl.vertexAttribPointer(shader.vertexWidthAttribute,
                            1,gl.FLOAT,false,16,12);
 
-  if(shader.vertexMaterialAttribute > 0) {
+  if(shader.vertexMaterialAttribute != -1) {
     gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
                   gl.STATIC_DRAW);
@@ -1613,7 +1620,7 @@ function setUniforms(shader)
   }
 
   shader.vertexMaterialAttribute=gl.getAttribLocation(shader,"materialIndex");
-  if(shader.vertexMaterialAttribute >= 0)
+  if(shader.vertexMaterialAttribute != -1)
     gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
 
   shader.nlightsUniform=gl.getUniformLocation(shader,"nlights");
@@ -1632,7 +1639,7 @@ function setUniforms(shader)
       Lights[i].setUniform(shader,"Lights",i);
   }
 
-  if(shader.vertexMaterialAttribute >= 0) {
+  if(shader.vertexMaterialAttribute != -1) {
     for(let i=0; i < Materials.length; ++i)
       Materials[i].setUniform(shader,"Materials",i);
   }
@@ -1945,8 +1952,6 @@ function handleTouchMove(event)
     redraw=true;
   }
 }
-
-let indexExt;
 
 let zbuffer=[];
 
