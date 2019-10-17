@@ -27,7 +27,7 @@ varying vec4 emissive;
 
 struct Material {
   vec4 diffuse,emissive,specular;
-  float shininess,metallic,fresnel0;
+  vec4 parameters;
 };
 
 uniform Material Materials[Nmaterials];
@@ -71,9 +71,10 @@ void main(void)
 #endif
 #endif
   specular=m.specular.rgb;
-  roughness=1.0-m.shininess;
-  metallic=m.metallic;
-  fresnel0=m.fresnel0;
+  vec4 parameters=m.parameters;
+  roughness=1.0-parameters[0];
+  metallic=parameters[1];
+  fresnel0=parameters[2];
 #else
   emissive=Materials[int(materialIndex)].emissive;
 #endif

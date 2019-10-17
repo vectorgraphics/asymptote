@@ -121,9 +121,8 @@ class Material {
     gl.uniform4fv(getLoc("emissive"),new Float32Array(this.emissive));
     gl.uniform4fv(getLoc("specular"),new Float32Array(this.specular));
 
-    gl.uniform1f(getLoc("shininess"),this.shininess);
-    gl.uniform1f(getLoc("metallic"),this.metallic);
-    gl.uniform1f(getLoc("fresnel0"),this.fresnel0);
+    gl.uniform4f(getLoc("parameters"),this.shininess,this.metallic,
+                 this.fresnel0,0);
   }
 }
 
@@ -1623,7 +1622,6 @@ function setUniforms(shader)
   if(shader.vertexMaterialAttribute != -1)
     gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
 
-  shader.nlightsUniform=gl.getUniformLocation(shader,"nlights");
   shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
   shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
