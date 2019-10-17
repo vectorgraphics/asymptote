@@ -71,7 +71,7 @@ struct arrowhead3
   real arcsize(pen p)=arcarrowsize;
   real gap=1;
   real size;
-  bool splitpath=true;
+  bool splitpath=false;
 
   surface head(path3 g, position position=EndPoint,
                pen p=currentpen, real size=0, real angle=arrowangle,
@@ -286,6 +286,7 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb, triple normal=O)
   };
   a.arrowhead2=HookHead;
   a.gap=1.005;
+  a.splitpath=true;
   return a;
 }
 arrowhead3 HookHead2=HookHead2();
@@ -308,7 +309,6 @@ arrowhead3 TeXHead2(triple normal=O) {
   };
   a.arrowhead2=TeXHead;
   a.size=TeXHead.size;
-  a.splitpath=false;
   a.gap=1.005;
   return a;
 }
