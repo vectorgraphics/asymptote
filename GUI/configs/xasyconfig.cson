@@ -1,7 +1,7 @@
 # Default Options for xasy
 
 # External editor. $asypath will be replaced by the current file. 
-externalEditor: "emacs"
+externalEditor: "vi"
 externalEditorArgs: ["$asypath"]
 
 # Path to Asymptote executable

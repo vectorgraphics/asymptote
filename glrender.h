@@ -136,9 +136,6 @@ public:
 #ifdef HAVE_GL
 extern GLuint ubo;
 GLuint initHDR();
-
-void setUniforms(GLint shader);
-void deleteUniforms();
 #endif
 
 projection camera(bool user=true);
@@ -151,9 +148,6 @@ void glrender(const string& prefix, const camp::picture* pic,
               double *diffuse, double *specular, bool view, int oldpid=0);
 
 extern const double *dprojView;
-
-void initshader();
-void deleteshader();
 
 extern double BBT[9];
 
@@ -186,7 +180,7 @@ extern Billboard BB;
 #ifdef HAVE_LIBGLM
 typedef mem::map<CONST Material,size_t> MaterialMap;
 
-extern mem::vector<Material> material;
+extern std::vector<Material> material;
 extern MaterialMap materialMap;
 extern size_t materialIndex;
 extern int MaterialIndex;

@@ -21,9 +21,7 @@ void jsfile::open(string name) {
   out.open(name);
   out << "<!DOCTYPE html>" << newl << newl;
     
-  bool absolute=getSetting<bool>("absolute");
-  if(!absolute)
-    out << "<!-- Use the following line to include this file within another web page:" << newl
+  out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<object data=\"" << name <<"\" style=\"width:"
       << gl::fullWidth << ";height:" << gl::fullHeight
@@ -31,22 +29,26 @@ void jsfile::open(string name) {
       << "-->" << newl << newl;
 
   out.precision(getSetting<Int>("digits"));
-  copy(locateFile(WebGLheader));
+  out << "<html>"
+      << newl << newl << "<head>"
+      << newl << "<meta http-equiv=\"content-type\" content=\"text/html; charset=ISO-8859-1\">"
+      << newl<< "<meta name=\"viewport\" content=\"user-scalable=no\"/>"
+      << newl << newl;
   
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
     copy(locateFile(AsyGL));
-    out << "</script>" << newl;
+    out << newl << "</script>" << newl;
   } else {
     out << "<script type=\"text/javascript\"" << newl << "src=\""
-        << getSetting<string>("asygl") << "\"></script>" << newl;
+        << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
   }
   out << "<script type=\"text/javascript\">" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
-      << "absolute=" << std::boolalpha << absolute << ";" << newl
-      << newl
+      << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
+      << newl << newl
       <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];" 
       << newl
       <<  "B=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];" 
@@ -100,7 +102,13 @@ jsfile::~jsfile() {
       out << newl << drawElement::center[i] << ",";
     out << newl << "];" << newl;
   }
-  copy(locateFile(WebGLfooter));
+  out << "</script>"
+      << newl << newl << "</head>"
+      << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
+      << newl << "<canvas id=\"Asymptote\" style=\"border: none;\" width=\"0\" height=\"0\" />"
+      << newl << "</body>"
+      << newl << newl << "</html>"
+      << newl;
 }
 
 void jsfile::addColor(const prc::RGBAColour& c) 

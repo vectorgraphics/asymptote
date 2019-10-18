@@ -32,6 +32,14 @@
 #include "camperror.h"
 #include "pen.h"
 
+iopipestream *instance;
+
+void pipeHandler(int)
+{
+  Signal(SIGPIPE,SIG_DFL);
+  instance->pipeclose();
+}
+  
 void iopipestream::open(const mem::vector<string> &command, const char *hint,
                         const char *application, int out_fileno)
 {
@@ -70,9 +78,11 @@ void iopipestream::open(const mem::vector<string> &command, const char *hint,
     char **argv=args(command);
     if(argv) execvp(argv[0],argv);
     execError(argv[0],hint,application);
-    kill(0,SIGTERM);
+    kill(0,SIGPIPE);
     _exit(-1);
   }
+  instance=this;
+  Signal(SIGPIPE,pipeHandler);
   close(out[1]);
   close(in[0]);
   *buffer=0;

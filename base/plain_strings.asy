@@ -184,16 +184,18 @@ string jobname(string name)
 
 string graphic(string name, string options="")
 {
+  if(settings.xasy)
+    name=stripdirectory(name);
+
   if(latex()) {
     if(options != "") options="["+options+"]";
-    bool pdf=pdf();
     string includegraphics="\includegraphics"+options;
     if(settings.inlinetex)
       return includegraphics+"{"+jobname(name)+"}";
     else
       return includegraphics+
         (find(name," ") < 0 ? "{"+name+"}" :
-         (pdf ? "{\""+stripextension(name)+"\".pdf}" : "{\""+name+"\"}"));
+         (pdf() ? "{\""+stripextension(name)+"\".pdf}" : "{\""+name+"\"}"));
   }
   if(settings.tex != "context")
     notimplemented("graphic");
