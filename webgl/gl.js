@@ -36,10 +36,6 @@ let nlights=0; // Number of lights compiled in shader
 let Nmaterials=1; // Maximum number of materials compiled in shader
 
 let materials=[]; // Subset of Materials passed as uniforms
-let tmaterials=[]; // Subset of transparent Materials passed as uniforms
-let pmaterials; // pointer to Materials, materials, or tmaterials
-let materialIndices=[];
-let tmaterialIndices=[];
 let maxMaterials; // Limit on number of materials allowed in shader
 
 let halfCanvasWidth,halfCanvasHeight;
@@ -275,7 +271,6 @@ function getShader(gl,shaderScript,type,options=[])
   return shader;
 }
 
-
 function drawBuffer(data,shader,indices=data.indices)
 {
   if(data.indices.length == 0) return;
@@ -283,7 +278,7 @@ function drawBuffer(data,shader,indices=data.indices)
   let pixel=shader == pixelShader;
   let normal=shader != noNormalShader && !pixel;
 
-  setUniforms(shader);
+  setUniforms(data,shader);
 
   gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
@@ -299,7 +294,7 @@ function drawBuffer(data,shader,indices=data.indices)
 
   if(shader.vertexMaterialAttribute != -1) {
     gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materials),
+    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materialIndices),
                   gl.STATIC_DRAW);
     gl.vertexAttribPointer(shader.vertexMaterialAttribute,
                            1,gl.SHORT,false,2,0);
@@ -331,10 +326,13 @@ class vertexBuffer {
   }
   clear() {
     this.vertices=[];
-    this.materials=[];
+    this.materialIndices=[];
     this.colors=[];
     this.indices=[];
     this.nvertices=0;
+
+    this.materials=[];
+    this.materialTable=[];
   }
 
   // material vertex 
@@ -345,7 +343,7 @@ class vertexBuffer {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
-    this.materials.push(materialIndex);
+    this.materialIndices.push(materialIndex);
     return this.nvertices++;
   }
 
@@ -357,7 +355,7 @@ class vertexBuffer {
     this.vertices.push(n[0]);
     this.vertices.push(n[1]);
     this.vertices.push(n[2]);
-    this.materials.push(materialIndex);
+    this.materialIndices.push(materialIndex);
     this.colors.push(c[0]);
     this.colors.push(c[1]);
     this.colors.push(c[2]);
@@ -370,7 +368,7 @@ class vertexBuffer {
     this.vertices.push(v[0]);
     this.vertices.push(v[1]);
     this.vertices.push(v[2]);
-    this.materials.push(materialIndex);
+    this.materialIndices.push(materialIndex);
     return this.nvertices++;
   }
 
@@ -380,7 +378,7 @@ class vertexBuffer {
     this.vertices.push(v[1]);
     this.vertices.push(v[2]);
     this.vertices.push(width);
-    this.materials.push(materialIndex);
+    this.materialIndices.push(materialIndex);
     return this.nvertices++;
   }
 
@@ -393,7 +391,7 @@ class vertexBuffer {
     this.vertices[i6+3]=n[0];
     this.vertices[i6+4]=n[1];
     this.vertices[i6+5]=n[2];
-    this.materials[i]=materialIndex;
+    this.materialIndices[i]=materialIndex;
     let i4=4*i;
     this.colors[i4]=c[0];
     this.colors[i4+1]=c[1];
@@ -404,7 +402,7 @@ class vertexBuffer {
 
   append(data) {
     append(this.vertices,data.vertices);
-    append(this.materials,data.materials);
+    append(this.materialIndices,data.materialIndices);
     append(this.colors,data.colors);
     appendOffset(this.indices,data.indices,this.nvertices);
     this.nvertices += data.nvertices;
@@ -496,7 +494,21 @@ class Geometry {
 
   }
 
+  setMaterial(data,draw) {
+    if(data.materialTable[this.MaterialIndex] == null) {
+      if(data.materials.length >= Nmaterials) {
+        draw();
+        remesh=true;
+      }
+      data.materialTable[this.MaterialIndex]=data.materials.length;
+      data.materials.push(Materials[this.MaterialIndex]);
+    }
+    materialIndex=data.materialTable[this.MaterialIndex];
+  }
+
   render() {
+    this.setMaterialIndex();
+
     // First check if re-rendering is required
     let v;
     if(this.CenterIndex == 0)
@@ -527,8 +539,6 @@ class Geometry {
       for(let i=0; i < n; ++i)
         P[i]=this.T(p[i]);
     }
-
-    materialIndex=this.materialIndex;
 
     let s=orthographic ? 1 : this.Min[2]/B[2];
     let res=pixel*Math.hypot(s*(viewParam.xmax-viewParam.xmin),
@@ -567,9 +577,21 @@ class BezierPatch extends Geometry {
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
     this.MaterialIndex=MaterialIndex;
+
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
     this.L2norm(this.controlpoints);
+  }
+
+  setMaterialIndex() {
+    if(this.transparent)
+      this.setMaterial(transparentData,drawTransparent);
+    else {
+      if(this.color)
+        this.setMaterial(colorData,drawColor);
+      else
+        this.setMaterial(materialData,drawMaterial);
+    }
   }
 
 // Render a Bezier patch via subdivision.
@@ -639,8 +661,8 @@ class BezierPatch extends Geometry {
   }
 
   process(p) {
-    if(this.transparent) // Override materialIndex
-      materialIndex=this.color ? -1-this.materialIndex : 1+this.materialIndex;
+    if(this.transparent) // Override materialIndex to encode color vs material
+      materialIndex=this.color ? -1-materialIndex : 1+materialIndex;
 
     if(p.length == 10) return this.process3(p);
     if(p.length == 3) return this.processTriangle(p);
@@ -1332,6 +1354,10 @@ class BezierCurve extends Geometry {
     this.MaterialIndex=MaterialIndex;
   }
 
+  setMaterialIndex() {
+    this.setMaterial(material1Data,drawMaterial1);
+  }
+
   processLine(p) {
     let p0=p[0];
     let p1=p[1];
@@ -1399,6 +1425,10 @@ class Pixel extends Geometry {
     this.Max=Max;
   }
 
+  setMaterialIndex() {
+    this.setMaterial(material0Data,drawMaterial0);
+  }
+
   process(p) {
     this.data.indices.push(this.data.vertex0(this.controlpoint,this.width));
     this.append();
@@ -1427,7 +1457,18 @@ class Triangles extends Geometry {
     this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
   }
     
+  setMaterialIndex() {
+    if(this.transparent)
+      this.setMaterial(transparentData,drawTransparent);
+    else
+      this.setMaterial(triangleData,drawTriangle);
+  }
+
   process(p) {
+    if(this.transparent) // Override materialIndex to encode color vs material
+      materialIndex=this.Colors.length > 0 ?
+      -1-materialIndex : 1+materialIndex;
+
     for(let i=0, n=this.Indices.length; i < n; ++i) {
       let index=this.Indices[i];
       let PI=index[0];
@@ -1444,12 +1485,10 @@ class Triangles extends Geometry {
           let C1=this.Colors[CI[1]];
           let C2=this.Colors[CI[2]];
           this.transparent |= C0[3]+C1[3]+C2[3] < 765;
-          materialIndex=-1-this.materialIndex;
           this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
           this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
           this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
         } else {
-          materialIndex=1+this.materialIndex;
           this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
           this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
           this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
@@ -1599,7 +1638,7 @@ function COBTarget(out,mat)
   mat4.multiply(out,translMat,out);
 }
 
-function setUniforms(shader)
+function setUniforms(data,shader)
 {
   let pixel=shader == pixelShader;
 
@@ -1639,8 +1678,8 @@ function setUniforms(shader)
   }
 
   if(shader.vertexMaterialAttribute != -1) {
-    for(let i=0; i < pmaterials.length; ++i)
-      pmaterials[i].setUniform(shader,i);
+    for(let i=0; i < data.materials.length; ++i)
+      data.materials[i].setUniform(shader,i);
   }
 
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
@@ -1966,39 +2005,34 @@ function transformVertices(vertices)
   }
 }
 
-function clearOpaque()
-{
-  materials=[];
-  materialIndices=[];
-
-  material0Data.clear();
-  material1Data.clear();
-  materialData.clear();
-  colorData.clear();
-  triangleData.clear();
-}
-
-function clearTransparent()
-{
-  tmaterials=[];
-  tmaterialIndices=[];
-
-  transparentData.clear();
-}
-
-function clearBuffers()
-{
-  clearOpaque();
-  clearTransparent();
-}
-
-function drawOpaque()
+function drawMaterial0()
 {
   drawBuffer(material0Data,pixelShader);
+  material0Data.clear();
+}
+
+function drawMaterial1()
+{
   drawBuffer(material1Data,noNormalShader);
+  material1Data.clear();
+}
+
+function drawMaterial()
+{
   drawBuffer(materialData,materialShader);
+  materialData.clear();
+}
+
+function drawColor()
+{
   drawBuffer(colorData,colorShader);
+  colorData.clear();
+}
+
+function drawTriangle()
+{
   drawBuffer(triangleData,transparentShader);
+  triangleData.clear();
 }
 
 function drawTransparent()
@@ -2039,11 +2073,16 @@ function drawTransparent()
     drawBuffer(transparentData,transparentShader,Indices);
     gl.depthMask(true); // Disable transparency
   }
+  transparentData.clear();
 }
 
 function drawBuffers()
 {
-  drawOpaque();
+  drawMaterial0();
+  drawMaterial1();
+  drawMaterial();
+  drawColor();
+  drawTriangle();
   drawTransparent();
 }
 
@@ -2058,48 +2097,10 @@ function draw()
   gl.clearColor(Background[0],Background[1],Background[2],Background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  clearBuffers();
+  for(let i=0; i < P.length; ++i)
+    P[i].render();
 
-  if(Materials.length <= Nmaterials) {
-    for(let i=0; i < P.length; ++i) {
-      P[i].materialIndex=P[i].MaterialIndex;
-      P[i].render();
-    }
-    pmaterials=Materials;
-    drawBuffers();
-  } else {
-    for(let i=0; i < P.length; ++i) {
-      let MaterialIndex=P[i].MaterialIndex;
-      if(P[i].transparent) {
-        if(tmaterialIndices[MaterialIndex] == null) {
-          if(tmaterials.length >= Nmaterials) {
-            pmaterials=tmaterials;
-            drawTransparent();
-            clearTransparent();
-          }
-          tmaterialIndices[MaterialIndex]=tmaterials.length;
-          tmaterials.push(Materials[MaterialIndex]);
-        }
-        P[i].materialIndex=tmaterialIndices[MaterialIndex];
-      } else {
-        if(materialIndices[MaterialIndex] == null) {
-          if(materials.length >= Nmaterials) {
-            pmaterials=materials;
-            drawOpaque();
-            clearOpaque();
-          }
-          materialIndices[MaterialIndex]=materials.length;
-          materials.push(Materials[MaterialIndex]);
-        }
-        P[i].materialIndex=materialIndices[MaterialIndex];
-      }
-      P[i].render();
-    }
-    pmaterials=materials;
-    drawOpaque();
-    pmaterials=tmaterials;
-    drawTransparent();
-  }
+  drawBuffers();
 
   remesh=false;
 }
