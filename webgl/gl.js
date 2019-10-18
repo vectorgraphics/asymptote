@@ -146,7 +146,7 @@ class Light {
 function initShaders()
 {
   let maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
-  maxMaterials=Math.floor((maxUniforms-13)/4);
+  maxMaterials=Math.floor((maxUniforms-14)/4);
   Nmaterials=Math.min(Math.max(Nmaterials,Materials.length),maxMaterials);
 
   noNormalShader=initShader();
@@ -563,13 +563,9 @@ class BezierPatch extends Geometry {
                         sum+color[3][3] < 1020 : sum < 765;
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
-    if(this.transparent) {
-      this.MaterialIndex=color ? -1-MaterialIndex : 1+MaterialIndex;
-      this.vertex=this.data.Vertex.bind(this.data);
-    } else {
-      this.MaterialIndex=MaterialIndex;
-      this.vertex=this.data.vertex.bind(this.data);
-    }
+    this.MaterialIndex=MaterialIndex;
+    this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
+      this.data.vertex.bind(this.data);
     this.L2norm(this.controlpoints);
   }
 
@@ -640,6 +636,9 @@ class BezierPatch extends Geometry {
   }
 
   process(p) {
+    if(this.transparent) // Override materialIndex
+      materialIndex=this.color ? -1-this.materialIndex : 1+this.materialIndex;
+
     if(p.length == 10) return this.process3(p);
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
@@ -2037,12 +2036,12 @@ function draw()
   clearBuffers();
 
   for(let i=0; i < P.length; ++i) {
-    if(materials.length >= Nmaterials) {
-      drawBuffers();
-      clearBuffers();
-    }
     let MaterialIndex=P[i].MaterialIndex;
-    if(!materialIndices[MaterialIndex]) {
+    if(materialIndices[MaterialIndex] == null) {
+      if(materials.length >= Nmaterials) {
+        drawBuffers();
+        clearBuffers();
+      }
       materialIndices[MaterialIndex]=materials.length;
       materials.push(Materials[MaterialIndex]);
     }
