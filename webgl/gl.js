@@ -36,7 +36,10 @@ let nlights=0; // Number of lights compiled in shader
 let Nmaterials=1; // Maximum number of materials compiled in shader
 
 let materials=[]; // Subset of Materials passed as uniforms
+let tmaterials=[]; // Subset of transparent Materials passed as uniforms
+let pmaterials; // pointer to Materials, materials, or tmaterials
 let materialIndices=[];
+let tmaterialIndices=[];
 let maxMaterials; // Limit on number of materials allowed in shader
 
 let halfCanvasWidth,halfCanvasHeight;
@@ -1636,8 +1639,8 @@ function setUniforms(shader)
   }
 
   if(shader.vertexMaterialAttribute != -1) {
-    for(let i=0; i < materials.length; ++i)
-      materials[i].setUniform(shader,i);
+    for(let i=0; i < pmaterials.length; ++i)
+      pmaterials[i].setUniform(shader,i);
   }
 
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
@@ -1963,7 +1966,7 @@ function transformVertices(vertices)
   }
 }
 
-function clearBuffers()
+function clearOpaque()
 {
   materials=[];
   materialIndices=[];
@@ -1973,17 +1976,33 @@ function clearBuffers()
   materialData.clear();
   colorData.clear();
   triangleData.clear();
+}
+
+function clearTransparent()
+{
+  tmaterials=[];
+  tmaterialIndices=[];
+
   transparentData.clear();
 }
 
-function drawBuffers()
+function clearBuffers()
+{
+  clearOpaque();
+  clearTransparent();
+}
+
+function drawOpaque()
 {
   drawBuffer(material0Data,pixelShader);
   drawBuffer(material1Data,noNormalShader);
   drawBuffer(materialData,materialShader);
   drawBuffer(colorData,colorShader);
   drawBuffer(triangleData,transparentShader);
+}
 
+function drawTransparent()
+{
   let indices=transparentData.indices;
   if(indices.length > 0) {
     transformVertices(transparentData.vertices);
@@ -2022,6 +2041,12 @@ function drawBuffers()
   }
 }
 
+function drawBuffers()
+{
+  drawOpaque();
+  drawTransparent();
+}
+
 function draw()
 {
   if(embedded) {
@@ -2036,28 +2061,46 @@ function draw()
   clearBuffers();
 
   if(Materials.length <= Nmaterials) {
-    materials=Materials;
     for(let i=0; i < P.length; ++i) {
       P[i].materialIndex=P[i].MaterialIndex;
       P[i].render();
     }
+    pmaterials=Materials;
+    drawBuffers();
   } else {
     for(let i=0; i < P.length; ++i) {
       let MaterialIndex=P[i].MaterialIndex;
-      if(materialIndices[MaterialIndex] == null) {
-        if(materials.length >= Nmaterials) {
-          drawBuffers();
-          clearBuffers();
+      if(P[i].transparent) {
+        if(tmaterialIndices[MaterialIndex] == null) {
+          if(tmaterials.length >= Nmaterials) {
+            pmaterials=tmaterials;
+            drawTransparent();
+            clearTransparent();
+          }
+          tmaterialIndices[MaterialIndex]=tmaterials.length;
+          tmaterials.push(Materials[MaterialIndex]);
         }
-        materialIndices[MaterialIndex]=materials.length;
-        materials.push(Materials[MaterialIndex]);
+        P[i].materialIndex=tmaterialIndices[MaterialIndex];
+      } else {
+        if(materialIndices[MaterialIndex] == null) {
+          if(materials.length >= Nmaterials) {
+            pmaterials=materials;
+            drawOpaque();
+            clearOpaque();
+          }
+          materialIndices[MaterialIndex]=materials.length;
+          materials.push(Materials[MaterialIndex]);
+        }
+        P[i].materialIndex=materialIndices[MaterialIndex];
       }
-      P[i].materialIndex=materialIndices[MaterialIndex];
       P[i].render();
     }
+    pmaterials=materials;
+    drawOpaque();
+    pmaterials=tmaterials;
+    drawTransparent();
   }
 
-  drawBuffers();
   remesh=false;
 }
 
