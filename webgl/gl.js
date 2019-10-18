@@ -2035,19 +2035,26 @@ function draw()
 
   clearBuffers();
 
-  for(let i=0; i < P.length; ++i) {
-    let MaterialIndex=P[i].MaterialIndex;
-    if(materialIndices[MaterialIndex] == null) {
-      if(materials.length >= Nmaterials) {
-        drawBuffers();
-        clearBuffers();
-      }
-      materialIndices[MaterialIndex]=materials.length;
-      materials.push(Materials[MaterialIndex]);
+  if(Materials.length <= Nmaterials) {
+    materials=Materials;
+    for(let i=0; i < P.length; ++i) {
+      P[i].materialIndex=P[i].MaterialIndex;
+      P[i].render();
     }
-    
-    P[i].materialIndex=materialIndices[MaterialIndex];
-    P[i].render();
+  } else {
+    for(let i=0; i < P.length; ++i) {
+      let MaterialIndex=P[i].MaterialIndex;
+      if(materialIndices[MaterialIndex] == null) {
+        if(materials.length >= Nmaterials) {
+          drawBuffers();
+          clearBuffers();
+        }
+        materialIndices[MaterialIndex]=materials.length;
+        materials.push(Materials[MaterialIndex]);
+      }
+      P[i].materialIndex=materialIndices[MaterialIndex];
+      P[i].render();
+    }
   }
 
   drawBuffers();
