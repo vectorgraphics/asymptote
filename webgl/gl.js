@@ -35,6 +35,10 @@ let context; // 2D context for copying embedded offscreen images
 let nlights=0; // Number of lights compiled in shader
 let Nmaterials=1; // Maximum number of materials compiled in shader
 
+let materials=[]; // Subset of Materials passed as uniforms
+let materialIndices=[];
+let maxMaterials; // Limit on number of materials allowed in shader
+
 let halfCanvasWidth,halfCanvasHeight;
 
 let pixel=0.75; // Adaptive rendering constant.
@@ -108,14 +112,9 @@ class Material {
     this.fresnel0=fresnel0;
   }
 
-  setUniform(program,stringLoc,index=null) {
-    let getLoc;
-    if (index === null)
-      getLoc =
-        param => gl.getUniformLocation(program,stringLoc+"."+param);
-    else
-      getLoc =
-        param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
+  setUniform(program,index) {
+    let getLoc=
+        param => gl.getUniformLocation(program,"Materials["+index+"]."+param);
 
     gl.uniform4fv(getLoc("diffuse"),new Float32Array(this.diffuse));
     gl.uniform4fv(getLoc("emissive"),new Float32Array(this.emissive));
@@ -135,9 +134,9 @@ class Light {
     this.color=color;
   }
 
-  setUniform(program,stringLoc,index) {
+  setUniform(program,index) {
     let getLoc=
-        param => gl.getUniformLocation(program,stringLoc+"["+index+"]."+param);
+        param => gl.getUniformLocation(program,"Lights["+index+"]."+param);
 
     gl.uniform3fv(getLoc("direction"),new Float32Array(this.direction));
     gl.uniform3fv(getLoc("color"),new Float32Array(this.color));
@@ -146,7 +145,9 @@ class Light {
 
 function initShaders()
 {
-  Nmaterials=Math.max(Nmaterials,Materials.length);
+  let maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
+  maxMaterials=Math.floor((maxUniforms-13)/4);
+  Nmaterials=Math.min(Math.max(Nmaterials,Materials.length),maxMaterials);
 
   noNormalShader=initShader();
   pixelShader=initShader(["WIDTH"]);
@@ -176,6 +177,7 @@ function saveAttributes()
   a.gl=gl;
   a.nlights=Lights.length;
   a.Nmaterials=Nmaterials;
+  a.maxMaterials=maxMaterials;
 
   a.noNormalShader=noNormalShader;
   a.pixelShader=pixelShader;
@@ -191,17 +193,13 @@ function restoreAttributes()
   gl=a.gl;
   nlights=a.nlights;
   Nmaterials=a.Nmaterials;
+  maxMaterials=a.maxMaterials;
 
   noNormalShader=a.noNormalShader;
   pixelShader=a.pixelShader;
   materialShader=a.materialShader;
   colorShader=a.colorShader;
   transparentShader=a.transparentShader;
-
-  positionBuffer=a.positionBuffer;
-  materialBuffer=a.materialBuffer;
-  colorBuffer=a.colorBuffer;
-  indexBuffer=a.indexBuffer;
 }
 
 let indexExt;
@@ -231,7 +229,8 @@ function initGL()
       saveAttributes();
     } else {
       restoreAttributes();
-      if((Lights.length != nlights) || Materials.length > Nmaterials) {
+      if((Lights.length != nlights) ||
+         Math.min(Materials.length,maxMaterials) > Nmaterials) {
         initShaders();
         saveAttributes();
       }
@@ -526,7 +525,7 @@ class Geometry {
         P[i]=this.T(p[i]);
     }
 
-    materialIndex=this.MaterialIndex;
+    materialIndex=this.materialIndex;
 
     let s=orthographic ? 1 : this.Min[2]/B[2];
     let res=pixel*Math.hypot(s*(viewParam.xmax-viewParam.xmin),
@@ -1443,12 +1442,12 @@ class Triangles extends Geometry {
           let C1=this.Colors[CI[1]];
           let C2=this.Colors[CI[2]];
           this.transparent |= C0[3]+C1[3]+C2[3] < 765;
-          materialIndex=-1-this.MaterialIndex;
+          materialIndex=-1-this.materialIndex;
           this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
           this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
           this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
         } else {
-          materialIndex=1+this.MaterialIndex;
+          materialIndex=1+this.materialIndex;
           this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
           this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
           this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
@@ -1634,12 +1633,12 @@ function setUniforms(shader)
 
   if(normals) {
     for(let i=0; i < Lights.length; ++i)
-      Lights[i].setUniform(shader,"Lights",i);
+      Lights[i].setUniform(shader,i);
   }
 
   if(shader.vertexMaterialAttribute != -1) {
-    for(let i=0; i < Materials.length; ++i)
-      Materials[i].setUniform(shader,"Materials",i);
+    for(let i=0; i < materials.length; ++i)
+      materials[i].setUniform(shader,i);
   }
 
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
@@ -1965,16 +1964,10 @@ function transformVertices(vertices)
   }
 }
 
-function draw()
+function clearBuffers()
 {
-  if(embedded) {
-    offscreen.width=canvas.width;
-    offscreen.height=canvas.height;
-    setViewport();
-  }
-
-  gl.clearColor(Background[0],Background[1],Background[2],Background[3]);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  materials=[];
+  materialIndices=[];
 
   material0Data.clear();
   material1Data.clear();
@@ -1982,11 +1975,10 @@ function draw()
   colorData.clear();
   triangleData.clear();
   transparentData.clear();
+}
 
-  P.forEach(function(p) {
-    p.render();
-  });
-
+function drawBuffers()
+{
   drawBuffer(material0Data,pixelShader);
   drawBuffer(material1Data,noNormalShader);
   drawBuffer(materialData,materialShader);
@@ -2029,7 +2021,37 @@ function draw()
     drawBuffer(transparentData,transparentShader,Indices);
     gl.depthMask(true); // Disable transparency
   }
+}
 
+function draw()
+{
+  if(embedded) {
+    offscreen.width=canvas.width;
+    offscreen.height=canvas.height;
+    setViewport();
+  }
+
+  gl.clearColor(Background[0],Background[1],Background[2],Background[3]);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  clearBuffers();
+
+  for(let i=0; i < P.length; ++i) {
+    if(materials.length >= Nmaterials) {
+      drawBuffers();
+      clearBuffers();
+    }
+    let MaterialIndex=P[i].MaterialIndex;
+    if(!materialIndices[MaterialIndex]) {
+      materialIndices[MaterialIndex]=materials.length;
+      materials.push(Materials[MaterialIndex]);
+    }
+    
+    P[i].materialIndex=materialIndices[MaterialIndex];
+    P[i].render();
+  }
+
+  drawBuffers();
   remesh=false;
 }
 
