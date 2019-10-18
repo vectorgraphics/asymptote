@@ -10,8 +10,8 @@ defaultrender.merge=true;
 
 real f(pair z) {return cos(2*pi*z.x)*sin(2*pi*z.y);}
 
-surface s=surface(f,(-1/2,-1/2),(1/2,1/2),20,Spline);
+surface s=surface(f,(-1/2,-1/2),(1/2,1/2),50,Spline);
 
-draw(s,mean(palette(s.map(zpart),Rainbow())),black);
+draw(s,mean(palette(s.map(zpart),Rainbow(40))),black);
 
 grid3(XYZgrid);
