@@ -2,6 +2,8 @@
   <qresource prefix="">
     <file>icons/android-arrow-back.svg</file>
     <file>icons/android-arrow-forward.svg</file>
+    <file>icons/redo.svg</file>
+    <file>icons/undo.svg</file>
     <file>icons/android-folder-open.svg</file>
     <file>icons/save.svg</file>
     <file>icons/code.svg</file>
