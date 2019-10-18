@@ -38,7 +38,7 @@ newDrawing.asy
 *.pnm
 *.jpg
 *.prc
-*.svg
+#*.svg
 *.roff
 /doc/png/*.html
 GUI/*.pyc
@@ -144,7 +144,7 @@ xasydev2
 xasydev
 
 ### SVG Icons
-GUI/res/*
+#GUI/res/*
 !GUI/res/*/*.svg
 
 ### RC Icons
