@@ -491,7 +491,6 @@ class Geometry {
     return [this.T(m),this.T([m[0],m[1],M[2]]),this.T([m[0],M[1],m[2]]),
             this.T([m[0],M[1],M[2]]),this.T([M[0],m[1],m[2]]),
             this.T([M[0],m[1],M[2]]),this.T([M[0],M[1],m[2]]),this.T(M)];
-
   }
 
   setMaterial(data,draw) {
@@ -1465,9 +1464,8 @@ class Triangles extends Geometry {
   }
 
   process(p) {
-    if(this.transparent) // Override materialIndex to encode color vs material
-      materialIndex=this.Colors.length > 0 ?
-      -1-materialIndex : 1+materialIndex;
+    // Override materialIndex to encode color vs material
+    materialIndex=this.Colors.length > 0 ? -1-materialIndex : 1+materialIndex;
 
     for(let i=0, n=this.Indices.length; i < n; ++i) {
       let index=this.Indices[i];
