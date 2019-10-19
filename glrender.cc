@@ -482,6 +482,13 @@ void setBuffers()
   glGenBuffers(1,&camp::attributeBuffer);
   glGenBuffers(1,&camp::indicesBuffer);
   glGenBuffers(1,&ubo);
+  
+  camp::material0Data.reserve0();
+  camp::material1Data.reserve1();
+  camp::materialData.reserve();
+  camp::colorData.Reserve();
+  camp::triangleData.Reserve();
+  camp::transparentData.Reserve();
 }
 
 void drawscene(int Width, int Height)
