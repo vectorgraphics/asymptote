@@ -97,8 +97,6 @@ namespace gl {
 
 extern bool outlinemode;
 extern bool wireframeMode;
-extern size_t maxvertices;
-extern bool forceRemesh;
 
 extern bool orthographic;
 extern double xmin,xmax;
@@ -279,10 +277,6 @@ public:
 
   std::vector<Material> materials;
   std::vector<GLint> materialTable;
-
-  vertexBuffer() {
-    clear();
-  }
 
   void clear() {
     vertices.clear();

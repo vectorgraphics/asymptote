@@ -104,9 +104,6 @@ bool outlinemode=false;
 bool glthread=false;
 bool initialize=true;
 
-GLint Maxvertices;
-size_t maxvertices;
-
 using camp::picture;
 using camp::drawRawImage;
 using camp::transform;
@@ -347,8 +344,6 @@ timeval lasttime;
 timeval lastframetime;
 int oldWidth,oldHeight;
 
-bool forceRemesh=false;
-
 bool queueScreen=false;
 
 string Action;
@@ -517,18 +512,12 @@ void drawscene(int Width, int Height)
   
   double size2=hypot(Width,Height);
   
-  if(forceRemesh) {
-    remesh=true;
-    forceRemesh=false;
-  }
-  
   if(remesh)
     camp::drawElement::center.clear();
   
   Picture->render(size2,m,M,perspective,remesh);
   
-  if(!forceRemesh)
-    remesh=false;
+  remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -1459,9 +1448,6 @@ void init()
   glutInit(&argc,argv);
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
-  
-  maxvertices=getSetting<Int>("maxvertices");
-  if(maxvertices == 0) maxvertices=Maxvertices;
 #endif
 }
 
@@ -1746,8 +1732,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
-
-  glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&Maxvertices);
 
   if(glinitialize) {
     glinitialize=false;
@@ -2044,12 +2028,11 @@ void setMaterial(vertexBuffer& data, const draw_t *draw)
 {
   if(materialIndex >= data.materialTable.size() ||
      data.materialTable[materialIndex] == -1) {
-    if(data.materials.size() >= Maxmaterials) {
+    if(data.materials.size() >= Maxmaterials)
       (*draw)();
-      gl::forceRemesh=true;
-    }
-    data.materialTable.reserve(materialIndex+1);
-    for(size_t i=data.materialTable.size(); i < materialIndex; ++i)
+    size_t size0=data.materialTable.size();
+    data.materialTable.resize(materialIndex+1);
+    for(size_t i=size0; i < materialIndex; ++i)
       data.materialTable[i]=-1;
     data.materialTable[materialIndex]=data.materials.size();
     data.materials.push_back(material[materialIndex]);

@@ -495,10 +495,8 @@ class Geometry {
 
   setMaterial(data,draw) {
     if(data.materialTable[this.MaterialIndex] == null) {
-      if(data.materials.length >= Nmaterials) {
+      if(data.materials.length >= Nmaterials)
         draw();
-        remesh=true;
-      }
       data.materialTable[this.MaterialIndex]=data.materials.length;
       data.materials.push(Materials[this.MaterialIndex]);
     }

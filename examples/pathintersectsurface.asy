@@ -5,7 +5,7 @@ currentprojection=perspective(-5,-4,2);
 
 path3 g=randompath3(10);
 
-draw(g,red+thin());
+draw(g,red);
 
 triple[][] P={
   {(0,0,0),(1,0,0),(1,0,0),(2,0,0)},
