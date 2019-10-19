@@ -56,7 +56,7 @@ void setcolors(bool colors,
                const RGBAColour& diffuse,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess,
-               double metallic, double fresnel0, jsfile *out) 
+               double metallic, double fresnel0, jsfile *out)
 {
   Material m;
   if(colors) {
@@ -76,10 +76,6 @@ void setcolors(bool colors,
     materialIndex=material.size();
     if(materialIndex >= nmaterials)
       nmaterials=min(Maxmaterials,2*nmaterials);
-#ifdef HAVE_GL
-    if(!out && materialIndex >= Maxmaterials)
-      clearMaterialBuffer(true);
-#endif    
     material.push_back(m);
     materialMap[m]=materialIndex;
     if(out)
@@ -275,6 +271,17 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     return;
   }
 
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  
+  if(transparent)
+    setMaterial(transparentData,drawTransparent);
+  else {
+    if(colors)
+      setMaterial(colorData,drawColor);
+    else
+      setMaterial(materialData,drawMaterial);
+  }
+  
   triple *Controls;
   triple Controls0[16];
   if(billboard) {
@@ -294,14 +301,8 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
-  
-  GLfloat c[16];
-  if(colors)
-    for(size_t i=0; i < 4; ++i)
-      storecolor(c,4*i,colors[i]);
-  
   if(gl::outlinemode) {
+    setMaterial(material1Data,drawMaterial);
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
@@ -311,6 +312,11 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
     C.queue(edge3,straight,size3.length()/size2);
   } else {
+    GLfloat c[16];
+    if(colors)
+      for(size_t i=0; i < 4; ++i)
+        storecolor(c,4*i,colors[i]);
+
     S.queue(Controls,straight,size3.length()/size2,transparent,
             colors ? c : NULL);
   }
@@ -506,6 +512,17 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     return;
   }
 
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  
+  if(transparent)
+    setMaterial(transparentData,drawTransparent);
+  else {
+    if(colors)
+      setMaterial(colorData,drawColor);
+    else
+      setMaterial(materialData,drawMaterial);
+  }
+
   triple *Controls;
   triple Controls0[10];
   if(billboard) {
@@ -525,23 +542,23 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
-  
-  GLfloat c[12];
-  if(colors)
-    for(size_t i=0; i < 3; ++i)
-      storecolor(c,4*i,colors[i]);
-    
   if(gl::outlinemode) {
+    setMaterial(material1Data,drawMaterial);
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
     C.queue(edge1,straight,size3.length()/size2);
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
     C.queue(edge2,straight,size3.length()/size2);
-  } else
+  } else {
+    GLfloat c[12];
+    if(colors)
+      for(size_t i=0; i < 3; ++i)
+        storecolor(c,4*i,colors[i]);
+
     S.queue(Controls,straight,size3.length()/size2,transparent,
             colors ? c : NULL);
+  }
 #endif
 }
 
@@ -913,12 +930,18 @@ void drawTriangles::render(double size2, const triple& b,
     return;
   }
 
+  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0);
+
+  if(transparent)
+    setMaterial(transparentData,drawTransparent);
+  else
+    setMaterial(triangleData,drawTriangle);
+
   if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
     R.append();
     return;
   }
     
-  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0);
   R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
 #endif
 }

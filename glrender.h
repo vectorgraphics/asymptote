@@ -275,6 +275,14 @@ public:
   std::vector<vertexData1> vertices1;
   std::vector<vertexData0> vertices0;
   std::vector<GLuint> indices;
+
+  std::vector<Material> materials;
+  std::vector<GLint> materialTable;
+
+  vertexBuffer() {
+    clear();
+  }
+
   void clear() {
     vertices.clear();
     Vertices.clear();
@@ -286,6 +294,8 @@ public:
     vertices1.reserve(nbuffer);
     vertices0.reserve(nbuffer);
     indices.reserve(Nbuffer);
+    materials.clear();
+    materialTable.clear();
   }
   
 // Store the vertex v and its normal vector n.
@@ -366,13 +376,22 @@ extern vertexBuffer material0Data;   // pixels
 extern vertexBuffer material1Data;   // material Bezier curves
 extern vertexBuffer materialData;    // material Bezier patches & triangles
 extern vertexBuffer colorData;       // colored Bezier patches & triangles
-extern vertexBuffer transparentData; // transparent patches & triangles
 extern vertexBuffer triangleData;    // opaque indexed triangles
+extern vertexBuffer transparentData; // transparent patches & triangles
 
-extern void drawBuffer(vertexBuffer& data, GLint shader);
-extern void drawBuffers(); 
-extern void clearBuffers();
-extern void clearMaterialBuffer(bool draw=false);
+void drawBuffer(vertexBuffer& data, GLint shader);
+void drawBuffers();
+void clearMaterialBuffer();
+
+typedef void draw_t();
+void setMaterial(vertexBuffer& data, const draw_t *draw);
+
+void drawMaterial0();
+void drawMaterial1();
+void drawMaterial();
+void drawColor();
+void drawTriangle();
+void drawTransparent();
 
 #endif
 

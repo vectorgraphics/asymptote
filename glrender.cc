@@ -515,8 +515,6 @@ void drawscene(int Width, int Height)
     forceRemesh=false;
   }
   
-  camp::clearBuffers();
-  
   if(remesh)
     camp::drawElement::center.clear();
   
@@ -1834,7 +1832,7 @@ string getCenterIndex(size_t const& index) {
 } 
 
 template<class T>
-void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex,
+void registerBuffer(const std::vector<T>& buffervector, GLuint bufferIndex,
                     GLint type=GL_ARRAY_BUFFER) {
   if(!buffervector.empty()) {
     glBindBuffer(type,bufferIndex);
@@ -1844,7 +1842,7 @@ void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex,
   }
 }
 
-void setUniforms(GLint shader, GLint materialAttrib)
+void setUniforms(const vertexBuffer& data, GLint shader, GLint materialAttrib)
 {
   bool normal=shader != pixelShader && shader != noNormalShader;
     
@@ -1883,7 +1881,7 @@ void setUniforms(GLint shader, GLint materialAttrib)
     GLuint binding=0;
     GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
     glUniformBlockBinding(shader,blockindex,binding);
-    registerBuffer(material,gl::ubo,GL_UNIFORM_BUFFER);
+    registerBuffer(data.materials,gl::ubo,GL_UNIFORM_BUFFER);
     glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
   }
   
@@ -1926,7 +1924,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   const GLint materialAttrib=glGetAttribLocation(shader,"material");
   GLint normalAttrib=0,colorAttrib=0,widthAttrib=0;
   
-  camp::setUniforms(shader,materialAttrib);
+  camp::setUniforms(data,shader,materialAttrib);
 
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
   glEnableVertexAttribArray(posAttrib);
@@ -1978,41 +1976,79 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
 
-void drawBuffers() 
+void drawMaterial0()
 {
   drawBuffer(material0Data,pixelShader);
+  material0Data.clear();
+}
+
+void drawMaterial1()
+{
   drawBuffer(material1Data,noNormalShader);
+  material1Data.clear();
+}
+
+void drawMaterial()
+{
   drawBuffer(materialData,materialShader);
+  materialData.clear();
+}
+
+void drawColor()
+{
   drawBuffer(colorData,colorShader);
+  colorData.clear();
+}
+
+void drawTriangle()
+{
   drawBuffer(triangleData,transparentShader);
+  triangleData.clear();
+}
+
+void drawTransparent()
+{
   sortTriangles();
-  
   glDepthMask(GL_FALSE); // Enable transparency
   drawBuffer(transparentData,transparentShader);
   glDepthMask(GL_TRUE); // Disable transparency
-}
-
-void clearBuffers()
-{
-  material0Data.clear();
-  material1Data.clear();
-  materialData.clear();
-  colorData.clear();
-  triangleData.clear();
   transparentData.clear();
 }
 
-void clearMaterialBuffer(bool draw)
+void drawBuffers()
 {
-  if(draw)
-    drawBuffers();
+  drawMaterial0();
+  drawMaterial1();
+  drawMaterial();
+  drawColor();
+  drawTriangle();
+  drawTransparent();
+}
+
+void clearMaterialBuffer()
+{
   material.clear();
   material.reserve(nmaterials);
   materialMap.clear();
   materialIndex=0;
 }
 
-
+void setMaterial(vertexBuffer& data, const draw_t *draw)
+{
+  if(materialIndex >= data.materialTable.size() ||
+     data.materialTable[materialIndex] == -1) {
+    if(data.materials.size() >= Maxmaterials) {
+      (*draw)();
+      gl::forceRemesh=true;
+    }
+    data.materialTable.reserve(materialIndex+1);
+    for(size_t i=data.materialTable.size(); i < materialIndex; ++i)
+      data.materialTable[i]=-1;
+    data.materialTable[materialIndex]=data.materials.size();
+    data.materials.push_back(material[materialIndex]);
+  }
+  materialIndex=data.materialTable[materialIndex];
 }
 
+}
 #endif /* HAVE_GL */
