@@ -132,8 +132,7 @@ struct BezierPatch
         colorData.clear();
         gl::forceRemesh=true;
       }
-    }
-    else {
+    } else {
       materialData.append(data);
       if(materialData.vertices.size() >= gl::maxvertices) {
         drawBuffer(materialData,materialShader);
