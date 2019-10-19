@@ -147,6 +147,7 @@ void glrender(const string& prefix, const camp::picture* pic,
               double *diffuse, double *specular, bool view, int oldpid=0);
 
 extern const double *dprojView;
+extern const double *dView;
 
 extern double BBT[9];
 
