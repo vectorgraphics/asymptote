@@ -480,6 +480,10 @@ void setBuffers()
   glGenBuffers(1,&camp::indicesBuffer);
   glGenBuffers(1,&ubo);
   
+  GLuint vao;
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
   camp::material0Data.reserve0();
   camp::material1Data.reserve1();
   camp::materialData.reserve();
