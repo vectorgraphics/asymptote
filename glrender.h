@@ -392,7 +392,7 @@ void drawBuffers();
 void clearMaterialBuffer();
 
 typedef void draw_t();
-void setMaterial(vertexBuffer& data, const draw_t *draw);
+void setMaterial(vertexBuffer& data, draw_t *draw);
 
 void drawMaterial0();
 void drawMaterial1();
