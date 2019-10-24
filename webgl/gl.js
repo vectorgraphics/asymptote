@@ -316,8 +316,6 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.drawElements(normal ? gl.TRIANGLES : (pixel ? gl.POINTS : gl.LINES),
                   indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
-  if(embedded)
-    context.drawImage(offscreen,0,0);
 }
 
 class vertexBuffer {
@@ -2097,6 +2095,11 @@ function draw()
     P[i].render();
 
   drawBuffers();
+
+  if(embedded) {
+    context.clearRect(0,0,canvas.width,canvas.height);
+    context.drawImage(offscreen,0,0);
+  }
 
   remesh=false;
 }
