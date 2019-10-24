@@ -85,7 +85,7 @@ mode_t mask;
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultEPSdriver="eps2write";
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
-  AsyGLVersion+".js";
+  string(AsyGLVersion)+".js";
 
 #ifndef __MSDOS__
   
