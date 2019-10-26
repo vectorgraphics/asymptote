@@ -730,6 +730,19 @@ int picture::pdftosvg(const string& pdfname, const string& outname)
   return status;
 }
 
+void htmlView(string name)
+{
+  mem::vector<string> cmd;
+  push_command(cmd,getSetting<string>("htmlviewer"));
+#ifdef __MSDOS__
+  cmd.push_back("file://%CD%/"+name);
+#else        
+  cmd.push_back(name);
+#endif
+  push_split(cmd,getSetting<string>("htmlviewerOptions"));
+  System(cmd,2,false);
+}
+
 bool picture::postprocess(const string& prename, const string& outname,
                           const string& outputformat,
                           bool wait, bool view, bool pdftex, 
@@ -851,12 +864,16 @@ bool picture::postprocess(const string& prename, const string& outname,
         }
       }
     } else {
-      mem::vector<string> cmd;
-      push_command(cmd,getSetting<string>("display"));
-      cmd.push_back(outname);
-      string application="your "+outputformat+" viewer";
-      status=System(cmd,0,wait,"display",application.c_str());
-      if(status != 0) return false;
+      if(outputformat == "svg")
+        htmlView(outname);
+      else {
+        mem::vector<string> cmd;
+        push_command(cmd,getSetting<string>("display"));
+        cmd.push_back(outname);
+        string application="your "+outputformat+" viewer";
+        status=System(cmd,0,wait,"display",application.c_str());
+        if(status != 0) return false;
+      }
     }
   }
   
@@ -1353,17 +1370,8 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
     if(verbose > 0)
       cout << "Wrote " << name << endl;
-    if(View) {
-      mem::vector<string> cmd;
-      push_command(cmd,getSetting<string>("htmlviewer"));
-#ifdef __MSDOS__
-      cmd.push_back("file://%CD%/"+name);
-#else        
-        cmd.push_back(name);
-#endif
-      push_split(cmd,getSetting<string>("htmlviewerOptions"));
-      System(cmd,2,false);
-    }
+    if(View)
+      htmlView(name);
     return true;
   }
 #endif  
