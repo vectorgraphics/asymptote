@@ -124,7 +124,7 @@ asy:	version glew.o
 	fi
 
 version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
-	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
+	if test ! -s revision.cc || test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
 	  if test ! -e base/webgl/asygl.js; then \
