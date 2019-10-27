@@ -176,12 +176,18 @@ string texstring(rational r)
  return s+"\frac{"+string(abs(r.p))+"}{"+string(r.q)+"}";
 }
 
-void write(file fout=stdout, string s="", rational r, suffix suffix=none)
+
+void write(file fout, string s="", rational r, suffix suffix=none)
 {
  write(fout,s+string(r),suffix);
 }
 
-void write(file fout=stdout, string s="", rational[] a, suffix suffix=none)
+void write(string s="", rational r, suffix suffix=endl)
+{
+ write(stdout,s,r,suffix);
+}
+
+void write(file fout, string s="", rational[] a, suffix suffix=none)
 {
   if(s != "")
     write(fout,s);
@@ -192,7 +198,12 @@ void write(file fout=stdout, string s="", rational[] a, suffix suffix=none)
   write(fout,suffix);
 }
 
-void write(file fout=stdout, string s="", rational[][] a, suffix suffix=none)
+void write(string s="", rational[] a, suffix suffix=endl)
+{
+ write(stdout,s,a,suffix);
+}
+
+void write(file fout, string s="", rational[][] a, suffix suffix=none)
 {
   if(s != "")
     write(fout,s);
@@ -204,6 +215,11 @@ void write(file fout=stdout, string s="", rational[][] a, suffix suffix=none)
     write(fout,endl);
   }
   write(fout,suffix);
+}
+
+void write(string s="", rational[][] a, suffix suffix=endl)
+{
+ write(stdout,s,a,suffix);
 }
 
 bool rectangular(rational[][] m)
