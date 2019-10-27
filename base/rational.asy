@@ -187,10 +187,10 @@ void write(string s="", rational r, suffix suffix=endl)
  write(stdout,s,r,suffix);
 }
 
-void write(file fout, string s="", rational[] a, suffix suffix=none)
+void write(file fout=stdout, string s="", rational[] a, suffix suffix=none)
 {
   if(s != "")
-    write(fout,s);
+    write(fout,s,endl);
   for(int i=0; i < a.length; ++i) {
     write(fout,i,none);
     write(fout,':\t',a[i],endl);
@@ -198,12 +198,7 @@ void write(file fout, string s="", rational[] a, suffix suffix=none)
   write(fout,suffix);
 }
 
-void write(string s="", rational[] a, suffix suffix=endl)
-{
- write(stdout,s,a,suffix);
-}
-
-void write(file fout, string s="", rational[][] a, suffix suffix=none)
+void write(file fout=stdout, string s="", rational[][] a, suffix suffix=none)
 {
   if(s != "")
     write(fout,s);
@@ -215,11 +210,6 @@ void write(file fout, string s="", rational[][] a, suffix suffix=none)
     write(fout,endl);
   }
   write(fout,suffix);
-}
-
-void write(string s="", rational[][] a, suffix suffix=endl)
-{
- write(stdout,s,a,suffix);
 }
 
 bool rectangular(rational[][] m)
