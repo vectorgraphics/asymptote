@@ -195,7 +195,7 @@ struct simplex {
     int[] Bindices;
 
     if(phase1) {
-      Bindices=sequence(new int(int x){return x;},m)+1; // Remove
+      Bindices=new int[m];
       int p=0;
 
       // Check for redundant basis vectors.
@@ -213,13 +213,12 @@ struct simplex {
         return 0;
       }
 
-      int k=0;
       while(p < m) {
         int j=checkTableau();
         if(j > 0)
-          Bindices[k]=j;
+          Bindices[p]=j;
         else { // Add an artificial variable
-          Bindices[k]=n+1+k;
+          Bindices[p]=n+1+p;
           for(int i=0; i < p; ++i)
             E[i].push(0);
           E[p].push(1);
@@ -228,7 +227,6 @@ struct simplex {
           E[m].push(0);
           ++N;
         }
-        ++k;
         ++p;
       }
 
