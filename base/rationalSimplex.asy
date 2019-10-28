@@ -9,14 +9,14 @@ void simplexWrite(rational[][] E, int[] Bindicies, int, int)
   int m=E.length-1;
   int n=E[0].length-1;
 
-  write(E[m][n],tab);
-  for(int j=0; j < n; ++j)
+  write(E[m][0],tab);
+  for(int j=1; j <= n; ++j)
     write(E[m][j],tab);
   write();
 
   for(int i=0; i < m; ++i) {
-    write(E[i][n],tab);
-    for(int j=0; j < n; ++j) {
+    write(E[i][0],tab);
+    for(int j=1; j <= n; ++j) {
       write(E[i][j],tab);
     }
     write();
@@ -68,10 +68,10 @@ struct simplex {
     while(true) {
       // Find first negative entry in bottom (reduced cost) row
       rational[] Em=E[m];
-      for(J=0; J < N; ++J)
+      for(J=1; J <= N; ++J)
         if(Em[J] < 0) break;
 
-      if(J == N)
+      if(J > N)
         break;
 
       int I=-1;
@@ -79,7 +79,7 @@ struct simplex {
       for(int i=0; i < m; ++i) {
         rational e=E[i][J];
         if(e > 0) {
-          M=E[i][N]/e;
+          M=E[i][0]/e;
           I=i;
           break;
         }
@@ -87,7 +87,7 @@ struct simplex {
       for(int i=I+1; i < m; ++i) {
         rational e=E[i][J];
         if(e > 0) {
-          rational v=E[i][N]/e;
+          rational v=E[i][0]/e;
           if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
         }
       }
@@ -105,19 +105,19 @@ struct simplex {
 
   int iterateDual(rational[][] E, int N, int[] Bindices) {
     while(true) {
-      // Find first negative entry in right (basic variable) column
+      // Find first negative entry in zeroth (basic variable) column
       rational[] Em=E[m];
       int I;
       for(I=0; I < m; ++I) {
-        if(E[I][N] < 0) break;
+        if(E[I][0] < 0) break;
       }
 
       if(I == m)
         break;
 
-      int J=-1;
+      int J=0;
       rational M;
-      for(int j=0; j < N; ++j) {
+      for(int j=1; j <= N; ++j) {
         rational e=E[I][j];
         if(e < 0) {
           M=-E[m][j]/e;
@@ -125,14 +125,14 @@ struct simplex {
           break;
         }
       }
-      for(int j=J+1; j < N; ++j) {
+      for(int j=J+1; j <= N; ++j) {
         rational e=E[I][j];
         if(e < 0) {
           rational v=-E[m][j]/e;
           if(v < M) {M=v; J=j;} // Bland's rule: choose smallest argmin
         }
       }
-      if(J == -1)
+      if(J == 0)
         return INFEASIBLE; // Can only happen in Phase 2.
 
       simplexTableau(E,Bindices,I,J);
@@ -161,21 +161,21 @@ struct simplex {
     rational[][] E=new rational[m+1][N+1];
     rational[] Em=E[m];
 
-    for(int j=0; j < n; ++j)
+    for(int j=1; j <= n; ++j)
       Em[j]=0;
 
     for(int i=0; i < m; ++i) {
       rational[] Ai=A[i];
       rational[] Ei=E[i];
       if(b[i] >= 0 || dual) {
-        for(int j=0; j < n; ++j) {
-          rational Aij=Ai[j];
+        for(int j=1; j <= n; ++j) {
+          rational Aij=Ai[j-1];
           Ei[j]=Aij;
           Em[j] -= Aij;
         }
       } else {
-        for(int j=0; j < n; ++j) {
-          rational Aij=-Ai[j];
+        for(int j=1; j <= n; ++j) {
+          rational Aij=-Ai[j-1];
           Ei[j]=Aij;
           Em[j] -= Aij;
         }
@@ -186,16 +186,16 @@ struct simplex {
       rational sum=0;
       for(int i=0; i < m; ++i) {
         rational B=dual ? b[i] : abs(b[i]);
-        E[i][N]=B;
+        E[i][0]=B;
         sum -= B;
       }
-      Em[N]=sum;
+      Em[0]=sum;
     }
 
     int[] Bindices;
 
     if(phase1) {
-      Bindices=sequence(new int(int x){return x;},m);
+      Bindices=sequence(new int(int x){return x;},m)+1; // Remove
       int p=0;
 
       // Check for redundant basis vectors.
@@ -208,24 +208,24 @@ struct simplex {
       }
 
       int checkTableau() {
-        for(int j=0; j < n; ++j)
+        for(int j=1; j <= n; ++j)
           if(checkBasis(j)) return j;
-        return -1;
+        return 0;
       }
 
       int k=0;
       while(p < m) {
         int j=checkTableau();
-        if(j >= 0)
+        if(j > 0)
           Bindices[k]=j;
         else { // Add an artificial variable
-          Bindices[k]=n+k;
+          Bindices[k]=n+1+k;
           for(int i=0; i < p; ++i)
-            E[i].insert(N,0);
-          E[p].insert(N,1);
+            E[i].push(0);
+          E[p].push(1);
           for(int i=p+1; i < m; ++i)
-            E[i].insert(N,0);
-          E[m].insert(N,0);
+            E[i].push(0);
+          E[m].push(0);
           ++N;
         }
         ++k;
@@ -235,13 +235,13 @@ struct simplex {
       basicValues();
       iterate(E,N,Bindices);
   
-      if(Em[J] != 0) {
+      if(Em[0] != 0) {
         simplexTableau(E,Bindices);
       case=INFEASIBLE;
       return;
       }
     } else {
-       Bindices=sequence(new int(int x){return x;},m)+n-m;
+       Bindices=sequence(new int(int x){return x;},m)+n-m+1;
        basicValues();
     }
 
@@ -252,12 +252,12 @@ struct simplex {
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
-        if(k >= n) {
+        if(k > n) {
           rational[] Ei=E[i];
           int j;
-          for(j=0; j < n; ++j)
+          for(j=1; j <= n; ++j)
             if(Ei[j] != 0) break;
-          if(j == n) continue;
+          if(j > n) continue;
           output=false;
           simplexTableau(E,Bindices,i,j);
           Bindices[i]=j;
@@ -268,22 +268,22 @@ struct simplex {
       int ip=0; // reduced i
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
-        if(k >= n) continue;
+        if(k > n) continue;
         Bindices[ip]=k; 
-        cB[ip]=c[k];
+        cB[ip]=c[k-1];
         rational[] Dip=D[ip];
         rational[] Ei=E[i];
-        for(int j=0; j < n; ++j)
+        for(int j=1; j <= n; ++j)
           Dip[j]=Ei[j];
-        Dip[n]=Ei[N];
+        Dip[0]=Ei[0];
         ++ip;
       }
 
       rational[] Dip=D[ip];
       rational[] Em=E[m];
-      for(int j=0; j < n; ++j)
+      for(int j=1; j <= n; ++j)
         Dip[j]=Em[j];
-      Dip[n]=Em[N];
+      Dip[0]=Em[0];
 
       if(m > ip) {
         Bindices.delete(ip,m-1);
@@ -294,17 +294,17 @@ struct simplex {
     }
 
     rational[] Dm=D[m];
-    for(int j=0; j < n; ++j) {
+    for(int j=1; j <= n; ++j) {
       rational sum=0;
       for(int k=0; k < m; ++k)
         sum += cB[k]*D[k][j];
-      Dm[j]=c[j]-sum;
+      Dm[j]=c[j-1]-sum;
     }
 
     rational sum=0;
     for(int k=0; k < m; ++k)
-      sum += cB[k]*D[k][n];
-    Dm[n]=-sum;
+      sum += cB[k]*D[k][0];
+    Dm[0]=-sum;
 
     simplexPhase2();
 
@@ -317,9 +317,9 @@ struct simplex {
       x[j]=0;
 
     for(int k=0; k < m; ++k)
-      x[Bindices[k]]=D[k][n];
+      x[Bindices[k]]=D[k][0];
 
-    cost=-Dm[n];
+    cost=-Dm[0];
   }
 
   // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost
