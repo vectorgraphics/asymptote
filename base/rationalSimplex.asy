@@ -2,9 +2,11 @@
 import rational;
 
 void simplexTableau(rational[][] E, int[] Bindices, int I=-1, int J=-1) {}
+void simplexPhase1(rational[] c, rational[][] A, rational[] b,
+                   int[] Bindices) {}
 void simplexPhase2() {}
 
-void simplexWrite(rational[][] E, int[] Bindicies, int, int)
+void simplexWrite(rational[][] E, int[] Bindices, int, int)
 {
   int m=E.length-1;
   int n=E[0].length-1;
@@ -213,24 +215,29 @@ struct simplex {
         return 0;
       }
 
+      int k=0;
       while(p < m) {
         int j=checkTableau();
         if(j > 0)
           Bindices[p]=j;
         else { // Add an artificial variable
-          Bindices[p]=n+1+p;
+          Bindices[p]=n+1+k;
           for(int i=0; i < p; ++i)
             E[i].push(0);
           E[p].push(1);
           for(int i=p+1; i < m; ++i)
             E[i].push(0);
           E[m].push(0);
-          ++N;
+          ++k;
         }
         ++p;
       }
+      N += k;
 
       basicValues();
+
+      simplexPhase1(c,A,b,Bindices);
+
       iterate(E,N,Bindices);
   
       if(Em[0] != 0) {
