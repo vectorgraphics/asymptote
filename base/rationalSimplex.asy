@@ -157,7 +157,7 @@ struct simplex {
     n=A[0].length;
     if(n == 0) {case=INFEASIBLE; return;}
 
-    int N=phase1 ? n+m : n;
+    int N=n;
     rational[][] E=new rational[m+1][N+1];
     rational[] Em=E[m];
 
@@ -182,33 +182,57 @@ struct simplex {
       }
     }
 
-    if(phase1) {
-      for(int i=0; i < m; ++i) { 
-        rational[] Ei=E[i];
-        for(int j=0; j < i; ++j)
-          Ei[n+j]=0;
-        Ei[n+i]=1;
-        for(int j=i+1; j < m; ++j)
-          Ei[n+j]=0;
+    void basicValues() {
+      rational sum=0;
+      for(int i=0; i < m; ++i) {
+        rational B=dual ? b[i] : abs(b[i]);
+        E[i][N]=B;
+        sum -= B;
       }
+      Em[N]=sum;
     }
 
-    rational sum=0;
-    for(int i=0; i < m; ++i) {
-      rational B=dual ? b[i] : abs(b[i]);
-      E[i][N]=B;
-      sum -= B;
-    }
-    Em[N]=sum;
-
-    if(phase1)
-      for(int j=0; j < m; ++j)
-        Em[n+j]=0;
-   
     int[] Bindices;
 
     if(phase1) {
-      Bindices=sequence(new int(int x){return x;},m)+n;
+      Bindices=sequence(new int(int x){return x;},m);
+      int p=0;
+
+      // Check for redundant basis vectors.
+      bool checkBasis(int j) {
+        for(int i=0; i < m; ++i) {
+          rational[] Ei=E[i];
+          if(i != p ? Ei[j] != 0 : Ei[j] <= 0) return false;
+        }
+        return true;
+      }
+
+      int checkTableau() {
+        for(int j=0; j < n; ++j)
+          if(checkBasis(j)) return j;
+        return -1;
+      }
+
+      int k=0;
+      while(p < m) {
+        int j=checkTableau();
+        if(j >= 0)
+          Bindices[k]=j;
+        else { // Add an artificial variable
+          Bindices[k]=n+k;
+          for(int i=0; i < p; ++i)
+            E[i].insert(N,0);
+          E[p].insert(N,1);
+          for(int i=p+1; i < m; ++i)
+            E[i].insert(N,0);
+          E[m].insert(N,0);
+          ++N;
+        }
+        ++k;
+        ++p;
+      }
+
+      basicValues();
       iterate(E,N,Bindices);
   
       if(Em[J] != 0) {
@@ -216,7 +240,10 @@ struct simplex {
       case=INFEASIBLE;
       return;
       }
-    } else Bindices=sequence(new int(int x){return x;},m)+n-m;
+    } else {
+       Bindices=sequence(new int(int x){return x;},m)+n-m;
+       basicValues();
+    }
 
     rational[] cB=phase1 ? new rational[m] : c[n-m:n];
     rational[][] D=phase1 ? new rational[m+1][n+1] : E;
