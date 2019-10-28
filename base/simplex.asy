@@ -187,7 +187,7 @@ struct simplex {
       Bindices=sequence(new int(int x){return x;},m)+n;
       iterate(E,N,Bindices);
   
-      if(abs(Em[J]) > epsilonA) {
+      if(abs(Em[N]) > epsilonA) {
       case=INFEASIBLE;
       return;
       }
