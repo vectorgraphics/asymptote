@@ -9376,16 +9376,17 @@ produced using the @code{-f} option (or @code{outformat} setting).
 @cindex @code{SVG}
 @cindex @code{dvisvgm}
 @cindex @code{libgs}
-@cindex @code{graphics}
+@cindex @code{graphic}
 To produce @acronym{SVG} output, you will need @code{dvisvgm} (version
 2.6.3 or later) from @url{http://dvisvgm.sourceforge.net}.
 You might need to adjust the configuration variable @code{libgs} to
 point to the location of your @code{Ghostscript} library
 @code{libgs.so} (or to an empty string, depending on how
-@code{dvisvgm} was configured). Due to current limitations of @code{dvisvgm},
-@code{graphic()} can only display SVG output (used by the xasy
-editor) for external vector EPS graphics (embedded images, PDF, PNG,
-and JPG formats are not yet supported).
+@code{dvisvgm} was configured). The 2.8 version of @code{dvisvgm} can
+display SVG output (used by the @code{xasy} editor) for external
+vector @acronym{EPS} and @acronym{PDF} images included with the
+@code{graphic()} function, in addition to (using the @code{latex}
+@TeX{} engine) @acronym{PNG} and @acronym{JPEG} embedded raster images.
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or

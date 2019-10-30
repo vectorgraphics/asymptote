@@ -3,7 +3,7 @@ import math;
 
 size(7cm,0);
 
-asy(nativeformat(),"examples/Pythagoras");
+if(!settings.xasy && settings.outformat != "svg") settings.tex="pdflatex";
 
 real theta=degrees(asin(0.5/sqrt(7)));
 
@@ -37,4 +37,4 @@ dot("$A'$",Ap,dir(A--Ap),red);
 dot("$B'$",Bp,dir(B--Bp),red);
 dot("$C'$",Cp,dir(C--Cp),red);
 
-label(graphic(outdirectory()+"Pythagoras","width=2.5cm"),Ap,5ENE);
+label(graphic("piicon.png","width=2.5cm, bb=0 0 147 144"),Ap,5ENE);
