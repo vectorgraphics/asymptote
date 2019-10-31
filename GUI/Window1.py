@@ -102,6 +102,8 @@ class MainWindow1(Qw.QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
+        global devicePixelRatio
+        devicePixelRatio=self.devicePixelRatio()
         self.ui.setupUi(self)
         self.ui.menubar.setNativeMenuBar(False)
 
@@ -195,7 +197,6 @@ class MainWindow1(Qw.QMainWindow):
         self.savedWindowMousePos = None
 
         self.finalPixmap = None
-        self.preCanvasPixmap = None
         self.postCanvasPixmap = None
         self.previewCurve = None
         self.mouseDown = False
@@ -308,7 +309,8 @@ class MainWindow1(Qw.QMainWindow):
 
         # pipeline --> let x, y be the postscript point
         # p = (mx + cx + panoffset, -ny + cy + panoffset)
-        cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
+        factor=0.5/devicePixelRatio;
+        cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
 
         newTransf = Qg.QTransform()
         newTransf.translate(*self.panOffset)
@@ -935,8 +937,9 @@ class MainWindow1(Qw.QMainWindow):
             self.canvSize = self.ui.imgFrame.size()
             self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
             self.canvasPixmap = Qg.QPixmap(self.canvSize)
-            # self.canvasPixmap.setDevicePixelRatio(3)
+            self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
             self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
+            self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
             self.quickUpdate()
 
@@ -1105,7 +1108,8 @@ class MainWindow1(Qw.QMainWindow):
         if keyModifiers & int(Qc.Qt.ControlModifier):
             oldMag = self.magnification
 
-            cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
+            factor=0.5/devicePixelRatio;
+            cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
             centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
 
             self.magnification += (rawAngle/100)
@@ -1295,17 +1299,21 @@ class MainWindow1(Qw.QMainWindow):
         self.screenTransformation = self.screenTransformation * appendTransform
 
     def createMainCanvas(self):
-        self.canvSize = self.ui.imgFrame.size()
+        self.canvSize = devicePixelRatio*self.ui.imgFrame.size()
         self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
-        x, y = self.canvSize.width() / 2, self.canvSize.height() / 2
+        factor=0.5/devicePixelRatio;
+        x, y = self.canvSize.width()*factor, self.canvSize.height()*factor
 
         self.canvasPixmap = Qg.QPixmap(self.canvSize)
+        self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
+
         self.canvasPixmap.fill()
 
         self.finalPixmap = Qg.QPixmap(self.canvSize)
+        self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
 
-        self.preCanvasPixmap = Qg.QPixmap(self.canvSize)
         self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
+        self.postCanvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
         self.mainCanvas = Qg.QPainter(self.canvasPixmap)
         self.mainCanvas.setRenderHint(Qg.QPainter.Antialiasing)
@@ -1451,10 +1459,10 @@ class MainWindow1(Qw.QMainWindow):
 
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
+        self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
         self.finalPixmap.fill(Qc.Qt.black)
         with Qg.QPainter(self.finalPixmap) as finalPainter:
             drawPoint = Qc.QPoint(0, 0)
-            # finalPainter.drawPixmap(drawPoint, self.preCanvasPixmap)
             finalPainter.drawPixmap(drawPoint, self.canvasPixmap)
             finalPainter.drawPixmap(drawPoint, self.postCanvasPixmap)
         self.ui.imgLabel.setPixmap(self.finalPixmap)
@@ -1468,8 +1476,11 @@ class MainWindow1(Qw.QMainWindow):
 
         panX, panY = self.panOffset
 
-        x_range = (self.canvSize.width() / 2 + (2 * abs(panX)))/self.magnification
-        y_range = (self.canvSize.height() / 2 + (2 * abs(panY)))/self.magnification
+        factor=0.5/devicePixelRatio;
+        cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
+
+        x_range = (cx + (2 * abs(panX)))/self.magnification
+        y_range = (cy + (2 * abs(panY)))/self.magnification
 
         for x in np.arange(0, 2 * x_range + 1, majorGrid):  # have to do
             # this in two stages...
@@ -1533,11 +1544,9 @@ class MainWindow1(Qw.QMainWindow):
             currAng = currAng + majorAxisAng
 
     def preDraw(self, painter):
-        # self.preCanvasPixmap.fill(Qc.Qt.white)
         self.canvasPixmap.fill()
         preCanvas = painter
 
-        # preCanvas = Qg.QPainter(self.preCanvasPixmap)
         preCanvas.setTransform(self.getScrsTransform())
 
         if self.drawAxes:

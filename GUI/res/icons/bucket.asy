@@ -1,9 +1,7 @@
 // Empty bucket:  asy bucket -f svg
 // Filled bucket: asy bucket -f svg -u fill=true -o filledbucket
 
-real pixel=1inch/96;
-size(32*pixel);
-defaultpen(1.75bp);
+defaultpen(3.5);
 
 real h=4;
 real r=3;
@@ -21,8 +19,8 @@ usersetting();
 if(fill)
   fill(Left--bottom--Right--shift(0,H)*xscale(r)*arc(0,1,0,180)--cycle,gray);
 
-
 draw(shift(0,h)*xscale(r)*unitcircle);
 draw(left--bottom--right);
 draw(shift(0,h)*scale(r)*arc(0,1,0,180));
 
+shipout(pad(64,64));
