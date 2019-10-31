@@ -943,7 +943,7 @@ class MainWindow1(Qw.QMainWindow):
         if self.isReady():
             if self.mainCanvas.isActive():
                 self.mainCanvas.end()
-            self.canvSize = self.ui.imgFrame.size()
+            self.canvSize = self.ui.imgFrame.size()*devicePixelRatio
             self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
             self.canvasPixmap = Qg.QPixmap(self.canvSize)
             self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
