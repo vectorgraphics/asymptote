@@ -104,9 +104,6 @@ bool outlinemode=false;
 bool glthread=false;
 bool initialize=true;
 
-GLint Maxvertices;
-size_t maxvertices;
-
 using camp::picture;
 using camp::drawRawImage;
 using camp::transform;
@@ -200,6 +197,7 @@ dmat4 dviewMat;
 dmat4 drotateMat; 
 
 const double *dprojView;
+const double *dView;
 double BBT[9];
 
 GLuint ubo;
@@ -326,6 +324,7 @@ void home(bool webgl=false)
 #endif
 #endif
   dviewMat=dmat4(1.0);
+  dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
   
   drotateMat=dmat4(1.0); 
@@ -346,8 +345,6 @@ double T[16];
 timeval lasttime;
 timeval lastframetime;
 int oldWidth,oldHeight;
-
-bool forceRemesh=false;
 
 bool queueScreen=false;
 
@@ -482,6 +479,17 @@ void setBuffers()
   glGenBuffers(1,&camp::attributeBuffer);
   glGenBuffers(1,&camp::indicesBuffer);
   glGenBuffers(1,&ubo);
+  
+  GLuint vao;
+  glGenVertexArrays(1,&vao);
+  glBindVertexArray(vao);
+
+  camp::material0Data.reserve0();
+  camp::material1Data.reserve1();
+  camp::materialData.reserve();
+  camp::colorData.Reserve();
+  camp::triangleData.Reserve();
+  camp::transparentData.Reserve();
 }
 
 void drawscene(int Width, int Height)
@@ -510,20 +518,12 @@ void drawscene(int Width, int Height)
   
   double size2=hypot(Width,Height);
   
-  if(forceRemesh) {
-    remesh=true;
-    forceRemesh=false;
-  }
-  
-  camp::clearBuffers();
-  
   if(remesh)
     camp::drawElement::center.clear();
   
   Picture->render(size2,m,M,perspective,remesh);
   
-  if(!forceRemesh)
-    remesh=false;
+  remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -883,6 +883,7 @@ void update()
   
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
+  dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
   setProjection();
@@ -1454,9 +1455,6 @@ void init()
   glutInit(&argc,argv);
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
-  
-  maxvertices=getSetting<Int>("maxvertices");
-  if(maxvertices == 0) maxvertices=Maxvertices;
 #endif
 }
 
@@ -1742,8 +1740,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
 
-  glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&Maxvertices);
-
   if(glinitialize) {
     glinitialize=false;
     int result = glewInit();
@@ -1834,7 +1830,7 @@ string getCenterIndex(size_t const& index) {
 } 
 
 template<class T>
-void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex,
+void registerBuffer(const std::vector<T>& buffervector, GLuint bufferIndex,
                     GLint type=GL_ARRAY_BUFFER) {
   if(!buffervector.empty()) {
     glBindBuffer(type,bufferIndex);
@@ -1844,7 +1840,7 @@ void registerBuffer(std::vector<T>& buffervector, GLuint bufferIndex,
   }
 }
 
-void setUniforms(GLint shader, GLint materialAttrib)
+void setUniforms(const vertexBuffer& data, GLint shader, GLint materialAttrib)
 {
   bool normal=shader != pixelShader && shader != noNormalShader;
     
@@ -1883,7 +1879,7 @@ void setUniforms(GLint shader, GLint materialAttrib)
     GLuint binding=0;
     GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
     glUniformBlockBinding(shader,blockindex,binding);
-    registerBuffer(material,gl::ubo,GL_UNIFORM_BUFFER);
+    registerBuffer(data.materials,gl::ubo,GL_UNIFORM_BUFFER);
     glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
   }
   
@@ -1926,7 +1922,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   const GLint materialAttrib=glGetAttribLocation(shader,"material");
   GLint normalAttrib=0,colorAttrib=0,widthAttrib=0;
   
-  camp::setUniforms(shader,materialAttrib);
+  camp::setUniforms(data,shader,materialAttrib);
 
   glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
   glEnableVertexAttribArray(posAttrib);
@@ -1956,9 +1952,6 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(colorAttrib);
   }
   
-#ifdef __MSDOS__
-  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
-#endif  
   glDrawElements(normal ? GL_TRIANGLES : (pixel ? GL_POINTS : GL_LINES),
                  data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
@@ -1978,41 +1971,78 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
 
-void drawBuffers() 
+void drawMaterial0()
 {
   drawBuffer(material0Data,pixelShader);
+  material0Data.clear();
+}
+
+void drawMaterial1()
+{
   drawBuffer(material1Data,noNormalShader);
+  material1Data.clear();
+}
+
+void drawMaterial()
+{
   drawBuffer(materialData,materialShader);
+  materialData.clear();
+}
+
+void drawColor()
+{
   drawBuffer(colorData,colorShader);
+  colorData.clear();
+}
+
+void drawTriangle()
+{
   drawBuffer(triangleData,transparentShader);
+  triangleData.clear();
+}
+
+void drawTransparent()
+{
   sortTriangles();
-  
   glDepthMask(GL_FALSE); // Enable transparency
   drawBuffer(transparentData,transparentShader);
   glDepthMask(GL_TRUE); // Disable transparency
-}
-
-void clearBuffers()
-{
-  material0Data.clear();
-  material1Data.clear();
-  materialData.clear();
-  colorData.clear();
-  triangleData.clear();
   transparentData.clear();
 }
 
-void clearMaterialBuffer(bool draw)
+void drawBuffers()
 {
-  if(draw)
-    drawBuffers();
+  drawMaterial0();
+  drawMaterial1();
+  drawMaterial();
+  drawColor();
+  drawTriangle();
+  drawTransparent();
+}
+
+void clearMaterialBuffer()
+{
   material.clear();
   material.reserve(nmaterials);
   materialMap.clear();
   materialIndex=0;
 }
 
-
+void setMaterial(vertexBuffer& data, draw_t *draw)
+{
+  if(materialIndex >= data.materialTable.size() ||
+     data.materialTable[materialIndex] == -1) {
+    if(data.materials.size() >= Maxmaterials)
+      (*draw)();
+    size_t size0=data.materialTable.size();
+    data.materialTable.resize(materialIndex+1);
+    for(size_t i=size0; i < materialIndex; ++i)
+      data.materialTable[i]=-1;
+    data.materialTable[materialIndex]=data.materials.size();
+    data.materials.push_back(material[materialIndex]);
+  }
+  materialIndex=data.materialTable[materialIndex];
 }
 
+}
 #endif /* HAVE_GL */

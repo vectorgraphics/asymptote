@@ -316,8 +316,6 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.drawElements(normal ? gl.TRIANGLES : (pixel ? gl.POINTS : gl.LINES),
                   indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
-  if(embedded)
-    context.drawImage(offscreen,0,0);
 }
 
 class vertexBuffer {
@@ -495,10 +493,8 @@ class Geometry {
 
   setMaterial(data,draw) {
     if(data.materialTable[this.MaterialIndex] == null) {
-      if(data.materials.length >= Nmaterials) {
+      if(data.materials.length >= Nmaterials)
         draw();
-        remesh=true;
-      }
       data.materialTable[this.MaterialIndex]=data.materials.length;
       data.materials.push(Materials[this.MaterialIndex]);
     }
@@ -2099,6 +2095,11 @@ function draw()
     P[i].render();
 
   drawBuffers();
+
+  if(embedded) {
+    context.clearRect(0,0,canvas.width,canvas.height);
+    context.drawImage(offscreen,0,0);
+  }
 
   remesh=false;
 }

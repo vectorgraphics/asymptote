@@ -91,6 +91,11 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   } else
     offscreen=bbox2(Min,Max).offscreen();
   
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(false,Black,color,Black,1.0,0.0,0.04);
+
+  setMaterial(material1Data,drawMaterial1);
+  
   if(offscreen) { // Fully offscreen
     R.Onscreen=false;
     R.data.clear();
@@ -113,9 +118,6 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
     double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
   
     const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-    RGBAColour Black(0.0,0.0,0.0,color.A);
-    setcolors(false,Black,color,Black,1.0,0.0,0.04);
   
     R.queue(controls,g.straight(i),size3.length()/size2);
   }
@@ -258,14 +260,16 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
 #ifdef HAVE_GL
   if(invisible) return;
   
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(false,color,color,Black,1.0,0.0,0.04);
+
+  setMaterial(material0Data,drawMaterial0);
+
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen
     R.data.clear();
     return;
   }
 
-  RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(false,color,color,Black,1.0,0.0,0.04);
-  
   R.queue(v,width);
 #endif
 }

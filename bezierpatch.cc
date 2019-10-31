@@ -820,9 +820,12 @@ void transform(const std::vector<VertexData>& b)
 //  ybuffer.resize(n);
   zbuffer.resize(n);
   
+  double Tz0=gl::dView[2];
+  double Tz1=gl::dView[6];
+  double Tz2=gl::dView[10];
   for(unsigned i=0; i < n; ++i) {
     const GLfloat *v=b[i].position;
-    zbuffer[i]=TransformZ(triple(v[0],v[1],v[2]),gl::dprojView);
+    zbuffer[i]=Tz0*v[0]+Tz1*v[1]+Tz2*v[2];
   }
 }
 

@@ -94,7 +94,7 @@ struct simplex {
       real M;
       for(int j=0; j < N; ++j) {
         real e=E[I][j];
-        if(e < epsilonA) {
+        if(e < -epsilonA) {
           M=-E[m][j]/e;
           J=j;
           break;
@@ -102,7 +102,7 @@ struct simplex {
       }
       for(int j=J+1; j < N; ++j) {
         real e=E[I][j];
-        if(e < epsilonA) {
+        if(e < -epsilonA) {
           real v=-E[m][j]/e;
           if(v < M) {M=v; J=j;} // Bland's rule: choose smallest argmin
         }
@@ -187,7 +187,7 @@ struct simplex {
       Bindices=sequence(new int(int x){return x;},m)+n;
       iterate(E,N,Bindices);
   
-      if(abs(Em[J]) > epsilonA) {
+      if(abs(Em[N]) > epsilonA) {
       case=INFEASIBLE;
       return;
       }

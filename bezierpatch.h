@@ -125,21 +125,11 @@ struct BezierPatch
   void append() {
     if(transparent)
       transparentData.Append(data);
-    else if(color) {
-      colorData.Append(data);
-      if(colorData.Vertices.size() >= gl::maxvertices) {
-        drawBuffer(colorData,colorShader);
-        colorData.clear();
-        gl::forceRemesh=true;
-      }
-    }
     else {
-      materialData.append(data);
-      if(materialData.vertices.size() >= gl::maxvertices) {
-        drawBuffer(materialData,materialShader);
-        materialData.clear();
-        gl::forceRemesh=true;
-      }
+      if(color)
+        colorData.Append(data);
+      else
+        materialData.append(data);
     }
   }
   
@@ -193,14 +183,8 @@ public:
   void append() {
     if(transparent)
       transparentData.Append(data);
-    else {
+    else
       triangleData.Append(data);
-      if(triangleData.Vertices.size() >= gl::maxvertices) {
-        drawBuffer(triangleData,transparentShader);
-        triangleData.clear();
-        gl::forceRemesh=true;
-      }
-    }
   }
 
 };

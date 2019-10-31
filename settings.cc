@@ -85,7 +85,7 @@ mode_t mask;
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultEPSdriver="eps2write";
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
-  AsyGLVersion+".js";
+  string(AsyGLVersion)+".js";
 
 #ifndef __MSDOS__
   
@@ -1344,7 +1344,6 @@ void initSettings() {
   addOption(new userSetting("user", 'u', "string",
                             "General purpose user string"));
   
-  addOption(new IntSetting("maxvertices", 0, "n", "Maximum number of vertices to queue", 0));
   addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
                             1.05));
   addOption(new realSetting("zoomPinchFactor", 0, "n",

@@ -104,7 +104,7 @@ latexdir = $(DESTDIR)@latexdir@
 contextdir = $(DESTDIR)@contextdir@
 INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
-last = $(shell cat revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
+last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe --long | sed -e 's/git//' \
@@ -124,7 +124,7 @@ asy:	version glew.o
 	fi
 
 version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
-	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
+	if test ! -s revision.cc || test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
 	  if test ! -e base/webgl/asygl.js; then \

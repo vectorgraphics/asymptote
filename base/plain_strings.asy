@@ -184,9 +184,6 @@ string jobname(string name)
 
 string graphic(string name, string options="")
 {
-  if(settings.xasy)
-    name=stripdirectory(name);
-
   if(latex()) {
     if(options != "") options="["+options+"]";
     string includegraphics="\includegraphics"+options;

@@ -39,12 +39,6 @@ struct BezierCurve
   
   void append() {
     material1Data.append1(data);
-    
-    if(material1Data.vertices1.size() >= gl::maxvertices) {
-      drawBuffer(material1Data,noNormalShader);
-      material1Data.clear();
-      gl::forceRemesh=true;
-    }
   }
   
   void queue(const triple *g, bool straight, double ratio) {
@@ -62,12 +56,6 @@ struct Pixel
   
   void append() {
     material0Data.append0(data);
-    
-    if(material0Data.vertices0.size() >= gl::maxvertices) {
-      drawBuffer(material0Data,pixelShader);
-      material0Data.clear();
-      gl::forceRemesh=true;
-    }
   }
   
   void queue(const triple& p, double width) {

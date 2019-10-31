@@ -103,14 +103,6 @@ public:
                 (t[1]*v.x+t[5]*v.y+t[9]*v.z+t[13])*f);
   }
   
-  // return z component of v*t.
-  friend double TransformZ(const triple& v, const double* t)
-  {
-    double f=t[3]*v.x+t[7]*v.y+t[11]*v.z+t[15];
-    f=1.0/f;
-    return (t[2]*v.x+t[6]*v.y+t[10]*v.z+t[14])*f;
-  }
-  
   friend void transformtriples(const double* t, size_t n, triple* d,
                                const triple* s)
   {
