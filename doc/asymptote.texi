@@ -3596,6 +3596,14 @@ shipout(bbox(0.25cm));
 A @code{picture} may be fit to a frame with the background color
 pen @code{p}, using the function @code{bbox(p,Fill)}. 
 
+@cindex @code{pad}
+To pad a picture to a precise size in both directions, fit the picture
+to a frame using the function
+@verbatim
+frame pad(picture pic=currentpicture, real xsize=pic.xsize,
+          real ysize=pic.ysize, filltype filltype=NoFill);
+@end verbatim
+
 The functions 
 @verbatim
 pair min(picture pic, user=false);
