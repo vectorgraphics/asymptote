@@ -7983,12 +7983,13 @@ There are five choices for viewing 3D @code{Asymptote} output:
 @cindex @code{multisample}
 @item Use the native @code{Asymptote} adaptive @code{OpenGL}-based
 renderer (with the command-line option @code{-V} and the default settings
-@code{outformat=""} and @code{render=-1}). On @code{UNIX} systems with
-graphics support for multisampling, the sample width can be
-controlled with the setting @code{multisample}. An initial screen
-position can be specified with the pair setting @code{position}, where
-negative values are interpreted as relative to the corresponding
-maximum screen dimension. The default settings
+@code{outformat=""} and @code{render=-1}). For certain old graphics card
+drivers, you may need to specify the setting @code{glOptions=-indirect}.
+On @code{UNIX} systems with graphics support for multisampling, the
+sample width can be controlled with the setting @code{multisample}. An
+initial screen position can be specified with the pair setting
+@code{position}, where negative values are interpreted as relative to
+the corresponding maximum screen dimension. The default settings
 @cindex mouse bindings
 @verbatim
 import settings;
