@@ -735,9 +735,9 @@ void htmlView(string name)
   mem::vector<string> cmd;
   push_command(cmd,getSetting<string>("htmlviewer"));
 #ifdef __MSDOS__
-  cmd.push_back("file://%CD%/"+name);
+  cmd.push_back("file://"+locateFile(name));
 #else        
-  cmd.push_back(name);
+  cmd.push_back(locateFile(name));
 #endif
   push_split(cmd,getSetting<string>("htmlviewerOptions"));
   System(cmd,2,false);

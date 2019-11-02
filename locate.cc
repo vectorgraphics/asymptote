@@ -51,12 +51,11 @@ file_list_t mungeFileName(string id)
   return files;
 }
 
-// Join a directory with the given filename, to give the path to the file.  This
-// also avoids unsightly joins such as './file.asy' in favour of 'file.asy' and
-// 'dir//file.asy' in favour of 'dir/file.asy'
+// Join a directory with the given filename, to give the path to the file,
+// avoiding unsightly joins such as 'dir//file.asy' in favour of 'dir/file.asy'
 string join(string dir, string file)
 {
-  return dir == "." ?           file :
+  return dir == "." ? string(getPath())+"/"+file :
     *dir.rbegin() == '/' ? dir + file :
     dir + "/" + file;
 }
