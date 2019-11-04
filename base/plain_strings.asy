@@ -187,12 +187,7 @@ string graphic(string name, string options="")
   if(latex()) {
     if(options != "") options="["+options+"]";
     string includegraphics="\includegraphics"+options;
-    if(settings.inlinetex)
-      return includegraphics+"{"+jobname(name)+"}";
-    else
-      return includegraphics+
-        (find(name," ") < 0 ? "{"+name+"}" :
-         (pdf() ? "{\""+stripextension(name)+"\".pdf}" : "{\""+name+"\"}"));
+    return includegraphics+"{"+(settings.inlinetex ? jobname(name) : name)+"}";
   }
   if(settings.tex != "context")
     notimplemented("graphic");
