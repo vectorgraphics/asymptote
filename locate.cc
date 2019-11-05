@@ -53,16 +53,16 @@ file_list_t mungeFileName(string id)
 
 // Join a directory with the given filename, to give the path to the file,
 // avoiding unsightly joins such as 'dir//file.asy' in favour of 'dir/file.asy'
-string join(string dir, string file)
+string join(string dir, string file, bool full)
 {
-  return dir == "." ? string(getPath())+"/"+file :
+  return dir == "." ? (full ? string(getPath())+"/"+file : file) :
     *dir.rbegin() == '/' ? dir + file :
     dir + "/" + file;
 }
 
 // Find the appropriate file, first looking in the local directory, then the
 // directory given in settings, and finally the global system directory.
-string locateFile(string id)
+string locateFile(string id, bool full)
 {
   if(id.empty()) return "";
   file_list_t filenames = mungeFileName(id);
@@ -87,7 +87,7 @@ string locateFile(string id)
       for (file_list_t::iterator dir = searchPath.begin();
            dir != searchPath.end();
            ++dir) {
-        string file = join(*dir,*leaf);
+        string file = join(*dir,*leaf,full);
         if (fs::exists(file))
           return file;
       }
