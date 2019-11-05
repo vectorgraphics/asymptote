@@ -17,6 +17,10 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 
+#ifdef __MSDOS__
+#include "sys/cygwin.h"
+#endif
+
 using std::ifstream;
 using std::ofstream;
 using vm::array;
@@ -735,7 +739,13 @@ void htmlView(string name)
   mem::vector<string> cmd;
   push_command(cmd,getSetting<string>("htmlviewer"));
 #ifdef __MSDOS__
-  cmd.push_back("file://"+locateFile(name,true));
+  ssize_t size=cygwin_conv_path(CCP_POSIX_TO_WIN_A,
+                                locateFile(name,true).c_str(),NULL,0);
+  if(size <= 0) return;
+  char filename[size];
+  size=cygwin_conv_path(CCP_POSIX_TO_WIN_A,locateFile(name,true).c_str(),
+                        filename,size);
+  cmd.push_back("file://"+string(filename));
 #else        
   cmd.push_back(locateFile(name,true));
 #endif
