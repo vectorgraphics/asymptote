@@ -9642,6 +9642,8 @@ raising and lowering objects within @code{xasy}, allowing an object to
 be selected. Pressing the arrow keys will pan while the shift key is held
 and zoom while the control key is held. The mouse wheel will pan while
 the alt or shift keys is held and zoom while the control key is held.
+In translate mode, an object can be dragged coarsely with the mouse
+or positioned finely with the arrow keys while holding down the mouse button.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
 by enclosing them within the commands
