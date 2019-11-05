@@ -6146,7 +6146,7 @@ to the type.  This is regardless of what fields the variable actually possesses.
 @cindex @code{asymptote.sty}
 
 @code{Asymptote} comes with a convenient @code{LaTeX} style file
-@code{asymptote.sty} (v1.33 or later required) that makes @code{LaTeX}
+@code{asymptote.sty} (v1.34 or later required) that makes @code{LaTeX}
 @code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
