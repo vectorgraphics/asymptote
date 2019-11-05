@@ -162,7 +162,7 @@ void texfile::beginlayer(const string& psname, bool postscript)
         if(!pdf)
           *out << "[bb=" << box.left << " " << box.bottom << " "
                << box.right << " " << box.top << "]";
-        *out << "{" << name << "}%" << newl;
+        *out << "{" << name << "}%" << newl << "}%" << newl;
       }
       if(!inlinetex)
         *out << "\\kern " << (box.left-box.right)*ps2tex << "pt%" << newl;
