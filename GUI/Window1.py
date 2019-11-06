@@ -61,8 +61,8 @@ class HardDeletionChanges(ActionChanges):
         self.objIndex = pos
 
 class AnchorMode:
-    origin = 0
-    center = 1
+    center = 0
+    origin = 1
     topLeft = 2
     topRight = 3
     bottomRight = 4
@@ -139,6 +139,8 @@ class MainWindow1(Qw.QMainWindow):
         self.mainCanvas = None
         self.dpi = 300
         self.canvasPixmap = None
+        self.tx=0
+        self.ty=0
 
         # Actions
         # <editor-fold> Connecting Actions
@@ -264,11 +266,10 @@ class MainWindow1(Qw.QMainWindow):
             'setMag': self.setMagPrompt,
             'deleteObject': self.btnSelectiveDeleteOnClick, 
             'anchorMode': self.switchToAnchorMode,
-            'moveUp': lambda: self.arrowButtons(0, 1, False), 
-            'moveDown': lambda: self.arrowButtons(0, -1, False),
-            'moveLeft': lambda: self.arrowButtons(1, 0, False), 
-            'moveRight': lambda: self.arrowButtons(-1, 0, False),
-
+            'moveUp': lambda: self.translate(0, -1),
+            'moveDown': lambda: self.translate(0, 1),
+            'moveLeft': lambda: self.translate(-1, 0),
+            'moveRight': lambda: self.translate(1, 0),
             'scrollLeft': lambda: self.arrowButtons(-1, 0, True),
             'scrollRight': lambda: self.arrowButtons(1, 0, True),
             'scrollUp': lambda: self.arrowButtons(0, 1, True),
@@ -306,6 +307,17 @@ class MainWindow1(Qw.QMainWindow):
             if self.currentModeStack[-1] == SelectionMode.translate:
                 self.savedMousePosition += Qc.QPointF(30 * x, 30 * y);
                 self.newTransform.translate(-30 * x, -30 * y);
+        self.quickUpdate()
+
+    def translate(self, x:int , y:int):
+        "x, y indicates update button orientation on the cartesian plane."
+        if self.lockX:
+            x = 0
+        if self.lockY:
+            y = 0
+        self.tx += x
+        self.ty += y
+        self.newTransform=Qg.QTransform.fromTranslate(self.tx,self.ty)
         self.quickUpdate()
 
     def cleanup(self):
@@ -1062,7 +1074,7 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
             return
 
-        # otherwise, select a candinate for selection
+        # otherwise, select a candidate for selection
 
         if self.currentlySelectedObj['selectedIndex'] is None:
             selectedIndex, selKeyList = self.selectObject()
@@ -1082,6 +1094,8 @@ class MainWindow1(Qw.QMainWindow):
         if not self.mouseDown:
             return
 
+        self.tx=0
+        self.ty=0
         self.mouseDown = False
         if self.addMode is not None:
             self.addMode.mouseRelease()
@@ -1275,13 +1289,13 @@ class MainWindow1(Qw.QMainWindow):
         if self.anchorMode == AnchorMode.center:
             self.currentAnchor = self.currentBoundingBox.center()
         elif self.anchorMode == AnchorMode.topLeft:
-            self.currentAnchor = self.currentBoundingBox.bottomLeft()  # due to internal image being flipped
-        elif self.anchorMode == AnchorMode.topRight:
-            self.currentAnchor = self.currentBoundingBox.bottomRight()
-        elif self.anchorMode == AnchorMode.bottomLeft:
             self.currentAnchor = self.currentBoundingBox.topLeft()
-        elif self.anchorMode == AnchorMode.bottomRight:
+        elif self.anchorMode == AnchorMode.topRight:
             self.currentAnchor = self.currentBoundingBox.topRight()
+        elif self.anchorMode == AnchorMode.bottomLeft:
+            self.currentAnchor = self.currentBoundingBox.bottomLeft()
+        elif self.anchorMode == AnchorMode.bottomRight:
+            self.currentAnchor = self.currentBoundingBox.bottomRight()
         elif self.anchorMode == AnchorMode.customAnchor:
             self.currentAnchor = self.customAnchor
         else:

@@ -1200,7 +1200,7 @@
                <bool>false</bool>
               </property>
               <property name="currentText">
-               <string>Origin</string>
+               <string>Center</string>
               </property>
               <property name="currentIndex">
                <number>0</number>
@@ -1228,12 +1228,12 @@
               </property>
               <item>
                <property name="text">
-                <string>Origin</string>
+                <string>Center</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Center</string>
+                <string>Origin</string>
                </property>
               </item>
               <item>

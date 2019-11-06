@@ -11,7 +11,7 @@ ____________________________
 The ASYMPTOTE package
 
 (C) 2003 Tom Prince
-(C) 2003-2016 John Bowman
+(C) 2003-2019 John Bowman
 (C) 2010 Will Robertson
 
 Adapted from comment.sty
@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2016/11/26 v1.33 Asymptote style file for LaTeX]
+  [2019/11/04 v1.34 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -196,6 +196,7 @@ Licence: GPL2+
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \RequirePackage{color,graphicx}
+\RequirePackage[space]{grffile}
 %    \end{macrocode}
 %
 % \paragraph{Emulating packages}
@@ -355,6 +356,12 @@ Licence: GPL2+
 \expandafter\fixstar\rawJobname*\relax
 %    \end{macrocode}
 %
+% Work around bug in grffile.
+\def\Gread@@xetex#1{%
+  \IfFileExists{"\Gin@base".bb}%
+    {\Gread@eps{\Gin@base.bb}}%
+    {\Gread@@xetex@aux#1}%
+}
 % Work around bug in dvips.def: allow spaces in file names.
 %    \begin{macrocode}
 \def\Ginclude@eps#1{%
@@ -572,12 +579,12 @@ Licence: GPL2+
       \ifASYattach
         \ifASYPDF
           \IfFileExists{"\AsyFile+0.pdf"}{%
-            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile+0".pdf}}%
+            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile+0.pdf}}%
           }{%
-            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile".pdf}}%
+            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile.pdf}}%
           }%
         \else
-          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile.eps"}}%
+          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile.eps}}%
         \fi
         \textattachfile{\AsyFile.\AsyExtension}{\phantom{\copy\ASYbox}}%
         \vskip-\ht\ASYbox
@@ -585,9 +592,9 @@ Licence: GPL2+
         \box\ASYbox
       \else
         \ifASYPDF
-          \includegraphics[hiresbb]{"\AsyFile".pdf}%
+          \includegraphics[hiresbb]{\AsyFile.pdf}%
         \else
-          \includegraphics[hiresbb]{"\AsyFile.eps"}%
+          \includegraphics[hiresbb]{\AsyFile.eps}%
         \fi
       \fi
     }{%

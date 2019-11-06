@@ -159,8 +159,7 @@ struct simplex {
     n=A[0].length;
     if(n == 0) {case=INFEASIBLE; return;}
 
-    int N=n;
-    rational[][] E=new rational[m+1][N+1];
+    rational[][] E=new rational[m+1][n+1];
     rational[] Em=E[m];
 
     for(int j=1; j <= n; ++j)
@@ -232,13 +231,12 @@ struct simplex {
         }
         ++p;
       }
-      N += k;
 
       basicValues();
 
       simplexPhase1(c,A,b,Bindices);
 
-      iterate(E,N,Bindices);
+      iterate(E,n+k,Bindices);
   
       if(Em[0] != 0) {
         simplexTableau(E,Bindices);
@@ -322,7 +320,7 @@ struct simplex {
       x[j]=0;
 
     for(int k=0; k < m; ++k)
-      x[Bindices[k]]=D[k][0];
+      x[Bindices[k]-1]=D[k][0];
 
     cost=-Dm[0];
   }

@@ -17,7 +17,6 @@ moveDown: 'Down'
 moveLeft: 'Left'
 moveRight: 'Right'
 
-
 scrollUp: 'Shift+Up'
 scrollDown: 'Shift+Down'
 scrollLeft: 'Shift+Left'

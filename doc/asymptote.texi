@@ -6146,7 +6146,7 @@ to the type.  This is regardless of what fields the variable actually possesses.
 @cindex @code{asymptote.sty}
 
 @code{Asymptote} comes with a convenient @code{LaTeX} style file
-@code{asymptote.sty} (v1.33 or later required) that makes @code{LaTeX}
+@code{asymptote.sty} (v1.34 or later required) that makes @code{LaTeX}
 @code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
@@ -9642,6 +9642,8 @@ raising and lowering objects within @code{xasy}, allowing an object to
 be selected. Pressing the arrow keys will pan while the shift key is held
 and zoom while the control key is held. The mouse wheel will pan while
 the alt or shift keys is held and zoom while the control key is held.
+In translate mode, an object can be dragged coarsely with the mouse
+or positioned finely with the arrow keys while holding down the mouse button.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
 by enclosing them within the commands
