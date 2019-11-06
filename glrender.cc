@@ -1952,6 +1952,9 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(colorAttrib);
   }
   
+#ifdef __MSDOS__
+  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
+#endif  
   glDrawElements(normal ? GL_TRIANGLES : (pixel ? GL_POINTS : GL_LINES),
                  data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
