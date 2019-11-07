@@ -33,7 +33,7 @@ let offscreen; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
 
 let nlights=0; // Number of lights compiled in shader
-let Nmaterials=1; // Maximum number of materials compiled in shader
+let Nmaterials=2; // Maximum number of materials compiled in shader
 
 let materials=[]; // Subset of Materials passed as uniforms
 let maxMaterials; // Limit on number of materials allowed in shader
