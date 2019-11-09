@@ -1521,6 +1521,7 @@ function initShader(options=[])
   gl.bindAttribLocation(shader,positionAttribute,"position");
   gl.bindAttribLocation(shader,normalAttribute,"normal");
   gl.bindAttribLocation(shader,materialAttribute,"materialIndex");
+  gl.bindAttribLocation(shader,colorAttribute,"color");
   gl.bindAttribLocation(shader,widthAttribute,"width");
   gl.linkProgram(shader);
   if (!gl.getProgramParameter(shader,gl.LINK_STATUS)) {
