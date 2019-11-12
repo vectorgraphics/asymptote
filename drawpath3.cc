@@ -83,6 +83,11 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   Int n=g.length();
   if(n == 0 || invisible) return;
 
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(false,Black,color,Black,1.0,0.0,0.04);
+
+  setMaterial(material1Data,drawMaterial1);
+  
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
@@ -90,11 +95,6 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
     offscreen=bbox2(Min,Max,BB).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
-  
-  RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(false,Black,color,Black,1.0,0.0,0.04);
-
-  setMaterial(material1Data,drawMaterial1);
   
   if(offscreen) { // Fully offscreen
     R.Onscreen=false;
