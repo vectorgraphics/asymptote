@@ -1836,7 +1836,6 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint bufferIndex,
     glBindBuffer(type,bufferIndex);
     glBufferData(type,buffervector.size()*sizeof(T),
                  buffervector.data(),GL_STATIC_DRAW);
-    glBindBuffer(type,0);
   }
 }
 
@@ -1911,7 +1910,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   else if(pixel) registerBuffer(data.vertices0,attributeBuffer);
   else registerBuffer(data.vertices1,attributeBuffer);
   
-  registerBuffer(data.indices,indicesBuffer);
+  registerBuffer(data.indices,indicesBuffer,GL_ELEMENT_ARRAY_BUFFER);
   
   glBindBuffer(GL_ARRAY_BUFFER,attributeBuffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,indicesBuffer);
@@ -1942,9 +1941,6 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(colorAttrib);
   }
   
-#ifdef __MSDOS__
-  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
-#endif  
   glDrawElements(normal ? GL_TRIANGLES : (pixel ? GL_POINTS : GL_LINES),
                  data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
