@@ -30,7 +30,7 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
 
   glBindAttribLocation(shader,positionAttrib,"position");
   glBindAttribLocation(shader,normalAttrib,"normal");
-  glBindAttribLocation(shader,materialAttrib,"materialIndex");
+  glBindAttribLocation(shader,materialAttrib,"material");
   glBindAttribLocation(shader,colorAttrib,"color");
   glBindAttribLocation(shader,widthAttrib,"width");
   
