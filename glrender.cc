@@ -1836,11 +1836,10 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint bufferIndex,
     glBindBuffer(type,bufferIndex);
     glBufferData(type,buffervector.size()*sizeof(T),
                  buffervector.data(),GL_STATIC_DRAW);
-    glBindBuffer(type,0);
   }
 }
 
-void setUniforms(const vertexBuffer& data, GLint shader, GLint materialAttrib)
+void setUniforms(const vertexBuffer& data, GLint shader)
 {
   bool normal=shader != pixelShader && shader != noNormalShader;
     
@@ -1875,13 +1874,11 @@ void setUniforms(const vertexBuffer& data, GLint shader, GLint materialAttrib)
 #endif
   }
   
-  if(materialAttrib != -1) {
-    GLuint binding=0;
-    GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
-    glUniformBlockBinding(shader,blockindex,binding);
-    registerBuffer(data.materials,gl::ubo,GL_UNIFORM_BUFFER);
-    glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
-  }
+  GLuint binding=0;
+  GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
+  glUniformBlockBinding(shader,blockindex,binding);
+  registerBuffer(data.materials,gl::ubo,GL_UNIFORM_BUFFER);
+  glBindBufferBase(GL_UNIFORM_BUFFER,binding,gl::ubo);
   
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
                      value_ptr(gl::projViewMat));
@@ -1913,52 +1910,41 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   else if(pixel) registerBuffer(data.vertices0,attributeBuffer);
   else registerBuffer(data.vertices1,attributeBuffer);
   
-  registerBuffer(data.indices,indicesBuffer);
+  registerBuffer(data.indices,indicesBuffer,GL_ELEMENT_ARRAY_BUFFER);
   
   glBindBuffer(GL_ARRAY_BUFFER,attributeBuffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,indicesBuffer);
 
-  const GLint posAttrib=glGetAttribLocation(shader,"position");
-  const GLint materialAttrib=glGetAttribLocation(shader,"material");
-  GLint normalAttrib=0,colorAttrib=0,widthAttrib=0;
-  
-  camp::setUniforms(data,shader,materialAttrib);
+  camp::setUniforms(data,shader);
 
-  glVertexAttribPointer(posAttrib,3,GL_FLOAT,GL_FALSE,bytestride,(void *) 0);
-  glEnableVertexAttribArray(posAttrib);
+  glVertexAttribPointer(positionAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
+                        (void *) 0);
+  glEnableVertexAttribArray(positionAttrib);
     
   if(normal && gl::Nlights > 0) {
-    normalAttrib=glGetAttribLocation(shader,"normal");
     glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                           (void *) (3*size));
     glEnableVertexAttribArray(normalAttrib);
   } else if(pixel) {
-    widthAttrib=glGetAttribLocation(shader,"width");
     glVertexAttribPointer(widthAttrib,1,GL_FLOAT,GL_FALSE,bytestride,
                           (void *) (3*size));
     glEnableVertexAttribArray(widthAttrib);
   }
     
-  if(materialAttrib != -1) {
-    glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
-                           (void *) ((normal ? 6 : (pixel ? 4 : 3))*size));
-    glEnableVertexAttribArray(materialAttrib);
-  }
+  glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
+                         (void *) ((normal ? 6 : (pixel ? 4 : 3))*size));
+  glEnableVertexAttribArray(materialAttrib);
 
   if(color) {
-    colorAttrib=glGetAttribLocation(shader,"color");
     glVertexAttribPointer(colorAttrib,4,GL_UNSIGNED_BYTE,GL_TRUE,bytestride,
                           (void *) (6*size+intsize));
     glEnableVertexAttribArray(colorAttrib);
   }
   
-#ifdef __MSDOS__
-  glFlush(); // Workaround broken MSWindows drivers for Intel GPU
-#endif  
   glDrawElements(normal ? GL_TRIANGLES : (pixel ? GL_POINTS : GL_LINES),
                  data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
-  glDisableVertexAttribArray(posAttrib);
+  glDisableVertexAttribArray(positionAttrib);
   if(normal && gl::Nlights > 0)
     glDisableVertexAttribArray(normalAttrib);
   if(pixel)
@@ -1967,8 +1953,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   if(color)
     glDisableVertexAttribArray(colorAttrib);
   
-  if(materialAttrib != -1)
-    glBindBuffer(GL_UNIFORM_BUFFER,0);
+  glBindBuffer(GL_UNIFORM_BUFFER,0);
   
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);

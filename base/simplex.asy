@@ -52,20 +52,22 @@ struct simplex {
         break;
 
       int I=-1;
-      real M;
+      real t;
       for(int i=0; i < m; ++i) {
-        real e=E[i][J];
-        if(e > EpsilonA) {
-          M=E[i][0]/e;
+        real u=E[i][J];
+        if(u > EpsilonA) {
+          t=E[i][0]/u;
           I=i;
           break;
         }
       }
       for(int i=I+1; i < m; ++i) {
-        real e=E[i][J];
-        if(e > EpsilonA) {
-          real v=E[i][0]/e;
-          if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
+        real u=E[i][J];
+        if(u > EpsilonA) {
+          real r=E[i][0]/u;
+          if(r <= t && (r < t || Bindices[i] < Bindices[I])) {
+            t=r; I=i;
+          } // Bland's rule: exiting variable has smallest minimizing index
         }
       }
       if(I == -1)
@@ -91,20 +93,22 @@ struct simplex {
         break;
 
       int J=0;
-      real M;
+      real t;
       for(int j=1; j <= N; ++j) {
-        real e=E[I][j];
-        if(e < -EpsilonA) {
-          M=-E[m][j]/e;
+        real u=E[I][j];
+        if(u < -EpsilonA) {
+          t=-E[m][j]/u;
           J=j;
           break;
         }
       }
       for(int j=J+1; j <= N; ++j) {
-        real e=E[I][j];
-        if(e < -EpsilonA) {
-          real v=-E[m][j]/e;
-          if(v < M) {M=v; J=j;} // Bland's rule: choose smallest argmin
+        real u=E[I][j];
+        if(u < -EpsilonA) {
+          real r=-E[m][j]/u;
+          if(r <= t && (r < t || Bindices[j] < Bindices[J])) {
+            t=r; J=j;
+          } // Bland's rule: exiting variable has smallest minimizing index
         }
       }
       if(J == 0)

@@ -77,20 +77,22 @@ struct simplex {
         break;
 
       int I=-1;
-      rational M;
+      rational t;
       for(int i=0; i < m; ++i) {
-        rational e=E[i][J];
-        if(e > 0) {
-          M=E[i][0]/e;
+        rational u=E[i][J];
+        if(u > 0) {
+          t=E[i][0]/u;
           I=i;
           break;
         }
       }
       for(int i=I+1; i < m; ++i) {
-        rational e=E[i][J];
-        if(e > 0) {
-          rational v=E[i][0]/e;
-          if(v < M) {M=v; I=i;} // Bland's rule: choose smallest argmin
+        rational u=E[i][J];
+        if(u > 0) {
+          rational r=E[i][0]/u;
+          if(r <= t && (r < t || Bindices[i] < Bindices[I])) {
+            t=r; I=i;
+          } // Bland's rule: exiting variable has smallest minimizing index
         }
       }
       if(I == -1)
@@ -118,20 +120,22 @@ struct simplex {
         break;
 
       int J=0;
-      rational M;
+      rational t;
       for(int j=1; j <= N; ++j) {
-        rational e=E[I][j];
-        if(e < 0) {
-          M=-E[m][j]/e;
+        rational u=E[I][j];
+        if(u < 0) {
+          t=-E[m][j]/u;
           J=j;
           break;
         }
       }
       for(int j=J+1; j <= N; ++j) {
-        rational e=E[I][j];
-        if(e < 0) {
-          rational v=-E[m][j]/e;
-          if(v < M) {M=v; J=j;} // Bland's rule: choose smallest argmin
+        rational u=E[I][j];
+        if(u < 0) {
+          rational r=-E[m][j]/u;
+          if(r <= t && (r < t || Bindices[j] < Bindices[J])) {
+            t=r; J=j;
+          } // Bland's rule: exiting variable has smallest minimizing index
         }
       }
       if(J == 0)

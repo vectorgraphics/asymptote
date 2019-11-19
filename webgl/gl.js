@@ -33,7 +33,7 @@ let offscreen; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
 
 let nlights=0; // Number of lights compiled in shader
-let Nmaterials=1; // Maximum number of materials compiled in shader
+let Nmaterials=2; // Maximum number of materials compiled in shader
 
 let materials=[]; // Subset of Materials passed as uniforms
 let maxMaterials; // Limit on number of materials allowed in shader
@@ -283,29 +283,23 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
                 gl.STATIC_DRAW);
-  gl.vertexAttribPointer(shader.vertexPositionAttribute,
-                         3,gl.FLOAT,false,normal ? 24 : (pixel ? 16 : 12),0);
+  gl.vertexAttribPointer(positionAttribute,3,gl.FLOAT,false,
+                         normal ? 24 : (pixel ? 16 : 12),0);
   if(normal && Lights.length > 0)
-    gl.vertexAttribPointer(shader.vertexNormalAttribute,
-                           3,gl.FLOAT,false,24,12);
+    gl.vertexAttribPointer(normalAttribute,3,gl.FLOAT,false,24,12);
   else if(pixel)
-    gl.vertexAttribPointer(shader.vertexWidthAttribute,
-                           1,gl.FLOAT,false,16,12);
+    gl.vertexAttribPointer(widthAttribute,1,gl.FLOAT,false,16,12);
 
-  if(shader.vertexMaterialAttribute != -1) {
-    gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materialIndices),
-                  gl.STATIC_DRAW);
-    gl.vertexAttribPointer(shader.vertexMaterialAttribute,
-                           1,gl.SHORT,false,2,0);
-  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materialIndices),
+                gl.STATIC_DRAW);
+  gl.vertexAttribPointer(materialAttribute,1,gl.SHORT,false,2,0);
 
   if(shader == colorShader || shader == transparentShader) {
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(data.colors),
                   gl.STATIC_DRAW);
-    gl.vertexAttribPointer(shader.vertexColorAttribute,
-                           4,gl.UNSIGNED_BYTE,true,0,0);
+    gl.vertexAttribPointer(colorAttribute,4,gl.UNSIGNED_BYTE,true,0,0);
   }
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
@@ -1510,6 +1504,12 @@ function home()
   redraw=true;
 }
 
+let positionAttribute=0;
+let normalAttribute=1;
+let materialAttribute=2;
+let colorAttribute=3;
+let widthAttribute=4;
+
 function initShader(options=[])
 {
   let vertexShader=getShader(gl,vertex,gl.VERTEX_SHADER,options);
@@ -1518,6 +1518,11 @@ function initShader(options=[])
 
   gl.attachShader(shader,vertexShader);
   gl.attachShader(shader,fragmentShader);
+  gl.bindAttribLocation(shader,positionAttribute,"position");
+  gl.bindAttribLocation(shader,normalAttribute,"normal");
+  gl.bindAttribLocation(shader,materialAttribute,"materialIndex");
+  gl.bindAttribLocation(shader,colorAttribute,"color");
+  gl.bindAttribLocation(shader,widthAttribute,"width");
   gl.linkProgram(shader);
   if (!gl.getProgramParameter(shader,gl.LINK_STATUS)) {
     alert("Could not initialize shaders");
@@ -1638,43 +1643,31 @@ function setUniforms(data,shader)
 
   gl.useProgram(shader);
 
-  shader.vertexPositionAttribute=gl.getAttribLocation(shader,"position");
-  gl.enableVertexAttribArray(shader.vertexPositionAttribute);
+  gl.enableVertexAttribArray(positionAttribute);
 
-  if(pixel) {
-    shader.vertexWidthAttribute=gl.getAttribLocation(shader,"width");
-    gl.enableVertexAttribArray(shader.vertexWidthAttribute);
-  }
+  if(pixel)
+    gl.enableVertexAttribArray(widthAttribute);
 
   let normals=shader != noNormalShader && !pixel && Lights.length > 0;
-  if(normals) {
-    shader.vertexNormalAttribute=gl.getAttribLocation(shader,"normal");
-    gl.enableVertexAttribArray(shader.vertexNormalAttribute);
-  }
+  if(normals)
+    gl.enableVertexAttribArray(normalAttribute);
 
-  shader.vertexMaterialAttribute=gl.getAttribLocation(shader,"materialIndex");
-  if(shader.vertexMaterialAttribute != -1)
-    gl.enableVertexAttribArray(shader.vertexMaterialAttribute);
+  gl.enableVertexAttribArray(materialAttribute);
 
   shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
   shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
 
-  if(shader == colorShader || shader == transparentShader) {
-    shader.vertexColorAttribute=
-      gl.getAttribLocation(shader,"color");
-    gl.enableVertexAttribArray(shader.vertexColorAttribute);
-  }
+  if(shader == colorShader || shader == transparentShader)
+    gl.enableVertexAttribArray(colorAttribute);
 
   if(normals) {
     for(let i=0; i < Lights.length; ++i)
       Lights[i].setUniform(shader,i);
   }
 
-  if(shader.vertexMaterialAttribute != -1) {
-    for(let i=0; i < data.materials.length; ++i)
+  for(let i=0; i < data.materials.length; ++i)
       data.materials[i].setUniform(shader,i);
-  }
 
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
   gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);

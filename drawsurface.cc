@@ -257,6 +257,17 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
   
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  
+  if(transparent)
+    setMaterial(transparentData,drawTransparent);
+  else {
+    if(colors)
+      setMaterial(colorData,drawColor);
+    else
+      setMaterial(materialData,drawMaterial);
+  }
+  
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
@@ -271,17 +282,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     return;
   }
 
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
-  
-  if(transparent)
-    setMaterial(transparentData,drawTransparent);
-  else {
-    if(colors)
-      setMaterial(colorData,drawColor);
-    else
-      setMaterial(materialData,drawMaterial);
-  }
-  
   triple *Controls;
   triple Controls0[16];
   if(billboard) {
@@ -498,6 +498,17 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
   
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  
+  if(transparent)
+    setMaterial(transparentData,drawTransparent);
+  else {
+    if(colors)
+      setMaterial(colorData,drawColor);
+    else
+      setMaterial(materialData,drawMaterial);
+  }
+
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
@@ -510,17 +521,6 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     S.Onscreen=false;
     S.data.clear();
     return;
-  }
-
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
-  
-  if(transparent)
-    setMaterial(transparentData,drawTransparent);
-  else {
-    if(colors)
-      setMaterial(colorData,drawColor);
-    else
-      setMaterial(materialData,drawMaterial);
   }
 
   triple *Controls;
