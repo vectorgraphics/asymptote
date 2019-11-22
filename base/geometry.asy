@@ -3091,6 +3091,14 @@ parabola parabola(point M1, point M2, point M3, point M4, point M5)
   return parabola(bqe(M1, M2, M3, M4, M5));
 }
 
+/*<asyxml><function type="hyperbola" signature="hyperbola(point,point,point)"><code></asyxml>*/
+hyperbola hyperbola(point F1, point F2, point M)
+{/*<asyxml></code><documentation>Return the hyperbola passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
+  point P[] = standardizecoordsys(false, F1, F2, M);
+  real a = abs(abs(F1 - M) - abs(F2 - M));
+  return hyperbola(F1, F2, finite(a) ? a/2 : a);
+}
+
 /*<asyxml><function type="hyperbola" signature="hyperbola(point,real,real,real)"><code></asyxml>*/
 hyperbola hyperbola(point C, real a, real b, real angle = 0)
 {/*<asyxml></code><documentation>Return the hyperbola centered at 'C' with semimajor axis 'a' along C--C + dir(angle),
