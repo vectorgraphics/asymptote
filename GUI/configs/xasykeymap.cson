@@ -1,0 +1,26 @@
+# Default Keymaps for xasy
+
+commandPalette: "Ctrl+P"
+quit: "Ctrl+Q"
+deleteObject: "Del"
+
+finalizeCurve: "Space"
+finalizeCurveClosed: "c"
+
+anchorMode: "Ctrl+A"
+
+undo: 'Ctrl+Z'
+redo: 'Ctrl+Y'
+
+moveUp: 'Up'
+moveDown: 'Down'
+moveLeft: 'Left'
+moveRight: 'Right'
+
+scrollUp: 'Shift+Up'
+scrollDown: 'Shift+Down'
+scrollLeft: 'Shift+Left'
+scrollRight: 'Shift+Right'
+
+zoomIn: 'Ctrl+Up'
+zoomOut: 'Ctrl+Down'

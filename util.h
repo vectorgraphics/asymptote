@@ -88,25 +88,26 @@ int System(const mem::vector<string> &command, int quiet=0, bool wait=true,
            int *pid=NULL);
 
 #if defined(__DECCXX_LIBCXX_RH70)
-extern "C" int kill(pid_t pid, Int sig) throw();
-extern "C" char *strsignal(Int sig);
+extern "C" char *strsignal(int sig);
 extern "C" double asinh(double x);
 extern "C" double acosh(double x);
 extern "C" double atanh(double x);
 extern "C" double cbrt(double x);
 extern "C" double erf(double x);
 extern "C" double erfc(double x);
-extern "C" double tgamma(double x);
+extern "C" double lgamma(double x);
 extern "C" double remainder(double x, double y);
 extern "C" double hypot(double x, double y) throw();
 extern "C" double jn(Int n, double x);
 extern "C" double yn(Int n, double x);
+extern "C" int isnan(double);
 #endif
 
 
 #if defined(__DECCXX_LIBCXX_RH70) || defined(__CYGWIN__)
+extern "C" int usleep(useconds_t);
+extern "C" int kill(pid_t pid, int sig) throw();
 extern "C" int snprintf(char *str, size_t size, const char *format,...);
-extern "C" int isnan(double);
 #include <stdio.h>
 extern "C" FILE *fdopen(int fd, const char *mode);
 extern "C" int fileno(FILE *);

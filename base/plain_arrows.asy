@@ -629,3 +629,21 @@ frame[] fit(string prefix="", picture[] pictures, string format="",
 
   return fit2(pictures,all);
 }
+
+// Pad a picture to a specified size
+frame pad(picture pic=currentpicture, real xsize=pic.xsize,
+          real ysize=pic.ysize, filltype filltype=NoFill)
+{
+  picture P;
+  size(P,xsize,ysize,IgnoreAspect);
+  draw(P,(0,0),invisible+thin());
+  draw(P,(xsize,ysize),invisible+thin());
+  add(P,pic.fit(xsize,ysize),(xsize,ysize)/2);
+  frame f=P.fit();
+  if(filltype != NoFill) {
+    frame F;
+    filltype.fill(F,box(min(f),max(f)),invisible);
+    prepend(f,F);
+  }
+  return f;
+}

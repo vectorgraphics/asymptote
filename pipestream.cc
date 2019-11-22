@@ -32,6 +32,14 @@
 #include "camperror.h"
 #include "pen.h"
 
+iopipestream *instance;
+
+void pipeHandler(int)
+{
+  Signal(SIGPIPE,SIG_DFL);
+  instance->pipeclose();
+}
+  
 void iopipestream::open(const mem::vector<string> &command, const char *hint,
                         const char *application, int out_fileno)
 {
@@ -70,9 +78,11 @@ void iopipestream::open(const mem::vector<string> &command, const char *hint,
     char **argv=args(command);
     if(argv) execvp(argv[0],argv);
     execError(argv[0],hint,application);
-    kill(0,SIGTERM);
+    kill(0,SIGPIPE);
     _exit(-1);
   }
+  instance=this;
+  Signal(SIGPIPE,pipeHandler);
   close(out[1]);
   close(in[0]);
   *buffer=0;
@@ -93,7 +103,7 @@ void iopipestream::eof()
 void iopipestream::pipeclose()
 {
   if(pipeopen) {
-    kill(pid,SIGTERM);
+    kill(pid,SIGHUP);
     eof();
     close(out[0]);
     Running=false;
@@ -120,8 +130,12 @@ ssize_t iopipestream::readbuffer()
   errno=0;
   for(;;) {
     if((nc=read(out[0],p,size)) < 0) {
-      if(errno == EAGAIN) {p[0]=0; break;}
-      else camp::reportError("read from pipe failed");
+      if(errno == EAGAIN || errno == EINTR) {p[0]=0; break;}
+     else {
+       ostringstream buf;
+       buf << "read from pipe failed: errno=" << errno;
+       camp::reportError(buf);
+      }
       nc=0;
     }
     p[nc]=0;

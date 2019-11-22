@@ -139,9 +139,9 @@ void breakpoint(runnable *s=NULL)
   breakpoint(Stack,s);
 }
 
-string locatefile(string file)
+string locatefile(string file, bool full=true)
 {
-  return locateFile(file);
+  return locateFile(file,full);
 }
 
 void stop(string file, Int line, runnable *s=NULL)

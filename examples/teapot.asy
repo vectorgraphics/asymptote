@@ -1,5 +1,5 @@
 import three;
-
+import settings;
 size(20cm);
 
 currentprojection=perspective(250,-250,250);
@@ -169,4 +169,4 @@ triple[][][] Q={
   }
 };
 
-draw(surface(Q),blue,render(compression=Low));
+draw(surface(Q),material(blue, shininess=0.85, metallic=0),render(compression=Low));

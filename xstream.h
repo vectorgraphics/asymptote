@@ -31,12 +31,21 @@
 #define quad_t long long
 #define u_quad_t unsigned long long
   
-#ifdef __CYGWIN__  
+#if defined(__CYGWIN__) || defined(__FreeBSD__)
+#include <sys/select.h>
+#define u_char unsigned char
+#define u_int unsigned int
+#define u_short unsigned short
+#define u_long unsigned long
 extern "C" int fseeko(FILE *, off_t, int);
 extern "C" off_t ftello(FILE *);
-#define xdr_longlong_t xdr_int64_t
-#define xdr_u_longlong_t xdr_uint64_t
 #endif  
+
+#ifdef __APPLE__
+#include <rpc/xdr.h>
+extern bool_t xdr_long(XDR *__xdrs, long *__lp);
+extern bool_t xdr_u_long(XDR *__xdrs, u_long *__ulp);
+#endif
 
 #ifdef _POSIX_SOURCE
 #undef _POSIX_SOURCE

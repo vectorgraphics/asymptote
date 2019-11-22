@@ -41,18 +41,19 @@ include plain_debugger;
 
 typedef void exitfcn();
 
-bool needshipout() {
-  return !shipped && !currentpicture.empty();
-}
-
 void updatefunction()
 {
+  implicitshipout=true;
   if(!currentpicture.uptodate) shipout();
+  implicitshipout=false;
 }
 
 void exitfunction()
 {
-  if(needshipout()) shipout();
+  implicitshipout=true;
+  if(!currentpicture.empty())
+    shipout();
+  implicitshipout=false;
 }
 
 atupdate(updatefunction);
@@ -192,14 +193,19 @@ string stripsuffix(string f, string suffix=".asy")
   return f;
 }
 
+string outdirectory()
+{
+  return stripfile(outprefix());
+}
+
 // Conditionally process each file name in array s in a new environment.
 void asy(string format, bool overwrite=false ... string[] s)
 {
   for(string f : s) {
     f=stripsuffix(f);
     string suffix="."+format;
-    string fsuffix=f+suffix;
-    if(overwrite || error(input(fsuffix,check=false))) {
+    string fsuffix=stripdirectory(f+suffix);
+    if(overwrite || error(input(outdirectory()+fsuffix,check=false))) {
       string outformat=settings.outformat;
       bool interactiveView=settings.interactiveView;
       bool batchView=settings.batchView;
@@ -273,7 +279,6 @@ if(settings.autoimport != "") {
   string s=settings.autoimport;
   settings.autoimport="";
   eval("import \""+s+"\" as dummy",true);
-  shipped=false;
   atupdate(updatefunction);
   atexit(exitfunction);
   settings.autoimport=s;

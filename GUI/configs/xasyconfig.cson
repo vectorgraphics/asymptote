@@ -1,0 +1,62 @@
+# Default Options for xasy
+
+# External editor. $asypath will be replaced by the current file. 
+externalEditor: "vi"
+externalEditorArgs: ["$asypath"]
+
+# Path to Asymptote executable
+asyPath: "asy"
+
+# Overwrites the ASYMPTOTE_DIR Environment variable if set. Otherwise, leaves asymptote to decide. 
+asyBaseLocation: null
+
+# Show Debugging Information
+showDebug: false
+
+# Default Pen Options
+defaultPenOptions: ""
+
+# Default Pen Color 
+defaultPenColor: "#000000"
+
+# 
+defaultPenWidth: 0.5
+useLegacyDrawMode: false
+enableImmediatePreview: true
+useDegrees: false
+groupObjDefault: false
+
+# 
+terminalFont: "Courier"
+terminalFontSize: 9
+
+# 
+defaultShowAxes: true
+defaultShowGrid: false
+defaultGridSnap: false
+
+# Draw Selected Objects on top of the frame
+drawSelectedOnTop: true
+
+# Grid Settings
+
+gridMajorAxesColor: "#858585"
+gridMinorAxesColor: "#dddddd"
+gridMajorAxesSpacing: 5
+gridMinorAxesCount: 9
+
+# Magnification Settings
+minimumMagnification: 0.01
+maximumMagnification: 100
+
+# Debug Mode
+debugMode: true
+
+# Overrides
+
+windows:
+    externalEditor: "notepad.exe"
+
+Darwin:
+    externalEditor: "open"
+    externalEditorArgs: ["-a","TextEdit","$asypath"]

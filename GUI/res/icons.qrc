@@ -1,0 +1,45 @@
+<RCC>
+  <qresource prefix="">
+    <file>icons/android-arrow-back.svg</file>
+    <file>icons/android-arrow-forward.svg</file>
+    <file>icons/android-folder-open.svg</file>
+    <file>icons/save.svg</file>
+    <file>icons/code.svg</file>
+    <file>icons/android-camera.svg</file>
+    <file>icons/plus-round.svg</file>
+    <file>icons/grid.svg</file>
+    <file>icons/magnifying-glass.svg</file>
+    <file>icons/center.svg</file>
+    <file>icons/centerorigin.svg</file>
+    <file>icons/edit.svg</file>
+    <file>icons/android-delete.svg</file>
+    <file>icons/android-hand.svg</file>
+    <file>icons/arrow-move.svg</file>
+    <file>icons/arrow-resize.svg</file>
+    <file>icons/android-refresh.svg</file>
+    <file>icons/anchor.svg</file>
+    <file>icons/eye.svg</file>
+    <file>icons/android-expand.svg</file>
+    <file>icons/chevron-with-circle-left.svg</file>
+    <file>icons/chevron-with-circle-right.svg</file>
+    <file>icons/bucket.svg</file>
+    <file>icons/filledbucket.svg</file>
+    <file>icons/android-color-palette.svg</file>
+    <file>icons/openpolygon.svg</file>
+    <file>icons/closedpolygon.svg</file>
+    <file>icons/opencurve.svg</file>
+    <file>icons/closedcurve.svg</file>
+    <file>icons/triangle-stroked-15.svg</file>
+    <file>icons/circle.svg</file>
+    <file>icons/text.svg</file>
+    <file>icons/social-python.svg</file>
+    <file>icons/subdirectory-left.svg</file>
+    <file>icons/android-done.svg</file>
+    <file>icons/android-close.svg</file>
+    <file>icons/check.svg</file>
+    <file>icons/android-radio-button-on.svg</file>
+    <file>icons/android-radio-button-off.svg</file>
+    <file>icons/android-locate.svg</file>
+    <file>icons/close-round.svg</file>
+  </qresource>
+</RCC>

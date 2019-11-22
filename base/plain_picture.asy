@@ -169,6 +169,15 @@ typedef void drawer(frame f, transform t);
 // TODO: Add documentation as to what T is.
 typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 
+struct node {
+  drawerBound d;
+  string key;
+  void operator init(drawerBound d, string key=xasyKEY()) {
+    this.d=d;
+    this.key=key;
+  }
+}
+
 // PairOrTriple <<<1
 // This struct is used to represent a userMin/userMax which serves as both a
 // pair and a triple depending on the context.
@@ -199,9 +208,18 @@ struct picture { // <<<1
   typedef void drawerBound3(frame f, transform3 t, transform3 T,
                             picture pic, projection P, triple lb, triple rt);
 
+  struct node3 {
+    drawerBound3 d;
+    string key;
+    void operator init(drawerBound3 d, string key=xasyKEY()) {
+      this.d=d;
+      this.key=key;
+    }
+  }
+
   // The functions to do the deferred drawing.
-  drawerBound[] nodes;
-  drawerBound3[] nodes3;
+  node[] nodes;
+  node3[] nodes3;
 
   bool uptodate=true;
 
@@ -266,15 +284,20 @@ struct picture { // <<<1
   }
   init();
   
-  // Erase the current picture, retaining any size specification.
-  void erase() {
+  // Erase the current picture, retaining bounds.
+  void clear() {
     nodes.delete();
     nodes3.delete();
+    legend.delete();
+  }
+
+  // Erase the current picture, retaining any size specification.
+  void erase() {
+    clear();
     bounds.erase();
     bounds3.erase();
     T=identity();
     scale=new ScaleT;
-    legend.delete();
     init();
   }
   
@@ -445,15 +468,15 @@ struct picture { // <<<1
     uptodate=false;
     if(!exact) bounds.exact=false;
     if(above)
-      nodes.push(d);
+      nodes.push(node(d));
     else
-      nodes.insert(0,d);
+      nodes.insert(0,node(d));
   }
   
   // Faster implementation of most common case.
   void addExactAbove(drawerBound d) {
     uptodate=false;
-    nodes.push(d);
+    nodes.push(node(d));
   }
 
   void add(drawer d, bool exact=false, bool above=true) {
@@ -466,9 +489,9 @@ struct picture { // <<<1
     uptodate=false;
     if(!exact) bounds.exact=false;
     if(above)
-      nodes3.push(d);
+      nodes3.push(node3(d));
     else
-      nodes3.insert(0,d);
+      nodes3.insert(0,node3(d));
   }
 
   void add(drawer3 d, bool exact=false, bool above=true) {
@@ -675,17 +698,20 @@ struct picture { // <<<1
 
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
-    int n = nodes.length;
-    for(int i=0; i < n; ++i)
-      nodes[i](f,t,T0,m,M);
+    for(node n : nodes) {
+      xasyKEY(n.key);
+      n.d(f,t,T0,m,M);
+    }
     return f;
   }
 
   frame fit3(transform3 t, transform3 T0=T3, picture pic, projection P,
              triple m, triple M) {
     frame f;
-    for(int i=0; i < nodes3.length; ++i)
-      nodes3[i](f,t,T0,pic,P,m,M);
+    for(node3 n : nodes3) {
+      xasyKEY(n.key);
+      n.d(f,t,T0,pic,P,m,M);
+    }
     return f;
   }
 
@@ -905,7 +931,7 @@ struct picture { // <<<1
   // picture. Fitting this picture will not scale as the original picture would.
   picture drawcopy() {
     picture dest=new picture;
-    dest.nodes = copy(nodes);
+    dest.nodes=copy(nodes);
     dest.nodes3=copy(nodes3);
     dest.T=T;
     dest.T3=T3;
@@ -945,13 +971,15 @@ struct picture { // <<<1
     picture dest=drawcopy();
 
     // Replace nodes with a single drawer that realizes the transform.
-    drawerBound[] oldnodes = dest.nodes;
+    node[] oldnodes = dest.nodes;
     void drawAll(frame f, transform tt, transform T, pair lb, pair rt) {
       transform Tt = T*t;
-      for (var node : oldnodes)
-        node(f, tt, Tt, lb, rt);
+      for (node n : oldnodes) {
+        xasyKEY(n.key);
+        n.d(f,tt,Tt,lb,rt);
+      }
     }
-    dest.nodes = new drawerBound[] { drawAll };
+    dest.nodes = new node[] {node(drawAll)};
 
     dest.uptodate=uptodate;
     dest.bounds=bounds.transformed(t);
@@ -984,16 +1012,19 @@ struct picture { // <<<1
 
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
-    if(srcCopy.nodes.length > 0)
-      nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
+    if(srcCopy.nodes.length > 0) {
+      nodes.push(node(new void(frame f, transform t, transform T,
+                               pair m, pair M) {
           add(f,srcCopy.fit(t,T*srcCopy.T,m,M),group,filltype,above);
-        });
+          }));
+    }
     
     if(srcCopy.nodes3.length > 0) {
-      nodes3.push(new void(frame f, transform3 t, transform3 T3, picture pic,
-                           projection P, triple m, triple M) {
+      nodes3.push(node3(new void(frame f, transform3 t, transform3 T3,
+                                 picture pic, projection P, triple m, triple M)
+                        {
                     add(f,srcCopy.fit3(t,T3*srcCopy.T3,pic,P,m,M),group,above);
-                  });
+                        }));
     }
     
     legend.append(src.legend);
@@ -1040,6 +1071,14 @@ void size(picture pic=currentpicture, real x, real y=x,
           bool keepAspect=pic.keepAspect)
 {
   pic.size(x,y,keepAspect);
+}
+
+void size(picture pic=currentpicture, transform t)
+{
+  if(pic.empty3()) {
+    pair z=size(pic.fit(t));
+    pic.size(z.x,z.y);
+  }
 }
 
 void size3(picture pic=currentpicture, real x, real y=x, real z=y,
@@ -1408,7 +1447,6 @@ void clip(picture pic=currentpicture, path[] g, bool stroke=false,
 {
   if(copy)
     g=copy(g);
-  //pic.userClip(min(g),max(g));
   pic.clip(min(g), max(g),
            new void(frame f, transform t) {
              clip(f,t*g,stroke,fillrule,false);

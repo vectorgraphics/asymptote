@@ -1,9 +1,11 @@
 import three;
 
-size(560,320,IgnoreAspect);
+//size(105,50,IgnoreAspect);
+size(560,320,IgnoreAspect); // Fullsize
 size3(140,80,15);
 currentprojection=perspective(-2,20,10,up=Y);
 currentlight=White;
+viewportmargin=(0,10);
 
 real a=-0.4;
 real b=0.95;

@@ -19,11 +19,17 @@
 *
 *************/
 
+#ifdef __CYGWIN__
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <iostream>
 #include <cstdlib>
 #include <cerrno>
 #include <sys/wait.h>
 #include <sys/types.h>
+
+#define GC_PTHREAD_SIGMASK_NEEDED
 
 #include "common.h"
 
@@ -36,7 +42,7 @@
 #include "settings.h"
 #include "locate.h"
 #include "interact.h"
-#include "process.h"
+#include "fileio.h"
 
 #include "stack.h"
 
@@ -47,7 +53,7 @@ using interact::interactive;
 namespace run {
 void purge();
 }
-  
+
 #ifdef PROFILE
 namespace vm {
 extern void dumpProfile();
@@ -71,11 +77,11 @@ int sigsegv_handler (void *, int emergency)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
-#endif    
+#endif
     cerr << "Segmentation fault" << endl;
   abort();
 }
-#endif 
+#endif
 
 void setsignal(RETSIGTYPE (*handler)(int))
 {
@@ -103,7 +109,13 @@ void interruptHandler(int)
   em.Interrupt(true);
 }
 
-struct Args 
+bool hangup=false;
+void hangup_handler(int sig)
+{
+  hangup=true;
+}
+
+struct Args
 {
   int argc;
   char **argv;
@@ -113,7 +125,6 @@ struct Args
 void *asymain(void *A)
 {
   setsignal(signalHandler);
-  
   Args *args=(Args *) A;
   fpu_trap(trap());
 
@@ -125,12 +136,27 @@ void *asymain(void *A)
       doUnrestrictedList();
     } catch(handled_error) {
       em.statusError();
-    } 
+    }
   } else {
     int n=numArgs();
-    if(n == 0) 
-      processFile("-");
-    else
+    if(n == 0) {
+      int inpipe=intcast(settings::getSetting<Int>("inpipe"));
+      if(inpipe >= 0) {
+        Signal(SIGHUP,hangup_handler);
+        camp::openpipeout();
+        fprintf(camp::pipeout,"\n");
+        fflush(camp::pipeout);
+      }
+      while(true) {
+        processFile("-",true);
+        try {
+          setOptions(args->argc,args->argv);
+        } catch(handled_error) {
+          em.statusError();
+        }
+        if(inpipe < 0) break;
+      }
+    } else {
       for(int ind=0; ind < n; ind++) {
         processFile(string(getArg(ind)),n > 1);
         try {
@@ -138,8 +164,9 @@ void *asymain(void *A)
             setOptions(args->argc,args->argv);
         } catch(handled_error) {
           em.statusError();
-        } 
+        }
       }
+    }
   }
 
 #ifdef PROFILE
@@ -153,12 +180,12 @@ void *asymain(void *A)
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
   if(gl::glthread && !getSetting<bool>("offscreen")) {
-    pthread_kill(gl::mainthread,SIGUSR2);
+    pthread_kill(gl::mainthread,SIGURG);
     pthread_join(gl::mainthread,NULL);
   }
 #endif
 #endif
-  exit(em.processStatus() || interact::interactive ? 0 : 1);  
+  exit(em.processStatus() || interact::interactive ? 0 : 1);
 }
 
 void exitHandler(int)
@@ -166,12 +193,12 @@ void exitHandler(int)
   exit(0);
 }
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
-#ifdef HAVE_LIBGSL  
+#ifdef HAVE_LIBGSL
   unsetenv("GSL_RNG_SEED");
   unsetenv("GSL_RNG_TYPE");
-#endif  
+#endif
   setsignal(signalHandler);
 
   try {
@@ -179,17 +206,17 @@ int main(int argc, char *argv[])
   } catch(handled_error) {
     em.statusError();
   }
-  
+
   Args args(argc,argv);
 #ifdef HAVE_GL
 #ifdef __APPLE__
   bool usethreads=true;
 #else
   bool usethreads=view();
-#endif  
+#endif
   gl::glthread=usethreads ? getSetting<bool>("threads") : false;
 #if HAVE_PTHREAD
-  
+
   if(gl::glthread) {
     pthread_t thread;
     try {
@@ -200,7 +227,7 @@ int main(int argc, char *argv[])
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
         while(true) {
-          Signal(SIGUSR2,exitHandler);
+          Signal(SIGURG,exitHandler);
           camp::glrenderWrapper();
           gl::initialize=true;
         }
@@ -211,6 +238,13 @@ int main(int argc, char *argv[])
   }
 #endif
   gl::glthread=false;
-#endif  
+#endif
   asymain(&args);
 }
+
+#ifdef USEGC
+GC_API void GC_CALL GC_throw_bad_alloc() {
+  std::bad_alloc();
+}
+#endif
+

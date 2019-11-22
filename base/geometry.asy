@@ -31,6 +31,8 @@
 import math;
 import markers;
 
+real Infinity=1.0/(1000*realEpsilon);
+
 // A rotation in the direction dir limited to [-90,90]
 // This is useful for rotating text along a line in the direction dir.
 private transform rotate(explicit pair dir)
@@ -724,6 +726,11 @@ real angle(explicit point M, coordsys R = M.coordsys, bool warn = true)
   return radians(degrees(M, R, warn));
 }
 
+bool Finite(explicit point z)
+{
+  return abs(z.x) < Infinity && abs(z.y) < Infinity;
+}
+
 /*<asyxml><function type="bool" signature="finite(explicit point)"><code></asyxml>*/
 bool finite(explicit point p)
 {/*<asyxml></code><documentation>Avoid to compute 'finite((pair)(infinite_point))'.</documentation></function></asyxml>*/
@@ -1296,7 +1303,7 @@ void perpendicularmark(picture pic = currentpicture, point z,
    relative to the path z--z + dir.
    dir(45 + n * 90), where n in N*, are common values for 'align'.</documentation></function></asyxml>*/
   p = squarecap + miterjoin + p;
-  if(size == 0) size = perpfactor * 3mm + sqrt(1 + linewidth(p)) - 1;
+  if(size == 0) size = perpfactor * 3mm + linewidth(p) / 2;
   frame apic;
   pair d1 = size * align * unit(dir) * dir(-45);
   pair d2 = I * d1;
@@ -2477,81 +2484,6 @@ real[] realquarticroots(real a, real b, real c, real d, real e)
   return roots;
 }
 
-/*<asyxml><function type="point[]" signature="intersectionpoints(bqe,bqe)"><code></asyxml>*/
-point[] intersectionpoints(bqe bqe1, bqe bqe2)
-{/*<asyxml></code><documentation>Return the interscetion of the two conic sections whose equations are 'bqe1' and 'bqe2'.</documentation></function></asyxml>*/
-  coordsys R = bqe1.coordsys;
-  bqe lbqe1, lbqe2;
-  real[] a, b;
-  if(R != bqe2.coordsys) {
-    R = currentcoordsys;
-    a = changecoordsys(R, bqe1).a;
-    b = changecoordsys(R, bqe2).a;
-  } else {
-    a = bqe1.a;
-    b = bqe2.a;
-  }
-  static real e = 100 * sqrt(realEpsilon);
-  real[] x, y, c;
-  point[] P;
-  if(abs(a[0]-b[0]) > e || abs(a[1]-b[1]) > e || abs(a[2]-b[2]) > e) {
-    c = new real[] {-2 * a[0]*a[2]*b[0]*b[2]+a[0]*a[2]*b[1]^2 - a[0]*a[1]*b[2]*b[1]+a[1]^2 * b[0]*b[2]-
-                  a[2]*a[1]*b[0]*b[1]+a[0]^2 * b[2]^2 + a[2]^2 * b[0]^2,
-                  -a[2]*a[1]*b[0]*b[4]-a[2]*a[4]*b[0]*b[1]-a[1]*a[3]*b[2]*b[1]+2 * a[0]*a[2]*b[1]*b[4]-
-                  a[0]*a[1]*b[2]*b[4]+a[1]^2 * b[2]*b[3]-2 * a[2]*a[3]*b[0]*b[2]-2 * a[0]*a[2]*b[2]*b[3]+
-                  a[2]*a[3]*b[1]^2 - a[2]*a[1]*b[1]*b[3]+2 * a[1]*a[4]*b[0]*b[2]+2 * a[2]^2 * b[0]*b[3]-
-                  a[0]*a[4]*b[2]*b[1]+2 * a[0]*a[3]*b[2]^2,
-                  -a[3]*a[4]*b[2]*b[1]+a[2]*a[5]*b[1]^2 - a[1]*a[5]*b[2]*b[1]-a[1]*a[3]*b[2]*b[4]+
-                  a[1]^2 * b[2]*b[5]-2 * a[2]*a[3]*b[2]*b[3]+2 * a[2]^2 * b[0]*b[5]+2 * a[0]*a[5]*b[2]^2 + a[3]^2 * b[2]^2-
-                  2 * a[2]*a[5]*b[0]*b[2]+2 * a[1]*a[4]*b[2]*b[3]-a[2]*a[4]*b[1]*b[3]-2 * a[0]*a[2]*b[2]*b[5]+
-                  a[2]^2 * b[3]^2 + 2 * a[2]*a[3]*b[1]*b[4]-a[2]*a[4]*b[0]*b[4]+a[4]^2 * b[0]*b[2]-a[2]*a[1]*b[3]*b[4]-
-                  a[2]*a[1]*b[1]*b[5]-a[0]*a[4]*b[2]*b[4]+a[0]*a[2]*b[4]^2,
-                  -a[4]*a[5]*b[2]*b[1]+a[2]*a[3]*b[4]^2 + 2 * a[3]*a[5]*b[2]^2 - a[2]*a[1]*b[4]*b[5]-
-                  a[2]*a[4]*b[3]*b[4]+2 * a[2]^2 * b[3]*b[5]-2 * a[2]*a[3]*b[2]*b[5]-a[3]*a[4]*b[2]*b[4]-
-                  2 * a[2]*a[5]*b[2]*b[3]-a[2]*a[4]*b[1]*b[5]+2 * a[1]*a[4]*b[2]*b[5]-a[1]*a[5]*b[2]*b[4]+
-                  a[4]^2 * b[2]*b[3]+2 * a[2]*a[5]*b[1]*b[4],
-                  -2 * a[2]*a[5]*b[2]*b[5]+a[4]^2 * b[2]*b[5]+a[5]^2 * b[2]^2 - a[4]*a[5]*b[2]*b[4]+a[2]*a[5]*b[4]^2+
-                  a[2]^2 * b[5]^2 - a[2]*a[4]*b[4]*b[5]};
-    x = realquarticroots(c[0], c[1], c[2], c[3], c[4]);
-  } else {
-    if(abs(b[4]-a[4]) > e){
-      real D = (b[4]-a[4])^2;
-      c = new real[] {(a[0]*b[4]^2 + (-a[1]*b[3]-2 * a[0]*a[4]+a[1]*a[3]) * b[4]+a[2]*b[3]^2+
-                     (a[1]*a[4]-2 * a[2]*a[3]) * b[3]+a[0]*a[4]^2 - a[1]*a[3]*a[4]+a[2]*a[3]^2)/D,
-                    -((a[1]*b[4]-2 * a[2]*b[3]-a[1]*a[4]+2 * a[2]*a[3]) * b[5]-a[3]*b[4]^2 + (a[4]*b[3]-a[1]*a[5]+a[3]*a[4]) * b[4]+(2 * a[2]*a[5]-a[4]^2) * b[3]+(a[1]*a[4]-2 * a[2]*a[3]) * a[5])/D,
-                    a[2]*(a[5]-b[5])^2/D + a[4]*(a[5]-b[5])/(b[4]-a[4]) + a[5]};
-      x = quadraticroots(c[0], c[1], c[2]);
-    } else {
-      if(abs(a[3]-b[3]) > e) {
-        real D = b[3]-a[3];
-        c = new real[] {a[2], (-a[1]*b[5] + a[4]*b[3] + a[1]*a[5] - a[3]*a[4])/D,
-                      a[0]*(a[5]-b[5])^2/D^2 + a[3]*(a[5]-b[5])/D + a[5]};
-        y = quadraticroots(c[0], c[1], c[2]);
-        for (int i = 0; i < y.length; ++i) {
-          c = new real[] {a[0], a[1]*y[i]+a[3], a[2]*y[i]^2 + a[4]*y[i]+a[5]};
-          x = quadraticroots(c[0], c[1], c[2]);
-          for (int j = 0; j < x.length; ++j) {
-            if(abs(b[0]*x[j]^2 + b[1]*x[j]*y[i]+b[2]*y[i]^2 + b[3]*x[j]+b[4]*y[i]+b[5]) < 1e-5)
-              P.push(point(R, (x[j], y[i])));
-          }
-        }
-        return P;
-      } else {
-        if(abs(a[5]-b[5]) < e) abort("intersectionpoints: intersection of identical conics.");
-      }
-    }
-  }
-  for (int i = 0; i < x.length; ++i) {
-    c = new real[] {a[2], a[1]*x[i]+a[4], a[0]*x[i]^2 + a[3]*x[i]+a[5]};
-    y = quadraticroots(c[0], c[1], c[2]);
-    for (int j = 0; j < y.length; ++j) {
-      if(abs(b[0]*x[i]^2 + b[1]*x[i]*y[j]+b[2]*y[j]^2 + b[3]*x[i]+b[4]*y[j]+b[5]) < 1e-5)
-        P.push(point(R, (x[i], y[j])));
-    }
-  }
-  return P;
-}
-
 /*<asyxml><struct signature="conic"><code></asyxml>*/
 struct conic
 {/*<asyxml></code><documentation></documentation><property type = "real" signature="e,p,h"><code></asyxml>*/
@@ -3350,7 +3282,7 @@ ellipse operator cast(circle c)
 }
 
 /*<asyxml><operator type = "circle" signature="cast(ellipse)"><code></asyxml>*/
-circle operator cast(ellipse el)
+circle operator ecast(ellipse el)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   circle oc;
   bool infb = (!finite(el.a) || !finite(el.b));
@@ -3362,7 +3294,7 @@ circle operator cast(ellipse el)
 }
 
 /*<asyxml><operator type = "ellipse" signature="cast(conic)"><code></asyxml>*/
-ellipse operator cast(conic co)
+ellipse operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic to an ellipse (can be a circle).</documentation></operator></asyxml>*/
   if(degenerate(co) && co.e < 1) return ellipse(co.l[0].A, co.l[0].B, infinity);
   ellipse oe;
@@ -3380,7 +3312,7 @@ ellipse operator cast(conic co)
 }
 
 /*<asyxml><operator type = "parabola" signature="cast(conic)"><code></asyxml>*/
-parabola operator cast(conic co)
+parabola operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic to a parabola.</documentation></operator></asyxml>*/
   parabola op;
   if(abs(co.e - 1) > epsgeo) abort("casting: The conic section is not a parabola.");
@@ -3395,7 +3327,7 @@ conic operator cast(parabola p)
 }
 
 /*<asyxml><operator type = "hyperbola" signature="cast(conic)"><code></asyxml>*/
-hyperbola operator cast(conic co)
+hyperbola operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic section to an hyperbola.</documentation></operator></asyxml>*/
   hyperbola oh;
   if(co.e > 1) {
@@ -3447,7 +3379,7 @@ conic operator cast(circle c)
 }
 
 /*<asyxml><operator type = "circle" signature="cast(conic)"><code></asyxml>*/
-circle operator cast(conic c)
+circle operator ecast(conic c)
 {/*<asyxml></code><documentation>Conic section to circle.</documentation></operator></asyxml>*/
   ellipse el = (ellipse)c;
   circle oc;
@@ -3663,7 +3595,7 @@ bqe equation(parabola p)
    bqe.a[0] * x^2 + bqe.a[1] * x * y + bqe.a[2] * y^2 + bqe.a[3] * x + bqe.a[4] * y + bqe.a[5] = 0
    One can change the coordinate system of 'bqe' using the routine 'changecoordsys'.</documentation></function></asyxml>*/
   coordsys R = canonicalcartesiansystem(p);
-  parabola tp = changecoordsys(R, p);
+  parabola tp = (parabola) changecoordsys(R, p);
   point A = projection(tp.D) * point(R, (0, 0));
   real a = abs(A);
   return changecoordsys(coordsys(p),
@@ -6563,7 +6495,7 @@ point[] intersectionpoints(line l, ellipse el)
   coordsys R = samecoordsys(l.A, el.C) ? l.A.coordsys : defaultcoordsys;
   coordsys Rp = defaultcoordsys;
   line ll = changecoordsys(Rp, l);
-  ellipse ell = changecoordsys(Rp, el);
+  ellipse ell = (ellipse) changecoordsys(Rp, el);
   circle C = circle(ell.C, ell.a);
   point[] Ip = intersectionpoints(ll, C);
   if (Ip.length > 0 &&
@@ -6637,7 +6569,7 @@ point[] intersectionpoints(line l, hyperbola h)
   coordsys R = coordsys(h);
   point A = intersectionpoint(l, h.A1), B = intersectionpoint(l, h.A2);
   point M = midpoint(segment(A, B));
-  bool tgt = M @ h;
+  bool tgt = Finite(M) ? M @ h : false;
   if(tgt) {
     if(M @ l) op.push(M);
   } else {
@@ -6673,6 +6605,74 @@ point[] intersectionpoints(conic co, line l)
 {
   return intersectionpoints(l, co);
 }
+
+/*<asyxml><function type="point[]" signature="intersectionpoints(bqe,bqe)"><code></asyxml>*/
+point[] intersectionpoints(bqe bqe1, bqe bqe2)
+{/*<asyxml></code><documentation>Return the intersection of the two conic sections whose equations are 'bqe1' and 'bqe2'.</documentation></function></asyxml>*/
+  coordsys R=canonicalcartesiansystem(conic(bqe1));
+  real[] a=changecoordsys(R,bqe1).a;
+  real[] b=changecoordsys(R,bqe2).a;
+
+  static real e=100 * sqrt(realEpsilon);
+  real[] x,y,c;
+  point[] P;
+  if(abs(a[0]-b[0]) > e || abs(a[1]-b[1]) > e || abs(a[2]-b[2]) > e) {
+    c=new real[] {a[0]*a[2]*(-2*b[0]*b[2]+b[1]^2)+a[0]^2*b[2]^2+a[2]^2*b[0]^2,
+
+                  2*a[0]*a[2]*b[1]*b[4]-2*a[2]*a[3]*b[0]*b[2]
+                  -2*a[0]*a[2]*b[2]*b[3]+a[2]*a[3]*b[1]^2+2*a[2]^2*b[0]*b[3],
+
+                  a[2]*a[5]*b[1]^2-2*a[2]*a[3]*b[2]*b[3]+2*a[2]^2*b[0]*b[5]
+                  +2*a[0]*a[5]*b[2]^2+a[3]^2*b[2]^2-2*a[2]*a[5]*b[0]*b[2]
+                  -2*a[0]*a[2]*b[2]*b[5]+a[2]^2*b[3]^2+2*a[2]*a[3]*b[1]*b[4]
+                  +a[0]*a[2]*b[4]^2,
+
+                  a[2]*a[3]*b[4]^2+2*a[2]^2*b[3]*b[5]-2*a[2]*a[3]*b[2]*b[5]
+                  -2*a[2]*a[5]*b[2]*b[3]+2*a[2]*a[5]*b[1]*b[4],
+
+                  -2*a[2]*a[5]*b[2]*b[5]+a[5]^2*b[2]^2+a[2]*a[5]*b[4]^2
+                  +a[2]^2*b[5]^2};
+    x=realquarticroots(c[0],c[1],c[2],c[3],c[4]);
+  } else {
+    if(abs(b[4]) > e) {
+      real D=b[4]^2;
+      c=new real[] {(a[0]*b[4]^2+a[2]*b[3]^2+
+                       (-2*a[2]*a[3])*b[3]+a[2]*a[3]^2)/D,
+                    -((-2*a[2]*b[3]+2*a[2]*a[3])*b[5]-a[3]*b[4]^2+
+                      (2*a[2]*a[5])*b[3])/D,a[2]*(a[5]-b[5])^2/D+a[5]};
+      x=quadraticroots(c[0],c[1],c[2]);
+    } else {
+      if(abs(a[3]-b[3]) > e) {
+        real D=b[3]-a[3];
+        c=new real[] {a[2],0,a[0]*(a[5]-b[5])^2/D^2-a[3]*b[5]/D+a[5]};
+        y=quadraticroots(c[0],c[1],c[2]);
+        for(int i=0; i < y.length; ++i) {
+          c=new real[] {a[0],a[3],a[2]*y[i]^2+a[5]};
+          x=quadraticroots(c[0],c[1],c[2]);
+          for(int j=0; j < x.length; ++j) {
+            if(abs(b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]
+                   +b[4]*y[i]+b[5]) < 1e-5)
+              P.push(changecoordsys(currentcoordsys,point(R,(x[j],y[i]))));
+          }
+        }
+        return P;
+      } else {
+        if(abs(a[5]-b[5]) < e)
+          abort("intersectionpoints: intersection of identical conics.");
+      }
+    }
+  }
+  for(int i=0; i < x.length; ++i) {
+    c=new real[] {a[2],0,a[0]*x[i]^2+a[3]*x[i]+a[5]};
+    y=quadraticroots(c[0],c[1],c[2]);
+    for(int j=0; j < y.length; ++j) {
+      if(abs(b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5])
+         < 1e-5)
+        P.push(changecoordsys(currentcoordsys,point(R,(x[i],y[j]))));
+    }
+  }
+  return P;
+};
 
 /*<asyxml><function type="point[]" signature="intersectionpoints(conic,conic)"><code></asyxml>*/
 point[] intersectionpoints(conic co1, conic co2)
@@ -7190,3 +7190,4 @@ path arc(explicit pair B, explicit pair A, explicit pair C, real r)
 
 // *........................FOOTER.........................*
 // *=======================================================*
+

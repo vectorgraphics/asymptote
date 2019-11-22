@@ -56,7 +56,6 @@ struct animation {
     string format=nativeformat();
     plain.shipout(name,f,format=format,view=false);
     files.push(name+"."+format);
-    shipped=false;
   }
   
   void add(picture pic=currentpicture, enclosure enclosure=NoBox) {
@@ -87,7 +86,7 @@ struct animation {
   }
 
   void glmovie(string prefix=prefix, projection P=currentprojection) {
-    if(!view() || settings.render == 0) return;
+    if(!view() || settings.render == 0 || settings.outformat == "html") return;
     fit(prefix,pictures,view=true,P);
   }
 
@@ -119,7 +118,6 @@ struct animation {
       plain.shipout(prefix,multi,view=view);
       settings.inlinetex=inlinetex;
     }
-    shipped=true;
   }
 
   string load(int frames, real delay=animationdelay, string options="",
@@ -152,8 +150,6 @@ struct animation {
     if(global)
       export(filename,enclosure,multipage=multipage);
     
-    shipped=false;
-
     if(!keep) {
       exitfcn currentexitfunction=atexit();
       void exitfunction() {

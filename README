@@ -1,5 +1,5 @@
 			  ASYMPTOTE
-      Copyright 2004-17 Andy Hammerlindl, John Bowman, and Tom Prince
+      Copyright 2004-19 Andy Hammerlindl, John Bowman, and Tom Prince
 
 Asymptote is a powerful descriptive vector graphics language for technical
 drawing, inspired by MetaPost but with an improved C++-like
@@ -11,9 +11,9 @@ available at:
 
 http://asymptote.sourceforge.net
 
-Bugs/Patches/Feature Requests can be submitted using the 
-Bug/Patch/Feature Tracking Systems at
-http://sourceforge.net/projects/asymptote/.
+Bugs/Patches/Feature Requests can be submitted to
+
+https://github.com/vectorgraphics/asymptote/issues
 
 Questions and comments should be sent to the Asymptote Forum:
 
@@ -44,16 +44,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Note that the MSWindows executable version of Asymptote can only be
 released under the GNU General Public License (GPL) as it is linked against
 the GNU Scientific Library, GNU Readline library, and other GPL
-libraries. This version of Asymptote also ships with the dll libraries
+libraries. This version of Asymptote also ships with the cygwin1.dll libraries
 noted below.
 
-The source code for the 2.0.2 cygwin1.dll is available under the GPL license:
-http://cygwin.com/snapshots/x86/cygwin-src-20150430.tar.xz
+========================================================================
 
-The source code for freeglut.dll is available under the X-Consortium license:
-http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0.tar.gz
+Source code for the x86_64 and i386 3.0.4 cygwin1.dll libraries is
+available under the GPL license:
+https://cygwin.com/snapshots/
 
-The source code for glu32.dll is available from
-ftp://ftp.freedesktop.org/pub/mesa/7.6/MesaLib-7.6.tar.bz2
-and patched as detailed here:
-http://old.nabble.com/Error-building-MesaLib-7.6-onto-Win32-with-Microsoft-Visual-Studio-2005-and-2008-td25990977.html 
+Source for various icons is available under the MIT license from
+https://github.com/driftyco/ionicons/archive/v2.0.1.zip
+https://github.com/iconic/open-iconic/archive/master.zip
+under the CC-BY-SA 4.0 license:
+http://www.entypo.com/
+and under a CC license:
+http://www.zondicons.com/zondicons.zip

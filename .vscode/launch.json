@@ -1,0 +1,77 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "asy 3d linux",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/asy",
+            "args": ["-V", "${input:asyArgFile}"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                    "name": "ASYMPTOTE_DIR",
+                    "value": "${workspaceFolder}/base"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "build",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Handle boehm signals",
+                    "text": "-interpreter-exec console \"handle SIGSEGV SIGBUS nostop noprint\""
+                },
+                {
+                    "description": "Handle additional asy signals",
+                    "text": "-interpreter-exec console \"handle SIGPWR pass nostop noprint\""
+                },
+                {
+                    "description": "Handle additional asy signals",
+                    "text": "-interpreter-exec console \"handle SIGXCPU pass nostop noprint\""
+                },
+                {
+                    "description": "Handle additional asy signals",
+                    "text": "-interpreter-exec console \"handle SIGUSR1 pass nostop noprint\""
+                },
+                {
+                    "description": "Handle additional asy signals",
+                    "text": "-interpreter-exec console \"handle SIGURG pass nostop noprint\""
+                },
+            ]
+        },
+        {
+            "name": "xasy with venn",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/GUI/xasy.py",
+            "args": ["examples/venn.asy", "-p", "./asy"],
+            "env": {
+                "ASYMPTOTE_DIR": "${workspaceFolder}/base"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "asydbg test",
+            "type": "asy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/venn.asy"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "asyArgFile",
+            "type": "promptString",
+            "default": "examples/teapot.asy",
+            "description": "Asymptote Input"
+        }
+    ],
+    "compounds": []
+}
+

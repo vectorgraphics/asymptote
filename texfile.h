@@ -137,7 +137,17 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   string texengine=settings::getSetting<string>("tex");
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
-      out << "\\usepackage{graphicx}" << newl;
+      out << "\\usepackage{graphicx}" << newl
+          << "\\usepackage[space]{grffile}" << newl;
+      if(settings::xe(texengine)) {
+        out << "\\makeatletter" << newl
+            << "\\def\\Gread@@xetex#1{%" << newl
+            << "\\IfFileExists{\"\\Gin@base\".bb}%" << newl
+            << "{\\Gread@eps{\\Gin@base.bb}}%" << newl
+            << "{\\Gread@@xetex@aux#1}%" << newl
+            << "}" << newl
+            << "\\makeatother" << newl;
+      }
       if(!pipe) {
         dvipsfix(out);
         out << "\\usepackage{color}" << newl;
@@ -173,8 +183,8 @@ template<class T>
 bool setlatexfont(T& out, const pen& p, const pen& lastpen)
 {
   if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
-    out <<  "\\fontsize{" << p.size()*ps2tex << "}{" << p.Lineskip()*ps2tex
-        << "}\\selectfont\n";
+    out <<  "\\fontsize{" << p.size()*settings::ps2tex << "}{" 
+        << p.Lineskip()*settings::ps2tex << "}\\selectfont\n";
     return true;
   }
   return false;
@@ -278,7 +288,7 @@ public:
   void dot(path p, pen, bool newPath=true);
   
   void writeshifted(pair z) {
-    write(conj(z)*ps2tex);
+    write(conj(z)*settings::ps2tex);
   }
   
   void translate(pair z) {}

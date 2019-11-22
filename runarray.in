@@ -347,8 +347,44 @@ void transpose(double *a, size_t n)
 }
 
 // Invert an n x n array in place.
-void inverse(double *a, size_t n)
+void inverse(double *M, size_t n)
 {
+  if(n == 2) {
+    real a=M[0];
+    real b=M[1];
+    real c=M[2];
+    real d=M[3];
+    real det=a*d-b*c;
+    if(det == 0.0)
+      error(singular);
+    det=1.0/det;
+    M[0]=d*det;
+    M[1]=-b*det;
+    M[2]=-c*det;
+    M[3]=a*det;
+    return;
+  }
+
+  if(n == 3) {
+    real a=M[0], b=M[1], c=M[2];
+    real d=M[3], e=M[4], f=M[5];
+    real g=M[6], h=M[7], i=M[8];
+    
+    real A=e*i-f*h;
+    real B=f*g-d*i;
+    real C=d*h-e*g;
+    
+    real det=a*A+b*B+c*C;
+    if(det == 0.0)
+      error(singular);
+    det=1.0/det;
+    
+    M[0]=A*det; M[1]=(c*h-b*i)*det; M[2]=(b*f-c*e)*det;
+    M[3]=B*det; M[4]=(a*i-c*g)*det; M[5]=(c*d-a*f)*det;
+    M[6]=C*det; M[7]=(b*g-a*h)*det; M[8]=(a*e-b*d)*det;
+    return;
+  }
+
   inverseAllocate(n);
   
   for(size_t i=0; i < n; i++)
@@ -360,7 +396,7 @@ void inverse(double *a, size_t n)
     real big=0.0;
     // This is the outer loop of the search for a pivot element.
     for(size_t j=0; j < n; j++) {
-      double *aj=a+n*j;
+      double *aj=M+n*j;
       if(pivot[j] != 1) {
         for(size_t k=0; k < n; k++) {
           if(pivot[k] == 0) {
@@ -380,9 +416,9 @@ void inverse(double *a, size_t n)
     ++(pivot[col]);
     
     // Interchange rows, if needed, to put the pivot element on the diagonal.
-    double *acol=a+n*col;
+    double *acol=M+n*col;
     if(row != col) {
-      double *arow=a+n*row;
+      double *arow=M+n*row;
       for(size_t k=0; k < n; k++) {
         real temp=arow[k];
         arow[k]=acol[k];
@@ -407,7 +443,7 @@ void inverse(double *a, size_t n)
     // Reduce all rows except for the pivoted one.
     for(size_t k=0; k < n; k++) {
       if(k != col) { 
-        double *ak=a+n*k;
+        double *ak=M+n*k;
         real akcol=ak[col];
         ak[col]=0.0;
         for(size_t j=0; j < n; j++)
@@ -423,7 +459,7 @@ void inverse(double *a, size_t n)
     size_t c=Col[k];
     if(r != c) {
       for(size_t j=0; j < n; j++) {
-        double *aj=a+n*j;
+        double *aj=M+n*j;
         real temp=aj[r];
         aj[r]=aj[c];
         aj[c]=temp;
@@ -908,12 +944,13 @@ array* :arrayFunction(callable *f, array *a)
   return b;
 }
 
-array* :arraySort(array *a, callable *less)
+array* :arraySort(array *a, callable *less, bool stable=true)
 {
   array *c=copyArray(a);
   compareFunc=less;
   FuncStack=Stack;
-  stable_sort(c->begin(),c->end(),compareFunction);
+  if(stable) stable_sort(c->begin(),c->end(),compareFunction);
+  else sort(c->begin(),c->end(),compareFunction);
   return c;
 }
 
@@ -1102,7 +1139,7 @@ array* :array3Transpose(array *a, array *perm)
   return c;
 }
 
-// In a boolean array, find the index of the nth true value or -1 if not found
+// Find the index of the nth true value in a boolean array or -1 if not found.
 // If n is negative, search backwards.
 Int find(boolarray *a, Int n=1)
 {
@@ -1119,6 +1156,19 @@ Int find(boolarray *a, Int n=1)
         n++; if(n == 0) {j=(Int) i; break;}
       }
   return j;
+}
+
+// Find all indices of true values in a boolean array. 
+Intarray *findall(boolarray *a)
+{
+  size_t size=checkArray(a);
+  array *b=new array(0);
+  for(size_t i=0; i < size; i++) {
+    if(read<bool>(a,i)) {
+      b->push((Int) i);
+    }
+  }
+  return b;
 }
 
 // construct vector obtained by replacing those elements of b for which the
@@ -1901,9 +1951,9 @@ triple minbezier(triplearray2 *P, triple b)
   size_t N;
   real *A=copyTripleArray2Components(P,N);
   bound_double *B=bounddouble(N);
-  b=triple(B(A,::min,b.getx(),sqrtFuzz*norm(A,N),maxdepth),
-           B(A+N,::min,b.gety(),sqrtFuzz*norm(A+N,N),maxdepth),
-           B(A+2*N,::min,b.getz(),sqrtFuzz*norm(A+2*N,N),maxdepth));
+  b=triple(B(A,::min,b.getx(),Fuzz*norm(A,N),maxdepth),
+           B(A+N,::min,b.gety(),Fuzz*norm(A+N,N),maxdepth),
+           B(A+2*N,::min,b.getz(),Fuzz*norm(A+2*N,N),maxdepth));
   delete[] A;
   return b;
 }
@@ -1913,9 +1963,9 @@ triple maxbezier(triplearray2 *P, triple b)
   size_t N;
   real *A=copyTripleArray2Components(P,N);
   bound_double *B=bounddouble(N);
-  b=triple(B(A,::max,b.getx(),sqrtFuzz*norm(A,N),maxdepth),
-           B(A+N,::max,b.gety(),sqrtFuzz*norm(A+N,N),maxdepth),
-           B(A+2*N,::max,b.getz(),sqrtFuzz*norm(A+2*N,N),maxdepth));
+  b=triple(B(A,::max,b.getx(),Fuzz*norm(A,N),maxdepth),
+           B(A+N,::max,b.gety(),Fuzz*norm(A+N,N),maxdepth),
+           B(A+2*N,::max,b.getz(),Fuzz*norm(A+2*N,N),maxdepth));
   delete[] A;
   return b;
 }
@@ -1924,7 +1974,7 @@ pair minratio(triplearray2 *P, pair b)
 {
   size_t N;
   triple *A=copyTripleArray2C(P,N);
-  real fuzz=sqrtFuzz*norm(A,N);
+  real fuzz=Fuzz*norm(A,N);
   bound_triple *B=boundtriple(N);
   b=pair(B(A,::min,xratio,b.getx(),fuzz,maxdepth),
          B(A,::min,yratio,b.gety(),fuzz,maxdepth));
@@ -1937,7 +1987,7 @@ pair maxratio(triplearray2 *P, pair b)
   size_t N;
   triple *A=copyTripleArray2C(P,N);
   bound_triple *B=boundtriple(N);
-  real fuzz=sqrtFuzz*norm(A,N);
+  real fuzz=Fuzz*norm(A,N);
   b=pair(B(A,::max,xratio,b.getx(),fuzz,maxdepth),
          B(A,::max,yratio,b.gety(),fuzz,maxdepth));
   delete[] A;

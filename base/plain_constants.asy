@@ -36,6 +36,9 @@ restricted real sqrtEpsilon=sqrt(realEpsilon);
 restricted pair Align=sqrtEpsilon*NE; 
 restricted int mantissaBits=ceil(-log(realEpsilon)/log(2))+1;
 
+restricted transform identity;
+restricted transform zeroTransform=(0,0,0,0,0,0);
+
 int min(... int[] a) {return min(a);}
 int max(... int[] a) {return max(a);}
 

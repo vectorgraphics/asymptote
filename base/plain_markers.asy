@@ -312,8 +312,9 @@ void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype)
   if(filltype == Fill)
     draw(f,z,dotsize(p)+p);
   else {
-    transform t=shift(z);
-    path g=t*scale(0.5*(dotsize(p)-linewidth(p)))*unitcircle;
+    real s=0.5*(dotsize(p)-linewidth(p));  
+    if(s <= 0) return;
+    path g=shift(z)*scale(s)*unitcircle;
     begingroup(f);
     filltype.fill(f,g,p);
     draw(f,g,p);

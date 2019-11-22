@@ -136,7 +136,6 @@ array *readpath(const string& psname, bool keep, bool pdf=false,
   
     mem::vector<solvedKnot> nodes;
     solvedKnot node;
-    bool cyclic=false;
     bool active=false;
   
     array *P=new array(0);
@@ -150,28 +149,6 @@ array *readpath(const string& psname, bool keep, bool pdf=false,
       switch(c) {
         case 'M':
         {
-          if(active) {
-            if(cyclic) {
-              if(node.point == nodes[0].point)
-                nodes[0].pre=node.pre;
-              else {
-                pair delta=(nodes[0].point-node.point)*third;
-                node.post=node.point+delta;
-                nodes[0].pre=nodes[0].point-delta;
-                node.straight=true;
-                nodes.push_back(node);
-              }
-            } else {
-              node.post=node.point;
-              node.straight=false;
-              nodes.push_back(node);
-            }
-            if(cyclic) // Discard noncyclic paths.
-              P->push(path(nodes,nodes.size(),cyclic));
-            nodes.clear();
-          }
-          active=false;
-          cyclic=false;
           node.pre=node.point=readpair(buf,hscale,vscale);
           node.straight=false;
           break;
@@ -202,7 +179,21 @@ array *readpath(const string& psname, bool keep, bool pdf=false,
         }
         case 'c':
         {
-          cyclic=true;
+          if(active) {
+            if(node.point == nodes[0].point)
+              nodes[0].pre=node.pre;
+            else {
+              pair delta=(nodes[0].point-node.point)*third;
+              node.post=node.point+delta;
+              nodes[0].pre=nodes[0].point-delta;
+              node.straight=true;
+              nodes.push_back(node);
+            }
+            P->push(path(nodes,nodes.size(),true)); // Discard noncyclic paths
+            nodes.clear();
+          }
+          active=false;
+          node.straight=false;
           break;
         }
       }

@@ -1,7 +1,9 @@
 %{!?_texmf: %global _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFLOCAL'`")}
+%global _python_bytecompile_errors_terminate_build 0
+%global __python %{__python3}
 
 Name:           asymptote
-Version:        2.40
+Version:        2.61
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -16,6 +18,7 @@ BuildRequires:  readline-devel
 BuildRequires:  fftw-devel >= 3.0
 BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
+BuildRequires:  glm-devel
 BuildRequires:  tetex-latex
 BuildRequires:  ghostscript >= 9.14
 BuildRequires:  texinfo >= 4.7
@@ -23,7 +26,7 @@ BuildRequires:  ImageMagick
 
 Requires:       tetex-latex
 Requires:       tkinter
-Requires:       freeglut-devel >= 2.4.0
+Requires:       freeglut-devel >= 3.0.0
 Requires(post): /usr/bin/texhash /sbin/install-info
 Requires(postun): /usr/bin/texhash /sbin/install-info
 
@@ -36,7 +39,6 @@ that LaTeX does for scientific text.
 
 %prep
 %setup -q
-%{__sed} -i 's|^#!/usr/bin/env python$|#!%{__python}|' GUI/xasy.py
 
 
 %build
@@ -47,7 +49,7 @@ make %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
+make install-notexhash DESTDIR=$RPM_BUILD_ROOT
 
 %{__install} -p -m 644 BUGS ChangeLog LICENSE README ReleaseNotes TODO \
     $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}/

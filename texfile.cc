@@ -13,6 +13,8 @@
 
 using std::ofstream;
 using settings::getSetting;
+using settings::ps2tex;
+using settings::tex2ps;
 using vm::array;
 using vm::read;
 
@@ -149,24 +151,18 @@ void texfile::beginlayer(const string& psname, bool postscript)
         *out << "{\\catcode`\"=12%" << newl
              << "\\includegraphics";
         bool pdf=settings::pdf(texengine);
-        string quote;
         string name=stripExt(psname);
         if(inlinetex) {
           size_t pos=name.rfind("-");
           if(pos < string::npos) name="\\ASYprefix\\jobname"+name.substr(pos);
         } else {
           if(!pdf) name=psname;
-          if(stripDir(name) != name)
-            quote="\"";
         }
         
-        if(pdf) *out << "{" << quote << name << quote << ".pdf}%" << newl;
-        else {
+        if(!pdf)
           *out << "[bb=" << box.left << " " << box.bottom << " "
-               << box.right << " " << box.top << "]"
-               << "{" << quote << name << quote << "}%" << newl;
-        }
-        *out << "}%" << newl;
+               << box.right << " " << box.top << "]";
+        *out << "{" << name << "}%" << newl << "}%" << newl;
       }
       if(!inlinetex)
         *out << "\\kern " << (box.left-box.right)*ps2tex << "pt%" << newl;
@@ -349,10 +345,11 @@ void svgtexfile::endspecial()
   
 void svgtexfile::begintransform()
 {
+  bbox b=box;
+  b.left=-Hoffset;
+  b=svgbbox(b);
   *out << "<g transform='matrix(" << tex2ps << " 0 0 " << tex2ps <<" "
-       << (-Hoffset+1.99*settings::cm) << " " 
-       << (1.9*settings::cm+box.top) 
-       << ")'>" << nl;
+       << b.left << " " << b.top << ")'>" << nl;
 }
     
 void svgtexfile::endtransform()

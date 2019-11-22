@@ -1,0 +1,48 @@
+diff -ru freeglut-3.0.0/CMakeLists.txt freeglut-3.0.0J/CMakeLists.txt
+--- freeglut-3.0.0/CMakeLists.txt	2015-02-17 23:59:57.000000000 -0500
++++ freeglut-3.0.0J/CMakeLists.txt	2019-01-20 22:15:55.410415400 -0500
+@@ -20,7 +20,7 @@
+ set(VERSION_MAJOR 3)
+ set(VERSION_MINOR 0)
+ set(VERSION_PATCH 0)
+-
++set(WIN32 1)
+ # Update fg_version.h to match the versions number here in cmake
+ CONFIGURE_FILE(src/fg_version.h.in src/fg_version.h)
+ 
+@@ -32,7 +32,7 @@
+ # FREEGLUT_BUILD_SHARED_LIBS is already a standard CMake variable, but we need to
+ # re-declare it here so it will show up in the GUI.
+ # by default, we want to build both
+-OPTION(FREEGLUT_BUILD_SHARED_LIBS "Build FreeGLUT shared library." ON)
++OPTION(FREEGLUT_BUILD_SHARED_LIBS "Build FreeGLUT shared library." OFF)
+ OPTION(FREEGLUT_BUILD_STATIC_LIBS "Build FreeGLUT static library." ON)
+ 
+ # option for whether warnings and errors should be printed
+@@ -439,7 +439,7 @@
+ 
+ 
+ # Optionally build demos, on by default.
+-option( FREEGLUT_BUILD_DEMOS "Build FreeGLUT demos." ON )
++option( FREEGLUT_BUILD_DEMOS "Build FreeGLUT demos." OFF )
+ 
+ SET(DEMO_LIBS ${OPENGL_glu_LIBRARY} ${LIBS})
+ # lib m for math, not needed on windows
+Only in freeglut-3.0.0J: CMakeLists.txt~
+diff -ru freeglut-3.0.0/src/fg_internal.h freeglut-3.0.0J/src/fg_internal.h
+--- freeglut-3.0.0/src/fg_internal.h	2014-12-22 11:27:02.000000000 -0500
++++ freeglut-3.0.0J/src/fg_internal.h	2019-01-20 22:13:40.317578700 -0500
+@@ -24,6 +24,13 @@
+  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
++#define FREEGLUT_EXPORTS 1
++
++#define TARGET_HOST_MS_WINDOWS 1
++
++#define GCL_HCURSOR (-12)
++#define _snprintf snprintf
++
+ 
+ #ifndef  FREEGLUT_INTERNAL_H
+ #define  FREEGLUT_INTERNAL_H

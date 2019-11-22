@@ -1,0 +1,40 @@
+#!/bin/sh
+if [ $# -gt 1 -o \( $# = 1 -a "$1" != "debug" \) ]; then \
+    echo Usage: "$0 [debug]"; exit 1; \
+fi
+
+if [ $# -eq 1 ]; then \
+UGLIFY=cat; \
+UGLIFYOPT=""; \
+else \
+UGLIFY=uglifyjs; \
+UGLIFYOPTIONS="-m -c --comments"; \
+fi    
+
+GL_MATRIX_VERSION=2.4.0
+GL_MATRIX_DIR=gl-matrix-$GL_MATRIX_VERSION
+GL_MATRIX_DIR_PRUNED=$GL_MATRIX_DIR-pruned
+if test ! -r $GL_MATRIX_DIR_PRUNED; then \
+    TEMPDIR=`mktemp -d`
+    TARFILE=$TEMPDIR/$GL_MATRIX_DIR.tar.gz
+    wget https://github.com/toji/gl-matrix/archive/v$GL_MATRIX_VERSION.tar.gz --output-document=$TARFILE
+tar -zxf $TARFILE
+mv $GL_MATRIX_DIR $GL_MATRIX_DIR_PRUNED
+rm -r $TEMPDIR
+cd $GL_MATRIX_DIR_PRUNED
+patch -p1 < ../patches/$GL_MATRIX_DIR_PRUNED.patch
+npm install
+npm run build-all
+echo "/*@license for gl-matrix mat3 and mat4 functions:" > LICENSE.js
+echo "*/"| cat LICENSE.md - >> LICENSE.js
+cd ..
+fi
+SHADERS=`mktemp`
+echo "let vertex=\`" > $SHADERS
+echo "\`;" | cat webgl/vertex.glsl - >> $SHADERS
+echo "let fragment=\`" >> $SHADERS
+echo "\`;" | cat webgl/fragment.glsl - >> $SHADERS
+cat webgl/license $GL_MATRIX_DIR_PRUNED/LICENSE.js \
+    $SHADERS $GL_MATRIX_DIR_PRUNED/dist/gl-matrix.js webgl/gl.js | \
+    $UGLIFY $UGLIFYOPTIONS > base/webgl/asygl.js
+rm $SHADERS
