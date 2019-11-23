@@ -961,7 +961,7 @@ struct versionOption : public option {
 #ifdef HAVE_RPC_RPC_H
     xdr=true;
 #endif
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
     readline=true;
 #endif
 #ifdef HAVE_LIBSIGSEGV
