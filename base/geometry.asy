@@ -2890,7 +2890,6 @@ hyperbola hyperbola(point P1, point P2, real ae, bool byfoci = byfoci)
 /*<asyxml><function type="ellipse" signature="ellipse(point,point,point)"><code></asyxml>*/
 ellipse ellipse(point F1, point F2, point M)
 {/*<asyxml></code><documentation>Return the ellipse passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
-  point P[] = standardizecoordsys(false, F1, F2, M);
   real a = abs(F1 - M) + abs(F2 - M);
   return ellipse(F1, F2, finite(a) ? a/2 : a);
 }
@@ -3095,7 +3094,6 @@ parabola parabola(point M1, point M2, point M3, point M4, point M5)
 /*<asyxml><function type="hyperbola" signature="hyperbola(point,point,point)"><code></asyxml>*/
 hyperbola hyperbola(point F1, point F2, point M)
 {/*<asyxml></code><documentation>Return the hyperbola passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
-  point P[] = standardizecoordsys(false, F1, F2, M);
   real a = abs(abs(F1 - M) - abs(F2 - M));
   return hyperbola(F1, F2, finite(a) ? a/2 : a);
 }
