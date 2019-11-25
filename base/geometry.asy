@@ -2548,7 +2548,7 @@ struct ellipse
   /*<asyxml><property type = "point" signature="F1,F2,C"><code></asyxml>*/
   restricted point F1,F2,C;/*<asyxml></code><documentation>Foci and center.</documentation></property><property type = "real" signature="a,b,c,e,p"><code></asyxml>*/
   restricted real a,b,c,e,p;/*<asyxml></code></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F1 - F2).</documentation></property><property type = "line" signature="D1,D2"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F2 - F1).</documentation></property><property type = "line" signature="D1,D2"><code></asyxml>*/
   restricted line D1,D2;/*<asyxml></code><documentation>Directrices.</documentation></property><property type = "line" signature="l"><code></asyxml>*/
   line l;/*<asyxml></code><documentation>If one axis is infinite, this line is used instead of ellipse.</documentation></property></asyxml>*/
 
@@ -2559,7 +2559,7 @@ struct ellipse
     this.F1 = P[0];
     this.F2 = P[1];
     this.C = (P[0] + P[1])/2;
-    this.angle = abs(P[1]-P[0]) < 10 * epsgeo ? 0 : degrees(P[1]-P[0]);
+    this.angle = degrees(F2 - F1, warn=false);
     this.a = a;
     if(!finite(a)) {
       this.l = line(P[0], P[1]);
@@ -2583,7 +2583,7 @@ struct ellipse
 
 bool degenerate(ellipse el)
 {
-  return (!finite(el.a) || !finite(el.b));
+  return !finite(el.a) || !finite(el.b);
 }
 
 /*<asyxml><struct signature="parabola"><code></asyxml>*/
@@ -2591,7 +2591,7 @@ struct parabola
 {/*<asyxml></code><documentation>Look at <html><a href = "http://mathworld.wolfram.com/Parabola.html">http://mathworld.wolfram.com/Parabola.html</a></html></documentation><property type = "point" signature="F,V"><code></asyxml>*/
   restricted point F,V;/*<asyxml></code><documentation>Focus and vertex</documentation></property><property type = "real" signature="a,p,e = 1"><code></asyxml>*/
   restricted real a,p,e = 1;/*<asyxml></code></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Angle, in degrees, of the line (FV).</documentation></property><property type = "line" signature="D"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F - V).</documentation></property><property type = "line" signature="D"><code></asyxml>*/
   restricted line D;/*<asyxml></code><documentation>Directrix</documentation></property><property type = "pair" signature="bmin,bmax"><code></asyxml>*/
   pair bmin, bmax;/*<asyxml></code><documentation>The (left, bottom) and (right, top) coordinates of region bounding box for drawing the parabola.
                     If unset the current picture bounding box is used instead.</documentation></property></asyxml>*/
@@ -2606,7 +2606,7 @@ struct parabola
     this.a = distance(P[0], l)/2;
     this.p = 2 * a;
     this.V = 0.5 * (F + projection(D) * P[0]);
-    this.angle = degrees(F - V);
+    this.angle = degrees(F - V, warn=false);
   }
 }/*<asyxml></struct></asyxml>*/
 
@@ -2616,7 +2616,7 @@ struct hyperbola
   restricted point F1,F2;/*<asyxml></code><documentation>Foci.</documentation></property><property type = "point" signature="C,V1,V2"><code></asyxml>*/
   restricted point C,V1,V2;/*<asyxml></code><documentation>Center and vertices.</documentation></property><property type = "real" signature="a,b,c,e,p"><code></asyxml>*/
   restricted real a,b,c,e,p;/*<asyxml></code><documentation></documentation></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Angle,in degrees,of the line (F1F2).</documentation></property><property type = "line" signature="D1,D2,A1,A2"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F2 - F1).</documentation></property><property type = "line" signature="D1,D2,A1,A2"><code></asyxml>*/
   restricted line D1,D2,A1,A2;/*<asyxml></code><documentation>Directrices and asymptotes.</documentation></property><property type = "pair" signature="bmin,bmax"><code></asyxml>*/
   pair bmin, bmax; /*<asyxml></code><documentation>The (left, bottom) and (right, top) coordinates of region bounding box for drawing the hyperbola.
                      If unset the current picture bounding box is used instead.</documentation></property></asyxml>*/
@@ -2628,7 +2628,7 @@ struct hyperbola
     this.F1 = P[0];
     this.F2 = P[1];
     this.C = (P[0] + P[1])/2;
-    this.angle = degrees(F2 - F1);
+    this.angle = degrees(F2 - F1, warn=false);
     this.a = a;
     this.c = abs(C - P[0]);
     this.e = this.c/a;
