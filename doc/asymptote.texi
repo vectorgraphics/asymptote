@@ -4629,7 +4629,7 @@ This produces the output
 (non-function variables have null signatures). Variables with the 
 same name are allowed, so long as they have distinct signatures. 
 
-Functions arguments are passed by value. To pass an argument by
+Function arguments are passed by value. To pass an argument by
 reference, simply enclose it in a structure (@pxref{Structures}).
 
 Here are some significant features of @code{Asymptote} functions:
