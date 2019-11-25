@@ -2551,14 +2551,15 @@ struct ellipse
   restricted real angle;/*<asyxml></code><documentation>Value is degrees(F1 - F2).</documentation></property><property type = "line" signature="D1,D2"><code></asyxml>*/
   restricted line D1,D2;/*<asyxml></code><documentation>Directrices.</documentation></property><property type = "line" signature="l"><code></asyxml>*/
   line l;/*<asyxml></code><documentation>If one axis is infinite, this line is used instead of ellipse.</documentation></property></asyxml>*/
+
   /*<asyxml><method type = "void" signature="init(point,point,real)"><code></asyxml>*/
   void init(point f1, point f2, real a)
-  {/*<asyxml></code><documentation>Ellipse given by foci and semimajor axis</documentation></method></asyxml>*/
+  {/*<asyxml></code><documentation>Ellipse given by foci and semimajor axis.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(f1, f2);
     this.F1 = P[0];
     this.F2 = P[1];
-    this.angle = abs(P[1]-P[0]) < 10 * epsgeo ? 0 : degrees(P[1]-P[0]);
     this.C = (P[0] + P[1])/2;
+    this.angle = abs(P[1]-P[0]) < 10 * epsgeo ? 0 : degrees(P[1]-P[0]);
     this.a = a;
     if(!finite(a)) {
       this.l = line(P[0], P[1]);
@@ -2599,8 +2600,8 @@ struct parabola
   void init(point F, line directrix)
   {/*<asyxml></code><documentation>Parabola given by focus and directrix.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(F, directrix.A, directrix.B);
-    line l = line(P[1], P[2]);
     this.F = P[0];
+    line l = line(P[1], P[2]);
     this.D = l;
     this.a = distance(P[0], l)/2;
     this.p = 2 * a;
@@ -2626,9 +2627,9 @@ struct hyperbola
     point[] P = standardizecoordsys(f1, f2);
     this.F1 = P[0];
     this.F2 = P[1];
+    this.C = (P[0] + P[1])/2;
     this.angle = degrees(F2 - F1);
     this.a = a;
-    this.C = (P[0] + P[1])/2;
     this.c = abs(C - P[0]);
     this.e = this.c/a;
     if(this.e <= 1) abort("hyperbola.init: wrong parameter: e <= 1.");
