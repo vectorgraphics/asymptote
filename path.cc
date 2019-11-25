@@ -997,8 +997,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     // Overlapping bounding boxes
 
     --depth;
-    fuzz *= 2.0;
-    fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
+//    fuzz *= 2;
+//    fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
 
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {

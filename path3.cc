@@ -612,7 +612,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     // Overlapping bounding boxes
 
     --depth;
-    fuzz *= 2;
+//    fuzz *= 2;
 
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
@@ -630,7 +630,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     
     std::vector<double> S1,T1;
     
-    fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
+//    fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
     
     if(lp <= 1) {
       if(lp == 1) p.halve(p1,p2);
@@ -1191,7 +1191,7 @@ bool intersections(double& U, double& V, const triple& v, triple *P,
      v.getz()+fuzz >= z) { // Overlapping bounding boxes
     
     --depth;
-    fuzz *= 2;
+//    fuzz *= 2;
 
     if(abs2(X-x,Y-y,Z-z) <= fuzz*fuzz || depth == 0) {
       U=0.5;
@@ -1258,6 +1258,8 @@ bool intersections(std::vector<double>& T, std::vector<double>& U,
 {
   if(errorstream::interrupt) throw interrupted();
   
+  double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
+  
   triple pmin=p.min();
   triple pmax=p.max();
   
@@ -1286,7 +1288,7 @@ bool intersections(std::vector<double>& T, std::vector<double>& U,
      pmax.getz()+fuzz >= z) { // Overlapping bounding boxes
     
     --depth;
-    fuzz *= 2;
+//    fuzz *= 2;
 
     if(((pmax-pmin).length()+sqrt(abs2(X-x,Y-y,Z-z)) <= fuzz) || depth == 0) {
       T.push_back(0.5);
@@ -1303,8 +1305,6 @@ bool intersections(std::vector<double>& T, std::vector<double>& U,
     std::vector<double> T1,U1,V1;
     double tscale,toffset;
 
-    double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
-  
     if(lp <= 1) {
       if(lp == 1) p.halve(p0,p1);
       if(lp == 0 || p0 == p || p1 == p) {
