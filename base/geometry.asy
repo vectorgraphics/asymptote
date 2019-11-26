@@ -22,7 +22,7 @@
 // An Asymptote geometry module.
 
 // THANKS:
-// Special thanks to Olivier Guibé for his help in mathematical issues.
+// Special thanks to Olivier Guibe for his help in mathematical issues.
 
 // BUGS:
 
@@ -1502,7 +1502,7 @@ struct segment
 {/*<asyxml></code><documentation><look href = "struct line"/>.</documentation></asyxml>*/
   restricted point A, B;// Extremity.
   restricted vector u, v;// u = direction vector, v = normal vector.
-  restricted real a, b, c;// Coefficients of the équation ax + by + c = 0
+  restricted real a, b, c;// Coefficients of the equation ax + by + c = 0
   restricted real slope, origin;
   segment copy()
   {
@@ -6502,7 +6502,7 @@ point[] intersectionpoints(line l, ellipse el)
       (perpendicular(ll, line(ell.F1, Ip[0])) ||
        perpendicular(ll, line(ell.F2, Ip[0])))) {
     // http://www.mathcurve.com/courbes2d/ellipse/ellipse.shtml
-    //  Définition tangentielle par antipodaire de cercle.
+    // Definition of the tangent at the antipodal point on the circle.
     // 'l' is a tangent of 'el'
     transform t = scale(el.a/el.b, el.F1, el.F2, el.C, rotate(90, el.C) * el.F1);
     point inter = inverse(t) * intersectionpoints(C, t * ll)[0];
@@ -7047,7 +7047,7 @@ arc arccircle(point A, point M, point B)
   real m = degrees(M - tc.C);
 
   arc oa = arc(tc, a, b);
-  // TODO : use cross product to determine CWW or CW
+  // TODO: use cross product to determine CWW or CW
   if (!(M @ oa)) {
     oa.direction = !oa.direction;
   }
