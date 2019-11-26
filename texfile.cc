@@ -46,7 +46,7 @@ texfile::~texfile()
   
 void texfile::miniprologue()
 {
-  texpreamble(*out,processData().TeXpreamble,false);
+  texpreamble(*out,processData().TeXpreamble,true);
   if(settings::latex(texengine)) {
     *out << "\\pagestyle{empty}" << newl
          << "\\textheight=2048pt" << newl
@@ -65,7 +65,7 @@ void texfile::prologue()
   if(inlinetex) {
     string prename=buildname(settings::outname(),"pre");
     std::ofstream *outpreamble=new std::ofstream(prename.c_str());
-    texpreamble(*outpreamble,processData().TeXpreamble,true,false);
+    texpreamble(*outpreamble,processData().TeXpreamble,false,false);
     outpreamble->close();
   }
   
