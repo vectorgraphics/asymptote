@@ -759,7 +759,7 @@ real dot(explicit pair A, point B)
 transform rotateO(real a)
 {/*<asyxml></code><documentation>Rotation around the origin of the current coordinate system.</documentation></function></asyxml>*/
   return rotate(a, currentcoordsys.O);
-};
+}
 
 /*<asyxml><function type="transform" signature="projection(point,point)"><code></asyxml>*/
 transform projection(point A, point B)
@@ -6672,7 +6672,7 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
     }
   }
   return P;
-};
+}
 
 /*<asyxml><function type="point[]" signature="intersectionpoints(conic,conic)"><code></asyxml>*/
 point[] intersectionpoints(conic co1, conic co2)
