@@ -86,7 +86,7 @@ void texfile::prologue()
       if(width > 0) 
         *out << "\\pdfpagewidth=" << width << "bp" << newl;
       *out << "\\ifx\\pdfhorigin\\undefined" << newl
-           << "\\makeatletter\\@ifpackageloaded{luaotfload}{\\hoffset=-72.4bp}{\\hoffset=-72.0bp}\\makeatother" << newl
+           << "\\hoffset=-1in" << newl
            << "\\voffset=" << voffset-72.0 << "bp" << newl;
       if(height > 0)
         *out << "\\pdfpageheight=" << height << "bp" 
