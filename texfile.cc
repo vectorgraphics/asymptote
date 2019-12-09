@@ -113,7 +113,10 @@ void texfile::prologue()
         *out << "\\parindent=0pt" << newl
              << "\\oddsidemargin=0pt" << newl
              << "\\evensidemargin=\\oddsidemargin" << newl
-             << "\\topmargin=-37.01pt" << newl;
+             << "\\headheight=0pt" << newl
+             << "\\headsep=0pt" << newl
+             << "\\topmargin=0pt" << newl
+             << "\\topskip=0pt" << newl;
       *out << "\\begin{document}" << newl;
     }
     latexfontencoding(*out);
