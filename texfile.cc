@@ -86,7 +86,7 @@ void texfile::prologue()
       if(width > 0) 
         *out << "\\pdfpagewidth=" << width << "bp" << newl;
       *out << "\\ifx\\pdfhorigin\\undefined" << newl
-           << "\\makeatletter\\@ifpackageloaded{luaotfload}{\\hoffset=-72.4bp}{\\hoffset=-72.0bp}\\makeatother" << newl
+           << "\\hoffset=-1in" << newl
            << "\\voffset=" << voffset-72.0 << "bp" << newl;
       if(height > 0)
         *out << "\\pdfpageheight=" << height << "bp" 
@@ -110,7 +110,8 @@ void texfile::prologue()
            << "\\textheight=" << height+18.0 << "bp" << newl
            << "\\textwidth=" << width+18.0 << "bp" << newl;
       if(settings::pdf(texengine))
-        *out << "\\oddsidemargin=-17.61pt" << newl
+        *out << "\\parindent=0pt" << newl
+             << "\\oddsidemargin=0pt" << newl
              << "\\evensidemargin=\\oddsidemargin" << newl
              << "\\topmargin=-37.01pt" << newl;
       *out << "\\begin{document}" << newl;
