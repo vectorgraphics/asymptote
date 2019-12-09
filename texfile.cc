@@ -110,7 +110,8 @@ void texfile::prologue()
            << "\\textheight=" << height+18.0 << "bp" << newl
            << "\\textwidth=" << width+18.0 << "bp" << newl;
       if(settings::pdf(texengine))
-        *out << "\\oddsidemargin=-17.61pt" << newl
+        *out << "\\parindent=0pt" << newl
+             << "\\oddsidemargin=0pt" << newl
              << "\\evensidemargin=\\oddsidemargin" << newl
              << "\\topmargin=-37.01pt" << newl;
       *out << "\\begin{document}" << newl;
