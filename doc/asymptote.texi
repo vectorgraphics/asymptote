@@ -8911,7 +8911,7 @@ surface tube(path3 g, coloredpath section,
 @end verbatim
 @noindent
 draws a tube along @code{g} with cross section @code{section}, after
-applying the transformation @code{T(t)} at @code{relpoint(g,t)}.
+applying the transformation @code{T(t)} at @code{point(g,t)}.
 The parameter @code{corner} controls the number of elementary tubes at
 the angular points of @code{g}. A nonzero value of @code{relstep}
 specifies a fixed relative time step (in the sense of
