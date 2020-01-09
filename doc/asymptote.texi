@@ -2493,7 +2493,7 @@ the path in the sense of @code{point(path p, real t)}, at which the
 cumulative arclength (measured from the beginning of the path) equals @code{L}.
 
 @cindex @code{arcpoint}
-@item real arcpoint(path p, real L);
+@item pair arcpoint(path p, real L);
 returns @code{point(p,arctime(p,L))}.
 
 @cindex @code{dirtime}
