@@ -105,7 +105,8 @@ jsfile::~jsfile() {
   out << "</script>"
       << newl << newl << "</head>"
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
-      << newl << "<canvas id=\"Asymptote\" style=\"border: none;\" width=\"0\" height=\"0\" />"
+      << newl << "<canvas id=\"Asymptote\" style=\"border: none;\" width=\""
+      << gl::fullWidth << "\" height=\"" <<  gl::fullHeight << "\" />"
       << newl << "</body>"
       << newl << newl << "</html>"
       << newl;

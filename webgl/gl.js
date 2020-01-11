@@ -2232,11 +2232,8 @@ function webGLStart()
     canvasWidth *= window.devicePixelRatio;
     canvasHeight *= window.devicePixelRatio;
   } else {
-    if(canvas.width == 0) 
-      canvas.width=Math.max(window.innerWidth-windowTrim,windowTrim);
-
-    if(canvas.height == 0) 
-      canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
+    canvas.width=Math.max(window.innerWidth-windowTrim,windowTrim);
+    canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
 
     let Aspect=canvasWidth/canvasHeight;
     if(canvas.width > canvas.height*Aspect) 
