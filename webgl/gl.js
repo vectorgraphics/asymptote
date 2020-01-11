@@ -171,7 +171,7 @@ function noGL() {
 
 function saveAttributes()
 {
-  let a=window.parent.document.asygl[alpha];
+  let a=window.top.document.asygl[alpha];
 
   a.gl=gl;
   a.nlights=Lights.length;
@@ -187,7 +187,7 @@ function saveAttributes()
 
 function restoreAttributes()
 {
-  let a=window.parent.document.asygl[alpha];
+  let a=window.top.document.asygl[alpha];
 
   gl=a.gl;
   nlights=a.nlights;
@@ -208,7 +208,7 @@ function initGL()
   alpha=Background[3] < 1;
 
   if(embedded) {
-    let p=window.parent.document;
+    let p=window.top.document;
 
     if(p.asygl == null)
       p.asygl=Array(2);
@@ -2224,7 +2224,7 @@ let pixelShader,noNormalShader,materialShader,colorShader,transparentShader;
 function webGLStart()
 {
   canvas=document.getElementById("Asymptote");
-  embedded=window.parent.document != document;
+  embedded=window.top.document != document;
 
   initGL();
 
