@@ -104,7 +104,7 @@ void texfile::prologue()
     *out << "\\usepackage{everypage}%" << newl;
   
   if(settings::latex(texengine)) {
-    *out << "\\setlength{\\unitlength}{1pt}" << newl;
+    *out << "\\setlength{\\unitlength}{1pt}%" << newl;
     if(!inlinetex) {
       *out << "\\pagestyle{empty}" << newl
            << "\\textheight=" << height+18.0 << "bp" << newl
@@ -196,19 +196,19 @@ void texfile::setlatexcolor(pen p)
                    p.black() != lastpen.black()))) {
     *out << "\\definecolor{ASYcolor}{cmyk}{" 
          << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
-         << p.black() << "}\\color{ASYcolor}" << newl;
+         << p.black() << "}\\color{ASYcolor}%" << newl;
   } else if(p.rgb() && (!lastpen.rgb() ||
                         (p.red() != lastpen.red() ||
                          p.green() != lastpen.green() || 
                          p.blue() != lastpen.blue()))) {
     *out << "\\definecolor{ASYcolor}{rgb}{" 
          << p.red() << "," << p.green() << "," << p.blue()
-         << "}\\color{ASYcolor}" << newl;
+         << "}\\color{ASYcolor}%" << newl;
   } else if(p.grayscale() && (!lastpen.grayscale() || 
                               p.gray() != lastpen.gray())) {
     *out << "\\definecolor{ASYcolor}{gray}{" 
          << p.gray()
-         << "}\\color{ASYcolor}" << newl;
+         << "}\\color{ASYcolor}%" << newl;
   }
 }
   

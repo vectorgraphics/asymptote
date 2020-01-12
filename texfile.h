@@ -177,7 +177,7 @@ bool setlatexfont(T& out, const pen& p, const pen& lastpen)
 {
   if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
     out <<  "\\fontsize{" << p.size()*settings::ps2tex << "}{" 
-        << p.Lineskip()*settings::ps2tex << "}\\selectfont\n";
+        << p.Lineskip()*settings::ps2tex << "}\\selectfont%" << newl;
     return true;
   }
   return false;
