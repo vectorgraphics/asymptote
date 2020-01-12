@@ -2548,17 +2548,18 @@ struct ellipse
   /*<asyxml><property type = "point" signature="F1,F2,C"><code></asyxml>*/
   restricted point F1,F2,C;/*<asyxml></code><documentation>Foci and center.</documentation></property><property type = "real" signature="a,b,c,e,p"><code></asyxml>*/
   restricted real a,b,c,e,p;/*<asyxml></code></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F1 - F2).</documentation></property><property type = "line" signature="D1,D2"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F2 - F1).</documentation></property><property type = "line" signature="D1,D2"><code></asyxml>*/
   restricted line D1,D2;/*<asyxml></code><documentation>Directrices.</documentation></property><property type = "line" signature="l"><code></asyxml>*/
   line l;/*<asyxml></code><documentation>If one axis is infinite, this line is used instead of ellipse.</documentation></property></asyxml>*/
+
   /*<asyxml><method type = "void" signature="init(point,point,real)"><code></asyxml>*/
   void init(point f1, point f2, real a)
-  {/*<asyxml></code><documentation>Ellipse given by foci and semimajor axis</documentation></method></asyxml>*/
+  {/*<asyxml></code><documentation>Ellipse given by foci and semimajor axis.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(f1, f2);
     this.F1 = P[0];
     this.F2 = P[1];
-    this.angle = abs(P[1]-P[0]) < 10 * epsgeo ? 0 : degrees(P[1]-P[0]);
     this.C = (P[0] + P[1])/2;
+    this.angle = degrees(F2 - F1, warn=false);
     this.a = a;
     if(!finite(a)) {
       this.l = line(P[0], P[1]);
@@ -2582,7 +2583,7 @@ struct ellipse
 
 bool degenerate(ellipse el)
 {
-  return (!finite(el.a) || !finite(el.b));
+  return !finite(el.a) || !finite(el.b);
 }
 
 /*<asyxml><struct signature="parabola"><code></asyxml>*/
@@ -2590,7 +2591,7 @@ struct parabola
 {/*<asyxml></code><documentation>Look at <html><a href = "http://mathworld.wolfram.com/Parabola.html">http://mathworld.wolfram.com/Parabola.html</a></html></documentation><property type = "point" signature="F,V"><code></asyxml>*/
   restricted point F,V;/*<asyxml></code><documentation>Focus and vertex</documentation></property><property type = "real" signature="a,p,e = 1"><code></asyxml>*/
   restricted real a,p,e = 1;/*<asyxml></code></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Angle, in degrees, of the line (FV).</documentation></property><property type = "line" signature="D"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F - V).</documentation></property><property type = "line" signature="D"><code></asyxml>*/
   restricted line D;/*<asyxml></code><documentation>Directrix</documentation></property><property type = "pair" signature="bmin,bmax"><code></asyxml>*/
   pair bmin, bmax;/*<asyxml></code><documentation>The (left, bottom) and (right, top) coordinates of region bounding box for drawing the parabola.
                     If unset the current picture bounding box is used instead.</documentation></property></asyxml>*/
@@ -2599,13 +2600,13 @@ struct parabola
   void init(point F, line directrix)
   {/*<asyxml></code><documentation>Parabola given by focus and directrix.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(F, directrix.A, directrix.B);
-    line l = line(P[1], P[2]);
     this.F = P[0];
+    line l = line(P[1], P[2]);
     this.D = l;
     this.a = distance(P[0], l)/2;
     this.p = 2 * a;
     this.V = 0.5 * (F + projection(D) * P[0]);
-    this.angle = degrees(F - V);
+    this.angle = degrees(F - V, warn=false);
   }
 }/*<asyxml></struct></asyxml>*/
 
@@ -2615,7 +2616,7 @@ struct hyperbola
   restricted point F1,F2;/*<asyxml></code><documentation>Foci.</documentation></property><property type = "point" signature="C,V1,V2"><code></asyxml>*/
   restricted point C,V1,V2;/*<asyxml></code><documentation>Center and vertices.</documentation></property><property type = "real" signature="a,b,c,e,p"><code></asyxml>*/
   restricted real a,b,c,e,p;/*<asyxml></code><documentation></documentation></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Angle,in degrees,of the line (F1F2).</documentation></property><property type = "line" signature="D1,D2,A1,A2"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F2 - F1).</documentation></property><property type = "line" signature="D1,D2,A1,A2"><code></asyxml>*/
   restricted line D1,D2,A1,A2;/*<asyxml></code><documentation>Directrices and asymptotes.</documentation></property><property type = "pair" signature="bmin,bmax"><code></asyxml>*/
   pair bmin, bmax; /*<asyxml></code><documentation>The (left, bottom) and (right, top) coordinates of region bounding box for drawing the hyperbola.
                      If unset the current picture bounding box is used instead.</documentation></property></asyxml>*/
@@ -2626,9 +2627,9 @@ struct hyperbola
     point[] P = standardizecoordsys(f1, f2);
     this.F1 = P[0];
     this.F2 = P[1];
-    this.angle = degrees(F2 - F1);
-    this.a = a;
     this.C = (P[0] + P[1])/2;
+    this.angle = degrees(F2 - F1, warn=false);
+    this.a = a;
     this.c = abs(C - P[0]);
     this.e = this.c/a;
     if(this.e <= 1) abort("hyperbola.init: wrong parameter: e <= 1.");
@@ -2889,7 +2890,6 @@ hyperbola hyperbola(point P1, point P2, real ae, bool byfoci = byfoci)
 /*<asyxml><function type="ellipse" signature="ellipse(point,point,point)"><code></asyxml>*/
 ellipse ellipse(point F1, point F2, point M)
 {/*<asyxml></code><documentation>Return the ellipse passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
-  point P[] = standardizecoordsys(false, F1, F2, M);
   real a = abs(F1 - M) + abs(F2 - M);
   return ellipse(F1, F2, finite(a) ? a/2 : a);
 }
@@ -3089,6 +3089,13 @@ parabola parabola(point M1, point M2, point M3, line l)
 parabola parabola(point M1, point M2, point M3, point M4, point M5)
 {/*<asyxml></code><documentation>Return the parabola passing through the five points.</documentation></function></asyxml>*/
   return parabola(bqe(M1, M2, M3, M4, M5));
+}
+
+/*<asyxml><function type="hyperbola" signature="hyperbola(point,point,point)"><code></asyxml>*/
+hyperbola hyperbola(point F1, point F2, point M)
+{/*<asyxml></code><documentation>Return the hyperbola passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
+  real a = abs(abs(F1 - M) - abs(F2 - M));
+  return hyperbola(F1, F2, finite(a) ? a/2 : a);
 }
 
 /*<asyxml><function type="hyperbola" signature="hyperbola(point,real,real,real)"><code></asyxml>*/
