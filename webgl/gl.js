@@ -88,7 +88,6 @@ let materialBuffer;
 let colorBuffer;
 let indexBuffer;
 
-let redraw=true;
 let remesh=true;
 let mouseDownOrTouchActive=false;
 let lastMouseX=null;
@@ -1501,7 +1500,7 @@ function home()
   initProjection();
   setProjection();
   remesh=true;
-  redraw=true;
+  draw();
 }
 
 let positionAttribute=0;
@@ -1849,7 +1848,7 @@ function processDrag(newX,newY,mode,factor=1)
   lastMouseY=newY;
 
   setProjection();
-  redraw=true;
+  draw();
 }
 
 function handleKey(event)
@@ -1886,7 +1885,7 @@ function handleKey(event)
   if(axis.length > 0) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
     updateViewMatrix();
-    redraw=true;
+    draw();
   }
 }
 
@@ -1902,7 +1901,7 @@ function handleMouseWheel(event)
   capzoom();
   setProjection();
 
-  redraw=true;
+  draw();
 }
 
 function handleMouseMove(event)
@@ -1974,7 +1973,7 @@ function handleTouchMove(event)
     pinchStart=distance;
     swipe=rotate=zooming=false;
     setProjection();
-    redraw=true;
+    draw();
   }
 }
 
@@ -2095,15 +2094,6 @@ function draw()
   }
 
   remesh=false;
-}
-
-function tick()
-{
-  requestAnimationFrame(tick);
-  if(redraw) {
-    draw();
-    redraw=false;
-  }
 }
 
 function setDimensions(width,height,X,Y)
@@ -2275,6 +2265,4 @@ function webGLStart()
   canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
-
-  tick();
 }
