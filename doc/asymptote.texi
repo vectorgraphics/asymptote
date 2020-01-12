@@ -30,7 +30,7 @@ file LICENSE in the top-level source directory).
 @title Asymptote: the Vector Graphics Language
 @subtitle For version @value{VERSION}
 @sp 1
-@center @image{logo}
+@center @image{./logo}
      
 @page
 @vskip 0pt plus 1filll
@@ -835,7 +835,7 @@ asy -V -f pdf test
 In either case, the @code{-V} option opens up a viewer window so you
 can immediately view the result:
 @sp 1
-@center @image{diagonal}
+@center @image{./diagonal}
 @cindex @code{bp}
 @noindent
 Here, the @code{--} connector joins the two points @code{(0,0)} and
@@ -891,7 +891,7 @@ size(100.5,100.5);
 draw((0,0)--(1,1));
 @end verbatim
 @sp 1
-@center @image{diagonal}
+@center @image{./diagonal}
 
 @cindex @code{inches}
 @cindex @code{cm}
@@ -905,14 +905,14 @@ If 0 is given as a size argument, no restriction is made in that direction;
 the overall scaling will be determined by the other direction (@pxref{size}):
 @verbatiminclude bigdiagonal.asy
 @sp 1
-@center @image{bigdiagonal}
+@center @image{./bigdiagonal}
 
 @cindex @code{cycle}
 To connect several points and create a cyclic path, use the
 @code{cycle} keyword:
 @verbatiminclude square.asy
 @sp 1
-@center @image{square}
+@center @image{./square}
 @noindent
 For convenience, the path @code{(0,0)--(1,0)--(1,1)--(0,1)--cycle}
 may be replaced with the predefined variable
@@ -935,7 +935,7 @@ label as a double-quoted @code{LaTeX} string, a
 coordinate, and an optional alignment direction:
 @verbatiminclude labelsquare.asy
 @sp 1
-@center @image{labelsquare}
+@center @image{./labelsquare}
 
 @cindex compass directions
 @cindex @code{N}
@@ -957,7 +957,7 @@ This example draws a path that approximates a quarter circle,
 terminated with an arrowhead:
 @verbatiminclude quartercircle.asy
 @sp 1
-@center @image{quartercircle}
+@center @image{./quartercircle}
 @noindent
 Here the directions @code{up} and @code{left} in braces specify the
 outgoing and incoming directions at the points @code{(1,0)} and
@@ -994,7 +994,7 @@ initial point of the right-hand path, may be used to group several
 @code{PostScript} path):
 @verbatiminclude superpath.asy
 @sp 1
-@center @image{superpath}
+@center @image{./superpath}
 
 @cindex evenodd
 @noindent
@@ -1013,7 +1013,7 @@ the module @code{three.asy} to construct the edges of a
 cube @code{unitbox} without retracing steps (@pxref{three}):
 @verbatiminclude cube.asy
 @sp 1
-@center @image{cube}
+@center @image{./cube}
 
 See section @ref{graph} (or the online
 @code{Asymptote} @uref{http://asymptote.sourceforge.net/gallery,,gallery} and
@@ -1616,7 +1616,7 @@ to format string @code{s} into a paragraph of width @code{width}.
 This example uses @code{minipage}, @code{clip}, and @code{graphic} to
 produce a CD label:
 @sp 1
-@center @image{CDlabel}
+@center @image{./CDlabel}
 @verbatiminclude CDlabel.asy
 
 @node Bezier curves, Programming, Drawing commands, Top
@@ -1633,7 +1633,7 @@ A cubic spline between the node @math{z_0}, with postcontrol point
 @math{c_0}, and the node @math{z_1}, with precontrol point @math{c_1},
 is computed as the Bezier curve
 @sp 1
-@center @image{bezier,,,(1-t)^3*z_0+3t(1-t)^2*c_0+3t^2(1-t)*c_1+t^3*z_1 for 0 <=t <= 1.}
+@center @image{./bezier,,,(1-t)^3*z_0+3t(1-t)^2*c_0+3t^2(1-t)*c_1+t^3*z_1 for 0 <=t <= 1.}
 
 As illustrated in the diagram below, the third-order midpoint (@math{m_5})
 constructed from two endpoints @math{z_0} and @math{z_1} and two control points
@@ -1644,7 +1644,7 @@ desired curve, by using the newly extracted third-order midpoint as an
 endpoint and the respective second- and first-order midpoints as control
 points:
 @sp 1
-@center @image{bezier2}
+@center @image{./bezier2}
 
 Here @math{m_0}, @math{m_1} and @math{m_2} are the first-order
 midpoints, @math{m_3} and @math{m_4} are the second-order midpoints, and
@@ -1715,12 +1715,12 @@ variable number of arguments; @pxref{Rest arguments}).  For example,
 compare
 @verbatiminclude dots.asy
 @sp 1
-@center @image{dots}
+@center @image{./dots}
 @noindent
 with
 @verbatiminclude colons.asy
 @sp 1
-@center @image{colons}
+@center @image{./colons}
 
 @cindex @code{---}
 @cindex @code{&}
@@ -2389,7 +2389,7 @@ This example illustrates the use of all five guide connectors discussed
 in @ref{Tutorial} and @ref{Bezier curves}:
 @verbatiminclude join.asy
 @sp 1
-@center @image{join}
+@center @image{./join}
 
 Here are some useful functions for paths:
 
@@ -2690,7 +2690,7 @@ incrementally resolved at each iteration, before the entire set of nodes
 
 @verbatiminclude mexicanhat.asy
 @sp 1
-@center @image{mexicanhat}
+@center @image{./mexicanhat}
 
 We point out an efficiency distinction in the use of guides and paths:
 @verbatim
@@ -2885,7 +2885,7 @@ are defined as named colors, along with the @acronym{CMYK} primary
 colors @code{Cyan}, @code{Magenta}, @code{Yellow}, and @code{Black}, in
 the module @code{plain}:
 @sp 1
-@center @image{colors}
+@center @image{./colors}
 
 The standard 140 @acronym{RGB} @code{X11} colors can be imported with
 the command
@@ -2952,7 +2952,7 @@ pen Dotted(pen p=currentpen) {return linetype(new real[] {0,3})+2*linewidth(p);}
 pen Dotted=Dotted();
 @end verbatim
 @sp 1
-@center @image{linetype}
+@center @image{./linetype}
 
 @cindex @code{defaultpen}
 The default line type is @code{solid}; this may be changed with
@@ -3181,7 +3181,7 @@ module @code{patterns}:
 @cindex brick
 @verbatiminclude tile.asy
 @sp 1
-@center @image{tile}
+@center @image{./tile}
 
 @cindex hatch
 @cindex crosshatch
@@ -3190,7 +3190,7 @@ Hatch patterns can be generated with the routines
 @code{picture crosshatch(real H=5mm, pen p=currentpen)}:
 @verbatiminclude hatch.asy
 @sp 1
-@center @image{hatch}
+@center @image{./hatch}
 
 You may need to turn off aliasing in your @code{PostScript} viewer for
 patterns to appear correctly. Custom patterns can easily be constructed,
@@ -3210,7 +3210,7 @@ recovered from a pen with @code{path nib(pen)}. Unlike in
 
 @verbatiminclude makepen.asy
 @sp 1
-@center @image{makepen}
+@center @image{./makepen}
 
 The value @code{nullpath} represents a circular pen nib (the default);
 an elliptical pen can be achieved simply by multiplying the pen by a
@@ -3684,7 +3684,7 @@ or more subpictures, group them two at a time:
 
 @verbatiminclude subpictures.asy
 @sp 1
-@center @image{subpictures}
+@center @image{./subpictures}
 
 Alternatively, one can use @code{attach} to automatically increase the
 size of picture @code{dest} to accommodate adding a frame @code{src}
@@ -6248,7 +6248,7 @@ hyperdvi option).
 Here now is @code{latexusage.tex}:
 @verbatiminclude latexusage.tex
 @page
-@image{latexusage,,25cm}
+@image{./latexusage,,25cm}
 
 @node Base modules, Options, LaTeX usage, Top
 @chapter Base modules
@@ -6506,7 +6506,7 @@ from the above frames. The example @code{@uref{http://asymptote.sourceforge.net/
 use of these markers:
 
 @sp 1
-@center @image{markers1}
+@center @image{./markers1}
 
 This package also provides a routine for marking an angle @math{AOB}:
 @cindex @code{markangle}
@@ -6521,7 +6521,7 @@ void markangle(picture pic=currentpicture, Label L="",
 as illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/markers2.svg,,markers2}@uref{http://asymptote.sourceforge.net/gallery/markers2.asy,,.asy}}.
 
 @sp 1
-@center @image{markers2}
+@center @image{./markers2}
 
 @node tree, binarytree, markers, Base modules
 @section @code{tree}
@@ -6536,7 +6536,7 @@ input routine for the special case of a binary search tree, as
 illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/binarytreetest.svg,,binarytreetest}@uref{http://asymptote.sourceforge.net/gallery/binarytreetest.asy,,.asy}}:
 @verbatiminclude binarytreetest.asy
 @sp 1
-@center @image{binarytreetest}
+@center @image{./binarytreetest}
 
 @node drawtree, syzygy, binarytree, Base modules
 @section @code{drawtree}
@@ -7250,7 +7250,7 @@ Here are some simple examples of two-dimensional graphs:
 @math{y=} exp@math{(x)}, with the @math{y} axis starting at @math{y=0}:
 @verbatiminclude exp.asy
 @sp 1
-@center @image{exp}
+@center @image{./exp}
 
 
 @item The next example draws a scientific-style graph with a legend.
@@ -7264,7 +7264,7 @@ the picture covered by a label:
 @cindex scientific graph
 @verbatiminclude lineargraph0.asy
 @sp 1
-@center @image{lineargraph0}
+@center @image{./lineargraph0}
 
 @cindex @code{attach}
 To specify a fixed size for the graph proper, use @code{attach}:
@@ -7274,19 +7274,19 @@ To specify a fixed size for the graph proper, use @code{attach}:
 A legend can have multiple entries per line:
 @verbatiminclude legend.asy
 @sp 1
-@center @image{legend}
+@center @image{./legend}
 
 @item This example draws a graph of one array versus another (both of
 the same size) using custom tick locations and a smaller font size for
 the tick labels on the @math{y} axis.
 @verbatiminclude datagraph.asy
 @sp 1
-@center @image{datagraph}
+@center @image{./datagraph}
 
 @item This example shows how to graph columns of data read from a file.
 @verbatiminclude filegraph.asy
 @sp 1
-@center @image{filegraph}
+@center @image{./filegraph}
 
 @cindex @code{polygon}
 @cindex @code{cross}
@@ -7365,18 +7365,18 @@ positive and negative extents of the error are assumed to be equal.
 @cindex error bars
 @verbatiminclude errorbars.asy
 @sp 1
-@center @image{errorbars}
+@center @image{./errorbars}
 
 @cindex custom mark routine
 @item A custom mark routine can be also be specified:
 @verbatiminclude graphmarkers.asy
 @sp 1
-@center @image{graphmarkers}
+@center @image{./graphmarkers}
 
 @item This example shows how to label an axis with arbitrary strings.
 @verbatiminclude monthaxis.asy
 @sp 1
-@center @image{monthaxis}
+@center @image{./monthaxis}
 
 @item The next example draws a graph of a parametrized curve. 
 @cindex parametrized curve
@@ -7404,14 +7404,14 @@ within the given limits if @code{crop}=@code{Crop}. The function
 graph limits.
 @verbatiminclude parametricgraph.asy
 @sp 1
-@center @image{parametricgraph}
+@center @image{./parametricgraph}
 
 @cindex scaled graph
 The next example illustrates how one can extract a common axis scaling
 factor.
 @verbatiminclude scaledgraph.asy
 @sp 1
-@center @image{scaledgraph}
+@center @image{./scaledgraph}
 
 @anchor{automatic scaling}
 @cindex automatic scaling
@@ -7465,25 +7465,25 @@ multiplicative scaling factor and intercept (e.g.@ for a depth axis,
 For example, to draw a log/log graph of a function, use @code{scale(Log,Log)}:
 @verbatiminclude loggraph.asy
 @sp 1
-@center @image{loggraph}
+@center @image{./loggraph}
 
 @cindex grid
 By extending the ticks, one can easily produce a logarithmic grid:
 @verbatiminclude loggrid.asy
 
 @sp 1
-@center @image{loggrid}
+@center @image{./loggrid}
 
 One can also specify custom tick locations and formats for logarithmic axes:
 @verbatiminclude logticks.asy
 @sp 1
-@center @image{logticks}
+@center @image{./logticks}
 
 @cindex @code{log2} graph
 It is easy to draw logarithmic graphs with respect to other bases:
 @verbatiminclude log2graph.asy
 @sp 1
-@center @image{log2graph}
+@center @image{./log2graph}
 
 @cindex broken axis
 Here is an example of "broken" linear @math{x} and logarithmic
@@ -7492,7 +7492,7 @@ In the case of a logarithmic axis, the break endpoints are automatically
 rounded to the nearest integral power of the base.
 @verbatiminclude brokenaxis.asy
 @sp 1
-@center @image{brokenaxis}
+@center @image{./brokenaxis}
 
 @cindex secondary axis
 @cindex @code{secondaryX}
@@ -7507,31 +7507,31 @@ In this example, @code{secondaryY} is used to draw a secondary linear
 @math{y} axis against a primary logarithmic @math{y} axis:
 @verbatiminclude Bode.asy
 @sp 1
-@center @image{Bode}
+@center @image{./Bode}
 
 A secondary logarithmic @math{y} axis can be drawn like this:
 @verbatiminclude secondaryaxis.asy
 @sp 1
-@center @image{secondaryaxis}
+@center @image{./secondaryaxis}
 
 @item Here is a histogram example, which uses the @code{stats} module.
 @cindex @code{axis}
 @verbatiminclude histogram.asy
 @sp 1
-@center @image{histogram}
+@center @image{./histogram}
 
 @item Here is an example of reading column data in from a file and a
 least-squares fit, using the @code{stats} module. 
 @cindex @code{leastsquares}
 @verbatiminclude leastsquares.asy
 @sp 1
-@center @image{leastsquares}
+@center @image{./leastsquares}
 
 @item Here is an example that illustrates the general @code{axis} routine.
 @cindex @code{axis}
 @verbatiminclude generalaxis.asy
 @sp 1
-@center @image{generalaxis}
+@center @image{./generalaxis}
 
 @item To draw a vector field of @code{n} arrows evenly spaced along
 the arclength of a path, use the routine
@@ -7543,7 +7543,7 @@ picture vectorfield(path vector(real), path g, int n, bool truesize=false,
 as illustrated in this simple example of a flow field:
 @verbatiminclude flow.asy
 @sp 1
-@center @image{flow}
+@center @image{./flow}
 
 @item To draw a vector field of @code{nx}@math{\times}@code{ny} arrows
 in @code{box(a,b)}, use the routine
@@ -7558,7 +7558,7 @@ picture vectorfield(path vector(pair), pair a, pair b,
 as illustrated in this example:
 @verbatiminclude vectorfield.asy
 @sp 1
-@center @image{vectorfield}
+@center @image{./vectorfield}
 
 @item The following scientific graphs, which illustrate many features of
 @code{Asymptote}'s graphics routines, were generated from the examples
@@ -7567,9 +7567,9 @@ data in @code{@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/diatom.csv
 @page
 
 @sp 1
-@center @image{diatom}
+@center @image{./diatom}
 @sp 1
-@center @image{westnile,,7.5cm}
+@center @image{./westnile,,7.5cm}
 @end enumerate
 
 @page
@@ -7699,14 +7699,14 @@ optionally aligned to a picture at the desired location:
 @anchor{image}
 @verbatiminclude image.asy
 @sp 1
-@center @image{image}
+@center @image{./image}
 
 Here is an example that uses logarithmic scaling of the function values:
 
 @anchor{logimage}
 @verbatiminclude logimage.asy
 @sp 1
-@center @image{logimage}
+@center @image{./logimage}
 
 One can also draw an image directly from a two-dimensional pen array
 or a function @code{pen f(int, int)}:
@@ -7726,12 +7726,12 @@ as illustrated in the following examples:
 @anchor{penimage}
 @verbatiminclude penimage.asy
 @sp 1
-@center @image{penimage}
+@center @image{./penimage}
 
 @anchor{penfunctionimage}
 @verbatiminclude penfunctionimage.asy
 @sp 1
-@center @image{penfunctionimage}
+@center @image{./penfunctionimage}
 
 For convenience, the module @code{palette} also defines functions
 that may be used to construct a pen array from a given function and palette:
@@ -7764,12 +7764,12 @@ For example, a unit circle in the @math{XY} plane may be filled and
 drawn like this:
 @verbatiminclude unitcircle3.asy
 @sp 1
-@center @image{unitcircle3}
+@center @image{./unitcircle3}
 @noindent
 and then distorted into a saddle:
 @verbatiminclude saddle.asy
 @sp 1
-@center @image{saddle}
+@center @image{./saddle}
 @noindent
 
 Module @code{three} provides constructors for converting two-dimensional
@@ -8590,7 +8590,7 @@ The value returned is the determinant
 Here is an example showing all five guide3 connectors:
 @verbatiminclude join3.asy
 @sp 1
-@center @image{join3}
+@center @image{./join3}
 
 @cindex @code{BeginBar3}
 @cindex @code{EndBar3}
@@ -8706,7 +8706,7 @@ two-dimensional vector graphics projection of three orthogonal
 intersecting planes:
 @verbatiminclude planes.asy
 @sp 1
-@center @image{planes}
+@center @image{./planes}
 
 @node obj, graph3, three, Base modules
 @section @code{obj}
@@ -8782,20 +8782,20 @@ Here is an example of a helix and bounding box axes with ticks
 and axis labels, using orthographic projection:
 @verbatiminclude helix.asy
 @sp 1
-@center @image{helix}
+@center @image{./helix}
 
 The next example illustrates three-dimensional @math{x}, @math{y}, and
 @math{z} axes, without autoscaling of the axis limits:
 @cindex @code{axis}
 @verbatiminclude axis3.asy
 @sp 1
-@center @image{axis3}
+@center @image{./axis3}
 
 One can also place ticks along a general three-dimensional axis:
 @cindex @code{axis}
 @verbatiminclude generalaxis3.asy
 @sp 1
-@center @image{generalaxis3}
+@center @image{./generalaxis3}
 
 @cindex @code{surface}
 @cindex @code{Spline}
@@ -8839,7 +8839,7 @@ of a Gaussian surface:
 @anchor{GaussianSurface}
 @verbatiminclude GaussianSurface.asy
 @sp 1
-@center @image{GaussianSurface}
+@center @image{./GaussianSurface}
 @noindent
 A mesh can be drawn without surface filling by specifying @code{nullpen}
 for the surfacepen.
@@ -8867,7 +8867,7 @@ This module, contributed by Philippe Ivaldi, can be used for drawing
 @code{grid3.asy} and at @url{http://www.piprime.fr/files/asymptote/grid3/}):  
 @verbatiminclude grid3xyz.asy
 @sp 1
-@center @image{grid3xyz}
+@center @image{./grid3xyz}
 
 @node solids, tube, grid3, Base modules
 @section @code{solids}
@@ -8878,7 +8878,7 @@ uses it to display the outline of a circular cylinder of radius 1
 with axis @code{O--1.5unit(Y+Z)} with perspective projection:
 @verbatiminclude cylinderskeleton.asy
 @sp 1
-@center @image{cylinderskeleton}
+@center @image{./cylinderskeleton}
 
 Further illustrations are provided in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cylinder.html,,cylinder}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cylinder.asy,,.asy}},
 @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cones.html,,cones}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cones.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/hyperboloid.html,,hyperboloid}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/hyperboloid.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/torus.html,,torus}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/torus.asy,,.asy}}.
@@ -9092,7 +9092,7 @@ Here is a simple flowchart example (see also the example
 
 @verbatiminclude flowchartdemo.asy
 @sp 1
-@center @image{flowchartdemo}
+@center @image{./flowchartdemo}
 
 @node contour, contour3, flowchart, Base modules
 @section @code{contour}
@@ -9150,26 +9150,26 @@ The following simple example draws the contour at value @code{1}
 for the function @math{z=x^2+y^2}, which is a unit circle:
 @verbatiminclude onecontour.asy
 @sp 1
-@center @image{onecontour}
+@center @image{./onecontour}
 
 The next example draws and labels multiple contours for the function
 @math{z=x^2-y^2} with the resolution @code{100 x 100}, using a dashed
 pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude multicontour.asy
 @sp 1
-@center @image{multicontour}
+@center @image{./multicontour}
 
 The next example illustrates how contour lines can be drawn on color
 density images:
 @verbatiminclude imagecontour.asy
 @sp 1
-@center @image{imagecontour}
+@center @image{./imagecontour}
 
 Finally, here is an example that illustrates the construction of contours
 from irregularly spaced data:
 @verbatiminclude irregularcontour.asy
 @sp 1
-@center @image{irregularcontour}
+@center @image{./irregularcontour}
 
 In the above example, the contours of irregularly spaced data are constructed by
 first creating a triangular mesh from an array @code{z} of pairs:
@@ -9181,7 +9181,7 @@ int[][] triangulate(pair[] z);
 
 @verbatiminclude triangulate.asy
 @sp 1
-@center @image{triangulate}
+@center @image{./triangulate}
 
 The example @code{@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/Gouraudcontour.pdf,,Gouraudcontour}@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/Gouraudcontour.asy,,.asy}} illustrates how to produce color
 density images over such irregular triangular meshes.
@@ -9271,7 +9271,7 @@ Both @code{slopefield} and @code{curve} alternatively accept a function
 
 @verbatiminclude slopefield1.asy
 @sp 1
-@center @image{slopefield1}
+@center @image{./slopefield1}
 
 @node ode,  , slopefield, Base modules
 @section @code{ode}
