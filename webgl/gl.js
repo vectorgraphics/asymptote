@@ -1675,6 +1675,8 @@ function setUniforms(data,shader)
 
 function handleMouseDown(event)
 {
+  if(!zoomEnabled)
+    enableZoom();
   mouseDownOrTouchActive=true;
   lastMouseX=event.clientX;
   lastMouseY=event.clientY;
@@ -1696,6 +1698,8 @@ let touchStartTime;
 function handleTouchStart(event)
 {
   event.preventDefault();
+  if(!zoomEnabled)
+    enableZoom();
   let touches=event.targetTouches;
   swipe=rotate=pinch=false;
   if(zooming) return;
@@ -1851,10 +1855,35 @@ function processDrag(newX,newY,mode,factor=1)
   draw();
 }
 
+let zoomEnabled=0;
+
+function enableZoom()
+{
+  zoomEnabled=1;
+  canvas.addEventListener("wheel",handleMouseWheel,false);
+}
+
+function disableZoom()
+{
+  zoomEnabled=0;
+  canvas.removeEventListener("wheel",handleMouseWheel,false);
+}
+
 function handleKey(event)
 {
+  let ESC=27;
+
+  if(!zoomEnabled)
+    enableZoom();
+
+  if(embedded && zoomEnabled && event.keyCode == ESC) {
+    disableZoom();
+    return;
+  }
+
   let keycode=event.key;
   let axis=[];
+
   switch(keycode) {
   case 'x':
     axis=[1,0,0];
@@ -2258,7 +2287,8 @@ function webGLStart()
   document.onmousemove=handleMouseMove;
   canvas.onkeydown=handleKey;
 
-  canvas.addEventListener("wheel",handleMouseWheel,false);
+  if(!embedded)
+    enableZoom();
   canvas.addEventListener("touchstart",handleTouchStart,false);
   canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
