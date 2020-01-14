@@ -23,10 +23,10 @@ void jsfile::open(string name) {
     
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
-      << "<object width=\"" << gl::fullWidth
+      << "<iframe src=\"" << name
+      << "\" width=\"" << gl::fullWidth
       << "\" height=\"" << gl::fullHeight
-      << "\" data=\"" << name
-      << "\" style=\"position:relative;top:0;left:0;\"></object>" << newl
+      << "\" frameborder=\"0\"></iframe>" << newl
       << newl
       << "-->" << newl << newl;
 
