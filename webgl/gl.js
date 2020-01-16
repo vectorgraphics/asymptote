@@ -2240,7 +2240,7 @@ function shrink()
 
 let pixelShader,noNormalShader,materialShader,colorShader,transparentShader;
 
-function webGLStart()
+function webGLInit()
 {
   canvas=document.getElementById("Asymptote");
   embedded=window.top.document != document;
@@ -2296,3 +2296,13 @@ function webGLStart()
   canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
 }
+
+function webGLStart()
+{
+  window.removeEventListener("resize",webGLStart,false);
+  if(window.innerWidth != 0 && window.innerHeight != 0)
+    webGLInit();
+  else
+    window.addEventListener("resize",webGLStart,false);
+}
+
