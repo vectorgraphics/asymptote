@@ -2297,12 +2297,21 @@ function webGLInit()
   document.addEventListener("keydown",handleKey,false);
 }
 
+let listen=false;
+
 function webGLStart()
 {
-  window.removeEventListener("resize",webGLStart,false);
-  if(window.innerWidth != 0 && window.innerHeight != 0)
+  if(window.innerWidth == 0 || window.innerHeight == 0) {
+    if(!listen) {
+      listen=true;
+      window.addEventListener("resize",webGLStart,false);
+    }
+  } else {
+    if(listen) {
+      window.removeEventListener("resize",webGLStart,false);
+      listen=false;
+    }
     webGLInit();
-  else
-    window.addEventListener("resize",webGLStart,false);
+  }
 }
 
