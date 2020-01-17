@@ -58,18 +58,11 @@ void setcolors(bool colors,
                const RGBAColour& specular, double shininess,
                double metallic, double fresnel0, jsfile *out)
 {
-  Material m;
-  if(colors) {
-    static glm::vec4 Black(0.0,0.0,0.0,diffuse.A);
-    m=Material(Black,Black,
-               glm::vec4(specular.R,specular.G,specular.B,specular.A),
-               shininess,metallic,fresnel0);
-  } else
-    m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
-               glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
-               glm::vec4(specular.R,specular.G,specular.B,specular.A),
-               shininess,metallic,fresnel0);
-          
+  Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
+                      glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
+                      glm::vec4(specular.R,specular.G,specular.B,specular.A),
+                      shininess,metallic,fresnel0);
+  
   MaterialMap::iterator p=materialMap.find(m);
   if(p != materialMap.end()) materialIndex=p->second;
   else {

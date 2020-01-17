@@ -80,9 +80,9 @@ pen operator ecast(material m)
   return m.p.length > 0 ? m.diffuse() : nullpen;
 }
 
-material emissive(material m)
+material emissive(material m, bool colors=false)
 {
-  return material(black+opacity(m.opacity),m.diffuse(),black,m.opacity,1);
+ return material(black+opacity(m.opacity),colors ? m.emissive() : m.diffuse()+m.emissive(),black,m.opacity,1);
 }
 
 pen color(triple normal, material m, light light, transform3 T=light.T) {

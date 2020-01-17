@@ -1393,9 +1393,9 @@ interaction LabelInteraction()
   return settings.autobillboard ? Billboard : Embedded;
 }
 
-material material(material m, light light) 
+material material(material m, light light, bool colors=false)
 {
-  return light.on() || invisible((pen) m) ? m : emissive(m);
+  return light.on() || invisible((pen) m) ? m : emissive(m,colors);
 }
 
 void draw3D(frame f, int type=0, patch s, triple center=O, material m,
@@ -1407,9 +1407,9 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   if(s.colors.length > 0) {
     if(prc && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
-    m=mean(s.colors);
+    m.diffuse(mean(s.colors));
   }
-  m=material(m,light);
+  m=material(m,light,s.colors.length > 0);
   
   real PRCshininess;
   if(prc) PRCshininess=PRCshininess(m.shininess);
@@ -1553,7 +1553,6 @@ void drawPRCtube(frame f, path3 center, path3 g, material m,
 void tensorshade(transform t=identity(), frame f, patch s,
                  material m, light light=currentlight, projection P)
 {
-  
   pen[] p;
   if(s.triangular) {
     p=s.colorstriangular(m,light);
