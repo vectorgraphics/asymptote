@@ -9,7 +9,7 @@
 @copying
 This file documents @code{Asymptote}, version @value{VERSION}.
 
-@url{http://asymptote.sourceforge.net}
+@url{https://asymptote.sourceforge.io}
      
 Copyright @copyright{} 2004-19 Andy Hammerlindl, John Bowman, and Tom Prince.
      
@@ -261,24 +261,24 @@ applications; for example, a scientific graphing module is available
 (@pxref{graph}). Examples of @code{Asymptote} code and output,
 including animations, are available at
 @quotation
-@url{http://asymptote.sourceforge.net/gallery/}
+@url{https://asymptote.sourceforge.io/gallery/}
 @end quotation
 @noindent
 Clicking on an example file name in this manual, like
-@code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.svg,,Pythagoras}}, will display the @acronym{PDF} output, whereas clicking on its
-@code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.asy,,.asy}}
+@code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}}, will display the @acronym{PDF} output, whereas clicking on its
+@code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}}
 extension will show the corresponding @code{Asymptote} code in a separate window.
 
 Links to many external resources, including an excellent user-written
 @code{Asymptote} tutorial can be found at
 @quotation
-@url{http://asymptote.sourceforge.net/links.html}
+@url{https://asymptote.sourceforge.io/links.html}
 @end quotation
 @cindex reference
 @cindex quick reference
 A quick reference card for @code{Asymptote} is available at
 @quotation
-@url{http://asymptote.sourceforge.net/asyRefCard.pdf}
+@url{https://asymptote.sourceforge.io/asyRefCard.pdf}
 @end quotation
 
 @node Installation, Tutorial, Description, Top
@@ -303,12 +303,12 @@ please see also @ref{Configuring}.
 @noindent
 We recommend subscribing to new release announcements at
 @quotation
-@url{http://sourceforge.net/projects/asymptote}
+@url{https://sourceforge.net/projects/asymptote}
 @end quotation
 @noindent
 Users may also wish to monitor the @code{Asymptote} forum:
 @quotation
-@url{http://sourceforge.net/p/asymptote/discussion/409349}
+@url{https://sourceforge.net/p/asymptote/discussion/409349}
 @end quotation
 @noindent
 
@@ -588,7 +588,7 @@ To compile and install a @code{UNIX} executable from
 the source release @code{asymptote-x.xx.src.tgz} in the subdirectory
 @code{x.xx} under
 
-@url{http://sourceforge.net/projects/asymptote/files/}
+@url{https://sourceforge.net/projects/asymptote/files/}
 
 execute the commands:
 @verbatim
@@ -635,7 +635,7 @@ To build the documentation, you may need to install the
 @code{texinfo-tex} package. If you get errors from a broken @code{texinfo}
 or @code{pdftex} installation, simply put
 @quotation
-@url{http://asymptote.sourceforge.net/asymptote.pdf}
+@url{https://asymptote.sourceforge.io/asymptote.pdf}
 @end quotation
 @noindent
 in the directory @code{doc} and repeat the command @code{make all}.
@@ -1016,8 +1016,8 @@ cube @code{unitbox} without retracing steps (@pxref{three}):
 @center @image{./cube}
 
 See section @ref{graph} (or the online
-@code{Asymptote} @uref{http://asymptote.sourceforge.net/gallery,,gallery} and
-external links posted at @url{http://asymptote.sourceforge.net}) for
+@code{Asymptote} @uref{https://asymptote.sourceforge.io/gallery,,gallery} and
+external links posted at @url{https://asymptote.sourceforge.io}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
 posted by Philippe Ivaldi at @url{http://www.piprime.fr/asymptote}.
@@ -1181,8 +1181,8 @@ specify a margin directly in @code{PostScript} units, independent of
 the pen line width.
 
 The use of arrows, bars, and margins is illustrated by the examples
-@code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.svg,,Pythagoras}@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.asy,,.asy}} and
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/sqrtx01.html,,sqrtx01}@uref{http://asymptote.sourceforge.net/gallery/sqrtx01.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/sqrtx01.html,,sqrtx01}@uref{https://asymptote.sourceforge.io/gallery/sqrtx01.asy,,.asy}}.
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine:
@@ -1319,7 +1319,7 @@ would be drawn by @code{draw(pic,g,zerowinding)}; in this case the path
 The pens in @code{p} must belong to the same color space. One can use the
 functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
 higher color space, as illustrated in the example file
-@code{@uref{http://asymptote.sourceforge.net/gallery/latticeshading.svg,,latticeshading}@uref{http://asymptote.sourceforge.net/gallery/latticeshading.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/latticeshading.svg,,latticeshading}@uref{https://asymptote.sourceforge.io/gallery/latticeshading.asy,,.asy}}.
 
 @cindex @code{axialshade}
 Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
@@ -1348,7 +1348,7 @@ void radialshade(picture pic=currentpicture, path g, bool stroke=false,
 The boolean parameters @code{extenda} and @code{extendb} indicate
 whether the shading should extend beyond the radii @code{a} and @code{b}.
 Illustrations of radial shading are provided in the example files
-@code{@uref{http://asymptote.sourceforge.net/gallery/shade.svg,,shade}@uref{http://asymptote.sourceforge.net/gallery/shade.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/ring.pdf,,ring}@uref{http://asymptote.sourceforge.net/gallery/ring.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/shadestroke.pdf,,shadestroke}@uref{http://asymptote.sourceforge.net/gallery/shadestroke.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/shade.svg,,shade}@uref{https://asymptote.sourceforge.io/gallery/shade.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/ring.pdf,,ring}@uref{https://asymptote.sourceforge.io/gallery/ring.asy,,.asy}}, and @code{@uref{https://asymptote.sourceforge.io/gallery/shadestroke.pdf,,shadestroke}@uref{https://asymptote.sourceforge.io/gallery/shadestroke.asy,,.asy}}.
 
 @cindex @code{gouraudshade}
 Gouraud shading using fill rule @code{fillrule} and the vertex colors in the
@@ -1365,7 +1365,7 @@ void gouraudshade(picture pic=currentpicture, path g, bool stroke=false,
 In the second form, the elements of @code{z} are taken to be successive
 nodes of path @code{g}. The pens in @code{p} must belong to the same
 color space. Illustrations of Gouraud shading are provided in the example file
-@code{@uref{http://asymptote.sourceforge.net/gallery/Gouraud.pdf,,Gouraud}@uref{http://asymptote.sourceforge.net/gallery/Gouraud.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/Gouraud.pdf,,Gouraud}@uref{https://asymptote.sourceforge.io/gallery/Gouraud.asy,,.asy}}.
 The edge flags used in Gouraud shading are documented here:
 @quotation
 @url{https://www.adobe.com/content/dam/acom/en/devnet/postscript/pdfs/TN5600.SmoothShading.pdf}
@@ -1403,8 +1403,8 @@ void draw(picture pic=currentpicture, pen fillrule=currentpen, path[] g,
 @end verbatim
 @noindent
 Illustrations of tensor product and Coons shading are provided in the
-example files @code{@uref{http://asymptote.sourceforge.net/gallery/tensor.pdf,,tensor}@uref{http://asymptote.sourceforge.net/gallery/tensor.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/Coons.pdf,,Coons}@uref{http://asymptote.sourceforge.net/gallery/Coons.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/BezierPatch.pdf,,BezierPatch}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/BezierPatch.asy,,.asy}},
-and @code{@uref{http://asymptote.sourceforge.net/gallery/rainbow.pdf,,rainbow}@uref{http://asymptote.sourceforge.net/gallery/rainbow.asy,,.asy}}.
+example files @code{@uref{https://asymptote.sourceforge.io/gallery/tensor.pdf,,tensor}@uref{https://asymptote.sourceforge.io/gallery/tensor.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/Coons.pdf,,Coons}@uref{https://asymptote.sourceforge.io/gallery/Coons.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/BezierPatch.pdf,,BezierPatch}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/BezierPatch.asy,,.asy}},
+and @code{@uref{https://asymptote.sourceforge.io/gallery/rainbow.pdf,,rainbow}@uref{https://asymptote.sourceforge.io/gallery/rainbow.asy,,.asy}}.
     
 @cindex Function shading
 @cindex function shading
@@ -1420,7 +1420,7 @@ shades on picture @code{pic} the interior of path @code{g} according
 to fill rule @code{fillrule} using the @code{PostScript} calculator routine
 specified by the string @code{shader}; this routine takes 2 arguments,
 each in [0,1], and returns @code{colors(fillrule).length} color components.
-Function shading is illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/functionshading.pdf,,functionshading}@uref{http://asymptote.sourceforge.net/gallery/functionshading.asy,,.asy}}.
+Function shading is illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/functionshading.pdf,,functionshading}@uref{https://asymptote.sourceforge.io/gallery/functionshading.asy,,.asy}}.
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
@@ -1578,7 +1578,7 @@ layer();
 The @code{string baseline(string s, string template="\strut")} 
 function can be used to enlarge the bounding box of labels to match a
 given template, so that their baselines will be typeset on a
-horizontal line. See @code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.svg,,Pythagoras}@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.asy,,.asy}} for an example.
+horizontal line. See @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} for an example.
 
 One can prevent labels from overwriting one another with the
 @code{overwrite} pen attribute (@pxref{overwrite}).
@@ -3153,7 +3153,7 @@ formats can be produced from the resulting @acronym{PDF} file with the
 @code{ImageMagick} @code{convert} program.
 Labels are always drawn with an @code{opacity} of 1.
 A simple example of transparent filling is provided in the example file
-@code{@uref{http://asymptote.sourceforge.net/gallery/transparency.svg,,transparency}@uref{http://asymptote.sourceforge.net/gallery/transparency.asy,,.asy}}. 
+@code{@uref{https://asymptote.sourceforge.io/gallery/transparency.svg,,transparency}@uref{https://asymptote.sourceforge.io/gallery/transparency.asy,,.asy}}. 
 
 @cindex patterns
 @cindex tilings
@@ -6201,7 +6201,7 @@ To store the figures in a separate directory named @code{asy}, one can define
 \def\asydir{asy}
 @end verbatim
 in @code{latexusage.tex} and put the contents of
-@url{http://sourceforge.net/p/asymptote/code/HEAD/tree/trunk/asymptote/doc/latexmkrc_asydir}
+@url{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/latexmkrc_asydir}
 in a file @code{latexmkrc} in the same directory.
 @noindent
 External @code{Asymptote} code can be included with
@@ -6432,7 +6432,7 @@ This module, written by Philippe Ivaldi, provides an extensive set of
 geometry routines, including @code{perpendicular} symbols and a @code{triangle}
 structure. Link to the documentation for the @code{geometry} module
 are posted here:
-@url{http://asymptote.sourceforge.net/links.html},
+@url{https://asymptote.sourceforge.io/links.html},
 including an extensive set of examples,
 @url{http://www.piprime.fr/files/asymptote/geometry/}, and an index:
 @quotation
@@ -6443,7 +6443,7 @@ including an extensive set of examples,
 @section @code{trembling}
 @cindex @code{trembling}
 This module, written by Philippe Ivaldi and illustrated in the example
-@code{@uref{http://asymptote.sourceforge.net/gallery/floatingdisk.svg,,floatingdisk}@uref{http://asymptote.sourceforge.net/gallery/floatingdisk.asy,,.asy}}, allows one to draw wavy lines, as if drawn by
+@code{@uref{https://asymptote.sourceforge.io/gallery/floatingdisk.svg,,floatingdisk}@uref{https://asymptote.sourceforge.io/gallery/floatingdisk.asy,,.asy}}, allows one to draw wavy lines, as if drawn by
 hand.
 
 @node stats, patterns, trembling, Base modules
@@ -6502,7 +6502,7 @@ frame tildeframe(int n=1, real size=0, pair space=0,
 For convenience, this module also constructs the markers
 @code{StickIntervalMarker},  @code{CrossIntervalMarker},
 @code{CircleBarIntervalMarker}, and @code{TildeIntervalMarker}
-from the above frames. The example @code{@uref{http://asymptote.sourceforge.net/gallery/markers1.svg,,markers1}@uref{http://asymptote.sourceforge.net/gallery/markers1.asy,,.asy}} illustrates the
+from the above frames. The example @code{@uref{https://asymptote.sourceforge.io/gallery/markers1.svg,,markers1}@uref{https://asymptote.sourceforge.io/gallery/markers1.asy,,.asy}} illustrates the
 use of these markers:
 
 @sp 1
@@ -6518,7 +6518,7 @@ void markangle(picture pic=currentpicture, Label L="",
                marker marker=nomarker);
 @end verbatim
 @noindent
-as illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/markers2.svg,,markers2}@uref{http://asymptote.sourceforge.net/gallery/markers2.asy,,.asy}}.
+as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/markers2.svg,,markers2}@uref{https://asymptote.sourceforge.io/gallery/markers2.asy,,.asy}}.
 
 @sp 1
 @center @image{./markers2}
@@ -6533,7 +6533,7 @@ This package implements an example of a dynamic binary search tree.
 @cindex @code{binarytree}
 This module can be used to draw an arbitrary binary tree and includes an
 input routine for the special case of a binary search tree, as
-illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/binarytreetest.svg,,binarytreetest}@uref{http://asymptote.sourceforge.net/gallery/binarytreetest.asy,,.asy}}:
+illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/binarytreetest.svg,,binarytreetest}@uref{https://asymptote.sourceforge.io/gallery/binarytreetest.asy,,.asy}}:
 @verbatiminclude binarytreetest.asy
 @sp 1
 @center @image{./binarytreetest}
@@ -6541,27 +6541,27 @@ illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/
 @node drawtree, syzygy, binarytree, Base modules
 @section @code{drawtree}
 @cindex @code{drawtree}
-This is a simple tree drawing module used by the example @code{@uref{http://asymptote.sourceforge.net/gallery/treetest.svg,,treetest}@uref{http://asymptote.sourceforge.net/gallery/treetest.asy,,.asy}}.
+This is a simple tree drawing module used by the example @code{@uref{https://asymptote.sourceforge.io/gallery/treetest.svg,,treetest}@uref{https://asymptote.sourceforge.io/gallery/treetest.asy,,.asy}}.
 
 @node syzygy, feynman, drawtree, Base modules
 @section @code{syzygy}
 @cindex @code{syzygy}
 This module automates the drawing of braids, relations, and syzygies,
 along with the corresponding equations, as illustrated in the example
-@code{@uref{http://asymptote.sourceforge.net/gallery/knots.svg,,knots}@uref{http://asymptote.sourceforge.net/gallery/knots.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/knots.svg,,knots}@uref{https://asymptote.sourceforge.io/gallery/knots.asy,,.asy}}.
 
 @node feynman, roundedpath, syzygy, Base modules
 @section @code{feynman}
 @cindex @code{feynman}
 This package, contributed by Martin Wiebusch, is useful for drawing
-Feynman diagrams, as illustrated by the examples @code{@uref{http://asymptote.sourceforge.net/gallery/eetomumu.svg,,eetomumu}@uref{http://asymptote.sourceforge.net/gallery/eetomumu.asy,,.asy}}
-and @code{@uref{http://asymptote.sourceforge.net/gallery/fermi.svg,,fermi}@uref{http://asymptote.sourceforge.net/gallery/fermi.asy,,.asy}}.
+Feynman diagrams, as illustrated by the examples @code{@uref{https://asymptote.sourceforge.io/gallery/eetomumu.svg,,eetomumu}@uref{https://asymptote.sourceforge.io/gallery/eetomumu.asy,,.asy}}
+and @code{@uref{https://asymptote.sourceforge.io/gallery/fermi.svg,,fermi}@uref{https://asymptote.sourceforge.io/gallery/fermi.asy,,.asy}}.
 
 @node roundedpath, animation, feynman, Base modules
 @section @code{roundedpath}
 @cindex @code{roundedpath}
 This package, contributed by Stefan Knorr, is useful for rounding the
-sharp corners of paths, as illustrated in the example file @code{@uref{http://asymptote.sourceforge.net/gallery/roundpath.svg,,roundpath}@uref{http://asymptote.sourceforge.net/gallery/roundpath.asy,,.asy}}.
+sharp corners of paths, as illustrated in the example file @code{@uref{https://asymptote.sourceforge.io/gallery/roundpath.svg,,roundpath}@uref{https://asymptote.sourceforge.io/gallery/roundpath.asy,,.asy}}.
 
 @node animation, embed, roundedpath, Base modules
 @section @code{animation}
@@ -6570,7 +6570,7 @@ sharp corners of paths, as illustrated in the example file @code{@uref{http://as
 @cindex animation
 @cindex @code{ImageMagick}
 This module allows one to generate animations, as illustrated by the
-files @code{@uref{http://asymptote.sourceforge.net/gallery/animations/wheel.gif,,wheel}@uref{http://asymptote.sourceforge.net/gallery/animations/wheel.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/animations/wavepacket.gif,,wavepacket}@uref{http://asymptote.sourceforge.net/gallery/animations/wavepacket.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/animations/cube.gif,,cube}@uref{http://asymptote.sourceforge.net/gallery/animations/cube.asy,,.asy}} in
+files @code{@uref{https://asymptote.sourceforge.io/gallery/animations/wheel.gif,,wheel}@uref{https://asymptote.sourceforge.io/gallery/animations/wheel.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/animations/wavepacket.gif,,wavepacket}@uref{https://asymptote.sourceforge.io/gallery/animations/wavepacket.asy,,.asy}}, and @code{@uref{https://asymptote.sourceforge.io/gallery/animations/cube.gif,,cube}@uref{https://asymptote.sourceforge.io/gallery/animations/cube.asy,,.asy}} in
 the @code{animations} subdirectory of the examples directory. These
 animations use the @code{ImageMagick} @code{convert} program to
 merge multiple images into a @acronym{GIF} or @acronym{MPEG}
@@ -6591,9 +6591,9 @@ local @code{LaTeX} directory (for example, in
 @code{/usr/local/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
 one must then execute the command @code{texhash}.
 
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/animations/pdfmovie.pdf,,pdfmovie}@uref{http://asymptote.sourceforge.net/gallery/animations/pdfmovie.asy,,.asy}} in the @code{animations}
-directory, along with the slide presentations @code{@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.pdf,,slidemovies}@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.asy,,.asy}}
-and @code{@uref{http://asymptote.sourceforge.net/intro.pdf,,intro}}, illustrate the use of embedded @acronym{PDF} movies.
+The example @code{@uref{https://asymptote.sourceforge.io/gallery/animations/pdfmovie.pdf,,pdfmovie}@uref{https://asymptote.sourceforge.io/gallery/animations/pdfmovie.asy,,.asy}} in the @code{animations}
+directory, along with the slide presentations @code{@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.pdf,,slidemovies}@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.asy,,.asy}}
+and @code{@uref{https://asymptote.sourceforge.io/intro.pdf,,intro}}, illustrate the use of embedded @acronym{PDF} movies.
 The examples @code{inlinemovie.tex} and @code{inlinemovie3.tex} 
 show how to generate and embed @acronym{PDF} movies directly within a
 @code{LaTeX} file (@pxref{LaTeX usage}).
@@ -6628,7 +6628,7 @@ by using the @code{external} module instead of @code{embed}.
 Examples of the above two interfaces is provided in the file
 @code{embeddedmovie.asy} in the @code{animations} subdirectory of the
 examples directory and in 
-@code{@uref{http://asymptote.sourceforge.net/gallery/animations/externalmovie.pdf,,externalmovie}@uref{http://asymptote.sourceforge.net/gallery/animations/externalmovie.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/animations/externalmovie.pdf,,externalmovie}@uref{https://asymptote.sourceforge.io/gallery/animations/externalmovie.asy,,.asy}}.
 For a higher quality embedded movie generated directly by
 @code{Asymptote}, use the @code{animate} module along with the
 @code{animate.sty} package to embed a portable @acronym{PDF} animation
@@ -6643,7 +6643,7 @@ An example of embedding @code{U3D} code is provided in the file
 @cindex @code{slide}
 This package provides a simple yet high-quality facility for making
 presentation slides, including portable embedded @acronym{PDF} animations (see
-the file @code{@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.pdf,,slidemovies}@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.asy,,.asy}}). A simple example is provided in
+the file @code{@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.pdf,,slidemovies}@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.asy,,.asy}}). A simple example is provided in
 @code{slidedemo.asy}.
 
 @node MetaPost, unicode, slide, Base modules
@@ -6723,7 +6723,7 @@ babel("german");
 @cindex @code{labelpath}
 This module uses the @code{PSTricks} @code{pstextpath} macro to fit labels 
 along a path (properly kerned, as illustrated in the example file
-@code{@uref{http://asymptote.sourceforge.net/gallery/curvedlabel.svg,,curvedlabel}@uref{http://asymptote.sourceforge.net/gallery/curvedlabel.asy,,.asy}}), using the command
+@code{@uref{https://asymptote.sourceforge.io/gallery/curvedlabel.svg,,curvedlabel}@uref{https://asymptote.sourceforge.io/gallery/curvedlabel.asy,,.asy}}), using the command
 @verbatim
 void labelpath(picture pic=currentpicture, Label L, path g,
                string justify=Centered, pen p=currentpen);
@@ -6742,7 +6742,7 @@ All other Label transforms are ignored. This package requires the
 @cindex @code{labelpath3}
 This module, contributed by Jens Schwaiger, implements a 3D version of
 @code{labelpath} that does not require the @code{PSTricks} package.
-An example is provided in @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/curvedlabel3.html,,curvedlabel3}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/curvedlabel3.asy,,.asy}}.
+An example is provided in @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/curvedlabel3.html,,curvedlabel3}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/curvedlabel3.asy,,.asy}}.
 
 @node annotate, CAD, labelpath3, Base modules
 @section @code{annotate}
@@ -6754,7 +6754,7 @@ void annotate(picture pic=currentpicture, string title, string text,
               pair position);
 @end verbatim
 @noindent
-Annotations are illustrated in the example file @code{@uref{http://asymptote.sourceforge.net/gallery/annotation.pdf,,annotation}@uref{http://asymptote.sourceforge.net/gallery/annotation.asy,,.asy}}.
+Annotations are illustrated in the example file @code{@uref{https://asymptote.sourceforge.io/gallery/annotation.pdf,,annotation}@uref{https://asymptote.sourceforge.io/gallery/annotation.asy,,.asy}}.
 Currently, annotations are only implemented for the @code{latex}
 (default) and @code{tex} @TeX{} engines.
 
@@ -7562,8 +7562,8 @@ as illustrated in this example:
 
 @item The following scientific graphs, which illustrate many features of
 @code{Asymptote}'s graphics routines, were generated from the examples
-@code{@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/diatom.svg,,diatom}@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/diatom.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/westnile.svg,,westnile}@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/westnile.asy,,.asy}}, using the comma-separated
-data in @code{@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/diatom.csv,,diatom.csv}} and @code{@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/westnile.csv,,westnile.csv}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/diatom.svg,,diatom}@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/diatom.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/westnile.svg,,westnile}@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/westnile.asy,,.asy}}, using the comma-separated
+data in @code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/diatom.csv,,diatom.csv}} and @code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/westnile.csv,,westnile.csv}}.
 @page
 
 @sp 1
@@ -7644,7 +7644,7 @@ or an explicit range @code{Range(real min, real max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits. 
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/imagecontour.svg,,imagecontour}@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/imagecontour.asy,,.asy}} illustrates how level sets
+The example @code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/imagecontour.svg,,imagecontour}@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/imagecontour.asy,,.asy}} illustrates how level sets
 (contour lines) can be drawn on a color density plot (@pxref{contour}).
 
 A color density plot can also be generated from an explicit real[][]
@@ -7872,17 +7872,17 @@ background colour (the default is white). In the case of
 @code{currentlight.background=black+opacity(0.0);}
 
 Sample Bezier surfaces are
-contained in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/BezierSurface.html,,BezierSurface}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/BezierSurface.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/teapot.html,,teapot}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/teapot.asy,,.asy}},
-and @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/parametricsurface.asy,,.asy}}. The structure @code{render} contains
+contained in the example files @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/BezierSurface.html,,BezierSurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/BezierSurface.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/teapot.html,,teapot}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/teapot.asy,,.asy}},
+and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.asy,,.asy}}. The structure @code{render} contains
 specialized rendering options documented at the beginning of module 
 @code{three}.
 
 @cindex patch-dependent colors
 @cindex vertex-dependent colors
 The examples
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/elevation.html,,elevation}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/elevation.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/sphericalharmonic.html,,sphericalharmonic}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/sphericalharmonic.asy,,.asy}} 
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.html,,elevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.html,,sphericalharmonic}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.asy,,.asy}} 
 illustrate how to draw a surface with patch-dependent colors.
-The examples @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/vertexshading.html,,vertexshading}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/vertexshading.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/smoothelevation.asy,,.asy}} illustrate
+The examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.html,,vertexshading}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.asy,,.asy}} illustrate
 vertex-dependent colors, which are supported by
 @code{Asymptote}'s native @code{OpenGL}/@code{WebGL} renderers
 and the two-dimensional vector output format (@code{settings.render=0}). Since
@@ -7948,7 +7948,7 @@ triangle. Similarly, the arguments @code{n} and @code{ni} contain
 optional normal data and @code{p} and @code{pi} contain optional pen
 vertex data. If more than one normal or pen is specified for a vertex, the
 last one specified is used.
-An example of this tessellation facility is given in @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/triangles.html,,triangles}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/triangles.asy,,.asy}}.
+An example of this tessellation facility is given in @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/triangles.html,,triangles}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/triangles.asy,,.asy}}.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -8109,7 +8109,7 @@ line option @code{-f pdf}, put in the @code{Asymptote} configuration
 file (@pxref{configuration file}), or specified in the script before
 module @code{three} (or @code{graph3}) is imported.
 The @code{media9} LaTeX package is also required (@pxref{embed}).
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/100d.html,,100d}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/pdb.asy,,.asy}} illustrates 
+The example @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/100d.html,,100d}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/pdb.asy,,.asy}} illustrates 
 how one can generate a list of predefined views (see @code{100d.views}).
 A stationary preview image with a resolution of @code{n} pixels per
 @code{bp} can be embedded with the setting @code{render=n}; this allows
@@ -8454,7 +8454,7 @@ patches in the @acronym{PRC} model tree.
 The default interaction is @code{Billboard}, which means that labels
 are rotated interactively so that they always face the camera.
 The interaction @code{Embedded} means that the label interacts as a
-normal @code{3D} surface, as illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/billboard.html,,billboard}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/billboard.asy,,.asy}}.
+normal @code{3D} surface, as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/billboard.html,,billboard}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/billboard.asy,,.asy}}.
 @cindex @code{transform}
 @cindex @code{XY}
 @cindex @code{YZ}
@@ -8484,7 +8484,7 @@ triple normal(path3 p);
 @end verbatim
 @noindent
 to find the unit normal vector to a planar three-dimensional path @code{p}.
-As illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/planeproject.html,,planeproject}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/planeproject.asy,,.asy}}, a transform3
+As illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/planeproject.html,,planeproject}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/planeproject.asy,,.asy}}, a transform3
 that projects in the direction @code{dir} onto the plane defined by a
 planar path @code{p} is returned by
 @verbatim
@@ -8629,7 +8629,7 @@ space and aligned according to the initial viewpoint (or an optionally
 specified @code{normal} vector) are also defined:
 @code{DefaultHead2(triple normal=O)}, @code{HookHead2(triple normal=O)},
 @code{TeXHead2(triple normal=O)}. These are illustrated in the example
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/arrows3.html,,arrows3}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/arrows3.asy,,.asy}}. 
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/arrows3.html,,arrows3}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/arrows3.asy,,.asy}}. 
 
 @cindex @code{NoMargin3}
 @cindex @code{BeginMargin3}
@@ -8671,8 +8671,8 @@ can be used to draw on picture @code{pic} a pixel of width @code{width} at
 position @code{v} using pen @code{p}.
 
 Further three-dimensional examples are provided in the files
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/near_earth.html,,near_earth}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/near_earth.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/conicurv.html,,conicurv}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/conicurv.asy,,.asy}}, and (in the @code{animations}
-subdirectory) @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cube.html,,cube}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cube.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/near_earth.html,,near_earth}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/near_earth.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/conicurv.html,,conicurv}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/conicurv.asy,,.asy}}, and (in the @code{animations}
+subdirectory) @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/cube.html,,cube}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/cube.asy,,.asy}}.
 
 @anchor{PostScript3D}
 @cindex 3D @code{PostScript}
@@ -8715,8 +8715,8 @@ intersecting planes:
 @section @code{obj}
 @cindex @code{obj}
 This module allows one to construct surfaces from simple obj files,
-as illustrated in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/galleon.html,,galleon}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/galleon.asy,,.asy}} and
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/triceratops.html,,triceratops}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/triceratops.asy,,.asy}}.
+as illustrated in the example files @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/galleon.html,,galleon}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/galleon.asy,,.asy}} and
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/triceratops.html,,triceratops}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/triceratops.asy,,.asy}}.
 
 @node graph3, grid3, obj, Base modules
 @section @code{graph3}
@@ -8830,13 +8830,13 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
 @noindent
 The final two versions draw parametric surfaces for a function
 @math{f(u,v)} over the parameter space @code{box(a,b)},
-as illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/parametricsurface.asy,,.asy}}.
+as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.asy,,.asy}}.
 An optional splinetype @code{Spline} may be specified.
 The boolean array or function @code{cond} can be used to control which
 surface mesh cells are actually drawn (by default all mesh cells over
 @code{box(a,b)} are drawn).
 Surface lighting is illustrated in the example files
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/parametricsurface.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/sinc.html,,sinc}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/sinc.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3D graphs/sinc.html,,sinc}@uref{https://asymptote.sourceforge.io/gallery/3D graphs/sinc.asy,,.asy}}.
 Lighting can be disabled by setting @code{light=nolight}, as in this example
 of a Gaussian surface:
 @anchor{GaussianSurface}
@@ -8857,8 +8857,8 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
                     bool cond(pair z)=null, pen p=currentpen,
                     arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
 @end verbatim
-as illustrated in the examples @code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/vectorfield3.html,,vectorfield3}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/vectorfield3.asy,,.asy}} and
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/vectorfieldsphere.html,,vectorfieldsphere}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/vectorfieldsphere.asy,,.asy}}.
+as illustrated in the examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfield3.html,,vectorfield3}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfield3.asy,,.asy}} and
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfieldsphere.html,,vectorfieldsphere}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfieldsphere.asy,,.asy}}.
 
 @node grid3, solids, graph3, Base modules
 @section @code{grid3}
@@ -8883,8 +8883,8 @@ with axis @code{O--1.5unit(Y+Z)} with perspective projection:
 @sp 1
 @center @image{./cylinderskeleton}
 
-Further illustrations are provided in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cylinder.html,,cylinder}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cylinder.asy,,.asy}},
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cones.html,,cones}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/cones.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/hyperboloid.html,,hyperboloid}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/hyperboloid.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/torus.html,,torus}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/torus.asy,,.asy}}.
+Further illustrations are provided in the example files @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/cylinder.html,,cylinder}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/cylinder.asy,,.asy}},
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/cones.html,,cones}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/cones.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/hyperboloid.html,,hyperboloid}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/hyperboloid.asy,,.asy}}, and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/torus.html,,torus}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/torus.asy,,.asy}}.
 
 The structure @code{skeleton} contains the three-dimensional wireframe
 used to visualize a volume of revolution:
@@ -8905,7 +8905,7 @@ struct skeleton {
 @section @code{tube}
 @cindex @code{tube}
 This package extends the @code{tube} surfaces constructed in
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/three_arrows.html,,three_arrows}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/three_arrows.asy,,.asy}} to arbitrary cross sections, colors, and spine
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/three_arrows.html,,three_arrows}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/three_arrows.asy,,.asy}} to arbitrary cross sections, colors, and spine
 transformations. The routine
 @verbatim
 surface tube(path3 g, coloredpath section,
@@ -8959,7 +8959,7 @@ use of a @code{path} instead of a @code{coloredpath}; in this case the
 shading behaviour is the default shading behavior for a surface.
 
 An example of @code{tube} is provided in the file
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/trefoilknot.html,,trefoilknot}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/trefoilknot.asy,,.asy}}. Further examples can be found at
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/trefoilknot.html,,trefoilknot}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/trefoilknot.asy,,.asy}}. Further examples can be found at
 @url{http://www.piprime.fr/files/asymptote/tube/}.
 
 @node flowchart, contour, tube, Base modules
@@ -9091,7 +9091,7 @@ segments between the pairs specified by @code{point} should be drawn
 in the @code{Horizontal} or @code{Vertical} direction.
 
 Here is a simple flowchart example (see also the example
-@code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/controlsystem.html,,controlsystem}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/controlsystem.asy,,.asy}}):
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/controlsystem.html,,controlsystem}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/controlsystem.asy,,.asy}}):
 
 @verbatiminclude flowchartdemo.asy
 @sp 1
@@ -9186,7 +9186,7 @@ int[][] triangulate(pair[] z);
 @sp 1
 @center @image{./triangulate}
 
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/Gouraudcontour.pdf,,Gouraudcontour}@uref{http://asymptote.sourceforge.net/gallery/2Dgraphs/Gouraudcontour.asy,,.asy}} illustrates how to produce color
+The example @code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/Gouraudcontour.pdf,,Gouraudcontour}@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/Gouraudcontour.asy,,.asy}} illustrates how to produce color
 density images over such irregular triangular meshes.
 @code{Asymptote} uses a robust version of Paul Bourke's Delaunay triangulation
 algorithm based on the public-domain exact arithmetic predicates written by
@@ -9197,7 +9197,7 @@ Jonathan Shewchuk.
 @cindex @code{contour3}
 This package draws surfaces described as the null space of real-valued
 functions of @math{(x,y,z)} or @code{real[][][]} matrices.
-Its usage is illustrated in the example file @code{@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/magnetic.html,,magnetic}@uref{http://asymptote.sourceforge.net/gallery/3Dgraphs/magnetic.asy,,.asy}}.
+Its usage is illustrated in the example file @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/magnetic.html,,magnetic}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/magnetic.asy,,.asy}}.
 
 @node smoothcontour3, slopefield, contour3, Base modules
 @section @code{smoothcontour3}
@@ -9232,7 +9232,7 @@ The optional parameter @code{overlapedges} attempts to compensate for
 an artifact that can cause the renderer to ``see through'' the
 boundary between patches. Although
 it defaults to @code{false}, it should usually be set to @code{true}.
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/genustwo.html,,genustwo}@uref{http://asymptote.sourceforge.net/gallery/3Dwebgl/genustwo.asy,,.asy}} illustrates the use of this function.
+The example @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/genustwo.html,,genustwo}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/genustwo.asy,,.asy}} illustrates the use of this function.
 Additional examples, together with a more in-depth explanation of 
 the module's usage and pitfalls, are available at
 @url{https://github.com/charlesstaats/smoothcontour3}.
@@ -9688,14 +9688,14 @@ If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 
 A list of frequently asked questions (@acronym{FAQ}) is maintained at
 @quotation
-@url{http://asymptote.sourceforge.net/FAQ}
+@url{https://asymptote.sourceforge.io/FAQ}
 @end quotation
 @noindent
 Questions on installing and using @code{Asymptote} that are not
 addressed in the @acronym{FAQ} should be sent to the
 @code{Asymptote} forum: 
 @quotation
-@url{http://sourceforge.net/p/asymptote/discussion/409349}
+@url{https://sourceforge.net/p/asymptote/discussion/409349}
 @end quotation
 @noindent
 Including an example that illustrates what you are trying to do will help
@@ -9705,7 +9705,7 @@ you get useful feedback.
 Contributions in the form of patches or @code{Asymptote} modules can be
 posted here:
 @quotation
-@url{http://sourceforge.net/p/asymptote/patches}
+@url{https://sourceforge.net/p/asymptote/patches}
 @end quotation
 @noindent
 To receive announcements of upcoming releases, please subscribe to
@@ -9726,7 +9726,7 @@ report. New bugs can be reported at
 To see if the bug has already been fixed,
 check bugs with Status @code{Closed} and recent lines in
 @quotation
-@url{http://asymptote.sourceforge.net/ChangeLog}
+@url{https://asymptote.sourceforge.io/ChangeLog}
 @end quotation
 @noindent
 
