@@ -24,7 +24,7 @@
 #include <readline/history.h>
 #else
 #ifdef HAVE_LIBEDIT
-#include "/usr/include/editline/readline.h"
+#include <editline/readline.h>
 #endif
 #endif
 #endif
