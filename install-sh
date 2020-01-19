@@ -518,3 +518,60 @@ done
 # time-stamp-time-zone: "UTC"
 # time-stamp-end: "; # UTC"
 # End:
+est -z "$chowncmd" || $doit $chowncmd "$dsttmp"; } &&
+    { test -z "$chgrpcmd" || $doit $chgrpcmd "$dsttmp"; } &&
+    { test -z "$stripcmd" || $doit $stripcmd "$dsttmp"; } &&
+    { test -z "$chmodcmd" || $doit $chmodcmd $mode "$dsttmp"; } &&
+
+    # If -C, don't bother to copy if it wouldn't change the file.
+    if $copy_on_change &&
+       old=`LC_ALL=C ls -dlL "$dst"     2>/dev/null` &&
+       new=`LC_ALL=C ls -dlL "$dsttmp"  2>/dev/null` &&
+       set -f &&
+       set X $old && old=:$2:$4:$5:$6 &&
+       set X $new && new=:$2:$4:$5:$6 &&
+       set +f &&
+       test "$old" = "$new" &&
+       $cmpprog "$dst" "$dsttmp" >/dev/null 2>&1
+    then
+      rm -f "$dsttmp"
+    else
+      # Rename the file to the real destination.
+      $doit $mvcmd -f "$dsttmp" "$dst" 2>/dev/null ||
+
+      # The rename failed, perhaps because mv can't rename something else
+      # to itself, or perhaps because mv is so ancient that it does not
+      # support -f.
+      {
+        # Now remove or move aside any old file at destination location.
+        # We try this two ways since rm can't unlink itself on some
+        # systems and the destination file might be busy for other
+        # reasons.  In this case, the final cleanup might fail but the new
+        # file should still install successfully.
+        {
+          test ! -f "$dst" ||
+          $doit $rmcmd -f "$dst" 2>/dev/null ||
+          { $doit $mvcmd -f "$dst" "$rmtmp" 2>/dev/null &&
+            { $doit $rmcmd -f "$rmtmp" 2>/dev/null; :; }
+          } ||
+          { echo "$0: cannot unlink or rename $dst" >&2
+            (exit 1); exit 1
+          }
+        } &&
+
+        # Now rename the file to the real destination.
+        $doit $mvcmd "$dsttmp" "$dst"
+      }
+    fi || exit 1
+
+    trap '' 0
+  fi
+done
+
+# Local variables:
+# eval: (add-hook 'before-save-hook 'time-stamp)
+# time-stamp-start: "scriptversion="
+# time-stamp-format: "%:y-%02m-%02d.%02H"
+# time-stamp-time-zone: "UTC0"
+# time-stamp-end: "; # UTC"
+# End:
