@@ -523,7 +523,7 @@ void drawscene(int Width, int Height)
   
   Picture->render(size2,m,M,perspective,remesh);
   
-  remesh=false;
+  if(!outlinemode) remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.
