@@ -2113,14 +2113,25 @@ surface surface(Label L, surface s, real uoffset, real voffset,
 }
 
 private real a=4/3*(sqrt(2)-1);
+private real f=0.5*sqrt(3)*a^2;
+
 private transform3 t1=rotate(90,O,Z);
 private transform3 t2=t1*t1;
 private transform3 t3=t2*t1;
 private transform3 i=xscale3(-1)*zscale3(-1);
 
-restricted patch octant1=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
+// Degenerate first octant
+restricted patch octant1x=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
                                new triple[] {(1,a,a),(a,1,a),(a^2,a,1),
-                                             (a,a^2,1)});
+                                               (a,a^2,1)});
+private triple[][][] P=hsplit(octant1x.P,
+                      intersect((1,0){N}..{W}(0,1),(0,0)--2*dir(60))[0]);
+// Nondegenerate first octant
+surface octant1=surface(patch(P[0]),
+                        patch(P[1][0][0]..controls P[1][1][0] and P[1][2][0]..
+                              P[1][3][0]..controls P[1][3][1] and P[1][3][2]..
+                              P[1][3][3]..controls P[1][0][2] and P[1][0][1]..
+                              cycle,(f,f,1)));
 
 restricted surface unithemisphere=surface(octant1,t1*octant1,t2*octant1,
                                           t3*octant1);
