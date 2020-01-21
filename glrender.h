@@ -36,6 +36,9 @@
 #include <OpenGL/gl.h>
 #ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
+#ifndef GLUT_3_2_CORE_PROFILE
+#undef HAVE_GL
+#endif
 #endif
 #ifdef HAVE_LIBOSMESA
 #include <GL/osmesa.h>
