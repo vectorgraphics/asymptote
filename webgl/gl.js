@@ -691,7 +691,8 @@ class BezierPatch extends Geometry {
   }
 
   process(p) {
-    if(this.transparent) // Override materialIndex to encode color vs material
+    if(this.transparent && wireframe == 0)
+      // Override materialIndex to encode color vs material
       materialIndex=this.color ? -1-materialIndex : 1+materialIndex;
 
     if(p.length == 10) return this.process3(p);
@@ -1534,7 +1535,9 @@ class Triangles extends Geometry {
 
   process(p) {
     // Override materialIndex to encode color vs material
-    materialIndex=this.Colors.length > 0 ? -1-materialIndex : 1+materialIndex;
+    if(wireframe == 0)
+      materialIndex=this.Colors.length > 0 ?
+      -1-materialIndex : 1+materialIndex;
 
     for(let i=0, n=this.Indices.length; i < n; ++i) {
       let index=this.Indices[i];
@@ -1552,13 +1555,31 @@ class Triangles extends Geometry {
           let C1=this.Colors[CI[1]];
           let C2=this.Colors[CI[2]];
           this.transparent |= C0[3]+C1[3]+C2[3] < 765;
-          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
-          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
-          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+          if(wireframe == 0) {
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+          } else {
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
+          }
         } else {
-          this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
-          this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
-          this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+          if(wireframe == 0) {
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+          } else {
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
+          }
         }
       }
     }
