@@ -89,6 +89,7 @@ let colorBuffer;
 let indexBuffer;
 
 let remesh=true;
+let wireframe=0;
 let mouseDownOrTouchActive=false;
 let lastMouseX=null;
 let lastMouseY=null;
@@ -152,6 +153,15 @@ function initShaders()
   materialShader=initShader(["NORMAL"]);
   colorShader=initShader(["NORMAL","COLOR"]);
   transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
+}
+
+function deleteShaders()
+{
+  gl.deleteProgram(transparentShader);
+  gl.deleteProgram(colorShader);
+  gl.deleteProgram(materialShader);
+  gl.deleteProgram(pixelShader);
+  gl.deleteProgram(noNormalShader);
 }
 
 // Create buffers for the patch and its subdivisions.
@@ -251,7 +261,7 @@ function getShader(gl,shaderScript,type,options=[])
 #else
   precision mediump float;
 #endif
-  #define nlights ${Lights.length}\n
+  #define nlights ${wireframe ? 0 : Lights.length}\n
   const int Nlights=${Math.max(Lights.length,1)};\n
   #define Nmaterials ${Nmaterials}\n`;
 
@@ -306,8 +316,8 @@ function drawBuffer(data,shader,indices=data.indices)
                 indexExt ? new Uint32Array(indices) :
                 new Uint16Array(indices),gl.STATIC_DRAW);
 
-  gl.drawElements(normal ? gl.TRIANGLES : (pixel ? gl.POINTS : gl.LINES),
-                  indices.length,
+  gl.drawElements(normal ? (wireframe ? gl.LINES : gl.TRIANGLES) :
+                  (pixel ? gl.POINTS : gl.LINES),indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
 }
 
@@ -600,15 +610,30 @@ class BezierPatch extends Geometry {
     let n=unit(cross([p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],
                      [p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]]));
     if(!this.offscreen([p0,p1,p2])) {
+      let i0,i1,i2;
       if(this.color) {
-        this.data.indices.push(this.data.Vertex(p0,n,this.color[0]));
-        this.data.indices.push(this.data.Vertex(p1,n,this.color[1]));
-        this.data.indices.push(this.data.Vertex(p2,n,this.color[2]));
+        i0=this.data.Vertex(p0,n,this.color[0]);
+        i1=this.data.Vertex(p1,n,this.color[1]);
+        i2=this.data.Vertex(p2,n,this.color[2]);
       } else {
-        this.data.indices.push(this.vertex(p0,n));
-        this.data.indices.push(this.vertex(p1,n));
-        this.data.indices.push(this.vertex(p2,n));
+        i0=this.vertex(p0,n);
+        i1=this.vertex(p1,n);
+        i2=this.vertex(p2,n);
       }
+
+      if(wireframe == 0) {
+        this.data.indices.push(i0);
+        this.data.indices.push(i1);
+        this.data.indices.push(i2);
+      } else {
+        this.data.indices.push(i0);
+        this.data.indices.push(i1);
+        this.data.indices.push(i1);
+        this.data.indices.push(i2);
+        this.data.indices.push(i2);
+        this.data.indices.push(i0);
+      }
+
       this.append();
     }
   }
@@ -636,16 +661,33 @@ class BezierPatch extends Geometry {
         i2=this.vertex(p2,n);
         i3=this.vertex(p3,n);
       }
-      this.data.indices.push(i0);
-      this.data.indices.push(i1);
-      this.data.indices.push(i2);
 
-      this.data.indices.push(i0);
-      this.data.indices.push(i2);
-      this.data.indices.push(i3);
+      if(wireframe == 0) {
+        this.data.indices.push(i0);
+        this.data.indices.push(i1);
+        this.data.indices.push(i2);
+
+        this.data.indices.push(i0);
+        this.data.indices.push(i2);
+        this.data.indices.push(i3);
+      } else {
+        this.data.indices.push(i0);
+        this.data.indices.push(i1);
+        this.data.indices.push(i1);
+        this.data.indices.push(i2);
+        this.data.indices.push(i2);
+        this.data.indices.push(i3);
+        this.data.indices.push(i3);
+        this.data.indices.push(i0);
+      }
 
       this.append();
     }
+  }
+
+  curve(p,a,b,c,d) {
+    new BezierCurve([p[a],p[b],p[c],p[d]],this.CenterIndex,materialIndex,
+                    this.Min,this.Max).render();
   }
 
   process(p) {
@@ -656,6 +698,14 @@ class BezierPatch extends Geometry {
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
     
+    if(wireframe == 1) {
+      this.curve(p,0,4,8,12);
+      this.curve(p,12,13,14,15);
+      this.curve(p,15,11,7,3);
+      this.curve(p,3,2,1,0);
+      return;
+    }
+
     let p0=p[0];
     let p3=p[3];
     let p12=p[12];
@@ -721,14 +771,28 @@ class BezierPatch extends Geometry {
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
     if(this.Distance(p) < this.res2) { // Bezier patch is flat
       if(!this.offscreen([P0,P1,P2])) {
-        this.data.indices.push(I0);
-        this.data.indices.push(I1);
-        this.data.indices.push(I2);
+        if(wireframe == 0) {
+          this.data.indices.push(I0);
+          this.data.indices.push(I1);
+          this.data.indices.push(I2);
+        } else {
+          this.data.indices.push(I0);
+          this.data.indices.push(I1);
+          this.data.indices.push(I1);
+          this.data.indices.push(I2);
+        }
       }        
       if(!this.offscreen([P0,P2,P3])) {
-        this.data.indices.push(I0);
-        this.data.indices.push(I2);
-        this.data.indices.push(I3);
+        if(wireframe == 0) {
+          this.data.indices.push(I0);
+          this.data.indices.push(I2);
+          this.data.indices.push(I3);
+        } else {
+          this.data.indices.push(I2);
+          this.data.indices.push(I3);
+          this.data.indices.push(I3);
+          this.data.indices.push(I0);
+        }
       }
     } else {
   // Approximate bounds by bounding box of control polyhedron.
@@ -934,6 +998,13 @@ class BezierPatch extends Geometry {
 
 // Render a Bezier triangle via subdivision.
   process3(p) {
+    if(wireframe == 1) {
+      this.curve(p,0,1,3,6);
+      this.curve(p,6,7,8,9);
+      this.curve(p,9,5,2,0);
+      return;
+    }
+
     this.Res2=BezierFactor*BezierFactor*this.res2;
 
     let p0=p[0];
@@ -968,9 +1039,18 @@ class BezierPatch extends Geometry {
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
     if(this.Distance3(p) < this.Res2) { // Bezier triangle is flat
       if(!this.offscreen([P0,P1,P2])) {
-        this.data.indices.push(I0);
-        this.data.indices.push(I1);
-        this.data.indices.push(I2);
+        if(wireframe == 0) {
+          this.data.indices.push(I0);
+          this.data.indices.push(I1);
+          this.data.indices.push(I2);
+        } else {
+          this.data.indices.push(I0);
+          this.data.indices.push(I1);
+          this.data.indices.push(I1);
+          this.data.indices.push(I2);
+          this.data.indices.push(I2);
+          this.data.indices.push(I0);
+        }
       }
     } else {
   // Approximate bounds by bounding box of control polyhedron.
@@ -1897,6 +1977,16 @@ function handleKey(event)
   case 'h':
     home();
     break;
+  case 'm':
+    ++wireframe;
+    if(wireframe == 3) wireframe=0;
+    if(wireframe != 2) {
+      deleteShaders();
+      initShaders();
+    }
+    remesh=true;
+    draw();
+    break;
   case '+':
   case '=':
   case '>':
@@ -2053,6 +2143,11 @@ function drawTriangle()
 function drawTransparent()
 {
   let indices=transparentData.indices;
+  if(wireframe) {
+    drawBuffer(transparentData,transparentShader,indices);
+    transparentData.clear();
+    return;
+  }
   if(indices.length > 0) {
     transformVertices(transparentData.vertices);
     
@@ -2122,7 +2217,7 @@ function draw()
     context.drawImage(offscreen,0,0);
   }
 
-  remesh=false;
+  if(!wireframe) remesh=false;
 }
 
 function setDimensions(width,height,X,Y)
