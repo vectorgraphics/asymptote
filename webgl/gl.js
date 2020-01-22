@@ -2143,7 +2143,7 @@ function drawTriangle()
 function drawTransparent()
 {
   let indices=transparentData.indices;
-  if(wireframe) {
+  if(wireframe > 0) {
     drawBuffer(transparentData,transparentShader,indices);
     transparentData.clear();
     return;
@@ -2217,7 +2217,7 @@ function draw()
     context.drawImage(offscreen,0,0);
   }
 
-  if(!wireframe) remesh=false;
+  if(wireframe == 0) remesh=false;
 }
 
 function setDimensions(width,height,X,Y)
