@@ -686,12 +686,12 @@ class BezierPatch extends Geometry {
   }
 
   curve(p,a,b,c,d) {
-    new BezierCurve([p[a],p[b],p[c],p[d]],this.CenterIndex,materialIndex,
+    new BezierCurve([p[a],p[b],p[c],p[d]],0,materialIndex,
                     this.Min,this.Max).render();
   }
 
   process(p) {
-    if(this.transparent && wireframe == 0)
+    if(this.transparent && wireframe != 1)
       // Override materialIndex to encode color vs material
       materialIndex=this.color ? -1-materialIndex : 1+materialIndex;
 
@@ -1535,7 +1535,7 @@ class Triangles extends Geometry {
 
   process(p) {
     // Override materialIndex to encode color vs material
-    if(wireframe == 0)
+    if(wireframe != 1)
       materialIndex=this.Colors.length > 0 ?
       -1-materialIndex : 1+materialIndex;
 
