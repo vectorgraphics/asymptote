@@ -261,7 +261,7 @@ function getShader(gl,shaderScript,type,options=[])
 #else
   precision mediump float;
 #endif
-  #define nlights ${wireframe ? 0 : Lights.length}\n
+  #define nlights ${wireframe == 0 ? Lights.length : 0}\n
   const int Nlights=${Math.max(Lights.length,1)};\n
   #define Nmaterials ${Nmaterials}\n`;
 
@@ -1535,7 +1535,6 @@ class Triangles extends Geometry {
 
   process(p) {
     // Override materialIndex to encode color vs material
-    if(wireframe != 1)
       materialIndex=this.Colors.length > 0 ?
       -1-materialIndex : 1+materialIndex;
 
@@ -2002,7 +2001,8 @@ function handleKey(event)
     ++wireframe;
     if(wireframe == 3) wireframe=0;
     if(wireframe != 2) {
-      deleteShaders();
+      if(!embedded)
+        deleteShaders();
       initShaders();
     }
     remesh=true;
