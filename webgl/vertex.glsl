@@ -40,7 +40,7 @@ void main(void)
 #ifndef ORTHOGRAPHIC
   ViewPosition=(viewMat*v).xyz;
 #endif      
-  Normal=normal*normMat;
+  Normal=normalize(normal*normMat);
         
   Material m;
 #ifdef TRANSPARENT

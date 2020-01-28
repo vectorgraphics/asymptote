@@ -35,37 +35,43 @@ struct BezierPatch
     
   triple normal(triple left3, triple left2, triple left1, triple middle,
                 triple right1, triple right2, triple right3) {
-    triple rp=right1-middle;
-    triple lp=left1-middle;
-    triple n=triple(rp.gety()*lp.getz()-rp.getz()*lp.gety(),
-                    rp.getz()*lp.getx()-rp.getx()*lp.getz(),
-                    rp.getx()*lp.gety()-rp.gety()*lp.getx());
+    triple lp=3.0*(left1-middle);
+    triple rp=3.0*(right1-middle);
+
+    triple n=cross(rp,lp);
     if(abs2(n) > epsilon)
-      return unit(n);
-    
+      return n;
+
     triple lpp=bezierPP(middle,left1,left2);
     triple rpp=bezierPP(middle,right1,right2);
+
     n=cross(rpp,lp)+cross(rp,lpp);
     if(abs2(n) > epsilon)
-      return unit(n);
-    
+      return n;
+
     triple lppp=bezierPPP(middle,left1,left2,left3);
     triple rppp=bezierPPP(middle,right1,right2,right3);
-    
-    return unit(9.0*cross(rpp,lpp)+
-                3.0*(cross(rp,lppp)+cross(rppp,lp)+
-                     cross(rppp,lpp)+cross(rpp,lppp))+
-                cross(rppp,lppp));
+
+    n=cross(rpp,lpp)+cross(rppp,lp)+cross(rp,lppp);
+    if(abs2(n) > epsilon)
+      return n;
+
+    n=cross(rppp,lpp)+cross(rpp,lppp);
+    if(abs2(n) > epsilon)
+      return n;
+
+    return cross(rppp,lppp);
   }
 
-  triple derivative(triple p0, triple p1, triple p2, triple p3) {
-    triple lp=p1-p0;
-    if(abs2(lp) > epsilon)
-      return lp;
+  // Return the differential of the Bezier curve p0,p1,p2,p3 at 0
+  triple differential(triple p0, triple p1, triple p2, triple p3) {
+    triple p=p1-p0;
+    if(abs2(p) > epsilon)
+      return p;
     
-    triple lpp=bezierPP(p0,p1,p2);
-    if(abs2(lpp) > epsilon)
-      return lpp;
+    p=bezierPP(p0,p1,p2);
+    if(abs2(p) > epsilon)
+      return p;
     
     return bezierPPP(p0,p1,p2,p3);
   }
@@ -77,7 +83,7 @@ struct BezierPatch
     triple p15=p[15];
     
     // Check the flatness of a Bezier patch.
-    double d=Distance2(p15,p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
+    double d=Distance2(p15,p0,unit(normal(p3,p[2],p[1],p0,p[4],p[8],p12)));
     
     // Determine how straight the edges are.
     d=max(d,Straightness(p0,p[1],p[2],p3));

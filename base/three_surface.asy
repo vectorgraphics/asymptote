@@ -71,10 +71,6 @@ struct patch {
   triple BuP(int j, real u) {
     return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
   }
-  triple BuPP(int j, real u) {
-    return bezierPP(P[0][j],P[1][j],P[2][j],P[3][j],u);
-  }
-  triple BuPPP(int j) {return bezierPPP(P[0][j],P[1][j],P[2][j],P[3][j]);}
 
   path3 uequals(real u) {
     triple z0=Bu(0,u);
@@ -87,10 +83,6 @@ struct patch {
   triple BvP(int i, real v) {
     return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
   }
-  triple BvPP(int i, real v) {
-    return bezierPP(P[i][0],P[i][1],P[i][2],P[i][3],v);
-  }
-  triple BvPPP(int i) {return bezierPPP(P[i][0],P[i][1],P[i][2],P[i][3]);}
 
   path3 vequals(real v) {
     triple z0=Bv(0,v);
@@ -103,28 +95,51 @@ struct patch {
     return bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
   }
 
-  // compute normal vectors for degenerate cases
-  private triple normal0(real u, real v, real epsilon) {
-    triple n=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
-                        bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
-                  cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                        bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u)));
-    return abs(n) > epsilon ? n :
-      0.25*cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
-                 bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
-      1/6*(cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u))+
-           cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
-                 bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u)))+
-      1/12*(cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
-                  bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
-            cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
-                  bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u)))+
-      1/36*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),   
-                 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u));
-  }
-
   static real fuzz=1000*realEpsilon;
+
+  triple normal(triple left3, triple left2, triple left1, triple middle,
+                triple right1, triple right2, triple right3) {
+    real epsilon=fuzz*change2(P);
+
+    triple lp=3.0*(left1-middle);
+    triple rp=3.0*(right1-middle);
+
+    triple n=cross(rp,lp);
+    if(abs(n) > epsilon)
+      return n;
+
+    // Return one-half of the second derivative of the Bezier curve defined
+    // by a,b,c,d at 0.
+    triple bezierPP(triple a, triple b, triple c) {
+      return 3.0*(a+c-2.0*b);
+    }
+
+    triple lpp=bezierPP(middle,left1,left2);
+    triple rpp=bezierPP(middle,right1,right2);
+
+    n=cross(rpp,lp)+cross(rp,lpp);
+    if(abs(n) > epsilon)
+      return n;
+
+    // Return one-sixth of the third derivative of the Bezier curve defined
+    // by a,b,c,d at 0.
+    triple bezierPPP(triple a, triple b, triple c, triple d) {
+      return d-a+3.0*(b-c);
+    }
+
+    triple lppp=bezierPPP(middle,left1,left2,left3);
+    triple rppp=bezierPPP(middle,right1,right2,right3);
+
+    n=cross(rpp,lpp)+cross(rppp,lp)+cross(rp,lppp);
+    if(abs(n) > epsilon)
+      return n;
+
+    n=cross(rppp,lpp)+cross(rpp,lppp);
+    if(abs(n) > epsilon)
+      return n;
+
+    return cross(rppp,lppp);
+  }
 
   triple partialu(real u, real v) {
     return bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v);
@@ -134,34 +149,32 @@ struct patch {
     return bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u);
   }
 
-  triple normal(real u, real v) {
-    triple n=cross(partialu(u,v),partialv(u,v));
-    real epsilon=fuzz*change2(P);
-    return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
-  }
-  
   triple normal00() {
-    triple n=9*cross(P[1][0]-P[0][0],P[0][1]-P[0][0]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(0,0,epsilon);
+    return normal(P[0][3],P[0][2],P[0][1],P[0][0],P[1][0],P[2][0],P[3][0]);
   }
 
   triple normal10() {
-    triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[3][0]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(1,0,epsilon);
+    return normal(P[0][0],P[1][0],P[2][0],P[3][0],P[3][1],P[3][2],P[3][3]);
   }
 
   triple normal11() {
-    triple n=9*cross(P[3][3]-P[2][3],P[3][3]-P[3][2]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(1,1,epsilon);
+    return normal(P[3][0],P[3][1],P[3][2],P[3][3],P[2][3],P[1][3],P[0][3]);
   }
 
   triple normal01() {
-    triple n=9*cross(P[1][3]-P[0][3],P[0][3]-P[0][2]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(0,1,epsilon);
+    return normal(P[3][3],P[2][3],P[1][3],P[0][3],P[0][2],P[0][1],P[0][0]);
+  }
+
+  triple normal(real u, real v) {
+    if(u == 0) {
+      if(v == 0) return normal00();
+      if(v == 1) return normal01();
+    }
+    if(u == 1) {
+      if(v == 0) return normal10();
+      if(v == 1) return normal11();
+    }
+    return cross(partialu(u,v),partialv(u,v));
   }
 
   triple pointtriangular(real u, real v) {
@@ -171,7 +184,7 @@ struct patch {
       6*u*v*w*P[2][1]+v^2*(3*(w*P[2][2]+u*P[3][2])+v*P[3][3]);
   }
 
-  triple bu(real u, real v) {
+  triple partialutriangular(real u, real v) {
     // Compute one-third of the directional derivative of a Bezier triangle
     // in the u direction at (u,v).
     real w=1-u-v;
@@ -179,21 +192,7 @@ struct patch {
       2*v*(w-u)*P[2][1]-v^2*P[2][2]+u^2*P[3][0]+2*u*v*P[3][1]+v^2*P[3][2];
   }
 
-  triple buu(real u, real v) {
-    // Compute one-sixth of the second directional derivative of a Bezier
-    // triangle in the u direction at (u,v).
-    real w=1-u-v;
-    return w*P[0][0]+(u-2*w)*P[1][0]+v*P[1][1]+(w-2*u)*P[2][0]-2*v*P[2][1]+
-      u*P[3][0]+v*P[3][1];
-  }
-
-  triple buuu() {
-    // Compute one-sixth of the third directional derivative of a Bezier
-    // triangle in the u direction at (u,v).
-    return -P[0][0]+3*P[1][0]-3*P[2][0]+P[3][0];
-  }
-
-  triple bv(real u, real v) {
+  triple partialvtriangular(real u, real v) {
     // Compute one-third of the directional derivative of a Bezier triangle
     // in the v direction at (u,v).
     real w=1-u-v;
@@ -202,54 +201,26 @@ struct patch {
       v^2*P[3][3];
   }
 
-  triple bvv(real u, real v) {
-    // Compute one-sixth of the second directional derivative of a Bezier
-    // triangle in the v direction at (u,v).
-    real w=1-u-v;
-    return w*P[0][0]+u*P[1][0]+(v-2*w)*P[1][1]-2*u*P[2][1]+(w-2*v)*P[2][2]+
-      u*P[3][2]+v*P[3][3];
-  }
-
-  triple bvvv() {
-    // Compute one-sixth of the third directional derivative of a Bezier
-    // triangle in the v direction at (u,v).
-    return -P[0][0]+3*P[1][1]-3*P[2][2]+P[3][3];
-  }
-
-  // compute normal vectors for a degenerate Bezier triangle
-  private triple normaltriangular0(real u, real v, real epsilon) {
-    triple n=9*(cross(buu(u,v),bv(u,v))+
-                  cross(bu(u,v),bvv(u,v)));
-    return abs(n) > epsilon ? n :
-      9*cross(buu(u,v),bvv(u,v))+
-      3*(cross(buuu(),bv(u,v))+cross(bu(u,v),bvvv())+
-         cross(buuu(),bvv(u,v))+cross(buu(u,v),bvvv()))+
-      cross(buuu(),bvvv());
-  }
-
-  // Compute the normal of a Bezier triangle at (u,v)
-  triple normaltriangular(real u, real v) {
-    triple n=9*cross(bu(u,v),bv(u,v));
-    real epsilon=fuzz*change2(P);
-    return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
-  }
-
   triple normal00triangular() {
-    triple n=9*cross(P[1][0]-P[0][0],P[1][1]-P[0][0]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normaltriangular0(0,0,epsilon);
+    return normal(P[3][3],P[2][2],P[1][1],P[0][0],P[1][0],P[2][0],P[3][0]);
   }
 
   triple normal10triangular() {
-    triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[2][0]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normaltriangular0(1,0,epsilon);
+    return normal(P[0][0],P[1][0],P[2][0],P[3][0],P[3][1],P[3][2],P[3][3]);
   }
 
   triple normal01triangular() {
-    triple n=9*cross(P[3][2]-P[2][2],P[3][3]-P[2][2]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normaltriangular0(0,1,epsilon);
+    return normal(P[3][0],P[3][1],P[3][2],P[3][3],P[2][2],P[1][1],P[0][0]);
+  }
+
+  // Compute the normal vector of a Bezier triangle at (u,v)
+  triple normaltriangular(real u, real v) {
+    if(u == 0) {
+      if(v == 0) return normal00triangular();
+      if(v == 1) return normal01triangular();
+    }
+    if(u == 1 && v == 0) return normal10triangular();
+    return cross(partialutriangular(u,v),partialvtriangular(u,v));
   }
 
   pen[] colors(material m, light light=currentlight) {

@@ -5,6 +5,7 @@ let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
+let precision=1e-6;
 
 let absolute=false;
 
@@ -600,7 +601,7 @@ class BezierPatch extends Geometry {
     for(let i=1; i < n; ++i)
       this.epsilon=Math.max(this.epsilon,
         abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    this.epsilon *= Fuzz4;
+    this.epsilon *= Math.max(Fuzz4,10*precision);
   }
 
   processTriangle(p) {
@@ -915,7 +916,7 @@ class BezierPatch extends Geometry {
               0.5*(P0[2]+P1[2])];
       if(!flat0) {
         if((flat0=Straightness(p0,p[4],p[8],p12) < this.res2)) {
-          let r=unit(this.derivative(s1[0],s1[1],s1[2],s1[3]));
+          let r=unit(this.differential(s1[0],s1[1],s1[2],s1[3]));
           m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
         }
         else m0=s0[12];
@@ -926,7 +927,7 @@ class BezierPatch extends Geometry {
               0.5*(P1[2]+P2[2])];
       if(!flat1) {
         if((flat1=Straightness(p12,p[13],p[14],p15) < this.res2)) {
-          let r=unit(this.derivative(s2[12],s2[8],s2[4],s2[0]));
+          let r=unit(this.differential(s2[12],s2[8],s2[4],s2[0]));
           m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
         }
         else m1=s1[15];
@@ -937,7 +938,7 @@ class BezierPatch extends Geometry {
               0.5*(P2[2]+P3[2])];
       if(!flat2) {
         if((flat2=Straightness(p15,p[11],p[7],p3) < this.res2)) {
-          let r=unit(this.derivative(s3[15],s2[14],s2[13],s1[12]));
+          let r=unit(this.differential(s3[15],s2[14],s2[13],s1[12]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=s2[3];
@@ -948,7 +949,7 @@ class BezierPatch extends Geometry {
               0.5*(P3[2]+P0[2])];
       if(!flat3) {
         if((flat3=Straightness(p0,p[1],p[2],p3) < this.res2)) {
-          let r=unit(this.derivative(s0[3],s0[7],s0[11],s0[15]));
+          let r=unit(this.differential(s0[3],s0[7],s0[11],s0[15]));
           m3=[m3[0]-e*r[0],m3[1]-e*r[1],m3[2]-e*r[2]];
         }
         else m3=s3[0];
@@ -1255,7 +1256,7 @@ class BezierPatch extends Geometry {
               0.5*(P1[2]+P2[2])];
       if(!flat0) {
         if((flat0=Straightness(r300,p210,p120,u030) < this.res2)) {
-          let r=unit(this.sumderivative(c[0],c[2],c[5],c[9],c[1],c[3],c[6]));
+          let r=unit(this.sumdifferential(c[0],c[2],c[5],c[9],c[1],c[3],c[6]));
           m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
         }
         else m0=r030;
@@ -1267,7 +1268,7 @@ class BezierPatch extends Geometry {
               0.5*(P2[2]+P0[2])];
       if(!flat1) {
         if((flat1=Straightness(l003,p012,p021,u030) < this.res2)) {
-          let r=unit(this.sumderivative(c[6],c[3],c[1],c[0],c[7],c[8],c[9]));
+          let r=unit(this.sumdifferential(c[6],c[3],c[1],c[0],c[7],c[8],c[9]));
           m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
         }
         else m1=l030;
@@ -1278,7 +1279,7 @@ class BezierPatch extends Geometry {
               0.5*(P0[2]+P1[2])];
       if(!flat2) {
         if((flat2=Straightness(l003,p102,p201,r300) < this.res2)) {
-          let r=unit(this.sumderivative(c[9],c[8],c[7],c[6],c[5],c[2],c[0]));
+          let r=unit(this.sumdifferential(c[9],c[8],c[7],c[6],c[5],c[2],c[0]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=l300;
@@ -1323,7 +1324,7 @@ class BezierPatch extends Geometry {
     let p15=p[15];
 
     // Check the flatness of a patch.
-    let d=Distance2(p15,p0,this.normal(p3,p[2],p[1],p0,p[4],p[8],p12));
+    let d=Distance2(p15,p0,unit(this.normal(p3,p[2],p[1],p0,p[4],p[8],p12)));
     
     // Determine how straight the edges are.
     d=Math.max(d,Straightness(p0,p[1],p[2],p3));
@@ -1356,60 +1357,76 @@ class BezierPatch extends Geometry {
     return Math.max(d,Straightness(p6,p[7],p[8],p9));
   }
 
-  derivative(p0,p1,p2,p3) {
-    let lp=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]];
-    if(abs2(lp) > this.epsilon)
-      return lp;
+  // Return the differential of the Bezier curve p0,p1,p2,p3 at 0.
+  differential(p0,p1,p2,p3) {
+    let p=[3*(p1[0]-p0[0]),3*(p1[1]-p0[1]),3*(p1[2]-p0[2])];
+    if(abs2(p) > this.epsilon)
+      return p;
     
-    let lpp=bezierPP(p0,p1,p2);
-    if(abs2(lpp) > this.epsilon)
-      return lpp;
+    p=bezierPP(p0,p1,p2);
+    if(abs2(p) > this.epsilon)
+      return p;
     
     return bezierPPP(p0,p1,p2,p3);
   }
 
-  sumderivative(p0,p1,p2,p3,p4,p5,p6) {
-    let d0=this.derivative(p0,p1,p2,p3);
-    let d1=this.derivative(p0,p4,p5,p6);
+  sumdifferential(p0,p1,p2,p3,p4,p5,p6) {
+    let d0=this.differential(p0,p1,p2,p3);
+    let d1=this.differential(p0,p4,p5,p6);
     return [d0[0]+d1[0],d0[1]+d1[1],d0[2]+d1[2]];
   }
   
   normal(left3,left2,left1,middle,right1,right2,right3) {
-    let ux=right1[0]-middle[0];
-    let uy=right1[1]-middle[1];
-    let uz=right1[2]-middle[2];
-    let vx=left1[0]-middle[0];
-    let vy=left1[1]-middle[1];
-    let vz=left1[2]-middle[2];
+    let ux=3*(right1[0]-middle[0]);
+    let uy=3*(right1[1]-middle[1]);
+    let uz=3*(right1[2]-middle[2]);
+    let vx=3*(left1[0]-middle[0]);
+    let vy=3*(left1[1]-middle[1]);
+    let vz=3*(left1[2]-middle[2]);
+
     let n=[uy*vz-uz*vy,
            uz*vx-ux*vz,
            ux*vy-uy*vx];
     if(abs2(n) > this.epsilon)
-      return unit(n);
+      return n;
 
     let lp=[vx,vy,vz];
     let rp=[ux,uy,uz];
+
     let lpp=bezierPP(middle,left1,left2);
     let rpp=bezierPP(middle,right1,right2);
+
     let a=cross(rpp,lp);
     let b=cross(rp,lpp);
     n=[a[0]+b[0],
        a[1]+b[1],
        a[2]+b[2]];
     if(abs2(n) > this.epsilon)
-      return unit(n);
+      return n;
 
     let lppp=bezierPPP(middle,left1,left2,left3);
     let rppp=bezierPPP(middle,right1,right2,right3);
-    a=cross(rpp,lpp);
-    b=cross(rp,lppp);
-    let c=cross(rppp,lp);
-    let d=cross(rppp,lpp);
-    let e=cross(rpp,lppp);
-    let f=cross(rppp,lppp);
-    return unit([9*a[0]+3*(b[0]+c[0]+d[0]+e[0])+f[0],
-                 9*a[1]+3*(b[1]+c[1]+d[1]+e[1])+f[1],
-                 9*a[2]+3*(b[2]+c[2]+d[2]+e[2])+f[2]]);
+
+    a=cross(rp,lppp);
+    b=cross(rppp,lp);
+    let c=cross(rpp,lpp);
+
+    n=[a[0]+b[0]+c[0],
+       a[1]+b[1]+c[1],
+       a[2]+b[2]+c[2]];
+    if(abs2(n) > this.epsilon)
+      return n;
+
+    a=cross(rppp,lpp);
+    b=cross(rpp,lppp);
+
+    n=[a[0]+b[0],
+       a[1]+b[1],
+       a[2]+b[2]];
+    if(abs2(n) > this.epsilon)
+      return n;
+
+    return cross(rppp,lppp);
   }
 }
 
@@ -1674,16 +1691,16 @@ function cross(u,v)
           u[0]*v[1]-u[1]*v[0]];
 }
 
-// Return one-sixth of the second derivative of the Bezier curve defined
+// Return one-half of the second derivative of the Bezier curve defined
 // by a,b,c,d at 0. 
 function bezierPP(a,b,c)
 {
-  return [a[0]+c[0]-2*b[0],
-          a[1]+c[1]-2*b[1],
-          a[2]+c[2]-2*b[2]];
+  return [3*(a[0]+c[0])-6*b[0],
+          3*(a[1]+c[1])-6*b[1],
+          3*(a[2]+c[2])-6*b[2]];
 }
 
-// Return one-third of the third derivative of the Bezier curve defined by
+// Return one-sixth of the third derivative of the Bezier curve defined by
 // a,b,c,d at 0.
 function bezierPPP(a,b,c,d)
 {
