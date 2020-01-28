@@ -37,6 +37,27 @@ import xasyOptions as xo
 import xasySvg as xs
 
 class AsymptoteEngine:
+    """
+        Class that makes it possible for xasy to cimmunicate with asymptote software through a background pipe. It
+        mainly communicate with asy through a subprocess of an already ongoing xasy process.
+
+        Attributes:
+        -----------
+            istream     : Os input stream
+            ostream     : Os output stream
+            keepFiles   : files that has been sent and/or received via communication kept on memory
+            tmpdir      : temporary directory
+            args        : system call arguments to start a required subprocess
+            asyPath     : directory path to asymptote
+            asyProcess  : the subprocess through which xasy communicates with asymptote
+
+        Methods:
+        -----------
+            start()     : starts a subprocess (opens a pipe)
+            wait()      : keeps the pipe open if there is any communication
+            stop()      : stops (kills) an active asyProcess (closes the pipe)
+            cleanUp()   : ???
+    """
     xasy=chr(4)+"\n"
 
     def __init__(self, path=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True):
@@ -72,6 +93,7 @@ class AsymptoteEngine:
         self.asyProcess = None
 
     def start(self):
+        """ starts a subprocess (opens a pipe) """
         try:
             if sys.platform[:3] == 'win':
                 self.asyProcess = subprocess.Popen([self.asyPath] + self.args,
@@ -85,6 +107,7 @@ class AsymptoteEngine:
             atexit.register(self.cleanup)
 
     def wait(self):
+        """ keeps the pipe open if there is any communication """
         if self.asyProcess.returncode is not None:
             return
         else:
@@ -114,10 +137,12 @@ class AsymptoteEngine:
         return self.asyProcess.returncode is None
 
     def stop(self):
+        """ stops (kills) an active asyProcess (closes the pipe) """
         if self.active:
             self.asyProcess.kill()
 
     def cleanup(self):
+        """ ??? """
         self.stop()
         if self.asyProcess is not None:
             self.asyProcess.wait()
@@ -126,10 +151,38 @@ class AsymptoteEngine:
                 shutil.rmtree(self.tempDirName, ignore_errors=True)
 
 class asyTransform(Qc.QObject):
-    """A python implementation of an asy transform"""
+    """
+        A python implementation of an asy transform. This class takes care of calibrating asymptote coordinate system
+        with the one used in PyQt to handle all existing inconsistencies. To understand how this class works, having
+        enough acquaintance with asymptote transform feature is required. It is a child class of QtCore.QObject class.
+
+        Attributes:
+        ----------
+        t                       : The tuple
+        x, y, xx, xy, yx, yy    : Coordinates corresponding to 6 entries
+        _deleted                : Private local flag
+
+        Class Methods:
+        --------------
+        zero            : Convenience method that returns an asyTransform object initialized with 6 zero entries
+        fromQTransform  : Convenience method that converts QTransform object to asyTransform object
+        fromNumpyMatrix : Convenience method that converts transform matrix object to asyTransform object
+
+        Object Methods:
+        --------------
+        getRawCode      : Returns the tuple entries
+        getCode         : Returns the textual format of the asy code corresponding to the given transform
+        scale           : Returns the scales version of the existing asyTransform
+        toQTransform    : Converts asy transform object to QTransform object
+        identity        : Return Identity asyTransform object
+        isIdentity      : Check whether the asyTransform object is identity object
+        inverted        : Applies the QTransform object's inverted method on the asyTransform object
+        yflip           : Returns y-flipped asyTransform object
+
+    """
 
     def __init__(self, initTuple, delete=False):
-        """Initialize the transform with a 6 entry tuple"""
+        """ Initialize the transform with a 6 entry tuple """
         super().__init__()
         if isinstance(initTuple, (tuple, list)) and len(initTuple) == 6:
             self.t = initTuple
@@ -172,7 +225,7 @@ class asyTransform(Qc.QObject):
         return xu.tuple2StrWOspaces(self.t)
 
     def getCode(self, asy2psmap=None):
-        """Obtain the asy code that represents this transform"""
+        """ Obtain the asy code that represents this transform """
         if asy2psmap is None:
             asy2psmap = asyTransform((0, 0, 1, 0, 0, 1))
         if self.deleted:
@@ -235,7 +288,10 @@ def yflip():
     return asyTransform((0, 0, 1, 0, 0, -1))
 
 class asyObj(Qc.QObject):
-    """A base class for asy objects: an item represented by asymptote code."""
+    """
+    --> Abstract class to be inherited  <--
+    A base class for asy objects: an item represented by asymptote code.
+    """
     def __init__(self):
         """Initialize the object"""
         super().__init__()
@@ -374,12 +430,14 @@ class asyPath(asyObj):
         self.controlSet = []
         self.computed = False
         self.asyengine = asyengine
+        self.fill = False
 
     @classmethod
     def fromPath(cls, oldPath):
         newObj = asyPath(None)
         newObj.nodeSet = copy.copy(oldPath.nodeSet)
         newObj.linkSet = copy.copy(oldPath.linkSet)
+        newObj.fill = copy.copy(oldPath.fill)
         newObj.controlSet = copy.deepcopy(oldPath.controlSet)
         newObj.computed = oldPath.computed
         newObj.asyengine = oldPath.asyengine
@@ -406,6 +464,7 @@ class asyPath(asyObj):
     def setInfo(self, path):
         self.nodeSet = copy.copy(path.nodeSet)
         self.linkSet = copy.copy(path.linkSet)
+        self.fill = copy.copy(path.fill)
         self.controlSet = copy.deepcopy(path.controlSet)
         self.computed = path.computed
 
@@ -961,7 +1020,10 @@ class xasyShape(xasyDrawnItem):
         super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
 
     def getObjectCode(self, asy2psmap=identity()):
-        return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        if self.path.fill:
+            return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        else:
+            return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
     def getTransformCode(self, asy2psmap=identity()):
         transf = self.transfKeymap[self.transfKey][0]
@@ -979,6 +1041,7 @@ class xasyShape(xasyDrawnItem):
                             key=self.transfKey)
         newObj.originalObj = self
         newObj.setParent(self)
+        newObj.fill=self.path.fill
         return [newObj]
 
     def __str__(self):
