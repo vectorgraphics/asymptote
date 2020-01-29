@@ -5,7 +5,6 @@ let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
-let precision=1e-6;
 
 let absolute=false;
 
@@ -55,7 +54,7 @@ let resizeStep=1.2;
 let lastzoom;
 let H; // maximum camera view half-height
 
-let Fuzz2=1000*Number.EPSILON;
+let Fuzz2=Math.sqrt(Number.EPSILON);
 let Fuzz4=Fuzz2*Fuzz2;
 let third=1/3;
 
@@ -601,7 +600,7 @@ class BezierPatch extends Geometry {
     for(let i=1; i < n; ++i)
       this.epsilon=Math.max(this.epsilon,
         abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    this.epsilon *= Math.max(Fuzz4,10*precision);
+    this.epsilon *= Fuzz4;
   }
 
   processTriangle(p) {

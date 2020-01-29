@@ -30,8 +30,7 @@ void jsfile::open(string name) {
       << newl
       << "-->" << newl << newl;
 
-  Int digits=getSetting<Int>("digits");
-  out.precision(digits);
+  out.precision(getSetting<Int>("digits"));
   out << "<html lang=\"\">" << newl
       << newl
       << "<head>" << newl
@@ -51,7 +50,6 @@ void jsfile::open(string name) {
   }
   out << "<script>" << newl;
   out << newl
-      << "precision=1e-" << digits << ";" << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
       << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
