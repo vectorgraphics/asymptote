@@ -2488,6 +2488,8 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
 
   let rx,ry,rz;
 
+  let sp; // Define here to work around uglify bug.
+
   if(dir) {
     let theta=dir[0];
     let phi=dir[1];
@@ -2495,7 +2497,7 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
     let ct=Math.cos(theta);
     let st=Math.sin(theta);
     let cp=Math.cos(phi);
-    let sp=Math.sin(phi);
+    sp=Math.sin(phi);
 
     function S(v) {
       let x=v[0];
