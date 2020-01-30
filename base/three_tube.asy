@@ -297,6 +297,7 @@ path3 interp(path3 a, path3 b, real t)
 struct tube
 {
   surface s;
+  surface S; // for sphere
   path3 center; // tube axis
 
   void Null(transform3) {}
@@ -416,7 +417,7 @@ struct tube
         generate(subpath(p,begin,i));
         triple dir=dir(p,i,-1);
         transform3 T=t*align(dir);
-        s.append(shift(point(p,i))*T*(dir != O ? unithemisphere : unitsphere));
+        S.append(shift(point(p,i))*T*(dir != O ? unithemisphere : unitsphere));
         sphere(shift(point(center,length(center)))*T,
                half=straight(p,i-1) && straight(p,i));
         begin=i;

@@ -232,8 +232,17 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
   }
   out << "P.push(new Triangles("
       << materialIndex << "," << newl
-      << Min << "," << Max << "));" << newl;
-  out << newl;
+      << Min << "," << Max << "));" << newl << newl;
+}
+
+void jsfile::addSphere(const triple& center, double radius, bool half,
+                       const double& polar, const double& azimuth)
+{
+  out << "sphere(" << center << "," << radius << ","
+      << drawElement::centerIndex << "," << materialIndex;
+  if(half)
+    out << "," << newl << "[" << polar << "," << azimuth << "]";
+  out << ");" << newl << newl;
 }
 
 }

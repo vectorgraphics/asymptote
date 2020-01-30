@@ -1736,6 +1736,22 @@ function corners(m,M)
           [M[0],m[1],m[2]],[M[0],m[1],M[2]],[M[0],M[1],m[2]],M];
 }
 
+function minbound(v) {
+  return [
+    Math.min(v[0][0],v[1][0],v[2][0],v[3][0],v[4][0],v[5][0],v[6][0],v[7][0]),
+    Math.min(v[0][1],v[1][1],v[2][1],v[3][1],v[4][1],v[5][1],v[6][1],v[7][1]),
+    Math.min(v[0][2],v[1][2],v[2][2],v[3][2],v[4][2],v[5][2],v[6][2],v[7][2])
+  ];
+}
+
+function maxbound(v) {
+  return [
+    Math.max(v[0][0],v[1][0],v[2][0],v[3][0],v[4][0],v[5][0],v[6][0],v[7][0]),
+    Math.max(v[0][1],v[1][1],v[2][1],v[3][1],v[4][1],v[5][1],v[6][1],v[7][1]),
+    Math.max(v[0][2],v[1][2],v[2][2],v[3][2],v[4][2],v[5][2],v[6][2],v[7][2])
+  ];
+}
+
 /**
  * Perform a change of basis
  * @param {*} out Out Matrix
@@ -2430,6 +2446,108 @@ function webGLInit()
 }
 
 let listen=false;
+
+// draw a sphere (or a hemisphere symmetric about optional dir)
+function sphere(center,r,CenterIndex,MaterialIndex,dir)
+{
+  let octant0=[
+    [1,0,0],
+    [1,0,0.370106805057161],
+    [0.798938033457256,0,0.6932530716149],
+    [0.500083269410627,0,0.866169630634358],
+
+    [1,0.552284749830793,0],
+    [1,0.552284749830793,0.370106805057161],
+    [0.798938033457256,0.441241291938247,0.6932530716149],
+    [0.500083269410627,0.276188363341013,0.866169630634358],
+
+    [0.552284749830793,1,0],
+    [0.552284749830793,1,0.370106805057161],
+    [0.441241291938247,0.798938033457256,0.6932530716149],
+    [0.276188363341013,0.500083269410627,0.866169630634358],
+
+    [0,1,0],
+    [0,1,0.370106805057161],
+    [0,0.798938033457256,0.6932530716149],
+    [0,0.500083269410627,0.866169630634358]
+    ];
+
+
+  let octant1=[
+    [0.500083269410627,0,0.866169630634358],
+    [0.500083269410627,0.276188363341013,0.866169630634358],
+    [0.35297776917154,0,0.951284475617087],
+    [0.276188363341013,0.500083269410627,0.866169630634358],
+    [0.264153721902467,0.264153721902467,1],
+    [0.182177944773632,0,1],
+    [0,0.500083269410627,0.866169630634358],
+    [0,0.35297776917154,0.951284475617087],
+    [0,0.182177944773632,1],
+    [0,0,1]
+    ];
+
+  let rx,ry,rz;
+
+  if(dir) {
+    let theta=dir[0];
+    let phi=dir[1];
+
+    let ct=Math.cos(theta);
+    let st=Math.sin(theta);
+    let cp=Math.cos(phi);
+    let sp=Math.sin(phi);
+
+    function S(v) {
+      let x=v[0];
+      let Y=v[1];
+      let z=v[2];
+      let X=x*ct+z*st;
+      return [X*cp-Y*sp,X*sp+Y*cp,-x*st+z*ct];
+    }
+    function T(v) {
+      V=S([rx*v[0],ry*v[1],rz*v[2]]);
+      return [V[0]+center[0],V[1]+center[1],V[2]+center[2]];
+    }
+  } else {
+    function T(v) {
+      let V=[rx*v[0],ry*v[1],rz*v[2]];
+      return [V[0]+center[0],V[1]+center[1],V[2]+center[2]];
+    }
+  }
+
+  function Tcorners(m,M) {
+    let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
+           T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
+           T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
+    return [minbound(v),maxbound(v)];
+  }
+
+  function TT(v) {
+    let p=Array(v.length);
+    for(let i=0; i < v.length; ++i)
+      p[i]=T(v[i]);
+    return p;
+  }
+
+  let s=dir ? 1 : -1;
+
+  for(let i=-1; i <= 1; i += 2) {
+    rx=i*r;
+    for(let j=-1; j <= 1; j += 2) {
+      ry=j*r;
+      for(let k=s; k <= 1; k += 2) {
+        rz=k*r;
+        let v=Tcorners([0,0,0],[1,1,0.866169630634358]);
+        P.push(new BezierPatch(TT(octant0),CenterIndex,MaterialIndex,
+                               v[0],v[1]));
+        v=Tcorners([0,0,0.866169630634358],
+                 [0.500083269410627,0.500083269410627,1]);
+        P.push(new BezierPatch(TT(octant1),CenterIndex,MaterialIndex,
+                               v[0],v[1]));
+      }
+    }
+  }
+}
 
 function webGLStart()
 {

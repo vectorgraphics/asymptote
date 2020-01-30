@@ -200,11 +200,11 @@ void drawBezierPatch::ratio(const double* t, pair &b, double (*m)(double, double
 
 bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
-  if(invisible || !prc)
+  if(invisible || primitive)
     return true;
 
   RGBAColour Black(0.0,0.0,0.0,diffuse.A);
-  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
 
   if(straight) {
     triple vertices[]={controls[0],controls[12],controls[3],controls[15]};
@@ -222,7 +222,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 bool drawBezierPatch::write(jsfile *out)
 {
 #ifdef HAVE_LIBGLM
-  if(invisible)
+  if(invisible || primitive)
     return true;
 
   if(billboard) {
@@ -439,11 +439,11 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
 bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, 
                                groupsmap&)
 {
-  if(invisible)
+  if(invisible || primitive)
     return true;
 
   RGBAColour Black(0.0,0.0,0.0,diffuse.A);
-  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   static const double third=1.0/3.0;
   static const double third2=2.0/3.0;
@@ -463,7 +463,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
 bool drawBezierTriangle::write(jsfile *out)
 {
 #ifdef HAVE_LIBGLM
-  if(invisible)
+  if(invisible || primitive)
     return true;
 
   if(billboard) {
@@ -566,7 +566,7 @@ bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)
     return true;
 
   RGBAColour Black(0.0,0.0,0.0,diffuse.A);
-  PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
+  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights);
   
   return true;
@@ -674,12 +674,12 @@ void drawSphere::P(triple& t, double x, double y, double z)
   if(half) {
     double temp=z; z=x; x=-temp;
   }
-  
+
   if(T == NULL) {
     t=triple(x,y,z);
     return;
   }
-  
+
   double f=T[12]*x+T[13]*y+T[14]*z+T[15];
   if(f == 0.0) run::dividebyzero();
   f=1.0/f;
@@ -749,6 +749,29 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
       reportError("Invalid sphere type");
   }
   
+  return true;
+}
+
+bool drawSphere::write(jsfile *out)
+{
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  triple N,O,E;
+  P(E,1.0,0.0,0.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  double r=length(X);
+
+  if(half)
+    out->addSphere(O,r,half,X.polar(false),X.azimuth());
+  else
+    out->addSphere(O,r);
+
   return true;
 }
 
@@ -884,11 +907,11 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(nC) {
     const RGBAColour white(1,1,1,opacity);
     const RGBAColour black(0,0,0,opacity);
-    const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
+    const PRCmaterial m(black,white,black,specular,opacity,shininess);
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
   } else {
     RGBAColour Black(0.0,0.0,0.0,diffuse.A);
-    const PRCmaterial m(Black,diffuse,emissive,specular,opacity,PRCshininess);
+    const PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,30);
   }
 

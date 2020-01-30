@@ -2193,18 +2193,22 @@ draw=new void(frame f, path3 g, material p=currentpen,
     void drawthick(path3 g) {
       if(settings.thick) {
         if(width > 0) {
-          bool prc=prc();
+          void sphere(transform3 t, bool half) {}
           void cylinder(transform3) {};
-          void sphere(transform3, bool half) {};
           void disk(transform3) {};
           void pipe(path3, path3);
-          if(prc) {
-            cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
+          bool prc=prc();
+          bool webgl=settings.outformat == "html";
+
+          if(prc || webgl) {
             sphere=new void(transform3 t, bool half)
-              {drawPRCsphere(f,t,half,p,light,render);};
+              {drawSphere(f,t,half,p,light,render);};
+            if(prc) {
+            cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
             disk=new void(transform3 t) {draw(f,t*unitdisk,p,light,render);};
             pipe=new void(path3 center, path3 g)
               {drawPRCtube(f,center,g,p,light);};
+            }
           }
           real linecap=linecap(q);
           real r=0.5*width;
@@ -2245,12 +2249,12 @@ draw=new void(frame f, path3 g, material p=currentpen,
                 }
               } else if(linecap == 1) {
                 transform3 scale3r=scale3(r);
-                T.s.append(t0*scale3r*
-                           (dir0 != O ? unithemisphere : unitsphere));
+                T.S.append(t0*scale3r*
+                         (dir0 != O ? unithemisphere : unitsphere));
                 sphere(tc0*scale3r,half=straight(c,0));
                 if(L > 0) {
-                  T.s.append(tL*scale3r*
-                             (dirL != O ? unithemisphere : unitsphere));
+                  T.S.append(tL*scale3r*
+                           (dirL != O ? unithemisphere : unitsphere));
                   sphere(tcL*scale3r,half=straight(c,Lc-1));
                 }
               }
@@ -2259,7 +2263,9 @@ draw=new void(frame f, path3 g, material p=currentpen,
               _draw(f,c,q);
           }
           for(patch s : T.s.s)
-            draw3D(f,s,p,light,prc=false);
+            draw3D(f,s,p,light,primitive=prc());
+          for(patch s : T.S.s)
+            draw3D(f,s,p,light,primitive=webgl);
         } else _draw(f,g,q);
       } else _draw(f,g,q);
     }
@@ -2701,7 +2707,7 @@ struct scene
 
     if(pic.bounds3.exact && noAdjust)
       this.P.bboxonly=false;
-    
+
     f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,this.P);
 
     if(!pic.bounds3.exact) {

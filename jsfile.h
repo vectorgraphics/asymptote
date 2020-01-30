@@ -42,6 +42,8 @@ public:
                     const uint32_t (*PI)[3], const uint32_t (*NI)[3],
                     const uint32_t (*CI)[3],
                     const triple& Min, const triple& Max);
+  void addSphere(const triple& center, double radius, bool half=false,
+                 const double& polar=0.0, const double& azimuth=0.0);
 };
 
 } //namespace camp

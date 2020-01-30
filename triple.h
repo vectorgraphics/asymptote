@@ -246,11 +246,15 @@ public:
     return v.length();
   }
 
-  double polar() const /* theta */
+  double polar(bool warn=true) const /* theta */
   {
     double r=length();
-    if (r == 0.0)
-      reportError("taking polar angle of (0,0,0)");
+    if (r == 0.0) {
+      if(warn)
+        reportError("taking polar angle of (0,0,0)");
+      else
+        return 0.0;
+    }
     return acos(z/r);
   }
   

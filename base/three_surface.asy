@@ -1336,16 +1336,6 @@ triple point(patch s, real u, real v)
   return s.point(u,v);
 }
 
-real PRCshininess(real shininess) 
-{
-  // Empirical translation table from Phong-Blinn to PRC shininess model:
-  static real[] x={0.015,0.025,0.05,0.07,0.1,0.14,0.23,0.5,0.65,0.75,0.85,
-                   0.875,0.9,1};
-  static real[] y={0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5,0.55,0.6,0.7,0.8,0.9,1};
-  static realfunction s=fspline(x,y,monotonic);
-  return s(shininess);
-}
-
 struct interaction
 {
   int type;
@@ -1371,23 +1361,19 @@ material material(material m, light light, bool colors=false)
 
 void draw3D(frame f, int type=0, patch s, triple center=O, material m,
             light light=currentlight, interaction interaction=Embedded,
-            bool prc=true)
+            bool primitive=false)
 {
   bool straight=s.straight && s.planar;
-  bool prc=prc();
   if(s.colors.length > 0) {
-    if(prc && light.on())
+    if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
     m.diffuse(mean(s.colors));
   }
   m=material(m,light,s.colors.length > 0);
   
-  real PRCshininess;
-  if(prc) PRCshininess=PRCshininess(m.shininess);
-
   (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,center,straight,m.p,m.opacity,m.shininess,
-    m.metallic,m.fresnel0,PRCshininess,s.colors,interaction.type,prc);
+     m.metallic,m.fresnel0,s.colors,interaction.type,primitive);
 }
 
 int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
@@ -1419,11 +1405,7 @@ void draw(frame f, triple[] v, int[][] vi,
   if(p.length > 0)
     m=mean(p);
   m=material(m,light);
-  real PRCshininess;
-  if(prc())
-    PRCshininess=PRCshininess(m.shininess);
-  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-      PRCshininess,p,pi);
+  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi);
 }
   
 // Draw triangles on a picture.
@@ -1491,34 +1473,34 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       pic.addPoint(v[viij]);
 }
 
-void drawPRCsphere(frame f, transform3 t=identity4, bool half=false,
-                   material m, light light=currentlight,
-                   render render=defaultrender)
+void drawSphere(frame f, transform3 t=identity4, bool half=false,
+                material m, light light=currentlight,
+                render render=defaultrender)
 {
   m=material(m,light);
-  drawPRCsphere(f,t,half,m.p,m.opacity,PRCshininess(m.shininess),
-                render.sphere);
+  drawSphere(f,t,half,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+             render.sphere);
 }
 
 void drawPRCcylinder(frame f, transform3 t=identity4, material m,
                      light light=currentlight)
 {
   m=material(m,light);
-  drawPRCcylinder(f,t,m.p,m.opacity,PRCshininess(m.shininess));
+  drawPRCcylinder(f,t,m.p,m.opacity,m.shininess);
 }
 
 void drawPRCdisk(frame f, transform3 t=identity4, material m,
                  light light=currentlight)
 {
   m=material(m,light);
-  drawPRCdisk(f,t,m.p,m.opacity,PRCshininess(m.shininess));
+  drawPRCdisk(f,t,m.p,m.opacity,m.shininess);
 }
 
 void drawPRCtube(frame f, path3 center, path3 g, material m,
                  light light=currentlight)
 {
   m=material(m,light);
-  drawPRCtube(f,center,g,m.p,m.opacity,PRCshininess(m.shininess));
+  drawPRCtube(f,center,g,m.p,m.opacity,m.shininess);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -2098,6 +2080,7 @@ restricted patch octant1x=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
 private triple[][][] P=hsplit(octant1x.P,
                       intersect((1,0){N}..{W}(0,1),(0,0)--2*dir(60))[0]);
 // Nondegenerate first octant
+
 surface octant1=surface(patch(P[0]),
                         patch(P[1][0][0]..controls P[1][1][0] and P[1][2][0]..
                               P[1][3][0]..controls P[1][3][1] and P[1][3][2]..
@@ -2169,9 +2152,9 @@ void dot(frame f, triple v, material p=currentpen,
     real size=0.5*linewidth(dotsize(q)+q);
     transform3 T=shift(v)*scale3(size);
     for(patch s : unitsphere.s)
-      draw3D(f,T*s,v,p,light,prc=false);
-    if(prc())
-      drawPRCsphere(f,T,p,light);
+      draw3D(f,T*s,v,p,light,primitive=true);
+    if(prc() || settings.outformat == "html")
+      drawSphere(f,T,p,light);
     if(group)
       endgroup3(f);
   } else dot(f,project(v,P.t),q);
@@ -2237,9 +2220,9 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
           begingroup3(f,name == "" ? "dot" : name,render);
         transform3 T=shift(V)*scale3(size);
         for(patch s : unitsphere.s)
-          draw3D(f,T*s,V,p,light,prc=false);
-        if(prc())
-          drawPRCsphere(f,T,p,light,render);
+          draw3D(f,T*s,V,p,light,primitive=true);
+        if(prc() || settings.outformat == "html")
+          drawSphere(f,T,p,light,render);
         if(group)
           endgroup3(f);
       }
@@ -2431,11 +2414,7 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
         if(group)
           begingroup3(f,name == "" ? "surface" : name,render);
         triple[][] P=t*P;
-        real PRCshininess;
-        if(prc())
-          PRCshininess=PRCshininess(m.shininess);
-        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-              PRCshininess,colors);
+        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,colors);
         if(group)
           endgroup3(f);
         if(pic != null)
