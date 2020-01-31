@@ -105,8 +105,11 @@ struct arrowhead3
           s.append(shift(-n)*t*extrude(g,width*Z));
     }
     if(draw)
-      for(path3 g : H)
-        s.append(tube(g,width).s);
+      for(path3 g : H) {
+        tube T=tube(g,width);
+        s.append(T.s);
+        s.append(T.S);
+      }
     return shift(v)*s;
   }
 

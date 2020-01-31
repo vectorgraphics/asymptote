@@ -2080,7 +2080,6 @@ restricted patch octant1x=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
 private triple[][][] P=hsplit(octant1x.P,
                       intersect((1,0){N}..{W}(0,1),(0,0)--2*dir(60))[0]);
 // Nondegenerate first octant
-
 surface octant1=surface(patch(P[0]),
                         patch(P[1][0][0]..controls P[1][1][0] and P[1][2][0]..
                               P[1][3][0]..controls P[1][3][1] and P[1][3][2]..
@@ -2414,7 +2413,8 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
         if(group)
           begingroup3(f,name == "" ? "surface" : name,render);
         triple[][] P=t*P;
-        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,colors);
+        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,
+             m.fresnel0,colors);
         if(group)
           endgroup3(f);
         if(pic != null)
