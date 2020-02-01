@@ -35,6 +35,8 @@
 #include "pipestream.h"
 #include "array.h"
 
+#include "glrender.h"
+
 #ifdef HAVE_LIBCURSES
 extern "C" {
 
