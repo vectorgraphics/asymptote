@@ -364,6 +364,8 @@ public:
     invisible(s->invisible) {
   }
   
+  virtual void P(triple& t, double x, double y, double z);
+  
   bool write(prcfile *out, unsigned int *, double, groupsmap&) {
     return true;
   }
@@ -399,13 +401,14 @@ public:
 class drawCylinder : public drawPRC {
 public:
   drawCylinder(const vm::array& t, const vm::array&p, double opacity,
-               double shininess) :
-    drawPRC(t,p,opacity,shininess) {}
+             double shininess, double metallic, double fresnel0) :
+    drawPRC(t,p,opacity,shininess,metallic,fresnel0) {}
 
   drawCylinder(const double* t, const drawCylinder *s) :
     drawPRC(t,s) {}
     
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out);
   
   drawElement *transformed(const double* t) {
     return new drawCylinder(t,this);
@@ -416,13 +419,14 @@ public:
 class drawDisk : public drawPRC {
 public:
   drawDisk(const vm::array& t, const vm::array&p, double opacity,
-           double shininess) :
-    drawPRC(t,p,opacity,shininess) {}
+           double shininess, double metallic, double fresnel0) :
+    drawPRC(t,p,opacity,shininess,metallic,fresnel0) {}
 
   drawDisk(const double* t, const drawDisk *s) :
     drawPRC(t,s) {}
     
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  bool write(jsfile *out);
   
   drawElement *transformed(const double* t) {
     return new drawDisk(t,this);

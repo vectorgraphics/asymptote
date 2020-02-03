@@ -661,17 +661,17 @@ void drawSphere(picture *f, realarray2 *t, bool half=false, penarray *p,
 }
 
 // PRC unit cylinder
-void drawPRCcylinder(picture *f, realarray2 *t, penarray *p, real opacity,
-                     real shininess)
+void drawCylinder(picture *f, realarray2 *t, penarray *p, real opacity,
+                     real shininess, real metallic, real fresnel0)
 {
-  f->append(new drawCylinder(*t,*p,opacity,shininess));
+  f->append(new drawCylinder(*t,*p,opacity,shininess,metallic,fresnel0));
 }
 
 // PRC unit disk
-void drawPRCdisk(picture *f, realarray2 *t, penarray *p, real opacity,
-                 real shininess)
+void drawDisk(picture *f, realarray2 *t, penarray *p, real opacity,
+              real shininess, real metallic, real fresnel0)
 {
-  f->append(new drawDisk(*t,*p,opacity,shininess));
+  f->append(new drawDisk(*t,*p,opacity,shininess,metallic,fresnel0));
 }
 
 // General PRC tube

@@ -296,16 +296,13 @@ path3 interp(path3 a, path3 b, real t)
 
 struct tube
 {
-  surface s;
-  surface S; // for sphere
+  surface[] s;
   path3 center; // tube axis
 
   void Null(transform3) {}
   void Null(transform3, bool) {}
   
   void operator init(path3 p, real width, render render=defaultrender,
-                     void cylinder(transform3)=Null,
-                     void sphere(transform3, bool half)=Null,
                      void pipe(path3, path3)=null) {
     real r=0.5*width;
 
@@ -316,8 +313,7 @@ struct tube
           triple v=point(p,i);
           triple u=point(p,i+1)-v;
           transform3 t=shift(v)*align(unit(u))*scale(r,r,abs(u));
-          s.append(t*unitcylinder);
-          cylinder(t);
+          s.push(t*unitcylinder);
         }
         center=center&p;
       } else {
@@ -350,7 +346,7 @@ struct tube
         static splinetype[] Circular={circular,circular,circular};
         if(T.length > 0) {
           surface S=surface(f,sequence(T.length),v,Monotonic,Circular);
-          s.append(S);
+          s.push(S);
 
           // Compute center of tube:
           int n=S.index.length;
@@ -377,7 +373,6 @@ struct tube
             post[i]=0.25*Post;
             pre[i+1]=0.25*Pre;
             point[i+1]=0.25*Point;
-
           }
 
           index=S.index[n-1];
@@ -417,9 +412,8 @@ struct tube
         generate(subpath(p,begin,i));
         triple dir=dir(p,i,-1);
         transform3 T=t*align(dir);
-        S.append(shift(point(p,i))*T*(dir != O ? unithemisphere : unitsphere));
-        sphere(shift(point(center,length(center)))*T,
-               half=straight(p,i-1) && straight(p,i));
+        s.push(shift(point(p,i))*T*(straight(p,i-1) && straight(p,i) ?
+                                    unithemisphere : unitsphere));
         begin=i;
       }
     generate(subpath(p,begin,n));

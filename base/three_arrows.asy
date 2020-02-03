@@ -107,8 +107,8 @@ struct arrowhead3
     if(draw)
       for(path3 g : H) {
         tube T=tube(g,width);
-        s.append(T.s);
-        s.append(T.S);
+        for(surface S : T.s)
+          s.append(S);
       }
     return shift(v)*s;
   }

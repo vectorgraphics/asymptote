@@ -245,5 +245,23 @@ void jsfile::addSphere(const triple& center, double radius, bool half,
   out << ");" << newl << newl;
 }
 
+void jsfile::addCylinder(const triple& center, double radius, double height,
+                         const double& polar, const double& azimuth)
+{
+  out << "cylinder(" << center << "," << radius << "," << height << ","
+      << drawElement::centerIndex << "," << materialIndex
+      << "," << newl << "[" << polar << "," << azimuth << "]"
+      << ");" << newl << newl;
+}
+
+void jsfile::addDisk(const triple& center, double radius,
+                     const double& polar, const double& azimuth)
+{
+  out << "disk(" << center << "," << radius << ","
+      << drawElement::centerIndex << "," << materialIndex
+      << "," << newl << "[" << polar << "," << azimuth << "]"
+      << ");" << newl << newl;
+}
+
 }
 #endif

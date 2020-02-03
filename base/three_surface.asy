@@ -726,7 +726,11 @@ struct surface {
   patch[] s;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
   bool vcyclic;
+  transform3 T=identity4;
   
+  void draw(frame f, transform3 t=identity4, material[] m,
+            light light=currentlight, render render=defaultrender);
+
   bool empty() {
     return s.length == 0;
   }
@@ -1023,6 +1027,8 @@ surface operator * (transform3 t, surface s)
     S.s[i]=t*s.s[i];
   S.index=copy(s.index);
   S.vcyclic=(bool) s.vcyclic;
+  S.T=t*s.T;
+  S.draw=s.draw;
   
   return S;
 }
@@ -1473,29 +1479,6 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       pic.addPoint(v[viij]);
 }
 
-void drawSphere(frame f, transform3 t=identity4, bool half=false,
-                material m, light light=currentlight,
-                render render=defaultrender)
-{
-  m=material(m,light);
-  drawSphere(f,t,half,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-             render.sphere);
-}
-
-void drawPRCcylinder(frame f, transform3 t=identity4, material m,
-                     light light=currentlight)
-{
-  m=material(m,light);
-  drawPRCcylinder(f,t,m.p,m.opacity,m.shininess);
-}
-
-void drawPRCdisk(frame f, transform3 t=identity4, material m,
-                 light light=currentlight)
-{
-  m=material(m,light);
-  drawPRCdisk(f,t,m.p,m.opacity,m.shininess);
-}
-
 void drawPRCtube(frame f, path3 center, path3 g, material m,
                  light light=currentlight)
 {
@@ -1526,53 +1509,61 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 {
   bool is3D=is3D();
   if(is3D) {
-    bool group=name != "" || render.defaultnames;
-    if(group)
-      begingroup3(f,name == "" ? "surface" : name,render);
-
-    // Sort patches by mean distance from camera
-    triple camera=P.camera;
-    if(P.infinity) {
-      triple m=min(s);
-      triple M=max(s);
-      camera=P.target+camerafactor*(abs(M-m)+abs(m-P.target))*unit(P.vector());
+    if(s.draw != null && (settings.outformat == "html" || prc())) {
+      for(int k=0; k < s.s.length; ++k)
+        draw3D(f,s.s[k],surfacepen[k],light,primitive=true);
+      s.draw(f,s.T,surfacepen,light,render);
     }
+    else {
+      bool group=name != "" || render.defaultnames;
+      if(group)
+        begingroup3(f,name == "" ? "surface" : name,render);
 
-    real[][] depth=new real[s.s.length][];
-    for(int i=0; i < depth.length; ++i)
-      depth[i]=new real[] {dot(P.normal,camera-s.s[i].cornermean()),i};
+      // Sort patches by mean distance from camera
+      triple camera=P.camera;
+      if(P.infinity) {
+        triple m=min(s);
+        triple M=max(s);
+        camera=P.target+camerafactor*(abs(M-m)+abs(m-P.target))*
+          unit(P.vector());
+      }
 
-    depth=sort(depth);
+      real[][] depth=new real[s.s.length][];
+      for(int i=0; i < depth.length; ++i)
+        depth[i]=new real[] {dot(P.normal,camera-s.s[i].cornermean()),i};
 
-    for(int p=depth.length-1; p >= 0; --p) {
-      real[] a=depth[p];
-      int k=round(a[1]);
-      draw3D(f,s.s[k],surfacepen[k],light);
-    }
+      depth=sort(depth);
 
-    if(group)
-      endgroup3(f);
+      for(int p=depth.length-1; p >= 0; --p) {
+        real[] a=depth[p];
+        int k=round(a[1]);
+        draw3D(f,s.s[k],surfacepen[k],light);
+      }
 
-    pen modifiers=thin()+squarecap;
-    for(int p=depth.length-1; p >= 0; --p) {
-      real[] a=depth[p];
-      int k=round(a[1]);
-      patch S=s.s[k];
-      pen meshpen=meshpen[k];
-      if(!invisible(meshpen) && !S.triangular) {
-        if(group)
-          begingroup3(f,meshname(name),render);
-        meshpen=modifiers+meshpen;
-        real step=nu == 0 ? 0 : 1/nu;
-        for(int i=0; i <= nu; ++i)
-          draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
-               render);
-        step=nv == 0 ? 0 : 1/nv;
-        for(int j=0; j <= nv; ++j)
-          draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
-               render);
-        if(group)
-          endgroup3(f);
+      if(group)
+        endgroup3(f);
+
+      pen modifiers=thin()+squarecap;
+      for(int p=depth.length-1; p >= 0; --p) {
+        real[] a=depth[p];
+        int k=round(a[1]);
+        patch S=s.s[k];
+        pen meshpen=meshpen[k];
+        if(!invisible(meshpen) && !S.triangular) {
+          if(group)
+            begingroup3(f,meshname(name),render);
+          meshpen=modifiers+meshpen;
+          real step=nu == 0 ? 0 : 1/nu;
+          for(int i=0; i <= nu; ++i)
+            draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
+                 render);
+          step=nv == 0 ? 0 : 1/nv;
+          for(int j=0; j <= nv; ++j)
+            draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
+                 render);
+          if(group)
+            endgroup3(f);
+        }
       }
     }
   }
@@ -2092,6 +2083,24 @@ restricted surface unitsphere=surface(octant1,t1*octant1,t2*octant1,t3*octant1,
                                       i*octant1,i*t1*octant1,i*t2*octant1,
                                       i*t3*octant1);
 
+unitsphere.draw=
+  new void(frame f, transform3 t=identity4, material[] m,
+           light light=currentlight, render render=defaultrender)
+  {
+   material m=material(m[0],light);
+   drawSphere(f,t,half=false,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+             render.sphere);
+  };
+
+unithemisphere.draw=
+  new void(frame f, transform3 t=identity4, material[] m,
+           light light=currentlight, render render=defaultrender)
+  {
+   material m=material(m[0],light);
+   drawSphere(f,t,half=true,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+             render.sphere);
+  };
+
 restricted patch unitfrustum(real t1, real t2)
 {
   real s1=interp(t1,t2,1/3);
@@ -2129,6 +2138,15 @@ private patch unitcylinder1=patch(X{Y}..{-X}Y--Y+Z{X}..{-Y}X+Z--cycle);
 restricted surface unitcylinder=surface(unitcylinder1,t1*unitcylinder1,
                                         t2*unitcylinder1,t3*unitcylinder1);
 
+unitcylinder.draw=
+  new void(frame f, transform3 t=identity4, material[] m,
+           light light=currentlight, render render=defaultrender)
+  {
+   material m=material(m[0],light);
+   drawCylinder(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0);
+  };
+
+
 private patch unitplane=patch(new triple[] {O,X,X+Y,Y});
 restricted surface unitcube=surface(reverse(unitplane),
                                     rotate(90,O,X)*unitplane,
@@ -2139,24 +2157,23 @@ restricted surface unitcube=surface(reverse(unitplane),
 restricted surface unitplane=surface(unitplane);
 restricted surface unitdisk=surface(unitcircle3);
 
+unitdisk.draw=
+  new void(frame f, transform3 t=identity4, material[] m,
+           light light=currentlight, render render=defaultrender)
+  {
+   material m=material(m[0],light);
+   drawDisk(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0);
+  };
+
 void dot(frame f, triple v, material p=currentpen,
          light light=nolight, string name="",
          render render=defaultrender, projection P=currentprojection)
 {
+  if(name == "" && render.defaultnames) name="dot";
   pen q=(pen) p;
-  if(is3D()) {
-    bool group=name != "" || render.defaultnames;
-    if(group)
-      begingroup3(f,name == "" ? "dot" : name,render);
-    real size=0.5*linewidth(dotsize(q)+q);
-    transform3 T=shift(v)*scale3(size);
-    for(patch s : unitsphere.s)
-      draw3D(f,T*s,v,p,light,primitive=true);
-    if(prc() || settings.outformat == "html")
-      drawSphere(f,T,p,light);
-    if(group)
-      endgroup3(f);
-  } else dot(f,project(v,P.t),q);
+  real size=0.5*linewidth(dotsize(q)+q);
+  transform3 T=shift(v)*scale3(size);
+  draw(f,T*unitsphere,p,light,name,render,P);
 }
 
 void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
@@ -2213,18 +2230,7 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
   real size=0.5*linewidth(dotsize(q)+q);
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple V=t*v;
-      if(is3D()) {
-        bool group=name != "" || render.defaultnames;
-        if(group)
-          begingroup3(f,name == "" ? "dot" : name,render);
-        transform3 T=shift(V)*scale3(size);
-        for(patch s : unitsphere.s)
-          draw3D(f,T*s,V,p,light,primitive=true);
-        if(prc() || settings.outformat == "html")
-          drawSphere(f,T,p,light,render);
-        if(group)
-          endgroup3(f);
-      }
+      dot(f,V,p,light,name,render,P);
       if(pic != null)
         dot(pic,project(V,P.t),q);
     },true);

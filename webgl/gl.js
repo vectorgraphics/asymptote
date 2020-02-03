@@ -2447,7 +2447,44 @@ function webGLInit()
 
 let listen=false;
 
-// draw a sphere (or a hemisphere symmetric about optional dir)
+class Align {
+  constructor(center,dir) {
+    this.center=center;
+    if(dir) {
+      let theta=dir[0];
+      let phi=dir[1];
+
+      this.ct=Math.cos(theta);
+      this.st=Math.sin(theta);
+      this.cp=Math.cos(phi);
+      this.sp=Math.sin(phi);
+    }
+  }
+
+  T0(v) {
+    return [v[0]+this.center[0],v[1]+this.center[1],v[2]+this.center[2]];
+  }
+
+  T(v) {
+    let x=v[0];
+    let Y=v[1];
+    let z=v[2];
+    let X=x*this.ct+z*this.st;
+    return [X*this.cp-Y*this.sp+this.center[0],
+            X*this.sp+Y*this.cp+this.center[1],
+            -x*this.st+z*this.ct+this.center[2]];
+  };
+}
+
+function Tcorners(T,m,M) {
+  let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
+         T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
+         T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
+  return [minbound(v),maxbound(v)];
+}
+
+// draw a sphere of radius r about center
+// (or optionally a hemisphere symmetric about direction dir)
 function sphere(center,r,CenterIndex,MaterialIndex,dir)
 {
   let octant0=[
@@ -2487,51 +2524,25 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
     ];
 
   let rx,ry,rz;
-
-  let sp; // Define here to work around uglify bug.
+  let A=new Align(center,dir);
+  let s,t;
 
   if(dir) {
-    let theta=dir[0];
-    let phi=dir[1];
-
-    let ct=Math.cos(theta);
-    let st=Math.sin(theta);
-    let cp=Math.cos(phi);
-    sp=Math.sin(phi);
-
-    function S(v) {
-      let x=v[0];
-      let Y=v[1];
-      let z=v[2];
-      let X=x*ct+z*st;
-      return [X*cp-Y*sp,X*sp+Y*cp,-x*st+z*ct];
-    }
-    function T(v) {
-      V=S([rx*v[0],ry*v[1],rz*v[2]]);
-      return [V[0]+center[0],V[1]+center[1],V[2]+center[2]];
-    }
+    s=1;
+    t=A.T.bind(A);
   } else {
-    function T(v) {
-      let V=[rx*v[0],ry*v[1],rz*v[2]];
-      return [V[0]+center[0],V[1]+center[1],V[2]+center[2]];
+    s=-1;
+    t=A.T0.bind(A);
+  }
+
+  function T(V) {
+    let p=Array(V.length);
+    for(let i=0; i < V.length; ++i) {
+      let v=V[i];
+      p[i]=t([rx*v[0],ry*v[1],rz*v[2]]);
     }
-  }
-
-  function Tcorners(m,M) {
-    let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
-           T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
-           T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
-    return [minbound(v),maxbound(v)];
-  }
-
-  function TT(v) {
-    let p=Array(v.length);
-    for(let i=0; i < v.length; ++i)
-      p[i]=T(v[i]);
     return p;
   }
-
-  let s=dir ? 1 : -1;
 
   for(let i=-1; i <= 1; i += 2) {
     rx=i*r;
@@ -2539,14 +2550,106 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
       ry=j*r;
       for(let k=s; k <= 1; k += 2) {
         rz=k*r;
-        let v=Tcorners([0,0,0],[1,1,0.866169630634358]);
-        P.push(new BezierPatch(TT(octant0),CenterIndex,MaterialIndex,
+        let v=Tcorners(t,[0,0,0],[rx,ry,0.866169630634358*rz]);
+        P.push(new BezierPatch(T(octant0),CenterIndex,MaterialIndex,
                                v[0],v[1]));
-        v=Tcorners([0,0,0.866169630634358],
-                 [0.500083269410627,0.500083269410627,1]);
-        P.push(new BezierPatch(TT(octant1),CenterIndex,MaterialIndex,
+        v=Tcorners(t,[0,0,0.866169630634358*rz],
+                 [0.500083269410627*rx,0.500083269410627*ry,rz]);
+        P.push(new BezierPatch(T(octant1),CenterIndex,MaterialIndex,
                                v[0],v[1]));
       }
+    }
+  }
+}
+
+let a=4/3*(Math.sqrt(2)-1);
+
+// draw a disk of radius r aligned in direction dir
+function disk(center,r,CenterIndex,MaterialIndex,dir)
+{
+  let b=1-2*a/3;
+
+  let unitdisk=[
+    [1,0,0],
+    [1,-a,0],
+    [a,-1,0],
+    [0,-1,0],
+
+    [1,a,0],
+    [b,0,0],
+    [0,-b,0],
+    [-a,-1,0],
+
+    [a,1,0],
+    [0,b,0],
+    [-b,0,0],
+    [-1,-a,0],
+
+    [0,1,0],
+    [-a,1,0],
+    [-1,a,0],
+    [-1,0,0]
+  ];
+
+  let A=new Align(center,dir);
+
+  function T(V) {
+    let p=Array(V.length);
+    for(let i=0; i < V.length; ++i) {
+      let v=V[i];
+      p[i]=A.T([r*v[0],r*v[1],0]);
+    }
+    return p;
+  }
+
+  let v=Tcorners(A.T.bind(A),[-r,-r,0],[r,r,0]);
+  P.push(new BezierPatch(T(unitdisk),CenterIndex,MaterialIndex,v[0],v[1]));
+}
+
+// draw a cylinder of radius r and height h aligned in direction dir
+function cylinder(center,r,h,CenterIndex,MaterialIndex,dir)
+{
+  let cylinder0=[
+    [1,0,0],
+    [1,0,1/3],
+    [1,0,2/3],
+    [1,0,1],
+
+    [1,a,0],
+    [1,a,1/3],
+    [1,a,2/3],
+    [1,a,1],
+
+    [a,1,0],
+    [a,1,1/3],
+    [a,1,2/3],
+    [a,1,1],
+
+    [0,1,0],
+    [0,1,1/3],
+    [0,1,2/3],
+    [0,1,1]
+  ];
+
+  let rx,ry,rz;
+  let A=new Align(center,dir);
+
+  function T(V) {
+    let p=Array(V.length);
+    for(let i=0; i < V.length; ++i) {
+      let v=V[i];
+      p[i]=A.T([rx*v[0],ry*v[1],h*v[2]]);
+    }
+    return p;
+  }
+
+  for(let i=-1; i <= 1; i += 2) {
+    rx=i*r;
+    for(let j=-1; j <= 1; j += 2) {
+      ry=j*r;
+      let v=Tcorners(A.T.bind(A),[0,0,0],[rx,ry,h]);
+      P.push(new BezierPatch(T(cylinder0),CenterIndex,MaterialIndex,
+                             v[0],v[1]));
     }
   }
 }

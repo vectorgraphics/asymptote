@@ -669,12 +669,8 @@ void drawNurbs::render(double size2, const triple& b, const triple& B,
 // TODO: implement NURBS renderer
 }
 
-void drawSphere::P(triple& t, double x, double y, double z)
+void drawPRC::P(triple& t, double x, double y, double z)
 {
-  if(half) {
-    double temp=z; z=x; x=-temp;
-  }
-
   if(T == NULL) {
     t=triple(x,y,z);
     return;
@@ -686,6 +682,14 @@ void drawSphere::P(triple& t, double x, double y, double z)
   
   t=triple((T[0]*x+T[1]*y+T[2]*z+T[3])*f,(T[4]*x+T[5]*y+T[6]*z+T[7])*f,
            (T[8]*x+T[9]*y+T[10]*z+T[11])*f);
+}
+
+void drawSphere::P(triple& t, double x, double y, double z)
+{
+  if(half) {
+    double temp=z; z=x; x=-temp;
+  }
+  drawPRC::P(t,x,y,z);
 }
 
 bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
@@ -761,7 +765,7 @@ bool drawSphere::write(jsfile *out)
 
   setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
-  triple N,O,E;
+  triple O,E;
   P(E,1.0,0.0,0.0);
   P(O,0.0,0.0,0.0);
   triple X=E-O;
@@ -788,6 +792,29 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
   
+bool drawCylinder::write(jsfile *out)
+{
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+  
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  triple E,H,O;
+  P(E,1.0,0.0,0.0);
+  P(H,0.0,0.0,1.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  triple Z=H-O;
+  double r=length(X);
+  double h=length(Z);
+  
+  out->addCylinder(O,r,h,Z.polar(false),Z.azimuth());
+  
+  return true;
+}
+  
 bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
@@ -797,6 +824,28 @@ bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
   PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
   
   out->addDisk(1.0,m,NULL,NULL,NULL,1.0,T);
+  
+  return true;
+}
+  
+bool drawDisk::write(jsfile *out)
+{
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+  
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  
+  triple E,H,O;
+  P(E,1.0,0.0,0.0);
+  P(H,0.0,0.0,1.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  triple Z=H-O;
+  double r=length(X);
+  
+  out->addDisk(O,r,Z.polar(false),Z.azimuth());
   
   return true;
 }
