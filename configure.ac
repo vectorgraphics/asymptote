@@ -395,7 +395,8 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GL/gl.h,
                                   [AC_DEFINE(HAVE_LIBGL,1,
                      DEFINE_LIB[opengl32])
-                             LIBS=$LIBS"-lopengl32 glew.o"],
+                             LIBS=$LIBS"-lopengl32 "
+                             GLEW="glew.o "],
                                    AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
         ;;
      darwin*)
@@ -405,7 +406,8 @@ case "$OSTYPE" in
                              DEFINE([<gl.h> header]))])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
                    DEFINE_LIB[GLUT])
-                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa glew.o "],
+                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
+                           GLEW="glew.o "],
                                  AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
         ;;
      *)
