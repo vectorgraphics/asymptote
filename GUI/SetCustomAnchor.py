@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
-import PyQt5.QtWidgets as Qw
-import PyQt5.QtGui as Qg
-import PyQt5.QtCore as Qc
+import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtGui as QtGui
+import PyQt5.QtCore as QtCore
 from pyUIClass.setCustomAnchor import Ui_Dialog
 
 
-class CustomAnchorDialog(Qw.QDialog):
+class CustomAnchorDialog(QtWidgets.QDialog):
 
     def __init__(self):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        self.ui.buttonBox.button(Qw.QDialogButtonBox.Reset).clicked.connect(self.resetDialog)
+        self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Reset).clicked.connect(self.resetDialog)
 
-        validator = Qg.QDoubleValidator()
+        validator = QtGui.QDoubleValidator()
 
         self.ui.lineEditX.setValidator(validator)
         self.ui.lineEditY.setValidator(validator)
@@ -24,18 +24,18 @@ class CustomAnchorDialog(Qw.QDialog):
 
     def checkTextChanged(self, text):
         if str(text) not in {'.', '-', '.-', '-.'} and str(text):
-            self.ui.buttonBox.button(Qw.QDialogButtonBox.Ok).setEnabled(True)
+            self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(True)
         else:
-            self.ui.buttonBox.button(Qw.QDialogButtonBox.Ok).setEnabled(False)
+            self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
 
     def getPoint(self):
         xPoint = float(self.ui.lineEditX.text())
         yPoint = float(self.ui.lineEditY.text())
 
-        return Qc.QPointF(xPoint, yPoint)
+        return QtCore.QPointF(xPoint, yPoint)
 
     def handleBtnBoxClick(self, button):
-        assert isinstance(button, Qw.QAbstractButton)
+        assert isinstance(button, QtWidgets.QAbstractButton)
         if button.text() == 'Reset':
             self.resetDialog()
 

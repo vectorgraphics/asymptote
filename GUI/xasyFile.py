@@ -10,7 +10,7 @@
 ############################################################################
 
 from string import *
-import xasy2asy as x2a
+import xasy2asy as xasy2asy
 import io
 import re
 
@@ -28,7 +28,7 @@ class xasyFileError(Exception):
 def extractTransform(line):
     """Returns key and the new transform."""
     # see https://regex101.com/r/6DqkRJ/4 for info
-    mapString = x2a.xasyItem.mapString
+    mapString = xasy2asy.xasyItem.mapString
     testMatch = re.match(
         r'^{0:s}\s*\(\s*\"([^\"]+)\"\s*,\s*\(([-\d, .]+)\)\s*\)'.format(mapString), line.strip())
     if testMatch is None:
@@ -37,7 +37,7 @@ def extractTransform(line):
             return None
         else:
             key = mapOnlyMatch.group(1)
-            return key, x2a.identity()
+            return key, xasy2asy.identity()
     else:
         key = testMatch.group(1)
         rawStr = testMatch.group(2)
@@ -46,7 +46,7 @@ def extractTransform(line):
         if len(rawStrArray) != 6:
             return None
         transf = [float(val.strip()) for val in rawStrArray]
-        return key, x2a.asyTransform(transf)
+        return key, xasy2asy.asyTransform(transf)
 
 
 def extractTransformsFromFile(fileStr):
@@ -80,4 +80,4 @@ def saveFile(file, xasyItems, asy2psmap):
     for item in xasyItems:
         file.write(item.getObjectCode(asy2psmap))
 
-    file.write('size('+str(asy2psmap*x2a.yflip())+'); '+ x2a.xasyItem.resizeComment+'\n')
+    file.write('size('+str(asy2psmap*xasy2asy.yflip())+'); '+ xasy2asy.xasyItem.resizeComment+'\n')

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import PyQt5.QtCore as Qc
-import PyQt5.QtGui as Qg
-import xasy2asy as x2a
+import PyQt5.QtCore as QtCore
+import PyQt5.QtGui as QtGui
+import xasy2asy as xasy2asy
 
 import PrimitiveShape
 import math
@@ -11,9 +11,9 @@ import Widg_addPolyOpt
 import Widg_addLabel
 
 
-class InplaceObjProcess(Qc.QObject):
-    objectCreated = Qc.pyqtSignal(Qc.QObject)
-    objectUpdated = Qc.pyqtSignal()
+class InplaceObjProcess(QtCore.QObject):
+    objectCreated = QtCore.pyqtSignal(QtCore.QObject)
+    objectUpdated = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -24,10 +24,10 @@ class InplaceObjProcess(Qc.QObject):
     def active(self):
         return self._active
 
-    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
+    def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
         raise NotImplementedError
 
-    def mouseMove(self, pos, event: Qg.QMouseEvent):
+    def mouseMove(self, pos, event: QtGui.QMouseEvent):
         raise NotImplementedError
 
     def mouseRelease(self):
@@ -45,7 +45,7 @@ class InplaceObjProcess(Qc.QObject):
     def getXasyObject(self):
         raise NotImplementedError
 
-    def postDrawPreview(self, canvas: Qg.QPainter):
+    def postDrawPreview(self, canvas: QtGui.QPainter):
         pass
 
     def createOptWidget(self, info):
@@ -55,10 +55,10 @@ class InplaceObjProcess(Qc.QObject):
 class AddCircle(InplaceObjProcess):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.center = Qc.QPointF(0, 0)
+        self.center = QtCore.QPointF(0, 0)
         self.radius = 0
 
-    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
+    def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.radius = 0
         self.center.setX(x)
@@ -75,9 +75,9 @@ class AddCircle(InplaceObjProcess):
 
     def getPreview(self):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.center)
-        boundRect = Qc.QRectF(x - self.radius, y - self.radius, 2 * self.radius, 2 * self.radius)
+        boundRect = QtCore.QRectF(x - self.radius, y - self.radius, 2 * self.radius, 2 * self.radius)
         # because the internal image is flipped...
-        newPath = Qg.QPainterPath()
+        newPath = QtGui.QPainterPath()
         newPath.addEllipse(boundRect)
         # newPath.addRect(boundRect)
         return newPath
@@ -87,9 +87,9 @@ class AddCircle(InplaceObjProcess):
 
     def getXasyObject(self):
         if self.fill:
-            newObj = x2a.xasyFilledShape(self.getObject(), None)
+            newObj = xasy2asy.xasyFilledShape(self.getObject(), None)
         else:
-            newObj = x2a.xasyShape(self.getObject(), None)
+            newObj = xasy2asy.xasyShape(self.getObject(), None)
         return newObj
 
     def forceFinalize(self):
@@ -102,7 +102,7 @@ class AddLabel(InplaceObjProcess):
         self.alignMode = None
         self.opt = None
         self.text = None
-        self.anchor = Qc.QPointF(0, 0)
+        self.anchor = QtCore.QPointF(0, 0)
         self._active = False
 
     def createOptWidget(self, info):
@@ -121,7 +121,7 @@ class AddLabel(InplaceObjProcess):
         self.anchor.setX(x)
         self.anchor.setY(y)
 
-    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
+    def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
         if self.opt is not None:
             self.text = self.opt.labelText
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
@@ -140,7 +140,7 @@ class AddLabel(InplaceObjProcess):
         text = self.text
         align = str(self.alignMode)
         anchor = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.anchor)
-        newLabel = x2a.xasyText(text=text, location=anchor, pen=None,
+        newLabel = xasy2asy.xasyText(text=text, location=anchor, pen=None,
                                 align=align, asyengine=None, fontsize=self.fontSize)
         newLabel.asyfied = False
         return newLabel
@@ -164,11 +164,11 @@ class AddBezierShape(InplaceObjProcess):
         # Linkmode should be to the last point.
         # (x, y, linkmode), (u, v, lm2) <==> (x, y) <=lm2=> (u, v)
         self.pointsList = []
-        self.currentPoint = Qc.QPointF(0, 0)
+        self.currentPoint = QtCore.QPointF(0, 0)
         self.pendingPoint = None
         self.useLegacy = False
 
-    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
+    def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.currentPoint.setX(x)
         self.currentPoint.setY(y)
@@ -222,7 +222,7 @@ class AddBezierShape(InplaceObjProcess):
         # self.updateBasePath()
 
     def updateBasePath(self):
-        self.basePath = x2a.asyPath(asyengine=self.asyengine, forceCurve=self.useBezierBase)
+        self.basePath = xasy2asy.asyPath(asyengine=self.asyengine, forceCurve=self.useBezierBase)
         newNode = [(x, y) for x, y, _ in self.pointsList]
         newLink = [lnk for *args, lnk in self.pointsList[1:]]
         if self.useLegacy:
@@ -237,7 +237,7 @@ class AddBezierShape(InplaceObjProcess):
             self.basePath.computeControls()
 
     def updateBasePathPreview(self):
-        self.basePathPreview = x2a.asyPath(
+        self.basePathPreview = xasy2asy.asyPath(
             asyengine=self.asyengine, forceCurve=self.useBezierBase)
         newNode = [(x, y) for x, y, _ in self.pointsList] + [(self.currentPoint.x(), self.currentPoint.y())]
         newLink = [lnk for *args, lnk in self.pointsList[1:]] + [self._getLinkType()]
@@ -271,16 +271,16 @@ class AddBezierShape(InplaceObjProcess):
 
     def getXasyObject(self):
         if self.fill:
-            return x2a.xasyFilledShape(self.getObject(), None)
+            return xasy2asy.xasyFilledShape(self.getObject(), None)
         else:
-            return x2a.xasyShape(self.getObject(), None)
+            return xasy2asy.xasyShape(self.getObject(), None)
 
 
 class AddPoly(InplaceObjProcess):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.center = Qc.QPointF(0, 0)
-        self.currPos = Qc.QPointF(0, 0)
+        self.center = QtCore.QPointF(0, 0)
+        self.currPos = QtCore.QPointF(0, 0)
         self.sides = None
         self.inscribed = None
         self.centermode = None
@@ -288,7 +288,7 @@ class AddPoly(InplaceObjProcess):
         self.fill = None
         self.opt = None
 
-    def mouseDown(self, pos, info, mouseEvent: Qg.QMouseEvent=None):
+    def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
         self._active = True
         self.sides = info['sides']
         self.inscribed = info['inscribed']
@@ -299,7 +299,7 @@ class AddPoly(InplaceObjProcess):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.center.setX(x)
         self.center.setY(y)
-        self.currPos = Qc.QPointF(self.center)
+        self.currPos = QtCore.QPointF(self.center)
 
     def mouseMove(self, pos, event):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
@@ -329,7 +329,7 @@ class AddPoly(InplaceObjProcess):
         else:
             poly = PrimitiveShape.PrimitiveShape.exscribedRegPolygon(self.sides, self.center, self._rad(),
                                                                      self._angle(), qpoly=True)
-        newPath = Qg.QPainterPath()
+        newPath = QtGui.QPainterPath()
         newPath.addPolygon(poly)
         return newPath
 
@@ -350,7 +350,7 @@ class AddPoly(InplaceObjProcess):
 
     def getXasyObject(self):
         if self.fill:
-            newObj = x2a.xasyFilledShape(self.getObject(), None)
+            newObj = xasy2asy.xasyFilledShape(self.getObject(), None)
         else:
-            newObj = x2a.xasyShape(self.getObject(), None)
+            newObj = xasy2asy.xasyShape(self.getObject(), None)
         return newObj

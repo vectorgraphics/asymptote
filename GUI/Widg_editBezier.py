@@ -2,16 +2,15 @@
 
 from pyUIClass.widg_editBezier import Ui_Form
 
-import PyQt5.QtCore as Qc
-import PyQt5.QtWidgets as Qw
-import PyQt5.QtGui as Qg
+import PyQt5.QtWidgets as QtW
+import PyQt5.QtCore as QtCore
 
 class LockMode:
     noLock = 0
     angleLock = 1
     angleAndScaleLock = 2
 
-class Widg_editBezier(Qw.QWidget):
+class Widg_editBezier(QtWidgets.QWidget):
     def __init__(self, info: dict, enableCurveFeatures: bool=True):
         super().__init__()
         self.ui = Ui_Form()
@@ -38,11 +37,11 @@ class Widg_editBezier(Qw.QWidget):
     def lockMode(self) -> int:
         return self.ui.cmbLockMode.currentIndex()
 
-    @Qc.pyqtSlot(int)
+    @QtCore.pyqtSlot(int)
     def cmbLockIndexChange(self, index: int):
         self.info['editBezierlockMode'] = index
 
-    @Qc.pyqtSlot(int)
+    @QtCore.pyqtSlot(int)
     def chkRecomputeChanged(self, checked: int):
         isChecked = (checked == 2)
         for obj in self.disableOnAutoRecompute:
