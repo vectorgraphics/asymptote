@@ -16,6 +16,7 @@ LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS)
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lgdi32 -lwinmm -s -static
 
 PERL = perl
+DOCKER = docker
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
@@ -385,6 +386,16 @@ glew.o: glew.c GL/glew.h
 ifeq (,$(findstring clean,${MAKECMDGOALS}))
 -include $(FILES:=.d)
 endif
+
+build-asy-container: Dockerfile
+	$(DOCKER) build . -t asy-build-container
+
+build-asy-docker:
+	$(DOCKER) run -v ${PWD}:/build/asymptote --rm -t asy-build-container bash -c "cd /build/asymptote && ./configure && make clean && make asy ${MAKEFLAGS}"
+
+clean-asy-docker:
+	$(DOCKER) run -v ${PWD}:/build/asymptote --rm -t asy-build-container bash -c "cd /build/asymptote && make clean"
+
 
 FORCE:
 
