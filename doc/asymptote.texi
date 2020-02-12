@@ -152,8 +152,6 @@ Base modules
 * embed::                       Embedding movies, sounds, and 3D objects
 * slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
-* unicode::                     Accept @code{unicode} (UTF-8) characters
-* latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Interface to @code{LaTeX} @code{babel} package
 * labelpath::                   Drawing curved labels
 * labelpath3::                  Drawing curved labels in 3D
@@ -3089,21 +3087,18 @@ skip of a pen can be examined with the routines
 @code{real fontsize(pen p=currentpen)} and 
 @code{real lineskip(pen p=currentpen)}, respectively.
 
+@cindex font
+@cindex @LaTeX{} NFSS fonts
 @cindex @code{font}
-@cindex @code{LaTeX fonts}
-@cindex @code{NFSS}
-@cindex @code{font command}
-@item A pen using a specific @code{LaTeX} @code{NFSS} font is returned
+@item A pen using a specific @LaTeX{} NFSS font is returned
 by calling the function @code{pen font(string encoding, string family,
 string series, string shape)}. The default setting,
 @code{font("OT1","cmr","m","n")}, corresponds to 12pt Computer Modern Roman;
 this may be changed with @code{defaultpen(pen)}. 
 The font setting of a pen is returned by
 @code{string font(pen p=currentpen)}.
-Support for standardized international characters is provided by the
-@code{unicode} package (@pxref{unicode}).
 
-@cindex @code{TeX fonts}
+@cindex @TeX{} fonts
 Alternatively, one may select a fixed-size @TeX{} font (on which
 @code{fontsize} has no effect) like @code{"cmr12"} (12pt Computer Modern
 Roman) or @code{"pcrr"} (Courier) using the function @code{pen font(string
@@ -3114,7 +3109,7 @@ to the requested size: @code{pen font(string name, real size)}.
 A nonstandard font command can be generated with
 @code{pen fontcommand(string)}.
 
-@cindex @code{PostScript fonts}
+@cindex PostScript fonts
 A convenient interface to the following standard @code{PostScript}
 fonts is also provided:
 @verbatim
@@ -3129,6 +3124,45 @@ pen ZapfChancery(string series="m", string shape="n");
 pen Symbol(string series="m", string shape="n");
 pen ZapfDingbats(string series="m", string shape="n");
 @end verbatim
+
+@cindex font
+@cindex font encoding
+@cindex input encoding
+@cindex language context
+@item Starting with the 2018/04/01 release, @LaTeX{} takes UTF-8 as
+the new default input encoding. However, you can still set different input
+encoding (so as the font, font encoding or even language context).
+@noindent
+@cindex Cyrillic
+@cindex Russian
+Here is an example for @code{cp1251} and Russian language in Cyrillic script
+(font encoding @code{T2A}) using Antykwa Toruńska font:
+@verbatim
+texpreamble("\usepackage[math]{anttor}");
+texpreamble("\usepackage[T2A]{fontenc}");
+texpreamble("\usepackage[cp1251]{inputenc}");
+texpreamble("\usepackage[russian]{babel}");
+@end verbatim
+@noindent
+@cindex Chinese
+@cindex Japanese
+@cindex Korean
+@cindex CJK
+Support for Chinese, Japanese, and Korean fonts is provided by the
+CJK package: 
+@quotation
+@url{http://mirror.ctan.org/languages/chinese/CJK/}
+@end quotation
+@noindent
+The following commands enable the CJK song family (within a label, you
+can also temporarily switch to another family, say kai, by prepending
+@code{"\CJKfamily@{kai@}"} to the label string):
+@verbatim
+texpreamble("\usepackage{CJK}
+\AtBeginDocument{\begin{CJK*}{GBK}{song}}
+\AtEndDocument{\clearpage\end{CJK*}}");
+@end verbatim
+
 
 @anchor{transparency}
 @cindex transparency
@@ -6276,8 +6310,6 @@ Here now is @code{latexusage.tex}:
 * embed::                       Embedding movies, sounds, and 3D objects
 * slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
-* unicode::                     Accept @code{unicode} (UTF-8) characters
-* latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Interface to @code{LaTeX} @code{babel} package
 * labelpath::                   Drawing curved labels
 * labelpath3::                  Drawing curved labels in 3D
@@ -6646,7 +6678,7 @@ presentation slides, including portable embedded @acronym{PDF} animations (see
 the file @code{@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.pdf,,slidemovies}@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.asy,,.asy}}). A simple example is provided in
 @code{slidedemo.asy}.
 
-@node MetaPost, unicode, slide, Base modules
+@node MetaPost, babel, slide, Base modules
 @section @code{MetaPost}
 @cindex @code{MetaPost}
 This package provides some useful routines to help @code{MetaPost} users
@@ -6664,51 +6696,7 @@ intersection point of the lines through @code{P}, @code{Q} and
 @code{p}, @code{q}. For less common occurrences of @code{whatever}, one
 can use the built-in explicit linear equation solver @code{solve} instead. 
 
-@node unicode, latin1, MetaPost, Base modules
-@section @code{unicode}
-@cindex @code{unicode}
-@cindex international characters
-Import this package at the beginning of the file to instruct
-@code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
-characters.
-@noindent
-@cindex Cyrillic
-@cindex Russian
-To use Cyrillic fonts, you will need to change the font encoding:
-@verbatim
-import unicode;
-texpreamble("\usepackage{mathtext}\usepackage[russian]{babel}");
-defaultpen(font("T2A","cmr","m","n"));
-@end verbatim
-@noindent
-@cindex Chinese
-@cindex Japanese
-@cindex Korean
-@cindex CJK
-Support for Chinese, Japanese, and Korean fonts is provided by the
-CJK package: 
-@quotation
-@url{http://mirror.ctan.org/languages/chinese/CJK/}
-@end quotation
-@noindent
-The following commands enable the CJK song family (within a label, you
-can also temporarily switch to another family, say kai, by prepending
-@code{"\CJKfamily@{kai@}"} to the label string):
-@verbatim
-texpreamble("\usepackage{CJK}
-\AtBeginDocument{\begin{CJK*}{GBK}{song}}
-\AtEndDocument{\clearpage\end{CJK*}}");
-@end verbatim
-
-@node latin1, babel, unicode, Base modules
-@section @code{latin1}
-@cindex @code{latin1}
-If you don't have @code{LaTeX} support for @code{unicode} installed,
-you can enable support for Western European languages (ISO 8859-1) by
-importing the module @code{latin1}. This module can be used as a
-template for providing support for other ISO 8859 alphabets.
-
-@node babel, labelpath, latin1, Base modules
+@node babel, labelpath, MetaPost, Base modules
 @section @code{babel}
 @cindex @code{babel}
 This module implements the @code{LaTeX} @code{babel} package in
@@ -9891,7 +9879,7 @@ Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 @c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF BufNewFile BufRead
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
 @c  LocalWords:  ylimits uncommented automin automax cp uninstall reals ecast
-@c  LocalWords:  scaleT unicode RightSide yx yy NoAlign legendmargin opic CCW
+@c  LocalWords:  scaleT RightSide yx yy NoAlign legendmargin opic CCW
 @c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly feynman isi showtarget
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
@@ -10024,7 +10012,7 @@ Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
 @c  LocalWords:  ascii piecewise arcpoint spacings tilings sncndn resizing
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
-@c  LocalWords:  Michail 0pt 1filll 's 3D latin1 labelpath3 2D graph3
+@c  LocalWords:  Michail 0pt 1filll 's 3D labelpath3 2D graph3
 @c  LocalWords:  grid3 contour3 x86_64 psv a4 gsview32 freeglut 'load '
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
 @c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
