@@ -74,10 +74,6 @@ extern string emptystring;
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 
-void init_readline(bool tabcompletion) 
-{
-  rl_bind_key('\t',tabcompletion ? rl_complete : rl_insert);
-}
 #endif
 
 void cleanup()
@@ -157,7 +153,7 @@ string readline(string prompt=emptystring, string name=emptystring,
   if(!(isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
     return emptystring;
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  init_readline(tabcompletion);
+  interact::init_readline(tabcompletion);
   
   store_history(&history_save);
   bool newhistory=historyMap.find(name) == historyMap.end();

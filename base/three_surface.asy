@@ -71,10 +71,6 @@ struct patch {
   triple BuP(int j, real u) {
     return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
   }
-  triple BuPP(int j, real u) {
-    return bezierPP(P[0][j],P[1][j],P[2][j],P[3][j],u);
-  }
-  triple BuPPP(int j) {return bezierPPP(P[0][j],P[1][j],P[2][j],P[3][j]);}
 
   path3 uequals(real u) {
     triple z0=Bu(0,u);
@@ -87,10 +83,6 @@ struct patch {
   triple BvP(int i, real v) {
     return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
   }
-  triple BvPP(int i, real v) {
-    return bezierPP(P[i][0],P[i][1],P[i][2],P[i][3],v);
-  }
-  triple BvPPP(int i) {return bezierPPP(P[i][0],P[i][1],P[i][2],P[i][3]);}
 
   path3 vequals(real v) {
     triple z0=Bv(0,v);
@@ -103,28 +95,51 @@ struct patch {
     return bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
   }
 
-  // compute normal vectors for degenerate cases
-  private triple normal0(real u, real v, real epsilon) {
-    triple n=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
-                        bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
-                  cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                        bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u)));
-    return abs(n) > epsilon ? n :
-      0.25*cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
-                 bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
-      1/6*(cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u))+
-           cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
-                 bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u)))+
-      1/12*(cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
-                  bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
-            cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
-                  bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u)))+
-      1/36*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),   
-                 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u));
-  }
-
   static real fuzz=1000*realEpsilon;
+
+  triple normal(triple left3, triple left2, triple left1, triple middle,
+                triple right1, triple right2, triple right3) {
+    real epsilon=fuzz*change2(P);
+
+    triple lp=3.0*(left1-middle);
+    triple rp=3.0*(right1-middle);
+
+    triple n=cross(rp,lp);
+    if(abs(n) > epsilon)
+      return n;
+
+    // Return one-half of the second derivative of the Bezier curve defined
+    // by a,b,c,d at 0.
+    triple bezierPP(triple a, triple b, triple c) {
+      return 3.0*(a+c-2.0*b);
+    }
+
+    triple lpp=bezierPP(middle,left1,left2);
+    triple rpp=bezierPP(middle,right1,right2);
+
+    n=cross(rpp,lp)+cross(rp,lpp);
+    if(abs(n) > epsilon)
+      return n;
+
+    // Return one-sixth of the third derivative of the Bezier curve defined
+    // by a,b,c,d at 0.
+    triple bezierPPP(triple a, triple b, triple c, triple d) {
+      return d-a+3.0*(b-c);
+    }
+
+    triple lppp=bezierPPP(middle,left1,left2,left3);
+    triple rppp=bezierPPP(middle,right1,right2,right3);
+
+    n=cross(rpp,lpp)+cross(rppp,lp)+cross(rp,lppp);
+    if(abs(n) > epsilon)
+      return n;
+
+    n=cross(rppp,lpp)+cross(rpp,lppp);
+    if(abs(n) > epsilon)
+      return n;
+
+    return cross(rppp,lppp);
+  }
 
   triple partialu(real u, real v) {
     return bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v);
@@ -134,34 +149,32 @@ struct patch {
     return bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u);
   }
 
-  triple normal(real u, real v) {
-    triple n=cross(partialu(u,v),partialv(u,v));
-    real epsilon=fuzz*change2(P);
-    return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
-  }
-  
   triple normal00() {
-    triple n=9*cross(P[1][0]-P[0][0],P[0][1]-P[0][0]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(0,0,epsilon);
+    return normal(P[0][3],P[0][2],P[0][1],P[0][0],P[1][0],P[2][0],P[3][0]);
   }
 
   triple normal10() {
-    triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[3][0]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(1,0,epsilon);
+    return normal(P[0][0],P[1][0],P[2][0],P[3][0],P[3][1],P[3][2],P[3][3]);
   }
 
   triple normal11() {
-    triple n=9*cross(P[3][3]-P[2][3],P[3][3]-P[3][2]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(1,1,epsilon);
+    return normal(P[3][0],P[3][1],P[3][2],P[3][3],P[2][3],P[1][3],P[0][3]);
   }
 
   triple normal01() {
-    triple n=9*cross(P[1][3]-P[0][3],P[0][3]-P[0][2]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(0,1,epsilon);
+    return normal(P[3][3],P[2][3],P[1][3],P[0][3],P[0][2],P[0][1],P[0][0]);
+  }
+
+  triple normal(real u, real v) {
+    if(u == 0) {
+      if(v == 0) return normal00();
+      if(v == 1) return normal01();
+    }
+    if(u == 1) {
+      if(v == 0) return normal10();
+      if(v == 1) return normal11();
+    }
+    return cross(partialu(u,v),partialv(u,v));
   }
 
   triple pointtriangular(real u, real v) {
@@ -171,7 +184,7 @@ struct patch {
       6*u*v*w*P[2][1]+v^2*(3*(w*P[2][2]+u*P[3][2])+v*P[3][3]);
   }
 
-  triple bu(real u, real v) {
+  triple partialutriangular(real u, real v) {
     // Compute one-third of the directional derivative of a Bezier triangle
     // in the u direction at (u,v).
     real w=1-u-v;
@@ -179,21 +192,7 @@ struct patch {
       2*v*(w-u)*P[2][1]-v^2*P[2][2]+u^2*P[3][0]+2*u*v*P[3][1]+v^2*P[3][2];
   }
 
-  triple buu(real u, real v) {
-    // Compute one-sixth of the second directional derivative of a Bezier
-    // triangle in the u direction at (u,v).
-    real w=1-u-v;
-    return w*P[0][0]+(u-2*w)*P[1][0]+v*P[1][1]+(w-2*u)*P[2][0]-2*v*P[2][1]+
-      u*P[3][0]+v*P[3][1];
-  }
-
-  triple buuu() {
-    // Compute one-sixth of the third directional derivative of a Bezier
-    // triangle in the u direction at (u,v).
-    return -P[0][0]+3*P[1][0]-3*P[2][0]+P[3][0];
-  }
-
-  triple bv(real u, real v) {
+  triple partialvtriangular(real u, real v) {
     // Compute one-third of the directional derivative of a Bezier triangle
     // in the v direction at (u,v).
     real w=1-u-v;
@@ -202,54 +201,26 @@ struct patch {
       v^2*P[3][3];
   }
 
-  triple bvv(real u, real v) {
-    // Compute one-sixth of the second directional derivative of a Bezier
-    // triangle in the v direction at (u,v).
-    real w=1-u-v;
-    return w*P[0][0]+u*P[1][0]+(v-2*w)*P[1][1]-2*u*P[2][1]+(w-2*v)*P[2][2]+
-      u*P[3][2]+v*P[3][3];
-  }
-
-  triple bvvv() {
-    // Compute one-sixth of the third directional derivative of a Bezier
-    // triangle in the v direction at (u,v).
-    return -P[0][0]+3*P[1][1]-3*P[2][2]+P[3][3];
-  }
-
-  // compute normal vectors for a degenerate Bezier triangle
-  private triple normaltriangular0(real u, real v, real epsilon) {
-    triple n=9*(cross(buu(u,v),bv(u,v))+
-                  cross(bu(u,v),bvv(u,v)));
-    return abs(n) > epsilon ? n :
-      9*cross(buu(u,v),bvv(u,v))+
-      3*(cross(buuu(),bv(u,v))+cross(bu(u,v),bvvv())+
-         cross(buuu(),bvv(u,v))+cross(buu(u,v),bvvv()))+
-      cross(buuu(),bvvv());
-  }
-
-  // Compute the normal of a Bezier triangle at (u,v)
-  triple normaltriangular(real u, real v) {
-    triple n=9*cross(bu(u,v),bv(u,v));
-    real epsilon=fuzz*change2(P);
-    return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
-  }
-
   triple normal00triangular() {
-    triple n=9*cross(P[1][0]-P[0][0],P[1][1]-P[0][0]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normaltriangular0(0,0,epsilon);
+    return normal(P[3][3],P[2][2],P[1][1],P[0][0],P[1][0],P[2][0],P[3][0]);
   }
 
   triple normal10triangular() {
-    triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[2][0]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normaltriangular0(1,0,epsilon);
+    return normal(P[0][0],P[1][0],P[2][0],P[3][0],P[3][1],P[3][2],P[3][3]);
   }
 
   triple normal01triangular() {
-    triple n=9*cross(P[3][2]-P[2][2],P[3][3]-P[2][2]);
-    real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normaltriangular0(0,1,epsilon);
+    return normal(P[3][0],P[3][1],P[3][2],P[3][3],P[2][2],P[1][1],P[0][0]);
+  }
+
+  // Compute the normal vector of a Bezier triangle at (u,v)
+  triple normaltriangular(real u, real v) {
+    if(u == 0) {
+      if(v == 0) return normal00triangular();
+      if(v == 1) return normal01triangular();
+    }
+    if(u == 1 && v == 0) return normal10triangular();
+    return cross(partialutriangular(u,v),partialvtriangular(u,v));
   }
 
   pen[] colors(material m, light light=currentlight) {
@@ -755,7 +726,11 @@ struct surface {
   patch[] s;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
   bool vcyclic;
+  transform3 T=identity4;
   
+  void draw(frame f, transform3 t=identity4, material[] m,
+            light light=currentlight, render render=defaultrender);
+
   bool empty() {
     return s.length == 0;
   }
@@ -1052,6 +1027,8 @@ surface operator * (transform3 t, surface s)
     S.s[i]=t*s.s[i];
   S.index=copy(s.index);
   S.vcyclic=(bool) s.vcyclic;
+  S.T=t*s.T;
+  S.draw=s.draw;
   
   return S;
 }
@@ -1365,16 +1342,6 @@ triple point(patch s, real u, real v)
   return s.point(u,v);
 }
 
-real PRCshininess(real shininess) 
-{
-  // Empirical translation table from Phong-Blinn to PRC shininess model:
-  static real[] x={0.015,0.025,0.05,0.07,0.1,0.14,0.23,0.5,0.65,0.75,0.85,
-                   0.875,0.9,1};
-  static real[] y={0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5,0.55,0.6,0.7,0.8,0.9,1};
-  static realfunction s=fspline(x,y,monotonic);
-  return s(shininess);
-}
-
 struct interaction
 {
   int type;
@@ -1393,30 +1360,26 @@ interaction LabelInteraction()
   return settings.autobillboard ? Billboard : Embedded;
 }
 
-material material(material m, light light) 
+material material(material m, light light, bool colors=false)
 {
-  return light.on() || invisible((pen) m) ? m : emissive(m);
+  return light.on() || invisible((pen) m) ? m : emissive(m,colors);
 }
 
 void draw3D(frame f, int type=0, patch s, triple center=O, material m,
             light light=currentlight, interaction interaction=Embedded,
-            bool prc=true)
+            bool primitive=false)
 {
   bool straight=s.straight && s.planar;
-  bool prc=prc();
   if(s.colors.length > 0) {
-    if(prc && light.on())
+    if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
-    m=mean(s.colors);
+    m.diffuse(mean(s.colors));
   }
-  m=material(m,light);
+  m=material(m,light,s.colors.length > 0);
   
-  real PRCshininess;
-  if(prc) PRCshininess=PRCshininess(m.shininess);
-
   (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,center,straight,m.p,m.opacity,m.shininess,
-    m.metallic,m.fresnel0,PRCshininess,s.colors,interaction.type,prc);
+     m.metallic,m.fresnel0,s.colors,interaction.type,primitive);
 }
 
 int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
@@ -1448,11 +1411,7 @@ void draw(frame f, triple[] v, int[][] vi,
   if(p.length > 0)
     m=mean(p);
   m=material(m,light);
-  real PRCshininess;
-  if(prc())
-    PRCshininess=PRCshininess(m.shininess);
-  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-      PRCshininess,p,pi);
+  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi);
 }
   
 // Draw triangles on a picture.
@@ -1520,40 +1479,16 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       pic.addPoint(v[viij]);
 }
 
-void drawPRCsphere(frame f, transform3 t=identity4, bool half=false,
-                   material m, light light=currentlight,
-                   render render=defaultrender)
-{
-  m=material(m,light);
-  drawPRCsphere(f,t,half,m.p,m.opacity,PRCshininess(m.shininess),
-                render.sphere);
-}
-
-void drawPRCcylinder(frame f, transform3 t=identity4, material m,
-                     light light=currentlight)
-{
-  m=material(m,light);
-  drawPRCcylinder(f,t,m.p,m.opacity,PRCshininess(m.shininess));
-}
-
-void drawPRCdisk(frame f, transform3 t=identity4, material m,
-                 light light=currentlight)
-{
-  m=material(m,light);
-  drawPRCdisk(f,t,m.p,m.opacity,PRCshininess(m.shininess));
-}
-
 void drawPRCtube(frame f, path3 center, path3 g, material m,
                  light light=currentlight)
 {
   m=material(m,light);
-  drawPRCtube(f,center,g,m.p,m.opacity,PRCshininess(m.shininess));
+  drawPRCtube(f,center,g,m.p,m.opacity,m.shininess);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
                  material m, light light=currentlight, projection P)
 {
-  
   pen[] p;
   if(s.triangular) {
     p=s.colorstriangular(m,light);
@@ -1574,53 +1509,61 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 {
   bool is3D=is3D();
   if(is3D) {
-    bool group=name != "" || render.defaultnames;
-    if(group)
-      begingroup3(f,name == "" ? "surface" : name,render);
-
-    // Sort patches by mean distance from camera
-    triple camera=P.camera;
-    if(P.infinity) {
-      triple m=min(s);
-      triple M=max(s);
-      camera=P.target+camerafactor*(abs(M-m)+abs(m-P.target))*unit(P.vector());
+    if(s.draw != null && (settings.outformat == "html" || prc())) {
+      for(int k=0; k < s.s.length; ++k)
+        draw3D(f,s.s[k],surfacepen[k],light,primitive=true);
+      s.draw(f,s.T,surfacepen,light,render);
     }
+    else {
+      bool group=name != "" || render.defaultnames;
+      if(group)
+        begingroup3(f,name == "" ? "surface" : name,render);
 
-    real[][] depth=new real[s.s.length][];
-    for(int i=0; i < depth.length; ++i)
-      depth[i]=new real[] {dot(P.normal,camera-s.s[i].cornermean()),i};
+      // Sort patches by mean distance from camera
+      triple camera=P.camera;
+      if(P.infinity) {
+        triple m=min(s);
+        triple M=max(s);
+        camera=P.target+camerafactor*(abs(M-m)+abs(m-P.target))*
+          unit(P.vector());
+      }
 
-    depth=sort(depth);
+      real[][] depth=new real[s.s.length][];
+      for(int i=0; i < depth.length; ++i)
+        depth[i]=new real[] {dot(P.normal,camera-s.s[i].cornermean()),i};
 
-    for(int p=depth.length-1; p >= 0; --p) {
-      real[] a=depth[p];
-      int k=round(a[1]);
-      draw3D(f,s.s[k],surfacepen[k],light);
-    }
+      depth=sort(depth);
 
-    if(group)
-      endgroup3(f);
+      for(int p=depth.length-1; p >= 0; --p) {
+        real[] a=depth[p];
+        int k=round(a[1]);
+        draw3D(f,s.s[k],surfacepen[k],light);
+      }
 
-    pen modifiers=thin()+squarecap;
-    for(int p=depth.length-1; p >= 0; --p) {
-      real[] a=depth[p];
-      int k=round(a[1]);
-      patch S=s.s[k];
-      pen meshpen=meshpen[k];
-      if(!invisible(meshpen) && !S.triangular) {
-        if(group)
-          begingroup3(f,meshname(name),render);
-        meshpen=modifiers+meshpen;
-        real step=nu == 0 ? 0 : 1/nu;
-        for(int i=0; i <= nu; ++i)
-          draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
-               render);
-        step=nv == 0 ? 0 : 1/nv;
-        for(int j=0; j <= nv; ++j)
-          draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
-               render);
-        if(group)
-          endgroup3(f);
+      if(group)
+        endgroup3(f);
+
+      pen modifiers=thin()+squarecap;
+      for(int p=depth.length-1; p >= 0; --p) {
+        real[] a=depth[p];
+        int k=round(a[1]);
+        patch S=s.s[k];
+        pen meshpen=meshpen[k];
+        if(!invisible(meshpen) && !S.triangular) {
+          if(group)
+            begingroup3(f,meshname(name),render);
+          meshpen=modifiers+meshpen;
+          real step=nu == 0 ? 0 : 1/nu;
+          for(int i=0; i <= nu; ++i)
+            draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
+                 render);
+          step=nv == 0 ? 0 : 1/nv;
+          for(int j=0; j <= nv; ++j)
+            draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
+                 render);
+          if(group)
+            endgroup3(f);
+        }
       }
     }
   }
@@ -2114,20 +2057,49 @@ surface surface(Label L, surface s, real uoffset, real voffset,
 }
 
 private real a=4/3*(sqrt(2)-1);
+private real f=0.5*sqrt(3)*a^2;
+
 private transform3 t1=rotate(90,O,Z);
 private transform3 t2=t1*t1;
 private transform3 t3=t2*t1;
 private transform3 i=xscale3(-1)*zscale3(-1);
 
-restricted patch octant1=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
+// Degenerate first octant
+restricted patch octant1x=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
                                new triple[] {(1,a,a),(a,1,a),(a^2,a,1),
-                                             (a,a^2,1)});
+                                               (a,a^2,1)});
+private triple[][][] P=hsplit(octant1x.P,
+                      intersect((1,0){N}..{W}(0,1),(0,0)--2*dir(60))[0]);
+// Nondegenerate first octant
+surface octant1=surface(patch(P[0]),
+                        patch(P[1][0][0]..controls P[1][1][0] and P[1][2][0]..
+                              P[1][3][0]..controls P[1][3][1] and P[1][3][2]..
+                              P[1][3][3]..controls P[1][0][2] and P[1][0][1]..
+                              cycle,(f,f,1)));
 
 restricted surface unithemisphere=surface(octant1,t1*octant1,t2*octant1,
                                           t3*octant1);
 restricted surface unitsphere=surface(octant1,t1*octant1,t2*octant1,t3*octant1,
                                       i*octant1,i*t1*octant1,i*t2*octant1,
                                       i*t3*octant1);
+
+unitsphere.draw=
+  new void(frame f, transform3 t=identity4, material[] m,
+           light light=currentlight, render render=defaultrender)
+  {
+   material m=material(m[0],light);
+   drawSphere(f,t,half=false,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+             render.sphere);
+  };
+
+unithemisphere.draw=
+  new void(frame f, transform3 t=identity4, material[] m,
+           light light=currentlight, render render=defaultrender)
+  {
+   material m=material(m[0],light);
+   drawSphere(f,t,half=true,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+             render.sphere);
+  };
 
 restricted patch unitfrustum(real t1, real t2)
 {
@@ -2166,6 +2138,15 @@ private patch unitcylinder1=patch(X{Y}..{-X}Y--Y+Z{X}..{-Y}X+Z--cycle);
 restricted surface unitcylinder=surface(unitcylinder1,t1*unitcylinder1,
                                         t2*unitcylinder1,t3*unitcylinder1);
 
+unitcylinder.draw=
+  new void(frame f, transform3 t=identity4, material[] m,
+           light light=currentlight, render render=defaultrender)
+  {
+   material m=material(m[0],light);
+   drawCylinder(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0);
+  };
+
+
 private patch unitplane=patch(new triple[] {O,X,X+Y,Y});
 restricted surface unitcube=surface(reverse(unitplane),
                                     rotate(90,O,X)*unitplane,
@@ -2176,24 +2157,23 @@ restricted surface unitcube=surface(reverse(unitplane),
 restricted surface unitplane=surface(unitplane);
 restricted surface unitdisk=surface(unitcircle3);
 
+unitdisk.draw=
+  new void(frame f, transform3 t=identity4, material[] m,
+           light light=currentlight, render render=defaultrender)
+  {
+   material m=material(m[0],light);
+   drawDisk(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0);
+  };
+
 void dot(frame f, triple v, material p=currentpen,
          light light=nolight, string name="",
          render render=defaultrender, projection P=currentprojection)
 {
+  if(name == "" && render.defaultnames) name="dot";
   pen q=(pen) p;
-  if(is3D()) {
-    bool group=name != "" || render.defaultnames;
-    if(group)
-      begingroup3(f,name == "" ? "dot" : name,render);
-    real size=0.5*linewidth(dotsize(q)+q);
-    transform3 T=shift(v)*scale3(size);
-    for(patch s : unitsphere.s)
-      draw3D(f,T*s,v,p,light,prc=false);
-    if(prc())
-      drawPRCsphere(f,T,p,light);
-    if(group)
-      endgroup3(f);
-  } else dot(f,project(v,P.t),q);
+  real size=0.5*linewidth(dotsize(q)+q);
+  transform3 T=shift(v)*scale3(size);
+  draw(f,T*unitsphere,p,light,name,render,P);
 }
 
 void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
@@ -2250,18 +2230,7 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
   real size=0.5*linewidth(dotsize(q)+q);
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple V=t*v;
-      if(is3D()) {
-        bool group=name != "" || render.defaultnames;
-        if(group)
-          begingroup3(f,name == "" ? "dot" : name,render);
-        transform3 T=shift(V)*scale3(size);
-        for(patch s : unitsphere.s)
-          draw3D(f,T*s,V,p,light,prc=false);
-        if(prc())
-          drawPRCsphere(f,T,p,light,render);
-        if(group)
-          endgroup3(f);
-      }
+      dot(f,V,p,light,name,render,P);
       if(pic != null)
         dot(pic,project(V,P.t),q);
     },true);
@@ -2450,11 +2419,8 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
         if(group)
           begingroup3(f,name == "" ? "surface" : name,render);
         triple[][] P=t*P;
-        real PRCshininess;
-        if(prc())
-          PRCshininess=PRCshininess(m.shininess);
-        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-              PRCshininess,colors);
+        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,
+             m.fresnel0,colors);
         if(group)
           endgroup3(f);
         if(pic != null)

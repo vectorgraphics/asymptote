@@ -1,6 +1,8 @@
 // Rational simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 import rational;
 
+void simplexStandard(rational[] c, rational[][] A, int[] s=new int[],
+                     rational[] b) {}
 void simplexTableau(rational[][] E, int[] Bindices, int I=-1, int J=-1) {}
 void simplexPhase1(rational[] c, rational[][] A, rational[] b,
                    int[] Bindices) {}
@@ -133,7 +135,7 @@ struct simplex {
         rational u=E[I][j];
         if(u < 0) {
           rational r=-E[m][j]/u;
-          if(r <= t && (r < t || Bindices[j] < Bindices[J])) {
+          if(r <= t && (r < t || j < J)) {
             t=r; J=j;
           } // Bland's rule: exiting variable has smallest minimizing index
         }
@@ -388,7 +390,9 @@ struct simplex {
       }
     }
 
-    operator init(concat(c,array(count,rational(0))),a,b,phase1,dual);
+    rational[] C=concat(c,array(count,rational(0)));
+    if(count > 0) simplexStandard(C,a,b);
+    operator init(C,a,b,phase1,dual);
 
     if(case == OPTIMAL && count > 0)
       x.delete(n,n+count-1);

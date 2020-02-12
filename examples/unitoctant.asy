@@ -3,7 +3,7 @@ import graph3;
 currentprojection=orthographic(5,4,2);
 
 size(0,150);
-patch s=octant1;
+patch s=octant1x;
 draw(surface(s),green+opacity(0.5));
 draw(s.external(),blue);
 

@@ -3,7 +3,7 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        2.61
+Version:        2.62
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -25,7 +25,6 @@ BuildRequires:  texinfo >= 4.7
 BuildRequires:  ImageMagick
 
 Requires:       tetex-latex
-Requires:       tkinter
 Requires:       freeglut-devel >= 3.0.0
 Requires(post): /usr/bin/texhash /sbin/install-info
 Requires(postun): /usr/bin/texhash /sbin/install-info

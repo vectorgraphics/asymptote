@@ -1474,3 +1474,163 @@ exit 1
 # time-stamp-format: "%:y-%02m-%02d"
 # time-stamp-end: "'"
 # End:
+CTURE__)
+#define __ARCHITECTURE__ "m68k"
+#endif
+  int version;
+  version=`(hostinfo | sed -n 's/.*NeXT Mach \([0-9]*\).*/\1/p') 2>/dev/null`;
+  if (version < 4)
+    printf ("%s-next-nextstep%d\n", __ARCHITECTURE__, version);
+  else
+    printf ("%s-next-openstep%d\n", __ARCHITECTURE__, version);
+  exit (0);
+#endif
+
+#if defined (MULTIMAX) || defined (n16)
+#if defined (UMAXV)
+  printf ("ns32k-encore-sysv\n"); exit (0);
+#else
+#if defined (CMU)
+  printf ("ns32k-encore-mach\n"); exit (0);
+#else
+  printf ("ns32k-encore-bsd\n"); exit (0);
+#endif
+#endif
+#endif
+
+#if defined (__386BSD__)
+  printf ("i386-pc-bsd\n"); exit (0);
+#endif
+
+#if defined (sequent)
+#if defined (i386)
+  printf ("i386-sequent-dynix\n"); exit (0);
+#endif
+#if defined (ns32000)
+  printf ("ns32k-sequent-dynix\n"); exit (0);
+#endif
+#endif
+
+#if defined (_SEQUENT_)
+  struct utsname un;
+
+  uname(&un);
+  if (strncmp(un.version, "V2", 2) == 0) {
+    printf ("i386-sequent-ptx2\n"); exit (0);
+  }
+  if (strncmp(un.version, "V1", 2) == 0) { /* XXX is V1 correct? */
+    printf ("i386-sequent-ptx1\n"); exit (0);
+  }
+  printf ("i386-sequent-ptx\n"); exit (0);
+#endif
+
+#if defined (vax)
+#if !defined (ultrix)
+#include <sys/param.h>
+#if defined (BSD)
+#if BSD == 43
+  printf ("vax-dec-bsd4.3\n"); exit (0);
+#else
+#if BSD == 199006
+  printf ("vax-dec-bsd4.3reno\n"); exit (0);
+#else
+  printf ("vax-dec-bsd\n"); exit (0);
+#endif
+#endif
+#else
+  printf ("vax-dec-bsd\n"); exit (0);
+#endif
+#else
+#if defined(_SIZE_T_) || defined(SIGLOST)
+  struct utsname un;
+  uname (&un);
+  printf ("vax-dec-ultrix%s\n", un.release); exit (0);
+#else
+  printf ("vax-dec-ultrix\n"); exit (0);
+#endif
+#endif
+#endif
+#if defined(ultrix) || defined(_ultrix) || defined(__ultrix) || defined(__ultrix__)
+#if defined(mips) || defined(__mips) || defined(__mips__) || defined(MIPS) || defined(__MIPS__)
+#if defined(_SIZE_T_) || defined(SIGLOST)
+  struct utsname *un;
+  uname (&un);
+  printf ("mips-dec-ultrix%s\n", un.release); exit (0);
+#else
+  printf ("mips-dec-ultrix\n"); exit (0);
+#endif
+#endif
+#endif
+
+#if defined (alliant) && defined (i860)
+  printf ("i860-alliant-bsd\n"); exit (0);
+#endif
+
+  exit (1);
+}
+EOF
+
+$CC_FOR_BUILD -o "$dummy" "$dummy.c" 2>/dev/null && SYSTEM_NAME=`$dummy` &&
+	{ echo "$SYSTEM_NAME"; exit; }
+
+# Apollos put the system type in the environment.
+test -d /usr/apollo && { echo "$ISP-apollo-$SYSTYPE"; exit; }
+
+echo "$0: unable to guess system type" >&2
+
+case "$UNAME_MACHINE:$UNAME_SYSTEM" in
+    mips:Linux | mips64:Linux)
+	# If we got here on MIPS GNU/Linux, output extra information.
+	cat >&2 <<EOF
+
+NOTE: MIPS GNU/Linux systems require a C compiler to fully recognize
+the system type. Please install a C compiler and try again.
+EOF
+	;;
+esac
+
+cat >&2 <<EOF
+
+This script (version $timestamp), has failed to recognize the
+operating system you are using. If your script is old, overwrite *all*
+copies of config.guess and config.sub with the latest versions from:
+
+  https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess
+and
+  https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub
+
+If $0 has already been updated, send the following data and any
+information you think might be pertinent to config-patches@gnu.org to
+provide the necessary information to handle your system.
+
+config.guess timestamp = $timestamp
+
+uname -m = `(uname -m) 2>/dev/null || echo unknown`
+uname -r = `(uname -r) 2>/dev/null || echo unknown`
+uname -s = `(uname -s) 2>/dev/null || echo unknown`
+uname -v = `(uname -v) 2>/dev/null || echo unknown`
+
+/usr/bin/uname -p = `(/usr/bin/uname -p) 2>/dev/null`
+/bin/uname -X     = `(/bin/uname -X) 2>/dev/null`
+
+hostinfo               = `(hostinfo) 2>/dev/null`
+/bin/universe          = `(/bin/universe) 2>/dev/null`
+/usr/bin/arch -k       = `(/usr/bin/arch -k) 2>/dev/null`
+/bin/arch              = `(/bin/arch) 2>/dev/null`
+/usr/bin/oslevel       = `(/usr/bin/oslevel) 2>/dev/null`
+/usr/convex/getsysinfo = `(/usr/convex/getsysinfo) 2>/dev/null`
+
+UNAME_MACHINE = "$UNAME_MACHINE"
+UNAME_RELEASE = "$UNAME_RELEASE"
+UNAME_SYSTEM  = "$UNAME_SYSTEM"
+UNAME_VERSION = "$UNAME_VERSION"
+EOF
+
+exit 1
+
+# Local variables:
+# eval: (add-hook 'before-save-hook 'time-stamp)
+# time-stamp-start: "timestamp='"
+# time-stamp-format: "%:y-%02m-%02d"
+# time-stamp-end: "'"
+# End:

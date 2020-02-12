@@ -25,6 +25,12 @@
 #include "drawimage.h"
 #include "interact.h"
 
+namespace gl {
+#ifdef HAVE_PTHREAD
+pthread_t mainthread;
+#endif
+}
+
 #ifdef HAVE_GL
 #include "tr.h"
 
@@ -397,7 +403,6 @@ unsigned char *osmesa_buffer;
 #endif
 
 #ifdef HAVE_PTHREAD
-pthread_t mainthread;
 
 pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t initLock=PTHREAD_MUTEX_INITIALIZER;
@@ -523,7 +528,7 @@ void drawscene(int Width, int Height)
   
   Picture->render(size2,m,M,perspective,remesh);
   
-  remesh=false;
+  if(!outlinemode) remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.

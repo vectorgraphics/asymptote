@@ -40,34 +40,30 @@ void main(void)
 #ifndef ORTHOGRAPHIC
   ViewPosition=(viewMat*v).xyz;
 #endif      
-  Normal=normal*normMat;
+  Normal=normalize(normal*normMat);
         
   Material m;
 #ifdef TRANSPARENT
   m=Materials[int(abs(materialIndex))-1];
+  emissive=m.emissive;
   if(materialIndex >= 0.0) {
     diffuse=m.diffuse;
-    emissive=m.emissive;
   } else {
     diffuse=color;
-#if nlights > 0
-    emissive=vec4(0.0);
-#else
-    emissive=color;
+#if nlights == 0
+    emissive += color;
 #endif
   }
 #else
   m=Materials[int(materialIndex)];
+  emissive=m.emissive;
 #ifdef COLOR
   diffuse=color;
-#if nlights > 0
-  emissive=vec4(0.0);
-#else
-  emissive=color;
+#if nlights == 0
+    emissive += color;
 #endif
 #else
   diffuse=m.diffuse;
-  emissive=m.emissive;
 #endif
 #endif
   specular=m.specular.rgb;

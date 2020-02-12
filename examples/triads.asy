@@ -50,3 +50,5 @@ drawarrow("$T_q$",m,s,LeftSide,red);
 spectrum(m,s,l);
 
 shipout("triadkpq");
+
+erase();

@@ -106,7 +106,7 @@ struct simplex {
         real u=E[I][j];
         if(u < -EpsilonA) {
           real r=-E[m][j]/u;
-          if(r <= t && (r < t || Bindices[j] < Bindices[J])) {
+          if(r <= t && (r < t || j < J)) {
             t=r; J=j;
           } // Bland's rule: exiting variable has smallest minimizing index
         }

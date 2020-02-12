@@ -46,7 +46,7 @@ texfile::~texfile()
   
 void texfile::miniprologue()
 {
-  texpreamble(*out,processData().TeXpreamble,false);
+  texpreamble(*out,processData().TeXpreamble,true);
   if(settings::latex(texengine)) {
     *out << "\\pagestyle{empty}" << newl
          << "\\textheight=2048pt" << newl
@@ -65,7 +65,7 @@ void texfile::prologue()
   if(inlinetex) {
     string prename=buildname(settings::outname(),"pre");
     std::ofstream *outpreamble=new std::ofstream(prename.c_str());
-    texpreamble(*outpreamble,processData().TeXpreamble,true,false);
+    texpreamble(*outpreamble,processData().TeXpreamble,false,false);
     outpreamble->close();
   }
   
@@ -104,15 +104,19 @@ void texfile::prologue()
     *out << "\\usepackage{everypage}%" << newl;
   
   if(settings::latex(texengine)) {
-    *out << "\\setlength{\\unitlength}{1pt}" << newl;
+    *out << "\\setlength{\\unitlength}{1pt}%" << newl;
     if(!inlinetex) {
       *out << "\\pagestyle{empty}" << newl
            << "\\textheight=" << height+18.0 << "bp" << newl
            << "\\textwidth=" << width+18.0 << "bp" << newl;
       if(settings::pdf(texengine))
-        *out << "\\oddsidemargin=-17.61pt" << newl
+        *out << "\\parindent=0pt" << newl
+             << "\\oddsidemargin=0pt" << newl
              << "\\evensidemargin=\\oddsidemargin" << newl
-             << "\\topmargin=-37.01pt" << newl;
+             << "\\headheight=0pt" << newl
+             << "\\headsep=0pt" << newl
+             << "\\topmargin=0pt" << newl
+             << "\\topskip=0pt" << newl;
       *out << "\\begin{document}" << newl;
     }
     latexfontencoding(*out);
@@ -195,19 +199,19 @@ void texfile::setlatexcolor(pen p)
                    p.black() != lastpen.black()))) {
     *out << "\\definecolor{ASYcolor}{cmyk}{" 
          << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
-         << p.black() << "}\\color{ASYcolor}" << newl;
+         << p.black() << "}\\color{ASYcolor}%" << newl;
   } else if(p.rgb() && (!lastpen.rgb() ||
                         (p.red() != lastpen.red() ||
                          p.green() != lastpen.green() || 
                          p.blue() != lastpen.blue()))) {
     *out << "\\definecolor{ASYcolor}{rgb}{" 
          << p.red() << "," << p.green() << "," << p.blue()
-         << "}\\color{ASYcolor}" << newl;
+         << "}\\color{ASYcolor}%" << newl;
   } else if(p.grayscale() && (!lastpen.grayscale() || 
                               p.gray() != lastpen.gray())) {
     *out << "\\definecolor{ASYcolor}{gray}{" 
          << p.gray()
-         << "}\\color{ASYcolor}" << newl;
+         << "}\\color{ASYcolor}%" << newl;
   }
 }
   

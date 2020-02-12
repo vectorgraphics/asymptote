@@ -54,7 +54,7 @@ let resizeStep=1.2;
 let lastzoom;
 let H; // maximum camera view half-height
 
-let Fuzz2=1000*Number.EPSILON;
+let Fuzz2=Math.sqrt(Number.EPSILON);
 let Fuzz4=Fuzz2*Fuzz2;
 let third=1/3;
 
@@ -88,8 +88,8 @@ let materialBuffer;
 let colorBuffer;
 let indexBuffer;
 
-let redraw=true;
 let remesh=true;
+let wireframe=0;
 let mouseDownOrTouchActive=false;
 let lastMouseX=null;
 let lastMouseY=null;
@@ -155,6 +155,15 @@ function initShaders()
   transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
 }
 
+function deleteShaders()
+{
+  gl.deleteProgram(transparentShader);
+  gl.deleteProgram(colorShader);
+  gl.deleteProgram(materialShader);
+  gl.deleteProgram(pixelShader);
+  gl.deleteProgram(noNormalShader);
+}
+
 // Create buffers for the patch and its subdivisions.
 function setBuffers()
 {
@@ -171,7 +180,7 @@ function noGL() {
 
 function saveAttributes()
 {
-  let a=window.parent.document.asygl[alpha];
+  let a=window.top.document.asygl[alpha];
 
   a.gl=gl;
   a.nlights=Lights.length;
@@ -187,7 +196,7 @@ function saveAttributes()
 
 function restoreAttributes()
 {
-  let a=window.parent.document.asygl[alpha];
+  let a=window.top.document.asygl[alpha];
 
   gl=a.gl;
   nlights=a.nlights;
@@ -208,7 +217,7 @@ function initGL()
   alpha=Background[3] < 1;
 
   if(embedded) {
-    let p=window.parent.document;
+    let p=window.top.document;
 
     if(p.asygl == null)
       p.asygl=Array(2);
@@ -252,7 +261,7 @@ function getShader(gl,shaderScript,type,options=[])
 #else
   precision mediump float;
 #endif
-  #define nlights ${Lights.length}\n
+  #define nlights ${wireframe == 0 ? Lights.length : 0}\n
   const int Nlights=${Math.max(Lights.length,1)};\n
   #define Nmaterials ${Nmaterials}\n`;
 
@@ -307,8 +316,8 @@ function drawBuffer(data,shader,indices=data.indices)
                 indexExt ? new Uint32Array(indices) :
                 new Uint16Array(indices),gl.STATIC_DRAW);
 
-  gl.drawElements(normal ? gl.TRIANGLES : (pixel ? gl.POINTS : gl.LINES),
-                  indices.length,
+  gl.drawElements(normal ? (wireframe ? gl.LINES : gl.TRIANGLES) :
+                  (pixel ? gl.POINTS : gl.LINES),indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
 }
 
@@ -601,15 +610,30 @@ class BezierPatch extends Geometry {
     let n=unit(cross([p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],
                      [p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]]));
     if(!this.offscreen([p0,p1,p2])) {
+      let i0,i1,i2;
       if(this.color) {
-        this.data.indices.push(this.data.Vertex(p0,n,this.color[0]));
-        this.data.indices.push(this.data.Vertex(p1,n,this.color[1]));
-        this.data.indices.push(this.data.Vertex(p2,n,this.color[2]));
+        i0=this.data.Vertex(p0,n,this.color[0]);
+        i1=this.data.Vertex(p1,n,this.color[1]);
+        i2=this.data.Vertex(p2,n,this.color[2]);
       } else {
-        this.data.indices.push(this.vertex(p0,n));
-        this.data.indices.push(this.vertex(p1,n));
-        this.data.indices.push(this.vertex(p2,n));
+        i0=this.vertex(p0,n);
+        i1=this.vertex(p1,n);
+        i2=this.vertex(p2,n);
       }
+
+      if(wireframe == 0) {
+        this.data.indices.push(i0);
+        this.data.indices.push(i1);
+        this.data.indices.push(i2);
+      } else {
+        this.data.indices.push(i0);
+        this.data.indices.push(i1);
+        this.data.indices.push(i1);
+        this.data.indices.push(i2);
+        this.data.indices.push(i2);
+        this.data.indices.push(i0);
+      }
+
       this.append();
     }
   }
@@ -637,26 +661,52 @@ class BezierPatch extends Geometry {
         i2=this.vertex(p2,n);
         i3=this.vertex(p3,n);
       }
-      this.data.indices.push(i0);
-      this.data.indices.push(i1);
-      this.data.indices.push(i2);
 
-      this.data.indices.push(i0);
-      this.data.indices.push(i2);
-      this.data.indices.push(i3);
+      if(wireframe == 0) {
+        this.data.indices.push(i0);
+        this.data.indices.push(i1);
+        this.data.indices.push(i2);
+
+        this.data.indices.push(i0);
+        this.data.indices.push(i2);
+        this.data.indices.push(i3);
+      } else {
+        this.data.indices.push(i0);
+        this.data.indices.push(i1);
+        this.data.indices.push(i1);
+        this.data.indices.push(i2);
+        this.data.indices.push(i2);
+        this.data.indices.push(i3);
+        this.data.indices.push(i3);
+        this.data.indices.push(i0);
+      }
 
       this.append();
     }
   }
 
+  curve(p,a,b,c,d) {
+    new BezierCurve([p[a],p[b],p[c],p[d]],0,materialIndex,
+                    this.Min,this.Max).render();
+  }
+
   process(p) {
-    if(this.transparent) // Override materialIndex to encode color vs material
+    if(this.transparent && wireframe != 1)
+      // Override materialIndex to encode color vs material
       materialIndex=this.color ? -1-materialIndex : 1+materialIndex;
 
     if(p.length == 10) return this.process3(p);
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
     
+    if(wireframe == 1) {
+      this.curve(p,0,4,8,12);
+      this.curve(p,12,13,14,15);
+      this.curve(p,15,11,7,3);
+      this.curve(p,3,2,1,0);
+      return;
+    }
+
     let p0=p[0];
     let p3=p[3];
     let p12=p[12];
@@ -722,14 +772,28 @@ class BezierPatch extends Geometry {
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
     if(this.Distance(p) < this.res2) { // Bezier patch is flat
       if(!this.offscreen([P0,P1,P2])) {
-        this.data.indices.push(I0);
-        this.data.indices.push(I1);
-        this.data.indices.push(I2);
+        if(wireframe == 0) {
+          this.data.indices.push(I0);
+          this.data.indices.push(I1);
+          this.data.indices.push(I2);
+        } else {
+          this.data.indices.push(I0);
+          this.data.indices.push(I1);
+          this.data.indices.push(I1);
+          this.data.indices.push(I2);
+        }
       }        
       if(!this.offscreen([P0,P2,P3])) {
-        this.data.indices.push(I0);
-        this.data.indices.push(I2);
-        this.data.indices.push(I3);
+        if(wireframe == 0) {
+          this.data.indices.push(I0);
+          this.data.indices.push(I2);
+          this.data.indices.push(I3);
+        } else {
+          this.data.indices.push(I2);
+          this.data.indices.push(I3);
+          this.data.indices.push(I3);
+          this.data.indices.push(I0);
+        }
       }
     } else {
   // Approximate bounds by bounding box of control polyhedron.
@@ -851,7 +915,7 @@ class BezierPatch extends Geometry {
               0.5*(P0[2]+P1[2])];
       if(!flat0) {
         if((flat0=Straightness(p0,p[4],p[8],p12) < this.res2)) {
-          let r=unit(this.derivative(s1[0],s1[1],s1[2],s1[3]));
+          let r=unit(this.differential(s1[0],s1[1],s1[2],s1[3]));
           m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
         }
         else m0=s0[12];
@@ -862,7 +926,7 @@ class BezierPatch extends Geometry {
               0.5*(P1[2]+P2[2])];
       if(!flat1) {
         if((flat1=Straightness(p12,p[13],p[14],p15) < this.res2)) {
-          let r=unit(this.derivative(s2[12],s2[8],s2[4],s2[0]));
+          let r=unit(this.differential(s2[12],s2[8],s2[4],s2[0]));
           m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
         }
         else m1=s1[15];
@@ -873,7 +937,7 @@ class BezierPatch extends Geometry {
               0.5*(P2[2]+P3[2])];
       if(!flat2) {
         if((flat2=Straightness(p15,p[11],p[7],p3) < this.res2)) {
-          let r=unit(this.derivative(s3[15],s2[14],s2[13],s1[12]));
+          let r=unit(this.differential(s3[15],s2[14],s2[13],s1[12]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=s2[3];
@@ -884,7 +948,7 @@ class BezierPatch extends Geometry {
               0.5*(P3[2]+P0[2])];
       if(!flat3) {
         if((flat3=Straightness(p0,p[1],p[2],p3) < this.res2)) {
-          let r=unit(this.derivative(s0[3],s0[7],s0[11],s0[15]));
+          let r=unit(this.differential(s0[3],s0[7],s0[11],s0[15]));
           m3=[m3[0]-e*r[0],m3[1]-e*r[1],m3[2]-e*r[2]];
         }
         else m3=s3[0];
@@ -935,6 +999,13 @@ class BezierPatch extends Geometry {
 
 // Render a Bezier triangle via subdivision.
   process3(p) {
+    if(wireframe == 1) {
+      this.curve(p,0,1,3,6);
+      this.curve(p,6,7,8,9);
+      this.curve(p,9,5,2,0);
+      return;
+    }
+
     this.Res2=BezierFactor*BezierFactor*this.res2;
 
     let p0=p[0];
@@ -969,9 +1040,18 @@ class BezierPatch extends Geometry {
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
     if(this.Distance3(p) < this.Res2) { // Bezier triangle is flat
       if(!this.offscreen([P0,P1,P2])) {
-        this.data.indices.push(I0);
-        this.data.indices.push(I1);
-        this.data.indices.push(I2);
+        if(wireframe == 0) {
+          this.data.indices.push(I0);
+          this.data.indices.push(I1);
+          this.data.indices.push(I2);
+        } else {
+          this.data.indices.push(I0);
+          this.data.indices.push(I1);
+          this.data.indices.push(I1);
+          this.data.indices.push(I2);
+          this.data.indices.push(I2);
+          this.data.indices.push(I0);
+        }
       }
     } else {
   // Approximate bounds by bounding box of control polyhedron.
@@ -1175,7 +1255,7 @@ class BezierPatch extends Geometry {
               0.5*(P1[2]+P2[2])];
       if(!flat0) {
         if((flat0=Straightness(r300,p210,p120,u030) < this.res2)) {
-          let r=unit(this.sumderivative(c[0],c[2],c[5],c[9],c[1],c[3],c[6]));
+          let r=unit(this.sumdifferential(c[0],c[2],c[5],c[9],c[1],c[3],c[6]));
           m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
         }
         else m0=r030;
@@ -1187,7 +1267,7 @@ class BezierPatch extends Geometry {
               0.5*(P2[2]+P0[2])];
       if(!flat1) {
         if((flat1=Straightness(l003,p012,p021,u030) < this.res2)) {
-          let r=unit(this.sumderivative(c[6],c[3],c[1],c[0],c[7],c[8],c[9]));
+          let r=unit(this.sumdifferential(c[6],c[3],c[1],c[0],c[7],c[8],c[9]));
           m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
         }
         else m1=l030;
@@ -1198,7 +1278,7 @@ class BezierPatch extends Geometry {
               0.5*(P0[2]+P1[2])];
       if(!flat2) {
         if((flat2=Straightness(l003,p102,p201,r300) < this.res2)) {
-          let r=unit(this.sumderivative(c[9],c[8],c[7],c[6],c[5],c[2],c[0]));
+          let r=unit(this.sumdifferential(c[9],c[8],c[7],c[6],c[5],c[2],c[0]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=l300;
@@ -1243,7 +1323,7 @@ class BezierPatch extends Geometry {
     let p15=p[15];
 
     // Check the flatness of a patch.
-    let d=Distance2(p15,p0,this.normal(p3,p[2],p[1],p0,p[4],p[8],p12));
+    let d=Distance2(p15,p0,unit(this.normal(p3,p[2],p[1],p0,p[4],p[8],p12)));
     
     // Determine how straight the edges are.
     d=Math.max(d,Straightness(p0,p[1],p[2],p3));
@@ -1276,60 +1356,76 @@ class BezierPatch extends Geometry {
     return Math.max(d,Straightness(p6,p[7],p[8],p9));
   }
 
-  derivative(p0,p1,p2,p3) {
-    let lp=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]];
-    if(abs2(lp) > this.epsilon)
-      return lp;
+  // Return the differential of the Bezier curve p0,p1,p2,p3 at 0.
+  differential(p0,p1,p2,p3) {
+    let p=[3*(p1[0]-p0[0]),3*(p1[1]-p0[1]),3*(p1[2]-p0[2])];
+    if(abs2(p) > this.epsilon)
+      return p;
     
-    let lpp=bezierPP(p0,p1,p2);
-    if(abs2(lpp) > this.epsilon)
-      return lpp;
+    p=bezierPP(p0,p1,p2);
+    if(abs2(p) > this.epsilon)
+      return p;
     
     return bezierPPP(p0,p1,p2,p3);
   }
 
-  sumderivative(p0,p1,p2,p3,p4,p5,p6) {
-    let d0=this.derivative(p0,p1,p2,p3);
-    let d1=this.derivative(p0,p4,p5,p6);
+  sumdifferential(p0,p1,p2,p3,p4,p5,p6) {
+    let d0=this.differential(p0,p1,p2,p3);
+    let d1=this.differential(p0,p4,p5,p6);
     return [d0[0]+d1[0],d0[1]+d1[1],d0[2]+d1[2]];
   }
   
   normal(left3,left2,left1,middle,right1,right2,right3) {
-    let ux=right1[0]-middle[0];
-    let uy=right1[1]-middle[1];
-    let uz=right1[2]-middle[2];
-    let vx=left1[0]-middle[0];
-    let vy=left1[1]-middle[1];
-    let vz=left1[2]-middle[2];
+    let ux=3*(right1[0]-middle[0]);
+    let uy=3*(right1[1]-middle[1]);
+    let uz=3*(right1[2]-middle[2]);
+    let vx=3*(left1[0]-middle[0]);
+    let vy=3*(left1[1]-middle[1]);
+    let vz=3*(left1[2]-middle[2]);
+
     let n=[uy*vz-uz*vy,
            uz*vx-ux*vz,
            ux*vy-uy*vx];
     if(abs2(n) > this.epsilon)
-      return unit(n);
+      return n;
 
     let lp=[vx,vy,vz];
     let rp=[ux,uy,uz];
+
     let lpp=bezierPP(middle,left1,left2);
     let rpp=bezierPP(middle,right1,right2);
+
     let a=cross(rpp,lp);
     let b=cross(rp,lpp);
     n=[a[0]+b[0],
        a[1]+b[1],
        a[2]+b[2]];
     if(abs2(n) > this.epsilon)
-      return unit(n);
+      return n;
 
     let lppp=bezierPPP(middle,left1,left2,left3);
     let rppp=bezierPPP(middle,right1,right2,right3);
-    a=cross(rpp,lpp);
-    b=cross(rp,lppp);
-    let c=cross(rppp,lp);
-    let d=cross(rppp,lpp);
-    let e=cross(rpp,lppp);
-    let f=cross(rppp,lppp);
-    return unit([9*a[0]+3*(b[0]+c[0]+d[0]+e[0])+f[0],
-                 9*a[1]+3*(b[1]+c[1]+d[1]+e[1])+f[1],
-                 9*a[2]+3*(b[2]+c[2]+d[2]+e[2])+f[2]]);
+
+    a=cross(rp,lppp);
+    b=cross(rppp,lp);
+    let c=cross(rpp,lpp);
+
+    n=[a[0]+b[0]+c[0],
+       a[1]+b[1]+c[1],
+       a[2]+b[2]+c[2]];
+    if(abs2(n) > this.epsilon)
+      return n;
+
+    a=cross(rppp,lpp);
+    b=cross(rpp,lppp);
+
+    n=[a[0]+b[0],
+       a[1]+b[1],
+       a[2]+b[2]];
+    if(abs2(n) > this.epsilon)
+      return n;
+
+    return cross(rppp,lppp);
   }
 }
 
@@ -1455,7 +1551,8 @@ class Triangles extends Geometry {
 
   process(p) {
     // Override materialIndex to encode color vs material
-    materialIndex=this.Colors.length > 0 ? -1-materialIndex : 1+materialIndex;
+      materialIndex=this.Colors.length > 0 ?
+      -1-materialIndex : 1+materialIndex;
 
     for(let i=0, n=this.Indices.length; i < n; ++i) {
       let index=this.Indices[i];
@@ -1473,13 +1570,31 @@ class Triangles extends Geometry {
           let C1=this.Colors[CI[1]];
           let C2=this.Colors[CI[2]];
           this.transparent |= C0[3]+C1[3]+C2[3] < 765;
-          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
-          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
-          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+          if(wireframe == 0) {
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+          } else {
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
+          }
         } else {
-          this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
-          this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
-          this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+          if(wireframe == 0) {
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+          } else {
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
+            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
+            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
+          }
         }
       }
     }
@@ -1501,7 +1616,7 @@ function home()
   initProjection();
   setProjection();
   remesh=true;
-  redraw=true;
+  draw();
 }
 
 let positionAttribute=0;
@@ -1575,16 +1690,16 @@ function cross(u,v)
           u[0]*v[1]-u[1]*v[0]];
 }
 
-// Return one-sixth of the second derivative of the Bezier curve defined
+// Return one-half of the second derivative of the Bezier curve defined
 // by a,b,c,d at 0. 
 function bezierPP(a,b,c)
 {
-  return [a[0]+c[0]-2*b[0],
-          a[1]+c[1]-2*b[1],
-          a[2]+c[2]-2*b[2]];
+  return [3*(a[0]+c[0])-6*b[0],
+          3*(a[1]+c[1])-6*b[1],
+          3*(a[2]+c[2])-6*b[2]];
 }
 
-// Return one-third of the third derivative of the Bezier curve defined by
+// Return one-sixth of the third derivative of the Bezier curve defined by
 // a,b,c,d at 0.
 function bezierPPP(a,b,c,d)
 {
@@ -1619,6 +1734,22 @@ function corners(m,M)
 {
   return [m,[m[0],m[1],M[2]],[m[0],M[1],m[2]],[m[0],M[1],M[2]],
           [M[0],m[1],m[2]],[M[0],m[1],M[2]],[M[0],M[1],m[2]],M];
+}
+
+function minbound(v) {
+  return [
+    Math.min(v[0][0],v[1][0],v[2][0],v[3][0],v[4][0],v[5][0],v[6][0],v[7][0]),
+    Math.min(v[0][1],v[1][1],v[2][1],v[3][1],v[4][1],v[5][1],v[6][1],v[7][1]),
+    Math.min(v[0][2],v[1][2],v[2][2],v[3][2],v[4][2],v[5][2],v[6][2],v[7][2])
+  ];
+}
+
+function maxbound(v) {
+  return [
+    Math.max(v[0][0],v[1][0],v[2][0],v[3][0],v[4][0],v[5][0],v[6][0],v[7][0]),
+    Math.max(v[0][1],v[1][1],v[2][1],v[3][1],v[4][1],v[5][1],v[6][1],v[7][1]),
+    Math.max(v[0][2],v[1][2],v[2][2],v[3][2],v[4][2],v[5][2],v[6][2],v[7][2])
+  ];
 }
 
 /**
@@ -1676,6 +1807,8 @@ function setUniforms(data,shader)
 
 function handleMouseDown(event)
 {
+  if(!zoomEnabled)
+    enableZoom();
   mouseDownOrTouchActive=true;
   lastMouseX=event.clientX;
   lastMouseY=event.clientY;
@@ -1697,6 +1830,8 @@ let touchStartTime;
 function handleTouchStart(event)
 {
   event.preventDefault();
+  if(!zoomEnabled)
+    enableZoom();
   let touches=event.targetTouches;
   swipe=rotate=pinch=false;
   if(zooming) return;
@@ -1849,13 +1984,38 @@ function processDrag(newX,newY,mode,factor=1)
   lastMouseY=newY;
 
   setProjection();
-  redraw=true;
+  draw();
+}
+
+let zoomEnabled=0;
+
+function enableZoom()
+{
+  zoomEnabled=1;
+  canvas.addEventListener("wheel",handleMouseWheel,false);
+}
+
+function disableZoom()
+{
+  zoomEnabled=0;
+  canvas.removeEventListener("wheel",handleMouseWheel,false);
 }
 
 function handleKey(event)
 {
+  let ESC=27;
+
+  if(!zoomEnabled)
+    enableZoom();
+
+  if(embedded && zoomEnabled && event.keyCode == ESC) {
+    disableZoom();
+    return;
+  }
+
   let keycode=event.key;
   let axis=[];
+
   switch(keycode) {
   case 'x':
     axis=[1,0,0];
@@ -1868,6 +2028,17 @@ function handleKey(event)
     break;
   case 'h':
     home();
+    break;
+  case 'm':
+    ++wireframe;
+    if(wireframe == 3) wireframe=0;
+    if(wireframe != 2) {
+      if(!embedded)
+        deleteShaders();
+      initShaders();
+    }
+    remesh=true;
+    draw();
     break;
   case '+':
   case '=':
@@ -1886,7 +2057,7 @@ function handleKey(event)
   if(axis.length > 0) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
     updateViewMatrix();
-    redraw=true;
+    draw();
   }
 }
 
@@ -1902,7 +2073,7 @@ function handleMouseWheel(event)
   capzoom();
   setProjection();
 
-  redraw=true;
+  draw();
 }
 
 function handleMouseMove(event)
@@ -1974,7 +2145,7 @@ function handleTouchMove(event)
     pinchStart=distance;
     swipe=rotate=zooming=false;
     setProjection();
-    redraw=true;
+    draw();
   }
 }
 
@@ -2025,6 +2196,11 @@ function drawTriangle()
 function drawTransparent()
 {
   let indices=transparentData.indices;
+  if(wireframe > 0) {
+    drawBuffer(transparentData,transparentShader,indices);
+    transparentData.clear();
+    return;
+  }
   if(indices.length > 0) {
     transformVertices(transparentData.vertices);
     
@@ -2094,16 +2270,7 @@ function draw()
     context.drawImage(offscreen,0,0);
   }
 
-  remesh=false;
-}
-
-function tick()
-{
-  requestAnimationFrame(tick);
-  if(redraw) {
-    draw();
-    redraw=false;
-  }
+  if(wireframe == 0) remesh=false;
 }
 
 function setDimensions(width,height,X,Y)
@@ -2221,10 +2388,10 @@ function shrink()
 
 let pixelShader,noNormalShader,materialShader,colorShader,transparentShader;
 
-function webGLStart()
+function webGLInit()
 {
   canvas=document.getElementById("Asymptote");
-  embedded=window.parent.document != document;
+  embedded=window.top.document != document;
 
   initGL();
 
@@ -2232,11 +2399,8 @@ function webGLStart()
     canvasWidth *= window.devicePixelRatio;
     canvasHeight *= window.devicePixelRatio;
   } else {
-    if(canvas.width == 0) 
-      canvas.width=Math.max(window.innerWidth-windowTrim,windowTrim);
-
-    if(canvas.height == 0) 
-      canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
+    canvas.width=Math.max(window.innerWidth-windowTrim,windowTrim);
+    canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
 
     let Aspect=canvasWidth/canvasHeight;
     if(canvas.width > canvas.height*Aspect) 
@@ -2271,13 +2435,238 @@ function webGLStart()
   document.onmousemove=handleMouseMove;
   canvas.onkeydown=handleKey;
 
-  canvas.addEventListener("wheel",handleMouseWheel,false);
+  if(!embedded)
+    enableZoom();
   canvas.addEventListener("touchstart",handleTouchStart,false);
   canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
   canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
-
-  tick();
 }
+
+let listen=false;
+
+class Align {
+  constructor(center,dir) {
+    this.center=center;
+    if(dir) {
+      let theta=dir[0];
+      let phi=dir[1];
+
+      this.ct=Math.cos(theta);
+      this.st=Math.sin(theta);
+      this.cp=Math.cos(phi);
+      this.sp=Math.sin(phi);
+    }
+  }
+
+  T0(v) {
+    return [v[0]+this.center[0],v[1]+this.center[1],v[2]+this.center[2]];
+  }
+
+  T(v) {
+    let x=v[0];
+    let Y=v[1];
+    let z=v[2];
+    let X=x*this.ct+z*this.st;
+    return [X*this.cp-Y*this.sp+this.center[0],
+            X*this.sp+Y*this.cp+this.center[1],
+            -x*this.st+z*this.ct+this.center[2]];
+  };
+}
+
+function Tcorners(T,m,M) {
+  let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
+         T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
+         T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
+  return [minbound(v),maxbound(v)];
+}
+
+// draw a sphere of radius r about center
+// (or optionally a hemisphere symmetric about direction dir)
+function sphere(center,r,CenterIndex,MaterialIndex,dir)
+{
+  let octant0=[
+    [1,0,0],
+    [1,0,0.370106805057161],
+    [0.798938033457256,0,0.6932530716149],
+    [0.500083269410627,0,0.866169630634358],
+
+    [1,0.552284749830793,0],
+    [1,0.552284749830793,0.370106805057161],
+    [0.798938033457256,0.441241291938247,0.6932530716149],
+    [0.500083269410627,0.276188363341013,0.866169630634358],
+
+    [0.552284749830793,1,0],
+    [0.552284749830793,1,0.370106805057161],
+    [0.441241291938247,0.798938033457256,0.6932530716149],
+    [0.276188363341013,0.500083269410627,0.866169630634358],
+
+    [0,1,0],
+    [0,1,0.370106805057161],
+    [0,0.798938033457256,0.6932530716149],
+    [0,0.500083269410627,0.866169630634358]
+    ];
+
+
+  let octant1=[
+    [0.500083269410627,0,0.866169630634358],
+    [0.500083269410627,0.276188363341013,0.866169630634358],
+    [0.35297776917154,0,0.951284475617087],
+    [0.276188363341013,0.500083269410627,0.866169630634358],
+    [0.264153721902467,0.264153721902467,1],
+    [0.182177944773632,0,1],
+    [0,0.500083269410627,0.866169630634358],
+    [0,0.35297776917154,0.951284475617087],
+    [0,0.182177944773632,1],
+    [0,0,1]
+    ];
+
+  let rx,ry,rz;
+  let A=new Align(center,dir);
+  let s,t;
+
+  if(dir) {
+    s=1;
+    t=A.T.bind(A);
+  } else {
+    s=-1;
+    t=A.T0.bind(A);
+  }
+
+  function T(V) {
+    let p=Array(V.length);
+    for(let i=0; i < V.length; ++i) {
+      let v=V[i];
+      p[i]=t([rx*v[0],ry*v[1],rz*v[2]]);
+    }
+    return p;
+  }
+
+  for(let i=-1; i <= 1; i += 2) {
+    rx=i*r;
+    for(let j=-1; j <= 1; j += 2) {
+      ry=j*r;
+      for(let k=s; k <= 1; k += 2) {
+        rz=k*r;
+        let v=Tcorners(t,[0,0,0],[rx,ry,0.866169630634358*rz]);
+        P.push(new BezierPatch(T(octant0),CenterIndex,MaterialIndex,
+                               v[0],v[1]));
+        v=Tcorners(t,[0,0,0.866169630634358*rz],
+                 [0.500083269410627*rx,0.500083269410627*ry,rz]);
+        P.push(new BezierPatch(T(octant1),CenterIndex,MaterialIndex,
+                               v[0],v[1]));
+      }
+    }
+  }
+}
+
+let a=4/3*(Math.sqrt(2)-1);
+
+// draw a disk of radius r aligned in direction dir
+function disk(center,r,CenterIndex,MaterialIndex,dir)
+{
+  let b=1-2*a/3;
+
+  let unitdisk=[
+    [1,0,0],
+    [1,-a,0],
+    [a,-1,0],
+    [0,-1,0],
+
+    [1,a,0],
+    [b,0,0],
+    [0,-b,0],
+    [-a,-1,0],
+
+    [a,1,0],
+    [0,b,0],
+    [-b,0,0],
+    [-1,-a,0],
+
+    [0,1,0],
+    [-a,1,0],
+    [-1,a,0],
+    [-1,0,0]
+  ];
+
+  let A=new Align(center,dir);
+
+  function T(V) {
+    let p=Array(V.length);
+    for(let i=0; i < V.length; ++i) {
+      let v=V[i];
+      p[i]=A.T([r*v[0],r*v[1],0]);
+    }
+    return p;
+  }
+
+  let v=Tcorners(A.T.bind(A),[-r,-r,0],[r,r,0]);
+  P.push(new BezierPatch(T(unitdisk),CenterIndex,MaterialIndex,v[0],v[1]));
+}
+
+// draw a cylinder of radius r and height h aligned in direction dir
+function cylinder(center,r,h,CenterIndex,MaterialIndex,dir)
+{
+  let cylinder0=[
+    [1,0,0],
+    [1,0,1/3],
+    [1,0,2/3],
+    [1,0,1],
+
+    [1,a,0],
+    [1,a,1/3],
+    [1,a,2/3],
+    [1,a,1],
+
+    [a,1,0],
+    [a,1,1/3],
+    [a,1,2/3],
+    [a,1,1],
+
+    [0,1,0],
+    [0,1,1/3],
+    [0,1,2/3],
+    [0,1,1]
+  ];
+
+  let rx,ry,rz;
+  let A=new Align(center,dir);
+
+  function T(V) {
+    let p=Array(V.length);
+    for(let i=0; i < V.length; ++i) {
+      let v=V[i];
+      p[i]=A.T([rx*v[0],ry*v[1],h*v[2]]);
+    }
+    return p;
+  }
+
+  for(let i=-1; i <= 1; i += 2) {
+    rx=i*r;
+    for(let j=-1; j <= 1; j += 2) {
+      ry=j*r;
+      let v=Tcorners(A.T.bind(A),[0,0,0],[rx,ry,h]);
+      P.push(new BezierPatch(T(cylinder0),CenterIndex,MaterialIndex,
+                             v[0],v[1]));
+    }
+  }
+}
+
+function webGLStart()
+{
+  if(window.innerWidth == 0 || window.innerHeight == 0) {
+    if(!listen) {
+      listen=true;
+      window.addEventListener("resize",webGLStart,false);
+    }
+  } else {
+    if(listen) {
+      window.removeEventListener("resize",webGLStart,false);
+      listen=false;
+    }
+    webGLInit();
+  }
+}
+

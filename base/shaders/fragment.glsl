@@ -135,29 +135,25 @@ void main()
   Material m;
 #ifdef TRANSPARENT
   m=Materials[abs(materialIndex)-1];
-  if(materialIndex >= 0) {
+  emissive=m.emissive;
+  if(materialIndex >= 0)
     diffuse=m.diffuse;
-    emissive=m.emissive;
-  } else {
+  else {
     diffuse=Color;
-#if Nlights > 0
-    emissive=vec4(0.0);
-#else    
-    emissive=Color;
+#if Nlights == 0
+    emissive += Color;
 #endif
   }
 #else
   m=Materials[int(materialIndex)];
+  emissive=m.emissive;
 #ifdef COLOR
   diffuse=Color;
-#if Nlights > 0
-    emissive=vec4(0.0);
-#else    
-    emissive=Color;
+#if Nlights == 0
+   emissive += Color;
 #endif
 #else  
   diffuse=m.diffuse; 
-  emissive=m.emissive;
 #endif
 #endif
   

@@ -23,27 +23,32 @@ void jsfile::open(string name) {
     
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
-      << "<object data=\"" << name <<"\" style=\"width:"
-      << gl::fullWidth << ";height:" << gl::fullHeight
-      << ";position:relative;top:0;left:0;\"></object>" << newl << newl
+      << "<iframe src=\"" << name
+      << "\" width=\"" << gl::fullWidth
+      << "\" height=\"" << gl::fullHeight
+      << "\" frameborder=\"0\"></iframe>" << newl
+      << newl
       << "-->" << newl << newl;
 
   out.precision(getSetting<Int>("digits"));
-  out << "<html>"
-      << newl << newl << "<head>"
-      << newl << "<meta http-equiv=\"content-type\" content=\"text/html; charset=ISO-8859-1\">"
-      << newl<< "<meta name=\"viewport\" content=\"user-scalable=no\"/>"
-      << newl << newl;
+  out << "<html lang=\"\">" << newl
+      << newl
+      << "<head>" << newl
+      << "<title>" << stripExt(name) << "</title>" << newl
+      << newl
+      << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl
+      << "<meta name=\"viewport\" content=\"user-scalable=no\"/>" << newl
+      << newl;
   
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
     copy(locateFile(AsyGL));
     out << newl << "</script>" << newl;
   } else {
-    out << "<script type=\"text/javascript\"" << newl << "src=\""
+    out << "<script" << newl << "src=\""
         << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
   }
-  out << "<script type=\"text/javascript\">" << newl;
+  out << "<script>" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
@@ -76,7 +81,7 @@ void jsfile::open(string name) {
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;
     out << "new Light(" << newl
-        << "direction=" << gl::Lights[i] << "," << newl 
+        << "direction=" << gl::Lights[i] << "," << newl
         << "color=[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
         << gl::Diffuse[i4+2] << "])," << newl;
   }
@@ -105,7 +110,10 @@ jsfile::~jsfile() {
   out << "</script>"
       << newl << newl << "</head>"
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
-      << newl << "<canvas id=\"Asymptote\" style=\"border: none;\" width=\"0\" height=\"0\" />"
+      << newl << "<canvas id=\"Asymptote\" width=\""
+      << gl::fullWidth << "\" height=\"" <<  gl::fullHeight
+      << "\" style=\"border: none;\">"
+      << newl << "</canvas>"
       << newl << "</body>"
       << newl << newl << "</html>"
       << newl;
@@ -224,8 +232,35 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
   }
   out << "P.push(new Triangles("
       << materialIndex << "," << newl
-      << Min << "," << Max << "));" << newl;
-  out << newl;
+      << Min << "," << Max << "));" << newl << newl;
+}
+
+void jsfile::addSphere(const triple& center, double radius, bool half,
+                       const double& polar, const double& azimuth)
+{
+  out << "sphere(" << center << "," << radius << ","
+      << drawElement::centerIndex << "," << materialIndex;
+  if(half)
+    out << "," << newl << "[" << polar << "," << azimuth << "]";
+  out << ");" << newl << newl;
+}
+
+void jsfile::addCylinder(const triple& center, double radius, double height,
+                         const double& polar, const double& azimuth)
+{
+  out << "cylinder(" << center << "," << radius << "," << height << ","
+      << drawElement::centerIndex << "," << materialIndex
+      << "," << newl << "[" << polar << "," << azimuth << "]"
+      << ");" << newl << newl;
+}
+
+void jsfile::addDisk(const triple& center, double radius,
+                     const double& polar, const double& azimuth)
+{
+  out << "disk(" << center << "," << radius << ","
+      << drawElement::centerIndex << "," << materialIndex
+      << "," << newl << "[" << polar << "," << azimuth << "]"
+      << ");" << newl << newl;
 }
 
 }

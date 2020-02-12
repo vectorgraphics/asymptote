@@ -1,5 +1,5 @@
 			  ASYMPTOTE
-      Copyright 2004-19 Andy Hammerlindl, John Bowman, and Tom Prince
+      Copyright 2004-20 Andy Hammerlindl, John Bowman, and Tom Prince
 
 Asymptote is a powerful descriptive vector graphics language for technical
 drawing, inspired by MetaPost but with an improved C++-like
@@ -9,7 +9,7 @@ typesetting that LaTeX does for scientific text.
 Installation instructions, documentation, binaries, and source code are
 available at:
 
-http://asymptote.sourceforge.net
+https://asymptote.sourceforge.io
 
 Bugs/Patches/Feature Requests can be submitted to
 
@@ -17,7 +17,7 @@ https://github.com/vectorgraphics/asymptote/issues
 
 Questions and comments should be sent to the Asymptote Forum:
 
-http://sourceforge.net/p/asymptote/discussion/409349
+https://sourceforge.net/p/asymptote/discussion/409349
 
 All source files in the Asymptote project, unless explicitly noted otherwise,
 are released under version 3 (or later) of the GNU Lesser General Public

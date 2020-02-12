@@ -8,6 +8,7 @@
 
 #include "common.h"
 #include "triple.h"
+#include "pen.h"
 
 #ifdef HAVE_LIBGLM
 #define GLM_ENABLE_EXPERIMENTAL
@@ -34,25 +35,36 @@
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/gl.h>
+
 #ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
+#ifndef GLUT_3_2_CORE_PROFILE
+#undef HAVE_GL
 #endif
+
+#endif
+
 #ifdef HAVE_LIBOSMESA
 #include <GL/osmesa.h>
 #endif
+
 #else
+
 #ifdef __MSDOS__
 #undef _WIN32
 #include <GL/gl.h>
 #include <GL/wglew.h>
 #include <GL/wglext.h>
 #endif
+
 #ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
 #endif
+
 #ifdef HAVE_LIBOSMESA
 #include <GL/osmesa.h>
 #endif
+
 #endif
 
 #else

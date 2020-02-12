@@ -349,7 +349,7 @@ void texinit()
   // Output any new texpreamble commands
   if(pd.tex.isopen()) {
     if(pd.TeXpipepreamble.empty()) return;
-    texpreamble(pd.tex,pd.TeXpipepreamble,false);
+    texpreamble(pd.tex,pd.TeXpipepreamble,true);
     pd.TeXpipepreamble.clear();
     return;
   }
