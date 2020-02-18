@@ -772,7 +772,7 @@ bool drawSphere::write(jsfile *out)
   double r=length(X);
 
   if(half)
-    out->addSphere(O,r,half,X.polar(false),X.azimuth());
+    out->addSphere(O,r,half,X.polar(false),X.azimuth(false));
   else
     out->addSphere(O,r);
 
@@ -810,7 +810,7 @@ bool drawCylinder::write(jsfile *out)
   double r=length(X);
   double h=length(Z);
   
-  out->addCylinder(O,r,h,Z.polar(false),Z.azimuth());
+  out->addCylinder(O,r,h,Z.polar(false),Z.azimuth(false),core);
   
   return true;
 }
@@ -845,7 +845,7 @@ bool drawDisk::write(jsfile *out)
   triple Z=H-O;
   double r=length(X);
   
-  out->addDisk(O,r,Z.polar(false),Z.azimuth());
+  out->addDisk(O,r,Z.polar(false),Z.azimuth(false));
   
   return true;
 }

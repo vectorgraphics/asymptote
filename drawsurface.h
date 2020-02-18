@@ -375,7 +375,7 @@ public:
 
 };
   
-// Draw a PRC or WebGL unit sphere.
+// Output a unit sphere primitive.
 class drawSphere : public drawPRC {
   bool half;
   int type;
@@ -397,15 +397,17 @@ public:
   }
 };
   
-// Draw a PRC unit cylinder.
+// Output a unit cylinder primitive.
 class drawCylinder : public drawPRC {
+  bool core;
 public:
-  drawCylinder(const vm::array& t, const vm::array&p, double opacity,
-             double shininess, double metallic, double fresnel0) :
-    drawPRC(t,p,opacity,shininess,metallic,fresnel0) {}
+  drawCylinder(const vm::array& t, const vm::array&p,
+               double opacity, double shininess, double metallic,
+               double fresnel0, bool core=false) :
+    drawPRC(t,p,opacity,shininess,metallic,fresnel0), core(core) {}
 
   drawCylinder(const double* t, const drawCylinder *s) :
-    drawPRC(t,s) {}
+    drawPRC(t,s), core(s->core) {}
     
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);

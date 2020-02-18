@@ -147,14 +147,14 @@ public:
     return z.length();
   }
 
-  double angle() const
+  double angle(bool warn=true) const
   {
-    return camp::angle(x,y);
+    return camp::angle(x,y,warn);
   }
   
-  friend double angle(const pair& z)
+  friend double angle(const pair& z, bool warn=true)
   {
-    return z.angle();
+    return z.angle(warn);
   }
   
   friend pair unit(const pair& z)

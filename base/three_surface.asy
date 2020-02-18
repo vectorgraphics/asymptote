@@ -722,14 +722,16 @@ path[] regularize(path p, bool checkboundary=true)
   return s;
 }
 
+typedef void drawfcn(frame f, transform3 t=identity4, material[] m,
+            light light=currentlight, render render=defaultrender);
+
 struct surface {
   patch[] s;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
   bool vcyclic;
   transform3 T=identity4;
   
-  void draw(frame f, transform3 t=identity4, material[] m,
-            light light=currentlight, render render=defaultrender);
+  drawfcn draw;
 
   bool empty() {
     return s.length == 0;
@@ -2138,14 +2140,17 @@ private patch unitcylinder1=patch(X{Y}..{-X}Y--Y+Z{X}..{-Y}X+Z--cycle);
 restricted surface unitcylinder=surface(unitcylinder1,t1*unitcylinder1,
                                         t2*unitcylinder1,t3*unitcylinder1);
 
-unitcylinder.draw=
-  new void(frame f, transform3 t=identity4, material[] m,
+drawfcn unitcylinderDraw(bool core) {
+  return new void(frame f, transform3 t=identity4, material[] m,
            light light=currentlight, render render=defaultrender)
   {
    material m=material(m[0],light);
-   drawCylinder(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0);
+   drawCylinder(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+                m.opacity == 1 ? core : false);
   };
+}
 
+unitcylinder.draw=unitcylinderDraw(false);
 
 private patch unitplane=patch(new triple[] {O,X,X+Y,Y});
 restricted surface unitcube=surface(reverse(unitplane),

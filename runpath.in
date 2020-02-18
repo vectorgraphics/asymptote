@@ -169,6 +169,11 @@ real arclength(path p)
   return p.arclength();
 }
 
+real arclength(pair z0, pair c0, pair c1, pair z1)
+{
+  return arcLength(z0,c0,c1,z1);
+}
+
 real arctime(path p, real L)
 {
   return p.arctime(L);

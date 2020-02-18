@@ -249,7 +249,7 @@ public:
   double polar(bool warn=true) const /* theta */
   {
     double r=length();
-    if (r == 0.0) {
+    if(r == 0.0) {
       if(warn)
         reportError("taking polar angle of (0,0,0)");
       else
@@ -258,9 +258,9 @@ public:
     return acos(z/r);
   }
   
-  double azimuth() const /* phi */
+  double azimuth(bool warn=true) const /* phi */
   {
-    return angle(x,y);
+    return angle(x,y,warn);
   }
   
   friend triple unit(const triple& v)

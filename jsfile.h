@@ -45,7 +45,8 @@ public:
   void addSphere(const triple& center, double radius, bool half=false,
                  const double& polar=0.0, const double& azimuth=0.0);
   void addCylinder(const triple& center, double radius, double height,
-                   const double& polar, const double& azimuth);
+                   const double& polar, const double& azimuth,
+                   bool core=false);
   void addDisk(const triple& center, double radius,
                const double& polar=0.0, const double& azimuth=0.0);
 };

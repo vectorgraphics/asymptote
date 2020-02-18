@@ -14,8 +14,6 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-extern const double Fuzz4;
-
 struct BezierPatch
 {
   vertexBuffer data;

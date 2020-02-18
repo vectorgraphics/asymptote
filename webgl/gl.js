@@ -54,8 +54,6 @@ let resizeStep=1.2;
 let lastzoom;
 let H; // maximum camera view half-height
 
-let Fuzz2=Math.sqrt(Number.EPSILON);
-let Fuzz4=Fuzz2*Fuzz2;
 let third=1/3;
 
 let rotMat=mat4.create();
@@ -600,7 +598,7 @@ class BezierPatch extends Geometry {
     for(let i=1; i < n; ++i)
       this.epsilon=Math.max(this.epsilon,
         abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    this.epsilon *= Fuzz4;
+    this.epsilon *= Number.EPSILON
   }
 
   processTriangle(p) {
@@ -2605,10 +2603,11 @@ function disk(center,r,CenterIndex,MaterialIndex,dir)
   P.push(new BezierPatch(T(unitdisk),CenterIndex,MaterialIndex,v[0],v[1]));
 }
 
-// draw a cylinder of radius r and height h aligned in direction dir
-function cylinder(center,r,h,CenterIndex,MaterialIndex,dir)
+// draw a cylinder with circular base of radius r about center and height h
+// aligned in direction dir
+function cylinder(center,r,h,CenterIndex,MaterialIndex,dir,core)
 {
-  let cylinder0=[
+  let unitcylinder=[
     [1,0,0],
     [1,0,1/3],
     [1,0,2/3],
@@ -2647,9 +2646,15 @@ function cylinder(center,r,h,CenterIndex,MaterialIndex,dir)
     for(let j=-1; j <= 1; j += 2) {
       ry=j*r;
       let v=Tcorners(A.T.bind(A),[0,0,0],[rx,ry,h]);
-      P.push(new BezierPatch(T(cylinder0),CenterIndex,MaterialIndex,
+      P.push(new BezierPatch(T(unitcylinder),CenterIndex,MaterialIndex,
                              v[0],v[1]));
     }
+  }
+
+  if(core) {
+    let Center=A.T([0,0,h]);
+    P.push(new BezierCurve([center,Center],CenterIndex,MaterialIndex,
+                           center,Center));
   }
 }
 

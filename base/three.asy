@@ -37,8 +37,7 @@ struct render
 
   // General parameters:
   real margin;          // shrink amount for rendered openGL viewport, in bp.
-  real tubegranularity; // granularity for rendering tubes 
-  bool labelfill;       // fill subdivision cracks in unlighted labels
+  bool labelfill;       // fill PRC subdivision cracks in unlighted labels
 
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
@@ -52,7 +51,6 @@ struct render
                      bool3 merge=defaultrender.merge,
                      int sphere=defaultrender.sphere,
                      real margin=defaultrender.margin,
-                     real tubegranularity=defaultrender.tubegranularity,
                      bool labelfill=defaultrender.labelfill,
                      bool partnames=defaultrender.partnames,
                      bool defaultnames=defaultrender.defaultnames)
@@ -64,7 +62,6 @@ struct render
     this.merge=merge;
     this.sphere=sphere;
     this.margin=margin;
-    this.tubegranularity=tubegranularity;
     this.labelfill=labelfill;
     this.partnames=partnames;
     this.defaultnames=defaultnames;
@@ -80,7 +77,6 @@ defaultrender.closed=false;
 defaultrender.tessellate=false;
 defaultrender.merge=false;
 defaultrender.margin=0.02;
-defaultrender.tubegranularity=0.001;
 defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
 defaultrender.partnames=false;
@@ -217,9 +213,10 @@ triple project(triple u, triple v)
 triple perp(triple v)
 {
   triple u=cross(v,Y);
-  if(abs(u) > sqrtEpsilon) return unit(u);
+  real norm=sqrtEpsilon*abs(v);
+  if(abs(u) > norm) return unit(u);
   u=cross(v,Z);
-  return (abs(u) > sqrtEpsilon) ? unit(u) : X;
+  return (abs(u) > norm) ? unit(u) : X;
 }
 
 // Return the transformation corresponding to moving the camera from the target
@@ -1138,6 +1135,18 @@ path3 path3(path p, triple plane(pair)=XYplane)
 path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
 {
   return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
+}
+
+path3 interp(path3 a, path3 b, real t)
+{
+  int n=size(a);
+  return path3(sequence(new triple(int i) {
+        return interp(precontrol(a,i),precontrol(b,i),t);},n),
+    sequence(new triple(int i) {return interp(point(a,i),point(b,i),t);},n),
+    sequence(new triple(int i) {return interp(postcontrol(a,i),
+                                              postcontrol(b,i),t);},n),
+    sequence(new bool(int i) {return straight(a,i) && straight(b,i);},n),
+    cyclic(a) && cyclic(b));
 }
 
 path3 invert(path p, triple normal, triple point,
@@ -2243,7 +2252,8 @@ draw=new void(frame f, path3 g, material p=currentpen,
                                      unithemisphere : unitsphere));
             }
           }
-          if(opacity(q) == 1)
+// Draw central core for better small-scale rendering.
+          if(!prc && !webgl && opacity(q) == 1)
             _draw(f,c,q);
         }
         for(surface s : T.s)

@@ -651,7 +651,7 @@ void draw(picture *f, triplearray2 *P, realarray *uknot, realarray *vknot,
                           metallic,fresnel0,*colors));
 }
 
-// PRC or WebGL unit sphere
+// Sphere primitive
 void drawSphere(picture *f, realarray2 *t, bool half=false, penarray *p,
                 real opacity, real shininess, real metallic, real fresnel0,
                 Int type)
@@ -660,21 +660,22 @@ void drawSphere(picture *f, realarray2 *t, bool half=false, penarray *p,
                            intcast(type)));
 }
 
-// PRC unit cylinder
+// Cylinder primitive
 void drawCylinder(picture *f, realarray2 *t, penarray *p, real opacity,
-                     real shininess, real metallic, real fresnel0)
+                  real shininess, real metallic, real fresnel0,
+                  bool core=false)
 {
-  f->append(new drawCylinder(*t,*p,opacity,shininess,metallic,fresnel0));
+  f->append(new drawCylinder(*t,*p,opacity,shininess,metallic,fresnel0,core));
 }
 
-// PRC unit disk
+// Disk primitive
 void drawDisk(picture *f, realarray2 *t, penarray *p, real opacity,
               real shininess, real metallic, real fresnel0)
 {
   f->append(new drawDisk(*t,*p,opacity,shininess,metallic,fresnel0));
 }
 
-// General PRC tube
+// Tube primitive
 void drawPRCtube(picture *f, path3 center, path3 g, penarray *p, real opacity,
                  real shininess)
 {

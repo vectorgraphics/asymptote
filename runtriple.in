@@ -152,11 +152,11 @@ triple bezierP(triple a, triple b, triple c, triple d, real t)
 
 triple bezierPP(triple a, triple b, triple c, triple d, real t) 
 {
-  return 6.0*(t*(d-a+3.0*(b-c))+a+c-2.0*b);
+  return 6.0*(t*(d-a+3.0*(b-c))+a+c)-12.0*b;
 }
 
 triple bezierPPP(triple a, triple b, triple c, triple d) 
 {
-  return 6.0*(d-a+3.0*(b-c));
+  return 6.0*(d-a)+18.0*(b-c);
 }
 

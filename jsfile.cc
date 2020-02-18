@@ -245,12 +245,15 @@ void jsfile::addSphere(const triple& center, double radius, bool half,
   out << ");" << newl << newl;
 }
 
+// core signifies whether to also draw a central line for better small-scale
+// rendering.
 void jsfile::addCylinder(const triple& center, double radius, double height,
-                         const double& polar, const double& azimuth)
+                         const double& polar, const double& azimuth,
+                         bool core)
 {
   out << "cylinder(" << center << "," << radius << "," << height << ","
       << drawElement::centerIndex << "," << materialIndex
-      << "," << newl << "[" << polar << "," << azimuth << "]"
+      << "," << newl << "[" << polar << "," << azimuth << "]," << core
       << ");" << newl << newl;
 }
 
