@@ -293,27 +293,27 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
   triple p15=p[15];
 
   triple n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-  if(n0 == 0.0) {
+  if(abs2(n0) <= epsilon) {
     n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
-    if(n0 == 0.0) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+    if(abs2(n0) <= epsilon) n0=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
   }
   
   triple n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-  if(n1 == 0.0) {
+  if(abs2(n1) <= epsilon) {
     n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
-    if(n1 == 0.0) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+    if(abs2(n1) <= epsilon) n1=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
   }
     
   triple n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
-  if(n2 == 0.0) {
+  if(abs2(n2) <= epsilon) {
     n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
-    if(n2 == 0.0) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+    if(abs2(n2) <= epsilon) n2=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
   }
     
   triple n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
-  if(n3 == 0.0) {
+  if(abs2(n3) <= epsilon) {
     n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
-    if(n3 == 0.0) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+    if(abs2(n3) <= epsilon) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
   }
     
   GLuint i0,i1,i2,i3;
@@ -461,27 +461,27 @@ void BezierPatch::render(const triple *p,
     triple m4=s0[15];
       
     triple n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
-    if(n0 == 0.0) {
+    if(abs2(n0) <= epsilon) {
       n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
-      if(n0 == 0.0) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+      if(abs2(n0) <= epsilon) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
     }
       
     triple n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
-    if(n1 == 0.0) {
+    if(abs2(n1) <= epsilon) {
       n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
-      if(n1 == 0.0) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
+      if(abs2(n1) <= epsilon) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
     }
       
     triple n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
-    if(n2 == 0.0) {
+    if(abs2(n2) <= epsilon) {
       n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
-      if(n2 == 0.0) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
+      if(abs2(n2) <= epsilon) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
     }
       
     triple n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
-    if(n3 == 0.0) {
+    if(abs2(n3) <= epsilon) {
       n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
-      if(n3 == 0.0) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
+      if(abs2(n3) <= epsilon) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
     }
       
     triple n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);

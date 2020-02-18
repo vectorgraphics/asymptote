@@ -713,27 +713,31 @@ class BezierPatch extends Geometry {
     let p15=p[15];
 
     let n0=this.normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-    if(iszero(n0)) {
+    if(abs2(n0) < this.epsilon) {
       n0=this.normal(p3,p[2],p[1],p0,p[13],p[14],p15);
-      if(iszero(n0)) n0=this.normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+      if(abs2(n0) < this.epsilon)
+        n0=this.normal(p15,p[11],p[7],p3,p[4],p[8],p12);
     }
 
     let n1=this.normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-    if(iszero(n1)) {
+    if(abs2(n1) < this.epsilon) {
       n1=this.normal(p0,p[4],p[8],p12,p[11],p[7],p3);
-      if(iszero(n1)) n1=this.normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+      if(abs2(n1) < this.epsilon)
+        n1=this.normal(p3,p[2],p[1],p0,p[13],p[14],p15);
     }
 
     let n2=this.normal(p12,p[13],p[14],p15,p[11],p[7],p3);
-    if(iszero(n2)) {
+    if(abs2(n2) < this.epsilon) {
       n2=this.normal(p12,p[13],p[14],p15,p[2],p[1],p0);
-      if(iszero(n2)) n2=this.normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+      if(abs2(n2) < this.epsilon)
+        n2=this.normal(p0,p[4],p[8],p12,p[11],p[7],p3);
     }
 
     let n3=this.normal(p15,p[11],p[7],p3,p[2],p[1],p0);
-    if(iszero(n3)) {
+    if(abs2(n3) < this.epsilon) {
       n3=this.normal(p15,p[11],p[7],p3,p[4],p[8],p12);
-      if(iszero(n3)) n3=this.normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+      if(abs2(n3) < this.epsilon)
+        n3=this.normal(p12,p[13],p[14],p15,p[2],p[1],p0);
     }
 
     if(this.color) {
@@ -877,30 +881,30 @@ class BezierPatch extends Geometry {
       let m4=s0[15];
 
       let n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
-      if(iszero(n0)) {
+      if(abs2(n0) < this.epsilon) {
         n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
-        if(iszero(n0))
+        if(abs2(n0) < this.epsilon)
           n0=this.normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
       }
 
       let n1=this.normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
-      if(iszero(n1)) {
+      if(abs2(n1) < this.epsilon) {
         n1=this.normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
-        if(iszero(n1))
+        if(abs2(n1) < this.epsilon)
           n1=this.normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
       }
 
       let n2=this.normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
-      if(iszero(n2)) {
+      if(abs2(n2) < this.epsilon) {
         n2=this.normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
-        if(iszero(n2))
+        if(abs2(n2) < this.epsilon)
           n2=this.normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
       }
 
       let n3=this.normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
-      if(iszero(n3)) {
+      if(abs2(n3) < this.epsilon) {
         n3=this.normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
-        if(iszero(n3))
+        if(abs2(n3) < this.epsilon)
           n3=this.normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
       }
 
@@ -1660,11 +1664,6 @@ class Split3 {
     this.m5=[0.5*(this.m3[0]+this.m4[0]),0.5*(this.m3[1]+this.m4[1]),
              0.5*(this.m3[2]+this.m4[2])];
   }
-}
-
-function iszero(v)
-{
-  return v[0] == 0 && v[1] == 0 && v[2] == 0;
 }
 
 function unit(v)
