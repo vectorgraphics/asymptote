@@ -173,7 +173,7 @@ struct tube
     void generate(path3 p) {
       int n=length(p);
       for(int i=0; i < n; ++i) {
-        if(straight(p,i) && false) { // FIXME
+        if(straight(p,i)) {
           triple v=point(p,i);
           triple u=point(p,i+1)-v;
           transform3 t=shift(v)*align(unit(u))*scale(r,r,abs(u));

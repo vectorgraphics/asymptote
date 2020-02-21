@@ -342,11 +342,7 @@ protected:
   double fresnel0;
   bool invisible;
 public:
-  drawPRC(const vm::array&p, double opacity,
-          double shininess, double metallic, double fresnel0) :
-    drawElementLC(NULL), opacity(opacity), shininess(shininess),
-    metallic(metallic), fresnel0(fresnel0) {
-
+  void init(const vm::array&p) {
     if(checkArray(&p) != 3)
       reportError(need3pens);
     
@@ -362,7 +358,14 @@ public:
           double shininess, double metallic, double fresnel0) :
     drawElementLC(t), opacity(opacity), shininess(shininess),
     metallic(metallic), fresnel0(fresnel0) {
-    drawPRC(p,opacity,shininess,metallic,fresnel0);
+    init(p);
+  }
+  
+  drawPRC(const vm::array&p, double opacity,
+          double shininess, double metallic, double fresnel0) :
+    drawElementLC(NULL), opacity(opacity), shininess(shininess),
+    metallic(metallic), fresnel0(fresnel0) {
+    init(p);
   }
   
   drawPRC(const double* t, const drawPRC *s) :
