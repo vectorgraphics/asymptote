@@ -859,7 +859,7 @@ bool drawTube::write(jsfile *out)
 
   setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
-  out->addTube(g,width,min,max,core);
+  out->addTube(g,width,Min,Max,core);
 
   return true;
 }

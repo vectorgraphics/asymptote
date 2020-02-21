@@ -342,9 +342,9 @@ protected:
   double fresnel0;
   bool invisible;
 public:
-  drawPRC(const vm::array& t, const vm::array&p, double opacity,
-          double shininess, double metallic=0, double fresnel0=0) :
-    drawElementLC(t), opacity(opacity), shininess(shininess),
+  drawPRC(const vm::array&p, double opacity,
+          double shininess, double metallic, double fresnel0) :
+    drawElementLC(NULL), opacity(opacity), shininess(shininess),
     metallic(metallic), fresnel0(fresnel0) {
 
     if(checkArray(&p) != 3)
@@ -356,6 +356,13 @@ public:
     diffuse=rgba(surfacepen);
     emissive=rgba(vm::read<camp::pen>(p,1));
     specular=rgba(vm::read<camp::pen>(p,2));
+  }
+  
+  drawPRC(const vm::array& t, const vm::array&p, double opacity,
+          double shininess, double metallic, double fresnel0) :
+    drawElementLC(t), opacity(opacity), shininess(shininess),
+    metallic(metallic), fresnel0(fresnel0) {
+    drawPRC(p,opacity,shininess,metallic,fresnel0);
   }
   
   drawPRC(const double* t, const drawPRC *s) :
@@ -436,21 +443,19 @@ public:
   }
 };
   
-
 // Draw a tube.
 class drawTube : public drawPRC {
 protected:
   triple g[4];
   double width;
-  triple min,max;
+  triple Min,Max;
   bool core;
 public:
-  drawTube(const vm::array& t, const vm::array&G, double width,
-           const vm::array&p, double opacity,
+  drawTube(const vm::array&G, double width, const vm::array&p, double opacity,
            double shininess, double metallic, double fresnel0,
-           const triple& min, const triple& max, bool core) :
-    drawPRC(t,p,opacity,shininess,metallic,fresnel0), width(width),
-    min(min), max(max), core(core) {
+           const triple& Min, const triple& Max, bool core) :
+    drawPRC(p,opacity,shininess,metallic,fresnel0), width(width),
+    Min(Min), Max(Max), core(core) {
     if(vm::checkArray(&G) != 4)
       reportError("array of 4 triples required");
 
@@ -460,7 +465,7 @@ public:
   
   drawTube(const double* t, const drawTube *s) :
     drawElement(s->KEY), drawPRC(t,s), width(s->width),
-    min(t*s->min), max(t*s->max), core(s->core) {
+    Min(t*s->Min), Max(t*s->Max), core(s->core) {
     for(unsigned int i=0; i < 4; ++i)
       g[i]=t*s->g[i];
   }

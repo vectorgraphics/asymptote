@@ -676,11 +676,11 @@ void drawDisk(picture *f, realarray2 *t, penarray *p, real opacity,
 }
 
 // Tube primitive
-void drawTube(picture *f, realarray2 *t, triplearray *g, real width,
-              penarray *p, real opacity, real shininess, real metallic,
-              real fresnel0, triple min, triple max, bool core=false)
+void drawTube(picture *f, triplearray *g, real width, penarray *p,
+              real opacity, real shininess, real metallic, real fresnel0,
+              triple min, triple max, bool core=false)
 {
-  f->append(new drawTube(*t,*g,width,*p,opacity,shininess,metallic,fresnel0,
+  f->append(new drawTube(*g,width,*p,opacity,shininess,metallic,fresnel0,
                          min,max,core));
 }
 

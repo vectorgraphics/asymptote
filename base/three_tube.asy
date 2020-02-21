@@ -123,8 +123,8 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
     new void(frame f, transform3 t=identity4, material[] m,
              light light=currentlight, render render=defaultrender) {
      material m=material(m[0],light);
-     drawTube(f,t,g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-              min(s),max(s),m.opacity == 1);
+     drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+              t*min(s),t*max(s),m.opacity == 1);
     };
   return s;
 }
