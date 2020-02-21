@@ -1,5 +1,4 @@
-struct rmf
-{
+struct rmf {
   triple p,r,t,s;
   void operator init(triple p, triple r, triple t) {
     this.p=p;
@@ -101,20 +100,17 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   static real[] T={0,1/3,2/3,1};
   rmf[] rmf=rmf(z0,c0,c1,z1,T);
 
-  private real a=4/3*(sqrt(2)-1);
   real aw=a*w;
   triple[] arc={(w,0,0),(w,aw,0),(aw,w,0),(0,w,0)};
-
-  triple[] controlpoints(triple v, int i, transform3 R) {
-    transform3 T=shift(v)*rmf[i].transform()*R;
-    return new triple[] {T*arc[0],T*arc[1],T*arc[2],T*arc[3]};
-  }
+  triple[] g={z0,c0,c1,z1};
 
   void f(transform3 R) {
-    s.push(patch(new triple[][] {controlpoints(z0,0,R),
-                                   controlpoints(c0,1,R),
-                                   controlpoints(c1,2,R),
-                                   controlpoints(z1,3,R)}));
+    triple[][] P=new triple[4][];
+    for(int i=0; i < 4; ++i) {
+      transform3 T=shift(g[i])*rmf[i].transform()*R;
+      P[i]=new triple[] {T*arc[0],T*arc[1],T*arc[2],T*arc[3]};
+    }
+    s.push(patch(P,copy=false));
   }
 
   f(identity4);
@@ -122,37 +118,18 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   f(t2);
   f(t3);
 
+  s.PRCprimitive=false;
+  s.draw=
+    new void(frame f, transform3 t=identity4, material[] m,
+             light light=currentlight, render render=defaultrender) {
+     material m=material(m[0],light);
+     drawTube(f,t,g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+              min(s),max(s),m.opacity == 1);
+    };
   return s;
 }
 
 real tubethreshold=0.02;
-
-surface render(path3 g, real r)
-{
-  surface s;
-  void Split(triple z0, triple c0, triple c1, triple z1,
-             real depth=mantissaBits) {
-    if(depth > 0) {
-      real R=radius(z0,c0,c1,z1,0.5);
-      if(R > 0 && r*arclength(z0,c0,c1,z1)/R^2 > tubethreshold) {
-        triple m0=0.5*(z0+c0);
-        triple m1=0.5*(c0+c1);
-        triple m2=0.5*(c1+z1);
-        triple m3=0.5*(m0+m1);
-        triple m4=0.5*(m1+m2);
-        triple m5=0.5*(m3+m4);
-        --depth;
-        Split(z0,m0,m3,m5,depth);
-        Split(m5,m4,m2,z1,depth);
-        return;
-      }
-    }
-
-    s.append(tube(z0,c0,c1,z1,r));
-  }
-  Split(point(g,0),postcontrol(g,0),precontrol(g,1),point(g,1));
-  return s;
-}
 
 struct tube
 {
@@ -162,8 +139,33 @@ struct tube
   void Null(transform3) {}
   void Null(transform3, bool) {}
   
-  void operator init(path3 p, real width, render render=defaultrender,
-                     void pipe(path3, path3)=null) {
+  surface[] render(path3 g, real r) {
+    surface[] s;
+    void Split(triple z0, triple c0, triple c1, triple z1,
+               real depth=mantissaBits) {
+      if(depth > 0) {
+        real R=radius(z0,c0,c1,z1,0.5);
+        if(R > 0 && r*arclength(z0,c0,c1,z1)/R^2 > tubethreshold) {
+          triple m0=0.5*(z0+c0);
+          triple m1=0.5*(c0+c1);
+          triple m2=0.5*(c1+z1);
+          triple m3=0.5*(m0+m1);
+          triple m4=0.5*(m1+m2);
+          triple m5=0.5*(m3+m4);
+          --depth;
+          Split(z0,m0,m3,m5,depth);
+          Split(m5,m4,m2,z1,depth);
+          return;
+        }
+      }
+
+      s.push(tube(z0,c0,c1,z1,r));
+    }
+    Split(point(g,0),postcontrol(g,0),precontrol(g,1),point(g,1));
+    return s;
+  }
+
+  void operator init(path3 p, real width) {
     center=p;
     real r=0.5*width;
 
@@ -181,7 +183,7 @@ struct tube
         }
       } else {
         for(int i=0; i < length(p); ++i)
-          s.push(render(subpath(p,i,i+1),r));
+          s.append(render(subpath(p,i,i+1),r));
       }
     }
     

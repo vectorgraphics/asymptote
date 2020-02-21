@@ -850,54 +850,17 @@ bool drawDisk::write(jsfile *out)
   return true;
 }
   
-bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
+bool drawTube::write(jsfile *out)
 {
   if(invisible)
     return true;
 
-  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
-  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
-  
-  Int n=center.length();
-  
-  if(center.piecewisestraight()) {
-    triple *centerControls=new(UseGC) triple[n+1];
-    for(Int i=0; i <= n; ++i)
-      centerControls[i]=center.point(i);
-    size_t N=n+1;
-    triple *controls=new(UseGC) triple[N];
-    for(Int i=0; i <= n; ++i)
-      controls[i]=g.point(i);
-    out->addTube(N,centerControls,controls,true,m);
-  } else {
-    size_t N=3*n+1;
-    triple *centerControls=new(UseGC) triple[N];
-    centerControls[0]=center.point((Int) 0);
-    centerControls[1]=center.postcontrol((Int) 0);
-    size_t k=1;
-    for(Int i=1; i < n; ++i) {
-      centerControls[++k]=center.precontrol(i);
-      centerControls[++k]=center.point(i);
-      centerControls[++k]=center.postcontrol(i);
-    }
-    centerControls[++k]=center.precontrol(n);
-    centerControls[++k]=center.point(n);
-    
-    triple *controls=new(UseGC) triple[N];
-    controls[0]=g.point((Int) 0);
-    controls[1]=g.postcontrol((Int) 0);
-    k=1;
-    for(Int i=1; i < n; ++i) {
-      controls[++k]=g.precontrol(i);
-      controls[++k]=g.point(i);
-      controls[++k]=g.postcontrol(i);
-    }
-    controls[++k]=g.precontrol(n);
-    controls[++k]=g.point(n);
-    
-    out->addTube(N,centerControls,controls,false,m);
-  }
-      
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  out->addTube(g,width,min,max,core);
+
   return true;
 }
 

@@ -676,10 +676,12 @@ void drawDisk(picture *f, realarray2 *t, penarray *p, real opacity,
 }
 
 // Tube primitive
-void drawPRCtube(picture *f, path3 center, path3 g, penarray *p, real opacity,
-                 real shininess)
+void drawTube(picture *f, realarray2 *t, triplearray *g, real width,
+              penarray *p, real opacity, real shininess, real metallic,
+              real fresnel0, triple min, triple max, bool core=false)
 {
-  f->append(new drawTube(center,g,*p,opacity,shininess));
+  f->append(new drawTube(*t,*g,width,*p,opacity,shininess,metallic,fresnel0,
+                         min,max,core));
 }
 
 // Draw pixel

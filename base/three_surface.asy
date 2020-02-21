@@ -732,6 +732,7 @@ struct surface {
   transform3 T=identity4;
   
   drawfcn draw;
+  bool PRCprimitive=true; // True unless no PRC primitive is available.
 
   bool empty() {
     return s.length == 0;
@@ -1031,6 +1032,7 @@ surface operator * (transform3 t, surface s)
   S.vcyclic=(bool) s.vcyclic;
   S.T=t*s.T;
   S.draw=s.draw;
+  S.PRCprimitive=s.PRCprimitive;
   
   return S;
 }
@@ -1481,13 +1483,6 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       pic.addPoint(v[viij]);
 }
 
-void drawPRCtube(frame f, path3 center, path3 g, material m,
-                 light light=currentlight)
-{
-  m=material(m,light);
-  drawPRCtube(f,center,g,m.p,m.opacity,m.shininess);
-}
-
 void tensorshade(transform t=identity(), frame f, patch s,
                  material m, light light=currentlight, projection P)
 {
@@ -1511,12 +1506,13 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 {
   bool is3D=is3D();
   if(is3D) {
-    if(s.draw != null && (settings.outformat == "html" || prc())) {
+    bool prc=prc();
+    if(s.draw != null && (settings.outformat == "html" ||
+                          (prc && s.PRCprimitive))) {
       for(int k=0; k < s.s.length; ++k)
         draw3D(f,s.s[k],surfacepen[k],light,primitive=true);
       s.draw(f,s.T,surfacepen,light,render);
-    }
-    else {
+    } else {
       bool group=name != "" || render.defaultnames;
       if(group)
         begingroup3(f,name == "" ? "surface" : name,render);

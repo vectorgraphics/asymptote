@@ -17,6 +17,8 @@ namespace run {
 void inverse(double *a, size_t n);
 }
 
+const string need3pens="array of 3 pens required";
+
 namespace camp {
 
 #ifdef HAVE_LIBGLM
@@ -345,9 +347,8 @@ public:
     drawElementLC(t), opacity(opacity), shininess(shininess),
     metallic(metallic), fresnel0(fresnel0) {
 
-    string needthreepens="array of 3 pens required";
     if(checkArray(&p) != 3)
-      reportError(needthreepens);
+      reportError(need3pens);
     
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();
@@ -417,7 +418,7 @@ public:
   }
 };
   
-// Draw a PRC unit disk.
+// Draw a unit disk.
 class drawDisk : public drawPRC {
 public:
   drawDisk(const vm::array& t, const vm::array&p, double opacity,
@@ -435,43 +436,37 @@ public:
   }
 };
   
-// Draw a PRC tube.
-class drawTube : public drawElement {
+
+// Draw a tube.
+class drawTube : public drawPRC {
 protected:
-  path3 center;
-  path3 g;
-  prc::RGBAColour diffuse;
-  prc::RGBAColour emissive;
-  prc::RGBAColour specular;
-  double opacity;
-  double shininess;
-  bool invisible;
+  triple g[4];
+  double width;
+  triple min,max;
+  bool core;
 public:
-  drawTube(path3 center, path3 g, const vm::array&p, double opacity,
-           double shininess) : 
-    center(center), g(g), opacity(opacity), shininess(shininess) {
-    string needthreepens="array of 3 pens required";
-    if(checkArray(&p) != 3)
-      reportError(needthreepens);
-    
-    pen surfacepen=vm::read<camp::pen>(p,0);
-    invisible=surfacepen.invisible();
-    
-    diffuse=rgba(surfacepen);
-    emissive=rgba(vm::read<camp::pen>(p,1));
-    specular=rgba(vm::read<camp::pen>(p,2));
+  drawTube(const vm::array& t, const vm::array&G, double width,
+           const vm::array&p, double opacity,
+           double shininess, double metallic, double fresnel0,
+           const triple& min, const triple& max, bool core) :
+    drawPRC(t,p,opacity,shininess,metallic,fresnel0), width(width),
+    min(min), max(max), core(core) {
+    if(vm::checkArray(&G) != 4)
+      reportError("array of 4 triples required");
+
+    for(unsigned int i=0; i < 4; ++i)
+      g[i]=vm::read<triple>(G,i);
   }
   
   drawTube(const double* t, const drawTube *s) :
-    drawElement(s->KEY), center(camp::transformed(t,s->center)),
-    g(camp::transformed(t,s->g)), 
-    diffuse(s->diffuse), emissive(s->emissive),
-    specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), invisible(s->invisible) {
+    drawElement(s->KEY), drawPRC(t,s), width(s->width),
+    min(t*s->min), max(t*s->max), core(s->core) {
+    for(unsigned int i=0; i < 4; ++i)
+      g[i]=t*s->g[i];
   }
   
-  bool write(prcfile *out, unsigned int *, double, groupsmap&);
-                        
+  bool write(jsfile *out);
+
   drawElement *transformed(const double* t) {
     return new drawTube(t,this);
   }
@@ -628,9 +623,8 @@ public:
     drawBaseTriangles(v,vi,n,ni), opacity(opacity), shininess(shininess),
     metallic(metallic), fresnel0(fresnel0) {
 
-    const string needthreepens="array of 3 pens required";
     if(checkArray(&p) != 3)
-      reportError(needthreepens);
+      reportError(need3pens);
       
     const pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();

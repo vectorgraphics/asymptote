@@ -63,9 +63,8 @@ let viewMat=mat4.create(); // view matrix
 let projViewMat=mat4.create(); // projection view matrix
 let normMat=mat3.create();
 let viewMat3=mat3.create(); // 3x3 view matrix
-let rotMats=mat4.create();
 let cjMatInv=mat4.create();
-let translMat=mat4.create();
+let T=mat4.create(); // Temporary matrix
 
 let zmin,zmax;
 let center={x:0,y:0,z:0};
@@ -1759,10 +1758,10 @@ function maxbound(v) {
 
 function COBTarget(out,mat)
 {
-  mat4.fromTranslation(translMat,[center.x,center.y,center.z])
-  mat4.invert(cjMatInv,translMat);
+  mat4.fromTranslation(T,[center.x,center.y,center.z])
+  mat4.invert(cjMatInv,T);
   mat4.multiply(out,mat,cjMatInv);
-  mat4.multiply(out,translMat,out);
+  mat4.multiply(out,T,out);
 }
 
 function setUniforms(data,shader)
@@ -1857,8 +1856,8 @@ function rotateScene(lastX,lastY,rawX,rawY,factor)
   if(lastX == rawX && lastY == rawY) return;
   let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
 
-  mat4.fromRotation(rotMats,2*factor*ArcballFactor*angle/lastzoom,axis);
-  mat4.multiply(rotMat,rotMats,rotMat);
+  mat4.fromRotation(T,2*factor*ArcballFactor*angle/lastzoom,axis);
+  mat4.multiply(rotMat,T,rotMat);
 }
 
 function shiftScene(lastX,lastY,rawX,rawY)
@@ -2658,6 +2657,146 @@ function cylinder(center,r,h,CenterIndex,MaterialIndex,dir,core)
   }
 }
 
+function rmf(z0,c0,c1,z1,t)
+{
+  class Rmf {
+    constructor(p,r,t) {
+      this.p=p;
+      this.r=r;
+      this.t=t;
+      this.s=cross(t,r);
+    }
+  }
+
+  // Return a unit vector perpendicular to a given unit vector v.
+  function perp(v)
+  {
+    let u=cross(v,[0,1,0]);
+    let norm=Number.EPSILON*abs2(v);
+    if(abs2(u) > norm) return unit(u);
+    u=cross(v,[0,0,1]);
+    return (abs2(u) > norm) ? unit(u) : [1,0,0];
+  }
+
+  let norm=Number.EPSILON*Math.max(abs2(z0),abs2(c0),abs2(c1),
+                                abs2(z1));
+
+// Special case of dir for t in (0,1].
+  function dir(t) {
+    if(t == 1) {
+      let dir=[z1[0]-c1[0],z1[1]-c1[1],z1[2]-c1[2]];
+      if(abs2(dir) > norm) return unit(dir);
+      dir=[2*c1[0]-c0[0]-z1[0],2*c1[1]-c0[1]-z1[1],2*c1[2]-c0[2]-z1[2]];
+      if(abs2(dir) > norm) return unit(dir);
+      return [z1[0]-z0[0]+3*(c0[0]-c1[0]),
+              z1[1]-z0[1]+3*(c0[1]-c1[1]),
+              z1[2]-z0[2]+3*(c0[2]-c1[2])];
+    }
+    let a=[z1[0]-z0[0]+3*(c0[0]-c1[0]),
+           z1[1]-z0[1]+3*(c0[1]-c1[1]),
+           z1[2]-z0[2]+3*(c0[2]-c1[2])];
+    let b=[2*(z0[0]+c1[0])-4*c0[0],
+           2*(z0[1]+c1[1])-4*c0[1],
+           2*(z0[2]+c1[2])-4*c0[2]];
+    let c=[c0[0]-z0[0],c0[1]-z0[1],c0[2]-z0[2]];
+    let t2=t*t;
+    let dir=[a[0]*t2+b[0]*t+c[0],a[1]*t2+b[1]*t+c[1],
+             a[2]*t2+b[2]*t+c[2]];
+    if(abs2(dir) > norm) return unit(dir);
+    t2=2*t;
+    dir=[a[0]*t2+b[0],a[1]*t2+b[1],a[2]*t2+b[2]];
+    if(abs2(dir) > norm) return unit(dir);
+    return unit(a);
+  }
+
+  let R=Array(t.length);
+  let T=[c0[0]-z0[0],c0[1]-z0[1],c0[2]-z0[2]];
+  if(abs2(T) < norm) {
+    T=z0-2*c0+c1;
+    if(abs2(T) < norm)
+      T=z1-z0+3*(c0-c1);
+  }
+  T=unit(T);
+  let Tp=perp(T);
+  R[0]=new Rmf(z0,Tp,T);
+  for(let i=1; i < t.length; ++i) {
+    let Ri=R[i-1];
+    let s=t[i];
+    let onemt=1-s;
+    let onemt2=onemt*onemt;
+    let p=[
+      onemt2*onemt*z0[0]+s*(3*(onemt2*c0[0]+s*onemt*c1[0])+s*s*z1[0]),
+      onemt2*onemt*z0[1]+s*(3*(onemt2*c0[1]+s*onemt*c1[1])+s*s*z1[1]),
+      onemt2*onemt*z0[2]+s*(3*(onemt2*c0[2]+s*onemt*c1[2])+s*s*z1[2])];
+    let v1=[p[0]-Ri.p[0],p[1]-Ri.p[1],p[2]-Ri.p[2]];
+    if(v1[0] != 0 || v[1] != 0 || v[2] != 0) {
+      let r=Ri.r;
+      let u1=unit(v1);
+      let ti=Ri.t;
+      let dotu1ti=dot(u1,ti)
+      let tp=[ti[0]-2*dotu1ti*u1[0],
+              ti[1]-2*dotu1ti*u1[1],
+              ti[2]-2*dotu1ti*u1[2]];
+      ti=dir(s);
+      let dotu1r2=2*dot(u1,r);
+      let rp=[r[0]-dotu1r2*u1[0],r[1]-dotu1r2*u1[1],r[2]-dotu1r2*u1[2]];
+      let u2=unit([ti[0]-tp[0],ti[1]-tp[1],ti[2]-tp[2]]);
+      let dotu2rp2=2*dot(u2,rp);
+      rp=[rp[0]-dotu2rp2*u2[0],rp[1]-dotu2rp2*u2[1],rp[2]-dotu2rp2*u2[2]];
+      R[i]=new Rmf(p,unit(rp),unit(ti));
+    } else
+      R[i]=R[i-1];
+  }
+  return R;
+}
+
+// draw a tube of width w using control points v
+function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
+{
+  let Rmf=rmf(v[0],v[1],v[2],v[3],[0,1/3,2/3,1]);
+
+  let aw=a*w;
+  let arc=[[w,0],[w,aw],[aw,w],[0,w]];
+
+  function f(a,b,c,d) {
+    let s=Array(16);
+    for(let i=0; i < 4; ++i) {
+      let R=Rmf[i];
+
+      let R0=R.r[0], R1=R.s[0];
+      let T0=R0*a+R1*b;
+      let T1=R0*c+R1*d;
+
+      R0=R.r[1]; R1=R.s[1];
+      let T4=R0*a+R1*b;
+      let T5=R0*c+R1*d;
+
+      R0=R.r[2]; R1=R.s[2];
+      let T8=R0*a+R1*b;
+      let T9=R0*c+R1*d;
+
+      let w=v[i];
+      let w0=w[0]; w1=w[1]; w2=w[2];
+      for(let j=0; j < 4; ++j) {
+        let u=arc[j];
+        let x=u[0], y=u[1];
+        s[4*i+j]=[T0*x+T1*y+w0,
+                  T4*x+T5*y+w1,
+                  T8*x+T9*y+w2];
+      }
+    }
+    P.push(new BezierPatch(s,CenterIndex,MaterialIndex,Min,Max));
+  }
+
+  f(1,0,0,1);
+  f(0,-1,1,0);
+  f(-1,0,0,-1);
+  f(0,1,-1,0);
+
+  if(core)
+    P.push(new BezierCurve(v,CenterIndex,MaterialIndex,Min,Max));
+}
+
 function webGLStart()
 {
   if(window.innerWidth == 0 || window.innerHeight == 0) {
@@ -2673,4 +2812,3 @@ function webGLStart()
     webGLInit();
   }
 }
-

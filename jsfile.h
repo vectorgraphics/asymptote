@@ -49,6 +49,8 @@ public:
                    bool core=false);
   void addDisk(const triple& center, double radius,
                const double& polar=0.0, const double& azimuth=0.0);
+  void addTube(const triple *g, double width,
+               const triple& Min, const triple& Max, bool core=false);
 };
 
 } //namespace camp

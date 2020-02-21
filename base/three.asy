@@ -2201,13 +2201,8 @@ draw=new void(frame f, path3 g, material p=currentpen,
     real width=linewidth(q);
     void drawthick(path3 g) {
       if(settings.thick && width > 0) {
-        void pipe(path3, path3);
         bool prc=prc();
         bool webgl=settings.outformat == "html";
-        if(prc) {
-          pipe=new void(path3 center, path3 g)
-            {drawPRCtube(f,center,g,p,light);};
-        }
         real linecap=linecap(q);
         real r=0.5*width;
         bool open=!cyclic(g);
@@ -2222,7 +2217,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
             L += 2;
           }
         }
-        tube T=tube(g,width,render,pipe);
+        tube T=tube(g,width);
         path3 c=T.center;
         if(L >= 0) {
           if(open) {

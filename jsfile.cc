@@ -266,5 +266,19 @@ void jsfile::addDisk(const triple& center, double radius,
       << ");" << newl << newl;
 }
 
+void jsfile::addTube(const triple *g, double width,
+                     const triple& Min, const triple& Max, bool core)
+
+{
+  out << "tube(["
+      << g[0] << "," << newl
+      << g[1] << "," << newl
+      << g[2] << "," << newl
+      << g[3] << newl << "],"
+      << width << "," << drawElement::centerIndex << "," << materialIndex
+      << ","
+      << Min << "," << Max << "," << core <<");" << newl << newl;
+}
+
 }
 #endif
