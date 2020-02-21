@@ -2684,9 +2684,13 @@ function rmf(z0,c0,c1,z1,t)
 // Special case of dir for t in (0,1].
   function dir(t) {
     if(t == 1) {
-      let dir=[z1[0]-c1[0],z1[1]-c1[1],z1[2]-c1[2]];
+      let dir=[z1[0]-c1[0],
+               z1[1]-c1[1],
+               z1[2]-c1[2]];
       if(abs2(dir) > norm) return unit(dir);
-      dir=[2*c1[0]-c0[0]-z1[0],2*c1[1]-c0[1]-z1[1],2*c1[2]-c0[2]-z1[2]];
+      dir=[2*c1[0]-c0[0]-z1[0],
+           2*c1[1]-c0[1]-z1[1],
+           2*c1[2]-c0[2]-z1[2]];
       if(abs2(dir) > norm) return unit(dir);
       return [z1[0]-z0[0]+3*(c0[0]-c1[0]),
               z1[1]-z0[1]+3*(c0[1]-c1[1]),
@@ -2700,21 +2704,30 @@ function rmf(z0,c0,c1,z1,t)
            2*(z0[2]+c1[2])-4*c0[2]];
     let c=[c0[0]-z0[0],c0[1]-z0[1],c0[2]-z0[2]];
     let t2=t*t;
-    let dir=[a[0]*t2+b[0]*t+c[0],a[1]*t2+b[1]*t+c[1],
+    let dir=[a[0]*t2+b[0]*t+c[0],
+             a[1]*t2+b[1]*t+c[1],
              a[2]*t2+b[2]*t+c[2]];
     if(abs2(dir) > norm) return unit(dir);
     t2=2*t;
-    dir=[a[0]*t2+b[0],a[1]*t2+b[1],a[2]*t2+b[2]];
+    dir=[a[0]*t2+b[0],
+         a[1]*t2+b[1],
+         a[2]*t2+b[2]];
     if(abs2(dir) > norm) return unit(dir);
     return unit(a);
   }
 
   let R=Array(t.length);
-  let T=[c0[0]-z0[0],c0[1]-z0[1],c0[2]-z0[2]];
+  let T=[c0[0]-z0[0],
+         c0[1]-z0[1],
+         c0[2]-z0[2]];
   if(abs2(T) < norm) {
-    T=z0-2*c0+c1;
+    T=[z0[0]-2*c0[0]+c1[0],
+       z0[1]-2*c0[1]+c1[1],
+       z0[2]-2*c0[2]+c1[2]];
     if(abs2(T) < norm)
-      T=z1-z0+3*(c0-c1);
+      T=[z1[0]-z0[0]+3*(c0[0]-c1[0]),
+         z1[1]-z0[1]+3*(c0[1]-c1[1]),
+         z1[2]-z0[2]+3*(c0[2]-c1[2])];
   }
   T=unit(T);
   let Tp=perp(T);
@@ -2724,10 +2737,15 @@ function rmf(z0,c0,c1,z1,t)
     let s=t[i];
     let onemt=1-s;
     let onemt2=onemt*onemt;
+    let onemt3=onemt2*onemt;
+    let s3=3*s;
+    onemt2 *= s3;
+    onemt *= s3*s;
+    let t3=s*s*s;
     let p=[
-      onemt2*onemt*z0[0]+s*(3*(onemt2*c0[0]+s*onemt*c1[0])+s*s*z1[0]),
-      onemt2*onemt*z0[1]+s*(3*(onemt2*c0[1]+s*onemt*c1[1])+s*s*z1[1]),
-      onemt2*onemt*z0[2]+s*(3*(onemt2*c0[2]+s*onemt*c1[2])+s*s*z1[2])];
+      onemt3*z0[0]+onemt2*c0[0]+onemt*c1[0]+t3*z1[0],
+      onemt3*z0[1]+onemt2*c0[1]+onemt*c1[1]+t3*z1[1],
+      onemt3*z0[2]+onemt2*c0[2]+onemt*c1[2]+t3*z1[2]];
     let v1=[p[0]-Ri.p[0],p[1]-Ri.p[1],p[2]-Ri.p[2]];
     if(v1[0] != 0 || v1[1] != 0 || v1[2] != 0) {
       let r=Ri.r;
