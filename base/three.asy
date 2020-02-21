@@ -2197,7 +2197,6 @@ draw=new void(frame f, path3 g, material p=currentpen,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
-    p=material(p);
     real width=linewidth(q);
     void drawthick(path3 g) {
       if(settings.thick && width > 0) {

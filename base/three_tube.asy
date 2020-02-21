@@ -121,7 +121,8 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   s.PRCprimitive=false;
   s.draw=
     new void(frame f, transform3 t=identity4, material[] m,
-             light light=currentlight, render render=defaultrender) {
+             light light=currentlight, render render=defaultrender)
+    {
      material m=material(m[0],light);
      drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
               t*min(s),t*max(s),m.opacity == 1);
@@ -171,8 +172,8 @@ struct tube
 
     void generate(path3 p) {
       int n=length(p);
-      if(piecewisestraight(p)) {
-        for(int i=0; i < n; ++i) {
+      for(int i=0; i < n; ++i) {
+        if(straight(p,i) && false) { // FIXME
           triple v=point(p,i);
           triple u=point(p,i+1)-v;
           transform3 t=shift(v)*align(unit(u))*scale(r,r,abs(u));
@@ -180,9 +181,7 @@ struct tube
           surface unittube=t*unitcylinder;
           unittube.draw=unitcylinderDraw(core=true);
           s.push(unittube);
-        }
-      } else {
-        for(int i=0; i < length(p); ++i)
+        } else
           s.append(render(subpath(p,i,i+1),r));
       }
     }

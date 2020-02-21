@@ -2729,7 +2729,7 @@ function rmf(z0,c0,c1,z1,t)
       onemt2*onemt*z0[1]+s*(3*(onemt2*c0[1]+s*onemt*c1[1])+s*s*z1[1]),
       onemt2*onemt*z0[2]+s*(3*(onemt2*c0[2]+s*onemt*c1[2])+s*s*z1[2])];
     let v1=[p[0]-Ri.p[0],p[1]-Ri.p[1],p[2]-Ri.p[2]];
-    if(v1[0] != 0 || v[1] != 0 || v[2] != 0) {
+    if(v1[0] != 0 || v1[1] != 0 || v1[2] != 0) {
       let r=Ri.r;
       let u1=unit(v1);
       let ti=Ri.t;
