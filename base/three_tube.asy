@@ -131,6 +131,15 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
 
 real tubethreshold=0.02;
 
+// Note: casting an array of surfaces to a single surface will disable
+// primitive compression.
+surface operator cast(surface[] s) {
+  surface S;
+  for(surface p : s)
+    S.append(p);
+  return S;
+}
+
 struct tube
 {
   surface[] s;
