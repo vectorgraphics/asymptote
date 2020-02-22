@@ -367,14 +367,6 @@ inline double Straightness(const triple& z0, const triple& c0,
   return std::max(abs2(c0-v-z0),abs2(z1-v-c1));
 }
 
-// return the perpendicular distance squared of a point z from the plane
-// through u with unit normal n.
-inline double Distance2(const triple& z, const triple& u, const triple& n)
-{
-  double d=dot(z-u,n);
-  return d*d;
-}
-  
 } //namespace camp
 
 GC_DECLARE_PTRFREE(camp::triple);

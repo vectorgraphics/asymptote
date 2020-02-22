@@ -1323,11 +1323,8 @@ class BezierPatch extends Geometry {
     let p12=p[12];
     let p15=p[15];
 
-    // Check the flatness of a patch.
-    let d=Distance2(p15,p0,unit(this.normal(p3,p[2],p[1],p0,p[4],p[8],p12)));
-    
     // Determine how straight the edges are.
-    d=Math.max(d,Straightness(p0,p[1],p[2],p3));
+    let d=Straightness(p0,p[1],p[2],p3);
     d=Math.max(d,Straightness(p0,p[4],p[8],p12));
     d=Math.max(d,Straightness(p3,p[7],p[11],p15));
     d=Math.max(d,Straightness(p12,p[13],p[14],p15));
@@ -1713,16 +1710,6 @@ function Straightness(z0,c0,c1,z1)
   let v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
   return Math.max(abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
     abs2([z1[0]-v[0]-c1[0],z1[1]-v[1]-c1[1],z1[2]-v[2]-c1[2]]));
-}
-
-/**
- * Return the perpendicular distance squared of a point z from the plane
- * through u with unit normal n.
- */
-function Distance2(z,u,n)
-{
-  let d=dot([z[0]-u[0],z[1]-u[1],z[2]-u[2]],n);
-  return d*d;
 }
 
 // Return the vertices of the box containing 3d points m and M.

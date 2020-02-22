@@ -80,11 +80,8 @@ struct BezierPatch
     triple p12=p[12];
     triple p15=p[15];
     
-    // Check the flatness of a Bezier patch.
-    double d=Distance2(p15,p0,unit(normal(p3,p[2],p[1],p0,p[4],p[8],p12)));
-    
     // Determine how straight the edges are.
-    d=max(d,Straightness(p0,p[1],p[2],p3));
+    double d=Straightness(p0,p[1],p[2],p3);
     d=max(d,Straightness(p0,p[4],p[8],p12));
     d=max(d,Straightness(p3,p[7],p[11],p15));
     d=max(d,Straightness(p12,p[13],p[14],p15));
