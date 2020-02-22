@@ -807,7 +807,7 @@ class BezierPatch extends Geometry {
         Index
          
 
-       03    13    23    33
+        03    13    23    33
        +-----+-----+-----+
        |3    |7    |11   |15
        |     |     |     |
@@ -821,7 +821,7 @@ class BezierPatch extends Geometry {
        |     |     |     |
        |00   |10   |20   |30
        +-----+-----+-----+
-       0     4     8     12
+        0     4     8     12
          
 
        Subdivision:

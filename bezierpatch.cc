@@ -391,7 +391,7 @@ void BezierPatch::render(const triple *p,
         Index
          
 
-       03    13    23    33
+        03    13    23    33
        +-----+-----+-----+
        |3    |7    |11   |15
        |     |     |     |
@@ -405,7 +405,7 @@ void BezierPatch::render(const triple *p,
        |     |     |     |
        |00   |10   |20   |30
        +-----+-----+-----+
-       0     4     8     12
+        0     4     8     12
          
 
        Subdivision:
@@ -463,25 +463,29 @@ void BezierPatch::render(const triple *p,
     triple n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
     if(abs2(n0) <= epsilon) {
       n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
-      if(abs2(n0) <= epsilon) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+      if(abs2(n0) <= epsilon)
+        n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
     }
       
     triple n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
     if(abs2(n1) <= epsilon) {
       n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
-      if(abs2(n1) <= epsilon) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
+      if(abs2(n1) <= epsilon)
+        n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
     }
       
     triple n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
     if(abs2(n2) <= epsilon) {
       n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
-      if(abs2(n2) <= epsilon) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
+      if(abs2(n2) <= epsilon)
+        n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
     }
       
     triple n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
     if(abs2(n3) <= epsilon) {
       n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
-      if(abs2(n3) <= epsilon) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
+      if(abs2(n3) <= epsilon)
+        n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
     }
       
     triple n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
@@ -533,14 +537,10 @@ void BezierPatch::render(const triple *p,
       GLuint i3=data.Vertex(m3,n3,c3);
       GLuint i4=data.Vertex(m4,n4,c4);
       
-      render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
-             C0,c0,c4,c3);
-      render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,
-             c0,C1,c1,c4);
-      render(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,
-             c4,c1,C2,c2);
-      render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
-             c3,c4,c2,C3);
+      render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,C0,c0,c4,c3);
+      render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,c0,C1,c1,c4);
+      render(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,c4,c1,C2,c2);
+      render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,c3,c4,c2,C3);
     } else {
       GLuint i0=(data.*pvertex)(m0,n0);
       GLuint i1=(data.*pvertex)(m1,n1);
