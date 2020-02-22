@@ -22,8 +22,8 @@ pairarray* => pairArray()
 pairarray2* => pairArray2()
 triplearray* => tripleArray()
 triplearray2* => tripleArray2()
+triplearray3* => tripleArray3()
 transform => primTransform()
-callableTransform* => transformFunction()
 callablePen* => penFunction()
 
 #include "picture.h"
@@ -57,11 +57,11 @@ typedef array pairarray;
 typedef array pairarray2;
 typedef array triplearray;
 typedef array triplearray2;
+typedef array triplearray3;
 typedef array patharray;
 typedef array penarray;
 typedef array penarray2;
 
-typedef callable callableTransform;
 typedef callable callablePen;
 
 using types::IntArray;
@@ -72,6 +72,7 @@ using types::pairArray;
 using types::pairArray2;
 using types::tripleArray;
 using types::tripleArray2;
+using types::tripleArray3;
 using types::pathArray;
 using types::penArray;
 using types::penArray2;

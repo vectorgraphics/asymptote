@@ -78,12 +78,62 @@ void setcolors(bool colors,
 
 #endif  
 
-void drawBezierPatch::bounds(const double* t, bbox3& b)
+void boundsBezierPatch(triple &Min, triple &Max, bbox3& b, const double *t,
+                       triple *controls)
 {
   double x,y,z;
   double X,Y,Z;
-  
+
+  double cx[16];
+  double cy[16];
+  double cz[16];
+
+  if(t == NULL) {
+    for(int i=0; i < 16; ++i) {
+      triple v=controls[i];
+      cx[i]=v.getx();
+      cy[i]=v.gety();
+      cz[i]=v.getz();
+    }
+  } else {
+    for(int i=0; i < 16; ++i) {
+      triple v=t*controls[i];
+      cx[i]=v.getx();
+      cy[i]=v.gety();
+      cz[i]=v.getz();
+    }
+  }
+
+  double c0=cx[0];
+  double fuzz=Fuzz*run::norm(cx,16);
+  x=bound(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
+  X=bound(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
+
+  c0=cy[0];
+  fuzz=Fuzz*run::norm(cy,16);
+  y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
+  Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+
+  c0=cz[0];
+  fuzz=Fuzz*run::norm(cz,16);
+  z=bound(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
+  Z=bound(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
+
+  b.add(x,y,z);
+  b.add(X,Y,Z);
+
+  if(t == NULL) {
+    Min=triple(x,y,z);
+    Max=triple(X,Y,Z);
+  }
+}
+
+void drawBezierPatch::bounds(const double* t, bbox3& b)
+{
   if(straight) {
+    double x,y,z;
+    double X,Y,Z;
+
     triple Vertices[4];
     if(t == NULL) {
       Vertices[0]=controls[0];
@@ -98,50 +148,10 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
     }
     
     boundstriples(x,y,z,X,Y,Z,4,Vertices);
-  } else {
-    double cx[16];
-    double cy[16];
-    double cz[16];
-  
-    if(t == NULL) {
-      for(int i=0; i < 16; ++i) {
-        triple v=controls[i];
-        cx[i]=v.getx();
-        cy[i]=v.gety();
-        cz[i]=v.getz();
-      }
-    } else {
-      for(int i=0; i < 16; ++i) {
-        triple v=t*controls[i];
-        cx[i]=v.getx();
-        cy[i]=v.gety();
-        cz[i]=v.getz();
-      }
-    }
-    
-    double c0=cx[0];
-    double fuzz=Fuzz*run::norm(cx,16);
-    x=bound(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
-    X=bound(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
-    
-    c0=cy[0];
-    fuzz=Fuzz*run::norm(cy,16);
-    y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
-    Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
-    
-    c0=cz[0];
-    fuzz=Fuzz*run::norm(cz,16);
-    z=bound(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
-    Z=bound(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
-  }  
-  
-  b.add(x,y,z);
-  b.add(X,Y,Z);
-  
-  if(t == NULL) {
-    Min=triple(x,y,z);
-    Max=triple(X,Y,Z);
-  }
+    b.add(x,y,z);
+    b.add(X,Y,Z);
+  } else
+    boundsBezierPatch(Min,Max,b,t,controls);
 }
 
 void drawBezierPatch::ratio(const double* t, pair &b, double (*m)(double, double),
@@ -859,7 +869,17 @@ bool drawTube::write(jsfile *out)
 
   setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
-  out->addTube(g,width,Min,Max,core);
+  bbox3 b;
+  b.add(T*m);
+  b.add(T*triple(m.getx(),m.gety(),M.getz()));
+  b.add(T*triple(m.getx(),M.gety(),m.getz()));
+  b.add(T*triple(m.getx(),M.gety(),M.getz()));
+  b.add(T*triple(M.getx(),m.gety(),m.getz()));
+  b.add(T*triple(M.getx(),m.gety(),M.getz()));
+  b.add(T*triple(M.getx(),M.gety(),m.getz()));
+  b.add(T*M);
+
+  out->addTube(g,width,b.Min(),b.Max(),core);
 
   return true;
 }

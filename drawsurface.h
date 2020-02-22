@@ -449,27 +449,29 @@ public:
 // Draw a tube.
 class drawTube : public drawPRC {
 protected:
-  triple g[4];
+  triple *g;
   double width;
-  triple Min,Max;
+  triple m,M;
   bool core;
 public:
   drawTube(const vm::array&G, double width, const vm::array&p, double opacity,
            double shininess, double metallic, double fresnel0,
-           const triple& Min, const triple& Max, bool core) :
-    drawPRC(p,opacity,shininess,metallic,fresnel0), width(width),
-    Min(Min), Max(Max), core(core) {
+           const triple& m, const triple& M, bool core) :
+    drawPRC(p,opacity,shininess,metallic,fresnel0), width(width), m(m), M(M),
+    core(core) {
     if(vm::checkArray(&G) != 4)
       reportError("array of 4 triples required");
 
-    for(unsigned int i=0; i < 4; ++i)
+    g=new(UseGC) triple[4];
+    for(size_t i=0; i < 4; ++i)
       g[i]=vm::read<triple>(G,i);
   }
   
   drawTube(const double* t, const drawTube *s) :
-    drawElement(s->KEY), drawPRC(t,s), width(s->width),
-    Min(t*s->Min), Max(t*s->Max), core(s->core) {
-    for(unsigned int i=0; i < 4; ++i)
+    drawElement(s->KEY), drawPRC(t,s), width(s->width), m(s->m), M(s->M),
+    core(s->core) {
+    g=new(UseGC) triple[4];
+    for(size_t i=0; i < 4; ++i)
       g[i]=t*s->g[i];
   }
   

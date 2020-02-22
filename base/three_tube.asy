@@ -119,9 +119,8 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   f(t3);
 
   s.PRCprimitive=false;
-  s.draw=
-    new void(frame f, transform3 t=identity4, material[] m,
-             light light=currentlight, render render=defaultrender)
+  s.draw=new void(frame f, transform3 t=identity4, material[] m,
+                  light light=currentlight, render render=defaultrender)
     {
      material m=material(m[0],light);
      drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,

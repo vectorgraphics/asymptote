@@ -30,9 +30,6 @@ file*    => primFile()
 picture* => primPicture()
 transform => primTransform()
 callable* => voidFunction()
-callableBp* => breakpointFunction()
-callableReal* => realRealFunction()
-callableTransform* => transformFunction()
 runnable* => primCode()
 boolarray* => booleanArray()
 Intarray*  => IntArray()
@@ -124,10 +121,6 @@ typedef array penarray;
 typedef array penarray2;
 typedef array stringarray;
 typedef array stringarray2;
-  
-typedef callable callableBp;
-typedef callable callableReal;
-typedef callable callableTransform;
 }
 
 using vm::array;

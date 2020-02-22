@@ -275,10 +275,9 @@ void jsfile::addTube(const triple *g, double width,
       << g[1] << "," << newl
       << g[2] << "," << newl
       << g[3] << newl << "],"
-      << width << "," << drawElement::centerIndex << "," << materialIndex
-      << ","
-//      << Min << "," << Max << "," << core <<");" << newl << newl;
-      << "b" << "," << "B" << "," << core <<");" << newl << newl;
+      << width << "," 
+      << drawElement::centerIndex << "," << materialIndex << ","
+      << Min << "," << Max << "," << core <<");" << newl << newl;
 }
 
 }
