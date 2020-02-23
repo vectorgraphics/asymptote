@@ -2680,7 +2680,7 @@ function Tcorners(T,m,M) {
 // (or optionally a hemisphere symmetric about direction dir)
 function sphere(center,r,CenterIndex,MaterialIndex,dir)
 {
-  let octant0=[
+  let octant=[[
     [1,0,0],
     [1,0,0.370106805057161],
     [0.798938033457256,0,0.6932530716149],
@@ -2700,10 +2700,7 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
     [0,1,0.370106805057161],
     [0,0.798938033457256,0.6932530716149],
     [0,0.500083269410627,0.866169630634358]
-    ];
-
-
-  let octant1=[
+  ],[
     [0.500083269410627,0,0.866169630634358],
     [0.500083269410627,0.276188363341013,0.866169630634358],
     [0.35297776917154,0,0.951284475617087],
@@ -2714,17 +2711,19 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
     [0,0.35297776917154,0.951284475617087],
     [0,0.182177944773632,1],
     [0,0,1]
-    ];
+  ]];
 
   let rx,ry,rz;
   let A=new Align(center,dir);
-  let s,t;
+  let s,t,z;
 
   if(dir) {
     s=1;
+    z=0;
     t=A.T.bind(A);
   } else {
     s=-1;
+    z=-r;
     t=A.T0.bind(A);
   }
 
@@ -2737,19 +2736,17 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
     return p;
   }
 
+  let v=Tcorners(t,[-r,-r,z],[r,r,r]);
+  let Min=v[0], Max=v[1];
   for(let i=-1; i <= 1; i += 2) {
     rx=i*r;
     for(let j=-1; j <= 1; j += 2) {
       ry=j*r;
       for(let k=s; k <= 1; k += 2) {
         rz=k*r;
-        let v=Tcorners(t,[0,0,0],[rx,ry,0.866169630634358*rz]);
-        P.push(new BezierPatch(T(octant0),CenterIndex,MaterialIndex,
-                               v[0],v[1]));
-        v=Tcorners(t,[0,0,0.866169630634358*rz],
-                 [0.500083269410627*rx,0.500083269410627*ry,rz]);
-        P.push(new BezierPatch(T(octant1),CenterIndex,MaterialIndex,
-                               v[0],v[1]));
+        for(let m=0; m < 2; ++m)
+          P.push(new BezierPatch(T(octant[m]),CenterIndex,MaterialIndex,
+                                 Min,Max));
       }
     }
   }
@@ -2837,13 +2834,15 @@ function cylinder(center,r,h,CenterIndex,MaterialIndex,dir,core)
     return p;
   }
 
+  let v=Tcorners(A.T.bind(A),[0,0,0],[r,r,h]);
+  let Min=v[0], Max=v[1];
+
   for(let i=-1; i <= 1; i += 2) {
     rx=i*r;
     for(let j=-1; j <= 1; j += 2) {
       ry=j*r;
-      let v=Tcorners(A.T.bind(A),[0,0,0],[rx,ry,h]);
       P.push(new BezierPatch(T(unitcylinder),CenterIndex,MaterialIndex,
-                             v[0],v[1]));
+                             Min,Max));
     }
   }
 
