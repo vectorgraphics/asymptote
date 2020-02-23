@@ -771,7 +771,8 @@ class BezierPatch extends Geometry {
   }
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
-    if(this.Distance(p) < this.res2) { // Bezier patch is flat
+    let d=this.Distance(p);
+    if(d[0] < this.res2 && d[1] < this.res2) { // Bezier patch is flat
       if(!this.offscreen([P0,P1,P2])) {
         if(wireframe == 0) {
           this.data.indices.push(I0);
@@ -800,13 +801,12 @@ class BezierPatch extends Geometry {
   // Approximate bounds by bounding box of control polyhedron.
       if(this.offscreen(p)) return;
 
-    /* Control points are indexed as follows:
+      /* Control points are indexed as follows:
          
        Coordinate
        +-----
         Index
          
-
         03    13    23    33
        +-----+-----+-----+
        |3    |7    |11   |15
@@ -822,8 +822,223 @@ class BezierPatch extends Geometry {
        |00   |10   |20   |30
        +-----+-----+-----+
         0     4     8     12
-         
 
+      */
+         
+      let p0=p[0];
+      let p3=p[3];
+      let p12=p[12];
+      let p15=p[15];
+
+      if(d[0] < this.res2) { // flat in horizontal direction; split vertically
+        /*
+       P refers to a corner
+       m refers to a midpoint
+       s refers to a subpatch
+
+       +--------+--------+
+       |P3             P2|
+       |                 |
+       |       s1        |
+       |                 |
+       |                 |
+    m1 +-----------------+ m0
+       |                 |
+       |                 |
+       |       s0        |
+       |                 |
+       |P0             P1|
+       +-----------------+
+
+        */
+
+        let c0=new Split3(p0,p[1],p[2],p3);
+        let c1=new Split3(p[4],p[5],p[6],p[7]);
+        let c2=new Split3(p[8],p[9],p[10],p[11]);
+        let c3=new Split3(p12,p[13],p[14],p15);
+
+        let s0=[p0  ,c0.m0,c0.m3,c0.m5,
+                p[4],c1.m0,c1.m3,c1.m5,
+                p[8],c2.m0,c2.m3,c2.m5,
+                p12 ,c3.m0,c3.m3,c3.m5];
+
+        let s1=[c0.m5,c0.m4,c0.m2,p3,
+                c1.m5,c1.m4,c1.m2,p[7],
+                c2.m5,c2.m4,c2.m2,p[11],
+                c3.m5,c3.m4,c3.m2,p15];
+
+        let n0=this.normal(s0[12],s0[13],s0[14],s0[15],s0[11],s0[7],s0[3]);
+        if(abs2(n0) <= this.epsilon) {
+          n0=this.normal(s0[12],s0[13],s0[14],s0[15],s0[2],s0[1],s0[0]);
+          if(abs2(n0) <= this.epsilon)
+            n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
+        }
+
+        let n1=this.normal(s1[3],s1[2],s1[1],s1[0],s1[4],s1[8],s1[12]);
+        if(abs2(n1) <= this.epsilon) {
+          n1=this.normal(s1[3],s1[2],s1[1],s1[0],s1[13],s1[14],s1[15]);
+          if(abs2(n1) <= this.epsilon)
+            n1=this.normal(s1[15],s1[11],s1[7],s1[3],s1[4],s1[8],s1[12]);
+        }
+
+        let e=this.Epsilon;
+
+        // A kludge to remove subdivision cracks, only applied the first time
+        // an edge is found to be flat before the rest of the subpatch is.
+
+        let m0=[0.5*(P1[0]+P2[0]),
+                0.5*(P1[1]+P2[1]),
+                0.5*(P1[2]+P2[2])];
+        if(!flat1) {
+          if((flat1=Straightness(p12,p[13],p[14],p15) < this.res2)) {
+            let r=unit(this.differential(s1[12],s1[13],s1[14],s1[15]));
+            m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
+          }
+          else m0=s0[15];
+        }
+
+        let m1=[0.5*(P3[0]+P0[0]),
+                0.5*(P3[1]+P0[1]),
+                0.5*(P3[2]+P0[2])];
+        if(!flat3) {
+          if((flat3=Straightness(p0,p[1],p[2],p3) < this.res2)) {
+            let r=unit(this.differential(s0[3],s0[2],s0[1],s0[0]));
+            m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
+          }
+          else m1=s1[0];
+        }
+
+        if(C0) {
+          let c0=Array(4);
+          let c1=Array(4);
+          for(let i=0; i < 4; ++i) {
+            c0[i]=0.5*(C1[i]+C2[i]);
+            c1[i]=0.5*(C3[i]+C0[i]);
+          }
+
+          let i0=this.data.Vertex(m0,n0,c0);
+          let i1=this.data.Vertex(m1,n1,c1);
+
+          this.Render(s0,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3,
+                      C0,C1,c0,c1);
+          this.Render(s1,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3,
+                      c1,c0,C2,C3);
+        } else {
+          let i0=this.vertex(m0,n0);
+          let i1=this.vertex(m1,n1);
+
+          this.Render(s0,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3);
+          this.Render(s1,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3);
+        }
+        return;
+      }
+
+      if(d[1] < this.res2) { // flat in vertical direction; split horizontally
+        /*
+          P refers to a corner
+          m refers to a midpoint
+          s refers to a subpatch
+
+                   m1
+          +--------+--------+
+          |P3      |      P2|
+          |        |        |
+          |        |        |
+          |        |        |
+          |        |        |
+          |   s0   |   s1   |
+          |        |        |
+          |        |        |
+          |        |        |
+          |        |        |
+          |P0      |      P1|
+          +--------+--------+
+                   m0
+
+        */
+
+        let c0=new Split3(p0,p[4],p[8],p12);
+        let c1=new Split3(p[1],p[5],p[9],p[13]);
+        let c2=new Split3(p[2],p[6],p[10],p[14]);
+        let c3=new Split3(p3,p[7],p[11],p15);
+
+        let s0=[p0,p[1],p[2],p3,
+                c0.m0,c1.m0,c2.m0,c3.m0,
+                c0.m3,c1.m3,c2.m3,c3.m3,
+                c0.m5,c1.m5,c2.m5,c3.m5];
+
+        let s1=[c0.m5,c1.m5,c2.m5,c3.m5,
+                c0.m4,c1.m4,c2.m4,c3.m4,
+                c0.m2,c1.m2,c2.m2,c3.m2,
+                p12,p[13],p[14],p15];
+
+        let n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
+        if(abs2(n0) <= this.epsilon) {
+          n0=this.normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
+          if(abs2(n0) <= this.epsilon)
+            n0=this.normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+        }
+
+        let n1=this.normal(s1[15],s1[11],s1[7],s1[3],s1[2],s1[1],s1[0]);
+        if(abs2(n1) <= this.epsilon) {
+          n1=this.normal(s1[15],s1[11],s1[7],s1[3],s1[4],s1[8],s1[12]);
+          if(abs2(n1) <= this.epsilon)
+            n1=this.normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
+        }
+
+        let e=this.Epsilon;
+
+        // A kludge to remove subdivision cracks, only applied the first time
+        // an edge is found to be flat before the rest of the subpatch is.
+
+        let m0=[0.5*(P0[0]+P1[0]),
+                0.5*(P0[1]+P1[1]),
+                0.5*(P0[2]+P1[2])];
+        if(!flat0) {
+          if((flat0=Straightness(p0,p[4],p[8],p12) < this.res2)) {
+            let r=unit(this.differential(s1[0],s1[1],s1[2],s1[3]));
+            m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
+          }
+          else m0=s0[12];
+        }
+
+        let m1=[0.5*(P2[0]+P3[0]),
+                0.5*(P2[1]+P3[1]),
+                0.5*(P2[2]+P3[2])];
+        if(!flat2) {
+          if((flat2=Straightness(p15,p[11],p[7],p3) < this.res2)) {
+            let r=unit(this.differential(s0[15],s0[14],s0[13],s0[12]));
+            m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
+          }
+          else m1=s1[3];
+        }
+
+        if(C0) {
+          let c0=Array(4);
+          let c1=Array(4);
+          for(let i=0; i < 4; ++i) {
+            c0[i]=0.5*(C0[i]+C1[i]);
+            c1[i]=0.5*(C2[i]+C3[i]);
+          }
+
+          let i0=this.data.Vertex(m0,n0,c0);
+          let i1=this.data.Vertex(m1,n1,c1);
+
+          this.Render(s0,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3,
+                      C0,c0,c1,C3);
+          this.Render(s1,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false,
+                      c0,C1,C2,c1);
+        } else {
+          let i0=this.vertex(m0,n0);
+          let i1=this.vertex(m1,n1);
+
+          this.Render(s0,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3);
+          this.Render(s1,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false);
+        }
+        return;
+      }
+
+      /*
        Horizontal and vertical subdivision:
        P refers to a corner
        m refers to a midpoint
@@ -845,13 +1060,8 @@ class BezierPatch extends Geometry {
        +--------+--------+
                 m0
     */
-    
-      // Subdivide patch:
 
-      let p0=p[0];
-      let p3=p[3];
-      let p12=p[12];
-      let p15=p[15];
+      // Subdivide patch:
 
       let c0=new Split3(p0,p[1],p[2],p3);
       let c1=new Split3(p[4],p[5],p[6],p[7]);
@@ -1323,17 +1533,20 @@ class BezierPatch extends Geometry {
     let p12=p[12];
     let p15=p[15];
 
-    // Determine how straight the edges are.
-    let d=Straightness(p0,p[1],p[2],p3);
-    d=Math.max(d,Straightness(p0,p[4],p[8],p12));
-    d=Math.max(d,Straightness(p3,p[7],p[11],p15));
-    d=Math.max(d,Straightness(p12,p[13],p[14],p15));
-    
-    // Determine how straight the interior control curves are.
-    d=Math.max(d,Straightness(p[4],p[5],p[6],p[7]));
-    d=Math.max(d,Straightness(p[8],p[9],p[10],p[11]));
-    d=Math.max(d,Straightness(p[1],p[5],p[9],p[13]));
-    return Math.max(d,Straightness(p[2],p[6],p[10],p[14]));
+    // Compute straightness of the edges and interior control curves.
+    // Horizontal
+    let h=Straightness(p0,p[4],p[8],p12);
+    h=Math.max(h,Straightness(p[1],p[5],p[9],p[13]));
+    h=Math.max(h,Straightness(p3,p[7],p[11],p15));
+    h=Math.max(h,Straightness(p[2],p[6],p[10],p[14]));
+
+    // Vertical
+    let v=Straightness(p0,p[1],p[2],p3);
+    v=Math.max(v,Straightness(p[4],p[5],p[6],p[7]));
+    v=Math.max(v,Straightness(p[8],p[9],p[10],p[11]));
+    v=Math.max(v,Straightness(p12,p[13],p[14],p15));
+
+    return [h,v];
   }
 
   // Check the flatness of a Bezier triangle

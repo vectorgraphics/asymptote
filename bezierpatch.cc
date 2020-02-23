@@ -369,7 +369,7 @@ void BezierPatch::render(const triple *p,
                          GLfloat *C0, GLfloat *C1, GLfloat *C2, GLfloat *C3)
 {
   pair d=Distance(p);
-  if(max(d.getx(),d.gety()) < res2) { // Bezier patch is flat
+  if(d.getx() < res2 && d.gety() < res2) { // Bezier patch is flat
     triple Pa[]={P0,P1,P2};
     std::vector<GLuint> &q=data.indices;
     if(!offscreen(3,Pa)) {
@@ -385,13 +385,13 @@ void BezierPatch::render(const triple *p,
     }
   } else { // Patch is not flat
    if(offscreen(16,p)) return;
+
    /* Control points are indexed as follows:
-         
+
        Coordinate
        +-----
         Index
          
-
         03    13    23    33
        +-----+-----+-----+
        |3    |7    |11   |15
@@ -407,6 +407,7 @@ void BezierPatch::render(const triple *p,
        |00   |10   |20   |30
        +-----+-----+-----+
         0     4     8     12
+
    */
 
     triple p0=p[0];
@@ -414,7 +415,7 @@ void BezierPatch::render(const triple *p,
     triple p12=p[12];
     triple p15=p[15];
 
-   if(d.getx() < res2) { // flat in the horizontal direction; split vertically
+   if(d.getx() < res2) { // flat in horizontal direction; split vertically
      /*
        P refers to a corner
        m refers to a midpoint
@@ -433,6 +434,7 @@ void BezierPatch::render(const triple *p,
        |                 |
        |P0             P1|
        +-----------------+
+
      */
 
      Split3 c0(p0,p[1],p[2],p3);
@@ -502,7 +504,7 @@ void BezierPatch::render(const triple *p,
      }
      return;
    }
-   if(d.gety() < res2) { // flat in the vertical direction; split horizontally
+   if(d.gety() < res2) { // flat in vertical direction; split horizontally
      /*
        P refers to a corner
        m refers to a midpoint
@@ -523,13 +525,15 @@ void BezierPatch::render(const triple *p,
        |P0      |      P1|
        +--------+--------+
                 m0
+
      */
+
      Split3 c0(p0,p[4],p[8],p12);
      Split3 c1(p[1],p[5],p[9],p[13]);
      Split3 c2(p[2],p[6],p[10],p[14]);
      Split3 c3(p3,p[7],p[11],p15);
 
-     triple s0[]={p0  ,p[1],p[2],p3,
+     triple s0[]={p0,p[1],p[2],p3,
                   c0.m0,c1.m0,c2.m0,c3.m0,
                   c0.m3,c1.m3,c2.m3,c3.m3,
                   c0.m5,c1.m5,c2.m5,c3.m5};
