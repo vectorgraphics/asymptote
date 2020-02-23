@@ -472,14 +472,14 @@ void BezierPatch::render(const triple *p,
      triple m0=0.5*(P1+P2);
      if(!flat1) {
        if((flat1=Straightness(p12,p[13],p[14],p15) < res2))
-         m0 -= Epsilon*unit(differential(s1[12],s1[13],s1[14],s1[15]));
+         m0 -= Epsilon*unit(differential(s1[12],s1[8],s1[4],s1[0]));
        else m0=s0[15];
      }
 
      triple m1=0.5*(P3+P0);
      if(!flat3) {
        if((flat3=Straightness(p0,p[1],p[2],p3) < res2))
-         m1 -= Epsilon*unit(differential(s0[3],s0[2],s0[1],s0[0]));
+         m1 -= Epsilon*unit(differential(s0[3],s0[7],s0[11],s0[15]));
        else m1=s1[0];
      }
 
@@ -570,7 +570,7 @@ void BezierPatch::render(const triple *p,
      triple m1=0.5*(P2+P3);
      if(!flat2) {
        if((flat2=Straightness(p15,p[11],p[7],p3) < res2))
-         m1 -= Epsilon*unit(differential(s0[15],s0[11],s0[7],s0[3]));
+         m1 -= Epsilon*unit(differential(s0[15],s0[14],s0[13],s0[12]));
        else m1=s1[3];
      }
 
@@ -693,7 +693,7 @@ void BezierPatch::render(const triple *p,
     triple m2=0.5*(P2+P3);
     if(!flat2) {
       if((flat2=Straightness(p15,p[11],p[7],p3) < res2))
-        m2 -= Epsilon*unit(differential(s3[15],s2[14],s2[13],s1[12]));
+        m2 -= Epsilon*unit(differential(s3[15],s3[14],s3[13],s3[12]));
       else m2=s2[3];
     }
       

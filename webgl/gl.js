@@ -891,7 +891,7 @@ class BezierPatch extends Geometry {
                 0.5*(P1[2]+P2[2])];
         if(!flat1) {
           if((flat1=Straightness(p12,p[13],p[14],p15) < this.res2)) {
-            let r=unit(this.differential(s1[12],s1[13],s1[14],s1[15]));
+            let r=unit(this.differential(s1[12],s1[8],s1[4],s1[0]));
             m0=[m0[0]-e*r[0],m0[1]-e*r[1],m0[2]-e*r[2]];
           }
           else m0=s0[15];
@@ -902,7 +902,7 @@ class BezierPatch extends Geometry {
                 0.5*(P3[2]+P0[2])];
         if(!flat3) {
           if((flat3=Straightness(p0,p[1],p[2],p3) < this.res2)) {
-            let r=unit(this.differential(s0[3],s0[2],s0[1],s0[0]));
+            let r=unit(this.differential(s0[3],s0[7],s0[11],s0[15]));
             m1=[m1[0]-e*r[0],m1[1]-e*r[1],m1[2]-e*r[2]];
           }
           else m1=s1[0];
@@ -1148,7 +1148,7 @@ class BezierPatch extends Geometry {
               0.5*(P2[2]+P3[2])];
       if(!flat2) {
         if((flat2=Straightness(p15,p[11],p[7],p3) < this.res2)) {
-          let r=unit(this.differential(s3[15],s2[14],s2[13],s1[12]));
+          let r=unit(this.differential(s3[15],s3[14],s3[13],s3[12]));
           m2=[m2[0]-e*r[0],m2[1]-e*r[1],m2[2]-e*r[2]];
         }
         else m2=s2[3];
