@@ -1,5 +1,5 @@
 /*****
- * drawbezierpatch.cc
+ * bezierpatch.cc
  * Authors: John C. Bowman and Jesse Frohlich
  *
  * Render Bezier patches and triangles.
@@ -603,7 +603,7 @@ void BezierPatch::render(const triple *p,
        |        |        |
        |   s3   |   s2   |
        |        |        |
-       |        |m4      |
+       |        | m4     |
     m3 +--------+--------+ m1
        |        |        |
        |        |        |

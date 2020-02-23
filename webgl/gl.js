@@ -824,7 +824,7 @@ class BezierPatch extends Geometry {
         0     4     8     12
          
 
-       Subdivision:
+       Horizontal and vertical subdivision:
        P refers to a corner
        m refers to a midpoint
        s refers to a subpatch
@@ -835,8 +835,8 @@ class BezierPatch extends Geometry {
        |        |        |
        |   s3   |   s2   |
        |        |        |
-       |        |m4      |
-     m3+--------+--------+m1
+       |        | m4     |
+    m3 +--------+--------+ m1
        |        |        |
        |        |        |
        |   s0   |   s1   |
