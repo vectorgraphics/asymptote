@@ -74,23 +74,26 @@ struct BezierPatch
     return bezierPPP(p0,p1,p2,p3);
   }
 
-  virtual double Distance(const triple *p) {
+  pair Distance(const triple *p) {
     triple p0=p[0];
     triple p3=p[3];
     triple p12=p[12];
     triple p15=p[15];
     
-    // Determine how straight the edges are.
-    double d=Straightness(p0,p[1],p[2],p3);
-    d=max(d,Straightness(p0,p[4],p[8],p12));
-    d=max(d,Straightness(p3,p[7],p[11],p15));
-    d=max(d,Straightness(p12,p[13],p[14],p15));
+    // Compute straightness of the edges and interior control curves.
+    // Horizontal
+    double h=Straightness(p0,p[4],p[8],p12);
+    h=max(h,Straightness(p[1],p[5],p[9],p[13]));
+    h=max(h,Straightness(p[2],p[6],p[10],p[14]));
+    h=max(h,Straightness(p3,p[7],p[11],p15));
+
+    // Vertical
+    double v=Straightness(p0,p[1],p[2],p3);
+    v=max(v,Straightness(p[4],p[5],p[6],p[7]));
+    v=max(v,Straightness(p[8],p[9],p[10],p[11]));
+    v=max(v,Straightness(p12,p[13],p[14],p15));
     
-    // Determine how straight the interior control curves are.
-    d=max(d,Straightness(p[4],p[5],p[6],p[7]));
-    d=max(d,Straightness(p[8],p[9],p[10],p[11]));
-    d=max(d,Straightness(p[1],p[5],p[9],p[13]));
-    return max(d,Straightness(p[2],p[6],p[10],p[14]));
+    return pair(h,v);
   }
   
   struct Split3 {
