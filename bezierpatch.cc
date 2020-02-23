@@ -53,7 +53,6 @@ struct iz {
 std::vector<iz> IZ;
 
 const double FillFactor=0.1;
-const double BezierFactor=0.4;
 
 inline int sgn1(double x) 
 {
@@ -271,7 +270,6 @@ void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
 void BezierPatch::init(double res)
 {
   res2=res*res;
-  Res2=BezierFactor*BezierFactor*res2;
   Epsilon=FillFactor*res;
 
   MaterialIndex=transparent ?
@@ -797,7 +795,7 @@ void BezierTriangle::render(const triple *p,
                             bool flat0, bool flat1, bool flat2,
                             GLfloat *C0, GLfloat *C1, GLfloat *C2)
 {
-  if(Distance(p) < Res2) { // Bezier triangle is flat
+  if(Distance(p) < res2) { // Bezier triangle is flat
     triple P[]={P0,P1,P2};
     if(!offscreen(3,P)) {
       std::vector<GLuint> &q=data.indices;

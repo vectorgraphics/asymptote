@@ -41,7 +41,6 @@ let maxMaterials; // Limit on number of materials allowed in shader
 let halfCanvasWidth,halfCanvasHeight;
 
 let pixel=0.75; // Adaptive rendering constant.
-let BezierFactor=0.4;
 let FillFactor=0.1;
 let Zoom;
 
@@ -1217,8 +1216,6 @@ class BezierPatch extends Geometry {
       return;
     }
 
-    this.Res2=BezierFactor*BezierFactor*this.res2;
-
     let p0=p[0];
     let p6=p[6];
     let p9=p[9];
@@ -1249,7 +1246,7 @@ class BezierPatch extends Geometry {
   }
 
   Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
-    if(this.Distance3(p) < this.Res2) { // Bezier triangle is flat
+    if(this.Distance3(p) < this.res2) { // Bezier triangle is flat
       if(!this.offscreen([P0,P1,P2])) {
         if(wireframe == 0) {
           this.data.indices.push(I0);
