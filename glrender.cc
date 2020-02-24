@@ -66,13 +66,12 @@ namespace camp {
 Billboard BB;
 
 GLint pixelShader;
-GLint noNormalShader;
 GLint materialShader;
 GLint colorShader;
 GLint transparentShader;
 
-vertexBuffer material0Data;
-vertexBuffer material1Data;
+vertexBuffer material0Data(GL_POINTS);
+vertexBuffer material1Data(GL_LINES);
 vertexBuffer materialData;
 vertexBuffer colorData;
 vertexBuffer transparentData;
@@ -457,8 +456,7 @@ void initShaders()
   camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                          shaderParams);
   shaderParams.pop_back();
-  camp::noNormalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            shaderParams);
+
   shaderParams.push_back("NORMAL");
   camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                             shaderParams);
@@ -476,7 +474,6 @@ void deleteShaders()
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::materialShader);
   glDeleteProgram(camp::pixelShader);
-  glDeleteProgram(camp::noNormalShader);
 }
 
 void setBuffers()
@@ -490,7 +487,6 @@ void setBuffers()
   glBindVertexArray(vao);
 
   camp::material0Data.reserve0();
-  camp::material1Data.reserve1();
   camp::materialData.reserve();
   camp::colorData.Reserve();
   camp::triangleData.Reserve();
@@ -1846,7 +1842,7 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint bufferIndex,
 
 void setUniforms(const vertexBuffer& data, GLint shader)
 {
-  bool normal=shader != pixelShader && shader != noNormalShader;
+  bool normal=shader != pixelShader;
     
   if(shader != gl::lastshader) {
     glUseProgram(shader);
@@ -1901,19 +1897,17 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   if(data.indices.empty()) return;
   
   bool pixel=shader == pixelShader;
-  bool normal=shader != noNormalShader && !pixel;
+  bool normal=!pixel;
   bool color=shader == colorShader || shader == transparentShader;
   
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
   const size_t bytestride=color ? sizeof(VertexData) :
-    (normal ? sizeof(vertexData) :
-     (pixel ? sizeof(vertexData0) : sizeof(vertexData1)));
+    (normal ? sizeof(vertexData) : sizeof(vertexData0));
 
   if(color) registerBuffer(data.Vertices,attributeBuffer);
   else if(normal) registerBuffer(data.vertices,attributeBuffer);
-  else if(pixel) registerBuffer(data.vertices0,attributeBuffer);
-  else registerBuffer(data.vertices1,attributeBuffer);
+  else registerBuffer(data.vertices0,attributeBuffer);
   
   registerBuffer(data.indices,indicesBuffer,GL_ELEMENT_ARRAY_BUFFER);
   
@@ -1946,8 +1940,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(colorAttrib);
   }
   
-  glDrawElements(normal ? GL_TRIANGLES : (pixel ? GL_POINTS : GL_LINES),
-                 data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
+  glDrawElements(data.type,data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
 
   glDisableVertexAttribArray(positionAttrib);
   if(normal && gl::Nlights > 0)
@@ -1972,7 +1965,7 @@ void drawMaterial0()
 
 void drawMaterial1()
 {
-  drawBuffer(material1Data,noNormalShader);
+  drawBuffer(material1Data,materialShader);
   material1Data.clear();
 }
 

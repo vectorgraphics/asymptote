@@ -377,6 +377,33 @@ inline double Flatness(const triple& a, const triple& b, const triple& c,
   return ninth*std::max(abs2(cross(u,unit(v))),abs2(cross(v,unit(u))));
 }
 
+// Return one-half of the second derivative of the Bezier curve defined by
+// a,b,c,d at t=0.
+inline triple bezierPP(const triple& a, const triple& b, const triple& c) {
+  return 3.0*(a+c)-6.0*b;
+}
+
+// Return one-sixth of the third derivative of the Bezier curve defined by
+// a,b,c,d at t=0.
+inline triple bezierPPP(const triple& a, const triple& b, const triple& c,
+                        const triple& d) {
+  return d-a+3.0*(b-c);
+}
+
+// Return four-thirds of the first derivative of the Bezier curve defined by
+// a,b,c,d at t=1/2.
+inline triple bezierPh(triple a, triple b, triple c, triple d)
+{
+  return c+d-a-b;
+}
+
+// Return two-thirds of the second derivative of the Bezier curve defined by
+// a,b,c,d at t=1/2.
+inline triple bezierPPh(triple a, triple b, triple c, triple d)
+{
+  return 3.0*a-5.0*b+c+d;
+}
+
 } //namespace camp
 
 GC_DECLARE_PTRFREE(camp::triple);

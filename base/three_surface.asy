@@ -1369,7 +1369,7 @@ material material(material m, light light, bool colors=false)
   return light.on() || invisible((pen) m) ? m : emissive(m,colors);
 }
 
-void draw3D(frame f, int type=0, patch s, triple center=O, material m,
+void draw3D(frame f, patch s, triple center=O, material m,
             light light=currentlight, interaction interaction=Embedded,
             bool primitive=false)
 {
@@ -1384,6 +1384,14 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,center,straight,m.p,m.opacity,m.shininess,
      m.metallic,m.fresnel0,s.colors,interaction.type,primitive);
+}
+
+void _draw(frame f, path3 g, triple center=O, material m,
+           light light=currentlight, interaction interaction=Embedded)
+{
+  if(!prc()) m=material(m,light);
+  _draw(f,g,center,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+        interaction.type);
 }
 
 int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
@@ -1822,7 +1830,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
         draw3D(f3,S,position,L.p,light,interaction);
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-          _draw(f3,S.external(),position,L.p,interaction.type);
+          _draw(f3,S.external(),position,L.p,light,interaction);
       }
       endgroup3(f3);
           if(L.defaulttransform3)
@@ -1842,7 +1850,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
         draw3D(f,S,V,L.p,light,interaction);
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-          _draw(f,S.external(),V,L.p,interaction.type);
+          _draw(f,S.external(),V,L.p,light,interaction);
       }
       endgroup3(f);
     }
@@ -1911,7 +1919,7 @@ void label(picture pic=currentpicture, Label L, triple position,
               draw3D(f3,S,v,L.p,light,interaction);
               // Fill subdivision cracks
               if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-                _draw(f3,S.external(),v,L.p,interaction.type);
+                _draw(f3,S.external(),v,L.p,light,interaction);
             }
             endgroup3(f3);
             if(L.defaulttransform3)
@@ -1931,7 +1939,7 @@ void label(picture pic=currentpicture, Label L, triple position,
             draw3D(f,S,V,L.p,light,interaction);
             // Fill subdivision cracks
             if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-              _draw(f,S.external(),V,L.p,interaction.type);
+              _draw(f,S.external(),V,L.p,light,interaction);
           }
           endgroup3(f);
         }
