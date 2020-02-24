@@ -2099,33 +2099,23 @@ unithemisphere.draw=
              render.sphere);
   };
 
-restricted patch unitfrustum(real t1, real t2)
+restricted patch unitfrustum1(real ta, real tb)
 {
-  real s1=interp(t1,t2,1/3);
-  real s2=interp(t1,t2,2/3);
-  return patch(interp(Z,X,t2){Y}..{-X}interp(Z,Y,t2)--interp(Z,Y,t1){X}..{-Y}
-               interp(Z,X,t1)--cycle,
+  real s1=interp(ta,tb,1/3);
+  real s2=interp(ta,tb,2/3);
+  return patch(interp(Z,X,tb){Y}..{-X}interp(Z,Y,tb)--interp(Z,Y,ta){X}..{-Y}
+               interp(Z,X,ta)--cycle,
                new triple[] {(s2,s2*a,1-s2),(s2*a,s2,1-s2),(s1*a,s1,1-s1),
                                           (s1,s1*a,1-s1)});
 }
 
-// Return a unitcone constructed from n frusta (the final one being degenerate)
-surface unitcone(int n=6)
+restricted surface unitfrustum(real ta, real tb)
 {
-  surface unitcone;
-  unitcone.s=new patch[4*n];
-  real r=1/3;
-  for(int i=0; i < n; ++i) {
-    patch s=unitfrustum(i < n-1 ? r^(i+1) : 0,r^i);
-    unitcone.s[i]=s;
-    unitcone.s[n+i]=t1*s;
-    unitcone.s[2n+i]=t2*s;
-    unitcone.s[3n+i]=t3*s;
-  }
-  return unitcone;
+  patch p=unitfrustum1(ta,tb);
+  return surface(p,t1*p,t2*p,t3*p);
 }
 
-restricted surface unitcone=unitcone();
+restricted surface unitcone=surface(unitfrustum(0,1));
 restricted surface unitsolidcone=surface(patch(unitcircle3)...unitcone.s);
 
 // Construct an approximate cone over an arbitrary base.

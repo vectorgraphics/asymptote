@@ -1530,15 +1530,18 @@ class BezierPatch extends Geometry {
     let p12=p[12];
     let p15=p[15];
 
-    // Compute straightness of the edges and interior control curves.
-    // Horizontal
-    let h=Straightness(p0,p[4],p[8],p12);
+    // Check the horizontal flatness.
+    let h=Flatness(p0,p12,p3,p15);
+    // Check straightness of the horizontal edges and interior control curves.
+    h=Math.max(Straightness(p0,p[4],p[8],p12));
     h=Math.max(h,Straightness(p[1],p[5],p[9],p[13]));
     h=Math.max(h,Straightness(p3,p[7],p[11],p15));
     h=Math.max(h,Straightness(p[2],p[6],p[10],p[14]));
 
-    // Vertical
-    let v=Straightness(p0,p[1],p[2],p3);
+    // Check the vertical flatness.
+    let v=Flatness(p0,p3,p12,p15);
+    // Check straightness of the vertical edges and interior control curves.
+    v=Math.max(v,Straightness(p0,p[1],p[2],p3));
     v=Math.max(v,Straightness(p[4],p[5],p[6],p[7]));
     v=Math.max(v,Straightness(p[8],p[9],p[10],p[11]));
     v=Math.max(v,Straightness(p12,p[13],p[14],p15));
@@ -1920,6 +1923,14 @@ function Straightness(z0,c0,c1,z1)
   let v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
   return Math.max(abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
     abs2([z1[0]-v[0]-c1[0],z1[1]-v[1]-c1[1],z1[2]-v[2]-c1[2]]));
+}
+
+// Return one ninth of the relative flatness squared of a--b and c--d.
+function Flatness(a,b,c,d)
+{
+  let u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
+  let v=[d[0]-c[0],d[1]-c[1],d[2]-c[2]];
+  return Math.max(abs2(cross(u,unit(v))),abs2(cross(v,unit(u))))/9;
 }
 
 // Return the vertices of the box containing 3d points m and M.

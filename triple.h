@@ -367,6 +367,16 @@ inline double Straightness(const triple& z0, const triple& c0,
   return std::max(abs2(c0-v-z0),abs2(z1-v-c1));
 }
 
+// Return one ninth of the relative flatness squared of a--b and c--d.
+inline double Flatness(const triple& a, const triple& b, const triple& c,
+                       const triple& d)
+{
+  static double ninth=1.0/9.0;
+  triple u=b-a;
+  triple v=d-c;
+  return ninth*std::max(abs2(cross(u,unit(v))),abs2(cross(v,unit(u))));
+}
+
 } //namespace camp
 
 GC_DECLARE_PTRFREE(camp::triple);
