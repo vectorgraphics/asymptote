@@ -5456,6 +5456,16 @@ write();
 write(f/n);
 @end verbatim
 
+@cindex @code{fft}
+@item pair[][] fft(pair[][] a, int sign=1)
+returns the unnormalized two-dimensional Fourier transform of @code{a}
+using the given @code{sign}.
+
+@cindex @code{fft}
+@item pair[][][] fft(pair[][][] a, int sign=1)
+returns the unnormalized three-dimensional Fourier transform of
+@code{a} using the given @code{sign}.
+
 @cindex @code{dot}
 @item real dot(real[] a, real[] b)
 returns the dot product of the vectors @code{a} and @code{b}.
@@ -6352,11 +6362,6 @@ respectively. If the planes are parallel, return
 @item pair[] quarticroots(real a, real b, real c, real d, real e);
 returns the four complex roots of the quartic equation
 @math{ax^4+bx^3+cx^2+dx+e=0}.
-
-@cindex @code{fft}
-@item pair[][] fft(pair[][] a, int sign=1)
-returns the two-dimensional Fourier transform of a using the given
-@code{sign}.
 
 @cindex @code{time}
 @item real time(path g, real x, int n=0)
