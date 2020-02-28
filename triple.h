@@ -298,9 +298,15 @@ public:
     if(paren) s >> c;
     s >> z.x >> std::ws;
     if(s.peek() == ',') s >> c >> z.y;
-    else z.y=0.0;
+    else {
+      if(paren) s >> z.y;
+      else z.y=0.0;
+    }
     if(s.peek() == ',') s >> c >> z.z;
-    else z.z=0.0;
+    else {
+      if(paren) s >> z.z;
+      else z.z=0.0;
+    }
     if(paren) {
       s >> std::ws;
       if(s.peek() == ')') s >> c;

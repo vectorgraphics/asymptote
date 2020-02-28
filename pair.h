@@ -207,7 +207,10 @@ public:
     if(paren) s >> c;
     s >> z.x >> std::ws;
     if(!s.eof() && s.peek() == ',') s >> c >> z.y;
-    else z.y=0.0;
+    else {
+      if(paren && !s.eof()) s >> z.y;
+      else z.y=0.0;
+    }
     if(paren) {
       s >> std::ws;
       if(s.peek() == ')') s >> c;
