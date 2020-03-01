@@ -129,7 +129,7 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   return s;
 }
 
-real tubethreshold=0.02;
+real tubethreshold=0.05;
 
 // Note: casting an array of surfaces to a single surface will disable
 // primitive compression.
@@ -153,8 +153,18 @@ struct tube
     void Split(triple z0, triple c0, triple c1, triple z1,
                real depth=mantissaBits) {
       if(depth > 0) {
-        real R=radius(z0,c0,c1,z1,0.5);
-        if(R > 0 && r*arclength(z0,c0,c1,z1)/R^2 > tubethreshold) {
+        pair threshold(triple z0, triple c0, triple c1) {
+          triple u=c1-z0;
+          triple v=c0-z0;
+          real x=abs(v);
+          return (x,abs(u*x^2-dot(u,v)*v));
+        }
+
+        pair a0=threshold(z0,c0,c1);
+        pair a1=threshold(z1,c1,c0);
+        real rL=r*arclength(z0,c0,c1,z1);
+        if(rL*a0.y^2 > tubethreshold*a0.x^8 ||
+           rL*a1.y^2 > tubethreshold*a1.x^8) {
           triple m0=0.5*(z0+c0);
           triple m1=0.5*(c0+c1);
           triple m2=0.5*(c1+z1);
