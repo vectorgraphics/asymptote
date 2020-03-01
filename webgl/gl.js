@@ -144,7 +144,6 @@ function initShaders()
   maxMaterials=Math.floor((maxUniforms-14)/4);
   Nmaterials=Math.min(Math.max(Nmaterials,Materials.length),maxMaterials);
 
-  noNormalShader=initShader();
   pixelShader=initShader(["WIDTH"]);
   materialShader=initShader(["NORMAL"]);
   colorShader=initShader(["NORMAL","COLOR"]);
@@ -157,7 +156,6 @@ function deleteShaders()
   gl.deleteProgram(colorShader);
   gl.deleteProgram(materialShader);
   gl.deleteProgram(pixelShader);
-  gl.deleteProgram(noNormalShader);
 }
 
 // Create buffers for the patch and its subdivisions.
@@ -183,7 +181,6 @@ function saveAttributes()
   a.Nmaterials=Nmaterials;
   a.maxMaterials=maxMaterials;
 
-  a.noNormalShader=noNormalShader;
   a.pixelShader=pixelShader;
   a.materialShader=materialShader;
   a.colorShader=colorShader;
@@ -199,7 +196,6 @@ function restoreAttributes()
   Nmaterials=a.Nmaterials;
   maxMaterials=a.maxMaterials;
 
-  noNormalShader=a.noNormalShader;
   pixelShader=a.pixelShader;
   materialShader=a.materialShader;
   colorShader=a.colorShader;
@@ -247,6 +243,14 @@ function initGL()
 
   setBuffers();
   indexExt=gl.getExtension("OES_element_index_uint");
+
+  TRIANGLES=gl.TRIANGLES;
+  material0Data=new vertexBuffer(gl.POINTS);
+  material1Data=new vertexBuffer(gl.LINES);
+  materialData=new vertexBuffer();
+  colorData=new vertexBuffer();
+  transparentData=new vertexBuffer();
+  triangleData=new vertexBuffer();
 }
 
 function getShader(gl,shaderScript,type,options=[])
@@ -280,8 +284,7 @@ function drawBuffer(data,shader,indices=data.indices)
 {
   if(data.indices.length == 0) return;
   
-  let pixel=shader == pixelShader;
-  let normal=shader != noNormalShader && !pixel;
+  let normal=shader != pixelShader;
 
   setUniforms(data,shader);
 
@@ -289,7 +292,7 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
                 gl.STATIC_DRAW);
   gl.vertexAttribPointer(positionAttribute,3,gl.FLOAT,false,
-                         normal ? 24 : (pixel ? 16 : 12),0);
+                         normal ? 24 : 16,0);
   if(normal && Lights.length > 0)
     gl.vertexAttribPointer(normalAttribute,3,gl.FLOAT,false,24,12);
   else if(pixel)
@@ -312,13 +315,16 @@ function drawBuffer(data,shader,indices=data.indices)
                 indexExt ? new Uint32Array(indices) :
                 new Uint16Array(indices),gl.STATIC_DRAW);
 
-  gl.drawElements(normal ? (wireframe ? gl.LINES : gl.TRIANGLES) :
-                  (pixel ? gl.POINTS : gl.LINES),indices.length,
+  gl.drawElements(normal ? (wireframe ? gl.LINES : data.type) : gl.POINTS,
+                  indices.length,
                   indexExt ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,0);
 }
 
+let TRIANGLES;
+
 class vertexBuffer {
-  constructor() {
+  constructor(type) {
+    this.type=type ? type : TRIANGLES;
     this.clear();
   }
   clear() {
@@ -360,15 +366,6 @@ class vertexBuffer {
     return this.nvertices++;
   }
 
-   // material vertex without normal
-  vertex1(v) {
-    this.vertices.push(v[0]);
-    this.vertices.push(v[1]);
-    this.vertices.push(v[2]);
-    this.materialIndices.push(materialIndex);
-    return this.nvertices++;
-  }
-
   // material vertex with width and without normal 
   vertex0(v,width) {
     this.vertices.push(v[0]);
@@ -406,13 +403,12 @@ class vertexBuffer {
   }
 }
 
-let material0Data=new vertexBuffer();    // pixels
-let material1Data=new vertexBuffer();    // material Bezier curves
-let materialData=new vertexBuffer();     // material Bezier patches & triangles
-let colorData=new vertexBuffer();        // colored Bezier patches & triangles
-let transparentData=new vertexBuffer();  // transparent patches & triangles
-let triangleData=new vertexBuffer();     // opaque indexed triangles
-
+let material0Data;    // pixels
+let material1Data;    // material Bezier curves
+let materialData;     // material Bezier patches & triangles
+let colorData;        // colored Bezier patches & triangles
+let transparentData;  // transparent patches & triangles
+let triangleData;     // opaque indexed triangles
 
 let materialIndex;
 
@@ -1658,17 +1654,26 @@ class BezierCurve extends Geometry {
     let p0=p[0];
     let p1=p[1];
     if(!this.offscreen([p0,p1])) {
-      this.data.indices.push(this.data.vertex1(p0));
-      this.data.indices.push(this.data.vertex1(p1));
+      let n=[0,0,1];
+      this.data.indices.push(this.data.vertex(p0,n));
+      this.data.indices.push(this.data.vertex(p1,n));
       this.append();
     }
   }
 
   process(p) {
     if(p.length == 2) return this.processLine(p);
+
+    let p0=p[0];
+    let p1=p[1];
+    let p2=p[2];
+    let p3=p[3];
+
+    let n0=this.normal(bezierP(p0,p1),bezierPP(p0,p1,p2));
+    let n1=this.normal(bezierP(p2,p3),bezierPP(p3,p2,p1));
     
-    let i0=this.data.vertex1(p[0]);
-    let i3=this.data.vertex1(p[3]);
+    let i0=this.data.vertex(p0,n0);
+    let i3=this.data.vertex(p3,n1);
     
     this.Render(p,i0,i3);
     if(this.data.indices.length > 0) this.append();
@@ -1702,11 +1707,20 @@ class BezierCurve extends Geometry {
       let s0=[p0,m0,m3,m5];
       let s1=[m5,m4,m2,p3];
       
-      let i0=this.data.vertex1(m5);
+      let n0=this.normal(bezierPh(p0,p1,p2,p3),bezierPPh(p0,p1,p2,p3));
+      let i0=this.data.vertex(m5,n0);
       
       this.Render(s0,I0,i0);
       this.Render(s1,i0,I1);
     }
+  }
+
+  normal(bP,bPP) {
+    let bPbP=dot(bP,bP);
+    let bPbPP=dot(bP,bPP);
+    return [bPbP*bPP[0]-bPbPP*bP[0],
+            bPbP*bPP[1]-bPbPP*bP[1],
+            bPbP*bPP[2]-bPbPP*bP[2]];
   }
 }
 
@@ -1896,8 +1910,17 @@ function cross(u,v)
           u[0]*v[1]-u[1]*v[0]];
 }
 
+// Return one-third of the first derivative of the Bezier curve defined
+// by a,b,c,d at t=0.
+function bezierP(a,b)
+{
+  return [b[0]-a[0],
+          b[1]-a[1],
+          b[2]-a[2]];
+}
+
 // Return one-half of the second derivative of the Bezier curve defined
-// by a,b,c,d at 0. 
+// by a,b,c,d at t=0.
 function bezierPP(a,b,c)
 {
   return [3*(a[0]+c[0])-6*b[0],
@@ -1906,12 +1929,30 @@ function bezierPP(a,b,c)
 }
 
 // Return one-sixth of the third derivative of the Bezier curve defined by
-// a,b,c,d at 0.
+// a,b,c,d at t=0.
 function bezierPPP(a,b,c,d)
 {
   return [d[0]-a[0]+3*(b[0]-c[0]),
           d[1]-a[1]+3*(b[1]-c[1]),
           d[2]-a[2]+3*(b[2]-c[2])];
+}
+
+// Return four-thirds of the first derivative of the Bezier curve defined by
+// a,b,c,d at t=1/2.
+function bezierPh(a,b,c,d)
+{
+  return [c[0]+d[0]-a[0]-b[0],
+          c[1]+d[1]-a[1]-b[1],
+          c[2]+d[2]-a[2]-b[2]];
+}
+
+// Return two-thirds of the second derivative of the Bezier curve defined by
+// a,b,c,d at t=1/2.
+function bezierPPh(a,b,c,d)
+{
+  return [3*a[0]-5*b[0]+c[0]+d[0],
+          3*a[1]-5*b[1]+c[1]+d[1],
+          3*a[2]-5*b[2]+c[2]+d[2]];
 }
 
 /**
@@ -1983,7 +2024,7 @@ function setUniforms(data,shader)
   if(pixel)
     gl.enableVertexAttribArray(widthAttribute);
 
-  let normals=shader != noNormalShader && !pixel && Lights.length > 0;
+  let normals=!pixel && Lights.length > 0;
   if(normals)
     gl.enableVertexAttribArray(normalAttribute);
 
@@ -2375,7 +2416,7 @@ function drawMaterial0()
 
 function drawMaterial1()
 {
-  drawBuffer(material1Data,noNormalShader);
+  drawBuffer(material1Data,materialShader);
   material1Data.clear();
 }
 
@@ -2590,7 +2631,7 @@ function shrink()
           Math.max((canvasHeight/resizeStep+0.5),1));
 }
 
-let pixelShader,noNormalShader,materialShader,colorShader,transparentShader;
+let pixelShader,materialShader,colorShader,transparentShader;
 
 function webGLInit()
 {

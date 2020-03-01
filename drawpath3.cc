@@ -62,7 +62,7 @@ bool drawPath3::write(jsfile *out)
     drawElement::centerIndex=centerIndex;
   } else drawElement::centerIndex=0;
   
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
   for(Int i=0; i < n; ++i) {
     if(g.straight(i)) {

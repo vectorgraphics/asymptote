@@ -1886,7 +1886,6 @@ void setUniforms(const vertexBuffer& data, GLint shader)
   
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
                      value_ptr(gl::viewMat));
-  
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
                        value_ptr(gl::normMat));
@@ -1896,8 +1895,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
 {
   if(data.indices.empty()) return;
   
-  bool pixel=shader == pixelShader;
-  bool normal=!pixel;
+  bool normal=shader != pixelShader;
   bool color=shader == colorShader || shader == transparentShader;
   
   const size_t size=sizeof(GLfloat);
@@ -1924,14 +1922,14 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                           (void *) (3*size));
     glEnableVertexAttribArray(normalAttrib);
-  } else if(pixel) {
+  } else if(!normal) {
     glVertexAttribPointer(widthAttrib,1,GL_FLOAT,GL_FALSE,bytestride,
                           (void *) (3*size));
     glEnableVertexAttribArray(widthAttrib);
   }
     
   glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride, 
-                         (void *) ((normal ? 6 : (pixel ? 4 : 3))*size));
+                         (void *) ((normal ? 6 : 4)*size));
   glEnableVertexAttribArray(materialAttrib);
 
   if(color) {
@@ -1945,7 +1943,7 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   glDisableVertexAttribArray(positionAttrib);
   if(normal && gl::Nlights > 0)
     glDisableVertexAttribArray(normalAttrib);
-  if(pixel)
+  if(!normal)
    glDisableVertexAttribArray(widthAttrib);
   glDisableVertexAttribArray(materialAttrib);
   if(color)
