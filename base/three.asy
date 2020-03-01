@@ -2090,7 +2090,7 @@ path3 plane(triple u, triple v, triple O=O)
 
 include three_light;
 
-void draw(frame f, path3 g, material p=currentpen, light light=currentlight,
+void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", render render=defaultrender,
           projection P=currentprojection);
 
@@ -2167,7 +2167,7 @@ pair max(frame f, projection P)
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
-          light light=currentlight, string name="",
+          light light=nolight, string name="",
           render render=defaultrender)
 {
   pen q=(pen) p;
@@ -2193,7 +2193,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 include three_tube;
 
 draw=new void(frame f, path3 g, material p=currentpen,
-              light light=currentlight, string name="",
+              light light=nolight, string name="",
               render render=defaultrender,
               projection P=currentprojection) {
   pen q=(pen) p;
@@ -2284,7 +2284,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
 };
 
 void draw(frame f, explicit path3[] g, material p=currentpen,
-          light light=currentlight, string name="",
+          light light=nolight, string name="",
           render render=defaultrender, projection P=currentprojection)
 {
   bool group=g.length > 1 && (name != "" || render.defaultnames);
@@ -2297,9 +2297,8 @@ void draw(frame f, explicit path3[] g, material p=currentpen,
 }
 
 void draw(picture pic=currentpicture, explicit path3[] g,
-          material p=currentpen, margin3 margin=NoMargin3,
-          light light=currentlight, string name="",
-          render render=defaultrender)
+          material p=currentpen, margin3 margin=NoMargin3, light light=nolight,
+          string name="", render render=defaultrender)
 {
   bool group=g.length > 1 && (name != "" || render.defaultnames);
   if(group)
@@ -2314,9 +2313,9 @@ include three_arrows;
 
 void draw(picture pic=currentpicture, Label L="", path3 g, 
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
-          arrowbar3 bar=None, margin3 margin=NoMargin3,
-          light light=currentlight, light arrowheadlight=currentlight,
-          string name="", render render=defaultrender)
+          arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
+          light arrowheadlight=currentlight, string name="",
+          render render=defaultrender)
 {
   bool group=arrow != None || bar != None;
   if(group)
@@ -2331,7 +2330,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 }
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
-          light light=currentlight, light arrowheadlight=currentlight,
+          light light=nolight, light arrowheadlight=currentlight,
           string name="", render render=defaultrender,
           projection P=currentprojection)
 {
@@ -2373,7 +2372,7 @@ void add(picture src, triple position, bool group=true, bool above=true)
 void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
            real length=arrowlength, align align=NoAlign,
            pen p=currentpen, arrowbar3 arrow=Arrow3, margin3 margin=EndMargin3,
-           light light=currentlight, light arrowheadlight=currentlight,
+           light light=nolight, light arrowheadlight=currentlight,
            string name="", render render=defaultrender)
 {
   Label L=L.copy();
@@ -2390,7 +2389,7 @@ void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
 void arrow(picture pic=currentpicture, Label L="", triple b, pair dir,
            real length=arrowlength, align align=NoAlign,
            pen p=currentpen, arrowbar3 arrow=Arrow3, margin3 margin=EndMargin3,
-           light light=currentlight, light arrowheadlight=currentlight,
+           light light=nolight, light arrowheadlight=currentlight,
            string name="", render render=defaultrender,
            projection P=currentprojection)
 {
