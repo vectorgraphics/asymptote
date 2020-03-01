@@ -603,10 +603,13 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 // Three-dimensional picture and surface operations
 
 // Bezier curve
-void _draw(picture *f, path3 g, triple center=Zero, pen p, Int interaction=0)
+void _draw(picture *f, path3 g, triple center=Zero, penarray *p,
+          real opacity, real shininess, real metallic, real fresnel0,
+          Int interaction=0)
 {
   if(g.size() > 0)
-    f->append(new drawPath3(g,center,p,(Interaction) intcast(interaction)));
+    f->append(new drawPath3(g,center,*p,opacity,shininess,metallic,fresnel0,
+                            (Interaction) intcast(interaction)));
 }
 
 // Bezier patch

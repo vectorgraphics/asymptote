@@ -22,9 +22,28 @@ void BezierCurve::init(double res)
 
 void BezierCurve::render(const triple *p, bool straight) 
 {
-  GLuint i0=data.vertex1(p[0]);
-  GLuint i3=data.vertex1(p[3]);
-    
+  triple p0=p[0];
+  triple p3=p[3];
+  triple n0,n1;
+
+  if(straight) {
+    n0=n1=triple(0.0,0.0,1.0);
+  } else {
+    triple p1=p[1];
+    triple p2=p[2];
+
+    triple bP=p1-p0;
+    triple bPP=bezierPP(p0,p1,p2);
+    n0=dot(bP,bP)*bPP-dot(bP,bPP)*bP;
+
+    bP=p3-p2;
+    bPP=bezierPP(p3,p2,p1);
+    n1=dot(bP,bP)*bPP-dot(bP,bPP)*bP;
+  }
+
+  GLuint i0=data.vertex(p0,n0);
+  GLuint i3=data.vertex(p3,n1);
+
   if(straight) {
     std::vector<GLuint> &q=data.indices;
     q.push_back(i0);
@@ -62,7 +81,10 @@ void BezierCurve::render(const triple *p, GLuint I0, GLuint I1)
     triple s0[]={p0,m0,m3,m5};
     triple s1[]={m5,m4,m2,p3};
       
-    GLuint i0=data.vertex1(m5);
+    triple bP=bezierPh(p0,p1,p2,p3);
+    triple bPP=bezierPPh(p0,p1,p2,p3);
+    triple n0=dot(bP,bP)*bPP-dot(bP,bPP)*bP;
+    GLuint i0=data.vertex(m5,n0);
       
     render(s0,I0,i0);
     render(s1,i0,I1);
