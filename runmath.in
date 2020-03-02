@@ -132,6 +132,7 @@ unsigned long long bitreverse64(unsigned long long a)
     ((unsigned long long) BitReverseTable8[(a >> 56)]);
 }
 
+#ifndef HAVE_POPCOUNT
 // https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
 #define T unsignedInt
 Int popcount(T a)
@@ -142,6 +143,7 @@ Int popcount(T a)
 return (T)(a*((T)~(T)0/255)) >> (sizeof(T)-1)*CHAR_BIT;
 }
 #undef T
+#endif
 
 // Return the factorial of a non-negative integer using a lookup table.
 Int factorial(Int n)
