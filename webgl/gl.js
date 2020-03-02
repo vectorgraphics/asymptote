@@ -2886,7 +2886,7 @@ function cylinder(center,r,h,CenterIndex,MaterialIndex,dir,core)
     return p;
   }
 
-  let v=Tcorners(A.T.bind(A),[0,0,0],[r,r,h]);
+  let v=Tcorners(A.T.bind(A),[-r,-r,0],[r,r,h]);
   let Min=v[0], Max=v[1];
 
   for(let i=-1; i <= 1; i += 2) {
