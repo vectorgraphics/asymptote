@@ -376,10 +376,13 @@ public:
   }
   
   virtual void P(triple& t, double x, double y, double z);
-  
-  bool write(prcfile *out, unsigned int *, double, groupsmap&) {
+
+  virtual bool write(prcfile *out, unsigned int *, double, groupsmap&) {
     return true;
   }
+
+  virtual bool write(jsfile *out) {return true;}
+
   virtual void transformedbounds(const double*, bbox3&) {}
   virtual void transformedratio(const double*, pair&,
                                 double (*)(double, double), double, bool&) {}
