@@ -28,6 +28,10 @@ callableReal* => realRealFunction()
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
+static const char *rectangular="matrix must be rectangular";
+#else
+static const char *installFFTW=
+  "Please install fftw3, run ./configure, and recompile";
 #endif
 
 using namespace camp;
@@ -114,9 +118,6 @@ array *Identity(Int n)
 static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
 static const char *invalidarraylength="Invalid array length: ";
-static const char *installFFTW=
-  "Please install fftw3, run ./configure, and recompile";
-static const char *rectangular="matrix must be rectangular";
 
 static size_t *pivot,*Row,*Col;
 
@@ -1852,7 +1853,6 @@ pairarray* fft(pairarray *a, Int sign=1)
   array *c=new array(0);
   error(installFFTW);
 #endif //  HAVE_LIBFFTW3
-  unused(&installFFTW);
   return c;
 }
 
