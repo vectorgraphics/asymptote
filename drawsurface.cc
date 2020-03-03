@@ -758,6 +758,7 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
 
 bool drawSphere::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -776,6 +777,7 @@ bool drawSphere::write(jsfile *out)
   else
     out->addSphere(O,r);
 
+#endif  
   return true;
 }
 
@@ -794,6 +796,7 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
   
 bool drawCylinder::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -811,7 +814,8 @@ bool drawCylinder::write(jsfile *out)
   double h=length(Z);
   
   out->addCylinder(O,r,h,Z.polar(false),Z.azimuth(false),core);
-  
+
+#endif  
   return true;
 }
   
@@ -830,6 +834,7 @@ bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
   
 bool drawDisk::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -846,12 +851,14 @@ bool drawDisk::write(jsfile *out)
   double r=length(X);
   
   out->addDisk(O,r,Z.polar(false),Z.azimuth(false));
-  
+
+#endif
   return true;
 }
   
 bool drawTube::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -871,6 +878,7 @@ bool drawTube::write(jsfile *out)
 
   out->addTube(g,width,b.Min(),b.Max(),core);
 
+#endif
   return true;
 }
 
