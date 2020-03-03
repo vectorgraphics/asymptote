@@ -16,9 +16,12 @@ struct rmf {
 // http://www.cs.hku.hk/research/techreps/document/TR-2007-07.pdf
 rmf[] rmf(path3 g, real[] t)
 {
+  static triple s0;
+  triple T=dir(g,0);
+  triple Tp=cross(s0,T);
+  Tp=abs(Tp) < sqrtEpsilon ? perp(T) : unit(Tp);
   rmf[] R=new rmf[t.length];
-  triple d=dir(g,0);
-  R[0]=rmf(point(g,0),perp(d),d);
+  R[0]=rmf(point(g,0),Tp,T);
   for(int i=1; i < t.length; ++i) {
     rmf Ri=R[i-1];
     real t=t[i];
@@ -37,14 +40,17 @@ rmf[] rmf(path3 g, real[] t)
     } else
       R[i]=R[i-1];
   }
+  s0=R[t.length-1].s;
   return R;
 }
 
 rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t)
 {
+  static triple s0;
+
   real norm=sqrtEpsilon*max(abs(z0),abs(c0),abs(c1),abs(z1));
 
-// Special case of dir for t in (0,1].
+  // Special case of dir for t in (0,1].
   triple dir(real t) {
     if(t == 1) {
       triple dir=z1-c1;
@@ -63,7 +69,6 @@ rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t)
     return unit(a);
   }
 
-  rmf[] R=new rmf[t.length];
   triple T=c0-z0;
   if(abs(T) < norm) {
     T=z0-2*c0+c1;
@@ -71,8 +76,11 @@ rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t)
       T=z1-z0+3.0*(c0-c1);
   }
   T=unit(T);
-  triple Tp=perp(T);
+  triple Tp=cross(s0,T);
+  Tp=abs(Tp) < sqrtEpsilon ? perp(T) : unit(Tp);
+  rmf[] R=new rmf[t.length];
   R[0]=rmf(z0,Tp,T);
+
   for(int i=1; i < t.length; ++i) {
     rmf Ri=R[i-1];
     real t=t[i];
@@ -91,6 +99,7 @@ rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t)
     } else
       R[i]=R[i-1];
   }
+  s0=R[t.length-1].s;
   return R;
 }
 
