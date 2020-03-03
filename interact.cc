@@ -24,11 +24,15 @@
 #include <readline/history.h>
 #else
 #ifdef HAVE_LIBEDIT
+// Work around incorrect declaration in NetBSD readline.h v1.33
+#define rl_completion_entry_function rl_completion_entry_function_declaration
 #ifdef HAVE_EDITLINE_READLINE_H
 #include <editline/readline.h>
 #else
 #include <readline/readline.h>
 #endif
+#undef rl_completion_entry_function
+extern "C" rl_compentry_func_t *rl_completion_entry_function;
 #endif
 #endif
 #endif
@@ -187,7 +191,7 @@ void addToHistory(string line) {
 }
 
 string getLastHistoryLine() {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty && history_length > 0) {
     HIST_ENTRY *entry=history_list()[history_length-1];
     if(!entry) {
