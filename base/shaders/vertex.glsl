@@ -34,7 +34,7 @@ void main()
 #ifndef ORTHOGRAPHIC
   ViewPosition=(viewMat*v).xyz;
 #endif
-  Normal=normal*normMat;
+  Normal=normalize(normal*normMat);
 #endif
 
 #ifdef COLOR

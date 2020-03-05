@@ -358,10 +358,10 @@ pen[] Wheel(int NColors=32766)
   if(settings.gray) return Grayscale(NColors);
   
   int nintervals=6;
+  if(NColors <= nintervals) NColors=nintervals+1;
   int n=-quotient(NColors,-nintervals);
                 
   pen[] Palette;
-  if(n == 0) return Palette;
   
   Palette=new pen[n*nintervals];
   real ninv=1.0/n;
@@ -386,10 +386,10 @@ pen[] Rainbow(int NColors=32766)
   
   int offset=1;
   int nintervals=5;
+  if(NColors <= nintervals) NColors=nintervals+1;
   int n=-quotient(NColors-1,-nintervals);
                 
   pen[] Palette;
-  if(n == 0) return Palette;
   
   Palette=new pen[n*nintervals+offset];
   real ninv=1.0/n;
@@ -418,12 +418,13 @@ private pen[] BWRainbow(int NColors, bool two)
   
   if(two) nintervals += 6;
   
+  int Nintervals=nintervals*divisor;
+  if(NColors <= Nintervals) NColors=Nintervals+1;
   int num=NColors-offset;
-  int n=-quotient(num,-nintervals*divisor)*divisor;
+  int n=-quotient(num,-Nintervals)*divisor;
   NColors=n*nintervals+offset;
                 
   pen[] Palette;
-  if(n == 0) return Palette;
   
   Palette=new pen[NColors];
   real ninv=1.0/n;

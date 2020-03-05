@@ -89,15 +89,13 @@ pair sqrt(explicit pair z)
 // Return the angle of z in radians.
 real angle(pair z, bool warn=true)
 {
-  if(!warn && z.getx() == 0.0 && z.gety() == 0.0) return 0.0;
-  return z.angle();
+  return z.angle(warn);
 }
 
 // Return the angle of z in degrees in the interval [0,360).
 real degrees(pair z, bool warn=true)
 {
-  if(!warn && z.getx() == 0.0 && z.gety() == 0.0) return 0.0;
-  return principalBranch(degrees(z.angle()));
+  return principalBranch(degrees(z.angle(warn)));
 }
 
 // Convert degrees to radians.
@@ -254,10 +252,10 @@ pair bezierP(pair a, pair b, pair c, pair d, real t)
 
 pair bezierPP(pair a, pair b, pair c, pair d, real t) 
 {
-  return 6.0*(t*(d-a+3.0*(b-c))+a+c-2.0*b);
+  return 6.0*(t*(d-a+3.0*(b-c))+a+c)-12.0*b;
 }
 
 pair bezierPPP(pair a, pair b, pair c, pair d) 
 {
-  return 6.0*(d-a+3.0*(b-c));
+  return 6.0*(d-a)+18.0*(b-c);
 }

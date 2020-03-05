@@ -37,8 +37,7 @@ struct render
 
   // General parameters:
   real margin;          // shrink amount for rendered openGL viewport, in bp.
-  real tubegranularity; // granularity for rendering tubes 
-  bool labelfill;       // fill subdivision cracks in unlighted labels
+  bool labelfill;       // fill PRC subdivision cracks in unlighted labels
 
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
@@ -52,7 +51,6 @@ struct render
                      bool3 merge=defaultrender.merge,
                      int sphere=defaultrender.sphere,
                      real margin=defaultrender.margin,
-                     real tubegranularity=defaultrender.tubegranularity,
                      bool labelfill=defaultrender.labelfill,
                      bool partnames=defaultrender.partnames,
                      bool defaultnames=defaultrender.defaultnames)
@@ -64,7 +62,6 @@ struct render
     this.merge=merge;
     this.sphere=sphere;
     this.margin=margin;
-    this.tubegranularity=tubegranularity;
     this.labelfill=labelfill;
     this.partnames=partnames;
     this.defaultnames=defaultnames;
@@ -80,7 +77,6 @@ defaultrender.closed=false;
 defaultrender.tessellate=false;
 defaultrender.merge=false;
 defaultrender.margin=0.02;
-defaultrender.tubegranularity=0.001;
 defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
 defaultrender.partnames=false;
@@ -217,9 +213,10 @@ triple project(triple u, triple v)
 triple perp(triple v)
 {
   triple u=cross(v,Y);
-  if(abs(u) > sqrtEpsilon) return unit(u);
+  real norm=sqrtEpsilon*abs(v);
+  if(abs(u) > norm) return unit(u);
   u=cross(v,Z);
-  return (abs(u) > sqrtEpsilon) ? unit(u) : X;
+  return (abs(u) > norm) ? unit(u) : X;
 }
 
 // Return the transformation corresponding to moving the camera from the target
@@ -1138,6 +1135,18 @@ path3 path3(path p, triple plane(pair)=XYplane)
 path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
 {
   return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
+}
+
+path3 interp(path3 a, path3 b, real t)
+{
+  int n=size(a);
+  return path3(sequence(new triple(int i) {
+        return interp(precontrol(a,i),precontrol(b,i),t);},n),
+    sequence(new triple(int i) {return interp(point(a,i),point(b,i),t);},n),
+    sequence(new triple(int i) {return interp(postcontrol(a,i),
+                                              postcontrol(b,i),t);},n),
+    sequence(new bool(int i) {return straight(a,i) && straight(b,i);},n),
+    cyclic(a) && cyclic(b));
 }
 
 path3 invert(path p, triple normal, triple point,
@@ -2158,7 +2167,8 @@ pair max(frame f, projection P)
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
-          light light=nolight, string name="", render render=defaultrender)
+          light light=nolight, string name="",
+          render render=defaultrender)
 {
   pen q=(pen) p;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
@@ -2188,80 +2198,62 @@ draw=new void(frame f, path3 g, material p=currentpen,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
-    p=material(p);
     real width=linewidth(q);
     void drawthick(path3 g) {
-      if(settings.thick) {
-        if(width > 0) {
-          bool prc=prc();
-          void cylinder(transform3) {};
-          void sphere(transform3, bool half) {};
-          void disk(transform3) {};
-          void pipe(path3, path3);
-          if(prc) {
-            cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
-            sphere=new void(transform3 t, bool half)
-              {drawPRCsphere(f,t,half,p,light,render);};
-            disk=new void(transform3 t) {draw(f,t*unitdisk,p,light,render);};
-            pipe=new void(path3 center, path3 g)
-              {drawPRCtube(f,center,g,p,light);};
+      if(settings.thick && width > 0) {
+        bool prc=prc();
+        bool webgl=settings.outformat == "html";
+        real linecap=linecap(q);
+        real r=0.5*width;
+        bool open=!cyclic(g);
+        int L=length(g);
+        triple g0=point(g,0);
+        triple gL=point(g,L);
+        if(open && L > 0) {
+          if(linecap == 2) {
+            g0 -= r*dir(g,0);
+            gL += r*dir(g,L);
+            g=g0..g..gL;
+            L += 2;
           }
-          real linecap=linecap(q);
-          real r=0.5*width;
-          bool open=!cyclic(g);
-          int L=length(g);
-          triple g0=point(g,0);
-          triple gL=point(g,L);
-          if(open && L > 0) {
-            if(linecap == 2) {
-              g0 -= r*dir(g,0);
-              gL += r*dir(g,L);
-              g=g0..g..gL;
-              L += 2;
-            }
-          }
-          tube T=tube(g,width,render,cylinder,sphere,pipe);
-          path3 c=T.center;
-          if(L >= 0) {
-            if(open) {
-              int Lc=length(c);
-              triple c0=point(c,0);
-              triple cL=point(c,Lc);
-              triple dir0=dir(g,0);
-              triple dirL=dir(g,L);
-              triple dirc0=dir(c,0);
-              triple dircL=dir(c,Lc);
-              transform3 t0=shift(g0)*align(-dir0);
-              transform3 tL=shift(gL)*align(dirL);
-              transform3 tc0=shift(c0)*align(-dirc0);
-              transform3 tcL=shift(cL)*align(dircL);
-              if(linecap == 0 || linecap == 2) {
-                transform3 scale2r=scale(r,r,1);
-                T.s.append(t0*scale2r*unitdisk);
-                disk(tc0*scale2r);
-                if(L > 0) {
-                  T.s.append(tL*scale2r*unitdisk);
-                  disk(tcL*scale2r);
-                }
-              } else if(linecap == 1) {
-                transform3 scale3r=scale3(r);
-                T.s.append(t0*scale3r*
-                           (dir0 != O ? unithemisphere : unitsphere));
-                sphere(tc0*scale3r,half=straight(c,0));
-                if(L > 0) {
-                  T.s.append(tL*scale3r*
-                             (dirL != O ? unithemisphere : unitsphere));
-                  sphere(tcL*scale3r,half=straight(c,Lc-1));
-                }
+        }
+        tube T=tube(g,width);
+        path3 c=T.center;
+        if(L >= 0) {
+          if(open) {
+            int Lc=length(c);
+            triple c0=point(c,0);
+            triple cL=point(c,Lc);
+            triple dir0=dir(g,0);
+            triple dirL=dir(g,L);
+            triple dirc0=dir(c,0);
+            triple dircL=dir(c,Lc);
+            transform3 t0=shift(g0)*align(-dir0);
+            transform3 tL=shift(gL)*align(dirL);
+            transform3 tc0=shift(c0)*align(-dirc0);
+            transform3 tcL=shift(cL)*align(dircL);
+            if(linecap == 0 || linecap == 2) {
+              transform3 scale2r=scale(r,r,1);
+              T.s.push(t0*scale2r*unitdisk);
+              if(L > 0) {
+                T.s.push(tL*scale2r*unitdisk);
               }
+            } else if(linecap == 1) {
+              transform3 scale3r=scale3(r);
+              T.s.push(t0*scale3r*(straight(c,0) ?
+                                   unithemisphere : unitsphere));
+              if(L > 0)
+                T.s.push(tL*scale3r*(straight(c,Lc-1) ?
+                                     unithemisphere : unitsphere));
             }
-            if(opacity(q) == 1)
-              _draw(f,c,q);
           }
-          for(patch s : T.s.s)
-            draw3D(f,s,p,light,prc=false);
-        } else _draw(f,g,q);
-      } else _draw(f,g,q);
+// Draw central core for better small-scale rendering.
+          if((!prc || piecewisestraight(g)) && !webgl && opacity(q) == 1)
+            _draw(f,c,p,light);
+        }
+        for(surface s : T.s)
+          draw(f,s,p,light,render);
+      } else _draw(f,g,p,light);
     }
     bool group=q != nullpen && (name != "" || render.defaultnames);
     if(group)
@@ -2701,7 +2693,7 @@ struct scene
 
     if(pic.bounds3.exact && noAdjust)
       this.P.bboxonly=false;
-    
+
     f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,this.P);
 
     if(!pic.bounds3.exact) {

@@ -35,6 +35,8 @@
 #include "pipestream.h"
 #include "array.h"
 
+#include "glrender.h"
+
 #ifdef HAVE_LIBCURSES
 extern "C" {
 
@@ -1385,7 +1387,7 @@ void initSettings() {
                             "Additional frame delay", 0.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
   addOption(new IntSetting("digits", 0, "n",
-                           "Default output file precision", 6));
+                           "Default output file precision", 7));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));

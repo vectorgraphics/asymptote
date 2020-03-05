@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[2.63git],[http://sourceforge.net/projects/asymptote])
+AC_INIT([Asymptote],[2.65git],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -283,6 +283,7 @@ fi
 AC_DEFUN([READLINE],[
 AC_MSG_NOTICE([*** Could not find GNU readline 4.3 or later: will compile without readline support ***])
 AC_CHECK_LIB([edit],[readline])
+AC_CHECK_HEADERS(editline/readline.h)
 ])
 
 AC_DEFUN([CHECK_FOUND_STATIC],[
@@ -395,7 +396,8 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GL/gl.h,
                                   [AC_DEFINE(HAVE_LIBGL,1,
                      DEFINE_LIB[opengl32])
-                             LIBS=$LIBS"-lopengl32 glew.o"],
+                             LIBS=$LIBS"-lopengl32 "
+                             GLEW="glew.o "],
                                    AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
         ;;
      darwin*)
@@ -405,7 +407,8 @@ case "$OSTYPE" in
                              DEFINE([<gl.h> header]))])
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
                    DEFINE_LIB[GLUT])
-                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa glew.o "],
+                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
+                           GLEW="glew.o "],
                                  AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
         ;;
      *)
@@ -443,7 +446,7 @@ AC_DEFUN([ac_FUNC_STRPTIME], [
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_CHECK_FUNCS([dup2 floor memset strchr tgamma lgamma memrchr])
+AC_CHECK_FUNCS([dup2 floor memset strchr tgamma lgamma memrchr popcount])
 AC_FUNC_STRFTIME
 ac_FUNC_STRPTIME
 AC_FUNC_ERROR_AT_LINE

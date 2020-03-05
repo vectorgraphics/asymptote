@@ -14,6 +14,7 @@ realarray* => realArray()
 realarray2* => realArray2()
 pairarray* => pairArray()
 pairarray2* => pairArray2()
+pairarray3* => pairArray3()
 triplearray2* => tripleArray2()
 callableReal* => realRealFunction()
 
@@ -27,6 +28,10 @@ callableReal* => realRealFunction()
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
+static const char *rectangular="matrix must be rectangular";
+#else
+static const char *installFFTW=
+  "Please install fftw3, run ./configure, and recompile";
 #endif
 
 using namespace camp;
@@ -43,6 +48,7 @@ typedef array realarray;
 typedef array realarray2;
 typedef array pairarray;
 typedef array pairarray2;
+typedef array pairarray3;
 typedef array triplearray2;
 
 using types::booleanArray;
@@ -52,6 +58,7 @@ using types::realArray;
 using types::realArray2;
 using types::pairArray;
 using types::pairArray2;
+using types::pairArray3;
 using types::tripleArray2;
 
 typedef callable callableReal;
@@ -111,6 +118,7 @@ array *Identity(Int n)
 static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
 static const char *invalidarraylength="Invalid array length: ";
+
 static size_t *pivot,*Row,*Col;
 
 bound_double *bounddouble(int N)
@@ -1843,7 +1851,112 @@ pairarray* fft(pairarray *a, Int sign=1)
   unused(a);
   unused(&sign);
   array *c=new array(0);
-  error("Please install fftw3, run ./configure, and recompile");
+  error(installFFTW);
+#endif //  HAVE_LIBFFTW3
+  return c;
+}
+
+// Compute the fast Fourier transform of a 2D pair array
+pairarray2* fft(pairarray2 *a, Int sign=1)
+{
+#ifdef HAVE_LIBFFTW3
+  size_t n=checkArray(a);
+  size_t m=n == 0 ? 0 : checkArray(read<array*>(a,0));
+
+  array *c=new array(n);
+  Complex *f=utils::ComplexAlign(n*m);
+  fftwpp::fft2d Forward(n,m,intcast(sign),f);
+
+  if(n) {
+    for(size_t i=0; i < n; ++i) {
+      array *ai=read<array *>(a,i);
+      size_t aisize=checkArray(ai);
+      if(aisize != m) error(rectangular);
+      Complex *fi=f+m*i;
+      for(size_t j=0; j < m; ++j) {
+        pair z=read<pair>(ai,j);
+        fi[j]=Complex(z.getx(),z.gety());
+      }
+    }
+
+    Forward.fft(f);
+
+    for(size_t i=0; i < n; ++i) {
+      array *ci=new array(m);
+      (*c)[i]=ci;
+      Complex *fi=f+m*i;
+      for(size_t j=0; j < m; ++j) {
+        Complex z=fi[j];
+        (*ci)[j]=pair(z.real(),z.imag());
+      }
+    }
+
+    utils::deleteAlign(f);
+  }
+#else
+  unused(a);
+  unused(&sign);
+  array *c=new array(0);
+  error(installFFTW);
+#endif //  HAVE_LIBFFTW3
+  return c;
+}
+
+// Compute the fast Fourier transform of a 3D pair array
+pairarray3* fft(pairarray3 *a, Int sign=1)
+{
+#ifdef HAVE_LIBFFTW3
+  size_t n=checkArray(a);
+  array *a0=read<array*>(a,0);
+  size_t m=n == 0 ? 0 : checkArray(a0);
+  size_t l=m == 0 ? 0 : checkArray(read<array*>(a0,0));
+
+  array *c=new array(n);
+  Complex *f=utils::ComplexAlign(n*m*l);
+  fftwpp::fft3d Forward(n,m,l,intcast(sign),f);
+
+  if(n) {
+    for(size_t i=0; i < n; ++i) {
+      array *ai=read<array *>(a,i);
+      size_t aisize=checkArray(ai);
+      if(aisize != m) error(rectangular);
+      Complex *fi=f+m*l*i;
+      for(size_t j=0; j < m; ++j) {
+        array *aij=read<array *>(ai,j);
+        size_t aijsize=checkArray(aij);
+        if(aijsize != l) error(rectangular);
+        Complex *fij=fi+l*j;
+        for(size_t k=0; k < l; ++k) {
+          pair z=read<pair>(aij,k);
+          fij[k]=Complex(z.getx(),z.gety());
+        }
+      }
+    }
+
+    Forward.fft(f);
+
+    for(size_t i=0; i < n; ++i) {
+      array *ci=new array(m);
+      (*c)[i]=ci;
+      Complex *fi=f+m*l*i;
+      for(size_t j=0; j < m; ++j) {
+        array *cij=new array(l);
+        (*ci)[j]=cij;
+        Complex *fij=fi+l*j;
+        for(size_t k=0; k < l; ++k) {
+          Complex z=fij[k];
+          (*cij)[k]=pair(z.real(),z.imag());
+        }
+      }
+    }
+
+    utils::deleteAlign(f);
+  }
+#else
+  unused(a);
+  unused(&sign);
+  array *c=new array(0);
+  error(installFFTW);
 #endif //  HAVE_LIBFFTW3
   return c;
 }

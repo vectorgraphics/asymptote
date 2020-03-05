@@ -9,6 +9,7 @@ triple   => primTriple()
 
 #include "triple.h"
 #include "path3.h"
+#include "drawelement.h"
 
 using namespace camp;
 
@@ -68,8 +69,7 @@ real abs(triple v)
 
 real polar(triple v, bool warn=true) 
 {
-  if(!warn && v.getx() == 0.0 && v.gety() == 0.0 && v.getz() == 0.0) return 0.0;
-  return v.polar();
+  return v.polar(warn);
 }
 
 real azimuth(triple v, bool warn=true) 
@@ -152,11 +152,11 @@ triple bezierP(triple a, triple b, triple c, triple d, real t)
 
 triple bezierPP(triple a, triple b, triple c, triple d, real t) 
 {
-  return 6.0*(t*(d-a+3.0*(b-c))+a+c-2.0*b);
+  return 6.0*(t*(d-a+3.0*(b-c))+a+c)-12.0*b;
 }
 
 triple bezierPPP(triple a, triple b, triple c, triple d) 
 {
-  return 6.0*(d-a+3.0*(b-c));
+  return 6.0*(d-a)+18.0*(b-c);
 }
 

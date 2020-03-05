@@ -374,6 +374,7 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 
 // Return a right circular cylinder of height h in the direction of axis
 // based on a circle centered at c with radius r.
+// Note: unitcylinder provides a smoother and more efficient representation.
 revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 {
   triple C=c+r*perp(axis);
@@ -392,7 +393,7 @@ revolution cone(triple c=O, real r, real h, triple axis=Z, int n=nslice)
 
 // Return an approximate sphere of radius r centered at c obtained by rotating
 // an (n+1)-point approximation to a half circle about the Z axis.
-// Note: unitsphere provides a smoother and more efficient surface.
+// Note: unitsphere provides a smoother and more efficient representation.
 revolution sphere(triple c=O, real r, int n=nslice)
 {
   return revolution(c,Arc(c,r,180-sqrtEpsilon,0,sqrtEpsilon,0,Y,n),Z);

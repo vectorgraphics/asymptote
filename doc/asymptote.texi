@@ -356,7 +356,7 @@ prebuilt @code{Asymptote} binaries from
 (@pxref{Compiling from UNIX source})
 or install the @code{Asymptote} binary available at
 
-@url{http://www.macports.org/}
+@url{https://www.macports.org/}
 
 @noindent
 Note that many @code{MacOS X} (and FreeBSD) systems lack the
@@ -382,12 +382,12 @@ program @code{gsview} available from
 @url{http://www.cs.wisc.edu/~ghost/gsview/}.
 
 The @code{ImageMagick} package from
-@url{http://www.imagemagick.org/script/binary-releases.php} 
+@url{https://www.imagemagick.org/script/binary-releases.php} 
 
 @noindent
 is required to support output formats other than @acronym{HTML},
 @acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
-The @code{Python 3} interpreter from @url{http://www.python.org} is only required
+The @code{Python 3} interpreter from @url{https://www.python.org} is only required
 if you wish to try out the graphical user interface (@pxref{GUI}).
 
 @noindent
@@ -408,7 +408,7 @@ The @code{PostScript} viewer should be capable of automatically
 redrawing whenever the output file is updated. The default @code{UNIX}
 @code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
 signal). Version @code{gv-3.6.3} or later (from
-@url{http://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
+@url{https://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
 work properly.
 Users of @code{ggv} will need to enable @code{Watch file} under
 @code{Edit/Postscript Viewer Preferences}.
@@ -606,7 +606,7 @@ On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
 using version @code{3.0.0} of the @code{freeglut} library. To compile
 @code{freeglut}, download
 @quotation
-@url{http://prdownloads.sourceforge.net/freeglut/freeglut-3.0.0.tar.gz}
+@url{https://prdownloads.sourceforge.net/freeglut/freeglut-3.0.0.tar.gz}
 @end quotation
 @noindent
 and type (as the root user):
@@ -703,7 +703,7 @@ shows the available function prototypes for the command at the cursor.
 For full functionality you should also install the Apache Software Foundation
 package @code{two-mode-mode}:
 @quotation
-@url{http://www.dedasys.com/freesoftware/files/two-mode-mode.el}
+@url{https://www.dedasys.com/freesoftware/files/two-mode-mode.el}
 @end quotation
 @noindent
 Once installed, you can use the hybrid mode @code{lasy-mode} to edit a
@@ -800,12 +800,12 @@ A concise introduction to @code{Asymptote} is given here.
 For a more thorough introduction, see the excellent @code{Asymptote}
 tutorial written by Charles Staats:
 
-@url{http://math.uchicago.edu/~cstaats/Charles_Staats_III/Notes_and_papers_files/asymptote_tutorial.pdf}
+@url{https://math.uchicago.edu/~cstaats/Charles_Staats_III/Notes_and_papers_files/asymptote_tutorial.pdf}
 
 Another @code{Asymptote} tutorial is available as a wiki,
 with images rendered by an online Asymptote engine:
 
-@url{http://www.artofproblemsolving.com/wiki/?title=Asymptote_(Vector_Graphics_Language)}
+@url{https://www.artofproblemsolving.com/wiki/?title=Asymptote_(Vector_Graphics_Language)}
 
 @node Drawing in batch mode, Drawing in interactive mode, Tutorial, Tutorial
 @section Drawing in batch mode
@@ -5089,7 +5089,7 @@ also defined.
 @cindex @code{Pl}
 @cindex @code{zeta}
 When configured with the @acronym{GNU} Scientific Library (GSL), available from
-@url{http://www.gnu.org/software/gsl/},
+@url{https://www.gnu.org/software/gsl/},
 @code{Asymptote} contains an internal module @code{gsl} that
 defines the airy functions @code{Ai(real)}, 
 @code{Bi(real)}, @code{Ai_deriv(real)}, @code{Bi_deriv(real)},
@@ -5455,6 +5455,16 @@ f=fft(g,1);
 write();
 write(f/n);
 @end verbatim
+
+@cindex @code{fft}
+@item pair[][] fft(pair[][] a, int sign=1)
+returns the unnormalized two-dimensional Fourier transform of @code{a}
+using the given @code{sign}.
+
+@cindex @code{fft}
+@item pair[][][] fft(pair[][][] a, int sign=1)
+returns the unnormalized three-dimensional Fourier transform of
+@code{a} using the given @code{sign}.
 
 @cindex @code{dot}
 @item real dot(real[] a, real[] b)
@@ -6211,7 +6221,7 @@ External @code{Asymptote} code can be included with
 @end verbatim
 @noindent
 so that @code{latexmk} will recognize when the code is changed. Note that
-@code{latemk} requires @code{perl}, available from @url{http://www.perl.org/}. 
+@code{latemk} requires @code{perl}, available from @url{https://www.perl.org/}. 
 
 @cindex @code{width}
 @cindex @code{height}
@@ -6352,11 +6362,6 @@ respectively. If the planes are parallel, return
 @item pair[] quarticroots(real a, real b, real c, real d, real e);
 returns the four complex roots of the quartic equation
 @math{ax^4+bx^3+cx^2+dx+e=0}.
-
-@cindex @code{fft}
-@item pair[][] fft(pair[][] a, int sign=1)
-returns the two-dimensional Fourier transform of a using the given
-@code{sign}.
 
 @cindex @code{time}
 @item real time(path g, real x, int n=0)
@@ -9389,7 +9394,7 @@ produced using the @code{-f} option (or @code{outformat} setting).
 @cindex @code{libgs}
 @cindex @code{graphic}
 To produce @acronym{SVG} output, you will need @code{dvisvgm} (version
-2.6.3 or later) from @url{http://dvisvgm.sourceforge.net}.
+2.6.3 or later) from @url{https://dvisvgm.de}.
 You might need to adjust the configuration variable @code{libgs} to
 point to the location of your @code{Ghostscript} library
 @code{libgs.so} (or to an empty string, depending on how
@@ -9573,7 +9578,7 @@ and returns control to the interactive prompt.
 
 Interactive mode is implemented with the @acronym{GNU} @code{readline} library,
 with command history and auto-completion. To customize the key bindings, see:
-@url{http://cnswww.cns.cwru.edu/php/chet/readline/readline.html}
+@url{https://tiswww.case.edu/php/chet/readline/readline.html}
 
 @cindex @code{Python} usage
 The file @code{asymptote.py} in the @code{Asymptote} system directory
@@ -9617,7 +9622,7 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 @cindex GUI installation
 
 As @code{xasy} is written in the interactive scripting language
-@code{Python/Qt}, it requires @code{Python} (@url{http://www.python.org}),
+@code{Python/Qt}, it requires @code{Python} (@url{https://www.python.org}),
 along with the @code{Python} packages @code{pyqt5}, @code{cson}, and
 @code{numpy}:
 
@@ -9663,7 +9668,7 @@ elements will be individually deconstructed (@pxref{add}).
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
 The excellent @code{PostScript} editor @code{pstoedit} (version 3.50 or later; 
-available from @url{http://sourceforge.net/projects/pstoedit/}) includes an
+available from @url{https://sourceforge.net/projects/pstoedit/}) includes an
 @code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
 backends, this driver includes native clipping, even-odd fill rule,
 @code{PostScript} subpath, and full image support. Here is an example:
@@ -9711,7 +9716,7 @@ posted here:
 To receive announcements of upcoming releases, please subscribe to
 @code{Asymptote} at
 @quotation
-@url{http://freecode.com/projects/asy}
+@url{https://sourceforge.net/projects/asymptote/}
 @end quotation
 @cindex bug reports
 @noindent
@@ -9735,7 +9740,7 @@ check bugs with Status @code{Closed} and recent lines in
 @cindex @code{libsigsegv}
 @code{Asymptote} can be configured with the optional @acronym{GNU} library
 @code{libsigsegv}, available from
-@url{http://libsigsegv.sourceforge.net}, which allows one to distinguish
+@url{https://www.gnu.org/software/libsigsegv/}, which allows one to distinguish
 user-generated @code{Asymptote} stack overflows (@pxref{stack overflow})
 from true segmentation faults (due to internal C++ programming errors;
 please submit the @code{Asymptote} code that generates such segmentation

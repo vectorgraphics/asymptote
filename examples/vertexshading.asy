@@ -4,7 +4,10 @@ size(200);
 
 currentprojection=perspective(4,5,5);
 
-//draw(shift(2Z)*surface(O--X--Y--cycle),blue);
+draw(shift(2Z)*surface(O--X--Y--cycle,
+                       new pen[] {red+opacity(0.5),green,blue}));
+draw(shift(2Y+2Z)*surface(O--X--Y--cycle),blue);
+draw(shift(2Y+Z)*surface(unitsquare3),green);
 
 draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
 draw(surface(shift(Z)*unitsquare3,
