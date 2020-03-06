@@ -6,7 +6,7 @@ import PyQt5.QtCore as QtCore
 import PyQt5.QtGui as QtGui
 import xasy2asy as xasy2asy
 import xasyUtils as xasyUtils
-import Widg_editBezier as WidgetEditBezier
+import Widg_editBezier as Web
 
 import InplaceAddObj
 import math
