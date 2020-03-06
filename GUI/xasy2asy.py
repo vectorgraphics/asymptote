@@ -308,13 +308,13 @@ class asyObj(QtCore.QObject):
     """
     Purpose:
     --------
-        A base class to create Python object which contains all common data and behaviors 
-        required for every asymptote type during the translation of an xasy object to its
-        asymptote code. 
+        A base class to create a Python object which contains all common
+    data and behaviors required during the translation of an xasy
+    object to its Asymptote code.
 
     Attributes:
     -----------
-        asyCode         :The corresponding asymptote code for the asyObj instance 
+        asyCode         :The corresponding Asymptote code for the asyObj instance
 
     Virtual Methods:
     ----------------
@@ -327,7 +327,7 @@ class asyObj(QtCore.QObject):
 
     Object Methods:
     ---------------
-        getCode         :Return the asymptote code that corresponds to the passed object
+        getCode         :Return the Asymptote code that corresponds to the passed object
 
     """
 
@@ -353,7 +353,7 @@ class asyPen(asyObj):
         A Python object that corresponds to an Asymptote pen type. It
     extends the 'asyObj' class to include a pen object. This object
     will be used to make the corresponding Asymptote pen when
-    an xasy object gets tranlated to Asymptote code.
+    an xasy object gets translated to Asymptote code.
 
     Attributes:
     -----------
@@ -494,9 +494,10 @@ class asyPath(asyObj):
     """
     Purpose:
     --------
-        A Python object that corresponds to an asymptote path type. It extends the 'asyObj'
-        class to include a path object. This object will be used to make the corresponding
-        asymptote path object when an xasy object gets tranlated to its asymptote code.    
+        A Python object that corresponds to an Asymptote path type. It
+    extends the 'asyObj' class to include a path object. This object
+    will be used to make the corresponding Asymptote path object when
+    an xasy object gets translated to its Asymptote code.
 
     Attributes:
     -----------
@@ -752,9 +753,11 @@ class asyLabel(asyObj):
     """
     Purpose:
     --------
-        A Python object that corresponds to an asymptote label type. It extends the 'asyObj'
-        class to include a label object. This object will be used to make the corresponding
-        asymptote label object when an xasy object gets tranlated to its asymptote code.      
+        A Python object that corresponds to an asymptote label
+    type. It extends the 'asyObj' class to include a label
+    object. This object will be used to make the corresponding
+    Asymptote label object when an xasy object gets translated to its
+    asymptote code.
 
     Attributes:
     -----------
@@ -818,8 +821,9 @@ class asyImage:
     """
     Purpose:
     --------
-        A Python object that contains an image together with all its required data
-        like format, bounding box, and IDTag. 
+        A Python object that is a container for an image coming from
+    Asymptote that is populated with the format, bounding box, and
+    IDTag, Asymptote key.
 
     Attributes:
     -----------
