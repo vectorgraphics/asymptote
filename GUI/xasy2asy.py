@@ -40,19 +40,19 @@ class AsymptoteEngine:
     """
     Purpose:
     --------
-        Class that makes it possible for xasy to communicate with asymptote software through
-        a background pipe. It mainly communicate with asy through a subprocess of an already
-        ongoing xasy process.
+        Class that makes it possible for xasy to communicate with asy
+    through a background pipe. It communicates with asy through a
+    subprocess of an existing xasy process.
 
     Attributes:
     -----------
-        istream     : Os input stream
-        ostream     : Os output stream
-        keepFiles   : files that has been sent and/or received via communication kept on memory
+        istream     : input stream
+        ostream     : output stream
+        keepFiles   : keep communicated files in memory
         tmpdir      : temporary directory
         args        : system call arguments to start a required subprocess
         asyPath     : directory path to asymptote
-        asyProcess  : the subprocess through which xasy communicates with asymptote
+        asyProcess  : the subprocess through which xasy communicates with asy
 
     Virtual Methods: NULL
     ----------------
@@ -63,10 +63,10 @@ class AsymptoteEngine:
 
     Object Methods:
     ---------------
-        start()     : starts a subprocess (opens a pipe)
-        wait()      : keeps the pipe open if there is any communication
-        stop()      : stops (kills) an active asyProcess (closes the pipe)
-        cleanUp()   : ???
+        start()
+        wait()
+        stop()
+        cleanup()
     """
 
     xasy=chr(4)+"\n"
@@ -117,7 +117,7 @@ class AsymptoteEngine:
             atexit.register(self.cleanup)
 
     def wait(self):
-        """ keeps the pipe open if there is any communication """
+        """ wait for the pipe to finish any outstanding communication """
         if self.asyProcess.returncode is not None:
             return
         else:
@@ -147,12 +147,12 @@ class AsymptoteEngine:
         return self.asyProcess.returncode is None
 
     def stop(self):
-        """ stops (kills) an active asyProcess (closes the pipe) """
+        """ kill an active asyProcess and close the pipe """
         if self.active:
             self.asyProcess.kill()
 
     def cleanup(self):
-        """ ??? """
+        """ terminate processes and cleans up communication files """
         self.stop()
         if self.asyProcess is not None:
             self.asyProcess.wait()
@@ -350,16 +350,17 @@ class asyPen(asyObj):
     """
     Purpose:
     --------
-        A Python object that corresponds to an asymptote pen type. It extends the 'asyObj'
-        class to include a pen object. This object will be used to make the corresponding
-        asymptote pen object when an xasy object gets tranlated to asymptote code.
+        A Python object that corresponds to an Asymptote pen type. It
+    extends the 'asyObj' class to include a pen object. This object
+    will be used to make the corresponding Asymptote pen when
+    an xasy object gets tranlated to Asymptote code.
 
     Attributes:
     -----------
         color               : The color of Path
         options             : The options that can be passed to the path
         width               : The path width
-        _asyengine          : The asymptote engine that will be used
+        _asyengine          : The Asymptote engine that will be used
         _deferAsyfy         : ?
 
     Virtual Methods:         NULL
@@ -446,13 +447,12 @@ class asyPen(asyObj):
         self.setColor(asyPen.getColorFromQColor(color))
 
     def computeColor(self):
-        """ Find out the color of an arbitrary asymptote pen """
+        """ Find out the color of an arbitrary Asymptote pen """
         assert isinstance(self.asyEngine, AsymptoteEngine)
         assert self.asyEngine.active
 
         fout = self.asyEngine.ostream
         fin = self.asyEngine.istream
-
         fout.write("pen p=" + self.getCode() + ';\n')
         fout.write("write(_outpipe,colorspace(p),newl);\n")
         fout.write("write(_outpipe,colors(p));\n")
@@ -479,11 +479,6 @@ class asyPen(asyObj):
             raise ChildProcessError('Asymptote error.')
         self.color = (r, g, b)
         self._deferAsyfy = False
-
-    def tkColor(self):
-        """ Return the tk version of the pen's color """
-        self.computeColor()
-        return '#{}'.format("".join(["{:02x}".format(min(int(256 * a), 255)) for a in self.color]))
 
     def toQPen(self):
         if self._deferAsyfy:
@@ -1024,7 +1019,9 @@ class xasyItem(QtCore.QObject):
         worker.join()
 
     def asyfyThread(self):
-        """ Convert the item to a list of images by deconstructing this item's code """
+        """
+        Convert the item to a list of images by deconstructing this item's code
+        """
         assert self.asyengine.active
 
         fout = self.asyengine.ostream
