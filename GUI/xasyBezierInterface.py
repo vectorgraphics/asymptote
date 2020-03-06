@@ -306,7 +306,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                 newNorm = xasyUtils.twonorm(rawNewNode)
 
 
-                if self.info['editBezierlockMode'] >= WidgetEditBezier.LockMode.angleLock:
+                if self.info['editBezierlockMode'] >= Web.LockMode.angleLock:
                     otherIndex = 1 - subindex       # 1 if 0, 0 otherwise. 
                     if otherIndex == 0:
                         if index < (len(self.asyPath.controlSet) - 1) or isCycle:
@@ -315,7 +315,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                             oldOtherCtrlPnt = xasyUtils.funcOnList(
                                 self.asyPath.controlSet[newIndex][0], parentNode, lambda a, b: a - b)
                         
-                            if self.info['editBezierlockMode'] >= WidgetEditBezier.LockMode.angleAndScaleLock:
+                            if self.info['editBezierlockMode'] >= Web.LockMode.angleAndScaleLock:
                                 rawNorm = newNorm
                             else:
                                 rawNorm = xasyUtils.twonorm(oldOtherCtrlPnt)
@@ -331,7 +331,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                             oldOtherCtrlPnt = xasyUtils.funcOnList(
                                 self.asyPath.controlSet[newIndex][1], parentNode, lambda a, b: a - b)
 
-                            if self.info['editBezierlockMode'] >= WidgetEditBezier.LockMode.angleAndScaleLock:
+                            if self.info['editBezierlockMode'] >= Web.LockMode.angleAndScaleLock:
                                 rawNorm = newNorm
                             else:
                                 rawNorm = xasyUtils.twonorm(oldOtherCtrlPnt)
@@ -360,7 +360,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.objectUpdated.emit()
 
     def createOptWidget(self, info):
-        self.opt = WidgetEditBezier.Widg_editBezier(self.info, self.curveMode)
+        self.opt = Web.Widg_editBezier(self.info, self.curveMode)
         self.opt.ui.btnOk.clicked.connect(self.editAccepted)
         self.opt.ui.btnCancel.clicked.connect(self.editRejected)
         self.opt.ui.btnForceRecompute.clicked.connect(self.recalculateCtrls)
