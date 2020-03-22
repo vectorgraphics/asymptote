@@ -14,12 +14,10 @@ struct rmf {
 
 // Rotation minimizing frame
 // http://www.cs.hku.hk/research/techreps/document/TR-2007-07.pdf
-rmf[] rmf(path3 g, real[] t)
+rmf[] rmf(path3 g, real[] t, triple perp=O)
 {
-  static triple s0;
   triple T=dir(g,0);
-  triple Tp=cross(s0,T);
-  Tp=abs(Tp) < sqrtEpsilon ? perp(T) : unit(Tp);
+  triple Tp=abs(perp) < sqrtEpsilon ? perp(T) : unit(perp);
   rmf[] R=new rmf[t.length];
   R[0]=rmf(point(g,0),Tp,T);
   for(int i=1; i < t.length; ++i) {
@@ -40,11 +38,10 @@ rmf[] rmf(path3 g, real[] t)
     } else
       R[i]=R[i-1];
   }
-  s0=R[t.length-1].s;
   return R;
 }
 
-rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t)
+rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t, triple perp=O)
 {
   static triple s0;
 
@@ -76,7 +73,7 @@ rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t)
       T=z1-z0+3.0*(c0-c1);
   }
   T=unit(T);
-  triple Tp=cross(s0,T);
+  triple Tp=perp == O ? cross(s0,T) : perp;
   Tp=abs(Tp) < sqrtEpsilon ? perp(T) : unit(Tp);
   rmf[] R=new rmf[t.length];
   R[0]=rmf(z0,Tp,T);
