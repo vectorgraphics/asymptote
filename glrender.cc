@@ -108,6 +108,7 @@ namespace gl {
 bool outlinemode=false;
 bool glthread=false;
 bool initialize=true;
+bool exporting=false;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -560,13 +561,17 @@ void Export()
       (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
    
       size_t count=0;
+      exporting=true;
       do {
         trBeginTile(tr);
         drawscene(fullWidth,fullHeight);
         ++count;
       } while (trEndTile(tr));
+      exporting=false;
+
       if(settings::verbose > 1)
-        cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
+        cout << count << " tile" << (count != 1 ? "s" : "") << " drawn"
+             << endl;
       trDelete(tr);
 
       picture pic;
