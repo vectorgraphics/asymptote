@@ -23,6 +23,7 @@ BuildRequires:  tetex-latex
 BuildRequires:  ghostscript >= 9.14
 BuildRequires:  texinfo >= 4.7
 BuildRequires:  ImageMagick
+BuildRequires:  libtirpc-devel
 
 Requires:       tetex-latex
 Requires:       freeglut-devel >= 3.0.0
