@@ -104,14 +104,14 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
     double cz[16];
 
     if(t == NULL) {
-      for(int i=0; i < 16; ++i) {
+      for(unsigned int i=0; i < 16; ++i) {
         triple v=controls[i];
         cx[i]=v.getx();
         cy[i]=v.gety();
         cz[i]=v.getz();
       }
     } else {
-      for(int i=0; i < 16; ++i) {
+      for(unsigned int i=0; i < 16; ++i) {
         triple v=t*controls[i];
         cx[i]=v.getx();
         cy[i]=v.gety();
@@ -127,7 +127,7 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
     c0=cy[0];
     fuzz=Fuzz*run::norm(cy,16);
     y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
-    Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+    Y=bound(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
 
     c0=cz[0];
     fuzz=Fuzz*run::norm(cz,16);
@@ -359,7 +359,7 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
         cz[i]=v.getz();
       }
     }
-    
+
     double c0=cx[0];
     double fuzz=Fuzz*run::norm(cx,10);
     x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);

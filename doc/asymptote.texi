@@ -2216,7 +2216,7 @@ current locale;
 
 @item string time(string format="%a %b %d %T %Z %Y")
 @cindex @code{time}
-@cindex @code{date}
+@cindex date
 @cindex @code{strftime}
 returns the current time formatted by the ANSI C routine
 @code{strftime} according to the string @code{format} using the current
