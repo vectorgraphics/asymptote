@@ -122,8 +122,8 @@ array *readpath(const string& psname, bool keep, bool pdf=false,
     if(s.empty()) break;
     if(!pdf) gs << newl;
 
-// Workaround broken stringstream container in MacOS 10.9 libc++.
-#if defined(_LIBCPP_VERSION)
+// Workaround broken stringstream container in libc++.
+#ifdef _LIBCPP_VERSION
     for(string::iterator i=s.begin(); i != s.end(); ++i) {
       if(isalpha(*i) && *i != 'e') {buf << " ";}
       buf << *i;
