@@ -3149,9 +3149,9 @@ texpreamble("\usepackage[russian]{babel}");
 @cindex Korean
 @cindex CJK
 Support for Chinese, Japanese, and Korean fonts is provided by the
-CJK package: 
+CJK package:
 @quotation
-@url{http://mirror.ctan.org/languages/chinese/CJK/}
+@url{https://ctan.org/pkg/cjk}
 @end quotation
 @noindent
 The following commands enable the CJK song family (within a label, you
