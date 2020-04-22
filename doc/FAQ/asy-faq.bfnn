@@ -279,7 +279,7 @@ defaultpen(TimesRoman());
 
 \question 28jun:internatfonts How can I use international fonts in Asymptote labels?
 
-See \docref{http://asymptote.sourceforge.net/doc/unicode.html\}.
+See \docref{https://asymptote.sourceforge.io/doc/Pens.html\}.
 
 \question 10jul:Fourier How can I use Fourier fonts? 
 
