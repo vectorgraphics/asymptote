@@ -581,15 +581,7 @@ void Export()
                                            antialias);
       pic.append(Image);
       bool svg=getSetting<string>("outformat") == "svg";
-      string texengine;
-      if(svg) {
-        // dvisvgm --pdf does not yet support PNG images
-        texengine=getSetting<string>("tex");
-        Setting("tex")=string("latex");
-      }
       pic.shipout(NULL,Prefix,Format,false,View);
-      if(svg)
-        Setting("tex")=texengine;
       delete Image;
       delete[] data;
     } 

@@ -243,16 +243,6 @@ bool picture::have3D()
   return false;
 }
 
-bool picture::havepng()
-{
-  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if((*p)->svgpng())
-      return true;
-  }
-  return false;
-}
-
 bool picture::havenewpage()
 {
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
@@ -921,7 +911,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool pdfformat=pdf || outputformat == "pdf";
   bool svgformat=outputformat == "svg";
   bool dvi=false;
-  bool svg=svgformat && usetex && !(pdf && havepng()) &&
+  bool svg=svgformat && usetex &&
     (!have3D() || getSetting<double>("render") == 0.0);
   if(svg) {
     if(pdf) epsformat=true;
