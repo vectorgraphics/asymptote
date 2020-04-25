@@ -461,7 +461,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       if(svg) {
         cmd.push_back(getSetting<string>("dvisvgm"));
         cmd.push_back("-n");
-        cmd.push_back("-v0");
+        cmd.push_back("-v1");
         string libgs=getSetting<string>("libgs");
         if(!libgs.empty())
           cmd.push_back("--libgs="+libgs);
@@ -1124,7 +1124,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     }
     
     if(Labels) {
-      tex->beginlayer(pdf ? pdfname : psname,postscript);
+      if(!svg || pdf)
+        tex->beginlayer(pdf ? pdfname : psname,postscript);
     } else out.grestore();
     
     out.epilogue();
