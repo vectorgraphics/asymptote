@@ -461,7 +461,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       if(svg) {
         cmd.push_back(getSetting<string>("dvisvgm"));
         cmd.push_back("-n");
-        cmd.push_back("-v1");
+        cmd.push_back("-v3");
         string libgs=getSetting<string>("libgs");
         if(!libgs.empty())
           cmd.push_back("--libgs="+libgs);
@@ -708,7 +708,7 @@ int picture::epstosvg(const string& epsname, const string& outname)
   cmd.push_back(getSetting<string>("dvisvgm"));
   cmd.push_back("-n");
   cmd.push_back("-E");
-  cmd.push_back("--verbosity=3");
+  cmd.push_back("-v3");
   string libgs=getSetting<string>("libgs");
   if(!libgs.empty())
     cmd.push_back("--libgs="+libgs);
@@ -727,7 +727,7 @@ int picture::pdftosvg(const string& pdfname, const string& outname)
   cmd.push_back(getSetting<string>("dvisvgm"));
   cmd.push_back("-n");
   cmd.push_back("--pdf");
-  cmd.push_back("--verbosity=3");
+  cmd.push_back("-v3");
   string libgs=getSetting<string>("libgs");
   if(!libgs.empty())
     cmd.push_back("--libgs="+libgs);
