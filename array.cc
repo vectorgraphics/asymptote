@@ -10,6 +10,8 @@
 
 namespace vm {
 
+const char *dereferenceNullArray="dereference of null array";
+
 inline void checkBackSlice(Int left, Int right)
 {
   if (right < left)
@@ -156,10 +158,11 @@ void array::setSlice(Int left, Int right, array *a)
 
 item copyItemToDepth(item i, size_t depth)
 {
-  if (depth == 0)
+  if(depth == 0)
     return i;
-  else
-    return get<array *>(i)->copyToDepth(depth);
+  array* a=get<array*>(i);
+  if(a == 0) vm::error(dereferenceNullArray);
+  return a->copyToDepth(depth);
 }
 
 array *array::copyToDepth(size_t depth)

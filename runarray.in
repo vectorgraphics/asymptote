@@ -667,6 +667,7 @@ array* :copyArrayValue(Int n, item value, Int depth=Int_MAX, Int typeDepth)
 // automatically pushed on the stack and is not visible to the user.
 array* :copyArray(array *a, Int depth=Int_MAX, Int typeDepth)
 {
+  if(a == 0) vm::error(dereferenceNullArray);
   if(depth < 0) error("cannot copy to a negative depth");
   if(depth > typeDepth) depth=typeDepth;
   return a->copyToDepth(depth);
