@@ -200,16 +200,20 @@ public:
 class drawTensorShade : public drawShade {
 protected:
   vm::array pens,boundaries,z;
+  bool compact;
 public:  
   drawTensorShade(const vm::array& src, bool stroke,
                   pen pentype, const vm::array& pens,
                   const vm::array& boundaries, const vm::array& z,
                   const string& key="") : 
     drawShade(src,stroke,pentype,key), pens(pens), boundaries(boundaries),
-    z(z) {}
+    z(z) {
+    compact=boundaries == src;
+  }
   
   bool svgpng() {
-    return pens.size() > 1 || !settings::getSetting<bool>("svgemulation");
+    return !compact || pens.size() > 1 ||
+      !settings::getSetting<bool>("svgemulation");
   }
   
   void palette(psfile *out) {

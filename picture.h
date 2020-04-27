@@ -56,6 +56,7 @@ public:
   
   bool havelabels();
   bool have3D();
+  bool havepng();
   bool havenewpage();
 
   bbox bounds();
@@ -72,7 +73,7 @@ public:
   int pdftosvg(const string& pdfname, const string& outname);
   
   int epstopdf(const string& epsname, const string& pdfname);
-  int pdftoeps(const string& pdfname, const string& epsname);
+  int pdftoeps(const string& pdfname, const string& epsname, bool eps=true);
   
   bool texprocess(const string& texname, const string& tempname,
                   const string& prefix, const pair& bboxshift, bool svgformat); 

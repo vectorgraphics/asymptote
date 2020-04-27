@@ -243,6 +243,16 @@ bool picture::have3D()
   return false;
 }
 
+bool picture::havepng()
+{
+  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    if((*p)->svgpng())
+      return true;
+  }
+  return false;
+}
+
 bool picture::havenewpage()
 {
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
@@ -633,7 +643,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   return status;
 }
   
-int picture::pdftoeps(const string& pdfname, const string& epsname)
+int picture::pdftoeps(const string& pdfname, const string& epsname, bool eps)
 {
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
@@ -645,7 +655,11 @@ int picture::pdftoeps(const string& pdfname, const string& epsname)
   if(safe)
     cmd.push_back("-dSAFER");
   string texengine=getSetting<string>("tex");
-  cmd.push_back("-sDEVICE="+getSetting<string>("epsdriver"));
+
+  if(eps)
+    cmd.push_back("-sDEVICE="+getSetting<string>("epsdriver"));
+  else
+    cmd.push_back("-sDEVICE=ps2write");
   
   cmd.push_back("-sOutputFile="+stripDir(epsname));
   cmd.push_back(stripDir(pdfname));
@@ -756,8 +770,8 @@ bool picture::postprocess(const string& prename, const string& outname,
 {
   static mem::map<CONST string,int> pids;
   int status=0;
-  bool pdfformat=(settings::pdf(getSetting<string>("tex")) 
-                  && outputformat == "") || outputformat == "pdf";
+  bool pdf=settings::pdf(getSetting<string>("tex"));
+  bool pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
   
   mem::vector<string> cmd;
   if(pdftex || !epsformat) {
@@ -769,12 +783,16 @@ bool picture::postprocess(const string& prename, const string& outname,
       } else status=epstopdf(prename,outname);
     } else if(epsformat) {
       if(svg) {
-        status=pdftosvg(prename,outname);
-        if(status != 0) { // Dvisvgm version < 2.4 doesn't support --pdf
-          string epsname=stripExt(prename)+".eps";
-          status=pdftoeps(prename,epsname);
+        bool haveShading=pdf && havepng();
+        if(!haveShading)
+          status=pdftosvg(prename,outname);
+        if(haveShading || status != 0) {
+          // Dvisvgm version < 2.4 doesn't support --pdf
+          // Dvisvgm --pdf doesn't support shading
+          string psname=stripExt(prename)+".ps";
+          status=pdftoeps(prename,psname,false);
           if(status != 0) return false;
-          status=epstosvg(epsname,outname);
+          status=epstosvg(psname,outname);
         }
         epsformat=false;
       } else 

@@ -1503,12 +1503,15 @@ void tensorshade(transform t=identity(), frame f, patch s,
   path g=t*project(s.external(),P,1);
   pair[] internal=t*project(s.internal(),P);
   pen fillrule=m.diffuse();
-  if(p[0] == p[1] && p[1] == p[2] && p[2] == p[3] &&
-     inside(g,internal[0],fillrule) && inside(g,internal[1],fillrule) &&
-     inside(g,internal[2],fillrule) && inside(g,internal[3],fillrule))
-    fill(f,g,fillrule+p[0]);
-  else
+  if(inside(g,internal[0],fillrule) && inside(g,internal[1],fillrule) &&
+     inside(g,internal[2],fillrule) && inside(g,internal[3],fillrule)) {
+    if(p[0] == p[1] && p[1] == p[2] && p[2] == p[3])
+      fill(f,g,fillrule+p[0]);
+    else
+      tensorshade(f,g,fillrule,p,internal);
+  } else {
     tensorshade(f,box(t*s.min(P),t*s.max(P)),fillrule,p,g,internal);
+  }
 }
 
 restricted pen[] nullpens={nullpen};

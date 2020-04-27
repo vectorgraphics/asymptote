@@ -233,13 +233,14 @@ void tensorshade(picture *f, patharray *g, bool stroke=false,
 {
   array *(*copyarray)(array *a)=copy ? copyArray : nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
-  if(b == NULL) b=g;
-  size_t n=checkArrays(p,b);
+  size_t n=checkArrays(p,b ? b : g);
+  array& G=*copyarray(g);
+  array& B=b ? *copyarray(b) : G;
   size_t nz=checkArray(z);
   if(nz != 0)
     checkEqual(nz,n);
-  f->append(new drawTensorShade(*copyarray(g),stroke,fillrule,*copyarray2(p),
-                                *copyarray(b),*copyarray2(z)));
+  f->append(new drawTensorShade(G,stroke,fillrule,*copyarray2(p),B,
+                                *copyarray2(z)));
 }
 
 void functionshade(picture *f, patharray *g, bool stroke=false,

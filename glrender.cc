@@ -580,7 +580,6 @@ void Export()
                                            transform(0.0,0.0,w,0.0,0.0,h),
                                            antialias);
       pic.append(Image);
-      bool svg=getSetting<string>("outformat") == "svg";
       pic.shipout(NULL,Prefix,Format,false,View);
       delete Image;
       delete[] data;

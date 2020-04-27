@@ -1355,50 +1355,43 @@ void gouraudshade(picture pic=currentpicture, path[] g, bool stroke=false,
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
-                 pen fillrule=currentpen, pen[][] p, path[] b=g,
+                 pen fillrule=currentpen, pen[][] p, path[] b=new path[],
                  pair[][] z=new pair[][], bool copy=true)
 {
+  bool compact=b.length == 0 || b[0] == nullpath;
   if(copy) {
     g=copy(g);
     p=copy(p);
-    b=copy(b);
+    if(!compact) b=copy(b);
     z=copy(z);
   }
   pic.add(new void(frame f, transform t) {
       pair[][] Z=new pair[z.length][];
       for(int i=0; i < z.length; ++i)
         Z[i]=t*z[i];
-      tensorshade(f,t*g,stroke,fillrule,p,t*b,Z,false);
+      path[] G=t*g;
+      if(compact)
+        tensorshade(f,G,stroke,fillrule,p,Z,false);
+      else
+        tensorshade(f,G,stroke,fillrule,p,t*b,Z,false);
     },true);
   pic.addPath(g);
 }
 
 void tensorshade(frame f, path[] g, bool stroke=false,
                  pen fillrule=currentpen, pen[] p,
-                 path b=g.length > 0 ? g[0] : nullpath)
+                 path b=g.length > 0 ? g[0] : nullpath, pair[] z=new pair[])
 {
-  tensorshade(f,g,stroke,fillrule,new pen[][] {p},b);
-}
-
-void tensorshade(frame f, path[] g, bool stroke=false,
-                 pen fillrule=currentpen, pen[] p,
-                 path b=g.length > 0 ? g[0] : nullpath, pair[] z)
-{
-  tensorshade(f,g,stroke,fillrule,new pen[][] {p},b,new pair[][] {z});
+  tensorshade(f,g,stroke,fillrule,new pen[][] {p},b,
+              z.length > 0 ? new pair[][] {z} : new pair[][]);
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
                  pen fillrule=currentpen, pen[] p,
-                 path b=g.length > 0 ? g[0] : nullpath)
+                 path b=nullpath, pair[] z=new pair[])
 {
-  tensorshade(pic,g,stroke,fillrule,new pen[][] {p},b);
-}
-
-void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
-                 pen fillrule=currentpen, pen[] p,
-                 path b=g.length > 0 ? g[0] : nullpath, pair[] z)
-{
-  tensorshade(pic,g,stroke,fillrule,new pen[][] {p},b,new pair[][] {z});
+  tensorshade(pic,g,stroke,fillrule,new pen[][] {p},b,
+              z.length > 0 ? new pair[][] {z} : new pair[][]);
 }
 
 // Smoothly shade the regions between consecutive paths of a sequence using a

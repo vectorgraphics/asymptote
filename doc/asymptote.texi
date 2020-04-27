@@ -1374,11 +1374,11 @@ The edge flags used in Gouraud shading are documented here:
 @cindex Coons shading
 @cindex tensor product shading
 @cindex @code{tensorshade}
-Tensor product shading using fill rule @code{fillrule} on patches
-bounded by the @math{n} cyclic paths of length 4 in path array @code{b},
-using the vertex colors specified in the @math{n \times 4} pen array
-@code{p} and internal control points in the @math{n \times 4}
-array @code{z}, is implemented with
+Tensor product shading using clipping path @code{g}, fill rule
+@code{fillrule} on patches bounded by the @math{n} cyclic paths of
+length 4 in path array @code{b}, using the vertex colors specified in
+the @math{n \times 4} pen array @code{p} and internal control points
+in the @math{n \times 4} array @code{z}, is implemented with
 @verbatim
 void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
                  pen fillrule=currentpen, pen[][] p, path[] b=g,
