@@ -6105,7 +6105,7 @@ void f();
 for(int i=0; i < 10; ++i) {
   int x=i;
   if(x==5) {
-    f=new void () { write(x); }
+    f=new void() {write(x);};
   }
 }
 f();
@@ -6125,7 +6125,7 @@ void f() {
 @end verbatim
 @noindent
 both @code{x} and @code{y} will be allocated in the same place, which is
-also where @code{f} is also allocated.
+also where @code{f} is allocated.
 
 Statements may also be declared static, in which case they are run at the place
 where the enclosing function or structure is defined.
