@@ -246,7 +246,8 @@ public:
   void miniprologue();
   
   void writeshifted(path p, bool newPath=true);
-  double hoffset() {return Hoffset;}
+  virtual double hoffset() {return Hoffset;}
+  virtual double voffset() {return box.bottom;}
   
   // Draws label transformed by T at position z.
   void put(const string& label, const transform& T, const pair& z,
@@ -264,6 +265,7 @@ class svgtexfile : public texfile {
   size_t tensorcount;
   bool inspecial;
   static string nl;
+  pair offset;
 public:  
   svgtexfile(const string& texname, const bbox& box, bool pipe=false) :
     texfile(texname,box,pipe) {
@@ -272,6 +274,12 @@ public:
     gouraudcount=0;
     tensorcount=0;
     inspecial=false;
+
+    *out << "\\catcode`\\%=12" << newl
+         << "\\def\\percent{%}" << newl
+         << "\\catcode`\\%=14" << newl;
+
+    offset=pair(box.left,box.top);
   }
   
   void writeclip(path p, bool newPath=true) {
@@ -281,9 +289,12 @@ public:
   void dot(path p, pen, bool newPath=true);
   
   void writeshifted(pair z) {
-    write(conj(z)*settings::ps2tex);
+    write(conj(shift(-offset)*z)*settings::ps2tex);
   }
   
+  double hoffset() {return Hoffset+offset.getx();}
+  double voffset() {return box.bottom+offset.gety();}
+
   void translate(pair z) {}
   void concat(transform t) {}
   

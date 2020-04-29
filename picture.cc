@@ -991,8 +991,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       bboxshift += 
         pair((aligndir.getx()+0.5)*xexcess,(aligndir.gety()+0.5)*yexcess);
     }
-  }
-  
+  } else if(svg)
+    bboxshift += pair(-b.left,b.top);
+
   bool status=true;
   
   string texname;
