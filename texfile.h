@@ -373,12 +373,6 @@ public:
   void gouraudshade(const pen& pentype, const vm::array& pens,
                     const vm::array& vertices, const vm::array& edges);
   
-  void begintensorshade(const vm::array& pens,
-                        const vm::array& boundaries,
-                        const vm::array& z);
-  void tensorshade(const pen& pentype, const vm::array& pens,
-                   const vm::array& boundaries, const vm::array& z);
-
   void beginclip();
   
   void endclip0(const pen &p);

@@ -211,11 +211,6 @@ public:
     compact=boundaries == src;
   }
   
-  bool svgpng() {
-    return !compact || pens.size() > 1 ||
-      !settings::getSetting<bool>("svgemulation");
-  }
-  
   void palette(psfile *out) {
     out->gsave();
   }
