@@ -272,6 +272,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(offscreen) { // Fully offscreen
     S.Onscreen=false;
     S.data.clear();
+    S.notRendered();
     return;
   }
 
@@ -513,6 +514,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   if(offscreen) { // Fully offscreen
     S.Onscreen=false;
     S.data.clear();
+    S.notRendered();
     return;
   }
 
@@ -973,6 +975,7 @@ void drawTriangles::render(double size2, const triple& b,
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen
     R.Onscreen=false;
     R.data.clear();
+    R.notRendered();
     return;
   }
 

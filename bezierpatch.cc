@@ -1064,6 +1064,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
   if(!nN) return;
   
   data.clear();
+  notRendered();
   Onscreen=true;
   transparent=Transparent;
   

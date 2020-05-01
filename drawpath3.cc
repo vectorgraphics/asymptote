@@ -97,6 +97,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(offscreen) { // Fully offscreen
     R.Onscreen=false;
     R.data.clear();
+    R.notRendered();
     return;
   }
 
@@ -110,8 +111,13 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
       for(size_t i=0; i < 4; i++) {
         Controls[i]=BB.transform(controls[i]);
       }
-    } else
+    } else {
       Controls=controls;
+      if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
+        R.append();
+        return;
+      }
+    }
 
     double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
   

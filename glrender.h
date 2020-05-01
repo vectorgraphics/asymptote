@@ -269,7 +269,14 @@ public:
 
 class vertexBuffer {
 public:  
-  GLint type;
+  GLenum type;
+
+  GLuint verticesBuffer;
+  GLuint VerticesBuffer;
+  GLuint vertices0Buffer;
+  GLuint indicesBuffer;
+  GLuint materialsBuffer;
+
   std::vector<vertexData> vertices;
   std::vector<VertexData> Vertices;
   std::vector<vertexData0> vertices0;
@@ -278,7 +285,15 @@ public:
   std::vector<Material> materials;
   std::vector<GLint> materialTable;
 
-  vertexBuffer(GLint type=GL_TRIANGLES) : type(type) {}
+  bool Rendered; // Are all patches in this buffer fully rendered?
+
+  vertexBuffer(GLint type=GL_TRIANGLES) : type(type),
+                                          verticesBuffer(0),
+                                          VerticesBuffer(0),
+                                          vertices0Buffer(0),
+                                          indicesBuffer(0),
+                                          materialsBuffer(0)
+                                          {}
 
   void clear() {
     vertices.clear();
@@ -287,6 +302,7 @@ public:
     indices.clear();
     materials.clear();
     materialTable.clear();
+    Rendered=true;
   }
 
   void reserve0() {
@@ -341,7 +357,6 @@ public:
       a[n+i]=b[i]+offset;
   }
 
-  // append array b onto array a
   void append(const vertexBuffer& b) {
     appendOffset(indices,b.indices,vertices.size());
     vertices.insert(vertices.end(),b.vertices.begin(),b.vertices.end());
