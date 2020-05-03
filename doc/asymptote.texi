@@ -1332,7 +1332,8 @@ void axialshade(picture pic=currentpicture, path g, bool stroke=false,
 @noindent
 The boolean parameters @code{extenda} and @code{extendb} indicate
 whether the shading should extend beyond the axis endpoints @code{a}
-and @code{b}.
+and @code{b}. An example of axial shading is provided in the example file
+@code{@uref{https://asymptote.sourceforge.io/gallery/axialshade.svg,,axialshade}@uref{https://asymptote.sourceforge.io/gallery/axialshade.asy,,.asy}}.
 
 @cindex @code{radialshade}
 Radial gradient shading varying smoothly from

@@ -134,6 +134,8 @@ public:
     : drawShade(src,stroke,pentype,key), a(a), extenda(extenda),
       penb(penb), b(b), extendb(extendb) {}
   
+  bool svgpng() {return !extenda || !extendb || pdf();}
+
   void palette(psfile *out);
   
   void beginshade(psfile *out) {
@@ -158,7 +160,7 @@ public:
     : drawAxialShade(src,stroke,pentype,a,extenda,penb,b,
                      extendb,key), ra(ra), rb(rb) {}
   
-  bool svgpng() {return ra > 0.0 || pdf();}
+  bool svgpng() {return a != b || ra > 0.0 || !extenda || !extendb || pdf();}
   
   void beginshade(psfile *out) {
     out->begingradientshade(false,colorspace,pentype,a,ra,penb,b,rb);
