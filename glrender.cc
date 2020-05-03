@@ -105,7 +105,6 @@ namespace gl {
 bool outlinemode=false;
 bool glthread=false;
 bool initialize=true;
-bool materialCopy=true;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -125,6 +124,7 @@ int Fitscreen;
 bool queueExport=false;
 bool readyAfterExport=false;
 bool remesh;
+bool updateMaterials;
 
 int Mode;
 
@@ -889,7 +889,7 @@ void updateHandler(int)
 {
   queueScreen=true;
   remesh=true;
-  materialCopy=true;
+  updateMaterials=true;
   update();
   if(interact::interactive || !Animate) {
     glutShowWindow();
@@ -1451,7 +1451,7 @@ void init()
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 #endif
-  gl::materialCopy=true;
+  gl::updateMaterials=true;
 }
 
 void init_osmesa()
@@ -1877,9 +1877,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
   GLuint binding=0;
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   glUniformBlockBinding(shader,blockindex,binding);
-  registerBuffer(data.materials,data.materialsBuffer,gl::materialCopy,
+  registerBuffer(data.materials,data.materialsBuffer,gl::updateMaterials,
                  GL_UNIFORM_BUFFER);
-  gl::materialCopy=false;
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,data.materialsBuffer);
   
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
@@ -1905,12 +1904,14 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     (normal ? sizeof(vertexData) : sizeof(vertexData0));
 
   bool copy=gl::remesh || !data.Rendered;
+//  cout << copy << endl;
   if(color) registerBuffer(data.Vertices,data.VerticesBuffer,copy);
   else if(normal) registerBuffer(data.vertices,data.verticesBuffer,copy);
   else registerBuffer(data.vertices0,data.vertices0Buffer,copy);
   
-  registerBuffer(data.indices,data.indicesBuffer,copy,
-                 GL_ELEMENT_ARRAY_BUFFER);
+  data.Rendered=true;
+  
+  registerBuffer(data.indices,data.indicesBuffer,copy,GL_ELEMENT_ARRAY_BUFFER);
   
   camp::setUniforms(data,shader);
 
@@ -2010,7 +2011,6 @@ void clearMaterialBuffer()
   material.reserve(nmaterials);
   materialMap.clear();
   materialIndex=0;
-  gl::materialCopy=true;
 }
 
 void setMaterial(vertexBuffer& data, draw_t *draw)

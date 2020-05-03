@@ -292,7 +292,8 @@ public:
                                           VerticesBuffer(0),
                                           vertices0Buffer(0),
                                           indicesBuffer(0),
-                                          materialsBuffer(0)
+                                          materialsBuffer(0),
+                                          Rendered(false)
                                           {}
 
   void clear() {
@@ -302,7 +303,6 @@ public:
     indices.clear();
     materials.clear();
     materialTable.clear();
-    Rendered=true;
   }
 
   void reserve0() {
