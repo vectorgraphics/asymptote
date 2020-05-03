@@ -62,8 +62,12 @@ public:
     else drawSuperPathPenBase::bounds(b,iopipe,vbox,bboxstack);
   }
   
-  // Shading in SVG is incomplete and not supported at all by dvisvgm.
-  bool svgpng() {return true;}
+  bool pdf() {
+    return settings::pdf(settings::getSetting<string>("tex"));
+  }
+
+  // Shading in SVG is incomplete and not supported at all by dvisvgm --pdf.
+  bool svgpng() {return pdf();}
       
   virtual void beginshade(psfile *out)=0;
   virtual void shade(psfile *out)=0;
@@ -130,8 +134,6 @@ public:
     : drawShade(src,stroke,pentype,key), a(a), extenda(extenda),
       penb(penb), b(b), extendb(extendb) {}
   
-  bool svgpng() {return false;}
-  
   void palette(psfile *out);
   
   void beginshade(psfile *out) {
@@ -156,7 +158,7 @@ public:
     : drawAxialShade(src,stroke,pentype,a,extenda,penb,b,
                      extendb,key), ra(ra), rb(rb) {}
   
-  bool svgpng() {return ra > 0.0;}
+  bool svgpng() {return ra > 0.0 || pdf();}
   
   void beginshade(psfile *out) {
     out->begingradientshade(false,colorspace,pentype,a,ra,penb,b,rb);
@@ -180,7 +182,7 @@ public:
     : drawElement(key), drawShade(src,stroke,pentype,key), pens(pens),
       vertices(vertices), edges(edges) {}
   
-  bool svgpng() {return !settings::getSetting<bool>("svgemulation");}
+  bool svgpng() {return !settings::getSetting<bool>("svgemulation") || pdf();}
   
   void palette(psfile *out) {
     out->gsave();
