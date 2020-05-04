@@ -141,14 +141,14 @@ struct BezierPatch
     }
   }
   
-  void notRendered() {
+  virtual void notRendered() {
     if(transparent)
-      transparentData.Rendered=false;
+      transparentData.rendered=false;
     else {
       if(color)
-        colorData.Rendered=false;
+        colorData.rendered=false;
       else
-        materialData.Rendered=false;
+        materialData.rendered=false;
     }
   }
 
@@ -205,6 +205,13 @@ public:
       transparentData.Append(data);
     else
       triangleData.Append(data);
+  }
+
+  void notRendered() {
+    if(transparent)
+      transparentData.rendered=false;
+    else
+      triangleData.rendered=false;
   }
 
 };

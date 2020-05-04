@@ -42,7 +42,7 @@ struct BezierCurve
   }
   
   void notRendered() {
-    materialData.Rendered=false;
+    material1Data.rendered=false;
   }
 
   void queue(const triple *g, bool straight, double ratio) {

@@ -285,7 +285,9 @@ public:
   std::vector<Material> materials;
   std::vector<GLint> materialTable;
 
-  bool Rendered; // Are all patches in this buffer fully rendered?
+  bool rendered; // Are all patches in this buffer fully rendered?
+  bool partial;  // Does buffer contain incomplete data?
+  bool copyMaterials; // Do we need to copy materials to the GPU?
 
   vertexBuffer(GLint type=GL_TRIANGLES) : type(type),
                                           verticesBuffer(0),
@@ -293,7 +295,9 @@ public:
                                           vertices0Buffer(0),
                                           indicesBuffer(0),
                                           materialsBuffer(0),
-                                          Rendered(false)
+                                          rendered(false),
+                                          partial(false),
+                                          copyMaterials(true)
                                           {}
 
   void clear() {
@@ -301,8 +305,12 @@ public:
     Vertices.clear();
     vertices0.clear();
     indices.clear();
+  }
+
+  void clearMaterials() {
     materials.clear();
     materialTable.clear();
+    partial=false;
   }
 
   void reserve0() {

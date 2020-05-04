@@ -124,7 +124,6 @@ int Fitscreen;
 bool queueExport=false;
 bool readyAfterExport=false;
 bool remesh;
-bool updateMaterials;
 
 int Mode;
 
@@ -649,7 +648,6 @@ void quit()
   
 void mode() 
 {
-  remesh=true;
   switch(Mode) {
     case 0: // regular
       outlinemode=false;
@@ -889,7 +887,6 @@ void updateHandler(int)
 {
   queueScreen=true;
   remesh=true;
-  updateMaterials=true;
   update();
   if(interact::interactive || !Animate) {
     glutShowWindow();
@@ -1451,7 +1448,6 @@ void init()
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 #endif
-  gl::updateMaterials=true;
 }
 
 void init_osmesa()
@@ -1877,8 +1873,9 @@ void setUniforms(vertexBuffer& data, GLint shader)
   GLuint binding=0;
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   glUniformBlockBinding(shader,blockindex,binding);
-  registerBuffer(data.materials,data.materialsBuffer,gl::updateMaterials,
-                 GL_UNIFORM_BUFFER);
+  bool copy=data.copyMaterials || data.partial;
+  registerBuffer(data.materials,data.materialsBuffer,copy,GL_UNIFORM_BUFFER);
+  data.copyMaterials=false;
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,data.materialsBuffer);
   
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
@@ -1903,13 +1900,12 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   const size_t bytestride=color ? sizeof(VertexData) :
     (normal ? sizeof(vertexData) : sizeof(vertexData0));
 
-  bool copy=gl::remesh || !data.Rendered;
-//  cout << copy << endl;
+  bool copy=gl::remesh || !data.rendered || data.partial;
   if(color) registerBuffer(data.Vertices,data.VerticesBuffer,copy);
   else if(normal) registerBuffer(data.vertices,data.verticesBuffer,copy);
   else registerBuffer(data.vertices0,data.vertices0Buffer,copy);
   
-  data.Rendered=true;
+  data.rendered=true;
   
   registerBuffer(data.indices,data.indicesBuffer,copy,GL_ELEMENT_ARRAY_BUFFER);
   
@@ -2011,14 +2007,24 @@ void clearMaterialBuffer()
   material.reserve(nmaterials);
   materialMap.clear();
   materialIndex=0;
+
+  material0Data.clearMaterials();
+  material1Data.clearMaterials();
+  materialData.clearMaterials();
+  colorData.clearMaterials();
+  triangleData.clearMaterials();
+  transparentData.clearMaterials();
 }
 
 void setMaterial(vertexBuffer& data, draw_t *draw)
 {
   if(materialIndex >= data.materialTable.size() ||
      data.materialTable[materialIndex] == -1) {
-    if(data.materials.size() >= Maxmaterials)
+    if(data.materials.size() >= Maxmaterials) {
+      data.partial=true;
       (*draw)();
+    }
+    data.copyMaterials=true;
     size_t size0=data.materialTable.size();
     data.materialTable.resize(materialIndex+1);
     for(size_t i=size0; i < materialIndex; ++i)
