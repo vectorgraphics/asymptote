@@ -6319,9 +6319,7 @@ point radicalcenter(circle c1, circle c2)
   pair C1 = locate(c1.C);
   pair C2 = locate(c2.C);
   pair oop = C2 - C1;
-  pair K = (abs(oop) == 0) ?
-    (infinity, infinity) :
-    midpoint(C1--C2) + 0.5 * k * oop/dot(oop, oop);
+  pair K = midpoint(C1--C2) + 0.5 * k * oop/dot(oop, oop);
   return point(P[0].coordsys, K/P[0].coordsys);
 }
 
