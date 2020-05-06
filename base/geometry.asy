@@ -6358,7 +6358,7 @@ inversion inversion(point C, real k)
   return inversion(k, C);
 }
 
-/*<asyxml><function type="inversion[]" signature="inversion(circle,circle)"><code></asyxml>*/
+/*<asyxml><function type="inversion[]" signature="inversion(circle,circle,real)"><code></asyxml>*/
 inversion[] inversion(circle c1, circle c2, real sgn = 1)
 {/*<asyxml></code><documentation>Return the inversions which transform 'c1' to
    . 'c2' and positive inversion radius if 'sgn > 0';
