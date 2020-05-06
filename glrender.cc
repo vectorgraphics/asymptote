@@ -648,6 +648,7 @@ void quit()
   
 void mode() 
 {
+  remesh=true;
   switch(Mode) {
     case 0: // regular
       outlinemode=false;
@@ -1873,9 +1874,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
   GLuint binding=0;
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   glUniformBlockBinding(shader,blockindex,binding);
-  bool copy=data.copyMaterials || data.partial;
+  bool copy=gl::remesh || data.partial || !data.rendered;
   registerBuffer(data.materials,data.materialsBuffer,copy,GL_UNIFORM_BUFFER);
-  data.copyMaterials=false;
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,data.materialsBuffer);
   
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
@@ -1900,16 +1900,16 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   const size_t bytestride=color ? sizeof(VertexData) :
     (normal ? sizeof(vertexData) : sizeof(vertexData0));
 
-  bool copy=gl::remesh || !data.rendered || data.partial;
+  bool copy=gl::remesh || data.partial || !data.rendered;
   if(color) registerBuffer(data.Vertices,data.VerticesBuffer,copy);
   else if(normal) registerBuffer(data.vertices,data.verticesBuffer,copy);
   else registerBuffer(data.vertices0,data.vertices0Buffer,copy);
   
-  data.rendered=true;
-  
   registerBuffer(data.indices,data.indicesBuffer,copy,GL_ELEMENT_ARRAY_BUFFER);
   
   camp::setUniforms(data,shader);
+
+  data.rendered=true;
 
   glVertexAttribPointer(positionAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                         (void *) 0);
@@ -2007,13 +2007,13 @@ void clearMaterialBuffer()
   material.reserve(nmaterials);
   materialMap.clear();
   materialIndex=0;
-
-  material0Data.clearMaterials();
-  material1Data.clearMaterials();
-  materialData.clearMaterials();
-  colorData.clearMaterials();
-  triangleData.clearMaterials();
-  transparentData.clearMaterials();
+  
+  material0Data.partial=false;
+  material1Data.partial=false;
+  materialData.partial=false;
+  colorData.partial=false;
+  triangleData.partial=false;
+  transparentData.partial=false;
 }
 
 void setMaterial(vertexBuffer& data, draw_t *draw)
@@ -2024,7 +2024,6 @@ void setMaterial(vertexBuffer& data, draw_t *draw)
       data.partial=true;
       (*draw)();
     }
-    data.copyMaterials=true;
     size_t size0=data.materialTable.size();
     data.materialTable.resize(materialIndex+1);
     for(size_t i=size0; i < materialIndex; ++i)

@@ -287,7 +287,6 @@ public:
 
   bool rendered; // Are all patches in this buffer fully rendered?
   bool partial;  // Does buffer contain incomplete data?
-  bool copyMaterials; // Do we need to copy materials to the GPU?
 
   vertexBuffer(GLint type=GL_TRIANGLES) : type(type),
                                           verticesBuffer(0),
@@ -296,8 +295,7 @@ public:
                                           indicesBuffer(0),
                                           materialsBuffer(0),
                                           rendered(false),
-                                          partial(false),
-                                          copyMaterials(true)
+                                          partial(false)
                                           {}
 
   void clear() {
@@ -305,12 +303,8 @@ public:
     Vertices.clear();
     vertices0.clear();
     indices.clear();
-  }
-
-  void clearMaterials() {
     materials.clear();
     materialTable.clear();
-    partial=false;
   }
 
   void reserve0() {
