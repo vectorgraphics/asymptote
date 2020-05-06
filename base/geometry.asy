@@ -6313,6 +6313,7 @@ point inverse(real k, point A, point M)
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+  if (c1.C == c2.C) abort("radicalcenter: the centers must be distinct");
   point[] P = standardizecoordsys(c1.C, c2.C);
   real k = c1.r^2 - c2.r^2;
   pair C1 = locate(c1.C);
