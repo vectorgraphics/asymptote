@@ -6358,9 +6358,9 @@ inversion inversion(point C, real k)
   return inversion(k, C);
 }
 
-/*<asyxml><function type="inversion" signature="inversion(circle,circle)"><code></asyxml>*/
-inversion inversion(circle c1, circle c2, real sgn = 1)
-{/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to
+/*<asyxml><function type="inversion[]" signature="inversion(circle,circle)"><code></asyxml>*/
+inversion[] inversion(circle c1, circle c2, real sgn = 1)
+{/*<asyxml></code><documentation>Return the inversions which transform 'c1' to
    . 'c2' and positive inversion radius if 'sgn > 0';
    . 'c2' and negative inversion radius if 'sgn < 0';
    . 'c1' and 'c2' to 'c2' if 'sgn = 0'.</documentation></function></asyxml>*/
