@@ -6304,10 +6304,10 @@ void dot(picture pic = currentpicture, triangle t, pen p = currentpen)
 
 // *=======================================================*
 // *.......................INVERSIONS......................*
-/*<asyxml><function type="point" signature="inverse(real k,point,point)"><code></asyxml>*/
-point inverse(real k, point A, point M)
-{/*<asyxml></code><documentation>Return the inverse point of 'M' with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  return A + k/conj(M - A);
+/*<asyxml><function type="point" signature="inverse(real,point,point)"><code></asyxml>*/
+point inverse(real k, point C, point P)
+{/*<asyxml></code><documentation>Return the inverse point of 'P' with respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  return C + k/conj(P - C);
 }
 
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
@@ -6401,7 +6401,7 @@ inversion inversion(circle c)
   return c;
 }
 
-/*<asyxml><operator type = "point" signature="*(inversion,point)"><code></asyxml>*/
+/*<asyxml><operator type="point" signature="*(inversion,point)"><code></asyxml>*/
 point operator *(inversion i, point P)
 {/*<asyxml></code><documentation>Provide inversion * point.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, P);
@@ -6415,43 +6415,45 @@ The returned circle has an infinite radius, circle.l has been set.");
 
 
 /*<asyxml><function type="circle" signature="inverse(real,point,line)"><code></asyxml>*/
-circle inverse(real k, point A, line l)
+circle inverse(real k, point C, line l)
 {/*<asyxml></code><documentation>Return the inverse circle of 'l' with
-   respect to point 'A' and inversion radius 'k'.</documentation></function></asyxml>*/
-  if(A @ l) {
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if(C @ l) {
     lineinversion();
-    circle C = circle(A, infinity);
-    C.l = l;
-    return C;
+    circle c = circle(C, infinity);
+    c.l = l;
+    return c;
   }
-  point Ap = inverse(k, A, l.A), Bp = inverse(k, A, l.B);
-  return circle(A, Ap, Bp);
+  point A = inverse(k, C, l.A);
+  point B = inverse(k, C, l.B);
+  return circle(C, A, B);
 }
 
-/*<asyxml><operator type = "circle" signature="*(inversion,line)"><code></asyxml>*/
+/*<asyxml><operator type="circle" signature="*(inversion,line)"><code></asyxml>*/
 circle operator *(inversion i, line l)
 {/*<asyxml></code><documentation>Provide inversion * line for lines that don't pass through the inversion center.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, l);
 }
 
 /*<asyxml><function type="circle" signature="inverse(real,point,circle)"><code></asyxml>*/
-circle inverse(real k, point A, circle c)
+circle inverse(real k, point C, circle c)
 {/*<asyxml></code><documentation>Return the inverse circle of 'c' with
-   respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  if(degenerate(c)) return inverse(k, A, c.l);
-  if(A @ c) {
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if(degenerate(c)) return inverse(k, C, c.l);
+  if(C @ c) {
     lineinversion();
-    point M = rotate(180, c.C) * A, Mp = rotate(90, c.C) * A;
-    circle oc = circle(A, infinity);
-    oc.l = line(inverse(k, A, M), inverse(k, A, Mp));
+    circle oc = circle(C, infinity);
+    point A = rotate(+90, c.C) * C;
+    point B = rotate(-90, c.C) * C;
+    oc.l = line(inverse(k, C, A), inverse(k, C, B));
     return oc;
   }
-  point[] P = standardizecoordsys(A, c.C);
+  point[] P = standardizecoordsys(C, c.C);
   real s = k/((P[1].x - P[0].x)^2 + (P[1].y - P[0].y)^2 - c.r^2);
-  return circle(P[0] + s * (P[1]-P[0]), abs(s) * c.r);
+  return circle(P[0] + s * (P[1] - P[0]), abs(s) * c.r);
 }
 
-/*<asyxml><operator type = "circle" signature="*(inversion,circle)"><code></asyxml>*/
+/*<asyxml><operator type="circle" signature="*(inversion,circle)"><code></asyxml>*/
 circle operator *(inversion i, circle c)
 {/*<asyxml></code><documentation>Provide inversion * circle.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, c);
@@ -7102,18 +7104,18 @@ arc arc(explicit arc a, point M, point N)
 }
 
 /*<asyxml><function type="arc" signature="inverse(real,point,segment)"><code></asyxml>*/
-arc inverse(real k, point A, segment s)
-{/*<asyxml></code><documentation>Return the inverse arc circle of 's'
-   with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  point Ap = inverse(k, A, s.A), Bp = inverse(k, A, s.B),
-    M = inverse(k, A, midpoint(s));
-  return arccircle(Ap, M, Bp);
+arc inverse(real k, point C, segment s)
+{/*<asyxml></code><documentation>Return the inverse arc circle of 's' with
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  point A = inverse(k, C, s.A);
+  point B = inverse(k, C, s.B);
+  point M = inverse(k, C, midpoint(s));
+  return arccircle(A, M, B);
 }
 
-/*<asyxml><operator type = "arc" signature="*(inversion,segment)"><code></asyxml>*/
+/*<asyxml><operator type="arc" signature="*(inversion,segment)"><code></asyxml>*/
 arc operator *(inversion i, segment s)
-{/*<asyxml></code><documentation>Provide
-   inversion * segment.</documentation></operator></asyxml>*/
+{/*<asyxml></code><documentation>Provide inversion * segment.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, s);
 }
 
