@@ -6339,22 +6339,23 @@ point radicalcenter(circle c1, circle c2, circle c3)
 
 /*<asyxml><struct signature="inversion"><code></asyxml>*/
 struct inversion
-{/*<asyxml></code><documentation>http://mathworld.wolfram.com/Inversion.html</documentation></asyxml>*/
-  point C;
+{/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/Inversion.html"/></documentation></asyxml>*/
   real k;
+  point C;
 }/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="inversion" signature="inversion(real,point)"><code></asyxml>*/
 inversion inversion(real k, point C)
-{/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion radius 'k'.</documentation></function></asyxml>*/
+{/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion power 'k'.</documentation></function></asyxml>*/
   inversion oi;
   oi.k = k;
   oi.C = C;
   return oi;
 }
-/*<asyxml><function type="inversion" signature="inversion(real,point)"><code></asyxml>*/
+
+/*<asyxml><function type="inversion" signature="inversion(point,real)"><code></asyxml>*/
 inversion inversion(point C, real k)
-{/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion radius 'k'.</documentation></function></asyxml>*/
+{/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion power 'k'.</documentation></function></asyxml>*/
   return inversion(k, C);
 }
 
