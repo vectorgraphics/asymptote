@@ -6408,23 +6408,21 @@ point operator *(inversion i, point P)
   return inverse(i.k, i.C, P);
 }
 
-void lineinversion()
+/*<asyxml><function type="circle" signature="lineinversion(point,line)"><code></asyxml>*/
+circle lineinversion(point C, line l)
 {
-  warning("lineinversion", "the inversion of the line is not a circle.
+  circle oc = circle(C, infinity);
+  oc.l = l;
+  warning("lineinversion", "The inversion of the line is not a circle.
 The returned circle has an infinite radius, circle.l has been set.");
+  return oc;
 }
-
 
 /*<asyxml><function type="circle" signature="inverse(real,point,line)"><code></asyxml>*/
 circle inverse(real k, point C, line l)
 {/*<asyxml></code><documentation>Return the inverse circle of 'l' with
    respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
-  if(C @ l) {
-    lineinversion();
-    circle c = circle(C, infinity);
-    c.l = l;
-    return c;
-  }
+  if(C @ l) return lineinversion(C, l);
   point A = inverse(k, C, l.A);
   point B = inverse(k, C, l.B);
   return circle(C, A, B);
@@ -6441,14 +6439,7 @@ circle inverse(real k, point C, circle c)
 {/*<asyxml></code><documentation>Return the inverse circle of 'c' with
    respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
   if(degenerate(c)) return inverse(k, C, c.l);
-  if(C @ c) {
-    lineinversion();
-    circle oc = circle(C, infinity);
-    point A = rotate(+90, c.C) * C;
-    point B = rotate(-90, c.C) * C;
-    oc.l = line(inverse(k, C, A), inverse(k, C, B));
-    return oc;
-  }
+  if(C @ c) return lineinversion(C, line(inverse(k, C, rotate(+90, c.C) * C), inverse(k, C, rotate(-90, c.C) * C)));
   point[] P = standardizecoordsys(C, c.C);
   real s = k/((P[1].x - P[0].x)^2 + (P[1].y - P[0].y)^2 - c.r^2);
   return circle(P[0] + s * (P[1] - P[0]), abs(s) * c.r);
