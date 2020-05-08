@@ -3269,10 +3269,10 @@ circle operator -(explicit circle c, vector m)
 {/*<asyxml></code><documentation>Translation of 'c'.</documentation></operator></asyxml>*/
   return circle(c.C - m, c.r);
 }
-/*<asyxml><operator type = "real" signature="^(point,explicit circle)"><code></asyxml>*/
+/*<asyxml><operator type="real" signature="^(point,explicit circle)"><code></asyxml>*/
 real operator ^(point M, explicit circle c)
-{/*<asyxml></code><documentation>The power of 'M' with respect to the circle 'c'</documentation></operator></asyxml>*/
-  return xpart((abs(locate(M) - locate(c.C)), c.r)^2);
+{/*<asyxml></code><documentation>The power of 'M' with respect to the circle 'c'.</documentation></operator></asyxml>*/
+  return abs(locate(M) - locate(c.C))^2 - c.r^2;
 }
 /*<asyxml><operator type = "bool" signature="@(point,explicit circle)"><code></asyxml>*/
 bool operator @(point M, explicit circle c)
