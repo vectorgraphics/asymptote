@@ -6362,8 +6362,8 @@ inversion inversion(point C, real k)
 /*<asyxml><function type="inversion[]" signature="inversion(circle,circle,real)"><code></asyxml>*/
 inversion[] inversion(circle c1, circle c2, real sgn = 1)
 {/*<asyxml></code><documentation>Return the inversions which transform 'c1' to
-   . 'c2' and positive inversion radius if 'sgn > 0';
-   . 'c2' and negative inversion radius if 'sgn < 0';
+   . 'c2' and positive inversion power if 'sgn > 0';
+   . 'c2' and negative inversion power if 'sgn < 0';
    . 'c1' and 'c2' to 'c2' if 'sgn = 0'.</documentation></function></asyxml>*/
   if(sgn == 0) {
     point O = radicalcenter(c1, c2);
