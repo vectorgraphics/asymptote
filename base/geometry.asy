@@ -6380,8 +6380,8 @@ inversion[] inversion(circle c1, circle c2, real sgn = 1)
 /*<asyxml><function type="inversion" signature="inversion(circle,circle,circle)"><code></asyxml>*/
 inversion inversion(circle c1, circle c2, circle c3)
 {/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to 'c1', 'c2' to 'c2' and 'c3' to 'c3'.</documentation></function></asyxml>*/
-  point Rc = radicalcenter(c1, c2, c3);
-  return inversion(Rc, Rc^c1);
+  point O = radicalcenter(c1, c2, c3);
+  return inversion(O^c1, O);
 }
 
 circle operator cast(inversion i){return circle(i.C, sgn(i.k) * sqrt(abs(i.k)));}
