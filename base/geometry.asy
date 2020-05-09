@@ -6312,6 +6312,7 @@ point inverse(real k, point C, point P)
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
   if (c1.C == c2.C) abort("radicalcenter: the centers must be distinct");
   point[] P = standardizecoordsys(c1.C, c2.C);
   coordsys R = P[0].coordsys;
@@ -6326,6 +6327,7 @@ point radicalcenter(circle c1, circle c2)
 /*<asyxml><function type="line" signature="radicalline(circle,circle)"><code></asyxml>*/
 line radicalline(circle c1, circle c2)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
   if (c1.C == c2.C) abort("radicalline: the centers must be distinct");
   return perpendicular(radicalcenter(c1, c2), line(c1.C, c2.C));
 }
@@ -6333,6 +6335,7 @@ line radicalline(circle c1, circle c2)
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2, circle c3)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
   return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3));
 }
 
