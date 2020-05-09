@@ -6318,12 +6318,12 @@ point radicalcenter(circle c1, circle c2, bool abort=true)
    having the same power of a point with respect to both circles).</documentation></function></asyxml>*/
   // TODO Consider degenerate circle(s)
   if (c1.C == c2.C) {
-    if (c1.r == c2.r && !abort) {
+    if (abs(c1.r) == abs(c2.r) && !abort) {
       warning("radicalcenter", "The common center is returned as the most convenient point
 for two circles which are both concentric and congruent.");
       return c1.C;
     }
-    abort("radicalcenter: circles are concentric" + ((c1.r == c2.r) ? " and congruent" : ""));
+    abort("radicalcenter: circles are concentric" + ((abs(c1.r) == abs(c2.r)) ? " and congruent" : ""));
   }
   point[] P = standardizecoordsys(c1.C, c2.C);
   coordsys R = P[0].coordsys;
