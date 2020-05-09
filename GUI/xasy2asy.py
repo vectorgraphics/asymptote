@@ -1553,7 +1553,7 @@ class xasyScript(xasyItem):
         """
         super().asyfy()
 
-        # Id --> Transf --> asy-fied --> Transf
+        # Id --> Transf --> asyfied --> Transf
         # Transf should keep the original, raw transformation
         # but for all new drawn objects - assign Id as transform.
 
@@ -1620,7 +1620,7 @@ class xasyScript(xasyItem):
         retVal = "xasyScript\n\tTransforms:\n"
         for xform in self.transform:
             retVal += "\t" + str(xform) + "\n"
-        retVal += "\tCode Ommitted"
+        retVal += "\tCode Omitted"
         return retVal
 
 
