@@ -3164,7 +3164,6 @@ circle circle(explicit point C, real r)
 /*<asyxml><function type="circle" signature="circle(point,point)"><code></asyxml>*/
 circle circle(point A, point B)
 {/*<asyxml></code><documentation>Return the circle of diameter AB.</documentation></function></asyxml>*/
-  real r;
   circle oc;
   real a = abs(A), b = abs(B);
   if(finite(a) && finite(b)) {
