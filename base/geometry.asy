@@ -6309,11 +6309,22 @@ point inverse(real k, point C, point P)
   return C + k/conj(P - C);
 }
 
-/*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
-point radicalcenter(circle c1, circle c2)
-{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+/*<asyxml><function type="point" signature="radicalcenter(circle,circle,bool)"><code></asyxml>*/
+point radicalcenter(circle c1, circle c2, bool abort=true)
+{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/>
+   If 'abort' is 'true' and the circles are concentric, execution will be aborted.
+   If 'abort' is 'false' and the circles are both concentric and congruent, a warning is sent
+   but the common center is returned (as the most convenient point among infinitely many points in the plane
+   having the same power of a point with respect to both circles).</documentation></function></asyxml>*/
   // TODO Consider degenerate circle(s)
-  if (c1.C == c2.C) abort("radicalcenter: the centers must be distinct");
+  if (c1.C == c2.C) {
+    if (c1.r == c2.r && !abort) {
+      warning("radicalcenter", "The common center is returned as the most convenient point
+for two circles which are both concentric and congruent.");
+      return c1.C;
+    }
+    abort("radicalcenter: circles are concentric" + ((c1.r == c2.r) ? " and congruent" : ""));
+  }
   point[] P = standardizecoordsys(c1.C, c2.C);
   coordsys R = P[0].coordsys;
   pair C1 = locate(c1.C);
