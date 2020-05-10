@@ -6308,6 +6308,10 @@ point inverse(real k, point C, point P)
 {/*<asyxml></code><documentation>Return the inverse point of 'P' with respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
   if (k == 0 || !finite(k)) abort("inverse: inversion power must be non-zero and finite");
   if (!finite(C)) abort("inverse: inversion center must be finite");
+  point[] p = standardizecoordsys(C, P);
+  coordsys R = p[0].coordsys;
+  if (p[1] == p[0]) return point(R, (infinity, infinity));
+  if (!finite(p[1])) return C;
   return C + k/conj(P - C);
 }
 
