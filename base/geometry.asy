@@ -6341,11 +6341,22 @@ for two circles which are both concentric and congruent.");
   return point(R, K/R);
 }
 
-/*<asyxml><function type="line" signature="radicalline(circle,circle)"><code></asyxml>*/
-line radicalline(circle c1, circle c2)
-{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+/*<asyxml><function type="line" signature="radicalline(circle,circle,bool)"><code></asyxml>*/
+line radicalline(circle c1, circle c2, bool abort=true)
+{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/>
+   If 'abort' is 'true' and the circles are concentric, execution will be aborted.
+   If 'abort' is 'false' and the circles are both concentric and congruent, a warning is sent
+   but the line through the common center in direction '(1, 0)' is returned (as the most convenient one
+   among infinitely many).</documentation></function></asyxml>*/
   // TODO Consider degenerate circle(s)
-  if (c1.C == c2.C) abort("radicalline: the centers must be distinct");
+  if (c1.C == c2.C) {
+    if (abs(c1.r) == abs(c2.r) && !abort) {
+      warning("radicalline", "The line through the common center in direction '(1, 0)' is returned as the most convenient line
+for two circles which are both concentric and congruent.");
+      return line(c1.C, c1.C + vector(c1.C.coordsys, (1, 0)));
+    }
+    abort("radicalline: circles are concentric" + ((abs(c1.r) == abs(c2.r)) ? " and congruent" : ""));
+  }
   return perpendicular(radicalcenter(c1, c2), line(c1.C, c2.C));
 }
 
