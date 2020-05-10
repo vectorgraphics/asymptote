@@ -6354,25 +6354,24 @@ point radicalcenter(circle c1, circle c2, circle c3)
 struct inversion
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/Inversion.html"/></documentation></asyxml>*/
   /*<asyxml><property type="real" signature="k"><code></asyxml>*/
-  real k;/*<asyxml></code><documentation>Inversion power</documentation></property></asyxml>*/
+  restricted real k;/*<asyxml></code><documentation>Inversion power</documentation></property></asyxml>*/
   /*<asyxml><property type="point" signature="C"><code></asyxml>*/
-  point C;/*<asyxml></code><documentation>Inversion center</documentation></property></asyxml>*/
+  restricted point C;/*<asyxml></code><documentation>Inversion center</documentation></property></asyxml>*/
+
+  /*<asyxml><method type="void" signature="operator init(real,point)"><code></asyxml>*/
+  void operator init(real k, point C)
+  {/*<asyxml></code><documentation>Initialize the inversion with respect to 'C' having inversion power 'k'.</documentation></method></asyxml>*/
+    this.k = k;
+    this.C = C;
+  }
+
+  /*<asyxml><method type="void" signature="operator init(point,real)"><code></asyxml>*/
+  void operator init(point C, real k)
+  {/*<asyxml></code><documentation>Initialize the inversion with respect to 'C' having inversion power 'k'.</documentation></method></asyxml>*/
+    this.k = k;
+    this.C = C;
+  }
 }/*<asyxml></struct></asyxml>*/
-
-/*<asyxml><function type="inversion" signature="inversion(real,point)"><code></asyxml>*/
-inversion inversion(real k, point C)
-{/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion power 'k'.</documentation></function></asyxml>*/
-  inversion oi;
-  oi.k = k;
-  oi.C = C;
-  return oi;
-}
-
-/*<asyxml><function type="inversion" signature="inversion(point,real)"><code></asyxml>*/
-inversion inversion(point C, real k)
-{/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion power 'k'.</documentation></function></asyxml>*/
-  return inversion(k, C);
-}
 
 /*<asyxml><function type="inversion[]" signature="inversion(circle,circle,real)"><code></asyxml>*/
 inversion[] inversion(circle c1, circle c2, real sgn = 1)
