@@ -6306,6 +6306,8 @@ void dot(picture pic = currentpicture, triangle t, pen p = currentpen)
 /*<asyxml><function type="point" signature="inverse(real,point,point)"><code></asyxml>*/
 point inverse(real k, point C, point P)
 {/*<asyxml></code><documentation>Return the inverse point of 'P' with respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if (k == 0 || !finite(k)) abort("inverse: inversion power must be non-zero and finite");
+  if (!finite(C)) abort("inverse: inversion center must be finite");
   return C + k/conj(P - C);
 }
 
@@ -6354,13 +6356,15 @@ point radicalcenter(circle c1, circle c2, circle c3)
 struct inversion
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/Inversion.html"/></documentation></asyxml>*/
   /*<asyxml><property type="real" signature="k"><code></asyxml>*/
-  restricted real k;/*<asyxml></code><documentation>Inversion power</documentation></property></asyxml>*/
+  restricted real k = 1;/*<asyxml></code><documentation>Inversion power</documentation></property></asyxml>*/
   /*<asyxml><property type="point" signature="C"><code></asyxml>*/
   restricted point C;/*<asyxml></code><documentation>Inversion center</documentation></property></asyxml>*/
 
   /*<asyxml><method type="void" signature="operator init(real,point)"><code></asyxml>*/
   void operator init(real k, point C)
   {/*<asyxml></code><documentation>Initialize the inversion with respect to 'C' having inversion power 'k'.</documentation></method></asyxml>*/
+    if (k == 0 || !finite(k)) abort("inversion: inversion power must be non-zero and finite");
+    if (!finite(C)) abort("inversion: inversion center must be finite");
     this.k = k;
     this.C = C;
   }
@@ -6368,6 +6372,8 @@ struct inversion
   /*<asyxml><method type="void" signature="operator init(point,real)"><code></asyxml>*/
   void operator init(point C, real k)
   {/*<asyxml></code><documentation>Initialize the inversion with respect to 'C' having inversion power 'k'.</documentation></method></asyxml>*/
+    if (k == 0 || !finite(k)) abort("inversion: inversion power must be non-zero and finite");
+    if (!finite(C)) abort("inversion: inversion center must be finite");
     this.k = k;
     this.C = C;
   }
