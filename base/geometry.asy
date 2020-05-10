@@ -6353,8 +6353,10 @@ point radicalcenter(circle c1, circle c2, circle c3)
 /*<asyxml><struct signature="inversion"><code></asyxml>*/
 struct inversion
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/Inversion.html"/></documentation></asyxml>*/
-  real k;
-  point C;
+  /*<asyxml><property type="real" signature="k"><code></asyxml>*/
+  real k;/*<asyxml></code><documentation>Inversion power</documentation></property></asyxml>*/
+  /*<asyxml><property type="point" signature="C"><code></asyxml>*/
+  point C;/*<asyxml></code><documentation>Inversion center</documentation></property></asyxml>*/
 }/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="inversion" signature="inversion(real,point)"><code></asyxml>*/
