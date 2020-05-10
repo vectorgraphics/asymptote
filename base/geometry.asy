@@ -6324,12 +6324,13 @@ point radicalcenter(circle c1, circle c2, bool abort=true)
    having the same power of a point with respect to both circles).</documentation></function></asyxml>*/
   // TODO Consider degenerate circle(s)
   if (c1.C == c2.C) {
-    if (abs(c1.r) == abs(c2.r) && !abort) {
+    bool congruent = abs(c1.r) == abs(c2.r);
+    if (congruent && !abort) {
       warning("radicalcenter", "The common center is returned as the most convenient point
 for two circles which are both concentric and congruent.");
       return c1.C;
     }
-    abort("radicalcenter: circles are concentric" + ((abs(c1.r) == abs(c2.r)) ? " and congruent" : ""));
+    abort("radicalcenter: circles are concentric" + (congruent ? " and congruent" : ""));
   }
   point[] P = standardizecoordsys(c1.C, c2.C);
   coordsys R = P[0].coordsys;
@@ -6350,12 +6351,13 @@ line radicalline(circle c1, circle c2, bool abort=true)
    among infinitely many).</documentation></function></asyxml>*/
   // TODO Consider degenerate circle(s)
   if (c1.C == c2.C) {
-    if (abs(c1.r) == abs(c2.r) && !abort) {
+    bool congruent = abs(c1.r) == abs(c2.r);
+    if (congruent && !abort) {
       warning("radicalline", "The line through the common center in direction '(1, 0)' is returned as the most convenient line
 for two circles which are both concentric and congruent.");
       return line(c1.C, c1.C + vector(c1.C.coordsys, (1, 0)));
     }
-    abort("radicalline: circles are concentric" + ((abs(c1.r) == abs(c2.r)) ? " and congruent" : ""));
+    abort("radicalline: circles are concentric" + (congruent ? " and congruent" : ""));
   }
   return perpendicular(radicalcenter(c1, c2), line(c1.C, c2.C));
 }
