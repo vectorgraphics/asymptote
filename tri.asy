@@ -1,6 +1,8 @@
 import three;
 import math;
 
+currentlight=nolight;
+
 /*
 
 currentprojection=orthographic(5,4,2);
@@ -412,8 +414,8 @@ while(true) {
 
   write(currentprojection.camera);
   erase();
-  draw(surface(t0--a--b--cycle),red);//),blue+opacity(0.5));
-  draw(surface(T0--T1--T2--cycle),blue);//),blue+opacity(0.5));
+  draw(surface(t0--a--b--cycle),red+opacity(0.8));
+  draw(surface(T0--T1--T2--cycle),blue+opacity(0.8));
   if(intersect(a,b,t0,T0,T1,T2,currentprojection)) {
     write(front(a,b,t0,T0,T1,T2));
     shipout();
