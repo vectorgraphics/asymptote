@@ -6366,6 +6366,30 @@ for two circles which are both concentric and congruent.");
 point radicalcenter(circle c1, circle c2, circle c3)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
   // TODO Consider degenerate circle(s)
+
+  /* Pseudocode:
+     - Introduce optional argument bool abort=true
+     - Remove duplicate circles from the set { c1, c2, c3 } considering two circles ci and cj to be equal
+       if ci.C == cj.C and abs(ci.r) == abs(cj.r)
+     - If there is only one unique circle c1', there are infinitely many points in the plane having
+       the same power of a point with respect to all circles:
+         if !abort: warn and return the common center as the most convenient point
+         otherwise: abort (there is no unique point)
+         (It seems that calling radicalcenter(c1', c1', abort) will do.)
+     - If there are two unique circles c1' and c2':
+         if concentric (hence non-congruent): abort (there is no point at all)
+         otherwise: there are infinitely many points in the plane having the same power of a point with respect to all circles
+           if !abort: warn and return radicalcenter(c1', c2') as the most convenient point  (the value of the optional argument is not relevant here)
+           otherwise: abort (there is no unique point)
+     - If all circles are pairwise distinct:
+         if any two concentric (hence non-congruent): abort (there is no point at all)
+         otherwise:
+           if centers are collinear: (there is either none or infinitely many points)
+             check if radicalcenter(ci, cj) for all three pairs returns one unique point  (the value of the optional argument is not relevant here)
+             if yes and !abort: warn and return that point as the most convenient point
+             otherwise: abort (there is no point at all)
+           otherwise: return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3))
+  */
   return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3));
 }
 
