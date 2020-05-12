@@ -1979,6 +1979,7 @@ void drawColor()
 void drawTriangle()
 {
   drawBuffer(triangleData,transparentShader);
+  triangleData.rendered=false; // Force copying of sorted triangles to GPU.
   triangleData.clear();
 }
 
@@ -1987,6 +1988,7 @@ void drawTransparent()
   sortTriangles();
   glDepthMask(GL_FALSE); // Enable transparency
   drawBuffer(transparentData,transparentShader);
+  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
   glDepthMask(GL_TRUE); // Disable transparency
   transparentData.clear();
 }
