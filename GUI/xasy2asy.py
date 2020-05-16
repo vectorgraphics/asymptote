@@ -775,8 +775,8 @@ class xasyItem(Qc.QObject):
         worker = threading.Thread(target=self.asyfyThread, args=[])
         worker.start()
         item = self.imageHandleQueue.get()
-        cwd=os.getcwd();
-        os.chdir(self.asyengine.tempDirName)
+        #cwd=os.getcwd();
+        #os.chdir(self.asyengine.tempDirName)
         while item != (None,) and item[0] != "ERROR":
             if item[0] == "OUTPUT":
                 print(item[1])
@@ -792,7 +792,7 @@ class xasyItem(Qc.QObject):
                         pass
             item = self.imageHandleQueue.get()
         # self.imageHandleQueue.task_done()
-        os.chdir(cwd);
+        #os.chdir(cwd);
 
         worker.join()
 
