@@ -712,6 +712,7 @@ class xasyItem(Qc.QObject):
     def handleImageReception(self, file, fileformat, bbox, count, key=None, localCount=0, containsClip=False):
         """Receive an image from an asy deconstruction. It replaces the default n asyProcess."""
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
+        print(file)
         if fileformat == 'png':
             image = Qg.QImage(file)
         elif fileformat == 'svg':
