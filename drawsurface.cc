@@ -31,6 +31,7 @@ size_t drawElement::lastcenterIndex=0;
 const triple drawElement::zero;
 
 using vm::array;
+using settings::getSetting;
 
 #ifdef HAVE_LIBGLM
 
@@ -232,11 +233,13 @@ bool drawBezierPatch::write(jsfile *out)
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
+  out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addPatch(Controls,4,Min,Max,colors,4);
   } else
     out->addPatch(controls,16,Min,Max,colors,4);
+  out->precision(getSetting<Int>("digits"));
                     
 #endif  
   return true;
@@ -474,11 +477,13 @@ bool drawBezierTriangle::write(jsfile *out)
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
+  out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addPatch(Controls,3,Min,Max,colors,3);
   } else
     out->addPatch(controls,10,Min,Max,colors,3);
+  out->precision(getSetting<Int>("digits"));
                     
 #endif  
   return true;

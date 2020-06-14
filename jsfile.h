@@ -16,6 +16,8 @@ public:
   jsfile() {}
   ~jsfile();
   
+  void precision(int digits) {out.precision(digits);}
+
   void open(string name);
   void copy(string name);
   

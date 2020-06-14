@@ -1374,6 +1374,10 @@ void draw3D(frame f, patch s, triple center=O, material m,
             bool primitive=false)
 {
   bool straight=s.straight && s.planar;
+
+  // Planar Bezier surfaces require extra precision in WebGL
+  int digits=s.planar && !straight ? 12 : settings.digits;
+
   if(s.colors.length > 0) {
     if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
@@ -1383,7 +1387,7 @@ void draw3D(frame f, patch s, triple center=O, material m,
   
   (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,center,straight,m.p,m.opacity,m.shininess,
-     m.metallic,m.fresnel0,s.colors,interaction.type,primitive);
+     m.metallic,m.fresnel0,s.colors,interaction.type,digits,primitive);
 }
 
 void _draw(frame f, path3 g, triple center=O, material m,

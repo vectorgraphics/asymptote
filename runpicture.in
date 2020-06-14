@@ -616,25 +616,26 @@ void _draw(picture *f, path3 g, triple center=Zero, penarray *p,
 // Bezier patch
 void draw(picture *f, triplearray2 *P, triple center, bool straight,
           penarray *p, real opacity, real shininess, real metallic,
-          real fresnel0, penarray *colors, Int interaction,
+          real fresnel0, penarray *colors, Int interaction, Int digits,
           bool primitive=false)
 {
   f->append(new drawBezierPatch(*P,center,straight,*p,opacity,shininess,
                                 metallic,fresnel0,*colors,
-                                (Interaction) intcast(interaction),primitive));
+                                (Interaction) intcast(interaction),
+                                digits,primitive));
 }
 
 // Bezier triangle
 void drawbeziertriangle(picture *f, triplearray2 *P, triple center,
                         bool straight, penarray *p, real opacity,
                         real shininess, real metallic, real fresnel0,
-                        penarray *colors, Int interaction,
+                        penarray *colors, Int interaction, Int digits,
                         bool primitive=false)
 {
   f->append(new drawBezierTriangle(*P,center,straight,*p,opacity,shininess,
                                    metallic,fresnel0,*colors,
                                    (Interaction) intcast(interaction),
-                                   primitive));
+                                   digits,primitive));
 }
 
 // General NURBS curve

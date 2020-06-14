@@ -45,6 +45,7 @@ protected:
   size_t centerIndex;  
   
   triple Min,Max;
+  int digits;
   bool primitive;
   
 public:
@@ -67,11 +68,12 @@ public:
   drawSurface(const vm::array& g, size_t ncontrols, triple center,
               bool straight, const vm::array&p, double opacity,
               double shininess, double metallic, double fresnel0,
-              const vm::array &pens, Interaction interaction,
+              const vm::array &pens, Interaction interaction, int digits,
               bool primitive=true, const string& key="") :
     drawElement(key), ncontrols(ncontrols), center(center), straight(straight),
     opacity(opacity), shininess(shininess), metallic(metallic),
-    fresnel0(fresnel0), interaction(interaction), primitive(primitive) {
+    fresnel0(fresnel0), interaction(interaction), digits(digits),
+    primitive(primitive) {
     init();
     if(checkArray(&g) != 4 || checkArray(&p) != 3)
       reportError(wrongsize());
@@ -109,7 +111,7 @@ public:
     diffuse(s->diffuse), emissive(s->emissive), specular(s->specular),
     colors(s->colors), opacity(s->opacity), shininess(s->shininess),
     metallic(s->metallic), fresnel0(s->fresnel0), invisible(s->invisible),
-    interaction(s->interaction), primitive(s->primitive) {
+    interaction(s->interaction), digits(s->digits), primitive(s->primitive) {
     init();
     if(s->controls) {
       controls=new(UseGC) triple[ncontrols];
@@ -134,9 +136,9 @@ public:
   drawBezierPatch(const vm::array& g, triple center, bool straight,
               const vm::array&p, double opacity, double shininess,
               double metallic, double fresnel0, const vm::array &pens,
-                  Interaction interaction, bool primitive) :
+                  Interaction interaction, int digits, bool primitive) :
     drawSurface(g,16,center,straight,p,opacity,shininess,metallic,fresnel0,
-                pens,interaction,primitive) {}
+                pens,interaction,digits,primitive) {}
 
   drawBezierPatch(const double* t, const drawBezierPatch *s) :
     drawSurface(t,s) {}
@@ -168,9 +170,9 @@ public:
   drawBezierTriangle(const vm::array& g, triple center, bool straight,
                      const vm::array&p, double opacity, double shininess,
                      double metallic, double fresnel0, const vm::array &pens,
-                     Interaction interaction, bool primitive) :
+                     Interaction interaction, int digits, bool primitive) :
     drawSurface(g,10,center,straight,p,opacity,shininess,metallic,fresnel0,
-                pens,interaction,primitive) {}
+                pens,interaction,digits,primitive) {}
   
   drawBezierTriangle(const double* t, const drawBezierTriangle *s) :
     drawSurface(t,s) {}
