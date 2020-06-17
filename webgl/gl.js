@@ -2593,8 +2593,6 @@ function setViewport()
 
 function setCanvas()
 {
-  canvas.width=canvasWidth;
-  canvas.height=canvasHeight;
   if(embedded) {
     offscreen.width=canvasWidth;
     offscreen.height=canvasHeight;
@@ -2645,21 +2643,20 @@ function webGLInit()
   if(absolute && !embedded) {
     canvasWidth *= window.devicePixelRatio;
     canvasHeight *= window.devicePixelRatio;
+    canvas.width=canvasWidth;
+    canvas.height=canvasHeight;
   } else {
-    canvas.width=Math.max(window.innerWidth-windowTrim,windowTrim);
-    canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
-
     let Aspect=canvasWidth/canvasHeight;
-    if(canvas.width > canvas.height*Aspect)
-      canvas.width=Math.min(canvas.height*Aspect,canvas.width);
+
+    canvasWidth=canvas.width=Math.max(window.innerWidth-windowTrim,
+                                      windowTrim);
+    canvasHeight=canvas.height=Math.max(window.innerHeight-windowTrim,
+                                        windowTrim);
+
+    if(canvasWidth > canvasHeight*Aspect)
+      canvasWidth=canvasHeight*Aspect;
     else
-      canvas.height=Math.min(canvas.width/Aspect,canvas.height);
-
-    if(canvas.width > 0) 
-      canvasWidth=canvas.width;
-
-    if(canvas.height > 0) 
-      canvasHeight=canvas.height;
+      canvasHeight=canvasWidth/Aspect;
   }
 
   setCanvas();
