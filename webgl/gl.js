@@ -2585,8 +2585,10 @@ function setViewport()
 {
   gl.viewportWidth=canvasWidth;
   gl.viewportHeight=canvasHeight;
-  gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
-  gl.scissor(0,0,gl.viewportWidth,gl.viewportHeight);
+  gl.viewport(0.5*(canvas.width-canvasWidth),
+              0.5*(canvas.height-canvasHeight),
+              gl.viewportWidth,gl.viewportHeight);
+  gl.scissor(0,0,canvas.width,canvas.height);
 }
 
 function setCanvas()
@@ -2646,12 +2648,6 @@ function webGLInit()
   } else {
     canvas.width=Math.max(window.innerWidth-windowTrim,windowTrim);
     canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
-
-    let Aspect=canvasWidth/canvasHeight;
-    if(canvas.width > canvas.height*Aspect) 
-      canvas.width=Math.min(canvas.height*Aspect,canvas.width);
-    else 
-      canvas.height=Math.min(canvas.width/Aspect,canvas.height);
 
     if(canvas.width > 0) 
       canvasWidth=canvas.width;
