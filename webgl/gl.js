@@ -2497,8 +2497,8 @@ function drawBuffers()
 function draw()
 {
   if(embedded) {
-    offscreen.width=canvas.width;
-    offscreen.height=canvas.height;
+    offscreen.width=canvasWidth;
+    offscreen.height=canvasHeight;
     setViewport();
   }
 
@@ -2511,7 +2511,7 @@ function draw()
   drawBuffers();
 
   if(embedded) {
-    context.clearRect(0,0,canvas.width,canvas.height);
+    context.clearRect(0,0,canvasWidth,canvasHeight);
     context.drawImage(offscreen,0,0);
   }
 
@@ -2585,10 +2585,8 @@ function setViewport()
 {
   gl.viewportWidth=canvasWidth;
   gl.viewportHeight=canvasHeight;
-  gl.viewport(0.5*(canvas.width-canvasWidth),
-              0.5*(canvas.height-canvasHeight),
-              gl.viewportWidth,gl.viewportHeight);
-  gl.scissor(0,0,canvas.width,canvas.height);
+  gl.viewport(0,0,canvasWidth,canvasHeight);
+  gl.scissor(0,0,canvasWidth,canvasHeight);
 }
 
 function setCanvas()
@@ -2643,21 +2641,17 @@ function webGLInit()
   if(absolute && !embedded) {
     canvasWidth *= window.devicePixelRatio;
     canvasHeight *= window.devicePixelRatio;
-    canvas.width=canvasWidth;
-    canvas.height=canvasHeight;
   } else {
     let Aspect=canvasWidth/canvasHeight;
+    canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
+    canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
-    canvasWidth=canvas.width=Math.max(window.innerWidth-windowTrim,
-                                      windowTrim);
-    canvasHeight=canvas.height=Math.max(window.innerHeight-windowTrim,
-                                        windowTrim);
-
-    if(canvasWidth > canvasHeight*Aspect)
-      canvasWidth=canvasHeight*Aspect;
-    else
-      canvasHeight=canvasWidth/Aspect;
+    if(!orthographic && canvasWidth < canvasHeight*Aspect)
+      Zoom0 *= canvasWidth/(canvasHeight*Aspect);
   }
+
+  canvas.width=canvasWidth;
+  canvas.height=canvasHeight;
 
   setCanvas();
 
