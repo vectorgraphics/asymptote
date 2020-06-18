@@ -2585,19 +2585,20 @@ function setViewport()
 {
   gl.viewportWidth=canvasWidth;
   gl.viewportHeight=canvasHeight;
-  gl.viewport(0,0,canvasWidth,canvasHeight);
-  gl.scissor(0,0,canvasWidth,canvasHeight);
+  gl.viewport(0.5*(canvas.width-canvasWidth),0.5*(canvas.height-canvasHeight),
+              canvasWidth,canvasHeight);
+  gl.scissor(0,0,canvas.width,canvas.height);
 }
 
 function setCanvas()
 {
   if(embedded) {
-    offscreen.width=canvasWidth;
-    offscreen.height=canvasHeight;
+    canvas.width=offscreen.width=canvasWidth;
+    canvas.height=offscreen.height=canvasHeight;
   }
   size2=Math.hypot(canvasWidth,canvasHeight);
-  halfCanvasWidth=0.5*canvasWidth;
-  halfCanvasHeight=0.5*canvasHeight;
+  halfCanvasWidth=0.5*canvas.width;
+  halfCanvasHeight=0.5*canvas.height;
 }
 
 function setsize(w,h)
