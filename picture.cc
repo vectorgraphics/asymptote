@@ -914,8 +914,19 @@ bool picture::shipout(picture *preamble, const string& Prefix,
                       const string& format, bool wait, bool view)
 {
   b=bounds();
+  bool empty=b.empty;
+
+  string outputformat=format.empty() ? defaultformat() : format;
+  bool svgformat=outputformat == "svg";
   
   string texengine=getSetting<string>("tex");
+  string texengineSave;
+
+  if(!empty && svgformat && texengine == "latex" && havepng()) {
+      texengineSave=texengine;
+      Setting("tex")=texengine="pdflatex";
+  }
+
   bool usetex=texengine != "none";
   bool TeXmode=getSetting<bool>("inlinetex") && usetex;
   bool pdf=settings::pdf(texengine);
@@ -924,10 +935,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string prefix=standardout ? standardprefix : stripExt(Prefix);
 
   string preformat=nativeformat();
-  string outputformat=format.empty() ? defaultformat() : format;
   bool epsformat=outputformat == "eps";
   bool pdfformat=pdf || outputformat == "pdf";
-  bool svgformat=outputformat == "svg";
   bool dvi=false;
   bool svg=svgformat && usetex &&
     (!have3D() || getSetting<double>("render") == 0.0);
@@ -935,14 +944,13 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(pdf) epsformat=true;
     else dvi=true;
   }
-  
+
   string outname=Outname(prefix,outputformat,standardout);
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
   
   bool Labels=labels || TeXmode;
   
-  bool empty=b.empty;
   if(outputformat == "png" && (b.right-b.left < 1.0 || b.top-b.bottom < 1.0))
     empty=true;
 
@@ -1205,6 +1213,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   if(!status) reportError("shipout failed");
     
+  if(!texengineSave.empty()) Setting("tex")=texengineSave;
   return true;
 }
 
