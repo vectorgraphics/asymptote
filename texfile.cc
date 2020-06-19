@@ -342,6 +342,8 @@ void svgtexfile::beginspecial()
     
 void svgtexfile::endspecial()
 {
+  if(!inspecial)
+    reportError("endspecial without matching beginspecial");
   inspecial=false;
   *out << "}\\catcode`\\#=6%" << newl;
   out->setf(std::ios::fixed);

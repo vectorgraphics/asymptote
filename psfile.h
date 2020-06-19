@@ -287,9 +287,6 @@ public:
   virtual void gouraudshade(const pen& pentype, const vm::array& pens,
                             const vm::array& vertices, const vm::array& edges);
   
-  virtual void begintensorshade(const vm::array& pens,
-                                const vm::array& boundaries,
-                                const vm::array& z) {}
   virtual void tensorshade(const pen& pentype, const vm::array& pens,
                            const vm::array& boundaries, const vm::array& z);
   

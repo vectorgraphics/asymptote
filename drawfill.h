@@ -204,7 +204,6 @@ public:
 class drawTensorShade : public drawShade {
 protected:
   vm::array pens,boundaries,z;
-  bool compact;
 public:  
   drawTensorShade(const vm::array& src, bool stroke,
                   pen pentype, const vm::array& pens,
@@ -212,16 +211,15 @@ public:
                   const string& key="") : 
     drawShade(src,stroke,pentype,key), pens(pens), boundaries(boundaries),
     z(z) {
-    compact=boundaries == src;
   }
   
+  bool svgpng() {return true;}
+
   void palette(psfile *out) {
     out->gsave();
   }
   
-  void beginshade(psfile *out) {
-    out->begintensorshade(pens,boundaries,z);
-  }
+  void beginshade(psfile *out) {}
   
   void shade(psfile *out) {
     out->tensorshade(pentype,pens,boundaries,z);
