@@ -82,6 +82,9 @@ public:
                    const string& outputformat, bool wait, bool view,
                    bool pdftex, bool epsformat, bool svg);
     
+  bool display(const string& outname, const string& outputformat,
+               bool wait, bool view, bool epsformat);
+
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
                const string& format, bool wait=false, bool view=true);

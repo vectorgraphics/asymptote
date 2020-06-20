@@ -10,17 +10,23 @@ using namespace settings;
 
 namespace camp {
 
-void jsfile::copy(string name) {
+void jsfile::copy(string name, bool header)
+{
   std::ifstream fin(locateFile(name).c_str());
   string s;
+  if(header) getline(fin,s);
   while(getline(fin,s))
     out << s << newl;
 }
 
-void jsfile::open(string name) {
+void jsfile::header(string name)
+{
   out.open(name);
   out << "<!DOCTYPE html>" << newl << newl;
-    
+}
+
+void jsfile::comment(string name)
+{
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<iframe src=\"" << name
@@ -29,16 +35,49 @@ void jsfile::open(string name) {
       << "\" frameborder=\"0\"></iframe>" << newl
       << newl
       << "-->" << newl << newl;
+}
 
-  out.precision(getSetting<Int>("digits"));
+void jsfile::meta(string name, bool scalable)
+{
   out << "<html lang=\"\">" << newl
       << newl
       << "<head>" << newl
       << "<title>" << stripExt(name) << "</title>" << newl
       << newl
-      << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl
-      << "<meta name=\"viewport\" content=\"user-scalable=no\"/>" << newl
+      << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl;
+  if(scalable)
+    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>";
+  else
+    out << "<meta name=\"viewport\" content=\"user-scalable=no\"/>";
+  out << newl << newl;
+}
+
+void jsfile::footer(string name)
+{
+  out << newl << "</body>"
+      << newl << newl << "</html>"
       << newl;
+  out.flush();
+  if(verbose > 0)
+    cout << "Wrote " << name << endl;
+}
+
+void jsfile::svgtohtml(string prefix)
+{
+  string name=buildname(prefix,"html");
+  header(name);
+  meta(name);
+  copy(locateFile(auxname(prefix,"svg")),true);
+  footer(name);
+}
+
+void jsfile::open(string name)
+{
+  header(name);
+  comment(name);
+  meta(name,false);
+
+  out.precision(getSetting<Int>("digits"));
   
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
@@ -99,7 +138,8 @@ void jsfile::open(string name) {
   out << "];" << newl << newl;
 }
 
-jsfile::~jsfile() {
+void jsfile::finish(string name)
+{
   size_t ncenters=drawElement::center.size();
   if(ncenters > 0) {
     out << "Centers=[";
@@ -113,10 +153,8 @@ jsfile::~jsfile() {
       << newl << "<canvas id=\"Asymptote\" width=\""
       << gl::fullWidth << "\" height=\"" <<  gl::fullHeight
       << "\" style=\"border: none;\">"
-      << newl << "</canvas>"
-      << newl << "</body>"
-      << newl << newl << "</html>"
-      << newl;
+      << newl << "</canvas>";
+  footer(name);
 }
 
 void jsfile::addColor(const prc::RGBAColour& c) 

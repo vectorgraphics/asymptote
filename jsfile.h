@@ -14,12 +14,20 @@ class jsfile {
   
 public:  
   jsfile() {}
-  ~jsfile();
+  ~jsfile() {}
   
   void precision(int digits) {out.precision(digits);}
 
   void open(string name);
-  void copy(string name);
+  void header(string name);
+  void meta(string name, bool scalable=true);
+  void comment(string name);
+  void finish(string name);
+  void footer(string name);
+
+  void svgtohtml(string name);
+
+  void copy(string name, bool header=false);
   
   void addColor(const prc::RGBAColour& c); 
   void addIndices(const uint32_t *I); 

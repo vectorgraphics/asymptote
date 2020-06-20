@@ -2554,25 +2554,6 @@ private string Format(transform3 t, string sep=" ")
     Format(t[0][3])+sep+Format(t[1][3])+sep+Format(t[2][3]);
 }
 
-void writeJavaScript(string name, string preamble, string script) 
-{
-  file out=output(name);
-  write(out,preamble);
-  if(script != "") {
-    write(out,endl);
-    file in=input(script);
-    while(true) {
-      string line=in;
-      if(eof(in)) break;
-      write(out,line,endl);
-    }
-  }
-  close(out);
-  if(settings.verbose > 1) write("Wrote "+name);
-  if(!settings.inlinetex)
-    file3.push(name);
-}
-
 pair viewportmargin(pair lambda)
 {
   return maxbound(0.5*(viewportsize-lambda),viewportmargin);

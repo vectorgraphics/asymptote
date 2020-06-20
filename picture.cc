@@ -768,7 +768,6 @@ bool picture::postprocess(const string& prename, const string& outname,
                           bool wait, bool view, bool pdftex, 
                           bool epsformat, bool svg)
 {
-  static mem::map<CONST string,int> pids;
   int status=0;
   bool pdf=settings::pdf(getSetting<string>("tex"));
   bool pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
@@ -842,8 +841,21 @@ bool picture::postprocess(const string& prename, const string& outname,
   
   if(verbose > 0)
     cout << "Wrote " << outname << endl;
+
+  return display(outname,outputformat,wait,view,epsformat);
+}
+
+bool picture::display(const string& outname, const string& outputformat,
+                      bool wait, bool view, bool epsformat)
+{
+  int status=0;
+  static mem::map<CONST string,int> pids;
   bool View=settings::view() && view;
+
   if(View) {
+    bool pdf=settings::pdf(getSetting<string>("tex"));
+    bool pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
+
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
       mem::map<CONST string,int>::iterator p=pids.find(outname);
@@ -888,7 +900,7 @@ bool picture::postprocess(const string& prename, const string& outname,
         }
       }
     } else {
-      if(outputformat == "svg")
+      if(outputformat == "svg" || outputformat == "html")
         htmlView(outname);
       else {
         mem::vector<string> cmd;
@@ -905,18 +917,30 @@ bool picture::postprocess(const string& prename, const string& outname,
 }
 
 string Outname(const string& prefix, const string& outputformat,
-               bool standardout)
+               bool standardout, string aux="")
 {
-  return standardout ? "-" : buildname(prefix,outputformat,"");
+  return standardout ? "-" : buildname(prefix,outputformat,aux);
 }
 
 bool picture::shipout(picture *preamble, const string& Prefix,
                       const string& format, bool wait, bool view)
 {
+  bool keep=getSetting<bool>("keep");
+
+  string aux="";
   b=bounds();
   bool empty=b.empty;
 
   string outputformat=format.empty() ? defaultformat() : format;
+
+  bool htmlformat=outputformat == "html";
+  if(htmlformat) {
+    outputformat="svg";
+    aux="_";
+    if(view) view=false;
+    else htmlformat=false;
+  }
+
   bool svgformat=outputformat == "svg";
   
   string texengine=getSetting<string>("tex");
@@ -945,7 +969,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     else dvi=true;
   }
 
-  string outname=Outname(prefix,outputformat,standardout);
+  string outname=Outname(prefix,outputformat,standardout,aux);
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
   
@@ -1155,7 +1179,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       tex->resetpen();
       if(pdf && !b.empty) {
         status=(epstopdf(psname,pdfname) == 0);
-        if(!getSetting<bool>("keep")) unlink(psname.c_str());
+        if(!keep) unlink(psname.c_str());
       }
         
       if(status) {
@@ -1193,7 +1217,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
         status=texprocess(texname,dvi ? outname : prename,prefix,
                           bboxshift,dvi);
         delete tex;
-        if(!getSetting<bool>("keep")) {
+        if(!keep) {
           for(mem::list<string>::iterator p=files.begin(); p != files.end();
               ++p)
             unlink(p->c_str());
@@ -1203,7 +1227,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
         if(context) prename=stripDir(prename);
         status=postprocess(prename,outname,outputformat,wait,
                            view,pdf && Labels,epsformat,svg);
-        if(pdfformat && !getSetting<bool>("keep")) {
+        if(pdfformat && !keep) {
           unlink(auxname(prefix,"m9").c_str());
           unlink(auxname(prefix,"pbsdat").c_str());
         }
@@ -1214,6 +1238,16 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   if(!status) reportError("shipout failed");
     
   if(!texengineSave.empty()) Setting("tex")=texengineSave;
+
+  if(htmlformat) {
+    jsfile out;
+    out.svgtohtml(prefix);
+    string name=buildname(prefix,"html");
+    display(name,"html",wait,true,false);
+    if(!keep)
+      unlink(outname.c_str());
+  }
+
   return true;
 }
 
@@ -1405,8 +1439,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       assert(*p);
       (*p)->write(&js);
     }
-    if(verbose > 0)
-      cout << "Wrote " << name << endl;
+    js.finish(name);
     if(View)
       htmlView(name);
     return true;
