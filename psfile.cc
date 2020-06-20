@@ -211,7 +211,8 @@ void psfile::setopacity(const pen& p)
   }
   
   if(p.opacity() != lastpen.opacity()) {
-    *out << p.opacity() << " .setopacityalpha" << newl;
+    *out << p.opacity() << " .setfillconstantalpha" << newl
+         << p.opacity() << " .setstrokeconstantalpha" << newl;
     transparency=true;
   }
   
