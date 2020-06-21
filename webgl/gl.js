@@ -79,11 +79,6 @@ let viewParam = {
   zmin:0,zmax:0
 };
 
-let positionBuffer;
-let materialBuffer;
-let colorBuffer;
-let indexBuffer;
-
 let remesh=true;
 let wireframe=0;
 let mouseDownOrTouchActive=false;
@@ -156,15 +151,6 @@ function deleteShaders()
   gl.deleteProgram(colorShader);
   gl.deleteProgram(materialShader);
   gl.deleteProgram(pixelShader);
-}
-
-// Create buffers for the patch and its subdivisions.
-function setBuffers()
-{
-  positionBuffer=gl.createBuffer();
-  materialBuffer=gl.createBuffer();
-  colorBuffer=gl.createBuffer();
-  indexBuffer=gl.createBuffer();
 }
 
 function noGL() {
@@ -241,7 +227,6 @@ function initGL()
     initShaders();
   }
 
-  setBuffers();
   indexExt=gl.getExtension("OES_element_index_uint");
 
   TRIANGLES=gl.TRIANGLES;
@@ -280,6 +265,20 @@ function getShader(gl,shaderScript,type,options=[])
   return shader;
 }
 
+function registerBuffer(buffervector,bufferIndex,copy,type=gl.ARRAY_BUFFER)
+{
+  if(buffervector.length > 0) {
+    if(bufferIndex == 0) {
+      bufferIndex=gl.createBuffer();
+      copy=true;
+    }
+    gl.bindBuffer(type,bufferIndex);
+    if(copy)
+      gl.bufferData(type,buffervector,gl.STATIC_DRAW);
+  }
+  return bufferIndex;
+}
+
 function drawBuffer(data,shader,indices=data.indices)
 {
   if(data.indices.length == 0) return;
@@ -288,9 +287,9 @@ function drawBuffer(data,shader,indices=data.indices)
 
   setUniforms(data,shader);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
-                gl.STATIC_DRAW);
+  let copy=remesh || data.partial || !data.rendered;
+  data.verticesBuffer=registerBuffer(new Float32Array(data.vertices),
+                                     data.verticesBuffer,copy);
   gl.vertexAttribPointer(positionAttribute,3,gl.FLOAT,false,
                          normal ? 24 : 16,0);
   if(normal && Lights.length > 0)
@@ -298,22 +297,22 @@ function drawBuffer(data,shader,indices=data.indices)
   else if(pixel)
     gl.vertexAttribPointer(widthAttribute,1,gl.FLOAT,false,16,12);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materialIndices),
-                gl.STATIC_DRAW);
+  data.materialsBuffer=registerBuffer(new Int16Array(data.materialIndices),
+                                      data.materialsBuffer,copy);
   gl.vertexAttribPointer(materialAttribute,1,gl.SHORT,false,2,0);
 
+
   if(shader == colorShader || shader == transparentShader) {
-    gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(data.colors),
-                  gl.STATIC_DRAW);
+    data.colorsBuffer=registerBuffer(new Uint8Array(data.colors),
+                                     data.colorsBuffer,copy);
     gl.vertexAttribPointer(colorAttribute,4,gl.UNSIGNED_BYTE,true,0,0);
   }
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                indexExt ? new Uint32Array(indices) :
-                new Uint16Array(indices),gl.STATIC_DRAW);
+  data.indicesBuffer=registerBuffer(indexExt ? new Uint32Array(indices) :
+                                    new Uint16Array(indices),
+                                    data.indicesBuffer,copy,
+                                    gl.ELEMENT_ARRAY_BUFFER);
+  data.rendered=true;
 
   gl.drawElements(normal ? (wireframe ? gl.LINES : data.type) : gl.POINTS,
                   indices.length,
@@ -325,15 +324,24 @@ let TRIANGLES;
 class vertexBuffer {
   constructor(type) {
     this.type=type ? type : TRIANGLES;
+
+    this.verticesBuffer=0;
+    this.materialsBuffer=0;
+    this.colorsBuffer=0;
+    this.indicesBuffer=0;
+
+    this.rendered=false;     // Are all patches in this buffer fully rendered?
+    this.partial=false;      // Does buffer contain incomplete data?
+
     this.clear();
   }
+
   clear() {
     this.vertices=[];
     this.materialIndices=[];
     this.colors=[];
     this.indices=[];
     this.nvertices=0;
-
     this.materials=[];
     this.materialTable=[];
   }
@@ -422,7 +430,7 @@ function append(a,b)
     a[n+i]=b[i];
 }
 
-// efficiently append array b onto array a
+// efficiently append array b onto array a with offset
 function appendOffset(a,b,o)
 {
   let n=a.length;
@@ -488,8 +496,10 @@ class Geometry {
 
   setMaterial(data,draw) {
     if(data.materialTable[this.MaterialIndex] == null) {
-      if(data.materials.length >= Nmaterials)
+      if(data.materials.length >= Nmaterials) {
+        data.partial=true;
         draw();
+      }
       data.materialTable[this.MaterialIndex]=data.materials.length;
       data.materials.push(Materials[this.MaterialIndex]);
     }
@@ -510,6 +520,7 @@ class Geometry {
 
     if(this.offscreen(v)) { // Fully offscreen
       this.data.clear();
+      this.notRendered();
       return;
     }
 
@@ -517,8 +528,7 @@ class Geometry {
     let P;
 
     if(this.CenterIndex == 0) {
-      if(!remesh && this.Onscreen) {
-        // Fully onscreen; no need to re-render
+      if(!remesh && this.Onscreen) { // Fully onscreen; no need to re-render
         this.append();
         return;
       }
@@ -537,6 +547,7 @@ class Geometry {
     this.Epsilon=FillFactor*res;
     
     this.data.clear();
+    this.notRendered();
     this.Onscreen=true;
     this.process(P);
   }
@@ -763,6 +774,15 @@ class BezierPatch extends Geometry {
       colorData.append(this.data);
     else
       materialData.append(this.data);
+  }
+
+  notRendered() {
+    if(this.transparent)
+      transparentData.rendered=false;
+    else if(this.color)
+      colorData.rendered=false;
+    else
+      materialData.rendered=false;
   }
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
@@ -1683,6 +1703,10 @@ class BezierCurve extends Geometry {
     material1Data.append(this.data);
   }
 
+  notRendered() {
+    material1Data.rendered=false;
+  }
+
   Render(p,I0,I1) {
     let p0=p[0];
     let p1=p[1];
@@ -1746,6 +1770,10 @@ class Pixel extends Geometry {
   
   append() {
     material0Data.append(this.data);
+  }
+
+  notRendered() {
+    material0Data.rendered=false;
   }
 }
 
@@ -1833,6 +1861,14 @@ class Triangles extends Geometry {
     else
       triangleData.append(this.data);
   }
+
+  notRendered() {
+    if(this.transparent)
+      transparentData.rendered=false;
+    else
+      triangleData.rendered=false;
+  }
+
 }
 
 function home()
@@ -2435,6 +2471,7 @@ function drawColor()
 function drawTriangle()
 {
   drawBuffer(triangleData,transparentShader);
+  triangleData.rendered=false; // Force copying of sorted triangles to GPU.
   triangleData.clear();
 }
 
@@ -2479,6 +2516,8 @@ function drawTransparent()
 
     gl.depthMask(false); // Enable transparency
     drawBuffer(transparentData,transparentShader,Indices);
+ // Force copying of sorted triangles to GPU.
+    transparentData.rendered=false;
     gl.depthMask(true); // Disable transparency
   }
   transparentData.clear();
