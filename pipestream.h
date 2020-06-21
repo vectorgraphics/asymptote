@@ -38,22 +38,19 @@ protected:
   bool Running;
   bool pipeopen;
   bool pipein;
-  const char *fatal;
 public:
   
   void open(const mem::vector<string> &command, const char *hint=NULL,
-            const char *application="", const char *fatal="",
-            int out_fileno=STDOUT_FILENO);
+            const char *application="", int out_fileno=STDOUT_FILENO);
 
   bool isopen() {return pipeopen;}
 
   iopipestream(): pid(0), pipeopen(false) {}
 
   iopipestream(const mem::vector<string> &command, const char *hint=NULL,
-               const char *application="", const char *fatal="",
-               int out_fileno=STDOUT_FILENO) :
+               const char *application="", int out_fileno=STDOUT_FILENO) :
     pid(0), pipeopen(false) {
-    open(command,hint,application,fatal,out_fileno);
+    open(command,hint,application,out_fileno);
   }
 
   void eof();

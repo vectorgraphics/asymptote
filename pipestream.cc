@@ -41,8 +41,7 @@ void pipeHandler(int)
 }
   
 void iopipestream::open(const mem::vector<string> &command, const char *hint,
-                        const char *application, const char *Fatal,
-                        int out_fileno)
+                        const char *application, int out_fileno)
 {
   if(pipe(in) == -1) {
     ostringstream buf;
@@ -90,7 +89,6 @@ void iopipestream::open(const mem::vector<string> &command, const char *hint,
   Running=true;
   pipeopen=true;
   pipein=true;
-  fatal=Fatal;
   block(false,true);
 }
 
@@ -184,15 +182,13 @@ void iopipestream::wait(const char *prompt)
 {
   sbuffer.clear();
   size_t plen=strlen(prompt);
-  size_t flen=strlen(fatal);
 
   do {
     readbuffer();
+    if(*buffer == 0) camp::reportError(sbuffer);
     sbuffer.append(buffer);
 
     if(tailequals(sbuffer.c_str(),sbuffer.size(),prompt,plen)) break;
-    if(*fatal && tailequals(sbuffer.c_str(),sbuffer.size(),fatal,flen))
-      camp::reportError(sbuffer);
   } while(true);
 }
 

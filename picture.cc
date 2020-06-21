@@ -371,7 +371,6 @@ void texinit()
   
   mem::vector<string> cmd;
   cmd.push_back(texprogram());
-  string texfatal;
   if(context) {
     cmd.push_back("--pipe");
   } else {
@@ -392,10 +391,9 @@ void texinit()
       }
     }
     cmd.push_back("\\scrollmode");
-    texfatal="Transcript written on "+jobname+".log.\n";
   }
   
-  pd.tex.open(cmd,"texpath",texpathmessage(),Strdup(texfatal));
+  pd.tex.open(cmd,"texpath");
   pd.tex.wait("\n*");
   pd.tex << "\n";
   texdocumentclass(pd.tex,true);
