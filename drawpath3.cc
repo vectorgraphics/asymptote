@@ -21,30 +21,16 @@ using namespace prc;
   
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
-  Int n=g.length();
-  if(n == 0 || invisible)
+  if(invisible)
     return true;
 
   if(straight) {
-    triple *controls=new(UseGC) triple[n+1];
-    for(Int i=0; i <= n; ++i)
-      controls[i]=g.point(i);
-    
-    out->addLine(n+1,controls,diffuse);
+    triple controls[]={g.point((Int) 0),g.point((Int) 1)};
+    out->addLine(2,controls,diffuse);
   } else {
-    int m=3*n+1;
-    triple *controls=new(UseGC) triple[m];
-    controls[0]=g.point((Int) 0);
-    controls[1]=g.postcontrol((Int) 0);
-    size_t k=1;
-    for(Int i=1; i < n; ++i) {
-      controls[++k]=g.precontrol(i);
-      controls[++k]=g.point(i);
-      controls[++k]=g.postcontrol(i);
-    }
-    controls[++k]=g.precontrol(n);
-    controls[++k]=g.point(n);
-    out->addBezierCurve(m,controls,diffuse);
+    triple controls[]={g.point((Int) 0),g.postcontrol((Int) 0),
+                       g.precontrol((Int) 1),g.point((Int) 1)};
+    out->addBezierCurve(4,controls,diffuse);
   }
   
   return true;
@@ -53,8 +39,7 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 bool drawPath3::write(jsfile *out)
 {
 #ifdef HAVE_LIBGLM
-  Int n=g.length();
-  if(n == 0 || invisible)
+  if(invisible)
     return true;
 
   if(billboard) {
@@ -64,13 +49,11 @@ bool drawPath3::write(jsfile *out)
   
   setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
-  for(Int i=0; i < n; ++i) {
-    if(g.straight(i)) {
-      out->addCurve(g.point(i),g.point(i+1),Min,Max);
-    } else
-      out->addCurve(g.point(i),g.postcontrol(i),
-                    g.precontrol(i+1),g.point(i+1),Min,Max);
-  }
+  if(straight)
+    out->addCurve(g.point((Int) 0),g.point((Int) 1),Min,Max);
+  else
+    out->addCurve(g.point((Int) 0),g.postcontrol((Int) 0),
+                  g.precontrol((Int) 1),g.point((Int) 1),Min,Max);
 #endif  
   return true;
 }
@@ -79,8 +62,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh)
 {
 #ifdef HAVE_GL
-  Int n=g.length();
-  if(n == 0 || invisible) return;
+  if(invisible) return;
 
   setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0);
 
@@ -101,31 +83,27 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
     return;
   }
 
-  for(Int i=0; i < n; ++i) {
-    triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
-                       g.point(i+1)};
-    triple *Controls;
-    triple Controls0[4];
-    if(billboard) {
-      Controls=Controls0;
-      for(size_t i=0; i < 4; i++) {
-        Controls[i]=BB.transform(controls[i]);
-      }
-    } else {
-      Controls=controls;
-      if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
-        R.append();
-        return;
-      }
+  triple controls[]={g.point((Int) 0),g.postcontrol((Int) 0),
+                     g.precontrol((Int) 1),g.point((Int) 1)};
+  triple *Controls;
+  triple Controls0[4];
+  if(billboard) {
+    Controls=Controls0;
+    for(size_t i=0; i < 4; i++)
+      Controls[i]=BB.transform(controls[i]);
+  } else {
+    Controls=controls;
+    if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
+      R.append();
+      return;
     }
-
-    double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
-  
-    const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  
-    R.queue(controls,g.straight(i),size3.length()/size2);
   }
+
+  double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
   
+  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+  
+  R.queue(controls,straight,size3.length()/size2);
 #endif
 }
 

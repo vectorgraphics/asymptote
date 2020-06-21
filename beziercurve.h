@@ -47,6 +47,7 @@ struct BezierCurve
 
   void queue(const triple *g, bool straight, double ratio) {
     data.clear();
+    notRendered();
     Onscreen=true;
     init(pixel*ratio);
     render(g,straight);

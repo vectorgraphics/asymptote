@@ -608,8 +608,10 @@ void _draw(picture *f, path3 g, triple center=Zero, penarray *p,
           real opacity, real shininess, real metallic, real fresnel0,
           Int interaction=0)
 {
-  if(g.size() > 0)
-    f->append(new drawPath3(g,center,*p,opacity,shininess,metallic,fresnel0,
+  size_t n=g.size();
+  for(unsigned int i=0; i < n; ++i)
+    f->append(new drawPath3(g.subpath((Int) i,Int(i+1)),center,*p,opacity,
+                            shininess,metallic,fresnel0,
                             (Interaction) intcast(interaction)));
 }
 
