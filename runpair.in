@@ -81,6 +81,11 @@ real abs(pair z)
   return z.length();
 }
 
+real abs2(pair z)
+{
+  return z.abs2();
+}
+
 pair sqrt(explicit pair z)
 {
   return Sqrt(z);

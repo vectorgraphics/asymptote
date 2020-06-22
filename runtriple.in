@@ -67,6 +67,11 @@ real abs(triple v)
   return v.length();
 }
 
+real abs2(triple v)
+{
+  return abs2(v);
+}
+
 real polar(triple v, bool warn=true) 
 {
   return v.polar(warn);
