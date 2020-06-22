@@ -67,7 +67,7 @@ public:
   }
 
   // Shading in SVG is incomplete and not supported at all by dvisvgm --pdf.
-  bool svgpng() {return pdf();}
+  bool svgpng() {return true;}
       
   virtual void beginshade(psfile *out)=0;
   virtual void shade(psfile *out)=0;
@@ -184,7 +184,7 @@ public:
     : drawElement(key), drawShade(src,stroke,pentype,key), pens(pens),
       vertices(vertices), edges(edges) {}
   
-  bool svgpng() {return !settings::getSetting<bool>("svgemulation") || pdf();}
+  bool svgpng() {return settings::getSetting<bool>("xasy") || !settings::getSetting<bool>("svgemulation") || pdf();}
   
   void palette(psfile *out) {
     out->gsave();
@@ -213,8 +213,6 @@ public:
     z(z) {
   }
   
-  bool svgpng() {return true;}
-
   void palette(psfile *out) {
     out->gsave();
   }
