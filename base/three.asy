@@ -2659,13 +2659,13 @@ struct scene
 
     if(!P.absolute) {
       this.P=t*P;
+      if(this.P.autoadjust || this.P.infinity)
+        adjusted=adjusted | this.P.adjust(m,M);
       if(this.P.center && settings.render != 0) {
         triple target=0.5*(m+M);
         this.P.target=target;
         this.P.calculate();
       }
-      if(this.P.autoadjust || this.P.infinity) 
-        adjusted=adjusted | this.P.adjust(m,M);
     }
 
     bool scale=xsize != 0 || ysize != 0;
