@@ -37,7 +37,7 @@ void jsfile::comment(string name)
       << "-->" << newl << newl;
 }
 
-void jsfile::meta(string name, bool scalable)
+void jsfile::meta(string name, bool svg)
 {
   out << "<html lang=\"\">" << newl
       << newl
@@ -45,10 +45,12 @@ void jsfile::meta(string name, bool scalable)
       << "<title>" << stripExt(name) << "</title>" << newl
       << newl
       << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl;
-  if(scalable)
-    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>";
-  else
+  if(svg) {
+    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
+        << newl << "</head>";
+  } else {
     out << "<meta name=\"viewport\" content=\"user-scalable=no\"/>";
+  }
   out << newl << newl;
 }
 
@@ -67,6 +69,7 @@ void jsfile::svgtohtml(string prefix)
   string name=buildname(prefix,"html");
   header(name);
   meta(name);
+  out << "<body>" << newl << newl;
   copy(locateFile(auxname(prefix,"svg")),true);
   footer(name);
 }
@@ -148,7 +151,7 @@ void jsfile::finish(string name)
     out << newl << "];" << newl;
   }
   out << "</script>"
-      << newl << newl << "</head>"
+      << newl << "</head>"
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
       << newl << "<canvas id=\"Asymptote\" width=\""
       << gl::fullWidth << "\" height=\"" <<  gl::fullHeight
