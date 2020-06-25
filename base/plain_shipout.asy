@@ -128,8 +128,15 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     }
     frame f;
     transform t=pic.calculateTransform();
-    if(currentpicture.fitter == null)
-      f=pic.fit(t);
+    if(currentpicture.fitter == null) {
+      pen background=currentlight.background;
+      if(settings.outformat == "html" && background == nullpen)
+        background=white;
+      if(background != nullpen)
+        f=bbox(pic,nullpen,Fill(background));
+      else
+        f=pic.fit(t);
+    }
     else
       f=pic.fit(prefix,format,view=view,options,script,light,P);
 
