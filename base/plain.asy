@@ -180,6 +180,8 @@ void eval(code s, bool embedded=false)
   if(!embedded) restoredefaults();
 }
 
+code map2=quote {T2[] map(T2 f(T1), T1[] a) {return sequence(new T2(int i) {return f(a[i]);},a.length);};};
+
 // Evaluate user command line option.
 void usersetting()
 {
