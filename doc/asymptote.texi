@@ -5309,6 +5309,15 @@ null array);
 returns the array obtained by applying the function @code{f} to each
 element of the array @code{a}. This is equivalent to
 @code{sequence(new T(int i) @{return f(a[i]);@},a.length)}.
+@item T2[] map(T2 f(T1), T1[] a)
+returns the array obtained by applying the function @code{f} to each
+element of the array @code{a}; this generalization of @code{map} can
+be constructed with
+@verbatim
+typedef T1 mapFrom;
+typedef T2 mapTo;
+eval(map,true);
+@end verbatim
 
 @cindex @code{reverse}
 @item int[] reverse(int n)
