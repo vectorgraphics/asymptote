@@ -6548,7 +6548,7 @@ specified default:
 @verbatim
 import map;
 
-map(name="map",key="string",value="int",default="-1");
+mapTemplate(name="map",key="string",value="int",default="-1");
 
 map M;
 
