@@ -58,7 +58,7 @@ int fpeek(int fd)
 size_t pipe_input(char *buf, size_t max_size)
 {
   if(hangup && fpeek(fd) == EOF) {hangup=false; return 0;}
-  fgets(buf,max_size-1,fin);
+  (char *) fgets(buf,max_size-1,fin);
   return strlen(buf);
 }
 
