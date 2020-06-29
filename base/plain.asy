@@ -180,7 +180,18 @@ void eval(code s, bool embedded=false)
   if(!embedded) restoredefaults();
 }
 
-code map=quote {mapTo[] map(mapTo f(mapFrom), mapFrom[] a) {return sequence(new mapTo(int i) {return f(a[i]);},a.length);};};
+// Associate a parametrized type with a name.
+void type(string type, string name)
+{
+  eval("typedef "+type+" "+name,true);
+}
+
+void mapArray(string From, string To)
+{
+  type(From,"From");
+  type(To,"To");
+  eval("To[] map(To f(From), From[] a) {return sequence(new To(int i) {return f(a[i]);},a.length);}",true);
+}
 
 // Evaluate user command line option.
 void usersetting()
