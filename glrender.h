@@ -23,7 +23,6 @@
 #include <csignal>
 
 #define GLEW_NO_GLU
-//#define GLEW_OSMESA
 
 #ifdef __MSDOS__
 #define GLEW_STATIC

@@ -122,6 +122,8 @@ bool Iconify=false;
 bool ignorezoom;
 int Fitscreen;
 
+extern "C" int offscreen;
+
 bool queueExport=false;
 bool readyAfterExport=false;
 bool remesh;
@@ -554,7 +556,9 @@ void Export()
       size_t count=0;
       do {
         trBeginTile(tr);
+        if(offscreen) fpu_trap(false); // Work around FE_INVALID in OSMesa.
         drawscene(fullWidth,fullHeight);
+        if(offscreen) fpu_trap(settings::trap());
         ++count;
       } while (trEndTile(tr));
       if(settings::verbose > 1)
@@ -1374,6 +1378,7 @@ void exportHandler(int=0)
 #endif  
   readyAfterExport=true;
   Export();
+
 #ifdef HAVE_LIBGLUT  
   if(!Iconify && !offscreen)
     glutHideWindow();
@@ -1502,6 +1507,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
+  offscreen=getSetting<bool>("offscreen");
   Iconify=getSetting<bool>("iconify");
 
   width=max(width,1.0);
@@ -1561,7 +1567,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     static bool osmesa_initialized=false;
     if(!osmesa_initialized) {
       osmesa_initialized=true;
+      fpu_trap(false); // Work around FE_INVALID.
       init_osmesa();
+      fpu_trap(settings::trap());
     }
   }
   
@@ -1721,9 +1729,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     } else if(!havewindow) {
       glutInitWindowSize(maxTileWidth,maxTileHeight);
       glutInitDisplayMode(displaymode);
-      fpu_trap(false); // Work around FE_INVALID when using Gallium libGL.
+      if(offscreen) fpu_trap(false); // Work around FE_INVALID in Gallium
       window=glutCreateWindow("");
-      fpu_trap(settings::trap());
+      if(offscreen) fpu_trap(settings::trap());
       glutHideWindow();
     }
   }
