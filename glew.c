@@ -6,6 +6,8 @@
 #define _WIN32
 #endif
 
+int offscreen=0;
+
 #ifdef HAVE_LIBGL
 
 #include <GL/glew.h>
@@ -14,24 +16,24 @@
 #define GLEW_OSMESA
 #  define GLAPI extern
 #  include <GL/osmesa.h>
-#define OSMesaGetProcAddress getProcAddress
 #  undef GLAPI
+#define OSMesaGetProcAddress getProcAddress
 #  include <GL/glxew.h>
-#endif
-
-int offscreen=0;
 
 typedef void (*GLXextFuncPtr)(void);
 
 GLXextFuncPtr getProcAddress(const char* name);
+#endif
 
 #include "GL/glew.c"
 
+#ifdef HAVE_LIBOSMESA
 #undef OSMesaGetProcAddress
 
 GLXextFuncPtr getProcAddress(const char* name) {
   return offscreen ? OSMesaGetProcAddress((const char *) name) :
     (*glXGetProcAddressARB)((const GLubyte *) name);
 }
+#endif
 
 #endif /* HAVE_LIBGL */

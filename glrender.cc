@@ -322,7 +322,7 @@ void home(bool webgl=false)
   X=Y=cx=cy=0.0;
 #ifdef HAVE_GL  
 #ifdef HAVE_LIBGLUT
-  if(!webgl && !getSetting<bool>("offscreen"))
+  if(!webgl && !offscreen)
     idle();
 #endif
 #endif
@@ -491,7 +491,7 @@ void drawscene(int Width, int Height)
 {
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(glthread && first && !getSetting<bool>("offscreen")) {
+  if(glthread && first && !offscreen) {
     wait(initSignal,initLock);
     endwait(initSignal,initLock);
     first=false;
@@ -585,7 +585,6 @@ void Export()
     outOfMemory();
   }
   setProjection();
-  bool offscreen=getSetting<bool>("offscreen");
 #ifdef HAVE_LIBGLUT
   if(!offscreen)
     glutPostRedisplay();
@@ -622,7 +621,7 @@ inline unsigned int floorpow2(unsigned int n)
 void quit() 
 {
 #ifdef HAVE_LIBOSMESA
-  if(getSetting<bool>("offscreen")) {
+  if(offscreen) {
     if(osmesa_buffer) delete[] osmesa_buffer;
     if(ctx) OSMesaDestroyContext(ctx);
     exit(0);
@@ -674,7 +673,7 @@ void mode()
       break;
   }
 #ifdef HAVE_LIBGLUT
-  if(!getSetting<bool>("offscreen"))
+  if(!offscreen)
     glutPostRedisplay();
 #endif
 }
@@ -1372,7 +1371,6 @@ void setosize()
 void exportHandler(int=0)
 {
 #ifdef HAVE_LIBGLUT  
-  bool offscreen=getSetting<bool>("offscreen");
   if(!Iconify && !offscreen)
     glutShowWindow();
 #endif  
@@ -1559,7 +1557,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   static bool initializedView=false;
 #endif  
   
-  bool offscreen=getSetting<bool>("offscreen");
   if(offscreen && !webgl) {
     screenWidth=maxTileWidth;
     screenHeight=maxTileHeight;
