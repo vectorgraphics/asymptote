@@ -24,6 +24,7 @@
 #include "bbox3.h"
 #include "drawimage.h"
 #include "interact.h"
+#include "fpu.h"
 
 namespace gl {
 #ifdef HAVE_PTHREAD
@@ -1720,7 +1721,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     } else if(!havewindow) {
       glutInitWindowSize(maxTileWidth,maxTileHeight);
       glutInitDisplayMode(displaymode);
+      fpu_trap(false); // Work around FE_INVALID when using Gallium libGL.
       window=glutCreateWindow("");
+      fpu_trap(settings::trap());
       glutHideWindow();
     }
   }
