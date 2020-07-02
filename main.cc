@@ -179,7 +179,7 @@ void *asymain(void *A)
   }
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
-  if(gl::glthread && !getSetting<bool>("offscreen")) {
+  if(gl::glthread) {
     pthread_kill(gl::mainthread,SIGURG);
     pthread_join(gl::mainthread,NULL);
   }
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 #endif
   gl::glthread=usethreads ? getSetting<bool>("threads") : false;
 #if HAVE_PTHREAD
-
+#ifndef HAVE_LIBOSMESA
   if(gl::glthread) {
     pthread_t thread;
     try {
@@ -236,6 +236,7 @@ int main(int argc, char *argv[])
       outOfMemory();
     }
   }
+#endif
 #endif
   gl::glthread=false;
 #endif

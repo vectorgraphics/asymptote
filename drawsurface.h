@@ -60,8 +60,11 @@ public:
   }
   
   void init() {
-    billboard=interaction == BILLBOARD &&
-      !settings::getSetting<bool>("offscreen");
+#ifdef HAVE_LIBOSMESA
+    billboard=false;
+#else
+    billboard=interaction == BILLBOARD;
+#endif
     centerIndex=0;
   }
   

@@ -368,7 +368,7 @@ AC_ARG_ENABLE(gl,
 [AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
 
 AC_ARG_ENABLE(offscreen,
-[AS_HELP_STRING(--enable-offscreen[[[=no]]],enable experimental offscreen rendering using OSMesa library)])
+[AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
 
 AC_ARG_ENABLE(OpenImageIO,
 [AS_HELP_STRING(--enable-openimageio[[[=no]]],enable experimental OpenImageIO Library)])

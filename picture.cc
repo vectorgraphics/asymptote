@@ -1311,19 +1311,9 @@ bool picture::shipout3(const string& prefix, const string& format,
   
   bool webgl=format == "html";
   
-#ifndef HAVE_GL
-  if(!webgl && !getSetting<bool>("offscreen"))
-    camp::reportError("to support onscreen rendering, please install glut library, run ./configure, and recompile");
-#endif
-  
 #ifndef HAVE_LIBGLM
   if(webgl)
     camp::reportError("to support WebGL rendering, please install glm header files, run ./configure, and recompile");
-#endif
-  
-#ifndef HAVE_LIBOSMESA
-  if(getSetting<bool>("offscreen"))
-    camp::reportError("to support offscreen rendering; please install OSMesa library, run ./configure --enable-offscreen, and recompile");
 #endif
   
   picture *pic = new picture;
@@ -1360,7 +1350,10 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif  
   
 #ifdef HAVE_GL
-  bool offscreen=getSetting<bool>("offscreen");
+  bool offscreen=false;
+#ifdef HAVE_LIBOSMESA
+  offscreen=true;
+#endif
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;

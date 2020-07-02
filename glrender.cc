@@ -122,8 +122,6 @@ bool Iconify=false;
 bool ignorezoom;
 int Fitscreen;
 
-extern "C" int offscreen;
-
 bool queueExport=false;
 bool readyAfterExport=false;
 bool remesh;
@@ -322,8 +320,10 @@ void home(bool webgl=false)
   X=Y=cx=cy=0.0;
 #ifdef HAVE_GL  
 #ifdef HAVE_LIBGLUT
-  if(!webgl && !offscreen)
+#ifndef HAVE_LIBOSMESA
+  if(!webgl)
     idle();
+#endif
 #endif
 #endif
   dviewMat=dmat4(1.0);
@@ -389,7 +389,7 @@ GLuint initHDR() {
   return tex;
 }
 
-#endif 
+#endif
 GLint shaderProg,shaderProgColor;
 
 void *glrenderWrapper(void *a);
@@ -491,7 +491,7 @@ void drawscene(int Width, int Height)
 {
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(glthread && first && !offscreen) {
+  if(glthread && first) {
     wait(initSignal,initLock);
     endwait(initSignal,initLock);
     first=false;
@@ -556,9 +556,9 @@ void Export()
       size_t count=0;
       do {
         trBeginTile(tr);
-        if(offscreen) fpu_trap(false); // Work around FE_INVALID in OSMesa.
+        fpu_trap(false); // Work around FE_INVALID in OSMesa.
         drawscene(fullWidth,fullHeight);
-        if(offscreen) fpu_trap(settings::trap());
+        fpu_trap(settings::trap());
         ++count;
       } while (trEndTile(tr));
       if(settings::verbose > 1)
@@ -585,16 +585,18 @@ void Export()
     outOfMemory();
   }
   setProjection();
+
+#ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLUT
-  if(!offscreen)
     glutPostRedisplay();
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(glthread && readyAfterExport && !offscreen) {
+  if(glthread && readyAfterExport) {
     readyAfterExport=false;        
     endwait(readySignal,readyLock);
   }
+#endif
 #endif
 }
 
@@ -621,11 +623,9 @@ inline unsigned int floorpow2(unsigned int n)
 void quit() 
 {
 #ifdef HAVE_LIBOSMESA
-  if(offscreen) {
     if(osmesa_buffer) delete[] osmesa_buffer;
     if(ctx) OSMesaDestroyContext(ctx);
     exit(0);
-  }
 #endif
 #ifdef HAVE_LIBGLUT
   if(glthread) {
@@ -640,7 +640,7 @@ void quit()
       glutDisplayFunc(nodisplay);
       endwait(readySignal,readyLock);
     }
-#endif    
+#endif
     if(interact::interactive)
       glutHideWindow();
   } else {
@@ -673,8 +673,9 @@ void mode()
       break;
   }
 #ifdef HAVE_LIBGLUT
-  if(!offscreen)
+#ifndef HAVE_LIBOSMESA
     glutPostRedisplay();
+#endif
 #endif
 }
 
@@ -806,7 +807,7 @@ void nextframe(int)
 {
 #ifdef HAVE_PTHREAD
   endwait(readySignal,readyLock);
-#endif    
+#endif
   double framedelay=getSetting<double>("framedelay");
   if(framedelay > 0)
     usleep((unsigned int) (1000.0*framedelay+0.5));
@@ -1371,16 +1372,20 @@ void setosize()
 void exportHandler(int=0)
 {
 #ifdef HAVE_LIBGLUT  
-  if(!Iconify && !offscreen)
+#ifndef HAVE_LIBOSMESA
+  if(!Iconify)
     glutShowWindow();
-#endif  
+#endif
+#endif
   readyAfterExport=true;
   Export();
 
 #ifdef HAVE_LIBGLUT  
-  if(!Iconify && !offscreen)
+#ifndef HAVE_LIBOSMESA
+  if(!Iconify)
     glutHideWindow();
-#endif  
+#endif
+#endif
   glutDisplayFunc(nodisplay);
 }
 
@@ -1447,7 +1452,7 @@ void init()
 
 #ifndef __APPLE__
   glutInitContextProfile(GLUT_CORE_PROFILE);
-#endif  
+#endif
 
   glutInit(&argc,argv);
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
@@ -1505,7 +1510,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
-  offscreen=getSetting<bool>("offscreen");
   Iconify=getSetting<bool>("iconify");
 
   width=max(width,1.0);
@@ -1555,9 +1559,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef HAVE_GL  
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
-#endif  
+#endif
   
-  if(offscreen && !webgl) {
+#ifdef HAVE_LIBOSMESA
+  if(!webgl) {
     screenWidth=maxTileWidth;
     screenHeight=maxTileHeight;
 
@@ -1569,7 +1574,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       fpu_trap(settings::trap());
     }
   }
-  
+#endif
   if(glinitialize) {
     if(!webgl) init();
     Fitscreen=1;
@@ -1646,33 +1651,35 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     if(View && settings::verbose > 1)
       cout << "Rendering " << stripDir(prefix) << " as "
            << Width << "x" << Height << " image" << endl;
-#endif    
+#endif
   }
 
 #ifdef HAVE_GL    
-  bool havewindow=initialized && glthread && !offscreen;
+  bool havewindow=initialized && glthread;
   
+#ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLUT    
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
-#endif  
+#endif
   
 #ifdef __APPLE__
   displaymode |= GLUT_3_2_CORE_PROFILE;
-#endif  
+#endif
+#endif
   
   camp::clearMaterialBuffer();
   
 #ifdef HAVE_PTHREAD
-  if(glthread && initializedView && !offscreen) {
+  if(glthread && initializedView) {
     if(!View)
       readyAfterExport=queueExport=true;
     pthread_kill(mainthread,SIGUSR1);
     return;
   }
-#endif    
+#endif
   
 #ifdef HAVE_LIBGLUT
-  if(!offscreen) {
+#ifndef HAVE_LIBOSMESA
     if(View) {
       int x,y;
       if(havewindow)
@@ -1694,8 +1701,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       while(true) {
         if(multisample > 0)
           glutSetOption(GLUT_MULTISAMPLE,multisample);
-#endif      
-#endif      
+#endif
+#endif
         string title=string(settings::PROGRAM)+": "+prefix;
         window=glutCreateWindow(title.c_str());
 
@@ -1716,8 +1723,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         }
         break;
       }
-#endif      
-#endif      
+#endif
+#endif
       if(settings::verbose > 1 && samples > 1)
         cout << "Multisampling enabled with sample width " << samples
              << endl;
@@ -1726,12 +1733,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     } else if(!havewindow) {
       glutInitWindowSize(maxTileWidth,maxTileHeight);
       glutInitDisplayMode(displaymode);
-      if(offscreen) fpu_trap(false); // Work around FE_INVALID in Gallium
+      fpu_trap(false); // Work around FE_INVALID in Gallium
       window=glutCreateWindow("");
-      if(offscreen) fpu_trap(settings::trap());
+      fpu_trap(settings::trap());
       glutHideWindow();
     }
-  }
+#endif
 #endif // HAVE_LIBGLUT
   initialized=true;
 
@@ -1756,16 +1763,16 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glClearColor(Background[0],Background[1],Background[2],Background[3]);
     
 #ifdef HAVE_LIBGLUT
-  if(!offscreen) {
-    Animate=getSetting<bool>("autoplay") && glthread;
+#ifndef HAVE_LIBOSMESA
+  Animate=getSetting<bool>("autoplay") && glthread;
   
-    if(View) {
-      if(!getSetting<bool>("fitscreen"))
-        Fitscreen=0;
-      fitscreen();
-      setosize();
-    }
+  if(View) {
+    if(!getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+    fitscreen();
+    setosize();
   }
+#endif
 #endif
 
   glEnable(GL_BLEND);
@@ -1775,11 +1782,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   mode();
   
-  if(View && !offscreen) {
+#ifdef HAVE_LIBOSMESA
+  View=false;
+#endif
+
+  if(View) {
 #ifdef HAVE_LIBGLUT
 #ifdef HAVE_PTHREAD
     initializedView=true;
-#endif    
+#endif
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
@@ -1788,12 +1799,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutMainLoop();
 #endif // HAVE_LIBGLUT
   } else {
-    if(glthread && !offscreen) {
+    if(glthread) {
       if(havewindow) {
         readyAfterExport=true;
 #ifdef HAVE_PTHREAD
         pthread_kill(mainthread,SIGUSR1);
-#endif    
+#endif
       } else {
         initialized=true;
         readyAfterExport=true;
