@@ -120,7 +120,7 @@ using settings::Setting;
 
 bool Iconify=false;
 bool ignorezoom;
-int Fitscreen;
+int Fitscreen=1;
 
 bool queueExport=false;
 bool readyAfterExport=false;
@@ -1384,9 +1384,9 @@ void exportHandler(int=0)
 #ifndef HAVE_LIBOSMESA
   if(!Iconify)
     glutHideWindow();
-#endif
-#endif
   glutDisplayFunc(nodisplay);
+#endif
+#endif
 }
 
 static bool glinitialize=true;
@@ -1574,11 +1574,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       fpu_trap(settings::trap());
     }
   }
-#endif
+#else
   if(glinitialize) {
     if(!webgl) init();
     Fitscreen=1;
   }
+#endif
 #endif
 
   static bool initialized=false;
