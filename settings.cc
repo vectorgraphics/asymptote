@@ -1210,7 +1210,7 @@ void initSettings() {
   addOption(new pairSetting("position", 0, "pair", 
                             "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",
-                            "Maximum viewport size",pair(2048,2048)));
+                            "Maximum viewport size",pair(0,0)));
   addOption(new pairSetting("viewportmargin", 0, "pair",
                             "Horizontal and vertical 3D viewport margin",
                             pair(0.5,0.5)));

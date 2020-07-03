@@ -121,6 +121,7 @@ using settings::Setting;
 bool Iconify=false;
 bool ignorezoom;
 int Fitscreen=1;
+bool firstFit;
 
 bool queueExport=false;
 bool readyAfterExport=false;
@@ -138,8 +139,6 @@ int fullWidth,fullHeight;
 int Width,Height;
 double oWidth,oHeight;
 int screenWidth,screenHeight;
-int maxWidth;
-int maxHeight;
 int maxTileWidth;
 int maxTileHeight;
 
@@ -684,12 +683,12 @@ void mode()
 bool capsize(int& width, int& height) 
 {
   bool resize=false;
-  if(width > maxWidth) {
-    width=maxWidth;
+  if(width > screenWidth) {
+    width=screenWidth;
     resize=true;
   }
-  if(height > maxHeight) {
-    height=maxHeight;
+  if(height > screenHeight) {
+    height=screenHeight;
     resize=true;
   }
   return resize;
@@ -736,10 +735,30 @@ void setsize(int w, int h, bool reposition=true)
   glutPostRedisplay();
 }
 
+void capzoom()
+{
+  static double maxzoom=sqrt(DBL_MAX);
+  static double minzoom=1.0/maxzoom;
+  if(Zoom <= minzoom) Zoom=minzoom;
+  if(Zoom >= maxzoom) Zoom=maxzoom;
+
+  if(Zoom != lastzoom) remesh=true;
+  lastzoom=Zoom;
+}
+
 void fullscreen(bool reposition=true) 
 {
   Width=screenWidth;
   Height=screenHeight;
+  if(firstFit) {
+    if(Width < Height*Aspect)
+      Zoom *= Width/(Height*Aspect);
+    capzoom();
+    setProjection();
+    firstFit=false;
+  }
+  Xfactor=((double) screenHeight)/Height;
+  Yfactor=((double) screenWidth)/Width;
   reshape0(Width,Height);
   if(reposition)
     glutPositionWindow(0,0);
@@ -763,15 +782,15 @@ void fitscreen(bool reposition=true)
       oldHeight=Height;
       int w=screenWidth;
       int h=screenHeight;
-      if(w >= h*Aspect) w=(int) (h*Aspect+0.5);
-      else h=(int) (w/Aspect+0.5);
+      if(w > h*Aspect)
+        w=min((int) ceil(h*Aspect),w);
+      else
+        h=min((int) ceil(w/Aspect),h);
       setsize(w,h,reposition);
       break;
     }
     case 2: // Full screen
     {
-      Xfactor=((double) screenHeight)/Height;
-      Yfactor=((double) screenWidth)/Width;
       fullscreen(reposition);
       break;
     }
@@ -951,17 +970,6 @@ void pan(int x, int y)
   update();
 }
   
-void capzoom() 
-{
-  static double maxzoom=sqrt(DBL_MAX);
-  static double minzoom=1.0/maxzoom;
-  if(Zoom <= minzoom) Zoom=minzoom;
-  if(Zoom >= maxzoom) Zoom=maxzoom;
-  
-  if(Zoom != lastzoom) remesh=true;
-  lastzoom=Zoom;
-}
-
 void zoom(int x, int y)
 {
   if(ignorezoom) {ignorezoom=false; y0=y; return;}
@@ -1605,23 +1613,25 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     // Alternatively, one can use -glOptions=-indirect (with a performance
     // penalty).
     pair maxViewport=getSetting<pair>("maxviewport");
-    maxWidth=(int) ceil(maxViewport.getx());
-    maxHeight=(int) ceil(maxViewport.gety());
+    int maxWidth=maxViewport.getx() > 0 ? (int) ceil(maxViewport.getx()) :
+      screenWidth;
+    int maxHeight=maxViewport.gety() > 0 ? (int) ceil(maxViewport.gety()) :
+      screenHeight;
     if(maxWidth <= 0) maxWidth=max(maxHeight,2);
     if(maxHeight <= 0) maxHeight=max(maxWidth,2);
     
+    if(screenWidth <= 0) screenWidth=maxWidth;
+    else screenWidth=min(screenWidth,maxWidth);
+    if(screenHeight <= 0) screenHeight=maxHeight;
+      else screenHeight=min(screenHeight,maxHeight);
+
     fullWidth=(int) ceil(expand*width);
     fullHeight=(int) ceil(expand*height);
-  
+
     if(webgl) {
       Width=fullWidth;
       Height=fullHeight;
     } else {
-      if(screenWidth <= 0) screenWidth=maxWidth;
-      else screenWidth=min(screenWidth,maxWidth);
-      if(screenHeight <= 0) screenHeight=maxHeight;
-      else screenHeight=min(screenHeight,maxHeight);
-
       Width=min(fullWidth,screenWidth);
       Height=min(fullHeight,screenHeight);
   
@@ -1770,6 +1780,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(View) {
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
+    firstFit=true;
     fitscreen();
     setosize();
   }
