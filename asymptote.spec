@@ -20,7 +20,8 @@ BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  glm-devel
 BuildRequires:  tetex-latex
-BuildRequires:  ghostscript >= 9.14
+BuildRequires:  ghostscript >= 9.52
+BuildRequires:  dvisvgm >= 2.9.1
 BuildRequires:  texinfo >= 4.7
 BuildRequires:  ImageMagick
 BuildRequires:  libtirpc-devel
