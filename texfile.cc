@@ -78,22 +78,17 @@ void texfile::prologue()
            << height << "bp]" << newl
            << "\\setuppapersize[asy][asy]" << newl;
     } else if(settings::pdf(texengine)) {
-      double voffset=0.0;
-      if(settings::latex(texengine)) {
-        if(height < 12.0) voffset=height-12.0;
-      } else if(height < 10.0) voffset=height-10.0;
-
       if(width > 0) 
         *out << "\\pdfpagewidth=" << width << "bp" << newl;
       *out << "\\ifx\\pdfhorigin\\undefined" << newl
            << "\\hoffset=-1in" << newl
-           << "\\voffset=" << voffset-72.0 << "bp" << newl;
+           << "\\voffset=-1in" << newl;
       if(height > 0)
         *out << "\\pdfpageheight=" << height << "bp" 
              << newl;
       *out << "\\else" << newl
            << "\\pdfhorigin=0bp" << newl
-           << "\\pdfvorigin=" << voffset << "bp" << newl;
+           << "\\pdfvorigin=0bp" << newl;
       if(height > 0)
         *out << "\\pdfpageheight=" << height << "bp" << newl;
       *out << "\\fi" << newl;
