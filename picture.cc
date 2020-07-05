@@ -435,6 +435,30 @@ int opentex(const string& texname, const string& prefix, bool dvi)
   return status;
 }
 
+char *dvisvgmCommand(mem::vector<string>& cmd, const string &in, const string& out)
+{
+  cmd.push_back(getSetting<string>("dvisvgm"));
+  cmd.push_back("-n");
+  cmd.push_back("-v3");
+  string libgs=getSetting<string>("libgs");
+  if(!libgs.empty())
+    cmd.push_back("--libgs="+libgs);
+  push_split(cmd,getSetting<string>("dvisvgmOptions"));
+  char *tmpdir=mkdtemp(StrdupMalloc(tempdir+"dvisvgmXXXXXX"));
+  if(tmpdir)
+    cmd.push_back("--tmpdir="+string(tmpdir));
+  cmd.push_back("-o"+out);
+  cmd.push_back(in);
+  return tmpdir;
+}
+
+void rmtmpdir(char *tmpdir)
+{
+  if(tmpdir) {
+    recursive_delete(tmpdir);
+    free(tmpdir);
+  }
+}
 
 bool picture::texprocess(const string& texname, const string& outname,
                          const string& prefix, const pair& bboxshift,
@@ -457,14 +481,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       mem::vector<string> cmd;
     
       if(svg) {
-        cmd.push_back(getSetting<string>("dvisvgm"));
-        cmd.push_back("-n");
-        cmd.push_back("-v3");
-        string libgs=getSetting<string>("libgs");
-        if(!libgs.empty())
-          cmd.push_back("--libgs="+libgs);
-        push_split(cmd,getSetting<string>("dvisvgmOptions"));
-        cmd.push_back("-o"+outname);
+        char *tmpdir=dvisvgmCommand(cmd,dviname,outname);
         ostringstream buf;
         bbox B=svgbbox(b,bboxshift);
         buf << "--bbox=" 
@@ -473,8 +490,8 @@ bool picture::texprocess(const string& texname, const string& outname,
             << B.right << "bp "
             << B.top << "bp";
         cmd.push_back(buf.str());
-        cmd.push_back(dviname);
         status=System(cmd,0,true,"dvisvgm");
+        rmtmpdir(tmpdir);
         if(!keep)
           unlink(dviname.c_str());
       } else {
@@ -706,17 +723,10 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
 int picture::epstosvg(const string& epsname, const string& outname)
 {  
   mem::vector<string> cmd;
-  cmd.push_back(getSetting<string>("dvisvgm"));
-  cmd.push_back("-n");
+  char *tmpdir=dvisvgmCommand(cmd,epsname,outname);
   cmd.push_back("-E");
-  cmd.push_back("-v3");
-  string libgs=getSetting<string>("libgs");
-  if(!libgs.empty())
-    cmd.push_back("--libgs="+libgs);
-  push_split(cmd,getSetting<string>("dvisvgmOptions"));
-  cmd.push_back("-o"+outname);
-  cmd.push_back(epsname);
   int status=System(cmd,2,true,"dvisvgm");
+  rmtmpdir(tmpdir);
   if(!getSetting<bool>("keep"))
     unlink(epsname.c_str());
   return status;
@@ -725,17 +735,10 @@ int picture::epstosvg(const string& epsname, const string& outname)
 int picture::pdftosvg(const string& pdfname, const string& outname)
 {  
   mem::vector<string> cmd;
-  cmd.push_back(getSetting<string>("dvisvgm"));
-  cmd.push_back("-n");
+  char *tmpdir=dvisvgmCommand(cmd,pdfname,outname);
   cmd.push_back("--pdf");
-  cmd.push_back("-v3");
-  string libgs=getSetting<string>("libgs");
-  if(!libgs.empty())
-    cmd.push_back("--libgs="+libgs);
-  push_split(cmd,getSetting<string>("dvisvgmOptions"));
-  cmd.push_back("-o"+outname);
-  cmd.push_back(pdfname);
   int status=System(cmd,2,true,"dvisvgm");
+  rmtmpdir(tmpdir);
   if(status == 0 && !getSetting<bool>("keep"))
     unlink(pdfname.c_str());
   return status;

@@ -348,15 +348,17 @@ Int rename(string from, string to)
   return rc;
 }
 
-// Create a unique temporary file name.
+// Create a uniquely named temporary file.
 string mktemp(string s)
 {
-  char *S=Strdup(s+"XXXXXX");
+  char *S=StrdupMalloc(s+"XXXXXX");
   int fd=mkstemp(S);
   if(fd < 0) {
     ostringstream buf;
     buf << "Could not create unique temporary filename based on " << s;
     error(buf);
   }
-  return S;
+  string T(S);
+  free(S);
+  return T;
 }
