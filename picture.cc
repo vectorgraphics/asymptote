@@ -700,9 +700,7 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
     needReload=false;
     string name=getPath()+string("/")+outname;
   // Write javascript code to redraw picture.
-    string javascript="";
-
-    runString("settings.tex='pdflatex'; tex('\\ \\pdfannot width 0pt height 0pt { /AA << /PO << /S /JavaScript /JS (try{reload(\""+name+"\");} catch(e) {} closeDoc(this);) >> >> }'); shipout('reload',wait=false,view=false);erase();exit();",false);
+    runString("settings.tex='pdflatex'; tex('\\ \\pdfannot width 0pt height 0pt { /AA << /PO << /S /JavaScript /JS (try{reload(\""+name+"\");} catch(e) {} closeDoc(this);) >> >> }'); shipout('"+reloadprefix+"',wait=false,view=false);erase();exit();",false);
     haveReload=true;
   }
 
