@@ -444,7 +444,7 @@ char *dvisvgmCommand(mem::vector<string>& cmd, const string &in, const string& o
   if(!libgs.empty())
     cmd.push_back("--libgs="+libgs);
   push_split(cmd,getSetting<string>("dvisvgmOptions"));
-  char *tmpdir=mkdtemp(StrdupMalloc(tempdir+"dvisvgmXXXXXX"));
+  char *tmpdir=mkdtemp(StrdupMalloc(tempdir+"/dvisvgmXXXXXX"));
   if(tmpdir)
     cmd.push_back("--tmpdir="+string(tmpdir));
   cmd.push_back("-o"+out);

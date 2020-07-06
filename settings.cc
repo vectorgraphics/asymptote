@@ -1523,7 +1523,7 @@ void initDir() {
   umask(mask);
   tempdir=Getenv("TEMP",true);
 #else
-  tempdir="/tmp/";
+  tempdir="/tmp";
 #endif  
   if(access(initdir.c_str(),F_OK) == 0) {
     if(verbose > 1)
