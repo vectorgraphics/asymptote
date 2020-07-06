@@ -187,13 +187,16 @@ Graphical User Interface
 @chapter Description
 @cindex description
 
+@cindex {Asymptote Web Application}
 @code{Asymptote} is a powerful descriptive vector graphics language that
 provides a mathematical coordinate-based framework for technical drawing.
 Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
 @code{LaTeX} provides for scientific text. By default it produces
 @code{PostScript} output, but it can also generate any format that the
-@code{ImageMagick} package can produce.
+@code{ImageMagick} package can produce. You can even try it out in your
+Web browser without installing it, using the @code{Asymptote Web Application}:
+@url{http://asymptote.ualberta.ca}.
      
 A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
@@ -801,7 +804,7 @@ A concise introduction to @code{Asymptote} is given here.
 For a more thorough introduction, see the excellent @code{Asymptote}
 tutorial written by Charles Staats:
 
-@url{https://math.uchicago.edu/~cstaats/Charles_Staats_III/Notes_and_papers_files/asymptote_tutorial.pdf}
+@url{https://asymptote.sourceforge.io/asymptote.pdf}
 
 Another @code{Asymptote} tutorial is available as a wiki,
 with images rendered by an online Asymptote engine:
@@ -9896,6 +9899,9 @@ contributors include Orest Shardt, Jesse Frohlich, Michail Vidiassov,
 Charles Staats, Philippe Ivaldi, Olivier Guib@'e, Radoslav Marinov,
 Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
 Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
+Pedram Emami developed the @code{Asymptote Web Application} at
+@url{http://asymptote.ualberta.ca}.
+
 
 @node Index,  , Credits, Top
 @unnumbered Index
