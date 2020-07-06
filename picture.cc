@@ -694,20 +694,18 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
 {
   static bool needReload=true;
   static bool haveReload=false;
-  
-  // Send javascript code to redraw picture.
-  picture f;
-  string name=getPath()+string("/")+outname;
-  f.append(new drawVerbatim(TeX,"\\ \\pdfannot width 0pt height 0pt { /AA << /PO << /S /JavaScript /JS (try{reload('"+
-                            name+"');} catch(e) {} closeDoc(this);) >> >> }"));
+
   string reloadprefix="reload";
   if(needReload) {
     needReload=false;
-    string texengine=getSetting<string>("tex");
-    Setting("tex")=string("pdflatex");
-    haveReload=f.shipout(NULL,reloadprefix,"pdf",false,false);
-    Setting("tex")=texengine;
+    string name=getPath()+string("/")+outname;
+  // Write javascript code to redraw picture.
+    string javascript="";
+
+    runString("settings.tex='pdflatex'; tex('\\ \\pdfannot width 0pt height 0pt { /AA << /PO << /S /JavaScript /JS (try{reload(\""+name+"\");} catch(e) {} closeDoc(this);) >> >> }'); shipout('reload',wait=false,view=false);erase();exit();",false);
+    haveReload=true;
   }
+
   if(haveReload) {
     mem::vector<string> cmd;
     push_command(cmd,Viewer);
@@ -873,7 +871,8 @@ bool picture::display(const string& outname, const string& outputformat,
       if(running) {
         // Tell gv/acroread to reread file.       
         if(Viewer == "gv") kill(pid,SIGHUP);
-        else if(pdfreload) reloadPDF(Viewer,outname);
+        else if(pdfreload)
+          reloadPDF(Viewer,outname);
       } else {
         mem::vector<string> cmd;
         push_command(cmd,Viewer);
