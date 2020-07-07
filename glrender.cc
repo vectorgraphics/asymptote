@@ -101,10 +101,14 @@ size_t Nmaterials=1;
 size_t nmaterials=48;
 }
 
+extern void exitHandler(int);
+
 namespace gl {
   
 bool outlinemode=false;
 bool glthread=false;
+bool glupdate=false;
+bool glexit=false;
 bool initialize=true;
 
 using camp::picture;
@@ -307,6 +311,7 @@ bool Animate;
 bool Step;
 
 #ifdef HAVE_GL
+
 void idle() 
 {
   glutIdleFunc(NULL);
@@ -916,6 +921,19 @@ void updateHandler(int)
   if(interact::interactive || !Animate) {
     glutShowWindow();
   }
+}
+
+void poll(int)
+{
+  if(glupdate) {
+    updateHandler(0);
+    glupdate=false;
+  }
+  if(glexit) {
+    exitHandler(0);
+    glexit=false;
+  }
+  glutTimerFunc(100.0,poll,0);
 }
 
 void animate() 
@@ -1680,17 +1698,22 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   camp::clearMaterialBuffer();
   
+#ifndef HAVE_LIBOSMESA
+
 #ifdef HAVE_PTHREAD
   if(glthread && initializedView) {
-    if(!View)
-      readyAfterExport=queueExport=true;
+    if(View) {
+#ifdef __MSDOS__ // Signals are unreliable in MSWindows
+    glupdate=true;
+#else
     pthread_kill(mainthread,SIGUSR1);
+#endif
+    } else readyAfterExport=queueExport=true;
     return;
   }
 #endif
   
 #ifdef HAVE_LIBGLUT
-#ifndef HAVE_LIBOSMESA
     if(View) {
       int x,y;
       if(havewindow)
@@ -1749,8 +1772,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       fpu_trap(settings::trap());
       glutHideWindow();
     }
-#endif
 #endif // HAVE_LIBGLUT
+#endif // HAVE_LIBOSMESA
+
   initialized=true;
 
   GLint val;
@@ -1807,6 +1831,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
     glutDisplayFunc(display);
+
+#ifdef __MSDOS__
+    if(glthread && interact::interactive)
+      poll(0);
+#endif
 
     glutMainLoop();
 #endif // HAVE_LIBGLUT

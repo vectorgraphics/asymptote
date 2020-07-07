@@ -50,6 +50,10 @@ using namespace settings;
 
 using interact::interactive;
 
+namespace gl {
+extern bool glexit;
+}
+
 namespace run {
 void purge();
 }
@@ -180,7 +184,11 @@ void *asymain(void *A)
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
   if(gl::glthread) {
+#ifdef __MSDOS__ // Signals are unreliable in MSWindows
+    gl::glexit=true;
+#else
     pthread_kill(gl::mainthread,SIGURG);
+#endif
     pthread_join(gl::mainthread,NULL);
   }
 #endif
