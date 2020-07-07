@@ -103,7 +103,6 @@ public:
   string filename;
   bool pdfformat;    // Is final output format PDF?
   bool pdf;          // Output direct PDF?
-  bool transparency; // Is transparency used?
   unsigned char *buffer;
   size_t count;
 
@@ -161,10 +160,6 @@ public:
   void writenewl() {
     *out << newl;
   }
-  
-//  bool Transparency() {
-//    return transparency;
-//  }
   
   void write(pair z) {
     *out << " " << z.getx() << " " << z.gety();

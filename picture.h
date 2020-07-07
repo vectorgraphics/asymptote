@@ -65,10 +65,6 @@ public:
   // Compute bounds on ratio (x,y)/z for 3d picture (not cached).
   pair ratio(double (*m)(double, double));
   
-  bool Transparency() {
-    return transparency;
-  }
-  
   int epstosvg(const string& epsname, const string& outname);
   int pdftosvg(const string& pdfname, const string& outname);
   
