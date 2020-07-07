@@ -210,8 +210,11 @@ void psfile::setopacity(const pen& p)
   }
   
   if(p.opacity() != lastpen.opacity()) {
-    *out << p.opacity() << " .setfillconstantalpha" << newl
-         << p.opacity() << " .setstrokeconstantalpha" << newl;
+    string outputformat=settings::getSetting<string>("outformat");
+    if((pdf && outputformat == "") || outputformat == "pdf") {
+      *out << p.opacity() << " .setfillconstantalpha" << newl
+           << p.opacity() << " .setstrokeconstantalpha" << newl;
+    }
   }
   
   lastpen.settransparency(p);
