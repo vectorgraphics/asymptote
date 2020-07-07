@@ -209,12 +209,12 @@ void psfile::setopacity(const pen& p)
     *out << "/" << p.blend() << " .setblendmode" << newl;
   }
   
-  if(p.opacity() != lastpen.opacity()) {
-    string outputformat=settings::getSetting<string>("outformat");
-    if((pdf && outputformat == "") || outputformat == "pdf") {
-      *out << p.opacity() << " .setfillconstantalpha" << newl
-           << p.opacity() << " .setstrokeconstantalpha" << newl;
-    }
+  string outputformat=settings::getSetting<string>("outformat");
+  if(p.opacity() != lastpen.opacity() &&
+     (pdf || outputformat == "pdf" || outputformat == "html" ||
+      outputformat == "svg")) {
+    *out << p.opacity() << " .setfillconstantalpha" << newl
+         << p.opacity() << " .setstrokeconstantalpha" << newl;
   }
   
   lastpen.settransparency(p);
