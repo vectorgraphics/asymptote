@@ -183,6 +183,13 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
 
         triple dir=P.normal;
 
+        // The angle, in degrees, between two vectors.
+        real angledegrees(triple a, triple b) {
+          real lengthprod = max(abs(a) * abs(b), abs(dot(a,b)));
+          if (lengthprod == 0) return 0;
+          return aCos(dot(a,b) / lengthprod);
+        }
+
         void addnormals(weighted[] pts) {
           triple vec2=pts[1].v-pts[0].v;
           triple vec1=pts[0].v-pts[2].v;
@@ -192,8 +199,13 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           vec0=unit(vec0);
           triple normal=cross(vec2,vec1);
           normal *= sgn(dot(normal,dir));
-          real angle0=acos(-dot(vec1,vec2));
-          real angle1=acos(-dot(vec2,vec0));
+
+// Delete next two lines since the can generate a floating point exception
+//        real angle0=acos(-dot(vec1,vec2));
+//        real angle1=acos(-dot(vec2,vec0));
+
+          real angle0=angledegrees(vec1,vec2);
+          real angle1=angledegrees(vec2,vec0);
           pts[0].normal=normal*angle0;
           pts[1].normal=normal*angle1;
           pts[2].normal=normal*(pi-angle0-angle1);
