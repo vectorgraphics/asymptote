@@ -807,7 +807,7 @@ A concise introduction to @code{Asymptote} is given here.
 For a more thorough introduction, see the excellent @code{Asymptote}
 tutorial written by Charles Staats:
 
-@url{https://asymptote.sourceforge.io/asymptote.pdf}
+@url{https://asymptote.sourceforge.io/asymptote_tutorial.pdf}
 
 Another @code{Asymptote} tutorial is available as a wiki,
 with images rendered by an online Asymptote engine:
