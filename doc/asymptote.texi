@@ -5319,8 +5319,9 @@ element of the array @code{a}. This is equivalent to
 
 @cindex @code{map}
 @item T2[] map(T2 f(T1), T1[] a)
-constructed by calling mapArray("T1","T2"), returns the array obtained by
-applying the function @code{f} to each element of the array @code{a};
+constructed by calling @code{mapArray("T1","T2")}, returns the array
+obtained by applying the function @code{f} to each element of the
+array @code{a};
 
 @cindex @code{reverse}
 @item int[] reverse(int n)
