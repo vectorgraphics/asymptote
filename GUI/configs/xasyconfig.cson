@@ -54,7 +54,7 @@ debugMode: true
 
 # Overrides
 
-windows:
+Windows:
     externalEditor: "notepad.exe"
 
 Darwin:

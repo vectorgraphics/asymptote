@@ -62,7 +62,11 @@ public:
     else drawSuperPathPenBase::bounds(b,iopipe,vbox,bboxstack);
   }
   
-  // Shading in SVG is incomplete and not supported at all by dvisvgm.
+  bool pdf() {
+    return settings::pdf(settings::getSetting<string>("tex"));
+  }
+
+  // Shading in SVG is incomplete and not supported at all by dvisvgm --pdf.
   bool svgpng() {return true;}
       
   virtual void beginshade(psfile *out)=0;
@@ -130,8 +134,8 @@ public:
     : drawShade(src,stroke,pentype,key), a(a), extenda(extenda),
       penb(penb), b(b), extendb(extendb) {}
   
-  bool svgpng() {return false;}
-  
+  bool svgpng() {return !extenda || !extendb || pdf();}
+
   void palette(psfile *out);
   
   void beginshade(psfile *out) {
@@ -156,7 +160,7 @@ public:
     : drawAxialShade(src,stroke,pentype,a,extenda,penb,b,
                      extendb,key), ra(ra), rb(rb) {}
   
-  bool svgpng() {return ra > 0.0;}
+  bool svgpng() {return a != b || ra > 0.0 || !extenda || !extendb || pdf();}
   
   void beginshade(psfile *out) {
     out->begingradientshade(false,colorspace,pentype,a,ra,penb,b,rb);
@@ -180,7 +184,7 @@ public:
     : drawElement(key), drawShade(src,stroke,pentype,key), pens(pens),
       vertices(vertices), edges(edges) {}
   
-  bool svgpng() {return !settings::getSetting<bool>("svgemulation");}
+  bool svgpng() {return settings::getSetting<bool>("xasy") || !settings::getSetting<bool>("svgemulation") || pdf();}
   
   void palette(psfile *out) {
     out->gsave();
@@ -206,19 +210,14 @@ public:
                   const vm::array& boundaries, const vm::array& z,
                   const string& key="") : 
     drawShade(src,stroke,pentype,key), pens(pens), boundaries(boundaries),
-    z(z) {}
-  
-  bool svgpng() {
-    return pens.size() > 1 || !settings::getSetting<bool>("svgemulation");
+    z(z) {
   }
   
   void palette(psfile *out) {
     out->gsave();
   }
   
-  void beginshade(psfile *out) {
-    out->begintensorshade(pens,boundaries,z);
-  }
+  void beginshade(psfile *out) {}
   
   void shade(psfile *out) {
     out->tensorshade(pentype,pens,boundaries,z);

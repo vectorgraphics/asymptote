@@ -78,22 +78,17 @@ void texfile::prologue()
            << height << "bp]" << newl
            << "\\setuppapersize[asy][asy]" << newl;
     } else if(settings::pdf(texengine)) {
-      double voffset=0.0;
-      if(settings::latex(texengine)) {
-        if(height < 12.0) voffset=height-12.0;
-      } else if(height < 10.0) voffset=height-10.0;
-
       if(width > 0) 
         *out << "\\pdfpagewidth=" << width << "bp" << newl;
       *out << "\\ifx\\pdfhorigin\\undefined" << newl
            << "\\hoffset=-1in" << newl
-           << "\\voffset=" << voffset-72.0 << "bp" << newl;
+           << "\\voffset=-1in" << newl;
       if(height > 0)
         *out << "\\pdfpageheight=" << height << "bp" 
              << newl;
       *out << "\\else" << newl
            << "\\pdfhorigin=0bp" << newl
-           << "\\pdfvorigin=" << voffset << "bp" << newl;
+           << "\\pdfvorigin=0bp" << newl;
       if(height > 0)
         *out << "\\pdfpageheight=" << height << "bp" << newl;
       *out << "\\fi" << newl;
@@ -307,8 +302,8 @@ void texfile::put(const string& label, const transform& T, const pair& z,
   
   *out << "\\ASYalign";
   if(trans) *out << "T";
-  *out << "(" << (z.getx()-Hoffset)*ps2tex
-       << "," << (z.gety()-box.bottom)*ps2tex
+  *out << "(" << (z.getx()-hoffset())*ps2tex
+       << "," << (z.gety()-voffset())*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 
        << ")";
@@ -342,6 +337,8 @@ void svgtexfile::beginspecial()
     
 void svgtexfile::endspecial()
 {
+  if(!inspecial)
+    reportError("endspecial without matching beginspecial");
   inspecial=false;
   *out << "}\\catcode`\\#=6%" << newl;
   out->setf(std::ios::fixed);
@@ -409,8 +406,8 @@ void svgtexfile::dot(path p, pen q, bool newPath)
   *out << "<circle ";
   clippath();
   pair z=p.point((Int) 0);
-  *out << "cx='" << z.getx()*ps2tex
-       << "' cy='" << -z.gety()*ps2tex
+  *out << "cx='" << (z.getx()-offset.getx())*ps2tex
+       << "' cy='" << (-z.gety()+offset.gety())*ps2tex
        << "' r='" << 0.5*q.width()*ps2tex;
 }
 
@@ -526,19 +523,19 @@ void svgtexfile::begingradientshade(bool axial, ColorSpace colorspace,
 {
   string type=axial ? "linear" : "radial";
   beginspecial();
+  begintransform();
   *out << "<" << type << "Gradient id='grad" << gradientcount;
   if(axial) {
-    *out << "' x1='" << a.getx()*ps2tex << "' y1='" << -a.gety()*ps2tex
-         << "' x2='" << b.getx()*ps2tex << "' y2='" << -b.gety()*ps2tex;
+    *out << "' x1='" << a.getx()*ps2tex << "' y1='" << (box.top-a.gety())*ps2tex
+         << "' x2='" << b.getx()*ps2tex << "' y2='" << (box.top-b.gety())*ps2tex;
   } else {
-    *out << "' cx='" << b.getx()*ps2tex << "' cy='" << -b.gety()*ps2tex
+    *out << "' cx='" << b.getx()*ps2tex << "' cy='" << (box.top-b.gety())*ps2tex
          << "' r='" << rb*ps2tex;
   }
   *out <<"' gradientUnits='userSpaceOnUse'>" << nl
        << "<stop offset='0' stop-color='#" << rgbhex(pena) << "'/>" << nl
        << "<stop offset='1' stop-color='#" << rgbhex(penb) << "'/>" << nl
        << "</" << type << "Gradient>" << nl;
-  begintransform();
   beginpath();
 }
 
@@ -569,20 +566,22 @@ void svgtexfile::gouraudshade(const pen& p0, const pair& z0,
                               const pen& p2, const pair& z2)
 {
   string hex[]={rgbhex(p0),rgbhex(p1),rgbhex(p2)};
-  pair Z[]={z0,z1,z2};
     
-  *out << "<defs>" << nl
-       << "<filter id='colorAdd'>" << nl
-       << "<feBlend in='SourceGraphic' in2='BackgroundImage'/>" << nl
-       << "</filter>";
+  *out << "<defs>" << nl;
+
+  pair Z0=(z0-offset)*ps2tex;
+  pair Z1=(z1-offset)*ps2tex;
+  pair Z2=(z2-offset)*ps2tex;
+
+  pair Z[]={Z0,Z1,Z2};
 
   for(size_t k=0; k < 3; ++k) {
     pair z=Z[k];
     pair opp=closest(Z[(k+1) % 3],Z[(k+2) % 3],z);
     *out << "<linearGradient id='grad-" << gouraudcount << "-" << k 
          << "' gradientUnits='userSpaceOnUse'" << nl
-         << " x1='" << z.getx()*ps2tex << "' y1='" << -z.gety()*ps2tex
-         << "' x2='" << opp.getx()*ps2tex << "' y2='" << -opp.gety()*ps2tex
+         << " x1='" << z.getx() << "' y1='" << -z.gety()
+         << "' x2='" << opp.getx() << "' y2='" << -opp.gety()
          << "'>" << nl
          << "<stop offset='0' stop-color='#" << hex[k] 
          << "' stop-opacity='1'/>" << nl
@@ -590,22 +589,35 @@ void svgtexfile::gouraudshade(const pen& p0, const pair& z0,
          << "' stop-opacity='0'/>" << nl
          << "</linearGradient>" << nl;
   }
-  *out << "<polygon ";
+
+  *out << "<polygon points='"
+       << Z0.getx() << "," << -Z0.gety() << " "
+       << Z1.getx() << "," << -Z1.gety() << " "
+       << Z2.getx() << "," << -Z2.gety() << "'"
+       << " id='triangle-" << gouraudcount << "' />" << nl;
+
+  for(unsigned vertex=0; vertex < 3; ++vertex)
+    *out << "<use xlink:href='#triangle-" << gouraudcount
+         << "' fill='url(#grad-" << gouraudcount << "-" << vertex
+         << ")' id='triangle-" << gouraudcount << "-" << vertex << "' />"
+         << nl;
+
+  *out << "<filter id='Gouraud-" << gouraudcount << "'>" << nl;
+
+  for(unsigned vertex=0; vertex < 3; ++vertex)
+    *out << "<feImage xlink:href='#triangle-" << gouraudcount << "-" << vertex
+         << "' result='layer" << vertex << "' x='0' y='0' />" << nl;
+
+  *out << "<feComposite in='layer0' in2='layer1' operator='arithmetic' k1='0' k2='1' k3='1' k4='0' result='temp'/>" << nl
+       << "<feComposite in='temp' in2='layer2' operator='arithmetic' k1='0' k2='1' k3='1' k4='0' result='temp2' />" << nl
+       << "<feComposite in='temp2' in2='SourceGraphic' operator='arithmetic' k1='0' k2='1' k3='1' k4='0'/>" << nl
+       << "</filter>" << nl
+       << "</defs>" << nl
+       << "<rect width='100\\percent' height='100\\percent' fill='none' ";
   clippath();
-  *out << "id='triangle" << gouraudcount << "' points='"
-       << z0.getx()*ps2tex << "," << -z0.gety()*ps2tex << " "
-       << z1.getx()*ps2tex << "," << -z1.gety()*ps2tex << " "
-       << z2.getx()*ps2tex << "," << -z2.gety()*ps2tex << "'/>" << nl
-       << "</defs>" << nl;
-  *out << "<use xlink:href='#triangle" << gouraudcount
-       << "' fill='url(#grad-" << gouraudcount << "-" 
-       << "0)'/>" << nl
-       << "<use xlink:href='#triangle" << gouraudcount
-       << "' fill='url(#grad-" << gouraudcount << "-" 
-       << "1)' filter='url(#colorAdd)'/>" << nl
-       << "<use xlink:href='#triangle" << gouraudcount
-       << "' fill='url(#grad-" << gouraudcount << "-" 
-       << "2)' filter='url(#colorAdd)'/>" << nl;
+  *out << " filter='url(#Gouraud-" << gouraudcount << ")'"
+         << "/>" << nl;
+
   ++gouraudcount;
 }
 
@@ -664,69 +676,6 @@ void svgtexfile::gouraudshade(const pen& pentype,
     gouraudshade(*p0,z0,*p1,z1,*p2,z2);
   }
   endtransform();
-  endspecial();
-}
-
-void svgtexfile::begintensorshade(const vm::array& pens,
-                                  const vm::array& boundaries,
-                                  const vm::array& z) 
-{
-  beginspecial();
-  *out << "<defs>" << nl;
-
-  path g=read<path>(boundaries,0);
-  pair Z[]={g.point((Int) 0),g.point((Int) 3),g.point((Int) 2),
-            g.point((Int) 1)};
-      
-  array *pi=read<array *>(pens,0);
-  if(checkArray(pi) != 4)
-    reportError("specify 4 pens for each path");
-  string hex[]={rgbhex(read<pen>(pi,0)),rgbhex(read<pen>(pi,3)),
-                rgbhex(read<pen>(pi,2)),rgbhex(read<pen>(pi,1))};
-    
-  *out << "<filter id='colorAdd'>" << nl
-       << "<feBlend in='SourceGraphic' in2='BackgroundImage'/>" << nl
-       << "</filter>";
-
-  pair mean=0.25*(Z[0]+Z[1]+Z[2]+Z[3]);
-  for(size_t k=0; k < 4; ++k) {
-    pair opp=(k % 2 == 0) ? Z[(k+2) % 4] : mean;
-    *out << "<linearGradient id='grad" << tensorcount << "-" << k 
-         << "' gradientUnits='userSpaceOnUse'" << nl
-         << " x1='" << Z[k].getx()*ps2tex << "' y1='" << -Z[k].gety()*ps2tex
-         << "' x2='" << opp.getx()*ps2tex << "' y2='" << -opp.gety()*ps2tex
-         << "'>" << nl
-         << "<stop offset='0' stop-color='#" << hex[k] 
-         << "' stop-opacity='1'/>" << nl
-         << "<stop offset='1' stop-color='#" << hex[k] 
-         << "' stop-opacity='0'/>" << nl
-         << "</linearGradient>" << nl;
-  }
-  beginpath();
-}
-
-void svgtexfile::tensorshade(const pen& pentype, const vm::array& pens,
-                             const vm::array& boundaries, const vm::array& z)
-{
-  *out << "' id='path" << tensorcount << "'";
-  fillrule(pentype);
-  endpath();
-  *out << "</defs></g>" << nl;
-  begintransform();
-  *out << "<use xlink:href='#path" << tensorcount
-       << "' fill='url(#grad" << tensorcount << "-" 
-       << "0)'/>" << nl
-       << "<use xlink:href='#path" << tensorcount
-       << "' fill='url(#grad" << tensorcount << "-" 
-       << "2)' filter='url(#colorAdd)'/>" << nl
-       << "<use xlink:href='#path" << tensorcount
-       << "' fill='url(#grad" << tensorcount << "-" 
-       << "1)' filter='url(#colorAdd)'/>" << nl
-       << "<use xlink:href='#path" << tensorcount 
-       << "' fill='url(#grad" << tensorcount << "-"
-       << "3)' filter='url(#colorAdd)'/>" << nl;
-
-  ++tensorcount;
   endspecial();
 }
 

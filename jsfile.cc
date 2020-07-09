@@ -10,17 +10,23 @@ using namespace settings;
 
 namespace camp {
 
-void jsfile::copy(string name) {
+void jsfile::copy(string name, bool header)
+{
   std::ifstream fin(locateFile(name).c_str());
   string s;
+  if(header) getline(fin,s);
   while(getline(fin,s))
     out << s << newl;
 }
 
-void jsfile::open(string name) {
+void jsfile::header(string name)
+{
   out.open(name);
   out << "<!DOCTYPE html>" << newl << newl;
-    
+}
+
+void jsfile::comment(string name)
+{
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<iframe src=\"" << name
@@ -29,16 +35,52 @@ void jsfile::open(string name) {
       << "\" frameborder=\"0\"></iframe>" << newl
       << newl
       << "-->" << newl << newl;
+}
 
-  out.precision(getSetting<Int>("digits"));
+void jsfile::meta(string name, bool svg)
+{
   out << "<html lang=\"\">" << newl
       << newl
       << "<head>" << newl
       << "<title>" << stripExt(name) << "</title>" << newl
       << newl
-      << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl
-      << "<meta name=\"viewport\" content=\"user-scalable=no\"/>" << newl
+      << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl;
+  if(svg) {
+    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
+        << newl << "</head>";
+  } else {
+    out << "<meta name=\"viewport\" content=\"user-scalable=no\"/>";
+  }
+  out << newl << newl;
+}
+
+void jsfile::footer(string name)
+{
+  out << newl << "</body>"
+      << newl << newl << "</html>"
       << newl;
+  out.flush();
+  if(verbose > 0)
+    cout << "Wrote " << name << endl;
+}
+
+void jsfile::svgtohtml(string prefix)
+{
+  string name=buildname(prefix,"html");
+  header(name);
+  meta(name);
+  out << "<body>" << newl << newl;
+  copy(locateFile(auxname(prefix,"svg")),true);
+  footer(name);
+}
+
+void jsfile::open(string name)
+{
+  header(name);
+  comment(name);
+  meta(name,false);
+
+  out.precision(getSetting<Int>("digits"));
   
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
@@ -99,7 +141,8 @@ void jsfile::open(string name) {
   out << "];" << newl << newl;
 }
 
-jsfile::~jsfile() {
+void jsfile::finish(string name)
+{
   size_t ncenters=drawElement::center.size();
   if(ncenters > 0) {
     out << "Centers=[";
@@ -108,15 +151,13 @@ jsfile::~jsfile() {
     out << newl << "];" << newl;
   }
   out << "</script>"
-      << newl << newl << "</head>"
+      << newl << "</head>"
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
       << newl << "<canvas id=\"Asymptote\" width=\""
       << gl::fullWidth << "\" height=\"" <<  gl::fullHeight
       << "\" style=\"border: none;\">"
-      << newl << "</canvas>"
-      << newl << "</body>"
-      << newl << newl << "</html>"
-      << newl;
+      << newl << "</canvas>";
+  footer(name);
 }
 
 void jsfile::addColor(const prc::RGBAColour& c) 
@@ -245,12 +286,15 @@ void jsfile::addSphere(const triple& center, double radius, bool half,
   out << ");" << newl << newl;
 }
 
+// core signifies whether to also draw a central line for better small-scale
+// rendering.
 void jsfile::addCylinder(const triple& center, double radius, double height,
-                         const double& polar, const double& azimuth)
+                         const double& polar, const double& azimuth,
+                         bool core)
 {
   out << "cylinder(" << center << "," << radius << "," << height << ","
       << drawElement::centerIndex << "," << materialIndex
-      << "," << newl << "[" << polar << "," << azimuth << "]"
+      << "," << newl << "[" << polar << "," << azimuth << "]," << core
       << ");" << newl << newl;
 }
 
@@ -261,6 +305,20 @@ void jsfile::addDisk(const triple& center, double radius,
       << drawElement::centerIndex << "," << materialIndex
       << "," << newl << "[" << polar << "," << azimuth << "]"
       << ");" << newl << newl;
+}
+
+void jsfile::addTube(const triple *g, double width,
+                     const triple& Min, const triple& Max, bool core)
+
+{
+  out << "tube(["
+      << g[0] << "," << newl
+      << g[1] << "," << newl
+      << g[2] << "," << newl
+      << g[3] << newl << "],"
+      << width << "," 
+      << drawElement::centerIndex << "," << materialIndex << ","
+      << Min << "," << Max << "," << core <<");" << newl << newl;
 }
 
 }

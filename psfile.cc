@@ -43,7 +43,7 @@ void checkColorSpace(ColorSpace colorspace)
     
 psfile::psfile(const string& filename, bool pdfformat)
   : filename(filename), pdfformat(pdfformat), pdf(false),
-    transparency(false), buffer(NULL), out(NULL) 
+    buffer(NULL), out(NULL)
 {
   if(filename.empty()) out=&cout;
   else out=new ofstream(filename.c_str());
@@ -207,12 +207,14 @@ void psfile::setopacity(const pen& p)
 {
   if(p.blend() != lastpen.blend()) {
     *out << "/" << p.blend() << " .setblendmode" << newl;
-    transparency=true;
   }
   
-  if(p.opacity() != lastpen.opacity()) {
-    *out << p.opacity() << " .setopacityalpha" << newl;
-    transparency=true;
+  string outputformat=settings::getSetting<string>("outformat");
+  if(p.opacity() != lastpen.opacity() &&
+     (pdf || outputformat == "pdf" || outputformat == "html" ||
+      outputformat == "svg")) {
+    *out << p.opacity() << " .setfillconstantalpha" << newl
+         << p.opacity() << " .setstrokeconstantalpha" << newl;
   }
   
   lastpen.settransparency(p);

@@ -32,9 +32,9 @@ include plain_filldraw;
 include plain_margins;
 include plain_picture;
 include plain_Label;
-include plain_shipout;
 include plain_arcs;
 include plain_boxes;
+include plain_shipout;
 include plain_markers;
 include plain_arrows;
 include plain_debugger;
@@ -178,6 +178,19 @@ void eval(code s, bool embedded=false)
   if(!embedded) initdefaults();
   _eval(s,embedded);
   if(!embedded) restoredefaults();
+}
+
+// Associate a parametrized type with a name.
+void type(string type, string name)
+{
+  eval("typedef "+type+" "+name,true);
+}
+
+void mapArray(string From, string To)
+{
+  type(From,"From");
+  type(To,"To");
+  eval("To[] map(To f(From), From[] a) {return sequence(new To(int i) {return f(a[i]);},a.length);}",true);
 }
 
 // Evaluate user command line option.

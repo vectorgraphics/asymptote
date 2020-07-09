@@ -65,15 +65,11 @@ public:
   // Compute bounds on ratio (x,y)/z for 3d picture (not cached).
   pair ratio(double (*m)(double, double));
   
-  bool Transparency() {
-    return transparency;
-  }
-  
   int epstosvg(const string& epsname, const string& outname);
   int pdftosvg(const string& pdfname, const string& outname);
   
   int epstopdf(const string& epsname, const string& pdfname);
-  int pdftoeps(const string& pdfname, const string& epsname);
+  int pdftoeps(const string& pdfname, const string& epsname, bool eps=true);
   
   bool texprocess(const string& texname, const string& tempname,
                   const string& prefix, const pair& bboxshift, bool svgformat); 
@@ -82,6 +78,9 @@ public:
                    const string& outputformat, bool wait, bool view,
                    bool pdftex, bool epsformat, bool svg);
     
+  bool display(const string& outname, const string& outputformat,
+               bool wait, bool view, bool epsformat);
+
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
                const string& format, bool wait=false, bool view=true);

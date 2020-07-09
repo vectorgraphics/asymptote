@@ -90,7 +90,7 @@ void DrawLink(transform3 TBase, transform3 TEnd, pen objStyle,string s)
 
   // draw two cylinders
   draw(TBase*objSurface,objStyle,render);
-  draw(TEnd*shift((0,0,-h))*objSurface,objStyle,render);
+  draw(TEnd*shift((0,0,-h+1e-5))*objSurface,objStyle,render);
 	
   // draw the link between two cylinders
   triple pStart=TBase*(0.5*h*Z);

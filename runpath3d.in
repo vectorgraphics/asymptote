@@ -178,23 +178,19 @@ path3 unstraighten(path3 p)
   return p.unstraighten();
 }
 
-// Return the maximum perpendicular deviation of segment i of path3 g
-// from a straight line.
+// return the maximum distance squared of points c0 and c1 from 
+// the respective internal control points of z0--z1.
+real straightness(triple z0, triple c0, triple c1, triple z1)
+{
+  return Straightness(z0,c0,c1,z1);
+}
+
+// return the straightness of segment i of path3 g.
 real straightness(path3 p, Int t) 
 {
   if(p.straight(t)) return 0;
-  triple z0=p.point(t);
-  triple u=unit(p.point(t+1)-z0);
-  return ::max(length(perp(p.postcontrol(t)-z0,u)),
-               length(perp(p.precontrol(t+1)-z0,u)));
-}
-
-// Return the maximum perpendicular deviation of z0..controls c0 and c1..z1
-// from a straight line.
-real straightness(triple z0, triple c0, triple c1, triple z1)
-{
-  triple u=unit(z1-z0);
-  return ::max(length(perp(c0-z0,u)),length(perp(c1-z0,u)));
+  return Straightness(p.point(t),p.postcontrol(t),p.precontrol(t+1),
+                      p.point(t+1));
 }
 
 bool piecewisestraight(path3 p)
@@ -205,6 +201,11 @@ bool piecewisestraight(path3 p)
 real arclength(path3 p)
 {
   return p.arclength();
+}
+
+real arclength(triple z0, triple c0, triple c1, triple z1)
+{
+  return arcLength(z0,c0,c1,z1);
 }
 
 real arctime(path3 p, real dval)

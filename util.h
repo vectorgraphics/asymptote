@@ -125,6 +125,7 @@ const char *startPath();
 const char* setPath(const char *s, bool quiet=false);
 const char *changeDirectory(const char *s);
 extern char *startpath;
+extern void recursive_delete(char *name);
 
 void backslashToSlash(string& s);
 void spaceToUnderscore(string& s);

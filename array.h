@@ -14,6 +14,8 @@
 
 namespace vm {
 
+extern const char *dereferenceNullArray;
+
 // Arrays are vectors with push and pop functions.
 class array : public mem::vector<item> {
   bool cycle;  
@@ -75,7 +77,7 @@ inline T read(const array &a, size_t i)
 
 inline size_t checkArray(const vm::array *a)
 {
-  if(a == 0) vm::error("dereference of null array");
+  if(a == 0) vm::error(dereferenceNullArray);
   return a->size();
 }
 

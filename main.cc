@@ -50,6 +50,10 @@ using namespace settings;
 
 using interact::interactive;
 
+namespace gl {
+extern bool glexit;
+}
+
 namespace run {
 void purge();
 }
@@ -179,8 +183,12 @@ void *asymain(void *A)
   }
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
-  if(gl::glthread && !getSetting<bool>("offscreen")) {
+  if(gl::glthread) {
+#ifdef __MSDOS__ // Signals are unreliable in MSWindows
+    gl::glexit=true;
+#else
     pthread_kill(gl::mainthread,SIGURG);
+#endif
     pthread_join(gl::mainthread,NULL);
   }
 #endif
@@ -216,7 +224,7 @@ int main(int argc, char *argv[])
 #endif
   gl::glthread=usethreads ? getSetting<bool>("threads") : false;
 #if HAVE_PTHREAD
-
+#ifndef HAVE_LIBOSMESA
   if(gl::glthread) {
     pthread_t thread;
     try {
@@ -236,6 +244,7 @@ int main(int argc, char *argv[])
       outOfMemory();
     }
   }
+#endif
 #endif
   gl::glthread=false;
 #endif

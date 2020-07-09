@@ -32,6 +32,8 @@ void breakpoint(vm::stack *Stack, absyntax::runnable *r);
 
 namespace vm {
 
+const char *dereferenceNullPointer="dereference of null pointer";
+
 mem::list<bpinfo> bplist;
   
 namespace {
@@ -428,7 +430,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame)
-              error("dereference of null pointer");
+              error(dereferenceNullPointer);
             push(FRAMEVAR(frame, get<Int>(i)));
             break;
           }
@@ -436,7 +438,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::fieldsave: {
             vars_t frame = pop<vars_t>();
             if (!frame)
-              error("dereference of null pointer");
+              error(dereferenceNullPointer);
             FRAMEVAR(frame, get<Int>(i)) = top();
             break;
           }
@@ -446,7 +448,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #error NOT REIMPLEMENTED
             vars_t frame = pop<vars_t>();
             if (!frame)
-              error("dereference of null pointer");
+              error(dereferenceNullPointer);
             FRAMEVAR(get<Int>(i)) = pop();
             break;
           }

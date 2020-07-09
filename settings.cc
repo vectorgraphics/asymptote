@@ -245,6 +245,7 @@ const string guisuffix="gui";
 const string standardprefix="out";
   
 string initdir;
+string tempdir;
 string historyname;
 
 // Local versions of the argument list.
@@ -1186,7 +1187,7 @@ void initSettings() {
                               "Convert each output file to specified format",
                               ""));
   addOption(new boolSetting("svgemulation", 0,
-                            "Emulate unimplemented SVG shading", false));
+                            "Emulate unimplemented SVG shading", true));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", true));
   addOption(new boolSetting("toolbar", 0,
@@ -1204,15 +1205,13 @@ void initSettings() {
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
-  addOption(new boolSetting("offscreen", 0,
-                            "Use offscreen rendering",false));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
   addOption(new pairSetting("position", 0, "pair", 
                             "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",
-                            "Maximum viewport size",pair(2048,2048)));
+                            "Maximum viewport size",pair(0,0)));
   addOption(new pairSetting("viewportmargin", 0, "pair",
                             "Horizontal and vertical 3D viewport margin",
                             pair(0.5,0.5)));
@@ -1229,7 +1228,7 @@ void initSettings() {
   addOption(new boolSetting("autobillboard", 0,
                             "3D labels always face viewer by default", true));
   addOption(new boolSetting("threads", 0,
-                            "Use POSIX threads for 3D rendering", !msdos));
+                            "Use POSIX threads for 3D rendering", true));
   addOption(new boolSetting("fitscreen", 0,
                             "Fit rendered image to screen", true));
   addOption(new boolSetting("interactiveWrite", 0,
@@ -1387,7 +1386,7 @@ void initSettings() {
                             "Additional frame delay", 0.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
   addOption(new IntSetting("digits", 0, "n",
-                           "Default output file precision", 6));
+                           "Default output file precision", 7));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
@@ -1522,6 +1521,9 @@ void initDir() {
   mask=umask(0);
   if(mask == 0) mask=0027;
   umask(mask);
+  tempdir=Getenv("TEMP",true);
+#else
+  tempdir="/tmp";
 #endif  
   if(access(initdir.c_str(),F_OK) == 0) {
     if(verbose > 1)

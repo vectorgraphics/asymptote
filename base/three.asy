@@ -37,8 +37,7 @@ struct render
 
   // General parameters:
   real margin;          // shrink amount for rendered openGL viewport, in bp.
-  real tubegranularity; // granularity for rendering tubes 
-  bool labelfill;       // fill subdivision cracks in unlighted labels
+  bool labelfill;       // fill PRC subdivision cracks in unlighted labels
 
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
@@ -52,7 +51,6 @@ struct render
                      bool3 merge=defaultrender.merge,
                      int sphere=defaultrender.sphere,
                      real margin=defaultrender.margin,
-                     real tubegranularity=defaultrender.tubegranularity,
                      bool labelfill=defaultrender.labelfill,
                      bool partnames=defaultrender.partnames,
                      bool defaultnames=defaultrender.defaultnames)
@@ -64,7 +62,6 @@ struct render
     this.merge=merge;
     this.sphere=sphere;
     this.margin=margin;
-    this.tubegranularity=tubegranularity;
     this.labelfill=labelfill;
     this.partnames=partnames;
     this.defaultnames=defaultnames;
@@ -80,7 +77,6 @@ defaultrender.closed=false;
 defaultrender.tessellate=false;
 defaultrender.merge=false;
 defaultrender.margin=0.02;
-defaultrender.tubegranularity=0.001;
 defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
 defaultrender.partnames=false;
@@ -217,9 +213,10 @@ triple project(triple u, triple v)
 triple perp(triple v)
 {
   triple u=cross(v,Y);
-  if(abs(u) > sqrtEpsilon) return unit(u);
+  real norm=sqrtEpsilon*abs(v);
+  if(abs(u) > norm) return unit(u);
   u=cross(v,Z);
-  return (abs(u) > sqrtEpsilon) ? unit(u) : X;
+  return (abs(u) > norm) ? unit(u) : X;
 }
 
 // Return the transformation corresponding to moving the camera from the target
@@ -1138,6 +1135,18 @@ path3 path3(path p, triple plane(pair)=XYplane)
 path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
 {
   return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
+}
+
+path3 interp(path3 a, path3 b, real t)
+{
+  int n=size(a);
+  return path3(sequence(new triple(int i) {
+        return interp(precontrol(a,i),precontrol(b,i),t);},n),
+    sequence(new triple(int i) {return interp(point(a,i),point(b,i),t);},n),
+    sequence(new triple(int i) {return interp(postcontrol(a,i),
+                                              postcontrol(b,i),t);},n),
+    sequence(new bool(int i) {return straight(a,i) && straight(b,i);},n),
+    cyclic(a) && cyclic(b));
 }
 
 path3 invert(path p, triple normal, triple point,
@@ -2158,7 +2167,8 @@ pair max(frame f, projection P)
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
-          light light=nolight, string name="", render render=defaultrender)
+          light light=nolight, string name="",
+          render render=defaultrender)
 {
   pen q=(pen) p;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
@@ -2188,17 +2198,11 @@ draw=new void(frame f, path3 g, material p=currentpen,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
-    p=material(p);
     real width=linewidth(q);
     void drawthick(path3 g) {
       if(settings.thick && width > 0) {
-        void pipe(path3, path3);
         bool prc=prc();
         bool webgl=settings.outformat == "html";
-        if(prc) {
-          pipe=new void(path3 center, path3 g)
-            {drawPRCtube(f,center,g,p,light);};
-        }
         real linecap=linecap(q);
         real r=0.5*width;
         bool open=!cyclic(g);
@@ -2213,7 +2217,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
             L += 2;
           }
         }
-        tube T=tube(g,width,render,pipe);
+        tube T=tube(g,width);
         path3 c=T.center;
         if(L >= 0) {
           if(open) {
@@ -2243,12 +2247,13 @@ draw=new void(frame f, path3 g, material p=currentpen,
                                      unithemisphere : unitsphere));
             }
           }
-          if(opacity(q) == 1)
-            _draw(f,c,q);
+// Draw central core for better small-scale rendering.
+          if((!prc || piecewisestraight(g)) && !webgl && opacity(q) == 1)
+            _draw(f,c,p,light);
         }
         for(surface s : T.s)
           draw(f,s,p,light,render);
-      } else _draw(f,g,q);
+      } else _draw(f,g,p,light);
     }
     bool group=q != nullpen && (name != "" || render.defaultnames);
     if(group)
@@ -2549,25 +2554,6 @@ private string Format(transform3 t, string sep=" ")
     Format(t[0][3])+sep+Format(t[1][3])+sep+Format(t[2][3]);
 }
 
-void writeJavaScript(string name, string preamble, string script) 
-{
-  file out=output(name);
-  write(out,preamble);
-  if(script != "") {
-    write(out,endl);
-    file in=input(script);
-    while(true) {
-      string line=in;
-      if(eof(in)) break;
-      write(out,line,endl);
-    }
-  }
-  close(out);
-  if(settings.verbose > 1) write("Wrote "+name);
-  if(!settings.inlinetex)
-    file3.push(name);
-}
-
 pair viewportmargin(pair lambda)
 {
   return maxbound(0.5*(viewportsize-lambda),viewportmargin);
@@ -2673,13 +2659,13 @@ struct scene
 
     if(!P.absolute) {
       this.P=t*P;
+      if(this.P.autoadjust || this.P.infinity)
+        adjusted=adjusted | this.P.adjust(m,M);
       if(this.P.center && settings.render != 0) {
         triple target=0.5*(m+M);
         this.P.target=target;
         this.P.calculate();
       }
-      if(this.P.autoadjust || this.P.infinity) 
-        adjusted=adjusted | this.P.adjust(m,M);
     }
 
     bool scale=xsize != 0 || ysize != 0;

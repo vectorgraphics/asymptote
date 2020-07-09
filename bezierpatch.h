@@ -14,8 +14,6 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-extern const double Fuzz4;
-
 struct BezierPatch
 {
   vertexBuffer data;
@@ -76,26 +74,30 @@ struct BezierPatch
     return bezierPPP(p0,p1,p2,p3);
   }
 
-  virtual double Distance(const triple *p) {
+  // Determine the flatness of a Bezier patch.
+  pair Distance(const triple *p) {
     triple p0=p[0];
     triple p3=p[3];
     triple p12=p[12];
     triple p15=p[15];
+
+    // Check the horizontal flatness.
+    double h=Flatness(p0,p12,p3,p15);
+    // Check straightness of the horizontal edges and interior control curves.
+    h=max(h,Straightness(p0,p[4],p[8],p12));
+    h=max(h,Straightness(p[1],p[5],p[9],p[13]));
+    h=max(h,Straightness(p[2],p[6],p[10],p[14]));
+    h=max(h,Straightness(p3,p[7],p[11],p15));
+
+    // Check the vertical flatness.
+    double v=Flatness(p0,p3,p12,p15);
+    // Check straightness of the vertical edges and interior control curves.
+    v=max(v,Straightness(p0,p[1],p[2],p3));
+    v=max(v,Straightness(p[4],p[5],p[6],p[7]));
+    v=max(v,Straightness(p[8],p[9],p[10],p[11]));
+    v=max(v,Straightness(p12,p[13],p[14],p15));
     
-    // Check the flatness of a Bezier patch.
-    double d=Distance2(p15,p0,unit(normal(p3,p[2],p[1],p0,p[4],p[8],p12)));
-    
-    // Determine how straight the edges are.
-    d=max(d,Straightness(p0,p[1],p[2],p3));
-    d=max(d,Straightness(p0,p[4],p[8],p12));
-    d=max(d,Straightness(p3,p[7],p[11],p15));
-    d=max(d,Straightness(p12,p[13],p[14],p15));
-    
-    // Determine how straight the interior control curves are.
-    d=max(d,Straightness(p[4],p[5],p[6],p[7]));
-    d=max(d,Straightness(p[8],p[9],p[10],p[11]));
-    d=max(d,Straightness(p[1],p[5],p[9],p[13]));
-    return max(d,Straightness(p[2],p[6],p[10],p[14]));
+    return pair(h,v);
   }
   
   struct Split3 {
@@ -139,9 +141,21 @@ struct BezierPatch
     }
   }
   
+  virtual void notRendered() {
+    if(transparent)
+      transparentData.rendered=false;
+    else {
+      if(color)
+        colorData.rendered=false;
+      else
+        materialData.rendered=false;
+    }
+  }
+
   void queue(const triple *g, bool straight, double ratio, bool Transparent,
              GLfloat *colors=NULL) {
     data.clear();
+    notRendered();
     Onscreen=true;
     transparent=Transparent;
     color=colors;
@@ -191,6 +205,13 @@ public:
       transparentData.Append(data);
     else
       triangleData.Append(data);
+  }
+
+  void notRendered() {
+    if(transparent)
+      transparentData.rendered=false;
+    else
+      triangleData.rendered=false;
   }
 
 };

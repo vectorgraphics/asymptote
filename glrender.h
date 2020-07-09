@@ -23,7 +23,6 @@
 #include <csignal>
 
 #define GLEW_NO_GLU
-//#define GLEW_OSMESA
 
 #ifdef __MSDOS__
 #define GLEW_STATIC
@@ -253,19 +252,6 @@ public:
   }
 };
 
-class vertexData1 {
-public:
-  GLfloat position[3];
-  GLint material;
-  vertexData1() {};
-  vertexData1(const triple& v) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    material=MaterialIndex;
-  }
-};
-
 class vertexData0 {
 public:
   GLfloat position[3];
@@ -282,19 +268,38 @@ public:
 
 class vertexBuffer {
 public:  
+  GLenum type;
+
+  GLuint verticesBuffer;
+  GLuint VerticesBuffer;
+  GLuint vertices0Buffer;
+  GLuint indicesBuffer;
+  GLuint materialsBuffer;
+
   std::vector<vertexData> vertices;
   std::vector<VertexData> Vertices;
-  std::vector<vertexData1> vertices1;
   std::vector<vertexData0> vertices0;
   std::vector<GLuint> indices;
 
   std::vector<Material> materials;
   std::vector<GLint> materialTable;
 
+  bool rendered; // Are all patches in this buffer fully rendered?
+  bool partial;  // Does buffer contain incomplete data?
+
+  vertexBuffer(GLint type=GL_TRIANGLES) : type(type),
+                                          verticesBuffer(0),
+                                          VerticesBuffer(0),
+                                          vertices0Buffer(0),
+                                          indicesBuffer(0),
+                                          materialsBuffer(0),
+                                          rendered(false),
+                                          partial(false)
+                                          {}
+
   void clear() {
     vertices.clear();
     Vertices.clear();
-    vertices1.clear();
     vertices0.clear();
     indices.clear();
     materials.clear();
@@ -303,10 +308,6 @@ public:
 
   void reserve0() {
     vertices0.reserve(nbuffer);
-  }
-
-  void reserve1() {
-    vertices1.reserve(nbuffer);
   }
 
  void reserve() {
@@ -340,13 +341,6 @@ public:
     return nvertices;
   }     
 
-// Store the vertex v.
-  GLuint vertex1(const triple &v) {
-    size_t nvertices=vertices1.size();
-    vertices1.push_back(vertexData1(v));
-    return nvertices;
-  }     
-
 // Store the pixel v and its width.
   GLuint vertex0(const triple &v, double width) {
     size_t nvertices=vertices0.size();
@@ -364,7 +358,6 @@ public:
       a[n+i]=b[i]+offset;
   }
 
-  // append array b onto array a
   void append(const vertexBuffer& b) {
     appendOffset(indices,b.indices,vertices.size());
     vertices.insert(vertices.end(),b.vertices.begin(),b.vertices.end());
@@ -373,11 +366,6 @@ public:
   void Append(const vertexBuffer& b) {
     appendOffset(indices,b.indices,Vertices.size());
     Vertices.insert(Vertices.end(),b.Vertices.begin(),b.Vertices.end());
-  }
-
-  void append1(const vertexBuffer& b) {
-    appendOffset(indices,b.indices,vertices1.size());
-    vertices1.insert(vertices1.end(),b.vertices1.begin(),b.vertices1.end());
   }
 
   void append0(const vertexBuffer& b) {

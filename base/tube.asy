@@ -9,6 +9,33 @@
 
 import three;
 
+real tubegranularity=1e-7;
+
+void render(path3 s, real r, void f(path3, real))
+{
+  void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1,
+             real depth=mantissaBits) {
+    if(depth > 0) {
+      real S=straightness(z0,c0,c1,z1);
+      if(S > max(tubegranularity*max(abs(z0),abs(c0),abs(c1),abs(z1)))) {
+        --depth;
+        triple m0=0.5*(z0+c0);
+        triple m1=0.5*(c0+c1);
+        triple m2=0.5*(c1+z1);
+        triple m3=0.5*(m0+m1);
+        triple m4=0.5*(m1+m2);
+        triple m5=0.5*(m3+m4);
+        real tm=0.5*(t0+t1);
+        Split(z0,m0,m3,m5,t0,tm,depth);
+        Split(m5,m4,m2,z1,tm,t1,depth);
+        return;
+      }
+    }
+    f(z0..controls c0 and c1..z1,t0);
+  }
+  Split(point(s,0),postcontrol(s,0),precontrol(s,1),point(s,1));
+}
+
 // A 3D version of roundedpath(path, real).
 path3 roundedpath(path3 A, real r)
 {
@@ -42,13 +69,8 @@ real[] sample(path3 g, real r, real relstep=0)
   real[] t;
   int n=length(g);
   if(relstep <= 0) {
-    for(int i=0; i < n; ++i) {
-      real S=straightness(g,i);
-      if(S < sqrtEpsilon*r)
-	t.push(i);
-      else
-        render(subpath(g,i,i+1),new void(path3, real s) {t.push(i+s);});
-    }
+    for(int i=0; i < n; ++i)
+      render(subpath(g,i,i+1),r,new void(path3, real s) {t.push(i+s);});
     t.push(n);
   } else {
     int nb=ceil(1/relstep);

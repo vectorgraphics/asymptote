@@ -86,9 +86,9 @@ void iopipestream::open(const mem::vector<string> &command, const char *hint,
   close(out[1]);
   close(in[0]);
   *buffer=0;
+  Running=true;
   pipeopen=true;
   pipein=true;
-  Running=true;
   block(false,true);
 }
 
@@ -185,8 +185,11 @@ void iopipestream::wait(const char *prompt)
 
   do {
     readbuffer();
+    if(*buffer == 0) camp::reportError(sbuffer);
     sbuffer.append(buffer);
-  } while(!tailequals(sbuffer.c_str(),sbuffer.size(),prompt,plen));
+
+    if(tailequals(sbuffer.c_str(),sbuffer.size(),prompt,plen)) break;
+  } while(true);
 }
 
 int iopipestream::wait()

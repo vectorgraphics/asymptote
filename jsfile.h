@@ -14,10 +14,20 @@ class jsfile {
   
 public:  
   jsfile() {}
-  ~jsfile();
+  ~jsfile() {}
   
+  void precision(int digits) {out.precision(digits);}
+
   void open(string name);
-  void copy(string name);
+  void header(string name);
+  void meta(string name, bool scalable=true);
+  void comment(string name);
+  void finish(string name);
+  void footer(string name);
+
+  void svgtohtml(string name);
+
+  void copy(string name, bool header=false);
   
   void addColor(const prc::RGBAColour& c); 
   void addIndices(const uint32_t *I); 
@@ -45,9 +55,12 @@ public:
   void addSphere(const triple& center, double radius, bool half=false,
                  const double& polar=0.0, const double& azimuth=0.0);
   void addCylinder(const triple& center, double radius, double height,
-                   const double& polar, const double& azimuth);
+                   const double& polar, const double& azimuth,
+                   bool core=false);
   void addDisk(const triple& center, double radius,
                const double& polar=0.0, const double& azimuth=0.0);
+  void addTube(const triple *g, double width,
+               const triple& Min, const triple& Max, bool core=false);
 };
 
 } //namespace camp

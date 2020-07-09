@@ -31,6 +31,7 @@ size_t drawElement::lastcenterIndex=0;
 const triple drawElement::zero;
 
 using vm::array;
+using settings::getSetting;
 
 #ifdef HAVE_LIBGLM
 
@@ -82,7 +83,7 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
 {
   double x,y,z;
   double X,Y,Z;
-  
+
   if(straight) {
     triple Vertices[4];
     if(t == NULL) {
@@ -96,48 +97,48 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
       Vertices[2]=t*controls[12];
       Vertices[3]=t*controls[15];
     }
-    
+
     boundstriples(x,y,z,X,Y,Z,4,Vertices);
   } else {
     double cx[16];
     double cy[16];
     double cz[16];
-  
+
     if(t == NULL) {
-      for(int i=0; i < 16; ++i) {
+      for(unsigned int i=0; i < 16; ++i) {
         triple v=controls[i];
         cx[i]=v.getx();
         cy[i]=v.gety();
         cz[i]=v.getz();
       }
     } else {
-      for(int i=0; i < 16; ++i) {
+      for(unsigned int i=0; i < 16; ++i) {
         triple v=t*controls[i];
         cx[i]=v.getx();
         cy[i]=v.gety();
         cz[i]=v.getz();
       }
     }
-    
+
     double c0=cx[0];
     double fuzz=Fuzz*run::norm(cx,16);
     x=bound(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
     X=bound(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
-    
+
     c0=cy[0];
     fuzz=Fuzz*run::norm(cy,16);
     y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
-    Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
-    
+    Y=bound(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+
     c0=cz[0];
     fuzz=Fuzz*run::norm(cz,16);
     z=bound(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
     Z=bound(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
-  }  
-  
+  }
+
   b.add(x,y,z);
   b.add(X,Y,Z);
-  
+
   if(t == NULL) {
     Min=triple(x,y,z);
     Max=triple(X,Y,Z);
@@ -232,11 +233,13 @@ bool drawBezierPatch::write(jsfile *out)
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
+  out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addPatch(Controls,4,Min,Max,colors,4);
   } else
     out->addPatch(controls,16,Min,Max,colors,4);
+  out->precision(getSetting<Int>("digits"));
                     
 #endif  
   return true;
@@ -272,6 +275,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(offscreen) { // Fully offscreen
     S.Onscreen=false;
     S.data.clear();
+    S.notRendered();
     return;
   }
 
@@ -359,7 +363,7 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
         cz[i]=v.getz();
       }
     }
-    
+
     double c0=cx[0];
     double fuzz=Fuzz*run::norm(cx,10);
     x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
@@ -473,11 +477,13 @@ bool drawBezierTriangle::write(jsfile *out)
   
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   
+  out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addPatch(Controls,3,Min,Max,colors,3);
   } else
     out->addPatch(controls,10,Min,Max,colors,3);
+  out->precision(getSetting<Int>("digits"));
                     
 #endif  
   return true;
@@ -513,6 +519,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   if(offscreen) { // Fully offscreen
     S.Onscreen=false;
     S.data.clear();
+    S.notRendered();
     return;
   }
 
@@ -758,6 +765,7 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
 
 bool drawSphere::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -772,10 +780,11 @@ bool drawSphere::write(jsfile *out)
   double r=length(X);
 
   if(half)
-    out->addSphere(O,r,half,X.polar(false),X.azimuth());
+    out->addSphere(O,r,half,X.polar(false),X.azimuth(false));
   else
     out->addSphere(O,r);
 
+#endif  
   return true;
 }
 
@@ -794,6 +803,7 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
   
 bool drawCylinder::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -810,8 +820,9 @@ bool drawCylinder::write(jsfile *out)
   double r=length(X);
   double h=length(Z);
   
-  out->addCylinder(O,r,h,Z.polar(false),Z.azimuth());
-  
+  out->addCylinder(O,r,h,Z.polar(false),Z.azimuth(false),core);
+
+#endif  
   return true;
 }
   
@@ -830,6 +841,7 @@ bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
   
 bool drawDisk::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
@@ -845,59 +857,35 @@ bool drawDisk::write(jsfile *out)
   triple Z=H-O;
   double r=length(X);
   
-  out->addDisk(O,r,Z.polar(false),Z.azimuth());
-  
+  out->addDisk(O,r,Z.polar(false),Z.azimuth(false));
+
+#endif
   return true;
 }
   
-bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
+bool drawTube::write(jsfile *out)
 {
+#ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
-  RGBAColour Black(0.0,0.0,0.0,diffuse.A);
-  PRCmaterial m(Black,diffuse,emissive,specular,opacity,shininess);
-  
-  Int n=center.length();
-  
-  if(center.piecewisestraight()) {
-    triple *centerControls=new(UseGC) triple[n+1];
-    for(Int i=0; i <= n; ++i)
-      centerControls[i]=center.point(i);
-    size_t N=n+1;
-    triple *controls=new(UseGC) triple[N];
-    for(Int i=0; i <= n; ++i)
-      controls[i]=g.point(i);
-    out->addTube(N,centerControls,controls,true,m);
-  } else {
-    size_t N=3*n+1;
-    triple *centerControls=new(UseGC) triple[N];
-    centerControls[0]=center.point((Int) 0);
-    centerControls[1]=center.postcontrol((Int) 0);
-    size_t k=1;
-    for(Int i=1; i < n; ++i) {
-      centerControls[++k]=center.precontrol(i);
-      centerControls[++k]=center.point(i);
-      centerControls[++k]=center.postcontrol(i);
-    }
-    centerControls[++k]=center.precontrol(n);
-    centerControls[++k]=center.point(n);
-    
-    triple *controls=new(UseGC) triple[N];
-    controls[0]=g.point((Int) 0);
-    controls[1]=g.postcontrol((Int) 0);
-    k=1;
-    for(Int i=1; i < n; ++i) {
-      controls[++k]=g.precontrol(i);
-      controls[++k]=g.point(i);
-      controls[++k]=g.postcontrol(i);
-    }
-    controls[++k]=g.precontrol(n);
-    controls[++k]=g.point(n);
-    
-    out->addTube(N,centerControls,controls,false,m);
-  }
-      
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  bbox3 b;
+  b.add(T*m);
+  b.add(T*triple(m.getx(),m.gety(),M.getz()));
+  b.add(T*triple(m.getx(),M.gety(),m.getz()));
+  b.add(T*triple(m.getx(),M.gety(),M.getz()));
+  b.add(T*triple(M.getx(),m.gety(),m.getz()));
+  b.add(T*triple(M.getx(),m.gety(),M.getz()));
+  b.add(T*triple(M.getx(),M.gety(),m.getz()));
+  b.add(T*M);
+
+  out->addTube(g,width,b.Min(),b.Max(),core);
+
+#endif
   return true;
 }
 
@@ -992,6 +980,7 @@ void drawTriangles::render(double size2, const triple& b,
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen
     R.Onscreen=false;
     R.data.clear();
+    R.notRendered();
     return;
   }
 

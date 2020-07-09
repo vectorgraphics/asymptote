@@ -112,8 +112,16 @@ public:
       standardEOF();
   }
   
-  void dimension(Int Nx=-1, Int Ny=-1, Int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
-  
+  void dimension(Int Nx=-1, Int Ny=-1, Int Nz=-1) {
+    if(Nx < -1 || Ny < -1 || Nz < -1) {
+      ostringstream buf;
+      buf << "Invalid array dimensions: " << Nx << ", " << Ny << ", " << Nz;
+      reportError(buf);
+    }
+
+    nx=Nx; ny=Ny; nz=Nz;
+  }
+
   file(const string& name, bool check=true, Mode type=NOMODE, bool binary=false,
        bool closed=false) : 
     name(name), check(check), type(type), linemode(false), csvmode(false),

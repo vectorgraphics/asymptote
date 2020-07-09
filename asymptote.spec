@@ -3,7 +3,7 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        2.62
+Version:        2.66
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -20,9 +20,11 @@ BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  glm-devel
 BuildRequires:  tetex-latex
-BuildRequires:  ghostscript >= 9.14
+BuildRequires:  ghostscript >= 9.52
+BuildRequires:  dvisvgm >= 2.9.1
 BuildRequires:  texinfo >= 4.7
 BuildRequires:  ImageMagick
+BuildRequires:  libtirpc-devel
 
 Requires:       tetex-latex
 Requires:       freeglut-devel >= 3.0.0

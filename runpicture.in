@@ -23,7 +23,6 @@ pairarray2* => pairArray2()
 triplearray* => tripleArray()
 triplearray2* => tripleArray2()
 transform => primTransform()
-callableTransform* => transformFunction()
 callablePen* => penFunction()
 
 #include "picture.h"
@@ -61,7 +60,6 @@ typedef array patharray;
 typedef array penarray;
 typedef array penarray2;
 
-typedef callable callableTransform;
 typedef callable callablePen;
 
 using types::IntArray;
@@ -235,13 +233,14 @@ void tensorshade(picture *f, patharray *g, bool stroke=false,
 {
   array *(*copyarray)(array *a)=copy ? copyArray : nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
-  if(b == NULL) b=g;
-  size_t n=checkArrays(p,b);
+  size_t n=checkArrays(p,b ? b : g);
+  array& G=*copyarray(g);
+  array& B=b ? *copyarray(b) : G;
   size_t nz=checkArray(z);
   if(nz != 0)
     checkEqual(nz,n);
-  f->append(new drawTensorShade(*copyarray(g),stroke,fillrule,*copyarray2(p),
-                                *copyarray(b),*copyarray2(z)));
+  f->append(new drawTensorShade(G,stroke,fillrule,*copyarray2(p),B,
+                                *copyarray2(z)));
 }
 
 void functionshade(picture *f, patharray *g, bool stroke=false,
@@ -566,14 +565,14 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
       if(!Delete) {
         drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
         group->append(e);
-        if((*p)->endclip()) clip=true;
-        ostringstream buf;
-        buf << prefix << "_" << arg;
-        string outname=buildname(buf.str(),xformat);
-        group->shipout(preamble,outname,xformat,false,false);
         bbox b=group->bounds();
-        if(!b.empty) {
-          fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip);
+        if(!b.empty && b.right > b.left && b.top > b.bottom) {
+          if((*p)->endclip()) clip=true;
+          ostringstream buf;
+          buf << prefix << "_" << arg;
+          string outname=buildname(buf.str(),xformat);
+          group->shipout(preamble,outname,xformat,false,false);
+          fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip || f->havepng());
       
           const char *oldlocale=setlocale(LC_NUMERIC,NULL);
           bool override=oldlocale && strcmp(oldlocale,"C") != 0;
@@ -605,34 +604,40 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 // Three-dimensional picture and surface operations
 
 // Bezier curve
-void _draw(picture *f, path3 g, triple center=Zero, pen p, Int interaction=0)
+void _draw(picture *f, path3 g, triple center=Zero, penarray *p,
+          real opacity, real shininess, real metallic, real fresnel0,
+          Int interaction=0)
 {
-  if(g.size() > 0)
-    f->append(new drawPath3(g,center,p,(Interaction) intcast(interaction)));
+  size_t n=g.size();
+  for(unsigned int i=0; i < n; ++i)
+    f->append(new drawPath3(g.subpath((Int) i,Int(i+1)),center,*p,opacity,
+                            shininess,metallic,fresnel0,
+                            (Interaction) intcast(interaction)));
 }
 
 // Bezier patch
 void draw(picture *f, triplearray2 *P, triple center, bool straight,
           penarray *p, real opacity, real shininess, real metallic,
-          real fresnel0, penarray *colors, Int interaction,
+          real fresnel0, penarray *colors, Int interaction, Int digits,
           bool primitive=false)
 {
   f->append(new drawBezierPatch(*P,center,straight,*p,opacity,shininess,
                                 metallic,fresnel0,*colors,
-                                (Interaction) intcast(interaction),primitive));
+                                (Interaction) intcast(interaction),
+                                digits,primitive));
 }
 
 // Bezier triangle
 void drawbeziertriangle(picture *f, triplearray2 *P, triple center,
                         bool straight, penarray *p, real opacity,
                         real shininess, real metallic, real fresnel0,
-                        penarray *colors, Int interaction,
+                        penarray *colors, Int interaction, Int digits,
                         bool primitive=false)
 {
   f->append(new drawBezierTriangle(*P,center,straight,*p,opacity,shininess,
                                    metallic,fresnel0,*colors,
                                    (Interaction) intcast(interaction),
-                                   primitive));
+                                   digits,primitive));
 }
 
 // General NURBS curve
@@ -651,7 +656,7 @@ void draw(picture *f, triplearray2 *P, realarray *uknot, realarray *vknot,
                           metallic,fresnel0,*colors));
 }
 
-// PRC or WebGL unit sphere
+// Sphere primitive
 void drawSphere(picture *f, realarray2 *t, bool half=false, penarray *p,
                 real opacity, real shininess, real metallic, real fresnel0,
                 Int type)
@@ -660,25 +665,28 @@ void drawSphere(picture *f, realarray2 *t, bool half=false, penarray *p,
                            intcast(type)));
 }
 
-// PRC unit cylinder
+// Cylinder primitive
 void drawCylinder(picture *f, realarray2 *t, penarray *p, real opacity,
-                     real shininess, real metallic, real fresnel0)
+                  real shininess, real metallic, real fresnel0,
+                  bool core=false)
 {
-  f->append(new drawCylinder(*t,*p,opacity,shininess,metallic,fresnel0));
+  f->append(new drawCylinder(*t,*p,opacity,shininess,metallic,fresnel0,core));
 }
 
-// PRC unit disk
+// Disk primitive
 void drawDisk(picture *f, realarray2 *t, penarray *p, real opacity,
               real shininess, real metallic, real fresnel0)
 {
   f->append(new drawDisk(*t,*p,opacity,shininess,metallic,fresnel0));
 }
 
-// General PRC tube
-void drawPRCtube(picture *f, path3 center, path3 g, penarray *p, real opacity,
-                 real shininess)
+// Tube primitive
+void drawTube(picture *f, triplearray *g, real width, penarray *p,
+              real opacity, real shininess, real metallic, real fresnel0,
+              triple min, triple max, bool core=false)
 {
-  f->append(new drawTube(center,g,*p,opacity,shininess));
+  f->append(new drawTube(*g,width,*p,opacity,shininess,metallic,fresnel0,
+                         min,max,core));
 }
 
 // Draw pixel

@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{https://asymptote.sourceforge.io}
      
-Copyright @copyright{} 2004-19 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-20 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -142,6 +142,7 @@ Base modules
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * markers::                     Custom path marker routines
+* map::                         Map keys to values
 * tree::                        Dynamic binary search tree
 * binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
@@ -184,13 +185,19 @@ Graphical User Interface
 @chapter Description
 @cindex description
 
+@cindex @code{Asymptote Web Application}
 @code{Asymptote} is a powerful descriptive vector graphics language that
 provides a mathematical coordinate-based framework for technical drawing.
 Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
 @code{LaTeX} provides for scientific text. By default it produces
-@code{PostScript} output, but it can also generate any format that the
-@code{ImageMagick} package can produce.
+@code{PostScript} output, but it can also generate @code{PDF},
+@code{SVG}, @code{WebGL}, @code{PRC}, and any format that the
+@code{ImageMagick} package can produce. You can even try it out in your
+Web browser without installing it, using the @code{Asymptote Web
+Application}:
+
+@url{http://asymptote.ualberta.ca}
      
 A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
@@ -372,7 +379,7 @@ where @code{x.xx} denotes the latest version.
 A working @TeX{} implementation (we recommend
 @url{https://www.tug.org/texlive} or
 @url{http://www.miktex.org}) will be required to typeset labels.
-You will also need to install @code{GPL Ghostscript} version 9.14 or
+You will also need to install @code{GPL Ghostscript} version 9.52 or
 later from @url{http://downloads.ghostscript.com/public}.
 
 To view @code{PostScript} output, you can install the
@@ -798,7 +805,7 @@ A concise introduction to @code{Asymptote} is given here.
 For a more thorough introduction, see the excellent @code{Asymptote}
 tutorial written by Charles Staats:
 
-@url{https://math.uchicago.edu/~cstaats/Charles_Staats_III/Notes_and_papers_files/asymptote_tutorial.pdf}
+@url{https://asymptote.sourceforge.io/asymptote.pdf}
 
 Another @code{Asymptote} tutorial is available as a wiki,
 with images rendered by an online Asymptote engine:
@@ -1007,7 +1014,7 @@ filldraw(unitcircle^^reverse(g),yellow,black);
 
 @cindex @code{unitbox}
 The @code{^^} operator is used by the @code{box(triple, triple)} function in
-the module @code{three.asy} to construct the edges of a
+the module @code{three} to construct the edges of a
 cube @code{unitbox} without retracing steps (@pxref{three}):
 @verbatiminclude cube.asy
 @sp 1
@@ -1330,7 +1337,8 @@ void axialshade(picture pic=currentpicture, path g, bool stroke=false,
 @noindent
 The boolean parameters @code{extenda} and @code{extendb} indicate
 whether the shading should extend beyond the axis endpoints @code{a}
-and @code{b}.
+and @code{b}. An example of axial shading is provided in the example file
+@code{@uref{https://asymptote.sourceforge.io/gallery/axialshade.svg,,axialshade}@uref{https://asymptote.sourceforge.io/gallery/axialshade.asy,,.asy}}.
 
 @cindex @code{radialshade}
 Radial gradient shading varying smoothly from
@@ -1372,11 +1380,11 @@ The edge flags used in Gouraud shading are documented here:
 @cindex Coons shading
 @cindex tensor product shading
 @cindex @code{tensorshade}
-Tensor product shading using fill rule @code{fillrule} on patches
-bounded by the @math{n} cyclic paths of length 4 in path array @code{b},
-using the vertex colors specified in the @math{n \times 4} pen array
-@code{p} and internal control points in the @math{n \times 4}
-array @code{z}, is implemented with
+Tensor product shading using clipping path @code{g}, fill rule
+@code{fillrule} on patches bounded by the @math{n} cyclic paths of
+length 4 in path array @code{b}, using the vertex colors specified in
+the @math{n \times 4} pen array @code{p} and internal control points
+in the @math{n \times 4} array @code{z}, is implemented with
 @verbatim
 void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
                  pen fillrule=currentpen, pen[][] p, path[] b=g,
@@ -2214,7 +2222,7 @@ current locale;
 
 @item string time(string format="%a %b %d %T %Z %Y")
 @cindex @code{time}
-@cindex @code{date}
+@cindex date
 @cindex @code{strftime}
 returns the current time formatted by the ANSI C routine
 @code{strftime} according to the string @code{format} using the current
@@ -5309,19 +5317,19 @@ returns a new empty array of type @code{T[]};
 @cindex @code{new}
 @item new T[] @{list@}
 returns a new array of type @code{T[]} initialized with @code{list} (a comma
-delimited list of elements).
+delimited list of elements);
 
 @item new T[n]
 returns a new array of @code{n} elements of type @code{T[]}. 
 These @code{n} array elements are not initialized unless they are arrays
-themselves (in which case they are each initialized to empty arrays).
+themselves (in which case they are each initialized to empty arrays);
 
 @cindex @code{array}
 @item T[] array(int n, T value, int depth=intMax)
 returns an array consisting of @code{n} copies of @code{value}.
 If @code{value} is itself an array, a deep copy of @code{value} is made
 for each entry. If @code{depth} is specified, this deep copying only
-recurses to the specified number of levels.
+recurses to the specified number of levels;
 
 @cindex @code{sequence}
 @item int[] sequence(int n)
@@ -5341,7 +5349,12 @@ null array);
 @item T[] map(T f(T), T[] a)
 returns the array obtained by applying the function @code{f} to each
 element of the array @code{a}. This is equivalent to
-@code{sequence(new T(int i) @{return f(a[i]);@},a.length)}.
+@code{sequence(new T(int i) @{return f(a[i]);@},a.length)};
+
+@cindex @code{map}
+@item T2[] map(T2 f(T1), T1[] a)
+constructed by calling mapArray("T1","T2"), returns the array obtained by
+applying the function @code{f} to each element of the array @code{a};
 
 @cindex @code{reverse}
 @item int[] reverse(int n)
@@ -5352,7 +5365,7 @@ returns a null array);
 @item int[] complement(int[] a, int n)
 returns the complement of the integer array @code{a} in
 @code{@{0,1,2,...,n-1@}}, so that @code{b[complement(a,b.length)]} yields the
-complement of @code{b[a]}.
+complement of @code{b[a]};
 
 @cindex @code{uniform}
 @item real[] uniform(real a, real b, int n)
@@ -5367,7 +5380,7 @@ from the end of the array for the @code{-n}th value;
 
 @cindex @code{findall}
 @item int[] findall(bool[] a)
-returns the indices of all @code{true} values in the boolean array @code{a}.
+returns the indices of all @code{true} values in the boolean array @code{a};
 
 @cindex @code{search}
 @item int search(T[] a, T key)
@@ -5375,7 +5388,7 @@ For built-in ordered types @code{T}, searches a sorted array
 @code{a} of @code{n} elements for k, returning the index @code{i}
 if @code{a[i] <= key < a[i+1]}, @code{-1} if @code{key} is
 less than all elements of @code{a}, or @code{n-1} if @code{key} is
-greater than or equal to the last element of @code{a}.
+greater than or equal to the last element of @code{a};
 
 @cindex @code{search}
 @item int search(T[] a, T key, bool less(T i, T j))
@@ -5427,51 +5440,51 @@ returns a copy of @code{a} sorted in ascending order such that
 element @code{i} precedes element @code{j} if @code{less(i,j)} is
 true, subject to (if @code{stable} is @code{true}) the stability constraint
 that the original order of elements @code{i} and @code{j} is preserved if
-@code{less(i,j)} and @code{less(j,i)} are both @code{false}.
+@code{less(i,j)} and @code{less(j,i)} are both @code{false};
 
 @cindex @code{transpose}
 @item T[][] transpose(T[][] a)
-returns the transpose of @code{a}.
+returns the transpose of @code{a};
 
 @cindex @code{transpose}
 @item T[][][] transpose(T[][][] a, int[] perm)
 returns the 3D transpose of @code{a} obtained by applying the permutation
-@code{perm} of @code{new int[]@{0,1,2@}} to the indices of each entry.
+@code{perm} of @code{new int[]@{0,1,2@}} to the indices of each entry;
 
 @cindex @code{sum}
 @item T sum(T[] a)
-For arithmetic types @code{T}, returns the sum of @code{a}.
+for arithmetic types @code{T}, returns the sum of @code{a}.
 In the case where @code{T} is @code{bool}, the number of true elements in
-@code{a} is returned.
+@code{a} is returned;
 
 @cindex @code{min}
 @item T min(T[] a)
 @item T min(T[][] a)
 @item T min(T[][][] a)
-For built-in ordered types @code{T}, returns the minimum element of @code{a}.
+for built-in ordered types @code{T}, returns the minimum element of @code{a};
 
 @cindex @code{max}
 @item T max(T[] a)
 @item T max(T[][] a)
 @item T max(T[][][] a)
-For built-in ordered types @code{T}, returns the maximum element of @code{a}.
+for built-in ordered types @code{T}, returns the maximum element of @code{a};
 
 @cindex @code{min}
 @item T[] min(T[] a, T[] b)
-For built-in ordered types @code{T}, and arrays @code{a} and @code{b}
+for built-in ordered types @code{T}, and arrays @code{a} and @code{b}
 of the same length, returns an array composed of the minimum of the
-corresponding elements of @code{a} and @code{b}.
+corresponding elements of @code{a} and @code{b};
 
 @cindex @code{max}
 @item T[] max(T[] a, T[] b)
-For built-in ordered types @code{T}, and arrays @code{a} and @code{b}
+for built-in ordered types @code{T}, and arrays @code{a} and @code{b}
 of the same length, returns an array composed of the maximum of the
-corresponding elements of @code{a} and @code{b}.
+corresponding elements of @code{a} and @code{b};
 
 @cindex @code{pairs}
 @item pair[] pairs(real[] x, real[] y);
-For arrays @code{x} and @code{y} of the same length, returns the pair array
-@code{sequence(new pair(int i) @{return (x[i],y[i]);@},x.length)}.
+for arrays @code{x} and @code{y} of the same length, returns the pair array
+@code{sequence(new pair(int i) @{return (x[i],y[i]);@},x.length)};
 
 @cindex @code{fft}
 @item pair[] fft(pair[] a, int sign=1)
@@ -5490,14 +5503,24 @@ write();
 write(f/n);
 @end verbatim
 
+@cindex @code{fft}
+@item pair[][] fft(pair[][] a, int sign=1)
+returns the unnormalized two-dimensional Fourier transform of @code{a}
+using the given @code{sign};
+
+@cindex @code{fft}
+@item pair[][][] fft(pair[][][] a, int sign=1)
+returns the unnormalized three-dimensional Fourier transform of
+@code{a} using the given @code{sign};
+
 @cindex @code{dot}
 @item real dot(real[] a, real[] b)
-returns the dot product of the vectors @code{a} and @code{b}.
+returns the dot product of the vectors @code{a} and @code{b};
 
 @cindex @code{dot}
 @item pair dot(pair[] a, pair[] b)
 returns the complex dot product @code{sum(a*conj(b))} of the vectors
-@code{a} and @code{b}.
+@code{a} and @code{b};
 
 @anchor{tridiagonal}
 @cindex @code{tridiagonal}
@@ -5514,7 +5537,7 @@ is an @math{n} vector and @math{L} is the @math{n \times n} matrix
 @end verbatim
 For Dirichlet boundary conditions (denoted here by @code{u[-1]} and
 @code{u[n]}), replace @code{f[0]} by @code{f[0]-a[0]u[-1]} and
-@code{f[n-1]-c[n-1]u[n]}; then set @code{a[0]=c[n-1]=0}. 
+@code{f[n-1]-c[n-1]u[n]}; then set @code{a[0]=c[n-1]=0}; 
 
 @cindex @code{solve}
 @item real[] solve(real[][] a, real[] b, bool warn=true)
@@ -5535,7 +5558,7 @@ write(a*x);
 If @code{a} is a singular matrix and @code{warn} is @code{false}, return an
 empty array.
 If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
-a more efficient algorithm (@pxref{tridiagonal}). 
+a more efficient algorithm (@pxref{tridiagonal}); 
 
 @anchor{solve}
 @cindex @code{solve}
@@ -5543,30 +5566,30 @@ a more efficient algorithm (@pxref{tridiagonal}).
 Solve the linear equation @math{@code{a}x=@code{b}} and return the
 solution @math{x}, where @code{a} is an @math{n \times n} matrix and
 @code{b} is an @math{n \times m} matrix. If @code{a} is a singular
-matrix and @code{warn} is @code{false}, return an empty matrix.
+matrix and @code{warn} is @code{false}, return an empty matrix;
 
 @cindex @code{identity}
 @item real[][] identity(int n);
-returns the @math{n \times n} identity matrix.
+returns the @math{n \times n} identity matrix;
 
 @cindex @code{diagonal}
 @item real[][] diagonal(... real[] a)
-returns the diagonal matrix with diagonal entries given by a.
+returns the diagonal matrix with diagonal entries given by a;
 
 @cindex @code{inverse}
 @item real[][] inverse(real[][] a)
-returns the inverse of a square matrix @code{a}.
+returns the inverse of a square matrix @code{a};
 
 @cindex @code{quadraticroots}
 @item @code{real[] quadraticroots(real a, real b, real c);}
 This numerically robust solver returns the real roots of the
 quadratic equation @math{ax^2+bx+c=0}, in ascending order. Multiple
-roots are listed separately.
+roots are listed separately;
 
 @cindex @code{quadraticroots}
 @item @code{pair[] quadraticroots(explicit pair a, explicit pair b, explicit pair c);}
 This numerically robust solver returns the complex roots of the
-quadratic equation @math{ax^2+bx+c=0}.
+quadratic equation @math{ax^2+bx+c=0};
 
 @cindex @code{cubicroots}
 @item @code{real[] cubicroots(real a, real b, real c, real d);}
@@ -6028,6 +6051,9 @@ code s=quote {
 eval(s,true);        // Outputs 1
 @end verbatim
 
+One application of @code{eval} is the creation of parametrized Asymptote
+code, such as a map from one type to another (@pxref{map}).
+
 @cindex @code{include}
 To include the contents of an existing file @code{graph} verbatim (as if the
 contents of the file were inserted at that point), use one of the forms:
@@ -6129,7 +6155,7 @@ void f();
 for(int i=0; i < 10; ++i) {
   int x=i;
   if(x==5) {
-    f=new void () { write(x); }
+    f=new void() {write(x);};
   }
 }
 f();
@@ -6149,7 +6175,7 @@ void f() {
 @end verbatim
 @noindent
 both @code{x} and @code{y} will be allocated in the same place, which is
-also where @code{f} is also allocated.
+also where @code{f} is allocated.
 
 Statements may also be declared static, in which case they are run at the place
 where the enclosing function or structure is defined.
@@ -6300,6 +6326,7 @@ Here now is @code{latexusage.tex}:
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * markers::                     Custom path marker routines
+* map::                         Map keys to values
 * tree::                        Dynamic binary search tree
 * binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
@@ -6350,14 +6377,14 @@ option to disable this feature.
 @section @code{simplex}
 @cindex @code{simplex}
 @cindex @code{deferred drawing}
-This package solves the two-variable linear programming problem using the
+This module solves the two-variable linear programming problem using the
 simplex method. It is used by the module @code{plain} for automatic
 sizing of pictures.
 
 @node math, interpolate, simplex, Base modules
 @section @code{math}
 @cindex @code{math}
-This package extends @code{Asymptote}'s mathematical capabilities with
+This module extends @code{Asymptote}'s mathematical capabilities with
 useful functions such as
 
 @table @code
@@ -6384,11 +6411,6 @@ respectively. If the planes are parallel, return
 @item pair[] quarticroots(real a, real b, real c, real d, real e);
 returns the four complex roots of the quartic equation
 @math{ax^4+bx^3+cx^2+dx+e=0}.
-
-@cindex @code{fft}
-@item pair[][] fft(pair[][] a, int sign=1)
-returns the two-dimensional Fourier transform of a using the given
-@code{sign}.
 
 @cindex @code{time}
 @item real time(path g, real x, int n=0)
@@ -6482,21 +6504,21 @@ hand.
 @section @code{stats}
 @cindex @code{stats}
 @cindex @code{leastsquares}
-This package implements a Gaussian random number generator
+This module implements a Gaussian random number generator
 and a collection of statistics routines, including @code{histogram}
 and @code{leastsquares}.
 
 @node patterns, markers, stats, Base modules
 @section @code{patterns}
 @cindex @code{patterns}
-This package implements @code{Postscript} tiling patterns and includes
+This module implements @code{Postscript} tiling patterns and includes
 several convenient pattern generation routines.
 
 @node markers, tree, patterns, Base modules
 @section @code{markers}
 @cindex @code{markers}
-This package implements specialized routines for marking paths and angles.
-The principal mark routine provided by this package is
+This module implements specialized routines for marking paths and angles.
+The principal mark routine provided by this module is
 @verbatim
 markroutine markinterval(int n=1, frame f, bool rotated=false);
 @end verbatim
@@ -6540,7 +6562,7 @@ use of these markers:
 @sp 1
 @center @image{./markers1}
 
-This package also provides a routine for marking an angle @math{AOB}:
+This module also provides a routine for marking an angle @math{AOB}:
 @cindex @code{markangle}
 @verbatim
 void markangle(picture pic=currentpicture, Label L="",
@@ -6555,10 +6577,30 @@ as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/galle
 @sp 1
 @center @image{./markers2}
 
+@node map, tree, markers, Base modules
+@section @code{map}
+@cindex @code{map}
+This module creates a struct parameterized by the types specified in
+strings @code{key} and @code{value}, mapping keys to values with a
+specified default:
+@verbatim
+import map;
+
+mapTemplate(name="map",key="string",value="int",default="-1");
+
+map M;
+
+M.add("z",2);
+M.add("a",3);
+M.add("d",4);
+write(M.lookup("a"));
+write(M.lookup("y"));
+@end verbatim
+
 @node tree, binarytree, markers, Base modules
 @section @code{tree}
 @cindex @code{tree}
-This package implements an example of a dynamic binary search tree.
+This module implements an example of a dynamic binary search tree.
 
 @node binarytree, drawtree, tree, Base modules
 @section @code{binarytree}
@@ -6585,14 +6627,14 @@ along with the corresponding equations, as illustrated in the example
 @node feynman, roundedpath, syzygy, Base modules
 @section @code{feynman}
 @cindex @code{feynman}
-This package, contributed by Martin Wiebusch, is useful for drawing
+This module, contributed by Martin Wiebusch, is useful for drawing
 Feynman diagrams, as illustrated by the examples @code{@uref{https://asymptote.sourceforge.io/gallery/eetomumu.svg,,eetomumu}@uref{https://asymptote.sourceforge.io/gallery/eetomumu.asy,,.asy}}
 and @code{@uref{https://asymptote.sourceforge.io/gallery/fermi.svg,,fermi}@uref{https://asymptote.sourceforge.io/gallery/fermi.asy,,.asy}}.
 
 @node roundedpath, animation, feynman, Base modules
 @section @code{roundedpath}
 @cindex @code{roundedpath}
-This package, contributed by Stefan Knorr, is useful for rounding the
+This module, contributed by Stefan Knorr, is useful for rounding the
 sharp corners of paths, as illustrated in the example file @code{@uref{https://asymptote.sourceforge.io/gallery/roundpath.svg,,roundpath}@uref{https://asymptote.sourceforge.io/gallery/roundpath.asy,,.asy}}.
 
 @node animation, embed, roundedpath, Base modules
@@ -6612,7 +6654,7 @@ movie.
 @anchor{animate}
 The related @code{animate} module, derived from the @code{animation}
 module, generates higher-quality portable clickable @acronym{PDF} movies, with
-optional controls. This requires installing the package
+optional controls. This requires installing the module
 @quotation
 @url{http://mirror.ctan.org/macros/latex/contrib/animate/animate.sty}
 @noindent
@@ -6673,7 +6715,7 @@ An example of embedding @code{U3D} code is provided in the file
 @node slide, MetaPost, embed, Base modules
 @section @code{slide}
 @cindex @code{slide}
-This package provides a simple yet high-quality facility for making
+This module provides a simple yet high-quality facility for making
 presentation slides, including portable embedded @acronym{PDF} animations (see
 the file @code{@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.pdf,,slidemovies}@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.asy,,.asy}}). A simple example is provided in
 @code{slidedemo.asy}.
@@ -6681,7 +6723,7 @@ the file @code{@uref{https://asymptote.sourceforge.io/gallery/animations/slidemo
 @node MetaPost, babel, slide, Base modules
 @section @code{MetaPost}
 @cindex @code{MetaPost}
-This package provides some useful routines to help @code{MetaPost} users
+This module provides some useful routines to help @code{MetaPost} users
 migrate old @code{MetaPost} code to @code{Asymptote}. Further
 contributions here are welcome.
 
@@ -6721,7 +6763,7 @@ Here @code{justify} is one of @code{LeftJustified}, @code{Centered}, or
 @code{RightJustified}. The @math{x} component of a shift transform
 applied to the Label is interpreted as a shift along the curve, whereas
 the @math{y} component is interpreted as a shift away from the curve.
-All other Label transforms are ignored. This package requires the
+All other Label transforms are ignored. This module requires the
 @code{latex} tex engine and inherits the limitations of the
 @code{PSTricks} @code{\pstextpath} macro.
 
@@ -6749,7 +6791,7 @@ Currently, annotations are only implemented for the @code{latex}
 @node CAD, graph, annotate, Base modules
 @section @code{CAD}
 @cindex @code{CAD}
-This package, contributed by Mark Henning, provides basic pen
+This module, contributed by Mark Henning, provides basic pen
 definitions and measurement functions for simple 2D CAD drawings
 according to DIN 15. It is documented separately, in the file 
 @code{CAD.pdf}.
@@ -6758,7 +6800,7 @@ according to DIN 15. It is documented separately, in the file
 @section @code{graph}
 @cindex @code{graph}
 @cindex 2D graphs
-This package implements two-dimensional linear and logarithmic graphs,
+This module implements two-dimensional linear and logarithmic graphs,
 including automatic scale and tick selection (with the ability to
 override manually). A graph is a @code{guide} (that can be drawn with
 the draw command, with an optional legend) constructed with one of
@@ -7834,7 +7876,7 @@ and @code{three_light.asy}:
 struct light {
   real[][] diffuse;
   real[][] specular;
-  pen background=nullpen; // Background color of the 3D canvas.
+  pen background=nullpen; // Background color of the canvas.
   real specularfactor;
   triple[] position; // Only directional lights are currently implemented.
 }
@@ -7854,9 +7896,12 @@ light nolight;
 @end verbatim
 @cindex @code{background}
 @cindex @code{transparent}
-The @code{background} pen can be use to set the 3D @code{OpenGL}
-background colour (the default is white). In the case of
-3D @code{WebGL} images one can request a completely transparent background with
+The @code{currentlight.background} (or @code{background} member of the
+specified @code{light}) can be used
+to set the background colour for 2D (or 3D) images. The default
+background is white for @code{HTML} images and transparent for all
+other formats. One can request a completely transparent background for
+3D @code{WebGL} images with
 @code{currentlight.background=black+opacity(0.0);}
 
 Sample Bezier surfaces are
@@ -8669,7 +8714,7 @@ nonrendered @code{PostScript}) is available with the setting
 @code{render=0}. This currently only works for piecewise planar
 surfaces, such as those produced by the parametric @code{surface}
 routines in the @code{graph3} module. Surfaces produced by the
-@code{solids} package will also be properly rendered if the parameter
+@code{solids} module will also be properly rendered if the parameter
 @code{nslices} is sufficiently large.
 
 @cindex hidden surface removal
@@ -8863,7 +8908,7 @@ This module, contributed by Philippe Ivaldi, can be used for drawing
 @node solids, tube, grid3, Base modules
 @section @code{solids}
 @cindex @code{solids}
-This solid geometry package defines a structure @code{revolution} that
+This solid geometry module defines a structure @code{revolution} that
 can be used to fill and draw surfaces of revolution. The following example
 uses it to display the outline of a circular cylinder of radius 1
 with axis @code{O--1.5unit(Y+Z)} with perspective projection:
@@ -8892,7 +8937,7 @@ struct skeleton {
 @node tube, flowchart, solids, Base modules
 @section @code{tube}
 @cindex @code{tube}
-This package extends the @code{tube} surfaces constructed in
+This module extends the @code{tube} surfaces constructed in
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/three_arrows.html,,three_arrows}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/three_arrows.asy,,.asy}} to arbitrary cross sections, colors, and spine
 transformations. The routine
 @verbatim
@@ -8953,7 +8998,7 @@ An example of @code{tube} is provided in the file
 @node flowchart, contour, tube, Base modules
 @section @code{flowchart}
 @cindex @code{flowchart}
-This package provides routines for drawing flowcharts. The primary
+This module provides routines for drawing flowcharts. The primary
 structure is a @code{block}, which represents a single block on the
 flowchart. The following eight functions return a position on the appropriate
 edge of the block, given picture transform @code{t}:
@@ -9088,7 +9133,7 @@ Here is a simple flowchart example (see also the example
 @node contour, contour3, flowchart, Base modules
 @section @code{contour}
 @cindex @code{contour}
-This package draws contour lines.
+This module draws contour lines.
 To construct contours corresponding to the values in a real array @code{c}
 for a function @code{f} on @code{box(a,b)}, use the routine
 @verbatim
@@ -9183,7 +9228,7 @@ Jonathan Shewchuk.
 @node contour3, smoothcontour3, contour, Base modules
 @section @code{contour3}
 @cindex @code{contour3}
-This package draws surfaces described as the null space of real-valued
+This module draws surfaces described as the null space of real-valued
 functions of @math{(x,y,z)} or @code{real[][][]} matrices.
 Its usage is illustrated in the example file @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/magnetic.html,,magnetic}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/magnetic.asy,,.asy}}.
 
@@ -9381,11 +9426,10 @@ To produce @acronym{SVG} output, you will need @code{dvisvgm} (version
 You might need to adjust the configuration variable @code{libgs} to
 point to the location of your @code{Ghostscript} library
 @code{libgs.so} (or to an empty string, depending on how
-@code{dvisvgm} was configured). The 2.8 version of @code{dvisvgm} can
-display SVG output (used by the @code{xasy} editor) for external
-vector @acronym{EPS} and @acronym{PDF} images included with the
-@code{graphic()} function, in addition to (using the @code{latex}
-@TeX{} engine) @acronym{PNG} and @acronym{JPEG} embedded raster images.
+@code{dvisvgm} was configured). The 2.9.1 version of @code{dvisvgm} can
+display @acronym{SVG} output (used by the @code{xasy} editor) for embedded
+@acronym{EPS}, @acronym{PDF}, @acronym{PNG}, and @acronym{JPEG} images
+included with the @code{graphic()} function.
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
@@ -9846,6 +9890,9 @@ contributors include Orest Shardt, Jesse Frohlich, Michail Vidiassov,
 Charles Staats, Philippe Ivaldi, Olivier Guib@'e, Radoslav Marinov,
 Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
 Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
+Pedram Emami developed the @code{Asymptote Web Application} at
+@url{http://asymptote.ualberta.ca}.
+
 
 @node Index,  , Credits, Top
 @unnumbered Index

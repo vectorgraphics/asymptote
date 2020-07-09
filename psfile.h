@@ -103,7 +103,6 @@ public:
   string filename;
   bool pdfformat;    // Is final output format PDF?
   bool pdf;          // Output direct PDF?
-  bool transparency; // Is transparency used?
   unsigned char *buffer;
   size_t count;
 
@@ -161,10 +160,6 @@ public:
   void writenewl() {
     *out << newl;
   }
-  
-//  bool Transparency() {
-//    return transparency;
-//  }
   
   void write(pair z) {
     *out << " " << z.getx() << " " << z.gety();
@@ -287,9 +282,6 @@ public:
   virtual void gouraudshade(const pen& pentype, const vm::array& pens,
                             const vm::array& vertices, const vm::array& edges);
   
-  virtual void begintensorshade(const vm::array& pens,
-                                const vm::array& boundaries,
-                                const vm::array& z) {}
   virtual void tensorshade(const pen& pentype, const vm::array& pens,
                            const vm::array& boundaries, const vm::array& z);
   

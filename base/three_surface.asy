@@ -722,14 +722,17 @@ path[] regularize(path p, bool checkboundary=true)
   return s;
 }
 
+typedef void drawfcn(frame f, transform3 t=identity4, material[] m,
+            light light=currentlight, render render=defaultrender);
+
 struct surface {
   patch[] s;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
   bool vcyclic;
   transform3 T=identity4;
   
-  void draw(frame f, transform3 t=identity4, material[] m,
-            light light=currentlight, render render=defaultrender);
+  drawfcn draw;
+  bool PRCprimitive=true; // True unless no PRC primitive is available.
 
   bool empty() {
     return s.length == 0;
@@ -1029,6 +1032,7 @@ surface operator * (transform3 t, surface s)
   S.vcyclic=(bool) s.vcyclic;
   S.T=t*s.T;
   S.draw=s.draw;
+  S.PRCprimitive=s.PRCprimitive;
   
   return S;
 }
@@ -1365,11 +1369,15 @@ material material(material m, light light, bool colors=false)
   return light.on() || invisible((pen) m) ? m : emissive(m,colors);
 }
 
-void draw3D(frame f, int type=0, patch s, triple center=O, material m,
+void draw3D(frame f, patch s, triple center=O, material m,
             light light=currentlight, interaction interaction=Embedded,
             bool primitive=false)
 {
   bool straight=s.straight && s.planar;
+
+  // Planar Bezier surfaces require extra precision in WebGL
+  int digits=s.planar && !straight ? 12 : settings.digits;
+
   if(s.colors.length > 0) {
     if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
@@ -1379,7 +1387,15 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   
   (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,center,straight,m.p,m.opacity,m.shininess,
-     m.metallic,m.fresnel0,s.colors,interaction.type,primitive);
+     m.metallic,m.fresnel0,s.colors,interaction.type,digits,primitive);
+}
+
+void _draw(frame f, path3 g, triple center=O, material m,
+           light light=currentlight, interaction interaction=Embedded)
+{
+  if(!prc()) m=material(m,light);
+  _draw(f,g,center,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+        interaction.type);
 }
 
 int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
@@ -1479,13 +1495,6 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       pic.addPoint(v[viij]);
 }
 
-void drawPRCtube(frame f, path3 center, path3 g, material m,
-                 light light=currentlight)
-{
-  m=material(m,light);
-  drawPRCtube(f,center,g,m.p,m.opacity,m.shininess);
-}
-
 void tensorshade(transform t=identity(), frame f, patch s,
                  material m, light light=currentlight, projection P)
 {
@@ -1495,8 +1504,18 @@ void tensorshade(transform t=identity(), frame f, patch s,
     p.push(p[0]);
     s=tensor(s);        
   } else p=s.colors(m,light);
-  tensorshade(f,box(t*s.min(P),t*s.max(P)),m.diffuse(),
-              p,t*project(s.external(),P,1),t*project(s.internal(),P));
+  path g=t*project(s.external(),P,1);
+  pair[] internal=t*project(s.internal(),P);
+  pen fillrule=m.diffuse();
+  if(inside(g,internal[0],fillrule) && inside(g,internal[1],fillrule) &&
+     inside(g,internal[2],fillrule) && inside(g,internal[3],fillrule)) {
+    if(p[0] == p[1] && p[1] == p[2] && p[2] == p[3])
+      fill(f,g,fillrule+p[0]);
+    else
+      tensorshade(f,g,fillrule,p,internal);
+  } else {
+    tensorshade(f,box(t*s.min(P),t*s.max(P)),fillrule,p,g,internal);
+  }
 }
 
 restricted pen[] nullpens={nullpen};
@@ -1509,12 +1528,13 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 {
   bool is3D=is3D();
   if(is3D) {
-    if(s.draw != null && (settings.outformat == "html" || prc())) {
+    bool prc=prc();
+    if(s.draw != null && (settings.outformat == "html" ||
+                          (prc && s.PRCprimitive))) {
       for(int k=0; k < s.s.length; ++k)
         draw3D(f,s.s[k],surfacepen[k],light,primitive=true);
       s.draw(f,s.T,surfacepen,light,render);
-    }
-    else {
+    } else {
       bool group=name != "" || render.defaultnames;
       if(group)
         begingroup3(f,name == "" ? "surface" : name,render);
@@ -1824,7 +1844,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
         draw3D(f3,S,position,L.p,light,interaction);
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-          _draw(f3,S.external(),position,L.p,interaction.type);
+          _draw(f3,S.external(),position,L.p,light,interaction);
       }
       endgroup3(f3);
           if(L.defaulttransform3)
@@ -1844,7 +1864,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
         draw3D(f,S,V,L.p,light,interaction);
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-          _draw(f,S.external(),V,L.p,interaction.type);
+          _draw(f,S.external(),V,L.p,light,interaction);
       }
       endgroup3(f);
     }
@@ -1913,7 +1933,7 @@ void label(picture pic=currentpicture, Label L, triple position,
               draw3D(f3,S,v,L.p,light,interaction);
               // Fill subdivision cracks
               if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-                _draw(f3,S.external(),v,L.p,interaction.type);
+                _draw(f3,S.external(),v,L.p,light,interaction);
             }
             endgroup3(f3);
             if(L.defaulttransform3)
@@ -1933,7 +1953,7 @@ void label(picture pic=currentpicture, Label L, triple position,
             draw3D(f,S,V,L.p,light,interaction);
             // Fill subdivision cracks
             if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-              _draw(f,S.external(),V,L.p,interaction.type);
+              _draw(f,S.external(),V,L.p,light,interaction);
           }
           endgroup3(f);
         }
@@ -2057,7 +2077,6 @@ surface surface(Label L, surface s, real uoffset, real voffset,
 }
 
 private real a=4/3*(sqrt(2)-1);
-private real f=0.5*sqrt(3)*a^2;
 
 private transform3 t1=rotate(90,O,Z);
 private transform3 t2=t1*t1;
@@ -2068,14 +2087,29 @@ private transform3 i=xscale3(-1)*zscale3(-1);
 restricted patch octant1x=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
                                new triple[] {(1,a,a),(a,1,a),(a^2,a,1),
                                                (a,a^2,1)});
-private triple[][][] P=hsplit(octant1x.P,
-                      intersect((1,0){N}..{W}(0,1),(0,0)--2*dir(60))[0]);
+
+surface octant1(real transition)
+{
+  private triple[][][] P=hsplit(octant1x.P,transition);
+  private patch P0=patch(P[0]);
+  private patch P1=patch(P[1][0][0]..controls P[1][1][0] and P[1][2][0]..
+                         P[1][3][0]..controls P[1][3][1] and P[1][3][2]..
+                         P[1][3][3]..controls P[1][0][2] and P[1][0][1]..
+                         cycle,O);
+
+  // Set internal control point of P1 to match normals at P0.point(1/2,1).
+  triple n=P0.normal(1/2,1);
+  triple[][] P=P1.P;
+  triple u=-P[0][0]-P[1][0]+P[2][0]+P[3][0];
+  triple v=-P[0][0]-2*P[1][0]+P[1][1]-P[2][0]+P[3][1];
+  triple w=cross(u,v+(0,0,2));
+  real i=0.5*(n.z*w.x/n.x-w.z)/(u.x-u.y);
+  P1.P[2][1]=(i,i,1);
+  return surface(P0,P1);
+}
+
 // Nondegenerate first octant
-surface octant1=surface(patch(P[0]),
-                        patch(P[1][0][0]..controls P[1][1][0] and P[1][2][0]..
-                              P[1][3][0]..controls P[1][3][1] and P[1][3][2]..
-                              P[1][3][3]..controls P[1][0][2] and P[1][0][1]..
-                              cycle,(f,f,1)));
+restricted surface octant1=octant1(0.95);
 
 restricted surface unithemisphere=surface(octant1,t1*octant1,t2*octant1,
                                           t3*octant1);
@@ -2101,33 +2135,23 @@ unithemisphere.draw=
              render.sphere);
   };
 
-restricted patch unitfrustum(real t1, real t2)
+restricted patch unitfrustum1(real ta, real tb)
 {
-  real s1=interp(t1,t2,1/3);
-  real s2=interp(t1,t2,2/3);
-  return patch(interp(Z,X,t2){Y}..{-X}interp(Z,Y,t2)--interp(Z,Y,t1){X}..{-Y}
-               interp(Z,X,t1)--cycle,
+  real s1=interp(ta,tb,1/3);
+  real s2=interp(ta,tb,2/3);
+  return patch(interp(Z,X,tb){Y}..{-X}interp(Z,Y,tb)--interp(Z,Y,ta){X}..{-Y}
+               interp(Z,X,ta)--cycle,
                new triple[] {(s2,s2*a,1-s2),(s2*a,s2,1-s2),(s1*a,s1,1-s1),
                                           (s1,s1*a,1-s1)});
 }
 
-// Return a unitcone constructed from n frusta (the final one being degenerate)
-surface unitcone(int n=6)
+restricted surface unitfrustum(real ta, real tb)
 {
-  surface unitcone;
-  unitcone.s=new patch[4*n];
-  real r=1/3;
-  for(int i=0; i < n; ++i) {
-    patch s=unitfrustum(i < n-1 ? r^(i+1) : 0,r^i);
-    unitcone.s[i]=s;
-    unitcone.s[n+i]=t1*s;
-    unitcone.s[2n+i]=t2*s;
-    unitcone.s[3n+i]=t3*s;
-  }
-  return unitcone;
+  patch p=unitfrustum1(ta,tb);
+  return surface(p,t1*p,t2*p,t3*p);
 }
 
-restricted surface unitcone=unitcone();
+restricted surface unitcone=surface(unitfrustum(0,1));
 restricted surface unitsolidcone=surface(patch(unitcircle3)...unitcone.s);
 
 // Construct an approximate cone over an arbitrary base.
@@ -2138,14 +2162,17 @@ private patch unitcylinder1=patch(X{Y}..{-X}Y--Y+Z{X}..{-Y}X+Z--cycle);
 restricted surface unitcylinder=surface(unitcylinder1,t1*unitcylinder1,
                                         t2*unitcylinder1,t3*unitcylinder1);
 
-unitcylinder.draw=
-  new void(frame f, transform3 t=identity4, material[] m,
+drawfcn unitcylinderDraw(bool core) {
+  return new void(frame f, transform3 t=identity4, material[] m,
            light light=currentlight, render render=defaultrender)
   {
    material m=material(m[0],light);
-   drawCylinder(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0);
+   drawCylinder(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+                m.opacity == 1 ? core : false);
   };
+}
 
+unitcylinder.draw=unitcylinderDraw(false);
 
 private patch unitplane=patch(new triple[] {O,X,X+Y,Y});
 restricted surface unitcube=surface(reverse(unitplane),
