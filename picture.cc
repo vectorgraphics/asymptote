@@ -721,7 +721,7 @@ int picture::epstosvg(const string& epsname, const string& outname)
   mem::vector<string> cmd;
   char *tmpdir=dvisvgmCommand(cmd,epsname,outname);
   cmd.push_back("-E");
-  int status=System(cmd,2,true,"dvisvgm");
+  int status=System(cmd,0,true,"dvisvgm");
   rmtmpdir(tmpdir);
   if(!getSetting<bool>("keep"))
     unlink(epsname.c_str());
@@ -733,7 +733,7 @@ int picture::pdftosvg(const string& pdfname, const string& outname)
   mem::vector<string> cmd;
   char *tmpdir=dvisvgmCommand(cmd,pdfname,outname);
   cmd.push_back("--pdf");
-  int status=System(cmd,2,true,"dvisvgm");
+  int status=System(cmd,0,true,"dvisvgm");
   rmtmpdir(tmpdir);
   if(status == 0 && !getSetting<bool>("keep"))
     unlink(pdfname.c_str());

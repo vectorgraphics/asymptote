@@ -46,8 +46,19 @@ void jsfile::meta(string name, bool svg)
       << newl
       << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl;
   if(svg) {
-    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
-        << newl << "</head>";
+    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>";
+    if(!getSetting<bool>("absolute"))
+      out << newl << "<style>" << newl
+          << "svg, #container {" << newl
+          << "width: 100vw;" << newl
+          << "height: 100vh;" << newl
+          << "max-width: 100%;" << newl
+          << "}" << newl
+          << newl << " body {" << newl
+          << "margin: 0;" << newl
+          << "}" << newl
+          << newl << "</style>" << newl;
+    out << newl << "</head>";
   } else {
     out << "<meta name=\"viewport\" content=\"user-scalable=no\"/>";
   }
@@ -69,6 +80,7 @@ void jsfile::svgtohtml(string prefix)
   string name=buildname(prefix,"html");
   header(name);
   meta(name);
+
   out << "<body>" << newl << newl;
   copy(locateFile(auxname(prefix,"svg")),true);
   footer(name);
