@@ -48,16 +48,16 @@ void jsfile::meta(string name, bool svg)
   if(svg) {
     out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>";
     if(!getSetting<bool>("absolute"))
-      out << newl << "<style>" << newl
+      out << newl << newl << "<style>" << newl
           << "svg, #container {" << newl
           << "width: 100vw;" << newl
           << "height: 100vh;" << newl
           << "max-width: 100%;" << newl
           << "}" << newl
-          << newl << " body {" << newl
+          << "body {" << newl
           << "margin: 0;" << newl
           << "}" << newl
-          << newl << "</style>" << newl;
+          << "</style>" << newl;
     out << newl << "</head>";
   } else {
     out << "<meta name=\"viewport\" content=\"user-scalable=no\"/>";
