@@ -45,24 +45,20 @@ void jsfile::meta(string name, bool svg)
       << "<title>" << stripExt(name) << "</title>" << newl
       << newl
       << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl;
-  if(svg) {
+  if(svg)
     out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>";
-    if(!getSetting<bool>("absolute"))
-      out << newl << newl << "<style>" << newl
-          << "svg, #container {" << newl
-          << "width: 100vw;" << newl
-          << "height: 100vh;" << newl
-          << "max-width: 100%;" << newl
-          << "}" << newl
-          << "body {" << newl
-          << "margin: 0;" << newl
-          << "}" << newl
-          << "</style>" << newl;
-    out << newl << "</head>";
-  } else {
+  else
     out << "<meta name=\"viewport\" content=\"user-scalable=no\"/>";
-  }
-  out << newl << newl;
+  out << newl << "<style>" << newl;
+  if(svg && !getSetting<bool>("absolute"))
+    out << "svg, #container {" << newl
+        << "display: block;" << newl
+        << "width: 100vw;" << newl
+        << "height: 100vh;" << newl
+        << "}" << newl;
+  out << "body {margin: 0;}" << newl
+      << "</style>" << newl
+      << "</head>" << newl << newl;
 }
 
 void jsfile::footer(string name)
