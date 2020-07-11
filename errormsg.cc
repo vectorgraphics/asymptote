@@ -9,6 +9,7 @@
 #include <cstdlib>
 
 #include "errormsg.h"
+#include "interact.h"
 
 errorstream em;
 
@@ -21,6 +22,20 @@ ostream& operator<< (ostream& out, const position& pos)
 {
   if (!pos)
     return out;
+
+  if(!(interact::interactive ||
+       settings::getSetting<bool>("quiet"))) {
+    std::ifstream fin(pos.file->name().c_str());
+    string s;
+    size_t count=pos.line;
+    while(count > 0 && getline(fin,s)) {
+      count--;
+    }
+    cout << s << endl;
+    for(size_t i=1; i < pos.column; ++i)
+      cout << " ";
+    cout << "^" << endl;
+  }
 
   out << pos.file->name() << ": ";
   out << pos.line << "." << pos.column << ": ";
