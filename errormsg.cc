@@ -23,21 +23,22 @@ ostream& operator<< (ostream& out, const position& pos)
   if (!pos)
     return out;
 
-  if(!(interact::interactive ||
-       settings::getSetting<bool>("quiet"))) {
+  string filename=pos.file->name();
+
+  if(filename != "-" && !settings::getSetting<bool>("quiet")) {
     std::ifstream fin(pos.file->name().c_str());
     string s;
     size_t count=pos.line;
     while(count > 0 && getline(fin,s)) {
       count--;
     }
-    cout << s << endl;
+    cerr << s << endl;
     for(size_t i=1; i < pos.column; ++i)
-      cout << " ";
-    cout << "^" << endl;
+      cerr << " ";
+    cerr << "^" << endl;
   }
 
-  out << pos.file->name() << ": ";
+  out << filename << ": ";
   out << pos.line << "." << pos.column << ": ";
   return out;
 }
