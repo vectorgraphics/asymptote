@@ -4,8 +4,6 @@
 #include "glrender.h"
 #include "drawelement.h"
 
-#ifdef HAVE_LIBGLM
-
 using namespace settings;
 
 namespace camp {
@@ -23,18 +21,6 @@ void jsfile::header(string name)
 {
   out.open(name);
   out << "<!DOCTYPE html>" << newl << newl;
-}
-
-void jsfile::comment(string name)
-{
-  out << "<!-- Use the following line to embed this file within another web page:" << newl
-      << newl
-      << "<iframe src=\"" << name
-      << "\" width=\"" << gl::fullWidth
-      << "\" height=\"" << gl::fullHeight
-      << "\" frameborder=\"0\"></iframe>" << newl
-      << newl
-      << "-->" << newl << newl;
 }
 
 void jsfile::meta(string name, bool svg)
@@ -80,6 +66,20 @@ void jsfile::svgtohtml(string prefix)
   out << "<body>" << newl << newl;
   copy(locateFile(auxname(prefix,"svg")),true);
   footer(name);
+}
+
+#ifdef HAVE_LIBGLM
+
+void jsfile::comment(string name)
+{
+  out << "<!-- Use the following line to embed this file within another web page:" << newl
+      << newl
+      << "<iframe src=\"" << name
+      << "\" width=\"" << gl::fullWidth
+      << "\" height=\"" << gl::fullHeight
+      << "\" frameborder=\"0\"></iframe>" << newl
+      << newl
+      << "-->" << newl << newl;
 }
 
 void jsfile::open(string name)
@@ -328,6 +328,6 @@ void jsfile::addTube(const triple *g, double width,
       << drawElement::centerIndex << "," << materialIndex << ","
       << Min << "," << Max << "," << core <<");" << newl << newl;
 }
+#endif
 
 }
-#endif
