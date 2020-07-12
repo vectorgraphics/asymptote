@@ -43,8 +43,10 @@ void jsfile::meta(string name, bool svg)
         << "height: 100vh;" << newl
         << "}" << newl;
   out << "body {margin: 0;}" << newl
-      << "</style>" << newl
-      << "</head>" << newl << newl;
+      << "</style>" << newl;
+  if(svg)
+    out << "</head>" << newl;
+  out << newl;
 }
 
 void jsfile::footer(string name)
@@ -98,7 +100,7 @@ void jsfile::open(string name)
     out << "<script" << newl << "src=\""
         << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
   }
-  out << "<script>" << newl;
+  out << newl << "<script>" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
