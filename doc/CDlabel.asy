@@ -1,6 +1,6 @@
 size(11.7cm,11.7cm);
 
-settings.tex="pdflatex"; // Work around bug in latest git version of dvisvgm.
+//settings.tex="pdflatex"; // Work around bug in latest git version of dvisvgm.
 asy(nativeformat(),"logo");
 
 fill(unitcircle^^(scale(2/11.7)*unitcircle),

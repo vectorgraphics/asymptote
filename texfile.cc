@@ -414,7 +414,6 @@ void svgtexfile::dot(path p, pen q, bool newPath)
 void svgtexfile::beginclip()
 {
   beginspecial();
-  begintransform();
   *out << "<clipPath ";
   clippath();
   ++clipcount;
@@ -436,7 +435,6 @@ void svgtexfile::endclip0(const pen &p)
 void svgtexfile::endclip(const pen &p) 
 {
   endclip0(p);
-  endtransform();
   endspecial();
 }
 
@@ -638,6 +636,7 @@ void svgtexfile::gouraudshade(const pen& pentype,
   if(size == 0) return;
   
   endclip0(pentype);
+  begintransform();
   
   pen *p0=NULL,*p1=NULL,*p2=NULL;
   pair z0,z1,z2;
