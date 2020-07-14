@@ -130,10 +130,10 @@ public:
 
   file(const string& name, bool check=true, Mode type=NOMODE,
        bool binary=false, bool closed=false) :
-    name(locatefile(name)), check(check), type(type), linemode(false),
-    csvmode(false), wordmode(false), singlereal(false), singleint(true),
-    signedint(true), closed(closed), standard(name.empty()), binary(binary),
-    nullfield(false), whitespace("") {dimension();}
+    name(name), check(check), type(type), linemode(false), csvmode(false),
+    wordmode(false), singlereal(false), singleint(true), signedint(true),
+    closed(closed), standard(name.empty()), binary(binary), nullfield(false),
+    whitespace("") {dimension();}
   
   virtual void open() {}
   
@@ -350,8 +350,8 @@ protected:
 public:
   ifile(const string& name, char comment, bool check=true, Mode type=INPUT, 
         std::ios::openmode mode=std::ios::in) :
-    file(name,check,type), stream(&cin), fstream(NULL), comment(comment),
-    mode(mode), comma(false) {}
+    file(locatefile(name),check,type), stream(&cin), fstream(NULL),
+    comment(comment), mode(mode), comma(false) {}
   
   // Binary file
   ifile(const string& name, bool check=true, Mode type=BINPUT,
@@ -368,6 +368,7 @@ public:
     } else {
       if(mode & std::ios::out)
         name=outpath(name);
+      else name=inpath(name);
       stream=fstream=new std::fstream(name.c_str(),mode);
       if(mode & std::ios::out) {
         if(error()) {
@@ -655,7 +656,7 @@ protected:
 public:
   ixfile(const string& name, bool check=true, Mode type=XINPUT,
          xdr::xios::open_mode mode=xdr::xios::in) :
-    file(name,check,type,true), fstream(NULL), mode(mode) {}
+    file(locatefile(name),check,type,true), fstream(NULL), mode(mode) {}
 
   void open() {
     fstream=new xdr::ioxstream(name.c_str(),mode);
@@ -727,7 +728,8 @@ public:
 
 class ioxfile : public ixfile {
 public:
-  ioxfile(const string& name) : ixfile(name,true,XUPDATE,xdr::xios::out) {}
+  ioxfile(const string& name) : ixfile(outpath(name),true,XUPDATE,
+                                       xdr::xios::out) {}
 
   void flush() {if(fstream) fstream->flush();}
   

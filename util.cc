@@ -156,6 +156,11 @@ string Getenv(const char *name, bool msdos)
   return S;
 }
 
+void readDisabled()
+{
+  camp::reportError("Read from other directories disabled; override with option -globalread");
+}
+
 void writeDisabled()
 {
   camp::reportError("Write to other directories disabled; override with option -globalwrite");
@@ -167,6 +172,16 @@ string cleanpath(string name)
   name=stripDir(name);
   spaceToUnderscore(name);
   return dir+name;
+}
+
+string inpath(string name)
+{
+  bool global=globalread();
+  string dir=stripFile(name);
+  if(global && !dir.empty()) return name;
+  string indir=stripFile(outname());
+  if(!(global || dir.empty() || dir == indir)) readDisabled();
+  return indir+stripDir(name);
 }
 
 string outpath(string name) 

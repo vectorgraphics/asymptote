@@ -55,6 +55,7 @@ extern string tempdir;
   
 extern bool safe;
   
+bool globalread();
 bool globalwrite();
 
 extern const string suffix;

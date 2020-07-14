@@ -3840,6 +3840,8 @@ will be set to the end-of-file, and both reading and writing operations
 will be enabled. For security reasons, writing to files in directories
 other than the current directory is allowed only if the @code{-globalwrite}
 (or @code{-nosafe}) command-line option is specified.
+Reading from files in other directories is allowed unless the
+@code{-noglobalread} command-line option is specified.
 @cindex @code{mktemp}
 The function @code{string mktemp(string s)} may be used to create and
 return the name of a unique temporary file in the current directory
