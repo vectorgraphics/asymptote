@@ -298,7 +298,7 @@ public:
   void translate(pair z) {}
   void concat(transform t) {}
   
-  void beginspecial();
+  void beginspecial(bool def=false);
   void endspecial();
   
   // Prevent unwanted page breaks.
@@ -376,7 +376,6 @@ public:
   
   void beginclip();
   
-  void endclip0(const pen &p);
   void endclip(const pen &p);
   void endpsclip(const pen &p) {}
   

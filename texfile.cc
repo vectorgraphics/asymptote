@@ -327,12 +327,15 @@ void texfile::epilogue(bool pipe)
 
 string svgtexfile::nl="{?nl}%\n";
 
-void svgtexfile::beginspecial()
+void svgtexfile::beginspecial(bool def)
 {
   inspecial=true;
   out->unsetf(std::ios::fixed);
   *out << "\\catcode`\\#=11%" << newl
-       << "\\special{dvisvgm:raw" << nl;
+       << "\\special{dvisvgm:raw";
+  if(def)
+    *out << "def";
+  *out << nl;
 }
     
 void svgtexfile::endspecial()
@@ -423,7 +426,7 @@ void svgtexfile::dot(path p, pen q, bool newPath)
 
 void svgtexfile::beginclip()
 {
-  beginspecial();
+  beginspecial(true);
   *out << "<clipPath ";
   clippath();
   ++clipcount;
@@ -436,17 +439,12 @@ void svgtexfile::beginclip()
   clipstack.push(clipcount);
 }
   
-void svgtexfile::endclip0(const pen &p) 
+void svgtexfile::endclip(const pen &p)
 {
   *out << "'";
   fillrule(p,"clip");
   endpath();
   *out << "</clipPath>" << nl;
-}
-
-void svgtexfile::endclip(const pen &p) 
-{
-  endclip0(p);
   endspecial();
 }
 
@@ -646,7 +644,8 @@ void svgtexfile::gouraudshade(const pen& pentype,
   size_t size=pens.size();
   if(size == 0) return;
   
-  endclip0(pentype);
+  endclip(pentype);
+  beginspecial();
   begintransform();
   
   pen *p0=NULL,*p1=NULL,*p2=NULL;
