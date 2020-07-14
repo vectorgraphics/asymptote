@@ -28,6 +28,7 @@
 #include "errormsg.h"
 #include "util.h"
 #include "process.h"
+#include "locate.h"
 
 namespace vm {
 extern bool indebugger;  
@@ -57,6 +58,11 @@ inline void openpipeout()
     buf << "Cannot open outpipe " << fd;
     reportError(buf);
   }
+}
+
+inline string locatefile(string name) {
+  string s=settings::locateFile(name);
+  return s.empty() ? name : s;
 }
 
 class file : public gc {
@@ -122,12 +128,12 @@ public:
     nx=Nx; ny=Ny; nz=Nz;
   }
 
-  file(const string& name, bool check=true, Mode type=NOMODE, bool binary=false,
-       bool closed=false) : 
-    name(name), check(check), type(type), linemode(false), csvmode(false),
-    wordmode(false), singlereal(false), singleint(true), signedint(true),
-    closed(closed), standard(name.empty()),
-    binary(binary), nullfield(false), whitespace("") {dimension();}
+  file(const string& name, bool check=true, Mode type=NOMODE,
+       bool binary=false, bool closed=false) :
+    name(locatefile(name)), check(check), type(type), linemode(false),
+    csvmode(false), wordmode(false), singlereal(false), singleint(true),
+    signedint(true), closed(closed), standard(name.empty()), binary(binary),
+    nullfield(false), whitespace("") {dimension();}
   
   virtual void open() {}
   
