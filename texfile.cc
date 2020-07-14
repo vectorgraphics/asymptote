@@ -327,12 +327,15 @@ void texfile::epilogue(bool pipe)
 
 string svgtexfile::nl="{?nl}%\n";
 
-void svgtexfile::beginspecial()
+void svgtexfile::beginspecial(bool def)
 {
   inspecial=true;
   out->unsetf(std::ios::fixed);
   *out << "\\catcode`\\#=11%" << newl
-       << "\\special{dvisvgm:raw" << nl;
+       << "\\special{dvisvgm:raw";
+  if(def)
+    *out << "def";
+  *out << nl;
 }
     
 void svgtexfile::endspecial()
@@ -423,7 +426,7 @@ void svgtexfile::dot(path p, pen q, bool newPath)
 
 void svgtexfile::beginclip()
 {
-  beginspecial();
+  beginspecial(true);
   *out << "<clipPath ";
   clippath();
   ++clipcount;

@@ -298,7 +298,7 @@ public:
   void translate(pair z) {}
   void concat(transform t) {}
   
-  void beginspecial();
+  void beginspecial(bool def=false);
   void endspecial();
   
   // Prevent unwanted page breaks.
