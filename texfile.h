@@ -310,6 +310,7 @@ public:
     endpicture(box);
   }
   
+  void transform();
   void begintransform();
   void endtransform();
   
