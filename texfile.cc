@@ -395,7 +395,7 @@ void svgtexfile::clippath()
   if(clipstack.size() > 0) {
     size_t count=clipstack.top();
     if(count > 0)
-      *out << "clip-path='url(#clip" << count << ")' ";
+      *out << "clip-path='url(#Clip" << count << ")' ";
   }
 }
   
@@ -427,7 +427,7 @@ void svgtexfile::beginclip()
   *out << "<clipPath ";
   clippath();
   ++clipcount;
-  *out << "id='clip" << clipcount << "'>" << nl;
+  *out << "id='Clip" << clipcount << "'>" << nl;
   *out << "<path ";
   transform();
   *out << " d='";
