@@ -350,7 +350,7 @@ protected:
 public:
   ifile(const string& name, char comment, bool check=true, Mode type=INPUT, 
         std::ios::openmode mode=std::ios::in) :
-    file(locatefile(name),check,type), stream(&cin), fstream(NULL),
+    file(name,check,type), stream(&cin), fstream(NULL),
     comment(comment), mode(mode), comma(false) {}
   
   // Binary file
@@ -368,7 +368,7 @@ public:
     } else {
       if(mode & std::ios::out)
         name=outpath(name);
-      else name=inpath(name);
+      else name=locatefile(inpath(name));
       stream=fstream=new std::fstream(name.c_str(),mode);
       if(mode & std::ios::out) {
         if(error()) {
@@ -656,9 +656,10 @@ protected:
 public:
   ixfile(const string& name, bool check=true, Mode type=XINPUT,
          xdr::xios::open_mode mode=xdr::xios::in) :
-    file(locatefile(name),check,type,true), fstream(NULL), mode(mode) {}
+    file(name,check,type,true), fstream(NULL), mode(mode) {}
 
   void open() {
+    name=locatefile(inpath(name));
     fstream=new xdr::ioxstream(name.c_str(),mode);
     index=processData().ixfile.add(fstream);
     if(check) Check();

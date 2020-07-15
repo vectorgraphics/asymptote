@@ -30,6 +30,7 @@
 #include "errormsg.h"
 #include "camperror.h"
 #include "interact.h"
+#include "locate.h"
 
 using namespace settings;
 using camp::reportError;
@@ -181,7 +182,7 @@ string inpath(string name)
   if(global && !dir.empty()) return name;
   string indir=stripFile(outname());
   if(!(global || dir.empty() || dir == indir)) readDisabled();
-  return stripDir(name);
+  return settings::locateFile(stripDir(name));
 }
 
 string outpath(string name) 
