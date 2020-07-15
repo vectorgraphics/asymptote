@@ -158,7 +158,6 @@ string options;
 string viewfilename=prefix+".views";
 
 if(!error(input(viewfilename,check=false)))
-  options="3Dviews="+viewfilename;
+  options="3Dviews="+locatefile(viewfilename);
 
-shipout(prefix,options=options);
-currentpicture.erase();
+shipout(options=options);
