@@ -335,7 +335,7 @@ texhash
 @noindent
 The @code{texhash} command, which installs LaTeX style files, is optional.
 The executable file will be @code{/usr/local/bin/asy}) and example code
-will be installed by default in @code{@value{Datadir}/doc/asymptote/examples}. 
+will be installed by default in @code{@value{Docdir}/examples}.
 
 @noindent
 @cindex Fedora
@@ -564,8 +564,8 @@ under @code{Microsoft Windows XP}:
 @section Search paths
 @cindex search paths
 
-In looking for @code{Asymptote} system
-files, @code{asy} will search the following paths, in the order listed:
+In looking for @code{Asymptote} files, @code{asy} will search the
+following paths, in the order listed:
 @enumerate
 @item
 The current directory;
@@ -585,6 +585,10 @@ the directory @code{.asy} in the user's home directory
 The @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} under @code{UNIX} and
 @code{C:\Program Files\Asymptote} under @code{MSDOS}).
+@item
+The @code{Asymptote} examples directory (by default,
+@code{@value{Docdir}/examples} under @code{UNIX} and
+@code{C:\Program Files\Asymptote\examples} under @code{MSDOS}).
 @end enumerate
 
 @node Compiling from UNIX source, Editing modes, Search paths, Installation

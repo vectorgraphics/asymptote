@@ -1554,6 +1554,7 @@ void setPath() {
   string sysdir=getSetting<string>("sysdir");
   if(sysdir != "")
     searchPath.push_back(sysdir);
+  searchPath.push_back(docdir+"/examples");
 }
 
 void SetPageDimensions() {

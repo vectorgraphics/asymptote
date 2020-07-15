@@ -136,6 +136,7 @@ version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
 	echo string VERSION=\"$(revision)\"\; > base/version.asy
 	echo @set VERSION $(revision) > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
+	echo @set Docdir @docdir@ >> doc/version.texi
 
 	echo "#!/usr/bin/env python3" > GUI/xasyVersion.py
 	echo xasyVersion = \"$(revision)\" >> GUI/xasyVersion.py
