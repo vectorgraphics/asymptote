@@ -182,7 +182,7 @@ string inpath(string name)
   if(global && !dir.empty()) return name;
   string indir=stripFile(outname());
   if(!(global || dir.empty() || dir == indir)) readDisabled();
-  return settings::locateFile(stripDir(name));
+  return stripDir(name);
 }
 
 string outpath(string name) 

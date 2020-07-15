@@ -3815,8 +3815,10 @@ as a single literal comment character.
 
 @anchor{cd}
 @cindex @code{cd}
+@cindex @code{noglobalread}
 @cindex directory
-One can change the current working directory for read operations to
+Unless the @code{-noglobalread} command-line option is specified,
+one can change the current working directory for read operations to
 the contents of the string @code{s} with the function @code{string
 cd(string s)}, which returns the new working directory. If
 @code{string s} is empty, the path is reset to the value it had at
@@ -3837,6 +3839,8 @@ A file named @code{name} can be open for output with
 file output(string name="", bool update=false, string comment="#", string mode="");
 @end verbatim
 @noindent
+@cindex @code{noglobalread}
+@cindex @code{globalwrite}
 If @code{update=false}, any existing data in the file will be erased
 and only write operations can be used on the file.
 If @code{update=true}, any existing data will be preserved, the position
@@ -4020,6 +4024,7 @@ write(output("transcript.asy"),history());
 outputs the interactive history to the file @code{transcript.asy}.
 
 @cindex @code{delete}
+@cindex @code{globalwrite}
 The function @code{int delete(string s)} deletes the file named by the
 string @code{s}. Unless the @code{-globalwrite} (or @code{-nosafe})
 option is enabled, the file must reside in the current directory.

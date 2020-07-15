@@ -762,9 +762,10 @@ void :loadModule(string *index)
 
 string cd(string s=emptystring)
 {
+  if(!globalread()) readDisabled();
   if(!s.empty() && !globalwrite()) {
-    string outname=getSetting<string>("outname");
-    string dir=stripDir(outname);
+    string outname=settings::outname();
+    string dir=stripFile(outname);
     if(dir.empty()) Setting("outname")=getPath()+dirsep+outname;
   }
   return setPath(s.c_str());
