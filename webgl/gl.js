@@ -2674,6 +2674,8 @@ let pixelShader,materialShader,colorShader,transparentShader;
 
 function webGLInit()
 {
+  zoom0=Zoom0;
+
   if(absolute && !embedded) {
     canvasWidth *= window.devicePixelRatio;
     canvasHeight *= window.devicePixelRatio;
@@ -2682,8 +2684,8 @@ function webGLInit()
     canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
-    zoom0=(!orthographic && canvasWidth < canvasHeight*Aspect) ?
-      Zoom0*canvasWidth/(canvasHeight*Aspect) : Zoom0;
+    if(!orthographic && canvasWidth < canvasHeight*Aspect)
+      zoom0 *= canvasWidth/(canvasHeight*Aspect);
   }
 
   canvas.width=canvasWidth;
