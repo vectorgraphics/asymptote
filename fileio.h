@@ -119,7 +119,7 @@ public:
   }
   
   void dimension(Int Nx=-1, Int Ny=-1, Int Nz=-1) {
-    if(Nx < -1 || Ny < -1 || Nz < -1) {
+    if(Nx < -2 || Ny < -2 || Nz < -2) {
       ostringstream buf;
       buf << "Invalid array dimensions: " << Nx << ", " << Ny << ", " << Nz;
       reportError(buf);
