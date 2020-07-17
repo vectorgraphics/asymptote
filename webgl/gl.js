@@ -2673,11 +2673,6 @@ let pixelShader,materialShader,colorShader,transparentShader;
 
 function webGLInit()
 {
-  canvas=document.getElementById("Asymptote");
-  embedded=window.top.document != document;
-
-  initGL();
-
   if(absolute && !embedded) {
     canvasWidth *= window.devicePixelRatio;
     canvasHeight *= window.devicePixelRatio;
@@ -2722,8 +2717,6 @@ function webGLInit()
   canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
 }
-
-let listen=false;
 
 class Align {
   constructor(center,dir) {
@@ -3107,16 +3100,11 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
 
 function webGLStart()
 {
-  if(window.innerWidth == 0 || window.innerHeight == 0) {
-    if(!listen) {
-      listen=true;
-      window.addEventListener("resize",webGLStart,false);
-    }
-  } else {
-    if(listen) {
-      window.removeEventListener("resize",webGLStart,false);
-      listen=false;
-    }
-    webGLInit();
-  }
+  canvas=document.getElementById("Asymptote");
+  embedded=window.top.document != document;
+
+  initGL();
+
+  webGLInit();
+  window.addEventListener("resize",webGLInit,false);
 }
