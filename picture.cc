@@ -443,6 +443,7 @@ char *dvisvgmCommand(mem::vector<string>& cmd, const string &in, const string& o
   string libgs=getSetting<string>("libgs");
   if(!libgs.empty())
     cmd.push_back("--libgs="+libgs);
+//  cmd.push_back("--optimize"); // Requires dvisvgm > 2.9.1
   push_split(cmd,getSetting<string>("dvisvgmOptions"));
   char *tmpdir=mkdtemp(StrdupMalloc(tempdir+"/dvisvgmXXXXXX"));
   if(tmpdir)

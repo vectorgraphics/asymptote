@@ -339,7 +339,7 @@ will be installed by default in @code{@value{Docdir}/examples}.
 
 @noindent
 @cindex Fedora
-Fedora users can easily install the most recent version of @code{Asymptote}
+Fedora users can easily install a recent version of @code{Asymptote}
 with the command
 @verbatim
 dnf --enablerepo=rawhide install asymptote
@@ -394,8 +394,8 @@ The @code{ImageMagick} package from
 @noindent
 is required to support output formats other than @acronym{HTML},
 @acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
-The @code{Python 3} interpreter from @url{https://www.python.org} is only required
-if you wish to try out the graphical user interface (@pxref{GUI}).
+The @code{Python 3} interpreter from @url{https://www.python.org} is only
+required if you wish to try out the graphical user interface (@pxref{GUI}).
 
 @noindent
 Example code will be installed by default in the @code{examples}
@@ -465,13 +465,17 @@ Windows} registry. The @code{gs} setting specifies the location of the
 
 @noindent
 @cindex @code{htmlviewer}
+@cindex @code{absolute}
 The configuration variable @code{htmlviewer} specifies the 
 browser to use to display 3D @code{WebGL} output.
 The default setting is @code{google-chrome} under @code{UNIX} and
 @code{cmd} under @code{Microsoft Windows}. Note that @code{Internet Explorer}
 does not support @code{WebGL}; @code{Microsoft Windows} users should set their
 default html browser to @code{chrome} or @code{microsoft-edge}.
- 
+By default, 2D and 3D @code{HTML} images expand to the enclosing canvas;
+this can be disabled by setting the configuation variable @code{absolute}
+to @code{true}.
+
 On @code{UNIX} systems, to support automatic document
 reloading of @code{PDF} files in @code{Adobe Reader}, we recommend
 copying the file @code{reload.js} from the @code{Asymptote} system
@@ -777,6 +781,12 @@ make install
 
 @noindent
 To compile without optimization, use the command @code{make CFLAGS=-g}.
+On @code{Ubuntu} systems, you may need to first install the required
+dependencies:
+@verbatim
+apt-get build-dep asymptote
+@end verbatim
+@noindent
 
 @node Uninstall,  , Git, Installation
 @section Uninstall
