@@ -11,6 +11,7 @@ let absolute=false;
 let b,B; // Scene min,max bounding box corners (3-tuples)
 let angle; // Field of view angle
 let Zoom0; // Initial zoom
+let zoom0; // Adjusted initial zoom
 let viewportmargin; // Margin around viewport (2-tuple)
 let viewportshift=[0,0]; // Viewport shift (for perspective projection)
 
@@ -44,8 +45,8 @@ let pixel=0.75; // Adaptive rendering constant.
 let FillFactor=0.1;
 let Zoom;
 
-let maxViewportWidth=window.innerWidth;
-let maxViewportHeight=window.innerHeight;
+let maxViewportWidth;
+let maxViewportHeight;
 
 const windowTrim=10;
 let resizeStep=1.2;
@@ -2612,7 +2613,7 @@ function initProjection()
 
   center.x=center.y=0;
   center.z=0.5*(b[2]+B[2]);
-  lastzoom=Zoom=Zoom0;
+  lastzoom=Zoom=zoom0;
 
   viewParam.zmin=b[2];
   viewParam.zmax=B[2];
@@ -2681,19 +2682,22 @@ function webGLInit()
     canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
-    if(!orthographic && canvasWidth < canvasHeight*Aspect)
-      Zoom0 *= canvasWidth/(canvasHeight*Aspect);
+    zoom0=(!orthographic && canvasWidth < canvasHeight*Aspect) ?
+      Zoom0*canvasWidth/(canvasHeight*Aspect) : Zoom0;
   }
 
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
 
+  let maxViewportWidth=window.innerWidth;
+  let maxViewportHeight=window.innerHeight;
+
   setCanvas();
 
   ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
 
-  viewportshift[0] /= Zoom0;
-  viewportshift[1] /= Zoom0;
+  viewportshift[0] /= zoom0;
+  viewportshift[1] /= zoom0;
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
