@@ -1873,13 +1873,18 @@ class Triangles extends Geometry {
 
 }
 
-function home()
+function redraw()
 {
-  mat4.identity(rotMat);
   initProjection();
   setProjection();
   remesh=true;
   draw();
+}
+
+function home()
+{
+  mat4.identity(rotMat);
+  redraw();
 }
 
 let positionAttribute=0;
@@ -2640,6 +2645,7 @@ function setCanvas()
   size2=Math.hypot(canvasWidth,canvasHeight);
   halfCanvasWidth=0.5*canvas.width;
   halfCanvasHeight=0.5*canvas.height;
+  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
 }
 
 function setsize(w,h)
@@ -2664,11 +2670,13 @@ function setsize(w,h)
 
 function resize() 
 {
+  zoom0=Zoom0;
+
   if(absolute && !embedded) {
     canvasWidth=canvasWidth0*window.devicePixelRatio;
     canvasHeight=canvasHeight0*window.devicePixelRatio;
   } else {
-    let Aspect=canvasWidth/canvasHeight;
+    let Aspect=canvasWidth0/canvasHeight0;
     canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
@@ -2686,17 +2694,13 @@ function resize()
   viewportshift[1] /= zoom0;
 
   setsize(canvasWidth,canvasHeight);
-}
-
-function resizeDraw() 
-{
-  resize();
-  draw();
+  redraw();
 }
 
 function expand() 
 {
-  setsize(canvasWidth*resizeStep+0.5,canvasHeight*resizeStep+0.5);
+  setsize(Math.min(canvasWidth*resizeStep+0.5,canvas.width),
+          Math.min(canvasHeight*resizeStep+0.5,canvas.height));
   draw();
 }
 
@@ -3115,14 +3119,13 @@ function webGLStart()
   canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
 
-  window.addEventListener("resize",resizeDraw,false);
-
-  zoom0=Zoom0;
   canvasWidth0=canvasWidth;
   canvasHeight0=canvasHeight;
 
-  resize();
+  mat4.identity(rotMat);
 
-  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
-  home();
+  if(window.innerWidth != 0 && window.innerHeight != 0)
+    resize();
+
+  window.addEventListener("resize",resize,false);
 }
