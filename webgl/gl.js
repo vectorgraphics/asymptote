@@ -5,6 +5,7 @@ let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
+let canvasWidth0,canvasHeight0; // Initial values
 
 let absolute=false;
 
@@ -2656,29 +2657,16 @@ function setsize(w,h)
   canvasHeight=h;
   setCanvas();
   setViewport();
-  home();
+
+  setProjection();
+  remesh=true;
 }
 
-function expand() 
+function resize() 
 {
-  setsize(canvasWidth*resizeStep+0.5,canvasHeight*resizeStep+0.5);
-}
-
-function shrink() 
-{
-  setsize(Math.max((canvasWidth/resizeStep+0.5),1),
-          Math.max((canvasHeight/resizeStep+0.5),1));
-}
-
-let pixelShader,materialShader,colorShader,transparentShader;
-
-function webGLInit()
-{
-  zoom0=Zoom0;
-
   if(absolute && !embedded) {
-    canvasWidth *= window.devicePixelRatio;
-    canvasHeight *= window.devicePixelRatio;
+    canvasWidth=canvasWidth0*window.devicePixelRatio;
+    canvasHeight=canvasHeight0*window.devicePixelRatio;
   } else {
     let Aspect=canvasWidth/canvasHeight;
     canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
@@ -2694,35 +2682,32 @@ function webGLInit()
   let maxViewportWidth=window.innerWidth;
   let maxViewportHeight=window.innerHeight;
 
-  setCanvas();
-
-  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
-
   viewportshift[0] /= zoom0;
   viewportshift[1] /= zoom0;
 
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-  gl.enable(gl.DEPTH_TEST);
-  gl.enable(gl.SCISSOR_TEST);
-
-  setViewport();
-  home();
-
-  canvas.onmousedown=handleMouseDown;
-  document.onmouseup=handleMouseUpOrTouchEnd;
-  document.onmousemove=handleMouseMove;
-  canvas.onkeydown=handleKey;
-
-  if(!embedded)
-    enableZoom();
-  canvas.addEventListener("touchstart",handleTouchStart,false);
-  canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchmove",handleTouchMove,false);
-  document.addEventListener("keydown",handleKey,false);
+  setsize(canvasWidth,canvasHeight);
 }
+
+function resizeDraw() 
+{
+  resize();
+  draw();
+}
+
+function expand() 
+{
+  setsize(canvasWidth*resizeStep+0.5,canvasHeight*resizeStep+0.5);
+  draw();
+}
+
+function shrink() 
+{
+  setsize(Math.max((canvasWidth/resizeStep+0.5),1),
+          Math.max((canvasHeight/resizeStep+0.5),1));
+  draw();
+}
+
+let pixelShader,materialShader,colorShader,transparentShader;
 
 class Align {
   constructor(center,dir) {
@@ -3111,6 +3096,33 @@ function webGLStart()
 
   initGL();
 
-  webGLInit();
-  window.addEventListener("resize",webGLInit,false);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.SCISSOR_TEST);
+
+  canvas.onmousedown=handleMouseDown;
+  document.onmouseup=handleMouseUpOrTouchEnd;
+  document.onmousemove=handleMouseMove;
+  canvas.onkeydown=handleKey;
+
+  if(!embedded)
+    enableZoom();
+  canvas.addEventListener("touchstart",handleTouchStart,false);
+  canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchmove",handleTouchMove,false);
+  document.addEventListener("keydown",handleKey,false);
+
+  window.addEventListener("resize",resizeDraw,false);
+
+  zoom0=Zoom0;
+  canvasWidth0=canvasWidth;
+  canvasHeight0=canvasHeight;
+
+  resize();
+
+  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
+  home();
 }
