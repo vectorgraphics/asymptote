@@ -2349,6 +2349,13 @@ function handleKey(event)
   }
 }
 
+function setZoom()
+{
+  capzoom();
+  setProjection();
+  draw();
+}
+
 function handleMouseWheel(event)
 {
   event.preventDefault();
@@ -2358,10 +2365,8 @@ function handleMouseWheel(event)
   } else {
     Zoom /= zoomFactor;
   }
-  capzoom();
-  setProjection();
 
-  draw();
+  setZoom();
 }
 
 function handleMouseMove(event)
@@ -2699,16 +2704,14 @@ function resize()
 
 function expand() 
 {
-  setsize(Math.min(canvasWidth*resizeStep+0.5,canvas.width),
-          Math.min(canvasHeight*resizeStep+0.5,canvas.height));
-  draw();
+  Zoom *= zoomFactor;
+  setZoom();
 }
 
 function shrink() 
 {
-  setsize(Math.max((canvasWidth/resizeStep+0.5),1),
-          Math.max((canvasHeight/resizeStep+0.5),1));
-  draw();
+  Zoom /= zoomFactor;
+  setZoom();
 }
 
 let pixelShader,materialShader,colorShader,transparentShader;
