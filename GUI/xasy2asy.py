@@ -873,12 +873,15 @@ class xasyItem(Qc.QObject):
 
             n += 1
 
-        if text == "Error\n":
-            self.imageHandleQueue.put(("ERROR", fin.readline()))
-        else:
-            render()
+        if raw_text != "Error\n":
+            if text == "Error\n":
+                self.imageHandleQueue.put(("ERROR", fin.readline()))
+            else:
+                render()
 
-        self.asy2psmap = asyTransform(xu.listize(fin.readline().rstrip(),float))
+            self.asy2psmap = asyTransform(xu.listize(fin.readline().rstrip(),float))
+        else:
+            self.asy2psmap = identity()
         self.imageHandleQueue.put((None,))
         self.asyfied = True
 
