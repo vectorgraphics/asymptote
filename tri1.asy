@@ -1,5 +1,10 @@
 import three;
 import math;
+import fontsize;
+
+size(80cm);
+settings.fitscreen=false;
+defaultpen(fontsize(100pt)+linewidth(4));
 
 currentlight=nolight;
 
@@ -202,28 +207,26 @@ bool intersect(triple a, triple b, triple c, triple A, triple B, triple C)
 }
 
 
-size(10cm);
-
-triple t0=-Z-0.5X+Y;
 triple t0=-Z+X+2*Y;
 triple t1=Y+2*Z+2Y;
 triple t2=X+Z+2Y;
 
-triple T0=O;
-triple T1=4X;
-triple T2=4Y;
+triple A=O;
+triple B=4X;
+triple C=4Y;
 
-triple T1=2X;
-triple T2=2Y;
+triple B=2X;
+triple C=2Y;
 
 
-triple N=cross(T1-T0,T2-T0);
+triple N=cross(B-A,C-A);
 triple n=cross(t1-t0,t2-t0);
 
 write(n,N);
 
-triple a=point(t0--t1,intersect(t0,t1,N,T0));
-triple b=point(t2--t0,intersect(t2,t0,N,T0));
+triple a=point(t0--t1,intersect(t0,t1,N,A));
+triple b=point(t2--t0,intersect(t2,t0,N,A));
+triple c=t0;
 
 dot("$a$",a);
 dot("$b$",b);
@@ -235,23 +238,29 @@ triple c0=(t0+a+b)/3;
 triple c1=(t1+a+b)/3;
 triple c2=(t2+t1+b)/3;
 
-triple C=(T0+T1+T2)/3;
-
 real s=0.1;
 
-draw(T0--T0+s*N,Arrow3);
+draw(A--A+s*N,Arrow3);
 
-srand(seconds());
+//srand(seconds());
 
 while(true) {
   currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));     
 
   write(currentprojection.camera);
   erase();
+
+  label("a",a,dir(c--a,b--a));
+  label("b",b,dir(a--b,c--b));
+  label("c",c,dir(a--c,b--c));
+  label("A",A,dir(C--A,B--A));
+  label("B",B,dir(A--B,C--B));
+  label("C",C,dir(A--C,B--C));
+
   draw(surface(t0--a--b--cycle),red+opacity(0.5));
-  draw(surface(T0--T1--T2--cycle),blue+opacity(0.5));
-  if(intersect(a,b,t0,T0,T1,T2,currentprojection)) {
-    write(front(a,b,t0,T0,T1,T2));
+  draw(surface(A--B--C--cycle),blue+opacity(0.5));
+  if(intersect(a,b,t0,A,B,C,currentprojection)) {
+    write(front(a,b,t0,A,B,C));
     shipout();
     exit();
   }
