@@ -147,7 +147,7 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     int o0=sum2-8*o1;
     write("sum=64*"+string(o2)+"+8*"+string(o1)+"+1*"+string(o0));
 
-    if(sum == 1*3 || sum == 8*3 || sum == 64*3)                // x..
+    if(sum == 1*3 || sum == 8*3 || sum == 64*3)                // +..
       return !Sameside(inside(t,project(B,P)) ? B : A,a,b,c,P);
     if(sum == 1*5 || sum == 8*5 || sum == 64*5)                // ...
       return !Sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
@@ -250,8 +250,9 @@ while(true) {
 
   if(!intersect(a,b,c,A,B,C) && intersect(a,b,c,A,B,C,currentprojection)) {
     erase();
-    draw(surface(c--a--b--cycle),red+opacity(0.5));
-    draw(surface(A--B--C--cycle),blue+opacity(0.5));
+    real opacity=0.75;
+    draw(surface(c--a--b--cycle),red+opacity(opacity));
+    draw(surface(A--B--C--cycle),blue+opacity(opacity));
 
     label("a",a,dir(c--a,b--a));
     label("b",b,dir(a--b,c--b));
