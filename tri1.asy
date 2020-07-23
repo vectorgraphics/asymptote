@@ -4,7 +4,7 @@ import fontsize;
 
 size(80cm);
 settings.fitscreen=false;
-defaultpen(fontsize(100pt)+linewidth(2));
+defaultpen(fontsize(100pt)+linewidth(0.5));
 
 currentlight=nolight;
 
@@ -115,11 +115,12 @@ bool inside(pair a, pair b, pair c, pair z) {
   return t[0] > 0 && t[1] > 0 && t[0]+t[1] < 1;
 }
 
+int sum;
+
 // Return true if triangle abc can be rendered in front of triangle ABC,
 // using projection P.
 bool front(triple a, triple b, triple c, triple A, triple B, triple C,
            projection P=currentprojection) {
-  int sum;
   vertex.delete();
 // Find vertices of a triangle common to the projections of triangle abc
 // and ABC.
@@ -149,14 +150,14 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
 
     if(sum == 1*3 || sum == 8*3 || sum == 64*3)                // +.+
       return !Sameside(inside(t,project(B,P)) ? B : A,a,b,c,P);
-    if(sum == 1*5 || sum == 8*5 || sum == 64*5)                // ..+
+    if(sum == 1*5 || sum == 8*5 || sum == 64*5)                // ..x
       return !Sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
-    if(sum == 1*6 || sum == 8*6 || sum == 64*6)                // .+.
+    if(sum == 1*6 || sum == 8*6 || sum == 64*6)                // .++
       return !Sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
 
-    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)     // ...
+    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)     // +..
       return Sameside(inside(T,project(b,P)) ? b : a,A,B,C,P);
-    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)  // .++
+    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)  // +++
       return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
     if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)  // +++
       return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
@@ -270,7 +271,8 @@ while(true) {
     label("4",C--A);
 
     write(front(a,b,c,A,B,C));
-    shipout();
+    //    if(sum == 64*5)
+      shipout();
     //    exit();
   }
 }
