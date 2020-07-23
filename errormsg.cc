@@ -10,6 +10,7 @@
 
 #include "errormsg.h"
 #include "interact.h"
+#include "fileio.h"
 
 errorstream em;
 
@@ -32,14 +33,21 @@ ostream& operator<< (ostream& out, const position& pos)
     while(count > 0 && getline(fin,s)) {
       count--;
     }
-    cerr << s << endl;
+    out << s << endl;
     for(size_t i=1; i < pos.column; ++i)
-      cerr << " ";
-    cerr << "^" << endl;
+      out << " ";
+    out << "^" << endl;
   }
 
   out << filename << ": ";
   out << pos.line << "." << pos.column << ": ";
+
+  if(settings::getSetting<bool>("xasy")) {
+    camp::openpipeout();
+    fprintf(camp::pipeout,"Error\n");
+    fflush(camp::pipeout);
+  }
+
   return out;
 }
 
