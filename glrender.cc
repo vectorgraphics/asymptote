@@ -778,7 +778,7 @@ void fitscreen(bool reposition=true)
     case 0: // Original size
     {
       Xfactor=Yfactor=1.0;
-      setsize(oldWidth,oldHeight,reposition);
+      setsize(oldWidth,oldHeight,true);
       break;
     }
     case 1: // Fit to screen in one dimension
