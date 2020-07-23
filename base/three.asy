@@ -1065,7 +1065,7 @@ triple dir(path3 p)
 
 triple dir(path3 p, path3 h)
 {
-  return 0.5*(dir(p)+dir(h));
+  return unit(dir(p)+dir(h));
 }
 
 // return the point on path3 p at arclength L
