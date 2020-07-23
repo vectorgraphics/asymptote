@@ -4,7 +4,7 @@ import fontsize;
 
 size(80cm);
 settings.fitscreen=false;
-defaultpen(fontsize(100pt)+linewidth(4));
+defaultpen(fontsize(100pt)+linewidth(2));
 
 currentlight=nolight;
 
@@ -32,8 +32,8 @@ bool intersect(pair a, pair b, pair c, pair A, pair B, pair C)
 
 triple[] vertex;
 
-// Check if line p0--q0 intersects uniquely with line P0--Q0.
-// If it does, push the intersection point onto the vertex array.
+// Check if line projections of the lines p0--q0 and P0--Q0 intersect uniquely.
+// If they do, push the intersection point onto the vertex array.
 bool Intersect(triple p0, triple q0, triple P0, triple Q0,
                projection C=currentprojection)
 {
@@ -82,15 +82,25 @@ int intersect(triple a, triple b, triple A, triple B, triple C,
 
 real third=1.0/3.0;
 
+// returns true iff v is on the same side of triangle ABC as P.camera
+bool sameside(triple centroid, triple A, triple B, triple C,
+              projection P=currentprojection)
+{
+  return sgn(orient(A,B,C,centroid)) == sgn(orient(A,B,C,P.camera));
+}
+
 bool sameside(triple A, triple B, triple C,
               projection P=currentprojection)
 {
   dot(vertex,green);
-  dot(third*sum(vertex),black);
-  return sgn(orient(A,B,C,third*sum(vertex))) == sgn(orient(A,B,C,P.camera));
+  triple centroid=third*sum(vertex);
+  dot(centroid,black);
+  return sameside(centroid,A,B,C,P);
 }
 
-bool sameside(triple v, triple A, triple B, triple C,
+// returns true iff the common triangle formed by v and the 2 elements of
+// vertex are on the same side of triangle ABC as P.camera
+bool Sameside(triple v, triple A, triple B, triple C,
               projection P=currentprojection)
 {
   vertex.push(v);
@@ -126,33 +136,46 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
   write(vertex.length);
   if(vertex.length == 3) return sameside(A,B,C,P);
 
+  path T=project(A,P)--project(B,P)--project(C,P)--cycle;
+
   if(vertex.length == 2) {
     path t=project(a,P)--project(b,P)--project(c,P)--cycle;
-    path T=project(A,P)--project(B,P)--project(C,P)--cycle;
 
-    write("sum=",sum);
-    if(sum == 1*3 || sum == 8*3 || sum == 64*3)
-      return !sameside(inside(t,project(B,P)) ? B : A,a,b,c,P);
-    if(sum == 1*5 || sum == 8*5 || sum == 64*5)
-      return !sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
-    if(sum == 1*6 || sum == 8*6 || sum == 64*6)
-      return !sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
+    int o2=sum#64;
+    int sum2=sum-64*o2;
+    int o1=sum2#8;
+    int o0=sum2-8*o1;
+    write("sum=64*"+string(o2)+"+8*"+string(o1)+"+1*"+string(o0));
 
-    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)
-      return sameside(inside(T,project(b,P)) ? b : a,A,B,C,P);
-    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)
-      return sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
-    if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)
-      return sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
+    if(sum == 1*3 || sum == 8*3 || sum == 64*3)                // x..
+      return !Sameside(inside(t,project(B,P)) ? B : A,a,b,c,P);
+    if(sum == 1*5 || sum == 8*5 || sum == 64*5)                // ...
+      return !Sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
+    if(sum == 1*6 || sum == 8*6 || sum == 64*6)                // .+.
+      return !Sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
+
+    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)     // ...
+      return Sameside(inside(T,project(b,P)) ? b : a,A,B,C,P);
+    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)  // ...
+      return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
+    if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)  // +++
+      return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
     
-    if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)
-      return sameside(a,A,B,C,P);
-    if(sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1)
-      return sameside(b,A,B,C,P);
-    if(sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1)
-      return sameside(c,A,B,C,P);
+    if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)  // ...
+      return Sameside(a,A,B,C,P);
+    if(sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1)     // ...
+      return Sameside(b,A,B,C,P);
+    if(sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1)  // ...
+      return Sameside(c,A,B,C,P);
   }
-  return true; // Triangles do not intersect;
+
+  if(vertex.length == 0) {
+    triple v=third*(a+b+c);
+    return inside(T,project(v,P)) ?
+      sameside(v,A,B,C,P) : sameside(third*(A+B+C),a,b,c,P);
+  }
+
+  return true; // Triangle projections do not intersect;
 }
 
 // returns true iff projection P of triangles abc and ABC intersect
@@ -206,62 +229,47 @@ bool intersect(triple a, triple b, triple c, triple A, triple B, triple C)
   return intersect0(a,b,c,A,B,C,sA,sB,sC) || intersect0(A,B,C,a,b,c,sa,sb,sc);
 }
 
-
 triple t0=-Z+X+2*Y;
 triple t1=Y+2*Z+2Y;
 triple t2=X+Z+2Y;
 
-triple A=O;
-triple B=4X;
-triple C=4Y;
-
-triple B=2X;
-triple C=2Y;
-
-
-triple N=cross(B-A,C-A);
-triple n=cross(t1-t0,t2-t0);
-
-write(n,N);
-
-triple a=point(t0--t1,intersect(t0,t1,N,A));
-triple b=point(t2--t0,intersect(t2,t0,N,A));
-triple c=t0;
-
-dot("$a$",a);
-dot("$b$",b);
-
-triple e=currentprojection.camera;
-write(e);
-
-triple c0=(t0+a+b)/3;
-triple c1=(t1+a+b)/3;
-triple c2=(t2+t1+b)/3;
-
-real s=0.1;
-
-draw(A--A+s*N,Arrow3);
-
 //srand(seconds());
 
 while(true) {
-  currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));     
+  currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));
 
-  write(currentprojection.camera);
-  erase();
+  triple A=(unitrand(),unitrand(),unitrand());
+  triple B=(unitrand(),unitrand(),unitrand());
+  triple C=(unitrand(),unitrand(),unitrand());
 
-  label("a",a,dir(c--a,b--a));
-  label("b",b,dir(a--b,c--b));
-  label("c",c,dir(a--c,b--c));
-  label("A",A,dir(C--A,B--A));
-  label("B",B,dir(A--B,C--B));
-  label("C",C,dir(A--C,B--C));
+  triple a=(2*unitrand(),unitrand(),unitrand());
+  triple b=(2*unitrand(),unitrand(),unitrand());
+  triple c=(2*unitrand(),unitrand(),unitrand());
 
-  draw(surface(t0--a--b--cycle),red+opacity(0.5));
-  draw(surface(A--B--C--cycle),blue+opacity(0.5));
-  if(intersect(a,b,t0,A,B,C,currentprojection)) {
-    write(front(a,b,t0,A,B,C));
+  //  write(currentprojection.camera);
+
+  if(!intersect(a,b,c,A,B,C) && intersect(a,b,c,A,B,C,currentprojection)) {
+    erase();
+    draw(surface(c--a--b--cycle),red+opacity(0.5));
+    draw(surface(A--B--C--cycle),blue+opacity(0.5));
+
+    label("a",a,dir(c--a,b--a));
+    label("b",b,dir(a--b,c--b));
+    label("c",c,dir(a--c,b--c));
+    label("A",A,dir(C--A,B--A));
+    label("B",B,dir(A--B,C--B));
+    label("C",C,dir(A--C,B--C));
+
+    label("1",b--a);
+    label("8",c--b);
+    label("64",a--c);
+
+    label("1",A--B);
+    label("2",B--C);
+    label("4",C--A);
+
+    write(front(a,b,c,A,B,C));
     shipout();
-    exit();
+    //    exit();
   }
 }
