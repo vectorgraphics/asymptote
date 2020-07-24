@@ -734,7 +734,10 @@ void setsize(int w, int h, bool reposition=true)
   if(reposition) {
     windowposition(x,y,w,h);
     glutPositionWindow(x,y);
-  }
+  } else
+    glutPositionWindow(max(glutGet(GLUT_WINDOW_X)-2,0),
+                       max(glutGet(GLUT_WINDOW_Y)-2,0));
+
   glutReshapeWindow(w,h);
   reshape0(w,h);
   glutPostRedisplay();
@@ -778,7 +781,7 @@ void fitscreen(bool reposition=true)
     case 0: // Original size
     {
       Xfactor=Yfactor=1.0;
-      setsize(oldWidth,oldHeight,true);
+      setsize(oldWidth,oldHeight,reposition);
       break;
     }
     case 1: // Fit to screen in one dimension
