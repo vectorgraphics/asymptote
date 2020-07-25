@@ -43,8 +43,15 @@ extern "C" off_t ftello(FILE *);
 
 #ifdef __APPLE__
 #include <rpc/xdr.h>
-extern bool_t xdr_long(XDR *__xdrs, long *__lp);
-extern bool_t xdr_u_long(XDR *__xdrs, u_long *__ulp);
+
+inline bool_t xdr_long(XDR *__xdrs, long *__lp) {
+  return xdr_longlong_t(__xdrs,(long long *) __lp);
+}
+
+inline bool_t xdr_u_long(XDR *__xdrs, unsigned long *__lp) {
+  return xdr_u_longlong_t(__xdrs,(unsigned long long *) __lp);
+}
+
 #endif
 
 #ifdef _POSIX_SOURCE
