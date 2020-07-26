@@ -1919,13 +1919,15 @@ returns the conjugate of @code{z};
 @item real length(pair z)
 @cindex @code{length}
 @cindex @code{abs}
-returns the complex modulus @code{|z|} of its argument @code{z}. 
+@cindex @code{abs2}
+returns the complex modulus @math{|@code{z}|} of its argument @code{z}.
 For example,
 @example
 pair z=(3,4);
 length(z);
 @end example
-returns the result 5. A synonym for @code{length(pair)} is @code{abs(pair)};
+returns the result 5. A synonym for @code{length(pair)} is @code{abs(pair)}.
+The function @code{abs2(pair z)} returns @math{|@code{z}|^2};
 
 @item real angle(pair z, bool warn=true)
 @cindex @code{angle}
@@ -2020,8 +2022,11 @@ Here are the built-in functions for triples:
 @table @code
 @item real length(triple v)
 @cindex @code{length}
-returns the length @code{|v|} of the vector @code{v}. 
-A synonym for @code{length(triple)} is @code{abs(triple)};
+@cindex @code{abs}
+@cindex @code{abs2}
+returns the length @math{|@code{v}|} of its argument @code{v}.
+A synonym for @code{length(triple)} is @code{abs(triple)}.
+The function @code{abs2(triple v)} returns @code{|@math{@code{v}}|^2};
 
 @item real polar(triple v, bool warn=true)
 @cindex @code{polar}
