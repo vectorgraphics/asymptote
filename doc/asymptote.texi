@@ -1465,8 +1465,10 @@ Clip the current contents of picture @code{pic} to the region bounded
 by the path @code{g}, using fill rule @code{fillrule} (@pxref{fillrule}).
 If @code{stroke=true}, the clipped portion is the same as the region
 that would be drawn with @code{draw(pic,g,zerowinding)}; in
-this case the path @code{g} need not be cyclic. For an illustration of
-picture clipping, see the first example in @ref{LaTeX usage}.
+this case the path @code{g} need not be cyclic. While clipping has no notion
+of depth (it transcends layers and even pages), one can localize clipping
+to a temporary picture, which can then be added to @code{pic}.
+For an illustration of picture clipping, see the first example in @ref{LaTeX usage}.
 
 @node label,  , clip, Drawing commands
 @section label
@@ -2026,7 +2028,7 @@ Here are the built-in functions for triples:
 @cindex @code{abs2}
 returns the length @math{|@code{v}|} of its argument @code{v}.
 A synonym for @code{length(triple)} is @code{abs(triple)}.
-The function @code{abs2(triple v)} returns @code{|@math{@code{v}}|^2};
+The function @code{abs2(triple v)} returns @math{|@code{v}|^2};
 
 @item real polar(triple v, bool warn=true)
 @cindex @code{polar}
