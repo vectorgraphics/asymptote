@@ -11,23 +11,25 @@ namespace camp {
 
 class jsfile {
   jsofstream out;
-  
+
 public:  
   jsfile() {}
   ~jsfile() {}
   
-  void precision(int digits) {out.precision(digits);}
+  void copy(string name, bool header=false);
 
-  void open(string name);
   void header(string name);
   void meta(string name, bool scalable=true);
-  void comment(string name);
   void finish(string name);
   void footer(string name);
 
   void svgtohtml(string name);
 
-  void copy(string name, bool header=false);
+#ifdef HAVE_LIBGLM
+  void precision(int digits) {out.precision(digits);}
+
+  void open(string name);
+  void comment(string name);
   
   void addColor(const prc::RGBAColour& c); 
   void addIndices(const uint32_t *I); 
@@ -61,6 +63,7 @@ public:
                const double& polar=0.0, const double& azimuth=0.0);
   void addTube(const triple *g, double width,
                const triple& Min, const triple& Max, bool core=false);
+#endif
 };
 
 } //namespace camp

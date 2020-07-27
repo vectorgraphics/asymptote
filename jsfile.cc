@@ -4,8 +4,6 @@
 #include "glrender.h"
 #include "drawelement.h"
 
-#ifdef HAVE_LIBGLM
-
 using namespace settings;
 
 namespace camp {
@@ -25,18 +23,6 @@ void jsfile::header(string name)
   out << "<!DOCTYPE html>" << newl << newl;
 }
 
-void jsfile::comment(string name)
-{
-  out << "<!-- Use the following line to embed this file within another web page:" << newl
-      << newl
-      << "<iframe src=\"" << name
-      << "\" width=\"" << gl::fullWidth
-      << "\" height=\"" << gl::fullHeight
-      << "\" frameborder=\"0\"></iframe>" << newl
-      << newl
-      << "-->" << newl << newl;
-}
-
 void jsfile::meta(string name, bool svg)
 {
   out << "<html lang=\"\">" << newl
@@ -45,13 +31,22 @@ void jsfile::meta(string name, bool svg)
       << "<title>" << stripExt(name) << "</title>" << newl
       << newl
       << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>" << newl;
-  if(svg) {
-    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
-        << newl << "</head>";
-  } else {
+  if(svg)
+    out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>";
+  else
     out << "<meta name=\"viewport\" content=\"user-scalable=no\"/>";
-  }
-  out << newl << newl;
+  out << newl << "<style>" << newl;
+  if(svg && !getSetting<bool>("absolute"))
+    out << "svg, #container {" << newl
+        << "display: block;" << newl
+        << "width: 100vw;" << newl
+        << "height: 100vh;" << newl
+        << "}" << newl;
+  out << "body {margin: 0;}" << newl
+      << "</style>" << newl;
+  if(svg)
+    out << "</head>" << newl;
+  out << newl;
 }
 
 void jsfile::footer(string name)
@@ -69,9 +64,24 @@ void jsfile::svgtohtml(string prefix)
   string name=buildname(prefix,"html");
   header(name);
   meta(name);
+
   out << "<body>" << newl << newl;
   copy(locateFile(auxname(prefix,"svg")),true);
   footer(name);
+}
+
+#ifdef HAVE_LIBGLM
+
+void jsfile::comment(string name)
+{
+  out << "<!-- Use the following line to embed this file within another web page:" << newl
+      << newl
+      << "<iframe src=\"" << name
+      << "\" width=\"" << gl::fullWidth
+      << "\" height=\"" << gl::fullHeight
+      << "\" frameborder=\"0\"></iframe>" << newl
+      << newl
+      << "-->" << newl << newl;
 }
 
 void jsfile::open(string name)
@@ -90,7 +100,7 @@ void jsfile::open(string name)
     out << "<script" << newl << "src=\""
         << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
   }
-  out << "<script>" << newl;
+  out << newl << "<script>" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
@@ -320,6 +330,6 @@ void jsfile::addTube(const triple *g, double width,
       << drawElement::centerIndex << "," << materialIndex << ","
       << Min << "," << Max << "," << core <<");" << newl << newl;
 }
+#endif
 
 }
-#endif

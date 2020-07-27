@@ -327,12 +327,15 @@ void texfile::epilogue(bool pipe)
 
 string svgtexfile::nl="{?nl}%\n";
 
-void svgtexfile::beginspecial()
+void svgtexfile::beginspecial(bool def)
 {
   inspecial=true;
   out->unsetf(std::ios::fixed);
   *out << "\\catcode`\\#=11%" << newl
-       << "\\special{dvisvgm:raw" << nl;
+       << "\\special{dvisvgm:raw";
+  if(def)
+    *out << "def";
+  *out << nl;
 }
     
 void svgtexfile::endspecial()
@@ -344,13 +347,25 @@ void svgtexfile::endspecial()
   out->setf(std::ios::fixed);
 }
   
-void svgtexfile::begintransform()
+void svgtexfile::transform()
 {
   bbox b=box;
   b.left=-Hoffset;
   b=svgbbox(b);
-  *out << "<g transform='matrix(" << tex2ps << " 0 0 " << tex2ps <<" "
-       << b.left << " " << b.top << ")'>" << nl;
+  *out << "transform='matrix(" << tex2ps << " 0 0 " << tex2ps <<" "
+       << b.left << " " << b.top << ")'";
+}
+
+void svgtexfile::begintransform()
+{
+  if(clipstack.size() > 0) {
+    *out << "</g><g ";
+    clippath();
+    *out << ">" << nl;
+  }
+  *out << "<g ";
+  transform();
+  *out << ">" << nl;
 }
     
 void svgtexfile::endtransform()
@@ -383,14 +398,13 @@ void svgtexfile::clippath()
   if(clipstack.size() > 0) {
     size_t count=clipstack.top();
     if(count > 0)
-      *out << "clip-path='url(#clip" << count << ")' ";
+      *out << "clip-path='url(#Clip" << count << ")' ";
   }
 }
   
 void svgtexfile::beginpath()
 {
   *out << "<path ";
-  clippath();
   *out << "d='";
 }
   
@@ -404,7 +418,6 @@ void svgtexfile::dot(path p, pen q, bool newPath)
   beginspecial();
   begintransform();
   *out << "<circle ";
-  clippath();
   pair z=p.point((Int) 0);
   *out << "cx='" << (z.getx()-offset.getx())*ps2tex
        << "' cy='" << (-z.gety()+offset.gety())*ps2tex
@@ -413,30 +426,25 @@ void svgtexfile::dot(path p, pen q, bool newPath)
 
 void svgtexfile::beginclip()
 {
-  beginspecial();
-  begintransform();
+  beginspecial(true);
   *out << "<clipPath ";
   clippath();
   ++clipcount;
-  *out << "id='clip" << clipcount << "'>" << nl;
-  beginpath();
+  *out << "id='Clip" << clipcount << "'>" << nl;
+  *out << "<path ";
+  transform();
+  *out << " d='";
   if(clipstack.size() > 0)
     clipstack.pop();
   clipstack.push(clipcount);
 }
   
-void svgtexfile::endclip0(const pen &p) 
+void svgtexfile::endclip(const pen &p)
 {
   *out << "'";
   fillrule(p,"clip");
   endpath();
   *out << "</clipPath>" << nl;
-}
-
-void svgtexfile::endclip(const pen &p) 
-{
-  endclip0(p);
-  endtransform();
   endspecial();
 }
 
@@ -614,7 +622,6 @@ void svgtexfile::gouraudshade(const pen& p0, const pair& z0,
        << "</filter>" << nl
        << "</defs>" << nl
        << "<rect width='100\\percent' height='100\\percent' fill='none' ";
-  clippath();
   *out << " filter='url(#Gouraud-" << gouraudcount << ")'"
          << "/>" << nl;
 
@@ -637,7 +644,9 @@ void svgtexfile::gouraudshade(const pen& pentype,
   size_t size=pens.size();
   if(size == 0) return;
   
-  endclip0(pentype);
+  endclip(pentype);
+  beginspecial();
+  begintransform();
   
   pen *p0=NULL,*p1=NULL,*p2=NULL;
   pair z0,z1,z2;

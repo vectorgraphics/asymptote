@@ -41,12 +41,14 @@ string stripFile(string name);
 // Strip the extension from a filename.
 string stripExt(string name, const string& suffix="");
 
+void readDisabled();
 void writeDisabled();
   
 // Replace spaces in file part of name with underscores.
 string cleanpath(string name);
 
-// Construct the full output path.
+// Construct the full path name, checking access.
+string inpath(string name);
 string outpath(string name);
   
 // Construct a filename from the original, adding aux at the end, and

@@ -28,6 +28,7 @@
 #include "errormsg.h"
 #include "util.h"
 #include "process.h"
+#include "locate.h"
 
 namespace vm {
 extern bool indebugger;  
@@ -57,6 +58,11 @@ inline void openpipeout()
     buf << "Cannot open outpipe " << fd;
     reportError(buf);
   }
+}
+
+inline string locatefile(string name) {
+  string s=settings::locateFile(name);
+  return s.empty() ? name : s;
 }
 
 class file : public gc {
@@ -113,7 +119,7 @@ public:
   }
   
   void dimension(Int Nx=-1, Int Ny=-1, Int Nz=-1) {
-    if(Nx < -1 || Ny < -1 || Nz < -1) {
+    if(Nx < -2 || Ny < -2 || Nz < -2) {
       ostringstream buf;
       buf << "Invalid array dimensions: " << Nx << ", " << Ny << ", " << Nz;
       reportError(buf);
@@ -122,12 +128,12 @@ public:
     nx=Nx; ny=Ny; nz=Nz;
   }
 
-  file(const string& name, bool check=true, Mode type=NOMODE, bool binary=false,
-       bool closed=false) : 
+  file(const string& name, bool check=true, Mode type=NOMODE,
+       bool binary=false, bool closed=false) :
     name(name), check(check), type(type), linemode(false), csvmode(false),
     wordmode(false), singlereal(false), singleint(true), signedint(true),
-    closed(closed), standard(name.empty()),
-    binary(binary), nullfield(false), whitespace("") {dimension();}
+    closed(closed), standard(name.empty()), binary(binary), nullfield(false),
+    whitespace("") {dimension();}
   
   virtual void open() {}
   
@@ -344,8 +350,8 @@ protected:
 public:
   ifile(const string& name, char comment, bool check=true, Mode type=INPUT, 
         std::ios::openmode mode=std::ios::in) :
-    file(name,check,type), stream(&cin), fstream(NULL), comment(comment),
-    mode(mode), comma(false) {}
+    file(name,check,type), stream(&cin), fstream(NULL),
+    comment(comment), mode(mode), comma(false) {}
   
   // Binary file
   ifile(const string& name, bool check=true, Mode type=BINPUT,
@@ -362,6 +368,7 @@ public:
     } else {
       if(mode & std::ios::out)
         name=outpath(name);
+      else name=locatefile(inpath(name));
       stream=fstream=new std::fstream(name.c_str(),mode);
       if(mode & std::ios::out) {
         if(error()) {
@@ -652,6 +659,7 @@ public:
     file(name,check,type,true), fstream(NULL), mode(mode) {}
 
   void open() {
+    name=locatefile(inpath(name));
     fstream=new xdr::ioxstream(name.c_str(),mode);
     index=processData().ixfile.add(fstream);
     if(check) Check();
@@ -721,7 +729,8 @@ public:
 
 class ioxfile : public ixfile {
 public:
-  ioxfile(const string& name) : ixfile(name,true,XUPDATE,xdr::xios::out) {}
+  ioxfile(const string& name) : ixfile(outpath(name),true,XUPDATE,
+                                       xdr::xios::out) {}
 
   void flush() {if(fstream) fstream->flush();}
   

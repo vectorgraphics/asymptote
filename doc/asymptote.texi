@@ -333,11 +333,11 @@ texhash
 @noindent
 The @code{texhash} command, which installs LaTeX style files, is optional.
 The executable file will be @code{/usr/local/bin/asy}) and example code
-will be installed by default in @code{@value{Datadir}/doc/asymptote/examples}. 
+will be installed by default in @code{@value{Docdir}/examples}.
 
 @noindent
 @cindex Fedora
-Fedora users can easily install the most recent version of @code{Asymptote}
+Fedora users can easily install a recent version of @code{Asymptote}
 with the command
 @verbatim
 dnf --enablerepo=rawhide install asymptote
@@ -392,8 +392,8 @@ The @code{ImageMagick} package from
 @noindent
 is required to support output formats other than @acronym{HTML},
 @acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
-The @code{Python 3} interpreter from @url{https://www.python.org} is only required
-if you wish to try out the graphical user interface (@pxref{GUI}).
+The @code{Python 3} interpreter from @url{https://www.python.org} is only
+required if you wish to try out the graphical user interface (@pxref{GUI}).
 
 @noindent
 Example code will be installed by default in the @code{examples}
@@ -463,13 +463,17 @@ Windows} registry. The @code{gs} setting specifies the location of the
 
 @noindent
 @cindex @code{htmlviewer}
+@cindex @code{absolute}
 The configuration variable @code{htmlviewer} specifies the 
 browser to use to display 3D @code{WebGL} output.
 The default setting is @code{google-chrome} under @code{UNIX} and
 @code{cmd} under @code{Microsoft Windows}. Note that @code{Internet Explorer}
 does not support @code{WebGL}; @code{Microsoft Windows} users should set their
 default html browser to @code{chrome} or @code{microsoft-edge}.
- 
+By default, 2D and 3D @code{HTML} images expand to the enclosing canvas;
+this can be disabled by setting the configuation variable @code{absolute}
+to @code{true}.
+
 On @code{UNIX} systems, to support automatic document
 reloading of @code{PDF} files in @code{Adobe Reader}, we recommend
 copying the file @code{reload.js} from the @code{Asymptote} system
@@ -562,8 +566,8 @@ under @code{Microsoft Windows XP}:
 @section Search paths
 @cindex search paths
 
-In looking for @code{Asymptote} system
-files, @code{asy} will search the following paths, in the order listed:
+In looking for @code{Asymptote} files, @code{asy} will search the
+following paths, in the order listed:
 @enumerate
 @item
 The current directory;
@@ -583,6 +587,10 @@ the directory @code{.asy} in the user's home directory
 The @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} under @code{UNIX} and
 @code{C:\Program Files\Asymptote} under @code{MSDOS}).
+@item
+The @code{Asymptote} examples directory (by default,
+@code{@value{Docdir}/examples} under @code{UNIX} and
+@code{C:\Program Files\Asymptote\examples} under @code{MSDOS}).
 @end enumerate
 
 @node Compiling from UNIX source, Editing modes, Search paths, Installation
@@ -771,6 +779,12 @@ make install
 
 @noindent
 To compile without optimization, use the command @code{make CFLAGS=-g}.
+On @code{Ubuntu} systems, you may need to first install the required
+dependencies:
+@verbatim
+apt-get build-dep asymptote
+@end verbatim
+@noindent
 
 @node Uninstall,  , Git, Installation
 @section Uninstall
@@ -805,7 +819,7 @@ A concise introduction to @code{Asymptote} is given here.
 For a more thorough introduction, see the excellent @code{Asymptote}
 tutorial written by Charles Staats:
 
-@url{https://asymptote.sourceforge.io/asymptote.pdf}
+@url{https://asymptote.sourceforge.io/asymptote_tutorial.pdf}
 
 Another @code{Asymptote} tutorial is available as a wiki,
 with images rendered by an online Asymptote engine:
@@ -1449,8 +1463,10 @@ Clip the current contents of picture @code{pic} to the region bounded
 by the path @code{g}, using fill rule @code{fillrule} (@pxref{fillrule}).
 If @code{stroke=true}, the clipped portion is the same as the region
 that would be drawn with @code{draw(pic,g,zerowinding)}; in
-this case the path @code{g} need not be cyclic. For an illustration of
-picture clipping, see the first example in @ref{LaTeX usage}.
+this case the path @code{g} need not be cyclic. While clipping has no notion
+of depth (it transcends layers and even pages), one can localize clipping
+to a temporary picture, which can then be added to @code{pic}.
+For an illustration of picture clipping, see the first example in @ref{LaTeX usage}.
 
 @node label,  , clip, Drawing commands
 @section label
@@ -1903,13 +1919,15 @@ returns the conjugate of @code{z};
 @item real length(pair z)
 @cindex @code{length}
 @cindex @code{abs}
-returns the complex modulus @code{|z|} of its argument @code{z}. 
+@cindex @code{abs2}
+returns the complex modulus @math{|@code{z}|} of its argument @code{z}.
 For example,
 @example
 pair z=(3,4);
 length(z);
 @end example
-returns the result 5. A synonym for @code{length(pair)} is @code{abs(pair)};
+returns the result 5. A synonym for @code{length(pair)} is @code{abs(pair)}.
+The function @code{abs2(pair z)} returns @math{|@code{z}|^2};
 
 @item real angle(pair z, bool warn=true)
 @cindex @code{angle}
@@ -2004,8 +2022,11 @@ Here are the built-in functions for triples:
 @table @code
 @item real length(triple v)
 @cindex @code{length}
-returns the length @code{|v|} of the vector @code{v}. 
-A synonym for @code{length(triple)} is @code{abs(triple)};
+@cindex @code{abs}
+@cindex @code{abs2}
+returns the length @math{|@code{v}|} of its argument @code{v}.
+A synonym for @code{length(triple)} is @code{abs(triple)}.
+The function @code{abs2(triple v)} returns @math{|@code{v}|^2};
 
 @item real polar(triple v, bool warn=true)
 @cindex @code{polar}
@@ -3845,8 +3866,10 @@ as a single literal comment character.
 
 @anchor{cd}
 @cindex @code{cd}
+@cindex @code{noglobalread}
 @cindex directory
-One can change the current working directory for read operations to
+Unless the @code{-noglobalread} command-line option is specified,
+one can change the current working directory for read operations to
 the contents of the string @code{s} with the function @code{string
 cd(string s)}, which returns the new working directory. If
 @code{string s} is empty, the path is reset to the value it had at
@@ -3867,6 +3890,8 @@ A file named @code{name} can be open for output with
 file output(string name="", bool update=false, string comment="#", string mode="");
 @end verbatim
 @noindent
+@cindex @code{noglobalread}
+@cindex @code{globalwrite}
 If @code{update=false}, any existing data in the file will be erased
 and only write operations can be used on the file.
 If @code{update=true}, any existing data will be preserved, the position
@@ -3874,6 +3899,8 @@ will be set to the end-of-file, and both reading and writing operations
 will be enabled. For security reasons, writing to files in directories
 other than the current directory is allowed only if the @code{-globalwrite}
 (or @code{-nosafe}) command-line option is specified.
+Reading from files in other directories is allowed unless the
+@code{-noglobalread} command-line option is specified.
 @cindex @code{mktemp}
 The function @code{string mktemp(string s)} may be used to create and
 return the name of a unique temporary file in the current directory
@@ -4048,6 +4075,7 @@ write(output("transcript.asy"),history());
 outputs the interactive history to the file @code{transcript.asy}.
 
 @cindex @code{delete}
+@cindex @code{globalwrite}
 The function @code{int delete(string s)} deletes the file named by the
 string @code{s}. Unless the @code{-globalwrite} (or @code{-nosafe})
 option is enabled, the file must reside in the current directory.
@@ -5353,8 +5381,9 @@ element of the array @code{a}. This is equivalent to
 
 @cindex @code{map}
 @item T2[] map(T2 f(T1), T1[] a)
-constructed by calling @code{mapArray("T1","T2")}, returns the array obtained by
-applying the function @code{f} to each element of the array @code{a};
+constructed by calling @code{mapArray("T1","T2")}, returns the array
+obtained by applying the function @code{f} to each element of the
+array @code{a};
 
 @cindex @code{reverse}
 @item int[] reverse(int n)

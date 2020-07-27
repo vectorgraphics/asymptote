@@ -734,7 +734,10 @@ void setsize(int w, int h, bool reposition=true)
   if(reposition) {
     windowposition(x,y,w,h);
     glutPositionWindow(x,y);
-  }
+  } else
+    glutPositionWindow(max(glutGet(GLUT_WINDOW_X)-2,0),
+                       max(glutGet(GLUT_WINDOW_Y)-2,0));
+
   glutReshapeWindow(w,h);
   reshape0(w,h);
   glutPostRedisplay();

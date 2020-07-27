@@ -5,12 +5,14 @@ let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
+let canvasWidth0,canvasHeight0; // Initial values
 
 let absolute=false;
 
 let b,B; // Scene min,max bounding box corners (3-tuples)
 let angle; // Field of view angle
 let Zoom0; // Initial zoom
+let zoom0; // Adjusted initial zoom
 let viewportmargin; // Margin around viewport (2-tuple)
 let viewportshift=[0,0]; // Viewport shift (for perspective projection)
 
@@ -44,8 +46,8 @@ let pixel=0.75; // Adaptive rendering constant.
 let FillFactor=0.1;
 let Zoom;
 
-let maxViewportWidth=window.innerWidth;
-let maxViewportHeight=window.innerHeight;
+let maxViewportWidth;
+let maxViewportHeight;
 
 const windowTrim=10;
 let resizeStep=1.2;
@@ -1871,13 +1873,18 @@ class Triangles extends Geometry {
 
 }
 
-function home()
+function redraw()
 {
-  mat4.identity(rotMat);
   initProjection();
   setProjection();
   remesh=true;
   draw();
+}
+
+function home()
+{
+  mat4.identity(rotMat);
+  redraw();
 }
 
 let positionAttribute=0;
@@ -2342,6 +2349,13 @@ function handleKey(event)
   }
 }
 
+function setZoom()
+{
+  capzoom();
+  setProjection();
+  draw();
+}
+
 function handleMouseWheel(event)
 {
   event.preventDefault();
@@ -2351,10 +2365,8 @@ function handleMouseWheel(event)
   } else {
     Zoom /= zoomFactor;
   }
-  capzoom();
-  setProjection();
 
-  draw();
+  setZoom();
 }
 
 function handleMouseMove(event)
@@ -2612,7 +2624,7 @@ function initProjection()
 
   center.x=center.y=0;
   center.z=0.5*(b[2]+B[2]);
-  lastzoom=Zoom=Zoom0;
+  lastzoom=Zoom=zoom0;
 
   viewParam.zmin=b[2];
   viewParam.zmax=B[2];
@@ -2638,6 +2650,7 @@ function setCanvas()
   size2=Math.hypot(canvasWidth,canvasHeight);
   halfCanvasWidth=0.5*canvas.width;
   halfCanvasHeight=0.5*canvas.height;
+  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
 }
 
 function setsize(w,h)
@@ -2655,75 +2668,53 @@ function setsize(w,h)
   canvasHeight=h;
   setCanvas();
   setViewport();
-  home();
+
+  setProjection();
+  remesh=true;
 }
 
-function expand() 
+function resize() 
 {
-  setsize(canvasWidth*resizeStep+0.5,canvasHeight*resizeStep+0.5);
-}
-
-function shrink() 
-{
-  setsize(Math.max((canvasWidth/resizeStep+0.5),1),
-          Math.max((canvasHeight/resizeStep+0.5),1));
-}
-
-let pixelShader,materialShader,colorShader,transparentShader;
-
-function webGLInit()
-{
-  canvas=document.getElementById("Asymptote");
-  embedded=window.top.document != document;
-
-  initGL();
+  zoom0=Zoom0;
 
   if(absolute && !embedded) {
-    canvasWidth *= window.devicePixelRatio;
-    canvasHeight *= window.devicePixelRatio;
+    canvasWidth=canvasWidth0*window.devicePixelRatio;
+    canvasHeight=canvasHeight0*window.devicePixelRatio;
   } else {
-    let Aspect=canvasWidth/canvasHeight;
+    let Aspect=canvasWidth0/canvasHeight0;
     canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
     if(!orthographic && canvasWidth < canvasHeight*Aspect)
-      Zoom0 *= canvasWidth/(canvasHeight*Aspect);
+      zoom0 *= canvasWidth/(canvasHeight*Aspect);
   }
 
   canvas.width=canvasWidth;
   canvas.height=canvasHeight;
 
-  setCanvas();
+  let maxViewportWidth=window.innerWidth;
+  let maxViewportHeight=window.innerHeight;
 
-  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
+  viewportshift[0] /= zoom0;
+  viewportshift[1] /= zoom0;
 
-  viewportshift[0] /= Zoom0;
-  viewportshift[1] /= Zoom0;
-
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-  gl.enable(gl.DEPTH_TEST);
-  gl.enable(gl.SCISSOR_TEST);
-
-  setViewport();
-  home();
-
-  canvas.onmousedown=handleMouseDown;
-  document.onmouseup=handleMouseUpOrTouchEnd;
-  document.onmousemove=handleMouseMove;
-  canvas.onkeydown=handleKey;
-
-  if(!embedded)
-    enableZoom();
-  canvas.addEventListener("touchstart",handleTouchStart,false);
-  canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchmove",handleTouchMove,false);
-  document.addEventListener("keydown",handleKey,false);
+  setsize(canvasWidth,canvasHeight);
+  redraw();
 }
 
-let listen=false;
+function expand() 
+{
+  Zoom *= zoomFactor;
+  setZoom();
+}
+
+function shrink() 
+{
+  Zoom /= zoomFactor;
+  setZoom();
+}
+
+let pixelShader,materialShader,colorShader,transparentShader;
 
 class Align {
   constructor(center,dir) {
@@ -3107,16 +3098,37 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
 
 function webGLStart()
 {
-  if(window.innerWidth == 0 || window.innerHeight == 0) {
-    if(!listen) {
-      listen=true;
-      window.addEventListener("resize",webGLStart,false);
-    }
-  } else {
-    if(listen) {
-      window.removeEventListener("resize",webGLStart,false);
-      listen=false;
-    }
-    webGLInit();
-  }
+  canvas=document.getElementById("Asymptote");
+  embedded=window.top.document != document;
+
+  initGL();
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.SCISSOR_TEST);
+
+  canvas.onmousedown=handleMouseDown;
+  document.onmouseup=handleMouseUpOrTouchEnd;
+  document.onmousemove=handleMouseMove;
+  canvas.onkeydown=handleKey;
+
+  if(!embedded)
+    enableZoom();
+  canvas.addEventListener("touchstart",handleTouchStart,false);
+  canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchmove",handleTouchMove,false);
+  document.addEventListener("keydown",handleKey,false);
+
+  canvasWidth0=canvasWidth;
+  canvasHeight0=canvasHeight;
+
+  mat4.identity(rotMat);
+
+  if(window.innerWidth != 0 && window.innerHeight != 0)
+    resize();
+
+  window.addEventListener("resize",resize,false);
 }

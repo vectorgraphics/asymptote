@@ -235,10 +235,13 @@ bool cmyk;
   
 // Disable system calls.
 bool safe=true;
+// Enable reading from other directories
+bool globalRead=true;
 // Enable writing to (or changing to) other directories
-bool globaloption=false;
+bool globalWrite=false;
   
-bool globalwrite() {return globaloption || !safe;}
+bool globalwrite() {return globalWrite || !safe;}
+bool globalread() {return globalRead || !safe;}
   
 const string suffix="asy";
 const string guisuffix="gui";
@@ -1301,7 +1304,10 @@ void initSettings() {
                                       &safe, true));
   addSecureSetting(new boolrefSetting("globalwrite", 0,
                                       "Allow write to other directory",
-                                      &globaloption, false));
+                                      &globalWrite, false));
+  addSecureSetting(new boolrefSetting("globalread", 0,
+                                      "Allow read from other directory",
+                                      &globalRead, true));
   addSecureSetting(new stringSetting("outname", 'o', "name",
                                      "Alternative output directory/filename"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
@@ -1548,6 +1554,7 @@ void setPath() {
   string sysdir=getSetting<string>("sysdir");
   if(sysdir != "")
     searchPath.push_back(sysdir);
+  searchPath.push_back(docdir+"/examples");
 }
 
 void SetPageDimensions() {

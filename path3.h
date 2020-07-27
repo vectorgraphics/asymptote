@@ -88,7 +88,7 @@ public:
   // Copy constructor
   path3(const path3& p)
     : cycles(p.cycles), n(p.n), nodes(p.nodes), cached_length(p.cached_length),
-      box(p.box)
+      box(p.box), times(p.times)
   {}
 
   path3 unstraighten() const

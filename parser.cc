@@ -111,12 +111,6 @@ absyntax::file *parseStdin()
 {
   debug(false);
 
-  if(!fin) {
-    fd=intcast(settings::getSetting<Int>("inpipe"));
-    if(fd >= 0)
-      fin=fdopen(fd,"r");
-  }
-  
   if(fin)
     return doParse(yy::pipe_input,"-");
   else {

@@ -26,7 +26,6 @@ private:
   bbox b_cached;   // Cached bounding box
   boxvector labelbounds;
   bboxlist bboxstack;
-  bool transparency;
   groupsmap groups;
   unsigned billboard;
 public:
@@ -36,7 +35,7 @@ public:
   nodelist nodes;
   
   picture() : labels(false), lastnumber(0), lastnumber3(0), T(identity),
-              transparency(false), billboard(0) {}
+              billboard(0) {}
   
   // Destroy all of the owned picture objects.
   ~picture();
