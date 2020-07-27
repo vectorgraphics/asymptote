@@ -416,7 +416,7 @@ signal). Version @code{gv-3.6.3} or later (from
 @url{https://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
 work properly.
 Users of @code{ggv} will need to enable @code{Watch file} under
-@code{Edit/Postscript Viewer Preferences}.
+@code{Edit/PostScript Viewer Preferences}.
 Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
 (however, under @code{MSDOS} it is still necessary to click on the
 @code{gsview} window; under @code{UNIX} one must manually redisplay by
@@ -1005,7 +1005,7 @@ path unitcircle=E..N..W..S..cycle;
 @cindex superpath
 @noindent
 An @code{Asymptote} path, being connected, is equivalent to a
-@code{Postscript subpath}. The @code{^^} binary operator, which
+@code{PostScript subpath}. The @code{^^} binary operator, which
 requests that the pen be moved (without drawing or affecting
 endpoint curvatures) from the final point of the left-hand path to the
 initial point of the right-hand path, may be used to group several
@@ -3138,7 +3138,7 @@ to the requested size: @code{pen font(string name, real size)}.
 A nonstandard font command can be generated with
 @code{pen fontcommand(string)}.
 
-@cindex PostScript fonts
+@cindex @code{PostScript} fonts
 A convenient interface to the following standard @code{PostScript}
 fonts is also provided:
 @verbatim
@@ -3165,7 +3165,7 @@ encoding (so as the font, font encoding or even language context).
 @cindex Cyrillic
 @cindex Russian
 Here is an example for @code{cp1251} and Russian language in Cyrillic script
-(font encoding @code{T2A}) using Antykwa Toruńska font:
+(font encoding @code{T2A}):
 @verbatim
 texpreamble("\usepackage[math]{anttor}");
 texpreamble("\usepackage[T2A]{fontenc}");
@@ -6540,7 +6540,7 @@ and @code{leastsquares}.
 @node patterns, markers, stats, Base modules
 @section @code{patterns}
 @cindex @code{patterns}
-This module implements @code{Postscript} tiling patterns and includes
+This module implements @code{PostScript} tiling patterns and includes
 several convenient pattern generation routines.
 
 @node markers, tree, patterns, Base modules
@@ -10053,7 +10053,7 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb TEXMFCONFIG Jn
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile Yn
-@c  LocalWords:  pdfreloadOptions deferred OpenGL renderer unitbox
+@c  LocalWords:  pdfreloadOptions deferred OpenGL renderer unitbox 's
 @c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
 @c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
 @c  LocalWords:  DPostScript YZZero externalprc nonrendered nosafe KDE
@@ -10088,13 +10088,13 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  ascii piecewise arcpoint spacings tilings sncndn resizing
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
-@c  LocalWords:  Michail 0pt 1filll 's 3D labelpath3 2D graph3
+@c  LocalWords:  Michail 0pt 1filll 's 3D labelpath3 2D graph3 0pt 3D
 @c  LocalWords:  grid3 contour3 x86_64 psv a4 gsview32 freeglut 'load '
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
 @c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
 @c  LocalWords:  z2 before' struct X11 x11colors type1cm 12pt OT1 5mm
 @c  LocalWords:  cmr12 x' y' xsize ysize 25cm s1 s2 neighbourhood u''
-@c  LocalWords:  s'' 3x 5x 3y 602e 2x 2y 3sin 10cm 204e addby7 10x Ai
+@c  LocalWords:  s'' 3x 5x 3y 602e 2x 2y 3sin 10cm 204e addby7 10x
 @c  LocalWords:  only'' pow10 log10 expm1 log1p atan2 0pt 1filll 's '
 @c  LocalWords:  x1 x2 graph2d attachfile2 n0 P0 n1 P1 markers1 3D 2D
 @c  LocalWords:  interpolate1 markers2 inlinemovie3 media9 U3D T2A 5E
@@ -10117,31 +10117,39 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  slopefield1 144x144 1filll 'load 'asy 'lasy 'auto 4g
 @c  LocalWords:  libgs 'load 'asy 'lasy 'auto 5bp 1cm 2S 100pt 3t 5mm
 @c  LocalWords:  bracedefaultratio incircle 12pt 25cm 3x 5x 3y 602e '
-@c  LocalWords:  2x 2y 3sin 10cm 204e 10x Ai 5E offaxis 'load 'lasy '
+@c  LocalWords:  2x 2y 3sin 10cm 204e 10x 5E offaxis 'load 'lasy '
 @c  LocalWords:  5cm 2N 2E 2n 100d 5z 5y 5unit dvisvgmOptions 144x144
 @c  LocalWords:  4g texengines coplanar 0pt 1filll 's 3D 2D 'load 5bp
 @c  LocalWords:  insphere cospherical 5unit luatex lualatex 'asy 1cm
 @c  LocalWords:  'lasy 'auto 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x 3y 2x
-@c  LocalWords:  602e 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai Ai '
-@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y 0pt 1filll '
+@c  LocalWords:  602e 2y 3sin 10cm 204e 10x
+@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y 0pt 1filll
 @c  LocalWords:  5unit 144x144 aligndir smoothcontour3 's 3D 2D cmake
 @c  LocalWords:  'load 'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t nan 3x
-@c  LocalWords:  12pt 5mm 25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai
-@c  LocalWords:  Ai Ai Ai Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y nz '
-@c  LocalWords:  5unit Staats implicitsurface overlapedges maxdepth
+@c  LocalWords:  12pt 5mm 25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  5E 5cm 2N 2E 2n 100d 5z 5y nz
+@c  LocalWords:  5unit Staats implicitsurface overlapedges maxdepth '
 @c  LocalWords:  through'' genustwo 144x144 0pt 1filll 's 3D 2D 'load
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t 12pt 5mm 3x
-@c  LocalWords:  25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai
-@c  LocalWords:  Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y 5unit 144x144
+@c  LocalWords:  25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  5E 5cm 2N 2E 2n 100d 5z 5y 5unit 144x144
 @c  LocalWords:  Frohlich codequoteundirected center 0pt 1filll 's 3D
 @c  LocalWords:  acknowledgments Colors 2D Color WebGL uref x86 dnf
 @c  LocalWords:  htmlviewer asygl CPPFLAGS 'load 'asy 'lasy 'auto 5bp
 @c  LocalWords:  1cm labeling dotfilltype 4g color colors centered 2S
 @c  LocalWords:  100pt 3t forcemath gray colorless miter 12pt 5mm 3x
 @c  LocalWords:  zeroTransform 25cm Python3 popcount bitreverse 5x 3y
-@c  LocalWords:  602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai
-@c  LocalWords:  Ai findall ax 5a centers 5E 5cm 2N 2E 2n HTML5 html
+@c  LocalWords:  602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  findall ax 5a centers 5E 5cm 2N 2E 2n HTML5 html
 @c  LocalWords:  logo3 remeshed css 42kB 100d 5z 5y 5unit colored Qt5
 @c  LocalWords:  behavior beveled usetriangles htmlviewerOptions cson
-@c  LocalWords:  144x144 pyqt5 numpy pip3 PyQt5 rsvg librsvg2
-@c  LocalWords:  librsvg Supakorn Jamie'' Rassameemasmuang
+@c  LocalWords:  144x144 pyqt5 numpy pip3 PyQt5 rsvg librsvg2 1filll
+@c  LocalWords:  librsvg Supakorn Jamie'' Rassameemasmuang 2D Docdir
+@c  LocalWords:  microsoft configuation 'load 'asy 'lasy 'auto dep 4g
+@c  LocalWords:  5bp 1cm BezierPatch 2S 100pt 3t abs2 12pt cp1251 5mm
+@c  LocalWords:  anttor fontenc inputenc 25cm noglobalread 3x
+@c  LocalWords:  5x 3y 602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  mapArray 5a parameterized mapTemplate 5E 2N
+@c  LocalWords:  5cm freshnel0 fresnel0 PBR prethree specularfactor
+@c  LocalWords:  renderers 2E ESC AsyGL 48kB 2n 100d 5z 5y 5unit
+@c  LocalWords:  unicode 144x144 Pedram Emami
