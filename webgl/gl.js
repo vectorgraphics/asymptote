@@ -2218,9 +2218,8 @@ function arcball(oldmouse,newmouse)
   let oldMouse=normMouse(oldmouse);
   let newMouse=normMouse(newmouse);
   let Dot=dot(oldMouse,newMouse);
-  if(Dot > 1) Dot=1;
-  else if(Dot < -1) Dot=-1;
-  return [Math.acos(Dot),unit(cross(oldMouse,newMouse))]
+  let angle=Dot > 1 ? 0 : Dot < -1 ? pi : Math.acos(Dot);
+  return [angle,unit(cross(oldMouse,newMouse))]
 }
 
 /**

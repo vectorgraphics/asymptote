@@ -1031,9 +1031,7 @@ struct arcball {
     triple v0=norm(x0,y0);
     triple v1=norm(x,y);
     double Dot=dot(v0,v1);
-    if(Dot > 1.0) Dot=1.0;
-    else if(Dot < -1.0) Dot=-1.0;
-    angle=acos(Dot);
+    angle=Dot > 1.0 ? 0.0 : Dot < -1.0 ? pi : acos(Dot);
     axis=unit(cross(v0,v1));
   }
   
