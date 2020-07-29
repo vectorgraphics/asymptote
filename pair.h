@@ -202,17 +202,17 @@ public:
   friend istream& operator >> (istream& s, pair& z)
   {
     char c;
-    s >> std::ws;
+    s >> ws;
     bool paren=s.peek() == '('; // parenthesis are optional
     if(paren) s >> c;
-    s >> z.x >> std::ws;
+    s >> z.x >> ws;
     if(!s.eof() && s.peek() == ',') s >> c >> z.y;
     else {
       if(paren && !s.eof()) s >> z.y;
       else z.y=0.0;
     }
     if(paren) {
-      s >> std::ws;
+      s >> ws;
       if(s.peek() == ')') s >> c;
     }
     
