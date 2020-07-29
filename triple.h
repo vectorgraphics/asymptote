@@ -293,13 +293,13 @@ public:
   friend istream& operator >> (istream& s, triple& z)
   {
     char c;
-    s >> std::ws;
+    s >> ws;
     bool paren=s.peek() == '('; // parenthesis are optional
     if(paren) s >> c;
-    s >> z.x >> std::ws;
-    if(s.peek() == ',') s >> c >> z.y;
+    s >> z.x >> ws;
+    if(s.peek() == ',') s >> c >> z.y >> ws;
     else {
-      if(paren) s >> z.y;
+      if(paren) s >> z.y >> ws;
       else z.y=0.0;
     }
     if(s.peek() == ',') s >> c >> z.z;
@@ -308,7 +308,7 @@ public:
       else z.z=0.0;
     }
     if(paren) {
-      s >> std::ws;
+      s >> ws;
       if(s.peek() == ')') s >> c;
     }
     
