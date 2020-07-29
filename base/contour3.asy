@@ -192,8 +192,14 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           vec0=unit(vec0);
           triple normal=cross(vec2,vec1);
           normal *= sgn(dot(normal,dir));
-          real angle0=acos(-dot(vec1,vec2));
-          real angle1=acos(-dot(vec2,vec0));
+
+          real angle(triple u, triple v) {
+            real Dot=-dot(u,v);
+            return Dot > 1 ? 0 : Dot < -1 ? pi : acos(Dot);
+          }
+
+          real angle0=angle(vec1,vec2);
+          real angle1=angle(vec2,vec0);
           pts[0].normal=normal*angle0;
           pts[1].normal=normal*angle1;
           pts[2].normal=normal*(pi-angle0-angle1);
