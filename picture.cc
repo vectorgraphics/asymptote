@@ -1290,9 +1290,10 @@ void glrenderWrapper()
   wait(initSignal,initLock);
   endwait(initSignal,initLock);
 #endif  
-  glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-           com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
-           com.nlights,com.lights,com.diffuse,com.specular,com.view);
+  if(!errorstream::interrupt)
+    glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
+             com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
+             com.nlights,com.lights,com.diffuse,com.specular,com.view);
 #endif  
 }
 
