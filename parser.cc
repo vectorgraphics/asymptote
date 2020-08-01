@@ -30,11 +30,7 @@ extern bool lexerEOF();
 extern void reportEOF();
 extern bool hangup;
 
-static int fd;
-
 namespace parser {
-
-static FILE *fin=NULL;
 
 namespace yy { // Lexers
 
@@ -43,22 +39,6 @@ std::streambuf *sbuf = NULL;
 size_t stream_input(char *buf, size_t max_size)
 {
   return sbuf ? sbuf->sgetn(buf,max_size) : 0;
-}
-
-int fpeek(int fd) 
-{
-  int flags=fcntl(fd,F_GETFL,0);
-  fcntl(fd,F_SETFL,flags | O_NONBLOCK);
-  char c=fgetc(fin);
-  ungetc(c,fin);
-  fcntl(fd,F_SETFL,flags & ~O_NONBLOCK);
-  return c;
-}
-
-size_t pipe_input(char *buf, size_t max_size)
-{
-  if(hangup && fpeek(fd) == EOF) {hangup=false; return 0;}
-  return strlen(fgets(buf,max_size-1,fin));
 }
 
 } // namespace yy
@@ -111,12 +91,8 @@ absyntax::file *parseStdin()
 {
   debug(false);
 
-  if(fin)
-    return doParse(yy::pipe_input,"-");
-  else {
-    yy::sbuf = cin.rdbuf();
-    return doParse(yy::stream_input,"-");
-  }
+  yy::sbuf = cin.rdbuf();
+  return doParse(yy::stream_input,"-");
 }
 
 absyntax::file *parseFile(const string& filename,
