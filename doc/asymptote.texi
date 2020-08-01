@@ -5972,6 +5972,7 @@ real det(matrix m) {
 @end verbatim
 
 @cindex @code{import}
+@cindex @code{access}
 The command
 @verbatim
 import graph;
@@ -6034,6 +6035,13 @@ nonalphanumeric characters, enclose it with quotation marks:
 
 @noindent
 @code{import "@value{Datadir}/asymptote/graph.asy" as graph;}
+
+@cindex @acronym{URL}
+@cindex @acronym{libcurl}
+If @code{Asymptote} is compiled with support for @code{libcurl},
+the file name can even be a URL:
+@noindent
+@code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/examples/teapot.asy" as teapot;}
 
 It is an error if modules import themselves (or each other in a cycle).
 The module name to be imported must be known at compile time.

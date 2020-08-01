@@ -12,10 +12,15 @@
 
 namespace parser {
 
-// Opens and parses the file returning the abstract syntax tree.  If
-// there is an unrecoverable parse error, returns null.
+// Opens and parses the file returning the abstract syntax tree.
+// If there is an unrecoverable parse error, returns null.
 absyntax::file *parseFile(const string& filename,
                           const char *nameOfAction);
+
+// Opens and parses the URL returning the abstract syntax tree.
+// If there is an unrecoverable parse error, returns null.
+absyntax::file *parseURL(const string& filename,
+                         const char *nameOfAction);
 
 // Parses string and returns the abstract syntax tree.  Any error in lexing or
 // parsing will be reported and a handled_error thrown.  If the string is

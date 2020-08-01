@@ -265,6 +265,9 @@ fi
 
 AC_CHECK_LIB([rt], [sched_yield])
 
+AC_CHECK_LIB([curl],[curl_easy_init],,
+AC_MSG_NOTICE([*** Could not find libcurl: will compile without optional URL support. ***]))
+
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
 
