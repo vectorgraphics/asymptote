@@ -29,6 +29,10 @@ absyntax::file *parseURL(const string& filename,
 absyntax::file *parseString(const string& code,
                             const string& filename,
                             bool extendable=false);
+
+bool isURL(const string& filename);
+bool readURL(stringstream& buf, const string& filename);
+
 } // namespace parser
 
 #endif // PARSER_H

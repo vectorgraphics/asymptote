@@ -3865,7 +3865,9 @@ The first character of the string @code{comment} specifies a
 comment character. If this character is encountered in a data file,
 the remainder of the line is ignored. When reading strings, a comment
 character followed immediately by another comment character is treated
-as a single literal comment character.
+as a single literal comment character. If @code{Asymptote} is compiled with
+support for @code{libcurl}, @code{name} can be a @acronym{URL}.
+
 
 @anchor{cd}
 @cindex @code{cd}
@@ -6039,9 +6041,9 @@ nonalphanumeric characters, enclose it with quotation marks:
 @cindex @acronym{URL}
 @cindex @acronym{libcurl}
 If @code{Asymptote} is compiled with support for @code{libcurl},
-the file name can even be a URL:
+the file name can even be a @acronym{URL}:
 @noindent
-@code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/examples/teapot.asy" as teapot;}
+@code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy" as axis3;}
 
 It is an error if modules import themselves (or each other in a cycle).
 The module name to be imported must be known at compile time.

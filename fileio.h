@@ -29,6 +29,7 @@
 #include "util.h"
 #include "process.h"
 #include "locate.h"
+#include "parser.h"
 
 namespace vm {
 extern bool indebugger;  
@@ -343,6 +344,7 @@ class ifile : public file {
 protected:  
   istream *stream;
   std::fstream *fstream;
+  stringstream buf;
   char comment;
   std::ios::openmode mode;
   bool comma;
@@ -360,29 +362,7 @@ public:
   
   ~ifile() {close();}
   
-  void open() {
-    if(standard) {
-      if(mode & std::ios::binary) 
-        reportError("Cannot open standard input in binary mode");
-      stream=&cin;
-    } else {
-      if(mode & std::ios::out)
-        name=outpath(name);
-      else name=locatefile(inpath(name));
-      stream=fstream=new std::fstream(name.c_str(),mode);
-      if(mode & std::ios::out) {
-        if(error()) {
-          delete fstream;
-          std::ofstream f(name.c_str());
-          f.close();
-          stream=fstream=new std::fstream(name.c_str(),mode);
-        }
-      }
-      index=processData().ifile.add(fstream);
-      if(check) Check();
-    }
-  }
-  
+  void open();
   bool eol();
   bool nexteol();
   

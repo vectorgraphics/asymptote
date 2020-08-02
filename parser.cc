@@ -99,19 +99,26 @@ absyntax::file *parseStdin()
   return doParse(yy::stream_input,"-");
 }
 
+bool isURL(const string& filename)
+{
+#ifdef HAVE_LIBCURL
+//  string s(filename);
+//  s.erase(remove_if(s.begin(),s.end(),isspace),s.end());
+  return filename.find("://") != string::npos;
+#else
+  return false;
+#endif
+}
+
 absyntax::file *parseFile(const string& filename,
                           const char *nameOfAction)
 {
+  if(isURL(filename))
+     return parseURL(filename,nameOfAction);
+
   if(filename == "-")
     return parseStdin();
   
-#ifdef HAVE_LIBCURL
-  string s(filename);
-  s.erase(remove_if(s.begin(),s.end(),isspace),s.end());
-  if(s.find("http://",0) == 0 || s.find("https://",0) == 0)
-    return parseURL(s,nameOfAction);
-#endif
-
   string file = settings::locateFile(filename);
 
   if(file.empty())
@@ -119,7 +126,7 @@ absyntax::file *parseFile(const string& filename,
 
   if(nameOfAction && settings::verbose > 1)
     cerr << nameOfAction << " " <<  filename << " from " << file << endl;
-  
+
   debug(false); 
 
   std::filebuf filebuf;
@@ -157,35 +164,41 @@ absyntax::file *parseString(const string& code,
 }
 
 #ifdef HAVE_LIBCURL
-size_t WriteMemoryCallback(char *data, size_t size, size_t n, std::string *buf)
+size_t curlCallback(char *data, size_t size, size_t n, stringstream& buf)
 {
   size_t Size=size*n;
-  buf->append(data,Size);
+  buf.write(data,Size);
   return Size;
+}
+
+bool readURL(stringstream& buf, const string& filename)
+{
+  CURL *curl=curl_easy_init();
+  curl_easy_setopt(curl,CURLOPT_URL,filename.c_str());
+  curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,curlCallback);
+  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
+  CURLcode res=curl_easy_perform(curl);
+  curl_easy_cleanup(curl);
+
+  return res == CURLE_OK && buf.str() != "404: Not Found";
 }
 
 absyntax::file *parseURL(const string& filename,
                          const char *nameOfAction)
 {
-  string code;
+  stringstream code;
 
-  CURL *curl=curl_easy_init();
-  curl_easy_setopt(curl,CURLOPT_URL,filename.c_str());
-  curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,WriteMemoryCallback);
-  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&code);
-  CURLcode res=curl_easy_perform(curl);
-
-  if(res != CURLE_OK || code == "404: Not Found")
+  if(!readURL(code,filename))
     error(filename);
 
   if(nameOfAction && settings::verbose > 1)
     cerr << nameOfAction << " " <<  filename << endl;
 
-  curl_easy_cleanup(curl);
+  debug(false);
 
-  return parseString(code,filename,false);
+  yy::sbuf=code.rdbuf();
+  return doParse(yy::stream_input,filename);
 }
 #endif
 
 } // namespace parser
-

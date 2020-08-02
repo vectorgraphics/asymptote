@@ -18,6 +18,38 @@ string newline="\n";
 ofile Stdout("");
 file nullfile("",false,NOMODE,false,true);
 
+void ifile::open()
+{
+  if(standard) {
+    if(mode & std::ios::binary)
+      reportError("Cannot open standard input in binary mode");
+    stream=&cin;
+  } else {
+    if(mode & std::ios::out)
+      name=outpath(name);
+    else {
+      if(parser::isURL(name)) {
+        parser::readURL(buf,name);
+        stream=&buf;
+      } else {
+        name=locatefile(inpath(name));
+        stream=fstream=new std::fstream(name.c_str(),mode);
+      }
+    }
+
+    if(mode & std::ios::out) {
+      if(error()) {
+        delete fstream;
+        std::ofstream f(name.c_str());
+        f.close();
+        stream=fstream=new std::fstream(name.c_str(),mode);
+      }
+    }
+    index=processData().ifile.add(fstream);
+    if(check) Check();
+  }
+}
+
 void ifile::ignoreComment()
 {
   if(comment == 0) return;
