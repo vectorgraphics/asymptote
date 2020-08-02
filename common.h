@@ -88,4 +88,13 @@ using mem::istringstream;
 using mem::ostringstream;
 using mem::stringbuf;
 
+static const struct ws_t {} ws={};
+
+// Portable way of skipping whitespace
+inline std::istream &operator >> (std::istream & s, const ws_t &ws) {
+  if(!s.eof())
+    s >> std::ws;
+  return s;
+}
+
 #endif 

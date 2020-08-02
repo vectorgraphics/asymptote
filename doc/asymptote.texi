@@ -660,12 +660,15 @@ done as the root user. To install without root privileges, change the
 @verbatim
 ./configure --prefix=$HOME/asymptote
 @end verbatim
+@cindex @code{MacOS X} configuration
+@cindex @code{clang}
 One can disable use of the Boehm garbage collector by configuring
 with @code{./configure --disable-gc}. For a list of other configuration
-options, say @code{./configure --help}. For example, one can tell
-configure to look for header files and libraries in nonstandard locations:
+options, say @code{./configure --help}. For example, under
+@code{MacOS X}, one can tell configure to use the @code{clang} compilers and
+look for header files and libraries in nonstandard locations:
 @verbatim
-./configure CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
+./configure CC=clang CXX=clang++ CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
@@ -3862,7 +3865,9 @@ The first character of the string @code{comment} specifies a
 comment character. If this character is encountered in a data file,
 the remainder of the line is ignored. When reading strings, a comment
 character followed immediately by another comment character is treated
-as a single literal comment character.
+as a single literal comment character. If @code{Asymptote} is compiled with
+support for @code{libcurl}, @code{name} can be a @acronym{URL}.
+
 
 @anchor{cd}
 @cindex @code{cd}
@@ -5969,6 +5974,7 @@ real det(matrix m) {
 @end verbatim
 
 @cindex @code{import}
+@cindex @code{access}
 The command
 @verbatim
 import graph;
@@ -6031,6 +6037,13 @@ nonalphanumeric characters, enclose it with quotation marks:
 
 @noindent
 @code{import "@value{Datadir}/asymptote/graph.asy" as graph;}
+
+@cindex @acronym{URL}
+@cindex @acronym{libcurl}
+If @code{Asymptote} is compiled with support for @code{libcurl},
+the file name can even be a @acronym{URL}:
+@noindent
+@code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy" as axis3;}
 
 It is an error if modules import themselves (or each other in a cycle).
 The module name to be imported must be known at compile time.
@@ -8043,14 +8056,16 @@ There are five choices for viewing 3D @code{Asymptote} output:
 @cindex @code{render}
 @cindex @code{outformat}
 @cindex @code{multisample}
+@cindex @code{devicepixelratio}
+@cindex @code{position}
 @item Use the native @code{Asymptote} adaptive @code{OpenGL}-based
 renderer (with the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}). On @code{UNIX} systems with
 graphics support for multisampling, the sample width can be
-controlled with the setting @code{multisample}. An initial screen
-position can be specified with the pair setting @code{position}, where
-negative values are interpreted as relative to the corresponding
-maximum screen dimension. The default settings
+controlled with the setting @code{multisample}. The ratio of physical to
+logical screen pixels can be specified with the setting @code{devicepixelratio}. An initial screen position can be specified with the pair setting
+@code{position}, where negative values are interpreted as relative to the
+corresponding maximum screen dimension. The default settings
 @cindex mouse bindings
 @verbatim
 import settings;
@@ -9690,7 +9705,7 @@ Pictures are deconstructed into the @acronym{SVG} image format.
 Since @code{Qt5} does not support @code{SVG} clipping, you will need
 the @code{rsvg-convert} utility, which is part of the
 @code{librsvg2-tools} package on @code{UNIX} systems
-and the @code{librsvg} package on @code{MacOS}; under
+and the @code{librsvg} package on @code{MacOS X}; under
 @code{Microsoft Windows}, it is available as
 
 @url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}

@@ -1031,9 +1031,7 @@ struct arcball {
     triple v0=norm(x0,y0);
     triple v1=norm(x,y);
     double Dot=dot(v0,v1);
-    if(Dot > 1.0) Dot=1.0;
-    else if(Dot < -1.0) Dot=-1.0;
-    angle=acos(Dot);
+    angle=Dot > 1.0 ? 0.0 : Dot < -1.0 ? pi : acos(Dot);
     axis=unit(cross(v0,v1));
   }
   
@@ -1541,8 +1539,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 {
   Iconify=getSetting<bool>("iconify");
 
-  width=max(width,1.0);
-  height=max(height,1.0);
+  double pixelRatio=getSetting<double>("devicepixelratio");
+  width=max(width,1.0)*pixelRatio;
+  height=max(height,1.0)*pixelRatio;
   
   if(zoom == 0.0) zoom=1.0;
   

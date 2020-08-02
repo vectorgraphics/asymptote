@@ -8,11 +8,16 @@
 #include <sstream>
 #include <cstring>
 #include <fcntl.h>
+#include <algorithm>
 
 #include "common.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+
+#ifdef HAVE_LIBCURL
+#include <curl/curl.h>
 #endif
 
 #include "interact.h"
@@ -30,11 +35,7 @@ extern bool lexerEOF();
 extern void reportEOF();
 extern bool hangup;
 
-static int fd;
-
 namespace parser {
-
-static FILE *fin=NULL;
 
 namespace yy { // Lexers
 
@@ -43,22 +44,6 @@ std::streambuf *sbuf = NULL;
 size_t stream_input(char *buf, size_t max_size)
 {
   return sbuf ? sbuf->sgetn(buf,max_size) : 0;
-}
-
-int fpeek(int fd) 
-{
-  int flags=fcntl(fd,F_GETFL,0);
-  fcntl(fd,F_SETFL,flags | O_NONBLOCK);
-  char c=fgetc(fin);
-  ungetc(c,fin);
-  fcntl(fd,F_SETFL,flags & ~O_NONBLOCK);
-  return c;
-}
-
-size_t pipe_input(char *buf, size_t max_size)
-{
-  if(hangup && fpeek(fd) == EOF) {hangup=false; return 0;}
-  return strlen(fgets(buf,max_size-1,fin));
 }
 
 } // namespace yy
@@ -110,18 +95,27 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
 absyntax::file *parseStdin()
 {
   debug(false);
+  yy::sbuf = cin.rdbuf();
+  return doParse(yy::stream_input,"-");
+}
 
-  if(fin)
-    return doParse(yy::pipe_input,"-");
-  else {
-    yy::sbuf = cin.rdbuf();
-    return doParse(yy::stream_input,"-");
-  }
+bool isURL(const string& filename)
+{
+#ifdef HAVE_LIBCURL
+//  string s(filename);
+//  s.erase(remove_if(s.begin(),s.end(),isspace),s.end());
+  return filename.find("://") != string::npos;
+#else
+  return false;
+#endif
 }
 
 absyntax::file *parseFile(const string& filename,
                           const char *nameOfAction)
 {
+  if(isURL(filename))
+     return parseURL(filename,nameOfAction);
+
   if(filename == "-")
     return parseStdin();
   
@@ -132,7 +126,7 @@ absyntax::file *parseFile(const string& filename,
 
   if(nameOfAction && settings::verbose > 1)
     cerr << nameOfAction << " " <<  filename << " from " << file << endl;
-  
+
   debug(false); 
 
   std::filebuf filebuf;
@@ -169,5 +163,42 @@ absyntax::file *parseString(const string& code,
   return doParse(yy::stream_input,filename,extendable);
 }
 
-} // namespace parser
+#ifdef HAVE_LIBCURL
+size_t curlCallback(char *data, size_t size, size_t n, stringstream& buf)
+{
+  size_t Size=size*n;
+  buf.write(data,Size);
+  return Size;
+}
 
+bool readURL(stringstream& buf, const string& filename)
+{
+  CURL *curl=curl_easy_init();
+  curl_easy_setopt(curl,CURLOPT_URL,filename.c_str());
+  curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,curlCallback);
+  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
+  CURLcode res=curl_easy_perform(curl);
+  curl_easy_cleanup(curl);
+
+  return res == CURLE_OK && buf.str() != "404: Not Found";
+}
+
+absyntax::file *parseURL(const string& filename,
+                         const char *nameOfAction)
+{
+  stringstream code;
+
+  if(!readURL(code,filename))
+    error(filename);
+
+  if(nameOfAction && settings::verbose > 1)
+    cerr << nameOfAction << " " <<  filename << endl;
+
+  debug(false);
+
+  yy::sbuf=code.rdbuf();
+  return doParse(yy::stream_input,filename);
+}
+#endif
+
+} // namespace parser

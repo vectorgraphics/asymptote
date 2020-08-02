@@ -48,15 +48,10 @@ template<class T>
 void castString(vm::stack *s)
 {
   string *S=pop<string*>(s);
-  if(S->empty()) {
-    T x=0;
-    s->push(x);
-  } else {
-    try {
-      s->push(lexical::cast<T>(*S));
-    } catch (lexical::bad_cast&) {
-      s->push(vm::Default);
-    }
+  try {
+    s->push(lexical::cast<T>(*S));
+  } catch (lexical::bad_cast&) {
+    s->push(vm::Default);
   }
 }
 
