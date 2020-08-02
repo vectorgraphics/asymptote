@@ -781,7 +781,8 @@ void fitscreen(bool reposition=true)
     case 0: // Original size
     {
       Xfactor=Yfactor=1.0;
-      setsize(oldWidth,oldHeight,reposition);
+      double pixelRatio=getSetting<double>("devicepixelratio");
+      setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
       break;
     }
     case 1: // Fit to screen in one dimension
@@ -1539,10 +1540,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 {
   Iconify=getSetting<bool>("iconify");
 
-  double pixelRatio=getSetting<double>("devicepixelratio");
-  width=max(width,1.0)*pixelRatio;
-  height=max(height,1.0)*pixelRatio;
-  
   if(zoom == 0.0) zoom=1.0;
   
   Prefix=prefix;
