@@ -2,9 +2,9 @@ import three;
 import math;
 import fontsize;
 
-size(80cm);
+size(25cm);
 settings.fitscreen=false;
-defaultpen(fontsize(100pt)+linewidth(0.5));
+defaultpen(fontsize(35pt)+linewidth(0.5));
 
 currentlight=nolight;
 
