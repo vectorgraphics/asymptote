@@ -43,6 +43,7 @@ let maxMaterials; // Limit on number of materials allowed in shader
 let halfCanvasWidth,halfCanvasHeight;
 
 let pixel=0.75; // Adaptive rendering constant.
+let zoomRemeshFactor=1.5; // Zoom factor before remeshing
 let FillFactor=0.1;
 let Zoom;
 
@@ -50,9 +51,8 @@ let maxViewportWidth;
 let maxViewportHeight;
 
 const windowTrim=10;
-let resizeStep=1.2;
 
-let lastzoom;
+let lastZoom;
 let H; // maximum camera view half-height
 
 let third=1/3;
@@ -2148,13 +2148,13 @@ function rotateScene(lastX,lastY,rawX,rawY,factor)
   if(lastX == rawX && lastY == rawY) return;
   let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
 
-  mat4.fromRotation(T,2*factor*ArcballFactor*angle/lastzoom,axis);
+  mat4.fromRotation(T,2*factor*ArcballFactor*angle/Zoom,axis);
   mat4.multiply(rotMat,T,rotMat);
 }
 
 function shiftScene(lastX,lastY,rawX,rawY)
 {
-  let zoominv=1/lastzoom;
+  let zoominv=1/Zoom;
   shift.x += (rawX-lastX)*zoominv*halfCanvasWidth;
   shift.y -= (rawY-lastY)*zoominv*halfCanvasHeight;
 }
@@ -2185,8 +2185,10 @@ function capzoom()
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
-  if(Zoom != lastzoom) remesh=true;
-  lastzoom=Zoom;
+  if(zoomRemeshFactor*Zoom < lastZoom || Zoom > zoomRemeshFactor*lastZoom) {
+    remesh=true;
+    lastZoom=Zoom;
+  }
 }
 
 function zoomImage(diff)
@@ -2571,9 +2573,9 @@ function draw()
 function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
-  let zoominv=1/lastzoom;
-  let xshift=(X/width+viewportshift[0])*lastzoom;
-  let yshift=(Y/height+viewportshift[1])*lastzoom;
+  let zoominv=1/Zoom;
+  let xshift=(X/width+viewportshift[0])*Zoom;
+  let yshift=(Y/height+viewportshift[1])*Zoom;
 
   if (orthographic) {
     let xsize=B[0]-b[0];
@@ -2623,7 +2625,7 @@ function initProjection()
 
   center.x=center.y=0;
   center.z=0.5*(b[2]+B[2]);
-  lastzoom=Zoom=zoom0;
+  lastZoom=Zoom=zoom0;
 
   viewParam.zmin=b[2];
   viewParam.zmax=B[2];
