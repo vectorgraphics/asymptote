@@ -561,6 +561,7 @@ void Export()
       do {
         trBeginTile(tr);
         fpu_trap(false); // Work around FE_INVALID in OSMesa.
+        remesh=true;
         drawscene(fullWidth,fullHeight);
         fpu_trap(settings::trap());
         ++count;
@@ -588,6 +589,7 @@ void Export()
   } catch(std::bad_alloc&) {
     outOfMemory();
   }
+  remesh=true;
   setProjection();
 
 #ifndef HAVE_LIBOSMESA
