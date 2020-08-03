@@ -28,10 +28,12 @@ void ifile::open()
     if(mode & std::ios::out)
       name=outpath(name);
     else {
+#ifdef HAVE_LIBCURL
       if(parser::isURL(name)) {
         parser::readURL(buf,name);
         stream=&buf;
       } else {
+#endif
         name=locatefile(inpath(name));
         stream=fstream=new std::fstream(name.c_str(),mode);
       }
