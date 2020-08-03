@@ -1311,19 +1311,20 @@ void spinz()
 void showCamera()
 {
   projection P=camera();
+  string projection=P.orthographic ? "orthographic(" : "perspective(";
+  string indent(2+projection.length(),' ');
   cout << endl
-       << "currentprojection="
-       << (P.orthographic ? "orthographic(" : "perspective(")  << endl
-       << "camera=" << P.camera << "," << endl
-       << "up=" << P.up << "," << endl
-       << "target=" << P.target << "," << endl
-       << "zoom=" << P.zoom;
+       << "currentprojection=" << endl << "  "
+       << projection << "camera=" << P.camera << "," << endl
+       << indent << "up=" << P.up << "," << endl
+       << indent << "target=" << P.target << "," << endl
+       << indent << "zoom=" << P.zoom;
   if(!orthographic)
-    cout << "," << endl << "angle=" << P.angle;
+    cout << "," << endl << indent << "angle=" << P.angle;
   if(P.viewportshift != pair(0.0,0.0))
-    cout << "," << endl << "viewportshift=" << P.viewportshift*Zoom;
+    cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom;
   if(!orthographic)
-    cout << "," << endl << "autoadjust=false";
+    cout << "," << endl << indent << "autoadjust=false";
   cout << ");" << endl;
 }
 
