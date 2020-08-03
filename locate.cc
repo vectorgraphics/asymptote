@@ -12,7 +12,7 @@
 #include "locate.h"
 
 
-  
+
 namespace settings {
 
 namespace fs {
@@ -28,7 +28,7 @@ string extension(string name)
 
 bool exists(string filename)
 {
-  return ::access(filename.c_str(), R_OK) == 0;  
+  return ::access(filename.c_str(), R_OK) == 0;
 }
 
 } // namespace fs
@@ -77,7 +77,7 @@ string locateFile(string id, bool full)
       (*leaf)[p]='/';
       leaf->insert(0,"/cygdrive/");
     }
-#endif    
+#endif
 
     if ((*leaf)[0] == '/') {
       string file = *leaf;
@@ -91,11 +91,11 @@ string locateFile(string id, bool full)
         if (fs::exists(file))
           return file;
       }
-    } 
+    }
   }
   return string();
 }
 
 } // namespace settings
 
- 
+

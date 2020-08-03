@@ -114,11 +114,11 @@ absyntax::file *parseFile(const string& filename,
                           const char *nameOfAction)
 {
   if(isURL(filename))
-     return parseURL(filename,nameOfAction);
+    return parseURL(filename,nameOfAction);
 
   if(filename == "-")
     return parseStdin();
-  
+
   string file = settings::locateFile(filename);
 
   if(file.empty())
@@ -127,12 +127,12 @@ absyntax::file *parseFile(const string& filename,
   if(nameOfAction && settings::verbose > 1)
     cerr << nameOfAction << " " <<  filename << " from " << file << endl;
 
-  debug(false); 
+  debug(false);
 
   std::filebuf filebuf;
   if(!filebuf.open(file.c_str(),std::ios::in))
     error(filename);
-  
+
 #ifdef HAVE_SYS_STAT_H
   // Check that the file is not a directory.
   static struct stat buf;
@@ -141,14 +141,14 @@ absyntax::file *parseFile(const string& filename,
       error(filename);
   }
 #endif
-  
+
   // Check that the file can actually be read.
   try {
     filebuf.sgetc();
   } catch (...) {
     error(filename);
   }
-  
+
   yy::sbuf = &filebuf;
   return doParse(yy::stream_input,file);
 }
