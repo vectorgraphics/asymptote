@@ -1074,6 +1074,12 @@ layer appearing on top. Within each layer, labels, images, and
 verbatim @code{tex} commands are always drawn after the
 @code{PostScript} objects in that layer.
 
+@cindex @code{newpage}
+A page break can be generated with the command
+@verbatim
+void newpage(picture pic=currentpicture);
+@end verbatim
+
 While some of these drawing commands take many options, they all have sensible
 default values (for example, the picture argument defaults to
 currentpicture).
