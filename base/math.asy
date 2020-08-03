@@ -30,7 +30,7 @@ picture grid(int Nx, int Ny, pen p=currentpen)
   picture pic;
   for(int i=0; i <= Nx; ++i) draw(pic,(i,0)--(i,Ny),p);
   for(int j=0; j <= Ny; ++j) draw(pic,(0,j)--(Nx,j),p);
-  return pic; 
+  return pic;
 }
 
 bool polygon(path p)
@@ -55,7 +55,7 @@ real intersect(triple P, triple Q, triple n, triple Z)
   real denom=n.x*(Q.x-P.x)+n.y*(Q.y-P.y)+n.z*(Q.z-P.z);
   return denom == 0 ? infinity : (d-n.x*P.x-n.y*P.y-n.z*P.z)/denom;
 }
-                    
+
 // Return any point on the intersection of the two planes with normals
 // n0 and n1 passing through points P0 and P1, respectively.
 // If the planes are parallel return (infinity,infinity,infinity).
@@ -293,7 +293,7 @@ void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)
     },true);
 }
 
-real interpolate(real[] x, real[] y, real x0, int i) 
+real interpolate(real[] x, real[] y, real x0, int i)
 {
   int n=x.length;
   if(n == 0) abort("Zero data points in interpolate");
@@ -317,7 +317,7 @@ real interpolate(real[] x, real[] y, real x0, int i)
 // real[] x are listed in ascending order and return y0. Values outside the
 // available data range are linearly extrapolated using the first derivative
 // at the nearest endpoint.
-real interpolate(real[] x, real[] y, real x0) 
+real interpolate(real[] x, real[] y, real x0)
 {
   return interpolate(x,y,x0,search(x,x0));
 }
@@ -378,7 +378,7 @@ pair[] quarticroots(real a, real b, real c, real d, real e)
   // Remove roots at numerical infinity.
   if(abs(a) <= Fuzz*(abs(b)+Fuzz*(abs(c)+Fuzz*(abs(d)+Fuzz*abs(e)))))
     return cubicroots(b,c,d,e);
-  
+
   // Detect roots at numerical zero.
   if(abs(e) <= Fuzz*(abs(d)+Fuzz*(abs(c)+Fuzz*(abs(b)+Fuzz*abs(a)))))
     return cubicroots(a,b,c,d);
@@ -388,7 +388,7 @@ pair[] quarticroots(real a, real b, real c, real d, real e)
   c *= ainv;
   d *= ainv;
   e *= ainv;
-  
+
   pair[] roots;
   real[] T=cubicroots(1,-2c,c^2+b*d-4e,d^2+b^2*e-b*c*d);
   if(T.length == 0) return roots;
@@ -434,13 +434,13 @@ real[] leastsquares(real[][] A, real[] b, bool warn=true)
   real[] solution=solve(AtA(A),b*A,warn=false);
   if (solution.length == 0 && warn)
     abort("Cannot compute least-squares approximation for " +
-	  "a matrix with linearly dependent columns.");
+          "a matrix with linearly dependent columns.");
   return solution;
 }
 
 // Namespace
 struct rootfinder_settings {
-  static real roottolerance = 1e-4;
+  static real roottolerance=1e-4;
 }
 
 real findroot(real f(real), real a, real b,

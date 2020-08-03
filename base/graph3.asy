@@ -9,7 +9,7 @@ direction3 Dir(triple dir) {return new triple(real) {return dir;};}
 
 ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
                       real tickmin=-infinity, real tickmax=infinity,
-                      real time(real)=null, direction3 dir) 
+                      real time(real)=null, direction3 dir)
 {
   if((valuetime) time == null) time=linear(S.T(),a,b);
   ticklocate locate;
@@ -23,13 +23,13 @@ ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
   locate.dir3=dir;
   return locate;
 }
-                             
+
 private struct locateT {
   real t;         // tick location time
   triple V;       // tick location in frame coordinates
   triple pathdir; // path direction in frame coordinates
   triple dir;     // tick direction in frame coordinates
-  
+
   void dir(transform3 T, path3 g, ticklocate locate, real t) {
     pathdir=unit(shiftless(T)*dir(g,t));
     triple Dir=locate.dir3(t);
@@ -60,7 +60,7 @@ void drawtick(picture pic, transform3 T, path3 g, path3 g2,
   draw(pic,G,p,name="tick");
 }
 
-triple ticklabelshift(triple align, pen p=currentpen) 
+triple ticklabelshift(triple align, pen p=currentpen)
 {
   return 0.25*unit(align)*labelmargin(p);
 }
@@ -100,10 +100,10 @@ void labeltick(picture pic, transform3 T, path3 g,
   if(s != "")
     label(pic,F.defaulttransform3 ? baseline(s,baselinetemplate) : F.T3*s,v,
           align,F.p);
-}  
+}
 
 // Add axis label L to frame f.
-void labelaxis(picture pic, transform3 T, Label L, path3 g, 
+void labelaxis(picture pic, transform3 T, Label L, path3 g,
                ticklocate locate=null, int sign=1, bool ticklabels=false)
 {
   triple m=pic.min(identity4);
@@ -118,7 +118,7 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
       picture F;
       if(L.align.dir3 == O)
         align=unit(invert(L.align.dir,v,P))*abs(L.align.dir);
-      
+
       if(ticklabels && locate != null && piecewisestraight(g)) {
         locateT locate1;
         locate1.dir(T,g,locate,t);
@@ -171,25 +171,25 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
     pen pTick=pTick;
     pen ptick=ptick;
     ticklabel ticklabel=ticklabel;
-    
+
     real Size=Size;
     real size=size;
     if(Size == 0) Size=Ticksize;
     if(size == 0) size=ticksize;
-    
+
     Label L=L.copy();
     Label F=F.copy();
     L.p(p);
     F.p(p);
     if(pTick == nullpen) pTick=p;
     if(ptick == nullpen) ptick=pTick;
-    
+
     bool ticklabels=false;
     path3 G=t*g;
     path3 G2=t*g2;
-    
+
     scalefcn T;
-    
+
     real a,b;
     if(locate.S.scale.logarithmic) {
       a=locate.S.postscale.Tinv(locate.a);
@@ -200,11 +200,11 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
       b=locate.S.Tinv(locate.b);
       T=identity;
     }
-    
+
     if(a > b) {real temp=a; a=b; b=temp;}
 
     real norm=max(abs(a),abs(b));
-    
+
     string format=autoformat(F.s,norm...Ticks);
     if(F.s == "%") F.s="";
     if(ticklabel == null) {
@@ -324,8 +324,8 @@ ticks3 InOutTicks(Label format="", ticklabel ticklabel=null,
                 begin,end,modify,Size,size,extend,pTick,ptick);
 }
 
-ticks3 InTicks(Label format="", ticklabel ticklabel=null, 
-               bool beginlabel=true, bool endlabel=true, 
+ticks3 InTicks(Label format="", ticklabel ticklabel=null,
+               bool beginlabel=true, bool endlabel=true,
                real[] Ticks, real[] ticks=new real[],
                real Size=0, real size=0, bool extend=false,
                pen pTick=nullpen, pen ptick=nullpen)
@@ -334,8 +334,8 @@ ticks3 InTicks(Label format="", ticklabel ticklabel=null,
                 Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
-ticks3 OutTicks(Label format="", ticklabel ticklabel=null, 
-                bool beginlabel=true, bool endlabel=true, 
+ticks3 OutTicks(Label format="", ticklabel ticklabel=null,
+                bool beginlabel=true, bool endlabel=true,
                 real[] Ticks, real[] ticks=new real[],
                 real Size=0, real size=0, bool extend=false,
                 pen pTick=nullpen, pen ptick=nullpen)
@@ -344,8 +344,8 @@ ticks3 OutTicks(Label format="", ticklabel ticklabel=null,
                 Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
-ticks3 InOutTicks(Label format="", ticklabel ticklabel=null, 
-                  bool beginlabel=true, bool endlabel=true, 
+ticks3 InOutTicks(Label format="", ticklabel ticklabel=null,
+                  bool beginlabel=true, bool endlabel=true,
                   real[] Ticks, real[] ticks=new real[],
                   real Size=0, real size=0, bool extend=false,
                   pen pTick=nullpen, pen ptick=nullpen)
@@ -362,15 +362,15 @@ InOutTicks=InOutTicks();
 triple tickMin3(picture pic)
 {
   return minbound(pic.userMin(),(pic.scale.x.tickMin,pic.scale.y.tickMin,
-                                  pic.scale.z.tickMin));
+                                 pic.scale.z.tickMin));
 }
-  
+
 triple tickMax3(picture pic)
 {
   return maxbound(pic.userMax(),(pic.scale.x.tickMax,pic.scale.y.tickMax,
-                                  pic.scale.z.tickMax));
+                                 pic.scale.z.tickMax));
 }
-                                               
+
 axis Bounds(int type=Both, int type2=Both, triple align=O, bool extend=false)
 {
   return new void(picture pic, axisT axis) {
@@ -470,22 +470,22 @@ XYZero=XYZero();
 void axis(picture pic=currentpicture, Label L="", path3 g, path3 g2=nullpath3,
           pen p=currentpen, ticks3 ticks, ticklocate locate,
           arrowbar3 arrow=None, margin3 margin=NoMargin3,
-          int[] divisor=new int[], bool above=false, bool opposite=false) 
+          int[] divisor=new int[], bool above=false, bool opposite=false)
 {
   Label L=L.copy();
   real t=reltime(g,0.5);
   if(L.defaultposition) L.position(t);
   divisor=copy(divisor);
   locate=locate.copy();
-  
+
   pic.add(new void (picture f, transform3 t, transform3 T, triple, triple) {
       picture d;
       ticks(d,t,L,g,g2,p,arrow,margin,locate,divisor,opposite,true);
       add(f,t*T*inverse(t)*d);
     },above=above);
-  
+
   addPath(pic,g,p);
-  
+
   if(L.s != "") {
     frame f;
     Label L0=L.copy();
@@ -552,7 +552,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
               y0=y2;
               z0=z;
             }
-            
+
             triple a2=xmin == -infinity ? tinv*(lb.x-min3(p).x,ytrans(t,y0),
                                                 ztrans(t,z0)) : (xmin,y0,z0);
             triple b2=xmax == infinity ? tinv*(rt.x-max3(p).x,ytrans(t,y0),
@@ -564,7 +564,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
               pic.scale.x.tickMax=mx.max;
               divisor=mx.divisor;
             }
-      
+
             triple fuzz=X*epsilon*max(abs(a.x),abs(b.x));
             a -= fuzz;
             b += fuzz;
@@ -584,7 +584,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
       y=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax().y;
     else if(type == Both) {
       y2=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax().y;
-      y=opposite ? y2 : 
+      y=opposite ? y2 :
         (pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin().y);
     }
 
@@ -594,7 +594,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
       z=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax().z;
     else if(type2 == Both) {
       z2=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax().z;
-      z=opposite2 ? z2 : 
+      z=opposite2 ? z2 :
         (pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin().z);
     }
 
@@ -610,7 +610,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
       pic.addPoint(a,min3(p));
       pic.addPoint(a,max3(p));
     }
-  
+
     if(finite(b)) {
       pic.addPoint(b,min3(p));
       pic.addPoint(b,max3(p));
@@ -685,19 +685,19 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
               x0=x2;
               z0=z;
             }
-            
+
             triple a2=ymin == -infinity ? tinv*(xtrans(t,x0),lb.y-min3(p).y,
                                                 ztrans(t,z0)) : (x0,ymin,z0);
             triple b2=ymax == infinity ? tinv*(xtrans(t,x0),rt.y-max3(p).y,
                                                ztrans(t,z0)) : (x0,ymax,z0);
- 
+
             if(ymin == -infinity || ymax == infinity) {
               bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
               pic.scale.y.tickMin=my.min;
               pic.scale.y.tickMax=my.max;
               divisor=my.divisor;
             }
-      
+
             triple fuzz=Y*epsilon*max(abs(a.y),abs(b.y));
             a -= fuzz;
             b += fuzz;
@@ -717,7 +717,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
       x=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax().x;
     else if(type == Both) {
       x2=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax().x;
-      x=opposite ? x2 : 
+      x=opposite ? x2 :
         (pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin().x);
     }
 
@@ -727,7 +727,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
       z=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax().z;
     else if(type2 == Both) {
       z2=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax().z;
-      z=opposite2 ? z2 : 
+      z=opposite2 ? z2 :
         (pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin().z);
     }
 
@@ -743,7 +743,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
       pic.addPoint(a,min3(p));
       pic.addPoint(a,max3(p));
     }
-  
+
     if(finite(b)) {
       pic.addPoint(b,min3(p));
       pic.addPoint(b,max3(p));
@@ -818,7 +818,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
               x0=x2;
               y0=y;
             }
-            
+
             triple a2=zmin == -infinity ? tinv*(xtrans(t,x0),ytrans(t,y0),
                                                 lb.z-min3(p).z) : (x0,y0,zmin);
             triple b2=zmax == infinity ? tinv*(xtrans(t,x0),ytrans(t,y0),
@@ -830,7 +830,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
               pic.scale.z.tickMax=mz.max;
               divisor=mz.divisor;
             }
-      
+
             triple fuzz=Z*epsilon*max(abs(a.z),abs(b.z));
             a -= fuzz;
             b += fuzz;
@@ -850,7 +850,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
       x=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax().x;
     else if(type == Both) {
       x2=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax().x;
-      x=opposite ? x2 : 
+      x=opposite ? x2 :
         (pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin().x);
     }
 
@@ -860,7 +860,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
       y=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax().y;
     else if(type2 == Both) {
       y2=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax().y;
-      y=opposite2 ? y2 : 
+      y=opposite2 ? y2 :
         (pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin().y);
     }
 
@@ -876,7 +876,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
       pic.addPoint(a,min3(p));
       pic.addPoint(a,max3(p));
     }
-  
+
     if(finite(b)) {
       pic.addPoint(b,min3(p));
       pic.addPoint(b,max3(p));
@@ -934,7 +934,7 @@ void autoscale3(picture pic=currentpicture, axis axis)
           pic.userMaxz3(ceil(pic.userMax().z));
       }
     } else {mz.min=mz.max=0; pic.scale.set=false;}
-    
+
     pic.scale.z.tickMin=mz.min;
     pic.scale.z.tickMax=mz.max;
     axis.zdivisor=mz.divisor;
@@ -948,7 +948,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
             arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false)
 {
   if(xmin > xmax) return;
-  
+
   if(pic.scale.x.automin && xmin > -infinity) pic.scale.x.automin=false;
   if(pic.scale.x.automax && xmax < infinity) pic.scale.x.automax=false;
 
@@ -956,19 +956,19 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
     axis(pic,axis);
     autoscale3(pic,axis);
   }
-  
+
   bool newticks=false;
-  
+
   if(xmin != -infinity) {
     xmin=pic.scale.x.T(xmin);
     newticks=true;
   }
-  
+
   if(xmax != infinity) {
     xmax=pic.scale.x.T(xmax);
     newticks=true;
   }
-  
+
   if(newticks && pic.userSetx() && ticks != NoTicks3) {
     if(xmin == -infinity) xmin=pic.userMin().x;
     if(xmax == infinity) xmax=pic.userMax().x;
@@ -977,16 +977,16 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
     pic.scale.x.tickMax=mx.max;
     axis.xdivisor=mx.divisor;
   }
-  
+
   axis(pic,axis);
-  
+
   if(xmin == -infinity && !axis.extend) {
     if(pic.scale.set)
       xmin=pic.scale.x.automin() ? pic.scale.x.tickMin :
         max(pic.scale.x.tickMin,pic.userMin().x);
     else xmin=pic.userMin().x;
   }
-  
+
   if(xmax == infinity && !axis.extend) {
     if(pic.scale.set)
       xmax=pic.scale.x.automax() ? pic.scale.x.tickMax :
@@ -998,7 +998,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
     L=L.copy();
     L.position(axis.position);
   }
-  
+
   bool back=false;
   if(axis.type == Both) {
     triple v=currentprojection.normal;
@@ -1025,24 +1025,24 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 
   if(pic.scale.y.automin && ymin > -infinity) pic.scale.y.automin=false;
   if(pic.scale.y.automax && ymax < infinity) pic.scale.y.automax=false;
-  
+
   if(!pic.scale.set) {
     axis(pic,axis);
     autoscale3(pic,axis);
   }
-  
+
   bool newticks=false;
-  
+
   if(ymin != -infinity) {
     ymin=pic.scale.y.T(ymin);
     newticks=true;
   }
-  
+
   if(ymax != infinity) {
     ymax=pic.scale.y.T(ymax);
     newticks=true;
   }
-  
+
   if(newticks && pic.userSety() && ticks != NoTicks3) {
     if(ymin == -infinity) ymin=pic.userMin().y;
     if(ymax == infinity) ymax=pic.userMax().y;
@@ -1051,17 +1051,17 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
     pic.scale.y.tickMax=my.max;
     axis.ydivisor=my.divisor;
   }
-  
+
   axis(pic,axis);
-  
+
   if(ymin == -infinity && !axis.extend) {
     if(pic.scale.set)
       ymin=pic.scale.y.automin() ? pic.scale.y.tickMin :
         max(pic.scale.y.tickMin,pic.userMin().y);
     else ymin=pic.userMin().y;
   }
-  
-  
+
+
   if(ymax == infinity && !axis.extend) {
     if(pic.scale.set)
       ymax=pic.scale.y.automax() ? pic.scale.y.tickMax :
@@ -1073,7 +1073,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
     L=L.copy();
     L.position(axis.position);
   }
-  
+
   bool back=false;
   if(axis.type == Both) {
     triple v=currentprojection.normal;
@@ -1100,24 +1100,24 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 
   if(pic.scale.z.automin && zmin > -infinity) pic.scale.z.automin=false;
   if(pic.scale.z.automax && zmax < infinity) pic.scale.z.automax=false;
-  
+
   if(!pic.scale.set) {
     axis(pic,axis);
     autoscale3(pic,axis);
   }
-  
+
   bool newticks=false;
-  
+
   if(zmin != -infinity) {
     zmin=pic.scale.z.T(zmin);
     newticks=true;
   }
-  
+
   if(zmax != infinity) {
     zmax=pic.scale.z.T(zmax);
     newticks=true;
   }
-  
+
   if(newticks && pic.userSetz() && ticks != NoTicks3) {
     if(zmin == -infinity) zmin=pic.userMin().z;
     if(zmax == infinity) zmax=pic.userMax().z;
@@ -1126,16 +1126,16 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
     pic.scale.z.tickMax=mz.max;
     axis.zdivisor=mz.divisor;
   }
-  
+
   axis(pic,axis);
-  
+
   if(zmin == -infinity && !axis.extend) {
     if(pic.scale.set)
       zmin=pic.scale.z.automin() ? pic.scale.z.tickMin :
         max(pic.scale.z.tickMin,pic.userMin().z);
     else zmin=pic.userMin().z;
   }
-  
+
   if(zmax == infinity && !axis.extend) {
     if(pic.scale.set)
       zmax=pic.scale.z.automax() ? pic.scale.z.tickMax :
@@ -1147,7 +1147,7 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
     L=L.copy();
     L.position(axis.position);
   }
-  
+
   bool back=false;
   if(axis.type == Both) {
     triple v=currentprojection.vector();
@@ -1169,18 +1169,18 @@ void zlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
              bool crop=NoCrop)
 {
   if(min > max) return;
-  
+
   pic.scale.z.automin=min <= -infinity;
   pic.scale.z.automax=max >= infinity;
-  
+
   bounds mz;
   if(pic.scale.z.automin() || pic.scale.z.automax())
     mz=autoscale(pic.userMin().z,pic.userMax().z,pic.scale.z.scale);
-  
+
   if(pic.scale.z.automin) {
     if(pic.scale.z.automin()) pic.userMinz(mz.min);
   } else pic.userMinz(min(pic.scale.z.T(min),pic.scale.z.T(max)));
-  
+
   if(pic.scale.z.automax) {
     if(pic.scale.z.automax()) pic.userMaxz(mz.max);
   } else pic.userMaxz(max(pic.scale.z.T(min),pic.scale.z.T(max)));
@@ -1193,10 +1193,10 @@ void limits(picture pic=currentpicture, triple min, triple max)
   ylimits(pic,min.y,max.y);
   zlimits(pic,min.z,max.z);
 }
-  
+
 // Draw x, y and z axes.
 void axes3(picture pic=currentpicture,
-           Label xlabel="", Label ylabel="", Label zlabel="", 
+           Label xlabel="", Label ylabel="", Label zlabel="",
            bool extend=false,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
@@ -1240,11 +1240,11 @@ void xtick3(picture pic=currentpicture, real x, triple dir=Y,
             real size=Ticksize, pen p=currentpen)
 {
   tick(pic,(x,pic.scale.y.scale.logarithmic ? 1 : 0,
-             pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
+            pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
 }
 
 void ytick(picture pic=currentpicture, triple v, triple dir=X,
-           real size=Ticksize, pen p=currentpen) 
+           real size=Ticksize, pen p=currentpen)
 {
   tick(pic,v,dir,size,p);
 }
@@ -1257,7 +1257,7 @@ void ytick3(picture pic=currentpicture, real y, triple dir=X,
 }
 
 void ztick(picture pic=currentpicture, triple v, triple dir=X,
-           real size=Ticksize, pen p=currentpen) 
+           real size=Ticksize, pen p=currentpen)
 {
   xtick(pic,v,dir,size,p);
 }
@@ -1294,7 +1294,7 @@ void xtick3(picture pic=currentpicture, Label L, real x, triple dir=Y,
             string format="", real size=Ticksize, pen p=currentpen)
 {
   xtick(pic,L,(x,pic.scale.y.scale.logarithmic ? 1 : 0,
-              pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
+               pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
 }
 
 void ytick(picture pic=currentpicture, Label L, triple v, triple dir=X,
@@ -1307,7 +1307,7 @@ void ytick3(picture pic=currentpicture, Label L, real y, triple dir=X,
             string format="", real size=Ticksize, pen p=currentpen)
 {
   xtick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y,
-              pic.scale.z.scale.logarithmic ? 1 : 0),dir,format,size,p);
+               pic.scale.z.scale.logarithmic ? 1 : 0),dir,format,size,p);
 }
 
 void ztick(picture pic=currentpicture, Label L, triple v, triple dir=X,
@@ -1320,7 +1320,7 @@ void ztick3(picture pic=currentpicture, Label L, real z, triple dir=X,
             string format="", real size=Ticksize, pen p=currentpen)
 {
   xtick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,
-              pic.scale.z.scale.logarithmic ? 1 : 0,z),dir,format,size,p);
+               pic.scale.z.scale.logarithmic ? 1 : 0,z),dir,format,size,p);
 }
 
 private void label(picture pic, Label L, triple v, real x, align align,
@@ -1416,7 +1416,7 @@ multigraph graph(interpolate3 join, bool3 cond(real))
 
 guide3 Straight(... guide3[])=operator --;
 guide3 Spline(... guide3[])=operator ..;
-                       
+
 guide3 graph(picture pic=currentpicture, real x(real), real y(real),
              real z(real), real a, real b, int n=ngraph,
              interpolate3 join=operator --)
@@ -1519,12 +1519,12 @@ guide3 graph(triple F(path, real), path p, int n=1,
 
 guide3 graph(triple F(pair), path p, int n=1, interpolate3 join=operator --)
 {
-  return graph(new triple(path p, real position) 
+  return graph(new triple(path p, real position)
                {return F(point(p,position));},p,n,join);
 }
 
 guide3 graph(picture pic=currentpicture, real f(pair), path p, int n=1,
-             interpolate3 join=operator --) 
+             interpolate3 join=operator --)
 {
   return graph(new triple(pair z) {return Scale(pic,(z.x,z.y,f(z)));},p,n,
                join);
@@ -1538,7 +1538,7 @@ guide3 graph(real f(pair), path p, int n=1, real T(pair),
 }
 
 // Connect points in v into segments corresponding to consecutive true elements
-// of b using interpolation operator join. 
+// of b using interpolation operator join.
 path3[] segment(triple[] v, bool[] cond, interpolate3 join=operator --)
 {
   checkconditionlength(cond.length,v.length);
@@ -1599,10 +1599,10 @@ bool vperiodic(triple[][] a) {
 surface surface(triple[][] f, bool[][] cond={})
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
-  
+
   int nx=f.length-1;
   int ny=nx > 0 ? f[0].length-1 : 0;
-  
+
   bool all=cond.length == 0;
 
   int count;
@@ -1708,14 +1708,14 @@ surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
         real zppmppp=zpp-hx*pp[jp];
         real zijqij=zij+hy*qi[j];
         real zpjqpj=zpj+hy*qp[j];
-        
+
         s.s[k]=patch(new triple[][] {
-          {(xi,yj,zij),(xi,y1,zijqij),(xi,y2,zip-qip),(xi,yp,zip)},
-          {(x1,yj,zij+pij),(x1,y1,zijqij+pij+hxy*ri[j]),
-           (x1,y2,zippip-qip-hxy*ri[jp]),(x1,yp,zippip)},
-          {(x2,yj,zpj-ppj),(x2,y1,zpjqpj-ppj-hxy*rp[j]),
-           (x2,y2,zppmppp-qpp+hxy*rp[jp]),(x2,yp,zppmppp)},
-          {(xp,yj,zpj),(xp,y1,zpjqpj),(xp,y2,zpp-qpp),(xp,yp,zpp)}},copy=false);
+            {(xi,yj,zij),(xi,y1,zijqij),(xi,y2,zip-qip),(xi,yp,zip)},
+              {(x1,yj,zij+pij),(x1,y1,zijqij+pij+hxy*ri[j]),
+                  (x1,y2,zippip-qip-hxy*ri[jp]),(x1,yp,zippip)},
+                {(x2,yj,zpj-ppj),(x2,y1,zpjqpj-ppj-hxy*rp[j]),
+                    (x2,y2,zppmppp-qpp+hxy*rp[jp]),(x2,yp,zppmppp)},
+                  {(xp,yj,zpj),(xp,y1,zpjqpj),(xp,y2,zpp-qpp),(xp,yp,zpp)}},copy=false);
         indexi[j]=k;
         ++k;
       }
@@ -1932,7 +1932,7 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
   }
   return surface(v,active);
 }
-  
+
 // return the surface described by a parametric function f evaluated at u and v
 // and interpolated with usplinetype and vsplinetype.
 surface surface(triple f(pair z), real[] u, real[] v,
@@ -2128,7 +2128,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
        render,interaction);
 }
 
-real maxlength(triple f(pair z), pair a, pair b, int nu, int nv) 
+real maxlength(triple f(pair z), pair a, pair b, int nu, int nv)
 {
   return min(abs(f((b.x,a.y))-f(a))/nu,abs(f((a.x,b.y))-f(a))/nv);
 }

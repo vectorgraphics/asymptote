@@ -106,29 +106,29 @@ void connect(path[] paths, path[] result, path[] patch)
       //if(direction == 0) // Try a random direction
       //  direction=expi(2pi*unitrand());
       //pair start=point(inners[curveIndex],0);
-      
+
       // find shortest distance between a node on the inner curve and a node
       // on the outer curve
-      
+
       real mindist = d;
       int inner_i = 0;
       int outer_i = 0;
       for(int ni = 0; ni < length(inners[curveIndex]); ++ni)
-      {
+        {
           for(int no = 0; no < length(outer); ++no)
-          {
+            {
               real dist = abs(point(inners[curveIndex],ni)-point(outer,no));
               if(dist < mindist)
-              {
+                {
                   inner_i = ni;
                   outer_i = no;
                   mindist = dist;
-              }
-          }
-      }
+                }
+            }
+        }
       pair start=point(inners[curveIndex],inner_i);
-      pair end = point(outer,outer_i);  
-      
+      pair end = point(outer,outer_i);
+
       // find first intersection of line segment with outer curve
       //real[][] ints=intersections(start,start+d*direction,outer);
       real[][] ints=intersections(start,end,outer);
@@ -140,7 +140,7 @@ void connect(path[] paths, path[] result, path[] patch)
       real earliestTime=1;
       for(int j=0; j < inners.length; ++j) {
         real[][] ints=intersections(end,start,inners[j]);
-        
+
         if(ints.length > 0 && ints[0][0] < earliestTime) {
           earliestTime=ints[0][0]; // time on end--start
           starttime=ints[0][1]; // time on inner curve
@@ -148,8 +148,8 @@ void connect(path[] paths, path[] result, path[] patch)
         }
       }
       start=point(inners[curveIndex],starttime);
-      
-      
+
+
       bool found_forward = false;
       real timeoffset_forward = 2;
       path portion_forward;
@@ -162,7 +162,7 @@ void connect(path[] paths, path[] result, path[] patch)
                               point(outer,endtime+timeoffset_forward)) == 2)
           {
             portion_forward = subpath(outer,endtime,endtime+timeoffset_forward)--start--cycle;
-            
+
             found_forward=true;
             // check if an inner curve is inside the portion
             for(int k = 0; found_forward && k < inners.length; ++k)
@@ -173,7 +173,7 @@ void connect(path[] paths, path[] result, path[] patch)
               }
           }
       }
-      
+
       bool found_backward = false;
       real timeoffset_backward = -2;
       path portion_backward;
@@ -197,29 +197,29 @@ void connect(path[] paths, path[] result, path[] patch)
       real timeoffset;
       path portion;
       if(found_forward && !found_backward)
-      {
-        timeoffset = timeoffset_forward;
-        portion = portion_forward;
-      }
-      else if(found_backward && !found_forward)
-      {
-        timeoffset = timeoffset_backward;
-        portion = portion_backward;
-      }
-      else // assert handles case of neither found
-      {
-        if(timeoffset_forward > -timeoffset_backward)
         {
           timeoffset = timeoffset_forward;
           portion = portion_forward;
         }
-        else
+      else if(found_backward && !found_forward)
         {
           timeoffset = timeoffset_backward;
           portion = portion_backward;
-         }
-      }
-      
+        }
+      else // assert handles case of neither found
+        {
+          if(timeoffset_forward > -timeoffset_backward)
+            {
+              timeoffset = timeoffset_forward;
+              portion = portion_forward;
+            }
+          else
+            {
+              timeoffset = timeoffset_backward;
+              portion = portion_backward;
+            }
+        }
+
       endtime=min(endtime,endtime+timeoffset);
       // or go from timeoffset+timeoffset_backward to timeoffset+timeoffset_forward?
       timeoffset=abs(timeoffset);

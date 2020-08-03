@@ -18,13 +18,13 @@ if(settings.command != "") {
 
 include plain_constants;
 
-access version;             
+access version;
 if(version.VERSION != VERSION) {
   warning("version","using possibly incompatible version "+
           version.VERSION+" of plain.asy"+'\n');
   nowarn("version");
 }
-   
+
 include plain_strings;
 include plain_pens;
 include plain_paths;
@@ -106,7 +106,7 @@ addSaveFunction(new restoreThunk () {
   });
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk save() 
+restoreThunk save()
 {
   return restore=buildRestoreThunk();
 }
@@ -132,7 +132,7 @@ restoreThunk buildRestoreDefaults()
 }
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk savedefaults() 
+restoreThunk savedefaults()
 {
   return restoredefaults=buildRestoreDefaults();
 }
@@ -199,7 +199,7 @@ void usersetting()
   eval(settings.user,true);
 }
 
-string stripsuffix(string f, string suffix=".asy") 
+string stripsuffix(string f, string suffix=".asy")
 {
   int n=rfind(f,suffix);
   if(n != -1) f=erase(f,n,-1);
@@ -252,7 +252,7 @@ struct cputime {
   processtime change;
 }
 
-cputime cputime() 
+cputime cputime()
 {
   static processtime last;
   real [] a=_cputime();

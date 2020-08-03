@@ -42,14 +42,14 @@ scaleT Broken(real a, real b, bool automin=false, bool automax=automin)
     return x-skip;
   }
   real Tinv(real x) {
-    if(x <= a) return x; 
-    return x+skip; 
+    if(x <= a) return x;
+    return x+skip;
   }
   return scaleT(T,Tinv,logarithmic=false,automin,automax);
 }
 
 // A "broken" logarithmic axis omitting the segment [a,b], where a and b are
-// automatically rounded to the nearest integral power of the base.  
+// automatically rounded to the nearest integral power of the base.
 scaleT BrokenLog(real a, real b, bool automin=false, bool automax=automin)
 {
   real A=round(Log.T(a));
@@ -92,7 +92,7 @@ void scale(picture pic=currentpicture, bool xautoscale=false,
         Linear(zautoscale,zautoscale));
 }
 
-struct scientific 
+struct scientific
 {
   int sign;
   real mantissa;
@@ -108,7 +108,7 @@ struct scientific
 }
 
 // Convert x to scientific notation
-scientific scientific(real x) 
+scientific scientific(real x)
 {
   scientific s;
   s.sign=sgn(x);
@@ -154,7 +154,7 @@ int[] divisors(int a, int b)
 
 real upscale(real b, real a)
 {
-  if(b <= 5) b=5; 
+  if(b <= 5) b=5;
   else if (b > 10 && a >= 0 && b <= 12) b=12;
   else if (b > 10 && (a >= 0 || 15 % -a == 0) && b <= 15) b=15;
   else b=ceil(b/10)*10;
@@ -182,7 +182,7 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
     if(Min > 0) {Min=0; Max *= 2;}
     else {Min *= 2; Max=0;}
   }
-  
+
   int sign;
   if(Min < 0 && Max <= 0) {real temp=-Min; Min=-Max; Max=temp; sign=-1;}
   else sign=1;
@@ -203,7 +203,7 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
 
   while((b-a)*10.0^exp > 10*(Max-Min))
     zoom();
-  
+
   real bsave=b;
   if(b-a > (a >= 0 ? 8 : 6)) {
     b=upscale(b,a);
@@ -211,11 +211,11 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
       if(a <= 5) a=0; else a=floor(a/10)*10;
     } else a=-upscale(-a,-1);
   }
-  
+
   // Redo b in case the value of a has changed
   if(bsave-a > (a >= 0 ? 8 : 6))
     b=upscale(bsave,a);
-  
+
   if(sign == -1) {real temp=-a; a=-b; b=temp;}
   real Scale=10.0^exp;
   m.min=scale.T(a*Scale);
@@ -266,7 +266,7 @@ ticklabel LogFormat(int base) {
 
 ticklabel LogFormat=LogFormat(10);
 ticklabel DefaultLogFormat=DefaultLogFormat(10);
-  
+
 // The default direction specifier.
 pair zero(real) {return 0;}
 
@@ -275,7 +275,7 @@ struct ticklocate {
   autoscaleT S;        // Autoscaling transformation.
   pair dir(real t);    // Absolute 2D tick direction.
   triple dir3(real t); // Absolute 3D tick direction.
-  real time(real v);   // Returns the time corresponding to the value v. 
+  real time(real v);   // Returns the time corresponding to the value v.
   ticklocate copy() {
     ticklocate T=new ticklocate;
     T.a=a;
@@ -289,7 +289,7 @@ struct ticklocate {
 }
 
 autoscaleT defaultS;
-  
+
 typedef real valuetime(real);
 
 valuetime linear(scalefcn S=identity, real Min, real Max)
@@ -300,7 +300,7 @@ valuetime linear(scalefcn S=identity, real Min, real Max)
 
 ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
                       real tickmin=-infinity, real tickmax=infinity,
-                      real time(real)=null, pair dir(real)=zero) 
+                      real time(real)=null, pair dir(real)=zero)
 {
   if((valuetime) time == null) time=linear(S.T(),a,b);
   ticklocate locate;
@@ -313,13 +313,13 @@ ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
   locate.dir=dir;
   return locate;
 }
-                             
+
 private struct locateT {
   real t;       // tick location time
   pair Z;       // tick location in frame coordinates
   pair pathdir; // path direction in frame coordinates
   pair dir;     // tick direction in frame coordinates
-  
+
   void dir(transform T, path g, ticklocate locate, real t) {
     pathdir=unit(shiftless(T)*dir(g,t));
     pair Dir=locate.dir(t);
@@ -333,7 +333,7 @@ private struct locateT {
   }
 }
 
-pair ticklabelshift(pair align, pen p=currentpen) 
+pair ticklabelshift(pair align, pen p=currentpen)
 {
   return 0.25*unit(align)*labelmargin(p);
 }
@@ -347,7 +347,7 @@ void drawtick(frame f, transform T, path g, path g2, ticklocate locate,
     locate2.calc(T,g2,locate,val);
     draw(f,locate1.Z--locate2.Z,p);
   } else
-    if(sign == 0) 
+    if(sign == 0)
       draw(f,locate1.Z-Size*locate1.dir--locate1.Z+Size*locate1.dir,p);
     else
       draw(f,locate1.Z--locate1.Z+Size*sign*locate1.dir,p);
@@ -388,10 +388,10 @@ pair labeltick(frame d, transform T, path g, ticklocate locate, real val,
     label(d,F.T*baseline(s,baselinetemplate),locate1.Z+shift,align,F.p,
           F.filltype);
   return locate1.pathdir;
-}  
+}
 
 // Add axis label L to frame f.
-void labelaxis(frame f, transform T, Label L, path g, 
+void labelaxis(frame f, transform T, Label L, path g,
                ticklocate locate=null, int sign=1, bool ticklabels=false)
 {
   Label L0=L.copy();
@@ -403,7 +403,7 @@ void labelaxis(frame f, transform T, Label L, path g,
     locateT locate1;
     locate1.dir(T,g,locate,t);
     L0.align(L0.align,unit(-sgn(dot(sign*locate1.dir,perp))*perp));
-  }                  
+  }
   pair align=L0.align.dir;
   if(L0.align.relative) align *= -perp;
   pair alignperp=dot(align,perp)*perp;
@@ -477,7 +477,7 @@ bool axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
 
 // Check the tick coverage of a logarithmic axis.
 bool logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
-                     int sign, real Size, Label F, ticklabel ticklabel, 
+                     int sign, real Size, Label F, ticklabel ticklabel,
                      real limit, int first, int last)
 {
   bool loop=cyclic(g);
@@ -525,7 +525,7 @@ string autoformat(string format="", real norm ... real[] a)
   int n=0;
 
   bool Fixed=find(a >= 1e4-epsilon | (a > 0 & a <= 1e-4-epsilon)) < 0;
-  
+
   string Format=defaultformat(4,fixed=Fixed);
 
   if(Fixed && n < 4) {
@@ -576,13 +576,13 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
   if(size == 0) size=ticksize;
   F=F.copy();
   F.p(p);
-    
+
   if(F.align.dir != 0) side=F.align.dir;
   else if(side == 0) side=((sign == 1) ? left : right);
-    
+
   bool ticklabels=false;
   path G=T*g;
-    
+
   if(!locate.S.scale.logarithmic) {
     real a=locate.S.Tinv(locate.a);
     real b=locate.S.Tinv(locate.b);
@@ -594,15 +594,15 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     if(a > b) {real temp=a; a=b; b=temp;}
 
     if(b-a < 100.0*epsilon*norm) b=a;
-      
+
     bool autotick=Step == 0 && N == 0;
-    
-    real tickmin=finite(locate.S.tickMin) && (autotick || locate.S.automin) ? 
+
+    real tickmin=finite(locate.S.tickMin) && (autotick || locate.S.automin) ?
       locate.S.Tinv(locate.S.tickMin) : a;
     real tickmax=finite(locate.S.tickMax) && (autotick || locate.S.automax) ?
       locate.S.Tinv(locate.S.tickMax) : b;
     if(tickmin > tickmax) {real temp=tickmin; tickmin=tickmax; tickmax=temp;}
-      
+
     real inStep=Step;
 
     bool calcStep=true;
@@ -630,7 +630,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
                 // Try using 2 ticks (otherwise 1);
                 int div=divisor[d+1];
                 Step=quotient(div,2)*len/div;
-                calcStep=false; 
+                calcStep=false;
                 if(axiscoverage(2,T,g,locate,Step,side,sign,Size,F,ticklabel,
                                 norm,limit)) N=2;
                 else Step=len;
@@ -650,7 +650,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
         }
       }
     }
-      
+
     if(inStep != 0 && !locate.S.automin) {
       tickmin=floor(tickmin/Step)*Step;
       len=tickmax-tickmin;
@@ -661,13 +661,13 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
       if(N == 0) N=(int) (len/Step);
       else Step=len/N;
     }
-    
+
     if(n == 0) {
       if(step != 0) n=ceil(Step/step);
     } else step=Step/n;
-      
+
     b += epsilon*norm;
-      
+
     if(Size > 0) {
       for(int i=0; i <= N; ++i) {
         real val=tickmin+i*Step;
@@ -684,22 +684,22 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
         }
       }
     }
-    
+
   } else { // Logarithmic
     string format=F.s;
     if(F.s == "%") F.s="";
 
     int base=round(locate.S.scale.Tinv(1));
 
-    if(ticklabel == null) 
+    if(ticklabel == null)
       ticklabel=format == "%" ? Format("") : DefaultLogFormat(base);
     real a=locate.S.postscale.Tinv(locate.a);
     real b=locate.S.postscale.Tinv(locate.b);
     if(a > b) {real temp=a; a=b; b=temp;}
-      
+
     int first=floor(a-epsilon);
     int last=ceil(b+epsilon);
-      
+
     if(N == 0) {
       N=1;
       while(N <= last-first) {
@@ -708,10 +708,10 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
         ++N;
       }
     }
-      
+
     if(N <= 2 && n == 0) n=base;
     tickvalues.N=N;
-      
+
     if(N > 0) {
       for(int i=first-1; i <= last+1; ++i) {
         if(i >= a && i <= b)
@@ -725,14 +725,14 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
         }
       }
     }
-  }     
+  }
   return tickvalues;
 }
 
 // Signature of routines that draw labelled paths with ticks and tick labels.
 typedef void ticks(frame, transform, Label, pair, path, path, pen,
                    arrowbar, margin, ticklocate, int[], bool opposite=false);
-                                          
+
 // Tick construction routine for a user-specified array of tick values.
 ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
             bool beginlabel=true, bool endlabel=true,
@@ -741,7 +741,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
             real Size=0, real size=0, bool extend=false,
             pen pTick=nullpen, pen ptick=nullpen)
 {
-  return new void(frame f, transform t, Label L, pair side, path g, path g2, 
+  return new void(frame f, transform t, Label L, pair side, path g, path g2,
                   pen p, arrowbar arrow, margin margin, ticklocate locate,
                   int[] divisor, bool opposite) {
     // Use local copy of context variables:
@@ -749,28 +749,28 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     pen pTick=pTick;
     pen ptick=ptick;
     ticklabel ticklabel=ticklabel;
-    
+
     real Size=Size;
     real size=size;
     if(Size == 0) Size=Ticksize;
     if(size == 0) size=ticksize;
-    
+
     Label L=L.copy();
     Label F=F.copy();
     L.p(p);
     F.p(p);
     if(pTick == nullpen) pTick=p;
     if(ptick == nullpen) ptick=pTick;
-    
+
     if(F.align.dir != 0) side=F.align.dir;
     else if(side == 0) side=F.T*((sign == 1) ? left : right);
-    
+
     bool ticklabels=false;
     path G=t*g;
     path G2=t*g2;
-    
+
     scalefcn T;
-    
+
     real a,b;
     if(locate.S.scale.logarithmic) {
       a=locate.S.postscale.Tinv(locate.a);
@@ -781,11 +781,11 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
       b=locate.S.Tinv(locate.b);
       T=identity;
     }
-    
+
     if(a > b) {real temp=a; a=b; b=temp;}
 
     real norm=max(abs(a),abs(b));
-    
+
     string format=autoformat(F.s,norm...Ticks);
     if(F.s == "%") F.s="";
     if(ticklabel == null) {
@@ -809,7 +809,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
         drawtick(f,t,g,g2,locate,val,size,sign,ptick,extend);
     }
     endgroup(f);
-    
+
     if(N == 0) N=1;
     if(Size > 0 && !opposite) {
       for(int i=(beginlabel ? 0 : 1);
@@ -821,7 +821,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
         }
       }
     }
-    if(L.s != "" && !opposite) 
+    if(L.s != "" && !opposite)
       labelaxis(f,t,L,G,locate,sign,ticklabels);
   };
 }
@@ -832,7 +832,7 @@ tickvalues None(tickvalues v) {return v;}
 
 // Tickmodifier that removes all ticks in the intervals [a[i],b[i]].
 tickmodifier OmitTickIntervals(real[] a, real[] b) {
-  return new tickvalues(tickvalues v) { 
+  return new tickvalues(tickvalues v) {
     if(a.length != b.length) abort(differentlengths);
     void omit(real[] A) {
       if(A.length != 0) {
@@ -939,8 +939,8 @@ ticks Ticks(Label format="", ticklabel ticklabel=null,
                begin,end,modify,Size,size,extend,pTick,ptick);
 }
 
-ticks LeftTicks(Label format="", ticklabel ticklabel=null, 
-                bool beginlabel=true, bool endlabel=true, 
+ticks LeftTicks(Label format="", ticklabel ticklabel=null,
+                bool beginlabel=true, bool endlabel=true,
                 real[] Ticks, real[] ticks=new real[],
                 real Size=0, real size=0, bool extend=false,
                 pen pTick=nullpen, pen ptick=nullpen)
@@ -949,8 +949,8 @@ ticks LeftTicks(Label format="", ticklabel ticklabel=null,
                Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
-ticks RightTicks(Label format="", ticklabel ticklabel=null, 
-                 bool beginlabel=true, bool endlabel=true, 
+ticks RightTicks(Label format="", ticklabel ticklabel=null,
+                 bool beginlabel=true, bool endlabel=true,
                  real[] Ticks, real[] ticks=new real[],
                  real Size=0, real size=0, bool extend=false,
                  pen pTick=nullpen, pen ptick=nullpen)
@@ -959,8 +959,8 @@ ticks RightTicks(Label format="", ticklabel ticklabel=null,
                Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
-ticks Ticks(Label format="", ticklabel ticklabel=null, 
-            bool beginlabel=true, bool endlabel=true, 
+ticks Ticks(Label format="", ticklabel ticklabel=null,
+            bool beginlabel=true, bool endlabel=true,
             real[] Ticks, real[] ticks=new real[],
             real Size=0, real size=0, bool extend=false,
             pen pTick=nullpen, pen ptick=nullpen)
@@ -978,18 +978,18 @@ pair tickMin(picture pic)
 {
   return minbound(pic.userMin(),(pic.scale.x.tickMin,pic.scale.y.tickMin));
 }
-  
+
 pair tickMax(picture pic)
 {
   return maxbound(pic.userMax(),(pic.scale.x.tickMax,pic.scale.y.tickMax));
 }
-                                               
+
 int Min=-1;
 int Value=0;
 int Max=1;
 int Both=2;
 
-// Structure used to communicate axis and autoscale settings to tick routines. 
+// Structure used to communicate axis and autoscale settings to tick routines.
 struct axisT {
   int type;        // -1 = min, 0 = given value, 1 = max, 2 = min/max
   int type2;       // for 3D axis
@@ -1062,7 +1062,7 @@ axis Right(bool extend=false)
   };
 }
 
-axis LeftRight(bool extend=false) 
+axis LeftRight(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Both;
@@ -1134,7 +1134,7 @@ YZero=YZero();
 void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
           pen p=currentpen, ticks ticks, ticklocate locate,
           arrowbar arrow=None, margin margin=NoMargin,
-          int[] divisor=new int[], bool above=false, bool opposite=false) 
+          int[] divisor=new int[], bool above=false, bool opposite=false)
 {
   Label L=L.copy();
   real t=reltime(g,0.5);
@@ -1146,9 +1146,9 @@ void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
       ticks(d,t,L,0,g,g2,p,arrow,margin,locate,divisor,opposite);
       (above ? add : prepend)(f,t*T*inverse(t)*d);
     });
-  
+
   pic.addPath(g,p);
-  
+
   if(L.s != "") {
     frame f;
     Label L0=L.copy();
@@ -1195,7 +1195,7 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
         pic.scale.x.tickMax=mx.max;
         divisor=mx.divisor;
       }
-      
+
       real fuzz=epsilon*max(abs(a.x),abs(b.x));
       a -= (fuzz,0);
       b += (fuzz,0);
@@ -1211,8 +1211,8 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
       y2=pic.scale.y.automax() ? tickMax(pic).y : pic.userMax().y;
       y=opposite ? y2 :
         (pic.scale.y.automin() ? tickMin(pic).y : pic.userMin().y);
-    } 
-    else if(type == Min) 
+    }
+    else if(type == Min)
       y=pic.scale.y.automin() ? tickMin(pic).y : pic.userMin().y;
     else if(type == Max)
       y=pic.scale.y.automax() ? tickMax(pic).y : pic.userMax().y;
@@ -1229,7 +1229,7 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
       pic.addPoint(a,min(p));
       pic.addPoint(a,max(p));
     }
-  
+
     if(finite(b)) {
       pic.addPoint(b,min(p));
       pic.addPoint(b,max(p));
@@ -1299,13 +1299,13 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
             ticklocate(a.y,b.y,pic.scale.y),divisor,opposite);
       (above ? add : prepend)(f,t*T*tinv*d);
     });
-  
+
   void bounds() {
     if(type == Both) {
       x2=pic.scale.x.automax() ? tickMax(pic).x : pic.userMax().x;
-      x=opposite ? x2 : 
+      x=opposite ? x2 :
         (pic.scale.x.automin() ? tickMin(pic).x : pic.userMin().x);
-    } else if(type == Min) 
+    } else if(type == Min)
       x=pic.scale.x.automin() ? tickMin(pic).x : pic.userMin().x;
     else if(type == Max)
       x=pic.scale.x.automax() ? tickMax(pic).x : pic.userMax().x;
@@ -1317,17 +1317,17 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
     pair b=(x,Ymax);
     pair a2=(x2,Ymin);
     pair b2=(x2,Ymax);
-  
+
     if(finite(a)) {
       pic.addPoint(a,min(p));
       pic.addPoint(a,max(p));
     }
-  
+
     if(finite(b)) {
       pic.addPoint(b,min(p));
       pic.addPoint(b,max(p));
     }
-  
+
     if(finite(a) && finite(b)) {
       frame d;
       ticks(d,pic.scaling(warn=false),L,side,
@@ -1361,32 +1361,32 @@ void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
              bool crop=NoCrop)
 {
   if(min > max) return;
-  
+
   pic.scale.x.automin=min <= -infinity;
   pic.scale.x.automax=max >= infinity;
-  
+
   bounds mx;
   if(pic.scale.x.automin() || pic.scale.x.automax())
     mx=autoscale(pic.userMin().x,pic.userMax().x,pic.scale.x.scale);
-  
+
   if(pic.scale.x.automin) {
     if(pic.scale.x.automin()) pic.userMinx(mx.min);
   } else pic.userMinx(min(pic.scale.x.T(min),pic.scale.x.T(max)));
-  
+
   if(pic.scale.x.automax) {
     if(pic.scale.x.automax()) pic.userMaxx(mx.max);
   } else pic.userMaxx(max(pic.scale.x.T(min),pic.scale.x.T(max)));
-  
+
   if(crop) {
     pair userMin=pic.userMin();
     pair userMax=pic.userMax();
     pic.bounds.xclip(userMin.x,userMax.x);
     pic.clip(userMin, userMax,
-      new void (frame f, transform t, transform T, pair, pair) {
-        frame Tinvf=T == identity() ? f : t*inverse(T)*inverse(t)*f;
-        clip(f,T*box(((t*userMin).x,(min(Tinvf)).y),
-                     ((t*userMax).x,(max(Tinvf)).y)));
-      });
+             new void (frame f, transform t, transform T, pair, pair) {
+               frame Tinvf=T == identity() ? f : t*inverse(T)*inverse(t)*f;
+               clip(f,T*box(((t*userMin).x,(min(Tinvf)).y),
+                            ((t*userMax).x,(max(Tinvf)).y)));
+             });
   }
 }
 
@@ -1395,37 +1395,37 @@ void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
              bool crop=NoCrop)
 {
   if(min > max) return;
-  
+
   pic.scale.y.automin=min <= -infinity;
   pic.scale.y.automax=max >= infinity;
-  
+
   bounds my;
   if(pic.scale.y.automin() || pic.scale.y.automax())
     my=autoscale(pic.userMin().y,pic.userMax().y,pic.scale.y.scale);
-  
+
   if(pic.scale.y.automin) {
     if(pic.scale.y.automin()) pic.userMiny(my.min);
   } else pic.userMiny(min(pic.scale.y.T(min),pic.scale.y.T(max)));
-  
+
   if(pic.scale.y.automax) {
     if(pic.scale.y.automax()) pic.userMaxy(my.max);
   } else pic.userMaxy(max(pic.scale.y.T(min),pic.scale.y.T(max)));
-  
+
   if(crop) {
     pair userMin=pic.userMin();
     pair userMax=pic.userMax();
     pic.bounds.yclip(userMin.y,userMax.y);
-    pic.clip(userMin, userMax, 
-      new void (frame f, transform t, transform T, pair, pair) {
-        frame Tinvf=T == identity() ? f : t*inverse(T)*inverse(t)*f;
-        clip(f,T*box(((min(Tinvf)).x,(t*userMin).y),
-                     ((max(Tinvf)).x,(t*userMax).y)));
-      });
+    pic.clip(userMin, userMax,
+             new void (frame f, transform t, transform T, pair, pair) {
+               frame Tinvf=T == identity() ? f : t*inverse(T)*inverse(t)*f;
+               clip(f,T*box(((min(Tinvf)).x,(t*userMin).y),
+                            ((max(Tinvf)).x,(t*userMax).y)));
+             });
   }
 }
 
 // Crop a picture to the current user-space picture limits.
-void crop(picture pic=currentpicture) 
+void crop(picture pic=currentpicture)
 {
   xlimits(pic,false);
   ylimits(pic,false);
@@ -1441,14 +1441,14 @@ void limits(picture pic=currentpicture, pair min, pair max, bool crop=NoCrop)
   if(crop && pic.userSetx() && pic.userSety())
     clip(pic,box(pic.userMin(),pic.userMax()));
 }
-  
+
 // Internal routine to autoscale the user limits of a picture.
 void autoscale(picture pic=currentpicture, axis axis)
 {
   if(!pic.scale.set) {
     bounds mx,my;
     pic.scale.set=true;
-    
+
     if(pic.userSetx()) {
       mx=autoscale(pic.userMin().x,pic.userMax().x,pic.scale.x.scale);
       if(pic.scale.x.scale.logarithmic &&
@@ -1459,7 +1459,7 @@ void autoscale(picture pic=currentpicture, axis axis)
           pic.userMaxx2(ceil(pic.userMax().x));
       }
     } else {mx.min=mx.max=0; pic.scale.set=false;}
-    
+
     if(pic.userSety()) {
       my=autoscale(pic.userMin().y,pic.userMax().y,pic.scale.y.scale);
       if(pic.scale.y.scale.logarithmic &&
@@ -1470,7 +1470,7 @@ void autoscale(picture pic=currentpicture, axis axis)
           pic.userMaxy2(ceil(pic.userMax().y));
       }
     } else {my.min=my.max=0; pic.scale.set=false;}
-    
+
     pic.scale.x.tickMin=mx.min;
     pic.scale.x.tickMax=mx.max;
     pic.scale.y.tickMin=my.min;
@@ -1487,7 +1487,7 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
            bool above=false)
 {
   if(xmin > xmax) return;
-  
+
   if(pic.scale.x.automin && xmin > -infinity) pic.scale.x.automin=false;
   if(pic.scale.x.automax && xmax < infinity) pic.scale.x.automax=false;
 
@@ -1495,20 +1495,20 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
     axis(pic,axis);
     autoscale(pic,axis);
   }
-  
+
   Label L=L.copy();
   bool newticks=false;
-  
+
   if(xmin != -infinity) {
     xmin=pic.scale.x.T(xmin);
     newticks=true;
   }
-  
+
   if(xmax != infinity) {
     xmax=pic.scale.x.T(xmax);
     newticks=true;
   }
-  
+
   if(newticks && pic.userSetx() && ticks != NoTicks) {
     if(xmin == -infinity) xmin=pic.userMin().x;
     if(xmax == infinity) xmax=pic.userMax().x;
@@ -1517,16 +1517,16 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
     pic.scale.x.tickMax=mx.max;
     axis.xdivisor=mx.divisor;
   }
-  
+
   axis(pic,axis);
-  
+
   if(xmin == -infinity && !axis.extend) {
     if(pic.scale.set)
       xmin=pic.scale.x.automin() ? pic.scale.x.tickMin :
         max(pic.scale.x.tickMin,pic.userMin().x);
     else xmin=pic.userMin().x;
   }
-  
+
   if(xmax == infinity && !axis.extend) {
     if(pic.scale.set)
       xmax=pic.scale.x.automax() ? pic.scale.x.tickMax :
@@ -1536,7 +1536,7 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
 
   if(L.defaultposition) L.position(axis.position);
   L.align(L.align,axis.align);
-  
+
   xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,margin,above);
   if(axis.type == Both)
     xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,margin,above,true);
@@ -1552,25 +1552,25 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 
   if(pic.scale.y.automin && ymin > -infinity) pic.scale.y.automin=false;
   if(pic.scale.y.automax && ymax < infinity) pic.scale.y.automax=false;
-  
+
   if(!pic.scale.set) {
     axis(pic,axis);
     autoscale(pic,axis);
   }
-  
+
   Label L=L.copy();
   bool newticks=false;
-  
+
   if(ymin != -infinity) {
     ymin=pic.scale.y.T(ymin);
     newticks=true;
   }
-  
+
   if(ymax != infinity) {
     ymax=pic.scale.y.T(ymax);
     newticks=true;
   }
-  
+
   if(newticks && pic.userSety() && ticks != NoTicks) {
     if(ymin == -infinity) ymin=pic.userMin().y;
     if(ymax == infinity) ymax=pic.userMax().y;
@@ -1579,17 +1579,17 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
     pic.scale.y.tickMax=my.max;
     axis.ydivisor=my.divisor;
   }
-  
+
   axis(pic,axis);
-  
+
   if(ymin == -infinity && !axis.extend) {
     if(pic.scale.set)
       ymin=pic.scale.y.automin() ? pic.scale.y.tickMin :
         max(pic.scale.y.tickMin,pic.userMin().y);
     else ymin=pic.userMin().y;
   }
-  
-  
+
+
   if(ymax == infinity && !axis.extend) {
     if(pic.scale.set)
       ymax=pic.scale.y.automax() ? pic.scale.y.tickMax :
@@ -1599,14 +1599,14 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 
   if(L.defaultposition) L.position(axis.position);
   L.align(L.align,axis.align);
-  
+
   if(autorotate && L.defaulttransform) {
     frame f;
     add(f,Label(L.s,(0,0),L.p));
-    if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p)) 
+    if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p))
       L.transform(rotate(90));
   }
-  
+
   yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,margin,above);
   if(axis.type == Both)
     yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,margin,above,true);
@@ -1627,7 +1627,7 @@ void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
 void xequals(picture pic=currentpicture, Label L="", real x,
              bool extend=false, real ymin=-infinity, real ymax=infinity,
              pen p=currentpen, ticks ticks=NoTicks,
-             arrowbar arrow=None, margin margin=NoMargin, bool above=true) 
+             arrowbar arrow=None, margin margin=NoMargin, bool above=true)
 {
   yaxis(pic,L,XEquals(x,extend),ymin,ymax,p,ticks,arrow,margin,above);
 }
@@ -1682,7 +1682,7 @@ void xtick(picture pic=currentpicture, real x, pair dir=N,
 }
 
 void ytick(picture pic=currentpicture, explicit pair z, pair dir=E,
-           real size=Ticksize, pen p=currentpen) 
+           real size=Ticksize, pen p=currentpen)
 {
   tick(pic,z,dir,size,p);
 }
@@ -1799,7 +1799,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   bounds a=autoscale(pic.userMin().x,pic.userMax().x,pic.scale.x.scale);
   real bmin=pic.scale.x.automin() ? a.min : pic.userMin().x;
   real bmax=pic.scale.x.automax() ? a.max : pic.userMax().x;
-  
+
   real denom=bmax-bmin;
   if(denom != 0) {
     pic.erase();
@@ -1849,7 +1849,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
 
 typedef guide graph(pair f(real), real, real, int);
 typedef guide[] multigraph(pair f(real), real, real, int);
-                       
+
 graph graph(interpolate join)
 {
   return new guide(pair f(real), real a, real b, int n) {
@@ -2055,7 +2055,7 @@ guide[] graph(picture pic=currentpicture, real[] x, real[] y, bool3[] cond,
 }
 
 // Connect points in z into segments corresponding to consecutive true elements
-// of b using interpolation operator join. 
+// of b using interpolation operator join.
 path[] segment(pair[] z, bool[] cond, interpolate join=operator --)
 {
   checkconditionlength(cond.length,z.length);
@@ -2102,7 +2102,7 @@ void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,
   if(dmy != dpy) draw(pic,Scale(pic,z+(0,dmy))--Scale(pic,z+(0,dpy)),p,
                       Bars(size));
 }
-  
+
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
                bool[] cond={}, pen p=currentpen, real size=0)
 {
@@ -2157,13 +2157,13 @@ picture vectorfield(path vector(real), path g, int n, bool truesize=false,
     real x=(n == 1) ? 0.5 : i/(n-1);
     if(truesize)
       draw(relpoint(g,x),pic,vector(x),p,arrow);
-    else 
+    else
       draw(pic,shift(relpoint(g,x))*vector(x),p,arrow,margin);
   }
   return pic;
 }
 
-real maxlength(pair a, pair b, int nx, int ny) 
+real maxlength(pair a, pair b, int nx, int ny)
 {
   return min((b.x-a.x)/nx,(b.y-a.y)/ny);
 }

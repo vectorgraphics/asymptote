@@ -48,8 +48,8 @@ struct binarytreeNode {
   int right_span,total_right_span;
   void update_spans();
 
-  // Get the horizontal span of the tree consisting of the current 
-  // node plus the whole subtree that is rooted at the right child 
+  // Get the horizontal span of the tree consisting of the current
+  // node plus the whole subtree that is rooted at the right child
   // (condensed mode)
   int getTotalRightSpan() {
     if(spans_calculated == false) {
@@ -59,8 +59,8 @@ struct binarytreeNode {
     return total_right_span;
   }
 
-  // Get the horizontal span of the tree consisting of the current 
-  // node plus the whole subtree that is rooted at the left child 
+  // Get the horizontal span of the tree consisting of the current
+  // node plus the whole subtree that is rooted at the left child
   // (condensed mode)
   int getTotalLeftSpan() {
     if(spans_calculated == false) {
@@ -87,27 +87,27 @@ struct binarytreeNode {
     return left_span;
   }
 
-  // Update all span figures for this node. 
+  // Update all span figures for this node.
   // condensed mode)
   update_spans=new void() {
-    if(spans_calculated == true)
-      return;
+                           if(spans_calculated == true)
+                             return;
 
-    left_span=0;
-    total_left_span=0;
-    right_span=0;
-    total_right_span=0;
+                           left_span=0;
+                           total_left_span=0;
+                           right_span=0;
+                           total_right_span=0;
 
-    if(left != null) {
-      left_span=left.getTotalRightSpan()+1;
-      total_left_span=left_span+left.getTotalLeftSpan();
-    }
+                           if(left != null) {
+                             left_span=left.getTotalRightSpan()+1;
+                             total_left_span=left_span+left.getTotalLeftSpan();
+                           }
 
-    if(right != null) {
-      right_span=right.getTotalLeftSpan()+1;
-      total_right_span=right_span+right.getTotalRightSpan();
-    }
-    spans_calculated=true;
+                           if(right != null) {
+                             right_span=right.getTotalLeftSpan()+1;
+                             total_right_span=right_span+right.getTotalRightSpan();
+                           }
+                           spans_calculated=true;
   };
 
   // set the left child of this node
@@ -134,20 +134,20 @@ struct binarytreeNode {
     else
       return parent.getLevel()+1;
   }
-        
+
   // set the children of this binarytreeNode
   void setChildren(binarytreeNode left, binarytreeNode right) {
     setLeft(left);
     setRight(right);
   }
-        
-  // create a new binarytreeNode with key <key> 
+
+  // create a new binarytreeNode with key <key>
   static binarytreeNode binarytreeNode(int key) {
     binarytreeNode toReturn=new binarytreeNode;
     toReturn.key=key;
     return toReturn;
   }
-        
+
   // returns the height of the subtree rooted at this node.
   int getHeight() {
     if(left == null && right == null)
@@ -156,7 +156,7 @@ struct binarytreeNode {
       return right.getHeight()+1;
     if(right == null)
       return left.getHeight()+1;
-                
+
     return max(left.getHeight(),right.getHeight())+1;
   }
 }
@@ -175,12 +175,12 @@ object draw(picture pic=currentpicture, binarytreeNode node, pair pos,
             int height, real minDist, real levelDist, real nodeDiameter,
             pen p=currentpen, bool condensed=false) {
   Label label=Label(math((string) node.key),pos);
-        
-  binarytreeNode left=node.left;        
+
+  binarytreeNode left=node.left;
   binarytreeNode right=node.right;
 
   // return the distance for two nodes at the given <level> when the
-  // containing tree has height <height> 
+  // containing tree has height <height>
   // and the minimal distance between two nodes is <minDist> .
   real getDistance(int level, int height, real minDist) {
     return(nodeDiameter+minDist)*2^(height-level);
@@ -205,15 +205,15 @@ object draw(picture pic=currentpicture, binarytreeNode node, pair pos,
   // arrow.
   void deferredDrawNodeConnection(pair parentPos, pair childPos) {
     pic.add(new void(frame f, transform t) {
-        pair start,end; 
-        // calculate connection path 
-        transform T=shift(nodeDiameter/2*unit(t*childPos-t*parentPos));  
-        path arr=(T*t*parentPos)--(inverse(T)*t*childPos);  
-        draw(f,PenMargin(arr,p).g,p,Arrow(5));  
-      }); 
+        pair start,end;
+        // calculate connection path
+        transform T=shift(nodeDiameter/2*unit(t*childPos-t*parentPos));
+        path arr=(T*t*parentPos)--(inverse(T)*t*childPos);
+        draw(f,PenMargin(arr,p).g,p,Arrow(5));
+      });
     pic.addPoint(parentPos);
     pic.addPoint(childPos);
-  } 
+  }
 
   if(left != null) {
     pair childPos;
@@ -238,13 +238,13 @@ object draw(picture pic=currentpicture, binarytreeNode node, pair pos,
     draw(pic,right,childPos,height,minDist,levelDist,nodeDiameter,p,condensed);
     deferredDrawNodeConnection(pos,childPos);
   }
-        
+
   picture obj;
   draw(obj,circle((0,0),nodeDiameter/2),p);
   label(obj,label,(0,0),p);
-        
+
   add(pic,obj,pos);
-        
+
   return label;
 }
 
@@ -270,18 +270,18 @@ key nil=key(0,false);
 struct binarytree {
   binarytreeNode root;
   int[] keys;
-        
+
   // add the given <key> to the tree by searching for its place and
   // inserting it there.
   void addKey(int key) {
     binarytreeNode newNode=binarytreeNode(key);
-                
+
     if(root == null) {
       root=newNode;
       keys.push(key);
-      return; 
+      return;
     }
-                
+
     binarytreeNode n=root;
     while(n != null) {
       if(key < n.key) {
@@ -303,7 +303,7 @@ struct binarytree {
       }
     }
   }
-        
+
   // return the height of the tree
   int getHeight() {
     if(root == null)
@@ -311,7 +311,7 @@ struct binarytree {
     else
       return root.getHeight();
   }
-        
+
   // add all given keys to the tree sequentially
   void addSearchKeys(int[] keys) {
     for(int i=0; i < keys.length; ++i) {
@@ -321,7 +321,7 @@ struct binarytree {
         addKey(key);
     }
   }
-        
+
   binarytreeNode build(key[] keys, int[] ind) {
     if(ind[0] >= keys.length) return null;
     key k=keys[ind[0]];
@@ -369,9 +369,9 @@ void draw(picture pic=currentpicture, binarytree tree,
           pen p=currentpen, bool condensed=false)
 {
   int[] keys=tree.getKeys();
-        
+
   // calculate the node diameter so that all keys fit into it
-  frame f; 
+  frame f;
   for(int i=0; i < keys.length; ++i)
     label(f,math(string(keys[i])),p);
 
