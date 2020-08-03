@@ -1,15 +1,15 @@
-import graph; 
-import interpolate; 
- 
-size(15cm,15cm,IgnoreAspect); 
- 
-real a=1997, b=2002; 
-int n=5; 
-real[] xpt=a+sequence(n+1)*(b-a)/n; 
-real[] ypt={31,36,26,22,21,24}; 
+import graph;
+import interpolate;
+
+size(15cm,15cm,IgnoreAspect);
+
+real a=1997, b=2002;
+int n=5;
+real[] xpt=a+sequence(n+1)*(b-a)/n;
+real[] ypt={31,36,26,22,21,24};
 horner h=diffdiv(xpt,ypt);
 fhorner L=fhorner(h);
- 
+
 scale(false,true);
 
 pen p=linewidth(1);

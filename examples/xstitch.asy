@@ -42,22 +42,22 @@ write(histogram);
 
 
 pen linepen(int i, int max) {
-  real w=i == -1 || i == max+1   ? 2.0 : 
-    i % 10 == 0 || i == max ? 1.0 : 
-    i % 5 == 0              ? 0.8 : 
+  real w=i == -1 || i == max+1   ? 2.0 :
+    i % 10 == 0 || i == max ? 1.0 :
+    i % 5 == 0              ? 0.8 :
     0.25;
   return linewidth(w);
 }
 
 pen xpen(int i) {
-  return linepen(i,width)+(i == width/2 ? red : 
-                           i == 75 || i == width-75 ? dashed : 
+  return linepen(i,width)+(i == width/2 ? red :
+                           i == 75 || i == width-75 ? dashed :
                            black);
 }
 
 pen ypen(int i) {
-  return linepen(i,height)+(i == height/2 ? red : 
-                            i == 75 || i == height-75 ? dashed : 
+  return linepen(i,height)+(i == height/2 ? red :
+                            i == 75 || i == height-75 ? dashed :
                             black);
 }
 

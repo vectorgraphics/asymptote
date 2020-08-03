@@ -7,7 +7,7 @@ size(300,0);
 pen thickp=linewidth(0.5mm);
 real radius=0.8, lambda=37, aux=60;
 
-currentprojection=perspective(4,1,2); 
+currentprojection=perspective(4,1,2);
 
 // Planes
 pen bg=gray(0.9)+opacity(0.5);
@@ -21,7 +21,7 @@ draw(Label("$x$",1),O--r*X,p,Arrow3);
 draw(Label("$y$",1),O--r*Y,p,Arrow3);
 draw(Label("$z$",1),O--r*Z,p,Arrow3);
 label("$\rm O$",(0,0,0),W);
-  
+
 // Point Q
 triple pQ=radius*dir(lambda,aux);
 draw(O--radius*dir(90,aux),dashed);

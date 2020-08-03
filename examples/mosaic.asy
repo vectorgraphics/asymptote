@@ -19,7 +19,7 @@ path c_line(path p) {
   // returns the path obtained by adding to p a copy rotated
   // around the endpoint of p by 180 degrees
   // works only if the initial point and the endpoint of p are different
-  // a c_line is symetric with respect to the center of 
+  // a c_line is symetric with respect to the center of
   // the straight line between its endpoints
   //
   return p..rotate(180,point(p,length(p)))*reverse(p);
@@ -41,7 +41,7 @@ path tounitcircle(path p, int n=300) {
 }
 
 void centershade(picture pic=currentpicture, path p, pen in, pen out,
-                 pen drawpen=currentpen) { 
+                 pen drawpen=currentpen) {
   pair center=0.5(max(p)+min(p));
   real radius=0.5abs(max(p)-min(p));
   radialshade(pic,p,in,center,0,out,center,radius);
@@ -86,7 +86,7 @@ for(int i=0; i < entry.length; ++i) {
 }
 
 for(int j=0; j < 7; ++j) {
-  tage[j]=shift((j,yc)+diff)*kasten; 
+  tage[j]=shift((j,yc)+diff)*kasten;
   filldraw(tage[j],farbe(j),black+2bp);
   label(wochentag[j],zentrum(tage[j]),Palatino());
   for(int i=0; i < 6; ++i) {bx[i][j]=shift((j,-yc*i)+diff)*kasten;
@@ -94,10 +94,10 @@ for(int j=0; j < 7; ++j) {
     if(holiday[i][j]) {filldraw(bx[i][j],farbe(6),black+2bp);};
   };
 };
-filldraw(Gkasten,0.3white,black+2bp); 
+filldraw(Gkasten,0.3white,black+2bp);
 for(int j=0; j < 7; ++j)
   for(int i=0; i < 6 ; ++i) {label(entry[i][j],zentrum(bx[i][j]),Palatino());}
-label("\Huge Februar 2006",zentrum(Gkasten),Palatino()+white); 
+label("\Huge Februar 2006",zentrum(Gkasten),Palatino()+white);
 // Zentrum=center; Februar=february
 add(kalender,currentpicture);
 erase();
@@ -139,9 +139,9 @@ for(int j=-4; j < 4; ++j)
                   (1-i/10)*chartreuse,black+2bp);
     }
   }
-  
-// Now we produce the bijective images inside 
-// a suitably scaled unitcircle            
+
+// Now we produce the bijective images inside
+// a suitably scaled unitcircle
 for(int k=-1; k < 2; ++k)
   for(int l=-1; l < 2; ++l) {
     transform tr=shift(k*tri+l*trii);
@@ -149,11 +149,11 @@ for(int k=-1; k < 2; ++k)
       centershade(temppic,scale(2.5)*tounitcircle(tr*kontur[i],380),
                   (1-i/10)*white,(1-i/10)*orange,black+2bp);
     }
-  }         
-          
-add(temppic); 
+  }
 
-// We clip the picture to a suitable box 
+add(temppic);
+
+// We clip the picture to a suitable box
 pair piccenter=0.5*(temppic.min()+temppic.max());
 pair picbox=temppic.max()-temppic.min();
 real picwidth=picbox.x;
@@ -162,4 +162,4 @@ transform trialtrans=shift(0,-1.5)*shift(piccenter)*yscale(scalefactor)*
 clip(trialtrans*unitsquare);
 
 // add the calendar at a suitable position
-add(kalender.fit(0.75*outputwidth),interp(point(S),point(N),1/13)); 
+add(kalender.fit(0.75*outputwidth),interp(point(S),point(N),1/13));

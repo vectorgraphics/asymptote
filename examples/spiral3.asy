@@ -1,8 +1,8 @@
 import graph3;
 import palette;
- 
+
 size3(10cm);
- 
+
 currentprojection=orthographic(5,4,2);
 viewportmargin=(2cm,0);
 

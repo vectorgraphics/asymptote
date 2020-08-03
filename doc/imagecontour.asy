@@ -19,7 +19,7 @@ pen tickpen=gray+0.5*linewidth(currentpen);
 pen[] Palette=BWRainbow();
 
 bounds range=image(f,Automatic,a,b,N,Palette);
-    
+
 // Major contours
 
 real[] Cvals=uniform(range.min,range.max,Divs);

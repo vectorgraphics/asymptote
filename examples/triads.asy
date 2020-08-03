@@ -12,18 +12,18 @@ pair o=(m.x,0.5(m.x+l.y));
 pen d=c+darkgreen;
 
 void drawarrow(string s="", pair p, pair q, side side=RightSide,
-	       bool upscale=false, pen c)
+               bool upscale=false, pen c)
 {
   path g=p{dir(-5)}..{dir(-85)}q;
-  if(upscale) g=reverse(g); 
+  if(upscale) g=reverse(g);
   draw(s,g,side,c,Arrow(Fill,0.65));
-} 
+}
 
 void spectrum(pair l,pair m, pair s) {
   draw(p,c);
- 
+
   d += 4.0;
-  dot("$p$",l,SW,d); 
+  dot("$p$",l,SW,d);
   dot("$q$",m,SW,d);
   dot("$k$",s,SW,d);
 

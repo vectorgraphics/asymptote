@@ -74,7 +74,7 @@ size(0,200);
 
 curve c; c.a=-1; c.b=4;
 
-pair oncurve(real x) 
+pair oncurve(real x)
 {
   return (x,sqrt(c.y2(x)));
 }
@@ -111,5 +111,5 @@ dot("$2P$", PP, SW);
 add(output,currentpicture.fit(),(0.5cm,0),E);
 
 shipout(output);
-    
+
 restore();
