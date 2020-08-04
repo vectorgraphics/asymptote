@@ -55,6 +55,7 @@ ls -p1 $BUILD \
     | awk '{ if(index($0,"/")==length($0)) print "RMDir /r $INSTDIR\\" substr($0,0,length($0)-1); else print "Delete $INSTDIR\\" $0 }' \
 	> AsymptoteUninstallList.nsi
 
+rm $BUILD/xasy
 if [ $MACHINE == i686 ]; then
 sed asymptote.nsi -e 's/$PROGRAMFILES64/$PROGRAMFILES/g' > asymptote32.nsi
 /cygdrive/c/Program\ Files\ \(x86\)/NSIS/makensis.exe asymptote32.nsi
