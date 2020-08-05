@@ -66,6 +66,10 @@ string historyfilename(const string &name)
 {
   return historyname+"_"+name;
 }
+
+namespace camp {
+  bool allowRender=true;
+}
 #endif
 
 namespace run {
@@ -173,7 +177,9 @@ string readline(string prompt=emptystring, string name=emptystring,
   }
      
   /* Get a line from the user. */
+  allowRender=false;
   line=readline(prompt.c_str());
+  allowRender=true;
      
   if(!line) cout << endl;
   
