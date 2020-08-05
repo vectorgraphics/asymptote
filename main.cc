@@ -188,8 +188,8 @@ void *asymain(void *A)
     gl::glexit=true;
 #else
     pthread_kill(gl::mainthread,SIGURG);
-#endif
     pthread_join(gl::mainthread,NULL);
+#endif
   }
 #endif
 #endif
