@@ -30,7 +30,7 @@ struct historyState {
   bool store;
   HISTORY_STATE state;
 };
-  
+
 typedef mem::map<CONST string, historyState> historyMap_t;
 historyMap_t historyMap;
 static HISTORY_STATE history_save;
@@ -47,7 +47,7 @@ void store_history(HISTORY_STATE *dest)
   }
 }
 
-stringarray* get_history(Int n) 
+stringarray* get_history(Int n)
 {
   int N=intcast(n);
   if(N <= 0) N=history_length;
@@ -58,17 +58,17 @@ stringarray* get_history(Int n)
     HIST_ENTRY *last=history_get(offset+i);
     string s=last ? last->line : "";
     (*a)[i]=s;
-  }     
+  }
   return a;
 }
 
-string historyfilename(const string &name) 
+string historyfilename(const string &name)
 {
   return historyname+"_"+name;
 }
 
 namespace camp {
-  bool allowRender=true;
+bool allowRender=true;
 }
 #endif
 
@@ -85,7 +85,7 @@ void cleanup()
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   store_history(&history_save);
   int nlines=intcast(getSetting<Int>("historylines"));
-  for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end(); 
+  for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end();
       ++h) {
     history_set_history_state(&h->second.state);
     if(h->second.store) {
@@ -98,7 +98,7 @@ void cleanup()
 #endif
 #ifdef HAVE_LIBGSL
   trans::GSLrngFree();
-#endif  
+#endif
 }
 }
 
@@ -110,9 +110,9 @@ stringarray* history(string name, Int n=1)
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   bool newhistory=historyMap.find(name) == historyMap.end();
-  
+
   string filename;
-  
+
   if(newhistory) {
     filename=historyfilename(name);
     std::ifstream exists(filename.c_str());
@@ -122,15 +122,15 @@ stringarray* history(string name, Int n=1)
   store_history(&history_save);
   HISTORY_STATE& history=historyMap[name].state;
   history_set_history_state(&history);
-  
+
   if(newhistory)
     read_history(filename.c_str());
 
   array *a=get_history(n);
-  
+
   store_history(&history);
   history_set_history_state(&history_save);
-  
+
   return a;
 #else
   unused(&n);
@@ -158,7 +158,7 @@ string readline(string prompt=emptystring, string name=emptystring,
     return emptystring;
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   interact::init_readline(tabcompletion);
-  
+
   store_history(&history_save);
   bool newhistory=historyMap.find(name) == historyMap.end();
   historyState& h=historyMap[name];
@@ -167,7 +167,7 @@ string readline(string prompt=emptystring, string name=emptystring,
 
   if(newhistory)
     read_history(historyfilename(name).c_str());
-  
+
   static char *line=NULL;
   /* Return the memory to the free pool
      if the buffer has already been allocated. */
@@ -175,14 +175,14 @@ string readline(string prompt=emptystring, string name=emptystring,
     free(line);
     line=NULL;
   }
-     
+
   /* Get a line from the user. */
   allowRender=false;
   line=readline(prompt.c_str());
   allowRender=true;
-     
+
   if(!line) cout << endl;
-  
+
   history_set_history_state(&history_save);
 
   return line ? string(line) : emptystring;
@@ -209,7 +209,7 @@ void saveline(string name, string value, bool store=true)
 
   if(newhistory)
     read_history(historyfilename(name).c_str());
-  
+
   if(value != "") {
     add_history(value.c_str());
     if(store) {
@@ -217,10 +217,10 @@ void saveline(string name, string value, bool store=true)
       hout << value << endl;
     }
   }
-  
+
   store_history(&history);
   history_set_history_state(&history_save);
 #else
   unused(&store);
-#endif   
+#endif
 }

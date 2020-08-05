@@ -41,7 +41,7 @@ wolfssl-4.4.0-gplv3-fips-ready:
 ./configure --prefix=/usr --enable-static
 make install
 
-libcurl-7.71.1:
+curl-7.71.1:
 ./configure --prefix=/usr --disable-shared --without-brotli --without-ssl --with-wolfssl
 make install
 
