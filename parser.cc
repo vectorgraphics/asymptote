@@ -174,13 +174,24 @@ size_t curlCallback(char *data, size_t size, size_t n, stringstream& buf)
 bool readURL(stringstream& buf, const string& filename)
 {
   CURL *curl=curl_easy_init();
+  if(settings::verbose > 3)
+    curl_easy_setopt(curl,CURLOPT_VERBOSE,true);
+#ifdef __MSDOS__
+  string cert=settings::getSetting<string>("sysdir")+settings::dirsep+
+    "ca-bundle.crt";
+  curl_easy_setopt(curl,CURLOPT_CAINFO,cert.c_str());
+#endif
   curl_easy_setopt(curl,CURLOPT_URL,filename.c_str());
   curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,curlCallback);
   curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
   CURLcode res=curl_easy_perform(curl);
   curl_easy_cleanup(curl);
 
-  return res == CURLE_OK && buf.str() != "404: Not Found";
+  if(res != CURLE_OK) {
+    cerr << curl_easy_strerror(res) << endl;
+    return false;
+  }
+  return buf.str() != "404: Not Found";
 }
 
 absyntax::file *parseURL(const string& filename,

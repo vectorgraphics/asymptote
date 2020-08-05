@@ -6,9 +6,11 @@ shared via virtualbox to the cygwin build environment.
 
 Install TeXLive and required Cygwin packages:
 
-setup-x86_64.exe -q -P git,wget,make,patch,gcc-g++,autoconf2.5,bison,flex,w32api-headers,w32api-runtime,zlib-devel,glm-devel,automake1.15,libtool,libcurl-devel
+setup-x86_64.exe -q -P git,wget,make,patch,gcc-g++,autoconf2.5,bison,flex,w32api-headers,w32api-runtime,zlib-devel,glm-devel,automake1.15,libtool
 
-setup-x86_64.exe -q -I -P libtirpc-devel,libreadline-devel,libfftw3-devel,libgsl-devel
+setup-x86_64.exe -q -I -P libtirpc-devel,libreadline-devel,libfftw3-devel,libgsl-devel,libcurl-devel
+
+Download wolfssl GPLV3 source code from www.wolfssl.com
 
 Build and install static libraries from /usr/src:
 
@@ -21,7 +23,7 @@ readline-devel:
 make install
 
 fftw3-devel:
-./configure --prefix=/usr --disable-shared 
+./configure --prefix=/usr --disable-shared
 make install
 
 tirpc-devel:
@@ -38,11 +40,6 @@ make install
 wolfssl-4.4.0-gplv3-fips-ready:
 ./configure --prefix=/usr --enable-static
 make install
-
-gnutls-3.6.9:
-./configure --prefix=/usr --enable-static --disable-shared --with-included-unisring
-make install
-
 
 libcurl-7.71.1:
 ./configure --prefix=/usr --disable-shared --without-brotli --without-ssl --with-wolfssl
@@ -75,4 +72,4 @@ cd gc-$GCVERSION
 ./configure --disable-shared
 make check
 
-~/asymptote/build-scripts/build-asymptote.dos 2.48
+~/asymptote/build-scripts/build-asymptote.dos <VERSION>
