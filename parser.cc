@@ -102,8 +102,6 @@ absyntax::file *parseStdin()
 bool isURL(const string& filename)
 {
 #ifdef HAVE_LIBCURL
-//  string s(filename);
-//  s.erase(remove_if(s.begin(),s.end(),isspace),s.end());
   return filename.find("://") != string::npos;
 #else
   return false;
@@ -171,6 +169,11 @@ size_t curlCallback(char *data, size_t size, size_t n, stringstream& buf)
   return Size;
 }
 
+int curlProgress(void *, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
+{
+  return errorstream::interrupt ? -1 : 0;
+}
+
 bool readURL(stringstream& buf, const string& filename)
 {
   CURL *curl=curl_easy_init();
@@ -184,6 +187,9 @@ bool readURL(stringstream& buf, const string& filename)
   curl_easy_setopt(curl,CURLOPT_URL,filename.c_str());
   curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,curlCallback);
   curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
+  curl_easy_setopt(curl,CURLOPT_NOPROGRESS,0);
+  curl_easy_setopt(curl,CURLOPT_XFERINFOFUNCTION,curlProgress);
+
   CURLcode res=curl_easy_perform(curl);
   curl_easy_cleanup(curl);
 
@@ -191,7 +197,8 @@ bool readURL(stringstream& buf, const string& filename)
     cerr << curl_easy_strerror(res) << endl;
     return false;
   }
-  return buf.str() != "404: Not Found";
+  string s=buf.str();
+  return !s.empty() && s != "404: Not Found";
 }
 
 absyntax::file *parseURL(const string& filename,
