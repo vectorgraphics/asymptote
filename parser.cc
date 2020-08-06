@@ -173,7 +173,7 @@ size_t curlCallback(char *data, size_t size, size_t n, stringstream& buf)
 #define CURL_OFF_T curl_off_t
 #else
 #define CURL_OFF_T double
-#define CURLOPT_PROGRESSFUNCTION
+#define CURLOPT_XFERINFOFUNCTION CURLOPT_PROGRESSFUNCTION
 #endif
 
 int curlProgress(void *, CURL_OFF_T, CURL_OFF_T, CURL_OFF_T, CURL_OFF_T)
