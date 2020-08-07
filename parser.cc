@@ -102,8 +102,6 @@ absyntax::file *parseStdin()
 bool isURL(const string& filename)
 {
 #ifdef HAVE_LIBCURL
-//  string s(filename);
-//  s.erase(remove_if(s.begin(),s.end(),isspace),s.end());
   return filename.find("://") != string::npos;
 #else
   return false;
@@ -114,11 +112,11 @@ absyntax::file *parseFile(const string& filename,
                           const char *nameOfAction)
 {
   if(isURL(filename))
-     return parseURL(filename,nameOfAction);
+    return parseURL(filename,nameOfAction);
 
   if(filename == "-")
     return parseStdin();
-  
+
   string file = settings::locateFile(filename);
 
   if(file.empty())
@@ -127,12 +125,12 @@ absyntax::file *parseFile(const string& filename,
   if(nameOfAction && settings::verbose > 1)
     cerr << nameOfAction << " " <<  filename << " from " << file << endl;
 
-  debug(false); 
+  debug(false);
 
   std::filebuf filebuf;
   if(!filebuf.open(file.c_str(),std::ios::in))
     error(filename);
-  
+
 #ifdef HAVE_SYS_STAT_H
   // Check that the file is not a directory.
   static struct stat buf;
@@ -141,14 +139,14 @@ absyntax::file *parseFile(const string& filename,
       error(filename);
   }
 #endif
-  
+
   // Check that the file can actually be read.
   try {
     filebuf.sgetc();
   } catch (...) {
     error(filename);
   }
-  
+
   yy::sbuf = &filebuf;
   return doParse(yy::stream_input,file);
 }
@@ -171,16 +169,43 @@ size_t curlCallback(char *data, size_t size, size_t n, stringstream& buf)
   return Size;
 }
 
+#ifdef CURLOPT_XFERINFODATA
+#define CURL_OFF_T curl_off_t
+#else
+#define CURL_OFF_T double
+#define CURLOPT_XFERINFOFUNCTION CURLOPT_PROGRESSFUNCTION
+#endif
+
+int curlProgress(void *, CURL_OFF_T, CURL_OFF_T, CURL_OFF_T, CURL_OFF_T)
+{
+  return errorstream::interrupt ? -1 : 0;
+}
+
 bool readURL(stringstream& buf, const string& filename)
 {
   CURL *curl=curl_easy_init();
+  if(settings::verbose > 3)
+    curl_easy_setopt(curl,CURLOPT_VERBOSE,true);
+#ifdef __MSDOS__
+  string cert=settings::getSetting<string>("sysdir")+settings::dirsep+
+    "ca-bundle.crt";
+  curl_easy_setopt(curl,CURLOPT_CAINFO,cert.c_str());
+#endif
   curl_easy_setopt(curl,CURLOPT_URL,filename.c_str());
   curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,curlCallback);
   curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
+  curl_easy_setopt(curl,CURLOPT_NOPROGRESS,0);
+  curl_easy_setopt(curl,CURLOPT_XFERINFOFUNCTION,curlProgress);
+
   CURLcode res=curl_easy_perform(curl);
   curl_easy_cleanup(curl);
 
-  return res == CURLE_OK && buf.str() != "404: Not Found";
+  if(res != CURLE_OK) {
+    cerr << curl_easy_strerror(res) << endl;
+    return false;
+  }
+  string s=buf.str();
+  return !s.empty() && s != "404: Not Found";
 }
 
 absyntax::file *parseURL(const string& filename,

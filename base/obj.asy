@@ -1,7 +1,7 @@
 // A module for reading simple obj files with groups.
 // Authors: Jens Schwaiger and John Bowman
 //
-// Here simple means that : 
+// Here simple means that :
 //
 // 1) all vertex statements should come before the face statements;
 //

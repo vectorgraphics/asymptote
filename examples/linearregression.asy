@@ -28,13 +28,13 @@ while (!eof(duncan)) {
 real[] coeffs = leastsquares(independentvars, dependentvars, warn=false);
 if (coeffs.length == 0) {
   abort("Unable to find regression: independent variables are "
-    + "linearly dependent.");
+        + "linearly dependent.");
 }
 
 real f(pair xy) {
   return coeffs[0] * xy.x  // income
-       + coeffs[1] * xy.y  // education
-       + coeffs[2];        // residue
+    + coeffs[1] * xy.y  // education
+    + coeffs[2];        // residue
 }
 
 real xmin = infinity, xmax = -infinity, ymin = infinity, ymax = -infinity;
@@ -52,7 +52,7 @@ draw(surface(f, (xmin, ymin), (xmax, ymax)),
 
 for (int ii = 0; ii < independentvars.length; ++ii) {
   triple pt = (independentvars[ii][0], independentvars[ii][1],
-           dependentvars[ii]);
+               dependentvars[ii]);
   draw(shift(pt) * unitsphere, material(yellow, emissivepen=0.2*yellow));
   real z = f((pt.x, pt.y));
   if (pt.z > z) draw (pt -- (pt.x, pt.y, z), green);

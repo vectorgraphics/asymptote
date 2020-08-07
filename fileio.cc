@@ -28,10 +28,13 @@ void ifile::open()
     if(mode & std::ios::out)
       name=outpath(name);
     else {
+#ifdef HAVE_LIBCURL
       if(parser::isURL(name)) {
         parser::readURL(buf,name);
         stream=&buf;
-      } else {
+      } else
+#endif
+      {
         name=locatefile(inpath(name));
         stream=fstream=new std::fstream(name.c_str(),mode);
       }
@@ -70,7 +73,7 @@ void ifile::ignoreComment()
     } else {if(c != EOF && eol) stream->unget(); return;}
   }
 }
-  
+
 bool ifile::eol()
 {
   int c;
@@ -83,7 +86,7 @@ bool ifile::eol()
   }
   return false;
 }
-  
+
 bool ifile::nexteol()
 {
   int c;
@@ -91,7 +94,7 @@ bool ifile::nexteol()
     nullfield=false;
     return true;
   }
-  
+
   while(isspace(c=stream->peek())) {
     if(c == '\n' && comma) {
       nullfield=true;
@@ -112,7 +115,7 @@ bool ifile::nexteol()
   }
   return false;
 }
-  
+
 void ifile::csv()
 {
   comma=false;
@@ -128,7 +131,7 @@ void ifile::csv()
   } else stream->clear(rdstate);
   if(c == ',') comma=true;
 }
-  
+
 void ifile::Read(string& val)
 {
   string s;
@@ -164,7 +167,7 @@ void ifile::Read(string& val)
     }
   } else
     getline(*stream,s);
-  
+
   if(comment) {
     size_t p=0;
     while((p=s.find(comment,p)) < string::npos) {
@@ -172,7 +175,7 @@ void ifile::Read(string& val)
         s.erase(p,1);
         ++p;
       } else {
-        s.erase(p);     
+        s.erase(p);
         break;
       }
     }
@@ -184,8 +187,8 @@ void ifile::Read(string& val)
   }
   val=whitespace+s;
 }
-  
-void ofile::writeline() 
+
+void ofile::writeline()
 {
   if(standard && interact::query && !vm::indebugger) {
     Int scroll=settings::getScroll();
@@ -208,5 +211,5 @@ void ofile::writeline()
   } else *stream << newline;
   if(errorstream::interrupt) {interact::lines=0; throw interrupted();}
 }
-  
+
 } // namespace camp

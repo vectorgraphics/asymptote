@@ -16,7 +16,7 @@
 #include "config.h"
 #endif
 
-#if !defined(FOR_SHARED) && \
+#if !defined(FOR_SHARED) &&                                             \
   ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)) || \
    defined(HAVE_LIBOSMESA))
 #define HAVE_GL
@@ -97,4 +97,4 @@ inline std::istream &operator >> (std::istream & s, const ws_t &ws) {
   return s;
 }
 
-#endif 
+#endif

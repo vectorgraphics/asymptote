@@ -39,7 +39,7 @@ void pipeHandler(int)
   Signal(SIGPIPE,SIG_DFL);
   instance->pipeclose();
 }
-  
+
 void iopipestream::open(const mem::vector<string> &command, const char *hint,
                         const char *application, int out_fileno)
 {
@@ -131,10 +131,10 @@ ssize_t iopipestream::readbuffer()
   for(;;) {
     if((nc=read(out[0],p,size)) < 0) {
       if(errno == EAGAIN || errno == EINTR) {p[0]=0; break;}
-     else {
-       ostringstream buf;
-       buf << "read from pipe failed: errno=" << errno;
-       camp::reportError(buf);
+      else {
+        ostringstream buf;
+        buf << "read from pipe failed: errno=" << errno;
+        camp::reportError(buf);
       }
       nc=0;
     }

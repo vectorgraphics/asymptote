@@ -3,7 +3,7 @@ import geometry;
 size(0,100);
 real theta=30;
 
-pair A=(0,0); 
+pair A=(0,0);
 pair B=dir(theta);
 pair C=(1,0);
 pair D=(1,Tan(theta));
@@ -21,4 +21,4 @@ dot("$C$",C);
 dot("$D$",D);
 dot(("$E$"),E,S);
 label("$1$",A--B,LeftSide);
-      
+

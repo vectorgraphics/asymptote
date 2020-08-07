@@ -7,7 +7,7 @@ currentprojection=orthographic(1,-2,1);
 real X=4.5;
 real M=abs(gamma((X,0)));
 
-pair Gamma(pair z) 
+pair Gamma(pair z)
 {
   return (z.x > 0 || z != floor(z.x)) ? gamma(z) : M;
 }

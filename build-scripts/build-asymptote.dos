@@ -35,6 +35,7 @@ make -n MSDOS=1 >& /dev/null || ./configure OSTYPE=msdos --enable-gc=$GC --with-
 rm -rf $BUILD
 mkdir -p $BUILD
 cp -a $HOME/dll/cygwin/*.dll $BUILD
+cp /etc/pki/tls/certs/ca-bundle.crt $BUILD
 chmod 0644 $BUILD/*.dll
 cp -a $BUILD/*.dll ~/CTAN/asymptote-$VERSION/binaries/$BINDIR/
 make MSDOS=1 DESTDIR="$BUILD/" docdir="$BUILD/"
@@ -55,6 +56,7 @@ ls -p1 $BUILD \
     | awk '{ if(index($0,"/")==length($0)) print "RMDir /r $INSTDIR\\" substr($0,0,length($0)-1); else print "Delete $INSTDIR\\" $0 }' \
 	> AsymptoteUninstallList.nsi
 
+rm $BUILD/xasy
 if [ $MACHINE == i686 ]; then
 sed asymptote.nsi -e 's/$PROGRAMFILES64/$PROGRAMFILES/g' > asymptote32.nsi
 /cygdrive/c/Program\ Files\ \(x86\)/NSIS/makensis.exe asymptote32.nsi

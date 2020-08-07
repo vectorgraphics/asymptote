@@ -10,12 +10,12 @@
 
 // default ratio of width (distance between two loops) to amplitude for a gluon
 // line. The gluon function uses this ratio, if the width parameter is
-// negative. 
+// negative.
 real gluonratio;
 
 // default ratio of width (distance between two crests) to amplitude for a
 // photon  line. The photon function uses this ratio, if the width parameter is
-// negative. 
+// negative.
 real photonratio;
 
 // default gluon amplitude
@@ -337,7 +337,7 @@ void drawGhost(picture pic = currentpicture,
                real vertexangle = minvertexangle,
                real margin = linemargin)
 {
-  if(erasebg) do_overpaint(pic, p, bgpen, 
+  if(erasebg) do_overpaint(pic, p, bgpen,
                            linewidth(fgpen)+margin, vertexangle);
   draw(pic, p, fgpen, arrow);
 }
@@ -358,7 +358,7 @@ void drawDoubleLine(picture pic = currentpicture,
                     real vertexangle = minvertexangle,
                     real margin = linemargin)
 {
-  if(erasebg) do_overpaint(pic, p, bgpen, 
+  if(erasebg) do_overpaint(pic, p, bgpen,
                            linewidth(fgpen)+margin, vertexangle);
 
   real htw = linewidth(fgpen)+dlspacing/2;
@@ -466,7 +466,7 @@ void drawVertexX(picture pic = currentpicture,
                  pen fgpen = vertexpen)
 {
   draw(pic, shift(xy)*scale(r)*((-1,-1)--(1,1)), fgpen);
-  draw(pic, shift(xy)*scale(r)*((1,-1)--(-1,1)), fgpen);    
+  draw(pic, shift(xy)*scale(r)*((1,-1)--(-1,1)), fgpen);
 }
 
 // draw a circle with an X in the middle on picture pic, at position xy with
@@ -508,7 +508,7 @@ void drawVertexBoxX(picture pic = currentpicture,
 }
 
 // draw a momentum arrow on picture pic, along path p, at position position
-// (use one of the predefined pairs left or right), with an offset offset 
+// (use one of the predefined pairs left or right), with an offset offset
 // from the path, a length length, a pen fgpen and an arrowhead arrow. Making
 // adjust nonzero shifts the momentum arrow along the path. If erasebg is true,
 // the background is erased inside a margin margin around the momentum arrow.
@@ -527,7 +527,7 @@ void drawMomArrow(picture pic = currentpicture,
                   real margin = momarrowmargin)
 {
   path momarrow = momArrowPath(p, align, pos, offset, length);
-  if(erasebg) do_overpaint(pic, momarrow, bgpen, 
+  if(erasebg) do_overpaint(pic, momarrow, bgpen,
                            linewidth(fgpen)+margin, 90);
   draw(pic, momarrow, fgpen, arrow);
 }
@@ -540,7 +540,7 @@ void drawMomArrow(picture pic = currentpicture,
 // (essentially, currentpen, arrowfactor and dotfactor). After customising the
 // default parameters of plain.asy, you may call fmdefaults to adjust the
 // parameters of feynman.asy.
-void fmdefaults() 
+void fmdefaults()
 {
   real arrowsize=arrowsize(currentpen);
   real linewidth=linewidth(currentpen);

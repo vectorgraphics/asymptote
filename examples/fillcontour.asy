@@ -15,7 +15,7 @@ int Divs=10;
 defaultpen(1bp);
 
 bounds range=bounds(-1,1);
-    
+
 real[] Cvals=uniform(range.min,range.max,Divs);
 guide[][] g=contour(f,a,b,Cvals,N,operator --);
 

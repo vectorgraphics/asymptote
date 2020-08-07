@@ -1,7 +1,7 @@
 /*****
  * array.cc
  * Andy Hammerlindl  2008/01/26
- * 
+ *
  * Array type used by virtual machine.
  *****/
 

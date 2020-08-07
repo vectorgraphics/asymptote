@@ -29,11 +29,11 @@ public:
   jsofstream() {}
   jsofstream(const string& name) : std::ofstream(name.c_str()) {}
   void open(const string& name) {std::ofstream::open(name.c_str());}
-  
+
   template<class T>
   jsofstream& operator << (const T& x) {
     (std::ofstream&)(*this) << x;
-  return *this;
+    return *this;
   }
 };
 
@@ -49,7 +49,7 @@ public:
   double gety() const { return y; }
 
   bool isreal() {return y == 0;}
-  
+
   friend pair operator+ (const pair& z, const pair& w)
   {
     return pair(z.x+w.x,z.y+w.y);
@@ -136,12 +136,12 @@ public:
   {
     return x*x + y*y;
   }
-  
+
   double length() const
   {
     return sqrt(abs2());
   }
-  
+
   friend double length(const pair& z)
   {
     return z.length();
@@ -151,12 +151,12 @@ public:
   {
     return camp::angle(x,y,warn);
   }
-  
+
   friend double angle(const pair& z, bool warn=true)
   {
     return z.angle(warn);
   }
-  
+
   friend pair unit(const pair& z)
   {
     double scale=z.length();
@@ -164,22 +164,22 @@ public:
     scale=1.0/scale;
     return pair(z.x*scale,z.y*scale);
   }
-  
+
   friend pair conj(const pair& z)
   {
     return pair(z.x,-z.y);
   }
-  
+
   friend double dot(const pair& z, const pair& w)
   {
     return z.x*w.x+z.y*w.y;
   }
-  
+
   friend double cross(const pair& z, const pair& w)
   {
     return z.x*w.y-z.y*w.x;
   }
-  
+
 // Return the principal branch of the square root (non-negative real part).
   friend pair Sqrt(const pair& z) {
     double mag=z.length();
@@ -215,7 +215,7 @@ public:
       s >> ws;
       if(s.peek() == ')') s >> c;
     }
-    
+
     return s;
   }
 
@@ -224,13 +224,13 @@ public:
     out << "(" << z.x << "," << z.y << ")";
     return out;
   }
-  
+
   friend jsofstream& operator << (jsofstream& out, const pair& z)
   {
     out << "[" << z.x << "," << z.y << "]";
     return out;
   }
-  
+
   friend class box;
 };
 

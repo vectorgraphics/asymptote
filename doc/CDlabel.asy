@@ -5,7 +5,7 @@ asy(nativeformat(),"logo");
 fill(unitcircle^^(scale(2/11.7)*unitcircle),
      evenodd+rgb(124/255,205/255,124/255));
 label(scale(1.1)*minipage(
-"\centering\scriptsize \textbf{\LARGE {\tt Asymptote}\\
+                          "\centering\scriptsize \textbf{\LARGE {\tt Asymptote}\\
 \smallskip
 \small The Vector Graphics Language}\\
 \smallskip

@@ -8,9 +8,11 @@ Install TeXLive and required Cygwin packages:
 
 setup-x86_64.exe -q -P git,wget,make,patch,gcc-g++,autoconf2.5,bison,flex,w32api-headers,w32api-runtime,zlib-devel,glm-devel,automake1.15,libtool
 
-setup-x86_64.exe -q -I -P libtirpc-devel,libreadline-devel,libfftw3-devel,libgsl-devel
+setup-x86_64.exe -q -I -P libtirpc-devel,libreadline-devel,libfftw3-devel,libgsl-devel,libcurl-devel
 
-Build and install static libraries from /usr/local/src:
+Download wolfssl GPLV3 source code from www.wolfssl.com
+
+Build and install static libraries from /usr/src:
 
 gsl-devel:
 ./configure --prefix=/usr
@@ -21,7 +23,7 @@ readline-devel:
 make install
 
 fftw3-devel:
-./configure --prefix=/usr --enable-shared 
+./configure --prefix=/usr --disable-shared
 make install
 
 tirpc-devel:
@@ -33,6 +35,14 @@ ln -s /usr/lib/libtirpc.a /usr/lib/librpc.a
 
 termcap-1.3.1:
 ./configure --prefix=/usr
+make install
+
+wolfssl-4.4.0-gplv3-fips-ready:
+./configure --prefix=/usr --enable-static
+make install
+
+curl-7.71.1:
+./configure --prefix=/usr --disable-shared --without-brotli --without-ssl --with-wolfssl
 make install
 
 git clone http://github.com/vectorgraphics/asymptote
@@ -62,4 +72,4 @@ cd gc-$GCVERSION
 ./configure --disable-shared
 make check
 
-~/asymptote/build-scripts/build-asymptote.dos 2.48
+~/asymptote/build-scripts/build-asymptote.dos <VERSION>

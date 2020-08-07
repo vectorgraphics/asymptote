@@ -57,29 +57,29 @@ struct block {
   // in absolute coordinates.
   pair top(transform t=identity()) {
     return shift(t)+f_top;
-  } 
+  }
   pair bottom(transform t=identity()) {
     return shift(t)+f_bottom;
-  } 
+  }
   pair left(transform t=identity()) {
     return shift(t)+f_left;
-  } 
+  }
   pair right(transform t=identity()) {
     return shift(t)+f_right;
-  } 
+  }
   pair topleft(transform t=identity()) {
     return shift(t)+f_topleft;
-  } 
+  }
   pair topright(transform t=identity()) {
     return shift(t)+f_topright;
-  } 
+  }
   pair bottomleft(transform t=identity()) {
     return shift(t)+f_bottomleft;
-  } 
+  }
   pair bottomright(transform t=identity()) {
     return shift(t)+f_bottomright;
-  } 
-  
+  }
+
   // Return a frame representing the block.
   frame draw(pen p=currentpen);
 
@@ -118,25 +118,25 @@ block rectangle(object header, object body, pair center=(0,0),
 
   block block;
   block.draw=new frame(pen p) {
-    frame block;
-    filldraw(block,shift(0,z1.y)*box((0,0),z0),headerpen,drawpen);
-    add(block,shift(-0.5*(Mheader+mheader))*fheader,(0,z1.y)+0.5z0);
-    filldraw(block,box((0,0),z1),bodypen,drawpen);
-    add(block,shift(-0.5*(Mbody+mbody))*fbody,0.5z1);
-    return block;
+                               frame block;
+                               filldraw(block,shift(0,z1.y)*box((0,0),z0),headerpen,drawpen);
+                               add(block,shift(-0.5*(Mheader+mheader))*fheader,(0,z1.y)+0.5z0);
+                               filldraw(block,box((0,0),z1),bodypen,drawpen);
+                               add(block,shift(-0.5*(Mbody+mbody))*fbody,0.5z1);
+                               return block;
   };
   block.f_position=new pair(real x) {
-    return point(shape,x);
+                                     return point(shape,x);
   };
   block.f_center=interp(point(shape,0),point(shape,3),0.5);
-  block.f_bottomleft=point(shape,0); 
-  block.f_bottom=point(shape,5.5); 
-  block.f_bottomright=point(shape,5); 
-  block.f_right=point(shape,4.5); 
-  block.f_topright=point(shape,3); 
-  block.f_top=point(shape,2.5); 
-  block.f_topleft=point(shape,2); 
-  block.f_left=point(shape,0.5); 
+  block.f_bottomleft=point(shape,0);
+  block.f_bottom=point(shape,5.5);
+  block.f_bottomright=point(shape,5);
+  block.f_right=point(shape,4.5);
+  block.f_topright=point(shape,3);
+  block.f_top=point(shape,2.5);
+  block.f_topleft=point(shape,2);
+  block.f_left=point(shape,0.5);
   block.center=center;
   block.size=point(shape,3);
   return block;
@@ -156,25 +156,25 @@ block rectangle(object body, pair center=(0,0),
 
   block block;
   block.draw=new frame(pen p) {
-    frame block;
-    filldraw(block,shape,fillpen,drawpen);
-    add(block,shift(-0.5*(M+m))*f,0.5z);
-    return block;
+                               frame block;
+                               filldraw(block,shape,fillpen,drawpen);
+                               add(block,shift(-0.5*(M+m))*f,0.5z);
+                               return block;
   };
   block.f_position=new pair(real x) {
-    return point(shape,x);
+                                     return point(shape,x);
   };
   block.f_center=0.5*z;
   block.center=center;
   block.size=z;
   block.f_bottomleft=point(shape,0);
-  block.f_bottom=point(shape,0.5); 
-  block.f_bottomright=point(shape,1); 
-  block.f_right=point(shape,1.5); 
-  block.f_topright=point(shape,2); 
-  block.f_top=point(shape,2.5); 
-  block.f_topleft=point(shape,3); 
-  block.f_left=point(shape,3.5); 
+  block.f_bottom=point(shape,0.5);
+  block.f_bottomright=point(shape,1);
+  block.f_right=point(shape,1.5);
+  block.f_topright=point(shape,2);
+  block.f_top=point(shape,2.5);
+  block.f_topleft=point(shape,3);
+  block.f_left=point(shape,3.5);
   return block;
 }
 
@@ -197,13 +197,13 @@ block parallelogram(object body, pair center=(0,0),
 
   block block;
   block.draw=new frame(pen p) {
-    frame block;
-    filldraw(block,shape,fillpen,drawpen);
-    add(block,shift(-0.5*(M+m))*f,((a+skew)/2,b/2));
-    return block;
+                               frame block;
+                               filldraw(block,shape,fillpen,drawpen);
+                               add(block,shift(-0.5*(M+m))*f,((a+skew)/2,b/2));
+                               return block;
   };
   block.f_position=new pair(real x) {
-    return point(shape,x);
+                                     return point(shape,x);
   };
   block.f_center=((a+skew)/2,b/2);
   block.center=center;
@@ -229,7 +229,7 @@ block diamond(object body, pair center=(0,0),
   pair m=min(f);
   pair M=max(f);
   pair bound=maxbound(M-m,(minwidth,minheight));
-  
+
   real e=ds;
   real a=0.5bound.x-dw;
   real b=0.5bound.y;
@@ -244,25 +244,25 @@ block diamond(object body, pair center=(0,0),
 
   block block;
   block.draw=new frame(pen p) {
-    frame block;
-    filldraw(block,shape,fillpen,drawpen);
-    add(block,shift(-0.5*(M+m))*f,(d,c));
-    return block;
+                               frame block;
+                               filldraw(block,shape,fillpen,drawpen);
+                               add(block,shift(-0.5*(M+m))*f,(d,c));
+                               return block;
   };
   block.f_position=new pair(real x) {
-    return point(shape,x);
+                                     return point(shape,x);
   };
   block.f_center=(point(shape,1).x,point(shape,0).y);
   block.center=center;
   block.size=(point(shape,0).x,point(shape,1).y);
-  block.f_bottomleft=point(shape,2.5); 
-  block.f_bottom=point(shape,3); 
-  block.f_bottomright=point(shape,3.5); 
-  block.f_right=point(shape,0); 
-  block.f_topright=point(shape,0.5); 
-  block.f_top=point(shape,1); 
-  block.f_topleft=point(shape,1.5); 
-  block.f_left=point(shape,2); 
+  block.f_bottomleft=point(shape,2.5);
+  block.f_bottom=point(shape,3);
+  block.f_bottomright=point(shape,3.5);
+  block.f_right=point(shape,0);
+  block.f_topright=point(shape,0.5);
+  block.f_top=point(shape,1);
+  block.f_topleft=point(shape,1.5);
+  block.f_left=point(shape,2);
   return block;
 }
 
@@ -274,30 +274,30 @@ block circle(object body, pair center=(0,0), pen fillpen=invisible,
   pair m=min(f);
   pair M=max(f);
   real r=max(0.5length(M-m)+dr,0.5mindiameter);
-  
+
   path shape=(0,r)..(r,2r)..(2r,r)..(r,0)..cycle;
-  
+
   block block;
   block.draw=new frame(pen p) {
-    frame block;
-    filldraw(block,shape,fillpen,drawpen);
-    add(block,shift(-0.5*(M+m))*f,(r,r));
-    return block;
+                               frame block;
+                               filldraw(block,shape,fillpen,drawpen);
+                               add(block,shift(-0.5*(M+m))*f,(r,r));
+                               return block;
   };
   block.f_position=new pair(real x) {
-    return point(shape,x);
+                                     return point(shape,x);
   };
   block.f_center=(r,r);
   block.center=center;
   block.size=(2r,2r);
   block.f_left=point(shape,0);
-  block.f_topleft=point(shape,0.5); 
-  block.f_top=point(shape,1); 
-  block.f_topright=point(shape,1.5); 
-  block.f_right=point(shape,2); 
-  block.f_bottomright=point(shape,2.5); 
-  block.f_bottom=point(shape,3); 
-  block.f_bottomleft=point(shape,3.5); 
+  block.f_topleft=point(shape,0.5);
+  block.f_top=point(shape,1);
+  block.f_topright=point(shape,1.5);
+  block.f_right=point(shape,2);
+  block.f_bottomright=point(shape,2.5);
+  block.f_bottom=point(shape,3);
+  block.f_bottomleft=point(shape,3.5);
   return block;
 }
 
@@ -313,33 +313,33 @@ block roundrectangle(object body, pair center=(0,0),
 
   real a=bound.x;
   real b=bound.y;
-  
+
   path shape=(0,ds+dw)--(0,ds+b-dw){up}..{right}
   (ds+dw,2ds+b)--(ds+a-dw,2ds+b){right}..{down}
   (2ds+a,ds+b-dw)--(2ds+a,ds+dw){down}..{left}
   (ds+a-dw,0)--(ds+dw,0){left}..{up}cycle;
-  
+
   block block;
   block.draw=new frame(pen p) {
-    frame block;
-    filldraw(block,shape,fillpen,drawpen);
-    add(block,shift(-0.5*(M+m))*f,(ds,ds)+0.5bound);
-    return block;
+                               frame block;
+                               filldraw(block,shape,fillpen,drawpen);
+                               add(block,shift(-0.5*(M+m))*f,(ds,ds)+0.5bound);
+                               return block;
   };
   block.f_position=new pair(real x) {
-    return point(shape,x);
+                                     return point(shape,x);
   };
   block.f_center=(ds+0.5a,ds+0.5b);
   block.center=center;
   block.size=(2ds+a,2ds+b);
-  block.f_bottomleft=point(shape,7.5); 
-  block.f_bottom=point(shape,6.5); 
-  block.f_bottomright=point(shape,5.5); 
-  block.f_right=point(shape,4.5); 
-  block.f_topright=point(shape,3.5); 
-  block.f_top=point(shape,2.5); 
-  block.f_topleft=point(shape,1.5); 
-  block.f_left=point(shape,0.5); 
+  block.f_bottomleft=point(shape,7.5);
+  block.f_bottom=point(shape,6.5);
+  block.f_bottomright=point(shape,5.5);
+  block.f_right=point(shape,4.5);
+  block.f_topright=point(shape,3.5);
+  block.f_top=point(shape,2.5);
+  block.f_topleft=point(shape,1.5);
+  block.f_left=point(shape,0.5);
   return block;
 }
 
@@ -359,25 +359,25 @@ block bevel(object body, pair center=(0,0), pen fillpen=invisible,
     (dw+a,0)--cycle;
   block block;
   block.draw=new frame(pen p) {
-    frame block;
-    filldraw(block,shape,fillpen,drawpen);
-    add(block,shift(-0.5*(M+m))*f,(0.5bound+(dw,dh)));
-    return block;
+                               frame block;
+                               filldraw(block,shape,fillpen,drawpen);
+                               add(block,shift(-0.5*(M+m))*f,(0.5bound+(dw,dh)));
+                               return block;
   };
   block.f_position=new pair(real x) {
-    return point(shape,x);
+                                     return point(shape,x);
   };
   block.f_center=(dw+0.5a,dh+b);
   block.center=center;
   block.size=(2dw+a,2dh+2b);
-  block.f_bottomleft=point(shape,4); 
-  block.f_bottom=point(shape,4.5); 
-  block.f_bottomright=point(shape,5); 
-  block.f_right=point(shape,0); 
-  block.f_topright=point(shape,1); 
-  block.f_top=point(shape,1.5); 
-  block.f_topleft=point(shape,2); 
-  block.f_left=point(shape,3); 
+  block.f_bottomleft=point(shape,4);
+  block.f_bottom=point(shape,4.5);
+  block.f_bottomright=point(shape,5);
+  block.f_right=point(shape,0);
+  block.f_topright=point(shape,1);
+  block.f_top=point(shape,1.5);
+  block.f_topleft=point(shape,2);
+  block.f_left=point(shape,3);
   return block;
 }
 
@@ -388,14 +388,14 @@ path path(pair point[] ... flowdir dir[])
   for(int i=1; i < point.length; ++i) {
     if(i-1 >= dir.length || dir[i-1] == Horizontal)
       current=(point[i].x,point[i-1].y);
-    else 
+    else
       current=(point[i-1].x,point[i].y);
-    
+
     if(current != prev) {
       line=line--current;
       prev=current;
     }
-    
+
     current=point[i];
     if(current != prev) {
       line=line--current;

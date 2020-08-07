@@ -25,8 +25,8 @@ xaxis3(Label("$x$",1),Arrow3);
 yaxis3(Label("$y$",1),ymax=1.25,dashed,Arrow3);
 
 dot("$(1,1)$",(1,1,0),X);
-arrow("$y=x^{2}$",F3(0.7),X,0.75cm,red); 
-arrow("$y=x$",(0.8,0.8,0),Y,1cm,red); 
+arrow("$y=x^{2}$",F3(0.7),X,0.75cm,red);
+arrow("$y=x$",(0.8,0.8,0),Y,1cm,red);
 
 real r=0.4;
 draw((r,f(r),0)--(r,r,0),red);

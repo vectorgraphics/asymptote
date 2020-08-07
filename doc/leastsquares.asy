@@ -22,7 +22,7 @@ real last=700;
 // Remove negative or zero values of rho:
 t=rho > 0 ? t : null;
 rho=rho > 0 ? rho : null;
-    
+
 scale(Log(true),Linear(true));
 
 int n=step > 0 ? ceil((last-first)/step) : 0;
@@ -33,17 +33,17 @@ for(int i=0; i <= n; ++i) {
   real first=first+i*step;
   real[] logrho=(t >= first & t <= last) ? log(rho) : null;
   real[] logt=(t >= first & t <= last) ? -log(t) : null;
-  
+
   if(logt.length < 2) break;
-  
+
   // Fit to the line logt=L.m*logrho+L.b:
   linefit L=leastsquares(logt,logrho);
-    
+
   T.push(first);
   xi.push(L.m);
   dxi.push(L.dm);
-} 
-    
+}
+
 draw(graph(T,xi),blue);
 errorbars(T,xi,dxi,red);
 

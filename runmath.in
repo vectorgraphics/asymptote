@@ -15,7 +15,7 @@ pairarray* => pairArray()
 #include "path.h"
 
 #ifdef __CYGWIN__
-extern "C" double yn(int, double);
+  extern "C" double yn(int, double);
 extern "C" double jn(int, double);
 extern "C" int __signgam;
 #define signgam __signgam
@@ -50,7 +50,7 @@ static const unsigned char BitReverseTable8[256]=
 #define R2(n)     n,    n+2*64,    n+1*64,    n+3*64
 #define R4(n) R2(n),R2(n+2*16),R2(n+1*16),R2(n+3*16)
 #define R6(n) R4(n),R4(n+2*4 ),R4(n+1*4 ),R4(n+3*4 )
-R6(0),R6(2),R6(1),R6(3)
+  R6(0),R6(2),R6(1),R6(3)
 };
 #undef R2
 #undef R4
@@ -59,29 +59,29 @@ R6(0),R6(2),R6(1),R6(3)
 unsigned long long bitreverse8(unsigned long long a)
 {
   return
-    (unsigned long long) BitReverseTable8[a]; 
+    (unsigned long long) BitReverseTable8[a];
 }
 
 unsigned long long bitreverse16(unsigned long long a)
 {
   return
-    ((unsigned long long) BitReverseTable8[a & 0xff] << 8) | 
+    ((unsigned long long) BitReverseTable8[a & 0xff] << 8) |
     ((unsigned long long) BitReverseTable8[(a >> 8)]);
 }
 
 unsigned long long bitreverse24(unsigned long long a)
 {
   return
-    ((unsigned long long) BitReverseTable8[a & 0xff] << 16) | 
-    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 8) | 
+    ((unsigned long long) BitReverseTable8[a & 0xff] << 16) |
+    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 8) |
     ((unsigned long long) BitReverseTable8[(a >> 16)]);
 }
 
 unsigned long long bitreverse32(unsigned long long a)
 {
   return
-    ((unsigned long long) BitReverseTable8[a & 0xff] << 24) | 
-    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 16) | 
+    ((unsigned long long) BitReverseTable8[a & 0xff] << 24) |
+    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 16) |
     ((unsigned long long) BitReverseTable8[(a >> 16) & 0xff] << 8) |
     ((unsigned long long) BitReverseTable8[(a >> 24)]);
 }
@@ -89,8 +89,8 @@ unsigned long long bitreverse32(unsigned long long a)
 unsigned long long bitreverse40(unsigned long long a)
 {
   return
-    ((unsigned long long) BitReverseTable8[a & 0xff] << 32) | 
-    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 24) | 
+    ((unsigned long long) BitReverseTable8[a & 0xff] << 32) |
+    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 24) |
     ((unsigned long long) BitReverseTable8[(a >> 16) & 0xff] << 16) |
     ((unsigned long long) BitReverseTable8[(a >> 24) & 0xff] << 8) |
     ((unsigned long long) BitReverseTable8[(a >> 32)]);
@@ -99,8 +99,8 @@ unsigned long long bitreverse40(unsigned long long a)
 unsigned long long bitreverse48(unsigned long long a)
 {
   return
-    ((unsigned long long) BitReverseTable8[a & 0xff] << 40) | 
-    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 32) | 
+    ((unsigned long long) BitReverseTable8[a & 0xff] << 40) |
+    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 32) |
     ((unsigned long long) BitReverseTable8[(a >> 16) & 0xff] << 24) |
     ((unsigned long long) BitReverseTable8[(a >> 24) & 0xff] << 16) |
     ((unsigned long long) BitReverseTable8[(a >> 32) & 0xff] << 8) |
@@ -110,24 +110,24 @@ unsigned long long bitreverse48(unsigned long long a)
 unsigned long long bitreverse56(unsigned long long a)
 {
   return
-    ((unsigned long long) BitReverseTable8[a & 0xff] << 48) | 
-    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 40) | 
+    ((unsigned long long) BitReverseTable8[a & 0xff] << 48) |
+    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 40) |
     ((unsigned long long) BitReverseTable8[(a >> 16) & 0xff] << 32) |
     ((unsigned long long) BitReverseTable8[(a >> 24) & 0xff] << 24) |
     ((unsigned long long) BitReverseTable8[(a >> 32) & 0xff] << 16) |
-    ((unsigned long long) BitReverseTable8[(a >> 40) & 0xff] << 8) | 
+    ((unsigned long long) BitReverseTable8[(a >> 40) & 0xff] << 8) |
     ((unsigned long long) BitReverseTable8[(a >> 48)]);
 }
 
 unsigned long long bitreverse64(unsigned long long a)
 {
   return
-    ((unsigned long long) BitReverseTable8[a & 0xff] << 56) | 
-    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 48) | 
+    ((unsigned long long) BitReverseTable8[a & 0xff] << 56) |
+    ((unsigned long long) BitReverseTable8[(a >> 8) & 0xff] << 48) |
     ((unsigned long long) BitReverseTable8[(a >> 16) & 0xff] << 40) |
     ((unsigned long long) BitReverseTable8[(a >> 24) & 0xff] << 32) |
     ((unsigned long long) BitReverseTable8[(a >> 32) & 0xff] << 24) |
-    ((unsigned long long) BitReverseTable8[(a >> 40) & 0xff] << 16) | 
+    ((unsigned long long) BitReverseTable8[(a >> 40) & 0xff] << 16) |
     ((unsigned long long) BitReverseTable8[(a >> 48) & 0xff] << 8) |
     ((unsigned long long) BitReverseTable8[(a >> 56)]);
 }
@@ -140,7 +140,7 @@ Int popcount(T a)
   a=a-((a >> 1) & (T)~(T)0/3);
   a=(a & (T)~(T)0/15*3)+((a >> 2) & (T)~(T)0/15*3);
   a=(a+(a >> 4)) & (T)~(T)0/255*15;
-return (T)(a*((T)~(T)0/255)) >> (sizeof(T)-1)*CHAR_BIT;
+  return (T)(a*((T)~(T)0/255)) >> (sizeof(T)-1)*CHAR_BIT;
 }
 #undef T
 #endif
@@ -166,12 +166,12 @@ Int factorial(Int n)
   return table[n];
 }
 
-static inline Int Round(double x) 
+static inline Int Round(double x)
 {
   return Int(x+((x >= 0) ? 0.5 : -0.5));
 }
 
-inline Int sgn(double x) 
+inline Int sgn(double x)
 {
   return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
 }
@@ -179,12 +179,12 @@ inline Int sgn(double x)
 static bool initializeRandom=true;
 
 void Srand(Int seed)
-{ 
+{
   initializeRandom=false;
   const int n=256;
   static char state[n];
   initstate(intcast(seed),state,n);
-}  
+}
 
 // Autogenerated routines:
 
@@ -200,66 +200,66 @@ pair ^(pair z, Int y)
 }
 
 Int quotient(Int x, Int y)
-{ 
+{
   return quotient<Int>()(x,y);
-}  
+}
 
 Int abs(Int x)
-{ 
+{
   return Abs(x);
-}  
+}
 
 Int sgn(real x)
-{ 
+{
   return sgn(x);
-}  
+}
 
 Int rand()
-{ 
+{
   if(initializeRandom)
     Srand(1);
   return random();
-}  
+}
 
 void srand(Int seed)
-{ 
+{
   Srand(seed);
-}  
+}
 
 // a random number uniformly distributed in the interval [0,1]
 real unitrand()
-{                         
+{
   return ((real) random())/RANDOM_MAX;
 }
 
 Int ceil(real x)
-{ 
+{
   return Intcast(ceil(x));
 }
 
 Int floor(real x)
-{ 
+{
   return Intcast(floor(x));
 }
 
 Int round(real x)
-{ 
+{
   if(validInt(x)) return Round(x);
   integeroverflow(0);
 }
 
 Int Ceil(real x)
-{ 
+{
   return Ceil(x);
 }
 
 Int Floor(real x)
-{ 
+{
   return Floor(x);
 }
 
 Int Round(real x)
-{ 
+{
   return Round(Intcap(x));
 }
 
@@ -270,19 +270,19 @@ real fmod(real x, real y)
 }
 
 real atan2(real y, real x)
-{ 
+{
   return atan2(y,x);
-}  
+}
 
 real hypot(real x, real y)
-{ 
+{
   return hypot(x,y);
-}  
+}
 
 real remainder(real x, real y)
-{ 
+{
   return remainder(x,y);
-}  
+}
 
 real Jn(Int n, real x)
 {
@@ -389,17 +389,17 @@ bool :boolFuncNeq(callable *a, callable *b)
 
 // Bit operations
 
-Int AND(Int a, Int b) 
+Int AND(Int a, Int b)
 {
   return a & b;
 }
 
-Int OR(Int a, Int b) 
+Int OR(Int a, Int b)
 {
   return a | b;
 }
 
-Int XOR(Int a, Int b) 
+Int XOR(Int a, Int b)
 {
   return a ^ b;
 }
@@ -409,7 +409,7 @@ Int NOT(Int a)
   return ~a;
 }
 
-Int CLZ(Int a) 
+Int CLZ(Int a)
 {
   if((unsigned long long) a > 0xFFFFFFFF)
     return CLZ((uint32_t) ((unsigned long long) a >> 32));
@@ -420,12 +420,12 @@ Int CLZ(Int a)
   }
 }
 
-Int popcount(Int a) 
+Int popcount(Int a)
 {
   return popcount(a);
 }
 
-Int CTZ(Int a) 
+Int CTZ(Int a)
 {
   return popcount((a&-a)-1);
 }
@@ -435,11 +435,11 @@ Int bitreverse(Int a, Int bits)
 {
   typedef unsigned long long Bitreverse(unsigned long long a);
   static Bitreverse *B[]={bitreverse8,bitreverse16,bitreverse24,bitreverse32,
-                     bitreverse40,bitreverse48,bitreverse56,bitreverse64};
+                          bitreverse40,bitreverse48,bitreverse56,bitreverse64};
   int maxbits=intbits()-1; // Drop sign bit
 #if Int_MAX2 >= 0x7fffffffffffffffLL
   --maxbits;               // Drop extra bit for reserved values
-#endif  
+#endif
   if(bits <= 0 || bits > maxbits || a < 0 ||
      (unsigned long long) a >= (1ULL << bits))
     return -1;

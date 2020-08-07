@@ -13,7 +13,7 @@ GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS)
-DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lgdi32 -lwinmm -s -static
+DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
 PERL = perl
 
@@ -107,8 +107,8 @@ REVISION = "const char *REVISION="
 last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 ifeq ($(usinggit),yes)
-	revision = $(shell LC_ALL="C" git describe --long | sed -e 's/git//' \
-                    | sed -e 's/-g.*//')
+	revision = $(shell LC_ALL="C" git describe --long | \
+	sed -e 's/git-\([0-9]\)*-g.*/-\1/' | sed -e 's/-0-g.*//')
 else
 	revision = @VERSION@
 endif

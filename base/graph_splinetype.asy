@@ -13,7 +13,7 @@ void checklengths(int x, int y, string text=differentlengths)
     abort(text+": "+string(x)+" != "+string(y));
 }
 
-void checkincreasing(real[] x) 
+void checkincreasing(real[] x)
 {
   if(!increasing(x,true))
     abort("strictly increasing array expected");
@@ -114,7 +114,7 @@ real[] periodic(real[] x, real[] y)
 // Standard cubic spline interpolation with the natural condition
 // s''(a)=s''(b)=0.
 // if n=2, linear interpolation is returned
-// Don't use the natural type unless the underlying function 
+// Don't use the natural type unless the underlying function
 // has zero second end points derivatives.
 real[] natural(real[] x, real[] y)
 {
@@ -186,25 +186,25 @@ splinetype clamped(real slopea, real slopeb)
 
 // Piecewise Cubic Hermite Interpolating Polynomial (PCHIP)
 // Modified MATLAB code
-// [1] Fritsch, F. N. and R. E. Carlson, 
-//      "Monotone Piecewise Cubic Interpolation," 
+// [1] Fritsch, F. N. and R. E. Carlson,
+//      "Monotone Piecewise Cubic Interpolation,"
 //      SIAM J. Numerical Analysis, Vol. 17, 1980, pp.238-246.
-// [2] Kahaner, David, Cleve Moler, Stephen Nash, 
+// [2] Kahaner, David, Cleve Moler, Stephen Nash,
 //      Numerical Methods and Software, Prentice Hall, 1988.
-real[] monotonic(real[] x, real[] y) 
+real[] monotonic(real[] x, real[] y)
 {
-  int n=x.length; 
+  int n=x.length;
   checklengths(n,y.length);
   checkincreasing(x);
-  real[] d=new real[n]; 
+  real[] d=new real[n];
   if(n > 2) {
     real[] h=new real[n-1];
     real[] del=new real[n-1];
     for(int i=0; i < n-1; ++i) {
-      h[i]=x[i+1]-x[i]; 
-      del[i]=(y[i+1]-y[i])/h[i]; 
-    } 
-    int j=0; 
+      h[i]=x[i+1]-x[i];
+      del[i]=(y[i+1]-y[i])/h[i];
+    }
+    int j=0;
     int k[]=new int[];
     for(int i=0; i < n-2; ++i)
       if((sgn(del[i])*sgn(del[i+1])) > 0) {k[j]=i; j=j+1;}
@@ -220,10 +220,10 @@ real[] monotonic(real[] x, real[] y)
       w2[i]=(h[k[i]+1]+hs[i])/(3*hs[i]);
       dmax[i]=max(abs(del[k[i]]),abs(del[k[i]+1]));
       dmin[i]=min(abs(del[k[i]]),abs(del[k[i]+1]));
-    } 
+    }
     for(int i=0; i < n; ++i) d[i]=0;
     for(int i=0; i < j; ++i)
-      d[k[i]+1]=dmin[i]/(w1[i]*(del[k[i]]/dmax[i])+w2[i]*(del[k[i]+1]/dmax[i])); 
+      d[k[i]+1]=dmin[i]/(w1[i]*(del[k[i]]/dmax[i])+w2[i]*(del[k[i]+1]/dmax[i]));
     d[0]=((2*h[0]+h[1])*del[0]-h[0]*del[1])/(h[0]+h[1]);
     if(sgn(d[0]) != sgn(del[0])) {d[0]=0;}
     else if((sgn(del[0]) != sgn(del[1])) && (abs(d[0]) > abs(3*del[0])))
@@ -238,7 +238,7 @@ real[] monotonic(real[] x, real[] y)
     d[0]=d[1]=(y[1]-y[0])/(x[1]-x[0]);
   } else abort(morepoints);
   return d;
-} 
+}
 
 // Return standard cubic spline interpolation as a guide
 guide hermite(real[] x, real[] y, splinetype splinetype=null)

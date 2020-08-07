@@ -6,7 +6,7 @@ currentlight=(-1,-1,2);
 real t=0.5;
 
 real F(pair z) {
-  return (z.x^2+z.y^2 <= 1) ? sqrt(3)*(sqrt(1-z.x^2)-abs(z.y)) : 0; 
+  return (z.x^2+z.y^2 <= 1) ? sqrt(3)*(sqrt(1-z.x^2)-abs(z.y)) : 0;
 }
 
 real a=1.5;
