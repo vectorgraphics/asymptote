@@ -123,9 +123,6 @@ template<class T>
 void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
                 bool pipe=false)
 {
-  if(pipe || !settings::getSetting<bool>("inlinetex"))
-    texpreamble(out,preamble,pipe);
-
   if(pipe) {
     // Make tex pipe aware of a previously generated aux file.
     string name=auxname(settings::outname(),"aux");
@@ -137,9 +134,12 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         fout << s << endl;
     }
   }
+
   string texengine=settings::getSetting<string>("tex");
-  if(settings::latex(texengine)) {
-    if(pipe || !settings::getSetting<bool>("inlinetex")) {
+  bool latex=settings::latex(texengine);
+  bool header=pipe || !settings::getSetting<bool>("inlinetex");
+  if(latex) {
+    if(header) {
       if(texengine == "lualatex") {
         out << "\\ifx\\pdfpagewidth\\undefined\\let\\pdfpagewidth\\paperwidth"
             << "\\fi" << newl
@@ -158,12 +158,7 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         out << "\\usepackage{color}" << newl;
       }
     }
-    if(pipe) {
-      out << "\\begin{document}" << newl;
-      latexfontencoding(out);
-    }
-  }
-  else if(!settings::context(texengine)) {
+  } else if(!settings::context(texengine)) {
     if(texengine == "luatex")
       out << "\\input luatex85.sty" << newl;
     out << "\\input graphicx" << newl // Fix miniltx path parsing bug:
@@ -185,6 +180,14 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
     if(!pipe)
       out << "\\input picture" << newl;
   }
+
+  if(latex && pipe) {
+    out << "\\begin{document}" << newl;
+    latexfontencoding(out);
+  }
+
+  if(header)
+    texpreamble(out,preamble,pipe);
 }
 
 template<class T>
