@@ -140,7 +140,19 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   string texengine=settings::getSetting<string>("tex");
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
-      out << "\\usepackage{graphicx}" << newl;
+      if(texengine == "lualatex") {
+        out << "\\ifx\\pdfpagewidth\\undefined\\let\\pdfpagewidth\\paperwidth"
+            << "\\fi" << newl
+            << "\\ifx\\pdfpageheight\\undefined\\let\\pdfpageheight"
+            << "\\paperheight"
+            << "\\fi" << newl
+            << "\\usepackage{graphicx}" << newl;
+      } else {
+        out << "\\let\\paperwidthsave\\paperwidth\\let\\paperwidth\\undefined"
+            << newl
+            << "\\usepackage{graphicx}" << newl
+            << "\\let\\paperwidth\\paperwidthsave" << newl;
+      }
       if(!pipe) {
         dvipsfix(out);
         out << "\\usepackage{color}" << newl;
@@ -150,7 +162,10 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
       out << "\\begin{document}" << newl;
       latexfontencoding(out);
     }
-  } else if(!settings::context(texengine)) {
+  }
+  else if(!settings::context(texengine)) {
+    if(texengine == "luatex")
+      out << "\\input luatex85.sty" << newl;
     out << "\\input graphicx" << newl // Fix miniltx path parsing bug:
         << "\\makeatletter" << newl
         << "\\def\\filename@parse#1{%" << newl
