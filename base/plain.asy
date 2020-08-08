@@ -298,23 +298,3 @@ if(settings.autoimport != "") {
 }
 
 cputime();
-
-void nosetpagesize()
-{
-  static bool initialized=false;
-  if(!initialized && latex()) {
-    // Portably pass nosetpagesize option to graphicx package.
-    texpreamble("\usepackage{ifluatex}\ifluatex
-\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi
-\ifx\pdfpageheight\undefined\let\pdfpageheight\paperheight\fi\else
-\let\paperwidthsave\paperwidth\let\paperwidth\undefined
-\usepackage{graphicx}
-\let\paperwidth\paperwidthsave\fi");
-    initialized=true;
-  }
-}
-
-nosetpagesize();
-
-if(settings.tex == "luatex")
-  texpreamble("\input luatex85.sty");
