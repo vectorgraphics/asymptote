@@ -9,7 +9,7 @@
 \set title      Asymptote Frequently Asked Questions
 \copyto ASCII
             ASYMPTOTE FREQUENTLY ASKED QUESTIONS
-                            `date '+%d %h %Y'`
+                            `%perl use POSIX; POSIX::strftime("%Y-%m-%d", gmtime($ENV{SOURCE_DATE_EPOCH} || time))`
                            
 \endcopy
 \copyto INFO
@@ -22,7 +22,7 @@ END-INFO-DIR-ENTRY
 File: asy-faq.info, Node: Top, Next: Question 1.1, Up: (dir)
 
             ASYMPTOTE FREQUENTLY ASKED QUESTIONS
-                            `date '+%d %h %Y'`
+                            `%perl use POSIX; POSIX::strftime("%Y-%m-%d", gmtime($ENV{SOURCE_DATE_EPOCH} || time))`
                           
 \endcopy
 
