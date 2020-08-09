@@ -22,6 +22,8 @@
 # by the GPL.  However, I would appreciate it if you credited me if
 # appropriate in any documents you format using BFNN.)
 
+use POSIX;
+
 %saniarray= ('<','lt', '>','gt', '&','amp', '"','quot');
 
 sub html_init {
@@ -34,8 +36,9 @@ sub html_init {
     print HTML "<html>\n";
     $html_needpara= -1;
     $html_end='';
-    chop($html_date=`date '+%d %B %Y'`);
-    chop($html_year=`date '+%Y'`);
+    my $epoch=$ENV{SOURCE_DATE_EPOCH} || time;
+    $html_date=POSIX::strftime("%Y-%m-%d", gmtime($epoch));
+    $html_year=POSIX::strftime("%Y", gmtime($epoch));
 }
 
 sub html_startup {
