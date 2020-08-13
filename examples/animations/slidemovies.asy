@@ -16,7 +16,7 @@ access embed;       // For non-portable embedded movies
 usersetting();
 
 titlepage("Slides with {\tt Asymptote}: Animations","John C. Bowman",
-          "University of Alberta","\today","http://asymptote.sf.net");
+          "University of Alberta","\today","https://asymptote.sourceforge.io");
 
 title("Embedded PDF movies (portable)");
 animation a=animation("A");

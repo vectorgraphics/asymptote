@@ -53,9 +53,9 @@ $user_title
       content="Frequently asked questions and answers (FAQ) for Asymptote.">
 <link rel="Bookmark" title="Asymptote FAQ" href="index.html">
 <LINK rel="Bookmark" title="Asymptote Home Page"
-      href="http://asymptote.sourceforge.net">
+      href="https://asymptote.sourceforge.io">
 <LINK rel="Bookmark" title="Asymptote Manual"
-      href="http://asymptote.sourceforge.net/doc/">
+      href="https://asymptote.sourceforge.io/doc/">
 </head><body text="#000000" bgcolor="#FFFFFF"><h1>
 $user_title
 </h1>
