@@ -123,23 +123,11 @@ template<class T>
 void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
                 bool pipe=false)
 {
-  if(pipe) {
-    // Make tex pipe aware of a previously generated aux file.
-    string name=auxname(settings::outname(),"aux");
-    std::ifstream fin(name.c_str());
-    if(fin) {
-      std::ofstream fout("texput.aux");
-      string s;
-      while(getline(fin,s))
-        fout << s << endl;
-    }
-  }
-
   string texengine=settings::getSetting<string>("tex");
   bool latex=settings::latex(texengine);
-  bool header=pipe || !settings::getSetting<bool>("inlinetex");
-  if(latex) {
-    if(header) {
+  bool inlinetex=settings::getSetting<bool>("inlinetex");
+  if(pipe || !inlinetex) {
+    if(latex) {
       if(texengine == "lualatex") {
         out << "\\ifx\\pdfpagewidth\\undefined\\let\\pdfpagewidth\\paperwidth"
             << "\\fi" << newl
@@ -153,14 +141,32 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
             << "\\usepackage{graphicx}" << newl
             << "\\let\\paperwidth\\paperwidthsave" << newl;
       }
-      if(!pipe) {
-        dvipsfix(out);
-        out << "\\usepackage{color}" << newl;
-      }
+    }
+    texpreamble(out,preamble,pipe);
+  }
+
+  if(pipe) {
+    // Make tex pipe aware of a previously generated aux file.
+    string name=auxname(settings::outname(),"aux");
+    std::ifstream fin(name.c_str());
+    if(fin) {
+      std::ofstream fout("texput.aux");
+      string s;
+      while(getline(fin,s))
+        fout << s << endl;
+    }
+  }
+
+  if(latex) {
+    if(!inlinetex) {
+      dvipsfix(out);
+      out << "\\usepackage{color}" << newl;
+    }
+    if(pipe) {
+      out << "\\begin{document}" << newl;
+      latexfontencoding(out);
     }
   } else if(!settings::context(texengine)) {
-    if(texengine == "luatex")
-      out << "\\input luatex85.sty" << newl;
     out << "\\input graphicx" << newl // Fix miniltx path parsing bug:
         << "\\makeatletter" << newl
         << "\\def\\filename@parse#1{%" << newl
@@ -180,14 +186,6 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
     if(!pipe)
       out << "\\input picture" << newl;
   }
-
-  if(latex && pipe) {
-    out << "\\begin{document}" << newl;
-    latexfontencoding(out);
-  }
-
-  if(header)
-    texpreamble(out,preamble,pipe);
 }
 
 template<class T>
