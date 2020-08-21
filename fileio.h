@@ -537,7 +537,11 @@ public:
     }
   }
   void Read(char& val) {iread(val);}
-  void Read(string& val) {char c; iread(c); val=c;}
+  void Read(string& val) {
+    ostringstream buf;
+    buf << fstream->rdbuf();
+    val=buf.str();
+  }
 
   void Read(double& val) {
     if(singlereal) {float fval; iread(fval); val=fval;}
