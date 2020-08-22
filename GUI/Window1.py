@@ -772,11 +772,11 @@ class MainWindow1(Qw.QMainWindow):
         self.asyfyCanvas()
 
     def actionManual(self):
-        asyManualURL = 'http://asymptote.sourceforge.net/asymptote.pdf'
+        asyManualURL = 'https://asymptote.sourceforge.io/asymptote.pdf'
         webbrowser.open_new(asyManualURL)
 
     def actionAbout(self):
-        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: http://asymptote.sourceforge.net/")
+        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
     def btnExportAsyOnClick(self):
         diag = Qw.QFileDialog(self)

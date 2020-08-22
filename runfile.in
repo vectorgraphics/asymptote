@@ -145,10 +145,7 @@ string getc(file *f)
 {
   char c=0;
   if(f->isOpen()) f->read(c);
-  static char str[2];
-  str[0]=c;
-  str[1]=0;
-  return string(str);
+  return string(1,c);
 }
 
 Int tell(file *f)

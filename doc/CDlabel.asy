@@ -10,7 +10,7 @@ label(scale(1.1)*minipage(
 \small The Vector Graphics Language}\\
 \smallskip
 \textsc{Andy Hammerlindl, John Bowman, and Tom Prince}
-http://asymptote.sourceforge.net\\
+https://asymptote.sourceforge.io\\
 ",8cm),(0,0.6));
 label(graphic("logo","height=7cm"),(0,-0.22));
 clip(unitcircle^^(scale(2/11.7)*unitcircle),evenodd);

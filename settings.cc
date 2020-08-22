@@ -888,7 +888,7 @@ void version()
 void usage(const char *program)
 {
   version();
-  cerr << "\t\t\t" << "http://asymptote.sourceforge.net/"
+  cerr << "\t\t\t" << "https://asymptote.sourceforge.io/"
        << endl
        << "Usage: " << program << " [options] [file ...]"
        << endl;

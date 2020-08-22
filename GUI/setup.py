@@ -8,6 +8,6 @@ setup(
     version=xasyVersion.xasyVersion,
     author="Supakorn Rassameemasmuang, Orest Shardt, and John C. Bowman",
     description="User interface for Asymptote, a vector graphics language", 
-    url="http://asymptote.sourceforge.net",
+    url="https://asymptote.sourceforge.io",
     download_url="https://sourceforge.net/projects/asymptote/"
 )

@@ -3849,7 +3849,7 @@ value) files and portable @acronym{XDR} (External Data Representation)
 binary files.
 
 @cindex @code{input}
-An input file must first be opened with 
+An input file can be opened with
 @verbatim
 input(string name="", bool check=true, string comment="#", string mode="");
 @end verbatim
@@ -3979,7 +3979,8 @@ Data Representation) portable binary format (available on all
 @code{UNIX} platforms).
 Alternatively, a file may also be opened with @code{mode="binary"}
 to read or write double precision reals and single
-precision integers in the native (nonportable) machine binary format.
+precision integers in the native (nonportable) machine binary format,
+or to read the entire file into a string.
 The virtual member functions
 @code{file singlereal(bool b=true)} and @code{file singleint(bool b=true)}
 be used to change the precision of real and integer I/O
