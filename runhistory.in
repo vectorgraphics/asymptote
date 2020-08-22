@@ -22,6 +22,10 @@ using namespace run;
 typedef array stringarray;
 using types::stringArray;
 
+namespace camp {
+bool allowRender=true;
+}
+
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -67,9 +71,6 @@ string historyfilename(const string &name)
   return historyname+"_"+name;
 }
 
-namespace camp {
-bool allowRender=true;
-}
 #endif
 
 namespace run {
