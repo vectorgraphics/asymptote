@@ -2,9 +2,9 @@ import three;
 import math;
 import fontsize;
 
-size(25cm);
+//size(80cm);
 settings.fitscreen=false;
-defaultpen(fontsize(35pt)+linewidth(0.5));
+defaultpen(fontsize(100pt)+linewidth(3));
 
 currentlight=nolight;
 
@@ -83,17 +83,19 @@ int intersect(triple a, triple b, triple A, triple B, triple C,
 real third=1.0/3.0;
 
 // returns true iff v is on the same side of triangle ABC as P.camera
-bool sameside(triple centroid, triple A, triple B, triple C,
+bool sameside(triple v, triple A, triple B, triple C,
               projection P=currentprojection)
 {
-  return sgn(orient(A,B,C,centroid)) == sgn(orient(A,B,C,P.camera));
+  return sgn(orient(A,B,C,v)) == sgn(orient(A,B,C,P.camera));
 }
+
+triple centroid;
 
 bool sameside(triple A, triple B, triple C,
               projection P=currentprojection)
 {
   dot(vertex,green);
-  triple centroid=third*sum(vertex);
+  centroid=third*sum(vertex);
   dot(centroid,black);
   return sameside(centroid,A,B,C,P);
 }
@@ -131,11 +133,13 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
 
   sum += 8*intersect(b,c,A,B,C,P);
   write(vertex.length);
-  if(vertex.length == 3) return sameside(A,B,C,P);
+  if(vertex.length == 3)
+    return sameside(A,B,C,P);
 
   sum += 64*intersect(c,a,A,B,C,P);
   write(vertex.length);
-  if(vertex.length == 3) return sameside(A,B,C,P);
+  if(vertex.length == 3)
+    return sameside(A,B,C,P);
 
   path T=project(A,P)--project(B,P)--project(C,P)--cycle;
 
@@ -147,6 +151,7 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     int o1=sum2#8;
     int o0=sum2-8*o1;
     write("sum=64*"+string(o2)+"+8*"+string(o1)+"+1*"+string(o0));
+    write();
 
     if(sum == 1*3 || sum == 8*3 || sum == 64*3)                // +.+
       return !Sameside(inside(t,project(B,P)) ? B : A,a,b,c,P);
@@ -237,17 +242,55 @@ triple t2=X+Z+2Y;
 //srand(seconds());
 
 while(true) {
+  //  currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));
   currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));
+   write("Camera=",currentprojection.camera);
 
-  triple A=(unitrand(),unitrand(),unitrand());
-  triple B=(unitrand(),unitrand(),unitrand());
-  triple C=(unitrand(),unitrand(),unitrand());
+
+  /*
+currentprojection=orthographic(
+camera=(-9.30375447679876,0.959249381767673,13.6715710699745),
+up=(0.0016510798297577,-0.000170232061679372,0.00113553418828932),
+target=(-1.77635683940025e-15,0,0),
+zoom=1);
+  */
+
+  //  currentprojection=absorthographic((0.389372307337626,-0.893583674375808,-0.223377311219387));
+
+  //  currentprojection=absorthographic((1,1,1));
+
+triple A,B,C;
+triple a,b,c;
+
+
+  triple A=(4*unitrand(),unitrand(),2*unitrand());
+  triple B=(unitrand(),6*unitrand(),unitrand());
+  triple C=(unitrand(),unitrand(),2*unitrand());
 
   triple a=(2*unitrand(),unitrand(),unitrand());
-  triple b=(2*unitrand(),unitrand(),unitrand());
-  triple c=(2*unitrand(),unitrand(),unitrand());
+  triple b=(unitrand(),4*unitrand(),unitrand());
+  triple c=(unitrand(),unitrand(),6*unitrand());
 
-  //  write(currentprojection.camera);
+  write(A,B,C);
+  write(a,b,c);
+
+
+  A=(3.69352303989861,0.0433947122857881,0.168821990568574);
+  B=(0.244858304152665,4.26812922967045,0.611241182131339);
+  C=(0.0928584011704002,0.961565173678829,1.73493813804115);
+
+  a=(0.33218812026651,0.475947353744855,0.757281790840105);
+  b=(0.77750499489601,0.0279204603414612,0.578612574179942);
+  c=(0.736461881891108,0.743727071091406,5.53543211404953);
+
+  real f=300;
+  A *= f;
+  B *= f;
+  C *= f;
+
+  a *=f;
+  b *= f;
+  c *=f;
 
   if(!intersect(a,b,c,A,B,C) && intersect(a,b,c,A,B,C,currentprojection)) {
     erase();
@@ -271,8 +314,25 @@ while(true) {
     label("4",C--A);
 
     write(front(a,b,c,A,B,C));
-    //    if(sum == 64*5)
+    triple v=unit(currentprojection.camera-currentprojection.target);
+    currentprojection.camera -= cross(cross(centroid-currentprojection.target,v),v);
+
+    currentprojection.target=centroid;
+    write(front(a,b,c,A,B,C));
+
+    write("Camera:",currentprojection.camera);
+    write("Target:",currentprojection.target);
+    dot(currentprojection.target,yellow+10mm+opacity(0.5));
+    draw(sum(vertex)/3--currentprojection.camera,magenta);
+    dot(currentprojection.camera,green);
+
+    if(sum == 64*1+8*5) {
+      write("Current camera:",currentprojection.camera);
+      write("Current target:",currentprojection.target);
       shipout();
+      write();
+    }
     //    exit();
+
   }
 }
