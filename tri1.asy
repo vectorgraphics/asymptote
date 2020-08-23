@@ -3,7 +3,7 @@ import math;
 import fontsize;
 
 //size(80cm);
-settings.fitscreen=false;
+//settings.fitscreen=false;
 defaultpen(fontsize(100pt)+linewidth(3));
 
 currentlight=nolight;
@@ -176,9 +176,10 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
   }
 
   if(vertex.length == 0) {
-    triple v=third*(a+b+c);
-    return inside(T,project(v,P)) ?
-      sameside(v,A,B,C,P) : sameside(third*(A+B+C),a,b,c,P);
+    centroid=third*(a+b+c);
+    dot(centroid,black);
+    return inside(T,project(centroid,P)) ?
+      sameside(centroid,A,B,C,P) : !sameside(third*(A+B+C),a,b,c,P);
   }
 
   return true; // Triangle projections do not intersect;
@@ -244,7 +245,7 @@ triple t2=X+Z+2Y;
 while(true) {
   //  currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));
   currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));
-   write("Camera=",currentprojection.camera);
+  //   write("Camera=",currentprojection.camera);
 
 
   /*
@@ -271,9 +272,10 @@ triple a,b,c;
   triple b=(unitrand(),4*unitrand(),unitrand());
   triple c=(unitrand(),unitrand(),6*unitrand());
 
-  write(A,B,C);
-  write(a,b,c);
+  //  write(A,B,C);
+  //  write(a,b,c);
 
+  /*
 
   A=(3.69352303989861,0.0433947122857881,0.168821990568574);
   B=(0.244858304152665,4.26812922967045,0.611241182131339);
@@ -282,6 +284,7 @@ triple a,b,c;
   a=(0.33218812026651,0.475947353744855,0.757281790840105);
   b=(0.77750499489601,0.0279204603414612,0.578612574179942);
   c=(0.736461881891108,0.743727071091406,5.53543211404953);
+  */
 
   real f=300;
   A *= f;
@@ -298,6 +301,17 @@ triple a,b,c;
     draw(surface(c--a--b--cycle),red+opacity(opacity));
     draw(surface(A--B--C--cycle),blue+opacity(opacity));
 
+    write(front(a,b,c,A,B,C));
+
+    triple v=unit(currentprojection.camera-currentprojection.target);
+    currentprojection.camera -= cross(cross(centroid-currentprojection.target,v),v);
+    currentprojection.target=centroid;
+
+    triple v=unit(currentprojection.camera-currentprojection.target);
+    currentprojection.camera=currentprojection.target-1000*v;
+
+    write(front(a,b,c,A,B,C));
+
     label("a",a,dir(c--a,b--a));
     label("b",b,dir(a--b,c--b));
     label("c",c,dir(a--c,b--c));
@@ -313,25 +327,18 @@ triple a,b,c;
     label("2",B--C);
     label("4",C--A);
 
-    write(front(a,b,c,A,B,C));
-    triple v=unit(currentprojection.camera-currentprojection.target);
-    currentprojection.camera -= cross(cross(centroid-currentprojection.target,v),v);
-
-    currentprojection.target=centroid;
-    write(front(a,b,c,A,B,C));
-
-    write("Camera:",currentprojection.camera);
-    write("Target:",currentprojection.target);
-    dot(currentprojection.target,yellow+10mm+opacity(0.5));
-    draw(sum(vertex)/3--currentprojection.camera,magenta);
+    //    write("Camera:",currentprojection.camera);
+    //    write("Target:",currentprojection.target);
+    dot(centroid,yellow+10mm+opacity(0.5));
+    draw(centroid--currentprojection.camera,magenta);
     dot(currentprojection.camera,green);
 
-    if(sum == 64*1+8*5) {
-      write("Current camera:",currentprojection.camera);
-      write("Current target:",currentprojection.target);
+    //       if(sum == 0) {
+          //      write("Current camera:",currentprojection.camera);
+          //      write("Current target:",currentprojection.target);
       shipout();
       write();
-    }
+      //        }
     //    exit();
 
   }
