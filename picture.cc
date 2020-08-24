@@ -629,7 +629,8 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dSubsetFonts=true");
   cmd.push_back("-dEmbedAllFonts=true");
   cmd.push_back("-dMaxSubsetPct=100");
-  cmd.push_back("-dPDFSETTINGS=/prepress");
+  cmd.push_back("-dEncodeColorImages=false");
+  cmd.push_back("-dEncodeGrayImages=false");
   cmd.push_back("-dCompatibilityLevel=1.4");
   if(!getSetting<bool>("autorotate"))
     cmd.push_back("-dAutoRotatePages=/None");
