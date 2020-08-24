@@ -16,7 +16,7 @@ int[] edges={0,0,0,2};
 gouraudshade(faces.push(y),project(y),p,edges);
 gouraudshade(faces.push(l),project(l),p,edges);
 gouraudshade(faces.push(g),project(g),new pen[]{cyan,magenta,yellow,black},
-	     edges);
+             edges);
 
 add(faces);
 

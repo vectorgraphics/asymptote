@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1030</width>
-    <height>768</height>
+    <width>1000</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -126,7 +126,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/android-arrow-back.svg</normaloff>:/icons/android-arrow-back.svg</iconset>
             </property>
             <property name="iconSize">
@@ -170,8 +170,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/android-arrow-forward.svg</normaloff>:/icons/android-arrow-forward.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -205,8 +211,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/android-folder-open.svg</normaloff>:/icons/android-folder-open.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -240,8 +252,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -258,14 +276,14 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>25</width>
-              <height>25</height>
+              <width>24</width>
+              <height>24</height>
              </size>
             </property>
             <property name="baseSize">
              <size>
-              <width>32</width>
-              <height>32</height>
+              <width>20</width>
+              <height>20</height>
              </size>
             </property>
             <property name="toolTip">
@@ -275,8 +293,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/code.svg</normaloff>:/icons/code.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -310,8 +334,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/android-camera.svg</normaloff>:/icons/android-camera.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -368,8 +398,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/plus-round.svg</normaloff>:/icons/plus-round.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -416,8 +452,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/grid.svg</normaloff>:/icons/grid.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -451,14 +493,20 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Synchronize with Asymptote</string>
+             <string>Zoom</string>
             </property>
             <property name="text">
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/magnifying-glass.svg</normaloff>:/icons/magnifying-glass.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -492,8 +540,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/center.svg</normaloff>:/icons/center.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -527,8 +581,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/centerorigin.svg</normaloff>:/icons/centerorigin.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -567,6 +627,12 @@
             </property>
             <property name="text">
              <string>X</string>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -607,6 +673,12 @@
             </property>
             <property name="text">
              <string>Y</string>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -656,8 +728,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/edit.svg</normaloff>:/icons/edit.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -694,8 +772,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/android-delete.svg</normaloff>:/icons/android-delete.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>false</bool>
@@ -748,8 +832,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/android-hand.svg</normaloff>:/icons/android-hand.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -786,8 +876,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/arrow-move.svg</normaloff>:/icons/arrow-move.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -827,8 +923,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/arrow-resize.svg</normaloff>:/icons/arrow-resize.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -865,8 +967,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/android-refresh.svg</normaloff>:/icons/android-refresh.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -919,8 +1027,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/anchor.svg</normaloff>:/icons/anchor.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -963,7 +1077,7 @@
              <bool>false</bool>
             </property>
             <property name="currentText">
-             <string>Origin</string>
+             <string>Center</string>
             </property>
             <property name="currentIndex">
              <number>0</number>
@@ -991,12 +1105,12 @@
             </property>
             <item>
              <property name="text">
-              <string>Origin</string>
+              <string>Center</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Center</string>
+              <string>Origin</string>
              </property>
             </item>
             <item>
@@ -1053,8 +1167,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/eye.svg</normaloff>:/icons/eye.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="checkable">
              <bool>false</bool>
@@ -1091,8 +1211,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/android-expand.svg</normaloff>:/icons/android-expand.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1129,8 +1255,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/chevron-with-circle-left.svg</normaloff>:/icons/chevron-with-circle-left.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1167,8 +1299,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../res/icons.qrc">
               <normaloff>:/icons/chevron-with-circle-right.svg</normaloff>:/icons/chevron-with-circle-right.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1279,9 +1417,15 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="../res/icons.qrc">
                  <normaloff>:/icons/bucket.svg</normaloff>
                  <normalon>:/icons/filledbucket.svg</normalon>:/icons/bucket.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
                </property>
                <property name="checkable">
                 <bool>true</bool>
@@ -1407,8 +1551,14 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="../res/icons.qrc">
                  <normaloff>:/icons/android-color-palette.svg</normaloff>:/icons/android-color-palette.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
                </property>
                <property name="default">
                 <bool>false</bool>
@@ -1485,8 +1635,14 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset>
+                   <iconset resource="../res/icons.qrc">
                     <normaloff>:/icons/openpolygon.svg</normaloff>:/icons/openpolygon.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1517,8 +1673,14 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset>
+                   <iconset resource="../res/icons.qrc">
                     <normaloff>:/icons/closedpolygon.svg</normaloff>:/icons/closedpolygon.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1549,8 +1711,14 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset>
+                   <iconset resource="../res/icons.qrc">
                     <normaloff>:/icons/opencurve.svg</normaloff>:/icons/opencurve.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1581,8 +1749,14 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset>
+                   <iconset resource="../res/icons.qrc">
                     <normaloff>:/icons/closedcurve.svg</normaloff>:/icons/closedcurve.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1613,8 +1787,14 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset>
+                   <iconset resource="../res/icons.qrc">
                     <normaloff>:/icons/triangle-stroked-15.svg</normaloff>:/icons/triangle-stroked-15.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1645,8 +1825,14 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset>
+                   <iconset resource="../res/icons.qrc">
                     <normaloff>:/icons/circle.svg</normaloff>:/icons/circle.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1677,8 +1863,14 @@ background: rgb(0, 0, 0)
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset>
+                   <iconset resource="../res/icons.qrc">
                     <normaloff>:/icons/text.svg</normaloff>:/icons/text.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1774,7 +1966,7 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="../res/icons.qrc">
                  <normaloff>:/icons/social-python.svg</normaloff>:/icons/social-python.svg</iconset>
                </property>
                <property name="iconSize">
@@ -1816,8 +2008,14 @@ background: rgb(0, 0, 0)
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="../res/icons.qrc">
                  <normaloff>:/icons/subdirectory-left.svg</normaloff>:/icons/subdirectory-left.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
                </property>
                <property name="flat">
                 <bool>true</bool>
@@ -1840,8 +2038,8 @@ background: rgb(0, 0, 0)
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1030</width>
-     <height>28</height>
+     <width>1000</width>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">

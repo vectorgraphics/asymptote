@@ -61,8 +61,8 @@ class HardDeletionChanges(ActionChanges):
         self.objIndex = pos
 
 class AnchorMode:
-    origin = 0
-    center = 1
+    center = 0
+    origin = 1
     topLeft = 2
     topRight = 3
     bottomRight = 4
@@ -102,7 +102,10 @@ class MainWindow1(Qw.QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
+        global devicePixelRatio
+        devicePixelRatio=self.devicePixelRatio()
         self.ui.setupUi(self)
+        self.ui.menubar.setNativeMenuBar(False)
 
         self.settings = xo.BasicConfigs.defaultOpt
         self.keyMaps = xo.BasicConfigs.keymaps
@@ -136,6 +139,8 @@ class MainWindow1(Qw.QMainWindow):
         self.mainCanvas = None
         self.dpi = 300
         self.canvasPixmap = None
+        self.tx=0
+        self.ty=0
 
         # Actions
         # <editor-fold> Connecting Actions
@@ -194,7 +199,6 @@ class MainWindow1(Qw.QMainWindow):
         self.savedWindowMousePos = None
 
         self.finalPixmap = None
-        self.preCanvasPixmap = None
         self.postCanvasPixmap = None
         self.previewCurve = None
         self.mouseDown = False
@@ -262,8 +266,10 @@ class MainWindow1(Qw.QMainWindow):
             'setMag': self.setMagPrompt,
             'deleteObject': self.btnSelectiveDeleteOnClick, 
             'anchorMode': self.switchToAnchorMode,
-            'moveUp': lambda: self.arrowButtons(0, 1, False), 
-            'moveDown': lambda: self.arrowButtons(0, -1, False),
+            'moveUp': lambda: self.translate(0, -1),
+            'moveDown': lambda: self.translate(0, 1),
+            'moveLeft': lambda: self.translate(-1, 0),
+            'moveRight': lambda: self.translate(1, 0),
 
             'scrollLeft': lambda: self.arrowButtons(-1, 0, True),
             'scrollRight': lambda: self.arrowButtons(1, 0, True),
@@ -297,6 +303,17 @@ class MainWindow1(Qw.QMainWindow):
             self.mouseWheel(30*x, 30*y)
         self.quickUpdate()
 
+    def translate(self, x:int , y:int):
+        "x, y indicates update button orientation on the cartesian plane."
+        if self.lockX:
+            x = 0
+        if self.lockY:
+            y = 0
+        self.tx += x
+        self.ty += y
+        self.newTransform=Qg.QTransform.fromTranslate(self.tx,self.ty)
+        self.quickUpdate()
+
     def cleanup(self):
         self.asyengine.cleanup()
 
@@ -307,7 +324,8 @@ class MainWindow1(Qw.QMainWindow):
 
         # pipeline --> let x, y be the postscript point
         # p = (mx + cx + panoffset, -ny + cy + panoffset)
-        cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
+        factor=0.5/devicePixelRatio;
+        cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
 
         newTransf = Qg.QTransform()
         newTransf.translate(*self.panOffset)
@@ -754,11 +772,11 @@ class MainWindow1(Qw.QMainWindow):
         self.asyfyCanvas()
 
     def actionManual(self):
-        asyManualURL = 'http://asymptote.sourceforge.net/asymptote.pdf'
+        asyManualURL = 'https://asymptote.sourceforge.io/asymptote.pdf'
         webbrowser.open_new(asyManualURL)
 
     def actionAbout(self):
-        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: http://asymptote.sourceforge.net/")
+        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
     def btnExportAsyOnClick(self):
         diag = Qw.QFileDialog(self)
@@ -931,11 +949,12 @@ class MainWindow1(Qw.QMainWindow):
         if self.isReady():
             if self.mainCanvas.isActive():
                 self.mainCanvas.end()
-            self.canvSize = self.ui.imgFrame.size()
+            self.canvSize = self.ui.imgFrame.size()*devicePixelRatio
             self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
             self.canvasPixmap = Qg.QPixmap(self.canvSize)
-            # self.canvasPixmap.setDevicePixelRatio(3)
+            self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
             self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
+            self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
             self.quickUpdate()
 
@@ -1049,7 +1068,7 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
             return
 
-        # otherwise, select a candinate for selection
+        # otherwise, select a candidate for selection
 
         if self.currentlySelectedObj['selectedIndex'] is None:
             selectedIndex, selKeyList = self.selectObject()
@@ -1069,6 +1088,8 @@ class MainWindow1(Qw.QMainWindow):
         if not self.mouseDown:
             return
 
+        self.tx=0
+        self.ty=0
         self.mouseDown = False
         if self.addMode is not None:
             self.addMode.mouseRelease()
@@ -1104,7 +1125,8 @@ class MainWindow1(Qw.QMainWindow):
         if keyModifiers & int(Qc.Qt.ControlModifier):
             oldMag = self.magnification
 
-            cx, cy = self.canvSize.width() / 2, self.canvSize.height() / 2
+            factor=0.5/devicePixelRatio;
+            cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
             centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
 
             self.magnification += (rawAngle/100)
@@ -1261,13 +1283,13 @@ class MainWindow1(Qw.QMainWindow):
         if self.anchorMode == AnchorMode.center:
             self.currentAnchor = self.currentBoundingBox.center()
         elif self.anchorMode == AnchorMode.topLeft:
-            self.currentAnchor = self.currentBoundingBox.bottomLeft()  # due to internal image being flipped
-        elif self.anchorMode == AnchorMode.topRight:
-            self.currentAnchor = self.currentBoundingBox.bottomRight()
-        elif self.anchorMode == AnchorMode.bottomLeft:
             self.currentAnchor = self.currentBoundingBox.topLeft()
-        elif self.anchorMode == AnchorMode.bottomRight:
+        elif self.anchorMode == AnchorMode.topRight:
             self.currentAnchor = self.currentBoundingBox.topRight()
+        elif self.anchorMode == AnchorMode.bottomLeft:
+            self.currentAnchor = self.currentBoundingBox.bottomLeft()
+        elif self.anchorMode == AnchorMode.bottomRight:
+            self.currentAnchor = self.currentBoundingBox.bottomRight()
         elif self.anchorMode == AnchorMode.customAnchor:
             self.currentAnchor = self.customAnchor
         else:
@@ -1294,17 +1316,21 @@ class MainWindow1(Qw.QMainWindow):
         self.screenTransformation = self.screenTransformation * appendTransform
 
     def createMainCanvas(self):
-        self.canvSize = self.ui.imgFrame.size()
+        self.canvSize = devicePixelRatio*self.ui.imgFrame.size()
         self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
-        x, y = self.canvSize.width() / 2, self.canvSize.height() / 2
+        factor=0.5/devicePixelRatio;
+        x, y = self.canvSize.width()*factor, self.canvSize.height()*factor
 
         self.canvasPixmap = Qg.QPixmap(self.canvSize)
+        self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
+
         self.canvasPixmap.fill()
 
         self.finalPixmap = Qg.QPixmap(self.canvSize)
+        self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
 
-        self.preCanvasPixmap = Qg.QPixmap(self.canvSize)
         self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
+        self.postCanvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
         self.mainCanvas = Qg.QPainter(self.canvasPixmap)
         self.mainCanvas.setRenderHint(Qg.QPainter.Antialiasing)
@@ -1450,10 +1476,10 @@ class MainWindow1(Qw.QMainWindow):
 
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
+        self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
         self.finalPixmap.fill(Qc.Qt.black)
         with Qg.QPainter(self.finalPixmap) as finalPainter:
             drawPoint = Qc.QPoint(0, 0)
-            # finalPainter.drawPixmap(drawPoint, self.preCanvasPixmap)
             finalPainter.drawPixmap(drawPoint, self.canvasPixmap)
             finalPainter.drawPixmap(drawPoint, self.postCanvasPixmap)
         self.ui.imgLabel.setPixmap(self.finalPixmap)
@@ -1467,8 +1493,11 @@ class MainWindow1(Qw.QMainWindow):
 
         panX, panY = self.panOffset
 
-        x_range = (self.canvSize.width() / 2 + (2 * abs(panX)))/self.magnification
-        y_range = (self.canvSize.height() / 2 + (2 * abs(panY)))/self.magnification
+        factor=0.5/devicePixelRatio;
+        cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
+
+        x_range = (cx + (2 * abs(panX)))/self.magnification
+        y_range = (cy + (2 * abs(panY)))/self.magnification
 
         for x in np.arange(0, 2 * x_range + 1, majorGrid):  # have to do
             # this in two stages...
@@ -1532,11 +1561,9 @@ class MainWindow1(Qw.QMainWindow):
             currAng = currAng + majorAxisAng
 
     def preDraw(self, painter):
-        # self.preCanvasPixmap.fill(Qc.Qt.white)
         self.canvasPixmap.fill()
         preCanvas = painter
 
-        # preCanvas = Qg.QPainter(self.preCanvasPixmap)
         preCanvas.setTransform(self.getScrsTransform())
 
         if self.drawAxes:
@@ -1734,15 +1761,7 @@ class MainWindow1(Qw.QMainWindow):
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
                 
-        rawExternalEditor = self.settings['externalEditor']
-        rawExtEditorArgs = self.settings['externalEditorArgs']
-        execEditor = [rawExternalEditor]
-
-        for arg in rawExtEditorArgs:
-            execEditor.append(string.Template(
-                arg).substitute(asypath=(self.filename)))
-
-        subprocess.Popen(args=execEditor)
+        subprocess.Popen(args=self.getExternalEditor(asypath=self.filename));
 
     def btnAddCodeOnClick(self):
         header = """
@@ -1840,8 +1859,17 @@ class MainWindow1(Qw.QMainWindow):
         pass
 
     def getExternalEditor(self, **kwargs) -> str:
-        rawExternalEditor = self.settings['externalEditor']
-        rawExtEditorArgs = self.settings['externalEditorArgs']
+        editor = os.getenv("VISUAL")
+        if(editor == None) :
+            editor = os.getenv("EDITOR")
+        if(editor == None) :
+            rawExternalEditor = self.settings['externalEditor']
+            rawExtEditorArgs = self.settings['externalEditorArgs']
+        else:
+            s = editor.split()
+            rawExternalEditor = s[0]
+            rawExtEditorArgs = s[1:]+["$asypath"]
+            
         execEditor = [rawExternalEditor]
 
         for arg in rawExtEditorArgs:

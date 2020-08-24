@@ -1,6 +1,6 @@
 size(200);
 
-pen[] p={red,green,blue,magenta};
+pen[] p={red,green,blue,yellow};
 pair[] z={(-1,0),(0,0),(0,1),(1,0)};
 int[] edges={0,0,0,1};
 gouraudshade(z[0]--z[2]--z[3]--cycle,p,z,edges);

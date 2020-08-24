@@ -1,5 +1,5 @@
 import three;
-import palette; 
+import palette;
 import graph3;
 
 size(300);

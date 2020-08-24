@@ -21,3 +21,6 @@ The file fixmem.reg patches the Microsoft Windows registry so that the
 cygwin1.dll library can allocate more than 384MB. It is applied
 automatically by the Asymptote setup.exe file but may also be applied manually:
 regedit /s fixmem.reg
+
+The file gl-matrix-2.4.0-pruned.patch is used to build the required subset of
+the gl-matrix library.

@@ -20,8 +20,8 @@ real Y0[]=new real[] {-1,2};
 
 real[] F(real t, real[] y) {
   return sequence(new real(int m) {return f(t,y[M-m-1]);},M);
-    //  return new real[] {exp((L[1]-1)*t)*y[1],
-    //      -exp(-(L[1]-1)*t)*y[0]};
+  //  return new real[] {exp((L[1]-1)*t)*y[1],
+  //      -exp(-(L[1]-1)*t)*y[0]};
   //  return new real[]{-y[0]^2};
 }
 
@@ -46,23 +46,23 @@ for(int i=0; i < n-1; ++i) {
   //  real[] exact=new real[] {exp(-b)*sin(b),exp(-L[1]*b)*cos(b)};
   for(int m=0; m < M; ++m)
     maxnorm=max(maxnorm,abs(S.y[S.y.length-1][m]-exact[m]));
-    if(maxnorm != 0) {
-      tau.push(dt);
-      //      error.push(dt^-(order+1)*maxnorm);
-            error.push(maxnorm);
-    }
+  if(maxnorm != 0) {
+    tau.push(dt);
+    //      error.push(dt^-(order+1)*maxnorm);
+    error.push(maxnorm);
+  }
 }
 
 /*
-for(int i=0; i < n-1; ++i) {
+  for(int i=0; i < n-1; ++i) {
   real dt=(b-a)*lambda^(n-i);
   real maxnorm=0;
   for(int m=0; m < M; ++m) {
-    solution S=integrate(Y0[m],L[m],f,a,b,dt,dynamic=false,0.000,1000,RK4_375,verbose=false);
-    maxnorm=max(maxnorm,abs(S.y[S.y.length-1]-exact[m]));
+  solution S=integrate(Y0[m],L[m],f,a,b,dt,dynamic=false,0.000,1000,RK4_375,verbose=false);
+  maxnorm=max(maxnorm,abs(S.y[S.y.length-1]-exact[m]));
   }
   error2.push(dt^-order*maxnorm);
-}
+  }
 */
 
 //scale(Log,Log);

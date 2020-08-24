@@ -1,0 +1,7 @@
+For now, I decide not to commit in the *.hdr reflectance image files
+because of the size and that they are binary format. Meanwhile, the
+images I use (temporarily) can be found at:
+- <https://www.deviantart.com/zbyg/art/HDRi-Pack-1-97402522>
+- <https://hdrihaven.com/>
+
+-- Supakorn "Jamie"

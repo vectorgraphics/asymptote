@@ -1,6 +1,6 @@
 // Critical definitions for transform3 needed by projection and picture.
 
-pair viewportmargin=(0.1,0.1);  // Horizontal and vertical 3D viewport margins.
+pair viewportmargin=settings.viewportmargin;
 
 typedef real[][] transform3;
 restricted transform3 identity4=identity(4);
@@ -161,7 +161,6 @@ projection currentprojection;
 
 struct light {
   real[][] diffuse;
-  real[][] ambient;
   real[][] specular;
   pen background=nullpen; // Background color of the 3D canvas.
   real specularfactor;
@@ -172,42 +171,38 @@ struct light {
   bool on() {return position.length > 0;}
   
   void operator init(pen[] diffuse,
-                     pen[] ambient=array(diffuse.length,black),
                      pen[] specular=diffuse, pen background=nullpen,
                      real specularfactor=1,
                      triple[] position) {
     int n=diffuse.length;
-    assert(ambient.length == n && specular.length == n && position.length == n);
+    assert(specular.length == n && position.length == n);
     
     this.diffuse=new real[n][];
-    this.ambient=new real[n][];
     this.specular=new real[n][];
     this.background=background;
     this.position=new triple[n];
     for(int i=0; i < position.length; ++i) {
       this.diffuse[i]=rgba(diffuse[i]);
-      this.ambient[i]=rgba(ambient[i]);
       this.specular[i]=rgba(specular[i]);
       this.position[i]=unit(position[i]);
     }
     this.specularfactor=specularfactor;
   }
 
-  void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
+  void operator init(pen diffuse=white, pen specular=diffuse,
                      pen background=nullpen, real specularfactor=1 ...triple[] position) {
     int n=position.length;
-    operator init(array(n,diffuse),array(n,ambient),array(n,specular),
+    operator init(array(n,diffuse),array(n,specular),
                   background,specularfactor,position);
   }
 
-  void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
+  void operator init(pen diffuse=white, pen specular=diffuse,
                      pen background=nullpen, real x, real y, real z) {
-    operator init(diffuse,ambient,specular,background,(x,y,z));
+    operator init(diffuse,specular,background,(x,y,z));
   }
 
   void operator init(explicit light light) {
     diffuse=copy(light.diffuse);
-    ambient=copy(light.ambient);
     specular=copy(light.specular);
     background=light.background;
     specularfactor=light.specularfactor;

@@ -17,17 +17,17 @@
 
 #ifndef NOHASH
 
-#ifdef HAVE_UNORDERED_MAP
+#ifdef HAVE_TR1_UNORDERED_MAP
 
 #include <memory>
-#include <unordered_map>
-#define EXT std
+#include <tr1/unordered_map>
+#define EXT std::tr1
 
 #else
 
-#ifdef HAVE_TR1_UNORDERED_MAP
-#include <tr1/unordered_map>
-#define EXT std::tr1
+#ifdef HAVE_UNORDERED_MAP
+#include <unordered_map>
+#define EXT std
 #else
 #define EXT __gnu_cxx
 #include <ext/hash_map>
@@ -42,12 +42,15 @@
 #ifdef __DECCXX_LIBCXX_RH70
 #define CONST
 #else
-#define CONST const  
+#define CONST const
 #endif
-  
+
 #ifdef USEGC
 
 #define GC_THREADS
+#ifdef __clang__
+#define GC_ATTR_EXPLICIT
+#endif
 #include <gc.h>
 
 #ifdef GC_DEBUG
@@ -87,6 +90,8 @@ inline void *asy_malloc_atomic(size_t n)
 #include <gc_allocator.h>
 #include <gc_cpp.h>
 
+#define gc_allocator gc_allocator_ignore_off_page
+
 #else // USEGC
 
 using std::allocator;
@@ -102,8 +107,8 @@ inline void* operator new(size_t size, GCPlacement) {
 }
 
 inline void* operator new[](size_t size, GCPlacement) {
-  return operator new(size);
-}
+                           return operator new(size);
+                         }
 
 template<class T>
 struct GC_type_traits {};
@@ -150,15 +155,15 @@ GC_CONTAINER(multimap);
 #undef GC_CONTAINER
 
 #ifndef NOHASH
-#define GC_CONTAINER(KIND)                                              \
-  template <typename Key, typename T,                                   \
-            typename Hash = EXT::hash<Key>,                             \
-            typename Eq = std::equal_to<Key> >                          \
-  struct KIND : public                                                  \
-  EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC>, public gc {                      \
-    KIND() : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> () {}                  \
-    KIND(size_t n)                                                      \
-      : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> (n) {}                      \
+#define GC_CONTAINER(KIND)                              \
+  template <typename Key, typename T,                   \
+            typename Hash = EXT::hash<Key>,             \
+            typename Eq = std::equal_to<Key> >          \
+  struct KIND : public                                  \
+  EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC>, public gc {      \
+    KIND() : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> () {}  \
+    KIND(size_t n)                                      \
+      : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> (n) {}      \
   }
 
 GC_CONTAINER(unordered_map);

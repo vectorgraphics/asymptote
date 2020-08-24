@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #####
 # 
 # aspy.py
@@ -339,7 +340,7 @@ def DatumFromCallable(f):
 
     return DatumFromHandle(h)
 
-print "version", policy.contents.version
+print ("version", policy.contents.version)
 
 state = State(baseState)
 

@@ -14,7 +14,7 @@ struct RKTableau
   int order;
   coefficients a;
   void stepDependence(real h, real c, coefficients a) {}
-   
+
   real pgrow;
   real pshrink;
   bool exponential;
@@ -54,7 +54,7 @@ real phi2(real x)
   if(fabs(x) > 1) return (exp(x)-x-1)/x2;
   real x3=x2*x;
   real x5=x2*x3;
-  if(fabs(x) < 0.1) 
+  if(fabs(x) < 0.1)
     return Coeff[1]+x*Coeff[2]+x2*Coeff[3]+x3*Coeff[4]+x2*x2*Coeff[5]
       +x5*Coeff[6]+x3*x3*Coeff[7]+x5*x2*Coeff[8]+x5*x3*Coeff[9];
     else {
@@ -73,7 +73,7 @@ real phi3(real x)
   real x3=x2*x;
   if(fabs(x) > 1.6) return (exp(x)-0.5*x2-x-1)/x3;
   real x5=x2*x3;
-  if(fabs(x) < 0.1) 
+  if(fabs(x) < 0.1)
     return Coeff[2]+x*Coeff[3]+x2*Coeff[4]+x3*Coeff[5]
       +x2*x2*Coeff[6]+x5*Coeff[7]+x3*x3*Coeff[8]+x5*x2*Coeff[9]
       +x5*x3*Coeff[10];
@@ -90,13 +90,13 @@ real phi3(real x)
     }
 }
 
-void expfactors(real x, coefficients a) 
+void expfactors(real x, coefficients a)
 {
   for(int i=0; i < a.steps.length; ++i)
     a.factors[i]=exp(x*a.steps[i]);
   a.factors[a.steps.length]=exp(x);
 }
-      
+
 // First-Order Euler
 RKTableau Euler=RKTableau(1,new real[][], new real[] {1});
 
@@ -185,40 +185,40 @@ RKTableau RK4=RKTableau(4,new real[][] {{1/2},{0,1/2},{0,0,1}},
 
 // Fifth-Order Cash-Karp Runge-Kutta
 RKTableau RK5=RKTableau(5,new real[][] {{1/5},
-                                        {3/40,9/40},
-                                        {3/10,-9/10,6/5},
-                                        {-11/54,5/2,-70/27,35/27},
-                                        {1631/55296,175/512,575/13824,
-                                         44275/110592,253/4096}},
+                                          {3/40,9/40},
+                                            {3/10,-9/10,6/5},
+                                              {-11/54,5/2,-70/27,35/27},
+                                                {1631/55296,175/512,575/13824,
+                                                    44275/110592,253/4096}},
   new real[] {37/378,0,250/621,125/594,
-              0,512/1771},  // 5th order
+                0,512/1771},  // 5th order
   new real[] {2825/27648,0,18575/48384,13525/55296,
-              277/14336,1/4}); // 4th order
+                277/14336,1/4}); // 4th order
 
 // Fifth-Order Fehlberg Runge-Kutta
 RKTableau RK5F=RKTableau(5,new real[][] {{1/4},
-                                         {3/32,9/32},
-                                         {1932/2197,-7200/2197,7296/2197},
-                                         {439/216,-8,3680/513,-845/4104},
-                                         {-8/27,2,-3544/2565,1859/4104,
-                                          -11/40}},
+                                           {3/32,9/32},
+                                             {1932/2197,-7200/2197,7296/2197},
+                                               {439/216,-8,3680/513,-845/4104},
+                                                 {-8/27,2,-3544/2565,1859/4104,
+                                                     -11/40}},
   new real[] {16/135,0,6656/12825,28561/56430,-9/50,2/55}, // 5th order
   new real[] {25/216,0,1408/2565,2197/4104,-1/5,0}); // 4th order
 
 // Fifth-Order Dormand-Prince Runge-Kutta
 RKTableau RK5DP=RKTableau(5,new real[][] {{1/5},
-                                          {3/40,9/40},
-                                          {44/45,-56/15,32/9},
-                                          {19372/6561,-25360/2187,64448/6561,
-                                           -212/729},
-                                          {9017/3168,-355/33,46732/5247,49/176,
-                                           -5103/18656}},
+                                            {3/40,9/40},
+                                              {44/45,-56/15,32/9},
+                                                {19372/6561,-25360/2187,64448/6561,
+                                                    -212/729},
+                                                  {9017/3168,-355/33,46732/5247,49/176,
+                                                      -5103/18656}},
   new real[] {35/384,0,500/1113,125/192,-2187/6784,
-              11/84}, // 5th order
+                11/84}, // 5th order
   new real[] {5179/57600,0,7571/16695,393/640,
-              -92097/339200,187/2100,1/40}); // 4th order
+                -92097/339200,187/2100,1/40}); // 4th order
 
-real error(real error, real initial, real lowOrder, real norm, real diff) 
+real error(real error, real initial, real lowOrder, real norm, real diff)
 {
   if(initial != 0 && lowOrder != initial) {
     static real epsilon=realMin/realEpsilon;
@@ -249,7 +249,7 @@ struct solution
   real[] y;
 }
 
-void write(solution S) 
+void write(solution S)
 {
   for(int i=0; i < S.t.length; ++i)
     write(S.t[i],S.y[i]);
@@ -276,7 +276,7 @@ solution integrate(real y, real c=0, real f(real t, real y), real a, real b=a,
     new real(real t, real y) {return f(t,y)-c*y;};
 
   tableau.stepDependence(h,c,tableau.a);
-      
+
   real t=a;
   real f0;
   if(tableau.a.lowOrderWeights.length == 0) dynamic=false;
@@ -293,7 +293,7 @@ solution integrate(real y, real c=0, real f(real t, real y), real a, real b=a,
       tableau.stepDependence(h,c,tableau.a);
       dt=h;
     }
- 
+
     real[] predictions={fsal ? f0 : F(t,y)};
     for(int i=0; i < tableau.a.steps.length; ++i)
       predictions.push(F(t+h*tableau.a.steps[i],
@@ -336,7 +336,7 @@ struct Solution
   real[][] y;
 }
 
-void write(Solution S) 
+void write(Solution S)
 {
   for(int i=0; i < S.t.length; ++i) {
     write(S.t[i],tab);
@@ -356,7 +356,7 @@ Solution integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
   Solution S;
   S.t=new real[] {a};
   S.y=new real[][] {copy(y)};
-      
+
   if(h == 0) {
     if(b == a) return S;
     if(n == 0) abort("Either n or h must be specified");

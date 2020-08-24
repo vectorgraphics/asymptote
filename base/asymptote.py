@@ -32,19 +32,15 @@ class asy:
 		self.send('quit');
 		self.session.stdin.close();
 		self.session.wait()
-		
-
-
-
 
 if __name__=="__main__":
-	g = asy()
+	g=asy()
 	g.size(200)
-	g.draw("unitcircle")
-	g.send("draw(unitsquare)")
-	g.fill("unitsquare, blue")
-	g.clip("unitcircle")
-	g.label("\"$O$\", (0,0), SW")
-	raw_input("press ENTER to continue")
+	g.draw('unitcircle')
+	g.send('draw(unitsquare)')
+	g.fill('unitsquare,blue')
+	g.clip('unitcircle')
+	g.label('"$O$",(0,0),SW')
+	input('press ENTER to continue')
 	g.erase()
 	del g

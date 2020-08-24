@@ -90,7 +90,7 @@ GUI/*/__pycache__
 *.pdf
 *.pre
 *.m9
-*-[0-9].*
+#*-[0-9].*
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
@@ -104,10 +104,6 @@ GUI/*/__pycache__
 *-blx.bib
 *.brf
 *.run.xml
-
-### Data files
-*.obj
-*.pdb1
 
 ### Debugging files
 core.*
@@ -136,7 +132,7 @@ _ig_*/*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
+!.vscode/c_cpp_properties.json
 ### Translation binary files
 *.mo
 
@@ -145,6 +141,7 @@ xasydev2
 xasydev
 
 ### SVG Icons
+GUI/res/*
 !GUI/res/*/*.svg
 
 ### RC Icons
@@ -153,3 +150,15 @@ GUI/icons_rc.py
 
 # apitrace outputs
 *.trace
+
+## TODO: Use git lfs to store a larger HDRi format (but bandwidth)?
+## Or tell people to store it elsewhere?
+base/res/*.hdr
+base/res/*.exr
+*.bak
+*.tar.gz.*
+
+renderDocSettings
+
+*.html
+!webgl/WebGL*.html

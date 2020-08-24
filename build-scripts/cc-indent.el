@@ -1,0 +1,6 @@
+(load-file "cc-mode2.el")
+(c++-mode)
+(indent-region (point-min) (point-max) nil)
+(untabify (point-min) (point-max))
+(delete-trailing-whitespace (point-min) (point-max))
+(save-buffer)

@@ -18,13 +18,13 @@ if(settings.command != "") {
 
 include plain_constants;
 
-access version;             
+access version;
 if(version.VERSION != VERSION) {
   warning("version","using possibly incompatible version "+
           version.VERSION+" of plain.asy"+'\n');
   nowarn("version");
 }
-   
+
 include plain_strings;
 include plain_pens;
 include plain_paths;
@@ -32,9 +32,9 @@ include plain_filldraw;
 include plain_margins;
 include plain_picture;
 include plain_Label;
-include plain_shipout;
 include plain_arcs;
 include plain_boxes;
+include plain_shipout;
 include plain_markers;
 include plain_arrows;
 include plain_debugger;
@@ -106,7 +106,7 @@ addSaveFunction(new restoreThunk () {
   });
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk save() 
+restoreThunk save()
 {
   return restore=buildRestoreThunk();
 }
@@ -132,7 +132,7 @@ restoreThunk buildRestoreDefaults()
 }
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk savedefaults() 
+restoreThunk savedefaults()
 {
   return restoredefaults=buildRestoreDefaults();
 }
@@ -180,17 +180,35 @@ void eval(code s, bool embedded=false)
   if(!embedded) restoredefaults();
 }
 
+// Associate a parametrized type with a name.
+void type(string type, string name)
+{
+  eval("typedef "+type+" "+name,true);
+}
+
+void mapArray(string From, string To)
+{
+  type(From,"From");
+  type(To,"To");
+  eval("To[] map(To f(From), From[] a) {return sequence(new To(int i) {return f(a[i]);},a.length);}",true);
+}
+
 // Evaluate user command line option.
 void usersetting()
 {
   eval(settings.user,true);
 }
 
-string stripsuffix(string f, string suffix=".asy") 
+string stripsuffix(string f, string suffix=".asy")
 {
   int n=rfind(f,suffix);
   if(n != -1) f=erase(f,n,-1);
   return f;
+}
+
+string outdirectory()
+{
+  return stripfile(outprefix());
 }
 
 // Conditionally process each file name in array s in a new environment.
@@ -199,8 +217,8 @@ void asy(string format, bool overwrite=false ... string[] s)
   for(string f : s) {
     f=stripsuffix(f);
     string suffix="."+format;
-    string fsuffix=f+suffix;
-    if(overwrite || error(input(fsuffix,check=false))) {
+    string fsuffix=stripdirectory(f+suffix);
+    if(overwrite || error(input(outdirectory()+fsuffix,check=false))) {
       string outformat=settings.outformat;
       bool interactiveView=settings.interactiveView;
       bool batchView=settings.batchView;
@@ -234,7 +252,7 @@ struct cputime {
   processtime change;
 }
 
-cputime cputime() 
+cputime cputime()
 {
   static processtime last;
   real [] a=_cputime();
@@ -280,23 +298,3 @@ if(settings.autoimport != "") {
 }
 
 cputime();
-
-void nosetpagesize()
-{
-  static bool initialized=false;
-  if(!initialized && latex()) {
-    // Portably pass nosetpagesize option to graphicx package.
-    texpreamble("\usepackage{ifluatex}\ifluatex
-\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi
-\ifx\pdfpageheight\undefined\let\pdfpageheight\paperheight\fi\else
-\let\paperwidthsave\paperwidth\let\paperwidth\undefined
-\usepackage{graphicx}
-\let\paperwidth\paperwidthsave\fi");
-    initialized=true;
-  }
-}
-
-nosetpagesize();
-
-if(settings.tex == "luatex")
-  texpreamble("\input luatex85.sty");

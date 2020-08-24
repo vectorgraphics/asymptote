@@ -1,7 +1,7 @@
 # Default Options for xasy
 
 # External editor. $asypath will be replaced by the current file. 
-externalEditor: "emacs"
+externalEditor: "vi"
 externalEditorArgs: ["$asypath"]
 
 # Path to Asymptote executable
@@ -52,6 +52,11 @@ maximumMagnification: 100
 # Debug Mode
 debugMode: true
 
-# Settings Override for Windows
-windows:
+# Overrides
+
+Windows:
     externalEditor: "notepad.exe"
+
+Darwin:
+    externalEditor: "open"
+    externalEditorArgs: ["-a","TextEdit","$asypath"]

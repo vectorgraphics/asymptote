@@ -24,7 +24,7 @@ asymptote.sty:
 
 dvi:	doc asymptote.dvi
 
-doc:	$(DOCFILES) asy.1 faq latexusage.eps
+doc:	$(DOCFILES) asy.1 faq
 	cd png && $(MAKE) all
 
 manpage: $(MANFILES)
@@ -41,19 +41,13 @@ faq:
 %.pdf:	%.asy
 	$(ASY) -f pdf -noprc $<
 
-latexusage.dvi: latexusage.tex asymptote.sty
+latexusage.pdf: latexusage.tex asymptote.sty
 	rm -f latexusage-*
 	rm -f latexusage.pre
 	rm -f latexusage.aux
-	latex latexusage
+	pdflatex latexusage
 	$(ASY) -noprc latexusage-*.asy
-	latex latexusage
-
-latexusage.eps: latexusage.dvi
-	dvips -o latexusage.eps latexusage
-
-latexusage.pdf: latexusage.dvi
-	dvipdf -P latexusage
+	pdflatex latexusage
 
 options: ../settings.cc
 	$(ASY) -h 2>&1 | grep -iv Asymptote > options
@@ -72,19 +66,16 @@ asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
 	-$(TEXI2DVI) --pdf asymptote.texi
 
 CAD.pdf: CAD.tex CAD1.eps 
-	latex CAD
-	latex CAD
-	latex CAD
-	dvipdf -P CAD
+	pdflatex CAD
+	pdflatex CAD
+	pdflatex CAD
 
 TeXShopAndAsymptote.pdf: TeXShopAndAsymptote.tex
-	latex TeXShopAndAsymptote
-	latex TeXShopAndAsymptote
-	dvipdf -P TeXShopAndAsymptote
+	pdflatex TeXShopAndAsymptote
+	pdflatex TeXShopAndAsymptote
 
 asyRefCard.pdf: asyRefCard.tex
-	tex asyRefCard
-	dvipdf -P asyRefCard
+	pdftex asyRefCard
 
 clean: FORCE
 	-rm -f asy-latex.{aux,idx,ins,log,toc}
@@ -112,7 +103,7 @@ install-prebuilt: install-man options
 	cd png && $(MAKE) install
 	cd FAQ && $(MAKE) install-prebuilt
 
-install-all: $(DOCFILES) $(MANFILES) faq latexusage.eps install-man
+install-all: $(DOCFILES) $(MANFILES) faq install-man
 	cd png && $(MAKE) install-all
 	cd FAQ && $(MAKE) install-info
 

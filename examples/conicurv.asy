@@ -1,4 +1,4 @@
-// Original name : conicurv.mp 
+// Original name : conicurv.mp
 // Author : L. Nobre G.
 // Translators : J. Pienaar (2004) and John Bowman (2005)
 
@@ -7,7 +7,7 @@ texpreamble("\usepackage{bm}");
 
 size(300,0);
 
-currentprojection=perspective(10,-5,5.44); 
+currentprojection=perspective(10,-5,5.44);
 
 real theta=30, width=3, shortradius=2, bord=2, refsize=1, vecsize=2;
 real height=0.3, anglar=1.75, totup=3;

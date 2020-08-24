@@ -11,14 +11,14 @@
 
 // Use Void f() instead of void f() to force an explicit Stack argument.
 void     => primVoid()
-Void     => primVoid() 
+Void     => primVoid()
 
 Int      => primInt()
 bool     => primBoolean()
 double   => primReal()
 real     => primReal()
 string*  => primString()
-string   => primString() 
+string   => primString()
 
 #include "stack.h"
 #include "types.h"

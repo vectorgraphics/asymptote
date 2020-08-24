@@ -3,6 +3,7 @@
 ARCH = unix
 POLL = poll
 
+ASYGLVERSION = @ASYGLVERSION@
 GCVERSION = @GCVERSION@
 GC = gc-$(GCVERSION)
 LIBATOMIC = libatomic_ops-@ATOMICVERSION@
@@ -11,14 +12,14 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS)
-DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lgdi32 -lwinmm -s -static
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS)
+DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
 PERL = perl
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
-SHAREDLIBS = $(filter-out -lGL -lglut -pthread $(GCLIBS), $(LIBS))
+SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
 
 vpath %.cc prc
 vpath %.ui GUI/windows
@@ -43,22 +44,23 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr arcball algebra3 quaternion shaders
+	$(PRC) glrender tr shaders jsfile
 
 FILES = $(COREFILES) main
 
 SYMBOLSH = opsymbols.h allsymbols.h $(SYMBOL_FILES:=.symbols.h)
+UIFILES = $(wildcard GUI/windows/*.ui)
+PYFILES = $(wildcard GUI/pyUIClass/*.py) GUI/icons_rc.py
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
-        $(SYMBOLSH)
+        $(SYMBOLSH) $(PYFILES)
 NAME = asy
 XNAME = x$(NAME)
-UIFILES = $(wildcard GUI/windows/*.ui)
 CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
-EXEXTRA = piicon.eps *.views *.dat *.bib
+EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty ocg.sty latexmkrc
@@ -68,6 +70,7 @@ ASY = ./asy -dir base -config "" -render=0
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS)
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -78,7 +81,9 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 CXX = @CXX@ -Wall
 CC = @CC@ -Wall
 MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
-BISON = bison
+BISON ?= bison
+PYRCC ?= pyrcc5
+PYUIC ?= pyuic5
 LEX = @LEX@
 
 prefix = @prefix@
@@ -90,6 +95,8 @@ infodir = $(DESTDIR)@infodir@
 datadir = $(DESTDIR)@datadir@
 asydir = $(datadir)/asymptote
 GUIdir = $(asydir)/GUI
+shaderdir = $(asydir)/shaders
+webgldir = $(asydir)/webgl
 docdir = $(DESTDIR)@docdir@
 exampledir = $(docdir)/examples
 animationsdir = $(exampledir)/animations
@@ -97,19 +104,18 @@ latexdir = $(DESTDIR)@latexdir@
 contextdir = $(DESTDIR)@contextdir@
 INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
-last = $(shell cat revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
+last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 ifeq ($(usinggit),yes)
-	revision = $(shell LC_ALL="C" git describe --long | sed -e 's/git//' \
-                    | sed -e 's/-g.*//')
+	revision = $(shell LC_ALL="C" git describe --long | \
+	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
 else
 	revision = @VERSION@
 endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version
-	-pyrcc5 GUI/res/icons.qrc -o GUI/icons_rc.py
+asy:	version glew.o
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -117,15 +123,20 @@ asy:	version
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
-version: $(GCLIB) $(FILES:=.o) $(UIFILES:.ui=.py)
-	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
+version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
+	if test ! -s revision.cc || test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
+	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
+	  if test ! -e base/webgl/asygl.js; then \
+	    cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
+	  fi \
 	fi
 	$(CXX) $(OPTS) -o revision.o -c revision.cc;
 
 	echo string VERSION=\"$(revision)\"\; > base/version.asy
 	echo @set VERSION $(revision) > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
+	echo @set Docdir @docdir@ >> doc/version.texi
 
 	echo "#!/usr/bin/env python3" > GUI/xasyVersion.py
 	echo xasyVersion = \"$(revision)\" >> GUI/xasyVersion.py
@@ -135,7 +146,7 @@ version: $(GCLIB) $(FILES:=.o) $(UIFILES:.ui=.py)
 	  windres -o asy.o; \
 	fi
 
-asymptote.so: $(COREFILES:=.pic.o)
+asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 all:  	asy sty man faq asy-keywords.el
@@ -199,6 +210,9 @@ allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
 
 symbol.o: $(SYMBOLSH)
 
+GUI/icons_rc.py: GUI/res/icons.qrc
+	-$(PYRCC) GUI/res/icons.qrc -o GUI/icons_rc.py
+
 camp.tab.cc: camp.y
 	$(BISON) -dvt -b camp camp.y && mv camp.tab.c camp.tab.cc
 
@@ -238,14 +252,18 @@ install-texhash: install-asy
 install-asy: asy sty
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	${INSTALL} -d $(GUIdir) $(GUIdir)/pyUIClass $(GUIdir)/configs \
-			$(GUIdir)/res $(GUIdir)/res/icons
+			$(GUIdir)/res $(GUIdir)/res/icons $(shaderdir) \
+			$(webgldir)
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
-	${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
+	${INSTALL} -p -m 755 base/shaders/*.glsl $(shaderdir)
+	${INSTALL} -p -m 644 base/webgl/asygl.js \
+		$(webgldir)
+	-${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
 	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
 	${INSTALL} -p -m 644 GUI/res/icons.qrc $(GUIdir)/res
 	${INSTALL} -p -m 644 GUI/res/icons/*.svg $(GUIdir)/res/icons
@@ -277,7 +295,19 @@ uninstall-asy:
 	-cd $(exampledir) && rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
 	-cd $(GUIdir) && rm -f *.py
+	-cd $(GUIdir)/pyUIClass && rm -f *.py
+	-rmdir $(GUIdir)/pyUIClass
+	-cd $(GUIdir)/configs && rm -f *.cson
+	-rmdir $(GUIdir)/configs
+	-cd $(GUIdir)/res/icons && rm -f *.svg
+	-rmdir $(GUIdir)/res/icons
+	-cd $(GUIdir)/res && rm -f icons.qrc
+	-rmdir $(GUIdir)/res
 	-rmdir $(GUIdir)
+	-cd $(shaderdir) && rm -f *.glsl
+	-rmdir $(shaderdir)
+	-cd $(webgldir) && rm -f *.html *.js
+	-rmdir $(webgldir)
 	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
@@ -315,6 +345,7 @@ cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
 	-rm -f configure config.h.in $(DIST)
 	-rm -rf autom4te.cache
+	-rm -rf GUI/pyUIClass
 
 test: asy FORCE
 	./wce
@@ -325,6 +356,9 @@ check: test
 check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
+
+glew.o: glew.c GL/glew.h GL/glew.c config.h
+	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc
@@ -343,7 +377,7 @@ check-all: asy FORCE
 	rm -f $@.$$$$
 %.py: %.ui
 	mkdir -p GUI/pyUIClass
-	-pyuic5 -o GUI/pyUIClass/$(notdir $@) $<
+	-$(PYUIC) -o GUI/pyUIClass/$(notdir $@) $<
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
 %.pic.o: %.cc

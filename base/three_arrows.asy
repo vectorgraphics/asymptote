@@ -71,7 +71,7 @@ struct arrowhead3
   real arcsize(pen p)=arcarrowsize;
   real gap=1;
   real size;
-  bool splitpath=true;
+  bool splitpath=false;
 
   surface head(path3 g, position position=EndPoint,
                pen p=currentpen, real size=0, real angle=arrowangle,
@@ -105,8 +105,11 @@ struct arrowhead3
           s.append(shift(-n)*t*extrude(g,width*Z));
     }
     if(draw)
-      for(path3 g : H)
-        s.append(tube(g,width).s);
+      for(path3 g : H) {
+        tube T=tube(g,width);
+        for(surface S : T.s)
+          s.append(S);
+      }
     return shift(v)*s;
   }
 
@@ -150,27 +153,26 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
     real remainL=size;
     bool first=true;
     for(int i=0; i < n; ++i) {
-      render(subpath(s,i,i+1),new void(path3 q, real) {
-          if(remainL > 0) {
-            real l=arclength(q);
-            real w=remainL*aspect;
-            surface segment=scale(w,w,l)*unitcylinder;
-            if(first) { // add base
-              first=false;
-              segment.append(scale(w,w,1)*unitdisk);
+      path3 q=subpath(s,i,i+1);
+      if(remainL > 0) {
+        real l=arclength(q);
+        real w=remainL*aspect;
+        surface segment=scale(w,w,l)*unitcylinder;
+        if(first) { // add base
+          first=false;
+          segment.append(scale(w,w,1)*unitdisk);
+        }
+        for(patch p : segment.s) {
+          for(int i=0; i < 4; ++i) {
+            for(int j=0; j < 4; ++j) {
+              real k=1-p.P[i][j].z/remainL;
+              p.P[i][j]=bend((k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z),q,l);
             }
-            for(patch p : segment.s) {
-              for(int i=0; i < 4; ++i) {
-                for(int j=0; j < 4; ++j) {
-                  real k=1-p.P[i][j].z/remainL;
-                  p.P[i][j]=bend((k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z),q,l);
-                }
-              }
-            }
-            head.append(segment);
-            remainL -= l;
           }
-        });
+        }
+        head.append(segment);
+        remainL -= l;
+      }
     }
   }
   return head;
@@ -286,6 +288,7 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb, triple normal=O)
   };
   a.arrowhead2=HookHead;
   a.gap=1.005;
+  a.splitpath=true;
   return a;
 }
 arrowhead3 HookHead2=HookHead2();
@@ -308,7 +311,6 @@ arrowhead3 TeXHead2(triple normal=O) {
   };
   a.arrowhead2=TeXHead;
   a.size=TeXHead.size;
-  a.splitpath=false;
   a.gap=1.005;
   return a;
 }

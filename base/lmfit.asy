@@ -58,31 +58,31 @@ private real LM_SQRT_GIANT = sqrt(realMax);
 private real LM_USERTOL = 30 * LM_MACHEP;
 
 restricted string lm_infmsg[] = {
-  "improper input parameters",
-  "the relative error in the sum of squares is at most tol",
-  "the relative error between x and the solution is at most tol",
-  "both errors are at most tol",
-  "fvec is orthogonal to the columns of the jacobian to machine precision",
-  "number of calls to fcn has reached or exceeded maxcall*(n+1)",
-  "ftol is too small: no further reduction in the sum of squares is possible",
-  "xtol too small: no further improvement in approximate solution x possible",
-  "gtol too small: no further improvement in approximate solution x possible",
-  "not enough memory",
-  "break requested within function evaluation"
+                                 "improper input parameters",
+                                 "the relative error in the sum of squares is at most tol",
+                                 "the relative error between x and the solution is at most tol",
+                                 "both errors are at most tol",
+                                 "fvec is orthogonal to the columns of the jacobian to machine precision",
+                                 "number of calls to fcn has reached or exceeded maxcall*(n+1)",
+                                 "ftol is too small: no further reduction in the sum of squares is possible",
+                                 "xtol too small: no further improvement in approximate solution x possible",
+                                 "gtol too small: no further improvement in approximate solution x possible",
+                                 "not enough memory",
+                                 "break requested within function evaluation"
 };
 
 restricted string lm_shortmsg[] = {
-  "invalid input",
-  "success (f)",
-  "success (p)",
-  "success (f,p)",
-  "degenerate",
-  "call limit",
-  "failed (f)",
-  "failed (p)",
-  "failed (o)",
-  "no memory",
-  "user break"
+                                   "invalid input",
+                                   "success (f)",
+                                   "success (p)",
+                                   "success (f,p)",
+                                   "degenerate",
+                                   "call limit",
+                                   "failed (f)",
+                                   "failed (p)",
+                                   "failed (o)",
+                                   "no memory",
+                                   "user break"
 };
 
 
@@ -91,7 +91,7 @@ struct lm_data_type {
   real[] user_t;
   real[] user_y;
   real[] user_w;
-  real user_func(real user_t_point, real[] par);  
+  real user_func(real user_t_point, real[] par);
 };
 
 
@@ -99,7 +99,7 @@ struct lm_data_type {
 // the int and real types
 struct lm_int_type {
   int val;
-  
+
   void operator init(int val) {
     this.val = val;
   }
@@ -108,7 +108,7 @@ struct lm_int_type {
 
 struct lm_real_type {
   real val;
-  
+
   void operator init(real val) {
     this.val = val;
   }
@@ -402,7 +402,7 @@ private void lm_qrsolv(int n, real[] r, int ldr, int[] ipvt, real[] diag, real[]
       }
       break;
     }
-    
+
     sdiag[j] = r[j * ldr + j];
     r[j * ldr + j] = x[j];
   }
@@ -508,10 +508,10 @@ private void lm_lmpar(int n, real[] r, int ldr, int[] ipvt, real[] diag, real[] 
     dxnorm = lm_enorm(n, wa2);
     fp_old = fp;
     fp = dxnorm - delta;
-        
+
     if (fabs(fp) <= p1 * delta || (parl == 0.0 && fp <= fp_old && fp_old < 0.0) || iter == 10)
       break;
-        
+
     for (j = 0; j < n; ++j)
       wa1[j] = diag[ipvt[j]] * wa2[ipvt[j]] / dxnorm;
 
@@ -522,12 +522,12 @@ private void lm_lmpar(int n, real[] r, int ldr, int[] ipvt, real[] diag, real[] 
     }
     temp = lm_enorm(n, wa1);
     parc = fp / delta / temp / temp;
-    
+
     if (fp > 0)
       parl = max(parl, par.val);
     else if (fp < 0)
       paru = min(paru, par.val);
-    
+
     par.val = max(parl, par.val + parc);
   }
 }
@@ -540,7 +540,7 @@ void lm_lmdif(int m, int n, real[] x, real[] fvec, real ftol, real xtol, real gt
   static real p25 = 0.25;
   static real p75 = 0.75;
   static real p0001 = 1.0e-4;
-  
+
   nfev.val = 0;
   int iter = 1;
   lm_real_type par = lm_real_type(0);
@@ -563,7 +563,7 @@ void lm_lmdif(int m, int n, real[] x, real[] fvec, real ftol, real xtol, real gt
       }
     }
   }
-  
+
   info.val = 0;
   evaluate(x, m, fvec, data, info);
   if(printout != null) printout(n, x, m, fvec, data, 0, 0, ++nfev.val);
@@ -587,7 +587,7 @@ void lm_lmdif(int m, int n, real[] x, real[] fvec, real ftol, real xtol, real gt
         fjac[j * m + i] = (wa4[i] - fvec[i]) / (x[j] - temp);
       x[j] = temp;
     }
-    
+
     lm_qrfac(m, n, fjac, true, ipvt, wa1, wa2, wa3);
 
     if (iter == 1) {
@@ -695,7 +695,7 @@ void lm_lmdif(int m, int n, real[] x, real[] fvec, real ftol, real xtol, real gt
         delta = pnorm / p5;
         par.val *= p5;
       }
-      
+
       if (ratio >= p0001) {
         for (j = 0; j < n; ++j) {
           x[j] = wa2[j];
@@ -735,7 +735,7 @@ void lm_lmdif(int m, int n, real[] x, real[] fvec, real ftol, real xtol, real gt
 void lm_minimize(int m_dat, int n_par, real[] par, lm_evaluate_ftype evaluate, lm_print_ftype printout, lm_data_type data, lm_control_type control) {
   int n = n_par;
   int m = m_dat;
-  
+
   real[] fvec = new real[m];
   real[] diag = new real[n];
   real[] qtf = new real[n];
@@ -838,13 +838,13 @@ FitResult fit(real[] xdata, real[] ydata, real[] errors, real function(real[], r
   int n_par = parameters.length;
   lm_evaluate_ftype evaluate = lm_evaluate_default;
   lm_print_ftype printout = control.verbose ? lm_print_default : lm_print_quiet;
-  
+
   lm_data_type data;
   data.user_t = xdata;
   data.user_y = ydata;
   data.user_w = 1 / errors;
   data.user_func = new real(real x, real[] params) {
-    return function(params, x);
+                                                    return function(params, x);
   };
 
   lm_control_type ctrl;
@@ -856,7 +856,7 @@ FitResult fit(real[] xdata, real[] ydata, real[] errors, real function(real[], r
   ctrl.maxcall = control.maxIterations;
 
   lm_minimize(m_dat, n_par, parameters, evaluate, printout, data, ctrl);
-  
+
   return FitResult(ctrl.fnorm, ctrl.nfev.val, ctrl.info.val);
 }
 
