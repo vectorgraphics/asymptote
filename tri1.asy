@@ -160,29 +160,22 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     if(sum == 1*6 || sum == 8*6 || sum == 64*6)
       return !Sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
 
-    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)
-      return Sameside(inside(T,project(b,P)) ? b : a,A,B,C,P);
-    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)
+    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4 ||
+       sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1 ||
+       sum == 64*4+1*1 || sum == 64*2+1*4 || sum == 64*1+1*2)
       return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
-    if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)
-      return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
-    
-    if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)
-      return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
-    if(sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1)
-      return Sameside(inside(T,project(b,P)) ? b : c,A,B,C,P);
-    if(sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1)
-      return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
 
-    if(sum == 64*4+8*2 || sum == 64*2+8*1 || sum == 64*1+8*4)
+    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4 ||
+       sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1 ||
+       sum == 8*1+1*4 || sum == 8*2+1*1 || sum == 8*4+1*2)
+      return Sameside(inside(T,project(b,P)) ? b : a,A,B,C,P);
+
+    if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4 ||
+       sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1 ||
+       sum == 64*4+8*2 || sum == 64*2+8*1 || sum == 64*1+8*4)
       return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
-    if(sum == 64*4+1*1 || sum == 64*2+1*4 || sum == 64*1+1*2)
-      return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
-    if(sum == 8*1+1*4 || sum == 8*2+1*1 || sum == 8*4+1*2)
-      return Sameside(inside(T,project(b,P)) ? b : c,A,B,C,P);
 
     dot(vertex,brown);
-
   }
 
   if(vertex.length == 0) {
