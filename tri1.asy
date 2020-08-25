@@ -153,26 +153,36 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     write("sum=64*"+string(o2)+"+8*"+string(o1)+"+1*"+string(o0));
     write();
 
-    if(sum == 1*3 || sum == 8*3 || sum == 64*3)                // +.+
+    if(sum == 1*3 || sum == 8*3 || sum == 64*3)
       return !Sameside(inside(t,project(B,P)) ? B : A,a,b,c,P);
-    if(sum == 1*5 || sum == 8*5 || sum == 64*5)                // ..x
+    if(sum == 1*5 || sum == 8*5 || sum == 64*5)
       return !Sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
-    if(sum == 1*6 || sum == 8*6 || sum == 64*6)                // .++
+    if(sum == 1*6 || sum == 8*6 || sum == 64*6)
       return !Sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
 
-    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)     // +..
+    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)
       return Sameside(inside(T,project(b,P)) ? b : a,A,B,C,P);
-    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)  // +++
+    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)
       return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
-    if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)  // +++
+    if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)
       return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
     
-    if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)  // ...
-      return Sameside(a,A,B,C,P);
-    if(sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1)     // ...
-      return Sameside(b,A,B,C,P);
-    if(sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1)  // ...
-      return Sameside(c,A,B,C,P);
+    if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)
+      return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
+    if(sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1)
+      return Sameside(inside(T,project(b,P)) ? b : c,A,B,C,P);
+    if(sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1)
+      return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
+
+    if(sum == 64*4+8*2 || sum == 64*2+8*1 || sum == 64*1+8*4)
+      return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
+    if(sum == 64*4+1*1 || sum == 64*2+1*4 || sum == 64*1+1*2)
+      return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
+    if(sum == 8*1+1*4 || sum == 8*2+1*1 || sum == 8*4+1*2)
+      return Sameside(inside(T,project(b,P)) ? b : c,A,B,C,P);
+
+    dot(vertex,brown);
+
   }
 
   if(vertex.length == 0) {
@@ -181,6 +191,8 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     return inside(T,project(centroid,P)) ?
       sameside(centroid,A,B,C,P) : !sameside(third*(A+B+C),a,b,c,P);
   }
+
+  abort("Missing case: "+string(sum));
 
   return true; // Triangle projections do not intersect;
 }
@@ -275,17 +287,6 @@ triple a,b,c;
   //  write(A,B,C);
   //  write(a,b,c);
 
-  /*
-
-  A=(3.69352303989861,0.0433947122857881,0.168821990568574);
-  B=(0.244858304152665,4.26812922967045,0.611241182131339);
-  C=(0.0928584011704002,0.961565173678829,1.73493813804115);
-
-  a=(0.33218812026651,0.475947353744855,0.757281790840105);
-  b=(0.77750499489601,0.0279204603414612,0.578612574179942);
-  c=(0.736461881891108,0.743727071091406,5.53543211404953);
-  */
-
   real f=300;
   A *= f;
   B *= f;
@@ -297,7 +298,7 @@ triple a,b,c;
 
   if(!intersect(a,b,c,A,B,C) && intersect(a,b,c,A,B,C,currentprojection)) {
     erase();
-    real opacity=1;
+    real opacity=1;//0.7;
     draw(surface(c--a--b--cycle),red+opacity(opacity));
     draw(surface(A--B--C--cycle),blue+opacity(opacity));
 
