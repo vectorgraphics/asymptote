@@ -176,18 +176,23 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
       return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
 
     dot(vertex,brown);
+    abort("Missing case: "+string(sum));
   }
 
   if(vertex.length == 0) {
     centroid=third*(a+b+c);
-    dot(centroid,black);
-    return inside(T,project(centroid,P)) ?
-      sameside(centroid,A,B,C,P) : !sameside(third*(A+B+C),a,b,c,P);
+    if(inside(T,project(centroid,P))) {
+      dot(centroid,black);
+      return sameside(centroid,A,B,C,P);
+    }
+    centroid=third*(A+B+C);
+    if(inside(t,project(centroid,P))) {
+      dot(centroid,black);
+      return !sameside(centroid,a,b,c,P);
+    }
   }
 
-  abort("Missing case: "+string(sum));
-
-  return true; // Triangle projections do not intersect;
+  return true; // Triangle projections do not intersect.
 }
 
 // returns true iff projection P of triangles abc and ABC intersect
