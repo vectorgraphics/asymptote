@@ -142,9 +142,9 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     return sameside(A,B,C,P);
 
   path T=project(A,P)--project(B,P)--project(C,P)--cycle;
+  path t=project(a,P)--project(b,P)--project(c,P)--cycle;
 
   if(vertex.length == 2) {
-    path t=project(a,P)--project(b,P)--project(c,P)--cycle;
 
     int o2=sum#64;
     int sum2=sum-64*o2;
