@@ -129,7 +129,8 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
 
   sum=intersect(a,b,A,B,C,P);
   //  write(vertex.length);
-  if(vertex.length == 3) return sameside(A,B,C,P);
+  if(vertex.length == 3)
+    return sameside(A,B,C,P);
 
   sum += 8*intersect(b,c,A,B,C,P);
   //  write(vertex.length);
@@ -149,8 +150,6 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     int sum2=sum-64*o2;
     int o1=sum2#8;
     int o0=sum2-8*o1;
-    //    write("sum=64*"+string(o2)+"+8*"+string(o1)+"+1*"+string(o0));
-    //    write();
 
     // each side of t has at most 1 intersection
 
@@ -164,7 +163,6 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
       return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
 
     // one side of t has exactly 2 intersections
-
     if(AND(sum,3*73) == sum)
       return !Sameside(inside(t,project(B,P)) ? B : C,a,b,c,P);
 
@@ -284,14 +282,14 @@ triple a,b,c;
   //  write(A,B,C);
   //  write(a,b,c);
 
-  real f=300;
+real f=600;
   A *= f;
   B *= f;
   C *= f;
 
   a *= f;
   b *= f;
-  c *=f;
+  c *= f;
 
   if(!intersect(a,b,c,A,B,C) && intersect(a,b,c,A,B,C,currentprojection)) {
     erase();
@@ -301,14 +299,11 @@ triple a,b,c;
 
     front(a,b,c,A,B,C);
 
-    triple v=unit(currentprojection.camera-currentprojection.target);
-    currentprojection.camera -= cross(cross(centroid-currentprojection.target,v),v);
+    triple v=centroid-currentprojection.target;
+    currentprojection.camera += v;
     currentprojection.target=centroid;
-
-    triple v=unit(currentprojection.camera-currentprojection.target);
-    currentprojection.camera=currentprojection.target-1000*v;
-
     write(front(a,b,c,A,B,C));
+    write(centroid);
 
     label("a",a,dir(c--a,b--a));
     label("b",b,dir(a--b,c--b));
