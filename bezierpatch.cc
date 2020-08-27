@@ -112,8 +112,8 @@ inline triple interp(const double *a, const double *b, double t)
   return triple(onemt*a[0]+t*b[0],onemt*a[1]+t*b[1],onemt*a[2]+t*b[2]);
 }
 
-// Check if line p--q intersects with line P--Q.
-// If it does, push the intersection point onto the vertex array.
+// Check if projections of the lines p0--q0 and P0--Q0 intersect uniquely.
+// If they do, push the intersection point onto the vertex array.
 bool Intersect(const double *p, const double *q, const double *P, 
                const double *Q)
 {
@@ -154,24 +154,34 @@ unsigned intersect(const double *a, const double *b, const double *A,
   return sum;
 }
 
-bool sameside(const double *A, const double *B, const double *C)
+// returns true iff v is on the same side of triangle ABC as origin
+bool sameside(const double *v, const double *A, const double *B,
+              const double *C)
 {
   double camera[]={0.0,0.0,0.0};
-  size_t n=vertex.size();
-  double sum[3]={0.0,0.0,0.0};
-  for(size_t i=0; i < n; ++i) {
-    triple v=vertex[i];
-    sum[0] += v.getx();
-    sum[1] += v.gety();
-    sum[2] += v.getz();
-  }
-  sum[0]=third*sum[0];
-  sum[1]=third*sum[1];
-  sum[2]=third*sum[2];
-  return sgn(orient3d(A,B,C,sum)) == sgn(orient3d(A,B,C,camera));
+  return sgn(orient3d(A,B,C,v)) == sgn(orient3d(A,B,C,camera));
 }
 
-bool sameside(const double *v, const double *A,
+// returns true iff vertex centroid is on the same side of triangle
+// ABC as origin
+bool sameside(const double *A, const double *B, const double *C)
+{
+  double centroid[3]={0.0,0.0,0.0};
+  for(size_t i=0; i < 3; ++i) {
+    triple v=vertex[i];
+    centroid[0] += v.getx();
+    centroid[1] += v.gety();
+    centroid[2] += v.getz();
+  }
+  centroid[0] *= third;
+  centroid[1] *= third;
+  centroid[2] *= third;
+  return sameside(centroid,A,B,C);
+}
+
+// returns true iff the common triangle formed by v and the 2 elements of
+// vertex are on the same side of triangle ABC as the origin
+bool Sameside(const double *v, const double *A,
               const double *B, const double *C)
 {
   vertex.push_back(triple(v[0],v[1],v[2]));
@@ -197,30 +207,46 @@ bool front(const double *a, const double *b, const double *c, const double *A,
   if(vertex.size() == 3) return sameside(A,B,C);
 
   if(vertex.size() == 2) {
-    if(sum == 1*3 || sum == 8*3 || sum == 64*3)
-      return !sameside(inside(a,b,c,B) ? B : A,a,b,c);
-    if(sum == 1*5 || sum == 8*5 || sum == 64*5)
-      return !sameside(inside(a,b,c,A) ? A : B,a,b,c);
-    if(sum == 1*6 || sum == 8*6 || sum == 64*6)
-      return !sameside(inside(a,b,c,C) ? C : A,a,b,c);
+        // each side of t has at most 1 intersection
 
-    if(sum == 1*1+8*1 || sum == 1*2+8*2 || sum == 1*4+8*4)
-      return sameside(inside(A,B,C,b) ? b : a,A,B,C);
-    if(sum == 64*1+1*1 || sum == 64*2+1*2 || sum == 64*4+1*4)
-      return sameside(inside(A,B,C,a) ? a : b,A,B,C);
-    if(sum == 8*1+64*1 || sum == 8*2+64*2 || sum == 8*4+64*4)
-      return sameside(inside(A,B,C,c) ? c : a,A,B,C);
-    
-    if(sum == 64*4+1*2 || sum == 64*1+1*4 || sum == 64*2+1*1)
-      return sameside(a,A,B,C);
-    if(sum == 1*4+8*2 || sum == 1*1+8*4 || sum == 1*2+8*1)
-      return sameside(b,A,B,C);
-    if(sum == 8*4+64*2 || sum == 8*1+64*4 || sum == 8*2+64*1)
-      return sameside(c,A,B,C);
+    if((sum & 7*8) == 0)
+      return Sameside(inside(A,B,C,a) ? a : b,A,B,C);
+
+    if((sum & 7*64) == 0)
+      return Sameside(inside(A,B,C,b) ? b : c,A,B,C);
+
+    if((sum & 7*1) == 0)
+      return Sameside(inside(A,B,C,c) ? c : a,A,B,C);
+
+    // one side of t has exactly 2 intersections
+    if((sum & 3*73) == sum)
+      return !Sameside(inside(a,b,c,B) ? B : C,a,b,c);
+
+    if((sum & 5*73) == sum)
+      return !Sameside(inside(a,b,c,A) ? A : B,a,b,c);
+
+    if((sum & 6*73) == sum)
+      return !Sameside(inside(a,b,c,C) ? C : A,a,b,c);
   }
+
+  if(vertex.size() == 0) {
+    double centroid[]={third*(a[0]+b[0]+c[0]),
+                       third*(a[1]+b[1]+c[1]),
+                       third*(a[2]+b[2]+c[2])};
+    if(inside(A,B,C,centroid))
+      return sameside(centroid,A,B,C);
+
+    double Centroid[]={third*(A[0]+B[0]+C[0]),
+                       third*(A[1]+B[1]+C[1]),
+                       third*(A[2]+B[2]+C[2])};
+    if(inside(a,b,c,Centroid))
+      return !sameside(Centroid,a,b,c);
+  }
+
   return true; // Triangles do not intersect;
 }
 
+/*
 // returns true iff 3D triangle abc is pierced by line segment AB.
 bool pierce(const double *a, const double *b, const double *c, const double *A, const double *B)
 {
@@ -275,6 +301,7 @@ inline double intersect(const double *P, const double *Q, const double *n,
   double denom=n[0]*(Q[0]-P[0])+n[1]*(Q[1]-P[1])+n[2]*(Q[2]-P[2]);
   return denom == 0 ? DBL_MAX : (d-n[0]*P[0]-n[1]*P[1]-n[2]*P[2])/denom;
 }
+*/
 
 inline void interp(GLfloat *dest,
                    const GLfloat *a, const GLfloat *b, double t)
@@ -306,8 +333,8 @@ int compare(const void *p, const void *P)
   unsigned IC=((GLuint *) P)[2];
   
   // Temp
-  return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] <
-    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
+//  return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] <
+//    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
   
   double a[]={xbuffer[Ia],ybuffer[Ia],zbuffer[Ia]};
   double b[]={xbuffer[Ib],ybuffer[Ib],zbuffer[Ib]};
