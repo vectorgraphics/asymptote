@@ -207,26 +207,31 @@ bool front(const double *a, const double *b, const double *c, const double *A,
   if(vertex.size() == 3) return sameside(A,B,C);
 
   if(vertex.size() == 2) {
-        // each side of t has at most 1 intersection
+    unsigned int t1=sum & 7;
+    unsigned int t2=sum & 7*8;
+    unsigned int t3=sum & 7*64;
 
-    if((sum & 7*8) == 0)
+    if(t1 != sum && t2 != sum && t3 != sum) {
+    // each side of t has at most 1 intersection
+    if(t2 == 0)
       return Sameside(inside(A,B,C,a) ? a : b,A,B,C);
 
-    if((sum & 7*64) == 0)
+    if(t3 == 0)
       return Sameside(inside(A,B,C,b) ? b : c,A,B,C);
 
-    if((sum & 7*1) == 0)
+    if(t1 == 0)
       return Sameside(inside(A,B,C,c) ? c : a,A,B,C);
+    } else {
+      // one side of t has exactly 2 intersections
+      if((sum & 3*73) == sum)
+        return !Sameside(inside(a,b,c,B) ? B : C,a,b,c);
 
-    // one side of t has exactly 2 intersections
-    if((sum & 3*73) == sum)
-      return !Sameside(inside(a,b,c,B) ? B : C,a,b,c);
+      if((sum & 5*73) == sum)
+        return !Sameside(inside(a,b,c,A) ? A : B,a,b,c);
 
-    if((sum & 5*73) == sum)
-      return !Sameside(inside(a,b,c,A) ? A : B,a,b,c);
-
-    if((sum & 6*73) == sum)
-      return !Sameside(inside(a,b,c,C) ? C : A,a,b,c);
+      if((sum & 6*73) == sum)
+        return !Sameside(inside(a,b,c,C) ? C : A,a,b,c);
+    }
   }
 
   if(vertex.size() == 0) {
