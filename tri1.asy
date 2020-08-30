@@ -88,7 +88,13 @@ real third=1.0/3.0;
 bool sameside(triple v, triple A, triple B, triple C,
               projection P=currentprojection)
 {
-  return sgn(orient(A,B,C,v)) == sgn(orient(A,B,C,P.camera));
+  triple camera=P.camera+v-P.target;
+  triple u=unit(camera-v);
+  real d=max(dot(A-v,u),dot(B-v,u),dot(C-v,u));
+  if(d >= 0) camera=v+d*u;
+  dot(camera);
+
+  return sgn(orient(A,B,C,v)) == sgn(orient(A,B,C,camera));
 }
 
 triple centroid;
@@ -120,6 +126,12 @@ bool inside(pair a, pair b, pair c, pair z) {
   real[][] M={{A.x,B.x},{A.y,B.y}};
   real[] t=inverse(M)*new real[] {z.x-c.x,z.y-c.y};
   return t[0] > 0 && t[1] > 0 && t[0]+t[1] < 1;
+}
+
+bool inside(triple a, triple b, triple c, triple z,
+            projection P=currentprojection)
+{
+  return inside(project(a,P),project(b,P),project(c,P),project(z,P));
 }
 
 int sum;
@@ -163,23 +175,23 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     if(t1 != sum && t2 != sum && t3 != sum) {
       // each side of t has at most 1 intersection
       if(t2 == 0)
-        return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
+        return Sameside(inside(A,B,C,a,P) ? a : b,A,B,C,P);
 
       if(t3 == 0)
-        return Sameside(inside(T,project(b,P)) ? b : c,A,B,C,P);
+        return Sameside(inside(A,B,C,b,P) ? b : c,A,B,C,P);
 
       if(t1 == 0)
-        return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
+        return Sameside(inside(A,B,C,c,P) ? c : a,A,B,C,P);
     } else {
       // one side of t has exactly 2 intersections
       if(AND(sum,3*73) == sum)
-        return !Sameside(inside(t,project(B,P)) ? B : C,a,b,c,P);
+        return !Sameside(inside(a,b,c,B,P) ? B : C,a,b,c,P);
 
       if(AND(sum,5*73) == sum)
-        return !Sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
+        return !Sameside(inside(a,b,c,A,P) ? A : B,a,b,c,P);
 
       if(AND(sum,6*73) == sum)
-        return !Sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
+        return !Sameside(inside(a,b,c,C,P) ? C : A,a,b,c,P);
     }
 
     dot(vertex,brown);
@@ -188,12 +200,12 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
 
   if(vertex.length == 0) {
     centroid=third*(a+b+c);
-    if(inside(T,project(centroid,P))) {
+    if(inside(A,B,C,centroid,P)) {
       dot(centroid,black);
       return sameside(centroid,A,B,C,P);
     }
     centroid=third*(A+B+C);
-    if(inside(t,project(centroid,P))) {
+    if(inside(a,b,c,centroid,P)) {
       dot(centroid,black);
       return !sameside(centroid,a,b,c,P);
     }
@@ -260,34 +272,21 @@ triple t2=X+Z+2Y;
 //srand(seconds());
 
 while(true) {
-  //  currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));
   currentprojection=orthographic(dir(180*unitrand(),360*unitrand()));
   //   write("Camera=",currentprojection.camera);
 
-
-  /*
-currentprojection=orthographic(
-camera=(-9.30375447679876,0.959249381767673,13.6715710699745),
-up=(0.0016510798297577,-0.000170232061679372,0.00113553418828932),
-target=(-1.77635683940025e-15,0,0),
-zoom=1);
-  */
-
-  //  currentprojection=absorthographic((0.389372307337626,-0.893583674375808,-0.223377311219387));
-
-  //  currentprojection=absorthographic((1,1,1));
 
 triple A,B,C;
 triple a,b,c;
 
 
-  triple A=(4*unitrand(),unitrand(),2*unitrand());
-  triple B=(unitrand(),6*unitrand(),unitrand());
-  triple C=(unitrand(),unitrand(),2*unitrand());
+  A=(4*unitrand(),unitrand(),2*unitrand());
+  B=(unitrand(),6*unitrand(),unitrand());
+  C=(unitrand(),unitrand(),2*unitrand());
 
-  triple a=(2*unitrand(),unitrand(),unitrand());
-  triple b=(unitrand(),4*unitrand(),unitrand());
-  triple c=(unitrand(),unitrand(),6*unitrand());
+  a=(2*unitrand(),unitrand(),unitrand());
+  b=(unitrand(),4*unitrand(),unitrand());
+  c=(unitrand(),unitrand(),6*unitrand());
 
   //  write(A,B,C);
   //  write(a,b,c);
@@ -307,15 +306,6 @@ real f=600;
     draw(surface(c--a--b--cycle),red+opacity(opacity));
     draw(surface(A--B--C--cycle),blue+opacity(opacity));
 
-    front(a,b,c,A,B,C);
-
-    currentprojection.camera += centroid-currentprojection.target;
-    currentprojection.target=centroid;
-    triple v=currentprojection.camera-centroid;
-    real d=max(dot(a-centroid,v),dot(b-centroid,v),dot(c-centroid,v),
-               dot(A-centroid,v),dot(B-centroid,v),dot(C-centroid,v));
-    currentprojection.camera=centroid+d*unit(v);
-
     write(front(a,b,c,A,B,C));
 
     label("a",a,dir(c--a,b--a));
@@ -333,9 +323,9 @@ real f=600;
     label("2",B--C);
     label("4",C--A);
 
-    dot(centroid,yellow+10mm+opacity(0.25));
-    draw(centroid--currentprojection.camera,magenta);
-    dot(currentprojection.camera);
+    dot(centroid,yellow+10mm+opacity(0.5));
+    //    draw(centroid--currentprojection.camera,magenta);
+    //    dot(currentprojection.camera);
 
     //       if(sum == 0) {
           //      write("Current camera:",currentprojection.camera);
