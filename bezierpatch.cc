@@ -29,6 +29,7 @@ std::vector<GLfloat> zsum;
 
 std::vector<triple> vertex;
 
+/*
 inline double min(double a, double b, double c)
 {
   return min(min(a,b),c);
@@ -51,6 +52,7 @@ struct iz {
 };
 
 std::vector<iz> IZ;
+*/
 
 const double FillFactor=0.1;
 
@@ -108,11 +110,11 @@ bool Intersect(const double *p, const double *q, const double *P,
   double e=P[0]-p[0];
   double f=P[1]-p[1];
   double det=a*d-b*c;
-  if(det == 0) return false;
-  double detinv=1/det;
+  if(det == 0.0) return false;
+  double detinv=1.0/det;
   double t=(d*e-b*f)*detinv;
   double T=(a*f-e*c)*detinv;
-  if(t < 0 || t > 1 || T < 0 || T > 1) return false;
+  if(t < 0.0 || t > 1.0 || T < 0.0 || T > 1.0) return false;
   vertex.push_back(interp(p,q,t));
   return true;
 }
@@ -172,14 +174,14 @@ bool Sameside(const double *v, const double *A,
   return sameside(A,B,C);
 }
 
-// returns true iff z is in 2D triangle abc
+// returns true iff 2D triangle abc contains z.
 bool inside(const double *a, const double *b, const double *c, const double *z)
 {
   double c0=c[0];
   double c1=c[1];
   double A=a[0]-c0;
-  double B=a[1]-c1;
-  double C=b[0]-c0;
+  double B=b[0]-c0;
+  double C=a[1]-c1;
   double D=b[1]-c1;
   double det=A*D-B*C;
   double sign=sgn(det);
@@ -308,7 +310,6 @@ inline double intersect(const double *P, const double *Q, const double *n,
   double denom=n[0]*(Q[0]-P[0])+n[1]*(Q[1]-P[1])+n[2]*(Q[2]-P[2]);
   return denom == 0 ? DBL_MAX : (d-n[0]*P[0]-n[1]*P[1]-n[2]*P[2])/denom;
 }
-*/
 
 inline void interp(GLfloat *dest,
                    const GLfloat *a, const GLfloat *b, double t)
@@ -322,6 +323,7 @@ inline triple interp(const triple& a, const triple& b, double t)
 {
   return a+(b-a)*t;
 }
+*/
 
 unsigned n;
 unsigned int count;
@@ -353,6 +355,7 @@ int compare(const void *p, const void *P)
 
   return front(a,b,c,A,B,C) ? -1 : 1;
     
+  /*
   double viewpoint[]={0,0,0};
   
   double sa=-orient3d(A,B,C,a);
@@ -382,6 +385,7 @@ int compare(const void *p, const void *P)
     if(S > eps) return -sz;
     return a[2]+b[2]+c[2] < A[2]+B[2]+C[2] ? -1 : 1;
   return 0; // coplanar
+  */
 }
 
 #if 0
