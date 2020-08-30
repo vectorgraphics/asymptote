@@ -309,12 +309,12 @@ real f=600;
 
     front(a,b,c,A,B,C);
 
-    triple v=unit(currentprojection.camera-currentprojection.target);
-    currentprojection.camera -= cross(cross(centroid-currentprojection.target,v),v);
+    currentprojection.camera += centroid-currentprojection.target;
     currentprojection.target=centroid;
-
-    triple v=unit(currentprojection.camera-currentprojection.target);
-    currentprojection.camera=currentprojection.target-10000*v;
+    triple v=currentprojection.camera-centroid;
+    real d=max(abs(dot(a-centroid,v)),abs(dot(b-centroid,v)),abs(dot(c-centroid,v)),
+               abs(dot(A-centroid,v)),abs(dot(B-centroid,v)),abs(dot(C-centroid,v)));
+    currentprojection.camera=centroid-d*unit(v);
 
     write(front(a,b,c,A,B,C));
 
