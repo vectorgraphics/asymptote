@@ -113,6 +113,7 @@ bool Sameside(triple v, triple A, triple B, triple C,
   return sameside(A,B,C,P);
 }
 
+// returns true iff z is in 2D triangle abc
 bool inside(pair a, pair b, pair c, pair z) {
   pair A=a-c;
   pair B=b-c;
@@ -308,11 +309,14 @@ real f=600;
 
     front(a,b,c,A,B,C);
 
-    triple v=centroid-currentprojection.target;
-    currentprojection.camera += v;
+    triple v=unit(currentprojection.camera-currentprojection.target);
+    currentprojection.camera -= cross(cross(centroid-currentprojection.target,v),v);
     currentprojection.target=centroid;
+
+    triple v=unit(currentprojection.camera-currentprojection.target);
+    currentprojection.camera=currentprojection.target-10000*v;
+
     write(front(a,b,c,A,B,C));
-    write(centroid);
 
     label("a",a,dir(c--a,b--a));
     label("b",b,dir(a--b,c--b));
@@ -329,17 +333,14 @@ real f=600;
     label("2",B--C);
     label("4",C--A);
 
-    //    write("Camera:",currentprojection.camera);
-    //    write("Target:",currentprojection.target);
-    dot(centroid,yellow+10mm+opacity(0.5));
+    dot(centroid,yellow+10mm+opacity(0.25));
     draw(centroid--currentprojection.camera,magenta);
-    dot(currentprojection.camera,green);
+    dot(currentprojection.camera,purple);
 
     //       if(sum == 0) {
           //      write("Current camera:",currentprojection.camera);
           //      write("Current target:",currentprojection.target);
       shipout();
-      write();
       //        }
     //    exit();
 
