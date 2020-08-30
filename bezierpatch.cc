@@ -90,29 +90,13 @@ bool intersect2D(const double *a, const double *b, const double *c,
     sameside(C,A,S0,a,b,c);
 }
 
-bool inside(const double *a, const double *b, const double *c, const double *z) {
-  double c0=c[0];
-  double c1=c[1];
-  double A=a[0]-c0;
-  double B=a[1]-c1;
-  double C=b[0]-c0;
-  double D=b[1]-c1;
-  double det=A*D-B*C;
-  double sign=sgn(det);
-  double E=z[0]-c0;
-  double F=z[1]-c1;
-  double u=sign*(D*E-B*F);
-  double v=sign*(-C*E+A*F);
-  return u > 0 && v > 0 && u+v < sign*det;
-}
-
 inline triple interp(const double *a, const double *b, double t)
 {
   double onemt=1.0-t;
   return triple(onemt*a[0]+t*b[0],onemt*a[1]+t*b[1],onemt*a[2]+t*b[2]);
 }
 
-// Check if projections of the lines p0--q0 and P0--Q0 intersect uniquely.
+// Check if projections of the lines p--q and P--Q intersect uniquely.
 // If they do, push the intersection point onto the vertex array.
 bool Intersect(const double *p, const double *q, const double *P, 
                const double *Q)
@@ -166,7 +150,7 @@ bool sameside(const double *v, const double *A, const double *B,
 // ABC as origin
 bool sameside(const double *A, const double *B, const double *C)
 {
-  double centroid[3]={0.0,0.0,0.0};
+  double centroid[]={0.0,0.0,0.0};
   for(size_t i=0; i < 3; ++i) {
     triple v=vertex[i];
     centroid[0] += v.getx();
@@ -186,6 +170,24 @@ bool Sameside(const double *v, const double *A,
 {
   vertex.push_back(triple(v[0],v[1],v[2]));
   return sameside(A,B,C);
+}
+
+// returns true iff z is in 2D triangle abc
+bool inside(const double *a, const double *b, const double *c, const double *z)
+{
+  double c0=c[0];
+  double c1=c[1];
+  double A=a[0]-c0;
+  double B=a[1]-c1;
+  double C=b[0]-c0;
+  double D=b[1]-c1;
+  double det=A*D-B*C;
+  double sign=sgn(det);
+  double E=z[0]-c0;
+  double F=z[1]-c1;
+  double u=sign*(D*E-B*F);
+  double v=sign*(-C*E+A*F);
+  return u > 0 && v > 0 && u+v < sign*det;
 }
 
 // Return true if triangle abc can be rendered in front of triangle ABC,
