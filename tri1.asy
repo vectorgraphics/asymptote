@@ -8,6 +8,8 @@ defaultpen(fontsize(100pt)+linewidth(3));
 
 currentlight=nolight;
 
+// returns true if one of the points A, B, C have orientation s0 relative
+// to a--b.
 bool sameside(pair a, pair b, int s0, pair A, pair B, pair C)
 {
   if(sgn(orient(a,b,A)) == s0) return true;
@@ -32,7 +34,7 @@ bool intersect(pair a, pair b, pair c, pair A, pair B, pair C)
 
 triple[] vertex;
 
-// Check if line projections of the lines p0--q0 and P0--Q0 intersect uniquely.
+// Check if projections of the lines p0--q0 and P0--Q0 intersect uniquely.
 // If they do, push the intersection point onto the vertex array.
 bool Intersect(triple p0, triple q0, triple P0, triple Q0,
                projection C=currentprojection)
@@ -91,6 +93,8 @@ bool sameside(triple v, triple A, triple B, triple C,
 
 triple centroid;
 
+// returns true iff vertex centroid is on the same side of triangle
+// ABC as P.camera
 bool sameside(triple A, triple B, triple C,
               projection P=currentprojection)
 {
@@ -151,26 +155,31 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
     int o1=sum2#8;
     int o0=sum2-8*o1;
 
-    // each side of t has at most 1 intersection
+    int t1=AND(sum,7);
+    int t2=AND(sum,7*8);
+    int t3=AND(sum,7*64);
 
-    if(AND(sum,7*8) == 0)
-      return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
+    if(t1 != sum && t2 != sum && t3 != sum) {
+      // each side of t has at most 1 intersection
+      if(t2 == 0)
+        return Sameside(inside(T,project(a,P)) ? a : b,A,B,C,P);
 
-    if(AND(sum,7*64) == 0)
-      return Sameside(inside(T,project(b,P)) ? b : c,A,B,C,P);
+      if(t3 == 0)
+        return Sameside(inside(T,project(b,P)) ? b : c,A,B,C,P);
 
-    if(AND(sum,7*1) == 0)
-      return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
+      if(t1 == 0)
+        return Sameside(inside(T,project(c,P)) ? c : a,A,B,C,P);
+    } else {
+      // one side of t has exactly 2 intersections
+      if(AND(sum,3*73) == sum)
+        return !Sameside(inside(t,project(B,P)) ? B : C,a,b,c,P);
 
-    // one side of t has exactly 2 intersections
-    if(AND(sum,3*73) == sum)
-      return !Sameside(inside(t,project(B,P)) ? B : C,a,b,c,P);
+      if(AND(sum,5*73) == sum)
+        return !Sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
 
-    if(AND(sum,5*73) == sum)
-      return !Sameside(inside(t,project(A,P)) ? A : B,a,b,c,P);
-
-    if(AND(sum,6*73) == sum)
-      return !Sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
+      if(AND(sum,6*73) == sum)
+        return !Sameside(inside(t,project(C,P)) ? C : A,a,b,c,P);
+    }
 
     dot(vertex,brown);
     abort("Missing case: "+string(sum));
