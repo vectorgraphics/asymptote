@@ -312,9 +312,9 @@ real f=600;
     currentprojection.camera += centroid-currentprojection.target;
     currentprojection.target=centroid;
     triple v=currentprojection.camera-centroid;
-    real d=max(abs(dot(a-centroid,v)),abs(dot(b-centroid,v)),abs(dot(c-centroid,v)),
-               abs(dot(A-centroid,v)),abs(dot(B-centroid,v)),abs(dot(C-centroid,v)));
-    currentprojection.camera=centroid-d*unit(v);
+    real d=max(dot(a-centroid,v),dot(b-centroid,v),dot(c-centroid,v),
+               dot(A-centroid,v),dot(B-centroid,v),dot(C-centroid,v));
+    currentprojection.camera=centroid+d*unit(v);
 
     write(front(a,b,c,A,B,C));
 
@@ -335,7 +335,7 @@ real f=600;
 
     dot(centroid,yellow+10mm+opacity(0.25));
     draw(centroid--currentprojection.camera,magenta);
-    dot(currentprojection.camera,purple);
+    dot(currentprojection.camera);
 
     //       if(sum == 0) {
           //      write("Current camera:",currentprojection.camera);
