@@ -215,22 +215,22 @@ bool front(triple a, triple b, triple c, triple A, triple B, triple C,
 // and ABC.
 
   sum=intersect(a,b,A,B,C,P);
-  write(vertex.length);
+  //  write(vertex.length);
   if(vertex.length == 3) return sameside(A,B,C,P);
 
   sum += 8*intersect(b,c,A,B,C,P);
-  write(vertex.length);
+  //  write(vertex.length);
   if(vertex.length == 3) return sameside(A,B,C,P);
 
   sum += 64*intersect(c,a,A,B,C,P);
-  write(vertex.length);
+  //  write(vertex.length);
   if(vertex.length == 3) return sameside(A,B,C,P);
 
   if(vertex.length == 2) {
     path t=project(a,P)--project(b,P)--project(c,P)--cycle;
     path T=project(A,P)--project(B,P)--project(C,P)--cycle;
 
-    write("sum=",sum);
+    //    write("sum=",sum);
     if(sum == 1*3 || sum == 8*3 || sum == 64*3)
       return !sameside(inside(t,project(B,P)) ? B : A,a,b,c,P);
     if(sum == 1*5 || sum == 8*5 || sum == 64*5)
@@ -414,10 +414,10 @@ while(true) {
 
   write(currentprojection.camera);
   erase();
-  draw(surface(t0--a--b--cycle),red+opacity(0.8));
-  draw(surface(T0--T1--T2--cycle),blue+opacity(0.8));
+  draw(surface(t0--a--b--cycle),red+opacity(0.99));
+  draw(surface(T0--T1--T2--cycle),blue+opacity(0.99));
   if(intersect(a,b,t0,T0,T1,T2,currentprojection)) {
-    write(front(a,b,t0,T0,T1,T2));
+    //    write(front(a,b,t0,T0,T1,T2));
     shipout();
   }
 }

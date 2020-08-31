@@ -140,12 +140,27 @@ unsigned intersect(const double *a, const double *b, const double *A,
   return sum;
 }
 
-// returns true iff v is on the same side of triangle ABC as origin
-bool sameside(const double *v, const double *A, const double *B,
+// returns true iff V is on the same side of triangle ABC as origin
+bool sameside(const double *V, const double *A, const double *B,
               const double *C)
 {
-  double camera[]={0.0,0.0,0.0};
-  return sgn(orient3d(A,B,C,v)) == sgn(orient3d(A,B,C,camera));
+  /*
+  gl::projection P=gl::camera(false);
+  triple v(V[0],V[1],V[2]);
+  triple camera=P.camera+v-P.target;
+  triple a(A[0],A[1],A[2]);
+  triple b(B[0],B[1],B[2]);
+  triple c(C[0],C[1],C[2]);
+  triple u=unit(camera-v);
+
+  double d=max(dot(a-v,u),max(dot(b-v,u),dot(c-v,u)));
+//  cout << d << endl;
+  if(d >= 0) camera=v+d*u;
+  */
+
+  double Camera[]={V[0],V[1],0.0};
+//  double Camera[]={camera.getx(),camera.gety(),camera.getz()};
+  return sgn(orient3d(A,B,C,V)) == sgn(orient3d(A,B,C,Camera));
 }
 
 // returns true iff vertex centroid is on the same side of triangle
@@ -352,6 +367,9 @@ int compare(const void *p, const void *P)
   double A[]={xbuffer[IA],ybuffer[IA],zbuffer[IA]};
   double B[]={xbuffer[IB],ybuffer[IB],zbuffer[IB]};
   double C[]={xbuffer[IC],ybuffer[IC],zbuffer[IC]};
+
+//  cout <<  zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] << " " <<
+//    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] << endl;
 
   return front(a,b,c,A,B,C) ? -1 : 1;
     
@@ -1162,17 +1180,29 @@ void transform(const std::vector<VertexData>& b)
   double Tx0=gl::dView[0];
   double Tx1=gl::dView[4];
   double Tx2=gl::dView[8];
+  double Tx3=gl::dView[12];
   double Ty0=gl::dView[1];
   double Ty1=gl::dView[5];
   double Ty2=gl::dView[9];
+  double Ty3=gl::dView[13];
   double Tz0=gl::dView[2];
   double Tz1=gl::dView[6];
   double Tz2=gl::dView[10];
+  double Tz3=gl::dView[14];
+  /*
+  for(int i=0; i < 4; ++i) {
+    for(int j=0; j < 4; ++j) {
+      cout << 4*j+i << ": " << gl::dView[4*j+i] << endl;
+    }
+    cout << endl;
+  }
+  */
+
   for(unsigned i=0; i < n; ++i) {
     const GLfloat *v=b[i].position;
-    xbuffer[i]=Tx0*v[0]+Tx1*v[1]+Tx2*v[2];
-    ybuffer[i]=Ty0*v[0]+Ty1*v[1]+Ty2*v[2];
-    zbuffer[i]=Tz0*v[0]+Tz1*v[1]+Tz2*v[2];
+    xbuffer[i]=Tx0*v[0]+Tx1*v[1]+Tx2*v[2]+Tx3;
+    ybuffer[i]=Ty0*v[0]+Ty1*v[1]+Ty2*v[2]+Ty3;
+    zbuffer[i]=Tz0*v[0]+Tz1*v[1]+Tz2*v[2]+Tz3;
   }
 }
 
