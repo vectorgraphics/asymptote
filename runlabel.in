@@ -106,14 +106,27 @@ array *readpath(const string& psname, bool keep, bool pdf=false,
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");
   if(safe) cmd.push_back("-dSAFER");
+// Before Ghostscript 9.35.0, we could use /dev/null (or NUL on Windows)
+// as an OutputFile, but after this version, the epswrite driver explicitly
+// checks for multi-page output and errors out unless the OutputFile value
+// contains %d (to write multiple files).
+// Given the options of:
+// 1. Teach ghostscript to recognize /dev/null (NUL on Windows) as a special
+//    exception for this logic in epswrite
+// 2. Use a different DEVICE type than epswrite
+// 3. Output to /tmp files (or %TEMP%\ on Windows)
+//
+// I changed the code here to do #3 as that seemed the least intrusive.
+// NOTE: Nothing in asymptote actually cleans up these temp files, but
+// nothing depends on them either.
 #ifdef __MSDOS__
-  const string null="NUL";
+  const string tempmf="%TEMP%\asy%d.tmp";
 #else
-  const string null="/dev/null";
+  const string tempmf="/tmp/asy%d.tmp";
 #endif
   string epsdriver=getSetting<string>("epsdriver");
   cmd.push_back("-sDEVICE="+epsdriver);
-  cmd.push_back("-sOutputFile="+null);
+  cmd.push_back("-sOutputFile="+tempmf);
   cmd.push_back(stripDir(psname));
   iopipestream gs(cmd,"gs","Ghostscript");
   while(gs.running()) {
