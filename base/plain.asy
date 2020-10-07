@@ -244,6 +244,7 @@ void beep()
 struct processtime {
   real user;
   real system;
+  real clock;
 }
 
 struct cputime {
@@ -257,16 +258,21 @@ cputime cputime()
   static processtime last;
   real [] a=_cputime();
   cputime cputime;
+  real clock=a[4];
   cputime.parent.user=a[0];
   cputime.parent.system=a[1];
+  cputime.parent.clock=clock;
   cputime.child.user=a[2];
   cputime.child.system=a[3];
-  real user=a[0]+a[2];
-  real system=a[1]+a[3];
+  cputime.child.clock=0;
+  real user=cputime.parent.user+cputime.child.user;
+  real system=cputime.parent.system+cputime.child.system;
   cputime.change.user=user-last.user;
   cputime.change.system=system-last.system;
+  cputime.change.clock=clock-last.clock;
   last.user=user;
   last.system=system;
+  last.clock=clock;
   return cputime;
 }
 

@@ -4400,10 +4400,12 @@ while in the second, it must be the (non-@code{void}) type of the variable.
 The function @code{cputime()}
 returns a structure @code{cputime} with cumulative @acronym{CPU} times
 broken down into the fields @code{parent.user}, @code{parent.system},
-@code{child.user}, and @code{child.system}. For convenience, the
-incremental fields @code{change.user} and @code{change.system} indicate
-the change in the corresponding total parent and child @acronym{CPU}
-times since the last call to @code{cputime()}. The function
+@code{child.user}, and @code{child.system}, along with the cumulative
+wall clock time in @code{parent.clock}, all measured in seconds.
+For convenience, the incremental fields @code{change.user},
+@code{change.system}, and @code{change.clock} indicate  the change in
+the corresponding fields since the last call to @code{cputime()}. The
+function
 @verbatim
 void write(file file=stdout, string s="", cputime c,
            string format=cputimeformat, suffix suffix=none); 
