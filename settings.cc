@@ -997,7 +997,11 @@ struct versionOption : public option {
 #endif
 
     feature("WebGL    3D HTML rendering",glm);
+#ifdef HAVE_LIBOSMESA
+    feature("OpenGL   3D OSMesa offscreen rendering",gl);
+#else
     feature("OpenGL   3D OpenGL rendering",gl);
+#endif
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("XDR      external data representation (portable binary file format)",xdr);

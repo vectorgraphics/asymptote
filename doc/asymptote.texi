@@ -3102,7 +3102,7 @@ The default setting, @code{nobasealign},which may be changed with
 full label bounding box for alignment. In contrast, @code{basealign}
 requests that the @TeX{} baseline be respected.
 The base align setting of a pen is returned by
-@code{int basealigin(pen p=currentpen)}.
+@code{int basealign(pen p=currentpen)}.
 
 @cindex @code{fontsize}
 @cindex @code{lineskip}
@@ -10085,7 +10085,7 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen emissivepen specularpen arrowbarb keyval
-@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin cmd
+@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealign cmd
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach SVG
