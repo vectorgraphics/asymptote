@@ -671,12 +671,7 @@ int picture::pdftoeps(const string& pdfname, const string& epsname, bool eps)
   if(safe)
     cmd.push_back("-dSAFER");
   string texengine=getSetting<string>("tex");
-
-  if(eps)
-    cmd.push_back("-sDEVICE="+getSetting<string>("epsdriver"));
-  else
-    cmd.push_back("-sDEVICE=ps2write");
-
+  cmd.push_back("-sDEVICE="+getSetting<string>(eps ? "epsdriver": "psdriver"));
   cmd.push_back("-sOutputFile="+stripDir(epsname));
   cmd.push_back(stripDir(pdfname));
 
