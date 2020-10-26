@@ -265,8 +265,14 @@ fi
 
 AC_CHECK_LIB([rt], [sched_yield])
 
-AC_CHECK_LIB([curl],[curl_easy_init],,
-AC_MSG_NOTICE([*** Could not find libcurl: will compile without optional URL support. ***]))
+AC_ARG_ENABLE(curl,
+[AS_HELP_STRING(--disable-curl[[[=no]]],disable libcurl and compile without optional URL support)])
+if test "x$enable_curl" != "xno"; then
+  AC_CHECK_LIB([curl],[curl_easy_init],,
+  AC_MSG_NOTICE([*** Could not find libcurl: will compile without optional URL support. ***]))
+else
+  AC_MSG_NOTICE([*** libcurl support disabled by configure flag: will compile without optional URL support. ***])
+fi
 
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
