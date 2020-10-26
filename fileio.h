@@ -62,7 +62,7 @@ inline void openpipeout()
 }
 
 inline string locatefile(string name) {
-  string s=settings::locateFile(name);
+  string s=settings::locateFile(name,false,"");
   return s.empty() ? name : s;
 }
 
