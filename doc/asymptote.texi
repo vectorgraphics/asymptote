@@ -1192,21 +1192,22 @@ Margins can be used to shrink the visible portion of a path by
 Typical values of @code{margin} 
 are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
 equivalently @code{Margin}), and @code{Margins} (which leaves a margin
-at both ends of the path). One may use @code{Margin(real begin, real end)}
+at both ends of the path). One may use
+@code{Margin(real begin, real end=begin)}
 to specify the size of the beginning and ending margin, respectively,
 in multiples of the units @code{labelmargin(p)} used for aligning labels.
 Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
 (or equivalently @code{PenMargin}), @code{PenMargins},
-@code{PenMargin(real begin, real end)} specify a margin in units of
+@code{PenMargin(real begin, real end=begin)} specify a margin in units of
 the pen line width, taking account of the pen line width when drawing
 the path or arrow. For example, use @code{DotMargin}, an
 abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
 to draw from the usual beginning point just up to the boundary of an
 end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
 @code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
-similarly. The qualifier @code{TrueMargin(real begin, real end)} allows one to
-specify a margin directly in @code{PostScript} units, independent of
-the pen line width.
+similarly. The qualifier @code{TrueMargin(real begin, real end=begin)}
+allows one to specify a margin directly in @code{PostScript} units,
+independent of the pen line width.
 
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and

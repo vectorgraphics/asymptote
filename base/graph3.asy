@@ -650,7 +650,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
   pic.scale.x.bound.push(bounds);
 }
 
-// An internal routine to draw an x axis at a particular y value.
+// An internal routine to draw a y axis at a particular value.
 void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
               real ymin=-infinity, real ymax=infinity, pen p=currentpen,
               ticks3 ticks=NoTicks3,
@@ -783,7 +783,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
   pic.scale.y.bound.push(bounds);
 }
 
-// An internal routine to draw an x axis at a particular y value.
+// An internal routine to draw a z axis at a particular value.
 void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
               real zmin=-infinity, real zmax=infinity, pen p=currentpen,
               ticks3 ticks=NoTicks3,
