@@ -1212,9 +1212,48 @@ triple Scale(picture pic=currentpicture, triple v)
   return (pic.scale.x.T(v.x),pic.scale.y.T(v.y),pic.scale.z.T(v.z));
 }
 
+triple[][] Scale(picture pic=currentpicture, triple[][] P)
+{
+  triple[][] Q=new triple[P.length][];
+  for(int i=0; i < P.length; ++i) {
+    triple[] Pi=P[i];
+    Q[i]=new triple[Pi.length];
+    for(int j=0; j < Pi.length; ++j)
+      Q[i][j]=Scale(pic,Pi[j]);
+  }
+  return Q;
+}
+
+real ScaleX(picture pic=currentpicture, real x)
+{
+  return pic.scale.x.T(x);
+}
+
+real ScaleY(picture pic=currentpicture, real y)
+{
+  return pic.scale.y.T(y);
+}
+
 real ScaleZ(picture pic=currentpicture, real z)
 {
   return pic.scale.z.T(z);
+}
+
+real[][] ScaleZ(picture pic=currentpicture, real[][] P)
+{
+  real[][] Q=new real[P.length][];
+  for(int i=0; i < P.length; ++i) {
+    real[] Pi=P[i];
+    Q[i]=new real[Pi.length];
+    for(int j=0; j < Pi.length; ++j)
+      Q[i][j]=ScaleZ(pic,Pi[j]);
+  }
+  return Q;
+}
+
+real[] uniform(real T(real x), real Tinv(real x), real a, real b, int n)
+{
+  return map(Tinv,uniform(T(a),T(b),n));
 }
 
 // Draw a tick of length size at triple v in direction dir using pen p.
@@ -1596,7 +1635,7 @@ bool vperiodic(triple[][] a) {
 }
 
 // return the surface described by a matrix f
-surface surface(triple[][] f, bool[][] cond={})
+surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
 
@@ -1632,7 +1671,11 @@ surface surface(triple[][] f, bool[][] cond={})
     int[] indexi=s.index[i];
     for(int j=0; j < ny; ++j) {
       if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1]))
-        s.s[++k]=patch(new triple[] {fi[j],fp[j],fp[j+1],fi[j+1]});
+        s.s[++k]=patch(new triple[] {
+            Scale(pic,fi[j]),
+              Scale(pic,fp[j]),
+              Scale(pic,fp[j+1]),
+              Scale(pic,fi[j+1])});
       indexi[j]=k;
     }
   }
@@ -1715,7 +1758,8 @@ surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
                   (x1,y2,zippip-qip-hxy*ri[jp]),(x1,yp,zippip)},
                 {(x2,yj,zpj-ppj),(x2,y1,zpjqpj-ppj-hxy*rp[j]),
                     (x2,y2,zppmppp-qpp+hxy*rp[jp]),(x2,yp,zppmppp)},
-                  {(xp,yj,zpj),(xp,y1,zpjqpj),(xp,y2,zpp-qpp),(xp,yp,zpp)}},copy=false);
+                  {(xp,yj,zpj),(xp,y1,zpjqpj),(xp,y2,zpp-qpp),(xp,yp,zpp)}},
+          copy=false);
         indexi[j]=k;
         ++k;
       }
@@ -1787,11 +1831,11 @@ private real[][][] bispline0(real[][] z, real[][] p, real[][] q, real[][] r,
         real zpjqpj=zpj+hy*qp[j];
 
         s[k]=new real[][] {{zij,zijqij,zip-qip,zip},
-                           {zij+pij,zijqij+pij+hxy*ri[j],
-                            zippip-qip-hxy*ri[jp],zippip},
-                           {zpj-ppj,zpjqpj-ppj-hxy*rp[j],
-                            zppmppp-qpp+hxy*rp[jp],zppmppp},
-                           {zpj,zpjqpj,zpp-qpp,zpp}};
+                                        {zij+pij,zijqij+pij+hxy*ri[j],
+                                            zippip-qip-hxy*ri[jp],zippip},
+                                          {zpj-ppj,zpjqpj-ppj-hxy*rp[j],
+                                              zppmppp-qpp+hxy*rp[jp],zppmppp},
+                                            {zpj,zpjqpj,zpp-qpp,zpp}};
         ++k;
       }
     }
@@ -1831,10 +1875,15 @@ real[][][] bispline(real[][] f, real[] x, real[] y,
 
 // return the surface described by a real matrix f, interpolated with
 // xsplinetype and ysplinetype.
-surface surface(real[][] f, real[] x, real[] y,
-                splinetype xsplinetype=null, splinetype ysplinetype=xsplinetype,
+surface surface(picture pic=currentpicture, real[][] f, real[] x, real[] y,
+                splinetype xsplinetype=null,
+                splinetype ysplinetype=xsplinetype,
                 bool[][] cond={})
 {
+  real[][] f=ScaleZ(pic,f);
+  real[] x=map(pic.scale.x.T,x);
+  real[] y=map(pic.scale.y.T,y);
+
   real epsilon=sqrtEpsilon*norm(y);
   if(xsplinetype == null)
     xsplinetype=(abs(x[0]-x[x.length-1]) <= epsilon) ? periodic : notaknot;
@@ -1863,8 +1912,9 @@ surface surface(real[][] f, real[] x, real[] y,
 
 // return the surface described by a real matrix f, interpolated with
 // xsplinetype and ysplinetype.
-surface surface(real[][] f, pair a, pair b, splinetype xsplinetype,
-                splinetype ysplinetype=xsplinetype, bool[][] cond={})
+surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
+                splinetype xsplinetype, splinetype ysplinetype=xsplinetype,
+                bool[][] cond={})
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
 
@@ -1873,13 +1923,14 @@ surface surface(real[][] f, pair a, pair b, splinetype xsplinetype,
 
   if(nx == 0 || ny == 0) return nullsurface;
 
-  real[] x=uniform(a.x,b.x,nx);
-  real[] y=uniform(a.y,b.y,ny);
-  return surface(f,x,y,xsplinetype,ysplinetype,cond);
+  real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nx);
+  real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,ny);
+  return surface(pic,f,x,y,xsplinetype,ysplinetype,cond);
 }
 
 // return the surface described by a real matrix f, interpolated linearly.
-surface surface(real[][] f, pair a, pair b, bool[][] cond={})
+surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
+                bool[][] cond={})
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
 
@@ -1891,22 +1942,25 @@ surface surface(real[][] f, pair a, pair b, bool[][] cond={})
   bool all=cond.length == 0;
 
   triple[][] v=new triple[nx+1][ny+1];
+
+  pair a=Scale(pic,a);
+  pair b=Scale(pic,b);
   for(int i=0; i <= nx; ++i) {
-    real x=interp(a.x,b.x,i/nx);
+    real x=pic.scale.x.Tinv(interp(a.x,b.x,i/nx));
     bool[] condi=all ? null : cond[i];
     triple[] vi=v[i];
     real[] fi=f[i];
     for(int j=0; j <= ny; ++j)
       if(all || condi[j])
-        vi[j]=(x,interp(a.y,b.y,j/ny),fi[j]);
+        vi[j]=(x,pic.scale.y.Tinv(interp(a.y,b.y,j/ny)),fi[j]);
   }
-  return surface(v,cond);
+  return surface(pic,v,cond);
 }
 
 // return the surface described by a parametric function f over box(a,b),
 // interpolated linearly.
-surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
-                bool cond(pair z)=null)
+surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
+                int nu=nmesh, int nv=nu, bool cond(pair z)=null)
 {
   if(nu <= 0 || nv <= 0) return nullsurface;
 
@@ -1921,23 +1975,25 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
 
   triple[][] v=new triple[nu+1][nv+1];
 
+  pair a=Scale(pic,a);
+  pair b=Scale(pic,b);
   for(int i=0; i <= nu; ++i) {
-    real x=interp(a.x,b.x,i*du);
+    real x=pic.scale.x.Tinv(interp(a.x,b.x,i*du));
     bool[] activei=all ? null : active[i];
     triple[] vi=v[i];
     for(int j=0; j <= nv; ++j) {
-      pair z=(x,interp(a.y,b.y,j*dv));
+      pair z=(x,pic.scale.y.Tinv(interp(a.y,b.y,j*dv)));
       if(all || (activei[j]=cond(z))) vi[j]=f(z);
     }
   }
-  return surface(v,active);
+  return surface(pic,v,active);
 }
 
 // return the surface described by a parametric function f evaluated at u and v
 // and interpolated with usplinetype and vsplinetype.
-surface surface(triple f(pair z), real[] u, real[] v,
-                splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
-                bool cond(pair z)=null)
+surface surface(picture pic=currentpicture, triple f(pair z),
+                real[] u, real[] v, splinetype[] usplinetype,
+                splinetype[] vsplinetype=Spline, bool cond(pair z)=null)
 {
   int nu=u.length-1;
   int nv=v.length-1;
@@ -1960,7 +2016,7 @@ surface surface(triple f(pair z), real[] u, real[] v,
     for(int j=0; j <= nv; ++j) {
       pair z=(ui,v[j]);
       if(!all) activei[j]=cond(z);
-      triple f=f(z);
+      triple f=Scale(pic,f(z));
       fxi[j]=f.x;
       fyi[j]=f.y;
       fzi[j]=f.z;
@@ -2020,27 +2076,30 @@ surface surface(triple f(pair z), real[] u, real[] v,
 
 // return the surface described by a parametric function f over box(a,b),
 // interpolated with usplinetype and vsplinetype.
-surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
+surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
+                int nu=nmesh, int nv=nu,
                 splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
                 bool cond(pair z)=null)
 {
-  return surface(f,uniform(a.x,b.x,nu),uniform(a.y,b.y,nv),
-                 usplinetype,vsplinetype,cond);
+  real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nu);
+  real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,nv);
+  return surface(pic,f,x,y,usplinetype,vsplinetype,cond);
 }
 
 // return the surface described by a real function f over box(a,b),
 // interpolated linearly.
-surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-                bool cond(pair z)=null)
+surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
+                int nx=nmesh, int ny=nx, bool cond(pair z)=null)
 {
-  return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,cond);
+  return surface(pic,new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,
+                 cond);
 }
 
 // return the surface described by a real function f over box(a,b),
 // interpolated with xsplinetype and ysplinetype.
-surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-                splinetype xsplinetype, splinetype ysplinetype=xsplinetype,
-                bool cond(pair z)=null)
+surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
+                int nx=nmesh, int ny=nx, splinetype xsplinetype,
+                splinetype ysplinetype=xsplinetype, bool cond(pair z)=null)
 {
   bool[][] active;
   bool all=cond == null;
@@ -2052,8 +2111,8 @@ surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
   pair dz=(dx,dy);
 
   real[][] F=new real[nx+1][ny+1];
-  real[] x=uniform(a.x,b.x,nx);
-  real[] y=uniform(a.y,b.y,ny);
+  real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nx);
+  real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,ny);
   for(int i=0; i <= nx; ++i) {
     bool[] activei=all ? null : active[i];
     real[] Fi=F[i];
@@ -2064,7 +2123,7 @@ surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
       if(!all) activei[j]=cond(z);
     }
   }
-  return surface(F,x,y,xsplinetype,ysplinetype,active);
+  return surface(pic,F,x,y,xsplinetype,ysplinetype,active);
 }
 
 guide3[][] lift(real f(real x, real y), guide[][] g,
