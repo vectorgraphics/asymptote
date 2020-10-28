@@ -395,9 +395,10 @@ struct simplex {
     if(count > 0) simplexStandard(C,a,b);
     operator init(C,a,b,phase1,dual);
 
-    if(case == OPTIMAL && count > 0) {
+    if(case == OPTIMAL) {
       xStandard=copy(x);
-      x.delete(n,n+count-1);
+      if(count > 0)
+        x.delete(n,n+count-1);
     }
   }
 }
