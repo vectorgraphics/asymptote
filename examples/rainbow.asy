@@ -4,7 +4,7 @@ pen indigo=rgb(102/255,0,238/255);
 
 void rainbow(path g) {
   draw(new path[] {scale(1.3)*g,scale(1.2)*g,scale(1.1)*g,g,
-	scale(0.9)*g,scale(0.8)*g,scale(0.7)*g},
+                     scale(0.9)*g,scale(0.8)*g,scale(0.7)*g},
     new pen[] {red,orange,yellow,green,blue,indigo,purple});
 }
 

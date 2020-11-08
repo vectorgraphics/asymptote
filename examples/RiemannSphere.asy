@@ -33,9 +33,9 @@ draw(p,1bp+heavyred);
 draw(q,1bp+heavyblue);
 
 triple
-	A=(0,0,1),
-	B=(u(40),v(40),w(40)),
-	C=(x(40),y(40),z(40));
+A=(0,0,1),
+B=(u(40),v(40),w(40)),
+C=(x(40),y(40),z(40));
 
 path3 L=A--C;
 draw(L,1bp+black);

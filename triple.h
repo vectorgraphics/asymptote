@@ -22,9 +22,9 @@
 namespace camp {
 
 typedef double Triple[3];
-  
+
 class triple;
-  
+
 bool isIdTransform3(const double* t);
 void copyTransform3(double*& d, const double* s, GCPlacement placement=NoGC);
 void multiplyTransform3(double*& t, const double* s, const double* r);
@@ -43,7 +43,7 @@ public:
   triple(const Triple& v) : x(v[0]), y(v[1]), z(v[2]) {}
 
   virtual ~triple() {}
-  
+
   void set(double X, double Y=0.0, double Z=0.0) { x=X; y=Y; z=Z; }
 
   double getx() const { return x; }
@@ -58,7 +58,7 @@ public:
     double f=t[12]*v.x+t[13]*v.y+t[14]*v.z+t[15];
     if(f != 0.0) {
       f=1.0/f;
-      
+
       return triple((t[0]*v.x+t[1]*v.y+t[2]*v.z+t[3])*f,
                     (t[4]*v.x+t[5]*v.y+t[6]*v.z+t[7])*f,
                     (t[8]*v.x+t[9]*v.y+t[10]*v.z+t[11])*f);
@@ -66,11 +66,11 @@ public:
     reportError("division by 0 in transform of a triple");
     return 0.0;
   }
-  
+
   friend triple operator* (const triple& v, const double* t) {
     if(t == NULL)
       return v;
-    
+
     double f=t[3]*v.x+t[7]*v.y+t[11]*v.z+t[15];
     if(f != 0.0) {
       f=1.0/f;
@@ -81,19 +81,19 @@ public:
     reportError("division by 0 in transform of a triple");
     return 0.0;
   }
-  
+
   friend triple Transform3(const triple& v, const double* t) {
     return triple((t[0]*v.x+t[1]*v.y+t[2]*v.z),
                   (t[3]*v.x+t[4]*v.y+t[5]*v.z),
                   (t[6]*v.x+t[7]*v.y+t[8]*v.z));
   }
-  
+
   friend triple Transform3(const double* t, const triple& v) {
     return triple(v.x*t[0]+v.y*t[3]+v.z*t[6],
                   v.x*t[1]+v.y*t[4]+v.z*t[7],
                   v.x*t[2]+v.y*t[5]+v.z*t[8]);
   }
-  
+
   // return x and y components of v*t.
   friend pair Transform2T(const double* t, const triple& v)
   {
@@ -102,7 +102,7 @@ public:
     return pair((t[0]*v.x+t[4]*v.y+t[8]*v.z+t[12])*f,
                 (t[1]*v.x+t[5]*v.y+t[9]*v.z+t[13])*f);
   }
-  
+
   friend void transformtriples(const double* t, size_t n, triple* d,
                                const triple* s)
   {
@@ -112,12 +112,12 @@ public:
     for(size_t i=0; i < n; i++)
       d[i]=t*s[i];
   }
-  
+
   friend void copytriples(size_t n, triple* d, const triple* s)
   {
     if(d == NULL || s == NULL)
       return;
-    
+
     for(size_t i=0; i < n; i++) d[i]=s[i];
   }
 
@@ -128,7 +128,7 @@ public:
 
     double x,y,z;
     double X,Y,Z;
-    
+
     X=x=v[0].getx();
     Y=y=v[0].gety();
     Z=z=v[0].getz();
@@ -140,7 +140,7 @@ public:
       const double vz=v[i].getz();
       z=fmin(z,vz); Z=fmax(Z,vz);
     }
-    
+
     Min.set(x,y,z);
     Max.set(X,Y,Z);
   }
@@ -166,7 +166,7 @@ public:
     }
     b=pair(x,y);
   }
-  
+
   friend triple operator+ (const triple& z, const triple& w)
   {
     return triple(z.x + w.x, z.y + w.y, z.z + w.z);
@@ -230,17 +230,17 @@ public:
   {
     return x*x+y*y+z*z;
   }
-  
+
   friend double abs2(const triple &v)
   {
     return v.abs2();
   }
-  
+
   double length() const /* r */
   {
     return sqrt(abs2());
   }
-  
+
   friend double length(const triple& v)
   {
     return v.length();
@@ -257,12 +257,12 @@ public:
     }
     return acos(z/r);
   }
-  
+
   double azimuth(bool warn=true) const /* phi */
   {
     return angle(x,y,warn);
   }
-  
+
   friend triple unit(const triple& v)
   {
     double scale=v.length();
@@ -270,13 +270,13 @@ public:
     scale=1.0/scale;
     return triple(v.x*scale,v.y*scale,v.z*scale);
   }
-  
+
   friend double dot(const triple& u, const triple& v)
   {
     return u.x*v.x+u.y*v.y+u.z*v.z;
   }
 
-  friend triple cross(const triple& u, const triple& v) 
+  friend triple cross(const triple& u, const triple& v)
   {
     return triple(u.y*v.z-u.z*v.y,
                   u.z*v.x-u.x*v.z,
@@ -289,17 +289,17 @@ public:
     double sintheta=sin(theta);
     return triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta));
   }
-  
+
   friend istream& operator >> (istream& s, triple& z)
   {
     char c;
-    s >> std::ws;
+    s >> ws;
     bool paren=s.peek() == '('; // parenthesis are optional
     if(paren) s >> c;
-    s >> z.x >> std::ws;
-    if(s.peek() == ',') s >> c >> z.y;
+    s >> z.x >> ws;
+    if(s.peek() == ',') s >> c >> z.y >> ws;
     else {
-      if(paren) s >> z.y;
+      if(paren) s >> z.y >> ws;
       else z.y=0.0;
     }
     if(s.peek() == ',') s >> c >> z.z;
@@ -308,10 +308,10 @@ public:
       else z.z=0.0;
     }
     if(paren) {
-      s >> std::ws;
+      s >> ws;
       if(s.peek() == ')') s >> c;
     }
-    
+
     return s;
   }
 
@@ -320,17 +320,17 @@ public:
     out << "(" << v.x << "," << v.y << "," << v.z << ")";
     return out;
   }
-  
+
   friend jsofstream& operator << (jsofstream& out, const triple& v)
   {
     out << "[" << v.x << "," << v.y << "," << v.z << "]";
     return out;
   }
-  
+
 };
 
 triple expi(double theta, double phi);
-  
+
 // Return the component of vector v perpendicular to a unit vector u.
 inline triple perp(triple v, triple u)
 {
@@ -345,7 +345,7 @@ inline void bounds(double& x, double &X, double v)
   if(v < x) x=v;
   else if(v > X) X=v;
 }
-  
+
 inline void boundstriples(double& x, double& y, double& z,
                           double& X, double& Y, double& Z,
                           size_t n, const triple* v)
@@ -353,7 +353,7 @@ inline void boundstriples(double& x, double& y, double& z,
   X=x=v[0].getx();
   Y=y=v[0].gety();
   Z=z=v[0].getz();
-    
+
   for(size_t i=1; i < n; ++i) {
     triple V=v[i];
     bounds(x,X,V.getx());
@@ -364,7 +364,7 @@ inline void boundstriples(double& x, double& y, double& z,
 
 extern const double third;
 
-// return the maximum distance squared of points c0 and c1 from 
+// return the maximum distance squared of points c0 and c1 from
 // the respective internal control points of z0--z1.
 inline double Straightness(const triple& z0, const triple& c0,
                            const triple& c1, const triple& z1)

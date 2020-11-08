@@ -3,7 +3,7 @@ size(20cm);
 // The required data file is available here:
 // http://www.uni-graz.at/~schwaige/asymptote/worldmap.dat
 // This data was originally obtained from
-// http://www.ngdc.noaa.gov/mgg_coastline/mapit.jsp 
+// http://www.ngdc.noaa.gov/mgg_coastline/mapit.jsp
 
 real findtheta(real phi, real epsilon=realEpsilon) {
   // Determine for given phi the unique solution -pi/2 <= theta <= pi/2 off
@@ -23,12 +23,12 @@ real findtheta(real phi, real epsilon=realEpsilon) {
 
 pair mollweide(real lambda, real phi, real lambda0=0){
   // calculate the Mollweide projection centered at lambda0 for the point
-  // with coordinates(phi,lambda) 
+  // with coordinates(phi,lambda)
   static real c1=2*sqrt(2)/pi;
   static real c2=sqrt(2);
   real theta=findtheta(phi);
   return(c1*(lambda-lambda0)*cos(theta), c2*sin(theta));
-} 	
+}
 
 guide gfrompairs(pair[] data){
   guide gtmp;
@@ -54,7 +54,7 @@ while(true) {
   if(spstr[0] == "#") {++cnt; arrarrpair[cnt]=new pair[] ; newseg=true;}
   if(spstr[0] != "#" && newseg) {
     string[] spstr1=split(str,'\t'); // separator is TAB not SPACE
-    pair tmp=((real) spstr1[1],(real) spstr1[0]); 
+    pair tmp=((real) spstr1[1],(real) spstr1[0]);
     arrarrpair[cnt].push(tmp);
   }
 }
@@ -78,7 +78,7 @@ pair[] constlat(real phi, int np=100) {
 for(int j=1; j <= 5; ++j) draw(gfrompairs(constlong(-180+j/6*360)),white);
 draw(gfrompairs(constlong(-180)),1.5bp+white);
 draw(gfrompairs(constlong(180)),1.5bp+white);
-for(int j=0; j <= 12; ++j) draw(gfrompairs(constlat(-90+j/6*180)),white); 	
+for(int j=0; j <= 12; ++j) draw(gfrompairs(constlat(-90+j/6*180)),white);
 //draw(gfrompairs(constlong(10)),dotted);
 
 close(in);

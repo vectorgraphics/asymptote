@@ -2,7 +2,7 @@ import three;
 import palette;
 
 int N = 26;
-real[] C = array(N,0); 
+real[] C = array(N,0);
 real[][] A = new real[N][N];
 for(int i = 0; i < N; ++i)
   for(int j = 0; j < N; ++j)
@@ -46,23 +46,23 @@ A[i][indexof(1,2)] = 1; C[i] = Tb;
 
 // interior nodes
 for(int m = 2; m<13; ++m)
-{
-  A[i][indexof(m,2)] = -4;
-  A[i][indexof(m-1,2)] = A[i][indexof(m+1,2)] = 1;
-  A[i][indexof(m,1)] = 2;
-  C[i] = 0;
-  ++i;
-}
+  {
+    A[i][indexof(m,2)] = -4;
+    A[i][indexof(m-1,2)] = A[i][indexof(m+1,2)] = 1;
+    A[i][indexof(m,1)] = 2;
+    C[i] = 0;
+    ++i;
+  }
 
 // convective bottom side nodes
 for(int m = 2; m<13; ++m)
-{
-  A[i][indexof(m,1)] = -(2+h*delta/k);
-  A[i][indexof(m-1,1)] = A[i][indexof(m+1,1)] = 0.5;
-  A[i][indexof(m,2)] = 1;
-  C[i] = -h*delta*Tinf/k;
-  ++i;
-}
+  {
+    A[i][indexof(m,1)] = -(2+h*delta/k);
+    A[i][indexof(m-1,1)] = A[i][indexof(m+1,1)] = 0.5;
+    A[i][indexof(m,2)] = 1;
+    C[i] = -h*delta*Tinf/k;
+    ++i;
+  }
 
 // convective bottom right corner node
 A[i][indexof(13,2)] = A[i][indexof(12,1)] = 0.5;
@@ -115,18 +115,18 @@ material lookupColour(int m,int n)
 
 draw(shift(0,1,0)*rightsquare,lookupColour(1,2));
 for(int i = 2; i < 13; ++i)
-{
-  draw(shift(i-1,1,0)*square,lookupColour(i,2));
-}
+  {
+    draw(shift(i-1,1,0)*square,lookupColour(i,2));
+  }
 draw(shift(12,1,0)*leftsquare,lookupColour(13,2));
 
 draw(shift(0,2,0)*SEcorner,lookupColour(1,3));
 draw(shift(0,0,0)*NEcorner,lookupColour(1,1));
 for(int i = 2; i < 13; ++i)
-{
-  draw(shift(i-1,0,0)*topsquare,lookupColour(i,1));
-  draw(shift(i-1,2,0)*bottomsquare,lookupColour(i,3));
-}
+  {
+    draw(shift(i-1,0,0)*topsquare,lookupColour(i,1));
+    draw(shift(i-1,2,0)*bottomsquare,lookupColour(i,3));
+  }
 draw(shift(12,2,0)*SWcorner,lookupColour(13,3));
 draw(shift(12,0,0)*NWcorner,lookupColour(13,1));
 

@@ -12,7 +12,7 @@ real arrowtexfactor=1;
 
 real barfactor=arrowfactor;
 
-real arrowsize(pen p=currentpen) 
+real arrowsize(pen p=currentpen)
 {
   return arrowfactor*linewidth(p);
 }
@@ -53,39 +53,39 @@ path arrowbase(path r, pair y, real t, real size)
 arrowhead DefaultHead;
 DefaultHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
                           real size=0, real angle=arrowangle) {
-  if(size == 0) size=DefaultHead.size(p);
-  bool relative=position.relative;
-  real position=position.position.x;
-  if(relative) position=reltime(g,position);
-  path r=subpath(g,position,0);
-  pair x=point(r,0);
-  real t=arctime(r,size);
-  pair y=point(r,t);
-  path base=arrowbase(r,y,t,size);
-  path left=rotate(-angle,x)*r;
-  path right=rotate(angle,x)*r;
-  real[] T=arrowbasepoints(base,left,right);
-  pair denom=point(right,T[1])-y;
-  real factor=denom != 0 ? length((point(left,T[0])-y)/denom) : 1;
-  path left=rotate(-angle*factor,x)*r;
-  path right=rotate(angle*factor,x)*r;
-  real[] T=arrowbasepoints(base,left,right);
-  return subpath(left,0,T[0])--subpath(right,T[1],0)&cycle;
+                                                               if(size == 0) size=DefaultHead.size(p);
+                                                               bool relative=position.relative;
+                                                               real position=position.position.x;
+                                                               if(relative) position=reltime(g,position);
+                                                               path r=subpath(g,position,0);
+                                                               pair x=point(r,0);
+                                                               real t=arctime(r,size);
+                                                               pair y=point(r,t);
+                                                               path base=arrowbase(r,y,t,size);
+                                                               path left=rotate(-angle,x)*r;
+                                                               path right=rotate(angle,x)*r;
+                                                               real[] T=arrowbasepoints(base,left,right);
+                                                               pair denom=point(right,T[1])-y;
+                                                               real factor=denom != 0 ? length((point(left,T[0])-y)/denom) : 1;
+                                                               path left=rotate(-angle*factor,x)*r;
+                                                               path right=rotate(angle*factor,x)*r;
+                                                               real[] T=arrowbasepoints(base,left,right);
+                                                               return subpath(left,0,T[0])--subpath(right,T[1],0)&cycle;
 };
 
 arrowhead SimpleHead;
 SimpleHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
                          real size=0, real angle=arrowangle) {
-  if(size == 0) size=SimpleHead.size(p);
-  bool relative=position.relative;
-  real position=position.position.x;
-  if(relative) position=reltime(g,position);
-  path r=subpath(g,position,0);
-  pair x=point(r,0);
-  real t=arctime(r,size);
-  path left=rotate(-angle,x)*r;
-  path right=rotate(angle,x)*r;
-  return subpath(left,t,0)--subpath(right,0,t);
+                                                              if(size == 0) size=SimpleHead.size(p);
+                                                              bool relative=position.relative;
+                                                              real position=position.position.x;
+                                                              if(relative) position=reltime(g,position);
+                                                              path r=subpath(g,position,0);
+                                                              pair x=point(r,0);
+                                                              real t=arctime(r,size);
+                                                              path left=rotate(-angle,x)*r;
+                                                              path right=rotate(angle,x)*r;
+                                                              return subpath(left,t,0)--subpath(right,0,t);
 };
 
 arrowhead HookHead(real dir=arrowdir, real barb=arrowbarb)
@@ -94,34 +94,34 @@ arrowhead HookHead(real dir=arrowdir, real barb=arrowbarb)
   a.head=new path(path g, position position=EndPoint, pen p=currentpen,
                   real size=0, real angle=arrowangle)
     {
-      if(size == 0) size=a.size(p);
-      angle=min(angle*arrowhookfactor,45);
-      bool relative=position.relative;
-      real position=position.position.x;
-      if(relative) position=reltime(g,position);
-      path r=subpath(g,position,0);
-      pair x=point(r,0);
-      real t=arctime(r,size);
-      pair y=point(r,t);
-      path base=arrowbase(r,y,t,size);
-      path left=rotate(-angle,x)*r;
-      path right=rotate(angle,x)*r;
-      real[] T=arrowbasepoints(base,left,right,1);
-      pair denom=point(right,T[1])-y;
-      real factor=denom != 0 ? length((point(left,T[0])-y)/denom) : 1;
-      path left=rotate(-angle*factor,x)*r;
-      path right=rotate(angle*factor,x)*r;
-      real[] T=arrowbasepoints(base,left,right,1);
-      left=subpath(left,0,T[0]);
-      right=subpath(right,T[1],0);
-      pair pl0=point(left,0), pl1=relpoint(left,1);
-      pair pr0=relpoint(right,0), pr1=relpoint(right,1);
-      pair M=(pl1+pr0)/2;
-      pair v=barb*unit(M-pl0);
-      pl1=pl1+v; pr0=pr0+v;
-      left=pl0{dir(-dir+degrees(M-pl0,false))}..pl1--M;
-      right=M--pr0..pr1{dir(dir+degrees(pr1-M,false))};
-      return left--right&cycle;
+     if(size == 0) size=a.size(p);
+     angle=min(angle*arrowhookfactor,45);
+     bool relative=position.relative;
+     real position=position.position.x;
+     if(relative) position=reltime(g,position);
+     path r=subpath(g,position,0);
+     pair x=point(r,0);
+     real t=arctime(r,size);
+     pair y=point(r,t);
+     path base=arrowbase(r,y,t,size);
+     path left=rotate(-angle,x)*r;
+     path right=rotate(angle,x)*r;
+     real[] T=arrowbasepoints(base,left,right,1);
+     pair denom=point(right,T[1])-y;
+     real factor=denom != 0 ? length((point(left,T[0])-y)/denom) : 1;
+     path left=rotate(-angle*factor,x)*r;
+     path right=rotate(angle*factor,x)*r;
+     real[] T=arrowbasepoints(base,left,right,1);
+     left=subpath(left,0,T[0]);
+     right=subpath(right,T[1],0);
+     pair pl0=point(left,0), pl1=relpoint(left,1);
+     pair pr0=relpoint(right,0), pr1=relpoint(right,1);
+     pair M=(pl1+pr0)/2;
+     pair v=barb*unit(M-pl0);
+     pl1=pl1+v; pr0=pr0+v;
+     left=pl0{dir(-dir+degrees(M-pl0,false))}..pl1--M;
+     right=M--pr0..pr1{dir(dir+degrees(pr1-M,false))};
+     return left--right&cycle;
     };
   return a;
 }
@@ -129,35 +129,35 @@ arrowhead HookHead=HookHead();
 
 arrowhead TeXHead;
 TeXHead.size=new real(pen p)
-{
-  static real hcoef=2.1; // 84/40=abs(base-hint)/base_height
-  return hcoef*arrowtexfactor*linewidth(p);
-};
+  {
+   static real hcoef=2.1; // 84/40=abs(base-hint)/base_height
+   return hcoef*arrowtexfactor*linewidth(p);
+  };
 TeXHead.arcsize=TeXHead.size;
 
 TeXHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
                       real size=0, real angle=arrowangle) {
-  static real wcoef=1/84; // 1/abs(base-hint)
-  static path texhead=scale(wcoef)*
-  ((0,20)     .. controls (-75,75)    and (-108,158) ..
-   (-108,166) .. controls (-108,175)  and (-100,178) ..
-   (-93,178)  .. controls (-82,178)   and (-80,173)  ..
-   (-77,168)  .. controls (-62,134)   and (-30,61)   ..
-   (70,14)    .. controls (82,8)      and (84,7)     ..
-   (84,0)     .. controls (84,-7)     and (82,-8)    ..
-   (70,-14)   .. controls (-30,-61)   and (-62,-134) ..
-   (-77,-168) .. controls (-80,-173)  and (-82,-178) ..
-   (-93,-178) .. controls (-100,-178) and (-108,-175)..
-   (-108,-166).. controls (-108,-158) and (-75,-75)  ..
-   (0,-20)--cycle);
-  if(size == 0) size=TeXHead.size(p);
-  path gp=scale(size)*texhead;
-  bool relative=position.relative;
-  real position=position.position.x;
-  if(relative) position=reltime(g,position);
-  path r=subpath(g,position,0);
-  pair y=point(r,arctime(r,size));
-  return shift(y)*rotate(degrees(-dir(r,arctime(r,0.5*size))))*gp;
+                                                           static real wcoef=1/84; // 1/abs(base-hint)
+                                                           static path texhead=scale(wcoef)*
+                                                           ((0,20)     .. controls (-75,75)    and (-108,158) ..
+                                                            (-108,166) .. controls (-108,175)  and (-100,178) ..
+                                                            (-93,178)  .. controls (-82,178)   and (-80,173)  ..
+                                                            (-77,168)  .. controls (-62,134)   and (-30,61)   ..
+                                                            (70,14)    .. controls (82,8)      and (84,7)     ..
+                                                            (84,0)     .. controls (84,-7)     and (82,-8)    ..
+                                                            (70,-14)   .. controls (-30,-61)   and (-62,-134) ..
+                                                            (-77,-168) .. controls (-80,-173)  and (-82,-178) ..
+                                                            (-93,-178) .. controls (-100,-178) and (-108,-175)..
+                                                            (-108,-166).. controls (-108,-158) and (-75,-75)  ..
+                                                            (0,-20)--cycle);
+                                                           if(size == 0) size=TeXHead.size(p);
+                                                           path gp=scale(size)*texhead;
+                                                           bool relative=position.relative;
+                                                           real position=position.position.x;
+                                                           if(relative) position=reltime(g,position);
+                                                           path r=subpath(g,position,0);
+                                                           pair y=point(r,arctime(r,size));
+                                                           return shift(y)*rotate(degrees(-dir(r,arctime(r,0.5*size))))*gp;
 };
 TeXHead.defaultfilltype=new filltype(pen p) {return Fill(p);};
 
@@ -169,7 +169,7 @@ private real position(position position, real size, path g, bool center)
     position *= arclength(g);
     if(center) position += 0.5*size;
     position=arctime(g,position);
-  } else if(center) 
+  } else if(center)
     position=arctime(g,arclength(subpath(g,0,position))+0.5*size);
   return position;
 }
@@ -251,7 +251,7 @@ picture arrow(arrowhead arrowhead=DefaultHead,
       drawarrow(f,arrowhead,t*g,p,size,angle,filltype,position,forwards,margin,
                 center);
     });
-  
+
   pic.addPath(g,p);
 
   real position=position(position,size,g,center);
@@ -275,7 +275,7 @@ picture arrow2(arrowhead arrowhead=DefaultHead,
   pic.add(new void(frame f, transform t) {
       drawarrow2(f,arrowhead,t*g,p,size,angle,filltype,margin);
     });
-  
+
   pic.addPath(g,p);
 
   int L=length(g);
@@ -291,7 +291,7 @@ void bar(picture pic, pair a, pair d, pen p=currentpen)
   Draw(opic,-0.5d--0.5d,p+solid);
   add(pic,opic,a);
 }
-                                                      
+
 picture bar(pair a, pair d, pen p=currentpen)
 {
   picture pic;
@@ -345,7 +345,7 @@ arrowbar MidArrow(arrowhead arrowhead=DefaultHead,
     return false;
   };
 }
-  
+
 arrowbar Arrows(arrowhead arrowhead=DefaultHead,
                 real size=0, real angle=arrowangle,
                 filltype filltype=null)
@@ -383,7 +383,7 @@ arrowbar EndArcArrow(arrowhead arrowhead=DefaultHead,
                      real size=0, real angle=arcarrowangle,
                      filltype filltype=null,
                      position position=EndPoint)=ArcArrow;
-  
+
 arrowbar MidArcArrow(arrowhead arrowhead=DefaultHead,
                      real size=0, real angle=arcarrowangle,
                      filltype filltype=null)
@@ -395,7 +395,7 @@ arrowbar MidArcArrow(arrowhead arrowhead=DefaultHead,
     return false;
   };
 }
-  
+
 arrowbar ArcArrows(arrowhead arrowhead=DefaultHead,
                    real size=0, real angle=arcarrowangle,
                    filltype filltype=null)
@@ -406,8 +406,8 @@ arrowbar ArcArrows(arrowhead arrowhead=DefaultHead,
     return false;
   };
 }
-  
-arrowbar BeginBar(real size=0) 
+
+arrowbar BeginBar(real size=0)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? barsize(p) : size;
@@ -416,7 +416,7 @@ arrowbar BeginBar(real size=0)
   };
 }
 
-arrowbar Bar(real size=0) 
+arrowbar Bar(real size=0)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     int L=length(g);
@@ -426,9 +426,9 @@ arrowbar Bar(real size=0)
   };
 }
 
-arrowbar EndBar(real size=0)=Bar; 
+arrowbar EndBar(real size=0)=Bar;
 
-arrowbar Bars(real size=0) 
+arrowbar Bars(real size=0)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? barsize(p) : size;
@@ -469,73 +469,73 @@ void draw(picture pic=currentpicture, Label L=null, path g,
   // These if statements are ordered in such a way that the most common case
   // (with just a path and a pen) executes the least bytecode.
   if (marker == nomarker)
-  {
-    if (arrow == None && bar == None)
     {
-      if (margin == NoMargin && size(nib(p)) == 0)
-      {
-        pic.addExactAbove(
-            new void(frame f, transform t, transform T, pair, pair) {
-              _draw(f,t*T*g,p);
-            });
-        pic.addPath(g,p);
+      if (arrow == None && bar == None)
+        {
+          if (margin == NoMargin && size(nib(p)) == 0)
+            {
+              pic.addExactAbove(
+                                new void(frame f, transform t, transform T, pair, pair) {
+                                  _draw(f,t*T*g,p);
+                                });
+              pic.addPath(g,p);
 
-        // Jumping over else clauses takes time, so test if we can return
-        // here.
-        if (L == null && legend == null)
-          return;
+              // Jumping over else clauses takes time, so test if we can return
+              // here.
+              if (L == null && legend == null)
+                return;
+            }
+          else // With margin or polygonal pen.
+            {
+              _draw(pic, g, p, margin);
+            }
+        }
+      else /* arrow or bar */
+        {
+          // Note we are using & instead of && as both arrow and bar need to be
+          // called.
+          if (arrow(pic, g, p, margin) & bar(pic, g, p, margin))
+            _draw(pic, g, p, margin);
+        }
+
+      if(L != null && L.s != "") {
+        L=L.copy();
+        L.align(align);
+        L.p(p);
+        L.out(pic,g);
       }
-      else // With margin or polygonal pen.
-      {
-        _draw(pic, g, p, margin);
+
+      if(legend != null && legend.s != "") {
+        legend.p(p);
+        pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
       }
     }
-    else /* arrow or bar */
+  else /* marker != nomarker */
     {
+      if(marker != nomarker && !marker.above) marker.mark(pic,g);
+
       // Note we are using & instead of && as both arrow and bar need to be
       // called.
-      if (arrow(pic, g, p, margin) & bar(pic, g, p, margin))
-        _draw(pic, g, p, margin);
-    }
+      if ((arrow == None || arrow(pic, g, p, margin)) &
+          (bar == None || bar(pic, g, p, margin)))
+        {
+          _draw(pic, g, p, margin);
+        }
 
-    if(L != null && L.s != "") {
-      L=L.copy();
-      L.align(align);
-      L.p(p);
-      L.out(pic,g);
-    }
-
-    if(legend != null && legend.s != "") {
-      legend.p(p);
-      pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
-    }
-  }
-  else /* marker != nomarker */
-  {
-    if(marker != nomarker && !marker.above) marker.mark(pic,g);
-
-    // Note we are using & instead of && as both arrow and bar need to be
-    // called.
-    if ((arrow == None || arrow(pic, g, p, margin)) &
-        (bar == None || bar(pic, g, p, margin)))
-      {
-        _draw(pic, g, p, margin);
+      if(L != null && L.s != "") {
+        L=L.copy();
+        L.align(align);
+        L.p(p);
+        L.out(pic,g);
       }
 
-    if(L != null && L.s != "") {
-      L=L.copy();
-      L.align(align);
-      L.p(p);
-      L.out(pic,g);
-    }
+      if(legend != null && legend.s != "") {
+        legend.p(p);
+        pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
+      }
 
-    if(legend != null && legend.s != "") {
-      legend.p(p);
-      pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
+      if(marker != nomarker && marker.above) marker.mark(pic,g);
     }
-
-    if(marker != nomarker && marker.above) marker.mark(pic,g);
-  }
 }
 
 // Draw a fixed-size line about the user-coordinate 'origin'.
@@ -551,12 +551,12 @@ void draw(pair origin, picture pic=currentpicture, Label L=null, path g,
 
 void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen,
           Label legend=null, marker marker=nomarker)
-{ 
+{
   // This could be optimized to size and draw the entire array as a batch.
-  for(int i=0; i < g.length-1; ++i) 
+  for(int i=0; i < g.length-1; ++i)
     draw(pic,g[i],p,marker);
   if(g.length > 0) draw(pic,g[g.length-1],p,legend,marker);
-} 
+}
 
 void draw(picture pic=currentpicture, guide[] g, pen p=currentpen,
           Label legend=null, marker marker=nomarker)
@@ -621,7 +621,7 @@ frame[] fit(string prefix="", picture[] pictures, string format="",
 {
   if(pictures.length == 0)
     return new frame[];
- 
+
   picture all;
   size(all,pictures[0]);
   for(picture pic : pictures)

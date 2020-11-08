@@ -15,9 +15,9 @@ Intarray*  => IntArray()
 Intarray2*  => IntArray2()
 realarray* => realArray()
 realarray2* => realArray2()
-patharray* => pathArray()  
-penarray* => penArray()  
-penarray2* => penArray2()  
+patharray* => pathArray()
+penarray* => penArray()
+penarray2* => penArray2()
 pairarray* => pairArray()
 pairarray2* => pairArray2()
 triplearray* => tripleArray()
@@ -78,21 +78,21 @@ static transform ZeroTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);
 
 transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
 {
-    string s=(*p)->KEY;
-    transform t;
-    // Don't apply xmap without an explicit corresponding key
-    size_t n=s.length();
-    if(n == 0 || s.substr(n-1) != "1") return t;
+  string s=(*p)->KEY;
+  transform t;
+  // Don't apply xmap without an explicit corresponding key
+  size_t n=s.length();
+  if(n == 0 || s.substr(n-1) != "1") return t;
 
-    xmap_t::iterator q=xmap.find(s.substr(0,n-2));
-    if(q != xmap.end()) {
-      xtransform_t& v=q->second;
-      if(!v.empty()) {
-        t=v.front();
-        v.pop_front();      
-      }
+  xmap_t::iterator q=xmap.find(s.substr(0,n-2));
+  if(q != xmap.end()) {
+    xtransform_t& v=q->second;
+    if(!v.empty()) {
+      t=v.front();
+      v.pop_front();
     }
-    return t;
+  }
+  return t;
 }
 
 
@@ -108,14 +108,14 @@ function *penFunction()
 
 // Ignore unclosed begingroups but not spurious endgroups.
 const char *nobegin="endgroup without matching begingroup";
-  
+
 array *emptyarray=new array(0);
 
-array *nop(array *a) 
+array *nop(array *a)
 {
   return a;
 }
-  
+
 triple Zero;
 
 string defaultformat3="prc";
@@ -166,7 +166,7 @@ void fill(picture *f, patharray *g, pen p=CURRENTPEN, bool copy=true)
 }
 
 void latticeshade(picture *f, patharray *g, bool stroke=false,
-                  pen fillrule=CURRENTPEN, penarray2 *p, transform t=identity, 
+                  pen fillrule=CURRENTPEN, penarray2 *p, transform t=identity,
                   bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray : nop;
@@ -222,7 +222,7 @@ void gouraudshade(picture *f, patharray *g, bool stroke=false,
       (*z)[k++]=nodes[i].point;
   }
   checkArrays(p,z);
-  
+
   f->append(new drawGouraudShade(*copyarray(g),stroke,fillrule,*copyarray(p),
                                  *z,*copyarray(edges)));
 }
@@ -294,8 +294,8 @@ void endgroup(picture *f)
 }
 
 void _begingroup3(picture *f, string name, real compression,
-                 real granularity, bool closed, bool tessellate,
-                 bool dobreak, bool nobreak, triple center, Int interaction)
+                  real granularity, bool closed, bool tessellate,
+                  bool dobreak, bool nobreak, triple center, Int interaction)
 {
   f->append(new drawBegin3(name,compression,granularity,
                            closed,tessellate,dobreak,nobreak,
@@ -345,7 +345,7 @@ void texpreamble(string s)
   pd.TeXpreamble.push_back(t);
 }
 
-void deletepreamble() 
+void deletepreamble()
 {
   if(getSetting<bool>("inlinetex")) {
     unlink(buildname(outname(),"pre").c_str());
@@ -383,7 +383,7 @@ void _image(picture *f, realarray2 *data, pair initial, pair final,
   array *(*copyarray)(array *a)=copy ? copyArray : nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
   f->append(new drawPaletteImage(*copyarray2(data),*copyarray(palette),
-                            t*matrix(initial,final),antialias));
+                                 t*matrix(initial,final),antialias));
 }
 
 void _image(picture *f, penarray2 *data, pair initial, pair final,
@@ -425,7 +425,7 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   picture *result=new picture;
   unsigned level=0;
   picture::nodelist::iterator p;
-  
+
   xmap_t xmap=processData().xmap;
   transform Tinv=inverse(T);
 
@@ -461,7 +461,7 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
       result->add(*group);
     }
   }
-    
+
   result->shipout(preamble,prefix,format,wait,view);
 }
 
@@ -473,7 +473,7 @@ void shipout3(string prefix, picture *f, string format=emptystring,
 {
   size_t n=checkArrays(lights,diffuse);
   checkEqual(n,checkArray(specular));
-  
+
   real *T,*Background,*Diffuse,*Specular;
   triple *Lights;
 
@@ -482,10 +482,10 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   copyArrayC(Lights,lights);
   copyArray2C(Diffuse,diffuse,false,4,UseGC);
   copyArray2C(Specular,specular,false,4,UseGC);
-    
+
   f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,margin,T,
               Background,n,Lights,Diffuse,Specular,view);
-  
+
   delete[] Background;
   delete[] T;
 }
@@ -500,7 +500,7 @@ void xmap(string key, transform t=identity)
   xmap_t &xmap=processData().xmap;
   xmap_t::iterator p=xmap.find(key);
   if(p != xmap.end())
-    p->second.push_back(t); 
+    p->second.push_back(t);
   else {
     xtransform_t *v=new xtransform_t();
     v->push_back(t);
@@ -508,7 +508,7 @@ void xmap(string key, transform t=identity)
   }
 }
 
-void deconstruct(picture *f, picture *preamble=NULL, transform T=identity) 
+void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 {
   unsigned level=0;
 
@@ -519,14 +519,14 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 
   const string Done="Done";
   const string Error="Error";
-  
+
   unsigned arg=0;
   xmap_t xmap=processData().xmap;
   transform Tinv=inverse(T);
-    
+
   for(picture::nodelist::iterator p=f->nodes.begin();;) {
     if(p == f->nodes.end()) break;
-       
+
     picture *group=new picture;
     transform t=getTransform(xmap,p);
     bool Delete=(t == ZeroTransform);
@@ -573,21 +573,21 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
           string outname=buildname(buf.str(),xformat);
           group->shipout(preamble,outname,xformat,false,false);
           fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip || f->havepng());
-      
+
           const char *oldlocale=setlocale(LC_NUMERIC,NULL);
           bool override=oldlocale && strcmp(oldlocale,"C") != 0;
           if(override) {
             oldlocale=StrdupNoGC(oldlocale);
             setlocale(LC_NUMERIC,"C");
           }
-        
+
           fprintf(pipeout,"%g %g %g %g\n",b.left,b.bottom,b.right,b.top);
-        
+
           if(override) {
             setlocale(LC_NUMERIC,oldlocale);
             delete[] oldlocale;
           }
-        
+
           fflush(pipeout);
           ++arg;
         }
@@ -595,7 +595,7 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
       ++p;
     }
   }
-      
+
   fprintf(pipeout,"%s\n",Done.c_str());
   fflush(pipeout);
 }
@@ -605,8 +605,8 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 
 // Bezier curve
 void _draw(picture *f, path3 g, triple center=Zero, penarray *p,
-          real opacity, real shininess, real metallic, real fresnel0,
-          Int interaction=0)
+           real opacity, real shininess, real metallic, real fresnel0,
+           Int interaction=0)
 {
   size_t n=g.size();
   for(unsigned int i=0; i < n; ++i)
@@ -698,7 +698,7 @@ void drawpixel(picture *f, triple v, pen p, real width=1.0)
 // Draw triangles
 void draw(picture *f, triplearray *v, Intarray2 *vi,
           triplearray *n, Intarray2 *ni,
-          penarray *p, real opacity, real shininess, 
+          penarray *p, real opacity, real shininess,
           real metallic, real fresnel0,
           penarray *c=emptyarray, Intarray2 *ci=emptyarray)
 {

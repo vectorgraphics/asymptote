@@ -35,6 +35,7 @@ struct simplex {
 
   int case;
   rational[] x;
+  rational[] xStandard;
   rational cost;
 
   int m,n;
@@ -394,7 +395,10 @@ struct simplex {
     if(count > 0) simplexStandard(C,a,b);
     operator init(C,a,b,phase1,dual);
 
-    if(case == OPTIMAL && count > 0)
-      x.delete(n,n+count-1);
+    if(case == OPTIMAL) {
+      xStandard=copy(x);
+      if(count > 0)
+        x.delete(n,n+count-1);
+    }
   }
 }

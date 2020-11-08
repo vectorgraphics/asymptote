@@ -1,5 +1,5 @@
 bool CCW=true;
-bool CW=false;                                            
+bool CW=false;
 
 path circle(pair c, real r)
 {
@@ -35,7 +35,7 @@ path arc(pair c, real r, real angle1, real angle2, bool direction)
 {
   return arc(c,c+r*dir(angle1),c+r*dir(angle2),direction);
 }
-  
+
 // return an arc centered at c with radius r > 0 from angle1 to angle2 in
 // degrees, drawing counterclockwise if angle2 >= angle1 (otherwise clockwise).
 path arc(pair c, real r, real angle1, real angle2)

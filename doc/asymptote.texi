@@ -416,7 +416,7 @@ signal). Version @code{gv-3.6.3} or later (from
 @url{https://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
 work properly.
 Users of @code{ggv} will need to enable @code{Watch file} under
-@code{Edit/Postscript Viewer Preferences}.
+@code{Edit/PostScript Viewer Preferences}.
 Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
 (however, under @code{MSDOS} it is still necessary to click on the
 @code{gsview} window; under @code{UNIX} one must manually redisplay by
@@ -660,12 +660,15 @@ done as the root user. To install without root privileges, change the
 @verbatim
 ./configure --prefix=$HOME/asymptote
 @end verbatim
+@cindex @code{MacOS X} configuration
+@cindex @code{clang}
 One can disable use of the Boehm garbage collector by configuring
 with @code{./configure --disable-gc}. For a list of other configuration
-options, say @code{./configure --help}. For example, one can tell
-configure to look for header files and libraries in nonstandard locations:
+options, say @code{./configure --help}. For example, under
+@code{MacOS X}, one can tell configure to use the @code{clang} compilers and
+look for header files and libraries in nonstandard locations:
 @verbatim
-./configure CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
+./configure CC=clang CXX=clang++ CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
@@ -1005,7 +1008,7 @@ path unitcircle=E..N..W..S..cycle;
 @cindex superpath
 @noindent
 An @code{Asymptote} path, being connected, is equivalent to a
-@code{Postscript subpath}. The @code{^^} binary operator, which
+@code{PostScript subpath}. The @code{^^} binary operator, which
 requests that the pen be moved (without drawing or affecting
 endpoint curvatures) from the final point of the left-hand path to the
 initial point of the right-hand path, may be used to group several
@@ -1070,6 +1073,12 @@ objects are drawn. Layers are drawn sequentially, with the most recent
 layer appearing on top. Within each layer, labels, images, and
 verbatim @code{tex} commands are always drawn after the
 @code{PostScript} objects in that layer.
+
+@cindex @code{newpage}
+A page break can be generated with the command
+@verbatim
+void newpage(picture pic=currentpicture);
+@end verbatim
 
 While some of these drawing commands take many options, they all have sensible
 default values (for example, the picture argument defaults to
@@ -1183,21 +1192,22 @@ Margins can be used to shrink the visible portion of a path by
 Typical values of @code{margin} 
 are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
 equivalently @code{Margin}), and @code{Margins} (which leaves a margin
-at both ends of the path). One may use @code{Margin(real begin, real end)}
+at both ends of the path). One may use
+@code{Margin(real begin, real end=begin)}
 to specify the size of the beginning and ending margin, respectively,
 in multiples of the units @code{labelmargin(p)} used for aligning labels.
 Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
 (or equivalently @code{PenMargin}), @code{PenMargins},
-@code{PenMargin(real begin, real end)} specify a margin in units of
+@code{PenMargin(real begin, real end=begin)} specify a margin in units of
 the pen line width, taking account of the pen line width when drawing
 the path or arrow. For example, use @code{DotMargin}, an
 abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
 to draw from the usual beginning point just up to the boundary of an
 end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
 @code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
-similarly. The qualifier @code{TrueMargin(real begin, real end)} allows one to
-specify a margin directly in @code{PostScript} units, independent of
-the pen line width.
+similarly. The qualifier @code{TrueMargin(real begin, real end=begin)}
+allows one to specify a margin directly in @code{PostScript} units,
+independent of the pen line width.
 
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
@@ -3093,7 +3103,7 @@ The default setting, @code{nobasealign},which may be changed with
 full label bounding box for alignment. In contrast, @code{basealign}
 requests that the @TeX{} baseline be respected.
 The base align setting of a pen is returned by
-@code{int basealigin(pen p=currentpen)}.
+@code{int basealign(pen p=currentpen)}.
 
 @cindex @code{fontsize}
 @cindex @code{lineskip}
@@ -3138,7 +3148,7 @@ to the requested size: @code{pen font(string name, real size)}.
 A nonstandard font command can be generated with
 @code{pen fontcommand(string)}.
 
-@cindex PostScript fonts
+@cindex @code{PostScript} fonts
 A convenient interface to the following standard @code{PostScript}
 fonts is also provided:
 @verbatim
@@ -3165,7 +3175,7 @@ encoding (so as the font, font encoding or even language context).
 @cindex Cyrillic
 @cindex Russian
 Here is an example for @code{cp1251} and Russian language in Cyrillic script
-(font encoding @code{T2A}) using Antykwa Toruńska font:
+(font encoding @code{T2A}):
 @verbatim
 texpreamble("\usepackage[math]{anttor}");
 texpreamble("\usepackage[T2A]{fontenc}");
@@ -3840,7 +3850,7 @@ value) files and portable @acronym{XDR} (External Data Representation)
 binary files.
 
 @cindex @code{input}
-An input file must first be opened with 
+An input file can be opened with
 @verbatim
 input(string name="", bool check=true, string comment="#", string mode="");
 @end verbatim
@@ -3862,7 +3872,9 @@ The first character of the string @code{comment} specifies a
 comment character. If this character is encountered in a data file,
 the remainder of the line is ignored. When reading strings, a comment
 character followed immediately by another comment character is treated
-as a single literal comment character.
+as a single literal comment character. If @code{Asymptote} is compiled with
+support for @code{libcurl}, @code{name} can be a @acronym{URL}.
+
 
 @anchor{cd}
 @cindex @code{cd}
@@ -3968,7 +3980,8 @@ Data Representation) portable binary format (available on all
 @code{UNIX} platforms).
 Alternatively, a file may also be opened with @code{mode="binary"}
 to read or write double precision reals and single
-precision integers in the native (nonportable) machine binary format.
+precision integers in the native (nonportable) machine binary format,
+or to read the entire file into a string.
 The virtual member functions
 @code{file singlereal(bool b=true)} and @code{file singleint(bool b=true)}
 be used to change the precision of real and integer I/O
@@ -4388,10 +4401,12 @@ while in the second, it must be the (non-@code{void}) type of the variable.
 The function @code{cputime()}
 returns a structure @code{cputime} with cumulative @acronym{CPU} times
 broken down into the fields @code{parent.user}, @code{parent.system},
-@code{child.user}, and @code{child.system}. For convenience, the
-incremental fields @code{change.user} and @code{change.system} indicate
-the change in the corresponding total parent and child @acronym{CPU}
-times since the last call to @code{cputime()}. The function
+@code{child.user}, and @code{child.system}, along with the cumulative
+wall clock time in @code{parent.clock}, all measured in seconds.
+For convenience, the incremental fields @code{change.user},
+@code{change.system}, and @code{change.clock} indicate  the change in
+the corresponding fields since the last call to @code{cputime()}. The
+function
 @verbatim
 void write(file file=stdout, string s="", cputime c,
            string format=cputimeformat, suffix suffix=none); 
@@ -5969,6 +5984,7 @@ real det(matrix m) {
 @end verbatim
 
 @cindex @code{import}
+@cindex @code{access}
 The command
 @verbatim
 import graph;
@@ -6031,6 +6047,13 @@ nonalphanumeric characters, enclose it with quotation marks:
 
 @noindent
 @code{import "@value{Datadir}/asymptote/graph.asy" as graph;}
+
+@cindex @acronym{URL}
+@cindex @acronym{libcurl}
+If @code{Asymptote} is compiled with support for @code{libcurl},
+the file name can even be a @acronym{URL}:
+@noindent
+@code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy" as axis3;}
 
 It is an error if modules import themselves (or each other in a cycle).
 The module name to be imported must be known at compile time.
@@ -6540,7 +6563,7 @@ and @code{leastsquares}.
 @node patterns, markers, stats, Base modules
 @section @code{patterns}
 @cindex @code{patterns}
-This module implements @code{Postscript} tiling patterns and includes
+This module implements @code{PostScript} tiling patterns and includes
 several convenient pattern generation routines.
 
 @node markers, tree, patterns, Base modules
@@ -8043,14 +8066,16 @@ There are five choices for viewing 3D @code{Asymptote} output:
 @cindex @code{render}
 @cindex @code{outformat}
 @cindex @code{multisample}
+@cindex @code{devicepixelratio}
+@cindex @code{position}
 @item Use the native @code{Asymptote} adaptive @code{OpenGL}-based
 renderer (with the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}). On @code{UNIX} systems with
 graphics support for multisampling, the sample width can be
-controlled with the setting @code{multisample}. An initial screen
-position can be specified with the pair setting @code{position}, where
-negative values are interpreted as relative to the corresponding
-maximum screen dimension. The default settings
+controlled with the setting @code{multisample}. The ratio of physical to
+logical screen pixels can be specified with the setting @code{devicepixelratio}. An initial screen position can be specified with the pair setting
+@code{position}, where negative values are interpreted as relative to the
+corresponding maximum screen dimension. The default settings
 @cindex mouse bindings
 @verbatim
 import settings;
@@ -9690,7 +9715,7 @@ Pictures are deconstructed into the @acronym{SVG} image format.
 Since @code{Qt5} does not support @code{SVG} clipping, you will need
 the @code{rsvg-convert} utility, which is part of the
 @code{librsvg2-tools} package on @code{UNIX} systems
-and the @code{librsvg} package on @code{MacOS}; under
+and the @code{librsvg} package on @code{MacOS X}; under
 @code{Microsoft Windows}, it is available as
 
 @url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
@@ -10053,7 +10078,7 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb TEXMFCONFIG Jn
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile Yn
-@c  LocalWords:  pdfreloadOptions deferred OpenGL renderer unitbox
+@c  LocalWords:  pdfreloadOptions deferred OpenGL renderer unitbox 's
 @c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
 @c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
 @c  LocalWords:  DPostScript YZZero externalprc nonrendered nosafe KDE
@@ -10061,7 +10086,7 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen emissivepen specularpen arrowbarb keyval
-@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin cmd
+@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealign cmd
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach SVG
@@ -10088,13 +10113,13 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  ascii piecewise arcpoint spacings tilings sncndn resizing
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
-@c  LocalWords:  Michail 0pt 1filll 's 3D labelpath3 2D graph3
+@c  LocalWords:  Michail 0pt 1filll 's 3D labelpath3 2D graph3 0pt 3D
 @c  LocalWords:  grid3 contour3 x86_64 psv a4 gsview32 freeglut 'load '
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
 @c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
 @c  LocalWords:  z2 before' struct X11 x11colors type1cm 12pt OT1 5mm
 @c  LocalWords:  cmr12 x' y' xsize ysize 25cm s1 s2 neighbourhood u''
-@c  LocalWords:  s'' 3x 5x 3y 602e 2x 2y 3sin 10cm 204e addby7 10x Ai
+@c  LocalWords:  s'' 3x 5x 3y 602e 2x 2y 3sin 10cm 204e addby7 10x
 @c  LocalWords:  only'' pow10 log10 expm1 log1p atan2 0pt 1filll 's '
 @c  LocalWords:  x1 x2 graph2d attachfile2 n0 P0 n1 P1 markers1 3D 2D
 @c  LocalWords:  interpolate1 markers2 inlinemovie3 media9 U3D T2A 5E
@@ -10117,31 +10142,39 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  slopefield1 144x144 1filll 'load 'asy 'lasy 'auto 4g
 @c  LocalWords:  libgs 'load 'asy 'lasy 'auto 5bp 1cm 2S 100pt 3t 5mm
 @c  LocalWords:  bracedefaultratio incircle 12pt 25cm 3x 5x 3y 602e '
-@c  LocalWords:  2x 2y 3sin 10cm 204e 10x Ai 5E offaxis 'load 'lasy '
+@c  LocalWords:  2x 2y 3sin 10cm 204e 10x 5E offaxis 'load 'lasy '
 @c  LocalWords:  5cm 2N 2E 2n 100d 5z 5y 5unit dvisvgmOptions 144x144
 @c  LocalWords:  4g texengines coplanar 0pt 1filll 's 3D 2D 'load 5bp
 @c  LocalWords:  insphere cospherical 5unit luatex lualatex 'asy 1cm
 @c  LocalWords:  'lasy 'auto 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x 3y 2x
-@c  LocalWords:  602e 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai Ai '
-@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y 0pt 1filll '
+@c  LocalWords:  602e 2y 3sin 10cm 204e 10x
+@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y 0pt 1filll
 @c  LocalWords:  5unit 144x144 aligndir smoothcontour3 's 3D 2D cmake
 @c  LocalWords:  'load 'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t nan 3x
-@c  LocalWords:  12pt 5mm 25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai
-@c  LocalWords:  Ai Ai Ai Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y nz '
-@c  LocalWords:  5unit Staats implicitsurface overlapedges maxdepth
+@c  LocalWords:  12pt 5mm 25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  5E 5cm 2N 2E 2n 100d 5z 5y nz
+@c  LocalWords:  5unit Staats implicitsurface overlapedges maxdepth '
 @c  LocalWords:  through'' genustwo 144x144 0pt 1filll 's 3D 2D 'load
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t 12pt 5mm 3x
-@c  LocalWords:  25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai
-@c  LocalWords:  Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y 5unit 144x144
+@c  LocalWords:  25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  5E 5cm 2N 2E 2n 100d 5z 5y 5unit 144x144
 @c  LocalWords:  Frohlich codequoteundirected center 0pt 1filll 's 3D
 @c  LocalWords:  acknowledgments Colors 2D Color WebGL uref x86 dnf
 @c  LocalWords:  htmlviewer asygl CPPFLAGS 'load 'asy 'lasy 'auto 5bp
 @c  LocalWords:  1cm labeling dotfilltype 4g color colors centered 2S
 @c  LocalWords:  100pt 3t forcemath gray colorless miter 12pt 5mm 3x
 @c  LocalWords:  zeroTransform 25cm Python3 popcount bitreverse 5x 3y
-@c  LocalWords:  602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai
-@c  LocalWords:  Ai findall ax 5a centers 5E 5cm 2N 2E 2n HTML5 html
+@c  LocalWords:  602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  findall ax 5a centers 5E 5cm 2N 2E 2n HTML5 html
 @c  LocalWords:  logo3 remeshed css 42kB 100d 5z 5y 5unit colored Qt5
 @c  LocalWords:  behavior beveled usetriangles htmlviewerOptions cson
-@c  LocalWords:  144x144 pyqt5 numpy pip3 PyQt5 rsvg librsvg2
-@c  LocalWords:  librsvg Supakorn Jamie'' Rassameemasmuang
+@c  LocalWords:  144x144 pyqt5 numpy pip3 PyQt5 rsvg librsvg2 1filll
+@c  LocalWords:  librsvg Supakorn Jamie'' Rassameemasmuang 2D Docdir
+@c  LocalWords:  microsoft configuation 'load 'asy 'lasy 'auto dep 4g
+@c  LocalWords:  5bp 1cm BezierPatch 2S 100pt 3t abs2 12pt cp1251 5mm
+@c  LocalWords:  anttor fontenc inputenc 25cm noglobalread 3x
+@c  LocalWords:  5x 3y 602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  mapArray 5a parameterized mapTemplate 5E 2N
+@c  LocalWords:  5cm freshnel0 fresnel0 PBR prethree specularfactor
+@c  LocalWords:  renderers 2E ESC AsyGL 48kB 2n 100d 5z 5y 5unit
+@c  LocalWords:  unicode 144x144 Pedram Emami

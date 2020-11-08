@@ -109,7 +109,7 @@ void errorstream::fatal(position pos)
 void errorstream::trace(position pos)
 {
   static position lastpos;
-  if(!pos || (pos.match(lastpos.filename()) && pos.match(lastpos.Line()))) 
+  if(!pos || (pos.match(lastpos.filename()) && pos.match(lastpos.Line())))
     return;
   lastpos=pos;
   message(pos,"");
@@ -127,7 +127,7 @@ void errorstream::sync()
   floating = false;
 }
 
-void outOfMemory() 
+void outOfMemory()
 {
   cerr << "error: out of memory" << endl;
   exit(1);

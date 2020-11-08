@@ -1,6 +1,6 @@
 !define PRODUCT_NAME "Asymptote"
 !include AsymptoteInstallInfo.nsi
-!define PRODUCT_WEB_SITE "http://asymptote.sourceforge.net/"
+!define PRODUCT_WEB_SITE "https://asymptote.sourceforge.io/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Asymptote"
 !define PRODUCT_FILE_TYPE_REGKEY1 "Software\Classes\.asy"
 !define PRODUCT_FILE_TYPE_REGKEY2 "Software\Classes\ASYFile\shell\open\command"

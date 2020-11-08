@@ -5,7 +5,7 @@ struct marginT {
 
 typedef marginT margin(path, pen);
 
-path trim(path g, real begin, real end) {
+path trim(path g, real begin, real end=begin) {
   real a=arctime(g,begin);
   real b=arctime(g,arclength(g)-end);
   return a <= b ? subpath(g,a,b) : point(g,a);
@@ -36,7 +36,7 @@ margin NoMargin()
   };
 }
                                                       
-margin Margin(real begin, real end)
+margin Margin(real begin, real end=begin)
 { 
   return new marginT(path g, pen p) {
     marginT margin;
@@ -48,7 +48,7 @@ margin Margin(real begin, real end)
   };
 }
                                                            
-margin PenMargin(real begin, real end)
+margin PenMargin(real begin, real end=begin)
 { 
   return new marginT(path g, pen p) {
     marginT margin;
@@ -60,7 +60,7 @@ margin PenMargin(real begin, real end)
   };
 }
                                               
-margin DotMargin(real begin, real end)
+margin DotMargin(real begin, real end=begin)
 { 
   return new marginT(path g, pen p) {
     marginT margin;
@@ -73,7 +73,7 @@ margin DotMargin(real begin, real end)
   };
 }
                                                       
-margin TrueMargin(real begin, real end)
+margin TrueMargin(real begin, real end=begin)
 { 
   return new marginT(path g, pen p) {
     marginT margin;

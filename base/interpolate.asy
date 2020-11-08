@@ -7,8 +7,8 @@
 // and values y_0,...,y_n in the array y,
 
 // hdiffdiv(x,y,dyp) computes Newton's Divided Difference for
-// Hermite interpolation where dyp={dy_0,...,dy_n}. 
-// 
+// Hermite interpolation where dyp={dy_0,...,dy_n}.
+//
 // fhorner(x,coeff) uses Horner's rule to compute the polynomial
 // a_0+a_1(x-x_0)+a_2(x-x_0)(x-x_1)+...+a_n(x-x_0)..(x-x_{n-1}),
 // where coeff={a_0,a_1,...,a_n}.
@@ -54,7 +54,7 @@ fhorner fhorner(horner sh)
     return s;
   };
 }
-      
+
 // Newton's Divided Difference method: n(n-1)/2 divisions, n(n-1) additions.
 horner diffdiv(real[] x, real[] y)
 {
@@ -136,5 +136,5 @@ realfunction fspline(real[] x, real[] y, splinetype splinetype=notaknot)
   real[] dy=splinetype(x,y);
   return new real(real t) {
     return pwhermite(x,y,dy)(t);
-  }; 
+  };
 }
