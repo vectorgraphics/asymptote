@@ -24,6 +24,13 @@ if(version.VERSION != VERSION) {
           version.VERSION+" of plain.asy"+'\n');
   nowarn("version");
 }
+
+real RELEASE=(real) split(version.VERSION,"-")[0];
+// Require the lowest mandatory release // TODO doc
+void require(real release)
+{
+  assert(RELEASE >= release); // TODO appropriate error message
+}
    
 include plain_strings;
 include plain_pens;
@@ -145,7 +152,7 @@ void initdefaults()
   atexit(null);
 }
 
-// Return the sequence n,...m
+// Return the sequence n,...,m
 int[] sequence(int n, int m)
 {
   return sequence(new int(int x){return x;},m-n+1)+n;
