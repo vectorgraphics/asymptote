@@ -33,13 +33,13 @@ struct face {
 
 picture operator cast(face f) {return f.pic;}
 face operator cast(path3 p) {return face(p);}
-  
+
 struct line {
   triple point;
   triple dir;
 }
 
-private line intersection(face a, face b) 
+private line intersection(face a, face b)
 {
   line L;
   L.point=intersectionpoint(a.normal,a.point,b.normal,b.point);
@@ -49,12 +49,12 @@ private line intersection(face a, face b)
 
 struct half {
   pair[] left,right;
-  
+
   // Sort the points in the pair array z according to whether they lie on the
   // left or right side of the line L in the direction dir passing through P.
   // Points exactly on L are considered to be on the right side.
   // Also push any points of intersection of L with the path operator --(... z)
-  // onto each of the arrays left and right. 
+  // onto each of the arrays left and right.
   void operator init(pair dir, pair P ... pair[] z) {
     pair lastz;
     pair invdir=dir != 0 ? 1/dir : 0;
@@ -73,7 +73,7 @@ struct half {
     }
   }
 }
-  
+
 struct splitface {
   face back,front;
 }
@@ -84,7 +84,7 @@ splitface split(face a, face cut, projection P)
   splitface S;
 
   void nointersection() {
-    if(abs(dot(a.point-P.camera,a.normal)) >= 
+    if(abs(dot(a.point-P.camera,a.normal)) >=
        abs(dot(cut.point-P.camera,cut.normal))) {
       S.back=a;
       S.front=null;
@@ -113,7 +113,7 @@ splitface split(face a, face cut, projection P)
     nointersection();
     return S;
   }
-    
+
   pair point=a.t*project(L.point,P);
   pair dir=a.t*project(L.point+L.dir,P)-point;
   pair invdir=dir != 0 ? 1/dir : 0;
@@ -122,7 +122,7 @@ splitface split(face a, face cut, projection P)
 
   real t=intersect(apoint,P.camera,cut.normal,cut.point);
   bool rightfront=left ^ (t <= 0 || t >= 1);
-  
+
   face back=a, front=a.copy();
   pair max=max(a.fit);
   pair min=min(a.fit);
@@ -151,7 +151,7 @@ struct bsp
   bsp back;
   bsp front;
   face node;
-  
+
   // Construct the bsp.
   void operator init(face[] faces, projection P) {
     if(faces.length != 0) {
@@ -166,7 +166,7 @@ struct bsp
       this.back=bsp(back,P);
     }
   }
-  
+
   // Draw from back to front.
   void add(frame f) {
     if(back != null) back.add(f);
@@ -183,22 +183,22 @@ void add(picture pic=currentpicture, face[] faces,
   face[] Faces=new face[n];
   for(int i=0; i < n; ++i)
     Faces[i]=faces[i].copy();
-  
+
   pic.add(new void (frame f, transform t, transform T,
-                                pair m, pair M) {
-                        // Fit all of the pictures so we know their exact sizes.
-                        face[] faces=new face[n];
-                        for(int i=0; i < n; ++i) {
-                          faces[i]=Faces[i].copy();
-                          face F=faces[i];
-                          F.t=t*T*F.pic.T;
-                          F.fit=F.pic.fit(t,T*F.pic.T,m,M);
-                        }
-    
-                        bsp bsp=bsp(faces,P);
-                        if(bsp != null) bsp.add(f);
+                    pair m, pair M) {
+            // Fit all of the pictures so we know their exact sizes.
+            face[] faces=new face[n];
+            for(int i=0; i < n; ++i) {
+              faces[i]=Faces[i].copy();
+              face F=faces[i];
+              F.t=t*T*F.pic.T;
+              F.fit=F.pic.fit(t,T*F.pic.T,m,M);
+            }
+
+            bsp bsp=bsp(faces,P);
+            if(bsp != null) bsp.add(f);
           });
-    
+
   for(int i=0; i < n; ++i) {
     picture F=Faces[i].pic;
     pic.userBox3(F.userMin3(), F.userMax3());

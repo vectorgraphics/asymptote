@@ -9,17 +9,17 @@ dotfactor=7;
 void subinterval(real a, real b)
 {
   path g=box((a,0),(b,f(b)));
-  filldraw(g,lightgray); 
+  filldraw(g,lightgray);
   draw(box((a,f(a)),(b,0)));
 }
 
 int a=1, b=9;
-  
-xaxis("$x$",0,b); 
-yaxis("$y$",0); 
- 
+
+xaxis("$x$",0,b);
+yaxis("$y$",0);
+
 draw(graph(f,a,b,operator ..),red);
- 
+
 int n=2;
 
 for(int i=a; i <= b; ++i) {

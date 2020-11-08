@@ -259,7 +259,7 @@ ticksgrid InOutTicks(Label F="", ticklabel ticklabel=null,
                        N,n,Step,step,begin,end,
                        Size,size,false,pTick,ptick);
       otg.grid3=new void(picture pic, bool above) {
-        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
+                                                   grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
       return otg;
     };
@@ -280,7 +280,7 @@ ticksgrid InTicks(Label F="", ticklabel ticklabel=null,
       otg.ticks=Ticks3(-1,F,ticklabel,beginlabel,endlabel,N,n,Step,step,
                        begin,end,Size,size,false,pTick,ptick);
       otg.grid3=new void(picture pic, bool above) {
-        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
+                                                   grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
       return otg;
     };
@@ -301,7 +301,7 @@ ticksgrid OutTicks(Label F="", ticklabel ticklabel=null,
       otg.ticks=Ticks3(1,F,ticklabel,beginlabel,endlabel,N,n,Step,step,
                        begin,end,Size,size,false,pTick,ptick);
       otg.grid3=new void(picture pic, bool above) {
-        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
+                                                   grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
       return otg;
     };

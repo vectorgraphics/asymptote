@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[2.67git],[http://sourceforge.net/projects/asymptote])
+AC_INIT([Asymptote],[2.68git],[https://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -55,7 +55,7 @@ fi
 ])
 
 AC_CHECK_PROGS(TEXI2DVI,[texi2dvi],
-[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put http://asymptote.sourceforge.net/asymptote.pdf in the doc directory: cannot execute texi2dvi])
+[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put https://asymptote.sourceforge.io/asymptote.pdf in the doc directory: cannot execute texi2dvi])
 
 AC_SUBST(TEXI2DVI)
 
@@ -264,6 +264,15 @@ if test "x$enable_sigsegv" != "xno"; then
 fi
 
 AC_CHECK_LIB([rt], [sched_yield])
+
+AC_ARG_ENABLE(curl,
+[AS_HELP_STRING(--enable-curl[[[=yes]]],enable libcurl and compile with optional URL support)])
+if test "x$enable_curl" != "xno"; then
+  AC_CHECK_LIB([curl],[curl_easy_init],,
+  AC_MSG_NOTICE([*** Could not find libcurl: will compile without optional URL support. ***]))
+else
+  AC_MSG_NOTICE([*** libcurl support disabled by configure flag: will compile without optional URL support. ***])
+fi
 
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])

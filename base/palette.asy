@@ -5,7 +5,7 @@ private transform swap=(0,0,0,1,1,0);
 typedef bounds range(picture pic, real min, real max);
 
 range Range(bool automin=false, real min=-infinity,
-            bool automax=false, real max=infinity) 
+            bool automax=false, real max=infinity)
 {
   return new bounds(picture pic, real dmin, real dmax) {
     // autoscale routine finds reasonable limits
@@ -45,7 +45,7 @@ void image(frame f, pen[][] data, pair initial, pair final,
 // Reduce color palette to approximate range of data relative to "display"
 // range => errors of 1/palette.length in resulting color space.
 pen[] adjust(picture pic, real min, real max, real rmin, real rmax,
-             pen[] palette) 
+             pen[] palette)
 {
   real dmin=pic.scale.z.T(min);
   real dmax=pic.scale.z.T(max);
@@ -100,7 +100,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
     initial=T*initial;
     final=T*final;
   }
-        
+
   pic.add(new void(frame F, transform t) {
       _image(F,f,initial,final,palette,t*T,copy=false,antialias=antialias);
     },true);
@@ -146,7 +146,7 @@ void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
     initial=T*initial;
     final=T*final;
   }
-        
+
   pic.add(new void(frame F, transform t) {
       _image(F,data,initial,final,t*T,copy=false,antialias=antialias);
     },true);
@@ -171,7 +171,7 @@ void image(picture pic=currentpicture, pen f(int, int), int width, int height,
     initial=T*initial;
     final=T*final;
   }
-        
+
   pic.add(new void(frame F, transform t) {
       _image(F,f,width,height,initial,final,t*T,antialias=antialias);
     },true);
@@ -267,20 +267,20 @@ paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
     return Ticks(sign,format,ticklabel,beginlabel,endlabel,N,n,Step,step,
                  true,true,extend=true,pTick,ptick);
   };
-} 
+}
 
 paletteticks PaletteTicks=PaletteTicks();
 paletteticks NoTicks=new ticks(int sign=-1) {return NoTicks;};
 
-void palette(picture pic=currentpicture, Label L="", bounds bounds, 
-             pair initial, pair final, axis axis=Right, pen[] palette, 
+void palette(picture pic=currentpicture, Label L="", bounds bounds,
+             pair initial, pair final, axis axis=Right, pen[] palette,
              pen p=currentpen, paletteticks ticks=PaletteTicks,
              bool copy=true, bool antialias=false)
 {
   real initialz=pic.scale.z.T(bounds.min);
   real finalz=pic.scale.z.T(bounds.max);
   bounds mz=autoscale(initialz,finalz,pic.scale.z.scale);
-  
+
   axisT axis;
   axis(pic,axis);
   real angle=degrees(axis.align.dir);
@@ -311,11 +311,11 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
   if(vertical && L.defaulttransform) {
     frame f;
     add(f,Label(L.s,(0,0),L.p));
-    if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p)) 
+    if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p))
       L.transform(rotate(90));
   }
   real[][] pdata={sequence(palette.length)};
-  
+
   transform T;
   pair Tinitial,Tfinal;
   if(vertical) {
@@ -326,12 +326,12 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
     Tinitial=initial;
     Tfinal=final;
   }
-        
+
   pic.add(new void(frame f, transform t) {
       _image(f,pdata,Tinitial,Tfinal,palette,t*T,copy=false,
              antialias=antialias);
     },true);
-  
+
   ticklocate locate=ticklocate(initialz,finalz,pic.scale.z,mz.min,mz.max);
   axis(pic,L,g,g2,p,ticks(sgn(axis.side.x*dot(lambda,par))),locate,mz.divisor,
        true);
@@ -356,13 +356,13 @@ pen[] Grayscale(int NColors=256)
 pen[] Wheel(int NColors=32766)
 {
   if(settings.gray) return Grayscale(NColors);
-  
+
   int nintervals=6;
   if(NColors <= nintervals) NColors=nintervals+1;
   int n=-quotient(NColors,-nintervals);
-                
+
   pen[] Palette;
-  
+
   Palette=new pen[n*nintervals];
   real ninv=1.0/n;
 
@@ -373,7 +373,7 @@ pen[] Wheel(int NColors=32766)
     Palette[n+i]=rgb(ininv1,0.0,1.0);
     Palette[2n+i]=rgb(0.0,ininv,1.0);
     Palette[3n+i]=rgb(0.0,1.0,ininv1);
-    Palette[4n+i]=rgb(ininv,1.0,0.0);    
+    Palette[4n+i]=rgb(ininv,1.0,0.0);
     Palette[5n+i]=rgb(1.0,ininv1,0.0);
   }
   return Palette;
@@ -383,14 +383,14 @@ pen[] Wheel(int NColors=32766)
 pen[] Rainbow(int NColors=32766)
 {
   if(settings.gray) return Grayscale(NColors);
-  
+
   int offset=1;
   int nintervals=5;
   if(NColors <= nintervals) NColors=nintervals+1;
   int n=-quotient(NColors-1,-nintervals);
-                
+
   pen[] Palette;
-  
+
   Palette=new pen[n*nintervals+offset];
   real ninv=1.0/n;
 
@@ -400,37 +400,37 @@ pen[] Rainbow(int NColors=32766)
     Palette[i]=rgb(ininv1,0.0,1.0);
     Palette[n+i]=rgb(0.0,ininv,1.0);
     Palette[2n+i]=rgb(0.0,1.0,ininv1);
-    Palette[3n+i]=rgb(ininv,1.0,0.0);    
+    Palette[3n+i]=rgb(ininv,1.0,0.0);
     Palette[4n+i]=rgb(1.0,ininv1,0.0);
   }
   Palette[4n+n]=rgb(1.0,0.0,0.0);
-  
+
   return Palette;
 }
 
 private pen[] BWRainbow(int NColors, bool two)
 {
   if(settings.gray) return Grayscale(NColors);
-  
+
   int offset=1;
   int nintervals=6;
   int divisor=3;
-  
+
   if(two) nintervals += 6;
-  
+
   int Nintervals=nintervals*divisor;
   if(NColors <= Nintervals) NColors=Nintervals+1;
   int num=NColors-offset;
   int n=-quotient(num,-Nintervals)*divisor;
   NColors=n*nintervals+offset;
-                
+
   pen[] Palette;
-  
+
   Palette=new pen[NColors];
   real ninv=1.0/n;
 
   int k=0;
-  
+
   if(two) {
     for(int i=0; i < n; ++i) {
       real ininv=i*ninv;
@@ -444,9 +444,9 @@ private pen[] BWRainbow(int NColors, bool two)
     }
     k += 6n;
   }
-  
+
   if(two)
-    for(int i=0; i < n; ++i) 
+    for(int i=0; i < n; ++i)
       Palette[k+i]=rgb(1.0-i*ninv,0.0,1.0);
   else {
     int n3=-quotient(n,-3);
@@ -467,12 +467,12 @@ private pen[] BWRainbow(int NColors, bool two)
     real ininv1=1.0-ininv;
     Palette[k+i]=rgb(0.0,ininv,1.0);
     Palette[k+n+i]=rgb(0.0,1.0,ininv1);
-    Palette[k+2n+i]=rgb(ininv,1.0,0.0);    
+    Palette[k+2n+i]=rgb(ininv,1.0,0.0);
     Palette[k+3n+i]=rgb(1.0,ininv1,0.0);
     Palette[k+4n+i]=rgb(1.0,ininv,ininv);
   }
   Palette[k+5n]=rgb(1.0,1.0,1.0);
-  
+
   return Palette;
 }
 
@@ -484,7 +484,7 @@ pen[] quantize(pen[] Palette, int n)
   real step=(Palette.length-1)/(n-1);
   return sequence(new pen(int i) {
       return Palette[round(i*step)];
-    },n); 
+    },n);
 }
 
 // A rainbow palette tapering off to black/white at the spectrum ends,
@@ -507,7 +507,7 @@ pen[] BWRainbow2(int NColors=32761)
 
 //A palette varying linearly over the specified array of pens, using
 // NColors in each interpolation interval.
-pen[] Gradient(int NColors=256 ... pen[] p) 
+pen[] Gradient(int NColors=256 ... pen[] p)
 {
   pen[] P;
   if(p.length < 2) abort("at least 2 colors must be specified");
@@ -522,7 +522,7 @@ pen[] Gradient(int NColors=256 ... pen[] p)
   return P;
 }
 
-pen[] cmyk(pen[] Palette) 
+pen[] cmyk(pen[] Palette)
 {
   int n=Palette.length;
   for(int i=0; i < n; ++i)

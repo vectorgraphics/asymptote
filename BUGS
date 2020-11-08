@@ -2,5 +2,5 @@ If you find a bug in Asymptote, please check (if possible) whether the bug
 is still present in the latest git developmental code before submitting a
 bug report.
 
-New bugs can be submitted using the Bug Tracking System at
-http://asymptote.sourceforge.net/
+New bugs can be submitted at
+https://github.com/vectorgraphics/asymptote/issues

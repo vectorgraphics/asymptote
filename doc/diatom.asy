@@ -40,7 +40,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   real[] P=percentage[taxon];
   if(max(P) < ignorebelow) continue;
   final=taxon;
-}  
+}
 
 real angle=45;
 real L=3cm;
@@ -100,10 +100,10 @@ for(int taxon=0; taxon < n; ++taxon) {
           pair z1=t*z+v;
           pair w1=z1+Ldir;
           draw[i]=new void(frame f) {
-            path g=z0--(z0.x+(ymax-z0.y)/Tan(angle),ymax)--
-            (z1.x+(ymax-z1.y)/Tan(angle),ymax)--z1;
-            draw(f,g);
-            label(f,group[i],point(g,1.5),align);
+                                     path g=z0--(z0.x+(ymax-z0.y)/Tan(angle),ymax)--
+                                     (z1.x+(ymax-z1.y)/Tan(angle),ymax)--z1;
+                                     draw(f,g);
+                                     label(f,group[i],point(g,1.5),align);
           };
         });
     }
@@ -113,7 +113,7 @@ for(int taxon=0; taxon < n; ++taxon) {
 
   if(taxon == 0) yaxis(pic,depthlabel,Left,RightTicks(0,10),above=true);
   if(taxon == final) yaxis(pic,Right,LeftTicks("%",0,10),above=true);
- 
+
   add(shift(location,0)*pic);
   location += pic.userMax().x;
 }

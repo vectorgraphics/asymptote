@@ -309,7 +309,7 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
 
 void center(string s, pen p=itempen)
 {
-  remark("\center "+s,p);
+  remark(center=true,"\center "+s,p);
 }
 
 void vbox(string s, pen p=itempen)

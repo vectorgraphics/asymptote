@@ -1,7 +1,7 @@
 /*****
- * runpicture.in
+ * runpath.in
  *
- * Runtime functions for picture operations.
+ * Runtime functions for path operations.
  *
  *****/
 
@@ -11,8 +11,8 @@ path     => primPath()
 transform => primTransform()
 realarray* => realArray()
 realarray2* => realArray2()
-patharray* => pathArray()  
-penarray* => penArray()  
+patharray* => pathArray()
+penarray* => penArray()
 
 #include "path.h"
 #include "arrayop.h"
@@ -33,7 +33,7 @@ Int windingnumber(array *p, camp::pair z)
 {
   size_t size=checkArray(p);
   Int count=0;
-  for(size_t i=0; i < size; i++) 
+  for(size_t i=0; i < size; i++)
     count += read<path *>(p,i)->windingnumber(z);
   return count;
 }
@@ -247,7 +247,7 @@ realarray* intersections(path p, explicit pair a, explicit pair b, real fuzz=-1)
   return V;
 }
 
-// Return the intersection point of the extensions of the line segments 
+// Return the intersection point of the extensions of the line segments
 // PQ and pq.
 pair extension(pair P, pair Q, pair p, pair q)
 {
@@ -279,7 +279,7 @@ pair max(explicit path p)
 }
 
 Int size(patharray *p)
-{ 
+{
   size_t size=checkArray(p);
   Int count=0;
   for (size_t i = 0; i < size; i++)
@@ -288,7 +288,7 @@ Int size(patharray *p)
 }
 
 pair min(patharray *p)
-{ 
+{
   size_t size=checkArray(p);
 
   if(size == 0)
@@ -312,7 +312,7 @@ pair min(patharray *p)
 }
 
 pair max(patharray *p)
-{ 
+{
   size_t size=checkArray(p);
 
   if(size == 0)
@@ -336,7 +336,7 @@ pair max(patharray *p)
 }
 
 pair minAfterTransform(transform t, patharray *p)
-{ 
+{
   size_t size=checkArray(p);
 
   if(size == 0)
@@ -360,7 +360,7 @@ pair minAfterTransform(transform t, patharray *p)
 }
 
 pair maxAfterTransform(transform t, patharray *p)
-{ 
+{
   size_t size=checkArray(p);
 
   if(size == 0)
@@ -429,8 +429,8 @@ bool inside(path g, pair z, pen fillrule=CURRENTPEN)
 // |a.x a.y 1|
 // |b.x b.y 1|
 // |c.x c.y 1|
-// 
-real orient(pair a, pair b, pair c) 
+//
+real orient(pair a, pair b, pair c)
 {
   return orient2d(a,b,c);
 }

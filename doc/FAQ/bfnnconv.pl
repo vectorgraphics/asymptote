@@ -135,7 +135,11 @@ while (<>) {
                 m/([^\\])\`/ || warn "`$_'";
                 $_= $';
                 $cmd= $`.$1;
-                $it= `$cmd`; chop $it;
+                if($cmd =~ s/^%perl //) {
+                    $it= eval($cmd);
+                } else {
+                    $it= `$cmd`; chop $it;
+                }
                 print $fh $it;
             }
             print $fh $_;

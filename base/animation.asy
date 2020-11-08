@@ -30,14 +30,14 @@ struct animation {
   string prefix;
   bool global; // If true, use a global scaling for all frames; this requires
   // extra memory since the actual shipout is deferred until all frames have
-  // been generated. 
+  // been generated.
 
   void operator init(string prefix="", bool global=true) {
     prefix=replace(stripdirectory(outprefix(prefix))," ","_");
     this.prefix=prefix;
     this.global=global;
   }
-  
+
   string basename(string prefix=stripextension(prefix)) {
     return "_"+prefix;
   }
@@ -57,14 +57,14 @@ struct animation {
     plain.shipout(name,f,format=format,view=false);
     files.push(name+"."+format);
   }
-  
+
   void add(picture pic=currentpicture, enclosure enclosure=NoBox) {
     if(global) {
       ++index;
       pictures.push(pic.copy());
     } else this.shipout(enclosure(pic.fit()));
   }
-  
+
   void purge(bool keep=settings.keep) {
     if(!keep) {
       for(int i=0; i < files.length; ++i)
@@ -130,7 +130,7 @@ struct animation {
     return s;
   }
 
-  bool pdflatex() 
+  bool pdflatex()
   {
     return latex() && pdf();
   }
@@ -143,13 +143,13 @@ struct animation {
     if(!pdflatex())
       abort("inline pdf animations require -tex pdflatex or -tex xelatex");
     if(settings.outformat != "") settings.outformat="pdf";
-    
+
     string filename=basename();
     string pdfname=filename+".pdf";
 
     if(global)
       export(filename,enclosure,multipage=multipage);
-    
+
     if(!keep) {
       exitfcn currentexitfunction=atexit();
       void exitfunction() {

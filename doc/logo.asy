@@ -1,6 +1,6 @@
 size(140,80,IgnoreAspect);
 
-picture logo(pair s=0, pen q) 
+picture logo(pair s=0, pen q)
 {
   picture pic;
   pen p=linewidth(2)+fontsize(24pt)+q;
@@ -19,7 +19,7 @@ picture logo(pair s=0, pen q)
   draw(pic,(0,y1)--(0,y2),p);
   draw(pic,(a,0)--(b,0),p);
   return shift(s)*pic;
-} 
+}
 
 pair z=(-0.015,0.08);
 for(int x=0; x < 10; ++x)
