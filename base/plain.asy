@@ -39,7 +39,7 @@ include plain_markers;
 include plain_arrows;
 include plain_debugger;
 
-real RELEASE=(real) split(VERSION,'-')[0];
+real RELEASE=(real) split(VERSION,"-")[0];
 
 typedef void exitfcn();
 
@@ -147,7 +147,7 @@ void initdefaults()
   atexit(null);
 }
 
-// Return the sequence n,...m
+// Return the sequence n,...,m
 int[] sequence(int n, int m)
 {
   return sequence(new int(int x){return x;},m-n+1)+n;
