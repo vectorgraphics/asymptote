@@ -39,6 +39,8 @@ include plain_markers;
 include plain_arrows;
 include plain_debugger;
 
+real RELEASE=(real) split(VERSION,'-')[0];
+
 typedef void exitfcn();
 
 void updatefunction()
