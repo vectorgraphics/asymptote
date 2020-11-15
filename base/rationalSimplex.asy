@@ -1,8 +1,8 @@
 // Rational simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 import rational;
 
-void simplexStandard(rational[] c, rational[][] A, int[] s=new int[],
-                     rational[] b) {}
+void simplexInit(rational[] c, rational[][] A, int[] s=new int[],
+                 rational[] b, int count) {}
 void simplexTableau(rational[][] E, int[] Bindices, int I=-1, int J=-1) {}
 void simplexPhase1(rational[] c, rational[][] A, rational[] b,
                    int[] Bindices) {}
@@ -37,6 +37,7 @@ struct simplex {
   rational[] x;
   rational[] xStandard;
   rational cost;
+  rational[] d;
 
   int m,n;
   int J;
@@ -320,14 +321,25 @@ struct simplex {
 
     case=(dual ? iterateDual : iterate)(D,n,Bindices);
     simplexTableau(D,Bindices);
-    if(case != OPTIMAL)
-      return;
 
+    x=new rational[n];
     for(int j=0; j < n; ++j)
       x[j]=0;
 
     for(int k=0; k < m; ++k)
       x[Bindices[k]-1]=D[k][0];
+
+    if(case == UNBOUNDED) {
+      d=new rational[n];
+      for(int j=0; j < n; ++j)
+        d[j]=0;
+      d[J-1]=1;
+      for(int k=0; k < m; ++k)
+        d[Bindices[k]-1]=-D[k][J];
+    }
+
+    if(case != OPTIMAL)
+      return;
 
     cost=-Dm[0];
   }
@@ -392,10 +404,10 @@ struct simplex {
     }
 
     rational[] C=concat(c,array(count,rational(0)));
-    if(count > 0) simplexStandard(C,a,b);
+    simplexInit(C,a,b,count);
     operator init(C,a,b,phase1,dual);
 
-    if(case == OPTIMAL) {
+    if(case != INFEASIBLE) {
       xStandard=copy(x);
       if(count > 0)
         x.delete(n,n+count-1);
