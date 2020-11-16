@@ -1586,7 +1586,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
+#ifndef HAVE_LIBOSMESA
   static bool initializedView=false;
+#endif
 #endif
 
 #ifdef HAVE_LIBOSMESA
@@ -1827,7 +1829,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(View) {
 #ifdef HAVE_LIBGLUT
 #ifdef HAVE_PTHREAD
+#ifndef HAVE_LIBOSMESA
     initializedView=true;
+#endif
 #endif
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
