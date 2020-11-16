@@ -84,7 +84,7 @@ protected:
   bool standard;   // Standard input/output
   bool binary;     // Read in binary mode.
 
-  bool nullfield;  // Used to detect a final null field in csv+line mode.
+  bool nullfield;  // Used to detect a null fields in line mode.
   string whitespace;
   size_t index;    // Terminator index.
 
@@ -224,7 +224,7 @@ public:
       if(errorstream::interrupt) throw interrupted();
       else {
         ignoreComment(val);
-        val=T();
+        val=vm::Undefined;
         if(!nullfield)
           Read(val);
         csv();
