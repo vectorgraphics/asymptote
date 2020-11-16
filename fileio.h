@@ -84,7 +84,7 @@ protected:
   bool standard;   // Standard input/output
   bool binary;     // Read in binary mode.
 
-  bool nullfield;  // Used to detect a null fields in line mode.
+  bool nullfield;  // Used to detect null fields in line mode and cvs mode.
   string whitespace;
   size_t index;    // Terminator index.
 
