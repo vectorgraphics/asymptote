@@ -627,13 +627,12 @@ and type (as the root user):
 gunzip freeglut-3.0.0.tar.gz
 tar -xf freeglut-3.0.0.tar
 cd freeglut-3.0.0
-./configure --prefix=/usr
-cmake .
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_FLAGS=-fcommon .
 make
 make install
 cd ..
 @end verbatim
-@noindent 
+@noindent
 
 Then compile @code{Asymptote} with the commands
 @verbatim
