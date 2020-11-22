@@ -2004,7 +2004,9 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(colorAttrib);
   }
 
+  fpu_trap(false); // Work around FE_INVALID
   glDrawElements(data.type,data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
+  fpu_trap(settings::trap());
 
   glDisableVertexAttribArray(positionAttrib);
   if(normal && gl::Nlights > 0)
