@@ -1206,3 +1206,8 @@ transform reflect(pair a, pair b)
 {
   return reflectabout(a,b);
 }
+
+bool isometry(transform t)
+{
+  return t.isIsometry();
+}

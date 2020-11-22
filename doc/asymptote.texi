@@ -3397,6 +3397,8 @@ The implicit initializer for transforms is @code{identity()}.
 The routines @code{shift(transform t)} and @code{shiftless(transform t)}
 return the transforms @code{(t.x,t.y,0,0,0,0)} and
 @code{(0,0,t.xx,t.xy,t.yx,t.yy)} respectively.
+The function bool @code{isometry(transform t)} can be used to test if @code{t}
+is an isometry (preserves distance).
 
 
 @node Frames and pictures, Files, Transforms, Programming
