@@ -1041,21 +1041,23 @@ array* :array2Transpose(array *a)
 {
   size_t asize=checkArray(a);
   array *c=new array(0);
+  size_t csize=0;
   for(size_t i=0; i < asize; i++) {
     size_t ip=i+1;
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
-    size_t csize=checkArray(c);
-    if(csize < aisize) {
+    if(c->size() < aisize) {
       c->resize(aisize);
-      for(size_t j=csize; j < aisize; j++) {
-        (*c)[j]=new array(ip);
-      }
+      for(size_t j=csize; j < aisize; j++)
+        (*c)[j]=new array(0);
+      csize=aisize;
     }
     for(size_t j=0; j < aisize; j++) {
-      array *cj=read<array*>(c,j);
-      if(checkArray(cj) < ip) cj->resize(ip);
-      (*cj)[i]=(*ai)[j];
+      if(!(*ai)[j].empty()) {
+        array *cj=read<array*>(c,j);
+        if(checkArray(cj) < ip) cj->resize(ip);
+        (*cj)[i]=(*ai)[j];
+      }
     }
   }
   return c;
