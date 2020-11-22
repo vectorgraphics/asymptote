@@ -1880,6 +1880,14 @@ transform3 align(triple u)
   return c >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
 
+// Align Label with normal in direction dir.
+Label align(Label L, triple dir)
+{
+  Label L=L.copy();
+  L.transform3(align(unit(dir)));
+  return L;
+}
+
 // return a rotation that maps X,Y to the projection plane.
 transform3 transform3(projection P=currentprojection)
 {
