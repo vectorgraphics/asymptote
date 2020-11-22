@@ -616,21 +616,20 @@ used; if it is old we recommend first putting
 in the @code{Asymptote} source directory.
 
 On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
-using version @code{3.0.0} of the @code{freeglut} library. To compile
+using version @code{3.2.1} of the @code{freeglut} library. To compile
 @code{freeglut}, download
 @quotation
-@url{https://prdownloads.sourceforge.net/freeglut/freeglut-3.0.0.tar.gz}
+@url{https://prdownloads.sourceforge.net/freeglut/freeglut-3.2.1.tar.gz}
 @end quotation
 @noindent
 and type (as the root user):
 @verbatim
-gunzip freeglut-3.0.0.tar.gz
-tar -xf freeglut-3.0.0.tar
-cd freeglut-3.0.0
+gunzip freeglut-3.2.1.tar.gz
+tar -xf freeglut-3.2.1.tar
+cd freeglut-3.2.1
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_FLAGS=-fcommon .
 make
 make install
-cd ..
 @end verbatim
 @noindent
 
