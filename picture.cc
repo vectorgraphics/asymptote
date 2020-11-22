@@ -615,6 +615,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 
 int picture::epstopdf(const string& epsname, const string& pdfname)
 {
+  string compress=getSetting<bool>("compress") ? "true" : "false";
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
@@ -629,8 +630,8 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dSubsetFonts=true");
   cmd.push_back("-dEmbedAllFonts=true");
   cmd.push_back("-dMaxSubsetPct=100");
-  cmd.push_back("-dEncodeColorImages=true");
-  cmd.push_back("-dEncodeGrayImages=true");
+  cmd.push_back("-dEncodeColorImages="+compress);
+  cmd.push_back("-dEncodeGrayImages="+compress);
   cmd.push_back("-dCompatibilityLevel=1.4");
   if(!getSetting<bool>("autorotate"))
     cmd.push_back("-dAutoRotatePages=/None");

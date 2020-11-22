@@ -1287,6 +1287,8 @@ void initSettings() {
 
   addOption(new boolSetting("inlineimage", 0,
                             "Generate inline embedded image"));
+  addOption(new boolSetting("compress", 0,
+                            "Compress images in PDF output", true));
   addOption(new boolSetting("parseonly", 'p', "Parse file"));
   addOption(new boolSetting("translate", 's',
                             "Show translated virtual machine code"));
