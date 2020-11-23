@@ -159,10 +159,10 @@ struct tube
     triple c0=postcontrol(g,0);
     triple c1=precontrol(g,1);
     triple z1=point(g,1);
-    real norm=sqrtEpsilon*max(abs(z0),abs(c0),abs(c1),abs(z1));
+    real norm=sqrtEpsilon*max(abs(z0),abs(c0),abs(c1),abs(z1),r);
     surface[] s;
     void Split(triple z0, triple c0, triple c1, triple z1,
-               real depth=mantissaBits) {
+               int depth=mantissaBits) {
       if(depth > 0) {
         pair threshold(triple z0, triple c0, triple c1) {
           triple u=c1-z0;

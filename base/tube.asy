@@ -14,10 +14,10 @@ real tubegranularity=1e-7;
 void render(path3 s, real r, void f(path3, real))
 {
   void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1,
-             real depth=mantissaBits) {
+             int depth=mantissaBits) {
     if(depth > 0) {
       real S=straightness(z0,c0,c1,z1);
-      if(S > max(tubegranularity*max(abs(z0),abs(c0),abs(c1),abs(z1)))) {
+      if(S > max(tubegranularity*max(abs(z0),abs(c0),abs(c1),abs(z1),r))) {
         --depth;
         triple m0=0.5*(z0+c0);
         triple m1=0.5*(c0+c1);
