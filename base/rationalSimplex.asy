@@ -38,6 +38,7 @@ struct simplex {
   rational[] xStandard;
   rational cost;
   rational[] d;
+  bool dual=false;
 
   int m,n;
   int J;
@@ -72,7 +73,7 @@ struct simplex {
 
   int iterate(rational[][] E, int N, int[] Bindices) {
     while(true) {
-      // Find first negative entry in bottom (reduced cost) row
+      // Bland's rule: first negative entry in reduced cost (bottom) row enters
       rational[] Em=E[m];
       for(J=1; J <= N; ++J)
         if(Em[J] < 0) break;
@@ -96,7 +97,7 @@ struct simplex {
           rational r=E[i][0]/u;
           if(r <= t && (r < t || Bindices[i] < Bindices[I])) {
             t=r; I=i;
-          } // Bland's rule: exiting variable has smallest minimizing index
+          } // Bland's rule: exiting variable has smallest minimizing subscript
         }
       }
       if(I == -1)
@@ -113,8 +114,7 @@ struct simplex {
 
   int iterateDual(rational[][] E, int N, int[] Bindices) {
     while(true) {
-      // Find first negative entry in zeroth (basic variable) column
-      rational[] Em=E[m];
+      // Bland's rule: negative variable with smallest subscript exits
       int I;
       for(I=0; I < m; ++I) {
         if(E[I][0] < 0) break;
@@ -123,23 +123,30 @@ struct simplex {
       if(I == m)
         break;
 
+      for(int i=I+1; i < m; ++i) {
+        if(E[i][0] < 0 && Bindices[i] < Bindices[I])
+          I=i;
+      }
+
+      rational[] Em=E[m];
+      rational[] EI=E[I];
       int J=0;
       rational t;
       for(int j=1; j <= N; ++j) {
-        rational u=E[I][j];
+        rational u=EI[j];
         if(u < 0) {
-          t=-E[m][j]/u;
+          t=-Em[j]/u;
           J=j;
           break;
         }
       }
       for(int j=J+1; j <= N; ++j) {
-        rational u=E[I][j];
+        rational u=EI[j];
         if(u < 0) {
-          rational r=-E[m][j]/u;
+          rational r=-Em[j]/u;
           if(r <= t && (r < t || j < J)) {
             t=r; J=j;
-          } // Bland's rule: exiting variable has smallest minimizing index
+          } // Bland's rule: smallest minimizing subscript enters
         }
       }
       if(J == 0)
@@ -159,8 +166,7 @@ struct simplex {
   // b is a vector of length m, and c is a vector of length n.
   // Can set phase1=false if the last m columns of A form the identity matrix.
   void operator init(rational[] c, rational[][] A, rational[] b,
-                     bool phase1=true, bool dual=false) {
-    if(dual) phase1=false;
+                     bool phase1=true) {
     // Phase 1
     m=A.length;
     if(m == 0) {case=INFEASIBLE; return;}
@@ -245,7 +251,7 @@ struct simplex {
       simplexPhase1(c,A,b,Bindices);
 
       iterate(E,n+k,Bindices);
-  
+
       if(Em[0] != 0) {
         simplexTableau(E,Bindices);
       case=INFEASIBLE;
@@ -280,7 +286,7 @@ struct simplex {
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
         if(k > n) continue;
-        Bindices[ip]=k; 
+        Bindices[ip]=k;
         cB[ip]=c[k-1];
         rational[] Dip=D[ip];
         rational[] Ei=E[i];
@@ -322,12 +328,14 @@ struct simplex {
     case=(dual ? iterateDual : iterate)(D,n,Bindices);
     simplexTableau(D,Bindices);
 
-    x=new rational[n];
-    for(int j=0; j < n; ++j)
-      x[j]=0;
+    if(case != INFEASIBLE) {
+      x=new rational[n];
+      for(int j=0; j < n; ++j)
+        x[j]=0;
 
-    for(int k=0; k < m; ++k)
-      x[Bindices[k]-1]=D[k][0];
+      for(int k=0; k < m; ++k)
+        x[Bindices[k]-1]=D[k][0];
+    }
 
     if(case == UNBOUNDED) {
       d=new rational[n];
@@ -366,21 +374,21 @@ struct simplex {
         ai[j]=Ai[j];
       }
     }
-  
+
     int k=0;
 
     bool phase1=false;
-    bool dual=count == m && all(c >= 0);
+    dual=count == m && all(c >= 0);
 
     for(int i=0; i < m; ++i) {
       rational[] ai=a[i];
       for(int j=0; j < k; ++j)
         ai[n+j]=0;
+      int si=s[i];
       if(k < count)
-        ai[n+k]=-s[i];
+        ai[n+k]=-si;
       for(int j=k+1; j < count; ++j)
         ai[n+j]=0;
-      int si=s[i];
       if(si == 0) phase1=true;
       else {
         ++k;
@@ -391,21 +399,20 @@ struct simplex {
             for(int j=0; j < n+count; ++j)
               ai[j]=-ai[j];
           }
-        } else if(si*bi > 0) {
-          if(dual && si == 1) {
-            b[i]=-bi;
-            s[i]=-1;
-            for(int j=0; j < n+count; ++j)
-              ai[j]=-ai[j];
-          } else
-            phase1=true;
-        }
+        } else if(dual && si == 1) {
+          b[i]=-bi;
+          s[i]=-1;
+          for(int j=0; j < n+count; ++j)
+            ai[j]=-ai[j];
+        } else if(si*bi > 0)
+          phase1=true;
       }
     }
 
+    if(dual) phase1=false;
     rational[] C=concat(c,array(count,rational(0)));
     simplexInit(C,a,b,count);
-    operator init(C,a,b,phase1,dual);
+    operator init(C,a,b,phase1);
 
     if(case != INFEASIBLE) {
       xStandard=copy(x);
