@@ -1,6 +1,6 @@
 // Bezier triangulation routines written by Orest Shardt, 2008.
 
-private real fuzz=sqrtEpsilon;
+private real fuzz=1e-6;
 real duplicateFuzz=1e-3; // Work around font errors.
 real maxrefinements=10;
 
