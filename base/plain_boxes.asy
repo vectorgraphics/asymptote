@@ -89,7 +89,7 @@ object object(Label L, envelope e, real xmargin=0, real ymargin=xmargin,
   L0.position(0);
   L0.p(p);
   add(F.f,L0);
-  F.g=e(F.f,xmargin,ymargin,p,filltype);
+  F.g=e(F.f,xmargin,ymargin,p,filltype,above);
   return F;
 }
 
