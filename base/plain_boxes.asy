@@ -20,7 +20,6 @@ path roundbox(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   pair m=min(src);
   pair M=max(src);
   pair bound=M-m;
-  int sign=filltype == NoFill ? 1 : -1;
   real a=bound.x+2*xmargin;
   real b=bound.y+2*ymargin;
   real ds=0;
