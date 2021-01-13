@@ -190,8 +190,8 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
   real rmax=pic.scale.z.T(bounds.max);
 
   palette=adjust(pic,m,M,rmin,rmax,palette);
-  rmin=max(rmin,m);
-  rmax=min(rmax,M);
+  rmin=max(rmin,pic.scale.z.T(m));
+  rmax=min(rmax,pic.scale.z.T(M));
 
   // Crop data to allowed range and scale
   if(range != Full || pic.scale.z.scale.T != identity ||
