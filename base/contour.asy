@@ -176,7 +176,8 @@ private void collect(pair[][][] points, real[] c)
 }
 
 // Join path segments.
-private guide[][] connect(pair[][][] points, real[] c, interpolate join)
+private guide[][] connect(picture pic, pair[][][] points, real[] c,
+                          interpolate join)
 {
   // set up return value
   guide[][] result=new guide[c.length][];
@@ -189,13 +190,13 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
       if(pts.length > 0) {
         if(pts.length > 1 && abs(pts[0]-pts[pts.length-1]) < eps) {
           guide[] g=sequence(new guide(int i) {
-              return pts[i];
+              return (pic.scale.x.T(pts[i].x), pic.scale.y.T(pts[i].y));
             },pts.length-1);
           g.push(cycle);
           gd=join(...g);
         } else
           gd=join(...sequence(new guide(int i) {
-                return pts[i];
+                return (pic.scale.x.T(pts[i].x), pic.scale.y.T(pts[i].y));
               },pts.length));
       }
       resultcnt[i]=gd;
@@ -211,7 +212,7 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
 // midpoint:  optional array containing values of f at cell midpoints
 // c:         array of contour values
 // join:      interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(pair[][] z, real[][] f,
+guide[][] contour(picture pic=currentpicture, pair[][] z, real[][] f,
                   real[][] midpoint=new real[][], real[] c,
                   interpolate join=operator --)
 {
@@ -445,7 +446,7 @@ guide[][] contour(pair[][] z, real[][] f,
 
   collect(points,c); // Required to join remaining case1 cycles.
 
-  return connect(points,c,join);
+  return connect(pic,points,c,join);
 }
 
 // Return contour guides for a 2D data array on a uniform lattice
@@ -454,8 +455,8 @@ guide[][] contour(pair[][] z, real[][] f,
 // a,b:       diagonally opposite vertices of rectangular domain
 // c:         array of contour values
 // join:      interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-                  pair a, pair b, real[] c,
+guide[][] contour(picture pic=currentpicture, real[][] f,
+                  real[][] midpoint=new real[][], pair a, pair b, real[] c,
                   interpolate join=operator --)
 {
   int nx=f.length-1;
@@ -473,7 +474,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
       zi[j]=(xi,interp(a.y,b.y,j/ny));
     }
   }
-  return contour(z,f,midpoint,c,join);
+  return contour(pic,z,f,midpoint,c,join);
 }
 
 // return contour guides for a real-valued function
@@ -482,8 +483,8 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 // c:        array of contour values
 // nx,ny:    number of subdivisions in x and y directions (determines accuracy)
 // join:     interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(real f(real, real), pair a, pair b,
-                  real[] c, int nx=ngraph, int ny=nx,
+guide[][] contour(picture pic=currentpicture, real f(real, real), pair a,
+                  pair b, real[] c, int nx=ngraph, int ny=nx,
                   interpolate join=operator --)
 {
   // evaluate function at points and midpoints
@@ -501,7 +502,7 @@ guide[][] contour(real f(real, real), pair a, pair b,
     }
   }
 
-  return contour(dat,midpoint,a,b,c,join);
+  return contour(pic,dat,midpoint,a,b,c,join);
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
@@ -648,14 +649,14 @@ private void addseg(pair[][] gds, segment seg)
   return;
 }
 
-guide[][] contour(real f(pair), pair a, pair b,
+guide[][] contour(picture pic=currentpicture, real f(pair), pair a, pair b,
                   real[] c, int nx=ngraph, int ny=nx,
                   interpolate join=operator --)
 {
-  return contour(new real(real x, real y) {return f((x,y));},a,b,c,nx,ny,join);
+  return contour(pic,new real(real x, real y) {return f((x,y));},a,b,c,nx,ny,join);
 }
 
-guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
+guide[][] contour(picture pic=currentpicture, pair[] z, real[] f, real[] c, interpolate join=operator --)
 {
   if(z.length != f.length)
     abort("z and f arrays have different lengths");
@@ -678,5 +679,5 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
 
   collect(points,c);
 
-  return connect(points,c,join);
+  return connect(pic,points,c,join);
 }
