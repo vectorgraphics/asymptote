@@ -1076,11 +1076,11 @@ uint32_t PRCFileStructure::addPicture(EPRCPictureDataFormat format, uint32_t siz
     uncompressed_files.back()->file_size = size;
     uncompressed_files.back()->data = data;
     picture.format = format;
-    picture.uncompressed_file_index = static_cast<uint32_t>(uncompressed_files.size())-1;
+    picture.uncompressed_file_index = static_cast<uint32_t>(uncompressed_files.size()-1);
     picture.pixel_width = 0; // width and height are ignored for JPG and PNG pictures - but let us keep things clean
     picture.pixel_height = 0;
     pictures.push_back(picture);
-    return static_cast<uint32_t>(pictures.size())-1;
+    return static_cast<uint32_t>(pictures.size()-1);
   }
 
   switch(format)
@@ -1149,24 +1149,24 @@ uint32_t PRCFileStructure::addPicture(EPRCPictureDataFormat format, uint32_t siz
       uncompressed_files.back()->file_size = size;
       uncompressed_files.back()->data = data;
       picture.format = format;
-      picture.uncompressed_file_index = static_cast<uint32_t>(uncompressed_files.size())-1;
+      picture.uncompressed_file_index = static_cast<uint32_t>(uncompressed_files.size()-1);
       picture.pixel_width = width;
       picture.pixel_height = height;
       pictures.push_back(picture);
-      return static_cast<uint32_t>(pictures.size())-1;
+      return static_cast<uint32_t>(pictures.size()-1);
 }
 
 uint32_t PRCFileStructure::addTextureDefinition(PRCTextureDefinition*& pTextureDefinition)
 {
   texture_definitions.push_back(pTextureDefinition);
   pTextureDefinition = NULL;
-  return static_cast<uint32_t>(texture_definitions.size())-1;
+  return static_cast<uint32_t>(texture_definitions.size()-1);
 }
 
 uint32_t PRCFileStructure::addRgbColor(const PRCRgbColor &color)
 {
   colors.push_back(color);
-  return 3*(static_cast<uint32_t>(colors.size())-1);
+  return 3*static_cast<uint32_t>(colors.size()-1);
 }
 
 uint32_t PRCFileStructure::addRgbColorUnique(const PRCRgbColor &color)
@@ -1177,7 +1177,7 @@ uint32_t PRCFileStructure::addRgbColorUnique(const PRCRgbColor &color)
       return 3*i;
   }
   colors.push_back(color);
-  return 3*(static_cast<uint32_t>(colors.size())-1);
+  return 3*static_cast<uint32_t>(colors.size()-1);
 }
 
 uint32_t oPRCFile::addColor(const PRCRgbColor &color)
@@ -1817,63 +1817,63 @@ uint32_t PRCFileStructure::addMaterialGeneric(PRCMaterialGeneric*& pMaterialGene
 {
   materials.push_back(pMaterialGeneric);
   pMaterialGeneric = NULL;
-  return static_cast<uint32_t>(materials.size())-1;
+  return static_cast<uint32_t>(materials.size()-1);
 }
 
 uint32_t PRCFileStructure::addTextureApplication(PRCTextureApplication*& pTextureApplication)
 {
   materials.push_back(pTextureApplication);
   pTextureApplication = NULL;
-  return static_cast<uint32_t>(materials.size())-1;
+  return static_cast<uint32_t>(materials.size()-1);
 }
 
 uint32_t PRCFileStructure::addStyle(PRCStyle*& pStyle)
 {
   styles.push_back(pStyle);
   pStyle = NULL;
-  return static_cast<uint32_t>(styles.size())-1;
+  return static_cast<uint32_t>(styles.size()-1);
 }
 
 uint32_t PRCFileStructure::addPartDefinition(PRCPartDefinition*& pPartDefinition)
 {
   part_definitions.push_back(pPartDefinition);
   pPartDefinition = NULL;
-  return static_cast<uint32_t>(part_definitions.size())-1;
+  return static_cast<uint32_t>(part_definitions.size()-1);
 }
 
 uint32_t PRCFileStructure::addProductOccurrence(PRCProductOccurrence*& pProductOccurrence)
 {
   product_occurrences.push_back(pProductOccurrence);
   pProductOccurrence = NULL;
-  return static_cast<uint32_t>(product_occurrences.size())-1;
+  return static_cast<uint32_t>(product_occurrences.size()-1);
 }
 
 uint32_t PRCFileStructure::addTopoContext(PRCTopoContext*& pTopoContext)
 {
   contexts.push_back(pTopoContext);
   pTopoContext = NULL;
-  return static_cast<uint32_t>(contexts.size())-1;
+  return static_cast<uint32_t>(contexts.size()-1);
 }
 
 uint32_t PRCFileStructure::getTopoContext(PRCTopoContext*& pTopoContext)
 {
   pTopoContext = new PRCTopoContext;
   contexts.push_back(pTopoContext);
-  return static_cast<uint32_t>(contexts.size())-1;
+  return static_cast<uint32_t>(contexts.size()-1);
 }
 
 uint32_t PRCFileStructure::add3DTess(PRC3DTess*& p3DTess)
 {
   tessellations.push_back(p3DTess);
   p3DTess = NULL;
-  return static_cast<uint32_t>(tessellations.size())-1;
+  return static_cast<uint32_t>(tessellations.size()-1);
 }
 
 uint32_t PRCFileStructure::add3DWireTess(PRC3DWireTess*& p3DWireTess)
 {
   tessellations.push_back(p3DWireTess);
   p3DWireTess = NULL;
-  return static_cast<uint32_t>(tessellations.size())-1;
+  return static_cast<uint32_t>(tessellations.size()-1);
 }
 /*
 uint32_t PRCFileStructure::addMarkupTess(PRCMarkupTess*& pMarkupTess)
@@ -1901,7 +1901,7 @@ uint32_t PRCFileStructure::addCoordinateSystem(PRCCoordinateSystem*& pCoordinate
 {
   reference_coordinate_systems.push_back(pCoordinateSystem);
   pCoordinateSystem = NULL;
-  return static_cast<uint32_t>(reference_coordinate_systems.size())-1;
+  return static_cast<uint32_t>(reference_coordinate_systems.size()-1);
 }
 
 uint32_t PRCFileStructure::addCoordinateSystemUnique(PRCCoordinateSystem*& pCoordinateSystem)
@@ -1915,7 +1915,7 @@ uint32_t PRCFileStructure::addCoordinateSystemUnique(PRCCoordinateSystem*& pCoor
   }
   reference_coordinate_systems.push_back(pCoordinateSystem);
   pCoordinateSystem = NULL;
-  return static_cast<uint32_t>(reference_coordinate_systems.size())-1;
+  return static_cast<uint32_t>(reference_coordinate_systems.size()-1);
 }
 
 }
