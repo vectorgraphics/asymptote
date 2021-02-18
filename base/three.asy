@@ -2582,7 +2582,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
   if(script == "") script=defaultembed3Dscript;
 
   if(P.infinity) {
-    if(viewplanesize==0) {
+    if(viewplanesize == 0) {
       triple lambda=max3(f)-min3(f);
       pair margin=viewportmargin((lambda.x,lambda.y));
       viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/P.zoom;
@@ -2634,6 +2634,7 @@ struct scene
   pair viewportmargin;
   transform3 T=identity4;
   picture pic2;
+  bool keepAspect=true;
   
   void operator init(frame f, real width, real height,
                      projection P=currentprojection) {
@@ -2649,6 +2650,7 @@ struct scene
                      projection P=currentprojection) {
     real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
     bool warn=true;
+    this.keepAspect=keepAspect;
         
     if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
       xsize3=ysize3=zsize3=max(xsize,ysize);
@@ -2678,7 +2680,7 @@ struct scene
 
     bool scale=xsize != 0 || ysize != 0;
     bool scaleAdjust=scale && this.P.autoadjust;
-    bool noAdjust=(this.P.absolute || !scaleAdjust);
+    bool noAdjust=this.P.absolute || !scaleAdjust;
 
     if(pic.bounds3.exact && noAdjust)
       this.P.bboxonly=false;
@@ -2801,9 +2803,11 @@ object embed(string prefix=outprefix(), string label=prefix,
       triple m=min3(S.f);
       triple M=max3(S.f);
       triple lambda=M-m;
-      S.viewportmargin=viewportmargin((lambda.x,lambda.y));
-      S.width=ceil(lambda.x+2*S.viewportmargin.x);
-      S.height=ceil(lambda.y+2*S.viewportmargin.y);
+      if(S.keepAspect) {
+        S.viewportmargin=viewportmargin((lambda.x,lambda.y));
+        S.width=ceil(lambda.x+2*S.viewportmargin.x);
+        S.height=ceil(lambda.y+2*S.viewportmargin.y);
+      }
       orthoshift=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
       S.f=shift(orthoshift)*S.f; // Eye will be at (0,0,0)
       inv=inverse(modelview);
