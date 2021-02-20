@@ -1542,7 +1542,7 @@ void initDir() {
   mask=umask(0);
   if(mask == 0) mask=0027;
   umask(mask);
-  tempdir=Getenv("LOCALAPPDATA",false)+"\\TEMP\\";
+  tempdir=Getenv("LOCALAPPDATA",false)+"\\Temp\\";
 #else
   tempdir="/tmp/";
 #endif
