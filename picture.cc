@@ -445,7 +445,7 @@ char *dvisvgmCommand(mem::vector<string>& cmd, const string &in, const string& o
     cmd.push_back("--libgs="+libgs);
 //  cmd.push_back("--optimize"); // Requires dvisvgm > 2.9.1
   push_split(cmd,getSetting<string>("dvisvgmOptions"));
-  char *tmpdir=mkdtemp(StrdupMalloc(tempdir+"/dvisvgmXXXXXX"));
+  char *tmpdir=mkdtemp(StrdupMalloc(tempdir+"dvisvgmXXXXXX"));
   if(tmpdir)
     cmd.push_back("--tmpdir="+string(tmpdir));
   cmd.push_back("-o"+out);
