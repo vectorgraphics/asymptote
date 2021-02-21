@@ -249,7 +249,6 @@ const string guisuffix="gui";
 const string standardprefix="out";
 
 string initdir;
-string tempdir;
 string historyname;
 
 // Local versions of the argument list.
@@ -1542,9 +1541,6 @@ void initDir() {
   mask=umask(0);
   if(mask == 0) mask=0027;
   umask(mask);
-  tempdir=Getenv("LOCALAPPDATA",false)+"\\Temp\\";
-#else
-  tempdir="/tmp/";
 #endif
   if(access(initdir.c_str(),F_OK) == 0) {
     if(verbose > 1)
