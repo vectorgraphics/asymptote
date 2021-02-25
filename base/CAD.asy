@@ -7,16 +7,16 @@ struct sCAD
   pA,
   pVisibleEdge,            // Sichtbare Kanten
   pVisibleContour,        // Sichtbarer Umriss
-  pUsableWindingLength,    // Nitzbare Gewindel‰nge
+  pUsableWindingLength,    // Nutzbare Gewindel√§nge
   pSystemLine,            // Systemlinie (Stahlbau)
   pDiagramCurve,            // Kurve in Diagrammen
-  pSurfaceStructure,        // Oberfl‰chenstrukturen
+  pSurfaceStructure,        // Oberfl√§chenstrukturen
   // B
   pB,
   pLightEdge,                // Lichtkante
-  pMeasureLine,            // Maﬂlinie
-  pMeasureHelpLine,        // Maﬂhilfslinie
-  pMeasureLineBound,        // Maﬂlinienbegrenzung
+  pMeasureLine,            // Ma√ülinie
+  pMeasureHelpLine,        // Ma√ühilfslinie
+  pMeasureLineBound,        // Ma√ülinienbegrenzung
   pReferenceLine,            // Hinweislinie
   pHatch,                    // Schraffur
   pWindingGround,            // Gewindegrund
@@ -31,7 +31,7 @@ struct sCAD
   // keine Mittellinie ist
   // E
   pE,
-  pSurfaceTreatmentAllowed,    // Bereich zul‰ssiger Oberfl‰chenbehandlung
+  pSurfaceTreatmentAllowed,    // Bereich zul√§ssiger Oberfl√§chenbehandlung
   // F
   pF,
   pInvisibleEdge,            // unsichtbare Kante
@@ -43,7 +43,7 @@ struct sCAD
   pPartialCircle,            // Teilkreis
   pCircularHole,            // Lochkreis
   pDivisionPlane,            // Teilungsebene
-  pTransferLine,            // Trajektorien (‹bertragunslinien)
+  pTransferLine,            // Trajektorien (√úbertragungslinien)
   // J
   pJ,
   pCuttingPlane,                // Schnittebene
@@ -53,7 +53,7 @@ struct sCAD
   pContourBeforeDeformation,    // Umrisse vor Verformung
   pAdjacentPartContour,        // Umrisse angrenzender Teile
   pEndShapeRawMaterial,        // Fertigformen in Rohteilen
-  pContourEligibleType,        // Umrisse wahlweiser Ausf¸hrungen
+  pContourEligibleType,        // Umrisse wahlweiser Ausf√ºhrungen
   pPartInFrontOfCuttingPlane;    // Teile vor der Schnittebene
 
 
