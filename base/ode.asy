@@ -90,6 +90,29 @@ real phi3(real x)
     }
 }
 
+real phi4(real x)
+{
+  real x2=x*x;
+  real x3=x2*x;
+  real x4=x2*x2;
+  if(fabs(x) > 1.6) return (exp(x)-Coeff[2]*x3-0.5*x2-x-1)/x4;
+  real x5=x2*x3;
+    if(fabs(x) < 0.1)
+    return Coeff[3]+x*Coeff[4]+x2*Coeff[5]+x3*Coeff[6]
+      +x4*Coeff[7]+x5*Coeff[8]+x3*x3*Coeff[9]+x5*x2*Coeff[10]
+      +x4*x4*Coeff[11];
+    else {
+      real x7=x5*x2;
+      real x8=x7*x;
+      real x16=x8*x8;
+      return Coeff[3]+x*Coeff[4]+x2*Coeff[5]+x3*Coeff[6]
+        +x2*x2*Coeff[7]+x5*Coeff[8]+x3*x3*Coeff[9]+x5*x2*Coeff[10]
+        +x5*x3*Coeff[11]+x8*x*Coeff[12]
+        +x5*x5*Coeff[13]+x8*x3*Coeff[14]+x7*x5*Coeff[15]
+        +x8*x5*Coeff[16]+x7*x7*Coeff[17]+x8*x7*Coeff[18]+x16*Coeff[19];
+    }
+}
+
 void expfactors(real x, coefficients a)
 {
   for(int i=0; i < a.steps.length; ++i)
