@@ -363,6 +363,10 @@ or install the @code{Asymptote} binary available at
 
 @url{https://www.macports.org/}
 
+or at
+
+@url{https://brew.sh/}
+
 @noindent
 Note that many @code{MacOS X} (and FreeBSD) systems lack the
 @acronym{GNU} @code{readline} library. For full interactive
