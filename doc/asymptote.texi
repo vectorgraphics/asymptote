@@ -2562,11 +2562,11 @@ returns a path running backwards along @code{p}.
 @cindex @code{subpath}
 @item path subpath(path p, int a, int b);
 returns the subpath of @code{p} running from node @code{a} to node @code{b}.
-If @code{a} < @code{b}, the direction of the subpath is reversed.
+If @code{a} > @code{b}, the direction of the subpath is reversed.
 
 @item path subpath(path p, real a, real b);
 returns the subpath  of @code{p} running from path time @code{a} to path
-time @code{b}, in the sense of @code{point(path, real)}. If @code{a} <
+time @code{b}, in the sense of @code{point(path, real)}. If @code{a} >
 @code{b}, the direction of the subpath is reversed.
 
 @cindex @code{intersect}
