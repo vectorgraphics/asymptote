@@ -69,7 +69,7 @@ class labelEditor(Qw.QDialog):
     def btnPreviewOnClick(self):
         path = xa.getArgs().asypath
         if path is None:
-            opt = xo.xasyOptions().load()
+            opt = xo.BasicConfigs.defaultOpt
             path = opt['asyPath']
 
         asyInput = """
