@@ -119,6 +119,13 @@ public:
 
   friend ostream& operator << (ostream& out, const position& pos);
 
+  void print(ostream& out) const
+  {
+    if (file) {
+      out << file->name() << ":" << line << "." << column;
+    }
+  }
+
   // Write out just the module name and line number.
   void printTerse(ostream& out) const
   {

@@ -43,7 +43,7 @@ private:  // Non-copyable
 };
 
 void prettyindent(ostream &out, Int indent);
-void prettyname(ostream &out, string name, Int indent);
+void prettyname(ostream &out, string name, Int indent, position pos);
 
 class name;
 class ty;

@@ -33,7 +33,7 @@ trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
 
 void nameTy::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "nameTy",indent);
+  prettyname(out, "nameTy",indent, getPos());
 
   id->prettyprint(out, indent+1);
 }
@@ -74,7 +74,7 @@ types::array *dimensions::truetype(types::ty *base)
 
 void arrayTy::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "arrayTy",indent);
+  prettyname(out, "arrayTy",indent, getPos());
 
   cell->prettyprint(out, indent+1);
   dims->prettyprint(out, indent+1);
@@ -143,7 +143,7 @@ void block::prettystms(ostream &out, Int indent)
 
 void block::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"block",indent);
+  prettyname(out,"block",indent,getPos());
   prettystms(out, indent+1);
 }
 
@@ -227,7 +227,7 @@ vardec *block::asVardec()
 
 void dec::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "dec", indent);
+  prettyname(out, "dec", indent, getPos());
 }
 
 
@@ -300,7 +300,7 @@ permission modifierList::getPermission()
 
 void modifiedRunnable::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "modifierRunnable",indent);
+  prettyname(out, "modifierRunnable",indent, getPos());
 
   mods->prettyprint(out, indent+1);
   body->prettyprint(out, indent+1);
@@ -412,7 +412,7 @@ void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
 
 void decid::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "decid",indent);
+  prettyname(out, "decid",indent, getPos());
 
   start->prettyprint(out, indent+1);
   if (init)
@@ -559,7 +559,7 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 
 void decidlist::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "decidlist",indent);
+  prettyname(out, "decidlist",indent, getPos());
 
   for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->prettyprint(out, indent+1);
@@ -580,7 +580,7 @@ void decidlist::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 
 void vardec::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "vardec",indent);
+  prettyname(out, "vardec",indent, getPos());
 
   base->prettyprint(out, indent+1);
   decs->prettyprint(out, indent+1);
@@ -622,7 +622,7 @@ public:
     : exp(pos) {ft=new function(imp,primString());}
 
   void prettyprint(ostream &out, Int indent) {
-    prettyname(out, "loadModuleExp", indent);
+    prettyname(out, "loadModuleExp", indent, getPos());
   }
 
   types::ty *trans(coenv &) {
@@ -730,14 +730,14 @@ idpairlist * const WILDCARD = 0;
 
 void accessdec::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "accessdec", indent);
+  prettyname(out, "accessdec", indent, getPos());
   base->prettyprint(out, indent+1);
 }
 
 
 void fromdec::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "fromdec", indent);
+  prettyname(out, "fromdec", indent, getPos());
   fields->prettyprint(out, indent+1);
 }
 
@@ -758,7 +758,7 @@ void fromdec::transAsField(coenv &e, record *r)
 
 void unraveldec::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "unraveldec", indent);
+  prettyname(out, "unraveldec", indent, getPos());
   id->prettyprint(out, indent+1);
   idpairlist *f=this->fields;
   if(f) f->prettyprint(out, indent+1);
@@ -801,7 +801,7 @@ fromdec::qualifier fromaccessdec::getQualifier(coenv &e, record *r)
 
 void importdec::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "importdec", indent);
+  prettyname(out, "importdec", indent, getPos());
   base.prettyprint(out, indent+1);
 }
 
@@ -831,7 +831,7 @@ void includedec::transAsField(coenv &e, record *r)
 
 void typedec::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "typedec",indent);
+  prettyname(out, "typedec",indent, getPos());
 
   body->prettyprint(out, indent+1);
 }

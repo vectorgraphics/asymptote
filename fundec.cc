@@ -22,7 +22,7 @@ varinit *Default=new definit(nullPos);
 
 void formal::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, keywordOnly ? "formal (keyword only)" : "formal", indent);
+  prettyname(out, keywordOnly ? "formal (keyword only)" : "formal", indent, getPos());
 
   base->prettyprint(out, indent+1);
   if (start) start->prettyprint(out, indent+1);
@@ -56,7 +56,7 @@ void formal::addOps(coenv &e, record *r) {
 
 void formals::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "formals",indent);
+  prettyname(out, "formals",indent, getPos());
 
   for (list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
     (*p)->prettyprint(out, indent+1);
@@ -125,7 +125,7 @@ public:
     : exp(pos), dest(dest), value(value) {}
 
   void prettyprint(ostream &out, Int indent) {
-    prettyname(out, "basicAssignExp", indent);
+    prettyname(out, "basicAssignExp", indent, getPos());
   }
 
   types::ty *getType(coenv &) {
@@ -227,7 +227,7 @@ varinit *fundef::makeVarInit(function *ft) {
       : varinit(f->getPos()), f(f), ft(ft) {}
 
     void prettyprint(ostream &out, Int indent) {
-      prettyname(out, "initializer", indent);
+      prettyname(out, "initializer", indent, getPos());
     }
 
     void transToType(coenv &e, types::ty *target) {

@@ -25,19 +25,19 @@ using namespace types;
 
 void stm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"stm",indent);
+  prettyname(out,"stm",indent, getPos());
 }
 
 
 void emptyStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"emptyStm",indent);
+  prettyname(out,"emptyStm",indent, getPos());
 }
 
 
 void blockStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"blockStm",indent);
+  prettyname(out,"blockStm",indent, getPos());
 
   base->prettyprint(out, indent+1);
 }
@@ -45,7 +45,7 @@ void blockStm::prettyprint(ostream &out, Int indent)
 
 void expStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"expStm",indent);
+  prettyname(out,"expStm",indent, getPos());
 
   body->prettyprint(out, indent+1);
 }
@@ -173,7 +173,7 @@ void expStm::interactiveTrans(coenv &e)
 
 void ifStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"ifStm",indent);
+  prettyname(out,"ifStm",indent, getPos());
 
   test->prettyprint(out, indent+1);
   onTrue->prettyprint(out, indent+1);
@@ -251,7 +251,7 @@ void transLoopBody(coenv &e, stm *body) {
 
 void whileStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"whileStm",indent);
+  prettyname(out,"whileStm",indent, getPos());
 
   test->prettyprint(out, indent+1);
   body->prettyprint(out, indent+1);
@@ -276,7 +276,7 @@ void whileStm::trans(coenv &e)
 
 void doStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"doStm",indent);
+  prettyname(out,"doStm",indent, getPos());
 
   body->prettyprint(out, indent+1);
   test->prettyprint(out, indent+1);
@@ -304,7 +304,7 @@ void doStm::trans(coenv &e)
 
 void forStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"forStm",indent);
+  prettyname(out,"forStm",indent, getPos());
 
   if (init) init->prettyprint(out, indent+1);
   if (test) test->prettyprint(out, indent+1);
@@ -424,7 +424,7 @@ void extendedForStm::trans(coenv &e) {
 
 void breakStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"breakStm",indent);
+  prettyname(out,"breakStm",indent, getPos());
 }
 
 void breakStm::trans(coenv &e)
@@ -438,7 +438,7 @@ void breakStm::trans(coenv &e)
 
 void continueStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"continueStm",indent);
+  prettyname(out,"continueStm",indent, getPos());
 }
 
 void continueStm::trans(coenv &e)
@@ -452,7 +452,7 @@ void continueStm::trans(coenv &e)
 
 void returnStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "returnStm",indent);
+  prettyname(out, "returnStm",indent, getPos());
 
   if (value)
     value->prettyprint(out, indent+1);
@@ -488,7 +488,7 @@ void returnStm::trans(coenv &e)
 
 void stmExpList::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "stmExpList",indent);
+  prettyname(out, "stmExpList",indent, getPos());
 
   for (mem::list<stm *>::iterator p = stms.begin(); p != stms.end(); ++p)
     (*p)->prettyprint(out, indent+1);

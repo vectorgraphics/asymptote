@@ -21,7 +21,7 @@ using namespace trans;
 
 void definit::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "definit",indent);
+  prettyname(out, "definit",indent, getPos());
 }
 
 void definit::transToType(coenv &e, types::ty *target)
@@ -40,7 +40,7 @@ void definit::transToType(coenv &e, types::ty *target)
 
 void arrayinit::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "arrayinit",indent);
+  prettyname(out, "arrayinit",indent, getPos());
 
   for (mem::list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
     (*p)->prettyprint(out, indent+2);
