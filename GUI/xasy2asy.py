@@ -856,7 +856,6 @@ class xasyItem(Qc.QObject):
             else:
                 if keydata.isdigit():
                     self.maxKey=max(self.maxKey,int(keydata))
-                    print(self.maxKey)
                 self.userKeys.add(keydata)
             
 #                print(line, col)
@@ -1096,14 +1095,6 @@ class xasyScript(xasyItem):
 
         for key in keyCount:
             self.transfKeymap[key] = [identity()] * keyCount[key]
-
-    def getMaxKeyCounter(self):
-        maxCounter = -1
-        for key in self.transfKeymap:
-            testNum = re.match(r'^x(\d+)$', key)
-            if testNum is not None:
-                maxCounter = max(maxCounter, int(testNum.group(1)))
-        return maxCounter + 1
 
     def getTransformCode(self, asy2psmap=identity()):
         with io.StringIO() as rawAsyCode:

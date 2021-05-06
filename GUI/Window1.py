@@ -1906,9 +1906,10 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.append(item)
             self.asyfyCanvas(True)
 
-            maxKey2 = item.getMaxKeyCounter()
+            item.maxKey += 1
+            self.globalObjectCounter = item.maxKey
             self.asy2psmap = item.asy2psmap
-            self.globalObjectCounter = max(maxKey + 1, maxKey2)
+
         finally:
             f.close()
 
