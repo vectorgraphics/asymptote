@@ -804,6 +804,7 @@ class xasyItem(Qc.QObject):
         fin = self.asyengine.istream
 
         self.lineOffset = len(self.getTransformCode().splitlines())
+        self.maxKey=0
 
         fout.write("reset\n")
         fout.flush();
@@ -853,6 +854,9 @@ class xasyItem(Qc.QObject):
             if not userkey:
                 self.unsetKeys.add(keydata)     # the line and column to replace. 
             else:
+                if keydata.isdigit():
+                    self.maxKey=max(self.maxKey,int(keydata))
+                    print(self.maxKey)
                 self.userKeys.add(keydata)
             
 #                print(line, col)
