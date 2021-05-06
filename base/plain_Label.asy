@@ -15,10 +15,10 @@ transform scaleless(transform t)
   real a=t.xx, b=t.xy, c=t.yx, d=t.yy;
   real arg=(a-d)^2+4b*c;
   pair delta=arg >= 0 ? sqrt(arg) : I*sqrt(-arg);
-  real trace=a+d; 
+  real trace=a+d;
   pair l1=0.5(trace+delta);
   pair l2=0.5(trace-delta);
-  
+
   if(abs(delta) < sqrtEpsilon*max(abs(l1),abs(l2))) {
     real s=abs(0.5trace);
     return (s != 0) ? scale(1/s)*t : t;
@@ -51,7 +51,7 @@ transform scaleless(transform t)
       }
     }
     return c;
-  }     
+  }
 
   pair[][] conj(pair[][] a) {
     pair[][] c=new pair[2][2];
@@ -61,7 +61,7 @@ transform scaleless(transform t)
       }
     }
     return c;
-  }     
+  }
 
   A=conj(U)*A*U;
 
@@ -70,7 +70,7 @@ transform scaleless(transform t)
     A[0][0] /= D;
     A[0][1] /= D;
   }
-  
+
   D=abs(A[1][1]);
   if(D != 0) {
     A[1][0] /= D;
@@ -155,13 +155,13 @@ side Relative(explicit pair align)
   s.align=align;
   return s;
 }
-  
+
 restricted side NoSide;
 restricted side LeftSide=Relative(W);
 restricted side Center=Relative((0,0));
 restricted side RightSide=Relative(E);
 
-side operator * (real x, side s) 
+side operator * (real x, side s)
 {
   side S;
   S.align=x*s.align;
@@ -190,7 +190,7 @@ position Relative(real position)
   p.relative=true;
   return p;
 }
-  
+
 restricted position BeginPoint=Relative(0);
 restricted position MidPoint=Relative(0.5);
 restricted position EndPoint=Relative(1);
@@ -227,8 +227,8 @@ struct Label {
   bool defaulttransform3=true;
   embed embed=Rotate; // Shift, Rotate, Slant, or Scale with embedded picture
   filltype filltype=NoFill;
-  
-  void init(string s="", string size="", position position=0, 
+
+  void init(string s="", string size="", position position=0,
             bool defaultposition=true, align align=NoAlign, pen p=nullpen,
             transform T=identity(), transform3 T3=identity4,
             bool defaulttransform=true, bool defaulttransform3=true,
@@ -246,17 +246,17 @@ struct Label {
     this.embed=embed;
     this.filltype=filltype;
   }
-  
+
   void initalign(string s="", string size="", align align, pen p=nullpen,
                  embed embed=Rotate, filltype filltype=NoFill) {
     init(s,size,align,p,embed,filltype);
   }
-  
+
   void transform(transform T) {
     this.T=T;
     defaulttransform=false;
   }
-  
+
   void transform3(transform3 T) {
     this.T3=copy(T);
     defaulttransform3=false;
@@ -268,27 +268,27 @@ struct Label {
            defaulttransform3,embed,filltype);
     return L;
   }
-  
+
   void position(position pos) {
     this.position=pos;
     defaultposition=false;
   }
-  
+
   void align(align a) {
     align.align(a);
   }
   void align(align a, align default) {
     align.align(a,default);
   }
-  
+
   void p(pen p0) {
     if(this.p == nullpen) this.p=p0;
   }
-  
+
   void filltype(filltype filltype0) {
     if(this.filltype == NoFill) this.filltype=filltype0;
   }
-  
+
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
     align=length(align)*unit(rotation(t)*align);
@@ -309,7 +309,7 @@ struct Label {
       add(f,d,filltype);
     }
   }
-  
+
   void label(picture pic=currentpicture, pair position, pair align) {
     if(s == "") return;
     pic.add(new void (frame f, transform t) {
@@ -324,7 +324,7 @@ struct Label {
   void out(picture pic=currentpicture) {
     label(pic,position.position,align.dir);
   }
-  
+
   void out(picture pic=currentpicture, path g) {
     bool relative=position.relative;
     real position=position.position.x;
@@ -349,7 +349,7 @@ struct Label {
     pair position=point(g,position);
     pic.addBox(position,position,min(f),max(f));
   }
-  
+
   void write(file file=stdout, suffix suffix=endl) {
     write(file,"\""+s+"\"");
     if(!defaultposition) write(file,", position=",position.position);
@@ -364,11 +364,11 @@ struct Label {
     }
     write(file,"",suffix);
   }
-  
+
   real relative() {
     return defaultposition ? 0.5 : position.position.x;
   };
-  
+
   real relative(path g) {
     return position.relative ? reltime(g,relative()) : relative();
   };
@@ -380,12 +380,12 @@ void add(frame f, transform t=identity(), Label L)
 {
   L.out(f,t);
 }
-  
+
 void add(picture pic=currentpicture, Label L)
 {
   L.out(pic);
 }
-  
+
 Label operator * (transform t, Label L)
 {
   Label tL=L.copy();
@@ -466,20 +466,20 @@ void label(frame f, Label L, pair position, align align=NoAlign,
 {
   add(f,Label(L,position,align,p,filltype));
 }
-  
+
 void label(frame f, Label L, align align=NoAlign,
            pen p=currentpen, filltype filltype=NoFill)
 {
   add(f,Label(L,L.position,align,p,filltype));
 }
-  
+
 void label(picture pic=currentpicture, Label L, pair position,
            align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
 {
   Label L=Label(L,position,align,p,filltype);
   add(pic,L);
 }
-  
+
 void label(picture pic=currentpicture, Label L, align align=NoAlign,
            pen p=currentpen, filltype filltype=NoFill)
 {
@@ -494,7 +494,7 @@ void label(pair origin, picture pic=currentpicture, Label L, align align=NoAlign
   label(opic,L,L.position,align,p,filltype);
   add(pic,opic,origin);
 }
-  
+
 void label(picture pic=currentpicture, Label L, explicit path g,
            align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
 {
@@ -532,12 +532,12 @@ object operator cast(frame f) {
   return object(f);
 }
 
-object operator cast(Label L) 
+object operator cast(Label L)
 {
   return object(L);
 }
 
-object operator cast(string s) 
+object operator cast(string s)
 {
   return object(s);
 }
@@ -562,7 +562,7 @@ object operator * (transform t, explicit object F)
 }
 
 // Returns a copy of object F aligned in the direction align
-object align(object F, pair align) 
+object align(object F, pair align)
 {
   return shift(F.f,align)*F;
 }
@@ -594,7 +594,7 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
     real fontsize;
     string font;
 
-    void operator init(Label L) 
+    void operator init(Label L)
     {
       s=replace(L.s,'\n',' ');
       fontsize=fontsize(L.p);
@@ -603,7 +603,7 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
 
     pen pen() {return fontsize(fontsize)+fontcommand(font);}
   }
-  
+
   bool lexorder(stringfont a, stringfont b) {
     return a.s < b.s || (a.s == b.s && (a.fontsize < b.fontsize ||
                                         (a.fontsize == b.fontsize &&
@@ -615,7 +615,7 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
 
   static stringfont[] stringlist;
   static bool adjust[];
-  
+
   path[] G;
 
   stringfont s=stringfont(L);
@@ -649,7 +649,7 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
     label(f,L);
     return transform(box(min(f),max(f)),L);
   }
-  
+
   if(stringlist.length > 0) {
     path[][] g;
     int n=stringlist.length;
@@ -660,9 +660,9 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
       s[i]=adjust[i] ? "."+S.s : S.s;
       p[i]=adjust[i] ? S.pen()+basealign : S.pen();
     }
-        
+
     g=tex ? _texpath(s,p) : textpath(s,p);
-      
+
     if(tex)
       for(int i=0; i < n; ++i)
         if(adjust[i]) {
@@ -670,8 +670,8 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
           g[i].delete(0);
           g[i]=shift(0,-y)*g[i];
         }
-    
-  
+
+
     for(int i=0; i < stringlist.length; ++i) {
       stringfont s=stringlist[i];
       int j=search(stringcache,s,lexorder)+1;
@@ -686,6 +686,6 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
 }
 
 texpath=new path[](string s, pen p, bool tex=settings.tex != "none", bool bbox=false)
-{
-  return texpath(Label(s,p));
-};
+  {
+   return texpath(Label(s,p));
+  };

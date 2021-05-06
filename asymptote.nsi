@@ -1,6 +1,6 @@
 !define PRODUCT_NAME "Asymptote"
 !include AsymptoteInstallInfo.nsi
-!define PRODUCT_WEB_SITE "http://asymptote.sourceforge.net/"
+!define PRODUCT_WEB_SITE "https://asymptote.sourceforge.io/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Asymptote"
 !define PRODUCT_FILE_TYPE_REGKEY1 "Software\Classes\.asy"
 !define PRODUCT_FILE_TYPE_REGKEY2 "Software\Classes\ASYFile\shell\open\command"
@@ -110,8 +110,8 @@ Section "Asymptote" SEC01
   ${lnkX64IconFix} "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk"
   CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
   ${lnkX64IconFix} "$DESKTOP\Asymptote.lnk"
-  CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\GUI\xasy.py"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\GUI\xasy.py"
+  CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\GUI\xasy.py" "--asypath $\"$INSTDIR\asy.exe$\""
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\GUI\xasy.py" "--asypath $\"$INSTDIR\asy.exe$\""
   SetOutPath "$INSTDIR"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd

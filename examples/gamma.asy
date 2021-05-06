@@ -12,7 +12,7 @@ bool3 branch(real x)
 }
 
 draw(graph(gamma,-4,4,n=2000,branch),red);
- 
+
 scale(false);
 xlimits(-4,4);
 ylimits(-6,6);

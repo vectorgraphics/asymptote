@@ -3,7 +3,7 @@ import palette;
 size(200);
 currentprojection=orthographic(6,8,2);
 viewportmargin=(1cm,0);
- 
+
 real c0=0.1;
 
 real f(real r) {return r*(1-r/6)*exp(-r/3);}
@@ -27,5 +27,5 @@ s.colors(palette(s.map(abs),Gradient(palegreen,heavyblue)));
 render render=render(compression=Low,merge=true);
 draw(s,render);
 draw(zscale3(-1)*s);
- 
+
 axes3("$x$","$y$","$z$",Arrow3);

@@ -2,12 +2,11 @@ import graph3;
 
 size(469pt);
 
-currentprojection=perspective(
-camera=(25.0851928432063,-30.3337528952473,19.3728775115443),
-up=Z,
-target=(-0.590622314050054,0.692357205025578,-0.627122488455679),
-zoom=1,
-autoadjust=false);
+currentprojection=
+  perspective(camera=(25.0851928432063,-30.3337528952473,19.3728775115443),
+              up=Z,
+              target=(-0.590622314050054,0.692357205025578,-0.627122488455679),
+              zoom=1,autoadjust=false);
 
 triple f(pair t) {
   real u=t.x;

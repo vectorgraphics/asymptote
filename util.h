@@ -14,7 +14,7 @@
 
 #ifdef __CYGWIN__
 extern "C" int sigaddset(sigset_t *set, int signum);
-extern "C" int sigemptyset(sigset_t *set); 
+extern "C" int sigemptyset(sigset_t *set);
 extern "C" int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
 #endif
 
@@ -31,24 +31,26 @@ string demangle(const char *s);
 char *Strdup(string s);
 char *StrdupNoGC(string s);
 char *StrdupMalloc(string s);
-  
+
 // Strip the directory from a filename.
 string stripDir(string name);
-  
+
 // Strip the file from a filename, returning the directory.
 string stripFile(string name);
 
 // Strip the extension from a filename.
 string stripExt(string name, const string& suffix="");
 
+void readDisabled();
 void writeDisabled();
-  
+
 // Replace spaces in file part of name with underscores.
 string cleanpath(string name);
 
-// Construct the full output path.
+// Construct the full path name, checking access.
+string inpath(string name);
 string outpath(string name);
-  
+
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.
 string buildname(string filename, string suffix="", string aux="");
@@ -73,14 +75,14 @@ sighandler_t Signal(int signum, sighandler_t handler);
 
 // Split string S and push the pieces onto vector a.
 void push_split(mem::vector<string>& a, const string& S);
-  
+
 // Wrapper to append /c start "" to MSDOS cmd.
 void push_command(mem::vector<string>& a, const string& s);
-  
+
 // Return an argv array corresponding to the fields in command delimited
 // by spaces not within matching single quotes.
 char **args(const mem::vector<string> &args, bool quiet=false);
-  
+
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
 int System(const mem::vector<string> &command, int quiet=0, bool wait=true,
@@ -125,6 +127,7 @@ const char *startPath();
 const char* setPath(const char *s, bool quiet=false);
 const char *changeDirectory(const char *s);
 extern char *startpath;
+extern void recursive_delete(char *name);
 
 void backslashToSlash(string& s);
 void spaceToUnderscore(string& s);
@@ -132,7 +135,7 @@ string Getenv(const char *name, bool msdos);
 char *getPath(char *p=NULL);
 
 void execError(const char *command, const char *hint, const char *application);
-  
+
 // This invokes a viewer to display the manual.  Subsequent calls will only
 // pop-up a new viewer if the old one has been closed.
 void popupHelp();
@@ -141,7 +144,7 @@ void popupHelp();
 inline long long llabs(long long x) {return x >= 0 ? x : -x;}
 extern "C" char *initstate (unsigned seed, char *state, size_t size);
 extern "C" long random (void);
-#endif  
+#endif
 
 inline Int Abs(Int x) {
 #ifdef HAVE_LONG_LONG

@@ -102,7 +102,7 @@ This package has been tested in:
 
 This package seems to work with XEmacs 21.4 but not all the features are available (in particular syntax highlighting).
 
-Report bugs to http://asymptote.sourceforge.net
+Report bugs to https://github.com/vectorgraphics/asymptote/issues
 
 Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 

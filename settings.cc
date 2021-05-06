@@ -73,24 +73,25 @@ void runFile(const string& filename);
 
 
 namespace settings {
-  
+
 using camp::pair;
-  
+
 #ifdef HAVE_LIBGLM
-const bool havegl=true;  
+const bool havegl=true;
 #else
 const bool havegl=false;
 #endif
-  
+
 mode_t mask;
-  
+
 string systemDir=ASYMPTOTE_SYSDIR;
+string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
   string(AsyGLVersion)+".js";
 
 #ifndef __MSDOS__
-  
+
 bool msdos=false;
 string HOME="HOME";
 string docdir=ASYMPTOTE_DOCDIR;
@@ -99,20 +100,20 @@ const char pathSeparator=':';
 string defaultPSViewer="open";
 string defaultPDFViewer="open";
 string defaultHTMLViewer="open";
-#else  
+#else
 string defaultPSViewer="gv";
 string defaultPDFViewer="acroread";
 string defaultHTMLViewer="google-chrome";
-#endif  
+#endif
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="";
 string defaultDisplay="display";
 string defaultAnimate="animate";
 void queryRegistry() {}
 const string dirsep="/";
-  
-#else  
-  
+
+#else
+
 bool msdos=true;
 string HOME="USERPROFILE";
 string docdir="c:\\Program Files\\Asymptote";
@@ -129,9 +130,9 @@ string defaultDisplay="cmd";
 //string defaultAnimate="animate";
 string defaultAnimate="cmd";
 const string dirsep="\\";
-  
+
 #include <dirent.h>
-  
+
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
 string getEntry(const string& location, const string& key)
 {
@@ -160,7 +161,7 @@ string getEntry(const string& location, const string& key)
       string dname=p->d_name;
       string rdname=dname;
       reverse(rdname.begin(),rdname.end());
-      if(dname != "." && dname != ".." && 
+      if(dname != "." && dname != ".." &&
          dname.substr(0,file.size()) == file &&
          rdname.substr(0,suffix.size()) == rsuffix) {
         head=directory+p->d_name;
@@ -179,7 +180,7 @@ string getEntry(const string& location, const string& key)
   }
   return "";
 }
-  
+
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
 string getEntry(const string& key)
 {
@@ -195,7 +196,7 @@ void queryRegistry()
   string defaultGhostscriptLibrary=getEntry("GPL Ghostscript/*/GS_DLL");
   if(defaultGhostscriptLibrary.empty())
     defaultGhostscriptLibrary=getEntry("AFPL Ghostscript/*/GS_DLL");
-  
+
   string gslib=stripDir(defaultGhostscriptLibrary);
   defaultGhostscript=stripFile(defaultGhostscriptLibrary)+
     ((gslib.empty() || gslib.substr(5,2) == "32") ? "gswin32c.exe" : "gswin64c.exe");
@@ -211,9 +212,9 @@ void queryRegistry()
   if(!systemDir.empty() && !docdir.empty())
     systemDir=docdir;
 }
-  
-#endif  
-  
+
+#endif
+
 const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
 const char BUGREPORT[]=PACKAGE_BUGREPORT;
@@ -226,31 +227,34 @@ Int verbose;
 
 // Conserve memory at the expense of speed.
 bool compact;
-  
-// Colorspace conversion flags (stored in global variables for efficiency). 
+
+// Colorspace conversion flags (stored in global variables for efficiency).
 bool gray;
-bool bw;  
+bool bw;
 bool rgb;
 bool cmyk;
-  
+
 // Disable system calls.
 bool safe=true;
+// Enable reading from other directories
+bool globalRead=true;
 // Enable writing to (or changing to) other directories
-bool globaloption=false;
-  
-bool globalwrite() {return globaloption || !safe;}
-  
+bool globalWrite=false;
+
+bool globalwrite() {return globalWrite || !safe;}
+bool globalread() {return globalRead || !safe;}
+
 const string suffix="asy";
 const string guisuffix="gui";
 const string standardprefix="out";
-  
+
 string initdir;
 string historyname;
 
 // Local versions of the argument list.
 int argCount = 0;
 char **argList = 0;
-  
+
 typedef ::option c_option;
 
 types::dummyRecord *settingsModule;
@@ -274,7 +278,7 @@ void Warn(const string& s)
   array *Warn=getSetting<array *>("suppress");
   size_t size=checkArray(Warn);
   for(size_t i=0; i < size; i++)
-    if(vm::read<string>(Warn,i) == s) 
+    if(vm::read<string>(Warn,i) == s)
       (*Warn).erase((*Warn).begin()+i,(*Warn).begin()+i+1);
 }
 
@@ -295,7 +299,7 @@ optionsMap_t optionsMap;
 
 typedef mem::map<CONST char, option *> codeMap_t;
 codeMap_t codeMap;
-  
+
 struct option : public gc {
   string name;
   char code;      // Command line option, i.e. 'V' for -V.
@@ -379,7 +383,7 @@ struct option : public gc {
       cerr << endl;
     }
   }
-  
+
   virtual void reset() {
   }
 };
@@ -453,7 +457,7 @@ item& Setting(string name) {
   }
   return s->value;
 }
-  
+
 struct boolSetting : public itemSetting {
   boolSetting(string name, char code, string desc,
               bool defaultValue=false)
@@ -547,7 +551,7 @@ struct argumentSetting : public itemSetting {
   argumentSetting(string name, char code,
                   string argname, string desc,
                   types::ty *t, item defaultValue)
-    : itemSetting(name, code, argname, desc, t, defaultValue) 
+    : itemSetting(name, code, argname, desc, t, defaultValue)
   {
     assert(!argname.empty());
   }
@@ -591,7 +595,7 @@ struct warnSetting : public option {
     Warn(string(optarg));
     return true;
   }
-  
+
   option *negation(string name) {
     struct negOption : public option {
       warnSetting &base;
@@ -606,7 +610,7 @@ struct warnSetting : public option {
     };
     return new negOption(*this, name, argname);
   }
-  
+
   void add() {
     option::add();
     negation("no"+name)->add();
@@ -618,11 +622,11 @@ struct warnSetting : public option {
 };
 
 string GetEnv(string s, string Default) {
-  transform(s.begin(), s.end(), s.begin(), toupper);        
+  transform(s.begin(), s.end(), s.begin(), toupper);
   string t=Getenv(("ASYMPTOTE_"+s).c_str(),msdos);
   return t.empty() ? Default : t;
 }
-  
+
 struct envSetting : public stringSetting {
   envSetting(string name, string Default)
     : stringSetting(name, 0, " ", "", GetEnv(name,Default)) {}
@@ -649,7 +653,7 @@ struct dataSetting : public argumentSetting {
 };
 
 template<class T>
-string description(string desc, T defaultValue) 
+string description(string desc, T defaultValue)
 {
   return desc.empty() ? "" : desc+" ["+String(defaultValue)+"]";
 }
@@ -661,7 +665,7 @@ struct IntSetting : public dataSetting<Int> {
                        description(desc,defaultValue),
                        types::primInt(), defaultValue) {}
 };
-  
+
 struct realSetting : public dataSetting<double> {
   realSetting(string name, char code,
               string argname, string desc, double defaultValue=0.0)
@@ -669,7 +673,7 @@ struct realSetting : public dataSetting<double> {
                           description(desc,defaultValue),
                           types::primReal(), defaultValue) {}
 };
-  
+
 struct pairSetting : public dataSetting<pair> {
   pairSetting(string name, char code,
               string argname, string desc, pair defaultValue=0.0)
@@ -677,7 +681,7 @@ struct pairSetting : public dataSetting<pair> {
                         description(desc,defaultValue),
                         types::primPair(), defaultValue) {}
 };
-  
+
 // For setting the alignment of a figure on the page.
 struct alignSetting : public argumentSetting {
   alignSetting(string name, char code,
@@ -714,7 +718,7 @@ struct engineSetting : public argumentSetting {
 
   bool getOption() {
     string str=optarg;
-    
+
     if(str == "latex" || str == "pdflatex" || str == "xelatex" ||
        str == "tex" || str == "pdftex" || str == "luatex" ||
        str == "lualatex" || str == "context" || str == "none") {
@@ -759,7 +763,7 @@ struct refSetting : public setting {
     }
     return true;
   }
-  
+
   virtual void reset() {
     *ref=defaultValue;
   }
@@ -778,7 +782,7 @@ struct boolrefSetting : public refSetting<bool> {
     *ref=true;
     return true;
   }
-  
+
   virtual option *negation(string name) {
     struct negOption : public option {
       boolrefSetting &base;
@@ -793,7 +797,7 @@ struct boolrefSetting : public refSetting<bool> {
     };
     return new negOption(*this, name);
   }
-  
+
   void add() {
     setting::add();
     negation("no"+name)->add();
@@ -812,13 +816,13 @@ struct compactSetting : public boolrefSetting {
     mem::compact(1);
     return boolrefSetting::getOption();
   }
-  
+
   option *negation(string name) {
     mem::compact(0);
     return boolrefSetting::negation(name);
   }
 };
-  
+
 struct incrementSetting : public refSetting<Int> {
   incrementSetting(string name, char code, string desc, Int *ref)
     : refSetting<Int>(name, code, noarg, desc,
@@ -829,7 +833,7 @@ struct incrementSetting : public refSetting<Int> {
     ++(*ref);
     return true;
   }
-  
+
   option *negation(string name) {
     struct negOption : public option {
       incrementSetting &base;
@@ -844,7 +848,7 @@ struct incrementSetting : public refSetting<Int> {
     };
     return new negOption(*this, name);
   }
-  
+
   void add() {
     setting::add();
     negation("no"+name)->add();
@@ -858,7 +862,7 @@ struct incrementSetting : public refSetting<Int> {
 struct incrementOption : public option {
   Int *ref;
   Int level;
-  
+
   incrementOption(string name, char code, string desc, Int *ref,
                   Int level=1)
     : option(name, code, noarg, desc, true), ref(ref), level(level) {}
@@ -877,14 +881,14 @@ void addOption(option *o) {
 void version()
 {
   cerr << PROGRAM << " version " << REVISION
-       << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]" 
+       << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]"
        << endl;
 }
 
 void usage(const char *program)
 {
   version();
-  cerr << "\t\t\t" << "http://asymptote.sourceforge.net/"
+  cerr << "\t\t\t" << "https://asymptote.sourceforge.io/"
        << endl
        << "Usage: " << program << " [options] [file ...]"
        << endl;
@@ -901,7 +905,7 @@ void reportSyntax() {
 void displayOptions()
 {
   cerr << endl;
-  cerr << "Options (negate by replacing - with -no): " 
+  cerr << "Options (negate by replacing - with -no): "
        << endl << endl;
   for (optionsMap_t::iterator opt=optionsMap.begin();
        opt!=optionsMap.end();
@@ -929,7 +933,7 @@ struct versionOption : public option {
     : option(name, code, noarg, desc, true) {}
 
   bool disabled;
-  
+
   const void feature(const char *s, bool enabled) {
     if(enabled ^ disabled)
       cerr << s << endl;
@@ -944,6 +948,7 @@ struct versionOption : public option {
     bool gsl=false;
     bool fftw3=false;
     bool xdr=false;
+    bool curl=false;
     bool readline=false;
     bool editline=false;
     bool sigsegv=false;
@@ -969,6 +974,10 @@ struct versionOption : public option {
     xdr=true;
 #endif
 
+#ifdef HAVE_LIBCURL
+    curl=true;
+#endif
+
 #ifdef HAVE_LIBCURSES
 #ifdef HAVE_LIBREADLINE
     readline=true;
@@ -988,10 +997,15 @@ struct versionOption : public option {
 #endif
 
     feature("WebGL    3D HTML rendering",glm);
+#ifdef HAVE_LIBOSMESA
+    feature("OpenGL   3D OSMesa offscreen rendering",gl);
+#else
     feature("OpenGL   3D OpenGL rendering",gl);
+#endif
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("XDR      external data representation (portable binary file format)",xdr);
+    feature("CURL     URL support",curl);
     feature("Readline interactive history and editing",readline);
     if(!readline)
       feature("Editline interactive editing (if Readline is unavailable)",editline);
@@ -999,7 +1013,7 @@ struct versionOption : public option {
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);
   }
-  
+
   bool getOption() {
     version();
     features(1);
@@ -1075,7 +1089,7 @@ void resetOptions()
     if(opt->first != "config" && opt->first != "dir" && opt->first != "sysdir")
       opt->second->reset();
 }
-  
+
 void getOptions(int argc, char *argv[])
 {
   bool syntax=false;
@@ -1110,7 +1124,7 @@ void getOptions(int argc, char *argv[])
 
     errno=0;
   }
-  
+
   if (syntax)
     reportSyntax();
 }
@@ -1121,7 +1135,7 @@ void no_GCwarn(char *, GC_word)
 }
 #endif
 
-array* stringArray(const char **s) 
+array* stringArray(const char **s)
 {
   size_t count=0;
   while(s[count])
@@ -1140,30 +1154,30 @@ void initSettings() {
   }
 
   settingsModule=new types::dummyRecord(symbol::trans("settings"));
-  
+
 // Default mouse bindings
-  
+
 // LEFT: rotate
 // SHIFT LEFT: zoom
 // CTRL LEFT: shift
 // ALT LEFT: pan
   const char *leftbutton[]={"rotate","zoom","shift","pan",NULL};
-  
+
 // MIDDLE:
   const char *middlebutton[]={NULL};
-  
+
 // RIGHT: zoom
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
 // ALT RIGHT: rotateZ
   const char *rightbutton[]={"zoom","rotateX","rotateY","rotateZ",NULL};
-  
+
 // WHEEL_UP: zoomin
   const char *wheelup[]={"zoomin",NULL};
-  
+
 // WHEEL_DOWN: zoomout
   const char *wheeldown[]={"zoomout",NULL};
-  
+
   addOption(new stringArraySetting("leftbutton", stringArray(leftbutton)));
   addOption(new stringArraySetting("middlebutton", stringArray(middlebutton)));
   addOption(new stringArraySetting("rightbutton", stringArray(rightbutton)));
@@ -1172,7 +1186,7 @@ void initSettings() {
   addOption(new stringArraySetting("suppress", new array));
 
   addOption(new warnSetting("warn", 0, "string", "Enable warning"));
-  
+
   multiOption *view=new multiOption("View", 'V', "View output");
   view->add(new boolSetting("batchView", 0, "View output in batch mode",
                             msdos));
@@ -1186,7 +1200,7 @@ void initSettings() {
                               "Convert each output file to specified format",
                               ""));
   addOption(new boolSetting("svgemulation", 0,
-                            "Emulate unimplemented SVG shading", false));
+                            "Emulate unimplemented SVG shading", true));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", true));
   addOption(new boolSetting("toolbar", 0,
@@ -1195,24 +1209,23 @@ void initSettings() {
                             "Show 3D axes in PDF output", true));
   addOption(new boolSetting("envmap", 0,
                             "Enable environment map image-based lighting (Experimental)", false));
-                            
-                            
+
+
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
                             havegl ? -1.0 : 0.0));
+  addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 1.0));
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
-  addOption(new boolSetting("offscreen", 0,
-                            "Use offscreen rendering",false));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
-  addOption(new pairSetting("position", 0, "pair", 
+  addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",
-                            "Maximum viewport size",pair(2048,2048)));
+                            "Maximum viewport size",pair(0,0)));
   addOption(new pairSetting("viewportmargin", 0, "pair",
                             "Horizontal and vertical 3D viewport margin",
                             pair(0.5,0.5)));
@@ -1229,7 +1242,7 @@ void initSettings() {
   addOption(new boolSetting("autobillboard", 0,
                             "3D labels always face viewer by default", true));
   addOption(new boolSetting("threads", 0,
-                            "Use POSIX threads for 3D rendering", !msdos));
+                            "Use POSIX threads for 3D rendering", true));
   addOption(new boolSetting("fitscreen", 0,
                             "Fit rendered image to screen", true));
   addOption(new boolSetting("interactiveWrite", 0,
@@ -1240,18 +1253,18 @@ void initSettings() {
 
   addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
   addOption(new pairSetting("aligndir", 0, "pair",
-                             "Directional page alignment (overrides align)"));
+                            "Directional page alignment (overrides align)"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
                              "Center, Bottom, Top, or Zero page alignment",
                              "C"));
-  
+
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',
                                  "Increase verbosity level (can specify multiple times)", &verbose));
   // Resolve ambiguity with --version
   addOption(new incrementOption("vv", 0,"", &verbose,2));
   addOption(new incrementOption("novv", 0,"", &verbose,-2));
-  
+
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
   addOption(new boolSetting("keepaux", 0,
                             "Keep intermediate LaTeX .aux files"));
@@ -1273,6 +1286,8 @@ void initSettings() {
 
   addOption(new boolSetting("inlineimage", 0,
                             "Generate inline embedded image"));
+  addOption(new boolSetting("compress", 0,
+                            "Compress images in PDF output", true));
   addOption(new boolSetting("parseonly", 'p', "Parse file"));
   addOption(new boolSetting("translate", 's',
                             "Show translated virtual machine code"));
@@ -1282,7 +1297,7 @@ void initSettings() {
                             "List available global functions and variables"));
   addOption(new boolSetting("where", 0,
                             "Show where listed variables are declared"));
-  
+
   multiOption *mask=new multiOption("mask", 'm',
                                     "Mask fpu exceptions");
   mask->add(new boolSetting("batchMask", 0,
@@ -1302,20 +1317,23 @@ void initSettings() {
                                       &safe, true));
   addSecureSetting(new boolrefSetting("globalwrite", 0,
                                       "Allow write to other directory",
-                                      &globaloption, false));
+                                      &globalWrite, false));
+  addSecureSetting(new boolrefSetting("globalread", 0,
+                                      "Allow read from other directory",
+                                      &globalRead, true));
   addSecureSetting(new stringSetting("outname", 'o', "name",
                                      "Alternative output directory/filename"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
                              &startpath));
-  
-#ifdef USEGC  
+
+#ifdef USEGC
   addOption(new compactSetting("compact", 0,
                                "Conserve memory at the expense of speed",
                                &compact));
   addOption(new divisorOption("divisor", 0, "n",
                               "Garbage collect using purge(divisor=n) [2]"));
-#endif  
-  
+#endif
+
   addOption(new stringSetting("prompt", 0,"string","Prompt","> "));
   addOption(new stringSetting("prompt2", 0,"string",
                               "Continuation prompt for multiline input ",
@@ -1331,7 +1349,7 @@ void initSettings() {
   addOption(new IntSetting("outpipe", 0, "n","",-1));
   addOption(new boolSetting("exitonEOF", 0, "Exit interactive mode on EOF",
                             true));
-                            
+
   addOption(new boolSetting("quiet", 'q',
                             "Suppress welcome text and noninteractive stdout"));
   addOption(new boolSetting("localhistory", 0,
@@ -1361,7 +1379,7 @@ void initSettings() {
                             "Command to autoexecute"));
   addOption(new userSetting("user", 'u', "string",
                             "General purpose user string"));
-  
+
   addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
                             1.05));
   addOption(new realSetting("zoomPinchFactor", 0, "n",
@@ -1388,10 +1406,10 @@ void initSettings() {
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
   addOption(new IntSetting("digits", 0, "n",
                            "Default output file precision", 7));
-  
+
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
-  
+
   addOption(new stringSetting("dvipsOptions", 0, "string", ""));
   addOption(new stringSetting("dvisvgmOptions", 0, "string", ""));
   addOption(new stringSetting("convertOptions", 0, "string", ""));
@@ -1403,7 +1421,7 @@ void initSettings() {
   addOption(new stringSetting("glOptions", 0, "string", ""));
   addOption(new stringSetting("hyperrefOptions", 0, "str",
                               "","setpagesize=false,unicode,pdfborder=0 0 0"));
-  
+
   addOption(new envSetting("config","config."+suffix));
   addOption(new envSetting("htmlviewer", defaultHTMLViewer));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
@@ -1411,6 +1429,7 @@ void initSettings() {
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("libgs", defaultGhostscriptLibrary));
   addOption(new envSetting("epsdriver", defaultEPSdriver));
+  addOption(new envSetting("psdriver", defaultPSdriver));
   addOption(new envSetting("asygl", defaultAsyGL));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
@@ -1437,11 +1456,11 @@ char *getArg(int n) { return argList[n]; }
 
 void setInteractive()
 {
-  if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
+  if(numArgs() == 0 && !getSetting<bool>("listvariables") &&
      getSetting<string>("command").empty() &&
      (isatty(STDIN_FILENO) || getSetting<Int>("xasy")))
     interact::interactive=true;
-  
+
   if(getSetting<bool>("localhistory"))
     historyname=string(getPath())+dirsep+"."+suffix+"_history";
   else {
@@ -1450,7 +1469,7 @@ void setInteractive()
     historyname=initdir+"/history";
   }
   if(verbose > 1)
-     cerr << "Using history " << historyname << endl;
+    cerr << "Using history " << historyname << endl;
 }
 
 bool view()
@@ -1458,7 +1477,7 @@ bool view()
   if (interact::interactive)
     return getSetting<bool>("interactiveView");
   else
-    return getSetting<bool>("batchView") && 
+    return getSetting<bool>("batchView") &&
       (numArgs() == 1 || getSetting<bool>("multipleView"));
 }
 
@@ -1470,7 +1489,7 @@ bool trap()
     return !getSetting<bool>("batchMask");
 }
 
-string outname() 
+string outname()
 {
   string name=getSetting<string>("outname");
   if(name.empty() && interact::interactive) return standardprefix;
@@ -1478,7 +1497,7 @@ string outname()
   return name;
 }
 
-string lookup(const string& symbol) 
+string lookup(const string& symbol)
 {
   string s;
   mem::vector<string> cmd;
@@ -1510,25 +1529,25 @@ void initDir() {
       if(s.size() > 1)
         initdir=s;
     }
-  } 
-  
+  }
+
   if(initdir.empty())
     initdir=Getenv("ASYMPTOTE_HOME",msdos);
-  
+
   if(initdir.empty())
     initdir=Getenv(HOME.c_str(),msdos)+dirsep+"."+suffix;
-  
-#ifdef __MSDOS__  
+
+#ifdef __MSDOS__
   mask=umask(0);
   if(mask == 0) mask=0027;
   umask(mask);
-#endif  
+#endif
   if(access(initdir.c_str(),F_OK) == 0) {
     if(verbose > 1)
       cerr << "Using configuration directory " << initdir << endl;
   }
 }
-  
+
 void setPath() {
   searchPath.clear();
   searchPath.push_back(".");
@@ -1546,6 +1565,7 @@ void setPath() {
   string sysdir=getSetting<string>("sysdir");
   if(sysdir != "")
     searchPath.push_back(sysdir);
+  searchPath.push_back(docdir+"/examples");
 }
 
 void SetPageDimensions() {
@@ -1554,16 +1574,16 @@ void SetPageDimensions() {
   if(paperType.empty() &&
      getSetting<double>("paperwidth") != 0.0 &&
      getSetting<double>("paperheight") != 0.0) return;
-  
+
   if(paperType == "letter") {
     Setting("paperwidth")=8.5*inches;
     Setting("paperheight")=11.0*inches;
   } else {
     Setting("paperwidth")=21.0*cm;
     Setting("paperheight")=29.7*cm;
-    
+
     if(paperType != "a4") {
-      cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
+      cerr << "Unknown paper size \'" << paperType << "\'; assuming a4."
            << endl;
       Setting("papertype")=string("a4");
     }
@@ -1593,7 +1613,7 @@ bool pdf(const string& texengine)
 
 bool latex(const string& texengine)
 {
-  return texengine == "latex" || texengine == "pdflatex" || 
+  return texengine == "latex" || texengine == "pdflatex" ||
     texengine == "xelatex" || texengine == "lualatex";
 }
 
@@ -1614,7 +1634,7 @@ const char *beginlabel(const string& texengine)
   if(pdf(texengine))
     return xe(texengine) ? "\\special{pdf:literal q #5 0 0 cm}" :
       "\\special{pdf:q #5 0 0 cm}";
-  else 
+  else
     return "\\special{ps:gsave currentpoint currentpoint translate [#5 0 0] "
       "concat neg exch neg exch translate}";
 }
@@ -1642,7 +1662,7 @@ const char *rawpostscript(const string& texengine)
 }
 
 // TeX macro to begin picture
-const char *beginpicture(const string& texengine) 
+const char *beginpicture(const string& texengine)
 {
   if(latex(texengine))
     return "\\begin{picture}";
@@ -1683,7 +1703,7 @@ string texcommand()
   string command=getSetting<string>("texcommand");
   return command.empty() ? getSetting<string>("tex") : command;
 }
-  
+
 string texprogram()
 {
   string path=getSetting<string>("texpath");
@@ -1691,16 +1711,16 @@ string texprogram()
   return path.empty() ? engine : (string) (path+"/"+engine);
 }
 
-Int getScroll() 
+Int getScroll()
 {
   Int scroll=settings::getSetting<Int>("scroll");
   if(scroll < 0) {
-#ifdef HAVE_LIBCURSES  
+#ifdef HAVE_LIBCURSES
     static char *terminal=NULL;
     if(!terminal)
       terminal=getenv("TERM");
     if(terminal) {
-#ifndef __MSDOS__      
+#ifndef __MSDOS__
       int error=setupterm(terminal,1,&error);
       if(error == 0) scroll=lines > 2 ? lines-1 : 1;
       else
@@ -1714,7 +1734,7 @@ Int getScroll()
   return scroll;
 }
 
-void doConfig(string file) 
+void doConfig(string file)
 {
   bool autoplain=getSetting<bool>("autoplain");
   bool listvariables=getSetting<bool>("listvariables");
@@ -1735,18 +1755,18 @@ void setOptions(int argc, char *argv[])
 
   // Build settings module.
   initSettings();
-  
+
   // Read command-line options initially to obtain config, dir, sysdir, verbose.
   getOptions(argc,argv);
-  
+
   // Make configuration and history directory
   initDir();
-  
+
   Int Verbose=verbose;
   string sysdir=getSetting<string>("sysdir");
-  
+
   resetOptions();
-  
+
   // Read user configuration file.
   setPath();
   string filename=getSetting<string>("config");
@@ -1758,38 +1778,38 @@ void setOptions(int argc, char *argv[])
       doConfig(file);
     }
   }
-  
+
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
-  
+
   if(getSetting<Int>("outpipe") == 2) // Redirect cerr to cout
     std::cerr.rdbuf(std::cout.rdbuf());
-  
+
   Setting("sysdir")=sysdir;
-  
+
   if(docdir.empty())
     docdir=getSetting<string>("dir");
-  
+
 #ifdef USEGC
   if(verbose == 0 && !getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
-#endif  
+#endif
 
   if(setlocale (LC_ALL, "") == NULL && getSetting<bool>("debug"))
     perror("setlocale");
-  
+
   // Set variables for the file arguments.
   argCount = argc - optind;
   argList = argv + optind;
 
   // Recompute search path.
   setPath();
-  
-  if(getSetting<double>("paperwidth") != 0.0 && 
+
+  if(getSetting<double>("paperwidth") != 0.0 &&
      getSetting<double>("paperheight") != 0.0)
     Setting("papertype")=string("");
-  
+
   SetPageDimensions();
-  
+
   setInteractive();
 }
 

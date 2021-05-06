@@ -546,7 +546,7 @@ path[] regularize(path p, bool checkboundary=true)
       path g=subpath(p,t,t+length(p));
       int L=length(g);
       pair z=point(g,0);
-      real[] T=intersections(g,z,z+I*dir);
+      real[] T=intersections(g,z,z+I*abs(z)*dir);
       for(int i=0; i < T.length; ++i) {
         real cut=T[i];
         if(cut > sqrtEpsilon && cut < L-sqrtEpsilon) {
@@ -1374,6 +1374,10 @@ void draw3D(frame f, patch s, triple center=O, material m,
             bool primitive=false)
 {
   bool straight=s.straight && s.planar;
+
+  // Planar Bezier surfaces require extra precision in WebGL
+  int digits=s.planar && !straight ? 12 : settings.digits;
+
   if(s.colors.length > 0) {
     if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
@@ -1383,7 +1387,7 @@ void draw3D(frame f, patch s, triple center=O, material m,
   
   (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,center,straight,m.p,m.opacity,m.shininess,
-     m.metallic,m.fresnel0,s.colors,interaction.type,primitive);
+     m.metallic,m.fresnel0,s.colors,interaction.type,digits,primitive);
 }
 
 void _draw(frame f, path3 g, triple center=O, material m,
@@ -1500,8 +1504,18 @@ void tensorshade(transform t=identity(), frame f, patch s,
     p.push(p[0]);
     s=tensor(s);        
   } else p=s.colors(m,light);
-  tensorshade(f,box(t*s.min(P),t*s.max(P)),m.diffuse(),
-              p,t*project(s.external(),P,1),t*project(s.internal(),P));
+  path g=t*project(s.external(),P,1);
+  pair[] internal=t*project(s.internal(),P);
+  pen fillrule=m.diffuse();
+  if(inside(g,internal[0],fillrule) && inside(g,internal[1],fillrule) &&
+     inside(g,internal[2],fillrule) && inside(g,internal[3],fillrule)) {
+    if(p[0] == p[1] && p[1] == p[2] && p[2] == p[3])
+      fill(f,g,fillrule+p[0]);
+    else
+      tensorshade(f,g,fillrule,p,internal);
+  } else {
+    tensorshade(f,box(t*s.min(P),t*s.max(P)),fillrule,p,g,internal);
+  }
 }
 
 restricted pen[] nullpens={nullpen};

@@ -14,7 +14,7 @@ struct RKTableau
   int order;
   coefficients a;
   void stepDependence(real h, real c, coefficients a) {}
-   
+
   real pgrow;
   real pshrink;
   bool exponential;
@@ -48,55 +48,72 @@ real[] Coeff={1,1/2,1/6,1/24,1/120,1/720,1/5040,1/40320,1/362880,1/3628800,
 
 real phi1(real x) {return x != 0 ? expm1(x)/x : 1;}
 
+// phi2(x)=(exp(x)-1-x)/(x^2);
+// Use the identity phi2(2x)=0.25*(x*phi2(x)+1)^2+0.5*phi2(x);
 real phi2(real x)
 {
+  if(fabs(x) > 1) return (exp(x)-x-1)/(x^2);
+  x *= 0.125;
   real x2=x*x;
-  if(fabs(x) > 1) return (exp(x)-x-1)/x2;
   real x3=x2*x;
   real x5=x2*x3;
-  if(fabs(x) < 0.1) 
-    return Coeff[1]+x*Coeff[2]+x2*Coeff[3]+x3*Coeff[4]+x2*x2*Coeff[5]
-      +x5*Coeff[6]+x3*x3*Coeff[7]+x5*x2*Coeff[8]+x5*x3*Coeff[9];
-    else {
-      real x7=x5*x2;
-      real x8=x7*x;
-      return Coeff[1]+x*Coeff[2]+x2*Coeff[3]+x3*Coeff[4]+x2*x2*Coeff[5]
-        +x5*Coeff[6]+x3*x3*Coeff[7]+x7*Coeff[8]+x8*Coeff[9]
-        +x8*x*Coeff[10]+x5*x5*Coeff[11]+x8*x3*Coeff[12]+x7*x5*Coeff[13]+
-        x8*x5*Coeff[14]+x7*x7*Coeff[15]+x8*x7*Coeff[16]+x8*x8*Coeff[17];
-    }
+  real y=Coeff[1]+x*Coeff[2]+x2*Coeff[3]+x3*Coeff[4]+x2*x2*Coeff[5]+
+    x5*Coeff[6]+x3*x3*Coeff[7]+x5*x2*Coeff[8]+x5*x3*Coeff[9];
+  y=0.25*(x*y+1.0)^2+0.5*y;
+  y=(x*y+0.5)^2+0.5*y;
+  return (2.0*x*y+0.5)^2+0.5*y;
 }
 
+// phi3(x)=(exp(x)-1-x-x^2/2)/(x^3)
+// Use the identity phi3(2x)=0.125*phi2(x)*(x*phi2(x)+2)+0.25*phi3(x)
+// where phi2(x)=x*phi3(x)+0.5
 real phi3(real x)
 {
+  if(fabs(x) > 1.6) return (exp(x)-0.5*x^2-x-1)/x^3;
+  x *= 0.125;
   real x2=x*x;
   real x3=x2*x;
-  if(fabs(x) > 1.6) return (exp(x)-0.5*x2-x-1)/x3;
   real x5=x2*x3;
-  if(fabs(x) < 0.1) 
-    return Coeff[2]+x*Coeff[3]+x2*Coeff[4]+x3*Coeff[5]
-      +x2*x2*Coeff[6]+x5*Coeff[7]+x3*x3*Coeff[8]+x5*x2*Coeff[9]
-      +x5*x3*Coeff[10];
-    else {
-      real x7=x5*x2;
-      real x8=x7*x;
-      real x16=x8*x8;
-      return Coeff[2]+x*Coeff[3]+x2*Coeff[4]+x3*Coeff[5]
-        +x2*x2*Coeff[6]+x5*Coeff[7]+x3*x3*Coeff[8]+x5*x2*Coeff[9]
-        +x5*x3*Coeff[10]+x8*x*Coeff[11]
-        +x5*x5*Coeff[12]+x8*x3*Coeff[13]+x7*x5*Coeff[14]
-        +x8*x5*Coeff[15]+x7*x7*Coeff[16]+x8*x7*Coeff[17]+x16*Coeff[18]
-        +x16*x*Coeff[19]+x16*x2*Coeff[20];
-    }
+  real y=Coeff[2]+x*Coeff[3]+x2*Coeff[4]+x3*Coeff[5]+
+    x2*x2*Coeff[6]+x5*Coeff[7]+x3*x3*Coeff[8]+x5*x2*Coeff[9]+
+    x5*x3*Coeff[10];
+  real y2=x*y+0.5;
+  y=0.125*y2*(x*y2+2)+0.25*y;
+  y2=2*x*y+0.5;
+  y=0.25*y2*(x*y2+1)+0.25*y;
+  y2=4*x*y+0.5;
+  return 0.25*y2*(2*x*y2+1)+0.25*y;
 }
 
-void expfactors(real x, coefficients a) 
+// phi4(x)=(exp(x)-1-x-x^2/2-x^3/6)/(x^4)
+// Use the identity phi4(2x)=0.0625*(x*phi3(x)+0.5)^2+0.125*(phi3(x)+phi4(x));
+// where phi3(x)=x*phi4(x)+1/6
+real phi4(real x)
+{
+  if(fabs(x) > 1.6) return (exp(x)-Coeff[2]*x^3-0.5*x^2-x-1)/x^4;
+  x *= 0.125;
+  real x2=x*x;
+  real x3=x2*x;
+  real x4=x2*x2;
+  real x5=x2*x3;
+  real y=Coeff[3]+x*Coeff[4]+x2*Coeff[5]+x3*Coeff[6]+
+    x4*Coeff[7]+x5*Coeff[8]+x3*x3*Coeff[9]+x5*x2*Coeff[10]+
+    x4*x4*Coeff[11];
+  real y3=x*y+Coeff[2];
+  y=0.0625*(x*y3+0.5)^2+0.125*(y3+y);
+  y3=2*x*y+Coeff[2];
+  y=(0.5*x*y3+0.125)^2+0.125*(y3+y);
+  y3=4*x*y+Coeff[2];
+  return (x*y3+0.125)^2+0.125*(y3+y);
+}
+
+void expfactors(real x, coefficients a)
 {
   for(int i=0; i < a.steps.length; ++i)
     a.factors[i]=exp(x*a.steps[i]);
   a.factors[a.steps.length]=exp(x);
 }
-      
+
 // First-Order Euler
 RKTableau Euler=RKTableau(1,new real[][], new real[] {1});
 
@@ -185,40 +202,40 @@ RKTableau RK4=RKTableau(4,new real[][] {{1/2},{0,1/2},{0,0,1}},
 
 // Fifth-Order Cash-Karp Runge-Kutta
 RKTableau RK5=RKTableau(5,new real[][] {{1/5},
-                                        {3/40,9/40},
-                                        {3/10,-9/10,6/5},
-                                        {-11/54,5/2,-70/27,35/27},
-                                        {1631/55296,175/512,575/13824,
-                                         44275/110592,253/4096}},
+                                          {3/40,9/40},
+                                            {3/10,-9/10,6/5},
+                                              {-11/54,5/2,-70/27,35/27},
+                                                {1631/55296,175/512,575/13824,
+                                                    44275/110592,253/4096}},
   new real[] {37/378,0,250/621,125/594,
-              0,512/1771},  // 5th order
+                0,512/1771},  // 5th order
   new real[] {2825/27648,0,18575/48384,13525/55296,
-              277/14336,1/4}); // 4th order
+                277/14336,1/4}); // 4th order
 
 // Fifth-Order Fehlberg Runge-Kutta
 RKTableau RK5F=RKTableau(5,new real[][] {{1/4},
-                                         {3/32,9/32},
-                                         {1932/2197,-7200/2197,7296/2197},
-                                         {439/216,-8,3680/513,-845/4104},
-                                         {-8/27,2,-3544/2565,1859/4104,
-                                          -11/40}},
+                                           {3/32,9/32},
+                                             {1932/2197,-7200/2197,7296/2197},
+                                               {439/216,-8,3680/513,-845/4104},
+                                                 {-8/27,2,-3544/2565,1859/4104,
+                                                     -11/40}},
   new real[] {16/135,0,6656/12825,28561/56430,-9/50,2/55}, // 5th order
   new real[] {25/216,0,1408/2565,2197/4104,-1/5,0}); // 4th order
 
 // Fifth-Order Dormand-Prince Runge-Kutta
 RKTableau RK5DP=RKTableau(5,new real[][] {{1/5},
-                                          {3/40,9/40},
-                                          {44/45,-56/15,32/9},
-                                          {19372/6561,-25360/2187,64448/6561,
-                                           -212/729},
-                                          {9017/3168,-355/33,46732/5247,49/176,
-                                           -5103/18656}},
+                                            {3/40,9/40},
+                                              {44/45,-56/15,32/9},
+                                                {19372/6561,-25360/2187,64448/6561,
+                                                    -212/729},
+                                                  {9017/3168,-355/33,46732/5247,49/176,
+                                                      -5103/18656}},
   new real[] {35/384,0,500/1113,125/192,-2187/6784,
-              11/84}, // 5th order
+                11/84}, // 5th order
   new real[] {5179/57600,0,7571/16695,393/640,
-              -92097/339200,187/2100,1/40}); // 4th order
+                -92097/339200,187/2100,1/40}); // 4th order
 
-real error(real error, real initial, real lowOrder, real norm, real diff) 
+real error(real error, real initial, real lowOrder, real norm, real diff)
 {
   if(initial != 0 && lowOrder != initial) {
     static real epsilon=realMin/realEpsilon;
@@ -249,7 +266,7 @@ struct solution
   real[] y;
 }
 
-void write(solution S) 
+void write(solution S)
 {
   for(int i=0; i < S.t.length; ++i)
     write(S.t[i],S.y[i]);
@@ -276,7 +293,7 @@ solution integrate(real y, real c=0, real f(real t, real y), real a, real b=a,
     new real(real t, real y) {return f(t,y)-c*y;};
 
   tableau.stepDependence(h,c,tableau.a);
-      
+
   real t=a;
   real f0;
   if(tableau.a.lowOrderWeights.length == 0) dynamic=false;
@@ -293,7 +310,7 @@ solution integrate(real y, real c=0, real f(real t, real y), real a, real b=a,
       tableau.stepDependence(h,c,tableau.a);
       dt=h;
     }
- 
+
     real[] predictions={fsal ? f0 : F(t,y)};
     for(int i=0; i < tableau.a.steps.length; ++i)
       predictions.push(F(t+h*tableau.a.steps[i],
@@ -336,7 +353,7 @@ struct Solution
   real[][] y;
 }
 
-void write(Solution S) 
+void write(Solution S)
 {
   for(int i=0; i < S.t.length; ++i) {
     write(S.t[i],tab);
@@ -356,7 +373,7 @@ Solution integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
   Solution S;
   S.t=new real[] {a};
   S.y=new real[][] {copy(y)};
-      
+
   if(h == 0) {
     if(b == a) return S;
     if(n == 0) abort("Either n or h must be specified");

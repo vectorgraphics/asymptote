@@ -17,11 +17,11 @@ extern pair zero;
 
 pair sin(pair z)
 {
-  return pair(sin(z.getx())*cosh(z.gety()),cos(z.getx())*sinh(z.gety())); 
+  return pair(sin(z.getx())*cosh(z.gety()),cos(z.getx())*sinh(z.gety()));
 }
 
-pair exp(pair z) 
-{ 
+pair exp(pair z)
+{
   return exp(z.getx())*expi(z.gety());
 }
 
@@ -81,6 +81,11 @@ real abs(pair z)
   return z.length();
 }
 
+real abs2(pair z)
+{
+  return z.abs2();
+}
+
 pair sqrt(explicit pair z)
 {
   return Sqrt(z);
@@ -105,13 +110,13 @@ real radians(real degrees)
 }
 
 // Convert radians to degrees.
-real degrees(real radians) 
+real degrees(real radians)
 {
   return degrees(radians);
 }
 
 // Convert radians to degrees in [0,360).
-real Degrees(real radians) 
+real Degrees(real radians)
 {
   return principalBranch(degrees(radians));
 }
@@ -190,24 +195,24 @@ pair expi(real angle)
   return expi(angle);
 }
 
-pair exp(explicit pair z) 
-{ 
+pair exp(explicit pair z)
+{
   return exp(z);
 }
 
-pair log(explicit pair z) 
-{ 
+pair log(explicit pair z)
+{
   return pair(log(z.length()),z.angle());
 }
 
-pair sin(explicit pair z) 
-{ 
+pair sin(explicit pair z)
+{
   return sin(z);
 }
 
-pair cos(explicit pair z) 
-{ 
-  return pair(cos(z.getx())*cosh(z.gety()),-sin(z.getx())*sinh(z.gety())); 
+pair cos(explicit pair z)
+{
+  return pair(cos(z.getx())*cosh(z.gety()),-sin(z.getx())*sinh(z.gety()));
 }
 
 // Complex Gamma function
@@ -221,7 +226,7 @@ pair conj(pair z)
   return conj(z);
 }
 
-pair realmult(pair z, pair w) 
+pair realmult(pair z, pair w)
 {
   return pair(z.getx()*w.getx(),z.gety()*w.gety());
 }
@@ -238,24 +243,24 @@ real cross(explicit pair z, explicit pair w)
   return cross(z,w);
 }
 
-pair bezier(pair a, pair b, pair c, pair d, real t) 
+pair bezier(pair a, pair b, pair c, pair d, real t)
 {
   real onemt=1-t;
   real onemt2=onemt*onemt;
   return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
 }
 
-pair bezierP(pair a, pair b, pair c, pair d, real t) 
+pair bezierP(pair a, pair b, pair c, pair d, real t)
 {
   return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
 }
 
-pair bezierPP(pair a, pair b, pair c, pair d, real t) 
+pair bezierPP(pair a, pair b, pair c, pair d, real t)
 {
   return 6.0*(t*(d-a+3.0*(b-c))+a+c)-12.0*b;
 }
 
-pair bezierPPP(pair a, pair b, pair c, pair d) 
+pair bezierPPP(pair a, pair b, pair c, pair d)
 {
   return 6.0*(d-a)+18.0*(b-c);
 }

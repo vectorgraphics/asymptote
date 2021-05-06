@@ -24,7 +24,7 @@ string filename="100d.pdb1";
 string prefix=stripextension(filename);
 file data=input(filename);
 
-pen color(string e) 
+pen color(string e)
 {
   e=replace(e," ","");
   int n=length(e);
@@ -33,7 +33,7 @@ pen color(string e)
   int index=find(Element == e);
   if(index < 0) return currentpen;
   return rgb(Hexcolor[index]);
-}	
+}
 
 // ATOM
 string[] name,altLoc,resName,chainID,iCode,element,charge;
@@ -42,7 +42,7 @@ real[][] occupancy,tempFactor;
 
 bool newchain=true;
 
-struct bond 
+struct bond
 {
   int i,j;
   void operator init(int i, int j) {
@@ -53,7 +53,7 @@ struct bond
 
 bond[] bonds;
 
-struct atom 
+struct atom
 {
   string name;
   triple v;
@@ -87,8 +87,8 @@ while(true) {
     serial=(int) substr(line,6,5);
     a.name=substr(line,76,2);
     a.v=((real) substr(line,30,8),
-	 (real) substr(line,38,8),
-	 (real) substr(line,46,8));
+         (real) substr(line,38,8),
+         (real) substr(line,46,8));
   }
   if(ATOM) {
     if(newchain) {
@@ -109,12 +109,12 @@ while(true) {
     int i=(int) substr(line,6,5);
     while(true) {
       string s=replace(substr(line,11+k,5)," ","");
-     if(s == "") break;
+      if(s == "") break;
       k += 5;
       int j=(int) s;
       if(j <= i) continue;
       bonds.push(bond(i,j));
-     }
+    }
   }
 }
 
@@ -158,7 +158,6 @@ string options;
 string viewfilename=prefix+".views";
 
 if(!error(input(viewfilename,check=false)))
-  options="3Dviews="+viewfilename;
+  options="3Dviews="+locatefile(viewfilename);
 
-shipout(prefix,options=options);
-currentpicture.erase();
+shipout(options=options);

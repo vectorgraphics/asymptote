@@ -13,7 +13,7 @@ GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS)
-DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lgdi32 -lwinmm -s -static
+DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
 PERL = perl
 
@@ -60,7 +60,7 @@ CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
-EXEXTRA = piicon.png *.views *.dat *.bib
+EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty ocg.sty latexmkrc
@@ -107,8 +107,8 @@ REVISION = "const char *REVISION="
 last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 ifeq ($(usinggit),yes)
-	revision = $(shell LC_ALL="C" git describe --long | sed -e 's/git//' \
-                    | sed -e 's/-g.*//')
+	revision = $(shell LC_ALL="C" git describe --long | \
+	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
 else
 	revision = @VERSION@
 endif
@@ -136,6 +136,7 @@ version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
 	echo string VERSION=\"$(revision)\"\; > base/version.asy
 	echo @set VERSION $(revision) > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
+	echo @set Docdir @docdir@ >> doc/version.texi
 
 	echo "#!/usr/bin/env python3" > GUI/xasyVersion.py
 	echo xasyVersion = \"$(revision)\" >> GUI/xasyVersion.py
@@ -356,7 +357,7 @@ check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
 
-glew.o: glew.c GL/glew.h
+glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py

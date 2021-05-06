@@ -8,8 +8,8 @@ void rectangle(real a, real b, real c, real h(real,real))
   real height=(a < c && c < b) ? f(c) : h(f(a),f(b));
   pair p=(a,0), q=(b,height);
   path g=box(p,q);
-  fill(g,lightgray); 
-  draw(g); 
+  fill(g,lightgray);
+  draw(g);
 }
 
 void partition(real a, real b, real c, real h(real,real))

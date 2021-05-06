@@ -178,7 +178,7 @@ path3 unstraighten(path3 p)
   return p.unstraighten();
 }
 
-// return the maximum distance squared of points c0 and c1 from 
+// return the maximum distance squared of points c0 and c1 from
 // the respective internal control points of z0--z1.
 real straightness(triple z0, triple c0, triple c1, triple z1)
 {
@@ -186,7 +186,7 @@ real straightness(triple z0, triple c0, triple c1, triple z1)
 }
 
 // return the straightness of segment i of path3 g.
-real straightness(path3 p, Int t) 
+real straightness(path3 p, Int t)
 {
   if(p.straight(t)) return 0;
   return Straightness(p.point(t),p.postcontrol(t),p.precontrol(t+1),
@@ -219,7 +219,7 @@ realarray* intersect(path3 p, path3 q, real fuzz=-1)
   if(fuzz < 0)
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                        ::max(length(q.max()),length(q.min())));
-  
+
   std::vector<real> S,T;
   real s,t;
   if(intersections(s,t,S,T,p,q,fuzz,true,exact)) {
@@ -238,7 +238,7 @@ realarray2* intersections(path3 p, path3 q, real fuzz=-1)
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                        ::max(length(q.max()),length(q.min())));
   bool single=!exact;
-  
+
   real s,t;
   std::vector<real> S,T;
   bool found=intersections(s,t,S,T,p,q,fuzz,single,exact);
@@ -361,13 +361,13 @@ pair maxratio(path3 g)
 
 // Return a negative (positive) value if a--b--c--cycle is oriented
 // counterclockwise (clockwise) when viewed from d or zero if all four
-// points are coplanar. 
+// points are coplanar.
 // The value returned is the determinant
 // |a.x a.y a.z 1|
 // |b.x b.y b.z 1|
 // |c.x c.y c.z 1|
 // |d.x d.y d.z 1|
-real orient(triple a, triple b, triple c, triple d) 
+real orient(triple a, triple b, triple c, triple d)
 {
   real A[]={a.getx(),a.gety(),a.getz()};
   real B[]={b.getx(),b.gety(),b.getz()};

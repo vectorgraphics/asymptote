@@ -4,7 +4,7 @@ import obj;
 size(200,0);
 size3(200);
 
-if(settings.render < 0) settings.render=8; 
+if(settings.render < 0) settings.render=8;
 
 texpreamble("\usepackage[T1]{fontenc}");
 texpreamble("\usepackage{ccfonts,eulervm}");
@@ -34,4 +34,4 @@ add(new void(frame f, transform3 t, picture pic, projection P) {
     draw(f,surface(invert(box(min(f,P),max(f,P)),min3(f),P),
                    new pen[] {orange,red,yellow,brown}+opacity(0.9)));
   }
-);
+  );

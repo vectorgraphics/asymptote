@@ -13,7 +13,7 @@ file*    => primFile()
 #include "array.h"
 
 #ifdef __CYGWIN__
-extern "C" int mkstemp(char *c);
+  extern "C" int mkstemp(char *c);
 #endif
 
 using namespace camp;
@@ -48,11 +48,11 @@ file* input(string name=emptystring, bool check=true,
     f=new ibfile(name,check);
   } else if(mode == "xdr") {
 #ifdef HAVE_RPC_RPC_H
-    f=new ixfile(name,check);    
-#else  
-  ostringstream buf;
-  buf << name << ": XDR read support not enabled";
-  error(buf);
+    f=new ixfile(name,check);
+#else
+    ostringstream buf;
+    buf << name << ": XDR read support not enabled";
+    error(buf);
 #endif
   } else if(mode == "") {
     char c=comment.empty() ? (char) 0 : comment[0];
@@ -63,7 +63,7 @@ file* input(string name=emptystring, bool check=true,
     buf << name << ": invalid file mode '" << mode << "'";
     error(buf);
   }
-  
+
   f->open();
   return f;
 }
@@ -82,7 +82,7 @@ file* output(string name=emptystring, bool update=false,
     if(update)
       f=new ioxfile(name);
     else f=new oxfile(name);
-#else  
+#else
     ostringstream buf;
     buf << name << ": XDR write support not enabled";
     error(buf);
@@ -98,10 +98,10 @@ file* output(string name=emptystring, bool update=false,
     buf << name << ": invalid file mode '" << mode << "'";
     error(buf);
   }
-  
+
   f->open();
   if(update) f->seek(0,false);
-  
+
   return f;
 }
 
@@ -130,13 +130,13 @@ void close(file *f)
   f->close();
 }
 
-Int precision(file *f=NULL, Int digits=0) 
+Int precision(file *f=NULL, Int digits=0)
 {
   if(f == 0) f=&camp::Stdout;
   return f->precision(digits);
 }
 
-void flush(file *f) 
+void flush(file *f)
 {
   f->flush();
 }
@@ -145,10 +145,7 @@ string getc(file *f)
 {
   char c=0;
   if(f->isOpen()) f->read(c);
-  static char str[2];
-  str[0]=c;
-  str[1]=0;
-  return string(str);
+  return string(1,c);
 }
 
 Int tell(file *f)
@@ -304,21 +301,21 @@ file* :readSetHelper(Int i, file *f)
 {
   switch(i) {
     case 1:
-      f->dimension(-2);
-      break;
-      
+    f->dimension(-2);
+    break;
+
     case 2:
-      f->dimension(-2,-2);
-      break;
-      
+    f->dimension(-2,-2);
+    break;
+
     case 3:
-      f->dimension(-2,-2,-2);
-      break;
-      
+    f->dimension(-2,-2,-2);
+    break;
+
     default:
-      f->dimension();
+    f->dimension();
   }
-  
+
   return f;
 }
 
@@ -328,35 +325,37 @@ callable* :readSet(file *f)
 }
 
 // Delete file named s.
-Int delete(string s) 
+Int delete(string s)
 {
   s=outpath(s);
   Int rc=unlink(s.c_str());
-  if(rc == 0 && verbose > 0) 
+  if(rc == 0 && verbose > 0)
     cout << "Deleted " << s << endl;
   return rc;
 }
 
 // Rename file "from" to file "to".
-Int rename(string from, string to) 
+Int rename(string from, string to)
 {
   from=outpath(from);
   to=outpath(to);
   Int rc=rename(from.c_str(),to.c_str());
-  if(rc == 0 && verbose > 0) 
+  if(rc == 0 && verbose > 0)
     cout << "Renamed " << from << " to " << to << endl;
   return rc;
 }
 
-// Create a unique temporary file name.
+// Create a uniquely named temporary file.
 string mktemp(string s)
 {
-  char *S=Strdup(s+"XXXXXX");
+  char *S=StrdupMalloc(s+"XXXXXX");
   int fd=mkstemp(S);
   if(fd < 0) {
     ostringstream buf;
     buf << "Could not create unique temporary filename based on " << s;
     error(buf);
   }
-  return S;
+  string T(S);
+  free(S);
+  return T;
 }

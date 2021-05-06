@@ -11,7 +11,7 @@ pen nm2rgb(real wl, real gamma=0.8, bool intensity=true) {
   if(wl >  510 && wl <= 580) {rgb=((wl-510)/70,1,0);}
   if(wl >  580 && wl <= 645) {rgb=(1,(645-wl)/65,0);}
   if(wl >  645 && wl <= 780) {rgb=(1,0,0);}
-  
+
   real Intensity=1;
   if(intensity) {
     if(wl >= 700) {Intensity=0.3+0.7*(780-wl)/80;}

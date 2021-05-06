@@ -86,14 +86,10 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  if(outformat(format) == "html") {
-    warning("htmltosvg",
-            "html output requested for 2D picture; generating svg image instead...");
-    format="svg";
-  }
-  
-  if(settings.xasy || (!implicitshipout && prefix == defaultfilename)) {
-    if(prefix == defaultfilename) {
+  bool defaultprefix=prefix==defaultfilename;
+
+  if(settings.xasy || (!implicitshipout && defaultprefix)) {
+    if(defaultprefix) {
       currentpicture.clear();
       add(f,group=false);
     }
@@ -132,8 +128,15 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     }
     frame f;
     transform t=pic.calculateTransform();
-    if(currentpicture.fitter == null)
-      f=pic.fit(t);
+    if(currentpicture.fitter == null) {
+      pen background=currentlight.background;
+      if(settings.outformat == "html" && background == nullpen)
+        background=white;
+      if(background != nullpen)
+        f=bbox(pic,nullpen,Fill(background));
+      else
+        f=pic.fit(t);
+    }
     else
       f=pic.fit(prefix,format,view=view,options,script,light,P);
 

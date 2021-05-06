@@ -5,12 +5,14 @@ let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
+let canvasWidth0,canvasHeight0; // Initial values
 
 let absolute=false;
 
 let b,B; // Scene min,max bounding box corners (3-tuples)
 let angle; // Field of view angle
 let Zoom0; // Initial zoom
+let zoom0; // Adjusted initial zoom
 let viewportmargin; // Margin around viewport (2-tuple)
 let viewportshift=[0,0]; // Viewport shift (for perspective projection)
 
@@ -41,16 +43,16 @@ let maxMaterials; // Limit on number of materials allowed in shader
 let halfCanvasWidth,halfCanvasHeight;
 
 let pixel=0.75; // Adaptive rendering constant.
+let zoomRemeshFactor=1.5; // Zoom factor before remeshing
 let FillFactor=0.1;
 let Zoom;
 
-let maxViewportWidth=window.innerWidth;
-let maxViewportHeight=window.innerHeight;
+let maxViewportWidth;
+let maxViewportHeight;
 
 const windowTrim=10;
-let resizeStep=1.2;
 
-let lastzoom;
+let lastZoom;
 let H; // maximum camera view half-height
 
 let third=1/3;
@@ -78,11 +80,6 @@ let viewParam = {
   ymin:0,ymax:0,
   zmin:0,zmax:0
 };
-
-let positionBuffer;
-let materialBuffer;
-let colorBuffer;
-let indexBuffer;
 
 let remesh=true;
 let wireframe=0;
@@ -156,15 +153,6 @@ function deleteShaders()
   gl.deleteProgram(colorShader);
   gl.deleteProgram(materialShader);
   gl.deleteProgram(pixelShader);
-}
-
-// Create buffers for the patch and its subdivisions.
-function setBuffers()
-{
-  positionBuffer=gl.createBuffer();
-  materialBuffer=gl.createBuffer();
-  colorBuffer=gl.createBuffer();
-  indexBuffer=gl.createBuffer();
 }
 
 function noGL() {
@@ -241,7 +229,6 @@ function initGL()
     initShaders();
   }
 
-  setBuffers();
   indexExt=gl.getExtension("OES_element_index_uint");
 
   TRIANGLES=gl.TRIANGLES;
@@ -280,6 +267,20 @@ function getShader(gl,shaderScript,type,options=[])
   return shader;
 }
 
+function registerBuffer(buffervector,bufferIndex,copy,type=gl.ARRAY_BUFFER)
+{
+  if(buffervector.length > 0) {
+    if(bufferIndex == 0) {
+      bufferIndex=gl.createBuffer();
+      copy=true;
+    }
+    gl.bindBuffer(type,bufferIndex);
+    if(copy)
+      gl.bufferData(type,buffervector,gl.STATIC_DRAW);
+  }
+  return bufferIndex;
+}
+
 function drawBuffer(data,shader,indices=data.indices)
 {
   if(data.indices.length == 0) return;
@@ -288,9 +289,9 @@ function drawBuffer(data,shader,indices=data.indices)
 
   setUniforms(data,shader);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER,positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data.vertices),
-                gl.STATIC_DRAW);
+  let copy=remesh || data.partial || !data.rendered;
+  data.verticesBuffer=registerBuffer(new Float32Array(data.vertices),
+                                     data.verticesBuffer,copy);
   gl.vertexAttribPointer(positionAttribute,3,gl.FLOAT,false,
                          normal ? 24 : 16,0);
   if(normal && Lights.length > 0)
@@ -298,22 +299,22 @@ function drawBuffer(data,shader,indices=data.indices)
   else if(pixel)
     gl.vertexAttribPointer(widthAttribute,1,gl.FLOAT,false,16,12);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER,materialBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(data.materialIndices),
-                gl.STATIC_DRAW);
+  data.materialsBuffer=registerBuffer(new Int16Array(data.materialIndices),
+                                      data.materialsBuffer,copy);
   gl.vertexAttribPointer(materialAttribute,1,gl.SHORT,false,2,0);
 
+
   if(shader == colorShader || shader == transparentShader) {
-    gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(data.colors),
-                  gl.STATIC_DRAW);
+    data.colorsBuffer=registerBuffer(new Uint8Array(data.colors),
+                                     data.colorsBuffer,copy);
     gl.vertexAttribPointer(colorAttribute,4,gl.UNSIGNED_BYTE,true,0,0);
   }
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                indexExt ? new Uint32Array(indices) :
-                new Uint16Array(indices),gl.STATIC_DRAW);
+  data.indicesBuffer=registerBuffer(indexExt ? new Uint32Array(indices) :
+                                    new Uint16Array(indices),
+                                    data.indicesBuffer,copy,
+                                    gl.ELEMENT_ARRAY_BUFFER);
+  data.rendered=true;
 
   gl.drawElements(normal ? (wireframe ? gl.LINES : data.type) : gl.POINTS,
                   indices.length,
@@ -325,15 +326,24 @@ let TRIANGLES;
 class vertexBuffer {
   constructor(type) {
     this.type=type ? type : TRIANGLES;
+
+    this.verticesBuffer=0;
+    this.materialsBuffer=0;
+    this.colorsBuffer=0;
+    this.indicesBuffer=0;
+
+    this.rendered=false;     // Are all patches in this buffer fully rendered?
+    this.partial=false;      // Does buffer contain incomplete data?
+
     this.clear();
   }
+
   clear() {
     this.vertices=[];
     this.materialIndices=[];
     this.colors=[];
     this.indices=[];
     this.nvertices=0;
-
     this.materials=[];
     this.materialTable=[];
   }
@@ -422,7 +432,7 @@ function append(a,b)
     a[n+i]=b[i];
 }
 
-// efficiently append array b onto array a
+// efficiently append array b onto array a with offset
 function appendOffset(a,b,o)
 {
   let n=a.length;
@@ -488,8 +498,10 @@ class Geometry {
 
   setMaterial(data,draw) {
     if(data.materialTable[this.MaterialIndex] == null) {
-      if(data.materials.length >= Nmaterials)
+      if(data.materials.length >= Nmaterials) {
+        data.partial=true;
         draw();
+      }
       data.materialTable[this.MaterialIndex]=data.materials.length;
       data.materials.push(Materials[this.MaterialIndex]);
     }
@@ -510,6 +522,7 @@ class Geometry {
 
     if(this.offscreen(v)) { // Fully offscreen
       this.data.clear();
+      this.notRendered();
       return;
     }
 
@@ -517,8 +530,7 @@ class Geometry {
     let P;
 
     if(this.CenterIndex == 0) {
-      if(!remesh && this.Onscreen) {
-        // Fully onscreen; no need to re-render
+      if(!remesh && this.Onscreen) { // Fully onscreen; no need to re-render
         this.append();
         return;
       }
@@ -537,6 +549,7 @@ class Geometry {
     this.Epsilon=FillFactor*res;
     
     this.data.clear();
+    this.notRendered();
     this.Onscreen=true;
     this.process(P);
   }
@@ -763,6 +776,15 @@ class BezierPatch extends Geometry {
       colorData.append(this.data);
     else
       materialData.append(this.data);
+  }
+
+  notRendered() {
+    if(this.transparent)
+      transparentData.rendered=false;
+    else if(this.color)
+      colorData.rendered=false;
+    else
+      materialData.rendered=false;
   }
 
   Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
@@ -1683,6 +1705,10 @@ class BezierCurve extends Geometry {
     material1Data.append(this.data);
   }
 
+  notRendered() {
+    material1Data.rendered=false;
+  }
+
   Render(p,I0,I1) {
     let p0=p[0];
     let p1=p[1];
@@ -1746,6 +1772,10 @@ class Pixel extends Geometry {
   
   append() {
     material0Data.append(this.data);
+  }
+
+  notRendered() {
+    material0Data.rendered=false;
   }
 }
 
@@ -1833,15 +1863,28 @@ class Triangles extends Geometry {
     else
       triangleData.append(this.data);
   }
+
+  notRendered() {
+    if(this.transparent)
+      transparentData.rendered=false;
+    else
+      triangleData.rendered=false;
+  }
+
+}
+
+function redraw()
+{
+  initProjection();
+  setProjection();
+  remesh=true;
+  draw();
 }
 
 function home()
 {
   mat4.identity(rotMat);
-  initProjection();
-  setProjection();
-  remesh=true;
-  draw();
+  redraw();
 }
 
 let positionAttribute=0;
@@ -2105,13 +2148,13 @@ function rotateScene(lastX,lastY,rawX,rawY,factor)
   if(lastX == rawX && lastY == rawY) return;
   let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
 
-  mat4.fromRotation(T,2*factor*ArcballFactor*angle/lastzoom,axis);
+  mat4.fromRotation(T,2*factor*ArcballFactor*angle/Zoom,axis);
   mat4.multiply(rotMat,T,rotMat);
 }
 
 function shiftScene(lastX,lastY,rawX,rawY)
 {
-  let zoominv=1/lastzoom;
+  let zoominv=1/Zoom;
   shift.x += (rawX-lastX)*zoominv*halfCanvasWidth;
   shift.y -= (rawY-lastY)*zoominv*halfCanvasHeight;
 }
@@ -2142,8 +2185,10 @@ function capzoom()
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
-  if(Zoom != lastzoom) remesh=true;
-  lastzoom=Zoom;
+  if(zoomRemeshFactor*Zoom < lastZoom || Zoom > zoomRemeshFactor*lastZoom) {
+    remesh=true;
+    lastZoom=Zoom;
+  }
 }
 
 function zoomImage(diff)
@@ -2175,9 +2220,8 @@ function arcball(oldmouse,newmouse)
   let oldMouse=normMouse(oldmouse);
   let newMouse=normMouse(newmouse);
   let Dot=dot(oldMouse,newMouse);
-  if(Dot > 1) Dot=1;
-  else if(Dot < -1) Dot=-1;
-  return [Math.acos(Dot),unit(cross(oldMouse,newMouse))]
+  let angle=Dot > 1 ? 0 : Dot < -1 ? pi : Math.acos(Dot);
+  return [angle,unit(cross(oldMouse,newMouse))]
 }
 
 /**
@@ -2306,6 +2350,13 @@ function handleKey(event)
   }
 }
 
+function setZoom()
+{
+  capzoom();
+  setProjection();
+  draw();
+}
+
 function handleMouseWheel(event)
 {
   event.preventDefault();
@@ -2315,10 +2366,8 @@ function handleMouseWheel(event)
   } else {
     Zoom /= zoomFactor;
   }
-  capzoom();
-  setProjection();
 
-  draw();
+  setZoom();
 }
 
 function handleMouseMove(event)
@@ -2435,6 +2484,7 @@ function drawColor()
 function drawTriangle()
 {
   drawBuffer(triangleData,transparentShader);
+  triangleData.rendered=false; // Force copying of sorted triangles to GPU.
   triangleData.clear();
 }
 
@@ -2479,6 +2529,8 @@ function drawTransparent()
 
     gl.depthMask(false); // Enable transparency
     drawBuffer(transparentData,transparentShader,Indices);
+ // Force copying of sorted triangles to GPU.
+    transparentData.rendered=false;
     gl.depthMask(true); // Disable transparency
   }
   transparentData.clear();
@@ -2497,8 +2549,8 @@ function drawBuffers()
 function draw()
 {
   if(embedded) {
-    offscreen.width=canvas.width;
-    offscreen.height=canvas.height;
+    offscreen.width=canvasWidth;
+    offscreen.height=canvasHeight;
     setViewport();
   }
 
@@ -2511,7 +2563,7 @@ function draw()
   drawBuffers();
 
   if(embedded) {
-    context.clearRect(0,0,canvas.width,canvas.height);
+    context.clearRect(0,0,canvasWidth,canvasHeight);
     context.drawImage(offscreen,0,0);
   }
 
@@ -2521,9 +2573,9 @@ function draw()
 function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
-  let zoominv=1/lastzoom;
-  let xshift=(X/width+viewportshift[0])*lastzoom;
-  let yshift=(Y/height+viewportshift[1])*lastzoom;
+  let zoominv=1/Zoom;
+  let xshift=(X/width+viewportshift[0])*Zoom;
+  let yshift=(Y/height+viewportshift[1])*Zoom;
 
   if (orthographic) {
     let xsize=B[0]-b[0];
@@ -2573,7 +2625,7 @@ function initProjection()
 
   center.x=center.y=0;
   center.z=0.5*(b[2]+B[2]);
-  lastzoom=Zoom=Zoom0;
+  lastZoom=Zoom=zoom0;
 
   viewParam.zmin=b[2];
   viewParam.zmax=B[2];
@@ -2585,21 +2637,21 @@ function setViewport()
 {
   gl.viewportWidth=canvasWidth;
   gl.viewportHeight=canvasHeight;
-  gl.viewport(0,0,gl.viewportWidth,gl.viewportHeight);
-  gl.scissor(0,0,gl.viewportWidth,gl.viewportHeight);
+  gl.viewport(0.5*(canvas.width-canvasWidth),0.5*(canvas.height-canvasHeight),
+              canvasWidth,canvasHeight);
+  gl.scissor(0,0,canvas.width,canvas.height);
 }
 
 function setCanvas()
 {
-  canvas.width=canvasWidth;
-  canvas.height=canvasHeight;
   if(embedded) {
-    offscreen.width=canvasWidth;
-    offscreen.height=canvasHeight;
+    canvas.width=offscreen.width=canvasWidth;
+    canvas.height=offscreen.height=canvasHeight;
   }
   size2=Math.hypot(canvasWidth,canvasHeight);
-  halfCanvasWidth=0.5*canvasWidth;
-  halfCanvasHeight=0.5*canvasHeight;
+  halfCanvasWidth=0.5*canvas.width;
+  halfCanvasHeight=0.5*canvas.height;
+  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
 }
 
 function setsize(w,h)
@@ -2617,80 +2669,53 @@ function setsize(w,h)
   canvasHeight=h;
   setCanvas();
   setViewport();
-  home();
+
+  setProjection();
+  remesh=true;
+}
+
+function resize() 
+{
+  zoom0=Zoom0;
+
+  if(absolute && !embedded) {
+    canvasWidth=canvasWidth0*window.devicePixelRatio;
+    canvasHeight=canvasHeight0*window.devicePixelRatio;
+  } else {
+    let Aspect=canvasWidth0/canvasHeight0;
+    canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
+    canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
+
+    if(!orthographic && canvasWidth < canvasHeight*Aspect)
+      zoom0 *= canvasWidth/(canvasHeight*Aspect);
+  }
+
+  canvas.width=canvasWidth;
+  canvas.height=canvasHeight;
+
+  let maxViewportWidth=window.innerWidth;
+  let maxViewportHeight=window.innerHeight;
+
+  viewportshift[0] /= zoom0;
+  viewportshift[1] /= zoom0;
+
+  setsize(canvasWidth,canvasHeight);
+  redraw();
 }
 
 function expand() 
 {
-  setsize(canvasWidth*resizeStep+0.5,canvasHeight*resizeStep+0.5);
+  Zoom *= zoomFactor;
+  setZoom();
 }
 
 function shrink() 
 {
-  setsize(Math.max((canvasWidth/resizeStep+0.5),1),
-          Math.max((canvasHeight/resizeStep+0.5),1));
+  Zoom /= zoomFactor;
+  setZoom();
 }
 
 let pixelShader,materialShader,colorShader,transparentShader;
-
-function webGLInit()
-{
-  canvas=document.getElementById("Asymptote");
-  embedded=window.top.document != document;
-
-  initGL();
-
-  if(absolute && !embedded) {
-    canvasWidth *= window.devicePixelRatio;
-    canvasHeight *= window.devicePixelRatio;
-  } else {
-    canvas.width=Math.max(window.innerWidth-windowTrim,windowTrim);
-    canvas.height=Math.max(window.innerHeight-windowTrim,windowTrim);
-
-    let Aspect=canvasWidth/canvasHeight;
-    if(canvas.width > canvas.height*Aspect) 
-      canvas.width=Math.min(canvas.height*Aspect,canvas.width);
-    else 
-      canvas.height=Math.min(canvas.width/Aspect,canvas.height);
-
-    if(canvas.width > 0) 
-      canvasWidth=canvas.width;
-
-    if(canvas.height > 0) 
-      canvasHeight=canvas.height;
-  }
-
-  setCanvas();
-
-  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
-
-  viewportshift[0] /= Zoom0;
-  viewportshift[1] /= Zoom0;
-
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-  gl.enable(gl.DEPTH_TEST);
-  gl.enable(gl.SCISSOR_TEST);
-
-  setViewport();
-  home();
-
-  canvas.onmousedown=handleMouseDown;
-  document.onmouseup=handleMouseUpOrTouchEnd;
-  document.onmousemove=handleMouseMove;
-  canvas.onkeydown=handleKey;
-
-  if(!embedded)
-    enableZoom();
-  canvas.addEventListener("touchstart",handleTouchStart,false);
-  canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
-  canvas.addEventListener("touchmove",handleTouchMove,false);
-  document.addEventListener("keydown",handleKey,false);
-}
-
-let listen=false;
 
 class Align {
   constructor(center,dir) {
@@ -3074,16 +3099,37 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
 
 function webGLStart()
 {
-  if(window.innerWidth == 0 || window.innerHeight == 0) {
-    if(!listen) {
-      listen=true;
-      window.addEventListener("resize",webGLStart,false);
-    }
-  } else {
-    if(listen) {
-      window.removeEventListener("resize",webGLStart,false);
-      listen=false;
-    }
-    webGLInit();
-  }
+  canvas=document.getElementById("Asymptote");
+  embedded=window.top.document != document;
+
+  initGL();
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.SCISSOR_TEST);
+
+  canvas.onmousedown=handleMouseDown;
+  document.onmouseup=handleMouseUpOrTouchEnd;
+  document.onmousemove=handleMouseMove;
+  canvas.onkeydown=handleKey;
+
+  if(!embedded)
+    enableZoom();
+  canvas.addEventListener("touchstart",handleTouchStart,false);
+  canvas.addEventListener("touchend",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchcancel",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
+  canvas.addEventListener("touchmove",handleTouchMove,false);
+  document.addEventListener("keydown",handleKey,false);
+
+  canvasWidth0=canvasWidth;
+  canvasHeight0=canvasHeight;
+
+  mat4.identity(rotMat);
+
+  if(window.innerWidth != 0 && window.innerHeight != 0)
+    resize();
+
+  window.addEventListener("resize",resize,false);
 }

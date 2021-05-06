@@ -1,11 +1,15 @@
 import three;
 
-//size(105,50,IgnoreAspect);
-size(560,320,IgnoreAspect); // Fullsize
+size(560,320,IgnoreAspect);
 size3(140,80,15);
-currentprojection=perspective(-2,20,10,up=Y);
-currentlight=White;
-viewportmargin=(0,10);
+
+currentprojection=
+  perspective(camera=(-0.7387428806982,-50.4754947040394,10.1433958227456),
+              up=(0.0023,0.158056646909439,0.000753078712035578),
+              target=(0.275794537878997,1.26294757366264,-0.0498743055531516),
+              zoom=1,
+              angle=3.26228798100531,
+              autoadjust=false);
 
 real a=-0.4;
 real b=0.95;
@@ -32,12 +36,11 @@ g.push(point(A,0)--shift(-f*hy,f*h)*A--point(A,1)--shift(f*hy,-f*h)*reverse(A)--
 g.push(point(B,0)--shift(f*hy,-f*h)*B--point(B,1)--shift(-f*hy,f*h)*reverse(B)--cycle);
 
 triple H=-0.1Z;
-material m=material(lightgray,shininess=1.0);
+material m=material(0.5*red+0.125*purple,shininess=1.0);
 
 for(path p : g)
-  draw(extrude(p,H),m);
+  draw(extrude(p,H),m,nolight);
 
 surface s=surface(g);
 draw(s,red,nolight);
-draw(shift(H)*s,m);
-
+draw(shift(H)*s,m,nolight);

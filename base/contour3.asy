@@ -81,7 +81,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
       int j2=2j;
       int j2p1=j2+1;
       int j2p2=j2+2;
- 
+
       for(int k=0; k < nz; ++k) {
         // vertex values
         real vdat0=fij[k];
@@ -108,21 +108,21 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
         triple m3=0.25*(p100+p000+p001+p101);
         triple m4=0.25*(p000+p010+p011+p001);
         triple m5=0.25*(p001+p011+p111+p101);
-        triple mc=0.5*(m0+m5);                   
+        triple mc=0.5*(m0+m5);
 
         // optimization: we make sure we don't work with empty rectangles
         int countm=0;
         int countz=0;
         int countp=0;
-        
+
         void check(real vdat) {
           if(vdat < -eps) ++countm;
           else {
-            if(vdat <= eps) ++countz; 
+            if(vdat <= eps) ++countz;
             else ++countp;
           }
         }
-        
+
         check(vdat0);
         check(vdat1);
         check(vdat2);
@@ -132,32 +132,32 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
         check(vdat6);
         check(vdat7);
 
-        if(countm == 8 || countp == 8 || 
+        if(countm == 8 || countp == 8 ||
            ((countm == 7 || countp == 7) && countz == 1)) continue;
 
         int k2=2k;
         int k2p1=k2+1;
         int k2p2=k2+2;
- 
+
         // Evaluate midpoints of cube sides.
         // Then evaluate midpoint of cube.
         real vdat8=midpoints ? midpoint[i2p1][j2p1][k2] :
           0.25*(vdat0+vdat2+vdat6+vdat4);
-        real vdat9=midpoints ? midpoint[i2p1][j2p2][k2p1] : 
+        real vdat9=midpoints ? midpoint[i2p1][j2p2][k2p1] :
           0.25*(vdat2+vdat6+vdat7+vdat3);
-        real vdat10=midpoints ? midpoint[i2p2][j2p1][k2p1] : 
+        real vdat10=midpoints ? midpoint[i2p2][j2p1][k2p1] :
           0.25*(vdat7+vdat6+vdat4+vdat5);
-        real vdat11=midpoints ? midpoint[i2p1][j2][k2p1] : 
+        real vdat11=midpoints ? midpoint[i2p1][j2][k2p1] :
           0.25*(vdat0+vdat4+vdat5+vdat1);
-        real vdat12=midpoints ? midpoint[i2][j2p1][k2p1] : 
+        real vdat12=midpoints ? midpoint[i2][j2p1][k2p1] :
           0.25*(vdat0+vdat2+vdat3+vdat1);
-        real vdat13=midpoints ? midpoint[i2p1][j2p1][k2p2] : 
+        real vdat13=midpoints ? midpoint[i2p1][j2p1][k2p2] :
           0.25*(vdat1+vdat3+vdat7+vdat5);
-        real vdat14=midpoints ? midpoint[i2p1][j2p1][k2p1] : 
+        real vdat14=midpoints ? midpoint[i2p1][j2p1][k2p1] :
           0.125*(vdat0+vdat1+vdat2+vdat3+vdat4+vdat5+vdat6+vdat7);
-      
+
         // Go through the 24 pyramids, 4 for each side.
-        
+
         void addval(int kp0, int kp1, int kp2, triple add, triple v) {
           bucket[] cur=kps[kp0][kp1][kp2];
           for(int q=0; q < cur.length; ++q) {
@@ -192,8 +192,14 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           vec0=unit(vec0);
           triple normal=cross(vec2,vec1);
           normal *= sgn(dot(normal,dir));
-          real angle0=acos(-dot(vec1,vec2));
-          real angle1=acos(-dot(vec2,vec0));
+
+          real angle(triple u, triple v) {
+            real Dot=-dot(u,v);
+            return Dot > 1 ? 0 : Dot < -1 ? pi : acos(Dot);
+          }
+
+          real angle0=angle(vec1,vec2);
+          real angle1=angle(vec2,vec0);
           pts[0].normal=normal*angle0;
           pts[1].normal=normal*angle1;
           pts[2].normal=normal*(pi-angle0-angle1);
@@ -206,7 +212,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
             weighted[] points=obj.pts;
             object obj1;
             object obj2;
-            obj1.active=true; 
+            obj1.active=true;
             obj2.active=true;
             obj1.pts=new weighted[] {points[0],points[1],points[2]};
             obj2.pts=new weighted[] {points[1],points[2],points[3]};
@@ -220,7 +226,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           }
         }
 
-        weighted setupweighted(triple va, triple vb, real da, real db, 
+        weighted setupweighted(triple va, triple vb, real da, real db,
                                int[] kpa, int[] kpb) {
           weighted w;
           real ratio=abs(da/(db-da));
@@ -318,7 +324,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
         static int[] pm4={0,1,1};
         static int[] pm5={1,1,2};
         static int[] pmc={1,1,1};
- 
+
         check4pyr(p000,p010,p110,p100,mc,m0,
                   vdat0,vdat2,vdat6,vdat4,vdat14,vdat8,
                   pp000,pp010,pp110,pp100,pmc,pm0);
@@ -378,14 +384,14 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
     ret.normal=normal*2/count;
     return ret;
   }
-  
+
   // Prepare return value.
   vertex[][] g;
-  
+
   for(int q=0; q < objects.length; ++q) {
     object p=objects[q];
     g.push(new vertex[] {preparevertex(p.pts[0]),preparevertex(p.pts[1]),
-          preparevertex(p.pts[2])});
+                           preparevertex(p.pts[2])});
   }
   return g;
 }
@@ -454,7 +460,7 @@ vertex[][] contour3(real f(real, real, real), triple a, triple b,
         datij[k]=f(x,y,z);
         if(i == nx || j == ny || k == nz) continue;
         int k2p1=2k+1;
-        midpointi2p1j2p1[2k]=f(x2,y2,z); 
+        midpointi2p1j2p1[2k]=f(x2,y2,z);
         midpointi2p1j2p1[k2p1]=f(x2,y2,z2);
         midpointi2p1j2[k2p1]=f(x2,y,z2);
         midpointi2j2p1[k2p1]=f(x,y2,z2);

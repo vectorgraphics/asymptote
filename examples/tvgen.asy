@@ -17,40 +17,40 @@
  * Boston, MA 02110-1301, USA.
  *
  * tvgen-1.2/tvgen.asy  http://picaros.org/ftp/soft/tvgen-1.2.tgz
- * This asy script generates pm5544-like television test cards.  The image 
- * parameters were derived from a 1990 recording.  The basic parameters 
- * conform to itu-r bt.470, bt.601, and bt.709.  There is no unique image 
- * since local variants exist and parameters have varied over time.  
+ * This asy script generates pm5544-like television test cards.  The image
+ * parameters were derived from a 1990 recording.  The basic parameters
+ * conform to itu-r bt.470, bt.601, and bt.709.  There is no unique image
+ * since local variants exist and parameters have varied over time.
  */
 //papertype="a4";
 import plain;
 int verbose=settings.verbose/*+2*/;  /* uncomment for debug info */
 
 /* tv dot coordinates --> PS points */
-pair tvps(real col, real row, real xd, real yd, int Nv) { 
-  real psx, psy; 
-  psx=col*xd; psy=(Nv-row)*yd; 
-  return (psx,psy); 
+pair tvps(real col, real row, real xd, real yd, int Nv) {
+  real psx, psy;
+  psx=col*xd; psy=(Nv-row)*yd;
+  return (psx,psy);
 }
 path tvrect(int lc, int tr, int rc, int br, real xd, real yd, int Nv) {
-  real lx, ty, rx, by; 
-  pair[] z; 
-  
-  lx=lc*xd; ty=(Nv-tr)*yd; 
-  rx=rc*xd; by=(Nv-br)*yd; 
+  real lx, ty, rx, by;
+  pair[] z;
+
+  lx=lc*xd; ty=(Nv-tr)*yd;
+  rx=rc*xd; by=(Nv-br)*yd;
   /* bl br tr tl */
   z[0]=(lx, by);
-  z[1]=(rx, by); 
-  z[2]=(rx, ty); 
-  z[3]=(lx, ty); 
-  
-  return z[0]--z[1]--z[2]--z[3]--cycle; 
+  z[1]=(rx, by);
+  z[2]=(rx, ty);
+  z[3]=(lx, ty);
+
+  return z[0]--z[1]--z[2]--z[3]--cycle;
 }
 
 /********************* horizontal castellations ********************/
 /* Draw a horizontal red line in the top left and the bottom right
  * castellation.  These testlines disappear if the monitor is not set
- * in a dot-exact mode.  An example is image crop due to overscan.  
+ * in a dot-exact mode.  An example is image crop due to overscan.
  *
  * For 625 line systems any analog-compatible processing removes
  * these red testlines since the first halfline of the odd field and
@@ -58,8 +58,8 @@ path tvrect(int lc, int tr, int rc, int br, real xd, real yd, int Nv) {
  * visible line frame often results via a final copy paste operation.
  */
 void castelhor(int colortv, int[] rccoll, int[] rccolr, int cmaxi, int Nh,
-	       int topdist, int botdist,
-	       pen pdef, real xd, real yd, int Nv) {
+               int topdist, int botdist,
+               pen pdef, real xd, real yd, int Nv) {
   pen pblack, pwhite, pred;
   int i;
 
@@ -113,26 +113,26 @@ void castelhor(int colortv, int[] rccoll, int[] rccolr, int cmaxi, int Nh,
     zzc = tvrect(lc,botdist, rc,br, xd,yd,Nv);
     fill(zzc, p=pcast);
   }
-  
+
   return;
 }
 
 /********************* vertical castellations ********************/
-/* The bottom right red rectangle tests for a non causal color FIR 
- * filter in the receiver.  The last 2..4 dots then typically appear 
- * colorless, green, or cyan.  
+/* The bottom right red rectangle tests for a non causal color FIR
+ * filter in the receiver.  The last 2..4 dots then typically appear
+ * colorless, green, or cyan.
  *
- * This stems from the fact that the chroma subcarrier is of lower 
- * bandwidth than luma and thus continues after the last active sample.  
- * These trailing (y,u,v) samples result from an abrupt signal to zero 
- * transition and depend on the transmit and receive filters.  Samples 
- * from VHS, system B/G/D/K, system I, or a DVD player output are 
- * different.  Nevertheless, a sharpening filter uses this data and so 
- * adds false color to the last dots.  
+ * This stems from the fact that the chroma subcarrier is of lower
+ * bandwidth than luma and thus continues after the last active sample.
+ * These trailing (y,u,v) samples result from an abrupt signal to zero
+ * transition and depend on the transmit and receive filters.  Samples
+ * from VHS, system B/G/D/K, system I, or a DVD player output are
+ * different.  Nevertheless, a sharpening filter uses this data and so
+ * adds false color to the last dots.
  */
 void castelver(int colortv, int leftdist, int rightdist, int Nh,
-	       int[] rcrowb, int[] rcrowt, int rmaxi,
-	       pen pdef, real xd, real yd, int Nv) {
+               int[] rcrowb, int[] rcrowt, int rmaxi,
+               pen pdef, real xd, real yd, int Nv) {
   pen pblack, pwhite;
   int i;
 
@@ -144,7 +144,7 @@ void castelver(int colortv, int leftdist, int rightdist, int Nh,
     pen pcastl, pcastr;
     int tr, br;
     path zzc;
-  
+
     if (inext%2 == 0) {
       pcastl = pwhite;
     } else {
@@ -157,17 +157,17 @@ void castelver(int colortv, int leftdist, int rightdist, int Nh,
     }
 
     tr=rcrowb[i];
-    br=rcrowt[i+1];    
+    br=rcrowt[i+1];
     zzc=tvrect( 0,tr, leftdist,br, xd,yd,Nv);
     fill(zzc, p=pcastl);
-    zzc=tvrect(rightdist,tr, Nh,br, xd,yd,Nv); 
+    zzc=tvrect(rightdist,tr, Nh,br, xd,yd,Nv);
     fill(zzc, p=pcastr);
   }
   return;
 }
 /********************* image aspect ratio markers ********************/
 void rimarkers(real rimage, int Nh, int Nhc, int os, int Nvc, int Nsy,
-	       pen pdef, real xd, real yd, int Nv) {
+               pen pdef, real xd, real yd, int Nv) {
   int[] ridefN={ 4, 16 };
   int[] ridefD={ 3,  9 };
   int i;
@@ -187,11 +187,11 @@ void rimarkers(real rimage, int Nh, int Nhc, int os, int Nvc, int Nsy,
       if (2*offa<Nh) {
         int hy, tr, br;
         path zz;
-	
-	hy=floor(Nsy/3);
-	tr=Nvc-hy;
-	br=Nvc+hy;
-	
+
+        hy=floor(Nsy/3);
+        tr=Nvc-hy;
+        br=Nvc+hy;
+
         zz=tvrect(Nhc+offb, tr, Nhc+offa, br, xd,yd,Nv);
         //dot(zz);
         fill(zz, p=pdef);
@@ -206,7 +206,7 @@ void rimarkers(real rimage, int Nh, int Nhc, int os, int Nvc, int Nsy,
 /************* crosshatch: line pairing, center interlace test *************/
 /* There are 2 coordinate systems in use:
  * 1. integer number based for the gridlines
- *   
+ *
  *   coff, Nhc, rccoll[], rccolc[], rccolr[] : vertical gridlines,
  *   rcrowc, Nvc : horizontal gridlines,
  *
@@ -215,15 +215,15 @@ void rimarkers(real rimage, int Nh, int Nhc, int os, int Nvc, int Nsy,
  *   ccenter={ cx=Nh/2, cy=Nv/2} : the true image center,
  *   rcoff rcright rcleft        : offset to ccenter and points on the circle.
  *
- * Both centers coincide if Nh and Nv are even.  
+ * Both centers coincide if Nh and Nv are even.
  */
 void centerline(int colortv,
-		int[] rccoll, int[] rccolc, int[] rccolr, int divsx,
-		int Nhc, int os,
-		int[] rcrowt, int[] rcrowc, int[] rcrowb, int divsy,
-		int Nvc,
-		pair ccenter, real[] rcoff, pair[] rcright, pair[] rcleft,
-		pen pdef, real xd, real yd, int Nv) {
+                int[] rccoll, int[] rccolc, int[] rccolr, int divsx,
+                int Nhc, int os,
+                int[] rcrowt, int[] rcrowc, int[] rcrowb, int divsy,
+                int Nvc,
+                pair ccenter, real[] rcoff, pair[] rcright, pair[] rcleft,
+                pen pdef, real xd, real yd, int Nv) {
   pen pblack, pwhite;
   int cmaxi, maxoff, mincol, maxcol;
   int rows, tr, br;
@@ -239,7 +239,7 @@ void centerline(int colortv,
     /* black, vertical gridlines redrawn below */
     pair[] z;
     int col;
-  
+
     z[0]=rcright[divsy];
 
     col = rccolc[divsx+1];
@@ -249,21 +249,21 @@ void centerline(int colortv,
     z[3]=tvps(col,rcrowc[divsy-1], xd,yd,Nv);
     z[4]=tvps(col,rcrowc[divsy], xd,yd,Nv);
 
-    z[5]=rcleft[divsy]; 
+    z[5]=rcleft[divsy];
     z[6]=rcleft[divsy+1];
-    
+
     z[7]=tvps(col,rcrowc[divsy+1], xd,yd,Nv);
     z[8]=tvps(col,rcrowc[divsy+2], xd,yd,Nv);
     col = rccolc[divsx+1];
     z[9]=tvps(col,rcrowc[divsy+2], xd,yd,Nv);
     z[10]=tvps(col,rcrowc[divsy+1], xd,yd,Nv);
 
-    z[11]=rcright[divsy+1]; 
+    z[11]=rcright[divsy+1];
     fill(z[1]--z[2]--z[3]--z[4] //--z[5]--z[6]
-	 --arc(ccenter, z[5], z[6])
-	 --z[7]--z[8]--z[9]--z[10] //--z[11]--z[0]
-	 --arc(ccenter,z[11], z[0])
-	 --cycle, p=pblack);
+         --arc(ccenter, z[5], z[6])
+         --z[7]--z[8]--z[9]--z[10] //--z[11]--z[0]
+         --arc(ccenter,z[11], z[0])
+         --cycle, p=pblack);
   } else {
     /* 3 rows of black squares inside the gratings */
     int i, imax = divsy+1;
@@ -277,28 +277,28 @@ void centerline(int colortv,
       lmaxoff = min(floor(rcoff[i]), floor(rcoff[inext]));
       lmincol = Nhc-lmaxoff;
       lmaxcol = Nhc+lmaxoff;
-      
+
       /* square top and bottom */
       tr = rcrowb[i];
       br = rcrowt[inext];
 
       for (j=0; j<cmaxi; ++j) { /* column j */
-	int jnext = j+1;
-	
-	if (lmincol<=rccolc[j] && rccolc[jnext]<=lmaxcol) {
-	  /* square is inside circle */
-	  int lc, rc;
-	  path zzsq;
+        int jnext = j+1;
 
-	  lc = rccolr[j];
-	  rc = rccoll[jnext];	  
-	  zzsq = tvrect(lc, tr, rc, br, xd,yd,Nv); 
-	  fill(zzsq, p=pblack);          /* draw black squares */
-	}
+        if (lmincol<=rccolc[j] && rccolc[jnext]<=lmaxcol) {
+          /* square is inside circle */
+          int lc, rc;
+          path zzsq;
+
+          lc = rccolr[j];
+          rc = rccoll[jnext];
+          zzsq = tvrect(lc, tr, rc, br, xd,yd,Nv);
+          fill(zzsq, p=pblack);          /* draw black squares */
+        }
       } /* for col j */
     } /* for row i */
   }
-  
+
   /* center cross: vertical and horizontal centerline */
   maxoff = floor(rcoff[divsy]); /* XXX rcoff is relative to ccenter */
   mincol = Nhc-maxoff;
@@ -327,24 +327,24 @@ void centerline(int colortv,
     int i;
     for (i=0; i<=cmaxi; ++i) {
       int coll, colr;
-    
+
       coll=rccoll[i];
       colr=rccolr[i];
 
       if (mincol<=coll && colr<=maxcol) {
-	path zzv;
-	zzv=tvrect(coll, tr, colr, br, xd,yd,Nv); 
-	fill(zzv, p=pwhite);
+        path zzv;
+        zzv=tvrect(coll, tr, colr, br, xd,yd,Nv);
+        fill(zzv, p=pwhite);
       }
     }
   }
   return;
 }
-     
+
 /************************ topbw **************************************/
-void topbw(int[] coff, int Nhc, int os, int urow, int trow, int brow, 
-	   pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-	   pen pdef, real xd, real yd, int Nv) {
+void topbw(int[] coff, int Nhc, int os, int urow, int trow, int brow,
+           pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb,
+           pen pdef, real xd, real yd, int Nv) {
   pen pblack=pdef+gray(0.0), pwhite=pdef+gray(1.0);
   pair[] ze;
   path zext, zref, zint;
@@ -371,7 +371,7 @@ void topbw(int[] coff, int Nhc, int os, int urow, int trow, int brow,
     --ze[3]--ze[4]--ze[5]--ze[6]--ze[7]--ze[8]--ze[9]--cycle;
 
   off=ceil((coff[1]+coff[2])/2);
-  zint=tvrect(Nhc-off,urow, Nhc+off,trow, xd,yd,Nv); 
+  zint=tvrect(Nhc-off,urow, Nhc+off,trow, xd,yd,Nv);
 
   /* paths are completely resolved; no free endpoint conditions */
   fill(zext^^reverse(zint), p=pwhite);
@@ -384,7 +384,7 @@ void topbw(int[] coff, int Nhc, int os, int urow, int trow, int brow,
 }
 
 /************************ testtone **************************************/
-/* x on circle -> return y>=0 
+/* x on circle -> return y>=0
  * in:
  *   x     x-coordinate relative to origin
  *   crad  circle radius in y units, true size=crad*yd
@@ -418,9 +418,9 @@ real testcircy(real y, real crad, real xd, real yd) {
 }
 
 /* brow>trow && xb>xt */
-void testtone(real Tt, int trow, int brow, 
-	      real ccol, real crow, real crad,
-	      pen pdef, real xd, real yd, int Nv) {
+void testtone(real Tt, int trow, int brow,
+              real ccol, real crow, real crad,
+              pen pdef, real xd, real yd, int Nv) {
   int blocks, i;
   real yt, xt, yb, xb, Ttt=Tt/2;
   pair ccenter;
@@ -488,7 +488,7 @@ void testtone(real Tt, int trow, int brow,
       z[2]=tvps(ccol+tl,brow, xd,yd,Nv);
       z[3]=tvps(ccol+tr,brow, xd,yd,Nv);
       zz=z[0]--z[1]--z[2]--z[3]--cycle;
-    } 
+    }
 
     if (tl<tr) {
       if (i%2 == 0) {
@@ -502,9 +502,9 @@ void testtone(real Tt, int trow, int brow,
 }
 
 /************************ color bars *************************************/
-void colorbars(int[] coff, int Nhc, int trow, int crow, int brow, 
-	       pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-	       pen pdef, real xd, real yd, int Nv) {
+void colorbars(int[] coff, int Nhc, int trow, int crow, int brow,
+               pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb,
+               pen pdef, real xd, real yd, int Nv) {
   real cI=0.75;
   real[] cR={ cI,  0,  0,  cI, cI,  0 };
   real[] cG={ cI, cI, cI,   0,  0,  0 };
@@ -517,11 +517,11 @@ void colorbars(int[] coff, int Nhc, int trow, int crow, int brow,
     int off;
     int ii=2*i, il=cmax-i, ir=i+cmax+1;
     path zzl, zzr;
-  
+
     off=ceil((coff[1+ii]+coff[2+ii])/2);
     if (i!=0 && i<cmax) {
-      zzr=tvrect(Nhc+poff,trow, Nhc+off,brow, xd,yd,Nv); 
-      zzl=tvrect(Nhc-off,trow, Nhc-poff,brow, xd,yd,Nv); 
+      zzr=tvrect(Nhc+poff,trow, Nhc+off,brow, xd,yd,Nv);
+      zzl=tvrect(Nhc-off,trow, Nhc-poff,brow, xd,yd,Nv);
     } else {
       if(i==0) {
         int col, pcol;
@@ -586,7 +586,7 @@ real addphase(real theta, real freq, real step) {
   int coverflow;
 
   cycles=freq*step;
-  coverflow=floor(abs(cycles));  
+  coverflow=floor(abs(cycles));
   if (coverflow>1) {
     thetaret=0;
   } else {
@@ -595,10 +595,10 @@ real addphase(real theta, real freq, real step) {
     cycles-=coverflow*sgn(cycles);
     thetaret=theta+cycles*dpi;       /* cycles=(-1 .. 1) */
 
-    if (thetaret>pi) { 
-      thetaret-=dpi; 
-    } else if (thetaret<-pi) { 
-      thetaret-=dpi; 
+    if (thetaret>pi) {
+      thetaret-=dpi;
+    } else if (thetaret<-pi) {
+      thetaret-=dpi;
     }
   }
 
@@ -606,9 +606,9 @@ real addphase(real theta, real freq, real step) {
   return thetaret;
 }
 
-void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow, 
-	       pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-	       pen pdef, real xd, real yd, int Nv) {
+void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow,
+               pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb,
+               pen pdef, real xd, real yd, int Nv) {
   int[] divc;
   real[] divfl, divfr;
   int i, divs, coffmax, off, divnext;
@@ -649,7 +649,7 @@ void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow,
       tr=trow;
     }
 
-    if (off == divc[divnext]) {  
+    if (off == divc[divnext]) {
       /* switch frequency: cycles=0.5*fcur+0.5*fnext */
       thl=addphase(thl, fl, -0.5);
       thr=addphase(thr, fr,  0.5);
@@ -672,10 +672,10 @@ void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow,
     //write(off, thr, ampr);
 
     col=Nhc-off-1;
-    zz=tvrect(col,tr, col+1,brow, xd,yd,Nv); 
+    zz=tvrect(col,tr, col+1,brow, xd,yd,Nv);
     fill(zz, p=pdef+gray(ampl));
     col=Nhc+off;
-    zz=tvrect(col,tr, col+1,brow, xd,yd,Nv); 
+    zz=tvrect(col,tr, col+1,brow, xd,yd,Nv);
     fill(zz, p=pdef+gray(ampr));
   }
 
@@ -690,9 +690,9 @@ void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow,
 }
 
 /************************ gray bars **************************************/
-void graybars(int[] coff, int Nhc, int trow, int brow, 
-	      pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-	      pen pdef, real xd, real yd, int Nv) {
+void graybars(int[] coff, int Nhc, int trow, int brow,
+              pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb,
+              pen pdef, real xd, real yd, int Nv) {
   int[] gs={0, 20, 40, 60, 80, 100};
   int cmax=2, poff, i;
 
@@ -701,11 +701,11 @@ void graybars(int[] coff, int Nhc, int trow, int brow,
     int off;
     int ii=2*i, il=cmax-i, ir=i+cmax+1;
     path zzl, zzr;
-  
+
     off=ceil((coff[1+ii]+coff[2+ii])/2);
     if (i<cmax) {
-      zzl=tvrect(Nhc-off,trow, Nhc-poff,brow, xd,yd,Nv); 
-      zzr=tvrect(Nhc+poff,trow, Nhc+off,brow, xd,yd,Nv); 
+      zzl=tvrect(Nhc-off,trow, Nhc-poff,brow, xd,yd,Nv);
+      zzr=tvrect(Nhc+poff,trow, Nhc+off,brow, xd,yd,Nv);
     } else {
       int pcol;
       pair zlt, zlb, zrt, zrb;
@@ -729,15 +729,15 @@ void graybars(int[] coff, int Nhc, int trow, int brow,
 }
 
 /************************ bottom bw **************************************/
-void bottombw(int off, int Nhc, int trow, int brow, 
-	      pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-	      pen pdef, real xd, real yd, int Nv) {
+void bottombw(int off, int Nhc, int trow, int brow,
+              pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb,
+              pen pdef, real xd, real yd, int Nv) {
   int rows;
   pair zt, zb;
   path zz;
 
   rows=brow-trow;
-  zz=tvrect(Nhc-off,trow, Nhc+off,brow, xd,yd,Nv); 
+  zz=tvrect(Nhc-off,trow, Nhc+off,brow, xd,yd,Nv);
   fill(zz, p=pdef+gray(0.0));
 
   zt=tvps(Nhc-off,trow, xd,yd,Nv);
@@ -751,9 +751,9 @@ void bottombw(int off, int Nhc, int trow, int brow,
 }
 
 /************************ bottom circle **************************************/
-void bottomcirc(int off, int Nhc, int trow, real cx, real cy, real crad, 
-		pair ccenter, pair rclt, pair rcrt,
-		pen pdef, real xd, real yd, int Nv) {
+void bottomcirc(int off, int Nhc, int trow, real cx, real cy, real crad,
+                pair ccenter, pair rclt, pair rcrt,
+                pen pdef, real xd, real yd, int Nv) {
   real cI=0.75;
   real xl, yl, xr, yr, phil, phir;
   pair ccleft, ccright;
@@ -767,7 +767,7 @@ void bottomcirc(int off, int Nhc, int trow, real cx, real cy, real crad,
 
   xr=Nhc+off-cx;
   phir=acos(xr*xd/yd/crad);
-  yr=crad*sin(phir); 
+  yr=crad*sin(phir);
   ccright=tvps(cx+xr,cy+yr, xd,yd,Nv);
 
   //dot(ccright); dot(ccleft);
@@ -793,7 +793,7 @@ void bottomcirc(int off, int Nhc, int trow, real cx, real cy, real crad,
 
 /****************************** PAL ears ***********************************/
 /* values pro mille
- * left  y      R       G       B 
+ * left  y      R       G       B
  *     550     306     674     550
  *     500     363     500     859
  *     500     637     500     141
@@ -804,12 +804,12 @@ void bottomcirc(int off, int Nhc, int trow, real cx, real cy, real crad,
  *
  * in: dright=  -1 left ear, +1 right ear
  */
-void palears(int[] coff, int[] coffa, int[] coffb, int Nhc, 
-	     int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
-	     pen pdef, real xd, real yd, int Nv) {
-  /* the amplitude of (u,v) as seen on a vectorscope, 
+void palears(int[] coff, int[] coffa, int[] coffb, int Nhc,
+             int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
+             pen pdef, real xd, real yd, int Nv) {
+  /* the amplitude of (u,v) as seen on a vectorscope,
    * max 0.296 Vn for 100% saturation in W and V ears.
-   * cvbs:   0.7*( y +/- |u+jv| ) = -0.24 .. 0.93 V 
+   * cvbs:   0.7*( y +/- |u+jv| ) = -0.24 .. 0.93 V
    * maxima: ebu 75/0 bars 0.70, bbc 100/25 0.88, 100/0 bars 0.93
    * burst:  0.150 Vcvbs, 21.4 IRE or 0.214 V normalized.
    * luma:   modulated for monochrome compatibility, 1990 version.
@@ -890,10 +890,10 @@ void palears(int[] coff, int[] coffa, int[] coffb, int Nhc,
     ph= (u!=0 || v!=0) ? atan2(v,u) : 0.0;
     if (v>=0) {
       if (ph<0)
-	ph=ph+pi;
+        ph=ph+pi;
     } else {
       if (ph>0)
-	ph=ph-pi;
+        ph=ph-pi;
     }
     if (A>0) {
       u=u/A*cI;
@@ -918,14 +918,14 @@ void palears(int[] coff, int[] coffa, int[] coffb, int Nhc,
 
 /****************************** NTSC bars ***********************************/
 /* amplitude equals color burst smpte (pm: -V +U)
- *         y   campl  sat       R    G    B 
+ *         y   campl  sat       R    G    B
  * left   0.5  0.21   70%  -I?
  * right  0.5  0.17   60%  +Q?
  */
-void ntscbars(int[] rccoll, int[] rccolr, int divsx, 
-	      int[] rcrowt, int[] rcrowb, int divsy, int dright,
-	      pen pdef, real xd, real yd, int Nv) {
-  /* The amplitude of (i,q) as seen on a vectorscope, 
+void ntscbars(int[] rccoll, int[] rccolr, int divsx,
+              int[] rcrowt, int[] rcrowb, int divsy, int dright,
+              pen pdef, real xd, real yd, int Nv) {
+  /* The amplitude of (i,q) as seen on a vectorscope,
    * max 0.292 Vn for 100% saturation in I==0 ears.
    * burst:    0.143 Vcvbs, 20 IRE or 0.200 V normalized.
    * pedestal: (yp,up,vp)=(p,0,0)+(1-p)*(y,u,v), p=0.075.
@@ -943,7 +943,7 @@ void ntscbars(int[] rccoll, int[] rccolr, int divsx,
   real[] cil={    0,    0,   0,   -1,    1 };
   real[] cql={   -1,    1,   0,    0,    0 };
   int[]  indl={  -7,   -8,   0,    8,    7 };
-  
+
   real cy, ci, cq;
   int rmaxi, dri, ind, ibase, lcol, rcol, i;
 
@@ -979,17 +979,17 @@ void ntscbars(int[] rccoll, int[] rccolr, int divsx,
   B=By+cy;
   if (verbose > 1)
     write(ind, cy*1000, round(ci*1000), round(cq*1000),
-	  round(R*1000), round(G*1000), round(B*1000));
+          round(R*1000), round(G*1000), round(B*1000));
 
   for (i=0; i<rmaxi; ++i) {
     path zz;
     int brow, trow, inext=i+1;
-    
+
     if (i>0) {
       trow=rcrowb[i];
     } else {
       trow=floor((rcrowb[i]+rcrowt[inext])/2);
-    } 
+    }
 
     if (inext<rmaxi) {
       brow=rcrowt[inext];
@@ -1000,7 +1000,7 @@ void ntscbars(int[] rccoll, int[] rccolr, int divsx,
     zz=tvrect(lcol,trow, rcol,brow, xd,yd,Nv);
     fill(zz, p=pdef+rgb(R,G,B));
   }
-  
+
   return;
 }
 
@@ -1019,21 +1019,21 @@ int bsys=2, colortv=1, os=1;
  *    0    4/3       704  guaranteed analog broadcast itu-r bt.470
  *    1    4/3       720  new broadcast, most TV station logos and animations
  *    2    15/11     720  total aperture analog 4/3, 1.37 film DVDs
- *    3    20/11     720  total aperture analog 16/9, 1.85 film DVDs 
- *    4    4/3       768  bsys=0, square dot analog broadcast 
+ *    3    20/11     720  total aperture analog 16/9, 1.85 film DVDs
+ *    4    4/3       768  bsys=0, square dot analog broadcast
  *    5    4/3       768  bsys=1, square dot cable TV info channel
- *    6    131/96    786  bsys=2, total square dot broadcast camera 
+ *    6    131/96    786  bsys=2, total square dot broadcast camera
  *    7    16/9      720  new broadcast 16/9, SD from HD-1440 or itu-r bt.709
  *    8    4/3       704  525 analog broadcast itu-r bt.470 711x485
  *    9    4/3       720  525 new broadcast
  *   10    15/11     720  525 total aperture analog broadcast
  *   11    16/9     1920  1250, 1080 square dot at 12.5 frames/second
  *   12    4/3      1600  1250, 1200 square dot at 12.5 frames/second
- * 
+ *
  * colortv:
  *    0   monochrome crosshatch,
  *    1   pal ears,
- *    2   ntsc bars, 
+ *    2   ntsc bars,
  *    3   neither ears nor bars.
  *
  * os: horizontal oversampling, typical values for 13.5MHz:
@@ -1068,9 +1068,9 @@ int[] bNsh=
   {    0,   0,   0,   0,     0,   0,    0,   0,    0,   0,   0,    0,    0 };
 
 /* active lines for a 625 line frame
- *   The number of active video lines decreased around 1997.  
+ *   The number of active video lines decreased around 1997.
  *     old:  3 run in + 575 visible + 3 run out = 581 lines
- *     new:  6 teletext and WSS + 575 visible 
+ *     new:  6 teletext and WSS + 575 visible
  *   Hence the image center shifted down by 3 lines.  Thus
  *     old TV + new testcard = bottom is cut off,
  *     new TV + old testcard = top is cut off.
@@ -1083,7 +1083,7 @@ int[] bNsh=
  *   Nv=576 lines
  *   rd=ri*Nv/Nh=4/3*9/11=12/11
  *
- *   Nv: 480=2^5*3*5 576=2^6*3^2  
+ *   Nv: 480=2^5*3*5 576=2^6*3^2
  *   Nh: 704=2^6*11 720=2^4*3^2*5
  *
  * horizontal line distance for pre 1997 test pattern
@@ -1096,7 +1096,7 @@ int[] bNsh=
  *   x line width 230 ns -> 3 dots
  *   bottom 2.9us red -> 39.15 dots
  *
- * resolution DPI from image aspect ratio 
+ * resolution DPI from image aspect ratio
  *   Rv=Nv/ly,   ly=4in
  *   ri=Ni/Di,   Ni={ 4, 15, 16}  Di={ 3, 11, 9}
  *   lx=ri*ly
@@ -1107,7 +1107,7 @@ int[] bNsh=
  *     Ni=15 ri=15/Di => Nh=k*60
  *     Ni=16 ri=16/Di => Nh=k*64
  *
- * resolution DPI from dot aspect ratio, general algorithm, 
+ * resolution DPI from dot aspect ratio, general algorithm,
  *
  *     rd=Nd/Dd=ldx/ldy
  *
@@ -1119,7 +1119,7 @@ int[] bNsh=
  *
  *     ldx=1/(m*Dd), ldy=1/(m*Nd), Rh=m*Dd, Rv=m*Nd
  *
- *   and 
+ *   and
  *
  *     lx=Nh*ldx=Nh/(m*Dd), ly=Nv*ldy=Nv/(m*Nd)
  *
@@ -1154,8 +1154,8 @@ if (verbose > 1) {
 //size(xsize, ysize, Aspect);  // should not have any effect
 
 Nsy=bNsy[bsys];       // grating size in lines 42,43 or 34,35
-Nshift=bNsh[bsys];    // shift image up: pre 1997 =3, 2007 =0 
-fs=1e6*bfs[bsys]*os; 
+Nshift=bNsh[bsys];    // shift image up: pre 1997 =3, 2007 =0
+fs=1e6*bfs[bsys]*os;
 Na=0;          // add 1,0,-1 to height of hor center squares for even Na+Nsy
 
 Ttone=fs/250e3;       // period of ft=250 kHz, fs/ft=54
@@ -1185,8 +1185,8 @@ if (verbose > 1) {
 }
 rmaxi=2*divsy+1;
 
-/* Nsyc: center square height 
- *   line pairing test: verify distance of center to top and bot 
+/* Nsyc: center square height
+ *   line pairing test: verify distance of center to top and bot
  *   distance is odd ==> top=even/odd, cent=odd/even, bot=even/odd
  *
  * Nsyc odd: not possible
@@ -1215,7 +1215,7 @@ if (Nsyc%2 != 0) {
 } else if (Nsyc%4 == 0) {
   Nyst=1; /* stagger */
 }
-for (i=0; i<=divsy; ++i) {  
+for (i=0; i<=divsy; ++i) {
   int iu, id, ou, od, ru, rd;
 
   iu=divsy-i;
@@ -1228,7 +1228,7 @@ for (i=0; i<=divsy; ++i) {
   }
   rcrowc[iu]=Nvc-ou;
   rcrowc[id]=Nvc-od;
-  
+
   ru=Nvc-(ou+Nyst);
   rd=Nvc-(od+Nyst);
 
@@ -1253,7 +1253,7 @@ int divsx, Nhc, Nl, Nr, cmaxi;
 
 lsq=Nsy*yd;
 Nsx=lsq/xd; /* floating point */
-divsx=floor(((Nh-10*os)/Nsx-1)/2);  
+divsx=floor(((Nh-10*os)/Nsx-1)/2);
 Nhc=round(Nh/2);
 rdistx=(1+2*divsx)*Nsx;
 Nl=Nhc-round(rdistx/2);
@@ -1264,10 +1264,10 @@ cmaxi=2*divsx+1;
 
 int[] coff, coffl, coffr;
 int[] rccoll, rccolc, rccolr;
-for (i=0; i<=divsx; ++i) {  
+for (i=0; i<=divsx; ++i) {
   int off, offl, offr, il, ir;
   real cdist;
-  
+
   cdist=Nsx*(1+2*i);  /* horizontal distance 2 symmetrical vert lines */
   off=round(cdist/2);
   // write(cdist, off);
@@ -1277,7 +1277,7 @@ for (i=0; i<=divsx; ++i) {
   coff[i]=off;
   coffl[i]=offl;
   coffr[i]=offr;
-  
+
   if (verbose > 1) {
     write(cdist, off);
   }
@@ -1290,7 +1290,7 @@ for (i=0; i<=divsx; ++i) {
 
   rccoll[ir]=Nhc+offl;
   rccolc[ir]=Nhc+off;
-  rccolr[ir]=Nhc+offr;  
+  rccolr[ir]=Nhc+offr;
 }
 Nl=rccolc[0];
 Nr=Nh-rccolc[cmaxi];
@@ -1299,9 +1299,9 @@ if (verbose > 1) {
 }
 
 /**** draw gray background ****/
-{ 
+{
   path zz;
-  
+
   //zz=tvrect(0,0, Nh,Nv, xd,yd,Nv);
   /* keep white canvas for castellations */
   zz=tvrect(rccoll[0],rcrowt[0], rccolr[cmaxi],rcrowb[rmaxi], xd,yd,Nv);
@@ -1355,16 +1355,16 @@ for (i=0; i<=rmaxi; ++i) {
 /**** draw 2*divsx+2 vertical gridlines ****/
 for (i=0; i<=cmaxi; ++i) {
   path zzv;
-  zzv=tvrect(rccoll[i],0, rccolr[i],Nv, xd,yd,Nv); 
-  fill(zzv, p=pwhite); 
+  zzv=tvrect(rccoll[i],0, rccolr[i],Nv, xd,yd,Nv);
+  fill(zzv, p=pwhite);
 }
 
 /**** castellations ****/
 castelhor(colortv, rccoll, rccolr, cmaxi, Nh, rcrowt[0], rcrowb[rmaxi],
-	  pdefault, xd, yd, Nv);
+          pdefault, xd, yd, Nv);
 
 castelver(colortv, rccoll[0], rccolr[cmaxi], Nh, rcrowb, rcrowt, rmaxi,
-	  pdefault, xd, yd, Nv);
+          pdefault, xd, yd, Nv);
 
 /****** markers for 4/3 aspect ratio ******/
 if (rimage>4/3) {
@@ -1373,59 +1373,59 @@ if (rimage>4/3) {
 
 /****** line pairing center ******/
 centerline(colortv, rccoll, rccolc, rccolr, divsx, Nhc, os,
-	   rcrowt, rcrowc, rcrowb, divsy, Nvc,
-	   ccenter, rcoff, rcright, rcleft, pdefault, xd, yd, Nv);
+           rcrowt, rcrowc, rcrowb, divsy, Nvc,
+           ccenter, rcoff, rcright, rcleft, pdefault, xd, yd, Nv);
 
 if (colortv>0) {
   /* topbw structure */
-  topbw(coff, Nhc, os, rcrowc[divsy-5], rcrowc[divsy-4], rcrowc[divsy-3], 
-	ccenter, rcleft[divsy-4], rcleft[divsy-3], rcright[divsy-4],
-	rcright[divsy-3], pdefault, xd, yd, Nv);
+  topbw(coff, Nhc, os, rcrowc[divsy-5], rcrowc[divsy-4], rcrowc[divsy-3],
+        ccenter, rcleft[divsy-4], rcleft[divsy-3], rcright[divsy-4],
+        rcright[divsy-3], pdefault, xd, yd, Nv);
 
   /* 250 kHz */
-  testtone(Ttone, rcrowc[divsy-3], rcrowc[divsy-2], 
+  testtone(Ttone, rcrowc[divsy-3], rcrowc[divsy-2],
            cx, cy, crad, pdefault, xd, yd, Nv);
 
-  /* color bars */ 
-  colorbars(coff, Nhc, rcrowc[divsy-2], rcrowc[divsy-1], rcrowc[divsy], 
-	    ccenter, rcleft[divsy-2], rcleft[divsy], rcright[divsy-2],
-	    rcright[divsy], pdefault, xd, yd, Nv);
+  /* color bars */
+  colorbars(coff, Nhc, rcrowc[divsy-2], rcrowc[divsy-1], rcrowc[divsy],
+            ccenter, rcleft[divsy-2], rcleft[divsy], rcright[divsy-2],
+            rcright[divsy], pdefault, xd, yd, Nv);
 
   /* test frequencies */
   testfreqs(ftones, coff, Nhc, rcrowc[divsy+1], rcrowc[divsy+2],
-	    rcrowc[divsy+3], ccenter, rcleft[divsy+1], rcleft[divsy+3],
-	    rcright[divsy+1],rcright[divsy+3], pdefault, xd, yd, Nv);
+            rcrowc[divsy+3], ccenter, rcleft[divsy+1], rcleft[divsy+3],
+            rcright[divsy+1],rcright[divsy+3], pdefault, xd, yd, Nv);
 
   /* gray bars */
   graybars(coff, Nhc, rcrowc[divsy+3], rcrowc[divsy+4], ccenter,
-	   rcleft[divsy+3], rcleft[divsy+4],
-	   rcright[divsy+3], rcright[divsy+4], pdefault, xd,yd,Nv);
+           rcleft[divsy+3], rcleft[divsy+4],
+           rcright[divsy+3], rcright[divsy+4], pdefault, xd,yd,Nv);
 
   /* PAL ears */
   if (colortv == 1) {
-    palears(coff,coffr,coffl, Nhc, rcrowt, rcrowb, Nvc, divsy, -1, 
+    palears(coff,coffr,coffl, Nhc, rcrowt, rcrowb, Nvc, divsy, -1,
             pdefault, xd, yd, Nv);
-    palears(coff,coffr,coffl, Nhc, rcrowt, rcrowb, Nvc, divsy, 1, 
+    palears(coff,coffr,coffl, Nhc, rcrowt, rcrowb, Nvc, divsy, 1,
             pdefault, xd, yd, Nv);
   } else if (colortv == 2) {
-    ntscbars(rccoll, rccolr, divsx, rcrowt, rcrowb, divsy, -1, 
+    ntscbars(rccoll, rccolr, divsx, rcrowt, rcrowb, divsy, -1,
              pdefault, xd, yd, Nv);
-    ntscbars(rccoll, rccolr, divsx, rcrowt, rcrowb, divsy, 1, 
+    ntscbars(rccoll, rccolr, divsx, rcrowt, rcrowb, divsy, 1,
              pdefault, xd, yd, Nv);
-    ntscbars(rccoll, rccolr, divsx, rcrowt, rcrowb, divsy, -2, 
+    ntscbars(rccoll, rccolr, divsx, rcrowt, rcrowb, divsy, -2,
              pdefault, xd, yd, Nv);
-    ntscbars(rccoll, rccolr, divsx, rcrowt, rcrowb, divsy, 2, 
+    ntscbars(rccoll, rccolr, divsx, rcrowt, rcrowb, divsy, 2,
              pdefault, xd, yd, Nv);
   }
 
   /* bottom wh - black - wh */
-  bottombw(round((coff[2]+coff[3])/2), Nhc, rcrowc[divsy+4], rcrowc[divsy+5], 
-	   ccenter, rcleft[divsy+4], rcleft[divsy+5],
-	   rcright[divsy+4], rcright[divsy+5], pdefault, xd, yd, Nv);
+  bottombw(round((coff[2]+coff[3])/2), Nhc, rcrowc[divsy+4], rcrowc[divsy+5],
+           ccenter, rcleft[divsy+4], rcleft[divsy+5],
+           rcright[divsy+4], rcright[divsy+5], pdefault, xd, yd, Nv);
 
   /* bottom yellow red circle */
-  bottomcirc(coff[0], Nhc, rcrowc[divsy+5], cx, cy, crad, 
-	     ccenter, rcleft[divsy+5], rcright[divsy+5], pdefault, xd, yd, Nv);
+  bottomcirc(coff[0], Nhc, rcrowc[divsy+5], cx, cy, crad,
+             ccenter, rcleft[divsy+5], rcright[divsy+5], pdefault, xd, yd, Nv);
 }
 
 /********************** set id *********************/
@@ -1466,10 +1466,10 @@ if (colortv>0) {
   colNsy = round((rccolc[divsx+5]+rccolc[divsx+6])/2);
   Npos = tvps(colNsy,rowNsy, xd,yd,Nv);
   iNsy = format("%i", Nsy);
-  
-  if (colortv>0) { 
+
+  if (colortv>0) {
     pbw=pdefault+gray(1.0);
-  } else { 
+  } else {
     pbw=pdefault+gray(0.0);
   }
   label(ires, rpos, p=pbw);

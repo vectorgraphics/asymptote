@@ -941,7 +941,7 @@ class xasyItem(QtCore.QObject):
             image = QtGui.QImage(file)
         elif fileformat == 'svg':
             if containsClip:
-                image = xs.SvgObject(file)
+                image = xs.SvgObject(self.asyengine.tempDirName+file)
             else:
                 image = QtSvg.QSvgRenderer(file)
                 assert image.isValid()
@@ -1054,7 +1054,7 @@ class xasyItem(QtCore.QObject):
             for i in range(len(imageInfos)):
                 box, key, localCount, useClip = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
-                name = "{:s}_{:d}.{:s}".format(self.asyengine.tempDirName, i, fileformat)
+                name = "_{:d}.{:s}".format(i, fileformat)
 
                 self.imageHandleQueue.put((name, fileformat, (l, -t, r, -b), i, key, localCount, useClip))
 
@@ -1101,12 +1101,15 @@ class xasyItem(QtCore.QObject):
 
             n += 1
 
-        if text == "Error\n":
-            self.imageHandleQueue.put(("ERROR", fin.readline()))
-        else:
-            render()
+        if raw_text != "Error\n":
+            if text == "Error\n":
+                self.imageHandleQueue.put(("ERROR", fin.readline()))
+            else:
+                render()
 
-        self.asy2psmap = asyTransform(xu.listize(fin.readline().rstrip(),float))
+            self.asy2psmap = asyTransform(xu.listize(fin.readline().rstrip(),float))
+        else:
+            self.asy2psmap = identity()
         self.imageHandleQueue.put((None,))
         self.asyfied = True
 

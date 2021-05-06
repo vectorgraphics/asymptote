@@ -1,10 +1,10 @@
 // Contour routines written by Radoslav Marinov and John Bowman.
-         
+
 import graph_settings;
 
 real eps=10000*realEpsilon;
 
-//                         1  
+//                         1
 //             6 +-------------------+ 5
 //               | \               / |
 //               |   \          /    |
@@ -16,7 +16,7 @@ real eps=10000*realEpsilon;
 //               |   /           \   |
 //               | /               \ |
 //             7 +-------------------+ 4 or 8
-//                         3  
+//                         3
 
 private struct segment
 {
@@ -76,11 +76,11 @@ private segment case3(pair p0, pair p1, pair p2,
 private segment checktriangle(pair p0, pair p1, pair p2,
                               real v0, real v1, real v2, int edge=-1)
 {
-  // default null return  
+  // default null return
   static segment dflt;
 
   real eps=eps*max(abs(v0),abs(v1),abs(v2));
-  
+
   if(v0 < -eps) {
     if(v1 < -eps) {
       if(v2 < -eps) return dflt; // nothing to do
@@ -92,10 +92,10 @@ private segment checktriangle(pair p0, pair p1, pair p2,
       else return case2(p1,p0,p2,v1,v0,v2,5+edge);
     } else {
       if(v2 < -eps) return case3(p0,p1,p2,v0,v1,v2,edge);
-      else if(v2 <= eps) 
+      else if(v2 <= eps)
         return case2(p2,p0,p1,v2,v0,v1,edge);
       else return case3(p1,p0,p2,v1,v0,v2,edge);
-    } 
+    }
   } else if(v0 <= eps) {
     if(v1 < -eps) {
       if(v2 < -eps) return dflt; // nothing to do
@@ -109,7 +109,7 @@ private segment checktriangle(pair p0, pair p1, pair p2,
       if(v2 < -eps) return case2(p0,p1,p2,v0,v1,v2,4+edge);
       else if(v2 <= eps) return case1(p0,p2,4+edge);
       else return dflt; // nothing to do
-    } 
+    }
   } else {
     if(v1 < -eps) {
       if(v2 < -eps) return case3(p1,p0,p2,v1,v0,v2,edge);
@@ -124,8 +124,8 @@ private segment checktriangle(pair p0, pair p1, pair p2,
       if(v2 < -eps) return case3(p0,p2,p1,v0,v2,v1);
       else if(v2 <= eps) return dflt; // nothing to do
       else return dflt; // nothing to do
-    } 
-  }      
+    }
+  }
 }
 
 // Collect connecting path segments.
@@ -135,7 +135,7 @@ private void collect(pair[][][] points, real[] c)
   int[] reverseF(int n) {return sequence(new int(int x){return n-1-x;},n-1);}
   // use to reverse an array, omitting the last point
   int[] reverseL(int n) {return sequence(new int(int x){return n-2-x;},n-1);}
-  
+
   for(int cnt=0; cnt < c.length; ++cnt) {
     pair[][] gdscnt=points[cnt];
     for(int i=0; i < gdscnt.length; ++i) {
@@ -144,11 +144,11 @@ private void collect(pair[][][] points, real[] c)
       for(int j=i+1; j < gdscnt.length; ++j) {
         pair[] gjg=gdscnt[j];
         int Lj=gjg.length;
-        if(abs(gig[0]-gjg[0]) < eps) { 
+        if(abs(gig[0]-gjg[0]) < eps) {
           gdscnt[j]=gjg[reverseF(Lj)];
           gdscnt[j].append(gig);
-          gdscnt.delete(i); 
-          --i; 
+          gdscnt.delete(i);
+          --i;
           break;
         } else if(abs(gig[0]-gjg[Lj-1]) < eps) {
           gig.delete(0);
@@ -169,14 +169,15 @@ private void collect(pair[][][] points, real[] c)
           gdscnt.delete(i);
           --i;
           break;
-        } 
+        }
       }
     }
   }
 }
 
 // Join path segments.
-private guide[][] connect(pair[][][] points, real[] c, interpolate join)
+private guide[][] connect(picture pic, pair[][][] points, real[] c,
+                          interpolate join)
 {
   // set up return value
   guide[][] result=new guide[c.length][];
@@ -189,13 +190,13 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
       if(pts.length > 0) {
         if(pts.length > 1 && abs(pts[0]-pts[pts.length-1]) < eps) {
           guide[] g=sequence(new guide(int i) {
-              return pts[i];
+              return (pic.scale.x.T(pts[i].x), pic.scale.y.T(pts[i].y));
             },pts.length-1);
           g.push(cycle);
           gd=join(...g);
         } else
           gd=join(...sequence(new guide(int i) {
-                return pts[i];
+                return (pic.scale.x.T(pts[i].x), pic.scale.y.T(pts[i].y));
               },pts.length));
       }
       resultcnt[i]=gd;
@@ -211,7 +212,7 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
 // midpoint:  optional array containing values of f at cell midpoints
 // c:         array of contour values
 // join:      interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(pair[][] z, real[][] f,
+guide[][] contour(picture pic=currentpicture, pair[][] z, real[][] f,
                   real[][] midpoint=new real[][], real[] c,
                   interpolate join=operator --)
 {
@@ -224,7 +225,7 @@ guide[][] contour(pair[][] z, real[][] f,
 
   c=sort(c);
   bool midpoints=midpoint.length > 0;
-  
+
   segment segments[][][]=new segment[nx][ny][];
 
   // go over region a rectangle at a time
@@ -238,7 +239,7 @@ guide[][] contour(pair[][] z, real[][] f,
     segment[][] segmentsi=segments[i];
     for(int j=0; j < ny; ++j) {
       segment[] segmentsij=segmentsi[j];
-      
+
       // define points
       pair bleft=zi[j];
       pair bright=zp[j];
@@ -264,26 +265,26 @@ guide[][] contour(pair[][] z, real[][] f,
         int countm=0;
         int countz=0;
         int countp=0;
-        
+
         void check(real vertdat) {
           if(vertdat < -eps) ++countm;
           else {
-            if(vertdat <= eps) ++countz; 
+            if(vertdat <= eps) ++countz;
             else ++countp;
           }
         }
-        
+
         check(vertdat0);
         check(vertdat1);
         check(vertdat2);
         check(vertdat3);
 
-        if(countm == 4) return 1;  // nothing to do 
-        if(countp == 4) return -1; // nothing to do 
+        if(countm == 4) return 1;  // nothing to do
+        if(countp == 4) return -1; // nothing to do
         if((countm == 3 || countp == 3) && countz == 1) return 0;
 
         // go through the triangles
-        
+
         void addseg(segment seg) {
           if(seg.active) {
             seg.c=cnt;
@@ -301,7 +302,7 @@ guide[][] contour(pair[][] z, real[][] f,
                              vertdat0,vertdat1,vertdat4,3));
         return 0;
       }
-      
+
       void process(int l, int u) {
         if(l >= u) return;
         int i=quotient(l+u,2);
@@ -313,7 +314,7 @@ guide[][] contour(pair[][] z, real[][] f,
           process(i+1,u);
         }
       }
-    
+
       process(0,c.length);
     }
   }
@@ -356,7 +357,7 @@ guide[][] contour(pair[][] z, real[][] f,
           }
           return -1;
         }
-        
+
         int backward(int I, int J, bool first=true) {
           if(I >= 0 && I < nx && J >= 0 && J < ny) {
             segment[] segmentsIJ=segments[I][J];
@@ -380,7 +381,7 @@ guide[][] contour(pair[][] z, real[][] f,
           }
           return -1;
         }
-        
+
         void follow(int f(int, int, bool first=true), int edge) {
           int I=i;
           int J=j;
@@ -445,7 +446,7 @@ guide[][] contour(pair[][] z, real[][] f,
 
   collect(points,c); // Required to join remaining case1 cycles.
 
-  return connect(points,c,join);
+  return connect(pic,points,c,join);
 }
 
 // Return contour guides for a 2D data array on a uniform lattice
@@ -454,8 +455,8 @@ guide[][] contour(pair[][] z, real[][] f,
 // a,b:       diagonally opposite vertices of rectangular domain
 // c:         array of contour values
 // join:      interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-                  pair a, pair b, real[] c,
+guide[][] contour(picture pic=currentpicture, real[][] f,
+                  real[][] midpoint=new real[][], pair a, pair b, real[] c,
                   interpolate join=operator --)
 {
   int nx=f.length-1;
@@ -473,7 +474,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
       zi[j]=(xi,interp(a.y,b.y,j/ny));
     }
   }
-  return contour(z,f,midpoint,c,join);
+  return contour(pic,z,f,midpoint,c,join);
 }
 
 // return contour guides for a real-valued function
@@ -482,14 +483,14 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 // c:        array of contour values
 // nx,ny:    number of subdivisions in x and y directions (determines accuracy)
 // join:     interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(real f(real, real), pair a, pair b,
-                  real[] c, int nx=ngraph, int ny=nx,
+guide[][] contour(picture pic=currentpicture, real f(real, real), pair a,
+                  pair b, real[] c, int nx=ngraph, int ny=nx,
                   interpolate join=operator --)
 {
   // evaluate function at points and midpoints
   real[][] dat=new real[nx+1][ny+1];
   real[][] midpoint=new real[nx+1][ny+1];
-  
+
   for(int i=0; i <= nx; ++i) {
     real x=interp(a.x,b.x,i/nx);
     real x2=interp(a.x,b.x,(i+0.5)/nx);
@@ -501,9 +502,9 @@ guide[][] contour(real f(real, real), pair a, pair b,
     }
   }
 
-  return contour(dat,midpoint,a,b,c,join);
+  return contour(pic,dat,midpoint,a,b,c,join);
 }
-  
+
 void draw(picture pic=currentpicture, Label[] L=new Label[],
           guide[][] g, pen[] p)
 {
@@ -576,7 +577,7 @@ pen[][] interior(picture pic=currentpicture, guide[][] g, pen[] palette)
                 index=i;
             }
           }
-        } 
+        }
         fillpalettei[j]=palette[index];
       }
       fillpalette[i]=fillpalettei;
@@ -620,7 +621,7 @@ void fill(picture pic=currentpicture, guide[][] g, pen[][] palette)
 // check existing guides and adds new segment to them if possible,
 // or otherwise store segment as a new guide
 private void addseg(pair[][] gds, segment seg)
-{ 
+{
   if(!seg.active) return;
   // search for a path to extend
   for(int i=0; i < gds.length; ++i) {
@@ -629,33 +630,33 @@ private void addseg(pair[][] gds, segment seg)
       gd.insert(0,seg.a);
       return;
     } else if(abs(gd[gd.length-1]-seg.b) < eps) {
-      gd.push(seg.a); 
+      gd.push(seg.a);
       return;
     } else if(abs(gd[0]-seg.a) < eps) {
       gd.insert(0,seg.b);
       return;
-    } else if(abs(gd[gd.length-1]-seg.a) < eps) {  
+    } else if(abs(gd[gd.length-1]-seg.a) < eps) {
       gd.push(seg.b);
       return;
     }
   }
- 
+
   // in case nothing is found
   pair[] segm;
-  segm=new pair[] {seg.a,seg.b}; 
+  segm=new pair[] {seg.a,seg.b};
   gds.push(segm);
-  
+
   return;
 }
 
-guide[][] contour(real f(pair), pair a, pair b,
+guide[][] contour(picture pic=currentpicture, real f(pair), pair a, pair b,
                   real[] c, int nx=ngraph, int ny=nx,
                   interpolate join=operator --)
 {
-  return contour(new real(real x, real y) {return f((x,y));},a,b,c,nx,ny,join);
+  return contour(pic,new real(real x, real y) {return f((x,y));},a,b,c,nx,ny,join);
 }
 
-guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
+guide[][] contour(picture pic=currentpicture, pair[] z, real[] f, real[] c, interpolate join=operator --)
 {
   if(z.length != f.length)
     abort("z and f arrays have different lengths");
@@ -664,7 +665,7 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
 
   // array to store guides found so far
   pair[][][] points=new pair[c.length][][];
-        
+
   for(int cnt=0; cnt < c.length; ++cnt) {
     pair[][] pointscnt=points[cnt];
     real C=c[cnt];
@@ -678,5 +679,5 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
 
   collect(points,c);
 
-  return connect(points,c,join);
+  return connect(pic,points,c,join);
 }

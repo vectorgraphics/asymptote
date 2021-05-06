@@ -7,7 +7,7 @@ if [ $# -eq 1 ]; then \
 UGLIFY=cat; \
 UGLIFYOPT=""; \
 else \
-UGLIFY=uglifyjs; \
+UGLIFY=terser; \
 UGLIFYOPTIONS="-m -c --comments"; \
 fi    
 

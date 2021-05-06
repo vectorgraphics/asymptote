@@ -67,24 +67,29 @@ real abs(triple v)
   return v.length();
 }
 
-real polar(triple v, bool warn=true) 
+real abs2(triple v)
+{
+  return abs2(v);
+}
+
+real polar(triple v, bool warn=true)
 {
   return v.polar(warn);
 }
 
-real azimuth(triple v, bool warn=true) 
+real azimuth(triple v, bool warn=true)
 {
   if(!warn && v.getx() == 0.0 && v.gety() == 0.0) return 0.0;
   return v.azimuth();
 }
 
-real colatitude(triple v, bool warn=true) 
+real colatitude(triple v, bool warn=true)
 {
   if(!warn && v.getx() == 0.0 && v.gety() == 0.0 && v.getz() == 0.0) return 0.0;
   return degrees(v.polar());
 }
 
-real latitude(triple v, bool warn=true) 
+real latitude(triple v, bool warn=true)
 {
   if(!warn && v.getx() == 0.0 && v.gety() == 0.0 && v.getz() == 0.0) return 0.0;
   return 90.0-degrees(v.polar());
@@ -97,17 +102,17 @@ real longitude(triple v, bool warn=true)
   return principalBranch(degrees(v.azimuth()));
 }
 
-triple unit(triple v) 
+triple unit(triple v)
 {
   return unit(v);
 }
 
-real dot(triple u, triple v) 
+real dot(triple u, triple v)
 {
   return dot(u,v);
 }
 
-triple cross(triple u, triple v) 
+triple cross(triple u, triple v)
 {
   return cross(u,v);
 }
@@ -127,7 +132,7 @@ triple dir(real colatitude, real longitude)
   return expi(radians(colatitude),radians(longitude));
 }
 
-triple realmult(triple u, triple v) 
+triple realmult(triple u, triple v)
 {
   return triple (u.getx()*v.getx(),u.gety()*v.gety(),u.getz()*v.getz());
 }
@@ -138,24 +143,24 @@ triple perp(triple v, triple u)
   return perp(v,u);
 }
 
-triple bezier(triple a, triple b, triple c, triple d, real t) 
+triple bezier(triple a, triple b, triple c, triple d, real t)
 {
   real onemt=1-t;
   real onemt2=onemt*onemt;
   return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
 }
 
-triple bezierP(triple a, triple b, triple c, triple d, real t) 
+triple bezierP(triple a, triple b, triple c, triple d, real t)
 {
   return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
 }
 
-triple bezierPP(triple a, triple b, triple c, triple d, real t) 
+triple bezierPP(triple a, triple b, triple c, triple d, real t)
 {
   return 6.0*(t*(d-a+3.0*(b-c))+a+c)-12.0*b;
 }
 
-triple bezierPPP(triple a, triple b, triple c, triple d) 
+triple bezierPPP(triple a, triple b, triple c, triple d)
 {
   return 6.0*(d-a)+18.0*(b-c);
 }

@@ -20,11 +20,11 @@ draw(p);
 path l = point(p[1],2)--point(p[0],4);
 draw(l,red);
 for(int i = 0; i < p.length; ++i)
-{
-  real[][] ts = intersections(l,p[i]);
-  for(real[] t:ts)
-    dot(point(l,t[0]));
-}
+  {
+    real[][] ts = intersections(l,p[i]);
+    for(real[] t:ts)
+      dot(point(l,t[0]));
+  }
 path l2 = point(l,intersections(l,p[0])[0][0])--point(l,intersections(l,p[2])[1][0]);
 real to = intersections(l,p[0])[0][1];
 real ti = intersections(l,p[2])[1][1];
@@ -71,7 +71,7 @@ filldraw(shift(w)*q,lightgrey);
 real x = min(p).x - 4.5w;
 string l = "abcdef";
 for(int i = 0; i < 6; ++i)
-{
-  label("("+substr(l,i,1)+")",(x,min(p).y),3S,fontsize(10pt));
-  x += w;
-}
+  {
+    label("("+substr(l,i,1)+")",(x,min(p).y),3S,fontsize(10pt));
+    x += w;
+  }

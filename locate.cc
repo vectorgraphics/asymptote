@@ -12,7 +12,7 @@
 #include "locate.h"
 
 
-  
+
 namespace settings {
 
 namespace fs {
@@ -28,7 +28,7 @@ string extension(string name)
 
 bool exists(string filename)
 {
-  return ::access(filename.c_str(), R_OK) == 0;  
+  return ::access(filename.c_str(), R_OK) == 0;
 }
 
 } // namespace fs
@@ -37,15 +37,15 @@ bool exists(string filename)
 file_list_t searchPath;
 
 // Returns list of possible filenames, accounting for extensions.
-file_list_t mungeFileName(string id)
+file_list_t mungeFileName(string id, string suffix)
 {
   string ext = fs::extension(id);
   file_list_t files;
-  if (ext == "."+settings::suffix) {
+  if (ext == "."+suffix) {
     files.push_back(id);
-    files.push_back(id+"."+settings::suffix);
+    files.push_back(id+"."+suffix);
   } else {
-    files.push_back(id+"."+settings::suffix);
+    files.push_back(id+"."+suffix);
     files.push_back(id);
   }
   return files;
@@ -62,10 +62,10 @@ string join(string dir, string file, bool full)
 
 // Find the appropriate file, first looking in the local directory, then the
 // directory given in settings, and finally the global system directory.
-string locateFile(string id, bool full)
+string locateFile(string id, bool full, string suffix)
 {
   if(id.empty()) return "";
-  file_list_t filenames = mungeFileName(id);
+  file_list_t filenames = mungeFileName(id,suffix);
   for (file_list_t::iterator leaf = filenames.begin();
        leaf != filenames.end();
        ++leaf) {
@@ -77,7 +77,7 @@ string locateFile(string id, bool full)
       (*leaf)[p]='/';
       leaf->insert(0,"/cygdrive/");
     }
-#endif    
+#endif
 
     if ((*leaf)[0] == '/') {
       string file = *leaf;
@@ -91,11 +91,11 @@ string locateFile(string id, bool full)
         if (fs::exists(file))
           return file;
       }
-    } 
+    }
   }
   return string();
 }
 
 } // namespace settings
 
- 
+

@@ -7,9 +7,9 @@ real R=3;
 real a=1;
 
 /*
-import solids;
-revolution torus=revolution(reverse(Circle(R*X,a,Y,32)),Z,90,345);
-surface s=surface(torus);
+  import solids;
+  revolution torus=revolution(reverse(Circle(R*X,a,Y,32)),Z,90,345);
+  surface s=surface(torus);
 */
 
 triple f(pair t) {

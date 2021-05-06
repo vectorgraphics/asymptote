@@ -40,12 +40,12 @@ pairarray* => pairArray()
 pairarray2* => pairArray2()
 triplearray* => tripleArray()
 triplearray2* => tripleArray2()
-patharray* => pathArray()  
-patharray2* => pathArray2()  
-guidearray* => guideArray()  
+patharray* => pathArray()
+patharray2* => pathArray2()
+guidearray* => guideArray()
 transformarray* => transformArray()
-penarray* => penArray()  
-penarray2* => penArray2()  
+penarray* => penArray()
+penarray2* => penArray2()
 stringarray* => stringArray()
 stringarray2* => stringArray2()
 
@@ -55,7 +55,7 @@ stringarray2* => stringArray2()
 #include <time.h>
 #include <sys/times.h>
 #include <locale.h>
-  
+
 #include "angle.h"
 #include "pair.h"
 #include "triple.h"
@@ -81,7 +81,8 @@ stringarray2* => stringArray2()
 #include "lexical.h"
 #include "process.h"
 #include "arrayop.h"
-   
+#include "seconds.h"
+
 #if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   extern "C" {
     void *GC_generate_random_valid_address(void);
@@ -92,6 +93,7 @@ stringarray2* => stringArray2()
 using namespace vm;
 using namespace camp;
 using namespace settings;
+using namespace utils;
 
 #undef OUT
 #undef IN
@@ -176,7 +178,7 @@ const item Default=item(default_t());
 }
 
 namespace run {
-  
+
 const char *arrayempty="cannot take min or max of empty array";
 const char *noruntime="no runtime environment for embedded eval";
 
@@ -276,17 +278,17 @@ bool :isDefault(item i)
 
 // Casts
 
-guide* :pairToGuide(pair z) 
+guide* :pairToGuide(pair z)
 {
   return new pairguide(z);
 }
 
-guide* :pathToGuide(path p) 
+guide* :pathToGuide(path p)
 {
   return new pathguide(p);
 }
 
-path :guideToPath(guide *g) 
+path :guideToPath(guide *g)
 {
   return g->solve();
 }
@@ -390,7 +392,7 @@ pen rgb(real r, real g, real b)
 
 pen cmyk(real c, real m, real y, real k)
 {
-  return pen(c,m,y,k);  
+  return pen(c,m,y,k);
 }
 
 pen gray(real gray)
@@ -399,25 +401,25 @@ pen gray(real gray)
 }
 
 realarray *colors(pen p)
-{  
+{
   size_t n=ColorComponents[p.colorspace()];
   array *a=new array(n);
-  
+
   switch(n) {
     case 0:
       break;
-    case 1: 
-      (*a)[0]=p.gray(); 
+    case 1:
+      (*a)[0]=p.gray();
       break;
     case 3:
-      (*a)[0]=p.red(); 
-      (*a)[1]=p.green(); 
-      (*a)[2]=p.blue(); 
+      (*a)[0]=p.red();
+      (*a)[1]=p.green();
+      (*a)[2]=p.blue();
       break;
     case 4:
       (*a)[0]=p.cyan();
-      (*a)[1]=p.magenta(); 
-      (*a)[2]=p.yellow(); 
+      (*a)[1]=p.magenta();
+      (*a)[2]=p.yellow();
       (*a)[3]=p.black();
       break;
     default:
@@ -427,7 +429,7 @@ realarray *colors(pen p)
 }
 
 string hex(pen p)
-{  
+{
   return p.hex();
 }
 
@@ -450,7 +452,7 @@ pen pattern(string *s)
 
 string pattern(pen p)
 {
-  return p.fillpattern();  
+  return p.fillpattern();
 }
 
 pen fillrule(Int n)
@@ -460,7 +462,7 @@ pen fillrule(Int n)
 
 Int fillrule(pen p)
 {
-  return p.Fillrule();  
+  return p.Fillrule();
 }
 
 pen opacity(real opacity=1.0, string blend=defaulttransparency)
@@ -488,10 +490,10 @@ pen linetype(realarray *pattern, real offset=0, bool scale=true,
 {
   size_t size=checkArray(pattern);
   array *a=new array(size);
-  for(size_t i=0; i < size; ++i) 
+  for(size_t i=0; i < size; ++i)
     (*a)[i]=::max(vm::read<double>(pattern,i),0.0);
 
-  return pen(LineType(*a,offset,scale,adjust)); 
+  return pen(LineType(*a,offset,scale,adjust));
 }
 
 realarray *linetype(pen p=CURRENTPEN)
@@ -527,7 +529,7 @@ pen linecap(Int n)
 
 Int linecap(pen p=CURRENTPEN)
 {
-  return p.cap();  
+  return p.cap();
 }
 
 pen linejoin(Int n)
@@ -537,7 +539,7 @@ pen linejoin(Int n)
 
 Int linejoin(pen p=CURRENTPEN)
 {
-  return p.join();  
+  return p.join();
 }
 
 pen miterlimit(real x)
@@ -547,7 +549,7 @@ pen miterlimit(real x)
 
 real miterlimit(pen p=CURRENTPEN)
 {
-  return p.miter();  
+  return p.miter();
 }
 
 pen linewidth(real x)
@@ -557,7 +559,7 @@ pen linewidth(real x)
 
 real linewidth(pen p=CURRENTPEN)
 {
-  return p.width();  
+  return p.width();
 }
 
 pen fontcommand(string *s)
@@ -583,7 +585,7 @@ real fontsize(pen p=CURRENTPEN)
 
 real lineskip(pen p=CURRENTPEN)
 {
-  return p.Lineskip();  
+  return p.Lineskip();
 }
 
 pen overwrite(Int n)
@@ -594,7 +596,7 @@ pen overwrite(Int n)
 
 Int overwrite(pen p=CURRENTPEN)
 {
-  return p.Overwrite();  
+  return p.Overwrite();
 }
 
 pen basealign(Int n)
@@ -659,7 +661,7 @@ bool view()
   return view();
 }
 
-string asydir() 
+string asydir()
 {
   return systemDir;
 }
@@ -694,14 +696,14 @@ void assert(bool b, string s=emptystring)
 
 void sleep(Int seconds)
 {
-  if(seconds <= 0) return;      
+  if(seconds <= 0) return;
   sleep(seconds);
 }
 
 void usleep(Int microseconds)
 {
-  if(microseconds <= 0) return; 
-  usleep((unsigned long) microseconds); 
+  if(microseconds <= 0) return;
+  usleep((unsigned long) microseconds);
 }
 
 void _eval(string *s, bool embedded, bool interactiveWrite=false)
@@ -762,9 +764,10 @@ void :loadModule(string *index)
 
 string cd(string s=emptystring)
 {
+  if(!globalread()) readDisabled();
   if(!s.empty() && !globalwrite()) {
-    string outname=getSetting<string>("outname");
-    string dir=stripDir(outname);
+    string outname=settings::outname();
+    string dir=stripFile(outname);
     if(dir.empty()) Setting("outname")=getPath()+dirsep+outname;
   }
   return setPath(s.c_str());
@@ -997,7 +1000,7 @@ guide *reverse(guide *g)
       v.push_back(new controlguide(curr.in->control(),next.out->control()));
     } else {
       pair d=curr.in->dir();
-      if(d != zero) 
+      if(d != zero)
         v.push_back(new specguide(new dirSpec(-d),camp::OUT));
       else {
         real C=curr.in->curl();
@@ -1009,8 +1012,8 @@ guide *reverse(guide *g)
       bool atleast=next.tout.atleast;
       if(tout != 1.0 || tin != 1.0 || next.tout.atleast)
         v.push_back(new tensionguide(tensionSpecifier(tout,tin,atleast)));
-      d=next.out->dir();      
-      if(d != zero) 
+      d=next.out->dir();
+      if(d != zero)
         v.push_back(new specguide(new dirSpec(-d),camp::IN));
       else {
         real C=next.out->curl();
@@ -1024,7 +1027,7 @@ guide *reverse(guide *g)
     v.push_back(new cycletokguide());
   else
     v.push_back(new pairguide(next.z));
-      
+
   return new multiguide(v);
 }
 
@@ -1035,11 +1038,12 @@ realarray *_cputime()
   struct tms buf;
 
   ::times(&buf);
-  array *t=new array(4);
-  (*t)[0] = ((real) buf.tms_utime)*ticktime;
-  (*t)[1] = ((real) buf.tms_stime)*ticktime;
-  (*t)[2] = ((real) buf.tms_cutime)*ticktime;
-  (*t)[3] = ((real) buf.tms_cstime)*ticktime;
+  array *t=new array(5);
+  (*t)[0]=((real) buf.tms_utime)*ticktime;
+  (*t)[1]=((real) buf.tms_stime)*ticktime;
+  (*t)[2]=((real) buf.tms_cutime)*ticktime;
+  (*t)[3]=((real) buf.tms_cstime)*ticktime;
+  (*t)[4]=utils::totalseconds();
   return t;
 }
 
@@ -1202,4 +1206,8 @@ transform reflect(pair a, pair b)
 {
   return reflectabout(a,b);
 }
-
+
+bool isometry(transform t)
+{
+  return t.isIsometry();
+}

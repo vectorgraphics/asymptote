@@ -1,6 +1,6 @@
 #!/bin/sh
 printf "Testing errors..."
-./asy -sysdir base -noautoplain -debug errortest 2> errors.temp
+./asy -q -sysdir base -noautoplain -debug errortest 2> errors.temp
 result=`diff errors.temp errors`
 if test "$result" = ""; then
 echo PASSED.

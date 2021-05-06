@@ -18,13 +18,13 @@ if(settings.command != "") {
 
 include plain_constants;
 
-access version;             
+access version;
 if(version.VERSION != VERSION) {
   warning("version","using possibly incompatible version "+
           version.VERSION+" of plain.asy"+'\n');
   nowarn("version");
 }
-   
+
 include plain_strings;
 include plain_pens;
 include plain_paths;
@@ -32,12 +32,14 @@ include plain_filldraw;
 include plain_margins;
 include plain_picture;
 include plain_Label;
-include plain_shipout;
 include plain_arcs;
 include plain_boxes;
+include plain_shipout;
 include plain_markers;
 include plain_arrows;
 include plain_debugger;
+
+real RELEASE=(real) split(VERSION,"-")[0];
 
 typedef void exitfcn();
 
@@ -106,7 +108,7 @@ addSaveFunction(new restoreThunk () {
   });
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk save() 
+restoreThunk save()
 {
   return restore=buildRestoreThunk();
 }
@@ -132,7 +134,7 @@ restoreThunk buildRestoreDefaults()
 }
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk savedefaults() 
+restoreThunk savedefaults()
 {
   return restoredefaults=buildRestoreDefaults();
 }
@@ -145,7 +147,7 @@ void initdefaults()
   atexit(null);
 }
 
-// Return the sequence n,...m
+// Return the sequence n,...,m
 int[] sequence(int n, int m)
 {
   return sequence(new int(int x){return x;},m-n+1)+n;
@@ -180,13 +182,26 @@ void eval(code s, bool embedded=false)
   if(!embedded) restoredefaults();
 }
 
+// Associate a parametrized type with a name.
+void type(string type, string name)
+{
+  eval("typedef "+type+" "+name,true);
+}
+
+void mapArray(string From, string To)
+{
+  type(From,"From");
+  type(To,"To");
+  eval("To[] map(To f(From), From[] a) {return sequence(new To(int i) {return f(a[i]);},a.length);}",true);
+}
+
 // Evaluate user command line option.
 void usersetting()
 {
   eval(settings.user,true);
 }
 
-string stripsuffix(string f, string suffix=".asy") 
+string stripsuffix(string f, string suffix=".asy")
 {
   int n=rfind(f,suffix);
   if(n != -1) f=erase(f,n,-1);
@@ -231,6 +246,7 @@ void beep()
 struct processtime {
   real user;
   real system;
+  real clock;
 }
 
 struct cputime {
@@ -239,21 +255,26 @@ struct cputime {
   processtime change;
 }
 
-cputime cputime() 
+cputime cputime()
 {
   static processtime last;
   real [] a=_cputime();
   cputime cputime;
+  real clock=a[4];
   cputime.parent.user=a[0];
   cputime.parent.system=a[1];
+  cputime.parent.clock=clock;
   cputime.child.user=a[2];
   cputime.child.system=a[3];
-  real user=a[0]+a[2];
-  real system=a[1]+a[3];
+  cputime.child.clock=0;
+  real user=cputime.parent.user+cputime.child.user;
+  real system=cputime.parent.system+cputime.child.system;
   cputime.change.user=user-last.user;
   cputime.change.system=system-last.system;
+  cputime.change.clock=clock-last.clock;
   last.user=user;
   last.system=system;
+  last.clock=clock;
   return cputime;
 }
 
@@ -285,23 +306,3 @@ if(settings.autoimport != "") {
 }
 
 cputime();
-
-void nosetpagesize()
-{
-  static bool initialized=false;
-  if(!initialized && latex()) {
-    // Portably pass nosetpagesize option to graphicx package.
-    texpreamble("\usepackage{ifluatex}\ifluatex
-\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi
-\ifx\pdfpageheight\undefined\let\pdfpageheight\paperheight\fi\else
-\let\paperwidthsave\paperwidth\let\paperwidth\undefined
-\usepackage{graphicx}
-\let\paperwidth\paperwidthsave\fi");
-    initialized=true;
-  }
-}
-
-nosetpagesize();
-
-if(settings.tex == "luatex")
-  texpreamble("\input luatex85.sty");
