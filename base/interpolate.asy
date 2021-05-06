@@ -1,5 +1,5 @@
 // Lagrange and Hermite interpolation in Asymptote
-// Author: Olivier Guibé
+// Author: Olivier GuibÃ©
 // Acknowledgements: Philippe Ivaldi
 
 // diffdiv(x,y) computes Newton's Divided Difference for

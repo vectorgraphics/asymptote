@@ -48,46 +48,63 @@ real[] Coeff={1,1/2,1/6,1/24,1/120,1/720,1/5040,1/40320,1/362880,1/3628800,
 
 real phi1(real x) {return x != 0 ? expm1(x)/x : 1;}
 
+// phi2(x)=(exp(x)-1-x)/(x^2);
+// Use the identity phi2(2x)=0.25*(x*phi2(x)+1)^2+0.5*phi2(x);
 real phi2(real x)
 {
+  if(fabs(x) > 1) return (exp(x)-x-1)/(x^2);
+  x *= 0.125;
   real x2=x*x;
-  if(fabs(x) > 1) return (exp(x)-x-1)/x2;
   real x3=x2*x;
   real x5=x2*x3;
-  if(fabs(x) < 0.1)
-    return Coeff[1]+x*Coeff[2]+x2*Coeff[3]+x3*Coeff[4]+x2*x2*Coeff[5]
-      +x5*Coeff[6]+x3*x3*Coeff[7]+x5*x2*Coeff[8]+x5*x3*Coeff[9];
-    else {
-      real x7=x5*x2;
-      real x8=x7*x;
-      return Coeff[1]+x*Coeff[2]+x2*Coeff[3]+x3*Coeff[4]+x2*x2*Coeff[5]
-        +x5*Coeff[6]+x3*x3*Coeff[7]+x7*Coeff[8]+x8*Coeff[9]
-        +x8*x*Coeff[10]+x5*x5*Coeff[11]+x8*x3*Coeff[12]+x7*x5*Coeff[13]+
-        x8*x5*Coeff[14]+x7*x7*Coeff[15]+x8*x7*Coeff[16]+x8*x8*Coeff[17];
-    }
+  real y=Coeff[1]+x*Coeff[2]+x2*Coeff[3]+x3*Coeff[4]+x2*x2*Coeff[5]+
+    x5*Coeff[6]+x3*x3*Coeff[7]+x5*x2*Coeff[8]+x5*x3*Coeff[9];
+  y=0.25*(x*y+1.0)^2+0.5*y;
+  y=(x*y+0.5)^2+0.5*y;
+  return (2.0*x*y+0.5)^2+0.5*y;
 }
 
+// phi3(x)=(exp(x)-1-x-x^2/2)/(x^3)
+// Use the identity phi3(2x)=0.125*phi2(x)*(x*phi2(x)+2)+0.25*phi3(x)
+// where phi2(x)=x*phi3(x)+0.5
 real phi3(real x)
 {
+  if(fabs(x) > 1.6) return (exp(x)-0.5*x^2-x-1)/x^3;
+  x *= 0.125;
   real x2=x*x;
   real x3=x2*x;
-  if(fabs(x) > 1.6) return (exp(x)-0.5*x2-x-1)/x3;
   real x5=x2*x3;
-  if(fabs(x) < 0.1)
-    return Coeff[2]+x*Coeff[3]+x2*Coeff[4]+x3*Coeff[5]
-      +x2*x2*Coeff[6]+x5*Coeff[7]+x3*x3*Coeff[8]+x5*x2*Coeff[9]
-      +x5*x3*Coeff[10];
-    else {
-      real x7=x5*x2;
-      real x8=x7*x;
-      real x16=x8*x8;
-      return Coeff[2]+x*Coeff[3]+x2*Coeff[4]+x3*Coeff[5]
-        +x2*x2*Coeff[6]+x5*Coeff[7]+x3*x3*Coeff[8]+x5*x2*Coeff[9]
-        +x5*x3*Coeff[10]+x8*x*Coeff[11]
-        +x5*x5*Coeff[12]+x8*x3*Coeff[13]+x7*x5*Coeff[14]
-        +x8*x5*Coeff[15]+x7*x7*Coeff[16]+x8*x7*Coeff[17]+x16*Coeff[18]
-        +x16*x*Coeff[19]+x16*x2*Coeff[20];
-    }
+  real y=Coeff[2]+x*Coeff[3]+x2*Coeff[4]+x3*Coeff[5]+
+    x2*x2*Coeff[6]+x5*Coeff[7]+x3*x3*Coeff[8]+x5*x2*Coeff[9]+
+    x5*x3*Coeff[10];
+  real y2=x*y+0.5;
+  y=0.125*y2*(x*y2+2)+0.25*y;
+  y2=2*x*y+0.5;
+  y=0.25*y2*(x*y2+1)+0.25*y;
+  y2=4*x*y+0.5;
+  return 0.25*y2*(2*x*y2+1)+0.25*y;
+}
+
+// phi4(x)=(exp(x)-1-x-x^2/2-x^3/6)/(x^4)
+// Use the identity phi4(2x)=0.0625*(x*phi3(x)+0.5)^2+0.125*(phi3(x)+phi4(x));
+// where phi3(x)=x*phi4(x)+1/6
+real phi4(real x)
+{
+  if(fabs(x) > 1.6) return (exp(x)-Coeff[2]*x^3-0.5*x^2-x-1)/x^4;
+  x *= 0.125;
+  real x2=x*x;
+  real x3=x2*x;
+  real x4=x2*x2;
+  real x5=x2*x3;
+  real y=Coeff[3]+x*Coeff[4]+x2*Coeff[5]+x3*Coeff[6]+
+    x4*Coeff[7]+x5*Coeff[8]+x3*x3*Coeff[9]+x5*x2*Coeff[10]+
+    x4*x4*Coeff[11];
+  real y3=x*y+Coeff[2];
+  y=0.0625*(x*y3+0.5)^2+0.125*(y3+y);
+  y3=2*x*y+Coeff[2];
+  y=(0.5*x*y3+0.125)^2+0.125*(y3+y);
+  y3=4*x*y+Coeff[2];
+  return (x*y3+0.125)^2+0.125*(y3+y);
 }
 
 void expfactors(real x, coefficients a)

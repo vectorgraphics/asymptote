@@ -190,8 +190,8 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
   real rmax=pic.scale.z.T(bounds.max);
 
   palette=adjust(pic,m,M,rmin,rmax,palette);
-  rmin=max(rmin,m);
-  rmax=min(rmax,M);
+  rmin=max(rmin,pic.scale.z.T(m));
+  rmax=min(rmax,pic.scale.z.T(M));
 
   // Crop data to allowed range and scale
   if(range != Full || pic.scale.z.scale.T != identity ||
@@ -200,6 +200,12 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
     real m=bounds.min;
     real M=bounds.max;
     f=map(new real(real x) {return T(min(max(x,m),M));},f);
+  }
+  if(pic.scale.x.scale.T != identity || pic.scale.x.postscale.T != identity ||
+     pic.scale.y.scale.T != identity || pic.scale.y.postscale.T != identity) {
+    scalefcn Tx=pic.scale.x.T;
+    scalefcn Ty=pic.scale.y.T;
+    z=map(new pair(pair z) {return (Tx(z.x),Ty(z.y));},z);
   }
 
   int[] edges={0,0,1};

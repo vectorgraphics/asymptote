@@ -20,7 +20,6 @@ path roundbox(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   pair m=min(src);
   pair M=max(src);
   pair bound=M-m;
-  int sign=filltype == NoFill ? 1 : -1;
   real a=bound.x+2*xmargin;
   real b=bound.y+2*ymargin;
   real ds=0;
@@ -90,7 +89,7 @@ object object(Label L, envelope e, real xmargin=0, real ymargin=xmargin,
   L0.position(0);
   L0.p(p);
   add(F.f,L0);
-  F.g=e(F.f,xmargin,ymargin,p,filltype);
+  F.g=e(F.f,xmargin,ymargin,p,filltype,above);
   return F;
 }
 

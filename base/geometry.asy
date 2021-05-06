@@ -2636,7 +2636,7 @@ struct hyperbola
     this.b = a * sqrt(this.e^2 - 1);
     this.p = a * (this.e^2 - 1);
     point A = this.C + (a^2/this.c) * unit(P[0]-this.C);
-    this.D1 = line(A, A + rotateO(90) * unit(A - this.C));
+    this.D1 = line(A, A + rotate(90,this.C.coordsys.O) * unit(A - this.C));
     this.D2 = reverse(rotate(180, C) * D1);
     this.V1 = C + a * unit(F1 - C);
     this.V2 = C + a * unit(F2 - C);
@@ -6575,7 +6575,7 @@ point[] intersectionpoints(line l, hyperbola h)
   point[] op;
   coordsys R = coordsys(h);
   point A = intersectionpoint(l, h.A1), B = intersectionpoint(l, h.A2);
-  point M = midpoint(segment(A, B));
+  point M = 0.5*(A + B);
   bool tgt = Finite(M) ? M @ h : false;
   if(tgt) {
     if(M @ l) op.push(M);

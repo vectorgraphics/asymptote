@@ -560,10 +560,8 @@ void Export()
       size_t count=0;
       do {
         trBeginTile(tr);
-        fpu_trap(false); // Work around FE_INVALID in OSMesa.
         remesh=true;
         drawscene(fullWidth,fullHeight);
-        fpu_trap(settings::trap());
         ++count;
       } while (trEndTile(tr));
       if(settings::verbose > 1)
@@ -1485,7 +1483,10 @@ void init()
   glutInitContextProfile(GLUT_CORE_PROFILE);
 #endif
 
+  fpu_trap(false); // Work around FE_INVALID
   glutInit(&argc,argv);
+  fpu_trap(settings::trap());
+
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 #endif
@@ -1586,7 +1587,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
+#ifndef HAVE_LIBOSMESA
   static bool initializedView=false;
+#endif
 #endif
 
 #ifdef HAVE_LIBOSMESA
@@ -1740,7 +1743,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 #endif
       string title=string(settings::PROGRAM)+": "+prefix;
+      fpu_trap(false); // Work around FE_INVALID
       window=glutCreateWindow(title.c_str());
+      fpu_trap(settings::trap());
 
       GLint samplebuf[1];
       glGetIntegerv(GL_SAMPLES,samplebuf);
@@ -1769,7 +1774,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   } else if(!havewindow) {
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
-    fpu_trap(false); // Work around FE_INVALID in Gallium
+    fpu_trap(false); // Work around FE_INVALID
     window=glutCreateWindow("");
     fpu_trap(settings::trap());
     glutHideWindow();
@@ -1827,7 +1832,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(View) {
 #ifdef HAVE_LIBGLUT
 #ifdef HAVE_PTHREAD
+#ifndef HAVE_LIBOSMESA
     initializedView=true;
+#endif
 #endif
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
@@ -1997,7 +2004,9 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glEnableVertexAttribArray(colorAttrib);
   }
 
+  fpu_trap(false); // Work around FE_INVALID
   glDrawElements(data.type,data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
+  fpu_trap(settings::trap());
 
   glDisableVertexAttribArray(positionAttrib);
   if(normal && gl::Nlights > 0)

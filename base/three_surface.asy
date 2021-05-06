@@ -546,7 +546,7 @@ path[] regularize(path p, bool checkboundary=true)
       path g=subpath(p,t,t+length(p));
       int L=length(g);
       pair z=point(g,0);
-      real[] T=intersections(g,z,z+I*dir);
+      real[] T=intersections(g,z,z+I*abs(z)*dir);
       for(int i=0; i < T.length; ++i) {
         real cut=T[i];
         if(cut > sqrtEpsilon && cut < L-sqrtEpsilon) {

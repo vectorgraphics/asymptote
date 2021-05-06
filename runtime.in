@@ -81,6 +81,7 @@ stringarray2* => stringArray2()
 #include "lexical.h"
 #include "process.h"
 #include "arrayop.h"
+#include "seconds.h"
 
 #if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   extern "C" {
@@ -92,6 +93,7 @@ stringarray2* => stringArray2()
 using namespace vm;
 using namespace camp;
 using namespace settings;
+using namespace utils;
 
 #undef OUT
 #undef IN
@@ -1036,11 +1038,12 @@ realarray *_cputime()
   struct tms buf;
 
   ::times(&buf);
-  array *t=new array(4);
-  (*t)[0] = ((real) buf.tms_utime)*ticktime;
-  (*t)[1] = ((real) buf.tms_stime)*ticktime;
-  (*t)[2] = ((real) buf.tms_cutime)*ticktime;
-  (*t)[3] = ((real) buf.tms_cstime)*ticktime;
+  array *t=new array(5);
+  (*t)[0]=((real) buf.tms_utime)*ticktime;
+  (*t)[1]=((real) buf.tms_stime)*ticktime;
+  (*t)[2]=((real) buf.tms_cutime)*ticktime;
+  (*t)[3]=((real) buf.tms_cstime)*ticktime;
+  (*t)[4]=utils::totalseconds();
   return t;
 }
 
@@ -1202,4 +1205,9 @@ transform rotate(real angle, pair z=0)
 transform reflect(pair a, pair b)
 {
   return reflectabout(a,b);
+}
+
+bool isometry(transform t)
+{
+  return t.isIsometry();
 }

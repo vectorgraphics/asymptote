@@ -85,6 +85,7 @@ const bool havegl=false;
 mode_t mask;
 
 string systemDir=ASYMPTOTE_SYSDIR;
+string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
   string(AsyGLVersion)+".js";
@@ -248,7 +249,6 @@ const string guisuffix="gui";
 const string standardprefix="out";
 
 string initdir;
-string tempdir;
 string historyname;
 
 // Local versions of the argument list.
@@ -997,7 +997,11 @@ struct versionOption : public option {
 #endif
 
     feature("WebGL    3D HTML rendering",glm);
+#ifdef HAVE_LIBOSMESA
+    feature("OpenGL   3D OSMesa offscreen rendering",gl);
+#else
     feature("OpenGL   3D OpenGL rendering",gl);
+#endif
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("XDR      external data representation (portable binary file format)",xdr);
@@ -1282,6 +1286,8 @@ void initSettings() {
 
   addOption(new boolSetting("inlineimage", 0,
                             "Generate inline embedded image"));
+  addOption(new boolSetting("compress", 0,
+                            "Compress images in PDF output", true));
   addOption(new boolSetting("parseonly", 'p', "Parse file"));
   addOption(new boolSetting("translate", 's',
                             "Show translated virtual machine code"));
@@ -1423,6 +1429,7 @@ void initSettings() {
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("libgs", defaultGhostscriptLibrary));
   addOption(new envSetting("epsdriver", defaultEPSdriver));
+  addOption(new envSetting("psdriver", defaultPSdriver));
   addOption(new envSetting("asygl", defaultAsyGL));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
@@ -1534,9 +1541,6 @@ void initDir() {
   mask=umask(0);
   if(mask == 0) mask=0027;
   umask(mask);
-  tempdir=Getenv("TEMP",true);
-#else
-  tempdir="/tmp";
 #endif
   if(access(initdir.c_str(),F_OK) == 0) {
     if(verbose > 1)

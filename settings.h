@@ -51,7 +51,6 @@ bool warn(const string& s);
 extern string systemDir;
 extern string docdir;
 extern const string dirsep;
-extern string tempdir;
 
 extern bool safe;
 

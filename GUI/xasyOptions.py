@@ -79,7 +79,6 @@ class xasyOptions:
 
         self.options = self.defaultOptions()
         self.load()
-        self.overrideSettings()
 
     def __getitem__(self, item):
         return self.options[item]
@@ -121,6 +120,7 @@ class xasyOptions:
             self.options = newOptions
         finally:
             f.close()
+        self.overrideSettings()
 
     def setDefaults(self):
         self.options = self.defaultOptions()

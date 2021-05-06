@@ -363,6 +363,10 @@ or install the @code{Asymptote} binary available at
 
 @url{https://www.macports.org/}
 
+or at
+
+@url{https://brew.sh/}
+
 @noindent
 Note that many @code{MacOS X} (and FreeBSD) systems lack the
 @acronym{GNU} @code{readline} library. For full interactive
@@ -616,24 +620,22 @@ used; if it is old we recommend first putting
 in the @code{Asymptote} source directory.
 
 On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
-using version @code{3.0.0} of the @code{freeglut} library. To compile
+using version @code{3.2.1} of the @code{freeglut} library. To compile
 @code{freeglut}, download
 @quotation
-@url{https://prdownloads.sourceforge.net/freeglut/freeglut-3.0.0.tar.gz}
+@url{https://prdownloads.sourceforge.net/freeglut/freeglut-3.2.1.tar.gz}
 @end quotation
 @noindent
 and type (as the root user):
 @verbatim
-gunzip freeglut-3.0.0.tar.gz
-tar -xf freeglut-3.0.0.tar
-cd freeglut-3.0.0
-./configure --prefix=/usr
-cmake .
+gunzip freeglut-3.2.1.tar.gz
+tar -xf freeglut-3.2.1.tar
+cd freeglut-3.2.1
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_FLAGS=-fcommon .
 make
 make install
-cd ..
 @end verbatim
-@noindent 
+@noindent
 
 Then compile @code{Asymptote} with the commands
 @verbatim
@@ -1192,21 +1194,22 @@ Margins can be used to shrink the visible portion of a path by
 Typical values of @code{margin} 
 are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
 equivalently @code{Margin}), and @code{Margins} (which leaves a margin
-at both ends of the path). One may use @code{Margin(real begin, real end)}
+at both ends of the path). One may use
+@code{Margin(real begin, real end=begin)}
 to specify the size of the beginning and ending margin, respectively,
 in multiples of the units @code{labelmargin(p)} used for aligning labels.
 Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
 (or equivalently @code{PenMargin}), @code{PenMargins},
-@code{PenMargin(real begin, real end)} specify a margin in units of
+@code{PenMargin(real begin, real end=begin)} specify a margin in units of
 the pen line width, taking account of the pen line width when drawing
 the path or arrow. For example, use @code{DotMargin}, an
 abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
 to draw from the usual beginning point just up to the boundary of an
 end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
 @code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
-similarly. The qualifier @code{TrueMargin(real begin, real end)} allows one to
-specify a margin directly in @code{PostScript} units, independent of
-the pen line width.
+similarly. The qualifier @code{TrueMargin(real begin, real end=begin)}
+allows one to specify a margin directly in @code{PostScript} units,
+independent of the pen line width.
 
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
@@ -2559,11 +2562,11 @@ returns a path running backwards along @code{p}.
 @cindex @code{subpath}
 @item path subpath(path p, int a, int b);
 returns the subpath of @code{p} running from node @code{a} to node @code{b}.
-If @code{a} < @code{b}, the direction of the subpath is reversed.
+If @code{a} > @code{b}, the direction of the subpath is reversed.
 
 @item path subpath(path p, real a, real b);
 returns the subpath  of @code{p} running from path time @code{a} to path
-time @code{b}, in the sense of @code{point(path, real)}. If @code{a} <
+time @code{b}, in the sense of @code{point(path, real)}. If @code{a} >
 @code{b}, the direction of the subpath is reversed.
 
 @cindex @code{intersect}
@@ -3102,7 +3105,7 @@ The default setting, @code{nobasealign},which may be changed with
 full label bounding box for alignment. In contrast, @code{basealign}
 requests that the @TeX{} baseline be respected.
 The base align setting of a pen is returned by
-@code{int basealigin(pen p=currentpen)}.
+@code{int basealign(pen p=currentpen)}.
 
 @cindex @code{fontsize}
 @cindex @code{lineskip}
@@ -3397,6 +3400,8 @@ The implicit initializer for transforms is @code{identity()}.
 The routines @code{shift(transform t)} and @code{shiftless(transform t)}
 return the transforms @code{(t.x,t.y,0,0,0,0)} and
 @code{(0,0,t.xx,t.xy,t.yx,t.yy)} respectively.
+The function @code{bool isometry(transform t)} can be used to test if @code{t}
+is an isometry (preserves distance).
 
 
 @node Frames and pictures, Files, Transforms, Programming
@@ -4400,10 +4405,12 @@ while in the second, it must be the (non-@code{void}) type of the variable.
 The function @code{cputime()}
 returns a structure @code{cputime} with cumulative @acronym{CPU} times
 broken down into the fields @code{parent.user}, @code{parent.system},
-@code{child.user}, and @code{child.system}. For convenience, the
-incremental fields @code{change.user} and @code{change.system} indicate
-the change in the corresponding total parent and child @acronym{CPU}
-times since the last call to @code{cputime()}. The function
+@code{child.user}, and @code{child.system}, along with the cumulative
+wall clock time in @code{parent.clock}, all measured in seconds.
+For convenience, the incremental fields @code{change.user},
+@code{change.system}, and @code{change.clock} indicate  the change in
+the corresponding fields since the last call to @code{cputime()}. The
+function
 @verbatim
 void write(file file=stdout, string s="", cputime c,
            string format=cputimeformat, suffix suffix=none); 
@@ -6255,7 +6262,7 @@ to the type.  This is regardless of what fields the variable actually possesses.
 @cindex @code{asymptote.sty}
 
 @code{Asymptote} comes with a convenient @code{LaTeX} style file
-@code{asymptote.sty} (v1.35 or later required) that makes @code{LaTeX}
+@code{asymptote.sty} (v1.36 or later required) that makes @code{LaTeX}
 @code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
@@ -9477,10 +9484,11 @@ To produce @acronym{SVG} output, you will need @code{dvisvgm} (version
 You might need to adjust the configuration variable @code{libgs} to
 point to the location of your @code{Ghostscript} library
 @code{libgs.so} (or to an empty string, depending on how
-@code{dvisvgm} was configured). The 2.9.1 version of @code{dvisvgm} can
-display @acronym{SVG} output (used by the @code{xasy} editor) for embedded
-@acronym{EPS}, @acronym{PDF}, @acronym{PNG}, and @acronym{JPEG} images
-included with the @code{graphic()} function.
+@code{dvisvgm} was configured). The 2.10 version (or later) of
+@code{dvisvgm} can display @acronym{SVG} output (used by the
+@code{xasy} editor) for embedded @acronym{EPS}, @acronym{PDF},
+@acronym{PNG}, and @acronym{JPEG} images included with the
+@code{graphic()} function.
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
@@ -10083,7 +10091,7 @@ Pedram Emami developed the @code{Asymptote Web Application} at
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen emissivepen specularpen arrowbarb keyval
-@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin cmd
+@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealign cmd
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach SVG
