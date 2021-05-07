@@ -2090,6 +2090,29 @@ guide polargraph(picture pic=currentpicture, real[] r, real[] theta,
     },0,0,n-1);
 }
 
+// Graph a parametric function with the control points specified to match the
+// derivative.
+guide graphwithderiv(pair f(real), pair fprime(real), real a, real b,
+                     int n=ngraph # 10) {
+  guide toreturn;
+  real segmentlen = (b - a) / n;
+  pair[] points = new pair[n+1];
+  pair[] derivs = new pair[n+1];
+  real derivfactor = segmentlen / 3;
+  for (int i = 0; i <= n; ++i) {
+    real t = interp(a, b, i/n);
+    points[i] = f(t);
+    derivs[i] = fprime(t) * derivfactor;
+  }
+
+  toreturn = points[0];
+  for (int i = 1; i <= n; ++i) {
+    toreturn = toreturn .. controls (points[i-1] + derivs[i-1])
+      and (points[i] - derivs[i]) .. points[i];
+  }
+  return toreturn;
+}
+
 void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,
               real size=0)
 {
