@@ -1112,7 +1112,7 @@ class xasyItem(QtCore.QObject):
 
             self.asy2psmap = asyTransform(xu.listize(fin.readline().rstrip(),float))
         else:
-            self.asy2psmap = identity()
+            self.asy2psmap = yflip()
         self.imageHandleQueue.put((None,))
         self.asyfied = True
 

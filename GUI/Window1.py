@@ -114,7 +114,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         self.args = xa.parseArgs(self.raw_args)
 
         self.strings = xs.xasyString(self.args.language)
-        self.asy2psmap = x2a.identity()
+        self.asy2psmap = x2a.yflip()
 
         if self.settings['asyBaseLocation'] is not None:
             os.environ['ASYMPTOTE_DIR'] = self.settings['asyBaseLocation']
