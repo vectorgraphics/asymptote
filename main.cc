@@ -43,6 +43,7 @@
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
+#include "lspserv.h"
 
 #include "stack.h"
 
@@ -134,7 +135,15 @@ void *asymain(void *A)
 
   if(interactive) {
     Signal(SIGINT,interruptHandler);
-    processPrompt();
+    if (getSetting<bool>("lsp")) {
+      AsymptoteLsp::LspLog log;
+      auto jsonHandler = std::make_shared<lsp::ProtocolJsonHandler>();
+      auto endpoint = std::make_shared<GenericEndpoint>(log);
+      AsymptoteLsp::AsymptoteLspServer asylsp("127.0.0.1", "10007", jsonHandler, endpoint, log);
+      asylsp.start();
+    } else {
+      processPrompt();
+    }
   } else if (getSetting<bool>("listvariables") && numArgs()==0) {
     try {
       doUnrestrictedList();
