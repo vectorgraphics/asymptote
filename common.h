@@ -10,6 +10,7 @@
 #undef NDEBUG
 
 #include <iostream>
+#include <memory>
 #include <climits>
 
 #ifdef HAVE_CONFIG_H
@@ -87,6 +88,11 @@ using mem::stringstream;
 using mem::istringstream;
 using mem::ostringstream;
 using mem::stringbuf;
+
+using std::shared_ptr;
+using std::unique_ptr;
+using std::make_shared;
+using std::make_unique;
 
 static const struct ws_t {} ws={};
 
