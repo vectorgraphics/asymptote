@@ -1342,6 +1342,9 @@ void initSettings() {
                             "Input code over multiple lines at the prompt"));
   addOption(new boolSetting("xasy", 0,
                             "Special interactive mode for xasy"));
+  addOption(new boolSetting("lsp", 0, "Special interactive mode for lsp-rpc"));
+  addOption(new boolSetting("wsl", 0, "Set to WSL mode when running asy inside WSL."));
+
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));
@@ -1458,7 +1461,7 @@ void setInteractive()
 {
   if(numArgs() == 0 && !getSetting<bool>("listvariables") &&
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || getSetting<Int>("xasy")))
+     (isatty(STDIN_FILENO) || getSetting<Int>("xasy") || getSetting<Int>("lsp")))
     interact::interactive=true;
 
   if(getSetting<bool>("localhistory"))
