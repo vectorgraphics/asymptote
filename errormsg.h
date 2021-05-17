@@ -11,6 +11,7 @@
 #include <iostream>
 #include "common.h"
 #include "settings.h"
+#include "symbolmaps.h"
 
 using std::ostream;
 
@@ -118,6 +119,11 @@ public:
   }
 
   friend ostream& operator << (ostream& out, const position& pos);
+
+  explicit operator AsymptoteLsp::filePos()
+  {
+    return std::make_pair((std::string)file->name(), LineColumn());
+  }
 
   void print(ostream& out) const
   {
