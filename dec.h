@@ -234,6 +234,8 @@ public:
   //
   // is not guaranteed to return.
   bool returns();
+
+  void createSymMap(AsymptoteLsp::SymbolMaps &map) override;
 };
 
 class modifierList : public absyn {
@@ -360,6 +362,8 @@ public:
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 
   decidstart *getStart() { return start; }
+
+  void createSymMap(AsymptoteLsp::SymbolMaps &map) override;
 };
 
 class decidlist : public absyn {
@@ -390,6 +394,8 @@ public:
     else
       return 0;
   }
+
+  void createSymMap(AsymptoteLsp::SymbolMaps &map) override;
 };
 
 class dec : public runnable {
@@ -438,6 +444,8 @@ public:
   // If the vardec encodes a single declaration, return the type of that
   // declaration (otherwise 0).
   types::ty *singleGetType(coenv& e);
+
+  void createSymMap(AsymptoteLsp::SymbolMaps &map) override;
 };
 
 struct idpair : public absyn {
