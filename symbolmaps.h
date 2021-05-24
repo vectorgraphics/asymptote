@@ -24,6 +24,11 @@ namespace AsymptoteLsp
     return lsPosition(inPos.first - 1, inPos.second - 1);
   }
 
+  inline bool posLt(posInFile const& p1, posInFile const& p2)
+  {
+    return (p1.first < p2.first) or ((p1.first == p2.first) and (p1.second < p2.second));
+  }
+
   using std::unordered_map;
 
   // filename to positions
