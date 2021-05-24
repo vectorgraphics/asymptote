@@ -46,16 +46,6 @@ namespace AsymptoteLsp
     void add(filePos const& positionInFile);
   };
 
-  struct lineUsage
-  {
-    std::vector<std::pair<posInFile, std::string>> usageByLine;
-
-    lineUsage() = default;
-    lineUsage(posInFile const& pos, std::string const& sym);
-    void add(posInFile const& pos, std::string const& sym);
-    std::optional<std::tuple<std::string, posInFile, posInFile>> searchSymbol(posInFile const& inputPos);
-  };
-
   struct SymbolMaps
   {
     // FIXME: Factor in context as well, for example,
