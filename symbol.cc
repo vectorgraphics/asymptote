@@ -330,6 +330,11 @@ ostream& operator<< (ostream& out, const symbol sym)
   return out << r.s;
 }
 
+symbol::operator std::string() const {
+  symbolRecord &r = recordByHashplus(this->hashplus);
+  return (std::string)r.s;
+}
+
 } // end namespace sym
 
 /* Define all of operator symbols SYM_PLUS, etc. */

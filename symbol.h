@@ -111,6 +111,7 @@ struct symbol {
   operator bool () const { return this->hashplus != 0; }
 
   operator string () const;
+  explicit operator std::string() const;
 
   friend ostream& operator<< (ostream& out, const symbol sym);
 };
