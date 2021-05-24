@@ -238,6 +238,7 @@ public:
     : exp(pos), value(new simpleName(pos, symbol::trans(s))) {}
 
   void prettyprint(ostream &out, Int indent);
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 
   symbol getName()
   {
@@ -656,6 +657,7 @@ struct argument {
 #endif
 
   void prettyprint(ostream &out, Int indent);
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext);
 };
 
 class arglist : public gc {
@@ -725,6 +727,8 @@ public:
   virtual argument& getRest() {
     return rest;
   }
+
+  virtual void createSymMap(AsymptoteLsp::SymbolContext* symContext);
 };
 
 // callExp has a global cache of resolved overloaded functions.  This clears
@@ -797,6 +801,7 @@ public:
   }
 
   void prettyprint(ostream &out, Int indent);
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);

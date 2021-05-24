@@ -69,6 +69,8 @@ public:
     return base->returns();
   }
 
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+
 };
 
 // A statement that consist of a single expression to evaluate.
@@ -87,6 +89,7 @@ public:
   // The code will "write" the value of the expression at the prompt if
   // possible.
   void interactiveTrans(coenv &e);
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class ifStm : public stm {
@@ -121,7 +124,10 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
+
   void trans(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class doStm : public stm {

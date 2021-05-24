@@ -42,8 +42,13 @@ void blockStm::prettyprint(ostream &out, Int indent)
   base->prettyprint(out, indent+1);
 }
 
+void blockStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  base->createSymMap(symContext->newContext(getPos().LineColumn()));
+}
 
-void expStm::prettyprint(ostream &out, Int indent)
+
+  void expStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"expStm",indent, getPos());
 
@@ -170,6 +175,10 @@ void expStm::interactiveTrans(coenv &e)
     baseExpTrans(e, body);
 }
 
+void expStm::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
+  body->createSymMap(symContext);
+}
+
 
 void ifStm::prettyprint(ostream &out, Int indent)
 {
@@ -273,8 +282,25 @@ void whileStm::trans(coenv &e)
   e.c.popLoop();
 }
 
+void whileStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  // while (<xyz>) { <body> }
+  // the <xyz> part belongs in the main context as the while statement,
+  // as it cannot declare new variables and only knows the symbols from that context.
 
-void doStm::prettyprint(ostream &out, Int indent)
+  test->createSymMap(symContext);
+
+  // for the body part, { <body> } are encapsulated in
+  // the blockStm, while <body> are direct statements.
+  // If the while block does not use { <body> }, then the body
+  // can be considered the same context as it cannot declare new variables and again, can
+  // only uses the variable already known before this while statement.
+
+  body->createSymMap(symContext);
+}
+
+
+  void doStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"doStm",indent, getPos());
 

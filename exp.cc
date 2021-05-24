@@ -186,6 +186,23 @@ void nameExp::prettyprint(ostream &out, Int indent)
   value->prettyprint(out, indent+1);
 }
 
+void nameExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  std::string sy(value->getName());
+  AsymptoteLsp::filePos castedPos(getPos());
+  auto varUsageIt = symContext->symMap.varUsage.find(sy);
+  if (varUsageIt == symContext->symMap.varUsage.end())
+  {
+    symContext->symMap.varUsage.emplace(sy, castedPos);
+  }
+  else
+  {
+    varUsageIt->second.add(castedPos);
+  }
+
+  symContext->symMap.usageByLines.emplace_back(castedPos.second, sy);
+}
+
 
 void fieldExp::pseudoName::prettyprint(ostream &out, Int indent)
 {
@@ -715,12 +732,25 @@ void argument::prettyprint(ostream &out, Int indent)
   val->prettyprint(out, indent+1);
 }
 
+void argument::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  val->createSymMap(symContext);
+}
+
 void arglist::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "arglist",indent, getPos());
   for (argvector::iterator p = args.begin();
        p != args.end(); ++p)
     p->prettyprint(out, indent+1);
+}
+
+void arglist::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  for (auto& p: args)
+  {
+    p.createSymMap(symContext);
+  }
 }
 
 void callExp::prettyprint(ostream &out, Int indent)
@@ -1036,8 +1066,14 @@ bool callExp::resolved(coenv &e) {
   return cachedApp || cachedVarEntry;
 }
 
+void callExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  callee->createSymMap(symContext);
+  args->createSymMap(symContext);
+}
 
-void pairExp::prettyprint(ostream &out, Int indent)
+
+  void pairExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "pairExp",indent, getPos());
 
