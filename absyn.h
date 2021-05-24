@@ -38,7 +38,7 @@ public:
   }
 
   virtual void prettyprint(ostream &out, Int indent) = 0;
-  virtual void createSymMap(AsymptoteLsp::SymbolMaps& map) {}
+  virtual void createSymMap(AsymptoteLsp::SymbolContext* symContext) {}
 private:  // Non-copyable
   void operator=(const absyn&);
   absyn(const absyn&);

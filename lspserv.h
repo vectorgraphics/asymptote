@@ -52,6 +52,8 @@ namespace AsymptoteLsp
     void log(Level level, const std::wstring& msg) override;
   };
 
+  typedef std::unordered_map<std::string, std::unique_ptr<SymbolContext>> SymContextFilemap;
+
   class AsymptoteLspServer: public lsp::TcpServer
   {
   public:
@@ -84,7 +86,8 @@ namespace AsymptoteLsp
     shared_ptr<GenericEndpoint> ep;
 
     LspLog& _log;
-    SymbolMaps symmap;
+
+    unique_ptr<SymContextFilemap> symmapContextsPtr;
   };
 }
 

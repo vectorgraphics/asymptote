@@ -235,7 +235,7 @@ public:
   // is not guaranteed to return.
   bool returns();
 
-  void createSymMap(AsymptoteLsp::SymbolMaps &map) override;
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class modifierList : public absyn {
@@ -363,7 +363,7 @@ public:
 
   decidstart *getStart() { return start; }
 
-  void createSymMap(AsymptoteLsp::SymbolMaps &map) override;
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class decidlist : public absyn {
@@ -395,7 +395,7 @@ public:
       return 0;
   }
 
-  void createSymMap(AsymptoteLsp::SymbolMaps &map) override;
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class dec : public runnable {
@@ -445,7 +445,7 @@ public:
   // declaration (otherwise 0).
   types::ty *singleGetType(coenv& e);
 
-  void createSymMap(AsymptoteLsp::SymbolMaps &map) override;
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 struct idpair : public absyn {

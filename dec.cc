@@ -224,10 +224,10 @@ vardec *block::asVardec()
   return var;
 }
 
-void block::createSymMap(AsymptoteLsp::SymbolMaps &map) {
+void block::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
   for (auto const& p : stms)
   {
-    p->createSymMap(map);
+    p->createSymMap(symContext);
   }
 }
 
@@ -563,9 +563,8 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
   addTypeWithPermission(e, r, ent, start->getName());
 }
 
-void decid::createSymMap(AsymptoteLsp::SymbolMaps &map) {
-  string sym = start->getName();
-  map.varDec.emplace(sym, getPos());
+void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
+  symContext->symMap.varDec.emplace(static_cast<std::string>(start->getName()), getPos().LineColumn());
 }
 
 
@@ -589,10 +588,10 @@ void decidlist::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
     (*p)->transAsTypedefField(e, base, r);
 }
 
-void decidlist::createSymMap(AsymptoteLsp::SymbolMaps &map) {
+void decidlist::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
   for (auto const& p : decs)
   {
-    p->createSymMap(map);
+    p->createSymMap(symContext);
   }
 }
 
@@ -627,9 +626,9 @@ types::ty *vardec::singleGetType(coenv &e)
   return did->getStart()->getType(base->trans(e), e);
 }
 
-void vardec::createSymMap(AsymptoteLsp::SymbolMaps &map)
+void vardec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  decs->createSymMap(map);
+  decs->createSymMap(symContext);
 }
 
 

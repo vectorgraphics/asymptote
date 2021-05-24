@@ -26,26 +26,15 @@ namespace AsymptoteLsp
     os << "var decs:" << endl;
     for (auto const& [key, value] : sym.varDec)
     {
-      os << key << " " << value.first << ":" << value.second.first << ":" << value.second.second << endl;
+      os << key << " " << value.first << ":" << value.second << endl;
     }
     return os;
   }
 
-  lineUsage::lineUsage(posInFile const& pos, std::string const& sym)
-  {
-    add(pos, sym);
-  }
-  // start, end position (non-inclusive)
-
-  void lineUsage::add(posInFile const& pos, std::string const& sym)
-  {
-    usageByLine.emplace_back(pos, sym);
-  }
-
-  std::optional<std::tuple<std::string, posInFile, posInFile>> lineUsage::searchSymbol(posInFile const& inputPos)
+  std::optional<posRangeInFile> SymbolMaps::searchSymbol(posInFile const& inputPos)
   {
     // FIXME: can be optimized by binary search.
-    for (auto const& [pos, sy] : usageByLine)
+    for (auto const& [pos, sy] : usageByLines)
     {
       size_t endCharacter = pos.second + sy.length() - 1;
       bool posMatches =
@@ -57,6 +46,30 @@ namespace AsymptoteLsp
       {
         posInFile endPos(pos.first, endCharacter + 1);
         return std::make_optional(std::make_tuple(sy, pos, endPos));
+      }
+    }
+    return std::nullopt;
+  }
+
+  std::optional<posRangeInFile> SymbolContext::searchSymbol(posInFile const& inputPos)
+  {
+    auto currCtxSym = symMap.searchSymbol(inputPos);
+    if (currCtxSym.has_value())
+    {
+      return currCtxSym;
+    }
+
+    // else, not found in currCtx;
+
+    for (auto& subContext : subContexts)
+    {
+      if (!posLt(inputPos, subContext->contextLoc))
+      {
+        auto currCtxSym=subContext->searchSymbol(inputPos);
+        if (currCtxSym.has_value())
+        {
+          return currCtxSym;
+        }
       }
     }
     return std::nullopt;

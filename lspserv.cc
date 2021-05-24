@@ -112,6 +112,8 @@ namespace AsymptoteLsp
   void AsymptoteLspServer::onInitialized(Notify_InitializedNotification::notify& notify)
   {
     cerr << "initialized" << endl;
+    symmapContextsPtr.release();
+    symmapContextsPtr = std::make_unique<SymContextFilemap>();
   }
 
   void AsymptoteLspServer::onExit(Notify_Exit::notify& notify)
@@ -131,14 +133,16 @@ namespace AsymptoteLsp
 
     cerr << "text change" << endl;
     lsDocumentUri fileUri(notify.params.textDocument.uri);
-    string rawPath = settings::getSetting<bool>("wsl") ?
-      wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
+    std::string rawPath = static_cast<std::string>(settings::getSetting<bool>("wsl") ?
+      wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath()));
 
     block* blk = ifile(rawPath.c_str()).getTree();
+    symmapContextsPtr->clear();
     if (blk != nullptr) {
+      symmapContextsPtr->emplace(rawPath, std::make_unique<SymbolContext>(posInFile(1, 1)));
       cerr << rawPath << endl;
-      blk->createSymMap(symmap);
-      cerr << symmap << endl;
+      blk->createSymMap(symmapContextsPtr->at(static_cast<std::string>(rawPath)).get());
+      // cerr << "create symbol map" << endl;
     }
 
     GC_collect_a_little();
@@ -175,9 +179,29 @@ namespace AsymptoteLsp
 
   td_hover::response AsymptoteLspServer::handleHoverRequest(td_hover::request const& req)
   {
-    cerr << "request for hover" << std::endl;
     td_hover::response rsp;
-    rsp.result.contents=fromString("hello test signature.");
+    cerr << "request for hover" << std::endl;
+
+    lsDocumentUri fileUri(req.params.textDocument.uri);
+    string rawPath = settings::getSetting<bool>("wsl") ?
+                     wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
+    auto rawPathStr = static_cast<std::string>(rawPath);
+    auto fileSymIt = symmapContextsPtr->find(rawPathStr);
+    if (fileSymIt != symmapContextsPtr->end())
+    {
+      auto st=fileSymIt->second->searchSymbol(fromLsPosition(req.params.position));
+      if (st.has_value())
+      {
+        auto[symText, startPos, endPos] = st.value();
+        rsp.result.contents=fromString("symbol: " + symText);
+        rsp.result.range=std::make_optional(lsRange(toLsPosition(startPos), toLsPosition(endPos)));
+        // cerr << "symbol is " << symText << std::endl;
+        return rsp;
+      }
+    }
+    // cerr << "symbol not found" << endl;
+    // empty return
+    rsp.result.contents.first = std::vector<std::pair<optional<std::string>, optional<lsMarkedString>>>();
     return rsp;
   }
 

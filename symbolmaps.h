@@ -7,11 +7,16 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <tuple>
+#include <utility>
 
 namespace AsymptoteLsp
 {
+  struct SymbolContext;
+
+  typedef std::pair<std::string, SymbolContext*> contextedSymbol;
   typedef std::pair<size_t, size_t> posInFile;
   typedef std::pair<std::string, posInFile> filePos;
+  typedef std::tuple<std::string, posInFile, posInFile> posRangeInFile;
 
   // NOTE: lsPosition is zero-indexed, while all Asymptote positions (incl this struct) is 1-indexed.
   inline posInFile fromLsPosition(lsPosition const& inPos)
@@ -63,21 +68,57 @@ namespace AsymptoteLsp
     // LSP needs to be able to differentiate between these two symbols and their usage.
     // a possible solution is context, which is a tree and a each context as a pointer to that node.
 
-    unordered_map <std::string, filePos> varDec;
+    unordered_map <std::string, posInFile> varDec;
+
+    // can refer to other files
     unordered_map <std::string, positions> varUsage;
 
     // python equivalent of dict[str, list[tuple(pos, sym)]]
     // filename -> list[(position, symbol)]
-    unordered_map<std::string, lineUsage> usageByFiles;
+
+    std::vector<std::pair<posInFile, std::string>> usageByLines;
 
     inline void clear()
     {
       varDec.clear();
       varUsage.clear();
-      usageByFiles.clear();
+      usageByLines.clear();
     }
+
+    std::optional<posRangeInFile> searchSymbol(posInFile const& inputPos);
 
   private:
     friend ostream& operator<<(std::ostream& os, const SymbolMaps& sym);
+  };
+
+  struct SymbolContext
+  {
+    posInFile contextLoc;
+    SymbolContext* parent;
+    SymbolMaps symMap;
+
+    std::vector<std::unique_ptr<SymbolContext>> subContexts;
+
+    SymbolContext():
+      parent(nullptr) {
+      std::cerr << "created symbol context";
+    }
+
+    ~SymbolContext() = default;
+
+    explicit SymbolContext(posInFile loc):
+      contextLoc(std::move(loc)), parent(nullptr) {}
+
+    SymbolContext(posInFile loc, SymbolContext* contextParent):
+      contextLoc(std::move(loc)), parent(contextParent) {}
+
+    SymbolContext* newContext(posInFile const& loc)
+    {
+      subContexts.push_back(std::make_unique<SymbolContext>(loc, this));
+      return subContexts.at(subContexts.size() - 1).get();
+    }
+
+    // [file, start, end]
+    std::optional<posRangeInFile> searchSymbol(posInFile const& inputPos);
   };
 }
