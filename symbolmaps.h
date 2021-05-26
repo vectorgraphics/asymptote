@@ -59,6 +59,7 @@ namespace AsymptoteLsp
     // a possible solution is context, which is a tree and a each context as a pointer to that node.
 
     unordered_map <std::string, posInFile> varDec;
+    unordered_map <std::string, posInFile> funDec;
 
     // can refer to other files
     unordered_map <std::string, positions> varUsage;
@@ -94,7 +95,7 @@ namespace AsymptoteLsp
       std::cerr << "created symbol context";
     }
 
-    ~SymbolContext() = default;
+    virtual ~SymbolContext() = default;
 
     explicit SymbolContext(posInFile loc):
       contextLoc(std::move(loc)), parent(nullptr) {}
@@ -102,13 +103,32 @@ namespace AsymptoteLsp
     SymbolContext(posInFile loc, SymbolContext* contextParent):
       contextLoc(std::move(loc)), parent(contextParent) {}
 
-    SymbolContext* newContext(posInFile const& loc)
+    template<typename T=SymbolContext, typename=std::enable_if<std::is_base_of<SymbolContext, T>::value>>
+    T* newContext(posInFile const& loc)
     {
-      subContexts.push_back(std::make_unique<SymbolContext>(loc, this));
-      return subContexts.at(subContexts.size() - 1).get();
+      subContexts.push_back(std::make_unique<T>(loc, this));
+      return static_cast<T*>(subContexts.at(subContexts.size() - 1).get());
     }
 
     // [file, start, end]
-    std::optional<posRangeInFile> searchSymbol(posInFile const& inputPos);
+    std::pair<std::optional<posRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
+
+    virtual std::optional<posRangeInFile> searchVarDecl(std::string const& symbol);
+  };
+
+  struct AddDeclContexts: SymbolContext
+  {
+    unordered_map <std::string, posInFile> additionalDecs;
+    AddDeclContexts(): SymbolContext() {}
+
+    explicit AddDeclContexts(posInFile loc):
+      SymbolContext(loc) {}
+
+    AddDeclContexts(posInFile loc, SymbolContext* contextParent):
+      SymbolContext(loc, contextParent) {}
+
+    ~AddDeclContexts() override = default;
+
+    std::optional<posRangeInFile> searchVarDecl(std::string const& symbol) override;
   };
 }

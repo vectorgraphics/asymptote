@@ -51,12 +51,12 @@ namespace AsymptoteLsp
     return std::nullopt;
   }
 
-  std::optional<posRangeInFile> SymbolContext::searchSymbol(posInFile const& inputPos)
+  std::pair<std::optional<posRangeInFile>, SymbolContext*> SymbolContext::searchSymbol(posInFile const& inputPos)
   {
     auto currCtxSym = symMap.searchSymbol(inputPos);
     if (currCtxSym.has_value())
     {
-      return currCtxSym;
+      return make_pair(currCtxSym, this);
     }
 
     // else, not found in currCtx;
@@ -65,13 +65,49 @@ namespace AsymptoteLsp
     {
       if (!posLt(inputPos, subContext->contextLoc))
       {
-        auto currCtxSym=subContext->searchSymbol(inputPos);
-        if (currCtxSym.has_value())
+        auto [subCtxSym, ctx]=subContext->searchSymbol(inputPos);
+        if (subCtxSym.has_value())
         {
-          return currCtxSym;
+          return make_pair(subCtxSym, ctx);
         }
       }
     }
-    return std::nullopt;
+    return make_pair(std::nullopt, nullptr);
+  }
+
+  std::optional<posRangeInFile> SymbolContext::searchVarDecl(std::string const& symbol)
+  {
+    auto pt = symMap.varDec.find(symbol);
+    if (pt != symMap.varDec.end())
+    {
+      auto [line, ch] = pt->second;
+      return std::make_tuple(pt->first, pt->second, std::make_pair(line, ch + symbol.length()));
+    }
+
+    auto ptFn = symMap.funDec.find(symbol);
+    if (ptFn != symMap.funDec.end())
+    {
+      // FIXME: Right now, we have no way of knowing the exact position of the
+      //        start of where the function name is. As an example, we do not know
+      //        where the exact position of
+      //        real testFunction(...) { ...
+      //             ^
+      return std::make_tuple(ptFn->first, ptFn->second, ptFn->second);
+    }
+
+    // otherwise, search parent.
+    return parent != nullptr ? parent->searchVarDecl(symbol) : nullopt;
+  }
+
+  std::optional<posRangeInFile> AddDeclContexts::searchVarDecl(std::string const& symbol)
+  {
+    auto pt = additionalDecs.find(symbol);
+    if (pt != additionalDecs.end())
+    {
+      auto [line, ch] = pt->second;
+      return std::make_tuple(pt->first, pt->second, std::make_pair(line, ch + symbol.length()));
+    }
+
+    return SymbolContext::searchVarDecl(symbol);
   }
 }

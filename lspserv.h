@@ -13,6 +13,7 @@
 #include <LibLsp/lsp/textDocument/hover.h>
 #include <LibLsp/lsp/general/initialize.h>
 #include <LibLsp/lsp/general/shutdown.h>
+#include <LibLsp/lsp/textDocument/declaration_definition.h>
 
 //header for notifs
 #include <LibLsp/lsp/general/exit.h>
@@ -60,9 +61,15 @@ namespace AsymptoteLsp
     AsymptoteLspServer(std::string const& addr, std::string const& port,
                        shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
                        shared_ptr<GenericEndpoint> const& endpoint, LspLog& log);
-    AsymptoteLspServer(AsymptoteLspServer& sv) = delete;
     ~AsymptoteLspServer();
-    AsymptoteLspServer& operator =(AsymptoteLspServer const& sv) = delete;
+
+    // copy constructors + copy assignment op
+    AsymptoteLspServer(AsymptoteLspServer& sv) = delete;
+    AsymptoteLspServer& operator=(AsymptoteLspServer const& sv) = delete;
+
+    // move constructors and move assignment op
+    AsymptoteLspServer(AsymptoteLspServer&& sv) = delete;
+    AsymptoteLspServer& operator=(AsymptoteLspServer&& sv) = delete;
 
     void start();
 
@@ -70,6 +77,7 @@ namespace AsymptoteLsp
     td_hover::response handleHoverRequest(td_hover::request const&);
     td_initialize::response handleInitailizeRequest(td_initialize::request const&);
     td_shutdown::response handleShutdownRequest(td_shutdown::request const&);
+    td_definition::response handleDefnRequest(td_definition::request const&);
 
     void onInitialized(Notify_InitializedNotification::notify& notify);
     void onExit(Notify_Exit::notify& notify);

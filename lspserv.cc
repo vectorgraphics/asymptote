@@ -96,6 +96,7 @@ namespace AsymptoteLsp
     REGISTER_REQ_FN(td_initialize, handleInitailizeRequest)
     REGISTER_REQ_FN(td_hover, handleHoverRequest)
     REGISTER_REQ_FN(td_shutdown, handleShutdownRequest)
+    REGISTER_REQ_FN(td_definition, handleDefnRequest)
   }
 
   void AsymptoteLspServer::initializeNotifyFn()
@@ -174,6 +175,8 @@ namespace AsymptoteLsp
     so.includeText = true;
     tdso.save = so;
     rsp.result.capabilities.textDocumentSync = opt_right<lsTextDocumentSyncKind>(tdso);
+
+    rsp.result.capabilities.definitionProvider = std::make_pair(true, std::nullopt);
     return rsp;
   }
 
@@ -214,6 +217,43 @@ namespace AsymptoteLsp
     nullResp.Set(jn);
     rsp.result=nullResp;
     this->stop();
+    return rsp;
+  }
+
+  td_definition::response AsymptoteLspServer::handleDefnRequest(td_definition::request const& req)
+  {
+    cerr << "defn request" << endl;
+    td_definition::response rsp;
+    rsp.result.first = make_optional(std::vector<lsLocation>());
+
+    lsDocumentUri fileUri(req.params.textDocument.uri);
+    string rawPath = settings::getSetting<bool>("wsl") ?
+                     wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
+
+    auto rawPathStr = static_cast<std::string>(rawPath);
+    auto fileSymIt = symmapContextsPtr->find(rawPathStr);
+    if (fileSymIt != symmapContextsPtr->end())
+    {
+      auto [st, ctx]=fileSymIt->second->searchSymbol(fromLsPosition(req.params.position));
+      if (st.has_value())
+      {
+        std::string sym(std::get<0>(st.value()));
+        std::optional<posRangeInFile> posRange = ctx->searchVarDecl(sym);
+        if (posRange.has_value())
+        {
+          auto [fil, posBegin, posEnd] = posRange.value();
+          lsRange rng(toLsPosition(posBegin), toLsPosition(posEnd));
+
+          // same file
+          lsLocation loc(req.params.textDocument.uri, rng);
+          rsp.result.first->push_back(loc);
+        }
+        else
+        {
+          // search in other files.
+        }
+      }
+    }
     return rsp;
   }
 
