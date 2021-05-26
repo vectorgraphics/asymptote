@@ -1047,6 +1047,8 @@ public:
   void transAsType(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class selfExp : public assignExp {

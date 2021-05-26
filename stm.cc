@@ -213,6 +213,13 @@ void ifStm::trans(coenv &e)
   e.c.defLabel(end);
 }
 
+  void ifStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+  {
+    test->createSymMap(symContext);
+    onTrue->createSymMap(symContext);
+    onFalse->createSymMap(symContext);
+  }
+
 
 void transLoopBody(coenv &e, stm *body) {
   // The semantics of the language are defined so that any variable declared
@@ -327,6 +334,12 @@ void doStm::trans(coenv &e)
   e.c.popLoop();
 }
 
+void doStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  body->createSymMap(symContext);
+  test->createSymMap(symContext);
+}
+
 
 void forStm::prettyprint(ostream &out, Int indent)
 {
@@ -367,6 +380,26 @@ void forStm::trans(coenv &e)
   e.c.popLoop();
 
   e.e.endScope();
+}
+
+void forStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  AsymptoteLsp::SymbolContext* ctx(symContext);
+  if (init)
+  {
+    auto* declCtx(symContext->newContext(getPos().LineColumn()));
+    init->createSymMap(declCtx);
+    ctx = declCtx;
+  }
+  if (test)
+  {
+    test->createSymMap(ctx);
+  }
+  if (update)
+  {
+    update->createSymMap(ctx);
+  }
+  body->createSymMap(ctx);
 }
 
 void extendedForStm::prettyprint(ostream &out, Int indent)
@@ -509,6 +542,11 @@ void returnStm::trans(coenv &e)
   // NOTE: Currently, a return statement in a module definition will end
   // the initializer.  Should this be allowed?
   e.c.encode(inst::ret);
+}
+
+void returnStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  value->createSymMap(symContext);
 }
 
 

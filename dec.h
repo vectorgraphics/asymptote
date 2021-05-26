@@ -321,6 +321,8 @@ public:
 
   virtual symbol getName()
   { return id; }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Forward declaration.

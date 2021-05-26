@@ -179,7 +179,12 @@ void formal::transAsVar(coenv &e, Int index) {
   }
 }
 
-void formals::trans(coenv &e)
+void formal::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  start->createSymMap(symContext);
+}
+
+  void formals::trans(coenv &e)
 {
   Int index = 0;
 
@@ -194,7 +199,15 @@ void formals::trans(coenv &e)
   }
 }
 
-void fundef::prettyprint(ostream &out, Int indent)
+void formals::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  for (auto& field: fields)
+  {
+    field->createSymMap(symContext);
+  }
+}
+
+  void fundef::prettyprint(ostream &out, Int indent)
 {
   result->prettyprint(out, indent+1);
   params->prettyprint(out, indent+1);
@@ -294,7 +307,14 @@ types::ty *fundef::trans(coenv &e) {
   return ft;
 }
 
-void fundec::prettyprint(ostream &out, Int indent)
+void fundef::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  auto* declCtx(symContext->newContext<AsymptoteLsp::AddDeclContexts>(getPos().LineColumn()));
+  params->createSymMap(declCtx);
+  body->createSymMap(declCtx);
+}
+
+  void fundec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "fundec '" << id << "'\n";
@@ -313,6 +333,12 @@ void fundec::transAsField(coenv &e, record *r)
   assert(ft);
 
   createVar(getPos(), e, r, id, ft, fun.makeVarInit(ft));
+}
+
+void fundec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  symContext->symMap.funDec.emplace(static_cast<std::string>(id), getPos().LineColumn());
+  fun.createSymMap(symContext);
 }
 
 } // namespace absyntax

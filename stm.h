@@ -112,6 +112,8 @@ public:
       return false;
     return onTrue->returns() && onFalse->returns();
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class whileStm : public stm {
@@ -141,6 +143,8 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class forStm : public stm {
@@ -156,6 +160,8 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class extendedForStm : public stm {
@@ -210,6 +216,8 @@ public:
   bool returns() {
     return true;
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 

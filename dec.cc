@@ -371,8 +371,22 @@ void decidstart::addOps(types::ty *base, coenv &e, record *r)
   }
 }
 
+void decidstart::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  std::string name(static_cast<std::string>(getName()));
+  AsymptoteLsp::posInFile pos(getPos().LineColumn());
+  if (auto decCtx=dynamic_cast<AsymptoteLsp::AddDeclContexts*>(symContext))
+  {
+    decCtx->additionalDecs.emplace(name, pos);
+  }
+  else
+  {
+    symContext->symMap.varDec.emplace(name, pos);
+  }
+}
 
-void fundecidstart::prettyprint(ostream &out, Int indent)
+
+  void fundecidstart::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "fundecidstart '" << id << "'\n";
@@ -563,8 +577,9 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
   addTypeWithPermission(e, r, ent, start->getName());
 }
 
-void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
-  symContext->symMap.varDec.emplace(static_cast<std::string>(start->getName()), getPos().LineColumn());
+void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  start->createSymMap(symContext);
 }
 
 

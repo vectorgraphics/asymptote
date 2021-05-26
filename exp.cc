@@ -1467,6 +1467,12 @@ types::ty *assignExp::getType(coenv &e)
   return t ? t : primError();
 }
 
+void assignExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  dest->createSymMap(symContext);
+  value->createSymMap(symContext);
+}
+
 
 void selfExp::prettyprint(ostream &out, Int indent)
 {
