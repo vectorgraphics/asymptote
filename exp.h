@@ -871,6 +871,8 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class nullaryExp : public callExp {
@@ -964,6 +966,12 @@ public:
   virtual types::ty *trans(coenv &e) = 0;
   virtual types::ty *getType(coenv &) {
     return types::primBoolean();
+  }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override
+  {
+    left->createSymMap(symContext);
+    right->createSymMap(symContext);
   }
 };
 

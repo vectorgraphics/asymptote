@@ -1188,6 +1188,11 @@ types::ty *castExp::getType(coenv &e)
   return target->trans(e, true);
 }
 
+void castExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  castee->createSymMap(symContext);
+}
+
 
 void conditionalExp::prettyprint(ostream &out, Int indent)
 {
