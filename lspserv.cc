@@ -63,6 +63,21 @@ namespace AsymptoteLsp
     return std::make_pair(vec, std::nullopt);
   }
 
+  TextDocumentHover::Either fromMarkedStr(lsMarkedString const& markedString)
+  {
+    auto strobj=std::make_pair((std::optional<std::string>)std::nullopt, std::make_optional(markedString));
+    std::vector<decltype(strobj)> vec{strobj};
+    return std::make_pair(vec, std::nullopt);
+  }
+
+  TextDocumentHover::Either fromMarkedStr(std::string const& str, std::string const& language)
+  {
+    lsMarkedString lms;
+    lms.language = language;
+    lms.value = str;
+    return fromMarkedStr(lms);
+  }
+
   void LspLog::log(Level level, std::string &&msg) {
     cerr << msg << std::endl;
   }

@@ -42,6 +42,9 @@ namespace AsymptoteLsp
   }
 
   TextDocumentHover::Either fromString(std::string const &str);
+  TextDocumentHover::Either fromMarkedStr(lsMarkedString const& markedString);
+  TextDocumentHover::Either fromMarkedStr(std::string const& str, std::string const& language="asymptote");
+
   string wslDos2Unix(std::string const& dosPath);
 
   class LspLog: public lsp::Log
