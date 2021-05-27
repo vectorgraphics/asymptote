@@ -46,6 +46,67 @@ namespace AsymptoteLsp
     void add(filePos const& positionInFile);
   };
 
+  struct SymbolInfo
+  {
+    std::string name;
+    std::optional<std::string> type;
+    posInFile pos;
+    // std::optional<size_t> array_dim;
+
+    SymbolInfo(std::string inName, posInFile position):
+      name(std::move(inName)), type(nullopt), pos(std::move(position)) {}
+
+    SymbolInfo(std::string inName, std::string inType, posInFile position):
+      name(std::move(inName)), type(std::move(inType)), pos(std::move(position)) {}
+
+    virtual ~SymbolInfo() = default;
+
+    bool operator==(SymbolInfo const& sym) const
+    {
+      return name==sym.name and type==sym.type and pos == sym.pos;
+    }
+
+    virtual std::string signature() const
+    {
+      return type.value_or("<decl-unknown>") + " " + name + ";";
+    }
+  };
+
+  struct FunctionInfo: SymbolInfo
+  {
+    std::string returnType;
+    std::vector<std::pair<std::string, std::optional<std::string>>> arguments;
+    std::optional<std::string> restArgs;
+
+    FunctionInfo(std::string name, posInFile pos, std::string returnTyp):
+            SymbolInfo(std::move(name), std::move(pos)), returnType(std::move(returnTyp)) {}
+
+    ~FunctionInfo() override = default;
+
+    std::string signature() const override
+    {
+      std::stringstream ss;
+      ss << returnType << " " << name << "(";
+      for (auto it = arguments.begin(); it != arguments.end(); it++)
+      {
+        auto const& [argtype, argname] = *it;
+        ss << argtype << " " << argname.value_or("");
+        if (std::next(it) != arguments.end() or restArgs.has_value())
+        {
+          ss << ", ";
+        }
+      }
+
+      if (restArgs.has_value())
+      {
+        auto argtype = restArgs.value();
+        ss << argtype << "...";
+      }
+      ss << ");";
+      return ss.str();
+    }
+  };
+
   struct SymbolMaps
   {
     // FIXME: Factor in context as well, for example,

@@ -57,6 +57,7 @@ public:
   }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void addToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo);
 };
 
 class formals : public absyn {
@@ -126,6 +127,7 @@ public:
   virtual void trans(coenv &e);
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo);
 };
 
 class fundef : public exp {
@@ -156,6 +158,7 @@ public:
   }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo);
 };
 
 class fundec : public dec {

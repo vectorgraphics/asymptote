@@ -62,6 +62,9 @@ public:
   virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
 
   virtual trans::tyEntry *transAsTyEntry(coenv &e, record *where);
+
+  virtual operator string() const = 0;
+  virtual operator std::string() const { return static_cast<std::string>(this->operator string()); }
 };
 
 class nameTy : public ty {
@@ -78,6 +81,8 @@ public:
 
   types::ty *trans(coenv &e, bool tacit = false);
   trans::tyEntry *transAsTyEntry(coenv &e, record *where);
+
+  virtual operator string() const override;
 };
 
 class dimensions : public absyn {
@@ -114,6 +119,8 @@ public:
   void addOps(coenv &e, record *r);
 
   types::ty *trans(coenv &e, bool tacit = false);
+
+  operator string() const override;
 };
 
 // Similar to varEntryExp, this helper class always translates to the same fixed
@@ -132,6 +139,7 @@ public:
   trans::tyEntry *transAsTyEntry(coenv &, record *) {
     return ent;
   }
+  operator string() const override;
 };
 
 // Runnable is anything that can be executed by the program, including

@@ -184,7 +184,12 @@ void formal::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   start->createSymMap(symContext);
 }
 
-  void formals::trans(coenv &e)
+void formal::addToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
+{
+  fnInfo.arguments.emplace_back(static_cast<std::string>(*base), start->getName());
+}
+
+void formals::trans(coenv &e)
 {
   Int index = 0;
 
@@ -207,7 +212,16 @@ void formals::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   }
 }
 
-  void fundef::prettyprint(ostream &out, Int indent)
+void formals::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
+{
+  for (auto& field: fields)
+  {
+    field->addToFnInfo(fnInfo);
+  }
+  // handle rest case as well
+}
+
+void fundef::prettyprint(ostream &out, Int indent)
 {
   result->prettyprint(out, indent+1);
   params->prettyprint(out, indent+1);
@@ -229,6 +243,12 @@ function *fundef::transTypeAndAddOps(coenv &e, record *r, bool tacit) {
     r->e.addFunctionOps(ft);
 
   return ft;
+}
+
+void fundef::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
+{
+  params->addArgumentsToFnInfo(fnInfo);
+  // handle rest case as well
 }
 
 varinit *fundef::makeVarInit(function *ft) {

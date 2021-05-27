@@ -48,6 +48,10 @@ trans::tyEntry *nameTy::transAsTyEntry(coenv &e, record *)
   return id->tyEntryTrans(e);
 }
 
+nameTy::operator string() const
+{
+  return static_cast<string>(id->getName());
+}
 
 void dimensions::prettyprint(ostream &out, Int indent)
 {
@@ -110,6 +114,17 @@ types::ty *arrayTy::trans(coenv &e, bool tacit)
   return t;
 }
 
+arrayTy::operator string() const
+{
+  stringstream ss;
+  ss << static_cast<string>(*cell);
+  for (size_t i = 0; i < dims->size(); i++)
+  {
+    ss << "[]";
+  }
+  return ss.str();
+}
+
 tyEntryTy::tyEntryTy(position pos, types::ty *t)
   : ty(pos), ent(new trans::tyEntry(t, 0, 0, position()))
 {
@@ -125,6 +140,10 @@ types::ty *tyEntryTy::trans(coenv &, bool) {
   return ent->t;
 }
 
+tyEntryTy::operator string() const
+{
+  return "<unknown-type>";
+}
 
 vm::lambda *runnable::transAsCodelet(coenv &e)
 {
