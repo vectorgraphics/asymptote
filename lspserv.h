@@ -89,6 +89,8 @@ namespace AsymptoteLsp
     void initializeRequestFn();
     void initializeNotifyFn();
 
+    void reloadFile(std::string const&);
+
   private:
     shared_ptr<lsp::ProtocolJsonHandler> pjh;
     shared_ptr<GenericEndpoint> ep;

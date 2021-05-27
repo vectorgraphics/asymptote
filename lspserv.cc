@@ -123,6 +123,20 @@ namespace AsymptoteLsp
     exit(0);
   }
 
+  void AsymptoteLspServer::reloadFile(std::string const& filename)
+  {
+    std::string rawPath = static_cast<std::string>(settings::getSetting<bool>("wsl") ?
+            wslDos2Unix(filename) : string(filename));
+
+    block* blk = ifile(rawPath.c_str()).getTree();
+    symmapContextsPtr->clear();
+    if (blk != nullptr) {
+      symmapContextsPtr->emplace(rawPath, std::make_unique<SymbolContext>(posInFile(1, 1)));
+      cerr << rawPath << endl;
+      blk->createSymMap(symmapContextsPtr->at(static_cast<std::string>(rawPath)).get());
+    }
+  }
+
   void AsymptoteLspServer::onChange(Notify_TextDocumentDidChange::notify& notify)
   {
     GC_stack_base gsb;
@@ -133,31 +147,20 @@ namespace AsymptoteLsp
     }
 
     cerr << "text change" << endl;
-    lsDocumentUri fileUri(notify.params.textDocument.uri);
-    std::string rawPath = static_cast<std::string>(settings::getSetting<bool>("wsl") ?
-      wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath()));
-
-    block* blk = ifile(rawPath.c_str()).getTree();
-    symmapContextsPtr->clear();
-    if (blk != nullptr) {
-      symmapContextsPtr->emplace(rawPath, std::make_unique<SymbolContext>(posInFile(1, 1)));
-      cerr << rawPath << endl;
-      blk->createSymMap(symmapContextsPtr->at(static_cast<std::string>(rawPath)).get());
-      // cerr << "create symbol map" << endl;
-    }
-
-    GC_collect_a_little();
-    GC_unregister_my_thread();
   }
 
   void AsymptoteLspServer::onOpen(Notify_TextDocumentDidOpen::notify& notify)
   {
     cerr << "text open" << endl;
+    lsDocumentUri fileUri(notify.params.textDocument.uri);
+    reloadFile(fileUri.GetRawPath());
   }
 
   void AsymptoteLspServer::onSave(Notify_TextDocumentDidSave::notify& notify)
   {
     cerr << "did save" << endl;
+    lsDocumentUri fileUri(notify.params.textDocument.uri);
+    reloadFile(fileUri.GetRawPath());
   }
 
 #pragma endregion
