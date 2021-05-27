@@ -102,8 +102,6 @@ namespace AsymptoteLsp
 
     initializeRequestFn();
     initializeNotifyFn();
-
-    symmap.clear();
   }
 
   void AsymptoteLspServer::initializeRequestFn()
@@ -208,21 +206,26 @@ namespace AsymptoteLsp
                      wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
     auto rawPathStr = static_cast<std::string>(rawPath);
     auto fileSymIt = symmapContextsPtr->find(rawPathStr);
-    if (fileSymIt != symmapContextsPtr->end())
+    std::vector<std::pair<optional<std::string>, optional<lsMarkedString>>> nullVec;
+
+    if (fileSymIt == symmapContextsPtr->end())
     {
-      auto st=fileSymIt->second->searchSymbol(fromLsPosition(req.params.position));
-      if (st.has_value())
-      {
-        auto[symText, startPos, endPos] = st.value();
-        rsp.result.contents=fromString("symbol: " + symText);
-        rsp.result.range=std::make_optional(lsRange(toLsPosition(startPos), toLsPosition(endPos)));
-        // cerr << "symbol is " << symText << std::endl;
-        return rsp;
-      }
+      rsp.result.contents.first = nullVec;
+      return rsp;
     }
-    // cerr << "symbol not found" << endl;
-    // empty return
-    rsp.result.contents.first = std::vector<std::pair<optional<std::string>, optional<lsMarkedString>>>();
+
+    auto [st, ctx]=fileSymIt->second->searchSymbol(fromLsPosition(req.params.position));
+    if (not st.has_value())
+    {
+      rsp.result.contents.first = nullVec;
+      return rsp;
+    }
+
+    auto [symText, startPos, endPos] = st.value();
+    rsp.result.range=std::make_optional(lsRange(toLsPosition(startPos), toLsPosition(endPos)));
+
+    auto typ = ctx->searchVarSignature(symText);
+    rsp.result.contents=fromMarkedStr(typ.value_or("<decl-unknown> " + symText + ";"));
     return rsp;
   }
 
