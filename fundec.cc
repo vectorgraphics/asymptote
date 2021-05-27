@@ -334,7 +334,7 @@ void fundef::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   body->createSymMap(declCtx);
 }
 
-  void fundec::prettyprint(ostream &out, Int indent)
+void fundec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "fundec '" << id << "'\n";
@@ -357,7 +357,13 @@ void fundec::transAsField(coenv &e, record *r)
 
 void fundec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  symContext->symMap.funDec.emplace(static_cast<std::string>(id), getPos().LineColumn());
+  std::string fid(static_cast<std::string>(id));
+  auto [fnIt, success] = symContext->symMap.funDec.emplace(std::piecewise_construct,
+          std::forward_as_tuple(fid),
+          std::forward_as_tuple(fid, getPos().LineColumn(), static_cast<std::string>(*fun.result)));
+  if (success) {
+    fun.addArgumentsToFnInfo(fnIt->second);
+  }
   fun.createSymMap(symContext);
 }
 

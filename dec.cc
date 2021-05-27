@@ -396,11 +396,45 @@ void decidstart::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   AsymptoteLsp::posInFile pos(getPos().LineColumn());
   if (auto decCtx=dynamic_cast<AsymptoteLsp::AddDeclContexts*>(symContext))
   {
-    decCtx->additionalDecs.emplace(name, pos);
+    decCtx->additionalDecs.emplace(std::piecewise_construct,
+            std::forward_as_tuple(name), std::forward_as_tuple(name, pos));
   }
   else
   {
-    symContext->symMap.varDec.emplace(name, pos);
+    symContext->symMap.varDec.emplace(std::piecewise_construct,
+            std::forward_as_tuple(name), std::forward_as_tuple(name, pos));
+  }
+}
+
+void decidstart::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base)
+{
+  std::string name(static_cast<std::string>(getName()));
+  AsymptoteLsp::posInFile pos(getPos().LineColumn());
+  if (auto decCtx=dynamic_cast<AsymptoteLsp::AddDeclContexts*>(symContext))
+  {
+    if (base == nullptr)
+    {
+      decCtx->additionalDecs.emplace(std::piecewise_construct, std::forward_as_tuple(name),
+                                     std::forward_as_tuple(name, pos));
+    }
+    else
+    {
+      decCtx->additionalDecs.emplace(std::piecewise_construct, std::forward_as_tuple(name),
+                                     std::forward_as_tuple(name, static_cast<std::string>(*base), pos));
+    }
+  }
+  else
+  {
+    if (base == nullptr)
+    {
+      symContext->symMap.varDec.emplace(std::piecewise_construct, std::forward_as_tuple(name),
+                                        std::forward_as_tuple(name, pos));
+    }
+    else
+    {
+      symContext->symMap.varDec.emplace(std::piecewise_construct, std::forward_as_tuple(name),
+                                        std::forward_as_tuple(name, static_cast<std::string>(*base), pos));
+    }
   }
 }
 
@@ -599,6 +633,15 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
   start->createSymMap(symContext);
+  if (init)
+  {
+    init->createSymMap(symContext);
+  }
+}
+
+void decid::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base)
+{
+  start->createSymMapWType(symContext, base);
 }
 
 
@@ -626,6 +669,13 @@ void decidlist::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
   for (auto const& p : decs)
   {
     p->createSymMap(symContext);
+  }
+}
+
+void decidlist::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base) {
+  for (auto const& p : decs)
+  {
+    p->createSymMapWType(symContext, base);
   }
 }
 
@@ -662,7 +712,7 @@ types::ty *vardec::singleGetType(coenv &e)
 
 void vardec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  decs->createSymMap(symContext);
+  decs->createSymMapWType(symContext, base);
 }
 
 

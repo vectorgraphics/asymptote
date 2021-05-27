@@ -26,7 +26,7 @@ namespace AsymptoteLsp
     os << "var decs:" << endl;
     for (auto const& [key, value] : sym.varDec)
     {
-      os << key << " " << value.first << ":" << value.second << endl;
+      os << key << " " << value.pos.first << ":" << value.pos.second << endl;
     }
     return os;
   }
@@ -75,13 +75,31 @@ namespace AsymptoteLsp
     return make_pair(std::nullopt, nullptr);
   }
 
+  std::optional<std::string> SymbolContext::searchVarSignature(std::string const& symbol) const
+  {
+    auto pt = symMap.varDec.find(symbol);
+    if (pt != symMap.varDec.end())
+    {
+      return pt->second.signature();
+    }
+
+    auto ptFn = symMap.funDec.find(symbol);
+    if (ptFn != symMap.funDec.end())
+    {
+      return ptFn->second.signature();
+    }
+
+    // otherwise, search parent.
+    return parent != nullptr ? parent->searchVarSignature(symbol) : nullopt;
+  }
+
   std::optional<posRangeInFile> SymbolContext::searchVarDecl(std::string const& symbol)
   {
     auto pt = symMap.varDec.find(symbol);
     if (pt != symMap.varDec.end())
     {
-      auto [line, ch] = pt->second;
-      return std::make_tuple(pt->first, pt->second, std::make_pair(line, ch + symbol.length()));
+      auto [line, ch] = pt->second.pos;
+      return std::make_tuple(pt->first, pt->second.pos, std::make_pair(line, ch + symbol.length()));
     }
 
     auto ptFn = symMap.funDec.find(symbol);
@@ -92,7 +110,7 @@ namespace AsymptoteLsp
       //        where the exact position of
       //        real testFunction(...) { ...
       //             ^
-      return std::make_tuple(ptFn->first, ptFn->second, ptFn->second);
+      return std::make_tuple(ptFn->first, ptFn->second.pos, ptFn->second.pos);
     }
 
     // otherwise, search parent.
@@ -104,10 +122,21 @@ namespace AsymptoteLsp
     auto pt = additionalDecs.find(symbol);
     if (pt != additionalDecs.end())
     {
-      auto [line, ch] = pt->second;
-      return std::make_tuple(pt->first, pt->second, std::make_pair(line, ch + symbol.length()));
+      auto [line, ch] = pt->second.pos;
+      return std::make_tuple(pt->first, pt->second.pos, std::make_pair(line, ch + symbol.length()));
     }
 
     return SymbolContext::searchVarDecl(symbol);
+  }
+
+  std::optional<std::string> AddDeclContexts::searchVarSignature(std::string const& symbol) const
+  {
+    auto pt = additionalDecs.find(symbol);
+    if (pt != additionalDecs.end())
+    {
+      return pt->second.signature();
+    }
+
+    return SymbolContext::searchVarSignature(symbol);
   }
 }

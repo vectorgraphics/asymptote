@@ -109,18 +109,8 @@ namespace AsymptoteLsp
 
   struct SymbolMaps
   {
-    // FIXME: Factor in context as well, for example,
-    // int x = 3;
-    // x = 4; // referes to x=3 line.
-    // for (...) {
-    //   int x = 5;
-    //   x = 7; // refers to x=5 line.
-    // }
-    // LSP needs to be able to differentiate between these two symbols and their usage.
-    // a possible solution is context, which is a tree and a each context as a pointer to that node.
-
-    unordered_map <std::string, posInFile> varDec;
-    unordered_map <std::string, posInFile> funDec;
+    unordered_map <std::string, SymbolInfo> varDec;
+    unordered_map <std::string, FunctionInfo> funDec;
 
     // can refer to other files
     unordered_map <std::string, positions> varUsage;
@@ -175,11 +165,12 @@ namespace AsymptoteLsp
     std::pair<std::optional<posRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
 
     virtual std::optional<posRangeInFile> searchVarDecl(std::string const& symbol);
+    virtual std::optional<std::string> searchVarSignature(std::string const& symbol) const;
   };
 
   struct AddDeclContexts: SymbolContext
   {
-    unordered_map <std::string, posInFile> additionalDecs;
+    unordered_map <std::string, SymbolInfo> additionalDecs;
     AddDeclContexts(): SymbolContext() {}
 
     explicit AddDeclContexts(posInFile loc):
@@ -191,5 +182,6 @@ namespace AsymptoteLsp
     ~AddDeclContexts() override = default;
 
     std::optional<posRangeInFile> searchVarDecl(std::string const& symbol) override;
+    std::optional<std::string> searchVarSignature(std::string const& symbol) const override;
   };
 }

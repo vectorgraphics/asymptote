@@ -331,6 +331,7 @@ public:
   { return id; }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 // Forward declaration.
@@ -374,6 +375,7 @@ public:
   decidstart *getStart() { return start; }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 class decidlist : public absyn {
@@ -406,6 +408,7 @@ public:
   }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 class dec : public runnable {
