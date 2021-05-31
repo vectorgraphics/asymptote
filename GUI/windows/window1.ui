@@ -664,6 +664,7 @@
             </property>
             <property name="font">
              <font>
+              <family>Roboto</family>
               <weight>75</weight>
               <bold>true</bold>
              </font>
