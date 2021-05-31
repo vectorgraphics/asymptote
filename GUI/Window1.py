@@ -2,9 +2,9 @@
 
 from pyUIClass.window1 import Ui_MainWindow
 
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtGui as QtGui
-import PyQt5.QtCore as QtCore
+import PyQt5.QtWidgets as Qw
+import PyQt5.QtGui as Qg
+import PyQt5.QtCore as Qc
 import xasyVersion
 
 import numpy as np
@@ -90,7 +90,7 @@ class AddObjectMode:
     Arc = 1
     Polygon = 2
 
-class MainWindow1(QtWidgets.QMainWindow):
+class MainWindow1(Qw.QMainWindow):
     defaultFrameStyle = """
     QFrame{{ 
         padding: 4.0;
@@ -110,7 +110,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         self.settings = xo.BasicConfigs.defaultOpt
         self.keyMaps = xo.BasicConfigs.keymaps
 
-        self.raw_args = QtCore.QCoreApplication.arguments()
+        self.raw_args = Qc.QCoreApplication.arguments()
         self.args = xa.parseArgs(self.raw_args)
 
         self.strings = xs.xasyString(self.args.language)
@@ -133,7 +133,7 @@ class MainWindow1(QtWidgets.QMainWindow):
             atexit.register(self.asyEngine.cleanup)
 
         # For initialization purposes
-        self.canvSize = QtCore.QSize()
+        self.canvSize = Qc.QSize()
         self.filename = None
         self.currDir = None
         self.mainCanvas = None
@@ -144,7 +144,7 @@ class MainWindow1(QtWidgets.QMainWindow):
 
         # Actions
         # <editor-fold> Connecting Actions
-        self.ui.txtLineWidth.setValidator(QtGui.QDoubleValidator())
+        self.ui.txtLineWidth.setValidator(Qg.QDoubleValidator())
 
         self.connectActions()
         self.connectButtons()
@@ -154,11 +154,11 @@ class MainWindow1(QtWidgets.QMainWindow):
 
         # Base Transformations
 
-        self.mainTransformation = QtGui.QTransform()
+        self.mainTransformation = Qg.QTransform()
         self.mainTransformation.scale(1, 1)
-        self.localTransform = QtGui.QTransform()
-        self.screenTransformation = QtGui.QTransform()
-        self.panTranslation = QtGui.QTransform()
+        self.localTransform = Qg.QTransform()
+        self.screenTransformation = Qg.QTransform()
+        self.panTranslation = Qg.QTransform()
 
         # Internal Settings
         self.magnification = self.args.mag
@@ -185,7 +185,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         self.lockX = False
         self.lockY = False
         self.anchorMode = AnchorMode.center
-        self.currentAnchor = QtCore.QPointF(0, 0)
+        self.currentAnchor = Qc.QPointF(0, 0)
         self.customAnchor = None
         self.useGlobalCoords = True
         self.drawAxes = True
@@ -221,7 +221,7 @@ class MainWindow1(QtWidgets.QMainWindow):
 
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
 
-        self.ui.txtTerminalPrompt.setFont(QtGui.QFont(self.settings['terminalFont']))
+        self.ui.txtTerminalPrompt.setFont(Qg.QFont(self.settings['terminalFont']))
 
         self.currAddOptionsWgt = None
         self.currAddOptions = {
@@ -249,7 +249,7 @@ class MainWindow1(QtWidgets.QMainWindow):
 
         # commands switchboard
         self.commandsFunc = {
-            'quit': QtCore.QCoreApplication.quit,
+            'quit': self.btnCloseFileonClick,
             'undo': self.btnUndoOnClick,
             'redo': self.btnRedoOnClick,
             'manual': self.actionManual,
@@ -277,14 +277,18 @@ class MainWindow1(QtWidgets.QMainWindow):
             'scrollDown': lambda: self.arrowButtons(0, -1, True), 
 
             'zoomIn': lambda: self.arrowButtons(0, 1, False, True), 
-            'zoomOut': lambda: self.arrowButtons(0, -1, False, True)
+            'zoomOut': lambda: self.arrowButtons(0, -1, False, True),
+
+            'open': self.btnLoadFileonClick,
+            'save': self.actionSave,
+            'export': self.btnExportAsyOnClick
         }
 
         self.hiddenKeys = set()
 
         # Coordinates Label
 
-        self.coordLabel = QtWidgets.QLabel(self.ui.statusbar)
+        self.coordLabel = Qw.QLabel(self.ui.statusbar)
         self.ui.statusbar.addPermanentWidget(self.coordLabel)
 
         # Settings Initialization
@@ -292,7 +296,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         self.loadKeyMaps()
         self.setupXasyOptions()
 
-        self.colorDialog = QtWidgets.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
+        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
 
     def arrowButtons(self, x:int , y:int, shift: bool=False, ctrl: bool=False):
@@ -311,7 +315,7 @@ class MainWindow1(QtWidgets.QMainWindow):
             y = 0
         self.tx += x
         self.ty += y
-        self.newTransform=QtGui.QTransform.fromTranslate(self.tx,self.ty)
+        self.newTransform=Qg.QTransform.fromTranslate(self.tx,self.ty)
         self.quickUpdate()
 
     def cleanup(self):
@@ -327,7 +331,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         factor=0.5/devicePixelRatio;
         cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
 
-        newTransf = QtGui.QTransform()
+        newTransf = Qg.QTransform()
         newTransf.translate(*self.panOffset)
         newTransf.translate(cx, cy)
         newTransf.scale(1, 1)
@@ -347,8 +351,8 @@ class MainWindow1(QtWidgets.QMainWindow):
                 self.addMode.finalizeClosure()
                 self.fileChanged = True
 
-    def getAllBoundingBox(self) -> QtCore.QRectF:
-        newRect = QtCore.QRectF()
+    def getAllBoundingBox(self) -> Qc.QRectF:
+        newRect = Qc.QRectF()
         for majitem in self.drawObjects:
             for minitem in majitem:
                 newRect = newRect.united(minitem.boundingBox)
@@ -367,7 +371,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         self.quickUpdate()
 
     def setMagPrompt(self):
-        commandText, result = QtWidgets.QInputDialog.getText(self, '', 'Enter magnification:')
+        commandText, result = Qw.QInputDialog.getText(self, '', 'Enter magnification:')
         if result:
             self.magnification = float(commandText)
             self.currAddOptions['magnification'] = self.magnification
@@ -429,7 +433,7 @@ class MainWindow1(QtWidgets.QMainWindow):
     def setupXasyOptions(self):
         if self.settings['debugMode']:
             self.initDebug()
-        newColor = QtGui.QColor(self.settings['defaultPenColor'])
+        newColor = Qg.QColor(self.settings['defaultPenColor'])
         newWidth = self.settings['defaultPenWidth']
 
         self._currentPen.setColorFromQColor(newColor)
@@ -528,7 +532,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         print('Put a breakpoint here.')
 
     def execPythonCmd(self):
-        commandText, result = QtWidgets.QInputDialog.getText(self, '', 'enter python cmd')
+        commandText, result = Qw.QInputDialog.getText(self, '', 'enter python cmd')
         if result:
             exec(commandText)
 
@@ -761,7 +765,7 @@ class MainWindow1(QtWidgets.QMainWindow):
             self.ui.statusbar.showMessage('Command {0} not found'.format(command))
 
     def enterCustomCommand(self):
-        commandText, result = QtWidgets.QInputDialog.getText(self, 'Enter Custom Command', 'Enter Custom Command')
+        commandText, result = Qw.QInputDialog.getText(self, 'Enter Custom Command', 'Enter Custom Command')
         if result:
             self.execCustomCommand(commandText)
 
@@ -779,8 +783,8 @@ class MainWindow1(QtWidgets.QMainWindow):
         Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
     def btnExportAsyOnClick(self):
-        diag = QtWidgets.QFileDialog(self)
-        diag.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
+        diag = Qw.QFileDialog(self)
+        diag.setAcceptMode(Qw.QFileDialog.AcceptSave)
 
         formatId = {
             'pdf': {
@@ -847,8 +851,8 @@ class MainWindow1(QtWidgets.QMainWindow):
         """Inverts the mapping of the key
            Input map is in format 'Action' : 'Key Sequence' """
         for action, key in self.keyMaps.options.items():
-            shortcut = QtWidgets.QShortcut(self)
-            shortcut.setKey(QtGui.QKeySequence(key))
+            shortcut = Qw.QShortcut(self)
+            shortcut.setKey(Qg.QKeySequence(key))
 
             # hate doing this, but python doesn't have explicit way to pass a
             # string to a lambda without an identifier
@@ -867,17 +871,31 @@ class MainWindow1(QtWidgets.QMainWindow):
         self.fileItems.clear()
         self.fileChanged = False
 
+    #We include this function to keep the general program flow consistent
+    def closeEvent(self, event):
+        self.actionClose()
+
     def actionOpen(self):
         if self.fileChanged:
             save="Save current file?"
-            reply=QtWidgets.QMessageBox.question(self,'Message',save,QtWidgets.QMessageBox.Yes,
-                                        QtWidgets.QMessageBox.No)
-            if reply == QtWidgets.QMessageBox.Yes:
+            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
+                                        Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
 
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
+        filename = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
         if filename[0]:
             self.loadFile(filename[0])
+
+    def actionClose(self):
+        if self.fileChanged:
+            save="Save current file?"
+            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
+                                        Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.Yes:
+                self.actionSave()
+                Qc.QCoreApplication.quit()
+        Qc.QCoreApplication.quit()
 
     def actionSave(self):
         if self.filename is None:
@@ -896,7 +914,7 @@ class MainWindow1(QtWidgets.QMainWindow):
                     item.updatedCode = None
 
     def actionSaveAs(self):
-        saveLocation = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File')[0]
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File')[0]
         if saveLocation:
             saveFile = io.open(saveLocation, 'w')
             xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
@@ -906,17 +924,20 @@ class MainWindow1(QtWidgets.QMainWindow):
             
 
     def btnQuickScreenshotOnClick(self):
-        saveLocation = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Screenshot','')
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot','')
         if saveLocation[0]:
             self.ui.imgLabel.pixmap().save(saveLocation[0])
 
     def btnLoadFileonClick(self):
         self.actionOpen()
 
+    def btnCloseFileonClick(self):
+        self.actionClose()
+
     def btnSaveonClick(self):
         self.actionSave()
 
-    @QtCore.pyqtSlot(int)
+    @Qc.pyqtSlot(int)
     def handleAnchorComboIndex(self, index: int):
         self.anchorMode = index
         if self.anchorMode == AnchorMode.customAnchor:
@@ -929,7 +950,7 @@ class MainWindow1(QtWidgets.QMainWindow):
     def btnColorSelectOnClick(self):
         self.colorDialog.show()
         result = self.colorDialog.exec()
-        if result == QtWidgets.QDialog.Accepted:
+        if result == Qw.QDialog.Accepted:
             self._currentPen.setColorFromQColor(self.colorDialog.selectedColor())
             self.updateFrameDispColor()
 
@@ -944,16 +965,16 @@ class MainWindow1(QtWidgets.QMainWindow):
 
     def resizeEvent(self, resizeEvent):
         # super().resizeEvent(resizeEvent)
-        assert isinstance(resizeEvent, QtGui.QResizeEvent)
+        assert isinstance(resizeEvent, Qg.QResizeEvent)
 
         if self.isReady():
             if self.mainCanvas.isActive():
                 self.mainCanvas.end()
             self.canvSize = self.ui.imgFrame.size()*devicePixelRatio
-            self.ui.imgFrame.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
-            self.canvasPixmap = QtGui.QPixmap(self.canvSize)
+            self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
+            self.canvasPixmap = Qg.QPixmap(self.canvSize)
             self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
-            self.postCanvasPixmap = QtGui.QPixmap(self.canvSize)
+            self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
             self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
             self.quickUpdate()
@@ -971,11 +992,11 @@ class MainWindow1(QtWidgets.QMainWindow):
         minorGridSize = self.settings['gridMajorAxesSpacing'] / (self.settings['gridMinorAxesCount'] + 1)
         if isinstance(oldPoint, list) or isinstance(oldPoint, tuple):
             return [round(val / minorGridSize) * minorGridSize for val in oldPoint]
-        elif isinstance(oldPoint, QtCore.QPoint) or isinstance(oldPoint, QtCore.QPointF):
+        elif isinstance(oldPoint, Qc.QPoint) or isinstance(oldPoint, Qc.QPointF):
             x, y = oldPoint.x(), oldPoint.y()
             x = round(x / minorGridSize) * minorGridSize
             y = round(y / minorGridSize) * minorGridSize
-            return QtCore.QPointF(x, y)
+            return Qc.QPointF(x, y)
         else:
             raise Exception
 
@@ -983,7 +1004,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         canvasPosOrig = self.getCanvasCoordinates()
         return canvasPosOrig, canvasPosOrig
 
-    def mouseMoveEvent(self, mouseEvent: QtGui.QMouseEvent):  # TODO: Actually refine grid snapping...
+    def mouseMoveEvent(self, mouseEvent: Qg.QMouseEvent):  # TODO: Actually refine grid snapping...
         if not self.ui.imgLabel.underMouse() and not self.mouseDown:
             return 
 
@@ -1029,7 +1050,7 @@ class MainWindow1(QtWidgets.QMainWindow):
                     self.tx = 0
                 if self.lockY:
                     self.ty = 0
-                self.newTransform = QtGui.QTransform.fromTranslate(self.tx, self.ty)
+                self.newTransform = Qg.QTransform.fromTranslate(self.tx, self.ty)
 
             elif self.currentModeStack[-1] == SelectionMode.rotate:
                 if self.gridSnap:
@@ -1047,10 +1068,10 @@ class MainWindow1(QtWidgets.QMainWindow):
                 if self.gridSnap:
                     canvasPos = self.roundPositionSnap(canvasPos)
                     x, y = int(round(canvasPos.x())), int(round(canvasPos.y()))  # otherwise it crashes...
-                    canvasPos = QtCore.QPoint(x, y)
+                    canvasPos = Qc.QPoint(x, y)
 
                 originalDeltaPts = self.savedMousePosition - self.currentAnchor
-                scaleFactor = QtCore.QPointF.dotProduct(canvasPos - self.currentAnchor, originalDeltaPts) /\
+                scaleFactor = Qc.QPointF.dotProduct(canvasPos - self.currentAnchor, originalDeltaPts) /\
                     (xu.twonorm((originalDeltaPts.x(), originalDeltaPts.y())) ** 2)
                 if not self.lockX:
                     self.scaleFactorX = scaleFactor
@@ -1084,7 +1105,7 @@ class MainWindow1(QtWidgets.QMainWindow):
 
 
     def mouseReleaseEvent(self, mouseEvent):
-        assert isinstance(mouseEvent, QtGui.QMouseEvent) 
+        assert isinstance(mouseEvent, Qg.QMouseEvent) 
         if not self.mouseDown:
             return
 
@@ -1106,7 +1127,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         self.currentlySelectedObj['key'] = None
 
         self.currentlySelectedObj['allSameKey'].clear()
-        self.newTransform = QtGui.QTransform()
+        self.newTransform = Qg.QTransform()
         self.currentBoundingBox = None
         self.quickUpdate()
 
@@ -1120,14 +1141,14 @@ class MainWindow1(QtWidgets.QMainWindow):
                     self.pendingSelectedObjIndex = self.pendingSelectedObjIndex + offset
 
     def mouseWheel(self, rawAngleX: float, rawAngle: float, defaultModifiers: int=0):
-        keyModifiers = int(QtWidgets.QApplication.keyboardModifiers())
+        keyModifiers = int(Qw.QApplication.keyboardModifiers())
         keyModifiers = keyModifiers | defaultModifiers
-        if keyModifiers & int(QtCore.Qt.ControlModifier):
+        if keyModifiers & int(Qc.Qt.ControlModifier):
             oldMag = self.magnification
 
             factor=0.5/devicePixelRatio;
             cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
-            centerPoint = QtCore.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
+            centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
 
             self.magnification += (rawAngle/100)
 
@@ -1154,7 +1175,7 @@ class MainWindow1(QtWidgets.QMainWindow):
             if self.addMode is xbi.InteractiveBezierEditor:
                 self.addMode.setSelectionBoundaries()
 
-        elif keyModifiers & (int(QtCore.Qt.ShiftModifier) | int(QtCore.Qt.AltModifier)):
+        elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
             self.panOffset[1] += rawAngle/1
             self.panOffset[0] -= rawAngleX/1
         # handle scrolling
@@ -1166,7 +1187,7 @@ class MainWindow1(QtWidgets.QMainWindow):
                 self.changeSelection(-1)
         self.quickUpdate()
 
-    def wheelEvent(self, event: QtGui.QWheelEvent):
+    def wheelEvent(self, event: Qg.QWheelEvent):
         rawAngle = event.angleDelta().y() / 8
         rawAngleX = event.angleDelta().x() / 8
         self.mouseWheel(rawAngleX, rawAngle)
@@ -1192,12 +1213,12 @@ class MainWindow1(QtWidgets.QMainWindow):
                     self.currentBoundingBox = self.currentBoundingBox.united(obj.boundingBox)
 
             self.origBboxTransform = self.drawObjects[maj][minor].transform.toQTransform()
-            self.newTransform = QtGui.QTransform()
+            self.newTransform = Qg.QTransform()
             return True
         else:
             return False
 
-    def mousePressEvent(self, mouseEvent: QtGui.QMouseEvent):
+    def mousePressEvent(self, mouseEvent: Qg.QMouseEvent):
         # we make an exception for bezier curve
         bezierException = False
         if self.addMode is not None:
@@ -1293,7 +1314,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         elif self.anchorMode == AnchorMode.customAnchor:
             self.currentAnchor = self.customAnchor
         else:
-            self.currentAnchor = QtCore.QPointF(0, 0)
+            self.currentAnchor = Qc.QPointF(0, 0)
 
         if self.anchorMode != AnchorMode.origin:
             pass
@@ -1317,28 +1338,28 @@ class MainWindow1(QtWidgets.QMainWindow):
 
     def createMainCanvas(self):
         self.canvSize = devicePixelRatio*self.ui.imgFrame.size()
-        self.ui.imgFrame.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
+        self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
         factor=0.5/devicePixelRatio;
         x, y = self.canvSize.width()*factor, self.canvSize.height()*factor
 
-        self.canvasPixmap = QtGui.QPixmap(self.canvSize)
+        self.canvasPixmap = Qg.QPixmap(self.canvSize)
         self.canvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
         self.canvasPixmap.fill()
 
-        self.finalPixmap = QtGui.QPixmap(self.canvSize)
+        self.finalPixmap = Qg.QPixmap(self.canvSize)
         self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
 
-        self.postCanvasPixmap = QtGui.QPixmap(self.canvSize)
+        self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
         self.postCanvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
-        self.mainCanvas = QtGui.QPainter(self.canvasPixmap)
-        self.mainCanvas.setRenderHint(QtGui.QPainter.Antialiasing)
-        self.mainCanvas.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
-        self.mainCanvas.setRenderHint(QtGui.QPainter.HighQualityAntialiasing)
+        self.mainCanvas = Qg.QPainter(self.canvasPixmap)
+        self.mainCanvas.setRenderHint(Qg.QPainter.Antialiasing)
+        self.mainCanvas.setRenderHint(Qg.QPainter.SmoothPixmapTransform)
+        self.mainCanvas.setRenderHint(Qg.QPainter.HighQualityAntialiasing)
         self.xasyDrawObj['canvas'] = self.mainCanvas
 
-        self.mainTransformation = QtGui.QTransform()
+        self.mainTransformation = Qg.QTransform()
         self.mainTransformation.scale(1, 1)
         self.mainTransformation.translate(x, y)
 
@@ -1401,7 +1422,7 @@ class MainWindow1(QtWidgets.QMainWindow):
 
     def getCanvasCoordinates(self):
         # assert self.ui.imgLabel.underMouse()
-        uiPos = self.mapFromGlobal(QtGui.QCursor.pos())
+        uiPos = self.mapFromGlobal(Qg.QCursor.pos())
         canvasPos = self.ui.imgLabel.mapFrom(self, uiPos)
 
         # Issue: For magnification, should xasy treats this at xasy level, or asy level?
@@ -1409,7 +1430,7 @@ class MainWindow1(QtWidgets.QMainWindow):
 
     def getWindowCoordinates(self):
         # assert self.ui.imgLabel.underMouse()
-        return self.mapFromGlobal(QtGui.QCursor.pos())
+        return self.mapFromGlobal(Qg.QCursor.pos())
         
     def refreshCanvas(self):
         if self.mainCanvas.isActive():
@@ -1475,11 +1496,11 @@ class MainWindow1(QtWidgets.QMainWindow):
                 activeItem = None
 
     def updateScreen(self):
-        self.finalPixmap = QtGui.QPixmap(self.canvSize)
+        self.finalPixmap = Qg.QPixmap(self.canvSize)
         self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
-        self.finalPixmap.fill(QtCore.Qt.black)
-        with QtGui.QPainter(self.finalPixmap) as finalPainter:
-            drawPoint = QtCore.QPoint(0, 0)
+        self.finalPixmap.fill(Qc.Qt.black)
+        with Qg.QPainter(self.finalPixmap) as finalPainter:
+            drawPoint = Qc.QPoint(0, 0)
             finalPainter.drawPixmap(drawPoint, self.canvasPixmap)
             finalPainter.drawPixmap(drawPoint, self.postCanvasPixmap)
         self.ui.imgLabel.setPixmap(self.finalPixmap)
@@ -1488,8 +1509,8 @@ class MainWindow1(QtWidgets.QMainWindow):
         majorGrid = self.settings['gridMajorAxesSpacing'] * self.asy2psmap.xx
         minorGridCount = self.settings['gridMinorAxesCount']
 
-        majorGridCol = QtGui.QColor(self.settings['gridMajorAxesColor'])
-        minorGridCol = QtGui.QColor(self.settings['gridMinorAxesColor'])
+        majorGridCol = Qg.QColor(self.settings['gridMajorAxesColor'])
+        minorGridCol = Qg.QColor(self.settings['gridMinorAxesColor'])
 
         panX, panY = self.panOffset
 
@@ -1504,29 +1525,29 @@ class MainWindow1(QtWidgets.QMainWindow):
             preCanvas.setPen(minorGridCol)
             for xMinor in range(1, minorGridCount + 1):
                 xCoord = x + ((xMinor / (minorGridCount + 1)) * majorGrid)
-                preCanvas.drawLine(QtCore.QLine(xCoord, -9999, xCoord, 9999))
-                preCanvas.drawLine(QtCore.QLine(-xCoord, -9999, -xCoord, 9999))
+                preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
+                preCanvas.drawLine(Qc.QLine(-xCoord, -9999, -xCoord, 9999))
 
         for y in np.arange(0, 2 * y_range + 1, majorGrid):
             preCanvas.setPen(minorGridCol)
             for yMinor in range(1, minorGridCount + 1):
                 yCoord = y + ((yMinor / (minorGridCount + 1)) * majorGrid)
-                preCanvas.drawLine(QtCore.QLine(-9999, yCoord, 9999, yCoord))
-                preCanvas.drawLine(QtCore.QLine(-9999, -yCoord, 9999, -yCoord))
+                preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
+                preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
 
             preCanvas.setPen(majorGridCol)
-            preCanvas.drawLine(QtCore.QLine(-9999, y, 9999, y))
-            preCanvas.drawLine(QtCore.QLine(-9999, -y, 9999, -y))
+            preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
+            preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
 
         for x in np.arange(0, 2 * x_range + 1, majorGrid):
             preCanvas.setPen(majorGridCol)
-            preCanvas.drawLine(QtCore.QLine(x, -9999, x, 9999))
-            preCanvas.drawLine(QtCore.QLine(-x, -9999, -x, 9999))
+            preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
+            preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
 
     def drawPolarGrid(self, preCanvas):
-        center = QtCore.QPointF(0, 0)
-        majorGridCol = QtGui.QColor(self.settings['gridMajorAxesColor'])
-        minorGridCol = QtGui.QColor(self.settings['gridMinorAxesColor'])
+        center = Qc.QPointF(0, 0)
+        majorGridCol = Qg.QColor(self.settings['gridMajorAxesColor'])
+        minorGridCol = Qg.QColor(self.settings['gridMinorAxesColor'])
         majorGrid = self.settings['gridMajorAxesSpacing']
         minorGridCount = self.settings['gridMinorAxesCount']
 
@@ -1549,14 +1570,14 @@ class MainWindow1(QtWidgets.QMainWindow):
         currAng = majorAxisAng
         while currAng <= (2 * np.pi):
             preCanvas.setPen(majorGridCol)
-            p1 = center + (9999 * QtCore.QPointF(np.cos(currAng), np.sin(currAng)))
-            preCanvas.drawLine(QtCore.QLineF(center, p1))
+            p1 = center + (9999 * Qc.QPointF(np.cos(currAng), np.sin(currAng)))
+            preCanvas.drawLine(Qc.QLineF(center, p1))
 
             preCanvas.setPen(minorGridCol)
             for minorAngLine in range(minorAxisCount):
                 newAng = currAng - (subAngleSize * (minorAngLine + 1))
-                p1 = center + (9999 * QtCore.QPointF(np.cos(newAng), np.sin(newAng)))
-                preCanvas.drawLine(QtCore.QLineF(center, p1))
+                p1 = center + (9999 * Qc.QPointF(np.cos(newAng), np.sin(newAng)))
+                preCanvas.drawLine(Qc.QLineF(center, p1))
 
             currAng = currAng + majorAxisAng
 
@@ -1567,9 +1588,9 @@ class MainWindow1(QtWidgets.QMainWindow):
         preCanvas.setTransform(self.getScrsTransform())
 
         if self.drawAxes:
-            preCanvas.setPen(QtCore.Qt.gray)
-            preCanvas.drawLine(QtCore.QLine(-9999, 0, 9999, 0))
-            preCanvas.drawLine(QtCore.QLine(0, -9999, 0, 9999))
+            preCanvas.setPen(Qc.Qt.gray)
+            preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
+            preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
 
         if self.drawGrid:
             if self.drawGridMode == GridMode.cartesian:
@@ -1602,10 +1623,10 @@ class MainWindow1(QtWidgets.QMainWindow):
                 painter.setTransform(
                     selObj.transform.toQTransform(), True)
                 # painter.setTransform(selObj.baseTransform.toQTransform(), True)
-                painter.setPen(QtCore.Qt.gray)
-                painter.drawLine(QtCore.QLine(-9999, 0, 9999, 0))
-                painter.drawLine(QtCore.QLine(0, -9999, 0, 9999))
-                painter.setPen(QtCore.Qt.black)
+                painter.setPen(Qc.Qt.gray)
+                painter.drawLine(Qc.QLine(-9999, 0, 9999, 0))
+                painter.drawLine(Qc.QLine(0, -9999, 0, 9999))
+                painter.setPen(Qc.Qt.black)
                 painter.restore()
 
                 painter.setTransform(selObj.getInteriorScrTransform(
@@ -1617,8 +1638,8 @@ class MainWindow1(QtWidgets.QMainWindow):
             painter.restore()
 
     def postDraw(self):
-        self.postCanvasPixmap.fill(QtCore.Qt.transparent)
-        with QtGui.QPainter(self.postCanvasPixmap) as postCanvas:
+        self.postCanvasPixmap.fill(Qc.Qt.transparent)
+        with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
             postCanvas.setRenderHints(self.mainCanvas.renderHints())
             postCanvas.setTransform(self.getScrsTransform())
 
@@ -1637,10 +1658,10 @@ class MainWindow1(QtWidgets.QMainWindow):
 
     def drawAnchorCursor(self, painter):
         painter.drawEllipse(self.customAnchor, 6, 6)
-        newCirclePath = QtGui.QPainterPath()
+        newCirclePath = Qg.QPainterPath()
         newCirclePath.addEllipse(self.customAnchor, 2, 2)
 
-        painter.fillPath(newCirclePath, QtGui.QColor.fromRgb(0, 0, 0))
+        painter.fillPath(newCirclePath, Qg.QColor.fromRgb(0, 0, 0))
 
     def updateModeBtnsOnly(self):
         if self.currentModeStack[-1] == SelectionMode.translate:
@@ -1670,22 +1691,37 @@ class MainWindow1(QtWidgets.QMainWindow):
         for button in self.modeButtons:
             button.setChecked(button is activeBtn)
 
+
+        if activeBtn in [self.ui.btnDeleteMode,self.ui.btnSelectEdit]:
+            self.ui.btnAlignX.setEnabled(False)
+            self.ui.btnAlignY.setEnabled(False)
+        else:
+            self.ui.btnAlignX.setEnabled(True)
+            self.ui.btnAlignY.setEnabled(True)
+
+
     def updateChecks(self):
         self.removeAddMode()
         self.updateModeBtnsOnly()
         self.quickUpdate()
 
     def btnAlignXOnClick(self, checked):
-        self.lockY = checked
-        if self.lockX:
-            self.lockX = False
-            self.ui.btnAlignY.setChecked(False)
+        if self.currentModeStack[0] in [SelectionMode.selectEdit,SelectionMode.delete]:
+            self.ui.btnAlignX.setChecked(False)
+        else:
+            self.lockY = checked
+            if self.lockX:
+                self.lockX = False
+                self.ui.btnAlignY.setChecked(False)
 
     def btnAlignYOnClick(self, checked):
-        self.lockX = checked
-        if self.lockY:
-            self.lockY = False
-            self.ui.btnAlignX.setChecked(False)
+        if self.currentModeStack[0] in [SelectionMode.selectEdit,SelectionMode.delete]:
+            self.ui.btnAlignY.setChecked(False)
+        else:
+            self.lockX = checked
+            if self.lockY:
+                self.lockY = False
+                self.ui.btnAlignX.setChecked(False)
 
     def btnAnchorModeOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.setAnchor:
@@ -1743,7 +1779,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         matrixDialog = CustMatTransform.CustMatTransform()
         matrixDialog.show()
         result = matrixDialog.exec_()
-        if result == QtWidgets.QDialog.Accepted:
+        if result == Qw.QDialog.Accepted:
             objKey = self.currentlySelectedObj['selectedIndex']
             self.transformObject(objKey,
                 matrixDialog.getTransformationMatrix(), not
@@ -1756,9 +1792,9 @@ class MainWindow1(QtWidgets.QMainWindow):
     def btnLoadEditorOnClick(self):
         if self.fileChanged:
             save = "Save current file?"
-            reply = QtWidgets.QMessageBox.question(self, 'Message', save, QtWidgets.QMessageBox.Yes,
-                                            QtWidgets.QMessageBox.No)
-            if reply == QtWidgets.QMessageBox.Yes:
+            reply = Qw.QMessageBox.question(self, 'Message', save, Qw.QMessageBox.Yes,
+                                            Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
                 
         subprocess.Popen(args=self.getExternalEditor(asypath=self.filename));
@@ -1814,7 +1850,7 @@ class MainWindow1(QtWidgets.QMainWindow):
     def transformObjKey(self, item, key, keyIndex, transform, applyFirst=False, drawObj=None):
         if isinstance(transform, np.ndarray):
             obj_transform = x2a.asyTransform.fromNumpyMatrix(transform)
-        elif isinstance(transform, QtGui.QTransform):
+        elif isinstance(transform, Qg.QTransform):
             assert transform.isAffine()
             obj_transform = x2a.asyTransform.fromQTransform(transform)
         else:
@@ -1897,7 +1933,7 @@ class MainWindow1(QtWidgets.QMainWindow):
         try:
             rawFileStr = f.read()
         except IOError:
-            QtWidgets.QMessageBox.critical(self, self.strings.fileOpenFailed, self.strings.fileOpenFailedText)
+            Qw.QMessageBox.critical(self, self.strings.fileOpenFailed, self.strings.fileOpenFailedText)
         else:
             rawText, transfDict, maxKey = xf.extractTransformsFromFile(rawFileStr)
             item = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
