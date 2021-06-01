@@ -126,6 +126,11 @@ struct Args
   Args(int argc, char **argv) : argc(argc), argv(argv) {}
 };
 
+int returnCode()
+{
+  return em.processStatus() || interact::interactive ? 0 : 1;
+}
+
 void *asymain(void *A)
 {
   setsignal(signalHandler);
@@ -193,12 +198,12 @@ void *asymain(void *A)
   }
 #endif
 #endif
-  exit(em.processStatus() || interact::interactive ? 0 : 1);
+  exit(returnCode());
 }
 
 void exitHandler(int)
 {
-  exit(0);
+  exit(returnCode());
 }
 
 int main(int argc, char *argv[])
@@ -256,4 +261,3 @@ GC_API void GC_CALL GC_throw_bad_alloc() {
   std::bad_alloc();
 }
 #endif
-
