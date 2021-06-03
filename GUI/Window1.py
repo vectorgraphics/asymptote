@@ -177,6 +177,9 @@ class MainWindow1(Qw.QMainWindow):
         self.scaleFactor = 1
         self.panOffset = [0, 0]
 
+        # Keyboard can focus outside fo textboxes 
+        self.setFocusPolicy(Qc.Qt.StrongFocus)
+
         super().setMouseTracking(True)
         # setMouseTracking(True)
         
@@ -249,7 +252,7 @@ class MainWindow1(Qw.QMainWindow):
 
         # commands switchboard
         self.commandsFunc = {
-            'quit': Qc.QCoreApplication.quit,
+            'quit': self.btnCloseFileonClick,
             'undo': self.btnUndoOnClick,
             'redo': self.btnRedoOnClick,
             'manual': self.actionManual,
@@ -277,7 +280,11 @@ class MainWindow1(Qw.QMainWindow):
             'scrollDown': lambda: self.arrowButtons(0, -1, True), 
 
             'zoomIn': lambda: self.arrowButtons(0, 1, False, True), 
-            'zoomOut': lambda: self.arrowButtons(0, -1, False, True)
+            'zoomOut': lambda: self.arrowButtons(0, -1, False, True),
+
+            'open': self.btnLoadFileonClick,
+            'save': self.actionSave,
+            'export': self.btnExportAsyOnClick
         }
 
         self.hiddenKeys = set()
@@ -755,6 +762,7 @@ class MainWindow1(Qw.QMainWindow):
         return Urs.action((_change, _undoChange))
 
     def execCustomCommand(self, command):
+        # print(f"The following command was used: {command}")
         if command in self.commandsFunc:
             self.commandsFunc[command]()
         else:
@@ -867,6 +875,10 @@ class MainWindow1(Qw.QMainWindow):
         self.fileItems.clear()
         self.fileChanged = False
 
+    #We include this function to keep the general program flow consistent
+    def closeEvent(self, event):
+        self.actionClose()
+
     def actionOpen(self):
         if self.fileChanged:
             save="Save current file?"
@@ -878,6 +890,16 @@ class MainWindow1(Qw.QMainWindow):
         filename = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
         if filename[0]:
             self.loadFile(filename[0])
+
+    def actionClose(self):
+        if self.fileChanged:
+            save="Save current file?"
+            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
+                                        Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.Yes:
+                self.actionSave()
+                Qc.QCoreApplication.quit()
+        Qc.QCoreApplication.quit()
 
     def actionSave(self):
         if self.filename is None:
@@ -912,6 +934,9 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnLoadFileonClick(self):
         self.actionOpen()
+
+    def btnCloseFileonClick(self):
+        self.actionClose()
 
     def btnSaveonClick(self):
         self.actionSave()
@@ -1670,22 +1695,37 @@ class MainWindow1(Qw.QMainWindow):
         for button in self.modeButtons:
             button.setChecked(button is activeBtn)
 
+
+        if activeBtn in [self.ui.btnDeleteMode,self.ui.btnSelectEdit]:
+            self.ui.btnAlignX.setEnabled(False)
+            self.ui.btnAlignY.setEnabled(False)
+        else:
+            self.ui.btnAlignX.setEnabled(True)
+            self.ui.btnAlignY.setEnabled(True)
+
+
     def updateChecks(self):
         self.removeAddMode()
         self.updateModeBtnsOnly()
         self.quickUpdate()
 
     def btnAlignXOnClick(self, checked):
-        self.lockY = checked
-        if self.lockX:
-            self.lockX = False
-            self.ui.btnAlignY.setChecked(False)
+        if self.currentModeStack[0] in [SelectionMode.selectEdit,SelectionMode.delete]:
+            self.ui.btnAlignX.setChecked(False)
+        else:
+            self.lockY = checked
+            if self.lockX:
+                self.lockX = False
+                self.ui.btnAlignY.setChecked(False)
 
     def btnAlignYOnClick(self, checked):
-        self.lockX = checked
-        if self.lockY:
-            self.lockY = False
-            self.ui.btnAlignX.setChecked(False)
+        if self.currentModeStack[0] in [SelectionMode.selectEdit,SelectionMode.delete]:
+            self.ui.btnAlignY.setChecked(False)
+        else:
+            self.lockX = checked
+            if self.lockY:
+                self.lockY = False
+                self.ui.btnAlignX.setChecked(False)
 
     def btnAnchorModeOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.setAnchor:

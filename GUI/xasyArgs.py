@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import xasyVersion
-import PyQt5.QtCore as Qc
+import PyQt5.QtCore as QtCore
 # Add arguments here.
 
 
@@ -20,4 +20,4 @@ def parseArgs(args):
 
 
 def getArgs():
-    return parseArgs(Qc.QCoreApplication.arguments())
+    return parseArgs(QtCore.QCoreApplication.arguments())

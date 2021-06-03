@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import xasy2asy as x2a
-import numpy as np
+import xasy2asy as xasy2asy
+import numpy as numpy
 import math
-import PyQt5.QtCore as Qc
-import PyQt5.QtGui as Qg
+import PyQt5.QtCore as QtCore
+import PyQt5.QtGui as QtGui
 
 
 class PrimitiveShape:
@@ -14,9 +14,9 @@ class PrimitiveShape:
 
     @staticmethod
     def pos_to_tuple(pos):
-        if isinstance(pos, tuple) or isinstance(pos, np.ndarray):
+        if isinstance(pos, tuple) or isinstance(pos, numpy.ndarray):
             return pos
-        elif isinstance(pos, Qc.QPoint) or isinstance(pos, Qc.QPointF):
+        elif isinstance(pos, QtCore.QPoint) or isinstance(pos, QtCore.QPointF):
             return pos.x(), pos.y()
         else:
             raise TypeError("Position must be a valid type!")
@@ -32,7 +32,7 @@ class PrimitiveShape:
     @classmethod
     def circle(cls, position, radius):
         pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
-        newCircle = x2a.asyPath()
+        newCircle = xasy2asy.asyPath()
         ptsList = [(pos_x + radius, pos_y), (pos_x, pos_y + radius), (pos_x - radius, pos_y), (pos_x, pos_y - radius),
                    'cycle']
         # cycle doesn't work for now.
@@ -45,16 +45,16 @@ class PrimitiveShape:
         pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
         lkList = ['--'] * sides
         ptsList = []
-        for ang in np.linspace(starting_rad, starting_rad + math.tau, sides, endpoint=False):
+        for ang in numpy.linspace(starting_rad, starting_rad + math.tau, sides, endpoint=False):
             ptsList.append((pos_x + radius * math.cos(ang), pos_y + radius * math.sin(ang)))
 
         if qpoly:
             ptsList.append((pos_x + radius * math.cos(starting_rad), pos_y + radius * math.sin(starting_rad)))
-            qpoints = [Qc.QPointF(x, y) for (x, y) in ptsList]
-            return Qg.QPolygonF(qpoints)
+            qpoints = [QtCore.QPointF(x, y) for (x, y) in ptsList]
+            return QtGui.QPolygonF(qpoints)
         else:
             ptsList.append('cycle')
-            newPoly = x2a.asyPath()
+            newPoly = xasy2asy.asyPath()
             newPoly.initFromNodeList(ptsList, lkList)
             return newPoly
 

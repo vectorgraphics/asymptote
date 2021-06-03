@@ -117,6 +117,7 @@ core.*
 /GUI/pyUIClass/*
 /GUI/__pycache__/*
 /.idea/*
+/GUI/.env
 
 examples/_ig_*.asy
 

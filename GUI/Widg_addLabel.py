@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 from pyUIClass.widg_addLabel import Ui_Form
-import PyQt5.QtWidgets as Qw
-import PyQt5.QtGui as Qg
+import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtGui as QtGui
 
 import labelEditor
 import xasyUtils as xu
 
 
-class Widg_addLabel(Qw.QWidget):
+class Widg_addLabel(QtWidgets.QWidget):
     def __init__(self, info):
         super().__init__()
         self.ui = Ui_Form()
@@ -38,7 +38,7 @@ class Widg_addLabel(Qw.QWidget):
         self.ui.cmbFontSize.setCurrentText(str(self.info['fontSize']) if self.info['fontSize'] is not None else '-')
         self.ui.cmbAlign.setCurrentIndex(self.info['alignIndex'])
 
-        validator = Qg.QDoubleValidator()
+        validator = QtGui.QDoubleValidator()
 
         self.ui.txtShiftX.setValidator(validator)
         self.ui.txtShiftY.setValidator(validator)
@@ -61,7 +61,7 @@ class Widg_addLabel(Qw.QWidget):
         advancedEditDialog = labelEditor.labelEditor(self.ui.txtLabelText.text())
         advancedEditDialog.show()
         result = advancedEditDialog.exec_()
-        if result == Qw.QDialog.Accepted:
+        if result == QtWidgets.QDialog.Accepted:
             self.ui.txtLabelText.setText(advancedEditDialog.getText())
 
     @property
