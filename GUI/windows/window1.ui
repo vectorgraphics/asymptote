@@ -738,6 +738,9 @@
               <height>16</height>
              </size>
             </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
             <property name="flat">
              <bool>true</bool>
             </property>
@@ -783,7 +786,7 @@
              </size>
             </property>
             <property name="checkable">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -2040,7 +2043,7 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>29</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
