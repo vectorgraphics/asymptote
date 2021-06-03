@@ -177,6 +177,9 @@ class MainWindow1(Qw.QMainWindow):
         self.scaleFactor = 1
         self.panOffset = [0, 0]
 
+        # Keyboard can focus outside fo textboxes 
+        self.setFocusPolicy(Qc.Qt.StrongFocus)
+
         super().setMouseTracking(True)
         # setMouseTracking(True)
         
@@ -759,6 +762,7 @@ class MainWindow1(Qw.QMainWindow):
         return Urs.action((_change, _undoChange))
 
     def execCustomCommand(self, command):
+        # print(f"The following command was used: {command}")
         if command in self.commandsFunc:
             self.commandsFunc[command]()
         else:
