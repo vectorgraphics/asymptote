@@ -217,7 +217,11 @@ void ifStm::trans(coenv &e)
   {
     test->createSymMap(symContext);
     onTrue->createSymMap(symContext);
-    onFalse->createSymMap(symContext);
+
+    if (onFalse)
+    {
+      onFalse->createSymMap(symContext);
+    }
   }
 
 
@@ -546,7 +550,10 @@ void returnStm::trans(coenv &e)
 
 void returnStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  value->createSymMap(symContext);
+  if (value)
+  {
+    value->createSymMap(symContext);
+  }
 }
 
 
