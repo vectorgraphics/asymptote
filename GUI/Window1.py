@@ -716,9 +716,17 @@ class MainWindow1(Qw.QMainWindow):
 
 
     def btnUndoOnClick(self):
-        self.undoRedoStack.undo()
-        self.checkUndoRedoButtons()
-
+        if self.currentlySelectedObj['selectedIndex'] is not None:
+            # avoid deleting currently selected object 
+            maj, minor = self.currentlySelectedObj['selectedIndex']
+            selectedObj = self.drawObjects[maj][minor]
+            if selectedObj != self.drawObjects[-1][0]:
+                self.undoRedoStack.undo()
+                self.checkUndoRedoButtons()
+        else:                
+            self.undoRedoStack.undo()
+            self.checkUndoRedoButtons()
+  
     def btnRedoOnClick(self):
         self.undoRedoStack.redo()
         self.checkUndoRedoButtons()
