@@ -46,6 +46,11 @@ namespace AsymptoteLsp
   TextDocumentHover::Either fromMarkedStr(std::string const& str, std::string const& language="asymptote");
 
   string wslDos2Unix(std::string const& dosPath);
+  string wslUnix2Dos(std::string const& unixPath);
+
+  typedef std::unordered_map<std::string, std::unique_ptr<SymbolContext>> SymContextFilemap;
+
+  void generateMissingTrees(std::string filename, SymContextFilemap& map);
 
   class LspLog: public lsp::Log
   {
@@ -56,7 +61,6 @@ namespace AsymptoteLsp
     void log(Level level, const std::wstring& msg) override;
   };
 
-  typedef std::unordered_map<std::string, std::unique_ptr<SymbolContext>> SymContextFilemap;
 
   class AsymptoteLspServer: public lsp::TcpServer
   {
@@ -88,15 +92,21 @@ namespace AsymptoteLsp
     void onOpen(Notify_TextDocumentDidOpen::notify& notify);
     void onSave(Notify_TextDocumentDidSave::notify& notifY);
 
+    void generateMissingTrees(std::string const& inputFile);
 
     void initializeRequestFn();
     void initializeNotifyFn();
 
     void reloadFile(std::string const&);
+    SymbolContext* reloadFileRaw(std::string const&, bool const& fillTree=true);
+
+    std::string plainFile;
 
   private:
     shared_ptr<lsp::ProtocolJsonHandler> pjh;
     shared_ptr<GenericEndpoint> ep;
+
+    SymbolContext* plainCtx;
 
     LspLog& _log;
 

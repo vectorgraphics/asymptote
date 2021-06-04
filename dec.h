@@ -492,6 +492,8 @@ struct idpair : public absyn {
   // where _ is the qualifier record with source as its fields and types.
   void transAsUnravel(coenv &e, record *r,
                       protoenv &source, varEntry *qualifier);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 struct idpairlist : public gc {
@@ -507,6 +509,8 @@ struct idpairlist : public gc {
 
   void transAsUnravel(coenv &e, record *r,
                       protoenv &source, varEntry *qualifier);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext);
 };
 
 extern idpairlist * const WILDCARD;
@@ -524,6 +528,8 @@ public:
   void transAsField(coenv &e, record *r) {
     base->transAsAccess(e,r);
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Abstract base class for
@@ -617,6 +623,8 @@ public:
   }
 
   void prettyprint(ostream &out, Int indent);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Parses the file given, and translates the resulting runnables as if they
@@ -634,6 +642,8 @@ public:
   void loadFailed(coenv &e);
 
   void transAsField(coenv &e, record *r);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Types defined from others in typedef.

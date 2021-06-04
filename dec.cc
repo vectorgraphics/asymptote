@@ -16,6 +16,7 @@
 #include "exp.h"
 #include "modifier.h"
 #include "runtime.h"
+#include "locate.h"
 #include "parser.h"
 
 namespace absyntax {
@@ -807,6 +808,24 @@ void idpair::transAsUnravel(coenv &e, record *r,
   }
 }
 
+void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+
+  if (valid)
+  {
+    string fullSrc(settings::locateFile(src, true));
+    if (not fullSrc.empty())
+    {
+      symContext->addEmptyExtRef(static_cast<std::string>(fullSrc));
+    }
+    auto[it, success] = symContext->fileIdPair.emplace(dest, fullSrc);
+    if (not success)
+    {
+      it->second=static_cast<std::string>(fullSrc);
+    }
+  }
+}
+
 
 void idpairlist::prettyprint(ostream &out, Int indent)
 {
@@ -833,12 +852,25 @@ void idpairlist::transAsUnravel(coenv &e, record *r,
     (*p)->transAsUnravel(e,r,source,qualifier);
 }
 
-idpairlist * const WILDCARD = 0;
+void idpairlist::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  for (auto& idp : base)
+  {
+    idp->createSymMap(symContext);
+  }
+}
+
+  idpairlist * const WILDCARD = 0;
 
 void accessdec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "accessdec", indent, getPos());
   base->prettyprint(out, indent+1);
+}
+
+void accessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  base->createSymMap(symContext);
 }
 
 
@@ -912,6 +944,11 @@ void importdec::prettyprint(ostream &out, Int indent)
   base.prettyprint(out, indent+1);
 }
 
+void importdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  base.createSymMap(symContext);
+}
+
 void includedec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
@@ -933,6 +970,13 @@ void includedec::transAsField(coenv &e, record *r)
   // The runnables will be translated, one at a time, without any additional
   // scoping.
   ast->transAsField(e, r);
+}
+
+void includedec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  std::string fullname(settings::locateFile(filename, true));
+  symContext->addEmptyExtRef(fullname);
+  symContext->includeVals.emplace(fullname);
 }
 
 

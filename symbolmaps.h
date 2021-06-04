@@ -61,50 +61,25 @@ namespace AsymptoteLsp
 
     virtual ~SymbolInfo() = default;
 
-    bool operator==(SymbolInfo const& sym) const
-    {
-      return name==sym.name and type==sym.type and pos == sym.pos;
-    }
+    bool operator==(SymbolInfo const& sym) const;
 
-    virtual std::string signature() const
-    {
-      return type.value_or("<decl-unknown>") + " " + name + ";";
-    }
+    virtual std::string signature() const;
   };
 
   struct FunctionInfo: SymbolInfo
   {
     std::string returnType;
-    std::vector<std::pair<std::string, std::optional<std::string>>> arguments;
-    std::optional<std::string> restArgs;
+    using typeName = std::pair<std::string, std::optional<std::string>>;
+    std::vector<typeName> arguments;
+    std::optional<typeName> restArgs;
 
     FunctionInfo(std::string name, posInFile pos, std::string returnTyp):
-            SymbolInfo(std::move(name), std::move(pos)), returnType(std::move(returnTyp)) {}
+            SymbolInfo(std::move(name), std::move(pos)),
+            returnType(std::move(returnTyp)), arguments(), restArgs(nullopt) {}
 
     ~FunctionInfo() override = default;
 
-    std::string signature() const override
-    {
-      std::stringstream ss;
-      ss << returnType << " " << name << "(";
-      for (auto it = arguments.begin(); it != arguments.end(); it++)
-      {
-        auto const& [argtype, argname] = *it;
-        ss << argtype << " " << argname.value_or("");
-        if (std::next(it) != arguments.end() or restArgs.has_value())
-        {
-          ss << ", ";
-        }
-      }
-
-      if (restArgs.has_value())
-      {
-        auto argtype = restArgs.value();
-        ss << argtype << "...";
-      }
-      ss << ");";
-      return ss.str();
-    }
+    std::string signature() const override;
   };
 
   struct SymbolMaps
@@ -123,6 +98,7 @@ namespace AsymptoteLsp
     inline void clear()
     {
       varDec.clear();
+      funDec.clear();
       varUsage.clear();
       usageByLines.clear();
     }
@@ -135,10 +111,22 @@ namespace AsymptoteLsp
 
   struct SymbolContext
   {
+    std::optional<std::string> fileLoc;
     posInFile contextLoc;
     SymbolContext* parent;
     SymbolMaps symMap;
 
+    // file interactions
+    // access -> (file, id)
+    // unravel -> id
+    // include -> file
+    // import = acccess + unravel
+
+    using extRefMap = std::unordered_map<std::string, SymbolContext*>;
+    extRefMap extFileRefs;
+    std::unordered_map<std::string, std::string> fileIdPair;
+    std::unordered_set<std::string> includeVals;
+    std::unordered_set<std::string> unravledVals;
     std::vector<std::unique_ptr<SymbolContext>> subContexts;
 
     SymbolContext():
@@ -148,11 +136,13 @@ namespace AsymptoteLsp
 
     virtual ~SymbolContext() = default;
 
-    explicit SymbolContext(posInFile loc):
-      contextLoc(std::move(loc)), parent(nullptr) {}
+    explicit SymbolContext(posInFile loc);
+    explicit SymbolContext(posInFile loc, std::string filename);
 
     SymbolContext(posInFile loc, SymbolContext* contextParent):
-      contextLoc(std::move(loc)), parent(contextParent) {}
+      fileLoc(nullopt), contextLoc(std::move(loc)), parent(contextParent)
+    {
+    }
 
     template<typename T=SymbolContext, typename=std::enable_if<std::is_base_of<SymbolContext, T>::value>>
     T* newContext(posInFile const& loc)
@@ -162,10 +152,88 @@ namespace AsymptoteLsp
     }
 
     // [file, start, end]
-    std::pair<std::optional<posRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
+    virtual std::pair<std::optional<posRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
+
+    virtual std::optional<posRangeInFile> searchVarDeclExt(
+            std::string const& symbol, std::unordered_set<SymbolContext*>& searched);
+
+    std::optional<posRangeInFile> searchVarDeclFull(std::string const& symbol);
+
 
     virtual std::optional<posRangeInFile> searchVarDecl(std::string const& symbol);
     virtual std::optional<std::string> searchVarSignature(std::string const& symbol) const;
+
+    virtual std::list<extRefMap::iterator> getEmptyRefs()
+    {
+      std::list<extRefMap::iterator> finalList;
+
+      for (auto it = extFileRefs.begin(); it != extFileRefs.end(); it++)
+      {
+        if (it->second == nullptr)
+        {
+          // cerr << it->first << endl;
+          finalList.emplace_back(it);
+        }
+      }
+
+      for (auto& ctx : subContexts)
+      {
+        finalList.splice(finalList.end(), ctx->getEmptyRefs());
+      }
+
+      return finalList;
+    }
+
+    std::optional<std::string> getFileName() const
+    {
+      if (fileLoc.has_value())
+      {
+        return fileLoc;
+      }
+      else
+      {
+        return parent == nullptr ? fileLoc : parent->getFileName();
+      }
+    }
+
+    SymbolContext* getParent()
+    {
+      return parent == nullptr ? this : parent->getParent();
+    }
+
+    bool addEmptyExtRef(std::string const& fileName)
+    {
+      auto [it, success] = extFileRefs.emplace(fileName, nullptr);
+      return success;
+    }
+
+    void reset(std::string const& newFile)
+    {
+      fileLoc = newFile;
+      contextLoc = std::make_pair(1,1);
+      clear();
+    }
+
+    void clear()
+    {
+      parent = nullptr;
+      symMap.clear();
+      clearExtRefs();
+      subContexts.clear();
+    }
+
+    void clearExtRefs()
+    {
+      extFileRefs.clear();
+      fileIdPair.clear();
+      includeVals.clear();
+      unravledVals.clear();
+    }
+
+  protected:
+    std::optional<posRangeInFile> _searchVarDeclFull(
+            std::string const& symbol, std::unordered_set<SymbolContext*>& searched);
+
   };
 
   struct AddDeclContexts: SymbolContext

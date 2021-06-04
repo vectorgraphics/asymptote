@@ -1,5 +1,6 @@
 #include "common.h"
 #include "symbolmaps.h"
+#include "locate.h"
 #include <unordered_map>
 
 namespace AsymptoteLsp
@@ -99,7 +100,8 @@ namespace AsymptoteLsp
     if (pt != symMap.varDec.end())
     {
       auto [line, ch] = pt->second.pos;
-      return std::make_tuple(pt->first, pt->second.pos, std::make_pair(line, ch + symbol.length()));
+      return std::make_tuple(getFileName().value_or(""),
+                             pt->second.pos, std::make_pair(line, ch + symbol.length()));
     }
 
     auto ptFn = symMap.funDec.find(symbol);
@@ -110,11 +112,76 @@ namespace AsymptoteLsp
       //        where the exact position of
       //        real testFunction(...) { ...
       //             ^
-      return std::make_tuple(ptFn->first, ptFn->second.pos, ptFn->second.pos);
+      return std::make_tuple(getFileName().value_or(""), ptFn->second.pos, ptFn->second.pos);
     }
 
     // otherwise, search parent.
     return parent != nullptr ? parent->searchVarDecl(symbol) : nullopt;
+  }
+
+  SymbolContext::SymbolContext(posInFile loc):
+    fileLoc(nullopt), contextLoc(std::move(loc)), parent(nullptr)
+  {
+    std::string plainFile(settings::locateFile("plain", true));
+    addEmptyExtRef(plainFile);
+    unravledVals.emplace(plainFile);
+  }
+
+  SymbolContext::SymbolContext(posInFile loc, std::string filename):
+          fileLoc(std::move(filename)), contextLoc(std::move(loc)), parent(nullptr)
+  {
+    std::string plainFile(settings::locateFile("plain", true));
+    addEmptyExtRef(plainFile);
+    unravledVals.emplace(plainFile);
+  }
+
+  std::optional<posRangeInFile>
+  SymbolContext::searchVarDeclFull(std::string const& symbol)
+  {
+    std::unordered_set<SymbolContext*> searched;
+    return _searchVarDeclFull(symbol, searched);
+  }
+
+  std::optional<posRangeInFile>
+  SymbolContext::_searchVarDeclFull(std::string const& symbol, std::unordered_set<SymbolContext*>& searched)
+  {
+    auto [it, notSearched] = searched.emplace(this->getParent());
+    if(not notSearched)
+    {
+      // a loop in the search path. Stop now.
+      return nullopt;
+    }
+
+    // local search first
+    auto returnVal=searchVarDecl(symbol);
+    if (returnVal.has_value())
+    {
+      return returnVal;
+    }
+    return searchVarDeclExt(symbol, searched);
+  }
+
+  std::optional<posRangeInFile>
+  SymbolContext::searchVarDeclExt(std::string const& symbol, std::unordered_set<SymbolContext*>& searched)
+  {
+    std::unordered_set<std::string> traverseSet;
+    traverseSet.insert(unravledVals.begin(), unravledVals.end());
+    traverseSet.insert(includeVals.begin(), includeVals.end());
+
+    for (auto const& traverseVal : traverseSet)
+    {
+      if (traverseVal == this->getFileName())
+      {
+        continue;
+      }
+      cerr << "Searching unravel/include val at " << traverseVal << endl;
+      auto returnValF = extFileRefs.at(traverseVal)->_searchVarDeclFull(symbol, searched);
+      if (returnValF.has_value())
+      {
+        return returnValF;
+      }
+    }
+    return nullopt;
   }
 
   std::optional<posRangeInFile> AddDeclContexts::searchVarDecl(std::string const& symbol)
@@ -123,7 +190,7 @@ namespace AsymptoteLsp
     if (pt != additionalDecs.end())
     {
       auto [line, ch] = pt->second.pos;
-      return std::make_tuple(pt->first, pt->second.pos, std::make_pair(line, ch + symbol.length()));
+      return std::make_tuple(getFileName().value_or(""), pt->second.pos, std::make_pair(line, ch + symbol.length()));
     }
 
     return SymbolContext::searchVarDecl(symbol);
@@ -138,5 +205,53 @@ namespace AsymptoteLsp
     }
 
     return SymbolContext::searchVarSignature(symbol);
+  }
+
+  bool SymbolInfo::operator==(SymbolInfo const& sym) const
+  {
+    return name==sym.name and type==sym.type and pos == sym.pos;
+  }
+
+  std::string SymbolInfo::signature() const
+  {
+    return type.value_or("<decl-unknown>") + " " + name + ";";
+  }
+
+  std::string FunctionInfo::signature() const
+  {
+    std::stringstream ss;
+    ss << returnType << " " << name << "(";
+    for (auto it = arguments.begin(); it != arguments.end(); it++)
+    {
+      auto const& [argtype, argname] = *it;
+      ss << argtype;
+      if (argname.has_value())
+      {
+        ss << " " << argname.value();
+      }
+
+      if (std::next(it) != arguments.end())
+      {
+        ss << ",";
+      }
+
+      if (std::next(it) != arguments.end() or restArgs.has_value())
+      {
+        ss << " ";
+      }
+    }
+
+    if (restArgs.has_value())
+    {
+      auto const& [argtype, argname] = restArgs.value();
+      ss << "... " << argtype;
+
+      if (argname.has_value())
+      {
+        ss << " " << argname.value();
+      }
+    }
+    ss << ");";
+    return ss.str();
   }
 }

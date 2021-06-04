@@ -181,12 +181,18 @@ void formal::transAsVar(coenv &e, Int index) {
 
 void formal::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  start->createSymMap(symContext);
+  if (start)
+  {
+    start->createSymMap(symContext);
+  }
 }
 
-void formal::addToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
+std::pair<std::string, std::optional<std::string>> formal::fnInfo() const
 {
-  fnInfo.arguments.emplace_back(static_cast<std::string>(*base), start->getName());
+  std::string typeName(static_cast<std::string>(*base));
+  return start != nullptr ?
+    std::make_pair(typeName, std::make_optional(static_cast<std::string>(start->getName()))) :
+    std::make_pair(typeName, std::nullopt);
 }
 
 void formals::trans(coenv &e)
@@ -210,13 +216,24 @@ void formals::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   {
     field->createSymMap(symContext);
   }
+
+  if (rest)
+  {
+    rest->createSymMap(symContext);
+  }
+
 }
 
 void formals::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
 {
-  for (auto& field: fields)
+  for (auto const& field: fields)
   {
-    field->addToFnInfo(fnInfo);
+    fnInfo.arguments.emplace_back(field->fnInfo());
+  }
+
+  if (rest)
+  {
+    fnInfo.restArgs=rest->fnInfo();
   }
   // handle rest case as well
 }

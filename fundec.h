@@ -57,7 +57,7 @@ public:
   }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
-  void addToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo);
+  std::pair<std::string, std::optional<std::string>> fnInfo() const;
 };
 
 class formals : public absyn {
