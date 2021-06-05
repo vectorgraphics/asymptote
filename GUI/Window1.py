@@ -886,6 +886,7 @@ class MainWindow1(Qw.QMainWindow):
     #We include this function to keep the general program flow consistent
     def closeEvent(self, event):
         self.actionClose()
+        event.ignore() #this will only be reached if cancel is pressed
 
     def actionOpen(self):
         if self.fileChanged:
@@ -902,12 +903,17 @@ class MainWindow1(Qw.QMainWindow):
     def actionClose(self):
         if self.fileChanged:
             save="Save current file?"
-            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
-                                        Qw.QMessageBox.No)
+            replyBox = Qw.QMessageBox()
+            replyBox.setText("Save current file?")
+            replyBox.setWindowTitle("Message")
+            replyBox.setStandardButtons(Qw.QMessageBox.Yes | Qw.QMessageBox.No | Qw.QMessageBox.Cancel)
+            reply = replyBox.exec()
+
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
                 Qc.QCoreApplication.quit()
-        Qc.QCoreApplication.quit()
+            elif reply == Qw.QMessageBox.No:
+                Qc.QCoreApplication.quit()
 
     def actionSave(self):
         if self.filename is None:
