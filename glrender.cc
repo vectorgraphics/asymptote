@@ -70,6 +70,16 @@ GLint pixelShader;
 GLint materialShader;
 GLint colorShader;
 GLint transparentShader;
+GLint mergeShader;
+
+GLsizeiptr fragmentSize;
+GLsizeiptr headSize;
+GLsizeiptr avgDepth;
+
+GLuint counter;
+GLuint fragmentBuffer;
+GLuint headBuffer;
+GLuint zBuffer;
 
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -434,7 +444,8 @@ void initShaders()
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
-  if(vs.empty() || fs.empty()) {
+  string tfs=locateFile("shaders/transparentfragment.glsl");
+  if(vs.empty() || fs.empty() || tfs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
@@ -468,10 +479,14 @@ void initShaders()
   shaderParams.push_back("TRANSPARENT");
   camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                                shaderParams);
+  shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
+  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                               shaderParams);
 }
 
 void deleteShaders()
 {
+  glDeleteProgram(camp::mergeShader);
   glDeleteProgram(camp::transparentShader);
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::materialShader);
@@ -489,6 +504,11 @@ void setBuffers()
   camp::colorData.Reserve();
   camp::triangleData.Reserve();
   camp::transparentData.Reserve();
+
+  glGenBuffers(1, &camp::counter);
+  glGenBuffers(1, &camp::fragmentBuffer);
+  glGenBuffers(1, &camp::headBuffer);
+  glGenBuffers(1, &camp::zBuffer);
 }
 
 void drawscene(int Width, int Height)
@@ -519,6 +539,33 @@ void drawscene(int Width, int Height)
 
   if(remesh)
     camp::drawElement::center.clear();
+
+  GLuint zero = 0;
+
+  // Initialize the counter
+  glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
+  glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, camp::counter);
+  glBufferData(GL_ATOMIC_COUNTER_BUFFER, 4, &zero, GL_DYNAMIC_DRAW);
+
+  camp::avgDepth = 20;
+  camp::fragmentSize = Width * Height * 6 * sizeof(GLuint) * camp::avgDepth;
+  camp::headSize = Width * Height * sizeof(GLuint);
+
+  // Initialize the a-buffer
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::headBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize, NULL, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, camp::headBuffer);
+  glClearNamedBufferData(camp::headBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::fragmentBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::fragmentSize, NULL, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, camp::fragmentBuffer);
+
+  // Initialize the z-buffer
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::zBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize*10, NULL, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, camp::zBuffer);
+  glClearNamedBufferData(camp::zBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
 
   Picture->render(size2,m,M,perspective,remesh);
 
@@ -1913,6 +1960,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUseProgram(shader);
     gl::lastshader=shader;
 
+    glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
+
     glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
     for(size_t i=0; i < gl::nlights; ++i) {
@@ -1959,10 +2008,11 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
 void drawBuffer(vertexBuffer& data, GLint shader)
 {
+
   if(data.indices.empty()) return;
 
   bool normal=shader != pixelShader;
-  bool color=shader == colorShader || shader == transparentShader;
+  bool color=shader == colorShader || shader == transparentShader || shader == mergeShader;
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
@@ -2056,10 +2106,13 @@ void drawTriangle()
 
 void drawTransparent()
 {
-  sortTriangles();
+  // sortTriangles();
   glDepthMask(GL_FALSE); // Enable transparency
-  drawBuffer(transparentData,transparentShader);
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+  drawBuffer(transparentData,transparentShader);
+  glDepthMask(GL_FALSE); // Enable transparency
+  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+  drawBuffer(transparentData,mergeShader);
   glDepthMask(GL_TRUE); // Disable transparency
   transparentData.clear();
 }

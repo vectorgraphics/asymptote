@@ -29,8 +29,36 @@ vec3 normal;
 in vec4 Color; 
 #endif
 
+#ifdef TRANSPARENT
+layout(binding=0) uniform atomic_uint counter;
+struct Fragment
+{
+    uint next;
+    vec4 color;
+    float depth;
+};
+layout(std430, binding=1) coherent buffer head {
+    uint tail[];
+};
+layout(std430, binding=2) coherent buffer list {
+    Fragment fragments[];
+};
+#endif
+
+struct OpaqueFragment
+{
+    vec4 color;
+    float depth;
+};
+layout(std430, binding=3) coherent buffer opaque {
+    OpaqueFragment zbuffer[];
+};
+
 flat in int materialIndex;
 out vec4 outColor;
+vec4 tempColor;
+
+uniform uint width;
 
 // PBR material parameters
 vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
@@ -220,8 +248,24 @@ void main()
   envRadiance *= halfpi*step*step;
   color += envRadiance.rgb;
 #endif
-  outColor=vec4(color,diffuse.a);
-#else    
-  outColor=emissive;
+  tempColor=vec4(color,diffuse.a);
+#else
+  tempColor=emissive;
 #endif      
+
+  uint headIndex = uint(gl_FragCoord.y) * width + uint(gl_FragCoord.x);
+#ifdef TRANSPARENT
+  if (zbuffer[headIndex].depth < gl_FragCoord.z && zbuffer[headIndex].depth != 0) discard;
+
+  uint listIndex = atomicCounterIncrement(counter);
+  uint lastIndex = atomicExchange(tail[headIndex], listIndex);
+
+  fragments[listIndex].next = lastIndex;
+  fragments[listIndex].color = tempColor;
+  fragments[listIndex].depth = gl_FragCoord.z;
+#else
+  zbuffer[headIndex].color = tempColor;
+  zbuffer[headIndex].depth = gl_FragCoord.z;
+  outColor = tempColor;
+#endif
 }
