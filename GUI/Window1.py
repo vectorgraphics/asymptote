@@ -60,6 +60,11 @@ class HardDeletionChanges(ActionChanges):
         self.item = obj
         self.objIndex = pos
 
+class SoftDeletionChanges(ActionChanges):
+    def __init__(self, obj, hidPos):
+        self.item = obj
+        self.keyMap = hidPos
+
 class AnchorMode:
     center = 0
     origin = 1
@@ -672,7 +677,11 @@ class MainWindow1(Qw.QMainWindow):
             parent = selectedObj.parent()
 
             if isinstance(parent, x2a.xasyScript):
-                self.hiddenKeys.add((selectedObj.key, selectedObj.keyIndex))
+                hiddenIndex=(selectedObj.key, selectedObj.keyIndex)
+                self.hiddenKeys.add(hiddenIndex)
+                self.undoRedoStack.add(self.createAction(
+                    SoftDeletionChanges(selectedObj.parent(), hiddenIndex)
+                    ))
                 self.softDeleteObj((maj, minor))
             else:
                 index = self.fileItems.index(selectedObj.parent())
@@ -746,6 +755,10 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.pop()
         elif isinstance(change, HardDeletionChanges):
             self.fileItems.insert(change.objIndex, change.item)
+        elif isinstance(change, SoftDeletionChanges):
+            key, keyIndex = change.keyMap
+            self.hiddenKeys.remove((key, keyIndex))
+            change.item.transfKeymap[key][keyIndex].deleted = False
         self.asyfyCanvas()
 
     def handleRedoChanges(self, change):
@@ -757,6 +770,10 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.append(change.object)
         elif isinstance(change, HardDeletionChanges):
             self.fileItems.remove(change.item)
+        elif isinstance(change, SoftDeletionChanges):
+            key, keyIndex = change.keyMap
+            self.hiddenKeys.add((key, keyIndex))
+            change.item.transfKeymap[key][keyIndex].deleted = True
         self.asyfyCanvas()
 
     #  is this a "pythonic" way?
@@ -1850,6 +1867,7 @@ class MainWindow1(Qw.QMainWindow):
         self.asyfyCanvas()
 
         self.globalObjectCounter = self.globalObjectCounter + 1
+
     def softDeleteObj(self, objKey):
         maj, minor = objKey
         drawObj = self.drawObjects[maj][minor]
