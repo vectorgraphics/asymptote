@@ -787,7 +787,6 @@ class MainWindow1(Qw.QMainWindow):
         return Urs.action((_change, _undoChange))
 
     def execCustomCommand(self, command):
-        # print(f"The following command was used: {command}")
         if command in self.commandsFunc:
             self.commandsFunc[command]()
         else:
@@ -898,6 +897,9 @@ class MainWindow1(Qw.QMainWindow):
 
     def erase(self):
         self.fileItems.clear()
+        self.hiddenKeys.clear()
+        self.undoRedoStack.clear()
+        self.checkUndoRedoButtons()
         self.fileChanged = False
 
     #We include this function to keep the general program flow consistent
