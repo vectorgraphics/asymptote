@@ -1653,6 +1653,9 @@ class MainWindow1(Qw.QMainWindow):
                     self.newTransform).toQTransform(), True)
                 painter.drawRect(selObj.localBoundingBox)
             else:
+                localPen = painter.pen()
+                localPen.setCosmetic(True)
+                painter.setPen(localPen)
                 painter.setTransform(self.newTransform, True)
                 painter.drawRect(self.currentBoundingBox)
             painter.restore()

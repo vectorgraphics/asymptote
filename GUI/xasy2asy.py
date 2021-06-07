@@ -1724,7 +1724,9 @@ class DrawObject(QtCore.QObject):
         canvas.save()
         if self.pen:
             oldPen = QtGui.QPen(canvas.pen())
-            canvas.setPen(self.pen.toQPen())
+            localPen = self.pen.toQPen()
+            localPen.setCosmetic(True)
+            canvas.setPen(localPen) #this fixes the object but not the box
         else:
             oldPen = QtGui.QPen()
 
