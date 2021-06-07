@@ -61,9 +61,9 @@ class HardDeletionChanges(ActionChanges):
         self.objIndex = pos
 
 class SoftDeletionChanges(ActionChanges):
-    def __init__(self, obj, hidPos):
+    def __init__(self, obj, keyPos):
         self.item = obj
-        self.keyMap = hidPos
+        self.keyMap = keyPos
 
 class AnchorMode:
     center = 0
@@ -677,10 +677,10 @@ class MainWindow1(Qw.QMainWindow):
             parent = selectedObj.parent()
 
             if isinstance(parent, x2a.xasyScript):
-                hiddenIndex=(selectedObj.key, selectedObj.keyIndex)
-                self.hiddenKeys.add(hiddenIndex)
+                objKey=(selectedObj.key, selectedObj.keyIndex)
+                self.hiddenKeys.add(objKey)
                 self.undoRedoStack.add(self.createAction(
-                    SoftDeletionChanges(selectedObj.parent(), hiddenIndex)
+                    SoftDeletionChanges(selectedObj.parent(), objKey)
                     ))
                 self.softDeleteObj((maj, minor))
             else:
