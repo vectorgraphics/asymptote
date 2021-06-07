@@ -1450,7 +1450,7 @@ class xasyScript(xasyItem):
                     writeval = list(reversed(val))
                     # need to map all transforms in a list if there is any non-identity
                     # unfortunately, have to check all transformations in the list.
-                    while not all(checktransf == identity() for checktransf in writeval) and writeval:
+                    while not all((checktransf == identity() and not checktransf.deleted) for checktransf in writeval) and writeval:
                         transf = writeval.pop()
                         if transf.deleted:
                             rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)) + '\n//')
