@@ -689,10 +689,10 @@ class MainWindow1(Qw.QMainWindow):
                 self.undoRedoStack.add(self.createAction(
                     HardDeletionChanges(selectedObj.parent(), index)
                 ))
-                self.checkUndoRedoButtons()
                 
                 self.fileItems.remove(selectedObj.parent())
 
+            self.checkUndoRedoButtons()
             self.fileChanged = True
             self.clearSelection()
             self.asyfyCanvas()
