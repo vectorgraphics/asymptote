@@ -44,6 +44,8 @@ namespace AsymptoteLsp
   TextDocumentHover::Either fromString(std::string const &str);
   TextDocumentHover::Either fromMarkedStr(lsMarkedString const& markedString);
   TextDocumentHover::Either fromMarkedStr(std::string const& str, std::string const& language="asymptote");
+  TextDocumentHover::Either fromMarkedStr(std::vector<std::string> const& stringList,
+                                          std::string const& language="asymptote");
 
   string wslDos2Unix(std::string const& dosPath);
   string wslUnix2Dos(std::string const& unixPath);

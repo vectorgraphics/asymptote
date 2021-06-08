@@ -374,13 +374,10 @@ void fundec::transAsField(coenv &e, record *r)
 
 void fundec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  std::string fid(static_cast<std::string>(id));
-  auto [fnIt, success] = symContext->symMap.funDec.emplace(std::piecewise_construct,
-          std::forward_as_tuple(fid),
-          std::forward_as_tuple(fid, getPos().LineColumn(), static_cast<std::string>(*fun.result)));
-  if (success) {
-    fun.addArgumentsToFnInfo(fnIt->second);
-  }
+  AsymptoteLsp::FunctionInfo& fnInfo=symContext->symMap.addFunDef(static_cast<std::string>(id),
+                                              getPos().LineColumn(),
+                                              static_cast<std::string>(*fun.result));
+  fun.addArgumentsToFnInfo(fnInfo);
   fun.createSymMap(symContext);
 }
 

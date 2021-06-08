@@ -100,6 +100,20 @@ namespace AsymptoteLsp
     return std::make_pair(vec, std::nullopt);
   }
 
+  TextDocumentHover::Either fromMarkedStr(std::vector<std::string> const& stringList, std::string const& language)
+  {
+    std::vector<std::pair<optional<std::string>, optional<lsMarkedString>>> vec;
+    std::transform(stringList.begin(), stringList.end(), std::back_inserter(vec),
+                   [&language](std::string const& str) {
+      lsMarkedString lms;
+      lms.language = language;
+      lms.value = str;
+      return std::make_pair((std::optional<std::string>)nullopt, std::make_optional(lms));
+    });
+
+    return std::make_pair(vec, std::nullopt);
+  }
+
   TextDocumentHover::Either fromMarkedStr(std::string const& str, std::string const& language)
   {
     lsMarkedString lms;
@@ -239,7 +253,7 @@ namespace AsymptoteLsp
       auto it = symmapContextsPtr->find(rawPath);
       if (it != symmapContextsPtr->end())
       {
-        it->second->reset(rawPath);
+        *(it->second) = SymbolContext(posInFile(1, 1), rawPath);
       }
       else
       {
@@ -316,7 +330,6 @@ namespace AsymptoteLsp
     // FIXME: Investigate why. And also fix this
     symmapContextsPtr.release();
     plainCtx=nullptr;
-
     symmapContextsPtr=std::make_unique<SymContextFilemap>();
 
     plainFile=settings::locateFile("plain", true);
@@ -351,8 +364,22 @@ namespace AsymptoteLsp
     auto [symText, startPos, endPos] = st.value();
     rsp.result.range=std::make_optional(lsRange(toLsPosition(startPos), toLsPosition(endPos)));
 
-    auto typ = ctx->searchVarSignature(symText);
-    rsp.result.contents=fromMarkedStr(typ.value_or("<decl-unknown> " + symText + ";"));
+    auto typ = ctx->searchVarSignatureFull(symText);
+    // std::vector<std::string> endResult;
+    // std::copy(typ.begin(), typ.end(), std::back_inserter(endResult));
+    if (typ.has_value())
+    {
+      rsp.result.contents = fromMarkedStr(typ.value());
+      return rsp;
+    }
+
+    auto fnList = ctx->searchFuncSignatureFull(symText);
+    std::vector<std::string> endResult;
+    std::copy(fnList.begin(), fnList.end(), std::back_inserter(endResult));
+
+    rsp.result.contents = fnList.empty() ?
+                          fromMarkedStr("<decl-unknown> " + symText + ";") :
+                          fromMarkedStr(endResult);
     return rsp;
   }
 

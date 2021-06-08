@@ -402,8 +402,7 @@ void decidstart::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   }
   else
   {
-    symContext->symMap.varDec.emplace(std::piecewise_construct,
-            std::forward_as_tuple(name), std::forward_as_tuple(name, pos));
+    symContext->symMap.varDec[name] = AsymptoteLsp::SymbolInfo(name, pos);
   }
 }
 
@@ -426,16 +425,9 @@ void decidstart::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absy
   }
   else
   {
-    if (base == nullptr)
-    {
-      symContext->symMap.varDec.emplace(std::piecewise_construct, std::forward_as_tuple(name),
-                                        std::forward_as_tuple(name, pos));
-    }
-    else
-    {
-      symContext->symMap.varDec.emplace(std::piecewise_construct, std::forward_as_tuple(name),
-                                        std::forward_as_tuple(name, static_cast<std::string>(*base), pos));
-    }
+    symContext->symMap.varDec[name] = base == nullptr ?
+            AsymptoteLsp::SymbolInfo(name, pos) :
+            AsymptoteLsp::SymbolInfo(name, static_cast<std::string>(*base), pos);
   }
 }
 

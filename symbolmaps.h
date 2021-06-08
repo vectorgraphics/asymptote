@@ -11,6 +11,7 @@
 
 namespace AsymptoteLsp
 {
+  using std::unordered_map;
   struct SymbolContext;
 
   typedef std::pair<std::string, SymbolContext*> contextedSymbol;
@@ -34,7 +35,7 @@ namespace AsymptoteLsp
     return (p1.first < p2.first) or ((p1.first == p2.first) and (p1.second < p2.second));
   }
 
-  using std::unordered_map;
+  std::string getPlainFile();
 
   // filename to positions
   struct positions
@@ -53,16 +54,36 @@ namespace AsymptoteLsp
     posInFile pos;
     // std::optional<size_t> array_dim;
 
+    SymbolInfo() : type(nullopt), pos(1, 1) {}
+
     SymbolInfo(std::string inName, posInFile position):
       name(std::move(inName)), type(nullopt), pos(std::move(position)) {}
 
     SymbolInfo(std::string inName, std::string inType, posInFile position):
       name(std::move(inName)), type(std::move(inType)), pos(std::move(position)) {}
 
+    SymbolInfo(SymbolInfo const& symInfo) = default;
+
+    SymbolInfo& operator=(SymbolInfo const& symInfo) noexcept = default;
+
+    SymbolInfo(SymbolInfo&& symInfo) noexcept :
+            name(std::move(symInfo.name)), type(std::move(symInfo.type)), pos(std::move(symInfo.pos))
+    {
+    }
+
+    SymbolInfo& operator=(SymbolInfo&& symInfo) noexcept
+    {
+      name = std::move(symInfo.name);
+      type = std::move(symInfo.type);
+      pos = std::move(symInfo.pos);
+      return *this;
+    }
+
     virtual ~SymbolInfo() = default;
 
     bool operator==(SymbolInfo const& sym) const;
 
+    [[nodiscard]]
     virtual std::string signature() const;
   };
 
@@ -75,18 +96,19 @@ namespace AsymptoteLsp
 
     FunctionInfo(std::string name, posInFile pos, std::string returnTyp):
             SymbolInfo(std::move(name), std::move(pos)),
-            returnType(std::move(returnTyp)), arguments(), restArgs(nullopt) {}
+            returnType(std::move(returnTyp)),
+            arguments(), restArgs(nullopt) {}
 
     ~FunctionInfo() override = default;
 
+    [[nodiscard]]
     std::string signature() const override;
   };
 
   struct SymbolMaps
   {
     unordered_map <std::string, SymbolInfo> varDec;
-    unordered_map <std::string, FunctionInfo> funDec;
-
+    unordered_map <std::string, std::vector<FunctionInfo>> funDec;
     // can refer to other files
     unordered_map <std::string, positions> varUsage;
 
@@ -102,8 +124,9 @@ namespace AsymptoteLsp
       varUsage.clear();
       usageByLines.clear();
     }
-
     std::optional<posRangeInFile> searchSymbol(posInFile const& inputPos);
+
+    FunctionInfo& addFunDef(std::string const& funcName, posInFile const& position, std::string const& returnType);
 
   private:
     friend ostream& operator<<(std::ostream& os, const SymbolMaps& sym);
@@ -151,50 +174,79 @@ namespace AsymptoteLsp
       return static_cast<T*>(subContexts.at(subContexts.size() - 1).get());
     }
 
+    SymbolContext(SymbolContext const& symCtx) :
+      fileLoc(symCtx.fileLoc), contextLoc(symCtx.contextLoc),
+      parent(symCtx.parent), symMap(symCtx.symMap),
+      extFileRefs(symCtx.extFileRefs), fileIdPair(symCtx.fileIdPair),
+      includeVals(symCtx.includeVals)
+    {
+      for (auto& ctx : symCtx.subContexts)
+      {
+        subContexts.push_back(make_unique<SymbolContext>(*ctx));
+      }
+    }
+
+    SymbolContext& operator= (SymbolContext const& symCtx)
+    {
+      fileLoc = symCtx.fileLoc;
+      contextLoc = symCtx.contextLoc;
+      parent = symCtx.parent;
+      symMap = symCtx.symMap;
+      extFileRefs = symCtx.extFileRefs;
+      fileIdPair = symCtx.fileIdPair;
+      includeVals = symCtx.includeVals;
+
+      for (auto& ctx : symCtx.subContexts)
+      {
+        subContexts.push_back(make_unique<SymbolContext>(*ctx));
+      }
+
+      return *this;
+    }
+
+    SymbolContext(SymbolContext&& symCtx) noexcept :
+            fileLoc(std::move(symCtx.fileLoc)), contextLoc(std::move(symCtx.contextLoc)),
+            parent(symCtx.parent), symMap(std::move(symCtx.symMap)),
+            extFileRefs(std::move(symCtx.extFileRefs)), fileIdPair(std::move(symCtx.fileIdPair)),
+            includeVals(std::move(symCtx.includeVals)), subContexts(std::move(symCtx.subContexts))
+    {
+    }
+
+    SymbolContext& operator= (SymbolContext&& symCtx)
+    {
+      fileLoc = std::move(symCtx.fileLoc);
+      contextLoc = std::move(symCtx.contextLoc);
+      parent = symCtx.parent;
+      symMap = std::move(symCtx.symMap);
+      extFileRefs = std::move(symCtx.extFileRefs);
+      fileIdPair = std::move(symCtx.fileIdPair);
+      includeVals = std::move(symCtx.includeVals);
+      subContexts = std::move(symCtx.subContexts);
+      return *this;
+    }
+
     // [file, start, end]
     virtual std::pair<std::optional<posRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
 
+    // variable+functions declarations
     virtual std::optional<posRangeInFile> searchVarDeclExt(
             std::string const& symbol, std::unordered_set<SymbolContext*>& searched);
+    std::optional<posRangeInFile> searchVarDeclFull(std::string const& symbol,
+                                                    std::optional<posInFile> const& position=nullopt);
 
-    std::optional<posRangeInFile> searchVarDeclFull(std::string const& symbol);
+    std::optional<posRangeInFile> searchVarDecl(std::string const& symbol);
+    virtual std::optional<posRangeInFile> searchVarDecl(
+            std::string const& symbol, std::optional<posInFile> const& position);
 
-
-    virtual std::optional<posRangeInFile> searchVarDecl(std::string const& symbol);
+    // variable signatures
     virtual std::optional<std::string> searchVarSignature(std::string const& symbol) const;
+    virtual std::optional<std::string> searchVarSignatureFull(std::string const& symbol);
+    virtual std::list<std::string> searchFuncSignature(std::string const& symbol);
+    virtual std::list<std::string> searchFuncSignatureFull(std::string const& symbol);
 
-    virtual std::list<extRefMap::iterator> getEmptyRefs()
-    {
-      std::list<extRefMap::iterator> finalList;
+    virtual std::list<extRefMap::iterator> getEmptyRefs();
 
-      for (auto it = extFileRefs.begin(); it != extFileRefs.end(); it++)
-      {
-        if (it->second == nullptr)
-        {
-          // cerr << it->first << endl;
-          finalList.emplace_back(it);
-        }
-      }
-
-      for (auto& ctx : subContexts)
-      {
-        finalList.splice(finalList.end(), ctx->getEmptyRefs());
-      }
-
-      return finalList;
-    }
-
-    std::optional<std::string> getFileName() const
-    {
-      if (fileLoc.has_value())
-      {
-        return fileLoc;
-      }
-      else
-      {
-        return parent == nullptr ? fileLoc : parent->getFileName();
-      }
-    }
+    std::optional<std::string> getFileName() const;
 
     SymbolContext* getParent()
     {
@@ -232,8 +284,21 @@ namespace AsymptoteLsp
 
   protected:
     std::optional<posRangeInFile> _searchVarDeclFull(
-            std::string const& symbol, std::unordered_set<SymbolContext*>& searched);
+            std::string const& symbol, std::unordered_set<SymbolContext*>& searched,
+            std::optional<posInFile> const& position=nullopt);
 
+    virtual std::optional<std::string> _searchVarSignatureFull(std::string const& symbol,
+                                                               std::unordered_set<SymbolContext*>& searched);
+
+    virtual std::list<std::string> _searchFuncSignatureFull(std::string const& symbol,
+                                                            std::unordered_set<SymbolContext*>& searched);
+
+    virtual std::list<std::string> searchFuncSignatureExt(std::string const& symbol,
+                                                          std::unordered_set<SymbolContext*>& searched);
+
+    virtual std::optional<std::string> searchVarSignatureExt(std::string const& symbol,
+                                                             std::unordered_set<SymbolContext*>& searched);
+    void addPlainFile();
   };
 
   struct AddDeclContexts: SymbolContext
@@ -249,7 +314,10 @@ namespace AsymptoteLsp
 
     ~AddDeclContexts() override = default;
 
-    std::optional<posRangeInFile> searchVarDecl(std::string const& symbol) override;
+    std::optional<posRangeInFile> searchVarDecl(std::string const& symbol,
+                                                std::optional<posInFile> const& position) override;
+
+
     std::optional<std::string> searchVarSignature(std::string const& symbol) const override;
   };
 }
