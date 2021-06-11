@@ -1562,6 +1562,7 @@ class MainWindow1(Qw.QMainWindow):
         for x in np.arange(0, 2 * x_range + 1, majorGrid):  # have to do
             # this in two stages...
             preCanvas.setPen(minorGridCol)
+            self.makePenCosmetic(preCanvas)
             for xMinor in range(1, minorGridCount + 1):
                 xCoord = x + ((xMinor / (minorGridCount + 1)) * majorGrid)
                 preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
@@ -1569,17 +1570,20 @@ class MainWindow1(Qw.QMainWindow):
 
         for y in np.arange(0, 2 * y_range + 1, majorGrid):
             preCanvas.setPen(minorGridCol)
+            self.makePenCosmetic(preCanvas)
             for yMinor in range(1, minorGridCount + 1):
                 yCoord = y + ((yMinor / (minorGridCount + 1)) * majorGrid)
                 preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
                 preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
 
             preCanvas.setPen(majorGridCol)
+            self.makePenCosmetic(preCanvas)
             preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
             preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
 
         for x in np.arange(0, 2 * x_range + 1, majorGrid):
             preCanvas.setPen(majorGridCol)
+            self.makePenCosmetic(preCanvas)
             preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
             preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
 
@@ -1628,6 +1632,7 @@ class MainWindow1(Qw.QMainWindow):
 
         if self.drawAxes:
             preCanvas.setPen(Qc.Qt.gray)
+            self.makePenCosmetic(preCanvas)
             preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
             preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
 
@@ -1672,9 +1677,7 @@ class MainWindow1(Qw.QMainWindow):
                     self.newTransform).toQTransform(), True)
                 painter.drawRect(selObj.localBoundingBox)
             else:
-                localPen = painter.pen()
-                localPen.setCosmetic(True)
-                painter.setPen(localPen)
+                self.makePenCosmetic(painter)
                 painter.setTransform(self.newTransform, True)
                 painter.drawRect(self.currentBoundingBox)
             painter.restore()
@@ -1996,3 +1999,8 @@ class MainWindow1(Qw.QMainWindow):
         self.itemCount = 0
         for item in self.fileItems:
             self.drawObjects.append(item.generateDrawObjects(forceUpdate))
+
+    def makePenCosmetic(self, painter):
+        localPen = painter.pen()
+        localPen.setCosmetic(True)
+        painter.setPen(localPen)
