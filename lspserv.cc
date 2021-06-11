@@ -21,6 +21,7 @@
 #include "locate.h"
 
 #define GC_THREADS
+
 #include "gc.h"
 
 #define REGISTER_REQ_FN(typ, fn) remote_end_point_.registerRequestHandler(\
@@ -37,28 +38,31 @@ namespace AsymptoteLsp
 
   string wslDos2Unix(std::string const& dosPath)
   {
-    bool isDrivePath = false;
+    bool isDrivePath=false;
     char drive;
     if (dosPath.length() >= 3)
     {
-      if (dosPath[0] == '/' and dosPath[2] == ':') {
-      isDrivePath = true;
-      drive = dosPath[1];
+      if (dosPath[0] == '/' and dosPath[2] == ':')
+      {
+        isDrivePath=true;
+        drive=dosPath[1];
       }
     }
 
-    if (isDrivePath) {
+    if (isDrivePath)
+    {
       stringstream sstream;
-      sstream << "/mnt/" << (char)tolower(drive) << dosPath.substr(3);
-    return sstream.str();
-    } else {
+      sstream << "/mnt/" << (char) tolower(drive) << dosPath.substr(3);
+      return sstream.str();
+    } else
+    {
       return string(dosPath);
     }
   }
 
   string wslUnix2Dos(std::string const& unixPath)
   {
-    bool isMntPath = false;
+    bool isMntPath=false;
     char drive;
 
     char actPath[PATH_MAX];
@@ -69,18 +73,17 @@ namespace AsymptoteLsp
     {
       if (fullPath.find("/mnt/") == 0)
       {
-        isMntPath = true;
-        drive = fullPath[5];
+        isMntPath=true;
+        drive=fullPath[5];
       }
     }
 
     if (isMntPath)
     {
       stringstream sstream;
-      sstream << "/" << (char)tolower(drive) << ":" << fullPath.substr(6);
+      sstream << "/" << (char) tolower(drive) << ":" << fullPath.substr(6);
       return sstream.str();
-    }
-    else
+    } else
     {
       return string(fullPath);
     }
@@ -95,7 +98,7 @@ namespace AsymptoteLsp
 
   TextDocumentHover::Either fromMarkedStr(lsMarkedString const& markedString)
   {
-    auto strobj=std::make_pair((std::optional<std::string>)std::nullopt, std::make_optional(markedString));
+    auto strobj=std::make_pair((std::optional<std::string>) std::nullopt, std::make_optional(markedString));
     std::vector<decltype(strobj)> vec{strobj};
     return std::make_pair(vec, std::nullopt);
   }
@@ -104,12 +107,13 @@ namespace AsymptoteLsp
   {
     std::vector<std::pair<optional<std::string>, optional<lsMarkedString>>> vec;
     std::transform(stringList.begin(), stringList.end(), std::back_inserter(vec),
-                   [&language](std::string const& str) {
-      lsMarkedString lms;
-      lms.language = language;
-      lms.value = str;
-      return std::make_pair((std::optional<std::string>)nullopt, std::make_optional(lms));
-    });
+                   [&language](std::string const& str)
+                   {
+                     lsMarkedString lms;
+                     lms.language=language;
+                     lms.value=str;
+                     return std::make_pair((std::optional<std::string>) nullopt, std::make_optional(lms));
+                   });
 
     return std::make_pair(vec, std::nullopt);
   }
@@ -117,20 +121,20 @@ namespace AsymptoteLsp
   TextDocumentHover::Either fromMarkedStr(std::string const& str, std::string const& language)
   {
     lsMarkedString lms;
-    lms.language = language;
-    lms.value = str;
+    lms.language=language;
+    lms.value=str;
     return fromMarkedStr(lms);
   }
 
   void AsymptoteLspServer::generateMissingTrees(std::string const& inputFile)
   {
-    using extRefMap = std::unordered_map<std::string, SymbolContext*>;
+    using extRefMap=std::unordered_map<std::string, SymbolContext*>;
     //using extRefMapLoc = std::pair<extRefMap*, std::string>;
     std::queue<extRefMap::iterator> procList;
     std::unordered_set<std::string> processing;
 
     processing.emplace(inputFile);
-    SymbolContext* ctx = symmapContextsPtr->at(inputFile).get();
+    SymbolContext* ctx=symmapContextsPtr->at(inputFile).get();
 
     for (auto const& locPair : ctx->getEmptyRefs())
     {
@@ -140,28 +144,28 @@ namespace AsymptoteLsp
     // standard BFS algorithm
     while (not procList.empty())
     {
-      auto it = procList.front();
+      auto it=procList.front();
       procList.pop();
 
       std::string filename(it->first);
       processing.emplace(filename);
 
-      auto mapIt = symmapContextsPtr->find(filename);
+      auto mapIt=symmapContextsPtr->find(filename);
       if (mapIt != symmapContextsPtr->end())
       {
-        it->second = mapIt->second.get();
-      }
-      else
+        it->second=mapIt->second.get();
+      } else
       {
-        auto [fit, success] = symmapContextsPtr->emplace(filename,
-                                       std::make_unique<SymbolContext>(posInFile(1, 1), filename));
-        block* blk = ifile(filename.c_str()).getTree();
+        auto[fit, success] = symmapContextsPtr->emplace(
+                filename,
+                std::make_unique<SymbolContext>(posInFile(1, 1), filename));
+        block* blk=ifile(filename.c_str()).getTree();
         blk->createSymMap(fit->second.get()); // parse symbol from there.
 
         // set plain.asy to plain
         if (plainCtx != nullptr)
         {
-          fit->second->extFileRefs[plainFile] = plainCtx;
+          fit->second->extFileRefs[plainFile]=plainCtx;
         }
 
         // also parse its neighbors
@@ -170,39 +174,43 @@ namespace AsymptoteLsp
           if (processing.find(sit->first) == processing.end())
           {
             procList.emplace(sit);
-          }
-          else
+          } else
           {
             // import cycles detected!
             cerr << "import cycles detected!" << endl;
           }
         }
-        it->second = fit->second.get();
+        it->second=fit->second.get();
       }
     }
   }
 
-  void LspLog::log(Level level, std::string &&msg) {
+  void LspLog::log(Level level, std::string&& msg)
+  {
     cerr << msg << std::endl;
   }
 
-  void LspLog::log(Level level, std::wstring &&msg) {
+  void LspLog::log(Level level, std::wstring&& msg)
+  {
     std::wcerr << msg << std::endl;
   }
 
-  void LspLog::log(Level level, const std::string &msg) {
+  void LspLog::log(Level level, const std::string& msg)
+  {
     cerr << msg << std::endl;
   }
 
-  void LspLog::log(Level level, const std::wstring &msg) {
+  void LspLog::log(Level level, const std::wstring& msg)
+  {
     std::wcerr << msg << std::endl;
   }
 
-  AsymptoteLspServer::AsymptoteLspServer(std::string const &addr, std::string const &port,
-                                         shared_ptr<lsp::ProtocolJsonHandler> const &jsonHandler,
-                                         shared_ptr<GenericEndpoint> const &endpoint, LspLog& log) :
+  AsymptoteLspServer::AsymptoteLspServer(std::string const& addr, std::string const& port,
+                                         shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
+                                         shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
           TcpServer(addr, port, jsonHandler, endpoint, log),
-          pjh(jsonHandler), ep(endpoint), _log(log) {
+          pjh(jsonHandler), ep(endpoint), _log(log), plainCtx(nullptr)
+  {
     initializeRequestFn();
     initializeNotifyFn();
   }
@@ -242,37 +250,37 @@ namespace AsymptoteLsp
 
   void AsymptoteLspServer::reloadFile(std::string const& filename)
   {
-    string rawPath = settings::getSetting<bool>("wsl") ? wslDos2Unix(filename) : string(filename);
+    string rawPath=settings::getSetting<bool>("wsl") ? wslDos2Unix(filename) : string(filename);
     reloadFileRaw(static_cast<std::string>(rawPath));
   }
 
   SymbolContext* AsymptoteLspServer::reloadFileRaw(std::string const& rawPath, bool const& fillTree)
   {
-    block* blk = ifile(rawPath.c_str()).getTree();
-    if (blk != nullptr) {
-      auto it = symmapContextsPtr->find(rawPath);
+    block* blk=ifile(rawPath.c_str()).getTree();
+    if (blk != nullptr)
+    {
+      auto it=symmapContextsPtr->find(rawPath);
       if (it != symmapContextsPtr->end())
       {
-        *(it->second) = SymbolContext(posInFile(1, 1), rawPath);
-      }
-      else
+        *(it->second)=SymbolContext(posInFile(1, 1), rawPath);
+      } else
       {
-        auto [fit, success] = symmapContextsPtr->emplace(
+        auto[fit, success] = symmapContextsPtr->emplace(
                 rawPath, std::make_unique<SymbolContext>(posInFile(1, 1), rawPath));
-        it = fit;
+        it=fit;
       }
 
-      SymbolContext* newPtr = it->second.get();
+      SymbolContext* newPtr=it->second.get();
 
       cerr << rawPath << endl;
       blk->createSymMap(newPtr);
 
       if (plainCtx != nullptr)
       {
-        it->second->extFileRefs[plainFile] = plainCtx;
+        it->second->extFileRefs[plainFile]=plainCtx;
       } else if (rawPath == plainFile)
       {
-        it->second->extFileRefs[plainFile] = newPtr;
+        it->second->extFileRefs[plainFile]=newPtr;
       }
 
       if (fillTree)
@@ -280,8 +288,7 @@ namespace AsymptoteLsp
         generateMissingTrees(rawPath);
       }
       return it->second.get();
-    }
-    else
+    } else
     {
       return nullptr;
     }
@@ -311,18 +318,18 @@ namespace AsymptoteLsp
   td_initialize::response AsymptoteLspServer::handleInitailizeRequest(td_initialize::request const& req)
   {
     td_initialize::response rsp;
-    rsp.id = req.id;
+    rsp.id=req.id;
     rsp.result.capabilities.hoverProvider=true;
 
     lsTextDocumentSyncOptions tdso;
-    tdso.openClose = true;
-    tdso.change = lsTextDocumentSyncKind::Full;
+    tdso.openClose=true;
+    tdso.change=lsTextDocumentSyncKind::Full;
     lsSaveOptions so;
-    so.includeText = true;
-    tdso.save = so;
-    rsp.result.capabilities.textDocumentSync = opt_right<lsTextDocumentSyncKind>(tdso);
+    so.includeText=true;
+    tdso.save=so;
+    rsp.result.capabilities.textDocumentSync=opt_right<lsTextDocumentSyncKind>(tdso);
 
-    rsp.result.capabilities.definitionProvider = std::make_pair(true, std::nullopt);
+    rsp.result.capabilities.definitionProvider=std::make_pair(true, std::nullopt);
 
     // when starting the thread, memory is copied but not done correctly (why?)
     // hence, symmapContextsPtr gets assigned junk memory and we have to "clear" it
@@ -342,44 +349,44 @@ namespace AsymptoteLsp
   {
     td_hover::response rsp;
     lsDocumentUri fileUri(req.params.textDocument.uri);
-    string rawPath = settings::getSetting<bool>("wsl") ?
-                     wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
-    auto rawPathStr = static_cast<std::string>(rawPath);
-    auto fileSymIt = symmapContextsPtr->find(rawPathStr);
+    string rawPath=settings::getSetting<bool>("wsl") ?
+                   wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
+    auto rawPathStr=static_cast<std::string>(rawPath);
+    auto fileSymIt=symmapContextsPtr->find(rawPathStr);
     std::vector<std::pair<optional<std::string>, optional<lsMarkedString>>> nullVec;
 
     if (fileSymIt == symmapContextsPtr->end())
     {
-      rsp.result.contents.first = nullVec;
+      rsp.result.contents.first=nullVec;
       return rsp;
     }
 
-    auto [st, ctx]=fileSymIt->second->searchSymbol(fromLsPosition(req.params.position));
+    auto[st, ctx]=fileSymIt->second->searchSymbol(fromLsPosition(req.params.position));
     if (not st.has_value())
     {
-      rsp.result.contents.first = nullVec;
+      rsp.result.contents.first=nullVec;
       return rsp;
     }
 
-    auto [symText, startPos, endPos] = st.value();
+    auto[symText, startPos, endPos] = st.value();
     rsp.result.range=std::make_optional(lsRange(toLsPosition(startPos), toLsPosition(endPos)));
 
-    auto typ = ctx->searchVarSignatureFull(symText);
+    auto typ=ctx->searchLitSignature(symText);
+    std::list<std::string> endResultList;
     // std::vector<std::string> endResult;
     // std::copy(typ.begin(), typ.end(), std::back_inserter(endResult));
     if (typ.has_value())
     {
-      rsp.result.contents = fromMarkedStr(typ.value());
-      return rsp;
+      endResultList.push_back(typ.value());
     }
+    endResultList.splice(endResultList.end(), ctx->searchFuncSignatureFull(symText.name));
 
-    auto fnList = ctx->searchFuncSignatureFull(symText);
     std::vector<std::string> endResult;
-    std::copy(fnList.begin(), fnList.end(), std::back_inserter(endResult));
+    std::copy(endResultList.begin(), endResultList.end(), std::back_inserter(endResult));
 
-    rsp.result.contents = fnList.empty() ?
-                          fromMarkedStr("<decl-unknown> " + symText + ";") :
-                          fromMarkedStr(endResult);
+    rsp.result.contents=endResult.empty() ?
+                        fromMarkedStr("<decl-unknown> " + symText.name + ";") :
+                        fromMarkedStr(endResult);
     return rsp;
   }
 
@@ -398,24 +405,24 @@ namespace AsymptoteLsp
   td_definition::response AsymptoteLspServer::handleDefnRequest(td_definition::request const& req)
   {
     td_definition::response rsp;
-    rsp.result.first = make_optional(std::vector<lsLocation>());
+    rsp.result.first=make_optional(std::vector<lsLocation>());
 
     lsDocumentUri fileUri(req.params.textDocument.uri);
-    string rawPath = settings::getSetting<bool>("wsl") ?
-                     wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
+    string rawPath=settings::getSetting<bool>("wsl") ?
+                   wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
 
-    auto rawPathStr = static_cast<std::string>(rawPath);
-    auto fileSymIt = symmapContextsPtr->find(rawPathStr);
+    auto rawPathStr=static_cast<std::string>(rawPath);
+    auto fileSymIt=symmapContextsPtr->find(rawPathStr);
     if (fileSymIt != symmapContextsPtr->end())
     {
-      auto [st, ctx]=fileSymIt->second->searchSymbol(fromLsPosition(req.params.position));
+      auto[st, ctx]=fileSymIt->second->searchSymbol(fromLsPosition(req.params.position));
       if (st.has_value())
       {
-        std::string sym(std::get<0>(st.value()));
-        std::optional<posRangeInFile> posRange = ctx->searchVarDeclFull(sym);
+        std::string sym(std::get<0>(st.value()).name);
+        std::optional<posRangeInFile> posRange=ctx->searchVarDeclFull(sym);
         if (posRange.has_value())
         {
-          auto [fil, posBegin, posEnd] = posRange.value();
+          auto[fil, posBegin, posEnd] = posRange.value();
           lsRange rng(toLsPosition(posBegin), toLsPosition(posEnd));
 
           std::string filReturn(
@@ -430,11 +437,13 @@ namespace AsymptoteLsp
     return rsp;
   }
 
-  void AsymptoteLspServer::start() {
+  void AsymptoteLspServer::start()
+  {
     this->run();
   }
 
-  AsymptoteLspServer::~AsymptoteLspServer() {
+  AsymptoteLspServer::~AsymptoteLspServer()
+  {
     this->stop();
   }
 }

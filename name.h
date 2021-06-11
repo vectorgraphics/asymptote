@@ -87,7 +87,11 @@ public:
     out << "<base name>";
   }
 
-  virtual symbol getName() = 0;
+  [[nodiscard]]
+  virtual symbol getName() const = 0;
+
+  [[nodiscard]]
+  virtual AsymptoteLsp::SymbolLit getLit() const = 0;
 };
 
 inline ostream& operator<< (ostream& out, const name& n) {
@@ -118,9 +122,14 @@ public:
   void print(ostream& out) const {
     out << id;
   }
-  symbol getName() {
+
+  [[nodiscard]]
+  symbol getName() const override {
     return id;
   }
+
+  [[nodiscard]]
+  AsymptoteLsp::SymbolLit getLit() const override;
 };
 
 
@@ -160,9 +169,14 @@ public:
   void print(ostream& out) const {
     out << *qualifier << "." << id;
   }
-  symbol getName() {
+
+  [[nodiscard]]
+  symbol getName() const override {
     return id;
   }
+
+  [[nodiscard]]
+  AsymptoteLsp::SymbolLit getLit() const override;
 };
 
 } // namespace absyntax

@@ -52,8 +52,6 @@ namespace AsymptoteLsp
 
   typedef std::unordered_map<std::string, std::unique_ptr<SymbolContext>> SymContextFilemap;
 
-  void generateMissingTrees(std::string filename, SymContextFilemap& map);
-
   class LspLog: public lsp::Log
   {
   public:
