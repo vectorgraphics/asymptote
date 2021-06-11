@@ -188,19 +188,24 @@ void nameExp::prettyprint(ostream &out, Int indent)
 
 void nameExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  std::string sy(value->getName());
-  AsymptoteLsp::filePos castedPos(getPos());
-  auto varUsageIt = symContext->symMap.varUsage.find(sy);
+  AsymptoteLsp::SymbolLit accessedName(value->getLit());
+  position basePos = getPos();
+  AsymptoteLsp::filePos castedPos = dynamic_cast<qualifiedName*>(value) ?
+          std::make_pair(static_cast<std::string>(basePos.filename()),
+                         std::make_pair(basePos.Line(), basePos.Column() + 1)) :
+          static_cast<AsymptoteLsp::filePos>(basePos);
+
+  auto varUsageIt = symContext->symMap.varUsage.find(accessedName);
   if (varUsageIt == symContext->symMap.varUsage.end())
   {
-    symContext->symMap.varUsage.emplace(sy, castedPos);
+    symContext->symMap.varUsage.emplace(accessedName, castedPos);
   }
   else
   {
     varUsageIt->second.add(castedPos);
   }
 
-  symContext->symMap.usageByLines.emplace_back(castedPos.second, sy);
+  symContext->symMap.usageByLines.emplace_back(castedPos.second, accessedName);
 }
 
 

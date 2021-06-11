@@ -680,6 +680,8 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *parent);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Returns a runnable that facilitates the autoplain feature.

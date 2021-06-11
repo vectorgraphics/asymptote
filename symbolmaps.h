@@ -11,6 +11,81 @@
 
 namespace AsymptoteLsp
 {
+  struct SymbolLit
+  {
+    std::string name;
+    std::vector<std::string> scopes;
+
+    SymbolLit(std::string symName) :
+      name(std::move(symName))
+    {
+    }
+
+    SymbolLit(std::string symName, std::vector<std::string> scope) :
+            name(std::move(symName)), scopes(std::move(scope))
+    {
+    }
+
+    ~SymbolLit() = default;
+
+    SymbolLit(SymbolLit const& sym) :
+      name(sym.name), scopes(sym.scopes)
+    {
+    }
+
+    SymbolLit& operator=(SymbolLit const& sym)
+    {
+      name = sym.name;
+      scopes = sym.scopes;
+      return *this;
+    }
+
+    SymbolLit(SymbolLit&& sym) noexcept :
+      name(std::move(sym.name)), scopes(std::move(sym.scopes))
+    {
+    }
+
+    SymbolLit& operator=(SymbolLit&& sym) noexcept
+    {
+      name = std::move(sym.name);
+      scopes = std::move(sym.scopes);
+      return *this;
+    }
+
+    bool operator==(SymbolLit const& other) const
+    {
+      return name == other.name and scopes == other.scopes;
+    }
+
+    bool matchesRaw(std::string const& sym) const
+    {
+      return name == sym;
+    }
+  };
+} // namespace AsymptoteLsp
+
+namespace std
+{
+  using AsymptoteLsp::SymbolLit;
+
+  template<>
+  struct hash<SymbolLit>
+  {
+    std::size_t operator()(SymbolLit const& sym) const
+    {
+      size_t final_hash = 0;
+      final_hash ^= hash<std::string>()(sym.name);
+      for (auto const& accessor : sym.scopes)
+      {
+        final_hash = (final_hash << 1) ^ hash<std::string>()(accessor);
+      }
+      return final_hash;
+    }
+  };
+} // namespace std
+
+namespace AsymptoteLsp
+{
   using std::unordered_map;
   struct SymbolContext;
 
@@ -18,6 +93,8 @@ namespace AsymptoteLsp
   typedef std::pair<size_t, size_t> posInFile;
   typedef std::pair<std::string, posInFile> filePos;
   typedef std::tuple<std::string, posInFile, posInFile> posRangeInFile;
+  typedef std::tuple<SymbolLit, posInFile, posInFile> fullSymPosRangeInFile;
+
 
   // NOTE: lsPosition is zero-indexed, while all Asymptote positions (incl this struct) is 1-indexed.
   inline posInFile fromLsPosition(lsPosition const& inPos)
@@ -46,6 +123,7 @@ namespace AsymptoteLsp
     explicit positions(filePos const& positionInFile);
     void add(filePos const& positionInFile);
   };
+
 
   struct SymbolInfo
   {
@@ -105,17 +183,119 @@ namespace AsymptoteLsp
     std::string signature() const override;
   };
 
+
+  struct TypeDec
+  {
+    posInFile position;
+    std::string typeName;
+
+    TypeDec(): position(1, 1) {}
+    virtual ~TypeDec() = default;
+
+    TypeDec(posInFile pos, std::string typName):
+            position(std::move(pos)), typeName(std::move(typName))
+    {
+    }
+
+    TypeDec(TypeDec const& typDec) = default;
+    TypeDec& operator= (TypeDec const& typDec) = default;
+
+    TypeDec(TypeDec&& typDec) noexcept = default;
+    TypeDec& operator= (TypeDec&& typDec) = default;
+
+    [[nodiscard]]
+    virtual unique_ptr<TypeDec> clone() const
+    {
+      return make_unique<TypeDec>(*this);
+    }
+  };
+
+  struct TypedefDec : public TypeDec
+  {
+    std::string destName;
+  };
+
+  struct StructDecs : public TypeDec
+  {
+    SymbolContext* ctx;
+
+    StructDecs(): TypeDec(), ctx(nullptr) {}
+    ~StructDecs() override = default;
+
+    StructDecs(posInFile pos, std::string typName) :
+            TypeDec(std::move(pos), std::move(typName)), ctx(nullptr)
+    {
+    }
+
+    StructDecs(posInFile pos, std::string typName, SymbolContext* ctx) :
+            TypeDec(std::move(pos), std::move(typName)), ctx(ctx)
+    {
+    }
+
+    [[nodiscard]]
+    unique_ptr<TypeDec> clone() const override
+    {
+      return std::unique_ptr<TypeDec>(new StructDecs(*this));
+    }
+  };
+
   struct SymbolMaps
   {
     unordered_map <std::string, SymbolInfo> varDec;
     unordered_map <std::string, std::vector<FunctionInfo>> funDec;
     // can refer to other files
-    unordered_map <std::string, positions> varUsage;
+    unordered_map <SymbolLit, positions> varUsage;
+    unordered_map <std::string, unique_ptr<TypeDec>> typeDecs;
 
     // python equivalent of dict[str, list[tuple(pos, sym)]]
     // filename -> list[(position, symbol)]
 
-    std::vector<std::pair<posInFile, std::string>> usageByLines;
+    std::vector<std::pair<posInFile, SymbolLit>> usageByLines;
+
+    SymbolMaps() = default;
+    ~SymbolMaps() = default;
+
+    SymbolMaps(SymbolMaps const& symMap) :
+    varDec(symMap.varDec), funDec(symMap.funDec), varUsage(symMap.varUsage), typeDecs(),
+    usageByLines(symMap.usageByLines)
+    {
+      for (auto const& [ty, tyDec] : symMap.typeDecs)
+      {
+          typeDecs.emplace(ty, tyDec != nullptr ? tyDec->clone() : nullptr);
+      }
+    }
+
+    SymbolMaps& operator=(SymbolMaps const& symMap)
+    {
+      varDec = symMap.varDec;
+      funDec = symMap.funDec;
+      varUsage = symMap.varUsage;
+      usageByLines = symMap.usageByLines;
+
+      for (auto const& [ty, tyDec] : symMap.typeDecs)
+      {
+        typeDecs.emplace(ty, tyDec != nullptr ? tyDec->clone() : nullptr);
+      }
+
+      return *this;
+    }
+
+    SymbolMaps(SymbolMaps&& symMap) noexcept:
+            varDec(std::move(symMap.varDec)), funDec(std::move(symMap.funDec)), varUsage(std::move(symMap.varUsage)),
+            typeDecs(std::move(symMap.typeDecs)), usageByLines(std::move(symMap.usageByLines))
+    {
+    }
+
+    SymbolMaps& operator=(SymbolMaps&& symMap)
+    {
+      varDec = std::move(symMap.varDec);
+      funDec = std::move(symMap.funDec);
+      varUsage = std::move(symMap.varUsage);
+      usageByLines = std::move(symMap.usageByLines);
+      typeDecs = std::move(symMap.typeDecs);
+
+      return *this;
+    }
 
     inline void clear()
     {
@@ -123,14 +303,15 @@ namespace AsymptoteLsp
       funDec.clear();
       varUsage.clear();
       usageByLines.clear();
+      typeDecs.clear();
     }
-    std::optional<posRangeInFile> searchSymbol(posInFile const& inputPos);
-
+    std::optional<fullSymPosRangeInFile> searchSymbol(posInFile const& inputPos);
     FunctionInfo& addFunDef(std::string const& funcName, posInFile const& position, std::string const& returnType);
 
   private:
     friend ostream& operator<<(std::ostream& os, const SymbolMaps& sym);
   };
+
 
   struct SymbolContext
   {
@@ -170,8 +351,15 @@ namespace AsymptoteLsp
     template<typename T=SymbolContext, typename=std::enable_if<std::is_base_of<SymbolContext, T>::value>>
     T* newContext(posInFile const& loc)
     {
-      subContexts.push_back(std::make_unique<T>(loc, this));
-      return static_cast<T*>(subContexts.at(subContexts.size() - 1).get());
+      auto& newCtx = subContexts.emplace_back(std::make_unique<T>(loc, this));
+      return static_cast<T*>(newCtx.get());
+    }
+
+    template<typename T=TypeDec, typename=std::enable_if<std::is_base_of<TypeDec, T>::value>>
+    T* newTypeDec(std::string const& tyName, posInFile const& loc)
+    {
+      auto [it, succ] = symMap.typeDecs.emplace(tyName, std::make_unique<T>(loc, tyName));
+      return succ ? static_cast<T*>(it->second.get()) : static_cast<T*>(nullptr);
     }
 
     SymbolContext(SymbolContext const& symCtx) :
@@ -212,7 +400,7 @@ namespace AsymptoteLsp
     {
     }
 
-    SymbolContext& operator= (SymbolContext&& symCtx)
+    SymbolContext& operator= (SymbolContext&& symCtx) noexcept
     {
       fileLoc = std::move(symCtx.fileLoc);
       contextLoc = std::move(symCtx.contextLoc);
@@ -226,11 +414,8 @@ namespace AsymptoteLsp
     }
 
     // [file, start, end]
-    virtual std::pair<std::optional<posRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
+    virtual std::pair<std::optional<fullSymPosRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
 
-    // variable+functions declarations
-    virtual std::optional<posRangeInFile> searchVarDeclExt(
-            std::string const& symbol, std::unordered_set<SymbolContext*>& searched);
     std::optional<posRangeInFile> searchVarDeclFull(std::string const& symbol,
                                                     std::optional<posInFile> const& position=nullopt);
 
@@ -243,6 +428,9 @@ namespace AsymptoteLsp
     virtual std::optional<std::string> searchVarSignatureFull(std::string const& symbol);
     virtual std::list<std::string> searchFuncSignature(std::string const& symbol);
     virtual std::list<std::string> searchFuncSignatureFull(std::string const& symbol);
+
+    std::optional<std::string> searchLitSignature(SymbolLit const& symbol);
+    std::optional<std::string> searchVarType(std::string const& symbol) const;
 
     virtual std::list<extRefMap::iterator> getEmptyRefs();
 
@@ -283,21 +471,45 @@ namespace AsymptoteLsp
     }
 
   protected:
-    std::optional<posRangeInFile> _searchVarDeclFull(
-            std::string const& symbol, std::unordered_set<SymbolContext*>& searched,
-            std::optional<posInFile> const& position=nullopt);
+    using SymCtxSet = std::unordered_set<SymbolContext*>;
+    template<typename TRet, typename TFn>
+    std::optional<TRet> _searchVarFull(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
+    {
+      auto [it, notSearched] = searched.emplace(this->getParent());
+      if (not notSearched)
+      {
+        // a loop in the search path. Stop now.
+        return nullopt;
+      }
 
-    virtual std::optional<std::string> _searchVarSignatureFull(std::string const& symbol,
-                                                               std::unordered_set<SymbolContext*>& searched);
+      // local search first
+      std::optional<TRet> returnVal=fnLocalPredicate(this);
+      return returnVal.has_value() ? returnVal : searchVarExt<TRet, TFn>(searched, fnLocalPredicate);
+    }
 
-    virtual std::list<std::string> _searchFuncSignatureFull(std::string const& symbol,
-                                                            std::unordered_set<SymbolContext*>& searched);
+    template<typename TRet, typename TFn>
+    std::optional<TRet> searchVarExt(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
+    {
+      std::unordered_set<std::string> traverseSet(unravledVals);
+      traverseSet.insert(includeVals.begin(), includeVals.end());
 
-    virtual std::list<std::string> searchFuncSignatureExt(std::string const& symbol,
-                                                          std::unordered_set<SymbolContext*>& searched);
+      for (auto const& traverseVal : traverseSet)
+      {
+        if (traverseVal == this->getFileName())
+        {
+          continue;
+        }
+        auto returnValF = extFileRefs.at(traverseVal)->_searchVarFull<TRet, TFn>(searched, fnLocalPredicate);
+        if (returnValF.has_value())
+        {
+          return returnValF;
+        }
+      }
+      return nullopt;
+    }
 
-    virtual std::optional<std::string> searchVarSignatureExt(std::string const& symbol,
-                                                             std::unordered_set<SymbolContext*>& searched);
+    virtual std::list<std::string> _searchFuncSignatureFull(std::string const& symbol, SymCtxSet& searched);
+    virtual std::list<std::string> searchFuncSignatureExt(std::string const& symbol, SymCtxSet& searched);
     void addPlainFile();
   };
 
@@ -316,8 +528,6 @@ namespace AsymptoteLsp
 
     std::optional<posRangeInFile> searchVarDecl(std::string const& symbol,
                                                 std::optional<posInFile> const& position) override;
-
-
     std::optional<std::string> searchVarSignature(std::string const& symbol) const override;
   };
 }

@@ -1038,6 +1038,22 @@ void recorddec::transAsField(coenv &e, record *parent)
   addPostRecordEnvironment(e, r, parent);
 }
 
+void recorddec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  auto* newCtx = symContext->newContext(getPos().LineColumn());
+  auto* structTyInfo = symContext->newTypeDec<AsymptoteLsp::StructDecs>(
+          static_cast<std::string>(id), getPos().LineColumn());
+  if (structTyInfo != nullptr)
+  {
+    structTyInfo->ctx = newCtx;
+    body->createSymMap(newCtx);
+  }
+  else
+  {
+    cerr << "Cannot create new struct context" << endl;
+  }
+}
+
 runnable *autoplainRunnable() {
   // Abstract syntax for the code:
   //   private import plain;

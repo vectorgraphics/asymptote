@@ -364,8 +364,14 @@ class fieldExp : public nameExp {
     void print(ostream& out) const {
       out << "<exp>";
     }
-    symbol getName() {
+
+    symbol getName() const {
       return object->getName();
+    }
+
+    AsymptoteLsp::SymbolLit getLit() const
+    {
+      return AsymptoteLsp::SymbolLit(static_cast<std::string>(object->getName()));
     }
   };
 
