@@ -70,7 +70,6 @@ public:
   }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
-
 };
 
 // A statement that consist of a single expression to evaluate.
@@ -174,6 +173,8 @@ class extendedForStm : public stm {
 public:
   extendedForStm(position pos, ty *start, symbol var, exp *set, stm *body)
     : stm(pos), start(start), var(var), set(set), body(body) {}
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 
   void prettyprint(ostream &out, Int indent);
 

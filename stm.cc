@@ -47,8 +47,7 @@ void blockStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   base->createSymMap(symContext->newContext(getPos().LineColumn()));
 }
 
-
-  void expStm::prettyprint(ostream &out, Int indent)
+void expStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"expStm",indent, getPos());
 
@@ -482,6 +481,26 @@ void extendedForStm::trans(coenv &e) {
                                                      symbol::trans("length")))),
          new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS)),
          new blockStm(pos, &b)).trans(e);
+}
+
+void extendedForStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  AsymptoteLsp::SymbolContext* ctx(symContext);
+  auto* declCtx(symContext->newContext(getPos().LineColumn()));
+
+  std::string varName(var);
+
+  // FIXME: How do we get the position of the actual variable name?
+  //        Right now, we only get the starting position of the type declaration
+  declCtx->symMap.varDec.emplace(std::piecewise_construct,
+          std::forward_as_tuple(varName),
+          std::forward_as_tuple(
+                  varName,
+                  static_cast<std::string>(*start),
+                  start->getPos().LineColumn()
+                  ));
+  set->createSymMap(symContext);
+  body->createSymMap(declCtx);
 }
 
 
