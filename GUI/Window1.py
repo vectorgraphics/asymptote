@@ -1653,6 +1653,7 @@ class MainWindow1(Qw.QMainWindow):
                 # Preview Object
                 if self.addMode.getPreview() is not None:
                     painter.setPen(self.currentPen.toQPen())
+                    self.makePenCosmetic(painter)
                     painter.drawPath(self.addMode.getPreview())
                 self.addMode.postDrawPreview(painter)
                 
