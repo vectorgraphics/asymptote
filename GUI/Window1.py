@@ -1688,6 +1688,7 @@ class MainWindow1(Qw.QMainWindow):
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
             postCanvas.setRenderHints(self.mainCanvas.renderHints())
             postCanvas.setTransform(self.getScrsTransform())
+            self.makePenCosmetic(postCanvas)
 
             self.drawTransformPreview(postCanvas)
 
