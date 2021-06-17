@@ -150,6 +150,40 @@ def setAsyPathFromWindowsRegistry():
             registry.CloseKey(key)
 """
 
+class xasyOpenRecent:
+    def __init__(self, file):
+        if os.path.isfile(file):
+            self.file = os.path.abspath(file)
+        else:
+            raise FileNotFoundError
+    
+    def insert(self, path):
+        if os.path.isfile(path):
+            path = os.path.abspath(path)
+            # rewrite the file with the correct order
+            with open(self.file, 'r') as recent:
+                lines = recent.readlines()
+            with open(self.file, 'w') as recent:
+                recent.write(path.strip() + '\n')
+                for line in lines:
+                    if line.strip() != path.strip():
+                        recent.write(line.strip() + '\n')    
+            return None
+        else:
+            raise FileNotFoundError
+    
+    @property
+    def pathList(self):
+        with open(self.file, 'r') as recent:
+            lines = [line.strip() for line in recent.readlines()]
+            if all(map(lambda path: os.path.isfile(os.path.expanduser(path)), lines)):
+                return lines
+            else:
+                raise FileNotFoundError
+
+    def clear(self):
+        with open(self.file, 'w') as f:
+            f.write('')
 
 class BasicConfigs:
     _configPath = list(configs.__path__)[0]
@@ -157,3 +191,4 @@ class BasicConfigs:
         'xasyconfig', os.path.join(_configPath, 'xasyconfig.cson'))
     keymaps = xasyOptions('xasykeymap', os.path.join(
         _configPath, 'xasykeymap.cson'))
+    openRecent = xasyOpenRecent(os.path.join(_configPath, "recent.txt"))
