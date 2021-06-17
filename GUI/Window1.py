@@ -114,6 +114,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.settings = xo.BasicConfigs.defaultOpt
         self.keyMaps = xo.BasicConfigs.keymaps
+        self.openRecent = xo.BasicConfigs.openRecent
 
         self.raw_args = Qc.QCoreApplication.arguments()
         self.args = xa.parseArgs(self.raw_args)
@@ -303,6 +304,7 @@ class MainWindow1(Qw.QMainWindow):
         # from xasyoptions config file
         self.loadKeyMaps()
         self.setupXasyOptions()
+        self.populateOpenRecent()
 
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
@@ -430,6 +432,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionTransform.triggered.connect(lambda: self.execCustomCommand('transform'))
 
         self.ui.actionOpen.triggered.connect(self.actionOpen)
+        self.ui.actionClearRecent.triggered.connect(self.actionClearRecent)
         self.ui.actionSave.triggered.connect(self.actionSave)
         self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
         self.ui.actionManual.triggered.connect(self.actionManual)
@@ -907,17 +910,38 @@ class MainWindow1(Qw.QMainWindow):
         if self.actionClose() == Qw.QMessageBox.Cancel:
             event.ignore()
 
-    def actionOpen(self):
+    def actionOpen(self, fileName = None):
         if self.fileChanged:
             save="Save current file?"
             reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
                                         Qw.QMessageBox.No)
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
+        if fileName:
+            self.loadFile(fileName)
+            self.populateOpenRecent(fileName)
+        else:
+            filename = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
+            if filename[0]:
+                self.loadFile(filename[0])
+        
+            self.populateOpenRecent(filename[0].strip())
+    
+    def actionClearRecent(self):
+        self.ui.menuOpenRecent.clear()
+        self.openRecent.clear()
+        self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
 
-        filename = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
-        if filename[0]:
-            self.loadFile(filename[0])
+    def populateOpenRecent(self, path = None):
+        self.ui.menuOpenRecent.clear()
+        if path:
+            self.openRecent.insert(path)
+        for count, path in enumerate(self.openRecent.pathList):
+            if count > 8:
+                break
+            self.ui.menuOpenRecent.addAction(path, lambda: self.actionOpen(fileName = path))
+        self.ui.menuOpenRecent.addSeparator()
+        self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
 
     def actionClose(self):
         if self.fileChanged:
