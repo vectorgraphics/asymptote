@@ -41,5 +41,6 @@
     <file>icons/android-radio-button-off.svg</file>
     <file>icons/android-locate.svg</file>
     <file>icons/close-round.svg</file>
+    <file>icons/brush.svg</file>
   </qresource>
 </RCC>
