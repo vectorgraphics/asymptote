@@ -169,7 +169,6 @@ class AddBezierShape(InplaceObjProcess):
         self.useLegacy = False
 
     def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
-        print("hi")
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.currentPoint.setX(x)
         self.currentPoint.setY(y)
@@ -413,24 +412,17 @@ class AddFreehand(InplaceObjProcess):
                 self.currentPoint.setX(x)
                 self.currentPoint.setY(y)
                 self.pointsList.append((x, y, self._getLinkType()))
-            else:
-                self.forceFinalize()
 
 
     def createOptWidget(self, info):
         return None
-        # self.opt = Widg_addBezierInPlace.Widg_addBezierInplace(info)
-        # return self.opt
-
-    def finalizeClosure(self):
-        if self.active:
-            self.closedPath = True
-            self.forceFinalize()
 
     def mouseRelease(self):
-        x, y = self.currentPoint.x(), self.currentPoint.y()
-        self.pointsList.append((x, y, self._getLinkType()))
-        # self.updateBasePath()
+        self.updateBasePath()
+        self._active = False
+        self.pointsList.clear()
+        self.objectCreated.emit(self.getXasyObject())
+        self.basePath = None
 
     def updateBasePath(self):
         self.basePath = xasy2asy.asyPath(asyengine=self.asyengine, forceCurve=self.useBezierBase)
@@ -459,13 +451,6 @@ class AddFreehand(InplaceObjProcess):
 
         if self.useBezierBase:
             self.basePathPreview.computeControls()
-
-    def forceFinalize(self):
-        self.updateBasePath()
-        self._active = False
-        self.pointsList.clear()
-        self.objectCreated.emit(self.getXasyObject())
-        self.basePath = None
 
     def getObject(self):
         if self.basePath is None:
