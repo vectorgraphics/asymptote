@@ -169,6 +169,7 @@ class AddBezierShape(InplaceObjProcess):
         self.useLegacy = False
 
     def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
+        print("hi")
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.currentPoint.setX(x)
         self.currentPoint.setY(y)
@@ -354,3 +355,133 @@ class AddPoly(InplaceObjProcess):
         else:
             newObj = xasy2asy.xasyShape(self.getObject(), None)
         return newObj
+
+class AddFreehand(InplaceObjProcess):
+    # TODO: At the moment this is just a copy-paste of the AddBezierObj.
+    # Must find a better algorithm for constructing the obj rather than
+    # a node for every pixel the mouse moves.
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.asyengine = None
+        self.basePath = None
+        self.basePathPreview = None
+        self.closedPath = None
+        self.info = None
+        self.fill = False
+        self.opt = None
+
+        # list of "committed" points with Linkage information.
+        # Linkmode should be to the last point.
+        # (x, y, linkmode), (u, v, lm2) <==> (x, y) <=lm2=> (u, v)
+        self.pointsList = []
+        self.currentPoint = QtCore.QPointF(0, 0)
+        self.pendingPoint = None
+        self.useLegacy = False
+
+    def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
+        x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+        self.currentPoint.setX(x)
+        self.currentPoint.setY(y)
+        self.info = info
+
+        if not self._active:
+            self._active = True
+            self.fill = info['fill']
+            self.asyengine = info['asyengine']
+            self.closedPath = info['closedPath']
+            self.useBezierBase = info['useBezier']
+            self.useLegacy = self.info['options']['useLegacyDrawMode']
+            self.pointsList.clear()
+            self.pointsList.append((x, y, None))
+        else:
+            # see http://doc.qt.io/archives/qt-4.8/qt.html#MouseButton-enum
+            if (int(mouseEvent.buttons()) if mouseEvent is not None else 0) & 0x2 and self.useLegacy:
+                self.forceFinalize()
+
+    def _getLinkType(self):
+        if self.info['useBezier']:
+            return '..'
+        else:
+            return '--'
+
+    def mouseMove(self, pos, event):
+        # in postscript coords.
+        if self._active:
+            x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+
+            if self.useLegacy or int(event.buttons()) != 0:
+                self.currentPoint.setX(x)
+                self.currentPoint.setY(y)
+                self.pointsList.append((x, y, self._getLinkType()))
+            else:
+                self.forceFinalize()
+
+
+    def createOptWidget(self, info):
+        return None
+        # self.opt = Widg_addBezierInPlace.Widg_addBezierInplace(info)
+        # return self.opt
+
+    def finalizeClosure(self):
+        if self.active:
+            self.closedPath = True
+            self.forceFinalize()
+
+    def mouseRelease(self):
+        x, y = self.currentPoint.x(), self.currentPoint.y()
+        self.pointsList.append((x, y, self._getLinkType()))
+        # self.updateBasePath()
+
+    def updateBasePath(self):
+        self.basePath = xasy2asy.asyPath(asyengine=self.asyengine, forceCurve=self.useBezierBase)
+        newNode = [(x, y) for x, y, _ in self.pointsList]
+        newLink = [lnk for *args, lnk in self.pointsList[1:]]
+        if self.useLegacy:
+            newNode += [(self.currentPoint.x(), self.currentPoint.y())]
+            newLink += [self._getLinkType()]
+        if self.closedPath:
+            newNode.append('cycle')
+            newLink.append(self._getLinkType())
+        self.basePath.initFromNodeList(newNode, newLink)
+
+        if self.useBezierBase:
+            self.basePath.computeControls()
+
+    def updateBasePathPreview(self):
+        self.basePathPreview = xasy2asy.asyPath(
+            asyengine=self.asyengine, forceCurve=self.useBezierBase)
+        newNode = [(x, y) for x, y, _ in self.pointsList] + [(self.currentPoint.x(), self.currentPoint.y())]
+        newLink = [lnk for *args, lnk in self.pointsList[1:]] + [self._getLinkType()]
+        if self.closedPath:
+            newNode.append('cycle')
+            newLink.append(self._getLinkType())
+        self.basePathPreview.initFromNodeList(newNode, newLink)
+
+        if self.useBezierBase:
+            self.basePathPreview.computeControls()
+
+    def forceFinalize(self):
+        self.updateBasePath()
+        self._active = False
+        self.pointsList.clear()
+        self.objectCreated.emit(self.getXasyObject())
+        self.basePath = None
+
+    def getObject(self):
+        if self.basePath is None:
+            raise RuntimeError('BasePath is None')
+        self.basePath.asyengine = self.asyengine
+        return self.basePath
+
+    def getPreview(self):
+        if self._active:
+            if self.pointsList:
+                self.updateBasePathPreview()
+                newPath = self.basePathPreview.toQPainterPath()
+                return newPath
+
+    def getXasyObject(self):
+        if self.fill:
+            return xasy2asy.xasyFilledShape(self.getObject(), None)
+        else:
+            return xasy2asy.xasyShape(self.getObject(), None)
