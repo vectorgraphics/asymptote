@@ -490,6 +490,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
+        self.ui.btnAddFreehand.clicked.connect(self.btnAddFreehand)
         # self.ui.btnAddBezierInplace.clicked.connect(self.btnAddBezierInplaceOnClick)
         self.ui.btnClosedCurve.clicked.connect(self.btnAddClosedCurveOnClick)
         self.ui.btnOpenCurve.clicked.connect(self.btnAddOpenCurveOnClick)
@@ -648,6 +649,13 @@ class MainWindow1(Qw.QMainWindow):
     def btnAddLabelOnClick(self):
         self.addMode = InplaceAddObj.AddLabel(self)
         self.ui.statusbar.showMessage('')
+        self.updateOptionWidget()
+
+    def btnAddFreehand(self):
+        self.currAddOptions['useBezier'] = False
+        self.currAddOptions['closedPath'] = False
+        self.ui.statusbar.showMessage("NOT IMPLEMENTED.")
+        self.addMode = InplaceAddObj.AddFreehand(self)
         self.updateOptionWidget()
 
     def updateCurve(self, valid, newCurve):
