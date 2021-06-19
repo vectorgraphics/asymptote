@@ -49,6 +49,7 @@ namespace AsymptoteLsp
 
   string wslDos2Unix(std::string const& dosPath);
   string wslUnix2Dos(std::string const& unixPath);
+  std::string getDocIdentifierRawPath(lsTextDocumentIdentifier const&);
 
   typedef std::unordered_map<std::string, std::unique_ptr<SymbolContext>> SymContextFilemap;
 
@@ -99,7 +100,7 @@ namespace AsymptoteLsp
 
     void reloadFile(std::string const&);
     SymbolContext* reloadFileRaw(std::string const&, bool const& fillTree=true);
-
+    SymbolContext* fromRawPath(lsTextDocumentIdentifier const& identifier);
     std::string plainFile;
 
   private:
