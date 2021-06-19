@@ -19,6 +19,7 @@
 #include "pen.h"
 #include "dec.h"
 #include "transform.h"
+#include "parser.h"
 
 #ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
@@ -176,6 +177,30 @@ public:
   void preRun(trans::coenv& e, istack& s);
   void postRun(trans::coenv &e, istack& s);
   void process(bool purge=false);
+};
+
+class icode : public itree {
+  absyntax::block *tree;
+
+public:
+  icode(absyntax::block *tree, string name="<unnamed>")
+          : itree(name), tree(tree) {}
+
+  absyntax::block *buildTree() {
+    return tree;
+  }
+};
+
+class istring : public itree {
+  string str;
+
+public:
+  istring(const string& str, string name="<eval>")
+          : itree(name), str(str) {}
+
+  absyntax::block *buildTree() {
+    return parser::parseString(str, getName());
+  }
 };
 
 processDataStruct &processData();

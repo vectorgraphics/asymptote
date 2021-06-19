@@ -16,7 +16,7 @@
 #include "program.h"
 #include "interact.h"
 #include "envcompleter.h"
-#include "parser.h"
+
 #include "fileio.h"
 
 #include "stack.h"
@@ -300,30 +300,6 @@ void itree::doExec(transMode tm) {
   if (getTree())
     icore::doRun(false,tm);
 }
-
-class icode : public itree {
-  block *tree;
-
-public:
-  icode(block *tree, string name="<unnamed>")
-    : itree(name), tree(tree) {}
-
-  block *buildTree() {
-    return tree;
-  }
-};
-
-class istring : public itree {
-  string str;
-
-public:
-  istring(const string& str, string name="<eval>")
-    : itree(name), str(str) {}
-
-  block *buildTree() {
-    return parser::parseString(str, getName());
-  }
-};
 
 void printGreeting(bool interactive) {
   if(!getSetting<bool>("quiet")) {
