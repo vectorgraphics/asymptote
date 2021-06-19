@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include <LibLsp/lsp/lsPosition.h>
+#include <LibLsp/lsp/textDocument/documentColor.h>
 
 #include <unordered_map>
 #include <unordered_set>
@@ -130,7 +131,6 @@ namespace AsymptoteLsp
     std::string name;
     optional<std::string> type;
     posInFile pos;
-    // std::optional<size_t> array_dim;
 
     SymbolInfo() : type(nullopt), pos(1, 1) {}
 
@@ -215,6 +215,109 @@ namespace AsymptoteLsp
     std::string destName;
   };
 
+  struct SymColorInfo
+  {
+    posInFile rangeBegin;
+    posInFile rangeEnd;
+
+    using RGBColor = std::tuple<double, double, double>;
+    using RGBAColor = std::tuple<double, double, double, double>;
+    void setLastArgPos(posInFile lastArgPos) { lastArgPosition = std::move(lastArgPos); }
+
+    SymColorInfo() = default;
+    virtual ~SymColorInfo() = default;
+    SymColorInfo(SymColorInfo const& col) = default;
+    SymColorInfo& operator=(SymColorInfo const& col) = default;
+
+    SymColorInfo(SymColorInfo&& col) noexcept = default;
+    SymColorInfo& operator=(SymColorInfo&& col) noexcept = default;
+
+
+
+    [[nodiscard]]
+    virtual RGBColor getRGBColor() const = 0;
+
+    [[nodiscard]]
+    virtual double getAlpha() const
+    {
+      return 1;
+    }
+
+    [[nodiscard]]
+    RGBAColor getRGBAColor() const
+    {
+      auto const& [red, green, blue] = getRGBColor();
+      return RGBAColor(red, green, blue, getAlpha());
+    }
+
+    explicit operator TextDocument::Color() const
+    {
+      TextDocument::Color col;
+      auto const& [red, green, blue, alpha] = getRGBAColor();
+      col.red = red;
+      col.green = green;
+      col.blue = blue;
+      col.alpha = alpha;
+      return col;
+    }
+
+    [[nodiscard]]
+    virtual unique_ptr<SymColorInfo> clone() const = 0;
+
+  public:
+    posInFile lastArgPosition;
+  };
+
+  struct RGBSymColorInfo : SymColorInfo
+  {
+    double red, green, blue;
+
+    RGBSymColorInfo(): SymColorInfo(), red(0), green(0), blue(0) {}
+    RGBSymColorInfo(double redVal, double greenVal, double blueVal):
+      SymColorInfo(),
+      red(redVal), green(greenVal), blue(blueVal)
+    {
+    }
+
+    RGBSymColorInfo(RGBSymColorInfo const& col) = default;
+    RGBSymColorInfo& operator=(RGBSymColorInfo const& col) = default;
+
+    [[nodiscard]]
+    RGBColor getRGBColor() const override
+    {
+      return RGBColor(red, green, blue);
+    }
+
+    [[nodiscard]]
+    unique_ptr<SymColorInfo> clone() const override
+    {
+      return unique_ptr<SymColorInfo>(new RGBSymColorInfo(*this));
+    }
+  };
+
+  struct RGBASymColorInfo : RGBSymColorInfo
+  {
+    double alpha;
+
+    RGBASymColorInfo(): RGBSymColorInfo(), alpha(1) {}
+    RGBASymColorInfo(double redVal, double greenVal, double blueVal, double alphaVal):
+            RGBSymColorInfo(redVal, greenVal, blueVal), alpha(alphaVal)
+    {
+    }
+
+    [[nodiscard]]
+    double getAlpha() const override
+    {
+      return alpha;
+    }
+
+    [[nodiscard]]
+    unique_ptr<SymColorInfo> clone() const override
+    {
+      return unique_ptr<SymColorInfo>(new RGBASymColorInfo(*this));
+    }
+  };
+
   struct StructDecs : public TypeDec
   {
     SymbolContext* ctx;
@@ -286,7 +389,7 @@ namespace AsymptoteLsp
     {
     }
 
-    SymbolMaps& operator=(SymbolMaps&& symMap)
+    SymbolMaps& operator=(SymbolMaps&& symMap) noexcept
     {
       varDec = std::move(symMap.varDec);
       funDec = std::move(symMap.funDec);
@@ -330,7 +433,9 @@ namespace AsymptoteLsp
     extRefMap extFileRefs;
     std::unordered_map<std::string, std::string> fileIdPair;
     std::unordered_set<std::string> includeVals;
-    std::unordered_set<std::string> unravledVals;
+    std::unordered_set<std::string> unraveledVals;
+
+    std::vector<std::unique_ptr<SymColorInfo>> colorInformation;
     std::vector<std::unique_ptr<SymbolContext>> subContexts;
 
     SymbolContext():
@@ -366,11 +471,16 @@ namespace AsymptoteLsp
       fileLoc(symCtx.fileLoc), contextLoc(symCtx.contextLoc),
       parent(symCtx.parent), symMap(symCtx.symMap),
       extFileRefs(symCtx.extFileRefs), fileIdPair(symCtx.fileIdPair),
-      includeVals(symCtx.includeVals)
+      includeVals(symCtx.includeVals), unraveledVals(symCtx.unraveledVals)
     {
       for (auto& ctx : symCtx.subContexts)
       {
         subContexts.push_back(make_unique<SymbolContext>(*ctx));
+      }
+
+      for (auto& col : symCtx.colorInformation)
+      {
+        colorInformation.emplace_back(col != nullptr ? col->clone() : nullptr);
       }
     }
 
@@ -383,10 +493,15 @@ namespace AsymptoteLsp
       extFileRefs = symCtx.extFileRefs;
       fileIdPair = symCtx.fileIdPair;
       includeVals = symCtx.includeVals;
-
+      unraveledVals = symCtx.unraveledVals;
       for (auto& ctx : symCtx.subContexts)
       {
         subContexts.push_back(make_unique<SymbolContext>(*ctx));
+      }
+
+      for (auto& col : symCtx.colorInformation)
+      {
+        colorInformation.emplace_back(col != nullptr ? col->clone() : nullptr);
       }
 
       return *this;
@@ -396,7 +511,9 @@ namespace AsymptoteLsp
             fileLoc(std::move(symCtx.fileLoc)), contextLoc(std::move(symCtx.contextLoc)),
             parent(symCtx.parent), symMap(std::move(symCtx.symMap)),
             extFileRefs(std::move(symCtx.extFileRefs)), fileIdPair(std::move(symCtx.fileIdPair)),
-            includeVals(std::move(symCtx.includeVals)), subContexts(std::move(symCtx.subContexts))
+            includeVals(std::move(symCtx.includeVals)), unraveledVals(std::move(symCtx.unraveledVals)),
+            colorInformation(std::move(symCtx.colorInformation)),
+            subContexts(std::move(symCtx.subContexts))
     {
     }
 
@@ -409,6 +526,8 @@ namespace AsymptoteLsp
       extFileRefs = std::move(symCtx.extFileRefs);
       fileIdPair = std::move(symCtx.fileIdPair);
       includeVals = std::move(symCtx.includeVals);
+      unraveledVals = std::move(symCtx.unraveledVals);
+      colorInformation = std::move(symCtx.colorInformation);
       subContexts = std::move(symCtx.subContexts);
       return *this;
     }
@@ -461,6 +580,7 @@ namespace AsymptoteLsp
       parent = nullptr;
       symMap.clear();
       clearExtRefs();
+      clearColorInformation();
       subContexts.clear();
     }
 
@@ -469,7 +589,35 @@ namespace AsymptoteLsp
       extFileRefs.clear();
       fileIdPair.clear();
       includeVals.clear();
-      unravledVals.clear();
+      unraveledVals.clear();
+    }
+
+    void clearColorInformation()
+    {
+      colorInformation.clear();
+    }
+
+
+    void addRGBColor(
+            std::tuple<double, double, double> const& color,
+            posInFile const& posBegin,
+            posInFile const& lastArgs)
+    {
+      auto const& [red, green, blue] = color;
+      auto& ptr = colorInformation.emplace_back(std::make_unique<RGBSymColorInfo>(red, green, blue));
+      ptr->rangeBegin = posBegin;
+      ptr->setLastArgPos(lastArgs);
+    }
+
+    void addRGBAColor(
+            std::tuple<double, double, double, double> const& color,
+            posInFile const& posBegin,
+            posInFile const& lastArgs)
+    {
+      auto const& [red, green, blue, alpha] = color;
+      auto& ptr = colorInformation.emplace_back(std::make_unique<RGBASymColorInfo>(red, green, blue, alpha));
+      ptr->rangeBegin = posBegin;
+      ptr->setLastArgPos(lastArgs);
     }
 
   protected:
@@ -492,7 +640,7 @@ namespace AsymptoteLsp
     template<typename TRet, typename TFn>
     optional<TRet> searchVarExt(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
     {
-      std::unordered_set<std::string> traverseSet(unravledVals);
+      std::unordered_set<std::string> traverseSet(unraveledVals);
       traverseSet.insert(includeVals.begin(), includeVals.end());
 
       for (auto const& traverseVal : traverseSet)
@@ -512,6 +660,11 @@ namespace AsymptoteLsp
 
     virtual std::list<std::string> _searchFuncSignatureFull(std::string const& symbol, SymCtxSet& searched);
     virtual std::list<std::string> searchFuncSignatureExt(std::string const& symbol, SymCtxSet& searched);
+    virtual optional<SymbolContext*> searchStructContext(std::string const& tyVal) const;
+
+    virtual SymbolContext* searchLitContext(SymbolLit const& symbol);
+
+
     void addPlainFile();
   };
 

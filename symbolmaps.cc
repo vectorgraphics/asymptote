@@ -155,7 +155,7 @@ namespace AsymptoteLsp
   {
     std::string plainFile = getPlainFile();
     addEmptyExtRef(plainFile);
-    unravledVals.emplace(plainFile);
+    unraveledVals.emplace(plainFile);
   }
 
   SymbolContext::SymbolContext(posInFile loc):
@@ -170,8 +170,8 @@ namespace AsymptoteLsp
     addPlainFile();
   }
 
-  std::optional<posRangeInFile>
-  SymbolContext::searchVarDeclFull(std::string const& symbol, std::optional<posInFile> const& position)
+  optional<posRangeInFile>
+  SymbolContext::searchVarDeclFull(std::string const& symbol, optional<posInFile> const& position)
   {
     std::unordered_set<SymbolContext*> searched;
     return _searchVarFull<posRangeInFile>(
@@ -229,7 +229,7 @@ namespace AsymptoteLsp
   SymbolContext::searchFuncSignatureExt(std::string const& symbol, std::unordered_set<SymbolContext*>& searched)
   {
     std::list<std::string> finalList;
-    std::unordered_set<std::string> traverseSet(unravledVals);
+    std::unordered_set<std::string> traverseSet(unraveledVals);
     traverseSet.insert(includeVals.begin(), includeVals.end());
 
     for (auto const& traverseVal : traverseSet)
@@ -308,48 +308,82 @@ namespace AsymptoteLsp
     }
     else
     {
-      SymbolContext* ctx = this;
-      std::vector scopes(symbol.scopes);
-      auto searchTyFn = [](SymbolContext* pctx, std::string const& sym)
-              {
-                std::unordered_set<SymbolContext*> searched;
-                return pctx->_searchVarFull<std::string>(
-                        searched,
-                        [&sym](SymbolContext* ctx)
-                        {
-                          return ctx->searchVarType(sym);
-                        });
-              };
-
-      std::optional<std::string> tyInfo=searchTyFn(this, scopes.back());
-      scopes.pop_back();
-      if (not tyInfo.has_value())
+      SymbolContext* ctx=searchLitContext(symbol);
+      if (ctx == nullptr)
       {
         return nullopt;
       }
-
-      std::function<std::optional<SymbolContext*>(SymbolContext*, std::string const&)> searchCtxFn;
-      searchCtxFn = [&searchCtxFn](SymbolContext* pctx, std::string const& tyVal)
+      else // ctx is a struct declaration. should not search beyond this struct.
       {
-        auto stCtx = pctx->symMap.typeDecs.find(tyVal);
-        if (stCtx != pctx->symMap.typeDecs.end())
+        auto varDec = ctx->symMap.varDec.find(symbol.name);
+        return varDec != ctx->symMap.varDec.end() ?
+          optional<std::string>(varDec->second.signature()) : nullopt;
+      }
+    }
+  }
+
+  optional<posRangeInFile> SymbolContext::searchLitPosition(
+          SymbolLit const& symbol,
+          optional<posInFile> const& position)
+  {
+    if (symbol.scopes.empty())
+    {
+      return searchVarDeclFull(symbol.name, position);
+    }
+    else
+    {
+      SymbolContext* ctx=searchLitContext(symbol);
+      if (ctx != nullptr) // ctx is a struct declaration. should not search beyond this struct.
+      {
+        auto varDec = ctx->symMap.varDec.find(symbol.name);
+        if (varDec != ctx->symMap.varDec.end())
         {
-          if (auto* stDec = dynamic_cast<StructDecs*>(stCtx->second.get()))
+          auto [line, ch] = varDec->second.pos;
+          if ((not position.has_value()) or (!posLt(position.value(), varDec->second.pos)))
           {
-            return std::make_optional(stDec->ctx);
+            return std::make_tuple(ctx->getFileName().value_or(""),
+                                   varDec->second.pos, std::make_pair(line, ch + symbol.name.length()));
           }
         }
+      }
 
-        return pctx->parent != nullptr ? searchCtxFn(pctx->parent, tyVal) : nullopt;
-      };
+      return nullopt;
+    }
+  }
 
-      ctx = searchCtxFn(ctx, tyInfo.value()).value_or(nullptr);
-      for (auto it = scopes.rbegin(); it != scopes.rend(); it++)
+  SymbolContext* SymbolContext::searchLitContext(SymbolLit const& symbol)
+  {
+    if (symbol.scopes.empty())
+    {
+      return this;
+    }
+    else
+    {
+      std::vector scopes(symbol.scopes);
+      std::unordered_set<SymbolContext*> searched;
+      optional<std::string> tyInfo=_searchVarFull<std::string>(
+              searched,
+              [&sym=scopes.back()](SymbolContext* ctx)
+              {
+                return ctx->searchVarType(sym);
+              });
+
+      scopes.pop_back();
+      if (not tyInfo.has_value())
       {
-        if (ctx == nullptr)
-        {
-          return nullopt;
-        }
+        return nullptr;
+      }
+
+      searched.clear();
+      SymbolContext* ctx = _searchVarFull<SymbolContext*>(
+              searched,
+              [&tyName=tyInfo.value()](SymbolContext* pctx)
+              {
+                return pctx->searchStructContext(tyName);
+              }).value_or(nullptr);
+
+      for (auto it = scopes.rbegin(); it != scopes.rend() and ctx != nullptr; it++)
+      {
         // FIXME: Impelemnt scope searching
         //        example:
         //        varx.vary.varz => go into varx's type context (struct or external file), repeat.
@@ -361,21 +395,19 @@ namespace AsymptoteLsp
         if (locVarDec == ctx->symMap.varDec.end() or not locVarDec->second.type.has_value())
         {
           // dead end :(
-          return nullopt;
+          return nullptr;
         }
 
         // get the struct context of the type found
-        std::unordered_set<SymbolContext*> searched;
+        searched.clear();
         ctx = ctx->_searchVarFull<SymbolContext*>(
                 searched,
-                [&searchCtxFn, tyName = locVarDec->second.type.value()](SymbolContext* pctx)
+                [&tyName=locVarDec->second.type.value()](SymbolContext* pctx)
                 {
-                  return searchCtxFn(pctx, tyName);
+                  return pctx->searchStructContext(tyName);
                 }).value_or(nullptr);
-
-        // ctx = searchCtxFn(ctx, locVarDec->second.type.value()).value_or(nullptr);
       }
-      return ctx != nullptr ? ctx->searchVarSignatureFull(symbol.name) : nullopt;
+      return ctx;
     }
   }
 
