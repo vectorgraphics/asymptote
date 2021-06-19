@@ -520,6 +520,13 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primInt(); }
+
+  template<typename T>
+  [[nodiscard]]
+  T getValue() const
+  {
+    return static_cast<T>(value);
+  }
 };
 
 class realExp : public literalExp {
@@ -534,6 +541,13 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primReal(); }
+
+  template<typename T>
+  [[nodiscard]]
+  T getValue() const
+  {
+    return static_cast<T>(value);
+  }
 };
 
 
@@ -808,6 +822,15 @@ public:
 
   void prettyprint(ostream &out, Int indent);
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+
+  using colorInfo = std::tuple<double, double, double>;
+
+  /**
+   * @return nullopt if callExp is not a color, pair<color, nullopt> if color is RGB,
+   * and pair<color, alpha> if color is RGBA.
+   */
+  optional<std::tuple<colorInfo, optional<double>,
+    AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>> getColorInformation();
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);

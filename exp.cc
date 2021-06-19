@@ -1075,10 +1075,67 @@ void callExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
   callee->createSymMap(symContext);
   args->createSymMap(symContext);
+
+  if (auto col=getColorInformation())
+  {
+    auto [line, column] = callee->getPos().LineColumn();
+    auto const& [colVal, alpha, beginArgPos, lastArgPos] = col.value();
+    if (alpha.has_value())
+    {
+      auto const& [red, green, blue] = colVal;
+      std::tuple<double, double, double, double> rgba(red, green, blue, alpha.value());
+
+      symContext->addRGBAColor(rgba, beginArgPos, lastArgPos);
+    }
+    else
+    {
+      symContext->addRGBColor(colVal, beginArgPos, lastArgPos);
+    }
+  }
 }
 
 
-  void pairExp::prettyprint(ostream &out, Int indent)
+optional<std::tuple<callExp::colorInfo, optional<double>, AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>>
+callExp::getColorInformation()
+{
+  if (auto* namedCallee = dynamic_cast<nameExp*>(callee))
+  {
+    std::string calleeName = static_cast<std::string>(namedCallee->getName());
+    std::vector<double> colors;
+
+    auto getLineColumn = [&argsval = args->args](int const& idx)
+    {
+      return argsval[idx].val->getPos().LineColumn();
+    };
+
+    if (calleeName == "rgb" || calleeName == "rgba")
+    {
+      for (auto const& expVec : args->args)
+      {
+        if (auto* valExp=dynamic_cast<realExp*>(expVec.val))
+        {
+          colors.push_back(valExp->getValue<double>());
+        } else if (auto* valExpI=dynamic_cast<intExp*>(expVec.val))
+        {
+          colors.push_back(valExpI->getValue<double>());
+        }
+      }
+    }
+    if (calleeName == "rgb" && colors.size() == 3)
+    {
+      callExp::colorInfo col(colors[0], colors[1], colors[2]);
+      return std::make_tuple(col, optional<double>(), callee->getPos().LineColumn(), getLineColumn(2));
+    }
+    else if (calleeName == "rgba" && colors.size() == 4)
+    {
+      callExp::colorInfo col(colors[0], colors[1], colors[2]);
+      return std::make_tuple(col, optional<double>(colors[3]), callee->getPos().LineColumn(), getLineColumn(3));
+    }
+  }
+  return nullopt;
+}
+
+void pairExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "pairExp",indent, getPos());
 
