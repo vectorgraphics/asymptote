@@ -24,9 +24,9 @@
 
 #include "gc.h"
 
-#define REGISTER_REQ_FN(typ, fn) remote_end_point_.registerRequestHandler(\
+#define REGISTER_REQ_FN(typ, fn) point.registerHandler(\
   [this](typ::request const& req) { return this->fn(req); });
-#define REGISTER_NOTIF_FN(typ, handler) remote_end_point_.registerNotifyHandler(\
+#define REGISTER_NOTIF_FN(typ, handler) point.registerHandler(\
   [this](typ::notify& notif) { this->handler(notif); });
 
 namespace AsymptoteLsp
@@ -91,16 +91,16 @@ namespace AsymptoteLsp
 
   TextDocumentHover::Either fromString(std::string const& str)
   {
-    auto strobj=std::make_pair(std::make_optional(str), (std::optional<lsMarkedString>) std::nullopt);
+    auto strobj=std::make_pair(boost::make_optional(str), optional<lsMarkedString>());
     std::vector<decltype(strobj)> vec{strobj};
-    return std::make_pair(vec, std::nullopt);
+    return std::make_pair(vec, nullopt);
   }
 
   TextDocumentHover::Either fromMarkedStr(lsMarkedString const& markedString)
   {
-    auto strobj=std::make_pair((std::optional<std::string>) std::nullopt, std::make_optional(markedString));
+    auto strobj=std::make_pair((optional<std::string>) nullopt, make_optional(markedString));
     std::vector<decltype(strobj)> vec{strobj};
-    return std::make_pair(vec, std::nullopt);
+    return std::make_pair(vec, nullopt);
   }
 
   TextDocumentHover::Either fromMarkedStr(std::vector<std::string> const& stringList, std::string const& language)
@@ -112,10 +112,10 @@ namespace AsymptoteLsp
                      lsMarkedString lms;
                      lms.language=language;
                      lms.value=str;
-                     return std::make_pair((std::optional<std::string>) nullopt, std::make_optional(lms));
+                     return std::make_pair((optional<std::string>) nullopt, make_optional(lms));
                    });
 
-    return std::make_pair(vec, std::nullopt);
+    return std::make_pair(vec, nullopt);
   }
 
   TextDocumentHover::Either fromMarkedStr(std::string const& str, std::string const& language)
@@ -328,8 +328,8 @@ namespace AsymptoteLsp
     so.includeText=true;
     tdso.save=so;
     rsp.result.capabilities.textDocumentSync=opt_right<lsTextDocumentSyncKind>(tdso);
-
-    rsp.result.capabilities.definitionProvider=std::make_pair(true, std::nullopt);
+    rsp.result.capabilities.definitionProvider=std::make_pair(true, nullopt);
+    rsp.result.capabilities.colorProvider=std::make_pair(true, nullopt);
 
     // when starting the thread, memory is copied but not done correctly (why?)
     // hence, symmapContextsPtr gets assigned junk memory and we have to "clear" it
@@ -405,7 +405,7 @@ namespace AsymptoteLsp
   td_definition::response AsymptoteLspServer::handleDefnRequest(td_definition::request const& req)
   {
     td_definition::response rsp;
-    rsp.result.first=make_optional(std::vector<lsLocation>());
+    rsp.result.first=boost::make_optional(std::vector<lsLocation>());
 
     lsDocumentUri fileUri(req.params.textDocument.uri);
     string rawPath=settings::getSetting<bool>("wsl") ?

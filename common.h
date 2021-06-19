@@ -13,6 +13,15 @@
 #include <memory>
 #include <climits>
 
+
+#include <boost/optional.hpp>
+#include <boost/none.hpp>
+using boost::optional;
+#define nullopt boost::none
+using boost::make_optional;
+
+using std::make_pair;
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

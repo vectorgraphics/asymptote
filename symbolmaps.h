@@ -128,7 +128,7 @@ namespace AsymptoteLsp
   struct SymbolInfo
   {
     std::string name;
-    std::optional<std::string> type;
+    optional<std::string> type;
     posInFile pos;
     // std::optional<size_t> array_dim;
 
@@ -168,9 +168,9 @@ namespace AsymptoteLsp
   struct FunctionInfo: SymbolInfo
   {
     std::string returnType;
-    using typeName = std::pair<std::string, std::optional<std::string>>;
+    using typeName = std::pair<std::string, optional<std::string>>;
     std::vector<typeName> arguments;
-    std::optional<typeName> restArgs;
+    optional<typeName> restArgs;
 
     FunctionInfo(std::string name, posInFile pos, std::string returnTyp):
             SymbolInfo(std::move(name), std::move(pos)),
@@ -305,7 +305,7 @@ namespace AsymptoteLsp
       usageByLines.clear();
       typeDecs.clear();
     }
-    std::optional<fullSymPosRangeInFile> searchSymbol(posInFile const& inputPos);
+    optional<fullSymPosRangeInFile> searchSymbol(posInFile const& inputPos);
     FunctionInfo& addFunDef(std::string const& funcName, posInFile const& position, std::string const& returnType);
 
   private:
@@ -315,7 +315,7 @@ namespace AsymptoteLsp
 
   struct SymbolContext
   {
-    std::optional<std::string> fileLoc;
+    optional<std::string> fileLoc;
     posInFile contextLoc;
     SymbolContext* parent;
     SymbolMaps symMap;
@@ -414,27 +414,29 @@ namespace AsymptoteLsp
     }
 
     // [file, start, end]
-    virtual std::pair<std::optional<fullSymPosRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
+    virtual std::pair<optional<fullSymPosRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
 
-    std::optional<posRangeInFile> searchVarDeclFull(std::string const& symbol,
-                                                    std::optional<posInFile> const& position=nullopt);
+    optional<posRangeInFile> searchVarDeclFull(std::string const& symbol,
+                                                    optional<posInFile> const& position=nullopt);
 
-    std::optional<posRangeInFile> searchVarDecl(std::string const& symbol);
-    virtual std::optional<posRangeInFile> searchVarDecl(
-            std::string const& symbol, std::optional<posInFile> const& position);
+    optional<posRangeInFile> searchVarDecl(std::string const& symbol);
+    virtual optional<posRangeInFile> searchVarDecl(
+            std::string const& symbol, optional<posInFile> const& position);
 
     // variable signatures
-    virtual std::optional<std::string> searchVarSignature(std::string const& symbol) const;
-    virtual std::optional<std::string> searchVarSignatureFull(std::string const& symbol);
+    virtual optional<std::string> searchVarSignature(std::string const& symbol) const;
+    virtual optional<std::string> searchVarSignatureFull(std::string const& symbol);
     virtual std::list<std::string> searchFuncSignature(std::string const& symbol);
     virtual std::list<std::string> searchFuncSignatureFull(std::string const& symbol);
 
-    std::optional<std::string> searchLitSignature(SymbolLit const& symbol);
-    std::optional<std::string> searchVarType(std::string const& symbol) const;
+    optional<std::string> searchLitSignature(SymbolLit const& symbol);
+    optional<posRangeInFile> searchLitPosition(
+            SymbolLit const& symbol, optional<posInFile> const& position=nullopt);
+    optional<std::string> searchVarType(std::string const& symbol) const;
 
     virtual std::list<extRefMap::iterator> getEmptyRefs();
 
-    std::optional<std::string> getFileName() const;
+    optional<std::string> getFileName() const;
 
     SymbolContext* getParent()
     {
@@ -473,7 +475,7 @@ namespace AsymptoteLsp
   protected:
     using SymCtxSet = std::unordered_set<SymbolContext*>;
     template<typename TRet, typename TFn>
-    std::optional<TRet> _searchVarFull(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
+    optional<TRet> _searchVarFull(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
     {
       auto [it, notSearched] = searched.emplace(this->getParent());
       if (not notSearched)
@@ -483,12 +485,12 @@ namespace AsymptoteLsp
       }
 
       // local search first
-      std::optional<TRet> returnVal=fnLocalPredicate(this);
+      optional<TRet> returnVal=fnLocalPredicate(this);
       return returnVal.has_value() ? returnVal : searchVarExt<TRet, TFn>(searched, fnLocalPredicate);
     }
 
     template<typename TRet, typename TFn>
-    std::optional<TRet> searchVarExt(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
+    optional<TRet> searchVarExt(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
     {
       std::unordered_set<std::string> traverseSet(unravledVals);
       traverseSet.insert(includeVals.begin(), includeVals.end());
@@ -526,8 +528,8 @@ namespace AsymptoteLsp
 
     ~AddDeclContexts() override = default;
 
-    std::optional<posRangeInFile> searchVarDecl(std::string const& symbol,
-                                                std::optional<posInFile> const& position) override;
-    std::optional<std::string> searchVarSignature(std::string const& symbol) const override;
+    optional<posRangeInFile> searchVarDecl(std::string const& symbol,
+                                                optional<posInFile> const& position) override;
+    optional<std::string> searchVarSignature(std::string const& symbol) const override;
   };
 }

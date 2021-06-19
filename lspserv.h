@@ -30,15 +30,15 @@
 namespace AsymptoteLsp
 {
   template<typename TLeft, typename TRight>
-  inline std::optional<std::pair<std::optional<TLeft>, std::optional<TRight>>> opt_left(TLeft const& opt)
+  inline optional<std::pair<optional<TLeft>, optional<TRight>>> opt_left(TLeft const& opt)
   {
-    return std::make_optional(std::make_pair(opt, std::nullopt));
+    return boost::make_optional(std::make_pair(optional<TLeft>(opt), optional<TRight>()));
   }
 
   template<typename TLeft, typename TRight>
-  inline std::optional<std::pair<std::optional<TLeft>, std::optional<TRight>>> opt_right(TRight const& opt)
+  inline optional<std::pair<optional<TLeft>, optional<TRight>>> opt_right(TRight const& opt)
   {
-    return std::make_optional(std::make_pair(std::nullopt, opt));
+    return boost::make_optional(std::make_pair(optional<TLeft>(), optional<TRight>(opt)));
   }
 
   TextDocumentHover::Either fromString(std::string const &str);

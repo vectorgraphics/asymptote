@@ -37,7 +37,7 @@ namespace AsymptoteLsp
     return os;
   }
 
-  std::optional<fullSymPosRangeInFile> SymbolMaps::searchSymbol(posInFile const& inputPos)
+  optional<fullSymPosRangeInFile> SymbolMaps::searchSymbol(posInFile const& inputPos)
   {
     // FIXME: can be optimized by binary search.
     for (auto const& [pos, syLit] : usageByLines)
@@ -51,10 +51,10 @@ namespace AsymptoteLsp
       if (posMatches and !isOperator)
       {
         posInFile endPos(pos.first, endCharacter + 1);
-        return std::make_optional(std::make_tuple(syLit, pos, endPos));
+        return boost::make_optional(std::make_tuple(syLit, pos, endPos));
       }
     }
-    return std::nullopt;
+    return nullopt;
   }
 
   FunctionInfo& SymbolMaps::addFunDef(
@@ -67,7 +67,7 @@ namespace AsymptoteLsp
     return vit;
   }
 
-  std::pair<std::optional<fullSymPosRangeInFile>, SymbolContext*> SymbolContext::searchSymbol(posInFile const& inputPos)
+  std::pair<optional<fullSymPosRangeInFile>, SymbolContext*> SymbolContext::searchSymbol(posInFile const& inputPos)
   {
     auto currCtxSym = symMap.searchSymbol(inputPos);
     if (currCtxSym.has_value())
@@ -86,10 +86,10 @@ namespace AsymptoteLsp
         }
       }
     }
-    return make_pair(std::nullopt, nullptr);
+    return make_pair(nullopt, nullptr);
   }
 
-  std::optional<std::string> SymbolContext::searchVarSignature(std::string const& symbol) const
+  optional<std::string> SymbolContext::searchVarSignature(std::string const& symbol) const
   {
     auto pt = symMap.varDec.find(symbol);
     if (pt != symMap.varDec.end())
@@ -101,7 +101,7 @@ namespace AsymptoteLsp
     return parent != nullptr ? parent->searchVarSignature(symbol) : nullopt;
   }
 
-  std::optional<std::string> SymbolContext::searchVarType(std::string const& symbol) const
+  optional<std::string> SymbolContext::searchVarType(std::string const& symbol) const
   {
     auto pt = symMap.varDec.find(symbol);
     if (pt != symMap.varDec.end())
@@ -113,13 +113,13 @@ namespace AsymptoteLsp
     return parent != nullptr ? parent->searchVarType(symbol) : nullopt;
   }
 
-  std::optional<posRangeInFile> SymbolContext::searchVarDecl(std::string const& symbol)
+  optional<posRangeInFile> SymbolContext::searchVarDecl(std::string const& symbol)
   {
     return searchVarDecl(symbol, nullopt);
   }
 
-  std::optional<posRangeInFile> SymbolContext::searchVarDecl(
-          std::string const& symbol, std::optional<posInFile> const& position)
+  optional<posRangeInFile> SymbolContext::searchVarDecl(
+          std::string const& symbol, optional<posInFile> const& position)
   {
     auto pt = symMap.varDec.find(symbol);
     if (pt != symMap.varDec.end())
@@ -203,7 +203,7 @@ namespace AsymptoteLsp
     return finalList;
   }
 
-  std::optional<std::string> SymbolContext::getFileName() const
+  optional<std::string> SymbolContext::getFileName() const
   {
     if (fileLoc.has_value())
     {
@@ -215,7 +215,7 @@ namespace AsymptoteLsp
     }
   }
 
-  std::optional<std::string> SymbolContext::searchVarSignatureFull(std::string const& symbol)
+  optional<std::string> SymbolContext::searchVarSignatureFull(std::string const& symbol)
   {
     std::unordered_set<SymbolContext*> searched;
     return _searchVarFull<std::string>(searched,
@@ -243,8 +243,6 @@ namespace AsymptoteLsp
     }
     return finalList;
   }
-
-
 
   std::list<std::string> SymbolContext::_searchFuncSignatureFull(std::string const& symbol,
                                                                  std::unordered_set<SymbolContext*>& searched)
@@ -288,7 +286,21 @@ namespace AsymptoteLsp
     return _searchFuncSignatureFull(symbol, searched);
   }
 
-  std::optional<std::string> SymbolContext::searchLitSignature(SymbolLit const& symbol)
+  optional<SymbolContext*> SymbolContext::searchStructContext(std::string const& tyVal) const
+  {
+    auto stCtx = symMap.typeDecs.find(tyVal);
+    if (stCtx != symMap.typeDecs.end())
+    {
+      if (auto* stDec = dynamic_cast<StructDecs*>(stCtx->second.get()))
+      {
+        return make_optional(stDec->ctx);
+      }
+    }
+
+    return parent != nullptr ? parent->searchStructContext(tyVal) : nullopt;
+  };
+
+  optional<std::string> SymbolContext::searchLitSignature(SymbolLit const& symbol)
   {
     if (symbol.scopes.empty())
     {
@@ -367,8 +379,8 @@ namespace AsymptoteLsp
     }
   }
 
-  std::optional<posRangeInFile> AddDeclContexts::searchVarDecl(
-          std::string const& symbol, std::optional<posInFile> const& position)
+  optional<posRangeInFile> AddDeclContexts::searchVarDecl(
+          std::string const& symbol, optional<posInFile> const& position)
   {
     auto pt = additionalDecs.find(symbol);
     if (pt != additionalDecs.end())
@@ -385,7 +397,7 @@ namespace AsymptoteLsp
     return SymbolContext::searchVarDecl(symbol, position);
   }
 
-  std::optional<std::string> AddDeclContexts::searchVarSignature(std::string const& symbol) const
+  optional<std::string> AddDeclContexts::searchVarSignature(std::string const& symbol) const
   {
     auto pt = additionalDecs.find(symbol);
     return pt != additionalDecs.end() ? pt->second.signature() : SymbolContext::searchVarSignature(symbol);
