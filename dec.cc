@@ -635,6 +635,10 @@ void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 void decid::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base)
 {
   start->createSymMapWType(symContext, base);
+  if (init)
+  {
+    init->createSymMap(symContext);
+  }
 }
 
 
