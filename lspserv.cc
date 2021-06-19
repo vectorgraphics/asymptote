@@ -217,7 +217,7 @@ namespace AsymptoteLsp
                                          shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
                                          shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
           TcpServer(addr, port, jsonHandler, endpoint, log),
-          pjh(jsonHandler), ep(endpoint), _log(log), plainCtx(nullptr)
+          pjh(jsonHandler), ep(endpoint), plainCtx(nullptr), _log(log)
   {
     initializeRequestFn();
     initializeNotifyFn();
@@ -225,10 +225,12 @@ namespace AsymptoteLsp
 
   void AsymptoteLspServer::initializeRequestFn()
   {
-    REGISTER_REQ_FN(td_initialize, handleInitailizeRequest)
-    REGISTER_REQ_FN(td_hover, handleHoverRequest)
-    REGISTER_REQ_FN(td_shutdown, handleShutdownRequest)
-    REGISTER_REQ_FN(td_definition, handleDefnRequest)
+    REGISTER_REQ_FN(td_initialize, handleInitailizeRequest);
+    REGISTER_REQ_FN(td_hover, handleHoverRequest);
+    REGISTER_REQ_FN(td_shutdown, handleShutdownRequest);
+    REGISTER_REQ_FN(td_definition, handleDefnRequest);
+    REGISTER_REQ_FN(td_documentColor, handleDocColorRequest);
+    REGISTER_REQ_FN(td_colorPresentation, handleColorPresRequest);
   }
 
   void AsymptoteLspServer::initializeNotifyFn()
@@ -298,8 +300,12 @@ namespace AsymptoteLsp
     // before we can give it a value.
     // FIXME: Investigate why. And also fix this
     symmapContextsPtr.release();
+    fileContentsPtr.release();
+
     plainCtx=nullptr;
     symmapContextsPtr=std::make_unique<SymContextFilemap>();
+    fileContentsPtr=std::make_unique<
+            std::remove_reference<decltype(*fileContentsPtr)>::type>();
 
     plainFile=settings::locateFile("plain", true);
     plainCtx=reloadFileRaw(plainFile, false);
@@ -351,6 +357,102 @@ namespace AsymptoteLsp
     rsp.result.contents=endResult.empty() ?
                         fromMarkedStr("<decl-unknown> " + symText.name + ";") :
                         fromMarkedStr(endResult);
+    return rsp;
+  }
+
+  td_documentColor::response AsymptoteLspServer::handleDocColorRequest(td_documentColor::request const& req)
+  {
+    td_documentColor::response rsp;
+
+    if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
+    {
+      auto& colorsInfo = fileSymPtr->colorInformation;
+      for (auto const& colorPtr : colorsInfo)
+      {
+        ColorInformation cif;
+
+        cif.color = static_cast<TextDocument::Color>(*colorPtr);
+        cif.range.start=toLsPosition(colorPtr->rangeBegin);
+
+        auto& [line, colm] = colorPtr->lastArgPosition;
+        size_t offset = 0;
+        size_t lineOffset = 0;
+
+        auto& strLines = fileContentsPtr->at(getDocIdentifierRawPath(req.params.textDocument));
+        char ch=strLines[line + lineOffset + 1][colm - 1 + offset];
+
+        while (
+                ch != ')' and ch != ';'
+                and line + lineOffset <= strLines.size()
+                )
+        {
+          ++offset;
+          if (offset > strLines[line+lineOffset-1].size())
+          {
+            ++lineOffset;
+            offset = 0;
+          }
+          if (line+lineOffset <= strLines.size())
+          {
+            ch=strLines[line + lineOffset - 1][colm - 1 + offset];
+          }
+        }
+
+        if (ch != ')' or line + lineOffset > strLines.size())
+        {
+          continue;
+        }
+
+        cif.range.end=toLsPosition(make_pair(line+lineOffset, colm+offset+1));
+        rsp.result.emplace_back(cif);
+      }
+    }
+
+    return rsp;
+  }
+
+  td_colorPresentation::response AsymptoteLspServer::handleColorPresRequest(td_colorPresentation::request const& req)
+  {
+    td_colorPresentation::response rsp;
+
+    if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
+    {
+      ColorPresentation clp;
+
+      for (auto& colPtr : fileSymPtr->colorInformation)
+      {
+        auto& incomingColor = req.params.color;
+        std::ostringstream ssargs;
+        std::ostringstream labelargs;
+
+        bool opaque=std::fabs(incomingColor.alpha - 1) < std::numeric_limits<double>::epsilon();
+        std::string fnName = opaque ? "rgb" : "rgba";
+
+        labelargs << std::setprecision(3) << incomingColor.red << "," << incomingColor.green << "," <<
+                                          incomingColor.blue;
+        ssargs << incomingColor.red << "," << incomingColor.green << "," <<
+           incomingColor.blue;
+        if (!opaque)
+        {
+          ssargs << "," << incomingColor.alpha;
+          labelargs << "," << incomingColor.alpha;
+        }
+        std::ostringstream ss;
+        ss << fnName << "(" << ssargs.str() << ")";
+        clp.textEdit.newText = ss.str();
+
+        std::ostringstream lss;
+        lss << fnName << "(" << labelargs.str() << ")";
+        clp.label = lss.str();
+
+        if (colPtr->rangeBegin == fromLsPosition(req.params.range.start))
+        {
+          clp.textEdit.range = req.params.range;
+          rsp.result.emplace_back(std::move(clp));
+          break;
+        }
+      }
+    }
     return rsp;
   }
 

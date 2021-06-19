@@ -14,6 +14,8 @@
 #include <LibLsp/lsp/general/initialize.h>
 #include <LibLsp/lsp/general/shutdown.h>
 #include <LibLsp/lsp/textDocument/declaration_definition.h>
+#include <LibLsp/lsp/textDocument/colorPresentation.h>
+
 
 //header for notifs
 #include <LibLsp/lsp/general/exit.h>
@@ -86,12 +88,15 @@ namespace AsymptoteLsp
     td_initialize::response handleInitailizeRequest(td_initialize::request const&);
     td_shutdown::response handleShutdownRequest(td_shutdown::request const&);
     td_definition::response handleDefnRequest(td_definition::request const&);
+    td_documentColor::response handleDocColorRequest(td_documentColor::request const&);
+    td_colorPresentation::response handleColorPresRequest(td_colorPresentation::request const&);
+
 
     void onInitialized(Notify_InitializedNotification::notify& notify);
     void onExit(Notify_Exit::notify& notify);
     void onChange(Notify_TextDocumentDidChange::notify& notify);
     void onOpen(Notify_TextDocumentDidOpen::notify& notify);
-    void onSave(Notify_TextDocumentDidSave::notify& notifY);
+    void onSave(Notify_TextDocumentDidSave::notify& notify);
 
     void generateMissingTrees(std::string const& inputFile);
 
@@ -99,6 +104,8 @@ namespace AsymptoteLsp
     void initializeNotifyFn();
 
     void reloadFile(std::string const&);
+    void updateFileContentsTable(std::string const& filename);
+
     SymbolContext* reloadFileRaw(std::string const&, bool const& fillTree=true);
     SymbolContext* fromRawPath(lsTextDocumentIdentifier const& identifier);
     std::string plainFile;
@@ -112,6 +119,7 @@ namespace AsymptoteLsp
     LspLog& _log;
 
     unique_ptr<SymContextFilemap> symmapContextsPtr;
+    unique_ptr<unordered_map<std::string, std::vector<std::string>>> fileContentsPtr;
   };
 }
 
