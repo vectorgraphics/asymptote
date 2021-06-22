@@ -228,5 +228,3 @@ class BasicConfigs:
     keymaps = xasyOptions('xasykeymap', os.path.join(
         _configPath, 'xasykeymap.cson'))
     openRecent = xasyOpenRecent('xasyrecents', os.path.join( _configPath, "xasyrecent.txt")) 
-    
-    # TODO: make the recent.txt get automatically created from setup.py

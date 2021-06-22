@@ -1524,6 +1524,8 @@ class MainWindow1(Qw.QMainWindow):
         self.coordLabel.setText('{0:.2f}, {1:.2f}    '.format(nx, ny))
 
     def quickUpdate(self):
+        # TODO: Some documentation here would be nice since this is one of the
+        # main functions that gets called everywhere.
         self.updateMouseCoordLabel()
         self.refreshCanvas()
 
