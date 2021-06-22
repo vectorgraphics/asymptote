@@ -747,7 +747,7 @@ class MainWindow1(Qw.QMainWindow):
         else:                
             self.undoRedoStack.undo()
             self.checkUndoRedoButtons()
-  
+
     def btnRedoOnClick(self):
         self.undoRedoStack.redo()
         self.checkUndoRedoButtons()
@@ -978,6 +978,8 @@ class MainWindow1(Qw.QMainWindow):
             xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
             saveFile.close()
             self.updateScript()
+            self.fileChanged = False
+            self.updateTitle()
 
     def updateScript(self):
         for item in self.fileItems:
@@ -987,13 +989,15 @@ class MainWindow1(Qw.QMainWindow):
                     item.updatedCode = None
 
     def actionSaveAs(self):
-        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File')[0]
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', str(self.filename), "Asymptote File (*.asy)")[0]
         if saveLocation:
             saveFile = io.open(saveLocation, 'w')
             xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
             saveFile.close()
             self.filename = saveLocation
             self.updateScript()
+            self.fileChanged = False
+            self.updateTitle()
             
 
     def btnQuickScreenshotOnClick(self):
@@ -1536,6 +1540,8 @@ class MainWindow1(Qw.QMainWindow):
         self.postDraw()
         self.updateScreen()
 
+        self.updateTitle()
+
     def quickDraw(self):
         assert self.isReady()
         dpi = self.magnification * self.dpi
@@ -1570,6 +1576,18 @@ class MainWindow1(Qw.QMainWindow):
                     activeItem.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas, dpi=dpi)
                 activeItem = None
 
+    def updateTitle(self):
+        # TODO: Undo redo doesn't update appropriately. Have to find a fix for this.
+        title = ''
+        if self.filename:
+            fileName = os.path.basename(self.filename)
+            title += fileName
+        else:
+            title += "[Not Saved]"
+        if self.fileChanged:
+            title += ' *'
+        self.setWindowTitle(title)
+        
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
         self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
