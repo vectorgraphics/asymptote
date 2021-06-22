@@ -107,8 +107,12 @@ class xasyOptions:
                 if yaml is None:
                     raise ModuleNotFoundError
                 newOptions = yaml.load(f)
-            else:
+            elif ext == '.json':
+                if json is None:
+                    raise ModuleNotFoundError
                 newOptions = json.loads(f.read())
+            else:
+                raise Exception(f"File with extension {ext} not supported")
         except (IOError, ModuleNotFoundError):
             self.setDefaults()
         else:
@@ -151,39 +155,71 @@ def setAsyPathFromWindowsRegistry():
 """
 
 class xasyOpenRecent:
-    def __init__(self, file):
-        if os.path.isfile(file):
-            self.file = os.path.abspath(file)
-        else:
-            raise FileNotFoundError
-    
+    def __init__(self, configName, defaultConfigLocation):
+        self.configName = configName
+        self.fileName = self.settingsFileLocation()
+        if not os.path.isfile(self.fileName):
+            f = io.open(self.fileName, 'w')
+            f.write('')
+            f.close()
+
+    def settingsFileLocation(self):
+        folder = os.path.expanduser("~/.asy/")
+        
+        currentFile = os.path.join(folder, self.configName + '.txt')
+        return os.path.normcase(currentFile)
+
     def insert(self, path):
-        if os.path.isfile(path):
-            path = os.path.abspath(path)
-            # rewrite the file with the correct order
-            with open(self.file, 'r') as recent:
-                lines = recent.readlines()
-            with open(self.file, 'w') as recent:
-                recent.write(path.strip() + '\n')
-                for line in lines:
-                    if line.strip() != path.strip():
-                        recent.write(line.strip() + '\n')    
-            return None
-        else:
-            raise FileNotFoundError
-    
+        if not os.path.exists(self.fileName):
+            # make folder
+            thedir = os.path.dirname(self.fileName)
+            if not os.path.exists(thedir):
+                os.makedirs(thedir)
+            if not os.path.isdir(thedir):
+                raise Exception("Configuration folder path does not point to a folder")
+        
+        f = io.open(self.fileName, 'r')
+        lines = f.readlines()
+        f.close()
+
+        f = io.open(self.fileName, 'w')
+        f.write(path.strip() + '\n')
+        for line in lines:
+            if line.strip() != path.strip():
+                f.write(line.strip() + '\n')  
+        f.close()  
+
     @property
     def pathList(self):
-        with open(self.file, 'r') as recent:
-            lines = [line.strip() for line in recent.readlines()]
-            if all(map(lambda path: os.path.isfile(os.path.expanduser(path)), lines)):
-                return lines
-            else:
-                raise FileNotFoundError
+        self.findingPaths=True
+        return self.findPath()
+
+    def findPath(self):
+        f = io.open(self.fileName, 'r')
+        paths = [path.strip() for path in f.readlines()]
+        f.close()
+
+        trueFiles = list(map(lambda path: os.path.isfile(os.path.expanduser(path)), paths))
+        if all(trueFiles):
+            return paths
+        else:
+            if self.findingPaths == False:
+                raise RecursionError
+            self.findingPaths = False
+            self.removeNotFound(list(trueFiles), paths)
+            return self.findPath()
+
+    def removeNotFound(self, trueFiles, paths):
+        f = io.open(self.fileName, 'w')
+        for index, path in enumerate(paths):
+            if trueFiles[index] == True:
+                f.write(path + '\n')
+        f.close()
 
     def clear(self):
-        with open(self.file, 'w') as f:
-            f.write('')
+        f = io.open(self.file, 'w')
+        f.write('')
+        f.close()
 
 class BasicConfigs:
     _configPath = list(configs.__path__)[0]
@@ -191,4 +227,6 @@ class BasicConfigs:
         'xasyconfig', os.path.join(_configPath, 'xasyconfig.cson'))
     keymaps = xasyOptions('xasykeymap', os.path.join(
         _configPath, 'xasykeymap.cson'))
-    openRecent = xasyOpenRecent(os.path.join(_configPath, "recent.txt")) # TODO: make the recent.txt get automatically created from setup.py
+    openRecent = xasyOpenRecent('xasyrecents', os.path.join( _configPath, "xasyrecent.txt")) 
+    
+    # TODO: make the recent.txt get automatically created from setup.py
