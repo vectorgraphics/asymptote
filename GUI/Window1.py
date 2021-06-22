@@ -105,6 +105,7 @@ class MainWindow1(Qw.QMainWindow):
     """
 
     def __init__(self):
+        self.testingActions = []
         super().__init__()
         self.ui = Ui_MainWindow()
         global devicePixelRatio
@@ -940,14 +941,15 @@ class MainWindow1(Qw.QMainWindow):
         self.openRecent.clear()
         self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
 
-    def populateOpenRecent(self, path = None):
+    def populateOpenRecent(self, recentOpenedFile = None):
         self.ui.menuOpenRecent.clear()
-        if path:
-            self.openRecent.insert(path)
+        if recentOpenedFile:
+            self.openRecent.insert(recentOpenedFile)
         for count, path in enumerate(self.openRecent.pathList):
             if count > 8:
                 break
-            self.ui.menuOpenRecent.addAction(path, lambda: self.actionOpen(fileName = path))
+            action = Qw.QAction(path, self, triggered = lambda state, path = path: self.actionOpen(fileName = path))
+            self.ui.menuOpenRecent.addAction(action)
         self.ui.menuOpenRecent.addSeparator()
         self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
 
