@@ -1,4 +1,4 @@
-usepackage("ocg");
+usepackage("ocgx");
 settings.tex="pdflatex";
 
 size(0,150);
