@@ -1,5 +1,5 @@
 import graph;
-usepackage("ocgx");
+usepackage("ocgx2");
 settings.tex="pdflatex";
 
 // Dan Bruton algorithm

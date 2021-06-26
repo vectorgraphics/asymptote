@@ -1671,7 +1671,7 @@ void begin(picture pic=currentpicture, string name, string id="",
 void end(picture pic=currentpicture)
 {
   if(!latex() || !pdf()) return;
-  tex(pic,"\end{ocg}");
+  tex(pic,"\end{ocg}%");
   layer(pic);
 }
 
