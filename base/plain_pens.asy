@@ -321,6 +321,11 @@ pen rgba(real[] a)
   return rgb(a[0],a[1],a[2])+opacity(a[3]);
 }
 
+pen rgba(real r, real g, real b, real a)
+{
+  return rgb(r,g,b)+opacity(a);
+}
+
 // Return a pen corresponding to a given 6-character RGB hexadecimal string.
 pen rgb(string s) 
 {
