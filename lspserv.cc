@@ -162,7 +162,8 @@ namespace AsymptoteLsp
       if (mapIt != symmapContextsPtr->end())
       {
         it->second=mapIt->second.get();
-      } else
+      }
+      else
       {
         auto[fit, success] = symmapContextsPtr->emplace(
                 filename,
@@ -182,7 +183,8 @@ namespace AsymptoteLsp
           if (processing.find(sit->first) == processing.end())
           {
             procList.emplace(sit);
-          } else
+          }
+          else
           {
             // import cycles detected!
             cerr << "import cycles detected!" << endl;
@@ -261,6 +263,31 @@ namespace AsymptoteLsp
   void AsymptoteLspServer::onChange(Notify_TextDocumentDidChange::notify& notify)
   {
     cerr << "text change" << endl;
+
+    auto& fileChange = notify.params.contentChanges;
+    if (not fileChange.empty())
+    {
+      bool updatable = true;
+      block* codeBlk;
+      try
+      {
+        codeBlk=istring(mem::string(fileChange[0].text)).getTree();
+      }
+      catch (handled_error const&)
+      {
+        updatable = false;
+      }
+
+      if (updatable)
+      {
+        std::string rawPath=getDocIdentifierRawPath(notify.params.textDocument.AsTextDocumentIdentifier());
+        std::istringstream iss(fileChange[0].text);
+        updateFileContentsTable(rawPath, iss);
+        reloadFileRaw(codeBlk, rawPath);
+      }
+    }
+
+    cerr << "changed text data" << endl;
   }
 
   void AsymptoteLspServer::onOpen(Notify_TextDocumentDidOpen::notify& notify)
@@ -279,6 +306,7 @@ namespace AsymptoteLsp
 
 #pragma endregion
 
+#pragma region requests
   td_initialize::response AsymptoteLspServer::handleInitailizeRequest(td_initialize::request const& req)
   {
     td_initialize::response rsp;
@@ -349,7 +377,7 @@ namespace AsymptoteLsp
     {
       endResultList.push_back(typ.value());
     }
-    endResultList.splice(endResultList.end(), ctx->searchFuncSignatureFull(symText.name));
+    endResultList.splice(endResultList.end(), ctx->searchLitFuncSignature(symText));
 
     std::vector<std::string> endResult;
     std::copy(endResultList.begin(), endResultList.end(), std::back_inserter(endResult));
@@ -505,21 +533,25 @@ namespace AsymptoteLsp
 
   void AsymptoteLspServer::updateFileContentsTable(std::string const& filename)
   {
+    std::ifstream fil(filename, std::ifstream::in);
+    return updateFileContentsTable(filename, fil);
+  }
+
+  void AsymptoteLspServer::updateFileContentsTable(std::string const& filename, std::istream& in)
+  {
     auto& fileContents = *fileContentsPtr;
     std::ifstream fil(filename, std::ifstream::in);
     fileContents[filename].clear();
 
     std::string line;
-    while (std::getline(fil, line))
+    while (std::getline(in, line))
     {
       fileContents[filename].emplace_back(line);
     }
   }
 
-  SymbolContext* AsymptoteLspServer::reloadFileRaw(std::string const& rawPath, bool const& fillTree)
+  SymbolContext* AsymptoteLspServer::reloadFileRaw(block* blk, std::string const& rawPath, bool const& fillTree)
   {
-    updateFileContentsTable(rawPath);
-    block* blk=ifile(rawPath.c_str()).getTree();
     if (blk != nullptr)
     {
       auto it=symmapContextsPtr->find(rawPath);
@@ -556,6 +588,13 @@ namespace AsymptoteLsp
     {
       return nullptr;
     }
+  }
+
+  SymbolContext* AsymptoteLspServer::reloadFileRaw(std::string const& rawPath, bool const& fillTree)
+  {
+    updateFileContentsTable(rawPath);
+    block* blk=ifile(mem::string(rawPath)).getTree();
+    return reloadFileRaw(blk, rawPath, fillTree);
   }
 
   void AsymptoteLspServer::start()

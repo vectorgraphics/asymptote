@@ -110,9 +110,11 @@ namespace AsymptoteLsp
 
     void reloadFile(std::string const&);
     void updateFileContentsTable(std::string const& filename);
+    void updateFileContentsTable(std::string const& filename, std::istream& in);
 
     SymbolContext* reloadFileRaw(std::string const&, bool const& fillTree=true);
     SymbolContext* fromRawPath(lsTextDocumentIdentifier const& identifier);
+    SymbolContext* reloadFileRaw(absyntax::block* blk, std::string const& rawPath, bool const& fillTree=true);
     std::string plainFile;
 
   private:
