@@ -139,8 +139,10 @@ void *asymain(void *A)
       AsymptoteLsp::LspLog log;
       auto jsonHandler = std::make_shared<lsp::ProtocolJsonHandler>();
       auto endpoint = std::make_shared<GenericEndpoint>(log);
-      AsymptoteLsp::AsymptoteLspServer asylsp("127.0.0.1", "10007", jsonHandler, endpoint, log);
-      asylsp.start();
+      unique_ptr<AsymptoteLsp::AsymptoteLspServer> asylsp = std::make_unique<AsymptoteLsp::AsymptoteLspServer>(
+              (std::string)getSetting<string>("lsphost"),
+              (std::string)getSetting<string>("lspport"), jsonHandler, endpoint, log);
+      asylsp->start();
     } else {
       processPrompt();
     }

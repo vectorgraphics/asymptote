@@ -1344,7 +1344,8 @@ void initSettings() {
                             "Special interactive mode for xasy"));
   addOption(new boolSetting("lsp", 0, "Special interactive mode for lsp-rpc"));
   addOption(new boolSetting("wsl", 0, "Set to WSL mode when running asy inside WSL."));
-
+  addOption(new stringSetting("lspport", 0,"string","LSP Port", "10007"));
+  addOption(new stringSetting("lsphost", 0,"string","LSP Host","127.0.0.1"));
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));
