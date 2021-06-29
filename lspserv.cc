@@ -568,7 +568,10 @@ namespace AsymptoteLsp
       SymbolContext* newPtr=it->second.get();
 
       cerr << rawPath << endl;
+
+      settings::searchPath.push_back(stripFile(string(rawPath)));
       blk->createSymMap(newPtr);
+      settings::searchPath.pop_back();
 
       if (plainCtx != nullptr)
       {
