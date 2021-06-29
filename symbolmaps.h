@@ -181,6 +181,9 @@ namespace AsymptoteLsp
 
     [[nodiscard]]
     std::string signature() const override;
+
+    [[nodiscard]]
+    std::string signature(std::vector<std::string> const& scopes) const;
   };
 
 
@@ -594,6 +597,8 @@ namespace AsymptoteLsp
     virtual std::list<std::string> searchFuncSignatureFull(std::string const& symbol);
 
     optional<std::string> searchLitSignature(SymbolLit const& symbol);
+    std::list<std::string> searchLitFuncSignature(SymbolLit const& symbol);
+
     optional<posRangeInFile> searchLitPosition(
             SymbolLit const& symbol, optional<posInFile> const& position=nullopt);
     optional<std::string> searchVarType(std::string const& symbol) const;
@@ -661,7 +666,7 @@ namespace AsymptoteLsp
     template<typename TRet, typename TFn>
     optional<TRet> _searchVarFull(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
     {
-      auto [it, notSearched] = searched.emplace(this->getParent());
+      auto [it, notSearched] = searched.emplace(getParent());
       if (not notSearched)
       {
         // a loop in the search path. Stop now.
@@ -676,10 +681,7 @@ namespace AsymptoteLsp
     template<typename TRet, typename TFn>
     optional<TRet> searchVarExt(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
     {
-      std::unordered_set<std::string> traverseSet(unraveledVals);
-      traverseSet.insert(includeVals.begin(), includeVals.end());
-
-      for (auto const& traverseVal : traverseSet)
+      for (auto const& traverseVal : createTraverseSet())
       {
         if (traverseVal == this->getFileName())
         {
@@ -697,8 +699,12 @@ namespace AsymptoteLsp
     virtual std::list<std::string> _searchFuncSignatureFull(std::string const& symbol, SymCtxSet& searched);
     virtual std::list<std::string> searchFuncSignatureExt(std::string const& symbol, SymCtxSet& searched);
     virtual optional<SymbolContext*> searchStructContext(std::string const& tyVal) const;
+    SymbolContext* searchStructCtxFull(std::string const&);
 
+    optional<SymbolContext*> searchAccessDecls(std::string const&);
     virtual SymbolContext* searchLitContext(SymbolLit const& symbol);
+
+    virtual std::unordered_set<std::string> createTraverseSet();
 
 
     void addPlainFile();

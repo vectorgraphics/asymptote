@@ -304,18 +304,45 @@ namespace AsymptoteLsp
     }
     else
     {
-      SymbolContext* ctx=searchLitContext(symbol);
-      if (ctx == nullptr)
+      if (SymbolContext* ctx=searchLitContext(symbol))
       {
-        return nullopt;
-      }
-      else // ctx is a struct declaration. should not search beyond this struct.
-      {
+        // ctx is a struct declaration. should not search beyond this struct.
         auto varDec = ctx->symMap.varDec.find(symbol.name);
         return varDec != ctx->symMap.varDec.end() ?
-          optional<std::string>(varDec->second.signature()) : nullopt;
+               optional<std::string>(varDec->second.signature()) : nullopt;
       }
     }
+
+    return nullopt;
+  }
+
+  std::list<std::string> SymbolContext::searchLitFuncSignature(SymbolLit const& symbol)
+  {
+    std::list<std::string> signatures;
+    if (symbol.scopes.empty())
+    {
+      signatures.splice(signatures.end(), searchFuncSignatureFull(symbol.name));
+    }
+    else
+    {
+      if (SymbolContext* ctx=searchLitContext(symbol))
+      {
+        // ctx is a struct declaration. should not search beyond this struct.
+        auto fnDecs = ctx->symMap.funDec.find(symbol.name);
+        if (fnDecs != ctx->symMap.funDec.end())
+        {
+          std::transform(
+                  fnDecs->second.begin(), fnDecs->second.end(),
+                  std::back_inserter(signatures),
+                  [&scopes=symbol.scopes](FunctionInfo const& fnInf)
+                  {
+                    return fnInf.signature(scopes);
+                  });
+        }
+      }
+    }
+
+    return signatures;
   }
 
   optional<posRangeInFile> SymbolContext::searchLitPosition(
@@ -341,10 +368,63 @@ namespace AsymptoteLsp
                                    varDec->second.pos, std::make_pair(line, ch + symbol.name.length()));
           }
         }
+
+        auto fnDec = ctx->symMap.funDec.find(symbol.name);
+        if (fnDec != ctx->symMap.funDec.end() and !fnDec->second.empty())
+        {
+          auto ptValue = fnDec->second[0];
+          if ((not position.has_value()) or (!posLt(position.value(), ptValue.pos)))
+          {
+            return std::make_tuple(getFileName().value_or(""), ptValue.pos, ptValue.pos);
+          }
+        }
       }
 
       return nullopt;
     }
+  }
+
+  SymbolContext* SymbolContext::searchStructCtxFull(std::string const& symbol)
+  {
+    std::unordered_set<SymbolContext*> searched;
+    optional<std::string> tyInfo=_searchVarFull<std::string>(
+            searched,
+            [&symbol](SymbolContext* ctx)
+            {
+              return ctx->searchVarType(symbol);
+            });
+
+
+    if (not tyInfo.has_value())
+    {
+      return nullptr;
+    }
+
+    searched.clear();
+    return _searchVarFull<SymbolContext*>(
+            searched,
+            [&tyName=tyInfo.value()](SymbolContext* pctx)
+            {
+              return pctx->searchStructContext(tyName);
+            }).value_or(nullptr);
+  }
+
+  optional<SymbolContext*> SymbolContext::searchAccessDecls(std::string const& accessVal)
+  {
+    // fileIdPair includes accessVals
+
+    auto src=extRefs.fileIdPair.find(accessVal);
+    if (src != extRefs.fileIdPair.end())
+    {
+      std::string& fileSrc=src->second;
+      auto ctxMap=extRefs.extFileRefs.find(fileSrc);
+      if (ctxMap != extRefs.extFileRefs.end() && ctxMap->second != nullptr)
+      {
+        return ctxMap->second;
+      }
+    }
+
+    return parent != nullptr ? parent->searchAccessDecls(accessVal) : nullopt;
   }
 
   SymbolContext* SymbolContext::searchLitContext(SymbolLit const& symbol)
@@ -356,27 +436,31 @@ namespace AsymptoteLsp
     else
     {
       std::vector scopes(symbol.scopes);
-      std::unordered_set<SymbolContext*> searched;
-      optional<std::string> tyInfo=_searchVarFull<std::string>(
-              searched,
-              [&sym=scopes.back()](SymbolContext* ctx)
-              {
-                return ctx->searchVarType(sym);
-              });
+      bool isStruct=false;
 
-      scopes.pop_back();
-      if (not tyInfo.has_value())
+      // search in struct
+      auto* ctx=searchStructCtxFull(scopes.back());
+      if (ctx)
       {
-        return nullptr;
+        isStruct = true;
+        scopes.pop_back();
       }
+      else
+      {
+        // search in access declarations
+        std::unordered_set<SymbolContext*> searched;
+        ctx =_searchVarFull<SymbolContext*>(
+                searched,
+                [&lastAccessor=scopes.back()](SymbolContext* pctx)
+                {
+                  return pctx->searchAccessDecls(lastAccessor);
+                }).value_or(nullptr);
 
-      searched.clear();
-      SymbolContext* ctx = _searchVarFull<SymbolContext*>(
-              searched,
-              [&tyName=tyInfo.value()](SymbolContext* pctx)
-              {
-                return pctx->searchStructContext(tyName);
-              }).value_or(nullptr);
+        if (ctx)
+        {
+          scopes.pop_back();
+        }
+      }
 
       for (auto it = scopes.rbegin(); it != scopes.rend() and ctx != nullptr; it++)
       {
@@ -395,7 +479,7 @@ namespace AsymptoteLsp
         }
 
         // get the struct context of the type found
-        searched.clear();
+        std::unordered_set<SymbolContext*> searched;
         ctx = ctx->_searchVarFull<SymbolContext*>(
                 searched,
                 [&tyName=locVarDec->second.type.value()](SymbolContext* pctx)
@@ -405,6 +489,17 @@ namespace AsymptoteLsp
       }
       return ctx;
     }
+  }
+
+  std::unordered_set<std::string> SymbolContext::createTraverseSet()
+  {
+    std::unordered_set<std::string> traverseSet(extRefs.includeVals);
+    traverseSet.emplace(getPlainFile());
+    for (auto const& unravelVal : extRefs.unraveledVals)
+    {
+      traverseSet.emplace(extRefs.fileIdPair.at(unravelVal));
+    }
+    return traverseSet;
   }
 
   optional<posRangeInFile> AddDeclContexts::searchVarDecl(
@@ -443,8 +538,18 @@ namespace AsymptoteLsp
 
   std::string FunctionInfo::signature() const
   {
+    return signature(std::vector<std::string>());
+  }
+
+  std::string FunctionInfo::signature(std::vector<std::string> const& scopes) const
+  {
     std::stringstream ss;
-    ss << returnType << " " << name << "(";
+    ss << returnType << " ";
+    for (auto it=scopes.crbegin(); it!=scopes.crend(); it++)
+    {
+      ss << *it << ".";
+    }
+    ss << name << "(";
     for (auto it = arguments.begin(); it != arguments.end(); it++)
     {
       auto const& [argtype, argname] = *it;
