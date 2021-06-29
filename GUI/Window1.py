@@ -483,7 +483,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAnchor.clicked.connect(self.btnAnchorModeOnClick)
 
         self.ui.btnSelectColor.clicked.connect(self.btnColorSelectOnClick)
-        self.ui.txtLineWidth.textEdited.connect(self.txtLineWithEdited)
+        self.ui.txtLineWidth.textEdited.connect(self.txtLineWidthEdited)
 
         # self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
         self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
@@ -1031,7 +1031,7 @@ class MainWindow1(Qw.QMainWindow):
             self._currentPen.setColorFromQColor(self.colorDialog.selectedColor())
             self.updateFrameDispColor()
 
-    def txtLineWithEdited(self, text):
+    def txtLineWidthEdited(self, text):
         new_val = xu.tryParse(text, float)
         if new_val is not None:
             if new_val > 0:
