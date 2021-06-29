@@ -155,7 +155,6 @@ namespace AsymptoteLsp
   {
     std::string plainFile = getPlainFile();
     addEmptyExtRef(plainFile);
-    unraveledVals.emplace(plainFile);
   }
 
   SymbolContext::SymbolContext(posInFile loc):
@@ -182,11 +181,11 @@ namespace AsymptoteLsp
             });
   }
 
-  std::list<SymbolContext::extRefMap::iterator> SymbolContext::getEmptyRefs()
+  std::list<ExternalRefs::extRefMap::iterator> SymbolContext::getEmptyRefs()
   {
-    std::list<extRefMap::iterator> finalList;
+    std::list<ExternalRefs::extRefMap::iterator> finalList;
 
-    for (auto it = extFileRefs.begin(); it != extFileRefs.end(); it++)
+    for (auto it = extRefs.extFileRefs.begin(); it != extRefs.extFileRefs.end(); it++)
     {
       if (it->second == nullptr)
       {
@@ -229,16 +228,13 @@ namespace AsymptoteLsp
   SymbolContext::searchFuncSignatureExt(std::string const& symbol, std::unordered_set<SymbolContext*>& searched)
   {
     std::list<std::string> finalList;
-    std::unordered_set<std::string> traverseSet(unraveledVals);
-    traverseSet.insert(includeVals.begin(), includeVals.end());
-
-    for (auto const& traverseVal : traverseSet)
+    for (auto const& traverseVal : createTraverseSet())
     {
       if (traverseVal == this->getFileName())
       {
         continue;
       }
-      auto returnValF = extFileRefs.at(traverseVal)->_searchFuncSignatureFull(symbol, searched);
+      auto returnValF = extRefs.extFileRefs.at(traverseVal)->_searchFuncSignatureFull(symbol, searched);
       finalList.splice(finalList.end(), returnValF);
     }
     return finalList;

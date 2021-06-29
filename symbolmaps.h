@@ -375,6 +375,7 @@ namespace AsymptoteLsp
       varUsage = symMap.varUsage;
       usageByLines = symMap.usageByLines;
 
+      typeDecs.clear();
       for (auto const& [ty, tyDec] : symMap.typeDecs)
       {
         typeDecs.emplace(ty, tyDec != nullptr ? tyDec->clone() : nullptr);
@@ -415,6 +416,60 @@ namespace AsymptoteLsp
     friend ostream& operator<<(std::ostream& os, const SymbolMaps& sym);
   };
 
+  struct ExternalRefs
+  {
+
+    // file interactions
+    // access -> (file, id)
+    // unravel -> id
+    // include -> file
+    // import = acccess + unravel
+
+    using extRefMap = std::unordered_map<std::string, SymbolContext*>;
+    extRefMap extFileRefs;
+    std::unordered_map<std::string, std::string> fileIdPair;
+    std::unordered_set<std::string> includeVals;
+    std::unordered_set<std::string> unraveledVals;
+    std::unordered_set<std::string> accessVals;
+
+    ExternalRefs() = default;
+    virtual ~ExternalRefs() = default;
+
+    ExternalRefs(ExternalRefs const& exRef) = default;
+    ExternalRefs& operator=(ExternalRefs const& exRef) = default;
+
+    ExternalRefs(ExternalRefs&& exRef) noexcept = default;
+    ExternalRefs& operator=(ExternalRefs&& exRef) noexcept = default;
+
+
+    void clear()
+    {
+      extFileRefs.clear();
+      fileIdPair.clear();
+      includeVals.clear();
+      unraveledVals.clear();
+      accessVals.clear();
+    }
+
+    bool addEmptyExtRef(std::string const& fileName)
+    {
+      auto [it, success] = extFileRefs.emplace(fileName, nullptr);
+      return success;
+    }
+
+    bool addAccessVal(std::string const& symbol)
+    {
+      auto [_, success] = accessVals.emplace(symbol);
+      return success;
+    }
+
+    bool addUnravelVal(std::string const& symbol)
+    {
+      auto [_, success] = unraveledVals.emplace(symbol);
+      return success;
+    }
+  };
+
 
   struct SymbolContext
   {
@@ -429,11 +484,7 @@ namespace AsymptoteLsp
     // include -> file
     // import = acccess + unravel
 
-    using extRefMap = std::unordered_map<std::string, SymbolContext*>;
-    extRefMap extFileRefs;
-    std::unordered_map<std::string, std::string> fileIdPair;
-    std::unordered_set<std::string> includeVals;
-    std::unordered_set<std::string> unraveledVals;
+    ExternalRefs extRefs;
 
     std::vector<std::unique_ptr<SymColorInfo>> colorInformation;
     std::vector<std::unique_ptr<SymbolContext>> subContexts;
@@ -470,8 +521,7 @@ namespace AsymptoteLsp
     SymbolContext(SymbolContext const& symCtx) :
       fileLoc(symCtx.fileLoc), contextLoc(symCtx.contextLoc),
       parent(symCtx.parent), symMap(symCtx.symMap),
-      extFileRefs(symCtx.extFileRefs), fileIdPair(symCtx.fileIdPair),
-      includeVals(symCtx.includeVals), unraveledVals(symCtx.unraveledVals)
+      extRefs(symCtx.extRefs)
     {
       for (auto& ctx : symCtx.subContexts)
       {
@@ -490,15 +540,15 @@ namespace AsymptoteLsp
       contextLoc = symCtx.contextLoc;
       parent = symCtx.parent;
       symMap = symCtx.symMap;
-      extFileRefs = symCtx.extFileRefs;
-      fileIdPair = symCtx.fileIdPair;
-      includeVals = symCtx.includeVals;
-      unraveledVals = symCtx.unraveledVals;
+      extRefs = symCtx.extRefs;
+
+      subContexts.clear();
       for (auto& ctx : symCtx.subContexts)
       {
         subContexts.push_back(make_unique<SymbolContext>(*ctx));
       }
 
+      colorInformation.clear();
       for (auto& col : symCtx.colorInformation)
       {
         colorInformation.emplace_back(col != nullptr ? col->clone() : nullptr);
@@ -510,10 +560,8 @@ namespace AsymptoteLsp
     SymbolContext(SymbolContext&& symCtx) noexcept :
             fileLoc(std::move(symCtx.fileLoc)), contextLoc(std::move(symCtx.contextLoc)),
             parent(symCtx.parent), symMap(std::move(symCtx.symMap)),
-            extFileRefs(std::move(symCtx.extFileRefs)), fileIdPair(std::move(symCtx.fileIdPair)),
-            includeVals(std::move(symCtx.includeVals)), unraveledVals(std::move(symCtx.unraveledVals)),
-            colorInformation(std::move(symCtx.colorInformation)),
-            subContexts(std::move(symCtx.subContexts))
+            extRefs(std::move(symCtx.extRefs)),
+            colorInformation(std::move(symCtx.colorInformation)), subContexts(std::move(symCtx.subContexts))
     {
     }
 
@@ -523,10 +571,7 @@ namespace AsymptoteLsp
       contextLoc = std::move(symCtx.contextLoc);
       parent = symCtx.parent;
       symMap = std::move(symCtx.symMap);
-      extFileRefs = std::move(symCtx.extFileRefs);
-      fileIdPair = std::move(symCtx.fileIdPair);
-      includeVals = std::move(symCtx.includeVals);
-      unraveledVals = std::move(symCtx.unraveledVals);
+      extRefs = std::move(symCtx.extRefs);
       colorInformation = std::move(symCtx.colorInformation);
       subContexts = std::move(symCtx.subContexts);
       return *this;
@@ -553,7 +598,7 @@ namespace AsymptoteLsp
             SymbolLit const& symbol, optional<posInFile> const& position=nullopt);
     optional<std::string> searchVarType(std::string const& symbol) const;
 
-    virtual std::list<extRefMap::iterator> getEmptyRefs();
+    virtual std::list<ExternalRefs::extRefMap::iterator> getEmptyRefs();
 
     optional<std::string> getFileName() const;
 
@@ -564,8 +609,7 @@ namespace AsymptoteLsp
 
     bool addEmptyExtRef(std::string const& fileName)
     {
-      auto [it, success] = extFileRefs.emplace(fileName, nullptr);
-      return success;
+      return extRefs.addEmptyExtRef(fileName);
     }
 
     void reset(std::string const& newFile)
@@ -579,17 +623,9 @@ namespace AsymptoteLsp
     {
       parent = nullptr;
       symMap.clear();
-      clearExtRefs();
+      extRefs.clear();
       clearColorInformation();
       subContexts.clear();
-    }
-
-    void clearExtRefs()
-    {
-      extFileRefs.clear();
-      fileIdPair.clear();
-      includeVals.clear();
-      unraveledVals.clear();
     }
 
     void clearColorInformation()
@@ -649,7 +685,7 @@ namespace AsymptoteLsp
         {
           continue;
         }
-        auto returnValF = extFileRefs.at(traverseVal)->_searchVarFull<TRet, TFn>(searched, fnLocalPredicate);
+        auto returnValF = extRefs.extFileRefs.at(traverseVal)->_searchVarFull<TRet, TFn>(searched, fnLocalPredicate);
         if (returnValF.has_value())
         {
           return returnValF;

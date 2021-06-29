@@ -814,7 +814,9 @@ void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
     {
       symContext->addEmptyExtRef(static_cast<std::string>(fullSrc));
     }
-    auto[it, success] = symContext->fileIdPair.emplace(dest, fullSrc);
+
+    // add (dest, source) to reference map.
+    auto[it, success] = symContext->extRefs.fileIdPair.emplace(dest, fullSrc);
     if (not success)
     {
       it->second=static_cast<std::string>(fullSrc);
@@ -972,7 +974,7 @@ void includedec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
   std::string fullname(settings::locateFile(filename, true));
   symContext->addEmptyExtRef(fullname);
-  symContext->includeVals.emplace(fullname);
+  symContext->extRefs.includeVals.emplace(fullname);
 }
 
 

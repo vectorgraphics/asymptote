@@ -29,6 +29,11 @@
 #include <cctype>
 #include <unordered_map>
 
+namespace absyntax
+{
+  class block;
+}
+
 namespace AsymptoteLsp
 {
   template<typename TLeft, typename TRight>

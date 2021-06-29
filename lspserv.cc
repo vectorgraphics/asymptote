@@ -167,13 +167,13 @@ namespace AsymptoteLsp
         auto[fit, success] = symmapContextsPtr->emplace(
                 filename,
                 std::make_unique<SymbolContext>(posInFile(1, 1), filename));
-        block* blk=ifile(filename.c_str()).getTree();
+        block* blk=ifile(mem::string(filename)).getTree();
         blk->createSymMap(fit->second.get()); // parse symbol from there.
 
         // set plain.asy to plain
         if (plainCtx != nullptr)
         {
-          fit->second->extFileRefs[plainFile]=plainCtx;
+          fit->second->extRefs.extFileRefs[plainFile]=plainCtx;
         }
 
         // also parse its neighbors
@@ -540,10 +540,11 @@ namespace AsymptoteLsp
 
       if (plainCtx != nullptr)
       {
-        it->second->extFileRefs[plainFile]=plainCtx;
-      } else if (rawPath == plainFile)
+        it->second->extRefs.extFileRefs[plainFile]=plainCtx;
+      }
+      else if (rawPath == plainFile)
       {
-        it->second->extFileRefs[plainFile]=newPtr;
+        it->second->extRefs.extFileRefs[plainFile]=newPtr;
       }
 
       if (fillTree)
