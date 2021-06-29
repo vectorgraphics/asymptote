@@ -821,6 +821,8 @@ void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
     {
       it->second=static_cast<std::string>(fullSrc);
     }
+
+    symContext->extRefs.addAccessVal(static_cast<std::string>(dest));
   }
 }
 
@@ -911,6 +913,11 @@ fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
   }
 
   return qualifier(qt,id->getVarEntry(e));
+}
+
+void unraveldec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  symContext->extRefs.addUnravelVal(static_cast<std::string>(id->getName()));
 }
 
 void fromaccessdec::prettyprint(ostream &out, Int indent)

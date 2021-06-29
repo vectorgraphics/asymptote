@@ -585,6 +585,8 @@ public:
     : fromdec(pos, fields), id(id) {}
 
   void prettyprint(ostream &out, Int indent);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // A fromaccess declaration dumps fields and types of a module into the local
