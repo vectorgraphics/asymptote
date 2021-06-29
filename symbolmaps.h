@@ -493,8 +493,8 @@ namespace AsymptoteLsp
     std::vector<std::unique_ptr<SymbolContext>> subContexts;
 
     SymbolContext():
-      parent(nullptr) {
-      std::cerr << "created symbol context";
+      parent(nullptr)
+    {
     }
 
     virtual ~SymbolContext() = default;
@@ -583,12 +583,20 @@ namespace AsymptoteLsp
     // [file, start, end]
     virtual std::pair<optional<fullSymPosRangeInFile>, SymbolContext*> searchSymbol(posInFile const& inputPos);
 
-    optional<posRangeInFile> searchVarDeclFull(std::string const& symbol,
-                                                    optional<posInFile> const& position=nullopt);
 
+
+    // declarations
     optional<posRangeInFile> searchVarDecl(std::string const& symbol);
     virtual optional<posRangeInFile> searchVarDecl(
             std::string const& symbol, optional<posInFile> const& position);
+    optional<posRangeInFile> searchVarDeclFull(std::string const& symbol,
+                                               optional<posInFile> const& position=nullopt);
+
+    std::list<posRangeInFile> searchFuncDecls(std::string const& symbol);
+    virtual std::list<posRangeInFile> searchFuncDecls(
+            std::string const& symbol, optional<posInFile> const& position);
+    std::list<posRangeInFile> searchFuncDeclsFull(std::string const& symbol,
+                                                optional<posInFile> const& position=nullopt);
 
     // variable signatures
     virtual optional<std::string> searchVarSignature(std::string const& symbol) const;
@@ -601,6 +609,10 @@ namespace AsymptoteLsp
 
     optional<posRangeInFile> searchLitPosition(
             SymbolLit const& symbol, optional<posInFile> const& position=nullopt);
+    std::list<posRangeInFile> searchLitFuncPositions(
+            SymbolLit const& symbol, optional<posInFile> const& position=nullopt);
+
+
     optional<std::string> searchVarType(std::string const& symbol) const;
 
     virtual std::list<ExternalRefs::extRefMap::iterator> getEmptyRefs();
@@ -663,8 +675,19 @@ namespace AsymptoteLsp
 
   protected:
     using SymCtxSet = std::unordered_set<SymbolContext*>;
+
+    // search var full
+
     template<typename TRet, typename TFn>
-    optional<TRet> _searchVarFull(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
+    optional<TRet> _searchVarFull(std::unordered_set<SymbolContext*>& searched,TFn const& fnLocalPredicate)
+    {
+      return _searchVarFull<TRet, TFn, TFn>(searched, fnLocalPredicate, fnLocalPredicate);
+    }
+
+    template<typename TRet, typename TFn, typename TFn2>
+    optional<TRet> _searchVarFull(
+            std::unordered_set<SymbolContext*>& searched,
+            TFn const& fnLocalPredicate, TFn2 const& fnLocalPredicateFirst)
     {
       auto [it, notSearched] = searched.emplace(getParent());
       if (not notSearched)
@@ -674,7 +697,7 @@ namespace AsymptoteLsp
       }
 
       // local search first
-      optional<TRet> returnVal=fnLocalPredicate(this);
+      optional<TRet> returnVal=fnLocalPredicateFirst(this);
       return returnVal.has_value() ? returnVal : searchVarExt<TRet, TFn>(searched, fnLocalPredicate);
     }
 
@@ -683,11 +706,12 @@ namespace AsymptoteLsp
     {
       for (auto const& traverseVal : createTraverseSet())
       {
-        if (traverseVal == this->getFileName())
+        if (traverseVal == getFileName())
         {
           continue;
         }
-        auto returnValF = extRefs.extFileRefs.at(traverseVal)->_searchVarFull<TRet, TFn>(searched, fnLocalPredicate);
+        auto returnValF=getExternalRef(traverseVal)->_searchVarFull<TRet, TFn, TFn>(
+                searched, fnLocalPredicate, fnLocalPredicate);
         if (returnValF.has_value())
         {
           return returnValF;
@@ -696,8 +720,50 @@ namespace AsymptoteLsp
       return nullopt;
     }
 
-    virtual std::list<std::string> _searchFuncSignatureFull(std::string const& symbol, SymCtxSet& searched);
-    virtual std::list<std::string> searchFuncSignatureExt(std::string const& symbol, SymCtxSet& searched);
+    // search all var full
+
+    template<typename TRet, typename TFn>
+    std::list<TRet> _searchAllVarFull(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
+    {
+      return _searchAllVarFull<TRet, TFn, TFn>(searched, fnLocalPredicate, fnLocalPredicate);
+    }
+
+    template<typename TRet, typename TFn, typename TFn2>
+    std::list<TRet> _searchAllVarFull(
+            std::unordered_set<SymbolContext*>& searched,
+            TFn const& fnLocalPredicate, TFn2 const& fnLocalPredicateFirst)
+    {
+      auto [it, notSearched] = searched.emplace(getParent());
+      if (not notSearched)
+      {
+        // a loop in the search path. Stop now.
+        return std::list<TRet>();
+      }
+
+      // local search first
+      auto returnVal=fnLocalPredicateFirst(this);
+      returnVal.splice(returnVal.end(), searchAllVarExt<TRet, TFn>(searched, fnLocalPredicate));
+      return returnVal;
+    }
+
+    template<typename TRet, typename TFn>
+    std::list<TRet> searchAllVarExt(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
+    {
+      std::list<TRet> finalList;
+      for (auto const& traverseVal : createTraverseSet())
+      {
+        if (traverseVal == getFileName())
+        {
+          continue;
+        }
+
+        auto returnValF=getExternalRef(traverseVal)->_searchAllVarFull<TRet, TFn, TFn>(
+                searched, fnLocalPredicate, fnLocalPredicate);
+        finalList.splice(finalList.end(), returnValF);
+      }
+      return finalList;
+    }
+
     virtual optional<SymbolContext*> searchStructContext(std::string const& tyVal) const;
     SymbolContext* searchStructCtxFull(std::string const&);
 
@@ -705,6 +771,8 @@ namespace AsymptoteLsp
     virtual SymbolContext* searchLitContext(SymbolLit const& symbol);
 
     virtual std::unordered_set<std::string> createTraverseSet();
+
+    virtual SymbolContext* getExternalRef(std::string const&);
 
 
     void addPlainFile();

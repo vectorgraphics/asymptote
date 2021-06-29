@@ -499,28 +499,36 @@ namespace AsymptoteLsp
   td_definition::response AsymptoteLspServer::handleDefnRequest(td_definition::request const& req)
   {
     td_definition::response rsp;
-    rsp.result.first=boost::make_optional(std::vector<lsLocation>());
-
+    std::list<posRangeInFile> posRanges;
     if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
     {
-      auto[st, ctx]=fileSymPtr->searchSymbol(fromLsPosition(req.params.position));
+      posInFile pos = fromLsPosition(req.params.position);
+      auto[st, ctx]=fileSymPtr->searchSymbol(pos);
       if (st.has_value())
       {
-        optional<posRangeInFile> posRange=ctx->searchLitPosition(std::get<0>(st.value()));
+        optional<posRangeInFile> posRange=ctx->searchLitPosition(std::get<0>(st.value()), pos);
         if (posRange.has_value())
         {
-          auto[fil, posBegin, posEnd] = posRange.value();
-          lsRange rng(toLsPosition(posBegin), toLsPosition(posEnd));
-
-          std::string filReturn(
-                  settings::getSetting<bool>("wsl") ? static_cast<std::string>(wslUnix2Dos(fil)) : fil);
-
-          lsDocumentUri uri(filReturn);
-          lsLocation loc(uri, rng);
-          rsp.result.first->push_back(loc);
+          posRanges.push_back(posRange.value());
         }
+
+        posRanges.splice(posRanges.begin(), ctx->searchLitFuncPositions(std::get<0>(st.value()), pos));
       }
     }
+    rsp.result.first=boost::make_optional(std::vector<lsLocation>());
+    std::transform(
+            posRanges.begin(), posRanges.end(), std::back_inserter(rsp.result.first.value()),
+            [](posRangeInFile const& posRange)
+            {
+              auto& [fil, posBegin, posEnd] = posRange;
+              lsRange rng(toLsPosition(posBegin), toLsPosition(posEnd));
+
+              std::string filReturn(
+                      settings::getSetting<bool>("wsl") ? static_cast<std::string>(wslUnix2Dos(fil)) : fil);
+
+              lsDocumentUri uri(filReturn);
+              return lsLocation(uri, rng);
+            });
     return rsp;
   }
 
