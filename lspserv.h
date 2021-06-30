@@ -23,6 +23,7 @@
 #include <LibLsp/lsp/textDocument/did_open.h>
 #include <LibLsp/lsp/textDocument/did_change.h>
 #include <LibLsp/lsp/textDocument/did_save.h>
+#include <LibLsp/lsp/textDocument/did_close.h>
 
 //everything else
 #include <functional>
@@ -102,6 +103,7 @@ namespace AsymptoteLsp
     void onChange(Notify_TextDocumentDidChange::notify& notify);
     void onOpen(Notify_TextDocumentDidOpen::notify& notify);
     void onSave(Notify_TextDocumentDidSave::notify& notify);
+    void onClose(Notify_TextDocumentDidClose::notify& notify);
 
     void generateMissingTrees(std::string const& inputFile);
 

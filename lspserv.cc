@@ -238,10 +238,11 @@ namespace AsymptoteLsp
   void AsymptoteLspServer::initializeNotifyFn()
   {
     REGISTER_NOTIF_FN(Notify_InitializedNotification, onInitialized);
-    REGISTER_NOTIF_FN(Notify_Exit, onExit);
     REGISTER_NOTIF_FN(Notify_TextDocumentDidChange, onChange);
     REGISTER_NOTIF_FN(Notify_TextDocumentDidOpen, onOpen);
     REGISTER_NOTIF_FN(Notify_TextDocumentDidSave, onSave);
+    REGISTER_NOTIF_FN(Notify_TextDocumentDidClose, onClose);
+    REGISTER_NOTIF_FN(Notify_Exit, onExit);
   }
 
 #pragma region notifications
@@ -302,6 +303,11 @@ namespace AsymptoteLsp
     cerr << "did save" << endl;
     lsDocumentUri fileUri(notify.params.textDocument.uri);
     reloadFile(fileUri.GetRawPath());
+  }
+
+  void AsymptoteLspServer::onClose(Notify_TextDocumentDidClose::notify& notify)
+  {
+    cerr << "did close" << endl;
   }
 
 #pragma endregion
