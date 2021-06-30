@@ -270,7 +270,7 @@ namespace AsymptoteLsp
   void AsymptoteLspServer::onExit(Notify_Exit::notify& notify)
   {
     cerr << "exited" << endl;
-    exit(0);
+    serverClosed.notify(make_unique<bool>(true));
   }
 
   void AsymptoteLspServer::onChange(Notify_TextDocumentDidChange::notify& notify)
@@ -629,11 +629,22 @@ namespace AsymptoteLsp
 
   void AsymptoteLspServer::start()
   {
-    this->run();
+    std::thread([this]() {this->run();}).detach();
+    serverClosed.wait();
+    cerr << "got server closed notification" << endl;
   }
 
   AsymptoteLspServer::~AsymptoteLspServer()
   {
     this->stop();
+  }
+
+  void AsymptoteLspServer::startIO(std::istream& in, std::ostream& out)
+  {
+    auto inPtr=make_shared<AsymptoteLsp::istream>(in);
+    auto outPtr=make_shared<AsymptoteLsp::ostream>(out);
+    point.startProcessingMessages(inPtr,outPtr);
+
+    serverClosed.wait();
   }
 }

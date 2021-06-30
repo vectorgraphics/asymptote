@@ -29,6 +29,7 @@
 #include <functional>
 #include <cctype>
 #include <unordered_map>
+#include <LibLsp/JsonRpc/stream.h>
 
 namespace absyntax
 {
@@ -37,6 +38,32 @@ namespace absyntax
 
 namespace AsymptoteLsp
 {
+  class istream : public lsp::base_istream<std::istream>
+  {
+  public:
+    istream(std::istream& ist) : lsp::base_istream<std::istream>(ist)
+    {
+    }
+
+    std::string what() override
+    {
+      return "AsymptoteLSP_istream";
+    }
+  };
+
+  class ostream : public lsp::base_ostream<std::ostream>
+  {
+  public:
+    ostream(std::ostream& ost) : lsp::base_ostream<std::ostream>(ost)
+    {
+    }
+
+    std::string what() override
+    {
+      return "AsymptoteLSP_ostream";
+    }
+  };
+
   template<typename TLeft, typename TRight>
   inline optional<std::pair<optional<TLeft>, optional<TRight>>> opt_left(TLeft const& opt)
   {
@@ -88,6 +115,7 @@ namespace AsymptoteLsp
     AsymptoteLspServer& operator=(AsymptoteLspServer&& sv) = delete;
 
     void start();
+    void startIO(std::istream& in=cin, std::ostream& out=cout);
 
   protected:
     td_hover::response handleHoverRequest(td_hover::request const&);
@@ -129,6 +157,9 @@ namespace AsymptoteLsp
 
     unique_ptr<SymContextFilemap> symmapContextsPtr;
     unique_ptr<unordered_map<std::string, std::vector<std::string>>> fileContentsPtr;
+
+    Condition<bool> serverClosed;
+    Condition<bool> serverInitialized;
   };
 }
 
