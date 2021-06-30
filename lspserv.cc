@@ -567,7 +567,6 @@ namespace AsymptoteLsp
   void AsymptoteLspServer::updateFileContentsTable(std::string const& filename, std::istream& in)
   {
     auto& fileContents = *fileContentsPtr;
-    std::ifstream fil(filename, std::ifstream::in);
     fileContents[filename].clear();
 
     std::string line;
