@@ -506,11 +506,12 @@ namespace AsymptoteLsp
   {
     std::cerr << "shut down" << std::endl;
     td_shutdown::response rsp;
-    lsp::Any nullResp;
-    JsonNull jn;
-    nullResp.Set(jn);
-    rsp.result=nullResp;
-    this->stop();
+    JsonNull nullrsp;
+    lsp::Any anyrsp;
+    anyrsp.Set(nullrsp);
+    rsp.result = make_optional<lsp::Any>(std::move(anyrsp));
+
+    serverClosed.notify(make_unique<bool>(true));
     return rsp;
   }
 
