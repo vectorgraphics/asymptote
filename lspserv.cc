@@ -197,22 +197,34 @@ namespace AsymptoteLsp
 
   void LspLog::log(Level level, std::string&& msg)
   {
-    cerr << msg << std::endl;
+    if ((uint32_t)Level::WARNING + settings::verbose >= (uint32_t)level || level == Level::ALL)
+    {
+      cerr << msg << std::endl;
+    }
   }
 
   void LspLog::log(Level level, std::wstring&& msg)
   {
-    std::wcerr << msg << std::endl;
+    if ((uint32_t)Level::WARNING + settings::verbose >= (uint32_t)level || level == Level::ALL)
+    {
+      std::wcerr << msg << std::endl;
+    }
   }
 
   void LspLog::log(Level level, const std::string& msg)
   {
-    cerr << msg << std::endl;
+    if ((uint32_t)Level::WARNING + settings::verbose >= (uint32_t)level || level == Level::ALL)
+    {
+      cerr << msg << std::endl;
+    }
   }
 
   void LspLog::log(Level level, const std::wstring& msg)
   {
-    std::wcerr << msg << std::endl;
+    if ((uint32_t)Level::WARNING + settings::verbose >= (uint32_t)level || level == Level::ALL)
+    {
+      std::wcerr << msg << std::endl;
+    }
   }
 
   AsymptoteLspServer::AsymptoteLspServer(std::string const& addr, std::string const& port,
