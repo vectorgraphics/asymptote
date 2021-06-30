@@ -1346,6 +1346,8 @@ void initSettings() {
   addOption(new boolSetting("wsl", 0, "Set to WSL mode when running asy inside WSL."));
   addOption(new stringSetting("lspport", 0,"string","LSP Port", "10007"));
   addOption(new stringSetting("lsphost", 0,"string","LSP Host","127.0.0.1"));
+  addOption(new boolSetting("lsptcp", 0 ,"LSP Host",false));
+
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));

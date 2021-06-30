@@ -142,7 +142,15 @@ void *asymain(void *A)
       unique_ptr<AsymptoteLsp::AsymptoteLspServer> asylsp = std::make_unique<AsymptoteLsp::AsymptoteLspServer>(
               (std::string)getSetting<string>("lsphost"),
               (std::string)getSetting<string>("lspport"), jsonHandler, endpoint, log);
-      asylsp->start();
+
+      if (getSetting<bool>("lsptcp"))
+      {
+        asylsp->start();
+      }
+      else
+      {
+        asylsp->startIO();
+      }
     } else {
       processPrompt();
     }
