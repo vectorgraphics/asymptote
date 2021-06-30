@@ -142,6 +142,12 @@ namespace AsymptoteLsp
     void updateFileContentsTable(std::string const& filename);
     void updateFileContentsTable(std::string const& filename, std::istream& in);
 
+    // logging functions
+    void log(lsp::Log::Level const& level, std::string const& message);
+    void logInfo(std::string const& message);
+    void logWarning(std::string const& message);
+    void logError(std::string const& message);
+
     SymbolContext* reloadFileRaw(std::string const&, bool const& fillTree=true);
     SymbolContext* fromRawPath(lsTextDocumentIdentifier const& identifier);
     SymbolContext* reloadFileRaw(absyntax::block* blk, std::string const& rawPath, bool const& fillTree=true);

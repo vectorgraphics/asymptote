@@ -33,8 +33,8 @@ namespace AsymptoteLsp
 {
   using std::unique_ptr;
   using std::shared_ptr;
-
   using absyntax::block;
+  using Level=lsp::Log::Level;
 
   string wslDos2Unix(std::string const& dosPath)
   {
@@ -187,7 +187,7 @@ namespace AsymptoteLsp
           else
           {
             // import cycles detected!
-            cerr << "import cycles detected!" << endl;
+            logWarning("Import cycles detected!");
           }
         }
         it->second=fit->second.get();
@@ -261,21 +261,18 @@ namespace AsymptoteLsp
 
   void AsymptoteLspServer::onInitialized(Notify_InitializedNotification::notify& notify)
   {
-    cerr << "initialized" << endl;
-
-    // string plain(settings::locateFile("plain.asy", true));
-    // reloadFileRaw(static_cast<std::string>(plain));
+    logInfo("server initalized notification");
   }
 
   void AsymptoteLspServer::onExit(Notify_Exit::notify& notify)
   {
-    cerr << "exited" << endl;
+    logInfo("server exit notification");
     serverClosed.notify(make_unique<bool>(true));
   }
 
   void AsymptoteLspServer::onChange(Notify_TextDocumentDidChange::notify& notify)
   {
-    cerr << "text change" << endl;
+    logInfo("text change notification");
 
     auto& fileChange = notify.params.contentChanges;
     if (not fileChange.empty())
@@ -300,26 +297,26 @@ namespace AsymptoteLsp
       }
     }
 
-    cerr << "changed text data" << endl;
+    logInfo("changed text data");
   }
 
   void AsymptoteLspServer::onOpen(Notify_TextDocumentDidOpen::notify& notify)
   {
-    cerr << "text open" << endl;
+    logInfo("onOpen notification");
     lsDocumentUri fileUri(notify.params.textDocument.uri);
     reloadFile(fileUri.GetRawPath());
   }
 
   void AsymptoteLspServer::onSave(Notify_TextDocumentDidSave::notify& notify)
   {
-    cerr << "did save" << endl;
+    logInfo("onSave notification");
     lsDocumentUri fileUri(notify.params.textDocument.uri);
     reloadFile(fileUri.GetRawPath());
   }
 
   void AsymptoteLspServer::onClose(Notify_TextDocumentDidClose::notify& notify)
   {
-    cerr << "did close" << endl;
+    logInfo("onClose notification");
   }
 
 #pragma endregion
@@ -412,6 +409,7 @@ namespace AsymptoteLsp
 
     if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
     {
+      logInfo("Got Document color request.");
       auto& colorsInfo = fileSymPtr->colorInformation;
       for (auto const& colorPtr : colorsInfo)
       {
@@ -463,6 +461,7 @@ namespace AsymptoteLsp
 
     if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
     {
+      logInfo("Got color presentation request.");
       ColorPresentation clp;
 
       for (auto& colPtr : fileSymPtr->colorInformation)
@@ -504,7 +503,7 @@ namespace AsymptoteLsp
 
   td_shutdown::response AsymptoteLspServer::handleShutdownRequest(td_shutdown::request const& req)
   {
-    std::cerr << "shut down" << std::endl;
+    logInfo("got shut down request");
     td_shutdown::response rsp;
     JsonNull nullrsp;
     lsp::Any anyrsp;
@@ -584,7 +583,8 @@ namespace AsymptoteLsp
       if (it != symmapContextsPtr->end())
       {
         *(it->second)=SymbolContext(posInFile(1, 1), rawPath);
-      } else
+      }
+      else
       {
         auto[fit, success] = symmapContextsPtr->emplace(
                 rawPath, std::make_unique<SymbolContext>(posInFile(1, 1), rawPath));
@@ -613,7 +613,8 @@ namespace AsymptoteLsp
         generateMissingTrees(rawPath);
       }
       return it->second.get();
-    } else
+    }
+    else
     {
       return nullptr;
     }
@@ -630,11 +631,12 @@ namespace AsymptoteLsp
   {
     std::thread([this]() {this->run();}).detach();
     serverClosed.wait();
-    cerr << "got server closed notification" << endl;
+    logInfo("Got server closed notification.");
   }
 
   AsymptoteLspServer::~AsymptoteLspServer()
   {
+    logInfo("Destroying server...");
     this->stop();
   }
 
@@ -645,5 +647,25 @@ namespace AsymptoteLsp
     point.startProcessingMessages(inPtr,outPtr);
 
     serverClosed.wait();
+  }
+
+  void AsymptoteLspServer::log(lsp::Log::Level const& level, std::string const& message)
+  {
+    _log.log(level, message);
+  }
+
+  void AsymptoteLspServer::logError(std::string const& message)
+  {
+    log(lsp::Log::Level::SEVERE, message);
+  }
+
+  void AsymptoteLspServer::logWarning(std::string const& message)
+  {
+    log(lsp::Log::Level::WARNING, message);
+  }
+
+  void AsymptoteLspServer::logInfo(std::string const& message)
+  {
+    log(lsp::Log::Level::INFO, message);
   }
 }
