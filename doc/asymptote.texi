@@ -387,8 +387,8 @@ You will also need to install @code{GPL Ghostscript} version 9.52 or
 later from @url{http://downloads.ghostscript.com/public}.
 
 To view @code{PostScript} output, you can install the
-program @code{gsview} available from 
-@url{http://www.cs.wisc.edu/~ghost/gsview/}.
+program @code{Sumatra PDF} available from 
+@url{https://www.sumatrapdfreader.org/}.
 
 The @code{ImageMagick} package from
 @url{https://www.imagemagick.org/script/binary-releases.php} 
