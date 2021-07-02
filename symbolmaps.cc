@@ -281,12 +281,20 @@ namespace AsymptoteLsp
     }
     else
     {
-      if (SymbolContext* ctx=searchLitContext(symbol))
+      auto [ctx, isStruct]=searchLitContext(symbol);
+      if (ctx)
       {
-        // ctx is a struct declaration. should not search beyond this struct.
-        auto varDec = ctx->symMap.varDec.find(symbol.name);
-        return varDec != ctx->symMap.varDec.end() ?
-               optional<std::string>(varDec->second.signature()) : nullopt;
+        if (isStruct)
+        {
+          // ctx is a struct declaration. should not search beyond this struct.
+          auto varDec=ctx->symMap.varDec.find(symbol.name);
+          return varDec != ctx->symMap.varDec.end() ?
+                 optional<std::string>(varDec->second.signature()) : nullopt;
+        }
+        else
+        {
+          return ctx->searchVarSignatureFull(symbol.name);
+        }
       }
     }
 
@@ -302,19 +310,27 @@ namespace AsymptoteLsp
     }
     else
     {
-      if (SymbolContext* ctx=searchLitContext(symbol))
+      auto [ctx, isStruct]=searchLitContext(symbol);
+      if (ctx)
       {
-        // ctx is a struct declaration. should not search beyond this struct.
-        auto fnDecs = ctx->symMap.funDec.find(symbol.name);
-        if (fnDecs != ctx->symMap.funDec.end())
+        if (isStruct)
         {
-          std::transform(
-                  fnDecs->second.begin(), fnDecs->second.end(),
-                  std::back_inserter(signatures),
-                  [&scopes=symbol.scopes](FunctionInfo const& fnInf)
-                  {
-                    return fnInf.signature(scopes);
-                  });
+          // ctx is a struct declaration. should not search beyond this struct.
+          auto fnDecs=ctx->symMap.funDec.find(symbol.name);
+          if (fnDecs != ctx->symMap.funDec.end())
+          {
+            std::transform(
+                    fnDecs->second.begin(), fnDecs->second.end(),
+                    std::back_inserter(signatures),
+                    [&scopes=symbol.scopes](FunctionInfo const& fnInf)
+                    {
+                      return fnInf.signature(scopes);
+                    });
+          }
+        }
+        else
+        {
+          signatures.splice(signatures.end(), searchFuncSignatureFull(symbol.name));
         }
       }
     }
@@ -332,15 +348,22 @@ namespace AsymptoteLsp
     }
     else
     {
-      SymbolContext* ctx=searchLitContext(symbol);
-      if (ctx != nullptr) // ctx is a struct declaration. should not search beyond this struct.
+      auto [ctx, isStruct] =searchLitContext(symbol);
+      if (ctx) // ctx is a struct declaration. should not search beyond this struct.
       {
-        auto varDec = ctx->symMap.varDec.find(symbol.name);
-        if (varDec != ctx->symMap.varDec.end())
+        if (isStruct)
         {
-          auto [line, ch] = varDec->second.pos;
-          return std::make_tuple(ctx->getFileName().value_or(""),
+          auto varDec=ctx->symMap.varDec.find(symbol.name);
+          if (varDec != ctx->symMap.varDec.end())
+          {
+            auto[line, ch] = varDec->second.pos;
+            return std::make_tuple(ctx->getFileName().value_or(""),
                                    varDec->second.pos, std::make_pair(line, ch + symbol.name.length()));
+          }
+        }
+        else
+        {
+          return searchVarDeclFull(symbol.name, position);
         }
       }
       return nullopt;
@@ -357,15 +380,23 @@ namespace AsymptoteLsp
     else
     {
       std::list<posRangeInFile> fnDecls;
-      if (SymbolContext* ctx=searchLitContext(symbol)) // ctx is a struct declaration. should not search beyond this struct.
+      auto [ctx, isStruct]=searchLitContext(symbol);
+      if (ctx) // ctx is a struct declaration. should not search beyond this struct.
       {
-        auto fnDec = ctx->symMap.funDec.find(symbol.name);
-        if (fnDec != ctx->symMap.funDec.end())
+        if (isStruct)
         {
-          for (auto const& ptValue : fnDec->second)
+          auto fnDec=ctx->symMap.funDec.find(symbol.name);
+          if (fnDec != ctx->symMap.funDec.end())
           {
+            for (auto const& ptValue : fnDec->second)
+            {
               fnDecls.emplace_back(getFileName().value_or(""), ptValue.pos, ptValue.pos);
+            }
           }
+        }
+        else
+        {
+          return searchFuncDeclsFull(symbol.name, position);
         }
       }
       return fnDecls;
@@ -415,11 +446,23 @@ namespace AsymptoteLsp
     return parent != nullptr ? parent->searchAccessDecls(accessVal) : nullopt;
   }
 
-  SymbolContext* SymbolContext::searchLitContext(SymbolLit const& symbol)
+  /**
+   * Fully search context for source structs or source file in access
+   * @param symbol Symbol to search
+   * @return pair of <code>[context, isStruct]</code>, where <code>isStruct</code> is true
+   *    if the <code>context</code> is a struct, and false if the context is a file from access declaration.
+   *    If context is nullptr, <code>isStruct</code>'s return does not have defined behavior.
+   */
+  std::pair<SymbolContext*, bool> SymbolContext::searchLitContext(SymbolLit const& symbol)
   {
     if (symbol.scopes.empty())
     {
-      return this;
+      // if the symbol is empty, then we can access every variable, not just those in the struct context
+      // and hence should be treated as "not a struct", even if the variable is accessed in the struct.
+      // for example,
+      // int z; struct St { int x; int y=x+z; }
+      // here, x and z can be accessed in the struct context.
+      return std::make_pair(this, false);
     }
     else
     {
@@ -459,23 +502,48 @@ namespace AsymptoteLsp
 
         // get next variable declaration loc.
         // assumes struct, hence we do not search entire workspace
+        SymbolContext* newCtx;
+
         auto locVarDec = ctx->symMap.varDec.find(*it);
-        if (locVarDec == ctx->symMap.varDec.end() or not locVarDec->second.type.has_value())
+        if (locVarDec != ctx->symMap.varDec.end() and locVarDec->second.type.has_value())
         {
-          // dead end :(
-          return nullptr;
+          std::unordered_set<SymbolContext*> searched;
+          newCtx = ctx->_searchVarFull<SymbolContext*>(
+                  searched,
+                  [&tyName=locVarDec->second.type.value()](SymbolContext* pctx)
+                  {
+                    return pctx->searchStructContext(tyName);
+                  }).value_or(nullptr);
         }
 
-        // get the struct context of the type found
-        std::unordered_set<SymbolContext*> searched;
-        ctx = ctx->_searchVarFull<SymbolContext*>(
-                searched,
-                [&tyName=locVarDec->second.type.value()](SymbolContext* pctx)
-                {
-                  return pctx->searchStructContext(tyName);
-                }).value_or(nullptr);
+        // here, we searched for a struct context and did not find anything.
+        // If we are in a struct context, we hit a dead end.
+        // otherwise, we search for access declaration contexts.
+        if (newCtx == nullptr)
+        {
+          if (isStruct)
+          {
+            return make_pair(nullptr, false);
+          }
+          else
+          {
+            std::unordered_set<SymbolContext*> searched;
+            ctx =_searchVarFull<SymbolContext*>(
+                    searched,
+                    [&lastAccessor=*it](SymbolContext* pctx)
+                    {
+                      return pctx->searchAccessDecls(lastAccessor);
+                    }).value_or(nullptr);
+          }
+        }
+        else
+        {
+          isStruct = true;
+        }
+
+        ctx = newCtx;
       }
-      return ctx;
+      return make_pair(ctx, isStruct);
     }
   }
 

@@ -768,7 +768,7 @@ namespace AsymptoteLsp
     SymbolContext* searchStructCtxFull(std::string const&);
 
     optional<SymbolContext*> searchAccessDecls(std::string const&);
-    virtual SymbolContext* searchLitContext(SymbolLit const& symbol);
+    virtual std::pair<SymbolContext*, bool> searchLitContext(SymbolLit const& symbol);
 
     virtual std::unordered_set<std::string> createTraverseSet();
 
