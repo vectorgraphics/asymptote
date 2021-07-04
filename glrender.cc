@@ -66,11 +66,15 @@ using utils::seconds;
 namespace camp {
 Billboard BB;
 
+bool depthPeel;
+
 GLint pixelShader;
 GLint materialShader;
 GLint colorShader;
 GLint transparentShader;
+GLint blendShader;
 GLint mergeShader;
+GLint countShader;
 
 GLsizeiptr fragmentSize;
 GLsizeiptr headSize;
@@ -80,6 +84,14 @@ GLuint counter;
 GLuint fragmentBuffer;
 GLuint headBuffer;
 GLuint zBuffer;
+
+GLuint query;
+
+GLuint depthFbo[2];
+GLuint depthColorTex[2];
+GLuint depthDepthTex[2];
+GLuint depthBlendFbo;
+GLuint depthBlendTex;
 
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -445,7 +457,12 @@ void initShaders()
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
   string tfs=locateFile("shaders/transparentfragment.glsl");
-  if(vs.empty() || fs.empty() || tfs.empty()) {
+  string cnt=locateFile("shaders/count.glsl");
+  string bfs=locateFile("shaders/depthblendfragment.glsl");
+  string mfs=locateFile("shaders/depthmergefragment.glsl");
+
+  if(vs.empty() || fs.empty() || tfs.empty() || cnt.empty() ||
+    bfs.empty() || mfs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
@@ -476,16 +493,41 @@ void initShaders()
   shaderParams.push_back("COLOR");
   camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                          shaderParams);
+
   shaderParams.push_back("TRANSPARENT");
-  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                               shaderParams);
-  shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
-  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                               shaderParams);
+  // TODO context switch - can do preproccessor?
+  camp::depthPeel = false;
+  if (camp::depthPeel) {
+    shaderParams.push_back("DEPTHPEEL");
+    camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                                shaderParams);
+    shaders[1] = ShaderfileModePair(bfs.c_str(),GL_FRAGMENT_SHADER);
+    camp::blendShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                                shaderParams);
+    shaders[1] = ShaderfileModePair(mfs.c_str(),GL_FRAGMENT_SHADER);
+    camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                                shaderParams);
+  } else {
+    camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                                shaderParams);
+    shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
+    camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                                shaderParams);
+    shaders[1] = ShaderfileModePair(cnt.c_str(),GL_FRAGMENT_SHADER);
+    camp::countShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                                shaderParams);
+  }
 }
 
 void deleteShaders()
 {
+  glDeleteTextures(2, camp::depthColorTex);
+  glDeleteTextures(2, camp::depthDepthTex);
+  glDeleteTextures(1, &camp::depthBlendTex);
+  glDeleteFramebuffers(2, camp::depthFbo);
+  glDeleteFramebuffers(1, &camp::depthBlendFbo);
+  glDeleteProgram(camp::countShader);
+  glDeleteProgram(camp::blendShader);
   glDeleteProgram(camp::mergeShader);
   glDeleteProgram(camp::transparentShader);
   glDeleteProgram(camp::colorShader);
@@ -509,6 +551,85 @@ void setBuffers()
   glGenBuffers(1, &camp::fragmentBuffer);
   glGenBuffers(1, &camp::headBuffer);
   glGenBuffers(1, &camp::zBuffer);
+
+  glGenQueries(1, &camp::query);
+
+  glGenFramebuffers(2, camp::depthFbo);
+  glGenFramebuffers(1, &camp::depthBlendFbo);
+
+  glGenTextures(2, camp::depthColorTex);
+  glGenTextures(2, camp::depthDepthTex);
+  glGenTextures(1, &camp::depthBlendTex);
+}
+
+void initializeBuffers() {
+  GLuint zero = 0;
+
+  // Initialize the counter
+  glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
+  glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, camp::counter);
+  glBufferData(GL_ATOMIC_COUNTER_BUFFER, 4, &zero, GL_DYNAMIC_DRAW);
+
+  camp::avgDepth = 20;
+  // camp::fragmentSize = Width * Height * 6 * sizeof(GLuint) * camp::avgDepth;
+  camp::headSize = Width * Height * sizeof(GLuint);
+
+  // // Initialize the a-buffer
+  // glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::headBuffer);
+  // glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize, NULL, GL_DYNAMIC_DRAW);
+  // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, camp::headBuffer);
+  // glClearNamedBufferData(camp::headBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
+
+  // glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::fragmentBuffer);
+  // glBufferData(GL_SHADER_STORAGE_BUFFER, camp::fragmentSize, NULL, GL_DYNAMIC_DRAW);
+  // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, camp::fragmentBuffer);
+
+  // Initialize the z-buffer
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::zBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize*10, NULL, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, camp::zBuffer);
+  glClearNamedBufferData(camp::zBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
+
+  // cout << camp::headSize*10/1048576.0 << endl;
+
+  if (camp::depthPeel) {
+    for (int i = 0; i < 2; ++i) {
+      glBindTexture(GL_TEXTURE_2D, camp::depthDepthTex[i]);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F_NV,
+            Width, Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+      glBindTexture(GL_TEXTURE_2D, camp::depthColorTex[i]);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width, Height,
+            0, GL_RGBA, GL_FLOAT, 0);
+
+      glBindFramebuffer(GL_FRAMEBUFFER, camp::depthFbo[i]);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    GL_TEXTURE_2D, camp::depthDepthTex[i], 0);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_2D, camp::depthColorTex[i], 0);
+    }
+    glBindTexture(GL_TEXTURE_2D, camp::depthBlendTex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width, Height,
+          0, GL_RGBA, GL_FLOAT, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, camp::depthBlendFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                  GL_TEXTURE_2D, camp::depthDepthTex[0], 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                  GL_TEXTURE_2D, camp::depthBlendTex, 0);
+  }
 }
 
 void drawscene(int Width, int Height)
@@ -540,32 +661,7 @@ void drawscene(int Width, int Height)
   if(remesh)
     camp::drawElement::center.clear();
 
-  GLuint zero = 0;
-
-  // Initialize the counter
-  glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
-  glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, camp::counter);
-  glBufferData(GL_ATOMIC_COUNTER_BUFFER, 4, &zero, GL_DYNAMIC_DRAW);
-
-  camp::avgDepth = 20;
-  camp::fragmentSize = Width * Height * 6 * sizeof(GLuint) * camp::avgDepth;
-  camp::headSize = Width * Height * sizeof(GLuint);
-
-  // Initialize the a-buffer
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::headBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize, NULL, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, camp::headBuffer);
-  glClearNamedBufferData(camp::headBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
-
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::fragmentBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::fragmentSize, NULL, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, camp::fragmentBuffer);
-
-  // Initialize the z-buffer
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::zBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize*10, NULL, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, camp::zBuffer);
-  glClearNamedBufferData(camp::zBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
+  initializeBuffers();
 
   Picture->render(size2,m,M,perspective,remesh);
 
@@ -1952,6 +2048,42 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
   }
 }
 
+int refreshBuffers() {
+  glDepthMask(GL_FALSE); // Enable transparency
+  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+  drawBuffer(transparentData,countShader);
+  GLuint fragments = 0;
+  glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
+  glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, 4, &fragments);
+  fragmentSize = fragments*4*6*2;
+  // // cout << temp << ',' << fragmentSize/1000000.0 << ',' << headSize/1000000.0 << endl;
+  // cout << camp::headSize/1048576.0 << endl;
+  // cout << camp::fragmentSize/1048576.0 << endl;
+  // cout << gl::Width << ',' << gl::Height << endl;
+
+  if (fragments == 0) return fragments;
+
+  GLuint zero = 0;
+
+  // Initialize the counter
+  glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
+  glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, camp::counter);
+  glBufferData(GL_ATOMIC_COUNTER_BUFFER, 4, &zero, GL_DYNAMIC_DRAW);
+
+  // Initialize the a-buffer
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::headBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize, NULL, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, camp::headBuffer);
+  glClearNamedBufferData(camp::headBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::fragmentBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::fragmentSize, NULL, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, camp::fragmentBuffer);
+  glDepthMask(GL_TRUE); // Disable transparency
+  
+  return fragments;
+}
+
 void setUniforms(vertexBuffer& data, GLint shader)
 {
   bool normal=shader != pixelShader;
@@ -2012,7 +2144,8 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   if(data.indices.empty()) return;
 
   bool normal=shader != pixelShader;
-  bool color=shader == colorShader || shader == transparentShader || shader == mergeShader;
+  bool color=shader == colorShader || shader == transparentShader ||
+       shader == mergeShader || shader == countShader || shader == blendShader;
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
@@ -2104,17 +2237,97 @@ void drawTriangle()
   triangleData.clear();
 }
 
-void drawTransparent()
+void depthPeelTransparency()
 {
+  glDepthMask(GL_FALSE);
+
+  for (int i = 0; true; ++i) {
+    int cur = i%2;
+    int prev = 1-cur;
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, depthFbo[cur]);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+
+    glBeginQuery(GL_ANY_SAMPLES_PASSED, query);
+
+    // Peel the layer
+    glUseProgram(transparentShader);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_RECTANGLE, depthDepthTex[prev]);
+    glUniform1i(glGetUniformLocation(transparentShader, "DepthTex"), 0);
+    glActiveTexture(GL_TEXTURE0);
+    transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+    drawBuffer(transparentData,transparentShader);
+    glUseProgram(0);
+
+    glEndQuery(GL_ANY_SAMPLES_PASSED);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthBlendFbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFuncSeparate(GL_DST_ALPHA, GL_ONE, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+    
+    // Blend the layer
+    glUseProgram(blendShader);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_RECTANGLE, depthDepthTex[cur]);
+    glUniform1i(glGetUniformLocation(blendShader, "BlendTex"), 0);
+    glActiveTexture(GL_TEXTURE0);
+    transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+    drawBuffer(transparentData,blendShader);
+    glUseProgram(0);
+
+    glDisable(GL_BLEND);
+
+    GLuint count;
+    glGetQueryObjectuiv(query, GL_QUERY_RESULT, &count);
+    if (!count) break;
+  }
+
+  // Merge with background (opaque geometry)
+  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+  glDrawBuffer(GL_BACK);
+  glDisable(GL_DEPTH_TEST);
+  glUseProgram(mergeShader);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_RECTANGLE, depthBlendTex);
+  glUniform1i(glGetUniformLocation(mergeShader, "ColorTex"), 0);
+  glActiveTexture(GL_TEXTURE0);
+  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+  drawBuffer(transparentData,mergeShader);
+  glUseProgram(0);
+
+  glDepthMask(GL_TRUE);
+  transparentData.clear();
+}
+
+void aBufferTransparency()
+{
+  if (!refreshBuffers()) return; // skip if there's nothing to draw
   // sortTriangles();
   glDepthMask(GL_FALSE); // Enable transparency
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
   drawBuffer(transparentData,transparentShader);
-  glDepthMask(GL_FALSE); // Enable transparency
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
   drawBuffer(transparentData,mergeShader);
   glDepthMask(GL_TRUE); // Disable transparency
   transparentData.clear();
+}
+
+void drawTransparent()
+{
+  if(depthPeel) depthPeelTransparency();
+  else aBufferTransparency();
 }
 
 void drawBuffers()

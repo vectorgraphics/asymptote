@@ -29,7 +29,18 @@ vec3 normal;
 in vec4 Color; 
 #endif
 
-#ifdef TRANSPARENT
+struct OpaqueFragment
+{
+    vec4 color;
+    float depth;
+};
+layout(std430, binding=3) coherent buffer opaque {
+    OpaqueFragment zbuffer[];
+};
+
+#ifdef DEPTHPEEL
+uniform sampler2D DepthTex; // TODO?
+#elif defined TRANSPARENT
 layout(binding=0) uniform atomic_uint counter;
 struct Fragment
 {
@@ -45,14 +56,6 @@ layout(std430, binding=2) coherent buffer list {
 };
 #endif
 
-struct OpaqueFragment
-{
-    vec4 color;
-    float depth;
-};
-layout(std430, binding=3) coherent buffer opaque {
-    OpaqueFragment zbuffer[];
-};
 
 flat in int materialIndex;
 out vec4 outColor;
@@ -157,6 +160,11 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
 void main()
 {
+  uint headIndex = uint(gl_FragCoord.y) * width + uint(gl_FragCoord.x);
+#ifdef DEPTHPEEL
+  if (zbuffer[headIndex].depth > gl_FragCoord.z && zbuffer[headIndex].depth != 0) discard;
+  if (texture(DepthTex, gl_FragCoord.xy).r < gl_FragCoord.z) discard;
+#endif
   vec4 diffuse;
   vec4 emissive;
 
@@ -253,10 +261,9 @@ void main()
   tempColor=emissive;
 #endif      
 
-  uint headIndex = uint(gl_FragCoord.y) * width + uint(gl_FragCoord.x);
-#ifdef TRANSPARENT
-  if (zbuffer[headIndex].depth < gl_FragCoord.z && zbuffer[headIndex].depth != 0) discard;
-
+#ifdef DEPTHPEEL
+  outColor = tempColor;
+#elif defined TRANSPARENT
   uint listIndex = atomicCounterIncrement(counter);
   uint lastIndex = atomicExchange(tail[headIndex], listIndex);
 
