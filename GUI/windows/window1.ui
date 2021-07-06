@@ -127,7 +127,7 @@
             </property>
             <property name="icon">
              <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/android-arrow-back.svg</normaloff>:/icons/android-arrow-back.svg</iconset>
+              <normaloff>:/icons/undo.svg</normaloff>:/icons/undo.svg</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -171,7 +171,7 @@
             </property>
             <property name="icon">
              <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/android-arrow-forward.svg</normaloff>:/icons/android-arrow-forward.svg</iconset>
+              <normaloff>:/icons/redo.svg</normaloff>:/icons/redo.svg</iconset>
             </property>
             <property name="iconSize">
              <size>
