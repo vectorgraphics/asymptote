@@ -1695,19 +1695,11 @@ class DrawObject(QtCore.QObject):
         tl = QtCore.QPointF(-const, -const)
         tr = QtCore.QPointF(const, -const)
         if self.explicitBoundingBox is not None:
-            testBbox = self.explicitBoundingBox
+            testBbox = self.getScreenTransform().toQTransform().mapRect(self.explicitBoundingBox)
+        elif isinstance(self.drawObject, QtGui.QPainterPath):
+            testBbox = self.getScreenTransform().toQTransform().map(self.drawObject).boundingRect()
         else:
-            if isinstance(self.drawObject, QtGui.QImage):
-                testBbox = self.drawObject.rect()
-                testBbox.moveTo(self.btmRightAnchor.toPoint())
-            elif isinstance(self.drawObject, QtGui.QPainterPath):
-                testBbox = self.getScreenTransform().toQTransform().map(self.drawObject).boundingRect()
-                #We return early because I don't know when the other branches get taken.
-                pointList = [testBbox.topLeft() + tl, testBbox.topRight() + tr, 
-                            testBbox.bottomLeft() + bl, testBbox.bottomRight() + br]
-                return QtGui.QPolygonF(pointList).boundingRect()
-            else:
-                raise TypeError('drawObject is not a valid type!')
+            raise TypeError('drawObject is not a valid type!')
         pointList = [self.getScreenTransform().toQTransform().map(point) for point in [
             testBbox.topLeft() + tl, testBbox.topRight() + tr, 
             testBbox.bottomLeft() + bl, testBbox.bottomRight() + br
