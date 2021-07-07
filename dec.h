@@ -511,6 +511,15 @@ struct idpairlist : public gc {
                       protoenv &source, varEntry *qualifier);
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext);
+
+  template<typename TFn>
+  void processListFn(TFn const& fn)
+  {
+    for (auto* idp : base)
+    {
+      fn(idp->src, idp->dest);
+    }
+  }
 };
 
 extern idpairlist * const WILDCARD;
