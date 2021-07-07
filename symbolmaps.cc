@@ -173,16 +173,19 @@ namespace AsymptoteLsp
   SymbolContext::searchVarDeclFull(std::string const& symbol, optional<posInFile> const& position)
   {
     std::unordered_set<SymbolContext*> searched;
-    return _searchVarFull<posRangeInFile>(
-            searched,
-            [&symbol, &position](SymbolContext* ctx)
+    std::unordered_set<std::string> symbolSearch { symbol };
+
+    return _searchVarFull<posRangeInFile, std::string>(
+            searched, symbolSearch,
+            [&position](SymbolContext* ctx, std::string const& symbol)
             {
               return ctx->searchVarDecl(symbol, position);
             },
-            [&symbol](SymbolContext* ctx)
+            [](SymbolContext* ctx, std::string const& symbol)
             {
               return ctx->searchVarDecl(symbol);
-            });
+            },
+            fnFromDeclCreateTrav);
   }
 
   std::list<ExternalRefs::extRefMap::iterator> SymbolContext::getEmptyRefs()
@@ -221,11 +224,8 @@ namespace AsymptoteLsp
   optional<std::string> SymbolContext::searchVarSignatureFull(std::string const& symbol)
   {
     std::unordered_set<SymbolContext*> searched;
-    return _searchVarFull<std::string>(searched,
-            [&symbol](SymbolContext const* ctx)
-            {
-              return ctx->searchVarSignature(symbol);
-            });
+    return _searchVarFull<std::string>(
+            symbol, std::mem_fn(&SymbolContext::searchVarSignature), fnFromDeclCreateTrav);
   }
 
   std::list<std::string> SymbolContext::searchFuncSignature(std::string const& symbol)
@@ -406,12 +406,8 @@ namespace AsymptoteLsp
   SymbolContext* SymbolContext::searchStructCtxFull(std::string const& symbol)
   {
     std::unordered_set<SymbolContext*> searched;
-    optional<std::string> tyInfo=_searchVarFull<std::string>(
-            searched,
-            [&symbol](SymbolContext* ctx)
-            {
-              return ctx->searchVarType(symbol);
-            });
+    optional<std::string> tyInfo=_searchVarFull<std::string, std::string>(
+            symbol, std::mem_fn(&SymbolContext::searchVarType), fnFromDeclCreateTrav);
 
 
     if (not tyInfo.has_value())
@@ -419,10 +415,9 @@ namespace AsymptoteLsp
       return nullptr;
     }
 
-    searched.clear();
-    return _searchVarFull<SymbolContext*>(
-            searched,
-            [&tyName=tyInfo.value()](SymbolContext* pctx)
+    return _searchVarFull<SymbolContext*, int>(
+            0,
+            [&tyName=tyInfo.value()](SymbolContext* pctx, int dummy)
             {
               return pctx->searchStructContext(tyName);
             }).value_or(nullptr);
@@ -479,12 +474,11 @@ namespace AsymptoteLsp
       else
       {
         // search in access declarations
-        std::unordered_set<SymbolContext*> searched;
-        ctx =_searchVarFull<SymbolContext*>(
-                searched,
-                [&lastAccessor=scopes.back()](SymbolContext* pctx)
+        ctx =_searchVarFull<SymbolContext*, std::string>(
+                scopes.back(),
+                [](SymbolContext* pctx, std::string const& symbol)
                 {
-                  return pctx->searchAccessDecls(lastAccessor);
+                  return pctx->searchAccessDecls(symbol);
                 }).value_or(nullptr);
 
         if (ctx)
@@ -502,18 +496,15 @@ namespace AsymptoteLsp
 
         // get next variable declaration loc.
         // assumes struct, hence we do not search entire workspace
-        SymbolContext* newCtx;
+        SymbolContext* newCtx=nullptr;
 
         auto locVarDec = ctx->symMap.varDec.find(*it);
         if (locVarDec != ctx->symMap.varDec.end() and locVarDec->second.type.has_value())
         {
-          std::unordered_set<SymbolContext*> searched;
           newCtx = ctx->_searchVarFull<SymbolContext*>(
-                  searched,
-                  [&tyName=locVarDec->second.type.value()](SymbolContext* pctx)
-                  {
-                    return pctx->searchStructContext(tyName);
-                  }).value_or(nullptr);
+                  locVarDec->second.type.value(),
+                  std::mem_fn(&SymbolContext::searchStructContext)
+                  ).value_or(nullptr);
         }
 
         // here, we searched for a struct context and did not find anything.
@@ -527,13 +518,8 @@ namespace AsymptoteLsp
           }
           else
           {
-            std::unordered_set<SymbolContext*> searched;
             ctx =_searchVarFull<SymbolContext*>(
-                    searched,
-                    [&lastAccessor=*it](SymbolContext* pctx)
-                    {
-                      return pctx->searchAccessDecls(lastAccessor);
-                    }).value_or(nullptr);
+                    *it, std::mem_fn(&SymbolContext::searchAccessDecls)).value_or(nullptr);
           }
         }
         else

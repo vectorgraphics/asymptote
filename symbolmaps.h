@@ -686,16 +686,82 @@ namespace AsymptoteLsp
 
     // search var full
 
-    template<typename TRet, typename TFn>
-    optional<TRet> _searchVarFull(std::unordered_set<SymbolContext*>& searched,TFn const& fnLocalPredicate)
+    template<
+            typename TArg,
+            template<typename...> class TMapTraverse=std::unordered_map,
+            template<typename...> class TContainerArg=std::unordered_set
+    >
+    using SymbolArgContainer = TMapTraverse<std::string, TContainerArg<TArg>>;
+
+    template<
+            typename TArg,
+            template<typename...> class TMapTraverse=std::unordered_map,
+            template<typename...> class TContainerArg=std::unordered_set,
+            template<typename...> class TArgContainer=std::unordered_set
+    >
+    using FnCreateSymbolArgContainer =
+    std::function<SymbolArgContainer<TArg, TMapTraverse, TContainerArg>(SymbolContext*, TArgContainer<TArg> const&)>;
+
+    template<typename TArg>
+    SymbolArgContainer<TArg> defaultCreateTraverse(std::unordered_set<TArg> const& searchSet)
     {
-      return _searchVarFull<TRet, TFn, TFn>(searched, fnLocalPredicate, fnLocalPredicate);
+      SymbolArgContainer<TArg> retVal;
+      for (auto const& traverseVal : createTraverseSet())
+      {
+        retVal.emplace(traverseVal, searchSet);
+      }
+      return retVal;
     }
 
-    template<typename TRet, typename TFn, typename TFn2>
+    SymbolArgContainer<std::string> fromDeclCreateTraverse(std::unordered_set<std::string> const& symbols)
+    {
+      // base
+      SymbolArgContainer<std::string> base=defaultCreateTraverse(symbols);
+
+      for (auto const& sym : symbols)
+      {
+        auto aliasSearch = extRefs.fromAccessVals.find(sym);
+        if (aliasSearch != extRefs.fromAccessVals.end())
+        {
+          // there's an alias to dest -> [src, ctx].
+          auto const& [src, fileName] = aliasSearch->second;
+
+          auto baseTrav = base.find(fileName);
+          if (baseTrav == base.end())
+          {
+            base.emplace(fileName, std::unordered_set<std::string> { src });
+          }
+          else
+          {
+            baseTrav->second.emplace(src);
+          }
+        }
+      }
+
+      return base;
+    }
+
+    FnCreateSymbolArgContainer<std::string> const fnFromDeclCreateTrav =
+            std::mem_fn(&SymbolContext::fromDeclCreateTraverse);
+
+    template<typename TRet, typename TArg, typename TFn>
+    optional<TRet> _searchVarFull(
+            TArg init, TFn const& fnLocalPredicate,
+            FnCreateSymbolArgContainer<TArg> const& fnCreateTraverse=
+                    std::mem_fn(&SymbolContext::defaultCreateTraverse<TArg>))
+    {
+      std::unordered_set<SymbolContext*> searched;
+      std::unordered_set<TArg> initSet { init };
+      return _searchVarFull<TRet, TArg, TFn, TFn>(
+              searched, initSet, fnLocalPredicate, fnLocalPredicate, fnCreateTraverse);
+    }
+
+    template<typename TRet, typename TArg, typename TFn, typename TFn2>
     optional<TRet> _searchVarFull(
             std::unordered_set<SymbolContext*>& searched,
-            TFn const& fnLocalPredicate, TFn2 const& fnLocalPredicateFirst)
+            std::unordered_set<TArg> const& searchArgs,
+            TFn const& fnLocalPredicate, TFn2 const& fnLocalPredicateFirst,
+            FnCreateSymbolArgContainer<TArg> const& fnCreateTraverse)
     {
       auto [it, notSearched] = searched.emplace(getParent());
       if (not notSearched)
@@ -705,21 +771,38 @@ namespace AsymptoteLsp
       }
 
       // local search first
-      optional<TRet> returnVal=fnLocalPredicateFirst(this);
-      return returnVal.has_value() ? returnVal : searchVarExt<TRet, TFn>(searched, fnLocalPredicate);
+      for (TArg const& arg : searchArgs)
+      {
+        optional<TRet> returnVal=fnLocalPredicateFirst(this, arg);
+        if (returnVal.has_value())
+        {
+          return returnVal;
+        }
+      }
+
+      return searchVarExt<TRet, TArg, TFn>(searched, searchArgs, fnLocalPredicate, fnCreateTraverse);
     }
 
-    template<typename TRet, typename TFn>
-    optional<TRet> searchVarExt(std::unordered_set<SymbolContext*>& searched, TFn const& fnLocalPredicate)
+    template<typename TRet, typename TArg, typename TFn>
+    optional<TRet> searchVarExt(
+            std::unordered_set<SymbolContext*>& searched,
+            std::unordered_set<TArg> const& searchArgs,
+            TFn const& fnLocalPredicate,
+            FnCreateSymbolArgContainer<TArg> const& fnCreateTraverse)
     {
-      for (auto const& traverseVal : createTraverseSet())
+      using travType = std::pair<std::string, std::unordered_set<TArg>>;
+      for (travType const& travArg : fnCreateTraverse(this, searchArgs))
       {
+        std::string const& traverseVal = travArg.first;
+        std::unordered_set<TArg> const& argSet = travArg.second;
         if (traverseVal == getFileName())
         {
           continue;
         }
-        auto returnValF=getExternalRef(traverseVal)->_searchVarFull<TRet, TFn, TFn>(
-                searched, fnLocalPredicate, fnLocalPredicate);
+        optional<TRet> returnValF=getExternalRef(traverseVal)->_searchVarFull<TRet, TArg, TFn, TFn>(
+                searched, argSet,
+                fnLocalPredicate, fnLocalPredicate,
+                fnCreateTraverse);
         if (returnValF.has_value())
         {
           return returnValF;
