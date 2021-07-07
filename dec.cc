@@ -943,6 +943,26 @@ fromdec::qualifier fromaccessdec::getQualifier(coenv &e, record *r)
     return qualifier(0,0);
 }
 
+void fromaccessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+  // filename is id;
+  std::string idStr(id);
+  symContext->extRefs.addEmptyExtRef(idStr);
+
+  auto* f=this->fields;
+  if (f)
+  {
+    // add [dest] -> [src, filename] to fromAccessDecls;
+    f->processListFn(
+            [&symContext, &idStr](symbol const& src, symbol const& dest)
+            {
+              std::string srcId(src);
+              std::string destId(dest);
+              symContext->extRefs.addFromAccessVal(idStr, srcId, destId);
+            });
+  }
+}
+
 void importdec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "importdec", indent, getPos());

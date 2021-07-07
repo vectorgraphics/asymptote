@@ -434,6 +434,7 @@ namespace AsymptoteLsp
     std::unordered_set<std::string> includeVals;
     std::unordered_set<std::string> unraveledVals;
     std::unordered_set<std::string> accessVals;
+    std::unordered_map<std::string, std::pair<std::string, std::string>> fromAccessVals;
 
     ExternalRefs() = default;
     virtual ~ExternalRefs() = default;
@@ -452,6 +453,7 @@ namespace AsymptoteLsp
       includeVals.clear();
       unraveledVals.clear();
       accessVals.clear();
+      fromAccessVals.clear();
     }
 
     bool addEmptyExtRef(std::string const& fileName)
@@ -469,6 +471,12 @@ namespace AsymptoteLsp
     bool addUnravelVal(std::string const& symbol)
     {
       auto [_, success] = unraveledVals.emplace(symbol);
+      return success;
+    }
+
+    bool addFromAccessVal(std::string const& fileName, std::string const& symbolSrc, std::string const& symbolDest)
+    {
+      auto [_, success] = fromAccessVals.emplace(symbolDest, make_pair(symbolSrc, fileName));
       return success;
     }
   };
