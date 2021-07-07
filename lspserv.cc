@@ -36,6 +36,26 @@ namespace AsymptoteLsp
   using absyntax::block;
   using Level=lsp::Log::Level;
 
+  class SearchPathAddition
+  {
+  public:
+    SearchPathAddition(mem::string const& dir)
+    {
+      settings::searchPath.push_back(dir);
+    }
+
+    SearchPathAddition(SearchPathAddition const&) = delete;
+    SearchPathAddition& operator=(SearchPathAddition const&) = delete;
+
+    SearchPathAddition(SearchPathAddition&&) = delete;
+    SearchPathAddition& operator=(SearchPathAddition&&) = delete;
+
+    ~SearchPathAddition()
+    {
+      settings::searchPath.pop_back();
+    }
+  };
+
   string wslDos2Unix(std::string const& dosPath)
   {
     bool isDrivePath=false;
@@ -579,6 +599,7 @@ namespace AsymptoteLsp
   {
     if (blk != nullptr)
     {
+      SearchPathAddition sp(stripFile(string(rawPath)));
       auto it=symmapContextsPtr->find(rawPath);
       if (it != symmapContextsPtr->end())
       {
@@ -595,9 +616,7 @@ namespace AsymptoteLsp
 
       cerr << rawPath << endl;
 
-      settings::searchPath.push_back(stripFile(string(rawPath)));
       blk->createSymMap(newPtr);
-      settings::searchPath.pop_back();
 
       if (plainCtx != nullptr)
       {
