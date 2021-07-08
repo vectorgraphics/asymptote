@@ -937,16 +937,14 @@ class xasyItem(QtCore.QObject):
     def handleImageReception(self, file, fileformat, bbox, count, key = None, localCount = 0, containsClip = False):
         """ Receive an image from an asy deconstruction. It replaces the default n asyProcess """
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
-        if fileformat == 'png':
-            image = QtGui.QImage(file)
-        elif fileformat == 'svg':
+        if fileformat == 'svg':
             if containsClip:
                 image = xs.SvgObject(self.asyengine.tempDirName+file)
             else:
                 image = QtSvg.QSvgRenderer(file)
                 assert image.isValid()
         else:
-            raise Exception('Format not supported!')
+            raise Exception('Format {} not supported!'.format(fileformat))
         self.imageList.append(asyImage(image, fileformat, bbox, transfKey = key, keyIndex = localCount))
         if self.onCanvas is not None:
             # self.imageList[-1].iqt = ImageTk.PhotoImage(image)
@@ -1067,7 +1065,7 @@ class xasyItem(QtCore.QObject):
             print(raw_text.strip())
 
         # template=AsyTempDir+"%d_%d.%s"
-        fileformat = 'svg'
+        fileformat = 'svg' #This fixes the file output type.
 
         while raw_text != "Done\n" and raw_text != "Error\n":
 #            print(raw_text)
@@ -1688,22 +1686,30 @@ class DrawObject(QtCore.QObject):
 
     @property
     def boundingBox(self):
-        lineWidth = self.pen.width
-        const = lineWidth/2
-        bl = QtCore.QPointF(-const, const)
-        br = QtCore.QPointF(const, const)
-        tl = QtCore.QPointF(-const, -const)
-        tr = QtCore.QPointF(const, -const)
         if self.explicitBoundingBox is not None:
             testBbox = self.getScreenTransform().toQTransform().mapRect(self.explicitBoundingBox)
         elif isinstance(self.drawObject, QtGui.QPainterPath):
             testBbox = self.getScreenTransform().toQTransform().map(self.drawObject).boundingRect()
         else:
             raise TypeError('drawObject is not a valid type!')
-        pointList = [self.getScreenTransform().toQTransform().map(point) for point in [
-            testBbox.topLeft() + tl, testBbox.topRight() + tr, 
-            testBbox.bottomLeft() + bl, testBbox.bottomRight() + br
-        ]]
+        
+        if self.pen is not None:
+            lineWidth = self.pen.width
+            const = lineWidth/2
+            bl = QtCore.QPointF(-const, const)
+            br = QtCore.QPointF(const, const)
+            tl = QtCore.QPointF(-const, -const)
+            tr = QtCore.QPointF(const, -const)
+            pointList = [
+                testBbox.topLeft() + tl, testBbox.topRight() + tr,
+                testBbox.bottomLeft() + bl, testBbox.bottomRight() + br
+            ]
+        else:
+            pointList = [
+                testBbox.topLeft(), testBbox.topRight(),
+                testBbox.bottomLeft(), testBbox.bottomRight()
+            ]
+
         return QtGui.QPolygonF(pointList).boundingRect()
 
     @property
@@ -1742,9 +1748,7 @@ class DrawObject(QtCore.QObject):
 
         canvas.setTransform(self.baseTransform.toQTransform().inverted()[0], True)
 
-        if isinstance(self.drawObject, QtGui.QImage):
-            canvas.drawImage(self.explicitBoundingBox, self.drawObject)
-        elif isinstance(self.drawObject, xs.SvgObject):
+        if isinstance(self.drawObject, xs.SvgObject):
             threshold = 1.44
 
             if self.cachedDPI is None or self.cachedSvgImg is None \
