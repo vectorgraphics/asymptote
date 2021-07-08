@@ -889,12 +889,27 @@ class MainWindow1(Qw.QMainWindow):
                 asy.wait(timeout=35)
 
     def actionExportXasy(self):
-        print('export')
-        pass
-
+        #TODO: xasyText and xasyScript doesn't work 
+        fileItems = []
+        for item in self.fileItems:
+            fileItems.append({'nodes': item.path.nodeSet, 'links': item.path.linkSet})
+        openFile = open("pickleTest", 'wb')
+        pickle.dump(fileItems, openFile)
+        openFile.close()
+        
     def actionLoadXasy(self):
-        print('load')
-        pass
+        self.erase()
+        input_file = open("pickleTest", 'rb')
+        new_dict = pickle.load(input_file)
+        input_file.close()
+        for item in new_dict:
+            nodeSet = item['nodes']
+            linkSet = item['links']
+            path = x2a.asyPath(self.asyEngine)
+            path.initFromNodeList(nodeSet, linkSet)
+            self.addItemFromPath(path)
+
+
 
     def loadKeyMaps(self):
         """Inverts the mapping of the key
