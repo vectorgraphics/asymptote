@@ -18,6 +18,7 @@ import tempfile
 import datetime
 import string
 import atexit
+import pickle
 
 import xasyUtils as xu
 import xasy2asy as x2a
@@ -49,7 +50,6 @@ class TransformationChanges(ActionChanges):
         self.objIndex = objIndex
         self.transformation = transformation
         self.isLocal = isLocal
-
 
 class ObjCreationChanges(ActionChanges):
     def __init__(self, obj):
@@ -184,7 +184,7 @@ class MainWindow1(Qw.QMainWindow):
         self.scaleFactor = 1
         self.panOffset = [0, 0]
 
-        # Keyboard can focus outside fo textboxes 
+        # Keyboard can focus outside of textboxes 
         self.setFocusPolicy(Qc.Qt.StrongFocus)
 
         super().setMouseTracking(True)
@@ -1231,8 +1231,7 @@ class MainWindow1(Qw.QMainWindow):
         keyModifiers = keyModifiers | defaultModifiers
         if keyModifiers & int(Qc.Qt.ControlModifier):
             oldMag = self.magnification
-
-            factor=0.5/devicePixelRatio;
+            factor = 0.5/devicePixelRatio
             cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
             centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
 
@@ -1716,7 +1715,6 @@ class MainWindow1(Qw.QMainWindow):
                 # Preview Object
                 if self.addMode.getPreview() is not None:
                     painter.setPen(self.currentPen.toQPen())
-                    self.makePenCosmetic(painter)
                     painter.drawPath(self.addMode.getPreview())
                 self.addMode.postDrawPreview(painter)
                 
@@ -1726,6 +1724,7 @@ class MainWindow1(Qw.QMainWindow):
             painter.save()
             maj, minor = self.currentlySelectedObj['selectedIndex']
             selObj = self.drawObjects[maj][minor]
+            self.makePenCosmetic(painter)
             if not self.useGlobalCoords:
                 painter.save()
                 painter.setTransform(
@@ -1741,7 +1740,6 @@ class MainWindow1(Qw.QMainWindow):
                     self.newTransform).toQTransform(), True)
                 painter.drawRect(selObj.localBoundingBox)
             else:
-                self.makePenCosmetic(painter)
                 painter.setTransform(self.newTransform, True)
                 painter.drawRect(self.currentBoundingBox)
             painter.restore()
@@ -1751,7 +1749,7 @@ class MainWindow1(Qw.QMainWindow):
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
             postCanvas.setRenderHints(self.mainCanvas.renderHints())
             postCanvas.setTransform(self.getScrsTransform())
-            self.makePenCosmetic(postCanvas)
+            # self.makePenCosmetic(postCanvas)
 
             self.drawTransformPreview(postCanvas)
 
