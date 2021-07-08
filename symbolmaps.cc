@@ -679,7 +679,7 @@ namespace AsymptoteLsp
   SymbolContext::searchFuncDeclsFull(std::string const& symbol, optional<posInFile> const& position)
   {
     std::unordered_set<SymbolContext*> searched;
-    return _searchAllVarFull<posRangeInFile>(
+    auto retVal = _searchAllVarFull<posRangeInFile>(
             searched,
             std::unordered_set<std::string> { symbol },
             [&position](SymbolContext* ctx, std::string const& symbol)
@@ -691,6 +691,23 @@ namespace AsymptoteLsp
               return ctx->searchFuncDecls(symbol);
             },
             fnFromDeclCreateTrav);
+
+    auto retValStruct =_searchAllVarFull<posRangeInFile>(
+            symbol,
+            [](SymbolContext* ctx, std::string const& sym) -> std::list<posRangeInFile>
+            {
+              std::list<posRangeInFile> finalList;
+              for (auto const& unravelVal : ctx->extRefs.unraveledVals)
+              {
+                if (auto* pctx=ctx->searchStructCtxFull(unravelVal))
+                {
+                  finalList.splice(finalList.end(), pctx->searchFuncDecls(sym));
+                }
+              }
+              return finalList;
+            });
+    retVal.splice(retVal.end(), std::move(retValStruct));
+    return retVal;
   }
 
   optional<posRangeInFile> AddDeclContexts::searchVarDecl(
