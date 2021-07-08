@@ -2102,6 +2102,8 @@ background: rgb(0, 0, 0)
     <addaction name="actionExportAsymptote"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
+    <addaction name="actionExportXasy"/>
+    <addaction name="actionLoadXasy"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -2225,6 +2227,16 @@ background: rgb(0, 0, 0)
   <action name="actionClearRecent">
    <property name="text">
     <string>Clear Menu</string>
+   </property>
+  </action>
+  <action name="actionExportXasy">
+   <property name="text">
+    <string>[TEST] Export *.xasy</string>
+   </property>
+  </action>
+  <action name="actionLoadXasy">
+   <property name="text">
+    <string>[TEST] Load *.xasy</string>
    </property>
   </action>
  </widget>

@@ -441,6 +441,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionSettings.triggered.connect(self.openAndReloadSettings)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
         self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsyOnClick)
+        self.ui.actionExportXasy.triggered.connect(self.actionExportXasy)
+        self.ui.actionLoadXasy.triggered.connect(self.actionLoadXasy)
 
     def setupXasyOptions(self):
         if self.settings['debugMode']:
@@ -886,6 +888,13 @@ class MainWindow1(Qw.QMainWindow):
                 asy.stdin.close()
                 asy.wait(timeout=35)
 
+    def actionExportXasy(self):
+        print('export')
+        pass
+
+    def actionLoadXasy(self):
+        print('load')
+        pass
 
     def loadKeyMaps(self):
         """Inverts the mapping of the key
