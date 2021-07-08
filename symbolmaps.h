@@ -594,11 +594,15 @@ namespace AsymptoteLsp
 
 
     // declarations
-    optional<posRangeInFile> searchVarDecl(std::string const& symbol);
-    virtual optional<posRangeInFile> searchVarDecl(
-            std::string const& symbol, optional<posInFile> const& position);
-    optional<posRangeInFile> searchVarDeclFull(std::string const& symbol,
-                                               optional<posInFile> const& position=nullopt);
+    optional<posRangeInFile> searchVarDecl(std::string const& symbol)
+    {
+      return searchVarDecl(symbol, nullopt);
+    }
+    virtual optional<posRangeInFile> searchVarDecl(std::string const& symbol,
+                                                   optional<posInFile> const& position);
+    virtual optional<posRangeInFile> searchVarDeclFull(std::string const& symbol,
+                                                       optional<posInFile> const& position=nullopt);
+    virtual SymbolInfo const* searchVarRaw(std::string const& symbol) const;
 
     std::list<posRangeInFile> searchFuncDecls(std::string const& symbol);
     virtual std::list<posRangeInFile> searchFuncDecls(
@@ -607,8 +611,7 @@ namespace AsymptoteLsp
                                                 optional<posInFile> const& position=nullopt);
 
     // variable signatures
-    virtual optional<std::string> searchVarSignature(std::string const& symbol) const;
-    virtual optional<std::string> searchVarSignatureFull(std::string const& symbol);
+    optional<std::string> searchVarSignatureFull(std::string const& symbol);
     virtual std::list<std::string> searchFuncSignature(std::string const& symbol);
     virtual std::list<std::string> searchFuncSignatureFull(std::string const& symbol);
 
@@ -619,9 +622,6 @@ namespace AsymptoteLsp
             SymbolLit const& symbol, optional<posInFile> const& position=nullopt);
     std::list<posRangeInFile> searchLitFuncPositions(
             SymbolLit const& symbol, optional<posInFile> const& position=nullopt);
-
-
-    optional<std::string> searchVarType(std::string const& symbol) const;
 
     virtual std::list<ExternalRefs::extRefMap::iterator> getEmptyRefs();
 
@@ -888,7 +888,10 @@ namespace AsymptoteLsp
     virtual std::unordered_set<std::string> createTraverseSet();
 
     virtual SymbolContext* getExternalRef(std::string const&);
+    std::list<std::string> searchFuncUnravelStruct(std::string const& symbol);
 
+    SymbolInfo* searchVarUnravelStructRaw(std::string const& symbol);
+    SymbolInfo* searchVarUnravelStructRaw(std::string const& symbol, optional<posInFile> const& position);
 
     void addPlainFile();
   };
@@ -905,9 +908,7 @@ namespace AsymptoteLsp
       SymbolContext(loc, contextParent) {}
 
     ~AddDeclContexts() override = default;
-
-    optional<posRangeInFile> searchVarDecl(std::string const& symbol,
-                                                optional<posInFile> const& position) override;
-    optional<std::string> searchVarSignature(std::string const& symbol) const override;
+    optional<posRangeInFile> searchVarDecl(std::string const& symbol, optional<posInFile> const& position) override;
+    SymbolInfo const* searchVarRaw(std::string const& symbol) const override;
   };
 }

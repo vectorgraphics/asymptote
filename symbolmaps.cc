@@ -89,33 +89,17 @@ namespace AsymptoteLsp
     return make_pair(nullopt, nullptr);
   }
 
-  optional<std::string> SymbolContext::searchVarSignature(std::string const& symbol) const
+  SymbolInfo const* SymbolContext::searchVarRaw(std::string const& symbol) const
   {
+    // local variable declarations
     auto pt = symMap.varDec.find(symbol);
     if (pt != symMap.varDec.end())
     {
-      return pt->second.signature();
+      return &pt->second;
     }
 
     // otherwise, search parent.
-    return parent != nullptr ? parent->searchVarSignature(symbol) : nullopt;
-  }
-
-  optional<std::string> SymbolContext::searchVarType(std::string const& symbol) const
-  {
-    auto pt = symMap.varDec.find(symbol);
-    if (pt != symMap.varDec.end())
-    {
-      return pt->second.type;
-    }
-
-    // otherwise, search parent.
-    return parent != nullptr ? parent->searchVarType(symbol) : nullopt;
-  }
-
-  optional<posRangeInFile> SymbolContext::searchVarDecl(std::string const& symbol)
-  {
-    return searchVarDecl(symbol, nullopt);
+    return parent != nullptr ? parent->searchVarRaw(symbol) : nullptr;
   }
 
   optional<posRangeInFile> SymbolContext::searchVarDecl(
@@ -175,17 +159,39 @@ namespace AsymptoteLsp
     std::unordered_set<SymbolContext*> searched;
     std::unordered_set<std::string> symbolSearch { symbol };
 
-    return _searchVarFull<posRangeInFile, std::string>(
+    auto returnVal = _searchVarFull<posRangeInFile>(
             searched, symbolSearch,
-            [&position](SymbolContext* ctx, std::string const& symbol)
+            [&position](SymbolContext* ctx, std::string const& sym)
             {
-              return ctx->searchVarDecl(symbol, position);
+              return ctx->searchVarDecl(sym, position);
             },
-            [](SymbolContext* ctx, std::string const& symbol)
+            [](SymbolContext* ctx, std::string const& sym)
             {
-              return ctx->searchVarDecl(symbol);
+              return ctx->searchVarDecl(sym);
             },
             fnFromDeclCreateTrav);
+    if (returnVal.has_value())
+    {
+      return returnVal;
+    }
+
+    return _searchVarFull<posRangeInFile>(
+            symbol,
+            [](SymbolContext* ctx, std::string const& sym) -> optional<posRangeInFile>
+            {
+              for (auto const& unravelVal : ctx->extRefs.unraveledVals)
+              {
+                if (auto* pctx=ctx->searchStructCtxFull(unravelVal))
+                {
+                  auto retVal = pctx->searchVarDecl(sym);
+                  if (retVal.has_value())
+                  {
+                    return retVal;
+                  }
+                }
+              }
+              return nullopt;
+            });
   }
 
   std::list<ExternalRefs::extRefMap::iterator> SymbolContext::getEmptyRefs()
@@ -224,9 +230,92 @@ namespace AsymptoteLsp
   optional<std::string> SymbolContext::searchVarSignatureFull(std::string const& symbol)
   {
     std::unordered_set<SymbolContext*> searched;
+    auto retVal = _searchVarFull<std::string>(
+            symbol,
+            [](SymbolContext const* ctx, std::string const& sym) -> optional<std::string>
+            {
+              if (auto const* info = ctx->searchVarRaw(sym))
+              {
+                return info->signature();
+              }
+              return nullopt;
+            },
+            fnFromDeclCreateTrav);
+
+    if (retVal.has_value())
+    {
+      return retVal;
+    }
+
+    // else,
+    // search every unravel values possible (not only here, but also in every includes + unravels as well).
+    // If an unravel value match a struct, then see if symbol matches the struct. If yes, return otherwise skip.
+
     return _searchVarFull<std::string>(
-            symbol, std::mem_fn(&SymbolContext::searchVarSignature), fnFromDeclCreateTrav);
+            symbol,
+            [](SymbolContext* ctx, std::string const& sym) -> optional<std::string>
+            {
+              if (SymbolInfo* info=ctx->searchVarUnravelStructRaw(sym))
+              {
+                return info->signature();
+              }
+              return nullopt;
+            });
   }
+
+  SymbolInfo* SymbolContext::searchVarUnravelStructRaw(std::string const& symbol)
+  {
+    return searchVarUnravelStructRaw(symbol, nullopt);
+  }
+
+  SymbolInfo* SymbolContext::searchVarUnravelStructRaw(std::string const& symbol, optional<posInFile> const& position)
+  {
+    for (auto const& unravelVal : extRefs.unraveledVals)
+    {
+      if (auto* ctx=searchStructCtxFull(unravelVal))
+      {
+        // ctx points to a struct.
+        auto it=ctx->symMap.varDec.find(symbol);
+        if (it != ctx->symMap.varDec.end())
+        {
+          if (((not position.has_value()) or (!posLt(position.value(), it->second.pos))))
+          {
+            return &it->second;
+          }
+        }
+      }
+    }
+    return parent != nullptr ? parent->searchVarUnravelStructRaw(symbol) : nullptr;
+  }
+
+  std::list<std::string> SymbolContext::searchFuncUnravelStruct(std::string const& symbol)
+  {
+    std::list<std::string> finalList;
+
+    for (auto const& unravelVal : extRefs.unraveledVals)
+    {
+      if (auto* ctx=searchStructCtxFull(unravelVal))
+      {
+        // ctx points to a struct.
+        auto it=ctx->symMap.funDec.find(symbol);
+        if (it != ctx->symMap.funDec.end() and not it->second.empty())
+        {
+          std::transform(
+                  it->second.begin(), it->second.end(), std::back_inserter(finalList),
+                  [](FunctionInfo const& fnInfo)
+                  {
+                    return fnInfo.signature();
+                  });
+        }
+      }
+    }
+    if (parent != nullptr)
+    {
+      finalList.splice(finalList.end(), parent->searchFuncUnravelStruct(symbol));
+    }
+    return finalList;
+  }
+
 
   std::list<std::string> SymbolContext::searchFuncSignature(std::string const& symbol)
   {
@@ -250,8 +339,12 @@ namespace AsymptoteLsp
 
   std::list<std::string> SymbolContext::searchFuncSignatureFull(std::string const& symbol)
   {
-    return _searchAllVarFull<std::string>(
+    auto base_list = _searchAllVarFull<std::string>(
             symbol, std::mem_fn(&SymbolContext::searchFuncSignature), fnFromDeclCreateTrav);
+
+    base_list.splice(base_list.end(), _searchAllVarFull<std::string>(
+            symbol, std::mem_fn(&SymbolContext::searchFuncUnravelStruct)));
+    return base_list;
   }
 
   optional<SymbolContext*> SymbolContext::searchStructContext(std::string const& tyVal) const
@@ -343,7 +436,7 @@ namespace AsymptoteLsp
     }
     else
     {
-      auto [ctx, isStruct] =searchLitContext(symbol);
+      auto [ctx, isStruct]=searchLitContext(symbol);
       if (ctx) // ctx is a struct declaration. should not search beyond this struct.
       {
         if (isStruct)
@@ -402,7 +495,16 @@ namespace AsymptoteLsp
   {
     std::unordered_set<SymbolContext*> searched;
     optional<std::string> tyInfo=_searchVarFull<std::string, std::string>(
-            symbol, std::mem_fn(&SymbolContext::searchVarType), fnFromDeclCreateTrav);
+            symbol,
+            [](SymbolContext const* ctx, std::string const& sym) -> optional<std::string>
+            {
+              if (auto const* info = ctx->searchVarRaw(sym))
+              {
+                return info->type;
+              }
+              return nullopt;
+            },
+            fnFromDeclCreateTrav);
 
 
     if (not tyInfo.has_value())
@@ -410,12 +512,8 @@ namespace AsymptoteLsp
       return nullptr;
     }
 
-    return _searchVarFull<SymbolContext*, int>(
-            0,
-            [&tyName=tyInfo.value()](SymbolContext* pctx, int dummy)
-            {
-              return pctx->searchStructContext(tyName);
-            }).value_or(nullptr);
+    return _searchVarFull<SymbolContext*>(
+            tyInfo.value(), std::mem_fn(&SymbolContext::searchStructContext)).value_or(nullptr);
   }
 
   optional<SymbolContext*> SymbolContext::searchAccessDecls(std::string const& accessVal)
@@ -469,12 +567,8 @@ namespace AsymptoteLsp
       else
       {
         // search in access declarations
-        ctx =_searchVarFull<SymbolContext*, std::string>(
-                scopes.back(),
-                [](SymbolContext* pctx, std::string const& symbol)
-                {
-                  return pctx->searchAccessDecls(symbol);
-                }).value_or(nullptr);
+        ctx =_searchVarFull<SymbolContext*>(
+                scopes.back(), std::mem_fn(&SymbolContext::searchAccessDecls)).value_or(nullptr);
 
         if (ctx)
         {
@@ -497,8 +591,7 @@ namespace AsymptoteLsp
         if (locVarDec != ctx->symMap.varDec.end() and locVarDec->second.type.has_value())
         {
           newCtx = ctx->_searchVarFull<SymbolContext*>(
-                  locVarDec->second.type.value(),
-                  std::mem_fn(&SymbolContext::searchStructContext)
+                  locVarDec->second.type.value(), std::mem_fn(&SymbolContext::searchStructContext)
                   ).value_or(nullptr);
         }
 
@@ -618,10 +711,10 @@ namespace AsymptoteLsp
     return SymbolContext::searchVarDecl(symbol, position);
   }
 
-  optional<std::string> AddDeclContexts::searchVarSignature(std::string const& symbol) const
+  SymbolInfo const* AddDeclContexts::searchVarRaw(std::string const& symbol) const
   {
     auto pt = additionalDecs.find(symbol);
-    return pt != additionalDecs.end() ? pt->second.signature() : SymbolContext::searchVarSignature(symbol);
+    return pt != additionalDecs.end() ? &pt->second : SymbolContext::searchVarRaw(symbol);
   }
 
   bool SymbolInfo::operator==(SymbolInfo const& sym) const
