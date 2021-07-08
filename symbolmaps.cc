@@ -534,7 +534,11 @@ namespace AsymptoteLsp
     traverseSet.emplace(getPlainFile());
     for (auto const& unravelVal : extRefs.unraveledVals)
     {
-      traverseSet.emplace(extRefs.fileIdPair.at(unravelVal));
+      auto it = extRefs.fileIdPair.find(unravelVal);
+      if (it != extRefs.fileIdPair.end())
+      {
+        traverseSet.emplace(it->second);
+      }
     }
     return traverseSet;
   }
