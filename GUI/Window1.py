@@ -889,10 +889,38 @@ class MainWindow1(Qw.QMainWindow):
                 asy.wait(timeout=35)
 
     def actionExportXasy(self):
-        #TODO: xasyText and xasyScript doesn't work 
         fileItems = []
+        xasyItems = []
         for item in self.fileItems:
-            fileItems.append({'nodes': item.path.nodeSet, 'links': item.path.linkSet})
+            if isinstance(item, x2a.xasyScript):
+                # reusing xasyFile code for objects 
+                # imported from asy script.
+                xasyItems.append({'item':item, 'type': 'xasyScript'})
+
+            elif isinstance(item, x2a.xasyText):
+                # At the moment xasyText cannot be edited
+                # so we treat it the same as xasyScript
+                xasyItems.append({'item':item, 'type': 'xasyText'})
+
+            elif isinstance(item, x2a.xasyShape):
+                # TODO: Saving colours and transformations
+                # does not work.
+                fileItems.append({'type': 'xasyShape', 
+                        'nodes': item.path.nodeSet, 
+                        'links': item.path.linkSet})
+
+            else:
+                # DEBUGGING PURPOSES ONLY
+                print(type(item))
+
+        if xasyItems:
+            # TODO: Differentiate between xasyText and xasyScript
+            rawXasyItems = [item['item'] for item in xasyItems]
+            rawText = xf.xasy2asyCode(rawXasyItems, self.asy2psmap)
+            fileItems.append({'type': 'xasyScript', 
+                        'rawText': rawText
+                        })
+
         openFile = open("pickleTest", 'wb')
         pickle.dump(fileItems, openFile)
         openFile.close()
@@ -903,12 +931,25 @@ class MainWindow1(Qw.QMainWindow):
         new_dict = pickle.load(input_file)
         input_file.close()
         for item in new_dict:
-            nodeSet = item['nodes']
-            linkSet = item['links']
-            path = x2a.asyPath(self.asyEngine)
-            path.initFromNodeList(nodeSet, linkSet)
-            self.addItemFromPath(path)
-
+            if item['type'] == 'xasyScript':
+                rawText, transfDict, maxKey = xf.extractTransformsFromFile(item['rawText'])
+                obj = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
+                obj.setScript(rawText)
+                self.fileItems.append(obj)
+   
+            elif item['type'] == 'xasyShape':
+                nodeSet = item['nodes']
+                linkSet = item['links']
+                path = x2a.asyPath(self.asyEngine)
+                path.initFromNodeList(nodeSet, linkSet)
+                self.addItemFromPath(path)
+            
+            else:
+                print(item['type'])
+        
+        self.populateCanvasWithItems(forceUpdate = True)
+        self.asyfyCanvas(True)
+                
 
 
     def loadKeyMaps(self):
