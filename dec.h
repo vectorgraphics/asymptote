@@ -63,8 +63,8 @@ public:
 
   virtual trans::tyEntry *transAsTyEntry(coenv &e, record *where);
 
-  virtual operator string() const = 0;
-  virtual operator std::string() const { return static_cast<std::string>(this->operator string()); }
+  virtual operator mem::string() const = 0;
+  virtual operator std::string() const { return static_cast<std::string>(this->operator mem::string()); }
 };
 
 class nameTy : public ty {
