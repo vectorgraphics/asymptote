@@ -485,7 +485,6 @@ void extendedForStm::trans(coenv &e) {
 
 void extendedForStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  AsymptoteLsp::SymbolContext* ctx(symContext);
   auto* declCtx(symContext->newContext(getPos().LineColumn()));
 
   std::string varName(var);

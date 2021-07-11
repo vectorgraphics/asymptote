@@ -1078,7 +1078,6 @@ void callExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 
   if (auto col=getColorInformation())
   {
-    auto [line, column] = callee->getPos().LineColumn();
     auto const& [colVal, alpha, beginArgPos, lastArgPos] = col.value();
     if (alpha.has_value())
     {
