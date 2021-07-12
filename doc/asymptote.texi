@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{https://asymptote.sourceforge.io}
      
-Copyright @copyright{} 2004-20 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-21 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
