@@ -811,8 +811,9 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.execCustomCommand(commandText)
 
-    def addItemFromPath(self, path):
-        newItem = x2a.xasyShape(path, self.asyEngine, pen=self.currentPen)
+    def addItemFromPath(self, path, transform = x2a.identity(), key = None):
+        newItem = x2a.xasyShape(path, self.asyEngine, pen=self.currentPen, transform = transform)
+        newItem.setKey(key)
         self.fileItems.append(newItem)
         self.fileChanged = True
         self.asyfyCanvas()
@@ -905,9 +906,13 @@ class MainWindow1(Qw.QMainWindow):
             elif isinstance(item, x2a.xasyShape):
                 # TODO: Saving colours and transformations
                 # does not work.
+
                 fileItems.append({'type': 'xasyShape', 
                         'nodes': item.path.nodeSet, 
-                        'links': item.path.linkSet})
+                        'links': item.path.linkSet,
+                        'transform': item.transfKeymap[item.transfKey][0].t,
+                        'transfKey': item.transfKey
+                        })
 
             else:
                 # DEBUGGING PURPOSES ONLY
@@ -942,12 +947,9 @@ class MainWindow1(Qw.QMainWindow):
                 linkSet = item['links']
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
-                self.addItemFromPath(path)
-            
+                self.addItemFromPath(path, transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
             else:
                 print(item['type'])
-        
-        self.populateCanvasWithItems(forceUpdate = True)
         self.asyfyCanvas(True)
                 
 
@@ -1597,7 +1599,7 @@ class MainWindow1(Qw.QMainWindow):
         self.updateMouseCoordLabel()
         self.refreshCanvas()
 
-        self.preDraw(self.mainCanvas)
+        self.preDraw(self.mainCanvas) # coordinates/background
         self.quickDraw()
 
         self.mainCanvas.end()
