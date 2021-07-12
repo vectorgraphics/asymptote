@@ -227,9 +227,9 @@ void icore::doRun(bool purge, transMode tm) {
 
   } catch(std::bad_alloc&) {
     outOfMemory();
-  } catch(quit) {
+  } catch(quit const&) {
     // Exception to quit running the current code. Nothing more to do.
-  } catch(handled_error) {
+  } catch(handled_error const&) {
     em.statusError();
   }
 
@@ -255,7 +255,7 @@ block *itree::getTree() {
   if (cachedTree==0) {
     try {
       cachedTree=buildTree();
-    } catch(handled_error) {
+    } catch(handled_error const&) {
       em.statusError();
       return 0;
     }
@@ -337,7 +337,7 @@ void ifile::process(bool purge) {
   if(verbose > 1) printGreeting(false);
   try {
     init();
-  } catch(handled_error) {
+  } catch(handled_error const&) {
   }
 
   if (verbose >= 1)
@@ -346,7 +346,7 @@ void ifile::process(bool purge) {
   try {
     icore::process(purge);
   }
-  catch(handled_error) {
+  catch(handled_error const&) {
     em.statusError();
   }
 }
@@ -770,7 +770,7 @@ class iprompt : public icore {
       run::updateFunction(&s);
       uptodate=false;
 
-    } catch(handled_error) {
+    } catch(handled_error const&) {
       vm::indebugger=false;
     } catch(interrupted&) {
       // Turn off the interrupted flag.
@@ -820,7 +820,7 @@ public:
     interact::init_interactive();
     try {
       setPath("",true);
-    } catch(handled_error) {
+    } catch(handled_error const&) {
     }
 
     do {
@@ -922,11 +922,11 @@ public:
     } catch(std::bad_alloc&) {
       // TODO: give calling application useful message.
       cerr << "out of memory" << endl;
-    } catch (quit) {
+    } catch (quit const&) {
       // I'm not sure whether this counts as successfully running the code or
       // not.
       cerr << "quit exception" << endl;
-    } catch (handled_error) {
+    } catch (handled_error const&) {
       // Normally, this is the result of an error that changes the return code
       // of the free-standing asymptote program.
       // An error should probably be reported to the application calling the

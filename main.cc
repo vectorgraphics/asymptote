@@ -159,7 +159,7 @@ void *asymain(void *A)
   } else if (getSetting<bool>("listvariables") && numArgs()==0) {
     try {
       doUnrestrictedList();
-    } catch(handled_error) {
+    } catch(handled_error const&) {
       em.statusError();
     }
   } else {
@@ -176,7 +176,7 @@ void *asymain(void *A)
         processFile("-",true);
         try {
           setOptions(args->argc,args->argv);
-        } catch(handled_error) {
+        } catch(handled_error const&) {
           em.statusError();
         }
         if(inpipe < 0) break;
@@ -187,7 +187,7 @@ void *asymain(void *A)
         try {
           if(ind < n-1)
             setOptions(args->argc,args->argv);
-        } catch(handled_error) {
+        } catch(handled_error const&) {
           em.statusError();
         }
       }
@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
 
   try {
     setOptions(argc,argv);
-  } catch(handled_error) {
+  } catch(handled_error const&) {
     em.statusError();
   }
 
