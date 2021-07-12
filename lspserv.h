@@ -98,13 +98,15 @@ namespace AsymptoteLsp
   };
 
 
-  class AsymptoteLspServer: public lsp::TcpServer
+  class AsymptoteLspServer
   {
   public:
-    AsymptoteLspServer(std::string const& addr, std::string const& port,
+    AsymptoteLspServer(shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
+                       shared_ptr<GenericEndpoint> const& endpoint, LspLog& log);
+    AsymptoteLspServer(RemoteEndPoint* remoteEndPt,
                        shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
                        shared_ptr<GenericEndpoint> const& endpoint, LspLog& log);
-    ~AsymptoteLspServer();
+    virtual ~AsymptoteLspServer();
 
     // copy constructors + copy assignment op
     AsymptoteLspServer(AsymptoteLspServer& sv) = delete;
@@ -114,20 +116,20 @@ namespace AsymptoteLsp
     AsymptoteLspServer(AsymptoteLspServer&& sv) = delete;
     AsymptoteLspServer& operator=(AsymptoteLspServer&& sv) = delete;
 
-    void start();
+    virtual void start();
     void startIO(std::istream& in=cin, std::ostream& out=cout);
 
   protected:
     td_hover::response handleHoverRequest(td_hover::request const&);
-    td_initialize::response handleInitailizeRequest(td_initialize::request const&);
-    td_shutdown::response handleShutdownRequest(td_shutdown::request const&);
+    virtual td_initialize::response handleInitailizeRequest(td_initialize::request const&);
+    virtual td_shutdown::response handleShutdownRequest(td_shutdown::request const&);
     td_definition::response handleDefnRequest(td_definition::request const&);
     td_documentColor::response handleDocColorRequest(td_documentColor::request const&);
     td_colorPresentation::response handleColorPresRequest(td_colorPresentation::request const&);
 
 
-    void onInitialized(Notify_InitializedNotification::notify& notify);
-    void onExit(Notify_Exit::notify& notify);
+    virtual void onInitialized(Notify_InitializedNotification::notify& notify);
+    virtual void onExit(Notify_Exit::notify& notify);
     void onChange(Notify_TextDocumentDidChange::notify& notify);
     void onOpen(Notify_TextDocumentDidOpen::notify& notify);
     void onSave(Notify_TextDocumentDidSave::notify& notify);
@@ -151,20 +153,37 @@ namespace AsymptoteLsp
     SymbolContext* reloadFileRaw(std::string const&, bool const& fillTree=true);
     SymbolContext* fromRawPath(lsTextDocumentIdentifier const& identifier);
     SymbolContext* reloadFileRaw(absyntax::block* blk, std::string const& rawPath, bool const& fillTree=true);
-    std::string plainFile;
+    virtual void clearVariables();
+    Condition<bool> serverClosed;
+
+    // [owned, ptr]
+    std::pair<bool, RemoteEndPoint*> remoteEndpoint;
+
+    RemoteEndPoint& getRemoteEndpoint();
 
   private:
+    [[maybe_unused]]
     shared_ptr<lsp::ProtocolJsonHandler> pjh;
     shared_ptr<GenericEndpoint> ep;
-
     SymbolContext* plainCtx;
-
     LspLog& _log;
 
     unique_ptr<SymContextFilemap> symmapContextsPtr;
     unique_ptr<unordered_map<std::string, std::vector<std::string>>> fileContentsPtr;
+    std::string plainFile;
+  };
 
-    Condition<bool> serverClosed;
+  class TCPAsymptoteLSPServer : public lsp::TcpServer, public AsymptoteLspServer
+  {
+  public:
+    TCPAsymptoteLSPServer(
+            std::string const& addr, std::string const& port,
+            shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
+            shared_ptr<GenericEndpoint> const& endpoint, LspLog& log);
+    ~TCPAsymptoteLSPServer() override;
+
+  protected:
+    void start() override;
     Condition<bool> serverInitialized;
   };
 }

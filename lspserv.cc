@@ -24,9 +24,9 @@
 
 #include "gc.h"
 
-#define REGISTER_REQ_FN(typ, fn) point.registerHandler(\
+#define REGISTER_REQ_FN(typ, fn) getRemoteEndpoint().registerHandler(\
   [this](typ::request const& req) { return this->fn(req); });
-#define REGISTER_NOTIF_FN(typ, handler) point.registerHandler(\
+#define REGISTER_NOTIF_FN(typ, handler) getRemoteEndpoint().registerHandler(\
   [this](typ::notify& notif) { this->handler(notif); });
 
 namespace AsymptoteLsp
@@ -247,11 +247,22 @@ namespace AsymptoteLsp
     }
   }
 
-  AsymptoteLspServer::AsymptoteLspServer(std::string const& addr, std::string const& port,
-                                         shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
-                                         shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
-          TcpServer(addr, port, jsonHandler, endpoint, log),
-          pjh(jsonHandler), ep(endpoint), plainCtx(nullptr), _log(log)
+  AsymptoteLspServer::AsymptoteLspServer(
+          shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
+          shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
+          remoteEndpoint(true, new RemoteEndPoint(jsonHandler, endpoint, log)),
+          pjh(jsonHandler), ep(endpoint), _log(log)
+  {
+    initializeRequestFn();
+    initializeNotifyFn();
+  }
+
+  AsymptoteLspServer::AsymptoteLspServer(
+          RemoteEndPoint* remoteEndPt,
+          shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
+          shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
+          remoteEndpoint(false, remoteEndPt), pjh(jsonHandler),
+          ep(endpoint), _log(log)
   {
     initializeRequestFn();
     initializeNotifyFn();
@@ -344,6 +355,15 @@ namespace AsymptoteLsp
 #pragma region requests
   td_initialize::response AsymptoteLspServer::handleInitailizeRequest(td_initialize::request const& req)
   {
+    clearVariables();
+
+    symmapContextsPtr=std::make_unique<SymContextFilemap>();
+    fileContentsPtr=std::make_unique<
+            std::remove_reference<decltype(*fileContentsPtr)>::type>();
+    plainFile=settings::locateFile("plain", true);
+    plainCtx=reloadFileRaw(plainFile, false);
+    generateMissingTrees(plainFile);
+
     td_initialize::response rsp;
     rsp.id=req.id;
     rsp.result.capabilities.hoverProvider=true;
@@ -357,22 +377,6 @@ namespace AsymptoteLsp
     rsp.result.capabilities.textDocumentSync=opt_right<lsTextDocumentSyncKind>(tdso);
     rsp.result.capabilities.definitionProvider=std::make_pair(true, nullopt);
     rsp.result.capabilities.colorProvider=std::make_pair(true, nullopt);
-
-    // when starting the thread, memory is copied but not done correctly (why?)
-    // hence, symmapContextsPtr gets assigned junk memory and we have to "clear" it
-    // before we can give it a value.
-    // FIXME: Investigate why. And also fix this
-    symmapContextsPtr.release();
-    fileContentsPtr.release();
-
-    plainCtx=nullptr;
-    symmapContextsPtr=std::make_unique<SymContextFilemap>();
-    fileContentsPtr=std::make_unique<
-            std::remove_reference<decltype(*fileContentsPtr)>::type>();
-
-    plainFile=settings::locateFile("plain", true);
-    plainCtx=reloadFileRaw(plainFile, false);
-    generateMissingTrees(plainFile);
     return rsp;
   }
 
@@ -648,23 +652,24 @@ namespace AsymptoteLsp
 
   void AsymptoteLspServer::start()
   {
-    std::thread([this]() {this->run();}).detach();
-    serverClosed.wait();
-    logInfo("Got server closed notification.");
+    return startIO(cin, cout);
   }
 
   AsymptoteLspServer::~AsymptoteLspServer()
   {
-    logInfo("Destroying server...");
-    this->stop();
+    if (remoteEndpoint.first)
+    {
+      delete remoteEndpoint.second;
+      remoteEndpoint.first = false;
+      remoteEndpoint.second = nullptr;
+    }
   }
 
   void AsymptoteLspServer::startIO(std::istream& in, std::ostream& out)
   {
     auto inPtr=make_shared<AsymptoteLsp::istream>(in);
     auto outPtr=make_shared<AsymptoteLsp::ostream>(out);
-    point.startProcessingMessages(inPtr,outPtr);
-
+    getRemoteEndpoint().startProcessingMessages(inPtr,outPtr);
     serverClosed.wait();
   }
 
@@ -686,5 +691,38 @@ namespace AsymptoteLsp
   void AsymptoteLspServer::logInfo(std::string const& message)
   {
     log(lsp::Log::Level::INFO, message);
+  }
+
+  void AsymptoteLspServer::clearVariables()
+  {
+  }
+
+  RemoteEndPoint& AsymptoteLspServer::getRemoteEndpoint()
+  {
+    return *remoteEndpoint.second;
+  }
+
+  // TCP Asymptote Server
+
+  TCPAsymptoteLSPServer::TCPAsymptoteLSPServer(
+          std::string const& addr, std::string const& port, shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
+          shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
+          lsp::TcpServer(addr, port, jsonHandler, endpoint, log),
+          AsymptoteLspServer(&point, jsonHandler, endpoint, log)
+  {
+  }
+
+  TCPAsymptoteLSPServer::~TCPAsymptoteLSPServer()
+  {
+    logInfo("Destroying server...");
+    this->stop();
+  }
+
+
+  void TCPAsymptoteLSPServer::start()
+  {
+    std::thread([this]() {this->run();}).detach();
+    serverClosed.wait();
+    logInfo("Got server closed notification.");
   }
 }
