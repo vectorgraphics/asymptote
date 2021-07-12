@@ -1687,7 +1687,7 @@ class DrawObject(QtCore.QObject):
     @property
     def boundingBox(self):
         if self.explicitBoundingBox is not None:
-            testBbox = self.getScreenTransform().toQTransform().mapRect(self.explicitBoundingBox)
+            testBbox = self.baseTransform().toQTransform().mapRect(self.explicitBoundingBox)
         elif isinstance(self.drawObject, QtGui.QPainterPath):
             testBbox = self.baseTransform.toQTransform().mapRect(self.drawObject.boundingRect())
         else:
