@@ -24,9 +24,9 @@
 
 #include "gc.h"
 
-#define REGISTER_REQ_FN(typ, fn) getRemoteEndpoint().registerHandler(\
+#define REGISTER_REQ_FN(typ, fn) remoteEndPoint->registerHandler(\
   [this](typ::request const& req) { return this->fn(req); });
-#define REGISTER_NOTIF_FN(typ, handler) getRemoteEndpoint().registerHandler(\
+#define REGISTER_NOTIF_FN(typ, handler) remoteEndPoint->registerHandler(\
   [this](typ::notify& notif) { this->handler(notif); });
 
 namespace AsymptoteLsp
@@ -250,7 +250,7 @@ namespace AsymptoteLsp
   AsymptoteLspServer::AsymptoteLspServer(
           shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
           shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
-          remoteEndpoint(true, new RemoteEndPoint(jsonHandler, endpoint, log)),
+          internalREP(make_unique<RemoteEndPoint>(jsonHandler, endpoint, log)), remoteEndPoint(internalREP.get()),
           pjh(jsonHandler), ep(endpoint), _log(log)
   {
     initializeRequestFn();
@@ -261,8 +261,8 @@ namespace AsymptoteLsp
           RemoteEndPoint* remoteEndPt,
           shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
           shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
-          remoteEndpoint(false, remoteEndPt), pjh(jsonHandler),
-          ep(endpoint), _log(log)
+          internalREP(nullptr), remoteEndPoint(remoteEndPt),
+          pjh(jsonHandler), ep(endpoint), _log(log)
   {
     initializeRequestFn();
     initializeNotifyFn();
@@ -657,19 +657,13 @@ namespace AsymptoteLsp
 
   AsymptoteLspServer::~AsymptoteLspServer()
   {
-    if (remoteEndpoint.first)
-    {
-      delete remoteEndpoint.second;
-      remoteEndpoint.first = false;
-      remoteEndpoint.second = nullptr;
-    }
   }
 
   void AsymptoteLspServer::startIO(std::istream& in, std::ostream& out)
   {
     auto inPtr=make_shared<AsymptoteLsp::istream>(in);
     auto outPtr=make_shared<AsymptoteLsp::ostream>(out);
-    getRemoteEndpoint().startProcessingMessages(inPtr,outPtr);
+    remoteEndPoint->startProcessingMessages(inPtr,outPtr);
     serverClosed.wait();
   }
 
@@ -695,11 +689,6 @@ namespace AsymptoteLsp
 
   void AsymptoteLspServer::clearVariables()
   {
-  }
-
-  RemoteEndPoint& AsymptoteLspServer::getRemoteEndpoint()
-  {
-    return *remoteEndpoint.second;
   }
 
   // TCP Asymptote Server

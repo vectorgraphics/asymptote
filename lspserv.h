@@ -156,10 +156,11 @@ namespace AsymptoteLsp
     virtual void clearVariables();
     Condition<bool> serverClosed;
 
+  private:
+    unique_ptr<RemoteEndPoint> internalREP;
+  protected:
     // [owned, ptr]
-    std::pair<bool, RemoteEndPoint*> remoteEndpoint;
-
-    RemoteEndPoint& getRemoteEndpoint();
+    RemoteEndPoint* const remoteEndPoint;
 
   private:
     [[maybe_unused]]
