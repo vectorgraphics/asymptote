@@ -2227,16 +2227,6 @@ background: rgb(0, 0, 0)
     <string>Clear Menu</string>
    </property>
   </action>
-  <action name="actionExportXasy">
-   <property name="text">
-    <string>[TEST] Export *.xasy</string>
-   </property>
-  </action>
-  <action name="actionLoadXasy">
-   <property name="text">
-    <string>[TEST] Load *.xasy</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="9"/>
  <resources>
