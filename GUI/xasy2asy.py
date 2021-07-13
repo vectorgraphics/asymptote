@@ -1687,9 +1687,9 @@ class DrawObject(QtCore.QObject):
     @property
     def boundingBox(self):
         if self.explicitBoundingBox is not None:
-            testBbox = self.baseTransform().toQTransform().mapRect(self.explicitBoundingBox)
+            testBbox = self.baseTransform.toQTransform().mapRect(self.explicitBoundingBox)
         elif isinstance(self.drawObject, QtGui.QPainterPath):
-            testBbox = self.baseTransform.toQTransform().mapRect(self.drawObject.boundingRect())
+            testBbox = self.baseTransform.toQTransform().map(self.drawObject).boundingRect()
         else:
             raise TypeError('drawObject is not a valid type!')
         
@@ -1720,6 +1720,7 @@ class DrawObject(QtCore.QObject):
 
     def getScreenTransform(self):
         scrTransf = self.baseTransform.toQTransform().inverted()[0] * self.pTransform.toQTransform()
+        # print(asyTransform.fromQTransform(scrTransf).t)
         return asyTransform.fromQTransform(scrTransf)
 
     def draw(self, additionalTransformation = None, applyReverse = False, canvas: QtGui.QPainter = None, dpi = 300):
@@ -1734,7 +1735,7 @@ class DrawObject(QtCore.QObject):
         if self.pen:
             oldPen = QtGui.QPen(canvas.pen())
             localPen = self.pen.toQPen()
-            localPen.setCosmetic(True)
+            # localPen.setCosmetic(True)
             canvas.setPen(localPen) #this fixes the object but not the box
         else:
             oldPen = QtGui.QPen()

@@ -494,6 +494,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
         self.ui.btnAddFreehand.clicked.connect(self.btnAddFreehand)
+        self.ui.btnDebugFunc.clicked.connect(self.btnDebugFunc)
         # self.ui.btnAddBezierInplace.clicked.connect(self.btnAddBezierInplaceOnClick)
         self.ui.btnClosedCurve.clicked.connect(self.btnAddClosedCurveOnClick)
         self.ui.btnOpenCurve.clicked.connect(self.btnAddOpenCurveOnClick)
@@ -657,9 +658,65 @@ class MainWindow1(Qw.QMainWindow):
     def btnAddFreehand(self):
         self.currAddOptions['useBezier'] = False
         self.currAddOptions['closedPath'] = False
-        self.ui.statusbar.showMessage("NOT IMPLEMENTED.")
+        self.ui.statusbar.showMessage("Draw Freehand.")
         self.addMode = InplaceAddObj.AddFreehand(self)
         self.updateOptionWidget()
+
+    def btnDebugFunc(self):
+        self.ui.statusbar.showMessage("For DEBUGGING purposes ONLY")
+        #xasyText and xasyScript doesn't work
+
+        self.asyfyCanvas()
+
+        '''
+        # xasyScript
+        print(self.fileItems)
+        for i in self.fileItems:
+            if isinstance(i, x2a.xasyScript):
+                print("woah it's imported")
+                print(i.getObjectCode())
+                print(f"Transformations: {i.getTransformCode()}")
+                print(f"getCode: {i.getCode()}")
+        
+        fileItems = []
+        for item in self.fileItems:
+            fileItems.append({'nodes': item.path.nodeSet, 'links': item.path.linkSet})
+        openFile = open("pickleTest", 'wb')
+        pickle.dump(fileItems, openFile)
+        openFile.close()
+        
+        input_file = open("pickleTest", 'rb')
+        new_dict = pickle.load(input_file)
+        input_file.close()
+        for item in new_dict:
+            nodeSet = item['nodes']
+            linkSet = item['links']
+            path = x2a.asyPath(self.asyEngine)
+            path.initFromNodeList(nodeSet, linkSet)
+            self.addItemFromPath(path)
+        
+        file_name = "serializerTest"
+        output_file = Qc.QFile(file_name)
+        output_file.open(Qc.QIODevice.WriteOnly)
+        stream_out = Qc.QDataStream(output_file)
+        print(self.fileItems)
+        output_poly = self.fileItems[0]
+        output_str = Qc.QVariant('foo')  # Use QVariant for QString
+        stream_out << output_poly << output_str
+        output_file.close()
+
+        input_file = Qc.QFile(file_name)
+        input_file.open(Qc.QIODevice.ReadOnly)
+        stream_in = Qc.QDataStream(input_file)
+        input_poly = Qg.QPainterPath()
+        input_str = Qc.QVariant()
+        stream_in >> input_poly >> input_str
+        input_file.close()
+
+        print(f"input polygon {input_poly}")
+        print(str(output_str.value()))
+        print(str(input_str.value()))
+        '''
 
     def updateCurve(self, valid, newCurve):
         self.previewCurve = newCurve
@@ -889,7 +946,7 @@ class MainWindow1(Qw.QMainWindow):
                 asy.stdin.close()
                 asy.wait(timeout=35)
 
-    def actionExportXasy(self):
+    def actionExportXasy(self, file):
         fileItems = []
         xasyItems = []
         for item in self.fileItems:
@@ -904,9 +961,6 @@ class MainWindow1(Qw.QMainWindow):
                 xasyItems.append({'item':item, 'type': 'xasyText'})
 
             elif isinstance(item, x2a.xasyShape):
-                # TODO: Saving colours and transformations
-                # does not work.
-
                 fileItems.append({'type': 'xasyShape', 
                         'nodes': item.path.nodeSet, 
                         'links': item.path.linkSet,
@@ -926,13 +980,17 @@ class MainWindow1(Qw.QMainWindow):
                         'rawText': rawText
                         })
 
-        openFile = open("pickleTest", 'wb')
+        openFile = open(file, 'wb')
         pickle.dump(fileItems, openFile)
         openFile.close()
         
-    def actionLoadXasy(self):
+    def actionLoadXasy(self, file):
         self.erase()
-        input_file = open("pickleTest", 'rb')
+        self.ui.statusbar.showMessage('Load {0}'.format(file))
+        self.filename = file
+        self.currDir = os.path.dirname(self.filename)
+
+        input_file = open(file, 'rb')
         new_dict = pickle.load(input_file)
         input_file.close()
         for item in new_dict:
@@ -949,7 +1007,8 @@ class MainWindow1(Qw.QMainWindow):
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addItemFromPath(path, transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
             else:
-                print(item['type'])
+                print("ERROR")
+
         self.asyfyCanvas(True)
                 
 
@@ -994,12 +1053,24 @@ class MainWindow1(Qw.QMainWindow):
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
         if fileName:
-            self.loadFile(fileName)
+            _, file_extension = os.path.splitext(fileName)
+            if file_extension == '.asy':
+                self.loadFile(fileName)
+            elif file_extension == '.xasy':
+                self.actionLoadXasy(fileName)
+            else:
+                print("ERROR: file extension not supported.")
             self.populateOpenRecent(fileName)
         else:
-            filename = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
+            filename = Qw.QFileDialog.getOpenFileName(self, 'Open Xasy/Asymptote File','', '(*.xasy *.asy)')
             if filename[0]:
-                self.loadFile(filename[0])
+                _, file_extension = os.path.splitext(filename[0])
+                if file_extension == '.asy':
+                    self.loadFile(filename[0])
+                elif file_extension == '.xasy':
+                    self.actionLoadXasy(filename[0])
+                else:
+                    print("ERROR: file extension not supported.")
         
             self.populateOpenRecent(filename[0].strip())
     
@@ -1040,10 +1111,17 @@ class MainWindow1(Qw.QMainWindow):
     def actionSave(self):
         if self.filename is None:
             self.actionSaveAs()
+            
         else:
-            saveFile = io.open(self.filename, 'w')
-            xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
-            saveFile.close()
+            _, file_extension = os.path.splitext(self.filename)
+            if file_extension == ".asy":
+                saveFile = io.open(self.filename, 'w')
+                xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
+                saveFile.close()
+            elif file_extension == ".xasy":
+                self.actionExportXasy(self.filename)
+            else:
+                print("ERROR: file extension not supported")
             self.updateScript()
             self.fileChanged = False
             self.updateTitle()
@@ -1056,15 +1134,22 @@ class MainWindow1(Qw.QMainWindow):
                     item.updatedCode = None
 
     def actionSaveAs(self):
-        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', str(self.filename), "Asymptote File (*.asy)")[0]
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', str(self.filename), "Xasy File (*.xasy);; Asymptote File (*.asy)")[0]
         if saveLocation:
-            saveFile = io.open(saveLocation, 'w')
-            xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
-            saveFile.close()
+            _, file_extension = os.path.splitext(saveLocation)
+            if file_extension == ".asy":
+                saveFile = io.open(saveLocation, 'w')
+                xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
+                saveFile.close()
+            elif file_extension == ".xasy":
+                self.actionExportXasy(saveLocation)
+            else:
+                print("ERROR: file extension not supported")
             self.filename = saveLocation
             self.updateScript()
             self.fileChanged = False
             self.updateTitle()
+            self.populateOpenRecent(saveLocation)
             
 
     def btnQuickScreenshotOnClick(self):
