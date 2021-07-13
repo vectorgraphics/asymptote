@@ -441,8 +441,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionSettings.triggered.connect(self.openAndReloadSettings)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
         self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsyOnClick)
-        self.ui.actionExportXasy.triggered.connect(self.actionExportXasy)
-        self.ui.actionLoadXasy.triggered.connect(self.actionLoadXasy)
 
     def setupXasyOptions(self):
         if self.settings['debugMode']:
@@ -494,7 +492,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
         self.ui.btnAddFreehand.clicked.connect(self.btnAddFreehand)
-        self.ui.btnDebugFunc.clicked.connect(self.btnDebugFunc)
         # self.ui.btnAddBezierInplace.clicked.connect(self.btnAddBezierInplaceOnClick)
         self.ui.btnClosedCurve.clicked.connect(self.btnAddClosedCurveOnClick)
         self.ui.btnOpenCurve.clicked.connect(self.btnAddOpenCurveOnClick)
@@ -661,62 +658,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.statusbar.showMessage("Draw Freehand.")
         self.addMode = InplaceAddObj.AddFreehand(self)
         self.updateOptionWidget()
-
-    def btnDebugFunc(self):
-        self.ui.statusbar.showMessage("For DEBUGGING purposes ONLY")
-        #xasyText and xasyScript doesn't work
-
-        self.asyfyCanvas()
-
-        '''
-        # xasyScript
-        print(self.fileItems)
-        for i in self.fileItems:
-            if isinstance(i, x2a.xasyScript):
-                print("woah it's imported")
-                print(i.getObjectCode())
-                print(f"Transformations: {i.getTransformCode()}")
-                print(f"getCode: {i.getCode()}")
-        
-        fileItems = []
-        for item in self.fileItems:
-            fileItems.append({'nodes': item.path.nodeSet, 'links': item.path.linkSet})
-        openFile = open("pickleTest", 'wb')
-        pickle.dump(fileItems, openFile)
-        openFile.close()
-        
-        input_file = open("pickleTest", 'rb')
-        new_dict = pickle.load(input_file)
-        input_file.close()
-        for item in new_dict:
-            nodeSet = item['nodes']
-            linkSet = item['links']
-            path = x2a.asyPath(self.asyEngine)
-            path.initFromNodeList(nodeSet, linkSet)
-            self.addItemFromPath(path)
-        
-        file_name = "serializerTest"
-        output_file = Qc.QFile(file_name)
-        output_file.open(Qc.QIODevice.WriteOnly)
-        stream_out = Qc.QDataStream(output_file)
-        print(self.fileItems)
-        output_poly = self.fileItems[0]
-        output_str = Qc.QVariant('foo')  # Use QVariant for QString
-        stream_out << output_poly << output_str
-        output_file.close()
-
-        input_file = Qc.QFile(file_name)
-        input_file.open(Qc.QIODevice.ReadOnly)
-        stream_in = Qc.QDataStream(input_file)
-        input_poly = Qg.QPainterPath()
-        input_str = Qc.QVariant()
-        stream_in >> input_poly >> input_str
-        input_file.close()
-
-        print(f"input polygon {input_poly}")
-        print(str(output_str.value()))
-        print(str(input_str.value()))
-        '''
 
     def updateCurve(self, valid, newCurve):
         self.previewCurve = newCurve

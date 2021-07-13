@@ -1919,44 +1919,6 @@ background: rgb(0, 0, 0)
                   </property>
                  </widget>
                 </item>
-                <item row="13" column="0">
-                 <widget class="QPushButton" name="btnDebugFunc">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>32</width>
-                    <height>32</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Text&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/icons/text.svg</normaloff>:/icons/text.svg</iconset>
-                  </property>
-                  <property name="iconSize">
-                   <size>
-                    <width>16</width>
-                    <height>16</height>
-                   </size>
-                  </property>
-                  <property name="flat">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
                </layout>
               </widget>
              </item>
@@ -2140,8 +2102,6 @@ background: rgb(0, 0, 0)
     <addaction name="actionExportAsymptote"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
-    <addaction name="actionExportXasy"/>
-    <addaction name="actionLoadXasy"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
