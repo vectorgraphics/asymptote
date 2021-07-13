@@ -217,7 +217,7 @@ class xasyOpenRecent:
         f.close()
 
     def clear(self):
-        f = io.open(self.file, 'w')
+        f = io.open(self.fileName, 'w')
         f.write('')
         f.close()
 
