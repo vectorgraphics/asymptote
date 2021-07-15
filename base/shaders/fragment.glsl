@@ -162,8 +162,11 @@ void main()
 {
   uint headIndex = uint(gl_FragCoord.y) * width + uint(gl_FragCoord.x);
 #ifdef DEPTHPEEL
-  if (zbuffer[headIndex].depth > gl_FragCoord.z && zbuffer[headIndex].depth != 0) discard;
-  if (texture(DepthTex, gl_FragCoord.xy).r < gl_FragCoord.z) discard;
+  if (zbuffer[headIndex].depth < gl_FragCoord.z &&
+      zbuffer[headIndex].depth != 0)
+    discard;
+  if (texture(DepthTex, gl_FragCoord.xy).r > gl_FragCoord.z)
+    discard;
 #endif
   vec4 diffuse;
   vec4 emissive;
@@ -259,7 +262,7 @@ void main()
   tempColor=vec4(color,diffuse.a);
 #else
   tempColor=emissive;
-#endif      
+#endif
 
 #ifdef DEPTHPEEL
   outColor = tempColor;

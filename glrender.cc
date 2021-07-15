@@ -87,11 +87,20 @@ GLuint zBuffer;
 
 GLuint query;
 
-GLuint depthFbo[2];
-GLuint depthColorTex[2];
-GLuint depthDepthTex[2];
+GLuint depthFbo[3];
+GLuint depthColorTex[3];
+GLuint depthDepthTex[3];
 GLuint depthBlendFbo;
 GLuint depthBlendTex;
+
+GLenum drawingBuffers[] = {GL_COLOR_ATTACHMENT0,
+              GL_COLOR_ATTACHMENT1,
+              GL_COLOR_ATTACHMENT2,
+              GL_COLOR_ATTACHMENT3,
+              GL_COLOR_ATTACHMENT4,
+              GL_COLOR_ATTACHMENT5,
+              GL_COLOR_ATTACHMENT6
+};
 
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -459,10 +468,9 @@ void initShaders()
   string tfs=locateFile("shaders/transparentfragment.glsl");
   string cnt=locateFile("shaders/count.glsl");
   string bfs=locateFile("shaders/depthblendfragment.glsl");
-  string mfs=locateFile("shaders/depthmergefragment.glsl");
 
   if(vs.empty() || fs.empty() || tfs.empty() || cnt.empty() ||
-    bfs.empty() || mfs.empty()) {
+    bfs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
@@ -496,16 +504,13 @@ void initShaders()
 
   shaderParams.push_back("TRANSPARENT");
   // TODO context switch - can do preproccessor?
-  camp::depthPeel = false;
+  camp::depthPeel = true;
   if (camp::depthPeel) {
     shaderParams.push_back("DEPTHPEEL");
     camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                                 shaderParams);
     shaders[1] = ShaderfileModePair(bfs.c_str(),GL_FRAGMENT_SHADER);
     camp::blendShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                                shaderParams);
-    shaders[1] = ShaderfileModePair(mfs.c_str(),GL_FRAGMENT_SHADER);
-    camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                                 shaderParams);
   } else {
     camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
@@ -521,10 +526,10 @@ void initShaders()
 
 void deleteShaders()
 {
-  glDeleteTextures(2, camp::depthColorTex);
-  glDeleteTextures(2, camp::depthDepthTex);
+  glDeleteTextures(3, camp::depthColorTex);
+  glDeleteTextures(3, camp::depthDepthTex);
   glDeleteTextures(1, &camp::depthBlendTex);
-  glDeleteFramebuffers(2, camp::depthFbo);
+  glDeleteFramebuffers(3, camp::depthFbo);
   glDeleteFramebuffers(1, &camp::depthBlendFbo);
   glDeleteProgram(camp::countShader);
   glDeleteProgram(camp::blendShader);
@@ -554,11 +559,11 @@ void setBuffers()
 
   glGenQueries(1, &camp::query);
 
-  glGenFramebuffers(2, camp::depthFbo);
+  glGenFramebuffers(3, camp::depthFbo);
   glGenFramebuffers(1, &camp::depthBlendFbo);
 
-  glGenTextures(2, camp::depthColorTex);
-  glGenTextures(2, camp::depthDepthTex);
+  glGenTextures(3, camp::depthColorTex);
+  glGenTextures(3, camp::depthDepthTex);
   glGenTextures(1, &camp::depthBlendTex);
 }
 
@@ -590,45 +595,48 @@ void initializeBuffers() {
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, camp::zBuffer);
   glClearNamedBufferData(camp::zBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
 
-  // cout << camp::headSize*10/1048576.0 << endl;
+  // cerr << camp::headSize*10/1048576.0 << endl;
 
   if (camp::depthPeel) {
-    for (int i = 0; i < 2; ++i) {
-      glBindTexture(GL_TEXTURE_2D, camp::depthDepthTex[i]);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F_NV,
-            Width, Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
+    for (int i = 0; i < 3; ++i) {
       glBindTexture(GL_TEXTURE_2D, camp::depthColorTex[i]);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width, Height,
             0, GL_RGBA, GL_FLOAT, 0);
 
+      glBindTexture(GL_TEXTURE_2D, camp::depthDepthTex[i]);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+            Width, Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
       glBindFramebuffer(GL_FRAMEBUFFER, camp::depthFbo[i]);
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                    GL_TEXTURE_2D, camp::depthDepthTex[i], 0);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                     GL_TEXTURE_2D, camp::depthColorTex[i], 0);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    GL_TEXTURE_2D, camp::depthDepthTex[i], 0);
     }
+
     glBindTexture(GL_TEXTURE_2D, camp::depthBlendTex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width, Height,
           0, GL_RGBA, GL_FLOAT, 0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, camp::depthBlendFbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                  GL_TEXTURE_2D, camp::depthDepthTex[0], 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                   GL_TEXTURE_2D, camp::depthBlendTex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                  GL_TEXTURE_2D, camp::depthDepthTex[0], 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
 }
 
@@ -2056,7 +2064,7 @@ int refreshBuffers() {
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
   glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, 4, &fragments);
   fragmentSize = fragments*4*6*2;
-  // // cout << temp << ',' << fragmentSize/1000000.0 << ',' << headSize/1000000.0 << endl;
+  // cout << temp << ',' << fragmentSize/1000000.0 << ',' << headSize/1000000.0 << endl;
   // cout << camp::headSize/1048576.0 << endl;
   // cout << camp::fragmentSize/1048576.0 << endl;
   // cout << gl::Width << ',' << gl::Height << endl;
@@ -2093,6 +2101,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
     gl::lastshader=shader;
 
     glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
+    glUniform1ui(glGetUniformLocation(shader,"height"),gl::Height);
 
     glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
@@ -2239,81 +2248,91 @@ void drawTriangle()
 
 void depthPeelTransparency()
 {
-  glDepthMask(GL_FALSE);
+  // First pass
+  glBindFramebuffer(GL_FRAMEBUFFER, depthFbo[0]);
+  glDrawBuffer(drawingBuffers[0]);
 
-  for (int i = 0; true; ++i) {
-    int cur = i%2;
+  glClearColor(1, 1, 1, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glEnable(GL_DEPTH_TEST);
+
+  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+  drawBuffer(transparentData,transparentShader);
+
+  // Setup blending for front to back
+  glBlendFuncSeparate(GL_DST_ALPHA, GL_ONE, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+
+  // Repeat until no detected fragments
+  int i = 0;
+  while (true) {
+    int cur = (++i)%2;
     int prev = 1-cur;
     
+    // Peel the previous layer
     glBindFramebuffer(GL_FRAMEBUFFER, depthFbo[cur]);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    glClearColor(0, 0, 0, 0);
+    glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
 
-    glBeginQuery(GL_ANY_SAMPLES_PASSED, query);
+    glBeginQuery(GL_SAMPLES_PASSED, query);
 
-    // Peel the layer
     glUseProgram(transparentShader);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE, depthDepthTex[prev]);
+    glBindTexture(GL_TEXTURE_2D, depthDepthTex[prev]);
     glUniform1i(glGetUniformLocation(transparentShader, "DepthTex"), 0);
-    glActiveTexture(GL_TEXTURE0);
     transparentData.rendered=false; // Force copying of sorted triangles to GPU.
     drawBuffer(transparentData,transparentShader);
-    glUseProgram(0);
 
-    glEndQuery(GL_ANY_SAMPLES_PASSED);
+    glEndQuery(GL_SAMPLES_PASSED);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, depthBlendFbo);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    // Blend the layer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthFbo[2]); // TODO?
 
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFuncSeparate(GL_DST_ALPHA, GL_ONE, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
     
-    // Blend the layer
     glUseProgram(blendShader);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE, depthDepthTex[cur]);
-    glUniform1i(glGetUniformLocation(blendShader, "BlendTex"), 0);
-    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthColorTex[cur]);
+    glUniform1i(glGetUniformLocation(blendShader, "ColorTex"), 0);
     transparentData.rendered=false; // Force copying of sorted triangles to GPU.
     drawBuffer(transparentData,blendShader);
-    glUseProgram(0);
 
-    glDisable(GL_BLEND);
-
+    // Check if we need to peel any more layers
     GLuint count;
     glGetQueryObjectuiv(query, GL_QUERY_RESULT, &count);
-    if (!count) break;
+    cerr << "count: " << count << endl;
+    if (!count)
+      break;
   }
 
   // Merge with background (opaque geometry)
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-  glDrawBuffer(GL_BACK);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
-  glUseProgram(mergeShader);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDrawBuffer(GL_BACK);
+  
+  glUseProgram(blendShader);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_RECTANGLE, depthBlendTex);
-  glUniform1i(glGetUniformLocation(mergeShader, "ColorTex"), 0);
-  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, depthColorTex[2]);
+  glUniform1i(glGetUniformLocation(blendShader, "ColorTex"), 0);
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
-  drawBuffer(transparentData,mergeShader);
+  drawBuffer(transparentData,blendShader);
   glUseProgram(0);
 
-  glDepthMask(GL_TRUE);
+  // cerr << "done" << endl;
+  glDisable(GL_DEPTH_TEST);
   transparentData.clear();
 }
 
 void aBufferTransparency()
 {
-  if (!refreshBuffers()) return; // skip if there's nothing to draw
+  if (!refreshBuffers()) return; // Skip if there's nothing to draw
   // sortTriangles();
   glDepthMask(GL_FALSE); // Enable transparency
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
