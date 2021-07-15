@@ -799,7 +799,10 @@ namespace AsymptoteLsp
         {
           continue;
         }
-        optional<TRet> returnValF=getExternalRef(traverseVal)->_searchVarFull<TRet, TArg, TFn, TFn>(
+        SymbolContext* ref=getExternalRef(traverseVal);
+        if(ref == nullptr) return nullopt;
+
+        optional<TRet> returnValF=ref->_searchVarFull<TRet, TArg, TFn, TFn>(
                 searched, argSet,
                 fnLocalPredicate, fnLocalPredicate,
                 fnCreateTraverse);
@@ -869,7 +872,10 @@ namespace AsymptoteLsp
           continue;
         }
 
-        auto returnValF=getExternalRef(traverseVal)->_searchAllVarFull<TRet, TArg, TFn, TFn>(
+        SymbolContext* ref=getExternalRef(traverseVal);
+        if(ref == nullptr) return finalList;
+
+        auto returnValF=ref->_searchAllVarFull<TRet, TArg, TFn, TFn>(
                 searched, argSet,
                 fnLocalPredicate, fnLocalPredicate,
                 fnCreateTraverse);

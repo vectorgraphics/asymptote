@@ -166,7 +166,7 @@ namespace AsymptoteLsp
     [[maybe_unused]]
     shared_ptr<lsp::ProtocolJsonHandler> pjh;
     shared_ptr<GenericEndpoint> ep;
-    SymbolContext* plainCtx;
+    SymbolContext* plainCtx=NULL;
     LspLog& _log;
 
     unique_ptr<SymContextFilemap> symmapContextsPtr;
