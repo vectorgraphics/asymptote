@@ -2081,7 +2081,7 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>26</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
@@ -2095,6 +2095,7 @@ background: rgb(0, 0, 0)
      <addaction name="separator"/>
      <addaction name="actionClearRecent"/>
     </widget>
+    <addaction name="actionNewFile"/>
     <addaction name="actionOpen"/>
     <addaction name="menuOpenRecent"/>
     <addaction name="actionSave"/>
@@ -2225,6 +2226,11 @@ background: rgb(0, 0, 0)
   <action name="actionClearRecent">
    <property name="text">
     <string>Clear Menu</string>
+   </property>
+  </action>
+  <action name="actionNewFile">
+   <property name="text">
+    <string>New File</string>
    </property>
   </action>
  </widget>

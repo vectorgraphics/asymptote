@@ -432,6 +432,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionRedo.triggered.connect(lambda: self.execCustomCommand('redo'))
         self.ui.actionTransform.triggered.connect(lambda: self.execCustomCommand('transform'))
 
+        self.ui.actionNewFile.triggered.connect(self.actionNewFile)
         self.ui.actionOpen.triggered.connect(self.actionOpen)
         self.ui.actionClearRecent.triggered.connect(self.actionClearRecent)
         self.ui.actionSave.triggered.connect(self.actionSave)
@@ -985,6 +986,19 @@ class MainWindow1(Qw.QMainWindow):
     def closeEvent(self, event):
         if self.actionClose() == Qw.QMessageBox.Cancel:
             event.ignore()
+
+    def actionNewFile(self):
+        if self.fileChanged:
+            save="Save current file?"
+            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
+                                        Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.Yes:
+                self.actionSave()
+        self.erase()
+        self.asyfyCanvas(True)
+        self.filename = None
+        self.updateTitle()
+        
 
     def actionOpen(self, fileName = None):
         if self.fileChanged:
