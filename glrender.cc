@@ -504,7 +504,7 @@ void initShaders()
 
   shaderParams.push_back("TRANSPARENT");
   // TODO context switch - can do preproccessor?
-  camp::depthPeel = true;
+  camp::depthPeel = false;
   if (camp::depthPeel) {
     shaderParams.push_back("DEPTHPEEL");
     camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
