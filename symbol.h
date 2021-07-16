@@ -112,7 +112,10 @@ struct symbol {
   operator bool () const { return this->hashplus != 0; }
 
   operator string () const;
+
+#ifdef USEGC
   explicit operator std::string() const;
+#endif
 
   friend ostream& operator<< (ostream& out, const symbol sym);
 };

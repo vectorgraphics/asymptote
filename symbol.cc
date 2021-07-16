@@ -324,15 +324,17 @@ symbol::operator string () const {
   return (string)r.s;
 }
 
+#ifdef USEGC
+symbol::operator std::string () const {
+  symbolRecord &r = recordByHashplus(this->hashplus);
+  return (std::string)r.s;
+}
+#endif
+
 ostream& operator<< (ostream& out, const symbol sym)
 {
   symbolRecord &r = recordByHashplus(sym.hashplus);
   return out << r.s;
-}
-
-symbol::operator std::string() const {
-  symbolRecord &r = recordByHashplus(this->hashplus);
-  return (std::string)r.s;
 }
 
 } // end namespace sym

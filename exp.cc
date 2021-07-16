@@ -32,6 +32,7 @@ using namespace types;
 using namespace trans;
 using vm::inst;
 using mem::vector;
+using mem::stdString;
 using vm::getPos;
 
 #if 0
@@ -191,7 +192,7 @@ void nameExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   AsymptoteLsp::SymbolLit accessedName(value->getLit());
   position basePos = getPos();
   AsymptoteLsp::filePos castedPos = dynamic_cast<qualifiedName*>(value) ?
-          std::make_pair(static_cast<std::string>(basePos.filename()),
+          std::make_pair(stdString(basePos.filename()),
                          std::make_pair(basePos.Line(), basePos.Column() + 1)) :
           static_cast<AsymptoteLsp::filePos>(basePos);
 

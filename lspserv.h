@@ -82,8 +82,8 @@ namespace AsymptoteLsp
   TextDocumentHover::Either fromMarkedStr(std::vector<std::string> const& stringList,
                                           std::string const& language="asymptote");
 
-  string wslDos2Unix(std::string const& dosPath);
-  string wslUnix2Dos(std::string const& unixPath);
+  std::string wslDos2Unix(std::string const& dosPath);
+  std::string wslUnix2Dos(std::string const& unixPath);
   std::string getDocIdentifierRawPath(lsTextDocumentIdentifier const&);
 
   typedef std::unordered_map<std::string, std::unique_ptr<SymbolContext>> SymContextFilemap;

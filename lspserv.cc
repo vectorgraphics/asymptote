@@ -56,7 +56,7 @@ namespace AsymptoteLsp
     }
   };
 
-  string wslDos2Unix(std::string const& dosPath)
+std::string wslDos2Unix(std::string const& dosPath)
   {
     bool isDrivePath=false;
     char drive;
@@ -71,16 +71,16 @@ namespace AsymptoteLsp
 
     if (isDrivePath)
     {
-      stringstream sstream;
+      std::stringstream sstream;
       sstream << "/mnt/" << (char) tolower(drive) << dosPath.substr(3);
       return sstream.str();
     } else
     {
-      return string(dosPath);
+      return std::string(dosPath);
     }
   }
 
-  string wslUnix2Dos(std::string const& unixPath)
+std::string wslUnix2Dos(std::string const& unixPath)
   {
     bool isMntPath=false;
     char drive;
@@ -100,12 +100,12 @@ namespace AsymptoteLsp
 
     if (isMntPath)
     {
-      stringstream sstream;
+      std::stringstream sstream;
       sstream << "/" << (char) tolower(drive) << ":" << fullPath.substr(6);
       return sstream.str();
     } else
     {
-      return string(fullPath);
+      return std::string(fullPath);
     }
   }
 
@@ -149,8 +149,8 @@ namespace AsymptoteLsp
   std::string getDocIdentifierRawPath(lsTextDocumentIdentifier const& textDocIdentifier)
   {
     lsDocumentUri fileUri(textDocIdentifier.uri);
-    string rawPath=settings::getSetting<bool>("wsl") ?
-                   wslDos2Unix(fileUri.GetRawPath()) : string(fileUri.GetRawPath());
+    std::string rawPath=settings::getSetting<bool>("wsl") ?
+      wslDos2Unix(fileUri.GetRawPath()) : std::string(fileUri.GetRawPath());
     return static_cast<std::string>(rawPath);
   }
 
@@ -577,7 +577,7 @@ namespace AsymptoteLsp
 #pragma endregion
   void AsymptoteLspServer::reloadFile(std::string const& filename)
   {
-    string rawPath=settings::getSetting<bool>("wsl") ? wslDos2Unix(filename) : string(filename);
+    std::string rawPath=settings::getSetting<bool>("wsl") ? wslDos2Unix(filename) : std::string(filename);
     reloadFileRaw(static_cast<std::string>(rawPath));
   }
 

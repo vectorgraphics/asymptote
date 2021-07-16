@@ -63,8 +63,10 @@ public:
 
   virtual trans::tyEntry *transAsTyEntry(coenv &e, record *where);
 
-  virtual operator mem::string() const = 0;
-  virtual operator std::string() const { return static_cast<std::string>(this->operator mem::string()); }
+  virtual operator string() const = 0;
+#ifdef USEGC
+  operator std::string() const { return mem::stdString(this->operator string()); }
+#endif
 };
 
 class nameTy : public ty {
@@ -705,4 +707,3 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id);
 } // namespace absyntax
 
 #endif
-
