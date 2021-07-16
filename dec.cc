@@ -810,7 +810,7 @@ void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   if (valid)
   {
     string fullSrc(settings::locateFile(src, true));
-    if (not fullSrc.empty())
+    if (not fullSrc.empty() && fullSrc != "settings")
     {
       symContext->addEmptyExtRef(static_cast<std::string>(fullSrc));
     }
@@ -917,7 +917,11 @@ fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
 
 void unraveldec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  symContext->extRefs.addUnravelVal(static_cast<std::string>(id->getName()));
+  std::string fileName = static_cast<std::string>(id->getName());
+  if (fileName != "settings")
+  {
+    symContext->extRefs.addUnravelVal(std::move(fileName));
+  }
 }
 
 void fromaccessdec::prettyprint(ostream &out, Int indent)
@@ -1000,8 +1004,11 @@ void includedec::transAsField(coenv &e, record *r)
 void includedec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
   std::string fullname(settings::locateFile(filename, true));
-  symContext->addEmptyExtRef(fullname);
-  symContext->extRefs.includeVals.emplace(fullname);
+  if (fullname != "settings")
+  {
+    symContext->addEmptyExtRef(fullname);
+    symContext->extRefs.includeVals.emplace(fullname);
+  }
 }
 
 
