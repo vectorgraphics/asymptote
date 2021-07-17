@@ -189,7 +189,8 @@ std::string wslUnix2Dos(std::string const& unixPath)
                 filename,
                 std::make_unique<SymbolContext>(posInFile(1, 1), filename));
         block* blk=ifile(mem::string(filename)).getTree();
-        blk->createSymMap(fit->second.get()); // parse symbol from there.
+        if(blk != nullptr)
+          blk->createSymMap(fit->second.get()); // parse symbol from there.
 
         // set plain.asy to plain
         if (plainCtx != nullptr)
