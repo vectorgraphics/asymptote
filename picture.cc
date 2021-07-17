@@ -922,11 +922,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   }
 
   bool svgformat=outputformat == "svg";
+  bool png=outputformat == "png";
 
   string texengine=getSetting<string>("tex");
   string texengineSave;
-
-  if(!empty && svgformat && texengine == "latex" && havepng()) {
+  if(!empty && texengine == "latex" && ((svgformat && havepng()) || png)) {
     texengineSave=texengine;
     Setting("tex")=texengine="pdflatex";
   }
@@ -955,7 +955,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
   bool Labels=labels || TeXmode;
 
-  if(outputformat == "png" && (b.right-b.left < 1.0 || b.top-b.bottom < 1.0))
+  if(png && (b.right-b.left < 1.0 || b.top-b.bottom < 1.0))
     empty=true;
 
   if(empty && !Labels) { // Output a null file
@@ -970,7 +970,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
                        epsformat,false);
   }
 
-  Labels |= svg;
+  if(svg || png)
+    Labels=true;
 
   if(Labels)
     prefix=cleanpath(prefix);
