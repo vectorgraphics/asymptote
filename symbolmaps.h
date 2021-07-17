@@ -800,16 +800,17 @@ namespace AsymptoteLsp
         {
           continue;
         }
-        SymbolContext* ref=getExternalRef(traverseVal);
-        if(ref == nullptr) return nullopt;
 
-        optional<TRet> returnValF=ref->_searchVarFull<TRet, TArg, TFn, TFn>(
-                searched, argSet,
-                fnLocalPredicate, fnLocalPredicate,
-                fnCreateTraverse);
-        if (returnValF.has_value())
+        if (SymbolContext* ref=getExternalRef(traverseVal))
         {
-          return returnValF;
+          optional<TRet> returnValF = ref->_searchVarFull<TRet, TArg, TFn, TFn>(
+                  searched, argSet,
+                  fnLocalPredicate, fnLocalPredicate,
+                  fnCreateTraverse);
+          if (returnValF.has_value())
+          {
+            return returnValF;
+          }
         }
       }
       return nullopt;
@@ -873,15 +874,15 @@ namespace AsymptoteLsp
           continue;
         }
 
-        SymbolContext* ref=getExternalRef(traverseVal);
-        if(ref == nullptr) return finalList;
+        if (SymbolContext* ref=getExternalRef(traverseVal))
+        {
+          auto returnValF=ref->_searchAllVarFull<TRet, TArg, TFn, TFn>(
+                  searched, argSet,
+                  fnLocalPredicate, fnLocalPredicate,
+                  fnCreateTraverse);
 
-        auto returnValF=ref->_searchAllVarFull<TRet, TArg, TFn, TFn>(
-                searched, argSet,
-                fnLocalPredicate, fnLocalPredicate,
-                fnCreateTraverse);
-
-        finalList.splice(finalList.end(), std::move(returnValF));
+          finalList.splice(finalList.end(), std::move(returnValF));
+        }
       }
       return finalList;
     }
