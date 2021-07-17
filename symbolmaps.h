@@ -114,6 +114,7 @@ namespace AsymptoteLsp
   }
 
   std::string getPlainFile();
+  bool isVirtualFile(std::string const& filename);
 
   // filename to positions
   struct positions

@@ -5,6 +5,18 @@
 
 namespace AsymptoteLsp
 {
+  [[nodiscard]]
+  bool isVirtualFile(std::string const& filename)
+  {
+    bool isSettings=filename=="settings";
+#ifdef HAVE_LIBGSL
+    bool isGSL=filename=="gsl" and settings::getSetting<bool>("gsl");
+#else
+    bool isGSL=false;
+#endif
+    return isSettings || isGSL;
+  }
+
   std::string getPlainFile()
   {
     return std::string(settings::locateFile("plain", true));

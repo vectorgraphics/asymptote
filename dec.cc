@@ -806,23 +806,25 @@ void idpair::transAsUnravel(coenv &e, record *r,
 
 void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-
   if (valid)
   {
     string fullSrc(settings::locateFile(src, true));
-    if (not fullSrc.empty() && fullSrc != "settings")
+    if (not AsymptoteLsp::isVirtualFile(static_cast<std::string>(fullSrc)))
     {
-      symContext->addEmptyExtRef(static_cast<std::string>(fullSrc));
-    }
+      if (not fullSrc.empty())
+      {
+        symContext->addEmptyExtRef(static_cast<std::string>(fullSrc));
+      }
 
-    // add (dest, source) to reference map.
-    auto[it, success] = symContext->extRefs.fileIdPair.emplace(dest, fullSrc);
-    if (not success)
-    {
-      it->second=static_cast<std::string>(fullSrc);
-    }
+      // add (dest, source) to reference map.
+      auto[it, success] = symContext->extRefs.fileIdPair.emplace(dest, fullSrc);
+      if (not success)
+      {
+        it->second = static_cast<std::string>(fullSrc);
+      }
 
-    symContext->extRefs.addAccessVal(static_cast<std::string>(dest));
+      symContext->extRefs.addAccessVal(static_cast<std::string>(dest));
+    }
   }
 }
 
@@ -918,9 +920,9 @@ fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
 void unraveldec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
   std::string fileName = static_cast<std::string>(id->getName());
-  if (fileName != "settings")
+  if (not AsymptoteLsp::isVirtualFile(fileName))
   {
-    symContext->extRefs.addUnravelVal(std::move(fileName));
+    symContext->extRefs.addUnravelVal(fileName);
   }
 }
 
@@ -1004,7 +1006,7 @@ void includedec::transAsField(coenv &e, record *r)
 void includedec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
   std::string fullname(settings::locateFile(filename, true));
-  if (fullname != "settings")
+  if (not AsymptoteLsp::isVirtualFile(fullname))
   {
     symContext->addEmptyExtRef(fullname);
     symContext->extRefs.includeVals.emplace(fullname);
