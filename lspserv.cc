@@ -185,13 +185,17 @@ std::string wslUnix2Dos(std::string const& unixPath)
       }
       else
       {
+        block* blk=ifile(mem::string(filename)).getTree();
         auto[fit, success] = symmapContextsPtr->emplace(
                 filename,
                 std::make_unique<SymbolContext>(posInFile(1, 1), filename));
-        block* blk=ifile(mem::string(filename)).getTree();
-        if(blk != nullptr)
-          blk->createSymMap(fit->second.get()); // parse symbol from there.
+        if(blk == nullptr)
+        {
+          // dead end. file cannot be parsed. no new paths.
+          continue;
+        }
 
+        blk->createSymMap(fit->second.get()); // parse symbol from there.
         // set plain.asy to plain
         if (plainCtx != nullptr)
         {
