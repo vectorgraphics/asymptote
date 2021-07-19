@@ -127,7 +127,7 @@
             </property>
             <property name="icon">
              <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/android-arrow-back.svg</normaloff>:/icons/android-arrow-back.svg</iconset>
+              <normaloff>:/icons/undo.svg</normaloff>:/icons/undo.svg</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -171,7 +171,7 @@
             </property>
             <property name="icon">
              <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/android-arrow-forward.svg</normaloff>:/icons/android-arrow-forward.svg</iconset>
+              <normaloff>:/icons/redo.svg</normaloff>:/icons/redo.svg</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -1881,6 +1881,44 @@ background: rgb(0, 0, 0)
                   </property>
                  </widget>
                 </item>
+                <item row="12" column="0">
+                 <widget class="QPushButton" name="btnAddFreehand">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Freehand&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../res/icons.qrc">
+                    <normaloff>:/icons/brush.svg</normaloff>:/icons/brush.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
                </layout>
               </widget>
              </item>
@@ -2043,14 +2081,23 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>26</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="menuOpenRecent">
+     <property name="title">
+      <string>Open Recent</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionClearRecent"/>
+    </widget>
+    <addaction name="actionNewFile"/>
     <addaction name="actionOpen"/>
+    <addaction name="menuOpenRecent"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
     <addaction name="actionExportAsymptote"/>
@@ -2174,6 +2221,16 @@ background: rgb(0, 0, 0)
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
+   </property>
+  </action>
+  <action name="actionClearRecent">
+   <property name="text">
+    <string>Clear Menu</string>
+   </property>
+  </action>
+  <action name="actionNewFile">
+   <property name="text">
+    <string>New File</string>
    </property>
   </action>
  </widget>

@@ -121,7 +121,6 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         canvas.drawPath(self.asyPath.toQPainterPath())
 
-        self.asyPath.fill=True;
         nodePen = QtGui.QPen(QtGui.QColor('blue'))
         nodePen.setWidthF(1/self.info['magnification'])
 

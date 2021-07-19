@@ -18,6 +18,7 @@ import tempfile
 import datetime
 import string
 import atexit
+import pickle
 
 import xasyUtils as xu
 import xasy2asy as x2a
@@ -50,7 +51,6 @@ class TransformationChanges(ActionChanges):
         self.transformation = transformation
         self.isLocal = isLocal
 
-
 class ObjCreationChanges(ActionChanges):
     def __init__(self, obj):
         self.object = obj
@@ -59,6 +59,11 @@ class HardDeletionChanges(ActionChanges):
     def __init__(self, obj, pos):
         self.item = obj
         self.objIndex = pos
+
+class SoftDeletionChanges(ActionChanges):
+    def __init__(self, obj, keyPos):
+        self.item = obj
+        self.keyMap = keyPos
 
 class AnchorMode:
     center = 0
@@ -100,6 +105,7 @@ class MainWindow1(Qw.QMainWindow):
     """
 
     def __init__(self):
+        self.testingActions = []
         super().__init__()
         self.ui = Ui_MainWindow()
         global devicePixelRatio
@@ -109,6 +115,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.settings = xo.BasicConfigs.defaultOpt
         self.keyMaps = xo.BasicConfigs.keymaps
+        self.openRecent = xo.BasicConfigs.openRecent
 
         self.raw_args = Qc.QCoreApplication.arguments()
         self.args = xa.parseArgs(self.raw_args)
@@ -177,7 +184,7 @@ class MainWindow1(Qw.QMainWindow):
         self.scaleFactor = 1
         self.panOffset = [0, 0]
 
-        # Keyboard can focus outside fo textboxes 
+        # Keyboard can focus outside of textboxes 
         self.setFocusPolicy(Qc.Qt.StrongFocus)
 
         super().setMouseTracking(True)
@@ -298,6 +305,7 @@ class MainWindow1(Qw.QMainWindow):
         # from xasyoptions config file
         self.loadKeyMaps()
         self.setupXasyOptions()
+        self.populateOpenRecent()
 
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
@@ -424,7 +432,9 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionRedo.triggered.connect(lambda: self.execCustomCommand('redo'))
         self.ui.actionTransform.triggered.connect(lambda: self.execCustomCommand('transform'))
 
+        self.ui.actionNewFile.triggered.connect(self.actionNewFile)
         self.ui.actionOpen.triggered.connect(self.actionOpen)
+        self.ui.actionClearRecent.triggered.connect(self.actionClearRecent)
         self.ui.actionSave.triggered.connect(self.actionSave)
         self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
         self.ui.actionManual.triggered.connect(self.actionManual)
@@ -474,7 +484,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAnchor.clicked.connect(self.btnAnchorModeOnClick)
 
         self.ui.btnSelectColor.clicked.connect(self.btnColorSelectOnClick)
-        self.ui.txtLineWidth.textEdited.connect(self.txtLineWithEdited)
+        self.ui.txtLineWidth.textEdited.connect(self.txtLineWidthEdited)
 
         # self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
         self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
@@ -482,6 +492,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
+        self.ui.btnAddFreehand.clicked.connect(self.btnAddFreehand)
         # self.ui.btnAddBezierInplace.clicked.connect(self.btnAddBezierInplaceOnClick)
         self.ui.btnClosedCurve.clicked.connect(self.btnAddClosedCurveOnClick)
         self.ui.btnOpenCurve.clicked.connect(self.btnAddOpenCurveOnClick)
@@ -642,6 +653,13 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.statusbar.showMessage('')
         self.updateOptionWidget()
 
+    def btnAddFreehand(self):
+        self.currAddOptions['useBezier'] = False
+        self.currAddOptions['closedPath'] = False
+        self.ui.statusbar.showMessage("Draw Freehand.")
+        self.addMode = InplaceAddObj.AddFreehand(self)
+        self.updateOptionWidget()
+
     def updateCurve(self, valid, newCurve):
         self.previewCurve = newCurve
         self.quickUpdate()
@@ -672,7 +690,11 @@ class MainWindow1(Qw.QMainWindow):
             parent = selectedObj.parent()
 
             if isinstance(parent, x2a.xasyScript):
-                self.hiddenKeys.add((selectedObj.key, selectedObj.keyIndex))
+                objKey=(selectedObj.key, selectedObj.keyIndex)
+                self.hiddenKeys.add(objKey)
+                self.undoRedoStack.add(self.createAction(
+                    SoftDeletionChanges(selectedObj.parent(), objKey)
+                    ))
                 self.softDeleteObj((maj, minor))
             else:
                 index = self.fileItems.index(selectedObj.parent())
@@ -680,10 +702,10 @@ class MainWindow1(Qw.QMainWindow):
                 self.undoRedoStack.add(self.createAction(
                     HardDeletionChanges(selectedObj.parent(), index)
                 ))
-                self.checkUndoRedoButtons()
                 
                 self.fileItems.remove(selectedObj.parent())
 
+            self.checkUndoRedoButtons()
             self.fileChanged = True
             self.clearSelection()
             self.asyfyCanvas()
@@ -716,8 +738,16 @@ class MainWindow1(Qw.QMainWindow):
 
 
     def btnUndoOnClick(self):
-        self.undoRedoStack.undo()
-        self.checkUndoRedoButtons()
+        if self.currentlySelectedObj['selectedIndex'] is not None:
+            # avoid deleting currently selected object 
+            maj, minor = self.currentlySelectedObj['selectedIndex']
+            selectedObj = self.drawObjects[maj][minor]
+            if selectedObj != self.drawObjects[-1][0]:
+                self.undoRedoStack.undo()
+                self.checkUndoRedoButtons()
+        else:                
+            self.undoRedoStack.undo()
+            self.checkUndoRedoButtons()
 
     def btnRedoOnClick(self):
         self.undoRedoStack.redo()
@@ -738,6 +768,10 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.pop()
         elif isinstance(change, HardDeletionChanges):
             self.fileItems.insert(change.objIndex, change.item)
+        elif isinstance(change, SoftDeletionChanges):
+            key, keyIndex = change.keyMap
+            self.hiddenKeys.remove((key, keyIndex))
+            change.item.transfKeymap[key][keyIndex].deleted = False
         self.asyfyCanvas()
 
     def handleRedoChanges(self, change):
@@ -749,6 +783,10 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.append(change.object)
         elif isinstance(change, HardDeletionChanges):
             self.fileItems.remove(change.item)
+        elif isinstance(change, SoftDeletionChanges):
+            key, keyIndex = change.keyMap
+            self.hiddenKeys.add((key, keyIndex))
+            change.item.transfKeymap[key][keyIndex].deleted = True
         self.asyfyCanvas()
 
     #  is this a "pythonic" way?
@@ -762,7 +800,6 @@ class MainWindow1(Qw.QMainWindow):
         return Urs.action((_change, _undoChange))
 
     def execCustomCommand(self, command):
-        # print(f"The following command was used: {command}")
         if command in self.commandsFunc:
             self.commandsFunc[command]()
         else:
@@ -773,8 +810,9 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.execCustomCommand(commandText)
 
-    def addItemFromPath(self, path):
-        newItem = x2a.xasyShape(path, self.asyEngine, pen=self.currentPen)
+    def addItemFromPath(self, path, transform = x2a.identity(), key = None):
+        newItem = x2a.xasyShape(path, self.asyEngine, pen=self.currentPen, transform = transform)
+        newItem.setKey(key)
         self.fileItems.append(newItem)
         self.fileChanged = True
         self.asyfyCanvas()
@@ -850,6 +888,72 @@ class MainWindow1(Qw.QMainWindow):
                 asy.stdin.close()
                 asy.wait(timeout=35)
 
+    def actionExportXasy(self, file):
+        fileItems = []
+        xasyItems = []
+        for item in self.fileItems:
+            if isinstance(item, x2a.xasyScript):
+                # reusing xasyFile code for objects 
+                # imported from asy script.
+                xasyItems.append({'item':item, 'type': 'xasyScript'})
+
+            elif isinstance(item, x2a.xasyText):
+                # At the moment xasyText cannot be edited
+                # so we treat it the same as xasyScript
+                xasyItems.append({'item':item, 'type': 'xasyText'})
+
+            elif isinstance(item, x2a.xasyShape):
+                fileItems.append({'type': 'xasyShape', 
+                        'nodes': item.path.nodeSet, 
+                        'links': item.path.linkSet,
+                        'transform': item.transfKeymap[item.transfKey][0].t,
+                        'transfKey': item.transfKey
+                        })
+
+            else:
+                # DEBUGGING PURPOSES ONLY
+                print(type(item))
+
+        if xasyItems:
+            # TODO: Differentiate between xasyText and xasyScript
+            rawXasyItems = [item['item'] for item in xasyItems]
+            rawText = xf.xasy2asyCode(rawXasyItems, self.asy2psmap)
+            fileItems.append({'type': 'xasyScript', 
+                        'rawText': rawText
+                        })
+
+        openFile = open(file, 'wb')
+        pickle.dump(fileItems, openFile)
+        openFile.close()
+        
+    def actionLoadXasy(self, file):
+        self.erase()
+        self.ui.statusbar.showMessage('Load {0}'.format(file))
+        self.filename = file
+        self.currDir = os.path.dirname(self.filename)
+
+        input_file = open(file, 'rb')
+        new_dict = pickle.load(input_file)
+        input_file.close()
+        for item in new_dict:
+            if item['type'] == 'xasyScript':
+                rawText, transfDict, maxKey = xf.extractTransformsFromFile(item['rawText'])
+                obj = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
+                obj.setScript(rawText)
+                self.fileItems.append(obj)
+   
+            elif item['type'] == 'xasyShape':
+                nodeSet = item['nodes']
+                linkSet = item['links']
+                path = x2a.asyPath(self.asyEngine)
+                path.initFromNodeList(nodeSet, linkSet)
+                self.addItemFromPath(path, transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
+            else:
+                print("ERROR")
+
+        self.asyfyCanvas(True)
+                
+
 
     def loadKeyMaps(self):
         """Inverts the mapping of the key
@@ -873,42 +977,109 @@ class MainWindow1(Qw.QMainWindow):
 
     def erase(self):
         self.fileItems.clear()
+        self.hiddenKeys.clear()
+        self.undoRedoStack.clear()
+        self.checkUndoRedoButtons()
         self.fileChanged = False
 
     #We include this function to keep the general program flow consistent
     def closeEvent(self, event):
-        self.actionClose()
+        if self.actionClose() == Qw.QMessageBox.Cancel:
+            event.ignore()
 
-    def actionOpen(self):
+    def actionNewFile(self):
         if self.fileChanged:
             save="Save current file?"
             reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
                                         Qw.QMessageBox.No)
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
+        self.erase()
+        self.asyfyCanvas(True)
+        self.filename = None
+        self.updateTitle()
+        
 
-        filename = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File','', '*.asy')
-        if filename[0]:
-            self.loadFile(filename[0])
+    def actionOpen(self, fileName = None):
+        if self.fileChanged:
+            save="Save current file?"
+            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
+                                        Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.Yes:
+                self.actionSave()
+        if fileName:
+            _, file_extension = os.path.splitext(fileName)
+            if file_extension == '.asy':
+                self.loadFile(fileName)
+            elif file_extension == '.xasy':
+                self.actionLoadXasy(fileName)
+            else:
+                print("ERROR: file extension not supported.")
+            self.populateOpenRecent(fileName)
+        else:
+            filename = Qw.QFileDialog.getOpenFileName(self, 'Open Xasy/Asymptote File','', '(*.xasy *.asy)')
+            if filename[0]:
+                _, file_extension = os.path.splitext(filename[0])
+                if file_extension == '.asy':
+                    self.loadFile(filename[0])
+                elif file_extension == '.xasy':
+                    self.actionLoadXasy(filename[0])
+                else:
+                    print("ERROR: file extension not supported.")
+        
+            self.populateOpenRecent(filename[0].strip())
+    
+    def actionClearRecent(self):
+        self.ui.menuOpenRecent.clear()
+        self.openRecent.clear()
+        self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
+
+    def populateOpenRecent(self, recentOpenedFile = None):
+        self.ui.menuOpenRecent.clear()
+        if recentOpenedFile:
+            self.openRecent.insert(recentOpenedFile)
+        for count, path in enumerate(self.openRecent.pathList):
+            if count > 8:
+                break
+            action = Qw.QAction(path, self, triggered = lambda state, path = path: self.actionOpen(fileName = path))
+            self.ui.menuOpenRecent.addAction(action)
+        self.ui.menuOpenRecent.addSeparator()
+        self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
 
     def actionClose(self):
         if self.fileChanged:
             save="Save current file?"
-            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
-                                        Qw.QMessageBox.No)
+            replyBox = Qw.QMessageBox()
+            replyBox.setText("Save current file?")
+            replyBox.setWindowTitle("Message")
+            replyBox.setStandardButtons(Qw.QMessageBox.Yes | Qw.QMessageBox.No | Qw.QMessageBox.Cancel)
+            reply = replyBox.exec()
+
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
                 Qc.QCoreApplication.quit()
-        Qc.QCoreApplication.quit()
+            elif reply == Qw.QMessageBox.No:
+                Qc.QCoreApplication.quit()
+            else:
+                return reply
 
     def actionSave(self):
         if self.filename is None:
             self.actionSaveAs()
+            
         else:
-            saveFile = io.open(self.filename, 'w')
-            xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
-            saveFile.close()
+            _, file_extension = os.path.splitext(self.filename)
+            if file_extension == ".asy":
+                saveFile = io.open(self.filename, 'w')
+                xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
+                saveFile.close()
+            elif file_extension == ".xasy":
+                self.actionExportXasy(self.filename)
+            else:
+                print("ERROR: file extension not supported")
             self.updateScript()
+            self.fileChanged = False
+            self.updateTitle()
 
     def updateScript(self):
         for item in self.fileItems:
@@ -918,13 +1089,22 @@ class MainWindow1(Qw.QMainWindow):
                     item.updatedCode = None
 
     def actionSaveAs(self):
-        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File')[0]
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', str(self.filename), "Xasy File (*.xasy);; Asymptote File (*.asy)")[0]
         if saveLocation:
-            saveFile = io.open(saveLocation, 'w')
-            xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
-            saveFile.close()
+            _, file_extension = os.path.splitext(saveLocation)
+            if file_extension == ".asy":
+                saveFile = io.open(saveLocation, 'w')
+                xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
+                saveFile.close()
+            elif file_extension == ".xasy":
+                self.actionExportXasy(saveLocation)
+            else:
+                print("ERROR: file extension not supported")
             self.filename = saveLocation
             self.updateScript()
+            self.fileChanged = False
+            self.updateTitle()
+            self.populateOpenRecent(saveLocation)
             
 
     def btnQuickScreenshotOnClick(self):
@@ -958,7 +1138,7 @@ class MainWindow1(Qw.QMainWindow):
             self._currentPen.setColorFromQColor(self.colorDialog.selectedColor())
             self.updateFrameDispColor()
 
-    def txtLineWithEdited(self, text):
+    def txtLineWidthEdited(self, text):
         new_val = xu.tryParse(text, float)
         if new_val is not None:
             if new_val > 0:
@@ -1149,8 +1329,7 @@ class MainWindow1(Qw.QMainWindow):
         keyModifiers = keyModifiers | defaultModifiers
         if keyModifiers & int(Qc.Qt.ControlModifier):
             oldMag = self.magnification
-
-            factor=0.5/devicePixelRatio;
+            factor = 0.5/devicePixelRatio
             cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
             centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
 
@@ -1455,15 +1634,19 @@ class MainWindow1(Qw.QMainWindow):
         self.coordLabel.setText('{0:.2f}, {1:.2f}    '.format(nx, ny))
 
     def quickUpdate(self):
+        # TODO: Some documentation here would be nice since this is one of the
+        # main functions that gets called everywhere.
         self.updateMouseCoordLabel()
         self.refreshCanvas()
 
-        self.preDraw(self.mainCanvas)
+        self.preDraw(self.mainCanvas) # coordinates/background
         self.quickDraw()
 
         self.mainCanvas.end()
         self.postDraw()
         self.updateScreen()
+
+        self.updateTitle()
 
     def quickDraw(self):
         assert self.isReady()
@@ -1499,6 +1682,18 @@ class MainWindow1(Qw.QMainWindow):
                     activeItem.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas, dpi=dpi)
                 activeItem = None
 
+    def updateTitle(self):
+        # TODO: Undo redo doesn't update appropriately. Have to find a fix for this.
+        title = ''
+        if self.filename:
+            fileName = os.path.basename(self.filename)
+            title += fileName
+        else:
+            title += "[Not Saved]"
+        if self.fileChanged:
+            title += ' *'
+        self.setWindowTitle(title)
+        
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
         self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
@@ -1527,6 +1722,7 @@ class MainWindow1(Qw.QMainWindow):
         for x in np.arange(0, 2 * x_range + 1, majorGrid):  # have to do
             # this in two stages...
             preCanvas.setPen(minorGridCol)
+            self.makePenCosmetic(preCanvas)
             for xMinor in range(1, minorGridCount + 1):
                 xCoord = x + ((xMinor / (minorGridCount + 1)) * majorGrid)
                 preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
@@ -1534,17 +1730,20 @@ class MainWindow1(Qw.QMainWindow):
 
         for y in np.arange(0, 2 * y_range + 1, majorGrid):
             preCanvas.setPen(minorGridCol)
+            self.makePenCosmetic(preCanvas)
             for yMinor in range(1, minorGridCount + 1):
                 yCoord = y + ((yMinor / (minorGridCount + 1)) * majorGrid)
                 preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
                 preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
 
             preCanvas.setPen(majorGridCol)
+            self.makePenCosmetic(preCanvas)
             preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
             preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
 
         for x in np.arange(0, 2 * x_range + 1, majorGrid):
             preCanvas.setPen(majorGridCol)
+            self.makePenCosmetic(preCanvas)
             preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
             preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
 
@@ -1593,6 +1792,7 @@ class MainWindow1(Qw.QMainWindow):
 
         if self.drawAxes:
             preCanvas.setPen(Qc.Qt.gray)
+            self.makePenCosmetic(preCanvas)
             preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
             preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
 
@@ -1622,6 +1822,7 @@ class MainWindow1(Qw.QMainWindow):
             painter.save()
             maj, minor = self.currentlySelectedObj['selectedIndex']
             selObj = self.drawObjects[maj][minor]
+            self.makePenCosmetic(painter)
             if not self.useGlobalCoords:
                 painter.save()
                 painter.setTransform(
@@ -1646,6 +1847,7 @@ class MainWindow1(Qw.QMainWindow):
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
             postCanvas.setRenderHints(self.mainCanvas.renderHints())
             postCanvas.setTransform(self.getScrsTransform())
+            # self.makePenCosmetic(postCanvas)
 
             self.drawTransformPreview(postCanvas)
 
@@ -1831,6 +2033,7 @@ class MainWindow1(Qw.QMainWindow):
         self.asyfyCanvas()
 
         self.globalObjectCounter = self.globalObjectCounter + 1
+
     def softDeleteObj(self, objKey):
         maj, minor = objKey
         drawObj = self.drawObjects[maj][minor]
@@ -1957,3 +2160,8 @@ class MainWindow1(Qw.QMainWindow):
         self.itemCount = 0
         for item in self.fileItems:
             self.drawObjects.append(item.generateDrawObjects(forceUpdate))
+
+    def makePenCosmetic(self, painter):
+        localPen = painter.pen()
+        localPen.setCosmetic(True)
+        painter.setPen(localPen)

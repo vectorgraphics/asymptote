@@ -937,16 +937,14 @@ class xasyItem(QtCore.QObject):
     def handleImageReception(self, file, fileformat, bbox, count, key = None, localCount = 0, containsClip = False):
         """ Receive an image from an asy deconstruction. It replaces the default n asyProcess """
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
-        if fileformat == 'png':
-            image = QtGui.QImage(file)
-        elif fileformat == 'svg':
+        if fileformat == 'svg':
             if containsClip:
                 image = xs.SvgObject(self.asyengine.tempDirName+file)
             else:
                 image = QtSvg.QSvgRenderer(file)
                 assert image.isValid()
         else:
-            raise Exception('Format not supported!')
+            raise Exception('Format {} not supported!'.format(fileformat))
         self.imageList.append(asyImage(image, fileformat, bbox, transfKey = key, keyIndex = localCount))
         if self.onCanvas is not None:
             # self.imageList[-1].iqt = ImageTk.PhotoImage(image)
@@ -1067,7 +1065,7 @@ class xasyItem(QtCore.QObject):
             print(raw_text.strip())
 
         # template=AsyTempDir+"%d_%d.%s"
-        fileformat = 'svg'
+        fileformat = 'svg' #This fixes the file output type.
 
         while raw_text != "Done\n" and raw_text != "Error\n":
 #            print(raw_text)
@@ -1450,7 +1448,7 @@ class xasyScript(xasyItem):
                     writeval = list(reversed(val))
                     # need to map all transforms in a list if there is any non-identity
                     # unfortunately, have to check all transformations in the list.
-                    while not all(checktransf == identity() for checktransf in writeval) and writeval:
+                    while not all((checktransf == identity() and not checktransf.deleted) for checktransf in writeval) and writeval:
                         transf = writeval.pop()
                         if transf.deleted:
                             rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)) + '\n//')
@@ -1689,18 +1687,29 @@ class DrawObject(QtCore.QObject):
     @property
     def boundingBox(self):
         if self.explicitBoundingBox is not None:
-            testBbox = self.explicitBoundingBox
+            tempItem = self.baseTransform.toQTransform().mapRect(self.explicitBoundingBox)
+            testBbox = self.getScreenTransform().toQTransform().mapRect(tempItem)
+        elif isinstance(self.drawObject, QtGui.QPainterPath):
+            tempItem = self.baseTransform.toQTransform().map(self.drawObject)
+            testBbox = self.getScreenTransform().toQTransform().map(tempItem).boundingRect()
         else:
-            if isinstance(self.drawObject, QtGui.QImage):
-                testBbox = self.drawObject.rect()
-                testBbox.moveTo(self.btmRightAnchor.toPoint())
-            elif isinstance(self.drawObject, QtGui.QPainterPath):
-                testBbox = self.baseTransform.toQTransform().mapRect(self.drawObject.boundingRect())
-            else:
-                raise TypeError('drawObject is not a valid type!')
-        pointList = [self.getScreenTransform().toQTransform().map(point) for point in [
-            testBbox.topLeft(), testBbox.topRight(), testBbox.bottomLeft(), testBbox.bottomRight()
-        ]]
+            raise TypeError('drawObject is not a valid type!')
+        
+        if self.pen is not None:
+            lineWidth = self.pen.width
+            const = lineWidth/2
+            bl = QtCore.QPointF(-const, const)
+            br = QtCore.QPointF(const, const)
+            tl = QtCore.QPointF(-const, -const)
+            tr = QtCore.QPointF(const, -const)
+
+            pointList = [testBbox.topLeft(), testBbox.topRight(), testBbox.bottomLeft(), testBbox.bottomRight()
+            ]
+
+        else:
+            pointList = [testBbox.topLeft(), testBbox.topRight(), testBbox.bottomLeft(), testBbox.bottomRight()
+            ]
+
         return QtGui.QPolygonF(pointList).boundingRect()
 
     @property
@@ -1711,6 +1720,7 @@ class DrawObject(QtCore.QObject):
 
     def getScreenTransform(self):
         scrTransf = self.baseTransform.toQTransform().inverted()[0] * self.pTransform.toQTransform()
+        # print(asyTransform.fromQTransform(scrTransf).t)
         return asyTransform.fromQTransform(scrTransf)
 
     def draw(self, additionalTransformation = None, applyReverse = False, canvas: QtGui.QPainter = None, dpi = 300):
@@ -1724,7 +1734,9 @@ class DrawObject(QtCore.QObject):
         canvas.save()
         if self.pen:
             oldPen = QtGui.QPen(canvas.pen())
-            canvas.setPen(self.pen.toQPen())
+            localPen = self.pen.toQPen()
+            # localPen.setCosmetic(True)
+            canvas.setPen(localPen) #this fixes the object but not the box
         else:
             oldPen = QtGui.QPen()
 
@@ -1737,9 +1749,7 @@ class DrawObject(QtCore.QObject):
 
         canvas.setTransform(self.baseTransform.toQTransform().inverted()[0], True)
 
-        if isinstance(self.drawObject, QtGui.QImage):
-            canvas.drawImage(self.explicitBoundingBox, self.drawObject)
-        elif isinstance(self.drawObject, xs.SvgObject):
+        if isinstance(self.drawObject, xs.SvgObject):
             threshold = 1.44
 
             if self.cachedDPI is None or self.cachedSvgImg is None \

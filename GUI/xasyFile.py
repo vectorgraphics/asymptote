@@ -71,13 +71,16 @@ def extractTransformsFromFile(fileStr):
         final_str = rawCode.getvalue()
     return final_str, transfDict, maxItemCount
 
+def xasy2asyCode(xasyItems, asy2psmap):
+    asyCode = ''
+    for item in xasyItems:
+        asyCode += item.getTransformCode(asy2psmap)
+    for item in xasyItems:
+        asyCode += item.getObjectCode(asy2psmap)
+    
+    asyCode += 'size('+str(asy2psmap*xasy2asy.yflip())+'); '+ xasy2asy.xasyItem.resizeComment+'\n'
+    return asyCode
 
 def saveFile(file, xasyItems, asy2psmap):
     """Write a list of xasyItems to a file"""
-    for item in xasyItems:
-        file.write(item.getTransformCode(asy2psmap))
-
-    for item in xasyItems:
-        file.write(item.getObjectCode(asy2psmap))
-
-    file.write('size('+str(asy2psmap*xasy2asy.yflip())+'); '+ xasy2asy.xasyItem.resizeComment+'\n')
+    file.write(xasy2asyCode(xasyItems, asy2psmap))
