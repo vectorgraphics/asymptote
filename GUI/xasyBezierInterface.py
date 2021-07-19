@@ -260,8 +260,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         if self.inTransformMode:
             index, subindex = self.currentSelIndex
-            deltaPos = pos - self.lastSelPoint
-            newNode = (pos.x(), pos.y())
+            newNode = (self.transf.inverted().toQTransform().map(pos.x(), pos.y()))
             if self.currentSelMode == CurrentlySelctedType.node:
                 # static throughout the moving
                 if self.asyPath.nodeSet[index] == 'cycle':
