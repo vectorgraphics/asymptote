@@ -596,7 +596,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnAddCircleOnClick(self):
         self.addMode = InplaceAddObj.AddCircle(self)
-        self.ui.statusbar.showMessage('')
+        self.ui.statusbar.showMessage('Add circle on click')
         self.updateOptionWidget()
 
     LegacyHint='Click and drag to draw; right click or space bar to finalize'
@@ -645,12 +645,12 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnAddPolyOnClick(self):
         self.addMode = InplaceAddObj.AddPoly(self)
-        self.ui.statusbar.showMessage('')
+        self.ui.statusbar.showMessage('Add polygon on click')
         self.updateOptionWidget()
 
     def btnAddLabelOnClick(self):
         self.addMode = InplaceAddObj.AddLabel(self)
-        self.ui.statusbar.showMessage('')
+        self.ui.statusbar.showMessage('Add label on click')
         self.updateOptionWidget()
 
     def btnAddFreehand(self):
@@ -1482,6 +1482,7 @@ class MainWindow1(Qw.QMainWindow):
             self.currentModeStack[-1] = SelectionMode.selectEdit
             self.fileChanged = True
         else:
+            self.ui.statusbar.showMessage('Warning: Selected object cannot be edited')
             self.clearSelection()
         self.quickUpdate()
 
