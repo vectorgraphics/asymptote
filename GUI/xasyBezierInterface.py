@@ -49,6 +49,10 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.prosectiveNodes = []
         self.prospectiveCtrlPts = []
 
+        #The magnification isn't being set. Here I'm manually setting it to be the square root of the determinant.
+        self.info['magnification'] = math.sqrt(self.transf.xx * self.transf.yy - self.transf.xy * self.transf.yx)
+        print(self.info['magnification'])
+
     def setSelectionBoundaries(self):
         self.nodeSelRects = self.handleNodeSelectionBounds()
 
@@ -101,11 +105,12 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         return ctrlPointSelBoundaries
 
+
     def postDrawPreview(self, canvas: QtGui.QPainter):
         assert canvas.isActive()
 
         dashedPen = QtGui.QPen(QtCore.Qt.DashLine)
-        dashedPen.setWidthF(1/self.info['magnification'])
+        dashedPen.setCosmetic(True)
         # draw the base points
         canvas.save()
         canvas.setWorldTransform(self.transf.toQTransform(), True)
@@ -122,10 +127,10 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.drawPath(self.asyPath.toQPainterPath())
 
         nodePen = QtGui.QPen(QtGui.QColor('blue'))
-        nodePen.setWidthF(1/self.info['magnification'])
+        nodePen.setCosmetic(True)
 
         ctlPtsPen = QtGui.QPen(QtGui.QColor(ctrlPtsColor))
-        ctlPtsPen.setWidthF(1/self.info['magnification'])
+        ctlPtsPen.setCosmetic(True)
 
         for index in range(len(self.asyPath.nodeSet)):
             point = self.asyPath.nodeSet[index]
