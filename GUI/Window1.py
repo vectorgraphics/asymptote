@@ -141,7 +141,8 @@ class MainWindow1(Qw.QMainWindow):
 
         # For initialization purposes
         self.canvSize = Qc.QSize()
-        self.filename = None
+        self.fileName = None
+        self.asyFileName = None
         self.currDir = None
         self.mainCanvas = None
         self.dpi = 300
@@ -858,7 +859,7 @@ class MainWindow1(Qw.QMainWindow):
 
         if self.currDir is not None:
             diag.setDirectory(self.currDir)
-            rawFile = os.path.splitext(os.path.basename(self.filename))[0] + '.pdf'
+            rawFile = os.path.splitext(os.path.basename(self.fileName))[0] + '.pdf'
             diag.selectFile(rawFile)
 
         diag.setNameFilter(formatText)
@@ -890,17 +891,17 @@ class MainWindow1(Qw.QMainWindow):
 
     def actionExportXasy(self, file):
         fileItems = []
-        xasyItems = []
+        asyItems = []
         for item in self.fileItems:
             if isinstance(item, x2a.xasyScript):
                 # reusing xasyFile code for objects 
                 # imported from asy script.
-                xasyItems.append({'item':item, 'type': 'xasyScript'})
+                asyItems.append({'item':item, 'type': 'xasyScript'})
 
             elif isinstance(item, x2a.xasyText):
                 # At the moment xasyText cannot be edited
                 # so we treat it the same as xasyScript
-                xasyItems.append({'item':item, 'type': 'xasyText'})
+                asyItems.append({'item':item, 'type': 'xasyText'})
 
             elif isinstance(item, x2a.xasyShape):
                 fileItems.append({'type': 'xasyShape', 
@@ -914,28 +915,33 @@ class MainWindow1(Qw.QMainWindow):
                 # DEBUGGING PURPOSES ONLY
                 print(type(item))
 
-        if xasyItems:
+        if asyItems:
             # TODO: Differentiate between xasyText and xasyScript
-            rawXasyItems = [item['item'] for item in xasyItems]
-            rawText = xf.xasy2asyCode(rawXasyItems, self.asy2psmap)
+            rawAsyItems = [item['item'] for item in asyItems]
+            rawText = xf.xasy2asyCode(rawAsyItems, self.asy2psmap)
             fileItems.append({'type': 'xasyScript', 
                         'rawText': rawText
                         })
-
+        
+        xasyObjects = {'metadata': {'asyFileName': self.asyFileName}, 'objects': fileItems}
         openFile = open(file, 'wb')
-        pickle.dump(fileItems, openFile)
+        pickle.dump(xasyObjects, openFile)
         openFile.close()
         
     def actionLoadXasy(self, file):
         self.erase()
         self.ui.statusbar.showMessage('Load {0}'.format(file))
-        self.filename = file
-        self.currDir = os.path.dirname(self.filename)
+        self.fileName = file
+        self.currDir = os.path.dirname(self.fileName)
 
         input_file = open(file, 'rb')
-        new_dict = pickle.load(input_file)
+        xasyObjects = pickle.load(input_file)
         input_file.close()
-        for item in new_dict:
+
+        self.checkXasyLoadLegacy() # TODO: not implemented
+
+        self.asyFileName = xasyObjects['metadata']['asyFileName']
+        for item in xasyObjects['objects']:
             if item['type'] == 'xasyScript':
                 rawText, transfDict, maxKey = xf.extractTransformsFromFile(item['rawText'])
                 obj = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
@@ -953,7 +959,8 @@ class MainWindow1(Qw.QMainWindow):
 
         self.asyfyCanvas(True)
                 
-
+    def checkXasyLoadLegacy(self):
+        pass
 
     def loadKeyMaps(self):
         """Inverts the mapping of the key
@@ -996,7 +1003,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.actionSave()
         self.erase()
         self.asyfyCanvas(True)
-        self.filename = None
+        self.fileName = None
         self.updateTitle()
         
 
@@ -1062,21 +1069,19 @@ class MainWindow1(Qw.QMainWindow):
                 Qc.QCoreApplication.quit()
             else:
                 return reply
-        else:
-            Qc.QCoreApplication.quit()
 
     def actionSave(self):
-        if self.filename is None:
+        if self.fileName is None:
             self.actionSaveAs()
             
         else:
-            _, file_extension = os.path.splitext(self.filename)
+            _, file_extension = os.path.splitext(self.fileName)
             if file_extension == ".asy":
-                saveFile = io.open(self.filename, 'w')
+                saveFile = io.open(self.fileName, 'w')
                 xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
                 saveFile.close()
             elif file_extension == ".xasy":
-                self.actionExportXasy(self.filename)
+                self.actionExportXasy(self.fileName)
             else:
                 print("ERROR: file extension not supported")
             self.updateScript()
@@ -1091,7 +1096,7 @@ class MainWindow1(Qw.QMainWindow):
                     item.updatedCode = None
 
     def actionSaveAs(self):
-        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', str(self.filename), "Xasy File (*.xasy);; Asymptote File (*.asy)")[0]
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', str(self.fileName), "Xasy File (*.xasy);; Asymptote File (*.asy)")[0]
         if saveLocation:
             _, file_extension = os.path.splitext(saveLocation)
             if file_extension == ".asy":
@@ -1102,7 +1107,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.actionExportXasy(saveLocation)
             else:
                 print("ERROR: file extension not supported")
-            self.filename = saveLocation
+            self.fileName = saveLocation
             self.updateScript()
             self.fileChanged = False
             self.updateTitle()
@@ -1688,8 +1693,8 @@ class MainWindow1(Qw.QMainWindow):
     def updateTitle(self):
         # TODO: Undo redo doesn't update appropriately. Have to find a fix for this.
         title = ''
-        if self.filename:
-            fileName = os.path.basename(self.filename)
+        if self.fileName:
+            fileName = os.path.basename(self.fileName)
             title += fileName
         else:
             title += "[Not Saved]"
@@ -2006,7 +2011,7 @@ class MainWindow1(Qw.QMainWindow):
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
                 
-        subprocess.Popen(args=self.getExternalEditor(asypath=self.filename));
+        subprocess.Popen(args=self.getExternalEditor(asypath=self.fileName));
 
     def btnAddCodeOnClick(self):
         header = """
@@ -2134,12 +2139,13 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         self.ui.statusbar.showMessage('Load {0}'.format(filename))
-        self.filename = filename
-        self.currDir = os.path.dirname(self.filename)
+        self.fileName = filename
+        self.asyFileName = filename
+        self.currDir = os.path.dirname(self.fileName)
 
         self.erase()
 
-        f = open(self.filename, 'rt')
+        f = open(self.fileName, 'rt')
         try:
             rawFileStr = f.read()
         except IOError:
