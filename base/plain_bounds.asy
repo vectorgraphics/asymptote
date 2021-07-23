@@ -4,7 +4,7 @@ include plain_scaling;
 // have been added, this is only an approximation since it takes the bounds of
 // their transformed bounding box.
 private void addTransformedCoords(coords2 dest, transform t,
-                          coords2 point, coords2 min, coords2 max)
+                                  coords2 point, coords2 min, coords2 max)
 {
   dest.push(t, point, point);
 
@@ -47,7 +47,7 @@ private void addIfMaximal(coord[] dest, coord[] src)
   for (coord c : src)
     addIfMaximal(dest, c.user, c.truesize);
 }
-      
+
 // Same as addIfMaximal, but testing for minimal coords.
 private void addIfMinimal(coord[] coords, real user, real truesize) {
   for (coord c : coords)
@@ -130,7 +130,7 @@ private struct freezableBounds {
     void operator init(coord[] left, coord[] bottom,
                        coord[] right, coord[] top) {
       this.left = left;
-      this.bottom = bottom; 
+      this.bottom = bottom;
       this.right = right;
       this.top = top;
     }
@@ -197,7 +197,7 @@ private struct freezableBounds {
 
   void addBox(pair userMin, pair userMax, pair trueMin, pair trueMax) {
     assert(!frozen);
-    this.min.push(userMin, trueMin); 
+    this.min.push(userMin, trueMin);
     this.max.push(userMax, trueMax);
   }
 
@@ -334,7 +334,7 @@ private struct freezableBounds {
 
     addLocalsToExtremes(t, e);
   }
-    
+
   private void addLocalsToExtremes(extremes e) {
     addMinToExtremes(e, point);
     addMaxToExtremes(e, point);
@@ -466,7 +466,7 @@ private struct freezableBounds {
       acc.pushUserCoords(min, max);
       if (pathBounds.length > 0)
         acc.push(min(pathBounds), max(pathBounds));
-      for (var pp : pathpenBounds) 
+      for (var pp : pathpenBounds)
         if(size(pp.g) > 0)
           acc.push(min(pp.g), max(pp.g));
       for (var link : links)
@@ -623,13 +623,13 @@ private struct freezableBounds {
 
     // Get the extremal coordinates.
     extremes e = extremes();
-    
+
     real sx;
     if(xunitsize == 0) {
       if(xsize != 0) sx=calculateScaling("x",e.left,e.right,xsize,warn);
     } else sx=xunitsize;
 
-    /* Possible alternative code : 
+    /* Possible alternative code :
        real sx = xunitsize != 0 ? xunitsize :
        xsize != 0     ? calculateScaling("x", Coords.x, xsize, warn) :
        0; */
@@ -697,7 +697,7 @@ struct bounds {
     makeMutable();
     base.append(b.base);
   }
-    
+
   void append(transform t, bounds b) {
     // makeMutable will be called by append.
     if (t == identity())
@@ -760,7 +760,7 @@ struct bounds {
     makeMutable();
     base.yclip(Min,Max);
   }
-  
+
   void clip(pair Min, pair Max) {
     // TODO: If the user bounds have been manually altered, they may be
     // incorrect after the clip.

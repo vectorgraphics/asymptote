@@ -11,7 +11,7 @@ ____________________________
 The ASYMPTOTE package
 
 (C) 2003 Tom Prince
-(C) 2003-2016 John Bowman
+(C) 2003-2021 John Bowman
 (C) 2010 Will Robertson
 
 Adapted from comment.sty
@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2016/11/26 v1.33 Asymptote style file for LaTeX]
+  [2021/02/06 v1.36 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -317,7 +317,6 @@ Licence: GPL2+
 \newif\ifASYPDF
 \ifxetex
   \ASYPDFtrue
-  \usepackage{everypage}
 \else
   \ifpdf
     \ASYPDFtrue
@@ -435,8 +434,8 @@ Licence: GPL2+
     \next%
   }
 \endgroup
-\def\asy@init{
-  \def\ASYlatexdir{}
+\def\asy@init{%
+  \def\ASYlatexdir{}%
   \ifx\asylatexdir\empty\else
     \def\ASYlatexdir{\asylatexdir/}%
   \fi
@@ -466,7 +465,7 @@ Licence: GPL2+
   \immediate\write\AsyPreStream{%
     \noexpand\InputIfFileExists{%
       \ASYprefix\noexpand\jobname-\the\c@asy.pre}{}{}%
-  }
+  }%
   \asy@write@graphic@header
   \let\ThisAsymptote\WriteAsyLine
   \ProcessAsymptote{asy}%
@@ -572,12 +571,12 @@ Licence: GPL2+
       \ifASYattach
         \ifASYPDF
           \IfFileExists{"\AsyFile+0.pdf"}{%
-            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile+0".pdf}}%
+            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile+0.pdf}}%
           }{%
-            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile".pdf}}%
+            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile.pdf}}%
           }%
         \else
-          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile.eps"}}%
+          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile.eps}}%
         \fi
         \textattachfile{\AsyFile.\AsyExtension}{\phantom{\copy\ASYbox}}%
         \vskip-\ht\ASYbox
@@ -585,9 +584,9 @@ Licence: GPL2+
         \box\ASYbox
       \else
         \ifASYPDF
-          \includegraphics[hiresbb]{"\AsyFile".pdf}%
+          \includegraphics[hiresbb]{\AsyFile.pdf}%
         \else
-          \includegraphics[hiresbb]{"\AsyFile.eps"}%
+          \includegraphics[hiresbb]{\AsyFile.eps}%
         \fi
       \fi
     }{%

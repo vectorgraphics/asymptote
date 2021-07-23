@@ -5,11 +5,11 @@
 \comment The format and scripts come from the Linux FAQ, by
 \comment Ian Jackson.
 \set brieftitle Asymptote FAQ
-\set author     <A href="http://asymptote.sourceforge.net">Asymptote</A> 
+\set author     <A href="https://asymptote.sourceforge.io">Asymptote</A> 
 \set title      Asymptote Frequently Asked Questions
 \copyto ASCII
             ASYMPTOTE FREQUENTLY ASKED QUESTIONS
-                            `date '+%d %h %Y'`
+                            `%perl use POSIX; POSIX::strftime("%Y-%m-%d", gmtime($ENV{SOURCE_DATE_EPOCH} || time))`
                            
 \endcopy
 \copyto INFO
@@ -22,7 +22,7 @@ END-INFO-DIR-ENTRY
 File: asy-faq.info, Node: Top, Next: Question 1.1, Up: (dir)
 
             ASYMPTOTE FREQUENTLY ASKED QUESTIONS
-                            `date '+%d %h %Y'`
+                            `%perl use POSIX; POSIX::strftime("%Y-%m-%d", gmtime($ENV{SOURCE_DATE_EPOCH} || time))`
                           
 \endcopy
 
@@ -49,7 +49,7 @@ C++-like syntax. Unlike MetaPost, it natively supports multiple-segment paths
 
 Binary releases are available for Linux, MacOS X, and Microsoft Windows
 platforms, in addition to full source code, from the website
-\docref{http://asymptote.sourceforge.net/\}.  Many Linux distributions
+\docref{https://asymptote.sourceforge.io/\}.  Many Linux distributions
 (such as RedHat and Debian) now include an Asymptote package (check your
 distribution's documentation for further information about this).
 
@@ -57,7 +57,7 @@ distribution's documentation for further information about this).
 
 If you have a question, please try to find an answer in this FAQ, in the 
 extensive Asymptote documentation at
-\docref{http://asymptote.sourceforge.net/doc/\}, or search the forum:
+\docref{https://asymptote.sourceforge.io/doc/\}, or search the forum:
 \docref{http://sourceforge.net/forum/forum.php?forum_id=409349\}.
 
 \question 02sep:whyasy Why was the name Asymptote chosen?
@@ -97,7 +97,7 @@ official source:
 
 \question 04nov:brokenpdftex What do I do if I get the error: \courier{Error: pdfetex (file pdftex.cfg): cannot open config file...texinfo.tex appears to be broken\}?
 
-Simply put \docref{http://asymptote.sourceforge.net/asymptote.pdf\}
+Simply put \docref{https://asymptote.sourceforge.io/asymptote.pdf\}
 in the directory \courier{doc\} and repeat the command \courier{make all\}.
 Or, if you don't want to build a local copy of the documentation, simply
 proceed with \courier{make install-asy\}.
@@ -113,7 +113,7 @@ guide on the topic. You can download it from
 \docref{http://dario.dse.nl/projects/asylatex/\}.
 
 Philippe Ivaldi has contributed an Asymptote mode for Emacs users
-\docref{http://asymptote.sourceforge.net/doc/Editing-modes.html\},
+\docref{https://asymptote.sourceforge.io/doc/Editing-modes.html\},
 which includes a \courier{lasy-mode\} that allows one to compile and view
 the output of one \\begin{asy}...\\end{asy} section at a time.
 
@@ -279,7 +279,7 @@ defaultpen(TimesRoman());
 
 \question 28jun:internatfonts How can I use international fonts in Asymptote labels?
 
-See \docref{http://asymptote.sourceforge.net/doc/unicode.html\}.
+See \docref{https://asymptote.sourceforge.io/doc/Pens.html\}.
 
 \question 10jul:Fourier How can I use Fourier fonts? 
 
@@ -321,7 +321,7 @@ draw(rotate(90,project(Z))*"A",O--X);
 \question 02sep:fixedsize How can I draw some squares and circles of a fixed size and put a label in the middle of them?
 
 Fixed-size objects should be drawn on a separate picture and then added to 
-currentpicture. Here is one way (see also \docref{http://asymptote.sourceforge.net/gallery/subpictures.asy\} and \docref{http://asymptote.sourceforge.net/gallery/mosquito.asy\}): 
+currentpicture. Here is one way (see also \docref{https://asymptote.sourceforge.io/gallery/subpictures.asy\} and \docref{https://asymptote.sourceforge.io/gallery/mosquito.asy\}): 
 
 \verbatim
 real u=2cm;
@@ -594,7 +594,7 @@ label. Other possible overwrite arguments are Allow (allows overlapping
 labels; the default), Suppress (an overlapping label will not be written at
 all), SuppressQuiet, and MoveQuiet. The last two achieve the same result as
 the non-quiet types, but will not notify you which labels are overlapping. See: 
-\docref{http://asymptote.sourceforge.net/doc/Pens.html\}.
+\docref{https://asymptote.sourceforge.io/doc/Pens.html\}.
  
 In the case of a user-specified tick array, you can change which labels get
 suppressed/moved by changing the order of array entries.
@@ -645,7 +645,7 @@ have the same scaling and same resulting figure size (just ensure the two
 coordinates given to \courier{fixedscaling()\} leaves room for any labels).
  
 See also
-\docref{http://asymptote.sourceforge.net/doc/Frames-and-pictures.html\}.
+\docref{https://asymptote.sourceforge.io/doc/Frames-and-pictures.html\}.
  
 \question 26jun:graphlimits How can I plot a function f(x) within [0,1]x[0,2] without explicitly calculating the x values for which f(x) hits the boundary?
 
@@ -663,7 +663,7 @@ xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
 \endverbatim
  
-See also \docref{http://asymptote.sourceforge.net/doc/graph.html\}.
+See also \docref{https://asymptote.sourceforge.io/doc/graph.html\}.
  
 \question 26jun:custompalettes Is it possible to define customized palettes?
 
@@ -745,12 +745,12 @@ distance(A,B,"$\ell$",1);
 
 \question 26jun:log2 How can I make the y axis display base-2 logarithmic values?
 
-See the example \docref{http://asymptote.sourceforge.net/gallery/2D graphs/log2graph.asy\}. 
+See the example \docref{https://asymptote.sourceforge.io/gallery/2D graphs/log2graph.asy\}. 
 
 \question 27jun:align How can I align the x axes of two graphs on the same figure?
 
 An easy way to do this, if the axes to be aligned have the same scaling
-and size, is illustrated in the example \docref{http://asymptote.sourceforge.net/gallery/2D graphs/alignedaxis.asy\}.
+and size, is illustrated in the example \docref{https://asymptote.sourceforge.io/gallery/2D graphs/alignedaxis.asy\}.
 
 Here is a more general solution to the problem of aligning two arbitrary axes.
 One fits the second picture to a frame based on the horizontal scaling for
@@ -813,7 +813,7 @@ add(shift(0,-height)*(shift(shift)*pic2).fit(T));
 
 \question 27jun:changeaxis How can I change the direction of the y-axis, such that negatives values are on the upper y-axis?
 
-Here is a simple example (see also the example \docref{http://asymptote.sourceforge.net/gallery/2D graphs/diatom.asy\} or the discussion
+Here is a simple example (see also the example \docref{https://asymptote.sourceforge.io/gallery/2D graphs/diatom.asy\} or the discussion
 of Linear(-1) in the documentation):
  
 \verbatim
@@ -847,7 +847,7 @@ y=t
 x=(t-2)^2+1 
 \endverbatim
 
-See the example \docref{http://asymptote.sourceforge.net/gallery/2D graphs/parametricgraph.asy\}. 
+See the example \docref{https://asymptote.sourceforge.io/gallery/2D graphs/parametricgraph.asy\}. 
 
 \question 27jun:scalesecondaryaxis  Is it possible to reverse or stretch an axis?
 
@@ -1037,7 +1037,7 @@ at least until the end of the file or prompt's run.
 
 Yes, Asymptote includes a line-based debugger:
 
-\docref{http://asymptote.sourceforge.net/doc/Debugger.html\}
+\docref{https://asymptote.sourceforge.io/doc/Debugger.html\}
 
 \question 27jun:patches Do you accept patches for Asymptote?
 
@@ -1065,7 +1065,7 @@ distinguishes between true-size objects and objects that should scale with
 the picture size. The resulting linear programming problem is solved via
 the Simplex method. 
 
-See the \docref{http://asymptote.sourceforge.net/gallery/dimension.asy\} example for an example of how deferred drawing is
+See the \docref{https://asymptote.sourceforge.io/gallery/dimension.asy\} example for an example of how deferred drawing is
 used to accomodate both user and true-size (PostScript) coordinates.
  
 \question 02sep:manualscaling How can I avoid automatic scaling of a picture?
@@ -1116,7 +1116,7 @@ this returns the intersection point of the extensions of the line segments
 could be persuaded to add something similar if someone can justify the
 need. In the meantime, one can always use the explicit built-in linear
 solver \courier{solve\} (see
-\docref{http://asymptote.sourceforge.net/doc/solve.html\}), which uses LU
+\docref{https://asymptote.sourceforge.io/doc/solve.html\}), which uses LU
 decomposition. 
 
 \question 23jun:lray What is the equivalent for the MetaPost command for \courier{lray - horiz*v - verti*u = whatever*(LightSource - R)\}, a system of three linear equations for three unknowns: \courier{horiz, verti, whatever\}?
@@ -1212,7 +1212,7 @@ clip(100,100);
 \endverbatim
 
 See also the discussion of tilings in the documentation: 
-\docref{http://asymptote.sourceforge.net/doc/Pens.html\}.
+\docref{https://asymptote.sourceforge.io/doc/Pens.html\}.
 
 \comment ######################################################################
 
@@ -1232,7 +1232,7 @@ batchView=false;
 \endverbatim
 
 in their \courier{config.asy\} file. See
-\docref{http://asymptote.sourceforge.net/doc/Options.html\}.
+\docref{https://asymptote.sourceforge.io/doc/Options.html\}.
 
 \question 26jun:jpeg How do I output jpeg images?
 
@@ -1251,8 +1251,8 @@ Label:
 label(graphic("file"),(0,0));
 \endverbatim
 
-See the example \docref{http://asymptote.sourceforge.net/gallery/orthocenter.asy\} and
-\docref{http://asymptote.sourceforge.net/doc/label.html\}.
+See the example \docref{https://asymptote.sourceforge.io/gallery/orthocenter.asy\} and
+\docref{https://asymptote.sourceforge.io/doc/label.html\}.
 
 \question 28jun:directpdf Does Asymptote support direct PDF output?
 

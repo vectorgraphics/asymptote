@@ -51,23 +51,24 @@ bool warn(const string& s);
 extern string systemDir;
 extern string docdir;
 extern const string dirsep;
-  
+
 extern bool safe;
-  
+
+bool globalread();
 bool globalwrite();
 
 extern const string suffix;
 extern const string guisuffix;
 extern const string standardprefix;
-  
+
 extern string historyname;
-  
+
 void SetPageDimensions();
 
 types::record *getSettingsModule();
 
 vm::item& Setting(string name);
-  
+
 template <typename T>
 inline T getSetting(string name)
 {
@@ -80,7 +81,7 @@ extern bool gray;
 extern bool bw;
 extern bool rgb;
 extern bool cmyk;
-  
+
 bool view();
 bool trap();
 string outname();
@@ -90,20 +91,20 @@ void setOptions(int argc, char *argv[]);
 // Access the arguments once options have been parsed.
 int numArgs();
 char *getArg(int n);
- 
+
 Int getScroll();
-  
+
 extern mode_t mask;
-  
+
 bool xe(const string& texengine);
 bool lua(const string& texengine);
 bool pdf(const string& texengine);
 bool latex(const string& texengine);
 bool context(const string& texengine);
-  
+
 string nativeformat();
 string defaultformat();
-  
+
 const char *beginlabel(const string& texengine);
 const char *endlabel(const string& texengine);
 const char *rawpostscript(const string& texengine);
@@ -111,14 +112,21 @@ const char *beginpicture(const string& texengine);
 const char *endpicture(const string& texengine);
 const char *beginspecial(const string& texengine);
 const char *endspecial();
-  
+
 string texcommand();
 string texprogram();
-  
-const double inches=72;
+
+const double inches=72.0;
 const double cm=inches/2.54;
+const double tex2ps=72.0/72.27;
+const double ps2tex=1.0/tex2ps;
+
+const string AsyGL="webgl/asygl.js";
+const string WebGLheader="webgl/WebGLheader.html";
+const string WebGLfooter="webgl/WebGLfooter.html";
 }
 
 extern const char *REVISION;
+extern const char *AsyGLVersion;
 
 #endif

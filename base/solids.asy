@@ -115,23 +115,13 @@ struct revolution {
     return (angle2-angle1) % 360 == 0 ? p&cycle : p;
   }
   
-  triple camera(projection P) {
-    triple camera=P.camera;
-    if(P.infinity) {
-      real s=abs(M-m)+abs(m-P.target);
-      camera=P.target+camerafactor*s*unit(P.vector());
-    }
-    return camera;
-  }
-
   // add transverse slice to skeleton s;
   void transverse(skeleton s, real t, int n=nslice, projection P) {
     skeleton.curve s=s.transverse;
     path3 S=slice(t,n);
-    triple camera=camera(P);
     int L=length(g);
     real midtime=0.5*L;
-    real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,midtime)));
+    real sign=sgn(dot(axis,P.camera-c))*sgn(dot(axis,dir(g,midtime)));
     if(dot(M-m,axis) == 0 || (t <= epsilon && sign < 0) ||
        (t >= L-epsilon && sign > 0))
       s.front.push(S);
@@ -154,7 +144,7 @@ struct revolution {
         path3 p1=subpath(S,t1,t2);
         path3 p2=subpath(S,t2,len);
         path3 P2=subpath(S,0,t1);
-        if(abs(midpoint(p1)-camera) <= abs(midpoint(p2)-camera)) {
+        if(abs(midpoint(p1)-P.camera) <= abs(midpoint(p2)-P.camera)) {
           s.front.push(p1);
           if(cyclic(S))
             s.back.push(p2 & P2);
@@ -212,7 +202,6 @@ struct revolution {
     for(int i=0; i < M; ++i) {
       real t=(m == 0) ? i : reltime(g,i*factor);
       path3 S=slice(t,n);
-      triple camera=camera(P);
       path3 Sp=slice(t+epsilon,n);
       path3 Sm=slice(t-epsilon,n);
       path sp=project(Sp,P);
@@ -232,8 +221,7 @@ struct revolution {
     }
     int L=length(g);
     real midtime=0.5*L;
-    triple camera=camera(P);
-    real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,midtime)));
+    real sign=sgn(dot(axis,P.camera-c))*sgn(dot(axis,dir(g,midtime)));
 
     skeleton sfirst;
     transverse(sfirst,tfirst,n,P);
@@ -293,7 +281,6 @@ struct revolution {
     real Longitude(triple v) {return longitude(T*(v-c),warn=false);}
     real ref=Longitude(point(g,t));
     real angle(real t) {return Longitude(point(S,t/P.ninterpolate))-ref;}
-    triple camera=camera(P);
     void push(real[] T) {
       if(T.length > 1) {
 	path3 p=rotate(angle(T[0]),c,c+axis)*g;
@@ -301,7 +288,7 @@ struct revolution {
 	path3 p2=subpath(p,t,length(p));
 	if(length(p1) > 0 &&
            (length(p2) == 0 || 
-            abs(midpoint(p1)-camera) <= abs(midpoint(p2)-camera))) {
+            abs(midpoint(p1)-P.camera) <= abs(midpoint(p2)-P.camera))) {
 	  s.longitudinal.front.push(p1);
           s.longitudinal.back.push(p2);
 	} else {
@@ -320,6 +307,12 @@ struct revolution {
     longitudinal(s,n,P);
     return s;
   }
+}
+
+revolution operator * (transform3 t, revolution r)
+{
+  triple trc=t*r.c;
+  return revolution(trc,t*r.g,t*(r.c+r.axis)-trc,r.angle1,r.angle2);
 }
 
 surface surface(revolution r, int n=nslice, pen color(int i, real j)=null)
@@ -379,14 +372,9 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
   }
 }
 
-revolution operator * (transform3 t, revolution r)
-{
-  triple trc=t*r.c;
-  return revolution(trc,t*r.g,t*(r.c+r.axis)-trc,r.angle1,r.angle2);
-}
-
 // Return a right circular cylinder of height h in the direction of axis
 // based on a circle centered at c with radius r.
+// Note: unitcylinder provides a smoother and more efficient representation.
 revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 {
   triple C=c+r*perp(axis);
@@ -405,7 +393,7 @@ revolution cone(triple c=O, real r, real h, triple axis=Z, int n=nslice)
 
 // Return an approximate sphere of radius r centered at c obtained by rotating
 // an (n+1)-point approximation to a half circle about the Z axis.
-// Note: unitsphere provides a smoother and more efficient surface.
+// Note: unitsphere provides a smoother and more efficient representation.
 revolution sphere(triple c=O, real r, int n=nslice)
 {
   return revolution(c,Arc(c,r,180-sqrtEpsilon,0,sqrtEpsilon,0,Y,n),Z);

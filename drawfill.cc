@@ -9,13 +9,16 @@
 
 namespace camp {
 
+using settings::ps2tex;
+using settings::tex2ps;
+
 void drawAxialShade::palette(psfile *out)
 {
   pentype.convert();
   penb.convert();
-  
+
   colorspace=(ColorSpace) max(pentype.colorspace(),penb.colorspace());
-  
+
   switch(colorspace) {
     case RGB:
     {
@@ -23,12 +26,12 @@ void drawAxialShade::palette(psfile *out)
       else if (penb.grayscale()) penb.greytorgb();
       break;
     }
-      
+
     case CMYK:
     {
       if (pentype.grayscale()) pentype.greytocmyk();
       else if (penb.grayscale()) penb.greytocmyk();
-        
+
       if (pentype.rgb()) pentype.rgbtocmyk();
       else if (penb.rgb()) penb.rgbtocmyk();
       break;
@@ -36,44 +39,44 @@ void drawAxialShade::palette(psfile *out)
     default:
       break;
   }
-  
+
   out->gsave();
-}  
-  
+}
+
 bool drawFill::draw(psfile *out)
 {
   if(pentype.invisible() || empty()) return true;
-  
+
   palette(out);
   writepath(out);
   fill(out);
   return true;
 }
-  
+
 drawElement *drawFill::transformed(const transform& t)
 {
-  return new drawFill(transpath(t),stroke,transpen(t));
+  return new drawFill(transpath(t),stroke,transpen(t),KEY);
 }
-  
+
 drawElement *drawLatticeShade::transformed(const transform& t)
 {
-  return new drawLatticeShade(transpath(t),stroke,pentype,pens,t*T);
+  return new drawLatticeShade(transpath(t),stroke,pentype,pens,t*T,KEY);
 }
 
 drawElement *drawAxialShade::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;
   return new drawAxialShade(transpath(t),stroke,pentype,A,extenda,penb,B,
-                            extendb);
+                            extendb,KEY);
 }
-  
+
 drawElement *drawRadialShade::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;
   double RA=length(t*(a+ra)-A);
   double RB=length(t*(b+rb)-B);
-  return new drawRadialShade(transpath(t),stroke,pentype,A,RA,extenda,penb,B,RB,
-                             extendb);
+  return new drawRadialShade(transpath(t),stroke,pentype,A,RA,extenda,penb,B,
+                             RB,extendb,KEY);
 }
 
 drawElement *drawGouraudShade::transformed(const transform& t)
@@ -83,7 +86,8 @@ drawElement *drawGouraudShade::transformed(const transform& t)
   for(size_t i=0; i < size; i++)
     (*Vertices)[i]=t*vm::read<pair>(vertices,i);
 
-  return new drawGouraudShade(transpath(t),stroke,pentype,pens,*Vertices,edges);
+  return new drawGouraudShade(transpath(t),stroke,pentype,pens,*Vertices,
+                              edges,KEY);
 }
 
 drawElement *drawTensorShade::transformed(const transform& t)
@@ -92,10 +96,10 @@ drawElement *drawTensorShade::transformed(const transform& t)
   size_t zsize=z.size();
   vm::array *Boundaries=new vm::array(size);
   vm::array *Z=new vm::array(zsize);
-  
+
   for(size_t i=0; i < size; i++)
     (*Boundaries)[i]=vm::read<path>(boundaries,i).transformed(t);
-  
+
   for(size_t i=0; i < zsize; i++) {
     vm::array *zi=vm::read<vm::array *>(z,i);
     size_t zisize=checkArray(zi);
@@ -105,16 +109,17 @@ drawElement *drawTensorShade::transformed(const transform& t)
       (*Zi)[j]=t*vm::read<pair>(zi,j);
   }
 
-  return new drawTensorShade(transpath(t),stroke,pentype,pens,*Boundaries,*Z);
+  return new drawTensorShade(transpath(t),stroke,pentype,pens,*Boundaries,*Z,
+                             KEY);
 }
 
 bool drawFunctionShade::write(texfile *out, const bbox& box)
 {
   if(empty()) return true;
-  
+
   ColorSpace colorspace=pentype.colorspace();
   size_t ncomponents=ColorComponents[colorspace];
-  
+
   out->verbatim("\\pdfobj stream attr {/FunctionType 4");
   out->verbatim("/Domain [0 1 0 1]");
   out->verbatim("/Range [");
@@ -124,7 +129,7 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
   out->verbatimline(shader);
   out->verbatimline("}}%");
   out->verbatimline("\\edef\\lastobj{\\the\\pdflastobj}\\pdfrefobj\\lastobj");
-   
+
   out->verbatim("\\setbox\\ASYbox=\\hbox to ");
   double Hoffset=out->hoffset();
   double hoffset=(bpath.Max().getx()-Hoffset)*ps2tex;
@@ -144,7 +149,7 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
   out->endspecial();
   out->grestore();
   out->verbatimline("}\\hfil}%");
-  
+
   out->verbatimline("\\pdfxform resources {");
   out->verbatimline("/Shading << /Sh << /ShadingType 1");
   out->verbatim("/Matrix [");
@@ -155,7 +160,7 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
   out->verbatim("/ColorSpace /Device");
   out->verbatimline(ColorDeviceSuffix[colorspace]);
   out->verbatimline("/Function \\lastobj\\space 0 R >> >>}\\ASYbox");
-  
+
   out->verbatimline("\\pdfrefxform\\the\\pdflastxform");
   out->verbatim("\\kern");
   out->write(-hoffset);
@@ -165,7 +170,7 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
 
 drawElement *drawFunctionShade::transformed(const transform& t)
 {
-  return new drawFunctionShade(transpath(t),stroke,pentype,shader);
+  return new drawFunctionShade(transpath(t),stroke,pentype,shader,KEY);
 }
 
 } // namespace camp

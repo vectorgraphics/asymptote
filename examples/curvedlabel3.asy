@@ -8,7 +8,7 @@ string txt1="\hbox{This is a test of \emph{curved} 3D labels in
 \textbf{Asymptote} (implemented with {\tt texpath}).}";
 
 string txt2="This is a test of curved labels in Asymptote\\(implemented
-without the {\tt PSTricks pstextpath} macro)."; 
+without the {\tt PSTricks pstextpath} macro).";
 
 draw(surface(g),paleblue+opacity(0.5));
 draw(labelpath(txt1,subpath(g,0,reltime(g,0.95)),angle=-90),orange);

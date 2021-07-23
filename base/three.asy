@@ -1,6 +1,7 @@
 private import math;
 
-if(inXasyMode) settings.render=0;
+if(settings.xasy)
+  settings.render=0;
 
 if(prc0()) {
   if(!latex()) settings.prc=false;
@@ -36,8 +37,7 @@ struct render
 
   // General parameters:
   real margin;          // shrink amount for rendered openGL viewport, in bp.
-  real tubegranularity; // granularity for rendering tubes 
-  bool labelfill;       // fill subdivision cracks in unlighted labels
+  bool labelfill;       // fill PRC subdivision cracks in unlighted labels
 
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
@@ -51,7 +51,6 @@ struct render
                      bool3 merge=defaultrender.merge,
                      int sphere=defaultrender.sphere,
                      real margin=defaultrender.margin,
-                     real tubegranularity=defaultrender.tubegranularity,
                      bool labelfill=defaultrender.labelfill,
                      bool partnames=defaultrender.partnames,
                      bool defaultnames=defaultrender.defaultnames)
@@ -63,7 +62,6 @@ struct render
     this.merge=merge;
     this.sphere=sphere;
     this.margin=margin;
-    this.tubegranularity=tubegranularity;
     this.labelfill=labelfill;
     this.partnames=partnames;
     this.defaultnames=defaultnames;
@@ -79,13 +77,16 @@ defaultrender.closed=false;
 defaultrender.tessellate=false;
 defaultrender.merge=false;
 defaultrender.margin=0.02;
-defaultrender.tubegranularity=0.001;
 defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
 defaultrender.partnames=false;
 defaultrender.defaultnames=true;
 
-real defaultshininess=0.25;
+real defaultshininess=0.7;
+real defaultmetallic=0.0;
+real defaultfresnel0=0.04;
+
+
 
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
@@ -212,9 +213,10 @@ triple project(triple u, triple v)
 triple perp(triple v)
 {
   triple u=cross(v,Y);
-  if(abs(u) > sqrtEpsilon) return unit(u);
+  real norm=sqrtEpsilon*abs(v);
+  if(abs(u) > norm) return unit(u);
   u=cross(v,Z);
-  return (abs(u) > sqrtEpsilon) ? unit(u) : X;
+  return (abs(u) > norm) ? unit(u) : X;
 }
 
 // Return the transformation corresponding to moving the camera from the target
@@ -1063,7 +1065,7 @@ triple dir(path3 p)
 
 triple dir(path3 p, path3 h)
 {
-  return 0.5*(dir(p)+dir(h));
+  return unit(dir(p)+dir(h));
 }
 
 // return the point on path3 p at arclength L
@@ -1133,6 +1135,18 @@ path3 path3(path p, triple plane(pair)=XYplane)
 path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
 {
   return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
+}
+
+path3 interp(path3 a, path3 b, real t)
+{
+  int n=size(a);
+  return path3(sequence(new triple(int i) {
+        return interp(precontrol(a,i),precontrol(b,i),t);},n),
+    sequence(new triple(int i) {return interp(point(a,i),point(b,i),t);},n),
+    sequence(new triple(int i) {return interp(postcontrol(a,i),
+                                              postcontrol(b,i),t);},n),
+    sequence(new bool(int i) {return straight(a,i) && straight(b,i);},n),
+    cyclic(a) && cyclic(b));
 }
 
 path3 invert(path p, triple normal, triple point,
@@ -1866,6 +1880,14 @@ transform3 align(triple u)
   return c >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
 
+// Align Label with normal in direction dir.
+Label align(Label L, triple dir)
+{
+  Label L=L.copy();
+  L.transform3(align(unit(dir)));
+  return L;
+}
+
 // return a rotation that maps X,Y to the projection plane.
 transform3 transform3(projection P=currentprojection)
 {
@@ -2020,7 +2042,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   }
   
   string invalidnormal="invalid normal vector";
-  real fuzz=sqrtEpsilon*max(abs(v1),abs(v2));
+  real fuzz=sqrtEpsilon;
   if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
     abort(invalidnormal);
   
@@ -2153,7 +2175,8 @@ pair max(frame f, projection P)
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
-          light light=nolight, string name="", render render=defaultrender)
+          light light=nolight, string name="",
+          render render=defaultrender)
 {
   pen q=(pen) p;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
@@ -2183,80 +2206,62 @@ draw=new void(frame f, path3 g, material p=currentpen,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
-    p=material(p);
     real width=linewidth(q);
     void drawthick(path3 g) {
-      if(settings.thick) {
-        if(width > 0) {
-          bool prc=prc();
-          void cylinder(transform3) {};
-          void sphere(transform3, bool half) {};
-          void disk(transform3) {};
-          void pipe(path3, path3);
-          if(prc) {
-            cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
-            sphere=new void(transform3 t, bool half)
-              {drawPRCsphere(f,t,half,p,light,render);};
-            disk=new void(transform3 t) {draw(f,t*unitdisk,p,light,render);};
-            pipe=new void(path3 center, path3 g)
-              {drawPRCtube(f,center,g,p,light);};
+      if(settings.thick && width > 0) {
+        bool prc=prc();
+        bool webgl=settings.outformat == "html";
+        real linecap=linecap(q);
+        real r=0.5*width;
+        bool open=!cyclic(g);
+        int L=length(g);
+        triple g0=point(g,0);
+        triple gL=point(g,L);
+        if(open && L > 0) {
+          if(linecap == 2) {
+            g0 -= r*dir(g,0);
+            gL += r*dir(g,L);
+            g=g0..g..gL;
+            L += 2;
           }
-          real linecap=linecap(q);
-          real r=0.5*width;
-          bool open=!cyclic(g);
-          int L=length(g);
-          triple g0=point(g,0);
-          triple gL=point(g,L);
-          if(open && L > 0) {
-            if(linecap == 2) {
-              g0 -= r*dir(g,0);
-              gL += r*dir(g,L);
-              g=g0..g..gL;
-              L += 2;
-            }
-          }
-          tube T=tube(g,width,render,cylinder,sphere,pipe);
-          path3 c=T.center;
-          if(L >= 0) {
-            if(open) {
-              int Lc=length(c);
-              triple c0=point(c,0);
-              triple cL=point(c,Lc);
-              triple dir0=dir(g,0);
-              triple dirL=dir(g,L);
-              triple dirc0=dir(c,0);
-              triple dircL=dir(c,Lc);
-              transform3 t0=shift(g0)*align(-dir0);
-              transform3 tL=shift(gL)*align(dirL);
-              transform3 tc0=shift(c0)*align(-dirc0);
-              transform3 tcL=shift(cL)*align(dircL);
-              if(linecap == 0 || linecap == 2) {
-                transform3 scale2r=scale(r,r,1);
-                T.s.append(t0*scale2r*unitdisk);
-                disk(tc0*scale2r);
-                if(L > 0) {
-                  T.s.append(tL*scale2r*unitdisk);
-                  disk(tcL*scale2r);
-                }
-              } else if(linecap == 1) {
-                transform3 scale3r=scale3(r);
-                T.s.append(t0*scale3r*
-                           (dir0 != O ? unithemisphere : unitsphere));
-                sphere(tc0*scale3r,half=straight(c,0));
-                if(L > 0) {
-                  T.s.append(tL*scale3r*
-                             (dirL != O ? unithemisphere : unitsphere));
-                  sphere(tcL*scale3r,half=straight(c,Lc-1));
-                }
+        }
+        tube T=tube(g,width);
+        path3 c=T.center;
+        if(L >= 0) {
+          if(open) {
+            int Lc=length(c);
+            triple c0=point(c,0);
+            triple cL=point(c,Lc);
+            triple dir0=dir(g,0);
+            triple dirL=dir(g,L);
+            triple dirc0=dir(c,0);
+            triple dircL=dir(c,Lc);
+            transform3 t0=shift(g0)*align(-dir0);
+            transform3 tL=shift(gL)*align(dirL);
+            transform3 tc0=shift(c0)*align(-dirc0);
+            transform3 tcL=shift(cL)*align(dircL);
+            if(linecap == 0 || linecap == 2) {
+              transform3 scale2r=scale(r,r,1);
+              T.s.push(t0*scale2r*unitdisk);
+              if(L > 0) {
+                T.s.push(tL*scale2r*unitdisk);
               }
+            } else if(linecap == 1) {
+              transform3 scale3r=scale3(r);
+              T.s.push(t0*scale3r*(straight(c,0) ?
+                                   unithemisphere : unitsphere));
+              if(L > 0)
+                T.s.push(tL*scale3r*(straight(c,Lc-1) ?
+                                     unithemisphere : unitsphere));
             }
-            if(opacity(q) == 1)
-              _draw(f,c,q);
           }
-          for(patch s : T.s.s)
-            draw3D(f,s,p,light,prc=false);
-        } else _draw(f,g,q);
-      } else _draw(f,g,q);
+// Draw central core for better small-scale rendering.
+          if((!prc || piecewisestraight(g)) && !webgl && opacity(q) == 1)
+            _draw(f,c,p,light);
+        }
+        for(surface s : T.s)
+          draw(f,s,p,light,render);
+      } else _draw(f,g,p,light);
     }
     bool group=q != nullpen && (name != "" || render.defaultnames);
     if(group)
@@ -2557,42 +2562,6 @@ private string Format(transform3 t, string sep=" ")
     Format(t[0][3])+sep+Format(t[1][3])+sep+Format(t[2][3]);
 }
 
-string lightscript(light light) {
-  string script="for(var i=scene.lights.count-1; i >= 0; i--)
-  scene.lights.removeByIndex(i);"+'\n\n';
-  for(int i=0; i < light.position.length; ++i) {
-    string Li="L"+string(i);
-    real[] diffuse=light.diffuse[i];
-    script += Li+"=scene.createLight();"+'\n'+
-      Li+".direction.set("+format(-light.position[i],",")+");"+'\n'+
-      Li+".color.set("+format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
-  }
-  // Work around initialization bug in Adobe Reader 8.0:
-  return script +"
-scene.lightScheme=scene.LIGHT_MODE_HEADLAMP;
-scene.lightScheme=scene.LIGHT_MODE_FILE;
-";
-}
-
-void writeJavaScript(string name, string preamble, string script) 
-{
-  file out=output(name);
-  write(out,preamble);
-  if(script != "") {
-    write(out,endl);
-    file in=input(script);
-    while(true) {
-      string line=in;
-      if(eof(in)) break;
-      write(out,line,endl);
-    }
-  }
-  close(out);
-  if(settings.verbose > 1) write("Wrote "+name);
-  if(!settings.inlinetex)
-    file3.push(name);
-}
-
 pair viewportmargin(pair lambda)
 {
   return maxbound(0.5*(viewportsize-lambda),viewportmargin);
@@ -2613,7 +2582,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
   if(script == "") script=defaultembed3Dscript;
 
   if(P.infinity) {
-    if(viewplanesize==0) {
+    if(viewplanesize == 0) {
       triple lambda=max3(f)-min3(f);
       pair margin=viewportmargin((lambda.x,lambda.y));
       viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/P.zoom;
@@ -2624,10 +2593,6 @@ string embed3D(string prefix, string label=prefix, string text=label,
   shipout3(prefix,f);
 
   string name=prefix+".js";
-  // Adobe Reader doesn't appear to support user-specified viewport lights.
-  bool lightscript=light.on() && !light.viewport;
-  if(lightscript)
-    writeJavaScript(name,lightscript(light),script);
 
   if(!settings.inlinetex && !prconly())
     file3.push(prefix+".prc");
@@ -2636,7 +2601,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
   transform3 inv=inverse(flipxz*P.T.modelview);
 
   string options3="3Dlights="+
-    (light.on() ? (light.viewport ? "Headlamp" : "File") : "None");
+    (light.on() ? "Headlamp" : "None");
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
 
   if((settings.render < 0 || !settings.embed) && settings.auto3D)
@@ -2652,8 +2617,6 @@ string embed3D(string prefix, string label=prefix, string text=label,
   if(options != "") options3 += ","+options;
   if(settings.inlinetex)
     prefix=jobname(prefix);
-  if(lightscript)
-    options3 += ",add3Djscript="+prefix+".js";
   options3 += ",add3Djscript=asylabels.js";
 
   return text == "" ? Embed(prefix+".prc","",options3,width,height) :
@@ -2671,6 +2634,7 @@ struct scene
   pair viewportmargin;
   transform3 T=identity4;
   picture pic2;
+  bool keepAspect=true;
   
   void operator init(frame f, real width, real height,
                      projection P=currentprojection) {
@@ -2686,6 +2650,7 @@ struct scene
                      projection P=currentprojection) {
     real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
     bool warn=true;
+    this.keepAspect=keepAspect;
         
     if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
       xsize3=ysize3=zsize3=max(xsize,ysize);
@@ -2704,22 +2669,22 @@ struct scene
 
     if(!P.absolute) {
       this.P=t*P;
+      if(this.P.autoadjust || this.P.infinity)
+        adjusted=adjusted | this.P.adjust(m,M);
       if(this.P.center && settings.render != 0) {
         triple target=0.5*(m+M);
         this.P.target=target;
         this.P.calculate();
       }
-      if(this.P.autoadjust || this.P.infinity) 
-        adjusted=adjusted | this.P.adjust(m,M);
     }
 
     bool scale=xsize != 0 || ysize != 0;
     bool scaleAdjust=scale && this.P.autoadjust;
-    bool noAdjust=(this.P.absolute || !scaleAdjust);
+    bool noAdjust=this.P.absolute || !scaleAdjust;
 
     if(pic.bounds3.exact && noAdjust)
       this.P.bboxonly=false;
-    
+
     f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,this.P);
 
     if(!pic.bounds3.exact) {
@@ -2831,13 +2796,18 @@ object embed(string prefix=outprefix(), string label=prefix,
     P=modelview*P;
     Q=P.copy();
 
+    if(Q.t[2][3] == -1) // PRC can't handle oblique projections
+      Q=orthographic(P.camera,P.up,P.target,P.zoom,P.viewportshift,
+                     P.showtarget,P.center);     
     if(P.infinity) {
       triple m=min3(S.f);
       triple M=max3(S.f);
       triple lambda=M-m;
-      S.viewportmargin=viewportmargin((lambda.x,lambda.y));
-      S.width=ceil(lambda.x+2*S.viewportmargin.x);
-      S.height=ceil(lambda.y+2*S.viewportmargin.y);
+      if(S.keepAspect) {
+        S.viewportmargin=viewportmargin((lambda.x,lambda.y));
+        S.width=ceil(lambda.x+2*S.viewportmargin.x);
+        S.height=ceil(lambda.y+2*S.viewportmargin.y);
+      }
       orthoshift=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
       S.f=shift(orthoshift)*S.f; // Eye will be at (0,0,0)
       inv=inverse(modelview);
@@ -2902,13 +2872,16 @@ object embed(string prefix=outprefix(), string label=prefix,
       m -= margin;
     } else if(M.z >= 0) abort("camera too close");
 
+    if(settings.outformat == "html")
+      format="html";
+
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
-             P.zoom,m,M,P.viewportshift,
+             P.zoom,m,M,P.viewportshift,S.viewportmargin,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
-             Light.diffuse,Light.ambient,Light.specular,
-             Light.viewport,view && !preview);
+             Light.diffuse,Light.specular,
+             view && !preview);
     if(!preview) return F;
   }
 
@@ -2916,9 +2889,9 @@ object embed(string prefix=outprefix(), string label=prefix,
   if((preview || (prc && settings.render == 0)) && settings.embed) {
     image=prefix;
     if(settings.inlinetex) image += "_0";
-    if(!preview && !shipped && !S.pic2.empty2()) {
+    if(!preview && !S.pic2.empty2()) {
       transform T=S.pic2.scaling(S.width,S.height);
-      shipout(image,S.pic2.fit(T),newframe,nativeformat(),false,false,null);
+      _shipout(image,S.pic2.fit(T),newframe,nativeformat(),false,false);
     }
     
     image += "."+nativeformat();

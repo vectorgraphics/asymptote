@@ -8,7 +8,7 @@ bool3 branch(real x)
   static int lastsign=0;
   if(x == 0) return false;
   int sign=sgn(x);
-  bool b=lastsign == 0 || sign == lastsign; 
+  bool b=lastsign == 0 || sign == lastsign;
   lastsign=sign;
   return b ? true : default;
 }

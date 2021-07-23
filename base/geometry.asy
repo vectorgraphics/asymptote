@@ -22,7 +22,7 @@
 // An Asymptote geometry module.
 
 // THANKS:
-// Special thanks to Olivier Guibé for his help in mathematical issues.
+// Special thanks to Olivier Guibe for his help in mathematical issues.
 
 // BUGS:
 
@@ -31,6 +31,8 @@
 import math;
 import markers;
 
+real Infinity=1.0/(1000*realEpsilon);
+
 // A rotation in the direction dir limited to [-90,90]
 // This is useful for rotating text along a line in the direction dir.
 private transform rotate(explicit pair dir)
@@ -38,7 +40,7 @@ private transform rotate(explicit pair dir)
   real angle=degrees(dir);
   if(angle > 90 && angle < 270) angle -= 180;
   return rotate(angle);
-} 
+}
 
 // *=======================================================*
 // *........................HEADER.........................*
@@ -163,7 +165,7 @@ real rd(real x, real y, real z)
   ed = ea - 6 * eb;
   ee = ed + ec + ec;
   return 3 * sum + fac * (1.0 + ed * (-C1 + C5 * ed - C6 * delz * ee)
-                    +delz * (C2 * ee + delz * (-C3 * ec + delz * C4 * ea)))/(ave * sqrt(ave));
+                          +delz * (C2 * ee + delz * (-C3 * ec + delz * C4 * ea)))/(ave * sqrt(ave));
 }
 
 /*<asyxml><function type="real" signature="elle(real,real)"><code></asyxml>*/
@@ -256,10 +258,10 @@ struct coordsys
 {/*<asyxml></code><documentation>This structure represents a coordinate system in the plane.</documentation></asyxml>*/
   /*<asyxml><method type = "pair" signature="relativetodefault(pair)"><code></asyxml>*/
   restricted convert relativetodefault = new pair(pair m){return m;};/*<asyxml></code><documentation>Convert a pair given relatively to this coordinate system to
-                                                                     the pair relatively to the default coordinate system.</documentation></method></asyxml>*/
+                                                                       the pair relatively to the default coordinate system.</documentation></method></asyxml>*/
   /*<asyxml><method type = "pair" signature="defaulttorelativet(pair)"><code></asyxml>*/
   restricted convert defaulttorelative = new pair(pair m){return m;};/*<asyxml></code><documentation>Convert a pair given relatively to the default coordinate system to
-                                                                     the pair relatively to this coordinate system.</documentation></method></asyxml>*/
+                                                                       the pair relatively to this coordinate system.</documentation></method></asyxml>*/
   /*<asyxml><method type = "real" signature="dot(pair,pair)"><code></asyxml>*/
   restricted dot dot = new real(pair m, pair n){return dot(m, n);};/*<asyxml></code><documentation>Return the dot product of this coordinate system.</documentation></method></asyxml>*/
   /*<asyxml><method type = "real" signature="abs(pair)"><code></asyxml>*/
@@ -285,50 +287,50 @@ struct coordsys
 
 /*<asyxml><operator type = "bool" signature="==(coordsys,coordsys)"><code></asyxml>*/
 bool operator ==(coordsys c1, coordsys c2)
-{/*<asyxml></code><documentation>Return true iff the coordinate system have the same origin and units vector.</documentation></operator></asyxml>*/
-  return c1.O == c2.O && c1.i == c2.i && c1.j == c2.j;
-}
+  {/*<asyxml></code><documentation>Return true iff the coordinate system have the same origin and units vector.</documentation></operator></asyxml>*/
+   return c1.O == c2.O && c1.i == c2.i && c1.j == c2.j;
+  }
 
 /*<asyxml><function type="coordsys" signature="cartesiansystem(pair,pair,pair)"><code></asyxml>*/
 coordsys cartesiansystem(pair O = (0, 0), pair i, pair j)
 {/*<asyxml></code><documentation>Return the Cartesian coordinate system (O, i, j).</documentation></function></asyxml>*/
-  coordsys R;
-  real[][] P = {{0, 0}, {0, 0}};
-  real[][] iP;
-  P[0][0] = i.x;
-  P[0][1] = j.x;
-  P[1][0] = i.y;
-  P[1][1] = j.y;
-  iP = inverse(P);
-  real ni = abs(i);
-  real nj = abs(j);
-  real ij = angle(j) - angle(i);
+ coordsys R;
+ real[][] P = {{0, 0}, {0, 0}};
+ real[][] iP;
+ P[0][0] = i.x;
+ P[0][1] = j.x;
+ P[1][0] = i.y;
+ P[1][1] = j.y;
+ iP = inverse(P);
+ real ni = abs(i);
+ real nj = abs(j);
+ real ij = angle(j) - angle(i);
 
-  pair rtd(pair m)
-  {
-    return O + (P[0][0] * m.x + P[0][1] * m.y, P[1][0] * m.x + P[1][1] * m.y);
-  }
+ pair rtd(pair m)
+ {
+   return O + (P[0][0] * m.x + P[0][1] * m.y, P[1][0] * m.x + P[1][1] * m.y);
+ }
 
-  pair dtr(pair m)
-  {
-    m-=O;
-    return (iP[0][0] * m.x + iP[0][1] * m.y, iP[1][0] * m.x + iP[1][1] * m.y);
-  }
+ pair dtr(pair m)
+ {
+   m-=O;
+   return (iP[0][0] * m.x + iP[0][1] * m.y, iP[1][0] * m.x + iP[1][1] * m.y);
+ }
 
-  pair polar(real r, real a)
-  {
-    real ca = sin(ij - a)/(ni * sin(ij));
-    real sa = sin(a)/(nj * sin(ij));
-    return r * (ca, sa);
-  }
+ pair polar(real r, real a)
+ {
+   real ca = sin(ij - a)/(ni * sin(ij));
+   real sa = sin(a)/(nj * sin(ij));
+   return r * (ca, sa);
+ }
 
-  real tdot(pair m, pair n)
-  {
-    return m.x * n.x * ni^2 + m.y * n.y * nj^2 + (m.x * n.y + n.x * m.y) * dot(i, j);
-  }
+ real tdot(pair m, pair n)
+ {
+   return m.x * n.x * ni^2 + m.y * n.y * nj^2 + (m.x * n.y + n.x * m.y) * dot(i, j);
+ }
 
-  R.init(rtd, dtr, polar, tdot);
-  return R;
+ R.init(rtd, dtr, polar, tdot);
+ return R;
 }
 
 
@@ -342,19 +344,19 @@ void show(picture pic = currentpicture, Label lo = "$O$",
           pen jpen = ipen,
           arrowbar arrow = Arrow)
 {/*<asyxml></code><documentation>Draw the components (O, i, j, x - axis, y - axis) of 'R'.</documentation></function></asyxml>*/
-  unravel R;
-  dot(pic, O, dotpen);
-  drawline(pic, O, O + i, xpen);
-  drawline(pic, O, O + j, ypen);
-  draw(pic, li, O--(O + i), ipen, arrow);
-  Label lj = lj.copy();
-  lj.align(lj.align, unit(I * j));
-  draw(pic, lj, O--(O + j), jpen, arrow);
-  draw(pic, lj, O--(O + j), jpen, arrow);
-  Label lo = lo.copy();
-  lo.align(lo.align, -2 * dir(O--O + i, O--O + j));
-  lo.p(dotpen);
-  label(pic, lo, O);
+ unravel R;
+ dot(pic, O, dotpen);
+ drawline(pic, O, O + i, xpen);
+ drawline(pic, O, O + j, ypen);
+ draw(pic, li, O--(O + i), ipen, arrow);
+ Label lj = lj.copy();
+ lj.align(lj.align, unit(I * j));
+ draw(pic, lj, O--(O + j), jpen, arrow);
+ draw(pic, lj, O--(O + j), jpen, arrow);
+ Label lo = lo.copy();
+ lo.align(lo.align, -2 * dir(O--O + i, O--O + j));
+ lo.p(dotpen);
+ label(pic, lo, O);
 }
 
 /*<asyxml><operator type = "pair" signature="/(pair,coordsys)"><code></asyxml>*/
@@ -362,7 +364,7 @@ pair operator /(pair p, coordsys R)
 {/*<asyxml></code><documentation>Return the xy - coordinates of 'p' relatively to
    the coordinate system 'R'.
    For example, if R = cartesiansystem((1, 2), (1, 0), (0, 1)), (0, 0)/R is (-1, -2).</documentation></operator></asyxml>*/
-  return R.defaulttorelative(p);
+ return R.defaulttorelative(p);
 }
 
 /*<asyxml><operator type = "pair" signature="*(coordsys,pair)"><code></asyxml>*/
@@ -370,34 +372,34 @@ pair operator *(coordsys R, pair p)
 {/*<asyxml></code><documentation>Return the coordinates of 'p' given in the
    xy - coordinates 'R'.
    For example, if R = cartesiansystem((1, 2), (1, 0), (0, 1)), R * (0, 0) is (1, 2).</documentation></operator></asyxml>*/
-  return R.relativetodefault(p);
+ return R.relativetodefault(p);
 }
 
 /*<asyxml><operator type = "path" signature="*(coordsys,path)"><code></asyxml>*/
 path operator *(coordsys R, path g)
 {/*<asyxml></code><documentation>Return the reconstructed path applying R * pair to each node, pre and post control point of 'g'.</documentation></operator></asyxml>*/
-  guide og = R * point(g, 0);
-  real l = length(g);
-  for(int i = 1; i <= l; ++i)
-    {
-      pair P = R * point(g, i);
-      pair post = R * postcontrol(g, i - 1);
-      pair pre = R * precontrol(g, i);
-      if(i == l && (cyclic(g)))
-        og = og..controls post and pre..cycle;
-      else
-        og = og..controls post and pre..P;
-    }
-  return og;
+ guide og = R * point(g, 0);
+ real l = length(g);
+ for(int i = 1; i <= l; ++i)
+   {
+     pair P = R * point(g, i);
+     pair post = R * postcontrol(g, i - 1);
+     pair pre = R * precontrol(g, i);
+     if(i == l && (cyclic(g)))
+       og = og..controls post and pre..cycle;
+     else
+       og = og..controls post and pre..P;
+   }
+ return og;
 }
 
 /*<asyxml><operator type = "coordsys" signature="*(transform,coordsys)"><code></asyxml>*/
 coordsys operator *(transform t,coordsys R)
 {/*<asyxml></code><documentation>Provide transform * coordsys.
    Note that shiftless(t) is applied to R.i and R.j.</documentation></operator></asyxml>*/
-  coordsys oc;
-  oc = cartesiansystem(t * R.O, shiftless(t) * R.i, shiftless(t) * R.j);
-  return oc;
+ coordsys oc;
+ oc = cartesiansystem(t * R.O, shiftless(t) * R.i, shiftless(t) * R.j);
+ return oc;
 }
 
 /*<asyxml><constant type = "coordsys" signature="defaultcoordsys"><code></asyxml>*/
@@ -649,26 +651,26 @@ point operator *(explicit pair p1, explicit point p2)
 
 /*<asyxml><operator type = "bool" signature="==(explicit point,explicit point)"><code></asyxml>*/
 bool operator ==(explicit point M, explicit point N)
-{/*<asyxml></code><documentation>Provide the test 'M == N' wish returns true iff MN < EPS</documentation></operator></asyxml>*/
-  return abs(locate(M) - locate(N)) < EPS;
-}
+  {/*<asyxml></code><documentation>Provide the test 'M == N' wish returns true iff MN < EPS</documentation></operator></asyxml>*/
+   return abs(locate(M) - locate(N)) < EPS;
+  }
 
 /*<asyxml><operator type = "bool" signature="!=(explicit point,explicit point)"><code></asyxml>*/
 bool operator !=(explicit point M, explicit point N)
 {/*<asyxml></code><documentation>Provide the test 'M != N' wish return true iff MN >= EPS</documentation></operator></asyxml>*/
-  return !(M == N);
+ return !(M == N);
 }
 
 /*<asyxml><operator type = "guide" signature="cast(point)"><code></asyxml>*/
 guide operator cast(point p)
 {/*<asyxml></code><documentation>Cast point to guide.</documentation></operator></asyxml>*/
-  return locate(p);
+ return locate(p);
 }
 
 /*<asyxml><operator type = "path" signature="cast(point)"><code></asyxml>*/
 path operator cast(point p)
 {/*<asyxml></code><documentation>Cast point to path.</documentation></operator></asyxml>*/
-  return locate(p);
+ return locate(p);
 }
 
 /*<asyxml><function type="void" signature="dot(picture,Label,explicit point,align,string,pen)"><code></asyxml>*/
@@ -676,98 +678,103 @@ void dot(picture pic = currentpicture, Label L, explicit point Z,
          align align = NoAlign,
          string format = defaultformat, pen p = currentpen)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
-  Label L = L.copy();
-  L.position(locate(Z));
-  if(L.s == "") {
-    if(format == "") format = defaultformat;
-    L.s = "("+format(format, Z.x)+", "+format(format, Z.y)+")";
-  }
-  L.align(align, E);
-  L.p(p);
-  dot(pic, locate(Z), p);
-  add(pic, L);
+ Label L = L.copy();
+ L.position(locate(Z));
+ if(L.s == "") {
+   if(format == "") format = defaultformat;
+   L.s = "("+format(format, Z.x)+", "+format(format, Z.y)+")";
+ }
+ L.align(align, E);
+ L.p(p);
+ dot(pic, locate(Z), p);
+ add(pic, L);
 }
 
 /*<asyxml><function type="real" signature="abs(coordsys,pair)"><code></asyxml>*/
 real abs(coordsys R, pair m)
 {/*<asyxml></code><documentation>Return the modulus |m| in the coordinate system 'R'.</documentation></function></asyxml>*/
-  return R.abs(m);
+ return R.abs(m);
 }
 
 /*<asyxml><function type="real" signature="abs(explicit point)"><code></asyxml>*/
 real abs(explicit point M)
 {/*<asyxml></code><documentation>Return the modulus |M| in its coordinate system.</documentation></function></asyxml>*/
-  return M.coordsys.abs(M.coordinates);
+ return M.coordsys.abs(M.coordinates);
 }
 
 /*<asyxml><function type="real" signature="length(explicit point)"><code></asyxml>*/
 real length(explicit point M)
 {/*<asyxml></code><documentation>Return the modulus |M| in its coordinate system (same as 'abs').</documentation></function></asyxml>*/
-  return M.coordsys.abs(M.coordinates);
+ return M.coordsys.abs(M.coordinates);
 }
 
 /*<asyxml><function type="point" signature="conj(explicit point)"><code></asyxml>*/
 point conj(explicit point M)
 {/*<asyxml></code><documentation>Conjugate.</documentation></function></asyxml>*/
-  return point(M.coordsys, conj(M.coordinates), M.m);
+ return point(M.coordsys, conj(M.coordinates), M.m);
 }
 
 /*<asyxml><function type="real" signature="degrees(explicit point,coordsys,bool)"><code></asyxml>*/
 real degrees(explicit point M, coordsys R = M.coordsys, bool warn = true)
 {/*<asyxml></code><documentation>Return the angle of M (in degrees) relatively to 'R'.</documentation></function></asyxml>*/
-  return (degrees(locate(M) - R.O, warn) - degrees(R.i))%360;
+ return (degrees(locate(M) - R.O, warn) - degrees(R.i))%360;
 }
 
 /*<asyxml><function type="real" signature="angle(explicit point,coordsys,bool)"><code></asyxml>*/
 real angle(explicit point M, coordsys R = M.coordsys, bool warn = true)
 {/*<asyxml></code><documentation>Return the angle of M (in radians) relatively to 'R'.</documentation></function></asyxml>*/
-  return radians(degrees(M, R, warn));
+ return radians(degrees(M, R, warn));
+}
+
+bool Finite(explicit point z)
+{
+ return abs(z.x) < Infinity && abs(z.y) < Infinity;
 }
 
 /*<asyxml><function type="bool" signature="finite(explicit point)"><code></asyxml>*/
 bool finite(explicit point p)
 {/*<asyxml></code><documentation>Avoid to compute 'finite((pair)(infinite_point))'.</documentation></function></asyxml>*/
-  return finite(p.coordinates);
+ return finite(p.coordinates);
 }
 
 /*<asyxml><function type="real" signature="dot(point,point)"><code></asyxml>*/
 real dot(point A, point B)
 {/*<asyxml></code><documentation>Return the dot product in the coordinate system of 'A'.</documentation></function></asyxml>*/
-  point[] P = standardizecoordsys(A.coordsys, A, B);
-  return P[0].coordsys.dot(P[0].coordinates, P[1].coordinates);
+ point[] P = standardizecoordsys(A.coordsys, A, B);
+ return P[0].coordsys.dot(P[0].coordinates, P[1].coordinates);
 }
 
 /*<asyxml><function type="real" signature="dot(point,explicit pair)"><code></asyxml>*/
 real dot(point A, explicit pair B)
 {/*<asyxml></code><documentation>Return the dot product in the default coordinate system.
    dot(explicit pair, point) is also defined.</documentation></function></asyxml>*/
-  return dot(locate(A), B);
+ return dot(locate(A), B);
 }
 real dot(explicit pair A, point B)
 {
-  return dot(A, locate(B));
+ return dot(A, locate(B));
 }
 
 /*<asyxml><function type="transforms" signature="rotateO(real)"><code></asyxml>*/
 transform rotateO(real a)
 {/*<asyxml></code><documentation>Rotation around the origin of the current coordinate system.</documentation></function></asyxml>*/
-  return rotate(a, currentcoordsys.O);
-};
+ return rotate(a, currentcoordsys.O);
+}
 
 /*<asyxml><function type="transform" signature="projection(point,point)"><code></asyxml>*/
 transform projection(point A, point B)
 {/*<asyxml></code><documentation>Return the orthogonal projection on the line (AB).</documentation></function></asyxml>*/
-  pair dir = unit(locate(A) - locate(B));
-  pair a = locate(A);
-  real cof = dir.x * a.x + dir.y * a.y;
-  real tx = a.x - dir.x * cof;
-  real txx = dir.x^2;
-  real txy = dir.x * dir.y;
-  real ty = a.y - dir.y * cof;
-  real tyx = txy;
-  real tyy = dir.y^2;
-  transform t = (tx, ty, txx, txy, tyx, tyy);
-  return t;
+ pair dir = unit(locate(A) - locate(B));
+ pair a = locate(A);
+ real cof = dir.x * a.x + dir.y * a.y;
+ real tx = a.x - dir.x * cof;
+ real txx = dir.x^2;
+ real txy = dir.x * dir.y;
+ real ty = a.y - dir.y * cof;
+ real tyx = txy;
+ real tyy = dir.y^2;
+ transform t = (tx, ty, txx, txy, tyx, tyy);
+ return t;
 }
 
 /*<asyxml><function type="transform" signature="projection(point,point,point,point,bool)"><code></asyxml>*/
@@ -775,45 +782,45 @@ transform projection(point A, point B, point C, point D, bool safe = false)
 {/*<asyxml></code><documentation>Return the (CD) parallel projection on (AB).
    If 'safe = true' and (AB)//(CD) return the identity.
    If 'safe = false' and (AB)//(CD) return an infinity scaling.</documentation></function></asyxml>*/
-  pair a = locate(A);
-  pair u = unit(locate(B) - locate(A));
-  pair v = unit(locate(D) - locate(C));
-  real c = u.x * a.y - u.y * a.x;
-  real d = (conj(u) * v).y;
-  if (abs(d) < epsgeo) {
-    return safe ? identity() : scale(infinity);
-  }
-  real tx = c * v.x/d;
-  real ty = c * v.y/d;
-  real txx = u.x * v.y/d;
-  real txy = -u.x * v.x/d;
-  real tyx = u.y * v.y/d;
-  real tyy = -u.y * v.x/d;
-  transform t = (tx, ty, txx, txy, tyx, tyy);
-  return t;
+ pair a = locate(A);
+ pair u = unit(locate(B) - locate(A));
+ pair v = unit(locate(D) - locate(C));
+ real c = u.x * a.y - u.y * a.x;
+ real d = (conj(u) * v).y;
+ if (abs(d) < epsgeo) {
+   return safe ? identity() : scale(infinity);
+ }
+ real tx = c * v.x/d;
+ real ty = c * v.y/d;
+ real txx = u.x * v.y/d;
+ real txy = -u.x * v.x/d;
+ real tyx = u.y * v.y/d;
+ real tyy = -u.y * v.x/d;
+ transform t = (tx, ty, txx, txy, tyx, tyy);
+ return t;
 }
 
 /*<asyxml><function type="transform" signature="scale(real,point)"><code></asyxml>*/
 transform scale(real k, point M)
 {/*<asyxml></code><documentation>Homothety.</documentation></function></asyxml>*/
-  pair P = locate(M);
-  return shift(P) * scale(k) * shift(-P);
+ pair P = locate(M);
+ return shift(P) * scale(k) * shift(-P);
 }
 
 /*<asyxml><function type="transform" signature="xscale(real,point)"><code></asyxml>*/
 transform xscale(real k, point M)
 {/*<asyxml></code><documentation>xscale from 'M' relatively to the x - axis of the coordinate system of 'M'.</documentation></function></asyxml>*/
-  pair P = locate(M);
-  real a = degrees(M.coordsys.i);
-  return (shift(P) * rotate(a)) * xscale(k) * (rotate(-a) * shift(-P));
+ pair P = locate(M);
+ real a = degrees(M.coordsys.i);
+ return (shift(P) * rotate(a)) * xscale(k) * (rotate(-a) * shift(-P));
 }
 
 /*<asyxml><function type="transform" signature="yscale(real,point)"><code></asyxml>*/
 transform yscale(real k, point M)
 {/*<asyxml></code><documentation>yscale from 'M' relatively to the y - axis of the coordinate system of 'M'.</documentation></function></asyxml>*/
-  pair P = locate(M);
-  real a = degrees(M.coordsys.j) - 90;
-  return (shift(P) * rotate(a)) * yscale(k) * (rotate(-a) * shift(-P));
+ pair P = locate(M);
+ real a = degrees(M.coordsys.j) - 90;
+ return (shift(P) * rotate(a)) * yscale(k) * (rotate(-a) * shift(-P));
 }
 
 /*<asyxml><function type="transform" signature="scale(real,point,point,point,point,bool)"><code></asyxml>*/
@@ -822,41 +829,41 @@ transform scale(real k, point A, point B, point C, point D, bool safe = false)
    (help me for English translation...)
    If 'safe = true' and (AB)//(CD) return the identity.
    If 'safe = false' and (AB)//(CD) return a infinity scaling.</documentation></function></asyxml>*/
-  pair a = locate(A);
-  pair u = unit(locate(B) - locate(A));
-  pair v = unit(locate(D) - locate(C));
-  real c = u.x * a.y - u.y * a.x;
-  real d = (conj(u) * v).y;
-  real d = (conj(u) * v).y;
-  if (abs(d) < epsgeo) {
-    return safe ? identity() : scale(infinity);
-  }
-  real tx = (1 - k) * c * v.x/d;
-  real ty = (1 - k) * c * v.y/d;
-  real txx = (1 - k) * u.x * v.y/d + k;
-  real txy = (k - 1) * u.x * v.x/d;
-  real tyx = (1 - k) * u.y * v.y/d;
-  real tyy = (k - 1) * u.y * v.x/d + k;
-  transform t = (tx, ty, txx, txy, tyx, tyy);
-  return t;
+ pair a = locate(A);
+ pair u = unit(locate(B) - locate(A));
+ pair v = unit(locate(D) - locate(C));
+ real c = u.x * a.y - u.y * a.x;
+ real d = (conj(u) * v).y;
+ real d = (conj(u) * v).y;
+ if (abs(d) < epsgeo) {
+   return safe ? identity() : scale(infinity);
+ }
+ real tx = (1 - k) * c * v.x/d;
+ real ty = (1 - k) * c * v.y/d;
+ real txx = (1 - k) * u.x * v.y/d + k;
+ real txy = (k - 1) * u.x * v.x/d;
+ real tyx = (1 - k) * u.y * v.y/d;
+ real tyy = (k - 1) * u.y * v.x/d + k;
+ transform t = (tx, ty, txx, txy, tyx, tyy);
+ return t;
 }
 
 /*<asyxml><function type="transform" signature="scaleO(real)"><code></asyxml>*/
 transform scaleO(real x)
 {/*<asyxml></code><documentation>Homothety from the origin of the current coordinate system.</documentation></function></asyxml>*/
-  return scale(x, (0, 0));
+ return scale(x, (0, 0));
 }
 
 /*<asyxml><function type="transform" signature="xscaleO(real)"><code></asyxml>*/
 transform xscaleO(real x)
 {/*<asyxml></code><documentation>xscale from the origin and relatively to the current coordinate system.</documentation></function></asyxml>*/
-  return scale(x, (0, 0), (0, 1), (0, 0), (1, 0));
+ return scale(x, (0, 0), (0, 1), (0, 0), (1, 0));
 }
 
 /*<asyxml><function type="transform" signature="yscaleO(real)"><code></asyxml>*/
 transform yscaleO(real x)
 {/*<asyxml></code><documentation>yscale from the origin and relatively to the current coordinate system.</documentation></function></asyxml>*/
-  return scale(x, (0, 0), (1, 0), (0, 0), (0, 1));
+ return scale(x, (0, 0), (1, 0), (0, 0), (0, 1));
 }
 
 /*<asyxml><struct signature="vector"><code></asyxml>*/
@@ -869,121 +876,121 @@ struct vector
 /*<asyxml><operator type = "point" signature="cast(vector)"><code></asyxml>*/
 point operator cast(vector v)
 {/*<asyxml></code><documentation>Cast vector 'v' to point 'M' so that OM = v.</documentation></operator></asyxml>*/
-  return v.v;
+ return v.v;
 }
 
 /*<asyxml><operator type = "vector" signature="cast(pair)"><code></asyxml>*/
 vector operator cast(pair v)
 {/*<asyxml></code><documentation>Cast pair to vector relatively to the current coordinate
    system 'currentcoordsys'.</documentation></operator></asyxml>*/
-  vector ov;
-  ov.v = point(currentcoordsys, v);
-  return ov;
+ vector ov;
+ ov.v = point(currentcoordsys, v);
+ return ov;
 }
 
 /*<asyxml><operator type = "vector" signature="cast(explicit point)"><code></asyxml>*/
 vector operator cast(explicit point v)
 {/*<asyxml></code><documentation>A point can be interpreted like a vector using the code
    '(vector)a_point'.</documentation></operator></asyxml>*/
-  vector ov;
-  ov.v = v;
-  return ov;
+ vector ov;
+ ov.v = v;
+ return ov;
 }
 
 /*<asyxml><operator type = "pair" signature="cast(explicit vector)"><code></asyxml>*/
 pair operator cast(explicit vector v)
 {/*<asyxml></code><documentation>Cast vector to pair (the coordinates of 'v' in the default coordinate system).</documentation></operator></asyxml>*/
-  return locate(v.v) - v.v.coordsys.O;
+ return locate(v.v) - v.v.coordsys.O;
 }
 
 /*<asyxml><operator type = "align" signature="cast(vector)"><code></asyxml>*/
 align operator cast(vector v)
 {/*<asyxml></code><documentation>Cast vector to align.</documentation></operator></asyxml>*/
-  return (pair)v;
+ return (pair)v;
 }
 
 /*<asyxml><function type="vector" signature="vector(coordsys, pair)"><code></asyxml>*/
 vector vector(coordsys R = currentcoordsys, pair v)
 {/*<asyxml></code><documentation>Return the vector of 'R' which has the coordinates 'v'.</documentation></function></asyxml>*/
-  vector ov;
-  ov.v = point(R, v);
-  return ov;
+ vector ov;
+ ov.v = point(R, v);
+ return ov;
 }
 
 /*<asyxml><function type="vector" signature="vector(point)"><code></asyxml>*/
 vector vector(point M)
 {/*<asyxml></code><documentation>Return the vector OM, where O is the origin of the coordinate system of 'M'.
    Useful to write 'vector(P - M);' instead of '(vector)(P - M)'.</documentation></function></asyxml>*/
-  return M;
+ return M;
 }
 
 /*<asyxml><function type="point" signature="point(explicit vector)"><code></asyxml>*/
 point point(explicit vector u)
 {/*<asyxml></code><documentation>Return the point M so that OM = u, where O is the origin of the coordinate system of 'u'.</documentation></function></asyxml>*/
-  return u.v;
+ return u.v;
 }
 
 /*<asyxml><function type="pair" signature="locate(explicit vector)"><code></asyxml>*/
 pair locate(explicit vector v)
 {/*<asyxml></code><documentation>Return the coordinates of 'v' in the default coordinate system (like casting vector to pair).</documentation></function></asyxml>*/
-  return (pair)v;
+ return (pair)v;
 }
 
 /*<asyxml><function type="void" signature="show(Label,pen,arrowbar)"><code></asyxml>*/
 void show(Label L, vector v, pen p = currentpen, arrowbar arrow = Arrow)
 {/*<asyxml></code><documentation>Draw the vector v (from the origin of its coordinate system).</documentation></function></asyxml>*/
-  coordsys R = v.v.coordsys;
-  draw(L, R.O--v.v, p, arrow);
+ coordsys R = v.v.coordsys;
+ draw(L, R.O--v.v, p, arrow);
 }
 
 /*<asyxml><function type="vector" signature="changecoordsys(coordsys,vector)"><code></asyxml>*/
 vector changecoordsys(coordsys R, vector v)
 {/*<asyxml></code><documentation>Return the vector 'v' relatively to coordinate system 'R'.</documentation></function></asyxml>*/
-  vector ov;
-  ov.v = point(R, (locate(v) + R.O)/R);
-  return ov;
+ vector ov;
+ ov.v = point(R, (locate(v) + R.O)/R);
+ return ov;
 }
 
 /*<asyxml><operator type = "vector" signature="*(real,explicit vector)"><code></asyxml>*/
 vector operator *(real x, explicit vector v)
 {/*<asyxml></code><documentation>Provide real * vector.</documentation></operator></asyxml>*/
-  return x * v.v;
+ return x * v.v;
 }
 
 /*<asyxml><operator type = "vector" signature="/(explicit vector,real)"><code></asyxml>*/
 vector operator /(explicit vector v, real x)
 {/*<asyxml></code><documentation>Provide vector/real</documentation></operator></asyxml>*/
-  return v.v/x;
+ return v.v/x;
 }
 
 /*<asyxml><operator type = "vector" signature="*(transform t,explicit vector)"><code></asyxml>*/
 vector operator *(transform t, explicit vector v)
 {/*<asyxml></code><documentation>Provide transform * vector.</documentation></operator></asyxml>*/
-  return t * v.v;
+ return t * v.v;
 }
 
 /*<asyxml><operator type = "vector" signature="*(explicit point,explicit vector)"><code></asyxml>*/
 vector operator *(explicit point M, explicit vector v)
 {/*<asyxml></code><documentation>Provide point * vector</documentation></operator></asyxml>*/
-  return M * v.v;
+ return M * v.v;
 }
 
 /*<asyxml><operator type = "point" signature="+(explicit point,explicit vector)"><code></asyxml>*/
 point operator +(point M, explicit vector v)
 {/*<asyxml></code><documentation>Return 'M' shifted by 'v'.</documentation></operator></asyxml>*/
-  return shift(locate(v)) * M;
+ return shift(locate(v)) * M;
 }
 
 /*<asyxml><operator type = "point" signature="-(explicit point,explicit vector)"><code></asyxml>*/
 point operator -(point M, explicit vector v)
 {/*<asyxml></code><documentation>Return 'M' shifted by '-v'.</documentation></operator></asyxml>*/
-  return shift(-locate(v)) * M;
+ return shift(-locate(v)) * M;
 }
 
 /*<asyxml><operator type = "vector" signature="-(explicit vector)"><code></asyxml>*/
 vector operator -(explicit vector v)
 {/*<asyxml></code><documentation>Provide -v.</documentation></operator></asyxml>*/
-  return -v.v;
+ return -v.v;
 }
 
 /*<asyxml><operator type = "point" signature="+(explicit pair,explicit vector)"><code></asyxml>*/
@@ -991,7 +998,7 @@ point operator +(explicit pair m, explicit vector v)
 {/*<asyxml></code><documentation>The pair 'm' is supposed to be the coordinates of
    a point in the current coordinates system 'currentcoordsys'.
    Return this point shifted by the vector 'v'.</documentation></operator></asyxml>*/
-  return locate(m) + v;
+ return locate(m) + v;
 }
 
 /*<asyxml><operator type = "point" signature="-(explicit pair,explicit vector)"><code></asyxml>*/
@@ -999,7 +1006,7 @@ point operator -(explicit pair m, explicit vector v)
 {/*<asyxml></code><documentation>The pair 'm' is supposed to be the coordinates of
    a point in the current coordinates system 'currentcoordsys'.
    Return this point shifted by the vector '-v'.</documentation></operator></asyxml>*/
-  return m + (-v);
+ return m + (-v);
 }
 
 /*<asyxml><operator type = "vector" signature="+(explicit vector,explicit vector)"><code></asyxml>*/
@@ -1007,9 +1014,9 @@ vector operator +(explicit vector v1, explicit vector v2)
 {/*<asyxml></code><documentation>Provide vector + vector.
    If the two vector haven't the same coordinate system, the returned
    vector is relative to the default coordinate system (without warning).</documentation></operator></asyxml>*/
-  coordsys R = v1.v.coordsys;
-  if(samecoordsys(false, v1, v2)){R = defaultcoordsys;}
-  return vector(R, (locate(v1) + locate(v2))/R);
+ coordsys R = v1.v.coordsys;
+ if(samecoordsys(false, v1, v2)){R = defaultcoordsys;}
+ return vector(R, (locate(v1) + locate(v2))/R);
 }
 
 /*<asyxml><operator type = "vector" signature="-(explicit vector, explicit vector)"><code></asyxml>*/
@@ -1017,31 +1024,31 @@ vector operator -(explicit vector v1, explicit vector v2)
 {/*<asyxml></code><documentation>Provide vector - vector.
    If the two vector haven't the same coordinate system, the returned
    vector is relative to the default coordinate system (without warning).</documentation></operator></asyxml>*/
-  return v1 + (-v2);
+ return v1 + (-v2);
 }
 
 /*<asyxml><operator type = "bool" signature="==(explicit vector,explicit vector)"><code></asyxml>*/
 bool operator ==(explicit vector u, explicit vector v)
-{/*<asyxml></code><documentation>Return true iff |u - v|<EPS.</documentation></operator></asyxml>*/
-  return abs(u - v) < EPS;
-}
+  {/*<asyxml></code><documentation>Return true iff |u - v|<EPS.</documentation></operator></asyxml>*/
+   return abs(u - v) < EPS;
+  }
 
 /*<asyxml><function type="bool" signature="collinear(vector,vector)"><code></asyxml>*/
 bool collinear(vector u, vector v)
 {/*<asyxml></code><documentation>Return 'true' iff the vectors 'u' and 'v' are collinear.</documentation></function></asyxml>*/
-  return abs(ypart((conj((pair)u) * (pair)v))) < EPS;
+ return abs(ypart((conj((pair)u) * (pair)v))) < EPS;
 }
 
 /*<asyxml><function type="vector" signature="unit(point)"><code></asyxml>*/
 vector unit(point M)
 {/*<asyxml></code><documentation>Return the unit vector according to the modulus of its coordinate system.</documentation></function></asyxml>*/
-  return M/abs(M);
+ return M/abs(M);
 }
 
 /*<asyxml><function type="vector" signature="unit(vector)"><code></asyxml>*/
 vector unit(vector u)
 {/*<asyxml></code><documentation>Return the unit vector according to the modulus of its coordinate system.</documentation></function></asyxml>*/
-  return u.v/abs(u.v);
+ return u.v/abs(u.v);
 }
 
 /*<asyxml><function type="real" signature="degrees(vector,coordsys,bool)"><code></asyxml>*/
@@ -1049,7 +1056,7 @@ real degrees(vector v,
              coordsys R = v.v.coordsys,
              bool warn = true)
 {/*<asyxml></code><documentation>Return the angle of 'v' (in degrees) relatively to 'R'.</documentation></function></asyxml>*/
-  return (degrees(locate(v), warn) - degrees(R.i))%360;
+ return (degrees(locate(v), warn) - degrees(R.i))%360;
 }
 
 /*<asyxml><function type="real" signature="angle(vector,coordsys,bool)"><code></asyxml>*/
@@ -1057,13 +1064,13 @@ real angle(explicit vector v,
            coordsys R = v.v.coordsys,
            bool warn = true)
 {/*<asyxml></code><documentation>Return the angle of 'v' (in radians) relatively to 'R'.</documentation></function></asyxml>*/
-  return radians(degrees(v, R, warn));
+ return radians(degrees(v, R, warn));
 }
 
 /*<asyxml><function type="vector" signature="conj(explicit vector)"><code></asyxml>*/
 vector conj(explicit vector u)
 {/*<asyxml></code><documentation>Conjugate.</documentation></function></asyxml>*/
-  return conj(u.v);
+ return conj(u.v);
 }
 
 /*<asyxml><function type="transform" signature="rotate(explicit vector)"><code></asyxml>*/
@@ -1072,7 +1079,7 @@ transform rotate(explicit vector dir)
    This is useful for rotating text along a line in the direction dir.
    rotate(explicit point dir) is also defined.
    </documentation></function></asyxml>*/
-  return rotate(locate(dir));
+ return rotate(locate(dir));
 }
 transform rotate(explicit point dir){return rotate(locate(vector(dir)));}
 // *......................COORDINATES......................*
@@ -1296,7 +1303,7 @@ void perpendicularmark(picture pic = currentpicture, point z,
    relative to the path z--z + dir.
    dir(45 + n * 90), where n in N*, are common values for 'align'.</documentation></function></asyxml>*/
   p = squarecap + miterjoin + p;
-  if(size == 0) size = perpfactor * 3mm + sqrt(1 + linewidth(p)) - 1;
+  if(size == 0) size = perpfactor * 3mm + linewidth(p) / 2;
   frame apic;
   pair d1 = size * align * unit(dir) * dir(-45);
   pair d2 = I * d1;
@@ -1304,7 +1311,7 @@ void perpendicularmark(picture pic = currentpicture, point z,
   g = margin(g, p).g;
   draw(apic, g, p);
   if(filltype != NoFill) filltype.fill(apic, (relpoint(g, 0) - relpoint(g, 0.5)+
-                                             relpoint(g, 1))--g--cycle, p + solid);
+                                              relpoint(g, 1))--g--cycle, p + solid);
   add(pic, apic, locate(z));
 }
 
@@ -1353,7 +1360,7 @@ void markrightangle(picture pic = currentpicture, point A, point O,
   pair Ap = A, Bp = B, Op = O;
   pair dir = Ap - Op;
   real a1 = degrees(dir);
-  pair align = rotate(-a1) * unit(dir(Op--Ap, Op--Bp));
+  pair align = rotate(-a1) * dir(Op--Ap, Op--Bp);
   perpendicularmark(pic = pic, z = O, align = align,
                     dir = dir, size = size, p = p,
                     margin = margin, filltype = filltype);
@@ -1495,7 +1502,7 @@ struct segment
 {/*<asyxml></code><documentation><look href = "struct line"/>.</documentation></asyxml>*/
   restricted point A, B;// Extremity.
   restricted vector u, v;// u = direction vector, v = normal vector.
-  restricted real a, b, c;// Coefficients of the équation ax + by + c = 0
+  restricted real a, b, c;// Coefficients of the equation ax + by + c = 0
   restricted real slope, origin;
   segment copy()
   {
@@ -1693,80 +1700,80 @@ void write(explicit segment s)
 
 /*<asyxml><operator type = "bool" signature="==(line,line)"><code></asyxml>*/
 bool operator ==(line l1, line l2)
-{/*<asyxml></code><documentation>Provide the test 'line == line'.</documentation></operator></asyxml>*/
-  return (collinear(l1.u, l2.u) &&
-          abs(ypart((locate(l1.A) - locate(l1.B))/(locate(l1.A) - locate(l2.B)))) < epsgeo &&
-          l1.extendA == l2.extendA && l1.extendB == l2.extendB);
-}
+  {/*<asyxml></code><documentation>Provide the test 'line == line'.</documentation></operator></asyxml>*/
+   return (collinear(l1.u, l2.u) &&
+           abs(ypart((locate(l1.A) - locate(l1.B))/(locate(l1.A) - locate(l2.B)))) < epsgeo &&
+           l1.extendA == l2.extendA && l1.extendB == l2.extendB);
+  }
 
 /*<asyxml><operator type = "bool" signature="!=(line,line)"><code></asyxml>*/
 bool operator !=(line l1, line l2)
 {/*<asyxml></code><documentation>Provide the test 'line != line'.</documentation></operator></asyxml>*/
-  return !(l1 == l2);
+ return !(l1 == l2);
 }
 
 /*<asyxml><operator type = "bool" signature="@(point,line)"><code></asyxml>*/
 bool operator @(point m, line l)
 {/*<asyxml></code><documentation>Provide the test 'point @ line'.
    Return true iff 'm' is on the 'l'.</documentation></operator></asyxml>*/
-  point M = changecoordsys(l.A.coordsys, m);
-  if (abs(l.a * M.x + l.b * M.y + l.c) >= epsgeo) return false;
-  if (l.extendA && l.extendB) return true;
-  if (!l.extendA && !l.extendB) return between(l.A, M, l.B);
-  if (l.extendA) return sameside(M, l.A, l.B);
-  return sameside(M, l.B, l.A);
+ point M = changecoordsys(l.A.coordsys, m);
+ if (abs(l.a * M.x + l.b * M.y + l.c) >= epsgeo) return false;
+ if (l.extendA && l.extendB) return true;
+ if (!l.extendA && !l.extendB) return between(l.A, M, l.B);
+ if (l.extendA) return sameside(M, l.A, l.B);
+ return sameside(M, l.B, l.A);
 }
 
 /*<asyxml><function type="coordsys" signature="coordsys(line)"><code></asyxml>*/
 coordsys coordsys(line l)
 {/*<asyxml></code><documentation>Return the coordinate system in which 'l' is defined.</documentation></function></asyxml>*/
-  return l.A.coordsys;
+ return l.A.coordsys;
 }
 
 /*<asyxml><function type="line" signature="reverse(line)"><code></asyxml>*/
 line reverse(line l)
 {/*<asyxml></code><documentation>Permute the points 'A' and 'B' of 'l' and so its orientation.</documentation></function></asyxml>*/
-  return line(l.B, l.extendB, l.A, l.extendA);
+ return line(l.B, l.extendB, l.A, l.extendA);
 }
 
 /*<asyxml><function type="line" signature="extend(line)"><code></asyxml>*/
 line extend(line l)
 {/*<asyxml></code><documentation>Return the infinite line passing through 'l.A' and 'l.B'.</documentation></function></asyxml>*/
-  line ol = l.copy();
-  ol.extendA = true;
-  ol.extendB = true;
-  return ol;
+ line ol = l.copy();
+ ol.extendA = true;
+ ol.extendB = true;
+ return ol;
 }
 
 /*<asyxml><function type="line" signature="complementary(explicit line)"><code></asyxml>*/
 line complementary(explicit line l)
 {/*<asyxml></code><documentation>Return the complementary of a half-line with respect of
    the full line 'l'.</documentation></function></asyxml>*/
-  if (l.extendA && l.extendB)
-    abort("complementary: the parameter is not a half-line.");
-  point origin = l.extendA ? l.B : l.A;
-  point ptdir = l.extendA ?
-    rotate(180, l.B) * l.A : rotate(180, l.A) * l.B;
-  return line(origin, false, ptdir);
+ if (l.extendA && l.extendB)
+   abort("complementary: the parameter is not a half-line.");
+ point origin = l.extendA ? l.B : l.A;
+ point ptdir = l.extendA ?
+ rotate(180, l.B) * l.A : rotate(180, l.A) * l.B;
+ return line(origin, false, ptdir);
 }
 
 /*<asyxml><function type="line[]" signature="complementary(explicit segment)"><code></asyxml>*/
 line[] complementary(explicit segment s)
 {/*<asyxml></code><documentation>Return the two half-lines of origin 's.A' and 's.B' respectively.</documentation></function></asyxml>*/
-  line[] ol = new line[2];
-  ol[0] = complementary(line(s.A, false, s.B));
-  ol[1] = complementary(line(s.A, s.B, false));
-  return ol;
+ line[] ol = new line[2];
+ ol[0] = complementary(line(s.A, false, s.B));
+ ol[1] = complementary(line(s.A, s.B, false));
+ return ol;
 }
 
 /*<asyxml><function type="line" signature="Ox(coordsys)"><code></asyxml>*/
 line Ox(coordsys R = currentcoordsys)
 {/*<asyxml></code><documentation>Return the x-axis of 'R'.</documentation></function></asyxml>*/
-  return line(point(R, (0, 0)), point(R, E));
+ return line(point(R, (0, 0)), point(R, E));
 }
 /*<asyxml><constant type = "line" signature="Ox"><code></asyxml>*/
 restricted line Ox = Ox();/*<asyxml></code><documentation>the x-axis of
-                          the default coordinate system.</documentation></constant></asyxml>*/
+                            the default coordinate system.</documentation></constant></asyxml>*/
 
 /*<asyxml><function type="line" signature="Oy(coordsys)"><code></asyxml>*/
 line Oy(coordsys R = currentcoordsys)
@@ -1775,7 +1782,7 @@ line Oy(coordsys R = currentcoordsys)
 }
 /*<asyxml><constant type = "line" signature="Oy"><code></asyxml>*/
 restricted line Oy = Oy();/*<asyxml></code><documentation>the y-axis of
-                          the default coordinate system.</documentation></constant></asyxml>*/
+                            the default coordinate system.</documentation></constant></asyxml>*/
 
 /*<asyxml><function type="line" signature="line(real,point)"><code></asyxml>*/
 line line(real a, point A = point(currentcoordsys, (0, 0)))
@@ -1819,7 +1826,7 @@ line vline(coordsys R = currentcoordsys)
 }
 /*<asyxml><constant type = "line" signature="vline"><code></asyxml>*/
 restricted line vline = vline();/*<asyxml></code><documentation>The vertical line in the current coordinate system passing
-                                through the origin of this system.</documentation></constant></asyxml>*/
+                                  through the origin of this system.</documentation></constant></asyxml>*/
 
 /*<asyxml><function type="line" signature="hline(coordsys)"><code></asyxml>*/
 line hline(coordsys R = currentcoordsys)
@@ -1830,7 +1837,7 @@ line hline(coordsys R = currentcoordsys)
 }
 /*<asyxml><constant type = "line" signature="hline"><code></asyxml>*/
 line hline = hline();/*<asyxml></code><documentation>The horizontal line in the current coordinate system passing
-                     through the origin of this system.</documentation></constant></asyxml>*/
+                       through the origin of this system.</documentation></constant></asyxml>*/
 
 /*<asyxml><function type="line" signature="changecoordsys(coordsys,line)"><code></asyxml>*/
 line changecoordsys(coordsys R, line l)
@@ -2351,11 +2358,11 @@ bqe bqe(coordsys R = currentcoordsys,
 bqe changecoordsys(coordsys R, bqe bqe)
 {/*<asyxml></code><documentation>Returns the bivariate quadratic equation relatively to 'R'.</documentation></function></asyxml>*/
   pair i = coordinates(changecoordsys(R, vector(defaultcoordsys,
-                                             bqe.coordsys.i)));
+                                                bqe.coordsys.i)));
   pair j = coordinates(changecoordsys(R, vector(defaultcoordsys,
-                                             bqe.coordsys.j)));
+                                                bqe.coordsys.j)));
   pair O = coordinates(changecoordsys(R, point(defaultcoordsys,
-                                            bqe.coordsys.O)));
+                                               bqe.coordsys.O)));
   real a = bqe.a[0], b = bqe.a[1], c = bqe.a[2], d = bqe.a[3], f = bqe.a[4], g = bqe.a[5];
   real ux = i.x, uy = i.y;
   real vx = j.x, vy = j.y;
@@ -2365,14 +2372,14 @@ bqe changecoordsys(coordsys R, bqe bqe)
   real bpp = (-2 * a * vx * vy + b * ux * vy + b * uy * vx - 2 * c * ux * uy)/D^2;
   real cp = (a * vx^2 - b * ux * vx + c * ux^2)/D^2;
   real dp = (-2a * ox * vy^2 + 2a * oy * vx * vy + 2b * ox * uy * vy-
-           b * oy * ux * vy - b * oy * uy * vx - 2c * ox * uy^2 + 2c * oy * uy * ux)/D^2+
+             b * oy * ux * vy - b * oy * uy * vx - 2c * ox * uy^2 + 2c * oy * uy * ux)/D^2+
     (d * vy - f * uy)/D;
   real fp = (2a * ox * vx * vy - b * ox * ux * vy - 2a * oy * vx^2-
-           b * ox * uy * vx + 2 * b * oy * ux * vx + 2c * ox * ux * uy - 2c * oy * ux^2)/D^2+
+             b * ox * uy * vx + 2 * b * oy * ux * vx + 2c * ox * ux * uy - 2c * oy * ux^2)/D^2+
     (f * ux - d * vx)/D;
   g = (a * ox^2 * vy^2 - 2a * ox * oy * vx * vy - b * ox^2 * uy * vy + b * ox * oy * ux * vy+
-     a * oy^2 * vx^2 + b * ox * oy * uy * vx - b * oy^2 * ux * vx + c * ox^2 * uy^2-
-     2 * c * ox * oy * ux * uy + c * oy^2 * ux^2)/D^2+
+       a * oy^2 * vx^2 + b * ox * oy * uy * vx - b * oy^2 * ux * vx + c * ox^2 * uy^2-
+       2 * c * ox * oy * ux * uy + c * oy^2 * ux^2)/D^2+
     (d * oy * vx + f * ox * uy - d * ox * vy - f * oy * ux)/D + g;
   bqe obqe;
   obqe.a = approximate(new real[] {ap, bpp, cp, dp, fp, g});
@@ -2477,81 +2484,6 @@ real[] realquarticroots(real a, real b, real c, real d, real e)
   return roots;
 }
 
-/*<asyxml><function type="point[]" signature="intersectionpoints(bqe,bqe)"><code></asyxml>*/
-point[] intersectionpoints(bqe bqe1, bqe bqe2)
-{/*<asyxml></code><documentation>Return the interscetion of the two conic sections whose equations are 'bqe1' and 'bqe2'.</documentation></function></asyxml>*/
-  coordsys R = bqe1.coordsys;
-  bqe lbqe1, lbqe2;
-  real[] a, b;
-  if(R != bqe2.coordsys) {
-    R = currentcoordsys;
-    a = changecoordsys(R, bqe1).a;
-    b = changecoordsys(R, bqe2).a;
-  } else {
-    a = bqe1.a;
-    b = bqe2.a;
-  }
-  static real e = 100 * sqrt(realEpsilon);
-  real[] x, y, c;
-  point[] P;
-  if(abs(a[0]-b[0]) > e || abs(a[1]-b[1]) > e || abs(a[2]-b[2]) > e) {
-    c = new real[] {-2 * a[0]*a[2]*b[0]*b[2]+a[0]*a[2]*b[1]^2 - a[0]*a[1]*b[2]*b[1]+a[1]^2 * b[0]*b[2]-
-                  a[2]*a[1]*b[0]*b[1]+a[0]^2 * b[2]^2 + a[2]^2 * b[0]^2,
-                  -a[2]*a[1]*b[0]*b[4]-a[2]*a[4]*b[0]*b[1]-a[1]*a[3]*b[2]*b[1]+2 * a[0]*a[2]*b[1]*b[4]-
-                  a[0]*a[1]*b[2]*b[4]+a[1]^2 * b[2]*b[3]-2 * a[2]*a[3]*b[0]*b[2]-2 * a[0]*a[2]*b[2]*b[3]+
-                  a[2]*a[3]*b[1]^2 - a[2]*a[1]*b[1]*b[3]+2 * a[1]*a[4]*b[0]*b[2]+2 * a[2]^2 * b[0]*b[3]-
-                  a[0]*a[4]*b[2]*b[1]+2 * a[0]*a[3]*b[2]^2,
-                  -a[3]*a[4]*b[2]*b[1]+a[2]*a[5]*b[1]^2 - a[1]*a[5]*b[2]*b[1]-a[1]*a[3]*b[2]*b[4]+
-                  a[1]^2 * b[2]*b[5]-2 * a[2]*a[3]*b[2]*b[3]+2 * a[2]^2 * b[0]*b[5]+2 * a[0]*a[5]*b[2]^2 + a[3]^2 * b[2]^2-
-                  2 * a[2]*a[5]*b[0]*b[2]+2 * a[1]*a[4]*b[2]*b[3]-a[2]*a[4]*b[1]*b[3]-2 * a[0]*a[2]*b[2]*b[5]+
-                  a[2]^2 * b[3]^2 + 2 * a[2]*a[3]*b[1]*b[4]-a[2]*a[4]*b[0]*b[4]+a[4]^2 * b[0]*b[2]-a[2]*a[1]*b[3]*b[4]-
-                  a[2]*a[1]*b[1]*b[5]-a[0]*a[4]*b[2]*b[4]+a[0]*a[2]*b[4]^2,
-                  -a[4]*a[5]*b[2]*b[1]+a[2]*a[3]*b[4]^2 + 2 * a[3]*a[5]*b[2]^2 - a[2]*a[1]*b[4]*b[5]-
-                  a[2]*a[4]*b[3]*b[4]+2 * a[2]^2 * b[3]*b[5]-2 * a[2]*a[3]*b[2]*b[5]-a[3]*a[4]*b[2]*b[4]-
-                  2 * a[2]*a[5]*b[2]*b[3]-a[2]*a[4]*b[1]*b[5]+2 * a[1]*a[4]*b[2]*b[5]-a[1]*a[5]*b[2]*b[4]+
-                  a[4]^2 * b[2]*b[3]+2 * a[2]*a[5]*b[1]*b[4],
-                  -2 * a[2]*a[5]*b[2]*b[5]+a[4]^2 * b[2]*b[5]+a[5]^2 * b[2]^2 - a[4]*a[5]*b[2]*b[4]+a[2]*a[5]*b[4]^2+
-                  a[2]^2 * b[5]^2 - a[2]*a[4]*b[4]*b[5]};
-    x = realquarticroots(c[0], c[1], c[2], c[3], c[4]);
-  } else {
-    if(abs(b[4]-a[4]) > e){
-      real D = (b[4]-a[4])^2;
-      c = new real[] {(a[0]*b[4]^2 + (-a[1]*b[3]-2 * a[0]*a[4]+a[1]*a[3]) * b[4]+a[2]*b[3]^2+
-                     (a[1]*a[4]-2 * a[2]*a[3]) * b[3]+a[0]*a[4]^2 - a[1]*a[3]*a[4]+a[2]*a[3]^2)/D,
-                    -((a[1]*b[4]-2 * a[2]*b[3]-a[1]*a[4]+2 * a[2]*a[3]) * b[5]-a[3]*b[4]^2 + (a[4]*b[3]-a[1]*a[5]+a[3]*a[4]) * b[4]+(2 * a[2]*a[5]-a[4]^2) * b[3]+(a[1]*a[4]-2 * a[2]*a[3]) * a[5])/D,
-                    a[2]*(a[5]-b[5])^2/D + a[4]*(a[5]-b[5])/(b[4]-a[4]) + a[5]};
-      x = quadraticroots(c[0], c[1], c[2]);
-    } else {
-      if(abs(a[3]-b[3]) > e) {
-        real D = b[3]-a[3];
-        c = new real[] {a[2], (-a[1]*b[5] + a[4]*b[3] + a[1]*a[5] - a[3]*a[4])/D,
-                      a[0]*(a[5]-b[5])^2/D^2 + a[3]*(a[5]-b[5])/D + a[5]};
-        y = quadraticroots(c[0], c[1], c[2]);
-        for (int i = 0; i < y.length; ++i) {
-          c = new real[] {a[0], a[1]*y[i]+a[3], a[2]*y[i]^2 + a[4]*y[i]+a[5]};
-          x = quadraticroots(c[0], c[1], c[2]);
-          for (int j = 0; j < x.length; ++j) {
-            if(abs(b[0]*x[j]^2 + b[1]*x[j]*y[i]+b[2]*y[i]^2 + b[3]*x[j]+b[4]*y[i]+b[5]) < 1e-5)
-              P.push(point(R, (x[j], y[i])));
-          }
-        }
-        return P;
-      } else {
-        if(abs(a[5]-b[5]) < e) abort("intersectionpoints: intersection of identical conics.");
-      }
-    }
-  }
-  for (int i = 0; i < x.length; ++i) {
-    c = new real[] {a[2], a[1]*x[i]+a[4], a[0]*x[i]^2 + a[3]*x[i]+a[5]};
-    y = quadraticroots(c[0], c[1], c[2]);
-    for (int j = 0; j < y.length; ++j) {
-      if(abs(b[0]*x[i]^2 + b[1]*x[i]*y[j]+b[2]*y[j]^2 + b[3]*x[i]+b[4]*y[j]+b[5]) < 1e-5)
-        P.push(point(R, (x[i], y[j])));
-    }
-  }
-  return P;
-}
-
 /*<asyxml><struct signature="conic"><code></asyxml>*/
 struct conic
 {/*<asyxml></code><documentation></documentation><property type = "real" signature="e,p,h"><code></asyxml>*/
@@ -2616,17 +2548,18 @@ struct ellipse
   /*<asyxml><property type = "point" signature="F1,F2,C"><code></asyxml>*/
   restricted point F1,F2,C;/*<asyxml></code><documentation>Foci and center.</documentation></property><property type = "real" signature="a,b,c,e,p"><code></asyxml>*/
   restricted real a,b,c,e,p;/*<asyxml></code></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F1 - F2).</documentation></property><property type = "line" signature="D1,D2"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F2 - F1).</documentation></property><property type = "line" signature="D1,D2"><code></asyxml>*/
   restricted line D1,D2;/*<asyxml></code><documentation>Directrices.</documentation></property><property type = "line" signature="l"><code></asyxml>*/
   line l;/*<asyxml></code><documentation>If one axis is infinite, this line is used instead of ellipse.</documentation></property></asyxml>*/
+
   /*<asyxml><method type = "void" signature="init(point,point,real)"><code></asyxml>*/
   void init(point f1, point f2, real a)
-  {/*<asyxml></code><documentation>Ellipse given by foci and semimajor axis</documentation></method></asyxml>*/
+  {/*<asyxml></code><documentation>Ellipse given by foci and semimajor axis.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(f1, f2);
     this.F1 = P[0];
     this.F2 = P[1];
-    this.angle = abs(P[1]-P[0]) < 10 * epsgeo ? 0 : degrees(P[1]-P[0]);
     this.C = (P[0] + P[1])/2;
+    this.angle = degrees(F2 - F1, warn=false);
     this.a = a;
     if(!finite(a)) {
       this.l = line(P[0], P[1]);
@@ -2650,7 +2583,7 @@ struct ellipse
 
 bool degenerate(ellipse el)
 {
-  return (!finite(el.a) || !finite(el.b));
+  return !finite(el.a) || !finite(el.b);
 }
 
 /*<asyxml><struct signature="parabola"><code></asyxml>*/
@@ -2658,7 +2591,7 @@ struct parabola
 {/*<asyxml></code><documentation>Look at <html><a href = "http://mathworld.wolfram.com/Parabola.html">http://mathworld.wolfram.com/Parabola.html</a></html></documentation><property type = "point" signature="F,V"><code></asyxml>*/
   restricted point F,V;/*<asyxml></code><documentation>Focus and vertex</documentation></property><property type = "real" signature="a,p,e = 1"><code></asyxml>*/
   restricted real a,p,e = 1;/*<asyxml></code></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Angle, in degrees, of the line (FV).</documentation></property><property type = "line" signature="D"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F - V).</documentation></property><property type = "line" signature="D"><code></asyxml>*/
   restricted line D;/*<asyxml></code><documentation>Directrix</documentation></property><property type = "pair" signature="bmin,bmax"><code></asyxml>*/
   pair bmin, bmax;/*<asyxml></code><documentation>The (left, bottom) and (right, top) coordinates of region bounding box for drawing the parabola.
                     If unset the current picture bounding box is used instead.</documentation></property></asyxml>*/
@@ -2667,13 +2600,13 @@ struct parabola
   void init(point F, line directrix)
   {/*<asyxml></code><documentation>Parabola given by focus and directrix.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(F, directrix.A, directrix.B);
-    line l = line(P[1], P[2]);
     this.F = P[0];
+    line l = line(P[1], P[2]);
     this.D = l;
     this.a = distance(P[0], l)/2;
     this.p = 2 * a;
     this.V = 0.5 * (F + projection(D) * P[0]);
-    this.angle = degrees(F - V);
+    this.angle = degrees(F - V, warn=false);
   }
 }/*<asyxml></struct></asyxml>*/
 
@@ -2683,7 +2616,7 @@ struct hyperbola
   restricted point F1,F2;/*<asyxml></code><documentation>Foci.</documentation></property><property type = "point" signature="C,V1,V2"><code></asyxml>*/
   restricted point C,V1,V2;/*<asyxml></code><documentation>Center and vertices.</documentation></property><property type = "real" signature="a,b,c,e,p"><code></asyxml>*/
   restricted real a,b,c,e,p;/*<asyxml></code><documentation></documentation></property><property type = "real" signature="angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Angle,in degrees,of the line (F1F2).</documentation></property><property type = "line" signature="D1,D2,A1,A2"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F2 - F1).</documentation></property><property type = "line" signature="D1,D2,A1,A2"><code></asyxml>*/
   restricted line D1,D2,A1,A2;/*<asyxml></code><documentation>Directrices and asymptotes.</documentation></property><property type = "pair" signature="bmin,bmax"><code></asyxml>*/
   pair bmin, bmax; /*<asyxml></code><documentation>The (left, bottom) and (right, top) coordinates of region bounding box for drawing the hyperbola.
                      If unset the current picture bounding box is used instead.</documentation></property></asyxml>*/
@@ -2694,16 +2627,16 @@ struct hyperbola
     point[] P = standardizecoordsys(f1, f2);
     this.F1 = P[0];
     this.F2 = P[1];
-    this.angle = degrees(F2 - F1);
-    this.a = a;
     this.C = (P[0] + P[1])/2;
+    this.angle = degrees(F2 - F1, warn=false);
+    this.a = a;
     this.c = abs(C - P[0]);
     this.e = this.c/a;
     if(this.e <= 1) abort("hyperbola.init: wrong parameter: e <= 1.");
     this.b = a * sqrt(this.e^2 - 1);
     this.p = a * (this.e^2 - 1);
     point A = this.C + (a^2/this.c) * unit(P[0]-this.C);
-    this.D1 = line(A, A + rotateO(90) * unit(A - this.C));
+    this.D1 = line(A, A + rotate(90,this.C.coordsys.O) * unit(A - this.C));
     this.D2 = reverse(rotate(180, C) * D1);
     this.V1 = C + a * unit(F1 - C);
     this.V2 = C + a * unit(F2 - C);
@@ -2957,7 +2890,6 @@ hyperbola hyperbola(point P1, point P2, real ae, bool byfoci = byfoci)
 /*<asyxml><function type="ellipse" signature="ellipse(point,point,point)"><code></asyxml>*/
 ellipse ellipse(point F1, point F2, point M)
 {/*<asyxml></code><documentation>Return the ellipse passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
-  point P[] = standardizecoordsys(false, F1, F2, M);
   real a = abs(F1 - M) + abs(F2 - M);
   return ellipse(F1, F2, finite(a) ? a/2 : a);
 }
@@ -3141,8 +3073,8 @@ parabola parabola(point M1, point M2, point M3, line l)
   real gle = degrees(l);
   coordsys Rp = cartesiansystem(R.O, rotate(gle) * R.i, rotate(gle) * R.j);
   pts = new pair[] {coordinates(changecoordsys(Rp, M1)),
-                  coordinates(changecoordsys(Rp, M2)),
-                  coordinates(changecoordsys(Rp, M3))};
+                    coordinates(changecoordsys(Rp, M2)),
+                    coordinates(changecoordsys(Rp, M3))};
   real[][] M;
   real[] x;
   for (int i = 0; i < 3; ++i) {
@@ -3157,6 +3089,13 @@ parabola parabola(point M1, point M2, point M3, line l)
 parabola parabola(point M1, point M2, point M3, point M4, point M5)
 {/*<asyxml></code><documentation>Return the parabola passing through the five points.</documentation></function></asyxml>*/
   return parabola(bqe(M1, M2, M3, M4, M5));
+}
+
+/*<asyxml><function type="hyperbola" signature="hyperbola(point,point,point)"><code></asyxml>*/
+hyperbola hyperbola(point F1, point F2, point M)
+{/*<asyxml></code><documentation>Return the hyperbola passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
+  real a = abs(abs(F1 - M) - abs(F2 - M));
+  return hyperbola(F1, F2, finite(a) ? a/2 : a);
 }
 
 /*<asyxml><function type="hyperbola" signature="hyperbola(point,real,real,real)"><code></asyxml>*/
@@ -3350,7 +3289,7 @@ ellipse operator cast(circle c)
 }
 
 /*<asyxml><operator type = "circle" signature="cast(ellipse)"><code></asyxml>*/
-circle operator cast(ellipse el)
+circle operator ecast(ellipse el)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   circle oc;
   bool infb = (!finite(el.a) || !finite(el.b));
@@ -3362,7 +3301,7 @@ circle operator cast(ellipse el)
 }
 
 /*<asyxml><operator type = "ellipse" signature="cast(conic)"><code></asyxml>*/
-ellipse operator cast(conic co)
+ellipse operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic to an ellipse (can be a circle).</documentation></operator></asyxml>*/
   if(degenerate(co) && co.e < 1) return ellipse(co.l[0].A, co.l[0].B, infinity);
   ellipse oe;
@@ -3380,7 +3319,7 @@ ellipse operator cast(conic co)
 }
 
 /*<asyxml><operator type = "parabola" signature="cast(conic)"><code></asyxml>*/
-parabola operator cast(conic co)
+parabola operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic to a parabola.</documentation></operator></asyxml>*/
   parabola op;
   if(abs(co.e - 1) > epsgeo) abort("casting: The conic section is not a parabola.");
@@ -3395,7 +3334,7 @@ conic operator cast(parabola p)
 }
 
 /*<asyxml><operator type = "hyperbola" signature="cast(conic)"><code></asyxml>*/
-hyperbola operator cast(conic co)
+hyperbola operator ecast(conic co)
 {/*<asyxml></code><documentation>Cast a conic section to an hyperbola.</documentation></operator></asyxml>*/
   hyperbola oh;
   if(co.e > 1) {
@@ -3447,7 +3386,7 @@ conic operator cast(circle c)
 }
 
 /*<asyxml><operator type = "circle" signature="cast(conic)"><code></asyxml>*/
-circle operator cast(conic c)
+circle operator ecast(conic c)
 {/*<asyxml></code><documentation>Conic section to circle.</documentation></operator></asyxml>*/
   ellipse el = (ellipse)c;
   circle oc;
@@ -3621,10 +3560,10 @@ path arcfromcenter(explicit conic co, real angle1, real angle2,
   path g;
   if(co.e < 1)
     g = arcfromcenter((ellipse)co, angle1,
-                    angle2, direction, n);
+                      angle2, direction, n);
   else if(co.e > 1)
     g = arcfromcenter((hyperbola)co, angle1,
-                    angle2, n, direction);
+                      angle2, n, direction);
   else abort("arcfromcenter: does not exist for a parabola.");
   return g;
 }
@@ -3651,8 +3590,8 @@ bqe equation(ellipse el)
   }
   real[] coef = solve(M, x);
   bqe bqe = changecoordsys(coordsys(el),
-                         bqe(defaultcoordsys,
-                             1, coef[0], coef[1], coef[2], coef[3], coef[4]));
+                           bqe(defaultcoordsys,
+                               1, coef[0], coef[1], coef[2], coef[3], coef[4]));
   bqe.a = approximate(bqe.a);
   return bqe;
 }
@@ -3663,7 +3602,7 @@ bqe equation(parabola p)
    bqe.a[0] * x^2 + bqe.a[1] * x * y + bqe.a[2] * y^2 + bqe.a[3] * x + bqe.a[4] * y + bqe.a[5] = 0
    One can change the coordinate system of 'bqe' using the routine 'changecoordsys'.</documentation></function></asyxml>*/
   coordsys R = canonicalcartesiansystem(p);
-  parabola tp = changecoordsys(R, p);
+  parabola tp = (parabola) changecoordsys(R, p);
   point A = projection(tp.D) * point(R, (0, 0));
   real a = abs(A);
   return changecoordsys(coordsys(p),
@@ -4099,8 +4038,8 @@ real arclength(ellipse el, real angle1, real angle2,
     // given form the center of the ellipse.
     real gle = atan(el.a * tan(radians(a))/el.b)+
       pi * (((a%90 == 0 && a != 0) ? floor(a/90) - 1 : floor(a/90)) -
-          ((a%180 == 0) ? 0 : floor(a/180)) -
-          (a%360 == 0 ? floor(a/(360)) : 0));
+            ((a%180 == 0) ? 0 : floor(a/180)) -
+            (a%360 == 0 ? floor(a/(360)) : 0));
     /* // Uncomment to visualize the used branches
        unitsize(2cm, 1cm);
        import graph;
@@ -4137,7 +4076,7 @@ real arclength(parabola p, real angle)
 {/*<asyxml></code><documentation>Return the arclength from 180 to 'angle' given from focus in the
    canonical coordinate system of 'p'.</documentation></function></asyxml>*/
   real a = p.a; /* In canonicalcartesiansystem(p) the equation of p
-                 is x = y^2/(4a) */
+                   is x = y^2/(4a) */
   // integrate(sqrt(1 + (x/(2 * a))^2), x);
   real S(real t){return 0.5 * t * sqrt(1 + t^2/(4 * a^2)) + a * asinh(t/(2 * a));}
   real R(real gle){return 2 * a/(1 - Cos(gle));}
@@ -4171,7 +4110,7 @@ struct abscissa
   real x;/*<asyxml></code><documentation>The abscissa value.</documentation></property><property type = "int" signature="system"><code></asyxml>*/
   int system;/*<asyxml></code><documentation>0 = relativesystem; 1 = curvilinearsystem; 2 = angularsystem; 3 = nodesystem</documentation></property><property type = "polarconicroutine" signature="polarconicroutine"><code></asyxml>*/
   polarconicroutine polarconicroutine = fromCenter;/*<asyxml></code><documentation>The routine used with angular system and two foci conic section.
-                                                   Possible values are 'formCenter' and 'formFocus'.</documentation></property></asyxml>*/
+                                                     Possible values are 'formCenter' and 'formFocus'.</documentation></property></asyxml>*/
   /*<asyxml><method type = "abscissa" signature="copy()"><code></asyxml>*/
   abscissa copy()
   {/*<asyxml></code><documentation>Return a copy of this abscissa.</documentation></method></asyxml>*/
@@ -4861,7 +4800,7 @@ struct arc {
   restricted  real angle1, angle2;/*<asyxml></code><documentation>Values (in degrees) in ]-360, 360[.</documentation></property><property type = "bool" signature="direction"><code></asyxml>*/
   bool direction = CCW;/*<asyxml></code><documentation>The arc will be drawn from 'angle1' to 'angle2' rotating in the direction 'direction'.</documentation></property><property type = "polarconicroutine" signature="polarconicroutine"><code></asyxml>*/
   polarconicroutine polarconicroutine = currentpolarconicroutine;/*<asyxml></code><documentation>The routine to which the angles refer.
-                                                                 If 'el' is a circle 'fromCenter' is always used.</documentation></property></asyxml>*/
+                                                                   If 'el' is a circle 'fromCenter' is always used.</documentation></property></asyxml>*/
 
   /*<asyxml><method type = "void" signature="setangles(real,real,real)"><code></asyxml>*/
   void setangles(real a0, real a1, real a2)
@@ -6539,7 +6478,7 @@ point[] intersectionpoints(line l, circle c)
     coordsys Rc = cartesiansystem(c.C, (1, 0), (0, 1));
     line ll = changecoordsys(Rc, l);
     pair[] P = intersectionpoints(ll.A.coordinates, ll.B.coordinates,
-                                1, 0, 1, 0, 0, -c.r^2);
+                                  1, 0, 1, 0, 0, -c.r^2);
     for (int i = 0; i < P.length; ++i) {
       point inter = changecoordsys(R, point(Rc, P[i]));
       if(inter @ l) op.push(inter);
@@ -6563,14 +6502,14 @@ point[] intersectionpoints(line l, ellipse el)
   coordsys R = samecoordsys(l.A, el.C) ? l.A.coordsys : defaultcoordsys;
   coordsys Rp = defaultcoordsys;
   line ll = changecoordsys(Rp, l);
-  ellipse ell = changecoordsys(Rp, el);
+  ellipse ell = (ellipse) changecoordsys(Rp, el);
   circle C = circle(ell.C, ell.a);
   point[] Ip = intersectionpoints(ll, C);
   if (Ip.length > 0 &&
       (perpendicular(ll, line(ell.F1, Ip[0])) ||
        perpendicular(ll, line(ell.F2, Ip[0])))) {
     // http://www.mathcurve.com/courbes2d/ellipse/ellipse.shtml
-    //  Définition tangentielle par antipodaire de cercle.
+    // Definition of the tangent at the antipodal point on the circle.
     // 'l' is a tangent of 'el'
     transform t = scale(el.a/el.b, el.F1, el.F2, el.C, rotate(90, el.C) * el.F1);
     point inter = inverse(t) * intersectionpoints(C, t * ll)[0];
@@ -6579,7 +6518,7 @@ point[] intersectionpoints(line l, ellipse el)
     coordsys Rc = canonicalcartesiansystem(el);
     line ll = changecoordsys(Rc, l);
     pair[] P = intersectionpoints(ll.A.coordinates, ll.B.coordinates,
-                                1/el.a^2, 0, 1/el.b^2, 0, 0, -1);
+                                  1/el.a^2, 0, 1/el.b^2, 0, 0, -1);
     for (int i = 0; i < P.length; ++i) {
       point inter = changecoordsys(R, point(Rc, P[i]));
       if(inter @ l) op.push(inter);
@@ -6636,8 +6575,8 @@ point[] intersectionpoints(line l, hyperbola h)
   point[] op;
   coordsys R = coordsys(h);
   point A = intersectionpoint(l, h.A1), B = intersectionpoint(l, h.A2);
-  point M = midpoint(segment(A, B));
-  bool tgt = M @ h;
+  point M = 0.5*(A + B);
+  bool tgt = Finite(M) ? M @ h : false;
   if(tgt) {
     if(M @ l) op.push(M);
   } else {
@@ -6672,6 +6611,74 @@ point[] intersectionpoints(line l, conic co)
 point[] intersectionpoints(conic co, line l)
 {
   return intersectionpoints(l, co);
+}
+
+/*<asyxml><function type="point[]" signature="intersectionpoints(bqe,bqe)"><code></asyxml>*/
+point[] intersectionpoints(bqe bqe1, bqe bqe2)
+{/*<asyxml></code><documentation>Return the intersection of the two conic sections whose equations are 'bqe1' and 'bqe2'.</documentation></function></asyxml>*/
+  coordsys R=canonicalcartesiansystem(conic(bqe1));
+  real[] a=changecoordsys(R,bqe1).a;
+  real[] b=changecoordsys(R,bqe2).a;
+
+  static real e=100 * sqrt(realEpsilon);
+  real[] x,y,c;
+  point[] P;
+  if(abs(a[0]-b[0]) > e || abs(a[1]-b[1]) > e || abs(a[2]-b[2]) > e) {
+    c=new real[] {a[0]*a[2]*(-2*b[0]*b[2]+b[1]^2)+a[0]^2*b[2]^2+a[2]^2*b[0]^2,
+
+                  2*a[0]*a[2]*b[1]*b[4]-2*a[2]*a[3]*b[0]*b[2]
+                  -2*a[0]*a[2]*b[2]*b[3]+a[2]*a[3]*b[1]^2+2*a[2]^2*b[0]*b[3],
+
+                  a[2]*a[5]*b[1]^2-2*a[2]*a[3]*b[2]*b[3]+2*a[2]^2*b[0]*b[5]
+                  +2*a[0]*a[5]*b[2]^2+a[3]^2*b[2]^2-2*a[2]*a[5]*b[0]*b[2]
+                  -2*a[0]*a[2]*b[2]*b[5]+a[2]^2*b[3]^2+2*a[2]*a[3]*b[1]*b[4]
+                  +a[0]*a[2]*b[4]^2,
+
+                  a[2]*a[3]*b[4]^2+2*a[2]^2*b[3]*b[5]-2*a[2]*a[3]*b[2]*b[5]
+                  -2*a[2]*a[5]*b[2]*b[3]+2*a[2]*a[5]*b[1]*b[4],
+
+                  -2*a[2]*a[5]*b[2]*b[5]+a[5]^2*b[2]^2+a[2]*a[5]*b[4]^2
+                  +a[2]^2*b[5]^2};
+    x=realquarticroots(c[0],c[1],c[2],c[3],c[4]);
+  } else {
+    if(abs(b[4]) > e) {
+      real D=b[4]^2;
+      c=new real[] {(a[0]*b[4]^2+a[2]*b[3]^2+
+                     (-2*a[2]*a[3])*b[3]+a[2]*a[3]^2)/D,
+                    -((-2*a[2]*b[3]+2*a[2]*a[3])*b[5]-a[3]*b[4]^2+
+                      (2*a[2]*a[5])*b[3])/D,a[2]*(a[5]-b[5])^2/D+a[5]};
+      x=quadraticroots(c[0],c[1],c[2]);
+    } else {
+      if(abs(a[3]-b[3]) > e) {
+        real D=b[3]-a[3];
+        c=new real[] {a[2],0,a[0]*(a[5]-b[5])^2/D^2-a[3]*b[5]/D+a[5]};
+        y=quadraticroots(c[0],c[1],c[2]);
+        for(int i=0; i < y.length; ++i) {
+          c=new real[] {a[0],a[3],a[2]*y[i]^2+a[5]};
+          x=quadraticroots(c[0],c[1],c[2]);
+          for(int j=0; j < x.length; ++j) {
+            if(abs(b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]
+                   +b[4]*y[i]+b[5]) < 1e-5)
+              P.push(changecoordsys(currentcoordsys,point(R,(x[j],y[i]))));
+          }
+        }
+        return P;
+      } else {
+        if(abs(a[5]-b[5]) < e)
+          abort("intersectionpoints: intersection of identical conics.");
+      }
+    }
+  }
+  for(int i=0; i < x.length; ++i) {
+    c=new real[] {a[2],0,a[0]*x[i]^2+a[3]*x[i]+a[5]};
+    y=quadraticroots(c[0],c[1],c[2]);
+    for(int j=0; j < y.length; ++j) {
+      if(abs(b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5])
+         < 1e-5)
+        P.push(changecoordsys(currentcoordsys,point(R,(x[i],y[j]))));
+    }
+  }
+  return P;
 }
 
 /*<asyxml><function type="point[]" signature="intersectionpoints(conic,conic)"><code></asyxml>*/
@@ -7047,7 +7054,7 @@ arc arccircle(point A, point M, point B)
   real m = degrees(M - tc.C);
 
   arc oa = arc(tc, a, b);
-  // TODO : use cross product to determine CWW or CW
+  // TODO: use cross product to determine CWW or CW
   if (!(M @ oa)) {
     oa.direction = !oa.direction;
   }
@@ -7190,3 +7197,4 @@ path arc(explicit pair B, explicit pair A, explicit pair C, real r)
 
 // *........................FOOTER.........................*
 // *=======================================================*
+

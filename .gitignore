@@ -22,8 +22,12 @@ revision.*
 run*.cc
 run*.h
 
+### History
+history
+
+
 ### Generated files
-newDrawing.asy 
+newDrawing.asy
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
@@ -38,6 +42,8 @@ newDrawing.asy
 *.roff
 /doc/png/*.html
 GUI/*.pyc
+GUI/*/*.pyc
+GUI/*/__pycache__
 /.wisdom
 /allsymbols.h
 /asy-keywords.el
@@ -60,6 +66,7 @@ GUI/*.pyc
 /opsymbols.h
 /types.symbols.h
 *.dSYM
+.DS_Store
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
@@ -83,7 +90,7 @@ GUI/*.pyc
 *.pdf
 *.pre
 *.m9
-*-[0-9].*
+#*-[0-9].*
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
@@ -98,10 +105,6 @@ GUI/*.pyc
 *.brf
 *.run.xml
 
-### Data files
-*.obj
-*.pdb1
-
 ### Debugging files
 core.*
 
@@ -110,3 +113,53 @@ core.*
 \#*
 .\#*
 
+### Generated python UI files
+/GUI/pyUIClass/*
+/GUI/__pycache__/*
+/.idea/*
+/GUI/.env
+
+examples/_ig_*.asy
+
+### Shorthand Dev Script
+asydev
+gdb_xasy
+
+_ig_*/*
+
+### IDE Files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/c_cpp_properties.json
+### Translation binary files
+*.mo
+
+
+xasydev2
+xasydev
+
+### SVG Icons
+GUI/res/*
+!GUI/res/*/*.svg
+
+### RC Icons
+GUI/icons_rc.py
+
+
+# apitrace outputs
+*.trace
+
+## TODO: Use git lfs to store a larger HDRi format (but bandwidth)?
+## Or tell people to store it elsewhere?
+base/res/*.hdr
+base/res/*.exr
+*.bak
+*.tar.gz.*
+
+renderDocSettings
+
+*.html
+!webgl/WebGL*.html

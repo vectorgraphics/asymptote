@@ -14,27 +14,28 @@
 namespace camp {
 
 class drawFill : public drawSuperPathPenBase {
-protected:  
+protected:
   bool stroke;
 public:
   void noncyclic() {
     reportError("non-cyclic path cannot be filled");
   }
-  
-  drawFill(const vm::array& src, bool stroke, pen pentype)
-    : drawSuperPathPenBase(src,pentype), stroke(stroke) {
+
+  drawFill(const vm::array& src, bool stroke, pen pentype,
+           const string& key="") :
+    drawElement(key), drawSuperPathPenBase(src,pentype), stroke(stroke) {
     if(!stroke && !cyclic()) noncyclic();
   }
 
   bool svg() {return true;}
-  
+
   // dvisvgm doesn't yet support SVG patterns.
   bool svgpng() {return pentype.fillpattern() != "";}
-  
+
   virtual ~drawFill() {}
 
   virtual bool draw(psfile *out);
-  
+
   virtual void palette(psfile *out) {
     penSave(out);
     penTranslate(out);
@@ -48,27 +49,32 @@ public:
 
   drawElement *transformed(const transform& t);
 };
-  
+
 class drawShade : public drawFill {
 public:
-  drawShade(const vm::array& src, bool stroke, pen pentype)
-    : drawFill(src,stroke,pentype) {}
+  drawShade(const vm::array& src, bool stroke, pen pentype,
+            const string& key="")
+    : drawFill(src,stroke,pentype,key) {}
 
   void bounds(bbox& b, iopipestream& iopipe, boxvector& vbox,
               bboxlist& bboxstack) {
     if(stroke) strokebounds(b);
     else drawSuperPathPenBase::bounds(b,iopipe,vbox,bboxstack);
   }
-  
-  // Shading in SVG is incomplete and not supported at all by dvisvgm.
+
+  bool pdf() {
+    return settings::pdf(settings::getSetting<string>("tex"));
+  }
+
+  // Shading in SVG is incomplete and not supported at all by dvisvgm --pdf.
   bool svgpng() {return true;}
-      
+
   virtual void beginshade(psfile *out)=0;
   virtual void shade(psfile *out)=0;
-  
+
   bool draw(psfile *out) {
     if(pentype.invisible() || empty()) return true;
-  
+
     palette(out);
     beginshade(out);
     writeclippath(out);
@@ -79,39 +85,40 @@ public:
     return true;
   }
 };
-  
+
 class drawLatticeShade : public drawShade {
 protected:
   vm::array pens;
   const transform T;
-public:  
-  drawLatticeShade(const vm::array& src, bool stroke, pen pentype,
-                   const vm::array& pens, const camp::transform& T=identity)
-    : drawShade(src,stroke,pentype), pens(pens), T(T) {}
-  
+public:
+  drawLatticeShade(const vm::array& src, bool stroke,
+                   pen pentype, const vm::array& pens,
+                   const camp::transform& T=identity, const string& key="")
+    : drawShade(src,stroke,pentype,key), pens(pens), T(T) {}
+
   void palette(psfile *out) {
     out->gsave();
   }
-  
+
   void beginshade(psfile *out) {
     out->beginlatticeshade(pens,bpath);
   }
-  
+
   void shade(psfile *out) {
     bbox b;
     for(size_t i=0; i < size; i++) {
       path p=vm::read<path>(P,i).transformed(inverse(T));
       if(stroke)
         drawPathPenBase::strokebounds(b,p);
-      else 
+      else
         b += p.bounds();
     }
     out->latticeshade(pens,T*matrix(b.Min(),b.Max()));
   }
-  
+
   drawElement *transformed(const transform& t);
 };
-  
+
 class drawAxialShade : public drawShade {
 protected:
   pair a;
@@ -120,27 +127,28 @@ protected:
   pair b;
   bool extendb;
   ColorSpace colorspace;
-public:  
-  drawAxialShade(const vm::array& src, bool stroke, pen pentype,
-                 pair a, bool extenda, pen penb, pair b, bool extendb) 
-    : drawShade(src,stroke,pentype), a(a), extenda(extenda), penb(penb),
-      b(b), extendb(extendb) {}
-  
-  bool svgpng() {return false;}
-  
+public:
+  drawAxialShade(const vm::array& src, bool stroke,
+                 pen pentype, pair a, bool extenda, pen penb, pair b,
+                 bool extendb, const string& key="")
+    : drawShade(src,stroke,pentype,key), a(a), extenda(extenda),
+      penb(penb), b(b), extendb(extendb) {}
+
+  bool svgpng() {return !extenda || !extendb || pdf();}
+
   void palette(psfile *out);
-  
+
   void beginshade(psfile *out) {
     out->begingradientshade(true,colorspace,pentype,a,0,penb,b,0);
   }
-  
+
   void shade(psfile *out) {
     out->gradientshade(true,colorspace,pentype,a,0,extenda,penb,b,0,extendb);
   }
-  
+
   drawElement *transformed(const transform& t);
 };
-  
+
 class drawRadialShade : public drawAxialShade {
 protected:
   double ra;
@@ -148,85 +156,83 @@ protected:
 public:
   drawRadialShade(const vm::array& src, bool stroke,
                   pen pentype, pair a, double ra, bool extenda, pen penb,
-                  pair b, double rb, bool extendb)
-    : drawAxialShade(src,stroke,pentype,a,extenda,penb,b,extendb),
-      ra(ra), rb(rb) {}
-  
-  bool svgpng() {return ra > 0.0;}
-  
+                  pair b, double rb, bool extendb, const string& key="")
+    : drawAxialShade(src,stroke,pentype,a,extenda,penb,b,
+                     extendb,key), ra(ra), rb(rb) {}
+
+  bool svgpng() {return a != b || ra > 0.0 || !extenda || !extendb || pdf();}
+
   void beginshade(psfile *out) {
     out->begingradientshade(false,colorspace,pentype,a,ra,penb,b,rb);
   }
-  
+
   void shade(psfile *out) {
     out->gradientshade(false,colorspace,pentype,a,ra,extenda,penb,b,rb,extendb);
   }
-  
+
   drawElement *transformed(const transform& t);
 };
-  
+
 class drawGouraudShade : public drawShade {
 protected:
   vm::array pens,vertices,edges;
-public:  
-  drawGouraudShade(const vm::array& src, bool stroke, pen pentype,
-                   const vm::array& pens, const vm::array& vertices,
-                   const vm::array& edges)
-    : drawShade(src,stroke,pentype), pens(pens), vertices(vertices),
-      edges(edges) {}
-  
-  bool svgpng() {return !settings::getSetting<bool>("svgemulation");}
-  
+public:
+  drawGouraudShade(const vm::array& src, bool stroke,
+                   pen pentype, const vm::array& pens,
+                   const vm::array& vertices, const vm::array& edges,
+                   const string& key="")
+    : drawElement(key), drawShade(src,stroke,pentype,key), pens(pens),
+      vertices(vertices), edges(edges) {}
+
+  bool svgpng() {return settings::getSetting<bool>("xasy") || !settings::getSetting<bool>("svgemulation") || pdf();}
+
   void palette(psfile *out) {
     out->gsave();
   }
-  
+
   void beginshade(psfile *out) {
     out->begingouraudshade(pens,vertices,edges);
   }
-  
+
   void shade(psfile *out) {
     out->gouraudshade(pentype,pens,vertices,edges);
   }
-  
+
   drawElement *transformed(const transform& t);
 };
-  
+
 class drawTensorShade : public drawShade {
 protected:
   vm::array pens,boundaries,z;
-public:  
+public:
   drawTensorShade(const vm::array& src, bool stroke,
                   pen pentype, const vm::array& pens,
-                  const vm::array& boundaries, const vm::array& z)
-    : drawShade(src,stroke,pentype), pens(pens), boundaries(boundaries), z(z) {}
-  
-  bool svgpng() {
-    return pens.size() > 1 || !settings::getSetting<bool>("svgemulation");
+                  const vm::array& boundaries, const vm::array& z,
+                  const string& key="") :
+    drawShade(src,stroke,pentype,key), pens(pens), boundaries(boundaries),
+    z(z) {
   }
-  
+
   void palette(psfile *out) {
     out->gsave();
   }
-  
-  void beginshade(psfile *out) {
-    out->begintensorshade(pens,boundaries,z);
-  }
-  
+
+  void beginshade(psfile *out) {}
+
   void shade(psfile *out) {
     out->tensorshade(pentype,pens,boundaries,z);
   }
-  
+
   drawElement *transformed(const transform& t);
 };
-  
+
 class drawFunctionShade : public drawFill {
-protected:  
+protected:
   string shader;
 public:
-  drawFunctionShade(const vm::array& src, bool stroke, pen pentype,
-                    const string& shader)
-    : drawFill(src,stroke,pentype), shader(shader) {
+  drawFunctionShade(const vm::array& src, bool stroke,
+                    pen pentype, const string& shader, const string& key="")
+    : drawFill(src,stroke,pentype,key), shader(shader) {
     string texengine=settings::getSetting<string>("tex");
     if(!settings::pdf(texengine))
       reportError("functionshade is not implemented for the '"+texengine+
@@ -236,14 +242,14 @@ public:
   virtual ~drawFunctionShade() {}
 
   bool draw(psfile *out) {return false;}
-  
+
   bool write(texfile *, const bbox&);
-  
+
   bool islabel() {return true;}
-  
+
   drawElement *transformed(const transform& t);
 };
-  
+
 }
 
 #endif

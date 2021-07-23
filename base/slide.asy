@@ -225,7 +225,7 @@ void erasestep(int erasenode) {
   for(int i=0; i < firstnode.length; ++i) {
     for(int j=firstnode[i]; j <= lastnode[i]; ++j) {
       tex(bulletcolor(oldbulletcolor));
-      currentpicture.add(currentpicture.nodes[j]);
+      currentpicture.add(currentpicture.nodes[j].d);
     }
   }
   firstnode.push(currentpicture.nodes.length-1);
@@ -309,7 +309,7 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
 
 void center(string s, pen p=itempen)
 {
-  remark("\center "+s,p);
+  remark(center=true,"\center "+s,p);
 }
 
 void vbox(string s, pen p=itempen)

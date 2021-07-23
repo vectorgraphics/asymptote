@@ -15,8 +15,9 @@ namespace camp {
 
 class drawPath : public drawPathPenBase {
 public:
-  drawPath(path src, pen pentype) : drawPathPenBase(src, pentype) {}
-  
+  drawPath(path src, pen pentype, const string& key="") :
+    drawElement(key), drawPathPenBase(src,pentype) {}
+
   virtual ~drawPath() {}
 
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
@@ -24,7 +25,7 @@ public:
   }
 
   bool svg() {return true;}
-  
+
   bool draw(psfile *out);
 
   drawElement *transformed(const transform& t);

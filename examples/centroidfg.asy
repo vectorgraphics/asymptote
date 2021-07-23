@@ -8,8 +8,8 @@ real g(real x) {return x^2;}
 
 draw(graph(f,a,b,operator ..),red);
 draw(graph(g,a,b,operator ..),blue);
- 
-xaxis(); 
+
+xaxis();
 
 int n=5;
 
@@ -18,7 +18,7 @@ for(int i=0; i <= n; ++i) {
   real x=a+width*i;
   draw((x,g(x))--(x,f(x)));
 }
- 
+
 labelx("$a$",a);
 labelx("$b$",b);
 draw((a,0)--(a,g(a)),dotted);

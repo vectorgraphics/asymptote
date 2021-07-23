@@ -9,6 +9,7 @@
 #define BBOX_H
 
 #include "pair.h"
+#include "settings.h"
 
 namespace camp {
 
@@ -18,7 +19,7 @@ inline T min(T a, T b)
   return (a < b) ? a : b;
 }
 
-template<class T>  
+template<class T>
 inline T max(T a, T b)
 {
   return (a > b) ? a : b;
@@ -31,7 +32,7 @@ struct bbox {
   double bottom;
   double right;
   double top;
-  
+
   // Start bbox about the origin
   bbox()
     : empty(true), left(0.0), bottom(0.0), right(0.0), top(0.0)
@@ -53,7 +54,7 @@ struct bbox {
   bool nonempty() const {
     return !empty;
   }
- 
+
   // Add a point to a bbox
   bbox add(const pair& z)
   {
@@ -66,9 +67,9 @@ struct bbox {
     }
     else {
       if (x < left)
-        left = x;  
+        left = x;
       else if (x > right)
-        right = x;  
+        right = x;
       if (y < bottom)
         bottom = y;
       else if (y > top)
@@ -83,9 +84,9 @@ struct bbox {
   {
     double x = z.getx(), y = z.gety();
     if (x < left)
-      left = x;  
+      left = x;
     else if (x > right)
-      right = x;  
+      right = x;
     if (y < bottom)
       bottom = y;
     else if (y > top)
@@ -98,11 +99,11 @@ struct bbox {
     double x = z.getx(), y = z.gety();
 
     if (x < left) {
-      left = x;  
+      left = x;
       times.left = t;
     }
     else if (x > right) {
-      right = x;  
+      right = x;
       times.right = t;
     }
     if (y < bottom) {
@@ -169,34 +170,34 @@ struct bbox {
     right = min(right, b.right);
     bottom = max(bottom, b.bottom);
     top = min(top, b.top);
-    if(left > right || bottom > top) 
+    if(left > right || bottom > top)
       *this=bbox();
   }
-  
+
   void shift(const pair& p) {
     left += p.getx();
     right += p.getx();
     bottom += p.gety();
     top += p.gety();
   }
-  
+
   pair Min() const {
     return pair(left,bottom);
   }
-  
+
   pair Max() const {
     return pair(right,top);
   }
-  
+
   double diameter() {
     return (Max()-Min()).length();
   }
-  
+
   bbox LowRes() const
   {
     return bbox(floor(left),floor(bottom),ceil(right),ceil(top));
   }
-  
+
   friend ostream& operator<< (ostream& out, const bbox& b)
   {
     out << b.left << " " << b.bottom << " " << b.right << " " << b.top;
@@ -220,6 +221,20 @@ inline bbox pad(bbox b1, bbox b2)
     b.bottom = b1.bottom + b2.bottom;
     return b;
   }
+}
+
+inline bbox svgbbox(const bbox& B, pair shift=pair(0,0))
+{
+  bbox b=B;
+  double height=b.top-b.bottom;
+  double threshold=12.0*settings::tex2ps;
+  if(height < threshold) {
+    double offset=threshold-height;
+    b.top += offset;
+    b.bottom += offset;
+  }
+  b.shift(pair(1.99*settings::cm,1.9*settings::cm)+shift);
+  return b;
 }
 
 } // namespace camp

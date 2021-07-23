@@ -4,7 +4,7 @@ import geometry;
 real A=130;
 real B=40;
 
-pair O=(0,0); 
+pair O=(0,0);
 pair R=(1,0);
 pair P=dir(A);
 pair Q=dir(B);

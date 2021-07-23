@@ -1,6 +1,6 @@
 /*****
  * process.h
- * Andy Hammerlindl 2006/08/19 
+ * Andy Hammerlindl 2006/08/19
  *
  * Handles processing blocks of code (including files, strings, and the
  * interactive prompt, for listing and parse-only modes as well as actually
@@ -17,6 +17,7 @@
 #include "pipestream.h"
 #include "callable.h"
 #include "pen.h"
+#include "transform.h"
 
 #ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
@@ -45,10 +46,10 @@ void doUnrestrictedList();
 
 template<class T>
 class terminator {
-public:  
+public:
   typedef mem::vector<T *> Pointer;
   Pointer pointer;
-  
+
   // Return first available index
   size_t available() {
     size_t index=0;
@@ -59,17 +60,17 @@ public:
     pointer.push_back(NULL);
     return index;
   }
-  
+
   size_t add(T *p) {
     size_t index=available();
     pointer[index]=p;
     return index;
   }
-  
+
   void remove(size_t index) {
     pointer[index]=NULL;
   }
-  
+
   ~terminator() {
     for(typename Pointer::iterator p=pointer.begin(); p != pointer.end(); ++p) {
       if(*p != NULL) {
@@ -85,6 +86,11 @@ public:
   ~texstream();
 };
 
+typedef std::pair<size_t,size_t> linecolumn;
+typedef mem::map<CONST linecolumn,string> xkey_t;
+typedef mem::deque<camp::transform> xtransform_t;
+typedef mem::map<CONST string,xtransform_t> xmap_t;
+
 struct processDataStruct {
   texstream tex; // Bi-directional pipe to latex (to find label bbox)
   mem::list<string> TeXpipepreamble;
@@ -94,14 +100,21 @@ struct processDataStruct {
   vm::callable *atBreakpointFunction;
   camp::pen defaultpen;
   camp::pen currentpen;
-  
+
+  // For xasy:
+  string fileName;
+  position topPos;
+  string KEY;
+  xkey_t xkey;
+  xmap_t xmap;
+
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;
 #ifdef HAVE_RPC_RPC_H
   terminator<xdr::ioxstream> ixfile;
   terminator<xdr::oxstream> oxfile;
-#endif  
-  
+#endif
+
   processDataStruct() {
     atExitFunction=NULL;
     atUpdateFunction=NULL;
@@ -109,7 +122,7 @@ struct processDataStruct {
     defaultpen=camp::pen::initialpen();
     currentpen=camp::pen();
   }
-  
+
 };
 
 processDataStruct &processData();

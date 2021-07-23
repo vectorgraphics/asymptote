@@ -19,7 +19,6 @@ picture slopefield(real f(real,real), pair a, pair b,
       draw(pic,(cp.x-mp,cp.y-mp*slope)--(cp.x+mp,cp.y+mp*slope),p,arrow); 
     }
   }
-  clip(pic,box(a,b));
   return pic;
 }
 

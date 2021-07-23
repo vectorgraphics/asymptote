@@ -18,9 +18,23 @@
 #include "interact.h"
 #include "runhistory.h"
 
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#ifdef HAVE_LIBCURSES
+#ifdef HAVE_LIBREADLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#else
+#ifdef HAVE_LIBEDIT
+// Work around incorrect declaration in NetBSD readline.h v1.33
+#define rl_completion_entry_function rl_completion_entry_function_declaration
+#ifdef HAVE_EDITLINE_READLINE_H
+#include <editline/readline.h>
+#else
+#include <readline/readline.h>
+#endif
+#undef rl_completion_entry_function
+extern "C" rl_compentry_func_t *rl_completion_entry_function;
+#endif
+#endif
 #endif
 
 #include "util.h"
@@ -36,10 +50,10 @@ namespace interact {
 
 bool interactive=false;
 bool uptodate=true;
-int lines=0;  
+int lines=0;
 bool query=false;
 
-bool tty=isatty(STDIN_FILENO);  
+bool tty=isatty(STDIN_FILENO);
 completer *currentCompleter=0;
 
 void setCompleter(completer *c) {
@@ -50,7 +64,7 @@ char *call_completer(const char *text, int state) {
   return currentCompleter ? (*currentCompleter)(text, state) : 0;
 }
 
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
 void init_completion() {
   rl_completion_entry_function=call_completer;
 
@@ -63,15 +77,15 @@ void init_completion() {
   static char break_characters[128];
   Int j=0;
   for (unsigned char c=9; c < 128; ++c)
-    if (!isalnum(c) && c != '_') {
-      break_characters[j]=c;
-      ++j;
-    }
+  if (!isalnum(c) && c != '_') {
+  break_characters[j]=c;
+  ++j;
+  }
   break_characters[j]='\0';
   rl_completer_word_break_characters=break_characters;
   */
 }
-#endif  
+#endif
 
 char *(*Readline)(const char *prompt);
 
@@ -83,7 +97,7 @@ char *readverbatimline(const char *prompt)
   getline(cin,s);
   return StrdupMalloc(s);
 }
-  
+
 FILE *fin=NULL;
 
 char *readpipeline(const char *prompt)
@@ -103,7 +117,7 @@ char *readpipeline(const char *prompt)
   return StrdupMalloc(s.str());
 #endif
 }
-  
+
 void pre_readline()
 {
   int fd=intcast(settings::getSetting<Int>("inpipe"));
@@ -111,7 +125,7 @@ void pre_readline()
     if(!fin) fin=fdopen(fd,"r");
     Readline=readpipeline;
   } else {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
     if(tty) {
       Readline=readline;
     } else
@@ -120,21 +134,29 @@ void pre_readline()
   }
 }
 
+void init_readline(bool tabcompletion)
+{
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+  rl_bind_key('\t',tabcompletion ? rl_complete : rl_insert);
+#endif
+}
+
 void init_interactive()
 {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  if(getSetting<bool>("xasy")) tty=false;
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     init_completion();
-    run::init_readline(getSetting<bool>("tabcompletion"));
+    interact::init_readline(getSetting<bool>("tabcompletion"));
     read_history(historyname.c_str());
   }
 #endif
 }
-  
+
 string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
-  
+
   Signal(SIGINT,SIG_IGN);
   // Get a line from the user.
   char *line=Readline(prompt.c_str());
@@ -143,7 +165,7 @@ string simpleline(string prompt) {
   // Reset scroll count.
   interact::lines=0;
   interact::query=tty;
-  
+
   // Ignore keyboard interrupts while taking input.
   errorstream::interrupt=false;
 
@@ -160,12 +182,12 @@ string simpleline(string prompt) {
 }
 
 void addToHistory(string line) {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
   // Only add it if it has something other than newlines.
   if(tty && line.find_first_not_of('\n') != string::npos) {
     add_history(line.c_str());
   }
-#endif    
+#endif
 }
 
 string getLastHistoryLine() {
@@ -176,7 +198,7 @@ string getLastHistoryLine() {
       em.compiler();
       em << "cannot access last history line";
       return "";
-    } else 
+    } else
       return entry->line;
   } else
 #endif
@@ -184,7 +206,7 @@ string getLastHistoryLine() {
 }
 
 void setLastHistoryLine(string line) {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     if (history_length > 0) {
       HIST_ENTRY *entry=remove_history(history_length-1);
@@ -193,7 +215,7 @@ void setLastHistoryLine(string line) {
         em.compiler();
         em << "cannot modify last history line";
       } else {
-        free(entry->line);
+        free((char *) entry->line);
         free(entry);
       }
     }
@@ -203,14 +225,14 @@ void setLastHistoryLine(string line) {
 }
 
 void deleteLastLine() {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     HIST_ENTRY *entry=remove_history(history_length-1);
     if(!entry) {
       em.compiler();
       em << "cannot delete last history line";
     } else {
-      free(entry->line);
+      free((char *) entry->line);
       free(entry);
     }
   }
@@ -218,7 +240,7 @@ void deleteLastLine() {
 }
 
 void cleanup_interactive() {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
   // Write the history file.
   if(tty) {
     stifle_history(intcast(getSetting<Int>("historylines")));

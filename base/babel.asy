@@ -1,4 +1,4 @@
-void babel(string s) 
+void babel(string s)
 {
   usepackage("babel",s);
 }

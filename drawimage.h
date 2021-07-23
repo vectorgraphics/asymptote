@@ -18,9 +18,9 @@ protected:
   transform t;
   bool antialias;
 public:
-  drawImage(const transform& t, bool antialias)
-    : t(t), antialias(antialias) {}
-  
+  drawImage(const transform& t, bool antialias, const string& key="")
+    : drawElement(key), t(t), antialias(antialias) {}
+
   virtual ~drawImage() {}
 
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
@@ -37,32 +37,33 @@ class drawPaletteImage : public drawImage {
   vm::array palette;
 public:
   drawPaletteImage(const vm::array& image, const vm::array& palette,
-                   const transform& t, bool antialias)
-    : drawImage(t,antialias), image(image), palette(palette) {}
-  
+                   const transform& t, bool antialias, const string& key="")
+    : drawImage(t,antialias,key), image(image), palette(palette) {}
+
   virtual ~drawPaletteImage() {}
 
   bool draw(psfile *out) {
     out->gsave();
     out->concat(t);
     out->image(image,palette,antialias);
-    
+
     out->grestore();
-    
+
     return true;
   }
 
   drawElement *transformed(const transform& T) {
-    return new drawPaletteImage(image,palette,T*t,antialias);
+    return new drawPaletteImage(image,palette,T*t,antialias,KEY);
   }
 };
 
 class drawNoPaletteImage : public drawImage {
   vm::array image;
 public:
-  drawNoPaletteImage(const vm::array& image, const transform& t, bool antialias)
-    : drawImage(t,antialias), image(image) {}
-  
+  drawNoPaletteImage(const vm::array& image, const transform& t,
+                     bool antialias, const string& key="")
+    : drawImage(t,antialias,key), image(image) {}
+
   virtual ~drawNoPaletteImage() {}
 
   bool draw(psfile *out) {
@@ -74,7 +75,7 @@ public:
   }
 
   drawElement *transformed(const transform& T) {
-    return new drawNoPaletteImage(image,T*t,antialias);
+    return new drawNoPaletteImage(image,T*t,antialias,KEY);
   }
 };
 
@@ -84,10 +85,10 @@ class drawFunctionImage : public drawImage {
   Int width, height;
 public:
   drawFunctionImage(vm::stack *Stack, vm::callable *f, Int width, Int height,
-                     const transform& t, bool antialias)
-    : drawImage(t,antialias), Stack(Stack), f(f),
+                    const transform& t, bool antialias, const string& key="")
+    : drawImage(t,antialias,key), Stack(Stack), f(f),
       width(width), height(height) {}
-  
+
   virtual ~drawFunctionImage() {}
 
   bool draw(psfile *out) {
@@ -99,7 +100,7 @@ public:
   }
 
   drawElement *transformed(const transform& T) {
-    return new drawFunctionImage(Stack,f,width,height,T*t,antialias);
+    return new drawFunctionImage(Stack,f,width,height,T*t,antialias,KEY);
   }
 };
 
@@ -108,9 +109,9 @@ class drawRawImage : public drawImage {
   size_t width,height;
 public:
   drawRawImage(unsigned char *raw, size_t width, size_t height,
-               const transform& t, bool antialias)
-    : drawImage(t,antialias), raw(raw), width(width), height(height) {}
-  
+               const transform& t, bool antialias, const string& key="")
+    : drawImage(t,antialias,key), raw(raw), width(width), height(height) {}
+
   virtual ~drawRawImage() {}
 
   bool draw(psfile *out) {

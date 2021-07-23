@@ -49,7 +49,7 @@ draw(minipage("\flushright{viral incubation rate ($k$)}",40pt),ei,
      RightSide,Arrow,PenMargin);
 
 path ise=point(infectious,E)--point(se,0.5);
-  
+
 draw("$(ac)$",ise,LeftSide,dashed,Arrow,PenMargin);
 label(minipage("\flushleft{biting rate $\times$ transmission
 probability}",50pt),point(infectious,SE),dir(-60)+S);
@@ -58,7 +58,7 @@ path isi=point(infectiousM,W)--point(si,2.0/3);
 
 draw("$(ab)$",isi,LeftSide,dashed,Arrow,PenMargin);
 draw(se,LeftSide,Arrow,PenMargin);
-      
+
 real t=2.0;
 draw("$\beta_M$",
      point(susceptibleM,E){right}..tension t..{left}point(larval,E),

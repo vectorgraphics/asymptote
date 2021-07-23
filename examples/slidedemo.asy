@@ -31,7 +31,7 @@ titlepage(title="Slides with {\tt Asymptote}: A Demo",
           author="John C. Bowman",
           institution="University of Alberta",
           date="\today",
-          url="http://asymptote.sf.net");
+          url="https://asymptote.sourceforge.io");
 
 outline("Basic Commands");
 item("item");
@@ -112,7 +112,7 @@ add(pic.fit(0,14cm));
 
 title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
 asyinclude("logo3");
-center("\tt http://asymptote.sf.net");
+center("\tt https://asymptote.sourceforge.io");
 center("(freely available under the LGPL license)");
 
 bibliography("refs");
