@@ -56,7 +56,7 @@ void main()
     frag = sortedList[0].color;
   for (uint i = 0; i < sortedCount && i < maxSize; i++) {
     if (i != sortedCount-1 &&
-        distance(sortedList[i].depth, sortedList[i+1].depth) < 0.001 &&
+        abs(sortedList[i].depth-sortedList[i+1].depth) < 0.001 &&
         distance(sortedList[i].color, sortedList[i+1].color) < 0.01)
       continue;
     frag = mix(frag, sortedList[i].color, sortedList[i].color.a);
