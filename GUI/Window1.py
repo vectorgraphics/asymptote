@@ -917,6 +917,14 @@ class MainWindow1(Qw.QMainWindow):
 
         if asyItems:
             # TODO: Differentiate between xasyText and xasyScript
+
+            # Save imported items into the linked asy file
+            asyScriptItems = [item['item'] for item in asyItems if item['type'] == 'xasyScript']
+            saveAsyFile = io.open(self.asyFileName, 'w')
+            xf.saveFile(saveAsyFile, asyScriptItems, self.asy2psmap)
+            saveAsyFile.close()
+
+            # Prepare asy objects for export
             rawAsyItems = [item['item'] for item in asyItems]
             rawText = xf.xasy2asyCode(rawAsyItems, self.asy2psmap)
             fileItems.append({'type': 'xasyScript', 
