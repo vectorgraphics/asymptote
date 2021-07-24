@@ -923,6 +923,7 @@ class MainWindow1(Qw.QMainWindow):
             saveAsyFile = io.open(self.asyFileName, 'w')
             xf.saveFile(saveAsyFile, asyScriptItems, self.asy2psmap)
             saveAsyFile.close()
+            self.updateScript()
 
             # Prepare asy objects for export
             rawAsyItems = [item['item'] for item in asyItems]
@@ -941,6 +942,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.statusbar.showMessage('Load {0}'.format(file))
         self.fileName = file
         self.currDir = os.path.dirname(self.fileName)
+        duplicateObjects = []
 
         input_file = open(file, 'rb')
         xasyObjects = pickle.load(input_file)
@@ -949,9 +951,20 @@ class MainWindow1(Qw.QMainWindow):
         self.checkXasyLoadLegacy() # TODO: not implemented
 
         self.asyFileName = xasyObjects['metadata']['asyFileName']
+        if self.asyFileName:
+            asyFile = io.open(self.asyFileName, 'r')
+            rawText = asyFile.read()
+            asyFile.close()
+
         for item in xasyObjects['objects']:
             if item['type'] == 'xasyScript':
-                rawText, transfDict, maxKey = xf.extractTransformsFromFile(item['rawText'])
+                if not self.asyFileName:
+                    # There should not be any xasyScript objects if there is no associated
+                    # asyFile to the xasy file.
+                    print("Uh oh, something wrong happened loading associated .asy file")
+                    rawText = item['rawText']
+
+                rawText, transfDict, maxKey = xf.extractTransformsFromFile(rawText)
                 obj = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
                 obj.setScript(rawText)
                 self.fileItems.append(obj)
@@ -962,8 +975,15 @@ class MainWindow1(Qw.QMainWindow):
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addItemFromPath(path, transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
+
+                if (self.fileItems[-1].getTransformCode(self.asy2psmap) in rawText) and \
+                        (self.fileItems[-1].getObjectCode(self.asy2psmap) in rawText):
+                    duplicateObjects.append(self.fileItems[-1])
             else:
                 print("ERROR")
+
+        if duplicateObjects:
+            print([item.getObjectCode() for item in duplicateObjects])
 
         self.asyfyCanvas(True)
                 
