@@ -983,7 +983,9 @@ class MainWindow1(Qw.QMainWindow):
                 print("ERROR")
 
         if duplicateObjects:
-            print([item.getObjectCode() for item in duplicateObjects])
+            Qw.QMessageBox.information(self, "Duplicate", 
+                    f"Duplicate objects have been found. Reverting to linked asy file: {os.path.basename(self.asyFileName)}")
+            self.fileItems = [item for item in self.fileItems if item not in duplicateObjects]
 
         self.asyfyCanvas(True)
                 
