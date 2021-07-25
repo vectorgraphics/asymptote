@@ -948,7 +948,8 @@ class MainWindow1(Qw.QMainWindow):
         xasyObjects = pickle.load(input_file)
         input_file.close()
 
-        self.checkXasyLoadLegacy() # TODO: not implemented
+        if not self.checkXasyLoadLegacy(xasyObjects):
+            return
 
         self.asyFileName = xasyObjects['metadata']['asyFileName']
         if self.asyFileName:
@@ -989,8 +990,13 @@ class MainWindow1(Qw.QMainWindow):
 
         self.asyfyCanvas(True)
                 
-    def checkXasyLoadLegacy(self):
-        pass
+    def checkXasyLoadLegacy(self, objects):
+        if isinstance(objects, list):
+            # Initial version: deprecated and no longer supported.
+            Qw.QMessageBox.information(self, "Deprecated Xasy file", 
+                    "Incompatible .xasy file (save created before Asymptote 2.71).")
+            return False
+        return True
 
     def loadKeyMaps(self):
         """Inverts the mapping of the key
