@@ -1724,8 +1724,9 @@ class MainWindow1(Qw.QMainWindow):
         # TODO: Undo redo doesn't update appropriately. Have to find a fix for this.
         title = ''
         if self.fileName:
-            fileName = os.path.basename(self.fileName)
-            title += fileName
+            if self.asyFileName and self.asyFileName != self.fileName:
+                title += os.path.basename(self.asyFileName) + " —— "
+            title += '['+os.path.basename(self.fileName)+']'
         else:
             title += "[Not Saved]"
         if self.fileChanged:
