@@ -892,6 +892,7 @@ class MainWindow1(Qw.QMainWindow):
     def actionExportXasy(self, file):
         fileItems = []
         asyItems = []
+        xasyItems = []
         for item in self.fileItems:
             if isinstance(item, x2a.xasyScript):
                 # reusing xasyFile code for objects 
@@ -904,6 +905,7 @@ class MainWindow1(Qw.QMainWindow):
                 asyItems.append({'item':item, 'type': 'xasyText'})
 
             elif isinstance(item, x2a.xasyShape):
+                xasyItems.append(item)
                 fileItems.append({'type': 'xasyShape', 
                         'nodes': item.path.nodeSet, 
                         'links': item.path.linkSet,
@@ -920,6 +922,16 @@ class MainWindow1(Qw.QMainWindow):
 
             # Save imported items into the linked asy file
             asyScriptItems = [item['item'] for item in asyItems if item['type'] == 'xasyScript']
+
+            # Check for recently .asy exported xasyShapes--this will produce duplicates
+            readAsyFile = io.open(self.asyFileName, 'r')
+            asyText = readAsyFile.read()
+            readAsyFile.close()
+
+            for item in xasyItems:
+                if item.getObjectCode(self.asy2psmap) in asyText:
+                    asyScriptItems.append(item)
+            
             saveAsyFile = io.open(self.asyFileName, 'w')
             xf.saveFile(saveAsyFile, asyScriptItems, self.asy2psmap)
             saveAsyFile.close()
