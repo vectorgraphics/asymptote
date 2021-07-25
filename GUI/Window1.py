@@ -1117,6 +1117,8 @@ class MainWindow1(Qw.QMainWindow):
                 Qc.QCoreApplication.quit()
             else:
                 return reply
+        else:
+            Qc.QCoreApplication.quit()
 
     def actionSave(self):
         if self.fileName is None:
