@@ -404,7 +404,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def handleArguments(self):
         if self.args.filename is not None:
-            self.loadFile(self.args.filename)
+            self.actionOpen(os.path.abspath(self.args.filename))
         else:
             self.initializeEmptyFile()
 
