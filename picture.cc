@@ -1293,6 +1293,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     return true;
 
   bool webgl=format == "html";
+  bool v3dfmt=format == "v3d";
 
 #ifndef HAVE_LIBGLM
   if(webgl)
@@ -1343,7 +1344,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #endif
 
-  if(!webgl) {
+  if(!(webgl || v3dfmt)) {
 #ifdef HAVE_GL
     if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
@@ -1415,6 +1416,14 @@ bool picture::shipout3(const string& prefix, const string& format,
     js.finish(name);
     if(View)
       htmlView(name);
+    return true;
+  } else if (v3dfmt) {
+    v3dfile vf(buildname(prefix,format));
+    for (auto& p : pic->nodes)
+    {
+      assert(p);
+      p->write(&vf);
+    }
     return true;
   }
 #endif

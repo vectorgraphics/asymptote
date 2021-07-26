@@ -18,6 +18,7 @@
 #include "texfile.h"
 #include "prcfile.h"
 #include "jsfile.h"
+#include "v3dfile.h"
 #include "glrender.h"
 #include "arrayop.h"
 #include "material.h"
@@ -242,6 +243,10 @@ public:
 
   // Output to a JS file
   virtual bool write(jsfile *out) {
+    return false;
+  }
+
+  virtual bool write(v3dfile* out) {
     return false;
   }
 

@@ -2211,6 +2211,8 @@ draw=new void(frame f, path3 g, material p=currentpen,
       if(settings.thick && width > 0) {
         bool prc=prc();
         bool webgl=settings.outformat == "html";
+        bool v3dfmt=settings.outformat=="v3d";
+        bool rendertofile=webgl||v3dfmt;
         real linecap=linecap(q);
         real r=0.5*width;
         bool open=!cyclic(g);
@@ -2256,7 +2258,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
             }
           }
 // Draw central core for better small-scale rendering.
-          if((!prc || piecewisestraight(g)) && !webgl && opacity(q) == 1)
+          if((!prc || piecewisestraight(g)) && !rendertofile && opacity(q) == 1)
             _draw(f,c,p,light);
         }
         for(surface s : T.s)
@@ -2874,6 +2876,9 @@ object embed(string prefix=outprefix(), string label=prefix,
 
     if(settings.outformat == "html")
       format="html";
+
+    if(settings.outformat == "v3d")
+      format="v3d";
 
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,

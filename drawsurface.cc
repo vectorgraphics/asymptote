@@ -77,6 +77,30 @@ void setcolors(bool colors,
   }
 }
 
+void setcolors(bool colors,
+               const RGBAColour& diffuse,
+               const RGBAColour& emissive,
+               const RGBAColour& specular, double shininess,
+               double metallic, double fresnel0, v3dfile *out)
+{
+  Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
+                      glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
+                      glm::vec4(specular.R,specular.G,specular.B,specular.A),
+                      shininess,metallic,fresnel0);
+
+  auto p=materialMap.find(m);
+  if(p != materialMap.end()) materialIndex=p->second;
+  else {
+    materialIndex=material.size();
+    if(materialIndex >= nmaterials)
+      nmaterials=min(Maxmaterials,2*nmaterials);
+    material.push_back(m);
+    materialMap[m]=materialIndex;
+    if(out)
+      out->addMaterial(m);
+  }
+}
+
 #endif
 
 void drawBezierPatch::bounds(const double* t, bbox3& b)
@@ -240,6 +264,29 @@ bool drawBezierPatch::write(jsfile *out)
   } else
     out->addPatch(controls,16,Min,Max,colors,4);
   out->precision(getSetting<Int>("digits"));
+
+#endif
+  return true;
+}
+
+bool drawBezierPatch::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible || primitive)
+    return true;
+
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
+
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  if(straight) {
+    triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
+    out->addPatch(Controls, 4, Min, Max, colors, 4);
+  } else
+    out->addPatch(controls, 16, Min, Max, colors, 4);
 
 #endif
   return true;
@@ -486,6 +533,28 @@ bool drawBezierTriangle::write(jsfile *out)
   } else
     out->addPatch(controls,10,Min,Max,colors,3);
   out->precision(getSetting<Int>("digits"));
+
+#endif
+  return true;
+}
+
+bool drawBezierTriangle::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible || primitive)
+    return true;
+
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
+
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  if(straight) {
+    triple Controls[]={controls[0],controls[6],controls[9]};
+    out->addPatch(Controls,3,Min,Max,colors,3);
+  } else
+    out->addPatch(controls,10,Min,Max,colors,3);
 
 #endif
   return true;
@@ -792,6 +861,31 @@ bool drawSphere::write(jsfile *out)
   return true;
 }
 
+bool drawSphere::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  triple O,E;
+  P(E,1.0,0.0,0.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  double r=length(X);
+
+  if(half)
+    out->addSphereHalf(O,r,X.polar(false),X.azimuth(false));
+  else
+    out->addSphere(O,r);
+
+#endif
+  return true;
+}
+
 bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
@@ -806,6 +900,31 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 bool drawCylinder::write(jsfile *out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  triple E,H,O;
+  P(E,1.0,0.0,0.0);
+  P(H,0.0,0.0,1.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  triple Z=H-O;
+  double r=length(X);
+  double h=length(Z);
+
+  out->addCylinder(O,r,h,Z.polar(false),Z.azimuth(false),core);
+
+#endif
+  return true;
+}
+
+bool drawCylinder::write(v3dfile* out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -867,7 +986,57 @@ bool drawDisk::write(jsfile *out)
   return true;
 }
 
+bool drawDisk::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  triple E,H,O;
+  P(E,1.0,0.0,0.0);
+  P(H,0.0,0.0,1.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  triple Z=H-O;
+  double r=length(X);
+
+  out->addDisk(O,r,Z.polar(false),Z.azimuth(false));
+
+#endif
+  return true;
+}
+
 bool drawTube::write(jsfile *out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  bbox3 b;
+  b.add(T*m);
+  b.add(T*triple(m.getx(),m.gety(),M.getz()));
+  b.add(T*triple(m.getx(),M.gety(),m.getz()));
+  b.add(T*triple(m.getx(),M.gety(),M.getz()));
+  b.add(T*triple(M.getx(),m.gety(),m.getz()));
+  b.add(T*triple(M.getx(),m.gety(),M.getz()));
+  b.add(T*triple(M.getx(),M.gety(),m.getz()));
+  b.add(T*M);
+
+  out->addTube(g,width,b.Min(),b.Max(),core);
+
+#endif
+  return true;
+}
+
+bool drawTube::write(v3dfile* out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)

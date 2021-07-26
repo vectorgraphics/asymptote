@@ -158,6 +158,7 @@ public:
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);
+  bool write(v3dfile* out);
 
   void render(double, const triple& b, const triple& B,
               double perspective, bool remesh);
@@ -192,6 +193,7 @@ public:
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);
+  bool write(v3dfile *out);
 
   void render(double, const triple& b, const triple& B,
               double perspective, bool remesh);
@@ -414,6 +416,8 @@ public:
   drawElement *transformed(const double* t) {
     return new drawSphere(t,this);
   }
+
+  bool write(v3dfile* out) override;
 };
 
 // Output a unit cylinder primitive.
@@ -434,6 +438,8 @@ public:
   drawElement *transformed(const double* t) {
     return new drawCylinder(t,this);
   }
+
+  bool write(v3dfile* out) override;
 };
 
 // Draw a unit disk.
@@ -452,6 +458,8 @@ public:
   drawElement *transformed(const double* t) {
     return new drawDisk(t,this);
   }
+
+  bool write(v3dfile* out) override;
 };
 
 // Draw a tube.
@@ -488,6 +496,8 @@ public:
   drawElement *transformed(const double* t) {
     return new drawTube(t,this);
   }
+
+  bool write(v3dfile* out) override;
 };
 
 

@@ -44,7 +44,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr shaders jsfile
+	$(PRC) glrender tr shaders jsfile v3dfile
 
 FILES = $(COREFILES) main
 
