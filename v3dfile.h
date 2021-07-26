@@ -44,6 +44,7 @@ enum v3dTypes : uint32_t
   cylinder=301,
   tube=302,
   sphere=303,
+  halfSphere=304,
 
   //other
   animation=400,
@@ -60,9 +61,20 @@ public:
 
   void addMaterial(Material const& mat);
 
+  void addSphere(triple const& center, double radius);
+  void addSphereHalf(triple const& center, double radius, double const& polar, double const& azimuth);
+
+  void addCylinder(triple const& center, double radius, double height,
+                   double const& polar, const double& azimuth,
+                   bool core=false);
+  void addDisk(triple const& center, double radius,
+               double const& polar=0.0, const double& azimuth=0.0);
+  void addTube(const triple *g, double width,
+               const triple& Min, const triple& Max, bool core=false);
 
 protected:
   void addvec4(glm::vec4 const& vec);
+  void addCenterIndexMat();
   xdr::oxstream xdrfile;
 };
 

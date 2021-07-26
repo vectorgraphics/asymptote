@@ -37,7 +37,8 @@ void v3dfile::addPatch(triple const* controls, size_t n, triple const& Min,
     xdrfile << (c == nullptr ? v3dTypes::bezierTriangle_noColor : v3dTypes::bezierTriangle);
   }
   // xdr does not support 16 bit. Treated as int
-  xdrfile << ctlPts << drawElement::centerIndex << materialIndex;
+  xdrfile << ctlPts;
+  addCenterIndexMat();
 
   if (c != nullptr)
   {
@@ -61,10 +62,56 @@ void v3dfile::addMaterial(Material const& mat)
   addvec4(mat.parameters);
 }
 
+void v3dfile::addCenterIndexMat()
+{
+  xdrfile << drawElement::centerIndex << materialIndex;
+}
+
 void v3dfile::addvec4(glm::vec4 const& vec)
 {
   xdrfile << static_cast<float>(vec.x) << static_cast<float>(vec.y)
     << static_cast<float>(vec.z) << static_cast<float>(vec.w);
+}
+
+void v3dfile::addSphereHalf(triple const& center, double radius, double const& polar, double const& azimuth)
+{
+  xdrfile << v3dTypes::halfSphere << center.array() << radius;
+  addCenterIndexMat();
+  xdrfile << polar << azimuth;
+}
+
+void v3dfile::addSphere(triple const& center, double radius)
+{
+  xdrfile << v3dTypes::sphere << center.array() << radius;
+  addCenterIndexMat();
+}
+
+void
+v3dfile::addCylinder(triple const& center, double radius, double height, double const& polar, double const& azimuth,
+                     bool core)
+{
+  xdrfile << v3dTypes::cylinder << center.array() << radius << height;
+  addCenterIndexMat();
+  xdrfile << polar << azimuth << core;
+}
+
+void v3dfile::addDisk(triple const& center, double radius, double const& polar, double const& azimuth)
+{
+  xdrfile << v3dTypes::disk << center.array() << radius;
+  addCenterIndexMat();
+  xdrfile << polar << azimuth;
+}
+
+void v3dfile::addTube(triple const* g, double width, triple const& Min, triple const& Max, bool core)
+{
+  xdrfile << v3dTypes::tube;
+  for (int i=0;i<4;++i)
+  {
+    xdrfile << g[i].array();
+  }
+  xdrfile << width;
+  addCenterIndexMat();
+  xdrfile << Min.array() << Max.array() << core;
 }
 
 

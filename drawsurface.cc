@@ -861,6 +861,31 @@ bool drawSphere::write(jsfile *out)
   return true;
 }
 
+bool drawSphere::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  triple O,E;
+  P(E,1.0,0.0,0.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  double r=length(X);
+
+  if(half)
+    out->addSphereHalf(O,r,X.polar(false),X.azimuth(false));
+  else
+    out->addSphere(O,r);
+
+#endif
+  return true;
+}
+
 bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
@@ -875,6 +900,31 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 bool drawCylinder::write(jsfile *out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  triple E,H,O;
+  P(E,1.0,0.0,0.0);
+  P(H,0.0,0.0,1.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  triple Z=H-O;
+  double r=length(X);
+  double h=length(Z);
+
+  out->addCylinder(O,r,h,Z.polar(false),Z.azimuth(false),core);
+
+#endif
+  return true;
+}
+
+bool drawCylinder::write(v3dfile* out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -936,7 +986,57 @@ bool drawDisk::write(jsfile *out)
   return true;
 }
 
+bool drawDisk::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  triple E,H,O;
+  P(E,1.0,0.0,0.0);
+  P(H,0.0,0.0,1.0);
+  P(O,0.0,0.0,0.0);
+  triple X=E-O;
+  triple Z=H-O;
+  double r=length(X);
+
+  out->addDisk(O,r,Z.polar(false),Z.azimuth(false));
+
+#endif
+  return true;
+}
+
 bool drawTube::write(jsfile *out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  drawElement::centerIndex=0;
+
+  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  bbox3 b;
+  b.add(T*m);
+  b.add(T*triple(m.getx(),m.gety(),M.getz()));
+  b.add(T*triple(m.getx(),M.gety(),m.getz()));
+  b.add(T*triple(m.getx(),M.gety(),M.getz()));
+  b.add(T*triple(M.getx(),m.gety(),m.getz()));
+  b.add(T*triple(M.getx(),m.gety(),M.getz()));
+  b.add(T*triple(M.getx(),M.gety(),m.getz()));
+  b.add(T*M);
+
+  out->addTube(g,width,b.Min(),b.Max(),core);
+
+#endif
+  return true;
+}
+
+bool drawTube::write(v3dfile* out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
