@@ -538,6 +538,28 @@ bool drawBezierTriangle::write(jsfile *out)
   return true;
 }
 
+bool drawBezierTriangle::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible || primitive)
+    return true;
+
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
+
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  if(straight) {
+    triple Controls[]={controls[0],controls[6],controls[9]};
+    out->addPatch(Controls,3,Min,Max,colors,3);
+  } else
+    out->addPatch(controls,10,Min,Max,colors,3);
+
+#endif
+  return true;
+}
+
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool remesh)
 {

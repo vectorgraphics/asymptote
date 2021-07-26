@@ -193,6 +193,7 @@ public:
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(jsfile *out);
+  bool write(v3dfile *out);
 
   void render(double, const triple& b, const triple& B,
               double perspective, bool remesh);

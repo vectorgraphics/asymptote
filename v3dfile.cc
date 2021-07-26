@@ -4,7 +4,6 @@
 
 #include "v3dfile.h"
 #include "drawelement.h"
-#include "glrender.h"
 
 namespace camp
 {
@@ -29,7 +28,14 @@ void v3dfile::addPatch(triple const* controls, size_t n, triple const& Min,
     auto arr = controls[i].array();
     ctlPts.insert(ctlPts.end(), arr.begin(), arr.end());
   }
-  xdrfile << (c == nullptr ? v3dTypes::bezierPatch_noColor : v3dTypes::bezierPatch);
+  if (n == 4 || n == 16) // quad patches
+  {
+    xdrfile << (c == nullptr ? v3dTypes::bezierPatch_noColor : v3dTypes::bezierPatch);
+  }
+  else if (n == 3 || n == 10) // triangles
+  {
+    xdrfile << (c == nullptr ? v3dTypes::bezierTriangle_noColor : v3dTypes::bezierTriangle);
+  }
   // xdr does not support 16 bit. Treated as int
   xdrfile << ctlPts << drawElement::centerIndex << materialIndex;
 

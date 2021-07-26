@@ -59,6 +59,8 @@ public:
                 size_t nc);
 
   void addMaterial(Material const& mat);
+
+
 protected:
   void addvec4(glm::vec4 const& vec);
   xdr::oxstream xdrfile;
