@@ -125,11 +125,20 @@ public:
     if(!xdr_array(&xdro, &pt, &sz, x.max_size(), sizeof(T), (xdrproc_t)xdr_##N)) set(badbit); \
     return *this; }
 
+#define OXSTREAM_VECMV(T,N) oxstream& operator<< (std::vector<T>&& x) { \
+    char* pt=reinterpret_cast<char*>(x.data()); uint32_t sz=x.size(); \
+    if(!xdr_array(&xdro, &pt, &sz, x.max_size(), sizeof(T), (xdrproc_t)xdr_##N)) set(badbit); \
+    return *this; }
+
 #define OXSTREAM_ARR(T,N) template<size_t n> oxstream& operator<< (std::array<T, n>& x) { \
     if(!xdr_vector(&xdro, reinterpret_cast<char*>(x.data()), n, sizeof(T), (xdrproc_t)xdr_##N)) set(badbit); \
     return *this; }
 
-#define OXSTREAM_VECARR(T,N) OXSTREAM_VEC(T,N) OXSTREAM_ARR(T,N)
+#define OXSTREAM_ARRMV(T,N) template<size_t n> oxstream& operator<< (std::array<T, n>&& x) { \
+    if(!xdr_vector(&xdro, reinterpret_cast<char*>(x.data()), n, sizeof(T), (xdrproc_t)xdr_##N)) set(badbit); \
+    return *this; }
+
+#define OXSTREAM_VECARR(T,N) OXSTREAM_VEC(T,N) OXSTREAM_VECMV(T,N) OXSTREAM_ARR(T,N) OXSTREAM_ARRMV(T,N)
 
 
 class ixstream : virtual public xstream {
@@ -235,7 +244,8 @@ public:
   }
 
   // vector
-  OXSTREAM_VECARR(double, double);
+  OXSTREAM_VECARR(double,double);
+  OXSTREAM_VECARR(float,float);
 };
 
 class ioxstream : public ixstream, public oxstream {
