@@ -521,10 +521,13 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnSelectEdit.clicked.connect(self.btnSelectEditOnClick)
 
     def btnDeleteModeOnClick(self):
-        self.currentModeStack = [SelectionMode.delete]
-        self.ui.statusbar.showMessage('Delete Mode')
-        self.clearSelection()
-        self.updateChecks()
+        if self.currentModeStack[-1] != SelectionMode.delete:
+            self.currentModeStack = [SelectionMode.delete]
+            self.ui.statusbar.showMessage('Delete mode')
+            self.clearSelection()
+            self.updateChecks()
+        else:
+            self.btnTranslateonClick()
 
     def btnTerminalCommandOnClick(self):
         if self.terminalPythonMode:
@@ -542,9 +545,13 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnOpenPoly.setEnabled(not checked)
 
     def btnSelectEditOnClick(self):
-        self.ui.statusbar.showMessage('Edit mode')
-        self.currentModeStack = [SelectionMode.selectEdit]
-        self.updateChecks()
+        if self.currentModeStack[-1] != SelectionMode.selectEdit:
+            self.currentModeStack = [SelectionMode.selectEdit]
+            self.ui.statusbar.showMessage('Edit mode')
+            self.clearSelection()
+            self.updateChecks()
+        else:
+            self.btnTranslateonClick()
 
     @property
     def currentPen(self):
@@ -2054,22 +2061,31 @@ class MainWindow1(Qw.QMainWindow):
         self.updateChecks()
 
     def btnRotateOnClick(self):
-        self.currentModeStack = [SelectionMode.rotate]
-        self.ui.statusbar.showMessage('Rotate mode')
-        self.clearSelection()
-        self.updateChecks()
+        if self.currentModeStack[-1] != SelectionMode.rotate:
+            self.currentModeStack = [SelectionMode.rotate]
+            self.ui.statusbar.showMessage('Rotate mode')
+            self.clearSelection()
+            self.updateChecks()
+        else:
+            self.btnTranslateonClick()
 
     def btnScaleOnClick(self):
-        self.currentModeStack = [SelectionMode.scale]
-        self.ui.statusbar.showMessage('Scale mode')
-        self.clearSelection()
-        self.updateChecks()
+        if self.currentModeStack[-1] != SelectionMode.scale:
+            self.currentModeStack = [SelectionMode.scale]
+            self.ui.statusbar.showMessage('Scale mode')
+            self.clearSelection()
+            self.updateChecks()
+        else:
+            self.btnTranslateonClick()
 
     def btnPanOnClick(self):
-        self.currentModeStack = [SelectionMode.pan]
-        self.ui.statusbar.showMessage('Pan mode')
-        self.clearSelection()
-        self.updateChecks()
+        if self.currentModeStack[-1] != SelectionMode.pan:
+            self.currentModeStack = [SelectionMode.pan]
+            self.ui.statusbar.showMessage('Pan mode')
+            self.clearSelection()
+            self.updateChecks()
+        else:
+            self.btnTranslateonClick()
 
     def btnWorldCoordsOnClick(self, checked):
         self.useGlobalCoords = checked
