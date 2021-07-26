@@ -1583,7 +1583,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxTileWidth <= 0) maxTileWidth=1024;
   if(maxTileHeight <= 0) maxTileHeight=768;
 
-  bool webgl=Format == "html";
+  bool producerawfile=Format == "html" || Format == "v3d";
 
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
@@ -1607,7 +1607,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #else
   if(glinitialize) {
-    if(!webgl) init();
+    if(!producerawfile) init();
     Fitscreen=1;
   }
 #endif
@@ -1619,7 +1619,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
                        getSetting<bool>("animating")))) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
-    if(webgl)
+    if(producerawfile)
       expand=1.0;
     else {
       expand=getSetting<double>("render");
@@ -1651,7 +1651,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     fullWidth=(int) ceil(expand*width);
     fullHeight=(int) ceil(expand*height);
 
-    if(webgl) {
+    if(producerawfile) {
       Width=fullWidth;
       Height=fullHeight;
     } else {
@@ -1664,9 +1664,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         Height=min((int) (ceil(Width/Aspect)),screenHeight);
     }
 
-    home(webgl);
+    home(producerawfile);
     setProjection();
-    if(webgl) return;
+    if(producerawfile) return;
 
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
 

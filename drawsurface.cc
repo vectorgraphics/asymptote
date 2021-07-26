@@ -77,6 +77,30 @@ void setcolors(bool colors,
   }
 }
 
+void setcolors(bool colors,
+               const RGBAColour& diffuse,
+               const RGBAColour& emissive,
+               const RGBAColour& specular, double shininess,
+               double metallic, double fresnel0, v3dfile *out)
+{
+  Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
+                      glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
+                      glm::vec4(specular.R,specular.G,specular.B,specular.A),
+                      shininess,metallic,fresnel0);
+
+  auto p=materialMap.find(m);
+  if(p != materialMap.end()) materialIndex=p->second;
+  else {
+    materialIndex=material.size();
+    if(materialIndex >= nmaterials)
+      nmaterials=min(Maxmaterials,2*nmaterials);
+    material.push_back(m);
+    materialMap[m]=materialIndex;
+    if(out)
+      out->addMaterial(m);
+  }
+}
+
 #endif
 
 void drawBezierPatch::bounds(const double* t, bbox3& b)
@@ -240,6 +264,29 @@ bool drawBezierPatch::write(jsfile *out)
   } else
     out->addPatch(controls,16,Min,Max,colors,4);
   out->precision(getSetting<Int>("digits"));
+
+#endif
+  return true;
+}
+
+bool drawBezierPatch::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible || primitive)
+    return true;
+
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
+
+  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  if(straight) {
+    triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
+    out->addPatch(Controls, 4, Min, Max, colors, 4);
+  } else
+    out->addPatch(controls, 16, Min, Max, colors, 4);
 
 #endif
   return true;

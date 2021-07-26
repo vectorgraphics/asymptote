@@ -212,7 +212,7 @@ void psfile::setopacity(const pen& p)
   string outputformat=settings::getSetting<string>("outformat");
   if(p.opacity() != lastpen.opacity() &&
      ((pdftex() && outputformat == "") || outputformat == "pdf" || outputformat == "html" ||
-      outputformat == "svg" || outputformat == "png")) {
+      outputformat == "svg" || outputformat == "png" || outputformat == "v3d")) {
     *out << p.opacity() << " .setfillconstantalpha" << newl
          << p.opacity() << " .setstrokeconstantalpha" << newl;
   }
