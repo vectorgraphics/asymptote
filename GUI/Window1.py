@@ -624,6 +624,7 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.statusbar.showMessage(self.Hint+self.HintClose)
 
     def btnAddBezierInplaceOnClick(self):
+        self.fileChanged = True
         self.addMode = InplaceAddObj.AddBezierShape(self)
         self.updateOptionWidget()
 
