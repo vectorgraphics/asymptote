@@ -62,6 +62,7 @@ out vec4 outColor;
 vec4 tempColor;
 
 uniform uint width;
+uniform uint height;
 
 // PBR material parameters
 vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
@@ -165,7 +166,7 @@ void main()
   if (zbuffer[headIndex].depth < gl_FragCoord.z &&
       zbuffer[headIndex].depth != 0)
     discard;
-  if (texture(DepthTex, gl_FragCoord.xy).r > gl_FragCoord.z)
+  if (texture(DepthTex, gl_FragCoord.xy/vec2(width,height)).r >= gl_FragCoord.z)
     discard;
 #endif
   vec4 diffuse;
@@ -263,6 +264,8 @@ void main()
 #else
   tempColor=emissive;
 #endif
+
+  if (tempColor.a == 0) discard;
 
 #ifdef DEPTHPEEL
   outColor = tempColor;
