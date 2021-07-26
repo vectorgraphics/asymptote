@@ -11,6 +11,15 @@ layout(std430, binding=2) coherent buffer list {
     Fragment fragments[];
 };
 
+struct OpaqueFragment
+{
+    vec4 color;
+    float depth;
+};
+layout(std430, binding=3) coherent buffer opaque {
+    OpaqueFragment zbuffer[];
+};
+
 out vec4 outColor;
 
 uniform uint width;
@@ -43,14 +52,16 @@ void main()
 
   // Combine fragments
   uint last = sortedCount - 1;
-  outColor = sortedList[0].color;
+  if (zbuffer[headIndex].depth != 0)
+    outColor = zbuffer[headIndex].color;
+  else
+    outColor = vec4(1);
   for (uint i = 0; i < last; i++) {
     if (abs(sortedList[i].depth-sortedList[i+1].depth) < 0.001 &&
         distance(sortedList[i].color, sortedList[i+1].color) < 0.01)
       continue;
     outColor = mix(outColor, sortedList[i].color, sortedList[i].color.a);
-    // outColor = vec4( (i/4)&1, (i/2)&1, (i)&1, 1);
   }
   outColor = mix(outColor, sortedList[last].color, sortedList[last].color.a);
-  // outColor = vec4((sortedCount/4)&1, (sortedCount/2)&1, (sortedCount)&1, 1);
+  outColor.a = outColor.a*sortedCount;
 }

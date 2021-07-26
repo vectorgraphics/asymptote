@@ -26,7 +26,7 @@ vec3 normal;
 #endif
 
 #ifdef COLOR
-in vec4 Color; 
+in vec4 Color;
 #endif
 
 struct OpaqueFragment
