@@ -2,25 +2,38 @@
 # Compress with gzip -9
 
 unsigned int version
-unsigned short int type [material,transform,element
-                         line,curve,triangle,bezierTriangle,quad,bezierPatch, #MATERIAL ELEMENT
-                         line,curve,triangle,bezierTriangle,quad,bezierPatch, #COLORED ELEMENT
-                         disk,cylinder,tube,sphere, #PRIMITIVE 
+unsigned int type [material,transform,element
+                         vertex,
+#MATERIAL ELEMENTS:
+                         line,curve,triangle,bezierTriangle,quad,bezierPatch,
+                         disk,cylinder,tube,sphere,
                          animations,
                          2d elements,
-                         
+
+#COLORED:
+                         vertex,
+                         line,curve,triangle,bezierTriangle,quad,bezierPatch]
 MATERIAL:
 index
 float[4] diffuse
 float[4] emissive
 float[4] specular
-float[4] shininess
-float[4] metallic
-float[4] fresnel0
+float shininess
+float metallic
+float fresnel0
 
 TRANSFORM:
 index
 double[16] 4x4 array
+
+VERTEX:
+index
+double x,y,z
+
+COLORED VERTEX:
+index
+double x,y,z
+float r,g,b,a
 
 MATERIAL ELEMENT:
 index
