@@ -51,7 +51,6 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         #The magnification isn't being set. Here I'm manually setting it to be the square root of the determinant.
         self.info['magnification'] = math.sqrt(self.transf.xx * self.transf.yy - self.transf.xy * self.transf.yx)
-        print(self.info['magnification'])
 
     def setSelectionBoundaries(self):
         self.nodeSelRects = self.handleNodeSelectionBounds()

@@ -1000,10 +1000,10 @@ class MainWindow1(Qw.QMainWindow):
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addItemFromPath(path, transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
-
-                if (self.fileItems[-1].getTransformCode(self.asy2psmap) in rawText) and \
-                        (self.fileItems[-1].getObjectCode(self.asy2psmap) in rawText):
-                    duplicateObjects.append(self.fileItems[-1])
+                if self.asyFileName:
+                    if (self.fileItems[-1].getTransformCode(self.asy2psmap) in rawText) and \
+                            (self.fileItems[-1].getObjectCode(self.asy2psmap) in rawText):
+                        duplicateObjects.append(self.fileItems[-1])
             else:
                 print("ERROR")
 
