@@ -1139,15 +1139,34 @@ class MainWindow1(Qw.QMainWindow):
         else:
             _, file_extension = os.path.splitext(self.fileName)
             if file_extension == ".asy":
-                saveFile = io.open(self.fileName, 'w')
-                xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
-                saveFile.close()
+                if self.existsXasy():
+                    warning = "Saving the file as an Asymptote file (*.asy) will result in lossy conversion.  It is recommended to save your file as .xasy.  Continue saving as .asy?"
+                    replyBox = Qw.QMessageBox()
+                    replyBox.setWindowTitle('Warning') 
+                    replyBox.setText(warning)
+                    replyBox.addButton("Save as .xasy", replyBox.NoRole)
+                    replyBox.addButton("Continue as .asy", replyBox.YesRole)
+                    replyBox.addButton(Qw.QMessageBox.Cancel)
+                    reply = replyBox.exec()
+                    if reply == 1:
+                        saveFile = io.open(self.fileName, 'w')
+                        xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
+                        saveFile.close()
+                        self.fileChanged = False
+                    elif reply == 0:
+                        self.actionSaveAs()
+
+                else:
+                    saveFile = io.open(self.fileName, 'w')
+                    xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
+                    saveFile.close()
+                    self.fileChanged = False
             elif file_extension == ".xasy":
                 self.actionExportXasy(self.fileName)
+                self.fileChanged = False
             else:
                 print("ERROR: file extension not supported")
             self.updateScript()
-            self.fileChanged = False
             self.updateTitle()
 
     def updateScript(self):
@@ -1156,6 +1175,12 @@ class MainWindow1(Qw.QMainWindow):
                 if item.updatedCode:
                     item.setScript(item.updatedCode)
                     item.updatedCode = None
+
+    def existsXasy(self):
+        for item in self.fileItems:
+            if not isinstance(item, x2a.xasyScript):
+                return True
+        return False
 
     def actionSaveAs(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', str(self.fileName), "Xasy File (*.xasy);; Asymptote File (*.asy)")[0]
