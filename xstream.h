@@ -120,6 +120,18 @@ public:
 #define OXSTREAM(T,N) oxstream& operator << (T x)       \
   {if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
 
+#define OXSTREAM_VEC(T,N) oxstream& operator<< (std::vector<T>& x) { \
+    char* pt=reinterpret_cast<char*>(x.data()); uint32_t sz=x.size(); \
+    if(!xdr_array(&xdro, &pt, &sz, x.max_size(), sizeof(T), (xdrproc_t)xdr_##N)) set(badbit); \
+    return *this; }
+
+#define OXSTREAM_ARR(T,N) template<size_t n> oxstream& operator<< (std::array<T, n>& x) { \
+    if(!xdr_vector(&xdro, reinterpret_cast<char*>(x.data()), n, sizeof(T), (xdrproc_t)xdr_##N)) set(badbit); \
+    return *this; }
+
+#define OXSTREAM_VECARR(T,N) OXSTREAM_VEC(T,N) OXSTREAM_ARR(T,N)
+
+
 class ixstream : virtual public xstream {
 protected:
   XDR xdri;
@@ -221,6 +233,9 @@ public:
     if(fputc(x.byte(),buf) == EOF) set(badbit);
     return *this;
   }
+
+  // vector
+  OXSTREAM_VECARR(double, double);
 };
 
 class ioxstream : public ixstream, public oxstream {
