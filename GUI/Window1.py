@@ -403,7 +403,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnRotate.setToolTip(self.strings.rotate)
 
     def handleArguments(self):
-        if self.args.filename is not None:
+        if self.args.filename is not None and os.path.exists(self.args.filename):
             self.actionOpen(os.path.abspath(self.args.filename))
         else:
             self.initializeEmptyFile()
