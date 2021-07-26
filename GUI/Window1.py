@@ -65,6 +65,13 @@ class SoftDeletionChanges(ActionChanges):
         self.item = obj
         self.keyMap = keyPos
 
+class EditBezierChanges(ActionChanges):
+    def __init__(self, obj, pos, oldPath, newPath):
+        self.item = obj
+        self.objIndex = pos
+        self.oldPath = oldPath
+        self.newPath = newPath
+
 class AnchorMode:
     center = 0
     origin = 1
@@ -662,6 +669,7 @@ class MainWindow1(Qw.QMainWindow):
         self.updateOptionWidget()
 
     def updateCurve(self, valid, newCurve):
+        # Deprecated code?
         self.previewCurve = newCurve
         self.quickUpdate()
 
@@ -773,6 +781,8 @@ class MainWindow1(Qw.QMainWindow):
             key, keyIndex = change.keyMap
             self.hiddenKeys.remove((key, keyIndex))
             change.item.transfKeymap[key][keyIndex].deleted = False
+        elif isinstance(change, EditBezierChanges):
+            self.fileItems[change.objIndex].path = change.oldPath
         self.asyfyCanvas()
 
     def handleRedoChanges(self, change):
@@ -788,6 +798,8 @@ class MainWindow1(Qw.QMainWindow):
             key, keyIndex = change.keyMap
             self.hiddenKeys.add((key, keyIndex))
             change.item.transfKeymap[key][keyIndex].deleted = True
+        elif isinstance(change, EditBezierChanges):
+            self.fileItems[change.objIndex].path = change.newPath
         self.asyfyCanvas()
 
     #  is this a "pythonic" way?
@@ -1513,7 +1525,15 @@ class MainWindow1(Qw.QMainWindow):
         self.addMode = None
         self.deleteAddOptions()
 
-    def editFinalized(self):
+    def editAccepted(self, obj, objIndex):
+        self.undoRedoStack.add(self.createAction(
+            EditBezierChanges(obj, objIndex,
+                    self.addMode.asyPathBackup,
+                    self.addMode.asyPath 
+            )
+        ))
+        self.checkUndoRedoButtons()
+
         self.addMode.forceFinalize()
         self.removeAddMode()
         self.fileChanged = True
@@ -1521,7 +1541,10 @@ class MainWindow1(Qw.QMainWindow):
 
     def editRejected(self):
         self.addMode.resetObj()
-        self.editFinalized()
+        self.addMode.forceFinalize()
+        self.removeAddMode()
+        self.fileChanged = True
+        self.quickUpdate()
 
     def setupSelectEdit(self):
         """For Select-Edit mode. For now, if the object selected is a bezier curve, opens up a bezier editor"""
@@ -1531,7 +1554,7 @@ class MainWindow1(Qw.QMainWindow):
             # bezier path
             self.addMode = xbi.InteractiveBezierEditor(self, obj, self.currAddOptions)
             self.addMode.objectUpdated.connect(self.objectUpdated)
-            self.addMode.editAccepted.connect(self.editFinalized)
+            self.addMode.editAccepted.connect(lambda: self.editAccepted(obj, maj))
             self.addMode.editRejected.connect(self.editRejected)
             self.updateOptionWidget()
             self.currentModeStack[-1] = SelectionMode.selectEdit
