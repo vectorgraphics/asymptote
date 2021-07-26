@@ -1648,6 +1648,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1685,6 +1688,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1724,6 +1730,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1761,6 +1770,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1800,6 +1812,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1837,6 +1852,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1876,6 +1894,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1913,6 +1934,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -2081,7 +2105,7 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>24</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">

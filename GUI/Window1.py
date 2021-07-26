@@ -96,6 +96,14 @@ class SelectionMode:
     delete = 5
     setAnchor = 6
     selectEdit = 7
+    openPoly = 8
+    closedPoly = 9
+    openCurve = 10
+    closedCurve = 11
+    addPoly = 12
+    addCircle = 13
+    addLabel = 14
+    addFreehand = 15
 
 class AddObjectMode:
     Circle = 0
@@ -230,7 +238,9 @@ class MainWindow1(Qw.QMainWindow):
         self.modeButtons = {
             self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, # self.ui.btnSelect,
             self.ui.btnPan, self.ui.btnDeleteMode, self.ui.btnAnchor, 
-            self.ui.btnSelectEdit
+            self.ui.btnSelectEdit, self.ui.btnOpenPoly, self.ui.btnClosedPoly,
+            self.ui.btnOpenCurve, self.ui.btnClosedCurve, self.ui.btnAddPoly,
+            self.ui.btnAddCircle, self.ui.btnAddLabel, self.ui.btnAddFreehand
                             }
 
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
@@ -577,7 +587,7 @@ class MainWindow1(Qw.QMainWindow):
         except Exception:
             pass
 
-        self.currentModeStack[-1] = None
+        #self.currentModeStack[-1] = None
         self.addMode.objectCreated.connect(self.addInPlace)
         self.updateModeBtnsOnly()
 
@@ -609,11 +619,6 @@ class MainWindow1(Qw.QMainWindow):
         self.currentGuides.clear()
         self.quickUpdate()
 
-    def btnAddCircleOnClick(self):
-        self.addMode = InplaceAddObj.AddCircle(self)
-        self.ui.statusbar.showMessage('Add circle on click')
-        self.updateOptionWidget()
-
     LegacyHint='Click and drag to draw; right click or space bar to finalize'
     Hint='Click and drag to draw; release and click in place to add node; continue dragging'
     HintClose=' or c to close.'
@@ -636,45 +641,82 @@ class MainWindow1(Qw.QMainWindow):
         self.updateOptionWidget()
 
     def btnAddOpenLineOnClick(self):
-        self.currAddOptions['useBezier'] = False
-        self.currAddOptions['closedPath'] = False
-        self.drawHintOpen()
-        self.btnAddBezierInplaceOnClick()
+        if self.currentModeStack[-1] != SelectionMode.openPoly:
+            self.currentModeStack = [SelectionMode.openPoly]
+            self.currAddOptions['useBezier'] = False
+            self.currAddOptions['closedPath'] = False
+            self.drawHintOpen()
+            self.btnAddBezierInplaceOnClick()
+        else:
+            self.btnTranslateonClick()
 
     def btnAddClosedLineOnClick(self):
-        self.currAddOptions['useBezier'] = False
-        self.currAddOptions['closedPath'] = True
-        self.drawHint()
-        self.btnAddBezierInplaceOnClick()
+        if self.currentModeStack[-1] != SelectionMode.closedPoly:
+            self.currentModeStack = [SelectionMode.closedPoly]
+            self.currAddOptions['useBezier'] = False
+            self.currAddOptions['closedPath'] = True
+            self.drawHint()
+            self.btnAddBezierInplaceOnClick()
+        else:
+            self.btnTranslateonClick()
 
     def btnAddOpenCurveOnClick(self):
-        self.currAddOptions['useBezier'] = True
-        self.currAddOptions['closedPath'] = False
-        self.drawHintOpen()
-        self.btnAddBezierInplaceOnClick()
+        if self.currentModeStack[-1] != SelectionMode.openCurve:
+            self.currentModeStack = [SelectionMode.openCurve]
+            self.currAddOptions['useBezier'] = True
+            self.currAddOptions['closedPath'] = False
+            self.drawHintOpen()
+            self.btnAddBezierInplaceOnClick()
+        else:
+            self.btnTranslateonClick()
 
     def btnAddClosedCurveOnClick(self):
-        self.currAddOptions['useBezier'] = True
-        self.currAddOptions['closedPath'] = True
-        self.drawHint()
-        self.btnAddBezierInplaceOnClick()
+        if self.currentModeStack[-1] != SelectionMode.closedCurve:
+            self.currentModeStack = [SelectionMode.closedCurve]
+            self.currAddOptions['useBezier'] = True
+            self.currAddOptions['closedPath'] = True
+            self.drawHint()
+            self.btnAddBezierInplaceOnClick()
+        else:
+            self.btnTranslateonClick()
 
     def btnAddPolyOnClick(self):
-        self.addMode = InplaceAddObj.AddPoly(self)
-        self.ui.statusbar.showMessage('Add polygon on click')
-        self.updateOptionWidget()
+        if self.currentModeStack[-1] != SelectionMode.addPoly:
+            self.currentModeStack = [SelectionMode.addPoly]
+            self.addMode = InplaceAddObj.AddPoly(self)
+            self.ui.statusbar.showMessage('Add polygon on click')
+            self.updateOptionWidget()
+        else:
+            self.btnTranslateonClick()
+
+    def btnAddCircleOnClick(self):
+        if self.currentModeStack[-1] != SelectionMode.addCircle:
+            self.currentModeStack = [SelectionMode.addCircle]
+            self.addMode = InplaceAddObj.AddCircle(self)
+            self.ui.statusbar.showMessage('Add circle on click')
+            self.updateOptionWidget()
+        else:
+            self.btnTranslateonClick()
 
     def btnAddLabelOnClick(self):
-        self.addMode = InplaceAddObj.AddLabel(self)
-        self.ui.statusbar.showMessage('Add label on click')
-        self.updateOptionWidget()
+        if self.currentModeStack[-1] != SelectionMode.addLabel:
+            self.currentModeStack = [SelectionMode.addLabel]
+            self.addMode = InplaceAddObj.AddLabel(self)
+            self.ui.statusbar.showMessage('Add label on click')
+            self.updateOptionWidget()
+        else:
+            self.btnTranslateonClick()
 
     def btnAddFreehand(self):
-        self.currAddOptions['useBezier'] = False
-        self.currAddOptions['closedPath'] = False
-        self.ui.statusbar.showMessage("Draw Freehand.")
-        self.addMode = InplaceAddObj.AddFreehand(self)
-        self.updateOptionWidget()
+        if self.currentModeStack[-1] != SelectionMode.addLabel:
+            self.currentModeStack = [SelectionMode.addLabel]
+            self.currAddOptions['useBezier'] = False
+            self.currAddOptions['closedPath'] = False
+            self.ui.statusbar.showMessage("Draw freehand")
+            self.addMode = InplaceAddObj.AddFreehand(self)
+            self.updateOptionWidget()
+        else:
+            self.btnTranslateonClick()
 
     def updateCurve(self, valid, newCurve):
         # Deprecated code?
@@ -1999,6 +2041,22 @@ class MainWindow1(Qw.QMainWindow):
             activeBtn = self.ui.btnDeleteMode
         elif self.currentModeStack[-1] == SelectionMode.selectEdit:
             activeBtn = self.ui.btnSelectEdit
+        elif self.currentModeStack[-1] == SelectionMode.openPoly:
+            activeBtn = self.ui.btnOpenPoly
+        elif self.currentModeStack[-1] == SelectionMode.closedPoly:
+            activeBtn = self.ui.btnClosedPoly
+        elif self.currentModeStack[-1] == SelectionMode.openCurve:
+            activeBtn = self.ui.btnOpenCurve
+        elif self.currentModeStack[-1] == SelectionMode.closedCurve:
+            activeBtn = self.ui.btnClosedCurve
+        elif self.currentModeStack[-1] == SelectionMode.addPoly:
+            activeBtn = self.ui.btnAddPoly
+        elif self.currentModeStack[-1] == SelectionMode.addCircle:
+            activeBtn = self.ui.btnAddCircle
+        elif self.currentModeStack[-1] == SelectionMode.addLabel:
+            activeBtn = self.ui.btnAddLabel
+        elif self.currentModeStack[-1] == SelectionMode.addFreehand:
+            activeBtn = self.ui.btnAddFreehand
         else:
             activeBtn = None
 
@@ -2011,7 +2069,6 @@ class MainWindow1(Qw.QMainWindow):
 
         for button in self.modeButtons:
             button.setChecked(button is activeBtn)
-
 
         if activeBtn in [self.ui.btnDeleteMode,self.ui.btnSelectEdit]:
             self.ui.btnAlignX.setEnabled(False)
