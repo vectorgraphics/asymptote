@@ -24,6 +24,14 @@ out vec4 outColor;
 
 uniform uint width;
 
+// Manhattan distance
+float mDistance(vec4 first, vec4 second) {
+  return abs(first.r - second.r) +
+         abs(first.g - second.g) +
+         abs(first.b - second.b) +
+         abs(first.a - second.a);
+}
+
 void main()
 {
   uint headIndex = uint(gl_FragCoord.y) * width + uint(gl_FragCoord.x);
@@ -57,8 +65,8 @@ void main()
   else
     outColor = vec4(1);
   for (uint i = 0; i < last; i++) {
-    if (abs(sortedList[i].depth-sortedList[i+1].depth) < 0.001 &&
-        distance(sortedList[i].color, sortedList[i+1].color) < 0.01)
+    if (sortedList[i].depth-sortedList[i+1].depth < 0.001 &&
+        mDistance(sortedList[i].color, sortedList[i+1].color) < 0.01)
       continue;
     outColor = mix(outColor, sortedList[i].color, sortedList[i].color.a);
   }
