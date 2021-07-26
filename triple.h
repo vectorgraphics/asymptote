@@ -327,6 +327,12 @@ public:
     return out;
   }
 
+  [[nodiscard]]
+  std::array<double, 3> array() const
+  {
+    return std::array<double, 3> { x,y,z };
+  }
+
 };
 
 triple expi(double theta, double phi);
