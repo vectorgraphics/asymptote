@@ -87,6 +87,8 @@ protected:
   void addvec4(glm::vec4 const& vec);
   void addCenterIndexMat();
   void addIndices(uint32_t const* trip);
+  void addTriples(triple const* triples, size_t n);
+  void addColors(prc::RGBAColour const* col, size_t nc);
 
   xdr::oxstream xdrfile;
 };

@@ -39,6 +39,7 @@
 #include "PRC.h"
 #include "PRCbitStream.h"
 #include "writePRC.h"
+#include "xstream.h"
 
 namespace prc {
 
@@ -93,6 +94,12 @@ struct RGBAColour
   { return RGBAColour(a.R*d,a.G*d,a.B*d,a.A*d); }
   friend RGBAColour operator * (const double d, const RGBAColour& a)
   { return RGBAColour(a.R*d,a.G*d,a.B*d,a.A*d); }
+
+  friend xdr::oxstream& operator<<(xdr::oxstream& out, RGBAColour const& col)
+  {
+    out << col.R << col.G << col.B << col.A;
+    return out;
+  }
 
 };
 typedef std::map<RGBAColour,uint32_t> PRCcolourMap;

@@ -18,6 +18,7 @@
 #include "common.h"
 #include "angle.h"
 #include "pair.h"
+#include "xstream.h"
 
 namespace camp {
 
@@ -327,10 +328,10 @@ public:
     return out;
   }
 
-  [[nodiscard]]
-  std::array<double, 3> array() const
+  friend xdr::oxstream& operator<<(xdr::oxstream& out, triple const& v)
   {
-    return std::array<double, 3> { x,y,z };
+    out << v.x << v.y << v.z;
+    return out;
   }
 
 };
