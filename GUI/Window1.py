@@ -510,7 +510,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
-        self.ui.btnAddFreehand.clicked.connect(self.btnAddFreehand)
+        self.ui.btnAddFreehand.clicked.connect(self.btnAddFreehandOnClick)
         # self.ui.btnAddBezierInplace.clicked.connect(self.btnAddBezierInplaceOnClick)
         self.ui.btnClosedCurve.clicked.connect(self.btnAddClosedCurveOnClick)
         self.ui.btnOpenCurve.clicked.connect(self.btnAddOpenCurveOnClick)
@@ -707,9 +707,9 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
-    def btnAddFreehand(self):
-        if self.currentModeStack[-1] != SelectionMode.addLabel:
-            self.currentModeStack = [SelectionMode.addLabel]
+    def btnAddFreehandOnClick(self):
+        if self.currentModeStack[-1] != SelectionMode.addFreehand:
+            self.currentModeStack = [SelectionMode.addFreehand]
             self.currAddOptions['useBezier'] = False
             self.currAddOptions['closedPath'] = False
             self.ui.statusbar.showMessage("Draw freehand")
@@ -1125,6 +1125,7 @@ class MainWindow1(Qw.QMainWindow):
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
         if fileName:
+            # Opening via open recent or cmd args
             _, file_extension = os.path.splitext(fileName)
             if file_extension == '.asy':
                 self.loadFile(fileName)
