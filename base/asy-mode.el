@@ -110,7 +110,7 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 
 (require 'font-lock)
 (require 'cc-mode)
-(require 'cl) ;; Common Lisp extensions for Emacs
+(require 'cl-lib) ;; Common Lisp extensions for Emacs
 (require 'compile)
 (require 'wid-edit)
 
@@ -637,6 +637,9 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
 (if (locate-library "two-mode-mode")
     (progn
 
+;; patch two-mode-mode.el for Emacs >= 23.
+      (defun make-local-hook (func))
+
       (defvar lasy-fontify-asy-p nil
         "Variable to communicate with `font-lock-unfontify-region'.
 Internal use, don't set in any fashion.")
@@ -682,7 +685,8 @@ the current mode."
                  (setq lasy-fontify-asy-p (eq func 'asy-mode))
                  (funcall func)
                  (hack-local-variables)
-                 (two-mode-mode-setup)
+;; avoid infinite loop in two-mode-mode
+;;                 (two-mode-mode-setup)
                  (if two-mode-switch-hook
                      (run-hooks 'two-mode-switch-hook))
                  (if (eq font-lock-mode t)
