@@ -1141,6 +1141,27 @@ bool drawTriangles::write(jsfile *out)
   return true;
 }
 
+bool drawTriangles::write(v3dfile* out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  if (nC > 0)
+  {
+    out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
+  }
+  else
+  {
+    out->addTrianglesNoColor(nP,P,nN,N,nI,PI,NI,Min,Max);
+  }
+
+#endif
+  return true;
+}
+
 void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
                            bool remesh)

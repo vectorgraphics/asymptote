@@ -246,6 +246,9 @@ public:
   // vector
   OXSTREAM_VECARR(double,double);
   OXSTREAM_VECARR(float,float);
+  OXSTREAM_VECARR(unsigned int, u_int);
+  OXSTREAM_VECARR(unsigned long,u_long);
+  OXSTREAM_VECARR(unsigned long long,u_longlong_t);
 };
 
 class ioxstream : public ixstream, public oxstream {

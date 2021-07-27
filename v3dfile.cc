@@ -7,6 +7,9 @@
 
 namespace camp
 {
+
+std::vector<double> fromTriples(triple const* triples, size_t n);
+
 v3dfile::v3dfile(string const& name, uint32_t const& version, open_mode mode) :
   xdrfile(name.c_str(), mode)
 {
@@ -18,16 +21,21 @@ v3dfile::~v3dfile()
   xdrfile.close();
 }
 
-void v3dfile::addPatch(triple const* controls, size_t n, triple const& Min,
-                       triple const& Max, prc::RGBAColour const* c,
-                       size_t nc)
+std::vector<double> fromTriples(triple const* triples, size_t n)
 {
   std::vector<double> ctlPts;
   for (size_t i=0;i<n;++i)
   {
-    auto arr = controls[i].array();
+    auto arr = triples[i].array();
     ctlPts.insert(ctlPts.end(), arr.begin(), arr.end());
   }
+  return ctlPts;
+}
+
+void v3dfile::addPatch(triple const* controls, size_t n, triple const& Min,
+                       triple const& Max, prc::RGBAColour const* c,
+                       size_t nc)
+{
   if (n == 4 || n == 16) // quad patches
   {
     xdrfile << (c == nullptr ? v3dTypes::bezierPatch_noColor : v3dTypes::bezierPatch);
@@ -37,18 +45,17 @@ void v3dfile::addPatch(triple const* controls, size_t n, triple const& Min,
     xdrfile << (c == nullptr ? v3dTypes::bezierTriangle_noColor : v3dTypes::bezierTriangle);
   }
   // xdr does not support 16 bit. Treated as int
-  xdrfile << ctlPts;
+  xdrfile << fromTriples(controls, n);
   addCenterIndexMat();
 
   if (c != nullptr)
   {
     std::vector<double> clrPts;
-    for (size_t i=0;i<n;++i)
+    for (size_t i=0;i<nc;++i)
     {
       auto arr = c[i].array();
       clrPts.insert(clrPts.end(), arr.begin(), arr.end());
     }
-
     xdrfile << clrPts;
   }
 }
@@ -112,6 +119,53 @@ void v3dfile::addTube(triple const* g, double width, triple const& Min, triple c
   xdrfile << width;
   addCenterIndexMat();
   xdrfile << Min.array() << Max.array() << core;
+}
+
+void v3dfile::addTrianglesNoColor(size_t nP, triple const* P, size_t nN, triple const* N, size_t nI,
+                                  uint32_t const (* PI)[3], uint32_t const (* NI)[3], triple const& Min,
+                                  triple const& Max)
+{
+  xdrfile << v3dTypes::triangles_noColor;
+  xdrfile << fromTriples(P,nP) << fromTriples(N, nN);
+
+  xdrfile << nI;
+  for(size_t i=0; i < nI; ++i)
+  {
+    addIndices(PI[i]);
+    addIndices(NI[i]);
+  }
+
+  xdrfile << materialIndex << Min.array() << Max.array();
+}
+
+void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* N, size_t nC, prc::RGBAColour const* C,
+                           size_t nI, uint32_t const (* PI)[3], uint32_t const (* NI)[3], uint32_t const (* CI)[3],
+                           triple const& Min, triple const& Max)
+{
+  xdrfile << v3dTypes::triangles;
+  xdrfile << fromTriples(P,nP) << fromTriples(N,nN);
+  std::vector<double> clrPts;
+  for (size_t i=0;i<nC;++i)
+  {
+    auto arr = C[i].array();
+    clrPts.insert(clrPts.end(), arr.begin(), arr.end());
+  }
+  xdrfile << clrPts;
+
+  xdrfile << nI;
+  for(size_t i=0; i < nI; ++i)
+  {
+    addIndices(PI[i]);
+    addIndices(NI[i]);
+    addIndices(CI[i]);
+  }
+
+  xdrfile << materialIndex << Min.array() << Max.array();
+}
+
+void v3dfile::addIndices(uint32_t const* trip)
+{
+  xdrfile << std::array<uint32_t, 3> {*trip, *(trip+1), *(trip+2)};
 }
 
 

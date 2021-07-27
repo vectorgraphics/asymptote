@@ -29,14 +29,14 @@ enum v3dTypes : uint32_t
   bezierTriangle=101,
   line=102,
   curve=103,
-  triangle=104,
+  triangles=104,
   quad=105,
 
   bezierPatch_noColor=200,
   bezierTriangle_noColor=201,
   line_noColor=202,
   curve_noColor=203,
-  triangle_noColor=204,
+  triangles_noColor=204,
   quad_noColor=205,
 
   //primitives
@@ -72,9 +72,22 @@ public:
   void addTube(const triple *g, double width,
                const triple& Min, const triple& Max, bool core=false);
 
+  void addTrianglesNoColor(size_t nP, const triple* P, size_t nN,
+                            const triple* N, size_t nI, const uint32_t (*PI)[3],
+                            const uint32_t (*NI)[3],
+                            const triple& Min, const triple& Max);
+
+  void addTriangles(size_t nP, const triple* P, size_t nN,
+                            const triple* N, size_t nC, const prc::RGBAColour* C,
+                            size_t nI, const uint32_t (*PI)[3],
+                            const uint32_t (*NI)[3], const uint32_t (*CI)[3],
+                            const triple& Min, const triple& Max);
+
 protected:
   void addvec4(glm::vec4 const& vec);
   void addCenterIndexMat();
+  void addIndices(uint32_t const* trip);
+
   xdr::oxstream xdrfile;
 };
 
