@@ -22,20 +22,14 @@ v3dfile::~v3dfile()
 
 void v3dfile::addTriples(triple const* triples, size_t n)
 {
-  xdrfile << 3 * n;
-  for (size_t i=0;i<n;++i)
-  {
+  for(size_t i=0; i < n; ++i)
     xdrfile << triples[i];
-  }
 }
 
 void v3dfile::addColors(prc::RGBAColour const* col, size_t nc)
 {
-  xdrfile << 4 * nc;
-  for (size_t i=0;i<nc;++i)
-  {
+  for(size_t i=0; i < nc; ++i)
     xdrfile << col[i];
-  }
 }
 
 void v3dfile::addPatch(triple const* controls, size_t n, triple const& Min,
@@ -44,13 +38,12 @@ void v3dfile::addPatch(triple const* controls, size_t n, triple const& Min,
 {
   if (n == 4 || n == 16) // quad patches
   {
-    xdrfile << (c == nullptr ? v3dTypes::bezierPatch_noColor : v3dTypes::bezierPatch);
+    xdrfile << (c == nullptr ? v3dTypes::bezierPatch : v3dTypes::bezierPatchColor);
   }
   else if (n == 3 || n == 10) // triangles
   {
-    xdrfile << (c == nullptr ? v3dTypes::bezierTriangle_noColor : v3dTypes::bezierTriangle);
+    xdrfile << (c == nullptr ? v3dTypes::bezierTriangle : v3dTypes::bezierTriangleColor);
   }
-  // xdr does not support 16 bit. Treated as int
   addTriples(controls, n);
   addCenterIndexMat();
 
@@ -121,40 +114,16 @@ void v3dfile::addTube(triple const* g, double width, triple const& Min, triple c
   xdrfile << Min << Max << core;
 }
 
-void v3dfile::addTrianglesNoColor(size_t nP, triple const* P, size_t nN, triple const* N, size_t nI,
-                                  uint32_t const (* PI)[3], uint32_t const (* NI)[3], triple const& Min,
-                                  triple const& Max)
-{
-  xdrfile << v3dTypes::triangles_noColor;
-  addTriples(P,nP);
-  addTriples(N,nN);
-
-  xdrfile << nI;
-  for(size_t i=0; i < nI; ++i)
-  {
-    const uint32_t *PIi=PI[i];
-    const uint32_t *NIi=NI[i];
-    bool keepNI=distinct(NIi,PIi);
-
-    xdrfile << (keepNI ? v3dTriangleIndexType::index_PosNorm : v3dTriangleIndexType::index_Pos);
-    addIndices(PI[i]);
-
-    if (keepNI)
-    {
-      addIndices(NI[i]);
-    }
-  }
-
-  xdrfile << materialIndex << Min << Max;
-}
-
 void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* N, size_t nC, prc::RGBAColour const* C,
                            size_t nI, uint32_t const (* PI)[3], uint32_t const (* NI)[3], uint32_t const (* CI)[3],
                            triple const& Min, triple const& Max)
 {
   xdrfile << v3dTypes::triangles;
+  xdrfile << nP;
   addTriples(P,nP);
+  xdrfile << nN;
   addTriples(N,nN);
+  xdrfile << nC;
   addColors(C,nC);
 
   xdrfile << nI;

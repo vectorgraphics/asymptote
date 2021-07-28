@@ -328,11 +328,14 @@ public:
     return out;
   }
 
-  friend xdr::oxstream& operator<<(xdr::oxstream& out, triple const& v)
+
+#ifdef HAVE_RPC_RPC_H
+  friend xdr::oxstream& operator << (xdr::oxstream& out, triple const& v)
   {
     out << v.x << v.y << v.z;
     return out;
   }
+#endif
 
 };
 

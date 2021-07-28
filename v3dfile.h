@@ -25,30 +25,34 @@ enum v3dTypes : uint32_t
   transform_=2,
   element=3,
 
-  bezierPatch=100,
-  bezierTriangle=101,
-  line=102,
-  curve=103,
-  triangles=104,
-  quad=105,
+  line,
+  triangle,
+  quad,
 
-  bezierPatch_noColor=200,
-  bezierTriangle_noColor=201,
-  line_noColor=202,
-  curve_noColor=203,
-  triangles_noColor=204,
-  quad_noColor=205,
+  curve,
+  bezierTriangle,
+  bezierPatch,
+
+  lineColor,
+  triangleColor,
+  quadColor,
+
+  curveColor,
+  bezierTriangleColor,
+  bezierPatchColor,
+
+  triangles, // specify nP,nN,nC
 
   //primitives
-  disk=300,
-  cylinder=301,
-  tube=302,
-  sphere=303,
-  halfSphere=304,
+  disk,
+  cylinder,
+  tube,
+  sphere,
+  halfSphere,
 
   //other
-  animation=400,
-  twodimElem=401,
+//  element2D,
+  animation,
 };
 
 enum v3dTriangleIndexType : uint32_t
@@ -79,11 +83,6 @@ public:
                double const& polar=0.0, const double& azimuth=0.0);
   void addTube(const triple *g, double width,
                const triple& Min, const triple& Max, bool core=false);
-
-  void addTrianglesNoColor(size_t nP, const triple* P, size_t nN,
-                            const triple* N, size_t nI, const uint32_t (*PI)[3],
-                            const uint32_t (*NI)[3],
-                            const triple& Min, const triple& Max);
 
   void addTriangles(size_t nP, const triple* P, size_t nN,
                             const triple* N, size_t nC, const prc::RGBAColour* C,

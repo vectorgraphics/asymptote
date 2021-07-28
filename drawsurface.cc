@@ -1149,14 +1149,7 @@ bool drawTriangles::write(v3dfile* out)
 
   setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
-  if (nC > 0)
-  {
-    out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
-  }
-  else
-  {
-    out->addTrianglesNoColor(nP,P,nN,N,nI,PI,NI,Min,Max);
-  }
+  out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
 
 #endif
   return true;
