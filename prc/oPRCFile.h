@@ -85,11 +85,6 @@ struct RGBAColour
     return (A<c.A);
   }
 
-  std::array<double, 4> array() const
-  {
-    return std::array<double,4> {R,G,B,A};
-  }
-
   friend RGBAColour operator * (const RGBAColour& a, const double d)
   { return RGBAColour(a.R*d,a.G*d,a.B*d,a.A*d); }
   friend RGBAColour operator * (const double d, const RGBAColour& a)

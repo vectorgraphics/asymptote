@@ -156,9 +156,9 @@ void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* 
   xdrfile << materialIndex << Min << Max;
 }
 
-void v3dfile::addIndices(uint32_t const* trip)
+void v3dfile::addIndices(uint32_t const* v)
 {
-  xdrfile << std::array<uint32_t, 3> {*trip, *(trip+1), *(trip+2)};
+  xdrfile << v[0] << v[1] << v[2];
 }
 
 

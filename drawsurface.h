@@ -417,7 +417,7 @@ public:
     return new drawSphere(t,this);
   }
 
-  bool write(v3dfile* out) override;
+  bool write(v3dfile* out);
 };
 
 // Output a unit cylinder primitive.

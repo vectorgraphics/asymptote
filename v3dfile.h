@@ -6,7 +6,6 @@
 #define V3DFILE_H
 
 #include <prc/oPRCFile.h>
-#include <glm/vec4.hpp>
 
 #include "common.h"
 #include "xstream.h"
