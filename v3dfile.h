@@ -11,6 +11,7 @@
 #include "xstream.h"
 #include "triple.h"
 #include "material.h"
+#include "glrender.h"
 
 namespace camp
 {
@@ -76,7 +77,6 @@ public:
           triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c);
 
 
-
   void addMaterial(Material const& mat);
 
   void addSphere(triple const& center, double radius);
@@ -95,6 +95,8 @@ public:
                             size_t nI, const uint32_t (*PI)[3],
                             const uint32_t (*NI)[3], const uint32_t (*CI)[3],
                             const triple& Min, const triple& Max);
+
+  void addTriangles(vertexBuffer& vb, triple const& Min, triple const& Max);
 
 protected:
   void addvec4(glm::vec4 const& vec);

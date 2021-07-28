@@ -148,6 +148,41 @@ void v3dfile::addTube(triple const* g, double width, triple const& Min, triple c
   xdrfile << Min << Max << core;
 }
 
+void v3dfile::addTriangles(vertexBuffer& vb, triple const& Min, triple const& Max)
+{
+  auto vertexDataToTriple = [](vertexData& vd)
+  {
+    return triple(vd.position[0], vd.position[1], vd.position[2]);
+  };
+  std::vector<triple> trip;
+  std::transform(vb.vertices.begin(), vb.vertices.end(), std::back_inserter(trip), vertexDataToTriple);
+
+  auto vertexDataNormalToTriple = [](vertexData& vd)
+  {
+    return triple(vd.normal[0], vd.normal[1], vd.normal[2]);
+  };
+  std::vector<triple> tripNorm;
+  std::transform(vb.vertices.begin(), vb.vertices.end(), std::back_inserter(tripNorm), vertexDataNormalToTriple);
+
+  assert(vb.indices.size() % 3 == 0);
+  size_t vbSz = vb.indices.size() / 3;
+
+  auto ptIdx=new(UseGC) uint32_t[vbSz][3];
+  for (size_t i = 0; i < vbSz; ++i)
+  {
+    ptIdx[i][0] = vb.indices[3*i];
+    ptIdx[i][1] = vb.indices[3*i+1];
+    ptIdx[i][2] = vb.indices[3*i+2];
+  }
+
+  addTriangles(trip.size(), trip.data(),
+               tripNorm.size(), tripNorm.data(),
+               0, nullptr,
+               vbSz, ptIdx, ptIdx, nullptr,
+               Min, Max);
+
+}
+
 void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* N, size_t nC, prc::RGBAColour const* C,
                            size_t nI, uint32_t const (* PI)[3], uint32_t const (* NI)[3], uint32_t const (* CI)[3],
                            triple const& Min, triple const& Max)
