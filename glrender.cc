@@ -1524,6 +1524,7 @@ void keyboard(unsigned char key, int x, int y)
       break;
     case 't':
       camp::depthPeel = !camp::depthPeel;
+      glutPostRedisplay();
       break;
     case 17: // Ctrl-q
     case 'q':
