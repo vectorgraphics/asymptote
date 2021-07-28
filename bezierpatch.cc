@@ -278,8 +278,10 @@ void BezierPatch::init(double res)
   pvertex=transparent ? std::mem_fn(&vertexBuffer::tvertex) : std::mem_fn(&vertexBuffer::vertex);
 }
 
-void BezierPatch::render(const triple *p, vertexBuffer* target, double resolution, bool straight, GLfloat *c0)
+void BezierPatch::render(renderSettings settings, const triple *p, bool straight, GLfloat *c0)
 {
+  auto target=settings.target;
+  auto pvertexFn=settings.pvertex;
   triple p0=p[0];
   epsilon=0;
   for(unsigned i=1; i < 16; ++i)
@@ -326,19 +328,19 @@ void BezierPatch::render(const triple *p, vertexBuffer* target, double resolutio
     i3=target->Vertex(p3,n3,c3);
 
     if(!straight)
-      render(p,*target,resolution,
+      render(settings,p,
              i0,i1,i2,i3,
              p0,p12,p15,p3,
              false,false,false,false,
              c0,c1,c2,c3);
   } else {
-    i0=pvertex(target,p0,n0);
-    i1=pvertex(target,p12,n1);
-    i2=pvertex(target,p15,n2);
-    i3=pvertex(target,p3,n3);
+    i0=pvertexFn(target,p0,n0);
+    i1=pvertexFn(target,p12,n1);
+    i2=pvertexFn(target,p15,n2);
+    i3=pvertexFn(target,p3,n3);
 
     if(!straight)
-      render(p,*target,resolution,
+      render(settings,p,
              i0,i1,i2,i3,
              p0,p12,p15,p3,
              false,false,false,false);
@@ -366,12 +368,16 @@ void BezierPatch::render(const triple *p, vertexBuffer* target, double resolutio
 // p is an array of 16 triples representing the control points.
 // Pi are the (possibly) adjusted vertices indexed by Ii.
 // The 'flati' are flatness flags for each boundary.
-void BezierPatch::render(const triple *p, vertexBuffer& target, double resolution,
+void BezierPatch::render(renderSettings settings, const triple *p,
                          GLuint I0, GLuint I1, GLuint I2, GLuint I3,
                          triple P0, triple P1, triple P2, triple P3,
                          bool flat0, bool flat1, bool flat2, bool flat3,
                          GLfloat *C0, GLfloat *C1, GLfloat *C2, GLfloat *C3)
 {
+  double resolution=settings.res2;
+  vertexBuffer& target=*(settings.target);
+  auto pvertexFn=settings.pvertex;
+
   pair d=Distance(p);
   if(d.getx() < resolution && d.gety() < resolution) { // Bezier patch is flat
     triple Pa[]={P0,P1,P2};
@@ -497,14 +503,14 @@ void BezierPatch::render(const triple *p, vertexBuffer& target, double resolutio
         GLuint i0=target.Vertex(m0,n0,c0);
         GLuint i1=target.Vertex(m1,n1,c1);
 
-        render(s0,target,resolution,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3,C0,C1,c0,c1);
-        render(s1,target,resolution,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3,c1,c0,C2,C3);
+        render(settings,s0,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3,C0,C1,c0,c1);
+        render(settings,s1,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3,c1,c0,C2,C3);
       } else {
-        GLuint i0=pvertex(&target,m0,n0);
-        GLuint i1=pvertex(&target,m1,n1);
+        GLuint i0=pvertexFn(&target,m0,n0);
+        GLuint i1=pvertexFn(&target,m1,n1);
 
-        render(s0,target,resolution,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3);
-        render(s1,target,resolution,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3);
+        render(settings,s0,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3);
+        render(settings,s1,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3);
       }
       return;
     }
@@ -587,14 +593,14 @@ void BezierPatch::render(const triple *p, vertexBuffer& target, double resolutio
         GLuint i0=target.Vertex(m0,n0,c0);
         GLuint i1=target.Vertex(m1,n1,c1);
 
-        render(s0,target,resolution,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3,C0,c0,c1,C3);
-        render(s1,target,resolution,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false,c0,C1,C2,c1);
+        render(settings,s0,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3,C0,c0,c1,C3);
+        render(settings,s1,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false,c0,C1,C2,c1);
       } else {
-        GLuint i0=pvertex(&target,m0,n0);
-        GLuint i1=pvertex(&target,m1,n1);
+        GLuint i0=pvertexFn(&target,m0,n0);
+        GLuint i1=pvertexFn(&target,m1,n1);
 
-        render(s0,target,resolution,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3);
-        render(s1,target,resolution,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false);
+        render(settings,s0,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3);
+        render(settings,s1,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false);
       }
       return;
     }
@@ -723,21 +729,21 @@ void BezierPatch::render(const triple *p, vertexBuffer& target, double resolutio
       GLuint i3=target.Vertex(m3,n3,c3);
       GLuint i4=target.Vertex(m4,n4,c4);
 
-      render(s0,target,resolution,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,C0,c0,c4,c3);
-      render(s1,target,resolution,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,c0,C1,c1,c4);
-      render(s2,target,resolution,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,c4,c1,C2,c2);
-      render(s3,target,resolution,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,c3,c4,c2,C3);
+      render(settings,s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,C0,c0,c4,c3);
+      render(settings,s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,c0,C1,c1,c4);
+      render(settings,s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,c4,c1,C2,c2);
+      render(settings,s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,c3,c4,c2,C3);
     } else {
-      GLuint i0=pvertex(&target,m0,n0);
-      GLuint i1=pvertex(&target,m1,n1);
-      GLuint i2=pvertex(&target,m2,n2);
-      GLuint i3=pvertex(&target,m3,n3);
-      GLuint i4=pvertex(&target,m4,n4);
+      GLuint i0=pvertexFn(&target,m0,n0);
+      GLuint i1=pvertexFn(&target,m1,n1);
+      GLuint i2=pvertexFn(&target,m2,n2);
+      GLuint i3=pvertexFn(&target,m3,n3);
+      GLuint i4=pvertexFn(&target,m4,n4);
 
-      render(s0,target,resolution,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
-      render(s1,target,resolution,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
-      render(s2,target,resolution,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
-      render(s3,target,resolution,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3);
+      render(settings,s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
+      render(settings,s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
+      render(settings,s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
+      render(settings,s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3);
     }
   }
 }

@@ -15,6 +15,16 @@ namespace camp {
 
 #ifdef HAVE_GL
 
+
+typedef std::function<GLuint(vertexBuffer*, triple const&, triple const&)> vertexFunc;
+struct renderSettings
+{
+  double res2;
+
+  vertexFunc pvertex;
+  vertexBuffer* target;
+};
+
 struct BezierPatch
 {
   vertexBuffer data;
@@ -25,7 +35,7 @@ struct BezierPatch
   double Epsilon;
   double res2;
   double Res2; // Reduced resolution for Bezier triangles flatness test.
-  typedef std::function<GLuint(vertexBuffer*, triple const&, triple const&)> vertexFunc;
+
   vertexFunc pvertex;
   bool Onscreen;
 
@@ -122,11 +132,17 @@ struct BezierPatch
     return false;
   }
 
-  void render(const triple *p, vertexBuffer* target, double resolution, bool straight, GLfloat *c0=NULL);
+  void render(renderSettings settings, const triple *p, bool straight, GLfloat *c0=NULL);
 
   virtual void render(const triple *p, bool straight, GLfloat *c0=NULL)
   {
-    render(p,&data,res2,straight,c0);
+    renderSettings setting
+    {
+      .res2 = this->res2,
+      .pvertex = this->pvertex,
+      .target = &this->data,
+    };
+    render(setting,p,straight,c0);
   }
   inline void render(const triple *p,
               GLuint I0, GLuint I1, GLuint I2, GLuint I3,
@@ -134,14 +150,20 @@ struct BezierPatch
               bool flat0, bool flat1, bool flat2, bool flat3,
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL, GLfloat *C3=NULL)
   {
-    render(p,data,res2,
+    renderSettings setting
+    {
+            .res2 = this->res2,
+            .pvertex = this->pvertex,
+            .target = &this->data,
+    };
+    render(setting,p,
            I0,I1,I2,I3,
            P0,P1,P2,P3,
            flat0,flat1,flat2,flat3,
            C0,C1,C2,C3);
   }
 
-  void render(const triple *p, vertexBuffer& target, double resolution,
+  void render(renderSettings settings, const triple *p,
               GLuint I0, GLuint I1, GLuint I2, GLuint I3,
               triple P0, triple P1, triple P2, triple P3,
               bool flat0, bool flat1, bool flat2, bool flat3,
