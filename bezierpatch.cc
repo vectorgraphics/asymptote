@@ -777,14 +777,14 @@ void BezierTriangle::render(renderSettings settings, const triple *p, bool strai
     i2=target->Vertex(p9,n2,c2);
 
     if(!straight)
-      render(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
+      render(settings,p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
   } else {
     i0=pvertexFn(target,p0,n0);
     i1=pvertexFn(target,p6,n1);
     i2=pvertexFn(target,p9,n2);
 
     if(!straight)
-      render(p,i0,i1,i2,p0,p6,p9,false,false,false);
+      render(settings,p,i0,i1,i2,p0,p6,p9,false,false,false);
   }
 
   if(straight) {

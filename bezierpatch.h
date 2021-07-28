@@ -152,9 +152,9 @@ struct BezierPatch
   {
     renderSettings setting
     {
-            .res2 = this->res2,
-            .pvertex = this->pvertex,
-            .target = &this->data,
+      .res2 = this->res2,
+      .pvertex = this->pvertex,
+      .target = &this->data,
     };
     render(setting,p,
            I0,I1,I2,I3,

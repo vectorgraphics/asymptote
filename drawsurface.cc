@@ -578,9 +578,9 @@ bool drawBezierTriangle::write(v3dfile* out)
       double baseRes=getSetting<double>("bakeres");
       renderSettings setting
       {
-              .res2 = baseRes,
-              .pvertex = std::mem_fn(&vertexBuffer::vertex),
-              .target = &vb,
+        .res2 = baseRes,
+        .pvertex = std::mem_fn(&vertexBuffer::vertex),
+        .target = &vb,
       };
       S.render(setting, controls, false, nullptr);
       out->addTriangles(vb, Min, Max);
