@@ -132,7 +132,7 @@ struct BezierPatch
     return false;
   }
 
-  void render(renderSettings settings, const triple *p, bool straight, GLfloat *c0=NULL);
+  virtual void render(renderSettings settings, const triple *p, bool straight, GLfloat *c0=NULL);
 
   virtual void render(const triple *p, bool straight, GLfloat *c0=NULL)
   {
@@ -222,8 +222,33 @@ public:
     return max(d,Straightness(p6,p[7],p[8],p9));
   }
 
-  void render(const triple *p, bool straight, GLfloat *c0=NULL);
+  void render(const triple *p, bool straight, GLfloat *c0=NULL) override
+  {
+    renderSettings setting
+    {
+      .res2 = res2,
+      .pvertex = this->pvertex,
+      .target = &this->data,
+    };
+    render(setting,p,straight,c0);
+  }
   void render(const triple *p,
+              GLuint I0, GLuint I1, GLuint I2,
+              triple P0, triple P1, triple P2,
+              bool flat0, bool flat1, bool flat2,
+              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL)
+  {
+    renderSettings setting
+    {
+            .res2 = res2,
+            .pvertex = this->pvertex,
+            .target = &this->data,
+    };
+    render(setting,p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2);
+  }
+
+  void render(renderSettings settings, triple const *p, bool straight, GLfloat *c0=NULL) override;
+  void render(renderSettings settings, const triple *p,
               GLuint I0, GLuint I1, GLuint I2,
               triple P0, triple P1, triple P2,
               bool flat0, bool flat1, bool flat2,
