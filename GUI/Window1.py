@@ -876,9 +876,12 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.execCustomCommand(commandText)
 
-    def addXasyShapeFromPath(self, path, transform = x2a.identity(), key = None, pen = None):
+    def addXasyShapeFromPath(self, path, pen = None, transform = x2a.identity(), key = None):
         if not pen:
             pen = self.currentPen
+        else:
+            pen = x2a.asyPen(self.asyEngine, color = pen['color'], width = pen['width'], pen_options = pen['options'])
+
         newItem = x2a.xasyShape(path, self.asyEngine, pen = pen, transform = transform)
         newItem.setKey(key)
         self.fileItems.append(newItem)
@@ -886,6 +889,8 @@ class MainWindow1(Qw.QMainWindow):
     def addXasyTextFromData(self, text, location, pen, transform, key, align, fontSize):
         if not pen:
             pen = self.currentPen
+        else:
+            pen = x2a.asyPen(self.asyEngine, color = pen['color'], width = pen['width'], pen_options = pen['options'])
         newItem = x2a.xasyText(text, location, self.asyEngine, pen, transform, key, align, fontSize)
         newItem.setKey(key)
         newItem.onCanvas = self.xasyDrawObj
@@ -977,21 +982,26 @@ class MainWindow1(Qw.QMainWindow):
             elif isinstance(item, x2a.xasyText):
                 # At the moment xasyText cannot be edited
                 # so we treat it the same as xasyScript
+                xasyItems.append(item)
+                penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
                 fileItems.append({'type': 'xasyText',
                         'align': item.label.align,
                         'location': item.label.location,
                         'fontSize': item.label.fontSize,
                         'text': item.label.text,
                         'transform': item.transfKeymap[item.transfKey][0].t,
-                        'transfKey': item.transfKey})
+                        'transfKey': item.transfKey,
+                        'pen': penData})
 
             elif isinstance(item, x2a.xasyShape):
                 xasyItems.append(item)
+                penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
                 fileItems.append({'type': 'xasyShape', 
                         'nodes': item.path.nodeSet, 
                         'links': item.path.linkSet,
                         'transform': item.transfKeymap[item.transfKey][0].t,
-                        'transfKey': item.transfKey
+                        'transfKey': item.transfKey,
+                        'pen': penData
                         })
 
             else:
@@ -1073,7 +1083,7 @@ class MainWindow1(Qw.QMainWindow):
                 linkSet = item['links']
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
-                self.addXasyShapeFromPath(path, transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
+                self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
                 if self.asyFileName:
                     if (self.fileItems[-1].getTransformCode(self.asy2psmap) in rawText) and \
                             (self.fileItems[-1].getObjectCode(self.asy2psmap) in rawText):
