@@ -384,11 +384,11 @@ public:
 
   virtual void P(triple& t, double x, double y, double z);
 
-  virtual bool write(prcfile *out, unsigned int *, double, groupsmap&) {
+  virtual bool write(prcfile *out, unsigned int *, double, groupsmap&) override {
     return true;
   }
 
-  virtual bool write(jsfile *out) {return true;}
+  virtual bool write(jsfile *out) override {return true;}
 
   virtual void transformedbounds(const double*, bbox3&) {}
   virtual void transformedratio(const double*, pair&,
@@ -432,10 +432,10 @@ public:
   drawCylinder(const double* t, const drawCylinder *s) :
     drawPRC(t,s), core(s->core) {}
 
-  bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&) override;
+  bool write(jsfile *out) override;
 
-  drawElement *transformed(const double* t) {
+  drawElement *transformed(const double* t) override {
     return new drawCylinder(t,this);
   }
 
@@ -452,10 +452,10 @@ public:
   drawDisk(const double* t, const drawDisk *s) :
     drawPRC(t,s) {}
 
-  bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&) override;
+  bool write(jsfile *out) override;
 
-  drawElement *transformed(const double* t) {
+  drawElement *transformed(const double* t) override {
     return new drawDisk(t,this);
   }
 
@@ -491,9 +491,9 @@ public:
       g[i]=t*s->g[i];
   }
 
-  bool write(jsfile *out);
+  bool write(jsfile *out) override;
 
-  drawElement *transformed(const double* t) {
+  drawElement *transformed(const double* t) override {
     return new drawTube(t,this);
   }
 
