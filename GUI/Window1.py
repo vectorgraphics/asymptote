@@ -600,7 +600,10 @@ class MainWindow1(Qw.QMainWindow):
 
     def addInPlace(self, obj):
         obj.asyengine = self.asyEngine
-        obj.pen = self.currentPen
+        if isinstance(obj, x2a.xasyText):
+            obj.label.pen = self.currentPen
+        else:
+            obj.pen = self.currentPen
         obj.onCanvas = self.xasyDrawObj
         obj.setKey(str(self.globalObjectCounter))
         self.globalObjectCounter = self.globalObjectCounter + 1
