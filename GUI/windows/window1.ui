@@ -2105,7 +2105,7 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>26</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
@@ -2124,6 +2124,7 @@ background: rgb(0, 0, 0)
     <addaction name="menuOpenRecent"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionExportToAsy"/>
     <addaction name="actionExportAsymptote"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -2255,6 +2256,11 @@ background: rgb(0, 0, 0)
   <action name="actionNewFile">
    <property name="text">
     <string>New File</string>
+   </property>
+  </action>
+  <action name="actionExportToAsy">
+   <property name="text">
+    <string>Export to Asy</string>
    </property>
   </action>
  </widget>

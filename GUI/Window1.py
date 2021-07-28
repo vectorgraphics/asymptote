@@ -309,7 +309,7 @@ class MainWindow1(Qw.QMainWindow):
 
             'open': self.btnLoadFileonClick,
             'save': self.actionSave,
-            'export': self.btnExportAsyOnClick
+            'export': self.btnExportAsymptoteOnClick
         }
 
         self.hiddenKeys = set()
@@ -459,7 +459,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionAbout.triggered.connect(self.actionAbout)
         self.ui.actionSettings.triggered.connect(self.openAndReloadSettings)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
-        self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsyOnClick)
+        self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsymptoteOnClick)
+        self.ui.actionExportToAsy.triggered.connect(self.btnExportToAsyOnClick)
 
     def setupXasyOptions(self):
         if self.settings['debugMode']:
@@ -904,7 +905,20 @@ class MainWindow1(Qw.QMainWindow):
     def actionAbout(self):
         Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
-    def btnExportAsyOnClick(self):
+    def btnExportToAsyOnClick(self):
+        pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
+        if os.path.isfile(pathToFile):
+            reply = Qw.QMessageBox.question(self, 'Message',
+                f"A file named '{os.path.split(pathToFile)[1]}' was found.  Overwrite?",
+                Qw.QMessageBox.Yes, Qw.QMessageBox.No)
+            if reply == Qw.QMessageBox.No:
+                return
+        asyFile = io.open(os.path.realpath(pathToFile), 'w')
+        xf.saveFile(asyFile, self.fileItems, self.asy2psmap)
+        asyFile.close()
+        self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as Asymptote File.")
+
+    def btnExportAsymptoteOnClick(self):
         diag = Qw.QFileDialog(self)
         diag.setAcceptMode(Qw.QFileDialog.AcceptSave)
 
@@ -962,8 +976,10 @@ class MainWindow1(Qw.QMainWindow):
             else:
                 ext = ext[1][1:]
             if ext == 'asy':
-                with io.StringIO() as finalCode:
-                    xf.saveFile(finalCode, self.fileItems, self.asy2psmap)
+                pathToFile = os.path.splitext(file)[0]+'.'+ext
+                asyFile = io.open(os.path.realpath(pathToFile), 'w')
+                xf.saveFile(asyFile, self.fileItems, self.asy2psmap)
+                asyFile.close()
             else:
                 with subprocess.Popen(args=[self.asyPath, '-f{0}'.format(ext), '-o{0}'.format(file), '-'], encoding='utf-8',
                                     stdin=subprocess.PIPE) as asy:
