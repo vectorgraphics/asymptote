@@ -9,6 +9,7 @@
 #define BEZIERPATCH_H
 
 #include "drawelement.h"
+#include <functional>
 
 namespace camp {
 
@@ -24,9 +25,8 @@ struct BezierPatch
   double Epsilon;
   double res2;
   double Res2; // Reduced resolution for Bezier triangles flatness test.
-  typedef GLuint (vertexBuffer::*vertexFunction)(const triple &v,
-                                                 const triple& n);
-  vertexFunction pvertex;
+  typedef std::function<GLuint(vertexBuffer*, triple const&, triple const&)> vertexFunc;
+  vertexFunc pvertex;
   bool Onscreen;
 
   void init(double res);
@@ -122,13 +122,30 @@ struct BezierPatch
     return false;
   }
 
-  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
-  void render(const triple *p,
+  void render(const triple *p, vertexBuffer* target, double resolution, bool straight, GLfloat *c0=NULL);
+
+  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL)
+  {
+    render(p,&data,res2,straight,c0);
+  }
+  inline void render(const triple *p,
               GLuint I0, GLuint I1, GLuint I2, GLuint I3,
               triple P0, triple P1, triple P2, triple P3,
               bool flat0, bool flat1, bool flat2, bool flat3,
-              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL,
-              GLfloat *C3=NULL);
+              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL, GLfloat *C3=NULL)
+  {
+    render(p,data,res2,
+           I0,I1,I2,I3,
+           P0,P1,P2,P3,
+           flat0,flat1,flat2,flat3,
+           C0,C1,C2,C3);
+  }
+
+  void render(const triple *p, vertexBuffer& target, double resolution,
+              GLuint I0, GLuint I1, GLuint I2, GLuint I3,
+              triple P0, triple P1, triple P2, triple P3,
+              bool flat0, bool flat1, bool flat2, bool flat3,
+              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL, GLfloat *C3=NULL);
 
   void append() {
     if(transparent)
