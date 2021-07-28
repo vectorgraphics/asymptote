@@ -909,6 +909,10 @@ class MainWindow1(Qw.QMainWindow):
         diag.setAcceptMode(Qw.QFileDialog.AcceptSave)
 
         formatId = {
+            'asy': {
+                'name': 'Asymptote Files',
+                'ext': ['*.asy']
+            },
             'pdf': {
                 'name': 'PDF Files',
                 'ext': ['*.pdf']
@@ -931,14 +935,14 @@ class MainWindow1(Qw.QMainWindow):
             }
         }
 
-        formats = ['pdf', 'svg', 'eps', 'png', '*']
+        formats = ['asy', 'pdf', 'svg', 'eps', 'png', '*']
 
         formatText = ';;'.join('{0:s} ({1:s})'.format(formatId[form]['name'], ' '.join(formatId[form]['ext']))
                                for form in formats)
 
         if self.currDir is not None:
             diag.setDirectory(self.currDir)
-            rawFile = os.path.splitext(os.path.basename(self.fileName))[0] + '.pdf'
+            rawFile = os.path.splitext(os.path.basename(self.fileName))[0] + '.asy'
             diag.selectFile(rawFile)
 
         diag.setNameFilter(formatText)
@@ -949,24 +953,24 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         finalFiles = diag.selectedFiles()
-
-        with io.StringIO() as finalCode:
-            xf.saveFile(finalCode, self.fileItems, self.asy2psmap)
-            finalString = finalCode.getvalue()
+        finalString = xf.xasy2asyCode(self.fileItems, self.asy2psmap)
 
         for file in finalFiles:
             ext = os.path.splitext(file)
             if len(ext) < 2:
-                ext = 'pdf'
+                ext = 'asy'
             else:
                 ext = ext[1][1:]
+            if ext == 'asy':
+                with io.StringIO() as finalCode:
+                    xf.saveFile(finalCode, self.fileItems, self.asy2psmap)
+            else:
+                with subprocess.Popen(args=[self.asyPath, '-f{0}'.format(ext), '-o{0}'.format(file), '-'], encoding='utf-8',
+                                    stdin=subprocess.PIPE) as asy:
 
-            with subprocess.Popen(args=[self.asyPath, '-f{0}'.format(ext), '-o{0}'.format(file), '-'], encoding='utf-8',
-                                  stdin=subprocess.PIPE) as asy:
-                print('test:', finalString)
-                asy.stdin.write(finalString)
-                asy.stdin.close()
-                asy.wait(timeout=35)
+                    asy.stdin.write(finalString)
+                    asy.stdin.close()
+                    asy.wait(timeout=35)
 
     def actionExportXasy(self, file):
         fileItems = []
