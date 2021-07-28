@@ -286,7 +286,23 @@ bool drawBezierPatch::write(v3dfile* out)
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls, Min, Max, colors);
   } else {
-    out->addPatch(controls, Min, Max, colors);
+    if (getSetting<bool>("bakepatches"))
+    {
+      vertexBuffer vb;
+      double baseRes=getSetting<double>("bakeres");
+      renderSettings setting
+              {
+                      .res2 = baseRes,
+                      .pvertex = std::mem_fn(&vertexBuffer::vertex),
+                      .target = &vb,
+              };
+      S.render(setting, controls, false, nullptr);
+      out->addTriangles(vb, Min, Max);
+    }
+    else
+    {
+      out->addPatch(controls, Min, Max, colors);
+    }
   }
 
 #endif
