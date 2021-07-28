@@ -51,6 +51,14 @@ enum v3dTypes : uint32_t
   twodimElem=401,
 };
 
+enum v3dTriangleIndexType : uint32_t
+{
+  index_Pos=0,
+  index_PosNorm=1,
+  index_PosColor=2,
+  index_PosNormColor=3,
+};
+
 class v3dfile
 {
 public:

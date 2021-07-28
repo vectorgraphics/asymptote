@@ -9,6 +9,8 @@
 
 namespace camp {
 
+bool distinct(const uint32_t *I, const uint32_t *J);
+
 class jsfile {
   jsofstream out;
 

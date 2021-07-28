@@ -4,6 +4,7 @@
 
 #include "v3dfile.h"
 #include "drawelement.h"
+#include "jsfile.h"
 
 namespace camp
 {
@@ -131,8 +132,17 @@ void v3dfile::addTrianglesNoColor(size_t nP, triple const* P, size_t nN, triple 
   xdrfile << nI;
   for(size_t i=0; i < nI; ++i)
   {
+    const uint32_t *PIi=PI[i];
+    const uint32_t *NIi=NI[i];
+    bool keepNI=distinct(NIi,PIi);
+
+    xdrfile << (keepNI ? v3dTriangleIndexType::index_PosNorm : v3dTriangleIndexType::index_Pos);
     addIndices(PI[i]);
-    addIndices(NI[i]);
+
+    if (keepNI)
+    {
+      addIndices(NI[i]);
+    }
   }
 
   xdrfile << materialIndex << Min << Max;
@@ -148,11 +158,30 @@ void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* 
   addColors(C,nC);
 
   xdrfile << nI;
+
   for(size_t i=0; i < nI; ++i)
   {
-    addIndices(PI[i]);
-    addIndices(NI[i]);
-    addIndices(CI[i]);
+    const uint32_t *PIi=PI[i];
+    const uint32_t *NIi=NI[i];
+    bool keepNI=distinct(NIi,PIi);
+    bool keepCI=nC && distinct(CI[i],PIi);
+
+    if (keepNI)
+    {
+      xdrfile << (keepCI ? v3dTriangleIndexType::index_PosNormColor : v3dTriangleIndexType::index_PosNorm);
+      addIndices(PI[i]);
+      addIndices(NI[i]);
+    }
+    else
+    {
+      xdrfile << (keepCI ? v3dTriangleIndexType::index_PosColor : v3dTriangleIndexType::index_Pos);
+      addIndices(PI[i]);
+    }
+
+    if (keepCI)
+    {
+      addIndices(CI[i]);
+    }
   }
 
   xdrfile << materialIndex << Min << Max;
