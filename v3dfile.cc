@@ -32,24 +32,58 @@ void v3dfile::addColors(prc::RGBAColour const* col, size_t nc)
     xdrfile << col[i];
 }
 
-void v3dfile::addPatch(triple const* controls, size_t n, triple const& Min,
-                       triple const& Max, prc::RGBAColour const* c,
-                       size_t nc)
+
+void v3dfile::addPatch(triple const* controls, triple const& Min,
+                       triple const& Max, prc::RGBAColour const* c)
 {
-  if (n == 4 || n == 16) // quad patches
-  {
-    xdrfile << (c == nullptr ? v3dTypes::bezierPatch : v3dTypes::bezierPatchColor);
-  }
-  else if (n == 3 || n == 10) // triangles
-  {
-    xdrfile << (c == nullptr ? v3dTypes::bezierTriangle : v3dTypes::bezierTriangleColor);
-  }
-  addTriples(controls, n);
+  xdrfile << (c == nullptr ? v3dTypes::bezierPatch : v3dTypes::bezierPatchColor);
+  addTriples(controls, 16);
   addCenterIndexMat();
 
   if (c != nullptr)
   {
-    addColors(c, nc);
+    addColors(c, 16);
+  }
+}
+
+void v3dfile::addStraightPatch(triple const* controls, triple const& Min,
+                       triple const& Max, prc::RGBAColour const* c)
+{
+
+  xdrfile << (c == nullptr ? v3dTypes::quad : v3dTypes::quadColor);
+  addTriples(controls, 4);
+  addCenterIndexMat();
+
+  if (c != nullptr)
+  {
+    addColors(c, 4);
+  }
+}
+
+void v3dfile::addBezierTriangle(triple const* controls, triple const& Min,
+                       triple const& Max, prc::RGBAColour const* c)
+{
+
+  xdrfile << (c == nullptr ? v3dTypes::bezierTriangle : v3dTypes::bezierTriangleColor);
+  addTriples(controls, 10);
+  addCenterIndexMat();
+
+  if (c != nullptr)
+  {
+    addColors(c, 10);
+  }
+}
+
+void v3dfile::addStraightBezierTriangle(triple const* controls, triple const& Min,
+                       triple const& Max, prc::RGBAColour const* c)
+{
+  xdrfile << (c == nullptr ? v3dTypes::triangle : v3dTypes::triangleColor);
+  addTriples(controls, 3);
+  addCenterIndexMat();
+
+  if (c != nullptr)
+  {
+    addColors(c, 3);
   }
 }
 
@@ -123,8 +157,17 @@ void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* 
   addTriples(P,nP);
   xdrfile << nN;
   addTriples(N,nN);
-  xdrfile << nC;
-  addColors(C,nC);
+
+  if (nC > 0 && C != nullptr)
+  {
+    xdrfile << nC;
+    addColors(C,nC);
+  }
+  else
+  {
+    uint32_t zero = 0;
+    xdrfile << zero;
+  }
 
   xdrfile << nI;
 

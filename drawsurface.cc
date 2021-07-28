@@ -284,9 +284,10 @@ bool drawBezierPatch::write(v3dfile* out)
 
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
-    out->addPatch(Controls, 4, Min, Max, colors, 4);
-  } else
-    out->addPatch(controls, 16, Min, Max, colors, 4);
+    out->addStraightPatch(Controls, Min, Max, colors);
+  } else {
+    out->addPatch(controls, Min, Max, colors);
+  }
 
 #endif
   return true;
@@ -552,9 +553,9 @@ bool drawBezierTriangle::write(v3dfile* out)
   setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
-    out->addPatch(Controls,3,Min,Max,colors,3);
+    out->addStraightBezierTriangle(Controls,Min,Max,colors);
   } else
-    out->addPatch(controls,10,Min,Max,colors,3);
+    out->addBezierTriangle(controls,Min,Max,colors);
 
 #endif
   return true;
@@ -1148,7 +1149,6 @@ bool drawTriangles::write(v3dfile* out)
     return true;
 
   setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
 
 #endif

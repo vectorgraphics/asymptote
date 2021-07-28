@@ -67,8 +67,15 @@ class v3dfile
 public:
   explicit v3dfile(string const& name, uint32_t const& version=-1, open_mode mode=xdr::xios::open_mode::out);
   ~v3dfile();
-  void addPatch(triple const* controls, size_t n, triple const& Min, triple const& Max, prc::RGBAColour const* c,
-                size_t nc);
+  void addPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c);
+  void addStraightPatch(
+          triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c);
+  void addBezierTriangle(
+          triple const* control, triple const& Min, triple const& Max, prc::RGBAColour const* c);
+  void addStraightBezierTriangle(
+          triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c);
+
+
 
   void addMaterial(Material const& mat);
 
