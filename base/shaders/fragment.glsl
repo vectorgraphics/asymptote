@@ -268,6 +268,10 @@ void main()
   if (tempColor.a == 0) discard;
 #ifdef DEPTHPEEL
   outColor = tempColor;
+  if (texture(DepthTex, gl_FragCoord.xy/vec2(width,height)).r == 0)
+    outColor = vec4(outColor.rgb*outColor.a, 1.0 - outColor.a);
+  else
+    outColor = vec4(outColor.rgb*outColor.a, outColor.a);
 #elif defined TRANSPARENT
   uint listIndex = atomicCounterIncrement(counter);
   uint lastIndex = atomicExchange(tail[headIndex], listIndex);
