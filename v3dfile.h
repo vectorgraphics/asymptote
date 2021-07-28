@@ -41,7 +41,7 @@ enum v3dTypes : uint32_t
   bezierTriangleColor,
   bezierPatchColor,
 
-  triangles, // specify nP,nN,nC
+  triangles=500, // specify nP,nN,nC
 
   //primitives
   disk,

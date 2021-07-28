@@ -8,6 +8,24 @@ using namespace settings;
 
 namespace camp {
 
+jsfile::jsfile(): finished(false), fileName("")
+{
+
+}
+
+jsfile::jsfile(string name) : finished(false), fileName(name)
+{
+  open(name);
+}
+
+jsfile::~jsfile()
+{
+  if (!finished)
+  {
+    finish(fileName);
+  }
+}
+
 void jsfile::copy(string name, bool header)
 {
   std::ifstream fin(locateFile(name).c_str());
@@ -68,6 +86,7 @@ void jsfile::svgtohtml(string prefix)
   out << "<body>" << newl << newl;
   copy(locateFile(auxname(prefix,"svg")),true);
   footer(name);
+  finished=true;
 }
 
 #ifdef HAVE_LIBGLM
@@ -153,6 +172,7 @@ void jsfile::open(string name)
 
 void jsfile::finish(string name)
 {
+  finished=true;
   size_t ncenters=drawElement::center.size();
   if(ncenters > 0) {
     out << "Centers=[";
@@ -181,14 +201,9 @@ void jsfile::addIndices(const uint32_t *I)
   out << "[" << I[0] << "," << I[1] << "," << I[2] << "]";
 }
 
-bool distinct(const uint32_t *I, const uint32_t *J)
-{
-  return I[0] != J[0] || I[1] != J[1] || I[2] != J[2];
-}
-
-void jsfile::addPatch(triple const* controls, size_t n,
-                      const triple& Min, const triple& Max,
-                      const prc::RGBAColour *c, size_t nc)
+void jsfile::addRawPatch(triple const* controls, size_t n,
+                         const triple& Min, const triple& Max,
+                         const prc::RGBAColour *c, size_t nc)
 {
   out << "P.push(new BezierPatch([" << newl;
   size_t last=n-1;
@@ -239,10 +254,10 @@ void jsfile::addPixel(const triple& z0, double width,
       << materialIndex << "," << Min << "," << Max << "));" << newl << newl;
 }
 
-void jsfile::addMaterial(size_t index)
+void jsfile::addMaterial(Material const& material)
 {
   out << "Materials.push(new Material(" << newl
-      << material[index]
+      << material
       << "));" << newl << newl;
 }
 
@@ -330,6 +345,28 @@ void jsfile::addTube(const triple *g, double width,
       << drawElement::centerIndex << "," << materialIndex << ","
       << Min << "," << Max << "," << core <<");" << newl << newl;
 }
+
+void jsfile::addPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c)
+{
+  addRawPatch(controls,16,Min,Max,c,4);
+}
+
+void jsfile::addStraightPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c)
+{
+  addRawPatch(controls,4,Min,Max,c,4);
+}
+
+void jsfile::addBezierTriangle(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c)
+{
+  addRawPatch(controls,10,Min,Max,c,3);
+}
+
+void jsfile::addStraightBezierTriangle(triple const* controls, triple const& Min, triple const& Max,
+                                       prc::RGBAColour const* c)
+{
+  addRawPatch(controls,3,Min,Max,c,3);
+}
+
 #endif
 
 }

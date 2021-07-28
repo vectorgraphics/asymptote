@@ -57,14 +57,14 @@ void setcolors(bool colors,
                const RGBAColour& diffuse,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess,
-               double metallic, double fresnel0, jsfile *out)
+               double metallic, double fresnel0, abs3Doutfile *out)
 {
   Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
                       glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
                       glm::vec4(specular.R,specular.G,specular.B,specular.A),
                       shininess,metallic,fresnel0);
 
-  MaterialMap::iterator p=materialMap.find(m);
+  auto p=materialMap.find(m);
   if(p != materialMap.end()) materialIndex=p->second;
   else {
     materialIndex=material.size();
@@ -73,7 +73,7 @@ void setcolors(bool colors,
     material.push_back(m);
     materialMap[m]=materialIndex;
     if(out)
-      out->addMaterial(materialIndex);
+      out->addMaterial(m);
   }
 }
 
@@ -244,7 +244,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawBezierPatch::write(jsfile *out)
+bool drawBezierPatch::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible || primitive)
@@ -260,9 +260,9 @@ bool drawBezierPatch::write(jsfile *out)
   out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
-    out->addPatch(Controls,4,Min,Max,colors,4);
+    out->addStraightPatch(Controls,Min,Max,colors);
   } else
-    out->addPatch(controls,16,Min,Max,colors,4);
+    out->addPatch(controls,Min,Max,colors);
   out->precision(getSetting<Int>("digits"));
 
 #endif
@@ -530,7 +530,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   return true;
 }
 
-bool drawBezierTriangle::write(jsfile *out)
+bool drawBezierTriangle::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible || primitive)
@@ -546,9 +546,9 @@ bool drawBezierTriangle::write(jsfile *out)
   out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
-    out->addPatch(Controls,3,Min,Max,colors,3);
+    out->addStraightBezierTriangle(Controls,Min,Max,colors);
   } else
-    out->addPatch(controls,10,Min,Max,colors,3);
+    out->addBezierTriangle(controls,Min,Max,colors);
   out->precision(getSetting<Int>("digits"));
 
 #endif
@@ -871,7 +871,7 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawSphere::write(jsfile *out)
+bool drawSphere::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -888,7 +888,7 @@ bool drawSphere::write(jsfile *out)
   double r=length(X);
 
   if(half)
-    out->addSphere(O,r,half,X.polar(false),X.azimuth(false));
+    out->addSphereHalf(O,r,X.polar(false),X.azimuth(false));
   else
     out->addSphere(O,r);
 
@@ -934,7 +934,7 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawCylinder::write(jsfile *out)
+bool drawCylinder::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -997,7 +997,7 @@ bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawDisk::write(jsfile *out)
+bool drawDisk::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -1045,7 +1045,7 @@ bool drawDisk::write(v3dfile* out)
   return true;
 }
 
-bool drawTube::write(jsfile *out)
+bool drawTube::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -1163,14 +1163,13 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawTriangles::write(jsfile *out)
+bool drawTriangles::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
   setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
 #endif
   return true;

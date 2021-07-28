@@ -1405,15 +1405,16 @@ bool picture::shipout3(const string& prefix, const string& format,
            background,nlights,lights,diffuse,specular,View,oldpid);
 
   if(webgl) {
-    jsfile js;
     string name=buildname(prefix,format);
-    js.open(name);
+    {
+      jsfile js(name);
 
-    for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
-      assert(*p);
-      (*p)->write(&js);
+      for (auto& p : pic->nodes)
+      {
+        assert(p);
+        p->write(&js);
+      }
     }
-    js.finish(name);
     if(View)
       htmlView(name);
     return true;

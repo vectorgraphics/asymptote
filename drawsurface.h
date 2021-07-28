@@ -157,7 +157,7 @@ public:
   }
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out);
+  bool write(abs3Doutfile *out);
   bool write(v3dfile* out);
 
   void render(double, const triple& b, const triple& B,
@@ -192,7 +192,7 @@ public:
   }
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out);
+  bool write(abs3Doutfile *out);
   bool write(v3dfile *out);
 
   void render(double, const triple& b, const triple& B,
@@ -388,7 +388,7 @@ public:
     return true;
   }
 
-  virtual bool write(jsfile *out) override {return true;}
+  virtual bool write(abs3Doutfile *out) override {return true;}
 
   virtual void transformedbounds(const double*, bbox3&) {}
   virtual void transformedratio(const double*, pair&,
@@ -411,7 +411,7 @@ public:
   void P(triple& t, double x, double y, double z);
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out);
+  bool write(abs3Doutfile *out);
 
   drawElement *transformed(const double* t) {
     return new drawSphere(t,this);
@@ -433,7 +433,7 @@ public:
     drawPRC(t,s), core(s->core) {}
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&) override;
-  bool write(jsfile *out) override;
+  bool write(abs3Doutfile *out) override;
 
   drawElement *transformed(const double* t) override {
     return new drawCylinder(t,this);
@@ -453,7 +453,7 @@ public:
     drawPRC(t,s) {}
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&) override;
-  bool write(jsfile *out) override;
+  bool write(abs3Doutfile *out) override;
 
   drawElement *transformed(const double* t) override {
     return new drawDisk(t,this);
@@ -491,7 +491,7 @@ public:
       g[i]=t*s->g[i];
   }
 
-  bool write(jsfile *out) override;
+  bool write(abs3Doutfile *out) override;
 
   drawElement *transformed(const double* t) override {
     return new drawTube(t,this);
@@ -717,7 +717,7 @@ public:
               double perspective, bool remesh);
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  bool write(jsfile *out);
+  bool write(abs3Doutfile *out);
   bool write(v3dfile *out);
 
   drawElement *transformed(const double* t) {

@@ -242,7 +242,7 @@ public:
   }
 
   // Output to a JS file
-  virtual bool write(jsfile *out) {
+  virtual bool write(abs3Doutfile *out) {
     return false;
   }
 
@@ -461,7 +461,7 @@ void setcolors(bool colors,
                const prc::RGBAColour& diffuse,
                const prc::RGBAColour& emissive,
                const prc::RGBAColour& specular, double shininess,
-               double metallic, double fresnel0, jsfile *out=NULL);
+               double metallic, double fresnel0, abs3Doutfile *out=NULL);
 #endif
 
 
