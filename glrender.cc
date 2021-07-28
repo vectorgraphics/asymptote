@@ -72,9 +72,11 @@ GLint pixelShader;
 GLint materialShader;
 GLint colorShader;
 GLint transparentShader;
-GLint blendShader;
 GLint mergeShader;
 GLint countShader;
+GLint peelShader;
+GLint blendShader;
+GLint finalShader;
 
 GLuint fragmentSize;
 GLuint headSize;
@@ -505,28 +507,26 @@ void initShaders()
                                          shaderParams);
 
   shaderParams.push_back("TRANSPARENT");
-  // TODO context switch - can do preproccessor?
-  camp::depthPeel = true;
-  if (camp::depthPeel) {
-    shaderParams.push_back("DEPTHPEEL");
-    camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                                shaderParams);
-    shaders[1] = ShaderfileModePair(bfs.c_str(),GL_FRAGMENT_SHADER);
-    camp::blendShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                                shaderParams);
-    shaders[1] = ShaderfileModePair(mfs.c_str(),GL_FRAGMENT_SHADER);
-    camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                                shaderParams);
-  } else {
-    camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                                shaderParams);
-    shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
-    camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                                shaderParams);
-    shaders[1] = ShaderfileModePair(cnt.c_str(),GL_FRAGMENT_SHADER);
-    camp::countShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                                shaderParams);
-  }
+
+  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
+  shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
+  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
+  shaders[1] = ShaderfileModePair(cnt.c_str(),GL_FRAGMENT_SHADER);
+  camp::countShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
+
+  shaderParams.push_back("DEPTHPEEL");
+  shaders[1] = ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER);
+  camp::peelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
+  shaders[1] = ShaderfileModePair(bfs.c_str(),GL_FRAGMENT_SHADER);
+  camp::blendShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
+  shaders[1] = ShaderfileModePair(mfs.c_str(),GL_FRAGMENT_SHADER);
+  camp::finalShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
 }
 
 void deleteShaders()
@@ -536,8 +536,10 @@ void deleteShaders()
   glDeleteTextures(1, &camp::opaqueTex);
   glDeleteFramebuffers(3, camp::depthFbo);
   glDeleteFramebuffers(1, &camp::opaqueFbo);
-  glDeleteProgram(camp::countShader);
+  glDeleteProgram(camp::peelShader);
   glDeleteProgram(camp::blendShader);
+  glDeleteProgram(camp::finalShader);
+  glDeleteProgram(camp::countShader);
   glDeleteProgram(camp::mergeShader);
   glDeleteProgram(camp::transparentShader);
   glDeleteProgram(camp::colorShader);
@@ -1520,6 +1522,9 @@ void keyboard(unsigned char key, int x, int y)
       Step=true;
       animate();
       break;
+    case 't':
+      camp::depthPeel = !camp::depthPeel;
+      break;
     case 17: // Ctrl-q
     case 'q':
       if(!Format.empty()) Export();
@@ -2156,7 +2161,8 @@ void drawBuffer(vertexBuffer& data, GLint shader)
 
   bool normal=shader != pixelShader;
   bool color=shader == colorShader || shader == transparentShader ||
-       shader == mergeShader || shader == countShader || shader == blendShader;
+       shader == mergeShader || shader == countShader || shader == blendShader ||
+       shader == peelShader || shader == finalShader;
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
@@ -2259,7 +2265,7 @@ void depthPeelTransparency()
   glEnable(GL_DEPTH_TEST);
 
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
-  drawBuffer(transparentData,transparentShader);
+  drawBuffer(transparentData,peelShader);
 
   // Setup blending for front to back
   glBlendEquation(GL_FUNC_ADD);
@@ -2283,7 +2289,7 @@ void depthPeelTransparency()
 
     glBindTexture(GL_TEXTURE_2D, depthTex[prev]);
     transparentData.rendered=false; // Force copying of sorted triangles to GPU.
-    drawBuffer(transparentData,transparentShader);
+    drawBuffer(transparentData,peelShader);
 
     glEndQuery(GL_SAMPLES_PASSED);
 
@@ -2315,7 +2321,7 @@ void depthPeelTransparency()
 
   glBindTexture(GL_TEXTURE_2D, colorTex[2]);
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
-  drawBuffer(transparentData,mergeShader);
+  drawBuffer(transparentData,finalShader);
 
   // Reset
   glClearColor(gl::Background[0], gl::Background[1],
