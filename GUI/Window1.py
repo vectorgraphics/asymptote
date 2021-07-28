@@ -873,12 +873,21 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.execCustomCommand(commandText)
 
-    def addItemFromPath(self, path, transform = x2a.identity(), key = None):
-        newItem = x2a.xasyShape(path, self.asyEngine, pen=self.currentPen, transform = transform)
+    def addXasyShapeFromPath(self, path, transform = x2a.identity(), key = None, pen = None):
+        if not pen:
+            pen = self.currentPen
+        newItem = x2a.xasyShape(path, self.asyEngine, pen = pen, transform = transform)
         newItem.setKey(key)
         self.fileItems.append(newItem)
-        self.fileChanged = True
-        self.asyfyCanvas()
+
+    def addXasyTextFromData(self, text, location, pen, transform, key, align, fontSize):
+        if not pen:
+            pen = self.currentPen
+        newItem = x2a.xasyText(text, location, self.asyEngine, pen, transform, key, align, fontSize)
+        newItem.setKey(key)
+        newItem.onCanvas = self.xasyDrawObj
+        self.fileItems.append(newItem)
+
 
     def actionManual(self):
         asyManualURL = 'https://asymptote.sourceforge.io/asymptote.pdf'
@@ -959,12 +968,19 @@ class MainWindow1(Qw.QMainWindow):
             if isinstance(item, x2a.xasyScript):
                 # reusing xasyFile code for objects 
                 # imported from asy script.
-                asyItems.append({'item':item, 'type': 'xasyScript'})
+                # asyItems.append({'item':item, 'type': 'xasyScript'})
+                pass
 
             elif isinstance(item, x2a.xasyText):
                 # At the moment xasyText cannot be edited
                 # so we treat it the same as xasyScript
-                asyItems.append({'item':item, 'type': 'xasyText'})
+                fileItems.append({'type': 'xasyText',
+                        'align': item.label.align,
+                        'location': item.label.location,
+                        'fontSize': item.label.fontSize,
+                        'text': item.label.text,
+                        'transform': item.transfKeymap[item.transfKey][0].t,
+                        'transfKey': item.transfKey})
 
             elif isinstance(item, x2a.xasyShape):
                 xasyItems.append(item)
@@ -978,13 +994,11 @@ class MainWindow1(Qw.QMainWindow):
             else:
                 # DEBUGGING PURPOSES ONLY
                 print(type(item))
-
+      
         if asyItems:
-            # TODO: Differentiate between xasyText and xasyScript
 
             # Save imported items into the linked asy file
             asyScriptItems = [item['item'] for item in asyItems if item['type'] == 'xasyScript']
-
             # Check for recently .asy exported xasyShapes--this will produce duplicates
             readAsyFile = io.open(self.asyFileName, 'r')
             asyText = readAsyFile.read()
@@ -1043,13 +1057,20 @@ class MainWindow1(Qw.QMainWindow):
                 obj = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
                 obj.setScript(rawText)
                 self.fileItems.append(obj)
-   
+
+            elif item['type'] == 'xasyText':
+                self.addXasyTextFromData( text = item['text'], 
+                        location = item['location'], pen = None,
+                        transform = x2a.asyTransform(item['transform']), key = item['transfKey'],
+                        align = item['align'], fontSize = item['fontSize']
+                        )
+
             elif item['type'] == 'xasyShape':
                 nodeSet = item['nodes']
                 linkSet = item['links']
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
-                self.addItemFromPath(path, transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
+                self.addXasyShapeFromPath(path, transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
                 if self.asyFileName:
                     if (self.fileItems[-1].getTransformCode(self.asy2psmap) in rawText) and \
                             (self.fileItems[-1].getObjectCode(self.asy2psmap) in rawText):
