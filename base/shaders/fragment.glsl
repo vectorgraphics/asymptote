@@ -164,7 +164,7 @@ void main()
   uint headIndex = uint(gl_FragCoord.y) * width + uint(gl_FragCoord.x);
 #ifdef DEPTHPEEL
   if (zbuffer[headIndex].depth < gl_FragCoord.z &&
-      zbuffer[headIndex].depth != 0)
+    zbuffer[headIndex].depth != 0)
     discard;
   if (texture(DepthTex, gl_FragCoord.xy/vec2(width,height)).r >= gl_FragCoord.z)
     discard;
@@ -192,11 +192,11 @@ void main()
 #if Nlights == 0
    emissive += Color;
 #endif
-#else  
+#else
   diffuse=m.diffuse; 
 #endif
 #endif
-  
+
 #if defined(NORMAL) && Nlights > 0
   Specular=m.specular.rgb;
   vec4 parameters=m.parameters;
@@ -266,7 +266,6 @@ void main()
 #endif
 
   if (tempColor.a == 0) discard;
-
 #ifdef DEPTHPEEL
   outColor = tempColor;
 #elif defined TRANSPARENT
