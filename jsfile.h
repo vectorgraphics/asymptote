@@ -16,7 +16,9 @@ class jsfile : public abs3Doutfile {
 public:
   jsfile();
   jsfile(string name);
-  ~jsfile() override;
+  ~jsfile();
+
+  void close() override;
 
   void addCurve(const triple& z0, const triple& c0,
                 const triple& c1, const triple& z1,

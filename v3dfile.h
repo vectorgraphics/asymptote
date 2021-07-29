@@ -70,6 +70,7 @@ public:
   explicit v3dfile(string const& name, uint32_t const& version=-1, open_mode mode=xdr::xios::open_mode::out);
   ~v3dfile() override;
 
+  void close() override;
 
   void addPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c) override;
   void addStraightPatch(
@@ -117,6 +118,7 @@ protected:
   void addColors(prc::RGBAColour const* col, size_t nc);
 
   xdr::oxstream xdrfile;
+  bool finished;
 };
 
 } //namespace camp

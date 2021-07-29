@@ -4,20 +4,32 @@
 
 #include "v3dfile.h"
 #include "drawelement.h"
-#include "jsfile.h"
 
 namespace camp
 {
 
 v3dfile::v3dfile(string const& name, uint32_t const& version, open_mode mode) :
-  xdrfile(name.c_str(), mode)
+  xdrfile(name.c_str(), mode), finished(false)
 {
   xdrfile << version;
 }
 
 v3dfile::~v3dfile()
 {
-  xdrfile.close();
+  if (!finished)
+  {
+    finished = true;
+    xdrfile.close();
+  }
+}
+
+void v3dfile::close()
+{
+  if (!finished)
+  {
+    finished = true;
+    xdrfile.close();
+  }
 }
 
 void v3dfile::addTriples(triple const* triples, size_t n)

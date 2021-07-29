@@ -26,6 +26,14 @@ jsfile::~jsfile()
   }
 }
 
+void jsfile::close()
+{
+  if (!finished)
+  {
+    finish(fileName);
+  }
+}
+
 void jsfile::copy(string name, bool header)
 {
   std::ifstream fin(locateFile(name).c_str());

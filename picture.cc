@@ -1409,22 +1409,25 @@ bool picture::shipout3(const string& prefix, const string& format,
   if (threedfmt)
   {
     string name=buildname(prefix,format);
-    std::unique_ptr<abs3Doutfile> fileObj;
+    abs3Doutfile *fileObj;
 
     if (webgl)
-    {
-      fileObj=std::make_unique<jsfile>(name);
-    }
+      fileObj=new jsfile(name);
     else if (v3dfmt)
-    {
-      fileObj=std::make_unique<v3dfile>(name);
-    }
+      fileObj=new v3dfile(name);
+    else
+      fileObj=NULL;
 
     for (auto& p : pic->nodes)
     {
       assert(p);
-      p->write(fileObj.get());
+      p->write(fileObj);
     }
+
+    fileObj->close();
+
+    if(fileObj)
+      delete fileObj;
 
     if(webgl && View)
       htmlView(name);
