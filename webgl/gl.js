@@ -1805,6 +1805,7 @@ class Triangles extends Geometry {
   }
 
   process(p) {
+    this.data.vertices=new Array(6*this.Positions.length);
     // Override materialIndex to encode color vs material
       materialIndex=this.Colors.length > 0 ?
       -1-materialIndex : 1+materialIndex;
