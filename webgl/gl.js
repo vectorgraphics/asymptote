@@ -201,7 +201,7 @@ function initGL()
 
     if(p.asygl == null)
       p.asygl=Array(2);
-  
+
     context=canvas.getContext("2d");
     offscreen=p.offscreen;
     if(!offscreen) {
@@ -284,7 +284,7 @@ function registerBuffer(buffervector,bufferIndex,copy,type=gl.ARRAY_BUFFER)
 function drawBuffer(data,shader,indices=data.indices)
 {
   if(data.indices.length == 0) return;
-  
+
   let normal=shader != pixelShader;
 
   setUniforms(data,shader);
@@ -348,7 +348,7 @@ class vertexBuffer {
     this.materialTable=[];
   }
 
-  // material vertex 
+  // material vertex
   vertex(v,n) {
     this.vertices.push(v[0]);
     this.vertices.push(v[1]);
@@ -376,7 +376,7 @@ class vertexBuffer {
     return this.nvertices++;
   }
 
-  // material vertex with width and without normal 
+  // material vertex with width and without normal
   vertex0(v,width) {
     this.vertices.push(v[0]);
     this.vertices.push(v[1]);
@@ -386,7 +386,7 @@ class vertexBuffer {
     return this.nvertices++;
   }
 
-  // indexed colored vertex 
+  // indexed colored vertex
   iVertex(i,v,n,c=[0,0,0,0]) {
     let i6=6*i;
     this.vertices[i6]=v[0];
@@ -547,7 +547,7 @@ class Geometry {
                              s*(viewParam.ymax-viewParam.ymin))/size2;
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
-    
+
     this.data.clear();
     this.notRendered();
     this.Onscreen=true;
@@ -703,7 +703,7 @@ class BezierPatch extends Geometry {
     if(p.length == 10) return this.process3(p);
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
-    
+
     if(wireframe == 1) {
       this.curve(p,0,4,8,12);
       this.curve(p,12,13,14,15);
@@ -801,7 +801,7 @@ class BezierPatch extends Geometry {
           this.data.indices.push(I1);
           this.data.indices.push(I2);
         }
-      }        
+      }
       if(!this.offscreen([P0,P2,P3])) {
         if(wireframe == 0) {
           this.data.indices.push(I0);
@@ -819,11 +819,11 @@ class BezierPatch extends Geometry {
       if(this.offscreen(p)) return;
 
       /* Control points are indexed as follows:
-         
+
        Coordinate
        +-----
         Index
-         
+
         03    13    23    33
        +-----+-----+-----+
        |3    |7    |11   |15
@@ -841,7 +841,7 @@ class BezierPatch extends Geometry {
         0     4     8     12
 
       */
-         
+
       let p0=p[0];
       let p3=p[3];
       let p12=p[12];
@@ -1060,7 +1060,7 @@ class BezierPatch extends Geometry {
        P refers to a corner
        m refers to a midpoint
        s refers to a subpatch
-         
+
                 m2
        +--------+--------+
        |P3      |      P2|
@@ -1170,7 +1170,7 @@ class BezierPatch extends Geometry {
         }
         else m2=s2[3];
       }
-      
+
       let m3=[0.5*(P3[0]+P0[0]),
               0.5*(P3[1]+P0[1]),
               0.5*(P3[2]+P0[2])];
@@ -1181,7 +1181,7 @@ class BezierPatch extends Geometry {
         }
         else m3=s3[0];
       }
-      
+
       if(C0) {
         let c0=Array(4);
         let c1=Array(4);
@@ -1239,9 +1239,9 @@ class BezierPatch extends Geometry {
     let p9=p[9];
 
     let n0=this.normal(p9,p[5],p[2],p0,p[1],p[3],p6);
-    let n1=this.normal(p0,p[1],p[3],p6,p[7],p[8],p9);    
+    let n1=this.normal(p0,p[1],p[3],p6,p[7],p[8],p9);
     let n2=this.normal(p6,p[7],p[8],p9,p[5],p[2],p0);
-    
+
     if(this.color) {
       let c0=this.color[0];
       let c1=this.color[1];
@@ -1250,7 +1250,7 @@ class BezierPatch extends Geometry {
       let i0=this.data.Vertex(p0,n0,c0);
       let i1=this.data.Vertex(p6,n1,c1);
       let i2=this.data.Vertex(p9,n2,c2);
-    
+
       this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
 
     } else {
@@ -1336,7 +1336,7 @@ class BezierPatch extends Geometry {
                 003               p2                300
                 P0                                    P1
     */
-      
+
       // Subdivide triangle:
 
       let l003=p[0];
@@ -1470,7 +1470,7 @@ class BezierPatch extends Geometry {
       let n0=this.normal(l300,r012,r021,r030,u201,u102,l030);
       let n1=this.normal(r030,u201,u102,l030,l120,l210,l300);
       let n2=this.normal(l030,l120,l210,l300,r012,r021,r030);
-      
+
       let e=this.Epsilon;
 
       // A kludge to remove subdivision cracks, only applied the first time
@@ -1519,11 +1519,11 @@ class BezierPatch extends Geometry {
           c1[i]=0.5*(C2[i]+C0[i]);
           c2[i]=0.5*(C0[i]+C1[i]);
         }
-        
+
         let i0=this.data.Vertex(m0,n0,c0);
         let i1=this.data.Vertex(m1,n1,c1);
         let i2=this.data.Vertex(m2,n2,c2);
-        
+
         this.Render3(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2,C0,c2,c1);
         this.Render3(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2,c2,C1,c0);
         this.Render3(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false,c1,c0,C2);
@@ -1532,7 +1532,7 @@ class BezierPatch extends Geometry {
         let i0=this.vertex(m0,n0);
         let i1=this.vertex(m1,n1);
         let i2=this.vertex(m2,n2);
-        
+
         this.Render3(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2);
         this.Render3(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2);
         this.Render3(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false);
@@ -1590,11 +1590,11 @@ class BezierPatch extends Geometry {
     let p=[3*(p1[0]-p0[0]),3*(p1[1]-p0[1]),3*(p1[2]-p0[2])];
     if(abs2(p) > this.epsilon)
       return p;
-    
+
     p=bezierPP(p0,p1,p2);
     if(abs2(p) > this.epsilon)
       return p;
-    
+
     return bezierPPP(p0,p1,p2,p3);
   }
 
@@ -1603,7 +1603,7 @@ class BezierPatch extends Geometry {
     let d1=this.differential(p0,p4,p5,p6);
     return [d0[0]+d1[0],d0[1]+d1[1],d0[2]+d1[2]];
   }
-  
+
   normal(left3,left2,left1,middle,right1,right2,right3) {
     let ux=3*(right1[0]-middle[0]);
     let uy=3*(right1[1]-middle[1]);
@@ -1693,14 +1693,14 @@ class BezierCurve extends Geometry {
 
     let n0=this.normal(bezierP(p0,p1),bezierPP(p0,p1,p2));
     let n1=this.normal(bezierP(p2,p3),bezierPP(p3,p2,p1));
-    
+
     let i0=this.data.vertex(p0,n0);
     let i3=this.data.vertex(p3,n1);
-    
+
     this.Render(p,i0,i3);
     if(this.data.indices.length > 0) this.append();
   }
-  
+
   append() {
     material1Data.append(this.data);
   }
@@ -1729,13 +1729,13 @@ class BezierCurve extends Geometry {
       let m3=[0.5*(m0[0]+m1[0]),0.5*(m0[1]+m1[1]),0.5*(m0[2]+m1[2])];
       let m4=[0.5*(m1[0]+m2[0]),0.5*(m1[1]+m2[1]),0.5*(m1[2]+m2[2])];
       let m5=[0.5*(m3[0]+m4[0]),0.5*(m3[1]+m4[1]),0.5*(m3[2]+m4[2])];
-      
+
       let s0=[p0,m0,m3,m5];
       let s1=[m5,m4,m2,p3];
-      
+
       let n0=this.normal(bezierPh(p0,p1,p2,p3),bezierPPh(p0,p1,p2,p3));
       let i0=this.data.vertex(m5,n0);
-      
+
       this.Render(s0,I0,i0);
       this.Render(s1,i0,I1);
     }
@@ -1769,7 +1769,7 @@ class Pixel extends Geometry {
     this.data.indices.push(this.data.vertex0(this.controlpoint,this.width));
     this.append();
   }
-  
+
   append() {
     material0Data.append(this.data);
   }
@@ -1796,7 +1796,7 @@ class Triangles extends Geometry {
     Indices=[];
     this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
   }
-    
+
   setMaterialIndex() {
     if(this.transparent)
       this.setMaterial(transparentData,drawTransparent);
@@ -2000,7 +2000,7 @@ function bezierPPh(a,b,c,d)
 }
 
 /**
- * Return the maximum distance squared of points c0 and c1 from 
+ * Return the maximum distance squared of points c0 and c1 from
  * the respective internal control points of z0--z1.
 */
 function Straightness(z0,c0,c1,z1)
@@ -2045,8 +2045,8 @@ function maxbound(v) {
  * Perform a change of basis
  * @param {*} out Out Matrix
  * @param {*} mat Matrix
- * 
- * Compute the matrix (translMatrix) * mat * (translMatrix)^{-1} 
+ *
+ * Compute the matrix (translMatrix) * mat * (translMatrix)^{-1}
  */
 
 function COBTarget(out,mat)
@@ -2179,13 +2179,13 @@ function updateViewMatrix()
   mat4.multiply(projViewMat,projMat,viewMat);
 }
 
-function capzoom() 
+function capzoom()
 {
   let maxzoom=Math.sqrt(Number.MAX_VALUE);
   let minzoom=1/maxzoom;
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
-  
+
   if(zoomRemeshFactor*Zoom < lastZoom || Zoom > zoomRemeshFactor*lastZoom) {
     remesh=true;
     lastZoom=Zoom;
@@ -2228,9 +2228,9 @@ function arcball(oldmouse,newmouse)
 /**
  * Mouse Drag Zoom
  * @param {*} lastX unused
- * @param {*} lastY 
+ * @param {*} lastY
  * @param {*} rawX unused
- * @param {*} rawY 
+ * @param {*} rawY
  */
 function zoomScene(lastX,lastY,rawX,rawY)
 {
@@ -2361,7 +2361,7 @@ function setZoom()
 function handleMouseWheel(event)
 {
   event.preventDefault();
-  
+
   if (event.deltaY < 0) {
     Zoom *= zoomFactor;
   } else {
@@ -2499,7 +2499,7 @@ function drawTransparent()
   }
   if(indices.length > 0) {
     transformVertices(transparentData.vertices);
-    
+
     let n=indices.length/3;
     let triangles=Array(n).fill().map((_,i)=>i);
 
@@ -2514,7 +2514,7 @@ function drawTransparent()
       IB=indices[b3+1];
       IC=indices[b3+2];
 
-      return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] < 
+      return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] <
         zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
     });
 
@@ -2675,7 +2675,7 @@ function setsize(w,h)
   remesh=true;
 }
 
-function resize() 
+function resize()
 {
   zoom0=Zoom0;
 
@@ -2704,13 +2704,13 @@ function resize()
   redraw();
 }
 
-function expand() 
+function expand()
 {
   Zoom *= zoomFactor;
   setZoom();
 }
 
-function shrink() 
+function shrink()
 {
   Zoom /= zoomFactor;
   setZoom();
