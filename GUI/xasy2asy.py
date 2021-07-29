@@ -97,7 +97,7 @@ class AsymptoteEngine:
         else:
             self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
 
-        self.args=['-xasy', '-noV', '-q', '-config=', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
+        self.args=['-xasy', '-noV', '-q', '-outformat=', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
 
         self.asyPath = path
         self.asyProcess = None
