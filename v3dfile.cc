@@ -8,10 +8,10 @@
 namespace camp
 {
 
-v3dfile::v3dfile(string const& name, uint32_t const& version, open_mode mode) :
+v3dfile::v3dfile(string const& name, open_mode mode) :
   xdrfile(name.c_str(), mode), finished(false)
 {
-  xdrfile << version;
+  xdrfile << v3dVersion;
 }
 
 v3dfile::~v3dfile()

@@ -19,6 +19,8 @@ namespace camp
 
 using open_mode=xdr::xios::open_mode;
 
+const unsigned int v3dVersion=0;
+
 enum v3dTypes : uint32_t
 {
   other=0,
@@ -26,34 +28,34 @@ enum v3dTypes : uint32_t
   transform_=2,
   element=3,
 
-  line,
-  triangle,
-  quad,
+  line=64,
+  triangle=65,
+  quad=66,
 
-  curve,
-  bezierTriangle,
-  bezierPatch,
+  curve=128,
+  bezierTriangle=129,
+  bezierPatch=130,
 
-  lineColor,
-  triangleColor,
-  quadColor,
+  lineColor=192,
+  triangleColor=193,
+  quadColor=194,
 
-  curveColor,
-  bezierTriangleColor,
-  bezierPatchColor,
+  curveColor=256,
+  bezierTriangleColor=257,
+  bezierPatchColor=258,
 
-  triangles=500, // specify nP,nN,nC
+  triangles=512, // specify nP,nN,nC
 
   //primitives
-  disk,
-  cylinder,
-  tube,
-  sphere,
-  halfSphere,
+  disk=1024,
+  cylinder=1025,
+  tube=1026,
+  sphere=1027,
+  halfSphere=1028,
 
-  //other
-//  element2D,
-  animation,
+  animation=2048,
+
+//element2D=3072,
 };
 
 enum v3dTriangleIndexType : uint32_t
@@ -67,7 +69,7 @@ enum v3dTriangleIndexType : uint32_t
 class v3dfile : public abs3Doutfile
 {
 public:
-  explicit v3dfile(string const& name, uint32_t const& version=-1, open_mode mode=xdr::xios::open_mode::out);
+  explicit v3dfile(string const& name, open_mode mode=xdr::xios::open_mode::out);
   ~v3dfile() override;
 
   void close() override;
