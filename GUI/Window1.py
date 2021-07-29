@@ -1041,7 +1041,7 @@ class MainWindow1(Qw.QMainWindow):
             saveAsyFile.close()
             self.updateScript()
 
-        xasyObjects = {'objects': fileItems}
+        xasyObjects = {'objects': fileItems, 'asy2psmap': self.asy2psmap.t}
 
         openFile = open(file, 'wb')
         pickle.dump(xasyObjects, openFile)
@@ -1065,8 +1065,8 @@ class MainWindow1(Qw.QMainWindow):
         asyFilePath = prefix + '.asy'
         rawText = None
         existsAsy = False
+
         if os.path.isfile(asyFilePath):
-            
             asyFile = io.open(asyFilePath, 'r')
             rawText = asyFile.read()
             asyFile.close()
@@ -1099,6 +1099,8 @@ class MainWindow1(Qw.QMainWindow):
                         duplicateObjects.append(self.fileItems[-1])
             else:
                 print("ERROR")
+
+        self.asy2psmap = x2a.asyTransform(xasyObjects['asy2psmap'])
 
         if duplicateObjects:
             Qw.QMessageBox.information(self, "Duplicate", 
@@ -1257,12 +1259,12 @@ class MainWindow1(Qw.QMainWindow):
                         if os.path.isfile(xasyFilePath):
                             warning = f'"{os.path.basename(xasyFilePath)}" already exist.  Do you want to overwrite it?' 
                             reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.No, Qw.QMessageBox.Yes) 
-                            if reply == Qw.QMessageBox.Yes:
-                                self.actionExportXasy(xasyFilePath)
-                                self.fileName = xasyFilePath
-                                self.fileChanged = False
-                            else:
+                            if reply == Qw.QMessageBox.No:
                                 return
+    
+                        self.actionExportXasy(xasyFilePath)
+                        self.fileName = xasyFilePath
+                        self.fileChanged = False
                     else:
                         return
 
