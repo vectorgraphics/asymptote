@@ -77,30 +77,6 @@ void setcolors(bool colors,
   }
 }
 
-void setcolors(bool colors,
-               const RGBAColour& diffuse,
-               const RGBAColour& emissive,
-               const RGBAColour& specular, double shininess,
-               double metallic, double fresnel0, v3dfile *out)
-{
-  Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
-                      glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
-                      glm::vec4(specular.R,specular.G,specular.B,specular.A),
-                      shininess,metallic,fresnel0);
-
-  auto p=materialMap.find(m);
-  if(p != materialMap.end()) materialIndex=p->second;
-  else {
-    materialIndex=material.size();
-    if(materialIndex >= nmaterials)
-      nmaterials=min(Maxmaterials,2*nmaterials);
-    material.push_back(m);
-    materialMap[m]=materialIndex;
-    if(out)
-      out->addMaterial(m);
-  }
-}
-
 #endif
 
 void drawBezierPatch::bounds(const double* t, bbox3& b)
@@ -261,49 +237,28 @@ bool drawBezierPatch::write(abs3Doutfile *out)
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls,Min,Max,colors);
-  } else
-    out->addPatch(controls,Min,Max,colors);
-  out->precision(getSetting<Int>("digits"));
-
-#endif
-  return true;
-}
-
-bool drawBezierPatch::write(v3dfile* out)
-{
-#ifdef HAVE_LIBGLM
-  if(invisible || primitive)
-    return true;
-
-  if(billboard) {
-    meshinit();
-    drawElement::centerIndex=centerIndex;
-  } else drawElement::centerIndex=0;
-
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-
-  if(straight) {
-    triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
-    out->addStraightPatch(Controls, Min, Max, colors);
   } else {
     if (getSetting<bool>("bakepatches"))
     {
       vertexBuffer vb;
-      double baseRes=getSetting<double>("bakeres");
+      auto baseRes=getSetting<double>("bakeres");
       renderSettings setting
-              {
-                      .res2 = baseRes,
-                      .pvertex = std::mem_fn(&vertexBuffer::vertex),
-                      .target = &vb,
-              };
+      {
+              .res2 = baseRes,
+              .pvertex = std::mem_fn(&vertexBuffer::vertex),
+              .target = &vb,
+      };
       S.render(setting, controls, false, nullptr);
-      out->addTriangles(vb, Min, Max);
+      drawTriangles dt(vb, colors != nullptr, diffuse, emissive, specular, opacity,
+                    shininess, metallic, fresnel0, invisible, Min, Max);
+      dt.write(out);
     }
     else
     {
       out->addPatch(controls, Min, Max, colors);
     }
   }
+  out->precision(getSetting<Int>("digits"));
 
 #endif
   return true;
@@ -547,49 +502,28 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addStraightBezierTriangle(Controls,Min,Max,colors);
-  } else
-    out->addBezierTriangle(controls,Min,Max,colors);
-  out->precision(getSetting<Int>("digits"));
-
-#endif
-  return true;
-}
-
-bool drawBezierTriangle::write(v3dfile* out)
-{
-#ifdef HAVE_LIBGLM
-  if(invisible || primitive)
-    return true;
-
-  if(billboard) {
-    meshinit();
-    drawElement::centerIndex=centerIndex;
-  } else drawElement::centerIndex=0;
-
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-  if(straight) {
-    triple Controls[]={controls[0],controls[6],controls[9]};
-    out->addStraightBezierTriangle(Controls,Min,Max,colors);
-  } else
-  {
+  } else {
     if (getSetting<bool>("bakepatches"))
     {
       vertexBuffer vb;
       double baseRes=getSetting<double>("bakeres");
       renderSettings setting
-      {
-        .res2 = baseRes,
-        .pvertex = std::mem_fn(&vertexBuffer::vertex),
-        .target = &vb,
-      };
+              {
+                      .res2 = baseRes,
+                      .pvertex = std::mem_fn(&vertexBuffer::vertex),
+                      .target = &vb,
+              };
       S.render(setting, controls, false, nullptr);
-      out->addTriangles(vb, Min, Max);
+      drawTriangles dt(vb, colors != nullptr, diffuse, emissive, specular, opacity,
+                    shininess, metallic, fresnel0, invisible, Min, Max);
+      dt.write(out);
     }
     else
     {
       out->addBezierTriangle(controls, Min, Max, colors);
     }
   }
+  out->precision(getSetting<Int>("digits"));
 
 #endif
   return true;
@@ -896,31 +830,6 @@ bool drawSphere::write(abs3Doutfile *out)
   return true;
 }
 
-bool drawSphere::write(v3dfile* out)
-{
-#ifdef HAVE_LIBGLM
-  if(invisible)
-    return true;
-
-  drawElement::centerIndex=0;
-
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-
-  triple O,E;
-  P(E,1.0,0.0,0.0);
-  P(O,0.0,0.0,0.0);
-  triple X=E-O;
-  double r=length(X);
-
-  if(half)
-    out->addSphereHalf(O,r,X.polar(false),X.azimuth(false));
-  else
-    out->addSphere(O,r);
-
-#endif
-  return true;
-}
-
 bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
@@ -935,31 +844,6 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 bool drawCylinder::write(abs3Doutfile *out)
-{
-#ifdef HAVE_LIBGLM
-  if(invisible)
-    return true;
-
-  drawElement::centerIndex=0;
-
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-
-  triple E,H,O;
-  P(E,1.0,0.0,0.0);
-  P(H,0.0,0.0,1.0);
-  P(O,0.0,0.0,0.0);
-  triple X=E-O;
-  triple Z=H-O;
-  double r=length(X);
-  double h=length(Z);
-
-  out->addCylinder(O,r,h,Z.polar(false),Z.azimuth(false),core);
-
-#endif
-  return true;
-}
-
-bool drawCylinder::write(v3dfile* out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -1021,57 +905,7 @@ bool drawDisk::write(abs3Doutfile *out)
   return true;
 }
 
-bool drawDisk::write(v3dfile* out)
-{
-#ifdef HAVE_LIBGLM
-  if(invisible)
-    return true;
-
-  drawElement::centerIndex=0;
-
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-
-  triple E,H,O;
-  P(E,1.0,0.0,0.0);
-  P(H,0.0,0.0,1.0);
-  P(O,0.0,0.0,0.0);
-  triple X=E-O;
-  triple Z=H-O;
-  double r=length(X);
-
-  out->addDisk(O,r,Z.polar(false),Z.azimuth(false));
-
-#endif
-  return true;
-}
-
 bool drawTube::write(abs3Doutfile *out)
-{
-#ifdef HAVE_LIBGLM
-  if(invisible)
-    return true;
-
-  drawElement::centerIndex=0;
-
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-
-  bbox3 b;
-  b.add(T*m);
-  b.add(T*triple(m.getx(),m.gety(),M.getz()));
-  b.add(T*triple(m.getx(),M.gety(),m.getz()));
-  b.add(T*triple(m.getx(),M.gety(),M.getz()));
-  b.add(T*triple(M.getx(),m.gety(),m.getz()));
-  b.add(T*triple(M.getx(),m.gety(),M.getz()));
-  b.add(T*triple(M.getx(),M.gety(),m.getz()));
-  b.add(T*M);
-
-  out->addTube(g,width,b.Min(),b.Max(),core);
-
-#endif
-  return true;
-}
-
-bool drawTube::write(v3dfile* out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -1171,19 +1005,6 @@ bool drawTriangles::write(abs3Doutfile *out)
 
   setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
-#endif
-  return true;
-}
-
-bool drawTriangles::write(v3dfile* out)
-{
-#ifdef HAVE_LIBGLM
-  if(invisible)
-    return true;
-
-  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-  out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
-
 #endif
   return true;
 }

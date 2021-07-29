@@ -1404,28 +1404,30 @@ bool picture::shipout3(const string& prefix, const string& format,
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
            background,nlights,lights,diffuse,specular,View,oldpid);
 
-  if(webgl) {
-    string name=buildname(prefix,format);
-    {
-      jsfile js(name);
+  bool threedfmt=webgl||v3dfmt;
 
-      for (auto& p : pic->nodes)
-      {
-        assert(p);
-        p->write(&js);
-      }
+  if (threedfmt)
+  {
+    string name=buildname(prefix,format);
+    std::unique_ptr<abs3Doutfile> fileObj;
+
+    if (webgl)
+    {
+      fileObj=std::make_unique<jsfile>(name);
     }
-    if(View)
-      htmlView(name);
-    return true;
-  } else if (v3dfmt) {
-    v3dfile vf(buildname(prefix,format));
+    else if (v3dfmt)
+    {
+      fileObj=std::make_unique<v3dfile>(name);
+    }
+
     for (auto& p : pic->nodes)
     {
       assert(p);
-      p->write(&vf);
+      p->write(fileObj.get());
     }
-    return true;
+
+    if(webgl && View)
+      htmlView(name);
   }
 #endif
 

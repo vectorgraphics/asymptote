@@ -158,7 +158,6 @@ public:
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(abs3Doutfile *out);
-  bool write(v3dfile* out);
 
   void render(double, const triple& b, const triple& B,
               double perspective, bool remesh);
@@ -193,7 +192,6 @@ public:
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(abs3Doutfile *out);
-  bool write(v3dfile *out);
 
   void render(double, const triple& b, const triple& B,
               double perspective, bool remesh);
@@ -416,8 +414,6 @@ public:
   drawElement *transformed(const double* t) {
     return new drawSphere(t,this);
   }
-
-  bool write(v3dfile* out);
 };
 
 // Output a unit cylinder primitive.
@@ -438,8 +434,6 @@ public:
   drawElement *transformed(const double* t) override {
     return new drawCylinder(t,this);
   }
-
-  bool write(v3dfile* out) override;
 };
 
 // Draw a unit disk.
@@ -458,8 +452,6 @@ public:
   drawElement *transformed(const double* t) override {
     return new drawDisk(t,this);
   }
-
-  bool write(v3dfile* out) override;
 };
 
 // Draw a tube.
@@ -496,8 +488,6 @@ public:
   drawElement *transformed(const double* t) override {
     return new drawTube(t,this);
   }
-
-  bool write(v3dfile* out) override;
 };
 
 
@@ -568,6 +558,43 @@ public:
         }
       }
     } else Ni=0;
+  }
+
+  drawBaseTriangles(vertexBuffer const& vb, bool isColor, triple const& Min, triple const& Max) :
+#ifdef HAVE_GL
+    transparent(false),
+#endif
+    nP(isColor ? vb.Vertices.size() : vb.vertices.size()), nN(nP), nI(vb.indices.size()/3), Ni(0),
+    Min(Min), Max(Max)
+  {
+    assert(vb.indices.size() % 3 == 0);
+    P=new(UseGC) triple[nP];
+    N=new(UseGC) triple[nN];
+    if (!isColor)
+    {
+      for (size_t i=0; i < vb.vertices.size(); ++i)
+      {
+        P[i]=triple(vb.vertices[i].position[0], vb.vertices[i].position[1], vb.vertices[i].position[2]);
+        N[i]=triple(vb.vertices[i].normal[0], vb.vertices[i].normal[1], vb.vertices[i].normal[2]);
+      }
+    }
+    else
+    {
+      for (size_t i=0; i < vb.Vertices.size(); ++i)
+      {
+        P[i]=triple(vb.Vertices[i].position[0], vb.Vertices[i].position[1], vb.Vertices[i].position[2]);
+        N[i]=triple(vb.Vertices[i].normal[0], vb.Vertices[i].normal[1], vb.Vertices[i].normal[2]);
+      }
+    }
+
+    PI=new(UseGC) uint32_t[nI][3];
+    for (size_t i=0; i < nI; ++i)
+    {
+      PI[i][0]=vb.indices[3 * i];
+      PI[i][1]=vb.indices[3 * i + 1];
+      PI[i][2]=vb.indices[3 * i + 2];
+    }
+    NI=PI;
   }
 
   drawBaseTriangles(const double* t, const drawBaseTriangles *s) :
@@ -690,6 +717,33 @@ public:
     specular=rgba(vm::read<camp::pen>(p,2));
   }
 
+  drawTriangles(vertexBuffer const& vb, bool isColor,
+                prc::RGBAColour diffuse,
+                prc::RGBAColour emissive,
+                prc::RGBAColour specular,
+                double opacity,
+                double shininess,
+                double metallic,
+                double fresnel0,
+                bool invisible,
+                triple const& Min, triple const& Max) : drawBaseTriangles(vb, isColor, Min, Max),
+    nC(isColor ? vb.Vertices.size() : 0), C(nullptr), CI(isColor ? PI : nullptr), Ci(isColor ? Ni : 0),
+    diffuse(diffuse), emissive(emissive), specular(specular), opacity(opacity),shininess(shininess),
+    metallic(metallic), fresnel0(fresnel0), invisible(invisible)
+  {
+    if (isColor)
+    {
+      C=new(UseGC) prc::RGBAColour[nC];
+      for (size_t i=0;i<nC;++i)
+      {
+        C[i].Set(vb.Vertices[i].color[0]/bytescale,
+                 vb.Vertices[i].color[1]/bytescale,
+                 vb.Vertices[i].color[2]/bytescale,
+                 vb.Vertices[i].color[3]/bytescale);
+      }
+    }
+  }
+
   drawTriangles(const double* t, const drawTriangles *s) :
     drawBaseTriangles(t,s), nC(s->nC),
     diffuse(s->diffuse), emissive(s->emissive),
@@ -718,7 +772,6 @@ public:
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   bool write(abs3Doutfile *out);
-  bool write(v3dfile *out);
 
   drawElement *transformed(const double* t) {
     return new drawTriangles(t,this);
