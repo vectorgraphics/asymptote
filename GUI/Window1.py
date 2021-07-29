@@ -479,7 +479,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnSave.clicked.connect(self.btnSaveonClick)
         self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
 
-        # self.ui.btnExportAsy.clicked.connect(self.btnExportAsyOnClick)
+        # self.ui.btnExportAsy.clicked.connect(self.btnExportAsymptoteOnClick)
 
         self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
 #        self.ui.btnAsyfy.clicked.connect(lambda: self.asyfyCanvas(True))
@@ -996,8 +996,7 @@ class MainWindow1(Qw.QMainWindow):
             if isinstance(item, x2a.xasyScript):
                 # reusing xasyFile code for objects 
                 # imported from asy script.
-                # asyItems.append({'item':item, 'type': 'xasyScript'})
-                pass
+                asyItems.append({'item':item, 'type': 'xasyScript'})
 
             elif isinstance(item, x2a.xasyText):
                 # At the moment xasyText cannot be edited
@@ -1030,30 +1029,20 @@ class MainWindow1(Qw.QMainWindow):
       
         if asyItems:
 
-            # Save imported items into the linked asy file
+            # Save imported items into the twin asy file
             asyScriptItems = [item['item'] for item in asyItems if item['type'] == 'xasyScript']
-            # Check for recently .asy exported xasyShapes--this will produce duplicates
-            readAsyFile = io.open(self.asyFileName, 'r')
-            asyText = readAsyFile.read()
-            readAsyFile.close()
-
-            for item in xasyItems:
-                if item.getObjectCode(self.asy2psmap) in asyText:
-                    asyScriptItems.append(item)
+            # Check for recently .asy exported xasyShapes TODO: this will produce duplicates
             
-            saveAsyFile = io.open(self.asyFileName, 'w')
+            prefix = os.path.splitext(self.fileName)[0]
+            asyFilePath = prefix + '.asy'
+
+            saveAsyFile = io.open(asyFilePath, 'w')
             xf.saveFile(saveAsyFile, asyScriptItems, self.asy2psmap)
             saveAsyFile.close()
             self.updateScript()
 
-            # Prepare asy objects for export
-            rawAsyItems = [item['item'] for item in asyItems]
-            rawText = xf.xasy2asyCode(rawAsyItems, self.asy2psmap)
-            fileItems.append({'type': 'xasyScript', 
-                        'rawText': rawText
-                        })
-        
-        xasyObjects = {'metadata': {'asyFileName': self.asyFileName}, 'objects': fileItems}
+        xasyObjects = {'objects': fileItems}
+
         openFile = open(file, 'wb')
         pickle.dump(xasyObjects, openFile)
         openFile.close()
@@ -1072,24 +1061,24 @@ class MainWindow1(Qw.QMainWindow):
         if not self.checkXasyLoadLegacy(xasyObjects):
             return
 
-        self.asyFileName = xasyObjects['metadata']['asyFileName']
-        if self.asyFileName:
-            asyFile = io.open(self.asyFileName, 'r')
+        prefix = os.path.splitext(self.fileName)[0]
+        asyFilePath = prefix + '.asy'
+        rawText = None
+        existsAsy = False
+        if os.path.isfile(asyFilePath):
+            
+            asyFile = io.open(asyFilePath, 'r')
             rawText = asyFile.read()
             asyFile.close()
+            rawText, transfDict, maxKey = xf.extractTransformsFromFile(rawText)
+            obj = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
+            obj.setScript(rawText)
+            self.fileItems.append(obj)
+            existsAsy = True
 
         for item in xasyObjects['objects']:
             if item['type'] == 'xasyScript':
-                if not self.asyFileName:
-                    # There should not be any xasyScript objects if there is no associated
-                    # asyFile to the xasy file.
-                    print("Uh oh, something wrong happened loading associated .asy file")
-                    rawText = item['rawText']
-
-                rawText, transfDict, maxKey = xf.extractTransformsFromFile(rawText)
-                obj = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
-                obj.setScript(rawText)
-                self.fileItems.append(obj)
+                print("Uh oh, there should not be any asy objects loaded")
 
             elif item['type'] == 'xasyText':
                 self.addXasyTextFromData( text = item['text'], 
@@ -1115,8 +1104,12 @@ class MainWindow1(Qw.QMainWindow):
             Qw.QMessageBox.information(self, "Duplicate", 
                     f"Duplicate objects have been found. Reverting to linked asy file: {os.path.basename(self.asyFileName)}")
             self.fileItems = [item for item in self.fileItems if item not in duplicateObjects]
-
         self.asyfyCanvas(True)
+
+        if existsAsy:
+            self.ui.statusbar.showMessage(f"Corresponding Asymptote File '{os.path.basename(asyFilePath)}' found.  Loaded both files.")
+        else:
+            self.ui.statusbar.showMessage("No Asymptote file found.  Loaded exclusively GUI objects.")
                 
     def checkXasyLoadLegacy(self, objects):
         if isinstance(objects, list):
@@ -1259,7 +1252,19 @@ class MainWindow1(Qw.QMainWindow):
                         saveFile.close()
                         self.fileChanged = False
                     elif reply == 0:
-                        self.actionSaveAs()
+                        prefix = os.path.splitext(self.fileName)[0]
+                        xasyFilePath = prefix + '.xasy'
+                        if os.path.isfile(xasyFilePath):
+                            warning = f'"{os.path.basename(xasyFilePath)}" already exist.  Do you want to overwrite it?' 
+                            reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.No, Qw.QMessageBox.Yes) 
+                            if reply == Qw.QMessageBox.Yes:
+                                self.actionExportXasy(xasyFilePath)
+                                self.fileName = xasyFilePath
+                                self.fileChanged = False
+                            else:
+                                return
+                    else:
+                        return
 
                 else:
                     saveFile = io.open(self.fileName, 'w')
@@ -1288,13 +1293,13 @@ class MainWindow1(Qw.QMainWindow):
         return False
 
     def actionSaveAs(self):
-        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', str(self.fileName), "Xasy File (*.xasy);; Asymptote File (*.asy)")[0]
+        initSave = os.path.splitext(str(self.fileName))[0]+'.xasy'
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', initSave, "Xasy File (*.xasy)")[0]
         if saveLocation:
             _, file_extension = os.path.splitext(saveLocation)
-            if file_extension == ".asy":
-                saveFile = io.open(saveLocation, 'w')
-                xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
-                saveFile.close()
+            if not file_extension:
+                saveLocation += '.xasy'
+                self.actionExportXasy(saveLocation)
             elif file_extension == ".xasy":
                 self.actionExportXasy(saveLocation)
             else:
@@ -1897,9 +1902,7 @@ class MainWindow1(Qw.QMainWindow):
         # TODO: Undo redo doesn't update appropriately. Have to find a fix for this.
         title = ''
         if self.fileName:
-            if self.asyFileName and self.asyFileName != self.fileName:
-                title += os.path.basename(self.asyFileName) + " —— "
-            title += '['+os.path.basename(self.fileName)+']'
+            title += os.path.basename(self.fileName)
         else:
             title += "[Not Saved]"
         if self.fileChanged:
