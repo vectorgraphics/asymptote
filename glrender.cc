@@ -2358,8 +2358,10 @@ void aBufferTransparency()
 
 void drawTransparent()
 {
+  glDisable(GL_MULTISAMPLE);
   if(depthPeel) depthPeelTransparency();
   else aBufferTransparency();
+  glEnable(GL_MULTISAMPLE);
 }
 
 void drawBuffers()

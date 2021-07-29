@@ -62,11 +62,6 @@ void main()
   uint last = sortedCount - 1;
   if (zbuffer[headIndex].depth != 0) outColor = zbuffer[headIndex].color;
   else outColor = vec4(1);
-  for (uint i = 0; i < last; i++) {
-    if (sortedList[i].depth-sortedList[i+1].depth < 0.001 &&
-        mDistance(sortedList[i].color, sortedList[i+1].color) < 0.01)
-      continue;
+  for (uint i = 0; i <= last; i++)
     outColor = mix(outColor, sortedList[i].color, sortedList[i].color.a);
-  }
-  outColor = mix(outColor, sortedList[last].color, sortedList[last].color.a);
 }
