@@ -237,7 +237,6 @@ dmat4 dviewMat;
 dmat4 drotateMat;
 
 const double *dprojView;
-const double *dView;
 double BBT[9];
 
 unsigned int framecount;
@@ -365,7 +364,6 @@ void home(bool webgl=false)
 #endif
 #endif
   dviewMat=dmat4(1.0);
-  dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
   drotateMat=dmat4(1.0);
@@ -1048,7 +1046,6 @@ void update()
 
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
-  dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
   setProjection();
