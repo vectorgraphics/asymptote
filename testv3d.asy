@@ -163,7 +163,6 @@ triple[][][] Q0={
 };
 
 triple[][][] Q=copy(Q0);
-Q.append(Q0);
 
 void writev3d(string prefix) {
   file fout=output(prefix+".v3d",mode="xdr");
@@ -171,7 +170,7 @@ void writev3d(string prefix) {
   for(triple[][] q : Q) {
     for(int i=0; i < 4; ++i)
       for(int j=0; j < 4; ++j)
-        write(fout,exp(abs(q[i][j])/100.0)*q[i][j]*unitrand());
+        write(fout,q);
   }
   close(fout);
 }
@@ -184,9 +183,9 @@ void readv3d(string prefix) {
   //  write(signature);
   triple[][] q=new triple[4][4];
   while(true) {
+    fin.dimension(4);
     for(int i=0; i < 4; ++i)
-      for(int j=0; j < 4; ++j)
-        q[i][j]=fin;
+      q[i]=fin;
     if(eof(fin)) break;
     P.push(copy(q));
   }
