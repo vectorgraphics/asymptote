@@ -909,7 +909,7 @@ class MainWindow1(Qw.QMainWindow):
         pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
         if os.path.isfile(pathToFile):
             reply = Qw.QMessageBox.question(self, 'Message',
-                f"A file named '{os.path.split(pathToFile)[1]}' was found.  Overwrite?",
+                f'"{os.path.split(pathToFile)[1]}" already exists.  Do you want to overwrite it?',
                 Qw.QMessageBox.Yes, Qw.QMessageBox.No)
             if reply == Qw.QMessageBox.No:
                 return
@@ -1257,7 +1257,7 @@ class MainWindow1(Qw.QMainWindow):
                         prefix = os.path.splitext(self.fileName)[0]
                         xasyFilePath = prefix + '.xasy'
                         if os.path.isfile(xasyFilePath):
-                            warning = f'"{os.path.basename(xasyFilePath)}" already exist.  Do you want to overwrite it?' 
+                            warning = f'"{os.path.basename(xasyFilePath)}" already exists.  Do you want to overwrite it?' 
                             reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.No, Qw.QMessageBox.Yes) 
                             if reply == Qw.QMessageBox.No:
                                 return
