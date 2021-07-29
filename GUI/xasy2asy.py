@@ -1039,7 +1039,13 @@ class xasyItem(QtCore.QObject):
                 print('fout:', line)
             fout.write(line+"\n")
         fout.write(self.asySize)
-        fout.write("settings.render=4;\n")
+
+        try:
+            renderMode = xo.BasicConfigs.defaultOpt['printMode']
+        except:
+            renderMode = -1
+
+        fout.write("settings.render={};\n".format(renderMode))
         fout.write("deconstruct();\n")
         fout.write('write(_outpipe,yscale(-1)*currentpicture.calculateTransform(),endl);\n')
         fout.write(self.asyengine.xasy)
