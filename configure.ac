@@ -434,7 +434,7 @@ case "$OSTYPE" in
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then
-           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
+           AC_CHECK_LIB([OSMesa],OSMesaCreateContextAttribs,,
                         AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
    fi
 fi

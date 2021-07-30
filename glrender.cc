@@ -1646,10 +1646,24 @@ void init_osmesa()
     exit(-1);
   }
 
-  ctx = OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
+  const int attribs[]={
+    OSMESA_FORMAT,OSMESA_RGBA,
+      OSMESA_DEPTH_BITS,16,
+      OSMESA_STENCIL_BITS,0,
+      OSMESA_ACCUM_BITS,0,
+    OSMESA_PROFILE,OSMESA_CORE_PROFILE,
+      OSMESA_CONTEXT_MAJOR_VERSION,4,
+    OSMESA_CONTEXT_MINOR_VERSION,3,
+      0,0
+   };
+
+  ctx=OSMesaCreateContextAttribs(attribs,NULL);
   if(!ctx) {
-    cerr << "OSMesaCreateContext failed." << endl;
-    exit(-1);
+    ctx=OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
+    if(!ctx) {
+      cerr << "OSMesaCreateContextExt failed." << endl;
+      exit(-1);
+    }
   }
 
   if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,
