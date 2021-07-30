@@ -989,49 +989,14 @@ class MainWindow1(Qw.QMainWindow):
                     asy.wait(timeout=35)
 
     def actionExportXasy(self, file):
-        fileItems = []
-        asyItems = []
-        xasyItems = []
-        for item in self.fileItems:
-            if isinstance(item, x2a.xasyScript):
-                # reusing xasyFile code for objects 
-                # imported from asy script.
-                asyItems.append({'item':item, 'type': 'xasyScript'})
+        xasyObjects, asyItems = xf.xasyToDict(self.fileName, self.fileItems, self.asy2psmap)
 
-            elif isinstance(item, x2a.xasyText):
-                # At the moment xasyText cannot be edited
-                # so we treat it the same as xasyScript
-                xasyItems.append(item)
-                penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
-                fileItems.append({'type': 'xasyText',
-                        'align': item.label.align,
-                        'location': item.label.location,
-                        'fontSize': item.label.fontSize,
-                        'text': item.label.text,
-                        'transform': item.transfKeymap[item.transfKey][0].t,
-                        'transfKey': item.transfKey,
-                        'pen': penData})
-
-            elif isinstance(item, x2a.xasyShape):
-                xasyItems.append(item)
-                penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
-                fileItems.append({'type': 'xasyShape', 
-                        'nodes': item.path.nodeSet, 
-                        'links': item.path.linkSet,
-                        'transform': item.transfKeymap[item.transfKey][0].t,
-                        'transfKey': item.transfKey,
-                        'pen': penData
-                        })
-
-            else:
-                # DEBUGGING PURPOSES ONLY
-                print(type(item))
-      
         if asyItems:
 
             # Save imported items into the twin asy file
             asyScriptItems = [item['item'] for item in asyItems if item['type'] == 'xasyScript']
-            # Check for recently .asy exported xasyShapes TODO: this will produce duplicates
+            
+            # TODO: Check for recently .asy exported xasyShapes this will produce duplicates
             
             prefix = os.path.splitext(self.fileName)[0]
             asyFilePath = prefix + '.asy'
@@ -1041,15 +1006,13 @@ class MainWindow1(Qw.QMainWindow):
             saveAsyFile.close()
             self.updateScript()
 
-        xasyObjects = {'objects': fileItems, 'asy2psmap': self.asy2psmap.t}
-
         openFile = open(file, 'wb')
         pickle.dump(xasyObjects, openFile)
         openFile.close()
         
     def actionLoadXasy(self, file):
         self.erase()
-        self.ui.statusbar.showMessage('Load {0}'.format(file))
+        self.ui.statusbar.showMessage('Load {0}'.format(file)) # TODO: This doesn't show on the UI
         self.fileName = file
         self.currDir = os.path.dirname(self.fileName)
         duplicateObjects = []
@@ -1106,6 +1069,7 @@ class MainWindow1(Qw.QMainWindow):
             Qw.QMessageBox.information(self, "Duplicate", 
                     f"Duplicate objects have been found. Reverting to linked asy file: {os.path.basename(self.asyFileName)}")
             self.fileItems = [item for item in self.fileItems if item not in duplicateObjects]
+        
         self.asyfyCanvas(True)
 
         if existsAsy:
