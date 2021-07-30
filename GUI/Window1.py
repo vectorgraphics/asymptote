@@ -906,7 +906,11 @@ class MainWindow1(Qw.QMainWindow):
         Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
     def btnExportToAsyOnClick(self):
-        pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
+        if self.fileName:
+            pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
+        else:
+            self.btnExportAsymptoteOnClick()
+            return
         if os.path.isfile(pathToFile):
             reply = Qw.QMessageBox.question(self, 'Message',
                 f'"{os.path.split(pathToFile)[1]}" already exists.  Do you want to overwrite it?',
