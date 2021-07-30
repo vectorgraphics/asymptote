@@ -1204,12 +1204,12 @@ class MainWindow1(Qw.QMainWindow):
             _, file_extension = os.path.splitext(self.fileName)
             if file_extension == ".asy":
                 if self.existsXasy():
-                    warning = "Saving the file as an Asymptote file (*.asy) will result in lossy conversion.  It is recommended to save your file as .xasy.  Continue saving as .asy?"
+                    warning = "Choose save format. Note that objects saved in asy format cannot be edited graphically."
                     replyBox = Qw.QMessageBox()
                     replyBox.setWindowTitle('Warning') 
                     replyBox.setText(warning)
                     replyBox.addButton("Save as .xasy", replyBox.NoRole)
-                    replyBox.addButton("Continue as .asy", replyBox.YesRole)
+                    replyBox.addButton("Save as .asy", replyBox.YesRole)
                     replyBox.addButton(Qw.QMessageBox.Cancel)
                     reply = replyBox.exec()
                     if reply == 1:
