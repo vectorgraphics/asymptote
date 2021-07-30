@@ -1119,11 +1119,11 @@ class MainWindow1(Qw.QMainWindow):
 
     def actionNewFile(self):
         if self.fileChanged:
-            save="Save current file?"
-            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
-                                        Qw.QMessageBox.No)
+            reply = self.saveDialog()
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
+            elif reply == Qw.QMessageBox.Cancel:
+                return
         self.erase()
         self.asyfyCanvas(True)
         self.fileName = None
@@ -1132,11 +1132,12 @@ class MainWindow1(Qw.QMainWindow):
 
     def actionOpen(self, fileName = None):
         if self.fileChanged:
-            save="Save current file?"
-            reply=Qw.QMessageBox.question(self,'Message',save,Qw.QMessageBox.Yes,
-                                        Qw.QMessageBox.No)
+            reply = self.saveDialog()
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
+            elif reply == Qw.QMessageBox.Cancel:
+                return
+
         if fileName:
             # Opening via open recent or cmd args
             _, file_extension = os.path.splitext(fileName)
@@ -1177,15 +1178,19 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.menuOpenRecent.addSeparator()
         self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
 
+    def saveDialog(self) -> bool:
+        save = "Save current file?"
+        replyBox = Qw.QMessageBox()
+        replyBox.setText("Save current file?")
+        replyBox.setWindowTitle("Message")
+        replyBox.setStandardButtons(Qw.QMessageBox.Yes | Qw.QMessageBox.No | Qw.QMessageBox.Cancel)
+        reply = replyBox.exec()
+        
+        return reply
+        
     def actionClose(self):
         if self.fileChanged:
-            save="Save current file?"
-            replyBox = Qw.QMessageBox()
-            replyBox.setText("Save current file?")
-            replyBox.setWindowTitle("Message")
-            replyBox.setStandardButtons(Qw.QMessageBox.Yes | Qw.QMessageBox.No | Qw.QMessageBox.Cancel)
-            reply = replyBox.exec()
-
+            reply = self.saveDialog()
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
                 Qc.QCoreApplication.quit()
