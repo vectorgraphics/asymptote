@@ -182,10 +182,9 @@ void readv3d(string prefix) {
   //  string signature=getc(fin)+getc(fin)+getc(fin);
   //  write(signature);
   triple[][] q=new triple[4][4];
+  fin.dimension(4,4);
   while(true) {
-    fin.dimension(4);
-    for(int i=0; i < 4; ++i)
-      q[i]=fin;
+    q=fin;
     if(eof(fin)) break;
     P.push(copy(q));
   }
