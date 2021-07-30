@@ -2235,7 +2235,7 @@ background: rgb(0, 0, 0)
   </action>
   <action name="actionExportAsymptote">
    <property name="text">
-    <string>Export</string>
+    <string>Export as...</string>
    </property>
   </action>
   <action name="actionSave">
@@ -2260,7 +2260,7 @@ background: rgb(0, 0, 0)
   </action>
   <action name="actionExportToAsy">
    <property name="text">
-    <string>Export to Asy</string>
+    <string>Export as Asy</string>
    </property>
   </action>
  </widget>

@@ -69,7 +69,7 @@ class AsymptoteEngine:
         cleanup()
     """
 
-    xasy=chr(4)+"\n"
+    xasy=chr(4)+'\n'
     def __init__(self, path=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True):
         if path is None:
             path = xa.getArgs().asypath
@@ -97,7 +97,7 @@ class AsymptoteEngine:
         else:
             self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
 
-        self.args=['-xasy', '-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
+        self.args=['-xasy', '-noV', '-q', '-outformat=', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
 
         self.asyPath = path
         self.asyProcess = None
@@ -1045,8 +1045,8 @@ class xasyItem(QtCore.QObject):
         except:
             renderMode = -1
 
-        fout.write("settings.render={};\n".format(renderMode))
-        fout.write("deconstruct();\n")
+        fout.write('settings.render={};\n'.format(renderMode))
+        fout.write('deconstruct();\n')
         fout.write('write(_outpipe,yscale(-1)*currentpicture.calculateTransform(),endl);\n')
         fout.write(self.asyengine.xasy)
         fout.flush()
@@ -1060,21 +1060,21 @@ class xasyItem(QtCore.QObject):
             for i in range(len(imageInfos)):
                 box, key, localCount, useClip = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
-                name = "_{:d}.{:s}".format(i, fileformat)
+                name = '_{:d}.{:s}'.format(i, fileformat)
 
                 self.imageHandleQueue.put((name, fileformat, (l, -t, r, -b), i, key, localCount, useClip))
 
         # key first, box second.
-        # if key is "Done"
+        # if key is 'Done'
         raw_text = fin.readline()
-        text = ""
+        text = ''
         if DebugFlags.printDeconstTranscript:
             print(raw_text.strip())
 
-        # template=AsyTempDir+"%d_%d.%s"
+        # template=AsyTempDir+'%d_%d.%s'
         fileformat = 'svg' #This fixes the file output type.
 
-        while raw_text != "Done\n" and raw_text != "Error\n":
+        while raw_text != 'Done\n' and raw_text != 'Error\n':
 #            print(raw_text)
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
@@ -1109,9 +1109,9 @@ class xasyItem(QtCore.QObject):
 
             n += 1
 
-        if raw_text != "Error\n":
-            if text == "Error\n":
-                self.imageHandleQueue.put(("ERROR", fin.readline()))
+        if raw_text != 'Error\n':
+            if text == 'Error\n':
+                self.imageHandleQueue.put(('ERROR', fin.readline()))
             else:
                 render()
 
