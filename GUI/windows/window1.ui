@@ -2189,7 +2189,7 @@ background: rgb(0, 0, 0)
   </action>
   <action name="actionSaveAs">
    <property name="text">
-    <string>&amp;Save As</string>
+    <string>&amp;Save as</string>
    </property>
   </action>
   <action name="actionEnterCommand">
