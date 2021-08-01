@@ -1041,7 +1041,7 @@ class xasyItem(QtCore.QObject):
         fout.write(self.asySize)
 
         try:
-            renderMode = xo.BasicConfigs.defaultOpt['printMode']
+            renderMode = xo.BasicConfigs.defaultOpt['renderMode']
         except:
             renderMode = -1
 
