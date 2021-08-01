@@ -1278,6 +1278,9 @@ class xasyShape(xasyDrawnItem):
         """ Create a string describing this shape """
         return "xasyShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
+    def swapFill(self):
+        self.path.fill = not self.path.fill
+
 
 class xasyFilledShape(xasyShape):
     """ A filled shape drawn on the GUI """
@@ -1308,9 +1311,13 @@ class xasyFilledShape(xasyShape):
         if path.nodeSet[-1] != 'cycle':
             raise Exception("Filled paths must be cyclic")
         super().__init__(path, asyengine, pen, transform)
+        self.path.fill=True
 
     def getObjectCode(self, asy2psmap=identity()):
-        return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        if self.path.fill:
+            return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        else:
+            return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
     def generateDrawObjects(self, forceUpdate = False):
         if self.path.containsCurve:
@@ -1319,11 +1326,15 @@ class xasyFilledShape(xasyShape):
                             pen = self.pen, key = self.transfKey, fill = True)
         newObj.originalObj = self
         newObj.setParent(self)
+        newObj.fill=self.path.fill
         return [newObj]
 
     def __str__(self):
         """ Return a string describing this shape """
         return "xasyFilledShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
+
+    def swapFill(self):
+        self.path.fill = not self.path.fill
 
 
 class xasyText(xasyItem):
