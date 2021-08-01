@@ -65,7 +65,7 @@ void v3dfile::addPatch(triple const* controls, triple const& Min,
 
   if (c != nullptr)
   {
-    addColors(c, 16);
+    addColors(c, 4);
   }
 }
 
@@ -93,7 +93,7 @@ void v3dfile::addBezierTriangle(triple const* controls, triple const& Min,
 
   if (c != nullptr)
   {
-    addColors(c, 10);
+    addColors(c, 3);
   }
 }
 
