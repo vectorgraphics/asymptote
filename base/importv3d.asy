@@ -47,6 +47,14 @@ struct v3dPatchData
     int centerIdx;
 }
 
+struct v3dSurfaceData
+{
+    bool hasCenter;
+    triple center;
+    material m;
+    surface s;
+}
+
 struct v3dfile
 {
     file _xdrfile;
@@ -238,7 +246,6 @@ struct v3dfile
             }
             else if (ty == v3dtype.bezierTriangleColor)
             {
-
                 addToSurfaceData(this.readBezierTriangleColor());
             }
             else if (ty == v3dtype.centers)
@@ -254,18 +261,51 @@ struct v3dfile
         processed=true;
         return surf;
     }
+
+    v3dSurfaceData[] generateSurfaceList()
+    {
+        if (!processed)
+        {
+            process();
+        }
+
+        v3dSurfaceData[] vsdFinal;
+        for (int i=0;i<surf.length;++i)
+        {
+            if (surf.initialized(i))
+            {
+                for (int j=0;j<surf[i].length;++j)
+                {
+                    if (surf[i].initialized(j))
+                    {
+                        v3dSurfaceData vsd;
+                        vsd.s=surf[i][j];
+                        vsd.m=materials[j];
+                        if (j==0)
+                        {
+                            vsd.hasCenter=false;
+                        }
+                        else
+                        {
+                            vsd.hasCenter=true;
+                            vsd.center=centers[i-1];
+                        }
+                        vsdFinal.push(vsd);
+                    }
+                }
+            }
+        }
+        return vsdFinal;
+    }
 };
 
 void _test_fn_importv3d()
 {
     v3dfile xf=v3dfile("colorpatch.v3d");
-    surface[][] arrays = xf.process();
-    for (int i=0;i<arrays.length;++i)
+    v3dSurfaceData[] vsd=xf.generateSurfaceList();
+    for (v3dSurfaceData vs : vsd)
     {
-        for (int j=0;j<arrays[i].length;++j)
-        {
-            draw(arrays[i][j], xf.materials[j]);
-        }
+        draw(vs.s,vs.m);
     }
 }
 _test_fn_importv3d();
