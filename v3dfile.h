@@ -27,6 +27,7 @@ enum v3dTypes : uint32_t
   material_=1,
   transform_=2,
   element=3,
+  centers=4,
 
   line=64,
   triangle=65,
@@ -118,6 +119,9 @@ protected:
   void addIndices(uint32_t const* trip);
   void addTriples(triple const* triples, size_t n);
   void addColors(prc::RGBAColour const* col, size_t nc);
+
+  void closeFile();
+  void addCenters();
 
   xdr::oxstream xdrfile;
   bool finished;

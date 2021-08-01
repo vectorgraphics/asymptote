@@ -16,20 +16,31 @@ v3dfile::v3dfile(string const& name, open_mode mode) :
 
 v3dfile::~v3dfile()
 {
-  if (!finished)
-  {
-    finished = true;
-    xdrfile.close();
-  }
+  closeFile();
 }
 
 void v3dfile::close()
 {
+  closeFile();
+}
+
+void v3dfile::closeFile()
+{
   if (!finished)
   {
     finished = true;
+    addCenters();
     xdrfile.close();
   }
+}
+
+void v3dfile::addCenters()
+{
+  xdrfile << v3dTypes::centers;
+  auto nelem = static_cast<uint32_t>(drawElement::center.size());
+  xdrfile << nelem;
+  if (nelem > 0)
+    addTriples(drawElement::center.data(), nelem);
 }
 
 void v3dfile::addTriples(triple const* triples, size_t n)
