@@ -1193,6 +1193,8 @@ class MainWindow1(Qw.QMainWindow):
         return reply
         
     def actionClose(self):
+        if self.addMode:
+            self.addMode.forceFinalize()
         if self.fileChanged:
             reply = self.saveDialog()
             if reply == Qw.QMessageBox.Yes:
