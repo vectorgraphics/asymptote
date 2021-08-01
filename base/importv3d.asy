@@ -9,6 +9,7 @@ struct v3dtypes
   int material_=1;
   int transform_=2;
   int element=3;
+  int centers=4;
 
   int line=64;
   int triangle=65;
@@ -39,29 +40,21 @@ struct v3dtypes
 };
 v3dtypes v3dtype;
 
-struct v3dSurfaceData
-{
-    surface surf;
-    material mat;
-
-    void operator init(material m)
-    {
-        mat=m;
-        surf=new surface[];
-    }
-}
-
 struct v3dPatchData
 {
     patch p;
     int matId;
+    int centerIdx;
 }
 
 struct v3dfile
 {
     file _xdrfile;
     int fileversion;
-    v3dSurfaceData[] surf=new v3dSurfaceData[];
+    surface[][] surf=new surface[][];
+
+    material[] materials=new material[];
+    triple[] centers;
     bool processed=false;
 
     void operator init(string name)
@@ -107,6 +100,7 @@ struct v3dfile
         v3dPatchData vpd;
         vpd.p=patch(val);
         vpd.matId=matIdx;
+        vpd.centerIdx=centerIdx;
         return vpd;
     }
 
@@ -132,7 +126,21 @@ struct v3dfile
         v3dPatchData vpd;
         vpd.p=patch(val,triangular=true);
         vpd.matId=matIdx;
+        vpd.centerIdx=centerIdx;
         return vpd;
+    }
+
+    triple[] readCenters()
+    {
+        _xdrfile.singlereal(false);
+        _xdrfile.dimension(1);
+        int centerCount=_xdrfile;
+
+        _xdrfile.dimension(centerCount);
+        triple[] centersFetched=new triple[centerCount];
+        if (centerCount>0)
+            centersFetched=_xdrfile;
+        return centersFetched;
     }
 
     /*
@@ -192,7 +200,23 @@ struct v3dfile
 
 */
 
-    v3dSurfaceData[] process()
+    void addToSurfaceData(v3dPatchData vp)
+    {
+        if (!surf.initialized(vp.centerIdx))
+        {
+            surf[vp.centerIdx]=new surface[];
+        }
+
+        if (!surf[vp.centerIdx].initialized(vp.matId))
+        {
+            surface s;
+            surf[vp.centerIdx][vp.matId]=s;
+        }
+
+        surf[vp.centerIdx][vp.matId].push(vp.p);
+    }
+
+    surface[][] process()
     {
         if (processed)
         {
@@ -204,23 +228,19 @@ struct v3dfile
             int ty=getType();
             if (ty == v3dtype.material_)
             {
-                surf.push(v3dSurfaceData(this.readMaterial()));
+                materials.push(this.readMaterial());
             }
             else if (ty == v3dtype.bezierPatch)
             {
-                v3dPatchData vp=this.readBezierPatch();
-                if (vp.matId < surf.length)
-                {
-                    surf[vp.matId].surf.push(vp.p);
-                }
+                addToSurfaceData(this.readBezierPatch());
             }
             else if (ty == v3dtype.bezierTriangle)
             {
-                v3dPatchData vp=this.readBezierTriangle();
-                if (vp.matId < surf.length)
-                {
-                    surf[vp.matId].surf.push(vp.p);
-                }
+                addToSurfaceData(this.readBezierTriangle());
+            }
+            else if (ty == v3dtype.centers)
+            {
+                centers=this.readCenters();
             }
         }
 
@@ -232,9 +252,13 @@ struct v3dfile
 void _test_fn_importv3d()
 {
     v3dfile xf=v3dfile("BezierTriangle.v3d");
-    for (v3dSurfaceData sd : xf.process())
+    surface[][] arrays = xf.process();
+    for (int i=0;i<arrays.length;++i)
     {
-        draw(sd.surf,sd.mat);
+        for (int j=0;j<arrays[i].length;++j)
+        {
+            draw(arrays[i][j], xf.materials[j]);
+        }
     }
 }
-// _test_fn_importv3d();
+_test_fn_importv3d();
