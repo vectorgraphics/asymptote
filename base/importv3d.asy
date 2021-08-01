@@ -87,13 +87,50 @@ struct v3dfile
         return material(diffusePen,emissivePen,specularPen,1.0,shininess,metallic,F0);
     }
 
-    v3dPatchData readBezierPatch()
+    pen[] readColorData(int size=4)
+    {
+        _xdrfile.singlereal(false);
+        _xdrfile.dimension(4);
+        pen[] newPen=new pen[size];
+        for (int i=0;i<size;++i)
+        {
+            newPen[i]=rgba(_xdrfile);
+        }
+        return newPen;
+    }
+
+    triple[][] readRawPatchData()
     {
         triple[][] val=new triple[4][4];
         _xdrfile.singlereal(false);
         _xdrfile.dimension(4,4);
         val=_xdrfile;
+        return val;
+    }
 
+    triple[][] readRawTriangleData()
+    {
+        triple[][] val=new triple[][];
+        _xdrfile.singlereal(false);
+        _xdrfile.dimension(1);
+
+        for (int i=0;i<4;++i)
+        {
+            triple subval[] = new triple[i+1];
+            for (int j=0;j<=i;++j)
+            {
+                subval[j]=_xdrfile;
+            }
+            val.push(subval);
+        }
+        return val;
+    }
+
+    v3dPatchData readBezierPatch()
+    {
+        triple[][] val=readRawPatchData();
+        _xdrfile.singlereal(false);
+        _xdrfile.dimension(1);
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
 
@@ -106,20 +143,7 @@ struct v3dfile
 
     v3dPatchData readBezierTriangle()
     {
-        _xdrfile.singlereal(false);
-        _xdrfile.dimension(1);
-
-
-        triple[][] val=new triple[][];
-        for (int i=0;i<4;++i)
-        {
-            triple subval[] = new triple[i+1];
-            for (int j=0;j<=i;++j)
-            {
-                subval[j]=_xdrfile;
-            }
-            val.push(subval);
-        }
+        triple[][] val=readRawTriangleData();
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
 
@@ -143,62 +167,34 @@ struct v3dfile
         return centersFetched;
     }
 
-    /*
-    v3dSurfaceData readBezierPatchColor()
+    v3dPatchData readBezierPatchColor()
     {
-        triple[][] val;
-        _xdrfile.singlereal(false);
-        _xdrfile.dimension(4);
-        for (int i=0;i<4;++i)
-        {
-            val.push(_xdrfile);
-        }
-
-        pen[] col;
-        _xdrfile.dimension(4);
-        for (int i=0;i<4;++i)
-        {
-            pen[] coli;
-            for (int i=0; i<4; ++i)
-            {
-                coli.push(rgba(_xdrfile));
-            }
-            col.push(coli);
-        }
-
+        triple[][] val=readRawPatchData();
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
+        pen[] colData=readColorData(4);
 
-        v3dSurfaceData sd = v3dSurfaceData(surface(new triple[][][] {val}), mats[matIdx], centerIdx, col);
-        return sd;
+        v3dPatchData vpd;
+        vpd.p=patch(val,colors=colData);
+        vpd.matId=matIdx;
+        vpd.centerIdx=centerIdx;
+        return vpd;
     }
 
-    v3dSurfaceData readBezierTriangleColor()
+    v3dPatchData readBezierTriangleColor()
     {
-        triple[] val;
-        _xdrfile.singlereal(false);
-        _xdrfile.dimension(1);
-        for (int i=0;i<10;++i)
-        {
-            val.push(_xdrfile);
-        }
-
-        pen[] col;
-        _xdrfile.dimension(4);
-        for (int i=0;i<10;++i)
-        {
-            col.push(rgba(_xdrfile));
-        }
-
+        triple[][] val=readRawTriangleData();
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
+        pen[] colData=readColorData(3);
 
 
-        v3dSurfaceData sd = v3dSurfaceData(surface(val), mats[matIdx], centerIdx, col);
-        return sd;
+        v3dPatchData vpd;
+        vpd.p=patch(val,triangular=true,colors=colData);
+        vpd.matId=matIdx;
+        vpd.centerIdx=centerIdx;
+        return vpd;
     }
-
-*/
 
     void addToSurfaceData(v3dPatchData vp)
     {
@@ -206,13 +202,11 @@ struct v3dfile
         {
             surf[vp.centerIdx]=new surface[];
         }
-
         if (!surf[vp.centerIdx].initialized(vp.matId))
         {
             surface s;
             surf[vp.centerIdx][vp.matId]=s;
         }
-
         surf[vp.centerIdx][vp.matId].push(vp.p);
     }
 
@@ -238,9 +232,22 @@ struct v3dfile
             {
                 addToSurfaceData(this.readBezierTriangle());
             }
+            else if (ty == v3dtype.bezierPatchColor)
+            {
+                addToSurfaceData(this.readBezierPatchColor());
+            }
+            else if (ty == v3dtype.bezierTriangleColor)
+            {
+
+                addToSurfaceData(this.readBezierTriangleColor());
+            }
             else if (ty == v3dtype.centers)
             {
                 centers=this.readCenters();
+            }
+            else
+            {
+                write('Unknown Type.');
             }
         }
 
@@ -251,7 +258,7 @@ struct v3dfile
 
 void _test_fn_importv3d()
 {
-    v3dfile xf=v3dfile("BezierTriangle.v3d");
+    v3dfile xf=v3dfile("colorpatch.v3d");
     surface[][] arrays = xf.process();
     for (int i=0;i<arrays.length;++i)
     {
