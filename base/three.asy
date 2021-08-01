@@ -20,6 +20,27 @@ restricted real High=0.01;
 restricted int PRCsphere=0;   // Renders slowly but produces smaller PRC files.
 restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
 
+struct interaction
+{
+  int type;
+  triple center;  // position to rotate billboard objects about
+  bool targetsize;
+  static interaction defaultinteraction;
+
+  void operator init(interaction interaction=defaultinteraction,
+                     int type=interaction.type,
+                     triple center=interaction.center, bool targetsize=interaction.targetsize) {
+    this.type=type;
+    this.center=center;
+    this.targetsize=targetsize;
+  }
+}
+
+interaction.defaultinteraction=new interaction;
+
+restricted interaction Embedded=interaction();
+restricted interaction Billboard=interaction(1);
+
 struct render
 {
   // PRC parameters:
@@ -41,19 +62,21 @@ struct render
 
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
+  interaction interaction; // billboard interaction mode
 
   static render defaultrender;
   
-  void operator init(real compression=defaultrender.compression,
-                     real granularity=defaultrender.granularity,
-                     bool closed=defaultrender.closed,
-                     bool tessellate=defaultrender.tessellate,
-                     bool3 merge=defaultrender.merge,
-                     int sphere=defaultrender.sphere,
-                     real margin=defaultrender.margin,
-                     bool labelfill=defaultrender.labelfill,
-                     bool partnames=defaultrender.partnames,
-                     bool defaultnames=defaultrender.defaultnames)
+  void operator init(render render=defaultrender, real compression=render.compression,
+                     real granularity=render.granularity,
+                     bool closed=render.closed,
+                     bool tessellate=render.tessellate,
+                     bool3 merge=render.merge,
+                     int sphere=render.sphere,
+                     real margin=render.margin,
+                     bool labelfill=render.labelfill,
+                     bool partnames=render.partnames,
+                     bool defaultnames=render.defaultnames,
+                     interaction interaction=render.interaction)
   {
     this.compression=compression;
     this.granularity=granularity;
@@ -65,6 +88,7 @@ struct render
     this.labelfill=labelfill;
     this.partnames=partnames;
     this.defaultnames=defaultnames;
+    this.interaction=interaction;
   }
 }
 
@@ -81,6 +105,7 @@ defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
 defaultrender.partnames=false;
 defaultrender.defaultnames=true;
+defaultrender.interaction=Embedded;
 
 real defaultshininess=0.7;
 real defaultmetallic=0.0;
@@ -2102,21 +2127,19 @@ void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", render render=defaultrender,
           projection P=currentprojection);
 
-void begingroup3(frame f, string name="", render render=defaultrender,
-                 triple center=O, int interaction=0)
+void begingroup3(frame f, string name="", render render=defaultrender)
 {
   _begingroup3(f,name,render.compression,render.granularity,render.closed,
                render.tessellate,render.merge == false,
-               render.merge == true,center,interaction);
+               render.merge == true,render.interaction.center,render.interaction.type);
 }
 
 void begingroup3(picture pic=currentpicture, string name="",
-                 render render=defaultrender,
-                 triple center=O, int interaction=0)
+                 render render=defaultrender)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup3(f,name,render,center,interaction);
+        begingroup3(f,name,render);
       if(pic != null)
         begingroup(pic);
     },true);
