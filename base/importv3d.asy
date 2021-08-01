@@ -281,14 +281,10 @@ struct v3dfile
                         v3dSurfaceData vsd;
                         vsd.s=surf[i][j];
                         vsd.m=materials[j];
-                        if (j==0)
-                        {
-                            vsd.hasCenter=false;
-                        }
-                        else
-                        {
-                            vsd.hasCenter=true;
-                            vsd.center=centers[i-1];
+                        vsd.hasCenter=i > 0;
+                        if(vsd.hasCenter) {
+                          vsd.hasCenter=true;
+                          vsd.center=centers[i-1];
                         }
                         vsdFinal.push(vsd);
                     }
@@ -299,13 +295,12 @@ struct v3dfile
     }
 };
 
-void _test_fn_importv3d()
+void _test_fn_importv3d(string name)
 {
-    v3dfile xf=v3dfile("colorpatch.v3d");
-    v3dSurfaceData[] vsd=xf.generateSurfaceList();
-    for (v3dSurfaceData vs : vsd)
-    {
-        draw(vs.s,vs.m);
-    }
+  v3dfile xf=v3dfile(name);
+  v3dSurfaceData[] vsd=xf.generateSurfaceList();
+  for(v3dSurfaceData vs : vsd)
+    draw(vs.s,vs.m,render(interaction(vs.hasCenter ? Billboard : Embedded,center=vs.center)));
 }
-_test_fn_importv3d();
+
+//_test_fn_importv3d("colorpatch.v3d");
