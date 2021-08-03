@@ -47,6 +47,20 @@ struct v3dPatchData
     int centerIdx;
 }
 
+struct v3dSingleSuface
+{
+    surface s;
+    int matId;
+    int centerIdx;
+}
+
+struct v3dPath
+{
+    path3 p;
+    int matId;
+    int centerIdx;
+}
+
 struct v3dSurfaceData
 {
     bool hasCenter;
@@ -55,11 +69,39 @@ struct v3dSurfaceData
     surface s;
 }
 
+struct v3dTrianglesCollection
+{
+    triple[] positions;
+    triple[] normals;
+
+    int[][] posIndices;
+
+    bool usePosIdxAsNorm;
+    int[][] normIndices;
+
+}
+
+struct v3dColorTrianglesCollection
+{
+    v3dTrianglesCollection base;
+    pen[] colors;
+    bool usePosIdxAsColor;
+
+    int[][] colorIndices;
+}
+
+v3dTrianglesCollection operator cast(v3dColorTrianglesCollection vctc)
+{
+    return vctc.base;
+}
+
 struct v3dfile
 {
     file _xdrfile;
     int fileversion;
     surface[][] surf=new surface[][];
+    path3[][][] paths=new path3[][][];
+
 
     material[] materials=new material[];
     triple[] centers;
@@ -204,6 +246,122 @@ struct v3dfile
         return vpd;
     }
 
+    v3dSingleSuface readSphere()
+    {
+        _xdrfile.singlereal(false);
+        triple center=_xdrfile;
+        real radius=_xdrfile;
+
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+
+        v3dSingleSuface vss;
+        vss.s=shift(center)*scale3(radius)*unitsphere;
+        vss.matId=matIdx;
+        vss.centerIdx=centerIdx;
+        return vss;
+    }
+
+    v3dSingleSuface readHalfSphere()
+    {
+        _xdrfile.singlereal(false);
+        triple center=_xdrfile;
+        real radius=_xdrfile;
+
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+
+        real polar=_xdrfile;
+        real azimuth=_xdrfile;
+
+        v3dSingleSuface vss;
+        vss.s=shift(center)*align(dir(polar,azimuth))*scale3(radius)*unithemisphere;
+        vss.matId=matIdx;
+        vss.centerIdx=centerIdx;
+        return vss;
+    }
+
+    v3dSingleSuface readCylinder()
+    {
+        _xdrfile.singlereal(false);
+        triple center=_xdrfile;
+        real radius=_xdrfile;
+        real height=_xdrfile;
+
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+
+        real polar=_xdrfile;
+        real azimuth=_xdrfile;
+
+        v3dSingleSuface vss;
+        vss.s=shift(center)*align(dir(polar,azimuth))*scale(radius,radius,height)*unitcylinder;
+        vss.matId=matIdx;
+        vss.centerIdx=centerIdx;
+
+        return vss;
+    }
+
+
+    void addToPathData(v3dPath vp)
+    {
+        if (!surf.initialized(vp.centerIdx))
+        {
+            paths[vp.centerIdx]=new path3[][];
+        }
+        if (!surf[vp.centerIdx].initialized(vp.matId))
+        {
+            paths[vp.centerIdx][vp.matId]=new path3[];
+        }
+        paths[vp.centerIdx][vp.matId].push(vp.p);
+    }
+
+
+    v3dSingleSuface readTube()
+    {
+        _xdrfile.singlereal(false);
+        triple[] g=new triple[4];
+        _xdrfile.dimension(4);
+        g=_xdrfile;
+
+        real width=_xdrfile;
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+        triple Min=_xdrfile;
+        triple Max=_xdrfile;
+
+        bool core=_xdrfile;
+
+        if (core)
+        {
+            v3dPath vp;
+            vp.p=g[0]..g[1]..g[2]..g[3];
+            vp.matId=matIdx;
+            vp.centerIdx=centerIdx;
+            addToPathData(vp);
+        }
+
+        v3dSingleSuface vss;
+        vss.s=tube(g[0],g[1],g[2],g[3],width);
+        vss.matId=matIdx;
+        vss.centerIdx=centerIdx;
+        return vss;
+    }
+
+    void addToSurfaceData(v3dSingleSuface vp)
+    {
+        if (!surf.initialized(vp.centerIdx))
+        {
+            surf[vp.centerIdx]=new surface[];
+        }
+        if (!surf[vp.centerIdx].initialized(vp.matId))
+        {
+            surface s;
+            surf[vp.centerIdx][vp.matId]=s;
+        }
+        surf[vp.centerIdx][vp.matId].append(vp.s);
+    }
+
     void addToSurfaceData(v3dPatchData vp)
     {
         if (!surf.initialized(vp.centerIdx))
@@ -247,6 +405,22 @@ struct v3dfile
             else if (ty == v3dtype.bezierTriangleColor)
             {
                 addToSurfaceData(this.readBezierTriangleColor());
+            }
+            else if (ty == v3dtype.sphere)
+            {
+                addToSurfaceData(this.readSphere());
+            }
+            else if (ty == v3dtype.halfSphere)
+            {
+                addToSurfaceData(this.readHalfSphere());
+            }
+            else if (ty == v3dtype.cylinder)
+            {
+                addToSurfaceData(this.readCylinder());
+            }
+            else if (ty == v3dtype.tube)
+            {
+                addToSurfaceData(this.readTube());
             }
             else if (ty == v3dtype.centers)
             {
@@ -298,7 +472,7 @@ void _test_fn_importv3d(string name)
   v3dfile xf=v3dfile(name);
   v3dSurfaceData[] vsd=xf.generateSurfaceList();
   for(v3dSurfaceData vs : vsd)
-    draw(vs.s,vs.m,render(interaction(vs.hasCenter ? Billboard : Embedded,center=vs.center)));
+    draw(vs.s,vs.m); // ,render(interaction(vs.hasCenter ? Billboard : Embedded,center=vs.center)));
 }
 
-//_test_fn_importv3d("colorpatch.v3d");
+_test_fn_importv3d("sph.v3d");
