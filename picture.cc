@@ -1344,7 +1344,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #endif
 
-  if(!(webgl || v3dfmt)) {
+    bool fmt3d=webgl||v3dfmt;
+
+    if(!fmt3d) {
 #ifdef HAVE_GL
     if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
@@ -1404,9 +1406,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
            background,nlights,lights,diffuse,specular,View,oldpid);
 
-  bool threedfmt=webgl||v3dfmt;
-
-  if (threedfmt)
+  if (fmt3d)
   {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj;
@@ -1431,6 +1431,8 @@ bool picture::shipout3(const string& prefix, const string& format,
 
     if(webgl && View)
       htmlView(name);
+
+    return true;
   }
 #endif
 

@@ -282,10 +282,8 @@ struct v3dfile
                         vsd.s=surf[i][j];
                         vsd.m=materials[j];
                         vsd.hasCenter=i > 0;
-                        if(vsd.hasCenter) {
-                          vsd.hasCenter=true;
+                        if(vsd.hasCenter)
                           vsd.center=centers[i-1];
-                        }
                         vsdFinal.push(vsd);
                     }
                 }
