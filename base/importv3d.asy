@@ -254,7 +254,7 @@ struct v3dfile
             }
             else
             {
-                write('Unknown Type.');
+              //                write('Unknown Type.');
             }
         }
 
