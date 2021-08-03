@@ -104,11 +104,13 @@ class SelectionMode:
     addCircle = 13
     addLabel = 14
     addFreehand = 15
+    addSphere = 16
 
 class AddObjectMode:
     Circle = 0
     Arc = 1
     Polygon = 2
+    Sphere = 3
 
 class MainWindow1(Qw.QMainWindow):
     defaultFrameStyle = """
@@ -240,8 +242,8 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.btnPan, self.ui.btnDeleteMode, self.ui.btnAnchor, 
             self.ui.btnSelectEdit, self.ui.btnOpenPoly, self.ui.btnClosedPoly,
             self.ui.btnOpenCurve, self.ui.btnClosedCurve, self.ui.btnAddPoly,
-            self.ui.btnAddCircle, self.ui.btnAddLabel, self.ui.btnAddFreehand
-                            }
+            self.ui.btnAddCircle, self.ui.btnAddLabel, self.ui.btnAddFreehand,
+            self.ui.btnAddSphere}
 
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
                            self.ui.btnSendBackwards, self.ui.btnToggleVisible
@@ -521,6 +523,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
 
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
+        self.ui.btnAddSphere.clicked.connect(self.btnAddSphereOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
         self.ui.btnAddFreehand.clicked.connect(self.btnAddFreehandOnClick)
@@ -713,6 +716,15 @@ class MainWindow1(Qw.QMainWindow):
             self.currentModeStack = [SelectionMode.addCircle]
             self.addMode = InplaceAddObj.AddCircle(self)
             self.ui.statusbar.showMessage('Add circle on click')
+            self.updateOptionWidget()
+        else:
+            self.btnTranslateonClick()
+
+    def btnAddSphereOnClick(self):
+        if self.currentModeStack[-1] != SelectionMode.addSphere:
+            self.currentModeStack = [SelectionMode.addSphere]
+            self.addMode = InplaceAddObj.AddSphere(self)
+            self.ui.statusbar.showMessage('Add sphere on click')
             self.updateOptionWidget()
         else:
             self.btnTranslateonClick()
@@ -2110,6 +2122,8 @@ class MainWindow1(Qw.QMainWindow):
             activeBtn = self.ui.btnAddLabel
         elif self.currentModeStack[-1] == SelectionMode.addFreehand:
             activeBtn = self.ui.btnAddFreehand
+        elif self.currentModeStack[-1] == SelectionMode.addSphere:
+            activeBtn = self.ui.btnAddSphere
         else:
             activeBtn = None
 
