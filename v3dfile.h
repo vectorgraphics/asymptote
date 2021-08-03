@@ -1,6 +1,9 @@
-//
-// Created by Supakorn on 7/24/2021.
-//
+/*
+ * v3dfile.h
+ * Header file for v3d export and types
+ * Written by: Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com> \
+ *   and John C. Bowman <bowman@ualberta.ca>
+ */
 
 #ifndef V3DFILE_H
 #define V3DFILE_H
@@ -57,6 +60,7 @@ enum v3dTypes : uint32_t
   animation=2048,
 
 //element2D=3072,
+  pixel_=4096,
 };
 
 enum v3dTriangleIndexType : uint32_t

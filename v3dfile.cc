@@ -1,6 +1,9 @@
-//
-// Created by Supakorn on 7/24/2021.
-//
+/*
+ * v3dfile.cc
+ * V3D Export class
+ * Written by: Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com> \
+ *   and John C. Bowman <bowman@ualberta.ca>
+ */
 
 #include "v3dfile.h"
 #include "drawelement.h"
@@ -230,17 +233,24 @@ void v3dfile::addIndices(uint32_t const* v)
 void v3dfile::addCurve(triple const& z0, triple const& c0, triple const& c1, triple const& z1, triple const& Min,
                        triple const& Max)
 {
-  // FIXME: To be done
+  xdrfile << v3dTypes::curve << z0 << c0 << c1 << z1;
+  addCenterIndexMat();
+  xdrfile << Min << Max;
+
 }
 
 void v3dfile::addCurve(triple const& z0, triple const& z1, triple const& Min, triple const& Max)
 {
-  // FIXME: To be done
+  xdrfile << v3dTypes::line << z0 << z1;
+  addCenterIndexMat();
+  xdrfile << Min << Max;
 }
 
 void v3dfile::addPixel(triple const& z0, double width, triple const& Min, triple const& Max)
 {
- // FIXME: To be done
+ xdrfile << v3dTypes::pixel_ << z0 << width;
+ xdrfile << materialIndex;
+ xdrfile << Min << Max;
 }
 
 void v3dfile::precision(int digits)
