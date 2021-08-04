@@ -40,8 +40,8 @@ void v3dfile::closeFile()
 void v3dfile::addCenters()
 {
   xdrfile << v3dTypes::centers;
-  auto nelem = static_cast<uint32_t>(drawElement::center.size());
-  xdrfile << nelem;
+  size_t nelem=drawElement::center.size();
+  xdrfile << (uint32_t) nelem;
   if (nelem > 0)
     addTriples(drawElement::center.data(), nelem);
 }
@@ -75,7 +75,7 @@ void v3dfile::addPatch(triple const* controls, triple const& Min,
 void v3dfile::addStraightPatch(triple const* controls, triple const& Min,
                        triple const& Max, prc::RGBAColour const* c)
 {
-
+  return;
   xdrfile << (c == nullptr ? v3dTypes::quad : v3dTypes::quadColor);
   addTriples(controls, 4);
   addCenterIndexMat();
@@ -89,7 +89,6 @@ void v3dfile::addStraightPatch(triple const* controls, triple const& Min,
 void v3dfile::addBezierTriangle(triple const* controls, triple const& Min,
                        triple const& Max, prc::RGBAColour const* c)
 {
-
   xdrfile << (c == nullptr ? v3dTypes::bezierTriangle : v3dTypes::bezierTriangleColor);
   addTriples(controls, 10);
   addCenterIndexMat();
@@ -103,6 +102,7 @@ void v3dfile::addBezierTriangle(triple const* controls, triple const& Min,
 void v3dfile::addStraightBezierTriangle(triple const* controls, triple const& Min,
                        triple const& Max, prc::RGBAColour const* c)
 {
+  return;
   xdrfile << (c == nullptr ? v3dTypes::triangle : v3dTypes::triangleColor);
   addTriples(controls, 3);
   addCenterIndexMat();
@@ -124,7 +124,7 @@ void v3dfile::addMaterial(Material const& mat)
 
 void v3dfile::addCenterIndexMat()
 {
-  xdrfile << drawElement::centerIndex << materialIndex;
+  xdrfile << (uint32_t) drawElement::centerIndex << (uint32_t) materialIndex;
 }
 
 void v3dfile::addvec4(glm::vec4 const& vec)
@@ -222,7 +222,7 @@ void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* 
     }
   }
 
-  xdrfile << materialIndex << Min << Max;
+  xdrfile << (uint32_t) materialIndex << Min << Max;
 }
 
 void v3dfile::addIndices(uint32_t const* v)
@@ -249,7 +249,7 @@ void v3dfile::addCurve(triple const& z0, triple const& z1, triple const& Min, tr
 void v3dfile::addPixel(triple const& z0, double width, triple const& Min, triple const& Max)
 {
  xdrfile << v3dTypes::pixel_ << z0 << width;
- xdrfile << materialIndex;
+ xdrfile << (uint32_t) materialIndex;
  xdrfile << Min << Max;
 }
 

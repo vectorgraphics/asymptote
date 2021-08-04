@@ -21,7 +21,7 @@ unsigned int type [material,transform,element,
                          lineColor,triangleColor,quadColor,curveColor,
                          bezierTriangleColor,bezierPatchColor]
 MATERIAL:
-index
+unsigned int index
 float[4] diffuse
 float[4] emissive
 float[4] specular
@@ -30,7 +30,7 @@ float metallic
 float fresnel0
 
 TRANSFORM:
-index
+unsigned int index
 double[16] 4x4 array
 
 VERTEX:
@@ -43,8 +43,8 @@ double x,y,z
 float r,g,b,a
 
 MATERIAL ELEMENT:
-index
-material index
+unsigned int center index
+unsigned int material index
 double control point
 ...
 

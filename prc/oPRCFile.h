@@ -93,7 +93,7 @@ struct RGBAColour
 #ifdef HAVE_RPC_RPC_H
   friend xdr::oxstream& operator<<(xdr::oxstream& out, RGBAColour const& col)
   {
-    out << col.R << col.G << col.B << col.A;
+    out << (float) col.R << (float) col.G << (float) col.B << (float) col.A;
     return out;
   }
 #endif

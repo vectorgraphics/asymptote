@@ -120,6 +120,11 @@ v3dTrianglesCollection operator cast(v3dColorTrianglesCollection vctc)
     return vctc.base;
 }
 
+transform3 Align(real polar, real azimuth)
+{
+  return align(dir(degrees(polar),degrees(azimuth)));
+}
+
 struct v3dfile
 {
     file _xdrfile;
@@ -179,7 +184,6 @@ struct v3dfile
     triple[][] readRawPatchData()
     {
         triple[][] val=new triple[4][4];
-        _xdrfile.singlereal(false);
         _xdrfile.dimension(4,4);
         val=_xdrfile;
         return val;
@@ -188,8 +192,6 @@ struct v3dfile
     triple[][] readRawTriangleData()
     {
         triple[][] val=new triple[][];
-        _xdrfile.singlereal(false);
-        _xdrfile.dimension(1);
 
         for (int i=0;i<4;++i)
         {
@@ -206,8 +208,6 @@ struct v3dfile
     v3dPatchData readBezierPatch()
     {
         triple[][] val=readRawPatchData();
-        _xdrfile.singlereal(false);
-        _xdrfile.dimension(1);
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
 
@@ -233,12 +233,9 @@ struct v3dfile
 
     triple[] readCenters()
     {
-        _xdrfile.singlereal(false);
-        _xdrfile.dimension(1);
         int centerCount=_xdrfile;
-
         _xdrfile.dimension(centerCount);
-        triple[] centersFetched=new triple[centerCount];
+        triple[] centersFetched;
         if (centerCount>0)
             centersFetched=_xdrfile;
         return centersFetched;
@@ -274,7 +271,6 @@ struct v3dfile
 
     v3dSingleSuface readSphere()
     {
-        _xdrfile.singlereal(false);
         triple center=_xdrfile;
         real radius=_xdrfile;
 
@@ -290,7 +286,6 @@ struct v3dfile
 
     v3dSingleSuface readHalfSphere()
     {
-        _xdrfile.singlereal(false);
         triple center=_xdrfile;
         real radius=_xdrfile;
 
@@ -301,7 +296,7 @@ struct v3dfile
         real azimuth=_xdrfile;
 
         v3dSingleSuface vss;
-        vss.s=shift(center)*align(dir(polar,azimuth))*scale3(radius)*unithemisphere;
+        vss.s=shift(center)*Align(polar,azimuth)*scale3(radius)*unithemisphere;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
         return vss;
@@ -309,7 +304,6 @@ struct v3dfile
 
     v3dSingleSuface readCylinder()
     {
-        _xdrfile.singlereal(false);
         triple center=_xdrfile;
         real radius=_xdrfile;
         real height=_xdrfile;
@@ -320,8 +314,10 @@ struct v3dfile
         real polar=_xdrfile;
         real azimuth=_xdrfile;
 
+        int core=_xdrfile;
+
         v3dSingleSuface vss;
-        vss.s=shift(center)*align(dir(polar,azimuth))*scale(radius,radius,height)*unitcylinder;
+        vss.s=shift(center)*Align(polar,azimuth)*scale(radius,radius,height)*unitcylinder;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
 
@@ -330,7 +326,6 @@ struct v3dfile
 
     v3dSingleSuface readDisk()
     {
-        _xdrfile.singlereal(false);
         triple center=_xdrfile;
         real radius=_xdrfile;
 
@@ -341,7 +336,7 @@ struct v3dfile
         real azimuth=_xdrfile;
 
         v3dSingleSuface vss;
-        vss.s=shift(center)*align(dir(polar,azimuth))*scale3(radius)*unitdisk;
+        vss.s=shift(center)*Align(polar,azimuth)*scale3(radius)*unitdisk;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
 
@@ -381,7 +376,6 @@ struct v3dfile
 
     v3dSingleSuface readTube()
     {
-        _xdrfile.singlereal(false);
         triple[] g=new triple[4];
         _xdrfile.dimension(4);
         g=_xdrfile;
@@ -392,9 +386,9 @@ struct v3dfile
         triple Min=_xdrfile;
         triple Max=_xdrfile;
 
-        bool core=_xdrfile;
+        int core=_xdrfile;
 
-        if (core)
+        if (core != 0)
         {
             v3dPath vp;
             vp.p=g[0]..g[1]..g[2]..g[3];
@@ -431,7 +425,6 @@ struct v3dfile
 
     v3dPath readLine()
     {
-        _xdrfile.singlereal(false);
         _xdrfile.dimension(2);
         triple[] points=new triple[2];
         points=_xdrfile;
@@ -452,7 +445,6 @@ struct v3dfile
     {
         v3dTriangleGroup vtg;
 
-        _xdrfile.singlereal(false);
         int nP=_xdrfile;
         _xdrfile.dimension(nP);
         vtg.c.positions=new triple[nP];
@@ -471,7 +463,6 @@ struct v3dfile
             colors=readColorData(nC);
         }
 
-        _xdrfile.singlereal(false);
         int nI=_xdrfile;
         vtg.c.posIndices=new int[nI][3];
         vtg.c.normIndices=new int[nI][3];
@@ -539,7 +530,6 @@ struct v3dfile
 
     v3dPixelInfoGroup readPixel()
     {
-        _xdrfile.singlereal(false);
         v3dPixelInfoGroup vpig;
         vpig.vpi.point=_xdrfile;
         vpig.vpi.width=_xdrfile;
@@ -695,7 +685,7 @@ void _test_fn_importv3d(string name)
   v3dfile xf=v3dfile(name);
   v3dSurfaceData[] vsd=xf.generateSurfaceList();
   for(v3dSurfaceData vs : vsd)
-    draw(vs.s,vs.m); // ,render(interaction(vs.hasCenter ? Billboard : Embedded,center=vs.center)));
+    draw(vs.s,vs.m,render(interaction(vs.hasCenter ? Billboard : Embedded,center=vs.center)));
 }
 
 // _test_fn_importv3d("sph.v3d");
