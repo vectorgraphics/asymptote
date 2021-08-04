@@ -94,6 +94,8 @@ struct v3dTrianglesData
 
     pen[] colors;
     int[][] colorIndices;
+
+    material m;
 }
 
 struct v3dTrianglesCollection
@@ -103,13 +105,47 @@ struct v3dTrianglesCollection
 
     int[][] posIndices;
     int[][] normIndices;
+
+    v3dTrianglesData tov3dTrianglesData()
+    {
+        v3dTrianglesData vtd;
+        vtd.positions=positions;
+        vtd.normals=normals;
+        vtd.posIndices=posIndices;
+        vtd.normIndices=normIndices;
+
+        vtd.colors=null;
+        vtd.colorIndices=null;
+        return vtd;
+    }
 }
+
 
 struct v3dColorTrianglesCollection
 {
     v3dTrianglesCollection base;
     pen[] colors;
     int[][] colorIndices;
+
+    v3dTrianglesData tov3dTrianglesData()
+    {
+        v3dTrianglesData vtd;
+        vtd.positions=base.positions;
+        vtd.normals=base.normals;
+        vtd.posIndices=base.posIndices;
+        vtd.normIndices=base.normIndices;
+
+        vtd.colors=colors;
+        vtd.colorIndices=colorIndices;
+        return vtd;
+    }
+
+    base.tov3dTrianglesData=tov3dTrianglesData;
+}
+
+v3dTrianglesCollection operator cast(v3dColorTrianglesCollection vctc)
+{
+    return vctc.base;
 }
 
 struct v3dTriangleGroup
@@ -118,10 +154,7 @@ struct v3dTriangleGroup
     int matId;
 }
 
-v3dTrianglesCollection operator cast(v3dColorTrianglesCollection vctc)
-{
-    return vctc.base;
-}
+
 
 transform3 Align(real polar, real azimuth)
 {
@@ -873,6 +906,29 @@ struct v3dfile
             }
         }
         return vpdFinal;
+    }
+
+    v3dTrianglesData[] generateTrianglesList()
+    {
+        if (!processed)
+        {
+            process();
+        }
+
+        v3dTrianglesData[] vtdFinal;
+        for (int j=0;j<triangles.length;++j)
+        {
+            if (triangles.initialized(j))
+            {
+                for (v3dTrianglesCollection pi: triangles[j])
+                {
+                    v3dTrianglesData vtd=pi.tov3dTrianglesData();
+                    vtd.m=materials[j];
+                    vtdFinal.push(vtd);
+                }
+            }
+        }
+        return vtdFinal;
     }
 };
 
