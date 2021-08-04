@@ -70,6 +70,7 @@ void v3dfile::addPatch(triple const* controls, triple const& Min,
   {
     addColors(c, 4);
   }
+  xdrfile << Min << Max;
 }
 
 void v3dfile::addStraightPatch(triple const* controls, triple const& Min,
@@ -83,6 +84,7 @@ void v3dfile::addStraightPatch(triple const* controls, triple const& Min,
   {
     addColors(c, 4);
   }
+  xdrfile << Min << Max;
 }
 
 void v3dfile::addBezierTriangle(triple const* controls, triple const& Min,
@@ -96,6 +98,7 @@ void v3dfile::addBezierTriangle(triple const* controls, triple const& Min,
   {
     addColors(c, 3);
   }
+  xdrfile << Min << Max;
 }
 
 void v3dfile::addStraightBezierTriangle(triple const* controls, triple const& Min,
@@ -109,6 +112,7 @@ void v3dfile::addStraightBezierTriangle(triple const* controls, triple const& Mi
   {
     addColors(c, 3);
   }
+  xdrfile << Min << Max;
 }
 
 void v3dfile::addMaterial(Material const& mat)
