@@ -343,6 +343,78 @@ struct v3dfile
         return vss;
     }
 
+    v3dPatchData readQuad()
+    {
+        triple[] val;
+        _xdrfile.dimension(4);
+        val=_xdrfile;
+
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+
+        v3dPatchData vpd;
+        vpd.p=patch(val);
+        vpd.matId=matIdx;
+        vpd.centerIdx=centerIdx;
+
+        return vpd;
+    }
+
+    v3dPatchData readQuadColor()
+    {
+        triple[] val;
+        _xdrfile.dimension(4);
+        val=_xdrfile;
+
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+
+        pen[] colData=readColorData(4);
+
+        v3dPatchData vpd;
+        vpd.p=patch(val,colors=colData);
+        vpd.matId=matIdx;
+        vpd.centerIdx=centerIdx;
+
+        return vpd;
+    }
+
+    v3dPatchData readTriangle()
+    {
+        triple[] val;
+        _xdrfile.dimension(3);
+        val=_xdrfile;
+
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+
+        v3dPatchData vpd;
+        vpd.p=patch(val[0]--val[1]--val[2]--cycle);
+        vpd.matId=matIdx;
+        vpd.centerIdx=centerIdx;
+
+        return vpd;
+    }
+
+    v3dPatchData readTriangleColor()
+    {
+        triple[] val;
+        _xdrfile.dimension(3);
+        val=_xdrfile;
+
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+
+        pen[] colData=readColorData(3);
+
+        v3dPatchData vpd;
+        vpd.p=patch(val[0]--val[1]--val[2]--cycle,colors=colData);
+        vpd.matId=matIdx;
+        vpd.centerIdx=centerIdx;
+
+        return vpd;
+    }
+
     void addToPathData(v3dPath vp)
     {
         if (!paths.initialized(vp.centerIdx))
@@ -598,6 +670,22 @@ struct v3dfile
             else if (ty == v3dtype.bezierTriangleColor)
             {
                 addToSurfaceData(this.readBezierTriangleColor());
+            }
+            else if (ty == v3dtype.quad)
+            {
+                addToSurfaceData(this.readQuad());
+            }
+            else if (ty == v3dtype.quadColor)
+            {
+                addToSurfaceData(this.readQuadColor());
+            }
+            else if (ty == v3dtype.triangle)
+            {
+                addToSurfaceData(this.readTriangle());
+            }
+            else if (ty == v3dtype.triangleColor)
+            {
+                addToSurfaceData(this.readTriangleColor());
             }
             else if (ty == v3dtype.sphere)
             {

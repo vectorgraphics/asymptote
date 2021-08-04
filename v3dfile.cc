@@ -75,7 +75,6 @@ void v3dfile::addPatch(triple const* controls, triple const& Min,
 void v3dfile::addStraightPatch(triple const* controls, triple const& Min,
                        triple const& Max, prc::RGBAColour const* c)
 {
-  return;
   xdrfile << (c == nullptr ? v3dTypes::quad : v3dTypes::quadColor);
   addTriples(controls, 4);
   addCenterIndexMat();
@@ -102,7 +101,6 @@ void v3dfile::addBezierTriangle(triple const* controls, triple const& Min,
 void v3dfile::addStraightBezierTriangle(triple const* controls, triple const& Min,
                        triple const& Max, prc::RGBAColour const* c)
 {
-  return;
   xdrfile << (c == nullptr ? v3dTypes::triangle : v3dTypes::triangleColor);
   addTriples(controls, 3);
   addCenterIndexMat();
