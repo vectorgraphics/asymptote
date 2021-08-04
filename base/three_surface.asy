@@ -1516,8 +1516,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   bool is3D=is3D();
   if(is3D) {
     bool prc=prc();
-    if(s.draw != null && (settings.outformat == "html" ||
-                          (prc && s.PRCprimitive))) {
+    if(s.draw != null && (primitive() || (prc && s.PRCprimitive))) {
       for(int k=0; k < s.s.length; ++k)
         draw3D(f,s.s[k],surfacepen[k],light,render,primitive=true);
       s.draw(f,s.T,surfacepen,light,render);
