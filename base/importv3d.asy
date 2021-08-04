@@ -70,7 +70,7 @@ struct v3dPixelInfoGroup
     int matId;
 }
 
-struct v3dSingleSuface
+struct v3dSingleSurface
 {
     surface s;
     int matId;
@@ -281,7 +281,7 @@ struct v3dfile
         return vpd;
     }
 
-    v3dSingleSuface readSphere()
+    v3dSingleSurface readSphere()
     {
         triple center=_xdrfile;
         real radius=_xdrfile;
@@ -289,14 +289,14 @@ struct v3dfile
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
 
-        v3dSingleSuface vss;
+        v3dSingleSurface vss;
         vss.s=shift(center)*scale3(radius)*unitsphere;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
         return vss;
     }
 
-    v3dSingleSuface readHalfSphere()
+    v3dSingleSurface readHalfSphere()
     {
         triple center=_xdrfile;
         real radius=_xdrfile;
@@ -307,14 +307,14 @@ struct v3dfile
         real polar=_xdrfile;
         real azimuth=_xdrfile;
 
-        v3dSingleSuface vss;
+        v3dSingleSurface vss;
         vss.s=shift(center)*Align(polar,azimuth)*scale3(radius)*unithemisphere;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
         return vss;
     }
 
-    v3dSingleSuface readCylinder()
+    v3dSingleSurface readCylinder()
     {
         triple center=_xdrfile;
         real radius=_xdrfile;
@@ -328,7 +328,7 @@ struct v3dfile
 
         int core=_xdrfile;
 
-        v3dSingleSuface vss;
+        v3dSingleSurface vss;
         vss.s=shift(center)*Align(polar,azimuth)*scale(radius,radius,height)*unitcylinder;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
@@ -336,7 +336,7 @@ struct v3dfile
         return vss;
     }
 
-    v3dSingleSuface readDisk()
+    v3dSingleSurface readDisk()
     {
         triple center=_xdrfile;
         real radius=_xdrfile;
@@ -347,7 +347,7 @@ struct v3dfile
         real polar=_xdrfile;
         real azimuth=_xdrfile;
 
-        v3dSingleSuface vss;
+        v3dSingleSurface vss;
         vss.s=shift(center)*Align(polar,azimuth)*scale3(radius)*unitdisk;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
@@ -470,7 +470,7 @@ struct v3dfile
         pixels[vpig.matId].push(vpig.vpi);
     }
 
-    v3dSingleSuface readTube()
+    v3dSingleSurface readTube()
     {
         triple[] g=new triple[4];
         _xdrfile.dimension(4);
@@ -493,7 +493,7 @@ struct v3dfile
             addToPathData(vp);
         }
 
-        v3dSingleSuface vss;
+        v3dSingleSurface vss;
         vss.s=tube(g[0],g[1],g[2],g[3],width);
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
@@ -637,7 +637,7 @@ struct v3dfile
         return vpig;
     }
 
-    void addToSurfaceData(v3dSingleSuface vp)
+    void addToSurfaceData(v3dSingleSurface vp)
     {
         if (!surf.initialized(vp.centerIdx))
         {
