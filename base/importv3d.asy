@@ -84,12 +84,16 @@ struct v3dPath
     int centerIdx;
 }
 
-struct v3dSurfaceData
+struct v3dTrianglesData
 {
-    bool hasCenter;
-    triple center;
-    material m;
-    surface s;
+    triple[] positions;
+    triple[] normals;
+
+    int[][] posIndices;
+    int[][] normIndices;
+
+    pen[] colors;
+    int[][] colorIndices;
 }
 
 struct v3dTrianglesCollection
@@ -99,7 +103,6 @@ struct v3dTrianglesCollection
 
     int[][] posIndices;
     int[][] normIndices;
-
 }
 
 struct v3dColorTrianglesCollection
@@ -123,6 +126,29 @@ v3dTrianglesCollection operator cast(v3dColorTrianglesCollection vctc)
 transform3 Align(real polar, real azimuth)
 {
   return align(dir(degrees(polar),degrees(azimuth)));
+}
+
+struct v3dSurfaceData
+{
+    bool hasCenter;
+    triple center;
+    material m;
+    surface s;
+}
+
+struct v3dPathData
+{
+    bool hasCenter;
+    triple center;
+    material m;
+    path3 p;
+}
+
+struct v3dPixelData
+{
+    triple point;
+    real width;
+    material m;
 }
 
 struct v3dfile
@@ -789,6 +815,64 @@ struct v3dfile
             }
         }
         return vsdFinal;
+    }
+
+    v3dPathData[] generatePathList()
+    {
+        if (!processed)
+        {
+            process();
+        }
+
+        v3dPathData[] vpdFinal;
+        for (int i=0;i<paths.length;++i)
+        {
+            if (paths.initialized(i))
+            {
+                for (int j=0;j<paths[i].length;++j)
+                {
+                    if (paths[i].initialized(j))
+                    {
+                        for (path3 p: paths[i][j])
+                        {
+                            v3dPathData vpd;
+                            vpd.p=p;
+                            vpd.m=materials[j];
+                            vpd.hasCenter=i > 0;
+                            if(vpd.hasCenter)
+                              vpd.center=centers[i-1];
+                            vpdFinal.push(vpd);
+                        }
+                    }
+                }
+            }
+        }
+        return vpdFinal;
+    }
+
+    v3dPixelData[] generatePixelList()
+    {
+        if (!processed)
+        {
+            process();
+        }
+
+        v3dPixelData[] vpdFinal;
+        for (int j=0;j<pixels.length;++j)
+        {
+            if (pixels.initialized(j))
+            {
+                for (v3dPixelInfo pi: pixels[j])
+                {
+                    v3dPixelData vpd;
+                    vpd.point=pi.point;
+                    vpd.width=pi.width;
+                    vpd.m=materials[j];
+                    vpdFinal.push(vpd);
+                }
+            }
+        }
+        return vpdFinal;
     }
 };
 
