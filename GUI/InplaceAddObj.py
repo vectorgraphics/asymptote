@@ -144,6 +144,7 @@ class AddLabel(InplaceObjProcess):
         self.text = None
         self.anchor = QtCore.QPointF(0, 0)
         self._active = False
+        self.fontSize = 12
 
     def createOptWidget(self, info):
         self.opt = Widg_addLabel.Widg_addLabel(info)
