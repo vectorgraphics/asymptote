@@ -507,7 +507,5 @@ class AddFreehand(InplaceObjProcess):
                 return newPath
 
     def getXasyObject(self):
-        if self.fill:
-            return xasy2asy.xasyFilledShape(self.getObject(), None)
-        else:
-            return xasy2asy.xasyShape(self.getObject(), None)
+        self.fill = False
+        return xasy2asy.xasyShape(self.getObject(), None)
