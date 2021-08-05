@@ -1213,7 +1213,7 @@ class MainWindow1(Qw.QMainWindow):
         return reply
         
     def actionClose(self):
-        if self.addMode:
+        if self.addMode and not isinstance(self.addMode,InplaceAddObj.AddFreehand):
             self.addMode.forceFinalize()
         if self.fileChanged:
             reply = self.saveDialog()
