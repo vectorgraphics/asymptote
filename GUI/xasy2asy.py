@@ -1374,6 +1374,7 @@ class xasyText(xasyItem):
         self.transfKeymap = {self.transfKey: [transform]}
         self.asyfied = False
         self.onCanvas = None
+        self.pen = pen
 
     def setKey(self, newKey = None):
         transform = self.transfKeymap[self.transfKey][0]
