@@ -331,16 +331,16 @@ pair inside(path p, pen fillrule=currentpen)
 }
 
 // Return all intersection times of path g with the vertical line through (x,0).
-real[] times(path p, real x)
+real[] times(path p, real x, real fuzz=-1)
 {
-  return intersections(p,(x,0),(x,1));
+  return intersections(p,(x,0),(x,1),fuzz);
 }
 
 // Return all intersection times of path g with the horizontal line through
 // (0,z.y).
-real[] times(path p, explicit pair z)
+real[] times(path p, explicit pair z, real fuzz=-1)
 {
-  return intersections(p,(0,z.y),(1,z.y));
+  return intersections(p,(0,z.y),(1,z.y),fuzz);
 }
 
 path randompath(int n, bool cumulate=true, interpolate join=operator ..)
