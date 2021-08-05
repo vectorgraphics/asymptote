@@ -97,15 +97,14 @@ def xasyToDict(file, xasyItems, asy2psmap):
         elif isinstance(item, xasy2asy.xasyText):
             # At the moment xasyText cannot be edited
             # so we treat it the same as xasyScript
-            penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
+            # Note: I removed references to the qtPen. Will this cause problems?
             fileItems.append({'type': 'xasyText',
                     'align': item.label.align,
                     'location': item.label.location,
                     'fontSize': item.label.fontSize,
                     'text': item.label.text,
                     'transform': item.transfKeymap[item.transfKey][0].t,
-                    'transfKey': item.transfKey,
-                    'pen': penData})
+                    'transfKey': item.transfKey})
 
         elif isinstance(item, xasy2asy.xasyShape):
             penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
