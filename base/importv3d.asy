@@ -230,13 +230,17 @@ struct v3dfile
 
     pen[] readColorData(int size=4)
     {
-        _xdrfile.singlereal(false);
+        _xdrfile.singlereal(true);
+
         _xdrfile.dimension(4);
         pen[] newPen=new pen[size];
         for (int i=0;i<size;++i)
         {
             newPen[i]=rgba(_xdrfile);
         }
+
+        _xdrfile.singlereal(false);
+
         return newPen;
     }
 
@@ -458,9 +462,8 @@ struct v3dfile
 
     v3dPatchData readTriangle()
     {
-        triple[] val;
         _xdrfile.dimension(3);
-        val=_xdrfile;
+        triple[] val=_xdrfile;
 
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
@@ -561,7 +564,6 @@ struct v3dfile
 
     v3dPath readCurve()
     {
-        _xdrfile.singlereal(false);
         _xdrfile.dimension(4);
         triple[] points=new triple[4];
         points=_xdrfile;
