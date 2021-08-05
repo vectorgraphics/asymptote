@@ -408,6 +408,11 @@ class MainWindow1(Qw.QMainWindow):
             self.currAddOptions['magnification'] = self.magnification
             self.quickUpdate()
 
+    def setTextPrompt(self):
+        commandText, result = Qw.QInputDialog.getText(self, '', 'Enter new text:')
+        if result:
+            return commandText
+
     def btnTogglePythonOnClick(self, checked):
         self.terminalPythonMode = checked
 
@@ -1686,6 +1691,10 @@ class MainWindow1(Qw.QMainWindow):
             self.updateOptionWidget()
             self.currentModeStack[-1] = SelectionMode.selectEdit
             self.fileChanged = True
+        elif isinstance(obj, x2a.xasyText):
+            newText = self.setTextPrompt()
+            if newText:
+                obj.label.setText(newText) #This changes the text, it just doesn't rerender it
         else:
             self.ui.statusbar.showMessage('Warning: Selected object cannot be edited')
             self.clearSelection()
