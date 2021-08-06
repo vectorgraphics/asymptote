@@ -40,7 +40,7 @@ SYMBOL_FILES = types builtin gsl $(RUNTIME_FILES)
 PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
 GENERATED_HEADERS = v3dtypes
-GENERATED_HEADERS_LOC = $(addprefix enumheaders/,$(GENERATED_HEADERS))
+GENERATED_HEADER_FILES = $(addprefix ./enumheaders/,$(GENERATED_HEADERS))
 
 COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
         callable name symbol entry exp newexp stack camp.tab lex.yy \
@@ -48,7 +48,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) $(ENUMTYPES) glrender tr shaders jsfile v3dfile
+	$(PRC) glrender tr shaders jsfile v3dfile
 
 FILES = $(COREFILES) main
 
@@ -62,7 +62,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) $(GENERATED_HEADERS_LOC)
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) $(GENERATED_HEADER_FILES:=.h)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
@@ -213,8 +213,8 @@ allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
 	$(CXX) -E -DNOSYM $(OPTS) $(SYMBOL_FILES:=.cc) | \
           $(PERL) ./findsym.pl $@ -
 
-v3dtypes.h: v3dtypes.csv
-	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name v3dTypes  --xopt namespace=camp
+enumheaders/%.h: enumheaders/%.csv
+	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name $* --xopt namespace=camp
 
 symbol.o: $(SYMBOLSH)
 
@@ -369,8 +369,13 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
-%.o: %.cc $(GENERATED_HEADERS_LOC:=.h)
+
+%.o: %.cc $(GENERATED_HEADER_FILES:=.h)
 	$(CXX) $(OPTS) -o $@ -c $<
+
+$(GENERATED_HEADER_FILES:=.h): $(GENERATED_HEADER_FILES:=.csv)
+	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
+
 %.d: %.cc
 	@echo Creating $@; \
 	rm -f $@; \

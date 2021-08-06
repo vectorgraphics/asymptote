@@ -163,4 +163,4 @@ renderDocSettings
 
 *.html
 !webgl/WebGL*.html
-enumheaders/v3dtypes.h
+enumheaders/*.h
