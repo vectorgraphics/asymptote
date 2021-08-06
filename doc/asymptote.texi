@@ -7501,7 +7501,7 @@ guide graphwithderiv(pair f(real), pair fprime(real), real a, real b,
 can be used to construct the graph of the parametric function @code{f}
 on @code{[a,b]} with the control points of the @code{n} Bezier
 segments determined by the specified derivative @code{fprime}:
-@verbatiminclude graphwithderiv.assy
+@verbatiminclude graphwithderiv.asy
 @sp 1
 @center @image{./graphwithderiv}
 
