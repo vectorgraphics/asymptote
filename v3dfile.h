@@ -16,6 +16,7 @@
 #include "triple.h"
 #include "material.h"
 #include "glrender.h"
+#include "v3dtypes.h"
 
 namespace camp
 {
@@ -23,45 +24,6 @@ namespace camp
 using open_mode=xdr::xios::open_mode;
 
 const unsigned int v3dVersion=0;
-
-enum v3dTypes : uint32_t
-{
-  other=0,
-  material_=1,
-  transform_=2,
-  element=3,
-  centers=4,
-
-  line=64,
-  triangle=65,
-  quad=66,
-
-  curve=128,
-  bezierTriangle=129,
-  bezierPatch=130,
-
-  lineColor=192,
-  triangleColor=193,
-  quadColor=194,
-
-  curveColor=256,
-  bezierTriangleColor=257,
-  bezierPatchColor=258,
-
-  triangles=512, // specify nP,nN,nC
-
-  //primitives
-  disk=1024,
-  cylinder=1025,
-  tube=1026,
-  sphere=1027,
-  halfSphere=1028,
-
-  animation=2048,
-
-//element2D=3072,
-  pixel_=4096,
-};
 
 enum v3dTriangleIndexType : uint32_t
 {

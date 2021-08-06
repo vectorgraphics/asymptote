@@ -16,6 +16,7 @@ LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS)
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
 PERL = perl
+PYTHON = python3
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
@@ -38,26 +39,29 @@ SYMBOL_FILES = types builtin gsl $(RUNTIME_FILES)
 
 PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
+GENERATED_HEADERS = v3dtypes
+
 COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
         callable name symbol entry exp newexp stack camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr shaders jsfile v3dfile
+	$(PRC) $(ENUMTYPES) glrender tr shaders jsfile v3dfile
 
 FILES = $(COREFILES) main
 
 SYMBOLSH = opsymbols.h allsymbols.h $(SYMBOL_FILES:=.symbols.h)
 UIFILES = $(wildcard GUI/windows/*.ui)
 PYFILES = $(wildcard GUI/pyUIClass/*.py) GUI/icons_rc.py
+
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
         $(SYMBOLSH) $(PYFILES)
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) v3dtypes.h
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
@@ -207,6 +211,9 @@ $(SYMBOL_FILES:=.o): %.o: %.symbols.h
 allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
 	$(CXX) -E -DNOSYM $(OPTS) $(SYMBOL_FILES:=.cc) | \
           $(PERL) ./findsym.pl $@ -
+
+v3dtypes.h: v3dtypes.csv
+	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name v3dTypes  --xopt namespace=camp
 
 symbol.o: $(SYMBOLSH)
 
@@ -361,7 +368,7 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
-%.o: %.cc
+%.o: %.cc $(GENERATED_HEADERS:=.h)
 	$(CXX) $(OPTS) -o $@ -c $<
 %.d: %.cc
 	@echo Creating $@; \

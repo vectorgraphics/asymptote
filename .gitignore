@@ -163,3 +163,4 @@ renderDocSettings
 
 *.html
 !webgl/WebGL*.html
+v3dTypes.h
