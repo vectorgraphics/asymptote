@@ -96,6 +96,46 @@ class AddCircle(InplaceObjProcess):
         self.mouseRelease()
 
 
+class AddSphere(InplaceObjProcess):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.center = QtCore.QPointF(0, 0)
+        self.radius = 0
+
+    def mouseDown(self, pos, info, mouseEvent: QtGui.QMouseEvent=None):
+        x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+        self.radius = 0
+        self.center.setX(x)
+        self.center.setY(y)
+        self.fill = info['fill']
+        self._active = True
+
+    def mouseMove(self, pos, event):
+        self.radius = PrimitiveShape.PrimitiveShape.euclideanNorm(pos, self.center)
+
+    def mouseRelease(self):
+        self.objectCreated.emit(self.getXasyObject())
+        self._active = False
+
+    def getPreview(self):
+        x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.center)
+        boundRect = QtCore.QRectF(x - self.radius, y - self.radius, 2 * self.radius, 2 * self.radius)
+        # because the internal image is flipped...
+        newPath = QtGui.QPainterPath()
+        newPath.addEllipse(boundRect)
+        # newPath.addRect(boundRect)
+        return newPath
+
+    def getObject(self):
+        return PrimitiveShape.PrimitiveShape.sphere(self.center, self.radius) #Returns an AsyPath
+
+    def getXasyObject(self):
+        newObj = xasy2asy.xasyShape(self.getObject(), None) #Converts AsyPath to xasyShape
+        return newObj
+
+    def forceFinalize(self):
+        self.mouseRelease()
+
 class AddLabel(InplaceObjProcess):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -104,6 +144,7 @@ class AddLabel(InplaceObjProcess):
         self.text = None
         self.anchor = QtCore.QPointF(0, 0)
         self._active = False
+        self.fontSize = 12
 
     def createOptWidget(self, info):
         self.opt = Widg_addLabel.Widg_addLabel(info)
@@ -466,7 +507,5 @@ class AddFreehand(InplaceObjProcess):
                 return newPath
 
     def getXasyObject(self):
-        if self.fill:
-            return xasy2asy.xasyFilledShape(self.getObject(), None)
-        else:
-            return xasy2asy.xasyShape(self.getObject(), None)
+        self.fill = False
+        return xasy2asy.xasyShape(self.getObject(), None)

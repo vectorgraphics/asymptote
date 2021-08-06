@@ -84,3 +84,42 @@ def xasy2asyCode(xasyItems, asy2psmap):
 def saveFile(file, xasyItems, asy2psmap):
     """Write a list of xasyItems to a file"""
     file.write(xasy2asyCode(xasyItems, asy2psmap))
+
+def xasyToDict(file, xasyItems, asy2psmap):
+    fileItems = []
+    asyItems = []
+    for item in xasyItems:
+        if isinstance(item, xasy2asy.xasyScript):
+            # reusing xasyFile code for objects 
+            # imported from asy script.
+            asyItems.append({'item':item, 'type': 'xasyScript'})
+
+        elif isinstance(item, xasy2asy.xasyText):
+            # At the moment xasyText cannot be edited
+            # so we treat it the same as xasyScript
+            penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
+            fileItems.append({'type': 'xasyText',
+                    'align': item.label.align,
+                    'location': item.label.location,
+                    'fontSize': item.label.fontSize,
+                    'text': item.label.text,
+                    'transform': item.transfKeymap[item.transfKey][0].t,
+                    'transfKey': item.transfKey,
+                    'pen': penData
+                    })
+
+        elif isinstance(item, xasy2asy.xasyShape):
+            penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
+            fileItems.append({'type': 'xasyShape', 
+                    'nodes': item.path.nodeSet, 
+                    'links': item.path.linkSet,
+                    'transform': item.transfKeymap[item.transfKey][0].t,
+                    'transfKey': item.transfKey,
+                    'pen': penData
+                    })
+
+        else:
+            # DEBUGGING PURPOSES ONLY
+            print(type(item))
+        
+        return {'objects': fileItems, 'asy2psmap': asy2psmap.t}, asyItems

@@ -41,6 +41,18 @@ class PrimitiveShape:
         return newCircle
 
     @classmethod
+    def sphere(cls, position, radius):
+        #xasy2asy.xasyItem.handleImageReception
+        pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
+        newSphere = xasy2asy.asyPath() #What type are renders?
+        ptsList = [(pos_x + radius, pos_y), (pos_x, pos_y + radius), (pos_x - radius, pos_y), (pos_x, pos_y - radius),
+                   'cycle']
+        # cycle doesn't work for now.
+        lkList = ['..', '..', '..', '..']
+        newSphere.initFromNodeList(ptsList, lkList)
+        return newSphere
+
+    @classmethod
     def inscribedRegPolygon(cls, sides, position, radius, starting_rad, qpoly=False):
         pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
         lkList = ['--'] * sides

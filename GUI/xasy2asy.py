@@ -69,7 +69,7 @@ class AsymptoteEngine:
         cleanup()
     """
 
-    xasy=chr(4)+"\n"
+    xasy=chr(4)+'\n'
     def __init__(self, path=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True):
         if path is None:
             path = xa.getArgs().asypath
@@ -97,7 +97,7 @@ class AsymptoteEngine:
         else:
             self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
 
-        self.args=['-xasy', '-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
+        self.args=['-xasy', '-noV', '-q', '-outformat=', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
 
         self.asyPath = path
         self.asyProcess = None
@@ -1039,7 +1039,14 @@ class xasyItem(QtCore.QObject):
                 print('fout:', line)
             fout.write(line+"\n")
         fout.write(self.asySize)
-        fout.write("deconstruct();\n")
+
+        try:
+            renderMode = xo.BasicConfigs.defaultOpt['renderMode']
+        except:
+            renderMode = -1
+
+        fout.write('settings.render={};\n'.format(renderMode))
+        fout.write('deconstruct();\n')
         fout.write('write(_outpipe,yscale(-1)*currentpicture.calculateTransform(),endl);\n')
         fout.write(self.asyengine.xasy)
         fout.flush()
@@ -1053,21 +1060,21 @@ class xasyItem(QtCore.QObject):
             for i in range(len(imageInfos)):
                 box, key, localCount, useClip = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
-                name = "_{:d}.{:s}".format(i, fileformat)
+                name = '_{:d}.{:s}'.format(i, fileformat)
 
                 self.imageHandleQueue.put((name, fileformat, (l, -t, r, -b), i, key, localCount, useClip))
 
         # key first, box second.
-        # if key is "Done"
+        # if key is 'Done'
         raw_text = fin.readline()
-        text = ""
+        text = ''
         if DebugFlags.printDeconstTranscript:
             print(raw_text.strip())
 
-        # template=AsyTempDir+"%d_%d.%s"
+        # template=AsyTempDir+'%d_%d.%s'
         fileformat = 'svg' #This fixes the file output type.
 
-        while raw_text != "Done\n" and raw_text != "Error\n":
+        while raw_text != 'Done\n' and raw_text != 'Error\n':
 #            print(raw_text)
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
@@ -1102,9 +1109,9 @@ class xasyItem(QtCore.QObject):
 
             n += 1
 
-        if raw_text != "Error\n":
-            if text == "Error\n":
-                self.imageHandleQueue.put(("ERROR", fin.readline()))
+        if raw_text != 'Error\n':
+            if text == 'Error\n':
+                self.imageHandleQueue.put(('ERROR', fin.readline()))
             else:
                 render()
 
@@ -1271,6 +1278,9 @@ class xasyShape(xasyDrawnItem):
         """ Create a string describing this shape """
         return "xasyShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
+    def swapFill(self):
+        self.path.fill = not self.path.fill
+
 
 class xasyFilledShape(xasyShape):
     """ A filled shape drawn on the GUI """
@@ -1301,9 +1311,13 @@ class xasyFilledShape(xasyShape):
         if path.nodeSet[-1] != 'cycle':
             raise Exception("Filled paths must be cyclic")
         super().__init__(path, asyengine, pen, transform)
+        self.path.fill=True
 
     def getObjectCode(self, asy2psmap=identity()):
-        return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        if self.path.fill:
+            return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        else:
+            return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
     def generateDrawObjects(self, forceUpdate = False):
         if self.path.containsCurve:
@@ -1312,11 +1326,15 @@ class xasyFilledShape(xasyShape):
                             pen = self.pen, key = self.transfKey, fill = True)
         newObj.originalObj = self
         newObj.setParent(self)
+        newObj.fill=self.path.fill
         return [newObj]
 
     def __str__(self):
         """ Return a string describing this shape """
         return "xasyFilledShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
+
+    def swapFill(self):
+        self.path.fill = not self.path.fill
 
 
 class xasyText(xasyItem):
@@ -1356,6 +1374,7 @@ class xasyText(xasyItem):
         self.transfKeymap = {self.transfKey: [transform]}
         self.asyfied = False
         self.onCanvas = None
+        self.pen = pen
 
     def setKey(self, newKey = None):
         transform = self.transfKeymap[self.transfKey][0]
