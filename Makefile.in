@@ -39,7 +39,7 @@ SYMBOL_FILES = types builtin gsl $(RUNTIME_FILES)
 
 PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
-GENERATED_HEADERS = v3dtypes
+GENERATED_HEADERS = v3dtypes v3dheadertypes
 GENERATED_HEADER_FILES = $(addprefix ./enumheaders/,$(GENERATED_HEADERS))
 
 COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
@@ -213,9 +213,6 @@ allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
 	$(CXX) -E -DNOSYM $(OPTS) $(SYMBOL_FILES:=.cc) | \
           $(PERL) ./findsym.pl $@ -
 
-enumheaders/%.h: enumheaders/%.csv
-	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name $* --xopt namespace=camp
-
 symbol.o: $(SYMBOLSH)
 
 GUI/icons_rc.py: GUI/res/icons.qrc
@@ -370,11 +367,15 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 
 .SUFFIXES: .c .cc .o .d .ui .py
 
-%.o: %.cc $(GENERATED_HEADER_FILES:=.h)
-	$(CXX) $(OPTS) -o $@ -c $<
-
-$(GENERATED_HEADER_FILES:=.h): $(GENERATED_HEADER_FILES:=.csv)
+enumheaders/v3dtypes.h: enumheaders/v3dtypes.csv
 	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
+
+enumheaders/v3dheadertypes.h: enumheaders/v3dheadertypes.csv
+	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
+
+
+%.o: %.cc $(addsuffix .h, $(GENERATED_HEADER_FILES))
+	$(CXX) $(OPTS) -o $@ -c $<
 
 %.d: %.cc
 	@echo Creating $@; \
