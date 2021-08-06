@@ -40,6 +40,7 @@ SYMBOL_FILES = types builtin gsl $(RUNTIME_FILES)
 PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
 GENERATED_HEADERS = v3dtypes
+GENERATED_HEADERS_LOC = $(addprefix enumheaders/,$(GENERATED_HEADERS))
 
 COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
         callable name symbol entry exp newexp stack camp.tab lex.yy \
@@ -61,7 +62,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) v3dtypes.h
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) $(GENERATED_HEADERS_LOC)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
@@ -368,7 +369,7 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
-%.o: %.cc $(GENERATED_HEADERS:=.h)
+%.o: %.cc $(GENERATED_HEADERS_LOC:=.h)
 	$(CXX) $(OPTS) -o $@ -c $<
 %.d: %.cc
 	@echo Creating $@; \

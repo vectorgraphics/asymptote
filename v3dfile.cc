@@ -15,11 +15,17 @@ v3dfile::v3dfile(string const& name, open_mode mode) :
   xdrfile(name.c_str(), mode), finished(false)
 {
   xdrfile << v3dVersion;
+  addHeader();
 }
 
 v3dfile::~v3dfile()
 {
   closeFile();
+}
+
+void v3dfile::addHeader()
+{
+  xdrfile << v3dTypes::header;
 }
 
 void v3dfile::close()

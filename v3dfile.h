@@ -16,7 +16,7 @@
 #include "triple.h"
 #include "material.h"
 #include "glrender.h"
-#include "v3dtypes.h"
+#include "enumheaders/v3dtypes.h"
 
 namespace camp
 {
@@ -85,6 +85,8 @@ protected:
   void addIndices(uint32_t const* trip);
   void addTriples(triple const* triples, size_t n);
   void addColors(prc::RGBAColour const* col, size_t nc);
+
+  void addHeader();
 
   void closeFile();
   void addCenters();
