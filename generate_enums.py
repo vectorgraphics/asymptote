@@ -61,6 +61,25 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('// End of File\n')
 
 
+def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
+    with io.open(outname, 'w') as fil:
+        fil.write('// THIS FILE IS AUTO-GENERATED.\n')
+        fil.write('// Enum class for enum {0}\n'.format(name))
+        fil.write('// Generated at {0}\n\n'.format(datetime.now()))
+
+        if comment is not None:
+            fil.write('/* {0} */\n'.format(comment))
+        fil.write('struct _{0}\n'.format(name))
+        fil.write('{\n')
+
+        for enumTxt, enumNum in enums:
+            fil.write('  int {0}={1};\n'.format(enumTxt, enumNum))
+        fil.write('};\n\n')
+        fil.write('_{0} {0};'.format(name));
+
+        fil.write('// End of File\n')
+
+
 def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
     with io.open(outname, 'w') as fil:
         fil.write('#!/usr/bin/env python3\n')
@@ -81,13 +100,16 @@ def main():
         fn = generate_enum_py
     elif arg.language in {'cxx', 'c++', 'cpp'}:
         fn = generate_enum_cpp
+    elif arg.language in {'asy', 'asymptote'}:
+        fn = generate_enum_asy
     else:
         return 1
 
     custom_args = dict()
-    for xopt in arg.xopt:
-        key, val = xopt.split('=')
-        custom_args[key] = val
+    if arg.xopt is not None:
+        for xopt in arg.xopt:
+            key, val = xopt.split('=')
+            custom_args[key] = val
 
     enums = create_enums(arg.input)
     fn(arg.output, enums, arg.name, **custom_args)
