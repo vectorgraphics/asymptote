@@ -43,6 +43,24 @@ void v3dfile::addHeaders()
   headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::zoom0, gl::Zoom0));
   headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin));
 
+  if (gl::Shift!=pair(0.0,0.0))
+  {
+    headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportShift, gl::Shift*gl::Zoom0));
+  }
+
+  headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::zoomFactor, getSetting<double>("zoomfactor")));
+  headers.emplace_back(make_unique<DoubleFloatHeader>(
+          v3dheadertypes::zoomPinchFactor, getSetting<double>("zoomPinchFactor")));
+  headers.emplace_back(make_unique<DoubleFloatHeader>(
+          v3dheadertypes::zoomPinchCap, getSetting<double>("zoomPinchCap")));
+  headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::zoomStep, getSetting<double>("zoomstep")));
+  headers.emplace_back(make_unique<DoubleFloatHeader>(
+          v3dheadertypes::shiftHoldDistance, getSetting<double>("shiftHoldDistance")));
+  headers.emplace_back(make_unique<DoubleFloatHeader>(
+          v3dheadertypes::shiftWaitTime, getSetting<double>("shiftWaitTime")));
+  headers.emplace_back(make_unique<DoubleFloatHeader>(
+          v3dheadertypes::vibrateTime, getSetting<double>("vibrateTime")));
+
 
   xdrfile << (uint32_t)headers.size();
   for (auto const& headerObj : headers)
