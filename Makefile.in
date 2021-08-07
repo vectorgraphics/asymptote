@@ -342,6 +342,7 @@ cleaner: FORCE clean
 	-rm -f Makefile config.h config.log config.status errors.temp
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
+	cd enumheaders && $(MAKE) clean
 
 distclean: FORCE cleaner
 	cd doc && $(MAKE) distclean
@@ -367,14 +368,10 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 
 .SUFFIXES: .c .cc .o .d .ui .py
 
-enumheaders/v3dtypes.h: enumheaders/v3dtypes.csv
-	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
+headers:
+	cd enumheaders && $(MAKE) headers
 
-enumheaders/v3dheadertypes.h: enumheaders/v3dheadertypes.csv
-	$(PYTHON) generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
-
-
-%.o: %.cc $(addsuffix .h, $(GENERATED_HEADER_FILES))
+%.o: %.cc headers
 	$(CXX) $(OPTS) -o $@ -c $<
 
 %.d: %.cc

@@ -9,7 +9,7 @@
 # where 0,...,n are numbers.
 #
 # Written by Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com>
-# .
+
 from typing import List, Tuple
 from datetime import datetime
 import io
