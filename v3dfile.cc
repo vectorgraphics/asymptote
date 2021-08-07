@@ -11,11 +11,16 @@
 namespace camp
 {
 
+using settings::getSetting;
+using std::make_unique;
+
+
+
 v3dfile::v3dfile(string const& name, open_mode mode) :
   xdrfile(name.c_str(), mode), finished(false)
 {
   xdrfile << v3dVersion;
-  addHeader();
+  addHeaders();
 }
 
 v3dfile::~v3dfile()
@@ -23,10 +28,26 @@ v3dfile::~v3dfile()
   closeFile();
 }
 
-void v3dfile::addHeader()
+void v3dfile::addHeaders()
 {
   xdrfile << v3dtypes::header;
+  std::vector<std::unique_ptr<AHeader>> headers;
+
+  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::canvasWidth, gl::fullWidth));
+  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::canvasHeight, gl::fullHeight));
+  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::absolute, getSetting<bool>("absolute")));
+  headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::box1, triple(gl::xmin, gl::ymin, gl::zmin)));
+  headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::box2, triple(gl::xmax, gl::ymax, gl::zmax)));
+  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::orthographic, gl::orthographic));
+  headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::angle_, gl::Angle));
+
+  xdrfile << (uint32_t)headers.size();
+  for (auto const& headerObj : headers)
+  {
+    xdrfile << *headerObj;
+  }
 }
+
 
 void v3dfile::close()
 {
@@ -267,4 +288,10 @@ void v3dfile::precision(int digits)
 }
 
 
+xdr::oxstream& operator<<(xdr::oxstream& ox, AHeader const& header)
+{
+  ox << (uint32_t)header.ty << header.getByteSize();
+  header.writeContent(ox);
+  return ox;
+}
 } //namespace camp

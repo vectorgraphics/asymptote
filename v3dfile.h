@@ -17,11 +17,53 @@
 #include "material.h"
 #include "glrender.h"
 #include "enumheaders/v3dtypes.h"
+#include "enumheaders/v3dheadertypes.h"
 
 namespace camp
 {
 
+class AHeader
+{
+protected:
+  virtual uint32_t getByteSize() const = 0;
+  virtual void writeContent(xdr::oxstream& ox) const = 0;
+
+public:
+  explicit AHeader(v3dheadertypes const& ty) : ty(ty) {}
+  virtual ~AHeader() = default;
+  friend xdr::oxstream& operator<< (xdr::oxstream& ox, AHeader const& header);
+private:
+  v3dheadertypes ty;
+};
+
+template<typename T, uint32_t n=sizeof(T)>
+class SingleObjectHeader : public AHeader
+{
+public:
+  explicit SingleObjectHeader(v3dheadertypes const& ty, T const& ob) : AHeader(ty), obj(ob)
+  {
+  }
+  ~SingleObjectHeader() override = default;
+
+protected:
+  uint32_t getByteSize() const override
+  {
+    return max((uint32_t)1, (uint32_t)(n / 4));
+  }
+
+  void writeContent(xdr::oxstream &ox) const override
+  {
+    ox << obj;
+  }
+
+private:
+  T obj;
+};
+
 using open_mode=xdr::xios::open_mode;
+using TripleHeader=SingleObjectHeader<triple, 3*8>;
+using DoubleFloatHeader=SingleObjectHeader<double>;
+using Uint32Header=SingleObjectHeader<uint32_t>;
 
 const unsigned int v3dVersion=0;
 
@@ -86,7 +128,9 @@ protected:
   void addTriples(triple const* triples, size_t n);
   void addColors(prc::RGBAColour const* col, size_t nc);
 
-  void addHeader();
+  void addHeaders();
+
+
 
   void closeFile();
   void addCenters();
@@ -94,6 +138,7 @@ protected:
   xdr::oxstream xdrfile;
   bool finished;
 };
+
 
 } //namespace camp
 #endif
