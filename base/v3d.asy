@@ -2,45 +2,8 @@
 // Supakorn "Jamie" Rassameemasuang <rassamee@ualberta.ca>
 
 import three;
-
-struct v3dtypes
-{
-  int other=0;
-  int material_=1;
-  int transform_=2;
-  int element=3;
-  int centers=4;
-  int header=5;
-
-  int line=64;
-  int triangle=65;
-  int quad=66;
-  int curve=128;
-
-  int bezierTriangle=129;
-  int bezierPatch=130;
-
-  int lineColor=192;
-  int triangleColor=193;
-  int quadColor=194;
-
-  int curveColor=256;
-  int bezierTriangleColor=257;
-  int bezierPatchColor=258;
-
-  int triangles=512; // specify nP;nN;nC
-
-  //primitives
-  int disk=1024;
-  int cylinder=1025;
-  int tube=1026;
-  int sphere=1027;
-  int halfSphere=1028;
-
-  int animation=2048;
-  int pixels_=4096;
-};
-v3dtypes v3dtype;
+import v3dtypes;
+import v3dheadertypes;
 
 struct indicesModes
 {
@@ -50,36 +13,6 @@ struct indicesModes
     int PNC=3;
 }
 indicesModes indicesMode;
-
-// THIS FILE IS AUTO-GENERATED.
-// Enum class for enum v3dheadertypes
-// Generated at 2021-08-06 21:04:52.167373
-
-struct _v3dheadertypes
-{
-  int other_=0;
-  int canvasWidth=1;
-  int canvasHeight=2;
-  int absolute=3;
-  int box1=4;
-  int box2=5;
-  int orthographic=6;
-  int angle_=7;
-  int zoom0=8;
-  int light=10;
-  int background=11;
-  int viewportMargin=12;
-  int zoomFactor=13;
-  int zoomPinchFactor=14;
-  int zoomPinchCap=15;
-  int zoomStep=16;
-  int shiftHoldDistance=17;
-  int shiftWaitTime=18;
-  int vibrateTime=19;
-};
-
-_v3dheadertypes v3dheadertypes;// End of File
-
 
 struct v3dPatchData
 {
@@ -190,17 +123,17 @@ struct CameraInformation
     int canvasHeight;
     bool absolute;
 
-    triple b1;
-    triple b2;
+    triple b;
+    triple B;
     bool orthographic;
     real angle;
-    real zoom0;
+    real Zoom0;
     pair viewportMargin;
 
     void setCameraInfo()
     {
         size(canvasWidth,canvasHeight);
-        triple center=0.5*(b1.z+b2.z)*Z;
+        triple center=0.5*(b.z+B.z)*Z;
 
         if (orthographic)
         {
@@ -208,7 +141,7 @@ struct CameraInformation
         }
         else
         {
-            currentprojection=perspective(Z,Y,target=center,zoom0,degrees(angle),autoadjust=false);
+            currentprojection=perspective(Z,Y,target=center,Zoom0,degrees(angle),autoadjust=false);
         }
     }
 }
@@ -298,13 +231,13 @@ struct v3dfile
                 int val=_xdrfile;
                 ci.absolute=(val != 0);
             }
-            else if (headerKey == v3dheadertypes.box1)
+            else if (headerKey == v3dheadertypes.b)
             {
-                ci.b1=_xdrfile;
+                ci.b=_xdrfile;
             }
-            else if (headerKey == v3dheadertypes.box2)
+            else if (headerKey == v3dheadertypes.B)
             {
-                ci.b2=_xdrfile;
+                ci.B=_xdrfile;
             }
             else if (headerKey == v3dheadertypes.orthographic)
             {
@@ -315,9 +248,9 @@ struct v3dfile
             {
                 ci.angle=_xdrfile;
             }
-            else if (headerKey == v3dheadertypes.zoom0)
+            else if (headerKey == v3dheadertypes.Zoom0)
             {
-                ci.zoom0=_xdrfile;
+                ci.Zoom0=_xdrfile;
             }
             else if (headerKey==v3dheadertypes.viewportMargin)
             {
@@ -859,84 +792,84 @@ struct v3dfile
         while (!eof(_xdrfile))
         {
             int ty=getType();
-            if (ty == v3dtype.header)
+            if (ty == v3dtypes.header)
             {
                 hasCameraInfo=true;
                 info=this.processHeader();
             }
-            else if (ty == v3dtype.material_)
+            else if (ty == v3dtypes.material_)
             {
                 materials.push(this.readMaterial());
             }
-            else if (ty == v3dtype.bezierPatch)
+            else if (ty == v3dtypes.bezierPatch)
             {
                 addToSurfaceData(this.readBezierPatch());
             }
-            else if (ty == v3dtype.bezierTriangle)
+            else if (ty == v3dtypes.bezierTriangle)
             {
                 addToSurfaceData(this.readBezierTriangle());
             }
-            else if (ty == v3dtype.bezierPatchColor)
+            else if (ty == v3dtypes.bezierPatchColor)
             {
                 addToSurfaceData(this.readBezierPatchColor());
             }
-            else if (ty == v3dtype.bezierTriangleColor)
+            else if (ty == v3dtypes.bezierTriangleColor)
             {
                 addToSurfaceData(this.readBezierTriangleColor());
             }
-            else if (ty == v3dtype.quad)
+            else if (ty == v3dtypes.quad)
             {
                 addToSurfaceData(this.readQuad());
             }
-            else if (ty == v3dtype.quadColor)
+            else if (ty == v3dtypes.quadColor)
             {
                 addToSurfaceData(this.readQuadColor());
             }
-            else if (ty == v3dtype.triangle)
+            else if (ty == v3dtypes.triangle)
             {
                 addToSurfaceData(this.readTriangle());
             }
-            else if (ty == v3dtype.triangleColor)
+            else if (ty == v3dtypes.triangleColor)
             {
                 addToSurfaceData(this.readTriangleColor());
             }
-            else if (ty == v3dtype.sphere)
+            else if (ty == v3dtypes.sphere)
             {
                 addToSurfaceData(this.readSphere());
             }
-            else if (ty == v3dtype.halfSphere)
+            else if (ty == v3dtypes.halfSphere)
             {
                 addToSurfaceData(this.readHalfSphere());
             }
-            else if (ty == v3dtype.cylinder)
+            else if (ty == v3dtypes.cylinder)
             {
                 addToSurfaceData(this.readCylinder());
             }
-            else if (ty == v3dtype.tube)
+            else if (ty == v3dtypes.tube)
             {
                 addToSurfaceData(this.readTube());
             }
-            else if (ty == v3dtype.disk)
+            else if (ty == v3dtypes.disk)
             {
                 addToSurfaceData(this.readDisk());
             }
-            else if (ty == v3dtype.curve)
+            else if (ty == v3dtypes.curve)
             {
                 addToPathData(this.readCurve());
             }
-            else if (ty == v3dtype.line)
+            else if (ty == v3dtypes.line)
             {
                 addToPathData(this.readLine());
             }
-            else if (ty == v3dtype.triangles)
+            else if (ty == v3dtypes.triangles)
             {
                 addToTriangleData(this.readTriangles());
             }
-            else if (ty == v3dtype.centers)
+            else if (ty == v3dtypes.centers)
             {
                 centers=this.readCenters();
             }
-            else if (ty == v3dtype.pixels_)
+            else if (ty == v3dtypes.pixel_)
             {
                 addToPixelData(this.readPixel());
             }

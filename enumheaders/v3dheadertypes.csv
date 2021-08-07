@@ -1,12 +1,11 @@
-other_,0
 canvasWidth,1
 canvasHeight,2
 absolute,3
-box1,4
-box2,5
+b,4
+B,5
 orthographic,6
 angle_,7
-zoom0,8
+Zoom0,8
 viewportShift,9
 light,10
 background,11

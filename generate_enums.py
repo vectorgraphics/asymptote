@@ -69,13 +69,13 @@ def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
 
         if comment is not None:
             fil.write('/* {0} */\n'.format(comment))
-        fil.write('struct _{0}\n'.format(name))
+        fil.write('struct {0}\n'.format(name))
         fil.write('{\n')
 
         for enumTxt, enumNum in enums:
             fil.write('  int {0}={1};\n'.format(enumTxt, enumNum))
         fil.write('};\n\n')
-        fil.write('_{0} {0};'.format(name));
+        fil.write('{0} {0};'.format(name));
 
         fil.write('// End of File\n')
 
@@ -90,7 +90,7 @@ def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
             fil.write('""" {0} """\n'.format(comment))
         fil.write('class {0}:\n'.format(name))
         for enumTxt, enumNum in enums:
-            fil.write('    {0}_{2}={1}\n'.format(name.upper(), enumNum, enumTxt.upper()))
+            fil.write('    {0}_{2}={1}\n'.format(name, enumNum, enumTxt))
         fil.write('# End of File\n')
 
 
