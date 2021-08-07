@@ -40,6 +40,9 @@ void v3dfile::addHeaders()
   headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::box2, triple(gl::xmax, gl::ymax, gl::zmax)));
   headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::orthographic, gl::orthographic));
   headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::angle_, gl::Angle));
+  headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::zoom0, gl::Zoom0));
+  headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin));
+
 
   xdrfile << (uint32_t)headers.size();
   for (auto const& headerObj : headers)

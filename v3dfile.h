@@ -62,6 +62,7 @@ private:
 
 using open_mode=xdr::xios::open_mode;
 using TripleHeader=SingleObjectHeader<triple, 3*8>;
+using PairHeader=SingleObjectHeader<pair, 2*8>;
 using DoubleFloatHeader=SingleObjectHeader<double>;
 using Uint32Header=SingleObjectHeader<uint32_t>;
 

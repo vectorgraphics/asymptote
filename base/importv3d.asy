@@ -51,6 +51,10 @@ struct indicesModes
 }
 indicesModes indicesMode;
 
+// THIS FILE IS AUTO-GENERATED.
+// Enum class for enum v3dheadertypes
+// Generated at 2021-08-06 21:04:52.167373
+
 struct _v3dheadertypes
 {
   int other_=0;
@@ -61,20 +65,21 @@ struct _v3dheadertypes
   int box2=5;
   int orthographic=6;
   int angle_=7;
-  int viewportmargin=8;
-  int light=9;
-  int background=10;
-  int viewportMargin=11;
-  int zoomFactor=12;
-  int zoomPinchFactor=13;
-  int zoomPinchCap=14;
-  int zoomStep=15;
-  int shiftHoldDistance=16;
-  int shiftWaitTime=17;
-  int vibrateTime=18;
+  int zoom0=8;
+  int light=10;
+  int background=11;
+  int viewportMargin=12;
+  int zoomFactor=13;
+  int zoomPinchFactor=14;
+  int zoomPinchCap=15;
+  int zoomStep=16;
+  int shiftHoldDistance=17;
+  int shiftWaitTime=18;
+  int vibrateTime=19;
 };
 
-_v3dheadertypes v3dheadertypes;
+_v3dheadertypes v3dheadertypes;// End of File
+
 
 struct v3dPatchData
 {
@@ -189,14 +194,21 @@ struct CameraInformation
     triple b2;
     bool orthographic;
     real angle;
+    real zoom0;
+    pair viewportMargin;
 
     void setCameraInfo()
     {
         size(canvasWidth,canvasHeight);
+        triple center=0.5*(b1.z+b2.z)*Z;
+
         if (orthographic)
         {
-            triple center=0.5*(b1.z+b2.z)*Z;
             currentprojection=orthographic(Z,target=center);
+        }
+        else
+        {
+            currentprojection=perspective(Z,Y,target=center,zoom0,degrees(angle),autoadjust=false);
         }
     }
 }
@@ -302,6 +314,14 @@ struct v3dfile
             else if (headerKey == v3dheadertypes.angle_)
             {
                 ci.angle=_xdrfile;
+            }
+            else if (headerKey == v3dheadertypes.zoom0)
+            {
+                ci.zoom0=_xdrfile;
+            }
+            else if (headerKey==v3dheadertypes.viewportMargin)
+            {
+                ci.viewportMargin=_xdrfile;
             }
             else
             {
