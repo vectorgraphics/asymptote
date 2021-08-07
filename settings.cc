@@ -224,6 +224,7 @@ char *argv0;
 
 // The verbosity setting, a global variable.
 Int verbose;
+bool quiet=false;
 
 // Conserve memory at the expense of speed.
 bool compact;
@@ -1468,7 +1469,7 @@ void setInteractive()
       cerr << "failed to create directory "+initdir+"." << endl;
     historyname=initdir+"/history";
   }
-  if(verbose > 1)
+  if(!quiet && verbose > 1)
     cerr << "Using history " << historyname << endl;
 }
 
@@ -1543,7 +1544,7 @@ void initDir() {
   umask(mask);
 #endif
   if(access(initdir.c_str(),F_OK) == 0) {
-    if(verbose > 1)
+    if(!quiet && verbose > 1)
       cerr << "Using configuration directory " << initdir << endl;
   }
 }
@@ -1756,8 +1757,11 @@ void setOptions(int argc, char *argv[])
   // Build settings module.
   initSettings();
 
-  // Read command-line options initially to obtain config, dir, sysdir, verbose.
+  // Read command-line options initially to obtain config, dir, sysdir,
+  // verbose, and quiet.
   getOptions(argc,argv);
+
+  quiet=getSetting<bool>("quiet");
 
   // Make configuration and history directory
   initDir();
@@ -1773,7 +1777,7 @@ void setOptions(int argc, char *argv[])
   if(!filename.empty()) {
     string file=locateFile(filename);
     if(!file.empty()) {
-      if(Verbose > 1)
+      if(!quiet && Verbose > 1)
         cerr << "Loading " << filename << " from " << file << endl;
       doConfig(file);
     }
