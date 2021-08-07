@@ -1043,7 +1043,7 @@ class xasyItem(QtCore.QObject):
         try:
             renderMode = xo.BasicConfigs.defaultOpt['renderMode']
         except:
-            renderMode = -1
+            renderMode = 0
 
         fout.write('settings.render={};\n'.format(renderMode))
         fout.write('deconstruct();\n')
