@@ -10,6 +10,7 @@ struct v3dtypes
   int transform_=2;
   int element=3;
   int centers=4;
+  int header=5;
 
   int line=64;
   int triangle=65;
@@ -50,6 +51,30 @@ struct indicesModes
 }
 indicesModes indicesMode;
 
+struct _v3dheadertypes
+{
+  int other_=0;
+  int canvasWidth=1;
+  int canvasHeight=2;
+  int absolute=3;
+  int box1=4;
+  int box2=5;
+  int orthographic=6;
+  int angle_=7;
+  int viewportmargin=8;
+  int light=9;
+  int background=10;
+  int viewportMargin=11;
+  int zoomFactor=12;
+  int zoomPinchFactor=13;
+  int zoomPinchCap=14;
+  int zoomStep=15;
+  int shiftHoldDistance=16;
+  int shiftWaitTime=17;
+  int vibrateTime=18;
+};
+
+_v3dheadertypes v3dheadertypes;
 
 struct v3dPatchData
 {
@@ -154,7 +179,17 @@ struct v3dTriangleGroup
     int matId;
 }
 
+struct CameraInformation
+{
+    int canvasWidth;
+    int canvasHeight;
+    bool absolute;
 
+    triple b1;
+    triple b2;
+    bool orthographic;
+    real angle;
+}
 
 transform3 Align(real polar, real azimuth)
 {
@@ -192,7 +227,8 @@ struct v3dfile
     path3[][][] paths=new path3[][][];
     v3dTrianglesCollection[][] triangles=new v3dTrianglesCollection[][];
     v3dPixelInfo[][] pixels=new v3dPixelInfo[][];
-
+    bool hasCameraInfo=false;
+    CameraInformation info;
 
     material[] materials=new material[];
     triple[] centers;
@@ -207,6 +243,55 @@ struct v3dfile
     int getType()
     {
         return _xdrfile;
+    }
+
+    CameraInformation processHeader()
+    {
+        CameraInformation ci;
+
+        int entryCount=_xdrfile;
+        for (int i=0;i<entryCount;++i)
+        {
+            int headerKey=_xdrfile;
+            int headerSz=_xdrfile;
+
+            if (headerKey == v3dheadertypes.canvasWidth)
+            {
+                ci.canvasWidth=_xdrfile;
+            }
+            else if (headerKey == v3dheadertypes.canvasHeight)
+            {
+                ci.canvasHeight=_xdrfile;
+            }
+            else if (headerKey == v3dheadertypes.absolute)
+            {
+                int val=_xdrfile;
+                ci.absolute=(val != 0);
+            }
+            else if (headerKey == v3dheadertypes.box1)
+            {
+                ci.b1=_xdrfile;
+            }
+            else if (headerKey == v3dheadertypes.box2)
+            {
+                ci.b2=_xdrfile;
+            }
+            else if (headerKey == v3dheadertypes.orthographic)
+            {
+                int val=_xdrfile;
+                ci.orthographic=(val != 0);
+            }
+            else if (headerKey == v3dheadertypes.angle_)
+            {
+                ci.angle=_xdrfile;
+            }
+            else
+            {
+                _xdrfile.dimension(headerSz);
+                int[] _dmp=_xdrfile;
+            }
+        }
+        return ci;
     }
 
     material readMaterial()
@@ -736,7 +821,12 @@ struct v3dfile
         while (!eof(_xdrfile))
         {
             int ty=getType();
-            if (ty == v3dtype.material_)
+            if (ty == v3dtype.header)
+            {
+                hasCameraInfo=true;
+                info=this.processHeader();
+            }
+            else if (ty == v3dtype.material_)
             {
                 materials.push(this.readMaterial());
             }
