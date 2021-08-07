@@ -189,6 +189,16 @@ struct CameraInformation
     triple b2;
     bool orthographic;
     real angle;
+
+    void setCameraInfo()
+    {
+        size(canvasWidth,canvasHeight);
+        if (orthographic)
+        {
+            triple center=0.5*(b1.z+b2.z)*Z;
+            currentprojection=orthographic(Z,target=center);
+        }
+    }
 }
 
 transform3 Align(real polar, real azimuth)
@@ -243,6 +253,14 @@ struct v3dfile
     int getType()
     {
         return _xdrfile;
+    }
+
+    void setCameraInfo()
+    {
+        if (hasCameraInfo)
+        {
+            info.setCameraInfo();
+        }
     }
 
     CameraInformation processHeader()
@@ -1028,6 +1046,7 @@ void _test_fn_importv3d(string name)
 {
   v3dfile xf=v3dfile(name);
   v3dSurfaceData[] vsd=xf.generateSurfaceList();
+  xf.setCameraInfo();
   for(v3dSurfaceData vs : vsd)
     draw(vs.s,vs.m,render(interaction(vs.hasCenter ? Billboard : Embedded,center=vs.center)));
 }
