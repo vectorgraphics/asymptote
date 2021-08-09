@@ -7,11 +7,17 @@ headers: $(HEADERS:=.h)
 
 asy: $(HEADERS:=.asy)
 
+py: $(HEADERS:=.py)
+
 %.h: %.csv
 	$(PYTHON) ../generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
 
 %.asy: %.csv
 	$(PYTHON) ../generate_enums.py --language asy -o $@ -i $< --name $(notdir $*)
+
+%.py: %.csv
+	$(PYTHON) ../generate_enums.py --language python -o $@ -i $< --name $(notdir $*)
+
 
 clean:
 	rm -rf *.h *.asy
