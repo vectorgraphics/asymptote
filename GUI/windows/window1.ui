@@ -2105,7 +2105,7 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>24</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
@@ -2142,6 +2142,7 @@ background: rgb(0, 0, 0)
      <string>Optio&amp;ns</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="actionKeymaps"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -2261,6 +2262,11 @@ background: rgb(0, 0, 0)
   <action name="actionExportToAsy">
    <property name="text">
     <string>Export as Asy</string>
+   </property>
+  </action>
+  <action name="actionKeymaps">
+   <property name="text">
+    <string>&amp;Keymaps</string>
    </property>
   </action>
  </widget>

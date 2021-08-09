@@ -399,6 +399,12 @@ class MainWindow1(Qw.QMainWindow):
         self.settings.load()
         self.quickUpdate()
 
+    def openAndReloadKeymaps(self):
+        keymapsFile = self.keyMaps.settingsFileLocation()
+        subprocess.run(args=self.getExternalEditor(asypath=keymapsFile))
+        self.settings.load()
+        self.quickUpdate()
+
     def setMagPrompt(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'Enter magnification:')
         if result:
@@ -463,6 +469,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionManual.triggered.connect(self.actionManual)
         self.ui.actionAbout.triggered.connect(self.actionAbout)
         self.ui.actionSettings.triggered.connect(self.openAndReloadSettings)
+        self.ui.actionKeymaps.triggered.connect(self.openAndReloadKeymaps)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
         self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsymptoteOnClick)
         self.ui.actionExportToAsy.triggered.connect(self.btnExportToAsyOnClick)
