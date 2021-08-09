@@ -1687,7 +1687,10 @@ class MainWindow1(Qw.QMainWindow):
         elif isinstance(obj, x2a.xasyText):
             newText = self.setTextPrompt()
             if newText:
-                obj.label.setText(newText) #This changes the text, it just doesn't rerender it
+                self.drawObjects.remove(obj.generateDrawObjects(False))
+                obj.label.setText(newText)
+                self.drawObjects.append(obj.generateDrawObjects(True))
+                self.fileChanged = True
         else:
             self.ui.statusbar.showMessage('Warning: Selected object cannot be edited')
             self.clearSelection()
