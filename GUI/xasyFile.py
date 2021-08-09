@@ -122,4 +122,4 @@ def xasyToDict(file, xasyItems, asy2psmap):
             # DEBUGGING PURPOSES ONLY
             print(type(item))
         
-        return {'objects': fileItems, 'asy2psmap': asy2psmap.t}, asyItems
+    return {'objects': fileItems, 'asy2psmap': asy2psmap.t}, asyItems
