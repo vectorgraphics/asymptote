@@ -24,6 +24,8 @@
 #endif
 
 #include <cstdio>
+#include <vector>
+#include <algorithm>
 
 #include <sys/types.h>
 #include <rpc/types.h>
@@ -98,7 +100,7 @@ protected:
   FILE *buf;
 public:
   virtual ~xstream() {}
-  xstream() {buf=NULL;}
+  xstream() : xios(), buf(nullptr) {}
 
   void precision(int) {}
 
@@ -226,6 +228,55 @@ public:
     if(fputc(x.byte(),buf) == EOF) set(badbit);
     return *this;
   }
+};
+
+class memoxstream : public oxstream
+{
+public:
+  memoxstream() : oxstream(), destroyed(false)
+  {
+    clear();
+    xdrrec_create(&xdro,0,0,reinterpret_cast<char*>(&buffer),nullptr,&memoxstream::write_handler);
+    xdro.x_op = XDR_ENCODE;
+  }
+
+  ~memoxstream() override
+  {
+    if (!destroyed)
+    {
+      xdrrec_endofrecord(&xdro, true);
+      xdr_destroy(&xdro);
+      destroyed=true;
+    }
+  }
+
+  void close() override
+  {
+    if (!destroyed)
+    {
+      xdrrec_endofrecord(&xdro, true);
+      xdr_destroy(&xdro);
+      destroyed=true;
+    }
+  }
+
+  [[nodiscard]]
+  char const* stream() const
+  {
+    return buffer.data();
+  }
+
+protected:
+  static int write_handler(char* handler, char* data, int sz)
+  {
+    auto* buf=reinterpret_cast<std::vector<char>*>(handler);
+    std::copy_n(data, sz, std::back_inserter(*buf));
+
+    return sz;
+  }
+private:
+  std::vector<char> buffer;
+  bool destroyed;
 };
 
 class ioxstream : public ixstream, public oxstream {

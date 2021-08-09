@@ -339,4 +339,32 @@ xdr::oxstream& operator<<(xdr::oxstream& ox, AHeader const& header)
   return ox;
 }
 
+// memv3dfile
+
+xdr::oxstream& memv3dfile::getXDRFile()
+{
+  return memxdrfile;
+}
+
+memv3dfile::memv3dfile(): absv3dfile(), memxdrfile()
+{
+  writeInit();
+}
+
+memv3dfile::~memv3dfile()
+{
+  finalize();
+}
+
+void memv3dfile::close()
+{
+  finalize();
+  memxdrfile.close();
+}
+
+char const* memv3dfile::data() const
+{
+  return memxdrfile.stream();
+}
+
 } //namespace camp

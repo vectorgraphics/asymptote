@@ -155,5 +155,23 @@ private:
   bool finished;
 };
 
+class memv3dfile : public absv3dfile
+{
+public:
+  memv3dfile();
+  ~memv3dfile() override;
+
+  [[nodiscard]]
+  char const* data() const;
+
+protected:
+  void close() override;
+  xdr::oxstream& getXDRFile() override;
+
+private:
+  xdr::memoxstream memxdrfile;
+  bool finalized;
+};
+
 } //namespace camp
 #endif
