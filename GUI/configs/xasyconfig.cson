@@ -46,7 +46,7 @@ gridMajorAxesSpacing: 5
 gridMinorAxesCount: 9
 
 # Number of pixels per bp in 3D rendered bitmaps
-renderMode: 2
+renderDensity: 2
 
 # Magnification Settings
 minimumMagnification: 0.01

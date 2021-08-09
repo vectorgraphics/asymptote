@@ -1041,11 +1041,11 @@ class xasyItem(QtCore.QObject):
         fout.write(self.asySize)
 
         try:
-            renderMode = xo.BasicConfigs.defaultOpt['renderMode']
+            renderDensity = xo.BasicConfigs.defaultOpt['renderDensity']
         except:
-            renderMode = 0
+            renderDensity = 2
 
-        fout.write('settings.render={};\n'.format(renderMode))
+        fout.write('settings.render={};\n'.format(renderDensity))
         fout.write('deconstruct();\n')
         fout.write('write(_outpipe,yscale(-1)*currentpicture.calculateTransform(),endl);\n')
         fout.write(self.asyengine.xasy)
