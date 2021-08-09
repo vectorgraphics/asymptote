@@ -28,7 +28,7 @@
 
 // The lexical analysis and parsing functions used by parseFile.
 void setlexer(size_t (*input) (char* bif, size_t max_size), string filename);
-extern bool yyparse(void);
+extern int yyparse(void);
 extern int yydebug;
 extern int yy_flex_debug;
 extern bool lexerEOF();
