@@ -182,7 +182,12 @@ public:
     else set(badbit);
   }
 
-  void close() {
+  virtual void close()
+  {
+    closefile();
+  }
+
+  void closefile() {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdro);
@@ -195,7 +200,7 @@ public:
   oxstream() {}
   oxstream(const char *filename) {open(filename);}
   oxstream(const char *filename, open_mode mode) {open(filename,mode);}
-  virtual ~oxstream() {close();}
+  virtual ~oxstream() {closefile();}
 
   oxstream& flush() {if(buf) fflush(buf); return *this;}
 

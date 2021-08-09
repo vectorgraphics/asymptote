@@ -76,13 +76,13 @@ enum v3dTriangleIndexType : uint32_t
   index_PosNormColor=3,
 };
 
-class v3dfile : public abs3Doutfile
+class absv3dfile : public abs3Doutfile
 {
 public:
-  explicit v3dfile(string const& name, open_mode mode=xdr::xios::open_mode::out);
-  ~v3dfile() override;
+  absv3dfile();
 
-  void close() override;
+  void writeInit();
+  void finalize();
 
   void addPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c) override;
   void addStraightPatch(
@@ -130,16 +130,30 @@ protected:
   void addColors(prc::RGBAColour const* col, size_t nc);
 
   void addHeaders();
-
-
-
-  void closeFile();
   void addCenters();
 
+  virtual xdr::oxstream& getXDRFile() = 0;
+
+private:
+  bool finalized;
+};
+
+class v3dfile : public absv3dfile
+{
+public:
+  explicit v3dfile(string const& name, open_mode mode=xdr::xios::open_mode::out);
+  ~v3dfile() override;
+
+protected:
+  void close() override;
+  void closeFile();
+
+  xdr::oxstream& getXDRFile() override;
+
+private:
   xdr::oxstream xdrfile;
   bool finished;
 };
-
 
 } //namespace camp
 #endif
