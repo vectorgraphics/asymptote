@@ -156,7 +156,7 @@ struct v3dSurfaceData
     bool hasCenter;
     triple center;
     material m;
-    surface s;
+    surface[] s;
 }
 
 struct v3dPathData
@@ -164,7 +164,7 @@ struct v3dPathData
     bool hasCenter;
     triple center;
     material m;
-    path3 p;
+    path3[] p;
 }
 
 struct v3dPixelData
@@ -178,7 +178,7 @@ struct v3dfile
 {
     file _xdrfile;
     int fileversion;
-    surface[][] surf=new surface[][];
+    surface[][][] surf=new surface[][][];
     path3[][][] paths=new path3[][][];
     v3dTrianglesCollection[][] triangles=new v3dTrianglesCollection[][];
     v3dPixelInfo[][] pixels=new v3dPixelInfo[][];
@@ -195,12 +195,9 @@ struct v3dfile
         _xdrfile=input(name, mode="xdr");
         fileversion=_xdrfile;
 
-        int singleprec=_xdrfile;
-        singleprecision= singleprec == 0 ? false : true;
-        if (singleprecision)
-        {
-            _xdrfile.singlereal(true);
-        }
+        int doubleprecision=_xdrfile;
+        singleprecision=doubleprecision == 0;
+        _xdrfile.singlereal(singleprecision);
     }
 
     int getType()
@@ -283,7 +280,7 @@ struct v3dfile
         pen specularPen=rgba(_xdrfile);
         real[] params=_xdrfile;
 
-        _xdrfile.singlereal(false);
+        _xdrfile.singlereal(singleprecision);
 
         real shininess=params[0];
         real metallic=params[1];
@@ -303,7 +300,7 @@ struct v3dfile
             newPen[i]=rgba(_xdrfile);
         }
 
-        _xdrfile.singlereal(false);
+        _xdrfile.singlereal(singleprecision);
 
         return newPen;
     }
@@ -420,6 +417,7 @@ struct v3dfile
         vss.s=shift(center)*scale3(radius)*unitsphere;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
+        vss.s.draw=unitsphere.draw;
         return vss;
     }
 
@@ -438,28 +436,7 @@ struct v3dfile
         vss.s=shift(center)*Align(polar,azimuth)*scale3(radius)*unithemisphere;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
-        return vss;
-    }
-
-    v3dSingleSurface readCylinder()
-    {
-        triple center=_xdrfile;
-        real radius=_xdrfile;
-        real height=_xdrfile;
-
-        int centerIdx=_xdrfile;
-        int matIdx=_xdrfile;
-
-        real polar=_xdrfile;
-        real azimuth=_xdrfile;
-
-        int core=_xdrfile;
-
-        v3dSingleSurface vss;
-        vss.s=shift(center)*Align(polar,azimuth)*scale(radius,radius,height)*unitcylinder;
-        vss.matId=matIdx;
-        vss.centerIdx=centerIdx;
-
+        vss.s.draw=unithemisphere.draw;
         return vss;
     }
 
@@ -478,6 +455,7 @@ struct v3dfile
         vss.s=shift(center)*Align(polar,azimuth)*scale3(radius)*unitdisk;
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
+        vss.s.draw=unitdisk.draw;
 
         return vss;
     }
@@ -571,7 +549,7 @@ struct v3dfile
         {
             paths[vp.centerIdx]=new path3[][];
         }
-        if (!surf[vp.centerIdx].initialized(vp.matId))
+        if (!paths[vp.centerIdx].initialized(vp.matId))
         {
             paths[vp.centerIdx][vp.matId]=new path3[];
         }
@@ -596,6 +574,39 @@ struct v3dfile
         pixels[vpig.matId].push(vpig.vpi);
     }
 
+    v3dSingleSurface readCylinder()
+    {
+        triple center=_xdrfile;
+        real radius=_xdrfile;
+        real height=_xdrfile;
+
+        int centerIdx=_xdrfile;
+        int matIdx=_xdrfile;
+
+        real polar=_xdrfile;
+        real azimuth=_xdrfile;
+
+        int core=_xdrfile;
+
+        transform3 T=shift(center)*Align(polar,azimuth)*scale(radius,radius,height);
+        if (core != 0)
+        {
+            v3dPath vp;
+            vp.p=T*(O--Z);
+            vp.matId=matIdx;
+            vp.centerIdx=centerIdx;
+            addToPathData(vp);
+        }
+
+        v3dSingleSurface vss;
+        vss.s=T*unitcylinder;
+        vss.matId=matIdx;
+        vss.centerIdx=centerIdx;
+        vss.s.draw=unitcylinder.draw;
+
+        return vss;
+    }
+
     v3dSingleSurface readTube()
     {
         triple[] g=new triple[4];
@@ -613,7 +624,7 @@ struct v3dfile
         if (core != 0)
         {
             v3dPath vp;
-            vp.p=g[0]..g[1]..g[2]..g[3];
+            vp.p=g[0]..controls g[1] and g[2]..g[3];
             vp.matId=matIdx;
             vp.centerIdx=centerIdx;
             addToPathData(vp);
@@ -623,6 +634,7 @@ struct v3dfile
         vss.s=tube(g[0],g[1],g[2],g[3],width);
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
+        vss.s.draw=drawTube(g,width,Min,Max);
         return vss;
     }
 
@@ -638,7 +650,7 @@ struct v3dfile
         triple Max=_xdrfile;
 
         v3dPath vp;
-        vp.p=points[0]..points[1]..points[2]..points[3];
+        vp.p=points[0]..controls points[1] and points[2]..points[3];
         vp.matId=matIdx;
         vp.centerIdx=centerIdx;
         return vp;
@@ -766,31 +778,29 @@ struct v3dfile
     {
         if (!surf.initialized(vp.centerIdx))
         {
-            surf[vp.centerIdx]=new surface[];
+            surf[vp.centerIdx]=new surface[][];
         }
         if (!surf[vp.centerIdx].initialized(vp.matId))
         {
-            surface s;
-            surf[vp.centerIdx][vp.matId]=s;
+            surf[vp.centerIdx][vp.matId]=new surface[];
         }
-        surf[vp.centerIdx][vp.matId].append(vp.s);
+        surf[vp.centerIdx][vp.matId].push(vp.s);
     }
 
     void addToSurfaceData(v3dPatchData vp)
     {
         if (!surf.initialized(vp.centerIdx))
         {
-            surf[vp.centerIdx]=new surface[];
+            surf[vp.centerIdx]=new surface[][];
         }
         if (!surf[vp.centerIdx].initialized(vp.matId))
         {
-            surface s;
-            surf[vp.centerIdx][vp.matId]=s;
+            surf[vp.centerIdx][vp.matId]=new surface[];
         }
-        surf[vp.centerIdx][vp.matId].push(vp.p);
+        surf[vp.centerIdx][vp.matId].push(surface(vp.p));
     }
 
-    surface[][] process()
+    surface[][][] process()
     {
         if (processed)
         {
@@ -937,16 +947,13 @@ struct v3dfile
                 {
                     if (paths[i].initialized(j))
                     {
-                        for (path3 p: paths[i][j])
-                        {
-                            v3dPathData vpd;
-                            vpd.p=p;
-                            vpd.m=materials[j];
-                            vpd.hasCenter=i > 0;
-                            if(vpd.hasCenter)
-                              vpd.center=centers[i-1];
-                            vpdFinal.push(vpd);
-                        }
+                      v3dPathData vpd;
+                      vpd.p=paths[i][j];
+                      vpd.m=materials[j];
+                      vpd.hasCenter=i > 0;
+                      if(vpd.hasCenter)
+                        vpd.center=centers[i-1];
+                      vpdFinal.push(vpd);
                     }
                 }
             }
@@ -1003,13 +1010,26 @@ struct v3dfile
     }
 };
 
-void _test_fn_importv3d(string name)
+void readv3d(string name)
 {
   v3dfile xf=v3dfile(name);
   v3dSurfaceData[] vsd=xf.generateSurfaceList();
   xf.setCameraInfo();
-  for(v3dSurfaceData vs : vsd)
-    draw(vs.s,vs.m,render(interaction(vs.hasCenter ? Billboard : Embedded,center=vs.center)));
+  for(v3dSurfaceData vs : vsd) {
+    material m=vs.m;
+    render r=render(interaction(vs.hasCenter ? Billboard : Embedded,center=vs.center));
+    for(surface s : vs.s)
+      draw(s,m,r);
+  }
+
+  v3dPathData[] vpd=xf.generatePathList();
+
+  for(v3dPathData vp : vpd) {
+    material m=material(vp.m);
+    m.p[0] += thin();
+    render r=render(interaction(vp.hasCenter ? Billboard : Embedded,center=vp.center));
+    for(path3 p : vp.p)
+      draw(p,m,r);
+  }
 }
 
-// _test_fn_importv3d("sph.v3d");

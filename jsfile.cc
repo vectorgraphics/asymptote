@@ -309,13 +309,18 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
       << Min << "," << Max << "));" << newl << newl;
 }
 
-void jsfile::addSphere(const triple& center, double radius, bool half,
-                       const double& polar, const double& azimuth)
+void jsfile::addSphere(const triple& center, double radius)
 {
   out << "sphere(" << center << "," << radius << ","
       << drawElement::centerIndex << "," << materialIndex;
-  if(half)
-    out << "," << newl << "[" << polar << "," << azimuth << "]";
+}
+
+void jsfile::addHemisphere(const triple& center, double radius,
+                           const double& polar, const double& azimuth)
+{
+  out << "sphere(" << center << "," << radius << ","
+      << drawElement::centerIndex << "," << materialIndex
+      << "," << newl << "[" << polar << "," << azimuth << "]";
   out << ");" << newl << newl;
 }
 

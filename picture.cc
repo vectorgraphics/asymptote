@@ -882,7 +882,7 @@ bool picture::display(const string& outname, const string& outputformat,
     } else {
       if(outputformat == "svg" || outputformat == "html")
         htmlView(outname);
-      else {
+      else if(outputformat != "v3d") {
         mem::vector<string> cmd;
         push_command(cmd,getSetting<string>("display"));
         cmd.push_back(outname);
@@ -1293,7 +1293,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     return true;
 
   bool webgl=format == "html";
-  bool v3dfmt=format == "v3d" || format == "v3z";
+  bool v3dfmt=format == "v3d";
 
 #ifndef HAVE_LIBGLM
   if(webgl)

@@ -822,7 +822,7 @@ bool drawSphere::write(abs3Doutfile *out)
   double r=length(X);
 
   if(half)
-    out->addSphereHalf(O,r,X.polar(false),X.azimuth(false));
+    out->addHemisphere(O,r,X.polar(false),X.azimuth(false));
   else
     out->addSphere(O,r);
 

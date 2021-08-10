@@ -24,8 +24,8 @@ absv3dfile::absv3dfile(bool singleprecision) : finalized(false), singleprecision
 
 void absv3dfile::writeInit()
 {
-  uint32_t numsingleprecision = singleprecision ? 1 : 0;
-  getXDRFile() << v3dVersion << numsingleprecision;
+  uint32_t doubleprecision = !singleprecision;
+  getXDRFile() << v3dVersion << doubleprecision;
   addHeaders();
 }
 
@@ -168,7 +168,7 @@ void absv3dfile::addvec4(glm::vec4 const& vec)
     << static_cast<float>(vec.z) << static_cast<float>(vec.w);
 }
 
-void absv3dfile::addSphereHalf(triple const& center, double radius, double const& polar, double const& azimuth)
+void absv3dfile::addHemisphere(triple const& center, double radius, double const& polar, double const& azimuth)
 {
   getXDRFile() << v3dtypes::halfSphere << center << radius;
   addCenterIndexMat();
@@ -318,20 +318,9 @@ xdr::oxstream& gzv3dfile::getXDRFile()
   return memxdrfile;
 }
 
-gzv3dfile::gzv3dfile(string const& name): absv3dfile(), memxdrfile(), name(name), destroyed(false)
+gzv3dfile::gzv3dfile(string const& name, bool singleprecision): absv3dfile(singleprecision), memxdrfile(singleprecision), name(name), destroyed(false)
 {
   writeInit();
-}
-
-gzv3dfile::gzv3dfile(bool singleprecision): absv3dfile(singleprecision), memxdrfile(singleprecision), destroyed(false)
-{
-  writeInit();
-}
-
-gzv3dfile::gzv3dfile(string const& name, bool singleprecision):
-  absv3dfile(singleprecision), memxdrfile(singleprecision), name(name), destroyed(false)
-{
-
 }
 
 gzv3dfile::~gzv3dfile()

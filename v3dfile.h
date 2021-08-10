@@ -99,7 +99,7 @@ public:
   void addMaterial(Material const& mat) override;
 
   void addSphere(triple const& center, double radius) override;
-  void addSphereHalf(triple const& center, double radius, double const& polar, double const& azimuth) override;
+  void addHemisphere(triple const& center, double radius, double const& polar, double const& azimuth) override;
 
   void addCylinder(triple const& center, double radius, double height,
                    double const& polar, const double& azimuth,
@@ -145,9 +145,7 @@ private:
 class gzv3dfile : public absv3dfile
 {
 public:
-  explicit gzv3dfile(string const& name);
-  explicit gzv3dfile(bool singleprecision);
-  gzv3dfile(string const& name, bool singleprecision);
+  gzv3dfile(string const& name, bool singleprecision=false);
 
   ~gzv3dfile() override;
 

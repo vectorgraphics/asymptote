@@ -35,32 +35,14 @@ public:
 
   virtual void addSphere(triple const& center, double radius) = 0;
 
-  virtual void addSphereHalf(triple const& center, double radius, double const& polar, double const& azimuth) = 0;
-
-
-  void addCylinder(triple const& center, double radius, double height,
-                           double const& polar, const double& azimuth)
-  {
-    addCylinder(center,radius,height,polar,azimuth,false);
-  }
+  virtual void addHemisphere(triple const& center, double radius, double const& polar, double const& azimuth) = 0;
 
   virtual void addCylinder(triple const& center, double radius, double height,
                            double const& polar, const double& azimuth,
                            bool core) = 0;
 
-  void addDisk(triple const& center, double radius)
-  {
-    addDisk(center,radius,0.0,0.0);
-  }
-
   virtual void addDisk(triple const& center, double radius,
                        double const& polar, const double& azimuth) = 0;
-
-  void addTube(const triple* g, double width,
-                       const triple& Min, const triple& Max)
-  {
-    addTube(g,width,Min,Max,false);
-  }
 
   virtual void addTube(const triple* g, double width,
                        const triple& Min, const triple& Max, bool core) = 0;

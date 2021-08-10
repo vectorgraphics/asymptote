@@ -33,7 +33,7 @@ string Embed(string name, string text="", string options="", real width=0,
              real height=0);
 
 bool primitive() { // Encode primitive objects
-  return settings.outformat == "html" || settings.outformat=="v3d" || settings.outformat=="v3z";
+  return settings.outformat == "html" || settings.outformat=="v3d";
 }
 
 bool prconly(string format="")

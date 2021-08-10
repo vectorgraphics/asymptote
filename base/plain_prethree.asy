@@ -161,7 +161,7 @@ projection currentprojection;
 
 struct light {
   real[][] diffuse;
-  real[][] specular;
+  real[][] specular; // For PRC only
   pen background=nullpen; // Background color of the 3D canvas.
   real specularfactor;
   triple[] position; // Only directional lights are currently implemented.

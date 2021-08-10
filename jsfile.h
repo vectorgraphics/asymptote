@@ -46,15 +46,9 @@ public:
 
   void addMaterial(Material const& mat) override;
 
-  void addSphere(triple const& center, double radius) override
-  {
-    addSphere(center, radius, false, 0.0, 0.0);
-  }
+  void addSphere(triple const& center, double radius) override;
 
-  void addSphereHalf(triple const& center, double radius, double const& polar, double const& azimuth) override
-  {
-    addSphere(center,radius,true,0.0,0.0);
-  }
+  void addHemisphere(triple const& center, double radius, double const& polar, double const& azimuth) override;
 
   void addPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c) override;
 

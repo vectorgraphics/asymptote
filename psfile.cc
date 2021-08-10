@@ -207,9 +207,9 @@ void psfile::setcolor(const pen& p, const string& begin="",
 bool psfile::istargetfmt(string outputformat)
 {
   return
-  outputformat == "pdf" || outputformat == "html" ||
-  outputformat == "svg" || outputformat == "png" ||
-  outputformat == "v3d" || outputformat == "v3z";
+    outputformat == "pdf" || outputformat == "html" ||
+    outputformat == "svg" || outputformat == "png" ||
+    outputformat == "v3d";
 }
 
 void psfile::setopacity(const pen& p)
