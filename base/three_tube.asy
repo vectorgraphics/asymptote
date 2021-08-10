@@ -100,6 +100,17 @@ rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t, triple perp=O)
   return R;
 }
 
+
+drawfcn drawTube(triple[] g, real w, triple min, triple max) {
+  return new void(frame f, transform3 t=identity4, material[] m,
+                  light light=currentlight, render render=defaultrender)
+    {
+      material m=material(m[0],light);
+      drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+               t*min,t*max,m.opacity == 1);
+    };
+}
+
 surface tube(triple z0, triple c0, triple c1, triple z1, real w)
 {
   surface s;
@@ -125,13 +136,7 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   f(t3);
 
   s.PRCprimitive=false;
-  s.draw=new void(frame f, transform3 t=identity4, material[] m,
-                  light light=currentlight, render render=defaultrender)
-    {
-     material m=material(m[0],light);
-     drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-              t*min(s),t*max(s),m.opacity == 1);
-    };
+  s.draw=drawTube(g,w,min(s),max(s));
   return s;
 }
 
