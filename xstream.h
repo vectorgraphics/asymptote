@@ -126,7 +126,7 @@ class ixstream : virtual public xstream {
 protected:
   XDR xdri;
 public:
-  void open(const char *filename, open_mode=in) {
+  virtual void open(const char *filename, open_mode=in) {
     clear();
     buf=fopen(filename,"r");
     if(buf) xdrstdio_create(&xdri,buf,XDR_DECODE);
@@ -177,7 +177,7 @@ class oxstream : virtual public xstream {
 protected:
   XDR xdro;
 public:
-  void open(const char *filename, open_mode mode=trunc) {
+  virtual void open(const char *filename, open_mode mode=trunc) {
     clear();
     buf=fopen(filename,(mode & app) ? "a" : "w");
     if(buf) xdrstdio_create(&xdro,buf,XDR_ENCODE);
@@ -233,55 +233,40 @@ public:
 class memoxstream : public oxstream
 {
 public:
-  memoxstream() : oxstream(), destroyed(false)
+  memoxstream() : oxstream()
   {
     clear();
-    xdrrec_create(&xdro,0,0,reinterpret_cast<char*>(&buffer),nullptr,&memoxstream::write_handler);
-    xdro.x_op = XDR_ENCODE;
+    buf=open_memstream(&baseBuf,&len);
+    if(buf) xdrstdio_create(&xdro,buf,XDR_ENCODE);
+    else set(badbit);
   }
 
   ~memoxstream() override
   {
-    if (!destroyed)
-    {
-      xdrrec_endofrecord(&xdro, true);
-      xdr_destroy(&xdro);
-      destroyed=true;
-    }
-  }
-
-  void close() override
-  {
-    if (!destroyed)
-    {
-      xdrrec_endofrecord(&xdro, true);
-      xdr_destroy(&xdro);
-      destroyed=true;
-    }
+    closefile();
+    free(baseBuf);
   }
 
   [[nodiscard]]
   char const* stream() const
   {
-    return buffer.data();
+    return baseBuf;
   }
 
-protected:
-  static int write_handler(char* handler, char* data, int sz)
+  [[nodiscard]]
+  size_t const& getLength() const
   {
-    auto* buf=reinterpret_cast<std::vector<char>*>(handler);
-    std::copy_n(data, sz, std::back_inserter(*buf));
-
-    return sz;
+    return len;
   }
+
 private:
-  std::vector<char> buffer;
-  bool destroyed;
+  char* baseBuf;
+  size_t len;
 };
 
 class ioxstream : public ixstream, public oxstream {
 public:
-  void open(const char *filename, open_mode mode=out) {
+  void open(const char *filename, open_mode mode=out) override {
     clear();
     if(mode & app)
       buf=fopen(filename,"a+");
