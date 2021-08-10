@@ -1,5 +1,5 @@
 // module importv3d;
-// Supakorn "Jamie" Rassameemasuang <rassamee@ualberta.ca>
+// Supakorn "Jamie" Rassameemasuang <jamievlin@outlook.com>
 
 import three;
 import v3dtypes;
@@ -188,11 +188,19 @@ struct v3dfile
     material[] materials=new material[];
     triple[] centers;
     bool processed=false;
+    bool singleprecision=false;
 
     void operator init(string name)
     {
         _xdrfile=input(name, mode="xdr");
         fileversion=_xdrfile;
+
+        int singleprec=_xdrfile;
+        singleprecision= singleprec == 0 ? false : true;
+        if (singleprecision)
+        {
+            _xdrfile.singlereal(true);
+        }
     }
 
     int getType()
