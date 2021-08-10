@@ -367,4 +367,9 @@ char const* memv3dfile::data() const
   return memxdrfile.stream();
 }
 
+size_t const& memv3dfile::length() const
+{
+  return memxdrfile.getLength();
+}
+
 } //namespace camp

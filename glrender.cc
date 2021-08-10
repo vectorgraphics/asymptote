@@ -1583,7 +1583,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxTileWidth <= 0) maxTileWidth=1024;
   if(maxTileHeight <= 0) maxTileHeight=768;
 
-  bool producerawfile=Format == "html" || Format == "v3d";
+  bool producerawfile=Format == "html" || Format == "v3d" || Format == "v3z";
 
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD

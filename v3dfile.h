@@ -19,6 +19,8 @@
 #include "enumheaders/v3dtypes.h"
 #include "enumheaders/v3dheadertypes.h"
 
+#include "zlib.h"
+
 namespace camp
 {
 
@@ -161,16 +163,56 @@ public:
   memv3dfile();
   ~memv3dfile() override;
 
-  [[nodiscard]]
-  char const* data() const;
-
 protected:
   void close() override;
   xdr::oxstream& getXDRFile() override;
 
+  [[nodiscard]]
+  char const* data() const;
+
+  [[nodiscard]]
+  size_t const& length() const;
+
+
 private:
   xdr::memoxstream memxdrfile;
   bool finalized;
+};
+
+class gzv3dfile: public memv3dfile
+{
+public:
+  explicit gzv3dfile(string name) : memv3dfile(), name(name), destroyed(false)
+  {
+  }
+  ~gzv3dfile() override
+  {
+    if (!destroyed)
+    {
+      memv3dfile::close();
+      gzFile fil = gzopen(name.c_str(), "wb9");
+      gzwrite(fil, data(), length());
+      gzclose(fil);
+      destroyed=true;
+    }
+  }
+
+protected:
+  void close() override
+  {
+    if (!destroyed)
+    {
+      memv3dfile::close();
+      gzFile fil = gzopen(name.c_str(), "wb9");
+      gzwrite(fil, data(), length());
+      gzclose(fil);
+      destroyed=true;
+    }
+  }
+
+private:
+  string name;
+  bool destroyed;
 };
 
 } //namespace camp

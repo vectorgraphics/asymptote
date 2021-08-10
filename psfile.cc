@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <sstream>
 #include <zlib.h>
+#include <unordered_set>
 
 #include "psfile.h"
 #include "settings.h"
@@ -203,6 +204,14 @@ void psfile::setcolor(const pen& p, const string& begin="",
   }
 }
 
+bool psfile::istargetfmt(string outputformat)
+{
+  return
+  outputformat == "pdf" || outputformat == "html" ||
+  outputformat == "svg" || outputformat == "png" ||
+  outputformat == "v3d" || outputformat == "v3z";
+}
+
 void psfile::setopacity(const pen& p)
 {
   if(p.blend() != lastpen.blend()) {
@@ -211,8 +220,7 @@ void psfile::setopacity(const pen& p)
 
   string outputformat=settings::getSetting<string>("outformat");
   if(p.opacity() != lastpen.opacity() &&
-     ((pdftex() && outputformat == "") || outputformat == "pdf" || outputformat == "html" ||
-      outputformat == "svg" || outputformat == "png" || outputformat == "v3d")) {
+  ((pdftex() && outputformat == "") || istargetfmt(outputformat))) {
     *out << p.opacity() << " .setfillconstantalpha" << newl
          << p.opacity() << " .setstrokeconstantalpha" << newl;
   }

@@ -1293,7 +1293,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     return true;
 
   bool webgl=format == "html";
-  bool v3dfmt=format == "v3d";
+  bool v3dfmt=format == "v3d" || format == "v3z";
 
 #ifndef HAVE_LIBGLM
   if(webgl)
@@ -1409,25 +1409,29 @@ bool picture::shipout3(const string& prefix, const string& format,
   if (fmt3d)
   {
     string name=buildname(prefix,format);
-    abs3Doutfile *fileObj;
+    abs3Doutfile *fileObj=nullptr;
 
     if (webgl)
       fileObj=new jsfile(name);
     else if (v3dfmt)
-      fileObj=new v3dfile(name);
-    else
-      fileObj=NULL;
-
-    for (auto& p : pic->nodes)
     {
-      assert(p);
-      p->write(fileObj);
+      if (format == "v3z")
+        fileObj=new gzv3dfile(name);
+      else
+        fileObj=new memv3dfile();
     }
 
-    fileObj->close();
+    if (fileObj)
+    {
+      for (auto& p : pic->nodes)
+      {
+        assert(p);
+        p->write(fileObj);
+      }
 
-    if(fileObj)
+      fileObj->close();
       delete fileObj;
+    }
 
     if(webgl && View)
       htmlView(name);
