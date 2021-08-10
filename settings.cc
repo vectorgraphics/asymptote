@@ -1296,7 +1296,7 @@ void initSettings() {
   addOption(new boolSetting("bakepatches", 0,
                             "When rendering with V3D format, pre-render the bezier patches/triangles", false));
   addOption(new boolSetting("lossy", 0,
-                            "Use single precision for output instead of double.", false));
+                            "Use single precision for V3D reals", false));
   addOption(new boolSetting("listvariables", 'l',
                             "List available global functions and variables"));
   addOption(new boolSetting("where", 0,
