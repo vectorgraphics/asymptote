@@ -297,39 +297,6 @@ void absv3dfile::finalize()
   }
 }
 
-// v3dfile
-
-v3dfile::v3dfile(string const& name, open_mode mode) :
-  absv3dfile(), xdrfile(name.c_str(), mode), finished(false)
-{
-  writeInit();
-}
-
-v3dfile::~v3dfile()
-{
-  closeFile();
-}
-
-void v3dfile::close()
-{
-  closeFile();
-}
-
-void v3dfile::closeFile()
-{
-  if (!finished)
-  {
-    finished = true;
-    finalize();
-    getXDRFile().close();
-  }
-}
-
-xdr::oxstream& v3dfile::getXDRFile()
-{
-  return xdrfile;
-}
-
 // for headers
 
 xdr::oxstream& operator<<(xdr::oxstream& ox, AHeader const& header)
@@ -339,35 +306,42 @@ xdr::oxstream& operator<<(xdr::oxstream& ox, AHeader const& header)
   return ox;
 }
 
-// memv3dfile
+// gzv3dfile
 
-xdr::oxstream& memv3dfile::getXDRFile()
+xdr::oxstream& gzv3dfile::getXDRFile()
 {
   return memxdrfile;
 }
 
-memv3dfile::memv3dfile(): absv3dfile(), memxdrfile()
+gzv3dfile::gzv3dfile(const string& name): absv3dfile(), memxdrfile(), name(name), destroyed(false)
 {
   writeInit();
 }
 
-memv3dfile::~memv3dfile()
+gzv3dfile::~gzv3dfile()
 {
-  finalize();
+  close();
 }
 
-void memv3dfile::close()
+void gzv3dfile::close()
 {
   finalize();
-  memxdrfile.close();
+  if (!destroyed)
+    {
+      memxdrfile.close();
+      gzFile fil = gzopen(name.c_str(), "wb9");
+      gzwrite(fil, data(), length());
+      gzclose(fil);
+      destroyed=true;
+    }
 }
 
-char const* memv3dfile::data() const
+char const* gzv3dfile::data() const
 {
   return memxdrfile.stream();
 }
 
-size_t const& memv3dfile::length() const
+size_t const& gzv3dfile::length() const
 {
   return memxdrfile.getLength();
 }

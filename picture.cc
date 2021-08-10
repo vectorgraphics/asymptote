@@ -1415,10 +1415,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       fileObj=new jsfile(name);
     else if (v3dfmt)
     {
-      if (format == "v3z")
-        fileObj=new gzv3dfile(name);
-      else
-        fileObj=new memv3dfile();
+      fileObj=new gzv3dfile(name);
     }
 
     if (fileObj)

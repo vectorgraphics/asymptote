@@ -241,12 +241,8 @@ public:
     return false;
   }
 
-  // Output to a JS file
+  // Output to a WebGL or v3d file
   virtual bool write(abs3Doutfile *out) {
-    return false;
-  }
-
-  virtual bool write(v3dfile* out) {
     return false;
   }
 

@@ -140,31 +140,13 @@ private:
   bool finalized;
 };
 
-class v3dfile : public absv3dfile
+class gzv3dfile : public absv3dfile
 {
 public:
-  explicit v3dfile(string const& name, open_mode mode=xdr::xios::open_mode::out);
-  ~v3dfile() override;
+  gzv3dfile(const string& name);
+  ~gzv3dfile() override;
 
 protected:
-  void close() override;
-  void closeFile();
-
-  xdr::oxstream& getXDRFile() override;
-
-private:
-  xdr::oxstream xdrfile;
-  bool finished;
-};
-
-class memv3dfile : public absv3dfile
-{
-public:
-  memv3dfile();
-  ~memv3dfile() override;
-
-protected:
-  void close() override;
   xdr::oxstream& getXDRFile() override;
 
   [[nodiscard]]
@@ -177,42 +159,9 @@ protected:
 private:
   xdr::memoxstream memxdrfile;
   bool finalized;
-};
-
-class gzv3dfile: public memv3dfile
-{
-public:
-  explicit gzv3dfile(string name) : memv3dfile(), name(name), destroyed(false)
-  {
-  }
-  ~gzv3dfile() override
-  {
-    if (!destroyed)
-    {
-      memv3dfile::close();
-      gzFile fil = gzopen(name.c_str(), "wb9");
-      gzwrite(fil, data(), length());
-      gzclose(fil);
-      destroyed=true;
-    }
-  }
-
-protected:
-  void close() override
-  {
-    if (!destroyed)
-    {
-      memv3dfile::close();
-      gzFile fil = gzopen(name.c_str(), "wb9");
-      gzwrite(fil, data(), length());
-      gzclose(fil);
-      destroyed=true;
-    }
-  }
-
-private:
   string name;
   bool destroyed;
+  void close() override;
 };
 
 } //namespace camp
