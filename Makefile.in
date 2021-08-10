@@ -15,8 +15,11 @@ LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS)
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
-PERL = perl
-PYTHON = python3
+PERL ?= perl
+PYTHON ?= python3
+BISON ?= bison
+PYRCC ?= pyrcc5
+PYUIC ?= pyuic5
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
@@ -86,9 +89,6 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 CXX = @CXX@ -Wall
 CC = @CC@ -Wall
 MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
-BISON ?= bison
-PYRCC ?= pyrcc5
-PYUIC ?= pyuic5
 LEX = @LEX@
 
 prefix = @prefix@
@@ -366,14 +366,12 @@ check-all: asy FORCE
 glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
-.SUFFIXES: .c .cc .o .d .ui .py
-
 headers:
 	cd enumheaders && $(MAKE) headers
 
-%.o: %.cc headers
+.SUFFIXES: .c .cc .o .d .ui .py
+%.o: %.cc
 	$(CXX) $(OPTS) -o $@ -c $<
-
 %.d: %.cc
 	@echo Creating $@; \
 	rm -f $@; \
