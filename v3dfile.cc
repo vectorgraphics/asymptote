@@ -14,13 +14,18 @@ namespace camp
 using settings::getSetting;
 using std::make_unique;
 
-absv3dfile::absv3dfile() : finalized(false)
+absv3dfile::absv3dfile() : finalized(false), singleprecision(false)
+{
+}
+
+absv3dfile::absv3dfile(bool singleprecision) : finalized(false), singleprecision(singleprecision)
 {
 }
 
 void absv3dfile::writeInit()
 {
-  getXDRFile() << v3dVersion;
+  uint32_t numsingleprecision = singleprecision ? 1 : 0;
+  getXDRFile() << v3dVersion << numsingleprecision;
   addHeaders();
 }
 
@@ -313,9 +318,20 @@ xdr::oxstream& gzv3dfile::getXDRFile()
   return memxdrfile;
 }
 
-gzv3dfile::gzv3dfile(const string& name): absv3dfile(), memxdrfile(), name(name), destroyed(false)
+gzv3dfile::gzv3dfile(string const& name): absv3dfile(), memxdrfile(), name(name), destroyed(false)
 {
   writeInit();
+}
+
+gzv3dfile::gzv3dfile(bool singleprecision): absv3dfile(singleprecision), memxdrfile(singleprecision), destroyed(false)
+{
+  writeInit();
+}
+
+gzv3dfile::gzv3dfile(string const& name, bool singleprecision):
+  absv3dfile(singleprecision), memxdrfile(singleprecision), name(name), destroyed(false)
+{
+
 }
 
 gzv3dfile::~gzv3dfile()
@@ -325,15 +341,15 @@ gzv3dfile::~gzv3dfile()
 
 void gzv3dfile::close()
 {
-  finalize();
   if (!destroyed)
-    {
-      memxdrfile.close();
-      gzFile fil = gzopen(name.c_str(), "wb9");
-      gzwrite(fil, data(), length());
-      gzclose(fil);
-      destroyed=true;
-    }
+  {
+    finalize();
+    memxdrfile.close();
+    gzFile fil = gzopen(name.c_str(), "wb9");
+    gzwrite(fil, data(), length());
+    gzclose(fil);
+    destroyed=true;
+  }
 }
 
 char const* gzv3dfile::data() const

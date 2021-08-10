@@ -177,6 +177,9 @@ class oxstream : virtual public xstream {
 protected:
   XDR xdro;
 public:
+  oxstream() : singleprecision(false) {}
+  explicit oxstream(bool singleprecision) : singleprecision(singleprecision) {}
+
   virtual void open(const char *filename, open_mode mode=trunc) {
     clear();
     buf=fopen(filename,(mode & app) ? "a" : "w");
@@ -199,9 +202,14 @@ public:
     }
   }
 
-  oxstream() {}
-  oxstream(const char *filename) {open(filename);}
-  oxstream(const char *filename, open_mode mode) {open(filename,mode);}
+  oxstream(const char *filename): singleprecision(false) {open(filename);}
+  oxstream(const char *filename, open_mode mode): singleprecision(false) {open(filename,mode);}
+
+  oxstream(const char *filename, bool singleprecision): singleprecision(singleprecision) {open(filename);}
+  oxstream(const char *filename, open_mode mode, bool singleprecision): singleprecision(singleprecision)
+  {
+    open(filename,mode);
+  }
   virtual ~oxstream() {closefile();}
 
   oxstream& flush() {if(buf) fflush(buf); return *this;}
@@ -222,23 +230,50 @@ public:
   OXSTREAM(unsigned char,u_char);
 #endif
   OXSTREAM(float,float);
-  OXSTREAM(double,double);
+
+  oxstream& operator<< (double x) {
+    if (!singleprecision)
+    {
+      if(!xdr_double(&xdro, &x))
+        set(badbit);
+    }
+    else
+    {
+      *this << static_cast<float>(x);
+    }
+    return *this;
+  }
 
   oxstream& operator << (xbyte x) {
     if(fputc(x.byte(),buf) == EOF) set(badbit);
     return *this;
   }
+
+private:
+  bool singleprecision;
 };
 
 class memoxstream : public oxstream
 {
 public:
-  memoxstream() : oxstream()
+  memoxstream(bool singleprecision) : oxstream(singleprecision), baseBuf(nullptr), len(0)
   {
     clear();
     buf=open_memstream(&baseBuf,&len);
-    if(buf) xdrstdio_create(&xdro,buf,XDR_ENCODE);
-    else set(badbit);
+    if(buf)
+      xdrstdio_create(&xdro,buf,XDR_ENCODE);
+    else
+      set(badbit);
+  }
+
+  memoxstream() : oxstream(), baseBuf(nullptr), len(0)
+  {
+    clear();
+    buf=open_memstream(&baseBuf,&len);
+    if(buf)
+      xdrstdio_create(&xdro,buf,XDR_ENCODE);
+    else
+      set(badbit);
   }
 
   ~memoxstream() override

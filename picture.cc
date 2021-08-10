@@ -1415,7 +1415,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       fileObj=new jsfile(name);
     else if (v3dfmt)
     {
-      fileObj=new gzv3dfile(name);
+      fileObj=new gzv3dfile(name, getSetting<bool>("lossy"));
     }
 
     if (fileObj)

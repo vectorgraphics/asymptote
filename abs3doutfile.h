@@ -17,7 +17,7 @@ inline bool distinct(const uint32_t *I, const uint32_t *J)
 class abs3Doutfile
 {
 public:
-  virtual ~abs3Doutfile() {};
+  virtual ~abs3Doutfile() = default;
   virtual void close()=0;
 
   virtual void addPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c) = 0;

@@ -82,6 +82,7 @@ class absv3dfile : public abs3Doutfile
 {
 public:
   absv3dfile();
+  absv3dfile(bool singleprecision);
 
   void writeInit();
   void finalize();
@@ -138,12 +139,16 @@ protected:
 
 private:
   bool finalized;
+  bool singleprecision;
 };
 
 class gzv3dfile : public absv3dfile
 {
 public:
-  gzv3dfile(const string& name);
+  explicit gzv3dfile(string const& name);
+  explicit gzv3dfile(bool singleprecision);
+  gzv3dfile(string const& name, bool singleprecision);
+
   ~gzv3dfile() override;
 
 protected:
@@ -155,10 +160,8 @@ protected:
   [[nodiscard]]
   size_t const& length() const;
 
-
 private:
   xdr::memoxstream memxdrfile;
-  bool finalized;
   string name;
   bool destroyed;
   void close() override;
