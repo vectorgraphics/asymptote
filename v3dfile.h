@@ -62,13 +62,32 @@ private:
   T obj;
 };
 
+const uint32_t TRIPLE_DOUBLE_SIZE=3*8;
+const uint32_t TWO_DOUBLE_SIZE=2*8;
+
 using open_mode=xdr::xios::open_mode;
-using TripleHeader=SingleObjectHeader<triple, 3*8>;
-using PairHeader=SingleObjectHeader<pair, 2*8>;
+using TripleHeader=SingleObjectHeader<triple, TRIPLE_DOUBLE_SIZE>;
+using PairHeader=SingleObjectHeader<pair, TWO_DOUBLE_SIZE>;
 using DoubleFloatHeader=SingleObjectHeader<double>;
 using Uint32Header=SingleObjectHeader<uint32_t>;
 
 const unsigned int v3dVersion=0;
+
+class LightHeader : public AHeader
+{
+public:
+  explicit LightHeader(triple const& direction, triple const& color);
+  ~LightHeader() override=default;
+
+protected:
+  [[nodiscard]]
+  uint32_t getByteSize() const override;
+  void writeContent(xdr::oxstream &ox) const override;
+
+private:
+  triple direction;
+  triple color;
+};
 
 enum v3dTriangleIndexType : uint32_t
 {
@@ -82,7 +101,7 @@ class absv3dfile : public abs3Doutfile
 {
 public:
   absv3dfile();
-  absv3dfile(bool singleprecision);
+  explicit absv3dfile(bool singleprecision);
 
   void writeInit();
   void finalize();
@@ -145,8 +164,7 @@ private:
 class gzv3dfile : public absv3dfile
 {
 public:
-  gzv3dfile(string const& name, bool singleprecision=false);
-
+  explicit gzv3dfile(string const& name, bool singleprecision=false);
   ~gzv3dfile() override;
 
 protected:

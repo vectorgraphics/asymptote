@@ -49,6 +49,15 @@ void absv3dfile::addHeaders()
     headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportShift, gl::Shift*gl::Zoom0));
   }
 
+  for(size_t i=0; i < gl::nlights; ++i)
+  {
+    size_t i4=4*i;
+    headers.emplace_back(make_unique<LightHeader>(
+            gl::Lights[i],
+            triple(gl::Diffuse[i4], gl::Diffuse[i4+1], gl::Diffuse[i4+2])
+            ));
+  }
+
   headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::zoomFactor, getSetting<double>("zoomfactor")));
   headers.emplace_back(make_unique<DoubleFloatHeader>(
           v3dheadertypes::zoomPinchFactor, getSetting<double>("zoomPinchFactor")));
@@ -351,4 +360,18 @@ size_t const& gzv3dfile::length() const
   return memxdrfile.getLength();
 }
 
+uint32_t LightHeader::getByteSize() const
+{
+  return 2*TRIPLE_DOUBLE_SIZE / 4;
+}
+
+void LightHeader::writeContent(xdr::oxstream& ox) const
+{
+  ox << direction << color;
+}
+
+LightHeader::LightHeader(triple const& direction, triple const& color) :
+        AHeader(v3dheadertypes::light), direction(direction), color(color)
+{
+}
 } //namespace camp
