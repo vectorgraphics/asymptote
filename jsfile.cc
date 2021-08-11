@@ -312,7 +312,8 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
 void jsfile::addSphere(const triple& center, double radius)
 {
   out << "sphere(" << center << "," << radius << ","
-      << drawElement::centerIndex << "," << materialIndex;
+      << drawElement::centerIndex << "," << materialIndex
+      << ");" << newl << newl;
 }
 
 void jsfile::addHemisphere(const triple& center, double radius,
