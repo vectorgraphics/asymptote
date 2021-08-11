@@ -126,6 +126,8 @@ class ixstream : virtual public xstream {
 protected:
   XDR xdri;
 public:
+  explicit ixstream(bool singleprecision=false): singleprecision(singleprecision) {}
+
   virtual void open(const char *filename, open_mode=in) {
     clear();
     buf=fopen(filename,"r");
@@ -133,17 +135,19 @@ public:
     else set(badbit);
   }
 
-  void close() {
+  virtual void close() {
+    closeFile();
+  }
+
+  void closeFile() {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdri);
 #endif
       fclose(buf);
-      buf=NULL;
+      buf=nullptr;
     }
   }
-
-  ixstream() {}
   ixstream(const char *filename) {open(filename);}
   ixstream(const char *filename, open_mode mode) {open(filename,mode);}
   virtual ~ixstream() {close();}
@@ -164,21 +168,37 @@ public:
   IXSTREAM(unsigned char,u_char);
 #endif
   IXSTREAM(float,float);
-  IXSTREAM(double,double);
+
+  ixstream& operator>>(double& x)
+  {
+    if (!singleprecision)
+    {
+      if (!xdr_double(&xdri, &x))set(eofbit);
+    }
+    else
+    {
+      float f;
+      *this >> f;
+      x=static_cast<double>(f);
+    }
+    return *this;
+  }
 
   ixstream& operator >> (xbyte& x) {
     x=fgetc(buf);
     if(x.byte() == EOF) set(eofbit);
     return *this;
   }
+
+private:
+  bool singleprecision;
 };
 
 class oxstream : virtual public xstream {
 protected:
   XDR xdro;
 public:
-  oxstream() : singleprecision(false) {}
-  explicit oxstream(bool singleprecision) : singleprecision(singleprecision) {}
+  explicit oxstream(bool singleprecision=false) : singleprecision(singleprecision) {}
 
   virtual void open(const char *filename, open_mode mode=trunc) {
     clear();
@@ -256,17 +276,8 @@ private:
 class memoxstream : public oxstream
 {
 public:
-  memoxstream(bool singleprecision) : oxstream(singleprecision), baseBuf(nullptr), len(0)
-  {
-    clear();
-    buf=open_memstream(&baseBuf,&len);
-    if(buf)
-      xdrstdio_create(&xdro,buf,XDR_ENCODE);
-    else
-      set(badbit);
-  }
-
-  memoxstream() : oxstream(), baseBuf(nullptr), len(0)
+  explicit memoxstream(bool singleprecision=false) :
+    oxstream(singleprecision), baseBuf(nullptr), len(0)
   {
     clear();
     buf=open_memstream(&baseBuf,&len);
@@ -297,6 +308,34 @@ public:
 private:
   char* baseBuf;
   size_t len;
+};
+
+class memixstream: public ixstream
+{
+public:
+  memixstream(char* data, size_t length, bool singleprecision=false) : ixstream(singleprecision)
+  {
+    xdrmem_create(&xdri,data,length,XDR_DECODE);
+  }
+
+  explicit memixstream(std::vector<char>& data, bool singleprecision=false) :
+    memixstream(data.data(), data.size(), singleprecision)
+  {
+  }
+
+  ~memixstream() override
+  {
+    xdr_destroy(&xdri);
+  }
+
+  void close() override
+  {
+    xdr_destroy(&xdri);
+  }
+
+  void open(const char *filename, open_mode = in) override
+  {
+  }
 };
 
 class ioxstream : public ixstream, public oxstream {
