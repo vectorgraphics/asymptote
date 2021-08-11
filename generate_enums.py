@@ -74,6 +74,53 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('// End of File\n')
 
 
+def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
+    with io.open(outname, 'w') as fil:
+        fil.write('// THIS FILE IS AUTO-GENERATED.\n')
+        fil.write('// Enum class for enum {0}\n'.format(name))
+        fil.write('// Generated at {0}\n\n'.format(datetime.now()))
+
+        fil.write('package {0};\n'.format(kwargs['package']))
+        fil.write('\n')
+
+        if comment:
+            fil.write('/**\n')
+            fil.write(' * {0}\n'.format(comment))
+            fil.write(' */\n')
+        fil.write('public enum {0} {{\n'.format(name))
+
+        spaces = kwargs.get('spaces', 4)
+        spaces_tab=' '*spaces
+
+        for i in range(len(enums)):
+            enumTxt, enumNum, *ar = enums[i]
+            if len(ar) > 0:
+                comment=ar[-1]
+                if comment is not None:
+                    fil.write('\n{0}/**\n'.format(spaces_tab))
+                    fil.write('{1} * {0}\n'.format(comment.strip(),spaces_tab))
+                    fil.write('{0} */\n'.format(spaces_tab))
+            endsep=',' if i < len(enums) - 1 else ';'
+            fil.write('{2}{0}({1}){3}\n'.format(enumTxt,enumNum,spaces_tab,endsep))
+
+        out_lines=[
+            '',
+            '{0}(int value) {{'.format(name),
+            '{0}this.value=value;'.format(spaces_tab),
+            '}',
+            'public String toString() {',
+            '{0}return Integer.toString(value);'.format(spaces_tab),
+            '}',
+            'private int value;']
+
+        for line in out_lines:
+            fil.write(spaces_tab)
+            fil.write(line)
+            fil.write('\n')
+        fil.write('};\n\n')
+        fil.write('// End of File\n')
+
+
 def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
     with io.open(outname, 'w') as fil:
         fil.write('// THIS FILE IS AUTO-GENERATED.\n')
@@ -123,6 +170,8 @@ def main():
         fn = generate_enum_cpp
     elif arg.language in {'asy', 'asymptote'}:
         fn = generate_enum_asy
+    elif arg.language in {'java'}:
+        fn = generate_enum_java
     else:
         return 1
 
