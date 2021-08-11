@@ -648,7 +648,7 @@ struct v3dfile
         vss.s=tube(g[0],g[1],g[2],g[3],width);
         vss.matId=matIdx;
         vss.centerIdx=centerIdx;
-        vss.s.draw=drawTube(g,width,Min,Max);
+        vss.s.draw=drawTube(g,width,info.b,info.B);
         return vss;
     }
 
