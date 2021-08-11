@@ -61,12 +61,12 @@ ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
-        $(SYMBOLSH) $(PYFILES) $(ASYGENERATEDENUMS)
+        $(SYMBOLSH) $(PYFILES) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS)
+
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
-        $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS)
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
