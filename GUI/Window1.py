@@ -1240,6 +1240,7 @@ class MainWindow1(Qw.QMainWindow):
                         saveFile = io.open(self.fileName, 'w')
                         xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
                         saveFile.close()
+                        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                         self.fileChanged = False
                     elif reply == 0:
                         prefix = os.path.splitext(self.fileName)[0]
@@ -1252,6 +1253,7 @@ class MainWindow1(Qw.QMainWindow):
     
                         self.actionExportXasy(xasyFilePath)
                         self.fileName = xasyFilePath
+                        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                         self.fileChanged = False
                     else:
                         return
@@ -1263,6 +1265,7 @@ class MainWindow1(Qw.QMainWindow):
                     self.fileChanged = False
             elif file_extension == ".xasy":
                 self.actionExportXasy(self.fileName)
+                self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                 self.fileChanged = False
             else:
                 print("ERROR: file extension not supported")
