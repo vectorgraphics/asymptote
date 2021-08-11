@@ -54,9 +54,13 @@ void absv3dfile::addHeaders()
     size_t i4=4*i;
     headers.emplace_back(make_unique<LightHeader>(
             gl::Lights[i],
-            triple(gl::Diffuse[i4], gl::Diffuse[i4+1], gl::Diffuse[i4+2])
+            prc::RGBAColour(gl::Diffuse[i4], gl::Diffuse[i4+1], gl::Diffuse[i4+2], 1.0)
             ));
   }
+
+  headers.emplace_back(make_unique<RGBAHeader>(
+          v3dheadertypes::background,
+          prc::RGBAColour(gl::Background[0],gl::Background[1],gl::Background[2],gl::Background[3])));
 
   headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::zoomFactor, getSetting<double>("zoomfactor")));
   headers.emplace_back(make_unique<DoubleFloatHeader>(
@@ -362,15 +366,16 @@ size_t const& gzv3dfile::length() const
 
 uint32_t LightHeader::getByteSize() const
 {
-  return 2*TRIPLE_DOUBLE_SIZE / 4;
+  return (TRIPLE_DOUBLE_SIZE + RGBA_FLOAT_SIZE)/4;
 }
 
 void LightHeader::writeContent(xdr::oxstream& ox) const
 {
   ox << direction << color;
+
 }
 
-LightHeader::LightHeader(triple const& direction, triple const& color) :
+LightHeader::LightHeader(triple const& direction, prc::RGBAColour const& color) :
         AHeader(v3dheadertypes::light), direction(direction), color(color)
 {
 }
