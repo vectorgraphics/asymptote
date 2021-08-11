@@ -1326,6 +1326,8 @@ void initSettings() {
                                      "Alternative output directory/filename"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
                              &startpath));
+  addOption(new boolSetting("once", 0,
+                            "Limit to one shipout per asy process."));
 
 #ifdef USEGC
   addOption(new compactSetting("compact", 0,

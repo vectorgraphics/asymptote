@@ -2875,6 +2875,9 @@ object embed(string prefix=outprefix(), string label=prefix,
     if(settings.outformat == "html")
       format="html";
 
+    if(shipped && settings.once) return F;
+    shipped=true;
+
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
