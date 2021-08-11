@@ -42,9 +42,6 @@ SYMBOL_FILES = types builtin gsl $(RUNTIME_FILES)
 
 PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
-GENERATED_HEADERS = v3dtypes v3dheadertypes
-GENERATED_HEADER_FILES = $(addprefix ./enumheaders/,$(GENERATED_HEADERS))
-
 COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
         callable name symbol entry exp newexp stack camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
@@ -65,7 +62,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) $(GENERATED_HEADER_FILES:=.h)
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
@@ -88,7 +85,7 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 
 CXX = @CXX@ -Wall
 CC = @CC@ -Wall
-MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
+MAKEDEPEND = $(OPTS) -O0 -M -MG -DDEPEND
 LEX = @LEX@
 
 prefix = @prefix@
@@ -342,7 +339,6 @@ cleaner: FORCE clean
 	-rm -f Makefile config.h config.log config.status errors.temp
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
-	cd enumheaders && $(MAKE) clean
 
 distclean: FORCE cleaner
 	cd doc && $(MAKE) distclean
@@ -366,9 +362,6 @@ check-all: asy FORCE
 glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
-headers:
-	cd enumheaders && $(MAKE) headers
-
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc
 	$(CXX) $(OPTS) -o $@ -c $<
@@ -391,6 +384,17 @@ headers:
 # crashes inside a shared library.
 %.pic.o: %.cc
 	$(CXX) $(SHAREDOPTS) -o $@ -c $<
+
+# For header generations
+
+%.h: %.csv
+	$(PYTHON) ./generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
+
+%.asy: %.csv
+	$(PYTHON) ./generate_enums.py --language asy -o $@ -i $< --name $(notdir $*)
+
+%.py: %.csv
+	$(PYTHON) ./generate_enums.py --language python -o $@ -i $< --name $(notdir $*)
 
 ifeq (,$(findstring clean,${MAKECMDGOALS}))
 -include $(FILES:=.d)

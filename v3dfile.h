@@ -16,8 +16,8 @@
 #include "triple.h"
 #include "material.h"
 #include "glrender.h"
-#include "enumheaders/v3dtypes.h"
-#include "enumheaders/v3dheadertypes.h"
+#include "v3dtypes.h"
+#include "v3dheadertypes.h"
 
 #include "zlib.h"
 
