@@ -10,7 +10,7 @@
 #
 # Written by Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com>
 
-from typing import List, Tuple
+from typing import List, Tuple, Any, Union
 from datetime import datetime
 import io
 import argparse
@@ -27,14 +27,20 @@ def parse_args():
     return parser.parse_args()
 
 
-def create_enums(filename: str) -> List[Tuple[str, int]]:
+def create_enums(filename: str) -> List[Union[Tuple[str, int, str], Tuple[str, int]]]:
     final_list=[]
     with io.open(filename,newline='') as rawfile:
         for line in rawfile.readlines():
             if line.startswith('#') or line.strip() == '':
                 continue
-            raw_str, raw_number=line.strip().split(',')
-            final_list.append((raw_str.strip(), int(raw_number.strip())))
+            raw_line=line.strip().split(',')
+            raw_str, raw_number=raw_line[0:2]
+            comment=None
+            if len(raw_line)>=3:
+                comment=raw_line[-1]
+                final_list.append((raw_str.strip(), int(raw_number.strip()),comment))
+            else:
+                final_list.append((raw_str.strip(), int(raw_number.strip())))
     return final_list
 
 
@@ -52,8 +58,15 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('enum {0} : uint32_t\n'.format(name))
         fil.write('{\n')
 
-        for enumTxt, enumNum in enums:
+        for enumTxt, enumNum, *ar in enums:
+            if len(ar) > 0:
+                comment=ar[-1]
+                if comment is not None:
+                    fil.write('\n/**\n')
+                    fil.write('* {0}\n'.format(comment.strip()))
+                    fil.write('*/\n')
             fil.write('{0}={1},\n'.format(enumTxt, enumNum))
+
         fil.write('};\n\n')
 
         if 'namespace' in kwargs:
@@ -72,10 +85,14 @@ def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('struct {0}\n'.format(name))
         fil.write('{\n')
 
-        for enumTxt, enumNum in enums:
+        for enumTxt, enumNum, *ar in enums:
+            if len(ar) > 0:
+                comment=ar[-1]
+                if comment is not None:
+                    fil.write('\n  // {0}\n'.format(comment.strip()))
             fil.write('  int {0}={1};\n'.format(enumTxt, enumNum))
         fil.write('};\n\n')
-        fil.write('{0} {0};'.format(name));
+        fil.write('{0} {0};'.format(name))
 
         fil.write('// End of File\n')
 
@@ -89,7 +106,11 @@ def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
         if comment is not None:
             fil.write('""" {0} """\n'.format(comment))
         fil.write('class {0}:\n'.format(name))
-        for enumTxt, enumNum in enums:
+        for enumTxt, enumNum, *ar in enums:
+            if len(ar) > 0:
+                comment=ar[-1]
+                if comment is not None:
+                    fil.write('    # {0}\n'.format(comment.strip()))
             fil.write('    {0}_{2}={1}\n'.format(name, enumNum, enumTxt))
         fil.write('# End of File\n')
 

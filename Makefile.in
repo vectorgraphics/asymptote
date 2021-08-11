@@ -56,7 +56,8 @@ SYMBOLSH = opsymbols.h allsymbols.h $(SYMBOL_FILES:=.symbols.h)
 UIFILES = $(wildcard GUI/windows/*.ui)
 PYFILES = $(wildcard GUI/pyUIClass/*.py) GUI/icons_rc.py
 
-ASYGENERATEDENUMS=base/v3dtypes.asy base/v3dheadertypes.asy
+GENERATEDENUMS=v3dtypes v3dheadertypes
+ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
@@ -65,7 +66,7 @@ NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
-        $(ASYGENERATEDENUMS)
+        $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
