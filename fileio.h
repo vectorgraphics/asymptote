@@ -656,7 +656,7 @@ public:
   void open() {
     name=locatefile(inpath(name));
     fstream=new xdr::ixstream(name.c_str(),mode);
-    index=processData().ixfileSp.add(fstream);
+    index=processData().ixfile.add(fstream);
     if(check) Check();
   }
 
@@ -666,7 +666,7 @@ public:
       closed=true;
       delete fstream;
       fstream=NULL;
-      processData().ixfileSp.remove(index);
+      processData().ixfile.remove(index);
     }
   }
 
@@ -776,7 +776,7 @@ public:
     name=locatefile(inpath(name));
     ioxfstreamRef=new xdr::ioxstream(name.c_str(),mode);
     fstream=static_cast<xdr::ixstream*>(ioxfstreamRef);
-    index=processData().ixfileSp.add(fstream);
+    index=processData().ixfile.add(fstream);
     if(check) Check();
   }
 

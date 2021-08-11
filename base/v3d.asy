@@ -196,7 +196,7 @@ struct v3dfile
 
     void operator init(string name)
     {
-        _xdrfile=input(name, mode="xdr");
+        _xdrfile=input(name, mode="xdrgz");
         fileversion=_xdrfile;
 
         int doubleprecision=_xdrfile;
