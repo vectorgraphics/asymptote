@@ -1,6 +1,7 @@
 import three;
 import settings;
 size(20cm);
+viewportmargin=(0,0);
 
 currentprojection=perspective(250,-250,250);
 currentlight=Viewport;

@@ -130,6 +130,8 @@ struct CameraInformation
     real Zoom0;
     pair viewportMargin;
 
+  light light;
+
     void setCameraInfo()
     {
         size(canvasWidth,canvasHeight);
@@ -143,6 +145,8 @@ struct CameraInformation
         {
             currentprojection=perspective(Z,Y,target=center,Zoom0,degrees(angle),autoadjust=false);
         }
+        light.specular=light.diffuse;
+        currentlight=light;
     }
 }
 
@@ -213,6 +217,22 @@ struct v3dfile
         }
     }
 
+    pen[] readColorData(int size=4)
+    {
+        _xdrfile.singlereal(true);
+
+        _xdrfile.dimension(4);
+        pen[] newPen=new pen[size];
+        for (int i=0;i<size;++i)
+        {
+            newPen[i]=rgba(_xdrfile);
+        }
+
+        _xdrfile.singlereal(singleprecision);
+
+        return newPen;
+    }
+
     CameraInformation processHeader()
     {
         CameraInformation ci;
@@ -261,6 +281,16 @@ struct v3dfile
             {
                 ci.viewportMargin=_xdrfile;
             }
+            else if (headerKey==v3dheadertypes.background)
+            {
+              ci.light.background=readColorData(1)[0];
+            }
+            else if (headerKey==v3dheadertypes.light)
+            {
+              triple position=_xdrfile;
+              ci.light.position.push(position);
+              ci.light.diffuse.push(rgba(readColorData(1)[0]));
+            }
             else
             {
                 _xdrfile.dimension(headerSz);
@@ -287,22 +317,6 @@ struct v3dfile
         real F0=params[2];
 
         return material(diffusePen,emissivePen,specularPen,1.0,shininess,metallic,F0);
-    }
-
-    pen[] readColorData(int size=4)
-    {
-        _xdrfile.singlereal(true);
-
-        _xdrfile.dimension(4);
-        pen[] newPen=new pen[size];
-        for (int i=0;i<size;++i)
-        {
-            newPen[i]=rgba(_xdrfile);
-        }
-
-        _xdrfile.singlereal(singleprecision);
-
-        return newPen;
     }
 
     triple[][] readRawPatchData()
@@ -1013,6 +1027,7 @@ struct v3dfile
 void readv3d(string name)
 {
   v3dfile xf=v3dfile(name);
+
   v3dSurfaceData[] vsd=xf.generateSurfaceList();
   xf.setCameraInfo();
   for(v3dSurfaceData vs : vsd) {
@@ -1023,7 +1038,6 @@ void readv3d(string name)
   }
 
   v3dPathData[] vpd=xf.generatePathList();
-
   for(v3dPathData vp : vpd) {
     material m=material(vp.m);
     m.p[0] += thin();
@@ -1032,4 +1046,3 @@ void readv3d(string name)
       draw(p,m,r);
   }
 }
-
