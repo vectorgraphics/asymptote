@@ -72,7 +72,6 @@ void deconstruct(picture pic=currentpicture)
 }
 
 bool implicitshipout=false;
-bool shipped=false;
 
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=false, bool view=true,
@@ -102,10 +101,8 @@ void shipout(string prefix=defaultfilename, frame f,
   int limit=2000;
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
-  if(shipped && settings.once) return;
-  shipped=true;
-
   _shipout(prefix,f,currentpatterns,format,wait,view,t);
+  if(settings.once && !settings.batchView) exit();
 }
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
