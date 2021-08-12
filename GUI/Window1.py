@@ -737,11 +737,6 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
-    def updateCurve(self, valid, newCurve):
-        # Deprecated code?
-        self.previewCurve = newCurve
-        self.quickUpdate()
-
     def addTransformationChanges(self, objIndex, transform, isLocal=False):
         self.undoRedoStack.add(self.createAction(TransformationChanges(objIndex, 
                             transform, isLocal)))
