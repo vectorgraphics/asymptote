@@ -8186,9 +8186,9 @@ generates unwanted black stripes in the output, try setting the
 horizontal and vertical components of @code{maxtiles} to something
 less than your screen dimensions. The tile size is also limited by the
 setting @code{maxviewport}, which restricts the maximum width and
-height of the viewport. On @code{UNIX} systems some graphics
-drivers support batch mode (@code{-noV}) rendering in an
-iconified window; this can be enabled with the setting @code{iconify=true}.
+height of the viewport. Some graphics drivers support batch mode
+(@code{-noV}) rendering in an iconified window; this can be enabled
+with the setting @code{iconify=true}.
 
 @cindex @code{prc}
 @cindex @code{views}

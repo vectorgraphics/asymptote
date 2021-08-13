@@ -238,13 +238,13 @@ bool drawBezierPatch::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls,Min,Max,colors);
   } else {
-    if (getSetting<bool>("bakepatches"))
+    if (getSetting<bool>("prerender"))
     {
       vertexBuffer vb;
-      auto baseRes=getSetting<double>("bakeres");
+      double baseRes=1.0/fabs(getSetting<double>("render"));
       renderSettings setting
       {
-              .res2 = baseRes,
+              .res2 = baseRes*baseRes,
               .pvertex = std::mem_fn(&vertexBuffer::vertex),
               .target = &vb,
       };
@@ -503,13 +503,13 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addStraightBezierTriangle(Controls,Min,Max,colors);
   } else {
-    if (getSetting<bool>("bakepatches"))
+    if (getSetting<bool>("prerender"))
     {
       vertexBuffer vb;
-      double baseRes=getSetting<double>("bakeres");
+      double baseRes=1.0/fabs(getSetting<double>("render"));
       renderSettings setting
               {
-                      .res2 = baseRes,
+                      .res2 = baseRes*baseRes,
                       .pvertex = std::mem_fn(&vertexBuffer::vertex),
                       .target = &vb,
               };

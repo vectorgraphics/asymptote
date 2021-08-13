@@ -1293,8 +1293,8 @@ void initSettings() {
                             "Show translated virtual machine code"));
   addOption(new boolSetting("tabcompletion", 0,
                             "Interactive prompt auto-completion", true));
-  addOption(new boolSetting("bakepatches", 0,
-                            "When rendering with V3D format, pre-render the bezier patches/triangles", false));
+  addOption(new boolSetting("prerender", 0,
+                            "Prerender V3D Bezier patches and triangles", false));
   addOption(new boolSetting("lossy", 0,
                             "Use single precision for V3D reals", false));
   addOption(new boolSetting("listvariables", 'l',

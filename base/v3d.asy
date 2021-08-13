@@ -56,7 +56,7 @@ struct v3dTrianglesData
     int[][] normIndices;
 
     pen[] colors;
-    int[][] colorIndices;
+    int[][] colorIndices=new int[][];
 
     material m;
 }
@@ -77,8 +77,8 @@ struct v3dTrianglesCollection
         vtd.posIndices=posIndices;
         vtd.normIndices=normIndices;
 
-        vtd.colors=null;
-        vtd.colorIndices=null;
+        vtd.colors=new pen[];
+        vtd.colorIndices=new int[][];
         return vtd;
     }
 }
@@ -694,13 +694,12 @@ struct v3dfile
 
         int nP=_xdrfile;
         _xdrfile.dimension(nP);
-        vtg.c.positions=new triple[nP];
         vtg.c.positions=_xdrfile;
 
         int nN=_xdrfile;
         _xdrfile.dimension(nN);
-        vtg.c.normals=new triple[nN];
         vtg.c.normals=_xdrfile;
+        //        write(vtg.c.normals);
 
         int nC=_xdrfile;
         pen[] colors;
@@ -758,10 +757,10 @@ struct v3dfile
             }
         }
 
-        int matId=_xdrfile;
+        vtg.matId=_xdrfile;
+
         triple Min=_xdrfile;
         triple Max=_xdrfile;
-        vtg.matId=_xdrfile;
 
         if (nC > 0)
         {
@@ -1044,5 +1043,17 @@ void readv3d(string name)
     render r=render(interaction(vp.hasCenter ? Billboard : Embedded,center=vp.center));
     for(path3 p : vp.p)
       draw(p,m,r);
+  }
+
+  v3dTrianglesData[] vd=xf.generateTrianglesList();
+  for(v3dTrianglesData v : vd) {
+    //    render r=render(interaction(v.hasCenter ? Billboard : Embedded,center=v.center));
+    material m=material(v.m);
+    if(v.colorIndices.length == 0)
+      draw(v.positions,v.posIndices,v.normals,v.normIndices,m);
+    else {
+      write(v.colorIndices);
+      draw(v.positions,v.posIndices,v.normals,v.normIndices,v.colors,v.colorIndices);
+    }
   }
 }
