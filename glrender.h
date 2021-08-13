@@ -245,10 +245,10 @@ public:
     normal[1]=n.gety();
     normal[2]=n.getz();
     material=MaterialIndex;
-    color[0]=(int)(bytescale*c[0]);
-    color[1]=(int)(bytescale*c[1]);
-    color[2]=(int)(bytescale*c[2]);
-    color[3]=(int)(bytescale*c[3]);
+    color[0]=byte(c[0]);
+    color[1]=byte(c[1]);
+    color[2]=byte(c[2]);
+    color[3]=byte(c[3]);
   }
 };
 
