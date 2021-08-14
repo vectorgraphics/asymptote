@@ -1293,8 +1293,8 @@ void initSettings() {
                             "Show translated virtual machine code"));
   addOption(new boolSetting("tabcompletion", 0,
                             "Interactive prompt auto-completion", true));
-  addOption(new boolSetting("prerender", 0,
-                            "Prerender V3D Bezier patches and triangles", false));
+  addOption(new realSetting("prerender", 0, "resolution",
+                            "Prerender V3D objects (0 implies vector output)", 0));
   addOption(new boolSetting("lossy", 0,
                             "Use single precision for V3D reals", false));
   addOption(new boolSetting("listvariables", 'l',
@@ -1413,8 +1413,6 @@ void initSettings() {
 
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
-  addOption(new realSetting("bakeres", 0, "res", "Resolution for baking bezier patches and triangles",2.0));
-
 
   addOption(new stringSetting("dvipsOptions", 0, "string", ""));
   addOption(new stringSetting("dvisvgmOptions", 0, "string", ""));

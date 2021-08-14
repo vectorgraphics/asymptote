@@ -220,6 +220,12 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
+double renderResolution2()
+{
+  double prerender=2.0*getSetting<double>("prerender");
+  return prerender*prerender;
+}
+
 bool drawBezierPatch::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
@@ -238,16 +244,15 @@ bool drawBezierPatch::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls,Min,Max,colors);
   } else {
-    if (getSetting<bool>("prerender"))
-    {
+    double prerender=renderResolution2();
+    if(prerender) {
       vertexBuffer vb;
-      double baseRes=1.0/fabs(getSetting<double>("render"));
       renderSettings setting
-      {
-              .res2 = baseRes*baseRes,
-              .pvertex = std::mem_fn(&vertexBuffer::vertex),
-              .target = &vb,
-      };
+        {
+          .res2=1.0/prerender,
+          .pvertex=std::mem_fn(&vertexBuffer::vertex),
+          .target=&vb,
+        };
       S.render(setting, controls, false, nullptr);
       drawTriangles dt(vb, colors != nullptr, diffuse, emissive, specular, opacity,
                     shininess, metallic, fresnel0, invisible, Min, Max);
@@ -503,25 +508,20 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addStraightBezierTriangle(Controls,Min,Max,colors);
   } else {
-    if (getSetting<bool>("prerender"))
-    {
+    double prerender=renderResolution2();
+    if(prerender) {
       vertexBuffer vb;
-      double baseRes=1.0/fabs(getSetting<double>("render"));
-      renderSettings setting
-              {
-                      .res2 = baseRes*baseRes,
-                      .pvertex = std::mem_fn(&vertexBuffer::vertex),
-                      .target = &vb,
-              };
+      renderSettings setting {
+        .res2=1.0/prerender,
+        .pvertex=std::mem_fn(&vertexBuffer::vertex),
+        .target=&vb,
+      };
       S.render(setting, controls, false, nullptr);
       drawTriangles dt(vb, colors != nullptr, diffuse, emissive, specular, opacity,
-                    shininess, metallic, fresnel0, invisible, Min, Max);
+                       shininess, metallic, fresnel0, invisible, Min, Max);
       dt.write(out);
-    }
-    else
-    {
+    } else
       out->addBezierTriangle(controls, Min, Max, colors);
-    }
   }
   out->precision(getSetting<Int>("digits"));
 
