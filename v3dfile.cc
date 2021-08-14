@@ -223,46 +223,31 @@ void absv3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple cons
                            triple const& Min, triple const& Max)
 {
   getXDRFile() << v3dtypes::triangles;
-  getXDRFile() << nP;
+  getXDRFile() << (uint32_t) nP;
   addTriples(P,nP);
-  getXDRFile() << nN;
+  getXDRFile() << (uint32_t) nN;
   addTriples(N,nN);
 
-  if (nC > 0 && C != nullptr)
-  {
-    getXDRFile() << nC;
+  getXDRFile() << (uint32_t) nC;
+  if(nC > 0)
     addColors(C,nC);
-  }
-  else
-  {
-    uint32_t zero = 0;
-    getXDRFile() << zero;
-  }
 
-  getXDRFile() << nI;
+  getXDRFile() << (uint32_t) nI;
 
-  for(size_t i=0; i < nI; ++i)
-  {
+  for(size_t i=0; i < nI; ++i) {
     const uint32_t *PIi=PI[i];
     const uint32_t *NIi=NI[i];
+    addIndices(PIi);
     bool keepNI=distinct(NIi,PIi);
-    bool keepCI=nC && distinct(CI[i],PIi);
-
-    if (keepNI)
-    {
-      getXDRFile() << (keepCI ? v3dTriangleIndexType::index_PosNormColor : v3dTriangleIndexType::index_PosNorm);
-      addIndices(PI[i]);
-      addIndices(NI[i]);
-    }
-    else
-    {
-      getXDRFile() << (keepCI ? v3dTriangleIndexType::index_PosColor : v3dTriangleIndexType::index_Pos);
-      addIndices(PI[i]);
-    }
-
-    if (keepCI)
-    {
-      addIndices(CI[i]);
+    getXDRFile() << (uint32_t) keepNI;
+    if(keepNI)
+      addIndices(NIi);
+    if(nC) {
+      const uint32_t *CIi=CI[i];
+      bool keepCI=distinct(CIi,PIi);
+      getXDRFile() << (uint32_t) keepCI;
+      if(keepCI)
+        addIndices(CIi);
     }
   }
 

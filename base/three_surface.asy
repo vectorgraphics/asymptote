@@ -406,37 +406,51 @@ struct patch {
     };
   }
 
-  // A constructor for a convex quadrilateral.
+  // A constructor for a triangle or convex quadrilateral.
   void operator init(triple[] external, triple[] internal=new triple[],
                      pen[] colors=new pen[], bool3 planar=default) {
     init();
 
-    if(internal.length == 0 && planar == default)
-      this.planar=normal(external) != O;
-    else this.planar=planar;
+    straight=true;
 
     if(colors.length != 0)
       this.colors=copy(colors);
 
-    if(internal.length == 0) {
-      internal=new triple[4];
+    if(external.length == 3) {
+      P=new triple[][] {
+        {external[0]},
+        {interp(external[0],external[1],1/3),
+         interp(external[2],external[0],2/3)},
+        {interp(external[0],external[1],2/3),sum(external)/3,
+         interp(external[2],external[0],1/3)},
+        {external[1],interp(external[1],external[2],1/3),
+         interp(external[1],external[2],2/3),external[2]}
+      };
+      planar=true;
+      triangular=true;
+    } else {
+      if(internal.length == 0 && planar == default)
+        this.planar=normal(external) != O;
+      else this.planar=planar;
+
+      if(internal.length == 0) {
+        internal=new triple[4];
+        for(int j=0; j < 4; ++j)
+          internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
+                              external[(j+2)%4]+2*external[(j+3)%4]);
+      }
+
+      triple delta[]=new triple[4];
       for(int j=0; j < 4; ++j)
-        internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
-                            external[(j+2)%4]+2*external[(j+3)%4]);
+        delta[j]=(external[(j+1)% 4]-external[j])/3;
+
+      P=new triple[][] {
+        {external[0],external[0]-delta[3],external[3]+delta[3],external[3]},
+        {external[0]+delta[0],internal[0],internal[3],external[3]-delta[2]},
+        {external[1]-delta[0],internal[1],internal[2],external[2]+delta[2]},
+        {external[1],external[1]+delta[1],external[2]-delta[1],external[2]}
+      };
     }
-
-    straight=true;
-
-    triple delta[]=new triple[4];
-    for(int j=0; j < 4; ++j)
-      delta[j]=(external[(j+1)% 4]-external[j])/3;
-
-    P=new triple[][] {
-      {external[0],external[0]-delta[3],external[3]+delta[3],external[3]},
-      {external[0]+delta[0],internal[0],internal[3],external[3]-delta[2]},
-      {external[1]-delta[0],internal[1],internal[2],external[2]+delta[2]},
-      {external[1],external[1]+delta[1],external[2]-delta[1],external[2]}
-    };
   }
 }
 
