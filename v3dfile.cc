@@ -116,7 +116,6 @@ void absv3dfile::addPatch(triple const* controls, triple const& Min,
   {
     addColors(c, 4);
   }
-  getXDRFile() << Min << Max;
 }
 
 void absv3dfile::addStraightPatch(triple const* controls, triple const& Min,
@@ -130,7 +129,6 @@ void absv3dfile::addStraightPatch(triple const* controls, triple const& Min,
   {
     addColors(c, 4);
   }
-  getXDRFile() << Min << Max;
 }
 
 void absv3dfile::addBezierTriangle(triple const* controls, triple const& Min,
@@ -144,7 +142,6 @@ void absv3dfile::addBezierTriangle(triple const* controls, triple const& Min,
   {
     addColors(c, 3);
   }
-  getXDRFile() << Min << Max;
 }
 
 void absv3dfile::addStraightBezierTriangle(triple const* controls, triple const& Min,
@@ -158,7 +155,6 @@ void absv3dfile::addStraightBezierTriangle(triple const* controls, triple const&
   {
     addColors(c, 3);
   }
-  getXDRFile() << Min << Max;
 }
 
 void absv3dfile::addMaterial(Material const& mat)
@@ -219,7 +215,7 @@ void absv3dfile::addTube(triple const* g, double width, triple const& Min, tripl
   }
   getXDRFile() << width;
   addCenterIndexMat();
-  getXDRFile() << Min << Max << core;
+  getXDRFile() << core;
 }
 
 void absv3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* N, size_t nC, prc::RGBAColour const* C,
@@ -270,7 +266,7 @@ void absv3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple cons
     }
   }
 
-  getXDRFile() << (uint32_t) materialIndex << Min << Max;
+  getXDRFile() << (uint32_t) materialIndex;
 }
 
 void absv3dfile::addIndices(uint32_t const* v)
@@ -283,7 +279,6 @@ void absv3dfile::addCurve(triple const& z0, triple const& c0, triple const& c1, 
 {
   getXDRFile() << v3dtypes::curve << z0 << c0 << c1 << z1;
   addCenterIndexMat();
-  getXDRFile() << Min << Max;
 
 }
 
@@ -291,14 +286,12 @@ void absv3dfile::addCurve(triple const& z0, triple const& z1, triple const& Min,
 {
   getXDRFile() << v3dtypes::line << z0 << z1;
   addCenterIndexMat();
-  getXDRFile() << Min << Max;
 }
 
 void absv3dfile::addPixel(triple const& z0, double width, triple const& Min, triple const& Max)
 {
  getXDRFile() << v3dtypes::pixel_ << z0 << width;
  getXDRFile() << (uint32_t) materialIndex;
- getXDRFile() << Min << Max;
 }
 
 void absv3dfile::precision(int digits)

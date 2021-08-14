@@ -349,9 +349,6 @@ struct v3dfile
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
 
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
-
         v3dPatchData vpd;
         vpd.p=patch(val);
         vpd.matId=matIdx;
@@ -364,9 +361,6 @@ struct v3dfile
         triple[][] val=readRawTriangleData();
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
-
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
 
         v3dPatchData vpd;
         vpd.p=patch(val,triangular=true);
@@ -392,9 +386,6 @@ struct v3dfile
         int matIdx=_xdrfile;
         pen[] colData=readColorData(4);
 
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
-
         v3dPatchData vpd;
         vpd.p=patch(val,colors=colData);
         vpd.matId=matIdx;
@@ -408,9 +399,6 @@ struct v3dfile
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
         pen[] colData=readColorData(3);
-
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
 
         v3dPatchData vpd;
         vpd.p=patch(val,triangular=true,colors=colData);
@@ -483,9 +471,6 @@ struct v3dfile
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
 
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
-
         v3dPatchData vpd;
         vpd.p=patch(val);
         vpd.matId=matIdx;
@@ -505,9 +490,6 @@ struct v3dfile
 
         pen[] colData=readColorData(4);
 
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
-
         v3dPatchData vpd;
         vpd.p=patch(val,colors=colData);
         vpd.matId=matIdx;
@@ -523,9 +505,6 @@ struct v3dfile
 
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
-
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
 
         v3dPatchData vpd;
         vpd.p=patch(val[0]--val[1]--val[2]--cycle);
@@ -545,9 +524,6 @@ struct v3dfile
         int matIdx=_xdrfile;
 
         pen[] colData=readColorData(3);
-
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
 
         v3dPatchData vpd;
         vpd.p=patch(val[0]--val[1]--val[2]--cycle,colors=colData);
@@ -630,8 +606,6 @@ struct v3dfile
         real width=_xdrfile;
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
 
         int core=_xdrfile;
 
@@ -660,8 +634,6 @@ struct v3dfile
 
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
 
         v3dPath vp;
         vp.p=points[0]..controls points[1] and points[2]..points[3];
@@ -678,8 +650,6 @@ struct v3dfile
 
         int centerIdx=_xdrfile;
         int matIdx=_xdrfile;
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
 
         v3dPath vp;
         vp.p=points[0]--points[1];
@@ -759,9 +729,6 @@ struct v3dfile
 
         vtg.matId=_xdrfile;
 
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
-
         if (nC > 0)
         {
             v3dColorTrianglesCollection vctc;
@@ -780,9 +747,6 @@ struct v3dfile
         vpig.vpi.point=_xdrfile;
         vpig.vpi.width=_xdrfile;
         vpig.matId=_xdrfile;
-
-        triple Min=_xdrfile;
-        triple Max=_xdrfile;
 
         return vpig;
     }
