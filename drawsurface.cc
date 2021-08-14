@@ -220,12 +220,6 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-double renderResolution2()
-{
-  double prerender=2.0*getSetting<double>("prerender");
-  return prerender*prerender;
-}
-
 bool drawBezierPatch::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
@@ -249,7 +243,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
       vertexBuffer vb;
       renderSettings setting
         {
-          .res2=1.0/prerender,
+          .res2=prerender,
           .pvertex=std::mem_fn(&vertexBuffer::vertex),
           .target=&vb,
         };
@@ -512,7 +506,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     if(prerender) {
       vertexBuffer vb;
       renderSettings setting {
-        .res2=1.0/prerender,
+        .res2=prerender,
         .pvertex=std::mem_fn(&vertexBuffer::vertex),
         .target=&vb,
       };

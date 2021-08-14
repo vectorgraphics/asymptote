@@ -125,6 +125,19 @@ public:
     center=t*s->center;
   }
 
+  double renderResolution2() {
+    triple b(gl::xmin,gl::ymin,gl::zmin);
+    triple B(gl::xmax,gl::ymax,gl::zmax);
+    double prerender=settings::getSetting<double>("prerender");
+    if(prerender == 0.0) return 0.0;
+    prerender=1.0/(prerender*prerender);
+    double perspective=gl::orthographic ? 0.0 : 1.0/gl::zmax;
+    double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
+    pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+    pair size2(gl::fullWidth,gl::fullHeight);
+    return prerender*size3.length()/size2.length();
+  }
+
   virtual ~drawSurface() {}
 
   bool is3D() {return true;}
