@@ -399,6 +399,12 @@ class MainWindow1(Qw.QMainWindow):
         self.settings.load()
         self.quickUpdate()
 
+    def openAndReloadKeymaps(self):
+        keymapsFile = self.keyMaps.settingsFileLocation()
+        subprocess.run(args=self.getExternalEditor(asypath=keymapsFile))
+        self.settings.load()
+        self.quickUpdate()
+
     def setMagPrompt(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'Enter magnification:')
         if result:
@@ -463,6 +469,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionManual.triggered.connect(self.actionManual)
         self.ui.actionAbout.triggered.connect(self.actionAbout)
         self.ui.actionSettings.triggered.connect(self.openAndReloadSettings)
+        self.ui.actionKeymaps.triggered.connect(self.openAndReloadKeymaps)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
         self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsymptoteOnClick)
         self.ui.actionExportToAsy.triggered.connect(self.btnExportToAsyOnClick)
@@ -729,11 +736,6 @@ class MainWindow1(Qw.QMainWindow):
             self.updateOptionWidget()
         else:
             self.btnTranslateonClick()
-
-    def updateCurve(self, valid, newCurve):
-        # Deprecated code?
-        self.previewCurve = newCurve
-        self.quickUpdate()
 
     def addTransformationChanges(self, objIndex, transform, isLocal=False):
         self.undoRedoStack.add(self.createAction(TransformationChanges(objIndex, 
@@ -1233,6 +1235,7 @@ class MainWindow1(Qw.QMainWindow):
                         saveFile = io.open(self.fileName, 'w')
                         xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
                         saveFile.close()
+                        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                         self.fileChanged = False
                     elif reply == 0:
                         prefix = os.path.splitext(self.fileName)[0]
@@ -1245,6 +1248,7 @@ class MainWindow1(Qw.QMainWindow):
     
                         self.actionExportXasy(xasyFilePath)
                         self.fileName = xasyFilePath
+                        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                         self.fileChanged = False
                     else:
                         return
@@ -1256,6 +1260,7 @@ class MainWindow1(Qw.QMainWindow):
                     self.fileChanged = False
             elif file_extension == ".xasy":
                 self.actionExportXasy(self.fileName)
+                self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                 self.fileChanged = False
             else:
                 print("ERROR: file extension not supported")
@@ -1680,7 +1685,10 @@ class MainWindow1(Qw.QMainWindow):
         elif isinstance(obj, x2a.xasyText):
             newText = self.setTextPrompt()
             if newText:
-                obj.label.setText(newText) #This changes the text, it just doesn't rerender it
+                self.drawObjects.remove(obj.generateDrawObjects(False))
+                obj.label.setText(newText)
+                self.drawObjects.append(obj.generateDrawObjects(True))
+                self.fileChanged = True
         else:
             self.ui.statusbar.showMessage('Warning: Selected object cannot be edited')
             self.clearSelection()
