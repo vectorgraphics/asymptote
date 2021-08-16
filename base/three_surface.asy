@@ -1531,8 +1531,9 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   if(is3D) {
     bool prc=prc();
     if(s.draw != null && (primitive() || (prc && s.PRCprimitive))) {
+      bool noprerender=settings.prerender==0;
       for(int k=0; k < s.s.length; ++k)
-        draw3D(f,s.s[k],surfacepen[k],light,render,primitive=true);
+        draw3D(f,s.s[k],surfacepen[k],light,render,primitive=noprerender);
       s.draw(f,s.T,surfacepen,light,render);
     } else {
       bool group=name != "" || render.defaultnames;
