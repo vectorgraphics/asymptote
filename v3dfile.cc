@@ -251,7 +251,7 @@ void absv3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple cons
     }
   }
 
-  getXDRFile() << (uint32_t) materialIndex;
+  addCenterIndexMat();
 }
 
 void absv3dfile::addIndices(uint32_t const* v)

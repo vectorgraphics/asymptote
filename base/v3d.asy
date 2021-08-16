@@ -92,9 +92,11 @@ struct v3dfile
       paths3[center][material]=new path3[];
   }
 
-  void initTriangleGroup(int material) {
-    if(!triangles.initialized(material))
-      triangles[material]=new triangleGroup[];
+  void initTriangleGroup(int center, int material) {
+    if (!triangles.initialized(center))
+        triangles[center]=new triangleGroup[][];
+    if(!triangles[center].initialized(material))
+      triangles[center[material]=new triangleGroup[];
   }
 
   void initPixel(int material) {
@@ -117,9 +119,9 @@ struct v3dfile
     paths3[center][material].push(p);
   }
 
-  void triangleGroup(int material, triangleGroup g) {
-    initTriangleGroup(material);
-    triangles[material].push(g);
+  void triangleGroup(int center, int material, triangleGroup g) {
+    initTriangleGroup(center,material);
+    triangles[center][material].push(g);
   }
 
   void pixel(int material, pixel P) {
@@ -480,9 +482,9 @@ struct v3dfile
       } else
         g.colorIndices[i]=g.positionIndices[i];
     }
-
+    int center=xdrfile;
     int material=xdrfile;
-    triangleGroup(material,g);
+    triangleGroup(center,material,g);
   }
 
   void readPixel() {
@@ -618,17 +620,22 @@ void readv3d(string name)
       }
   }
 
-  for(int m=0; m < xf.triangles.length; ++m) {
-    if(xf.triangles.initialized(m)) {
-      material material=xf.materials[m];
-      triangleGroup[] triangleGroups=xf.triangles[m];
-      for(triangleGroup g : triangleGroups) {
-        if(g.colors.length > 0)
-          draw(g.positions,g.positionIndices,g.normals,g.normalIndices,
-               g.colors,g.colorIndices);
-        else
-          draw(g.positions,g.positionIndices,g.normals,g.normalIndices,
-               material);
+  for(int c=0;c<xf.triangles.length;++c) {
+    triple center=c>0 ? xf.centers[c-1] : O;
+    render r=render(interaction(c == 0 ? Embedded : Billboard,center=center));
+    triangleGroup[][] groups=xf.triangles[c];
+    for(int m=0; m < groups.length; ++m) {
+      if(groups.initialized(m)) {
+        material material=xf.materials[m];
+        triangleGroup[] triangleGroups=groups[m];
+        for(triangleGroup g : triangleGroups) {
+          if(g.colors.length > 0)
+            draw(g.positions,g.positionIndices,g.normals,g.normalIndices,
+                 g.colors,g.colorIndices);
+          else
+            draw(g.positions,g.positionIndices,g.normals,g.normalIndices,
+                 material);
+        }
       }
     }
   }
