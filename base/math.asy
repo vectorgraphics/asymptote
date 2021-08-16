@@ -325,45 +325,45 @@ real interpolate(real[] x, real[] y, real x0)
 private string nopoint="point not found";
 
 // Return the nth intersection time of path g with the vertical line through x.
-real time(path g, real x, int n=0)
+real time(path g, real x, int n=0, real fuzz=-1)
 {
-  real[] t=times(g,x);
+  real[] t=times(g,x,fuzz);
   if(t.length <= n) abort(nopoint);
   return t[n];
 }
 
 // Return the nth intersection time of path g with the horizontal line through
 // (0,z.y).
-real time(path g, explicit pair z, int n=0)
+real time(path g, explicit pair z, int n=0, real fuzz=-1)
 {
-  real[] t=times(g,z);
+  real[] t=times(g,z,fuzz);
   if(t.length <= n) abort(nopoint);
   return t[n];
 }
 
 // Return the nth y value of g at x.
-real value(path g, real x, int n=0)
+real value(path g, real x, int n=0, real fuzz=-1)
 {
-  return point(g,time(g,x,n)).y;
+  return point(g,time(g,x,n,fuzz)).y;
 }
 
 // Return the nth x value of g at y=z.y.
-real value(path g, explicit pair z, int n=0)
+real value(path g, explicit pair z, int n=0, real fuzz=-1)
 {
-  return point(g,time(g,(0,z.y),n)).x;
+  return point(g,time(g,(0,z.y),n,fuzz)).x;
 }
 
 // Return the nth slope of g at x.
-real slope(path g, real x, int n=0)
+real slope(path g, real x, int n=0, real fuzz=-1)
 {
-  pair a=dir(g,time(g,x,n));
+  pair a=dir(g,time(g,x,n,fuzz));
   return a.y/a.x;
 }
 
 // Return the nth slope of g at y=z.y.
-real slope(path g, explicit pair z, int n=0)
+real slope(path g, explicit pair z, int n=0, real fuzz=-1)
 {
-  pair a=dir(g,time(g,(0,z.y),n));
+  pair a=dir(g,time(g,(0,z.y),n,fuzz));
   return a.y/a.x;
 }
 

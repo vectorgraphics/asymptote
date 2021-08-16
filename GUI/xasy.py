@@ -6,6 +6,7 @@ import PyQt5.QtCore as QtCore
 from Window1 import MainWindow1
 
 def main(args):
+    os.environ["QT_LOGGING_RULES"]="*.debug=false;qt.qpa.*=false"
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps,True)
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling,True)
     qtApp = QtWidgets.QApplication(args)

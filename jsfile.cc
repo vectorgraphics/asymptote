@@ -193,7 +193,7 @@ void jsfile::finish(string name)
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
       << newl << "<canvas id=\"Asymptote\" width=\""
       << gl::fullWidth << "\" height=\"" <<  gl::fullHeight
-      << "\" style=\"border: none;\">"
+      << "\" style=\"border: none; cursor: pointer;\">"
       << newl << "</canvas>";
   footer(name);
 }

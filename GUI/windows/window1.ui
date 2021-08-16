@@ -1648,6 +1648,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1685,6 +1688,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1724,6 +1730,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1761,6 +1770,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1800,6 +1812,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1837,6 +1852,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1876,6 +1894,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1913,6 +1934,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -2081,7 +2105,7 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>24</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
@@ -2100,6 +2124,7 @@ background: rgb(0, 0, 0)
     <addaction name="menuOpenRecent"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionExportToAsy"/>
     <addaction name="actionExportAsymptote"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -2117,6 +2142,7 @@ background: rgb(0, 0, 0)
      <string>Optio&amp;ns</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="actionKeymaps"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -2164,7 +2190,7 @@ background: rgb(0, 0, 0)
   </action>
   <action name="actionSaveAs">
    <property name="text">
-    <string>&amp;Save As</string>
+    <string>&amp;Save as</string>
    </property>
   </action>
   <action name="actionEnterCommand">
@@ -2210,7 +2236,7 @@ background: rgb(0, 0, 0)
   </action>
   <action name="actionExportAsymptote">
    <property name="text">
-    <string>Export</string>
+    <string>Export as...</string>
    </property>
   </action>
   <action name="actionSave">
@@ -2231,6 +2257,16 @@ background: rgb(0, 0, 0)
   <action name="actionNewFile">
    <property name="text">
     <string>New File</string>
+   </property>
+  </action>
+  <action name="actionExportToAsy">
+   <property name="text">
+    <string>Export as Asy</string>
+   </property>
+  </action>
+  <action name="actionKeymaps">
+   <property name="text">
+    <string>&amp;Keymaps</string>
    </property>
   </action>
  </widget>

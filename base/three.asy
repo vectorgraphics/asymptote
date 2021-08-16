@@ -2906,6 +2906,7 @@ object embed(string prefix=outprefix(), string label=prefix,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
              Light.diffuse,Light.specular,
              view && !preview);
+    if(settings.once && !settings.batchView) exit();
     if(!preview) return F;
   }
 
@@ -2972,7 +2973,7 @@ object embed(string prefix=outprefix(), string label=prefix,
 {
   bool is3D=is3D(format);
   scene S=scene(pic,xsize,ysize,keepAspect,is3D,P);
-  if(is3D)
+  if(is3D && !(settings.xasy && format == ""))
     return embed(prefix,label,text,S,format,view,options,script,light);
   else {
     object F;

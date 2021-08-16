@@ -104,6 +104,7 @@ class AddLabel(InplaceObjProcess):
         self.text = None
         self.anchor = QtCore.QPointF(0, 0)
         self._active = False
+        self.fontSize = 12
 
     def createOptWidget(self, info):
         self.opt = Widg_addLabel.Widg_addLabel(info)
@@ -466,7 +467,5 @@ class AddFreehand(InplaceObjProcess):
                 return newPath
 
     def getXasyObject(self):
-        if self.fill:
-            return xasy2asy.xasyFilledShape(self.getObject(), None)
-        else:
-            return xasy2asy.xasyShape(self.getObject(), None)
+        self.fill = False
+        return xasy2asy.xasyShape(self.getObject(), None)

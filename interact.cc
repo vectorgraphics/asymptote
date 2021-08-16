@@ -174,10 +174,14 @@ string simpleline(string prompt) {
     free(line);
     return s;
   } else {
-    cout << endl;
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
     if(!tty || getSetting<bool>("exitonEOF"))
-      throw eof();
-    return "\n";
+#endif
+      {
+        cout << endl;
+        throw eof();
+      }
+    return "";
   }
 }
 

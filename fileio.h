@@ -223,9 +223,11 @@ public:
     val=T();
   }
 
+#if COMPACT
   void setDefault(Int& val) {
     val=vm::Undefined;
   }
+#endif
 
   template<class T>
   void read(T& val) {

@@ -45,9 +45,19 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.inTransformMode = False
 
         self.opt = None
+        self.obj = obj
 
         self.prosectiveNodes = []
         self.prospectiveCtrlPts = []
+
+        #The magnification isn't being set. Here I'm manually setting it to be the square root of the determinant.
+        self.info['magnification'] = math.sqrt(self.transf.xx * self.transf.yy - self.transf.xy * self.transf.yx)
+        self.parent = parent
+        if isinstance(obj,xasy2asy.xasyFilledShape) or isinstance(obj,xasy2asy.xasyShape):
+            parent.ui.btnFill.setChecked(obj.path.fill)
+
+    def swapObjFill(self):
+        self.obj.swapFill() #This may end up being more in the future
 
     def setSelectionBoundaries(self):
         self.nodeSelRects = self.handleNodeSelectionBounds()
@@ -101,11 +111,12 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         return ctrlPointSelBoundaries
 
+
     def postDrawPreview(self, canvas: QtGui.QPainter):
         assert canvas.isActive()
 
         dashedPen = QtGui.QPen(QtCore.Qt.DashLine)
-        dashedPen.setWidthF(1/self.info['magnification'])
+        dashedPen.setCosmetic(True)
         # draw the base points
         canvas.save()
         canvas.setWorldTransform(self.transf.toQTransform(), True)
@@ -122,10 +133,10 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.drawPath(self.asyPath.toQPainterPath())
 
         nodePen = QtGui.QPen(QtGui.QColor('blue'))
-        nodePen.setWidthF(1/self.info['magnification'])
+        nodePen.setCosmetic(True)
 
         ctlPtsPen = QtGui.QPen(QtGui.QColor(ctrlPtsColor))
-        ctlPtsPen.setWidthF(1/self.info['magnification'])
+        ctlPtsPen.setCosmetic(True)
 
         for index in range(len(self.asyPath.nodeSet)):
             point = self.asyPath.nodeSet[index]
@@ -260,8 +271,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         if self.inTransformMode:
             index, subindex = self.currentSelIndex
-            deltaPos = pos - self.lastSelPoint
-            newNode = (pos.x(), pos.y())
+            newNode = (self.transf.inverted().toQTransform().map(pos.x(), pos.y()))
             if self.currentSelMode == CurrentlySelctedType.node:
                 # static throughout the moving
                 if self.asyPath.nodeSet[index] == 'cycle':
