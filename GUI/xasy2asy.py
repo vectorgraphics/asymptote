@@ -1121,6 +1121,9 @@ class xasyItem(QtCore.QObject):
         self.imageHandleQueue.put((None,))
         self.asyfied = True
 
+    def copy(self):
+        return type(self)(self.path,self._asyengine,self.pen)
+
 class xasyDrawnItem(xasyItem):
     """
     Purpose:

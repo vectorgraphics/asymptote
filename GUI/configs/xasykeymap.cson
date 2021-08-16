@@ -28,3 +28,6 @@ zoomOut: 'Ctrl+Down'
 open: 'Ctrl+O'
 save: 'Ctrl+S'
 export: 'Ctrl+E'
+
+copy: 'Ctrl+C'
+paste: 'Ctrl+V'

@@ -311,7 +311,10 @@ class MainWindow1(Qw.QMainWindow):
 
             'open': self.btnLoadFileonClick,
             'save': self.actionSave,
-            'export': self.btnExportAsymptoteOnClick
+            'export': self.btnExportAsymptoteOnClick,
+
+            'copy': self.copyItem,
+            'paste': self.pasteItem
         }
 
         self.hiddenKeys = set()
@@ -2414,3 +2417,19 @@ class MainWindow1(Qw.QMainWindow):
         localPen = painter.pen()
         localPen.setCosmetic(True)
         painter.setPen(localPen)
+
+    def copyItem(self):
+        self.selectOnHover()
+        if self.currentlySelectedObj['selectedIndex'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedIndex']
+            self.copiedObject = self.fileItems[maj].copy()
+        else:
+            self.ui.statusbar.showMessage('No object selected to copy')
+            self.copiedObject = None
+
+    def pasteItem(self):
+        if self.copiedObject is not None:
+            self.copiedObject.setKey(str(self.globalObjectCounter))
+            self.globalObjectCounter += 1
+            self.drawObjects.append(self.copiedObject.generateDrawObjects(True)) #add a xasy2asy.drawObject
+            self.fileChanged = True
