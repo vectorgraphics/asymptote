@@ -305,7 +305,7 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
     out << "]);" << newl;
   }
   out << "P.push(new Triangles("
-      << materialIndex << "," << newl
+      << drawElement::centerIndex << "," << materialIndex << "," << newl
       << Min << "," << Max << "));" << newl << newl;
 }
 

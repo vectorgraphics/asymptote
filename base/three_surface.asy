@@ -1386,9 +1386,10 @@ void draw3D(frame f, patch s, material m,
   }
   m=material(m,light,s.colors.length > 0);
   
-  (s.triangular ? drawbeziertriangle : draw)
+ (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,render.interaction.center,straight,m.p,m.opacity,m.shininess,
-     m.metallic,m.fresnel0,s.colors,render.interaction.type,digits,primitive);
+     m.metallic,m.fresnel0,s.colors,render.interaction.type,digits,
+     primitive);
 }
 
 void _draw(frame f, path3 g, triple center=O, material m,
@@ -1418,7 +1419,7 @@ int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
 // Draw triangles on a frame.
 void draw(frame f, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
-          int[][] pi={}, light light=currentlight)
+          int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
   bool normals=n.length > 0;
   if(!normals) {
@@ -1428,13 +1429,15 @@ void draw(frame f, triple[] v, int[][] vi,
   if(p.length > 0)
     m=mean(p);
   m=material(m,light);
-  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi);
+  draw(f,v,vi,render.interaction.center,n,ni,
+       m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi,
+       render.interaction.type);
 }
   
 // Draw triangles on a picture.
 void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
-          int[][] pi={}, light light=currentlight)
+          int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
   bool prc=prc();
   bool normals=n.length > 0;
@@ -1449,7 +1452,9 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       triple[] n=t*n;
 
       if(is3D()) {
-        draw(f,v,vi,n,ni,m,p,pi,light);
+        render Render=render(interaction(render.interaction.type,
+                                         center=t*render.interaction.center));
+        draw(f,v,vi,n,ni,m,p,pi,light,Render);
         if(pic != null) {
           for(int[] vii : vi)
             for(int viij : vii)
@@ -1531,10 +1536,11 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   if(is3D) {
     bool prc=prc();
     if(s.draw != null && (primitive() || (prc && s.PRCprimitive))) {
-      bool noprerender=settings.prerender==0;
+      bool noprerender=settings.prerender == 0;
       for(int k=0; k < s.s.length; ++k)
         draw3D(f,s.s[k],surfacepen[k],light,render,primitive=noprerender);
-      s.draw(f,s.T,surfacepen,light,render);
+      if(noprerender)
+        s.draw(f,s.T,surfacepen,light,render);
     } else {
       bool group=name != "" || render.defaultnames;
       if(group)

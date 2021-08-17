@@ -2895,9 +2895,8 @@ object embed(string prefix=outprefix(), string label=prefix,
       m -= margin;
     } else if(M.z >= 0) abort("camera too close");
 
-    if (primitive()) {
-        format=settings.outformat;
-    }
+    if(primitive())
+      format=settings.outformat;
 
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,

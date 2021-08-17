@@ -21,7 +21,6 @@ struct pixel
 {
   triple point;
   real width;
-  material m;
 }
 
 struct CameraInformation
@@ -44,14 +43,10 @@ struct CameraInformation
     size(canvasWidth,canvasHeight);
     triple center=0.5*(b.z+B.z)*Z;
 
-    if (orthographic)
-      {
-        currentprojection=orthographic(Z,target=center);
-      }
+    if(orthographic)
+      currentprojection=orthographic(Z,target=center);
     else
-      {
-        currentprojection=perspective(Z,Y,target=center,Zoom0,degrees(angle),autoadjust=false);
-      }
+      currentprojection=perspective(Z,Y,target=center,Zoom0,degrees(angle),autoadjust=false);
     light.specular=light.diffuse;
     currentlight=light;
   }
@@ -75,7 +70,7 @@ struct v3dfile
 
   surface[][][] surfaces;
   path3[][][] paths3;
-  triangleGroup[][] triangles;
+  triangleGroup[][][] triangles;
   pixel[][] pixels;
 
   void initSurface(int center, int material) {
@@ -94,9 +89,9 @@ struct v3dfile
 
   void initTriangleGroup(int center, int material) {
     if (!triangles.initialized(center))
-        triangles[center]=new triangleGroup[][];
+      triangles[center]=new triangleGroup[][];
     if(!triangles[center].initialized(material))
-      triangles[center[material]=new triangleGroup[];
+      triangles[center][material]=new triangleGroup[];
   }
 
   void initPixel(int material) {
@@ -274,7 +269,6 @@ struct v3dfile
     triple[][] val=readRawPatchData();
     int center=xdrfile;
     int material=xdrfile;
-
     surface(center,material,patch(val));
   }
 
@@ -282,7 +276,6 @@ struct v3dfile
     triple[][] val=readRawTriangleData();
     int center=xdrfile;
     int material=xdrfile;
-
     surface(center,material,patch(val,triangular=true));
   }
 
@@ -300,7 +293,6 @@ struct v3dfile
     int center=xdrfile;
     int material=xdrfile;
     pen[] colors=readColorData(4);
-
     surface(center,material,patch(val,colors=colors));
   }
 
@@ -309,7 +301,6 @@ struct v3dfile
     int center=xdrfile;
     int material=xdrfile;
     pen[] colors=readColorData(3);
-
     surface(center,material,patch(val,triangular=true,colors=colors));
   }
 
@@ -362,8 +353,6 @@ struct v3dfile
 
     int center=xdrfile;
     int material=xdrfile;
-
-
     surface(center,material,patch(val));
   }
 
@@ -376,8 +365,6 @@ struct v3dfile
     int material=xdrfile;
 
     pen[] colors=readColorData(n);
-
-
     surface(center,material,patch(val,colors=colors));
   }
 
@@ -620,8 +607,8 @@ void readv3d(string name)
       }
   }
 
-  for(int c=0;c<xf.triangles.length;++c) {
-    triple center=c>0 ? xf.centers[c-1] : O;
+  for(int c=0;c < xf.triangles.length; ++c) {
+    triple center=c > 0 ? xf.centers[c-1] : O;
     render r=render(interaction(c == 0 ? Embedded : Billboard,center=center));
     triangleGroup[][] groups=xf.triangles[c];
     for(int m=0; m < groups.length; ++m) {
@@ -631,10 +618,10 @@ void readv3d(string name)
         for(triangleGroup g : triangleGroups) {
           if(g.colors.length > 0)
             draw(g.positions,g.positionIndices,g.normals,g.normalIndices,
-                 g.colors,g.colorIndices);
+                 g.colors,g.colorIndices,r);
           else
             draw(g.positions,g.positionIndices,g.normals,g.normalIndices,
-                 material);
+                 material,r);
         }
       }
     }

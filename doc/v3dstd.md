@@ -43,10 +43,10 @@ double x,y,z
 float r,g,b,a
 
 MATERIAL ELEMENT:
-unsigned int center index
-unsigned int material index
 double control point
 ...
+unsigned int center index
+unsigned int material index
 
 ELEMENT
 element index

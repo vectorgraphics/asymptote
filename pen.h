@@ -144,6 +144,12 @@ inline unsigned int byte(double r)
   return c < 255 ? c : 255;
 }
 
+inline double byteinv(unsigned int i)
+{
+  if(i == 255) return 1.0;
+  return i/256;
+}
+
 class pen;
 pen& defaultpen();
 

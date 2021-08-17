@@ -1419,22 +1419,17 @@ bool picture::shipout3(const string& prefix, const string& format,
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
            background,nlights,lights,diffuse,specular,View,oldpid);
 
-  if (fmt3d)
-  {
+  if(fmt3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;
 
-    if (webgl)
+    if(webgl)
       fileObj=new jsfile(name);
     else if (v3dfmt)
-    {
-      fileObj=new gzv3dfile(name, getSetting<bool>("lossy"));
-    }
+      fileObj=new gzv3dfile(name,getSetting<bool>("lossy"));
 
-    if (fileObj)
-    {
-      for (auto& p : pic->nodes)
-      {
+    if(fileObj) {
+      for (auto& p : pic->nodes) {
         assert(p);
         p->write(fileObj);
       }

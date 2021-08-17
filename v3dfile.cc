@@ -324,6 +324,8 @@ void gzv3dfile::close()
   if (!destroyed)
   {
     finalize();
+    if(settings::verbose > 0)
+      cout << "Wrote " << name << endl;
     memxdrfile.close();
     gzFile fil = gzopen(name.c_str(), "wb9");
     gzwrite(fil, data(), length());

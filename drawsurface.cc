@@ -248,14 +248,13 @@ bool drawBezierPatch::write(abs3Doutfile *out)
           .target=&vb,
         };
       S.render(setting, controls, false, nullptr);
-      drawTriangles dt(vb, colors != nullptr, diffuse, emissive, specular, opacity,
-                    shininess, metallic, fresnel0, invisible, Min, Max);
+      drawTriangles dt(vb,center,colors,
+                       diffuse,emissive,specular,opacity,
+                       shininess,metallic,fresnel0,interaction,
+                       invisible,Min,Max);
       dt.write(out);
-    }
-    else
-    {
+    } else
       out->addPatch(controls, Min, Max, colors);
-    }
   }
   out->precision(getSetting<Int>("digits"));
 
@@ -511,8 +510,9 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
         .target=&vb,
       };
       S.render(setting, controls, false, nullptr);
-      drawTriangles dt(vb, colors != nullptr, diffuse, emissive, specular, opacity,
-                       shininess, metallic, fresnel0, invisible, Min, Max);
+      drawTriangles dt(vb,center,colors,diffuse,emissive,specular,opacity,
+                       shininess,metallic,fresnel0,interaction,invisible,
+                       Min,Max);
       dt.write(out);
     } else
       out->addBezierTriangle(controls, Min, Max, colors);
@@ -563,15 +563,14 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   triple Controls0[10];
   if(billboard) {
     Controls=Controls0;
-    for(size_t i=0; i < 10; i++) {
+    for(size_t i=0; i < 10; i++)
       Controls[i]=BB.transform(controls[i]);
-    }
   } else {
-    Controls=controls;
     if(!remesh && S.Onscreen) { // Fully onscreen; no need to re-render
       S.append();
       return;
     }
+    Controls=controls;
   }
 
   double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
@@ -997,6 +996,11 @@ bool drawTriangles::write(abs3Doutfile *out)
   if(invisible)
     return true;
 
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
+
   setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
 #endif
@@ -1009,16 +1013,7 @@ void drawTriangles::render(double size2, const triple& b,
 {
 #ifdef HAVE_GL
   if(invisible) return;
-
   transparent=diffuse.A < 1.0;
-
-  if(bbox2(Min,Max).offscreen()) { // Fully offscreen
-    R.Onscreen=false;
-    R.data.clear();
-    R.transparent=transparent;
-    R.notRendered();
-    return;
-  }
 
   setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0);
 
@@ -1027,12 +1022,39 @@ void drawTriangles::render(double size2, const triple& b,
   else
     setMaterial(triangleData,drawTriangle);
 
-  if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
-    R.append();
+  bool offscreen;
+  if(billboard) {
+    drawElement::centerIndex=centerIndex;
+    BB.init(center);
+    offscreen=bbox2(Min,Max,BB).offscreen();
+  } else
+    offscreen=bbox2(Min,Max).offscreen();
+
+  if(offscreen) { // Fully offscreen
+    R.Onscreen=false;
+    R.data.clear();
+    R.transparent=transparent;
+    R.notRendered();
     return;
   }
 
-  R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
+  triple *P0;
+  if(billboard) {
+    P0=new triple [nP];
+    for(size_t i=0; i < nP; i++)
+      P0[i]=BB.transform(P[i]);
+  } else {
+    if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
+      R.append();
+      return;
+    }
+    P0=P;
+  }
+
+  R.queue(nP,P0,nN,N,nC,C,nI,PI,NI,CI,transparent);
+
+  if(billboard)
+    delete [] P0;
 #endif
 }
 
