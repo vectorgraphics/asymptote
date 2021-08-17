@@ -1780,13 +1780,21 @@ class Pixel extends Geometry {
 }
 
 class Triangles extends Geometry {
-  constructor(MaterialIndex,Min,Max) {
+  constructor() {
     super();
-    this.CenterIndex=0;
-    this.MaterialIndex=MaterialIndex;
-    this.Min=Min;
-    this.Max=Max;
-    this.Positions=Positions;
+    if(arguments.length == 3) {
+      this.CenterIndex=0;
+      this.MaterialIndex=arguments[0];
+      this.Min=arguments[1];
+      this.Max=arguments[2];
+    } else {
+      this.CenterIndex=arguments[0];
+      this.MaterialIndex=arguments[1];
+      this.Min=arguments[2];
+      this.Max=arguments[3];
+    }
+
+    this.controlpoints=Positions;
     this.Normals=Normals;
     this.Colors=Colors;
     this.Indices=Indices;
@@ -1794,7 +1802,7 @@ class Triangles extends Geometry {
     Normals=[];
     Colors=[];
     Indices=[];
-    this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
+    this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
   }
 
   setMaterialIndex() {
@@ -1805,7 +1813,7 @@ class Triangles extends Geometry {
   }
 
   process(p) {
-    this.data.vertices=new Array(6*this.Positions.length);
+    this.data.vertices=new Array(6*p.length);
     // Override materialIndex to encode color vs material
       materialIndex=this.Colors.length > 0 ?
       -1-materialIndex : 1+materialIndex;
@@ -1813,9 +1821,9 @@ class Triangles extends Geometry {
     for(let i=0, n=this.Indices.length; i < n; ++i) {
       let index=this.Indices[i];
       let PI=index[0];
-      let P0=this.Positions[PI[0]];
-      let P1=this.Positions[PI[1]];
-      let P2=this.Positions[PI[2]];
+      let P0=p[PI[0]];
+      let P1=p[PI[1]];
+      let P2=p[PI[2]];
       if(!this.offscreen([P0,P1,P2])) {
         let NI=index.length > 1 ? index[1] : PI;
         if(!NI || NI.length == 0) NI=PI;
@@ -1854,7 +1862,7 @@ class Triangles extends Geometry {
         }
       }
     }
-    this.data.nvertices=this.Positions.length;
+    this.data.nvertices=p.length;
     if(this.data.indices.length > 0) this.append();
   }
 
