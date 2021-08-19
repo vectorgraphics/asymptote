@@ -234,7 +234,6 @@ bool drawBezierPatch::write(abs3Doutfile *out)
   out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
-    cout << drawElement::centerIndex << endl;
     out->addStraightPatch(Controls,Min,Max,colors);
   } else {
     double prerender=renderResolution2();
@@ -247,12 +246,10 @@ bool drawBezierPatch::write(abs3Doutfile *out)
           .target=&vb,
         };
       S.render(setting, controls, false, nullptr);
-      cout << "[" << centerIndex << endl;
       drawTriangles dt(vb,center,colors,
                        diffuse,emissive,specular,opacity,
                        shininess,metallic,fresnel0,interaction,
                        invisible,Min,Max);
-      cout << centerIndex << "]" << endl;
       dt.write(out);
     } else
       out->addPatch(controls, Min, Max, colors);
