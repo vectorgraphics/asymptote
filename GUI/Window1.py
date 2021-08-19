@@ -2132,6 +2132,8 @@ class MainWindow1(Qw.QMainWindow):
 
         
         disableFill = isinstance(self.addMode, InplaceAddObj.AddBezierShape) and not self.currAddOptions['closedPath']
+        if isinstance(self.addMode, xbi.InteractiveBezierEditor):
+            disableFill = disableFill or not (self.addMode.obj.path.nodeSet[-1] == "cycle")
         self.ui.btnFill.setEnabled(not disableFill)
         if disableFill and self.ui.btnFill.isEnabled():
             self.ui.btnFill.setChecked(not disableFill)
