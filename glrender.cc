@@ -518,7 +518,7 @@ void drawscene(int Width, int Height)
   double size2=hypot(Width,Height);
 
   if(remesh)
-    camp::drawElement::center.clear();
+    camp::drawElement::centers.clear();
 
   Picture->render(size2,m,M,perspective,remesh);
 

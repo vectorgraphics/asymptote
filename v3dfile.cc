@@ -86,10 +86,10 @@ void absv3dfile::addHeaders()
 void absv3dfile::addCenters()
 {
   getXDRFile() << v3dtypes::centers;
-  size_t nelem=drawElement::center.size();
+  size_t nelem=drawElement::centers.size();
   getXDRFile() << (uint32_t) nelem;
   if (nelem > 0)
-    addTriples(drawElement::center.data(), nelem);
+    addTriples(drawElement::centers.data(), nelem);
 }
 
 void absv3dfile::addTriples(triple const* triples, size_t n)

@@ -181,11 +181,11 @@ void jsfile::open(string name)
 void jsfile::finish(string name)
 {
   finished=true;
-  size_t ncenters=drawElement::center.size();
+  size_t ncenters=drawElement::centers.size();
   if(ncenters > 0) {
     out << "Centers=[";
     for(size_t i=0; i < ncenters; ++i)
-      out << newl << drawElement::center[i] << ",";
+      out << newl << drawElement::centers[i] << ",";
     out << newl << "];" << newl;
   }
   out << "</script>"
