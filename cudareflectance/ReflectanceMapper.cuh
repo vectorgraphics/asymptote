@@ -7,6 +7,7 @@
 #else
 #define KERNEL_ARGS(blk,thrdsz)
 #define __CUDACC__
+#include <device_functions.h>
 #endif
 
 #include <cuda_runtime.h>

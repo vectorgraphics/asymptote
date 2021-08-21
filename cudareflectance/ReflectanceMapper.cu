@@ -154,5 +154,5 @@ void map_reflectance_ker(float4* in, float3* out, size_t width, size_t height, f
         out, d_out, sizeof(float3) * width * height, cudaMemcpyDeviceToHost));
 
     cudaErrorCheck(cudaDestroyTextureObject(t_obj));
-    cudaFree(d_ptr);
+    cudaErrorCheck(cudaFree(d_ptr));
 }
