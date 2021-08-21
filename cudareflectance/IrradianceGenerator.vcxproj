@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="IntegrateBRDF.cu" />
     <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="ReflectanceMapper.cu" />
   </ItemGroup>
@@ -26,6 +27,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
     </ClInclude>
+    <ClInclude Include="IntegrateBRDF.cuh" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="linalg.cuh" />
     <ClInclude Include="ReflectanceMapper.cuh" />

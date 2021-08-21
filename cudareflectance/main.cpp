@@ -17,6 +17,7 @@
 
 #include "kernel.h"
 #include "ReflectanceMapper.cuh"
+#include "IntegrateBRDF.cuh"
 
 class EXRFile
 {
@@ -78,6 +79,28 @@ public:
             r.push_back(col.x);
             g.push_back(col.y);
             b.push_back(col.z);
+            //a.push_back(col.w);
+        }
+
+        for (int i = 0; i < 3; ++i)
+        {
+            pixelType.push_back(TINYEXR_PIXELTYPE_FLOAT);
+            reqPixelType.push_back(TINYEXR_PIXELTYPE_FLOAT);
+        }
+
+        initChannelInfo();
+        initHeader();
+    }
+
+    OEXRFile(std::vector<float2> const& dat, int width, int height) :
+        width(std::move(width)), height(std::move(height)),
+        infos(3)
+    {
+        for (float2 const& col : dat)
+        {
+            r.push_back(col.x);
+            g.push_back(col.y);
+            b.push_back(0);
             //a.push_back(col.w);
         }
 
@@ -171,26 +194,38 @@ int main(int argc, char* argv[])
         // std::cout << "pushed row " << i << " into array" << std::endl;
     }
     size_t sz = static_cast<size_t>(width*height);
-    std::vector<float3> out_proc(sz);
 
     std::cout << "finished converting to float3" << std::endl;
 
-
-    if (argc >= 4 && std::string(argv[3]) == "refl")
+    if (argc >= 4 && std::string(argv[3]) == "intg")
     {
-        std::cout << "Mapping reflectance map..." << std::endl;
-        map_reflectance_ker(im_proc.data(), out_proc.data(), width, height, 0.15);
+        int res = 200;
+        std::vector<float2> out_proc(res * res);
+
+        generate_brdf_integrate_ker(res, res, out_proc.data());
+        OEXRFile ox(out_proc, res, res);
+        ox.write(argv[2]);
     }
     else
     {
-        std::cout << "Irradiating image..." << std::endl;
-        irradiate_ker(im_proc.data(), out_proc.data(), width, height);
+        std::vector<float3> out_proc(sz);
+        if (argc >= 4 && std::string(argv[3]) == "refl")
+        {
+            std::cout << "Mapping reflectance map..." << std::endl;
+            map_reflectance_ker(im_proc.data(), out_proc.data(), width, height, 0.15);
+        }
+        else
+        {
+            std::cout << "Irradiating image..." << std::endl;
+            irradiate_ker(im_proc.data(), out_proc.data(), width, height);
+        }
+
+
+        std::cout << "copying data back" << std::endl;
+        std::cout << "writing to: " << argv[2] << std::endl;
+
+        OEXRFile ox(out_proc, width, height);
+        ox.write(argv[2]);
     }
 
-
-    std::cout << "copying data back" << std::endl;
-    std::cout << "writing to: " << argv[2] << std::endl;
-
-    OEXRFile ox(out_proc, width, height);
-    ox.write(argv[2]);
 }
