@@ -2424,14 +2424,17 @@ class MainWindow1(Qw.QMainWindow):
         self.selectOnHover()
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
-            self.copiedObject = self.fileItems[maj].copy()
+            if isinstance(self.fileItems[maj],x2a.xasyShape):
+                self.copiedObject = self.fileItems[maj].copy()
         else:
             self.ui.statusbar.showMessage('No object selected to copy')
             self.copiedObject = None
 
     def pasteItem(self):
-        if self.copiedObject is not None:
+        if hasattr(self, 'copiedObject') and not self.copiedObject is None:
             self.copiedObject.setKey(str(self.globalObjectCounter))
             self.globalObjectCounter += 1
             self.drawObjects.append(self.copiedObject.generateDrawObjects(True)) #add a xasy2asy.drawObject
             self.fileChanged = True
+        else:
+            self.ui.statusbar.showMessage('No object to paste')
