@@ -17,7 +17,6 @@
 
 #include "kernel.h"
 #include "ReflectanceMapper.cuh"
-#include "IntegrateBRDF.cuh"
 
 class EXRFile
 {
@@ -202,7 +201,7 @@ int main(int argc, char* argv[])
         int res = 200;
         std::vector<float2> out_proc(res * res);
 
-        generate_brdf_integrate_ker(res, res, out_proc.data());
+        generate_brdf_integrate_lut_ker(res, res, out_proc.data());
         OEXRFile ox(out_proc, res, res);
         ox.write(argv[2]);
     }

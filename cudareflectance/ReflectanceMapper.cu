@@ -54,6 +54,8 @@ float3 importance_sampl_GGX(float2 sample, float3 normal, float roughness)
     return matrix3_multiply(N1, N2, normal, vec);
 }
 
+
+#pragma region mapReflectance
 __global__
 void map_reflectance(cudaTextureObject_t tObj, int width, int height, float roughness, float3* out)
 {
@@ -155,4 +157,115 @@ void map_reflectance_ker(float4* in, float3* out, size_t width, size_t height, f
 
     cudaErrorCheck(cudaDestroyTextureObject(t_obj));
     cudaErrorCheck(cudaFree(d_ptr));
+}
+
+
+#pragma endregion
+
+__device__
+float norm_dist(float const& roughness, float3 const& half_vec)
+{
+    float alpha = roughness * roughness;
+    float ndoth = half_vec.z; // assume N=(0,0,1)
+    float denom_base = (ndoth * ndoth) * (alpha * alpha - 1) + 1;
+    return (alpha * alpha) / (denom_base * denom_base * PI);
+}
+
+__device__
+float G_component(float const& k, float const& ndotv)
+{
+    float denom = (ndotv * (1 - k)) + k;
+    return 1 / denom;
+}
+
+__device__
+float GFn(float const& roughness, float const& ndotl, float const& ndotv)
+{
+    float a = roughness * roughness;
+    float k = a * a * 0.5;
+    return G_component(k, ndotl) * G_component(k, ndotv);
+}
+
+__device__
+float clamp(float const& x)
+{
+    return fminf(fmaxf(x, 0.0f), 1.0f);
+}
+
+// by symmetry, assume phi_v=0.
+// porting of python code to CUDA
+
+__device__ constexpr int LUT_INTEGRATE_SAMPLES = 8192;
+__device__ constexpr float INTEGRATE_LUT_SCALE = 1.0f / LUT_INTEGRATE_SAMPLES;
+
+__device__
+float2 get_integrate_value(float const& roughness, float const& cos_theta)
+{
+    float2 value = make_float2(0, 0);
+    float3 upZ = make_float3(0, 0, 1.0f);
+    float num_samples = 0.0f;
+
+    float cos_theta_v = clamp(cos_theta);
+    float sin_theta_v = sqrtf(1 - cos_theta_v * cos_theta_v);
+    float3 view_vec = make_float3(sin_theta_v, 0, cos_theta_v);
+
+    for (int i=0; i< LUT_INTEGRATE_SAMPLES; ++i)
+    {
+        float2 sample_coord = hamersely(i, LUT_INTEGRATE_SAMPLES);
+        float3 half_vec = importance_sampl_GGX(sample_coord, upZ, roughness);
+
+        float3 scaled_half = float3_scale(half_vec, 2 * float3_dot(view_vec, half_vec));
+        float3 lightvec_raw = float3_subtract(scaled_half, view_vec);
+        float3 lightvec = float3_scale(lightvec_raw, rnorm3df(lightvec_raw.x, lightvec_raw.y, lightvec_raw.z));
+
+        float ldotn = clamp(lightvec.z);
+        float vdoth = clamp(float3_dot(half_vec, view_vec));
+        float ndoth = clamp(half_vec.z);
+
+        if (ldotn > 0.0f)
+        {
+            float base_val = (GFn(roughness, ldotn, cos_theta_v) * cos_theta_v * ldotn);
+            float base_f = powf(1.0f - vdoth, 5.0f);
+            
+            value.x += base_val * (1 - base_f);
+            value.y += base_val * base_f;
+            num_samples += 1.0f;
+        }
+    }
+    value.x = value.x * INTEGRATE_LUT_SCALE;
+    value.y = value.y * INTEGRATE_LUT_SCALE;
+
+    return value;
+}
+
+__global__
+void generate_brdf_integrate(int width, int height, float2* out)
+{
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx_y = blockIdx.y * blockDim.y + threadIdx.y;
+    if (idx < width && idx_y < height)
+    {
+        int access_idx = to_idx(width, idx, idx_y);
+        float cosv = (idx + 1.0f) / width;
+        float roughness = (idx_y + 1.0f) / height;
+
+        out[access_idx] = get_integrate_value(roughness, cosv);
+    }
+}
+
+void generate_brdf_integrate_lut_ker(int width, int height, float2* out)
+{
+    float2* d_out;
+    cudaErrorCheck(cudaMalloc(
+        (void**)&d_out, static_cast<size_t>(width * height * sizeof(float2))));
+
+
+    dim3 blockSz((width / blkSz) + 1, (height / blkSz) + 1);
+    dim3 kerSz(blkSz, blkSz);
+    generate_brdf_integrate KERNEL_ARGS(blockSz, kerSz) (width, height, d_out);
+
+    cudaErrorCheck(cudaMemcpy(
+        out, d_out, width * height * sizeof(float2), cudaMemcpyDeviceToHost));
+    cudaErrorCheck(cudaFree(d_out));
+
 }
