@@ -15,10 +15,13 @@
     <CudaCompile Include="ReflectanceMapper.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="EXRFiles.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="tinyexr.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common.h" />
+    <ClInclude Include="EXRFiles.h" />
     <ClInclude Include="helper.cuh" />
     <ClInclude Include="include\tinyexr\tinyexr.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -29,6 +32,9 @@
     <ClInclude Include="kernel.h" />
     <ClInclude Include="linalg.cuh" />
     <ClInclude Include="ReflectanceMapper.cuh" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0043AE31-F6A1-47CB-8A80-1DA6E2C049DF}</ProjectGuid>
