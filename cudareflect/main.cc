@@ -13,7 +13,7 @@
 #include <cmath>
 
 #define TINYEXR_USE_THREAD 1
-#include <tinyexr/tinyexr.h>
+#include "tinyexr/tinyexr.h"
 
 #include "kernel.h"
 #include "ReflectanceMapper.cuh"
