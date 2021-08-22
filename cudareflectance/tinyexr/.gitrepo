@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/syoyo/tinyexr
+	branch = master
+	commit = b0d2abbd7c2db486e0c3b99201b3153a64f516ad
+	parent = abbce6ee1dcfc13628eab49cc45ab3e4f4335dc5
+	method = merge
+	cmdver = 0.4.1
