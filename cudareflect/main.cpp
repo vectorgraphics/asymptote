@@ -9,7 +9,7 @@
 #include <vector>
 #include <memory>
 #include <array>
-#include <string>
+#include <cstring>
 #include <cmath>
 
 #define TINYEXR_USE_THREAD 1
