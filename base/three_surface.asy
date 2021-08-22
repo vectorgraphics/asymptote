@@ -1653,8 +1653,11 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
-      if(is3D())
-        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
+      if(is3D()) {
+        render Render=render(interaction(render.interaction.type,
+                                         center=t*render.interaction.center));
+        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,Render);
+      }
       if(pic != null) {
         pic.add(new void(frame f, transform T) {
             draw(T,f,S,nu,nv,surfacepen,meshpen,light,meshlight,P);
