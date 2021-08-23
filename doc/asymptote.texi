@@ -8208,9 +8208,9 @@ with the setting @code{iconify=true}.
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
 and view the resulting @acronym{PDF} file with
 version @code{9.0} or later of @code{Adobe Reader}.
-In addition to the default @code{settings.prc=true}, this requires
-@code{settings.outformat="pdf"}, which can be specified by the command
-line option @code{-f pdf}, put in the @code{Asymptote} configuration
+This requires @code{settings.outformat="pdf"} and @code{settings.prc=true},
+which can be specified by the command-line options @code{-f pdf}
+and @code{-f prc}, put in the @code{Asymptote} configuration
 file (@pxref{configuration file}), or specified in the script before
 module @code{three} (or @code{graph3}) is imported.
 The @code{media9} LaTeX package is also required (@pxref{embed}).
