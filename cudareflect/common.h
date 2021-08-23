@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cmath>
 #include <functional>
+#include <sstream>
 
 #define TINYEXR_USE_THREAD 1
 #include "tinyexr/tinyexr.h"

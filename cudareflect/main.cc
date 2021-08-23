@@ -18,7 +18,7 @@
 #include "ReflectanceMapper.cuh"
 #include "EXRFiles.h"
 
-std::string const ARG_HELP = "./reflectance [mode] in_file out_file";
+std::string const ARG_HELP = "./reflectance [mode] -f in_file -p out_file_prefix";
 
 struct Args
 {
@@ -28,7 +28,14 @@ struct Args
 
     bool validate()
     {
-        return mode != 0 && file_in && file_out_prefix;
+        if (mode == 0)
+            return false;
+
+        if ((mode == 'a' || mode == 'i' || mode == 'r') && !file_in)
+        {
+            return false;
+        }
+        return file_out_prefix != nullptr;
     }
 };
 
@@ -36,10 +43,13 @@ Args parseArgs(int argc, char* argv[])
 {
     Args arg;
     int c;
-    while ((c = getopt(argc, argv, "irof:p:")) != -1)
+    while ((c = getopt(argc, argv, "airof:p:")) != -1)
     {
         switch (c)
         {
+        case 'a':
+            arg.mode = 'a';
+            break;
         case 'i':
             arg.mode = 'i';
             break;
@@ -73,59 +83,114 @@ Args parseArgs(int argc, char* argv[])
     return arg;
 }
 
+struct image_t
+{
+    float4* im;
+    int width, height;
+
+    int sz() const { return width * height; }
+
+    image_t(float4* im, int width, int height) :
+        im(im), width(std::move(width)), height(std::move(height)) {}
+};
+
+void irradiate_im(image_t& im, std::string const& prefix)
+{
+    std::vector<float3> out_proc(im.sz());
+    std::stringstream out_name;
+    out_name << prefix;
+    std::cout << "Irradiating image..." << std::endl;
+    irradiate_ker(im.im, out_proc.data(), im.width, im.height);
+    out_name << "_diffuse.exr";
+
+    std::string out_name_str(std::move(out_name).str());
+    OEXRFile ox(out_proc, im.width, im.height);
+
+    std::cout << "copying data back" << std::endl;
+    std::cout << "writing to: " << out_name_str << std::endl;
+    ox.write(out_name_str);
+}
+
+void map_refl_im(image_t& im, std::string const& prefix, float const& step, int i)
+{
+    float roughness = step * i;
+    std::vector<float3> out_proc(im.sz());
+    std::stringstream out_name;
+    out_name << prefix;
+    std::cout << "Mapping reflectance map..." << std::endl;
+    out_name << "_refl_" << std::fixed << std::setprecision(3) << step << "_" << i << ".exr";
+    std::string out_name_str(std::move(out_name).str());
+
+
+    map_reflectance_ker(im.im, out_proc.data(), im.width, im.height, roughness);
+    OEXRFile ox(out_proc, im.width, im.height);
+    std::cout << "copying data back" << std::endl;
+    std::cout << "writing to: " << out_name_str << std::endl;
+    ox.write(out_name_str);
+}
+
 int main(int argc, char* argv[])
 {
     Args args = parseArgs(argc, argv);
-
-    EXRFile im(args.file_in);
-
-    std::cout << "Loaded file " << argv[1] << std::endl;
     std::vector<float4> im_proc;
-    size_t width = im.getWidth();
-    size_t height = im.getHeight();
+    size_t width = 0;
+    size_t height = 0;
 
-    for (size_t i = 0; i < height; ++i)
+    if (args.file_in)
     {
-        for (size_t j = 0; j < width; ++j)
+        std::cout << "Loaded file " << args.file_in << std::endl;
+        EXRFile im(args.file_in);
+        width = im.getWidth();
+        height = im.getHeight();
+
+        for (size_t i = 0; i < height; ++i)
         {
-            // index is i*height+j <-> (i,j)
-            im_proc.emplace_back(im.getPixel4(j, i));
+            for (size_t j = 0; j < width; ++j)
+            {
+                // index is i*height+j <-> (i,j)
+                im_proc.emplace_back(im.getPixel4(j, i));
+            }
+            // std::cout << "pushed row " << i << " into array" << std::endl;
         }
-        // std::cout << "pushed row " << i << " into array" << std::endl;
+        std::cout << "finished converting to float3" << std::endl;
     }
-    size_t sz = static_cast<size_t>(width*height);
+    image_t imt(im_proc.data(), width, height);
 
-    std::cout << "finished converting to float3" << std::endl;
-
-    if (argc >= 4 && std::string(argv[3]) == "intg")
+    if (args.mode == 'o')
     {
         int res = 200;
         std::vector<float2> out_proc(res * res);
 
+        std::cout << "generating Fresnel/Roughness/cos_v data" << std::endl;
+        std::cout << "writing to " << args.file_out_prefix << ".exr" << std::endl;
         generate_brdf_integrate_lut_ker(res, res, out_proc.data());
         OEXRFile ox(out_proc, res, res);
-        ox.write(argv[2]);
+        ox.write(std::string(args.file_out_prefix) + ".exr");
     }
     else
     {
-        std::vector<float3> out_proc(sz);
-        if (argc >= 4 && std::string(argv[3]) == "refl")
+        if (args.mode == 'r')
         {
-            std::cout << "Mapping reflectance map..." << std::endl;
-            map_reflectance_ker(im_proc.data(), out_proc.data(), width, height, 0.15);
+            size_t count = 10;
+            float step = 1.0f / count;
+            for (int i = 1; i <= count; ++i)
+            {
+                map_refl_im(imt, args.file_out_prefix, step, i);
+            }
         }
-        else
+        else if (args.mode == 'i')
         {
-            std::cout << "Irradiating image..." << std::endl;
-            irradiate_ker(im_proc.data(), out_proc.data(), width, height);
+            irradiate_im(imt, args.file_out_prefix);
         }
-
-
-        std::cout << "copying data back" << std::endl;
-        std::cout << "writing to: " << argv[2] << std::endl;
-
-        OEXRFile ox(out_proc, width, height);
-        ox.write(argv[2]);
+        else if (args.mode == 'a')
+        {
+            size_t count = 10;
+            float step = 1.0f / count;
+            for (int i = 1; i <= count; ++i)
+            {
+                map_refl_im(imt, args.file_out_prefix, step, i);
+            }
+            irradiate_im(imt, args.file_out_prefix);
+        }
     }
-
 }
