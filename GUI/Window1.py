@@ -2432,9 +2432,6 @@ class MainWindow1(Qw.QMainWindow):
 
     def pasteItem(self):
         if hasattr(self, 'copiedObject') and not self.copiedObject is None:
-            self.copiedObject.setKey(str(self.globalObjectCounter))
-            self.globalObjectCounter += 1
-            self.drawObjects.append(self.copiedObject.generateDrawObjects(True)) #add a xasy2asy.drawObject
-            self.fileChanged = True
+            self.addInPlace(self.copiedObject)
         else:
             self.ui.statusbar.showMessage('No object to paste')
