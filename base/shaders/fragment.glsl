@@ -34,7 +34,7 @@ struct OpaqueFragment
     vec4 color;
     float depth;
 };
-layout(std430, binding=3) coherent buffer opaque {
+layout(binding=3) coherent buffer opaque {
     OpaqueFragment zbuffer[];
 };
 
@@ -48,10 +48,10 @@ struct Fragment
     vec4 color;
     float depth;
 };
-layout(std430, binding=1) coherent buffer head {
+layout(binding=1) coherent buffer head {
     uint tail[];
 };
-layout(std430, binding=2) coherent buffer list {
+layout(binding=2) coherent buffer list {
     Fragment fragments[];
 };
 #endif
