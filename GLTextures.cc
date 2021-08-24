@@ -1,0 +1,39 @@
+//
+// Created by jamie on 8/23/21.
+//
+
+#include "GLTextures.h"
+
+namespace gl
+{
+
+AGLTexture::~AGLTexture()
+{
+  if (textureId != 0)
+  {
+    glDeleteTextures(1, &textureId);
+  }
+}
+
+AGLTexture& AGLTexture::operator=(AGLTexture&& glTex) noexcept
+{
+  textureId = std::move(glTex.textureId);
+  textureNumber = std::move(glTex.textureNumber);
+  glTex.textureId = 0;
+  glTex.textureNumber = -1;
+
+  return *this;
+}
+
+AGLTexture::AGLTexture(AGLTexture&& glTex) noexcept:
+    textureId(std::move(glTex.textureId)), textureNumber(std::move(glTex.textureNumber))
+{
+}
+
+AGLTexture::AGLTexture(int textureNumber) : textureNumber(textureNumber) {}
+
+void AGLTexture::setActive() const
+{
+  glActiveTexture(GL_TEXTURE0+textureNumber);
+}
+} // namespace gl
