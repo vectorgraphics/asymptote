@@ -2428,7 +2428,6 @@ class MainWindow1(Qw.QMainWindow):
                 self.copiedObject = self.fileItems[maj].copy()
             else:
                 self.ui.statusbar.showMessage('Copying not supported with current item type')
-                print('Copying not supported with item type {}'.format(type(self.fileItems[maj])))
         else:
             self.ui.statusbar.showMessage('No object selected to copy')
             self.copiedObject = None
