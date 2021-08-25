@@ -369,40 +369,61 @@ int window;
 
 using utils::statistics;
 statistics S;
+GLint shaderProg,shaderProgColor;
 
-#ifdef HAVE_LIBOPENIMAGEIO
-GLuint envMapBuf;
-
-GLuint initHDR() {
-  GLuint tex;
-  glGenTextures(1, &tex);
-
-  auto imagein = OIIO::ImageInput::open(locateFile("res/studio006.hdr").c_str());
-  OIIO::ImageSpec const& imspec = imagein->spec();
-
-  // uses GL_TEXTURE1 for now.
-  glActiveTexture(GL_TEXTURE1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  glBindTexture(GL_TEXTURE_2D, tex);
-  std::vector<float> pixels(imspec.width*imspec.height*3);
-  imagein->read_image(pixels.data());
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imspec.width, imspec.height, 0,
-               GL_RGB, GL_FLOAT, pixels.data());
-
-  glGenerateMipmap(GL_TEXTURE_2D);
-  imagein->close();
-
-  glActiveTexture(GL_TEXTURE0);
-  return tex;
+GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, GLTexturesFmt const& fmt, GLint const& textureNumber)
+{
+  camp::IEXRFile fil(locateFile(EXRFile));
+  return GLTexture2 { fil.getData(), fil.size(), textureNumber, fmt };
 }
 
+GLTexture3<float,GL_FLOAT> fromEXR3(
+    mem::vector<string> const& EXRFiles, GLTexturesFmt const& fmt, GLint const& textureNumber)
+{
+  // 3d reflectance textures
+  std::vector<float> data;
+  size_t count=EXRFiles.size();
+  int wi=0, ht=0;
 
+  for (string const& EXRFile : EXRFiles)
+  {
+    camp::IEXRFile fil3(locateFile(EXRFile));
+    std::tie(wi,ht)=fil3.size();
+    size_t imSize=4*wi*ht;
+    std::copy(fil3.getData(), fil3.getData()+imSize, std::back_inserter(data));
+  }
 
-#endif
-GLint shaderProg,shaderProgColor;
+  return GLTexture3 { data.data(), std::tuple<int,int,int>(wi,ht,count),textureNumber, fmt };
+}
+
+void initIBL()
+{
+  GLTexturesFmt fmt;
+  fmt.internalFmt=GL_RGB16F;
+  irradiance=fromEXR("irrad/skylit_garage_1k_diffuse.exr", fmt, 1);
+
+  GLTexturesFmt fmtRefl;
+  fmtRefl.internalFmt=GL_RG16F;
+  IBLbrdfTex=fromEXR("irrad/refl.exr", fmtRefl, 2);
+
+  GLTexturesFmt fmt3;
+  fmt3.internalFmt=GL_RGB16F;
+  fmt3.wrapS=GL_REPEAT;
+  fmt3.wrapR=GL_CLAMP_TO_EDGE;
+  fmt3.wrapT=GL_CLAMP_TO_EDGE;
+
+  mem::vector<string> files;
+  files.emplace_back("irrad/skylit_garage_1k.exr");
+  mem::string prefix="irrad/skylit_garage_1k";
+  for (int i=1;i<=10;++i)
+  {
+    mem::stringstream mss;
+    mss << prefix << "_refl_0.100_" << i << ".exr";
+    files.emplace_back(mss.str());
+  }
+
+  reflTextures=fromEXR3(files, fmt3, 3);
+}
 
 void *glrenderWrapper(void *a);
 
@@ -451,43 +472,8 @@ void initShaders()
 
   if (getSetting<bool>("ibl")) {
     shaderParams.push_back("USE_IBL");
+    initIBL();
 
-    camp::IEXRFile fil(locateFile("irrad/skylit_garage_1k_diffuse.exr"));
-    GLTexturesFmt fmt;
-    fmt.internalFmt=GL_RGB16F;
-    irradiance=GLTexture2(fil.getData(), fil.size(), 1, fmt);
-
-
-    camp::IEXRFile fil2(locateFile("irrad/refl.exr"));
-    GLTexturesFmt fmt2;
-    fmt.internalFmt=GL_RG16F;
-    IBLbrdfTex=GLTexture2(fil2.getData(), fil2.size(), 2, fmt2);
-
-    // 3d reflectance textures
-    std::vector<float> data;
-    size_t count=9;
-    string base("irrad/skylit_garage_1k");
-    camp::IEXRFile fil0(locateFile(base+".exr"));
-
-    auto [width,height]=fil0.size();
-    size_t total_size = 4*width*height;
-    std::copy(fil0.getData(), fil0.getData()+total_size, std::back_inserter(data));
-
-    for (int i=1;i<=count;++i)
-    {
-      mem::stringstream ss;
-      ss << base << "_refl_0.100_" << i << ".exr";
-      camp::IEXRFile fil3(locateFile(ss.str()));
-
-      std::copy(fil3.getData(), fil3.getData()+total_size, std::back_inserter(data));
-    }
-
-    GLTexturesFmt fmt3;
-    fmt.internalFmt=GL_RGB16F;
-    fmt.wrapS=GL_REPEAT;
-    fmt.wrapR=GL_CLAMP_TO_EDGE;
-    fmt.wrapT=GL_CLAMP_TO_EDGE;
-    reflTextures=GLTexture3(data.data(), std::tuple<int,int,int>(width,height,count+1),3, fmt3);
   }
 
   std::vector<ShaderfileModePair> shaders;
