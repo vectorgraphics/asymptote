@@ -1121,9 +1121,6 @@ class xasyItem(QtCore.QObject):
         self.imageHandleQueue.put((None,))
         self.asyfied = True
 
-    def copy(self):
-        return type(self)(self.path,self._asyengine,self.pen)
-
 class xasyDrawnItem(xasyItem):
     """
     Purpose:
@@ -1284,6 +1281,9 @@ class xasyShape(xasyDrawnItem):
     def swapFill(self):
         self.path.fill = not self.path.fill
 
+    def copy(self):
+        return type(self)(self.path,self._asyengine,self.pen)
+
 
 class xasyFilledShape(xasyShape):
     """ A filled shape drawn on the GUI """
@@ -1406,6 +1406,9 @@ class xasyText(xasyItem):
 
     def __str__(self):
         return "xasyText code:{:s}".format("\n\t".join(self.getCode().splitlines()))
+
+    def copy(self):
+        return type(self)(self.label.text,self.label.location,self._asyengine)
 
 
 class xasyScript(xasyItem):

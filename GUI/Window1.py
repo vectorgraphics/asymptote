@@ -2424,10 +2424,11 @@ class MainWindow1(Qw.QMainWindow):
         self.selectOnHover()
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
-            if isinstance(self.fileItems[maj],x2a.xasyShape):
+            if isinstance(self.fileItems[maj],x2a.xasyShape) or isinstance(self.fileItems[maj],x2a.xasyText):
                 self.copiedObject = self.fileItems[maj].copy()
             else:
                 self.ui.statusbar.showMessage('Copying not supported with current item type')
+                print('Copying not supported with item type {}'.format(type(self.fileItems[maj])))
         else:
             self.ui.statusbar.showMessage('No object selected to copy')
             self.copiedObject = None
