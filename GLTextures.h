@@ -12,8 +12,14 @@ struct GLTexturesFmt
 {
     GLint minFilter=GL_LINEAR;
     GLint magFilter=GL_LINEAR;
+    GLint wrapS=GL_REPEAT;
+    GLint wrapT=GL_REPEAT;
+    GLint wrapR=GL_REPEAT;
+
     GLuint format=GL_RGBA;
     GLuint internalFmt=GL_RGBA;
+
+
 };
 
 class AGLTexture
@@ -64,7 +70,8 @@ public:
       glActiveTexture(GL_TEXTURE0+textureNumber);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, fmt.minFilter);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, fmt.magFilter);
-
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, fmt.wrapS);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, fmt.wrapT);
       glBindTexture(GL_TEXTURE_2D, textureId);
 
       glTexImage2D(GL_TEXTURE_2D, 0, fmt.internalFmt, size.first, size.second, 0,
@@ -89,21 +96,25 @@ public:
     GLTexture3() = default;
     GLTexture3(T const* data, std::tuple<int, int, int> size,
                int textureNumber, GLTexturesFmt const& fmt) : AGLTexture(textureNumber)
-   {
-      auto [width, height, depth] = size;
-      glEnable(GL_TEXTURE_3D);
+    {
+       auto [width, height, depth] = size;
+       glEnable(GL_TEXTURE_3D);
 
-      glGenTextures(1, &textureId);
-      glActiveTexture(GL_TEXTURE0+textureNumber);
-      glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, fmt.minFilter);
-      glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, fmt.magFilter);
-      glBindTexture(GL_TEXTURE_3D, textureId);
+       glGenTextures(1, &textureId);
+       glActiveTexture(GL_TEXTURE0+textureNumber);
+       glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, fmt.wrapS);
+       glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, fmt.wrapT);
+       glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, fmt.wrapR);
+       glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
+       glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, fmt.minFilter);
+       glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, fmt.magFilter);
+       glBindTexture(GL_TEXTURE_3D, textureId);
 
-      glTexImage3D(GL_TEXTURE_3D, 0, fmt.internalFmt, width, height, depth, 0, fmt.format,
-                   GLDataType, data);
-      glGenerateMipmap(GL_TEXTURE_3D);
-      glActiveTexture(0);
-   }
+       glTexImage3D(GL_TEXTURE_3D, 0, fmt.internalFmt, width, height, depth, 0, fmt.format,
+                    GLDataType, data);
+       glGenerateMipmap(GL_TEXTURE_3D);
+       glActiveTexture(0);
+    }
 
    void setUniform(GLint uniformNumber) const override
    {

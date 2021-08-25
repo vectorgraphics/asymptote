@@ -17,8 +17,8 @@ AGLTexture::~AGLTexture()
 
 AGLTexture& AGLTexture::operator=(AGLTexture&& glTex) noexcept
 {
-  textureId = std::move(glTex.textureId);
-  textureNumber = std::move(glTex.textureNumber);
+  textureId = glTex.textureId;
+  textureNumber = glTex.textureNumber;
   glTex.textureId = 0;
   glTex.textureNumber = -1;
 
@@ -26,7 +26,7 @@ AGLTexture& AGLTexture::operator=(AGLTexture&& glTex) noexcept
 }
 
 AGLTexture::AGLTexture(AGLTexture&& glTex) noexcept:
-    textureId(std::move(glTex.textureId)), textureNumber(std::move(glTex.textureNumber))
+    textureId(glTex.textureId), textureNumber(glTex.textureNumber)
 {
 }
 
