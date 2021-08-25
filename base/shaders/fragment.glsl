@@ -38,26 +38,29 @@ vec3 Specular; // Specular tint for nonmetals
 float Metallic; // Metallic/Nonmetals parameter
 float Fresnel0; // Fresnel at zero for nonmetals
 float Roughness2; // roughness squared, for smoothing
+float Roughness;
 
-#ifdef ENABLE_TEXTURE
-uniform sampler2D environmentMap;
+#ifdef USE_IBL
+uniform sampler2D reflDiffuse;
+uniform sampler2D IBLRefl;
+uniform sampler3D reflectionMap;
+#endif
+
 const float PI=acos(-1.0);
 const float twopi=2*PI;
 const float halfpi=PI/2;
-
-const int numSamples=7;
 
 // (x,y,z) -> (r,theta,phi);
 // theta -> [0,\pi]: colatitude
 // phi -> [0, 2\pi]: longitude
 vec3 cart2sphere(vec3 cart)
 {
-  float x=cart.z;
-  float y=cart.x;
+  float x=cart.x;
+  float y=cart.z;
   float z=cart.y;
 
   float r=length(cart);
-  float phi=atan(y,x);
+  float phi=atan(-y,-x);
   float theta=acos(z/r);
 
   return vec3(r,phi,theta);
@@ -66,12 +69,10 @@ vec3 cart2sphere(vec3 cart)
 vec2 normalizedAngle(vec3 cartVec)
 {
   vec3 sphericalVec=cart2sphere(cartVec);
-  sphericalVec.y=sphericalVec.y/(2*PI)-0.25;
+  sphericalVec.y=sphericalVec.y/(2*PI)+PI;
   sphericalVec.z=sphericalVec.z/PI;
   return sphericalVec.yz;
 }
-#endif
-
 #ifdef NORMAL
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
@@ -127,6 +128,11 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 }
 #endif
 
+float sigmoid(float x, float bias, float scale)
+{
+  return 1/(1+exp(-1*scale*(x-bias)));
+}
+
 void main()
 {
   vec4 diffuse;
@@ -160,8 +166,8 @@ void main()
 #if defined(NORMAL) && Nlights > 0
   Specular=m.specular.rgb;
   vec4 parameters=m.parameters;
-  Roughness2=1.0-parameters[0];
-  Roughness2=Roughness2*Roughness2;
+  Roughness=1.0-parameters[0];
+  Roughness2=Roughness*Roughness;
   Metallic=parameters[1];
   Fresnel0=parameters[2];
   Diffuse=diffuse.rgb;
@@ -188,39 +194,39 @@ void main()
     color += BRDF(viewDir,L)*radiance;
   }
 
-#if defined(ENABLE_TEXTURE) && !defined(COLOR)
-  // Experimental environment radiance using Riemann sums;
-  // can also do importance sampling.
-  vec3 envRadiance=vec3(0.0,0.0,0.0);
+#ifdef USE_IBL
+  // PBR Reflective lights
+  vec3 pointLightColor=color;
+  //
+  // based on the split sum formula approximation
+  // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
+  // which, by the split sum approiximation (assuming independence+GGX distrubition),
+  // roughly equals (within a margin of error)
+  // [\int_\Omega L(l) ] * [\int_\Omega f(l,v) \cos \theta_l].
+  // the first term is the reflectance irradiance integral
 
-  vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
-  if(length(normalPerp) == 0.0)
-    normalPerp=vec3(1.0,0.0,0.0);
+  normal=normalize(normal);
+  viewDir=normalize(viewDir);
+  vec3 reflectVec=normalize(reflect(-viewDir,normal));
+  vec3 reflDiffuse=diffuse.rgb*texture2D(reflDiffuse,normalizedAngle(normal)).rgb;
 
-  // we now have a normal basis;
-  normalPerp=normalize(normalPerp);
-  vec3 normalPerp2=normalize(cross(normal,normalPerp));
+  vec2 reflCoord=normalizedAngle(reflectVec);
 
-  const float step=1.0/numSamples;
-  const float phistep=twopi*step;
-  const float thetastep=halfpi*step;
-  for (int iphi=0; iphi < numSamples; ++iphi) {
-    float phi=iphi*phistep;
-    for (int itheta=0; itheta < numSamples; ++itheta) {
-      float theta=itheta*thetastep;
+  float roughnessSampler=clamp(Roughness,0.005,0.995);
+  vec3 reflColor=texture(reflectionMap, vec3(reflCoord, roughnessSampler)).rgb;
+  vec2 reflIBL=texture(IBLRefl, vec2(dot(normal, viewDir), roughnessSampler)).rg;
 
-      vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
-      vec3 L=sin(theta)*azimuth+cos(theta)*normal;
+  float specMultiplier=Fresnel0*reflIBL.x+reflIBL.y;
 
-      vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
-      vec3 surfRefl=BRDF(Z,L);
-      envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
-    }
-  }
-  envRadiance *= halfpi*step*step;
-  color += envRadiance.rgb;
-#endif
+  vec3 dielectricColor=reflDiffuse+(specMultiplier*reflColor);
+  vec3 metallicColor=diffuse.rgb*reflColor;
+  vec3 finalIBLColor=mix(dielectricColor,metallicColor,Metallic);
+
+  // float test=sigmoid(normal.z,0.85,600);
+  outColor=vec4(finalIBLColor+0*color,diffuse.a);
+#else
   outColor=vec4(color,diffuse.a);
+#endif
 #else    
   outColor=emissive;
 #endif      

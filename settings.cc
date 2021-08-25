@@ -1208,7 +1208,7 @@ void initSettings() {
                             "Show 3D toolbar in PDF output", true));
   addOption(new boolSetting("axes3", 0,
                             "Show 3D axes in PDF output", true));
-  addOption(new boolSetting("envmap", 0,
+  addOption(new boolSetting("ibl", 0,
                             "Enable environment map image-based lighting (Experimental)", false));
 
 

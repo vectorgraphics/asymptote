@@ -55,6 +55,8 @@ pthread_t mainthread;
 #endif
 
 #include "shaders.h"
+#include "GLTextures.h"
+#include "EXRFiles.h"
 
 #ifdef HAVE_LIBOPENIMAGEIO
 #include <OpenImageIO/imageio.h>
@@ -207,6 +209,10 @@ const double *dView;
 double BBT[9];
 
 unsigned int framecount;
+
+GLTexture2 IBLbrdfTex;
+GLTexture2 irradiance;
+GLTexture3 reflTextures;
 
 template<class T>
 inline T min(T a, T b)
@@ -393,6 +399,8 @@ GLuint initHDR() {
   return tex;
 }
 
+
+
 #endif
 GLint shaderProg,shaderProgColor;
 
@@ -441,12 +449,46 @@ void initShaders()
 
   std::vector<std::string> shaderParams;
 
-#if HAVE_LIBOPENIMAGEIO
-  if (getSetting<bool>("envmap")) {
-    shaderParams.push_back("ENABLE_TEXTURE");
-    envMapBuf=initHDR();
+  if (getSetting<bool>("ibl")) {
+    shaderParams.push_back("USE_IBL");
+
+    camp::IEXRFile fil(locateFile("irrad/skylit_garage_1k_diffuse.exr"));
+    GLTexturesFmt fmt;
+    fmt.internalFmt=GL_RGB16F;
+    irradiance=GLTexture2(fil.getData(), fil.size(), 1, fmt);
+
+
+    camp::IEXRFile fil2(locateFile("irrad/refl.exr"));
+    GLTexturesFmt fmt2;
+    fmt.internalFmt=GL_RG16F;
+    IBLbrdfTex=GLTexture2(fil2.getData(), fil2.size(), 2, fmt2);
+
+    // 3d reflectance textures
+    std::vector<float> data;
+    size_t count=9;
+    string base("irrad/skylit_garage_1k");
+    camp::IEXRFile fil0(locateFile(base+".exr"));
+
+    auto [width,height]=fil0.size();
+    size_t total_size = 4*width*height;
+    std::copy(fil0.getData(), fil0.getData()+total_size, std::back_inserter(data));
+
+    for (int i=1;i<=count;++i)
+    {
+      mem::stringstream ss;
+      ss << base << "_refl_0.100_" << i << ".exr";
+      camp::IEXRFile fil3(locateFile(ss.str()));
+
+      std::copy(fil3.getData(), fil3.getData()+total_size, std::back_inserter(data));
+    }
+
+    GLTexturesFmt fmt3;
+    fmt.internalFmt=GL_RGB16F;
+    fmt.wrapS=GL_REPEAT;
+    fmt.wrapR=GL_CLAMP_TO_EDGE;
+    fmt.wrapT=GL_CLAMP_TO_EDGE;
+    reflTextures=GLTexture3(data.data(), std::tuple<int,int,int>(width,height,count+1),3, fmt3);
   }
-#endif
 
   std::vector<ShaderfileModePair> shaders;
   shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
@@ -1480,6 +1522,7 @@ void init()
   int argc=cmd.size();
 
 #ifndef __APPLE__
+  glutInitContextVersion(4,0);
   glutInitContextProfile(GLUT_CORE_PROFILE);
 #endif
 
@@ -1791,6 +1834,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   if(glinitialize) {
     glinitialize=false;
+#ifndef __APPLE__
+    glewExperimental=true;
+#endif
     int result = glewInit();
 
     if (result != GLEW_OK) {
@@ -1821,6 +1867,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+  glEnable(GL_TEXTURE_3D);
 
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   mode();
@@ -1929,15 +1976,12 @@ void setUniforms(vertexBuffer& data, GLint shader)
                   (GLfloat) gl::Diffuse[i4+2]);
     }
 
-#if HAVE_LIBOPENIMAGEIO
-    // textures
-    if (settings::getSetting<bool>("envmap")) {
-      glActiveTexture(GL_TEXTURE1);
-      glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
-      glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);
-      glActiveTexture(GL_TEXTURE0);
+    if (settings::getSetting<bool>("ibl"))
+    {
+      gl::irradiance.setUniform(glGetUniformLocation(shader, "reflDiffuse"));
+      gl::reflTextures.setUniform(glGetUniformLocation(shader, "reflectionMap"));
+      gl::IBLbrdfTex.setUniform(glGetUniformLocation(shader, "IBLRefl"));
     }
-#endif
   }
 
   GLuint binding=0;
