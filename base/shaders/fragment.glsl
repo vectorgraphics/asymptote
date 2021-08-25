@@ -126,6 +126,35 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
   
   return mix(dielectric,metal,Metallic);
 }
+
+#ifdef USE_IBL
+vec3 IBLColor(vec3 viewDirection)
+{
+  //
+  // based on the split sum formula approximation
+  // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
+  // which, by the split sum approiximation (assuming independence+GGX distrubition),
+  // roughly equals (within a margin of error)
+  // [\int_\Omega L(l) ] * [\int_\Omega f(l,v) \cos \theta_l].
+  // the first term is the reflectance irradiance integral
+
+  vec3 reflectVec=normalize(reflect(-viewDirection,normal));
+  vec3 reflDiffuse=Diffuse*texture2D(reflDiffuse,normalizedAngle(normal)).rgb;
+
+  vec2 reflCoord=normalizedAngle(reflectVec);
+
+  float roughnessSampler=clamp(Roughness,0.005,0.995);
+  vec3 reflColor=texture(reflectionMap, vec3(reflCoord, roughnessSampler)).rgb;
+  vec2 reflIBL=texture(IBLRefl, vec2(dot(normal, viewDirection), roughnessSampler)).rg;
+
+  float specMultiplier=Fresnel0*reflIBL.x+reflIBL.y;
+
+  vec3 dielectricColor=reflDiffuse+(specMultiplier*reflColor);
+  vec3 metallicColor=Diffuse*reflColor;
+  return mix(dielectricColor,metallicColor,Metallic);
+}
+
+#endif
 #endif
 
 float sigmoid(float x, float bias, float scale)
@@ -197,33 +226,9 @@ void main()
 #ifdef USE_IBL
   // PBR Reflective lights
   vec3 pointLightColor=color;
-  //
-  // based on the split sum formula approximation
-  // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
-  // which, by the split sum approiximation (assuming independence+GGX distrubition),
-  // roughly equals (within a margin of error)
-  // [\int_\Omega L(l) ] * [\int_\Omega f(l,v) \cos \theta_l].
-  // the first term is the reflectance irradiance integral
+  vec3 iblColor=IBLColor(viewDir);
 
-  normal=normalize(normal);
-  viewDir=normalize(viewDir);
-  vec3 reflectVec=normalize(reflect(-viewDir,normal));
-  vec3 reflDiffuse=diffuse.rgb*texture2D(reflDiffuse,normalizedAngle(normal)).rgb;
-
-  vec2 reflCoord=normalizedAngle(reflectVec);
-
-  float roughnessSampler=clamp(Roughness,0.005,0.995);
-  vec3 reflColor=texture(reflectionMap, vec3(reflCoord, roughnessSampler)).rgb;
-  vec2 reflIBL=texture(IBLRefl, vec2(dot(normal, viewDir), roughnessSampler)).rg;
-
-  float specMultiplier=Fresnel0*reflIBL.x+reflIBL.y;
-
-  vec3 dielectricColor=reflDiffuse+(specMultiplier*reflColor);
-  vec3 metallicColor=diffuse.rgb*reflColor;
-  vec3 finalIBLColor=mix(dielectricColor,metallicColor,Metallic);
-
-  // float test=sigmoid(normal.z,0.85,600);
-  outColor=vec4(finalIBLColor+0*color,diffuse.a);
+  outColor=vec4(iblColor+0*pointLightColor,diffuse.a);
 #else
   outColor=vec4(color,diffuse.a);
 #endif
