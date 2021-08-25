@@ -10,7 +10,7 @@ namespace gl
 {
 struct GLTexturesFmt
 {
-    GLint minFilter=GL_LINEAR;
+    GLint minFilter=GL_LINEAR_MIPMAP_LINEAR;
     GLint magFilter=GL_LINEAR;
     GLint wrapS=GL_REPEAT;
     GLint wrapT=GL_REPEAT;
@@ -68,12 +68,11 @@ public:
       glGenTextures(1, &textureId);
 
       glActiveTexture(GL_TEXTURE0+textureNumber);
+      glBindTexture(GL_TEXTURE_2D, textureId);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, fmt.minFilter);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, fmt.magFilter);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, fmt.wrapS);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, fmt.wrapT);
-      glBindTexture(GL_TEXTURE_2D, textureId);
-
       glTexImage2D(GL_TEXTURE_2D, 0, fmt.internalFmt, size.first, size.second, 0,
                    fmt.format, GLDataType, data);
       glGenerateMipmap(GL_TEXTURE_2D);
@@ -102,13 +101,13 @@ public:
 
        glGenTextures(1, &textureId);
        glActiveTexture(GL_TEXTURE0+textureNumber);
+       glBindTexture(GL_TEXTURE_3D, textureId);
        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, fmt.wrapS);
        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, fmt.wrapT);
        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, fmt.wrapR);
        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, fmt.minFilter);
        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, fmt.magFilter);
-       glBindTexture(GL_TEXTURE_3D, textureId);
 
        glTexImage3D(GL_TEXTURE_3D, 0, fmt.internalFmt, width, height, depth, 0, fmt.format,
                     GLDataType, data);
