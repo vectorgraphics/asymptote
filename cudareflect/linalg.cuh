@@ -13,10 +13,10 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-__device__ constexpr float PI = 3.14159265358979;
-__device__ constexpr float HALFPI = 1.5707963267948966;
-__device__ constexpr float TAU = 6.28318530717958;
-__device__ constexpr float PI_RECR = 0.31830988618;
+__device__ constexpr float PI = 3.141592654;
+__device__ constexpr float HALFPI = 0.5*PI;
+__device__ constexpr float TAU = 2.0*PI;
+__device__ constexpr float PI_RECR = 1.0/PI;
 
 __device__
 inline float3 float3_add(float3 const& f1, float3 const& f2)
@@ -110,9 +110,17 @@ inline float3 angleToBasis(float3 const& N, float3 const& N1, float3 const& N2, 
 }
 
 __device__
-inline void float3_addinplace(float3& target, float3 const& val, float const& scale = 1)
+inline void float3_addinplace(float3& target, float3 const& val, float const& scale)
 {
     target.x += (val.x * scale);
     target.y += (val.y * scale);
     target.z += (val.z * scale);
+}
+
+__device__
+inline void float3_addinplace(float3& target, float3 const& val)
+{
+    target.x += val.x;
+    target.y += val.y;
+    target.z += val.z;
 }
