@@ -213,14 +213,14 @@ int main(int argc, char* argv[])
     std::stringstream outss;
     if (args.directory)
     {
+      std::cout << args.directory << std::endl;
         make_dir(args.directory);
-        outss << args.directory;
     }
     else
     {
         args.directory = ".";
     }
-    outss << "/" << args.file_out_prefix;
+    outss << args.directory << "/" << args.file_out_prefix;
 
 
     std::string outprefix(outss.str());
