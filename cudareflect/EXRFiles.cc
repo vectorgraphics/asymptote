@@ -14,9 +14,9 @@ EXRFile::EXRFile(std::string const& input)
     }
 }
 
-OEXRFile::OEXRFile(std::vector<float3> const& dat, int width, int height) :
+OEXRFile::OEXRFile(std::vector<float3> const& dat, int width, int height, int compressionType) :
     width(std::move(width)), height(std::move(height)),
-    infos(3)
+    infos(3), compressionType(compressionType)
 {
     for (float3 const& col : dat)
     {
@@ -36,9 +36,9 @@ OEXRFile::OEXRFile(std::vector<float3> const& dat, int width, int height) :
     initHeader();
 }
 
-OEXRFile::OEXRFile(std::vector<float2> const& dat, int width, int height) :
+OEXRFile::OEXRFile(std::vector<float2> const& dat, int width, int height, int compressionType) :
     width(std::move(width)), height(std::move(height)),
-    infos(3)
+    infos(3), compressionType(compressionType)
 {
     for (float2 const& col : dat)
     {
@@ -79,6 +79,7 @@ void OEXRFile::initHeader()
     hd.channels = infos.data();
     hd.pixel_types = pixelType.data();
     hd.requested_pixel_types = reqPixelType.data();
+    hd.compression_type = compressionType;
 }
 
 void OEXRFile::write(std::string const& filename)

@@ -48,8 +48,8 @@ private:
 class OEXRFile
 {
 public:
-    OEXRFile(std::vector<float3> const& dat, int width, int height);
-    OEXRFile(std::vector<float2> const& dat, int width, int height);
+    OEXRFile(std::vector<float3> const& dat, int width, int height, int compressionType=TINYEXR_COMPRESSIONTYPE_PIZ);
+    OEXRFile(std::vector<float2> const& dat, int width, int height, int compressionType=TINYEXR_COMPRESSIONTYPE_PIZ);
     void write(std::string const& filename);
     ~OEXRFile() = default;
 
@@ -58,6 +58,7 @@ protected:
     void initHeader();
 private:
     int width, height;
+    int compressionType;
 
     std::vector<EXRChannelInfo> infos;
     EXRHeader hd;
