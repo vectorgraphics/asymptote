@@ -201,4 +201,4 @@ triple[][][] Q=
    }
   };
 
-draw(surface(Q),material(blue, shininess=0.85, metallic=0),render(compression=Low));
+draw(surface(Q),material(white, shininess=0.85, metallic=1),render(compression=Low));
