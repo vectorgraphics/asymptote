@@ -41,6 +41,18 @@ public:
     __device__ ~IntegrateSampler() {}
 
     __device__
+    float3 integrand(float const& sampled_phi, float const& sampled_theta)
+    {
+        // vec3 is the world space coordinate
+        float2 sphcoord = to_sphcoord(angleToBasis(N, N1, N2, sampled_phi, sampled_theta));
+
+        float4 frag = tex2D<float4>(tObj,
+            sphcoord.x * PI_RECR * width / 2,
+            sphcoord.y * PI_RECR * height);
+        return make_float3(frag.x, frag.y, frag.z);
+    }
+
+    __device__
     float3 inner(float sampled_phi)
     {
         float3 sum3 = make_float3(0, 0, 0);
@@ -48,16 +60,12 @@ public:
         {
             float sampled_theta = j * THETA_INTEGRATION_REGION / THETA_SAMPLES;
 
-            // vec3 is the world space coordinate
-            float2 sphcoord = to_sphcoord(angleToBasis(N, N1, N2, sampled_phi, sampled_theta));
+            float3 result = integrand(sampled_phi, sampled_theta);
 
-            float4 frag = tex2D<float4>(tObj,
-                sphcoord.x * PI_RECR * width / 2,
-                sphcoord.y * PI_RECR * height);
-
+            // 2*sin(sampled_theta)*cos(sampled_theta). The "times 2" part is cancelled 
+            // out in dx_int_scale.
             float scale = __sinf(2 * sampled_theta);
-            float3 frag3 = make_float3(frag.x, frag.y, frag.z);
-            float3_addinplace(sum3, frag3, scale);
+            float3_addinplace(sum3, result, scale);
         }
         return sum3;
     }
