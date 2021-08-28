@@ -22,15 +22,21 @@
 #include "ReflectanceMapper.cuh"
 #include "EXRFiles.h"
 
-std::string const ARG_HELP = "./reflectance mode -f in_file -p out_file_prefix [-d directory]";
+std::string const ARG_HELP = "./reflectance mode -f in_file -p out_file_prefix [-d directory] [-c refl_count] [-h]";
 std::string const DEFAULT_DIRECTORY = ".";
+size_t const MIN_WIDTH = 16;
+size_t const MIN_HEIGHT = 16;
+
 
 struct Args
 {
     char mode = 0;
+    bool halve = false;
     char const* file_in = nullptr;
     char const* file_out_prefix = nullptr;
     char const* directory = nullptr;
+
+    size_t count = 10;
 
     bool validate()
     {
@@ -49,7 +55,7 @@ Args parseArgs(int argc, char* argv[])
 {
     Args arg;
     int c;
-    while ((c = getopt(argc, argv, "airof:p:d:")) != -1)
+    while ((c = getopt(argc, argv, "hc:airof:p:d:")) != -1)
     {
         switch (c)
         {
@@ -64,6 +70,16 @@ Args parseArgs(int argc, char* argv[])
             break;
         case 'o':
             arg.mode = 'o';
+            break;
+        case 'h':
+            arg.halve = true;
+            break;
+        case 'c':
+        {
+            std::stringstream ss;
+            ss << optarg;
+            ss >> arg.count;
+        }
             break;
         case 'f':
             arg.file_in = optarg;
@@ -128,18 +144,24 @@ std::string generate_refl_file(std::string const& prefix, float const& step, int
     return out_name.str();
 }
 
-void map_refl_im(image_t& im, std::string const& prefix, float const& step, int const& i)
+void map_refl_im(image_t& im, std::string const& prefix, float const& step, int const& i, std::pair<size_t, size_t> const& outSize)
 {
     float roughness = step * i;
-    std::vector<float3> out_proc(im.sz());
+    auto [outWidth, outHeight] = outSize;
+    std::vector<float3> out_proc(outWidth * outHeight);
 
     std::string out_name_str = generate_refl_file(prefix, step, i);
     std::cout << "Mapping reflectance map..." << std::endl;
-    map_reflectance_ker(im.im, out_proc.data(), im.width, im.height, roughness);
-    OEXRFile ox(out_proc, im.width, im.height);
+    map_reflectance_ker(im.im, out_proc.data(), im.width, im.height, roughness, outWidth, outHeight);
+    OEXRFile ox(out_proc, outWidth, outHeight);
     std::cout << "copying data back" << std::endl;
     std::cout << "writing to: " << out_name_str << std::endl;
     ox.write(out_name_str);
+}
+
+void map_refl_im(image_t& im, std::string const& prefix, float const& step, int const& i)
+{
+    map_refl_im(im, prefix, step, i, std::pair<size_t, size_t>(im.width, im.height));
 }
 
 std::string const INVALID_FILE_ATTRIB = "Intermediate directories do not exist";
@@ -235,11 +257,21 @@ int main(int argc, char* argv[])
     {
         if (args.mode == 'r')
         {
-            size_t count = 10;
+            size_t count = args.count;
             float step = 1.0f / count;
+
+            copy_file(args.file_in, generate_refl_file(outprefix, step, 0));
+            int out_width = imt.width;
+            int out_height = imt.height;
+
             for (int i = 1; i <= count; ++i)
             {
-                map_refl_im(imt, outprefix, step, i);
+                if (args.halve && out_width > MIN_WIDTH && out_height > MIN_HEIGHT)
+                {
+                    out_width = out_width >> 1;
+                    out_height = out_height >> 1; // halve
+                }
+                map_refl_im(imt, outprefix, step, i, std::pair<size_t, size_t>(out_width, out_height));
             }
         }
         else if (args.mode == 'i')
@@ -251,14 +283,23 @@ int main(int argc, char* argv[])
             generate_brdf_refl(200, args.directory);
             irradiate_im(imt, outprefix);
             // reflectance
-            size_t count = 10;
+            size_t count = args.count;
             float step = 1.0f / count;
             
             // for 0 roughness, use the original image.
             copy_file(args.file_in, generate_refl_file(outprefix, step, 0));
+
+            int out_width = imt.width;
+            int out_height = imt.height;
+
             for (int i = 1; i <= count; ++i)
             {
-                map_refl_im(imt, outprefix, step, i);
+                if (args.halve && out_width > MIN_WIDTH && out_height > MIN_HEIGHT)
+                {
+                    out_width = out_width >> 1;
+                    out_height = out_height >> 1; // halve
+                }
+                map_refl_im(imt, outprefix, step, i, std::pair<size_t,size_t>(out_width, out_height));
             }
         }
     }

@@ -25,6 +25,8 @@ float van_der_corput_bitshift(uint32_t bits)
     bits = swap_bits(bits, 0x00FF00FF, 8);
     bits = swap_bits(bits, 0x0000FFFF, 16);
 
+    
+
     return static_cast<float>(bits) * recvbit;
 }
 
@@ -57,18 +59,20 @@ float3 importance_sampl_GGX(float2 sample, float3 normal, float roughness)
 
 #pragma region mapReflectance
 __global__
-void map_reflectance(cudaTextureObject_t tObj, int width, int height, float roughness, float3* out)
+void map_reflectance(cudaTextureObject_t tObj,
+    int width, int height, float roughness,
+    float3* out, int outWidth, int outHeight)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int idx_y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (idx < width && idx_y < height)
+    if (idx < outWidth && idx_y < outHeight)
     {
-        int access_idx = to_idx(width, idx, idx_y);
+        int access_idx = to_idx(outWidth, idx, idx_y);
         out[access_idx] = make_float3(0, 0, 0);
 
-        float target_phi = TAU * ((idx + 0.5f) / width);
-        float target_theta = PI * ((idx_y + 0.5f) / height);
+        float target_phi = TAU * ((idx + 0.5f) / outWidth);
+        float target_theta = PI * ((idx_y + 0.5f) / outHeight);
         float3 N = from_sphcoord(target_phi, target_theta);
 
         float total_weight = 0.0f;
@@ -115,7 +119,9 @@ void map_reflectance(cudaTextureObject_t tObj, int width, int height, float roug
 }
 
 const size_t blkSz = 15;
-void map_reflectance_ker(float4* in, float3* out, size_t width, size_t height, float roughness)
+void map_reflectance_ker(
+    float4* in, float3* out, size_t width, size_t height, float roughness,
+    size_t outWidth, size_t outHeight)
 {
     float4* d_ptr;
     size_t pitch;
@@ -147,13 +153,13 @@ void map_reflectance_ker(float4* in, float3* out, size_t width, size_t height, f
     // out source
     float3* d_out = nullptr;
     cudaErrorCheck(cudaMalloc(
-        (void**)&d_out, static_cast<size_t>(sizeof(float3) * width * height)));
-    dim3 blockSz((width / blkSz) + 1, (height / blkSz) + 1);
+        (void**)&d_out, static_cast<size_t>(sizeof(float3) * outWidth * outHeight)));
+    dim3 blockSz((outWidth / blkSz) + 1, (outHeight / blkSz) + 1);
     dim3 kerSz(blkSz, blkSz);
-    map_reflectance KERNEL_ARGS(blockSz, kerSz) (t_obj, width, height, roughness, d_out);
+    map_reflectance KERNEL_ARGS(blockSz, kerSz) (t_obj, width, height, roughness, d_out, outWidth, outHeight);
 
     cudaErrorCheck(cudaMemcpy(
-        out, d_out, sizeof(float3) * width * height, cudaMemcpyDeviceToHost));
+        out, d_out, sizeof(float3) * outWidth * outHeight, cudaMemcpyDeviceToHost));
 
     cudaErrorCheck(cudaDestroyTextureObject(t_obj));
     cudaErrorCheck(cudaFree(d_ptr));

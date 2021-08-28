@@ -12,5 +12,5 @@
 
 #include <cuda_runtime.h>
 
-void map_reflectance_ker(float4* in, float3* out, size_t width, size_t height, float roughness);
+void map_reflectance_ker(float4* in, float3* out, size_t width, size_t height, float roughness, size_t outWidth, size_t outHeight);
 void generate_brdf_integrate_lut_ker(int width, int height, float2* out);
