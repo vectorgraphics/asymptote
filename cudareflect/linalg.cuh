@@ -110,6 +110,14 @@ inline float3 angleToBasis(float3 const& N, float3 const& N1, float3 const& N2, 
 }
 
 __device__
+inline void float3_copy(float3& target, float3 const& val, float const& scale)
+{
+    target.x = val.x * scale;
+    target.y = val.y * scale;
+    target.z = val.z * scale;
+}
+
+__device__
 inline void float3_addinplace(float3& target, float3 const& val, float const& scale)
 {
     target.x += (val.x * scale);
