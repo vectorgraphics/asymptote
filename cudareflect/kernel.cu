@@ -24,30 +24,64 @@ __device__ constexpr float dx_int_scale =
 
 // #define TEST_NO_INTEGRAL
 
-
-
-__device__
-float3 inner(float sampled_phi, const float3 N, const float3 N1, const float3 N2,
-           cudaTextureObject_t tObjin, size_t width, size_t height)
+class IntegrateSampler
 {
-  float3 sum3=make_float3(0,0,0);
-  for (int j = 0; j < THETA_SAMPLES; ++j)
+public:
+    __device__
+    IntegrateSampler(
+        cudaTextureObject_t tObjin,
+        float3 const& n, float3 const& n1, float3 const& n2,
+        size_t const& inWidth, size_t const& inHeight) : 
+        N(n), N1(n1), N2(n2), width(inWidth), height(inHeight),
+        tObj(tObjin)
+
     {
-      float sampled_theta = j * THETA_INTEGRATION_REGION / THETA_SAMPLES;
-
-// vec3 is the world space coordinate
-      float2 sphcoord = to_sphcoord(angleToBasis(N, N1, N2, sampled_phi, sampled_theta));
-
-      float4 frag = tex2D<float4>(tObjin,
-                                  sphcoord.x * PI_RECR * width / 2,
-                                  sphcoord.y * PI_RECR * height);
-
-      float scale = __sinf(2*sampled_theta);
-      float3 frag3=make_float3(frag.x,frag.y,frag.z);
-      float3_addinplace(sum3,frag3,scale);
     }
-  return sum3;
-}
+
+    __device__ ~IntegrateSampler() {}
+
+    __device__
+    float3 inner(float sampled_phi)
+    {
+        float3 sum3 = make_float3(0, 0, 0);
+        for (int j = 0; j < THETA_SAMPLES; ++j)
+        {
+            float sampled_theta = j * THETA_INTEGRATION_REGION / THETA_SAMPLES;
+
+            // vec3 is the world space coordinate
+            float2 sphcoord = to_sphcoord(angleToBasis(N, N1, N2, sampled_phi, sampled_theta));
+
+            float4 frag = tex2D<float4>(tObj,
+                sphcoord.x * PI_RECR * width / 2,
+                sphcoord.y * PI_RECR * height);
+
+            float scale = __sinf(2 * sampled_theta);
+            float3 frag3 = make_float3(frag.x, frag.y, frag.z);
+            float3_addinplace(sum3, frag3, scale);
+        }
+        return sum3;
+    }
+
+    __device__
+    void integrate(float3& out)
+    {
+        float3 sum3 = make_float3(0, 0, 0);
+        for (int i = 0; i < PHI_SAMPLES; ++i)
+        {
+            float sampled_phi = i * PHI_INTEGRATION_REGION / PHI_SAMPLES;
+            float3_addinplace(sum3, inner(sampled_phi));
+        }
+
+        float3_addinplace(out, sum3, dx_int_scale);
+    }
+
+private:
+    float3 N, N1, N2;
+    size_t width, height;
+    cudaTextureObject_t tObj;
+};
+
+
 
 __global__
 void irradiate(cudaTextureObject_t tObjin, float3* out, size_t width, size_t height)
@@ -59,7 +93,6 @@ void irradiate(cudaTextureObject_t tObjin, float3* out, size_t width, size_t hei
     if (idx < width && idx_y < height)
     {
         int access_idx = to_idx(width, idx, idx_y);
-
         out[access_idx] = make_float3(0, 0, 0);
 
         float target_phi = TAU * ((idx + 0.5f) / width);
@@ -72,28 +105,8 @@ void irradiate(cudaTextureObject_t tObjin, float3* out, size_t width, size_t hei
             -1*__sinf(target_theta));
         const float3 N2 = make_float3(-1 * __sinf(target_phi), __cosf(target_phi), 0);
 
-#ifndef TEST_NO_INTEGRAL
-        float3 sum3=make_float3(0,0,0);
-        for (int i = 0; i < PHI_SAMPLES; ++i)
-        {
-            float sampled_phi = i * PHI_INTEGRATION_REGION / PHI_SAMPLES;
-
-            float3 inside=inner(sampled_phi,N,N1,N2,tObjin,width,height);
-            float3_addinplace(sum3,inside);
-        }
-
-        float3_addinplace(out[access_idx], sum3, dx_int_scale);
-
-#else
-        float2 sphcoord = to_sphcoord(angleToBasis(N, N1, N2, 0, 0));
-
-        float4 frag = tex2D<float4>(tObjin,
-            sphcoord.x * PI_RECR * width / 2,
-            sphcoord.y * PI_RECR * height);
-
-        float3 frag3 = make_float3(frag.x, frag.y, frag.z);
-        out[access_idx] = frag3;
-#endif
+        IntegrateSampler integrator(tObjin, N, N1, N2, width, height);
+        integrator.integrate(out[access_idx]);
     }
 }
 
