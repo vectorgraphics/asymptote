@@ -13,8 +13,9 @@
 #include <device_launch_parameters.h>
 
 // Can we encode this somewhere else?
-__device__ constexpr int HALF_PHI_SAMPLES = 150;
-__device__ constexpr int THETA_SAMPLES = 400;
+__device__ constexpr int HALF_PHI_SAMPLES = 300;//150;
+__device__ constexpr int nPHI=2*HALF_PHI_SAMPLES;
+__device__ constexpr int THETA_SAMPLES = 800;
 __device__ constexpr float hPHI=PI/HALF_PHI_SAMPLES;
 
 __device__ constexpr float THETA_INTEGRATION_REGION = HALFPI;
@@ -72,12 +73,11 @@ public:
     {
         float3 out=inner(0.0);
         float3 sumeven=make_float3(0,0,0);
-        unsigned int n=2*HALF_PHI_SAMPLES;
-        for (int i = 2; i < n; i += 2)
+        for (int i = 2; i < nPHI; i += 2)
           float3_addinplace(sumeven,inner(i*hPHI));
         float3_addinplace(out,sumeven,2.0);
         float3 sumodd=make_float3(0,0,0);
-        for (int i = 2; i < n; i += 2)
+        for (int i = 2; i <= nPHI; i += 2)
           float3_addinplace(sumodd,inner((i-1)*hPHI));
         float3_addinplace(out,sumodd,4.0);
         float3_addinplace(out,inner(TAU));
