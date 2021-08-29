@@ -1,13 +1,21 @@
-attribute vec3 position;
+#ifdef WEBGL2
+#define IN in
+#define OUT out
+#else
+#define IN attribute
+#define OUT varying
+#endif
+
+IN vec3 position;
 #ifdef WIDTH
-attribute float width;
+IN float width;
 #endif
 #ifdef NORMAL
-attribute vec3 normal;
+IN vec3 normal;
 #endif
-attribute float materialIndex;
+IN float materialIndex;
 #ifdef COLOR
-attribute vec4 color;
+IN vec4 color;
 #endif
 
 uniform mat3 normMat;
@@ -16,14 +24,14 @@ uniform mat4 projViewMat;
 
 #ifdef NORMAL
 #ifndef ORTHOGRAPHIC
-varying vec3 ViewPosition;
+OUT vec3 ViewPosition;
 #endif
-varying vec3 Normal;
+OUT vec3 Normal;
 #endif
-varying vec4 diffuse;
-varying vec3 specular;
-varying float roughness,metallic,fresnel0;
-varying vec4 emissive;
+OUT vec4 diffuse;
+OUT vec3 specular;
+OUT float roughness,metallic,fresnel0;
+OUT vec4 emissive;
 
 struct Material {
   vec4 diffuse,emissive,specular;
@@ -39,9 +47,9 @@ void main(void)
 #ifdef NORMAL
 #ifndef ORTHOGRAPHIC
   ViewPosition=(viewMat*v).xyz;
-#endif      
+#endif
   Normal=normalize(normal*normMat);
-        
+
   Material m;
 #ifdef TRANSPARENT
   m=Materials[int(abs(materialIndex))-1];

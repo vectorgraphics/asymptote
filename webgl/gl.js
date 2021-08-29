@@ -15,6 +15,7 @@ let Zoom0; // Initial zoom
 let zoom0; // Adjusted initial zoom
 let viewportmargin; // Margin around viewport (2-tuple)
 let viewportshift=[0,0]; // Viewport shift (for perspective projection)
+let webgl2=true;
 
 let zoomFactor;
 let zoomPinchFactor;
@@ -94,6 +95,23 @@ let Normals=[];
 let Colors=[];
 let Indices=[];
 
+let IBLReflMap=null;
+let IBLDiffuseMap=null;
+let IBLbdrfMap=null;
+
+function IBLReady()
+{
+  return IBLReflMap !== null && IBLDiffuseMap !== null && IBLbdrfMap !== null;
+}
+
+function SetIBL()
+{
+  initShaders(true);
+  console.log('Set IBL')
+}
+
+let roughnessStepCount=5;
+
 class Material {
   constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
     this.diffuse=diffuse;
@@ -135,16 +153,24 @@ class Light {
   }
 }
 
-function initShaders()
+function initShaders(ibl=false)
 {
   let maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
   maxMaterials=Math.floor((maxUniforms-14)/4);
   Nmaterials=Math.min(Math.max(Nmaterials,Materials.length),maxMaterials);
 
-  pixelShader=initShader(["WIDTH"]);
-  materialShader=initShader(["NORMAL"]);
-  colorShader=initShader(["NORMAL","COLOR"]);
-  transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
+  pixelOpt=["WIDTH"];
+  materialOpt=["NORMAL"];
+  colorOpt=["NORMAL","COLOR"];
+  transparentOpt=["NORMAL","COLOR","TRANSPARENT"];
+
+  if (ibl)
+    materialOpt.push('USE_IBL');
+
+  pixelShader=initShader(pixelOpt);
+  materialShader=initShader(materialOpt);
+  colorShader=initShader(colorOpt);
+  transparentShader=initShader(transparentOpt);
 }
 
 function deleteShaders()
@@ -224,12 +250,30 @@ function initGL()
       }
     }
   } else {
-    gl=canvas.getContext("webgl",{alpha:alpha});
+    let userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+        webgl2=false;
+    }
+
+    gl=canvas.getContext(webgl2 === true ? "webgl2" : "webgl", {alpha:alpha});
+
+
     if(!gl) noGL();
     initShaders();
   }
 
   indexExt=gl.getExtension("OES_element_index_uint");
+
+  if (!webgl2)
+  {
+    floatTexExt=gl.getExtension('OES_texture_float');
+  }
+  else
+  {
+    let ext2=gl.getExtension('EXT_color_buffer_float');
+    if (!ext2) alert('need ext_color_buffer_float.');
+    floatTexExt = true;
+  }
 
   TRIANGLES=gl.TRIANGLES;
   material0Data=new vertexBuffer(gl.POINTS);
@@ -242,23 +286,55 @@ function initGL()
 
 function getShader(gl,shaderScript,type,options=[])
 {
-  let str=`#version 100
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-  precision highp float;
-#else
-  precision mediump float;
-#endif
-  #define nlights ${wireframe == 0 ? Lights.length : 0}\n
-  const int Nlights=${Math.max(Lights.length,1)};\n
-  #define Nmaterials ${Nmaterials}\n`;
+  let version=webgl2 ? '300 es' : '100';
+  let defines = Array(...options)
+  let macros = [
+    ['nlights', wireframe == 0 ? Lights.length : 0],
+    ['Nmaterials', Nmaterials]
+  ]
 
-  if(orthographic)
-    str += `#define ORTHOGRAPHIC\n`;
+  let consts = [
+    ['int', 'Nlights', Math.max(Lights.length,1)]
+  ]
 
-  options.forEach(s => str += `#define `+s+`\n`);
+  let addenum = `
+  #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+  #else
+    precision mediump float;
+  #endif
+  `
+
+  let extensions=[];
+  if (webgl2) {
+    defines.push('WEBGL2');
+  }
+
+  if (webgl2 && UseIBL) {
+    macros.push(['ROUGHNESS_STEP_COUNT', roughnessStepCount.toFixed(2)]);
+  }
+
+
+  if (orthographic)
+    defines.push('ORTHOGRAPHIC');
+
+  macros_str = macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
+  define_str = defines.map(define => `#define ${define}`).join('\n');
+  const_str = consts.map(const_val => `const ${const_val[0]} ${const_val[1]}=${const_val[2]};`).join('\n')
+  ext_str = extensions.map(ext => `#extension ${ext}: enable`).join('\n')
+
+  shaderSrc = `#version ${version}
+  ${ext_str}
+  ${define_str}
+  ${const_str}
+  ${macros_str}
+
+  ${addenum}
+  ${shaderScript}
+  `;
 
   let shader=gl.createShader(type);
-  gl.shaderSource(shader,str+shaderScript);
+  gl.shaderSource(shader,shaderSrc);
   gl.compileShader(shader);
   if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)) {
     alert(gl.getShaderInfoLog(shader));
@@ -288,6 +364,23 @@ function drawBuffer(data,shader,indices=data.indices)
   let normal=shader != pixelShader;
 
   setUniforms(data,shader);
+  if (IBLDiffuseMap != null)
+  {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, IBLbdrfMap);
+    gl.uniform1i(gl.getUniformLocation(shader, 'reflBRDFSampler'), 0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, IBLDiffuseMap);
+    gl.uniform1i(gl.getUniformLocation(shader, 'diffuseSampler'), 1);
+
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, IBLReflMap);
+    gl.uniform1i(gl.getUniformLocation(shader, 'reflImgSampler'), 2);
+
+
+  }
+
 
   let copy=remesh || data.partial || !data.rendered;
   data.verticesBuffer=registerBuffer(new Float32Array(data.vertices),
@@ -2553,6 +2646,7 @@ function drawBuffers()
   drawColor();
   drawTriangle();
   drawTransparent();
+  requestAnimationFrame(drawBuffers);
 }
 
 function draw()
@@ -3106,6 +3200,80 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
     P.push(new BezierCurve(v,CenterIndex,MaterialIndex,Min,Max));
 }
 
+async function getReq(req)
+{
+  let fetch_req = await fetch(req);
+  return fetch_req.json()
+}
+
+function createTexture(width, height, data, textureNumber, fmt=gl.RGB16F)
+{
+  let tex=gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0 + textureNumber);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,
+    0, fmt, width, height,
+    0, gl.RGB, gl.FLOAT, new Float32Array(data));
+  // gl.generateMipmap(gl.TEXTURE_2D);
+
+  //
+  // console.log('Create texture')
+  return tex;
+}
+
+async function initIBL()
+{
+  if (!floatTexExt)
+  {
+    alert('Does not support Float textures')
+    return;
+  }
+  promises = [
+    getReq('http://localhost:12345/refl/').then(obj => {
+      IBLbdrfMap = createTexture(obj.width, obj.height, obj.data, 0);
+    }),
+    getReq('http://localhost:12345/skylit_garage_1k/diffuse').then(obj => {
+      IBLDiffuseMap = createTexture(obj.width, obj.height, obj.data, 1);
+    })
+  ]
+
+  refl_promise = []
+
+  for (i=0;i<=roughnessStepCount;++i)
+  {
+    refl_promise.push(
+      getReq(`http://localhost:12345/skylit_garage_1k/refl?step=${i}`)
+      )
+  }
+
+  finished_promsie=Promise.all(refl_promise).then(reflMaps => {
+    let tex = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + 2);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, reflMaps.length-1)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_LOD, 0.0);
+    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAX_LOD, roughnessStepCount);
+    for (j=0;j<reflMaps.length;++j) {
+      data = reflMaps[j];
+      gl.texImage2D(gl.TEXTURE_2D,
+        j, gl.RGB16F, data.width, data.height,
+        0, gl.RGB, gl.FLOAT, new Float32Array(data.data));
+    }
+    IBLReflMap = tex;
+  });
+
+  promises.push(finished_promsie);
+  await Promise.all(promises);
+}
+
+UseIBL=false;
+
 function webGLStart()
 {
   canvas=document.getElementById("Asymptote");
@@ -3132,6 +3300,8 @@ function webGLStart()
   canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
 
+
+
   canvasWidth0=canvasWidth;
   canvasHeight0=canvasHeight;
 
@@ -3141,4 +3311,7 @@ function webGLStart()
     resize();
 
   window.addEventListener("resize",resize,false);
+
+  if (webgl2 && UseIBL)
+    initIBL().then(SetIBL).then(redraw);
 }
