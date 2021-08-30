@@ -119,3 +119,38 @@ inline void float3_addinplace(float3& target, float3 const& val, float const& sc
     target.y += (val.y * scale);
     target.z += (val.z * scale);
 }
+
+struct DefaultVec3ZeroInit
+{
+    __device__ static glm::vec3 init()
+    {
+        return glm::vec3(0.0f);
+    }
+};
+
+template<typename TRet=glm::vec3, typename TInit=DefaultVec3ZeroInit, typename T>
+__device__ inline TRet simpsonThird(T fn, float const& a, float const& b, size_t const& Nhalf)
+{
+    float const NVal = 2.0f * Nhalf;
+    float const Hvalue = (b - a) / NVal;
+
+    TRet base = fn(a);
+
+    TRet sumeven = TInit::init();
+    for (size_t i = 2; i < NVal; i += 2)
+    {
+        sumeven +=  fn(a + (i * Hvalue));
+    }
+    base += (2.0f * sumeven);
+
+
+    TRet sumodd = TInit::init();
+    for (size_t i = 2; i <= NVal; i += 2)
+    {
+        sumodd += fn(a + ((i - 1) * Hvalue));
+    }
+
+    base += (4.0f * sumodd);
+    base += fn(b);
+    return base * (Hvalue / 3.0f);
+}

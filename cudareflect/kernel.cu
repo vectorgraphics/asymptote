@@ -74,25 +74,9 @@ public:
     __device__
     glm::vec3 integrate()
     {
-#if 0;
-        return PI_RECR * simpsonThird<glm::vec3>(
+        return PI_RECR * simpsonThird(
             [this](float const& ft) {return this->inner(ft); },
             0, TAU, HALF_PHI_SAMPLES);
-#endif
-        // old cose that uses GLM only
-        glm::vec3 out=inner(0.0);
-
-        glm::vec3 sumeven(0.0f);
-        for (int i = 2; i < nPHI; i += 2)
-          sumeven += inner(i*hPHI);
-        out += (2.0f * sumeven);
-
-        glm::vec3 sumodd(0.0f);
-        for (int i = 2; i <= nPHI; i += 2)
-          sumodd += inner((i-1)*hPHI);
-        out += (4.0f * sumodd);
-        out += inner(TAU);
-        return out * PI_RECR * (hPHI / 3.0f);
     }
 
 private:
