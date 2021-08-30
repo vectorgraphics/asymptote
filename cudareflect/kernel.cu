@@ -15,6 +15,8 @@
 #define GLM_FORCE_CUDA
 #include <glm/glm.hpp>
 
+#include <functional>
+
 // Can we encode this somewhere else?
 __device__ constexpr int HALF_PHI_SAMPLES = 300;//150;
 __device__ constexpr int nPHI=2*HALF_PHI_SAMPLES;
@@ -22,8 +24,7 @@ __device__ constexpr int THETA_SAMPLES = 400;
 __device__ constexpr float hPHI=PI/HALF_PHI_SAMPLES;
 
 __device__ constexpr float THETA_INTEGRATION_REGION = HALFPI;
-__device__ constexpr float dx_int_scale =
-    (0.5 * THETA_INTEGRATION_REGION * hPHI) / (3.0*PI * THETA_SAMPLES);
+
 
 class IntegrateSampler
 {
@@ -46,7 +47,6 @@ public:
     {
         // vec3 is the world space coordinate
         float2 sphcoord = to_sphcoord(angleToBasis(N, N1, N2, sampled_phi, sampled_theta));
-
         float4 frag = tex2D<float4>(tObj,
             sphcoord.x * PI_RECR * width / 2,
             sphcoord.y * PI_RECR * height);
@@ -54,9 +54,10 @@ public:
     }
 
     __device__
-    glm::vec3 inner(float sampled_phi)
+    glm::vec3 inner(float const& sampled_phi)
     {
         glm::vec3 sum3(0.0f);
+
         for (int j = 0; j < THETA_SAMPLES; ++j)
         {
             float sampled_theta = j * THETA_INTEGRATION_REGION / THETA_SAMPLES;
@@ -65,14 +66,20 @@ public:
             // 2*sin(sampled_theta)*cos(sampled_theta). The "times 2" part is cancelled
             // out in dx_int_scale.
             float scale = __sinf(2 * sampled_theta);
-            sum3 += (result * scale);
+            sum3 += (0.5f * scale * result);
         }
-        return sum3;
+        return  (THETA_INTEGRATION_REGION / THETA_SAMPLES) * sum3;
     }
 
     __device__
     glm::vec3 integrate()
     {
+#if 0;
+        return PI_RECR * simpsonThird<glm::vec3>(
+            [this](float const& ft) {return this->inner(ft); },
+            0, TAU, HALF_PHI_SAMPLES);
+#endif
+        // old cose that uses GLM only
         glm::vec3 out=inner(0.0);
 
         glm::vec3 sumeven(0.0f);
@@ -83,9 +90,9 @@ public:
         glm::vec3 sumodd(0.0f);
         for (int i = 2; i <= nPHI; i += 2)
           sumodd += inner((i-1)*hPHI);
-        out += (4.0f * sumeven);
+        out += (4.0f * sumodd);
         out += inner(TAU);
-        return out * dx_int_scale;
+        return out * PI_RECR * (hPHI / 3.0f);
     }
 
 private:
