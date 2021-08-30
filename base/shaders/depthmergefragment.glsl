@@ -5,7 +5,7 @@ struct OpaqueFragment
     vec4 color;
     float depth;
 };
-layout(std430, binding=3) coherent buffer opaque {
+layout(binding=3) coherent buffer opaque {
     OpaqueFragment zbuffer[];
 };
 
@@ -20,6 +20,5 @@ void main(void)
   outColor = texture(ColorTex, gl_FragCoord.xy/vec2(width,height));
   vec4 background = vec4(1);
   if (zbuffer[headIndex].depth != 0) background = zbuffer[headIndex].color;
-  outColor = outColor + outColor.a * background;
-  outColor.a = 1;
+  outColor.rgb = outColor.rgb + outColor.a * background.rgb;
 }

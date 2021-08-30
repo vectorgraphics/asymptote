@@ -624,6 +624,26 @@ void initBuffers() {
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                          camp::depthTex[0], 0);
 
+  glBindFramebuffer(GL_FRAMEBUFFER, camp::opaqueFbo);
+
+  glBindTexture(GL_TEXTURE_2D, camp::opaqueTex);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gl::Width, gl::Height, 0, GL_RGBA,
+                GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                          camp::opaqueTex, 0);
+
+  glBindTexture(GL_TEXTURE_2D, camp::opaqueDepth);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, gl::Width, gl::Height, 0,
+                GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                          camp::opaqueDepth, 0);
+
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -2275,6 +2295,7 @@ void depthPeelTransparency()
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
 
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
   drawBuffer(transparentData,peelShader);
@@ -2319,7 +2340,7 @@ void depthPeelTransparency()
     transparentData.rendered=false; // Force copying of sorted triangles to GPU.
     drawBuffer(transparentData,blendShader);
 
-    cerr << "count: " << count << endl;
+    // cerr << "count: " << count << endl;
     if (!count || i > 10) // TODO
       break;
   }
@@ -2327,9 +2348,8 @@ void depthPeelTransparency()
   // Merge with background (opaque geometry)
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  glDisable(GL_DEPTH_TEST);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
 
   glBindTexture(GL_TEXTURE_2D, colorTex[2]);
   transparentData.rendered=false; // Force copying of sorted triangles to GPU.
@@ -2338,7 +2358,9 @@ void depthPeelTransparency()
   // Reset
   glClearColor(gl::Background[0], gl::Background[1],
                gl::Background[2], gl::Background[3]);
-  cerr << endl;
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // cerr << endl;
   transparentData.clear();
 }
 
