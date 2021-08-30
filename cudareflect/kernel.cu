@@ -12,10 +12,13 @@
 #include <texture_indirect_functions.h>
 #include <device_launch_parameters.h>
 
+#define GLM_FORCE_CUDA
+#include <glm/glm.hpp>
+
 // Can we encode this somewhere else?
 __device__ constexpr int HALF_PHI_SAMPLES = 300;//150;
 __device__ constexpr int nPHI=2*HALF_PHI_SAMPLES;
-__device__ constexpr int THETA_SAMPLES = 800;
+__device__ constexpr int THETA_SAMPLES = 400;
 __device__ constexpr float hPHI=PI/HALF_PHI_SAMPLES;
 
 __device__ constexpr float THETA_INTEGRATION_REGION = HALFPI;
@@ -39,7 +42,7 @@ public:
     __device__ ~IntegrateSampler() {}
 
     __device__
-    float3 integrand(float const& sampled_phi, float const& sampled_theta)
+    glm::vec3 integrand(float const& sampled_phi, float const& sampled_theta)
     {
         // vec3 is the world space coordinate
         float2 sphcoord = to_sphcoord(angleToBasis(N, N1, N2, sampled_phi, sampled_theta));
@@ -47,42 +50,42 @@ public:
         float4 frag = tex2D<float4>(tObj,
             sphcoord.x * PI_RECR * width / 2,
             sphcoord.y * PI_RECR * height);
-        return make_float3(frag.x, frag.y, frag.z);
+        return glm::vec3(frag.x, frag.y, frag.z);
     }
 
     __device__
-    float3 inner(float sampled_phi)
+    glm::vec3 inner(float sampled_phi)
     {
-        float3 sum3 = make_float3(0, 0, 0);
+        glm::vec3 sum3(0.0f);
         for (int j = 0; j < THETA_SAMPLES; ++j)
         {
             float sampled_theta = j * THETA_INTEGRATION_REGION / THETA_SAMPLES;
-
-            float3 result = integrand(sampled_phi, sampled_theta);
+            glm::vec3 result = integrand(sampled_phi, sampled_theta);
 
             // 2*sin(sampled_theta)*cos(sampled_theta). The "times 2" part is cancelled
             // out in dx_int_scale.
             float scale = __sinf(2 * sampled_theta);
-            float3_addinplace(sum3, result, scale);
+            sum3 += (result * scale);
         }
         return sum3;
     }
 
     __device__
-    float3 integrate()
+    glm::vec3 integrate()
     {
-        float3 out=inner(0.0);
-        float3 sumeven=make_float3(0,0,0);
+        glm::vec3 out=inner(0.0);
+
+        glm::vec3 sumeven(0.0f);
         for (int i = 2; i < nPHI; i += 2)
-          float3_addinplace(sumeven,inner(i*hPHI));
-        float3_addinplace(out,sumeven,2.0);
-        float3 sumodd=make_float3(0,0,0);
+          sumeven += inner(i*hPHI);
+        out += (2.0f * sumeven);
+
+        glm::vec3 sumodd(0.0f);
         for (int i = 2; i <= nPHI; i += 2)
-          float3_addinplace(sumodd,inner((i-1)*hPHI));
-        float3_addinplace(out,sumodd,4.0);
-        float3_addinplace(out,inner(TAU));
-        float3_scaleinplace(out,dx_int_scale);
-        return out;
+          sumodd += inner((i-1)*hPHI);
+        out += (4.0f * sumeven);
+        out += inner(TAU);
+        return out * dx_int_scale;
     }
 
 private:
@@ -117,11 +120,12 @@ void irradiate(cudaTextureObject_t tObjin, float3* out, size_t width, size_t hei
 
 
         IntegrateSampler integrator(tObjin, N, N1, N2, width, height);
-        out[access_idx]=integrator.integrate();
+        glm::vec3 out_val = integrator.integrate();
+        out[access_idx] = make_float3(out_val.x, out_val.y, out_val.z);
     }
 }
 
-const size_t blkSz = 15;
+const size_t blkSz = 8;
 void irradiate_ker(float4* in, float3* out, size_t width, size_t height)
 {
     float4* d_ptr;
