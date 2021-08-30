@@ -156,3 +156,4 @@ void main(void)
 #else
   OUTVALUE=emissive;
 #endif
+}
