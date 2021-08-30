@@ -18,13 +18,8 @@
 #include <functional>
 
 // Can we encode this somewhere else?
-__device__ constexpr int HALF_PHI_SAMPLES = 300;//150;
-__device__ constexpr int nPHI=2*HALF_PHI_SAMPLES;
-__device__ constexpr int THETA_SAMPLES = 400;
-__device__ constexpr float hPHI=PI/HALF_PHI_SAMPLES;
-
-__device__ constexpr float THETA_INTEGRATION_REGION = HALFPI;
-
+__device__ constexpr int HALF_PHI_SAMPLES = 300;
+__device__ constexpr int HALF_THETA_SAMPLES = 400;
 
 class IntegrateSampler
 {
@@ -50,25 +45,17 @@ public:
         float4 frag = tex2D<float4>(tObj,
             sphcoord.x * PI_RECR * width / 2,
             sphcoord.y * PI_RECR * height);
-        return glm::vec3(frag.x, frag.y, frag.z);
+
+        float scale=__sinf(2 * sampled_theta);
+        return glm::vec3(frag.x, frag.y, frag.z) * 0.5f * scale;
     }
 
     __device__
     glm::vec3 inner(float const& sampled_phi)
     {
-        glm::vec3 sum3(0.0f);
-
-        for (int j = 0; j < THETA_SAMPLES; ++j)
-        {
-            float sampled_theta = j * THETA_INTEGRATION_REGION / THETA_SAMPLES;
-            glm::vec3 result = integrand(sampled_phi, sampled_theta);
-
-            // 2*sin(sampled_theta)*cos(sampled_theta). The "times 2" part is cancelled
-            // out in dx_int_scale.
-            float scale = __sinf(2 * sampled_theta);
-            sum3 += (0.5f * scale * result);
-        }
-        return  (THETA_INTEGRATION_REGION / THETA_SAMPLES) * sum3;
+        return simpsonThird(
+            [this, &sampled_phi](float const& theta) {return this->integrand(sampled_phi, theta);  },
+            0, HALFPI, HALF_THETA_SAMPLES);
     }
 
     __device__
