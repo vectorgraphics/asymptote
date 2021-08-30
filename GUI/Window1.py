@@ -2426,6 +2426,7 @@ class MainWindow1(Qw.QMainWindow):
             maj, minor = self.currentlySelectedObj['selectedIndex']
             if isinstance(self.fileItems[maj],x2a.xasyShape) or isinstance(self.fileItems[maj],x2a.xasyText):
                 self.copiedObject = self.fileItems[maj].copy()
+                self.copiedMousePos = self.getWindowCoordinates()
             else:
                 self.ui.statusbar.showMessage('Copying not supported with current item type')
         else:
@@ -2436,5 +2437,11 @@ class MainWindow1(Qw.QMainWindow):
     def pasteItem(self):
         if hasattr(self, 'copiedObject') and not self.copiedObject is None:
             self.addInPlace(self.copiedObject)
+            mousePos = self.copiedMousePos - self.getWindowCoordinates()
+            self.newTransform = Qg.QTransform.fromTranslate(-mousePos.x(), -mousePos.y()) #to fix inversion
+            self.currentlySelectedObj['selectedIndex'] = (self.globalObjectCounter - 1,0)
+            self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet()
+            self.quickUpdate()
+            self.copiedObject = None
         else:
             self.ui.statusbar.showMessage('No object to paste')
