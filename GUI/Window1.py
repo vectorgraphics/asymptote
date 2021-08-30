@@ -2431,6 +2431,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.ui.statusbar.showMessage('No object selected to copy')
             self.copiedObject = None
+        self.clearSelection()
 
     def pasteItem(self):
         if hasattr(self, 'copiedObject') and not self.copiedObject is None:
