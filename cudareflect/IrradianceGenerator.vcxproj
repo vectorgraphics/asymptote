@@ -30,9 +30,9 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
     </ClInclude>
     <ClInclude Include="kernel.h" />
-    <ClInclude Include="linalg.cuh" />
     <ClInclude Include="ReflectanceMapper.cuh" />
     <ClInclude Include="simpson.cuh" />
+    <ClInclude Include="utils.cuh" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
