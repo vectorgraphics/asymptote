@@ -400,7 +400,7 @@ void initIBL()
 {
   GLTexturesFmt fmt;
   fmt.internalFmt=GL_RGB16F;
-  irradiance=fromEXR("irrad/skylit_garage_1k_diffuse.exr", fmt, 1);
+  irradiance=fromEXR("irrad/snowy_field_1k/snowy_field_1k_diffuse.exr", fmt, 1);
 
   GLTexturesFmt fmtRefl;
   fmtRefl.internalFmt=GL_RG16F;
@@ -413,8 +413,8 @@ void initIBL()
   fmt3.wrapT=GL_CLAMP_TO_EDGE;
 
   mem::vector<string> files;
-  files.emplace_back("irrad/skylit_garage_1k.exr");
-  mem::string prefix="irrad/skylit_garage_1k";
+  files.emplace_back("irrad/snowy_field_1k/snowy_field_1k.exr");
+  mem::string prefix="irrad/snowy_field_1k/snowy_field_1k";
   for (int i=1;i<=10;++i)
   {
     mem::stringstream mss;

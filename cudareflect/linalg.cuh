@@ -79,28 +79,29 @@ struct DefaultVec3ZeroInit
 };
 
 template<typename TRet=glm::vec3, typename TInit=DefaultVec3ZeroInit, typename T>
-__device__ inline TRet simpsonThird(T fn, float const& a, float const& b, size_t const& Nhalf)
+__device__ inline TRet simpsonFixed(T f, float a, float b, size_t nhalf)
 {
-    float const NVal = 2.0f * Nhalf;
-    float const Hvalue = (b - a) / NVal;
+    float const n = 2.0f * nhalf;
+    float const h = (b - a) / n;
+    float const third = 1.0f/3.0f;
 
-    TRet base = fn(a);
+    TRet sum = f(a);
 
     TRet sumeven = TInit::init();
-    for (size_t i = 2; i < NVal; i += 2)
+    for (size_t i = 2; i < n; i += 2)
     {
-        sumeven +=  fn(a + (i * Hvalue));
+        sumeven +=  f(a + (i * h));
     }
-    base += (2.0f * sumeven);
+    sum += (2.0f * sumeven);
 
 
     TRet sumodd = TInit::init();
-    for (size_t i = 2; i <= NVal; i += 2)
+    for (size_t i = 2; i <= n; i += 2)
     {
-        sumodd += fn(a + ((i - 1) * Hvalue));
+        sumodd += f(a + ((i - 1) * h));
     }
 
-    base += (4.0f * sumodd);
-    base += fn(b);
-    return base * (Hvalue / 3.0f);
+    sum += (4.0f * sumodd);
+    sum += f(b);
+    return third * h * sum;
 }

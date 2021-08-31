@@ -8,6 +8,8 @@
 #include "helper.cuh"
 #include "linalg.cuh"
 
+#include "simpson.cuh"
+
 #include <cuda.h>
 #include <texture_indirect_functions.h>
 #include <device_launch_parameters.h>
@@ -18,8 +20,9 @@
 #include <functional>
 
 // Can we encode this somewhere else?
-__device__ constexpr int HALF_PHI_SAMPLES = 150;
-__device__ constexpr int HALF_THETA_SAMPLES = 200;
+//__device__ constexpr int HALF_PHI_SAMPLES = 150;
+//__device__ constexpr int HALF_THETA_SAMPLES = 200;
+__device__ constexpr int acc = 1.0/256;
 
 class IntegrateSampler
 {
@@ -43,27 +46,26 @@ public:
         // vec3 is the world space coordinate
         glm::vec2 sphcoord = to_sphcoord(angleToBasis(normalOrthBasis, sampled_phi, sampled_theta));
         float4 frag = tex2D<float4>(tObj,
-            sphcoord.x * PI_RECR * width / 2,
+            sphcoord.x * PI_RECR * 0.5*width,
             sphcoord.y * PI_RECR * height);
 
-        float scale=__sinf(2 * sampled_theta);
-        return glm::vec3(frag.x, frag.y, frag.z) * 0.5f * scale;
+        return glm::vec3(frag.x, frag.y, frag.z);
     }
 
     __device__
-    glm::vec3 inner(float const& sampled_phi)
+    glm::vec3 inner(float const& sampled_theta)
     {
-        return simpsonThird(
-            [this, &sampled_phi](float const& theta) {return this->integrand(sampled_phi, theta);  },
-            0, HALFPI, HALF_THETA_SAMPLES);
+        return simpson(
+          [this, &sampled_theta](float const& phi) {return this->integrand(phi,sampled_theta);  },
+          0, TAU, acc)*0.5f*__sinf(2 * sampled_theta);
     }
 
     __device__
     glm::vec3 integrate()
     {
-        return PI_RECR * simpsonThird(
-            [this](float const& ft) {return this->inner(ft); },
-            0, TAU, HALF_PHI_SAMPLES);
+        return PI_RECR * simpson(
+            [this](float const& theta) {return this->inner(theta); },
+            0, HALFPI, acc);
     }
 
 private:
