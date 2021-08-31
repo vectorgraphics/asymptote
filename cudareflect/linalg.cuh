@@ -76,6 +76,11 @@ struct DefaultVec3ZeroInit
     {
         return glm::vec3(0.0f);
     }
+
+    __device__ static float abs2(glm::vec3 v)
+    {
+        return v.x * v.x + v.y * v.y + v.z * v.z;
+    }
 };
 
 template<typename TRet=glm::vec3, typename TInit=DefaultVec3ZeroInit, typename T>

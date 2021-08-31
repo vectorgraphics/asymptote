@@ -15,13 +15,6 @@ struct TABLE {
   TRet psum, f1t, f2t, f3t, estr;
 };
 
-
-__device__ inline float abs2(glm::vec3 v)
-{
-  return v.x*v.x+v.y*v.y+v.z*v.z;
-}
-
-
 template<typename TRet=glm::vec3, typename TInit=DefaultVec3ZeroInit, typename T>
 __device__ inline TRet
 simpson(T f,                  // Function to be integrated.
@@ -63,7 +56,7 @@ simpson(T f,                  // Function to be integrated.
     diff=est-integral;
     area -= diff;
 
-    if(p >= pstop || (abs2(diff) <= acc2*abs2(area))) {
+    if(p >= pstop || (TInit::abs2(diff) <= acc2*TInit::abs2(area))) {
       // Accept approximate integral.
       // If it was a right interval, add results to finish at this level.
       // If it was a left interval, process right interval.
