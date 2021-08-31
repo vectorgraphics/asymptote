@@ -22,12 +22,6 @@ __device__ constexpr float TAU = 2.0*PI;
 __device__ constexpr float PI_RECR = 1.0/PI;
 
 __device__
-inline float3 float3_add(float3 const& f1, float3 const& f2)
-{
-    return make_float3(f1.x + f2.x, f1.y + f2.y, f1.z + f2.z);
-}
-
-__device__
 inline float float3_dot(float3 const& f1, float3 const& f2)
 {
     return (f1.x * f2.x) + (f1.y * f2.y) + (f1.z * f2.z);
@@ -63,15 +57,6 @@ inline float3 matrix3_multiply(float3 const& V1, float3 const& V2, float3 const&
 }
 
 __device__
-inline float2 to_sphcoord(float3 const& vec)
-{
-    return make_float2(
-        atan2f(-vec.y, -vec.x) + PI,
-        acosf(vec.z)
-    );
-}
-
-__device__
 inline float3 from_sphcoord(float const& phi, float const& theta)
 {
     return make_float3(
@@ -81,22 +66,39 @@ inline float3 from_sphcoord(float const& phi, float const& theta)
 }
 
 __device__
-inline float3 from_sphcoord(float const& phi, float const& cosTheta, float const& sinTheta)
+inline glm::vec2 to_sphcoord(glm::vec3 const& vec)
 {
-    return make_float3(
+    return glm::vec2(
+        atan2f(-vec.y, -vec.x) + PI,
+        acosf(vec.z)
+    );
+}
+
+__device__
+inline glm::vec3 from_sphcoord_glm(float const& phi, float const& theta)
+{
+    return glm::vec3(
+        __sinf(theta) * __cosf(phi),
+        __sinf(theta) * __sinf(phi),
+        __cosf(theta));
+}
+
+__device__
+inline glm::vec3 from_sphcoord_glm(float const& phi, float const& cosTheta, float const& sinTheta)
+{
+    return glm::vec3(
         sinTheta * __cosf(phi),
         sinTheta * __sinf(phi),
         cosTheta);
 }
 
-
 __device__
-inline float3 angleToBasis(float3 const& N, float3 const& N1, float3 const& N2, float const& phi, float const& theta)
+inline glm::vec3 angleToBasis(glm::mat3 const& normalOrthBasis, float const& phi, float const& theta)
 {
     // angle relative to (N1, N2, N) basis is (sin(phi)cos(theta), sin(phi)sin(theta), cos(phi)).
     // perform a change of basis
 
-    float3 base_vec = from_sphcoord(phi, theta);
+    glm::vec3 base_vec = from_sphcoord_glm(phi, theta);
 
     // representation of the matrix
 
@@ -109,7 +111,7 @@ inline float3 angleToBasis(float3 const& N, float3 const& N1, float3 const& N2, 
     // \end{pmatrix}
 
     // ( N1 N2 N) column
-    return matrix3_multiply(N1, N2, N, base_vec);
+    return normalOrthBasis * base_vec;
 }
 
 __device__

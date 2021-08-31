@@ -6,6 +6,9 @@
 #include <cuda.h>
 #include <device_launch_parameters.h>
 
+#define GLM_FORCE_CUDA
+#include <glm/glm.hpp>
+
 __device__
 inline float swap_bits(uint32_t const& x, uint32_t const& mask_1, unsigned int const& shft)
 {
@@ -25,19 +28,17 @@ float van_der_corput_bitshift(uint32_t bits)
     bits = swap_bits(bits, 0x00FF00FF, 8);
     bits = swap_bits(bits, 0x0000FFFF, 16);
 
-    
-
     return static_cast<float>(bits) * recvbit;
 }
 
 __device__
-float2 hamersely(uint32_t i, uint32_t N)
+glm::vec2 hamersely(uint32_t i, uint32_t N)
 {
-    return make_float2(static_cast<float>(i) / N, van_der_corput_bitshift(i));
+    return glm::vec2(static_cast<float>(i) / N, van_der_corput_bitshift(i));
 }
 
 __device__
-float3 importance_sampl_GGX(float2 sample, float3 normal, float roughness)
+glm::vec3 importance_sampl_GGX(glm::vec2 sample, glm::vec3 normal, float roughness)
 {
     float a = roughness * roughness;
 
@@ -46,14 +47,12 @@ float3 importance_sampl_GGX(float2 sample, float3 normal, float roughness)
     // TODO: Understand the derivation behind this cosTheta. It has something to do with GGX distribution, but how?
     float sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
 
-    float3 vec = from_sphcoord(phi, cosTheta, sinTheta);
-    float3 N1 = make_float3(
-        cosTheta * __cosf(phi),
-        cosTheta * __sinf(phi),
-        -1 * sinTheta);
-    float3 N2 = make_float3(-1 * __sinf(phi), __cosf(phi), 0);
+    glm::vec3 vec = from_sphcoord_glm(phi, cosTheta, sinTheta);
+    glm::vec3 N1(cosTheta * __cosf(phi), cosTheta * __sinf(phi), -1 * sinTheta);
+    glm::vec3 N2(-1 * __sinf(phi), __cosf(phi), 0);
 
-    return matrix3_multiply(N1, N2, normal, vec);
+    glm::mat3 normalBasis(N1, N2, normal);
+    return normalBasis * vec;
 }
 
 
@@ -65,35 +64,33 @@ void map_reflectance(cudaTextureObject_t tObj,
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int idx_y = blockIdx.y * blockDim.y + threadIdx.y;
+    glm::vec3 result(0.0f);
 
     if (idx < outWidth && idx_y < outHeight)
     {
         int access_idx = to_idx(outWidth, idx, idx_y);
-        out[access_idx] = make_float3(0, 0, 0);
 
         float target_phi = TAU * ((idx + 0.5f) / outWidth);
         float target_theta = PI * ((idx_y + 0.5f) / outHeight);
-        float3 N = from_sphcoord(target_phi, target_theta);
+        glm::vec3 N = from_sphcoord_glm(target_phi, target_theta);
 
         float total_weight = 0.0f;
         for (int i = 0; i < REFL_NUM_SAMPLES; ++i)
         {
-            float2 sample = hamersely(i, REFL_NUM_SAMPLES);
-            float3 half_vec = importance_sampl_GGX(sample, N, roughness);
+            glm::vec2 sample = hamersely(i, REFL_NUM_SAMPLES);
+            glm::vec3 half_vec = importance_sampl_GGX(sample, N, roughness);
 
+            // use the structure of rhombus to calculate lightvec
+            glm::vec3 scaled_half = 2.0f * glm::dot(half_vec, N) * half_vec;
+            glm::vec3 lightvec = glm::normalize(scaled_half - N);
 
-            // use the structure of parallelograms to calculate lightvec
-            float3 scaled_half = float3_scale(half_vec, 2 * float3_dot(half_vec, N));
-            float3 lightvec_raw = float3_subtract(scaled_half, N);
-            float3 lightvec = float3_scale(lightvec_raw, rnorm3df(lightvec_raw.x, lightvec_raw.y, lightvec_raw.z));
-
-            float ndotl = float3_dot(lightvec, N);
-            float2 sphcoord = to_sphcoord(lightvec);
+            float ndotl = glm::dot(N, lightvec);
+            glm::vec2 sphcoord = to_sphcoord(lightvec);
             float4 frag = tex2D<float4>(tObj,
                 sphcoord.x * PI_RECR * width / 2,
                 sphcoord.y * PI_RECR * height);
 
-            float3 frag3 = make_float3(frag.x, frag.y, frag.z);
+            glm::vec3 frag3(frag.x, frag.y, frag.z);
 
             if (ndotl > 0.0)
             {
@@ -103,15 +100,16 @@ void map_reflectance(cudaTextureObject_t tObj,
 #else
                 float weight = 1.0f;
 #endif
-                float3_addinplace(out[access_idx], frag3, weight); // weighting by n@l, technically not required,
-
+                result += (frag3 * weight);  // weighting by n@l, technically not required,
                 total_weight += weight;
             }
 
         }
-
         if (total_weight > 0.0f)
-            out[access_idx] = float3_scale(out[access_idx], 1 / total_weight);
+        {
+            result = result / total_weight;
+            out[access_idx] = make_float3(result.x, result.y, result.z);
+        }
         else
             out[access_idx] = make_float3(0, 0, 0);
 
@@ -207,25 +205,24 @@ __device__ constexpr float INTEGRATE_LUT_SCALE = 1.0f / LUT_INTEGRATE_SAMPLES;
 __device__
 float2 get_integrate_value(float const& roughness, float const& cos_theta)
 {
-    float2 value = make_float2(0, 0);
-    float3 upZ = make_float3(0, 0, 1.0f);
+    glm::vec2 value(0.0f);
+    glm::vec3 upZ(0, 0, 1.0f);
     float num_samples = 0.0f;
 
     float cos_theta_v = clamp(cos_theta);
     float sin_theta_v = sqrtf(1 - cos_theta_v * cos_theta_v);
-    float3 view_vec = make_float3(sin_theta_v, 0, cos_theta_v);
+    glm::vec3 view_vec(sin_theta_v, 0, cos_theta_v);
 
     for (int i=0; i< LUT_INTEGRATE_SAMPLES; ++i)
     {
-        float2 sample_coord = hamersely(i, LUT_INTEGRATE_SAMPLES);
-        float3 half_vec = importance_sampl_GGX(sample_coord, upZ, roughness);
+        glm::vec2 sample_coord = hamersely(i, LUT_INTEGRATE_SAMPLES);
+        glm::vec3 half_vec = importance_sampl_GGX(sample_coord, upZ, roughness);
 
-        float3 scaled_half = float3_scale(half_vec, 2 * float3_dot(view_vec, half_vec));
-        float3 lightvec_raw = float3_subtract(scaled_half, view_vec);
-        float3 lightvec = float3_scale(lightvec_raw, rnorm3df(lightvec_raw.x, lightvec_raw.y, lightvec_raw.z));
+        glm::vec3 scaled_half = 2.0f * glm::dot(half_vec, view_vec) * half_vec;
+        glm::vec3 lightvec = glm::normalize(scaled_half - view_vec);
 
         float ldotn = clamp(lightvec.z);
-        float vdoth = clamp(float3_dot(half_vec, view_vec));
+        float vdoth = clamp(glm::dot(half_vec, view_vec));
         float ndoth = clamp(half_vec.z);
 
         if (ldotn > 0.0f)
@@ -238,10 +235,9 @@ float2 get_integrate_value(float const& roughness, float const& cos_theta)
             num_samples += 1.0f;
         }
     }
-    value.x = value.x * INTEGRATE_LUT_SCALE;
-    value.y = value.y * INTEGRATE_LUT_SCALE;
+    value = value * INTEGRATE_LUT_SCALE;
 
-    return value;
+    return make_float2(value.x, value.y);
 }
 
 __global__

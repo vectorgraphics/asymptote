@@ -18,8 +18,8 @@
 #include <functional>
 
 // Can we encode this somewhere else?
-__device__ constexpr int HALF_PHI_SAMPLES = 300;
-__device__ constexpr int HALF_THETA_SAMPLES = 400;
+__device__ constexpr int HALF_PHI_SAMPLES = 150;
+__device__ constexpr int HALF_THETA_SAMPLES = 200;
 
 class IntegrateSampler
 {
@@ -27,9 +27,9 @@ public:
     __device__
     IntegrateSampler(
         cudaTextureObject_t tObjin,
-        float3 const& n, float3 const& n1, float3 const& n2,
+        glm::mat3 normalOrthBasis,
         size_t const& inWidth, size_t const& inHeight) :
-        N(n), N1(n1), N2(n2), width(inWidth), height(inHeight),
+        normalOrthBasis(normalOrthBasis), width(inWidth), height(inHeight),
         tObj(tObjin)
 
     {
@@ -41,7 +41,7 @@ public:
     glm::vec3 integrand(float const& sampled_phi, float const& sampled_theta)
     {
         // vec3 is the world space coordinate
-        float2 sphcoord = to_sphcoord(angleToBasis(N, N1, N2, sampled_phi, sampled_theta));
+        glm::vec2 sphcoord = to_sphcoord(angleToBasis(normalOrthBasis, sampled_phi, sampled_theta));
         float4 frag = tex2D<float4>(tObj,
             sphcoord.x * PI_RECR * width / 2,
             sphcoord.y * PI_RECR * height);
@@ -67,7 +67,7 @@ public:
     }
 
 private:
-    float3 N, N1, N2;
+    glm::mat3 normalOrthBasis;
     size_t width, height;
     cudaTextureObject_t tObj;
 };
@@ -84,20 +84,20 @@ void irradiate(cudaTextureObject_t tObjin, float3* out, size_t width, size_t hei
     if (idx < width && idx_y < height)
     {
         int access_idx = to_idx(width, idx, idx_y);
-        out[access_idx] = make_float3(0, 0, 0);
 
         float target_phi = TAU * ((idx + 0.5f) / width);
         float target_theta = PI * ((idx_y + 0.5f) / height);
 
-        const float3 N = from_sphcoord(target_phi, target_theta);
-        const float3 N1 = make_float3(
+        const glm::vec3 N = from_sphcoord_glm(target_phi, target_theta);
+        const glm::vec3 N1(
             __cosf(target_theta) * __cosf(target_phi),
             __cosf(target_theta) * __sinf(target_phi),
             -1*__sinf(target_theta));
-        const float3 N2 = make_float3(-1 * __sinf(target_phi), __cosf(target_phi), 0);
+        const glm::vec3 N2(-1 * __sinf(target_phi), __cosf(target_phi), 0);
 
+        glm::mat3 normalBasisMat(N1,N2,N);
 
-        IntegrateSampler integrator(tObjin, N, N1, N2, width, height);
+        IntegrateSampler integrator(tObjin, normalBasisMat, width, height);
         glm::vec3 out_val = integrator.integrate();
         out[access_idx] = make_float3(out_val.x, out_val.y, out_val.z);
     }
