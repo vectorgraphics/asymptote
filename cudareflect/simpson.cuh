@@ -1,35 +1,41 @@
+/*
+* John C. Bowman and Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com>
+* University of Alberta
+* CUDA Adaptive Simpson integration
+*/
+
 #include <cuda.h>
 
-#include "linalg.cuh"
+#include "utils.cuh"
 
 // Compute a numerical approximation to an integral via adaptive Simpson's Rule
 // This routine ignores underflow.
 
 __device__ constexpr float sixth=1.0/6.0;
-__device__ constexpr int nest=10;//10;
+__device__ constexpr int nest=10;
 
-template<typename TRet=glm::vec3>
+template<typename T>
 struct TABLE {
   bool left;                    // left interval?
   float dat;
-  TRet psum, f1t, f2t, f3t, estr;
+  T psum, f1t, f2t, f3t, estr;
 };
 
-template<typename TRet=glm::vec3, typename TInit=DefaultVec3ZeroInit, typename T>
-__device__ inline TRet
-simpson(T f,                  // Function to be integrated.
+template<typename T=glm::vec3, typename TUtil=Vec3Utility, typename Tf>
+__device__ inline T
+simpson(Tf f,                 // Function to be integrated.
         float a, float b,     // Lower, upper limits of integration.
         float acc)            // Desired relative accuracy of integral.
                               // Try to make |error| <= acc*abs(integral).
 {
-  TRet integral,diff,area,estl,estr,est,fv0,fv1,fv2,fv3,fv4;
+  T integral,diff,area,estl,estr,est,fv0,fv1,fv2,fv3,fv4;
   float dx;
-  TABLE<TRet> table[nest],*p,*pstop;
+  TABLE<T> table[nest],*p,*pstop;
 
   p=table;
   pstop=table+nest-1;
   p->left=true;
-  p->psum=TInit::init();
+  p->psum=TUtil::init();
   float alpha=a;
   float da=b-a;
   fv0=f(alpha);
@@ -56,7 +62,7 @@ simpson(T f,                  // Function to be integrated.
     diff=est-integral;
     area -= diff;
 
-    if(p >= pstop || (TInit::abs2(diff) <= acc2*TInit::abs2(area))) {
+    if(p >= pstop || (TUtil::abs2(diff) <= acc2*TUtil::abs2(area))) {
       // Accept approximate integral.
       // If it was a right interval, add results to finish at this level.
       // If it was a left interval, process right interval.

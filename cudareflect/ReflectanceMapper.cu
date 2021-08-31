@@ -1,7 +1,7 @@
 #include "ReflectanceMapper.cuh"
 
 #include "helper.cuh"
-#include "linalg.cuh"
+#include "utils.cuh"
 
 #include <cuda.h>
 #include <device_launch_parameters.h>

@@ -6,7 +6,7 @@
 
 #include "kernel.h"
 #include "helper.cuh"
-#include "linalg.cuh"
+#include "utils.cuh"
 
 #include "simpson.cuh"
 
