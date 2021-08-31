@@ -32,6 +32,7 @@
     <ClInclude Include="kernel.h" />
     <ClInclude Include="linalg.cuh" />
     <ClInclude Include="ReflectanceMapper.cuh" />
+    <ClInclude Include="simpson.cuh" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
