@@ -47,7 +47,7 @@ glm::vec3 importance_sampl_GGX(glm::vec2 sample, glm::vec3 normal, float roughne
     // TODO: Understand the derivation behind this cosTheta. It has something to do with GGX distribution, but how?
     float sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
 
-    glm::vec3 vec = from_sphcoord_glm(phi, cosTheta, sinTheta);
+    glm::vec3 vec = from_sphcoord(phi, cosTheta, sinTheta);
     glm::vec3 N1(cosTheta * __cosf(phi), cosTheta * __sinf(phi), -1 * sinTheta);
     glm::vec3 N2(-1 * __sinf(phi), __cosf(phi), 0);
 
@@ -72,7 +72,7 @@ void map_reflectance(cudaTextureObject_t tObj,
 
         float target_phi = TAU * ((idx + 0.5f) / outWidth);
         float target_theta = PI * ((idx_y + 0.5f) / outHeight);
-        glm::vec3 N = from_sphcoord_glm(target_phi, target_theta);
+        glm::vec3 N = from_sphcoord(target_phi, target_theta);
 
         float total_weight = 0.0f;
         for (int i = 0; i < REFL_NUM_SAMPLES; ++i)

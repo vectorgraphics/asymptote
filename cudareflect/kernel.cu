@@ -88,7 +88,7 @@ void irradiate(cudaTextureObject_t tObjin, float3* out, size_t width, size_t hei
         float target_phi = TAU * ((idx + 0.5f) / width);
         float target_theta = PI * ((idx_y + 0.5f) / height);
 
-        const glm::vec3 N = from_sphcoord_glm(target_phi, target_theta);
+        const glm::vec3 N = from_sphcoord(target_phi, target_theta);
         const glm::vec3 N1(
             __cosf(target_theta) * __cosf(target_phi),
             __cosf(target_theta) * __sinf(target_phi),
