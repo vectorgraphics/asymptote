@@ -2,6 +2,9 @@
 * @file kernel.cu
 * @author Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com>
 * CUDA Kernel for computing irradiance by solid angle integration
+
+* Partially based on:
+* https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 */
 
 #include "kernel.h"
