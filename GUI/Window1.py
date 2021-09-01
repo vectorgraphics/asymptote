@@ -2438,10 +2438,12 @@ class MainWindow1(Qw.QMainWindow):
         if hasattr(self, 'copiedObject') and not self.copiedObject is None:
             self.addInPlace(self.copiedObject)
             mousePos = self.copiedMousePos - self.getWindowCoordinates()
-            self.newTransform = Qg.QTransform.fromTranslate(-mousePos.x(), -mousePos.y()) #to fix inversion
+            newTransform = Qg.QTransform.fromTranslate(-mousePos.x(), -mousePos.y())
             self.currentlySelectedObj['selectedIndex'] = (self.globalObjectCounter - 1,0)
             self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet()
-            self.quickUpdate()
-            self.copiedObject = None
+            newTransform = x2a.asyTransform.fromQTransform(newTransform)
+            objKey = self.currentlySelectedObj['selectedIndex']
+            self.addTransformationChanges(objKey, newTransform, not self.useGlobalCoords)
+            self.transformObject(objKey, newTransform, not self.useGlobalCoords)
         else:
             self.ui.statusbar.showMessage('No object to paste')
