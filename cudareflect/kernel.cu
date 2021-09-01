@@ -25,7 +25,6 @@
 // Can we encode this somewhere else?
 //__device__ constexpr int HALF_PHI_SAMPLES = 150;
 //__device__ constexpr int HALF_THETA_SAMPLES = 200;
-__device__ constexpr int acc = 1.0/256;
 
 class IntegrateSampler
 {

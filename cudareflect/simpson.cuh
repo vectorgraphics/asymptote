@@ -12,7 +12,8 @@
 // This routine ignores underflow.
 
 __device__ constexpr float sixth=1.0/6.0;
-__device__ constexpr int nest=10;
+__device__ constexpr int depth=10;
+__device__ constexpr int acc = 1.0/256;
 
 template<typename T>
 struct TABLE {
@@ -30,10 +31,10 @@ simpson(Tf f,                 // Function to be integrated.
 {
   T integral,diff,area,estl,estr,est,fv0,fv1,fv2,fv3,fv4;
   float dx;
-  TABLE<T> table[nest],*p,*pstop;
+  TABLE<T> table[depth],*p,*pstop;
 
   p=table;
-  pstop=table+nest-1;
+  pstop=table+depth-1;
   p->left=true;
   p->psum=TUtil::init();
   float alpha=a;

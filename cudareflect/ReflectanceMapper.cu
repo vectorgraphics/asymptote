@@ -17,7 +17,6 @@ inline float swap_bits(uint32_t const& x, uint32_t const& mask_1, unsigned int c
 
 __device__ constexpr float recvbit = 2.32830643654e-10; // 1/2^32.
 __device__ constexpr int REFL_NUM_SAMPLES = 1 << 15;
-__device__ constexpr float INV_REFL_NUM_SAMPLES = 1.f / REFL_NUM_SAMPLES;
 
 __device__
 float van_der_corput_bitshift(uint32_t bits)
@@ -92,6 +91,10 @@ void map_reflectance(cudaTextureObject_t tObj,
 
             glm::vec3 frag3(frag.x, frag.y, frag.z);
 
+            // Clamp oversaturated values.
+            float norm=0.5*glm::length(frag3);
+            if(norm > 1.0) frag3 /= norm;
+
             if (ndotl > 0.0)
             {
                 // epic games said it gives better results, otherwise weight can be set to 1.
@@ -116,7 +119,7 @@ void map_reflectance(cudaTextureObject_t tObj,
     }
 }
 
-const size_t blkSz = 15;
+const size_t blkSz = 8;
 void map_reflectance_ker(
     float4* in, float3* out, size_t width, size_t height, float roughness,
     size_t outWidth, size_t outHeight)
