@@ -565,28 +565,20 @@ void setBuffers()
   glGenQueries(1, &camp::query);
 
   glGenFramebuffers(3, camp::depthFbo);
-  glGenFramebuffers(1, &camp::opaqueFbo);
 
   glGenTextures(3, camp::colorTex);
   glGenTextures(2, camp::depthTex);
-  glGenTextures(1, &camp::opaqueTex);
-  glGenTextures(1, &camp::opaqueDepth);
 }
 
-void initBuffers() {
+void resizeBuffers() {
   GLuint zero = 0;
-  camp::headSize = Width * Height * sizeof(GLuint);
+  camp::headSize = gl::Width * gl::Height * sizeof(GLuint);
 
   // Initialize the z-buffer
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::zBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize*10,
+  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize * (5*sizeof(GLfloat)),
                NULL, GL_DYNAMIC_DRAW);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, camp::zBuffer);
-  glClearNamedBufferData(camp::zBuffer, GL_R8UI, GL_RED_INTEGER,
-                         GL_UNSIGNED_BYTE, &zero);
-
-  if (!camp::depthPeel)
-    return;
 
   for (int i = 0; i < 2; ++i) {
     glBindFramebuffer(GL_FRAMEBUFFER, camp::depthFbo[i]);
@@ -624,26 +616,6 @@ void initBuffers() {
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                          camp::depthTex[0], 0);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, camp::opaqueFbo);
-
-  glBindTexture(GL_TEXTURE_2D, camp::opaqueTex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gl::Width, gl::Height, 0, GL_RGBA,
-                GL_UNSIGNED_BYTE, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                          camp::opaqueTex, 0);
-
-  glBindTexture(GL_TEXTURE_2D, camp::opaqueDepth);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, gl::Width, gl::Height, 0,
-                GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                          camp::opaqueDepth, 0);
-
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -676,7 +648,10 @@ void drawscene(int Width, int Height)
   if(remesh)
     camp::drawElement::center.clear();
 
-  initBuffers();
+  // Clear zBuffer for transparency
+  GLuint zero = 0;
+  glClearNamedBufferData(camp::zBuffer, GL_R8UI, GL_RED_INTEGER,
+                         GL_UNSIGNED_BYTE, &zero);
 
   Picture->render(size2,m,M,perspective,remesh);
 
@@ -867,6 +842,7 @@ void reshape0(int width, int height)
 
   setProjection();
   glViewport(0,0,Width,Height);
+  resizeBuffers();
 }
 
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -2086,7 +2062,7 @@ int refreshBuffers() {
   // Initialize the counter
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
   glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, camp::counter);
-  glBufferData(GL_ATOMIC_COUNTER_BUFFER, 4, &zero, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &zero, GL_DYNAMIC_DRAW);
 
   // Count how many fragments we need
   glDepthMask(GL_FALSE); // Enable transparency
@@ -2094,8 +2070,8 @@ int refreshBuffers() {
   drawBuffer(transparentData,countShader);
   GLuint fragments = 0;
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
-  glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, 4, &fragments);
-  fragmentSize = fragments*4*6*2;
+  glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &fragments);
+  fragmentSize = fragments * (5*sizeof(GLfloat) + sizeof(GLuint))*2;
   glDepthMask(GL_TRUE); // Disable transparency
 
   if (fragments == 0) {
@@ -2116,7 +2092,7 @@ int refreshBuffers() {
   // Initialize the counter
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
   glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, camp::counter);
-  glBufferData(GL_ATOMIC_COUNTER_BUFFER, 4, &zero, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &zero, GL_DYNAMIC_DRAW);
 
   // Initialize the a-buffer
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::headBuffer);

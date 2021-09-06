@@ -1,23 +1,23 @@
 struct Fragment
 {
-    uint next;
-    vec4 color;
-    float depth;
+  uint next;
+  vec4 color;
+  float depth;
 };
 layout(binding=1) coherent buffer head {
-    uint tail[];
+  uint tail[];
 };
 layout(binding=2) coherent buffer list {
-    Fragment fragments[];
+  Fragment fragments[];
 };
 
 struct OpaqueFragment
 {
-    vec4 color;
-    float depth;
+  vec4 color;
+  float depth;
 };
 layout(binding=3) coherent buffer opaque {
-    OpaqueFragment zbuffer[];
+  OpaqueFragment zbuffer[];
 };
 
 out vec4 outColor;
@@ -42,13 +42,13 @@ void main()
 
   // Insert fragments into sortedList (not yet sorted)
   for (; listIndex != uint(0) && sortedCount < maxSize; sortedCount++) {
-      sortedList[sortedCount] = fragments[listIndex];
-      listIndex = fragments[listIndex].next;
+    sortedList[sortedCount] = fragments[listIndex];
+    listIndex = fragments[listIndex].next;
   }
   if (sortedCount == uint(0)) discard;
 
   // Sort the fragments in sortedList
- for (uint i = uint(1); i < sortedCount; i++) {
+  for (uint i = uint(1); i < sortedCount; i++) {
     Fragment temp = sortedList[i];
     uint j = i;
     while(j > uint(0) && temp.depth > sortedList[j-uint(1)].depth) {

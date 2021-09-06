@@ -31,11 +31,11 @@ in vec4 Color;
 
 struct OpaqueFragment
 {
-    vec4 color;
-    float depth;
+  vec4 color;
+  float depth;
 };
 layout(binding=3) coherent buffer opaque {
-    OpaqueFragment zbuffer[];
+  OpaqueFragment zbuffer[];
 };
 
 #ifdef DEPTHPEEL
@@ -44,15 +44,15 @@ uniform sampler2D DepthTex; // TODO?
 layout(binding=0) uniform atomic_uint counter;
 struct Fragment
 {
-    uint next;
-    vec4 color;
-    float depth;
+  uint next;
+  vec4 color;
+  float depth;
 };
 layout(binding=1) coherent buffer head {
-    uint tail[];
+  uint tail[];
 };
 layout(binding=2) coherent buffer list {
-    Fragment fragments[];
+  Fragment fragments[];
 };
 #endif
 

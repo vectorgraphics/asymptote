@@ -2,11 +2,11 @@ uniform sampler2D ColorTex;
 
 struct OpaqueFragment
 {
-    vec4 color;
-    float depth;
+  vec4 color;
+  float depth;
 };
 layout(binding=3) coherent buffer opaque {
-    OpaqueFragment zbuffer[];
+  OpaqueFragment zbuffer[];
 };
 
 uniform uint width;
