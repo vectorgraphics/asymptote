@@ -2426,7 +2426,6 @@ class MainWindow1(Qw.QMainWindow):
             maj, minor = self.currentlySelectedObj['selectedIndex']
             if isinstance(self.fileItems[maj],x2a.xasyShape) or isinstance(self.fileItems[maj],x2a.xasyText):
                 self.copiedObject = self.fileItems[maj].copy()
-                self.copiedMousePos = self.getWindowCoordinates()
             else:
                 self.ui.statusbar.showMessage('Copying not supported with current item type')
         else:
@@ -2438,8 +2437,8 @@ class MainWindow1(Qw.QMainWindow):
         if hasattr(self, 'copiedObject') and not self.copiedObject is None:
             self.copiedObject = self.copiedObject.copy()
             self.addInPlace(self.copiedObject)
-            mousePos = self.copiedMousePos - self.getWindowCoordinates()
-            newTransform = Qg.QTransform.fromTranslate(-mousePos.x(), -mousePos.y())
+            mousePos = self.getWindowCoordinates() - self.copiedObject.path.toQPainterPath().boundingRect().center() - (Qc.QPointF(self.canvSize.width(), self.canvSize.height()) + Qc.QPointF(62, 201))/2 #I don't really know what that last constant is? Is it the size of the framing?
+            newTransform = Qg.QTransform.fromTranslate(mousePos.x(), mousePos.y())
             self.currentlySelectedObj['selectedIndex'] = (self.globalObjectCounter - 1,0)
             self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet()
             newTransform = x2a.asyTransform.fromQTransform(newTransform)
