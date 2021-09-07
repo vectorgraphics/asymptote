@@ -20,7 +20,7 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 2.08
+#define __FFTWPP_H_VERSION__ 2.09
 
 #include <cstdlib>
 #include <fstream>
@@ -177,7 +177,7 @@ public:
 
   static const char *oddshift;
 
-  // Inplace shift of Fourier origin to (nx/2,0) for even nx.
+  // In-place shift of Fourier origin to (nx/2,0) for even nx.
   static void Shift(Complex *data, unsigned int nx, unsigned int ny,
                     unsigned int threads) {
     unsigned int nyp=ny/2+1;
@@ -216,7 +216,7 @@ public:
     }
   }
 
-  // Inplace shift of Fourier origin to (nx/2,ny/2,0) for even nx and ny.
+  // In-place shift of Fourier origin to (nx/2,ny/2,0) for even nx and ny.
   static void Shift(Complex *data, unsigned int nx, unsigned int ny,
                     unsigned int nz, unsigned int threads) {
     unsigned int nzp=nz/2+1;
@@ -306,21 +306,30 @@ public:
     plan=planT;
     fft(in,out);
     unsigned int N=1;
+    unsigned int ndoubles=doubles/2;
     for(;;) {
       double t0=utils::totalseconds();
       threads=1;
       plan=plan1;
-      for(unsigned int i=0; i < N; ++i)
+      for(unsigned int i=0; i < N; ++i) {
+        for(unsigned int i=0; i < ndoubles; ++i) out[i]=i;
         fft(in,out);
+      }
       double t1=utils::totalseconds();
       threads=Threads;
       plan=planT;
-      for(unsigned int i=0; i < N; ++i)
+      for(unsigned int i=0; i < N; ++i) {
+        for(unsigned int i=0; i < ndoubles; ++i) out[i]=i;
         fft(in,out);
+      }
       double t=utils::totalseconds();
       S.add(t1-t0);
       ST.add(t-t1);
-      if(S.mean() < 100.0/CLOCKS_PER_SEC) N *= 2;
+      if(S.mean() < 100.0/CLOCKS_PER_SEC) {
+        N *= 2;
+        S.clear();
+        ST.clear();
+      }
       if(S.count() >= 10) {
         double error=S.stdev();
         double diff=ST.mean()-S.mean();
@@ -513,12 +522,12 @@ public:
       exit(1);
     }
     plan=NULL;
+    if(!out) out=in;
+    inplace=(out==in);
     if(rows == 0 || cols == 0) return;
     size /= sizeof(double);
     length *= size;
 
-    if(!out) out=in;
-    inplace=(out==in);
     fftw::planThreads(threads);
 
     fftw_iodim dims[3];
@@ -682,6 +691,19 @@ public:
 };
 
 template<class I, class O>
+inline bool Hermitian(I in, O out) {
+  return false;
+}
+
+inline bool Hermitian(double in, fftw_complex out) {
+  return true;
+}
+
+inline bool Hermitian(fftw_complex in, double out) {
+  return true;
+}
+
+template<class I, class O>
 class fftwblock : public virtual fftw {
 public:
   int nx;
@@ -702,8 +724,12 @@ public:
 
     threaddata S1=Setup(in,out);
     fftw_plan planT1=plan;
+    threads=S1.threads;
+    I input;
+    O output;
+    bool hermitian=Hermitian(input,output);
 
-    if(fftw::maxthreads > 1) {
+    if(fftw::maxthreads > 1 && (!hermitian || ostride*(nx/2+1) < idist)) {
       if(Threads > 1) {
         T=std::min(M,Threads);
         Q=T > 0 ? M/T : 0;
@@ -727,7 +753,6 @@ public:
           Q=M;
           R=0;
           plan=planT1;
-          threads=S1.threads;
         } else {                         // Do the multi-threading ourselves
           fftw_destroy_plan(planT1);
           threads=ST.threads;
@@ -810,10 +835,15 @@ public:
 //   mfft1d Forward(n,-1,M,stride,dist,in,out);
 //   Forward.fft(in,out);
 //
+//   mfft1d Forward(n,-1,M,istride,ostride,idist,odist,in,out);
+//   Forward.fft(in,out);
+//
 // In-place usage:
 //
 //   mfft1d Forward(n,-1,M,stride,dist);
 //   Forward.fft(in);
+//
+//
 //
 // Notes:
 //   stride is the spacing between the elements of each Complex vector;
@@ -824,7 +854,14 @@ class mfft1d : public fftwblock<fftw_complex,fftw_complex>,
                public Threadtable<keytype3,keyless3> {
   static Table threadtable;
 public:
-  mfft1d(unsigned int nx, int sign, unsigned int M=1, size_t stride=1,
+  mfft1d(unsigned int nx, int sign, unsigned int M=1,
+         Complex *in=NULL, Complex *out=NULL,
+         unsigned int threads=maxthreads) :
+    fftw(2*((nx-1)+(M-1)*nx+1),sign,threads,nx),
+    fftwblock<fftw_complex,fftw_complex>
+    (nx,M,1,1,nx,nx,in,out,threads) {}
+
+  mfft1d(unsigned int nx, int sign, unsigned int M, size_t stride=1,
          size_t dist=0, Complex *in=NULL, Complex *out=NULL,
          unsigned int threads=maxthreads) :
     fftw(2*((nx-1)*stride+(M-1)*Dist(nx,stride,dist)+1),sign,threads,nx),
@@ -833,7 +870,7 @@ public:
 
   mfft1d(unsigned int nx, int sign, unsigned int M,
          size_t istride, size_t ostride, size_t idist, size_t odist,
-         Complex *in=NULL, Complex *out=NULL, unsigned int threads=maxthreads):
+         Complex *in, Complex *out, unsigned int threads=maxthreads):
     fftw(std::max(2*((nx-1)*istride+(M-1)*Dist(nx,istride,idist)+1),
                   2*((nx-1)*ostride+(M-1)*Dist(nx,ostride,odist)+1)),sign,
          threads, nx),
