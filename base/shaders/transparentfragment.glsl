@@ -4,9 +4,11 @@ struct Fragment
   vec4 color;
   float depth;
 };
+
 layout(binding=1) coherent buffer head {
   uint tail[];
 };
+
 layout(binding=2) coherent buffer list {
   Fragment fragments[];
 };
@@ -23,14 +25,6 @@ layout(binding=3) coherent buffer opaque {
 out vec4 outColor;
 
 uniform uint width;
-
-// Manhattan distance
-float mDistance(vec4 first, vec4 second) {
-  return abs(first.r - second.r) +
-         abs(first.g - second.g) +
-         abs(first.b - second.b) +
-         abs(first.a - second.a);
-}
 
 void main()
 {
