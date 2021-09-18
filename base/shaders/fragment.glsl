@@ -44,13 +44,11 @@ uniform sampler2D DepthTex; // TODO?
 layout(binding=0) uniform atomic_uint counter;
 struct Fragment
 {
-    uint next;
     vec4 color;
     float depth;
 };
-layout(binding=1) coherent buffer head {
-    uint tail[];
-};
+layout(r32ui, binding=1) uniform coherent uimage2D counts;
+
 layout(binding=2) coherent buffer list {
     Fragment fragments[];
 };
@@ -273,12 +271,11 @@ void main()
   else
     outColor = vec4(outColor.rgb*outColor.a, outColor.a);
 #elif defined TRANSPARENT
-  uint listIndex = atomicCounterIncrement(counter);
-  uint lastIndex = atomicExchange(tail[headIndex], listIndex);
-
-  fragments[listIndex].next = lastIndex;
+  uint index = uint(imageAtomicAdd(counts, ivec2(gl_FragCoord.xy), 1u));
+  uint listIndex = uint(headIndex)*uint(10) + index; // for a fixed array size of 10
   fragments[listIndex].color = tempColor;
   fragments[listIndex].depth = gl_FragCoord.z;
+
 #else
   zbuffer[headIndex].color = tempColor;
   zbuffer[headIndex].depth = gl_FragCoord.z;

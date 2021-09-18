@@ -87,6 +87,9 @@ GLuint fragmentBuffer;
 GLuint headBuffer;
 GLuint zBuffer;
 
+GLuint countTex;
+GLuint countFbo;
+
 GLuint query;
 
 GLuint depthFbo[3];
@@ -566,11 +569,13 @@ void setBuffers()
 
   glGenFramebuffers(3, camp::depthFbo);
   glGenFramebuffers(1, &camp::opaqueFbo);
+  glGenFramebuffers(1, &camp::countFbo);
 
   glGenTextures(3, camp::colorTex);
   glGenTextures(2, camp::depthTex);
   glGenTextures(1, &camp::opaqueTex);
   glGenTextures(1, &camp::opaqueDepth);
+  glGenTextures(1, &camp::countTex);
 }
 
 void initBuffers() {
@@ -584,6 +589,14 @@ void initBuffers() {
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, camp::zBuffer);
   glClearNamedBufferData(camp::zBuffer, GL_R8UI, GL_RED_INTEGER,
                          GL_UNSIGNED_BYTE, &zero);
+
+  // Initialize the counters
+  // glBindFramebuffer(GL_FRAMEBUFFER, camp::countFbo);
+  glBindTexture(GL_TEXTURE_2D, camp::countTex);
+  glTexStorage2D(GL_TEXTURE_2D, GLsizei(1), GL_R32UI, gl::Width, gl::Height);
+  // glClearTexImage(camp::countTex, 0, GL_RED, GL_UNSIGNED_INT, 0);
+  glBindImageTexture(0, camp::countTex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+  // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   if (!camp::depthPeel)
     return;
@@ -2082,21 +2095,35 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
 
 int refreshBuffers() {
   GLuint zero = 0;
+  camp::headSize = gl::Width * gl::Height * sizeof(GLuint);
+  // For now just used fixed length, TODO
 
-  // Initialize the counter
-  glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
-  glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, camp::counter);
-  glBufferData(GL_ATOMIC_COUNTER_BUFFER, 4, &zero, GL_DYNAMIC_DRAW);
+  // // Count how many fragments we need -- dynamic array lengths
+  // glBindTexture(GL_TEXTURE_2D, camp::countTex);
+  // glClearTexImage(camp::countTex, 0, GL_RED, GL_UNSIGNED_INT, 0);
+  // glBindFramebuffer(GL_FRAMEBUFFER, camp::countFbo);
+  // glClearColor(0, 0, 0, 0);
+  // glClear(GL_COLOR_BUFFER_BIT);
+  // glClearColor(gl::Background[0],gl::Background[1],gl::Background[2],gl::Background[3]);
+  // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  // Count how many fragments we need
-  glDepthMask(GL_FALSE); // Enable transparency
-  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
-  drawBuffer(transparentData,countShader);
-  GLuint fragments = 0;
-  glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
-  glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, 4, &fragments);
-  fragmentSize = fragments*4*6*2;
-  glDepthMask(GL_TRUE); // Disable transparency
+  // glDepthMask(GL_FALSE); // Enable transparency
+  // transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+  // drawBuffer(transparentData,countShader);
+
+  // GLuint* counts = new GLuint[camp::headSize]; // TODO
+  // glMemoryBarrier(GL_ALL_BARRIER_BITS);
+  // glGetTexImage(GL_TEXTURE_2D, 0, GL_R32UI, GL_UNSIGNED_INT, counts);
+  // // Get prefix sums - TODO should probably be done in parallel
+  // for (int i = 1; i < camp::headSize; ++i) {
+  //   counts[i] += counts[i-1];
+  // }
+  // // cout << "Count: " << counts[headSize - 1] << endl;
+
+  // glBindTexture(GL_TEXTURE_2D, 0);
+
+  GLuint fragments = camp::headSize;
+  fragmentSize = fragments*4*4*6*2;
 
   if (fragments == 0) {
     // Set the buffers to have no storage
@@ -2368,7 +2395,8 @@ void aBufferTransparency()
 {
   // Allocate memory, skip if there's nothing to draw
   if (!refreshBuffers()) return;
-  // sortTriangles();
+
+  glBindTexture(GL_TEXTURE_2D, countTex);
 
   // Construct the linked list of fragments
   glDepthMask(GL_FALSE); // Enable transparency
@@ -2376,7 +2404,7 @@ void aBufferTransparency()
   drawBuffer(transparentData,transparentShader);
 
   // Ensures linked list is done (just in case, with coherent)
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+  glMemoryBarrier(GL_ALL_BARRIER_BITS);
   glDepthMask(GL_TRUE); // Disable transparency
   glDisable(GL_BLEND);
 
@@ -2387,6 +2415,8 @@ void aBufferTransparency()
   glDepthMask(GL_TRUE); // Disable transparency
   glEnable(GL_BLEND);
   transparentData.clear();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void drawTransparent()

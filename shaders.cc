@@ -96,6 +96,10 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
             << "\n";
   shaderSrc << "#extension GL_ARB_shader_atomic_counters : enable"
             << "\n";
+  shaderSrc << "#extension GL_ARB_shader_image_load_store : enable"
+            << "\n";
+  shaderSrc << "#extension GL_ARB_shading_language_420pack : enable"
+            << "\n";
 
   size_t n=defineflags.size();
   for(size_t i=0; i < n; ++i) {
