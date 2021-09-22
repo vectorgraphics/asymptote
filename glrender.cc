@@ -70,6 +70,12 @@ GLint pixelShader;
 GLint materialShader;
 GLint colorShader;
 GLint transparentShader;
+GLint mergeShader;
+
+GLuint countSize;
+
+GLuint countBuffer;
+GLuint fragmentBuffer;
 
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -203,7 +209,6 @@ dmat4 dviewMat;
 dmat4 drotateMat;
 
 const double *dprojView;
-const double *dView;
 double BBT[9];
 
 unsigned int framecount;
@@ -331,7 +336,6 @@ void home(bool webgl=false)
 #endif
 #endif
   dviewMat=dmat4(1.0);
-  dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
   drotateMat=dmat4(1.0);
@@ -364,36 +368,6 @@ int window;
 using utils::statistics;
 statistics S;
 
-#ifdef HAVE_LIBOPENIMAGEIO
-GLuint envMapBuf;
-
-GLuint initHDR() {
-  GLuint tex;
-  glGenTextures(1, &tex);
-
-  auto imagein = OIIO::ImageInput::open(locateFile("res/studio006.hdr").c_str());
-  OIIO::ImageSpec const& imspec = imagein->spec();
-
-  // uses GL_TEXTURE1 for now.
-  glActiveTexture(GL_TEXTURE1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  glBindTexture(GL_TEXTURE_2D, tex);
-  std::vector<float> pixels(imspec.width*imspec.height*3);
-  imagein->read_image(pixels.data());
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imspec.width, imspec.height, 0,
-               GL_RGB, GL_FLOAT, pixels.data());
-
-  glGenerateMipmap(GL_TEXTURE_2D);
-  imagein->close();
-
-  glActiveTexture(GL_TEXTURE0);
-  return tex;
-}
-
-#endif
 GLint shaderProg,shaderProgColor;
 
 void *glrenderWrapper(void *a);
@@ -434,19 +408,14 @@ void initShaders()
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
-  if(vs.empty() || fs.empty()) {
+  string tfs=locateFile("shaders/transparentfragment.glsl");
+
+  if(vs.empty() || fs.empty() || tfs.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
 
   std::vector<std::string> shaderParams;
-
-#if HAVE_LIBOPENIMAGEIO
-  if (getSetting<bool>("envmap")) {
-    shaderParams.push_back("ENABLE_TEXTURE");
-    envMapBuf=initHDR();
-  }
-#endif
 
   std::vector<ShaderfileModePair> shaders;
   shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
@@ -465,18 +434,29 @@ void initShaders()
   shaderParams.push_back("COLOR");
   camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                          shaderParams);
+
   shaderParams.push_back("TRANSPARENT");
   camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                                shaderParams);
+  shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
+  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                         shaderParams);
 }
 
 void deleteShaders()
 {
+  glDeleteProgram(camp::mergeShader);
   glDeleteProgram(camp::transparentShader);
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::materialShader);
   glDeleteProgram(camp::pixelShader);
 }
+
+struct Fragment
+{
+  glm::vec4 color;
+  glm::vec4 depth; // Pad depth to a glm::vec4
+};
 
 void setBuffers()
 {
@@ -489,6 +469,9 @@ void setBuffers()
   camp::colorData.Reserve();
   camp::triangleData.Reserve();
   camp::transparentData.Reserve();
+
+  glGenBuffers(1, &camp::countBuffer);
+  glGenBuffers(1, &camp::fragmentBuffer);
 }
 
 void drawscene(int Width, int Height)
@@ -709,6 +692,7 @@ void reshape0(int width, int height)
 
   setProjection();
   glViewport(0,0,Width,Height);
+//  resizeBuffers();
 }
 
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -908,7 +892,6 @@ void update()
 
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
-  dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
   setProjection();
@@ -1505,10 +1488,24 @@ void init_osmesa()
     exit(-1);
   }
 
-  ctx = OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
+  const int attribs[]={
+    OSMESA_FORMAT,OSMESA_RGBA,
+    OSMESA_DEPTH_BITS,16,
+    OSMESA_STENCIL_BITS,0,
+    OSMESA_ACCUM_BITS,0,
+    OSMESA_PROFILE,OSMESA_CORE_PROFILE,
+    OSMESA_CONTEXT_MAJOR_VERSION,4,
+    OSMESA_CONTEXT_MINOR_VERSION,3,
+    0,0
+  };
+
+  ctx=OSMesaCreateContextAttribs(attribs,NULL);
   if(!ctx) {
-    cerr << "OSMesaCreateContext failed." << endl;
-    exit(-1);
+    ctx=OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
+    if(!ctx) {
+      cerr << "OSMesaCreateContextExt failed." << endl;
+      exit(-1);
+    }
   }
 
   if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,
@@ -1818,11 +1815,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 #endif
 
-  glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
-  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+//  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   mode();
 
 #ifdef HAVE_LIBOSMESA
@@ -1905,6 +1901,28 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
   }
 }
 
+int refreshBuffers()
+{
+  GLuint pixels=gl::Width*gl::Height;
+  GLuint fragments=pixels*10;
+  GLuint zero = 0;
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  glClearNamedBufferData(camp::countBuffer,GL_R8UI,GL_RED_INTEGER,
+                         GL_UNSIGNED_BYTE,&zero);
+
+  // Initialize the a-buffer
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::fragmentBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,fragments*sizeof(gl::Fragment),NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::fragmentBuffer);
+
+  return fragments;
+}
+
 void setUniforms(vertexBuffer& data, GLint shader)
 {
   bool normal=shader != pixelShader;
@@ -1913,6 +1931,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUseProgram(shader);
     gl::lastshader=shader;
 
+    glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
+    glUniform1ui(glGetUniformLocation(shader,"height"),gl::Height);
     glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
     for(size_t i=0; i < gl::nlights; ++i) {
@@ -1928,16 +1948,6 @@ void setUniforms(vertexBuffer& data, GLint shader)
                   (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
                   (GLfloat) gl::Diffuse[i4+2]);
     }
-
-#if HAVE_LIBOPENIMAGEIO
-    // textures
-    if (settings::getSetting<bool>("envmap")) {
-      glActiveTexture(GL_TEXTURE1);
-      glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
-      glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);
-      glActiveTexture(GL_TEXTURE0);
-    }
-#endif
   }
 
   GLuint binding=0;
@@ -1962,7 +1972,8 @@ void drawBuffer(vertexBuffer& data, GLint shader)
   if(data.indices.empty()) return;
 
   bool normal=shader != pixelShader;
-  bool color=shader == colorShader || shader == transparentShader;
+  bool color=shader == colorShader || shader == transparentShader ||
+    shader == mergeShader;
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
@@ -2054,18 +2065,27 @@ void drawTriangle()
   triangleData.clear();
 }
 
+void aBufferTransparency()
+{
+  // Add transparent fragments
+  glDepthMask(GL_FALSE); // Disregard depth
+  drawBuffer(transparentData,transparentShader);
+  glDepthMask(GL_TRUE); // Respect depth
+  drawBuffer(transparentData,mergeShader);
+  transparentData.clear();
+}
+
 void drawTransparent()
 {
-  sortTriangles();
-  glDepthMask(GL_FALSE); // Enable transparency
-  drawBuffer(transparentData,transparentShader);
-  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
-  glDepthMask(GL_TRUE); // Disable transparency
-  transparentData.clear();
+  glDisable(GL_MULTISAMPLE);
+  aBufferTransparency();
+  glEnable(GL_MULTISAMPLE);
 }
 
 void drawBuffers()
 {
+  refreshBuffers();
+
   drawMaterial0();
   drawMaterial1();
   drawMaterial();

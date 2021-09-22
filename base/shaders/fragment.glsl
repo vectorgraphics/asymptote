@@ -10,6 +10,12 @@ struct Light
   vec3 color;
 };
 
+struct Fragment
+{
+  vec4 color;
+  float depth;
+};
+
 uniform int nlights;
 uniform Light lights[max(Nlights,1)];
 
@@ -26,11 +32,23 @@ vec3 normal;
 #endif
 
 #ifdef COLOR
-in vec4 Color; 
+in vec4 Color;
 #endif
+
+layout(binding=0) coherent buffer Count {
+  uint count[];
+};
+
+layout(binding=1) coherent buffer list {
+  Fragment fragments[];
+};
 
 flat in int materialIndex;
 out vec4 outColor;
+vec4 tempColor;
+
+uniform uint width;
+uniform uint height;
 
 // PBR material parameters
 vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
@@ -38,39 +56,6 @@ vec3 Specular; // Specular tint for nonmetals
 float Metallic; // Metallic/Nonmetals parameter
 float Fresnel0; // Fresnel at zero for nonmetals
 float Roughness2; // roughness squared, for smoothing
-
-#ifdef ENABLE_TEXTURE
-uniform sampler2D environmentMap;
-const float PI=acos(-1.0);
-const float twopi=2*PI;
-const float halfpi=PI/2;
-
-const int numSamples=7;
-
-// (x,y,z) -> (r,theta,phi);
-// theta -> [0,\pi]: colatitude
-// phi -> [0, 2\pi]: longitude
-vec3 cart2sphere(vec3 cart)
-{
-  float x=cart.z;
-  float y=cart.x;
-  float z=cart.y;
-
-  float r=length(cart);
-  float phi=atan(y,x);
-  float theta=acos(z/r);
-
-  return vec3(r,phi,theta);
-}
-
-vec2 normalizedAngle(vec3 cartVec)
-{
-  vec3 sphericalVec=cart2sphere(cartVec);
-  sphericalVec.y=sphericalVec.y/(2*PI)-0.25;
-  sphericalVec.z=sphericalVec.z/PI;
-  return sphericalVec.yz;
-}
-#endif
 
 #ifdef NORMAL
 // h is the halfway vector between normal and light direction
@@ -122,13 +107,14 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   vec3 dielectric=mix(lambertian,rawReflectance*Specular,F);
   vec3 metal=rawReflectance*Diffuse;
-  
+
   return mix(dielectric,metal,Metallic);
 }
 #endif
 
 void main()
 {
+  uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   vec4 diffuse;
   vec4 emissive;
 
@@ -150,13 +136,13 @@ void main()
 #ifdef COLOR
   diffuse=Color;
 #if Nlights == 0
-   emissive += Color;
+  emissive += Color;
 #endif
-#else  
-  diffuse=m.diffuse; 
+#else
+  diffuse=m.diffuse;
 #endif
 #endif
-  
+
 #if defined(NORMAL) && Nlights > 0
   Specular=m.specular.rgb;
   vec4 parameters=m.parameters;
@@ -188,40 +174,17 @@ void main()
     color += BRDF(viewDir,L)*radiance;
   }
 
-#if defined(ENABLE_TEXTURE) && !defined(COLOR)
-  // Experimental environment radiance using Riemann sums;
-  // can also do importance sampling.
-  vec3 envRadiance=vec3(0.0,0.0,0.0);
-
-  vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
-  if(length(normalPerp) == 0.0)
-    normalPerp=vec3(1.0,0.0,0.0);
-
-  // we now have a normal basis;
-  normalPerp=normalize(normalPerp);
-  vec3 normalPerp2=normalize(cross(normal,normalPerp));
-
-  const float step=1.0/numSamples;
-  const float phistep=twopi*step;
-  const float thetastep=halfpi*step;
-  for (int iphi=0; iphi < numSamples; ++iphi) {
-    float phi=iphi*phistep;
-    for (int itheta=0; itheta < numSamples; ++itheta) {
-      float theta=itheta*thetastep;
-
-      vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
-      vec3 L=sin(theta)*azimuth+cos(theta)*normal;
-
-      vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
-      vec3 surfRefl=BRDF(Z,L);
-      envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
-    }
-  }
-  envRadiance *= halfpi*step*step;
-  color += envRadiance.rgb;
+  tempColor=vec4(color,diffuse.a);
+#else
+  tempColor=emissive;
 #endif
-  outColor=vec4(color,diffuse.a);
-#else    
-  outColor=emissive;
-#endif      
+
+  uint listIndex=10u*headIndex+atomicAdd(count[headIndex],1u);
+  fragments[listIndex].color=tempColor;
+  fragments[listIndex].depth=gl_FragCoord.z;
+#ifdef TRANSPARENT
+  discard;
+#else
+  outColor=tempColor;
+#endif
 }

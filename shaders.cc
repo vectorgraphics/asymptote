@@ -86,12 +86,15 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
 #ifdef __APPLE__
 #define GLSL_VERSION "410"
 #else
-#define GLSL_VERSION "130"
+//#define GLSL_VERSION "130"
+#define GLSL_VERSION "330"
 #endif
 
   shaderSrc << "#version " << GLSL_VERSION << "\n";
-  shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable"
+  shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable" << "\n";
+  shaderSrc << "#extension GL_ARB_shader_storage_buffer_object : enable"
             << "\n";
+  shaderSrc << "#extension GL_ARB_shader_atomic_counters : enable" << "\n";
 
   size_t n=defineflags.size();
   for(size_t i=0; i < n; ++i) {
