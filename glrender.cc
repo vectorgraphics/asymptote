@@ -1932,7 +1932,6 @@ void setUniforms(vertexBuffer& data, GLint shader)
     gl::lastshader=shader;
 
     glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
-    glUniform1ui(glGetUniformLocation(shader,"height"),gl::Height);
     glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
     for(size_t i=0; i < gl::nlights; ++i) {

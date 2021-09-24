@@ -86,8 +86,7 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
 #ifdef __APPLE__
 #define GLSL_VERSION "410"
 #else
-//#define GLSL_VERSION "130"
-#define GLSL_VERSION "330"
+#define GLSL_VERSION "130"
 #endif
 
   shaderSrc << "#version " << GLSL_VERSION << "\n";

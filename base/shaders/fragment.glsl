@@ -48,7 +48,6 @@ out vec4 outColor;
 vec4 tempColor;
 
 uniform uint width;
-uniform uint height;
 
 // PBR material parameters
 vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
