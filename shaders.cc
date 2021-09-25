@@ -70,7 +70,7 @@ GLuint createShaders(GLchar const* src, int shaderType,
 
     std::cerr << std::endl << "GL Compile error" << std::endl;
     std::cerr << src << std::endl;
-    throw 1;
+    exit(-1);
   }
   return shader;
 }
@@ -105,7 +105,8 @@ GLuint createShaderFile(std::string file, int shaderType, size_t Nlights,
     shaderSrc << shaderFile.rdbuf();
     shaderFile.close();
   } else {
-    throw 1;
+    std::cerr << "Cannot read from shader file " << file << std::endl;
+    exit(-1);
   }
 
   return createShaders(shaderSrc.str().data(), shaderType, file);
