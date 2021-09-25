@@ -73,8 +73,6 @@ GLint countShader;
 GLint transparentShader;
 GLint mergeShader;
 
-GLuint maxSize;
-
 GLuint countBuffer;
 GLuint offsetBuffer;
 GLuint fragmentBuffer;
@@ -409,9 +407,10 @@ void initShaders()
 
   shaderProg=glCreateProgram();
   string vs=locateFile("shaders/vertex.glsl");
+  string cnt=locateFile("shaders/count.glsl");
   string fs=locateFile("shaders/fragment.glsl");
   string tfs=locateFile("shaders/transparentfragment.glsl");
-  string cnt=locateFile("shaders/count.glsl");
+  string screen=locateFile("shaders/screen.glsl");
 
   if(vs.empty() || fs.empty() || tfs.empty() || cnt.empty()) {
     cerr << "GLSL shaders not found." << endl;
@@ -441,12 +440,14 @@ void initShaders()
   shaderParams.push_back("TRANSPARENT");
   camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                                shaderParams);
-  shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
-  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
-  shaders[1] = ShaderfileModePair(cnt.c_str(),GL_FRAGMENT_SHADER);
+  shaders[1]=ShaderfileModePair(cnt.c_str(),GL_FRAGMENT_SHADER);
   camp::countShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                               shaderParams);
+
+  shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
+  shaders[1]=ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
+  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                         shaderParams);
 }
 
 void deleteShaders()
@@ -1949,18 +1950,9 @@ int refreshBuffers()
   GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_WRITE_ONLY);
   size_t Offset=0;
   offset[0]=Offset;
-  maxSize=0;
-  for(size_t i=1; i < pixels; ++i) {
-    GLuint c=count[i-1];
-    if(maxSize < c) maxSize=c;
-    offset[i]=Offset += c;
-  }
-
-  GLuint c=count[pixels-1];
-  if(maxSize < c) maxSize=c;
-  fragments=offset[pixels-1]+c;
-
-  cout << "maxSize=" << maxSize << endl;
+  for(size_t i=1; i < pixels; ++i)
+    offset[i]=Offset += count[i-1];
+  fragments=offset[pixels-1]+count[pixels-1];
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -2084,7 +2076,6 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
     glDisableVertexAttribArray(colorAttrib);
 
   glBindBuffer(GL_UNIFORM_BUFFER,0);
-
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
@@ -2122,12 +2113,25 @@ void drawTriangle()
 
 void aBufferTransparency()
 {
-  // Add transparent fragments
-  glDepthMask(GL_FALSE); // Disregard depth
-  drawBuffer(transparentData,transparentShader,true);
-  glDepthMask(GL_TRUE); // Respect depth
-  drawBuffer(transparentData,mergeShader,true);
-  transparentData.clear();
+  if(!transparentData.indices.empty()) {
+    // Add transparent fragments
+    glDepthMask(GL_FALSE); // Disregard depth
+    drawBuffer(transparentData,transparentShader,true);
+    glDepthMask(GL_TRUE); // Respect depth
+
+    glDisable(GL_DEPTH_TEST);
+    glUseProgram(mergeShader);
+    glUniform1ui(glGetUniformLocation(mergeShader,"width"),gl::Width);
+    gl::lastshader=mergeShader;
+    fpu_trap(false); // Work around FE_INVALID
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    fpu_trap(settings::trap());
+    glDisableVertexAttribArray(0);
+    glEnable(GL_DEPTH_TEST);
+
+    transparentData.clear();
+  }
 }
 
 void drawTransparent()
@@ -2139,14 +2143,18 @@ void drawTransparent()
 
 void drawBuffers()
 {
-  refreshBuffers();
+  bool transparent=!transparentData.indices.empty();
+  if(transparent)
+    refreshBuffers();
 
   drawMaterial0();
   drawMaterial1();
   drawMaterial();
   drawColor();
   drawTriangle();
-  drawTransparent();
+
+  if(transparent)
+    drawTransparent();
 }
 
 void clearMaterialBuffer()

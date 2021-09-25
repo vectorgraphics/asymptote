@@ -20,29 +20,55 @@ out vec4 outColor;
 
 uniform uint width;
 
+vec4 blend(vec4 outColor, vec4 color)
+{
+  return mix(outColor,color,color.a);
+}
+
 void main()
 {
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   uint size=count[headIndex];
+  if(size == 0u) discard;
   uint listIndex=offset[headIndex];
-  const uint maxSize=24u;
-  size=min(maxSize,size);
+  const uint maxSize=10u;
 
-  Fragment sortedList[maxSize];
+  // Sort the fragments with respect to descending depth
+  if(size < maxSize) {
+    Fragment sortedList[maxSize];
 
-  sortedList[0]=fragments[listIndex];
-  // Sort the fragments in sortedList with respect to descending depth
-  for(uint i=1u; i < size; i++) {
-    Fragment temp=fragments[listIndex+i];
-    uint j=i;
-    while(j > 0u && temp.depth > sortedList[j-1u].depth) {
-      sortedList[j]=sortedList[j-1u];
-      j--;
+    sortedList[0]=fragments[listIndex];
+    for(uint i=1u; i < size; i++) {
+      Fragment temp=fragments[listIndex+i];
+      float depth=temp.depth;
+      uint j=i;
+      Fragment f;
+      while(f=sortedList[j-1u], j > 0u && depth > f.depth) {
+        sortedList[j]=f;
+        j--;
+      }
+      sortedList[j]=temp;
     }
-    sortedList[j]=temp;
-  }
 
-  outColor=sortedList[0].color;
-  for(uint i=1u; i < size; i++)
-    outColor=mix(outColor,sortedList[i].color,sortedList[i].color.a);
+    outColor=sortedList[0].color;
+    for(uint i=1u; i < size; i++)
+      outColor=blend(outColor,sortedList[i].color);
+  } else {
+    for(uint i=1u; i < size; i++) {
+      Fragment temp=fragments[listIndex+i];
+      float depth=temp.depth;
+      uint j=i;
+      Fragment f;
+      while(f=fragments[listIndex+j-1u], j > 0u && depth > f.depth) {
+        fragments[listIndex+j]=f;
+        j--;
+      }
+      fragments[listIndex+j]=temp;
+    }
+
+    outColor=fragments[listIndex].color;
+    uint stop=listIndex+size;
+    for(uint i=listIndex+1u; i < stop; i++)
+      outColor=blend(outColor,fragments[i].color);
+  }
 }
