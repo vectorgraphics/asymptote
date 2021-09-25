@@ -69,12 +69,14 @@ Billboard BB;
 GLint pixelShader;
 GLint materialShader;
 GLint colorShader;
+GLint countShader;
 GLint transparentShader;
 GLint mergeShader;
 
-GLuint countSize;
+GLuint maxSize;
 
 GLuint countBuffer;
+GLuint offsetBuffer;
 GLuint fragmentBuffer;
 
 vertexBuffer material0Data(GL_POINTS);
@@ -409,8 +411,9 @@ void initShaders()
   string vs=locateFile("shaders/vertex.glsl");
   string fs=locateFile("shaders/fragment.glsl");
   string tfs=locateFile("shaders/transparentfragment.glsl");
+  string cnt=locateFile("shaders/count.glsl");
 
-  if(vs.empty() || fs.empty() || tfs.empty()) {
+  if(vs.empty() || fs.empty() || tfs.empty() || cnt.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
@@ -441,12 +444,16 @@ void initShaders()
   shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
   camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                          shaderParams);
+  shaders[1] = ShaderfileModePair(cnt.c_str(),GL_FRAGMENT_SHADER);
+  camp::countShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
 }
 
 void deleteShaders()
 {
   glDeleteProgram(camp::mergeShader);
   glDeleteProgram(camp::transparentShader);
+  glDeleteProgram(camp::countShader);
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::materialShader);
   glDeleteProgram(camp::pixelShader);
@@ -471,6 +478,7 @@ void setBuffers()
   camp::transparentData.Reserve();
 
   glGenBuffers(1, &camp::countBuffer);
+  glGenBuffers(1, &camp::offsetBuffer);
   glGenBuffers(1, &camp::fragmentBuffer);
 }
 
@@ -1903,22 +1911,72 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
 
 int refreshBuffers()
 {
-  GLuint pixels=gl::Width*gl::Height;
-  GLuint fragments=pixels*10;
+  GLuint fragments = 0;
   GLuint zero = 0;
+  GLuint pixels=gl::Width*gl::Height;
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
-  glClearNamedBufferData(camp::countBuffer,GL_R8UI,GL_RED_INTEGER,
+  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                          GL_UNSIGNED_BYTE,&zero);
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
+
+  // Determine the fragment offsets
+  drawBuffer(material0Data,countShader);
+  drawBuffer(material1Data,countShader);
+  drawBuffer(materialData,countShader);
+  drawBuffer(colorData,countShader,true);
+  drawBuffer(triangleData,countShader,true);
+
+  glDepthMask(GL_FALSE); // Disregard depth
+  glDisable(GL_MULTISAMPLE);
+  drawBuffer(transparentData,countShader,true);
+  glEnable(GL_MULTISAMPLE);
+  glDepthMask(GL_TRUE); // Respect depth
+
+  glClear(GL_DEPTH_BUFFER_BIT);
+
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  GLuint *count=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
+
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
+  GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_WRITE_ONLY);
+  size_t Offset=0;
+  offset[0]=Offset;
+  maxSize=0;
+  for(size_t i=1; i < pixels; ++i) {
+    GLuint c=count[i-1];
+    if(maxSize < c) maxSize=c;
+    offset[i]=Offset += c;
+  }
+
+  GLuint c=count[pixels-1];
+  if(maxSize < c) maxSize=c;
+  fragments=offset[pixels-1]+c;
+
+  cout << "maxSize=" << maxSize << endl;
+
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                    GL_UNSIGNED_BYTE,&zero);
 
   // Initialize the a-buffer
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::fragmentBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,fragments*sizeof(gl::Fragment),NULL,
                GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::fragmentBuffer);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::fragmentBuffer);
 
   return fragments;
 }
@@ -1966,13 +2024,11 @@ void setUniforms(vertexBuffer& data, GLint shader)
                        value_ptr(gl::normMat));
 }
 
-void drawBuffer(vertexBuffer& data, GLint shader)
+void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 {
   if(data.indices.empty()) return;
 
   bool normal=shader != pixelShader;
-  bool color=shader == colorShader || shader == transparentShader ||
-    shader == mergeShader;
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
@@ -2053,14 +2109,14 @@ void drawMaterial()
 
 void drawColor()
 {
-  drawBuffer(colorData,colorShader);
+  drawBuffer(colorData,colorShader,true);
   colorData.clear();
 }
 
 void drawTriangle()
 {
-  drawBuffer(triangleData,transparentShader);
-  triangleData.rendered=false; // Force copying of sorted triangles to GPU.
+  drawBuffer(triangleData,transparentShader,true);
+//  triangleData.rendered=false; // Force copying of sorted triangles to GPU.
   triangleData.clear();
 }
 
@@ -2068,9 +2124,9 @@ void aBufferTransparency()
 {
   // Add transparent fragments
   glDepthMask(GL_FALSE); // Disregard depth
-  drawBuffer(transparentData,transparentShader);
+  drawBuffer(transparentData,transparentShader,true);
   glDepthMask(GL_TRUE); // Respect depth
-  drawBuffer(transparentData,mergeShader);
+  drawBuffer(transparentData,mergeShader,true);
   transparentData.clear();
 }
 

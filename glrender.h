@@ -387,7 +387,7 @@ extern vertexBuffer colorData;       // colored Bezier patches & triangles
 extern vertexBuffer triangleData;    // opaque indexed triangles
 extern vertexBuffer transparentData; // transparent patches & triangles
 
-void drawBuffer(vertexBuffer& data, GLint shader);
+void drawBuffer(vertexBuffer& data, GLint shader, bool color=false);
 void drawBuffers();
 void clearMaterialBuffer();
 

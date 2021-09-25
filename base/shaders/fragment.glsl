@@ -39,7 +39,11 @@ layout(binding=0) coherent buffer Count {
   uint count[];
 };
 
-layout(binding=1) coherent buffer list {
+layout(binding=1) coherent buffer Offset {
+  uint offset[];
+};
+
+layout(binding=2) coherent buffer list {
   Fragment fragments[];
 };
 
@@ -178,7 +182,7 @@ void main()
   tempColor=emissive;
 #endif
 
-  uint listIndex=10u*headIndex+atomicAdd(count[headIndex],1u);
+  uint listIndex=offset[headIndex]+atomicAdd(count[headIndex],1u);
   fragments[listIndex].color=tempColor;
   fragments[listIndex].depth=gl_FragCoord.z;
 #ifdef TRANSPARENT

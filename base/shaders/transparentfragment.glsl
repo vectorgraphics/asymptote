@@ -8,7 +8,11 @@ layout(binding=0) coherent buffer Count {
   uint count[];
 };
 
-layout(binding=1) coherent buffer list {
+layout(binding=1) coherent buffer Offset {
+  uint offset[];
+};
+
+layout(binding=2) coherent buffer list {
   Fragment fragments[];
 };
 
@@ -20,8 +24,8 @@ void main()
 {
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   uint size=count[headIndex];
-  uint listIndex=10u*headIndex;
-  const uint maxSize=10u;
+  uint listIndex=offset[headIndex];
+  const uint maxSize=24u;
   size=min(maxSize,size);
 
   Fragment sortedList[maxSize];
