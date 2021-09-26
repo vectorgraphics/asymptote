@@ -1941,8 +1941,6 @@ int refreshBuffers()
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Respect depth
 
-  glClear(GL_DEPTH_BUFFER_BIT);
-
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
   GLuint *count=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
 
