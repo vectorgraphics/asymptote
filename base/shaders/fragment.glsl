@@ -10,12 +10,6 @@ struct Light
   vec3 color;
 };
 
-struct Fragment
-{
-  vec4 color;
-  float depth;
-};
-
 uniform int nlights;
 uniform Light lights[max(Nlights,1)];
 
@@ -35,6 +29,13 @@ vec3 normal;
 in vec4 Color;
 #endif
 
+#ifdef HAVE_SSBO
+struct Fragment
+{
+  vec4 color;
+  float depth;
+};
+
 layout(binding=0) coherent buffer Count {
   uint count[];
 };
@@ -47,11 +48,11 @@ layout(binding=2) coherent buffer list {
   Fragment fragments[];
 };
 
+uniform uint width;
+#endif
+
 flat in int materialIndex;
 out vec4 outColor;
-vec4 tempColor;
-
-uniform uint width;
 
 // PBR material parameters
 vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
@@ -117,7 +118,6 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
 void main()
 {
-  uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   vec4 diffuse;
   vec4 emissive;
 
@@ -177,17 +177,18 @@ void main()
     color += BRDF(viewDir,L)*radiance;
   }
 
-  tempColor=vec4(color,diffuse.a);
+  outColor=vec4(color,diffuse.a);
 #else
-  tempColor=emissive;
+  outColor=emissive;
 #endif
 
+#ifdef HAVE_SSBO
+  uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   uint listIndex=offset[headIndex]+atomicAdd(count[headIndex],1u);
-  fragments[listIndex].color=tempColor;
+  fragments[listIndex].color=outColor;
   fragments[listIndex].depth=gl_FragCoord.z;
 #ifdef TRANSPARENT
   discard;
-#else
-  outColor=tempColor;
+#endif
 #endif
 }
