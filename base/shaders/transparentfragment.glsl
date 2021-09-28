@@ -19,6 +19,7 @@ layout(binding=2) coherent buffer list {
 out vec4 outColor;
 
 uniform uint width;
+uniform vec4 background;
 
 vec4 blend(vec4 outColor, vec4 color)
 {
@@ -50,8 +51,8 @@ void main()
       sortedList[j]=temp;
     }
 
-    outColor=sortedList[0].color;
-    for(uint i=1u; i < size; i++)
+    outColor=background;
+    for(uint i=0u; i < size; i++)
       outColor=blend(outColor,sortedList[i].color);
   } else {
     for(uint i=1u; i < size; i++) {
@@ -66,9 +67,9 @@ void main()
       fragments[listIndex+j]=temp;
     }
 
-    outColor=fragments[listIndex].color;
+    outColor=background;
     uint stop=listIndex+size;
-    for(uint i=listIndex+1u; i < stop; i++)
+    for(uint i=listIndex; i < stop; i++)
       outColor=blend(outColor,fragments[i].color);
   }
 }

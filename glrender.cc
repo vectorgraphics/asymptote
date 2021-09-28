@@ -179,6 +179,7 @@ static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
 double *Background;
+
 size_t Nlights=1; // Maximum number of lights compiled in shader
 size_t nlights; // Actual number of lights
 size_t nlights0;
@@ -1841,7 +1842,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setBuffers();
   }
 
-  glClearColor(Background[0],Background[1],Background[2],Background[3]);
+  glClearColor(background[0],background[1],background[2],background[3]);
 
 #ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
@@ -2167,6 +2168,9 @@ void aBufferTransparency()
   glDisable(GL_DEPTH_TEST);
   glUseProgram(mergeShader);
   glUniform1ui(glGetUniformLocation(mergeShader,"width"),gl::Width);
+  glUniform4f(glGetUniformLocation(mergeShader,"background"),
+              gl::Background[0],gl::Background[1],gl::Background[2],
+              gl::Background[3]);
   gl::lastshader=mergeShader;
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
