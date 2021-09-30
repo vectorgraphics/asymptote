@@ -72,6 +72,7 @@ GLint colorShader;
 GLint countShader;
 GLint transparentShader;
 GLint mergeShader;
+GLint partialSumShader;
 
 GLuint countBuffer;
 GLuint offsetBuffer;
@@ -420,14 +421,23 @@ void initShaders()
   string fs=locateFile("shaders/fragment.glsl");
   string tfs=locateFile("shaders/transparentfragment.glsl");
   string screen=locateFile("shaders/screen.glsl");
+  string partial=locateFile("shaders/partialsum.glsl");
 
   if(vs.empty() || fs.empty() || tfs.empty() || cnt.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
 
-  std::vector<ShaderfileModePair> shaders(2);
+
+  std::vector<ShaderfileModePair> shaders(1);
   std::vector<std::string> shaderParams;
+
+#ifdef HAVE_SSBO
+  shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
+  camp::partialSumShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
+#endif
+  shaders.push_back(ShaderfileModePair());
 
   shaders[0]=ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER);
 
@@ -470,6 +480,7 @@ void deleteShaders()
 {
 #ifdef HAVE_SSBO
   glDeleteProgram(camp::mergeShader);
+  glDeleteProgram(camp::partialSumShader);
   glDeleteProgram(camp::countShader);
 #endif
   glDeleteProgram(camp::transparentShader);
@@ -1955,19 +1966,21 @@ int refreshBuffers()
   GLuint pixels=gl::Width*gl::Height;
 
   if(firstSSBO) {
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,(1+pixels)*sizeof(GLuint),NULL,
+                 GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
+    firstSSBO=false;
+
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
                  GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_BYTE,&zero);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
-                 GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
-    firstSSBO=false;
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::countBuffer);
   }
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                    GL_UNSIGNED_BYTE,&zero);
 
   // Determine the fragment offsets
   drawBuffer(material0Data,countShader); // TODO: Account for pixel width
@@ -1982,21 +1995,16 @@ int refreshBuffers()
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
-  GLuint *count=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
+  glUseProgram(partialSumShader);
+  glUniform1ui(glGetUniformLocation(partialSumShader,"nElements"),pixels+1);
+  glDispatchCompute(1,1,1);
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
-  GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_WRITE_ONLY);
-  size_t Offset=0;
-  offset[0]=Offset;
-  for(size_t i=1; i < pixels; ++i)
-    offset[i]=Offset += count[i-1];
-  fragments=offset[pixels-1]+count[pixels-1];
+  GLuint *offset=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
+                                             sizeof(GLuint)*(pixels),
+                                             sizeof(GLuint),
+                                             GL_MAP_READ_BIT);
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
+  fragments=offset[0];
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
   if(fragments > maxFragments) {
@@ -2008,7 +2016,7 @@ int refreshBuffers()
     maxFragments=fragments;
   }
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                     GL_UNSIGNED_BYTE,&zero);
 
