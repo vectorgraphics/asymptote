@@ -1982,10 +1982,10 @@ int refreshBuffers()
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
   GLuint *count=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
   GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_WRITE_ONLY);
   size_t Offset=0;
   offset[0]=Offset;
@@ -1993,10 +1993,10 @@ int refreshBuffers()
     offset[i]=Offset += count[i-1];
   fragments=offset[pixels-1]+count[pixels-1];
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
   if(fragments > maxFragments) {
@@ -2008,7 +2008,7 @@ int refreshBuffers()
     maxFragments=fragments;
   }
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                     GL_UNSIGNED_BYTE,&zero);
 
