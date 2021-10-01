@@ -30,7 +30,8 @@ void main()
 {
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   uint size=count[headIndex];
-  if(size == 0u) discard;
+  if(size == 0u)
+    discard;
   uint listIndex=offset[headIndex];
   const uint maxSize=10u;
 
@@ -72,4 +73,5 @@ void main()
     for(uint i=listIndex; i < stop; i++)
       outColor=blend(outColor,fragments[i].color);
   }
+  count[headIndex]=0u;
 }
