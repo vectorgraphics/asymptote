@@ -188,7 +188,9 @@ void main()
   fragments[listIndex].color=outColor;
   fragments[listIndex].depth=gl_FragCoord.z;
 #ifdef TRANSPARENT
+#ifndef WIREFRAME
   discard;
+#endif
 #endif
 #endif
 }

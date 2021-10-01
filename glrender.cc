@@ -458,6 +458,7 @@ void initShaders()
                                          shaderParams);
 
   shaderParams.push_back("TRANSPARENT");
+  if(Mode == 0) shaderParams.push_back("WIREFRAME");
   camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                                shaderParams);
 #ifdef HAVE_SSBO
@@ -687,12 +688,13 @@ void mode()
       break;
     case 1: // outline
       outlinemode=true;
-      nlights=0;
+      nlights=0; // Force shader recompilation
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
       break;
     case 2: // wireframe
       outlinemode=false;
+      Nlights=1; // Force shader recompilation
       Mode=0;
       break;
   }
