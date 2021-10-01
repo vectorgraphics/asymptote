@@ -2000,15 +2000,15 @@ int refreshBuffers()
   glDepthMask(GL_TRUE); // Write to depth buffer
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-  GLuint *count=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
+  GLuint *countm1=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY))-1;
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
   GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_WRITE_ONLY);
   size_t Offset=0;
   offset[0]=Offset;
   for(size_t i=1; i < pixels; ++i)
-    offset[i]=Offset += count[i-1];
-  fragments=offset[pixels-1]+count[pixels-1];
+    offset[i]=Offset += countm1[i];
+  fragments=offset[pixels-1]+countm1[pixels];
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
