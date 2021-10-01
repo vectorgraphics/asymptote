@@ -40,10 +40,11 @@ void main(void)
   uint col=min(m,nElements-row);
 
   uint stop=row+col-1;
-  for(uint i=row; i < stop; ++i)
-    data[i+1] += data[i];
+  uint sum=data[row];
+  for(uint i=row+1; i < stop; ++i)
+    sum += data[i];
 
-  sharedData[id+1]=data[stop];
+  sharedData[id+1]=sum;
 
   barrier();
 
@@ -55,9 +56,8 @@ void main(void)
     barrier();
   }
 
-  if(id == 0)
-    sharedData[0]=0;
-  const uint offset=sharedData[id];
-  for(uint i=0; i < col; ++i)
-    data[row+i] += offset;
+  if(id > 0)
+    data[row] += sharedData[id];
+  for(uint i=row; i < stop; ++i)
+    data[i+1] += data[i];
 }
