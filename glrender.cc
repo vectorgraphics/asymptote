@@ -78,7 +78,6 @@ GLuint countBuffer;
 GLuint offsetBuffer;
 GLuint fragmentBuffer;
 
-bool firstSSBO;
 GLuint maxFragments;
 
 vertexBuffer material0Data(GL_POINTS);
@@ -109,6 +108,7 @@ size_t materialIndex;
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
+void clearCounter();
 }
 
 extern void exitHandler(int);
@@ -512,6 +512,23 @@ void setBuffers()
 #endif
 }
 
+void resizeBuffers()
+{
+#ifdef HAVE_SSBO
+  GLuint pixels=gl::Width*gl::Height;
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
+  camp::clearCounter();
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
+#endif
+}
+
 void drawscene(int Width, int Height)
 {
 #ifdef HAVE_PTHREAD
@@ -554,6 +571,7 @@ int Quotient(int x, int y)
 
 void Export()
 {
+  resizeBuffers();
   glReadBuffer(GL_BACK_LEFT);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
   glFinish();
@@ -731,6 +749,7 @@ void reshape0(int width, int height)
 
   setProjection();
   glViewport(0,0,Width,Height);
+  resizeBuffers();
 }
 
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -1705,7 +1724,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setProjection();
     if(webgl) return;
 
-    camp::firstSSBO=true;
     camp::maxFragments=0;
 
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
@@ -1973,20 +1991,6 @@ int refreshBuffers()
 {
   GLuint fragments=0;
   GLuint pixels=gl::Width*gl::Height;
-
-  if(firstSSBO) {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
-                 GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::countBuffer);
-    clearCounter();
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
-                 GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
-    firstSSBO=false;
-  }
 
   // Determine the fragment offsets
   drawBuffer(material0Data,countShader); // TODO: Account for pixel width
