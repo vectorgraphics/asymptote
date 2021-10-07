@@ -79,7 +79,7 @@ GLuint countBuffer;
 GLuint offsetBuffer;
 GLuint fragmentBuffer;
 
-bool firstSSBO;
+bool initSSBO;
 GLuint maxFragments;
 
 vertexBuffer material0Data(GL_POINTS);
@@ -742,6 +742,7 @@ void reshape0(int width, int height)
 
   setProjection();
   glViewport(0,0,Width,Height);
+  camp::initSSBO=true;
 }
 
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -1716,7 +1717,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setProjection();
     if(webgl) return;
 
-    camp::firstSSBO=true;
     camp::maxFragments=0;
 
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
@@ -1986,7 +1986,7 @@ int refreshBuffers()
   GLuint fragments=0;
   GLuint pixels=gl::Width*gl::Height;
 
-  if(firstSSBO) {
+  if(initSSBO) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(1+pixels)*sizeof(GLuint),NULL,
                  GL_DYNAMIC_DRAW);
@@ -2000,7 +2000,7 @@ int refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::countBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
-    firstSSBO=false;
+    initSSBO=false;
   }
 
   clearCounter();
