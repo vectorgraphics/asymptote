@@ -946,6 +946,7 @@ struct versionOption : public option {
 
     bool glm=false;
     bool gl=false;
+    bool ssbo=false;
     bool gsl=false;
     bool fftw3=false;
     bool xdr=false;
@@ -961,6 +962,10 @@ struct versionOption : public option {
 
 #ifdef HAVE_GL
     gl=true;
+#endif
+
+#ifdef HAVE_SSBO
+    ssbo=true;
 #endif
 
 #ifdef HAVE_LIBGSL
@@ -1003,6 +1008,7 @@ struct versionOption : public option {
 #else
     feature("OpenGL   3D OpenGL rendering",gl);
 #endif
+    feature("SSBO     GLSL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("XDR      external data representation (portable binary file format)",xdr);

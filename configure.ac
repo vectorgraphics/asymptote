@@ -376,6 +376,14 @@ fi
 AC_ARG_ENABLE(gl,
 [AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
 
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [#include <GL/gl.h>]
+    [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_shader_storage_buffer_object)]
+    [#error]
+    [#endif ]
+    )],
+    AC_DEFINE(HAVE_SSBO,1,DEFINE([GLSL shader storage buffer objects])))
+
 AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
 
