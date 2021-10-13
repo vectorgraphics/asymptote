@@ -16,10 +16,6 @@
 #include <GL/wglext.h>
 #endif
 
-#if GL_VERSION_4_3 || GL_ARB_shader_storage_buffer_object
-#define HAVE_SSBO 1
-#endif
-
 #include <string>
 
 typedef std::pair<std::string, int> ShaderfileModePair;
