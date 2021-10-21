@@ -2,7 +2,7 @@ layout(local_size_x=1024) in;
 
 uniform uint nElements;
 
-layout(binding=0) coherent buffer Data
+layout(binding=0) buffer Data
 {
   uint data[];
 };
@@ -58,6 +58,10 @@ void main(void)
 
   if(id > 0)
     data[row] += sharedData[id];
-  for(uint i=row; i < stop; ++i)
-    data[i+1] += data[i];
+  uint curr=data[row];
+  for(uint i=row; i < stop; ++i) {
+    uint next=data[i+1];
+    curr += next;
+    data[i+1]=curr;
+  }
 }

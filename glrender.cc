@@ -2003,9 +2003,6 @@ int refreshBuffers()
     firstSSBO=false;
   }
 
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                    GL_UNSIGNED_BYTE,&zero);
   clearCounter();
 
   // Determine the fragment offsets
