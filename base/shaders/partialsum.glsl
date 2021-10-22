@@ -7,7 +7,7 @@ layout(binding=0) buffer Data
   uint data[];
 };
 
-shared uint sharedData[gl_WorkGroupSize.x+1];
+shared uint sharedData[gl_WorkGroupSize.x];
 
 // Return ceil(log2(n))
 uint ceillog2(uint n)
@@ -44,7 +44,7 @@ void main(void)
   for(uint i=row+1; i < stop; ++i)
     sum += data[i];
 
-  sharedData[id+1]=sum;
+  sharedData[id]=sum;
 
   barrier();
 
@@ -52,12 +52,12 @@ void main(void)
   for(uint step=0; step < steps; step++) {
     uint mask=1 << step;
     uint index=((id >> step) << (step+1))+mask;
-    sharedData[index+1+(id&(mask-1))] += sharedData[index];
+    sharedData[index+(id&(mask-1))] += sharedData[index-1];
     barrier();
   }
 
   if(id > 0)
-    data[row] += sharedData[id];
+    data[row] += sharedData[id-1];
   uint curr=data[row];
   for(uint i=row; i < stop; ++i) {
     uint next=data[i+1];
