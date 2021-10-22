@@ -32,16 +32,16 @@ uint ceilquotient(uint a, uint b)
 
 void main(void)
 {
-  uint id=gl_LocalInvocationID.x;
+  const uint id=gl_LocalInvocationID.x;
 
-  uint m=ceilquotient(nElements,gl_WorkGroupSize.x);
+  const uint m=ceilquotient(nElements,gl_WorkGroupSize.x);
 
-  uint row=m*id;
-  uint col=min(m,nElements-row);
+  const uint row=m*id;
+  const uint col=min(m,nElements-row);
 
-  uint stop=row+col-1;
+  const uint stop=row+col-1;
   uint sum=data[row];
-  for(uint i=row+1; i < stop; ++i)
+  for(uint i=row+1; i <= stop; ++i)
     sum += data[i];
 
   sharedData[id]=sum;
