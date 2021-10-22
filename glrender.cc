@@ -2030,11 +2030,11 @@ int refreshBuffers()
 
   if(fragments > maxFragments) {
   // Initialize the a-buffer
+    maxFragments=11*fragments/10;
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::fragmentBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,fragments*sizeof(gl::Fragment),NULL,
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(gl::Fragment),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::fragmentBuffer);
-    maxFragments=fragments;
   }
 
   return fragments;
