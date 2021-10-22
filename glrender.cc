@@ -2023,12 +2023,10 @@ int refreshBuffers()
   glDispatchCompute(1,1,1);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-  GLuint *offset=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
-                                             sizeof(GLuint)*(pixels),
-                                             sizeof(GLuint),
-                                             GL_MAP_READ_BIT);
-  fragments=offset[0];
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+  glGetBufferSubData(GL_SHADER_STORAGE_BUFFER,
+                  sizeof(GLuint)*(pixels),
+                  sizeof(GLuint),
+                  &fragments);
 
   if(fragments > maxFragments) {
   // Initialize the a-buffer
