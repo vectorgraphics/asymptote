@@ -420,9 +420,9 @@ void initShaders()
   Nmaterials=max(Nmaterials,nmaterials);
 
   shaderProg=glCreateProgram();
-  string vs=locateFile("shaders/vertex.glsl");
-  string cnt=locateFile("shaders/count.glsl");
-  string fs=locateFile("shaders/fragment.glsl");
+  string vertex=locateFile("shaders/vertex.glsl");
+  string count=locateFile("shaders/count.glsl");
+  string fragment=locateFile("shaders/fragment.glsl");
   string blend=locateFile("shaders/blend.glsl");
   string zero=locateFile("shaders/zero.glsl");
   string screen=locateFile("shaders/screen.glsl");
@@ -430,7 +430,7 @@ void initShaders()
   string partial=locateFile("shaders/partialsum.glsl");
   string post=locateFile("shaders/postsum.glsl");
 
-  if(vs.empty() || cnt.empty() || fs.empty() || blend.empty() ||
+  if(vertex.empty() || count.empty() || fragment.empty() || blend.empty() ||
      zero.empty() || screen.empty() || pre.empty() || partial.empty() ||
      post.empty()) {
     cerr << "GLSL shaders not found." << endl;
@@ -442,57 +442,54 @@ void initShaders()
 
 #ifdef HAVE_SSBO
   shaders[0]=ShaderfileModePair(pre.c_str(),GL_COMPUTE_SHADER);
-  camp::preSumShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                       shaderParams);
+  camp::preSumShader=compileAndLinkShader(shaders,shaderParams,true);
   shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
-  camp::partialSumShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                              shaderParams);
+  camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,true);
   shaders[0]=ShaderfileModePair(post.c_str(),GL_COMPUTE_SHADER);
-  camp::postSumShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                              shaderParams);
+  camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true);
 #endif
   shaders.push_back(ShaderfileModePair());
 
-  shaders[0]=ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER);
+  shaders[0]=ShaderfileModePair(vertex.c_str(),GL_VERTEX_SHADER);
 
 #ifdef HAVE_SSBO
-  shaders[1]=ShaderfileModePair(cnt.c_str(),GL_FRAGMENT_SHADER);
-  camp::countShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
+  shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
+  camp::countShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.push_back("HAVE_SSBO");
 #endif
 
-  shaders[1]=ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER);
+  shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
   if(orthographic)
     shaderParams.push_back("ORTHOGRAPHIC");
 
+  ostringstream lights,materials;
+  lights << "Nlights " << Nlights << "u" << endl;
+  shaderParams.push_back(lights.str().c_str());
+  materials << "Nmaterials " << Nmaterials << "u" << endl;
+  shaderParams.push_back(materials.str().c_str());
+
   shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
+  camp::pixelShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.pop_back();
 
   shaderParams.push_back("NORMAL");
-  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            shaderParams);
+  camp::materialShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.push_back("COLOR");
-  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
+  camp::colorShader=compileAndLinkShader(shaders,shaderParams);
 
   shaderParams.push_back("TRANSPARENT");
   if(Mode == 0) shaderParams.push_back("WIREFRAME");
-  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                               shaderParams);
+  camp::transparentShader=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.clear();
 #ifdef HAVE_SSBO
   shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
   shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
-  camp::zeroShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                        shaderParams);
+  camp::zeroShader=compileAndLinkShader(shaders,shaderParams);
 
   shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
   shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
-  camp::blendShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
+  camp::blendShader=compileAndLinkShader(shaders,shaderParams);
 #endif
 }
 
@@ -2078,7 +2075,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
 #ifdef HAVE_SSBO
     glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
 #endif
-    glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
+    glUniform1ui(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
     for(size_t i=0; i < gl::nlights; ++i) {
       triple Lighti=gl::Lights[i];

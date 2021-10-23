@@ -14,20 +14,20 @@ layout(binding=1) buffer Data
 
 uint ceilquotient(uint a, uint b)
 {
-  return (a+b-1)/b;
+  return (a+b-1u)/b;
 }
 
 void main(void)
 {
-  const uint id=gl_GlobalInvocationID.x;
+  uint id=gl_GlobalInvocationID.x;
 
-  const uint m=ceilquotient(nElements,gl_NumWorkGroups.x);
-  const uint row=m*id;
-  const uint col=min(m,nElements-row);
-  const uint stop=row+col;
+  uint m=ceilquotient(nElements,gl_NumWorkGroups.x);
+  uint row=m*id;
+  uint col=min(m,nElements-row);
+  uint stop=row+col;
 
   uint Sum=data[row];
-  for(uint i=row+1; i < stop; ++i)
+  for(uint i=row+1u; i < stop; ++i)
     Sum += data[i];
 
   sum[id]=Sum;

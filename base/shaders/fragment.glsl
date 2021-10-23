@@ -10,8 +10,8 @@ struct Light
   vec3 color;
 };
 
-uniform int nlights;
-uniform Light lights[max(Nlights,1)];
+uniform uint nlights;
+uniform Light lights[max(Nlights,1u)];
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
@@ -169,7 +169,7 @@ void main()
 #endif
   // For a finite point light, the rendering equation simplifies.
   vec3 color=emissive.rgb;
-  for(int i=0; i < nlights; ++i) {
+  for(uint i=0u; i < nlights; ++i) {
     Light Li=lights[i];
     vec3 L=Li.direction;
     float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
