@@ -1722,6 +1722,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setProjection();
     if(webgl) return;
 
+    camp::initSSBO=true;
     camp::maxFragments=0;
 
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
