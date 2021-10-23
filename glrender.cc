@@ -2043,18 +2043,17 @@ void refreshBuffers()
   glUniform1ui(glGetUniformLocation(preSumShader,"nElements"),pixels);
   glDispatchCompute(nProcessors,1,1);
 
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glUseProgram(partialSumShader);
   glUniform1ui(glGetUniformLocation(partialSumShader,"nElements"),pixels);
 
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
   glUseProgram(postSumShader);
   glUniform1ui(glGetUniformLocation(postSumShader,"nElements"),pixels);
 
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glGetBufferSubData(GL_SHADER_STORAGE_BUFFER,0,sizeof(GLuint),&fragments);
 
   if(fragments > maxFragments) {
