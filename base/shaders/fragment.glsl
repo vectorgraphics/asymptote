@@ -36,15 +36,15 @@ struct Fragment
   float depth;
 };
 
-layout(binding=1) coherent buffer Offset {
+layout(binding=1) buffer Offset {
   uint offset[];
 };
 
-layout(binding=2) coherent buffer Count {
+layout(binding=2) buffer Count {
   uint count[];
 };
 
-layout(binding=3) coherent buffer list {
+layout(binding=3) buffer list {
   Fragment fragments[];
 };
 
