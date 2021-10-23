@@ -72,7 +72,7 @@ GLint colorShader;
 GLint countShader;
 GLint transparentShader;
 GLint zeroShader;
-GLint mergeShader;
+GLint blendShader;
 GLint preSumShader;
 GLint partialSumShader;
 GLint postSumShader;
@@ -423,14 +423,14 @@ void initShaders()
   string vs=locateFile("shaders/vertex.glsl");
   string cnt=locateFile("shaders/count.glsl");
   string fs=locateFile("shaders/fragment.glsl");
-  string tfs=locateFile("shaders/transparentfragment.glsl");
+  string blend=locateFile("shaders/blend.glsl");
   string zero=locateFile("shaders/zero.glsl");
   string screen=locateFile("shaders/screen.glsl");
   string pre=locateFile("shaders/presum.glsl");
   string partial=locateFile("shaders/partialsum.glsl");
   string post=locateFile("shaders/postsum.glsl");
 
-  if(vs.empty() || cnt.empty() || fs.empty() || tfs.empty() ||
+  if(vs.empty() || cnt.empty() || fs.empty() || blend.empty() ||
      zero.empty() || screen.empty() || pre.empty() || partial.empty() ||
      post.empty()) {
     cerr << "GLSL shaders not found." << endl;
@@ -490,8 +490,8 @@ void initShaders()
                                         shaderParams);
 
   shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
-  shaders[1]=ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
-  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+  shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
+  camp::blendShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                          shaderParams);
 #endif
 }
@@ -500,7 +500,7 @@ void deleteShaders()
 {
 #ifdef HAVE_SSBO
   glDeleteProgram(camp::zeroShader);
-  glDeleteProgram(camp::mergeShader);
+  glDeleteProgram(camp::blendShader);
   glDeleteProgram(camp::preSumShader);
   glDeleteProgram(camp::partialSumShader);
   glDeleteProgram(camp::postSumShader);
@@ -2219,12 +2219,12 @@ void aBufferTransparency()
 
   // Blend transparent fragments
   glDisable(GL_DEPTH_TEST);
-  glUseProgram(mergeShader);
-  glUniform1ui(glGetUniformLocation(mergeShader,"width"),gl::Width);
-  glUniform4f(glGetUniformLocation(mergeShader,"background"),
+  glUseProgram(blendShader);
+  glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
+  glUniform4f(glGetUniformLocation(blendShader,"background"),
               gl::Background[0],gl::Background[1],gl::Background[2],
               gl::Background[3]);
-  gl::lastshader=mergeShader;
+  gl::lastshader=blendShader;
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES, 0, 3);
