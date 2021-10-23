@@ -1984,11 +1984,10 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
   }
 }
 
-void clearCounter()
+void clearOffset()
 {
   glUseProgram(zeroShader);
   glUniform1ui(glGetUniformLocation(zeroShader,"width"),gl::Width);
-  gl::lastshader=zeroShader;
   fpu_trap(false); // Work around FE_INVALID
   glDrawArrays(GL_TRIANGLES, 0, 3);
   fpu_trap(settings::trap());
@@ -2012,8 +2011,6 @@ void refreshBuffers()
     glBufferData(GL_SHADER_STORAGE_BUFFER,(1+pixels)*sizeof(GLuint),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_BYTE,&zero);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
@@ -2021,10 +2018,11 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
     initSSBO=false;
   }
 
-  clearCounter();
+  clearOffset();
 
   // Determine the fragment offsets
   drawBuffer(material0Data,countShader); // TODO: Account for pixel width
@@ -2049,7 +2047,6 @@ void refreshBuffers()
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
   glUseProgram(postSumShader);
   glUniform1ui(glGetUniformLocation(postSumShader,"nElements"),pixels);
 
@@ -2063,9 +2060,11 @@ void refreshBuffers()
     glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(gl::Fragment),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::fragmentBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
   }
 
   glDispatchCompute(nProcessors,1,1);
+  gl::lastshader=-1;
 }
 
 void setUniforms(vertexBuffer& data, GLint shader)
