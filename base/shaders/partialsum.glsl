@@ -2,7 +2,12 @@ layout(local_size_x=1024) in;
 
 uniform uint nElements;
 
-layout(binding=0) buffer Data
+layout(binding=0) buffer Sum
+{
+  uint sum[];
+};
+
+layout(binding=1) buffer Data
 {
   uint data[];
 };
@@ -21,7 +26,7 @@ uint ceillog2(uint n)
   n |= n >> 4;
   n |= n >> 8;
   n |= n >> 16;
-  
+
   return MultiplyDeBruijnBitPosition[n*0x07C4ACDDU >> 27];
 }
 
@@ -33,22 +38,12 @@ uint ceilquotient(uint a, uint b)
 void main(void)
 {
   const uint id=gl_LocalInvocationID.x;
-
-  const uint m=ceilquotient(nElements,gl_WorkGroupSize.x);
-
-  const uint row=m*id;
-  const uint col=min(m,nElements-row);
-
-  const uint stop=row+col-1;
-  uint sum=data[row];
-  for(uint i=row+1; i <= stop; ++i)
-    sum += data[i];
-
-  sharedData[id]=sum;
+  sharedData[id]=sum[id];
 
   barrier();
 
-  const uint steps=ceillog2(gl_WorkGroupSize.x);
+  const uint steps=ceillog2(gl_WorkGroupSize.x); // Precompute this?
+
   for(uint step=0; step < steps; step++) {
     uint mask=1 << step;
     uint index=((id >> step) << (step+1))+mask;
@@ -56,12 +51,10 @@ void main(void)
     barrier();
   }
 
-  if(id > 0)
-    data[row] += sharedData[id-1];
-  uint curr=data[row];
-  for(uint i=row; i < stop; ++i) {
-    uint next=data[i+1];
-    curr += next;
-    data[i+1]=curr;
-  }
+  const uint m=ceilquotient(nElements,gl_WorkGroupSize.x);
+
+  if(id+1 < gl_WorkGroupSize.x)
+    data[m*(id+1)] += sharedData[id];
+  else
+    sum[0]=sharedData[id];  // Store fragment size in sum[0]
 }

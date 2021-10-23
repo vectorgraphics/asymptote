@@ -1,4 +1,4 @@
-layout(binding=0) coherent buffer Offset {
+layout(binding=1) coherent buffer Offset {
   uint offset[];
 };
 
