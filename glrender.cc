@@ -909,8 +909,9 @@ void display()
       if(s > 0.0) {
         double rate=1.0/s;
         S.add(rate);
-        cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev()
-             << endl;
+        if(framecount % 20 == 0)
+          cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev()
+               << endl;
       }
     }
     ++framecount;
