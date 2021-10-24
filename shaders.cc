@@ -44,11 +44,12 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
   return shader;
 }
 
-GLuint createShaders(GLchar const* src, int shaderType,
-                     std::string const& filename, bool compute)
+GLuint createShaders(const std::string& src, int shaderType,
+                     const std::string& filename, bool compute)
 {
+  const GLchar *source=src.c_str();
   GLuint shader=glCreateShader(shaderType);
-  glShaderSource(shader, 1, &src, NULL);
+  glShaderSource(shader, 1, &source, NULL);
   glCompileShader(shader);
 
   GLint status;
@@ -64,12 +65,15 @@ GLuint createShaders(GLchar const* src, int shaderType,
     glGetShaderInfoLog(shader, length, &length, msg.data());
 
     size_t n=msg.size();
-    for(size_t i=0; i < n; ++i) {
+    for(size_t i=0; i < n; ++i)
       std::cerr << msg[i];
-    }
 
     std::cerr << std::endl << "GL Compile error" << std::endl;
-    std::cerr << src << std::endl;
+    std::stringstream s(src);
+    std::string line;
+    unsigned int k=0;
+    while(getline(s,line))
+      std::cerr << ++k << ": " << line << std::endl;
     exit(-1);
   }
   return shader;
@@ -115,6 +119,6 @@ GLuint createShaderFile(std::string file, int shaderType,
     exit(-1);
   }
 
-  return createShaders(shaderSrc.str().data(),shaderType,file,compute);
+  return createShaders(shaderSrc.str(),shaderType,file,compute);
 }
 #endif

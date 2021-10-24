@@ -24,7 +24,7 @@ GLuint compileAndLinkShader(
   std::vector<ShaderfileModePair> const& shaders,
   std::vector<std::string> const& defineflags, bool compute=false);
 
-GLuint createShaders(GLchar const *src, int shaderType,
+GLuint createShaders(const std::string& src, int shaderType,
                      std::string const& filename, bool compute=false);
 
 GLuint createShaderFile(std::string file, int shaderType,
