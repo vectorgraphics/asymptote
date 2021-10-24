@@ -26,6 +26,8 @@
 #include "interact.h"
 #include "fpu.h"
 
+extern uint32_t CLZ(uint32_t a);
+
 namespace gl {
 #ifdef HAVE_PTHREAD
 pthread_t mainthread;
@@ -117,6 +119,9 @@ size_t nmaterials=48;
 extern void exitHandler(int);
 
 namespace gl {
+
+GLint processors;
+GLint steps;
 
 bool outlinemode=false;
 bool glthread=false;
@@ -441,8 +446,14 @@ void initShaders()
 #ifdef HAVE_SSBO
   shaders[0]=ShaderfileModePair(pre.c_str(),GL_COMPUTE_SHADER);
   camp::preSumShader=compileAndLinkShader(shaders,shaderParams,true);
+
+  ostringstream s;
+  s << "PROCESSORS " << processors << "u" << endl;
+  shaderParams.push_back(s.str().c_str());
   shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
   camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,true);
+  shaderParams.pop_back();
+
   shaders[0]=ShaderfileModePair(post.c_str(),GL_COMPUTE_SHADER);
   camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true);
 #endif
@@ -1589,6 +1600,12 @@ void init_osmesa()
 
 #endif /* HAVE_GL */
 
+// Return ceil(log2(n)) where n is a 32 bit unsigned integer.
+uint32_t ceillog2(uint32_t n)
+{
+  return 32-CLZ(n-1);
+}
+
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
@@ -1843,6 +1860,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
+  glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,&processors);
+  steps=ceillog2(processors);
+
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
 
@@ -1980,7 +2000,6 @@ void refreshBuffers()
   GLuint zero=0;
   GLuint fragments=0;
   GLuint pixels=gl::Width*gl::Height;
-  GLuint nProcessors=1024;
 
   if(initSSBO) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
@@ -1998,7 +2017,7 @@ void refreshBuffers()
                       GL_UNSIGNED_BYTE,&zero);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,nProcessors*sizeof(GLuint),NULL,
+    glBufferData(GL_SHADER_STORAGE_BUFFER,gl::processors*sizeof(GLuint),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::sumBuffer);
 
@@ -2019,17 +2038,18 @@ void refreshBuffers()
   glDepthMask(GL_TRUE); // Write to depth buffer
 
   glUseProgram(preSumShader);
-  glUniform1ui(glGetUniformLocation(preSumShader,"nElements"),pixels);
-  glDispatchCompute(nProcessors,1,1);
+  glUniform1ui(glGetUniformLocation(preSumShader,"elements"),pixels);
+  glDispatchCompute(gl::processors,1,1);
 
   glUseProgram(partialSumShader);
-  glUniform1ui(glGetUniformLocation(partialSumShader,"nElements"),pixels);
+  glUniform1ui(glGetUniformLocation(partialSumShader,"elements"),pixels);
+  glUniform1ui(glGetUniformLocation(partialSumShader,"steps"),gl::steps);
 
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
   glUseProgram(postSumShader);
-  glUniform1ui(glGetUniformLocation(postSumShader,"nElements"),pixels);
+  glUniform1ui(glGetUniformLocation(postSumShader,"elements"),pixels);
 
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glGetBufferSubData(GL_SHADER_STORAGE_BUFFER,0,sizeof(GLuint),&fragments);
@@ -2045,7 +2065,7 @@ void refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
   }
 
-  glDispatchCompute(nProcessors,1,1);
+  glDispatchCompute(gl::processors,1,1);
   gl::lastshader=-1;
 }
 

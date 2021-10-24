@@ -1,6 +1,7 @@
-layout(local_size_x=1024) in;
+layout(local_size_x=PROCESSORS) in;
 
-uniform uint nElements;
+uniform uint elements;
+uniform uint steps;
 
 layout(binding=0) buffer Sum
 {
@@ -12,7 +13,7 @@ layout(binding=1) buffer Data
   uint data[];
 };
 
-shared uint sharedData[gl_WorkGroupSize.x];
+shared uint sharedData[PROCESSORS];
 
 uint ceilquotient(uint a, uint b)
 {
@@ -26,18 +27,24 @@ void main(void)
 
   barrier();
 
-  const uint steps=10u; // ceil(log2(gl_WorkGroupSize.x));
-
-  for(uint step=0u; step < steps; step++) {
-    uint mask=1u << step;
+  uint step;
+  for(step=0u; step < steps-1u; step++) {
+    uint mask=(1u << step)-1u;
     uint index=((id >> step) << (step+1u))+mask;
-    sharedData[index+(id&(mask-1u))] += sharedData[index-1u];
+    uint windex=index+(id&mask)+1u;
+    sharedData[windex] += sharedData[index];
     barrier();
   }
+  uint mask=(1u << step)-1u;
+  uint index=((id >> step) << steps)+mask;
+  uint windex=index+(id&mask)+1u;
+  if(windex < PROCESSORS)
+    sharedData[windex] += sharedData[index];
+  barrier();
 
-  uint m=ceilquotient(nElements,gl_WorkGroupSize.x);
+  uint m=ceilquotient(elements,PROCESSORS);
 
-  if(id+1u < gl_WorkGroupSize.x)
+  if(id+1u < PROCESSORS)
     data[m*(id+1u)] += sharedData[id];
   else
     sum[0]=sharedData[id];  // Store fragment size in sum[0]
