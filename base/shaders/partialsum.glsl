@@ -27,8 +27,11 @@ void main(void)
 
   barrier();
 
+  uint index=id << 1u;
+  sharedData[index+1u] += sharedData[index];
+  barrier();
   uint step;
-  for(step=0u; step < steps-1u; step++) {
+  for(step=1u; step < steps-1u; step++) {
     uint mask=(1u << step)-1u;
     uint index=((id >> step) << (step+1u))+mask;
     uint windex=index+(id&mask)+1u;
@@ -36,7 +39,7 @@ void main(void)
     barrier();
   }
   uint mask=(1u << step)-1u;
-  uint index=((id >> step) << steps)+mask;
+  index=((id >> step) << steps)+mask;
   uint windex=index+(id&mask)+1u;
   if(windex < PROCESSORS)
     sharedData[windex] += sharedData[index];

@@ -1862,6 +1862,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
   glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,&processors);
   steps=ceillog2(processors);
+  assert(steps > 1);
 
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
