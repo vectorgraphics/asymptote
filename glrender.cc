@@ -1892,8 +1892,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   if(GPUindexing) {
     glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,&processors);
-    steps=ceillog2(processors);
-    assert(steps > 1);
+    if(processors <= 1)
+      GPUindexing=false;
+    else
+      steps=ceillog2(processors);
   }
 
   Maxmaterials=val/sizeof(Material);
