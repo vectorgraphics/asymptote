@@ -1226,6 +1226,9 @@ void initSettings() {
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
+  addOption(new boolSetting("GPUindexing", 0,
+                            "Compute indexing partial sums on GPU", true));
+
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",

@@ -6,6 +6,6 @@ uniform uint width;
 
 void main()
 {
-  atomicAdd(count[uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x)],1u);
+  count[uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x)]=0u;
   discard;
 }
