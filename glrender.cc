@@ -1638,10 +1638,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 {
   Iconify=getSetting<bool>("iconify");
 
-#ifdef HAVE_LIBOSMESA
-  GPUindexing=false;
-#else
+#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
   GPUindexing=getSetting<bool>("GPUindexing");
+#else
+  GPUindexing=false;
 #endif
 
   if(zoom == 0.0) zoom=1.0;
@@ -1904,11 +1904,22 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(glinitialize) {
     glinitialize=false;
 
+    char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+    GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
+
+    if(GLSLversion < 130) {
+      cerr << "Unsupported GLSL version: " << GLSL_VERSION << "." << endl;
+      exit(-1);
+    }
+
     if(settings::verbose > 2) {
-      const GLubyte *GLSLversion=glGetString(GL_SHADING_LANGUAGE_VERSION);
-      cout << "GLSL version " << GLSLversion;
+      cout << "GLSL version " << GLSL_VERSION;
 #ifdef HAVE_SSBO
-      cout << " with SSBO support";
+      cout << " with SSBO";
+#ifdef HAVE_COMPUTE_SHADER
+      cout << " and compute shader";
+#endif
+      cout << " support";
 #endif
       cout << endl;
     }

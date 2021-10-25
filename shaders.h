@@ -18,6 +18,8 @@
 
 #include <string>
 
+extern int GLSLversion;
+
 typedef std::pair<std::string, int> ShaderfileModePair;
 
 GLuint compileAndLinkShader(

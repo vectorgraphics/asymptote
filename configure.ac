@@ -384,6 +384,14 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     )],
     AC_DEFINE(HAVE_SSBO,1,DEFINE([GLSL shader storage buffer objects])))
 
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [#include <GL/gl.h>]
+    [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_compute_shader)]
+    [#error]
+    [#endif ]
+    )],
+    AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
+
 AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
 

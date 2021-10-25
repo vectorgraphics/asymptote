@@ -13,9 +13,11 @@
 
 #include "shaders.h"
 
+int GLSLversion;
+
 GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
                             std::vector<std::string> const& defineflags,
-  bool compute)
+                            bool compute)
 {
   GLuint shader = glCreateProgram();
   std::vector<GLuint> compiledShaders;
@@ -87,17 +89,7 @@ GLuint createShaderFile(std::string file, int shaderType,
   shaderFile.open(file.c_str());
   std::stringstream shaderSrc;
 
-#ifdef __APPLE__
-#define GLSL_VERSION "410"
-#else
-#ifdef HAVE_SSBO
-#define GLSL_VERSION "150"
-#else
-#define GLSL_VERSION "130"
-#endif
-#endif
-
-  shaderSrc << "#version " << GLSL_VERSION << "\n";
+  shaderSrc << "#version " << GLSLversion << "\n";
 #ifndef __APPLE__
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable" << "\n";
 #ifdef HAVE_SSBO
