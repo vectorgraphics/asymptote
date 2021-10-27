@@ -482,9 +482,9 @@ void initShaders()
     shaderParams.push_back("ORTHOGRAPHIC");
 
   ostringstream lights,materials;
-  lights << "Nlights " << Nlights << "u" << endl;
+  lights << "Nlights " << Nlights << endl;
   shaderParams.push_back(lights.str().c_str());
-  materials << "Nmaterials " << Nmaterials << "u" << endl;
+  materials << "Nmaterials " << Nmaterials << endl;
   shaderParams.push_back(materials.str().c_str());
 
   shaderParams.push_back("WIDTH");

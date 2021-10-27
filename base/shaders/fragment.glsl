@@ -11,7 +11,7 @@ struct Light
 };
 
 uniform uint nlights;
-uniform Light lights[max(Nlights,1u)];
+uniform Light lights[max(Nlights,1)];
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
