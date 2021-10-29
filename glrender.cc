@@ -726,6 +726,7 @@ void quit()
 void mode()
 {
   remesh=true;
+  camp::initSSBO=true;
   switch(Mode) {
     case 0: // regular
       outlinemode=false;
