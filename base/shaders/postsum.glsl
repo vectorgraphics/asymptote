@@ -2,9 +2,9 @@ layout(local_size_x=1) in;
 
 uniform uint elements;
 
-layout(binding=1) buffer Data
+layout(binding=1) buffer offsetBuffer
 {
-  uint data[];
+  uint offset[];
 };
 
 uint ceilquotient(uint a, uint b)
@@ -21,10 +21,10 @@ void main(void)
   uint col=min(m,elements-row);
   uint stop=row+col-1u;
 
-  uint curr=data[row];
+  uint curr=offset[row];
   for(uint i=row; i < stop; ++i) {
-    uint next=data[i+1u];
+    uint next=offset[i+1u];
     curr += next;
-    data[i+1u]=curr;
+    offset[i+1u]=curr;
   }
 }

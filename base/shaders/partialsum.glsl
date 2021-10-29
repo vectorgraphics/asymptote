@@ -3,14 +3,14 @@ layout(local_size_x=PROCESSORS) in;
 uniform uint elements;
 uniform uint steps;
 
-layout(binding=0) buffer Sum
+layout(binding=0) buffer sumBuffer
 {
   uint sum[];
 };
 
-layout(binding=1) buffer Data
+layout(binding=1) buffer offsetBuffer
 {
-  uint data[];
+  uint offset[];
 };
 
 shared uint sharedData[PROCESSORS];
@@ -48,7 +48,7 @@ void main(void)
   uint m=ceilquotient(elements,PROCESSORS);
 
   if(id+1u < PROCESSORS)
-    data[m*(id+1u)] += sharedData[id];
+    offset[m*(id+1u)] += sharedData[id];
   else
     sum[0]=sharedData[id];  // Store fragment size in sum[0]
 }

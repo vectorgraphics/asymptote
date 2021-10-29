@@ -2,14 +2,14 @@ layout(local_size_x=1) in;
 
 uniform uint elements;
 
-layout(binding=0) buffer Sum
+layout(binding=0) buffer sumBuffer
 {
   uint sum[];
 };
 
-layout(binding=1) buffer Data
+layout(binding=1) buffer offsetBuffer
 {
-  uint data[];
+  uint offset[];
 };
 
 uint ceilquotient(uint a, uint b)
@@ -26,9 +26,9 @@ void main(void)
   uint col=min(m,elements-row);
   uint stop=row+col;
 
-  uint Sum=data[row];
+  uint Sum=offset[row];
   for(uint i=row+1u; i < stop; ++i)
-    Sum += data[i];
+    Sum += offset[i];
 
   sum[id]=Sum;
 }

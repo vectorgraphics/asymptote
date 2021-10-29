@@ -4,16 +4,16 @@ struct Fragment
   float depth;
 };
 
-layout(binding=1) buffer Offset {
+layout(binding=1) buffer offsetBuffer {
   uint offset[];
 };
 
-layout(binding=2) buffer Count {
+layout(binding=2) buffer countBuffer {
   uint count[];
 };
 
-layout(binding=3) buffer list {
-  Fragment fragments[];
+layout(binding=3) buffer fragmentBuffer {
+  Fragment fragment[];
 };
 
 out vec4 outColor;
@@ -39,9 +39,9 @@ void main()
   if(size < maxSize) {
     Fragment sortedList[maxSize];
 
-    sortedList[0]=fragments[listIndex];
+    sortedList[0]=fragment[listIndex];
     for(uint i=1u; i < size; i++) {
-      Fragment temp=fragments[listIndex+i];
+      Fragment temp=fragment[listIndex+i];
       float depth=temp.depth;
       uint j=i;
       Fragment f;
@@ -57,21 +57,21 @@ void main()
       outColor=blend(outColor,sortedList[i].color);
   } else {
     for(uint i=1u; i < size; i++) {
-      Fragment temp=fragments[listIndex+i];
+      Fragment temp=fragment[listIndex+i];
       float depth=temp.depth;
       uint j=i;
       Fragment f;
-      while(f=fragments[listIndex+j-1u], j > 0u && depth > f.depth) {
-        fragments[listIndex+j]=f;
+      while(f=fragment[listIndex+j-1u], j > 0u && depth > f.depth) {
+        fragment[listIndex+j]=f;
         j--;
       }
-      fragments[listIndex+j]=temp;
+      fragment[listIndex+j]=temp;
     }
 
     outColor=background;
     uint stop=listIndex+size;
     for(uint i=listIndex; i < stop; i++)
-      outColor=blend(outColor,fragments[i].color);
+      outColor=blend(outColor,fragment[i].color);
   }
   count[headIndex]=0u;
 }

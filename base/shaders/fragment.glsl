@@ -36,16 +36,16 @@ struct Fragment
   float depth;
 };
 
-layout(binding=1) buffer Offset {
+layout(binding=1) buffer offsetBuffer {
   uint offset[];
 };
 
-layout(binding=2) buffer Count {
+layout(binding=2) buffer countBuffer {
   uint count[];
 };
 
-layout(binding=3) buffer list {
-  Fragment fragments[];
+layout(binding=3) buffer fragmentBuffer {
+  Fragment fragment[];
 };
 
 uniform uint width;
@@ -185,8 +185,8 @@ void main()
 #ifdef HAVE_SSBO
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   uint listIndex=offset[headIndex]+atomicAdd(count[headIndex],1u);
-  fragments[listIndex].color=outColor;
-  fragments[listIndex].depth=gl_FragCoord.z;
+  fragment[listIndex].color=outColor;
+  fragment[listIndex].depth=gl_FragCoord.z;
 #ifdef TRANSPARENT
 #ifndef WIREFRAME
   discard;

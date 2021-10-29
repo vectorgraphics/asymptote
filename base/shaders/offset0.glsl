@@ -1,4 +1,4 @@
-layout(binding=1) buffer Offset {
+layout(binding=1) buffer offsetBuffer {
   uint offset[];
 };
 

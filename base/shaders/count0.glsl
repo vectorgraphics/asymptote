@@ -1,4 +1,4 @@
-layout(binding=2) buffer Count {
+layout(binding=2) buffer countBuffer {
   uint count[];
 };
 
