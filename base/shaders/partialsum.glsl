@@ -3,12 +3,12 @@ layout(local_size_x=PROCESSORS) in;
 uniform uint elements;
 uniform uint steps;
 
-layout(binding=0) buffer sumBuffer
+layout(binding=0, std430) buffer sumBuffer
 {
   uint sum[];
 };
 
-layout(binding=1) buffer offsetBuffer
+layout(binding=1, std430) buffer offsetBuffer
 {
   uint offset[];
 };

@@ -36,15 +36,15 @@ struct Fragment
   float depth;
 };
 
-layout(binding=1) buffer offsetBuffer {
+layout(binding=1, std430) buffer offsetBuffer {
   uint offset[];
 };
 
-layout(binding=2) buffer countBuffer {
+layout(binding=2, std430) buffer countBuffer {
   uint count[];
 };
 
-layout(binding=3) buffer fragmentBuffer {
+layout(binding=3, std430) buffer fragmentBuffer {
   Fragment fragment[];
 };
 

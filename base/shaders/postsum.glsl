@@ -2,7 +2,7 @@ layout(local_size_x=1) in;
 
 uniform uint elements;
 
-layout(binding=1) buffer offsetBuffer
+layout(binding=1, std430) buffer offsetBuffer
 {
   uint offset[];
 };
