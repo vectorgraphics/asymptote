@@ -430,8 +430,7 @@ void initShaders()
 
   string count=locateFile(GPUindexing ? "shaders/offset.glsl" :
                           "shaders/count.glsl");
-  string zero=locateFile(GPUindexing ? "shaders/offset0.glsl" :
-                         "shaders/count0.glsl");
+  string zero=locateFile("shaders/count0.glsl");
   string vertex=locateFile("shaders/vertex.glsl");
   string fragment=locateFile("shaders/fragment.glsl");
   string blend=locateFile("shaders/blend.glsl");
@@ -503,8 +502,12 @@ void initShaders()
 #ifdef HAVE_SSBO
   shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
 
-  shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
-  camp::zeroShader=compileAndLinkShader(shaders,shaderParams);
+  if(GPUindexing)
+    shaderParams.push_back("GPUINDEXING");
+  else {
+    shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
+    camp::zeroShader=compileAndLinkShader(shaders,shaderParams);
+  }
 
   shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
   camp::blendShader=compileAndLinkShader(shaders,shaderParams);
@@ -515,12 +518,12 @@ void deleteShaders()
 {
 #ifdef HAVE_SSBO
   glDeleteProgram(camp::blendShader);
-  glDeleteProgram(camp::zeroShader);
   if(GPUindexing) {
     glDeleteProgram(camp::preSumShader);
     glDeleteProgram(camp::partialSumShader);
     glDeleteProgram(camp::postSumShader);
-  }
+  } else
+    glDeleteProgram(camp::zeroShader);
   glDeleteProgram(camp::countShader);
 #endif
   glDeleteProgram(camp::transparentShader);
@@ -2042,7 +2045,7 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
   }
 }
 
-void clearCounter()
+void clearCount()
 {
   glUseProgram(zeroShader);
   glUniform1ui(glGetUniformLocation(zeroShader,"width"),gl::Width);
@@ -2090,8 +2093,7 @@ void refreshBuffers()
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE,&zero);
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::sumBuffer);
-    } else
-      clearCounter();
+    }
   }
 
   // Determine the fragment offsets
@@ -2143,7 +2145,7 @@ void refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-    clearCounter();
+    clearCount();
   }
 
   if(fragments > maxFragments) {

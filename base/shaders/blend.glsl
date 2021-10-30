@@ -30,10 +30,14 @@ void main()
 {
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   uint size=count[headIndex];
-  if(size == 0u)
+  if(size == 0u) {
+#ifdef GPUINDEXING
+    offset[headIndex]=0u;
     discard;
+#endif
+  }
   uint listIndex=offset[headIndex];
-  const uint maxSize=10u;
+  const uint maxSize=16u;
 
   // Sort the fragments with respect to descending depth
   if(size < maxSize) {
@@ -74,4 +78,7 @@ void main()
       outColor=blend(outColor,fragment[i].color);
   }
   count[headIndex]=0u;
+#ifdef GPUINDEXING
+    offset[headIndex]=0u;
+#endif
 }
