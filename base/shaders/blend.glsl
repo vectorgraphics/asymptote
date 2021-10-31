@@ -33,8 +33,8 @@ void main()
   if(size == 0u) {
 #ifdef GPUINDEXING
     offset[headIndex]=0u;
-    discard;
 #endif
+    discard;
   }
   uint listIndex=offset[headIndex];
   const uint maxSize=16u;
