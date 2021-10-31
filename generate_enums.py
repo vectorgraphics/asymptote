@@ -46,15 +46,14 @@ def create_enums(filename: str) -> List[Union[Tuple[str, int, str], Tuple[str, i
 
 def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
     with io.open(outname, 'w') as fil:
-        fil.write('// THIS FILE IS AUTO-GENERATED.\n')
-        fil.write('// Enum class for enum {0}\n'.format(name))
+        fil.write('// Enum class for {0}\n'.format(name))
+        if comment is not None:
+            fil.write('// {0}\n'.format(comment))
         fil.write('// Generated at {0}\n\n'.format(datetime.now()))
         if 'namespace' in kwargs:
             fil.write('namespace {0}\n'.format(kwargs['namespace']))
             fil.write('{\n')
 
-        if comment is not None:
-            fil.write('/* {0} */\n'.format(comment))
         fil.write('enum {0} : uint32_t\n'.format(name))
         fil.write('{\n')
 
@@ -76,17 +75,15 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
 
 def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
     with io.open(outname, 'w') as fil:
-        fil.write('// THIS FILE IS AUTO-GENERATED.\n')
-        fil.write('// Enum class for enum {0}\n'.format(name))
+        fil.write('// Enum class for {0}\n'.format(name))
+        if comment is not None:
+            fil.write('// {0}\n'.format(comment))
         fil.write('// Generated at {0}\n\n'.format(datetime.now()))
 
-        fil.write('package {0};\n'.format(kwargs['package']))
+        if 'package' in kwargs:
+            fil.write('package {0};\n'.format(kwargs['package']))
         fil.write('\n')
 
-        if comment:
-            fil.write('/**\n')
-            fil.write(' * {0}\n'.format(comment))
-            fil.write(' */\n')
         fil.write('public enum {0} {{\n'.format(name))
 
         spaces = kwargs.get('spaces', 4)
@@ -123,12 +120,11 @@ def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
 
 def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
     with io.open(outname, 'w') as fil:
-        fil.write('// THIS FILE IS AUTO-GENERATED.\n')
-        fil.write('// Enum class for enum {0}\n'.format(name))
+        fil.write('// Enum class for {0}\n'.format(name))
+        if comment is not None:
+            fil.write('// {0}\n'.format(comment))
         fil.write('// Generated at {0}\n\n'.format(datetime.now()))
 
-        if comment is not None:
-            fil.write('/* {0} */\n'.format(comment))
         fil.write('struct {0}\n'.format(name))
         fil.write('{\n')
 
@@ -147,11 +143,10 @@ def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
 def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
     with io.open(outname, 'w') as fil:
         fil.write('#!/usr/bin/env python3\n')
-        fil.write('# THIS FILE IS AUTO-GENERATED. DO NOT MODIFY THIS FILE\n')
-        fil.write('# Enum class for enum {0}\n'.format(name))
-        fil.write('# Generated at {0}\n\n'.format(datetime.now()))
+        fil.write('# Enum class for {0}\n'.format(name))
         if comment is not None:
             fil.write('""" {0} """\n'.format(comment))
+        fil.write('# Generated at {0}\n\n'.format(datetime.now()))
         fil.write('class {0}:\n'.format(name))
         for enumTxt, enumNum, *ar in enums:
             if len(ar) > 0:
@@ -182,7 +177,7 @@ def main():
             custom_args[key] = val
 
     enums = create_enums(arg.input)
-    fn(arg.output, enums, arg.name, **custom_args)
+    fn(arg.output, enums, arg.name, 'AUTO-GENERATED from '+arg.input, **custom_args)
 
 
 if __name__ == '__main__':
