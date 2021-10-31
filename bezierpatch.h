@@ -198,7 +198,7 @@ struct BezierPatch
     transparent=Transparent;
     color=colors;
     notRendered();
-    init(pixel*ratio);
+    init(pixelResolution*ratio);
     render(g,straight,colors);
   }
 

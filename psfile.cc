@@ -10,7 +10,6 @@
 #include <iomanip>
 #include <sstream>
 #include <zlib.h>
-#include <unordered_set>
 
 #include "psfile.h"
 #include "settings.h"

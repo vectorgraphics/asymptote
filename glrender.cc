@@ -110,7 +110,7 @@ using camp::nmaterials;
 using camp::MaterialMap;
 
 namespace camp {
-std::vector<Material> material;
+std::vector<Material> materials;
 MaterialMap materialMap;
 size_t materialIndex;
 
@@ -2369,8 +2369,8 @@ void drawBuffers()
 
 void clearMaterialBuffer()
 {
-  material.clear();
-  material.reserve(nmaterials);
+  materials.clear();
+  materials.reserve(nmaterials);
   materialMap.clear();
   materialIndex=0;
 
@@ -2395,7 +2395,7 @@ void setMaterial(vertexBuffer& data, draw_t *draw)
     for(size_t i=size0; i < materialIndex; ++i)
       data.materialTable[i]=-1;
     data.materialTable[materialIndex]=data.materials.size();
-    data.materials.push_back(material[materialIndex]);
+    data.materials.push_back(materials[materialIndex]);
   }
   materialIndex=data.materialTable[materialIndex];
 }

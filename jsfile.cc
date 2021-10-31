@@ -8,7 +8,7 @@ using namespace settings;
 
 namespace camp {
 
-jsfile::jsfile(): finished(false), fileName("")
+jsfile::jsfile() : finished(false), fileName("")
 {
 
 }
@@ -21,17 +21,17 @@ jsfile::jsfile(string name) : finished(false), fileName(name)
 jsfile::~jsfile()
 {
   if (!finished)
-  {
-    finish(fileName);
-  }
+    {
+      finish(fileName);
+    }
 }
 
 void jsfile::close()
 {
   if (!finished)
-  {
-    finish(fileName);
-  }
+    {
+      finish(fileName);
+    }
 }
 
 void jsfile::copy(string name, bool header)
@@ -133,18 +133,18 @@ void jsfile::open(string name)
       << "canvasHeight=" << gl::fullHeight << ";" << newl
       << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
       << newl << newl
-      <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];"
+      <<  "minBound=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];"
       << newl
-      <<  "B=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];"
+      <<  "maxBound=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];"
       << newl
       << "orthographic=" << gl::orthographic << ";"
       << newl
-      << "angle=" << gl::Angle << ";"
+      << "angleOfView=" << gl::Angle << ";"
       << newl
-      << "Zoom0=" << gl::Zoom0 << ";" << newl
-      << "viewportmargin=" << gl::Margin << ";" << newl;
+      << "initialZoom=" << gl::Zoom0 << ";" << newl
+      << "viewportMargin=" << gl::Margin << ";" << newl;
   if(gl::Shift != pair(0.0,0.0))
-    out << "viewportshift=" << gl::Shift*gl::Zoom0 << ";" << newl;
+    out << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
   out << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
       << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
@@ -169,11 +169,11 @@ void jsfile::open(string name)
       << gl::Background[2] << "," << gl::Background[3] << "];"
       << newl;
 
-  size_t nmaterials=material.size();
+  size_t nmaterials=materials.size();
   out << "Materials=[";
   for(size_t i=0; i < nmaterials; ++i)
     out << "new Material(" << newl
-        << material[i]
+        << materials[i]
         << ")," << newl;
   out << "];" << newl << newl;
 }
@@ -213,7 +213,7 @@ void jsfile::addRawPatch(triple const* controls, size_t n,
                          const triple& Min, const triple& Max,
                          const prc::RGBAColour *c, size_t nc)
 {
-  out << "P.push(new BezierPatch([" << newl;
+  out << "patch([" << newl;
   size_t last=n-1;
   for(size_t i=0; i < last; ++i)
     out << controls[i] << "," << newl;
@@ -228,38 +228,38 @@ void jsfile::addRawPatch(triple const* controls, size_t n,
     }
     out << "]";
   }
-  out << "));" << newl << newl;
+  out << ");" << newl << newl;
 }
 
 void jsfile::addCurve(const triple& z0, const triple& c0,
                       const triple& c1, const triple& z1,
                       const triple& Min, const triple& Max)
 {
-  out << "P.push(new BezierCurve([" << newl;
+  out << "curve([" << newl;
   out << z0 << "," << newl
       << c0 << "," << newl
       << c1 << "," << newl
       << z1 << newl << "],"
       << drawElement::centerIndex << "," << materialIndex << ","
-      << Min << "," << Max << "));" << newl << newl;
+      << Min << "," << Max << ");" << newl << newl;
 }
 
 void jsfile::addCurve(const triple& z0, const triple& z1,
                       const triple& Min, const triple& Max)
 {
-  out << "P.push(new BezierCurve([" << newl;
+  out << "curve([" << newl;
   out << z0 << "," << newl
       << z1 << newl << "],"
       << drawElement::centerIndex << "," << materialIndex << ","
-      << Min << "," << Max << "));" << newl << newl;
+      << Min << "," << Max << ");" << newl << newl;
 }
 
 void jsfile::addPixel(const triple& z0, double width,
                       const triple& Min, const triple& Max)
 {
-  out << "P.push(new Pixel(" << newl;
+  out << "pixel(" << newl;
   out << z0 << "," << width << "," << newl
-      << materialIndex << "," << Min << "," << Max << "));" << newl << newl;
+      << materialIndex << "," << Min << "," << Max << ");" << newl << newl;
 }
 
 void jsfile::addMaterial(Material const& material)
@@ -304,9 +304,9 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
     }
     out << "]);" << newl;
   }
-  out << "P.push(new Triangles("
+  out << "triangles("
       << drawElement::centerIndex << "," << materialIndex << "," << newl
-      << Min << "," << Max << "));" << newl << newl;
+      << Min << "," << Max << ");" << newl << newl;
 }
 
 void jsfile::addSphere(const triple& center, double radius)
@@ -360,22 +360,29 @@ void jsfile::addTube(const triple *g, double width,
       << Min << "," << Max << "," << core <<");" << newl << newl;
 }
 
-void jsfile::addPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c)
+void jsfile::addPatch(triple const* controls,
+                      triple const& Min, triple const& Max,
+                      prc::RGBAColour const* c)
 {
   addRawPatch(controls,16,Min,Max,c,4);
 }
 
-void jsfile::addStraightPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c)
+void jsfile::addStraightPatch(triple const* controls,
+                              triple const& Min, triple const& Max,
+                              prc::RGBAColour const* c)
 {
   addRawPatch(controls,4,Min,Max,c,4);
 }
 
-void jsfile::addBezierTriangle(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c)
+void jsfile::addBezierTriangle(triple const* controls,
+                               triple const& Min, triple const& Max,
+                               prc::RGBAColour const* c)
 {
   addRawPatch(controls,10,Min,Max,c,3);
 }
 
-void jsfile::addStraightBezierTriangle(triple const* controls, triple const& Min, triple const& Max,
+void jsfile::addStraightBezierTriangle(triple const* controls,
+                                       triple const& Min, triple const& Max,
                                        prc::RGBAColour const* c)
 {
   addRawPatch(controls,3,Min,Max,c,3);

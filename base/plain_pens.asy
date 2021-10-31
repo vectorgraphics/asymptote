@@ -316,6 +316,11 @@ real[] rgba(pen p)
   return a;
 }
 
+pen rgb(real[] a)
+{
+  return rgb(a[0],a[1],a[2]);
+}
+
 pen rgba(real[] a)
 {
   return rgb(a[0],a[1],a[2])+opacity(a[3]);

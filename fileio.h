@@ -11,14 +11,13 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <zlib.h>
 
 #include "common.h"
 
 #ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
 #endif
-
-#include "zlib.h"
 
 #include "pair.h"
 #include "triple.h"

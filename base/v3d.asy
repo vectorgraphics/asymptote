@@ -1,6 +1,5 @@
-// module importv3d
 // Supakorn "Jamie" Rassameemasuang <jamievlin@outlook.com> and
-// John C. Bowman <bowman@ualberta.ca>
+// John C. Bowman
 
 import three;
 import v3dtypes;
@@ -145,15 +144,15 @@ struct v3dfile
       info.setCameraInfo();
   }
 
-  pen[] readColorData(int size=4)
+  pen[] readColorData(int size=4, bool alpha=true)
   {
     xdrfile.singlereal(true);
 
-    xdrfile.dimension(4);
+    xdrfile.dimension(alpha ? 4 : 3);
     pen[] newPen=new pen[size];
-    for (int i=0;i<size;++i)
+    for (int i=0; i < size; ++i)
       {
-        newPen[i]=rgba(xdrfile);
+        newPen[i]=alpha ? rgba(xdrfile) : rgb((real[]) xdrfile);
       }
 
     xdrfile.singlereal(singleprecision);
@@ -184,11 +183,11 @@ struct v3dfile
             int val=xdrfile;
             ci.absolute=(val != 0);
           }
-        else if (headerKey == v3dheadertypes.b)
+        else if (headerKey == v3dheadertypes.minBound)
           {
             ci.b=xdrfile;
           }
-        else if (headerKey == v3dheadertypes.B)
+        else if (headerKey == v3dheadertypes.maxBound)
           {
             ci.B=xdrfile;
           }
@@ -197,11 +196,11 @@ struct v3dfile
             int val=xdrfile;
             ci.orthographic=(val != 0);
           }
-        else if (headerKey == v3dheadertypes.angle_)
+        else if (headerKey == v3dheadertypes.angleOfView)
           {
             ci.angle=xdrfile;
           }
-        else if (headerKey == v3dheadertypes.Zoom0)
+        else if (headerKey == v3dheadertypes.initialZoom)
           {
             ci.Zoom0=xdrfile;
           }
@@ -217,7 +216,7 @@ struct v3dfile
           {
             triple position=xdrfile;
             ci.light.position.push(position);
-            ci.light.diffuse.push(rgba(readColorData(1)[0]));
+            ci.light.diffuse.push(rgba(readColorData(1,false)[0]));
           }
         else
           {
@@ -495,7 +494,7 @@ struct v3dfile
             hasCameraInfo=true;
             info=processHeader();
           }
-        else if(ty == v3dtypes.material_)
+        else if(ty == v3dtypes.material)
           {
             materials.push(readMaterial());
           }
@@ -567,7 +566,7 @@ struct v3dfile
           {
             centers=readCenters();
           }
-        else if(ty == v3dtypes.pixel_)
+        else if(ty == v3dtypes.pixel)
           {
             readPixel();
           }
@@ -580,7 +579,7 @@ struct v3dfile
   }
 }
 
-void readv3d(string name)
+void importv3d(string name)
 {
   v3dfile xf=v3dfile(name);
   xf.process();

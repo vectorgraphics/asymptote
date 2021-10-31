@@ -1,5 +1,5 @@
-material_,1
-transform_,2
+material,1
+transform,2
 element,3
 centers,4
 header,5
@@ -31,4 +31,4 @@ halfSphere,1028
 animation,2048
 
 #element2D,3072
-pixel_,4096
+pixel,4096

@@ -25,7 +25,7 @@
 
 namespace camp {
 
-static const double pixel=1.0; // Adaptive rendering constant.
+static const double pixelResolution=1.0; // Adaptive rendering constant.
 
 enum Interaction {EMBEDDED=0,BILLBOARD};
 

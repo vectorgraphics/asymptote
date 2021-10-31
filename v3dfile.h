@@ -1,14 +1,16 @@
 /*
  * v3dfile.h
  * Header file for v3d export and types
- * Written by: Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com> \
- *   and John C. Bowman <bowman@ualberta.ca>
+ *
+ * Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com> and
+ * John C. Bowman
  */
 
 #ifndef V3DFILE_H
 #define V3DFILE_H
 
 #include <prc/oPRCFile.h>
+#include <zlib.h>
 
 #include "common.h"
 #include "abs3doutfile.h"
@@ -16,10 +18,10 @@
 #include "triple.h"
 #include "material.h"
 #include "glrender.h"
+#define transform transform_
 #include "v3dtypes.h"
+#undef transform
 #include "v3dheadertypes.h"
-
-#include "zlib.h"
 
 namespace camp
 {

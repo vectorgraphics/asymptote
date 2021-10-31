@@ -191,7 +191,7 @@ extern Billboard BB;
 #ifdef HAVE_LIBGLM
 typedef mem::map<CONST Material,size_t> MaterialMap;
 
-extern std::vector<Material> material;
+extern std::vector<Material> materials;
 extern MaterialMap materialMap;
 extern size_t materialIndex;
 extern int MaterialIndex;
@@ -256,7 +256,7 @@ class vertexData0 {
 public:
   GLfloat position[3];
   GLfloat width;
-  GLint  material;
+  GLint material;
   vertexData0() {};
   vertexData0(const triple& v, double width) : width(width) {
     position[0]=v.getx();

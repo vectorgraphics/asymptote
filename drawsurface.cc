@@ -65,10 +65,10 @@ void setcolors(bool colors,
   auto p=materialMap.find(m);
   if(p != materialMap.end()) materialIndex=p->second;
   else {
-    materialIndex=material.size();
+    materialIndex=materials.size();
     if(materialIndex >= nmaterials)
       nmaterials=min(Maxmaterials,2*nmaterials);
-    material.push_back(m);
+    materials.push_back(m);
     materialMap[m]=materialIndex;
     if(out)
       out->addMaterial(m);
