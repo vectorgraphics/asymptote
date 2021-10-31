@@ -2905,7 +2905,6 @@ object embed(string prefix=outprefix(), string label=prefix,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
              Light.diffuse,Light.specular,
              view && !preview);
-    if(settings.once && !settings.batchView) exit();
     if(!preview) return F;
   }
 
@@ -3041,7 +3040,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
       return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,light,P);
     },prefix,format,view,light);
-  if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
+  if(is3D(format) || empty3) return pic.fit2(xsize,ysize,keepAspect);
   return f;
 };
 

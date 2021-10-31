@@ -106,7 +106,6 @@ void shipout(string prefix=defaultfilename, frame f,
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
   _shipout(prefix,f,currentpatterns,format,wait,view,t);
-  if(settings.once && !settings.batchView) exit();
 }
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,

@@ -26,6 +26,10 @@
 #include "interact.h"
 #include "fpu.h"
 
+extern uint32_t CLZ(uint32_t a);
+
+bool GPUindexing;
+
 namespace gl {
 #ifdef HAVE_PTHREAD
 pthread_t mainthread;
@@ -69,7 +73,21 @@ Billboard BB;
 GLint pixelShader;
 GLint materialShader;
 GLint colorShader;
+GLint countShader;
 GLint transparentShader;
+GLint blendShader;
+GLint zeroShader;
+GLint preSumShader;
+GLint partialSumShader;
+GLint postSumShader;
+
+GLuint countBuffer;
+GLuint offsetBuffer;
+GLuint sumBuffer;
+GLuint fragmentBuffer;
+
+bool initSSBO;
+GLuint maxFragments;
 
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -105,6 +123,9 @@ extern void exitHandler(int);
 
 namespace gl {
 
+GLint processors;
+GLint steps;
+
 bool outlinemode=false;
 bool glthread=false;
 bool glupdate=false;
@@ -130,6 +151,7 @@ bool firstFit;
 bool queueExport=false;
 bool readyAfterExport=false;
 bool remesh;
+bool copied;
 
 int Mode;
 
@@ -168,7 +190,8 @@ static const double pi=acos(-1.0);
 static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
-double *Background;
+double Background[4];
+
 size_t Nlights=1; // Maximum number of lights compiled in shader
 size_t nlights; // Actual number of lights
 size_t nlights0;
@@ -331,7 +354,9 @@ void home(bool webgl=false)
 #endif
 #endif
   dviewMat=dmat4(1.0);
+#ifndef HAVE_SSBO
   dView=value_ptr(dviewMat);
+#endif
   viewMat=mat4(dviewMat);
 
   drotateMat=dmat4(1.0);
@@ -364,36 +389,6 @@ int window;
 using utils::statistics;
 statistics S;
 
-#ifdef HAVE_LIBOPENIMAGEIO
-GLuint envMapBuf;
-
-GLuint initHDR() {
-  GLuint tex;
-  glGenTextures(1, &tex);
-
-  auto imagein = OIIO::ImageInput::open(locateFile("res/studio006.hdr").c_str());
-  OIIO::ImageSpec const& imspec = imagein->spec();
-
-  // uses GL_TEXTURE1 for now.
-  glActiveTexture(GL_TEXTURE1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  glBindTexture(GL_TEXTURE_2D, tex);
-  std::vector<float> pixels(imspec.width*imspec.height*3);
-  imagein->read_image(pixels.data());
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imspec.width, imspec.height, 0,
-               GL_RGB, GL_FLOAT, pixels.data());
-
-  glGenerateMipmap(GL_TEXTURE_2D);
-  imagein->close();
-
-  glActiveTexture(GL_TEXTURE0);
-  return tex;
-}
-
-#endif
 GLint shaderProg,shaderProgColor;
 
 void *glrenderWrapper(void *a);
@@ -432,51 +427,116 @@ void initShaders()
   Nmaterials=max(Nmaterials,nmaterials);
 
   shaderProg=glCreateProgram();
-  string vs=locateFile("shaders/vertex.glsl");
-  string fs=locateFile("shaders/fragment.glsl");
-  if(vs.empty() || fs.empty()) {
+
+  string count=locateFile(GPUindexing ? "shaders/offset.glsl" :
+                          "shaders/count.glsl");
+  string zero=locateFile("shaders/count0.glsl");
+  string vertex=locateFile("shaders/vertex.glsl");
+  string fragment=locateFile("shaders/fragment.glsl");
+  string blend=locateFile("shaders/blend.glsl");
+  string screen=locateFile("shaders/screen.glsl");
+  string pre=locateFile("shaders/presum.glsl");
+  string partial=locateFile("shaders/partialsum.glsl");
+  string post=locateFile("shaders/postsum.glsl");
+
+  if(vertex.empty() || count.empty() || fragment.empty() || blend.empty() ||
+     screen.empty() || zero.empty() || pre.empty() || partial.empty() ||
+     post.empty()) {
     cerr << "GLSL shaders not found." << endl;
     exit(-1);
   }
 
+  std::vector<ShaderfileModePair> shaders(1);
   std::vector<std::string> shaderParams;
 
-#if HAVE_LIBOPENIMAGEIO
-  if (getSetting<bool>("envmap")) {
-    shaderParams.push_back("ENABLE_TEXTURE");
-    envMapBuf=initHDR();
+#ifdef HAVE_SSBO
+  if(GPUindexing) {
+    shaders[0]=ShaderfileModePair(pre.c_str(),GL_COMPUTE_SHADER);
+    camp::preSumShader=compileAndLinkShader(shaders,shaderParams,true);
+
+    ostringstream s;
+    s << "PROCESSORS " << processors << "u" << endl;
+    shaderParams.push_back(s.str().c_str());
+    shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
+    camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,true);
+    shaderParams.pop_back();
+
+    shaders[0]=ShaderfileModePair(post.c_str(),GL_COMPUTE_SHADER);
+    camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true);
   }
 #endif
+  shaders.push_back(ShaderfileModePair());
 
-  std::vector<ShaderfileModePair> shaders;
-  shaders.push_back(ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER));
-  shaders.push_back(ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER));
+  shaders[0]=ShaderfileModePair(vertex.c_str(),GL_VERTEX_SHADER);
+
+#ifdef HAVE_SSBO
+  shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
+  camp::countShader=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.push_back("HAVE_SSBO");
+#endif
+
+  shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
+  shaderParams.push_back("MATERIAL");
   if(orthographic)
     shaderParams.push_back("ORTHOGRAPHIC");
 
+  ostringstream lights,materials;
+  lights << "Nlights " << Nlights << endl;
+  shaderParams.push_back(lights.str().c_str());
+  materials << "Nmaterials " << Nmaterials << endl;
+  shaderParams.push_back(materials.str().c_str());
+
   shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
+  camp::pixelShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.pop_back();
 
   shaderParams.push_back("NORMAL");
-  camp::materialShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                            shaderParams);
+  camp::materialShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.push_back("COLOR");
-  camp::colorShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                         shaderParams);
+  camp::colorShader=compileAndLinkShader(shaders,shaderParams);
+
   shaderParams.push_back("TRANSPARENT");
-  camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                               shaderParams);
+  if(Mode == 0) shaderParams.push_back("WIREFRAME");
+  camp::transparentShader=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.clear();
+#ifdef HAVE_SSBO
+  shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
+
+  if(GPUindexing)
+    shaderParams.push_back("GPUINDEXING");
+  else {
+    shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
+    camp::zeroShader=compileAndLinkShader(shaders,shaderParams);
+  }
+
+  shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
+  camp::blendShader=compileAndLinkShader(shaders,shaderParams);
+#endif
 }
 
 void deleteShaders()
 {
+#ifdef HAVE_SSBO
+  glDeleteProgram(camp::blendShader);
+  if(GPUindexing) {
+    glDeleteProgram(camp::preSumShader);
+    glDeleteProgram(camp::partialSumShader);
+    glDeleteProgram(camp::postSumShader);
+  } else
+    glDeleteProgram(camp::zeroShader);
+  glDeleteProgram(camp::countShader);
+#endif
   glDeleteProgram(camp::transparentShader);
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::materialShader);
   glDeleteProgram(camp::pixelShader);
 }
+
+struct Fragment
+{
+  glm::vec4 color;
+  glm::vec4 depth; // Pad depth to a glm::vec4
+};
 
 void setBuffers()
 {
@@ -489,6 +549,14 @@ void setBuffers()
   camp::colorData.Reserve();
   camp::triangleData.Reserve();
   camp::transparentData.Reserve();
+
+#ifdef HAVE_SSBO
+  glGenBuffers(1, &camp::countBuffer);
+  glGenBuffers(1, &camp::offsetBuffer);
+  if(GPUindexing)
+    glGenBuffers(1, &camp::sumBuffer);
+  glGenBuffers(1, &camp::fragmentBuffer);
+#endif
 }
 
 void drawscene(int Width, int Height)
@@ -531,11 +599,14 @@ int Quotient(int x, int y)
   return (x+y-1)/y;
 }
 
+bool exporting=false;
+
 void Export()
 {
   glReadBuffer(GL_BACK_LEFT);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
   glFinish();
+  exporting=true;
   try {
     size_t ndata=3*fullWidth*fullHeight;
     unsigned char *data=new unsigned char[ndata];
@@ -602,6 +673,7 @@ void Export()
   }
 #endif
 #endif
+  exporting=false;
 }
 
 void nodisplay()
@@ -657,6 +729,7 @@ void quit()
 void mode()
 {
   remesh=true;
+  camp::initSSBO=true;
   switch(Mode) {
     case 0: // regular
       outlinemode=false;
@@ -667,12 +740,13 @@ void mode()
       break;
     case 1: // outline
       outlinemode=true;
-      nlights=0;
+      nlights=0; // Force shader recompilation
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
       break;
     case 2: // wireframe
       outlinemode=false;
+      Nlights=1; // Force shader recompilation
       Mode=0;
       break;
   }
@@ -709,6 +783,7 @@ void reshape0(int width, int height)
 
   setProjection();
   glViewport(0,0,Width,Height);
+  camp::initSSBO=true;
 }
 
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -859,8 +934,9 @@ void display()
       if(s > 0.0) {
         double rate=1.0/s;
         S.add(rate);
-        cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev()
-             << endl;
+        if(framecount % 20 == 0)
+          cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev()
+               << endl;
       }
     }
     ++framecount;
@@ -908,7 +984,9 @@ void update()
 
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
+#ifndef HAVE_SSBO
   dView=value_ptr(dviewMat);
+#endif
   viewMat=mat4(dviewMat);
 
   setProjection();
@@ -1505,10 +1583,24 @@ void init_osmesa()
     exit(-1);
   }
 
-  ctx = OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
+  const int attribs[]={
+    OSMESA_FORMAT,OSMESA_RGBA,
+    OSMESA_DEPTH_BITS,16,
+    OSMESA_STENCIL_BITS,0,
+    OSMESA_ACCUM_BITS,0,
+    OSMESA_PROFILE,OSMESA_CORE_PROFILE,
+    OSMESA_CONTEXT_MAJOR_VERSION,4,
+    OSMESA_CONTEXT_MINOR_VERSION,3,
+    0,0
+  };
+
+  ctx=OSMesaCreateContextAttribs(attribs,NULL);
   if(!ctx) {
-    cerr << "OSMesaCreateContext failed." << endl;
-    exit(-1);
+    ctx=OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
+    if(!ctx) {
+      cerr << "OSMesaCreateContextExt failed." << endl;
+      exit(-1);
+    }
   }
 
   if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,
@@ -1534,6 +1626,12 @@ void init_osmesa()
 
 #endif /* HAVE_GL */
 
+// Return ceil(log2(n)) where n is a 32 bit unsigned integer.
+uint32_t ceillog2(uint32_t n)
+{
+  return 32-CLZ(n-1);
+}
+
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
@@ -1543,6 +1641,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *diffuse, double *specular, bool view, int oldpid)
 {
   Iconify=getSetting<bool>("iconify");
+
+#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
+  GPUindexing=getSetting<bool>("GPUindexing");
+#else
+  GPUindexing=false;
+#endif
 
   if(zoom == 0.0) zoom=1.0;
 
@@ -1561,7 +1665,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Oldpid=oldpid;
   Shift=shift/zoom;
   Margin=margin;
-  Background=background;
+  for(size_t i=0; i < 4; ++i)
+    Background[i]=background[i];
 
   Xmin=m.getx();
   Xmax=M.getx();
@@ -1667,6 +1772,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     home(producerawfile);
     setProjection();
     if(producerawfile) return;
+
+    camp::initSSBO=true;
+    camp::maxFragments=0;
 
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
 
@@ -1786,11 +1894,41 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
+
+  if(GPUindexing) {
+    glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,&processors);
+    if(processors <= 1)
+      GPUindexing=false;
+    else
+      steps=ceillog2(processors);
+  }
+
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
 
   if(glinitialize) {
     glinitialize=false;
+
+    char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+    GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
+
+    if(GLSLversion < 130) {
+      cerr << "Unsupported GLSL version: " << GLSL_VERSION << "." << endl;
+      exit(-1);
+    }
+
+    if(settings::verbose > 2) {
+      cout << "GLSL version " << GLSL_VERSION;
+#ifdef HAVE_SSBO
+      cout << " with SSBO";
+#ifdef HAVE_COMPUTE_SHADER
+      cout << " and compute shader";
+#endif
+      cout << " support";
+#endif
+      cout << endl;
+    }
+
     int result = glewInit();
 
     if (result != GLEW_OK) {
@@ -1802,7 +1940,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setBuffers();
   }
 
-  glClearColor(Background[0],Background[1],Background[2],Background[3]);
+  glClearColor(background[0],background[1],background[2],background[3]);
 
 #ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
@@ -1818,11 +1956,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 #endif
 
-  glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
+#ifndef HAVE_SSBO
+  glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+#endif
+
   mode();
 
 #ifdef HAVE_LIBOSMESA
@@ -1905,6 +2046,125 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
   }
 }
 
+void clearCount()
+{
+  glUseProgram(zeroShader);
+  glUniform1ui(glGetUniformLocation(zeroShader,"width"),gl::Width);
+  gl::lastshader=zeroShader;
+  fpu_trap(false); // Work around FE_INVALID
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+  fpu_trap(settings::trap());
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+}
+
+void refreshBuffers()
+{
+  GLuint zero=0;
+  GLuint fragments=0;
+  GLuint pixels=gl::Width*gl::Height;
+
+  if(initSSBO) {
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,(1+pixels)*sizeof(GLuint),NULL,
+                 GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_BYTE,&zero);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
+                 GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_BYTE,&zero);
+
+    if(GPUindexing) {
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
+      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::processors*sizeof(GLuint),NULL,
+                   GL_DYNAMIC_DRAW);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::sumBuffer);
+    }
+
+    initSSBO=false;
+  }
+
+  if(GPUindexing) {
+    if(gl::exporting) {
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                        GL_UNSIGNED_BYTE,&zero);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::sumBuffer);
+    }
+  }
+
+  // Determine the fragment offsets
+  drawBuffer(material0Data,countShader); // TODO: Account for pixel width
+  drawBuffer(material1Data,countShader);
+  drawBuffer(materialData,countShader);
+  drawBuffer(colorData,countShader,true);
+  drawBuffer(triangleData,countShader,true);
+
+  glDepthMask(GL_FALSE); // Don't write to depth buffer
+  glDisable(GL_MULTISAMPLE);
+  drawBuffer(transparentData,countShader,true);
+  glEnable(GL_MULTISAMPLE);
+  glDepthMask(GL_TRUE); // Write to depth buffer
+
+  if(GPUindexing) { // Compute partial sums directly on the GPU
+    glUseProgram(preSumShader);
+    glUniform1ui(glGetUniformLocation(preSumShader,"elements"),pixels);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    glDispatchCompute(gl::processors,1,1);
+
+    glUseProgram(partialSumShader);
+    glUniform1ui(glGetUniformLocation(partialSumShader,"elements"),pixels);
+    glUniform1ui(glGetUniformLocation(partialSumShader,"steps"),gl::steps);
+
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    glDispatchCompute(1,1,1);
+
+    glUseProgram(postSumShader);
+    glUniform1ui(glGetUniformLocation(postSumShader,"elements"),pixels);
+
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    glGetBufferSubData(GL_SHADER_STORAGE_BUFFER,0,sizeof(GLuint),&fragments);
+  } else { // Compute partial sums on the CPU
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    GLuint *countm1=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY))-1;
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_WRITE_ONLY);
+    size_t Offset=0;
+    offset[0]=0;
+    for(size_t i=1; i < pixels; ++i)
+      offset[i]=Offset += countm1[i];
+    fragments=offset[pixels-1]+countm1[pixels];
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+    clearCount();
+  }
+
+  if(fragments > maxFragments) {
+    // Initialize the alpha buffer
+    maxFragments=11*fragments/10;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::fragmentBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(gl::Fragment),
+                 NULL,GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::fragmentBuffer);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
+  }
+
+  if(GPUindexing)
+    glDispatchCompute(gl::processors,1,1);
+  gl::lastshader=-1;
+}
+
 void setUniforms(vertexBuffer& data, GLint shader)
 {
   bool normal=shader != pixelShader;
@@ -1913,7 +2173,10 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUseProgram(shader);
     gl::lastshader=shader;
 
-    glUniform1i(glGetUniformLocation(shader,"nlights"),gl::nlights);
+#ifdef HAVE_SSBO
+    glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
+#endif
+    glUniform1ui(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
     for(size_t i=0; i < gl::nlights; ++i) {
       triple Lighti=gl::Lights[i];
@@ -1928,22 +2191,12 @@ void setUniforms(vertexBuffer& data, GLint shader)
                   (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
                   (GLfloat) gl::Diffuse[i4+2]);
     }
-
-#if HAVE_LIBOPENIMAGEIO
-    // textures
-    if (settings::getSetting<bool>("envmap")) {
-      glActiveTexture(GL_TEXTURE1);
-      glBindBuffer(GL_TEXTURE_2D, gl::envMapBuf);
-      glUniform1i(glGetUniformLocation(shader, "environmentMap"), 1);
-      glActiveTexture(GL_TEXTURE0);
-    }
-#endif
   }
 
   GLuint binding=0;
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   glUniformBlockBinding(shader,blockindex,binding);
-  bool copy=gl::remesh || data.partial || !data.rendered;
+  bool copy=(gl::remesh || data.partial || !data.rendered) && !gl::copied;
   registerBuffer(data.materials,data.materialsBuffer,copy,GL_UNIFORM_BUFFER);
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,data.materialsBuffer);
 
@@ -1957,19 +2210,18 @@ void setUniforms(vertexBuffer& data, GLint shader)
                        value_ptr(gl::normMat));
 }
 
-void drawBuffer(vertexBuffer& data, GLint shader)
+void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 {
   if(data.indices.empty()) return;
 
   bool normal=shader != pixelShader;
-  bool color=shader == colorShader || shader == transparentShader;
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
   const size_t bytestride=color ? sizeof(VertexData) :
     (normal ? sizeof(vertexData) : sizeof(vertexData0));
 
-  bool copy=gl::remesh || data.partial || !data.rendered;
+  bool copy=(gl::remesh || data.partial || !data.rendered) && !gl::copied;
   if(color) registerBuffer(data.Vertices,data.VerticesBuffer,copy);
   else if(normal) registerBuffer(data.vertices,data.verticesBuffer,copy);
   else registerBuffer(data.vertices0,data.vertices0Buffer,copy);
@@ -2018,7 +2270,6 @@ void drawBuffer(vertexBuffer& data, GLint shader)
     glDisableVertexAttribArray(colorAttrib);
 
   glBindBuffer(GL_UNIFORM_BUFFER,0);
-
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
@@ -2043,35 +2294,77 @@ void drawMaterial()
 
 void drawColor()
 {
-  drawBuffer(colorData,colorShader);
+  drawBuffer(colorData,colorShader,true);
   colorData.clear();
 }
 
 void drawTriangle()
 {
-  drawBuffer(triangleData,transparentShader);
-  triangleData.rendered=false; // Force copying of sorted triangles to GPU.
+#ifndef HAVE_SSBO
+  triangleData.rendered=false; // Force copying of sorted triangles to GPU
+#endif
+  drawBuffer(triangleData,transparentShader,true);
   triangleData.clear();
+}
+
+void aBufferTransparency()
+{
+  // Collect transparent fragments
+  glDepthMask(GL_FALSE); // Disregard depth
+  drawBuffer(transparentData,transparentShader,true);
+  glDepthMask(GL_TRUE); // Respect depth
+
+  // Blend transparent fragments
+  glDisable(GL_DEPTH_TEST);
+  glUseProgram(blendShader);
+  glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
+  glUniform4f(glGetUniformLocation(blendShader,"background"),
+              gl::Background[0],gl::Background[1],gl::Background[2],
+              gl::Background[3]);
+  gl::lastshader=blendShader;
+  fpu_trap(false); // Work around FE_INVALID
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+  fpu_trap(settings::trap());
+  transparentData.clear();
+  glEnable(GL_DEPTH_TEST);
 }
 
 void drawTransparent()
 {
+#ifdef HAVE_SSBO
+  glDisable(GL_MULTISAMPLE);
+  aBufferTransparency();
+  glEnable(GL_MULTISAMPLE);
+#else
   sortTriangles();
-  glDepthMask(GL_FALSE); // Enable transparency
-  drawBuffer(transparentData,transparentShader);
-  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
-  glDepthMask(GL_TRUE); // Disable transparency
+  transparentData.rendered=false; // Force copying of sorted triangles to GPU
+  glDepthMask(GL_FALSE); // Don't write to depth buffer
+  drawBuffer(transparentData,transparentShader,true);
+  glDepthMask(GL_TRUE); // Write to depth buffer
   transparentData.clear();
+#endif
 }
 
 void drawBuffers()
 {
+  gl::copied=false;
+  bool transparent=!transparentData.indices.empty();
+#ifdef HAVE_SSBO
+  if(transparent) {
+    refreshBuffers();
+    gl::copied=true;
+  }
+#endif
+
   drawMaterial0();
   drawMaterial1();
   drawMaterial();
   drawColor();
   drawTriangle();
-  drawTransparent();
+
+  if(transparent)
+    drawTransparent();
 }
 
 void clearMaterialBuffer()
