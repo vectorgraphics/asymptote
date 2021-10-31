@@ -122,7 +122,7 @@ extern camp::pair Margin;
 extern camp::triple *Lights;
 extern size_t nlights;
 extern double *Diffuse;
-extern double *Background;
+extern double Background[4];
 
 struct projection
 {
