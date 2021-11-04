@@ -71,6 +71,11 @@ typedef unsigned int GLuint;
 typedef int GLint;
 typedef float GLfloat;
 typedef double GLdouble;
+typedef unsigned char GLubyte;
+typedef unsigned int GLenum;
+#define GL_POINTS				0x0000
+#define GL_LINES				0x0001
+#define GL_TRIANGLES				0x0004
 #endif
 
 #ifdef HAVE_LIBGLM
@@ -195,9 +200,6 @@ extern std::vector<Material> materials;
 extern MaterialMap materialMap;
 extern size_t materialIndex;
 extern int MaterialIndex;
-#endif
-
-#ifdef HAVE_GL
 
 extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
 extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers

@@ -13,8 +13,7 @@
 
 namespace camp {
 
-#ifdef HAVE_GL
-
+#ifdef HAVE_LIBGLM
 
 typedef std::function<GLuint(vertexBuffer*, triple const&, triple const&)> vertexFunc;
 struct renderSettings

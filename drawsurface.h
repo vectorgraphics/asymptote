@@ -145,7 +145,7 @@ public:
 
 class drawBezierPatch : public drawSurface {
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   BezierPatch S;
 #endif
 
@@ -179,7 +179,7 @@ public:
 
 class drawBezierTriangle : public drawSurface {
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   BezierTriangle S;
 #endif
 
@@ -506,7 +506,7 @@ public:
 
 class drawBaseTriangles : public drawElement {
 protected:
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
   Triangles R;
   bool transparent;
 #endif
@@ -591,12 +591,11 @@ public:
     } else Ni=0;
   }
 
-  drawBaseTriangles(vertexBuffer const& vb, const triple &center,
+#ifdef HAVE_LIBGLM
+  drawBaseTriangles(const vertexBuffer& vb, const triple& center,
                     Interaction interaction, bool isColor,
                     const triple& Min, const triple& Max) :
-#ifdef HAVE_GL
     transparent(false),
-#endif
     nP(isColor ? vb.Vertices.size() : vb.vertices.size()), center(center),
     nN(nP), nI(vb.indices.size()/3), Ni(0),
     interaction(interaction), Min(Min), Max(Max) {
@@ -625,6 +624,7 @@ public:
     }
     NI=PI;
   }
+#endif
 
   drawBaseTriangles(const double* t, const drawBaseTriangles *s) :
     drawElement(s->KEY),
@@ -756,6 +756,7 @@ public:
     specular=rgba(vm::read<camp::pen>(p,2));
   }
 
+#ifdef HAVE_LIBGLM
   drawTriangles(vertexBuffer const& vb, const triple &center, bool isColor,
                 prc::RGBAColour diffuse,
                 prc::RGBAColour emissive,
@@ -783,6 +784,7 @@ public:
       }
     }
   }
+#endif
 
   drawTriangles(const double* t, const drawTriangles *s) :
     drawBaseTriangles(t,s), nC(s->nC),

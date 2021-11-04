@@ -67,6 +67,10 @@ pthread_t mainthread;
 using settings::locateFile;
 using utils::seconds;
 
+#endif
+
+#ifdef HAVE_LIBGLM
+
 namespace camp {
 Billboard BB;
 
@@ -86,18 +90,6 @@ GLuint offsetBuffer;
 GLuint sumBuffer;
 GLuint fragmentBuffer;
 
-bool initSSBO;
-GLuint maxFragments;
-
-vertexBuffer material0Data(GL_POINTS);
-vertexBuffer material1Data(GL_LINES);
-vertexBuffer materialData;
-vertexBuffer colorData;
-vertexBuffer transparentData;
-vertexBuffer triangleData;
-
-const size_t Nbuffer=10000;
-const size_t nbuffer=1000;
 }
 
 #endif /* HAVE_GL */
@@ -110,6 +102,19 @@ using camp::nmaterials;
 using camp::MaterialMap;
 
 namespace camp {
+bool initSSBO;
+GLuint maxFragments;
+
+vertexBuffer material0Data(GL_POINTS);
+vertexBuffer material1Data(GL_LINES);
+vertexBuffer materialData;
+vertexBuffer colorData;
+vertexBuffer transparentData;
+vertexBuffer triangleData;
+
+const size_t Nbuffer=10000;
+const size_t nbuffer=1000;
+
 std::vector<Material> materials;
 MaterialMap materialMap;
 size_t materialIndex;
