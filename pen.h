@@ -147,7 +147,7 @@ inline unsigned int byte(double r)
 inline double byteinv(unsigned int i)
 {
   if(i == 255) return 1.0;
-  return i/256;
+  return i/256.0;
 }
 
 class pen;
