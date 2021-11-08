@@ -228,7 +228,7 @@ public:
   GLfloat position[3];
   GLfloat normal[3];
   GLint material;
-  GLubyte color[4];
+  GLfloat color[4];
   VertexData() {};
   VertexData(const triple& v, const triple& n) {
     position[0]=v.getx();
@@ -247,10 +247,10 @@ public:
     normal[1]=n.gety();
     normal[2]=n.getz();
     material=MaterialIndex;
-    color[0]=byte(c[0]);
-    color[1]=byte(c[1]);
-    color[2]=byte(c[2]);
-    color[3]=byte(c[3]);
+    color[0]=c[0];
+    color[1]=c[1];
+    color[2]=c[2];
+    color[3]=c[3];
   }
 };
 

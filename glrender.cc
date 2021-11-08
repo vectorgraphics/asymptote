@@ -2256,7 +2256,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   glEnableVertexAttribArray(materialAttrib);
 
   if(color) {
-    glVertexAttribPointer(colorAttrib,4,GL_UNSIGNED_BYTE,GL_TRUE,bytestride,
+    glVertexAttribPointer(colorAttrib,4,GL_FLOAT,GL_FALSE,bytestride,
                           (void *) (6*size+intsize));
     glEnableVertexAttribArray(colorAttrib);
   }

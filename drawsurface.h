@@ -777,10 +777,10 @@ public:
     if(isColor) {
       C=new(UseGC) prc::RGBAColour[nC];
       for(size_t i=0; i < nC; ++i) {
-        C[i].Set(byteinv(vb.Vertices[i].color[0]),
-                 byteinv(vb.Vertices[i].color[1]),
-                 byteinv(vb.Vertices[i].color[2]),
-                 byteinv(vb.Vertices[i].color[3]));
+        C[i].Set(vb.Vertices[i].color[0],
+                 vb.Vertices[i].color[1],
+                 vb.Vertices[i].color[2],
+                 vb.Vertices[i].color[3]);
       }
     }
   }
