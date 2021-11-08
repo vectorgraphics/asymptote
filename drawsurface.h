@@ -125,12 +125,12 @@ public:
     center=t*s->center;
   }
 
-  double renderResolution2() {
+  double renderResolution() {
     triple b(gl::xmin,gl::ymin,gl::zmin);
     triple B(gl::xmax,gl::ymax,gl::zmax);
     double prerender=settings::getSetting<double>("prerender");
     if(prerender == 0.0) return 0.0;
-    prerender=1.0/(prerender*prerender);
+    prerender=1.0/prerender;
     double perspective=gl::orthographic ? 0.0 : 1.0/gl::zmax;
     double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
     pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
@@ -767,16 +767,16 @@ public:
                 double fresnel0, Interaction interaction,
                 bool invisible,
                 const triple& Min, const triple& Max) :
-    drawBaseTriangles(vb, center, interaction, isColor, Min, Max),
+    drawBaseTriangles(vb,center,interaction,isColor,Min,Max),
     nC(isColor ? vb.Vertices.size() : 0), C(nullptr),
     CI(isColor ? PI : nullptr),
     Ci(isColor ? Ni : 0),
     diffuse(diffuse), emissive(emissive), specular(specular),
-    opacity(opacity),shininess(shininess),
+    opacity(opacity), shininess(shininess),
     metallic(metallic), fresnel0(fresnel0), invisible(invisible) {
-    if (isColor) {
+    if(isColor) {
       C=new(UseGC) prc::RGBAColour[nC];
-      for (size_t i=0;i < nC; ++i) {
+      for(size_t i=0; i < nC; ++i) {
         C[i].Set(byteinv(vb.Vertices[i].color[0]),
                  byteinv(vb.Vertices[i].color[1]),
                  byteinv(vb.Vertices[i].color[2]),

@@ -236,23 +236,20 @@ bool drawBezierPatch::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls,Min,Max,colors);
   } else {
-    double prerender=renderResolution2();
+    double prerender=renderResolution();
     if(prerender) {
-      vertexBuffer vb;
-      renderSettings setting
-        {
-          .res2=prerender,
-          .pvertex=std::mem_fn(&vertexBuffer::vertex),
-          .target=&vb,
-        };
-      S.render(setting, controls, false, nullptr);
-      drawTriangles dt(vb,center,colors,
-                       diffuse,emissive,specular,opacity,
-                       shininess,metallic,fresnel0,interaction,
-                       invisible,Min,Max);
+      GLfloat c[16];
+      if(colors)
+        for(size_t i=0; i < 4; ++i)
+          storecolor(c,4*i,colors[i]);
+      S.init(prerender,colors ? c : NULL);
+      S.render(controls,straight,c);
+      drawTriangles dt(S.data,center,colors,diffuse,emissive,specular,opacity,
+                       shininess,metallic,fresnel0,interaction,invisible,
+                       Min,Max);
       dt.write(out);
     } else
-      out->addPatch(controls, Min, Max, colors);
+      out->addPatch(controls,Min,Max,colors);
   }
   out->precision(getSetting<Int>("digits"));
 
@@ -499,21 +496,20 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addStraightBezierTriangle(Controls,Min,Max,colors);
   } else {
-    double prerender=renderResolution2();
+    double prerender=renderResolution();
     if(prerender) {
-      vertexBuffer vb;
-      renderSettings setting {
-        .res2=prerender,
-        .pvertex=std::mem_fn(&vertexBuffer::vertex),
-        .target=&vb,
-      };
-      S.render(setting, controls, false, nullptr);
-      drawTriangles dt(vb,center,colors,diffuse,emissive,specular,opacity,
+      GLfloat c[16];
+      if(colors)
+        for(size_t i=0; i < 4; ++i)
+          storecolor(c,4*i,colors[i]);
+      S.init(prerender,colors ? c : NULL);
+      S.render(controls,straight,c);
+      drawTriangles dt(S.data,center,colors,diffuse,emissive,specular,opacity,
                        shininess,metallic,fresnel0,interaction,invisible,
                        Min,Max);
       dt.write(out);
     } else
-      out->addBezierTriangle(controls, Min, Max, colors);
+      out->addBezierTriangle(controls,Min,Max,colors);
   }
   out->precision(getSetting<Int>("digits"));
 

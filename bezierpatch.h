@@ -9,36 +9,32 @@
 #define BEZIERPATCH_H
 
 #include "drawelement.h"
-#include <functional>
 
 namespace camp {
 
 #ifdef HAVE_LIBGLM
 
-typedef std::function<GLuint(vertexBuffer*, triple const&, triple const&)> vertexFunc;
-struct renderSettings
-{
-  double res2;
-
-  vertexFunc pvertex;
-  vertexBuffer* target;
-};
-
 struct BezierPatch
 {
   vertexBuffer data;
-
   bool transparent;
   bool color;
   double epsilon;
   double Epsilon;
   double res2;
   double Res2; // Reduced resolution for Bezier triangles flatness test.
-
-  vertexFunc pvertex;
+  typedef GLuint (vertexBuffer::*vertexFunction)(const triple &v,
+                                                 const triple& n);
+  vertexFunction pvertex;
   bool Onscreen;
 
   void init(double res);
+
+  void init(double res, GLfloat *colors) {
+    transparent=false;
+    color=colors;
+    init(res);
+  }
 
   triple normal(triple left3, triple left2, triple left1, triple middle,
                 triple right1, triple right2, triple right3) {
@@ -131,42 +127,13 @@ struct BezierPatch
     return false;
   }
 
-  virtual void render(renderSettings settings, const triple *p, bool straight, GLfloat *c0=NULL);
-
-  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL)
-  {
-    renderSettings setting
-    {
-      .res2 = this->res2,
-      .pvertex = this->pvertex,
-      .target = &this->data,
-    };
-    render(setting,p,straight,c0);
-  }
-  inline void render(const triple *p,
+  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
+  void render(const triple *p,
               GLuint I0, GLuint I1, GLuint I2, GLuint I3,
               triple P0, triple P1, triple P2, triple P3,
               bool flat0, bool flat1, bool flat2, bool flat3,
-              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL, GLfloat *C3=NULL)
-  {
-    renderSettings setting
-    {
-      .res2 = this->res2,
-      .pvertex = this->pvertex,
-      .target = &this->data,
-    };
-    render(setting,p,
-           I0,I1,I2,I3,
-           P0,P1,P2,P3,
-           flat0,flat1,flat2,flat3,
-           C0,C1,C2,C3);
-  }
-
-  void render(renderSettings settings, const triple *p,
-              GLuint I0, GLuint I1, GLuint I2, GLuint I3,
-              triple P0, triple P1, triple P2, triple P3,
-              bool flat0, bool flat1, bool flat2, bool flat3,
-              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL, GLfloat *C3=NULL);
+              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL,
+              GLfloat *C3=NULL);
 
   void append() {
     if(transparent)
@@ -221,33 +188,8 @@ public:
     return max(d,Straightness(p6,p[7],p[8],p9));
   }
 
-  void render(const triple *p, bool straight, GLfloat *c0=NULL) override
-  {
-    renderSettings setting
-    {
-      .res2 = res2,
-      .pvertex = this->pvertex,
-      .target = &this->data,
-    };
-    render(setting,p,straight,c0);
-  }
+  void render(const triple *p, bool straight, GLfloat *c0=NULL);
   void render(const triple *p,
-              GLuint I0, GLuint I1, GLuint I2,
-              triple P0, triple P1, triple P2,
-              bool flat0, bool flat1, bool flat2,
-              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL)
-  {
-    renderSettings setting
-    {
-            .res2 = res2,
-            .pvertex = this->pvertex,
-            .target = &this->data,
-    };
-    render(setting,p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2);
-  }
-
-  void render(renderSettings settings, triple const *p, bool straight, GLfloat *c0=NULL) override;
-  void render(renderSettings settings, const triple *p,
               GLuint I0, GLuint I1, GLuint I2,
               triple P0, triple P1, triple P2,
               bool flat0, bool flat1, bool flat2,
