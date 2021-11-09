@@ -3040,7 +3040,10 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
       return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,light,P);
     },prefix,format,view,light);
-  if(is3D(format) || empty3) return pic.fit2(xsize,ysize,keepAspect);
+  if(is3D(format) || empty3) {
+    if(prc(format)) add(f,pic.fit2(xsize,ysize,keepAspect));
+    else return pic.fit2(xsize,ysize,keepAspect);
+  }
   return f;
 };
 
