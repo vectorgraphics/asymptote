@@ -14,8 +14,7 @@ inline bool distinct(const uint32_t *I, const uint32_t *J)
   return I[0] != J[0] || I[1] != J[1] || I[2] != J[2];
 }
 
-class abs3Doutfile
-{
+class abs3Doutfile : public gc {
 public:
   virtual ~abs3Doutfile() = default;
   virtual void close()=0;

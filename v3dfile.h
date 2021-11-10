@@ -93,8 +93,7 @@ private:
   prc::RGBAColour color;
 };
 
-class absv3dfile : public abs3Doutfile
-{
+class absv3dfile : public abs3Doutfile {
 public:
   absv3dfile();
   explicit absv3dfile(bool singleprecision);
@@ -157,8 +156,7 @@ private:
   bool singleprecision;
 };
 
-class gzv3dfile : public absv3dfile
-{
+class gzv3dfile : public absv3dfile {
 public:
   explicit gzv3dfile(string const& name, bool singleprecision=false);
   ~gzv3dfile() override;

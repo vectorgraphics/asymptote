@@ -12,7 +12,6 @@ unsigned int type [material,transform,element,
 
 #UNFILL ELEMENTS:        triangle,quad,
                          curve,bezierTriangle,bezierPatch,
-
                          element2D,
                          animations,
 
