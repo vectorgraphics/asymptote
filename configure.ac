@@ -9,6 +9,7 @@ AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 
 test "$CXXFLAGS" || CXXFLAGS="-std=c++17"
+#test "$CXXFLAGS" || CXXFLAGS="-std=c++14"
 
 test "$CFLAGS" || CFLAGS="-g -O3"
 
@@ -138,7 +139,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
                    DEFINE([<unordered_map>])),
   [AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-ASYGLVERSION=1.00
+ASYGLVERSION=1.01
 
 GCVERSION=8.0.4
 ATOMICVERSION=7.6.10
@@ -375,6 +376,22 @@ fi
 
 AC_ARG_ENABLE(gl,
 [AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [#include <GL/gl.h>]
+    [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_shader_storage_buffer_object)]
+    [#error]
+    [#endif ]
+    )],
+    AC_DEFINE(HAVE_SSBO,1,DEFINE([GLSL shader storage buffer objects])))
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [#include <GL/gl.h>]
+    [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_compute_shader)]
+    [#error]
+    [#endif ]
+    )],
+    AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
 
 AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])

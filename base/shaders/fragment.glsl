@@ -10,7 +10,7 @@ struct Light
   vec3 color;
 };
 
-uniform int nlights;
+uniform uint nlights;
 uniform Light lights[max(Nlights,1)];
 
 uniform MaterialBuffer {
@@ -26,7 +26,29 @@ vec3 normal;
 #endif
 
 #ifdef COLOR
-in vec4 Color; 
+in vec4 Color;
+#endif
+
+#ifdef HAVE_SSBO
+struct Fragment
+{
+  vec4 color;
+  float depth;
+};
+
+layout(binding=1, std430) buffer offsetBuffer {
+  uint offset[];
+};
+
+layout(binding=2, std430) buffer countBuffer {
+  uint count[];
+};
+
+layout(binding=3, std430) buffer fragmentBuffer {
+  Fragment fragment[];
+};
+
+uniform uint width;
 #endif
 
 flat in int materialIndex;
@@ -73,6 +95,7 @@ vec2 normalizedAngle(vec3 cartVec)
   sphericalVec.z=sphericalVec.z/PI;
   return sphericalVec.yz;
 }
+
 #ifdef NORMAL
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
@@ -123,7 +146,7 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   vec3 dielectric=mix(lambertian,rawReflectance*Specular,F);
   vec3 metal=rawReflectance*Diffuse;
-  
+
   return mix(dielectric,metal,Metallic);
 }
 
@@ -185,13 +208,13 @@ void main()
 #ifdef COLOR
   diffuse=Color;
 #if Nlights == 0
-   emissive += Color;
+  emissive += Color;
 #endif
-#else  
-  diffuse=m.diffuse; 
+#else
+  diffuse=m.diffuse;
 #endif
 #endif
-  
+
 #if defined(NORMAL) && Nlights > 0
   Specular=m.specular.rgb;
   vec4 parameters=m.parameters;
@@ -215,13 +238,14 @@ void main()
 #endif
   // For a finite point light, the rendering equation simplifies.
   vec3 color=emissive.rgb;
-  for(int i=0; i < nlights; ++i) {
+  for(uint i=0u; i < nlights; ++i) {
     Light Li=lights[i];
     vec3 L=Li.direction;
     float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
     vec3 radiance=cosTheta*Li.color;
     color += BRDF(viewDir,L)*radiance;
   }
+
 
 #ifdef USE_IBL
   // PBR Reflective lights
@@ -232,7 +256,19 @@ void main()
 #else
   outColor=vec4(color,diffuse.a);
 #endif
-#else    
+#else
   outColor=emissive;
-#endif      
+#endif
+
+#ifdef HAVE_SSBO
+  uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+  uint listIndex=offset[headIndex]+atomicAdd(count[headIndex],1u);
+  fragment[listIndex].color=outColor;
+  fragment[listIndex].depth=gl_FragCoord.z;
+#ifdef TRANSPARENT
+#ifndef WIREFRAME
+  discard;
+#endif
+#endif
+#endif
 }

@@ -895,7 +895,7 @@ bool picture::display(const string& outname, const string& outputformat,
     } else {
       if(outputformat == "svg" || outputformat == "html")
         htmlView(outname);
-      else {
+      else if(outputformat != "v3d") {
         mem::vector<string> cmd;
         push_command(cmd,getSetting<string>("display"));
         cmd.push_back(outname);
@@ -1306,6 +1306,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     return true;
 
   bool webgl=format == "html";
+  bool v3dfmt=format == "v3d";
 
 #ifndef HAVE_LIBGLM
   if(webgl)
@@ -1352,11 +1353,13 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
-  bool Wait=!interact::interactive || !View || animating;
+  bool Wait=!interact::interactive || !settings::view() || animating;
 #endif
 #endif
 
-  if(!webgl) {
+    bool fmt3d=webgl||v3dfmt;
+
+    if(!fmt3d) {
 #ifdef HAVE_GL
     if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
@@ -1416,18 +1419,28 @@ bool picture::shipout3(const string& prefix, const string& format,
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
            background,nlights,lights,diffuse,specular,View,oldpid);
 
-  if(webgl) {
-    jsfile js;
+  if(fmt3d) {
     string name=buildname(prefix,format);
-    js.open(name);
+    abs3Doutfile *fileObj=nullptr;
 
-    for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
-      assert(*p);
-      (*p)->write(&js);
+    if(webgl)
+      fileObj=new jsfile(name);
+    else if (v3dfmt)
+      fileObj=new gzv3dfile(name,getSetting<bool>("lossy"));
+
+    if(fileObj) {
+      for (auto& p : pic->nodes) {
+        assert(p);
+        p->write(fileObj);
+      }
+
+      fileObj->close();
+      delete fileObj;
     }
-    js.finish(name);
-    if(View)
+
+    if(webgl && View)
       htmlView(name);
+
     return true;
   }
 #endif

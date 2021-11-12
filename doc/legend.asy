@@ -4,7 +4,7 @@ size(8cm,6cm,IgnoreAspect);
 typedef real realfcn(real);
 realfcn F(real p) {
   return new real(real x) {return sin(p*x);};
-};
+}
 
 for(int i=1; i < 5; ++i)
   draw(graph(F(i*pi),0,1),Pen(i),

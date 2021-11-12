@@ -5,16 +5,15 @@ let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
-let canvasWidth0,canvasHeight0; // Initial values
 
 let absolute=false;
 
-let b,B; // Scene min,max bounding box corners (3-tuples)
-let angle; // Field of view angle
-let Zoom0; // Initial zoom
-let zoom0; // Adjusted initial zoom
-let viewportmargin; // Margin around viewport (2-tuple)
-let viewportshift=[0,0]; // Viewport shift (for perspective projection)
+let minBound,maxBound; // Scene min,max bounding box corners (3-tuples)
+let orthographic; // true: orthographic; false: perspective
+let angleOfView; // Field of view angle
+let initialZoom; // Initial zoom
+let viewportShift=[0,0]; // Viewport shift (for perspective projection)
+let viewportMargin; // Margin around viewport (2-tuple)
 let webgl2=true;
 
 let zoomFactor;
@@ -25,6 +24,9 @@ let zoomStep;
 let shiftHoldDistance;
 let shiftWaitTime;
 let vibrateTime;
+
+let canvasWidth0,canvasHeight0; // Initial values
+let zoom0; // Adjusted initial zoom
 
 let embedded; // Is image embedded within another window?
 
@@ -43,20 +45,19 @@ let maxMaterials; // Limit on number of materials allowed in shader
 
 let halfCanvasWidth,halfCanvasHeight;
 
-let pixel=0.75; // Adaptive rendering constant.
-let zoomRemeshFactor=1.5; // Zoom factor before remeshing
-let FillFactor=0.1;
+const pixelResolution=0.75; // Adaptive rendering constant.
+const zoomRemeshFactor=1.5; // Zoom factor before remeshing
+const FillFactor=0.1;
+const windowTrim=10;
+const third=1/3;
+
 let Zoom;
+let lastZoom;
 
 let maxViewportWidth;
 let maxViewportHeight;
 
-const windowTrim=10;
-
-let lastZoom;
 let H; // maximum camera view half-height
-
-let third=1/3;
 
 let rotMat=mat4.create();
 let projMat=mat4.create(); // projection matrix
@@ -593,7 +594,7 @@ class Geometry {
     if(data.materialTable[this.MaterialIndex] == null) {
       if(data.materials.length >= Nmaterials) {
         data.partial=true;
-        draw();
+        drawScene();
       }
       data.materialTable[this.MaterialIndex]=data.materials.length;
       data.materials.push(Materials[this.MaterialIndex]);
@@ -635,9 +636,10 @@ class Geometry {
         P[i]=this.T(p[i]);
     }
 
-    let s=orthographic ? 1 : this.Min[2]/B[2];
-    let res=pixel*Math.hypot(s*(viewParam.xmax-viewParam.xmin),
-                             s*(viewParam.ymax-viewParam.ymin))/size2;
+    let s=orthographic ? 1 : this.Min[2]/maxBound[2];
+    let res=pixelResolution*
+        Math.hypot(s*(viewParam.xmax-viewParam.xmin),
+                   s*(viewParam.ymax-viewParam.ymin))/size2;
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
 
@@ -661,10 +663,11 @@ class BezierPatch extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
     super();
     this.controlpoints=controlpoints;
+    this.CenterIndex=CenterIndex;
+    this.MaterialIndex=MaterialIndex;
     this.Min=Min;
     this.Max=Max;
     this.color=color;
-    this.CenterIndex=CenterIndex;
     let n=controlpoints.length;
     if(color) {
       let sum=color[0][3]+color[1][3]+color[2][3];
@@ -672,7 +675,6 @@ class BezierPatch extends Geometry {
                         sum+color[3][3] < 1020 : sum < 765;
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
-    this.MaterialIndex=MaterialIndex;
 
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
@@ -1755,10 +1757,10 @@ class BezierCurve extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
     super();
     this.controlpoints=controlpoints;
-    this.Min=Min;
-    this.Max=Max;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
+    this.Min=Min;
+    this.Max=Max;
   }
 
   setMaterialIndex() {
@@ -1873,19 +1875,12 @@ class Pixel extends Geometry {
 }
 
 class Triangles extends Geometry {
-  constructor() {
+  constructor(CenterIndex,MaterialIndex,Min,Max) {
     super();
-    if(arguments.length == 3) {
-      this.CenterIndex=0;
-      this.MaterialIndex=arguments[0];
-      this.Min=arguments[1];
-      this.Max=arguments[2];
-    } else {
-      this.CenterIndex=arguments[0];
-      this.MaterialIndex=arguments[1];
-      this.Min=arguments[2];
-      this.Max=arguments[3];
-    }
+    this.CenterIndex=CenterIndex;
+    this.MaterialIndex=MaterialIndex;
+    this.Min=Min;
+    this.Max=Max;
 
     this.controlpoints=Positions;
     this.Normals=Normals;
@@ -1975,18 +1970,18 @@ class Triangles extends Geometry {
 
 }
 
-function redraw()
+function redrawScene()
 {
   initProjection();
   setProjection();
   remesh=true;
-  draw();
+  drawScene();
 }
 
 function home()
 {
   mat4.identity(rotMat);
-  redraw();
+  redrawScene();
 }
 
 let positionAttribute=0;
@@ -2375,7 +2370,7 @@ function processDrag(newX,newY,mode,factor=1)
   lastMouseY=newY;
 
   setProjection();
-  draw();
+  drawScene();
 }
 
 let zoomEnabled=0;
@@ -2429,7 +2424,7 @@ function handleKey(event)
       initShaders();
     }
     remesh=true;
-    draw();
+    drawScene();
     break;
   case '+':
   case '=':
@@ -2448,7 +2443,7 @@ function handleKey(event)
   if(axis.length > 0) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
     updateViewMatrix();
-    draw();
+    drawScene();
   }
 }
 
@@ -2456,7 +2451,7 @@ function setZoom()
 {
   capzoom();
   setProjection();
-  draw();
+  drawScene();
 }
 
 function handleMouseWheel(event)
@@ -2541,7 +2536,7 @@ function handleTouchMove(event)
     pinchStart=distance;
     swipe=rotate=zooming=false;
     setProjection();
-    draw();
+    drawScene();
   }
 }
 
@@ -2649,7 +2644,7 @@ function drawBuffers()
   requestAnimationFrame(drawBuffers);
 }
 
-function draw()
+function drawScene()
 {
   if(embedded) {
     offscreen.width=canvasWidth;
@@ -2677,26 +2672,26 @@ function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
   let zoominv=1/Zoom;
-  let xshift=(X/width+viewportshift[0])*Zoom;
-  let yshift=(Y/height+viewportshift[1])*Zoom;
+  let xshift=(X/width+viewportShift[0])*Zoom;
+  let yshift=(Y/height+viewportShift[1])*Zoom;
 
   if (orthographic) {
-    let xsize=B[0]-b[0];
-    let ysize=B[1]-b[1];
+    let xsize=maxBound[0]-minBound[0];
+    let ysize=maxBound[1]-minBound[1];
     if (xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*zoominv;
       let X0=2*r*xshift;
       let Y0=ysize*zoominv*yshift;
       viewParam.xmin=-r-X0;
       viewParam.xmax=r-X0;
-      viewParam.ymin=b[1]*zoominv-Y0;
-      viewParam.ymax=B[1]*zoominv-Y0;
+      viewParam.ymin=minBound[1]*zoominv-Y0;
+      viewParam.ymax=maxBound[1]*zoominv-Y0;
     } else {
       let r=0.5*xsize/(Aspect*Zoom);
       let X0=xsize*zoominv*xshift;
       let Y0=2*r*yshift;
-      viewParam.xmin=b[0]*zoominv-X0;
-      viewParam.xmax=B[0]*zoominv-X0;
+      viewParam.xmin=minBound[0]*zoominv-X0;
+      viewParam.xmax=maxBound[0]*zoominv-X0;
       viewParam.ymin=-r-Y0;
       viewParam.ymax=r-Y0;
     }
@@ -2724,14 +2719,14 @@ function setProjection()
 
 function initProjection()
 {
-  H=-Math.tan(0.5*angle)*B[2];
+  H=-Math.tan(0.5*angleOfView)*maxBound[2];
 
   center.x=center.y=0;
-  center.z=0.5*(b[2]+B[2]);
+  center.z=0.5*(minBound[2]+maxBound[2]);
   lastZoom=Zoom=zoom0;
 
-  viewParam.zmin=b[2];
-  viewParam.zmax=B[2];
+  viewParam.zmin=minBound[2];
+  viewParam.zmax=maxBound[2];
 
   shift.x=shift.y=0;
 }
@@ -2754,7 +2749,7 @@ function setCanvas()
   size2=Math.hypot(canvasWidth,canvasHeight);
   halfCanvasWidth=0.5*canvas.width;
   halfCanvasHeight=0.5*canvas.height;
-  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
+  ArcballFactor=1+8*Math.hypot(viewportMargin[0],viewportMargin[1])/size2;
 }
 
 function setsize(w,h)
@@ -2779,7 +2774,7 @@ function setsize(w,h)
 
 function resize()
 {
-  zoom0=Zoom0;
+  zoom0=initialZoom;
 
   if(absolute && !embedded) {
     canvasWidth=canvasWidth0*window.devicePixelRatio;
@@ -2799,11 +2794,11 @@ function resize()
   let maxViewportWidth=window.innerWidth;
   let maxViewportHeight=window.innerHeight;
 
-  viewportshift[0] /= zoom0;
-  viewportshift[1] /= zoom0;
+  viewportShift[0] /= zoom0;
+  viewportShift[1] /= zoom0;
 
   setsize(canvasWidth,canvasHeight);
-  redraw();
+  redrawScene();
 }
 
 function expand()
@@ -2849,11 +2844,32 @@ class Align {
   };
 }
 
-function Tcorners(T,m,M) {
+function Tcorners(T,m,M)
+{
   let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
          T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
          T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
   return [minbound(v),maxbound(v)];
+}
+
+function patch(controlpoints,CenterIndex,MaterialIndex,Min,Max,color)
+{
+  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,Min,Max,color));
+}
+
+function curve(controlpoints,CenterIndex,MaterialIndex,Min,Max)
+{
+  P.push(new BezierCurve(controlpoints,CenterIndex,MaterialIndex,Min,Max));
+}
+
+function pixel(controlpoint,width,MaterialIndex,Min,Max)
+{
+  P.push(new Pixel(controlpoint,width,MaterialIndex,Min,Max));
+}
+
+function triangles(CenterIndex,MaterialIndex,Min,Max)
+{
+  P.push(new Triangles(CenterIndex,MaterialIndex,Min,Max));
 }
 
 // draw a sphere of radius r about center

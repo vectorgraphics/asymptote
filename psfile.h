@@ -143,6 +143,8 @@ public:
 
   psfile() {pdf=pdftex();}
 
+  bool istargetfmt(string outputformat);
+
   virtual ~psfile();
 
   void BoundingBox(const bbox& box) {

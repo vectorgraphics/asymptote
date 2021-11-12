@@ -54,6 +54,8 @@ file* input(string name=emptystring, bool check=true,
     buf << name << ": XDR read support not enabled";
     error(buf);
 #endif
+  } else if (mode == "xdrgz") {
+    f=new igzxfile(name,check);
   } else if(mode == "") {
     char c=comment.empty() ? (char) 0 : comment[0];
     f=new ifile(name,c,check);

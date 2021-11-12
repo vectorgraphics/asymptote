@@ -8199,18 +8199,18 @@ generates unwanted black stripes in the output, try setting the
 horizontal and vertical components of @code{maxtiles} to something
 less than your screen dimensions. The tile size is also limited by the
 setting @code{maxviewport}, which restricts the maximum width and
-height of the viewport. On @code{UNIX} systems some graphics
-drivers support batch mode (@code{-noV}) rendering in an
-iconified window; this can be enabled with the setting @code{iconify=true}.
+height of the viewport. Some graphics drivers support batch mode
+(@code{-noV}) rendering in an iconified window; this can be enabled
+with the setting @code{iconify=true}.
 
 @cindex @code{prc}
 @cindex @code{views}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
 and view the resulting @acronym{PDF} file with
 version @code{9.0} or later of @code{Adobe Reader}.
-In addition to the default @code{settings.prc=true}, this requires
-@code{settings.outformat="pdf"}, which can be specified by the command
-line option @code{-f pdf}, put in the @code{Asymptote} configuration
+This requires @code{settings.outformat="pdf"} and @code{settings.prc=true},
+which can be specified by the command-line options @code{-f pdf}
+and @code{-f prc}, put in the @code{Asymptote} configuration
 file (@pxref{configuration file}), or specified in the script before
 module @code{three} (or @code{graph3}) is imported.
 The @code{media9} LaTeX package is also required (@pxref{embed}).
@@ -8400,10 +8400,7 @@ at angle @code{beta}, and the @math{z} axis up.
 This projects from three to two dimensions, taking account of
 perspective, as seen from the location @code{camera} looking at @code{target},
 orienting the camera so that, if possible, the vector @code{up} points upwards.
-If @code{render=0}, projection of three-dimensional cubic Bezier splines
-is implemented by approximating a two-dimensional nonuniform rational B-spline
-(@acronym{NURBS}) with a two-dimensional Bezier curve containing
-additional nodes and control points. If @code{autoadjust=true},
+If @code{autoadjust=true},
 the camera will automatically be adjusted to lie outside the bounding volume
 for all possible interactive rotations about @code{target}.
 If @code{center=true}, the target will be adjusted to the center of the

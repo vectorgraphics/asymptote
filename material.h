@@ -23,8 +23,8 @@ inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
                       (m1[3] < m2[3]))))));
 }
 
-inline glm::vec4 GLparameters(GLfloat shininess, GLfloat metallic,
-                              GLfloat fresnel0) {
+inline glm::vec4 GLparameters(float shininess, float metallic,
+                              float fresnel0) {
   return glm::vec4(shininess,metallic,fresnel0,0.0);
 }
 

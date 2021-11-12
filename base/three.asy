@@ -11,7 +11,7 @@ if(prc0()) {
   }
 }
 
-// Useful lossy compression values.
+// Useful lossy PRC compression values.
 restricted real Zero=0;
 restricted real Low=0.0001;
 restricted real Medium=0.001;
@@ -19,6 +19,27 @@ restricted real High=0.01;
 
 restricted int PRCsphere=0;   // Renders slowly but produces smaller PRC files.
 restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
+
+struct interaction
+{
+  int type;
+  triple center;  // position to rotate billboard objects about
+  bool targetsize;
+  static interaction defaultinteraction;
+
+  void operator init(interaction interaction=defaultinteraction,
+                     int type=interaction.type,
+                     triple center=interaction.center, bool targetsize=interaction.targetsize) {
+    this.type=type;
+    this.center=center;
+    this.targetsize=targetsize;
+  }
+}
+
+interaction.defaultinteraction=new interaction;
+
+restricted interaction Embedded=interaction();
+restricted interaction Billboard=interaction(1);
 
 struct render
 {
@@ -41,19 +62,21 @@ struct render
 
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
+  interaction interaction; // billboard interaction mode
 
   static render defaultrender;
   
-  void operator init(real compression=defaultrender.compression,
-                     real granularity=defaultrender.granularity,
-                     bool closed=defaultrender.closed,
-                     bool tessellate=defaultrender.tessellate,
-                     bool3 merge=defaultrender.merge,
-                     int sphere=defaultrender.sphere,
-                     real margin=defaultrender.margin,
-                     bool labelfill=defaultrender.labelfill,
-                     bool partnames=defaultrender.partnames,
-                     bool defaultnames=defaultrender.defaultnames)
+  void operator init(render render=defaultrender, real compression=render.compression,
+                     real granularity=render.granularity,
+                     bool closed=render.closed,
+                     bool tessellate=render.tessellate,
+                     bool3 merge=render.merge,
+                     int sphere=render.sphere,
+                     real margin=render.margin,
+                     bool labelfill=render.labelfill,
+                     bool partnames=render.partnames,
+                     bool defaultnames=render.defaultnames,
+                     interaction interaction=render.interaction)
   {
     this.compression=compression;
     this.granularity=granularity;
@@ -65,6 +88,7 @@ struct render
     this.labelfill=labelfill;
     this.partnames=partnames;
     this.defaultnames=defaultnames;
+    this.interaction=interaction;
   }
 }
 
@@ -81,6 +105,7 @@ defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
 defaultrender.partnames=false;
 defaultrender.defaultnames=true;
+defaultrender.interaction=Embedded;
 
 real defaultshininess=0.7;
 real defaultmetallic=0.0;
@@ -2102,21 +2127,19 @@ void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", render render=defaultrender,
           projection P=currentprojection);
 
-void begingroup3(frame f, string name="", render render=defaultrender,
-                 triple center=O, int interaction=0)
+void begingroup3(frame f, string name="", render render=defaultrender)
 {
   _begingroup3(f,name,render.compression,render.granularity,render.closed,
                render.tessellate,render.merge == false,
-               render.merge == true,center,interaction);
+               render.merge == true,render.interaction.center,render.interaction.type);
 }
 
 void begingroup3(picture pic=currentpicture, string name="",
-                 render render=defaultrender,
-                 triple center=O, int interaction=0)
+                 render render=defaultrender)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup3(f,name,render,center,interaction);
+        begingroup3(f,name,render);
       if(pic != null)
         begingroup(pic);
     },true);
@@ -2210,7 +2233,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
     void drawthick(path3 g) {
       if(settings.thick && width > 0) {
         bool prc=prc();
-        bool webgl=settings.outformat == "html";
+        bool primitive=primitive();
         real linecap=linecap(q);
         real r=0.5*width;
         bool open=!cyclic(g);
@@ -2256,7 +2279,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
             }
           }
 // Draw central core for better small-scale rendering.
-          if((!prc || piecewisestraight(g)) && !webgl && opacity(q) == 1)
+          if((!prc || piecewisestraight(g)) && !primitive && opacity(q) == 1)
             _draw(f,c,p,light);
         }
         for(surface s : T.s)
@@ -2872,8 +2895,8 @@ object embed(string prefix=outprefix(), string label=prefix,
       m -= margin;
     } else if(M.z >= 0) abort("camera too close");
 
-    if(settings.outformat == "html")
-      format="html";
+    if(primitive())
+      format=settings.outformat;
 
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
@@ -2882,7 +2905,6 @@ object embed(string prefix=outprefix(), string label=prefix,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
              Light.diffuse,Light.specular,
              view && !preview);
-    if(settings.once && !settings.batchView) exit();
     if(!preview) return F;
   }
 
@@ -3018,7 +3040,10 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
       return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,light,P);
     },prefix,format,view,light);
-  if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
+  if(is3D(format) || empty3) {
+    if(prc(format)) add(f,pic.fit2(xsize,ysize,keepAspect));
+    else return pic.fit2(xsize,ysize,keepAspect);
+  }
   return f;
 };
 
