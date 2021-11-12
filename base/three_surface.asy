@@ -1382,6 +1382,7 @@ void draw3D(frame f, patch s, material m,
   if(s.colors.length > 0) {
     if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
+    m=material(m);
     m.diffuse(mean(s.colors));
   }
   m=material(m,light,s.colors.length > 0);
