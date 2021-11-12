@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/syoyo/tinyexr
 	branch = master
-	commit = b0d2abbd7c2db486e0c3b99201b3153a64f516ad
-	parent = abbce6ee1dcfc13628eab49cc45ab3e4f4335dc5
+	commit = 67010eae802211202d0797f4df2b809f4ba7442c
+	parent = 150a1ec3c1460b49a4a7c6940c8ca4ab6b5088c2
 	method = merge
 	cmdver = 0.4.1
