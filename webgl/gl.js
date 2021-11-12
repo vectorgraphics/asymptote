@@ -3265,7 +3265,7 @@ async function initIBL()
       )
   }
 
-  finished_promsie=Promise.all(refl_promise).then(reflMaps => {
+  finished_promise=Promise.all(refl_promise).then(reflMaps => {
     let tex = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0 + 2);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
@@ -3284,7 +3284,7 @@ async function initIBL()
     IBLReflMap = tex;
   });
 
-  promises.push(finished_promsie);
+  promises.push(finished_promise);
   await Promise.all(promises);
 }
 
@@ -3329,5 +3329,5 @@ function webGLStart()
   window.addEventListener("resize",resize,false);
 
   if (webgl2 && UseIBL)
-    initIBL().then(SetIBL).then(redraw);
+    initIBL().then(SetIBL).then(redrawScene);
 }
