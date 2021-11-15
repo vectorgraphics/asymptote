@@ -119,8 +119,9 @@ void jsfile::open(string name)
 
   out.precision(getSetting<Int>("digits"));
 
-  if(getSetting<bool>("ibl"))
-    out << "<script src=\"https://www.math.ualberta.ca/~bowman/tinyexr.js\">"
+  bool ibl=getSetting<bool>("ibl");
+  if(ibl)
+    out << "<script src=\"https://vectorgraphics.github.io/asymptote/base/ibl/tinyexr.js\">"
         << newl << "</script>" << newl;
 
   if(getSetting<bool>("offline")) {
@@ -131,7 +132,6 @@ void jsfile::open(string name)
     out << "<script" << newl << "src=\""
         << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
 
-  bool ibl=getSetting<bool>("ibl");
   out << newl << "<script>" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
