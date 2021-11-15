@@ -235,5 +235,5 @@ if(settings.ibl) {
   metallic=0;
 }
 
-draw(S,material(color, shininess=0.85, metallic=metallic),
+draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Low));

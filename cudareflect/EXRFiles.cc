@@ -16,7 +16,7 @@ EXRFile::EXRFile(std::string const& input)
 
 OEXRFile::OEXRFile(std::vector<float3> const& dat, int width, int height, int compressionType) :
     width(std::move(width)), height(std::move(height)),
-    infos(3), compressionType(compressionType)
+    compressionType(compressionType), infos(3)
 {
     for (float3 const& col : dat)
     {
@@ -38,7 +38,7 @@ OEXRFile::OEXRFile(std::vector<float3> const& dat, int width, int height, int co
 
 OEXRFile::OEXRFile(std::vector<float2> const& dat, int width, int height, int compressionType) :
     width(std::move(width)), height(std::move(height)),
-    infos(3), compressionType(compressionType)
+    compressionType(compressionType), infos(3)
 {
     for (float2 const& col : dat)
     {

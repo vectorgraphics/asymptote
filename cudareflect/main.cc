@@ -22,32 +22,32 @@
 #include "ReflectanceMapper.cuh"
 #include "EXRFiles.h"
 
-std::string const ARG_HELP = "./reflectance mode -f in_file -p out_file_prefix [-d directory] [-c refl_count] [-h]";
+std::string const ARG_HELP = "reflect -i|-b|-r|-a -f input [-d directory]";
 std::string const DEFAULT_DIRECTORY = ".";
-size_t const MIN_WIDTH = 16;
-size_t const MIN_HEIGHT = 16;
+size_t const MIN_WIDTH = 2;
+size_t const MIN_HEIGHT = 2;
 
 
 struct Args
 {
     char mode = 0;
-    bool halve = false;
+    bool webgl = false;
     char const* file_in = nullptr;
-    char const* file_out_prefix = nullptr;
     char const* directory = nullptr;
 
-    size_t count = 10;
+    size_t count;
 
     bool validate()
     {
         if (mode == 0)
             return false;
 
-        if ((mode == 'a' || mode == 'i' || mode == 'r') && !file_in)
+        if ((mode == 'a' || mode == 'b' || mode == 'i' || mode == 'r') && !file_in)
         {
             return false;
         }
-        return file_out_prefix != nullptr;
+
+        return true;
     }
 };
 
@@ -55,25 +55,23 @@ Args parseArgs(int argc, char* argv[])
 {
     Args arg;
     int c;
-    while ((c = getopt(argc, argv, "hc:airof:p:d:")) != -1)
+    while ((c = getopt(argc, argv, "abd:f:hir")) != -1)
     {
         switch (c)
         {
         case 'a':
-            arg.mode = 'a';
+          arg.mode = 'a'; // all
             break;
         case 'i':
-            arg.mode = 'i';
+          arg.mode = 'i'; // irradiance image diffuse.exr
+            break;
+        case 'b':
+          arg.mode = 'b'; // brdf image refl.exr
             break;
         case 'r':
-            arg.mode = 'r';
+          arg.mode = 'r'; // reflectance images reflN.exr
             break;
-        case 'o':
-            arg.mode = 'o';
-            break;
-        case 'h':
-            arg.halve = true;
-            break;
+/*
         case 'c':
         {
             std::stringstream ss;
@@ -81,21 +79,19 @@ Args parseArgs(int argc, char* argv[])
             ss >> arg.count;
         }
             break;
+*/
         case 'f':
             arg.file_in = optarg;
-            break;
-        case 'p':
-            arg.file_out_prefix = optarg;
             break;
         case 'd':
             arg.directory = optarg;
             break;
-        case '?':
+        case 'h':
             std::cerr << ARG_HELP << std::endl;
             exit(0);
             break;
         default:
-            std::cerr << ARG_HELP << std::endl;
+          std::cerr << ARG_HELP << std::endl;
             exit(1);
         }
     }
@@ -126,7 +122,7 @@ void irradiate_im(image_t& im, std::string const& prefix)
     out_name << prefix;
     std::cout << "Irradiating image..." << std::endl;
     irradiate_ker(im.im, out_proc.data(), im.width, im.height);
-    out_name << "_diffuse.exr";
+    out_name << "diffuse.exr";
 
     std::string out_name_str(std::move(out_name).str());
     OEXRFile ox(out_proc, im.width, im.height);
@@ -136,21 +132,21 @@ void irradiate_im(image_t& im, std::string const& prefix)
     ox.write(out_name_str);
 }
 
-std::string generate_refl_file(std::string const& prefix, float const& step, int const& i)
+std::string generate_refl_file(std::string const& prefix, int const& i, std::string const suffix="")
 {
     std::stringstream out_name;
-    out_name << prefix << "_refl_" << std::fixed <<
-        std::setprecision(3) << step << "_" << i << ".exr";
+    out_name << prefix << "refl" << i << suffix << ".exr";
     return out_name.str();
 }
 
-void map_refl_im(image_t& im, std::string const& prefix, float const& step, int const& i, std::pair<size_t, size_t> const& outSize)
+void map_refl_im(image_t& im, std::string const& prefix, float const& step, int const& i, std::pair<size_t, size_t> const& outSize, bool halve=false)
 {
     float roughness = step * i;
     auto [outWidth, outHeight] = outSize;
     std::vector<float3> out_proc(outWidth * outHeight);
 
-    std::string out_name_str = generate_refl_file(prefix, step, i);
+    std::string out_name_str = generate_refl_file(prefix, i,
+                                                  halve ? "w" : "");
     std::cout << "Mapping reflectance map..." << std::endl;
     map_reflectance_ker(im.im, out_proc.data(), im.width, im.height, roughness, outWidth, outHeight);
     OEXRFile ox(out_proc, outWidth, outHeight);
@@ -219,7 +215,7 @@ int main(int argc, char* argv[])
         EXRFile im(args.file_in);
         width = im.getWidth();
         height = im.getHeight();
-
+        std::cout << "Image dimensions: " << width << "x" << height << std::endl;
         for (int i = 0; i < height; ++i)
         {
             for (int j = 0; j < width; ++j)
@@ -242,65 +238,41 @@ int main(int argc, char* argv[])
     {
         args.directory = ".";
     }
-    outss << args.directory << "/" << args.file_out_prefix;
+    outss << args.directory << "/";
 
 
     std::string outprefix(outss.str());
 
     image_t imt(im_proc.data(), width, height);
 
-    if (args.mode == 'o')
-    {
+    if (args.mode == 'i' || args.mode == 'a')
+      {
+        irradiate_im(imt, outprefix);
+      }
+    else if (args.mode == 'b' || args.mode == 'a')
+      {
         generate_brdf_refl(200, args.directory);
-    }
-    else
-    {
-        if (args.mode == 'r')
-        {
-            size_t count = args.count;
-            float step = 1.0f / count;
+      }
+    else if (args.mode == 'r' || args.mode == 'a')
+      {
+        copy_file(args.file_in, generate_refl_file(outprefix, 0));
 
-            copy_file(args.file_in, generate_refl_file(outprefix, step, 0));
-            int out_width = imt.width;
-            int out_height = imt.height;
+        for(size_t halve=0; halve < 2; ++halve) {
+          size_t count=halve ? 8 : 10;
+          float step = 1.0f / count;
 
-            for (int i = 1; i <= count; ++i)
+          unsigned int out_width = imt.width;
+          unsigned int out_height = imt.height;
+
+          for (size_t i = 1; i <= count; ++i)
             {
-                if (args.halve && out_width > MIN_WIDTH && out_height > MIN_HEIGHT)
+              if (halve && out_width >= MIN_WIDTH && out_height >= MIN_HEIGHT)
                 {
-                    out_width = out_width >> 1;
-                    out_height = out_height >> 1; // halve
+                  out_width = out_width >> 1;
+                  out_height = out_height >> 1; // halve
                 }
-                map_refl_im(imt, outprefix, step, i, std::pair<size_t, size_t>(out_width, out_height));
+              map_refl_im(imt, outprefix, step, i, std::pair<size_t,size_t>(out_width, out_height), halve);
             }
         }
-        else if (args.mode == 'i')
-        {
-            irradiate_im(imt, outprefix);
-        }
-        else if (args.mode == 'a')
-        {
-            generate_brdf_refl(200, args.directory);
-            irradiate_im(imt, outprefix);
-            // reflectance
-            size_t count = args.count;
-            float step = 1.0f / count;
-            
-            // for 0 roughness, use the original image.
-            copy_file(args.file_in, generate_refl_file(outprefix, step, 0));
-
-            int out_width = imt.width;
-            int out_height = imt.height;
-
-            for (int i = 1; i <= count; ++i)
-            {
-                if (args.halve && out_width > MIN_WIDTH && out_height > MIN_HEIGHT)
-                {
-                    out_width = out_width >> 1;
-                    out_height = out_height >> 1; // halve
-                }
-                map_refl_im(imt, outprefix, step, i, std::pair<size_t,size_t>(out_width, out_height));
-            }
-        }
-    }
+      }
 }

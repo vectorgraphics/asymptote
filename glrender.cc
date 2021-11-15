@@ -134,6 +134,7 @@ GLint processors;
 GLint steps;
 
 bool outlinemode=false;
+bool ibl=false;
 bool glthread=false;
 bool glupdate=false;
 bool glexit=false;
@@ -404,7 +405,7 @@ GLint shaderProg,shaderProgColor;
 GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
   camp::IEXRFile fil(locateFile(EXRFile));
-  return GLTexture2 { fil.getData(), fil.size(), textureNumber, fmt };
+  return GLTexture2 {fil.getData(),fil.size(),textureNumber,fmt};
 }
 
 GLTexture3<float,GL_FLOAT> fromEXR3(
@@ -420,21 +421,22 @@ GLTexture3<float,GL_FLOAT> fromEXR3(
     camp::IEXRFile fil3(locateFile(EXRFile));
     std::tie(wi,ht)=fil3.size();
     size_t imSize=4*wi*ht;
-    std::copy(fil3.getData(), fil3.getData()+imSize, std::back_inserter(data));
+    std::copy(fil3.getData(),fil3.getData()+imSize,std::back_inserter(data));
   }
 
-  return GLTexture3 { data.data(), std::tuple<int,int,int>(wi,ht,count),textureNumber, fmt };
+  return GLTexture3 {data.data(),std::tuple<int,int,int>(wi,ht,count),textureNumber,fmt};
 }
 
 void initIBL()
 {
   GLTexturesFmt fmt;
   fmt.internalFmt=GL_RGB16F;
-  irradiance=fromEXR("irrad/snowy_field_1k/snowy_field_1k_diffuse.exr", fmt, 1);
+  string imageDir=locateFile(getSetting<string>("imageDir"));
+  irradiance=fromEXR(imageDir+"/diffuse.exr",fmt,1);
 
   GLTexturesFmt fmtRefl;
   fmtRefl.internalFmt=GL_RG16F;
-  IBLbrdfTex=fromEXR("irrad/refl.exr", fmtRefl, 2);
+  IBLbrdfTex=fromEXR(imageDir+"/refl.exr",fmtRefl,2);
 
   GLTexturesFmt fmt3;
   fmt3.internalFmt=GL_RGB16F;
@@ -443,16 +445,14 @@ void initIBL()
   fmt3.wrapT=GL_CLAMP_TO_EDGE;
 
   mem::vector<string> files;
-  files.emplace_back("irrad/snowy_field_1k/snowy_field_1k.exr");
-  mem::string prefix="irrad/snowy_field_1k/snowy_field_1k";
-  for (int i=1;i<=10;++i)
-  {
+  mem::string prefix=imageDir+"/refl";
+  for(unsigned int i=0; i <= 10; ++i) {
     mem::stringstream mss;
-    mss << prefix << "_refl_0.100_" << i << ".exr";
+    mss << prefix << i << ".exr";
     files.emplace_back(mss.str());
   }
 
-  reflTextures=fromEXR3(files, fmt3, 3);
+  reflTextures=fromEXR3(files,fmt3,3);
 }
 
 void *glrenderWrapper(void *a);
@@ -513,10 +513,9 @@ void initShaders()
   std::vector<ShaderfileModePair> shaders(1);
   std::vector<std::string> shaderParams;
 
-  if (getSetting<bool>("ibl")) {
+  if(ibl) {
     shaderParams.push_back("USE_IBL");
     initIBL();
-
   }
 
 #ifdef HAVE_SSBO
@@ -566,7 +565,7 @@ void initShaders()
   camp::colorShader=compileAndLinkShader(shaders,shaderParams);
 
   shaderParams.push_back("TRANSPARENT");
-  if(Mode == 0) shaderParams.push_back("WIREFRAME");
+  if(Mode == 2) shaderParams.push_back("WIREFRAME");
   camp::transparentShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.clear();
 #ifdef HAVE_SSBO
@@ -803,6 +802,7 @@ void mode()
   switch(Mode) {
     case 0: // regular
       outlinemode=false;
+      ibl=getSetting<bool>("ibl");
       nlights=nlights0;
       lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
@@ -810,6 +810,7 @@ void mode()
       break;
     case 1: // outline
       outlinemode=true;
+      ibl=false;
       nlights=0; // Force shader recompilation
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
@@ -2002,11 +2003,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
     int result = glewInit();
 
-    if (result != GLEW_OK) {
+    if(result != GLEW_OK) {
       cerr << "GLEW initialization error." << endl;
       exit(-1);
     }
 
+    ibl=getSetting<bool>("ibl");
     initShaders();
     setBuffers();
   }
@@ -2264,11 +2266,10 @@ void setUniforms(vertexBuffer& data, GLint shader)
                   (GLfloat) gl::Diffuse[i4+2]);
     }
 
-    if (settings::getSetting<bool>("ibl"))
-    {
-      gl::irradiance.setUniform(glGetUniformLocation(shader, "reflDiffuse"));
-      gl::reflTextures.setUniform(glGetUniformLocation(shader, "reflectionMap"));
-      gl::IBLbrdfTex.setUniform(glGetUniformLocation(shader, "IBLRefl"));
+    if (settings::getSetting<bool>("ibl")) {
+      gl::IBLbrdfTex.setUniform(glGetUniformLocation(shader,"reflBRDFSampler"));
+      gl::irradiance.setUniform(glGetUniformLocation(shader,"diffuseSampler"));
+      gl::reflTextures.setUniform(glGetUniformLocation(shader,"reflImgSampler"));
     }
   }
 

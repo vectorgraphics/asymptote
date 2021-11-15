@@ -63,14 +63,14 @@ float Roughness2; // roughness squared, for smoothing
 float Roughness;
 
 #ifdef USE_IBL
-uniform sampler2D reflDiffuse;
-uniform sampler2D IBLRefl;
-uniform sampler3D reflectionMap;
+uniform sampler2D reflBRDFSampler;
+uniform sampler2D diffuseSampler;
+uniform sampler3D reflImgSampler;
 #endif
 
-const float PI=acos(-1.0);
-const float twopi=2*PI;
-const float halfpi=PI/2;
+const float pi=acos(-1.0);
+const float piInv=1.0/pi;
+const float twopiInv=1.0/(2.0*pi);
 
 // (x,y,z) -> (r,theta,phi);
 // theta -> [0,\pi]: colatitude
@@ -91,8 +91,8 @@ vec3 cart2sphere(vec3 cart)
 vec2 normalizedAngle(vec3 cartVec)
 {
   vec3 sphericalVec=cart2sphere(cartVec);
-  sphericalVec.y=sphericalVec.y/(2*PI)+PI;
-  sphericalVec.z=sphericalVec.z/PI;
+  sphericalVec.y=sphericalVec.y*twopiInv+pi;
+  sphericalVec.z=sphericalVec.z*piInv;
   return sphericalVec.yz;
 }
 
@@ -151,30 +151,26 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 }
 
 #ifdef USE_IBL
-vec3 IBLColor(vec3 viewDirection)
+vec3 IBLColor(vec3 viewDir)
 {
   //
   // based on the split sum formula approximation
   // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
   // which, by the split sum approiximation (assuming independence+GGX distrubition),
   // roughly equals (within a margin of error)
-  // [\int_\Omega L(l) ] * [\int_\Omega f(l,v) \cos \theta_l].
+  // [\int_\Omega L(l)] * [\int_\Omega f(l,v) \cos \theta_l].
   // the first term is the reflectance irradiance integral
 
-  vec3 reflectVec=normalize(reflect(-viewDirection,normal));
-  vec3 reflDiffuse=Diffuse*texture2D(reflDiffuse,normalizedAngle(normal)).rgb;
-
+  vec3 IBLDiffuse=Diffuse*texture2D(diffuseSampler,normalizedAngle(normal)).rgb;
+  vec3 reflectVec=normalize(reflect(-viewDir,normal));
   vec2 reflCoord=normalizedAngle(reflectVec);
-
-  float roughnessSampler=clamp(Roughness,0.005,0.995);
-  vec3 reflColor=texture(reflectionMap, vec3(reflCoord, roughnessSampler)).rgb;
-  vec2 reflIBL=texture(IBLRefl, vec2(dot(normal, viewDirection), roughnessSampler)).rg;
-
-  float specMultiplier=Fresnel0*reflIBL.x+reflIBL.y;
-
-  vec3 dielectricColor=reflDiffuse+(specMultiplier*reflColor);
-  vec3 metallicColor=Diffuse*reflColor;
-  return mix(dielectricColor,metallicColor,Metallic);
+  float roughness=clamp(Roughness,0.005,0.995);
+  vec3 IBLRefl=texture(reflImgSampler,vec3(reflCoord,roughness)).rgb;
+  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
+  float specularMultiplier=Fresnel0*IBLbrdf.x+IBLbrdf.y;
+  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
+  vec3 metal=Diffuse*IBLRefl;
+  return mix(dielectric,metal,Metallic);
 }
 
 #endif
@@ -236,8 +232,12 @@ void main()
 #else
   vec3 viewDir=-normalize(ViewPosition);
 #endif
+  vec3 color;
+#ifdef USE_IBL
+  color=IBLColor(viewDir);
+#else
   // For a finite point light, the rendering equation simplifies.
-  vec3 color=emissive.rgb;
+  color=emissive.rgb;
   for(uint i=0u; i < nlights; ++i) {
     Light Li=lights[i];
     vec3 L=Li.direction;
@@ -245,17 +245,8 @@ void main()
     vec3 radiance=cosTheta*Li.color;
     color += BRDF(viewDir,L)*radiance;
   }
-
-
-#ifdef USE_IBL
-  // PBR Reflective lights
-  vec3 pointLightColor=color;
-  vec3 iblColor=IBLColor(viewDir);
-
-  outColor=vec4(iblColor+0*pointLightColor,diffuse.a);
-#else
-  outColor=vec4(color,diffuse.a);
 #endif
+  outColor=vec4(color,diffuse.a);
 #else
   outColor=emissive;
 #endif

@@ -119,20 +119,31 @@ void jsfile::open(string name)
 
   out.precision(getSetting<Int>("digits"));
 
+  if(getSetting<bool>("ibl"))
+    out << "<script src=\"https://www.math.ualberta.ca/~bowman/tinyexr.js\">"
+        << newl << "</script>" << newl;
+
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
     copy(locateFile(AsyGL));
     out << newl << "</script>" << newl;
-  } else {
+  } else
     out << "<script" << newl << "src=\""
         << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
-  }
+
+  bool ibl=getSetting<bool>("ibl");
   out << newl << "<script>" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
       << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
-      << newl << newl
+      << newl
+      << "ibl=" << std::boolalpha << ibl << ";"
+      << newl;
+  if(ibl)
+    out << "imageURL=\"" << getSetting<string>("imageURL") << "\";"
+        << newl;
+  out << newl
       <<  "minBound=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];"
       << newl
       <<  "maxBound=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];"

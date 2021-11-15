@@ -7,7 +7,6 @@ out vec4 outValue;
 #define OUTVALUE gl_fragColor
 #endif
 
-
 #ifdef NORMAL
 #ifndef ORTHOGRAPHIC
 IN vec3 ViewPosition;
@@ -32,9 +31,9 @@ struct Light {
 };
 
 
-const float PI=acos(-1.0);
-const float twopi=2.0*PI;
-const float halfpi=PI/2.0;
+const float pi=acos(-1.0);
+const float piInv=1.0/pi;
+const float twopiInv=1.0/(2.0*pi);
 
 // (x,y,z) -> (r,theta,phi);
 // theta -> [0,pi]: colatitude
@@ -55,8 +54,8 @@ vec3 cart2sphere(vec3 cart)
 vec2 normalizedAngle(vec3 cartVec)
 {
   vec3 sphericalVec=cart2sphere(cartVec);
-  sphericalVec.y=(sphericalVec.y/twopi)+PI;
-  sphericalVec.z=sphericalVec.z/PI;
+  sphericalVec.y=sphericalVec.y*twopiInv+pi;
+  sphericalVec.z=sphericalVec.z*piInv;
   return sphericalVec.yz;
 }
 
@@ -97,13 +96,13 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
   vec3 h=normalize(lightDirection+viewDirection);
 
   float omegain=max(dot(viewDirection,normal),0.0);
-  float omegali=max(dot(lightDirection,normal),0.0);
+  float omegaln=max(dot(lightDirection,normal),0.0);
 
   float D=NDF_TRG(h);
   float G=Geom(viewDirection,lightDirection);
   float F=Fresnel(h,viewDirection,fresnel0);
 
-  float denom=4.0*omegain*omegali;
+  float denom=4.0*omegain*omegaln;
   float rawReflectance=denom > 0.0 ? (D*G)/denom : 0.0;
 
   vec3 dielectric=mix(lambertian,rawReflectance*specular,F);
@@ -125,24 +124,20 @@ void main(void)
   vec3 viewDir=-normalize(ViewPosition);
 #endif
 
+vec3 color;
 #ifdef USE_IBL
-  vec3 IBLDiffuse=diffuse.rgb*texture(diffuseSampler, normalizedAngle(normal)).rgb;
+  vec3 IBLDiffuse=diffuse.rgb*texture(diffuseSampler,normalizedAngle(normal)).rgb;
   vec3 reflectVec=normalize(reflect(-viewDir,normal));
-
   vec2 reflCoord=normalizedAngle(reflectVec);
-  vec3 IBLRefl=textureLod(reflImgSampler, reflCoord, roughness*ROUGHNESS_STEP_COUNT).rgb;
-
-  vec2 IBLbrdf=texture(reflBRDFSampler, vec2(dot(normal, viewDir), roughness)).rg;
-  float specularMultipler=fresnel0*IBLbrdf.x+IBLbrdf.y;
-
-  vec3 dielectric=IBLDiffuse+specularMultipler*IBLRefl;
+  vec3 IBLRefl=textureLod(reflImgSampler,reflCoord,roughness*ROUGHNESS_STEP_COUNT).rgb;
+  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
+  float specularMultiplier=fresnel0*IBLbrdf.x+IBLbrdf.y;
+  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
   vec3 metal=diffuse.rgb*IBLRefl;
-  vec3 outColor=mix(dielectric,metal,metallic);
-
-  OUTVALUE=vec4(outColor,diffuse.a);
+  color=mix(dielectric,metal,metallic);
 #else
   Roughness2=roughness*roughness;
-  vec3 color=emissive.rgb;
+  color=emissive.rgb;
   for(int i=0; i < nlights; ++i) {
     Light Li=Lights[i];
     vec3 L=Li.direction;
@@ -150,9 +145,8 @@ void main(void)
     vec3 radiance=cosTheta*Li.color;
     color += BRDF(viewDir,L)*radiance;
   }
-  OUTVALUE=vec4(color,diffuse.a);
 #endif
-
+  OUTVALUE=vec4(color,diffuse.a);
 #else
   OUTVALUE=emissive;
 #endif

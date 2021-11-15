@@ -7,6 +7,8 @@ let Background=[1,1,1,1]; // Background color
 let canvasWidth,canvasHeight;
 
 let absolute=false;
+let ibl=false;
+let imageURL;
 
 let minBound,maxBound; // Scene min,max bounding box corners (3-tuples)
 let orthographic; // true: orthographic; false: perspective
@@ -107,11 +109,12 @@ function IBLReady()
 
 function SetIBL()
 {
-  initShaders(true);
-  console.log('Set IBL')
+  if(!embedded)
+    deleteShaders();
+  initShaders(ibl);
 }
 
-let roughnessStepCount=5;
+let roughnessStepCount=8;
 
 class Material {
   constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
@@ -165,7 +168,7 @@ function initShaders(ibl=false)
   colorOpt=["NORMAL","COLOR"];
   transparentOpt=["NORMAL","COLOR","TRANSPARENT"];
 
-  if (ibl)
+  if(ibl)
     materialOpt.push('USE_IBL');
 
   pixelShader=initShader(pixelOpt);
@@ -251,13 +254,12 @@ function initGL()
       }
     }
   } else {
-    let userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-        webgl2=false;
+    gl=canvas.getContext("webgl2",{alpha:alpha});
+    if(!gl) {
+      webgl2=false;
+      ibl=false;
+      gl=canvas.getContext("webgl",{alpha:alpha});
     }
-
-    gl=canvas.getContext(webgl2 === true ? "webgl2" : "webgl", {alpha:alpha});
-
 
     if(!gl) noGL();
     initShaders();
@@ -265,16 +267,12 @@ function initGL()
 
   indexExt=gl.getExtension("OES_element_index_uint");
 
-  if (!webgl2)
-  {
-    floatTexExt=gl.getExtension('OES_texture_float');
-  }
-  else
-  {
+  if(webgl2) {
     let ext2=gl.getExtension('EXT_color_buffer_float');
-    if (!ext2) alert('need ext_color_buffer_float.');
-    floatTexExt = true;
-  }
+    if(!ext2) alert('need ext_color_buffer_float.');
+    floatTexExt=true;
+  } else
+    floatTexExt=gl.getExtension('OES_texture_float');
 
   TRIANGLES=gl.TRIANGLES;
   material0Data=new vertexBuffer(gl.POINTS);
@@ -288,14 +286,14 @@ function initGL()
 function getShader(gl,shaderScript,type,options=[])
 {
   let version=webgl2 ? '300 es' : '100';
-  let defines = Array(...options)
-  let macros = [
-    ['nlights', wireframe == 0 ? Lights.length : 0],
-    ['Nmaterials', Nmaterials]
+  let defines=Array(...options)
+  let macros=[
+    ['nlights',wireframe == 0 ? Lights.length : 0],
+    ['Nmaterials',Nmaterials]
   ]
 
   let consts = [
-    ['int', 'Nlights', Math.max(Lights.length,1)]
+    ['int','Nlights',Math.max(Lights.length,1)]
   ]
 
   let addenum = `
@@ -307,16 +305,13 @@ function getShader(gl,shaderScript,type,options=[])
   `
 
   let extensions=[];
-  if (webgl2) {
+  if(webgl2)
     defines.push('WEBGL2');
-  }
 
-  if (webgl2 && UseIBL) {
+  if(webgl2)
     macros.push(['ROUGHNESS_STEP_COUNT', roughnessStepCount.toFixed(2)]);
-  }
 
-
-  if (orthographic)
+  if(orthographic)
     defines.push('ORTHOGRAPHIC');
 
   macros_str = macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
@@ -368,16 +363,16 @@ function drawBuffer(data,shader,indices=data.indices)
   if (IBLDiffuseMap != null)
   {
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, IBLbdrfMap);
-    gl.uniform1i(gl.getUniformLocation(shader, 'reflBRDFSampler'), 0);
+    gl.bindTexture(gl.TEXTURE_2D,IBLbdrfMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'reflBRDFSampler'),0);
 
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, IBLDiffuseMap);
-    gl.uniform1i(gl.getUniformLocation(shader, 'diffuseSampler'), 1);
+    gl.bindTexture(gl.TEXTURE_2D,IBLDiffuseMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'diffuseSampler'),1);
 
     gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, IBLReflMap);
-    gl.uniform1i(gl.getUniformLocation(shader, 'reflImgSampler'), 2);
+    gl.bindTexture(gl.TEXTURE_2D,IBLReflMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'reflImgSampler'),2);
 
 
   }
@@ -2421,7 +2416,7 @@ function handleKey(event)
     if(wireframe != 2) {
       if(!embedded)
         deleteShaders();
-      initShaders();
+      initShaders(ibl);
     }
     remesh=true;
     drawScene();
@@ -3218,77 +3213,77 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
 
 async function getReq(req)
 {
-  let fetch_req = await fetch(req);
-  return fetch_req.json()
+  return (await fetch(req)).arrayBuffer();
 }
 
-function createTexture(width, height, data, textureNumber, fmt=gl.RGB16F)
-{
-  let tex=gl.createTexture();
-  gl.activeTexture(gl.TEXTURE0 + textureNumber);
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texImage2D(gl.TEXTURE_2D,
-    0, fmt, width, height,
-    0, gl.RGB, gl.FLOAT, new Float32Array(data));
-  // gl.generateMipmap(gl.TEXTURE_2D);
+function rgb(image) {
+  return image.getBytes().filter((element,index) => {return index%4 != 3;});
+}
 
-  //
-  // console.log('Create texture')
+function createTexture(image, textureNumber, fmt=gl.RGB16F)
+{
+  let width=image.width()
+  let height=image.height()
+  let tex=gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0+textureNumber);
+  gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,0,fmt,width,height,
+                0,gl.RGB,gl.FLOAT,rgb(image));
   return tex;
 }
 
 async function initIBL()
 {
-  if (!floatTexExt)
-  {
+  if(!floatTexExt) {
     alert('Does not support Float textures')
     return;
   }
-  promises = [
-    getReq('http://localhost:12345/refl/').then(obj => {
-      IBLbdrfMap = createTexture(obj.width, obj.height, obj.data, 0);
+
+  promises=[
+    getReq(imageURL+'/refl.exr').then(obj => {
+      let img=new Module.EXRLoader(obj);
+      IBLbdrfMap=createTexture(img,0);
     }),
-    getReq('http://localhost:12345/skylit_garage_1k/diffuse').then(obj => {
-      IBLDiffuseMap = createTexture(obj.width, obj.height, obj.data, 1);
+    getReq(imageURL+'/diffuse.exr').then(obj => {
+      let img=new Module.EXRLoader(obj);
+      IBLDiffuseMap=createTexture(img,1);
     })
   ]
 
-  refl_promise = []
+  refl_promise=[]
 
-  for (i=0;i<=roughnessStepCount;++i)
-  {
+  refl_promise.push(
+    getReq(imageURL+'/refl0.exr')
+  );
+  for(let i=1; i <= roughnessStepCount; ++i) {
     refl_promise.push(
-      getReq(`http://localhost:12345/skylit_garage_1k/refl?step=${i}`)
-      )
+      getReq(imageURL+'/refl'+i+'w.exr'))
   }
 
   finished_promise=Promise.all(refl_promise).then(reflMaps => {
-    let tex = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0 + 2);
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, reflMaps.length-1)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_LOD, 0.0);
-    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAX_LOD, roughnessStepCount);
-    for (j=0;j<reflMaps.length;++j) {
-      data = reflMaps[j];
-      gl.texImage2D(gl.TEXTURE_2D,
-        j, gl.RGB16F, data.width, data.height,
-        0, gl.RGB, gl.FLOAT, new Float32Array(data.data));
+    let tex=gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0+2);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+    gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAX_LEVEL,reflMaps.length-1)
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameterf(gl.TEXTURE_2D,gl.TEXTURE_MIN_LOD,0.0);
+    gl.texParameterf(gl.TEXTURE_2D,gl.TEXTURE_MAX_LOD,roughnessStepCount);
+    for(let j=0; j < reflMaps.length; ++j) {
+      let img=new Module.EXRLoader(reflMaps[j]);
+      gl.texImage2D(gl.TEXTURE_2D,j,gl.RGB16F,img.width(),img.height(),
+                    0,gl.RGB,gl.FLOAT,rgb(img));
     }
-    IBLReflMap = tex;
+    IBLReflMap=tex;
   });
 
   promises.push(finished_promise);
   await Promise.all(promises);
 }
-
-UseIBL=false;
 
 function webGLStart()
 {
@@ -3316,8 +3311,6 @@ function webGLStart()
   canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
 
-
-
   canvasWidth0=canvasWidth;
   canvasHeight0=canvasHeight;
 
@@ -3328,6 +3321,6 @@ function webGLStart()
 
   window.addEventListener("resize",resize,false);
 
-  if (webgl2 && UseIBL)
+  if(ibl && webgl2)
     initIBL().then(SetIBL).then(redrawScene);
 }
