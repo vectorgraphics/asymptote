@@ -431,7 +431,7 @@ void initIBL()
 {
   GLTexturesFmt fmt;
   fmt.internalFmt=GL_RGB16F;
-  string imageDir=locateFile(getSetting<string>("imageDir"));
+  string imageDir=locateFile(getSetting<string>("imageDir")+"/"+getSetting<string>("image"));
   irradiance=fromEXR(imageDir+"/diffuse.exr",fmt,1);
 
   GLTexturesFmt fmtRefl;

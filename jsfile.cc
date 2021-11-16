@@ -141,7 +141,7 @@ void jsfile::open(string name)
       << "ibl=" << std::boolalpha << ibl << ";"
       << newl;
   if(ibl)
-    out << "imageURL=\"" << getSetting<string>("imageURL") << "\";"
+    out << "imageURL=\"" << getSetting<string>("imageURL")+"/"+getSetting<string>("image") << "\";"
         << newl;
   out << newl
       <<  "minBound=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];"

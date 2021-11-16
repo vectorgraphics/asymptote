@@ -1216,8 +1216,9 @@ void initSettings() {
                             "Show 3D axes in PDF output", true));
   addOption(new boolSetting("ibl", 0,
                             "Enable environment map image-based lighting", false));
-  addOption(new stringSetting("imageDir", 0,"string","Environment image directory","ibl/snowy_field_1k"));
-  addOption(new stringSetting("imageURL", 0,"string","Environment WebGL image URL","https://vectorgraphics.github.io/asymptote/base/ibl/snowy_field_1k"));
+  addOption(new stringSetting("image", 0,"string","Environment image name","snowy_field_1k"));
+  addOption(new stringSetting("imageDir", 0,"string","Environment image library directory","ibl"));
+  addOption(new stringSetting("imageURL", 0,"string","Environment image library URL","https://vectorgraphics.github.io/asymptote/base/ibl"));
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
                             havegl ? -1.0 : 0.0));
