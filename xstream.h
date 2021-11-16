@@ -358,7 +358,7 @@ public:
     } else set(badbit);
   }
 
-  void close() {
+  void close() override {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdri);
