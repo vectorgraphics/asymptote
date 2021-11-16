@@ -161,7 +161,7 @@ vec3 IBLColor(vec3 viewDir)
   // [\int_\Omega L(l)] * [\int_\Omega f(l,v) \cos \theta_l].
   // the first term is the reflectance irradiance integral
 
-  vec3 IBLDiffuse=Diffuse*texture2D(diffuseSampler,normalizedAngle(normal)).rgb;
+  vec3 IBLDiffuse=Diffuse*texture(diffuseSampler,normalizedAngle(normal)).rgb;
   vec3 reflectVec=normalize(reflect(-viewDir,normal));
   vec2 reflCoord=normalizedAngle(reflectVec);
   float roughness=clamp(Roughness,0.005,0.995);
