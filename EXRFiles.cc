@@ -14,20 +14,20 @@ IEXRFile::IEXRFile(const string& file)
 {
   char const* err;
   int ret;
-  if ((ret=LoadEXR(&data,&width,&height, file.c_str(),&err)) != TINYEXR_SUCCESS)
-  {
+  if((ret=LoadEXR(&data,&width,&height, file.c_str(),&err)) != TINYEXR_SUCCESS)
+    {
     cerr << "TinyEXR Error: " << err << endl;
     FreeEXRErrorMessage(err);
-    abort();
+    exit(-1);
   }
 }
 
 IEXRFile::~IEXRFile()
 {
-  if (data)
-  {
+  if(data) {
     free(data);
     data=nullptr;
   }
 }
+
 }
