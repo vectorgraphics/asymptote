@@ -22,15 +22,14 @@
 #include "ReflectanceMapper.cuh"
 #include "EXRFiles.h"
 
-std::string const ARG_HELP = "reflect -i|-b|-r|-a -f input [-d directory]";
-std::string const DEFAULT_DIRECTORY = ".";
+std::string const ARG_HELP = "reflect [-a|-i|-r|-b] input [-d directory]";
 size_t const MIN_WIDTH = 2;
 size_t const MIN_HEIGHT = 2;
 
 
 struct Args
 {
-  char mode = 0;
+  char mode = 'a';
   bool webgl = false;
   char const* file_in = nullptr;
   char const* directory = nullptr;
@@ -55,21 +54,21 @@ Args parseArgs(int argc, char* argv[])
 {
   Args arg;
   int c;
-  while ((c = getopt(argc, argv, "abd:f:hir")) != -1)
+  while ((c = getopt(argc, argv, "abd:hir")) != -1)
     {
       switch (c)
         {
           case 'a':
-            arg.mode = 'a'; // all
+            arg.mode = 'a'; // both irradiance and reflectance images
             break;
           case 'i':
             arg.mode = 'i'; // irradiance image diffuse.exr
             break;
-          case 'b':
-            arg.mode = 'b'; // brdf image refl.exr
-            break;
           case 'r':
             arg.mode = 'r'; // reflectance images reflN.exr
+            break;
+          case 'b':
+            arg.mode = 'b'; // brdf image refl.exr (independent of image)
             break;
 /*
   case 'c':
@@ -80,9 +79,6 @@ Args parseArgs(int argc, char* argv[])
   }
   break;
 */
-          case 'f':
-            arg.file_in = optarg;
-            break;
           case 'd':
             arg.directory = optarg;
             break;
@@ -95,6 +91,8 @@ Args parseArgs(int argc, char* argv[])
             exit(1);
         }
     }
+
+  arg.file_in = argv[optind];
 
   if (!arg.validate())
     {
@@ -211,7 +209,7 @@ int main(int argc, char* argv[])
 
   if (args.file_in)
     {
-      std::cout << "Loaded file " << args.file_in << std::endl;
+      std::cout << "Loading file " << args.file_in << std::endl;
       EXRFile im(args.file_in);
       width = im.getWidth();
       height = im.getHeight();
@@ -245,13 +243,13 @@ int main(int argc, char* argv[])
 
   image_t imt(im_proc.data(), width, height);
 
+  if (args.mode == 'b')
+    {
+      generate_brdf_refl(200, ".");
+    }
   if (args.mode == 'i' || args.mode == 'a')
     {
       irradiate_im(imt, outprefix);
-    }
-  if (args.mode == 'b' || args.mode == 'a')
-    {
-      generate_brdf_refl(200, args.directory);
     }
   if (args.mode == 'r' || args.mode == 'a')
     {

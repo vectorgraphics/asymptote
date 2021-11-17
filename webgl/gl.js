@@ -9,6 +9,7 @@ let canvasWidth,canvasHeight;
 let absolute=false;
 let ibl=false;
 let imageURL;
+let image;
 
 let minBound,maxBound; // Scene min,max bounding box corners (3-tuples)
 let orthographic; // true: orthographic; false: perspective
@@ -3242,12 +3243,14 @@ async function initIBL()
     return;
   }
 
+  let imagePath=imageURL+image+'/';
+
   promises=[
-    getReq(imageURL+'/refl.exr').then(obj => {
+    getReq(imageURL+'refl.exr').then(obj => {
       let img=new Module.EXRLoader(obj);
       IBLbdrfMap=createTexture(img,0);
     }),
-    getReq(imageURL+'/diffuse.exr').then(obj => {
+    getReq(imagePath+'diffuse.exr').then(obj => {
       let img=new Module.EXRLoader(obj);
       IBLDiffuseMap=createTexture(img,1);
     })
@@ -3256,11 +3259,11 @@ async function initIBL()
   refl_promise=[]
 
   refl_promise.push(
-    getReq(imageURL+'/refl0.exr')
+    getReq(imagePath+'refl0.exr')
   );
   for(let i=1; i <= roughnessStepCount; ++i) {
     refl_promise.push(
-      getReq(imageURL+'/refl'+i+'w.exr'))
+      getReq(imagePath+'refl'+i+'w.exr'))
   }
 
   finished_promise=Promise.all(refl_promise).then(reflMaps => {

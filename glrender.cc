@@ -431,12 +431,13 @@ void initIBL()
 {
   GLTexturesFmt fmt;
   fmt.internalFmt=GL_RGB16F;
-  string imageDir=locateFile(getSetting<string>("imageDir")+"/"+getSetting<string>("image"));
-  irradiance=fromEXR(imageDir+"/diffuse.exr",fmt,1);
+  string imageDir=locateFile(getSetting<string>("imageDir"))+"/";
+  string imagePath=imageDir+getSetting<string>("image")+"/";
+  irradiance=fromEXR(imagePath+"diffuse.exr",fmt,1);
 
   GLTexturesFmt fmtRefl;
   fmtRefl.internalFmt=GL_RG16F;
-  IBLbrdfTex=fromEXR(imageDir+"/refl.exr",fmtRefl,2);
+  IBLbrdfTex=fromEXR(imageDir+"refl.exr",fmtRefl,2);
 
   GLTexturesFmt fmt3;
   fmt3.internalFmt=GL_RGB16F;
@@ -445,7 +446,7 @@ void initIBL()
   fmt3.wrapT=GL_CLAMP_TO_EDGE;
 
   mem::vector<string> files;
-  mem::string prefix=imageDir+"/refl";
+  mem::string prefix=imagePath+"refl";
   for(unsigned int i=0; i <= 10; ++i) {
     mem::stringstream mss;
     mss << prefix << i << ".exr";
