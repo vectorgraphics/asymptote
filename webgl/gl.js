@@ -3245,7 +3245,15 @@ async function initIBL()
 
   let imagePath=imageURL+image+'/';
 
-  await(Module.ok);
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  while(true) { // Wait for EXRLoader to become available.
+    if(Module.EXRLoader)
+      break;
+    await sleep(0);
+  }
 
   promises=[
     getReq(imageURL+'refl.exr').then(obj => {
