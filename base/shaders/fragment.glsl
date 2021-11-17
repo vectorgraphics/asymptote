@@ -17,17 +17,16 @@ uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
 
-#ifdef NORMAL
-#ifndef ORTHOGRAPHIC
-in vec3 ViewPosition;
-#endif
-in vec3 Normal;
-vec3 normal;
-#endif
+flat in int materialIndex;
+out vec4 outColor;
 
-#ifdef COLOR
-in vec4 Color;
-#endif
+// PBR material parameters
+vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
+vec3 Specular; // Specular tint for nonmetals
+float Metallic; // Metallic/Nonmetals parameter
+float Fresnel0; // Fresnel at zero for nonmetals
+float Roughness2; // roughness squared, for smoothing
+float Roughness;
 
 #ifdef HAVE_SSBO
 struct Fragment
@@ -51,16 +50,13 @@ layout(binding=3, std430) buffer fragmentBuffer {
 uniform uint width;
 #endif
 
-flat in int materialIndex;
-out vec4 outColor;
+#ifdef NORMAL
 
-// PBR material parameters
-vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
-vec3 Specular; // Specular tint for nonmetals
-float Metallic; // Metallic/Nonmetals parameter
-float Fresnel0; // Fresnel at zero for nonmetals
-float Roughness2; // roughness squared, for smoothing
-float Roughness;
+#ifndef ORTHOGRAPHIC
+in vec3 ViewPosition;
+#endif
+in vec3 Normal;
+vec3 normal;
 
 #ifdef USE_IBL
 uniform sampler2D reflBRDFSampler;
@@ -70,11 +66,12 @@ uniform sampler3D reflImgSampler;
 
 const float pi=acos(-1.0);
 const float piInv=1.0/pi;
-const float twopiInv=1.0/(2.0*pi);
+const float twopi=2.0*pi;
+const float twopiInv=1.0/twopi;
 
 // (x,y,z) -> (r,theta,phi);
-// theta -> [0,\pi]: colatitude
-// phi -> [0, 2\pi]: longitude
+// theta -> [0,pi]: colatitude
+// phi -> [0, 2pi]: longitude
 vec3 cart2sphere(vec3 cart)
 {
   float x=cart.x;
@@ -82,21 +79,20 @@ vec3 cart2sphere(vec3 cart)
   float z=cart.y;
 
   float r=length(cart);
-  float phi=atan(-y,-x);
   float theta=acos(z/r);
+  float phi=atan(-y,-x);
 
-  return vec3(r,phi,theta);
+  return vec3(r,theta,phi);
 }
 
 vec2 normalizedAngle(vec3 cartVec)
 {
   vec3 sphericalVec=cart2sphere(cartVec);
-  sphericalVec.y=sphericalVec.y*twopiInv+pi;
-  sphericalVec.z=sphericalVec.z*piInv;
-  return sphericalVec.yz;
+  sphericalVec.y=sphericalVec.y*piInv;
+  sphericalVec.z=twopi-sphericalVec.z*twopiInv;
+  return sphericalVec.zy;
 }
 
-#ifdef NORMAL
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
 float NDF_TRG(vec3 h)
@@ -172,14 +168,13 @@ vec3 IBLColor(vec3 viewDir)
   vec3 metal=Diffuse*IBLRefl;
   return mix(dielectric,metal,Metallic);
 }
-
-#endif
 #endif
 
-float sigmoid(float x, float bias, float scale)
-{
-  return 1/(1+exp(-1*scale*(x-bias)));
-}
+#endif
+
+#ifdef COLOR
+in vec4 Color;
+#endif
 
 void main()
 {

@@ -7,14 +7,16 @@ out vec4 outValue;
 #define OUTVALUE gl_fragColor
 #endif
 
+IN vec4 diffuse;
+IN vec3 specular;
+IN float roughness,metallic,fresnel0;
+
 #ifdef NORMAL
+
 #ifndef ORTHOGRAPHIC
 IN vec3 ViewPosition;
 #endif
 IN vec3 Normal;
-IN vec4 diffuse;
-IN vec3 specular;
-IN float roughness,metallic,fresnel0;
 
 #ifdef USE_IBL
 uniform sampler2D reflBRDFSampler;
@@ -30,10 +32,10 @@ struct Light {
   vec3 color;
 };
 
-
 const float pi=acos(-1.0);
 const float piInv=1.0/pi;
-const float twopiInv=1.0/(2.0*pi);
+const float twopi=2.0*pi;
+const float twopiInv=1.0/twopi;
 
 // (x,y,z) -> (r,theta,phi);
 // theta -> [0,pi]: colatitude
@@ -45,18 +47,18 @@ vec3 cart2sphere(vec3 cart)
   float z=cart.y;
 
   float r=length(cart);
-  float phi=atan(-y,-x);
   float theta=acos(z/r);
+  float phi=atan(-y,-x);
 
-  return vec3(r,phi,theta);
+  return vec3(r,theta,phi);
 }
 
 vec2 normalizedAngle(vec3 cartVec)
 {
   vec3 sphericalVec=cart2sphere(cartVec);
-  sphericalVec.y=sphericalVec.y*twopiInv+pi;
-  sphericalVec.z=sphericalVec.z*piInv;
-  return sphericalVec.yz;
+  sphericalVec.y=sphericalVec.y*piInv;
+  sphericalVec.z=twopi-sphericalVec.z*twopiInv;
+  return sphericalVec.zy;
 }
 
 uniform Light Lights[Nlights];
@@ -110,6 +112,22 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   return mix(dielectric,metal,metallic);
 }
+
+#ifdef USE_IBL
+vec3 IBLColor(vec3 viewDir)
+{
+  vec3 IBLDiffuse=diffuse.rgb*texture(diffuseSampler,normalizedAngle(normal)).rgb;
+  vec3 reflectVec=normalize(reflect(-viewDir,normal));
+  vec2 reflCoord=normalizedAngle(reflectVec);
+  vec3 IBLRefl=textureLod(reflImgSampler,reflCoord,roughness*ROUGHNESS_STEP_COUNT).rgb;
+  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
+  float specularMultiplier=fresnel0*IBLbrdf.x+IBLbrdf.y;
+  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
+  vec3 metal=diffuse.rgb*IBLRefl;
+  return mix(dielectric,metal,metallic);
+}
+#endif
+
 #endif
 IN vec4 emissive;
 
@@ -126,15 +144,7 @@ void main(void)
 
 vec3 color;
 #ifdef USE_IBL
-  vec3 IBLDiffuse=diffuse.rgb*texture(diffuseSampler,normalizedAngle(normal)).rgb;
-  vec3 reflectVec=normalize(reflect(-viewDir,normal));
-  vec2 reflCoord=normalizedAngle(reflectVec);
-  vec3 IBLRefl=textureLod(reflImgSampler,reflCoord,roughness*ROUGHNESS_STEP_COUNT).rgb;
-  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
-  float specularMultiplier=fresnel0*IBLbrdf.x+IBLbrdf.y;
-  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
-  vec3 metal=diffuse.rgb*IBLRefl;
-  color=mix(dielectric,metal,metallic);
+  color=IBLColor(viewDir);
 #else
   Roughness2=roughness*roughness;
   color=emissive.rgb;
