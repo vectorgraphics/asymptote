@@ -91,6 +91,20 @@ float Fresnel(vec3 h, vec3 v, float fresnel0)
   return fresnel0+(1.0-fresnel0)*b*b*a;
 }
 
+#ifdef USE_IBL
+vec3 IBLColor(vec3 viewDir)
+{
+  vec3 IBLDiffuse=diffuse.rgb*texture(diffuseSampler,normalizedAngle(normal)).rgb;
+  vec3 reflectVec=normalize(reflect(-viewDir,normal));
+  vec2 reflCoord=normalizedAngle(reflectVec);
+  vec3 IBLRefl=textureLod(reflImgSampler,reflCoord,roughness*ROUGHNESS_STEP_COUNT).rgb;
+  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
+  float specularMultiplier=fresnel0*IBLbrdf.x+IBLbrdf.y;
+  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
+  vec3 metal=diffuse.rgb*IBLRefl;
+  return mix(dielectric,metal,metallic);
+}
+#else
 // physical based shading using UE4 model.
 vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 {
@@ -112,23 +126,10 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   return mix(dielectric,metal,metallic);
 }
-
-#ifdef USE_IBL
-vec3 IBLColor(vec3 viewDir)
-{
-  vec3 IBLDiffuse=diffuse.rgb*texture(diffuseSampler,normalizedAngle(normal)).rgb;
-  vec3 reflectVec=normalize(reflect(-viewDir,normal));
-  vec2 reflCoord=normalizedAngle(reflectVec);
-  vec3 IBLRefl=textureLod(reflImgSampler,reflCoord,roughness*ROUGHNESS_STEP_COUNT).rgb;
-  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
-  float specularMultiplier=fresnel0*IBLbrdf.x+IBLbrdf.y;
-  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
-  vec3 metal=diffuse.rgb*IBLRefl;
-  return mix(dielectric,metal,metallic);
-}
 #endif
 
 #endif
+
 IN vec4 emissive;
 
 void main(void)

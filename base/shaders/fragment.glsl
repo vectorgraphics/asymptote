@@ -124,28 +124,6 @@ float Fresnel(vec3 h, vec3 v, float fresnel0)
   return fresnel0+(1.0-fresnel0)*b*b*a;
 }
 
-vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
-{
-  vec3 lambertian=Diffuse;
-  // Cook-Torrance model
-  vec3 h=normalize(lightDirection+viewDirection);
-
-  float omegain=max(dot(viewDirection,normal),0.0);
-  float omegaln=max(dot(lightDirection,normal),0.0);
-
-  float D=NDF_TRG(h);
-  float G=Geom(viewDirection,lightDirection);
-  float F=Fresnel(h,viewDirection,Fresnel0);
-
-  float denom=4.0*omegain*omegaln;
-  float rawReflectance=denom > 0.0 ? (D*G)/denom : 0.0;
-
-  vec3 dielectric=mix(lambertian,rawReflectance*Specular,F);
-  vec3 metal=rawReflectance*Diffuse;
-
-  return mix(dielectric,metal,Metallic);
-}
-
 #ifdef USE_IBL
 vec3 IBLColor(vec3 viewDir)
 {
@@ -166,6 +144,28 @@ vec3 IBLColor(vec3 viewDir)
   float specularMultiplier=Fresnel0*IBLbrdf.x+IBLbrdf.y;
   vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
   vec3 metal=Diffuse*IBLRefl;
+  return mix(dielectric,metal,Metallic);
+}
+#else
+vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
+{
+  vec3 lambertian=Diffuse;
+  // Cook-Torrance model
+  vec3 h=normalize(lightDirection+viewDirection);
+
+  float omegain=max(dot(viewDirection,normal),0.0);
+  float omegaln=max(dot(lightDirection,normal),0.0);
+
+  float D=NDF_TRG(h);
+  float G=Geom(viewDirection,lightDirection);
+  float F=Fresnel(h,viewDirection,Fresnel0);
+
+  float denom=4.0*omegain*omegaln;
+  float rawReflectance=denom > 0.0 ? (D*G)/denom : 0.0;
+
+  vec3 dielectric=mix(lambertian,rawReflectance*Specular,F);
+  vec3 metal=rawReflectance*Diffuse;
+
   return mix(dielectric,metal,Metallic);
 }
 #endif
