@@ -3245,6 +3245,8 @@ async function initIBL()
 
   let imagePath=imageURL+image+'/';
 
+  await(Module.ok);
+
   promises=[
     getReq(imageURL+'refl.exr').then(obj => {
       let img=new Module.EXRLoader(obj);
@@ -3325,7 +3327,5 @@ function webGLStart()
   window.addEventListener("resize",resize,false);
 
   if(ibl && webgl2)
-    setTimeout(function() { // Wait for EXRLoader to become available
-      initIBL().then(SetIBL).then(redrawScene);
-    },0);
+    initIBL().then(SetIBL).then(redrawScene);
 }
