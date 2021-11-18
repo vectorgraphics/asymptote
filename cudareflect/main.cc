@@ -22,7 +22,6 @@
 #include "ReflectanceMapper.cuh"
 #include "EXRFiles.h"
 
-std::string const ARG_HELP = "reflect [-a|-i|-r|-b] input [-d directory]";
 size_t const MIN_WIDTH = 2;
 size_t const MIN_HEIGHT = 2;
 
@@ -50,6 +49,21 @@ struct Args
   }
 };
 
+void usage()
+{
+  std::cerr << "reflect [-a|-i|-r|-b] inputEXRFile [-d outputDirectory]" <<
+    std::endl;
+  std::cerr << "Options: " << std::endl;
+  std::cerr << "-h\t\t help" << std::endl;
+  std::cerr << "-d\t\t output directory" << std::endl;
+  std::cerr << "-a\t\t generate irradiance and reflectance images (default)"
+            << std::endl;
+  std::cerr << "-i\t\t generate irradiance image diffuse.exr" << std::endl;
+  std::cerr << "-r\t\t generate reflectance images reflN.exr" << std::endl;
+  std::cerr << "-b\t\t generate brdf image refl.exr (independent of image)"
+            << std::endl;
+}
+
 Args parseArgs(int argc, char* argv[])
 {
   Args arg;
@@ -59,16 +73,16 @@ Args parseArgs(int argc, char* argv[])
       switch (c)
         {
           case 'a':
-            arg.mode = 'a'; // both irradiance and reflectance images
+            arg.mode = 'a';
             break;
           case 'i':
-            arg.mode = 'i'; // irradiance image diffuse.exr
+            arg.mode = 'i';
             break;
           case 'r':
-            arg.mode = 'r'; // reflectance images reflN.exr
+            arg.mode = 'r';
             break;
           case 'b':
-            arg.mode = 'b'; // brdf image refl.exr (independent of image)
+            arg.mode = 'b';
             break;
 /*
   case 'c':
@@ -83,11 +97,11 @@ Args parseArgs(int argc, char* argv[])
             arg.directory = optarg;
             break;
           case 'h':
-            std::cerr << ARG_HELP << std::endl;
+            usage();
             exit(0);
             break;
           default:
-            std::cerr << ARG_HELP << std::endl;
+            usage();
             exit(1);
         }
     }
@@ -96,7 +110,7 @@ Args parseArgs(int argc, char* argv[])
 
   if (!arg.validate())
     {
-      std::cerr << ARG_HELP << std::endl;
+      usage();
       exit(1);
     }
   return arg;
@@ -207,37 +221,39 @@ int main(int argc, char* argv[])
   int width = 0;
   int height = 0;
 
-  if (args.file_in)
+  std::cout << "Loading file " << args.file_in << std::endl;
+  EXRFile im(args.file_in);
+  width = im.getWidth();
+  height = im.getHeight();
+  std::cout << "Image dimensions: " << width << "x" << height << std::endl;
+  for (int i = 0; i < height; ++i)
     {
-      std::cout << "Loading file " << args.file_in << std::endl;
-      EXRFile im(args.file_in);
-      width = im.getWidth();
-      height = im.getHeight();
-      std::cout << "Image dimensions: " << width << "x" << height << std::endl;
-      for (int i = 0; i < height; ++i)
+      for (int j = 0; j < width; ++j)
         {
-          for (int j = 0; j < width; ++j)
-            {
-              // index is i*height+j <-> (i,j)
-              im_proc.emplace_back(im.getPixel4(j, i));
-            }
-          // std::cout << "pushed row " << i << " into array" << std::endl;
+          // index is i*height+j <-> (i,j)
+          im_proc.emplace_back(im.getPixel4(j, i));
         }
-      std::cout << "finished converting to float3" << std::endl;
+      // std::cout << "pushed row " << i << " into array" << std::endl;
     }
+  std::cout << "finished converting to float3" << std::endl;
 
   std::stringstream outss;
   if (args.directory)
     {
-      std::cout << args.directory << std::endl;
       make_dir(args.directory);
     }
   else
     {
       args.directory = ".";
     }
+
   outss << args.directory << "/";
 
+  if(args.mode != 'b') {
+    std::ofstream readme(outss.str()+"README");
+    readme << "The image files in this directory were generated from " << args.file_in << std::endl;
+    readme.close();
+  }
 
   std::string outprefix(outss.str());
 
