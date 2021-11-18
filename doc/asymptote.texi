@@ -5387,6 +5387,10 @@ a null array);
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
 returns a null array);
 
+@item int[] sequence(int n, int m, int skip)
+if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} skipping by
+@code{skip} (otherwise returns a null array);
+
 @item T[] sequence(T f(int), int n)
 if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
 function @code{T f(int)} and integer @code{int n} (otherwise returns a
