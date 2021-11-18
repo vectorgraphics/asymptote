@@ -6532,7 +6532,7 @@ static bool EncodePixelData(/* out */ std::vector<unsigned char>& out_data,
 
   } else if (compression_type == TINYEXR_COMPRESSIONTYPE_PIZ) {
 #if TINYEXR_USE_PIZ
-    unsigned int bufLen =
+    unsigned int bufLen = 256 + // Avoid buffer overflow
       8192 + static_cast<unsigned int>(
         2 * static_cast<unsigned int>(
           buf.size()));  // @fixme { compute good bound. }
