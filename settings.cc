@@ -1218,7 +1218,7 @@ void initSettings() {
                             "Enable environment map image-based lighting", false));
   addOption(new stringSetting("image", 0,"string","Environment image name","snowyField"));
   addOption(new stringSetting("imageDir", 0,"string","Environment image library directory","ibl"));
-  addOption(new stringSetting("imageURL", 0,"string","Environment image library URL","https://vectorgraphics.github.io/asymptote/base/ibl"));
+  addOption(new stringSetting("imageURL", 0,"string","Environment image library URL","https://asymptote.sourceforge.io/ibl"));
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
                             havegl ? -1.0 : 0.0));
