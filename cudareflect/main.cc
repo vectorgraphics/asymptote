@@ -188,7 +188,7 @@ void make_dir(std::string const& directory)
   struct stat st;
   if (stat(directory.c_str(), &st) == -1)
     {
-      mkdir(directory.c_str(), 0700);
+      mkdir(directory.c_str(), 0755);
     }
 #endif
 }
