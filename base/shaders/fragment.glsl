@@ -62,7 +62,6 @@ vec3 normal;
 uniform sampler2D reflBRDFSampler;
 uniform sampler2D diffuseSampler;
 uniform sampler3D reflImgSampler;
-#endif
 
 const float pi=acos(-1.0);
 const float piInv=1.0/pi;
@@ -80,7 +79,7 @@ vec3 cart2sphere(vec3 cart)
 
   float r=length(cart);
   float theta=acos(z/r);
-  float phi=atan(-y,-x);
+  float phi=atan(y,x);
 
   return vec3(r,theta,phi);
 }
@@ -89,10 +88,32 @@ vec2 normalizedAngle(vec3 cartVec)
 {
   vec3 sphericalVec=cart2sphere(cartVec);
   sphericalVec.y=sphericalVec.y*piInv;
-  sphericalVec.z=twopi-sphericalVec.z*twopiInv;
+  sphericalVec.z=0.75-sphericalVec.z*twopiInv;
   return sphericalVec.zy;
 }
 
+vec3 IBLColor(vec3 viewDir)
+{
+  //
+  // based on the split sum formula approximation
+  // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
+  // which, by the split sum approiximation (assuming independence+GGX distrubition),
+  // roughly equals (within a margin of error)
+  // [\int_\Omega L(l)] * [\int_\Omega f(l,v) \cos \theta_l].
+  // the first term is the reflectance irradiance integral
+
+  vec3 IBLDiffuse=Diffuse*texture(diffuseSampler,normalizedAngle(normal)).rgb;
+  vec3 reflectVec=normalize(reflect(-viewDir,normal));
+  vec2 reflCoord=normalizedAngle(reflectVec);
+  float roughness=clamp(Roughness,0.005,0.995);
+  vec3 IBLRefl=texture(reflImgSampler,vec3(reflCoord,roughness)).rgb;
+  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
+  float specularMultiplier=Fresnel0*IBLbrdf.x+IBLbrdf.y;
+  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
+  vec3 metal=Diffuse*IBLRefl;
+  return mix(dielectric,metal,Metallic);
+}
+#else
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
 float NDF_TRG(vec3 h)
@@ -124,29 +145,6 @@ float Fresnel(vec3 h, vec3 v, float fresnel0)
   return fresnel0+(1.0-fresnel0)*b*b*a;
 }
 
-#ifdef USE_IBL
-vec3 IBLColor(vec3 viewDir)
-{
-  //
-  // based on the split sum formula approximation
-  // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
-  // which, by the split sum approiximation (assuming independence+GGX distrubition),
-  // roughly equals (within a margin of error)
-  // [\int_\Omega L(l)] * [\int_\Omega f(l,v) \cos \theta_l].
-  // the first term is the reflectance irradiance integral
-
-  vec3 IBLDiffuse=Diffuse*texture(diffuseSampler,normalizedAngle(normal)).rgb;
-  vec3 reflectVec=normalize(reflect(-viewDir,normal));
-  vec2 reflCoord=normalizedAngle(reflectVec);
-  float roughness=clamp(Roughness,0.005,0.995);
-  vec3 IBLRefl=texture(reflImgSampler,vec3(reflCoord,roughness)).rgb;
-  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
-  float specularMultiplier=Fresnel0*IBLbrdf.x+IBLbrdf.y;
-  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
-  vec3 metal=Diffuse*IBLRefl;
-  return mix(dielectric,metal,Metallic);
-}
-#else
 vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 {
   vec3 lambertian=Diffuse;
