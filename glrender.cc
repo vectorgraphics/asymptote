@@ -404,7 +404,7 @@ GLint shaderProg,shaderProgColor;
 
 GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
-  camp::IEXRFile fil(locateFile(EXRFile));
+  camp::IEXRFile fil(EXRFile);
   return GLTexture2 {fil.getData(),fil.size(),textureNumber,fmt};
 }
 
@@ -418,7 +418,7 @@ GLTexture3<float,GL_FLOAT> fromEXR3(
 
   for (string const& EXRFile : EXRFiles)
   {
-    camp::IEXRFile fil3(locateFile(EXRFile));
+    camp::IEXRFile fil3(EXRFile);
     std::tie(wi,ht)=fil3.size();
     size_t imSize=4*wi*ht;
     std::copy(fil3.getData(),fil3.getData()+imSize,std::back_inserter(data));
