@@ -121,7 +121,7 @@ void jsfile::open(string name)
 
   bool ibl=getSetting<bool>("ibl");
   if(ibl)
-    out << "<script src=\"https://vectorgraphics.github.io/asymptote/base/ibl/tinyexr.js\">"
+    out << "<script src=\"https://vectorgraphics.gitlab.io/asymptote/ibl/tinyexr.js\">"
         << newl << "</script>" << newl;
 
   if(getSetting<bool>("offline")) {
