@@ -70,7 +70,7 @@ const float twopiInv=1.0/twopi;
 
 // (x,y,z) -> (r,theta,phi);
 // theta -> [0,pi]: colatitude
-// phi -> [0, 2pi]: longitude
+// phi -> [-pi,pi]: longitude
 vec3 cart2sphere(vec3 cart)
 {
   float x=cart.x;
@@ -78,7 +78,7 @@ vec3 cart2sphere(vec3 cart)
   float z=cart.y;
 
   float r=length(cart);
-  float theta=acos(z/r);
+  float theta=r > 0 ? acos(z/r) : 0.0;
   float phi=atan(y,x);
 
   return vec3(r,theta,phi);
@@ -89,6 +89,7 @@ vec2 normalizedAngle(vec3 cartVec)
   vec3 sphericalVec=cart2sphere(cartVec);
   sphericalVec.y=sphericalVec.y*piInv;
   sphericalVec.z=0.75-sphericalVec.z*twopiInv;
+
   return sphericalVec.zy;
 }
 
@@ -105,9 +106,8 @@ vec3 IBLColor(vec3 viewDir)
   vec3 IBLDiffuse=Diffuse*texture(diffuseSampler,normalizedAngle(normal)).rgb;
   vec3 reflectVec=normalize(reflect(-viewDir,normal));
   vec2 reflCoord=normalizedAngle(reflectVec);
-  float roughness=clamp(Roughness,0.005,0.995);
-  vec3 IBLRefl=texture(reflImgSampler,vec3(reflCoord,roughness)).rgb;
-  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),roughness)).rg;
+  vec3 IBLRefl=texture(reflImgSampler,vec3(reflCoord,Roughness)).rgb;
+  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),Roughness)).rg;
   float specularMultiplier=Fresnel0*IBLbrdf.x+IBLbrdf.y;
   vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
   vec3 metal=Diffuse*IBLRefl;

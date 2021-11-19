@@ -39,7 +39,7 @@ const float twopiInv=1.0/twopi;
 
 // (x,y,z) -> (r,theta,phi);
 // theta -> [0,pi]: colatitude
-// phi -> [0, 2pi]: longitude
+// phi -> [-pi,pi]: longitude
 vec3 cart2sphere(vec3 cart)
 {
   float x=cart.x;
@@ -47,7 +47,7 @@ vec3 cart2sphere(vec3 cart)
   float z=cart.y;
 
   float r=length(cart);
-  float theta=acos(z/r);
+  float theta=r > 0 ? acos(z/r) : 0.0;
   float phi=atan(y,x);
 
   return vec3(r,theta,phi);

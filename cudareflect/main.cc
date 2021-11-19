@@ -167,11 +167,6 @@ void map_refl_im(image_t& im, std::string const& prefix, float const& step, int 
   ox.write(out_name_str);
 }
 
-void map_refl_im(image_t& im, std::string const& prefix, float const& step, int const& i)
-{
-  map_refl_im(im, prefix, step, i, std::pair<size_t, size_t>(im.width, im.height));
-}
-
 std::string const INVALID_FILE_ATTRIB = "Intermediate directories do not exist";
 
 void make_dir(std::string const& directory)
@@ -214,6 +209,11 @@ void generate_brdf_refl(
   ox.write(finalName);
 }
 
+inline float length(float3 v)
+{
+  return sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
+}
+
 int main(int argc, char* argv[])
 {
   Args args = parseArgs(argc, argv);
@@ -225,6 +225,7 @@ int main(int argc, char* argv[])
   EXRFile im(args.file_in);
   width = im.getWidth();
   height = im.getHeight();
+  std::vector<float3> out_proc;
   std::cout << "Image dimensions: " << width << "x" << height << std::endl;
   for (int i = 0; i < height; ++i)
     {
@@ -232,6 +233,15 @@ int main(int argc, char* argv[])
         {
           // index is i*height+j <-> (i,j)
           im_proc.emplace_back(im.getPixel4(j, i));
+          float3 frag3=im.getPixel3(j, i);
+          // Clamp oversaturated values.
+          float norm=1e-5*length(frag3);
+          if(norm > 1.0) {
+            frag3.x /= norm;
+            frag3.y /= norm;
+            frag3.z /= norm;
+          }
+          out_proc.emplace_back(frag3);
         }
       // std::cout << "pushed row " << i << " into array" << std::endl;
     }
@@ -269,14 +279,17 @@ int main(int argc, char* argv[])
     }
   if (args.mode == 'r' || args.mode == 'a')
     {
-      copy_file(args.file_in, generate_refl_file(outprefix, 0));
+      OEXRFile ox(out_proc, width, height);
+      std::string out_name_str = generate_refl_file(outprefix, 0);
+      std::cout << "writing to: " << out_name_str << std::endl;
+      ox.write(out_name_str);
 
       for(size_t halve=0; halve < 2; ++halve) {
         size_t count=halve ? 8 : 10;
         float step = 1.0f / count;
 
-        unsigned int out_width = imt.width;
-        unsigned int out_height = imt.height;
+        unsigned int out_width = width;
+        unsigned int out_height = height;
 
         for (size_t i = 1; i <= count; ++i)
           {
