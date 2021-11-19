@@ -18,12 +18,14 @@ IEXRFile::IEXRFile(const string& File)
   string file=settings::locateFile(File);
   string image=settings::getSetting<string>("image");
   if(file.empty()) {
-    cerr << "EXR file not found: " << File << endl << endl
-         << "Precomputed image directories are available by downloading"
-         << endl
+    cerr << "EXR file not found: " << File << endl
+         << "Precomputed image directories are available by unzipping"
+         << endl << endl
          << "https://gitlab.com/vectorgraphics/asymptote/-/archive/main/asymptote-main.zip"
+         << endl << endl
+         << "and moving the ibl subdirectory of asymptote-main/public"
          << endl
-         << "and placing the public/ibl directory in your Asymptote search path."
+         << "into your Asymptote search path."
          << endl;
     exit(-1);
   }
