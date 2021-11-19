@@ -232,16 +232,16 @@ int main(int argc, char* argv[])
       for (int j = 0; j < width; ++j)
         {
           // index is i*height+j <-> (i,j)
-          im_proc.emplace_back(im.getPixel4(j, i));
           float3 frag3=im.getPixel3(j, i);
           // Clamp oversaturated values.
-          float norm=1e-5*length(frag3);
+          float norm=0.02*length(frag3);
           if(norm > 1.0) {
             frag3.x /= norm;
             frag3.y /= norm;
             frag3.z /= norm;
           }
           out_proc.emplace_back(frag3);
+          im_proc.emplace_back(make_float4(frag3.x,frag3.y,frag3.z,1.0f));
         }
       // std::cout << "pushed row " << i << " into array" << std::endl;
     }

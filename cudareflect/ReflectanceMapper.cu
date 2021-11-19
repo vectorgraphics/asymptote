@@ -91,10 +91,6 @@ void map_reflectance(cudaTextureObject_t tObj,
 
             glm::vec3 frag3(frag.x, frag.y, frag.z);
 
-            // Clamp oversaturated values.
-            float norm=0.5*glm::length(frag3);
-            if(norm > 1.0) frag3 /= norm;
-
             if (ndotl > 0.0)
             {
                 // epic games said it gives better results, otherwise weight can be set to 1.
