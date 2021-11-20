@@ -13,6 +13,8 @@ CUDA_LIBS = -lcudart -lz
 all: $(FILES:=.o) $(CUDA_FILES:=.o)
 	$(NVCC) $(NVCCFLAGS) -o reflect $(FILES:=.o) $(CUDA_FILES:=.o) $(CUDA_LIBS)
 
+tinyexr.o: tinyexr/tinyexr.h
+
 .SUFFIXES: .c .cc .cu .o .d
 .cc.o:
 	$(CXX) $(CFLAGS) $(INCL) -o $@ -c $<
