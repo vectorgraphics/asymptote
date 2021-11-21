@@ -169,8 +169,10 @@ function initShaders(ibl=false)
   colorOpt=["NORMAL","COLOR"];
   transparentOpt=["NORMAL","COLOR","TRANSPARENT"];
 
-  if(ibl)
+  if(ibl) {
     materialOpt.push('USE_IBL');
+    transparentOpt.push('USE_IBL');
+  }
 
   pixelShader=initShader(pixelOpt);
   materialShader=initShader(materialOpt);
