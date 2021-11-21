@@ -186,11 +186,6 @@ function deleteShaders()
   gl.deleteProgram(pixelShader);
 }
 
-function noGL() {
-  if (!gl)
-    alert("Could not initialize WebGL");
-}
-
 function saveAttributes()
 {
   let a=window.top.document.asygl[alpha];
@@ -223,6 +218,18 @@ function restoreAttributes()
 
 let indexExt;
 
+function webGL(canvas,alpha) {
+  let gl=canvas.getContext("webgl2",{alpha: alpha});
+    if(!gl) {
+      webgl2=false;
+      ibl=false;
+      gl=canvas.getContext("webgl",{alpha: alpha});
+    }
+  if(!gl)
+    alert("Could not initialize WebGL");
+  return gl;
+}
+
 function initGL()
 {
   alpha=Background[3] < 1;
@@ -241,8 +248,7 @@ function initGL()
     }
 
     if(!p.asygl[alpha] || !p.asygl[alpha].gl) {
-      gl=offscreen.getContext("webgl",{alpha:alpha});
-      if(!gl) noGL();
+      gl=webGL(offscreen,alpha);
       initShaders();
       p.asygl[alpha]={};
       saveAttributes();
@@ -255,14 +261,7 @@ function initGL()
       }
     }
   } else {
-    gl=canvas.getContext("webgl2",{alpha:alpha});
-    if(!gl) {
-      webgl2=false;
-      ibl=false;
-      gl=canvas.getContext("webgl",{alpha:alpha});
-    }
-
-    if(!gl) noGL();
+    gl=webGL(canvas,alpha);
     initShaders();
   }
 
@@ -306,11 +305,12 @@ function getShader(gl,shaderScript,type,options=[])
   `
 
   let extensions=[];
+
   if(webgl2)
     defines.push('WEBGL2');
 
-  if(webgl2)
-    macros.push(['ROUGHNESS_STEP_COUNT', roughnessStepCount.toFixed(2)]);
+  if(webgl2 && ibl)
+    macros.push(['ROUGHNESS_STEP_COUNT',roughnessStepCount.toFixed(2)]);
 
   if(orthographic)
     defines.push('ORTHOGRAPHIC');
@@ -361,8 +361,7 @@ function drawBuffer(data,shader,indices=data.indices)
   let normal=shader != pixelShader;
 
   setUniforms(data,shader);
-  if (IBLDiffuseMap != null)
-  {
+  if(IBLDiffuseMap != null) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,IBLbdrfMap);
     gl.uniform1i(gl.getUniformLocation(shader,'reflBRDFSampler'),0);
@@ -374,25 +373,22 @@ function drawBuffer(data,shader,indices=data.indices)
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D,IBLReflMap);
     gl.uniform1i(gl.getUniformLocation(shader,'reflImgSampler'),2);
-
-
   }
-
 
   let copy=remesh || data.partial || !data.rendered;
   data.verticesBuffer=registerBuffer(new Float32Array(data.vertices),
                                      data.verticesBuffer,copy);
   gl.vertexAttribPointer(positionAttribute,3,gl.FLOAT,false,
                          normal ? 24 : 16,0);
-  if(normal && Lights.length > 0)
-    gl.vertexAttribPointer(normalAttribute,3,gl.FLOAT,false,24,12);
-  else if(pixel)
+  if(normal) {
+    if(Lights.length > 0)
+      gl.vertexAttribPointer(normalAttribute,3,gl.FLOAT,false,24,12);
+  } else
     gl.vertexAttribPointer(widthAttribute,1,gl.FLOAT,false,16,12);
 
   data.materialsBuffer=registerBuffer(new Int16Array(data.materialIndices),
                                       data.materialsBuffer,copy);
   gl.vertexAttribPointer(materialAttribute,1,gl.SHORT,false,2,0);
-
 
   if(shader == colorShader || shader == transparentShader) {
     data.colorsBuffer=registerBuffer(new Uint8Array(data.colors),
@@ -590,7 +586,7 @@ class Geometry {
     if(data.materialTable[this.MaterialIndex] == null) {
       if(data.materials.length >= Nmaterials) {
         data.partial=true;
-        drawScene();
+        draw();
       }
       data.materialTable[this.MaterialIndex]=data.materials.length;
       data.materials.push(Materials[this.MaterialIndex]);
@@ -2000,9 +1996,8 @@ function initShader(options=[])
   gl.bindAttribLocation(shader,colorAttribute,"color");
   gl.bindAttribLocation(shader,widthAttribute,"width");
   gl.linkProgram(shader);
-  if (!gl.getProgramParameter(shader,gl.LINK_STATUS)) {
+  if(!gl.getProgramParameter(shader,gl.LINK_STATUS))
     alert("Could not initialize shaders");
-  }
 
   return shader;
 }
@@ -2254,7 +2249,7 @@ function shiftScene(lastX,lastY,rawX,rawY)
 
 function panScene(lastX,lastY,rawX,rawY)
 {
-  if (orthographic) {
+  if(orthographic) {
     shiftScene(lastX,lastY,rawX,rawY);
   } else {
     center.x += (rawX-lastX)*(viewParam.xmax-viewParam.xmin);
@@ -2454,7 +2449,7 @@ function handleMouseWheel(event)
 {
   event.preventDefault();
 
-  if (event.deltaY < 0) {
+  if(event.deltaY < 0) {
     Zoom *= zoomFactor;
   } else {
     Zoom /= zoomFactor;
@@ -2671,10 +2666,10 @@ function setDimensions(width,height,X,Y)
   let xshift=(X/width+viewportShift[0])*Zoom;
   let yshift=(Y/height+viewportShift[1])*Zoom;
 
-  if (orthographic) {
+  if(orthographic) {
     let xsize=maxBound[0]-minBound[0];
     let ysize=maxBound[1]-minBound[1];
-    if (xsize < ysize*Aspect) {
+    if(xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*zoominv;
       let X0=2*r*xshift;
       let Y0=ysize*zoominv*yshift;

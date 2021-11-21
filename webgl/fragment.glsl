@@ -4,7 +4,7 @@ out vec4 outValue;
 #define OUTVALUE outValue
 #else
 #define IN varying
-#define OUTVALUE gl_fragColor
+#define OUTVALUE gl_FragColor
 #endif
 
 IN vec4 diffuse;
@@ -47,7 +47,7 @@ vec3 cart2sphere(vec3 cart)
   float z=cart.y;
 
   float r=length(cart);
-  float theta=r > 0 ? acos(z/r) : 0.0;
+  float theta=r > 0.0 ? acos(z/r) : 0.0;
   float phi=atan(y,x);
 
   return vec3(r,theta,phi);
