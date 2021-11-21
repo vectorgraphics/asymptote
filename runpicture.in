@@ -591,7 +591,12 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
           fflush(pipeout);
           ++arg;
         }
+      } else {
+        drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+        fprintf(pipeout,"KEY=%s2\n",e->KEY.c_str());
+        fprintf(pipeout,"0 0 0 0\n");
       }
+
       ++p;
     }
   }

@@ -1081,6 +1081,7 @@ class xasyItem(QtCore.QObject):
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
 
             clipflag = keydata[-1] == '1'
+            deleted = keydata[-1] == '2'
             userkey = keydata[-2] == '1'
             keydata = keydata[:-3]
 
@@ -1092,6 +1093,10 @@ class xasyItem(QtCore.QObject):
                 self.userKeys.add(keydata)
 
 #                print(line, col)
+
+            if deleted:
+                raw_text = fin.readline()
+                continue
 
             if keydata not in keyCounts.keys():
                 keyCounts[keydata] = 0
