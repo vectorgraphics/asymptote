@@ -1481,11 +1481,12 @@ class xasyScript(xasyItem):
                     while not all((checktransf == identity() and not checktransf.deleted) for checktransf in writeval) and writeval:
                         transf = writeval.pop()
                         if transf.deleted:
-                            rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)) + '\n//')
-                        if transf == identity() and not transf.deleted:
-                            rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
-                        else:
                             rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)))
+                        else:
+                            if transf == identity():
+                                rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
+                            else:
+                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode(asy2psmap)))
                         rawAsyCode.write('\n')
             result = rawAsyCode.getvalue()
         return result
