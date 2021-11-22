@@ -406,37 +406,51 @@ struct patch {
     };
   }
 
-  // A constructor for a convex quadrilateral.
+  // A constructor for a triangle or convex quadrilateral.
   void operator init(triple[] external, triple[] internal=new triple[],
                      pen[] colors=new pen[], bool3 planar=default) {
     init();
 
-    if(internal.length == 0 && planar == default)
-      this.planar=normal(external) != O;
-    else this.planar=planar;
+    straight=true;
 
     if(colors.length != 0)
       this.colors=copy(colors);
 
-    if(internal.length == 0) {
-      internal=new triple[4];
+    if(external.length == 3) {
+      P=new triple[][] {
+        {external[0]},
+        {interp(external[0],external[1],1/3),
+         interp(external[2],external[0],2/3)},
+        {interp(external[0],external[1],2/3),sum(external)/3,
+         interp(external[2],external[0],1/3)},
+        {external[1],interp(external[1],external[2],1/3),
+         interp(external[1],external[2],2/3),external[2]}
+      };
+      planar=true;
+      triangular=true;
+    } else {
+      if(internal.length == 0 && planar == default)
+        this.planar=normal(external) != O;
+      else this.planar=planar;
+
+      if(internal.length == 0) {
+        internal=new triple[4];
+        for(int j=0; j < 4; ++j)
+          internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
+                              external[(j+2)%4]+2*external[(j+3)%4]);
+      }
+
+      triple delta[]=new triple[4];
       for(int j=0; j < 4; ++j)
-        internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
-                            external[(j+2)%4]+2*external[(j+3)%4]);
+        delta[j]=(external[(j+1)% 4]-external[j])/3;
+
+      P=new triple[][] {
+        {external[0],external[0]-delta[3],external[3]+delta[3],external[3]},
+        {external[0]+delta[0],internal[0],internal[3],external[3]-delta[2]},
+        {external[1]-delta[0],internal[1],internal[2],external[2]+delta[2]},
+        {external[1],external[1]+delta[1],external[2]-delta[1],external[2]}
+      };
     }
-
-    straight=true;
-
-    triple delta[]=new triple[4];
-    for(int j=0; j < 4; ++j)
-      delta[j]=(external[(j+1)% 4]-external[j])/3;
-
-    P=new triple[][] {
-      {external[0],external[0]-delta[3],external[3]+delta[3],external[3]},
-      {external[0]+delta[0],internal[0],internal[3],external[3]-delta[2]},
-      {external[1]-delta[0],internal[1],internal[2],external[2]+delta[2]},
-      {external[1],external[1]+delta[1],external[2]-delta[1],external[2]}
-    };
   }
 }
 
@@ -1346,19 +1360,6 @@ triple point(patch s, real u, real v)
   return s.point(u,v);
 }
 
-struct interaction
-{
-  int type;
-  bool targetsize;
-  void operator init(int type, bool targetsize=false) {
-    this.type=type;
-    this.targetsize=targetsize;
-  }
-}
-
-restricted interaction Embedded=interaction(0);
-restricted interaction Billboard=interaction(1);
-
 interaction LabelInteraction()
 {
   return settings.autobillboard ? Billboard : Embedded;
@@ -1369,8 +1370,8 @@ material material(material m, light light, bool colors=false)
   return light.on() || invisible((pen) m) ? m : emissive(m,colors);
 }
 
-void draw3D(frame f, patch s, triple center=O, material m,
-            light light=currentlight, interaction interaction=Embedded,
+void draw3D(frame f, patch s, material m,
+            light light=currentlight, render render=defaultrender,
             bool primitive=false)
 {
   bool straight=s.straight && s.planar;
@@ -1381,13 +1382,15 @@ void draw3D(frame f, patch s, triple center=O, material m,
   if(s.colors.length > 0) {
     if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
+    m=material(m);
     m.diffuse(mean(s.colors));
   }
   m=material(m,light,s.colors.length > 0);
   
-  (s.triangular ? drawbeziertriangle : draw)
-    (f,s.P,center,straight,m.p,m.opacity,m.shininess,
-     m.metallic,m.fresnel0,s.colors,interaction.type,digits,primitive);
+ (s.triangular ? drawbeziertriangle : draw)
+    (f,s.P,render.interaction.center,straight,m.p,m.opacity,m.shininess,
+     m.metallic,m.fresnel0,s.colors,render.interaction.type,digits,
+     primitive);
 }
 
 void _draw(frame f, path3 g, triple center=O, material m,
@@ -1417,7 +1420,7 @@ int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
 // Draw triangles on a frame.
 void draw(frame f, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
-          int[][] pi={}, light light=currentlight)
+          int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
   bool normals=n.length > 0;
   if(!normals) {
@@ -1427,13 +1430,15 @@ void draw(frame f, triple[] v, int[][] vi,
   if(p.length > 0)
     m=mean(p);
   m=material(m,light);
-  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi);
+  draw(f,v,vi,render.interaction.center,n,ni,
+       m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi,
+       render.interaction.type);
 }
   
 // Draw triangles on a picture.
 void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
-          int[][] pi={}, light light=currentlight)
+          int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
   bool prc=prc();
   bool normals=n.length > 0;
@@ -1448,7 +1453,9 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       triple[] n=t*n;
 
       if(is3D()) {
-        draw(f,v,vi,n,ni,m,p,pi,light);
+        render Render=render(interaction(render.interaction.type,
+                                         center=t*render.interaction.center));
+        draw(f,v,vi,n,ni,m,p,pi,light,Render);
         if(pic != null) {
           for(int[] vii : vi)
             for(int viij : vii)
@@ -1529,11 +1536,12 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   bool is3D=is3D();
   if(is3D) {
     bool prc=prc();
-    if(s.draw != null && (settings.outformat == "html" ||
-                          (prc && s.PRCprimitive))) {
+    if(s.draw != null && (primitive() || (prc && s.PRCprimitive))) {
+      bool noprerender=settings.prerender == 0;
       for(int k=0; k < s.s.length; ++k)
-        draw3D(f,s.s[k],surfacepen[k],light,primitive=true);
-      s.draw(f,s.T,surfacepen,light,render);
+        draw3D(f,s.s[k],surfacepen[k],light,render,primitive=noprerender);
+      if(noprerender)
+        s.draw(f,s.T,surfacepen,light,render);
     } else {
       bool group=name != "" || render.defaultnames;
       if(group)
@@ -1557,7 +1565,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       for(int p=depth.length-1; p >= 0; --p) {
         real[] a=depth[p];
         int k=round(a[1]);
-        draw3D(f,s.s[k],surfacepen[k],light);
+        draw3D(f,s.s[k],surfacepen[k],light,render);
       }
 
       if(group)
@@ -1646,8 +1654,11 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
-      if(is3D())
-        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
+      if(is3D()) {
+        render Render=render(interaction(render.interaction.type,
+                                         center=t*render.interaction.center));
+        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,Render);
+      }
       if(pic != null) {
         pic.add(new void(frame f, transform T) {
             draw(T,f,S,nu,nv,surfacepen,meshpen,light,meshlight,P);
@@ -1832,16 +1843,17 @@ void label(frame f, Label L, triple position, align align=NoAlign,
       transform3 positioning=
         shift(L.align.is3D ? position+L.align.dir3*labelmargin(L.p) : position);
       frame f1,f2,f3;
-          begingroup3(f1,name,render);
-          if(L.defaulttransform3)
-            begingroup3(f3,render,position,interaction.type);
-          else {
-            begingroup3(f2,render,position,interaction.type);
-            begingroup3(f3,render,position);
-          }
+      begingroup3(f1,name,render);
+      render Render=render(render,interaction(interaction,center=position));
+      if(L.defaulttransform3)
+        begingroup3(f3,Render);
+      else {
+        begingroup3(f2,Render);
+        begingroup3(f3,render(render,interaction(center=position)));
+      }
       for(patch S : s.s) {
         S=centering*S;
-        draw3D(f3,S,position,L.p,light,interaction);
+        draw3D(f3,S,L.p,light,render(interaction(interaction,center=position)));
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
           _draw(f3,S.external(),position,L.p,light,interaction);
@@ -1861,7 +1873,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
       for(patch S : surface(L,position).s) {
         triple V=L.align.is3D ? position+L.align.dir3*labelmargin(L.p) :
           position;
-        draw3D(f,S,V,L.p,light,interaction);
+        draw3D(f,S,L.p,light,render(interaction(interaction,center=V)));
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
           _draw(f,S.external(),V,L.p,light,interaction);
@@ -1922,15 +1934,16 @@ void label(picture pic=currentpicture, Label L, triple position,
               shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
             frame f1,f2,f3;
             begingroup3(f1,name,render);
+            render Render=render(render,interaction(interaction,center=v));
             if(L.defaulttransform3)
-              begingroup3(f3,render,v,interaction.type);
+              begingroup3(f3,Render);
             else {
-              begingroup3(f2,render,v,interaction.type);
-              begingroup3(f3,render,v);
+              begingroup3(f2,Render);
+              begingroup3(f3,render(render,interaction(center=v)));
             }
             for(patch S : s.s) {
               S=centering*S;
-              draw3D(f3,S,v,L.p,light,interaction);
+              draw3D(f3,S,L.p,light,render(interaction(interaction,center=v)));
               // Fill subdivision cracks
               if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
                 _draw(f3,S.external(),v,L.p,light,interaction);
@@ -1950,7 +1963,7 @@ void label(picture pic=currentpicture, Label L, triple position,
           begingroup3(f,name,render);
           for(patch S : surface(L,v,bbox=P.bboxonly).s) {
             triple V=L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v;
-            draw3D(f,S,V,L.p,light,interaction);
+            draw3D(f,S,L.p,light,render(interaction(interaction,center=V)));
             // Fill subdivision cracks
             if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
               _draw(f,S.external(),V,L.p,light,interaction);

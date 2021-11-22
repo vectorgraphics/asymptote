@@ -203,6 +203,14 @@ void psfile::setcolor(const pen& p, const string& begin="",
   }
 }
 
+bool psfile::istargetfmt(string outputformat)
+{
+  return
+    outputformat == "pdf" || outputformat == "html" ||
+    outputformat == "svg" || outputformat == "png" ||
+    outputformat == "v3d";
+}
+
 void psfile::setopacity(const pen& p)
 {
   if(p.blend() != lastpen.blend()) {
@@ -211,8 +219,7 @@ void psfile::setopacity(const pen& p)
 
   string outputformat=settings::getSetting<string>("outformat");
   if(p.opacity() != lastpen.opacity() &&
-     ((pdftex() && outputformat == "") || outputformat == "pdf" || outputformat == "html" ||
-      outputformat == "svg" || outputformat == "png")) {
+  ((pdftex() && outputformat == "") || istargetfmt(outputformat))) {
     *out << p.opacity() << " .setfillconstantalpha" << newl
          << p.opacity() << " .setstrokeconstantalpha" << newl;
   }

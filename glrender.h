@@ -71,6 +71,11 @@ typedef unsigned int GLuint;
 typedef int GLint;
 typedef float GLfloat;
 typedef double GLdouble;
+typedef unsigned char GLubyte;
+typedef unsigned int GLenum;
+#define GL_POINTS				0x0000
+#define GL_LINES				0x0001
+#define GL_TRIANGLES				0x0004
 #endif
 
 #ifdef HAVE_LIBGLM
@@ -122,7 +127,7 @@ extern camp::pair Margin;
 extern camp::triple *Lights;
 extern size_t nlights;
 extern double *Diffuse;
-extern double *Background;
+extern double Background[4];
 
 struct projection
 {
@@ -191,13 +196,10 @@ extern Billboard BB;
 #ifdef HAVE_LIBGLM
 typedef mem::map<CONST Material,size_t> MaterialMap;
 
-extern std::vector<Material> material;
+extern std::vector<Material> materials;
 extern MaterialMap materialMap;
 extern size_t materialIndex;
 extern int MaterialIndex;
-#endif
-
-#ifdef HAVE_GL
 
 extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
 extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers
@@ -226,7 +228,7 @@ public:
   GLfloat position[3];
   GLfloat normal[3];
   GLint material;
-  GLubyte color[4];
+  GLfloat color[4];
   VertexData() {};
   VertexData(const triple& v, const triple& n) {
     position[0]=v.getx();
@@ -245,10 +247,10 @@ public:
     normal[1]=n.gety();
     normal[2]=n.getz();
     material=MaterialIndex;
-    color[0]=(int)(bytescale*c[0]);
-    color[1]=(int)(bytescale*c[1]);
-    color[2]=(int)(bytescale*c[2]);
-    color[3]=(int)(bytescale*c[3]);
+    color[0]=c[0];
+    color[1]=c[1];
+    color[2]=c[2];
+    color[3]=c[3];
   }
 };
 
@@ -256,7 +258,7 @@ class vertexData0 {
 public:
   GLfloat position[3];
   GLfloat width;
-  GLint  material;
+  GLint material;
   vertexData0() {};
   vertexData0(const triple& v, double width) : width(width) {
     position[0]=v.getx();
@@ -387,7 +389,7 @@ extern vertexBuffer colorData;       // colored Bezier patches & triangles
 extern vertexBuffer triangleData;    // opaque indexed triangles
 extern vertexBuffer transparentData; // transparent patches & triangles
 
-void drawBuffer(vertexBuffer& data, GLint shader);
+void drawBuffer(vertexBuffer& data, GLint shader, bool color=false);
 void drawBuffers();
 void clearMaterialBuffer();
 

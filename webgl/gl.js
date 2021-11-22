@@ -5,16 +5,19 @@ let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
-let canvasWidth0,canvasHeight0; // Initial values
 
 let absolute=false;
+let ibl=false;
+let imageURL;
+let image;
 
-let b,B; // Scene min,max bounding box corners (3-tuples)
-let angle; // Field of view angle
-let Zoom0; // Initial zoom
-let zoom0; // Adjusted initial zoom
-let viewportmargin; // Margin around viewport (2-tuple)
-let viewportshift=[0,0]; // Viewport shift (for perspective projection)
+let minBound,maxBound; // Scene min,max bounding box corners (3-tuples)
+let orthographic; // true: orthographic; false: perspective
+let angleOfView; // Field of view angle
+let initialZoom; // Initial zoom
+let viewportShift=[0,0]; // Viewport shift (for perspective projection)
+let viewportMargin; // Margin around viewport (2-tuple)
+let webgl2=true;
 
 let zoomFactor;
 let zoomPinchFactor;
@@ -24,6 +27,9 @@ let zoomStep;
 let shiftHoldDistance;
 let shiftWaitTime;
 let vibrateTime;
+
+let canvasWidth0,canvasHeight0; // Initial values
+let zoom0; // Adjusted initial zoom
 
 let embedded; // Is image embedded within another window?
 
@@ -42,20 +48,19 @@ let maxMaterials; // Limit on number of materials allowed in shader
 
 let halfCanvasWidth,halfCanvasHeight;
 
-let pixel=0.75; // Adaptive rendering constant.
-let zoomRemeshFactor=1.5; // Zoom factor before remeshing
-let FillFactor=0.1;
+const pixelResolution=0.75; // Adaptive rendering constant.
+const zoomRemeshFactor=1.5; // Zoom factor before remeshing
+const FillFactor=0.1;
+const windowTrim=10;
+const third=1/3;
+
 let Zoom;
+let lastZoom;
 
 let maxViewportWidth;
 let maxViewportHeight;
 
-const windowTrim=10;
-
-let lastZoom;
 let H; // maximum camera view half-height
-
-let third=1/3;
 
 let rotMat=mat4.create();
 let projMat=mat4.create(); // projection matrix
@@ -93,6 +98,24 @@ let Positions=[];
 let Normals=[];
 let Colors=[];
 let Indices=[];
+
+let IBLReflMap=null;
+let IBLDiffuseMap=null;
+let IBLbdrfMap=null;
+
+function IBLReady()
+{
+  return IBLReflMap !== null && IBLDiffuseMap !== null && IBLbdrfMap !== null;
+}
+
+function SetIBL()
+{
+  if(!embedded)
+    deleteShaders();
+  initShaders(ibl);
+}
+
+let roughnessStepCount=8;
 
 class Material {
   constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
@@ -135,16 +158,26 @@ class Light {
   }
 }
 
-function initShaders()
+function initShaders(ibl=false)
 {
   let maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
   maxMaterials=Math.floor((maxUniforms-14)/4);
   Nmaterials=Math.min(Math.max(Nmaterials,Materials.length),maxMaterials);
 
-  pixelShader=initShader(["WIDTH"]);
-  materialShader=initShader(["NORMAL"]);
-  colorShader=initShader(["NORMAL","COLOR"]);
-  transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
+  pixelOpt=["WIDTH"];
+  materialOpt=["NORMAL"];
+  colorOpt=["NORMAL","COLOR"];
+  transparentOpt=["NORMAL","COLOR","TRANSPARENT"];
+
+  if(ibl) {
+    materialOpt.push('USE_IBL');
+    transparentOpt.push('USE_IBL');
+  }
+
+  pixelShader=initShader(pixelOpt);
+  materialShader=initShader(materialOpt);
+  colorShader=initShader(colorOpt);
+  transparentShader=initShader(transparentOpt);
 }
 
 function deleteShaders()
@@ -153,11 +186,6 @@ function deleteShaders()
   gl.deleteProgram(colorShader);
   gl.deleteProgram(materialShader);
   gl.deleteProgram(pixelShader);
-}
-
-function noGL() {
-  if (!gl)
-    alert("Could not initialize WebGL");
 }
 
 function saveAttributes()
@@ -192,6 +220,18 @@ function restoreAttributes()
 
 let indexExt;
 
+function webGL(canvas,alpha) {
+  let gl=canvas.getContext("webgl2",{alpha: alpha});
+    if(!gl) {
+      webgl2=false;
+      ibl=false;
+      gl=canvas.getContext("webgl",{alpha: alpha});
+    }
+  if(!gl)
+    alert("Could not initialize WebGL");
+  return gl;
+}
+
 function initGL()
 {
   alpha=Background[3] < 1;
@@ -210,8 +250,7 @@ function initGL()
     }
 
     if(!p.asygl[alpha] || !p.asygl[alpha].gl) {
-      gl=offscreen.getContext("webgl",{alpha:alpha});
-      if(!gl) noGL();
+      gl=webGL(offscreen,alpha);
       initShaders();
       p.asygl[alpha]={};
       saveAttributes();
@@ -224,12 +263,18 @@ function initGL()
       }
     }
   } else {
-    gl=canvas.getContext("webgl",{alpha:alpha});
-    if(!gl) noGL();
+    gl=webGL(canvas,alpha);
     initShaders();
   }
 
   indexExt=gl.getExtension("OES_element_index_uint");
+
+  if(webgl2) {
+    let ext2=gl.getExtension('EXT_color_buffer_float');
+    if(!ext2) alert('need ext_color_buffer_float.');
+    floatTexExt=true;
+  } else
+    floatTexExt=gl.getExtension('OES_texture_float');
 
   TRIANGLES=gl.TRIANGLES;
   material0Data=new vertexBuffer(gl.POINTS);
@@ -242,23 +287,53 @@ function initGL()
 
 function getShader(gl,shaderScript,type,options=[])
 {
-  let str=`#version 100
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-  precision highp float;
-#else
-  precision mediump float;
-#endif
-  #define nlights ${wireframe == 0 ? Lights.length : 0}\n
-  const int Nlights=${Math.max(Lights.length,1)};\n
-  #define Nmaterials ${Nmaterials}\n`;
+  let version=webgl2 ? '300 es' : '100';
+  let defines=Array(...options)
+  let macros=[
+    ['nlights',wireframe == 0 ? Lights.length : 0],
+    ['Nmaterials',Nmaterials]
+  ]
+
+  let consts = [
+    ['int','Nlights',Math.max(Lights.length,1)]
+  ]
+
+  let addenum = `
+  #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+  #else
+    precision mediump float;
+  #endif
+  `
+
+  let extensions=[];
+
+  if(webgl2)
+    defines.push('WEBGL2');
+
+  if(webgl2 && ibl)
+    macros.push(['ROUGHNESS_STEP_COUNT',roughnessStepCount.toFixed(2)]);
 
   if(orthographic)
-    str += `#define ORTHOGRAPHIC\n`;
+    defines.push('ORTHOGRAPHIC');
 
-  options.forEach(s => str += `#define `+s+`\n`);
+  macros_str = macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
+  define_str = defines.map(define => `#define ${define}`).join('\n');
+  const_str = consts.map(const_val => `const ${const_val[0]} ${const_val[1]}=${const_val[2]};`).join('\n')
+  ext_str = extensions.map(ext => `#extension ${ext}: enable`).join('\n')
+
+  shaderSrc = `#version ${version}
+  ${ext_str}
+  ${define_str}
+  ${const_str}
+  ${macros_str}
+
+  ${addenum}
+  ${shaderScript}
+  `;
 
   let shader=gl.createShader(type);
-  gl.shaderSource(shader,str+shaderScript);
+  gl.shaderSource(shader,shaderSrc);
   gl.compileShader(shader);
   if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)) {
     alert(gl.getShaderInfoLog(shader));
@@ -288,21 +363,34 @@ function drawBuffer(data,shader,indices=data.indices)
   let normal=shader != pixelShader;
 
   setUniforms(data,shader);
+  if(IBLDiffuseMap != null) {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D,IBLbdrfMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'reflBRDFSampler'),0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D,IBLDiffuseMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'diffuseSampler'),1);
+
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D,IBLReflMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'reflImgSampler'),2);
+  }
 
   let copy=remesh || data.partial || !data.rendered;
   data.verticesBuffer=registerBuffer(new Float32Array(data.vertices),
                                      data.verticesBuffer,copy);
   gl.vertexAttribPointer(positionAttribute,3,gl.FLOAT,false,
                          normal ? 24 : 16,0);
-  if(normal && Lights.length > 0)
-    gl.vertexAttribPointer(normalAttribute,3,gl.FLOAT,false,24,12);
-  else if(pixel)
+  if(normal) {
+    if(Lights.length > 0)
+      gl.vertexAttribPointer(normalAttribute,3,gl.FLOAT,false,24,12);
+  } else
     gl.vertexAttribPointer(widthAttribute,1,gl.FLOAT,false,16,12);
 
   data.materialsBuffer=registerBuffer(new Int16Array(data.materialIndices),
                                       data.materialsBuffer,copy);
   gl.vertexAttribPointer(materialAttribute,1,gl.SHORT,false,2,0);
-
 
   if(shader == colorShader || shader == transparentShader) {
     data.colorsBuffer=registerBuffer(new Uint8Array(data.colors),
@@ -542,9 +630,10 @@ class Geometry {
         P[i]=this.T(p[i]);
     }
 
-    let s=orthographic ? 1 : this.Min[2]/B[2];
-    let res=pixel*Math.hypot(s*(viewParam.xmax-viewParam.xmin),
-                             s*(viewParam.ymax-viewParam.ymin))/size2;
+    let s=orthographic ? 1 : this.Min[2]/maxBound[2];
+    let res=pixelResolution*
+        Math.hypot(s*(viewParam.xmax-viewParam.xmin),
+                   s*(viewParam.ymax-viewParam.ymin))/size2;
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
 
@@ -568,10 +657,11 @@ class BezierPatch extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
     super();
     this.controlpoints=controlpoints;
+    this.CenterIndex=CenterIndex;
+    this.MaterialIndex=MaterialIndex;
     this.Min=Min;
     this.Max=Max;
     this.color=color;
-    this.CenterIndex=CenterIndex;
     let n=controlpoints.length;
     if(color) {
       let sum=color[0][3]+color[1][3]+color[2][3];
@@ -579,7 +669,6 @@ class BezierPatch extends Geometry {
                         sum+color[3][3] < 1020 : sum < 765;
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
-    this.MaterialIndex=MaterialIndex;
 
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
@@ -1662,10 +1751,10 @@ class BezierCurve extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
     super();
     this.controlpoints=controlpoints;
-    this.Min=Min;
-    this.Max=Max;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
+    this.Min=Min;
+    this.Max=Max;
   }
 
   setMaterialIndex() {
@@ -1780,13 +1869,14 @@ class Pixel extends Geometry {
 }
 
 class Triangles extends Geometry {
-  constructor(MaterialIndex,Min,Max) {
+  constructor(CenterIndex,MaterialIndex,Min,Max) {
     super();
-    this.CenterIndex=0;
+    this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
     this.Min=Min;
     this.Max=Max;
-    this.Positions=Positions;
+
+    this.controlpoints=Positions;
     this.Normals=Normals;
     this.Colors=Colors;
     this.Indices=Indices;
@@ -1794,7 +1884,7 @@ class Triangles extends Geometry {
     Normals=[];
     Colors=[];
     Indices=[];
-    this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
+    this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
   }
 
   setMaterialIndex() {
@@ -1805,7 +1895,7 @@ class Triangles extends Geometry {
   }
 
   process(p) {
-    this.data.vertices=new Array(6*this.Positions.length);
+    this.data.vertices=new Array(6*p.length);
     // Override materialIndex to encode color vs material
       materialIndex=this.Colors.length > 0 ?
       -1-materialIndex : 1+materialIndex;
@@ -1813,9 +1903,9 @@ class Triangles extends Geometry {
     for(let i=0, n=this.Indices.length; i < n; ++i) {
       let index=this.Indices[i];
       let PI=index[0];
-      let P0=this.Positions[PI[0]];
-      let P1=this.Positions[PI[1]];
-      let P2=this.Positions[PI[2]];
+      let P0=p[PI[0]];
+      let P1=p[PI[1]];
+      let P2=p[PI[2]];
       if(!this.offscreen([P0,P1,P2])) {
         let NI=index.length > 1 ? index[1] : PI;
         if(!NI || NI.length == 0) NI=PI;
@@ -1854,7 +1944,7 @@ class Triangles extends Geometry {
         }
       }
     }
-    this.data.nvertices=this.Positions.length;
+    this.data.nvertices=p.length;
     if(this.data.indices.length > 0) this.append();
   }
 
@@ -1874,18 +1964,18 @@ class Triangles extends Geometry {
 
 }
 
-function redraw()
+function redrawScene()
 {
   initProjection();
   setProjection();
   remesh=true;
-  draw();
+  drawScene();
 }
 
 function home()
 {
   mat4.identity(rotMat);
-  redraw();
+  redrawScene();
 }
 
 let positionAttribute=0;
@@ -1908,9 +1998,8 @@ function initShader(options=[])
   gl.bindAttribLocation(shader,colorAttribute,"color");
   gl.bindAttribLocation(shader,widthAttribute,"width");
   gl.linkProgram(shader);
-  if (!gl.getProgramParameter(shader,gl.LINK_STATUS)) {
+  if(!gl.getProgramParameter(shader,gl.LINK_STATUS))
     alert("Could not initialize shaders");
-  }
 
   return shader;
 }
@@ -2162,7 +2251,7 @@ function shiftScene(lastX,lastY,rawX,rawY)
 
 function panScene(lastX,lastY,rawX,rawY)
 {
-  if (orthographic) {
+  if(orthographic) {
     shiftScene(lastX,lastY,rawX,rawY);
   } else {
     center.x += (rawX-lastX)*(viewParam.xmax-viewParam.xmin);
@@ -2274,7 +2363,7 @@ function processDrag(newX,newY,mode,factor=1)
   lastMouseY=newY;
 
   setProjection();
-  draw();
+  drawScene();
 }
 
 let zoomEnabled=0;
@@ -2325,10 +2414,10 @@ function handleKey(event)
     if(wireframe != 2) {
       if(!embedded)
         deleteShaders();
-      initShaders();
+      initShaders(ibl);
     }
     remesh=true;
-    draw();
+    drawScene();
     break;
   case '+':
   case '=':
@@ -2347,7 +2436,7 @@ function handleKey(event)
   if(axis.length > 0) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
     updateViewMatrix();
-    draw();
+    drawScene();
   }
 }
 
@@ -2355,14 +2444,14 @@ function setZoom()
 {
   capzoom();
   setProjection();
-  draw();
+  drawScene();
 }
 
 function handleMouseWheel(event)
 {
   event.preventDefault();
 
-  if (event.deltaY < 0) {
+  if(event.deltaY < 0) {
     Zoom *= zoomFactor;
   } else {
     Zoom /= zoomFactor;
@@ -2440,7 +2529,7 @@ function handleTouchMove(event)
     pinchStart=distance;
     swipe=rotate=zooming=false;
     setProjection();
-    draw();
+    drawScene();
   }
 }
 
@@ -2545,9 +2634,10 @@ function drawBuffers()
   drawColor();
   drawTriangle();
   drawTransparent();
+  requestAnimationFrame(drawBuffers);
 }
 
-function draw()
+function drawScene()
 {
   if(embedded) {
     offscreen.width=canvasWidth;
@@ -2575,26 +2665,26 @@ function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
   let zoominv=1/Zoom;
-  let xshift=(X/width+viewportshift[0])*Zoom;
-  let yshift=(Y/height+viewportshift[1])*Zoom;
+  let xshift=(X/width+viewportShift[0])*Zoom;
+  let yshift=(Y/height+viewportShift[1])*Zoom;
 
-  if (orthographic) {
-    let xsize=B[0]-b[0];
-    let ysize=B[1]-b[1];
-    if (xsize < ysize*Aspect) {
+  if(orthographic) {
+    let xsize=maxBound[0]-minBound[0];
+    let ysize=maxBound[1]-minBound[1];
+    if(xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*zoominv;
       let X0=2*r*xshift;
       let Y0=ysize*zoominv*yshift;
       viewParam.xmin=-r-X0;
       viewParam.xmax=r-X0;
-      viewParam.ymin=b[1]*zoominv-Y0;
-      viewParam.ymax=B[1]*zoominv-Y0;
+      viewParam.ymin=minBound[1]*zoominv-Y0;
+      viewParam.ymax=maxBound[1]*zoominv-Y0;
     } else {
       let r=0.5*xsize/(Aspect*Zoom);
       let X0=xsize*zoominv*xshift;
       let Y0=2*r*yshift;
-      viewParam.xmin=b[0]*zoominv-X0;
-      viewParam.xmax=B[0]*zoominv-X0;
+      viewParam.xmin=minBound[0]*zoominv-X0;
+      viewParam.xmax=maxBound[0]*zoominv-X0;
       viewParam.ymin=-r-Y0;
       viewParam.ymax=r-Y0;
     }
@@ -2622,14 +2712,14 @@ function setProjection()
 
 function initProjection()
 {
-  H=-Math.tan(0.5*angle)*B[2];
+  H=-Math.tan(0.5*angleOfView)*maxBound[2];
 
   center.x=center.y=0;
-  center.z=0.5*(b[2]+B[2]);
+  center.z=0.5*(minBound[2]+maxBound[2]);
   lastZoom=Zoom=zoom0;
 
-  viewParam.zmin=b[2];
-  viewParam.zmax=B[2];
+  viewParam.zmin=minBound[2];
+  viewParam.zmax=maxBound[2];
 
   shift.x=shift.y=0;
 }
@@ -2652,7 +2742,7 @@ function setCanvas()
   size2=Math.hypot(canvasWidth,canvasHeight);
   halfCanvasWidth=0.5*canvas.width;
   halfCanvasHeight=0.5*canvas.height;
-  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
+  ArcballFactor=1+8*Math.hypot(viewportMargin[0],viewportMargin[1])/size2;
 }
 
 function setsize(w,h)
@@ -2677,7 +2767,7 @@ function setsize(w,h)
 
 function resize()
 {
-  zoom0=Zoom0;
+  zoom0=initialZoom;
 
   if(absolute && !embedded) {
     canvasWidth=canvasWidth0*window.devicePixelRatio;
@@ -2697,11 +2787,11 @@ function resize()
   let maxViewportWidth=window.innerWidth;
   let maxViewportHeight=window.innerHeight;
 
-  viewportshift[0] /= zoom0;
-  viewportshift[1] /= zoom0;
+  viewportShift[0] /= zoom0;
+  viewportShift[1] /= zoom0;
 
   setsize(canvasWidth,canvasHeight);
-  redraw();
+  redrawScene();
 }
 
 function expand()
@@ -2747,11 +2837,32 @@ class Align {
   };
 }
 
-function Tcorners(T,m,M) {
+function Tcorners(T,m,M)
+{
   let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
          T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
          T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
   return [minbound(v),maxbound(v)];
+}
+
+function patch(controlpoints,CenterIndex,MaterialIndex,Min,Max,color)
+{
+  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,Min,Max,color));
+}
+
+function curve(controlpoints,CenterIndex,MaterialIndex,Min,Max)
+{
+  P.push(new BezierCurve(controlpoints,CenterIndex,MaterialIndex,Min,Max));
+}
+
+function pixel(controlpoint,width,MaterialIndex,Min,Max)
+{
+  P.push(new Pixel(controlpoint,width,MaterialIndex,Min,Max));
+}
+
+function triangles(CenterIndex,MaterialIndex,Min,Max)
+{
+  P.push(new Triangles(CenterIndex,MaterialIndex,Min,Max));
 }
 
 // draw a sphere of radius r about center
@@ -3098,6 +3209,92 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
     P.push(new BezierCurve(v,CenterIndex,MaterialIndex,Min,Max));
 }
 
+async function getReq(req)
+{
+  return (await fetch(req)).arrayBuffer();
+}
+
+function rgb(image) {
+  return image.getBytes().filter((element,index) => {return index%4 != 3;});
+}
+
+function createTexture(image, textureNumber, fmt=gl.RGB16F)
+{
+  let width=image.width()
+  let height=image.height()
+  let tex=gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0+textureNumber);
+  gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,0,fmt,width,height,
+                0,gl.RGB,gl.FLOAT,rgb(image));
+  return tex;
+}
+
+async function initIBL()
+{
+  if(!floatTexExt) {
+    alert('Does not support Float textures')
+    return;
+  }
+
+  let imagePath=imageURL+image+'/';
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  while(true) { // Wait for EXRLoader to become available.
+    if(Module.EXRLoader)
+      break;
+    await sleep(0);
+  }
+
+  promises=[
+    getReq(imageURL+'refl.exr').then(obj => {
+      let img=new Module.EXRLoader(obj);
+      IBLbdrfMap=createTexture(img,0);
+    }),
+    getReq(imagePath+'diffuse.exr').then(obj => {
+      let img=new Module.EXRLoader(obj);
+      IBLDiffuseMap=createTexture(img,1);
+    })
+  ]
+
+  refl_promise=[]
+
+  refl_promise.push(
+    getReq(imagePath+'refl0.exr')
+  );
+  for(let i=1; i <= roughnessStepCount; ++i) {
+    refl_promise.push(
+      getReq(imagePath+'refl'+i+'w.exr'))
+  }
+
+  finished_promise=Promise.all(refl_promise).then(reflMaps => {
+    let tex=gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0+2);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+    gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAX_LEVEL,reflMaps.length-1)
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameterf(gl.TEXTURE_2D,gl.TEXTURE_MIN_LOD,0.0);
+    gl.texParameterf(gl.TEXTURE_2D,gl.TEXTURE_MAX_LOD,roughnessStepCount);
+    for(let j=0; j < reflMaps.length; ++j) {
+      let img=new Module.EXRLoader(reflMaps[j]);
+      gl.texImage2D(gl.TEXTURE_2D,j,gl.RGB16F,img.width(),img.height(),
+                    0,gl.RGB,gl.FLOAT,rgb(img));
+    }
+    IBLReflMap=tex;
+  });
+
+  promises.push(finished_promise);
+  await Promise.all(promises);
+}
+
 function webGLStart()
 {
   canvas=document.getElementById("Asymptote");
@@ -3133,4 +3330,7 @@ function webGLStart()
     resize();
 
   window.addEventListener("resize",resize,false);
+
+  if(ibl && webgl2)
+    initIBL().then(SetIBL).then(redrawScene);
 }

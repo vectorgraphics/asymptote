@@ -946,6 +946,7 @@ struct versionOption : public option {
 
     bool glm=false;
     bool gl=false;
+    bool ssbo=false;
     bool gsl=false;
     bool fftw3=false;
     bool xdr=false;
@@ -961,6 +962,10 @@ struct versionOption : public option {
 
 #ifdef HAVE_GL
     gl=true;
+#endif
+
+#ifdef HAVE_SSBO
+    ssbo=true;
 #endif
 
 #ifdef HAVE_LIBGSL
@@ -1003,6 +1008,7 @@ struct versionOption : public option {
 #else
     feature("OpenGL   3D OpenGL rendering",gl);
 #endif
+    feature("SSBO     GLSL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("XDR      external data representation (portable binary file format)",xdr);
@@ -1203,15 +1209,16 @@ void initSettings() {
   addOption(new boolSetting("svgemulation", 0,
                             "Emulate unimplemented SVG shading", true));
   addOption(new boolSetting("prc", 0,
-                            "Embed 3D PRC graphics in PDF output", true));
+                            "Embed 3D PRC graphics in PDF output", false));
   addOption(new boolSetting("toolbar", 0,
                             "Show 3D toolbar in PDF output", true));
   addOption(new boolSetting("axes3", 0,
                             "Show 3D axes in PDF output", true));
-  addOption(new boolSetting("envmap", 0,
-                            "Enable environment map image-based lighting (Experimental)", false));
-
-
+  addOption(new boolSetting("ibl", 0,
+                            "Enable environment map image-based lighting", false));
+  addOption(new stringSetting("image", 0,"string","Environment image name","snowyField"));
+  addOption(new stringSetting("imageDir", 0,"string","Environment image library directory","ibl"));
+  addOption(new stringSetting("imageURL", 0,"string","Environment image library URL","https://vectorgraphics.gitlab.io/asymptote/ibl"));
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
                             havegl ? -1.0 : 0.0));
@@ -1223,6 +1230,9 @@ void initSettings() {
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
+  addOption(new boolSetting("GPUindexing", 0,
+                            "Compute indexing partial sums on GPU", true));
+
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",
@@ -1294,6 +1304,10 @@ void initSettings() {
                             "Show translated virtual machine code"));
   addOption(new boolSetting("tabcompletion", 0,
                             "Interactive prompt auto-completion", true));
+  addOption(new realSetting("prerender", 0, "resolution",
+                            "Prerender V3D objects (0 implies vector output)", 0));
+  addOption(new boolSetting("lossy", 0,
+                            "Use single precision for V3D reals", false));
   addOption(new boolSetting("listvariables", 'l',
                             "List available global functions and variables"));
   addOption(new boolSetting("where", 0,

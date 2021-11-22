@@ -701,14 +701,15 @@ void drawpixel(picture *f, triple v, pen p, real width=1.0)
 }
 
 // Draw triangles
-void draw(picture *f, triplearray *v, Intarray2 *vi,
+void draw(picture *f, triplearray *v, Intarray2 *vi, triple center=Zero,
           triplearray *n, Intarray2 *ni,
           penarray *p, real opacity, real shininess,
           real metallic, real fresnel0,
-          penarray *c=emptyarray, Intarray2 *ci=emptyarray)
+          penarray *c=emptyarray, Intarray2 *ci=emptyarray, Int interaction)
 {
-  f->append(new drawTriangles(*v,*vi,*n,*ni,*p,opacity,shininess,metallic,
-                              fresnel0,*c,*ci));
+  f->append(new drawTriangles(*v,*vi,center,*n,*ni,*p,opacity,shininess,
+                              metallic,fresnel0,*c,*ci,
+                              (Interaction) intcast(interaction)));
 }
 
 triple min3(picture *f)

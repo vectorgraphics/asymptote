@@ -111,7 +111,7 @@ struct processDataStruct {
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;
 #ifdef HAVE_RPC_RPC_H
-  terminator<xdr::ioxstream> ixfile;
+  terminator<xdr::ixstream> ixfile;
   terminator<xdr::oxstream> oxfile;
 #endif
 

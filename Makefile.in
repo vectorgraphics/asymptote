@@ -15,7 +15,11 @@ LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS)
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
-PERL = perl
+PERL ?= perl
+PYTHON ?= python3
+BISON ?= bison
+PYRCC ?= pyrcc5
+PYUIC ?= pyuic5
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
@@ -44,16 +48,21 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr shaders jsfile
+	$(PRC) glrender tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures
 
 FILES = $(COREFILES) main
 
 SYMBOLSH = opsymbols.h allsymbols.h $(SYMBOL_FILES:=.symbols.h)
 UIFILES = $(wildcard GUI/windows/*.ui)
 PYFILES = $(wildcard GUI/pyUIClass/*.py) GUI/icons_rc.py
+
+GENERATEDENUMS=v3dtypes v3dheadertypes
+ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
+
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
-        $(SYMBOLSH) $(PYFILES)
+        $(SYMBOLSH) $(PYFILES) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS)
+
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
@@ -81,10 +90,7 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 
 CXX = @CXX@ -Wall
 CC = @CC@ -Wall
-MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
-BISON ?= bison
-PYRCC ?= pyrcc5
-PYUIC ?= pyuic5
+MAKEDEPEND = $(OPTS) -O0 -M -MG -DDEPEND
 LEX = @LEX@
 
 prefix = @prefix@
@@ -124,7 +130,7 @@ asy:	version glew.o
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
-version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py
+version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py $(ASYGENERATEDENUMS)
 	if test ! -s revision.cc || test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
@@ -383,6 +389,17 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 # crashes inside a shared library.
 %.pic.o: %.cc
 	$(CXX) $(SHAREDOPTS) -o $@ -c $<
+
+# For header generations
+
+%.h: %.csv
+	$(PYTHON) ./generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
+
+base/%.asy: %.csv
+	$(PYTHON) ./generate_enums.py --language asy -o $@ -i $< --name $(notdir $*)
+
+%.py: %.csv
+	$(PYTHON) ./generate_enums.py --language python -o $@ -i $< --name $(notdir $*)
 
 ifeq (,$(findstring clean,${MAKECMDGOALS}))
 -include $(FILES:=.d)

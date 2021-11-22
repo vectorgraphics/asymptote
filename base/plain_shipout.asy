@@ -32,6 +32,10 @@ object embed3(string, frame, string, string, string, light, projection);
 string Embed(string name, string text="", string options="", real width=0,
              real height=0);
 
+bool primitive() { // Encode primitive objects
+  return settings.outformat == "html" || settings.outformat=="v3d";
+}
+
 bool prconly(string format="")
 {
   return outformat(format) == "prc";
