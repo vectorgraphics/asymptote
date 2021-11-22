@@ -1471,9 +1471,15 @@ char *getArg(int n) { return argList[n]; }
 
 void setInteractive()
 {
+  bool xasy=getSetting<bool>("xasy");
+  if(xasy && getSetting<Int>("outpipe") < 0) {
+    cerr << "Missing outpipe." << endl;
+    exit(-1);
+  }
+
   if(numArgs() == 0 && !getSetting<bool>("listvariables") &&
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || getSetting<Int>("xasy")))
+     (isatty(STDIN_FILENO) || xasy))
     interact::interactive=true;
 
   if(getSetting<bool>("localhistory"))
