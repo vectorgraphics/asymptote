@@ -956,7 +956,7 @@ class xasyItem(QtCore.QObject):
             currImage.performCanvasTransform = False
 
             # handle this case if transform is not in the map yet.
-            # if deleted - set transform to 0, 0, 0, 0, 0
+            # if deleted - set transform to (0,0,0,0,0,0)
             transfExists = key in self.transfKeymap.keys()
             if transfExists:
                 transfExists = localCount <= len(self.transfKeymap[key]) - 1
@@ -1492,7 +1492,7 @@ class xasyScript(xasyItem):
         return result
 
     def findNonIdKeys(self):
-        return {key for key in self.transfKeymap if not all(transf == identity() for transf in self.transfKeymap[key]) }
+        return {key for key in self.transfKeymap if not all(not transf.deleted and transf == identity() for transf in self.transfKeymap[key]) }
 
     def getObjectCode(self, asy2psmap=identity()):
         numeric=r'([-+]?(?:(?:\d*\.\d+)|(?:\d+\.?)))'
