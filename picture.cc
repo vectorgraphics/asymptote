@@ -541,8 +541,7 @@ bool picture::texprocess(const string& texname, const string& outname,
                 }
 
                 if (first && s.find("%%BoundingBox:") == 0) {
-                  bbox box=b;
-                  box.shift(bboxshift);
+                  bbox box=b.shift(bboxshift);
                   if(verbose > 2) BoundingBox(cout,box);
                   fout.BoundingBox(box);
                   first=false;
@@ -1020,7 +1019,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(pdf) pdfname=buildname(buf.str(),"pdf");
     } else {
       psname=epsname;
-      bshift.shift(bboxshift);
+      bshift=bshift.shift(bboxshift);
     }
     files.push_back(psname);
     if(pdf) files.push_back(pdfname);

@@ -259,8 +259,7 @@ public:
   void endpicture(const bbox& b, bool newPage=false);
 
   virtual void newpage(const bbox& b) {
-    bbox B=b;
-    B.shift(pair(-hoffset(),-voffset()));
+    bbox B=b.shift(pair(-hoffset(),-voffset()));
     verbatimline(settings::newpage(texengine));
     if(pdf)
       *out << "\\pdfpageattr{/MediaBox [" << B << "]}" << newl;

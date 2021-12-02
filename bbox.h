@@ -149,7 +149,7 @@ struct bbox {
   void add(const bbox& b)
   {
     if (this->empty)
-      *this = bbox(b);
+      *this = b;
     else if (!b.empty) {
       left = min(left, b.left);
       right = max(right, b.right);
@@ -174,11 +174,13 @@ struct bbox {
       *this=bbox();
   }
 
-  void shift(const pair& p) {
-    left += p.getx();
-    right += p.getx();
-    bottom += p.gety();
-    top += p.gety();
+  bbox shift(const pair& p) const {
+    bbox b=*this;
+    b.left += p.getx();
+    b.right += p.getx();
+    b.bottom += p.gety();
+    b.top += p.gety();
+    return b;
   }
 
   pair Min() const {
@@ -233,8 +235,7 @@ inline bbox svgbbox(const bbox& B, pair shift=pair(0,0))
     b.top += offset;
     b.bottom += offset;
   }
-  b.shift(pair(1.99*settings::cm,1.9*settings::cm)+shift);
-  return b;
+  return b.shift(pair(1.99*settings::cm,1.9*settings::cm)+shift);
 }
 
 } // namespace camp
