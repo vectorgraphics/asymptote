@@ -581,6 +581,9 @@ bool picture::texprocess(const string& texname, const string& outname,
         unlink(auxname(prefix,"aux").c_str());
       unlink(auxname(prefix,"log").c_str());
       unlink(auxname(prefix,"out").c_str());
+      string dir=stripFile(prefix);
+      unlink((dir+"texput.log").c_str());
+      unlink((dir+"texput.aux").c_str());
       if(settings::context(texengine)) {
         unlink(auxname(prefix,"top").c_str());
         unlink(auxname(prefix,"tua").c_str());
