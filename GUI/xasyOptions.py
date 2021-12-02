@@ -10,25 +10,13 @@
 #
 ###########################################################################
 
-import json
 import sys
 import io
 import os
 import platform
 import shutil
-
 import configs
-
-try:
-    import cson
-except ModuleNotFoundError:
-    cson = None
-
-try:
-    pass
-#     import yaml
-except ModuleNotFoundError:
-    yaml = None
+import cson
 
 class xasyOptions:
     def defaultOptions(self):
@@ -54,7 +42,7 @@ class xasyOptions:
     def settingsFileLocation(self):
         folder = os.path.expanduser("~/.asy/")
 
-        searchOrder = ['.cson', '.yaml', '.json', '']
+        searchOrder = ['.cson', '']
 
         searchIndex = 0
         found = False
@@ -99,20 +87,7 @@ class xasyOptions:
         f = io.open(fileName, 'r')
         try:
             ext = os.path.splitext(fileName)[1]
-            if ext == '.cson':
-                if cson is None:
-                    raise ModuleNotFoundError
-                newOptions = cson.loads(f.read())
-            elif ext in {'.yml', '.yaml'}:
-                if yaml is None:
-                    raise ModuleNotFoundError
-                newOptions = yaml.load(f)
-            elif ext == '.json':
-                if json is None:
-                    raise ModuleNotFoundError
-                newOptions = json.loads(f.read())
-            else:
-                raise Exception(f"File with extension {ext} not supported")
+            newOptions = cson.loads(f.read())
         except (IOError, ModuleNotFoundError):
             self.setDefaults()
         else:
