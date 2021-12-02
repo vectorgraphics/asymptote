@@ -216,6 +216,7 @@ protected:
   bool inlinetex;
   double Hoffset;
   int level;
+  bool pdf;
 
 public:
   string texengine;
@@ -223,7 +224,7 @@ public:
   texfile(const string& texname, const bbox& box, bool pipe=false);
   virtual ~texfile();
 
-  void prologue();
+  void prologue(bool deconstruct=false);
   virtual void beginpage() {}
 
   void epilogue(bool pipe=false);
@@ -242,6 +243,8 @@ public:
 
   void endspecial();
 
+  void special(const string &s);
+
   void beginraw();
 
   void endraw();
@@ -252,8 +255,16 @@ public:
 
   bool toplevel() {return level == 0;}
 
-  void beginpicture(const bbox& b);
-  void endpicture(const bbox& b);
+  virtual void beginpicture(const bbox& b);
+  void endpicture(const bbox& b, bool newPage=false);
+
+  virtual void newpage(const bbox& b) {
+    bbox B=b;
+    B.shift(pair(-hoffset(),-voffset()));
+    verbatimline(settings::newpage(texengine));
+    if(pdf)
+      *out << "\\pdfpageattr{/MediaBox [" << B << "]}" << newl;
+  }
 
   void writepair(pair z) {
     *out << z;
@@ -271,6 +282,8 @@ public:
 
   void beginlayer(const string& psname, bool postscript);
   void endlayer();
+
+  virtual void Offset(const bbox& box) {};
 };
 
 class svgtexfile : public texfile {
@@ -282,20 +295,56 @@ class svgtexfile : public texfile {
   bool inspecial;
   static string nl;
   pair offset;
+  bool first;
+  bool deconstruct;
 public:
-  svgtexfile(const string& texname, const bbox& box, bool pipe=false) :
-    texfile(texname,box,pipe) {
-    clipcount=0;
-    gradientcount=0;
-    gouraudcount=0;
-    tensorcount=0;
+  svgtexfile(const string& texname, const bbox& box, bool pipe=false,
+             bool deconstruct=false) :
+    texfile(texname,box,pipe), deconstruct(deconstruct) {
     inspecial=false;
 
     *out << "\\catcode`\\%=12" << newl
          << "\\def\\percent{%}" << newl
          << "\\catcode`\\%=14" << newl;
 
+    first=true;
+    Offset(box);
+  }
+
+  void Offset(const bbox& b, bool special=false) {
+    box=b;
+    if(special) {
+      texfile::beginpicture(b);
+      pair bboxshift=pair(-2*b.left,b.top-b.bottom);
+      bbox b0=svgbbox(b,bboxshift);
+      *out << "\\special{dvisvgm:bbox f "
+           << b0.left << "bp "
+           << b0.bottom << "bp "
+           << b0.right << "bp "
+           << b0.top << "bp}%" << newl;
+    }
+
+    Hoffset=inlinetex ? box.right : box.left;
     offset=pair(box.left,box.top);
+    clipstack=mem::stack<size_t>();
+    clipcount=0;
+    gradientcount=0;
+    gouraudcount=0;
+    tensorcount=0;
+  }
+
+  void beginpicture(const bbox& b) {
+    Offset(b,true);
+  }
+
+  void newpage(const bbox& b) {
+    if(deconstruct) {
+      if(first)
+        first=false;
+      else
+        endpicture(b,true);
+      beginpicture(b);
+    }
   }
 
   void writeclip(path p, bool newPath=true) {
@@ -317,7 +366,6 @@ public:
   void beginspecial(bool def=false);
   void endspecial();
 
-  // Prevent unwanted page breaks.
   void beginpage() {
     beginpicture(box);
   }

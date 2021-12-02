@@ -22,18 +22,18 @@ public:
 };
 
 class drawNewPage : public drawLayer {
+  bbox box;
 public:
-  drawNewPage() {}
+  drawNewPage() : box() {}
+  drawNewPage(const bbox& box) : box(box) {}
 
   virtual ~drawNewPage() {}
 
   bool islabel() {return true;}
   bool isnewpage() {return true;}
 
-  bool write(texfile *out, const bbox&) {
-    out->verbatimline(settings::latex(out->texengine) ? "\\newpage" :
-                      settings::context(out->texengine) ? "}\\page\\hbox{%" :
-                      "\\eject");
+  bool write(texfile *out, const bbox& b) {
+    out->newpage(box.empty ? b : box);
     return true;
   }
 };

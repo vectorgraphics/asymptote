@@ -243,24 +243,15 @@ bool picture::have3D()
   return false;
 }
 
-bool picture::havepng()
+unsigned int picture::pagecount()
 {
-  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if((*p)->svgpng())
-      return true;
-  }
-  return false;
-}
-
-bool picture::havenewpage()
-{
+  unsigned int c=1;
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if((*p)->isnewpage())
-      return true;
+      ++c;
   }
-  return false;
+  return c;
 }
 
 bbox picture::bounds()
@@ -477,15 +468,10 @@ bool picture::texprocess(const string& texname, const string& outname,
       mem::vector<string> cmd;
 
       if(svg) {
-        string oldPath=dvisvgmCommand(cmd,dviname,outname);
-        ostringstream buf;
-        bbox B=svgbbox(b,bboxshift);
-        buf << "--bbox="
-            << B.left << "bp "
-            << B.bottom << "bp "
-            << B.right << "bp "
-            << B.top << "bp";
-        cmd.push_back(buf.str());
+        string name=deconstruct ? buildname(prefix+"_%1p","svg") : outname;
+        string oldPath=dvisvgmCommand(cmd,dviname,name);
+        if(deconstruct)
+          cmd.push_back("-p1-");
         status=System(cmd,0,true,"dvisvgm");
         if(!oldPath.empty())
           setPath(oldPath.c_str());
@@ -517,7 +503,7 @@ bool picture::texprocess(const string& texname, const string& outname,
           cmd.push_back("-Pdownload35");
           cmd.push_back("-D600");
           cmd.push_back("-O"+String(hoffset)+"bp,"+String(voffset)+"bp");
-          bool ps=havenewpage();
+          bool ps=pagecount() > 1;
           if(ps)
             cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
                           String(paperHeight)+"bp");
@@ -723,19 +709,6 @@ int picture::epstosvg(const string& epsname, const string& outname)
   return status;
 }
 
-int picture::pdftosvg(const string& pdfname, const string& outname)
-{
-  mem::vector<string> cmd;
-  string oldPath=dvisvgmCommand(cmd,pdfname,outname);
-  cmd.push_back("--pdf");
-  int status=System(cmd,0,true,"dvisvgm");
-  if(!oldPath.empty())
-    setPath(oldPath.c_str());
-  if(status == 0 && !getSetting<bool>("keep"))
-    unlink(pdfname.c_str());
-  return status;
-}
-
 void htmlView(string name)
 {
   mem::vector<string> cmd;
@@ -774,16 +747,16 @@ bool picture::postprocess(const string& prename, const string& outname,
       } else status=epstopdf(prename,outname);
     } else if(epsformat) {
       if(svg) {
-        bool haveShading=pdf && havepng();
-        if(!haveShading)
-          status=pdftosvg(prename,outname);
-        if(haveShading || status != 0) {
-          // Dvisvgm version < 2.4 doesn't support --pdf
-          // Dvisvgm --pdf doesn't support shading
-          string psname=stripExt(prename)+".ps";
-          status=pdftoeps(prename,psname,false);
-          if(status != 0) return false;
-          status=epstosvg(psname,outname);
+        string psname=stripExt(prename);
+        status=pdftoeps(prename,psname+"%d.ps",false);
+        if(status != 0) return false;
+        unsigned pages=pagecount();
+        for(unsigned i=0; i < pages; ++i) {
+          ostringstream buf;
+          ostringstream Buf;
+          buf << psname << i+1 << ".ps";
+          Buf << stripExt(outname) << "_" << i << ".svg";
+          status=epstosvg(buf.str(),Buf.str());
         }
         epsformat=false;
       } else
@@ -938,12 +911,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool png=outputformat == "png";
 
   string texengine=getSetting<string>("tex");
-  string texengineSave;
-  if(!empty && texengine == "latex" && ((svgformat && havepng()) || png)) {
-    texengineSave=texengine;
-    Setting("tex")=texengine="pdflatex";
-  }
-
   bool usetex=texengine != "none";
   bool TeXmode=getSetting<bool>("inlinetex") && usetex;
   bool pdf=settings::pdf(texengine);
@@ -1017,8 +984,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       bboxshift +=
         pair((aligndir.getx()+0.5)*xexcess,(aligndir.gety()+0.5)*yexcess);
     }
-  } else if(svg)
-    bboxshift += pair(-b.left,b.top);
+  }
 
   bool status=true;
 
@@ -1027,8 +993,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
   if(Labels) {
     texname=TeXmode ? buildname(prefix,"tex") : auxname(prefix,"tex");
-    tex=dvi ? new svgtexfile(texname,b) : new texfile(texname,b);
-    tex->prologue();
+    tex=dvi ?
+      new svgtexfile(texname,b,false,deconstruct) :
+      new texfile(texname,b);
+    tex->prologue(deconstruct);
   }
 
   nodelist::iterator layerp=nodes.begin();
@@ -1226,8 +1194,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   }
 
   if(!status) reportError("shipout failed");
-
-  if(!texengineSave.empty()) Setting("tex")=texengineSave;
 
   if(htmlformat) {
     jsfile out;

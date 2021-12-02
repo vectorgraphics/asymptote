@@ -1704,6 +1704,17 @@ const char *endpicture(const string& texengine)
     return "\\endpicture%";
 }
 
+// TeX macro to begin new page.
+const char *newpage(const string& texengine)
+{
+  if(latex(texengine))
+    return "\\newpage";
+  else if(context(texengine))
+    return "}\\page\\hbox{%";
+  else
+    return "\\eject";
+}
+
 // Begin TeX special command.
 const char *beginspecial(const string& texengine)
 {

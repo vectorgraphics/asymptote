@@ -48,7 +48,7 @@ class AsymptoteEngine:
     -----------
         istream     : input stream
         ostream     : output stream
-        keepFiles   : keep communicated files in memory
+        keepFiles   : keep communicated files
         tmpdir      : temporary directory
         args        : system call arguments to start a required subprocess
         asyPath     : directory path to asymptote
@@ -1035,7 +1035,7 @@ class xasyItem(QtCore.QObject):
         fout.write("reset\n")
         fout.flush();
         for line in self.getCode().splitlines():
-            if DebugFlags.printDeconstTranscript:
+            if DebugFlags.printFoutTranscript:
                 print('fout:', line)
             fout.write(line+"\n")
         fout.write(self.asySize)
@@ -1060,7 +1060,7 @@ class xasyItem(QtCore.QObject):
             for i in range(len(imageInfos)):
                 box, key, localCount, useClip = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
-                name = '_{:d}.{:s}'.format(i, fileformat)
+                name = '_{:d}.{:s}'.format(1+i, fileformat)
 
                 self.imageHandleQueue.put((name, fileformat, (l, -t, r, -b), i, key, localCount, useClip))
 
@@ -1069,10 +1069,10 @@ class xasyItem(QtCore.QObject):
         raw_text = fin.readline()
         text = ''
         if DebugFlags.printDeconstTranscript:
+            print(self.asyengine.tmpdir)
             print(raw_text.strip())
 
-        # template=AsyTempDir+'%d_%d.%s'
-        fileformat = 'svg' #This fixes the file output type.
+        fileformat = 'svg' # Output format
 
         while raw_text != 'Done\n' and raw_text != 'Error\n':
 #            print(raw_text)

@@ -149,7 +149,7 @@ struct bbox {
   void add(const bbox& b)
   {
     if (this->empty)
-      *this = b;
+      *this = bbox(b);
     else if (!b.empty) {
       left = min(left, b.left);
       right = max(right, b.right);

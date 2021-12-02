@@ -28,14 +28,16 @@ private:
   bboxlist bboxstack;
   groupsmap groups;
   unsigned billboard;
+  bool deconstruct;
 public:
   bbox3 b3; // 3D bounding box
 
   typedef mem::list<drawElement*> nodelist;
   nodelist nodes;
 
-  picture() : labels(false), lastnumber(0), lastnumber3(0), T(identity),
-              billboard(0) {}
+  picture(bool deconstruct=false) :
+    labels(false), lastnumber(0), lastnumber3(0), T(identity), billboard(0),
+    deconstruct(deconstruct) {}
 
   // Destroy all of the owned picture objects.
   ~picture();
@@ -55,8 +57,7 @@ public:
 
   bool havelabels();
   bool have3D();
-  bool havepng();
-  bool havenewpage();
+  unsigned int pagecount();
 
   bbox bounds();
   bbox3 bounds3();
@@ -65,8 +66,6 @@ public:
   pair ratio(double (*m)(double, double));
 
   int epstosvg(const string& epsname, const string& outname);
-  int pdftosvg(const string& pdfname, const string& outname);
-
   int epstopdf(const string& epsname, const string& pdfname);
   int pdftoeps(const string& pdfname, const string& epsname, bool eps=true);
 
