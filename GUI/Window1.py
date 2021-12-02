@@ -1050,9 +1050,6 @@ class MainWindow1(Qw.QMainWindow):
         xasyObjects = pickle.load(input_file)
         input_file.close()
 
-        if not self.checkXasyLoadLegacy(xasyObjects):
-            return
-
         prefix = os.path.splitext(self.fileName)[0]
         asyFilePath = prefix + '.asy'
         rawText = None
@@ -1106,14 +1103,6 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.ui.statusbar.showMessage("No Asymptote file found.  Loaded exclusively GUI objects.")
                 
-    def checkXasyLoadLegacy(self, objects):
-        if isinstance(objects, list):
-            # Initial version: deprecated and no longer supported.
-            Qw.QMessageBox.information(self, "Deprecated Xasy file", 
-                    "Incompatible .xasy file (save created before Asymptote 2.71).")
-            return False
-        return True
-
     def loadKeyMaps(self):
         """Inverts the mapping of the key
            Input map is in format 'Action' : 'Key Sequence' """
