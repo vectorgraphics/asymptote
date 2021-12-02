@@ -1035,8 +1035,8 @@ class xasyItem(QtCore.QObject):
         fout.write("reset\n")
         fout.flush();
         for line in self.getCode().splitlines():
-            if DebugFlags.printFoutTranscript:
-                print('fout:', line)
+            if DebugFlags.printAsyTranscript:
+                print(line)
             fout.write(line+"\n")
         fout.write(self.asySize)
 
