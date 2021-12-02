@@ -429,8 +429,11 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnRotate.setToolTip(self.strings.rotate)
 
     def handleArguments(self):
-        if self.args.filename is not None and os.path.exists(self.args.filename):
-            self.actionOpen(os.path.abspath(self.args.filename))
+        if self.args.filename is not None:
+            if os.path.exists(self.args.filename):
+                self.actionOpen(os.path.abspath(self.args.filename))
+            else:
+                self.loadFile(self.args.filename)
         else:
             self.initializeEmptyFile()
 
@@ -1159,23 +1162,19 @@ class MainWindow1(Qw.QMainWindow):
         if fileName:
             # Opening via open recent or cmd args
             _, file_extension = os.path.splitext(fileName)
-            if file_extension == '.asy':
-                self.loadFile(fileName)
-            elif file_extension == '.xasy':
+            if file_extension == '.xasy':
                 self.actionLoadXasy(fileName)
             else:
-                print("ERROR: file extension not supported.")
+                self.loadFile(fileName)
             self.populateOpenRecent(fileName)
         else:
             filename = Qw.QFileDialog.getOpenFileName(self, 'Open Xasy/Asymptote File','', '(*.xasy *.asy)')
             if filename[0]:
                 _, file_extension = os.path.splitext(filename[0])
-                if file_extension == '.asy':
-                    self.loadFile(filename[0])
-                elif file_extension == '.xasy':
+                if file_extension == '.xasy':
                     self.actionLoadXasy(filename[0])
                 else:
-                    print("ERROR: file extension not supported.")
+                    self.loadFile(filename[0])
         
             self.populateOpenRecent(filename[0].strip())
     
@@ -2366,7 +2365,9 @@ class MainWindow1(Qw.QMainWindow):
     def loadFile(self, name):
         filename = os.path.abspath(name)
         if not os.path.isfile(filename):
-            filename = filename + '.asy'
+            parts = os.path.splitext(filename)
+            if parts[1] != '.xasy':
+                filename = parts[0] + '.asy'
 
         if not os.path.isfile(filename):
             self.ui.statusbar.showMessage('File {0} not found'.format(filename))
