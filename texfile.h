@@ -129,7 +129,8 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   if(pipe || !inlinetex) {
     if(latex) {
       if(texengine == "lualatex") {
-        out << "\\ifx\\pdfpagewidth\\undefined\\let\\pdfpagewidth\\paperwidth"
+        out << "\\edef\\pdfpageattr{\\pdfvariable pageattr}" << newl
+            << "\\ifx\\pdfpagewidth\\undefined\\let\\pdfpagewidth\\paperwidth"
             << "\\fi" << newl
             << "\\ifx\\pdfpageheight\\undefined\\let\\pdfpageheight"
             << "\\paperheight"
@@ -261,8 +262,13 @@ public:
   virtual void newpage(const bbox& b) {
     bbox B=b.shift(pair(-hoffset(),-voffset()));
     verbatimline(settings::newpage(texengine));
-    if(pdf)
-      *out << "\\pdfpageattr{/MediaBox [" << B << "]}" << newl;
+    if(pdf) {
+      if(settings::xe(texengine))
+        *out << "\\special{pdf: put @thispage <</MediaBox [" << B << "]>>}"
+             << newl;
+      else
+        *out << "\\pdfpageattr{/MediaBox [" << B << "]}" << newl;
+    }
   }
 
   void writepair(pair z) {
