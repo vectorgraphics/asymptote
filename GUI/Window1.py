@@ -2352,7 +2352,7 @@ class MainWindow1(Qw.QMainWindow):
         filename = os.path.abspath(name)
         if not os.path.isfile(filename):
             parts = os.path.splitext(filename)
-            if parts[1] != '.xasy':
+            if parts[1] == '':
                 filename = parts[0] + '.asy'
 
         if not os.path.isfile(filename):

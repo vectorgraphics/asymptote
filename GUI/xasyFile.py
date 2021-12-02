@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ###########################################################################
 #
-# xasyFile implements the loading, parsing, and saving of an xasy file.
+# xasyFile implements the loading, parsing, and saving of an asy file.
 #
 #
 # Author: Orest Shardt
