@@ -259,15 +259,18 @@ public:
   virtual void beginpicture(const bbox& b);
   void endpicture(const bbox& b, bool newPage=false);
 
-  virtual void newpage(const bbox& b) {
-    bbox B=b.shift(pair(-hoffset(),-voffset()));
+  virtual void newpage(const bbox&) {
     verbatimline(settings::newpage(texengine));
+  }
+
+  void BBox(const bbox& b) {
+    bbox B=b.shift(pair(-hoffset(),-voffset()));
     if(pdf) {
       if(settings::xe(texengine))
-        *out << "\\special{pdf: put @thispage <</MediaBox [" << B << "]>>}"
+        *out << "\\special{pdf: put @thispage <</MediaBox [" << B << "]>>}%"
              << newl;
       else
-        *out << "\\pdfpageattr{/MediaBox [" << B << "]}" << newl;
+        *out << "\\pdfpageattr{/MediaBox [" << B << "]}%" << newl;
     }
   }
 

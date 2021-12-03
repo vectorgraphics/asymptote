@@ -511,6 +511,7 @@ void xmap(string key, transform t=identity)
 void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 {
   unsigned level=0;
+  bool first=pdf(getSetting<string>("tex"));
 
   string prefix=outname();
   const string xformat="svg";
@@ -571,7 +572,13 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
         bbox b=group->bounds();
         if(!b.empty && b.right > b.left && b.top > b.bottom) {
           if((*p)->endclip()) clip=true;
-          F->append(new drawNewPage(b));
+
+          if(first)
+            first=false;
+          else
+            F->append(new drawNewPage(b));
+
+          F->append(new drawBBox(b));
 
           for(picture::nodelist::iterator g=group->nodes.begin();
               !(g == group->nodes.end()); ++g)

@@ -426,7 +426,7 @@ int opentex(const string& texname, const string& prefix, bool dvi)
   return status;
 }
 
-string dvisvgmCommand(mem::vector<string>& cmd, const string &in, const string& out)
+string dvisvgmCommand(mem::vector<string>& cmd, const string& out)
 {
   string dir=stripFile(out);
   string oldPath;
@@ -443,7 +443,6 @@ string dvisvgmCommand(mem::vector<string>& cmd, const string &in, const string& 
 //  cmd.push_back("--optimize"); // Requires dvisvgm > 2.9.1
   push_split(cmd,getSetting<string>("dvisvgmOptions"));
   cmd.push_back("-o"+stripDir(out));
-  cmd.push_back(stripDir(in));
   return oldPath;
 }
 
@@ -469,7 +468,8 @@ bool picture::texprocess(const string& texname, const string& outname,
 
       if(svg) {
         string name=deconstruct ? buildname(prefix+"_%1p","svg") : outname;
-        string oldPath=dvisvgmCommand(cmd,dviname,name);
+        string oldPath=dvisvgmCommand(cmd,name);
+        cmd.push_back(stripDir(dviname));
         if(deconstruct)
           cmd.push_back("-p1-");
         status=System(cmd,0,true,"dvisvgm");
@@ -698,16 +698,51 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
   return true;
 }
 
-int picture::epstosvg(const string& epsname, const string& outname)
+int picture::epstosvg(const string& epsname, const string& outname,
+                      unsigned int pages)
 {
-  mem::vector<string> cmd;
-  string oldPath=dvisvgmCommand(cmd,epsname,outname);
-  cmd.push_back("-E");
-  int status=System(cmd,0,true,"dvisvgm");
-  if(!oldPath.empty())
-    setPath(oldPath.c_str());
-  if(!getSetting<bool>("keep"))
-    unlink(epsname.c_str());
+  bool multiple=getSetting<bool>("dvisvgmMultipleFiles");
+  string oldPath;
+  int status=0;
+  string outprefix=stripExt(outname);
+  if(multiple) {
+    mem::vector<string> cmd;
+    ostringstream out;
+    out << outprefix << "_%1p.svg";
+    oldPath=dvisvgmCommand(cmd,out.str());
+    for(unsigned i=1; i <= pages; ++i) {
+      ostringstream buf;
+      buf << epsname << i << ".ps";
+      cmd.push_back(buf.str());
+    }
+    cmd.push_back("-E");
+    status=System(cmd,0,true,"dvisvgm");
+    for(unsigned i=1; i <= pages; ++i) {
+      ostringstream buf;
+      buf << epsname << i << ".ps";
+      if(!getSetting<bool>("keep"))
+        unlink(buf.str().c_str());
+    }
+    if(!oldPath.empty())
+      setPath(oldPath.c_str());
+  } else {
+    for(unsigned i=1; i <= pages; ++i) {
+      mem::vector<string> cmd;
+      ostringstream out;
+      out << stripExt(outname) << "_" << i << ".svg";
+      oldPath=dvisvgmCommand(cmd,out.str());
+      ostringstream buf;
+      buf << epsname << i << ".ps";
+      cmd.push_back(buf.str());
+      cmd.push_back("-E");
+      status=System(cmd,0,true,"dvisvgm");
+      if(!getSetting<bool>("keep"))
+        unlink(buf.str().c_str());
+      if(!oldPath.empty())
+        setPath(oldPath.c_str());
+      if(status != 0) break;
+    }
+  }
   return status;
 }
 
@@ -752,14 +787,7 @@ bool picture::postprocess(const string& prename, const string& outname,
         string psname=stripExt(prename);
         status=pdftoeps(prename,psname+"%d.ps",false);
         if(status != 0) return false;
-        unsigned pages=pagecount();
-        for(unsigned i=0; i < pages; ++i) {
-          ostringstream buf;
-          ostringstream Buf;
-          buf << psname << i+1 << ".ps";
-          Buf << stripExt(outname) << "_" << i << ".svg";
-          status=epstosvg(buf.str(),Buf.str());
-        }
+        status=epstosvg(psname,outname,pagecount());
         epsformat=false;
       } else
         status=pdftoeps(prename,outname);
@@ -806,7 +834,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   }
   if(status != 0) return false;
 
-  if(verbose > 0)
+  if(verbose > 0 && !deconstruct)
     cout << "Wrote " << outname << endl;
 
   return display(outname,outputformat,wait,view,epsformat);

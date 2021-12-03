@@ -251,9 +251,10 @@ void texfile::beginpicture(const bbox& b)
 void texfile::endpicture(const bbox& b, bool newPage)
 {
   verbatimline(settings::endpicture(texengine));
-  if(newPage)
+  if(newPage) {
     texfile::newpage(b);
-  else {
+    BBox(b);
+  } else {
     verbatim("\\kern");
     double width=b.right-b.left;
     write(-width*ps2tex);
