@@ -426,9 +426,9 @@ int opentex(const string& texname, const string& prefix, bool dvi)
   return status;
 }
 
-string dvisvgmCommand(mem::vector<string>& cmd, const string& out)
+string dvisvgmCommand(mem::vector<string>& cmd, const string& outname)
 {
-  string dir=stripFile(out);
+  string dir=stripFile(outname);
   string oldPath;
   if(!dir.empty()) {
     oldPath=getPath();
@@ -442,7 +442,9 @@ string dvisvgmCommand(mem::vector<string>& cmd, const string& out)
     cmd.push_back("--libgs="+libgs);
 //  cmd.push_back("--optimize"); // Requires dvisvgm > 2.9.1
   push_split(cmd,getSetting<string>("dvisvgmOptions"));
-  cmd.push_back("-o"+stripDir(out));
+  string outfile=stripDir(outname);
+  if(!outfile.empty())
+    cmd.push_back("-o"+outfile);
   return oldPath;
 }
 
@@ -704,12 +706,9 @@ int picture::epstosvg(const string& epsname, const string& outname,
   bool multiple=getSetting<bool>("dvisvgmMultipleFiles");
   string oldPath;
   int status=0;
-  string outprefix=stripExt(outname);
   if(multiple) {
     mem::vector<string> cmd;
-    ostringstream out;
-    out << outprefix << "_%1p.svg";
-    oldPath=dvisvgmCommand(cmd,out.str());
+    oldPath=dvisvgmCommand(cmd,stripFile(outname));
     for(unsigned i=1; i <= pages; ++i) {
       ostringstream buf;
       buf << epsname << i << ".ps";
@@ -726,10 +725,11 @@ int picture::epstosvg(const string& epsname, const string& outname,
     if(!oldPath.empty())
       setPath(oldPath.c_str());
   } else {
+    string outprefix=stripExt(outname);
     for(unsigned i=1; i <= pages; ++i) {
       mem::vector<string> cmd;
       ostringstream out;
-      out << stripExt(outname) << "_" << i << ".svg";
+      out << outprefix << "_" << i << ".svg";
       oldPath=dvisvgmCommand(cmd,out.str());
       ostringstream buf;
       buf << epsname << i << ".ps";
@@ -787,7 +787,8 @@ bool picture::postprocess(const string& prename, const string& outname,
         string psname=stripExt(prename);
         status=pdftoeps(prename,psname+"%d.ps",false);
         if(status != 0) return false;
-        status=epstosvg(psname,outname,pagecount());
+        status=epstosvg(stripDir(psname),outname,pagecount());
+        if(status != 0) return false;
         epsformat=false;
       } else
         status=pdftoeps(prename,outname);
