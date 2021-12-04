@@ -128,8 +128,12 @@ void texfile::prologue(bool deconstruct)
       } else {
         *out << "\\footline={}" << newl;
         if(pdf) {
-          *out << "\\hoffset=-20pt" << newl
-               << "\\voffset=0pt" << newl;
+          if(settings::lua(texengine))
+            *out << "\\hoffset=-92bp" << newl
+                 << "\\voffset=-1in" << newl;
+          else
+            *out << "\\hoffset=-20pt" << newl
+                 << "\\voffset=0pt" << newl;
         } else {
           *out << "\\hoffset=36.6pt" << newl
                << "\\voffset=54.0pt" << newl;

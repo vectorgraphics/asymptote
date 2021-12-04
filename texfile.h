@@ -127,8 +127,9 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   bool latex=settings::latex(texengine);
   bool inlinetex=settings::getSetting<bool>("inlinetex");
   if(pipe || !inlinetex) {
+    bool lua=settings::lua(texengine);
     if(latex) {
-      if(texengine == "lualatex") {
+      if(lua) {
         out << "\\edef\\pdfpageattr{\\pdfvariable pageattr}" << newl
             << "\\ifx\\pdfpagewidth\\undefined\\let\\pdfpagewidth\\paperwidth"
             << "\\fi" << newl
@@ -141,6 +142,15 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
             << newl
             << "\\usepackage{graphicx}" << newl
             << "\\let\\paperwidth\\paperwidthsave" << newl;
+      }
+    } else {
+      if(lua) {
+        out << "\\edef\\pdfpageattr{\\pdfvariable pageattr}" << newl
+            << "\\ifx\\pdfpagewidth\\undefined\\let\\pdfpagewidth\\pagewidth"
+            << "\\fi" << newl
+            << "\\ifx\\pdfpageheight\\undefined\\let\\pdfpageheight"
+            << "\\pageheight"
+            << "\\fi" << newl;
       }
     }
     texpreamble(out,preamble,pipe);
