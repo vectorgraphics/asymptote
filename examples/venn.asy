@@ -1,3 +1,4 @@
+settings.tex="context";
 size(0,150);
 
 pen colour1=red;

@@ -280,7 +280,18 @@ public:
         *out << "\\special{pdf: put @thispage <</MediaBox [" << B << "]>>}%"
              << newl;
       else
-        *out << "\\pdfpageattr{/MediaBox [" << B << "]}%" << newl;
+        if(settings::context(texengine)) {
+          double width=B.right-B.left;
+          double height=B.top-B.bottom;
+          *out << "\\definepapersize[asy]["
+               << "width=" << width << "bp,"
+               << "height=" << height << "bp]%" << newl
+               << "\\setuppapersize[asy][asy]%" << newl
+               << "\\setuplayout["
+               << "backspace=" << -B.left << "bp,"
+               << "topspace=" << B.top-(box.top-box.bottom) << "bp]%" << newl;
+        } else
+          *out << "\\pdfpageattr{/MediaBox [" << B << "]}%" << newl;
     }
   }
 

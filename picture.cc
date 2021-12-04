@@ -348,7 +348,7 @@ void texinit()
   }
 
   bool context=settings::context(getSetting<string>("tex"));
-  string dir=stripFile(outname());
+  string dir=stripFile(outname()).substr(0,dir.length()-1);
   string logname;
   if(!context) logname=dir;
   logname += "texput.log";
@@ -362,11 +362,16 @@ void texinit()
 
   mem::vector<string> cmd;
   cmd.push_back(texprogram());
+  string oldPath;
   if(context) {
+    if(!dir.empty()) {
+      oldPath=getPath();
+      setPath(dir.c_str());
+    }
     cmd.push_back("--pipe");
   } else {
     if(!dir.empty())
-      cmd.push_back("-output-directory="+dir.substr(0,dir.length()-1));
+      cmd.push_back("-output-directory="+dir);
     string jobname="texput";
     if(getSetting<bool>("inlineimage") || getSetting<bool>("inlinetex")) {
       string name=stripDir(stripExt((outname())));
@@ -402,13 +407,18 @@ int opentex(const string& texname, const string& prefix, bool dvi)
   cmd.push_back(texprogram());
   if(dvi)
     cmd.push_back("-output-format=dvi");
+  string dir=stripFile(texname).substr(0,dir.length()-1);
+  string oldPath;
   if(context) {
+    if(!dir.empty()) {
+      oldPath=getPath();
+      setPath(dir.c_str());
+    }
     cmd.push_back("--nonstopmode");
     cmd.push_back(texname);
   } else {
-    string dir=stripFile(texname);
     if(!dir.empty())
-      cmd.push_back("-output-directory="+dir.substr(0,dir.length()-1));
+      cmd.push_back("-output-directory="+dir);
     cmd.push_back("\\nonstopmode\\input");
     cmd.push_back(stripDir(texname));
   }
@@ -423,6 +433,8 @@ int opentex(const string& texname, const string& prefix, bool dvi)
       System(cmd,0);
     }
   }
+  if(context && !oldPath.empty())
+    setPath(oldPath.c_str());
   return status;
 }
 
