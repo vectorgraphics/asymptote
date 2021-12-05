@@ -424,12 +424,12 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 
   picture *result=new picture;
   unsigned level=0;
-  picture::nodelist::iterator p;
 
   xmap_t xmap=processData().xmap;
   transform Tinv=inverse(T);
 
-  for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
+  for(picture::nodelist::iterator p=f->nodes.begin(); p != f->nodes.end();
+      ++p) {
     transform t=getTransform(xmap,p);
     bool Delete=(t == ZeroTransform);
     if(!Delete && !t.isIdentity()) t=T*t*Tinv;
@@ -460,9 +460,11 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
       group->append(e);
       result->add(*group);
     }
+    delete group;
   }
 
   result->shipout(preamble,prefix,format,wait,view);
+  delete result;
 }
 
 void shipout3(string prefix, picture *f, string format=emptystring,
@@ -527,9 +529,7 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 
   picture *F=new picture(true);
 
-  for(picture::nodelist::iterator p=f->nodes.begin();;) {
-    if(p == f->nodes.end()) break;
-
+  for(picture::nodelist::iterator p=f->nodes.begin(); p != f->nodes.end();) {
     picture *group=new picture;
     transform t=getTransform(xmap,p);
     bool Delete=(t == ZeroTransform);
@@ -611,12 +611,14 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 
       ++p;
     }
+    delete group;
   }
 
   string outname=buildname(prefix,xformat);
   F->shipout(preamble,outname,xformat,false,false);
   fprintf(pipeout,"%s\n",Done.c_str());
   fflush(pipeout);
+  delete F;
 }
 
 

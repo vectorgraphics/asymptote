@@ -1,5 +1,4 @@
 import three;
-import settings;
 size(20cm);
 
 currentprojection=perspective(250,-250,250);
