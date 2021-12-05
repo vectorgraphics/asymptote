@@ -1337,6 +1337,8 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(getSetting<bool>("interrupt"))
     return true;
 
+  if(width <= 0 || height <= 0) return false;
+
   bool webgl=format == "html";
   bool v3dfmt=format == "v3d";
 

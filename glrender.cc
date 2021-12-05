@@ -673,12 +673,13 @@ bool exporting=false;
 
 void Export()
 {
+  size_t ndata=3*fullWidth*fullHeight;
+  if(ndata == 0) return;
   glReadBuffer(GL_BACK_LEFT);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
   glFinish();
   exporting=true;
   try {
-    size_t ndata=3*fullWidth*fullHeight;
     unsigned char *data=new unsigned char[ndata];
     if(data) {
       TRcontext *tr=trNew();
