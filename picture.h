@@ -57,6 +57,8 @@ public:
 
   bool havelabels();
   bool have3D();
+  bool havepng();
+
   unsigned int pagecount();
 
   bbox bounds();

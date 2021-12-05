@@ -243,6 +243,16 @@ bool picture::have3D()
   return false;
 }
 
+bool picture::havepng()
+{
+  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    if((*p)->svgpng())
+      return true;
+  }
+  return false;
+}
+
 unsigned int picture::pagecount()
 {
   unsigned int c=1;
@@ -715,10 +725,9 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
 int picture::epstosvg(const string& epsname, const string& outname,
                       unsigned int pages)
 {
-  bool multiple=getSetting<bool>("dvisvgmMultipleFiles");
   string oldPath;
   int status=0;
-  if(multiple) {
+  if(deconstruct && getSetting<bool>("dvisvgmMultipleFiles")) {
     mem::vector<string> cmd;
     oldPath=dvisvgmCommand(cmd,stripFile(outname));
     for(unsigned i=1; i <= pages; ++i) {
@@ -741,7 +750,10 @@ int picture::epstosvg(const string& epsname, const string& outname,
     for(unsigned i=1; i <= pages; ++i) {
       mem::vector<string> cmd;
       ostringstream out;
-      out << outprefix << "_" << i << ".svg";
+      out << outprefix;
+      if(deconstruct)
+        out << "_" << i;
+      out << ".svg";
       oldPath=dvisvgmCommand(cmd,out.str());
       ostringstream buf;
       buf << epsname << i << ".ps";
@@ -954,6 +966,15 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool png=outputformat == "png";
 
   string texengine=getSetting<string>("tex");
+
+  string texengineSave;
+
+  if(!empty && !deconstruct && svgformat && texengine == "latex"
+     && havepng()) {
+    texengineSave=texengine;
+    Setting("tex")=texengine="pdflatex";
+  }
+
   bool usetex=texengine != "none";
   bool TeXmode=getSetting<bool>("inlinetex") && usetex;
   bool pdf=settings::pdf(texengine);
@@ -1237,6 +1258,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   }
 
   if(!status) reportError("shipout failed");
+
+  if(!texengineSave.empty()) Setting("tex")=texengineSave;
 
   if(htmlformat) {
     jsfile out;
