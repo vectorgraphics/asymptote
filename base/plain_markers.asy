@@ -41,7 +41,8 @@ path cross(int n, bool round=true, real r=0)
   return g--cycle;
 }
 
-path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
+path plus=rotate(45)*cross(4);
+path diamond=rotate(45)*polygon(4);
 
 typedef void markroutine(picture pic=currentpicture, frame f, path g);
 
@@ -147,13 +148,16 @@ real circlescale=0.85;
 
 path[] MarkPath={scale(circlescale)*unitcircle,
                  polygon(3),polygon(4),polygon(5),invert*polygon(3),
-                 cross(4),cross(6)};
+                 cross(4),cross(6),diamond,plus};
+
+int[] MarkFillable={0,1,2,3,4,7};
 
 marker[] Mark=sequence(new marker(int i) {return marker(MarkPath[i]);},
                        MarkPath.length);
 
-marker[] MarkFill=sequence(new marker(int i) {return marker(MarkPath[i],Fill);},
-                           MarkPath.length-2);
+marker[] MarkFill=sequence(new marker(int i) {
+    return marker(MarkPath[MarkFillable[i]],Fill);
+  },MarkFillable.length);
 
 marker Mark(int n) 
 {
