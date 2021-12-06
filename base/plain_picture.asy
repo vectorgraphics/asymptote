@@ -708,7 +708,8 @@ struct picture { // <<<1
   frame fit3(transform3 t, transform3 T0=T3, picture pic, projection P,
              triple m, triple M) {
     frame f;
-    xasyKEY(nodes3[0].key);
+    if(nodes3.length > 0)
+      xasyKEY(nodes3[0].key);
     for(node3 n : nodes3)
       n.d(f,t,T0,pic,P,m,M);
     return f;
