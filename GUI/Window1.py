@@ -80,7 +80,7 @@ class AnchorMode:
     bottomRight = 4
     bottomLeft = 5
     customAnchor = 6
-    
+
 
 class GridMode:
     cartesian = 0
@@ -112,9 +112,9 @@ class AddObjectMode:
 
 class MainWindow1(Qw.QMainWindow):
     defaultFrameStyle = """
-    QFrame{{ 
+    QFrame{{
         padding: 4.0;
-        border-radius: 3.0; 
+        border-radius: 3.0;
         background: rgb({0}, {1}, {2})
     }}
     """
@@ -188,9 +188,9 @@ class MainWindow1(Qw.QMainWindow):
         self.inMidTransformation = False
         self.addMode = None
         self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedIndex': None, 'keyIndex': None}
-        self.pendingSelectedObjList = [] 
+        self.pendingSelectedObjList = []
         self.pendingSelectedObjIndex = -1
-        
+
         self.savedMousePosition = None
         self.currentBoundingBox = None
         self.selectionDelta = None
@@ -200,12 +200,12 @@ class MainWindow1(Qw.QMainWindow):
         self.scaleFactor = 1
         self.panOffset = [0, 0]
 
-        # Keyboard can focus outside of textboxes 
+        # Keyboard can focus outside of textboxes
         self.setFocusPolicy(Qc.Qt.StrongFocus)
 
         super().setMouseTracking(True)
         # setMouseTracking(True)
-        
+
         self.undoRedoStack = Urs.actionStack()
 
         self.lockX = False
@@ -237,7 +237,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.modeButtons = {
             self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, # self.ui.btnSelect,
-            self.ui.btnPan, self.ui.btnDeleteMode, self.ui.btnAnchor, 
+            self.ui.btnPan, self.ui.btnDeleteMode, self.ui.btnAnchor,
             self.ui.btnSelectEdit, self.ui.btnOpenPoly, self.ui.btnClosedPoly,
             self.ui.btnOpenCurve, self.ui.btnClosedCurve, self.ui.btnAddPoly,
             self.ui.btnAddCircle, self.ui.btnAddLabel, self.ui.btnAddFreehand
@@ -253,17 +253,17 @@ class MainWindow1(Qw.QMainWindow):
 
         self.currAddOptionsWgt = None
         self.currAddOptions = {
-            'options': self.settings, 
+            'options': self.settings,
             'inscribed': True,
             'sides': 3,
             'centermode': True,
-            'fontSize': None, 
+            'fontSize': None,
             'asyengine': self.asyEngine,
             'fill': self.ui.btnFill.isChecked(),
             'closedPath': False,
-            'useBezier': True, 
+            'useBezier': True,
             'magnification': self.magnification,
-            'editBezierlockMode': xbi.Web.LockMode.angleLock, 
+            'editBezierlockMode': xbi.Web.LockMode.angleLock,
             'autoRecompute': False
         }
 
@@ -289,10 +289,10 @@ class MainWindow1(Qw.QMainWindow):
             'commandPalette': self.enterCustomCommand,
             'clearGuide': self.clearGuides,
             'finalizeAddObj': self.finalizeAddObj,
-            'finalizeCurve': self.finalizeCurve, 
-            'finalizeCurveClosed': self.finalizeCurveClosed, 
+            'finalizeCurve': self.finalizeCurve,
+            'finalizeCurveClosed': self.finalizeCurveClosed,
             'setMag': self.setMagPrompt,
-            'deleteObject': self.btnSelectiveDeleteOnClick, 
+            'deleteObject': self.btnSelectiveDeleteOnClick,
             'anchorMode': self.switchToAnchorMode,
             'moveUp': lambda: self.translate(0, -1),
             'moveDown': lambda: self.translate(0, 1),
@@ -302,9 +302,9 @@ class MainWindow1(Qw.QMainWindow):
             'scrollLeft': lambda: self.arrowButtons(-1, 0, True),
             'scrollRight': lambda: self.arrowButtons(1, 0, True),
             'scrollUp': lambda: self.arrowButtons(0, 1, True),
-            'scrollDown': lambda: self.arrowButtons(0, -1, True), 
+            'scrollDown': lambda: self.arrowButtons(0, -1, True),
 
-            'zoomIn': lambda: self.arrowButtons(0, 1, False, True), 
+            'zoomIn': lambda: self.arrowButtons(0, 1, False, True),
             'zoomOut': lambda: self.arrowButtons(0, -1, False, True),
 
             'open': self.btnLoadFileonClick,
@@ -356,7 +356,7 @@ class MainWindow1(Qw.QMainWindow):
     def getScrsTransform(self):
         # pipeline:
         # assuming origin <==> top left
-        # (Pan) * (Translate) * (Flip the images) * (Zoom) * (Obj transform) * (Base Information) 
+        # (Pan) * (Translate) * (Flip the images) * (Zoom) * (Obj transform) * (Base Information)
 
         # pipeline --> let x, y be the postscript point
         # p = (mx + cx + panoffset, -ny + cy + panoffset)
@@ -544,7 +544,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnDeleteMode.clicked.connect(self.btnDeleteModeOnClick)
         # self.ui.btnSoftDelete.clicked.connect(self.btnSoftDeleteOnClick)
         self.ui.btnToggleVisible.clicked.connect(self.btnSetVisibilityOnClick)
-        
+
         self.ui.btnEnterCommand.clicked.connect(self.btnTerminalCommandOnClick)
         self.ui.btnTogglePython.clicked.connect(self.btnTogglePythonOnClick)
         self.ui.btnSelectEdit.clicked.connect(self.btnSelectEditOnClick)
@@ -565,10 +565,10 @@ class MainWindow1(Qw.QMainWindow):
         else:
             pass
             # TODO: How to handle this case?
-            # Like AutoCAD? 
+            # Like AutoCAD?
         self.ui.txtTerminalPrompt.clear()
 
-    def btnFillOnClick(self, checked): 
+    def btnFillOnClick(self, checked):
         if self.currentModeStack == [SelectionMode.selectEdit]:
             if isinstance(self.addMode,xbi.InteractiveBezierEditor):
                 self.addMode.swapObjFill() #Check for crashes
@@ -744,7 +744,7 @@ class MainWindow1(Qw.QMainWindow):
             self.btnTranslateonClick()
 
     def addTransformationChanges(self, objIndex, transform, isLocal=False):
-        self.undoRedoStack.add(self.createAction(TransformationChanges(objIndex, 
+        self.undoRedoStack.add(self.createAction(TransformationChanges(objIndex,
                             transform, isLocal)))
         self.checkUndoRedoButtons()
 
@@ -781,7 +781,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.undoRedoStack.add(self.createAction(
                     HardDeletionChanges(selectedObj.parent(), index)
                 ))
-                
+
                 self.fileItems.remove(selectedObj.parent())
 
             self.checkUndoRedoButtons()
@@ -818,13 +818,13 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnUndoOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
-            # avoid deleting currently selected object 
+            # avoid deleting currently selected object
             maj, minor = self.currentlySelectedObj['selectedIndex']
             selectedObj = self.drawObjects[maj][minor]
             if selectedObj != self.drawObjects[-1][0]:
                 self.undoRedoStack.undo()
                 self.checkUndoRedoButtons()
-        else:                
+        else:
             self.undoRedoStack.undo()
             self.checkUndoRedoButtons()
 
@@ -1015,9 +1015,9 @@ class MainWindow1(Qw.QMainWindow):
 
             # Save imported items into the twin asy file
             asyScriptItems = [item['item'] for item in asyItems if item['type'] == 'xasyScript']
-            
+
             # TODO: Check for recently .asy exported xasyShapes this will produce duplicates
-            
+
             prefix = os.path.splitext(self.fileName)[0]
             asyFilePath = prefix + '.asy'
 
@@ -1029,7 +1029,7 @@ class MainWindow1(Qw.QMainWindow):
         openFile = open(file, 'wb')
         pickle.dump(xasyObjects, openFile)
         openFile.close()
-        
+
     def actionLoadXasy(self, file):
         self.erase()
         self.ui.statusbar.showMessage('Load {0}'.format(file)) # TODO: This doesn't show on the UI
@@ -1061,7 +1061,7 @@ class MainWindow1(Qw.QMainWindow):
                 print("Uh oh, there should not be any asy objects loaded")
 
             elif item['type'] == 'xasyText':
-                self.addXasyTextFromData( text = item['text'], 
+                self.addXasyTextFromData( text = item['text'],
                         location = item['location'], pen = None,
                         transform = x2a.asyTransform(item['transform']), key = item['transfKey'],
                         align = item['align'], fontSize = item['fontSize']
@@ -1083,17 +1083,17 @@ class MainWindow1(Qw.QMainWindow):
         self.asy2psmap = x2a.asyTransform(xasyObjects['asy2psmap'])
 
         if duplicateObjects:
-            Qw.QMessageBox.information(self, "Duplicate", 
+            Qw.QMessageBox.information(self, "Duplicate",
                     f"Duplicate objects have been found. Reverting to linked asy file: {os.path.basename(self.asyFileName)}")
             self.fileItems = [item for item in self.fileItems if item not in duplicateObjects]
-        
+
         self.asyfyCanvas(True)
 
         if existsAsy:
             self.ui.statusbar.showMessage(f"Corresponding Asymptote File '{os.path.basename(asyFilePath)}' found.  Loaded both files.")
         else:
             self.ui.statusbar.showMessage("No Asymptote file found.  Loaded exclusively GUI objects.")
-                
+
     def loadKeyMaps(self):
         """Inverts the mapping of the key
            Input map is in format 'Action' : 'Key Sequence' """
@@ -1137,7 +1137,7 @@ class MainWindow1(Qw.QMainWindow):
         self.asyfyCanvas(True)
         self.fileName = None
         self.updateTitle()
-        
+
 
     def actionOpen(self, fileName = None):
         if self.fileChanged:
@@ -1163,9 +1163,9 @@ class MainWindow1(Qw.QMainWindow):
                     self.actionLoadXasy(filename[0])
                 else:
                     self.loadFile(filename[0])
-        
+
             self.populateOpenRecent(filename[0].strip())
-    
+
     def actionClearRecent(self):
         self.ui.menuOpenRecent.clear()
         self.openRecent.clear()
@@ -1190,9 +1190,9 @@ class MainWindow1(Qw.QMainWindow):
         replyBox.setWindowTitle("Message")
         replyBox.setStandardButtons(Qw.QMessageBox.Yes | Qw.QMessageBox.No | Qw.QMessageBox.Cancel)
         reply = replyBox.exec()
-        
+
         return reply
-        
+
     def actionClose(self):
         if self.fileChanged:
             reply = self.saveDialog()
@@ -1209,14 +1209,14 @@ class MainWindow1(Qw.QMainWindow):
     def actionSave(self):
         if self.fileName is None:
             self.actionSaveAs()
-            
+
         else:
             _, file_extension = os.path.splitext(self.fileName)
             if file_extension == ".asy":
                 if self.existsXasy():
                     warning = "Choose save format. Note that objects saved in asy format cannot be edited graphically."
                     replyBox = Qw.QMessageBox()
-                    replyBox.setWindowTitle('Warning') 
+                    replyBox.setWindowTitle('Warning')
                     replyBox.setText(warning)
                     replyBox.addButton("Save as .xasy", replyBox.NoRole)
                     replyBox.addButton("Save as .asy", replyBox.YesRole)
@@ -1232,11 +1232,11 @@ class MainWindow1(Qw.QMainWindow):
                         prefix = os.path.splitext(self.fileName)[0]
                         xasyFilePath = prefix + '.xasy'
                         if os.path.isfile(xasyFilePath):
-                            warning = f'"{os.path.basename(xasyFilePath)}" already exists.  Do you want to overwrite it?' 
-                            reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.No, Qw.QMessageBox.Yes) 
+                            warning = f'"{os.path.basename(xasyFilePath)}" already exists.  Do you want to overwrite it?'
+                            reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.No, Qw.QMessageBox.Yes)
                             if reply == Qw.QMessageBox.No:
                                 return
-    
+
                         self.actionExportXasy(xasyFilePath)
                         self.fileName = xasyFilePath
                         self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
@@ -1288,7 +1288,7 @@ class MainWindow1(Qw.QMainWindow):
             self.fileChanged = False
             self.updateTitle()
             self.populateOpenRecent(saveLocation)
-            
+
 
     def btnQuickScreenshotOnClick(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot','')
@@ -1373,12 +1373,12 @@ class MainWindow1(Qw.QMainWindow):
 
     def mouseMoveEvent(self, mouseEvent: Qg.QMouseEvent):  # TODO: Actually refine grid snapping...
         if not self.ui.imgLabel.underMouse() and not self.mouseDown:
-            return 
+            return
 
         self.updateMouseCoordLabel()
         asyPos, canvasPos = self.getAsyCoordinates()
 
-        # add mode 
+        # add mode
         if self.addMode is not None:
             if self.addMode.active:
                 self.addMode.mouseMove(asyPos, mouseEvent)
@@ -1404,7 +1404,7 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
             return
 
-        # otherwise, in transformation 
+        # otherwise, in transformation
         if self.inMidTransformation:
             if self.currentModeStack[-1] == SelectionMode.translate:
                 newPos = canvasPos - self.savedMousePosition
@@ -1468,11 +1468,11 @@ class MainWindow1(Qw.QMainWindow):
                 self.pendingSelectedObjList.clear()
                 self.pendingSelectedObjIndex = -1
             self.quickUpdate()
-            return 
+            return
 
 
     def mouseReleaseEvent(self, mouseEvent):
-        assert isinstance(mouseEvent, Qg.QMouseEvent) 
+        assert isinstance(mouseEvent, Qg.QMouseEvent)
         if not self.mouseDown:
             return
 
@@ -1590,7 +1590,7 @@ class MainWindow1(Qw.QMainWindow):
         if self.addMode is not None:
             if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
                 bezierException = True
-                
+
         if not self.ui.imgLabel.underMouse() and not bezierException:
             return
 
@@ -1643,7 +1643,7 @@ class MainWindow1(Qw.QMainWindow):
         self.undoRedoStack.add(self.createAction(
             EditBezierChanges(obj, objIndex,
                     self.addMode.asyPathBackup,
-                    self.addMode.asyPath 
+                    self.addMode.asyPath
             )
         ))
         self.checkUndoRedoButtons()
@@ -1765,7 +1765,7 @@ class MainWindow1(Qw.QMainWindow):
         # but it's much more work...
         newCenter = self.magnification * newCenter
         self.panOffset = [-newCenter.x(), newCenter.y()]
-        
+
         self.quickUpdate()
 
     def selectObject(self):
@@ -1816,7 +1816,7 @@ class MainWindow1(Qw.QMainWindow):
     def getWindowCoordinates(self):
         # assert self.ui.imgLabel.underMouse()
         return self.mapFromGlobal(Qg.QCursor.pos())
-        
+
     def refreshCanvas(self):
         if self.mainCanvas.isActive():
             self.mainCanvas.end()
@@ -1876,7 +1876,7 @@ class MainWindow1(Qw.QMainWindow):
             if self.pendingSelectedObjList:
                 maj, minor = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
                 self.drawObjects[maj][minor].draw(canvas=self.mainCanvas, dpi=dpi)
-            # and apply the preview too... 
+            # and apply the preview too...
             elif activeItem is not None:
                 if self.useGlobalCoords:
                     activeItem.draw(self.newTransform, canvas=self.mainCanvas, dpi=dpi)
@@ -1894,7 +1894,7 @@ class MainWindow1(Qw.QMainWindow):
         if self.fileChanged:
             title += ' *'
         self.setWindowTitle(title)
-        
+
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
         self.finalPixmap.setDevicePixelRatio(devicePixelRatio)
@@ -2016,7 +2016,7 @@ class MainWindow1(Qw.QMainWindow):
                     painter.setPen(self.currentPen.toQPen())
                     painter.drawPath(self.addMode.getPreview())
                 self.addMode.postDrawPreview(painter)
-                
+
 
     def drawTransformPreview(self, painter):
         if self.currentBoundingBox is not None and self.currentlySelectedObj['selectedIndex'] is not None:
@@ -2055,7 +2055,7 @@ class MainWindow1(Qw.QMainWindow):
             if self.pendingSelectedObjList:
                 maj, minor = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
                 postCanvas.drawRect(self.drawObjects[maj][minor].boundingBox)
-                
+
             self.drawAddModePreview(postCanvas)
 
             if self.customAnchor is not None and self.anchorMode == AnchorMode.customAnchor:
@@ -2104,7 +2104,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             activeBtn = None
 
-        
+
         disableFill = isinstance(self.addMode, InplaceAddObj.AddBezierShape) and not self.currAddOptions['closedPath']
         if isinstance(self.addMode, xbi.InteractiveBezierEditor):
             disableFill = disableFill or not (self.addMode.obj.path.nodeSet[-1] == "cycle")
@@ -2229,18 +2229,18 @@ class MainWindow1(Qw.QMainWindow):
                                             Qw.QMessageBox.No)
             if reply == Qw.QMessageBox.Yes:
                 self.actionSave()
-                
+
         subprocess.Popen(args=self.getExternalEditor(asypath=self.fileName));
 
     def btnAddCodeOnClick(self):
         header = """
-// xasy object created at $time 
+// xasy object created at $time
 // Object Number: $uid
-// This header is automatically generated by xasy. 
+// This header is automatically generated by xasy.
 // Your code here
 """
         header = string.Template(header).substitute(time=str(datetime.datetime.now()), uid=str(self.globalObjectCounter))
-                
+
         with tempfile.TemporaryDirectory() as tmpdir:
             newPath = os.path.join(tmpdir, 'tmpcode.asy')
             f = io.open(newPath, 'w')
@@ -2339,7 +2339,7 @@ class MainWindow1(Qw.QMainWindow):
             s = editor.split()
             rawExternalEditor = s[0]
             rawExtEditorArgs = s[1:]+["$asypath"]
-            
+
         execEditor = [rawExternalEditor]
 
         for arg in rawExtEditorArgs:
