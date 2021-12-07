@@ -1,5 +1,3 @@
-xmap("22.5",(3.14503,4.15312,1,0,0,1));
-xmap("21.5",(-2.92207,0,1,0,0,1));
 size(0,150);
 
 pen colour1=red;
@@ -36,4 +34,3 @@ draw(z--z1,Arrow,Margin(0,m));
 draw(z--z2,Arrow,Margin(0,m));
 
 shipout(bbox(0.25cm));
-size((0,0,30.1156,0,0,30.1156)); // Resize to initial xasy transform
