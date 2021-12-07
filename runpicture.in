@@ -499,7 +499,8 @@ void shipout3(string prefix, picture *f, string format=defaultformat3)
 
 void xmap(string key, transform t=identity)
 {
-  xmap_t &xmap=processData().xmap;
+  processDataStruct *P=&processData();
+  xmap_t &xmap=P->xmap;
   xmap_t::iterator p=xmap.find(key);
   if(p != xmap.end())
     p->second.push_back(t);
@@ -508,6 +509,7 @@ void xmap(string key, transform t=identity)
     v->push_back(t);
     xmap[key]=*v;
   }
+  P->xmapCount++;
 }
 
 void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)

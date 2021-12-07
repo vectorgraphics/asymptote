@@ -320,7 +320,7 @@ class asyObj(QtCore.QObject):
     ----------------
         updateCode      :Must to be re-implemented
 
-    Static Methods:      NULL 
+    Static Methods:      NULL
      --------------
     Class Methods:       NULL
     --------------
@@ -501,7 +501,7 @@ class asyPath(asyObj):
 
     Attributes:
     -----------
-      
+
     Virtual Methods:
     ----------------
 
@@ -854,8 +854,8 @@ class xasyItem(QtCore.QObject):
     """
     Purpose:
     --------
-        A base class for any xasy object that can be drawn in PyQt. This class takes 
-        care of all common behaviors available on any xasy item as well as all common 
+        A base class for any xasy object that can be drawn in PyQt. This class takes
+        care of all common behaviors available on any xasy item as well as all common
         actions that can be done or applied to every xasy item.
 
     Attributes:
@@ -897,7 +897,6 @@ class xasyItem(QtCore.QObject):
         self.setKeyed = True
         self.unsetKeys = set()
         self.userKeys = set()
-        self.lineOffset = 0
         self.imageHandleQueue = queue.Queue()
 
     def updateCode(self, ps2asymap = identity()):
@@ -1029,7 +1028,6 @@ class xasyItem(QtCore.QObject):
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
-        self.lineOffset = len(self.getTransformCode().splitlines())
         self.maxKey=0
 
         fout.write("reset\n")
@@ -1132,7 +1130,7 @@ class xasyDrawnItem(xasyItem):
     --------
         A base class dedicated to any xasy item that is drawn on GUI. Every object of this class
         will correspond to a particular drawn xasy item on GUI, which contains all its particular
-        data. 
+        data.
 
     Attributes:
     -----------
@@ -1549,9 +1547,8 @@ class xasyScript(xasyItem):
 
         raw_code_lines = self.script.splitlines()
         with io.StringIO() as raw_str:
-            for i_0 in range(len(raw_code_lines)):
-                i = i_0 + self.lineOffset
-                curr_str = raw_code_lines[i_0]
+            for i in range(len(raw_code_lines)):
+                curr_str = raw_code_lines[i]
                 if i + 1 in keylist.keys():
                     # this case, we have a key.
                     with io.StringIO() as raw_line:
@@ -1656,7 +1653,7 @@ class DrawObject(QtCore.QObject):
     Purpose:
     --------
         The main Python class to draw an object with the help of PyQt graphical library.
-        Every instance of the class is 
+        Every instance of the class is
 
 
     Attributes:
@@ -1725,7 +1722,7 @@ class DrawObject(QtCore.QObject):
             testBbox = self.getScreenTransform().toQTransform().map(tempItem).boundingRect()
         else:
             raise TypeError('drawObject is not a valid type!')
-        
+
         if self.pen is not None:
             lineWidth = self.pen.width
             const = lineWidth/2

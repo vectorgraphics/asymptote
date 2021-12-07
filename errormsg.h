@@ -81,19 +81,22 @@ public:
     }
   }
 
-  string filename() const
-  {
+  string filename() const {
     return file ? file->name() : "";
   }
 
-  size_t Line() const
-  {
+  size_t Line() const {
     return line;
   }
 
-  size_t Column() const
-  {
+  size_t Column() const {
     return column;
+  }
+
+  position shift(unsigned int offset) const {
+    position P=*this;
+    P.line -= offset;
+    return P;
   }
 
   std::pair<size_t,size_t>LineColumn() const {

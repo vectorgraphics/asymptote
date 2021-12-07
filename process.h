@@ -107,6 +107,7 @@ struct processDataStruct {
   string KEY;
   xkey_t xkey;
   xmap_t xmap;
+  unsigned int xmapCount;
 
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;
@@ -115,7 +116,7 @@ struct processDataStruct {
   terminator<xdr::oxstream> oxfile;
 #endif
 
-  processDataStruct() {
+  processDataStruct() : xmapCount(0) {
     atExitFunction=NULL;
     atUpdateFunction=NULL;
     atBreakpointFunction=NULL;

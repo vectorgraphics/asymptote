@@ -745,8 +745,11 @@ signature *callExp::argTypes(coenv &e, bool *searchable)
     if(string(args->args[i].name) == "KEY") {
       stringExp *s=dynamic_cast<stringExp*>(args->args[i].val);
       if(s) {
-        if(getPos().filename() == processData().fileName)
-          processData().xkey[getPos().LineColumn()]=Strdup(s->getString());
+        if(getPos().filename() == processData().fileName) {
+          processDataStruct *P=&processData();
+          P->xkey[getPos().shift(P->xmapCount).LineColumn()]=
+            Strdup(s->getString());
+        }
         args->args.erase(args->args.begin()+i);
         --n;
         if(i == n) break;
@@ -1493,4 +1496,3 @@ types::ty *postfixExp::trans(coenv &)
 
 
 } // namespace absyntax
-
