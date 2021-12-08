@@ -921,6 +921,12 @@ class MainWindow1(Qw.QMainWindow):
     def actionAbout(self):
         Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
+    def actionExport(self, pathToFile):
+        asyFile = io.open(os.path.realpath(pathToFile), 'w')
+        xf.saveFile(asyFile, self.fileItems, self.asy2psmap)
+        asyFile.close()
+        self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as Asymptote File.")
+
     def btnExportToAsyOnClick(self):
         if self.fileName:
             pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
@@ -933,10 +939,7 @@ class MainWindow1(Qw.QMainWindow):
                 Qw.QMessageBox.Yes, Qw.QMessageBox.No)
             if reply == Qw.QMessageBox.No:
                 return
-        asyFile = io.open(os.path.realpath(pathToFile), 'w')
-        xf.saveFile(asyFile, self.fileItems, self.asy2psmap)
-        asyFile.close()
-        self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as Asymptote File.")
+            self.actionExport(pathToFile)
 
     def btnExportAsymptoteOnClick(self):
         diag = Qw.QFileDialog(self)
@@ -2218,14 +2221,16 @@ class MainWindow1(Qw.QMainWindow):
         self.quickUpdate()
 
     def btnLoadEditorOnClick(self):
+        pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
         if self.fileChanged:
             save = "Save current file?"
             reply = Qw.QMessageBox.question(self, 'Message', save, Qw.QMessageBox.Yes,
                                             Qw.QMessageBox.No)
             if reply == Qw.QMessageBox.Yes:
-                self.actionSave()
+                self.actionExport(pathToFile)
 
-        subprocess.Popen(args=self.getExternalEditor(asypath=self.fileName));
+        subprocess.run(args=self.getExternalEditor(asypath=pathToFile));
+        self.loadFile(pathToFile)
 
     def btnAddCodeOnClick(self):
         header = """
