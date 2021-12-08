@@ -1050,7 +1050,7 @@ class MainWindow1(Qw.QMainWindow):
             asyFile = io.open(asyFilePath, 'r')
             rawText = asyFile.read()
             asyFile.close()
-            rawText, transfDict, maxKey = xf.extractTransformsFromFile(rawText)
+            rawText, transfDict = xf.extractTransformsFromFile(rawText)
             obj = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
             obj.setScript(rawText)
             self.fileItems.append(obj)
@@ -1088,6 +1088,8 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems = [item for item in self.fileItems if item not in duplicateObjects]
 
         self.asyfyCanvas(True)
+        obj.maxKey += len(xasyObjects['objects'])+1
+        self.globalObjectCounter = obj.maxKey
 
         if existsAsy:
             self.ui.statusbar.showMessage(f"Corresponding Asymptote File '{os.path.basename(asyFilePath)}' found.  Loaded both files.")
@@ -2372,7 +2374,7 @@ class MainWindow1(Qw.QMainWindow):
         except IOError:
             Qw.QMessageBox.critical(self, self.strings.fileOpenFailed, self.strings.fileOpenFailedText)
         else:
-            rawText, transfDict, maxKey = xf.extractTransformsFromFile(rawFileStr)
+            rawText, transfDict = xf.extractTransformsFromFile(rawFileStr)
             item = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
 
             item.setScript(rawText)

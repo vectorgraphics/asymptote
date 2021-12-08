@@ -62,14 +62,8 @@ def extractTransformsFromFile(fileStr):
                 if key not in transfDict.keys():
                     transfDict[key] = []
                 transfDict[key].append(transf)
-
-                # see https://regex101.com/r/RgeBVc/2 for regex
-
-                testNum = re.match(r'^x(\d+)($|:.*$)', key)
-                if testNum is not None:
-                    maxItemCount = max(maxItemCount, int(testNum.group(1)))
         final_str = rawCode.getvalue()
-    return final_str, transfDict, maxItemCount
+    return final_str, transfDict
 
 def xasy2asyCode(xasyItems, asy2psmap):
     asyCode = ''
@@ -77,7 +71,7 @@ def xasy2asyCode(xasyItems, asy2psmap):
         asyCode += item.getTransformCode(asy2psmap)
     for item in xasyItems:
         asyCode += item.getObjectCode(asy2psmap)
-    
+
     asyCode += 'size('+str(asy2psmap*xasy2asy.yflip())+'); '+ xasy2asy.xasyItem.resizeComment+'\n'
     return asyCode
 
@@ -90,7 +84,7 @@ def xasyToDict(file, xasyItems, asy2psmap):
     asyItems = []
     for item in xasyItems:
         if isinstance(item, xasy2asy.xasyScript):
-            # reusing xasyFile code for objects 
+            # reusing xasyFile code for objects
             # imported from asy script.
             asyItems.append({'item':item, 'type': 'xasyScript'})
 
@@ -110,8 +104,8 @@ def xasyToDict(file, xasyItems, asy2psmap):
 
         elif isinstance(item, xasy2asy.xasyShape):
             penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
-            fileItems.append({'type': 'xasyShape', 
-                    'nodes': item.path.nodeSet, 
+            fileItems.append({'type': 'xasyShape',
+                    'nodes': item.path.nodeSet,
                     'links': item.path.linkSet,
                     'transform': item.transfKeymap[item.transfKey][0].t,
                     'transfKey': item.transfKey,
@@ -121,5 +115,5 @@ def xasyToDict(file, xasyItems, asy2psmap):
         else:
             # DEBUGGING PURPOSES ONLY
             print(type(item))
-        
+
     return {'objects': fileItems, 'asy2psmap': asy2psmap.t}, asyItems
