@@ -222,11 +222,11 @@ let indexExt;
 
 function webGL(canvas,alpha) {
   let gl=canvas.getContext("webgl2",{alpha: alpha});
-    if(!gl) {
-      webgl2=false;
-      ibl=false;
-      gl=canvas.getContext("webgl",{alpha: alpha});
-    }
+  if(!gl) {
+    webgl2=false;
+    ibl=false;
+    gl=canvas.getContext("webgl",{alpha: alpha});
+  }
   if(!gl)
     alert("Could not initialize WebGL");
   return gl;
@@ -268,13 +268,6 @@ function initGL()
   }
 
   indexExt=gl.getExtension("OES_element_index_uint");
-
-  if(webgl2) {
-    let ext2=gl.getExtension('EXT_color_buffer_float');
-    if(!ext2) alert('need ext_color_buffer_float.');
-    floatTexExt=true;
-  } else
-    floatTexExt=gl.getExtension('OES_texture_float');
 
   TRIANGLES=gl.TRIANGLES;
   material0Data=new vertexBuffer(gl.POINTS);
@@ -3235,11 +3228,6 @@ function createTexture(image, textureNumber, fmt=gl.RGB16F)
 
 async function initIBL()
 {
-  if(!floatTexExt) {
-    alert('Does not support Float textures')
-    return;
-  }
-
   let imagePath=imageURL+image+'/';
 
   function sleep(ms) {
@@ -3331,6 +3319,6 @@ function webGLStart()
 
   window.addEventListener("resize",resize,false);
 
-  if(ibl && webgl2)
+  if(ibl)
     initIBL().then(SetIBL).then(redrawScene);
 }
