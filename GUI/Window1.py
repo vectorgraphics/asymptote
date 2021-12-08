@@ -1056,8 +1056,10 @@ class MainWindow1(Qw.QMainWindow):
         self.asyfyCanvas(force=True)
 
         for item in xasyObjects['objects']:
-            if(item['transfKey']) in obj.transfKeymap.keys():
+            key=item['transfKey']
+            if(key) in obj.transfKeymap.keys():
                 continue
+            obj.maxKey=max(obj.maxKey,int(key))
             if item['type'] == 'xasyScript':
                 print("Uh oh, there should not be any asy objects loaded")
 
@@ -1078,9 +1080,7 @@ class MainWindow1(Qw.QMainWindow):
                 print("ERROR")
 
         self.asy2psmap = x2a.asyTransform(xasyObjects['asy2psmap'])
-
-        obj.maxKey=max(obj.maxKey,len(xasyObjects['objects']))+1
-        self.globalObjectCounter = obj.maxKey
+        self.globalObjectCounter = obj.maxKey+1
 
         self.asyfyCanvas()
 
@@ -2374,8 +2374,7 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.append(item)
             self.asyfyCanvas(force=True)
 
-            item.maxKey += 1
-            self.globalObjectCounter = item.maxKey
+            self.globalObjectCounter = item.maxKey+1
             self.asy2psmap = item.asy2psmap
 
         finally:
