@@ -11,7 +11,7 @@ int gcd(int m, int n)
     int r=m % n;
     m=n;
     n=r;
-  }       
+  }
   return m;
 }
 

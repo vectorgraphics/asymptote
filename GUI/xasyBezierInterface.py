@@ -140,7 +140,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         for index in range(len(self.asyPath.nodeSet)):
             point = self.asyPath.nodeSet[index]
-            
+
             if point != 'cycle':
                 basePoint = QtCore.QPointF(point[0], point[1])
                 canvas.setPen(nodePen)
@@ -148,7 +148,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             else:
                 point = self.asyPath.nodeSet[0]
                 basePoint = QtCore.QPointF(point[0], point[1])
-            if self.curveMode:   
+            if self.curveMode:
                 if index != 0:
                     canvas.setPen(ctlPtsPen)
                     postCtrolSet = self.asyPath.controlSet[index - 1][1]
@@ -213,13 +213,13 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             self.currentSelIndex = self.prospectiveCtrlPts[0]
             self.inTransformMode = True
             self.parentNodeIndex = self.findLinkingNode(*self.currentSelIndex)
-        
+
         if self.inTransformMode:
             parentNode = self.asyPath.nodeSet[self.parentNodeIndex]
 
             # find the offset of each control point to the node
             if not self.curveMode:
-                return 
+                return
 
             preCtrl, postCtrl = self.getPreAndPostCtrlPts(self.parentNodeIndex)
 
@@ -241,7 +241,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
     def mouseMove(self, pos, event: QtGui.QMouseEvent):
         if self.currentSelMode is None and not self.inTransformMode:
-            # in this case, search for prosective nodes. 
+            # in this case, search for prosective nodes.
             prospectiveNodes = []
             prospectiveCtrlpts = []
 
@@ -278,12 +278,12 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                     return
 
                 self.asyPath.setNode(index, newNode)
-                # if also move node: 
+                # if also move node:
 
                 if self.curveMode:
                     checkPre, checkPost = self.getPreAndPostCtrlPts(index)
 
-                    if 1 == 1: # TODO: Replace this with an option to also move control pts. 
+                    if 1 == 1: # TODO: Replace this with an option to also move control pts.
                         if checkPre is not None:
                             self.asyPath.controlSet[index - 1][1] = xasyUtils.funcOnList(
                                 newNode, self.preCtrlOffset, lambda a, b: a + b
@@ -295,7 +295,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
                     if self.info['autoRecompute']:
                         self.quickRecalculateCtrls()
-                        
+
 
             elif self.currentSelMode == CurrentlySelctedType.ctrlPoint and self.curveMode:
                 self.asyPath.controlSet[index][subindex] = newNode
@@ -316,22 +316,22 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
 
                 if self.info['editBezierlockMode'] >= Web.LockMode.angleLock:
-                    otherIndex = 1 - subindex       # 1 if 0, 0 otherwise. 
+                    otherIndex = 1 - subindex       # 1 if 0, 0 otherwise.
                     if otherIndex == 0:
                         if index < (len(self.asyPath.controlSet) - 1) or isCycle:
                             newIndex = 0 if isCycle else index + 1
 
                             oldOtherCtrlPnt = xasyUtils.funcOnList(
                                 self.asyPath.controlSet[newIndex][0], parentNode, lambda a, b: a - b)
-                        
+
                             if self.info['editBezierlockMode'] >= Web.LockMode.angleAndScaleLock:
                                 rawNorm = newNorm
                             else:
                                 rawNorm = xasyUtils.twonorm(oldOtherCtrlPnt)
 
-                            newPnt = (rawNorm * math.cos(rawAngle + math.pi), 
+                            newPnt = (rawNorm * math.cos(rawAngle + math.pi),
                                 rawNorm * math.sin(rawAngle + math.pi))
-                                
+
                             self.asyPath.controlSet[newIndex][0] = xasyUtils.funcOnList(
                                 newPnt, parentNode, lambda a, b: a + b)
                     else:
@@ -349,7 +349,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                                       rawNorm * math.sin(rawAngle + math.pi))
                             self.asyPath.controlSet[newIndex][1] = xasyUtils.funcOnList(
                                 newPnt, parentNode, lambda a, b: a + b)
-        
+
     def recalculateCtrls(self):
         self.quickRecalculateCtrls()
         self.setSelectionBoundaries()
@@ -364,7 +364,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             self.currentSelMode = None
 
             self.setSelectionBoundaries()
-            
+
     def forceFinalize(self):
         self.objectUpdated.emit()
 

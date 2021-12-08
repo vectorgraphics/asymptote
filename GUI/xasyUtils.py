@@ -16,11 +16,11 @@ def tryParse(val, typ=float):
         return None
 
 def funcOnList(list1: typing.Union[typing.List, typing.Tuple], list2: typing.Union[typing.List, typing.Tuple], func: typing.Callable) -> tuple:
-    """Returns [f(x[i], y[i]) : i in 1, ..., n - 1] in order with f as func 
+    """Returns [f(x[i], y[i]) : i in 1, ..., n - 1] in order with f as func
     and x and y as list1 and 2. """
 
     assert len(list1) == len(list2)
-    return tuple([func(list1[i], list2[i]) for i in range(len(list1))]) 
+    return tuple([func(list1[i], list2[i]) for i in range(len(list1))])
 
 
 def listize(str, typ, delim='()') -> list:

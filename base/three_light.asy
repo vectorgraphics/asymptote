@@ -1,7 +1,7 @@
 struct material {
   pen[] p; // diffusepen,emissivepen,specularpen
   real opacity;
-  real shininess;  
+  real shininess;
   real metallic;
   real fresnel0; // Reflectance rate at a perfect normal angle.
 
@@ -34,7 +34,7 @@ struct material {
   void specular(pen q) {p[2]=q;}
 }
 
-material operator init() 
+material operator init()
 {
   return material();
 }
@@ -57,7 +57,7 @@ void write(string s="", material x, suffix suffix=endl)
 {
   write(stdout,s,x,suffix);
 }
-  
+
 bool operator == (material m, material n)
 {
   return all(m.p == n.p) && m.opacity == n.opacity &&

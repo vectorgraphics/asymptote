@@ -287,6 +287,6 @@ linefit leastsquares(real[] x, real[] y)
     real s=sqrt(arg/(n-2));
     L.dm=s*sqrt(1/sxx);
     L.db=s*sqrt(1+sx^2/sxx)/n;
-  }  
+  }
   return L;
 }

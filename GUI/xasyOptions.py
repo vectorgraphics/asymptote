@@ -37,8 +37,8 @@ class xasyOptions:
 
         for key in self.options[settingsName]:
             self.options[key] = self.options[settingsName][key]
-    
-    
+
+
     def settingsFileLocation(self):
         folder = os.path.expanduser("~/.asy/")
 
@@ -52,7 +52,7 @@ class xasyOptions:
             if os.path.isfile(currentFile):
                 found = True
             searchIndex += 1
-        
+
         if found:
             return os.path.normcase(currentFile)
         else:
@@ -109,7 +109,7 @@ class xasyOptions:
         folder = os.path.expanduser("~/.asy/")
         defaultPath = os.path.join(folder, self.configName + '.cson')
         shutil.copy2(self._defaultOptLocation, defaultPath)
-        
+
 
 # TODO: Figure out how to merge this back.
 """
@@ -140,7 +140,7 @@ class xasyOpenRecent:
 
     def settingsFileLocation(self):
         folder = os.path.expanduser("~/.asy/")
-        
+
         currentFile = os.path.join(folder, self.configName + '.txt')
         return os.path.normcase(currentFile)
 
@@ -152,7 +152,7 @@ class xasyOpenRecent:
                 os.makedirs(thedir)
             if not os.path.isdir(thedir):
                 raise Exception("Configuration folder path does not point to a folder")
-        
+
         f = io.open(self.fileName, 'r')
         lines = f.readlines()
         f.close()
@@ -161,8 +161,8 @@ class xasyOpenRecent:
         f.write(path.strip() + '\n')
         for line in lines:
             if line.strip() != path.strip():
-                f.write(line.strip() + '\n')  
-        f.close()  
+                f.write(line.strip() + '\n')
+        f.close()
 
     @property
     def pathList(self):
@@ -202,4 +202,4 @@ class BasicConfigs:
         'xasyconfig', os.path.join(_configPath, 'xasyconfig.cson'))
     keymaps = xasyOptions('xasykeymap', os.path.join(
         _configPath, 'xasykeymap.cson'))
-    openRecent = xasyOpenRecent('xasyrecents', os.path.join( _configPath, "xasyrecent.txt")) 
+    openRecent = xasyOpenRecent('xasyrecents', os.path.join( _configPath, "xasyrecent.txt"))

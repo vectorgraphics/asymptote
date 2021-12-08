@@ -32,7 +32,7 @@ real minipagemargin=1inch;
 real minipagewidth=pagewidth-2minipagemargin;
 
 transform tinv=inverse(fixedscaling((-1,-1),(1,1),currentpen));
-  
+
 pen itempen=fontsize(24pt);
 pen codepen=fontsize(20pt);
 pen titlepagepen=fontsize(36pt);
@@ -55,7 +55,7 @@ real titleskip=0.5;
 string oldbulletcolor;
 string newbulletcolor="red";
 string bullet="{\bulletcolor\textbullet}";
-                                              
+
 pair pagenumberposition=S+E;
 pair pagenumberalign=4NW;
 pen pagenumberpen=fontsize(12);
@@ -90,7 +90,7 @@ bool empty()
   return currentpicture.nodes.length <= preamblenodes;
 }
 
-void background() 
+void background()
 {
   if(!background.empty()) {
     add(background);
@@ -197,7 +197,7 @@ void nextpage(pen p=pagenumberpen)
   firststep=true;
 }
 
-void newslide(bool stepping=true) 
+void newslide(bool stepping=true)
 {
   allowstepping=stepping;
   nextpage();
@@ -264,11 +264,11 @@ void outline(string s="Outline", pair position=N, pair align=titlealign,
 
 void remark(bool center=false, string s, pair align=0, pen p=itempen,
             real indent=0, bool minipage=true, real skip=itemskip,
-            filltype filltype=NoFill, bool step=false) 
+            filltype filltype=NoFill, bool step=false)
 {
   checkposition();
   if(minipage) s=minipage(s,minipagewidth);
-  
+
   pair offset;
   if(center) {
     if(align == 0) align=S;
@@ -277,12 +277,12 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
     if(align == 0) align=SE;
     offset=currentposition;
   }
-  
+
   frame f;
   label(f,s,(indent,0),align,p,filltype);
   pair m=tinv*min(f);
   pair M=tinv*min(f);
-  
+
   if(abs(offset.x+M.x) > 1)
     warning("slidetoowide","slide too wide on page "+(string) page+':\n'+
             (string) s);
@@ -399,7 +399,7 @@ void display(string s, string caption="", pair align=S, pen p=itempen,
   display(new string[] {s},caption,align,p,figuremattpen, final);
 }
 
-void figure(string[] s, string options="", real margin=0, 
+void figure(string[] s, string options="", real margin=0,
             string[] captions=new string[], string caption="",
             pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
             bool final=true)
@@ -435,7 +435,7 @@ void multifigure(string[] slist, string options="", string caption="",
   firststep=false;
 }
 
-void indexedfigure(string prefix, int first, int last, 
+void indexedfigure(string prefix, int first, int last,
                    string options="", string caption="",
                    pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
                    bool step=itemstep)
@@ -473,7 +473,7 @@ string cropcode(string s)
 
 void code(bool center=false, string s, pen p=codepen,
           real indent=0, real skip=codeskip,
-          filltype filltype=NoFill) 
+          filltype filltype=NoFill)
 {
   remark(center,"{\tt "+verbatim(cropcode(s))+"}",p,indent,skip,filltype);
 }
@@ -569,7 +569,7 @@ void bibliographystyle(string name)
   texpreamble("\bibliographystyle{"+name+"}");
 }
 
-void bibliography(string name) 
+void bibliography(string name)
 {
   numberpage();
   havepagenumber=false;

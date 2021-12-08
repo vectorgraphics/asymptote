@@ -27,7 +27,7 @@ margin3 operator +(margin3 ma, margin3 mb)
 }
 
 margin3 NoMargin3()
-{ 
+{
   return new marginT3(path3 g, pen) {
     marginT3 margin;
     margin.begin=margin.end=0;
@@ -35,9 +35,9 @@ margin3 NoMargin3()
     return margin;
   };
 }
-                                                      
+
 margin3 Margin3(real begin, real end)
-{ 
+{
   return new marginT3(path3 g, pen p) {
     marginT3 margin;
     real factor=labelmargin(p);
@@ -48,9 +48,9 @@ margin3 Margin3(real begin, real end)
     return margin;
   };
 }
-                                                           
+
 margin3 PenMargin3(real begin, real end)
-{ 
+{
   return new marginT3(path3 g, pen p) {
     marginT3 margin;
     real factor=linewidth(p);
@@ -60,9 +60,9 @@ margin3 PenMargin3(real begin, real end)
     return margin;
   };
 }
-                                              
+
 margin3 DotMargin3(real begin, real end)
-{ 
+{
   return new marginT3(path3 g, pen p) {
     marginT3 margin;
     real margindot(real x) {return x > 0 ? dotfactor*x : x;}
@@ -73,9 +73,9 @@ margin3 DotMargin3(real begin, real end)
     return margin;
   };
 }
-                                                      
+
 margin3 TrueMargin3(real begin, real end)
-{ 
+{
   return new marginT3(path3 g, pen p) {
     marginT3 margin;
     margin.begin=begin;
@@ -84,7 +84,7 @@ margin3 TrueMargin3(real begin, real end)
     return margin;
   };
 }
-                                                      
+
 margin3 NoMargin3=NoMargin3(),
   BeginMargin3=Margin3(1,0),
   Margin3=Margin3(0,1),

@@ -3,7 +3,7 @@ void makedraw(frame f, path g, pen p, int depth=mantissaBits)
 {
   if(depth == 0) return;
   --depth;
-  
+
   path n=nib(p);
   for(int i=0; i < size(g); ++i)
     fill(f,shift(point(g,i))*n,p);
@@ -88,7 +88,7 @@ void filloutside(frame f, path[] g, pen p=currentpen, bool copy=true)
   fill(f,complement(f,g),p+evenodd,copy);
 }
 
-struct filltype 
+struct filltype
 {
   typedef void fill2(frame f, path[] g, pen fillpen);
   fill2 fill2;
@@ -101,7 +101,7 @@ struct filltype
   static int Draw=3;
   static int NoFill=4;
   static int UnFill=5;
-      
+
   void operator init(int type=0, pen fillpen=nullpen, pen drawpen=nullpen,
                      fill2 fill2) {
     this.type=type;
@@ -112,7 +112,7 @@ struct filltype
   void fill(frame f, path[] g, pen p) {fill2(f,g,p);}
 }
 
-path[] margin(path[] g, real xmargin, real ymargin) 
+path[] margin(path[] g, real xmargin, real ymargin)
 {
   if(xmargin != 0 || ymargin != 0) {
     pair M=max(g);
@@ -123,7 +123,7 @@ path[] margin(path[] g, real xmargin, real ymargin)
     real yfactor=height > 0 ? (height+2ymargin)/height : 1;
     g=scale(xfactor,yfactor)*g;
     g=shift(0.5*(M+m)-0.5*(max(g)+min(g)))*g;
-  }   
+  }
   return g;
 }
 
@@ -174,7 +174,7 @@ filltype UnFill(real xmargin=0, real ymargin=xmargin)
     });
 }
 
-filltype FillDraw=FillDraw(), Fill=Fill(), Draw=Draw(), UnFill=UnFill(); 
+filltype FillDraw=FillDraw(), Fill=Fill(), Draw=Draw(), UnFill=UnFill();
 
 // Fill varying radially from penc at the center of the bounding box to
 // penr at the edge.

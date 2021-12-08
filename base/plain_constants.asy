@@ -31,9 +31,9 @@ restricted pair WSW=unit(W+SW);
 restricted pair SSW=unit(S+SW);
 restricted pair SSE=unit(S+SE);
 restricted pair ESE=unit(E+SE);
-  
+
 restricted real sqrtEpsilon=sqrt(realEpsilon);
-restricted pair Align=sqrtEpsilon*NE; 
+restricted pair Align=sqrtEpsilon*NE;
 restricted int mantissaBits=ceil(-log(realEpsilon)/log(2))+1;
 
 restricted transform identity;
@@ -108,7 +108,7 @@ void write(file file, string s="", bool3 b, suffix suffix=none)
   else write("default",suffix);
 }
 
-void write(string s="", bool3 b, suffix suffix=endl) 
+void write(string s="", bool3 b, suffix suffix=endl)
 {
   write(stdout,s,b,suffix);
 }
@@ -128,32 +128,32 @@ bool3 operator cast(bool b)
   return B;
 }
 
-bool operator == (bool3 a, bool3 b) 
+bool operator == (bool3 a, bool3 b)
 {
   return a.set == b.set && (!a.set || (a.value == b.value));
 }
 
-bool operator != (bool3 a, bool3 b) 
+bool operator != (bool3 a, bool3 b)
 {
   return a.set != b.set || (a.set && (a.value != b.value));
 }
 
-bool operator == (bool3 a, bool b) 
+bool operator == (bool3 a, bool b)
 {
   return a.set && a.value == b;
 }
 
-bool operator != (bool3 a, bool b) 
+bool operator != (bool3 a, bool b)
 {
   return !a.set || a.value != b;
 }
 
-bool operator == (bool a, bool3 b) 
+bool operator == (bool a, bool3 b)
 {
   return b.set && b.value == a;
 }
 
-bool operator != (bool a, bool3 b) 
+bool operator != (bool a, bool3 b)
 {
   return !b.set || b.value != a;
 }

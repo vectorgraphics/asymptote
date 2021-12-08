@@ -19,7 +19,7 @@ struct coord {
   coord copy() {
     return build(user, truesize);
   }
-  
+
   void clip(real min, real max) {
     user=min(max(user,min),max);
     truesize=0;
@@ -47,7 +47,7 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
   coord[] c;
 
   int n=in.length;
-  
+
   if(n == 0)
     return c;
 
@@ -151,15 +151,15 @@ struct coords2 {
     }
   }
   void xclip(real min, real max) {
-    for(int i=0; i < x.length; ++i) 
+    for(int i=0; i < x.length; ++i)
       x[i].clip(min,max);
   }
   void yclip(real min, real max) {
-    for(int i=0; i < y.length; ++i) 
+    for(int i=0; i < y.length; ++i)
       y[i].clip(min,max);
   }
 }
-  
+
 // The scaling in one dimension:  x --> a*x + b
 struct scaling {
   real a,b;
@@ -211,7 +211,7 @@ real calculateScaling(string dir, coord[] m, coord[] M, real size,
     // (a*user + b) + truesize >= 0:
     A.push(new real[] {c.user,1,-1});
     b.push(-c.truesize);
-  }     
+  }
   void addMaxCoord(coord c) {
     // (a*user + b) + truesize <= size:
     A.push(new real[] {-c.user,-1,1});
@@ -239,12 +239,12 @@ real calculateScaling(string dir, coord[] m, coord[] M, real size,
         if(coord.user != 0) return false;
       return true;
     }
-    
+
     if((userzero(m) && userzero(M)) || size >= infinity) return 1;
-    
+
     warning("cannotfit","cannot fit picture to "+dir+"size "+(string) size
             +"...enlarging...");
-    
+
     return calculateScaling(dir,m,M,expansionfactor*size,warn);
   }
 }

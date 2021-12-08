@@ -296,7 +296,7 @@ class AddPoly(InplaceObjProcess):
         self.centermode = info['centermode']
         self.fill = info['fill']
 
-        
+
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.center.setX(x)
         self.center.setY(y)

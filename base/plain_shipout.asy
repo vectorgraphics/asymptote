@@ -11,7 +11,7 @@ string outprefix(string prefix=defaultfilename) {
   return stripextension(prefix != "" ? prefix : outname());
 }
 
-string outformat(string format="") 
+string outformat(string format="")
 {
   if(format == "") format=settings.outformat;
   if(format == "") format=nativeformat();
@@ -99,7 +99,7 @@ void shipout(string prefix=defaultfilename, frame f,
     }
     return;
   }
-  
+
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
   int limit=2000;

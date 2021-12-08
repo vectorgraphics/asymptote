@@ -34,7 +34,7 @@ class Widg_addLabel(QtWidgets.QWidget):
         if self.info['shift_y'] is not None:
             self.ui.txtShiftY.setText(str(self.info['shift_y']))
 
-        
+
         self.ui.cmbFontSize.setCurrentText(str(self.info['fontSize']) if self.info['fontSize'] is not None else '-')
         self.ui.cmbAlign.setCurrentIndex(self.info['alignIndex'])
 
@@ -53,7 +53,7 @@ class Widg_addLabel(QtWidgets.QWidget):
 
         self.updateCheck(self.ui.cmbAlign.currentText())
 
-    def cmbFontSizeTextChanged(self, text: str): 
+    def cmbFontSizeTextChanged(self, text: str):
         tryParseVal = xu.tryParse(text, float)
         self.info['fontSize'] = tryParseVal
 

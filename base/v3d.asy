@@ -402,7 +402,7 @@ struct v3dfile
 
     if(core != 0)
       path3(center,material,g[0]..controls g[1] and g[2]..g[3]);
-    
+
     surface s=tube(g[0],g[1],g[2],g[3],width);
     s.draw=drawTube(g,width,info.b,info.B);
     primitive(center,material,s);
@@ -480,7 +480,7 @@ struct v3dfile
     int material=xdrfile;
     pixel(material,P);
   }
-  
+
   void process()
   {
     static bool processed;

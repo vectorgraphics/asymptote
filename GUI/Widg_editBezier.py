@@ -47,6 +47,6 @@ class Widg_editBezier(QtWidgets.QWidget):
         for obj in self.disableOnAutoRecompute:
             obj.setEnabled(not checked)
         self.info['autoRecompute'] = checked
-        
+
         if isChecked:
             self.ui.btnForceRecompute.clicked.emit()

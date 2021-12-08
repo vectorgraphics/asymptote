@@ -49,13 +49,13 @@ triple gettriple(string name="", triple default=(0,0,0), string prompt="",
 
 // returns a string with all occurrences of string 'before' in string 's'
 // changed to string 'after'.
-string replace(string s, string before, string after) 
+string replace(string s, string before, string after)
 {
   return replace(s,new string[][] {{before,after}});
 }
 
 // Like texify but don't convert embedded TeX commands: \${}
-string TeXify(string s) 
+string TeXify(string s)
 {
   static string[][] t={{"&","\&"},{"%","\%"},{"_","\_"},{"#","\#"},{"<","$<$"},
                        {">","$>$"},{"|","$|$"},{"^","$\hat{\ }$"},
@@ -68,7 +68,7 @@ private string[][] trans1={{'\\',"\backslash "},
 private string[][] trans2={{"\backslash ","$\backslash$"}};
 
 // Convert string to TeX
-string texify(string s) 
+string texify(string s)
 {
   return TeXify(replace(replace(s,trans1),trans2));
 }
@@ -93,7 +93,7 @@ string[] split(string s, string delimiter="")
     prune=true;
     delimiter=" ";
   }
-  
+
   string[] S;
   int last=0;
   int i;
@@ -130,7 +130,7 @@ string operator +(...string[] a)
   return S;
 }
 
-int system(string s) 
+int system(string s)
 {
   return system(split(s));
 }
@@ -161,8 +161,8 @@ string italic(string s)
   return s != "" ? "{\it "+s+"}" : s;
 }
 
-string baseline(string s, string template="\strut") 
-{ 
+string baseline(string s, string template="\strut")
+{
   return s != "" && settings.tex != "none" ? "\vphantom{"+template+"}"+s : s;
 }
 
@@ -171,7 +171,7 @@ string math(string s)
   return s != "" ? "$"+s+"$" : s;
 }
 
-private void notimplemented(string text) 
+private void notimplemented(string text)
 {
   abort(text+" is not implemented for the '"+settings.tex+"' TeX engine");
 }
@@ -217,7 +217,7 @@ void usepackage(string s, string options="")
   texpreamble(usepackage+"{"+s+"}");
 }
 
-void pause(string w="Hit enter to continue") 
+void pause(string w="Hit enter to continue")
 {
   write(w);
   w=stdin;
