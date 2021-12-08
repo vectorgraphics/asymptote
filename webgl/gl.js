@@ -222,7 +222,7 @@ let indexExt;
 
 function webGL(canvas,alpha) {
   let gl=canvas.getContext("webgl2",{alpha: alpha});
-  if(!gl || !gl.getExtension("EXT_color_buffer_float")) {
+  if(!gl) {
     webgl2=false;
     ibl=false;
     gl=canvas.getContext("webgl",{alpha: alpha});
