@@ -37,7 +37,7 @@ let canvas; // Rendering canvas
 let gl; // WebGL rendering context
 let alpha; // Is background opaque?
 
-let offscreen; // Offscreen rendering canvas for embedded images
+let offscreen2; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
 
 let nlights=0; // Number of lights compiled in shader
@@ -190,7 +190,7 @@ function deleteShaders()
 
 function saveAttributes()
 {
-  let a=window.top.document.asygl[alpha];
+  let a=window.top.document.asygl2[alpha];
 
   a.gl=gl;
   a.nlights=Lights.length;
@@ -205,7 +205,7 @@ function saveAttributes()
 
 function restoreAttributes()
 {
-  let a=window.top.document.asygl[alpha];
+  let a=window.top.document.asygl2[alpha];
 
   gl=a.gl;
   nlights=a.nlights;
@@ -239,20 +239,20 @@ function initGL()
   if(embedded) {
     let p=window.top.document;
 
-    if(p.asygl == null)
-      p.asygl=Array(2);
+    if(p.asygl2 == null)
+      p.asygl2=Array(2);
 
     context=canvas.getContext("2d");
-    offscreen=p.offscreen;
-    if(!offscreen) {
-      offscreen=p.createElement("canvas");
-      p.offscreen=offscreen;
+    offscreen2=p.offscreen2;
+    if(!offscreen2) {
+      offscreen2=p.createElement("canvas");
+      p.offscreen2=offscreen2;
     }
 
-    if(!p.asygl[alpha] || !p.asygl[alpha].gl) {
-      gl=webGL(offscreen,alpha);
+    if(!p.asygl2[alpha] || !p.asygl2[alpha].gl) {
+      gl=webGL(offscreen2,alpha);
       initShaders();
-      p.asygl[alpha]={};
+      p.asygl2[alpha]={};
       saveAttributes();
     } else {
       restoreAttributes();
@@ -304,7 +304,7 @@ function getShader(gl,shaderScript,type,options=[])
   if(webgl2)
     defines.push('WEBGL2');
 
-  if(webgl2 && ibl)
+  if(ibl)
     macros.push(['ROUGHNESS_STEP_COUNT',roughnessStepCount.toFixed(2)]);
 
   if(orthographic)
@@ -2633,8 +2633,8 @@ function drawBuffers()
 function drawScene()
 {
   if(embedded) {
-    offscreen.width=canvasWidth;
-    offscreen.height=canvasHeight;
+    offscreen2.width=canvasWidth;
+    offscreen2.height=canvasHeight;
     setViewport();
   }
 
@@ -2648,7 +2648,7 @@ function drawScene()
 
   if(embedded) {
     context.clearRect(0,0,canvasWidth,canvasHeight);
-    context.drawImage(offscreen,0,0);
+    context.drawImage(offscreen2,0,0);
   }
 
   if(wireframe == 0) remesh=false;
@@ -2729,8 +2729,8 @@ function setViewport()
 function setCanvas()
 {
   if(embedded) {
-    canvas.width=offscreen.width=canvasWidth;
-    canvas.height=offscreen.height=canvasHeight;
+    canvas.width=offscreen2.width=canvasWidth;
+    canvas.height=offscreen2.height=canvasHeight;
   }
   size2=Math.hypot(canvasWidth,canvasHeight);
   halfCanvasWidth=0.5*canvas.width;
