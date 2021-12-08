@@ -1016,8 +1016,6 @@ class MainWindow1(Qw.QMainWindow):
             # Save imported items into the twin asy file
             asyScriptItems = [item['item'] for item in asyItems if item['type'] == 'xasyScript']
 
-            # TODO: Check for recently .asy exported xasyShapes this will produce duplicates
-
             prefix = os.path.splitext(self.fileName)[0]
             asyFilePath = prefix + '.asy'
 
@@ -1035,7 +1033,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.statusbar.showMessage('Load {0}'.format(file)) # TODO: This doesn't show on the UI
         self.fileName = file
         self.currDir = os.path.dirname(self.fileName)
-        duplicateObjects = []
 
         input_file = open(file, 'rb')
         xasyObjects = pickle.load(input_file)
@@ -1056,7 +1053,11 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.append(obj)
             existsAsy = True
 
+        self.asyfyCanvas(force=True)
+
         for item in xasyObjects['objects']:
+            if(item['transfKey']) in obj.transfKeymap.keys():
+                continue
             if item['type'] == 'xasyScript':
                 print("Uh oh, there should not be any asy objects loaded")
 
@@ -1073,23 +1074,15 @@ class MainWindow1(Qw.QMainWindow):
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
-                if self.asyFileName:
-                    if (self.fileItems[-1].getTransformCode(self.asy2psmap) in rawText) and \
-                            (self.fileItems[-1].getObjectCode(self.asy2psmap) in rawText):
-                        duplicateObjects.append(self.fileItems[-1])
             else:
                 print("ERROR")
 
         self.asy2psmap = x2a.asyTransform(xasyObjects['asy2psmap'])
 
-        if duplicateObjects:
-            Qw.QMessageBox.information(self, "Duplicate",
-                    f"Duplicate objects have been found. Reverting to linked asy file: {os.path.basename(self.asyFileName)}")
-            self.fileItems = [item for item in self.fileItems if item not in duplicateObjects]
-
-        self.asyfyCanvas(True)
-        obj.maxKey += len(xasyObjects['objects'])+1
+        obj.maxKey=max(obj.maxKey,len(xasyObjects['objects']))+1
         self.globalObjectCounter = obj.maxKey
+
+        self.asyfyCanvas()
 
         if existsAsy:
             self.ui.statusbar.showMessage(f"Corresponding Asymptote File '{os.path.basename(asyFilePath)}' found.  Loaded both files.")
@@ -1136,7 +1129,7 @@ class MainWindow1(Qw.QMainWindow):
             elif reply == Qw.QMessageBox.Cancel:
                 return
         self.erase()
-        self.asyfyCanvas(True)
+        self.asyfyCanvas(force=True)
         self.fileName = None
         self.updateTitle()
 
@@ -2379,7 +2372,7 @@ class MainWindow1(Qw.QMainWindow):
 
             item.setScript(rawText)
             self.fileItems.append(item)
-            self.asyfyCanvas(True)
+            self.asyfyCanvas(force=True)
 
             item.maxKey += 1
             self.globalObjectCounter = item.maxKey
