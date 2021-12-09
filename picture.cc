@@ -358,7 +358,8 @@ void texinit()
   }
 
   bool context=settings::context(getSetting<string>("tex"));
-  string dir=stripFile(outname()).substr(0,dir.length()-1);
+  string dir=stripFile(outname());
+  dir=dir.substr(0,dir.length()-1);
   string logname;
   if(!context) logname=dir;
   logname += "texput.log";
@@ -417,7 +418,8 @@ int opentex(const string& texname, const string& prefix, bool dvi)
   cmd.push_back(texprogram());
   if(dvi)
     cmd.push_back("-output-format=dvi");
-  string dir=stripFile(texname).substr(0,dir.length()-1);
+  string dir=stripFile(texname);
+  dir=dir.substr(0,dir.length()-1);
   string oldPath;
   if(context) {
     if(!dir.empty()) {
