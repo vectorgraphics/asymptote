@@ -66,6 +66,14 @@ frame enclose(string prefix=defaultfilename, object F, string format="")
 
 void deconstruct(picture pic=currentpicture)
 {
+  if(currentpicture.nodes3.length > 0) {
+    if(currentpicture.xsize3 == 0 &&
+       currentpicture.ysize3 == 0 &&
+       currentpicture.zsize3 == 0)
+      currentpicture.size3(hypot(currentpicture.xsize,currentpicture.ysize));
+    currentpicture.size(0);
+  }
+
   frame f;
   transform t=pic.calculateTransform();
   if(currentpicture.fitter == null)
