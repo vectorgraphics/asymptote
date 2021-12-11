@@ -13,7 +13,13 @@ namespace camp
 {
 
 using settings::getSetting;
+
+#if __cplusplus < 201402L
+#include "makeUnique.h"
+using utils::make_unique;
+#else
 using std::make_unique;
+#endif
 
 absv3dfile::absv3dfile() : finalized(false), singleprecision(false)
 {
@@ -72,7 +78,6 @@ void absv3dfile::addHeaders()
                          v3dheadertypes::shiftWaitTime, getSetting<double>("shiftWaitTime")));
   headers.emplace_back(make_unique<DoubleFloatHeader>(
                          v3dheadertypes::vibrateTime, getSetting<double>("vibrateTime")));
-
 
   getXDRFile() << (uint32_t)headers.size();
   for(auto const& headerObj : headers) {

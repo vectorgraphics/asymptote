@@ -65,12 +65,12 @@ private:
 };
 
 const uint32_t TRIPLE_DOUBLE_SIZE=3*8;
-const uint32_t TWO_DOUBLE_SIZE=2*8;
+const uint32_t PAIR_DOUBLE_SIZE=2*8;
 const uint32_t RGBA_FLOAT_SIZE=4*4;
 
 using open_mode=xdr::xios::open_mode;
 using TripleHeader=SingleObjectHeader<triple, TRIPLE_DOUBLE_SIZE>;
-using PairHeader=SingleObjectHeader<pair, TWO_DOUBLE_SIZE>;
+using PairHeader=SingleObjectHeader<pair, PAIR_DOUBLE_SIZE>;
 using DoubleFloatHeader=SingleObjectHeader<double>;
 using Uint32Header=SingleObjectHeader<uint32_t>;
 using RGBAHeader=SingleObjectHeader<prc::RGBAColour,RGBA_FLOAT_SIZE>;
