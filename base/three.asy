@@ -1,8 +1,5 @@
 private import math;
 
-if(settings.xasy)
-  settings.render=0;
-
 if(prc0()) {
   if(!latex()) settings.prc=false;
   else {

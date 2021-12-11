@@ -1030,20 +1030,24 @@ class xasyItem(QtCore.QObject):
 
         self.maxKey=0
 
+        if xa.getArgs().render:
+            renderDensity=xa.getArgs().render
+        else:
+            try:
+                renderDensity = xo.BasicConfigs.defaultOpt['renderDensity']
+            except:
+                renderDensity = 2
+        renderDensity=max(renderDensity,1)
+
         fout.write("reset\n")
         fout.flush();
+        fout.write('settings.render={};\n'.format(renderDensity))
         for line in self.getCode().splitlines():
             if DebugFlags.printAsyTranscript:
                 print(line)
             fout.write(line+"\n")
         fout.write(self.asySize)
 
-        try:
-            renderDensity = xo.BasicConfigs.defaultOpt['renderDensity']
-        except:
-            renderDensity = 2
-
-        fout.write('settings.render={};\n'.format(renderDensity))
         fout.write('deconstruct();\n')
         fout.write('write(_outpipe,yscale(-1)*currentpicture.calculateTransform(),endl);\n')
         fout.write(self.asyengine.xasy)
