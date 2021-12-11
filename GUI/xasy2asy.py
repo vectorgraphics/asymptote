@@ -97,7 +97,16 @@ class AsymptoteEngine:
         else:
             self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
 
-        self.args=['-xasy', '-noV', '-q', '-outformat=', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', self.tmpdir]
+        if xa.getArgs().render:
+            renderDensity=xa.getArgs().render
+        else:
+            try:
+                renderDensity = xo.BasicConfigs.defaultOpt['renderDensity']
+            except:
+                renderDensity = 2
+        renderDensity=max(renderDensity,1)
+
+        self.args=['-xasy', '-noV', '-q', '-outformat=', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-render='+str(renderDensity), '-o', self.tmpdir]
 
         self.asyPath = path
         self.asyProcess = None
@@ -1030,18 +1039,8 @@ class xasyItem(QtCore.QObject):
 
         self.maxKey=0
 
-        if xa.getArgs().render:
-            renderDensity=xa.getArgs().render
-        else:
-            try:
-                renderDensity = xo.BasicConfigs.defaultOpt['renderDensity']
-            except:
-                renderDensity = 2
-        renderDensity=max(renderDensity,1)
-
         fout.write("reset\n")
         fout.flush();
-        fout.write('settings.render={};\n'.format(renderDensity))
         for line in self.getCode().splitlines():
             if DebugFlags.printAsyTranscript:
                 print(line)
