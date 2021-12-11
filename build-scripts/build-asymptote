@@ -20,7 +20,7 @@ git clone http://github.com/vectorgraphics/asymptote
 cd asymptote
 git log > ChangeLog
 VERSIONgit=`grep AC_INIT configure.ac | cut -s -d[ -f3 | cut -s -d] -f1`
-VERSION=${VERSIONgit/git/}
+VERSION=${VERSIONgit/git/}$1
 cat configure.ac | sed -e "s/$VERSIONgit/$VERSION/" > configure.ac_
 mv configure.ac_ configure.ac
 cat $ASYMPTOTE/asymptote.spec | sed -e "s|Version:.*|Version:        $VERSION|" > asymptote.spec

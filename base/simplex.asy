@@ -219,7 +219,7 @@ struct simplex {
 
       basicValues();
       iterate(E,n+k,Bindices);
-  
+
       if(abs(Em[0]) > EpsilonA) {
       case=INFEASIBLE;
       return;
@@ -249,7 +249,7 @@ struct simplex {
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
         if(k > n) continue;
-        Bindices[ip]=k; 
+        Bindices[ip]=k;
         cB[ip]=c[k-1];
         real[] Dip=D[ip];
         real[] Ei=E[i];
@@ -319,7 +319,7 @@ struct simplex {
         ai[j]=Ai[j];
       }
     }
-  
+
     int k=0;
 
     bool phase1=false;

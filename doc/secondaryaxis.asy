@@ -11,7 +11,7 @@ string[] columnlabel=in;
 real[][] a=in;
 a=transpose(a);
 real[] t=a[0], susceptible=a[1], infectious=a[2], dead=a[3], larvae=a[4];
-real[] susceptibleM=a[5], exposed=a[6],infectiousM=a[7];
+real[] susceptibleM=a[5], exposed=a[6], infectiousM=a[7];
 
 scale(true);
 
@@ -29,4 +29,3 @@ picture secondary=secondaryY(new void(picture pic) {
 
 add(secondary);
 label(shift(5mm*N)*"Proportion of crows",point(NW),E);
-

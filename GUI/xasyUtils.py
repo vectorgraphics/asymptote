@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-import typing as ty
+import typing as typing
 import math
 import itertools
 
@@ -15,12 +15,12 @@ def tryParse(val, typ=float):
     except ValueError:
         return None
 
-def funcOnList(list1: ty.Union[ty.List, ty.Tuple], list2: ty.Union[ty.List, ty.Tuple], func: ty.Callable) -> tuple:
-    """Returns [f(x[i], y[i]) : i in 1, ..., n - 1] in order with f as func 
+def funcOnList(list1: typing.Union[typing.List, typing.Tuple], list2: typing.Union[typing.List, typing.Tuple], func: typing.Callable) -> tuple:
+    """Returns [f(x[i], y[i]) : i in 1, ..., n - 1] in order with f as func
     and x and y as list1 and 2. """
 
     assert len(list1) == len(list2)
-    return tuple([func(list1[i], list2[i]) for i in range(len(list1))]) 
+    return tuple([func(list1[i], list2[i]) for i in range(len(list1))])
 
 
 def listize(str, typ, delim='()') -> list:
@@ -39,7 +39,7 @@ def listize(str, typ, delim='()') -> list:
             final_list.append(typ(elem.strip()))
     return final_list
 
-def twonorm(vec: ty.Iterable[ty.Union[float, int]]) -> float:
+def twonorm(vec: typing.Iterable[typing.Union[float, int]]) -> float:
     rawSquared = sum(map(lambda x: x*x, vec))
     return math.sqrt(rawSquared)
 

@@ -23,11 +23,9 @@ using namespace prc;
 
 namespace camp {
 
-mem::vector<triple> drawElement::center;
+mem::vector<triple> drawElement::centers;
 size_t drawElement::centerIndex=0;
-triple drawElement::lastcenter=0;
-size_t drawElement::lastcenterIndex=0;
-
+centerMap drawElement::centermap;
 const triple drawElement::zero;
 
 using vm::array;
@@ -57,23 +55,23 @@ void setcolors(bool colors,
                const RGBAColour& diffuse,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess,
-               double metallic, double fresnel0, jsfile *out)
+               double metallic, double fresnel0, abs3Doutfile *out)
 {
   Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
                       glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
                       glm::vec4(specular.R,specular.G,specular.B,specular.A),
                       shininess,metallic,fresnel0);
 
-  MaterialMap::iterator p=materialMap.find(m);
+  auto p=materialMap.find(m);
   if(p != materialMap.end()) materialIndex=p->second;
   else {
-    materialIndex=material.size();
+    materialIndex=materials.size();
     if(materialIndex >= nmaterials)
       nmaterials=min(Maxmaterials,2*nmaterials);
-    material.push_back(m);
+    materials.push_back(m);
     materialMap[m]=materialIndex;
     if(out)
-      out->addMaterial(materialIndex);
+      out->addMaterial(m);
   }
 }
 
@@ -220,7 +218,7 @@ bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawBezierPatch::write(jsfile *out)
+bool drawBezierPatch::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible || primitive)
@@ -236,9 +234,23 @@ bool drawBezierPatch::write(jsfile *out)
   out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
-    out->addPatch(Controls,4,Min,Max,colors,4);
-  } else
-    out->addPatch(controls,16,Min,Max,colors,4);
+    out->addStraightPatch(Controls,Min,Max,colors);
+  } else {
+    double prerender=renderResolution();
+    if(prerender) {
+      GLfloat c[16];
+      if(colors)
+        for(size_t i=0; i < 4; ++i)
+          storecolor(c,4*i,colors[i]);
+      S.init(prerender,colors ? c : NULL);
+      S.render(controls,straight,c);
+      drawTriangles dt(S.data,center,colors,diffuse,emissive,specular,opacity,
+                       shininess,metallic,fresnel0,interaction,invisible,
+                       Min,Max);
+      dt.write(out);
+    } else
+      out->addPatch(controls,Min,Max,colors);
+  }
   out->precision(getSetting<Int>("digits"));
 
 #endif
@@ -466,7 +478,7 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   return true;
 }
 
-bool drawBezierTriangle::write(jsfile *out)
+bool drawBezierTriangle::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible || primitive)
@@ -482,9 +494,23 @@ bool drawBezierTriangle::write(jsfile *out)
   out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
-    out->addPatch(Controls,3,Min,Max,colors,3);
-  } else
-    out->addPatch(controls,10,Min,Max,colors,3);
+    out->addStraightBezierTriangle(Controls,Min,Max,colors);
+  } else {
+    double prerender=renderResolution();
+    if(prerender) {
+      GLfloat c[16];
+      if(colors)
+        for(size_t i=0; i < 4; ++i)
+          storecolor(c,4*i,colors[i]);
+      S.init(prerender,colors ? c : NULL);
+      S.render(controls,straight,c);
+      drawTriangles dt(S.data,center,colors,diffuse,emissive,specular,opacity,
+                       shininess,metallic,fresnel0,interaction,invisible,
+                       Min,Max);
+      dt.write(out);
+    } else
+      out->addBezierTriangle(controls,Min,Max,colors);
+  }
   out->precision(getSetting<Int>("digits"));
 
 #endif
@@ -531,15 +557,14 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   triple Controls0[10];
   if(billboard) {
     Controls=Controls0;
-    for(size_t i=0; i < 10; i++) {
+    for(size_t i=0; i < 10; i++)
       Controls[i]=BB.transform(controls[i]);
-    }
   } else {
-    Controls=controls;
     if(!remesh && S.Onscreen) { // Fully onscreen; no need to re-render
       S.append();
       return;
     }
+    Controls=controls;
   }
 
   double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
@@ -767,7 +792,7 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawSphere::write(jsfile *out)
+bool drawSphere::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -784,7 +809,7 @@ bool drawSphere::write(jsfile *out)
   double r=length(X);
 
   if(half)
-    out->addSphere(O,r,half,X.polar(false),X.azimuth(false));
+    out->addHemisphere(O,r,X.polar(false),X.azimuth(false));
   else
     out->addSphere(O,r);
 
@@ -805,7 +830,7 @@ bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawCylinder::write(jsfile *out)
+bool drawCylinder::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -843,7 +868,7 @@ bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawDisk::write(jsfile *out)
+bool drawDisk::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -867,7 +892,7 @@ bool drawDisk::write(jsfile *out)
   return true;
 }
 
-bool drawTube::write(jsfile *out)
+bool drawTube::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -959,14 +984,18 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawTriangles::write(jsfile *out)
+bool drawTriangles::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
     return true;
 
-  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
 
+  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
 #endif
   return true;
@@ -978,16 +1007,7 @@ void drawTriangles::render(double size2, const triple& b,
 {
 #ifdef HAVE_GL
   if(invisible) return;
-
   transparent=diffuse.A < 1.0;
-
-  if(bbox2(Min,Max).offscreen()) { // Fully offscreen
-    R.Onscreen=false;
-    R.data.clear();
-    R.transparent=transparent;
-    R.notRendered();
-    return;
-  }
 
   setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0);
 
@@ -996,12 +1016,39 @@ void drawTriangles::render(double size2, const triple& b,
   else
     setMaterial(triangleData,drawTriangle);
 
-  if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
-    R.append();
+  bool offscreen;
+  if(billboard) {
+    drawElement::centerIndex=centerIndex;
+    BB.init(center);
+    offscreen=bbox2(Min,Max,BB).offscreen();
+  } else
+    offscreen=bbox2(Min,Max).offscreen();
+
+  if(offscreen) { // Fully offscreen
+    R.Onscreen=false;
+    R.data.clear();
+    R.transparent=transparent;
+    R.notRendered();
     return;
   }
 
-  R.queue(nP,P,nN,N,nC,C,nI,PI,NI,CI,transparent);
+  triple *P0;
+  if(billboard) {
+    P0=new triple [nP];
+    for(size_t i=0; i < nP; i++)
+      P0[i]=BB.transform(P[i]);
+  } else {
+    if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
+      R.append();
+      return;
+    }
+    P0=P;
+  }
+
+  R.queue(nP,P0,nN,N,nC,C,nI,PI,NI,CI,transparent);
+
+  if(billboard)
+    delete [] P0;
 #endif
 }
 

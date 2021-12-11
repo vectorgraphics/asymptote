@@ -5,16 +5,19 @@ let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
 let canvasWidth,canvasHeight;
-let canvasWidth0,canvasHeight0; // Initial values
 
 let absolute=false;
+let ibl=false;
+let imageURL;
+let image;
 
-let b,B; // Scene min,max bounding box corners (3-tuples)
-let angle; // Field of view angle
-let Zoom0; // Initial zoom
-let zoom0; // Adjusted initial zoom
-let viewportmargin; // Margin around viewport (2-tuple)
-let viewportshift=[0,0]; // Viewport shift (for perspective projection)
+let minBound,maxBound; // Scene min,max bounding box corners (3-tuples)
+let orthographic; // true: orthographic; false: perspective
+let angleOfView; // Field of view angle
+let initialZoom; // Initial zoom
+let viewportShift=[0,0]; // Viewport shift (for perspective projection)
+let viewportMargin; // Margin around viewport (2-tuple)
+let webgl2=true;
 
 let zoomFactor;
 let zoomPinchFactor;
@@ -25,13 +28,16 @@ let shiftHoldDistance;
 let shiftWaitTime;
 let vibrateTime;
 
+let canvasWidth0,canvasHeight0; // Initial values
+let zoom0; // Adjusted initial zoom
+
 let embedded; // Is image embedded within another window?
 
 let canvas; // Rendering canvas
 let gl; // WebGL rendering context
 let alpha; // Is background opaque?
 
-let offscreen; // Offscreen rendering canvas for embedded images
+let offscreen2; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
 
 let nlights=0; // Number of lights compiled in shader
@@ -42,20 +48,19 @@ let maxMaterials; // Limit on number of materials allowed in shader
 
 let halfCanvasWidth,halfCanvasHeight;
 
-let pixel=0.75; // Adaptive rendering constant.
-let zoomRemeshFactor=1.5; // Zoom factor before remeshing
-let FillFactor=0.1;
+const pixelResolution=0.75; // Adaptive rendering constant.
+const zoomRemeshFactor=1.5; // Zoom factor before remeshing
+const FillFactor=0.1;
+const windowTrim=10;
+const third=1/3;
+
 let Zoom;
+let lastZoom;
 
 let maxViewportWidth;
 let maxViewportHeight;
 
-const windowTrim=10;
-
-let lastZoom;
 let H; // maximum camera view half-height
-
-let third=1/3;
 
 let rotMat=mat4.create();
 let projMat=mat4.create(); // projection matrix
@@ -93,6 +98,24 @@ let Positions=[];
 let Normals=[];
 let Colors=[];
 let Indices=[];
+
+let IBLReflMap=null;
+let IBLDiffuseMap=null;
+let IBLbdrfMap=null;
+
+function IBLReady()
+{
+  return IBLReflMap !== null && IBLDiffuseMap !== null && IBLbdrfMap !== null;
+}
+
+function SetIBL()
+{
+  if(!embedded)
+    deleteShaders();
+  initShaders(ibl);
+}
+
+let roughnessStepCount=8;
 
 class Material {
   constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
@@ -135,16 +158,26 @@ class Light {
   }
 }
 
-function initShaders()
+function initShaders(ibl=false)
 {
   let maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
   maxMaterials=Math.floor((maxUniforms-14)/4);
   Nmaterials=Math.min(Math.max(Nmaterials,Materials.length),maxMaterials);
 
-  pixelShader=initShader(["WIDTH"]);
-  materialShader=initShader(["NORMAL"]);
-  colorShader=initShader(["NORMAL","COLOR"]);
-  transparentShader=initShader(["NORMAL","COLOR","TRANSPARENT"]);
+  pixelOpt=["WIDTH"];
+  materialOpt=["NORMAL"];
+  colorOpt=["NORMAL","COLOR"];
+  transparentOpt=["NORMAL","COLOR","TRANSPARENT"];
+
+  if(ibl) {
+    materialOpt.push('USE_IBL');
+    transparentOpt.push('USE_IBL');
+  }
+
+  pixelShader=initShader(pixelOpt);
+  materialShader=initShader(materialOpt);
+  colorShader=initShader(colorOpt);
+  transparentShader=initShader(transparentOpt);
 }
 
 function deleteShaders()
@@ -155,14 +188,9 @@ function deleteShaders()
   gl.deleteProgram(pixelShader);
 }
 
-function noGL() {
-  if (!gl)
-    alert("Could not initialize WebGL");
-}
-
 function saveAttributes()
 {
-  let a=window.top.document.asygl[alpha];
+  let a=window.top.document.asygl2[alpha];
 
   a.gl=gl;
   a.nlights=Lights.length;
@@ -177,7 +205,7 @@ function saveAttributes()
 
 function restoreAttributes()
 {
-  let a=window.top.document.asygl[alpha];
+  let a=window.top.document.asygl2[alpha];
 
   gl=a.gl;
   nlights=a.nlights;
@@ -192,6 +220,18 @@ function restoreAttributes()
 
 let indexExt;
 
+function webGL(canvas,alpha) {
+  let gl=canvas.getContext("webgl2",{alpha: alpha});
+  if(!gl) {
+    webgl2=false;
+    ibl=false;
+    gl=canvas.getContext("webgl",{alpha: alpha});
+  }
+  if(!gl)
+    alert("Could not initialize WebGL");
+  return gl;
+}
+
 function initGL()
 {
   alpha=Background[3] < 1;
@@ -199,21 +239,20 @@ function initGL()
   if(embedded) {
     let p=window.top.document;
 
-    if(p.asygl == null)
-      p.asygl=Array(2);
-  
+    if(p.asygl2 == null)
+      p.asygl2=Array(2);
+
     context=canvas.getContext("2d");
-    offscreen=p.offscreen;
-    if(!offscreen) {
-      offscreen=p.createElement("canvas");
-      p.offscreen=offscreen;
+    offscreen2=p.offscreen2;
+    if(!offscreen2) {
+      offscreen2=p.createElement("canvas");
+      p.offscreen2=offscreen2;
     }
 
-    if(!p.asygl[alpha] || !p.asygl[alpha].gl) {
-      gl=offscreen.getContext("webgl",{alpha:alpha});
-      if(!gl) noGL();
+    if(!p.asygl2[alpha] || !p.asygl2[alpha].gl) {
+      gl=webGL(offscreen2,alpha);
       initShaders();
-      p.asygl[alpha]={};
+      p.asygl2[alpha]={};
       saveAttributes();
     } else {
       restoreAttributes();
@@ -224,8 +263,7 @@ function initGL()
       }
     }
   } else {
-    gl=canvas.getContext("webgl",{alpha:alpha});
-    if(!gl) noGL();
+    gl=webGL(canvas,alpha);
     initShaders();
   }
 
@@ -242,23 +280,53 @@ function initGL()
 
 function getShader(gl,shaderScript,type,options=[])
 {
-  let str=`#version 100
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-  precision highp float;
-#else
-  precision mediump float;
-#endif
-  #define nlights ${wireframe == 0 ? Lights.length : 0}\n
-  const int Nlights=${Math.max(Lights.length,1)};\n
-  #define Nmaterials ${Nmaterials}\n`;
+  let version=webgl2 ? '300 es' : '100';
+  let defines=Array(...options)
+  let macros=[
+    ['nlights',wireframe == 0 ? Lights.length : 0],
+    ['Nmaterials',Nmaterials]
+  ]
+
+  let consts = [
+    ['int','Nlights',Math.max(Lights.length,1)]
+  ]
+
+  let addenum = `
+  #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+  #else
+    precision mediump float;
+  #endif
+  `
+
+  let extensions=[];
+
+  if(webgl2)
+    defines.push('WEBGL2');
+
+  if(ibl)
+    macros.push(['ROUGHNESS_STEP_COUNT',roughnessStepCount.toFixed(2)]);
 
   if(orthographic)
-    str += `#define ORTHOGRAPHIC\n`;
+    defines.push('ORTHOGRAPHIC');
 
-  options.forEach(s => str += `#define `+s+`\n`);
+  macros_str = macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
+  define_str = defines.map(define => `#define ${define}`).join('\n');
+  const_str = consts.map(const_val => `const ${const_val[0]} ${const_val[1]}=${const_val[2]};`).join('\n')
+  ext_str = extensions.map(ext => `#extension ${ext}: enable`).join('\n')
+
+  shaderSrc = `#version ${version}
+  ${ext_str}
+  ${define_str}
+  ${const_str}
+  ${macros_str}
+
+  ${addenum}
+  ${shaderScript}
+  `;
 
   let shader=gl.createShader(type);
-  gl.shaderSource(shader,str+shaderScript);
+  gl.shaderSource(shader,shaderSrc);
   gl.compileShader(shader);
   if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)) {
     alert(gl.getShaderInfoLog(shader));
@@ -284,25 +352,38 @@ function registerBuffer(buffervector,bufferIndex,copy,type=gl.ARRAY_BUFFER)
 function drawBuffer(data,shader,indices=data.indices)
 {
   if(data.indices.length == 0) return;
-  
+
   let normal=shader != pixelShader;
 
   setUniforms(data,shader);
+  if(IBLDiffuseMap != null) {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D,IBLbdrfMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'reflBRDFSampler'),0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D,IBLDiffuseMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'diffuseSampler'),1);
+
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D,IBLReflMap);
+    gl.uniform1i(gl.getUniformLocation(shader,'reflImgSampler'),2);
+  }
 
   let copy=remesh || data.partial || !data.rendered;
   data.verticesBuffer=registerBuffer(new Float32Array(data.vertices),
                                      data.verticesBuffer,copy);
   gl.vertexAttribPointer(positionAttribute,3,gl.FLOAT,false,
                          normal ? 24 : 16,0);
-  if(normal && Lights.length > 0)
-    gl.vertexAttribPointer(normalAttribute,3,gl.FLOAT,false,24,12);
-  else if(pixel)
+  if(normal) {
+    if(Lights.length > 0)
+      gl.vertexAttribPointer(normalAttribute,3,gl.FLOAT,false,24,12);
+  } else
     gl.vertexAttribPointer(widthAttribute,1,gl.FLOAT,false,16,12);
 
   data.materialsBuffer=registerBuffer(new Int16Array(data.materialIndices),
                                       data.materialsBuffer,copy);
   gl.vertexAttribPointer(materialAttribute,1,gl.SHORT,false,2,0);
-
 
   if(shader == colorShader || shader == transparentShader) {
     data.colorsBuffer=registerBuffer(new Uint8Array(data.colors),
@@ -348,7 +429,7 @@ class vertexBuffer {
     this.materialTable=[];
   }
 
-  // material vertex 
+  // material vertex
   vertex(v,n) {
     this.vertices.push(v[0]);
     this.vertices.push(v[1]);
@@ -376,7 +457,7 @@ class vertexBuffer {
     return this.nvertices++;
   }
 
-  // material vertex with width and without normal 
+  // material vertex with width and without normal
   vertex0(v,width) {
     this.vertices.push(v[0]);
     this.vertices.push(v[1]);
@@ -386,7 +467,7 @@ class vertexBuffer {
     return this.nvertices++;
   }
 
-  // indexed colored vertex 
+  // indexed colored vertex
   iVertex(i,v,n,c=[0,0,0,0]) {
     let i6=6*i;
     this.vertices[i6]=v[0];
@@ -542,12 +623,13 @@ class Geometry {
         P[i]=this.T(p[i]);
     }
 
-    let s=orthographic ? 1 : this.Min[2]/B[2];
-    let res=pixel*Math.hypot(s*(viewParam.xmax-viewParam.xmin),
-                             s*(viewParam.ymax-viewParam.ymin))/size2;
+    let s=orthographic ? 1 : this.Min[2]/maxBound[2];
+    let res=pixelResolution*
+        Math.hypot(s*(viewParam.xmax-viewParam.xmin),
+                   s*(viewParam.ymax-viewParam.ymin))/size2;
     this.res2=res*res;
     this.Epsilon=FillFactor*res;
-    
+
     this.data.clear();
     this.notRendered();
     this.Onscreen=true;
@@ -568,10 +650,11 @@ class BezierPatch extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
     super();
     this.controlpoints=controlpoints;
+    this.CenterIndex=CenterIndex;
+    this.MaterialIndex=MaterialIndex;
     this.Min=Min;
     this.Max=Max;
     this.color=color;
-    this.CenterIndex=CenterIndex;
     let n=controlpoints.length;
     if(color) {
       let sum=color[0][3]+color[1][3]+color[2][3];
@@ -579,7 +662,6 @@ class BezierPatch extends Geometry {
                         sum+color[3][3] < 1020 : sum < 765;
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
-    this.MaterialIndex=MaterialIndex;
 
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
@@ -703,7 +785,7 @@ class BezierPatch extends Geometry {
     if(p.length == 10) return this.process3(p);
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
-    
+
     if(wireframe == 1) {
       this.curve(p,0,4,8,12);
       this.curve(p,12,13,14,15);
@@ -801,7 +883,7 @@ class BezierPatch extends Geometry {
           this.data.indices.push(I1);
           this.data.indices.push(I2);
         }
-      }        
+      }
       if(!this.offscreen([P0,P2,P3])) {
         if(wireframe == 0) {
           this.data.indices.push(I0);
@@ -819,11 +901,11 @@ class BezierPatch extends Geometry {
       if(this.offscreen(p)) return;
 
       /* Control points are indexed as follows:
-         
+
        Coordinate
        +-----
         Index
-         
+
         03    13    23    33
        +-----+-----+-----+
        |3    |7    |11   |15
@@ -841,7 +923,7 @@ class BezierPatch extends Geometry {
         0     4     8     12
 
       */
-         
+
       let p0=p[0];
       let p3=p[3];
       let p12=p[12];
@@ -1060,7 +1142,7 @@ class BezierPatch extends Geometry {
        P refers to a corner
        m refers to a midpoint
        s refers to a subpatch
-         
+
                 m2
        +--------+--------+
        |P3      |      P2|
@@ -1170,7 +1252,7 @@ class BezierPatch extends Geometry {
         }
         else m2=s2[3];
       }
-      
+
       let m3=[0.5*(P3[0]+P0[0]),
               0.5*(P3[1]+P0[1]),
               0.5*(P3[2]+P0[2])];
@@ -1181,7 +1263,7 @@ class BezierPatch extends Geometry {
         }
         else m3=s3[0];
       }
-      
+
       if(C0) {
         let c0=Array(4);
         let c1=Array(4);
@@ -1239,9 +1321,9 @@ class BezierPatch extends Geometry {
     let p9=p[9];
 
     let n0=this.normal(p9,p[5],p[2],p0,p[1],p[3],p6);
-    let n1=this.normal(p0,p[1],p[3],p6,p[7],p[8],p9);    
+    let n1=this.normal(p0,p[1],p[3],p6,p[7],p[8],p9);
     let n2=this.normal(p6,p[7],p[8],p9,p[5],p[2],p0);
-    
+
     if(this.color) {
       let c0=this.color[0];
       let c1=this.color[1];
@@ -1250,7 +1332,7 @@ class BezierPatch extends Geometry {
       let i0=this.data.Vertex(p0,n0,c0);
       let i1=this.data.Vertex(p6,n1,c1);
       let i2=this.data.Vertex(p9,n2,c2);
-    
+
       this.Render3(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
 
     } else {
@@ -1336,7 +1418,7 @@ class BezierPatch extends Geometry {
                 003               p2                300
                 P0                                    P1
     */
-      
+
       // Subdivide triangle:
 
       let l003=p[0];
@@ -1470,7 +1552,7 @@ class BezierPatch extends Geometry {
       let n0=this.normal(l300,r012,r021,r030,u201,u102,l030);
       let n1=this.normal(r030,u201,u102,l030,l120,l210,l300);
       let n2=this.normal(l030,l120,l210,l300,r012,r021,r030);
-      
+
       let e=this.Epsilon;
 
       // A kludge to remove subdivision cracks, only applied the first time
@@ -1519,11 +1601,11 @@ class BezierPatch extends Geometry {
           c1[i]=0.5*(C2[i]+C0[i]);
           c2[i]=0.5*(C0[i]+C1[i]);
         }
-        
+
         let i0=this.data.Vertex(m0,n0,c0);
         let i1=this.data.Vertex(m1,n1,c1);
         let i2=this.data.Vertex(m2,n2,c2);
-        
+
         this.Render3(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2,C0,c2,c1);
         this.Render3(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2,c2,C1,c0);
         this.Render3(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false,c1,c0,C2);
@@ -1532,7 +1614,7 @@ class BezierPatch extends Geometry {
         let i0=this.vertex(m0,n0);
         let i1=this.vertex(m1,n1);
         let i2=this.vertex(m2,n2);
-        
+
         this.Render3(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2);
         this.Render3(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2);
         this.Render3(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false);
@@ -1590,11 +1672,11 @@ class BezierPatch extends Geometry {
     let p=[3*(p1[0]-p0[0]),3*(p1[1]-p0[1]),3*(p1[2]-p0[2])];
     if(abs2(p) > this.epsilon)
       return p;
-    
+
     p=bezierPP(p0,p1,p2);
     if(abs2(p) > this.epsilon)
       return p;
-    
+
     return bezierPPP(p0,p1,p2,p3);
   }
 
@@ -1603,7 +1685,7 @@ class BezierPatch extends Geometry {
     let d1=this.differential(p0,p4,p5,p6);
     return [d0[0]+d1[0],d0[1]+d1[1],d0[2]+d1[2]];
   }
-  
+
   normal(left3,left2,left1,middle,right1,right2,right3) {
     let ux=3*(right1[0]-middle[0]);
     let uy=3*(right1[1]-middle[1]);
@@ -1662,10 +1744,10 @@ class BezierCurve extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
     super();
     this.controlpoints=controlpoints;
-    this.Min=Min;
-    this.Max=Max;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
+    this.Min=Min;
+    this.Max=Max;
   }
 
   setMaterialIndex() {
@@ -1693,14 +1775,14 @@ class BezierCurve extends Geometry {
 
     let n0=this.normal(bezierP(p0,p1),bezierPP(p0,p1,p2));
     let n1=this.normal(bezierP(p2,p3),bezierPP(p3,p2,p1));
-    
+
     let i0=this.data.vertex(p0,n0);
     let i3=this.data.vertex(p3,n1);
-    
+
     this.Render(p,i0,i3);
     if(this.data.indices.length > 0) this.append();
   }
-  
+
   append() {
     material1Data.append(this.data);
   }
@@ -1729,13 +1811,13 @@ class BezierCurve extends Geometry {
       let m3=[0.5*(m0[0]+m1[0]),0.5*(m0[1]+m1[1]),0.5*(m0[2]+m1[2])];
       let m4=[0.5*(m1[0]+m2[0]),0.5*(m1[1]+m2[1]),0.5*(m1[2]+m2[2])];
       let m5=[0.5*(m3[0]+m4[0]),0.5*(m3[1]+m4[1]),0.5*(m3[2]+m4[2])];
-      
+
       let s0=[p0,m0,m3,m5];
       let s1=[m5,m4,m2,p3];
-      
+
       let n0=this.normal(bezierPh(p0,p1,p2,p3),bezierPPh(p0,p1,p2,p3));
       let i0=this.data.vertex(m5,n0);
-      
+
       this.Render(s0,I0,i0);
       this.Render(s1,i0,I1);
     }
@@ -1769,7 +1851,7 @@ class Pixel extends Geometry {
     this.data.indices.push(this.data.vertex0(this.controlpoint,this.width));
     this.append();
   }
-  
+
   append() {
     material0Data.append(this.data);
   }
@@ -1780,13 +1862,14 @@ class Pixel extends Geometry {
 }
 
 class Triangles extends Geometry {
-  constructor(MaterialIndex,Min,Max) {
+  constructor(CenterIndex,MaterialIndex,Min,Max) {
     super();
-    this.CenterIndex=0;
+    this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
     this.Min=Min;
     this.Max=Max;
-    this.Positions=Positions;
+
+    this.controlpoints=Positions;
     this.Normals=Normals;
     this.Colors=Colors;
     this.Indices=Indices;
@@ -1794,9 +1877,9 @@ class Triangles extends Geometry {
     Normals=[];
     Colors=[];
     Indices=[];
-    this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
+    this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
   }
-    
+
   setMaterialIndex() {
     if(this.transparent)
       this.setMaterial(transparentData,drawTransparent);
@@ -1805,6 +1888,7 @@ class Triangles extends Geometry {
   }
 
   process(p) {
+    this.data.vertices=new Array(6*p.length);
     // Override materialIndex to encode color vs material
       materialIndex=this.Colors.length > 0 ?
       -1-materialIndex : 1+materialIndex;
@@ -1812,9 +1896,9 @@ class Triangles extends Geometry {
     for(let i=0, n=this.Indices.length; i < n; ++i) {
       let index=this.Indices[i];
       let PI=index[0];
-      let P0=this.Positions[PI[0]];
-      let P1=this.Positions[PI[1]];
-      let P2=this.Positions[PI[2]];
+      let P0=p[PI[0]];
+      let P1=p[PI[1]];
+      let P2=p[PI[2]];
       if(!this.offscreen([P0,P1,P2])) {
         let NI=index.length > 1 ? index[1] : PI;
         if(!NI || NI.length == 0) NI=PI;
@@ -1853,7 +1937,7 @@ class Triangles extends Geometry {
         }
       }
     }
-    this.data.nvertices=this.Positions.length;
+    this.data.nvertices=p.length;
     if(this.data.indices.length > 0) this.append();
   }
 
@@ -1873,18 +1957,18 @@ class Triangles extends Geometry {
 
 }
 
-function redraw()
+function redrawScene()
 {
   initProjection();
   setProjection();
   remesh=true;
-  draw();
+  drawScene();
 }
 
 function home()
 {
   mat4.identity(rotMat);
-  redraw();
+  redrawScene();
 }
 
 let positionAttribute=0;
@@ -1907,9 +1991,8 @@ function initShader(options=[])
   gl.bindAttribLocation(shader,colorAttribute,"color");
   gl.bindAttribLocation(shader,widthAttribute,"width");
   gl.linkProgram(shader);
-  if (!gl.getProgramParameter(shader,gl.LINK_STATUS)) {
+  if(!gl.getProgramParameter(shader,gl.LINK_STATUS))
     alert("Could not initialize shaders");
-  }
 
   return shader;
 }
@@ -1999,7 +2082,7 @@ function bezierPPh(a,b,c,d)
 }
 
 /**
- * Return the maximum distance squared of points c0 and c1 from 
+ * Return the maximum distance squared of points c0 and c1 from
  * the respective internal control points of z0--z1.
 */
 function Straightness(z0,c0,c1,z1)
@@ -2044,8 +2127,8 @@ function maxbound(v) {
  * Perform a change of basis
  * @param {*} out Out Matrix
  * @param {*} mat Matrix
- * 
- * Compute the matrix (translMatrix) * mat * (translMatrix)^{-1} 
+ *
+ * Compute the matrix (translMatrix) * mat * (translMatrix)^{-1}
  */
 
 function COBTarget(out,mat)
@@ -2161,7 +2244,7 @@ function shiftScene(lastX,lastY,rawX,rawY)
 
 function panScene(lastX,lastY,rawX,rawY)
 {
-  if (orthographic) {
+  if(orthographic) {
     shiftScene(lastX,lastY,rawX,rawY);
   } else {
     center.x += (rawX-lastX)*(viewParam.xmax-viewParam.xmin);
@@ -2178,13 +2261,13 @@ function updateViewMatrix()
   mat4.multiply(projViewMat,projMat,viewMat);
 }
 
-function capzoom() 
+function capzoom()
 {
   let maxzoom=Math.sqrt(Number.MAX_VALUE);
   let minzoom=1/maxzoom;
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
-  
+
   if(zoomRemeshFactor*Zoom < lastZoom || Zoom > zoomRemeshFactor*lastZoom) {
     remesh=true;
     lastZoom=Zoom;
@@ -2227,9 +2310,9 @@ function arcball(oldmouse,newmouse)
 /**
  * Mouse Drag Zoom
  * @param {*} lastX unused
- * @param {*} lastY 
+ * @param {*} lastY
  * @param {*} rawX unused
- * @param {*} rawY 
+ * @param {*} rawY
  */
 function zoomScene(lastX,lastY,rawX,rawY)
 {
@@ -2273,7 +2356,7 @@ function processDrag(newX,newY,mode,factor=1)
   lastMouseY=newY;
 
   setProjection();
-  draw();
+  drawScene();
 }
 
 let zoomEnabled=0;
@@ -2324,10 +2407,10 @@ function handleKey(event)
     if(wireframe != 2) {
       if(!embedded)
         deleteShaders();
-      initShaders();
+      initShaders(ibl);
     }
     remesh=true;
-    draw();
+    drawScene();
     break;
   case '+':
   case '=':
@@ -2346,7 +2429,7 @@ function handleKey(event)
   if(axis.length > 0) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
     updateViewMatrix();
-    draw();
+    drawScene();
   }
 }
 
@@ -2354,14 +2437,14 @@ function setZoom()
 {
   capzoom();
   setProjection();
-  draw();
+  drawScene();
 }
 
 function handleMouseWheel(event)
 {
   event.preventDefault();
-  
-  if (event.deltaY < 0) {
+
+  if(event.deltaY < 0) {
     Zoom *= zoomFactor;
   } else {
     Zoom /= zoomFactor;
@@ -2439,7 +2522,7 @@ function handleTouchMove(event)
     pinchStart=distance;
     swipe=rotate=zooming=false;
     setProjection();
-    draw();
+    drawScene();
   }
 }
 
@@ -2498,7 +2581,7 @@ function drawTransparent()
   }
   if(indices.length > 0) {
     transformVertices(transparentData.vertices);
-    
+
     let n=indices.length/3;
     let triangles=Array(n).fill().map((_,i)=>i);
 
@@ -2513,7 +2596,7 @@ function drawTransparent()
       IB=indices[b3+1];
       IC=indices[b3+2];
 
-      return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] < 
+      return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] <
         zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
     });
 
@@ -2544,13 +2627,14 @@ function drawBuffers()
   drawColor();
   drawTriangle();
   drawTransparent();
+  requestAnimationFrame(drawBuffers);
 }
 
-function draw()
+function drawScene()
 {
   if(embedded) {
-    offscreen.width=canvasWidth;
-    offscreen.height=canvasHeight;
+    offscreen2.width=canvasWidth;
+    offscreen2.height=canvasHeight;
     setViewport();
   }
 
@@ -2564,7 +2648,7 @@ function draw()
 
   if(embedded) {
     context.clearRect(0,0,canvasWidth,canvasHeight);
-    context.drawImage(offscreen,0,0);
+    context.drawImage(offscreen2,0,0);
   }
 
   if(wireframe == 0) remesh=false;
@@ -2574,26 +2658,26 @@ function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
   let zoominv=1/Zoom;
-  let xshift=(X/width+viewportshift[0])*Zoom;
-  let yshift=(Y/height+viewportshift[1])*Zoom;
+  let xshift=(X/width+viewportShift[0])*Zoom;
+  let yshift=(Y/height+viewportShift[1])*Zoom;
 
-  if (orthographic) {
-    let xsize=B[0]-b[0];
-    let ysize=B[1]-b[1];
-    if (xsize < ysize*Aspect) {
+  if(orthographic) {
+    let xsize=maxBound[0]-minBound[0];
+    let ysize=maxBound[1]-minBound[1];
+    if(xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*zoominv;
       let X0=2*r*xshift;
       let Y0=ysize*zoominv*yshift;
       viewParam.xmin=-r-X0;
       viewParam.xmax=r-X0;
-      viewParam.ymin=b[1]*zoominv-Y0;
-      viewParam.ymax=B[1]*zoominv-Y0;
+      viewParam.ymin=minBound[1]*zoominv-Y0;
+      viewParam.ymax=maxBound[1]*zoominv-Y0;
     } else {
       let r=0.5*xsize/(Aspect*Zoom);
       let X0=xsize*zoominv*xshift;
       let Y0=2*r*yshift;
-      viewParam.xmin=b[0]*zoominv-X0;
-      viewParam.xmax=B[0]*zoominv-X0;
+      viewParam.xmin=minBound[0]*zoominv-X0;
+      viewParam.xmax=maxBound[0]*zoominv-X0;
       viewParam.ymin=-r-Y0;
       viewParam.ymax=r-Y0;
     }
@@ -2621,14 +2705,14 @@ function setProjection()
 
 function initProjection()
 {
-  H=-Math.tan(0.5*angle)*B[2];
+  H=-Math.tan(0.5*angleOfView)*maxBound[2];
 
   center.x=center.y=0;
-  center.z=0.5*(b[2]+B[2]);
+  center.z=0.5*(minBound[2]+maxBound[2]);
   lastZoom=Zoom=zoom0;
 
-  viewParam.zmin=b[2];
-  viewParam.zmax=B[2];
+  viewParam.zmin=minBound[2];
+  viewParam.zmax=maxBound[2];
 
   shift.x=shift.y=0;
 }
@@ -2645,13 +2729,13 @@ function setViewport()
 function setCanvas()
 {
   if(embedded) {
-    canvas.width=offscreen.width=canvasWidth;
-    canvas.height=offscreen.height=canvasHeight;
+    canvas.width=offscreen2.width=canvasWidth;
+    canvas.height=offscreen2.height=canvasHeight;
   }
   size2=Math.hypot(canvasWidth,canvasHeight);
   halfCanvasWidth=0.5*canvas.width;
   halfCanvasHeight=0.5*canvas.height;
-  ArcballFactor=1+8*Math.hypot(viewportmargin[0],viewportmargin[1])/size2;
+  ArcballFactor=1+8*Math.hypot(viewportMargin[0],viewportMargin[1])/size2;
 }
 
 function setsize(w,h)
@@ -2674,9 +2758,9 @@ function setsize(w,h)
   remesh=true;
 }
 
-function resize() 
+function resize()
 {
-  zoom0=Zoom0;
+  zoom0=initialZoom;
 
   if(absolute && !embedded) {
     canvasWidth=canvasWidth0*window.devicePixelRatio;
@@ -2696,20 +2780,20 @@ function resize()
   let maxViewportWidth=window.innerWidth;
   let maxViewportHeight=window.innerHeight;
 
-  viewportshift[0] /= zoom0;
-  viewportshift[1] /= zoom0;
+  viewportShift[0] /= zoom0;
+  viewportShift[1] /= zoom0;
 
   setsize(canvasWidth,canvasHeight);
-  redraw();
+  redrawScene();
 }
 
-function expand() 
+function expand()
 {
   Zoom *= zoomFactor;
   setZoom();
 }
 
-function shrink() 
+function shrink()
 {
   Zoom /= zoomFactor;
   setZoom();
@@ -2746,11 +2830,32 @@ class Align {
   };
 }
 
-function Tcorners(T,m,M) {
+function Tcorners(T,m,M)
+{
   let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
          T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
          T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
   return [minbound(v),maxbound(v)];
+}
+
+function patch(controlpoints,CenterIndex,MaterialIndex,Min,Max,color)
+{
+  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,Min,Max,color));
+}
+
+function curve(controlpoints,CenterIndex,MaterialIndex,Min,Max)
+{
+  P.push(new BezierCurve(controlpoints,CenterIndex,MaterialIndex,Min,Max));
+}
+
+function pixel(controlpoint,width,MaterialIndex,Min,Max)
+{
+  P.push(new Pixel(controlpoint,width,MaterialIndex,Min,Max));
+}
+
+function triangles(CenterIndex,MaterialIndex,Min,Max)
+{
+  P.push(new Triangles(CenterIndex,MaterialIndex,Min,Max));
 }
 
 // draw a sphere of radius r about center
@@ -3097,6 +3202,87 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
     P.push(new BezierCurve(v,CenterIndex,MaterialIndex,Min,Max));
 }
 
+async function getReq(req)
+{
+  return (await fetch(req)).arrayBuffer();
+}
+
+function rgb(image) {
+  return image.getBytes().filter((element,index) => {return index%4 != 3;});
+}
+
+function createTexture(image, textureNumber, fmt=gl.RGB16F)
+{
+  let width=image.width()
+  let height=image.height()
+  let tex=gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0+textureNumber);
+  gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,0,fmt,width,height,
+                0,gl.RGB,gl.FLOAT,rgb(image));
+  return tex;
+}
+
+async function initIBL()
+{
+  let imagePath=imageURL+image+'/';
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  while(true) { // Wait for EXRLoader to become available.
+    if(Module.EXRLoader)
+      break;
+    await sleep(0);
+  }
+
+  promises=[
+    getReq(imageURL+'refl.exr').then(obj => {
+      let img=new Module.EXRLoader(obj);
+      IBLbdrfMap=createTexture(img,0);
+    }),
+    getReq(imagePath+'diffuse.exr').then(obj => {
+      let img=new Module.EXRLoader(obj);
+      IBLDiffuseMap=createTexture(img,1);
+    })
+  ]
+
+  refl_promise=[]
+
+  refl_promise.push(
+    getReq(imagePath+'refl0.exr')
+  );
+  for(let i=1; i <= roughnessStepCount; ++i) {
+    refl_promise.push(
+      getReq(imagePath+'refl'+i+'w.exr'))
+  }
+
+  finished_promise=Promise.all(refl_promise).then(reflMaps => {
+    let tex=gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0+2);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+    gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAX_LEVEL,reflMaps.length-1)
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameterf(gl.TEXTURE_2D,gl.TEXTURE_MIN_LOD,0.0);
+    gl.texParameterf(gl.TEXTURE_2D,gl.TEXTURE_MAX_LOD,roughnessStepCount);
+    for(let j=0; j < reflMaps.length; ++j) {
+      let img=new Module.EXRLoader(reflMaps[j]);
+      gl.texImage2D(gl.TEXTURE_2D,j,gl.RGB16F,img.width(),img.height(),
+                    0,gl.RGB,gl.FLOAT,rgb(img));
+    }
+    IBLReflMap=tex;
+  });
+
+  promises.push(finished_promise);
+  await Promise.all(promises);
+}
+
 function webGLStart()
 {
   canvas=document.getElementById("Asymptote");
@@ -3132,4 +3318,7 @@ function webGLStart()
     resize();
 
   window.addEventListener("resize",resize,false);
+
+  if(ibl)
+    initIBL().then(SetIBL).then(redrawScene);
 }

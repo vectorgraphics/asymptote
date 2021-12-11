@@ -34,7 +34,7 @@ struct patch {
   }
 
   path3 externaltriangular() {
-    return 
+    return
       P[0][0]..controls P[1][0] and P[2][0]..
       P[3][0]..controls P[3][1] and P[3][2]..
       P[3][3]..controls P[2][2] and P[1][1]..cycle;
@@ -91,7 +91,7 @@ struct patch {
                  new triple[] {Bv(1,v),z1},new bool[] {straight,false},false);
   }
 
-  triple point(real u, real v) {        
+  triple point(real u, real v) {
     return bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
   }
 
@@ -237,7 +237,7 @@ struct patch {
         color(normal11(),nocolors ? m : colors[2],light),
         color(normal01(),nocolors ? m : colors[3],light)};
   }
-  
+
   pen[] colorstriangular(material m, light light=currentlight) {
     bool nocolors=colors.length == 0;
     if(planar) {
@@ -250,7 +250,7 @@ struct patch {
         color(normal10(),nocolors ? m : colors[1],light),
         color(normal01(),nocolors ? m : colors[2],light)};
   }
-  
+
   triple min3,max3;
   bool havemin3,havemax3;
 
@@ -332,7 +332,7 @@ struct patch {
   void operator init(patch s) {
     operator init(s.P,s.colors,s.straight,s.planar,s.triangular);
    }
-  
+
   // A constructor for a cyclic path3 of length 3 with a specified
   // internal point, corner normals, and pens (rendered as a Bezier triangle).
   void operator init(path3 external, triple internal, pen[] colors=new pen[],
@@ -406,51 +406,65 @@ struct patch {
     };
   }
 
-  // A constructor for a convex quadrilateral.
+  // A constructor for a triangle or convex quadrilateral.
   void operator init(triple[] external, triple[] internal=new triple[],
                      pen[] colors=new pen[], bool3 planar=default) {
     init();
 
-    if(internal.length == 0 && planar == default)
-      this.planar=normal(external) != O;
-    else this.planar=planar;
+    straight=true;
 
     if(colors.length != 0)
       this.colors=copy(colors);
 
-    if(internal.length == 0) {
-      internal=new triple[4];
+    if(external.length == 3) {
+      P=new triple[][] {
+        {external[0]},
+        {interp(external[0],external[1],1/3),
+         interp(external[2],external[0],2/3)},
+        {interp(external[0],external[1],2/3),sum(external)/3,
+         interp(external[2],external[0],1/3)},
+        {external[1],interp(external[1],external[2],1/3),
+         interp(external[1],external[2],2/3),external[2]}
+      };
+      planar=true;
+      triangular=true;
+    } else {
+      if(internal.length == 0 && planar == default)
+        this.planar=normal(external) != O;
+      else this.planar=planar;
+
+      if(internal.length == 0) {
+        internal=new triple[4];
+        for(int j=0; j < 4; ++j)
+          internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
+                              external[(j+2)%4]+2*external[(j+3)%4]);
+      }
+
+      triple delta[]=new triple[4];
       for(int j=0; j < 4; ++j)
-        internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
-                            external[(j+2)%4]+2*external[(j+3)%4]);
+        delta[j]=(external[(j+1)% 4]-external[j])/3;
+
+      P=new triple[][] {
+        {external[0],external[0]-delta[3],external[3]+delta[3],external[3]},
+        {external[0]+delta[0],internal[0],internal[3],external[3]-delta[2]},
+        {external[1]-delta[0],internal[1],internal[2],external[2]+delta[2]},
+        {external[1],external[1]+delta[1],external[2]-delta[1],external[2]}
+      };
     }
-
-    straight=true;
-
-    triple delta[]=new triple[4];
-    for(int j=0; j < 4; ++j)
-      delta[j]=(external[(j+1)% 4]-external[j])/3;
-
-    P=new triple[][] {
-      {external[0],external[0]-delta[3],external[3]+delta[3],external[3]},
-      {external[0]+delta[0],internal[0],internal[3],external[3]-delta[2]},
-      {external[1]-delta[0],internal[1],internal[2],external[2]+delta[2]},
-      {external[1],external[1]+delta[1],external[2]-delta[1],external[2]}
-    };
   }
 }
 
 patch operator * (transform3 t, patch s)
-{ 
+{
   patch S;
   S.P=new triple[s.P.length][];
-  for(int i=0; i < s.P.length; ++i) { 
+  for(int i=0; i < s.P.length; ++i) {
     triple[] si=s.P[i];
     triple[] Si=S.P[i];
     for(int j=0; j < si.length; ++j)
-      Si[j]=t*si[j]; 
+      Si[j]=t*si[j];
   }
-  
+
   S.colors=copy(s.colors);
   S.planar=s.planar;
   S.straight=s.straight;
@@ -458,8 +472,8 @@ patch operator * (transform3 t, patch s)
   S.init();
   return S;
 }
- 
-patch reverse(patch s) 
+
+patch reverse(patch s)
 {
   assert(!s.triangular);
   patch S;
@@ -505,7 +519,7 @@ pair[][] coons(path p)
     p=p--cycle--cycle;
   else if(L == 3)
     p=p--cycle;
- 
+
   pair[] internal=new pair[4];
   for(int j=0; j < 4; ++j) {
     internal[j]=nineth*(-4*point(p,j)
@@ -533,12 +547,12 @@ path[] regularize(path p, bool checkboundary=true)
       s.append(regularize(g,checkboundary));
     return s;
   }
-        
+
   bool straight=piecewisestraight(p);
   if(L <= 3 && straight) {
     return new path[] {p};
   }
-    
+
   // Split p along the angle bisector at t.
   bool split(path p, real t) {
     pair dir=dir(p,t);
@@ -574,7 +588,7 @@ path[] regularize(path p, bool checkboundary=true)
 
   if(straight)
     return new path[] {p};
-    
+
   pair[][] P=coons(p);
 
   // Check for degeneracy.
@@ -585,12 +599,12 @@ path[] regularize(path p, bool checkboundary=true)
     for(int j=0; j < 4; ++j)
       U[i][j]=P[i+1][j]-P[i][j];
   }
-      
+
   for(int i=0; i < 4; ++i) {
     for(int j=0; j < 3; ++j)
       V[i][j]=P[i][j+1]-P[i][j];
   }
-      
+
   int[] choose2={1,2,1};
   int[] choose3={1,3,3,1};
 
@@ -670,7 +684,7 @@ path[] regularize(path p, bool checkboundary=true)
         c[3] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
       }
     }
-    
+
     pair BuP(int j, real u) {
       return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
     }
@@ -709,7 +723,7 @@ path[] regularize(path p, bool checkboundary=true)
     // Split at the worst boundary degeneracy.
     if(M < 0 && split(p,cut)) return s;
   }
-    
+
   // Split arbitrarily to resolve any remaining (internal) degeneracy.
   checkboundary=false;
   for(int i=0; i < L; ++i)
@@ -730,7 +744,7 @@ struct surface {
   int index[][];// Position of patch corresponding to major U,V parameter in s.
   bool vcyclic;
   transform3 T=identity4;
-  
+
   drawfcn draw;
   bool PRCprimitive=true; // True unless no PRC primitive is available.
 
@@ -790,7 +804,7 @@ struct surface {
     int V=floor(v);
     int index=index.length == 0 ? U+V : index[U][V];
     return s[index].point(u-U,v-V);
-  }    
+  }
 
   triple normal(real u, real v) {
     int U=floor(u);
@@ -798,25 +812,25 @@ struct surface {
     int index=index.length == 0 ? U+V : index[U][V];
     return s[index].normal(u-U,v-V);
   }
-  
-  void ucyclic(bool f) 
+
+  void ucyclic(bool f)
   {
     index.cyclic=f;
   }
-  
-  void vcyclic(bool f) 
+
+  void vcyclic(bool f)
   {
     for(int[] i : index)
       i.cyclic=f;
     vcyclic=f;
   }
-  
-  bool ucyclic() 
+
+  bool ucyclic()
   {
     return index.cyclic;
   }
-  
-  bool vcyclic() 
+
+  bool vcyclic()
   {
     return vcyclic;
   }
@@ -830,7 +844,7 @@ struct surface {
       g=g&s[i].uequals(u-U);
     return vcyclic() ? g&cycle : g;
   }
-  
+
   path3 vequals(real v) {
     if(index.length == 0) return nullpath3;
     int V=floor(v);
@@ -839,7 +853,7 @@ struct surface {
       g=g&s[i[V]].vequals(v-V);
     return ucyclic() ? g&cycle : g;
   }
-  
+
   // A constructor for a possibly nonconvex simple cyclic path in a given
   // plane.
   void operator init(path p, triple plane(pair)=XYplane) {
@@ -880,12 +894,12 @@ struct surface {
         return;
       }
     }
-    
+
     if(L <= 4 || internal.length > 0) {
       s.push(patch(external,internal,colors,planar));
       return;
     }
-      
+
     // Path is not planar; split into patches.
     real factor=1/L;
     pen[] p;
@@ -968,7 +982,7 @@ struct surface {
 
     typedef pen colorfcn(int i, real j);
     bool defaultcolors=(colorfcn) color == null;
-    
+
     for(int i=0; i < L; ++i) {
       path3 h=subpath(g,i,i+1);
       path3 r=reverse(h);
@@ -985,7 +999,7 @@ struct surface {
       }
       test(maxtimes(H));
       test(mintimes(H));
-      
+
       perp=unit(perp);
       triple normal=unit(cross(axis,perp));
       triple dir(real j) {return Cos(j)*normal-Sin(j)*perp;}
@@ -1023,7 +1037,7 @@ struct surface {
 }
 
 surface operator * (transform3 t, surface s)
-{ 
+{
   surface S;
   S.s=new patch[s.s.length];
   for(int i=0; i < s.s.length; ++i)
@@ -1033,7 +1047,7 @@ surface operator * (transform3 t, surface s)
   S.T=t*s.T;
   S.draw=s.draw;
   S.PRCprimitive=s.PRCprimitive;
-  
+
   return S;
 }
 
@@ -1048,7 +1062,7 @@ triple min(surface s)
     bound=s.s[i].min(bound);
   return bound;
 }
-  
+
 triple max(surface s)
 {
   if(s.s.length == 0)
@@ -1068,7 +1082,7 @@ pair min(surface s, projection P)
     bound=s.s[i].min(P,bound);
   return bound;
 }
-  
+
 pair max(surface s, projection P)
 {
   if(s.s.length == 0)
@@ -1153,13 +1167,13 @@ triple[][][][] split(triple[][] P, real u=0.5, real v=0.5)
   triple[] P1=P[1];
   triple[] P2=P[2];
   triple[] P3=P[3];
-  
+
   // slice horizontally
   triple[] c0=split(P0[0],P0[1],P0[2],P0[3],v);
   triple[] c1=split(P1[0],P1[1],P1[2],P1[3],v);
   triple[] c2=split(P2[0],P2[1],P2[2],P2[3],v);
   triple[] c3=split(P3[0],P3[1],P3[2],P3[3],v);
-  
+
   // bottom patch
   triple[] c4=split(P0[0],P1[0],P2[0],P3[0],u);
   triple[] c5=split(c0[0],c1[0],c2[0],c3[0],u);
@@ -1242,7 +1256,7 @@ triple[][] subpatchbegin(triple[][] P, real u, real v)
           {c4[2],c5[2],c6[2],c7[2]}};
 }
 
-triple[][] subpatch(triple[][] P, pair a, pair b) 
+triple[][] subpatch(triple[][] P, pair a, pair b)
 {
   return subpatchend(subpatchbegin(P,b.x,b.y),a.x/b.x,a.y/b.y);
 }
@@ -1294,7 +1308,7 @@ real[][] intersections(path3 p, surface s, real fuzz=-1)
 
   static real Fuzz=1000*realEpsilon;
   real fuzz=max(10*fuzz,Fuzz*max(abs(min(s)),abs(max(s))));
-  
+
   // Remove intrapatch duplicate points.
   for(int i=0; i < T.length; ++i) {
     triple v=point(p,T[i][0]);
@@ -1331,7 +1345,7 @@ bool overlap(triple[][] p, triple[][] q, real fuzz=-1)
 
   if(fuzz == -1)
     fuzz=1000*realEpsilon*max(abs(pmin),abs(pmax),abs(qmin),abs(qmax));
-  
+
   return
     pmax.x+fuzz >= qmin.x &&
     pmax.y+fuzz >= qmin.y &&
@@ -1346,19 +1360,6 @@ triple point(patch s, real u, real v)
   return s.point(u,v);
 }
 
-struct interaction
-{
-  int type;
-  bool targetsize;
-  void operator init(int type, bool targetsize=false) {
-    this.type=type;
-    this.targetsize=targetsize;
-  }
-}
-
-restricted interaction Embedded=interaction(0);
-restricted interaction Billboard=interaction(1);
-
 interaction LabelInteraction()
 {
   return settings.autobillboard ? Billboard : Embedded;
@@ -1369,8 +1370,8 @@ material material(material m, light light, bool colors=false)
   return light.on() || invisible((pen) m) ? m : emissive(m,colors);
 }
 
-void draw3D(frame f, patch s, triple center=O, material m,
-            light light=currentlight, interaction interaction=Embedded,
+void draw3D(frame f, patch s, material m,
+            light light=currentlight, render render=defaultrender,
             bool primitive=false)
 {
   bool straight=s.straight && s.planar;
@@ -1381,13 +1382,15 @@ void draw3D(frame f, patch s, triple center=O, material m,
   if(s.colors.length > 0) {
     if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
+    m=material(m);
     m.diffuse(mean(s.colors));
   }
   m=material(m,light,s.colors.length > 0);
-  
-  (s.triangular ? drawbeziertriangle : draw)
-    (f,s.P,center,straight,m.p,m.opacity,m.shininess,
-     m.metallic,m.fresnel0,s.colors,interaction.type,digits,primitive);
+
+ (s.triangular ? drawbeziertriangle : draw)
+    (f,s.P,render.interaction.center,straight,m.p,m.opacity,m.shininess,
+     m.metallic,m.fresnel0,s.colors,render.interaction.type,digits,
+     primitive);
 }
 
 void _draw(frame f, path3 g, triple center=O, material m,
@@ -1417,7 +1420,7 @@ int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
 // Draw triangles on a frame.
 void draw(frame f, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
-          int[][] pi={}, light light=currentlight)
+          int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
   bool normals=n.length > 0;
   if(!normals) {
@@ -1427,13 +1430,15 @@ void draw(frame f, triple[] v, int[][] vi,
   if(p.length > 0)
     m=mean(p);
   m=material(m,light);
-  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi);
+  draw(f,v,vi,render.interaction.center,n,ni,
+       m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi,
+       render.interaction.type);
 }
-  
+
 // Draw triangles on a picture.
 void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
-          int[][] pi={}, light light=currentlight)
+          int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
   bool prc=prc();
   bool normals=n.length > 0;
@@ -1448,7 +1453,9 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       triple[] n=t*n;
 
       if(is3D()) {
-        draw(f,v,vi,n,ni,m,p,pi,light);
+        render Render=render(interaction(render.interaction.type,
+                                         center=t*render.interaction.center));
+        draw(f,v,vi,n,ni,m,p,pi,light,Render);
         if(pic != null) {
           for(int[] vii : vi)
             for(int viij : vii)
@@ -1487,7 +1494,7 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
             }
           }
         }
-      }   
+      }
     },true);
 
   for(int[] vii : vi)
@@ -1502,7 +1509,7 @@ void tensorshade(transform t=identity(), frame f, patch s,
   if(s.triangular) {
     p=s.colorstriangular(m,light);
     p.push(p[0]);
-    s=tensor(s);        
+    s=tensor(s);
   } else p=s.colors(m,light);
   path g=t*project(s.external(),P,1);
   pair[] internal=t*project(s.internal(),P);
@@ -1529,11 +1536,12 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   bool is3D=is3D();
   if(is3D) {
     bool prc=prc();
-    if(s.draw != null && (settings.outformat == "html" ||
-                          (prc && s.PRCprimitive))) {
+    if(s.draw != null && (primitive() || (prc && s.PRCprimitive))) {
+      bool noprerender=settings.prerender == 0;
       for(int k=0; k < s.s.length; ++k)
-        draw3D(f,s.s[k],surfacepen[k],light,primitive=true);
-      s.draw(f,s.T,surfacepen,light,render);
+        draw3D(f,s.s[k],surfacepen[k],light,render,primitive=noprerender);
+      if(noprerender)
+        s.draw(f,s.T,surfacepen,light,render);
     } else {
       bool group=name != "" || render.defaultnames;
       if(group)
@@ -1557,7 +1565,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       for(int p=depth.length-1; p >= 0; --p) {
         real[] a=depth[p];
         int k=round(a[1]);
-        draw3D(f,s.s[k],surfacepen[k],light);
+        draw3D(f,s.s[k],surfacepen[k],light,render);
       }
 
       if(group)
@@ -1646,8 +1654,11 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
-      if(is3D())
-        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
+      if(is3D()) {
+        render Render=render(interaction(render.interaction.type,
+                                         center=t*render.interaction.center));
+        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,Render);
+      }
       if(pic != null) {
         pic.add(new void(frame f, transform T) {
             draw(T,f,S,nu,nv,surfacepen,meshpen,light,meshlight,P);
@@ -1724,7 +1735,7 @@ surface extrude(explicit path[] p, triple axis=Z)
   return s;
 }
 
-triple rectify(triple dir) 
+triple rectify(triple dir)
 {
   real scale=max(abs(dir.x),abs(dir.y),abs(dir.z));
   if(scale != 0) dir *= 0.5/scale;
@@ -1832,16 +1843,17 @@ void label(frame f, Label L, triple position, align align=NoAlign,
       transform3 positioning=
         shift(L.align.is3D ? position+L.align.dir3*labelmargin(L.p) : position);
       frame f1,f2,f3;
-          begingroup3(f1,name,render);
-          if(L.defaulttransform3)
-            begingroup3(f3,render,position,interaction.type);
-          else {
-            begingroup3(f2,render,position,interaction.type);
-            begingroup3(f3,render,position);
-          }
+      begingroup3(f1,name,render);
+      render Render=render(render,interaction(interaction,center=position));
+      if(L.defaulttransform3)
+        begingroup3(f3,Render);
+      else {
+        begingroup3(f2,Render);
+        begingroup3(f3,render(render,interaction(center=position)));
+      }
       for(patch S : s.s) {
         S=centering*S;
-        draw3D(f3,S,position,L.p,light,interaction);
+        draw3D(f3,S,L.p,light,render(interaction(interaction,center=position)));
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
           _draw(f3,S.external(),position,L.p,light,interaction);
@@ -1861,7 +1873,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
       for(patch S : surface(L,position).s) {
         triple V=L.align.is3D ? position+L.align.dir3*labelmargin(L.p) :
           position;
-        draw3D(f,S,V,L.p,light,interaction);
+        draw3D(f,S,L.p,light,render(interaction(interaction,center=V)));
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
           _draw(f,S.external(),V,L.p,light,interaction);
@@ -1894,7 +1906,7 @@ void label(picture pic=currentpicture, Label L, triple position,
   L.align(align);
   L.p(p);
   L.position(0);
-  
+
   pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
       // Handle relative projected 3D alignments.
       bool prc=prc();
@@ -1903,7 +1915,7 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(!align.is3D && L.align.relative && L.align.dir3 != O &&
          determinant(P.t) != 0)
         L.align(L.align.dir*unit(project(v+L.align.dir3,P.t)-project(v,P.t)));
-      
+
       if(interaction.targetsize && settings.render != 0)
         L.T=L.T*scale(abs(P.camera-v)/abs(P.vector()));
       transform3 T=transform3(P);
@@ -1922,15 +1934,16 @@ void label(picture pic=currentpicture, Label L, triple position,
               shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
             frame f1,f2,f3;
             begingroup3(f1,name,render);
+            render Render=render(render,interaction(interaction,center=v));
             if(L.defaulttransform3)
-              begingroup3(f3,render,v,interaction.type);
+              begingroup3(f3,Render);
             else {
-              begingroup3(f2,render,v,interaction.type);
-              begingroup3(f3,render,v);
+              begingroup3(f2,Render);
+              begingroup3(f3,render(render,interaction(center=v)));
             }
             for(patch S : s.s) {
               S=centering*S;
-              draw3D(f3,S,v,L.p,light,interaction);
+              draw3D(f3,S,L.p,light,render(interaction(interaction,center=v)));
               // Fill subdivision cracks
               if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
                 _draw(f3,S.external(),v,L.p,light,interaction);
@@ -1950,7 +1963,7 @@ void label(picture pic=currentpicture, Label L, triple position,
           begingroup3(f,name,render);
           for(patch S : surface(L,v,bbox=P.bboxonly).s) {
             triple V=L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v;
-            draw3D(f,S,V,L.p,light,interaction);
+            draw3D(f,S,L.p,light,render(interaction(interaction,center=V)));
             // Fill subdivision cracks
             if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
               _draw(f,S.external(),V,L.p,light,interaction);
@@ -1958,7 +1971,7 @@ void label(picture pic=currentpicture, Label L, triple position,
           endgroup3(f);
         }
       }
-      
+
       if(pic2 != null) {
         pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
         if(L.defaulttransform3) {
@@ -1975,11 +1988,11 @@ void label(picture pic=currentpicture, Label L, triple position,
                 fill(f,T*project(S.external(),P,1),p);
             });
       }
-      
+
     },!L.defaulttransform3);
 
   Label L=L.copy();
-  
+
   if(interaction.targetsize && settings.render != 0)
     L.T=L.T*scale(abs(currentprojection.camera-position)/
                   abs(currentprojection.vector()));
@@ -2008,7 +2021,7 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
     a.init(-I*(position <= sqrtEpsilon ? S :
                position >= length(g)-sqrtEpsilon ? N : E),relative=true);
     a.dir3=dir(g,position); // Pass 3D direction via unused field.
-    L.align(a);             
+    L.align(a);
   }
   label(pic,L,point(g,position),light,name,interaction);
 }
@@ -2063,7 +2076,7 @@ surface surface(Label L, surface s, real uoffset, real voffset,
     for(path g : regularize(p)) {
       path3 b;
       bool extrude=height > 0;
-      if(bottom || extrude) 
+      if(bottom || extrude)
         b=transpath(g,0);
       if(bottom) s.s.push(patch(b));
       if(top || extrude) {
@@ -2390,7 +2403,7 @@ pair maxbound(triple[][] A, projection P)
   return b;
 }
 
-triple[][] operator / (triple[][] a, real[][] b) 
+triple[][] operator / (triple[][] a, real[][] b)
 {
   triple[][] A=new triple[a.length][];
   for(int i=0; i < a.length; ++i) {

@@ -109,15 +109,16 @@ struct processDataStruct {
   string KEY;
   xkey_t xkey;
   xmap_t xmap;
+  unsigned int xmapCount;
 
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;
 #ifdef HAVE_RPC_RPC_H
-  terminator<xdr::ioxstream> ixfile;
+  terminator<xdr::ixstream> ixfile;
   terminator<xdr::oxstream> oxfile;
 #endif
 
-  processDataStruct() {
+  processDataStruct() : xmapCount(0) {
     atExitFunction=NULL;
     atUpdateFunction=NULL;
     atBreakpointFunction=NULL;

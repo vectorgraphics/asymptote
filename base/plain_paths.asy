@@ -51,32 +51,32 @@ path[] operator cast(guide g)
   return new path[] {(path) g};
 }
 
-path[] operator ^^ (path p, path q) 
+path[] operator ^^ (path p, path q)
 {
   return new path[] {p,q};
 }
 
-path[] operator ^^ (path p, explicit path[] q) 
+path[] operator ^^ (path p, explicit path[] q)
 {
   return concat(new path[] {p},q);
 }
 
-path[] operator ^^ (explicit path[] p, path q) 
+path[] operator ^^ (explicit path[] p, path q)
 {
   return concat(p,new path[] {q});
 }
 
-path[] operator ^^ (explicit path[] p, explicit path[] q) 
+path[] operator ^^ (explicit path[] p, explicit path[] q)
 {
   return concat(p,q);
 }
 
-path[] operator * (transform t, explicit path[] p) 
+path[] operator * (transform t, explicit path[] p)
 {
   return sequence(new path(int i) {return t*p[i];},p.length);
 }
 
-pair[] operator * (transform t, pair[] z) 
+pair[] operator * (transform t, pair[] z)
 {
   return sequence(new pair(int i) {return t*z[i];},z.length);
 }
@@ -93,7 +93,7 @@ void write(file file, string s="", explicit path[] x, suffix suffix=none)
   write(file,suffix);
 }
 
-void write(string s="", explicit path[] x, suffix suffix=endl) 
+void write(string s="", explicit path[] x, suffix suffix=endl)
 {
   write(stdout,s,x,suffix);
 }
@@ -110,7 +110,7 @@ void write(file file, string s="", explicit guide[] x, suffix suffix=none)
   write(file,suffix);
 }
 
-void write(string s="", explicit guide[] x, suffix suffix=endl) 
+void write(string s="", explicit guide[] x, suffix suffix=endl)
 {
   write(stdout,s,x,suffix);
 }
@@ -156,8 +156,8 @@ pair[] intersectionpoints(explicit path[] p, explicit path[] q, real fuzz=-1)
 struct slice {
   path before,after;
 }
-  
-slice cut(path p, path knife, int n) 
+
+slice cut(path p, path knife, int n)
 {
   slice s;
   real[][] T=intersections(p,knife);
@@ -169,7 +169,7 @@ slice cut(path p, path knife, int n)
   return s;
 }
 
-slice firstcut(path p, path knife) 
+slice firstcut(path p, path knife)
 {
   return cut(p,knife,0);
 }
@@ -331,16 +331,16 @@ pair inside(path p, pen fillrule=currentpen)
 }
 
 // Return all intersection times of path g with the vertical line through (x,0).
-real[] times(path p, real x)
+real[] times(path p, real x, real fuzz=-1)
 {
-  return intersections(p,(x,0),(x,1));
+  return intersections(p,(x,0),(x,1),fuzz);
 }
 
 // Return all intersection times of path g with the horizontal line through
 // (0,z.y).
-real[] times(path p, explicit pair z)
+real[] times(path p, explicit pair z, real fuzz=-1)
 {
-  return intersections(p,(0,z.y),(1,z.y));
+  return intersections(p,(0,z.y),(1,z.y),fuzz);
 }
 
 path randompath(int n, bool cumulate=true, interpolate join=operator ..)
@@ -349,7 +349,7 @@ path randompath(int n, bool cumulate=true, interpolate join=operator ..)
   pair w;
   for(int i=0; i <= n; ++i) {
     pair z=(unitrand()-0.5,unitrand()-0.5);
-    if(cumulate) w += z; 
+    if(cumulate) w += z;
     else w=z;
     g=join(g,w);
   }

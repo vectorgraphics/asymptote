@@ -8,7 +8,7 @@ pen longdashed=linetype(new real[] {24,8});
 pen dashdotted=linetype(new real[] {8,8,0,8});
 pen longdashdotted=linetype(new real[] {24,8,0,8});
 
-pen linetype(string pattern, real offset=0, bool scale=true, bool adjust=true) 
+pen linetype(string pattern, real offset=0, bool scale=true, bool adjust=true)
 {
   return linetype((real[]) split(pattern),offset,scale,adjust);
 }
@@ -151,7 +151,7 @@ pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,
                longdashdotted};
 monoPen.cyclic=true;
 
-pen Pen(int n) 
+pen Pen(int n)
 {
   return (settings.gray || settings.bw) ? monoPen[n] : colorPen[n];
 }
@@ -161,12 +161,12 @@ pen Pentype(int n)
   return (settings.gray || settings.bw) ? monoPen[n] : monoPen[n]+colorPen[n];
 }
 
-real dotsize(pen p=currentpen) 
+real dotsize(pen p=currentpen)
 {
   return dotfactor*linewidth(p);
 }
 
-pen fontsize(real size) 
+pen fontsize(real size)
 {
   return fontsize(size,1.2*size);
 }
@@ -189,7 +189,7 @@ void usetypescript(string s, string encoding="")
   texpreamble(s);
 }
 
-pen font(string name, string options="") 
+pen font(string name, string options="")
 {
   // Work around misalignment in ConTeXt switchtobodyfont if font is not found.
   return fontcommand(settings.tex == "context" ?
@@ -199,7 +199,7 @@ pen font(string name, string options="")
                      "\font\ASYfont="+name+"\ASYfont");
 }
 
-pen font(string name, real size, string options="") 
+pen font(string name, real size, string options="")
 {
   string s=(string) (size/pt)+"pt";
   if(settings.tex == "context")
@@ -207,7 +207,7 @@ pen font(string name, real size, string options="")
   return fontsize(size)+font(name+" at "+s);
 }
 
-pen font(string encoding, string family, string series, string shape) 
+pen font(string encoding, string family, string series, string shape)
 {
   return fontcommand("\usefont{"+encoding+"}{"+family+"}{"+series+"}{"+shape+
                      "}");
@@ -316,21 +316,26 @@ real[] rgba(pen p)
   return a;
 }
 
+pen rgb(real[] a)
+{
+  return rgb(a[0],a[1],a[2]);
+}
+
 pen rgba(real[] a)
 {
   return rgb(a[0],a[1],a[2])+opacity(a[3]);
 }
 
-pen rgba(real r, real g, real b, real a)
+real byteinv(int c)
 {
-  return rgb(r,g,b)+opacity(a);
+  return c == 255 ? 1 : c/256;
 }
 
 // Return a pen corresponding to a given 6-character RGB hexadecimal string.
-pen rgb(string s) 
+pen rgb(string s)
 {
   int offset=substr(s,0,1) == '#' ? 1 : 0;
-  real value(string s, int i) {return hex(substr(s,2i+offset,2))/255;}
+  real value(string s, int i) {return byteinv(hex(substr(s,2i+offset,2)));}
   return rgb(value(s,0),value(s,1),value(s,2));
 }
 

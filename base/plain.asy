@@ -150,7 +150,13 @@ void initdefaults()
 // Return the sequence n,...,m
 int[] sequence(int n, int m)
 {
-  return sequence(new int(int x){return x;},m-n+1)+n;
+  return n+sequence(m-n+1);
+}
+
+// Return the sequence n,...,m skipping by skip
+int[] sequence(int n, int m, int skip)
+{
+  return n+skip*sequence((m-n)#skip+1);
 }
 
 int[] reverse(int n) {return sequence(new int(int x){return n-1-x;},n);}

@@ -20,7 +20,7 @@ render render=render(compression=0,merge=true);
 
 draw(scale(x1,x1,-s1)*shift(-Z)*unitcone,lightblue+opacity(0.5),render);
 
-path3 p=(x2,0,s2)--(x,0,s+0.005);
+path3 p=(x2,0,s2)--(x,0,s);
 revolution a=revolution(p,Z);
 draw(surface(a),lightblue+opacity(0.5),render);
 

@@ -8,6 +8,32 @@ using namespace settings;
 
 namespace camp {
 
+jsfile::jsfile() : finished(false), fileName("")
+{
+
+}
+
+jsfile::jsfile(string name) : finished(false), fileName(name)
+{
+  open(name);
+}
+
+jsfile::~jsfile()
+{
+  if (!finished)
+    {
+      finish(fileName);
+    }
+}
+
+void jsfile::close()
+{
+  if (!finished)
+    {
+      finish(fileName);
+    }
+}
+
 void jsfile::copy(string name, bool header)
 {
   std::ifstream fin(locateFile(name).c_str());
@@ -68,6 +94,7 @@ void jsfile::svgtohtml(string prefix)
   out << "<body>" << newl << newl;
   copy(locateFile(auxname(prefix,"svg")),true);
   footer(name);
+  finished=true;
 }
 
 #ifdef HAVE_LIBGLM
@@ -92,32 +119,45 @@ void jsfile::open(string name)
 
   out.precision(getSetting<Int>("digits"));
 
+  bool ibl=getSetting<bool>("ibl");
+  if(ibl)
+    out << "<script src=\"https://vectorgraphics.gitlab.io/asymptote/ibl/tinyexr.js\">"
+        << newl << "</script>" << newl;
+
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
     copy(locateFile(AsyGL));
     out << newl << "</script>" << newl;
-  } else {
+  } else
     out << "<script" << newl << "src=\""
         << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
-  }
+
   out << newl << "<script>" << newl;
   out << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
       << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
-      << newl << newl
-      <<  "b=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];"
       << newl
-      <<  "B=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];"
+      << "ibl=" << std::boolalpha << ibl << ";"
+      << newl;
+  if(ibl) {
+    out << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
+    out << "image=\"" << getSetting<string>("image") << "\";" << newl;
+  }
+  out << newl;
+  out << newl
+      <<  "minBound=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];"
+      << newl
+      <<  "maxBound=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];"
       << newl
       << "orthographic=" << gl::orthographic << ";"
       << newl
-      << "angle=" << gl::Angle << ";"
+      << "angleOfView=" << gl::Angle << ";"
       << newl
-      << "Zoom0=" << gl::Zoom0 << ";" << newl
-      << "viewportmargin=" << gl::Margin << ";" << newl;
+      << "initialZoom=" << gl::Zoom0 << ";" << newl
+      << "viewportMargin=" << gl::Margin << ";" << newl;
   if(gl::Shift != pair(0.0,0.0))
-    out << "viewportshift=" << gl::Shift*gl::Zoom0 << ";" << newl;
+    out << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
   out << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
       << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
@@ -142,22 +182,23 @@ void jsfile::open(string name)
       << gl::Background[2] << "," << gl::Background[3] << "];"
       << newl;
 
-  size_t nmaterials=material.size();
+  size_t nmaterials=materials.size();
   out << "Materials=[";
   for(size_t i=0; i < nmaterials; ++i)
     out << "new Material(" << newl
-        << material[i]
+        << materials[i]
         << ")," << newl;
   out << "];" << newl << newl;
 }
 
 void jsfile::finish(string name)
 {
-  size_t ncenters=drawElement::center.size();
+  finished=true;
+  size_t ncenters=drawElement::centers.size();
   if(ncenters > 0) {
     out << "Centers=[";
     for(size_t i=0; i < ncenters; ++i)
-      out << newl << drawElement::center[i] << ",";
+      out << newl << drawElement::centers[i] << ",";
     out << newl << "];" << newl;
   }
   out << "</script>"
@@ -165,7 +206,7 @@ void jsfile::finish(string name)
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
       << newl << "<canvas id=\"Asymptote\" width=\""
       << gl::fullWidth << "\" height=\"" <<  gl::fullHeight
-      << "\" style=\"border: none;\">"
+      << "\" style=\"border: none; cursor: pointer;\">"
       << newl << "</canvas>";
   footer(name);
 }
@@ -181,16 +222,11 @@ void jsfile::addIndices(const uint32_t *I)
   out << "[" << I[0] << "," << I[1] << "," << I[2] << "]";
 }
 
-bool distinct(const uint32_t *I, const uint32_t *J)
+void jsfile::addRawPatch(triple const* controls, size_t n,
+                         const triple& Min, const triple& Max,
+                         const prc::RGBAColour *c, size_t nc)
 {
-  return I[0] != J[0] || I[1] != J[1] || I[2] != J[2];
-}
-
-void jsfile::addPatch(triple const* controls, size_t n,
-                      const triple& Min, const triple& Max,
-                      const prc::RGBAColour *c, size_t nc)
-{
-  out << "P.push(new BezierPatch([" << newl;
+  out << "patch([" << newl;
   size_t last=n-1;
   for(size_t i=0; i < last; ++i)
     out << controls[i] << "," << newl;
@@ -205,44 +241,44 @@ void jsfile::addPatch(triple const* controls, size_t n,
     }
     out << "]";
   }
-  out << "));" << newl << newl;
+  out << ");" << newl << newl;
 }
 
 void jsfile::addCurve(const triple& z0, const triple& c0,
                       const triple& c1, const triple& z1,
                       const triple& Min, const triple& Max)
 {
-  out << "P.push(new BezierCurve([" << newl;
+  out << "curve([" << newl;
   out << z0 << "," << newl
       << c0 << "," << newl
       << c1 << "," << newl
       << z1 << newl << "],"
       << drawElement::centerIndex << "," << materialIndex << ","
-      << Min << "," << Max << "));" << newl << newl;
+      << Min << "," << Max << ");" << newl << newl;
 }
 
 void jsfile::addCurve(const triple& z0, const triple& z1,
                       const triple& Min, const triple& Max)
 {
-  out << "P.push(new BezierCurve([" << newl;
+  out << "curve([" << newl;
   out << z0 << "," << newl
       << z1 << newl << "],"
       << drawElement::centerIndex << "," << materialIndex << ","
-      << Min << "," << Max << "));" << newl << newl;
+      << Min << "," << Max << ");" << newl << newl;
 }
 
 void jsfile::addPixel(const triple& z0, double width,
                       const triple& Min, const triple& Max)
 {
-  out << "P.push(new Pixel(" << newl;
+  out << "pixel(" << newl;
   out << z0 << "," << width << "," << newl
-      << materialIndex << "," << Min << "," << Max << "));" << newl << newl;
+      << materialIndex << "," << Min << "," << Max << ");" << newl << newl;
 }
 
-void jsfile::addMaterial(size_t index)
+void jsfile::addMaterial(Material const& material)
 {
   out << "Materials.push(new Material(" << newl
-      << material[index]
+      << material
       << "));" << newl << newl;
 }
 
@@ -281,18 +317,24 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
     }
     out << "]);" << newl;
   }
-  out << "P.push(new Triangles("
-      << materialIndex << "," << newl
-      << Min << "," << Max << "));" << newl << newl;
+  out << "triangles("
+      << drawElement::centerIndex << "," << materialIndex << "," << newl
+      << Min << "," << Max << ");" << newl << newl;
 }
 
-void jsfile::addSphere(const triple& center, double radius, bool half,
-                       const double& polar, const double& azimuth)
+void jsfile::addSphere(const triple& center, double radius)
 {
   out << "sphere(" << center << "," << radius << ","
-      << drawElement::centerIndex << "," << materialIndex;
-  if(half)
-    out << "," << newl << "[" << polar << "," << azimuth << "]";
+      << drawElement::centerIndex << "," << materialIndex
+      << ");" << newl << newl;
+}
+
+void jsfile::addHemisphere(const triple& center, double radius,
+                           const double& polar, const double& azimuth)
+{
+  out << "sphere(" << center << "," << radius << ","
+      << drawElement::centerIndex << "," << materialIndex
+      << "," << newl << "[" << polar << "," << azimuth << "]";
   out << ");" << newl << newl;
 }
 
@@ -330,6 +372,35 @@ void jsfile::addTube(const triple *g, double width,
       << drawElement::centerIndex << "," << materialIndex << ","
       << Min << "," << Max << "," << core <<");" << newl << newl;
 }
+
+void jsfile::addPatch(triple const* controls,
+                      triple const& Min, triple const& Max,
+                      prc::RGBAColour const* c)
+{
+  addRawPatch(controls,16,Min,Max,c,4);
+}
+
+void jsfile::addStraightPatch(triple const* controls,
+                              triple const& Min, triple const& Max,
+                              prc::RGBAColour const* c)
+{
+  addRawPatch(controls,4,Min,Max,c,4);
+}
+
+void jsfile::addBezierTriangle(triple const* controls,
+                               triple const& Min, triple const& Max,
+                               prc::RGBAColour const* c)
+{
+  addRawPatch(controls,10,Min,Max,c,3);
+}
+
+void jsfile::addStraightBezierTriangle(triple const* controls,
+                                       triple const& Min, triple const& Max,
+                                       prc::RGBAColour const* c)
+{
+  addRawPatch(controls,3,Min,Max,c,3);
+}
+
 #endif
 
 }

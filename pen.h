@@ -136,14 +136,18 @@ inline bool operator == (const Transparency& a, const Transparency& b) {
 extern const char* BlendMode[];
 extern const Int nBlendMode;
 
-const double bytescale=256.0*(1.0-DBL_EPSILON);
-
-// Map [0,1] to [0,255]
+// Map [0,1] to [0,255] uniformly, with 0.5 mapping to 128.
 inline unsigned int byte(double r)
 {
   if(r < 0.0) r=0.0;
-  else if(r > 1.0) r=1.0;
-  return (int)(bytescale*r);
+  unsigned int c=(unsigned int)(r*256);
+  return c < 255 ? c : 255;
+}
+
+inline double byteinv(unsigned int i)
+{
+  if(i == 255) return 1.0;
+  return i/256.0;
 }
 
 class pen;

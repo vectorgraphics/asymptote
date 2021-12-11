@@ -36,7 +36,7 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawPath3::write(jsfile *out)
+bool drawPath3::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)
@@ -222,7 +222,7 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-bool drawPixel::write(jsfile *out)
+bool drawPixel::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
   if(invisible)

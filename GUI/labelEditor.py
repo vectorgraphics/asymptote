@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 
 from pyUIClass.labelTextEditor import Ui_Dialog
-import PyQt5.QtWidgets as Qw
-import PyQt5.QtSvg as Qs
-import PyQt5.QtGui as Qg
-import PyQt5.QtCore as Qc
-import xasyArgs as xa
-import xasy2asy as x2a
+import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtSvg as QtSvg
+import PyQt5.QtGui as QtGui
+import PyQt5.QtCore as QtCore
+import xasyArgs as xasyArgs
+import xasy2asy as xasy2asy
+import xasyOptions as xasyOptions
+import xasyUtils as xasyUtils
 import subprocess
-import xasyOptions as xo
-import xasyUtils as xu
 import tempfile
 import uuid
 import os
 import io
 
 
-class labelEditor(Qw.QDialog):
+class labelEditor(QtWidgets.QDialog):
     def __init__(self, text=''):
         super().__init__()
         self.ui = Ui_Dialog()
@@ -67,7 +67,7 @@ class labelEditor(Qw.QDialog):
             return rawText
 
     def btnPreviewOnClick(self):
-        path = xa.getArgs().asypath
+        path = xasyArgs.getArgs().asypath
         if path is None:
             opt = xo.BasicConfigs.defaultOpt
             path = opt['asyPath']
@@ -80,7 +80,7 @@ class labelEditor(Qw.QDialog):
         shipout(f);
         """
 
-        self.svgPreview = Qs.QSvgRenderer()
+        self.svgPreview = QtSvg.QSvgRenderer()
         with tempfile.TemporaryDirectory(prefix='xasylbl_') as tmpdir:
             id = str(uuid.uuid4())
             tmpFile = os.path.join(tmpdir, 'lbl-{0}.svg'.format(id))
@@ -95,8 +95,8 @@ class labelEditor(Qw.QDialog):
 
             bounds_1, bounds_2 = [val.strip() for val in raw_array]
 
-            min_bounds = xu.listize(bounds_1, (float, float))
-            max_bounds = xu.listize(bounds_2, (float, float))
+            min_bounds = xasyUtils.listize(bounds_1, (float, float))
+            max_bounds = xasyUtils.listize(bounds_2, (float, float))
 
             new_rect = self.processBounds(min_bounds, max_bounds)
             self.svgPreview.load(tmpFile)
@@ -106,12 +106,12 @@ class labelEditor(Qw.QDialog):
         self.drawPreview(new_rect)
 
     def drawPreview(self, naturalBounds):
-        img = Qg.QPixmap(self.ui.lblLabelPreview.size())
-        img.fill(Qg.QColor.fromRgbF(1, 1, 1, 1))
+        img = QtGui.QPixmap(self.ui.lblLabelPreview.size())
+        img.fill(QtGui.QColor.fromRgbF(1, 1, 1, 1))
         if self.svgPreview is None:
             pass
         else:
-            with Qg.QPainter(img) as pnt:
+            with QtGui.QPainter(img) as pnt:
                 scale_ratio = self.getIdealScaleRatio(naturalBounds, self.ui.lblLabelPreview.rect())
 
                 pnt.translate(self.ui.lblLabelPreview.rect().center())
@@ -121,8 +121,8 @@ class labelEditor(Qw.QDialog):
 
 
     def getIdealScaleRatio(self, rect, boundsRect):
-        assert isinstance(rect, (Qc.QRect, Qc.QRectF))
-        assert isinstance(rect, (Qc.QRect, Qc.QRectF))
+        assert isinstance(rect, (QtCore.QRect, QtCore.QRectF))
+        assert isinstance(rect, (QtCore.QRect, QtCore.QRectF))
 
         magic_ratio = 0.50
         idealRatioHeight = (magic_ratio * boundsRect.height()) / rect.height()
@@ -139,15 +139,15 @@ class labelEditor(Qw.QDialog):
         p1x, p1y = minPt
         p2x, p2y = maxPt
 
-        minPt = Qc.QPointF(p1x, p1y)
-        maxPt = Qc.QPointF(p2x, p2y)
+        minPt = QtCore.QPointF(p1x, p1y)
+        maxPt = QtCore.QPointF(p2x, p2y)
 
-        newRect = Qc.QRectF(minPt, maxPt)
+        newRect = QtCore.QRectF(minPt, maxPt)
         return newRect
 
 
     def btnGetTextOnClick(self):
-        msgbox = Qw.QMessageBox()
+        msgbox = QtWidgets.QMessageBox()
         msgbox.setText('Text Preview:\n' + self.getText())
         msgbox.setWindowTitle('Text preview')
         msgbox.show()

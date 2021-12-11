@@ -424,12 +424,12 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 
   picture *result=new picture;
   unsigned level=0;
-  picture::nodelist::iterator p;
 
   xmap_t xmap=processData().xmap;
   transform Tinv=inverse(T);
 
-  for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
+  for(picture::nodelist::iterator p=f->nodes.begin(); p != f->nodes.end();
+      ++p) {
     transform t=getTransform(xmap,p);
     bool Delete=(t == ZeroTransform);
     if(!Delete && !t.isIdentity()) t=T*t*Tinv;
@@ -460,9 +460,11 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
       group->append(e);
       result->add(*group);
     }
+    delete group;
   }
 
   result->shipout(preamble,prefix,format,wait,view);
+  delete result;
 }
 
 void shipout3(string prefix, picture *f, string format=emptystring,
@@ -497,7 +499,8 @@ void shipout3(string prefix, picture *f, string format=defaultformat3)
 
 void xmap(string key, transform t=identity)
 {
-  xmap_t &xmap=processData().xmap;
+  processDataStruct *P=&processData();
+  xmap_t &xmap=P->xmap;
   xmap_t::iterator p=xmap.find(key);
   if(p != xmap.end())
     p->second.push_back(t);
@@ -506,11 +509,13 @@ void xmap(string key, transform t=identity)
     v->push_back(t);
     xmap[key]=*v;
   }
+  P->xmapCount++;
 }
 
 void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 {
   unsigned level=0;
+  bool first=pdf(getSetting<string>("tex"));
 
   string prefix=outname();
   const string xformat="svg";
@@ -524,9 +529,9 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
   xmap_t xmap=processData().xmap;
   transform Tinv=inverse(T);
 
-  for(picture::nodelist::iterator p=f->nodes.begin();;) {
-    if(p == f->nodes.end()) break;
+  picture *F=new picture(true);
 
+  for(picture::nodelist::iterator p=f->nodes.begin(); p != f->nodes.end();) {
     picture *group=new picture;
     transform t=getTransform(xmap,p);
     bool Delete=(t == ZeroTransform);
@@ -561,6 +566,7 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
         }
       }
     }
+
     if(p != f->nodes.end()) {
       if(!Delete) {
         drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
@@ -568,11 +574,19 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
         bbox b=group->bounds();
         if(!b.empty && b.right > b.left && b.top > b.bottom) {
           if((*p)->endclip()) clip=true;
-          ostringstream buf;
-          buf << prefix << "_" << arg;
-          string outname=buildname(buf.str(),xformat);
-          group->shipout(preamble,outname,xformat,false,false);
-          fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip || f->havepng());
+
+          if(first)
+            first=false;
+          else
+            F->append(new drawNewPage(b));
+
+          F->append(new drawBBox(b));
+
+          for(picture::nodelist::iterator g=group->nodes.begin();
+              !(g == group->nodes.end()); ++g)
+            F->append(*g);
+
+          fprintf(pipeout,"KEY=%s%d\n",e->KEY.c_str(),clip);
 
           const char *oldlocale=setlocale(LC_NUMERIC,NULL);
           bool override=oldlocale && strcmp(oldlocale,"C") != 0;
@@ -591,13 +605,22 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
           fflush(pipeout);
           ++arg;
         }
+      } else {
+        drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+        fprintf(pipeout,"KEY=%s2\n",e->KEY.c_str());
+        fprintf(pipeout,"0 0 0 0\n");
       }
+
       ++p;
     }
+    delete group;
   }
 
+  string outname=buildname(prefix,xformat);
+  F->shipout(preamble,outname,xformat,false,false);
   fprintf(pipeout,"%s\n",Done.c_str());
   fflush(pipeout);
+  delete F;
 }
 
 
@@ -696,14 +719,15 @@ void drawpixel(picture *f, triple v, pen p, real width=1.0)
 }
 
 // Draw triangles
-void draw(picture *f, triplearray *v, Intarray2 *vi,
+void draw(picture *f, triplearray *v, Intarray2 *vi, triple center=Zero,
           triplearray *n, Intarray2 *ni,
           penarray *p, real opacity, real shininess,
           real metallic, real fresnel0,
-          penarray *c=emptyarray, Intarray2 *ci=emptyarray)
+          penarray *c=emptyarray, Intarray2 *ci=emptyarray, Int interaction)
 {
-  f->append(new drawTriangles(*v,*vi,*n,*ni,*p,opacity,shininess,metallic,
-                              fresnel0,*c,*ci));
+  f->append(new drawTriangles(*v,*vi,center,*n,*ni,*p,opacity,shininess,
+                              metallic,fresnel0,*c,*ci,
+                              (Interaction) intcast(interaction)));
 }
 
 triple min3(picture *f)

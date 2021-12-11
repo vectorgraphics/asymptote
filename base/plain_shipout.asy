@@ -11,7 +11,7 @@ string outprefix(string prefix=defaultfilename) {
   return stripextension(prefix != "" ? prefix : outname());
 }
 
-string outformat(string format="") 
+string outformat(string format="")
 {
   if(format == "") format=settings.outformat;
   if(format == "") format=nativeformat();
@@ -31,6 +31,10 @@ orientation orientation=Portrait;
 object embed3(string, frame, string, string, string, light, projection);
 string Embed(string name, string text="", string options="", real width=0,
              real height=0);
+
+bool primitive() { // Encode primitive objects
+  return settings.outformat == "html" || settings.outformat=="v3d";
+}
 
 bool prconly(string format="")
 {
@@ -62,6 +66,14 @@ frame enclose(string prefix=defaultfilename, object F, string format="")
 
 void deconstruct(picture pic=currentpicture)
 {
+  if(currentpicture.nodes3.length > 0) {
+    if(currentpicture.xsize3 == 0 &&
+       currentpicture.ysize3 == 0 &&
+       currentpicture.zsize3 == 0)
+      currentpicture.size3(hypot(currentpicture.xsize,currentpicture.ysize));
+    currentpicture.size(0);
+  }
+
   frame f;
   transform t=pic.calculateTransform();
   if(currentpicture.fitter == null)
@@ -95,7 +107,7 @@ void shipout(string prefix=defaultfilename, frame f,
     }
     return;
   }
-  
+
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
   int limit=2000;

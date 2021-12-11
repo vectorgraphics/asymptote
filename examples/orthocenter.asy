@@ -2,8 +2,7 @@ import geometry;
 import math;
 
 size(7cm,0);
-
-if(!settings.xasy && settings.outformat != "svg") settings.tex="pdflatex";
+settings.tex="pdflatex";
 
 real theta=degrees(asin(0.5/sqrt(7)));
 

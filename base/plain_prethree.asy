@@ -76,7 +76,7 @@ struct projection {
   bool center=false;    // Center target within bounding volume?
   int ninterpolate;     // Used for projecting nurbs to 2D Bezier curves.
   bool bboxonly=true;   // Typeset label bounding box only.
-  
+
   transformation T;
 
   void calculate() {
@@ -137,8 +137,8 @@ struct projection {
                 (M.x,m.y,m.z),(M.x,m.y,M.z),(M.x,M.y,m.z),M};
     return max(abs(c-target));
   }
-   
-  
+
+
   // This is redefined here to make projection as self-contained as possible.
   static private real sqrtEpsilon = sqrt(realEpsilon);
 
@@ -161,7 +161,7 @@ projection currentprojection;
 
 struct light {
   real[][] diffuse;
-  real[][] specular;
+  real[][] specular; // For PRC only
   pen background=nullpen; // Background color of the 3D canvas.
   real specularfactor;
   triple[] position; // Only directional lights are currently implemented.
@@ -169,14 +169,14 @@ struct light {
   transform3 T=identity(4); // Transform to apply to normal vectors.
 
   bool on() {return position.length > 0;}
-  
+
   void operator init(pen[] diffuse,
                      pen[] specular=diffuse, pen background=nullpen,
                      real specularfactor=1,
                      triple[] position) {
     int n=diffuse.length;
     assert(specular.length == n && position.length == n);
-    
+
     this.diffuse=new real[n][];
     this.specular=new real[n][];
     this.background=background;

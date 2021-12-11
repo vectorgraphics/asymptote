@@ -28,7 +28,7 @@ path roundbox(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   (dw,b)--(a-dw,b){right}..{down}
   (a,b-dw)--(a,dw){down}..{left}
   (a-dw,0)--(dw,0){left}..{up}cycle);
-  
+
   frame F;
   if(above == false) {
     filltype.fill(F,g,p);
@@ -81,7 +81,7 @@ typedef path envelope(frame dest, frame src=dest, real xmargin=0,
                       filltype filltype=NoFill, bool above=true);
 
 object object(Label L, envelope e, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill, bool above=true) 
+	      pen p=currentpen, filltype filltype=NoFill, bool above=true)
 {
   object F;
   F.L=L.copy();
@@ -93,9 +93,9 @@ object object(Label L, envelope e, real xmargin=0, real ymargin=xmargin,
   return F;
 }
 
-object draw(picture pic=currentpicture, Label L, envelope e, 
+object draw(picture pic=currentpicture, Label L, envelope e,
 	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	    filltype filltype=NoFill, bool above=true) 
+	    filltype filltype=NoFill, bool above=true)
 {
   object F=object(L,e,xmargin,ymargin,p,filltype,above);
   pic.add(new void (frame f, transform t) {
@@ -115,7 +115,7 @@ object draw(picture pic=currentpicture, Label L, envelope e, pair position,
   return draw(pic,Label(L,position),e,xmargin,ymargin,p,filltype,above);
 }
 
-pair point(object F, pair dir, transform t=identity()) 
+pair point(object F, pair dir, transform t=identity())
 {
   pair m=min(F.g);
   pair M=max(F.g);

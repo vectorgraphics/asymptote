@@ -18,8 +18,8 @@ clip(intersection,c2);
 
 add(intersection);
 
-draw(c1);
-draw(c2);
+draw(KEY="21.5",c1);
+draw(KEY="22.5",c2);
 
 label("$A$",z1);
 label("$B$",z2);

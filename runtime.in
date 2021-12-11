@@ -199,7 +199,8 @@ void writestring(stack *s)
   }
 }
 
-string toplocation() {
+string toplocation()
+{
   ostringstream buf;
   position& topPos=processData().topPos;
   buf << topPos.Line() << "." << topPos.Column();
@@ -736,18 +737,14 @@ void _eval(runnable *s, bool embedded)
 }
 
 string xasyKEY() {
-  processDataStruct *P=&processData();
-  xkey_t *xkey=&P->xkey;
-  xkey_t::iterator p=xkey->find(P->topPos.LineColumn());
-  return p != xkey->end() ? p->second+" 1" : toplocation()+" 0";
+  processDataStruct& P=processData();
+  xkey_t& xkey=P.xkey;
+  xkey_t::iterator p=xkey.find(P.topPos.LineColumn());
+  return p != xkey.end() ? p->second+" 1" : toplocation()+" 0";
 }
 
 void xasyKEY(string *s) {
   processData().KEY=*s;
-}
-
-string toplocation() {
-  return toplocation();
 }
 
 string location() {

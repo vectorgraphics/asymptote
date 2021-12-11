@@ -1,8 +1,5 @@
 private import math;
 
-if(settings.xasy)
-  settings.render=0;
-
 if(prc0()) {
   if(!latex()) settings.prc=false;
   else {
@@ -11,7 +8,7 @@ if(prc0()) {
   }
 }
 
-// Useful lossy compression values.
+// Useful lossy PRC compression values.
 restricted real Zero=0;
 restricted real Low=0.0001;
 restricted real Medium=0.001;
@@ -19,6 +16,27 @@ restricted real High=0.01;
 
 restricted int PRCsphere=0;   // Renders slowly but produces smaller PRC files.
 restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
+
+struct interaction
+{
+  int type;
+  triple center;  // position to rotate billboard objects about
+  bool targetsize;
+  static interaction defaultinteraction;
+
+  void operator init(interaction interaction=defaultinteraction,
+                     int type=interaction.type,
+                     triple center=interaction.center, bool targetsize=interaction.targetsize) {
+    this.type=type;
+    this.center=center;
+    this.targetsize=targetsize;
+  }
+}
+
+interaction.defaultinteraction=new interaction;
+
+restricted interaction Embedded=interaction();
+restricted interaction Billboard=interaction(1);
 
 struct render
 {
@@ -41,19 +59,21 @@ struct render
 
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
+  interaction interaction; // billboard interaction mode
 
   static render defaultrender;
-  
-  void operator init(real compression=defaultrender.compression,
-                     real granularity=defaultrender.granularity,
-                     bool closed=defaultrender.closed,
-                     bool tessellate=defaultrender.tessellate,
-                     bool3 merge=defaultrender.merge,
-                     int sphere=defaultrender.sphere,
-                     real margin=defaultrender.margin,
-                     bool labelfill=defaultrender.labelfill,
-                     bool partnames=defaultrender.partnames,
-                     bool defaultnames=defaultrender.defaultnames)
+
+  void operator init(render render=defaultrender, real compression=render.compression,
+                     real granularity=render.granularity,
+                     bool closed=render.closed,
+                     bool tessellate=render.tessellate,
+                     bool3 merge=render.merge,
+                     int sphere=render.sphere,
+                     real margin=render.margin,
+                     bool labelfill=render.labelfill,
+                     bool partnames=render.partnames,
+                     bool defaultnames=render.defaultnames,
+                     interaction interaction=render.interaction)
   {
     this.compression=compression;
     this.granularity=granularity;
@@ -65,6 +85,7 @@ struct render
     this.labelfill=labelfill;
     this.partnames=partnames;
     this.defaultnames=defaultnames;
+    this.interaction=interaction;
   }
 }
 
@@ -81,6 +102,7 @@ defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
 defaultrender.partnames=false;
 defaultrender.defaultnames=true;
+defaultrender.interaction=Embedded;
 
 real defaultshininess=0.7;
 real defaultmetallic=0.0;
@@ -95,7 +117,7 @@ string defaultembed3Doptions="3Dmenu";
 string defaultembed3Dscript;
 real defaulteyetoview=63mm/1000mm;
 
-string partname(int i, render render=defaultrender) 
+string partname(int i, render render=defaultrender)
 {
   return render.partnames ? string(i+1) : "";
 }
@@ -158,8 +180,8 @@ transform3 scale(triple v, real s)
   v=unit(v);
   s -= 1;
   return new real[][] {
-    {1+s*v.x^2, s*v.x*v.y, s*v.x*v.z, 0}, 
-      {s*v.x*v.y, 1+s*v.y^2, s*v.y*v.z, 0}, 
+    {1+s*v.x^2, s*v.x*v.y, s*v.x*v.z, 0},
+      {s*v.x*v.y, 1+s*v.y^2, s*v.y*v.z, 0},
         {s*v.x*v.z, s*v.y*v.z, 1+s*v.z^2, 0},
           {0, 0, 0, 1}};
 }
@@ -248,7 +270,7 @@ transform3 look(triple eye, triple up=Z, triple target=O)
 }
 
 // Return a matrix to do perspective distortion based on a triple v.
-transform3 distort(triple v) 
+transform3 distort(triple v)
 {
   transform3 t=identity(4);
   real d=length(v);
@@ -410,7 +432,7 @@ projection TopView=orthographic(Z,up=Y,showtarget=true);
 
 currentprojection=perspective(5,4,2);
 
-projection projection() 
+projection projection()
 {
   projection P;
   real[] a=_projection();
@@ -467,8 +489,8 @@ struct control {
 }
 
 control nocontrol;
-  
-control operator * (transform3 t, control c) 
+
+control operator * (transform3 t, control c)
 {
   control C;
   C.post=t*c.post;
@@ -485,7 +507,7 @@ void write(file file, control c)
   write(file," and ");
   write(file,c.pre);
 }
-  
+
 struct Tension {
   real out,in;
   bool atLeast;
@@ -510,7 +532,7 @@ Tension operator init()
 
 Tension noTension;
 noTension.active=false;
-  
+
 void write(file file, Tension t)
 {
   write(file,"..tension ");
@@ -519,7 +541,7 @@ void write(file file, Tension t)
   write(file," and ");
   write(file,t.in);
 }
-  
+
 struct dir {
   triple dir;
   real gamma=1; // endpoint curl
@@ -561,8 +583,8 @@ void write(file file, dir d)
     write(file,"{curl "); write(file,d.gamma); write(file,"}");
   }
 }
-  
-dir operator * (transform3 t, dir d) 
+
+dir operator * (transform3 t, dir d)
 {
   dir D=d.copy();
   D.init(unit(shiftless(t)*d.dir));
@@ -596,11 +618,11 @@ struct flatguide3 {
 
   bool cyclic() {int n=cyclic.length; return n > 0 ? cyclic[n-1] : false;}
   bool precyclic() {int i=find(cyclic); return i >= 0 && i < cyclic.length-1;}
-  
+
   int size() {
     return cyclic() ? nodes.length-1 : nodes.length;
   }
-  
+
   void node(triple v, bool b=false) {
     nodes.push(v);
     control.push(nocontrol);
@@ -650,7 +672,7 @@ struct flatguide3 {
     if(nodes.length > 0)
       node(nodes[0],true);
   }
-  
+
   // Return true if outgoing direction at node i is known.
   bool solved(int i) {
     return out[i].active() || control[i].active;
@@ -705,13 +727,13 @@ guide3 operator cast(cycleToken) {
   };
 }
 
-guide3 operator controls(triple post, triple pre) 
+guide3 operator controls(triple post, triple pre)
 {
   return new void(flatguide3 f) {
     f.control(post,pre);
   };
 };
-  
+
 guide3 operator controls(triple v)
 {
   return operator controls(v,v);
@@ -743,7 +765,7 @@ guide3 operator spec(triple v, int side)
       abort("invalid direction specifier");
   };
 }
-  
+
 guide3 operator -- (... guide3[] g)
 {
   return new void(flatguide3 f) {
@@ -805,13 +827,13 @@ real asin1(real x)
 {
   return asin(min(max(x,-1),1));
 }
-  
+
 // A version of acos that tolerates numerical imprecision
 real acos1(real x)
 {
   return acos(min(max(x,-1),1));
 }
-  
+
 struct Controls {
   triple c0,c1;
 
@@ -840,7 +862,7 @@ private triple cross(triple d0, triple d1, triple reference)
   triple normal=cross(d0,d1);
   return normal == O ? reference : normal;
 }
-                                        
+
 private triple dir(real theta, triple d0, triple d1, triple reference)
 {
   triple normal=cross(d0,d1,reference);
@@ -860,7 +882,7 @@ private real angle(triple d0, triple d1, triple reference)
 // beta[i] is the tension for segment i, and in[i] is the incoming
 // direction for segment i (where segment i begins at node i).
 
-real[] theta(triple[] v, real[] alpha, real[] beta, 
+real[] theta(triple[] v, real[] alpha, real[] beta,
              triple dir0, triple dirn, real g0, real gn, triple reference)
 {
   real[] a,b,c,f,l,psi;
@@ -905,7 +927,7 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
       f[n]=angle(v[n]-v[n-1],dirn,reference);
     }
   }
-  
+
   for(int i=i0; i < n; ++i) {
     real in=beta[i-1]^2*l[i-1];
     real A=in/alpha[i-1];
@@ -917,14 +939,14 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
     c[i]=C;
     f[i]=-B*psi[i-1]-C*psi[i];
   }
-  
+
   return tridiagonal(a,b,c,f);
 }
 
 triple reference(triple[] v, int n, triple d0, triple d1)
 {
   triple[] V=sequence(new triple(int i) {
-      return cross(v[i+1]-v[i],v[i+2]-v[i+1]); 
+      return cross(v[i+1]-v[i],v[i+2]-v[i+1]);
     },n-1);
   if(n > 0) {
     V.push(cross(d0,v[1]-v[0]));
@@ -952,18 +974,18 @@ triple reference(triple[] v, int n, triple d0, triple d1)
 }
 
 // Fill in missing directions for n cyclic nodes.
-void aim(flatguide3 g, int N) 
+void aim(flatguide3 g, int N)
 {
   bool cyclic=true;
   int start=0, end=0;
-  
+
   // If the cycle contains one or more direction specifiers, break the loop.
   for(int k=0; k < N; ++k)
     if(g.solved(k)) {cyclic=false; end=k; break;}
   for(int k=N-1; k >= 0; --k)
     if(g.solved(k)) {cyclic=false; start=k; break;}
   while(start < N && g.control[start].active) ++start;
-  
+
   int n=N-(start-end);
   if(n <= 1 || (cyclic && n <= 2)) return;
 
@@ -993,7 +1015,7 @@ void aim(flatguide3 g, int N)
 
   v.cyclic=true;
   theta.cyclic=true;
-    
+
   for(int k=1; k < (cyclic ? n+1 : n); ++k) {
     triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],reference);
     g.in[(start+k-1) % N].init(w);
@@ -1008,7 +1030,7 @@ void aim(flatguide3 g, int N)
 }
 
 // Fill in missing directions for the sequence of nodes i...n.
-void aim(flatguide3 g, int i, int n) 
+void aim(flatguide3 g, int i, int n)
 {
   int j=n-i;
   if(j > 1 || g.out[i].dir != O || g.in[i].dir != O) {
@@ -1021,7 +1043,7 @@ void aim(flatguide3 g, int i, int n)
       beta[k]=g.Tension[i+k].in;
     }
     v[j]=g.nodes[n];
-    
+
     triple d0=g.out[i].dir;
     triple d1=g.in[n-1].dir;
 
@@ -1029,7 +1051,7 @@ void aim(flatguide3 g, int i, int n)
 
     real[] theta=theta(v,alpha,beta,d0,d1,g.out[i].gamma,g.in[n-1].gamma,
                        reference);
-    
+
     for(int k=1; k < j; ++k) {
       triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],reference);
       g.in[i+k-1].init(w);
@@ -1175,7 +1197,7 @@ path path(path3 p, pair P(triple)=xypart)
   for(int i=1; i < n; ++i)
     g=straight(p,i-1) ? g--P(point(p,i)) :
       g..controls P(postcontrol(p,i-1)) and P(precontrol(p,i))..P(point(p,i));
-  
+
   if(straight(p,n-1))
     return cyclic(p) ? g--cycle : g--P(point(p,n));
 
@@ -1241,16 +1263,16 @@ path3 solve(flatguide3 g)
   for(int i=0; i < n; ++i) {
     if(g.nodes[i] == g.nodes[i+1] && !g.control[i].active)
       g.control[i]=control(g.nodes[i],g.nodes[i],straight=true);
-  }  
-  
+  }
+
   // Fill in empty direction specifiers inherited from explicit control points.
   for(int i=0; i < n; ++i) {
     if(g.control[i].active) {
       g.out[i].init(g.control[i].post-g.nodes[i]);
       g.in[i].init(g.nodes[i+1]-g.control[i].pre);
     }
-  }  
-  
+  }
+
   // Propagate directions across nodes.
   for(int i=0; i < n; ++i) {
     int next=g.cyclic[i+1] ? 0 : i+1;
@@ -1260,8 +1282,8 @@ path3 solve(flatguide3 g)
       g.out[next].default(g.in[i]);
       g.out[i+1].default(g.in[i]);
     }
-  }  
-    
+  }
+
   // Compute missing 3D directions.
   // First, resolve cycles
   int i=find(g.cyclic);
@@ -1278,7 +1300,7 @@ path3 solve(flatguide3 g)
       }
     }
   }
-    
+
   // Next, resolve sequences.
   int i=0;
   int start=0;
@@ -1288,13 +1310,13 @@ path3 solve(flatguide3 g)
     if(i > n) break;
     // Look for the end of the sequence.
     while(i < n && !g.solved(i)) ++i;
-    
+
     while(start < i && g.control[start].active) ++start;
-    
-    if(start < i) 
+
+    if(start < i)
       aim(g,start,i);
   }
-  
+
   // Compute missing 3D control points.
   for(int i=0; i < n; ++i) {
     int next=g.cyclic[i+1] ? 0 : i+1;
@@ -1344,7 +1366,7 @@ path3 solve(flatguide3 g)
       straight[n-1]=false;
     }
   }
-  
+
   return path3(pre,point,post,straight,cyclic);
 }
 
@@ -1385,7 +1407,7 @@ path project(path3 p, projection P=currentprojection,
 
   int last=length(p);
   if(last < 0) return g;
-  
+
   transform3 t=P.t;
 
   if(ninterpolate == 1 || piecewisestraight(p)) {
@@ -1401,7 +1423,7 @@ path project(path3 p, projection P=currentprojection,
       }
     }
   } else return nurb(p,P);
-  
+
   if(cyclic(p))
     g=straight(p,last-1) ? g--cycle :
       g..controls project(postcontrol(p,last-1),t) and
@@ -1418,11 +1440,11 @@ path[] project(explicit path3[] g, projection P=currentprojection)
 {
   return sequence(new path(int i) {return project(g[i],P);},g.length);
 }
-  
+
 guide3 operator cast(path3 p)
 {
   int last=length(p);
-  
+
   bool cyclic=cyclic(p);
   int stop=cyclic ? last-1 : last;
   return new void(flatguide3 f) {
@@ -1456,7 +1478,7 @@ triple normal(path3 p)
   real fuzz=sqrtEpsilon*abs(max(p)-min(p));
   real absnormal;
   real theta;
-  
+
   bool Cross(triple a, triple b) {
     if(abs(a) >= fuzz && abs(b) >= fuzz) {
       triple n=cross(unit(a),unit(b));
@@ -1478,7 +1500,7 @@ triple normal(path3 p)
     }
     return false;
   }
-  
+
   int L=length(p);
   if(L <= 0) return O;
 
@@ -1505,7 +1527,7 @@ triple normal(triple[] p)
   real fuzz=sqrtEpsilon*abs(maxbound(p)-minbound(p));
   real absnormal;
   real theta;
-  
+
   bool Cross(triple a, triple b) {
     if(abs(a) >= fuzz && abs(b) >= fuzz) {
       triple n=cross(unit(a),unit(b));
@@ -1526,7 +1548,7 @@ triple normal(triple[] p)
     }
     return false;
   }
-  
+
   if(p.length <= 0) return O;
 
   triple zi=p[0];
@@ -1642,7 +1664,7 @@ Label project(Label L, triple u, triple v, triple O=O,
               projection P=currentprojection) {
   Label L=L.copy();
   L.position=project(O,P.t);
-  L.transform(transform(u,v,O,P)); 
+  L.transform(transform(u,v,O,P));
   return L;
 }
 
@@ -1674,7 +1696,7 @@ void write(file file, string s="", explicit guide3[] x, suffix suffix=none)
   write(file,s,(path3[]) x,suffix);
 }
 
-void write(string s="", explicit guide3[] x, suffix suffix=endl) 
+void write(string s="", explicit guide3[] x, suffix suffix=endl)
 {
   write(stdout,s,(path3[]) x,suffix);
 }
@@ -1850,7 +1872,7 @@ real relative(Label L, path3 g)
 }
 
 // return the linear transformation that maps X,Y,Z to u,v,w.
-transform3 transform3(triple u, triple v, triple w=cross(u,v)) 
+transform3 transform3(triple u, triple v, triple w=cross(u,v))
 {
   return new real[][] {
     {u.x,v.x,w.x,0},
@@ -1915,37 +1937,37 @@ path3[] operator cast(guide3 g)
   return new path3[] {(path3) g};
 }
 
-path3[] operator ^^ (path3 p, path3  q) 
+path3[] operator ^^ (path3 p, path3  q)
 {
   return new path3[] {p,q};
 }
 
-path3[] operator ^^ (path3 p, explicit path3[] q) 
+path3[] operator ^^ (path3 p, explicit path3[] q)
 {
   return concat(new path3[] {p},q);
 }
 
-path3[] operator ^^ (explicit path3[] p, path3 q) 
+path3[] operator ^^ (explicit path3[] p, path3 q)
 {
   return concat(p,new path3[] {q});
 }
 
-path3[] operator ^^ (explicit path3[] p, explicit path3[] q) 
+path3[] operator ^^ (explicit path3[] p, explicit path3[] q)
 {
   return concat(p,q);
 }
 
-path3[] operator * (transform3 t, explicit path3[] p) 
+path3[] operator * (transform3 t, explicit path3[] p)
 {
   return sequence(new path3(int i) {return t*p[i];},p.length);
 }
 
-triple[] operator * (transform3 t, triple[] v) 
+triple[] operator * (transform3 t, triple[] v)
 {
   return sequence(new triple(int i) {return t*v[i];},v.length);
 }
 
-triple[][] operator * (transform3 t, triple[][] v) 
+triple[][] operator * (transform3 t, triple[][] v)
 {
   triple[][] V=new triple[v.length][];
   for(int i=0; i < v.length; ++i) {
@@ -1979,7 +2001,7 @@ path3 randompath3(int n, bool cumulate=true, interpolate3 join=operator ..)
   triple w;
   for(int i=0; i <= n; ++i) {
     triple z=(unitrand()-0.5,unitrand()-0.5,unitrand()-0.5);
-    if(cumulate) w += z; 
+    if(cumulate) w += z;
     else w=z;
     g=join(g,w);
   }
@@ -2040,15 +2062,15 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
     v1=Tinv*v1;
     v2=Tinv*v2;
   }
-  
+
   string invalidnormal="invalid normal vector";
   real fuzz=sqrtEpsilon;
   if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
     abort(invalidnormal);
-  
+
   real[] t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0));
   real[] t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0));
-  
+
   if(t1.length == 0 || t2.length == 0)
     abort(invalidnormal);
 
@@ -2102,21 +2124,19 @@ void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", render render=defaultrender,
           projection P=currentprojection);
 
-void begingroup3(frame f, string name="", render render=defaultrender,
-                 triple center=O, int interaction=0)
+void begingroup3(frame f, string name="", render render=defaultrender)
 {
   _begingroup3(f,name,render.compression,render.granularity,render.closed,
                render.tessellate,render.merge == false,
-               render.merge == true,center,interaction);
+               render.merge == true,render.interaction.center,render.interaction.type);
 }
 
 void begingroup3(picture pic=currentpicture, string name="",
-                 render render=defaultrender,
-                 triple center=O, int interaction=0)
+                 render render=defaultrender)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup3(f,name,render,center,interaction);
+        begingroup3(f,name,render);
       if(pic != null)
         begingroup(pic);
     },true);
@@ -2141,7 +2161,7 @@ void addPath(picture pic, path3 g, pen p)
 include three_surface;
 include three_margins;
 
-pair min(path3 p, projection P) 
+pair min(path3 p, projection P)
 {
   path3 q=P.T.modelview*p;
   if(P.infinity)
@@ -2149,7 +2169,7 @@ pair min(path3 p, projection P)
   return maxratio(q)/P.T.projection[3][2];
 }
 
-pair max(path3 p, projection P) 
+pair max(path3 p, projection P)
 {
   path3 q=P.T.modelview*p;
   if(P.infinity)
@@ -2157,7 +2177,7 @@ pair max(path3 p, projection P)
   return minratio(q)/P.T.projection[3][2];
 }
 
-pair min(frame f, projection P) 
+pair min(frame f, projection P)
 {
   frame g=P.T.modelview*f;
   if(P.infinity)
@@ -2165,7 +2185,7 @@ pair min(frame f, projection P)
   return maxratio(g)/P.T.projection[3][2];
 }
 
-pair max(frame f, projection P) 
+pair max(frame f, projection P)
 {
   frame g=P.T.modelview*f;
   if(P.infinity)
@@ -2210,7 +2230,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
     void drawthick(path3 g) {
       if(settings.thick && width > 0) {
         bool prc=prc();
-        bool webgl=settings.outformat == "html";
+        bool primitive=primitive();
         real linecap=linecap(q);
         real r=0.5*width;
         bool open=!cyclic(g);
@@ -2256,7 +2276,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
             }
           }
 // Draw central core for better small-scale rendering.
-          if((!prc || piecewisestraight(g)) && !webgl && opacity(q) == 1)
+          if((!prc || piecewisestraight(g)) && !primitive && opacity(q) == 1)
             _draw(f,c,p,light);
         }
         for(surface s : T.s)
@@ -2319,7 +2339,7 @@ void draw(picture pic=currentpicture, explicit path3[] g,
 
 include three_arrows;
 
-void draw(picture pic=currentpicture, Label L="", path3 g, 
+void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
           arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
           light arrowheadlight=currentlight, string name="",
@@ -2409,12 +2429,12 @@ triple min3(picture pic, projection P=currentprojection)
 {
   return pic.min3(P);
 }
-  
+
 triple max3(picture pic, projection P=currentprojection)
 {
   return pic.max3(P);
 }
-  
+
 triple size3(picture pic, bool user=false, projection P=currentprojection)
 {
   transform3 t=pic.calculateTransform3(P);
@@ -2635,7 +2655,7 @@ struct scene
   transform3 T=identity4;
   picture pic2;
   bool keepAspect=true;
-  
+
   void operator init(frame f, real width, real height,
                      projection P=currentprojection) {
     this.f=f;
@@ -2644,14 +2664,14 @@ struct scene
     this.width=width;
     this.height=height;
   }
-  
+
   void operator init(picture pic, real xsize=pic.xsize, real ysize=pic.ysize,
                      bool keepAspect=pic.keepAspect, bool is3D=true,
                      projection P=currentprojection) {
     real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
     bool warn=true;
     this.keepAspect=keepAspect;
-        
+
     if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
       xsize3=ysize3=zsize3=max(xsize,ysize);
       warn=false;
@@ -2798,7 +2818,7 @@ object embed(string prefix=outprefix(), string label=prefix,
 
     if(Q.t[2][3] == -1) // PRC can't handle oblique projections
       Q=orthographic(P.camera,P.up,P.target,P.zoom,P.viewportshift,
-                     P.showtarget,P.center);     
+                     P.showtarget,P.center);
     if(P.infinity) {
       triple m=min3(S.f);
       triple M=max3(S.f);
@@ -2821,7 +2841,7 @@ object embed(string prefix=outprefix(), string label=prefix,
       inv=inverse(modelview);
       Q.angle=P.angle;
       if(settings.verbose > 0) {
-        if(S.adjusted) 
+        if(S.adjusted)
           write("adjusting camera to ",tinv*inv*P.camera);
         target=inv*P.target;
       }
@@ -2868,12 +2888,12 @@ object embed(string prefix=outprefix(), string label=prefix,
 
     if(P.infinity) {
       triple margin=(S.viewportmargin.x,S.viewportmargin.y,0);
-      M += margin; 
+      M += margin;
       m -= margin;
     } else if(M.z >= 0) abort("camera too close");
 
-    if(settings.outformat == "html")
-      format="html";
+    if(primitive())
+      format=settings.outformat;
 
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
@@ -2893,7 +2913,7 @@ object embed(string prefix=outprefix(), string label=prefix,
       transform T=S.pic2.scaling(S.width,S.height);
       _shipout(image,S.pic2.fit(T),newframe,nativeformat(),false,false);
     }
-    
+
     image += "."+nativeformat();
     if(!settings.inlinetex) file3.push(image);
     image=graphic(image,"hiresbb");
@@ -2948,7 +2968,7 @@ object embed(string prefix=outprefix(), string label=prefix,
 {
   bool is3D=is3D(format);
   scene S=scene(pic,xsize,ysize,keepAspect,is3D,P);
-  if(is3D)
+  if(is3D && !(settings.xasy && format == ""))
     return embed(prefix,label,text,S,format,view,options,script,light);
   else {
     object F;
@@ -3017,7 +3037,11 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
       return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,light,P);
     },prefix,format,view,light);
-  if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
+
+  if(is3D(format) || empty3) {
+    if(prc(format) || settings.xasy) add(f,pic.fit2(xsize,ysize,keepAspect));
+    else return pic.fit2(xsize,ysize,keepAspect);
+  }
   return f;
 };
 
@@ -3056,7 +3080,7 @@ void addViews(picture dest, picture src, projection[][] views=SixViewsUS,
   frame[][] F=array(views.length,new frame[]);
   pair[][] M=array(views.length,new pair[]);
   pair[][] m=array(views.length,new pair[]);
-  
+
   for(int i=0; i < views.length; ++i) {
     projection[] viewsi=views[i];
     frame[] Fi=F[i];
@@ -3076,17 +3100,17 @@ void addViews(picture dest, picture src, projection[][] views=SixViewsUS,
       }
     }
   }
-  
+
   real[] my=new real[views.length];
   real[] My=new real[views.length];
-  
+
   int Nj=0;
   for(int i=0; i < views.length; ++i) {
     my[i]=minbound(m[i]).y;
     My[i]=maxbound(M[i]).y;
     Nj=max(Nj,views[i].length);
   }
-  
+
   real[] mx=array(Nj,infinity);
   real[] Mx=array(Nj,-infinity);
   for(int i=0; i < views.length; ++i) {
@@ -3179,10 +3203,10 @@ frame[] fit3(string prefix="", picture[] pictures, picture all,
       frame f=embedder(prefix,out[i],format,S.width,S.height,view,options,
                        script,light,S.P);
       if(!settings.loop) out[i]=f;
-    }   
+    }
     if(!settings.loop) break;
   }
-  
+
   settings.animating=false;
   settings.interrupt=false;
   settings.reverse=reverse;

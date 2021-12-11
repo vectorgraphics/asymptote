@@ -16,7 +16,7 @@ picture slopefield(real f(real,real), pair a, pair b,
       pair cp=(x,a.y+j*dy);
       real slope=f(cp.x,cp.y);
       real mp=step/sqrt(1+slope^2);
-      draw(pic,(cp.x-mp,cp.y-mp*slope)--(cp.x+mp,cp.y+mp*slope),p,arrow); 
+      draw(pic,(cp.x-mp,cp.y-mp*slope)--(cp.x+mp,cp.y+mp*slope),p,arrow);
     }
   }
   return pic;
@@ -29,12 +29,12 @@ picture slopefield(real f(real), pair a, pair b,
   return slopefield(new real(real x, real y) {return f(x);},a,b,nx,ny,p,arrow);
 }
 
-path curve(pair c, real f(real,real), pair a, pair b) 
+path curve(pair c, real f(real,real), pair a, pair b)
 {
-  real step=stepfraction*(b.x-a.x);     
+  real step=stepfraction*(b.x-a.x);
   real halfstep=0.5*step;
   real sixthstep=step/6;
-        
+
   path follow(real sign) {
     pair cp=c;
     guide g=cp;

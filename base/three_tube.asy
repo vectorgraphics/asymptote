@@ -100,6 +100,17 @@ rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t, triple perp=O)
   return R;
 }
 
+
+drawfcn drawTube(triple[] g, real w, triple min, triple max) {
+  return new void(frame f, transform3 t=identity4, material[] m,
+                  light light=currentlight, render render=defaultrender)
+    {
+      material m=material(m[0],light);
+      drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+               t*min,t*max,m.opacity == 1);
+    };
+}
+
 surface tube(triple z0, triple c0, triple c1, triple z1, real w)
 {
   surface s;
@@ -125,13 +136,7 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   f(t3);
 
   s.PRCprimitive=false;
-  s.draw=new void(frame f, transform3 t=identity4, material[] m,
-                  light light=currentlight, render render=defaultrender)
-    {
-     material m=material(m[0],light);
-     drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-              t*min(s),t*max(s),m.opacity == 1);
-    };
+  s.draw=drawTube(g,w,min(s),max(s));
   return s;
 }
 
@@ -153,7 +158,7 @@ struct tube
 
   void Null(transform3) {}
   void Null(transform3, bool) {}
-  
+
   surface[] render(path3 g, real r) {
     triple z0=point(g,0);
     triple c0=postcontrol(g,0);
@@ -174,7 +179,7 @@ struct tube
         pair a0=threshold(z0,c0,c1);
         pair a1=threshold(z1,c1,c0);
         real rL=r*arclength(z0,c0,c1,z1)*tubethreshold;
-        if((a0.x >= norm && rL*a0.y^2 > a0.x^8) || 
+        if((a0.x >= norm && rL*a0.y^2 > a0.x^8) ||
            (a1.x >= norm && rL*a1.y^2 > a1.x^8)) {
           triple m0=0.5*(z0+c0);
           triple m1=0.5*(c0+c1);
@@ -214,7 +219,7 @@ struct tube
           s.append(render(subpath(p,i,i+1),r));
       }
     }
-    
+
     transform3 t=scale3(r);
     bool cyclic=cyclic(p);
     int begin=0;

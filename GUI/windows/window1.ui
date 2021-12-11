@@ -127,7 +127,7 @@
             </property>
             <property name="icon">
              <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/android-arrow-back.svg</normaloff>:/icons/android-arrow-back.svg</iconset>
+              <normaloff>:/icons/undo.svg</normaloff>:/icons/undo.svg</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -171,7 +171,7 @@
             </property>
             <property name="icon">
              <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/android-arrow-forward.svg</normaloff>:/icons/android-arrow-forward.svg</iconset>
+              <normaloff>:/icons/redo.svg</normaloff>:/icons/redo.svg</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -605,7 +605,7 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>25</width>
+              <width>32</width>
               <height>25</height>
              </size>
             </property>
@@ -652,7 +652,7 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>25</width>
+              <width>32</width>
               <height>25</height>
              </size>
             </property>
@@ -664,6 +664,7 @@
             </property>
             <property name="font">
              <font>
+              <family>Roboto</family>
               <weight>75</weight>
               <bold>true</bold>
              </font>
@@ -737,6 +738,9 @@
               <height>16</height>
              </size>
             </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
             <property name="flat">
              <bool>true</bool>
             </property>
@@ -782,7 +786,7 @@
              </size>
             </property>
             <property name="checkable">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1644,6 +1648,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1681,6 +1688,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1720,6 +1730,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1757,6 +1770,9 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1796,6 +1812,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1834,6 +1853,9 @@ background: rgb(0, 0, 0)
                     <height>16</height>
                    </size>
                   </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
@@ -1871,6 +1893,50 @@ background: rgb(0, 0, 0)
                     <width>16</width>
                     <height>16</height>
                    </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="12" column="0">
+                 <widget class="QPushButton" name="btnAddFreehand">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Freehand&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../res/icons.qrc">
+                    <normaloff>:/icons/brush.svg</normaloff>:/icons/brush.svg</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>16</width>
+                    <height>16</height>
+                   </size>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -2039,16 +2105,26 @@ background: rgb(0, 0, 0)
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>29</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="menuOpenRecent">
+     <property name="title">
+      <string>Open Recent</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionClearRecent"/>
+    </widget>
+    <addaction name="actionNewFile"/>
     <addaction name="actionOpen"/>
+    <addaction name="menuOpenRecent"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionExportToAsy"/>
     <addaction name="actionExportAsymptote"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -2066,6 +2142,7 @@ background: rgb(0, 0, 0)
      <string>Optio&amp;ns</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="actionKeymaps"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -2113,7 +2190,7 @@ background: rgb(0, 0, 0)
   </action>
   <action name="actionSaveAs">
    <property name="text">
-    <string>&amp;Save As</string>
+    <string>&amp;Save as</string>
    </property>
   </action>
   <action name="actionEnterCommand">
@@ -2159,7 +2236,7 @@ background: rgb(0, 0, 0)
   </action>
   <action name="actionExportAsymptote">
    <property name="text">
-    <string>Export</string>
+    <string>Export as...</string>
    </property>
   </action>
   <action name="actionSave">
@@ -2170,6 +2247,26 @@ background: rgb(0, 0, 0)
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
+   </property>
+  </action>
+  <action name="actionClearRecent">
+   <property name="text">
+    <string>Clear Menu</string>
+   </property>
+  </action>
+  <action name="actionNewFile">
+   <property name="text">
+    <string>New File</string>
+   </property>
+  </action>
+  <action name="actionExportToAsy">
+   <property name="text">
+    <string>Export as Asy</string>
+   </property>
+  </action>
+  <action name="actionKeymaps">
+   <property name="text">
+    <string>&amp;Keymaps</string>
    </property>
   </action>
  </widget>

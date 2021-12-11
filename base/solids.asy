@@ -5,11 +5,11 @@ pen defaultbackpen=linetype(new real[] {4,4},4,scale=false);
 // A solid geometry package.
 
 // Try to find a bounding tangent line between two paths.
-real[] tangent(path p, path q, bool side) 
+real[] tangent(path p, path q, bool side)
 {
   static real fuzz=1.0e-5;
 
-  if((cyclic(p) && inside(p,point(q,0)) || 
+  if((cyclic(p) && inside(p,point(q,0)) ||
       cyclic(q) && inside(q,point(p,0))) &&
      intersect(p,q,fuzz).length == 0) return new real[];
 
@@ -28,14 +28,14 @@ real[] tangent(path p, path q, bool side)
   return new real[];
 }
 
-path line(path p, path q, real[] t) 
+path line(path p, path q, real[] t)
 {
   return point(p,t[0])--point(q,t[1]);
 }
 
 // Return the projection of a generalized cylinder of height h constructed
 // from area base in the XY plane and aligned with axis.
-path[] cylinder(path3 base, real h, triple axis=Z, projection P) 
+path[] cylinder(path3 base, real h, triple axis=Z, projection P)
 {
   base=rotate(-colatitude(axis),cross(axis,Z))*base;
   path3 top=shift(h*axis)*base;
@@ -71,7 +71,7 @@ struct revolution {
   triple m;
 
   static real epsilon=10*sqrtEpsilon;
-  
+
   void operator init(triple c=O, path3 g, triple axis=Z, real angle1=0,
                      real angle2=360) {
     this.c=c;
@@ -82,12 +82,12 @@ struct revolution {
     M=max(g);
     m=min(g);
   }
-  
+
 
   revolution copy() {
     return revolution(c,g,axis,angle1,angle2);
   }
-  
+
   triple vertex(int i, real j) {
     triple v=point(g,i);
     triple center=c+dot(v-c,axis)*axis;
@@ -114,7 +114,7 @@ struct revolution {
     path3 p=Arc(center,v1,v2,axis,n);
     return (angle2-angle1) % 360 == 0 ? p&cycle : p;
   }
-  
+
   // add transverse slice to skeleton s;
   void transverse(skeleton s, real t, int n=nslice, projection P) {
     skeleton.curve s=s.transverse;
@@ -196,7 +196,7 @@ struct revolution {
     int M=(m == 0) ? N : m;
     real factor=m == 1 ? 0 : 1/(m-1);
     int n=nslice;
-    
+
     real tfirst=-1;
     real tlast;
     for(int i=0; i < M; ++i) {
@@ -238,7 +238,7 @@ struct revolution {
 	G=sfirst.transverse.back[0]..G;
       }
     }
-    
+
     skeleton slast;
     transverse(slast,tlast,n,P);
     if(dot(delta,axis) == 0 || (tlast >= L-epsilon && sign > 0)) {
@@ -287,7 +287,7 @@ struct revolution {
 	path3 p1=subpath(p,0,t);
 	path3 p2=subpath(p,t,length(p));
 	if(length(p1) > 0 &&
-           (length(p2) == 0 || 
+           (length(p2) == 0 ||
             abs(midpoint(p1)-P.camera) <= abs(midpoint(p2)-P.camera))) {
 	  s.longitudinal.front.push(p1);
           s.longitudinal.back.push(p2);
@@ -300,7 +300,7 @@ struct revolution {
     push(t1);
     push(t2);
   }
-  
+
   skeleton skeleton(int m=0, int n=nslice, projection P) {
     skeleton s;
     transverse(s,m,n,P);

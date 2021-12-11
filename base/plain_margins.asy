@@ -27,7 +27,7 @@ margin operator +(margin ma, margin mb)
 }
 
 margin NoMargin()
-{ 
+{
   return new marginT(path g, pen) {
     marginT margin;
     margin.begin=margin.end=0;
@@ -35,9 +35,9 @@ margin NoMargin()
     return margin;
   };
 }
-                                                      
+
 margin Margin(real begin, real end=begin)
-{ 
+{
   return new marginT(path g, pen p) {
     marginT margin;
     real factor=labelmargin(p);
@@ -47,9 +47,9 @@ margin Margin(real begin, real end=begin)
     return margin;
   };
 }
-                                                           
+
 margin PenMargin(real begin, real end=begin)
-{ 
+{
   return new marginT(path g, pen p) {
     marginT margin;
     real factor=linewidth(p);
@@ -59,9 +59,9 @@ margin PenMargin(real begin, real end=begin)
     return margin;
   };
 }
-                                              
+
 margin DotMargin(real begin, real end=begin)
-{ 
+{
   return new marginT(path g, pen p) {
     marginT margin;
     real margindot(real x) {return x > 0 ? dotfactor*x : x;}
@@ -72,9 +72,9 @@ margin DotMargin(real begin, real end=begin)
     return margin;
   };
 }
-                                                      
+
 margin TrueMargin(real begin, real end=begin)
-{ 
+{
   return new marginT(path g, pen p) {
     marginT margin;
     margin.begin=begin;
@@ -83,7 +83,7 @@ margin TrueMargin(real begin, real end=begin)
     return margin;
   };
 }
-                                                      
+
 margin NoMargin=NoMargin(),
   BeginMargin=Margin(1,0),
   Margin=Margin(0,1),

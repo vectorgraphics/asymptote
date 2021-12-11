@@ -7,11 +7,11 @@ real ymin=-2,ymax=10;
 
 real f(real x) {return x^2;}
 
-marker cross=marker(scale(4)*rotate(45)*cross(4),
+marker mark=marker(scale(4)*plus,
                     markuniform(new pair(real t) {return Scale((t,f(t)));},
                                 xmin,xmax,round(2*(xmax-xmin))),1bp+red);
 
-draw(graph(f,xmin,xmax,n=400),linewidth(1bp),cross);
+draw(graph(f,xmin,xmax,n=400),linewidth(1bp),mark);
 
 ylimits(-2.5,10,Crop);
 

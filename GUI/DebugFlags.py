@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
 keepFiles = False
-printFoutTranscript = False
+printAsyTranscript = False
 printDeconstTranscript = False
-forceRasterizationSVG = False

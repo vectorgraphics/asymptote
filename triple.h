@@ -18,6 +18,7 @@
 #include "common.h"
 #include "angle.h"
 #include "pair.h"
+#include "xstream.h"
 
 namespace camp {
 
@@ -326,6 +327,15 @@ public:
     out << "[" << v.x << "," << v.y << "," << v.z << "]";
     return out;
   }
+
+
+#ifdef HAVE_RPC_RPC_H
+  friend xdr::oxstream& operator << (xdr::oxstream& out, triple const& v)
+  {
+    out << v.x << v.y << v.z;
+    return out;
+  }
+#endif
 
 };
 

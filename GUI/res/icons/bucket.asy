@@ -9,7 +9,7 @@ path left=(-r,h)--(-r,0);
 path right=(r,0)--(r,h);
 path bottom=xscale(r)*arc(0,1,180,360);
 
-real H=0.9h;
+real H=0.8h;
 path Left=(-r,H/2)--(-r,0);
 path Right=(r,0)--(r,H/2);
 
@@ -17,7 +17,7 @@ bool fill=false;    // Set to true for filled bucket.
 usersetting();
 
 if(fill)
-  fill(Left--bottom--Right--shift(0,H)*xscale(r)*arc(0,1,0,180)--cycle,gray);
+  fill(Left--bottom--Right--shift(0,H)*xscale(r)*arc(0,1,0,180)--cycle,paleblue);
 
 draw(shift(0,h)*xscale(r)*unitcircle);
 draw(left--bottom--right);
