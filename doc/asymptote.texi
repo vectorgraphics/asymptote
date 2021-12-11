@@ -8154,11 +8154,8 @@ output with the the command-line option and @code{-f html}
 3D @acronym{HTML} file can then be viewed directly in any modern desktop or
 mobile browser, or even embedded within another web page:
 @verbatim
-<div>
-<object data="logo3.html"
-        style="width:210;height:140;position:relative;top:0;left:0;">
-</object>
-</div>
+<iframe src="logo3.html" width="210" height="140" frameborder="0">
+</iframe>
 @end verbatim
 
 @cindex @code{absolute}
