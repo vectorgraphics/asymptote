@@ -239,9 +239,9 @@ double BBT[9];
 
 unsigned int framecount;
 
-GLTexture2 IBLbrdfTex;
-GLTexture2 irradiance;
-GLTexture3 reflTextures;
+GLTexture2<float,GL_FLOAT> IBLbrdfTex;
+GLTexture2<float,GL_FLOAT> irradiance;
+GLTexture3<float,GL_FLOAT> reflTextures;
 
 template<class T>
 inline T min(T a, T b)
@@ -405,7 +405,7 @@ GLint shaderProg,shaderProgColor;
 GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
   camp::IEXRFile fil(EXRFile);
-  return GLTexture2 {fil.getData(),fil.size(),textureNumber,fmt};
+  return GLTexture2<float,GL_FLOAT> {fil.getData(),fil.size(),textureNumber,fmt};
 }
 
 GLTexture3<float,GL_FLOAT> fromEXR3(
@@ -424,7 +424,7 @@ GLTexture3<float,GL_FLOAT> fromEXR3(
     std::copy(fil3.getData(),fil3.getData()+imSize,std::back_inserter(data));
   }
 
-  return GLTexture3 {data.data(),std::tuple<int,int,int>(wi,ht,count),textureNumber,fmt};
+  return GLTexture3<float,GL_FLOAT> {data.data(),std::tuple<int,int,int>(wi,ht,count),textureNumber,fmt};
 }
 
 void initIBL()

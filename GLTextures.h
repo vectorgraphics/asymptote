@@ -96,7 +96,9 @@ public:
     GLTexture3(T const* data, std::tuple<int, int, int> size,
                int textureNumber, GLTexturesFmt const& fmt) : AGLTexture(textureNumber)
     {
-       auto [width, height, depth] = size;
+       int width=std::get<0>(size);
+       int height=std::get<1>(size);
+       int depth=std::get<2>(size);
        glEnable(GL_TEXTURE_3D);
 
        glGenTextures(1, &textureId);
