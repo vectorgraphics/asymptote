@@ -8,10 +8,10 @@ angleOfView,7
 initialZoom,8
 viewportShift,9
 viewportMargin,10
-#
+
 light,11
 background,12
-#
+
 zoomFactor,13
 zoomPinchFactor,14
 zoomPinchCap,15
