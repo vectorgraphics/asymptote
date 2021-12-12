@@ -8,18 +8,12 @@
 
 #include "v3dfile.h"
 #include "drawelement.h"
+#include "makeUnique.h"
 
 namespace camp
 {
 
 using settings::getSetting;
-
-#if __cplusplus < 201402L
-#include "makeUnique.h"
-using utils::make_unique;
-#else
-using std::make_unique;
-#endif
 
 absv3dfile::absv3dfile() : finalized(false), singleprecision(false)
 {
