@@ -30,5 +30,9 @@ halfSphere,1028
 
 animation,2048
 
-#element2D,3072
+#open2DPolygon,3136
+#closed2DPolygon,3137
+#open2DCurve,3200
+#closed2DCurve,3201
+
 pixel,4096
