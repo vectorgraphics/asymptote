@@ -137,14 +137,14 @@ extern const char* BlendMode[];
 extern const Int nBlendMode;
 
 // Map [0,1] to [0,255] uniformly, with 0.5 mapping to 128.
-inline unsigned int byte(double r)
+inline unsigned char byte(double r)
 {
   if(r < 0.0) r=0.0;
   unsigned int c=(unsigned int)(r*256);
   return c < 255 ? c : 255;
 }
 
-inline double byteinv(unsigned int i)
+inline double byteinv(unsigned char i)
 {
   if(i == 255) return 1.0;
   return i/256.0;

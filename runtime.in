@@ -439,6 +439,11 @@ Int byte(real x)
   return camp::byte(x);
 }
 
+real byteinv(Int x)
+{
+  return x >= 0 ? camp::byteinv(x) : 0.0;
+}
+
 string colorspace(pen p)
 {
   string s=ColorDeviceSuffix[p.colorspace()];
