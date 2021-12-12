@@ -1082,10 +1082,17 @@ void callExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 
   if (auto col=getColorInformation())
   {
-    auto const& [colVal, alpha, beginArgPos, lastArgPos] = col.value();
+    auto const& v=col.value();
+    auto const& colVal=std::get<0>(v);
+    auto const& alpha=std::get<1>(v);
+    auto const& beginArgPos=std::get<2>(v);
+    auto const& lastArgPos=std::get<3>(v);
     if (alpha.has_value())
     {
-      auto const& [red, green, blue] = colVal;
+
+      auto const& red=std::get<0>(colVal);
+      auto const& green=std::get<1>(colVal);
+      auto const& blue=std::get<2>(colVal);
       std::tuple<double, double, double, double> rgba(red, green, blue, alpha.value());
 
       symContext->addRGBAColor(rgba, beginArgPos, lastArgPos);

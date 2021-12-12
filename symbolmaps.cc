@@ -19,7 +19,7 @@ namespace AsymptoteLsp
 
   std::string getPlainFile()
   {
-    return std::string(settings::locateFile("plain", true));
+    return std::string((std::string) settings::locateFile("plain", true).c_str());
   }
 
   positions::positions(filePos const& positionInFile)
@@ -32,7 +32,7 @@ namespace AsymptoteLsp
     auto fileLoc=pos.find(positionInFile.first);
     if (fileLoc == pos.end())
     {
-      pos.emplace(positionInFile.first, std::vector{positionInFile.second});
+      pos.emplace(positionInFile.first, std::vector<posInFile>{positionInFile.second});
     } else
     {
       fileLoc->second.push_back(positionInFile.second);
@@ -42,8 +42,10 @@ namespace AsymptoteLsp
   ostream& operator <<(std::ostream& os, const SymbolMaps& sym)
   {
     os << "var decs:" << endl;
-    for (auto const& [key, value] : sym.varDec)
+    for (auto const& s : sym.varDec)
     {
+      auto const& key=std::get<0>(s);
+      auto const& value=std::get<1>(s);
       os << key << " " << value.pos.first << ":" << value.pos.second << endl;
     }
     return os;
@@ -52,8 +54,10 @@ namespace AsymptoteLsp
   optional<fullSymPosRangeInFile> SymbolMaps::searchSymbol(posInFile const& inputPos)
   {
     // FIXME: can be optimized by binary search.
-    for (auto const& [pos, syLit] : usageByLines)
+    for (auto const& s : usageByLines)
     {
+      auto const& pos=std::get<0>(s);
+      auto const& syLit=std::get<1>(s);
       size_t endCharacter = pos.second + syLit.name.length() - 1;
       bool posMatches =
               pos.first == inputPos.first and
@@ -72,11 +76,11 @@ namespace AsymptoteLsp
   FunctionInfo& SymbolMaps::addFunDef(
           std::string const& funcName, posInFile const& position, std::string const& returnType)
   {
-    auto [fit, _] = funDec.emplace(std::piecewise_construct,
-                                   std::forward_as_tuple(funcName), std::forward_as_tuple());
+    auto fit=std::get<0>(funDec.emplace(std::piecewise_construct,
+                                        std::forward_as_tuple(funcName), std::forward_as_tuple()));
 
-    auto& vit = fit->second.emplace_back(funcName, position, returnType);
-    return vit;
+    fit->second.emplace_back(funcName, position, returnType);
+    return fit->second.back();
   }
 
   std::pair<optional<fullSymPosRangeInFile>, SymbolContext*> SymbolContext::searchSymbol(posInFile const& inputPos)
@@ -91,7 +95,9 @@ namespace AsymptoteLsp
     {
       if (!posLt(inputPos, subContext->contextLoc))
       {
-        auto [subCtxSym, ctx]=subContext->searchSymbol(inputPos);
+        auto v=subContext->searchSymbol(inputPos);
+        auto subCtxSym=std::get<0>(v);;
+        auto ctx=std::get<1>(v);
         if (subCtxSym.has_value())
         {
           return make_pair(subCtxSym, ctx);
@@ -120,7 +126,8 @@ namespace AsymptoteLsp
     auto pt = symMap.varDec.find(symbol);
     if (pt != symMap.varDec.end())
     {
-      auto [line, ch] = pt->second.pos;
+      auto line = std::get<0>(pt->second.pos);
+      auto ch = std::get<1>(pt->second.pos);
       if ((not position.has_value()) or (!posLt(position.value(), pt->second.pos)))
       {
         return std::make_tuple(getFileName().value_or(""),
@@ -381,7 +388,8 @@ namespace AsymptoteLsp
     }
     else
     {
-      auto [ctx, isStruct]=searchLitContext(symbol);
+      auto ctx=std::get<0>(searchLitContext(symbol));
+      auto isStruct=std::get<1>(searchLitContext(symbol));
       if (ctx)
       {
         if (isStruct)
@@ -410,7 +418,8 @@ namespace AsymptoteLsp
     }
     else
     {
-      auto [ctx, isStruct]=searchLitContext(symbol);
+      auto ctx=std::get<0>(searchLitContext(symbol));
+      auto isStruct=std::get<1>(searchLitContext(symbol));
       if (ctx)
       {
         if (isStruct)
@@ -448,7 +457,8 @@ namespace AsymptoteLsp
     }
     else
     {
-      auto [ctx, isStruct]=searchLitContext(symbol);
+      auto ctx=std::get<0>(searchLitContext(symbol));
+      auto isStruct=std::get<1>(searchLitContext(symbol));
       if (ctx) // ctx is a struct declaration. should not search beyond this struct.
       {
         if (isStruct)
@@ -456,7 +466,8 @@ namespace AsymptoteLsp
           auto varDec=ctx->symMap.varDec.find(symbol.name);
           if (varDec != ctx->symMap.varDec.end())
           {
-            auto[line, ch] = varDec->second.pos;
+            auto line=std::get<0>(varDec->second.pos);
+            auto ch=std::get<1>(varDec->second.pos);
             return std::make_tuple(ctx->getFileName().value_or(""),
                                    varDec->second.pos, std::make_pair(line, ch + symbol.name.length()));
           }
@@ -480,7 +491,9 @@ namespace AsymptoteLsp
     else
     {
       std::list<posRangeInFile> fnDecls;
-      auto [ctx, isStruct]=searchLitContext(symbol);
+      auto v=searchLitContext(symbol);
+      auto ctx=std::get<0>(v);
+      auto isStruct=std::get<1>(v);
       if (ctx) // ctx is a struct declaration. should not search beyond this struct.
       {
         if (isStruct)
@@ -566,7 +579,7 @@ namespace AsymptoteLsp
     }
     else
     {
-      std::vector scopes(symbol.scopes);
+      std::vector<std::string> scopes(symbol.scopes);
       bool isStruct=false;
 
       // search in struct
@@ -728,7 +741,8 @@ namespace AsymptoteLsp
     auto pt = additionalDecs.find(symbol);
     if (pt != additionalDecs.end())
     {
-      auto [line, ch] = pt->second.pos;
+      auto line=std::get<0>(pt->second.pos);
+      auto ch=std::get<1>(pt->second.pos);
       if ((not position.has_value()) or (!posLt(position.value(), pt->second.pos)))
       {
         return std::make_tuple(getFileName().value_or(""),
@@ -772,7 +786,8 @@ namespace AsymptoteLsp
     ss << name << "(";
     for (auto it = arguments.begin(); it != arguments.end(); it++)
     {
-      auto const& [argtype, argname] = *it;
+      auto const& argtype=std::get<0>(*it);
+      auto const& argname=std::get<1>(*it);
       ss << argtype;
       if (argname.has_value())
       {
@@ -792,7 +807,9 @@ namespace AsymptoteLsp
 
     if (restArgs.has_value())
     {
-      auto const& [argtype, argname] = restArgs.value();
+      auto const& v=restArgs.value();
+      auto const& argtype=std::get<0>(v);
+      auto const& argname=std::get<1>(v);
       ss << "... " << argtype;
 
       if (argname.has_value())

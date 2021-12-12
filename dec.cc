@@ -809,18 +809,20 @@ void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   if (valid)
   {
     string fullSrc(settings::locateFile(src, true));
-    if (not AsymptoteLsp::isVirtualFile(static_cast<std::string>(fullSrc)))
+    if (not AsymptoteLsp::isVirtualFile((std::string)(fullSrc.c_str())))
     {
       if (not fullSrc.empty())
       {
-        symContext->addEmptyExtRef(static_cast<std::string>(fullSrc));
+        symContext->addEmptyExtRef((std::string)(fullSrc.c_str()));
       }
 
       // add (dest, source) to reference map.
-      auto[it, success] = symContext->extRefs.fileIdPair.emplace(dest, fullSrc);
+      auto s = symContext->extRefs.fileIdPair.emplace(dest, (std::string) fullSrc.c_str());
+      auto it=std::get<0>(s);
+      auto success=std::get<1>(s);
       if (not success)
       {
-        it->second = static_cast<std::string>(fullSrc);
+        it->second = (std::string)(fullSrc.c_str());
       }
 
       symContext->extRefs.addAccessVal(static_cast<std::string>(dest));
@@ -1005,7 +1007,7 @@ void includedec::transAsField(coenv &e, record *r)
 
 void includedec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  std::string fullname(settings::locateFile(filename, true));
+  std::string fullname((std::string) settings::locateFile(filename, true).c_str());
   if (not AsymptoteLsp::isVirtualFile(fullname))
   {
     symContext->addEmptyExtRef(fullname);

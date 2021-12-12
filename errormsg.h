@@ -124,9 +124,12 @@ public:
 
   friend ostream& operator << (ostream& out, const position& pos);
 
+  typedef std::pair<size_t, size_t> posInFile;
+  typedef std::pair<std::string, posInFile> filePos;
+
   explicit operator AsymptoteLsp::filePos()
   {
-    return std::make_pair((std::string)file->name(), LineColumn());
+    return std::make_pair((std::string) file->name().c_str(),LineColumn());
   }
 
   void print(ostream& out) const

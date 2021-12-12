@@ -148,12 +148,12 @@ void *asymain(void *A)
       unique_ptr<AsymptoteLsp::AsymptoteLspServer> asylsp;
 
       if(getSetting<string>("lspport") != "") {
-        asylsp=std::make_unique<AsymptoteLsp::TCPAsymptoteLSPServer>(
-          (std::string)getSetting<string>("lsphost"),
-          (std::string)getSetting<string>("lspport"),
+        asylsp=make_unique<AsymptoteLsp::TCPAsymptoteLSPServer>(
+          (std::string)getSetting<string>("lsphost").c_str(),
+          (std::string)getSetting<string>("lspport").c_str(),
           jsonHandler, endpoint, log);
       } else {
-        asylsp=std::make_unique<AsymptoteLsp::AsymptoteLspServer>(jsonHandler,
+        asylsp=make_unique<AsymptoteLsp::AsymptoteLspServer>(jsonHandler,
                                                                   endpoint,
                                                                   log);
       }

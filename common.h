@@ -13,7 +13,6 @@
 #include <memory>
 #include <climits>
 
-
 #include <boost/optional.hpp>
 #include <boost/none.hpp>
 using boost::optional;
@@ -101,7 +100,6 @@ using mem::stringbuf;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::make_shared;
-using std::make_unique;
 
 static const struct ws_t {} ws={};
 

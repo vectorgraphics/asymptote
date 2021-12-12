@@ -1,11 +1,14 @@
 #pragma once
+
+
 #include <cstddef>
 #include <memory>
 #include <type_traits>
 #include <utility>
 
-namespace utils {
+#if __cplusplus < 201402L
 
+namespace utils {
 template<class T> struct _Unique_if {
   typedef std::unique_ptr<T> _Single_object;
 };
@@ -34,5 +37,8 @@ make_unique(size_t n) {
 template<class T, class... Args>
 typename _Unique_if<T>::_Known_bound
 make_unique(Args&&...) = delete;
-
 }
+using utils::make_unique;
+#else
+using std::make_unique;
+#endif

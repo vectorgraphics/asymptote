@@ -185,10 +185,12 @@ std::string wslUnix2Dos(std::string const& unixPath)
       }
       else
       {
-        block* blk=ifile(mem::string(filename)).getTree();
-        auto[fit, success] = symmapContextsPtr->emplace(
+        block* blk=ifile(mem::string(filename.c_str())).getTree();
+        auto s=symmapContextsPtr->emplace(
                 filename,
-                std::make_unique<SymbolContext>(posInFile(1, 1), filename));
+                make_unique<SymbolContext>(posInFile(1, 1), filename));
+        auto fit=std::get<0>(s);
+
         if(blk == nullptr)
         {
           // dead end. file cannot be parsed. no new paths.
@@ -293,7 +295,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
     REGISTER_NOTIF_FN(Notify_Exit, onExit);
   }
 
-#pragma region notifications
+//#pragma region notifications
 
   void AsymptoteLspServer::onInitialized(Notify_InitializedNotification::notify& notify)
   {
@@ -317,7 +319,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
       block* codeBlk;
       try
       {
-        codeBlk=istring(mem::string(fileChange[0].text)).getTree();
+        codeBlk=istring(mem::string(fileChange[0].text.c_str())).getTree();
       }
       catch (handled_error const&)
       {
@@ -355,17 +357,17 @@ std::string wslUnix2Dos(std::string const& unixPath)
     logInfo("onClose notification");
   }
 
-#pragma endregion
+//#pragma endregion
 
-#pragma region requests
+//#pragma region requests
   td_initialize::response AsymptoteLspServer::handleInitailizeRequest(td_initialize::request const& req)
   {
     clearVariables();
 
-    symmapContextsPtr=std::make_unique<SymContextFilemap>();
-    fileContentsPtr=std::make_unique<
+    symmapContextsPtr=make_unique<SymContextFilemap>();
+    fileContentsPtr=make_unique<
             std::remove_reference<decltype(*fileContentsPtr)>::type>();
-    plainFile=settings::locateFile("plain", true);
+    plainFile=settings::locateFile("plain", true).c_str();
     plainCtx=reloadFileRaw(plainFile, false);
     generateMissingTrees(plainFile);
 
@@ -405,14 +407,21 @@ std::string wslUnix2Dos(std::string const& unixPath)
       return rsp;
     }
 
-    auto[st, ctx]=fileSymPtr->searchSymbol(fromLsPosition(req.params.position));
+      auto s=fileSymPtr->searchSymbol(fromLsPosition(req.params.position));
+      auto st=std::get<0>(s);
+      auto ctx=std::get<1>(s);
+
     if (not st.has_value())
     {
       rsp.result.contents.first=nullVec;
       return rsp;
     }
 
-    auto[symText, startPos, endPos] = st.value();
+    auto v=st.value();
+    auto symText=std::get<0>(v);
+    auto startPos=std::get<1>(v);
+    auto endPos=std::get<2>(v);
+
     rsp.result.range=make_optional(lsRange(toLsPosition(startPos), toLsPosition(endPos)));
 
     auto typ=ctx->searchLitSignature(symText);
@@ -447,7 +456,9 @@ std::string wslUnix2Dos(std::string const& unixPath)
         cif.color = static_cast<TextDocument::Color>(*colorPtr);
         cif.range.start=toLsPosition(colorPtr->rangeBegin);
 
-        auto& [line, colm] = colorPtr->lastArgPosition;
+        auto s=colorPtr->lastArgPosition;
+        auto& line=std::get<0>(s);
+        auto& colm=std::get<1>(s);
         size_t offset = 0;
         size_t lineOffset = 0;
 
@@ -550,7 +561,9 @@ std::string wslUnix2Dos(std::string const& unixPath)
     if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
     {
       posInFile pos = fromLsPosition(req.params.position);
-      auto[st, ctx]=fileSymPtr->searchSymbol(pos);
+      auto s=fileSymPtr->searchSymbol(pos);
+      auto st=std::get<0>(s);
+      auto ctx=std::get<1>(s);
       if (st.has_value())
       {
         optional<posRangeInFile> posRange=ctx->searchLitPosition(std::get<0>(st.value()), pos);
@@ -567,7 +580,9 @@ std::string wslUnix2Dos(std::string const& unixPath)
             posRanges.begin(), posRanges.end(), std::back_inserter(rsp.result.first.value()),
             [](posRangeInFile const& posRange)
             {
-              auto& [fil, posBegin, posEnd] = posRange;
+              auto& fil=std::get<0>(posRange);
+              auto& posBegin=std::get<1>(posRange);
+              auto& posEnd=std::get<2>(posRange);
               lsRange rng(toLsPosition(posBegin), toLsPosition(posEnd));
 
               std::string filReturn(
@@ -579,7 +594,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
     return rsp;
   }
 
-#pragma endregion
+//#pragma endregion
   void AsymptoteLspServer::reloadFile(std::string const& filename)
   {
     std::string rawPath=settings::getSetting<bool>("wsl") ? wslDos2Unix(filename) : std::string(filename);
@@ -608,7 +623,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
   {
     if (blk != nullptr)
     {
-      SearchPathAddition sp(stripFile(string(rawPath)));
+      SearchPathAddition sp(stripFile(string(rawPath.c_str())));
       auto it=symmapContextsPtr->find(rawPath);
       if (it != symmapContextsPtr->end())
       {
@@ -616,9 +631,9 @@ std::string wslUnix2Dos(std::string const& unixPath)
       }
       else
       {
-        auto[fit, success] = symmapContextsPtr->emplace(
-                rawPath, std::make_unique<SymbolContext>(posInFile(1, 1), rawPath));
-        it=fit;
+        auto s = symmapContextsPtr->emplace(
+                rawPath, make_unique<SymbolContext>(posInFile(1, 1), rawPath));
+        it=std::get<0>(s);
       }
 
       SymbolContext* newPtr=it->second.get();
@@ -651,7 +666,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
   SymbolContext* AsymptoteLspServer::reloadFileRaw(std::string const& rawPath, bool const& fillTree)
   {
     updateFileContentsTable(rawPath);
-    block* blk=ifile(mem::string(rawPath)).getTree();
+    block* blk=ifile(mem::string(rawPath.c_str())).getTree();
     return reloadFileRaw(blk, rawPath, fillTree);
   }
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common.h"
-
 #include <LibLsp/lsp/lsPosition.h>
 #include <LibLsp/lsp/textDocument/documentColor.h>
 
@@ -9,6 +7,9 @@
 #include <unordered_set>
 #include <tuple>
 #include <utility>
+
+#include "common.h"
+#include "makeUnique.h"
 
 namespace AsymptoteLsp
 {
@@ -250,18 +251,21 @@ namespace AsymptoteLsp
     [[nodiscard]]
     RGBAColor getRGBAColor() const
     {
-      auto const& [red, green, blue] = getRGBColor();
-      return RGBAColor(red, green, blue, getAlpha());
+      RGBColor c=getRGBColor();
+      auto const& red=std::get<0>(c);
+      auto const& green=std::get<1>(c);
+      auto const& blue=std::get<2>(c);
+      return RGBAColor(red,green,blue,getAlpha());
     }
 
     explicit operator TextDocument::Color() const
     {
       TextDocument::Color col;
-      auto const& [red, green, blue, alpha] = getRGBAColor();
-      col.red = red;
-      col.green = green;
-      col.blue = blue;
-      col.alpha = alpha;
+      RGBAColor c=getRGBAColor();
+      col.red=std::get<0>(c);
+      col.green=std::get<1>(c);
+      col.blue=std::get<2>(c);
+      col.alpha=std::get<3>(c);
       return col;
     }
 
@@ -366,9 +370,11 @@ namespace AsymptoteLsp
     varDec(symMap.varDec), funDec(symMap.funDec), varUsage(symMap.varUsage), typeDecs(),
     usageByLines(symMap.usageByLines)
     {
-      for (auto const& [ty, tyDec] : symMap.typeDecs)
+      for(auto const& t : symMap.typeDecs)
       {
-          typeDecs.emplace(ty, tyDec != nullptr ? tyDec->clone() : nullptr);
+        auto const& ty=std::get<0>(t);
+        auto const& tyDec=std::get<1>(t);
+        typeDecs.emplace(ty, tyDec != nullptr ? tyDec->clone() : nullptr);
       }
     }
 
@@ -380,11 +386,12 @@ namespace AsymptoteLsp
       usageByLines = symMap.usageByLines;
 
       typeDecs.clear();
-      for (auto const& [ty, tyDec] : symMap.typeDecs)
+      for(auto const& t : symMap.typeDecs)
       {
+        auto const& ty=std::get<0>(t);
+        auto const& tyDec=std::get<1>(t);
         typeDecs.emplace(ty, tyDec != nullptr ? tyDec->clone() : nullptr);
       }
-
       return *this;
     }
 
@@ -459,25 +466,25 @@ namespace AsymptoteLsp
 
     bool addEmptyExtRef(std::string const& fileName)
     {
-      auto [it, success] = extFileRefs.emplace(fileName, nullptr);
+      auto success=std::get<1>(extFileRefs.emplace(fileName, nullptr));
       return success;
     }
 
     bool addAccessVal(std::string const& symbol)
     {
-      auto [_, success] = accessVals.emplace(symbol);
+      auto success=std::get<1>(accessVals.emplace(symbol));
       return success;
     }
 
     bool addUnravelVal(std::string const& symbol)
     {
-      auto [_, success] = unraveledVals.emplace(symbol);
+      auto success=std::get<1>(unraveledVals.emplace(symbol));
       return success;
     }
 
     bool addFromAccessVal(std::string const& fileName, std::string const& symbolSrc, std::string const& symbolDest)
     {
-      auto [_, success] = fromAccessVals.emplace(symbolDest, make_pair(symbolSrc, fileName));
+      auto success=std::get<1>(fromAccessVals.emplace(symbolDest, make_pair(symbolSrc, fileName)));
       return success;
     }
   };
@@ -519,14 +526,16 @@ namespace AsymptoteLsp
     template<typename T=SymbolContext, typename=std::enable_if<std::is_base_of<SymbolContext, T>::value>>
     T* newContext(posInFile const& loc)
     {
-      auto& newCtx = subContexts.emplace_back(std::make_unique<T>(loc, this));
-      return static_cast<T*>(newCtx.get());
+      subContexts.emplace_back(make_unique<T>(loc, this));
+      return static_cast<T*>(subContexts.back().get());
     }
 
     template<typename T=TypeDec, typename=std::enable_if<std::is_base_of<TypeDec, T>::value>>
     T* newTypeDec(std::string const& tyName, posInFile const& loc)
     {
-      auto [it, succ] = symMap.typeDecs.emplace(tyName, std::make_unique<T>(loc, tyName));
+      auto s=symMap.typeDecs.emplace(tyName, make_unique<T>(loc, tyName));
+      auto it=std::get<0>(s);
+      auto succ=std::get<1>(s);
       return succ ? static_cast<T*>(it->second.get()) : static_cast<T*>(nullptr);
     }
 
@@ -661,23 +670,30 @@ namespace AsymptoteLsp
 
 
     void addRGBColor(
-            std::tuple<double, double, double> const& color,
+            std::tuple<double, double, double> const& c,
             posInFile const& posBegin,
             posInFile const& lastArgs)
     {
-      auto const& [red, green, blue] = color;
-      auto& ptr = colorInformation.emplace_back(std::make_unique<RGBSymColorInfo>(red, green, blue));
+      auto const& red=std::get<0>(c);
+      auto const& green=std::get<1>(c);
+      auto const& blue=std::get<2>(c);
+      colorInformation.emplace_back(make_unique<RGBSymColorInfo>(red,green,blue));
+      auto const& ptr=colorInformation.back();
       ptr->rangeBegin = posBegin;
       ptr->setLastArgPos(lastArgs);
     }
 
     void addRGBAColor(
-            std::tuple<double, double, double, double> const& color,
+            std::tuple<double, double, double, double> const& c,
             posInFile const& posBegin,
             posInFile const& lastArgs)
     {
-      auto const& [red, green, blue, alpha] = color;
-      auto& ptr = colorInformation.emplace_back(std::make_unique<RGBASymColorInfo>(red, green, blue, alpha));
+      auto const& red=std::get<0>(c);
+      auto const& green=std::get<1>(c);
+      auto const& blue=std::get<2>(c);
+      auto const& alpha=std::get<3>(c);
+      colorInformation.emplace_back(make_unique<RGBASymColorInfo>(red,green,blue,alpha));
+      auto const& ptr=colorInformation.back();
       ptr->rangeBegin = posBegin;
       ptr->setLastArgPos(lastArgs);
     }
@@ -725,7 +741,8 @@ namespace AsymptoteLsp
         if (aliasSearch != extRefs.fromAccessVals.end())
         {
           // there's an alias to dest -> [src, ctx].
-          auto const& [src, fileName] = aliasSearch->second;
+          auto const& src=std::get<0>(aliasSearch->second);
+          auto const& fileName=std::get<1>(aliasSearch->second);
 
           auto baseTrav = base.find(fileName);
           if (baseTrav == base.end())
@@ -764,7 +781,8 @@ namespace AsymptoteLsp
             TFn const& fnLocalPredicate, TFn2 const& fnLocalPredicateFirst,
             FnCreateSymbolArgContainer<TArg> const& fnCreateTraverse)
     {
-      auto [it, notSearched] = searched.emplace(getParent());
+      auto p=searched.emplace(getParent());
+      auto const& notSearched=std::get<1>(p);
       if (not notSearched)
       {
         // a loop in the search path. Stop now.
@@ -792,10 +810,10 @@ namespace AsymptoteLsp
             FnCreateSymbolArgContainer<TArg> const& fnCreateTraverse)
     {
       using travType = std::pair<std::string, std::unordered_set<TArg>>;
-      for (travType const& travArg : fnCreateTraverse(this, searchArgs))
+      for (travType const travArg : fnCreateTraverse(this, searchArgs))
       {
-        std::string const& traverseVal = travArg.first;
-        std::unordered_set<TArg> const& argSet = travArg.second;
+        std::string const traverseVal = travArg.first;
+        std::unordered_set<TArg> const argSet = travArg.second;
         if (traverseVal == getFileName())
         {
           continue;
@@ -838,7 +856,8 @@ namespace AsymptoteLsp
             TFn const& fnLocalPredicate, TFn2 const& fnLocalPredicateFirst,
             FnCreateSymbolArgContainer<TArg> const& fnCreateTraverse)
     {
-      auto [it, notSearched] = searched.emplace(getParent());
+      auto p=searched.emplace(getParent());
+      auto const& notSearched=std::get<1>(p);
       if (not notSearched)
       {
         // a loop in the search path. Stop now.
@@ -865,10 +884,10 @@ namespace AsymptoteLsp
     {
       using travType = std::pair<std::string, std::unordered_set<TArg>>;
       std::list<TRet> finalList;
-      for (travType const& travArg : fnCreateTraverse(this, searchArgs))
+      for (travType const travArg : fnCreateTraverse(this, searchArgs))
       {
-        std::string const& traverseVal = travArg.first;
-        std::unordered_set<TArg> const& argSet = travArg.second;
+        std::string const traverseVal = travArg.first;
+        std::unordered_set<TArg> const argSet = travArg.second;
         if (traverseVal == getFileName())
         {
           continue;

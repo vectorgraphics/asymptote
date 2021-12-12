@@ -163,7 +163,6 @@ namespace AsymptoteLsp
     RemoteEndPoint* const remoteEndPoint;
 
   private:
-    [[maybe_unused]]
     shared_ptr<lsp::ProtocolJsonHandler> pjh;
     shared_ptr<GenericEndpoint> ep;
     SymbolContext* plainCtx=NULL;
@@ -188,6 +187,3 @@ namespace AsymptoteLsp
     Condition<bool> serverInitialized;
   };
 }
-
-
-
