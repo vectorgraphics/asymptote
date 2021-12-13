@@ -189,6 +189,7 @@ void nameExp::prettyprint(ostream &out, Int indent)
 
 void nameExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   AsymptoteLsp::SymbolLit accessedName(value->getLit());
   position basePos = getPos();
   AsymptoteLsp::filePos castedPos = dynamic_cast<qualifiedName*>(value) ?
@@ -207,6 +208,7 @@ void nameExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   }
 
   symContext->symMap.usageByLines.emplace_back(castedPos.second, accessedName);
+#endif
 }
 
 
@@ -740,7 +742,9 @@ void argument::prettyprint(ostream &out, Int indent)
 
 void argument::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   val->createSymMap(symContext);
+#endif
 }
 
 void arglist::prettyprint(ostream &out, Int indent)
@@ -753,10 +757,12 @@ void arglist::prettyprint(ostream &out, Int indent)
 
 void arglist::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   for (auto& p: args)
   {
     p.createSymMap(symContext);
   }
+#endif
 }
 
 void callExp::prettyprint(ostream &out, Int indent)
@@ -1077,6 +1083,7 @@ bool callExp::resolved(coenv &e) {
 
 void callExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   callee->createSymMap(symContext);
   args->createSymMap(symContext);
 
@@ -1102,12 +1109,14 @@ void callExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
       symContext->addRGBColor(colVal, beginArgPos, lastArgPos);
     }
   }
+#endif
 }
 
 
 optional<std::tuple<callExp::colorInfo, optional<double>, AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>>
 callExp::getColorInformation()
 {
+#ifdef HAVE_LSP
   if (auto* namedCallee = dynamic_cast<nameExp*>(callee))
   {
     std::string calleeName = static_cast<std::string>(namedCallee->getName());
@@ -1142,6 +1151,7 @@ callExp::getColorInformation()
       return std::make_tuple(col, optional<double>(colors[3]), callee->getPos().LineColumn(), getLineColumn(3));
     }
   }
+#endif
   return nullopt;
 }
 
@@ -1262,7 +1272,9 @@ types::ty *castExp::getType(coenv &e)
 
 void castExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   castee->createSymMap(symContext);
+#endif
 }
 
 
@@ -1546,8 +1558,10 @@ types::ty *assignExp::getType(coenv &e)
 
 void assignExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   dest->createSymMap(symContext);
   value->createSymMap(symContext);
+#endif
 }
 
 

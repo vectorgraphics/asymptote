@@ -1,4 +1,7 @@
 #include "common.h"
+
+#ifdef HAVE_LSP
+
 #include "symbolmaps.h"
 #include "locate.h"
 #include <unordered_map>
@@ -821,3 +824,5 @@ namespace AsymptoteLsp
     return ss.str();
   }
 }
+
+#endif

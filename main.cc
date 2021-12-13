@@ -43,7 +43,10 @@
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
+
+#ifdef HAVE_LSP
 #include "lspserv.h"
+#endif
 
 #include "stack.h"
 
@@ -140,6 +143,7 @@ void *asymain(void *A)
 
   if(interactive) {
     Signal(SIGINT,interruptHandler);
+#ifdef HAVE_LSP
     if (getSetting<bool>("lsp")) {
       AsymptoteLsp::LspLog log;
       auto jsonHandler=std::make_shared<lsp::ProtocolJsonHandler>();
@@ -158,9 +162,9 @@ void *asymain(void *A)
                                                                   log);
       }
       asylsp->start();
-    } else {
+    } else
+#endif
       processPrompt();
-    }
   } else if (getSetting<bool>("listvariables") && numArgs()==0) {
     try {
       doUnrestrictedList();

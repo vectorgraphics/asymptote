@@ -44,7 +44,9 @@ void blockStm::prettyprint(ostream &out, Int indent)
 
 void blockStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   base->createSymMap(symContext->newContext(getPos().LineColumn()));
+#endif
 }
 
 void expStm::prettyprint(ostream &out, Int indent)
@@ -175,7 +177,9 @@ void expStm::interactiveTrans(coenv &e)
 }
 
 void expStm::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
+#ifdef HAVE_LSP
   body->createSymMap(symContext);
+#endif
 }
 
 
@@ -214,6 +218,7 @@ void ifStm::trans(coenv &e)
 
   void ifStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   {
+#ifdef HAVE_LSP
     test->createSymMap(symContext);
     onTrue->createSymMap(symContext);
 
@@ -221,6 +226,7 @@ void ifStm::trans(coenv &e)
     {
       onFalse->createSymMap(symContext);
     }
+#endif
   }
 
 
@@ -294,6 +300,7 @@ void whileStm::trans(coenv &e)
 
 void whileStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   // while (<xyz>) { <body> }
   // the <xyz> part belongs in the main context as the while statement,
   // as it cannot declare new variables and only knows the symbols from that context.
@@ -307,6 +314,7 @@ void whileStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   // only uses the variable already known before this while statement.
 
   body->createSymMap(symContext);
+#endif
 }
 
 
@@ -339,8 +347,10 @@ void doStm::trans(coenv &e)
 
 void doStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   body->createSymMap(symContext);
   test->createSymMap(symContext);
+#endif
 }
 
 
@@ -387,6 +397,7 @@ void forStm::trans(coenv &e)
 
 void forStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   AsymptoteLsp::SymbolContext* ctx(symContext);
   if (init)
   {
@@ -403,6 +414,7 @@ void forStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
     update->createSymMap(ctx);
   }
   body->createSymMap(ctx);
+#endif
 }
 
 void extendedForStm::prettyprint(ostream &out, Int indent)
@@ -485,6 +497,7 @@ void extendedForStm::trans(coenv &e) {
 
 void extendedForStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   auto* declCtx(symContext->newContext(getPos().LineColumn()));
 
   std::string varName(var);
@@ -500,6 +513,7 @@ void extendedForStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
                   ));
   set->createSymMap(symContext);
   body->createSymMap(declCtx);
+#endif
 }
 
 
@@ -568,10 +582,12 @@ void returnStm::trans(coenv &e)
 
 void returnStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   if (value)
   {
     value->createSymMap(symContext);
   }
+#endif
 }
 
 

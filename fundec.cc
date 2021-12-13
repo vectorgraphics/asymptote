@@ -181,10 +181,12 @@ void formal::transAsVar(coenv &e, Int index) {
 
 void formal::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   if (start)
   {
     start->createSymMap(symContext);
   }
+#endif
 }
 
 std::pair<std::string, optional<std::string>> formal::fnInfo() const
@@ -212,6 +214,7 @@ void formals::trans(coenv &e)
 
 void formals::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   for (auto& field: fields)
   {
     field->createSymMap(symContext);
@@ -221,11 +224,12 @@ void formals::createSymMap(AsymptoteLsp::SymbolContext* symContext)
   {
     rest->createSymMap(symContext);
   }
-
+#endif
 }
 
 void formals::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
 {
+#ifdef HAVE_LSP
   for (auto const& field: fields)
   {
     fnInfo.arguments.emplace_back(field->fnInfo());
@@ -236,6 +240,7 @@ void formals::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
     fnInfo.restArgs=rest->fnInfo();
   }
   // handle rest case as well
+#endif
 }
 
 void fundef::prettyprint(ostream &out, Int indent)
@@ -264,8 +269,10 @@ function *fundef::transTypeAndAddOps(coenv &e, record *r, bool tacit) {
 
 void fundef::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
 {
-  params->addArgumentsToFnInfo(fnInfo);
+#ifdef HAVE_LSP
+->addArgumentsToFnInfo(fnInfo);
   // handle rest case as well
+#endif
 }
 
 varinit *fundef::makeVarInit(function *ft) {
@@ -346,9 +353,11 @@ types::ty *fundef::trans(coenv &e) {
 
 void fundef::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   auto* declCtx(symContext->newContext<AsymptoteLsp::AddDeclContexts>(getPos().LineColumn()));
   params->createSymMap(declCtx);
   body->createSymMap(declCtx);
+#endif
 }
 
 void fundec::prettyprint(ostream &out, Int indent)
@@ -374,11 +383,13 @@ void fundec::transAsField(coenv &e, record *r)
 
 void fundec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
+#ifdef HAVE_LSP
   AsymptoteLsp::FunctionInfo& fnInfo=symContext->symMap.addFunDef(static_cast<std::string>(id),
                                               getPos().LineColumn(),
                                               static_cast<std::string>(*fun.result));
   fun.addArgumentsToFnInfo(fnInfo);
   fun.createSymMap(symContext);
+#endif
 }
 
 } // namespace absyntax

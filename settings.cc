@@ -951,6 +951,7 @@ struct versionOption : public option {
     bool fftw3=false;
     bool xdr=false;
     bool curl=false;
+    bool lsp=false;
     bool readline=false;
     bool editline=false;
     bool sigsegv=false;
@@ -984,6 +985,10 @@ struct versionOption : public option {
     curl=true;
 #endif
 
+#ifdef HAVE_LSP
+    lsp=true;
+#endif
+
 #ifdef HAVE_LIBCURSES
 #ifdef HAVE_LIBREADLINE
     readline=true;
@@ -1013,6 +1018,7 @@ struct versionOption : public option {
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("XDR      external data representation (portable binary file format)",xdr);
     feature("CURL     URL support",curl);
+    feature("lsp      language server protocol",lsp);
     feature("Readline interactive history and editing",readline);
     if(!readline)
       feature("Editline interactive editing (if Readline is unavailable)",editline);

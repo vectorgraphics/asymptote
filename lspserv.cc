@@ -2,8 +2,10 @@
 // Created by Supakorn on 5/13/2021.
 //
 
-
 #include "common.h"
+
+#ifdef HAVE_LSP
+
 #include "lspserv.h"
 
 #include <LibLsp/JsonRpc/stream.h>
@@ -735,3 +737,5 @@ std::string wslUnix2Dos(std::string const& unixPath)
     logInfo("Got server closed notification.");
   }
 }
+
+#endif
