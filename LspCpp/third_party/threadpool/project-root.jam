@@ -1,0 +1,2 @@
+import os ;
+path-constant BOOST_ROOT : [ os.environ BOOST_ROOT ] ;

@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="STDIO_CLIENT_EXAMPLE|Win32">
+      <Configuration>STDIO_CLIENT_EXAMPLE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="STDIO_CLIENT_EXAMPLE|x64">
+      <Configuration>STDIO_CLIENT_EXAMPLE</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="STDIO_SERVER_EXAMPLE|Win32">
+      <Configuration>STDIO_SERVER_EXAMPLE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="STDIO_SERVER_EXAMPLE|x64">
+      <Configuration>STDIO_SERVER_EXAMPLE</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="TCP_SERVER_EXAMPLE|Win32">
+      <Configuration>TCP_SERVER_EXAMPLE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="TCP_SERVER_EXAMPLE|x64">
+      <Configuration>TCP_SERVER_EXAMPLE</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="WEBSOCKET_SERVER_EXAMPLE|Win32">
+      <Configuration>WEBSOCKET_SERVER_EXAMPLE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="WEBSOCKET_SERVER_EXAMPLE|x64">
+      <Configuration>WEBSOCKET_SERVER_EXAMPLE</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{F45A78DC-E57C-4AF6-8719-29833E3BFE07}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>LspCpp</RootNamespace>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TCP_SERVER_EXAMPLE|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_SERVER_EXAMPLE|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_CLIENT_EXAMPLE|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='WEBSOCKET_SERVER_EXAMPLE|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TCP_SERVER_EXAMPLE|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_SERVER_EXAMPLE|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_CLIENT_EXAMPLE|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='WEBSOCKET_SERVER_EXAMPLE|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='TCP_SERVER_EXAMPLE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_SERVER_EXAMPLE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_CLIENT_EXAMPLE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='WEBSOCKET_SERVER_EXAMPLE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='TCP_SERVER_EXAMPLE|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_SERVER_EXAMPLE|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_CLIENT_EXAMPLE|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='WEBSOCKET_SERVER_EXAMPLE|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>.\third_party\rapidjson\include;.\third_party\utfcpp\source;.\;.\third_party\threadpool;$(IncludePath)</IncludePath>
+    <OutDir>..\Our_lib_V3</OutDir>
+    <TargetName>LspCppMDD</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TCP_SERVER_EXAMPLE|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>.\third_party\rapidjson\include;.\third_party\utfcpp\source;.\;.\third_party\threadpool;$(IncludePath)</IncludePath>
+    <TargetName>TCP_SERVER_EXAMPLE</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_SERVER_EXAMPLE|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>.\third_party\rapidjson\include;.\third_party\utfcpp\source;.\;.\third_party\threadpool;$(IncludePath)</IncludePath>
+    <TargetName>STDIO_SERVER_EXAMPLE</TargetName>
+    <OutDir>.\bin</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_CLIENT_EXAMPLE|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>.\third_party\rapidjson\include;.\third_party\utfcpp\source;.\;.\third_party\threadpool;$(IncludePath)</IncludePath>
+    <TargetName>STDIO_CLIENT_EXAMPLE</TargetName>
+    <OutDir>.\bin</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='WEBSOCKET_SERVER_EXAMPLE|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>.\third_party\rapidjson\include;.\third_party\utfcpp\source;.\;.\third_party\threadpool;$(IncludePath)</IncludePath>
+    <TargetName>WEBSOCKET_SERVER_EXAMPLE</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TCP_SERVER_EXAMPLE|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_SERVER_EXAMPLE|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_CLIENT_EXAMPLE|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='WEBSOCKET_SERVER_EXAMPLE|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\Our_lib_V3</OutDir>
+    <TargetName>LspCppMD</TargetName>
+    <IncludePath>.\third_party\rapidjson\include;.\third_party\utfcpp\source;.\;.\third_party\threadpool;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TCP_SERVER_EXAMPLE|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;TCP_SERVER_EXAMPLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_SERVER_EXAMPLE|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;STDIO_SERVER_EXAMPLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_CLIENT_EXAMPLE|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;STDIO_CLIENT_EXAMPLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='WEBSOCKET_SERVER_EXAMPLE|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;WEBSOCKET_SERVER_EXAMPLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TCP_SERVER_EXAMPLE|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_SERVER_EXAMPLE|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='STDIO_CLIENT_EXAMPLE|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='WEBSOCKET_SERVER_EXAMPLE|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="example\StdIOClientExample.cpp" />
+    <ClCompile Include="example\StdIOServerExample.cpp" />
+    <ClCompile Include="example\TcpServerExample.cpp" />
+    <ClCompile Include="example\WebsocketExample.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\Context.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\serializer.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\TcpServer.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\threaded_queue.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\WebSocketServer.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\RemoteEndPoint.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\GCThreadContext.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\Endpoint.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\message.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\MessageJsonHandler.cpp" />
+    <ClCompile Include="LibLsp\JsonRpc\StreamMessageProducer.cpp" />
+    <ClCompile Include="LibLsp\lsp\extention\sct\sct.cpp" />
+    <ClCompile Include="LibLsp\lsp\general\initialize.cpp" />
+    <ClCompile Include="LibLsp\lsp\lsp.cpp" />
+    <ClCompile Include="LibLsp\lsp\lsp_diagnostic.cpp" />
+    <ClCompile Include="LibLsp\lsp\Markup\Markup.cpp" />
+    <ClCompile Include="LibLsp\lsp\ParentProcessWatcher.cpp" />
+    <ClCompile Include="LibLsp\lsp\ProtocolJsonHandler.cpp" />
+    <ClCompile Include="LibLsp\lsp\textDocument\textDocument.cpp" />
+    <ClCompile Include="LibLsp\lsp\utils.cpp" />
+    <ClCompile Include="LibLsp\lsp\working_files.cpp" />
+    <ClCompile Include="network\uri\detail\uri_advance_parts.cpp" />
+    <ClCompile Include="network\uri\detail\uri_normalize.cpp" />
+    <ClCompile Include="network\uri\detail\uri_parse.cpp" />
+    <ClCompile Include="network\uri\detail\uri_parse_authority.cpp" />
+    <ClCompile Include="network\uri\detail\uri_resolve.cpp" />
+    <ClCompile Include="network\uri\uri.cpp" />
+    <ClCompile Include="network\uri\uri_builder.cpp" />
+    <ClCompile Include="network\uri\uri_errors.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LibLsp\JsonRpc\Cancellation.h" />
+    <ClInclude Include="LibLsp\JsonRpc\Condition.h" />
+    <ClInclude Include="LibLsp\JsonRpc\Context.h" />
+    <ClInclude Include="LibLsp\JsonRpc\json.h" />
+    <ClInclude Include="LibLsp\JsonRpc\lsRequestId.h" />
+    <ClInclude Include="LibLsp\JsonRpc\lsResponseMessage.h" />
+    <ClInclude Include="LibLsp\JsonRpc\message.h" />
+    <ClInclude Include="LibLsp\JsonRpc\NotificationInMessage.h" />
+    <ClInclude Include="LibLsp\JsonRpc\RemoteEndPoint.h" />
+    <ClInclude Include="LibLsp\JsonRpc\GCThreadContext.h" />
+    <ClInclude Include="LibLsp\JsonRpc\Endpoint.h" />
+    <ClInclude Include="LibLsp\JsonRpc\MessageIssue.h" />
+    <ClInclude Include="LibLsp\JsonRpc\MessageJsonHandler.h" />
+    <ClInclude Include="LibLsp\JsonRpc\MessageProducer.h" />
+    <ClInclude Include="LibLsp\JsonRpc\RequestInMessage.h" />
+    <ClInclude Include="LibLsp\JsonRpc\ScopeExit.h" />
+    <ClInclude Include="LibLsp\JsonRpc\serializer.h" />
+    <ClInclude Include="LibLsp\JsonRpc\stream.h" />
+    <ClInclude Include="LibLsp\JsonRpc\StreamMessageProducer.h" />
+    <ClInclude Include="LibLsp\JsonRpc\TcpServer.h" />
+    <ClInclude Include="LibLsp\JsonRpc\threaded_queue.h" />
+    <ClInclude Include="LibLsp\JsonRpc\traits.h" />
+    <ClInclude Include="LibLsp\JsonRpc\WebSocketServer.h" />
+    <ClInclude Include="LibLsp\lsp\AbsolutePath.h" />
+    <ClInclude Include="LibLsp\lsp\ClientPreferences.h" />
+    <ClInclude Include="LibLsp\lsp\client\registerCapability.h" />
+    <ClInclude Include="LibLsp\lsp\client\unregisterCapability.h" />
+    <ClInclude Include="LibLsp\lsp\CodeActionParams.h" />
+    <ClInclude Include="LibLsp\lsp\Directory.h" />
+    <ClInclude Include="LibLsp\lsp\ExecuteCommandParams.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\addOverridableMethods.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\buildWorkspace.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\checkConstructorsStatus.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\checkDelegateMethodsStatus.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\checkHashCodeEqualsStatus.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\checkToStringStatus.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\classFileContents.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\codeActionResult.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\executeCommand.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\findLinks.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\generateAccessors.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\generateConstructors.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\generateDelegateMethods.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\generateHashCodeEquals.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\generateToString.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\getMoveDestinations.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\getRefactorEdit.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\listOverridableMethods.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\Move.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\organizeImports.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\OverridableMethod.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\projectConfigurationUpdate.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\resolveUnimplementedAccessors.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\searchSymbols.h" />
+    <ClInclude Include="LibLsp\lsp\extention\jdtls\WorkspaceSymbolParams.h" />
+    <ClInclude Include="LibLsp\lsp\extention\sct\protocol.h" />
+    <ClInclude Include="LibLsp\lsp\extention\sct\sct.h" />
+    <ClInclude Include="LibLsp\lsp\extention\sct\SCTConfig.h" />
+    <ClInclude Include="LibLsp\lsp\extention\sonarlint\protocol.h" />
+    <ClInclude Include="LibLsp\lsp\general\exit.h" />
+    <ClInclude Include="LibLsp\lsp\general\initialize.h" />
+    <ClInclude Include="LibLsp\lsp\general\initialized.h" />
+    <ClInclude Include="LibLsp\lsp\general\InitializeParams.h" />
+    <ClInclude Include="LibLsp\lsp\general\lsClientCapabilities.h" />
+    <ClInclude Include="LibLsp\lsp\general\lsServerCapabilities.h" />
+    <ClInclude Include="LibLsp\lsp\general\lsTextDocumentClientCapabilities.h" />
+    <ClInclude Include="LibLsp\lsp\general\lsWorkspaceClientCapabilites.h" />
+    <ClInclude Include="LibLsp\lsp\general\progress.h" />
+    <ClInclude Include="LibLsp\lsp\general\shutdown.h" />
+    <ClInclude Include="LibLsp\lsp\IProgressMonitor.h" />
+    <ClInclude Include="LibLsp\lsp\language\language.h" />
+    <ClInclude Include="LibLsp\lsp\location_type.h" />
+    <ClInclude Include="LibLsp\lsp\lru_cache.h" />
+    <ClInclude Include="LibLsp\lsp\lsAny.h" />
+    <ClInclude Include="LibLsp\lsp\lsCodeAction.h" />
+    <ClInclude Include="LibLsp\lsp\lsCommand.h" />
+    <ClInclude Include="LibLsp\lsp\lsDocumentUri.h" />
+    <ClInclude Include="LibLsp\lsp\lsFormattingOptions.h" />
+    <ClInclude Include="LibLsp\lsp\lsMarkedString.h" />
+    <ClInclude Include="LibLsp\lsp\lsPosition.h" />
+    <ClInclude Include="LibLsp\lsp\lsp_code_action.h" />
+    <ClInclude Include="LibLsp\lsp\lsp_completion.h" />
+    <ClInclude Include="LibLsp\lsp\lsp_diagnostic.h" />
+    <ClInclude Include="LibLsp\lsp\lsRange.h" />
+    <ClInclude Include="LibLsp\lsp\lsResponseError.h" />
+    <ClInclude Include="LibLsp\lsp\lsTextDocumentEdit.h" />
+    <ClInclude Include="LibLsp\lsp\lsTextDocumentIdentifier.h" />
+    <ClInclude Include="LibLsp\lsp\lsTextDocumentItem.h" />
+    <ClInclude Include="LibLsp\lsp\lsTextDocumentPositionParams.h" />
+    <ClInclude Include="LibLsp\lsp\lsTextEdit.h" />
+    <ClInclude Include="LibLsp\lsp\lsVersionedTextDocumentIdentifier.h" />
+    <ClInclude Include="LibLsp\lsp\lsWorkspaceEdit.h" />
+    <ClInclude Include="LibLsp\lsp\Markup\Markup.h" />
+    <ClInclude Include="LibLsp\lsp\Markup\string_ref.h" />
+    <ClInclude Include="LibLsp\lsp\method_type.h" />
+    <ClInclude Include="LibLsp\lsp\out_list.h" />
+    <ClInclude Include="LibLsp\lsp\ParentProcessWatcher.h" />
+    <ClInclude Include="LibLsp\lsp\ProcessIoService.h" />
+    <ClInclude Include="LibLsp\lsp\ProtocolJsonHandler.h" />
+    <ClInclude Include="LibLsp\lsp\ResourceOperation.h" />
+    <ClInclude Include="LibLsp\lsp\SimpleTimer.h" />
+    <ClInclude Include="LibLsp\lsp\symbol.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\callHierarchy.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\code_action.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\code_lens.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\colorPresentation.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\completion.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\declaration_definition.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\didRenameFiles.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\did_change.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\did_close.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\did_open.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\did_save.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\documentColor.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\document_link.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\document_symbol.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\foldingRange.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\formatting.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\highlight.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\hover.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\implementation.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\linkedEditingRange.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\onTypeFormatting.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\prepareRename.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\publishDiagnostics.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\range_formatting.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\references.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\rename.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\resolveCodeLens.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\resolveCompletionItem.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\resolveTypeHierarchy.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\selectionRange.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\semanticHighlighting.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\SemanticTokens.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\signature_help.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\typeHierarchy.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\type_definition.h" />
+    <ClInclude Include="LibLsp\lsp\textDocument\willSave.h" />
+    <ClInclude Include="LibLsp\lsp\utils.h" />
+    <ClInclude Include="LibLsp\lsp\windows\MessageNotify.h" />
+    <ClInclude Include="LibLsp\lsp\working_files.h" />
+    <ClInclude Include="LibLsp\lsp\workspace\applyEdit.h" />
+    <ClInclude Include="LibLsp\lsp\workspace\configuration.h" />
+    <ClInclude Include="LibLsp\lsp\workspace\didChangeWorkspaceFolders.h" />
+    <ClInclude Include="LibLsp\lsp\workspace\did_change_configuration.h" />
+    <ClInclude Include="LibLsp\lsp\workspace\did_change_watched_files.h" />
+    <ClInclude Include="LibLsp\lsp\workspace\execute_command.h" />
+    <ClInclude Include="LibLsp\lsp\workspace\symbol.h" />
+    <ClInclude Include="LibLsp\lsp\workspace\workspaceFolders.h" />
+    <ClInclude Include="network\optional.hpp" />
+    <ClInclude Include="network\string_view.hpp" />
+    <ClInclude Include="network\uri.hpp" />
+    <ClInclude Include="network\uri\config.hpp" />
+    <ClInclude Include="network\uri\detail\algorithm.hpp" />
+    <ClInclude Include="network\uri\detail\decode.hpp" />
+    <ClInclude Include="network\uri\detail\encode.hpp" />
+    <ClInclude Include="network\uri\detail\grammar.hpp" />
+    <ClInclude Include="network\uri\detail\translate.hpp" />
+    <ClInclude Include="network\uri\detail\uri_advance_parts.hpp" />
+    <ClInclude Include="network\uri\detail\uri_normalize.hpp" />
+    <ClInclude Include="network\uri\detail\uri_parse.hpp" />
+    <ClInclude Include="network\uri\detail\uri_parse_authority.hpp" />
+    <ClInclude Include="network\uri\detail\uri_parts.hpp" />
+    <ClInclude Include="network\uri\detail\uri_percent_encode.hpp" />
+    <ClInclude Include="network\uri\detail\uri_resolve.hpp" />
+    <ClInclude Include="network\uri\uri.hpp" />
+    <ClInclude Include="network\uri\uri_builder.hpp" />
+    <ClInclude Include="network\uri\uri_errors.hpp" />
+    <ClInclude Include="network\uri\uri_io.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\tencent.rapidjson.1.1.1\build\tencent.rapidjson.targets" Condition="Exists('packages\tencent.rapidjson.1.1.1\build\tencent.rapidjson.targets')" />
+    <Import Project="..\packages\boost.1.76.0.0\build\boost.targets" Condition="Exists('..\packages\boost.1.76.0.0\build\boost.targets')" />
+    <Import Project="..\packages\boost_chrono-vc141.1.76.0.0\build\boost_chrono-vc141.targets" Condition="Exists('..\packages\boost_chrono-vc141.1.76.0.0\build\boost_chrono-vc141.targets')" />
+    <Import Project="..\packages\boost_context-vc141.1.76.0.0\build\boost_context-vc141.targets" Condition="Exists('..\packages\boost_context-vc141.1.76.0.0\build\boost_context-vc141.targets')" />
+    <Import Project="..\packages\boost_coroutine-vc141.1.76.0.0\build\boost_coroutine-vc141.targets" Condition="Exists('..\packages\boost_coroutine-vc141.1.76.0.0\build\boost_coroutine-vc141.targets')" />
+    <Import Project="..\packages\boost_date_time-vc141.1.76.0.0\build\boost_date_time-vc141.targets" Condition="Exists('..\packages\boost_date_time-vc141.1.76.0.0\build\boost_date_time-vc141.targets')" />
+    <Import Project="..\packages\boost_filesystem-vc141.1.76.0.0\build\boost_filesystem-vc141.targets" Condition="Exists('..\packages\boost_filesystem-vc141.1.76.0.0\build\boost_filesystem-vc141.targets')" />
+    <Import Project="..\packages\boost_program_options-vc141.1.76.0.0\build\boost_program_options-vc141.targets" Condition="Exists('..\packages\boost_program_options-vc141.1.76.0.0\build\boost_program_options-vc141.targets')" />
+    <Import Project="..\packages\boost_regex-vc141.1.76.0.0\build\boost_regex-vc141.targets" Condition="Exists('..\packages\boost_regex-vc141.1.76.0.0\build\boost_regex-vc141.targets')" />
+    <Import Project="..\packages\boost_system-vc140.1.76.0.0\build\boost_system-vc140.targets" Condition="Exists('..\packages\boost_system-vc140.1.76.0.0\build\boost_system-vc140.targets')" />
+    <Import Project="..\packages\boost_thread-vc141.1.76.0.0\build\boost_thread-vc141.targets" Condition="Exists('..\packages\boost_thread-vc141.1.76.0.0\build\boost_thread-vc141.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\boost.1.76.0.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.76.0.0\build\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_chrono-vc141.1.76.0.0\build\boost_chrono-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono-vc141.1.76.0.0\build\boost_chrono-vc141.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_context-vc141.1.76.0.0\build\boost_context-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_context-vc141.1.76.0.0\build\boost_context-vc141.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_coroutine-vc141.1.76.0.0\build\boost_coroutine-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_coroutine-vc141.1.76.0.0\build\boost_coroutine-vc141.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_date_time-vc141.1.76.0.0\build\boost_date_time-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_date_time-vc141.1.76.0.0\build\boost_date_time-vc141.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_filesystem-vc141.1.76.0.0\build\boost_filesystem-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_filesystem-vc141.1.76.0.0\build\boost_filesystem-vc141.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_program_options-vc141.1.76.0.0\build\boost_program_options-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_program_options-vc141.1.76.0.0\build\boost_program_options-vc141.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_regex-vc141.1.76.0.0\build\boost_regex-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex-vc141.1.76.0.0\build\boost_regex-vc141.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_system-vc140.1.76.0.0\build\boost_system-vc140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_system-vc140.1.76.0.0\build\boost_system-vc140.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_thread-vc141.1.76.0.0\build\boost_thread-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_thread-vc141.1.76.0.0\build\boost_thread-vc141.targets'))" />
+  </Target>
+</Project>

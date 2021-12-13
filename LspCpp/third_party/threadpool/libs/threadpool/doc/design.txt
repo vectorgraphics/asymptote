@@ -1,0 +1,35 @@
+/*! \page intro TODO5
+
+
+A thread pool manages a homogeneous pool of worker threads. In general worker threads are created once and are used to 
+process a sequence of tasks. The re-use of threads reduces the thread creation and teardown overhead. The resource 
+consumption is limited as the number of threads can be restricted. This leads to an improved system stability.
+
+Thread-per-task 
+
+TODO5
+
+light-weight, no administration/management thread, synchronized scheduler, e.g. queue
+
+
+ */
+
+
+/*! \page pattern Thread Pool Pattern
+
+
+In the thread pool pattern in programming, a number of N threads are created to perform a number of M tasks, usually organized in a queue. Typically, N << M. As soon as a thread completes its task, it will request the next task from the queue until all tasks have been completed. The thread can then terminate, or sleep until there are new tasks available.
+
+The number of threads used (N) is a parameter that can be tuned to provide the best performance.
+
+The advantage of using a Thread Pool over creating a new thread for each task, is that thread creation and destruction overhead is negated, which may result in better performance and better system stability.
+
+<BR>
+<B>From <A HREF="http://en.wikipedia.org/wiki/Thread_pool_pattern"> Wikipedia </A>, the free encyclopedia.</B>
+
+
+
+ */
+
+
+

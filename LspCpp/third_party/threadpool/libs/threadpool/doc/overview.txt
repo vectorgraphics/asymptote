@@ -1,0 +1,205 @@
+/*! \mainpage threadpool
+
+
+\section intro_sec threadpool
+threadpool is a cross-platform C++ thread pool library. In general terms thread pools
+are an efficient mechanism for asynchronous task processing within the same process. 
+They realise the <A HREF="design/pattern.html"> thread pool pattern</A>.
+
+A thread pool manages a group of threads in order to process a large number of tasks. 
+Since multiple threads can be executed in parallel this approach may be very efficient regarding the overall program performance on many computer systems. By restricting the number of threads and by reusing them resources are saved 
+and additionally the system stability is increased.
+
+The threadpool library provides a convenient way for dispatching asynchronous tasks. Pools can be customized, managed dynamically and easily integrated into your software.
+
+
+\section dev_status_sec Development Status & Future Work
+The threadpool core classes are completed and the implemenation can be considered ready for production code. The library is used by several commercial server applications and can handle high workload without problems. I'm currently working on helper and service classes which make the 
+usage of the pool more comfortable. A small tutorial introduces the thread pool and 
+more example code will be added in the future. The documentation is far away from being finished.
+<BR>
+<BR><A HREF="http://threadpool.cvs.sourceforge.net/threadpool/threadpool">Browse CVS Repository</A>
+<BR>
+
+<P>
+Features
+- Policy-based thread pool implementation<BR>
+- Scheduling policies: fifo, lifo and priority<BR>
+- Size policies: static_size<BR>
+- Size policy controller: empty_controller, resize_controller<BR>
+- Shutdown policies: wait_for_all_tasks, wait_for_active_tasks, immediately<BR>
+- Smooth integration into STL and boost<BR>
+</P>
+
+<P>
+Future Work
+- More policies: deadline_scheduler, ...<BR>
+- Possibility of limiting the number of pending tasks<BR>
+- Futures (handles to results of scheduled functions)<BR>
+- More examples to illustrate the usage of the library<BR>
+- Provide Unit tests<BR>
+</P>
+
+
+
+
+\section down_sec Download Section
+<P>
+threadpool 0.2.5 (Development Snapshot)
+- <A HREF="http://prdownloads.sourceforge.net/threadpool/threadpool-0_2_5-src.zip?download">threadpool-0_2_5-src.zip</A><BR>
+- <A HREF="http://prdownloads.sourceforge.net/threadpool/threadpool-0_2_5-doc.zip?download">threadpool-0_2_5-doc.zip</A><BR>
+</P>
+
+For more information on the revisions see \ref changelog.
+
+
+\section  platforms_sec Supported Platforms
+threadpool is highly portable. It runs on any platform on which Boost threads are available: Linux, Windows, Mac OS 9/X, Solaris, etc.
+
+
+\section boost_sec Boost Libraries
+Boost is a collection of high-quality C++ libraries and works on almost any
+modern operating system, including UNIX and Windows variants. 
+In fact threadpool is only a small extension to the portable Boost source libraries. 
+It incorporates the thread pool concept by using the thread library from William Kempf.
+For more information on this excellent library visit <A HREF="http://www.boost.org">Boost.org</A>.
+
+
+\section installation_sec Installing & Using threadpool
+threadpool consists only of header files, and so there is no need to build the library itself 
+before using it in your own applications. You simply need to add the 
+following directories to your compiler include path:<BR>
+    - threadpool's include directory<BR>
+    - the boost directory (e.g. the one called boost_1_37_0)<BR>
+
+Furthermore you have to compile boost's thread library and link against it (libboost_thread-*.lib under Windows).
+
+
+
+\section license_sec Software License
+threadpool is released under the \ref license "Boost Software License". 
+This license encourages both commercial and non-commercial use.
+
+
+\section acknowledgments_sec Acknowledgments
+This library was written by Philipp Henkel.
+<P>
+I appreciate your suggestions, and would love to know if you 
+use threadpool. Hopefully you will enjoy it and find it useful. 
+Please post questions, comments, bugs, or contact me at:
+
+</P>
+
+threadpool@googlemail.com<BR>
+or<BR>
+<A HREF="http://www.sourceforge.net/projects/threadpool">www.sourceforge.net/projects/threadpool</A>
+<BR>
+<BR>
+*/
+
+
+
+/*! \page license Software License
+
+\verbinclude LICENSE_1_0.txt 
+
+*/
+ 
+ 
+ 
+ /*! \page changelog Change Log
+
+ <B>0.2.5 (Stable)</B>
+  - Made threadpool compatible to boost::thread 1.37
+  - Fixed hang problem in shutdown method (Thanks to Sohail Somani)
+  - Adapted repository layout to boost (Thanks to Alex Ott)
+ 
+<B>0.2.4 (Stable)</B>
+  - Made threadpool compatible to boost::thread 1.35.x code base
+  - Fixed compiler warning in scope_guard.hpp
+ 
+<B>0.2.4 (Stable)</B>
+  - Made threadpool compatible to boost::thread 1.35.x code base
+  - Fixed compiler warning in scope_guard.hpp
+
+<B>0.2.3 (Development)</B>
+  - Implemented workaround for Sun C++ Pro compiler bug in pool_core
+  - Removed subtask implementation (there was no demand for this feature)
+  - Improved shutdown policies
+  
+<B>0.2.2 (Development)</B>
+  - Refactored SizePolicy and added SizePolicyController
+  - Moved policies into separate files
+  - Fixed some compiler problems (GCC)
+  - Implemented size_controller handling
+  - Implemented two size policies: static_size and fixed_size
+  - Refactored worker_thread handling, moved policies from pool_core to pool
+  - Specialized schedule function for usage with futures
+  - Added compile test project
+  - Improved constness in pool core class
+  - Fixed timed wait
+  - Implemented futures (in progress)
+  - Added result_type to all functors
+
+<B>0.2.1 (Development)</B>
+  - Pool base class (thread_pool) has now reference semantics.
+  - Large refactorings: Removed scoped_pool, reimplemented worker (now worker_thread)
+  - Fixed odd resize behaviour. Now resize changes the number of threads immediately.
+  - Apply pimpl idiom on pool core class (to make the ugly scoped_pool class needless)
+  - Introduced scheduling policies
+  - Switched to policy-based design (PBD), inspired by Scott Meyers C++ workshop
+  - Cosmetic code change: Replaced keyword 'class' with 'typename' in template definitions
+  - Revised tutorials
+  - New requirements: tasks functions should not and schedulers shall not throw exceptions
+  
+<B>0.2.0 (Development)</B>
+  - Moved threadpool into the boost namespace: boost::threadpool
+  - Used keyword volatile to indicate thread-safe member functions
+  - Used volatile on primitve types were appropriate
+  - Moved worker to detail directory
+  - Fixed thread deletion
+  - Extended wait functionality (waiting for idle threads was implemented)
+  - Renamed 'join()' to 'wait()' as 'join' indicates the termination of thread. That was not the case in pool::join.
+  - Changed internal container of lifo and fifo schedulers to improve efficiency.
+  - Improved code reference documentation (source code browser)
+  - Renamed thread_func into task_func
+  - Added += operator to scoped_pool to ease scheduling of tasks
+  - Refactored file structures and class names
+  - Added a new task concept (named subtask) which allows the combination of sequential and parallel execution
+  - Added new task adaptor for looped or timed tasks: looped_task_func
+  - Introduced function clear() which can be used to remove all tasks from the pool and schedulers
+  - New function pool::active() which returns the number of active tasks
+
+<B>0.1.8 (Development)</B>
+  - Fixed some compile errors which were reported by gcc
+  - Wrote tutorial "Prioritized Tasks"
+
+<B>0.1.7 (Development)</B>
+  - Added Visual Studio 2005 project files for tutorial and examples
+
+<B>0.1.6 (Development)</B>
+  - Replaced task adaptor 'task' with boost::bind
+  - Workers are unregistered from thread_group when they are terminated
+  - Working on example boost::iostreams packet_filter
+
+<B>0.1.5 (Development)</B>
+  - Finished threadpool reference
+  - Class pool_adaptor was replaced by smart_pool
+  - Minor pool improvements
+  - First tutorial page online 
+
+<B>0.1.4 (Development)</B>
+  - Created the pool's homepage: http://threadpool.sourceforge.net
+  - Improved documentation
+  - Added build scripts
+
+<B>0.1.3 (Development)</B>
+  - First public release
+  - Added mergesort example
+  - Added tutorial 
+  - Implementation of threadpool core and related classes
+
+ */
+
+
+

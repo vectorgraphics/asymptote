@@ -1,0 +1,11 @@
+
+project
+  : requirements
+    <include>../../..
+    <library>/boost/thread//boost_thread
+    <define>BOOST_ALL_NO_LIB=1
+    <threading>multi
+	<link>static
+  ;
+
+exe tutorial : tutorial.cpp ;

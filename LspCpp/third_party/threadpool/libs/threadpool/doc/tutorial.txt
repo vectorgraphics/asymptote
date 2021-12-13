@@ -1,0 +1,207 @@
+/*! \page intro Quick Start
+
+This tutorial introduces the threadpool library by discussing an easy to understand source listing:
+
+\code
+01 
+02  #include "threadpool.hpp"
+03
+04  using namespace boost::threadpool;
+05
+06  // Some example tasks
+07  void first_task()
+08  {
+09    ...
+10  }
+11
+13  void second_task()
+14  {
+15    ...
+16  }
+17
+19  void third_task()
+20  {
+21    ...
+22  }
+23  
+24  void execute_with_threadpool()
+25  {
+26    // Create a thread pool.
+27    pool tp(2);
+28    
+29    // Add some tasks to the pool.
+30    tp.schedule(&first_task);
+31    tp.schedule(&second_task);
+32    tp.schedule(&third_task);
+33
+34    // Leave this function and wait until all tasks are finished.
+35  }
+36
+\endcode
+
+We start by including the necessary header files. The complete threadpool functionality can be used by simply including 
+the "threadpool.hpp" header file at line 2. 
+
+The three functions first_task(), second_task and third_task() are placeholders 
+for tasks that should be executed by our pool. 
+
+The thread pool is created at line 27. The argument indicates the number of initial threads.
+The new pool contains two threads that is two tasks can be processed in parallel. The pool's threads 
+are sleeping until tasks are added.
+By default it uses a Fifo scheduling strategy. 
+Fifo is an abbreviation of "first in, first out"
+and means in this case that the first task which is added is the
+first that will be executed. Generally this is the expected default behaviour
+since the tasks are executed in the order they are added to the pool. 
+
+In line 30 to 32 the task functions are scheduled asynchronously using the pool's schedule function.
+A task is registered and it will be executed as soon as one of the pool's threads is idle.   
+It is very important to understand that the task is only scheduled for execution.
+Schedule returns immediately and there are no guarantees about when the tasks are executed and how long 
+the processing will take. As they are added to a fifo pool with two threads the following is true: 
+- the execution of first_task begins first
+- second_task is started after first_task
+- third_task is begun at last
+- a maximum of two tasks may are processed in parallel
+- each scheduled task will be executed once only
+
+
+The pool reference tp is created in the scope of the function execute_with_threadpool(). When this 
+function returns at line 35 tp goes out of scope and the pool will be destructed. As the default ShutdownPolicy 
+is wait_for_all_tasks it is ensured that all tasks are processed before the pool is destroyed.
+
+\code
+101  
+102  ...
+103  execute_with_threadpool();  // execute first_task, second_task and third_task
+104  // When this line is reached all tasks are finished and the pool is destructed.   
+105  
+\endcode
+
+The small code example clarifies the issue. When the function leaves the pool is shut down
+and waits for the tasks. That means the current thread of execution is blocked 
+at the end of the execute_with_threadpool as long as
+the processing of tasks is in progress.
+
+<BR>
+*/
+
+
+/*! \page prioritized Prioritized Tasks
+
+TODO This tutorial is out dated.
+
+It's easy to prioritize asynchronous tasks by using the task adaptor prio_task_func. 
+The following source listing illustrates how to setup the pool and add the tasks:
+
+\code
+01 
+02  #include "threadpool.hpp"
+03
+04  using namespace boost::threadpool;
+05
+06  // Some example tasks
+07  void normal_task()
+08  {
+09    ...
+10  }
+11
+13  void important_task()
+14  {
+15    ...
+16  }
+17  
+18  void execute_prioritized()
+19  {
+20    // Create prioritized thread pool container without any threads.
+21    scoped_pool<prio_pool, 0> tp;
+22
+23    // Add some tasks to the pool.
+24    tp += prio_task_func(5,   &normal_task);
+25    tp += prio_task_func(100, &important_task);
+26    tp += prio_task_func(7,   &normal_task);
+27
+28    // Add the some threads to the pool. This will start the execution of the tasks.
+29    tp->resize(2);
+30
+31    // The tasks are processed according to their priority: important_task(100), nonrelevant_task(7), nonrelevant_task(5).
+32
+33    tp->wait();
+34    
+35    // Now all tasks are finished and the pool will be destroyed safely when tp goes out of scope.
+36  }
+37
+\endcode
+
+Like in the first tutorial we start including the main header file and defining some tasks.
+
+At line 21 a prioritized thread pool is created. That means that the pool's tasks are arranged 
+according to their priority before they get executed. Therefore the tasks themselves have to realize a partial ordering based 
+on operator<. 
+
+The adaptor prio_thread_func satisfies our requirements regarding the order and is just a small wrapper object for 
+the task functions. In line 24 to 26 some prioritized tasks are scheduled. This time the pool's schedule function is used and like smart pool's += operator 
+this function returns immediately.
+
+At line 29 the first thread is added to the pool and the execution of important_task begins. As we have only one thread 
+the tasks are processed sequentially.
+
+Finally wait() is called to ensure that all tasks are finished before our example function returns 
+and the pool is destroyed. This is very important since the behavior is undefined if pool's lifetime ends while tasks are executed.
+
+*/
+
+
+/*! \page task_adaptor Arbitrary Task Functions
+
+TODO This tutorial is out dated.
+
+
+\section member_task Member Task Functions
+
+using namespace boost::threadpool;
+
+TODO <BR>
+boost::bind(member_function, shared_ptr)
+26    tp->schedule(boost::bind(task_with_parameter, 42));
+12  // Second example task
+13  void task_with_parameter(int value)
+14  {
+15    ...
+16  }
+
+\section member_task Functions With Arguments
+
+*/
+
+ 
+/*! \page instantiation Advanced Instantiation
+
+TODO This tutorial is out dated.
+
+TODO <BR>
+Pool instantiation
+\code
+
+    boost::shared_ptr<fifo_pool> tp = fifo_pool::create_pool(5);			
+
+    print("  Add tasks ...\n");
+    tp->schedule(&task_1);
+    tp->schedule(&task_2);
+    tp->schedule(&task_3);
+
+    tp->schedule(looped_task_func(&looped_task, 1500));
+
+    print("  Wait until all tasks are finished ...\n");
+    tp->wait();
+    print("  Tasks finished!\n");
+	
+\endcode
+
+
+\code
+    typedef threadpool::pool<boost::function0<void>, threadpool::fifo_scheduler<boost::function0<void> > > pool_type;
+    boost::shared_ptr< pool_type > tp = pool_type::create_pool(5);			
+\endcode
+
+*/
