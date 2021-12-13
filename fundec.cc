@@ -270,7 +270,7 @@ function *fundef::transTypeAndAddOps(coenv &e, record *r, bool tacit) {
 void fundef::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo)
 {
 #ifdef HAVE_LSP
-->addArgumentsToFnInfo(fnInfo);
+  params->addArgumentsToFnInfo(fnInfo);
   // handle rest case as well
 #endif
 }
