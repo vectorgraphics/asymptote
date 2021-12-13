@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = git@github.com:vectorgraphics/LspCpp
+	remote = git@github.com:nemtrif/utfcpp
 	branch = master
-	commit = 200001e951b6bc30f83d8c1b3b2df8624df58757
-	parent = b0617bb6a1c830498aaaebb37cbbb13fd6b5704a
+	commit = b85efd66a76caccbe0c186b00cab34df1e4281fa
+	parent = 00591a09dd2303f7e63431bc8d0487d54e316b23
 	method = merge
 	cmdver = 0.4.1
