@@ -725,7 +725,7 @@ void Export()
       delete Image;
       delete[] data;
     }
-  } catch(handled_error) {
+  } catch(handled_error const&) {
   } catch(std::bad_alloc&) {
     outOfMemory();
   }

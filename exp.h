@@ -238,6 +238,7 @@ public:
     : exp(pos), value(new simpleName(pos, symbol::trans(s))) {}
 
   void prettyprint(ostream &out, Int indent);
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 
   symbol getName()
   {
@@ -363,8 +364,14 @@ class fieldExp : public nameExp {
     void print(ostream& out) const {
       out << "<exp>";
     }
-    symbol getName() {
+
+    symbol getName() const {
       return object->getName();
+    }
+
+    AsymptoteLsp::SymbolLit getLit() const
+    {
+      return AsymptoteLsp::SymbolLit(static_cast<std::string>(object->getName()));
     }
   };
 
@@ -513,6 +520,13 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primInt(); }
+
+  template<typename T>
+  [[nodiscard]]
+  T getValue() const
+  {
+    return static_cast<T>(value);
+  }
 };
 
 class realExp : public literalExp {
@@ -527,6 +541,13 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primReal(); }
+
+  template<typename T>
+  [[nodiscard]]
+  T getValue() const
+  {
+    return static_cast<T>(value);
+  }
 };
 
 
@@ -656,6 +677,7 @@ struct argument {
 #endif
 
   void prettyprint(ostream &out, Int indent);
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext);
 };
 
 class arglist : public gc {
@@ -725,6 +747,8 @@ public:
   virtual argument& getRest() {
     return rest;
   }
+
+  virtual void createSymMap(AsymptoteLsp::SymbolContext* symContext);
 };
 
 // callExp has a global cache of resolved overloaded functions.  This clears
@@ -797,6 +821,16 @@ public:
   }
 
   void prettyprint(ostream &out, Int indent);
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+
+  using colorInfo = std::tuple<double, double, double>;
+
+  /**
+   * @return nullopt if callExp is not a color, pair<color, nullopt> if color is RGB,
+   * and pair<color, alpha> if color is RGBA.
+   */
+  optional<std::tuple<colorInfo, optional<double>,
+    AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>> getColorInformation();
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -866,6 +900,8 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class nullaryExp : public callExp {
@@ -960,6 +996,12 @@ public:
   virtual types::ty *getType(coenv &) {
     return types::primBoolean();
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override
+  {
+    left->createSymMap(symContext);
+    right->createSymMap(symContext);
+  }
 };
 
 class orExp : public andOrExp {
@@ -1042,6 +1084,8 @@ public:
   void transAsType(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class selfExp : public assignExp {

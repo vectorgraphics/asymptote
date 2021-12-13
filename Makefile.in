@@ -11,8 +11,9 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS)
+LFLAGS = @LDFLAGS@ -LLspCpp
+BOOSTLIBS = -lboost_filesystem -lboost_thread
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) -llspcpp $(BOOSTLIBS)
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
 PERL ?= perl
@@ -48,7 +49,8 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures
+	$(PRC) glrender tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures \
+	lspserv symbolmaps
 
 FILES = $(COREFILES) main
 
@@ -79,7 +81,7 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD
 CFLAGS = @CFLAGS@
-OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS)
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp -Llib
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
@@ -122,7 +124,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version glew.o
+asy:	version glew.o liblspcpp.a
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -155,6 +157,9 @@ version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py $(AS
 
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
+
+liblspcpp.a:
+	cd LspCpp && $(MAKE) CPPFLAGS="@OPTIONS@"
 
 all:  	asy sty man faq asy-keywords.el
 
@@ -331,6 +336,7 @@ uninstall-docdir:
 
 clean:  FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *mon.out $(CLEAN)
+	cd LspCpp && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-if test -d $(GC); then \

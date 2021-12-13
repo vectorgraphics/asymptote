@@ -8,10 +8,6 @@ VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 
-test "$CXXFLAGS" || CXXFLAGS="-std=c++11"
-
-test "$CFLAGS" || CFLAGS="-g -O3"
-
 AC_C_BIGENDIAN
 AC_CANONICAL_HOST
 
@@ -20,6 +16,20 @@ Datadir=$datadir
 test "$Datadir" = '${datarootdir}' && Datadir=$datarootdir
 test "$Datadir" = '${prefix}/share' && Datadir=$prefix/share
 AC_SUBST(Datadir)
+
+AC_ARG_ENABLE(lsp,
+[AS_HELP_STRING(--enable-lsp[[[=yes]]],enable Language Server Protocol)])
+if test "x$enable_lsp" != "xno"; then
+cxxstd="c++14"
+else
+cxxstd="c++11"
+AC_MSG_NOTICE([*** Language Server Protocol disabled by configure flag ***])
+fi
+
+test "$CXXFLAGS" || CXXFLAGS="-std=$cxxstd"
+echo Compiling with $CXXFLAGS
+
+test "$CFLAGS" || CFLAGS="-g -O3"
 
 AC_ARG_WITH(latex,
         [AS_HELP_STRING(--with-latex=PATH,
@@ -272,6 +282,13 @@ if test "x$enable_curl" != "xno"; then
   AC_MSG_NOTICE([*** Could not find libcurl: will compile without optional URL support. ***]))
 else
   AC_MSG_NOTICE([*** libcurl support disabled by configure flag: will compile without optional URL support. ***])
+fi
+
+if test "x$enable_lsp" != "xno"; then
+  AC_CHECK_LIB([boost_filesystem],[opendir],
+  [AC_CHECK_LIB([boost_thread],[pthread_attr_getdetachstate],,
+  AC_MSG_NOTICE([*** Could not find libboost_thread: will compile without optional Language Server Protocol. ***]))],
+  AC_MSG_NOTICE([*** Could not find libboost_filesystem: will compile without optional Language Server Protocol. ***]))
 fi
 
 AC_ARG_ENABLE(readline,

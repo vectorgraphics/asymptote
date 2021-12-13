@@ -43,6 +43,7 @@
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
+#include "lspserv.h"
 
 #include "stack.h"
 
@@ -139,11 +140,31 @@ void *asymain(void *A)
 
   if(interactive) {
     Signal(SIGINT,interruptHandler);
-    processPrompt();
+    if (getSetting<bool>("lsp")) {
+      AsymptoteLsp::LspLog log;
+      auto jsonHandler=std::make_shared<lsp::ProtocolJsonHandler>();
+      auto endpoint=std::make_shared<GenericEndpoint>(log);
+
+      unique_ptr<AsymptoteLsp::AsymptoteLspServer> asylsp;
+
+      if(getSetting<string>("lspport") != "") {
+        asylsp=make_unique<AsymptoteLsp::TCPAsymptoteLSPServer>(
+          (std::string)getSetting<string>("lsphost").c_str(),
+          (std::string)getSetting<string>("lspport").c_str(),
+          jsonHandler, endpoint, log);
+      } else {
+        asylsp=make_unique<AsymptoteLsp::AsymptoteLspServer>(jsonHandler,
+                                                                  endpoint,
+                                                                  log);
+      }
+      asylsp->start();
+    } else {
+      processPrompt();
+    }
   } else if (getSetting<bool>("listvariables") && numArgs()==0) {
     try {
       doUnrestrictedList();
-    } catch(handled_error) {
+    } catch(handled_error const&) {
       em.statusError();
     }
   } else {
@@ -160,7 +181,7 @@ void *asymain(void *A)
         processFile("-",true);
         try {
           setOptions(args->argc,args->argv);
-        } catch(handled_error) {
+        } catch(handled_error const&) {
           em.statusError();
         }
         if(inpipe < 0) break;
@@ -171,7 +192,7 @@ void *asymain(void *A)
         try {
           if(ind < n-1)
             setOptions(args->argc,args->argv);
-        } catch(handled_error) {
+        } catch(handled_error const&) {
           em.statusError();
         }
       }
@@ -216,7 +237,7 @@ int main(int argc, char *argv[])
 
   try {
     setOptions(argc,argv);
-  } catch(handled_error) {
+  } catch(handled_error const&) {
     em.statusError();
   }
 

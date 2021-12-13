@@ -55,6 +55,9 @@ public:
   bool isKeywordOnly() {
     return keywordOnly;
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  std::pair<std::string, optional<std::string>> fnInfo() const;
 };
 
 class formals : public absyn {
@@ -122,6 +125,9 @@ public:
   // Add the formal parameters to the environment to prepare for the
   // function body's translation.
   virtual void trans(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo);
 };
 
 class fundef : public exp {
@@ -150,6 +156,9 @@ public:
   virtual types::ty *getType(coenv &e) {
     return transType(e, true);
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo);
 };
 
 class fundec : public dec {
@@ -166,6 +175,8 @@ public:
   void trans(coenv &e);
 
   void transAsField(coenv &e, record *r);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 } // namespace absyntax

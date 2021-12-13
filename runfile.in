@@ -58,7 +58,7 @@ file* input(string name=emptystring, bool check=true,
     f=new igzxfile(name,check);
   } else if(mode == "") {
     char c=comment.empty() ? (char) 0 : comment[0];
-    f=new ifile(name,c,check);
+    f=new camp::ifile(name,c,check);
   } else {
     f=NULL;
     ostringstream buf;

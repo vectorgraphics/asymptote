@@ -9,15 +9,17 @@
 #define ERRORMSG_H
 
 #include <iostream>
+#include <exception>
 #include "common.h"
 #include "settings.h"
+#include "symbolmaps.h"
 
 using std::ostream;
 
-struct handled_error {}; // Exception to process next file.
-struct interrupted {};   // Exception to interrupt execution.
-struct quit {};          // Exception to quit current operation.
-struct eof {};           // Exception to exit interactive mode.
+struct handled_error : std::exception {}; // Exception to process next file.
+struct interrupted : std::exception {};   // Exception to interrupt execution.
+struct quit : std::exception {};          // Exception to quit current operation.
+struct eof : std::exception {};           // Exception to exit interactive mode.
 
 class fileinfo : public gc {
   string filename;
@@ -121,6 +123,21 @@ public:
   }
 
   friend ostream& operator << (ostream& out, const position& pos);
+
+  typedef std::pair<size_t, size_t> posInFile;
+  typedef std::pair<std::string, posInFile> filePos;
+
+  explicit operator AsymptoteLsp::filePos()
+  {
+    return std::make_pair((std::string) file->name().c_str(),LineColumn());
+  }
+
+  void print(ostream& out) const
+  {
+    if (file) {
+      out << file->name() << ":" << line << "." << column;
+    }
+  }
 
   // Write out just the module name and line number.
   void printTerse(ostream& out) const

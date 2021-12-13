@@ -10,7 +10,16 @@
 #undef NDEBUG
 
 #include <iostream>
+#include <memory>
 #include <climits>
+
+#include <boost/optional.hpp>
+#include <boost/none.hpp>
+using boost::optional;
+#define nullopt boost::none
+using boost::make_optional;
+
+using std::make_pair;
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -87,6 +96,10 @@ using mem::stringstream;
 using mem::istringstream;
 using mem::ostringstream;
 using mem::stringbuf;
+
+using std::shared_ptr;
+using std::unique_ptr;
+using std::make_shared;
 
 static const struct ws_t {} ws={};
 

@@ -69,6 +69,7 @@ public:
     return base->returns();
   }
 
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // A statement that consist of a single expression to evaluate.
@@ -87,6 +88,7 @@ public:
   // The code will "write" the value of the expression at the prompt if
   // possible.
   void interactiveTrans(coenv &e);
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class ifStm : public stm {
@@ -109,6 +111,8 @@ public:
       return false;
     return onTrue->returns() && onFalse->returns();
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class whileStm : public stm {
@@ -121,7 +125,10 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
+
   void trans(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class doStm : public stm {
@@ -135,6 +142,8 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class forStm : public stm {
@@ -150,6 +159,8 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class extendedForStm : public stm {
@@ -162,6 +173,8 @@ class extendedForStm : public stm {
 public:
   extendedForStm(position pos, ty *start, symbol var, exp *set, stm *body)
     : stm(pos), start(start), var(var), set(set), body(body) {}
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 
   void prettyprint(ostream &out, Int indent);
 
@@ -204,6 +217,8 @@ public:
   bool returns() {
     return true;
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 

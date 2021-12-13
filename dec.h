@@ -62,6 +62,11 @@ public:
   virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
 
   virtual trans::tyEntry *transAsTyEntry(coenv &e, record *where);
+
+  virtual operator string() const = 0;
+#ifdef USEGC
+  operator std::string() const { return mem::stdString(this->operator string()); }
+#endif
 };
 
 class nameTy : public ty {
@@ -78,6 +83,8 @@ public:
 
   types::ty *trans(coenv &e, bool tacit = false);
   trans::tyEntry *transAsTyEntry(coenv &e, record *where);
+
+  virtual operator string() const override;
 };
 
 class dimensions : public absyn {
@@ -114,6 +121,8 @@ public:
   void addOps(coenv &e, record *r);
 
   types::ty *trans(coenv &e, bool tacit = false);
+
+  operator string() const override;
 };
 
 // Similar to varEntryExp, this helper class always translates to the same fixed
@@ -132,6 +141,7 @@ public:
   trans::tyEntry *transAsTyEntry(coenv &, record *) {
     return ent;
   }
+  operator string() const override;
 };
 
 // Runnable is anything that can be executed by the program, including
@@ -234,6 +244,8 @@ public:
   //
   // is not guaranteed to return.
   bool returns();
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class modifierList : public absyn {
@@ -319,6 +331,9 @@ public:
 
   virtual symbol getName()
   { return id; }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 // Forward declaration.
@@ -360,6 +375,9 @@ public:
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 
   decidstart *getStart() { return start; }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 class decidlist : public absyn {
@@ -390,6 +408,9 @@ public:
     else
       return 0;
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 class dec : public runnable {
@@ -438,6 +459,8 @@ public:
   // If the vardec encodes a single declaration, return the type of that
   // declaration (otherwise 0).
   types::ty *singleGetType(coenv& e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 struct idpair : public absyn {
@@ -471,6 +494,8 @@ struct idpair : public absyn {
   // where _ is the qualifier record with source as its fields and types.
   void transAsUnravel(coenv &e, record *r,
                       protoenv &source, varEntry *qualifier);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 struct idpairlist : public gc {
@@ -486,6 +511,17 @@ struct idpairlist : public gc {
 
   void transAsUnravel(coenv &e, record *r,
                       protoenv &source, varEntry *qualifier);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext);
+
+  template<typename TFn>
+  void processListFn(TFn const& fn)
+  {
+    for (auto* idp : base)
+    {
+      fn(idp->src, idp->dest);
+    }
+  }
 };
 
 extern idpairlist * const WILDCARD;
@@ -503,6 +539,8 @@ public:
   void transAsField(coenv &e, record *r) {
     base->transAsAccess(e,r);
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Abstract base class for
@@ -558,6 +596,8 @@ public:
     : fromdec(pos, fields), id(id) {}
 
   void prettyprint(ostream &out, Int indent);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // A fromaccess declaration dumps fields and types of a module into the local
@@ -571,6 +611,8 @@ public:
     : fromdec(pos, fields), id(id) {}
 
   void prettyprint(ostream &out, Int indent);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // An import declaration dumps fields and types of a module into the local
@@ -596,6 +638,8 @@ public:
   }
 
   void prettyprint(ostream &out, Int indent);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Parses the file given, and translates the resulting runnables as if they
@@ -613,6 +657,8 @@ public:
   void loadFailed(coenv &e);
 
   void transAsField(coenv &e, record *r);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Types defined from others in typedef.
@@ -649,6 +695,8 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *parent);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Returns a runnable that facilitates the autoplain feature.
@@ -659,4 +707,3 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id);
 } // namespace absyntax
 
 #endif
-
