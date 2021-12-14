@@ -180,7 +180,7 @@ void main()
   vec4 emissive;
 
   Material m;
-#ifdef TRANSPARENT
+#ifdef GENERAL
   m=Materials[abs(materialIndex)-1];
   emissive=m.emissive;
   if(materialIndex >= 0)

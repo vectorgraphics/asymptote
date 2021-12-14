@@ -79,6 +79,7 @@ Billboard BB;
 GLint pixelShader;
 GLint materialShader;
 GLint colorShader;
+GLint generalShader;
 GLint countShader;
 GLint transparentShader;
 GLint blendShader;
@@ -565,8 +566,12 @@ void initShaders()
   shaderParams.push_back("COLOR");
   camp::colorShader=compileAndLinkShader(shaders,shaderParams);
 
+  shaderParams.push_back("GENERAL");
+  if(Mode == 2)
+    shaderParams.push_back("WIREFRAME");
+  camp::generalShader=compileAndLinkShader(shaders,shaderParams);
+
   shaderParams.push_back("TRANSPARENT");
-  if(Mode == 2) shaderParams.push_back("WIREFRAME");
   camp::transparentShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.clear();
 #ifdef HAVE_SSBO
@@ -597,6 +602,7 @@ void deleteShaders()
   glDeleteProgram(camp::countShader);
 #endif
   glDeleteProgram(camp::transparentShader);
+  glDeleteProgram(camp::generalShader);
   glDeleteProgram(camp::colorShader);
   glDeleteProgram(camp::materialShader);
   glDeleteProgram(camp::pixelShader);
@@ -801,6 +807,9 @@ void mode()
 {
   remesh=true;
   camp::initSSBO=true;
+  ++Mode;
+  if(Mode > 2) Mode=0;
+
   switch(Mode) {
     case 0: // regular
       outlinemode=false;
@@ -808,19 +817,16 @@ void mode()
       nlights=nlights0;
       lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-      ++Mode;
       break;
     case 1: // outline
       outlinemode=true;
       ibl=false;
       nlights=0; // Force shader recompilation
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-      ++Mode;
       break;
     case 2: // wireframe
       outlinemode=false;
       Nlights=1; // Force shader recompilation
-      Mode=0;
       break;
   }
 #ifdef HAVE_LIBGLUT
@@ -1753,7 +1759,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
 
   ignorezoom=false;
-  Mode=0;
   Xfactor=Yfactor=1.0;
 
   pair maxtile=getSetting<pair>("maxtile");
@@ -1847,7 +1852,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setProjection();
     if(producerawfile) return;
 
-    camp::initSSBO=true;
     camp::maxFragments=0;
 
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
@@ -2040,6 +2044,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 #endif
 
+  Mode=2;
   mode();
 
 #ifdef HAVE_LIBOSMESA
@@ -2382,10 +2387,7 @@ void drawColor()
 
 void drawTriangle()
 {
-#ifndef HAVE_SSBO
-  triangleData.rendered=false; // Force copying of sorted triangles to GPU
-#endif
-  drawBuffer(triangleData,transparentShader,true);
+  drawBuffer(triangleData,generalShader,true);
   triangleData.clear();
 }
 
