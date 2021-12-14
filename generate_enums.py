@@ -19,11 +19,11 @@ import sys
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--language', type=str, required=True)
+    parser.add_argument('-language', '--language', type=str, required=True)
     parser.add_argument('-o', '--output', type=str, required=True)
     parser.add_argument('-i', '--input', type=str, required=True)
-    parser.add_argument('--name', type=str, required=True)
-    parser.add_argument('--xopt', type=str, nargs='*')
+    parser.add_argument('-name', '--name', type=str, required=True)
+    parser.add_argument('-xopt', '--xopt', type=str, nargs='*')
     return parser.parse_args()
 
 

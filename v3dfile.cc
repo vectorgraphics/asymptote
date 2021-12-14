@@ -43,10 +43,9 @@ void absv3dfile::addHeaders()
   headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::orthographic, gl::orthographic));
   headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::angleOfView, gl::Angle));
   headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::initialZoom, gl::Zoom0));
-  headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin));
-
   if(gl::Shift!=pair(0.0,0.0))
     headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportShift, gl::Shift*gl::Zoom0));
+  headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin));
 
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;
@@ -282,7 +281,7 @@ void absv3dfile::finalize()
 
 xdr::oxstream& operator<<(xdr::oxstream& ox, AHeader const& header)
 {
-  ox << (uint32_t)header.ty << header.getByteSize();
+  ox << (uint32_t)header.ty << header.getWordSize();
   header.writeContent(ox);
   return ox;
 }
@@ -328,9 +327,9 @@ size_t const& gzv3dfile::length() const
   return memxdrfile.getLength();
 }
 
-uint32_t LightHeader::getByteSize() const
+uint32_t LightHeader::getWordSize() const
 {
-  return (TRIPLE_DOUBLE_SIZE + RGBA_FLOAT_SIZE)/4;
+  return (TRIPLE_DOUBLE_SIZE + RGB_FLOAT_SIZE)/4;
 }
 
 void LightHeader::writeContent(xdr::oxstream& ox) const

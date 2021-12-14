@@ -395,16 +395,16 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 %.pic.o: %.cc
 	$(CXX) $(SHAREDOPTS) -o $@ -c $<
 
-# For header generations
+# For header generation
 
 %.h: %.csv
-	$(PYTHON) ./generate_enums.py --language cxx -o $@ -i $< --name $(notdir $*) --xopt namespace=camp
+	$(PYTHON) ./generate_enums.py -language cxx -o $@ -i $< -name $(notdir $*) -xopt namespace=camp
 
 base/%.asy: %.csv
-	$(PYTHON) ./generate_enums.py --language asy -o $@ -i $< --name $(notdir $*)
+	$(PYTHON) ./generate_enums.py -language asy -o $@ -i $< -name $(notdir $*)
 
 %.py: %.csv
-	$(PYTHON) ./generate_enums.py --language python -o $@ -i $< --name $(notdir $*)
+	$(PYTHON) ./generate_enums.py -language python -o $@ -i $< -name $(notdir $*)
 
 ifeq (,$(findstring clean,${MAKECMDGOALS}))
 -include $(FILES:=.d)

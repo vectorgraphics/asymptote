@@ -29,7 +29,7 @@ namespace camp
 class AHeader
 {
 protected:
-  virtual uint32_t getByteSize() const = 0;
+  virtual uint32_t getWordSize() const = 0;
   virtual void writeContent(xdr::oxstream& ox) const = 0;
 
 public:
@@ -50,7 +50,7 @@ public:
   ~SingleObjectHeader() override = default;
 
 protected:
-  uint32_t getByteSize() const override
+  uint32_t getWordSize() const override
   {
     return max((uint32_t)1, (uint32_t)(n / 4));
   }
@@ -66,6 +66,7 @@ private:
 
 const uint32_t TRIPLE_DOUBLE_SIZE=3*8;
 const uint32_t PAIR_DOUBLE_SIZE=2*8;
+const uint32_t RGB_FLOAT_SIZE=3*4;
 const uint32_t RGBA_FLOAT_SIZE=4*4;
 
 using open_mode=xdr::xios::open_mode;
@@ -85,7 +86,7 @@ public:
 
 protected:
   [[nodiscard]]
-  uint32_t getByteSize() const override;
+  uint32_t getWordSize() const override;
   void writeContent(xdr::oxstream &ox) const override;
 
 private:

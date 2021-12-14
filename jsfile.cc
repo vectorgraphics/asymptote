@@ -154,11 +154,11 @@ void jsfile::open(string name)
       << newl
       << "angleOfView=" << gl::Angle << ";"
       << newl
-      << "initialZoom=" << gl::Zoom0 << ";" << newl
-      << "viewportMargin=" << gl::Margin << ";" << newl;
-  if(gl::Shift != pair(0.0,0.0))
-    out << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
-  out << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
+      << "initialZoom=" << gl::Zoom0 << ";" << newl;
+    if(gl::Shift != pair(0.0,0.0))
+      out << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
+    out << "viewportMargin=" << gl::Margin << ";" << newl << newl
+      << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
       << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
       << "zoomPinchCap=" << getSetting<double>("zoomPinchCap") << ";" << newl

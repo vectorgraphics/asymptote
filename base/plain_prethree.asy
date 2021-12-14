@@ -213,4 +213,3 @@ struct light {
 }
 
 light currentlight;
-
