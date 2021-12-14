@@ -1461,7 +1461,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
     if(webgl)
       fileObj=new jsfile(name);
-    else if (v3dfmt)
+    else if(v3dfmt)
       fileObj=new gzv3dfile(name,getSetting<bool>("lossy"));
 
     if(fileObj) {

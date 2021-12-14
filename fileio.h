@@ -727,26 +727,28 @@ class igzxfile : public ixfile {
 protected:
   std::vector<char> readData;
   size_t const readSize;
+  gzFile gzfile;
 public:
   igzxfile(const string& name, bool check=true, Mode type=XINPUT,
          xdr::xios::open_mode mode=xdr::xios::in, size_t readSize=32768) :
          ixfile(name,check,type,mode), readSize(readSize){}
 
+  bool error() {return !gzfile;}
+
   void open() override {
     name=locatefile(inpath(name));
-    gzFile gzfil=gzopen(name.c_str(), "rb");
+    gzfile=gzopen(name.c_str(),"rb");
+    Check();
 
-    while (!gzeof(gzfil))
-    {
+    while(!gzeof(gzfile)) {
       std::vector<char> tmpBuf(readSize);
-      auto filSz = gzread(gzfil, tmpBuf.data(), readSize);
-      std::copy(tmpBuf.begin(), tmpBuf.begin()+filSz, std::back_inserter(readData));
+      auto filSz = gzread(gzfile,tmpBuf.data(),readSize);
+      std::copy(tmpBuf.begin(),tmpBuf.begin()+filSz,std::back_inserter(readData));
     }
-    gzclose(gzfil);
+    gzclose(gzfile);
 
     fstream=new xdr::memixstream(readData);
     index=processData().ixfile.add(fstream);
-    if(check) Check();
   }
 
   void close() override {
@@ -771,7 +773,7 @@ protected:
 class ioxfile : public ixfile {
 public:
   ioxfile(const string& name) :
-    ixfile(outpath(name),true,XUPDATE, xdr::xios::out) {}
+    ixfile(outpath(name),true,XUPDATE,xdr::xios::out) {}
 
    void open() override {
     name=locatefile(inpath(name));

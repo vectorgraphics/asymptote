@@ -59,7 +59,7 @@ transform3 Align(real polar, real azimuth)
 struct v3dfile
 {
   file xdrfile;
-  int fileversion;
+  int version;
   bool hasCameraInfo=false;
   CameraInformation info;
   bool singleprecision=false;
@@ -126,7 +126,7 @@ struct v3dfile
   void operator init(string name)
   {
     xdrfile=input(name, mode="xdrgz");
-    fileversion=xdrfile;
+    version=xdrfile;
 
     int doubleprecision=xdrfile;
     singleprecision=doubleprecision == 0;
