@@ -234,13 +234,14 @@ struct v3dfile
     pen diffusePen=rgba(xdrfile);
     pen emissivePen=rgba(xdrfile);
     pen specularPen=rgba(xdrfile);
+
+    xdrfile.dimension(3);
     real[] params=xdrfile;
-
-    xdrfile.singlereal(singleprecision);
-
     real shininess=params[0];
     real metallic=params[1];
     real F0=params[2];
+
+    xdrfile.singlereal(singleprecision);
 
     return material(diffusePen,emissivePen,specularPen,1,shininess,
                     metallic,F0);

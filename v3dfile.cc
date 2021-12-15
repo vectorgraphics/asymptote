@@ -150,7 +150,9 @@ void absv3dfile::addMaterial(Material const& mat)
   addvec4(mat.diffuse);
   addvec4(mat.emissive);
   addvec4(mat.specular);
-  addvec4(mat.parameters);
+  glm::vec4 vec=mat.parameters;
+  getXDRFile() << static_cast<float>(vec.x) << static_cast<float>(vec.y)
+               << static_cast<float>(vec.z);
 }
 
 void absv3dfile::addCenterIndexMat()
