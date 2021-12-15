@@ -581,6 +581,7 @@ struct v3dfile
 
 void importv3d(string name)
 {
+  if(name == stripextension(name)) name += ".v3d";
   v3dfile xf=v3dfile(name);
   xf.process();
   xf.setCameraInfo();
