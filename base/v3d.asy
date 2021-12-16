@@ -433,6 +433,8 @@ struct v3dfile
   void readTriangles() {
     triangleGroup g;
 
+    int nI=xdrfile;
+
     int nP=xdrfile;
     xdrfile.dimension(nP);
     g.positions=xdrfile;
@@ -441,11 +443,15 @@ struct v3dfile
     xdrfile.dimension(nN);
     g.normals=xdrfile;
 
-    int nC=xdrfile;
-    if (nC > 0)
-      g.colors=readColorData(nC);
+    int explicitNI=xdrfile;
 
-    int nI=xdrfile;
+    int nC=xdrfile;
+    int explicitCI;
+    if (nC > 0) {
+      g.colors=readColorData(nC);
+      explicitCI=xdrfile;
+    }
+
     g.positionIndices=new int[nI][3];
     g.normalIndices=new int[nI][3];
     int[][] colorIndices;
@@ -455,14 +461,12 @@ struct v3dfile
     for (int i=0; i < nI; ++i) {
       xdrfile.dimension(3);
       g.positionIndices[i]=xdrfile;
-      int keepNI=xdrfile;
-      if(keepNI != 0)
+      if(explicitNI != 0)
         g.normalIndices[i]=xdrfile;
       else
         g.normalIndices[i]=g.positionIndices[i];
       if(nC > 0) {
-        int keepCI=xdrfile;
-        if(keepCI != 0)
+        if(explicitCI != 0)
           g.colorIndices[i]=xdrfile;
         else
           g.colorIndices[i]=g.positionIndices[i];
