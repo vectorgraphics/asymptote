@@ -925,7 +925,7 @@ bool picture::display(const string& outname, const string& outputformat,
     } else {
       if(outputformat == "svg" || outputformat == "html")
         htmlView(outname);
-      else if(outputformat != "v3d") {
+      else {
         mem::vector<string> cmd;
         push_command(cmd,getSetting<string>("display"));
         cmd.push_back(outname);
@@ -963,6 +963,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(view) view=false;
     else htmlformat=false;
   }
+
+  if(outputformat == "prc") view=false;
 
   bool svgformat=outputformat == "svg";
   bool png=outputformat == "png";
@@ -1342,7 +1344,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(width <= 0 || height <= 0) return false;
 
   bool webgl=format == "html";
-  bool v3dfmt=format == "v3d";
 
 #ifndef HAVE_LIBGLM
   if(webgl)
@@ -1393,9 +1394,10 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #endif
 
-    bool fmt3d=webgl||v3dfmt;
+  bool v3dfmt=format == "v3d";
+  bool fmt3d=webgl || v3dfmt;
 
-    if(!fmt3d) {
+  if(!fmt3d) {
 #ifdef HAVE_GL
     if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
