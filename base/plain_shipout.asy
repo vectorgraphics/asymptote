@@ -43,7 +43,7 @@ bool prconly(string format="")
 
 bool prc0(string format="")
 {
-  return settings.prc && (outformat(format) == "pdf" || prconly() || settings.inlineimage );
+  return settings.outformat == "prc" || (settings.prc && (outformat(format) == "pdf" || prconly() || settings.inlineimage ));
 }
 
 bool prc(string format="") {

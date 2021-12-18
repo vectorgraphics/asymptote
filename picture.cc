@@ -964,8 +964,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     else htmlformat=false;
   }
 
-  if(outputformat == "prc") view=false;
-
   bool svgformat=outputformat == "svg";
   bool png=outputformat == "png";
 
