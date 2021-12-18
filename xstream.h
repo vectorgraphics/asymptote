@@ -169,18 +169,14 @@ public:
 #endif
   IXSTREAM(float,float);
 
-  ixstream& operator>>(double& x)
+  ixstream& operator >> (double& x)
   {
-    if (!singleprecision)
-    {
-      if (!xdr_double(&xdri, &x))set(eofbit);
-    }
-    else
-    {
+    if(singleprecision) {
       float f;
       *this >> f;
-      x=static_cast<double>(f);
-    }
+      x=(double) f;
+    } else
+      if(!xdr_double(&xdri, &x)) set(eofbit);
     return *this;
   }
 
@@ -195,6 +191,8 @@ private:
 };
 
 class oxstream : virtual public xstream {
+private:
+  bool singleprecision;
 protected:
   XDR xdro;
 public:
@@ -251,16 +249,11 @@ public:
 #endif
   OXSTREAM(float,float);
 
-  oxstream& operator<< (double x) {
-    if (!singleprecision)
-    {
-      if(!xdr_double(&xdro, &x))
-        set(badbit);
-    }
+  oxstream& operator << (double x) {
+    if(singleprecision)
+      *this << (float) x;
     else
-    {
-      *this << static_cast<float>(x);
-    }
+      if(!xdr_double(&xdro, &x)) set(badbit);
     return *this;
   }
 
@@ -268,9 +261,6 @@ public:
     if(fputc(x.byte(),buf) == EOF) set(badbit);
     return *this;
   }
-
-private:
-  bool singleprecision;
 };
 
 class memoxstream : public oxstream
