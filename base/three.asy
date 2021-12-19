@@ -10,6 +10,7 @@ if(prc0()) {
 
 // Useful lossy PRC compression values.
 restricted real Zero=0;
+restricted real Single=0.000001;
 restricted real Low=0.0001;
 restricted real Medium=0.001;
 restricted real High=0.01;
@@ -63,7 +64,8 @@ struct render
 
   static render defaultrender;
 
-  void operator init(render render=defaultrender, real compression=render.compression,
+  void operator init(render render=defaultrender,
+                     real compression=render.compression,
                      real granularity=render.granularity,
                      bool closed=render.closed,
                      bool tessellate=render.tessellate,

@@ -229,4 +229,4 @@ if(settings.ibl) {
 }
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
-     render(compression=Low));
+     render(compression=Single));

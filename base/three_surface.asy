@@ -1453,8 +1453,8 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       triple[] n=t*n;
 
       if(is3D()) {
-        render Render=render(interaction(render.interaction.type,
-                                         center=t*render.interaction.center));
+        render Render=render(render,interaction(render.interaction,
+                                                t*render.interaction.center));
         draw(f,v,vi,n,ni,m,p,pi,light,Render);
         if(pic != null) {
           for(int[] vii : vi)
@@ -1655,8 +1655,8 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       if(is3D()) {
-        render Render=render(interaction(render.interaction.type,
-                                         center=t*render.interaction.center));
+        render Render=render(render,interaction(render.interaction,
+                                                t*render.interaction.center));
         draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,Render);
       }
       if(pic != null) {
@@ -1843,17 +1843,17 @@ void label(frame f, Label L, triple position, align align=NoAlign,
       transform3 positioning=
         shift(L.align.is3D ? position+L.align.dir3*labelmargin(L.p) : position);
       frame f1,f2,f3;
+      render Render=render(render,interaction(interaction,position));
       begingroup3(f1,name,render);
-      render Render=render(render,interaction(interaction,center=position));
       if(L.defaulttransform3)
         begingroup3(f3,Render);
       else {
         begingroup3(f2,Render);
-        begingroup3(f3,render(render,interaction(center=position)));
+        begingroup3(f3,Render);
       }
       for(patch S : s.s) {
         S=centering*S;
-        draw3D(f3,S,L.p,light,render(interaction(interaction,center=position)));
+        draw3D(f3,S,L.p,light,Render);
         // Fill subdivision cracks
         if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
           _draw(f3,S.external(),position,L.p,light,interaction);
@@ -1934,16 +1934,16 @@ void label(picture pic=currentpicture, Label L, triple position,
               shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
             frame f1,f2,f3;
             begingroup3(f1,name,render);
-            render Render=render(render,interaction(interaction,center=v));
+            render Render=render(render,interaction(interaction,v));
             if(L.defaulttransform3)
               begingroup3(f3,Render);
             else {
               begingroup3(f2,Render);
-              begingroup3(f3,render(render,interaction(center=v)));
+              begingroup3(f3,Render);
             }
             for(patch S : s.s) {
               S=centering*S;
-              draw3D(f3,S,L.p,light,render(interaction(interaction,center=v)));
+              draw3D(f3,S,L.p,light,Render);
               // Fill subdivision cracks
               if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
                 _draw(f3,S.external(),v,L.p,light,interaction);
@@ -1963,7 +1963,8 @@ void label(picture pic=currentpicture, Label L, triple position,
           begingroup3(f,name,render);
           for(patch S : surface(L,v,bbox=P.bboxonly).s) {
             triple V=L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v;
-            draw3D(f,S,L.p,light,render(interaction(interaction,center=V)));
+            render Render=render(render,interaction(interaction,V));
+            draw3D(f,S,L.p,light,Render);
             // Fill subdivision cracks
             if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
               _draw(f,S.external(),V,L.p,light,interaction);
