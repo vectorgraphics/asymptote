@@ -13,17 +13,13 @@
 #include <memory>
 #include <climits>
 
-#include <boost/optional.hpp>
-#include <boost/none.hpp>
-using boost::optional;
-#define nullopt boost::none
-using boost::make_optional;
-
-using std::make_pair;
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include "Optional.hpp"
+
+using std::make_pair;
 
 #if !defined(FOR_SHARED) &&                                             \
   ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)) || \
