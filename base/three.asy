@@ -2809,6 +2809,7 @@ object embed(string prefix=outprefix(), string label=prefix,
   triple orthoshift;
   modelview=P.T.modelview;
   transform3 inv;
+  bool prc=prc(format);
   if(P.absolute) {
     Q=modelview*P;
     inv=inverse(modelview);
@@ -2821,11 +2822,12 @@ object embed(string prefix=outprefix(), string label=prefix,
     if(Q.t[2][3] == -1) // PRC can't handle oblique projections
       Q=orthographic(P.camera,P.up,P.target,P.zoom,P.viewportshift,
                      P.showtarget,P.center);
+
     if(P.infinity) {
       triple m=min3(S.f);
       triple M=max3(S.f);
       triple lambda=M-m;
-      if(S.keepAspect) {
+      if(S.keepAspect || prc) {
         S.viewportmargin=viewportmargin((lambda.x,lambda.y));
         S.width=ceil(lambda.x+2*S.viewportmargin.x);
         S.height=ceil(lambda.y+2*S.viewportmargin.y);
@@ -2857,7 +2859,6 @@ object embed(string prefix=outprefix(), string label=prefix,
   light Light=modelview*light;
 
   if(prefix == "") prefix=outprefix();
-  bool prc=prc(format);
   bool preview=settings.render > 0 && !prconly();
   if(prc) {
     // The media9.sty package cannot handle spaces or dots in filenames.
@@ -2946,7 +2947,7 @@ shift");
       if(P.infinity) {
         triple lambda=max3(S.f)-min3(S.f);
         pair margin=viewportmargin((lambda.x,lambda.y));
-        viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/(Q.zoom);
+        viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/Q.zoom;
         transform3 t=inv*shift(-orthoshift);
         Q=t*Q;
         S.f=t*S.f;
