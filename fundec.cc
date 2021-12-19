@@ -189,6 +189,7 @@ void formal::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 #endif
 }
 
+#ifdef HAVE_LSP
 std::pair<std::string, optional<std::string>> formal::fnInfo() const
 {
   std::string typeName(static_cast<std::string>(*base));
@@ -196,6 +197,7 @@ std::pair<std::string, optional<std::string>> formal::fnInfo() const
     std::make_pair(typeName, boost::make_optional(static_cast<std::string>(start->getName()))) :
     std::make_pair(typeName, nullopt);
 }
+#endif
 
 void formals::trans(coenv &e)
 {
