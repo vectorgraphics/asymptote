@@ -15,22 +15,14 @@ namespace camp
 
 using settings::getSetting;
 
-absv3dfile::absv3dfile() : finalized(false), singleprecision(false)
-{
-}
-
-absv3dfile::absv3dfile(bool singleprecision) : finalized(false), singleprecision(singleprecision)
-{
-}
-
-void absv3dfile::writeInit()
+void v3dfile::writeInit()
 {
   uint32_t doubleprecision = !singleprecision;
   getXDRFile() << v3dVersion << doubleprecision;
   addHeaders();
 }
 
-void absv3dfile::addHeaders()
+void v3dfile::addHeaders()
 {
   getXDRFile() << v3dtypes::header;
   std::vector<std::unique_ptr<AHeader>> headers;
@@ -41,8 +33,8 @@ void absv3dfile::addHeaders()
   headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::minBound, triple(gl::xmin, gl::ymin, gl::zmin)));
   headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::maxBound, triple(gl::xmax, gl::ymax, gl::zmax)));
   headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::orthographic, gl::orthographic));
-  headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::angleOfView, gl::Angle));
-  headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::initialZoom, gl::Zoom0));
+  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::angleOfView, gl::Angle));
+  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::initialZoom, gl::Zoom0));
   if(gl::Shift!=pair(0.0,0.0))
     headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportShift, gl::Shift*gl::Zoom0));
   headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin));
@@ -59,26 +51,27 @@ void absv3dfile::addHeaders()
                          v3dheadertypes::background,
                          prc::RGBAColour(gl::Background[0],gl::Background[1],gl::Background[2],gl::Background[3])));
 
-  headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::zoomFactor, getSetting<double>("zoomfactor")));
-  headers.emplace_back(make_unique<DoubleFloatHeader>(
+  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::zoomFactor, getSetting<double>("zoomfactor")));
+  headers.emplace_back(make_unique<DoubleHeader>(
                          v3dheadertypes::zoomPinchFactor, getSetting<double>("zoomPinchFactor")));
-  headers.emplace_back(make_unique<DoubleFloatHeader>(
+  headers.emplace_back(make_unique<DoubleHeader>(
                          v3dheadertypes::zoomPinchCap, getSetting<double>("zoomPinchCap")));
-  headers.emplace_back(make_unique<DoubleFloatHeader>(v3dheadertypes::zoomStep, getSetting<double>("zoomstep")));
-  headers.emplace_back(make_unique<DoubleFloatHeader>(
+  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::zoomStep, getSetting<double>("zoomstep")));
+  headers.emplace_back(make_unique<DoubleHeader>(
                          v3dheadertypes::shiftHoldDistance, getSetting<double>("shiftHoldDistance")));
-  headers.emplace_back(make_unique<DoubleFloatHeader>(
+  headers.emplace_back(make_unique<DoubleHeader>(
                          v3dheadertypes::shiftWaitTime, getSetting<double>("shiftWaitTime")));
-  headers.emplace_back(make_unique<DoubleFloatHeader>(
+  headers.emplace_back(make_unique<DoubleHeader>(
                          v3dheadertypes::vibrateTime, getSetting<double>("vibrateTime")));
 
-  getXDRFile() << (uint32_t)headers.size();
-  for(auto const& headerObj : headers) {
-    getXDRFile() << *headerObj;
+  getXDRFile() << (uint32_t) headers.size();
+  for(const auto& header : headers) {
+    getXDRFile() << header->ty << header->getWordSize(singleprecision);
+    header->writeContent(getXDRFile());
   }
 }
 
-void absv3dfile::addCenters()
+void v3dfile::addCenters()
 {
   getXDRFile() << v3dtypes::centers;
   size_t nelem=drawElement::centers.size();
@@ -87,21 +80,21 @@ void absv3dfile::addCenters()
     addTriples(drawElement::centers.data(), nelem);
 }
 
-void absv3dfile::addTriples(triple const* triples, size_t n)
+void v3dfile::addTriples(triple const* triples, size_t n)
 {
   for(size_t i=0; i < n; ++i)
     getXDRFile() << triples[i];
 }
 
-void absv3dfile::addColors(prc::RGBAColour const* col, size_t nc)
+void v3dfile::addColors(prc::RGBAColour const* col, size_t nc)
 {
   for(size_t i=0; i < nc; ++i)
     getXDRFile() << col[i];
 }
 
 
-void absv3dfile::addPatch(triple const* controls, triple const& Min,
-                          triple const& Max, prc::RGBAColour const* c)
+void v3dfile::addPatch(triple const* controls, triple const& Min,
+                       triple const& Max, prc::RGBAColour const* c)
 {
   getXDRFile() << (c ? v3dtypes::bezierPatchColor : v3dtypes::bezierPatch);
   addTriples(controls,16);
@@ -111,8 +104,8 @@ void absv3dfile::addPatch(triple const* controls, triple const& Min,
     addColors(c,4);
 }
 
-void absv3dfile::addStraightPatch(triple const* controls, triple const& Min,
-                                  triple const& Max, prc::RGBAColour const* c)
+void v3dfile::addStraightPatch(triple const* controls, triple const& Min,
+                               triple const& Max, prc::RGBAColour const* c)
 {
   getXDRFile() << (c ? v3dtypes::quadColor : v3dtypes::quad);
   addTriples(controls,4);
@@ -122,8 +115,8 @@ void absv3dfile::addStraightPatch(triple const* controls, triple const& Min,
     addColors(c,4);
 }
 
-void absv3dfile::addBezierTriangle(triple const* controls, triple const& Min,
-                                   triple const& Max, prc::RGBAColour const* c)
+void v3dfile::addBezierTriangle(triple const* controls, triple const& Min,
+                                triple const& Max, prc::RGBAColour const* c)
 {
   getXDRFile() << (c ? v3dtypes::bezierTriangleColor : v3dtypes::bezierTriangle);
   addTriples(controls,10);
@@ -133,8 +126,8 @@ void absv3dfile::addBezierTriangle(triple const* controls, triple const& Min,
     addColors(c,3);
 }
 
-void absv3dfile::addStraightBezierTriangle(triple const* controls, triple const& Min,
-                                           triple const& Max, prc::RGBAColour const* c)
+void v3dfile::addStraightBezierTriangle(triple const* controls, triple const& Min,
+                                        triple const& Max, prc::RGBAColour const* c)
 {
   getXDRFile() << (c ? v3dtypes::triangleColor : v3dtypes::triangle);
   addTriples(controls,3);
@@ -144,7 +137,7 @@ void absv3dfile::addStraightBezierTriangle(triple const* controls, triple const&
     addColors(c,3);
 }
 
-void absv3dfile::addMaterial(Material const& mat)
+void v3dfile::addMaterial(Material const& mat)
 {
   getXDRFile() << v3dtypes::material;
   addvec4(mat.diffuse);
@@ -155,47 +148,47 @@ void absv3dfile::addMaterial(Material const& mat)
                << static_cast<float>(vec.z);
 }
 
-void absv3dfile::addCenterIndexMat()
+void v3dfile::addCenterIndexMat()
 {
   getXDRFile() << (uint32_t) drawElement::centerIndex << (uint32_t) materialIndex;
 }
 
-void absv3dfile::addvec4(glm::vec4 const& vec)
+void v3dfile::addvec4(glm::vec4 const& vec)
 {
   getXDRFile() << static_cast<float>(vec.x) << static_cast<float>(vec.y)
                << static_cast<float>(vec.z) << static_cast<float>(vec.w);
 }
 
-void absv3dfile::addHemisphere(triple const& center, double radius, double const& polar, double const& azimuth)
+void v3dfile::addHemisphere(triple const& center, double radius, double const& polar, double const& azimuth)
 {
   getXDRFile() << v3dtypes::halfSphere << center << radius;
   addCenterIndexMat();
   getXDRFile() << polar << azimuth;
 }
 
-void absv3dfile::addSphere(triple const& center, double radius)
+void v3dfile::addSphere(triple const& center, double radius)
 {
   getXDRFile() << v3dtypes::sphere << center << radius;
   addCenterIndexMat();
 }
 
 void
-absv3dfile::addCylinder(triple const& center, double radius, double height, double const& polar, double const& azimuth,
-                        bool core)
+v3dfile::addCylinder(triple const& center, double radius, double height, double const& polar, double const& azimuth,
+                     bool core)
 {
   getXDRFile() << v3dtypes::cylinder << center << radius << height;
   addCenterIndexMat();
   getXDRFile() << polar << azimuth << core;
 }
 
-void absv3dfile::addDisk(triple const& center, double radius, double const& polar, double const& azimuth)
+void v3dfile::addDisk(triple const& center, double radius, double const& polar, double const& azimuth)
 {
   getXDRFile() << v3dtypes::disk << center << radius;
   addCenterIndexMat();
   getXDRFile() << polar << azimuth;
 }
 
-void absv3dfile::addTube(triple const* g, double width, triple const& Min, triple const& Max, bool core)
+void v3dfile::addTube(triple const* g, double width, triple const& Min, triple const& Max, bool core)
 {
   getXDRFile() << v3dtypes::tube;
   for(int i=0; i < 4; ++i)
@@ -205,9 +198,9 @@ void absv3dfile::addTube(triple const* g, double width, triple const& Min, tripl
   getXDRFile() << core;
 }
 
-void absv3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* N, size_t nC, prc::RGBAColour const* C,
-                              size_t nI, uint32_t const (* PI)[3], uint32_t const (* NI)[3], uint32_t const (* CI)[3],
-                              triple const& Min, triple const& Max)
+void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* N, size_t nC, prc::RGBAColour const* C,
+                           size_t nI, uint32_t const (* PI)[3], uint32_t const (* NI)[3], uint32_t const (* CI)[3],
+                           triple const& Min, triple const& Max)
 {
   getXDRFile() << v3dtypes::triangles;
   getXDRFile() << (uint32_t) nI;
@@ -237,8 +230,8 @@ void absv3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple cons
       const uint32_t *PIi=PI[i];
       const uint32_t *CIi=CI[i];
       if(!distinct(CIi,PIi)) {
-          explicitNI=false;
-          break;
+        explicitNI=false;
+        break;
       }
     }
     getXDRFile() << (uint32_t) explicitCI;
@@ -260,51 +253,37 @@ void absv3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple cons
   addCenterIndexMat();
 }
 
-void absv3dfile::addIndices(uint32_t const* v)
+void v3dfile::addIndices(uint32_t const* v)
 {
   getXDRFile() << v[0] << v[1] << v[2];
 }
 
-void absv3dfile::addCurve(triple const& z0, triple const& c0, triple const& c1, triple const& z1, triple const& Min,
-                          triple const& Max)
+void v3dfile::addCurve(triple const& z0, triple const& c0, triple const& c1, triple const& z1, triple const& Min,
+                       triple const& Max)
 {
   getXDRFile() << v3dtypes::curve << z0 << c0 << c1 << z1;
   addCenterIndexMat();
 
 }
 
-void absv3dfile::addCurve(triple const& z0, triple const& z1, triple const& Min, triple const& Max)
+void v3dfile::addCurve(triple const& z0, triple const& z1, triple const& Min, triple const& Max)
 {
   getXDRFile() << v3dtypes::line << z0 << z1;
   addCenterIndexMat();
 }
 
-void absv3dfile::addPixel(triple const& z0, double width, triple const& Min, triple const& Max)
+void v3dfile::addPixel(triple const& z0, double width, triple const& Min, triple const& Max)
 {
   getXDRFile() << v3dtypes::pixel << z0 << width;
   getXDRFile() << (uint32_t) materialIndex;
 }
 
-void absv3dfile::precision(int digits)
-{
-  // inert function for override
-}
-
-void absv3dfile::finalize()
+void v3dfile::finalize()
 {
   if(!finalized) {
     addCenters();
     finalized=true;
   }
-}
-
-// for headers
-
-xdr::oxstream& operator<<(xdr::oxstream& ox, AHeader const& header)
-{
-  ox << (uint32_t)header.ty << header.getWordSize();
-  header.writeContent(ox);
-  return ox;
 }
 
 // gzv3dfile
@@ -314,7 +293,7 @@ xdr::oxstream& gzv3dfile::getXDRFile()
   return memxdrfile;
 }
 
-gzv3dfile::gzv3dfile(string const& name, bool singleprecision): absv3dfile(singleprecision), memxdrfile(singleprecision), name(name), destroyed(false)
+gzv3dfile::gzv3dfile(string const& name, bool singleprecision): v3dfile(singleprecision), memxdrfile(singleprecision), name(name), destroyed(false)
 {
   writeInit();
 }
@@ -328,12 +307,12 @@ void gzv3dfile::close()
 {
   if(!destroyed) {
     finalize();
+    memxdrfile.close();
+    gzFile file=gzopen(name.c_str(), "wb9");
+    gzwrite(file,data(),length());
+    gzclose(file);
     if(settings::verbose > 0)
       cout << "Wrote " << name << endl;
-    memxdrfile.close();
-    gzFile fil = gzopen(name.c_str(), "wb9");
-    gzwrite(fil,data(), length());
-    gzclose(fil);
     destroyed=true;
   }
 }
@@ -348,15 +327,14 @@ size_t const& gzv3dfile::length() const
   return memxdrfile.getLength();
 }
 
-uint32_t LightHeader::getWordSize() const
+uint32_t LightHeader::getWordSize(bool singleprecision) const
 {
-  return (TRIPLE_DOUBLE_SIZE + RGB_FLOAT_SIZE)/4;
+  return (singleprecision ? 1 : 2)*3+3;
 }
 
 void LightHeader::writeContent(xdr::oxstream& ox) const
 {
   ox << direction << (float) color.R << (float) color.G << (float) color.B;
-
 }
 
 LightHeader::LightHeader(triple const& direction, prc::RGBAColour const& color) :

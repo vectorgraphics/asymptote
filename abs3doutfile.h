@@ -15,8 +15,12 @@ inline bool distinct(const uint32_t *I, const uint32_t *J)
 }
 
 class abs3Doutfile : public gc {
+protected:
+  bool singleprecision;
 public:
+  abs3Doutfile(bool singleprecision=false) : singleprecision(singleprecision) {}
   virtual ~abs3Doutfile() = default;
+
   virtual void close()=0;
 
   virtual void addPatch(triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c) = 0;

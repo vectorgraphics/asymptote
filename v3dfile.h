@@ -28,31 +28,28 @@ namespace camp
 
 class AHeader
 {
-protected:
-  virtual uint32_t getWordSize() const = 0;
-  virtual void writeContent(xdr::oxstream& ox) const = 0;
-
 public:
-  explicit AHeader(v3dheadertypes const& ty) : ty(ty) {}
-  virtual ~AHeader() = default;
-  friend xdr::oxstream& operator<< (xdr::oxstream& ox, AHeader const& header);
-private:
   v3dheadertypes ty;
+
+  AHeader(v3dheadertypes const& ty) : ty(ty) {}
+  virtual ~AHeader() = default;
+  virtual uint32_t getWordSize(bool singleprecision) const = 0;
+  virtual void writeContent(xdr::oxstream& ox) const = 0;
 };
 
-template<typename T, uint32_t n=sizeof(T)>
+template<typename T, uint32_t realWords, uint32_t floatWords=0>
 class SingleObjectHeader : public AHeader
 {
 public:
-  explicit SingleObjectHeader(v3dheadertypes const& ty, T const& ob) : AHeader(ty), obj(ob)
+  SingleObjectHeader(v3dheadertypes const& ty, T const& ob) : AHeader(ty), obj(ob)
   {
   }
   ~SingleObjectHeader() override = default;
 
 protected:
-  uint32_t getWordSize() const override
+  uint32_t getWordSize(bool singleprecision) const override
   {
-    return max((uint32_t)1, (uint32_t)(n / 4));
+    return (singleprecision ? 1 : 2)*realWords+floatWords;
   }
 
   void writeContent(xdr::oxstream &ox) const override
@@ -64,29 +61,24 @@ private:
   T obj;
 };
 
-const uint32_t TRIPLE_DOUBLE_SIZE=3*8;
-const uint32_t PAIR_DOUBLE_SIZE=2*8;
-const uint32_t RGB_FLOAT_SIZE=3*4;
-const uint32_t RGBA_FLOAT_SIZE=4*4;
-
 using open_mode=xdr::xios::open_mode;
-using TripleHeader=SingleObjectHeader<triple, TRIPLE_DOUBLE_SIZE>;
-using PairHeader=SingleObjectHeader<pair, PAIR_DOUBLE_SIZE>;
-using DoubleFloatHeader=SingleObjectHeader<double>;
-using Uint32Header=SingleObjectHeader<uint32_t>;
-using RGBAHeader=SingleObjectHeader<prc::RGBAColour,RGBA_FLOAT_SIZE>;
+using TripleHeader=SingleObjectHeader<triple,3>;
+using PairHeader=SingleObjectHeader<pair,2>;
+using DoubleHeader=SingleObjectHeader<double,1>;
+using Uint32Header=SingleObjectHeader<uint32_t,0,1>;
+using RGBAHeader=SingleObjectHeader<prc::RGBAColour,0,4>;
 
 const unsigned int v3dVersion=0;
 
 class LightHeader : public AHeader
 {
 public:
-  explicit LightHeader(triple const& direction, prc::RGBAColour const& color);
+  LightHeader(triple const& direction, prc::RGBAColour const& color);
   ~LightHeader() override=default;
 
 protected:
   [[nodiscard]]
-  uint32_t getWordSize() const override;
+  uint32_t getWordSize(bool singleprecision) const override;
   void writeContent(xdr::oxstream &ox) const override;
 
 private:
@@ -94,11 +86,12 @@ private:
   prc::RGBAColour color;
 };
 
-class absv3dfile : public abs3Doutfile {
+class v3dfile : public abs3Doutfile {
+private:
+  bool finalized;
 public:
-  absv3dfile();
-  explicit absv3dfile(bool singleprecision);
-
+  v3dfile(bool singleprecision=false) : abs3Doutfile(singleprecision),
+                                        finalized(false) {}
   void writeInit();
   void finalize();
 
@@ -137,7 +130,7 @@ public:
 
   void addPixel(triple const& z0, double width, triple const& Min, triple const& Max) override;
 
-  void precision(int digits) override;
+  void precision(int digits) override {}
 
 
 protected:
@@ -151,15 +144,11 @@ protected:
   void addCenters();
 
   virtual xdr::oxstream& getXDRFile() = 0;
-
-private:
-  bool finalized;
-  bool singleprecision;
 };
 
-class gzv3dfile : public absv3dfile {
+class gzv3dfile : public v3dfile {
 public:
-  explicit gzv3dfile(string const& name, bool singleprecision=false);
+  gzv3dfile(string const& name, bool singleprecision=false);
   ~gzv3dfile() override;
 
 protected:

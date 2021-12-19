@@ -123,10 +123,12 @@ public:
   {if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
 
 class ixstream : virtual public xstream {
+private:
+  bool singleprecision;
 protected:
   XDR xdri;
 public:
-  explicit ixstream(bool singleprecision=false): singleprecision(singleprecision) {}
+  ixstream(bool singleprecision=false): singleprecision(singleprecision) {}
 
   virtual void open(const char *filename, open_mode=in) {
     clear();
@@ -181,13 +183,11 @@ public:
   }
 
   ixstream& operator >> (xbyte& x) {
-    x=fgetc(buf);
-    if(x.byte() == EOF) set(eofbit);
+    int c=fgetc(buf);
+    if(c != EOF) x=c;
+    else set(eofbit);
     return *this;
   }
-
-private:
-  bool singleprecision;
 };
 
 class oxstream : virtual public xstream {
@@ -196,7 +196,7 @@ private:
 protected:
   XDR xdro;
 public:
-  explicit oxstream(bool singleprecision=false) : singleprecision(singleprecision) {}
+  oxstream(bool singleprecision=false) : singleprecision(singleprecision) {}
 
   virtual void open(const char *filename, open_mode mode=trunc) {
     clear();
@@ -220,11 +220,8 @@ public:
     }
   }
 
-  oxstream(const char *filename): singleprecision(false) {open(filename);}
-  oxstream(const char *filename, open_mode mode): singleprecision(false) {open(filename,mode);}
-
-  oxstream(const char *filename, bool singleprecision): singleprecision(singleprecision) {open(filename);}
-  oxstream(const char *filename, open_mode mode, bool singleprecision): singleprecision(singleprecision)
+  oxstream(const char *filename, bool singleprecision=false): singleprecision(singleprecision) {open(filename);}
+  oxstream(const char *filename, open_mode mode, bool singleprecision=false): singleprecision(singleprecision)
   {
     open(filename,mode);
   }
@@ -265,8 +262,12 @@ public:
 
 class memoxstream : public oxstream
 {
+private:
+  char* baseBuf;
+  size_t len;
+
 public:
-  explicit memoxstream(bool singleprecision=false) :
+  memoxstream(bool singleprecision=false) :
     oxstream(singleprecision), baseBuf(nullptr), len(0)
   {
     clear();
@@ -294,10 +295,6 @@ public:
   {
     return len;
   }
-
-private:
-  char* baseBuf;
-  size_t len;
 };
 
 class memixstream: public ixstream
