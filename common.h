@@ -17,7 +17,17 @@
 #include "config.h"
 #endif
 
-#include "Optional.hpp"
+#ifdef HAVE_LSP
+#include <boost/optional.hpp>
+#include <boost/none.hpp>
+using boost::optional;
+using boost::make_optional;
+#else
+#include "optional.hpp"
+#define boost nonstd
+using nonstd::optional;
+using nonstd::nullopt;
+#endif
 
 using std::make_pair;
 
