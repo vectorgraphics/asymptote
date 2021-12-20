@@ -654,14 +654,14 @@ public:
          xdr::xios::open_mode mode=xdr::xios::in) :
     file(name,check,type,true), fstream(NULL), mode(mode) {}
 
-  void open() {
+  void open() override {
     name=locatefile(inpath(name));
     fstream=new xdr::ixstream(name.c_str(),mode);
     index=processData().ixfile.add(fstream);
     if(check) Check();
   }
 
-  void close() {
+  void close() override {
     if(fstream) {
       fstream->close();
       closed=true;
@@ -673,26 +673,26 @@ public:
 
   ~ixfile() {close();}
 
-  bool eof() {return fstream ? fstream->eof() : true;}
-  bool error() {return fstream ? fstream->fail() : true;}
+  bool eof() override {return fstream ? fstream->eof() : true;}
+  bool error() override {return fstream ? fstream->fail() : true;}
 
-  void clear() {if(fstream) fstream->clear();}
+  void clear() override {if(fstream) fstream->clear();}
 
-  void seek(Int pos, bool begin=true) {
+  void seek(Int pos, bool begin=true) override {
     if(!standard && fstream) {
       clear();
       fstream->seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
     }
   }
 
-  size_t tell() {
+  size_t tell() override {
     if(fstream)
       return fstream->tell();
     else
       return 0;
   }
 
-  void Read(Int& val) {
+  void Read(Int& val) override {
     if(signedint) {
       if(singleint) {int ival=0; *fstream >> ival; val=ival;}
       else {val=0; *fstream >> val;}
@@ -701,20 +701,20 @@ public:
       else {unsignedInt ival=0; *fstream >> ival; val=Intcast(ival);}
     }
   }
-  void Read(double& val) {
+  void Read(double& val) override {
     if(singlereal) {float fval=0.0; *fstream >> fval; val=fval;}
     else {
       val=0.0;
       *fstream >> val;
     }
   }
-  void Read(pair& val) {
+  void Read(pair& val) override {
     double x,y;
     Read(x);
     Read(y);
     val=pair(x,y);
   }
-  void Read(triple& val) {
+  void Read(triple& val) override {
     double x,y,z;
     Read(x);
     Read(y);
@@ -733,7 +733,7 @@ public:
          xdr::xios::open_mode mode=xdr::xios::in, size_t readSize=32768) :
          ixfile(name,check,type,mode), readSize(readSize){}
 
-  bool error() {return !gzfile;}
+  bool error() override {return !gzfile;}
 
   void open() override {
     name=locatefile(inpath(name));

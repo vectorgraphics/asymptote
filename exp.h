@@ -237,15 +237,15 @@ public:
   nameExp(position pos, string s)
     : exp(pos), value(new simpleName(pos, symbol::trans(s))) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 
-  symbol getName()
+  symbol getName() override
   {
     return value->getName();
   }
 
-  void transAsType(coenv &e, types::ty *target) {
+  void transAsType(coenv &e, types::ty *target) override {
     value->varTrans(trans::READ, e, target);
 
     // After translation, the cached type is no longer needed and should be
@@ -255,7 +255,7 @@ public:
     ct=0;
   }
 
-  types::ty *trans(coenv &e) {
+  types::ty *trans(coenv &e) override {
     types::ty *t=cgetType(e);
     if (t->kind == types::ty_error) {
       em.error(getPos());
@@ -273,32 +273,32 @@ public:
     }
   }
 
-  types::ty *getType(coenv &e) {
+  types::ty *getType(coenv &e) override {
     types::ty *t=value->varGetType(e);
     return t ? t : types::primError();
   }
 
-  trans::varEntry *getCallee(coenv &e, types::signature *sig) {
+  trans::varEntry *getCallee(coenv &e, types::signature *sig) override {
 #ifdef DEBUG_GETAPP
     cout << "nameExp" << endl;
 #endif
     return value->getCallee(e, sig);
   }
 
-  void transWrite(coenv &e, types::ty *target, exp *newValue) {
+  void transWrite(coenv &e, types::ty *target, exp *newValue) override {
     newValue->transToType(e, target);
     this->value->varTrans(trans::WRITE, e, target);
 
     ct=0;  // See note in transAsType.
   }
 
-  void transCall(coenv &e, types::ty *target) {
+  void transCall(coenv &e, types::ty *target) override {
     value->varTrans(trans::CALL, e, target);
 
     ct=0;  // See note in transAsType.
   }
 
-  exp *evaluate(coenv &, types::ty *) {
+  exp *evaluate(coenv &, types::ty *) override {
     // Names have no side-effects.
     return this;
   }
@@ -820,7 +820,7 @@ public:
     args->add(arg3);
   }
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 
   using colorInfo = std::tuple<double, double, double>;
@@ -832,8 +832,8 @@ public:
   optional<std::tuple<colorInfo, optional<double>,
     AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>> getColorInformation();
 
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
+  types::ty *trans(coenv &e) override;
+  types::ty *getType(coenv &e) override;
 
   // Returns true if the function call resolves uniquely without error.  Used
   // in implementing the special == and != operators for functions.
@@ -896,10 +896,10 @@ public:
   castExp(position pos, ty *target, exp *castee)
     : exp(pos), target(target), castee(castee) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
+  types::ty *trans(coenv &e) override;
+  types::ty *getType(coenv &e) override;
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
@@ -992,8 +992,8 @@ public:
   andOrExp(position pos, exp *left, symbol op, exp *right)
     : exp(pos), left(left), op(op), right(right) {}
 
-  virtual types::ty *trans(coenv &e) = 0;
-  virtual types::ty *getType(coenv &) {
+  virtual types::ty *trans(coenv &e) override = 0;
+  virtual types::ty *getType(coenv &) override {
     return types::primBoolean();
   }
 
@@ -1076,14 +1076,14 @@ public:
   assignExp(position pos, exp *dest, exp *value)
     : exp(pos), dest(dest), value(value) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
   // Don't write the result of an assignment to the prompt.
-  bool writtenToPrompt() { return false; }
+  bool writtenToPrompt() override { return false; }
 
-  void transAsType(coenv &e, types::ty *target);
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
+  void transAsType(coenv &e, types::ty *target) override;
+  types::ty *trans(coenv &e) override;
+  types::ty *getType(coenv &e) override;
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
@@ -1091,7 +1091,7 @@ public:
 class selfExp : public assignExp {
   symbol op;
 
-  exp *ultimateValue(exp *dest) {
+  exp *ultimateValue(exp *dest) override {
     return new binaryExp(getPos(), dest, op, value);
   }
 
@@ -1099,9 +1099,9 @@ public:
   selfExp(position pos, exp *dest, symbol op, exp *value)
     : assignExp(pos, dest, value), op(op) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  void transAsType(coenv &e, types::ty *target);
+  void transAsType(coenv &e, types::ty *target) override;
 };
 
 class prefixExp : public exp {
@@ -1112,15 +1112,15 @@ public:
   prefixExp(position pos, exp *dest, symbol op)
     : exp(pos), dest(dest), op(op) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  bool scalable() { return false; }
+  bool scalable() override { return false; }
 
   // Don't write the result to the prompt.
-  bool writtenToPrompt() { return false; }
+  bool writtenToPrompt() override { return false; }
 
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
+  types::ty *trans(coenv &e) override;
+  types::ty *getType(coenv &e) override;
 };
 
 // Postfix expresions are illegal. This is caught here as we can give a
