@@ -91,7 +91,7 @@ int sigsegv_handler (void *, int emergency)
 }
 #endif
 
-void setsignal(RETSIGTYPE (*handler)(int))
+void setsignal(void (*handler)(int))
 {
 #ifdef HAVE_LIBSIGSEGV
   char mystack[16384];
