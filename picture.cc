@@ -1388,7 +1388,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
-  bool Wait=!interact::interactive || !settings::view() || animating;
+  bool Wait=!interact::interactive || !View || animating;
 #endif
 #endif
 
