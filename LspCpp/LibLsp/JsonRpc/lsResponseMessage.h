@@ -6,19 +6,19 @@
 
 
 struct ResponseInMessage :public LspMessage {
-	
+
 	lsRequestId id;
 	std::string m_methodType;
-	
-	virtual  MethodType GetMethodType() const
+
+	virtual  MethodType GetMethodType() const override
 	{
 		return m_methodType.data();
 	};
-	virtual  void SetMethodType(MethodType _type) 
+	virtual  void SetMethodType(MethodType _type) override
 	{
 		m_methodType = _type;
 	};
-	
+
 	Kind GetKid() override
 	{
 		return  RESPONCE_MESSAGE;
@@ -63,10 +63,9 @@ struct ResponseError : BaseResponseMessage<TDerived> {
 	bool IsErrorType() override { return true; }
 	void swap(ResponseError<T, TDerived>& arg) noexcept
 	{
-		
+
 		this->id.swap(arg.id);
 		this->m_methodType.swap(arg.m_methodType);
 		std::swap(error, arg.error);
 	}
 };
-

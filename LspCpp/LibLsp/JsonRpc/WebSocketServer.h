@@ -18,8 +18,8 @@ namespace lsp {
 namespace lsp
 {
 
-   
-		
+
+
         class websocket_stream_wrapper :public istream, public ostream
         {
         public:
@@ -31,17 +31,17 @@ namespace lsp
             std::shared_ptr < MultiQueueWaiter> request_waiter;
             ThreadedQueue< char > on_request;
             std::string error_message;
-            bool fail();
+            bool fail() override;
 
-            bool eof();
+            bool eof() override;
 
-            bool good();
+            bool good() override;
 
-            websocket_stream_wrapper& read(char* str, std::streamsize count);
+            websocket_stream_wrapper& read(char* str, std::streamsize count) override;
 
-            int get();
+            int get() override;
 
-            bool bad();
+            bool bad() override;
 
             websocket_stream_wrapper& write(const std::string& c) override;
 
@@ -80,10 +80,8 @@ namespace lsp
             /// Wait for a request to stop the server.
             void do_stop();
             Data* d_ptr = nullptr;
-         
+
 
         };
 
-    } // namespace 
-
-
+    } // namespace

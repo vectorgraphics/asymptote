@@ -26,22 +26,23 @@ namespace lsp {
             std::string error_message;
 
 
-	        bool fail()
+	        bool fail() override
 	        {
 	            return  bad();
 	        }
 
 
 
-	        bool eof()
+	        bool eof() override
 	        {
 	            return  bad();
 	        }
-	        bool good()
+	        bool good() override
 	        {
 	            return  !bad();
 	        }
 	        tcp_stream_wrapper& read(char* str, std::streamsize count)
+                  override
 	        {
                 auto some = on_request.TryDequeueSome(static_cast<size_t>( count ));
                 for (size_t i = 0; i < some.size(); ++i)
@@ -55,18 +56,18 @@ namespace lsp {
 
 	            return *this;
 	        }
-	        int get()
+	        int get() override
 	        {
 	            return on_request.Dequeue();
 	        }
 
-	        bool bad();
+	        bool bad() override;
 
-	        tcp_stream_wrapper& write(const std::string& c);
+	        tcp_stream_wrapper& write(const std::string& c) override;
 
-	        tcp_stream_wrapper& write(std::streamsize _s);
+	        tcp_stream_wrapper& write(std::streamsize _s) override;
 
-	        tcp_stream_wrapper& flush()
+	        tcp_stream_wrapper& flush() override
 	        {
 	            return *this;
 	        }

@@ -17,7 +17,7 @@ namespace lsp
 		{
 			return false;
 		}
-		
+
 		bool  operator!()
 		{
 			return bad();

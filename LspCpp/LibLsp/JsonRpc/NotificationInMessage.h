@@ -8,7 +8,7 @@
 
 // NotificationInMessage does not have |id|.
 struct NotificationInMessage : public LspMessage {
-	
+
 	Kind GetKid() override
 	{
 		return  NOTIFICATION_MESSAGE;
@@ -17,7 +17,7 @@ struct NotificationInMessage : public LspMessage {
 	{
 		return method.c_str();
 	}
-	void SetMethodType(MethodType _t)
+	void SetMethodType(MethodType _t) override
 	{
 		method = _t;
 	}
@@ -25,11 +25,11 @@ struct NotificationInMessage : public LspMessage {
 };
 template <class T, class TDerived >
 struct lsNotificationInMessage : NotificationInMessage {
-	
+
 	void ReflectWriter(Writer& writer) override {
 		Reflect(writer, static_cast<TDerived&>(*this));
 	}
-	lsNotificationInMessage(MethodType _method) 
+	lsNotificationInMessage(MethodType _method)
 	{
 		method = _method;
 	}
@@ -37,7 +37,7 @@ struct lsNotificationInMessage : NotificationInMessage {
 	static std::unique_ptr<LspMessage> ReflectReader(Reader& visitor) {
 
 		TDerived* temp = new TDerived();
-		
+
 		std::unique_ptr<TDerived>  message = std::unique_ptr<TDerived>(temp);
 		// Reflect may throw and *message will be partially deserialized.
 		Reflect(visitor, static_cast<TDerived&>(*temp));
@@ -60,4 +60,3 @@ namespace  MSG {\
 	};\
 };\
 MAKE_REFLECT_STRUCT(MSG::notify, jsonrpc,method, params)
-

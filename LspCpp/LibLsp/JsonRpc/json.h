@@ -6,7 +6,7 @@
 #include <rapidjson/prettywriter.h>
 
 class JsonReader : public Reader {
- 
+
   std::vector<const char*> path_;
 
  public:
@@ -45,9 +45,9 @@ class JsonReader : public Reader {
     return std::unique_ptr<JsonReader>(new JsonReader(&sub));
   }
 
-  std::string ToString() const;
+  std::string ToString() const override;
 
-  void IterMap(std::function<void(const char*, Reader&)> fn);
+  void IterMap(std::function<void(const char*, Reader&)> fn) override;
 
   void IterArray(std::function<void(Reader&)> fn) override;
 
