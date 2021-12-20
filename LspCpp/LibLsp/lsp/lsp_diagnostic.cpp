@@ -1,5 +1,4 @@
 #include "lsp_diagnostic.h"
-
 bool lsDiagnostic::operator==(const lsDiagnostic& rhs) const {
   // Just check the important fields.
   return range == rhs.range && message == rhs.message;
@@ -57,7 +56,7 @@ std::string lsResponseError::ToString()
 
 	if(data.has_value())
 	{
-		
+
 		info += "data:" + data.value().Data();
 		info += "\n";
 	}

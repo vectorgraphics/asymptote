@@ -2,34 +2,33 @@
 #include "common.h"
 #include "symbolmaps.h"
 
-#include <LibLsp/lsp/ProtocolJsonHandler.h>
-#include <LibLsp/lsp/AbsolutePath.h>
+#include "LibLsp/lsp/ProtocolJsonHandler.h"
+#include "LibLsp/lsp/AbsolutePath.h"
 
-#include <LibLsp/JsonRpc/Endpoint.h>
-#include <LibLsp/JsonRpc/TcpServer.h>
-#include <LibLsp/JsonRpc/Condition.h>
+#include "LibLsp/JsonRpc/Endpoint.h"
+#include "LibLsp/JsonRpc/TcpServer.h"
+#include "LibLsp/JsonRpc/Condition.h"
 
 // header for requests
-#include <LibLsp/lsp/textDocument/hover.h>
-#include <LibLsp/lsp/general/initialize.h>
-#include <LibLsp/lsp/general/shutdown.h>
-#include <LibLsp/lsp/textDocument/declaration_definition.h>
-#include <LibLsp/lsp/textDocument/colorPresentation.h>
-
+#include "LibLsp/lsp/textDocument/hover.h"
+#include "LibLsp/lsp/general/initialize.h"
+#include "LibLsp/lsp/general/shutdown.h"
+#include "LibLsp/lsp/textDocument/declaration_definition.h"
+#include "LibLsp/lsp/textDocument/colorPresentation.h"
 
 //header for notifs
-#include <LibLsp/lsp/general/exit.h>
-#include <LibLsp/lsp/general/initialized.h>
-#include <LibLsp/lsp/textDocument/did_open.h>
-#include <LibLsp/lsp/textDocument/did_change.h>
-#include <LibLsp/lsp/textDocument/did_save.h>
-#include <LibLsp/lsp/textDocument/did_close.h>
+#include "LibLsp/lsp/general/exit.h"
+#include "LibLsp/lsp/general/initialized.h"
+#include "LibLsp/lsp/textDocument/did_open.h"
+#include "LibLsp/lsp/textDocument/did_change.h"
+#include "LibLsp/lsp/textDocument/did_save.h"
+#include "LibLsp/lsp/textDocument/did_close.h"
 
 //everything else
 #include <functional>
 #include <cctype>
 #include <unordered_map>
-#include <LibLsp/JsonRpc/stream.h>
+#include "LibLsp/JsonRpc/stream.h"
 
 namespace absyntax
 {

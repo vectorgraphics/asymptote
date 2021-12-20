@@ -2,7 +2,11 @@
 
 
 #include <macro_map.h>
-#include "Optional.hpp"
+#ifdef boost
+#include "optional.hpp"
+#else
+#include <boost/optional.hpp>
+#endif
 #include <cassert>
 #include <memory>
 #include <string>
@@ -247,7 +251,6 @@ void ReflectMember(Reader& visitor,
 	const char* name,
 	T& value,
 	optionals_mandatory_tag) {
-	
 	Reflect(visitor, value);
 }
 
@@ -372,7 +375,4 @@ void Reflect(Reader& visitor, std::pair<  boost::optional<_Ty1>, boost::optional
 	{
 		Reflect(visitor, value.first);
 	}
-	
-
 }
-

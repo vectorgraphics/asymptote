@@ -1,8 +1,5 @@
 #pragma once
 
-#include <LibLsp/lsp/lsPosition.h>
-#include <LibLsp/lsp/textDocument/documentColor.h>
-
 #include <unordered_map>
 #include <unordered_set>
 #include <tuple>
@@ -10,6 +7,13 @@
 
 #include "common.h"
 #include "makeUnique.h"
+
+#include "LibLsp/lsp/lsPosition.h"
+#include "LibLsp/lsp/textDocument/documentColor.h"
+
+#ifndef boost
+#define nullopt boost::none
+#endif
 
 namespace AsymptoteLsp
 {
