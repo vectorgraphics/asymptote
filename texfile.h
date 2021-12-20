@@ -312,7 +312,7 @@ public:
   void beginlayer(const string& psname, bool postscript);
   void endlayer();
 
-  virtual void Offset(const bbox& box) {};
+  virtual void Offset(const bbox& box, bool special=false) {};
 };
 
 class svgtexfile : public texfile {
