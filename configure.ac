@@ -109,7 +109,7 @@ AC_CONFIG_SRCDIR([absyn.cc])
 AC_LANG([C++])
 
 # Checks for programs.
-AC_PROG_LEX
+AC_PROG_LEX(yywrap)
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_CC
@@ -487,7 +487,6 @@ AC_CHECK_TYPES([long long])
 AC_CHECK_TYPES([long])
 AC_C_CONST
 AC_C_INLINE
-AC_TYPE_SIGNAL
 
 AC_DEFUN([ac_FUNC_STRPTIME], [
     AC_CHECK_FUNCS(strptime)
