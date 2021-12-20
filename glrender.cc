@@ -166,6 +166,7 @@ int Mode;
 
 double Aspect;
 bool View;
+bool ViewExport;
 int Oldpid;
 string Prefix;
 const picture* Picture;
@@ -727,7 +728,7 @@ void Export()
                                            transform(0.0,0.0,w,0.0,0.0,h),
                                            antialias);
       pic.append(Image);
-      pic.shipout(NULL,Prefix,Format,false,View);
+      pic.shipout(NULL,Prefix,Format,false,ViewExport);
       delete Image;
       delete[] data;
     }
@@ -2047,6 +2048,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Mode=2;
   mode();
 
+  ViewExport=View;
 #ifdef HAVE_LIBOSMESA
   View=false;
 #endif
