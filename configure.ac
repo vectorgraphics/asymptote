@@ -109,7 +109,7 @@ AC_CONFIG_SRCDIR([absyn.cc])
 AC_LANG([C++])
 
 # Checks for programs.
-AC_PROG_LEX(yywrap)
+AC_PROG_LEX(noyywrap)
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_CC

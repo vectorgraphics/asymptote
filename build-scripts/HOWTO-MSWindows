@@ -29,9 +29,10 @@ make install
 tirpc-devel:
 ./configure --prefix=/usr --disable-gssapi
 make install
+rm -rf /usr/include/rpc
 ln -s /usr/include/tirpc/rpc /usr/include/rpc
-ln -s /usr/include/tirpc/netconfig.h /usr/include/netconfig.h
-ln -s /usr/lib/libtirpc.a /usr/lib/librpc.a
+ln -sf /usr/include/tirpc/netconfig.h /usr/include/netconfig.h
+ln -sf /usr/lib/libtirpc.a /usr/lib/librpc.a
 
 termcap-1.3.1:
 ./configure --prefix=/usr
