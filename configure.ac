@@ -291,7 +291,7 @@ LSPLIB=
 if test "x$enable_lsp" != "xno"; then
   AC_CHECK_LIB([boost_filesystem],[opendir],
   [AC_CHECK_LIB([boost_thread],[pthread_attr_getdetachstate],
-  [AC_DEFINE(HAVE_LSP,1,DEFINE([Language server protocol])),
+  [AC_DEFINE(HAVE_LSP,1,DEFINE([Language server protocol]))
    LSPLIBS="-llspcpp -lboost_filesystem -lboost_thread "
    LSPLIB=liblspcpp.a],
   AC_MSG_NOTICE([*** Could not find libboost_thread: will compile without optional Language Server Protocol. ***]))],
