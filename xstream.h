@@ -41,6 +41,7 @@
 #define u_long unsigned long
 extern "C" int fseeko(FILE *, off_t, int);
 extern "C" off_t ftello(FILE *);
+FILE *open_memstream(char **, size_t *);
 #endif
 
 #ifdef __APPLE__
