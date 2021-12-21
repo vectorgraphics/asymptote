@@ -374,9 +374,9 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
-%.o: %.cc
+%.o: %.cc $(GENERATEDENUMS:=.h)
 	$(CXX) $(OPTS) -o $@ -c $<
-%.d: %.cc
+%.d: %.cc $(GENERATEDENUMS:=.h)
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
@@ -396,7 +396,7 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 %.pic.o: %.cc
 	$(CXX) $(SHAREDOPTS) -o $@ -c $<
 
-# For header generation
+# Generate V3D headers
 
 %.h: %.csv
 	$(PYTHON) ./generate_enums.py -language cxx -o $@ -i $< -name $(notdir $*) -xopt namespace=camp

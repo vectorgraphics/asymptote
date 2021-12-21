@@ -3,8 +3,8 @@
 HOME=~bowman
 SHARED=$HOME/shared/asy
 
-GCVERSION=8.0.4
-ATOMICVERSION=7.6.10
+GCVERSION=8.2.0
+ATOMICVERSION=7.6.12
 GC=gc-$GCVERSION
 
 MAKEFLAGS=-j8
@@ -40,7 +40,6 @@ find . -type d -exec /bin/bash -c "cd '{}';rm -rf .git" \;
 rm -rf .gitignore .vscode
 ./autogen.sh
 ./configure
-make clean
 make $MAKEFLAGS check || exit
 make uninstall
 build-scripts/build-asygl
