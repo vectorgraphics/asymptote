@@ -8080,7 +8080,7 @@ parameter or the setting @code{thin} is set to @code{false}. The pens
 also be used to override these defaults for specific draw commands.
 
 @noindent
-There are five choices for viewing 3D @code{Asymptote} output:
+There are six choices for viewing 3D @code{Asymptote} output:
 @enumerate
 
 @cindex @code{OpenGL}
@@ -8229,10 +8229,23 @@ required, specify @code{settings.outformat="prc"}.
 The @acronym{PRC} specification is available from
 @url{https://web.archive.org/web/20081204104459/http://livedocs.adobe.com/acrobat_sdk/9/Acrobat9_HTMLHelp/API_References/PRCReference/PRC_Format_Specification/}
 
+@cindex @code{v3d}
+@item Output a @code{V3D} portable compressed binary file for viewing with an
+external viewer or conversion to an alternate 3D format with the Python
+@code{pyv3d} library. The @code{V3D} specification and the
+@code{pyv3d} library are available at
+@url{https://gitlab.com/vectorgraphics/v3d}.
+A @code{V3D} file @code{file.v3d} may be imported and viewed by
+Asymptote with the @code{v3d} module:
+@verbatim
+import v3d;
+importv3d("file.v3d");
+@end verbatim
+
 @item Project the scene to a two-dimensional vector (@acronym{EPS} or
-@acronym{PDF}) format with @code{render=0}. Only limited hidden surface
-removal facilities are currently available with this approach
-(@pxref{PostScript3D}).
+@acronym{PDF}) format with @code{render=0}. Only limited support for
+hidden surface removal, lighting, and transparency is available with
+this approach (@pxref{PostScript3D}).
 
 @end enumerate
 

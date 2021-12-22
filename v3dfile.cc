@@ -38,7 +38,7 @@ void v3dfile::addHeaders()
   headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::orthographic, gl::orthographic));
   headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::angleOfView, gl::Angle));
   headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::initialZoom, gl::Zoom0));
-  if(gl::Shift!=pair(0.0,0.0))
+  if(gl::Shift != pair(0.0,0.0))
     headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportShift, gl::Shift*gl::Zoom0));
   headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin));
 

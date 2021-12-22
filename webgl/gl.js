@@ -4,9 +4,9 @@ let Lights=[]; // Array of lights
 let Centers=[]; // Array of billboard centers
 let Background=[1,1,1,1]; // Background color
 
-let canvasWidth,canvasHeight;
+let canvasWidth,canvasHeight; // Canvas width, height
 
-let absolute=false;
+let absolute=false; // true: absolute size; false: scale to canvas
 let ibl=false;
 let imageURL;
 let image;
@@ -19,14 +19,14 @@ let viewportShift=[0,0]; // Viewport shift (for perspective projection)
 let viewportMargin; // Margin around viewport (2-tuple)
 let webgl2=true;
 
-let zoomFactor;
-let zoomPinchFactor;
-let zoomPinchCap;
-let zoomStep;
+let zoomFactor; // Zoom base factor
+let zoomPinchFactor; // Zoom pinch factor
+let zoomPinchCap; // Zoom pinch limit
+let zoomStep; // Zoom power step
 
-let shiftHoldDistance;
-let shiftWaitTime;
-let vibrateTime;
+let shiftHoldDistance; // Shift-mode maximum hold distance (pixels)
+let shiftWaitTime; // Shift-mode hold time (milliseconds)
+let vibrateTime; // Shift-mode vibrate time (milliseconds)
 
 let canvasWidth0,canvasHeight0; // Initial values
 let zoom0; // Adjusted initial zoom

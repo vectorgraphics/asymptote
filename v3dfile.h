@@ -71,7 +71,7 @@ using DoubleHeader=SingleObjectHeader<double,1>;
 using Uint32Header=SingleObjectHeader<uint32_t,0,1>;
 using RGBAHeader=SingleObjectHeader<prc::RGBAColour,0,4>;
 
-const unsigned int v3dVersion=0;
+const unsigned int v3dVersion=1;
 
 class LightHeader : public AHeader
 {

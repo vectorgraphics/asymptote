@@ -15,7 +15,10 @@ from datetime import datetime
 import io
 import argparse
 import sys
+import re
 
+def cleanComment(s):
+    return re.sub(r' *#',' ',s)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -58,13 +61,11 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('{\n')
 
         for enumTxt, enumNum, *ar in enums:
-            if len(ar) > 0:
-                comment=ar[-1]
-                if comment is not None:
-                    fil.write('\n/**\n')
-                    fil.write('* {0}\n'.format(comment.strip()))
-                    fil.write('*/\n')
             fil.write('{0}={1},\n'.format(enumTxt, enumNum))
+            if len(ar) > 0:
+                comment=cleanComment(ar[-1])
+                if comment is not None:
+                    fil.write('// {0}\n\n'.format(comment.strip()))
 
         fil.write('};\n\n')
 
@@ -91,14 +92,12 @@ def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
 
         for i in range(len(enums)):
             enumTxt, enumNum, *ar = enums[i]
-            if len(ar) > 0:
-                comment=ar[-1]
-                if comment is not None:
-                    fil.write('\n{0}/**\n'.format(spaces_tab))
-                    fil.write('{1} * {0}\n'.format(comment.strip(),spaces_tab))
-                    fil.write('{0} */\n'.format(spaces_tab))
             endsep=',' if i < len(enums) - 1 else ';'
             fil.write('{2}{0}({1}){3}\n'.format(enumTxt,enumNum,spaces_tab,endsep))
+            if len(ar) > 0:
+                comment=cleanComment(ar[-1])
+                if comment is not None:
+                    fil.write('// {0}\n\n'.format(comment.strip()))
 
         out_lines=[
             '',
@@ -129,11 +128,11 @@ def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('{\n')
 
         for enumTxt, enumNum, *ar in enums:
-            if len(ar) > 0:
-                comment=ar[-1]
-                if comment is not None:
-                    fil.write('\n  // {0}\n'.format(comment.strip()))
             fil.write('  int {0}={1};\n'.format(enumTxt, enumNum))
+            if len(ar) > 0:
+                comment=cleanComment(ar[-1])
+                if comment is not None:
+                    fil.write('// {0}\n\n'.format(comment.strip()))
         fil.write('};\n\n')
         fil.write('{0} {0};'.format(name))
 
@@ -149,11 +148,11 @@ def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('# Generated at {0}\n\n'.format(datetime.now()))
         fil.write('class {0}:\n'.format(name))
         for enumTxt, enumNum, *ar in enums:
-            if len(ar) > 0:
-                comment=ar[-1]
-                if comment is not None:
-                    fil.write('    # {0}\n'.format(comment.strip()))
             fil.write('    {0}_{2}={1}\n'.format(name, enumNum, enumTxt))
+            if len(ar) > 0:
+                comment=cleanComment(ar[-1])
+                if comment is not None:
+                    fil.write('    # {0}\n\n'.format(comment.strip()))
         fil.write('# End of File\n')
 
 
