@@ -44,18 +44,19 @@ file* input(string name=emptystring, bool check=true,
             string comment=commentchar, string mode=emptystring)
 {
   file *f=NULL;
-  if(mode == "binary") {
+  if(mode == "binary")
     f=new ibfile(name,check);
-  } else if(mode == "xdr") {
+  else if(mode == "xdr" || mode == "xdrgz") {
 #ifdef HAVE_RPC_RPC_H
-    f=new ixfile(name,check);
+    if(mode == "xdr")
+      f=new ixfile(name,check);
+    else if(mode == "xdrgz")
+      f=new igzxfile(name,check);
 #else
     ostringstream buf;
     buf << name << ": XDR read support not enabled";
     error(buf);
 #endif
-  } else if (mode == "xdrgz") {
-    f=new igzxfile(name,check);
   } else if(mode == "") {
     char c=comment.empty() ? (char) 0 : comment[0];
     f=new camp::ifile(name,c,check);

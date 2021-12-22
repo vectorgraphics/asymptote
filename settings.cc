@@ -1016,7 +1016,7 @@ struct versionOption : public option {
     feature("SSBO     GLSL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
-    feature("XDR      external data representation (portable binary file format)",xdr);
+    feature("XDR      external data representation (portable binary file format for V3D)",xdr);
     feature("CURL     URL support",curl);
     feature("lsp      language server protocol",lsp);
     feature("Readline interactive history and editing",readline);

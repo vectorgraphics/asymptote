@@ -41,13 +41,13 @@ namespace camp {
 extern string tab;
 extern string newline;
 
-enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,XINPUT,XOUTPUT,
-           XUPDATE,OPIPE};
+enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,XINPUT,XINPUTGZ,
+           XOUTPUT,XUPDATE,OPIPE};
 
 static const string FileModes[]=
 {"none","input","output","output(update)",
  "input(binary)","output(binary)","output(binary,update)",
- "input(xdr)","output(xdr)","output(xdr,update)","output(pipe)"};
+ "input(xdr)","input(xdrgz)","output(xdr)","output(xdr,update)","output(pipe)"};
 
 extern FILE *pipeout;
 

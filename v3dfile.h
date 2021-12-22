@@ -13,6 +13,9 @@
 #include <zlib.h>
 
 #include "common.h"
+
+#ifdef HAVE_RPC_RPC_H
+
 #include "abs3doutfile.h"
 #include "xstream.h"
 #include "triple.h"
@@ -168,4 +171,6 @@ private:
 };
 
 } //namespace camp
+#endif
+
 #endif

@@ -1462,8 +1462,16 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl)
       fileObj=new jsfile(name);
     else if(v3dfmt)
+#ifdef HAVE_RPC_RPC_H
       fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
                             getSetting<double>("prerender") > 0.0);
+#else
+    {
+    ostringstream buf;
+    buf << name << ": XDR write support not enabled";
+    reportError(buf);
+    }
+#endif
 
     if(fileObj) {
       for (auto& p : pic->nodes) {

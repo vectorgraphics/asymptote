@@ -7,6 +7,9 @@
  */
 
 #include "v3dfile.h"
+
+#ifdef HAVE_RPC_RPC_H
+
 #include "drawelement.h"
 #include "makeUnique.h"
 
@@ -341,4 +344,7 @@ LightHeader::LightHeader(triple const& direction, prc::RGBAColour const& color) 
   AHeader(v3dheadertypes::light), direction(direction), color(color)
 {
 }
+
 } //namespace camp
+
+#endif
