@@ -1,6 +1,6 @@
 CXX=g++
 
-CFLAGS = -Wall
+CFLAGS = -Wall -fPIE
 INCLUDES=-I. -ILibLsp/lsp/extention/jdtls/ -ILibLsp/JsonRpc/ -ILibLsp/JsonRpc/lsp/extention/jdtls \
 	-Ithird_party/threadpool -Ithird_party/utfcpp/source -Ithird_party/rapidjson/include
 CXXFLAGS = -std=c++14
