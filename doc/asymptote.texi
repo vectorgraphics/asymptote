@@ -60,6 +60,7 @@ file LICENSE in the top-level source directory).
 * Options::                     Command-line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
+* Command-Line Interface::      Remote command-line interface
 * PostScript to Asymptote::     @code{Asymptote} backend to @code{pstoedit}
 * Help::                        Where to get help and submit bug reports
 * Debugger::                    Squish those bugs!
@@ -192,12 +193,15 @@ Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
 @code{LaTeX} provides for scientific text. By default it produces
 @code{PostScript} output, but it can also generate @code{PDF},
-@code{SVG}, @code{WebGL}, @code{PRC}, and any format that the
+@code{SVG}, @code{WebGL}, @code{V3D}, @code{PRC}, and any format that the
 @code{ImageMagick} package can produce. You can even try it out in your
 Web browser without installing it, using the @code{Asymptote Web
-Application}:
+Application}
 
 @url{http://asymptote.ualberta.ca}
+
+It is also possible to send remote commands to this server via the
+curl utility (@pxref{Command-Line Interface}).
 
 A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
@@ -6574,7 +6578,7 @@ and @code{leastsquares}.
 This module implements @code{PostScript} tiling patterns and includes
 several convenient pattern generation routines.
 
-@node markers, tree, patterns, Base modules
+@node markers, map, patterns, Base modules
 @section @code{markers}
 @cindex @code{markers}
 This module implements specialized routines for marking paths and angles.
@@ -6657,7 +6661,7 @@ write(M.lookup("a"));
 write(M.lookup("y"));
 @end verbatim
 
-@node tree, binarytree, markers, Base modules
+@node tree, binarytree, map, Base modules
 @section @code{tree}
 @cindex @code{tree}
 This module implements an example of a dynamic binary search tree.
@@ -7977,11 +7981,26 @@ other formats. One can request a completely transparent background for
 3D @code{WebGL} images with
 @code{currentlight.background=black+opacity(0.0);}
 
+@cindex image-based lighting
+@cindex @code{surface}
+Asymptote also supports image-based lighting with the command-line
+option @code{-ibl}. This uses pre-rendered @acronym{EXR} images from
+the directory specified by @code{-imageDir} (which defaults to @code{ibl})
+or, for @code{WebGL} rendering, the @acronym{URL} specified by
+@code{-imageURL} (which defaults to
+@url{https://vectorgraphics.gitlab.io/asymptote/ibl}).
+Additional rendered images can be generated on an @code{NVIDIA} @acronym{GPU}
+using the @code{reflect} program in the @code{cudareflect} subdirectory
+of the @code{Asymptote} source directory.
+
 Sample Bezier surfaces are
 contained in the example files @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/BezierSurface.html,,BezierSurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/BezierSurface.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/teapot.html,,teapot}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/teapot.asy,,.asy}},
-and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.asy,,.asy}}. The structure @code{render} contains
-specialized rendering options documented at the beginning of module
-@code{three}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/teapotIBL.html,,teapotIBL}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/teapotIBL.asy,,.asy}},
+and
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.asy,,.asy}}.
+
+The structure @code{render} contains specialized rendering options
+documented at the beginning of module @code{three}.
 
 @cindex patch-dependent colors
 @cindex vertex-dependent colors
@@ -9708,7 +9727,7 @@ g.clip("unitcircle")
 g.label("\"$O$\", (0,0), SW")
 @end verbatim
 
-@node GUI, PostScript to Asymptote, Interactive mode, Top
+@node GUI, Command-Line Interface, Interactive mode, Top
 @chapter Graphical User Interface
 @cindex graphical user interface
 @cindex @acronym{GUI}
@@ -9775,7 +9794,50 @@ together on adding them to a picture. However, the elements of a frame
 added to another frame are not grouped together by default: their
 elements will be individually deconstructed (@pxref{add}).
 
-@node PostScript to Asymptote, Help, GUI, Top
+@node Command-Line Interface, PostScript to Asymptote, GUI, Top
+@chapter Command-Line Interface
+@cindex command-line interface
+
+@code{Asymptote} code may be sent to the
+@url{http://asymptote.ualberta.ca} server directly from the command
+line, specifying any options directly in the @acronym{URL}:
+
+@itemize @bullet
+
+@item SVG output:
+
+@code{curl --data-binary 'import venn;' 'asymptote.ualberta.ca:10007?f=svg' | display -}
+
+@item HTML output:
+
+@code{curl --data-binary @@/usr/local/share/doc/asymptote/examples/Klein.asy 'asymptote.ualberta.ca:10007' -o Klein.html}
+
+@item V3D output:
+
+@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=v3d' -o teapot.v3d}
+
+@item PDF output with rendered bitmap at 2 pixels per bp:
+
+@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=pdf' -o teapot.pdf}
+
+@item PDF output with rendered bitmap at 4 pixels per bp:
+
+@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=pdf&render=4' -o teapot.pdf}
+
+@item PRC output:
+
+@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=pdf&prc' -o teapot.pdf}
+
+@item PRC output with rendered preview bitmap at 4 pixels per bp:
+
+@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=pdf&prc&render=4' -o teapot.pdf}
+
+@end itemize
+
+The source code for the command-line interface is available at
+@url{https://github.com/vectorgraphics/asymptote-http-server}.
+
+@node PostScript to Asymptote, Help, Command-Line Interface, Top
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
 The excellent @code{PostScript} editor @code{pstoedit} (version 3.50 or later;
@@ -9974,8 +10036,11 @@ contributors include Orest Shardt, Jesse Frohlich, Michail Vidiassov,
 Charles Staats, Philippe Ivaldi, Olivier Guib@'e, Radoslav Marinov,
 Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
 Martin Wiebusch, Stefan Knorr, and Supakorn ``Jamie'' Rassameemasmuang.
-Pedram Emami developed the @code{Asymptote Web Application} at
-@url{http://asymptote.ualberta.ca}.
+Pedram Emami developed the @code{Asymptote Web Application}
+hosted at @url{http://asymptote.ualberta.ca}:
+
+@url{https://github.com/vectorgraphics/asymptote-http-server}
+
 
 
 @node Index,  , Credits, Top
