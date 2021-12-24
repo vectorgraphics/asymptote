@@ -25,6 +25,7 @@ BuildRequires:  dvisvgm >= 2.9.1
 BuildRequires:  texinfo >= 4.7
 BuildRequires:  ImageMagick
 BuildRequires:  libtirpc-devel
+BuildRequires:  libboost-devel
 
 Requires:       tetex-latex
 Requires:       freeglut-devel >= 3.0.0
