@@ -61,6 +61,7 @@ file LICENSE in the top-level source directory).
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
 * Command-Line Interface::      Remote command-line interface
+* Language server protocol::    Help when writing code
 * PostScript to Asymptote::     @code{Asymptote} backend to @code{pstoedit}
 * Help::                        Where to get help and submit bug reports
 * Debugger::                    Squish those bugs!
@@ -9836,6 +9837,58 @@ line, specifying any options directly in the @acronym{URL}:
 
 The source code for the command-line interface is available at
 @url{https://github.com/vectorgraphics/asymptote-http-server}.
+
+@node Language server protocol, PostScript to Asymptote, Command-Line Interface, Top
+@chapter Language server protocol
+@cindex @acronym{LSP}
+@cindex language server protocol
+
+Under @code{UNIX} and @code{MacOS X}, @code{Asymptote} supports features of the
+@uref{https://en.wikipedia.org/wiki/Language_Server_Protocol,Language
+Server Protocol (@acronym{LSP})}, including function signature and variable matching.
+Under @code{MSWindows}, @code{Asymptote} currently supports
+@acronym{LSP} only when compiled within the @code{Windows Subsystem for Linux}.
+
+@code{Emacs} users can enable the @code{Asymptote}
+language server protocol by installing @code{lsp-mode} using the
+following procedure:
+
+@itemize @bullet
+
+@item Add to the @code{.emacs} initialization file:
+@verbatim
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+@end verbatim
+
+@item Launch emacs and execute
+@verbatim
+M-x package-refresh-contents
+M-x package-install
+@end verbatim
+and select @code{lsp-mode}.
+
+@item Add to the @code{.emacs} initialization file:
+@verbatim
+(require 'lsp-mode)
+(add-to-list 'lsp-language-id-configuration '(asy-mode . "asymptote"))
+
+(lsp-register-client
+ (make-lsp-client :new-connection (lsp-stdio-connection '("asy" "-lsp"))
+                  :activation-fn (lsp-activate-on "asymptote")
+                  :major-modes '(asy-mode)
+                  :server-id 'asyls
+                  )
+ )
+@end verbatim
+
+@item Launch emacs and execute
+@verbatim
+M-x lsp
+@end verbatim
+
+@end itemize
 
 @node PostScript to Asymptote, Help, Command-Line Interface, Top
 @chapter @code{PostScript} to @code{Asymptote}
