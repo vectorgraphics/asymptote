@@ -75,7 +75,7 @@ EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
-LATEXFILES = asymptote.sty asycolors.sty ocg.sty latexmkrc
+LATEXFILES = asymptote.sty asycolors.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
