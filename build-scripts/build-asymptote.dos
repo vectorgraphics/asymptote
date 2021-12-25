@@ -87,6 +87,7 @@ cp -a $SHARED/asydoc/* ~/CTAN/asymptote-$VERSION/doc
 cd ~/CTAN/asymptote-$VERSION/binaries/$BINDIR
 cp -a ../../README .
 cd ~/CTAN
+rm doc/latexusage.out
 cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/$BINDIR/texlive/README
 SHAREDBIN=$SHARED/CTAN/asymptote-$VERSION
 if [ $MACHINE == i686 ]; then

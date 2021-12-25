@@ -88,7 +88,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
     char drive;
 
     char actPath[PATH_MAX];
-    realpath(unixPath.c_str(), actPath);
+    (void) realpath(unixPath.c_str(), actPath);
     std::string fullPath(actPath);
 
     if (fullPath.length() >= 7) // /mnt/

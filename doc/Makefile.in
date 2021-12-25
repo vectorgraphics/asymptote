@@ -32,7 +32,7 @@ manpage: $(MANFILES)
 man:	$(DOCFILES) manpage
 	cd png && $(MAKE) asymptote.info
 
-faq:	
+faq:
 	cd FAQ && $(MAKE) faq
 
 %.eps:	%.asy
@@ -65,7 +65,7 @@ asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
 	-$(TEXI2DVI) --pdf asymptote.texi
 
-CAD.pdf: CAD.tex CAD1.eps 
+CAD.pdf: CAD.tex CAD1.eps
 	pdflatex CAD
 	pdflatex CAD
 	pdflatex CAD
@@ -80,10 +80,10 @@ asyRefCard.pdf: asyRefCard.tex
 clean: FORCE
 	-rm -f asy-latex.{aux,idx,ins,log,toc}
 	-rm -f $(ASYFILES:.asy=.pdf)
-	-rm -f *.eps latexusage.{dvi,eps,pdf,log,aux,*.eps} latexusage-* \
+	-rm -f *.eps latexusage.{dvi,eps,pdf,log,aux,out,*.eps} latexusage-* \
             latexusage.pre
 	-rm -f \
-            {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr} 
+            {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr}
 	-rm -f asymptote_.texi
 	-rm -f {CAD,TeXShopAndAsymptote,asyRefCard}.{aux,dvi,log,toc}
 	-rm -f options asy.1
@@ -116,7 +116,7 @@ uninstall-all:
 	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
 
 distclean: FORCE clean
-	-rm -f version.texi Makefile 
+	-rm -f version.texi Makefile
 	-rm -f $(DOCFILES)
 	cd png && $(MAKE) distclean
 	cd FAQ && $(MAKE) distclean
