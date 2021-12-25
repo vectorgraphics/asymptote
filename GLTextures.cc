@@ -7,6 +7,10 @@
 namespace gl
 {
 
+#ifdef __CYGWIN__
+#define glDeleteTextures glDeleteTexturesEXT  // Missing in 32-bit CYGWIN
+#endif
+
 AGLTexture::~AGLTexture()
 {
   if (textureId != 0)
