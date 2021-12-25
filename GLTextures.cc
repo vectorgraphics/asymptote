@@ -14,9 +14,9 @@ namespace gl
 AGLTexture::~AGLTexture()
 {
   if (textureId != 0)
-  {
-    glDeleteTextures(1, &textureId);
-  }
+    {
+      glDeleteTextures(1, &textureId);
+    }
 }
 
 AGLTexture& AGLTexture::operator=(AGLTexture&& glTex) noexcept
@@ -30,7 +30,7 @@ AGLTexture& AGLTexture::operator=(AGLTexture&& glTex) noexcept
 }
 
 AGLTexture::AGLTexture(AGLTexture&& glTex) noexcept:
-    textureId(glTex.textureId), textureNumber(glTex.textureNumber)
+  textureId(glTex.textureId), textureNumber(glTex.textureNumber)
 {
 }
 
@@ -40,4 +40,5 @@ void AGLTexture::setActive() const
 {
   glActiveTexture(GL_TEXTURE0+textureNumber);
 }
+
 } // namespace gl
