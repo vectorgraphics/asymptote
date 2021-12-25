@@ -23,6 +23,8 @@ IEXRFile::IEXRFile(const string& File)
          << "downloaded into the Asymptote search path like this:"
          << endl << endl
          << "wget -q --show-progress -nH -np -r --cut-dirs=1 "
+         << settings::getSetting<string>("imageURL") << "/refl.exr" << endl
+         << "wget -q --show-progress -nH -np -r --cut-dirs=1 "
          << settings::getSetting<string>("imageURL") << "/" << image
          << endl;
     exit(-1);
