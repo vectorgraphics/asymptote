@@ -7984,8 +7984,9 @@ other formats. One can request a completely transparent background for
 
 @cindex image-based lighting
 @cindex @code{surface}
-Asymptote also supports image-based lighting with the command-line
-option @code{-ibl}. This uses pre-rendered @acronym{EXR} images from
+@cindex @code{ibl}
+Asymptote also supports image-based lighting with the setting
+@code{settings.ibl=true}. This uses pre-rendered @acronym{EXR} images from
 the directory specified by @code{-imageDir} (which defaults to @code{ibl})
 or, for @code{WebGL} rendering, the @acronym{URL} specified by
 @code{-imageURL} (which defaults to
