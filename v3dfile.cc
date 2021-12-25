@@ -23,6 +23,10 @@ void v3dfile::writeInit()
   uint32_t doubleprecision = !singleprecision;
   getXDRFile() << v3dVersion << doubleprecision;
   addHeaders();
+
+  size_t nmaterials=materials.size();
+  for(size_t i=0; i < nmaterials; ++i)
+    addMaterial(materials[i]);
 }
 
 void v3dfile::addHeaders()
