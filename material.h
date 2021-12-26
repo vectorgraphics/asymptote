@@ -80,6 +80,15 @@ public:
     return out;
   }
 
+  friend jsofstream& operator << (jsofstream& out, const Material& m) {
+    out << m.diffuse << "," << newl
+        << m.emissive << "," << newl
+        << m.specular << "," << newl
+        << m.parameters[0] << "," << newl
+        << m.parameters[1] << "," << newl
+        << m.parameters[2] << newl;
+    return out;
+  }
 };
 
 extern size_t Nmaterials; // Number of materials compiled in shader

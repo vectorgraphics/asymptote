@@ -182,14 +182,17 @@ void jsfile::open(string name)
   out << "];" << newl << newl;
   out << "Background=[" << gl::Background[0] << "," << gl::Background[1] << ","
       << gl::Background[2] << "," << gl::Background[3] << "];"
-      << newl;
+      << newl << newl;
 
   size_t nmaterials=materials.size();
-  out << "Materials=[";
-  for(size_t i=0; i < nmaterials; ++i)
+  out << "Materials=[" << newl;
+  for(size_t i=0; i < nmaterials; ++i) {
+    if(i > 0)
+      out << ",";
     out << "new Material(" << newl
         << materials[i]
-        << ")," << newl;
+        << ")" << newl;
+  }
   out << "];" << newl << newl;
 }
 
@@ -279,9 +282,9 @@ void jsfile::addPixel(const triple& z0, double width,
 
 void jsfile::addMaterial(Material const& material)
 {
-  out << "Materials.push(new Material(" << newl
+  out << "material(" << newl
       << material
-      << "));" << newl << newl;
+      << ");" << newl << newl;
 }
 
 void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
