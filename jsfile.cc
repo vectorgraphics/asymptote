@@ -119,7 +119,8 @@ void jsfile::open(string name)
 
   out.precision(getSetting<Int>("digits"));
 
-  bool ibl=getSetting<bool>("ibl");
+  bool webgl2=getSetting<bool>("webgl2");
+  bool ibl=webgl2 && getSetting<bool>("ibl");
   if(ibl)
     out << "<script src=\"https://vectorgraphics.gitlab.io/asymptote/ibl/tinyexr.js\">"
         << newl << "</script>" << newl;
@@ -134,19 +135,18 @@ void jsfile::open(string name)
 
   out << newl << "<script>" << newl;
   out << newl
-      << "webgl2=" << std::boolalpha << getSetting<bool>("webgl2") << ";"
-      << newl
       << "canvasWidth=" << gl::fullWidth << ";" << newl
-      << "canvasHeight=" << gl::fullHeight << ";" << newl
-      << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
+      << "canvasHeight=" << gl::fullHeight << ";" << newl << newl
+      << "webgl2=" << std::boolalpha << webgl2 << ";"
       << newl
       << "ibl=" << std::boolalpha << ibl << ";"
+      << newl
+      << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
       << newl;
   if(ibl) {
     out << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
-    out << "image=\"" << getSetting<string>("image") << "\";" << newl;
+    out << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
   }
-  out << newl;
   out << newl
       <<  "minBound=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];"
       << newl
