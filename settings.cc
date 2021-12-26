@@ -1246,6 +1246,8 @@ void initSettings() {
   addOption(new pairSetting("viewportmargin", 0, "pair",
                             "Horizontal and vertical 3D viewport margin",
                             pair(0.5,0.5)));
+  addOption(new boolSetting("webgl2", 0,
+                            "Use webgl2 if available", true));
   addOption(new boolSetting("absolute", 0,
                             "Use absolute WebGL dimensions", false));
   addOption(new pairSetting("maxtile", 0, "pair",

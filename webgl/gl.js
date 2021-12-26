@@ -221,7 +221,8 @@ function restoreAttributes()
 let indexExt;
 
 function webGL(canvas,alpha) {
-  let gl=canvas.getContext("webgl2",{alpha: alpha});
+  let gl;
+  if(webgl2) gl=canvas.getContext("webgl2",{alpha: alpha});
   if(!gl) {
     webgl2=false;
     ibl=false;
@@ -287,16 +288,16 @@ function getShader(gl,shaderScript,type,options=[])
     ['Nmaterials',Nmaterials]
   ]
 
-  let consts = [
+  let consts=[
     ['int','Nlights',Math.max(Lights.length,1)]
   ]
 
-  let addenum = `
-  #ifdef GL_FRAGMENT_PRECISION_HIGH
-    precision highp float;
-  #else
-    precision mediump float;
-  #endif
+  let addenum=`
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
   `
 
   let extensions=[];
@@ -310,19 +311,19 @@ function getShader(gl,shaderScript,type,options=[])
   if(orthographic)
     defines.push('ORTHOGRAPHIC');
 
-  macros_str = macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
-  define_str = defines.map(define => `#define ${define}`).join('\n');
-  const_str = consts.map(const_val => `const ${const_val[0]} ${const_val[1]}=${const_val[2]};`).join('\n')
-  ext_str = extensions.map(ext => `#extension ${ext}: enable`).join('\n')
+  macros_str=macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
+  define_str=defines.map(define => `#define ${define}`).join('\n');
+  const_str=consts.map(const_val => `const ${const_val[0]} ${const_val[1]}=${const_val[2]};`).join('\n')
+  ext_str=extensions.map(ext => `#extension ${ext}: enable`).join('\n')
 
-  shaderSrc = `#version ${version}
-  ${ext_str}
-  ${define_str}
-  ${const_str}
-  ${macros_str}
+  shaderSrc=`#version ${version}
+${ext_str}
+${define_str}
+${const_str}
+${macros_str}
 
-  ${addenum}
-  ${shaderScript}
+${addenum}
+${shaderScript}
   `;
 
   let shader=gl.createShader(type);

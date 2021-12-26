@@ -134,6 +134,7 @@ void jsfile::open(string name)
 
   out << newl << "<script>" << newl;
   out << newl
+      << "webgl2=" << std::boolalpha << getSetting<bool>("webgl2") << ";"
       << "canvasWidth=" << gl::fullWidth << ";" << newl
       << "canvasHeight=" << gl::fullHeight << ";" << newl
       << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
