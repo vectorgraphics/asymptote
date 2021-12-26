@@ -26,6 +26,7 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
   for(size_t i=0; i < n; ++i) {
     GLint newshader=createShaderFile(shaders[i].first,shaders[i].second,
                                      defineflags,compute);
+    if(compute && newshader == 0) return 0;
     glAttachShader(shader,newshader);
     compiledShaders.push_back(newshader);
   }
@@ -46,8 +47,8 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
   return shader;
 }
 
-GLuint createShaders(const std::string& src, int shaderType,
-                     const std::string& filename, bool compute)
+GLuint createShader(const std::string& src, int shaderType,
+                    const std::string& filename, bool compute)
 {
   const GLchar *source=src.c_str();
   GLuint shader=glCreateShader(shaderType);
@@ -58,6 +59,7 @@ GLuint createShaders(const std::string& src, int shaderType,
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
   if(status != GL_TRUE) {
+    if(compute) return 0;
     GLint length;
 
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
@@ -111,6 +113,6 @@ GLuint createShaderFile(std::string file, int shaderType,
     exit(-1);
   }
 
-  return createShaders(shaderSrc.str(),shaderType,file,compute);
+  return createShader(shaderSrc.str(),shaderType,file,compute);
 }
 #endif

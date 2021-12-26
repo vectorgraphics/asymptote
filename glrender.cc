@@ -488,6 +488,12 @@ void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 }
 #endif
 
+void noShaders()
+{
+  cerr << "GLSL shaders not found." << endl;
+  exit(-1);
+}
+
 void initShaders()
 {
   Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
@@ -495,8 +501,6 @@ void initShaders()
 
   shaderProg=glCreateProgram();
 
-  string count=locateFile(GPUindexing ? "shaders/offset.glsl" :
-                          "shaders/count.glsl");
   string zero=locateFile("shaders/count0.glsl");
   string vertex=locateFile("shaders/vertex.glsl");
   string fragment=locateFile("shaders/fragment.glsl");
@@ -506,12 +510,9 @@ void initShaders()
   string partial=locateFile("shaders/partialsum.glsl");
   string post=locateFile("shaders/postsum.glsl");
 
-  if(vertex.empty() || count.empty() || fragment.empty() || blend.empty() ||
-     screen.empty() || zero.empty() || pre.empty() || partial.empty() ||
-     post.empty()) {
-    cerr << "GLSL shaders not found." << endl;
-    exit(-1);
-  }
+  if(vertex.empty() || fragment.empty() || blend.empty() || screen.empty() ||
+     zero.empty() || pre.empty() || partial.empty() || post.empty())
+    noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
   std::vector<std::string> shaderParams;
@@ -524,19 +525,29 @@ void initShaders()
 #ifdef HAVE_SSBO
   if(GPUindexing) {
     shaders[0]=ShaderfileModePair(pre.c_str(),GL_COMPUTE_SHADER);
-    camp::preSumShader=compileAndLinkShader(shaders,shaderParams,true);
+    GLuint rc=compileAndLinkShader(shaders,shaderParams,true);
+    if(rc == 0)
+      GPUindexing=false; // Compute shaders are unavailable.
+    else {
+      camp::preSumShader=rc;
 
-    ostringstream s;
-    s << "PROCESSORS " << processors << "u" << endl;
-    shaderParams.push_back(s.str().c_str());
-    shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
-    camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,true);
-    shaderParams.pop_back();
+      ostringstream s;
+      s << "PROCESSORS " << processors << "u" << endl;
+      shaderParams.push_back(s.str().c_str());
+      shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
+      camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,true);
+      shaderParams.pop_back();
 
-    shaders[0]=ShaderfileModePair(post.c_str(),GL_COMPUTE_SHADER);
-    camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true);
+      shaders[0]=ShaderfileModePair(post.c_str(),GL_COMPUTE_SHADER);
+      camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true);
+    }
   }
 #endif
+  string count=locateFile(GPUindexing ? "shaders/offset.glsl" :
+                          "shaders/count.glsl");
+  if(count.empty())
+    noShaders();
+
   shaders.push_back(ShaderfileModePair());
 
   shaders[0]=ShaderfileModePair(vertex.c_str(),GL_VERTEX_SHADER);

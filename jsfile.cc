@@ -119,8 +119,8 @@ void jsfile::open(string name)
 
   out.precision(getSetting<Int>("digits"));
 
-  bool webgl2=getSetting<bool>("webgl2");
-  bool ibl=webgl2 && getSetting<bool>("ibl");
+  bool ibl=getSetting<bool>("ibl");
+  bool webgl2=ibl || getSetting<bool>("webgl2");
   if(ibl)
     out << "<script src=\"https://vectorgraphics.gitlab.io/asymptote/ibl/tinyexr.js\">"
         << newl << "</script>" << newl;
