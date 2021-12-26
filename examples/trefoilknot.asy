@@ -3,8 +3,6 @@ import graph3;
 import palette;
 currentlight=White;
 
-settings.webgl2=false; // This example uses too many resources for WebGL2.
-
 size(0,8cm);
 currentprojection=perspective(1,1,1,up=-Y);
 
