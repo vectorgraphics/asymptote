@@ -37,7 +37,7 @@ let canvas; // Rendering canvas
 let gl; // WebGL rendering context
 let alpha; // Is background opaque?
 
-let offscreen2; // Offscreen rendering canvas for embedded images
+let offscreen; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
 
 let nlights=0; // Number of lights compiled in shader
@@ -190,7 +190,9 @@ function deleteShaders()
 
 function saveAttributes()
 {
-  let a=window.top.document.asygl2[alpha];
+  let a=webgl2 ?
+      window.top.document.asygl2[alpha] :
+      window.top.document.asygl[alpha];
 
   a.gl=gl;
   a.nlights=Lights.length;
@@ -205,7 +207,9 @@ function saveAttributes()
 
 function restoreAttributes()
 {
-  let a=window.top.document.asygl2[alpha];
+  let a=webgl2 ?
+      window.top.document.asygl2[alpha] :
+      window.top.document.asygl[alpha];
 
   gl=a.gl;
   nlights=a.nlights;
@@ -222,7 +226,6 @@ let indexExt;
 
 function webGL(canvas,alpha) {
   let gl;
-  if(ibl) webgl2=true;
   if(webgl2) gl=canvas.getContext("webgl2",{alpha: alpha});
   if(!gl) {
     webgl2=false;
@@ -236,25 +239,40 @@ function webGL(canvas,alpha) {
 
 function initGL()
 {
+  if(ibl) webgl2=true;
+
   alpha=Background[3] < 1;
 
   if(embedded) {
     let p=window.top.document;
 
-    if(p.asygl2 == null)
-      p.asygl2=Array(2);
-
     context=canvas.getContext("2d");
-    offscreen2=p.offscreen2;
-    if(!offscreen2) {
-      offscreen2=p.createElement("canvas");
-      p.offscreen2=offscreen2;
+    offscreen=webgl2 ? p.offscreen2 : p.offscreen;
+    if(!offscreen) {
+      offscreen=p.createElement("canvas");
+      if(webgl2)
+        p.offscreen2=offscreen;
+      else
+        p.offscreen=offscreen;
     }
 
-    if(!p.asygl2[alpha] || !p.asygl2[alpha].gl) {
-      gl=webGL(offscreen2,alpha);
+    if(webgl2) {
+      if(!p.asygl2)
+        p.asygl2=Array(2);
+    } else {
+      if(!p.asygl)
+        p.asygl=Array(2);
+    }
+
+    asygl=webgl2 ? p.asygl2 : p.asygl;
+
+    if(!asygl[alpha] || !asygl[alpha].gl) {
+      gl=webGL(offscreen,alpha);
       initShaders();
-      p.asygl2[alpha]={};
+      if(webgl2)
+        p.asygl2[alpha]={};
+      else
+        p.asygl[alpha]={};
       saveAttributes();
     } else {
       restoreAttributes();
@@ -2635,8 +2653,8 @@ function drawBuffers()
 function drawScene()
 {
   if(embedded) {
-    offscreen2.width=canvasWidth;
-    offscreen2.height=canvasHeight;
+    offscreen.width=canvasWidth;
+    offscreen.height=canvasHeight;
     setViewport();
   }
 
@@ -2650,7 +2668,7 @@ function drawScene()
 
   if(embedded) {
     context.clearRect(0,0,canvasWidth,canvasHeight);
-    context.drawImage(offscreen2,0,0);
+    context.drawImage(offscreen,0,0);
   }
 
   if(wireframe == 0) remesh=false;
@@ -2731,8 +2749,8 @@ function setViewport()
 function setCanvas()
 {
   if(embedded) {
-    canvas.width=offscreen2.width=canvasWidth;
-    canvas.height=offscreen2.height=canvasHeight;
+    canvas.width=offscreen.width=canvasWidth;
+    canvas.height=offscreen.height=canvasHeight;
   }
   size2=Math.hypot(canvasWidth,canvasHeight);
   halfCanvasWidth=0.5*canvas.width;
