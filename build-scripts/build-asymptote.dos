@@ -24,7 +24,7 @@ rm -rf asymptote-$VERSION
 mkdir -p CTAN
 rm -rf CTAN/asymptote-$VERSION
 cd CTAN
-tar -zxf $SHARED/asymptote-$VERSION.src.tgz | grep "/\." | xargs rm -rf
+tar -vzxf $SHARED/asymptote-$VERSION.src.tgz | grep "/\." | xargs rm -rf
 cd ..
 tar -zxf $SHARED/asymptote-$VERSION.src.tgz
 mkdir -p CTAN/asymptote-$VERSION/binaries/$BINDIR/texlive
