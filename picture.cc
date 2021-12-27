@@ -1486,10 +1486,12 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl && View)
       htmlView(name);
 
+#ifdef HAVE_GL
     if(format3dWait) {
       gl::format3dWait=false;
       endwait(initSignal,initLock);
     }
+#endif
 
     return true;
   }

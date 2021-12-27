@@ -40,6 +40,7 @@ pthread_t mainthread;
 #include "tr.h"
 
 #ifdef HAVE_LIBGLUT
+
 #ifdef __MSDOS__
 #ifndef FGAPI
 #define FGAPI GLUTAPI
@@ -50,13 +51,12 @@ pthread_t mainthread;
 #endif
 
 #define GLUT_BUILDING_LIB
-#endif // HAVE_LIBGLUT
 
-#ifdef HAVE_LIBGLUT
 #ifdef FREEGLUT
 #include <GL/freeglut_ext.h>
 #endif
-#endif
+
+#endif // HAVE_LIBGLUT
 
 #include "shaders.h"
 #include "GLTextures.h"
@@ -69,7 +69,7 @@ pthread_t mainthread;
 using settings::locateFile;
 using utils::seconds;
 
-#endif
+#endif // HAVE_GL
 
 #ifdef HAVE_LIBGLM
 
@@ -95,7 +95,7 @@ GLuint fragmentBuffer;
 
 }
 
-#endif /* HAVE_GL */
+#endif
 
 #ifdef HAVE_LIBGLM
 using camp::Material;
@@ -125,6 +125,27 @@ size_t materialIndex;
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
+
+void clearCenters()
+{
+  camp::drawElement::centers.clear();
+  camp::drawElement::centermap.clear();
+}
+
+void clearMaterials()
+{
+  materials.clear();
+  materials.reserve(nmaterials);
+  materialMap.clear();
+
+  material0Data.partial=false;
+  material1Data.partial=false;
+  materialData.partial=false;
+  colorData.partial=false;
+  triangleData.partial=false;
+  transparentData.partial=false;
+}
+
 }
 
 extern void exitHandler(int);
@@ -242,10 +263,6 @@ const double *dView;
 double BBT[9];
 
 unsigned int framecount;
-
-GLTexture2<float,GL_FLOAT> IBLbrdfTex;
-GLTexture2<float,GL_FLOAT> irradiance;
-GLTexture3<float,GL_FLOAT> reflTextures;
 
 template<class T>
 inline T min(T a, T b)
@@ -405,6 +422,10 @@ int window;
 using utils::statistics;
 statistics S;
 GLint shaderProg,shaderProgColor;
+
+GLTexture2<float,GL_FLOAT> IBLbrdfTex;
+GLTexture2<float,GL_FLOAT> irradiance;
+GLTexture3<float,GL_FLOAT> reflTextures;
 
 GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
@@ -2475,26 +2496,6 @@ void drawBuffers()
 
   if(transparent)
     drawTransparent();
-}
-
-void clearMaterials()
-{
-  materials.clear();
-  materials.reserve(nmaterials);
-  materialMap.clear();
-
-  material0Data.partial=false;
-  material1Data.partial=false;
-  materialData.partial=false;
-  colorData.partial=false;
-  triangleData.partial=false;
-  transparentData.partial=false;
-}
-
-void clearCenters()
-{
-  camp::drawElement::centers.clear();
-  camp::drawElement::centermap.clear();
 }
 
 void setMaterial(vertexBuffer& data, draw_t *draw)

@@ -4,6 +4,8 @@
 
 #include "GLTextures.h"
 
+#ifdef HAVE_GL
+
 namespace gl
 {
 
@@ -42,3 +44,5 @@ void AGLTexture::setActive() const
 }
 
 } // namespace gl
+
+#endif
