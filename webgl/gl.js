@@ -17,7 +17,7 @@ let angleOfView; // Field of view angle
 let initialZoom; // Initial zoom
 let viewportShift=[0,0]; // Viewport shift (for perspective projection)
 let viewportMargin; // Margin around viewport (2-tuple)
-let webgl2=true;
+let webgl2=false;
 
 let zoomFactor; // Zoom base factor
 let zoomPinchFactor; // Zoom pinch factor
@@ -222,6 +222,7 @@ let indexExt;
 
 function webGL(canvas,alpha) {
   let gl;
+  if(ibl) webgl2=true;
   if(webgl2) gl=canvas.getContext("webgl2",{alpha: alpha});
   if(!gl) {
     webgl2=false;
