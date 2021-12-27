@@ -20,7 +20,7 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 2.09
+#define __FFTWPP_H_VERSION__ 2.10
 
 #include <cstdlib>
 #include <fstream>
@@ -28,6 +28,7 @@
 #include <fftw3.h>
 #include <cerrno>
 #include <map>
+#include <typeinfo>
 
 #ifndef _OPENMP
 #ifndef FFTWPP_SINGLE_THREAD
@@ -122,9 +123,10 @@ public:
   ThreadBase(unsigned int threads) : threads(threads) {}
   void Threads(unsigned int nthreads) {threads=nthreads;}
   unsigned int Threads() {return threads;}
+  unsigned int Innerthreads() {return innerthreads;}
 
-  void multithread(unsigned int nx) {
-    if(nx >= threads) {
+  void multithread(unsigned int n) {
+    if(n >= threads) {
       innerthreads=1;
     } else {
       innerthreads=threads;
@@ -374,7 +376,10 @@ public:
 
     threaddata data;
     unsigned int Threads=threads;
+
     if(threads > 1) data=lookup(inplace,threads);
+    else data=threaddata(1,0.0,0.0);
+
     threads=data.threads > 0 ? data.threads : 1;
     planThreads(threads);
     plan=(*planner)(this,in,out);
@@ -395,6 +400,10 @@ public:
     }
 
     if(alloc) Array::deleteAlign(in,(doubles+1)/2);
+#ifdef FFTWPP_VERBOSE
+    if(threads > 1)
+      std::cout << "Using " << threads << " threads." << std::endl;
+#endif
     return data;
   }
 
@@ -691,19 +700,6 @@ public:
 };
 
 template<class I, class O>
-inline bool Hermitian(I in, O out) {
-  return false;
-}
-
-inline bool Hermitian(double in, fftw_complex out) {
-  return true;
-}
-
-inline bool Hermitian(fftw_complex in, double out) {
-  return true;
-}
-
-template<class I, class O>
 class fftwblock : public virtual fftw {
 public:
   int nx;
@@ -725,9 +721,7 @@ public:
     threaddata S1=Setup(in,out);
     fftw_plan planT1=plan;
     threads=S1.threads;
-    I input;
-    O output;
-    bool hermitian=Hermitian(input,output);
+    bool hermitian=typeid(I) == typeid(double) || typeid(O) == typeid(double);
 
     if(fftw::maxthreads > 1 && (!hermitian || ostride*(nx/2+1) < idist)) {
       if(Threads > 1) {

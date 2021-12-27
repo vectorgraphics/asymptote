@@ -30,12 +30,6 @@ public:
   jsofstream() {}
   jsofstream(const string& name) : std::ofstream(name.c_str()) {}
   void open(const string& name) {std::ofstream::open(name.c_str());}
-
-  template<class T>
-  jsofstream& operator << (const T& x) {
-    (std::ofstream&)(*this) << x;
-    return *this;
-  }
 };
 
 class pair : public gc {
