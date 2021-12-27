@@ -1819,7 +1819,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
 #ifdef HAVE_LIBOSMESA
-  if(webgl) {
+  if(!webgl) {
     screenWidth=maxTileWidth;
     screenHeight=maxTileHeight;
 
