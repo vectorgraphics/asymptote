@@ -708,7 +708,7 @@ void drawscene(int Width, int Height)
 }
 
 // Return x divided by y rounded up to the nearest integer.
-int Quotient(int x, int y)
+int ceilquotient(int x, int y)
 {
   return (x+y-1)/y;
 }
@@ -727,9 +727,11 @@ void Export()
     unsigned char *data=new unsigned char[ndata];
     if(data) {
       TRcontext *tr=trNew();
-      int width=Quotient(fullWidth,Quotient(fullWidth,min(maxTileWidth,Width)));
-      int height=Quotient(fullHeight,Quotient(fullHeight,
-                                              min(maxTileHeight,Height)));
+      int width=ceilquotient(fullWidth,
+                             ceilquotient(fullWidth,min(maxTileWidth,Width)));
+      int height=ceilquotient(fullHeight,
+                              ceilquotient(fullHeight,
+                                           min(maxTileHeight,Height)));
       if(settings::verbose > 1)
         cout << "Exporting " << Prefix << " as " << fullWidth << "x"
              << fullHeight << " image" << " using tiles of size "
