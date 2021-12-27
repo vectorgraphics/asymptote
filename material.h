@@ -11,6 +11,17 @@
 
 #include <glm/glm.hpp>
 
+namespace glm {
+
+inline ostream& operator << (ostream& out, const glm::vec4& v)
+{
+  out << "[" << v[0] << "," << v[1] << "," << v[2] << "," << v[3]
+      << "]";
+  return out;
+}
+
+}
+
 namespace camp {
 
 inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
@@ -26,13 +37,6 @@ inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
 inline glm::vec4 GLparameters(float shininess, float metallic,
                               float fresnel0) {
   return glm::vec4(shininess,metallic,fresnel0,0.0);
-}
-
-inline ostream& operator << (ostream& out, const glm::vec4& v)
-{
-  out << "[" << v[0] << "," << v[1] << "," << v[2] << "," << v[3]
-      << "]";
-  return out;
 }
 
 struct Material {
