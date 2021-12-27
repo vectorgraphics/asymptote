@@ -51,9 +51,7 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
-void setcolors(bool colors,
-               const RGBAColour& diffuse,
-               const RGBAColour& emissive,
+void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
                const RGBAColour& specular, double shininess,
                double metallic, double fresnel0, abs3Doutfile *out)
 {
@@ -224,12 +222,12 @@ bool drawBezierPatch::write(abs3Doutfile *out)
   if(invisible || primitive)
     return true;
 
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
   if(billboard) {
     meshinit();
     drawElement::centerIndex=centerIndex;
   } else drawElement::centerIndex=0;
-
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
   out->precision(digits);
   if(straight) {
@@ -265,7 +263,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
 
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
   if(transparent)
     setMaterial(transparentData,drawTransparent);
@@ -481,15 +479,16 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
 bool drawBezierTriangle::write(abs3Doutfile *out)
 {
 #ifdef HAVE_LIBGLM
+
   if(invisible || primitive)
     return true;
+
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
   if(billboard) {
     meshinit();
     drawElement::centerIndex=centerIndex;
   } else drawElement::centerIndex=0;
-
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
   out->precision(digits);
   if(straight) {
@@ -525,7 +524,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
 
-  setcolors(colors,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
   if(transparent)
     setMaterial(transparentData,drawTransparent);
@@ -800,7 +799,7 @@ bool drawSphere::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
   triple O,E;
   P(E,1.0,0.0,0.0);
@@ -838,7 +837,7 @@ bool drawCylinder::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
   triple E,H,O;
   P(E,1.0,0.0,0.0);
@@ -876,7 +875,7 @@ bool drawDisk::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
   triple E,H,O;
   P(E,1.0,0.0,0.0);
@@ -900,7 +899,7 @@ bool drawTube::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(false,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
 
   bbox3 b;
   b.add(T*m);
@@ -995,7 +994,7 @@ bool drawTriangles::write(abs3Doutfile *out)
     drawElement::centerIndex=centerIndex;
   } else drawElement::centerIndex=0;
 
-  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
 #endif
   return true;
@@ -1009,7 +1008,7 @@ void drawTriangles::render(double size2, const triple& b,
   if(invisible) return;
   transparent=diffuse.A < 1.0;
 
-  setcolors(nC,diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
   if(transparent)
     setMaterial(transparentData,drawTransparent);

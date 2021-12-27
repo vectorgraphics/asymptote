@@ -175,8 +175,8 @@ void jsfile::open(string name)
   for(size_t i=0; i < gl::nlights; ++i) {
     size_t i4=4*i;
     out << "new Light(" << newl
-        << "direction=" << gl::Lights[i] << "," << newl
-        << "color=[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
+        << gl::Lights[i] << "," << newl
+        << "[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
         << gl::Diffuse[i4+2] << "])," << newl;
   }
   out << "];" << newl << newl;
@@ -184,16 +184,8 @@ void jsfile::open(string name)
       << gl::Background[2] << "," << gl::Background[3] << "];"
       << newl << newl;
 
-  size_t nmaterials=materials.size();
-  out << "Materials=[" << newl;
-  for(size_t i=0; i < nmaterials; ++i) {
-    if(i > 0)
-      out << ",";
-    out << "new Material(" << newl
-        << materials[i]
-        << ")" << newl;
-  }
-  out << "];" << newl << newl;
+  camp::clearCenters();
+  camp::clearMaterials();
 }
 
 void jsfile::finish(string name)
@@ -237,7 +229,7 @@ void jsfile::addRawPatch(triple const* controls, size_t n,
     out << controls[i] << "," << newl;
   out << controls[last] << newl << "],"
       << drawElement::centerIndex << "," << materialIndex << ","
-      << Min << "," << Max;
+      << newl << Min << "," << newl << Max;
   if(c) {
     out << ",[" << newl;
     for(size_t i=0; i < nc; ++i) {
@@ -259,7 +251,7 @@ void jsfile::addCurve(const triple& z0, const triple& c0,
       << c1 << "," << newl
       << z1 << newl << "],"
       << drawElement::centerIndex << "," << materialIndex << ","
-      << Min << "," << Max << ");" << newl << newl;
+      << newl << Min << "," << newl << Max << ");" << newl << newl;
 }
 
 void jsfile::addCurve(const triple& z0, const triple& z1,
@@ -269,7 +261,7 @@ void jsfile::addCurve(const triple& z0, const triple& z1,
   out << z0 << "," << newl
       << z1 << newl << "],"
       << drawElement::centerIndex << "," << materialIndex << ","
-      << Min << "," << Max << ");" << newl << newl;
+      << newl << Min << "," << newl << Max << ");" << newl << newl;
 }
 
 void jsfile::addPixel(const triple& z0, double width,
@@ -277,7 +269,8 @@ void jsfile::addPixel(const triple& z0, double width,
 {
   out << "pixel(" << newl;
   out << z0 << "," << width << "," << newl
-      << materialIndex << "," << Min << "," << Max << ");" << newl << newl;
+      << materialIndex << "," << newl << Min << "," << newl << Max << ");"
+      << newl << newl;
 }
 
 void jsfile::addMaterial(Material const& material)
@@ -324,7 +317,7 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
   }
   out << "triangles("
       << drawElement::centerIndex << "," << materialIndex << "," << newl
-      << Min << "," << Max << ");" << newl << newl;
+      << newl << Min << "," << newl << Max << ");" << newl << newl;
 }
 
 void jsfile::addSphere(const triple& center, double radius)
@@ -375,7 +368,8 @@ void jsfile::addTube(const triple *g, double width,
       << g[3] << newl << "],"
       << width << ","
       << drawElement::centerIndex << "," << materialIndex << ","
-      << Min << "," << Max << "," << core <<");" << newl << newl;
+      << newl << Min << "," << newl << Max << "," << core <<");"
+      << newl << newl;
 }
 
 void jsfile::addPatch(triple const* controls,

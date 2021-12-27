@@ -167,6 +167,8 @@ extern const double *dView;
 
 extern double BBT[9];
 
+extern bool format3dWait;
+
 }
 
 namespace camp {
@@ -391,7 +393,9 @@ extern vertexBuffer transparentData; // transparent patches & triangles
 
 void drawBuffer(vertexBuffer& data, GLint shader, bool color=false);
 void drawBuffers();
-void clearMaterialBuffer();
+
+void clearMaterials();
+void clearCenters();
 
 typedef void draw_t();
 void setMaterial(vertexBuffer& data, draw_t *draw);

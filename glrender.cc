@@ -216,6 +216,8 @@ double lastzoom;
 
 GLint lastshader=-1;
 
+bool format3dWait=false;
+
 using glm::dvec3;
 using glm::dmat3;
 using glm::mat3;
@@ -656,6 +658,9 @@ void drawscene(int Width, int Height)
     endwait(initSignal,initLock);
     first=false;
   }
+
+  if(format3dWait)
+    wait(initSignal,initLock);
 #endif
 
   if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
@@ -674,7 +679,7 @@ void drawscene(int Width, int Height)
   double size2=hypot(Width,Height);
 
   if(remesh)
-    camp::drawElement::centers.clear();
+    camp::clearCenters();
 
   Picture->render(size2,m,M,perspective,remesh);
 
@@ -1779,7 +1784,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxTileWidth <= 0) maxTileWidth=1024;
   if(maxTileHeight <= 0) maxTileHeight=768;
 
-  bool producerawfile=Format == "html" || Format == "v3d";
+  bool v3d=format == "v3d";
+  bool webgl=format == "html";
+  bool format3d=webgl || v3d;
 
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
@@ -1789,7 +1796,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
 #ifdef HAVE_LIBOSMESA
-  if(Format != "html") {
+  if(webgl) {
     screenWidth=maxTileWidth;
     screenHeight=maxTileHeight;
 
@@ -1803,7 +1810,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #else
   if(glinitialize) {
-    if(!producerawfile) init();
+    if(!format3d) init();
     Fitscreen=1;
   }
 #endif
@@ -1815,7 +1822,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
                        getSetting<bool>("animating")))) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
-    if(producerawfile)
+    if(format3d)
       expand=1.0;
     else {
       expand=getSetting<double>("render");
@@ -1847,7 +1854,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     fullWidth=(int) ceil(expand*width);
     fullHeight=(int) ceil(expand*height);
 
-    if(producerawfile) {
+    if(format3d) {
       Width=fullWidth;
       Height=fullHeight;
     } else {
@@ -1860,9 +1867,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         Height=min((int) (ceil(Width/Aspect)),screenHeight);
     }
 
-    home(producerawfile);
+    home(format3d);
     setProjection();
-    if(producerawfile) return;
+    if(format3d) {
+      remesh=true;
+      return;
+    }
 
     camp::maxFragments=0;
 
@@ -1899,7 +1909,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 #endif
 
-  camp::clearMaterialBuffer();
+  if(glthread && format3d)
+    format3dWait=true;
+
+  camp::clearMaterials();
 
 #ifndef HAVE_LIBOSMESA
 
@@ -2464,12 +2477,11 @@ void drawBuffers()
     drawTransparent();
 }
 
-void clearMaterialBuffer()
+void clearMaterials()
 {
   materials.clear();
   materials.reserve(nmaterials);
   materialMap.clear();
-  materialIndex=0;
 
   material0Data.partial=false;
   material1Data.partial=false;
@@ -2477,6 +2489,12 @@ void clearMaterialBuffer()
   colorData.partial=false;
   triangleData.partial=false;
   transparentData.partial=false;
+}
+
+void clearCenters()
+{
+  camp::drawElement::centers.clear();
+  camp::drawElement::centermap.clear();
 }
 
 void setMaterial(vertexBuffer& data, draw_t *draw)

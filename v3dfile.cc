@@ -24,9 +24,8 @@ void v3dfile::writeInit()
   getXDRFile() << v3dVersion << doubleprecision;
   addHeaders();
 
-  size_t nmaterials=materials.size();
-  for(size_t i=0; i < nmaterials; ++i)
-    addMaterial(materials[i]);
+  camp::clearCenters();
+  camp::clearMaterials();
 }
 
 void v3dfile::addHeaders()

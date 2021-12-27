@@ -462,9 +462,7 @@ public:
 };
 
 #ifdef HAVE_LIBGLM
-void setcolors(bool colors,
-               const prc::RGBAColour& diffuse,
-               const prc::RGBAColour& emissive,
+void setcolors(const prc::RGBAColour& diffuse, const prc::RGBAColour& emissive,
                const prc::RGBAColour& specular, double shininess,
                double metallic, double fresnel0, abs3Doutfile *out=NULL);
 #endif

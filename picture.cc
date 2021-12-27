@@ -1392,10 +1392,10 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #endif
 
-  bool v3dfmt=format == "v3d";
-  bool fmt3d=webgl || v3dfmt;
+  bool v3d=format == "v3d";
+  bool format3d=webgl || v3d;
 
-  if(!fmt3d) {
+  if(!format3d) {
 #ifdef HAVE_GL
     if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
@@ -1455,13 +1455,13 @@ bool picture::shipout3(const string& prefix, const string& format,
   glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
            background,nlights,lights,diffuse,specular,View,oldpid);
 
-  if(fmt3d) {
+  if(format3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;
 
     if(webgl)
       fileObj=new jsfile(name);
-    else if(v3dfmt)
+    else if(v3d)
 #ifdef HAVE_RPC_RPC_H
       fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
                             getSetting<double>("prerender") > 0.0);
@@ -1485,6 +1485,11 @@ bool picture::shipout3(const string& prefix, const string& format,
 
     if(webgl && View)
       htmlView(name);
+
+    if(format3dWait) {
+      gl::format3dWait=false;
+      endwait(initSignal,initLock);
+    }
 
     return true;
   }
