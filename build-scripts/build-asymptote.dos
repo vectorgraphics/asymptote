@@ -23,7 +23,9 @@ cd ~/
 rm -rf asymptote-$VERSION
 mkdir -p CTAN
 rm -rf CTAN/asymptote-$VERSION
-tar -zxf $SHARED/asymptote-$VERSION.src.tgz -C CTAN | grep "/\." | xargs rm -rf
+cd CTAN
+tar -zxf $SHARED/asymptote-$VERSION.src.tgz | grep "/\." | xargs rm -rf
+cd ..
 tar -zxf $SHARED/asymptote-$VERSION.src.tgz
 mkdir -p CTAN/asymptote-$VERSION/binaries/$BINDIR/texlive
 cd asymptote-$VERSION
@@ -87,7 +89,6 @@ cp -a $SHARED/asydoc/* ~/CTAN/asymptote-$VERSION/doc
 cd ~/CTAN/asymptote-$VERSION/binaries/$BINDIR
 cp -a ../../README .
 cd ~/CTAN
-rm doc/latexusage.out
 cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/$BINDIR/texlive/README
 SHAREDBIN=$SHARED/CTAN/asymptote-$VERSION
 if [ $MACHINE == i686 ]; then
