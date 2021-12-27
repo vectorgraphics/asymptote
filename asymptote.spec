@@ -44,7 +44,7 @@ that LaTeX does for scientific text.
 
 
 %build
-CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/`" \
+CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/` -fno-lto" \
 %configure --with-latex=%{_texmf}/tex/latex --with-context=%{_texmf}/tex/context/third
 make %{?_smp_mflags}
 
