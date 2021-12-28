@@ -3025,7 +3025,8 @@ frame embedder(object embedder(string prefix, string format),
       if(light.background != nullpen)
         box(f,light.background,Fill,above=false);
     } else if(!view)
-      label(f,graphic(prefix,"hiresbb"));
+      label(f,settings.inlinetex ?
+            "\input{"+prefix+"}" : graphic(prefix,"hiresbb"));
   }
   return f;
 }
