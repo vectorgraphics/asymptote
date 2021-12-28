@@ -17,7 +17,7 @@ int GLSLversion;
 
 GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
                             std::vector<std::string> const& defineflags,
-                            bool compute)
+                            bool ssbo, bool compute)
 {
   GLuint shader = glCreateProgram();
   std::vector<GLuint> compiledShaders;
@@ -25,8 +25,8 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
   size_t n=shaders.size();
   for(size_t i=0; i < n; ++i) {
     GLint newshader=createShaderFile(shaders[i].first,shaders[i].second,
-                                     defineflags,compute);
-    if(compute && newshader == 0) return 0;
+                                     defineflags,ssbo,compute);
+    if((ssbo || compute) && newshader == 0) return 0;
     glAttachShader(shader,newshader);
     compiledShaders.push_back(newshader);
   }
@@ -48,7 +48,7 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
 }
 
 GLuint createShader(const std::string& src, int shaderType,
-                    const std::string& filename, bool compute)
+                    const std::string& filename, bool ssbo, bool compute)
 {
   const GLchar *source=src.c_str();
   GLuint shader=glCreateShader(shaderType);
@@ -59,7 +59,7 @@ GLuint createShader(const std::string& src, int shaderType,
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
   if(status != GL_TRUE) {
-    if(compute) return 0;
+    if(ssbo || compute) return 0;
     GLint length;
 
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
@@ -85,7 +85,7 @@ GLuint createShader(const std::string& src, int shaderType,
 
 GLuint createShaderFile(std::string file, int shaderType,
                         std::vector<std::string> const& defineflags,
-                        bool compute)
+                        bool ssbo, bool compute)
 {
   std::ifstream shaderFile;
   shaderFile.open(file.c_str());
@@ -95,7 +95,8 @@ GLuint createShaderFile(std::string file, int shaderType,
 #ifndef __APPLE__
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable" << "\n";
 #ifdef HAVE_SSBO
-  shaderSrc << "#extension GL_ARB_shader_storage_buffer_object : enable" << "\n";
+  if(ssbo)
+    shaderSrc << "#extension GL_ARB_shader_storage_buffer_object : enable" << "\n";
   if(compute)
     shaderSrc << "#extension GL_ARB_compute_shader : enable" << "\n";
 #endif
@@ -113,6 +114,6 @@ GLuint createShaderFile(std::string file, int shaderType,
     exit(-1);
   }
 
-  return createShader(shaderSrc.str(),shaderType,file,compute);
+  return createShader(shaderSrc.str(),shaderType,file,ssbo,compute);
 }
 #endif

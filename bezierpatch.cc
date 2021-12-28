@@ -732,7 +732,6 @@ void BezierTriangle::render(const triple *p,
   }
 }
 
-#ifndef HAVE_SSBO
 std::vector<GLfloat> zbuffer;
 
 void transform(const std::vector<VertexData>& b)
@@ -772,7 +771,6 @@ void sortTriangles()
           3*sizeof(GLuint),compare);
   }
 }
-#endif
 
 void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
                       size_t nC, const prc::RGBAColour* C, size_t nI,

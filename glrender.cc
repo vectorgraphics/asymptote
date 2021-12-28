@@ -387,9 +387,8 @@ void home(bool webgl=false)
 #endif
 #endif
   dviewMat=dmat4(1.0);
-#ifndef HAVE_SSBO
-  dView=value_ptr(dviewMat);
-#endif
+  if(!camp::countShader)
+    dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
   drotateMat=dmat4(1.0);
@@ -548,21 +547,24 @@ void initShaders()
 #ifdef HAVE_SSBO
   if(GPUindexing) {
     shaders[0]=ShaderfileModePair(pre.c_str(),GL_COMPUTE_SHADER);
-    GLuint rc=compileAndLinkShader(shaders,shaderParams,true);
-    if(rc == 0)
+    GLuint rc=compileAndLinkShader(shaders,shaderParams,true,true);
+    if(rc == 0) {
       GPUindexing=false; // Compute shaders are unavailable.
-    else {
+      if(settings::verbose > 2)
+        cout << "No compute shader support" << endl;
+    } else {
       camp::preSumShader=rc;
 
       ostringstream s;
       s << "PROCESSORS " << processors << "u" << endl;
       shaderParams.push_back(s.str().c_str());
       shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
-      camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,true);
+      camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,
+                                                  true,true);
       shaderParams.pop_back();
 
       shaders[0]=ShaderfileModePair(post.c_str(),GL_COMPUTE_SHADER);
-      camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true);
+      camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true,true);
     }
   }
 #endif
@@ -577,9 +579,16 @@ void initShaders()
 
 #ifdef HAVE_SSBO
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
-  camp::countShader=compileAndLinkShader(shaders,shaderParams);
-  shaderParams.push_back("HAVE_SSBO");
+  camp::countShader=compileAndLinkShader(shaders,shaderParams,true);
+  if(camp::countShader)
+    shaderParams.push_back("HAVE_SSBO");
+  else
 #endif
+  camp::countShader=0;
+
+  if(!camp::countShader && settings::verbose > 2)
+    cout << "No SSBO support; order-independent transparency unavailable"
+         << endl;
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
@@ -609,33 +618,34 @@ void initShaders()
   shaderParams.push_back("TRANSPARENT");
   camp::transparentShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.clear();
-#ifdef HAVE_SSBO
-  shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
+  if(camp::countShader) {
+    shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
 
-  if(GPUindexing)
-    shaderParams.push_back("GPUINDEXING");
-  else {
-    shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
-    camp::zeroShader=compileAndLinkShader(shaders,shaderParams);
+    if(GPUindexing)
+      shaderParams.push_back("GPUINDEXING");
+    else {
+      shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
+      camp::zeroShader=compileAndLinkShader(shaders,shaderParams);
+    }
+
+    shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
+    camp::blendShader=compileAndLinkShader(shaders,shaderParams);
   }
-
-  shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
-  camp::blendShader=compileAndLinkShader(shaders,shaderParams);
-#endif
 }
 
 void deleteShaders()
 {
-#ifdef HAVE_SSBO
-  glDeleteProgram(camp::blendShader);
-  if(GPUindexing) {
-    glDeleteProgram(camp::preSumShader);
-    glDeleteProgram(camp::partialSumShader);
-    glDeleteProgram(camp::postSumShader);
-  } else
-    glDeleteProgram(camp::zeroShader);
-  glDeleteProgram(camp::countShader);
-#endif
+  if(camp::countShader) {
+    glDeleteProgram(camp::blendShader);
+    if(GPUindexing) {
+      glDeleteProgram(camp::preSumShader);
+      glDeleteProgram(camp::partialSumShader);
+      glDeleteProgram(camp::postSumShader);
+    } else
+      glDeleteProgram(camp::zeroShader);
+    glDeleteProgram(camp::countShader);
+  }
+
   glDeleteProgram(camp::transparentShader);
   glDeleteProgram(camp::generalShader);
   glDeleteProgram(camp::colorShader);
@@ -846,7 +856,8 @@ void quit()
 void mode()
 {
   remesh=true;
-  camp::initSSBO=true;
+  if(camp::countShader)
+    camp::initSSBO=true;
   ++Mode;
   if(Mode > 2) Mode=0;
 
@@ -902,7 +913,8 @@ void reshape0(int width, int height)
 
   setProjection();
   glViewport(0,0,Width,Height);
-  camp::initSSBO=true;
+  if(camp::countShader)
+    camp::initSSBO=true;
 }
 
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -1103,9 +1115,8 @@ void update()
 
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
-#ifndef HAVE_SSBO
-  dView=value_ptr(dviewMat);
-#endif
+  if(!camp::countShader)
+    dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
   setProjection();
@@ -2043,17 +2054,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       exit(-1);
     }
 
-    if(settings::verbose > 2) {
-      cout << "GLSL version " << GLSL_VERSION;
-#ifdef HAVE_SSBO
-      cout << " with SSBO";
-#ifdef HAVE_COMPUTE_SHADER
-      cout << " and compute shader";
-#endif
-      cout << " support";
-#endif
-      cout << endl;
-    }
+    if(settings::verbose > 2)
+      cout << "GLSL version " << GLSL_VERSION << endl;
 
     int result = glewInit();
 
@@ -2087,10 +2089,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
   glEnable(GL_TEXTURE_3D);
 
-#ifndef HAVE_SSBO
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-#endif
+  if(!camp::countShader) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  }
 
   Mode=2;
   mode();
@@ -2303,9 +2305,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUseProgram(shader);
     gl::lastshader=shader;
 
-#ifdef HAVE_SSBO
-    glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
-#endif
+    if(camp::countShader) // CHECK
+      glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
     glUniform1ui(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
     for(size_t i=0; i < gl::nlights; ++i) {
@@ -2465,30 +2466,30 @@ void aBufferTransparency()
 
 void drawTransparent()
 {
-#ifdef HAVE_SSBO
-  glDisable(GL_MULTISAMPLE);
-  aBufferTransparency();
-  glEnable(GL_MULTISAMPLE);
-#else
-  sortTriangles();
-  transparentData.rendered=false; // Force copying of sorted triangles to GPU
-  glDepthMask(GL_FALSE); // Don't write to depth buffer
-  drawBuffer(transparentData,transparentShader,true);
-  glDepthMask(GL_TRUE); // Write to depth buffer
-  transparentData.clear();
-#endif
+  if(camp::countShader) {
+    glDisable(GL_MULTISAMPLE);
+    aBufferTransparency();
+    glEnable(GL_MULTISAMPLE);
+  } else {
+    sortTriangles();
+    transparentData.rendered=false; // Force copying of sorted triangles to GPU
+    glDepthMask(GL_FALSE); // Don't write to depth buffer
+    drawBuffer(transparentData,transparentShader,true);
+    glDepthMask(GL_TRUE); // Write to depth buffer
+    transparentData.clear();
+  }
 }
 
 void drawBuffers()
 {
   gl::copied=false;
   bool transparent=!transparentData.indices.empty();
-#ifdef HAVE_SSBO
-  if(transparent) {
-    refreshBuffers();
-    gl::copied=true;
+  if(camp::countShader) {
+    if(transparent) {
+      refreshBuffers();
+      gl::copied=true;
+    }
   }
-#endif
 
   drawMaterial0();
   drawMaterial1();
