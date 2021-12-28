@@ -1001,8 +1001,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
   bool Labels=labels || TeXmode;
 
-  if(png && (b.right-b.left < 1.0 || b.top-b.bottom < 1.0))
+  bool Empty=b.right-b.left < 1.0 || b.top-b.bottom < 1.0;
+  if(png && Empty)
     empty=true;
+
+  if(Empty && (svgformat || htmlformat)) return true;
 
   if(empty && !Labels) { // Output a null file
     bbox b;
