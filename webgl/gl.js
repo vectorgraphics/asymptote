@@ -226,7 +226,15 @@ let indexExt;
 
 function webGL(canvas,alpha) {
   let gl;
-  if(webgl2) gl=canvas.getContext("webgl2",{alpha: alpha});
+  if(webgl2) {
+    gl=canvas.getContext("webgl2",{alpha: alpha});
+    if(embedded && !gl) {
+      webgl2=false;
+      ibl=false;
+      initGL(false);    // Look for an existing webgl context
+      return null;      // Skip remainder of parent call
+    }
+  }
   if(!gl) {
     webgl2=false;
     ibl=false;
@@ -237,7 +245,7 @@ function webGL(canvas,alpha) {
   return gl;
 }
 
-function initGL()
+function initGL(outer=true)
 {
   if(ibl) webgl2=true;
 
@@ -246,7 +254,7 @@ function initGL()
   if(embedded) {
     let p=window.top.document;
 
-    context=canvas.getContext("2d");
+    if(outer) context=canvas.getContext("2d");
     offscreen=webgl2 ? p.offscreen2 : p.offscreen;
     if(!offscreen) {
       offscreen=p.createElement("canvas");
@@ -267,7 +275,9 @@ function initGL()
     asygl=webgl2 ? p.asygl2 : p.asygl;
 
     if(!asygl[alpha] || !asygl[alpha].gl) {
-      gl=webGL(offscreen,alpha);
+      rc=webGL(offscreen,alpha);
+      if(rc) gl=rc;
+      else return;
       initShaders();
       if(webgl2)
         p.asygl2[alpha]={};
