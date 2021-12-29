@@ -100,17 +100,17 @@ endif
 syn match       asyCommentError      display "\*/"
 syn match       asyCommentStartError display "/\*"me=e-1 contained
 
-syn keyword     asyType         void bool int real string
+syn keyword     asyType         void bool int real string file
 syn keyword     asyType         pair triple transform guide path pen frame
 syn keyword     asyType         picture
 
 syn keyword     asyStructure    struct typedef
-syn keyword     asyStorageClass static public readable private explicit
+syn keyword     asyStorageClass static public restricted private explicit
 
 syn keyword     asyPathSpec     and cycle controls tension atleast curl
 
-syn keyword     asyConstant     true false
-syn keyword     asyConstant     null nullframe nullpath
+syn keyword     asyConstant     true false default infinity inf
+syn keyword     asyConstant     null nullframe nullpath nullpen
 
 if exists("asy_syn_plain")
   syn keyword   asyConstant     currentpicture currentpen currentprojection
@@ -118,6 +118,7 @@ if exists("asy_syn_plain")
   syn keyword   asyConstant     E NE N NW W SW S SE
   syn keyword   asyConstant     ENE NNE NNW WNW WSW SSW SSE ESE
   syn keyword   asyConstant     I pi twopi
+  syn keyword   asyConstant     identity zeroTransform
   syn keyword   asyConstant     solid dotted dashed dashdotted
   syn keyword   asyConstant     longdashed longdashdotted
   syn keyword   asyConstant     squarecap roundcap extendcap
