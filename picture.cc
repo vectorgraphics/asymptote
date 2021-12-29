@@ -530,11 +530,8 @@ bool picture::texprocess(const string& texname, const string& outname,
           cmd.push_back("-D600");
           cmd.push_back("-O"+String(hoffset)+"bp,"+String(voffset)+"bp");
           bool ps=pagecount() > 1;
-          if(ps)
-            cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
-                          String(paperHeight)+"bp");
-          else
-            cmd.push_back("-E");
+          cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
+                        String(paperHeight)+"bp");
           push_split(cmd,getSetting<string>("dvipsOptions"));
           if(ps && getSetting<string>("papertype") != "")
             cmd.push_back("-t"+papertype);
@@ -556,7 +553,20 @@ bool picture::texprocess(const string& texname, const string& outname,
             const string endspecial="@fedspecial end";
             const size_t endlength=endspecial.size();
 
+            bool inpapersize=false;
             while(getline(fin,s)) {
+
+              if (inpapersize) {
+                if(s.find("%%EndPaperSize") == 0)
+                  inpapersize=false;
+                continue;
+              } else {
+                if (s.find("%%BeginPaperSize:") == 0) {
+                  inpapersize=true;
+                  continue;
+                }
+              }
+
               if (s[0] == '%') {
                 if (s.find("%%DocumentPaperSizes:") == 0)
                   continue;
