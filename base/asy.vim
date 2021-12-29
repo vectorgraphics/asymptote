@@ -27,15 +27,11 @@ syn keyword     asyTodo         contained TODO FIXME XXX
 syn cluster     asyCommentGroup contains=asyTodo
 
 " String and Character constants
-" Highlight special characters (those proceding a double backslash) differently
-syn match       asySpecial      display contained "\\\\."
-" Highlight line continuation slashes
-syn match       asySpecial      display contained "\\$"
-syn region      asyString       start=+"+ skip=+\\\\\|\\"+ end=+"+ contains=asySpecial
-  " asyCppString: same as asyString, but ends at end of line
-if 0
-syn region      asyCppString    start=+"+ skip=+\\\\\|\\"\|\\$+ excludenl end=+"+ end='$' contains=asySpecial
-endif
+syn region      asyString        start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=asySpecial
+syn match       asySpecial       display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}\|x[0-9A-F]\{1,2\}\|$\)+
+" double quoted strings only special character is \"
+syn region      asyDoubleString  start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asyDoubleSpecial
+syn match       asyDoubleSpecial display contained +[^\\]\(\\\\\)*\zs\\"+
 
 "when wanted, highlight trailing white space
 if exists("asy_space_errors")
@@ -48,24 +44,24 @@ if exists("asy_space_errors")
 endif
 
 "catch errors caused by wrong parenthesis and brackets
-syn cluster     asyParenGroup   contains=asyParenError,asyIncluded,asySpecial,asyCommentSkip,asyCommentString,asyComment2String,@asyCommentGroup,asyCommentStartError,asyUserCont,asyUserLabel,asyBitField,asyCommentSkip,asyOctalZero,asyCppOut,asyCppOut2,asyCppSkip,asyFormat,asyNumber,asyFloat,asyOctal,asyOctalError,asyNumbersCom
+syn cluster     asyParenGroup   contains=asyParenError,asyIncluded,asySpecial,asyDoubleSpecial,asyCommentSkip,asyCommentString,asyComment2String,@asyCommentGroup,asyCommentStartError,asyUserCont,asyUserLabel,asyBitField,asyCommentSkip,asyOctalZero,asyCppOut,asyCppOut2,asyCppSkip,asyFormat,asyNumber,asyFloat,asyOctal,asyOctalError,asyNumbersCom
 if exists("asy_no_bracket_error")
   syn region    asyParen        transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyCppString
   " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppParen     transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyParen,asyString
+  syn region    asyCppParen     transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyParen,asyString,asyDoubleString
   syn match     asyParenError   display ")"
   syn match     asyErrInParen   display contained "[{}]"
 else
   syn region    asyParen        transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyErrInBracket,asyCppBracket,asyCppString
   " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppParen     transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInBracket,asyParen,asyBracket,asyString
+  syn region    asyCppParen     transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInBracket,asyParen,asyBracket,asyString,asyDoubleString
 if 0
   syn match     asyParenError   display "[\])]"
   syn match     asyErrInParen   display contained "[\]]"
 endif
   syn region    asyBracket      transparent start='\[' end=']' contains=ALLBUT,@asyParenGroup,asyErrInParen,asyCppParen,asyCppBracket,asyCppString
   " asyCppBracket: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppBracket   transparent start='\[' skip='\\$' excludenl end=']' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInParen,asyParen,asyBracket,asyString
+  syn region    asyCppBracket   transparent start='\[' skip='\\$' excludenl end=']' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInParen,asyParen,asyBracket,asyString,asyDoubleString
   syn match     asyErrInBracket display contained "[);]"
 endif
 
@@ -82,14 +78,14 @@ syn match       asyFloat        display contained "\d\+e[-+]\=\d\+"
 syn case match
 
 if exists("asy_comment_strings")
-  " A comment can contain asyString, asyCharacter and asyNumber.
-  " But a "*/" inside a asyString in a asyComment DOES end the comment!  So we
-  " need to use a special type of asyString: asyCommentString, which also ends on
+  " A comment can contain asyString, asyDoubleString, asyCharacter and asyNumber.
+  " But a "*/" inside a asy*String in a asyComment DOES end the comment!  So we
+  " need to use a special type of asy*String: asyCommentString, which also ends on
   " "*/", and sees a "*" at the start of the line as comment again.
   " Unfortunately this doesn't very well work for // type of comments :-(
   syn match     asyCommentSkip       contained "^\s*\*\($\|\s\+\)"
-  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCommentSkip
-  syn region    asyComment2String    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial
+  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyDoubleSpecial,asyCommentSkip
+  syn region    asyComment2String    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial,asyDoubleSpecial
   syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyComment2String,asyCharacter,asyNumbersCom,asySpaceError
   syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyCharacter,asyNumbersCom,asySpaceError
 else
@@ -186,8 +182,10 @@ if version >= 508 || !exists("did_asy_syn_inits")
   HiLink asyComment2String      asyString
   HiLink asyCommentSkip         asyComment
   HiLink asyString              String
+  HiLink asyDoubleString        String
   HiLink asyComment             Comment
   HiLink asySpecial             SpecialChar
+  HiLink asyDoubleSpecial       SpecialChar
   HiLink asyTodo                Todo
   HiLink asyCppSkip             asyCppOut
   HiLink asyCppOut2             asyCppOut
