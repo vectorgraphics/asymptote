@@ -115,7 +115,7 @@ if exists("asy_syn_plain")
   syn keyword   asyConstant      ENE NNE NNW WNW WSW SSW SSE ESE
   syn keyword   asyConstant      I pi twopi
   syn keyword   asyConstant      identity zeroTransform
-  syn keyword   asyConstant      solid dotted dashed dashdotted
+  syn keyword   asyConstant      solid dotted Dotted dashed dashdotted
   syn keyword   asyConstant      longdashed longdashdotted
   syn keyword   asyConstant      squarecap roundcap extendcap
   syn keyword   asyConstant      miterjoin roundjoin beveljoin
