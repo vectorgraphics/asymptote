@@ -13,7 +13,9 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
 /XStep "+format(s,pmax.x-pmin.x,"C")+"
 /YStep "+format(s,pmax.y-pmin.y,"C")+"
 /PaintProc {pop");
+  begingroup(tiling);
   add(tiling,f);
+  endgroup(tiling);
   postscript(tiling,"} >>
  matrix makepattern
 /"+name+" exch def");
@@ -99,4 +101,3 @@ picture crosshatch(real H=5mm, pen p=currentpen)
   add(tiling,shift(H*sqrt(2))*rotate(90)*hatch(H,p));
   return tiling;
 }
-
