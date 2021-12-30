@@ -58,8 +58,7 @@ static const char *rectangular="matrix is not rectangular";
 void psfile::writefromRGB(unsigned char r, unsigned char g, unsigned char b,
                           ColorSpace colorspace, size_t ncomponents)
 {
-  static const double factor=1.0/255.0;
-  pen p(r*factor,g*factor,b*factor);
+  pen p(byteinv(r),byteinv(g),byteinv(b));
   p.convert();
   if(!p.promote(colorspace))
     reportError(inconsistent);
