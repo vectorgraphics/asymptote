@@ -1,5 +1,5 @@
 // Lagrange and Hermite interpolation in Asymptote
-// Author: Olivier Guibé
+// Author: Olivier GuibÃ©
 
 import interpolate;
 import graph;
