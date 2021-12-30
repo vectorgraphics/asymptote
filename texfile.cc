@@ -189,31 +189,6 @@ void texfile::writeshifted(path p, bool newPath)
   write(p.transformed(shift(pair(-Hoffset,-box.bottom))),newPath);
 }
 
-void texfile::setlatexcolor(pen p)
-{
-  if(p.cmyk() && (!lastpen.cmyk() ||
-                  (p.cyan() != lastpen.cyan() ||
-                   p.magenta() != lastpen.magenta() ||
-                   p.yellow() != lastpen.yellow() ||
-                   p.black() != lastpen.black()))) {
-    *out << "\\definecolor{ASYcolor}{cmyk}{"
-         << p.cyan() << "," << p.magenta() << "," << p.yellow() << ","
-         << p.black() << "}\\color{ASYcolor}%" << newl;
-  } else if(p.rgb() && (!lastpen.rgb() ||
-                        (p.red() != lastpen.red() ||
-                         p.green() != lastpen.green() ||
-                         p.blue() != lastpen.blue()))) {
-    *out << "\\definecolor{ASYcolor}{rgb}{"
-         << p.red() << "," << p.green() << "," << p.blue()
-         << "}\\color{ASYcolor}%" << newl;
-  } else if(p.grayscale() && (!lastpen.grayscale() ||
-                              p.gray() != lastpen.gray())) {
-    *out << "\\definecolor{ASYcolor}{gray}{"
-         << p.gray()
-         << "}\\color{ASYcolor}%" << newl;
-  }
-}
-
 void texfile::setfont(pen p)
 {
   bool latex=settings::latex(texengine);
@@ -226,13 +201,10 @@ void texfile::setfont(pen p)
 
 void texfile::setpen(pen p)
 {
-  bool latex=settings::latex(texengine);
-
   p.convert();
   if(p == lastpen) return;
 
-  if(latex) setlatexcolor(p);
-  else setcolor(p,settings::beginspecial(texengine),settings::endspecial());
+  setcolor(p,settings::beginspecial(texengine),settings::endspecial());
 
   setfont(p);
 }

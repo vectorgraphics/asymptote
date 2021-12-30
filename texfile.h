@@ -171,7 +171,6 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   if(latex) {
     if(!inlinetex) {
       dvipsfix(out);
-      out << "\\usepackage{color}" << newl;
     }
     if(pipe) {
       out << "\\begin{document}" << newl;
@@ -241,7 +240,6 @@ public:
   void epilogue(bool pipe=false);
   virtual void endpage() {}
 
-  void setlatexcolor(pen p);
   void setpen(pen p);
 
   void setfont(pen p);
