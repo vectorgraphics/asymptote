@@ -33,16 +33,6 @@ syn match       asySpecial       display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}
 syn region      asyDoubleString  start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asyDoubleSpecial
 syn match       asyDoubleSpecial display contained +[^\\]\(\\\\\)*\zs\\"+
 
-"when wanted, highlight trailing white space
-if exists("asy_space_errors")
-  if !exists("asy_no_trail_space_error")
-    syn match   asySpaceError    display excludenl "\s\+$"
-  endif
-  if !exists("asy_no_tab_space_error")
-    syn match   asySpaceError    display " \+\t"me=e-1
-  endif
-endif
-
 "catch errors caused by wrong parenthesis and brackets
 syn cluster     asyParenGroup    contains=asyParenError,asyIncluded,asySpecial,asyDoubleSpecial,asyCommentSkip,asyCommentString,asyComment2String,@asyCommentGroup,asyCommentStartError,asyUserCont,asyUserLabel,asyBitField,asyCommentSkip,asyOctalZero,asyCppOut,asyCppOut2,asyCppSkip,asyFormat,asyNumber,asyFloat,asyOctal,asyOctalError,asyNumbersCom
 if exists("asy_no_bracket_error")
