@@ -65,7 +65,7 @@ pen[] adjust(picture pic, real min, real max, real rmin, real rmax,
 private real[] sequencereal;
 
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
-             pair initial, pair final, pen[] palette,
+             pair initial, pair final, pen[] palette, int divs=0,
              bool transpose=(initial.x < final.x && initial.y < final.y),
              bool copy=true, bool antialias=false)
 {
@@ -74,6 +74,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
 
   real m=min(f);
   real M=max(f);
+
   bounds bounds=range(pic,m,M);
   real rmin=pic.scale.z.T(bounds.min);
   real rmax=pic.scale.z.T(bounds.max);
@@ -87,6 +88,21 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
     real M=bounds.max;
     for(int i=0; i < f.length; ++i)
       f[i]=map(new real(real x) {return T(min(max(x,m),M));},f[i]);
+  }
+
+  if(divs > 0) {
+    int nx=f.length;
+    int ny=f[0].length;
+    real[][] data=new real[nx][ny];
+    real incr=(M-m)/divs;
+    for(int i=0; i < nx; ++i) {
+      // Take center point of each bin
+      real[] fi=f[i];
+      data[i]=sequence(new real(int j) {
+          return min(m+floor((fi[j]-m)/incr)*incr,M-incr);
+        },ny);
+    }
+    f=data;
   }
 
   initial=Scale(pic,initial);
@@ -109,13 +125,15 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
 
 bounds image(picture pic=currentpicture, real f(real, real),
              range range=Full, pair initial, pair final,
-             int nx=ngraph, int ny=nx, pen[] palette, bool antialias=false)
+             int nx=ngraph, int ny=nx, pen[] palette, int divs=0,
+             bool antialias=false)
 {
   // Generate data, taking scaling into account
   real xmin=pic.scale.x.T(initial.x);
   real xmax=pic.scale.x.T(final.x);
   real ymin=pic.scale.y.T(initial.y);
   real ymax=pic.scale.y.T(final.y);
+
   real[][] data=new real[ny][nx];
   for(int j=0; j < ny; ++j) {
     real y=pic.scale.y.Tinv(interp(ymin,ymax,(j+0.5)/ny));
@@ -125,7 +143,8 @@ bounds image(picture pic=currentpicture, real f(real, real),
         return f(Tinv(interp(xmin,xmax,(i+0.5)/nx)),y);
       },nx);
   }
-  return image(pic,data,range,initial,final,palette,transpose=false,
+
+  return image(pic,data,range,initial,final,palette,divs,transpose=false,
                copy=false,antialias=antialias);
 }
 

@@ -12,13 +12,17 @@ real f(real x, real y) {return cos(x)*sin(y);}
 int N=200;
 int Divs=10;
 int divs=1;
+int n=Divs*divs;
 
 defaultpen(1bp);
 pen Tickpen=black;
 pen tickpen=gray+0.5*linewidth(currentpen);
-pen[] Palette=BWRainbow();
+pen[] Palette=quantize(BWRainbow(),n);
 
-bounds range=image(f,Automatic,a,b,N,Palette);
+bounds range=image(f,Automatic,a,b,3N,Palette,n);
+
+real[] Cvals=uniform(range.min,range.max,Divs);
+draw(contour(f,a,b,Cvals,N,operator --),Tickpen+squarecap+beveljoin);
 
 // Major contours
 real[] Cvals=uniform(range.min,range.max,Divs);
@@ -28,7 +32,7 @@ draw(contour(f,a,b,Cvals,N,operator --),Tickpen+squarecap+beveljoin);
 real[] cvals;
 for(int i=0; i < Cvals.length-1; ++i)
   cvals.append(uniform(Cvals[i],Cvals[i+1],divs)[1:divs]);
-draw(contour(f,a,b,cvals,N,operator --),tickpen+squarecap+beveljoin);
+draw(contour(f,a,b,cvals,N,operator --),tickpen);
 
 xaxis("$x$",BottomTop,LeftTicks,above=true);
 yaxis("$y$",LeftRight,RightTicks,above=true);

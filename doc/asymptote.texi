@@ -7728,14 +7728,17 @@ a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
 @verbatim
 bounds image(picture pic=currentpicture, real f(real, real),
              range range=Full, pair initial, pair final,
-             int nx=ngraph, int ny=nx, pen[] palette, bool antialias=false)
+             int nx=ngraph, int ny=nx, pen[] palette, int divs=0,
+             bool antialias=false)
 @end verbatim
 The function @code{f} will be sampled at @code{nx} and @code{ny}
 evenly spaced points over a rectangle defined by the points
 @code{initial} and @code{final}, respecting the current graphical
 scaling of @code{pic}. The color space is scaled according to the
-@math{z} axis scaling (@pxref{automatic scaling}). A bounds structure
+@math{z} axis scaling (@pxref{automatic scaling}). If @math{@code{divs} > 1},
+the palette is quantized to @math{@code{divs}-1} values. A @code{bounds} structure
 for the function values is returned:
+@cindex @code{bounds}
 @verbatim
 struct bounds {
   real min;
@@ -7752,15 +7755,19 @@ or an explicit range @code{Range(real min, real max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits.
-The example @code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/imagecontour.svg,,imagecontour}@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/imagecontour.asy,,.asy}} illustrates how level sets
-(contour lines) can be drawn on a color density plot (@pxref{contour}).
+The examples
+@code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/fillcontour.svg,,fillcontour}@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/fillcontour.asy,,.asy}}
+and
+@code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/imagecontour.svg,,imagecontour}@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/imagecontour.asy,,.asy}}
+illustrate how level sets (contour lines) can be drawn on a color
+density plot (@pxref{contour}).
 
 A color density plot can also be generated from an explicit real[][]
 array @code{data}:
 @cindex @code{image}
 @verbatim
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
-             pair initial, pair final, pen[] palette,
+             pair initial, pair final, pen[] palette, int divs=0,
              bool transpose=(initial.x < final.x && initial.y < final.y),
              bool copy=true, bool antialias=false);
 @end verbatim
@@ -8175,7 +8182,7 @@ output with the the command-line option and @code{-f html}
 3D @acronym{HTML} file can then be viewed directly in any modern desktop or
 mobile browser, or even embedded within another web page:
 @verbatim
-<iframe src="logo3.html" width="210" height="140" frameborder="0">
+<iframe src="logo3.html" width="561" height="321" frameborder="0">
 </iframe>
 @end verbatim
 
@@ -9299,8 +9306,12 @@ pen for negative contours and a solid pen for positive (and zero) contours:
 @sp 1
 @center @image{./multicontour}
 
-The next example illustrates how contour lines can be drawn on color
-density images:
+The next examples illustrates how contour lines can be drawn on color
+density images, with and without palette quantization:
+@verbatiminclude fillcontour.asy
+@sp 1
+@center @image{./fillcontour}
+
 @verbatiminclude imagecontour.asy
 @sp 1
 @center @image{./imagecontour}
