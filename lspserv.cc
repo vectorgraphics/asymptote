@@ -350,8 +350,8 @@ std::string wslUnix2Dos(std::string const& unixPath)
   void AsymptoteLspServer::onSave(Notify_TextDocumentDidSave::notify& notify)
   {
     logInfo("onSave notification");
-    lsDocumentUri fileUri(notify.params.textDocument.uri);
-    reloadFile(fileUri.GetRawPath());
+//    lsDocumentUri fileUri(notify.params.textDocument.uri);
+//    reloadFile(fileUri.GetRawPath());
   }
 
   void AsymptoteLspServer::onClose(Notify_TextDocumentDidClose::notify& notify)
