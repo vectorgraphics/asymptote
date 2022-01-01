@@ -86,6 +86,9 @@ extern const size_t ColorComponents[];
 extern const char* ColorDeviceSuffix[];
 extern const unsigned nColorSpace;
 
+enum LineCap {SquareCap,RoundCap,ExtendedCap};
+enum LineJoin {MiterJoin,RoundJoin,BevelJoin};
+
 inline bool operator == (const vm::array& a, const vm::array& b)
 {
   size_t asize=a.size();

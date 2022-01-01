@@ -88,19 +88,19 @@ void cap(bbox& b, double t, path p, pen pentype)
   pair z=shift(T)*p.point(t);
 
   switch(pentype.cap()) {
-    case 0:
+    case SquareCap:
     {
       pair d=rotate(v)*pair(x,y)*h;
       b += z+d;
       b += z-d;
       break;
     }
-    case 1:
+    case RoundCap:
     {
       b += pad(z,pentype.bounds());
       break;
     }
-    case 2:
+    case ExtendedCap:
     {
       transform R=rotate(v);
       double w=(xx*yy-xy*yx)/y;
@@ -132,7 +132,7 @@ void join(bbox& b, double t, path p, pen pentype)
   pair z=shift(T)*p.point(t);
 
   switch(pentype.join()) {
-    case 0:
+    case MiterJoin:
     {
       double phi=angle(-p.predir(t),false)-angle(p.postdir(t),false);
       static const double twopi=2.0*pi;
@@ -146,9 +146,9 @@ void join(bbox& b, double t, path p, pen pentype)
           break;
         }
       }
-      // Fall through to bevel join
+      // Fall through
     }
-    case 2:
+    case BevelJoin:
     {
       pair Z=pair(x,y)*h;
       pair d=rotate(p.predir(t))*Z;
@@ -159,7 +159,7 @@ void join(bbox& b, double t, path p, pen pentype)
       b += z-D;
       break;
     }
-    case 1:
+    case RoundJoin:
     {
       b += pad(z,pentype.bounds());
       break;
