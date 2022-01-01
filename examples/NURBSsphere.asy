@@ -1,3 +1,6 @@
+settings.outformat="pdf";
+settings.prc=true;
+
 import three;
 
 /* Reference:

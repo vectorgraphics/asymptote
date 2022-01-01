@@ -1,3 +1,6 @@
+settings.outformat="pdf";
+settings.prc=true;
+
 import three;
 
 size(10cm);
@@ -31,4 +34,3 @@ real[] weights=array(P.length,1.0);
 weights[2]=5;
 
 draw(P,knot,weights,red);
-
