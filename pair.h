@@ -21,7 +21,9 @@
 
 #include "common.h"
 #include "angle.h"
+#ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
+#endif
 
 namespace camp {
 

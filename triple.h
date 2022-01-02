@@ -18,7 +18,9 @@
 #include "common.h"
 #include "angle.h"
 #include "pair.h"
+#ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
+#endif
 
 namespace camp {
 

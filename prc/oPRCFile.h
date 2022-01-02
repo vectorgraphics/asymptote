@@ -39,7 +39,9 @@
 #include "PRC.h"
 #include "PRCbitStream.h"
 #include "writePRC.h"
+#ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
+#endif
 
 namespace prc {
 
