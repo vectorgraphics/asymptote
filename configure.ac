@@ -384,7 +384,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
                     AC_DEFINE(HAVE_RPC_RPC_H,1,
                    DEFINE([a working <tirpc/rpc/rpc.h> header]))],
-   AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
+   AC_MSG_WARN([*** Broken rpc headers; XDR/V3D support disabled ***]))
 
 AC_ARG_ENABLE(gsl,
 [AS_HELP_STRING(--enable-gsl[[[=yes]]],enable GNU Scientific Library)])
