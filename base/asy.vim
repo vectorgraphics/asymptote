@@ -159,19 +159,19 @@ syn case match
 
 " comments and comment strings
 if exists("asy_comment_strings")
-  " A comment can contain asyString, asyCString, asyCharacter and asyNumber.
+  " A comment can contain asyString, asyCString, and asyNumber.
   " But a "*/" inside a asy*String in a asyComment DOES end the comment!  So we
   " need to use a special type of asy*String: asyCommentString, which also ends on
   " "*/", and sees a "*" at the start of the line as comment again.
   " Unfortunately this doesn't very well work for // type of comments :-(
   syn match     asyCommentSkip       contained "^\s*\*\($\|\s\+\)"
-  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCSpecial,asyCommentSkip
-  syn region    asyCommentLString    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial,asyCSpecial
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyCommentLString,asyCharacter,asyNumbersCom,asySpaceError
-  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyCharacter,asyNumbersCom,asySpaceError
+  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asyCSpecial,asyCommentSkip
+  syn region    asyCommentLString    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asyCSpecial
+  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyCommentLString,asyNumbers
+  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyNumbers
 else
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asySpaceError
-  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asySpaceError
+  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup
+  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError
 endif
 
 " highlight common errors when starting/ending C comments
@@ -185,24 +185,18 @@ syn keyword     asyTodo          contained TODO FIXME XXX
 syn sync ccomment asyComment minlines=15
 
 " delimiter matching errors
-syn cluster     asyParenGroup    contains=asyParenError,asyIncluded,asySpecial,asyCSpecial,asyCommentSkip,asyCommentString,asyCommentLString,@asyCommentGroup,asyCommentStartError,asyUserCont,asyUserLabel,asyBitField,asyCommentSkip,asyOctalZero,asyCppOut,asyCppOut2,asyCppSkip,asyFormat,asyNumber,asyFloat,asyOctal,asyOctalError,asyNumbersCom
+syn cluster     asyParenGroup    contains=asyParenError,asyCSpecial,asyCommentSkip,asyCommentString,asyCommentLString,@asyCommentGroup,asyCommentStartError,asyNumbers
 if exists("asy_no_bracket_error")
-  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyCppString
-  " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyParen,asyString,asyCString
+  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup
   syn match     asyParenError    display ")"
   syn match     asyErrInParen    display contained "[{}]"
 else
-  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyErrInBracket,asyCppBracket,asyCppString
-  " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInBracket,asyParen,asyBracket,asyString,asyCString
+  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyErrInBracket
 if 0
   syn match     asyParenError    display "[\])]"
   syn match     asyErrInParen    display contained "[\]]"
 endif
-  syn region    asyBracket       transparent start='\[' end=']' contains=ALLBUT,@asyParenGroup,asyErrInParen,asyCppParen,asyCppBracket,asyCppString
-  " asyCppBracket: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppBracket    transparent start='\[' skip='\\$' excludenl end=']' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInParen,asyParen,asyBracket,asyString,asyCString
+  syn region    asyBracket       transparent start='\[' end=']' contains=ALLBUT,@asyParenGroup,asyErrInParen
   syn match     asyErrInBracket  display contained "[);]"
 endif
 
@@ -217,38 +211,24 @@ if version >= 508 || !exists("did_asy_syn_inits")
     command -nargs=+ HiLink hi def link <args>
   endif
 
-  HiLink asyFormat               asySpecial
-  HiLink asyCppString            asyString
   HiLink asyCommentL             asyComment
   HiLink asyCommentStart         asyComment
-  HiLink asyLabel                Label
-  HiLink asyUserLabel            Label
   HiLink asyConditional          Conditional
   HiLink asyRepeat               Repeat
-  HiLink asyCharacter            Character
-  HiLink asySpecialCharacter     asySpecial
   HiLink asyNumber               Number
-  HiLink asyOctal                Number
-  HiLink asyOctalZero            PreProc  " link this to Error if you want
   HiLink asyFloat                Float
-  HiLink asyOctalError           asyError
   HiLink asyParenError           asyError
   HiLink asyErrInParen           asyError
   HiLink asyErrInBracket         asyError
   HiLink asyCommentError         asyError
   HiLink asyCommentStartError    asyError
-  HiLink asySpaceError           asyError
-  HiLink asySpecialError         asyError
   HiLink asyOperator             Operator
   HiLink asyStructure            Structure
   HiLink asyStorageClass         StorageClass
   HiLink asyExternal             Include
-  HiLink asyPreProc              PreProc
   HiLink asyDefine               Macro
-  HiLink asyIncluded             asyString
   HiLink asyError                Error
   HiLink asyStatement            Statement
-  HiLink asyPreCondit            PreCondit
   HiLink asyType                 Type
   HiLink asyConstant             Constant
   HiLink asyCommentString        asyString
@@ -260,9 +240,6 @@ if version >= 508 || !exists("did_asy_syn_inits")
   HiLink asySpecial              SpecialChar
   HiLink asyCSpecial             SpecialChar
   HiLink asyTodo                 Todo
-  HiLink asyCppSkip              asyCppOut
-  HiLink asyCppOut2              asyCppOut
-  HiLink asyCppOut               Comment
   HiLink asyPathSpec             Statement
 
   delcommand HiLink
