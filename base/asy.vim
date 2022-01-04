@@ -27,31 +27,31 @@ syn keyword     asyTodo          contained TODO FIXME XXX
 syn cluster     asyCommentGroup  contains=asyTodo
 
 " String and Character constants
-syn region      asyString        start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=asySpecial
-syn match       asySpecial       display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}\|x[0-9A-F]\{1,2\}\|$\)+
+syn region      asyCString       start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=asyCSpecial
+syn match       asyCSpecial      display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}\|x[0-9A-F]\{1,2\}\|$\)+
 " double quoted strings only special character is \"
-syn region      asyDoubleString  start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asyDoubleSpecial
-syn match       asyDoubleSpecial display contained +[^\\]\(\\\\\)*\zs\\"+
+syn region      asyString        start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asySpecial
+syn match       asySpecial       display contained +[^\\]\(\\\\\)*\zs\\"+
 
 "catch errors caused by wrong parenthesis and brackets
-syn cluster     asyParenGroup    contains=asyParenError,asyIncluded,asySpecial,asyDoubleSpecial,asyCommentSkip,asyCommentString,asyComment2String,@asyCommentGroup,asyCommentStartError,asyUserCont,asyUserLabel,asyBitField,asyCommentSkip,asyOctalZero,asyCppOut,asyCppOut2,asyCppSkip,asyFormat,asyNumber,asyFloat,asyOctal,asyOctalError,asyNumbersCom
+syn cluster     asyParenGroup    contains=asyParenError,asyIncluded,asySpecial,asyCSpecial,asyCommentSkip,asyCommentString,asyCommentLString,@asyCommentGroup,asyCommentStartError,asyUserCont,asyUserLabel,asyBitField,asyCommentSkip,asyOctalZero,asyCppOut,asyCppOut2,asyCppSkip,asyFormat,asyNumber,asyFloat,asyOctal,asyOctalError,asyNumbersCom
 if exists("asy_no_bracket_error")
   syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyCppString
   " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyParen,asyString,asyDoubleString
+  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyParen,asyString,asyCString
   syn match     asyParenError    display ")"
   syn match     asyErrInParen    display contained "[{}]"
 else
   syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyErrInBracket,asyCppBracket,asyCppString
   " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInBracket,asyParen,asyBracket,asyString,asyDoubleString
+  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInBracket,asyParen,asyBracket,asyString,asyCString
 if 0
   syn match     asyParenError    display "[\])]"
   syn match     asyErrInParen    display contained "[\]]"
 endif
   syn region    asyBracket       transparent start='\[' end=']' contains=ALLBUT,@asyParenGroup,asyErrInParen,asyCppParen,asyCppBracket,asyCppString
   " asyCppBracket: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppBracket    transparent start='\[' skip='\\$' excludenl end=']' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInParen,asyParen,asyBracket,asyString,asyDoubleString
+  syn region    asyCppBracket    transparent start='\[' skip='\\$' excludenl end=']' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInParen,asyParen,asyBracket,asyString,asyCString
   syn match     asyErrInBracket  display contained "[);]"
 endif
 
@@ -68,15 +68,15 @@ syn match       asyFloat         display contained "\d\+e[-+]\=\d\+"
 syn case match
 
 if exists("asy_comment_strings")
-  " A comment can contain asyString, asyDoubleString, asyCharacter and asyNumber.
+  " A comment can contain asyString, asyCString, asyCharacter and asyNumber.
   " But a "*/" inside a asy*String in a asyComment DOES end the comment!  So we
   " need to use a special type of asy*String: asyCommentString, which also ends on
   " "*/", and sees a "*" at the start of the line as comment again.
   " Unfortunately this doesn't very well work for // type of comments :-(
   syn match     asyCommentSkip       contained "^\s*\*\($\|\s\+\)"
-  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyDoubleSpecial,asyCommentSkip
-  syn region    asyComment2String    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial,asyDoubleSpecial
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyComment2String,asyCharacter,asyNumbersCom,asySpaceError
+  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCSpecial,asyCommentSkip
+  syn region    asyCommentLString    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial,asyCSpecial
+  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyCommentLString,asyCharacter,asyNumbersCom,asySpaceError
   syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyCharacter,asyNumbersCom,asySpaceError
 else
   syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asySpaceError
@@ -252,13 +252,13 @@ if version >= 508 || !exists("did_asy_syn_inits")
   HiLink asyType                 Type
   HiLink asyConstant             Constant
   HiLink asyCommentString        asyString
-  HiLink asyComment2String       asyString
+  HiLink asyCommentLString       asyString
   HiLink asyCommentSkip          asyComment
   HiLink asyString               String
-  HiLink asyDoubleString         String
+  HiLink asyCString              String
   HiLink asyComment              Comment
   HiLink asySpecial              SpecialChar
-  HiLink asyDoubleSpecial        SpecialChar
+  HiLink asyCSpecial             SpecialChar
   HiLink asyTodo                 Todo
   HiLink asyCppSkip              asyCppOut
   HiLink asyCppOut2              asyCppOut
