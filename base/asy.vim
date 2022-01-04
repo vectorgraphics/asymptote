@@ -86,7 +86,7 @@ endif
 syn match       asyCommentError      display "\*/"
 syn match       asyCommentStartError display "/\*"me=e-1 contained
 
-syn keyword     asyType          void bool int real string file
+syn keyword     asyType          void bool bool3 int real string file
 syn keyword     asyType          pair triple transform guide path pen frame
 syn keyword     asyType          picture
 
@@ -95,31 +95,114 @@ syn keyword     asyStorageClass  static public restricted private explicit
 
 syn keyword     asyPathSpec      and cycle controls tension atleast curl
 
-syn keyword     asyConstant      true false default infinity inf
+syn keyword     asyConstant      VERSION
+syn keyword     asyConstant      true false default infinity inf nan
 syn keyword     asyConstant      null nullframe nullpath nullpen
+syn keyword     asyConstant      intMin intMax realMin realMax
+syn keyword     asyConstant      realEpsilon realDigits
 
 if exists("asy_syn_plain")
-  syn keyword   asyConstant      currentpicture currentpen currentprojection
+  syn keyword   asyConstant      currentpicture currentpen defaultpen
   syn keyword   asyConstant      inch inches cm mm bp pt up down right left
   syn keyword   asyConstant      E NE N NW W SW S SE
   syn keyword   asyConstant      ENE NNE NNW WNW WSW SSW SSE ESE
   syn keyword   asyConstant      I pi twopi
-  syn keyword   asyConstant      identity zeroTransform
+  syn keyword   asyConstant      CCW CW
+  syn keyword   asyConstant      undefined sqrtEpsilon Align mantissaBits
+  syn keyword   asyConstant      identity zeroTransform invert
+  syn keyword   asyConstant      stdin stdout
+  syn keyword   asyConstant      unitsquare unitcircle circleprecision
   syn keyword   asyConstant      solid dotted Dotted dashed dashdotted
   syn keyword   asyConstant      longdashed longdashdotted
   syn keyword   asyConstant      squarecap roundcap extendcap
   syn keyword   asyConstant      miterjoin roundjoin beveljoin
-  syn keyword   asyConstant      zerowinding evenodd
-  syn keyword   asyConstant      invisible black gray grey white
-  syn keyword   asyConstant      lightgray lightgrey
-  syn keyword   asyConstant      red green blue
-  syn keyword   asyConstant      cmyk Cyan Magenta Yellow Black
-  syn keyword   asyConstant      yellow magenta cyan
-  syn keyword   asyConstant      brown darkgreen darkblue
-  syn keyword   asyConstant      orange purple royalblue olive
-  syn keyword   asyConstant      chartreuse fuchsia salmon lightblue
-  syn keyword   asyConstant      springgreen pink
+  syn keyword   asyConstant      zerowinding evenodd basealign nobasealign
+  syn keyword   asyConstant      black white gray red green blue Cyan Magenta
+  syn keyword   asyConstant      Yellow Black cyan magenta yellow palered
+  syn keyword   asyConstant      palegreen paleblue palecyan palemagenta
+  syn keyword   asyConstant      paleyellow palegray lightred lightgreen
+  syn keyword   asyConstant      lightblue lightcyan lightmagenta lightyellow
+  syn keyword   asyConstant      lightgray mediumred mediumgreen mediumblue
+  syn keyword   asyConstant      mediumcyan mediummagenta mediumyellow
+  syn keyword   asyConstant      mediumgray heavyred heavygreen heavyblue
+  syn keyword   asyConstant      heavycyan heavymagenta lightolive heavygray
+  syn keyword   asyConstant      deepred deepgreen deepblue deepcyan
+  syn keyword   asyConstant      deepmagenta deepyellow deepgray darkred
+  syn keyword   asyConstant      darkgreen darkblue darkcyan darkmagenta
+  syn keyword   asyConstant      darkolive darkgray orange fuchsia chartreuse
+  syn keyword   asyConstant      springgreen purple royalblue salmon brown
+  syn keyword   asyConstant      olive darkbrown pink palegrey lightgrey
+  syn keyword   asyConstant      mediumgrey grey heavygrey deepgrey darkgrey
+
+  if exists("asy_texcolors")
+    syn keyword asyConstant      GreenYellow Yellow Goldenrod Dandelion
+    syn keyword asyConstant      Apricot Peach Melon YellowOrange Orange
+    syn keyword asyConstant      BurntOrange Bittersweet RedOrange Mahogany
+    syn keyword asyConstant      Maroon BrickRed Red OrangeRed RubineRed
+    syn keyword asyConstant      WildStrawberry Salmon CarnationPink Magenta
+    syn keyword asyConstant      VioletRed Rhodamine Mulberry RedViolet
+    syn keyword asyConstant      Fuchsia Lavender Thistle Orchid DarkOrchid
+    syn keyword asyConstant      Purple Plum Violet RoyalPurple BlueViolet
+    syn keyword asyConstant      Periwinkle CadetBlue CornflowerBlue
+    syn keyword asyConstant      MidnightBlue NavyBlue RoyalBlue Blue
+    syn keyword asyConstant      Cerulean Cyan ProcessBlue SkyBlue Turquoise
+    syn keyword asyConstant      TealBlue Aquamarine BlueGreen Emerald
+    syn keyword asyConstant      JungleGreen SeaGreen Green ForestGreen
+    syn keyword asyConstant      PineGreen LimeGreen YellowGreen SpringGreen
+    syn keyword asyConstant      OliveGreen RawSienna Sepia Brown Tan Gray
+    syn keyword asyConstant      Black White
+  endif
+
+  if exists("asy_x11colors")
+    syn keyword asyConstant      AliceBlue AntiqueWhite Aqua Aquamarine Azure
+    syn keyword asyConstant      Beige Bisque Black BlanchedAlmond Blue
+    syn keyword asyConstant      BlueViolet Brown BurlyWood CadetBlue
+    syn keyword asyConstant      Chartreuse Chocolate Coral CornflowerBlue
+    syn keyword asyConstant      Cornsilk Crimson Cyan DarkBlue DarkCyan
+    syn keyword asyConstant      DarkGoldenrod DarkGray DarkGreen DarkKhaki
+    syn keyword asyConstant      DarkMagenta DarkOliveGreen DarkOrange
+    syn keyword asyConstant      DarkOrchid DarkRed DarkSalmon DarkSeaGreen
+    syn keyword asyConstant      DarkSlateBlue DarkSlateGray DarkTurquoise
+    syn keyword asyConstant      DarkViolet DeepPink DeepSkyBlue DimGray
+    syn keyword asyConstant      DodgerBlue FireBrick FloralWhite ForestGreen
+    syn keyword asyConstant      Fuchsia Gainsboro GhostWhite Gold Goldenrod
+    syn keyword asyConstant      Gray Green GreenYellow Honeydew HotPink
+    syn keyword asyConstant      IndianRed Indigo Ivory Khaki Lavender
+    syn keyword asyConstant      LavenderBlush LawnGreen LemonChiffon
+    syn keyword asyConstant      LightBlue LightCoral LightCyan
+    syn keyword asyConstant      LightGoldenrodYellow LightGreen LightGrey
+    syn keyword asyConstant      LightPink LightSalmon LightSeaGreen
+    syn keyword asyConstant      LightSkyBlue LightSlateGray LightSteelBlue
+    syn keyword asyConstant      LightYellow Lime LimeGreen Linen Magenta
+    syn keyword asyConstant      Maroon MediumAquamarine MediumBlue
+    syn keyword asyConstant      MediumOrchid MediumPurple MediumSeaGreen
+    syn keyword asyConstant      MediumSlateBlue MediumSpringGreen
+    syn keyword asyConstant      MediumTurquoise MediumVioletRed MidnightBlue
+    syn keyword asyConstant      MintCream MistyRose Moccasin NavajoWhite
+    syn keyword asyConstant      Navy OldLace Olive OliveDrab Orange
+    syn keyword asyConstant      OrangeRed Orchid PaleGoldenrod PaleGreen
+    syn keyword asyConstant      PaleTurquoise PaleVioletRed PapayaWhip
+    syn keyword asyConstant      PeachPuff Peru Pink Plum PowderBlue Purple
+    syn keyword asyConstant      Red RosyBrown RoyalBlue SaddleBrown Salmon
+    syn keyword asyConstant      SandyBrown SeaGreen Seashell Sienna Silver
+    syn keyword asyConstant      SkyBlue SlateBlue SlateGray Snow SpringGreen
+    syn keyword asyConstant      SteelBlue Tan Teal Thistle Tomato Turquoise
+    syn keyword asyConstant      Violet Wheat White WhiteSmoke Yellow
+    syn keyword asyConstant      YellowGreen
+  endif
+
+  if exists("asy_syn_three")
+    syn keyword asyType          path3 guide3 transform3
+    syn keyword asyType          projection light material patch surface tube
+    syn keyword asyConstant      currentprojection currentlight defaultrender
+    syn keyword asyConstant      identity4 O X Y Z
+    syn keyword asyConstant      nolight nullpens
+    syn keyword asyConstant      unitsphere unithemisphere unitplane octant1
+    syn keyword asyConstant      unitcone unitsolidcone unitcube unitcylinder
+    syn keyword asyConstant      unitdisk unittube
+  endif
 endif
+
 
 syn sync ccomment asyComment minlines=15
 
