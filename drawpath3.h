@@ -35,11 +35,7 @@ public:
   BezierCurve R;
 #endif
   void init() {
-#ifdef HAVE_LIBOSMESA
-    billboard=false;
-#else
     billboard=interaction == BILLBOARD;
-#endif
     centerIndex=0;
   }
 

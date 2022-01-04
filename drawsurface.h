@@ -60,11 +60,7 @@ public:
   }
 
   void init() {
-#ifdef HAVE_LIBOSMESA
-    billboard=false;
-#else
     billboard=interaction == BILLBOARD;
-#endif
     centerIndex=0;
   }
 
@@ -532,11 +528,7 @@ public:
 
 public:
   void init() {
-#ifdef HAVE_LIBOSMESA
-    billboard=false;
-#else
     billboard=interaction == BILLBOARD;
-#endif
     centerIndex=0;
   }
 

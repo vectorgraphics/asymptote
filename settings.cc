@@ -1019,7 +1019,7 @@ struct versionOption : public option {
     feature("XDR      External Data Representation (portable binary file format for V3D)",xdr);
     feature("CURL     URL support",curl);
     feature("LSP      Language Server Protocol",lsp);
-    feature("Readline interactive history and editing",readline);
+    feature("Readline Interactive history and editing",readline);
     if(!readline)
       feature("Editline interactive editing (if Readline is unavailable)",editline);
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",

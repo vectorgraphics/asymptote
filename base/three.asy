@@ -56,8 +56,6 @@ struct render
 
   // General parameters:
   real margin;          // shrink amount for rendered openGL viewport, in bp.
-  bool labelfill;       // fill PRC subdivision cracks in unlighted labels
-
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
   interaction interaction; // billboard interaction mode
@@ -72,7 +70,6 @@ struct render
                      bool3 merge=render.merge,
                      int sphere=render.sphere,
                      real margin=render.margin,
-                     bool labelfill=render.labelfill,
                      bool partnames=render.partnames,
                      bool defaultnames=render.defaultnames,
                      interaction interaction=render.interaction)
@@ -84,7 +81,6 @@ struct render
     this.merge=merge;
     this.sphere=sphere;
     this.margin=margin;
-    this.labelfill=labelfill;
     this.partnames=partnames;
     this.defaultnames=defaultnames;
     this.interaction=interaction;
@@ -101,7 +97,6 @@ defaultrender.tessellate=false;
 defaultrender.merge=false;
 defaultrender.margin=0.02;
 defaultrender.sphere=NURBSsphere;
-defaultrender.labelfill=true;
 defaultrender.partnames=false;
 defaultrender.defaultnames=true;
 defaultrender.interaction=Embedded;

@@ -1489,8 +1489,6 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
                 project(v[vii[2]],P)--cycle;
               pen p=color(n[ni[i][0]],m,light);
               fill(pic,g,p);
-              if(prc && opacity(m.diffuse()) == 1) // Fill subdivision cracks
-                draw(pic,g,p);
             }
           }
         }
@@ -1851,13 +1849,8 @@ void label(frame f, Label L, triple position, align align=NoAlign,
         begingroup3(f2,Render);
         begingroup3(f3,Render);
       }
-      for(patch S : s.s) {
-        S=centering*S;
-        draw3D(f3,S,L.p,light,Render);
-        // Fill subdivision cracks
-        if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-          _draw(f3,S.external(),position,L.p,light,interaction);
-      }
+      for(patch S : s.s)
+        draw3D(f3,centering*S,L.p,light,Render);
       endgroup3(f3);
           if(L.defaulttransform3)
             add(f1,T*f3);
@@ -1874,9 +1867,6 @@ void label(frame f, Label L, triple position, align align=NoAlign,
         triple V=L.align.is3D ? position+L.align.dir3*labelmargin(L.p) :
           position;
         draw3D(f,S,L.p,light,render(interaction(interaction,center=V)));
-        // Fill subdivision cracks
-        if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-          _draw(f,S.external(),V,L.p,light,interaction);
       }
       endgroup3(f);
     }
@@ -1941,13 +1931,8 @@ void label(picture pic=currentpicture, Label L, triple position,
               begingroup3(f2,Render);
               begingroup3(f3,Render);
             }
-            for(patch S : s.s) {
-              S=centering*S;
-              draw3D(f3,S,L.p,light,Render);
-              // Fill subdivision cracks
-              if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-                _draw(f3,S.external(),v,L.p,light,interaction);
-            }
+            for(patch S : s.s)
+              draw3D(f3,centering*S,L.p,light,Render);
             endgroup3(f3);
             if(L.defaulttransform3)
               add(f1,T*f3);
@@ -1963,11 +1948,7 @@ void label(picture pic=currentpicture, Label L, triple position,
           begingroup3(f,name,render);
           for(patch S : surface(L,v,bbox=P.bboxonly).s) {
             triple V=L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v;
-            render Render=render(render,interaction(interaction,V));
-            draw3D(f,S,L.p,light,Render);
-            // Fill subdivision cracks
-            if(prc && render.labelfill && opacity(L.p) == 1 && !lighton)
-              _draw(f,S.external(),V,L.p,light,interaction);
+            draw3D(f,S,L.p,light,render(render,interaction(interaction,V)));
           }
           endgroup3(f);
         }
