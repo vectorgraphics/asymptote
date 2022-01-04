@@ -14,93 +14,27 @@ elseif exists("b:current_syntax")
   finish
 endif
 
-" A bunch of useful C keywords
+" useful C/C++/Java keywords
 syn keyword     asyStatement     break return continue unravel
 syn keyword     asyConditional   if else
 syn keyword     asyRepeat        while for do
 syn keyword     asyExternal      access from import include
 syn keyword     asyOperator      new operator
 
-syn keyword     asyTodo          contained TODO FIXME XXX
-
-" asyCommentGroup allows adding matches for special things in comments
-syn cluster     asyCommentGroup  contains=asyTodo
-
-" String and Character constants
-syn region      asyCString       start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=asyCSpecial
-syn match       asyCSpecial      display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}\|x[0-9A-F]\{1,2\}\|$\)+
-" double quoted strings only special character is \"
-syn region      asyString        start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asySpecial
-syn match       asySpecial       display contained +[^\\]\(\\\\\)*\zs\\"+
-
-"catch errors caused by wrong parenthesis and brackets
-syn cluster     asyParenGroup    contains=asyParenError,asyIncluded,asySpecial,asyCSpecial,asyCommentSkip,asyCommentString,asyCommentLString,@asyCommentGroup,asyCommentStartError,asyUserCont,asyUserLabel,asyBitField,asyCommentSkip,asyOctalZero,asyCppOut,asyCppOut2,asyCppSkip,asyFormat,asyNumber,asyFloat,asyOctal,asyOctalError,asyNumbersCom
-if exists("asy_no_bracket_error")
-  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyCppString
-  " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyParen,asyString,asyCString
-  syn match     asyParenError    display ")"
-  syn match     asyErrInParen    display contained "[{}]"
-else
-  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyErrInBracket,asyCppBracket,asyCppString
-  " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInBracket,asyParen,asyBracket,asyString,asyCString
-if 0
-  syn match     asyParenError    display "[\])]"
-  syn match     asyErrInParen    display contained "[\]]"
-endif
-  syn region    asyBracket       transparent start='\[' end=']' contains=ALLBUT,@asyParenGroup,asyErrInParen,asyCppParen,asyCppBracket,asyCppString
-  " asyCppBracket: same as asyParen but ends at end-of-line; used in asyDefine
-  syn region    asyCppBracket    transparent start='\[' skip='\\$' excludenl end=']' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInParen,asyParen,asyBracket,asyString,asyCString
-  syn match     asyErrInBracket  display contained "[);]"
-endif
-
-"integer number, or floating point number without a dot and with "f".
-syn case ignore
-syn match       asyNumbers       display transparent "\<\d\|\.\d" contains=asyNumber,asyFloat
-syn match       asyNumber        display contained "\d\+"
-"floating point number, with dot, optional exponent
-syn match       asyFloat         display contained "\d\+\.\d*\(e[-+]\=\d\+\)\="
-"floating point number, starting with a dot, optional exponent
-syn match       asyFloat         display contained "\.\d\+\(e[-+]\=\d\+\)\="
-"floating point number, without dot, with exponent
-syn match       asyFloat         display contained "\d\+e[-+]\=\d\+"
-syn case match
-
-if exists("asy_comment_strings")
-  " A comment can contain asyString, asyCString, asyCharacter and asyNumber.
-  " But a "*/" inside a asy*String in a asyComment DOES end the comment!  So we
-  " need to use a special type of asy*String: asyCommentString, which also ends on
-  " "*/", and sees a "*" at the start of the line as comment again.
-  " Unfortunately this doesn't very well work for // type of comments :-(
-  syn match     asyCommentSkip       contained "^\s*\*\($\|\s\+\)"
-  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCSpecial,asyCommentSkip
-  syn region    asyCommentLString    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial,asyCSpecial
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyCommentLString,asyCharacter,asyNumbersCom,asySpaceError
-  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyCharacter,asyNumbersCom,asySpaceError
-else
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asySpaceError
-  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asySpaceError
-endif
-" keep a // comment separately, it terminates a preproc. conditional
-syn match       asyCommentError      display "\*/"
-syn match       asyCommentStartError display "/\*"me=e-1 contained
-
-syn keyword     asyType          void bool bool3 int real string file
-syn keyword     asyType          pair triple transform guide path pen frame
-syn keyword     asyType          picture
-
-syn keyword     asyStructure     struct typedef
-syn keyword     asyStorageClass  static public restricted private explicit
-
-syn keyword     asyPathSpec      and cycle controls tension atleast curl
-
+" basic asymptote keywords
 syn keyword     asyConstant      VERSION
 syn keyword     asyConstant      true false default infinity inf nan
 syn keyword     asyConstant      null nullframe nullpath nullpen
 syn keyword     asyConstant      intMin intMax realMin realMax
 syn keyword     asyConstant      realEpsilon realDigits
+syn keyword     asyPathSpec      and cycle controls tension atleast curl
+syn keyword     asyStorageClass  static public restricted private explicit
+syn keyword     asyStructure     struct typedef
+syn keyword     asyType          void bool bool3 int real string file
+syn keyword     asyType          pair triple transform guide path pen frame
+syn keyword     asyType          picture
 
+" module specific keywords
 if exists("asy_syn_plain")
   syn keyword   asyConstant      currentpicture currentpen defaultpen
   syn keyword   asyConstant      inch inches cm mm bp pt up down right left
@@ -134,7 +68,7 @@ if exists("asy_syn_plain")
   syn keyword   asyConstant      olive darkbrown pink palegrey lightgrey
   syn keyword   asyConstant      mediumgrey grey heavygrey deepgrey darkgrey
 
-  if exists("asy_texcolors")
+  if exists("asy_syn_texcolors")
     syn keyword asyConstant      GreenYellow Yellow Goldenrod Dandelion
     syn keyword asyConstant      Apricot Peach Melon YellowOrange Orange
     syn keyword asyConstant      BurntOrange Bittersweet RedOrange Mahogany
@@ -153,7 +87,7 @@ if exists("asy_syn_plain")
     syn keyword asyConstant      Black White
   endif
 
-  if exists("asy_x11colors")
+  if exists("asy_syn_x11colors")
     syn keyword asyConstant      AliceBlue AntiqueWhite Aqua Aquamarine Azure
     syn keyword asyConstant      Beige Bisque Black BlanchedAlmond Blue
     syn keyword asyConstant      BlueViolet Brown BurlyWood CadetBlue
@@ -203,8 +137,74 @@ if exists("asy_syn_plain")
   endif
 endif
 
+" string constants
+syn region      asyCString       start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=asyCSpecial
+syn match       asyCSpecial      display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}\|x[0-9A-F]\{1,2\}\|$\)+
+" double quoted strings only special character is \"
+syn region      asyString        start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asySpecial
+syn match       asySpecial       display contained +[^\\]\(\\\\\)*\zs\\"+
+
+" number constants
+syn case ignore
+syn match       asyNumbers       display transparent "\<\d\|\.\d" contains=asyNumber,asyFloat
+"integer number, or floating point number without a dot and with "f".
+syn match       asyNumber        display contained "\d\+"
+"floating point number, with dot, optional exponent
+syn match       asyFloat         display contained "\d\+\.\d*\(e[-+]\=\d\+\)\="
+"floating point number, starting with a dot, optional exponent
+syn match       asyFloat         display contained "\.\d\+\(e[-+]\=\d\+\)\="
+"floating point number, without dot, with exponent
+syn match       asyFloat         display contained "\d\+e[-+]\=\d\+"
+syn case match
+
+" comments and comment strings
+if exists("asy_comment_strings")
+  " A comment can contain asyString, asyCString, asyCharacter and asyNumber.
+  " But a "*/" inside a asy*String in a asyComment DOES end the comment!  So we
+  " need to use a special type of asy*String: asyCommentString, which also ends on
+  " "*/", and sees a "*" at the start of the line as comment again.
+  " Unfortunately this doesn't very well work for // type of comments :-(
+  syn match     asyCommentSkip       contained "^\s*\*\($\|\s\+\)"
+  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCSpecial,asyCommentSkip
+  syn region    asyCommentLString    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial,asyCSpecial
+  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyCommentLString,asyCharacter,asyNumbersCom,asySpaceError
+  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyCharacter,asyNumbersCom,asySpaceError
+else
+  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asySpaceError
+  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asySpaceError
+endif
+
+" highlight common errors when starting/ending C comments
+syn match       asyCommentError      display "\*/"
+syn match       asyCommentStartError display "/\*"me=e-1 contained
+
+" asyCommentGroup allows adding matches for special things in comments
+syn cluster     asyCommentGroup  contains=asyTodo
+syn keyword     asyTodo          contained TODO FIXME XXX
 
 syn sync ccomment asyComment minlines=15
+
+" delimiter matching errors
+syn cluster     asyParenGroup    contains=asyParenError,asyIncluded,asySpecial,asyCSpecial,asyCommentSkip,asyCommentString,asyCommentLString,@asyCommentGroup,asyCommentStartError,asyUserCont,asyUserLabel,asyBitField,asyCommentSkip,asyOctalZero,asyCppOut,asyCppOut2,asyCppSkip,asyFormat,asyNumber,asyFloat,asyOctal,asyOctalError,asyNumbersCom
+if exists("asy_no_bracket_error")
+  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyCppString
+  " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
+  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyParen,asyString,asyCString
+  syn match     asyParenError    display ")"
+  syn match     asyErrInParen    display contained "[{}]"
+else
+  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyCppParen,asyErrInBracket,asyCppBracket,asyCppString
+  " asyCppParen: same as asyParen but ends at end-of-line; used in asyDefine
+  syn region    asyCppParen      transparent start='(' skip='\\$' excludenl end=')' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInBracket,asyParen,asyBracket,asyString,asyCString
+if 0
+  syn match     asyParenError    display "[\])]"
+  syn match     asyErrInParen    display contained "[\]]"
+endif
+  syn region    asyBracket       transparent start='\[' end=']' contains=ALLBUT,@asyParenGroup,asyErrInParen,asyCppParen,asyCppBracket,asyCppString
+  " asyCppBracket: same as asyParen but ends at end-of-line; used in asyDefine
+  syn region    asyCppBracket    transparent start='\[' skip='\\$' excludenl end=']' end='$' contained contains=ALLBUT,@asyParenGroup,asyErrInParen,asyParen,asyBracket,asyString,asyCString
+  syn match     asyErrInBracket  display contained "[);]"
+endif
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
