@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:     Asymptote
 " Maintainer:   Andy Hammerlindl
-" Last Change:  2005 Aug 23
+" Last Change:  2022 Jan 05
 
 " Hacked together from Bram Moolenaar's C syntax file, and Claudio Fleiner's
 " Java syntax file.
@@ -137,55 +137,79 @@ if exists("asy_syn_plain")
   endif
 endif
 
+
 " string constants
-syn region      asyCString       start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=asyCSpecial
-syn match       asyCSpecial      display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}\|x[0-9A-F]\{1,2\}\|$\)+
+syn region asyCString start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=asyCSpecial
+syn match  asyCSpecial display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}\)+
+syn match  asyCSpecial display contained +\\\(x[0-9A-F]\{1,2\}\|$\)+
 " double quoted strings only special character is \"
-syn region      asyString        start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asySpecial
-syn match       asySpecial       display contained +\(\\\)\@1<!\(\\\\\)*\zs\\"+
+syn region asyString   start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asySpecial
+syn match  asySpecial  display contained +\(\\\)\@1<!\(\\\\\)*\zs\\"+
+
 
 " number constants
-syn match       asyNumbers       display transparent "\<\d\|\.\d" contains=asyNumber,asyNumberError
-syn match       asyNumber        display contained "\d*\.\=\d*\(e[-+]\=\d\+\)\="
+syn match  asyNumbers     display transparent "\<\d\|\.\d"
+                        \ contains=asyNumber,asyNumberError
+syn match  asyNumber      display contained "\d*\.\=\d*\(e[-+]\=\d\+\)\="
 " highlight number constants with two '.' or with '.' after an 'e'
-syn match       asyNumberError   display contained "\d*\(\.\|e[-+]\=\)\(\d\|e[-+]\=\)*\.[0-9.]*"
+syn match  asyNumberError display contained "\d*\.\(\d\|e[-+]\=\)*\.[0-9.]*"
+syn match  asyNumberError display contained "\d*e[-+]\=\d*\.[0-9.]*"
+syn match  asyNumberError display contained "\d*e[-+]\=\(e[-+]\=\)*\.[0-9.]*"
+
 
 " comments and comment strings
+syn keyword  asyTodo            contained TODO FIXME XXX
+syn sync     ccomment           asyComment minlines=15
 if exists("asy_comment_strings")
-  " A comment can contain asyString, asyCString, and asyNumber.
-  " But a "*/" inside a asy*String in a asyComment DOES end the comment!  So we
-  " need to use a special type of asy*String: asyCommentString, which also ends on
+  " A comment can contain asyString, asyCString, and asyNumber. But a "*/"
+  " inside a asy*String in a asyComment DOES end the comment!  So we need to
+  " use a special type of asy*String: asyComment*String, which also ends on
   " "*/", and sees a "*" at the start of the line as comment again.
   " Unfortunately this doesn't very well work for // type of comments :-(
-  syn match     asyCommentSkip       contained "^\s*\*\($\|\s\+\)"
-  syn region    asyCommentString     contained start=+"+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCommentSkip
-  syn region    asyCommentCString    contained start=+'+ skip=+\\\\\|\\'+ end=+'+ end=+\*/+me=s-1 contains=asyCSpecial,asyCommentSkip
-  syn region    asyCommentLString    contained start=+"+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial
-  syn region    asyCommentLCString   contained start=+'+ skip=+\\\\\|\\'+ end=+'+ end="$" contains=asyCSpecial
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=asyTodo,asyCommentLString,asyCommentLCString,asyNumbers
-  syn region    asyComment           matchgroup=asyComment start="/\*" end="\*/" contains=asyTodo,asyCommentStartError,asyCommentString,asyCommentCString,asyNumbers
+  syn match  asyCommentSkip     contained "^\s*\*\($\|\s\+\)"
+  syn region asyCommentString   contained start=+"+ skip=+\\\\\|\\"+ end=+"+
+                              \ end=+\*/+me=s-1
+                              \ contains=asySpecial,asyCommentSkip
+  syn region asyCommentCString  contained start=+'+ skip=+\\\\\|\\'+ end=+'+
+                              \ end=+\*/+me=s-1
+                              \ contains=asyCSpecial,asyCommentSkip
+  syn region asyCommentLString  contained start=+"+ skip=+\\\\\|\\"+ end=+"+
+                              \ end="$" contains=asySpecial
+  syn region asyCommentLCString contained start=+'+ skip=+\\\\\|\\'+ end=+'+
+                              \ end="$" contains=asyCSpecial
+  syn region asyCommentL        start="//" skip="\\$" end="$" keepend
+                              \ contains=asyTodo,asyCommentLString,
+                              \ asyCommentLCString,asyNumbers
+  syn region asyComment         matchgroup=asyComment start="/\*" end="\*/"
+                              \ contains=asyTodo,asyCommentStartError,
+                              \ asyCommentString,asyCommentCString,asyNumbers
 else
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=asyTodo
-  syn region    asyComment           matchgroup=asyComment start="/\*" end="\*/" contains=asyTodo,asyCommentStartError
+  syn region asyCommentL        start="//" skip="\\$" end="$" keepend
+                              \ contains=asyTodo
+  syn region asyComment         matchgroup=asyComment start="/\*" end="\*/"
+                              \ contains=asyTodo,asyCommentStartError
 endif
 
 " highlight common errors when starting/ending C comments
-syn match       asyCommentError      display "\*/"
-syn match       asyCommentStartError display "/\*"me=e-1 contained
+syn match    asyCommentError      display "\*/"
+syn match    asyCommentStartError display "/\*"me=e-1 contained
 
-syn keyword     asyTodo              contained TODO FIXME XXX
-
-syn sync ccomment asyComment minlines=15
 
 " delimiter matching errors
-syn region asyCurly      transparent start='{'  end='}'  contains=TOP,asyCurlyError
-syn region asyBrack      transparent start='\[' end='\]' matchgroup=asyError end=';' contains=TOP,asyBrackError
-syn region asyParen      transparent start='('  end=')'  matchgroup=asyError end=';' contains=TOP,asyParenError
+syn region asyCurly      transparent start='{'  end='}'
+                       \ contains=TOP,asyCurlyError
+syn region asyBrack      transparent start='\[' end='\]' matchgroup=asyError
+                       \ end=';' contains=TOP,asyBrackError
+syn region asyParen      transparent start='('  end=')'  matchgroup=asyError
+                       \ end=';' contains=TOP,asyParenError
 syn match  asyCurlyError display '}'
 syn match  asyBrackError display '\]'
 syn match  asyParenError display ')'
 " for (;;) constructs are exceptions that allow ; inside parenthesis
-syn region asyParen      transparent matchgroup=asyParen start='\(for\s*\)\@<=(' end=')' contains=TOP,asyParenError
+syn region asyParen      transparent matchgroup=asyParen
+                       \ start='\(for\s*\)\@<=(' end=')'
+                       \ contains=TOP,asyParenError
+
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
