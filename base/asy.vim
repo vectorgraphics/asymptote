@@ -158,24 +158,22 @@ if exists("asy_comment_strings")
   " "*/", and sees a "*" at the start of the line as comment again.
   " Unfortunately this doesn't very well work for // type of comments :-(
   syn match     asyCommentSkip       contained "^\s*\*\($\|\s\+\)"
-  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCommentSkip
-  syn region    asyCommentCString    contained start=+L\='+ skip=+\\\\\|\\'+ end=+'+ end=+\*/+me=s-1 contains=asyCSpecial,asyCommentSkip
-  syn region    asyCommentLString    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial
-  syn region    asyCommentLCString   contained start=+L\='+ skip=+\\\\\|\\'+ end=+'+ end="$" contains=asyCSpecial
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyCommentLString,asyCommentLCString,asyNumbers
-  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyCommentCString,asyNumbers
+  syn region    asyCommentString     contained start=+"+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCommentSkip
+  syn region    asyCommentCString    contained start=+'+ skip=+\\\\\|\\'+ end=+'+ end=+\*/+me=s-1 contains=asyCSpecial,asyCommentSkip
+  syn region    asyCommentLString    contained start=+"+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial
+  syn region    asyCommentLCString   contained start=+'+ skip=+\\\\\|\\'+ end=+'+ end="$" contains=asyCSpecial
+  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=asyTodo,asyCommentLString,asyCommentLCString,asyNumbers
+  syn region    asyComment           matchgroup=asyComment start="/\*" end="\*/" contains=asyTodo,asyCommentStartError,asyCommentString,asyCommentCString,asyNumbers
 else
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup
-  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError
+  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=asyTodo
+  syn region    asyComment           matchgroup=asyComment start="/\*" end="\*/" contains=asyTodo,asyCommentStartError
 endif
 
 " highlight common errors when starting/ending C comments
 syn match       asyCommentError      display "\*/"
 syn match       asyCommentStartError display "/\*"me=e-1 contained
 
-" asyCommentGroup allows adding matches for special things in comments
-syn cluster     asyCommentGroup  contains=asyTodo
-syn keyword     asyTodo          contained TODO FIXME XXX
+syn keyword     asyTodo              contained TODO FIXME XXX
 
 syn sync ccomment asyComment minlines=15
 
@@ -207,7 +205,6 @@ if version >= 508 || !exists("did_asy_syn_inits")
   endif
 
   HiLink asyCommentL             asyComment
-  HiLink asyCommentStart         asyComment
   HiLink asyConditional          Conditional
   HiLink asyRepeat               Repeat
   HiLink asyNumber               Number
