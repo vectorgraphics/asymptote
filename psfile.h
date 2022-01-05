@@ -144,7 +144,7 @@ public:
 
   psfile() {pdf=pdftex();}
 
-  bool istargetfmt(string outputformat);
+  bool transparentFormat(string outputformat);
 
   virtual ~psfile();
 

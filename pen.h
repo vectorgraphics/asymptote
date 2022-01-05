@@ -419,7 +419,7 @@ public:
     font("<invalid>"), fontsize(-1.0), lineskip(-1.0), color(INVISIBLE),
     r(0.0), g(0.0), b(0.0), grey(0.0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(NOBASEALIGN),
-    transparency(),linecap(-2), linejoin(-2), miterlimit(-1.0),
+    transparency("",-1.0),linecap(-2), linejoin(-2), miterlimit(-1.0),
     overwrite(DEFWRITE), t(nullTransform) {}
 
   double width() const {

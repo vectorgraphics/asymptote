@@ -202,7 +202,7 @@ void psfile::setcolor(const pen& p, const string& begin="",
   }
 }
 
-bool psfile::istargetfmt(string outputformat)
+bool psfile::transparentFormat(string outputformat)
 {
   return
     outputformat == "pdf" || outputformat == "html" ||
@@ -218,7 +218,7 @@ void psfile::setopacity(const pen& p)
 
   string outputformat=settings::getSetting<string>("outformat");
   if(p.opacity() != lastpen.opacity() &&
-  ((pdftex() && outputformat == "") || istargetfmt(outputformat))) {
+  ((pdftex() && outputformat == "") || transparentFormat(outputformat))) {
     *out << p.opacity() << " .setfillconstantalpha" << newl
          << p.opacity() << " .setstrokeconstantalpha" << newl;
   }
