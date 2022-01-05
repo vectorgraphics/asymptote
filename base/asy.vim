@@ -165,10 +165,12 @@ if exists("asy_comment_strings")
   " "*/", and sees a "*" at the start of the line as comment again.
   " Unfortunately this doesn't very well work for // type of comments :-(
   syn match     asyCommentSkip       contained "^\s*\*\($\|\s\+\)"
-  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asyCSpecial,asyCommentSkip
-  syn region    asyCommentLString    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asyCSpecial
-  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyCommentLString,asyNumbers
-  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyNumbers
+  syn region    asyCommentString     contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end=+\*/+me=s-1 contains=asySpecial,asyCommentSkip
+  syn region    asyCommentCString    contained start=+L\='+ skip=+\\\\\|\\'+ end=+'+ end=+\*/+me=s-1 contains=asyCSpecial,asyCommentSkip
+  syn region    asyCommentLString    contained start=+L\="+ skip=+\\\\\|\\"+ end=+"+ end="$" contains=asySpecial
+  syn region    asyCommentLCString   contained start=+L\='+ skip=+\\\\\|\\'+ end=+'+ end="$" contains=asyCSpecial
+  syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup,asyCommentLString,asyCommentLCString,asyNumbers
+  syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError,asyCommentString,asyCommentCString,asyNumbers
 else
   syn region    asyCommentL          start="//" skip="\\$" end="$" keepend contains=@asyCommentGroup
   syn region    asyComment           matchgroup=asyCommentStart start="/\*" matchgroup=NONE end="\*/" contains=@asyCommentGroup,asyCommentStartError
@@ -232,7 +234,9 @@ if version >= 508 || !exists("did_asy_syn_inits")
   HiLink asyType                 Type
   HiLink asyConstant             Constant
   HiLink asyCommentString        asyString
+  HiLink asyCommentCString       asyString
   HiLink asyCommentLString       asyString
+  HiLink asyCommentLCString      asyString
   HiLink asyCommentSkip          asyComment
   HiLink asyString               String
   HiLink asyCString              String
