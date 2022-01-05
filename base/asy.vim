@@ -178,20 +178,14 @@ syn keyword     asyTodo              contained TODO FIXME XXX
 syn sync ccomment asyComment minlines=15
 
 " delimiter matching errors
-syn cluster     asyParenGroup    contains=asyParenError,asyCSpecial,asyCommentSkip,asyCommentString,asyCommentLString,@asyCommentGroup,asyCommentStartError,asyNumbers
-if exists("asy_no_bracket_error")
-  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup
-  syn match     asyParenError    display ")"
-  syn match     asyErrInParen    display contained "[{}]"
-else
-  syn region    asyParen         transparent start='(' end=')' contains=ALLBUT,@asyParenGroup,asyErrInBracket
-if 0
-  syn match     asyParenError    display "[\])]"
-  syn match     asyErrInParen    display contained "[\]]"
-endif
-  syn region    asyBracket       transparent start='\[' end=']' contains=ALLBUT,@asyParenGroup,asyErrInParen
-  syn match     asyErrInBracket  display contained "[);]"
-endif
+syn region asyCurly      transparent start='{'  end='}'  contains=TOP,asyCurlyError
+syn region asyBrack      transparent start='\[' end='\]' matchgroup=asyError end=';' contains=TOP,asyBrackError
+syn region asyParen      transparent start='('  end=')'  matchgroup=asyError end=';' contains=TOP,asyParenError
+syn match  asyCurlyError display '}'
+syn match  asyBrackError display '\]'
+syn match  asyParenError display ')'
+" for (;;) constructs are exceptions that allow ; inside parenthesis
+syn region asyParen      transparent matchgroup=asyParen start='\(for\s*\)\@<=(' end=')' contains=TOP,asyParenError
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
@@ -209,9 +203,9 @@ if version >= 508 || !exists("did_asy_syn_inits")
   HiLink asyRepeat               Repeat
   HiLink asyNumber               Number
   HiLink asyNumberError          asyError
+  HiLink asyCurlyError           asyError
+  HiLink asyBracketError         asyError
   HiLink asyParenError           asyError
-  HiLink asyErrInParen           asyError
-  HiLink asyErrInBracket         asyError
   HiLink asyCommentError         asyError
   HiLink asyCommentStartError    asyError
   HiLink asyOperator             Operator
