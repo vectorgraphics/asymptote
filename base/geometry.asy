@@ -3164,7 +3164,6 @@ circle circle(explicit point C, real r)
 /*<asyxml><function type="circle" signature="circle(point,point)"><code></asyxml>*/
 circle circle(point A, point B)
 {/*<asyxml></code><documentation>Return the circle of diameter AB.</documentation></function></asyxml>*/
-  real r;
   circle oc;
   real a = abs(A), b = abs(B);
   if(finite(a) && finite(b)) {
@@ -3269,10 +3268,10 @@ circle operator -(explicit circle c, vector m)
 {/*<asyxml></code><documentation>Translation of 'c'.</documentation></operator></asyxml>*/
   return circle(c.C - m, c.r);
 }
-/*<asyxml><operator type = "real" signature="^(point,explicit circle)"><code></asyxml>*/
+/*<asyxml><operator type="real" signature="^(point,explicit circle)"><code></asyxml>*/
 real operator ^(point M, explicit circle c)
-{/*<asyxml></code><documentation>The power of 'M' with respect to the circle 'c'</documentation></operator></asyxml>*/
-  return xpart((abs(locate(M) - locate(c.C)), c.r)^2);
+{/*<asyxml></code><documentation>The power of 'M' with respect to the circle 'c'.</documentation></operator></asyxml>*/
+  return abs(locate(M) - locate(c.C))^2 - c.r^2;
 }
 /*<asyxml><operator type = "bool" signature="@(point,explicit circle)"><code></asyxml>*/
 bool operator @(point M, explicit circle c)
@@ -6304,65 +6303,140 @@ void dot(picture pic = currentpicture, triangle t, pen p = currentpen)
 
 // *=======================================================*
 // *.......................INVERSIONS......................*
-/*<asyxml><function type="point" signature="inverse(real k,point,point)"><code></asyxml>*/
-point inverse(real k, point A, point M)
-{/*<asyxml></code><documentation>Return the inverse point of 'M' with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  return A + k/conj(M - A);
+/*<asyxml><function type="point" signature="inverse(real,point,point)"><code></asyxml>*/
+point inverse(real k, point C, point P)
+{/*<asyxml></code><documentation>Return the inverse point of 'P' with respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if (k == 0 || !finite(k)) abort("inverse: inversion power must be non-zero and finite");
+  if (!finite(C)) abort("inverse: inversion center must be finite");
+  point[] p = standardizecoordsys(C, P);
+  coordsys R = p[0].coordsys;
+  if (p[1] == p[0]) return point(R, (infinity, infinity));
+  if (!finite(p[1])) return C;
+  return C + k/conj(P - C);
 }
 
-/*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
-point radicalcenter(circle c1, circle c2)
-{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+/*<asyxml><function type="point" signature="radicalcenter(circle,circle,bool)"><code></asyxml>*/
+point radicalcenter(circle c1, circle c2, bool abort=true)
+{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/>
+   If 'abort' is 'true' and the circles are concentric, execution will be aborted.
+   If 'abort' is 'false' and the circles are both concentric and congruent, a warning is sent
+   but the common center is returned (as the most convenient point among infinitely many points in the plane
+   having the same power of a point with respect to both circles).</documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
+  if (c1.C == c2.C) {
+    bool congruent = abs(c1.r) == abs(c2.r);
+    if (congruent && !abort) {
+      warning("radicalcenter", "The common center is returned as the most convenient point
+for two circles which are both concentric and congruent.");
+      return c1.C;
+    }
+    abort("radicalcenter: circles are concentric" + (congruent ? " and congruent" : ""));
+  }
   point[] P = standardizecoordsys(c1.C, c2.C);
-  real k = c1.r^2 - c2.r^2;
+  coordsys R = P[0].coordsys;
   pair C1 = locate(c1.C);
   pair C2 = locate(c2.C);
+  real k = c1.r^2 - c2.r^2;
   pair oop = C2 - C1;
-  pair K = (abs(oop) == 0) ?
-    (infinity, infinity) :
-    midpoint(C1--C2) + 0.5 * k * oop/dot(oop, oop);
-  return point(P[0].coordsys, K/P[0].coordsys);
+  pair K = (C1 + C2)/2 + k/2 * oop/dot(oop, oop);
+  return point(R, K/R);
 }
 
-/*<asyxml><function type="line" signature="radicalline(circle,circle)"><code></asyxml>*/
-line radicalline(circle c1, circle c2)
-{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
-  if (c1.C == c2.C) abort("radicalline: the centers must be distinct");
+/*<asyxml><function type="line" signature="radicalline(circle,circle,bool)"><code></asyxml>*/
+line radicalline(circle c1, circle c2, bool abort=true)
+{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/>
+   If 'abort' is 'true' and the circles are concentric, execution will be aborted.
+   If 'abort' is 'false' and the circles are both concentric and congruent, a warning is sent
+   but the line through the common center in direction '(1, 0)' is returned (as the most convenient one
+   among infinitely many).</documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
+  if (c1.C == c2.C) {
+    bool congruent = abs(c1.r) == abs(c2.r);
+    if (congruent && !abort) {
+      warning("radicalline", "The line through the common center in direction '(1, 0)' is returned as the most convenient line
+for two circles which are both concentric and congruent.");
+      return line(c1.C, c1.C + vector(c1.C.coordsys, (1, 0)));
+    }
+    abort("radicalline: circles are concentric" + (congruent ? " and congruent" : ""));
+  }
   return perpendicular(radicalcenter(c1, c2), line(c1.C, c2.C));
 }
 
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2, circle c3)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
+
+  /* Pseudocode:
+     - Introduce optional argument bool abort=true
+     - Remove duplicate circles from the set { c1, c2, c3 } considering two circles ci and cj to be equal
+       if ci.C == cj.C and abs(ci.r) == abs(cj.r)
+     - If there is only one unique circle c1', there are infinitely many points in the plane having
+       the same power of a point with respect to all circles:
+         if !abort: warn and return the common center as the most convenient point
+         otherwise: abort (there is no unique point)
+         (It seems that calling radicalcenter(c1', c1', abort) will do.)
+     - If there are two unique circles c1' and c2':
+         if concentric (hence non-congruent): abort (there is no point at all)
+         otherwise: there are infinitely many points in the plane having the same power of a point with respect to all circles
+           if !abort: warn and return radicalcenter(c1', c2') as the most convenient point  (the value of the optional argument is not relevant here)
+           otherwise: abort (there is no unique point)
+     - If all circles are pairwise distinct:
+         if any two concentric (hence non-congruent): abort (there is no point at all)
+         otherwise:
+           if centers are collinear: (there is either none or infinitely many points)
+             check if radicalcenter(ci, cj) for all three pairs returns one unique point  (the value of the optional argument is not relevant here)
+             if yes and !abort: warn and return that point as the most convenient point
+             otherwise: abort (there is no point at all)
+           otherwise: return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3))
+  */
   return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3));
 }
 
 /*<asyxml><struct signature="inversion"><code></asyxml>*/
 struct inversion
-{/*<asyxml></code><documentation>http://mathworld.wolfram.com/Inversion.html</documentation></asyxml>*/
-  point C;
-  real k;
+{/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/Inversion.html"/></documentation></asyxml>*/
+  /*<asyxml><property type="real" signature="k"><code></asyxml>*/
+  restricted real k = 1;/*<asyxml></code><documentation>Inversion power</documentation></property></asyxml>*/
+  /*<asyxml><property type="point" signature="C"><code></asyxml>*/
+  restricted point C;/*<asyxml></code><documentation>Inversion center</documentation></property></asyxml>*/
+
+  /*<asyxml><method type="void" signature="operator init(real,point)"><code></asyxml>*/
+  void operator init(real k, point C)
+  {/*<asyxml></code><documentation>Initialize the inversion with respect to 'C' having inversion power 'k'.</documentation></method></asyxml>*/
+    if (k == 0 || !finite(k)) abort("inversion: inversion power must be non-zero and finite");
+    if (!finite(C)) abort("inversion: inversion center must be finite");
+    this.k = k;
+    this.C = C;
+  }
+
+  /*<asyxml><method type="void" signature="operator init(point,real)"><code></asyxml>*/
+  void operator init(point C, real k)
+  {/*<asyxml></code><documentation>Initialize the inversion with respect to 'C' having inversion power 'k'.</documentation></method></asyxml>*/
+    if (k == 0 || !finite(k)) abort("inversion: inversion power must be non-zero and finite");
+    if (!finite(C)) abort("inversion: inversion center must be finite");
+    this.k = k;
+    this.C = C;
+  }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type="inversion" signature="inversion(real,point)"><code></asyxml>*/
-inversion inversion(real k, point C)
-{/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion radius 'k'.</documentation></function></asyxml>*/
-  inversion oi;
-  oi.k = k;
-  oi.C = C;
-  return oi;
-}
-/*<asyxml><function type="inversion" signature="inversion(real,point)"><code></asyxml>*/
-inversion inversion(point C, real k)
-{/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion radius 'k'.</documentation></function></asyxml>*/
-  return inversion(k, C);
+inversion[] operator cast(inversion i)
+{
+  return new inversion[] {i};
 }
 
-/*<asyxml><function type="inversion" signature="inversion(circle,circle)"><code></asyxml>*/
-inversion inversion(circle c1, circle c2, real sgn = 1)
-{/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to
-   . 'c2' and positive inversion radius if 'sgn > 0';
-   . 'c2' and negative inversion radius if 'sgn < 0';
+inversion operator cast(inversion[] i)
+{
+  if(i.length != 1)
+    abort("implicit cast to inversion from inversion[] of length != 1.");
+  return i[0];
+}
+
+/*<asyxml><function type="inversion[]" signature="inversion(circle,circle,real)"><code></asyxml>*/
+inversion[] inversion(circle c1, circle c2, real sgn = 1)
+{/*<asyxml></code><documentation>Return the inversions which transform 'c1' to
+   . 'c2' and positive inversion power if 'sgn > 0';
+   . 'c2' and negative inversion power if 'sgn < 0';
    . 'c1' and 'c2' to 'c2' if 'sgn = 0'.</documentation></function></asyxml>*/
   if(sgn == 0) {
     point O = radicalcenter(c1, c2);
@@ -6379,9 +6453,9 @@ inversion inversion(circle c1, circle c2, real sgn = 1)
 
 /*<asyxml><function type="inversion" signature="inversion(circle,circle,circle)"><code></asyxml>*/
 inversion inversion(circle c1, circle c2, circle c3)
-{/*<asyxml></code><documentation>Return the inversion which transform 'c1' to 'c1', 'c2' to 'c2' and 'c3' to 'c3'.</documentation></function></asyxml>*/
-  point Rc = radicalcenter(c1, c2, c3);
-  return inversion(Rc, Rc^c1);
+{/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to 'c1', 'c2' to 'c2' and 'c3' to 'c3'.</documentation></function></asyxml>*/
+  point O = radicalcenter(c1, c2, c3);
+  return inversion(O^c1, O);
 }
 
 circle operator cast(inversion i){return circle(i.C, sgn(i.k) * sqrt(abs(i.k)));}
@@ -6401,57 +6475,50 @@ inversion inversion(circle c)
   return c;
 }
 
-/*<asyxml><operator type = "point" signature="*(inversion,point)"><code></asyxml>*/
+/*<asyxml><operator type="point" signature="*(inversion,point)"><code></asyxml>*/
 point operator *(inversion i, point P)
 {/*<asyxml></code><documentation>Provide inversion * point.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, P);
 }
 
-void lineinversion()
+/*<asyxml><function type="circle" signature="lineinversion(point,line)"><code></asyxml>*/
+circle lineinversion(point C, line l)
 {
-  warning("lineinversion", "the inversion of the line is not a circle.
+  circle oc = circle(C, infinity);
+  oc.l = l;
+  warning("lineinversion", "The inversion of the line is not a circle.
 The returned circle has an infinite radius, circle.l has been set.");
+  return oc;
 }
-
 
 /*<asyxml><function type="circle" signature="inverse(real,point,line)"><code></asyxml>*/
-circle inverse(real k, point A, line l)
+circle inverse(real k, point C, line l)
 {/*<asyxml></code><documentation>Return the inverse circle of 'l' with
-   respect to point 'A' and inversion radius 'k'.</documentation></function></asyxml>*/
-  if(A @ l) {
-    lineinversion();
-    circle C = circle(A, infinity);
-    C.l = l;
-    return C;
-  }
-  point Ap = inverse(k, A, l.A), Bp = inverse(k, A, l.B);
-  return circle(A, Ap, Bp);
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if(C @ l) return lineinversion(C, l);
+  point A = inverse(k, C, l.A);
+  point B = inverse(k, C, l.B);
+  return circle(C, A, B);
 }
 
-/*<asyxml><operator type = "circle" signature="*(inversion,line)"><code></asyxml>*/
+/*<asyxml><operator type="circle" signature="*(inversion,line)"><code></asyxml>*/
 circle operator *(inversion i, line l)
 {/*<asyxml></code><documentation>Provide inversion * line for lines that don't pass through the inversion center.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, l);
 }
 
 /*<asyxml><function type="circle" signature="inverse(real,point,circle)"><code></asyxml>*/
-circle inverse(real k, point A, circle c)
+circle inverse(real k, point C, circle c)
 {/*<asyxml></code><documentation>Return the inverse circle of 'c' with
-   respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  if(degenerate(c)) return inverse(k, A, c.l);
-  if(A @ c) {
-    lineinversion();
-    point M = rotate(180, c.C) * A, Mp = rotate(90, c.C) * A;
-    circle oc = circle(A, infinity);
-    oc.l = line(inverse(k, A, M), inverse(k, A, Mp));
-    return oc;
-  }
-  point[] P = standardizecoordsys(A, c.C);
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if(degenerate(c)) return inverse(k, C, c.l);
+  if(C @ c) return lineinversion(C, line(inverse(k, C, rotate(+90, c.C) * C), inverse(k, C, rotate(-90, c.C) * C)));
+  point[] P = standardizecoordsys(C, c.C);
   real s = k/((P[1].x - P[0].x)^2 + (P[1].y - P[0].y)^2 - c.r^2);
-  return circle(P[0] + s * (P[1]-P[0]), abs(s) * c.r);
+  return circle(P[0] + s * (P[1] - P[0]), abs(s) * c.r);
 }
 
-/*<asyxml><operator type = "circle" signature="*(inversion,circle)"><code></asyxml>*/
+/*<asyxml><operator type="circle" signature="*(inversion,circle)"><code></asyxml>*/
 circle operator *(inversion i, circle c)
 {/*<asyxml></code><documentation>Provide inversion * circle.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, c);
@@ -7102,18 +7169,18 @@ arc arc(explicit arc a, point M, point N)
 }
 
 /*<asyxml><function type="arc" signature="inverse(real,point,segment)"><code></asyxml>*/
-arc inverse(real k, point A, segment s)
-{/*<asyxml></code><documentation>Return the inverse arc circle of 's'
-   with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  point Ap = inverse(k, A, s.A), Bp = inverse(k, A, s.B),
-    M = inverse(k, A, midpoint(s));
-  return arccircle(Ap, M, Bp);
+arc inverse(real k, point C, segment s)
+{/*<asyxml></code><documentation>Return the inverse arc circle of 's' with
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  point A = inverse(k, C, s.A);
+  point B = inverse(k, C, s.B);
+  point M = inverse(k, C, midpoint(s));
+  return arccircle(A, M, B);
 }
 
-/*<asyxml><operator type = "arc" signature="*(inversion,segment)"><code></asyxml>*/
+/*<asyxml><operator type="arc" signature="*(inversion,segment)"><code></asyxml>*/
 arc operator *(inversion i, segment s)
-{/*<asyxml></code><documentation>Provide
-   inversion * segment.</documentation></operator></asyxml>*/
+{/*<asyxml></code><documentation>Provide inversion * segment.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, s);
 }
 
@@ -7197,4 +7264,3 @@ path arc(explicit pair B, explicit pair A, explicit pair C, real r)
 
 // *........................FOOTER.........................*
 // *=======================================================*
-
