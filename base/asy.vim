@@ -145,17 +145,10 @@ syn region      asyString        start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asy
 syn match       asySpecial       display contained +\(\\\)\@1<!\(\\\\\)*\zs\\"+
 
 " number constants
-syn case ignore
-syn match       asyNumbers       display transparent "\<\d\|\.\d" contains=asyNumber,asyFloat
-"integer number, or floating point number without a dot and with "f".
-syn match       asyNumber        display contained "\d\+"
-"floating point number, with dot, optional exponent
-syn match       asyFloat         display contained "\d\+\.\d*\(e[-+]\=\d\+\)\="
-"floating point number, starting with a dot, optional exponent
-syn match       asyFloat         display contained "\.\d\+\(e[-+]\=\d\+\)\="
-"floating point number, without dot, with exponent
-syn match       asyFloat         display contained "\d\+e[-+]\=\d\+"
-syn case match
+syn match       asyNumbers       display transparent "\<\d\|\.\d" contains=asyNumber,asyNumberError
+syn match       asyNumber        display contained "\d*\.\=\d*\(e[-+]\=\d\+\)\="
+" highlight number constants with two '.' or with '.' after an 'e'
+syn match       asyNumberError   display contained "\d*\(\.\|e[-+]\=\)\(\d\|e[-+]\=\)*\.[0-9.]*"
 
 " comments and comment strings
 if exists("asy_comment_strings")
@@ -218,7 +211,7 @@ if version >= 508 || !exists("did_asy_syn_inits")
   HiLink asyConditional          Conditional
   HiLink asyRepeat               Repeat
   HiLink asyNumber               Number
-  HiLink asyFloat                Float
+  HiLink asyNumberError          asyError
   HiLink asyParenError           asyError
   HiLink asyErrInParen           asyError
   HiLink asyErrInBracket         asyError
