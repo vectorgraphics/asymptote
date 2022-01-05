@@ -142,7 +142,7 @@ syn region      asyCString       start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=asy
 syn match       asyCSpecial      display contained +\\\(['"?\\abfnrtv]\|\o\{1,3}\|x[0-9A-F]\{1,2\}\|$\)+
 " double quoted strings only special character is \"
 syn region      asyString        start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=asySpecial
-syn match       asySpecial       display contained +[^\\]\(\\\\\)*\zs\\"+
+syn match       asySpecial       display contained +\(\\\)\@1<!\(\\\\\)*\zs\\"+
 
 " number constants
 syn case ignore
