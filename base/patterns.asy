@@ -13,9 +13,9 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
 /XStep "+format(s,pmax.x-pmin.x,"C")+"
 /YStep "+format(s,pmax.y-pmin.y,"C")+"
 /PaintProc {pop");
-  begingroup(tiling);
+  gsave(tiling);
   add(tiling,f);
-  endgroup(tiling);
+  grestore(tiling);
   postscript(tiling,"} >>
  matrix makepattern
 /"+name+" exch def");

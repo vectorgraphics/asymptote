@@ -18,11 +18,6 @@ public:
 
   virtual ~drawBegin() {}
 
-  bool draw(psfile *out) {
-    out->lastpen=camp::pen(camp::initialpen);
-    return true;
-  }
-
   bool begingroup() {return true;}
 };
 
@@ -31,11 +26,6 @@ public:
   drawEnd() {}
 
   virtual ~drawEnd() {}
-
-  bool draw(psfile *out) {
-    out->lastpen=camp::pen(camp::initialpen);
-    return true;
-  }
 
   bool endgroup() {return true;}
 };
