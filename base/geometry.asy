@@ -6051,7 +6051,7 @@ triangle extouch(triangle t)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type="triangle" signature="extouch(triangle)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="incentral(triangle)"><code></asyxml>*/
 triangle incentral(triangle t)
 {/*<asyxml></code><documentation>Return the incentral triangle of the triangle 't'.
    It is the triangle whose vertices are determined by the intersections of the
