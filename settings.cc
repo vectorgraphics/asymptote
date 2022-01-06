@@ -87,6 +87,7 @@ mode_t mask;
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
+string defaultPNGdriver="png16m"; // pngalpha has issues at high resolutions
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
   string(AsyGLVersion)+".js";
 
@@ -1459,6 +1460,7 @@ void initSettings() {
   addOption(new envSetting("libgs", defaultGhostscriptLibrary));
   addOption(new envSetting("epsdriver", defaultEPSdriver));
   addOption(new envSetting("psdriver", defaultPSdriver));
+  addOption(new envSetting("pngdriver", defaultPNGdriver));
   addOption(new envSetting("asygl", defaultAsyGL));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));

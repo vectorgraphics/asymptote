@@ -839,8 +839,7 @@ bool picture::postprocess(const string& prename, const string& outname,
         cmd.push_back("-dNOPAUSE");
         cmd.push_back("-dBATCH");
         cmd.push_back("-P");
-        cmd.push_back("-sDEVICE=pngalpha");
-        cmd.push_back("-dEPSCrop");
+        cmd.push_back("-sDEVICE="+getSetting<string>("pngdriver"));
         if(safe)
           cmd.push_back("-dSAFER");
         cmd.push_back("-r"+String(res)+"x"+String(res));
@@ -981,8 +980,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
   string texengineSave;
 
-  if(!empty && !deconstruct && svgformat && texengine == "latex"
-     && havepng()) {
+  if(!empty && !deconstruct && (png || (svgformat && havepng())) &&
+     texengine == "latex") {
     texengineSave=texengine;
     Setting("tex")=texengine="pdflatex";
   }
@@ -996,7 +995,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
   string preformat=nativeformat();
   bool epsformat=outputformat == "eps";
-  bool pdfformat=pdf || outputformat == "pdf";
+  bool pdfformat=pdf || png || outputformat == "pdf";
   bool dvi=false;
   bool svg=svgformat && usetex &&
     (!have3D() || getSetting<double>("render") == 0.0);

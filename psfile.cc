@@ -206,7 +206,7 @@ bool psfile::transparentFormat(string outputformat)
 {
   return
     outputformat == "pdf" || outputformat == "html" ||
-    outputformat == "svg" || // outputformat == "png" ||
+    outputformat == "svg" || outputformat == "png" ||
     outputformat == "v3d";
 }
 
