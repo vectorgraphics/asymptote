@@ -1380,6 +1380,7 @@ void draw3D(frame f, patch s, material m,
   int digits=s.planar && !straight ? 12 : settings.digits;
 
   if(s.colors.length > 0) {
+    primitive=false;
     if(prc() && light.on())
         straight=false; // PRC vertex colors (for quads only) ignore lighting
     m=material(m);
@@ -1536,8 +1537,11 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     bool prc=prc();
     if(s.draw != null && (primitive() || (prc && s.PRCprimitive))) {
       bool noprerender=settings.prerender == 0;
-      for(int k=0; k < s.s.length; ++k)
-        draw3D(f,s.s[k],surfacepen[k],light,render,primitive=noprerender);
+      for(int k=0; k < s.s.length; ++k) {
+        patch p=s.s[k];
+        draw3D(f,p,surfacepen[k],light,render,primitive=noprerender);
+        if(p.colors.length > 0) noprerender=false;
+      }
       if(noprerender)
         s.draw(f,s.T,surfacepen,light,render);
     } else {
