@@ -192,7 +192,12 @@ void *asymain(void *A)
       }
     } else {
       for(int ind=0; ind < n; ind++) {
-        processFile(string(getArg(ind)),n > 1);
+        string name=(getArg(ind));
+        if(name == stripExt(name)+".v3d") {
+          interact::uptodate=false;
+          runString("import v3d; importv3d(\""+name+"\");");
+        } else
+          processFile(name,n > 1);
         try {
           if(ind < n-1)
             setOptions(args->argc,args->argv);

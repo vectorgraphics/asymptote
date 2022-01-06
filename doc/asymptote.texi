@@ -8264,7 +8264,13 @@ external viewer or conversion to an alternate 3D format with the Python
 @code{pyv3d} library are available at
 @url{https://gitlab.com/vectorgraphics/v3d}.
 A @code{V3D} file @code{file.v3d} may be imported and viewed by
-Asymptote with the @code{v3d} module:
+@code{Asymptote} either by specifying @code{file.v3d} on the command line
+@verbatim
+asy -V file.v3d
+@end verbatim
+or using the @code{v3d} module and @code{importv3d} function in
+interactive mode (or within an @code{Asymptote} file):
+@cindex @code{importv3d}
 @verbatim
 import v3d;
 importv3d("file.v3d");
