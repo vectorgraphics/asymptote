@@ -507,8 +507,8 @@ public:
   }
 
   double opacity() const {
-    return transparency.isdefault || transparency.opacity < 0.0 ?
-      defaultpen().transparency.opacity : transparency.opacity;
+    return transparency.isdefault ? defaultpen().transparency.opacity :
+      transparency.opacity;
   }
 
   Int cap() const {
