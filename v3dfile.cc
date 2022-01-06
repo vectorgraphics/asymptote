@@ -217,26 +217,26 @@ void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN, triple const* 
   getXDRFile() << (uint32_t) nN;
   addTriples(N,nN);
 
-  bool explicitNI=true;
+  bool explicitNI=false;
   for(size_t i=0; i < nI; ++i) {
     const uint32_t *PIi=PI[i];
     const uint32_t *NIi=NI[i];
-    if(!distinct(NIi,PIi)) {
-      explicitNI=false;
+    if(distinct(NIi,PIi)) {
+      explicitNI=true;
       break;
     }
   }
   getXDRFile() << (uint32_t) explicitNI;
 
   getXDRFile() << (uint32_t) nC;
-  bool explicitCI=true;
+  bool explicitCI=false;
   if(nC) {
     addColors(C,nC);
     for(size_t i=0; i < nI; ++i) {
       const uint32_t *PIi=PI[i];
       const uint32_t *CIi=CI[i];
-      if(!distinct(CIi,PIi)) {
-        explicitNI=false;
+      if(distinct(CIi,PIi)) {
+        explicitNI=true;
         break;
       }
     }
