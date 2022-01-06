@@ -461,17 +461,10 @@ struct v3dfile
     for (int i=0; i < nI; ++i) {
       xdrfile.dimension(3);
       g.positionIndices[i]=xdrfile;
-      if(explicitNI != 0)
-        g.normalIndices[i]=xdrfile;
-      else
-        g.normalIndices[i]=g.positionIndices[i];
-      if(nC > 0) {
-        if(explicitCI != 0)
-          g.colorIndices[i]=xdrfile;
-        else
-          g.colorIndices[i]=g.positionIndices[i];
-      } else
-        g.colorIndices[i]=g.positionIndices[i];
+      g.normalIndices[i]=explicitNI != 0 ? xdrfile :
+        g.positionIndices[i];
+      g.colorIndices[i]=nC > 0 && explicitCI != 0 ? xdrfile :
+        g.positionIndices[i];
     }
     int center=xdrfile;
     int material=xdrfile;
@@ -606,9 +599,9 @@ void importv3d(string name)
     path3[][] G=xf.paths3[c];
     for(int m=0; m < G.length; ++m)
       if(G.initialized(m)) {
-        material material=xf.materials[m];
+        material material=material(xf.materials[m]);
         material.p[0] += thin();
-        draw(G[m],material,r);
+        draw(G[m],material,currentlight,r);
       }
   }
 
