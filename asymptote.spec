@@ -13,6 +13,7 @@ URL:            https://asymptote.sourceforge.io/
 Source:         http://downloads.sourceforge.net/sourceforge/asymptote/asymptote-%{version}.src.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+BuildRequires:  gcc-c++
 BuildRequires:  ncurses-devel
 BuildRequires:  readline-devel
 BuildRequires:  fftw-devel >= 3.0
@@ -20,10 +21,13 @@ BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  glm-devel
 BuildRequires:  tetex-latex
-BuildRequires:  ghostscript >= 9.52
+BuildRequires:  ghostscript >= 9.55
 BuildRequires:  dvisvgm >= 2.9.1
 BuildRequires:  texinfo >= 4.7
 BuildRequires:  ImageMagick
+BuildRequires:  freeglut-devel
+BuildRequires:  zlib-devel
+BuildRequires:  libtool
 BuildRequires:  libtirpc-devel
 BuildRequires:  libboost-devel
 
