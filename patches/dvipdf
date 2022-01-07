@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id$
 # Convert DVI to PDF.
 #
 # Please contact Andrew Ford <A.Ford@ford-mason.co.uk> with any questions
@@ -12,7 +11,7 @@
 GS_EXECUTABLE=gs
 
 
-OPTIONS="-DSAFER -P"
+OPTIONS=""
 DVIPSOPTIONS=""
 while true
 do
@@ -31,7 +30,7 @@ do
 done
 
 if [ $# -lt 1 -o $# -gt 2 ]; then
-	echo "Usage: `basename $0` [options...] input.dvi [output.pdf]" 1>&2
+	echo "Usage: `basename \"$0\"` [options...] input.dvi [output.pdf]" 1>&2
 	exit 1
 fi
 
@@ -50,5 +49,4 @@ fi
 
 # We have to include the options twice because -I only takes effect if it
 # appears before other options.
-exec dvips $DVIPSOPTIONS -q -f "$infile" | $GS_EXECUTABLE $OPTIONS -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sstdout=%stderr -sOutputFile="$outfile" $OPTIONS -c .setpdfwrite -
-
+exec dvips -Ppdf $DVIPSOPTIONS -q -f "$infile" | $GS_EXECUTABLE $OPTIONS -q -P- -dSAFER -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sstdout=%stderr -sOutputFile="$outfile" $OPTIONS -
