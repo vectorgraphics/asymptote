@@ -301,7 +301,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   void AsymptoteLspServer::onInitialized(Notify_InitializedNotification::notify& notify)
   {
-    logInfo("server initalized notification");
+    logInfo("server initialized notification");
   }
 
   void AsymptoteLspServer::onExit(Notify_Exit::notify& notify)
