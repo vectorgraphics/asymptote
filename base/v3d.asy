@@ -33,7 +33,8 @@ struct CameraInformation
   bool orthographic;
   real angle;
   real Zoom0;
-  pair viewportMargin;
+  pair viewportshift;
+  pair viewportmargin;
 
   light light;
 
@@ -43,9 +44,13 @@ struct CameraInformation
     triple center=0.5*(b.z+B.z)*Z;
 
     if(orthographic)
-      currentprojection=orthographic(Z,target=center);
+      currentprojection=orthographic(Z,target=center,Zoom0,
+                                     viewportshift=viewportshift);
     else
-      currentprojection=perspective(Z,Y,target=center,Zoom0,degrees(angle),autoadjust=false);
+      currentprojection=perspective(Z,Y,target=center,Zoom0,
+                                    degrees(2.0*atan(tan(0.5*angle)/Zoom0)),
+                                    viewportshift=viewportshift,
+                                    autoadjust=false);
     light.specular=light.diffuse;
     currentlight=light;
   }
@@ -204,9 +209,13 @@ struct v3dfile
           {
             ci.Zoom0=xdrfile;
           }
+        else if (headerKey==v3dheadertypes.viewportShift)
+          {
+            ci.viewportshift=xdrfile;
+          }
         else if (headerKey==v3dheadertypes.viewportMargin)
           {
-            ci.viewportMargin=xdrfile;
+            ci.viewportmargin=xdrfile;
           }
         else if (headerKey==v3dheadertypes.background)
           {
