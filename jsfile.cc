@@ -183,6 +183,10 @@ void jsfile::open(string name)
   out << "Background=[" << gl::Background[0] << "," << gl::Background[1] << ","
       << gl::Background[2] << "," << gl::Background[3] << "];"
       << newl << newl;
+  out << "Transform=[" << gl::T[0];
+  for(int i=1; i < 16; ++i)
+    out << "," << newl << gl::T[i];
+  out << "];" << newl << newl;
 
   camp::clearCenters();
   camp::clearMaterials();

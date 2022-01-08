@@ -166,6 +166,7 @@ extern const double *dprojView;
 extern const double *dView;
 
 extern double BBT[9];
+extern double T[16];
 
 extern bool format3dWait;
 

@@ -90,7 +90,7 @@ public:
         << m.specular << "," << newl
         << m.parameters[0] << "," << newl
         << m.parameters[1] << "," << newl
-        << m.parameters[2] << newl;
+        << m.parameters[2];
     return out;
   }
 };

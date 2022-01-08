@@ -401,9 +401,9 @@ void home(bool webgl=false)
   framecount=0;
 }
 
-#ifdef HAVE_GL
-
 double T[16];
+
+#ifdef HAVE_GL
 
 #ifdef HAVE_LIBGLUT
 timeval lasttime;
@@ -1844,11 +1844,19 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #else
   if(glinitialize) {
+    for(int i=0; i < 16; ++i)
+      T[i]=t[i];
     if(!format3d) init();
     Fitscreen=1;
   }
 #endif
+#else
+  if(format3d) {
+    for(int i=0; i < 16; ++i)
+      T[i]=t[i];
+  }
 #endif
+
 
   static bool initialized=false;
 
@@ -1913,9 +1921,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
 
 #ifdef HAVE_GL
-    for(int i=0; i < 16; ++i)
-      T[i]=t[i];
-
     Aspect=((double) Width)/Height;
 
     if(maxTileWidth <= 0) maxTileWidth=screenWidth;

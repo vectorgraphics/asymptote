@@ -1,10 +1,10 @@
 canvasWidth,1,UINT        # Canvas width
-canvasHeight,2,UINT       # Canvas height
+canvasHeight,2,UINT       # Canvas heighot
 absolute,3,BOOL           # true: absolute size; false: scale to canvas
 minBound,4,TRIPLE         # Scene minimum bounding box corners
 maxBound,5,TRIPLE         # Scene maximum bounding box corners
 orthographic,6,BOOL       # true: orthographic; false: perspective
-angleOfView,7,REAL        # Field of view angle
+angleOfView,7,REAL        # Field of view angle (in radians)
 initialZoom,8,REAL        # Initial zoom
 viewportShift,9,PAIR      # Viewport shift (for perspective projection)
 viewportMargin,10,PAIR    # Margin around viewport
