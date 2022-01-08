@@ -1844,19 +1844,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #else
   if(glinitialize) {
-    for(int i=0; i < 16; ++i)
-      T[i]=t[i];
     if(!format3d) init();
     Fitscreen=1;
   }
 #endif
-#else
-  if(format3d) {
-    for(int i=0; i < 16; ++i)
-      T[i]=t[i];
-  }
 #endif
 
+  for(int i=0; i < 16; ++i)
+    T[i]=t[i];
 
   static bool initialized=false;
 

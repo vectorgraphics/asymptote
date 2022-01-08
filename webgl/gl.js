@@ -2446,7 +2446,7 @@ function showCamera()
   let camera,up,target;
   [camera,up,target]=Camera();
 
-  let projection=P.orthographic ? "  orthographic(" : "  perspective(";
+  let projection=orthographic ? "  orthographic(" : "  perspective(";
   let indent="".padStart(projection.length);
 
   let currentprojection="currentprojection="+"\n"+
