@@ -106,8 +106,9 @@ public:
   void addStraightBezierTriangle(
           triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c) override;
 
-
+#ifdef HAVE_LIBGLM
   void addMaterial(Material const& mat) override;
+#endif
 
   void addSphere(triple const& center, double radius) override;
   void addHemisphere(triple const& center, double radius, double const& polar, double const& azimuth) override;
@@ -137,7 +138,10 @@ public:
 
 
 protected:
+#ifdef HAVE_LIBGLM
   void addvec4(glm::vec4 const& vec);
+#endif
+
   void addCenterIndexMat();
   void addIndices(uint32_t const* trip);
   void addTriples(triple const* triples, size_t n);

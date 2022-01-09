@@ -10,6 +10,8 @@
 
 #ifdef HAVE_RPC_RPC_H
 
+#ifdef HAVE_LIBGLM
+
 #include "drawelement.h"
 #include "makeUnique.h"
 
@@ -349,5 +351,7 @@ LightHeader::LightHeader(triple const& direction, prc::RGBAColour const& color) 
 }
 
 } //namespace camp
+
+#endif
 
 #endif

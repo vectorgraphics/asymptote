@@ -44,7 +44,9 @@ public:
   void addTube(const triple *g, double width,
                const triple& Min, const triple& Max, bool core) override;
 
+#ifdef HAVE_LIBGLM
   void addMaterial(Material const& mat) override;
+#endif
 
   void addSphere(triple const& center, double radius) override;
 
@@ -63,9 +65,7 @@ public:
 
 
   void svgtohtml(string name);
-#ifdef HAVE_LIBGLM
   void precision(int digits) override {out.precision(digits);}
-#endif
 
 protected:
   void copy(string name, bool header=false);
@@ -76,7 +76,6 @@ protected:
 
 
 
-#ifdef HAVE_LIBGLM
   void open(string name);
   void comment(string name);
 
@@ -88,11 +87,9 @@ protected:
   void addSphere(const triple& center, double radius, bool half=false,
                  const double& polar=0.0, const double& azimuth=0.0);
 
-
 private:
   bool finished;
   string fileName;
-#endif
 };
 
 } //namespace camp

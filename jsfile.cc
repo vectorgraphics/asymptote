@@ -8,6 +8,10 @@ using namespace settings;
 
 namespace camp {
 
+#ifndef HAVE_LIBGLM
+size_t materialIndex=0;
+#endif
+
 jsfile::jsfile() : finished(false), fileName("")
 {
 
@@ -97,10 +101,9 @@ void jsfile::svgtohtml(string prefix)
   finished=true;
 }
 
-#ifdef HAVE_LIBGLM
-
 void jsfile::comment(string name)
 {
+#ifdef HAVE_LIBGLM
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<iframe src=\"" << name
@@ -109,6 +112,7 @@ void jsfile::comment(string name)
       << "\" frameborder=\"0\"></iframe>" << newl
       << newl
       << "-->" << newl << newl;
+#endif
 }
 
 void jsfile::open(string name)
@@ -117,6 +121,7 @@ void jsfile::open(string name)
   comment(name);
   meta(name,false);
 
+#ifdef HAVE_LIBGLM
   out.precision(getSetting<Int>("digits"));
 
   bool ibl=getSetting<bool>("ibl");
@@ -190,10 +195,12 @@ void jsfile::open(string name)
 
   camp::clearCenters();
   camp::clearMaterials();
+#endif
 }
 
 void jsfile::finish(string name)
 {
+#ifdef HAVE_LIBGLM
   finished=true;
   size_t ncenters=drawElement::centers.size();
   if(ncenters > 0) {
@@ -210,6 +217,7 @@ void jsfile::finish(string name)
       << "\" style=\"border: none; cursor: pointer;\">"
       << newl << "</canvas>";
   footer(name);
+#endif
 }
 
 void jsfile::addColor(const prc::RGBAColour& c)
@@ -277,12 +285,14 @@ void jsfile::addPixel(const triple& z0, double width,
       << newl << newl;
 }
 
+#ifdef HAVE_LIBGLM
 void jsfile::addMaterial(Material const& material)
 {
   out << "material(" << newl
       << material
       << ");" << newl << newl;
 }
+#endif
 
 void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
                           const triple* N, size_t nC, const prc::RGBAColour* C,
@@ -403,7 +413,5 @@ void jsfile::addStraightBezierTriangle(triple const* controls,
 {
   addRawPatch(controls,3,Min,Max,c,3);
 }
-
-#endif
 
 }

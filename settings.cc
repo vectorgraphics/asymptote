@@ -1008,6 +1008,7 @@ struct versionOption : public option {
     usegc=true;
 #endif
 
+    feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
 #ifdef HAVE_LIBOSMESA
     feature("OpenGL   3D OSMesa offscreen rendering",gl);

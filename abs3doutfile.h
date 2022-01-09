@@ -34,7 +34,9 @@ public:
   virtual void addStraightBezierTriangle(
           triple const* controls, triple const& Min, triple const& Max, prc::RGBAColour const* c) = 0;
 
+#ifdef HAVE_LIBGLM
   virtual void addMaterial(Material const& mat) = 0;
+#endif
 
   virtual void addSphere(triple const& center, double radius) = 0;
 
