@@ -195,7 +195,8 @@ void *asymain(void *A)
         string name=(getArg(ind));
         if(name == stripExt(name)+".v3d") {
           interact::uptodate=false;
-          runString("import v3d; importv3d(\""+name+"\");");
+          runString("import v3d; defaultfilename=\""+stripDir(name)+
+                    "\"; importv3d(\""+name+"\");");
         } else
           processFile(name,n > 1);
         try {
