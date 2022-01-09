@@ -2472,7 +2472,7 @@ function showCamera()
 
   currentprojection += ");"+"\n";
 
-  prompt("Ctrl+c to copy currentprojection to clipboard; then append to asy file:",
+  prompt("Ctrl+c Enter to copy currentprojection to clipboard; then append to asy file:",
          currentprojection);
   window.top.document.asyProjection=currentprojection;
 }
