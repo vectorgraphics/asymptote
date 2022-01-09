@@ -31,6 +31,7 @@ let shiftWaitTime; // Shift-mode hold time (milliseconds)
 let vibrateTime; // Shift-mode vibrate time (milliseconds)
 
 let canvasWidth0,canvasHeight0; // Initial values
+let zoomAdjust=1;
 let zoom0; // Adjusted initial zoom
 
 let embedded; // Is image embedded within another window?
@@ -2449,16 +2450,17 @@ function showCamera()
   let projection=orthographic ? "  orthographic(" : "  perspective(";
   let indent="".padStart(projection.length);
 
+  let Zoom0=Zoom/zoomAdjust;
   let currentprojection="currentprojection="+"\n"+
       projection+"camera=("+camera+"),\n"+
       indent+"up=("+up+"),"+"\n"+
       indent+"target=("+target+"),"+"\n"+
-      indent+"zoom="+Zoom;
+      indent+"zoom="+Zoom0;
 
   if(!orthographic)
     currentprojection += ","+"\n"
     +indent+"angle="+
-    2.0*Math.atan(Math.tan(0.5*angleOfView)/Zoom)/radians;
+    2.0*Math.atan(Math.tan(0.5*angleOfView)/Zoom0)/radians;
 
   if(xshift != 0 || yshift != 0)
     currentprojection += ","+"\n"+
@@ -2865,7 +2867,7 @@ function setsize(w,h)
 
 function resize()
 {
-  zoom0=initialZoom;
+  zoom0=orthographic ? 1 : initialZoom;
 
   if(absolute && !embedded) {
     canvasWidth=canvasWidth0*window.devicePixelRatio;
@@ -2875,8 +2877,10 @@ function resize()
     canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
-    if(!orthographic && canvasWidth < canvasHeight*Aspect)
-      zoom0 *= canvasWidth/(canvasHeight*Aspect);
+    if(!orthographic && canvasWidth < canvasHeight*Aspect) {
+      zoomAdjust=canvasWidth/(canvasHeight*Aspect);
+      zoom0 *= zoomAdjust;
+    }
   }
 
   canvas.width=canvasWidth;
