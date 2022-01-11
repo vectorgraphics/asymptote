@@ -2769,6 +2769,7 @@ function setDimensions(width,height,X,Y)
   if(orthographic) {
     let xsize=maxBound[0]-minBound[0];
     let ysize=maxBound[1]-minBound[1];
+    let zoominv=initialZoom/Zoom;
     if(xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*zoominv;
       let X0=2*r*xshift;
@@ -2778,7 +2779,7 @@ function setDimensions(width,height,X,Y)
       viewParam.ymin=minBound[1]*zoominv-Y0;
       viewParam.ymax=maxBound[1]*zoominv-Y0;
     } else {
-      let r=0.5*xsize/(Aspect*Zoom);
+      let r=0.5*xsize*zoominv/Aspect;
       let X0=xsize*zoominv*xshift;
       let Y0=2*r*yshift;
       viewParam.xmin=minBound[0]*zoominv-X0;
