@@ -2470,9 +2470,11 @@ function showCamera()
 
   currentprojection += ");"+"\n";
 
-  prompt("Ctrl+c Enter to copy currentprojection to clipboard; then append to asy file:",
-         currentprojection);
-  window.parent.asyProjection=currentprojection;
+  if(!window.top.asyOutputInteract ||
+     window.top.asyOutputInteract.applicationId != "asyWebApplication")
+    prompt("Ctrl+c Enter to copy currentprojection to clipboard; then append to asy file:",
+           currentprojection);
+  window.top.asyOutputInteract.setAsyProjection(currentprojection);
 }
 
 function handleKey(event)
