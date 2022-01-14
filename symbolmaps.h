@@ -148,7 +148,7 @@ namespace AsymptoteLsp
 
     SymbolInfo(SymbolInfo const& symInfo) = default;
 
-    SymbolInfo& operator=(SymbolInfo const& symInfo) noexcept = default;
+    SymbolInfo& operator=(SymbolInfo const& symInfo) = default;
 
     SymbolInfo(SymbolInfo&& symInfo) noexcept :
             name(std::move(symInfo.name)), type(std::move(symInfo.type)), pos(std::move(symInfo.pos))
