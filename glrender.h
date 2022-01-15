@@ -115,9 +115,16 @@ extern bool outlinemode;
 extern bool wireframeMode;
 
 extern bool orthographic;
+
+// 2D bounds
 extern double xmin,xmax;
 extern double ymin,ymax;
-extern double zmin,zmax;
+
+// 3D bounds
+extern double Xmin,Xmax;
+extern double Ymin,Ymax;
+extern double Zmin,Zmax;
+
 extern int fullWidth,fullHeight;
 extern double Zoom0;
 extern double Angle;

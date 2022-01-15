@@ -153,9 +153,9 @@ void jsfile::open(string name)
     out << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
   }
   out << newl
-      <<  "minBound=[" << gl::xmin << "," << gl::ymin << "," << gl::zmin << "];"
+      <<  "minBound=[" << gl::Xmin << "," << gl::Ymin << "," << gl::Zmin << "];"
       << newl
-      <<  "maxBound=[" << gl::xmax << "," << gl::ymax << "," << gl::zmax << "];"
+      <<  "maxBound=[" << gl::Xmax << "," << gl::Ymax << "," << gl::Zmax << "];"
       << newl
       << "orthographic=" << gl::orthographic << ";"
       << newl

@@ -202,12 +202,13 @@ int maxTileHeight;
 double Angle;
 bool orthographic;
 double H;
+
 double xmin,xmax;
 double ymin,ymax;
-double zmin,zmax;
 
 double Xmin,Xmax;
 double Ymin,Ymax;
+double Zmin,Zmax;
 
 pair Shift;
 pair Margin;
@@ -291,7 +292,7 @@ void setDimensions(int Width, int Height, double X, double Y)
   double Aspect=((double) Width)/Height;
   double xshift=(X/Width+Shift.getx()*Xfactor)*Zoom;
   double yshift=(Y/Height+Shift.gety()*Yfactor)*Zoom;
-  double Zoominv=1.0/lastzoom;
+  double Zoominv=1.0/Zoom;
   if(orthographic) {
     double xsize=Xmax-Xmin;
     double ysize=Ymax-Ymin;
@@ -304,7 +305,7 @@ void setDimensions(int Width, int Height, double X, double Y)
       ymin=Ymin*Zoominv-Y0;
       ymax=Ymax*Zoominv-Y0;
     } else {
-      double r=0.5*xsize/(Aspect*Zoom);
+      double r=0.5*xsize*Zoominv/Aspect;
       double X0=(Xmax-Xmin)*Zoominv*xshift;
       double Y0=2.0*r*yshift;
       xmin=Xmin*Zoominv-X0;
@@ -348,8 +349,8 @@ void ortho(GLdouble left, GLdouble right, GLdouble bottom,
 void setProjection()
 {
   setDimensions(Width,Height,X,Y);
-  if(orthographic) ortho(xmin,xmax,ymin,ymax,-zmax,-zmin);
-  else frustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  if(orthographic) ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+  else frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
 }
 
 void updateModelViewData()
@@ -703,9 +704,9 @@ void drawscene(int Width, int Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  triple m(xmin,ymin,zmin);
-  triple M(xmax,ymax,zmax);
-  double perspective=orthographic ? 0.0 : 1.0/zmax;
+  triple m(xmin,ymin,Zmin);
+  triple M(xmax,ymax,Zmax);
+  double perspective=orthographic ? 0.0 : 1.0/Zmax;
 
   double size2=hypot(Width,Height);
 
@@ -753,7 +754,7 @@ void Export()
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
       setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
-      (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
+      (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
 
       size_t count=0;
       do {
@@ -1109,9 +1110,8 @@ void update()
   Animate=getSetting<bool>("autoplay");
   glutShowWindow();
   if(Zoom != lastzoom) remesh=true;
-
   lastzoom=Zoom;
-  double cz=0.5*(zmin+zmax);
+  double cz=0.5*(Zmin+Zmax);
 
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
@@ -1268,7 +1268,7 @@ void rotate(int x, int y)
   if(x != x0 || y != y0) {
     arcball A(glx(x0),gly(y0),glx(x),gly(y));
     triple v=A.axis;
-    drotateMat=glm::rotate<double>(2*A.angle/lastzoom*ArcballFactor,
+    drotateMat=glm::rotate<double>(2*A.angle/Zoom*ArcballFactor,
                                    glm::dvec3(v.getx(),v.gety(),v.getz()))*
       drotateMat;
     x0=x; y0=y;
@@ -1634,7 +1634,7 @@ projection camera(bool user)
 
   camp::Triple vCamera,vUp,vTarget;
 
-  double cz=0.5*(zmin+zmax);
+  double cz=0.5*(Zmin+Zmax);
 
   double *Rotate=value_ptr(drotateMat);
 
@@ -1803,11 +1803,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Xmax=M.getx();
   Ymin=m.gety();
   Ymax=M.gety();
-  zmin=m.getz();
-  zmax=M.getz();
+  Zmin=m.getz();
+  Zmax=M.getz();
 
   orthographic=Angle == 0.0;
-  H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
+  H=orthographic ? 0.0 : -tan(0.5*Angle)*Zmax;
 
   ignorezoom=false;
   Xfactor=Yfactor=1.0;

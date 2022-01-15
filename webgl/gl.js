@@ -2764,40 +2764,38 @@ function drawScene()
 function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
-  let zoominv=1/Zoom;
   xshift=(X/width+viewportShift[0])*Zoom;
   yshift=(Y/height+viewportShift[1])*Zoom;
-
+  let Zoominv=1/Zoom;
   if(orthographic) {
     let xsize=maxBound[0]-minBound[0];
     let ysize=maxBound[1]-minBound[1];
-    let zoominv=initialZoom/Zoom;
     if(xsize < ysize*Aspect) {
-      let r=0.5*ysize*Aspect*zoominv;
+      let r=0.5*ysize*Aspect*Zoominv;
       let X0=2*r*xshift;
-      let Y0=ysize*zoominv*yshift;
+      let Y0=ysize*Zoominv*yshift;
       viewParam.xmin=-r-X0;
       viewParam.xmax=r-X0;
-      viewParam.ymin=minBound[1]*zoominv-Y0;
-      viewParam.ymax=maxBound[1]*zoominv-Y0;
+      viewParam.ymin=minBound[1]*Zoominv-Y0;
+      viewParam.ymax=maxBound[1]*Zoominv-Y0;
     } else {
-      let r=0.5*xsize*zoominv/Aspect;
-      let X0=xsize*zoominv*xshift;
+      let r=0.5*xsize*Zoominv/Aspect;
+      let X0=xsize*Zoominv*xshift;
       let Y0=2*r*yshift;
-      viewParam.xmin=minBound[0]*zoominv-X0;
-      viewParam.xmax=maxBound[0]*zoominv-X0;
+      viewParam.xmin=minBound[0]*Zoominv-X0;
+      viewParam.xmax=maxBound[0]*Zoominv-X0;
       viewParam.ymin=-r-Y0;
       viewParam.ymax=r-Y0;
     }
   } else {
-      let r=H*zoominv;
-      let rAspect=r*Aspect;
-      let X0=2*rAspect*xshift;
-      let Y0=2*r*yshift;
-      viewParam.xmin=-rAspect-X0;
-      viewParam.xmax=rAspect-X0;
-      viewParam.ymin=-r-Y0;
-      viewParam.ymax=r-Y0;
+    let r=H*Zoominv;
+    let rAspect=r*Aspect;
+    let X0=2*rAspect*xshift;
+    let Y0=2*r*yshift;
+    viewParam.xmin=-rAspect-X0;
+    viewParam.xmax=rAspect-X0;
+    viewParam.ymin=-r-Y0;
+    viewParam.ymax=r-Y0;
   }
 }
 
