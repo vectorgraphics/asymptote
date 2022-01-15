@@ -2449,16 +2449,17 @@ function showCamera()
   let projection=orthographic ? "  orthographic(" : "  perspective(";
   let indent="".padStart(projection.length);
 
+  let Zoom0=Zoom*initialZoom/zoom0;
   let currentprojection="currentprojection="+"\n"+
       projection+"camera=("+camera+"),\n"+
       indent+"up=("+up+"),"+"\n"+
       indent+"target=("+target+"),"+"\n"+
-      indent+"zoom="+Zoom;
+      indent+"zoom="+Zoom0;
 
   if(!orthographic)
     currentprojection += ","+"\n"
     +indent+"angle="+
-    2.0*Math.atan(Math.tan(0.5*angleOfView)/Zoom)/radians;
+    2.0*Math.atan(Math.tan(0.5*angleOfView)/Zoom0)/radians;
 
   if(xshift != 0 || yshift != 0)
     currentprojection += ","+"\n"+
@@ -2470,11 +2471,12 @@ function showCamera()
 
   currentprojection += ");"+"\n";
 
-  if(!window.top.asyOutputInteract ||
-     window.top.asyOutputInteract.applicationId != "asyWebApplication")
+  if(window.top.asyOutputInteract)
+    window.top.asyOutputInteract.setAsyProjection(currentprojection);
+  else
     prompt("Ctrl+c Enter to copy currentprojection to clipboard; then append to asy file:",
            currentprojection);
-  window.top.asyOutputInteract.setAsyProjection(currentprojection);
+  window.asyProjection=currentprojection;
 }
 
 function handleKey(event)
@@ -2876,7 +2878,7 @@ function resize()
     canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
-    if(!orthographic && !window.parent.asyProjection &&
+    if(!orthographic && !window.asyProjection &&
        canvasWidth < canvasHeight*Aspect)
       zoom0 *= canvasWidth/(canvasHeight*Aspect);
   }
