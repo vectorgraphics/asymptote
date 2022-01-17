@@ -2003,6 +2003,10 @@ function redrawScene()
 
 function home()
 {
+  if(window.top.asyWebApplication)
+    window.top.asyWebApplication.setProjection("");
+  window.parent.asyProjection=false;
+
   mat4.identity(rotMat);
   redrawScene();
 }
@@ -2273,9 +2277,9 @@ function rotateScene(lastX,lastY,rawX,rawY,factor)
 
 function shiftScene(lastX,lastY,rawX,rawY)
 {
-  let zoominv=1/Zoom;
-  shift.x += (rawX-lastX)*zoominv*halfCanvasWidth;
-  shift.y -= (rawY-lastY)*zoominv*halfCanvasHeight;
+  let Zoominv=1/Zoom;
+  shift.x += (rawX-lastX)*Zoominv*halfCanvasWidth;
+  shift.y -= (rawY-lastY)*Zoominv*halfCanvasHeight;
 }
 
 function panScene(lastX,lastY,rawX,rawY)
@@ -2449,17 +2453,16 @@ function showCamera()
   let projection=orthographic ? "  orthographic(" : "  perspective(";
   let indent="".padStart(projection.length);
 
-  let Zoom0=Zoom*initialZoom/zoom0;
   let currentprojection="currentprojection="+"\n"+
       projection+"camera=("+camera+"),\n"+
       indent+"up=("+up+"),"+"\n"+
       indent+"target=("+target+"),"+"\n"+
-      indent+"zoom="+Zoom0;
+      indent+"zoom="+Zoom*initialZoom/zoom0;
 
   if(!orthographic)
     currentprojection += ","+"\n"
     +indent+"angle="+
-    2.0*Math.atan(Math.tan(0.5*angleOfView)/Zoom0)/radians;
+    2.0*Math.atan(Math.tan(0.5*angleOfView)/Zoom)/radians;
 
   if(xshift != 0 || yshift != 0)
     currentprojection += ","+"\n"+
@@ -2471,12 +2474,12 @@ function showCamera()
 
   currentprojection += ");"+"\n";
 
-  if(window.top.asyOutputInteract)
-    window.top.asyOutputInteract.setAsyProjection(currentprojection);
+  if(window.top.asyWebApplication)
+    window.top.asyWebApplication.setProjection(currentprojection);
   else
     prompt("Ctrl+c Enter to copy currentprojection to clipboard; then append to asy file:",
            currentprojection);
-  window.asyProjection=currentprojection;
+  window.parent.asyProjection=true;
 }
 
 function handleKey(event)
@@ -2878,7 +2881,7 @@ function resize()
     canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
-    if(!orthographic && !window.asyProjection &&
+    if(!orthographic && !window.parent.asyProjection &&
        canvasWidth < canvasHeight*Aspect)
       zoom0 *= canvasWidth/(canvasHeight*Aspect);
   }
@@ -2889,8 +2892,9 @@ function resize()
   let maxViewportWidth=window.innerWidth;
   let maxViewportHeight=window.innerHeight;
 
-  viewportShift[0] /= zoom0;
-  viewportShift[1] /= zoom0;
+  let Zoominv=1/zoom0;
+  viewportShift[0] *= Zoominv;
+  viewportShift[1] *= Zoominv;
 
   setsize(canvasWidth,canvasHeight);
   redrawScene();
