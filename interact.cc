@@ -144,7 +144,7 @@ void init_readline(bool tabcompletion)
 void init_interactive()
 {
   if(getSetting<bool>("xasy")) tty=false;
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     init_completion();
     interact::init_readline(getSetting<bool>("tabcompletion"));
@@ -186,7 +186,7 @@ string simpleline(string prompt) {
 }
 
 void addToHistory(string line) {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   // Only add it if it has something other than newlines.
   if(tty && line.find_first_not_of('\n') != string::npos) {
     add_history(line.c_str());
@@ -210,7 +210,7 @@ string getLastHistoryLine() {
 }
 
 void setLastHistoryLine(string line) {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     if (history_length > 0) {
       HIST_ENTRY *entry=remove_history(history_length-1);
@@ -229,7 +229,7 @@ void setLastHistoryLine(string line) {
 }
 
 void deleteLastLine() {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     HIST_ENTRY *entry=remove_history(history_length-1);
     if(!entry) {
@@ -244,7 +244,7 @@ void deleteLastLine() {
 }
 
 void cleanup_interactive() {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   // Write the history file.
   if(tty) {
     stifle_history(intcast(getSetting<Int>("historylines")));
