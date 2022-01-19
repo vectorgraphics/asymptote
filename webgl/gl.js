@@ -1990,7 +1990,6 @@ class Triangles extends Geometry {
     else
       triangleData.rendered=false;
   }
-
 }
 
 function redrawScene()
@@ -2003,12 +2002,12 @@ function redrawScene()
 
 function home()
 {
+  mat4.identity(rotMat);
+  redrawScene();
+
   if(window.top.asyWebApplication)
     window.top.asyWebApplication.setProjection("");
   window.parent.asyProjection=false;
-
-  mat4.identity(rotMat);
-  redrawScene();
 }
 
 let positionAttribute=0;
@@ -2444,9 +2443,10 @@ function Camera()
   return [vCamera,vUp,vTarget];
 }
 
-function showCamera()
+function projection()
 {
-  if(Transform == null) return;
+  if(Transform == null) return "";
+
   let camera,up,target;
   [camera,up,target]=Camera();
 
@@ -2474,12 +2474,8 @@ function showCamera()
 
   currentprojection += ");"+"\n";
 
-  if(window.top.asyWebApplication)
-    window.top.asyWebApplication.setProjection(currentprojection);
-  else
-    prompt("Ctrl+c Enter to copy currentprojection to clipboard; then append to asy file:",
-           currentprojection);
   window.parent.asyProjection=true;
+  return currentprojection;
 }
 
 function handleKey(event)
@@ -2812,6 +2808,16 @@ function setProjection()
     viewParam.ymin,viewParam.ymax,
     -viewParam.zmax,-viewParam.zmin);
   updateViewMatrix();
+
+  if(window.top.asyWebApplication)
+    window.top.asyWebApplication.setProjection(projection());
+}
+
+function showCamera()
+{
+  if(!window.top.asyWebApplication)
+    prompt("Ctrl+c Enter to copy currentprojection to clipboard; then append to asy file:",
+           projection());
 }
 
 function initProjection()
