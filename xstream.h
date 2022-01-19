@@ -57,6 +57,11 @@ inline bool_t xdr_u_long(XDR *__xdrs, unsigned long *__lp) {
 
 #endif
 
+#ifdef __OpenBSD__
+#define xdr_longlong_t xdr_int64_t
+#define xdr_u_longlong_t xdr_u_int64_t
+#endif
+
 #ifdef _POSIX_SOURCE
 #undef _POSIX_SOURCE
 #include <rpc/rpc.h>
