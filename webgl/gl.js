@@ -2879,6 +2879,10 @@ function resize()
 {
   zoom0=initialZoom;
 
+  if(window.top.asyWebApplication &&
+     window.top.asyWebApplication.getProjection() == "")
+    window.parent.asyProjection=false;
+
   if(absolute && !embedded) {
     canvasWidth=canvasWidth0*window.devicePixelRatio;
     canvasHeight=canvasHeight0*window.devicePixelRatio;
