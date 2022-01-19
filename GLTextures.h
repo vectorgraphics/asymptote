@@ -3,7 +3,11 @@
 //
 
 #pragma once
+
 #include "common.h"
+
+#ifdef HAVE_GL
+
 #include "GL/glew.h"
 
 namespace gl
@@ -125,3 +129,5 @@ public:
 };
 
 } // namespace gl
+
+#endif
