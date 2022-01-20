@@ -957,6 +957,7 @@ struct versionOption : public option {
     bool editline=false;
     bool sigsegv=false;
     bool usegc=false;
+    bool usethreads=false;
 
 #if HAVE_LIBGLM
     glm=true;
@@ -1008,6 +1009,10 @@ struct versionOption : public option {
     usegc=true;
 #endif
 
+#ifdef HAVE_PTHREAD
+    usethreads=true;
+#endif
+
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
 #ifdef HAVE_LIBOSMESA
@@ -1027,6 +1032,7 @@ struct versionOption : public option {
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);
+    feature("threads  Render OpenGL in separate thread",usethreads);
   }
 
   bool getOption() {
