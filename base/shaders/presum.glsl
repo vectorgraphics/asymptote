@@ -23,8 +23,7 @@ void main(void)
 
   uint m=ceilquotient(elements,gl_NumWorkGroups.x);
   uint row=m*id;
-  uint col=min(m,elements-row);
-  uint stop=row+col;
+  uint stop=row+min(m,elements-row);
 
   uint Sum=offset[row];
   for(uint i=row+1u; i < stop; ++i)

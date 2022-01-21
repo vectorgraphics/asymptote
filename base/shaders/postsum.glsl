@@ -18,13 +18,11 @@ void main(void)
 
   uint m=ceilquotient(elements,gl_NumWorkGroups.x);
   uint row=m*id;
-  uint col=min(m,elements-row);
-  uint stop=row+col-1u;
+  uint stop=row+min(m,elements-row);
 
-  uint curr=offset[row];
-  for(uint i=row; i < stop; ++i) {
-    uint next=offset[i+1u];
-    curr += next;
-    offset[i+1u]=curr;
+  uint Sum=offset[row];
+  for(uint i=row+1u; i < stop; ++i) {
+    Sum += offset[i];
+    offset[i]=Sum;
   }
 }
