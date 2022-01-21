@@ -153,7 +153,6 @@ extern void exitHandler(int);
 namespace gl {
 
 GLint processors;
-GLint steps;
 
 bool outlinemode=false;
 bool ibl=false;
@@ -517,6 +516,12 @@ void noShaders()
   exit(-1);
 }
 
+// Return ceil(log2(n)) where n is a 32 bit unsigned integer.
+uint32_t ceillog2(uint32_t n)
+{
+  return 32-CLZ(n-1);
+}
+
 void initShaders()
 {
   Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
@@ -556,12 +561,16 @@ void initShaders()
     } else {
       camp::preSumShader=rc;
 
-      ostringstream s;
+      ostringstream s,S;
       s << "PROCESSORS " << processors << "u" << endl;
       shaderParams.push_back(s.str().c_str());
+
+      S << "STEPSM1 " << ceillog2(processors)-1 << "u" << endl;
+      shaderParams.push_back(S.str().c_str());
       shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
       camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,
                                                   true,true);
+      shaderParams.pop_back();
       shaderParams.pop_back();
 
       shaders[0]=ShaderfileModePair(post.c_str(),GL_COMPUTE_SHADER);
@@ -1757,12 +1766,6 @@ void init_osmesa()
 
 #endif /* HAVE_GL */
 
-// Return ceil(log2(n)) where n is a 32 bit unsigned integer.
-uint32_t ceillog2(uint32_t n)
-{
-  return 32-CLZ(n-1);
-}
-
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
@@ -2036,8 +2039,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,&processors);
     if(processors <= 1)
       GPUindexing=false;
-    else
-      steps=ceillog2(processors);
   }
 
   Maxmaterials=val/sizeof(Material);
@@ -2197,7 +2198,7 @@ void refreshBuffers()
 
   if(initSSBO) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,(1+pixels)*sizeof(GLuint),NULL,
+    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
@@ -2250,7 +2251,6 @@ void refreshBuffers()
 
     glUseProgram(partialSumShader);
     glUniform1ui(glGetUniformLocation(partialSumShader,"elements"),pixels);
-    glUniform1ui(glGetUniformLocation(partialSumShader,"steps"),gl::steps);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     glDispatchCompute(1,1,1);
