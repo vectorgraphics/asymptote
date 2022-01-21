@@ -14,11 +14,6 @@ layout(binding=1, std430) buffer offsetBuffer
 
 shared uint sharedData[PROCESSORS];
 
-uint ceilquotient(uint a, uint b)
-{
-  return (a+b-1u)/b;
-}
-
 void main(void)
 {
   uint id=gl_LocalInvocationID.x;
