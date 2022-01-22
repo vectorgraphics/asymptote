@@ -1,33 +1,48 @@
 # LspCpp
 
 ## Dependencies
-`LspCpp` depends on the boost and rapidjson,utfcpp,and threadpool
+`LspCpp` depends on the boost and rapidjson,utfcpp,uri and threadpool
 
 ## Build
 
-### Linux
-  1. Install boost
+### Linux / Mac
+1. On linux ,install boost
    ```shell
       $ sudo apt-get install libboost-dev 
    ``` 
- 2. [Restore the submodules][4].
-    ```shell
-      $ git submodule init
-      $ git submodule update
-    ``` 
- 3. Build it.
-    ```shell
-      $ make
-    ``` 
+   On Mac,install boost on Mac
+   ```shell
+      $ brew install boost
+   ``` 
+
+2. [Restore the submodules][4].
+   ```shell
+     $ git submodule init
+     $ git submodule update
+   ``` 
+3. Building with ``CMake``
+-----------------------
+	$ mkdir _build
+	$ cd _build
+	$ cmake -DUri_BUILD_TESTS=OFF ..
+	$ make -j4
+
 ### Windows
-  1. Open project with Vistual Studio.
-  2. [Restore packages][3] with Vistual Studio.
-  3. [Restore the submodules][4].
+
+  1. [Restore the submodules][4].
      ```shell
       git submodule init
       git submodule update
      ``` 
-  4. Build it with Vistual Studio.
+  2. Open cmd or powershell and generate visual studio project  with ``CMake``.
+  -----------------------
+    mkdir _build
+	cd _build
+	cmake -DUri_BUILD_TESTS=OFF -DUri_USE_STATIC_CRT=OFF ..
+
+  3. "cmake -help" is useful if you are not familiar with cmake.
+  
+  4. Build it with Visual Studio.
  
 ## Reference
  Some code from :[cquery][1]
@@ -39,7 +54,7 @@
    MIT
    
 ##  Example:
-[It's here](https://github.com/kuafuwang/LspCpp/tree/master/example)
+[It's here](https://github.com/kuafuwang/LspCpp/tree/master/examples)
 
 
 [1]: https://github.com/cquery-project/cquery "cquery:"
