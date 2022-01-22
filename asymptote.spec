@@ -27,8 +27,9 @@ BuildRequires:  freeglut-devel
 BuildRequires:  zlib-devel
 BuildRequires:  libtool
 BuildRequires:  libtirpc-devel
-BuildRequires:  libboost-devel
 BuildRequires:  libglvnd-devel
+BuildRequires:  libcurl-devel
+BuildRequires:  boost-devel
 
 Requires:       tetex-latex
 Requires:       freeglut-devel >= 3.0.0
