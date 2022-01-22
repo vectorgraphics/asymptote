@@ -193,11 +193,11 @@ provides a mathematical coordinate-based framework for technical drawing.
 Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
 @code{LaTeX} provides for scientific text. By default it produces
-@code{PostScript} output, but it can also generate @code{PDF},
-@code{SVG}, @code{WebGL}, @code{V3D}, @code{PRC}, and any format that the
-@code{ImageMagick} package can produce. You can even try it out in your
-Web browser without installing it, using the @code{Asymptote Web
-Application}
+@code{PostScript} output, but it can also generate @code{OpenGL}, @code{PDF},
+@code{SVG}, @code{WebGL}, @code{V3D}, and @code{PRC} vector graphics,
+along with any format that the @code{ImageMagick} package can
+produce. You can even try it out in your Web browser without
+installing it, using the @code{Asymptote Web Application}
 
 @url{http://asymptote.ualberta.ca}
 
@@ -10111,9 +10111,7 @@ Jacob Skitsko, Joseph Chaumont, and Oliver Cheng. Pedram Emami
 developed the @code{Asymptote Web Application} hosted at
 @url{http://asymptote.ualberta.ca}:
 
-@url{https://github.com/vectorgraphics/asymptote-http-server}
-
-
+@url{https://github.com/vectorgraphics/asymptoteWebApplication}
 
 @node Index,  , Credits, Top
 @unnumbered Index
