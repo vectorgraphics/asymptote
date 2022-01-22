@@ -11,10 +11,11 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@ -LLspCpp
+LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
+CMAKE ?= cmake
 PERL ?= perl
 PYTHON ?= python3
 BISON ?= bison
@@ -81,7 +82,7 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
-OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp -ILspCpp/LibLsp/JsonRpc
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp/include
 
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
@@ -160,7 +161,7 @@ asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 liblspcpp.a:
-	cd LspCpp && $(MAKE) CPPFLAGS="@OPTIONS@"
+	cd LspCpp && $(CMAKE) -DCMAKE_CXX_FLAGS="@OPTIONS@" CMakeLists.txt && $(MAKE)
 
 all:  	asy sty man faq asy-keywords.el
 
