@@ -2,13 +2,10 @@
 
 #include "macro_map.h"
 #ifdef boost
-#include "optional.hpp"
+#include "LibLsp/JsonRpc/optional.hpp"
 #else
 #include <boost/optional.hpp>
 #endif
-
-#include "macro_map.h"
-#include<boost/optional.hpp>
 
 #include <cassert>
 #include <memory>
