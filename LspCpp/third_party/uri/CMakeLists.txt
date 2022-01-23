@@ -4,7 +4,7 @@
 # http://www.boost.org/LICENSE_1_0.txt)
 
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.13)
 project(Uri)
 
 option(Uri_BUILD_TESTS "Build the URI tests." ON)

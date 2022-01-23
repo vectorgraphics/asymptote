@@ -7,6 +7,9 @@
 #include <boost/optional.hpp>
 #endif
 
+#include "macro_map.h"
+#include<boost/optional.hpp>
+
 #include <cassert>
 #include <memory>
 #include <string>
