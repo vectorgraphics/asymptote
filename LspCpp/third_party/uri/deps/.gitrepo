@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = git@github.com:vectorgraphics/LspCpp
-	branch = master
-	commit = 348c5d18661da4c8f061e071ca473c46cbb908b2
-	parent = b0617bb6a1c830498aaaebb37cbbb13fd6b5704a
+	remote = https://github.com/google/googletest.git
+	branch = main
+	commit = 3d81736c973fbcc938267cb296918bc3266dde12
+	parent = 4f7b59e821812d76b39fdb63717c62ac07fb94cf
 	method = merge
 	cmdver = 0.4.1
