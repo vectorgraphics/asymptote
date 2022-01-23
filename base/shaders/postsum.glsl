@@ -16,7 +16,7 @@ void main(void)
   uint row,stop;
   if(id < r) {
     row=m*id+id;
-    stop=row+m+1;
+    stop=row+m+1u;
   } else {
     row=m*id+r;
     stop=row+m;
