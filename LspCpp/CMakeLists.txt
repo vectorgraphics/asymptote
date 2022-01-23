@@ -18,6 +18,7 @@ cmake_policy(SET CMP0076 NEW)
 project(lspcpp VERSION "${LIB_VERSION_STRING}" LANGUAGES CXX C)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+SET(GOOGLETEST_VERSION "0.00")
 
 # compile in RelWithDebInfo  mode by default
 if(NOT CMAKE_BUILD_TYPE)
