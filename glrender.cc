@@ -2198,8 +2198,8 @@ void refreshBuffers()
 
   if(initSSBO) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),NULL,
-                 GL_DYNAMIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,(pixels+GPUindexing)*sizeof(GLuint),
+                 NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);

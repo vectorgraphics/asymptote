@@ -79,6 +79,6 @@ void main()
   }
   count[headIndex]=0u;
 #ifdef GPUINDEXING
-    offset[headIndex]=0u;
+  offset[headIndex]=0u;
 #endif
 }
