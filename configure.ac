@@ -496,17 +496,15 @@ AC_CHECK_TYPES([long])
 AC_C_CONST
 AC_C_INLINE
 
-AC_DEFUN([ac_FUNC_STRPTIME], [
-    AC_CHECK_FUNCS(strptime)
-])
-
 # Checks for library functions.
 AC_FUNC_FORK
 AC_CHECK_FUNCS([dup2 floor memset strchr tgamma lgamma memrchr popcount])
 AC_FUNC_STRFTIME
-ac_FUNC_STRPTIME
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FSEEKO
+
+AC_CHECK_FUNCS(strptime)
+AC_CHECK_FUNCS(strnlen)
 
 AC_CONFIG_HEADERS(config.h)
 

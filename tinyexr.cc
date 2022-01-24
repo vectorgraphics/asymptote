@@ -20,4 +20,15 @@
 #define TINYEXR_USE_THREAD 0
 #endif
 
+#ifndef HAVE_STRNLEN
+#include <cstring>
+#include <iostream>
+
+inline size_t strnlen(const char *s, size_t maxlen)
+{
+  const char *p=(const char *) memchr(s,0,maxlen);
+  return p ? p-s : maxlen;
+}
+#endif
+
 #include "cudareflect/tinyexr/tinyexr.h"
