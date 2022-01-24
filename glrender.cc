@@ -2259,6 +2259,9 @@ void refreshBuffers()
     glUniform1ui(glGetUniformLocation(postSumShader,"elements"),pixels);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    glDispatchCompute(gl::processors,1,1);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
     glGetBufferSubData(GL_SHADER_STORAGE_BUFFER,0,sizeof(GLuint),&fragments);
   } else { // Compute partial sums on the CPU
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
@@ -2292,8 +2295,6 @@ void refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
   }
 
-  if(GPUindexing)
-    glDispatchCompute(gl::processors,1,1);
   gl::lastshader=-1;
 }
 
@@ -2458,7 +2459,7 @@ void aBufferTransparency()
   gl::lastshader=blendShader;
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  glDrawArrays(GL_TRIANGLES, 0, 3);
+  glDrawArrays(GL_TRIANGLES,0,3);
   fpu_trap(settings::trap());
   transparentData.clear();
   glEnable(GL_DEPTH_TEST);

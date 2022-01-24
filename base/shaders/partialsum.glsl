@@ -39,10 +39,8 @@ void main(void)
   barrier();
 
   uint id1=id+1u;
-  if(id1 < PROCESSORS) {
-    uint m=elements/PROCESSORS;
-    uint row=m*id1+min(id1,elements-m*PROCESSORS);
-    offset[row] += sharedData[id];
-  } else
-    sum[0]=sharedData[id];  // Store fragment size in sum[0]
+  uint p=PROCESSORS+1u;
+  uint m=elements/p;
+  uint row=m*id1+min(id1,elements-m*p);
+  offset[row] += sharedData[id];
 }

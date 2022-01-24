@@ -2,6 +2,11 @@ layout(local_size_x=1) in;
 
 uniform uint elements;
 
+layout(binding=0, std430) buffer sumBuffer
+{
+  uint sum[];
+};
+
 layout(binding=1, std430) buffer offsetBuffer
 {
   uint offset[];
@@ -9,10 +14,11 @@ layout(binding=1, std430) buffer offsetBuffer
 
 void main(void)
 {
-  uint id=gl_GlobalInvocationID.x;
+  uint id=gl_GlobalInvocationID.x+1u;
 
-  uint m=elements/gl_NumWorkGroups.x;
-  uint r=elements-m*gl_NumWorkGroups.x;
+  uint p=gl_NumWorkGroups.x+1u;
+  uint m=elements/p;
+  uint r=elements-m*p;
   uint row,stop;
   if(id < r) {
     row=m*id+id;
@@ -27,4 +33,7 @@ void main(void)
     Sum += offset[i];
     offset[i]=Sum;
   }
+
+  if(id == gl_NumWorkGroups.x)
+    sum[0]=Sum; // Store fragment size in sum[0]
 }
