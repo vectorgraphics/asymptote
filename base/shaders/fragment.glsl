@@ -29,11 +29,6 @@ float Roughness2; // roughness squared, for smoothing
 float Roughness;
 
 #ifdef HAVE_SSBO
-struct Fragment
-{
-  vec4 color;
-  float depth;
-};
 
 layout(binding=1, std430) buffer offsetBuffer {
   uint offset[];
@@ -44,7 +39,11 @@ layout(binding=2, std430) buffer countBuffer {
 };
 
 layout(binding=3, std430) buffer fragmentBuffer {
-  Fragment fragment[];
+  vec4 fragment[];
+};
+
+layout(binding=4, std430) buffer depthBuffer {
+  float depth[];
 };
 
 uniform uint width;
@@ -247,8 +246,8 @@ void main()
 #ifdef HAVE_SSBO
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   uint listIndex=offset[headIndex]+atomicAdd(count[headIndex],1u);
-  fragment[listIndex].color=outColor;
-  fragment[listIndex].depth=gl_FragCoord.z;
+  fragment[listIndex]=outColor;
+  depth[listIndex]=gl_FragCoord.z;
 #ifdef TRANSPARENT
 #ifndef WIREFRAME
   discard;

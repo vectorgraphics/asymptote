@@ -92,6 +92,7 @@ GLuint countBuffer;
 GLuint offsetBuffer;
 GLuint sumBuffer;
 GLuint fragmentBuffer;
+GLuint depthBuffer;
 
 }
 
@@ -663,12 +664,6 @@ void deleteShaders()
   glDeleteProgram(camp::pixelShader);
 }
 
-struct Fragment
-{
-  glm::vec4 color;
-  glm::vec4 depth; // Pad depth to a glm::vec4
-};
-
 void setBuffers()
 {
   GLuint vao;
@@ -687,6 +682,7 @@ void setBuffers()
   if(GPUindexing)
     glGenBuffers(1, &camp::sumBuffer);
   glGenBuffers(1, &camp::fragmentBuffer);
+  glGenBuffers(1, &camp::depthBuffer);
 #endif
 }
 
@@ -2288,9 +2284,15 @@ void refreshBuffers()
     // Initialize the alpha buffer
     maxFragments=11*fragments/10;
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::fragmentBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(gl::Fragment),
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(glm::vec4),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::fragmentBuffer);
+
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::depthBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(GLfloat),
+                 NULL,GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,4,camp::depthBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
   }
