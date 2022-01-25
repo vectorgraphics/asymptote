@@ -78,8 +78,6 @@ GLint peelShader;
 GLint blendShader;
 GLint finalShader;
 
-GLuint fragmentSize;
-GLuint headSize;
 GLuint avgDepth;
 
 GLuint counter;
@@ -104,6 +102,9 @@ GLenum drawingBuffers[] = {GL_COLOR_ATTACHMENT0,
               GL_COLOR_ATTACHMENT5,
               GL_COLOR_ATTACHMENT6
 };
+
+bool initSSBO;
+GLuint maxFragments;
 
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -468,6 +469,7 @@ void initShaders()
   string fs=locateFile("shaders/fragment.glsl");
   string tfs=locateFile("shaders/transparentfragment.glsl");
   string cnt=locateFile("shaders/count.glsl");
+  string screen=locateFile("shaders/screen.glsl");
   string bfs=locateFile("shaders/depthblendfragment.glsl");
   string mfs=locateFile("shaders/depthmergefragment.glsl");
 
@@ -508,13 +510,15 @@ void initShaders()
 
   camp::transparentShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                               shaderParams);
-  shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
-  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
-                                              shaderParams);
   shaders[1] = ShaderfileModePair(cnt.c_str(),GL_FRAGMENT_SHADER);
   camp::countShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
                                               shaderParams);
+  shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
+  shaders[1] = ShaderfileModePair(tfs.c_str(),GL_FRAGMENT_SHADER);
+  camp::mergeShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
+                                              shaderParams);
 
+  shaders[0]=ShaderfileModePair(vs.c_str(),GL_VERTEX_SHADER);
   shaderParams.push_back("DEPTHPEEL");
   shaders[1] = ShaderfileModePair(fs.c_str(),GL_FRAGMENT_SHADER);
   camp::peelShader=compileAndLinkShader(shaders,Nlights,Nmaterials,
@@ -570,6 +574,7 @@ void setBuffers()
   glGenTextures(2, camp::depthTex);
 }
 
+/*
 void resizeBuffers() {
   GLuint zero = 0;
   camp::headSize = gl::Width * gl::Height * sizeof(GLuint);
@@ -618,6 +623,7 @@ void resizeBuffers() {
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+*/
 
 void drawscene(int Width, int Height)
 {
@@ -790,6 +796,7 @@ void quit()
 void mode()
 {
   remesh=true;
+  camp::initSSBO=true;
   switch(Mode) {
     case 0: // regular
       outlinemode=false;
@@ -842,7 +849,8 @@ void reshape0(int width, int height)
 
   setProjection();
   glViewport(0,0,Width,Height);
-  resizeBuffers();
+//  resizeBuffers();
+  camp::initSSBO=true;
 }
 
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -1819,6 +1827,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setProjection();
     if(webgl) return;
 
+    camp::maxFragments=0;
+
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
 
 #ifdef HAVE_GL
@@ -2056,8 +2066,33 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
   }
 }
 
+struct Fragment
+{
+  glm::vec4 color;
+  uint next;
+  glm::vec3 depth; // Pad depth
+};
+
 int refreshBuffers() {
   GLuint zero = 0;
+
+  GLuint pixels= gl::Width * gl::Height;
+  if(initSSBO) {
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::headBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, pixels*sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, camp::headBuffer);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::zBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, pixels*sizeof(Fragment),
+                 NULL, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, camp::zBuffer);
+
+
+    initSSBO=false;
+  }
+
+//  glClearNamedBufferData(camp::headBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
 
   // Initialize the counter
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
@@ -2066,43 +2101,28 @@ int refreshBuffers() {
 
   // Count how many fragments we need
   glDepthMask(GL_FALSE); // Enable transparency
-  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   drawBuffer(transparentData,countShader);
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   GLuint fragments = 0;
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
   glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &fragments);
-  fragmentSize = fragments * (5*sizeof(GLfloat) + sizeof(GLuint))*2;
   glDepthMask(GL_TRUE); // Disable transparency
-
-  if (fragments == 0) {
-    // Set the buffers to have no storage
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
-    glBufferData(GL_ATOMIC_COUNTER_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::headBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::fragmentBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
-    return 0;
-  }
-
-  camp::headSize = gl::Width * gl::Height * sizeof(GLuint);
 
   // Initialize the counter
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
   glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, camp::counter);
   glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &zero, GL_DYNAMIC_DRAW);
 
-  // Initialize the a-buffer
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::headBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::headSize, NULL, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, camp::headBuffer);
-  glClearNamedBufferData(camp::headBuffer, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &zero);
-
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, camp::fragmentBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, camp::fragmentSize, NULL, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, camp::fragmentBuffer);
+  if(fragments > maxFragments) {
+    // Initialize the alpha buffer
+    maxFragments=11*fragments/10;
+    // Initialize the a-bufferg
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::fragmentBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(camp::Fragment),
+                 NULL,GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::fragmentBuffer);
+  }
 
   return fragments;
 }
@@ -2258,7 +2278,6 @@ void drawColor()
 void drawTriangle()
 {
   drawBuffer(triangleData,transparentShader);
-  triangleData.rendered=false; // Force copying of sorted triangles to GPU.
   triangleData.clear();
 }
 
@@ -2348,19 +2367,25 @@ void aBufferTransparency()
 
   // Construct the linked list of fragments
   glDepthMask(GL_FALSE); // Enable transparency
-  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
   drawBuffer(transparentData,transparentShader);
-
-  // Ensures linked list is done (just in case, with coherent)
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDepthMask(GL_TRUE); // Disable transparency
+
   glDisable(GL_BLEND);
+  // Ensures linked list is done (just in case, with coherent)
 
-  // Sort and draw the linked list fragments
-  transparentData.rendered=false; // Force copying of sorted triangles to GPU.
-  drawBuffer(transparentData,mergeShader);
+  glDisable(GL_DEPTH_TEST);
+  glUseProgram(mergeShader);
+  glUniform1ui(glGetUniformLocation(mergeShader,"width"),gl::Width);
+  gl::lastshader=mergeShader;
+  fpu_trap(false); // Work around FE_INVALID
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+  glDrawArrays(GL_TRIANGLES,0,3);
+  fpu_trap(settings::trap());
 
-  glDepthMask(GL_TRUE); // Disable transparency
+  glEnable(GL_DEPTH_TEST);
+//  drawBuffer(transparentData,mergeShader);
+
+//  glDepthMask(GL_TRUE); // Disable transparency
   glEnable(GL_BLEND);
   transparentData.clear();
 }

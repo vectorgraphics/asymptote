@@ -1,7 +1,7 @@
 struct Fragment
 {
-  uint next;
   vec4 color;
+  uint next;
   float depth;
 };
 
@@ -30,22 +30,22 @@ void main()
 {
   uint headIndex = uint(gl_FragCoord.y) * width + uint(gl_FragCoord.x);
   uint listIndex = tail[headIndex];
-  const uint maxSize = uint(1024); // Must be constant
+  const uint maxSize = 64u; // Must be constant
   Fragment sortedList[maxSize];
-  uint sortedCount = uint(0);
+  uint sortedCount = 0u;
 
   // Insert fragments into sortedList (not yet sorted)
   for (; listIndex != uint(0) && sortedCount < maxSize; sortedCount++) {
     sortedList[sortedCount] = fragments[listIndex];
     listIndex = fragments[listIndex].next;
   }
-  if (sortedCount == uint(0)) discard;
+  if (sortedCount == 0u) discard;
 
   // Sort the fragments in sortedList
-  for (uint i = uint(1); i < sortedCount; i++) {
+  for (uint i = 1u; i < sortedCount; i++) {
     Fragment temp = sortedList[i];
     uint j = i;
-    while(j > uint(0) && temp.depth > sortedList[j-uint(1)].depth) {
+    while(j > 0u && temp.depth > sortedList[j-1u].depth) {
       sortedList[j] = sortedList[j-uint(1)];
       j--;
     }
@@ -57,4 +57,6 @@ void main()
   else outColor = vec4(1);
   for (uint i = uint(0); i < sortedCount; i++)
     outColor = mix(outColor, sortedList[i].color, sortedList[i].color.a);
+
+  tail[headIndex]=0u;
 }

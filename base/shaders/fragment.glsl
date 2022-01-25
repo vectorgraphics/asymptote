@@ -44,8 +44,8 @@ uniform sampler2D DepthTex; // TODO?
 layout(binding=0) uniform atomic_uint counter;
 struct Fragment
 {
-  uint next;
   vec4 color;
+  uint next;
   float depth;
 };
 layout(binding=1) coherent buffer head {
@@ -154,7 +154,7 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   vec3 dielectric=mix(lambertian,rawReflectance*Specular,F);
   vec3 metal=rawReflectance*Diffuse;
-  
+
   return mix(dielectric,metal,Metallic);
 }
 #endif
@@ -193,7 +193,7 @@ void main()
    emissive += Color;
 #endif
 #else
-  diffuse=m.diffuse; 
+  diffuse=m.diffuse;
 #endif
 #endif
 
@@ -276,8 +276,8 @@ void main()
   uint listIndex = atomicCounterIncrement(counter);
   uint lastIndex = atomicExchange(tail[headIndex], listIndex);
 
-  fragments[listIndex].next = lastIndex;
   fragments[listIndex].color = tempColor;
+  fragments[listIndex].next = lastIndex;
   fragments[listIndex].depth = gl_FragCoord.z;
 #else
   zbuffer[headIndex].color = tempColor;
