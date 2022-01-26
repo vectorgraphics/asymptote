@@ -48,9 +48,9 @@ void main()
       float D=depth[listIndex+i];
       uint j=i;
       float d;
-      while(d=sortedDepth[j-1u], j > 0u && D > d) {
+      while(j > 0u && D > sortedDepth[j-1u]) {
         sortedList[j]=sortedList[j-1u];
-        sortedDepth[j]=d;
+        sortedDepth[j]=sortedDepth[j-1u];
         --j;
       }
       sortedList[j]=fragment[listIndex+i];
@@ -65,10 +65,9 @@ void main()
       vec4 temp=fragment[listIndex+i];
       float D=depth[listIndex+i];
       uint j=i;
-      float d;
-      while(d=depth[listIndex+j-1u], j > 0u && D > d) {
+      while(j > 0u && D > depth[listIndex+j-1u]) {
         fragment[listIndex+j]=fragment[listIndex+j-1u];
-        depth[listIndex+j]=d;
+        depth[listIndex+j]=depth[listIndex+j-1u];
         --j;
       }
       fragment[listIndex+j]=temp;
