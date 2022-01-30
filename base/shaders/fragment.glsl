@@ -29,21 +29,36 @@ float Roughness2; // roughness squared, for smoothing
 float Roughness;
 
 #ifdef HAVE_SSBO
+layout(binding=0) uniform atomic_uint counter;
 
-layout(binding=1, std430) buffer offsetBuffer {
-  uint offset[];
+layout(binding=1) buffer head
+{
+  uint tail[];
 };
 
-layout(binding=2, std430) buffer countBuffer {
-  uint count[];
-};
-
-layout(binding=3, std430) buffer fragmentBuffer {
+layout(binding=2, std430) buffer list
+{
   vec4 fragment[];
 };
 
-layout(binding=4, std430) buffer depthBuffer {
+layout(binding=3, std430) buffer depthBuffer
+{
   float depth[];
+};
+
+layout(binding=4, std430) buffer nextBuffer
+{
+  uint next[];
+};
+
+layout(binding=5, std430) buffer opaqueBuffer
+{
+  vec4 opaqueColor[];
+};
+
+layout(binding=6, std430) buffer opaqueDepthBuffer
+{
+  float opaqueDepth[];
 };
 
 uniform uint width;
@@ -245,13 +260,22 @@ void main()
 
 #ifdef HAVE_SSBO
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
-  uint listIndex=offset[headIndex]+atomicAdd(count[headIndex],1u);
-  fragment[listIndex]=outColor;
-  depth[listIndex]=gl_FragCoord.z;
 #ifdef TRANSPARENT
+  uint listIndex=atomicCounterIncrement(counter);
+  uint lastIndex=atomicExchange(tail[headIndex],listIndex);
+  fragment[listIndex]=outColor;
+  next[listIndex]=lastIndex;
+  depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
   discard;
 #endif
+#else
+  beginInvocationInterlockARB();
+  if(opaqueDepth[headIndex] == 0.0 || gl_FragCoord.z < opaqueDepth[headIndex]) {
+    opaqueDepth[headIndex]=gl_FragCoord.z;
+    opaqueColor[headIndex]=outColor;
+  }
+  endInvocationInterlockARB();
 #endif
 #endif
 }

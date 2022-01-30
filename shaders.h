@@ -25,11 +25,11 @@ typedef std::pair<std::string, int> ShaderfileModePair;
 GLuint compileAndLinkShader(
   std::vector<ShaderfileModePair> const& shaders,
   std::vector<std::string> const& defineflags, bool ssbo=true,
-  bool compute=false);
+  bool interlock=true);
 
 GLuint createShaderFile(std::string file, int shaderType,
                         std::vector<std::string> const& constflags,
-                        bool ssbo, bool compute);
+                        bool ssbo, bool interlock);
 
 enum attrib {positionAttrib=0,normalAttrib,materialAttrib,colorAttrib,
              widthAttrib};

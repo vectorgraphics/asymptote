@@ -1,11 +1,6 @@
-layout(binding=2, std430) buffer countBuffer {
-  uint count[];
-};
-
-uniform uint width;
+layout(binding=0) uniform atomic_uint counter;
 
 void main()
 {
-  atomicAdd(count[uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x)],1u);
-  discard;
+  atomicCounterIncrement(counter);
 }

@@ -1,17 +1,31 @@
-layout(binding=1, std430) buffer offsetBuffer {
-  uint offset[];
+layout(binding=1) buffer head
+{
+  uint tail[];
 };
 
-layout(binding=2, std430) buffer countBuffer {
-  uint count[];
-};
-
-layout(binding=3, std430) buffer fragmentBuffer {
+layout(binding=2, std430) buffer list
+{
   vec4 fragment[];
 };
 
-layout(binding=4, std430) buffer depthBuffer {
+layout(binding=3, std430) buffer depthBuffer
+{
   float depth[];
+};
+
+layout(binding=4, std430) buffer nextBuffer
+{
+  uint next[];
+};
+
+layout(binding=5, std430) buffer opaqueBuffer
+{
+  vec4 opaqueColor[];
+};
+
+layout(binding=6, std430) buffer opaqueDepthBuffer
+{
+  float opaqueDepth[];
 };
 
 out vec4 outColor;
@@ -27,60 +41,46 @@ vec4 blend(vec4 outColor, vec4 color)
 void main()
 {
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
-  uint size=count[headIndex];
-  if(size == 0u) {
-#ifdef GPUINDEXING
-    offset[headIndex]=0u;
-#endif
-    discard;
-  }
-  uint listIndex=offset[headIndex];
-  const uint maxSize=16u;
+  uint listIndex=tail[headIndex];
+  const uint maxSize=16u; // Must be constant
+  vec4 sortedColor[maxSize];
+  float sortedDepth[maxSize];
 
-  // Sort the fragments with respect to descending depth
-  if(size < maxSize) {
-    vec4 sortedList[maxSize];
-    float sortedDepth[maxSize];
+  float OpaqueDepth=opaqueDepth[headIndex];
 
-    sortedList[0]=fragment[listIndex];
+  uint i=0u;
+  if(OpaqueDepth != 0.0)
+    while(listIndex > 0u && depth[listIndex] >= OpaqueDepth)
+      listIndex=next[listIndex];
+  if(listIndex > 0u) {
+    sortedColor[0]=fragment[listIndex];
     sortedDepth[0]=depth[listIndex];
-    for(uint i=1u; i < size; i++) {
-      float D=depth[listIndex+i];
+    i=1u;
+    for (; (listIndex=next[listIndex]) > 0u && i < maxSize; ++i) {
+      if(OpaqueDepth != 0.0)
+        while(listIndex > 0u && depth[listIndex] >= OpaqueDepth)
+          listIndex=next[listIndex];
+      if(listIndex == 0u) break;
       uint j=i;
-      float d;
+      float D=depth[listIndex];
       while(j > 0u && D > sortedDepth[j-1u]) {
-        sortedList[j]=sortedList[j-1u];
-        sortedDepth[j]=sortedDepth[j-1u];
-        --j;
+        sortedColor[j] = sortedColor[j-1u];
+        sortedDepth[j] = sortedDepth[j-1u];
+        j--;
       }
-      sortedList[j]=fragment[listIndex+i];
+      sortedColor[j]=fragment[listIndex];
       sortedDepth[j]=D;
     }
-
-    outColor=background;
-    for(uint i=0u; i < size; i++)
-      outColor=blend(outColor,sortedList[i]);
-  } else {
-    for(uint i=1u; i < size; i++) {
-      vec4 temp=fragment[listIndex+i];
-      float D=depth[listIndex+i];
-      uint j=i;
-      while(j > 0u && D > depth[listIndex+j-1u]) {
-        fragment[listIndex+j]=fragment[listIndex+j-1u];
-        depth[listIndex+j]=depth[listIndex+j-1u];
-        --j;
-      }
-      fragment[listIndex+j]=temp;
-      depth[listIndex+j]=D;
-    }
-
-    outColor=background;
-    uint stop=listIndex+size;
-    for(uint i=listIndex; i < stop; i++)
-      outColor=blend(outColor,fragment[i]);
   }
-  count[headIndex]=0u;
-#ifdef GPUINDEXING
-  offset[headIndex]=0u;
-#endif
+
+  // Combine fragments
+
+  outColor=OpaqueDepth != 0.0 ? opaqueColor[headIndex] : vec4(1);
+  if(i > 0u) {
+    for (uint k = 0u; k < i; ++k)
+      outColor=blend(outColor,sortedColor[k]);
+  }
+
+  tail[headIndex]=0u;
+  opaqueDepth[headIndex]=0.0;
 }
