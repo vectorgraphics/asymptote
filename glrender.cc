@@ -807,6 +807,7 @@ void Export()
 #endif
 #endif
   exporting=false;
+  camp::initSSBO=true;
 }
 
 void nodisplay()
@@ -2219,10 +2220,15 @@ void refreshBuffers()
 
   if(GPUindexing) {
     if(gl::exporting) {
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                            GL_UNSIGNED_BYTE,&zero);
+
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE,&zero);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::sumBuffer);
+
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
     }
   }
 
