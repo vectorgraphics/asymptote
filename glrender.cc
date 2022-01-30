@@ -90,8 +90,7 @@ GLuint counterBuffer;
 GLuint offsetBuffer;
 GLuint sumBuffer;
 GLuint colorBuffer;
-GLuint depthBuffer;
-GLuint nextBuffer;
+GLuint fragmentBuffer;
 GLuint headBuffer;
 GLuint opaqueBuffer;
 GLuint opaqueDepthBuffer;
@@ -630,8 +629,7 @@ void setBuffers()
   glGenBuffers(1, &camp::counter);
   glGenBuffers(1, &camp::offsetBuffer);
   glGenBuffers(1, &camp::colorBuffer);
-  glGenBuffers(1, &camp::depthBuffer);
-  glGenBuffers(1, &camp::nextBuffer);
+  glGenBuffers(1, &camp::fragmentBuffer);
   glGenBuffers(1, &camp::headBuffer);
   glGenBuffers(1, &camp::opaqueBuffer);
   glGenBuffers(1, &camp::opaqueDepthBuffer);
@@ -2114,6 +2112,12 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
   }
 }
 
+struct Fragment
+{
+  glm::uint next;
+  GLfloat depth;
+};
+
 void refreshBuffers()
 {
   GLuint zero=0;
@@ -2171,15 +2175,10 @@ void refreshBuffers()
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::colorBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::depthBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(GLfloat),
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::fragmentBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(Fragment),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::depthBuffer);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::nextBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(GLuint),
-                 NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,4,camp::nextBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::fragmentBuffer);
   }
 
   gl::lastshader=-1;

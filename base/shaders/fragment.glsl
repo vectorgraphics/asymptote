@@ -31,6 +31,12 @@ float Roughness;
 #ifdef HAVE_SSBO
 layout(binding=0) uniform atomic_uint counter;
 
+struct Fragment
+{
+  uint next;
+  float depth;
+};
+
 layout(binding=1) buffer head
 {
   uint tail[];
@@ -41,14 +47,9 @@ layout(binding=2, std430) buffer colorBuffer
   vec4 fragmentColor[];
 };
 
-layout(binding=3, std430) buffer depthBuffer
+layout(binding=3, std430) buffer fragmentBuffer
 {
-  float depth[];
-};
-
-layout(binding=4, std430) buffer nextBuffer
-{
-  uint next[];
+  Fragment fragment[];
 };
 
 layout(binding=5, std430) buffer opaqueBuffer
@@ -264,8 +265,8 @@ void main()
   uint listIndex=atomicCounterIncrement(counter);
   uint lastIndex=atomicExchange(tail[headIndex],listIndex);
   fragmentColor[listIndex]=outColor;
-  next[listIndex]=lastIndex;
-  depth[listIndex]=gl_FragCoord.z;
+  fragment[listIndex].next=lastIndex;
+  fragment[listIndex].depth=gl_FragCoord.z;
 #ifndef WIREFRAME
   discard;
 #endif

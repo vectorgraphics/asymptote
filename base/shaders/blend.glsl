@@ -1,3 +1,9 @@
+struct Fragment
+{
+  uint next;
+  float depth;
+};
+
 layout(binding=1) buffer head
 {
   uint tail[];
@@ -8,14 +14,9 @@ layout(binding=2, std430) buffer list
   vec4 fragmentColor[];
 };
 
-layout(binding=3, std430) buffer depthBuffer
+layout(binding=3, std430) buffer fragmentBuffer
 {
-  float depth[];
-};
-
-layout(binding=4, std430) buffer nextBuffer
-{
-  uint next[];
+  Fragment fragment[];
 };
 
 layout(binding=5, std430) buffer opaqueBuffer
@@ -50,19 +51,19 @@ void main()
 
   uint i=0u;
   if(OpaqueDepth != 0.0)
-    while(listIndex > 0u && depth[listIndex] >= OpaqueDepth)
-      listIndex=next[listIndex];
+    while(listIndex > 0u && fragment[listIndex].depth >= OpaqueDepth)
+      listIndex=fragment[listIndex].next;
   if(listIndex > 0u) {
     sortedColor[0]=fragmentColor[listIndex];
-    sortedDepth[0]=depth[listIndex];
+    sortedDepth[0]=fragment[listIndex].depth;
     i=1u;
-    for (; (listIndex=next[listIndex]) > 0u && i < maxSize; ++i) {
+    for (; (listIndex=fragment[listIndex].next) > 0u && i < maxSize; ++i) {
       if(OpaqueDepth != 0.0)
-        while(listIndex > 0u && depth[listIndex] >= OpaqueDepth)
-          listIndex=next[listIndex];
+        while(listIndex > 0u && fragment[listIndex].depth >= OpaqueDepth)
+          listIndex=fragment[listIndex].next;
       if(listIndex == 0u) break;
       uint j=i;
-      float D=depth[listIndex];
+      float D=fragment[listIndex].depth;
       while(j > 0u && D > sortedDepth[j-1u]) {
         sortedColor[j] = sortedColor[j-1u];
         sortedDepth[j] = sortedDepth[j-1u];
