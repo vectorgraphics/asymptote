@@ -110,6 +110,7 @@ using camp::MaterialMap;
 namespace camp {
 bool initSSBO;
 GLuint maxFragments;
+int multisample=1;
 
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -151,6 +152,7 @@ void clearMaterials()
 
 }
 
+using camp::multisample;
 extern void exitHandler(int);
 
 namespace gl {
@@ -1915,7 +1917,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     windowposition(x,y);
     glutInitWindowPosition(x,y);
     glutInitWindowSize(1,1);
-    Int multisample=getSetting<Int>("multisample");
+    multisample=getSetting<Int>("multisample");
     if(multisample <= 1) multisample=0;
     if(multisample)
       displaymode |= GLUT_MULTISAMPLE;
@@ -2142,11 +2144,12 @@ void refreshBuffers()
   glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &zero, GL_DYNAMIC_DRAW);
 
   glDepthMask(GL_FALSE); // Don't write to depth buffer
-//  glDisable(GL_MULTISAMPLE);
+  if(multisample > 1)
+    glDisable(GL_MULTISAMPLE);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   drawBuffer(transparentData,countShader,true);
-
-//  glEnable(GL_MULTISAMPLE);
+  if(multisample > 1)
+    glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -2352,9 +2355,11 @@ void aBufferTransparency()
 void drawTransparent()
 {
   if(camp::countShader) {
-//    glDisable(GL_MULTISAMPLE);
+    if(multisample > 1)
+      glDisable(GL_MULTISAMPLE);
     aBufferTransparency();
-//    glEnable(GL_MULTISAMPLE);
+    if(multisample > 1)
+      glEnable(GL_MULTISAMPLE);
   } else {
     sortTriangles();
     transparentData.rendered=false; // Force copying of sorted triangles to GPU
@@ -2369,14 +2374,12 @@ void drawBuffers()
 {
   gl::copied=false;
   bool transparent=!transparentData.indices.empty();
-  glDisable(GL_MULTISAMPLE);
   if(camp::countShader) {
     if(transparent) {
       refreshBuffers();
       gl::copied=true;
     }
-  } else
-    glEnable(GL_MULTISAMPLE);
+  }
 
   drawMaterial0();
   drawMaterial1();
