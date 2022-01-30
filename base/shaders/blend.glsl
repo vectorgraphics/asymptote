@@ -5,7 +5,7 @@ layout(binding=1) buffer head
 
 layout(binding=2, std430) buffer list
 {
-  vec4 fragment[];
+  vec4 fragmentColor[];
 };
 
 layout(binding=3, std430) buffer depthBuffer
@@ -53,7 +53,7 @@ void main()
     while(listIndex > 0u && depth[listIndex] >= OpaqueDepth)
       listIndex=next[listIndex];
   if(listIndex > 0u) {
-    sortedColor[0]=fragment[listIndex];
+    sortedColor[0]=fragmentColor[listIndex];
     sortedDepth[0]=depth[listIndex];
     i=1u;
     for (; (listIndex=next[listIndex]) > 0u && i < maxSize; ++i) {
@@ -68,7 +68,7 @@ void main()
         sortedDepth[j] = sortedDepth[j-1u];
         j--;
       }
-      sortedColor[j]=fragment[listIndex];
+      sortedColor[j]=fragmentColor[listIndex];
       sortedDepth[j]=D;
     }
   }
