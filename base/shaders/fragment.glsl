@@ -46,6 +46,14 @@ layout(binding=4, std430) buffer depthBuffer {
   float depth[];
 };
 
+layout(binding=5, std430) buffer opaqueBuffer {
+  vec4 opaqueColor[];
+};
+
+layout(binding=6, std430) buffer opaqueDepthBuffer {
+  float opaqueDepth[];
+};
+
 uniform uint width;
 #endif
 
@@ -245,12 +253,21 @@ void main()
 
 #ifdef HAVE_SSBO
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+#ifdef TRANSPARENT
   uint listIndex=offset[headIndex]+atomicAdd(count[headIndex],1u);
   fragment[listIndex]=outColor;
   depth[listIndex]=gl_FragCoord.z;
-#ifdef TRANSPARENT
 #ifndef WIREFRAME
   discard;
+#endif
+#else
+#ifndef OPAQUE
+beginInvocationInterlockARB();
+if(opaqueDepth[headIndex] == 0.0 || gl_FragCoord.z < opaqueDepth[headIndex]) {
+  opaqueDepth[headIndex]=gl_FragCoord.z;
+  opaqueColor[headIndex]=outColor;
+}
+endInvocationInterlockARB();
 #endif
 #endif
 #endif

@@ -77,9 +77,9 @@ namespace camp {
 Billboard BB;
 
 GLint pixelShader;
-GLint materialShader;
-GLint colorShader;
-GLint generalShader;
+GLint materialShader[2];
+GLint colorShader[2];
+GLint generalShader[2];
 GLint countShader;
 GLint transparentShader;
 GLint blendShader;
@@ -93,6 +93,8 @@ GLuint offsetBuffer;
 GLuint sumBuffer;
 GLuint fragmentBuffer;
 GLuint depthBuffer;
+GLuint opaqueBuffer;
+GLuint opaqueDepthBuffer;
 
 }
 
@@ -126,6 +128,7 @@ size_t materialIndex;
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
+unsigned int Opaque=0;
 
 void clearCenters()
 {
@@ -527,6 +530,7 @@ void initShaders()
 {
   Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
   Nmaterials=max(Nmaterials,nmaterials);
+  camp::Opaque=camp::transparentData.indices.empty();
 
   shaderProg=glCreateProgram();
 
@@ -591,40 +595,57 @@ void initShaders()
 #ifdef HAVE_SSBO
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
   camp::countShader=compileAndLinkShader(shaders,shaderParams,true);
-  if(camp::countShader)
-    shaderParams.push_back("HAVE_SSBO");
-  else
-#endif
+#else
   camp::countShader=0;
-
-  if(!camp::countShader && settings::verbose > 2)
-    cout << "No SSBO support; order-independent transparency unavailable"
-         << endl;
+#endif
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
   if(orthographic)
     shaderParams.push_back("ORTHOGRAPHIC");
 
-  ostringstream lights,materials;
-  lights << "Nlights " << Nlights << endl;
+  ostringstream lights,materials,opaque;
+  lights << "Nlights " << Nlights;
   shaderParams.push_back(lights.str().c_str());
-  materials << "Nmaterials " << Nmaterials << endl;
+  materials << "Nmaterials " << Nmaterials;
   shaderParams.push_back(materials.str().c_str());
 
+  if(camp::countShader)
+    shaderParams.push_back("HAVE_SSBO");
   shaderParams.push_back("WIDTH");
   camp::pixelShader=compileAndLinkShader(shaders,shaderParams);
   shaderParams.pop_back();
+  if(!camp::pixelShader) {
+    camp::countShader=0;
+    shaderParams.pop_back();
+    shaderParams.push_back("WIDTH");
+    camp::pixelShader=compileAndLinkShader(shaders,shaderParams);
+    shaderParams.pop_back();
+  }
+
+  if(!camp::countShader && settings::verbose > 2)
+    cout << "No SSBO support; order-independent transparency unavailable"
+         << endl;
 
   shaderParams.push_back("NORMAL");
-  camp::materialShader=compileAndLinkShader(shaders,shaderParams);
+  camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.push_back("OPAQUE");
+  camp::materialShader[1]=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.pop_back();
+
   shaderParams.push_back("COLOR");
-  camp::colorShader=compileAndLinkShader(shaders,shaderParams);
+  camp::colorShader[0]=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.push_back("OPAQUE");
+  camp::colorShader[1]=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
   if(Mode == 2)
     shaderParams.push_back("WIREFRAME");
-  camp::generalShader=compileAndLinkShader(shaders,shaderParams);
+  camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.push_back("OPAQUE");
+  camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams);
+  shaderParams.pop_back();
 
   shaderParams.push_back("TRANSPARENT");
   camp::transparentShader=compileAndLinkShader(shaders,shaderParams);
@@ -658,9 +679,11 @@ void deleteShaders()
   }
 
   glDeleteProgram(camp::transparentShader);
-  glDeleteProgram(camp::generalShader);
-  glDeleteProgram(camp::colorShader);
-  glDeleteProgram(camp::materialShader);
+  for(unsigned int opaque=0; opaque < 2; ++opaque) {
+    glDeleteProgram(camp::generalShader[opaque]);
+    glDeleteProgram(camp::colorShader[opaque]);
+    glDeleteProgram(camp::materialShader[opaque]);
+  }
   glDeleteProgram(camp::pixelShader);
 }
 
@@ -683,6 +706,8 @@ void setBuffers()
     glGenBuffers(1, &camp::sumBuffer);
   glGenBuffers(1, &camp::fragmentBuffer);
   glGenBuffers(1, &camp::depthBuffer);
+  glGenBuffers(1, &camp::opaqueBuffer);
+  glGenBuffers(1, &camp::opaqueDepthBuffer);
 #endif
 }
 
@@ -2208,6 +2233,16 @@ void refreshBuffers()
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
 
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(glm::vec4),NULL,GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,5,camp::opaqueBuffer);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueDepthBuffer);
+     glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLfloat),NULL,GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,camp::opaqueDepthBuffer);
+    const GLfloat zerof=0.0;
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32F,GL_RED,GL_FLOAT,&zerof);
+
     if(GPUindexing) {
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,gl::processors*sizeof(GLuint),NULL,
@@ -2231,13 +2266,6 @@ void refreshBuffers()
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
     }
   }
-
-  // Determine the fragment offsets
-  drawBuffer(material0Data,countShader); // TODO: Account for pixel width
-  drawBuffer(material1Data,countShader);
-  drawBuffer(materialData,countShader);
-  drawBuffer(colorData,countShader,true);
-  drawBuffer(triangleData,countShader,true);
 
   glDepthMask(GL_FALSE); // Don't write to depth buffer
   glDisable(GL_MULTISAMPLE);
@@ -2314,7 +2342,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUseProgram(shader);
     gl::lastshader=shader;
 
-    if(camp::countShader) // CHECK
+    if(camp::countShader)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
     glUniform1ui(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
@@ -2428,25 +2456,25 @@ void drawMaterial0()
 
 void drawMaterial1()
 {
-  drawBuffer(material1Data,materialShader);
+  drawBuffer(material1Data,materialShader[Opaque]);
   material1Data.clear();
 }
 
 void drawMaterial()
 {
-  drawBuffer(materialData,materialShader);
+  drawBuffer(materialData,materialShader[Opaque]);
   materialData.clear();
 }
 
 void drawColor()
 {
-  drawBuffer(colorData,colorShader,true);
+  drawBuffer(colorData,colorShader[Opaque],true);
   colorData.clear();
 }
 
 void drawTriangle()
 {
-  drawBuffer(triangleData,generalShader,true);
+  drawBuffer(triangleData,generalShader[Opaque],true);
   triangleData.clear();
 }
 
@@ -2492,7 +2520,8 @@ void drawTransparent()
 void drawBuffers()
 {
   gl::copied=false;
-  bool transparent=!transparentData.indices.empty();
+  Opaque=transparentData.indices.empty();
+  bool transparent=!Opaque;
   if(camp::countShader) {
     if(transparent) {
       refreshBuffers();
@@ -2508,6 +2537,7 @@ void drawBuffers()
 
   if(transparent)
     drawTransparent();
+  Opaque=0;
 }
 
 void setMaterial(vertexBuffer& data, draw_t *draw)

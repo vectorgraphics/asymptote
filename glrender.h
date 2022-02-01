@@ -386,12 +386,6 @@ public:
   }
 };
 
-extern GLint pixelShader;
-extern GLint noNormalShader;
-extern GLint materialShader;
-extern GLint colorShader;
-extern GLint transparentShader;
-
 extern vertexBuffer material0Data;   // pixels
 extern vertexBuffer material1Data;   // material Bezier curves
 extern vertexBuffer materialData;    // material Bezier patches & triangles

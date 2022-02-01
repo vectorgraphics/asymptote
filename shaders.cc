@@ -95,10 +95,13 @@ GLuint createShaderFile(std::string file, int shaderType,
 #ifndef __APPLE__
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable" << "\n";
 #ifdef HAVE_SSBO
-  if(ssbo)
+  if(ssbo) {
     shaderSrc << "#extension GL_ARB_shader_storage_buffer_object : enable" << "\n";
-  if(compute)
-    shaderSrc << "#extension GL_ARB_compute_shader : enable" << "\n";
+    shaderSrc << "#extension GL_ARB_fragment_shader_interlock : enable"
+              << "\n";
+    if(compute)
+      shaderSrc << "#extension GL_ARB_compute_shader : enable" << "\n";
+  }
 #endif
 #endif
 
