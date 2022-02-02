@@ -96,6 +96,9 @@ GLuint depthBuffer;
 GLuint opaqueBuffer;
 GLuint opaqueDepthBuffer;
 
+bool ssbo;
+bool interlock;
+
 }
 
 #endif
@@ -251,6 +254,9 @@ using glm::dmat4;
 using glm::value_ptr;
 using glm::translate;
 
+using camp::interlock;
+using camp::ssbo;
+
 mat3 normMat;
 dmat3 dnormMat;
 
@@ -391,7 +397,7 @@ void home(bool webgl=false)
 #endif
 #endif
   dviewMat=dmat4(1.0);
-  if(!camp::countShader)
+  if(!camp::ssbo)
     dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
@@ -531,6 +537,7 @@ void initShaders()
   Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
   Nmaterials=max(Nmaterials,nmaterials);
   camp::Opaque=camp::transparentData.indices.empty();
+  if(!interlock) camp::Opaque=0;
 
   shaderProg=glCreateProgram();
 
@@ -558,7 +565,7 @@ void initShaders()
 #ifdef HAVE_SSBO
   if(GPUindexing) {
     shaders[0]=ShaderfileModePair(pre.c_str(),GL_COMPUTE_SHADER);
-    GLuint rc=compileAndLinkShader(shaders,shaderParams,true,true);
+    GLuint rc=compileAndLinkShader(shaders,shaderParams,true,interlock,true);
     if(rc == 0) {
       GPUindexing=false; // Compute shaders are unavailable.
       if(settings::verbose > 2)
@@ -574,12 +581,13 @@ void initShaders()
       shaderParams.push_back(S.str().c_str());
       shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
       camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,
-                                                  true,true);
+                                                  true,interlock,true);
       shaderParams.pop_back();
       shaderParams.pop_back();
 
       shaders[0]=ShaderfileModePair(post.c_str(),GL_COMPUTE_SHADER);
-      camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true,true);
+      camp::postSumShader=compileAndLinkShader(shaders,shaderParams,true,
+                                               interlock,true);
     }
   }
 #endif
@@ -595,9 +603,16 @@ void initShaders()
 #ifdef HAVE_SSBO
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
   camp::countShader=compileAndLinkShader(shaders,shaderParams,true);
+  if(camp::countShader)
+    shaderParams.push_back("HAVE_SSBO");
 #else
   camp::countShader=0;
 #endif
+  interlock=ssbo=camp::countShader;
+
+  if(!ssbo && settings::verbose > 2)
+    cout << "No SSBO support; order-independent transparency unavailable"
+         << endl;
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
@@ -610,64 +625,70 @@ void initShaders()
   materials << "Nmaterials " << Nmaterials;
   shaderParams.push_back(materials.str().c_str());
 
-  if(camp::countShader)
-    shaderParams.push_back("HAVE_SSBO");
   shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,shaderParams);
+  camp::pixelShader=compileAndLinkShader(shaders,shaderParams,ssbo);
   shaderParams.pop_back();
-  if(!camp::pixelShader) {
-    camp::countShader=0;
+
+  shaderParams.push_back("NORMAL");
+  shaderParams.push_back("HAVE_INTERLOCK");
+  camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
+                                               interlock);
+  if(!camp::materialShader[0]) {
     shaderParams.pop_back();
-    shaderParams.push_back("WIDTH");
-    camp::pixelShader=compileAndLinkShader(shaders,shaderParams);
+    interlock=false;
+    camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo);
+    if(settings::verbose > 2)
+      cout << "No fragment shader interlock support" << endl;
+  }
+
+  if(interlock) {
+    shaderParams.push_back("OPAQUE");
+    camp::materialShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
     shaderParams.pop_back();
   }
 
-  if(!camp::countShader && settings::verbose > 2)
-    cout << "No SSBO support; order-independent transparency unavailable"
-         << endl;
-
-  shaderParams.push_back("NORMAL");
-  camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams);
-  shaderParams.push_back("OPAQUE");
-  camp::materialShader[1]=compileAndLinkShader(shaders,shaderParams);
-  shaderParams.pop_back();
-
   shaderParams.push_back("COLOR");
-  camp::colorShader[0]=compileAndLinkShader(shaders,shaderParams);
-  shaderParams.push_back("OPAQUE");
-  camp::colorShader[1]=compileAndLinkShader(shaders,shaderParams);
-  shaderParams.pop_back();
+  camp::colorShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
+                                            interlock);
+  if(interlock) {
+    shaderParams.push_back("OPAQUE");
+    camp::colorShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
+    shaderParams.pop_back();
+  }
 
   shaderParams.push_back("GENERAL");
   if(Mode == 2)
     shaderParams.push_back("WIREFRAME");
-  camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams);
-  shaderParams.push_back("OPAQUE");
-  camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams);
-  shaderParams.pop_back();
+  camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
+                                              interlock);
+  if(interlock) {
+    shaderParams.push_back("OPAQUE");
+    camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
+    shaderParams.pop_back();
+  }
 
   shaderParams.push_back("TRANSPARENT");
-  camp::transparentShader=compileAndLinkShader(shaders,shaderParams);
+  camp::transparentShader=compileAndLinkShader(shaders,shaderParams,ssbo,
+                                               interlock);
   shaderParams.clear();
-  if(camp::countShader) {
+  if(ssbo) {
     shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
 
     if(GPUindexing)
       shaderParams.push_back("GPUINDEXING");
     else {
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
-      camp::zeroShader=compileAndLinkShader(shaders,shaderParams);
+      camp::zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     }
 
     shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
-    camp::blendShader=compileAndLinkShader(shaders,shaderParams);
+    camp::blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
   }
 }
 
 void deleteShaders()
 {
-  if(camp::countShader) {
+  if(camp::ssbo) {
     glDeleteProgram(camp::blendShader);
     if(GPUindexing) {
       glDeleteProgram(camp::preSumShader);
@@ -888,7 +909,7 @@ void quit()
 void mode()
 {
   remesh=true;
-  if(camp::countShader)
+  if(camp::ssbo)
     camp::initSSBO=true;
   ++Mode;
   if(Mode > 2) Mode=0;
@@ -945,7 +966,7 @@ void reshape0(int width, int height)
 
   setProjection();
   glViewport(0,0,Width,Height);
-  if(camp::countShader)
+  if(camp::ssbo)
     camp::initSSBO=true;
 }
 
@@ -1146,7 +1167,7 @@ void update()
 
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
                      dvec3(0,0,-cz));
-  if(!camp::countShader)
+  if(!camp::ssbo)
     dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
 
@@ -2112,7 +2133,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
   glEnable(GL_TEXTURE_3D);
 
-  if(!camp::countShader) {
+  if(!camp::ssbo) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   }
@@ -2267,6 +2288,15 @@ void refreshBuffers()
     }
   }
 
+  // Determine the fragment offsets
+
+  if(!interlock) {
+    drawBuffer(material1Data,countShader);
+    drawBuffer(materialData,countShader);
+    drawBuffer(colorData,countShader,true);
+    drawBuffer(triangleData,countShader,true);
+  }
+
   glDepthMask(GL_FALSE); // Don't write to depth buffer
   glDisable(GL_MULTISAMPLE);
   drawBuffer(transparentData,countShader,true);
@@ -2342,7 +2372,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUseProgram(shader);
     gl::lastshader=shader;
 
-    if(camp::countShader)
+    if(camp::ssbo)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
     glUniform1ui(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
@@ -2503,7 +2533,7 @@ void aBufferTransparency()
 
 void drawTransparent()
 {
-  if(camp::countShader) {
+  if(camp::ssbo) {
     glDisable(GL_MULTISAMPLE);
     aBufferTransparency();
     glEnable(GL_MULTISAMPLE);
@@ -2522,7 +2552,8 @@ void drawBuffers()
   gl::copied=false;
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
-  if(camp::countShader) {
+  if(!interlock) Opaque=0;
+  if(camp::ssbo) {
     if(transparent) {
       refreshBuffers();
       gl::copied=true;

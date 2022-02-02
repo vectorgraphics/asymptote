@@ -251,9 +251,10 @@ void main()
   outColor=emissive;
 #endif
 
+#ifndef WIDTH
 #ifdef HAVE_SSBO
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
-#ifdef TRANSPARENT
+#if defined(TRANSPARENT) || !defined(HAVE_INTERLOCK)
   uint listIndex=offset[headIndex]+atomicAdd(count[headIndex],1u);
   fragment[listIndex]=outColor;
   depth[listIndex]=gl_FragCoord.z;
@@ -268,6 +269,7 @@ if(opaqueDepth[headIndex] == 0.0 || gl_FragCoord.z < opaqueDepth[headIndex]) {
   opaqueColor[headIndex]=outColor;
 }
 endInvocationInterlockARB();
+#endif
 #endif
 #endif
 #endif
