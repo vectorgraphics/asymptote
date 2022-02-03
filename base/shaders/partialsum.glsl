@@ -7,11 +7,6 @@ layout(binding=0, std430) buffer sumBuffer
   uint sum[];
 };
 
-layout(binding=1, std430) buffer offsetBuffer
-{
-  uint offset[];
-};
-
 shared uint sharedData[PROCESSORS];
 
 void main(void)
