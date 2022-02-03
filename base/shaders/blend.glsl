@@ -1,3 +1,7 @@
+layout(binding=0, std430) buffer sumBuffer {
+  uint sum[];
+};
+
 layout(binding=1, std430) buffer offsetBuffer {
   uint offset[];
 };
@@ -25,6 +29,8 @@ layout(binding=6, std430) buffer opaqueDepthBuffer {
 out vec4 outColor;
 
 uniform uint width;
+uniform uint M;
+uniform uint r;
 uniform vec4 background;
 
 vec4 blend(vec4 outColor, vec4 color)
@@ -44,7 +50,9 @@ void main()
     opaqueDepth[headIndex]=0.0;
     discard;
   }
-  uint listIndex=offset[headIndex];
+
+  uint id=headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M;
+  uint listIndex=offset[headIndex]+sum[id];
   const uint maxSize=16u;
 
   // Sort the fragments with respect to descending depth
@@ -111,6 +119,7 @@ void main()
         outColor=blend(outColor,fragment[i]);
     }
   }
+
   count[headIndex]=0u;
   opaqueDepth[headIndex]=0.0;
 #ifdef GPUINDEXING

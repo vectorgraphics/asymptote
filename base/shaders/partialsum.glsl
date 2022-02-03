@@ -17,7 +17,7 @@ shared uint sharedData[PROCESSORS];
 void main(void)
 {
   uint id=gl_LocalInvocationID.x;
-  sharedData[id]=sum[id];
+  sharedData[id]=sum[id+1u];
 
   barrier();
 
@@ -38,9 +38,5 @@ void main(void)
     sharedData[windex] += sharedData[index];
   barrier();
 
-  uint id1=id+1u;
-  uint p=PROCESSORS+1u;
-  uint m=elements/p;
-  uint row=m*id1+min(id1,elements-m*p);
-  offset[row] += sharedData[id];
+  sum[id+1u]=sharedData[id];
 }

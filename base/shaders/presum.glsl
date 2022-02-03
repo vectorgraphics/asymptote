@@ -16,9 +16,8 @@ void main(void)
 {
   uint id=gl_GlobalInvocationID.x;
 
-  uint p=gl_NumWorkGroups.x+1u;
-  uint m=elements/p;
-  uint r=elements-m*p;
+  uint m=elements/gl_NumWorkGroups.x;
+  uint r=elements-m*gl_NumWorkGroups.x;
   uint row,stop;
   if(id < r) {
     row=m*id+id;
@@ -29,15 +28,10 @@ void main(void)
   }
 
   uint Sum=offset[row];
-  if(id == 0) {
-    for(uint i=1u; i < stop; ++i) {
-      Sum += offset[i];
-      offset[i]=Sum;
-    }
-  } else {
-    for(uint i=row+1u; i < stop; ++i)
-      Sum += offset[i];
+  for(uint i=row+1u; i < stop; ++i) {
+    Sum += offset[i];
+    offset[i]=Sum;
   }
 
-  sum[id]=Sum;
+  sum[id+1u]=Sum;
 }
