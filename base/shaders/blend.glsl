@@ -51,8 +51,11 @@ void main()
     discard;
   }
 
-  uint id=headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M;
-  uint listIndex=offset[headIndex]+sum[id];
+  uint listIndex=
+#ifdef GPUINDEXING
+    sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
+#endif
+    offset[headIndex];
   const uint maxSize=16u;
 
   // Sort the fragments with respect to descending depth

@@ -261,8 +261,11 @@ void main()
 #ifdef HAVE_SSBO
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || !defined(HAVE_INTERLOCK)
-  uint id=headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M;
-  uint listIndex=offset[headIndex]+sum[id]+atomicAdd(count[headIndex],1u);
+  uint listIndex=
+#ifdef GPUINDEXING
+    sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
+#endif
+    offset[headIndex]+atomicAdd(count[headIndex],1u);
   fragment[listIndex]=outColor;
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME

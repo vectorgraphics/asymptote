@@ -595,8 +595,11 @@ void initShaders()
 #ifdef HAVE_SSBO
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
   camp::countShader=compileAndLinkShader(shaders,shaderParams,true);
-  if(camp::countShader)
+  if(camp::countShader) {
     shaderParams.push_back("HAVE_SSBO");
+    if(GPUindexing)
+      shaderParams.push_back("GPUINDEXING");
+  }
 #else
   camp::countShader=0;
 #endif
@@ -2284,6 +2287,8 @@ void refreshBuffers()
   // Determine the fragment offsets
 
    if(!interlock) {
+    drawBuffer(material0Data,countShader);
+    drawBuffer(material1Data,countShader);
     drawBuffer(materialData,countShader);
     drawBuffer(colorData,countShader,true);
     drawBuffer(triangleData,countShader,true);
@@ -2362,7 +2367,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
     if(camp::ssbo) {
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
       GLuint pixels=gl::Width*gl::Height;
-      GLuint M=pixels/gl::processors;
+      GLuint M=GPUindexing ? pixels/gl::processors : 0;
       GLuint r=pixels-M*gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"M"),M);
       glUniform1ui(glGetUniformLocation(shader,"r"),r);
@@ -2513,7 +2518,7 @@ void aBufferTransparency()
   glUseProgram(blendShader);
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
   GLuint pixels=gl::Width*gl::Height;
-  GLuint M=pixels/gl::processors;
+  GLuint M=GPUindexing ? pixels/gl::processors : 0;
   GLuint r=pixels-M*gl::processors;
   glUniform1ui(glGetUniformLocation(blendShader,"M"),M);
   glUniform1ui(glGetUniformLocation(blendShader,"r"),r);
