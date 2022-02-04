@@ -534,8 +534,6 @@ void initShaders()
 {
   Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
   Nmaterials=max(Nmaterials,nmaterials);
-  camp::Opaque=camp::transparentData.indices.empty();
-  if(!interlock) camp::Opaque=0;
 
   shaderProg=glCreateProgram();
 
@@ -603,6 +601,8 @@ void initShaders()
   camp::countShader=0;
 #endif
   interlock=ssbo=camp::countShader;
+  camp::Opaque=camp::transparentData.indices.empty();
+  if(!interlock) camp::Opaque=0;
 
   if(!ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
@@ -624,7 +624,7 @@ void initShaders()
   shaderParams.pop_back();
 
   shaderParams.push_back("NORMAL");
-  shaderParams.push_back("HAVE_INTERLOCK");
+  if(interlock) shaderParams.push_back("HAVE_INTERLOCK");
   camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
                                                interlock);
   if(!camp::materialShader[0]) {
@@ -678,6 +678,7 @@ void initShaders()
     shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
     camp::blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
   }
+  lastshader=-1;
 }
 
 void deleteShaders()
@@ -743,7 +744,6 @@ void drawscene(int Width, int Height)
      nmaterials > Nmaterials) {
     deleteShaders();
     initShaders();
-    lastshader=-1;
   }
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -778,6 +778,7 @@ void Export()
   glPixelStorei(GL_PACK_ALIGNMENT,1);
   glFinish();
   exporting=true;
+
   try {
     unsigned char *data=new unsigned char[ndata];
     if(data) {
@@ -2269,18 +2270,16 @@ void refreshBuffers()
     initSSBO=false;
   }
 
-  if(GPUindexing) {
-    if(gl::exporting) {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_BYTE,&zero);
+  if(GPUindexing && gl::exporting) {
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_BYTE,&zero);
 
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_BYTE,&zero);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_BYTE,&zero);
 
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
-    }
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
   }
 
   // Determine the fragment offsets
@@ -2558,7 +2557,7 @@ void drawBuffers()
   if(camp::ssbo) {
     if(transparent) {
       refreshBuffers();
-      gl::copied=true;
+      if(!interlock) gl::copied=true;
     }
   }
 
@@ -2568,8 +2567,10 @@ void drawBuffers()
   drawColor();
   drawTriangle();
 
-  if(transparent)
+  if(transparent) {
+    gl::copied=true;
     drawTransparent();
+  }
   Opaque=0;
 }
 
