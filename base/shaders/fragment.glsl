@@ -260,7 +260,7 @@ void main()
 #ifndef WIDTH
 #ifdef HAVE_SSBO
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
-#if defined(TRANSPARENT) || !defined(HAVE_INTERLOCK)
+#if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint listIndex=
 #ifdef GPUINDEXING
     sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
@@ -273,12 +273,14 @@ void main()
 #endif
 #else
 #ifndef OPAQUE
+#ifdef HAVE_INTERLOCK
 beginInvocationInterlockARB();
 if(opaqueDepth[headIndex] == 0.0 || gl_FragCoord.z < opaqueDepth[headIndex]) {
   opaqueDepth[headIndex]=gl_FragCoord.z;
   opaqueColor[headIndex]=outColor;
 }
 endInvocationInterlockARB();
+#endif
 #endif
 #endif
 #endif

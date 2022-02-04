@@ -97,7 +97,6 @@ GLuint opaqueDepthBuffer;
 
 bool ssbo;
 bool interlock;
-
 }
 
 #endif
@@ -600,9 +599,13 @@ void initShaders()
 #else
   camp::countShader=0;
 #endif
-  interlock=ssbo=camp::countShader;
-  camp::Opaque=camp::transparentData.indices.empty();
-  if(!interlock) camp::Opaque=0;
+
+  ssbo=camp::countShader;
+#ifdef HAVE_LIBOSMESA
+  interlock=false;
+#else
+  interlock=ssbo;
+#endif
 
   if(!ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
@@ -635,31 +638,25 @@ void initShaders()
       cout << "No fragment shader interlock support" << endl;
   }
 
-  if(interlock) {
-    shaderParams.push_back("OPAQUE");
-    camp::materialShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
-    shaderParams.pop_back();
-  }
+  shaderParams.push_back("OPAQUE");
+  camp::materialShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
+  shaderParams.pop_back();
 
   shaderParams.push_back("COLOR");
   camp::colorShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
                                             interlock);
-  if(interlock) {
-    shaderParams.push_back("OPAQUE");
-    camp::colorShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
-    shaderParams.pop_back();
-  }
+  shaderParams.push_back("OPAQUE");
+  camp::colorShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
+  shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
   if(Mode == 2)
     shaderParams.push_back("WIREFRAME");
   camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
                                               interlock);
-  if(interlock) {
-    shaderParams.push_back("OPAQUE");
-    camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
-    shaderParams.pop_back();
-  }
+  shaderParams.push_back("OPAQUE");
+  camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
+  shaderParams.pop_back();
 
   shaderParams.push_back("TRANSPARENT");
   camp::transparentShader=compileAndLinkShader(shaders,shaderParams,ssbo,
@@ -2285,7 +2282,6 @@ void refreshBuffers()
   // Determine the fragment offsets
 
   if(!interlock) {
-    drawBuffer(material0Data,countShader);
     drawBuffer(material1Data,countShader);
     drawBuffer(materialData,countShader);
     drawBuffer(colorData,countShader,true);
@@ -2553,7 +2549,6 @@ void drawBuffers()
   gl::copied=false;
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
-  if(!interlock) Opaque=0;
   if(camp::ssbo) {
     if(transparent) {
       refreshBuffers();

@@ -975,7 +975,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
 #ifndef HAVE_LIBGLM
   if(outputformat == "v3d")
-    camp::reportError("to support V3 rendering, please install glm header files, run ./configure, and recompile");
+    camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
 #endif
 
   bool svgformat=outputformat == "svg";
@@ -1361,8 +1361,17 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool webgl=format == "html";
 
 #ifndef HAVE_LIBGLM
-    camp::reportError("to support WebGL rendering, please install glm header files, run ./configure, and recompile");
+  if(webgl)
+    camp::reportError("to support WebGL rendering, please install glm header files, then ./configure; make");
 #endif
+
+#ifndef HAVE_LIBOSMESA
+#ifndef HAVE_GL
+  if(!webgl)
+    camp::reportError("to support onscreen OpenGL rendering; please install the glut library, then ./configure; make");
+#endif
+#endif
+
 
   picture *pic = new picture;
 
