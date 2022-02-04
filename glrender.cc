@@ -442,15 +442,14 @@ GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, GLTexturesFmt const& f
 }
 
 GLTexture3<float,GL_FLOAT> fromEXR3(
-    mem::vector<string> const& EXRFiles, GLTexturesFmt const& fmt, GLint const& textureNumber)
+  mem::vector<string> const& EXRFiles, GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
   // 3d reflectance textures
   std::vector<float> data;
   size_t count=EXRFiles.size();
   int wi=0, ht=0;
 
-  for (string const& EXRFile : EXRFiles)
-  {
+  for(string const& EXRFile : EXRFiles) {
     camp::IEXRFile fil3(EXRFile);
     std::tie(wi,ht)=fil3.size();
     size_t imSize=4*wi*ht;
@@ -2253,7 +2252,7 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,5,camp::opaqueBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueDepthBuffer);
-     glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLfloat),NULL,GL_DYNAMIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLfloat),NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,camp::opaqueDepthBuffer);
     const GLfloat zerof=0.0;
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32F,GL_RED,GL_FLOAT,&zerof);
@@ -2265,7 +2264,7 @@ void refreshBuffers()
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE,&zero);
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::sumBuffer);
-      }
+    }
 
     initSSBO=false;
   }
@@ -2274,7 +2273,7 @@ void refreshBuffers()
     if(gl::exporting) {
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                            GL_UNSIGNED_BYTE,&zero);
+                        GL_UNSIGNED_BYTE,&zero);
 
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
@@ -2286,7 +2285,7 @@ void refreshBuffers()
 
   // Determine the fragment offsets
 
-   if(!interlock) {
+  if(!interlock) {
     drawBuffer(material0Data,countShader);
     drawBuffer(material1Data,countShader);
     drawBuffer(materialData,countShader);
@@ -2300,7 +2299,7 @@ void refreshBuffers()
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
- if(GPUindexing) { // Compute partial sums directly on the GPU
+  if(GPUindexing) { // Compute partial sums directly on the GPU
     glUseProgram(preSumShader);
     glUniform1ui(glGetUniformLocation(preSumShader,"elements"),pixels);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
