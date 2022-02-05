@@ -2160,7 +2160,6 @@ void refreshBuffers()
   GLuint fragments = 0;
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
   glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &fragments);
-//  cout << fragments << endl;
 
   // Initialize the counter
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, camp::counter);
@@ -2376,7 +2375,6 @@ void drawBuffers()
   if(camp::countShader) {
     if(transparent) {
       refreshBuffers();
-      gl::copied=true;
     }
   }
 
@@ -2386,8 +2384,10 @@ void drawBuffers()
   drawColor();
   drawTriangle();
 
-  if(transparent)
+  if(transparent) {
+    gl::copied=true;
     drawTransparent();
+  }
 }
 
 void setMaterial(vertexBuffer& data, draw_t *draw)
