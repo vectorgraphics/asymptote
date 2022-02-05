@@ -518,7 +518,7 @@ if test "x$GCDIR" != "x" ; then
    echo FOR EXAMPLE, USE THE COMMANDS:
    echo
    echo wget https://github.com/ivmai/bdwgc/releases/download/v$GCVERSION/$GCFILE.tar.gz
-   echo wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
+   echo wget https://github.com/ivmai/libatomic_ops/releases/download/v$ATOMICVERSION/libatomic_ops-$ATOMICVERSION.tar.gz
 
    echo
    exit 1

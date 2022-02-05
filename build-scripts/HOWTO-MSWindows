@@ -65,7 +65,7 @@ cd ~/
 GCVERSION=7.6.2
 ATOMICVERSION=7.6.10
 wget http://hboehm.info/gc/gc_source/gc-$GCVERSION.tar.gz
-wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
+wget https://github.com/ivmai/libatomic_ops/releases/download/v$ATOMICVERSION/libatomic_ops-$ATOMICVERSION.tar.gz
 tar -zxf gc-$GCVERSION.tar.gz
 tar -zxf libatomic_ops-$ATOMICVERSION.tar.gz
 mv libatomic_ops-$ATOMICVERSION gc-$GCVERSION/libatomic_ops
