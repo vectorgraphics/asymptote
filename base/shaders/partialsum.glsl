@@ -1,7 +1,5 @@
 layout(local_size_x=PROCESSORS) in;
 
-uniform uint elements;
-
 layout(binding=0, std430) buffer sumBuffer
 {
   uint sum[];
