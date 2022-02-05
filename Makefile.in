@@ -355,6 +355,7 @@ cleaner: FORCE clean
 
 distclean: FORCE cleaner
 	cd doc && $(MAKE) distclean
+	cd LspCpp && rm CMakeCache.txt
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean

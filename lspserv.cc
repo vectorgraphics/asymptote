@@ -91,7 +91,8 @@ std::string wslUnix2Dos(std::string const& unixPath)
 #define PATH_MAX 4096
 #endif
     char actPath[PATH_MAX];
-    (void) realpath(unixPath.c_str(), actPath);
+    if(!realpath(unixPath.c_str(), actPath))
+      return "";
     std::string fullPath(actPath);
 
     if (fullPath.length() >= 7) // /mnt/
