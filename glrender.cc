@@ -604,7 +604,7 @@ void initShaders()
 #ifdef HAVE_LIBOSMESA
   interlock=false;
 #else
-  interlock=ssbo;
+  interlock=ssbo && getSetting<bool>("GPUinterlock");
 #endif
 
   if(!ssbo && settings::verbose > 2)
