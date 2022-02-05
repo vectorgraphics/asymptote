@@ -161,7 +161,7 @@ asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 liblspcpp.a:
-	cd LspCpp && $(CMAKE) -DCMAKE_CXX_FLAGS="@OPTIONS@ -I../$(GC)/include" CMakeLists.txt && $(MAKE)
+	cd LspCpp && $(CMAKE) -DCMAKE_CXX_FLAGS="-fPIE @OPTIONS@ -I../$(GC)/include" CMakeLists.txt && $(MAKE)
 
 all:  	asy sty man faq asy-keywords.el
 
