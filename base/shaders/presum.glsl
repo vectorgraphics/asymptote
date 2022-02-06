@@ -1,4 +1,4 @@
-layout(local_size_x=16) in;
+layout(local_size_x=LOCAL_SIZE_X) in;
 
 uniform uint elements;
 

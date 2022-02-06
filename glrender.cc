@@ -97,6 +97,7 @@ GLuint opaqueDepthBuffer;
 
 bool ssbo;
 bool interlock;
+bool NVIDIA;
 }
 
 #endif
@@ -559,7 +560,11 @@ void initShaders()
 #ifdef HAVE_SSBO
   if(GPUindexing) {
     shaders[0]=ShaderfileModePair(pre.c_str(),GL_COMPUTE_SHADER);
+    ostringstream s;
+    s << "LOCAL_SIZE_X " << (camp::NVIDIA ? 16 : 1) << "u" << endl;
+    shaderParams.push_back(s.str().c_str());
     GLuint rc=compileAndLinkShader(shaders,shaderParams,true,interlock,true);
+    shaderParams.pop_back();
     if(rc == 0) {
       GPUindexing=false; // Compute shaders are unavailable.
       if(settings::verbose > 2)
@@ -576,6 +581,8 @@ void initShaders()
       shaders[0]=ShaderfileModePair(partial.c_str(),GL_COMPUTE_SHADER);
       camp::partialSumShader=compileAndLinkShader(shaders,shaderParams,
                                                   true,interlock,true);
+      shaderParams.pop_back();
+      shaderParams.pop_back();
     }
   }
 #endif
@@ -2082,6 +2089,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glinitialize=false;
 
     char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+    camp::NVIDIA=string(GLSL_VERSION).find("NVIDIA") != string::npos;
+
     GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
 
     if(GLSLversion < 130) {
