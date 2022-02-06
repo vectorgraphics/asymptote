@@ -1049,7 +1049,7 @@ See section @ref{graph} (or the online
 external links posted at @url{https://asymptote.sourceforge.io}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
-posted by Philippe Ivaldi at @url{http://www.piprime.fr/asymptote}.
+posted by Philippe Ivaldi at @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/asymptote}.
 
 @node Drawing commands, Bezier curves, Tutorial, Top
 @chapter Drawing commands
@@ -6553,9 +6553,9 @@ structure. Link to the documentation for the @code{geometry} module
 are posted here:
 @url{https://asymptote.sourceforge.io/links.html},
 including an extensive set of examples,
-@url{http://www.piprime.fr/files/asymptote/geometry/}, and an index:
+@url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/files/asymptote/geometry/}, and an index:
 @quotation
-@url{http://www.piprime.fr/files/asymptote/geometry/modules/geometry.asy.index.type.html}
+@url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/files/asymptote/geometry/modules/geometry.asy.index.type.html}
 @end quotation
 
 @node trembling, stats, geometry, Base modules
@@ -9017,7 +9017,7 @@ as illustrated in the examples @code{@uref{https://asymptote.sourceforge.io/gall
 
 This module, contributed by Philippe Ivaldi, can be used for drawing
 3D grids. Here is an example (further examples can be found in
-@code{grid3.asy} and at @url{http://www.piprime.fr/files/asymptote/grid3/}):
+@code{grid3.asy} and at @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/files/asymptote/grid3/}):
 @verbatiminclude grid3xyz.asy
 @sp 1
 @center @image{./grid3xyz}
@@ -9110,7 +9110,7 @@ shading behaviour is the default shading behavior for a surface.
 
 An example of @code{tube} is provided in the file
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/trefoilknot.html,,trefoilknot}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/trefoilknot.asy,,.asy}}. Further examples can be found at
-@url{http://www.piprime.fr/files/asymptote/tube/}.
+@url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/files/asymptote/tube}.
 
 @node flowchart, contour, tube, Base modules
 @section @code{flowchart}
