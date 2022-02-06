@@ -1,5 +1,7 @@
 // Asymptote module implementing rational arithmetic.
 
+int maxDenominator=100000; // Maximum denominator for approximating reals
+
 int gcd(int m, int n)
 {
   if(m < n) {
@@ -41,20 +43,50 @@ struct rational {
   }
 }
 
-rational operator cast(int p) {
+rational operator cast(int p)
+{
   return rational(p,false);
 }
 
-rational[] operator cast(int[] a) {
+rational[] operator cast(int[] a)
+{
   return sequence(new rational(int i) {return a[i];},a.length);
 }
 
-rational[][] operator cast(int[][] a) {
+rational[][] operator cast(int[][] a)
+{
   return sequence(new rational[](int i) {return a[i];},a.length);
 }
 
-real operator ecast(rational r) {
+real operator ecast(rational r)
+{
   return r.p/r.q;
+}
+
+rational operator ecast(real x)
+{
+  int sign=x >= 0.0 ? 1 : -1;
+  x=abs(x);
+  int a=floor(x); int b=1;
+  int c=a+1; int d=1;
+
+  while(true) {
+    int e=a+c;
+    int f=b+d;
+    if(f > maxDenominator) break;
+    if(e/f == x)
+      return rational(sign*e,f);
+    else {
+      if(e/f < x) {
+        a=e;
+        b=f;
+      } else {
+        c=e;
+        d=f;
+      }
+    }
+  }
+  return abs(a/b-x) < abs(c/d-x) ? rational(sign*a,b) : rational(sign*c,d);
 }
 
 rational operator -(rational r)
@@ -272,4 +304,3 @@ rational[][] r=a;
 write(r);
 
 */
-
