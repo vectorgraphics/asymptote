@@ -417,7 +417,7 @@ In interactive mode, or when given the @code{-V} option (the default
 when running @code{Asymptote} on a single file under @code{MSDOS}),
 @code{Asymptote} will automatically invoke the @code{PostScript}
 viewer @code{gv} (under @code{UNIX}) or @code{gsview} (under
-@code{MSDOS} to display graphical output.
+@code{MSDOS}) to display graphical output.
 The @code{PostScript} viewer should be capable of automatically
 redrawing whenever the output file is updated. The default @code{UNIX}
 @code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
@@ -441,7 +441,7 @@ pressing the @code{r} key).
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
 variables in an optional configuration file @code{config.asy}
-@pxref{configuration file}).
+(@pxref{configuration file}).
 For example, the setting @code{pdfviewer} specifies the location of
 the @acronym{PDF} viewer. Here are the default values of several
 important configuration variables under @code{UNIX}:
@@ -9787,6 +9787,11 @@ and the @code{librsvg} package on @code{MacOS X}; under
 @code{Microsoft Windows}, it is available as
 
 @url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
+
+Deconstruction of a picture into its components is fastest when using
+the @code{LaTeX} TeX engine. One can speed up deconstruction for
+other TeX engines using the 2.13.1 version or later of @code{dvisvgm}
+and setting @code{dvisvgmMultipleFiles=true;} in the @code{Asymptote} configuration file (@pxref{configuration file}).
 
 @node GUI usage,  , GUI installation, GUI
 @section GUI usage
