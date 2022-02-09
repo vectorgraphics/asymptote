@@ -1512,7 +1512,7 @@ void tensorshade(transform t=identity(), frame f, patch s,
   } else p=s.colors(m,light);
   path g=t*project(s.external(),P,1);
   pair[] internal=t*project(s.internal(),P);
-  pen fillrule=m.diffuse();
+  pen fillrule=fillrule(fillrule(m.diffuse()));
   if(inside(g,internal[0],fillrule) && inside(g,internal[1],fillrule) &&
      inside(g,internal[2],fillrule) && inside(g,internal[3],fillrule)) {
     if(p[0] == p[1] && p[1] == p[2] && p[2] == p[3])
