@@ -74,7 +74,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
                 continue
 
             selEpsilon = 6/self.info['magnification']
-            newRect = QtCore.QRect(0, 0, int(2 * selEpsilon), int(2 * selEpsilon))
+            newRect = QtCore.QRectF(0, 0, 2 * selEpsilon, 2 * selEpsilon)
             x, y = self.transf * node
             x = int(round(x))
             y = int(round(y))
@@ -92,8 +92,8 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
             selEpsilon = 6/self.info['magnification']
 
-            newRect = QtCore.QRect(0, 0, 2 * selEpsilon, 2 * selEpsilon)
-            newRectb = QtCore.QRect(0, 0, 2 * selEpsilon, 2 * selEpsilon)
+            newRect = QtCore.QRectF(0, 0, 2 * selEpsilon, 2 * selEpsilon)
+            newRectb = QtCore.QRectF(0, 0, 2 * selEpsilon, 2 * selEpsilon)
 
             x, y = self.transf * nodea
             x2, y2 = self.transf * nodeb
