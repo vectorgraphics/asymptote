@@ -10,7 +10,7 @@ shared uint sharedData[PROCESSORS];
 void main(void)
 {
   uint id=gl_LocalInvocationID.x;
-  sharedData[id]=sum[id+1u];
+  sharedData[id]=sum[id];
 
   barrier();
 
