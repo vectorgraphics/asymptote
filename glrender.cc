@@ -2298,9 +2298,9 @@ void refreshBuffers()
     // Compute local partial sums on the GPU
     glUseProgram(preSumShader);
     glUniform1ui(glGetUniformLocation(preSumShader,"elements"),pixels);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     glDispatchCompute(gl::workgroups,1,1);
 
+    glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
     // Compute global partial sums, including number of fragments, on the CPU
     GLuint *sum=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE));
     fragments=0;
@@ -2523,7 +2523,6 @@ void aBufferTransparency()
               gl::Background[3]);
   gl::lastshader=blendShader;
   fpu_trap(false); // Work around FE_INVALID
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
   fpu_trap(settings::trap());
   transparentData.clear();
