@@ -2307,8 +2307,6 @@ void refreshBuffers()
     glDispatchCompute(gl::processors,1,1);
 
     glUseProgram(partialSumShader);
-    glUniform1ui(glGetUniformLocation(partialSumShader,"elements"),pixels);
-
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     glDispatchCompute(1,1,1);
 
