@@ -156,7 +156,9 @@ extern void exitHandler(int);
 
 namespace gl {
 
-GLint processors;
+GLint workgroups;
+GLuint processors;
+GLuint localsize;
 
 bool outlinemode=false;
 bool ibl=false;
@@ -558,7 +560,7 @@ void initShaders()
   if(GPUindexing) {
     shaders[0]=ShaderfileModePair(pre.c_str(),GL_COMPUTE_SHADER);
     ostringstream s;
-    s << "LOCAL_SIZE_X " << getSetting<Int>("GPUlocalSizeX") << "u" << endl;
+    s << "LOCAL_SIZE_X " << localsize << "u" << endl;
     shaderParams.push_back(s.str().c_str());
     GLuint rc=compileAndLinkShader(shaders,shaderParams,true,interlock,true);
     shaderParams.pop_back();
@@ -663,8 +665,12 @@ void initShaders()
       camp::zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     }
 
+    ostringstream s;
+    s << "ARRAYSIZE " << getSetting<Int>("GPUarraySize") << "u" << endl;
+    shaderParams.push_back(s.str().c_str());
     shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
     camp::blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
+    shaderParams.pop_back();
   }
   lastshader=-1;
 }
@@ -2060,11 +2066,13 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
 
   if(GPUindexing) {
-    glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,&processors);
-    if(processors <= 1)
+    glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,&workgroups);
+    if(workgroups <= 1)
       GPUindexing=false;
-    else
-      processors *= getSetting<Int>("GPUlocalSizeX");
+    else {
+      localsize=getSetting<Int>("GPUlocalSize");
+      processors=workgroups*localsize;
+    }
   }
 
   Maxmaterials=val/sizeof(Material);
@@ -2291,12 +2299,12 @@ void refreshBuffers()
     glUseProgram(preSumShader);
     glUniform1ui(glGetUniformLocation(preSumShader,"elements"),pixels);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    glDispatchCompute(gl::processors/settings::getSetting<Int>("GPUlocalSizeX"),1,1);
+    glDispatchCompute(gl::workgroups,1,1);
 
     // Compute global partial sums, including number of fragments, on the CPU
     GLuint *sum=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE));
     fragments=0;
-    for(GLint i=1; i <= gl::processors; ++i) {
+    for(GLuint i=1; i <= gl::processors; ++i) {
       fragments += sum[i];
       sum[i]=fragments;
     }

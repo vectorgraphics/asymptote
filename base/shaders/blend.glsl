@@ -56,12 +56,11 @@ void main()
     sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
 #endif
     offset[headIndex];
-  const uint maxSize=16u;
 
   // Sort the fragments with respect to descending depth
-  if(size < maxSize) {
-    vec4 sortedColor[maxSize];
-    float sortedDepth[maxSize];
+  if(size < ARRAYSIZE) {
+    vec4 sortedColor[ARRAYSIZE];
+    float sortedDepth[ARRAYSIZE];
 
     uint k=0u;
 

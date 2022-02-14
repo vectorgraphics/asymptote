@@ -1248,8 +1248,10 @@ void initSettings() {
                             "Compute indexing partial sums on GPU", true));
   addOption(new boolSetting("GPUinterlock", 0,
                             "Use fragment shader interlock", true));
-  addOption(new IntSetting("GPUlocalSizeX", 0, "n",
-                           "Optimal local size for premult compute shader", 1));
+  addOption(new IntSetting("GPUlocalSize", 0, "n",
+                           "Optimal local size for compute shader", 1));
+  addOption(new IntSetting("GPUarraySize", 0, "n",
+                           "Optimal local array size for blend shader", 16));
 
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));
