@@ -53,7 +53,7 @@ void main()
 
   uint listIndex=
 #ifdef GPUINDEXING
-    sum[headIndex < r*(M+1u) ? headIndex/(M+1u)-1u : (headIndex-r)/M-1u]+
+    sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
 #endif
     offset[headIndex];
   const uint maxSize=16u;

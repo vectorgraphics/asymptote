@@ -2249,7 +2249,7 @@ void refreshBuffers()
 
     if(GPUindexing) {
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sumBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::processors*sizeof(GLuint),NULL,
+      glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::processors)*sizeof(GLuint),NULL,
                    GL_DYNAMIC_DRAW);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE,&zero);
@@ -2295,8 +2295,8 @@ void refreshBuffers()
 
     // Compute global partial sums, including number of fragments, on the CPU
     GLuint *sum=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE));
-    fragments=sum[0];
-    for(GLint i=1; i < gl::processors; ++i) {
+    fragments=0;
+    for(GLint i=1; i <= gl::processors; ++i) {
       fragments += sum[i];
       sum[i]=fragments;
     }

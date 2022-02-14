@@ -33,5 +33,5 @@ void main(void)
     offset[i]=Sum;
   }
 
-  sum[id]=Sum;
+  sum[id+1u]=Sum;
 }
