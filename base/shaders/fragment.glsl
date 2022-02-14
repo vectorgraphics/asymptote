@@ -263,7 +263,7 @@ void main()
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint listIndex=
 #ifdef GPUINDEXING
-    sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
+    sum[headIndex < r*(M+1u) ? headIndex/(M+1u)-1u : (headIndex-r)/M-1u]+
 #endif
     offset[headIndex]+atomicAdd(count[headIndex],1u);
   fragment[listIndex]=outColor;

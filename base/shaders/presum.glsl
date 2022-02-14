@@ -16,8 +16,8 @@ void main(void)
 {
   uint id=gl_GlobalInvocationID.x;
 
-  uint m=elements/gl_NumWorkGroups.x;
-  uint r=elements-m*gl_NumWorkGroups.x;
+  uint m=elements/(gl_WorkGroupSize.x*gl_NumWorkGroups.x);
+  uint r=elements-m*gl_WorkGroupSize.x*gl_NumWorkGroups.x;
   uint row,stop;
   if(id < r) {
     row=m*id+id;
