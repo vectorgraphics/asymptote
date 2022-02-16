@@ -55,7 +55,7 @@ void main()
 #ifdef GPUINDEXING
     sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
 #endif
-    offset[headIndex];
+    offset[headIndex]-size;
 
   // Sort the fragments with respect to descending depth
   if(size < ARRAYSIZE) {

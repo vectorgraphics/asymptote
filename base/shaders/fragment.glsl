@@ -265,7 +265,7 @@ void main()
 #ifdef GPUINDEXING
     sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
 #endif
-    offset[headIndex]+atomicAdd(count[headIndex],1u);
+    offset[headIndex]-atomicAdd(count[headIndex],1u)-1u;
   fragment[listIndex]=outColor;
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
