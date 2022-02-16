@@ -1956,10 +1956,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef HAVE_LIBGLUT
     setosize();
 #endif
-
-    if(View && settings::verbose > 1)
-      cout << "Rendering " << stripDir(prefix) << " as "
-           << Width << "x" << Height << " image" << endl;
 #endif
   }
 
@@ -2120,6 +2116,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 #endif
 
+  if(View && settings::verbose > 1)
+    cout << "Rendering " << stripDir(prefix) << " as "
+         << Width << "x" << Height << " image" << endl;
+
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
   glEnable(GL_TEXTURE_3D);
@@ -2229,10 +2229,11 @@ void refreshBuffers()
   GLuint zero=0;
   GLuint fragments=0;
   GLuint pixels=gl::Width*gl::Height;
+  GLuint elements=pixels+GPUindexing;
 
   if(initSSBO) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,(pixels+GPUindexing)*sizeof(GLuint),
+    glBufferData(GL_SHADER_STORAGE_BUFFER,elements*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::offsetBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
@@ -2297,7 +2298,7 @@ void refreshBuffers()
   if(GPUindexing) {
     // Compute local partial sums on the GPU
     glUseProgram(preSumShader);
-    glUniform1ui(glGetUniformLocation(preSumShader,"elements"),pixels);
+    glUniform1ui(glGetUniformLocation(preSumShader,"elements"),elements);
     glDispatchCompute(gl::workgroups,1,1);
 
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -2360,11 +2361,13 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUseProgram(shader);
     gl::lastshader=shader;
 
-    if(camp::ssbo) {
-      glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
+    glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
+
+    if(camp::ssbo && shader == transparentShader) {
       GLuint pixels=gl::Width*gl::Height;
-      GLuint M=GPUindexing ? pixels/gl::processors : 0;
-      GLuint r=pixels-M*gl::processors;
+      GLuint elements=pixels+1;
+      GLuint M=GPUindexing ? elements/gl::processors : 0;
+      GLuint r=elements-M*gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"M"),M);
       glUniform1ui(glGetUniformLocation(shader,"r"),r);
     }
@@ -2514,8 +2517,9 @@ void aBufferTransparency()
   glUseProgram(blendShader);
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
   GLuint pixels=gl::Width*gl::Height;
-  GLuint M=GPUindexing ? pixels/gl::processors : 0;
-  GLuint r=pixels-M*gl::processors;
+  GLuint elements=pixels+1;
+  GLuint M=elements/gl::processors;
+  GLuint r=elements-M*gl::processors;
   glUniform1ui(glGetUniformLocation(blendShader,"M"),M);
   glUniform1ui(glGetUniformLocation(blendShader,"r"),r);
   glUniform4f(glGetUniformLocation(blendShader,"background"),
