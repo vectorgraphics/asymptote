@@ -2313,16 +2313,15 @@ void refreshBuffers()
   } else {
     // Compute partial sums on the CPU
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    GLuint *countm1=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY))-1;
+    GLuint *count=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY));
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_WRITE_ONLY);
 
-    size_t Offset=0;
-    offset[0]=0;
+    size_t Offset=offset[0]=count[0];
     for(size_t i=1; i < pixels; ++i)
-      offset[i]=Offset += countm1[i];
-    fragments=offset[pixels-1]+countm1[pixels];
+      offset[i]=Offset += count[i];
+    fragments=Offset;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -2361,15 +2360,28 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUseProgram(shader);
     gl::lastshader=shader;
 
-    glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
+    if(normal)
+      glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
 
-    if(camp::ssbo && shader == transparentShader) {
+    if(camp::ssbo) {
       GLuint pixels=gl::Width*gl::Height;
       GLuint M=GPUindexing ? pixels/gl::processors : 0;
       GLuint r=pixels-M*gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"M"),M);
       glUniform1ui(glGetUniformLocation(shader,"r"),r);
     }
+
+    glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
+                       value_ptr(gl::projViewMat));
+
+    glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
+                       value_ptr(gl::viewMat));
+    if(normal)
+      glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
+                         value_ptr(gl::normMat));
+
+    if(shader == countShader) return;
+
     glUniform1ui(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
     for(size_t i=0; i < gl::nlights; ++i) {
@@ -2399,15 +2411,6 @@ void setUniforms(vertexBuffer& data, GLint shader)
   bool copy=(gl::remesh || data.partial || !data.rendered) && !gl::copied;
   registerBuffer(data.materials,data.materialsBuffer,copy,GL_UNIFORM_BUFFER);
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,data.materialsBuffer);
-
-  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
-                     value_ptr(gl::projViewMat));
-
-  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
-                     value_ptr(gl::viewMat));
-  if(normal)
-    glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
-                       value_ptr(gl::normMat));
 }
 
 void drawBuffer(vertexBuffer& data, GLint shader, bool color)
@@ -2516,7 +2519,7 @@ void aBufferTransparency()
   glUseProgram(blendShader);
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
   GLuint pixels=gl::Width*gl::Height;
-  GLuint M=pixels/gl::processors;
+  GLuint M=GPUindexing ? pixels/gl::processors : 0;
   GLuint r=pixels-M*gl::processors;
   glUniform1ui(glGetUniformLocation(blendShader,"M"),M);
   glUniform1ui(glGetUniformLocation(blendShader,"r"),r);
