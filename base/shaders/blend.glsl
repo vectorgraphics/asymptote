@@ -116,9 +116,13 @@ void main()
     }
 
     uint stop=listIndex+size;
-    for(uint i=listIndex+k; i < stop; i++) {
-      if(OpaqueDepth == 0.0 || depth[i] < OpaqueDepth)
+    if(OpaqueDepth == 0.0)
+      for(uint i=listIndex+k; i < stop; i++)
         outColor=blend(outColor,fragment[i]);
+    else
+      for(uint i=listIndex+k; i < stop; i++) {
+        if(depth[i] < OpaqueDepth)
+          outColor=blend(outColor,fragment[i]);
     }
   }
 
