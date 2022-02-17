@@ -51,6 +51,8 @@ void main()
     discard;
   }
 
+  outColor=OpaqueDepth != 0.0 ? opaqueColor[headIndex] : background;
+
   uint listIndex=
 #ifdef GPUINDEXING
     sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
@@ -93,7 +95,6 @@ void main()
         ++k;
       }
     }
-    outColor=OpaqueDepth != 0.0 ? opaqueColor[headIndex] : background;
     for(uint j=0u; j < i; ++j)
       outColor=blend(outColor,sortedColor[j]);
   } else {
@@ -114,7 +115,6 @@ void main()
       depth[listIndex+j]=D;
     }
 
-    outColor=OpaqueDepth != 0.0 ? opaqueColor[headIndex] : background;
     uint stop=listIndex+size;
     for(uint i=listIndex+k; i < stop; i++) {
       if(OpaqueDepth == 0.0 || depth[i] < OpaqueDepth)
