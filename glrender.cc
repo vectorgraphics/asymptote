@@ -2528,6 +2528,7 @@ void aBufferTransparency()
               gl::Background[3]);
   gl::lastshader=blendShader;
   fpu_trap(false); // Work around FE_INVALID
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
   fpu_trap(settings::trap());
   transparentData.clear();
