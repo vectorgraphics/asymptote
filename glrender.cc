@@ -2303,7 +2303,8 @@ void refreshBuffers()
 
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
     // Compute global partial sums, including number of fragments, on the CPU
-    GLuint *sum=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE));
+    GLuint *sum=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,
+                                        GL_READ_WRITE));
     fragments=0;
     for(GLuint i=1; i <= gl::processors; ++i) {
       fragments += sum[i];
@@ -2313,10 +2314,12 @@ void refreshBuffers()
   } else {
     // Compute partial sums on the CPU
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    GLuint *count=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY));
+    GLuint *count=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,
+                                         GL_READ_ONLY);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_WRITE_ONLY);
+    GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,
+                                          GL_WRITE_ONLY);
 
     size_t Offset=offset[0]=count[0];
     for(size_t i=1; i < pixels; ++i)
@@ -2358,7 +2361,6 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
   if(shader != gl::lastshader) {
     glUseProgram(shader);
-    gl::lastshader=shader;
 
     if(normal)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
@@ -2370,18 +2372,24 @@ void setUniforms(vertexBuffer& data, GLint shader)
       glUniform1ui(glGetUniformLocation(shader,"M"),M);
       glUniform1ui(glGetUniformLocation(shader,"r"),r);
     }
+  }
 
-    glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
-                       value_ptr(gl::projViewMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
+                     value_ptr(gl::projViewMat));
 
-    glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
-                       value_ptr(gl::viewMat));
-    if(normal)
-      glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
-                         value_ptr(gl::normMat));
+  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
+                     value_ptr(gl::viewMat));
+  if(normal)
+    glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
+                       value_ptr(gl::normMat));
 
-    if(shader == countShader) return;
+  if(shader == countShader) {
+    gl::lastshader=shader;
+    return;
+  }
 
+  if(shader != gl::lastshader) {
+    gl::lastshader=shader;
     glUniform1ui(glGetUniformLocation(shader,"nlights"),gl::nlights);
 
     for(size_t i=0; i < gl::nlights; ++i) {
@@ -2398,10 +2406,13 @@ void setUniforms(vertexBuffer& data, GLint shader)
                   (GLfloat) gl::Diffuse[i4+2]);
     }
 
-    if (settings::getSetting<bool>("ibl")) {
-      gl::IBLbrdfTex.setUniform(glGetUniformLocation(shader,"reflBRDFSampler"));
-      gl::irradiance.setUniform(glGetUniformLocation(shader,"diffuseSampler"));
-      gl::reflTextures.setUniform(glGetUniformLocation(shader,"reflImgSampler"));
+    if(settings::getSetting<bool>("ibl")) {
+      gl::IBLbrdfTex.setUniform(glGetUniformLocation(shader,
+                                                     "reflBRDFSampler"));
+      gl::irradiance.setUniform(glGetUniformLocation(shader,
+                                                     "diffuseSampler"));
+      gl::reflTextures.setUniform(glGetUniformLocation(shader,
+                                                       "reflImgSampler"));
     }
   }
 
