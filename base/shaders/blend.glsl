@@ -4,7 +4,7 @@ struct Fragment
   float depth;
 };
 
-layout(binding=1) buffer head
+layout(binding=1, std430) buffer head
 {
   uint tail[];
 };
