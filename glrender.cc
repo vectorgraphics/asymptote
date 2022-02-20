@@ -160,8 +160,9 @@ extern void exitHandler(int);
 
 namespace gl {
 
-GLint workgroups;
-GLint Workgroups;
+GLint workgroups1;
+GLint workgroups2;
+GLint workgroups3;
 GLuint processors;
 GLuint localsize;
 
@@ -572,7 +573,6 @@ void initShaders()
     GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true);
     if(rc == 0) {
       GPUindexing=false; // Compute shaders are unavailable.
-      shaderParams.pop_back();
       if(settings::verbose > 2)
         cout << "No compute shader support" << endl;
     } else {
@@ -581,11 +581,11 @@ void initShaders()
     shaders[0]=ShaderfileModePair(sum.c_str(),GL_COMPUTE_SHADER);
     camp::sumShader=compileAndLinkShader(shaders,shaderParams,true,false,true);
 
-    shaderParams.pop_back();
-
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
-    camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,true);
+    camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+                                          true);
     }
+    shaderParams.pop_back();
   }
 #endif
   string count=locateFile(GPUindexing ? "shaders/offset.glsl" :
@@ -1083,7 +1083,7 @@ void togglefitscreen()
 void initTimer()
 {
   gettimeofday(&lasttime,NULL);
-  gettimeofday(&lastframetime,NULL);
+  lastframetime=lasttime;
 }
 
 void idleFunc(void (*f)())
@@ -2083,14 +2083,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
 
   if(GPUindexing) {
-    workgroups=1024;
-    if(workgroups <= 1)
-      GPUindexing=false;
-    else {
-      localsize=getSetting<Int>("GPUlocalSize");
-      Workgroups=localsize*workgroups;
-      processors=Workgroups*localsize;
-    }
+    workgroups3=32;
+    localsize=getSetting<Int>("GPUlocalSize");
+    workgroups2=localsize*workgroups3;
+    workgroups1=localsize*workgroups2;
+    processors=localsize*workgroups1;
   }
 
   Maxmaterials=val/sizeof(Material);
@@ -2287,14 +2284,14 @@ void refreshBuffers()
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::sumBuffer);
 
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum2Buffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::Workgroups)*sizeof(GLuint),NULL,
+      glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::workgroups1)*sizeof(GLuint),NULL,
                    GL_DYNAMIC_DRAW);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE,&zero);
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,camp::sum2Buffer);
 
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::workgroups)*sizeof(GLuint),NULL,
+      glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::workgroups2)*sizeof(GLuint),NULL,
                    GL_DYNAMIC_DRAW);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE,&zero);
@@ -2335,26 +2332,26 @@ void refreshBuffers()
     // Compute local partial sums on the GPU
     glUseProgram(preSumShader);
     glUniform1ui(glGetUniformLocation(preSumShader,"elements"),pixels);
-    glDispatchCompute(gl::Workgroups,1,1);
+    glDispatchCompute(gl::workgroups1,1,1);
 
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
     glUseProgram(sumShader);
     glUniform1ui(glGetUniformLocation(sumShader,"m"),gl::localsize);
-    glDispatchCompute(gl::workgroups,1,1);
+    glDispatchCompute(gl::workgroups2,1,1);
 
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
     glUseProgram(sum2Shader);
     glUniform1ui(glGetUniformLocation(sum2Shader,"m"),gl::localsize);
-    glDispatchCompute(gl::workgroups,1,1);
+    glDispatchCompute(gl::workgroups3,1,1);
 
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
     // Compute global partial sums, including number of fragments, on the CPU
     GLuint *sum3=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,
                                          GL_READ_WRITE));
     fragments=0;
-    for(GLint i=1; i <= gl::workgroups; ++i) {
+    for(GLint i=1; i <= gl::workgroups2; ++i) {
       fragments += sum3[i];
       sum3[i]=fragments;
     }
