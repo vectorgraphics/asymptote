@@ -58,8 +58,13 @@ layout(binding=6, std430) buffer opaqueDepthBuffer {
   float opaqueDepth[];
 };
 
+layout(binding=7, std430) buffer sum2Buffer {
+  uint sum2[];
+};
+
 uniform uint width;
 uniform uint M;
+uniform uint M2;
 uniform uint r;
 #endif
 
@@ -261,9 +266,11 @@ void main()
 #ifdef HAVE_SSBO
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
-  uint listIndex=
 #ifdef GPUINDEXING
-    sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
+  uint p=headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M;
+  uint listIndex=sum[p]+sum2[p/M2]+
+#else
+  uint listIndex=
 #endif
     offset[headIndex]-atomicAdd(count[headIndex],1u)-1u;
   fragment[listIndex]=outColor;

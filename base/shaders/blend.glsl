@@ -26,10 +26,15 @@ layout(binding=6, std430) buffer opaqueDepthBuffer {
   float opaqueDepth[];
 };
 
+layout(binding=7, std430) buffer sum2Buffer {
+  uint sum2[];
+};
+
 out vec4 outColor;
 
 uniform uint width;
 uniform uint M;
+uniform uint M2;
 uniform uint r;
 uniform vec4 background;
 
@@ -53,9 +58,11 @@ void main()
 
   outColor=OpaqueDepth != 0.0 ? opaqueColor[headIndex] : background;
 
-  uint listIndex=
 #ifdef GPUINDEXING
-    sum[headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M]+
+  uint p=headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M;
+  uint listIndex=sum[p]+sum2[p/M2]+
+#else
+  uint listIndex=
 #endif
     offset[headIndex]-size;
 
