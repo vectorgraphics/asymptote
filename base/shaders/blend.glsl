@@ -30,6 +30,10 @@ layout(binding=7, std430) buffer sum2Buffer {
   uint sum2[];
 };
 
+layout(binding=8, std430) buffer sum3Buffer {
+  uint sum3[];
+};
+
 out vec4 outColor;
 
 uniform uint width;
@@ -60,7 +64,7 @@ void main()
 
 #ifdef GPUINDEXING
   uint p=headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M;
-  uint listIndex=sum[p]+sum2[p/M2]+
+  uint listIndex=sum[p]+sum2[p/M2]+sum3[p/(M2*M2)]+
 #else
   uint listIndex=
 #endif

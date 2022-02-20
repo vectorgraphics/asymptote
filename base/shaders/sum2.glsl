@@ -1,20 +1,20 @@
-layout(local_size_x=LOCAL_SIZE_X) in;
+layout(local_size_x=1) in;
 
 uniform uint m;
 
-layout(binding=0, std430) buffer sumBuffer
+layout(binding=7, std430) buffer sumBuffer
 {
   uint sum[];
 };
 
-layout(binding=7, std430) buffer sum2Buffer
+layout(binding=8, std430) buffer sum2Buffer
 {
   uint sum2[];
 };
 
 void main(void)
 {
-  uint id=gl_GlobalInvocationID.x;
+  uint id=gl_WorkGroupID.x;
 
   uint row=m*id;
   uint stop=row+m;

@@ -62,6 +62,10 @@ layout(binding=7, std430) buffer sum2Buffer {
   uint sum2[];
 };
 
+layout(binding=8, std430) buffer sum3Buffer {
+  uint sum3[];
+};
+
 uniform uint width;
 uniform uint M;
 uniform uint M2;
@@ -268,7 +272,7 @@ void main()
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 #ifdef GPUINDEXING
   uint p=headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M;
-  uint listIndex=sum[p]+sum2[p/M2]+
+  uint listIndex=sum[p]+sum2[p/M2]+sum3[p/(M2*M2)]+
 #else
   uint listIndex=
 #endif
