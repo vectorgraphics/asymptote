@@ -2,14 +2,14 @@ layout(local_size_x=LOCAL_SIZE_X) in;
 
 uniform uint m;
 
-layout(binding=7, std430) buffer sumBuffer
+layout(binding=2, std430) buffer offsetBuffer
 {
-  uint sum[];
+  uint offset[];
 };
 
-layout(binding=8, std430) buffer sum2Buffer
+layout(binding=3, std430) buffer sumBuffer
 {
-  uint sum2[];
+  uint sum[];
 };
 
 void main(void)
@@ -19,11 +19,11 @@ void main(void)
   uint row=m*id;
   uint stop=row+m;
 
-  uint Sum=sum[row];
+  uint Sum=offset[row];
   for(uint i=row+1u; i < stop; ++i) {
-    Sum += sum[i];
-    sum[i]=Sum;
+    Sum += offset[i];
+    offset[i]=Sum;
   }
 
-  sum2[id+1u]=Sum;
+  sum[id+1u]=Sum;
 }

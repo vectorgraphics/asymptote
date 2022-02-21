@@ -30,45 +30,44 @@ float Roughness;
 
 #ifdef HAVE_SSBO
 
-layout(binding=0, std430) buffer sumBuffer {
-  uint sum[];
-};
-
-layout(binding=1, std430) buffer offsetBuffer {
+layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
-layout(binding=2, std430) buffer countBuffer {
-  uint count[];
+layout(binding=1, std430) buffer sumBuffer {
+  uint sum[];
 };
 
-layout(binding=3, std430) buffer fragmentBuffer {
-  vec4 fragment[];
-};
-
-layout(binding=4, std430) buffer depthBuffer {
-  float depth[];
-};
-
-layout(binding=5, std430) buffer opaqueBuffer {
-  vec4 opaqueColor[];
-};
-
-layout(binding=6, std430) buffer opaqueDepthBuffer {
-  float opaqueDepth[];
-};
-
-layout(binding=7, std430) buffer sum2Buffer {
+layout(binding=2, std430) buffer sum2Buffer {
   uint sum2[];
 };
 
-layout(binding=8, std430) buffer sum3Buffer {
+layout(binding=3, std430) buffer sum3Buffer {
   uint sum3[];
 };
 
+layout(binding=4, std430) buffer countBuffer {
+  uint count[];
+};
+
+layout(binding=5, std430) buffer fragmentBuffer {
+  vec4 fragment[];
+};
+
+layout(binding=6, std430) buffer depthBuffer {
+  float depth[];
+};
+
+layout(binding=7, std430) buffer opaqueBuffer {
+  vec4 opaqueColor[];
+};
+
+layout(binding=8, std430) buffer opaqueDepthBuffer {
+  float opaqueDepth[];
+};
+
 uniform uint width;
-uniform uint M;
-uniform uint M2;
+uniform uint m1;
 uniform uint r;
 #endif
 
@@ -271,8 +270,8 @@ void main()
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 #ifdef GPUINDEXING
-  uint p=headIndex < r*(M+1u) ? headIndex/(M+1u) : (headIndex-r)/M;
-  uint listIndex=sum[p]+sum2[p/M2]+sum3[p/(M2*M2)]+
+  uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
+  uint listIndex=sum[p]+sum2[p/m2]+sum3[p/(m2*m2)]+
 #else
   uint listIndex=
 #endif

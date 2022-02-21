@@ -2,14 +2,14 @@ layout(local_size_x=LOCAL_SIZE_X) in;
 
 uniform uint elements;
 
-layout(binding=0, std430) buffer sumBuffer
-{
-  uint sum[];
-};
-
-layout(binding=1, std430) buffer offsetBuffer
+layout(binding=0, std430) buffer offsetBuffer
 {
   uint offset[];
+};
+
+layout(binding=1, std430) buffer sumBuffer
+{
+  uint sum[];
 };
 
 void main(void)
