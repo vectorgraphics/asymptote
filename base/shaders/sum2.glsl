@@ -1,7 +1,5 @@
 layout(local_size_x=LOCAL_SIZE_X) in;
 
-uniform uint m;
-
 layout(binding=1, std430) buffer offsetBuffer
 {
   uint offset[];
@@ -16,8 +14,8 @@ void main(void)
 {
   uint id=gl_GlobalInvocationID.x;
 
-  uint row=m*id;
-  uint stop=row+m;
+  uint row=LOCAL_SIZE_X*id;
+  uint stop=LOCAL_SIZE_X*(id+1u);
 
   uint Sum=offset[row];
   for(uint i=row+1u; i < stop; ++i) {

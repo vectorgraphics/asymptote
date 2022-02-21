@@ -2343,13 +2343,11 @@ void refreshBuffers()
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
     glUseProgram(sum2Shader);
-    glUniform1ui(glGetUniformLocation(sum2Shader,"m"),gl::localsize);
     glDispatchCompute(gl::workgroups2,1,1);
 
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
     glUseProgram(sum3Shader);
-    glUniform1ui(glGetUniformLocation(sum3Shader,"m"),gl::localsize);
     glDispatchCompute(gl::workgroups3,1,1);
 
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
