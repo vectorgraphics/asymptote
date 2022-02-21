@@ -2,12 +2,12 @@ layout(local_size_x=LOCAL_SIZE_X) in;
 
 uniform uint m;
 
-layout(binding=1, std430) buffer offsetBuffer
+layout(binding=2, std430) buffer offsetBuffer
 {
   uint offset[];
 };
 
-layout(binding=2, std430) buffer sumBuffer
+layout(binding=3, std430) buffer sumBuffer
 {
   uint sum[];
 };

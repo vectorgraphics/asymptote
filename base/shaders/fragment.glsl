@@ -34,8 +34,8 @@ layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
-layout(binding=1, std430) buffer sumBuffer {
-  uint sum[];
+layout(binding=1, std430) buffer sum1Buffer {
+  uint sum1[];
 };
 
 layout(binding=2, std430) buffer sum2Buffer {
@@ -271,7 +271,7 @@ void main()
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 #ifdef GPUINDEXING
   uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
-  uint listIndex=sum[p]+sum2[p/m2]+sum3[p/(m2*m2)]+
+  uint listIndex=sum1[p]+sum2[p/m2]+sum3[p/(m2*m2)]+
 #else
   uint listIndex=
 #endif
