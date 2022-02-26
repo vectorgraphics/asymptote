@@ -165,6 +165,7 @@ GLint workgroups2;
 GLint workgroups3;
 GLuint processors;
 GLuint localsize;
+GLint maxgroups;
 
 bool outlinemode=false;
 bool ibl=false;
@@ -206,6 +207,7 @@ string Format;
 int fullWidth,fullHeight;
 int Width,Height;
 GLuint pixels;
+GLuint lastpixels;
 double oWidth,oHeight;
 int screenWidth,screenHeight;
 int maxTileWidth;
@@ -436,7 +438,6 @@ int window;
 
 using utils::statistics;
 statistics S;
-GLint shaderProg,shaderProgColor;
 
 GLTexture2<float,GL_FLOAT> IBLbrdfTex;
 GLTexture2<float,GL_FLOAT> irradiance;
@@ -537,47 +538,31 @@ uint32_t ceillog2(uint32_t n)
   return 32-CLZ(n-1);
 }
 
-void initShaders()
+void initComputeShaders()
 {
-  Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
-  Nmaterials=max(Nmaterials,nmaterials);
-
-  shaderProg=glCreateProgram();
-
-  string zero=locateFile("shaders/count0.glsl");
-  string vertex=locateFile("shaders/vertex.glsl");
-  string fragment=locateFile("shaders/fragment.glsl");
-  string blend=locateFile("shaders/blend.glsl");
-  string screen=locateFile("shaders/screen.glsl");
   string sum1=locateFile("shaders/sum1.glsl");
   string sum2=locateFile("shaders/sum2.glsl");
   string sum3=locateFile("shaders/sum3.glsl");
 
-  if(zero.empty() || vertex.empty() || fragment.empty() || blend.empty() ||
-     screen.empty() || sum1.empty() || sum2.empty() || sum3.empty())
+  if(sum1.empty() || sum2.empty() || sum3.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
   std::vector<std::string> shaderParams;
 
-  if(ibl) {
-    shaderParams.push_back("USE_IBL");
-    initIBL();
-  }
-
-#ifdef HAVE_SSBO
-  if(GPUindexing) {
-    shaders[0]=ShaderfileModePair(sum1.c_str(),GL_COMPUTE_SHADER);
-    ostringstream s;
-    s << "LOCAL_SIZE_X " << localsize << "u" << endl;
-    shaderParams.push_back(s.str().c_str());
-    GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true);
-    if(rc == 0) {
-      GPUindexing=false; // Compute shaders are unavailable.
-      if(settings::verbose > 2)
-        cout << "No compute shader support" << endl;
-    } else {
-      camp::sum1Shader=rc;
+  shaders[0]=ShaderfileModePair(sum1.c_str(),GL_COMPUTE_SHADER);
+  ostringstream s;
+  s << "LOCAL_SIZE_X " << localsize << "u" << endl;
+  shaderParams.push_back(s.str().c_str());
+  GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true);
+  if(rc == 0) {
+    GPUindexing=false; // Compute shaders are unavailable.
+    if(settings::verbose > 2)
+      cout << "No compute shader support" << endl;
+  } else {
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxgroups);
+    maxgroups=min(1024,maxgroups/(GLint) (localsize*localsize));
+    camp::sum1Shader=rc;
 
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
     camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,true);
@@ -585,16 +570,39 @@ void initShaders()
     shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
     camp::sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
-    }
-    shaderParams.pop_back();
   }
-#endif
+}
+
+void initShaders()
+{
+  Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
+  Nmaterials=max(Nmaterials,nmaterials);
+
+  string zero=locateFile("shaders/count0.glsl");
+  string vertex=locateFile("shaders/vertex.glsl");
+  string fragment=locateFile("shaders/fragment.glsl");
+  string blend=locateFile("shaders/blend.glsl");
+  string screen=locateFile("shaders/screen.glsl");
+
+  if(zero.empty() || vertex.empty() || fragment.empty() || blend.empty() ||
+     screen.empty())
+    noShaders();
+
+  if(GPUindexing)
+    initComputeShaders();
+
+  std::vector<ShaderfileModePair> shaders(2);
+  std::vector<std::string> shaderParams;
+
+  if(ibl) {
+    shaderParams.push_back("USE_IBL");
+    initIBL();
+  }
+
   string count=locateFile(GPUindexing ? "shaders/offset.glsl" :
                           "shaders/count.glsl");
   if(count.empty())
     noShaders();
-
-  shaders.push_back(ShaderfileModePair());
 
   shaders[0]=ShaderfileModePair(vertex.c_str(),GL_VERTEX_SHADER);
 
@@ -669,7 +677,7 @@ void initShaders()
   shaderParams.pop_back();
 
   ostringstream m2;
-  m2 << "m2 " << gl::localsize;
+  m2 << "m2 " << localsize;
   shaderParams.push_back(m2.str().c_str());
   shaderParams.push_back("TRANSPARENT");
   camp::transparentShader=compileAndLinkShader(shaders,shaderParams,ssbo,
@@ -696,15 +704,20 @@ void initShaders()
   lastshader=-1;
 }
 
+void deleteComputeShaders()
+{
+  glDeleteProgram(camp::sum1Shader);
+  glDeleteProgram(camp::sum2Shader);
+  glDeleteProgram(camp::sum3Shader);
+}
+
 void deleteShaders()
 {
   if(camp::ssbo) {
     glDeleteProgram(camp::blendShader);
-    if(GPUindexing) {
-      glDeleteProgram(camp::sum1Shader);
-      glDeleteProgram(camp::sum2Shader);
-      glDeleteProgram(camp::sum3Shader);
-    } else
+    if(GPUindexing)
+      deleteComputeShaders();
+    else
       glDeleteProgram(camp::zeroShader);
     glDeleteProgram(camp::countShader);
   }
@@ -2087,13 +2100,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
 
-  if(GPUindexing) {
-    workgroups3=getSetting<Int>("GPUworkGroups");
+  if(GPUindexing)
     localsize=getSetting<Int>("GPUlocalSize");
-    workgroups2=localsize*workgroups3;
-    workgroups1=localsize*workgroups2;
-    processors=localsize*workgroups1;
-  }
 
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
@@ -2248,6 +2256,65 @@ void clearCount()
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
+void initPartialSums()
+{
+  gl::workgroups2=gl::localsize*gl::workgroups3;
+  gl::workgroups1=gl::localsize*gl::workgroups2;
+  gl::processors=gl::localsize*gl::workgroups1;
+  GLuint zero=0;
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum1Buffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::processors)*sizeof(GLuint),NULL,
+               GL_DYNAMIC_DRAW);
+  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                    GL_UNSIGNED_BYTE,&zero);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::sum1Buffer);
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum2Buffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::workgroups1)*sizeof(GLuint),NULL,
+               GL_DYNAMIC_DRAW);
+  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                    GL_UNSIGNED_BYTE,&zero);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::sum2Buffer);
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::workgroups2)*sizeof(GLuint),NULL,
+               GL_DYNAMIC_DRAW);
+  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                    GL_UNSIGNED_BYTE,&zero);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::sum3Buffer);
+}
+
+GLuint partialSums()
+{
+  GLuint fragments;
+  // Compute local partial sums on the GPU
+  glUseProgram(sum1Shader);
+  glUniform1ui(glGetUniformLocation(sum1Shader,"elements"),gl::pixels);
+  glDispatchCompute(gl::workgroups1,1,1);
+
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
+  glUseProgram(sum2Shader);
+  glDispatchCompute(gl::workgroups2,1,1);
+
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
+  glUseProgram(sum3Shader);
+  glDispatchCompute(gl::workgroups3,1,1);
+
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+  // Compute global partial sums, including number of fragments, on the CPU
+  GLuint *sum3=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,
+                                       GL_READ_WRITE));
+  fragments=0;
+  for(GLint i=1; i <= gl::workgroups2; ++i) {
+    fragments += sum3[i];
+    sum3[i]=fragments;
+  }
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+  return fragments;
+}
+
 void refreshBuffers()
 {
   GLuint zero=0;
@@ -2282,28 +2349,23 @@ void refreshBuffers()
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32F,GL_RED,GL_FLOAT,&zerof);
 
     if(GPUindexing) {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum1Buffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::processors)*sizeof(GLuint),NULL,
-                   GL_DYNAMIC_DRAW);
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_BYTE,&zero);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::sum1Buffer);
-
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum2Buffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::workgroups1)*sizeof(GLuint),NULL,
-                   GL_DYNAMIC_DRAW);
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_BYTE,&zero);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::sum2Buffer);
-
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::workgroups2)*sizeof(GLuint),NULL,
-                   GL_DYNAMIC_DRAW);
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_BYTE,&zero);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::sum3Buffer);
+      double Tmin=HUGE_VAL;
+      GLuint G=1;
+      for(gl::workgroups3=2; gl::workgroups3 <= gl::maxgroups;
+          gl::workgroups3 *= 2) {
+        initPartialSums();
+        partialSums();
+        seconds();
+        partialSums();
+        double T=seconds();
+        if(T < Tmin) {
+          Tmin=T;
+          G=gl::workgroups3;
+        }
+      }
+      gl::workgroups3=G;
+      initPartialSums();
     }
-
     initSSBO=false;
   }
 
@@ -2315,8 +2377,6 @@ void refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
   }
 
   // Determine the fragment offsets
@@ -2334,33 +2394,9 @@ void refreshBuffers()
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
-  if(GPUindexing) {
-    // Compute local partial sums on the GPU
-    glUseProgram(sum1Shader);
-    glUniform1ui(glGetUniformLocation(sum1Shader,"elements"),gl::pixels);
-    glDispatchCompute(gl::workgroups1,1,1);
-
-    glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-
-    glUseProgram(sum2Shader);
-    glDispatchCompute(gl::workgroups2,1,1);
-
-    glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-
-    glUseProgram(sum3Shader);
-    glDispatchCompute(gl::workgroups3,1,1);
-
-    glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-    // Compute global partial sums, including number of fragments, on the CPU
-    GLuint *sum3=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,
-                                         GL_READ_WRITE));
-    fragments=0;
-    for(GLint i=1; i <= gl::workgroups2; ++i) {
-      fragments += sum3[i];
-      sum3[i]=fragments;
-    }
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-  } else {
+  if(GPUindexing)
+    fragments=partialSums();
+  else {
     // Compute partial sums on the CPU
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     GLuint *count=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,
