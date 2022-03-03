@@ -71,8 +71,8 @@ void main()
 
   // Sort the fragments with respect to descending depth
   if(size < ARRAYSIZE) {
-    vec4 sortedColor[ARRAYSIZE];
-    float sortedDepth[ARRAYSIZE];
+    uint Index[ARRAYSIZE];
+    float Depth[ARRAYSIZE];
 
     uint k=0u;
 
@@ -82,8 +82,8 @@ void main()
 
     uint i=0u;
     if(k < size) {
-      sortedColor[0]=fragment[listIndex+k];
-      sortedDepth[0]=depth[listIndex+k];
+      Index[0]=k;
+      Depth[0]=depth[listIndex+k];
       ++k;
       i=1u;
       while(true) {
@@ -94,24 +94,25 @@ void main()
         float D=depth[listIndex+k];
         uint j=i;
         float d;
-        while(j > 0u && D > sortedDepth[j-1u]) {
-          sortedColor[j]=sortedColor[j-1u];
-          sortedDepth[j]=sortedDepth[j-1u];
+        while(j > 0u && D > Depth[j-1u]) {
+          Index[j]=Index[j-1u];
+          Depth[j]=Depth[j-1u];
           --j;
         }
-        sortedColor[j]=fragment[listIndex+k];
-        sortedDepth[j]=D;
+        Index[j]=k;
+        Depth[j]=D;
         ++i;
         ++k;
       }
     }
     for(uint j=0u; j < i; ++j)
-      outColor=blend(outColor,sortedColor[j]);
+      outColor=blend(outColor,fragment[listIndex+Index[j]]);
   } else {
     uint k=0u;
     if(OpaqueDepth != 0.0)
       while(k < size && depth[listIndex+k] >= OpaqueDepth)
         ++k;
+
     for(uint i=k+1u; i < size; i++) {
       vec4 temp=fragment[listIndex+i];
       float D=depth[listIndex+i];
@@ -133,7 +134,7 @@ void main()
       for(uint i=listIndex+k; i < stop; i++) {
         if(depth[i] < OpaqueDepth)
           outColor=blend(outColor,fragment[i]);
-    }
+      }
   }
 
   count[headIndex]=0u;
