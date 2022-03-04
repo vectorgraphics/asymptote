@@ -1250,8 +1250,6 @@ void initSettings() {
                             "Use fragment shader interlock", true));
   addOption(new IntSetting("GPUlocalSize", 0, "n",
                            "Compute shader local size", 16));
-  addOption(new IntSetting("GPUarraySize", 0, "n",
-                           "Blend shader local array size", 16));
 
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));

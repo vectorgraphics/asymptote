@@ -34,6 +34,10 @@ layout(binding=8, std430) buffer opaqueDepthBuffer {
   float opaqueDepth[];
 };
 
+layout(binding=9, std430) buffer maxBuffer {
+  uint maxSize;
+};
+
 out vec4 outColor;
 
 uniform uint width;
@@ -70,7 +74,7 @@ void main()
     offset[headIndex]-size;
 
   // Sort the fragments with respect to descending depth
-  if(size < ARRAYSIZE) {
+  if(size <= ARRAYSIZE) {
     uint Index[ARRAYSIZE];
     float Depth[ARRAYSIZE];
 
@@ -108,6 +112,7 @@ void main()
     for(uint j=0u; j < i; ++j)
       outColor=blend(outColor,fragment[listIndex+Index[j]]);
   } else {
+    atomicMax(maxSize,size);
     uint k=0u;
     if(OpaqueDepth != 0.0)
       while(k < size && depth[listIndex+k] >= OpaqueDepth)
