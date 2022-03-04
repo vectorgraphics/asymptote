@@ -652,6 +652,10 @@ void initShaders()
     cout << "No SSBO support; order-independent transparency unavailable"
          << endl;
 
+  ostringstream m2;
+  m2 << "m2 " << localsize;
+  shaderParams.push_back(m2.str().c_str());
+
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
   if(orthographic)
@@ -699,9 +703,6 @@ void initShaders()
   camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
   shaderParams.pop_back();
 
-  ostringstream m2;
-  m2 << "m2 " << localsize;
-  shaderParams.push_back(m2.str().c_str());
   shaderParams.push_back("TRANSPARENT");
   camp::transparentShader=compileAndLinkShader(shaders,shaderParams,ssbo,
                                                interlock);
@@ -2478,7 +2479,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
     if(normal)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
 
-    if(camp::ssbo && shader == transparentShader) {
+    if(camp::ssbo && (shader == transparentShader || !interlock)) {
       GLuint m=GPUindexing ? gl::pixels/gl::processors : 0;
       GLuint r=gl::pixels-m*gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"m1"),m);
