@@ -92,18 +92,16 @@ void main()
           while(k < size && depth[listIndex+k] >= OpaqueDepth)
             ++k;
         if(k == size) break;
-        float D=depth[listIndex+k];
+        float d=depth[listIndex+k];
         uint j=i;
-        float d;
-        while(j > 0u && D > Depth[j-1u]) {
+        while(j > 0u && d > Depth[j-1u]) {
           Index[j]=Index[j-1u];
           Depth[j]=Depth[j-1u];
           --j;
         }
-        Index[j]=k;
-        Depth[j]=D;
+        Index[j]=k++;
+        Depth[j]=d;
         ++i;
-        ++k;
       }
       for(uint j=0u; j < i; ++j)
         outColor=blend(outColor,fragment[listIndex+Index[j]]);
@@ -112,15 +110,15 @@ void main()
     atomicMax(maxSize,size);
     for(uint i=k+1u; i < size; i++) {
       vec4 temp=fragment[listIndex+i];
-      float D=depth[listIndex+i];
+      float d=depth[listIndex+i];
       uint j=i;
-      while(j > 0u && D > depth[listIndex+j-1u]) {
+      while(j > 0u && d > depth[listIndex+j-1u]) {
         fragment[listIndex+j]=fragment[listIndex+j-1u];
         depth[listIndex+j]=depth[listIndex+j-1u];
         --j;
       }
       fragment[listIndex+j]=temp;
-      depth[listIndex+j]=D;
+      depth[listIndex+j]=d;
     }
 
     uint stop=listIndex+size;
