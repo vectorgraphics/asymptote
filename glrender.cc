@@ -713,7 +713,7 @@ void initShaders()
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
       camp::zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     }
-    maxSize=1;
+    maxSize=8;
     initBlendShader();
   }
   lastshader=-1;
@@ -1158,7 +1158,7 @@ void display()
   bool fps=settings::verbose > 2;
   drawscene(Width,Height);
   if(fps) {
-    if(framecount < 10) // Measure steady-state framerate
+    if(framecount < 20) // Measure steady-state framerate
       seconds();
     else {
       double s=seconds();
