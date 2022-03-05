@@ -67,8 +67,14 @@ layout(binding=8, std430) buffer opaqueDepthBuffer {
 };
 
 uniform uint width;
+
+#if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
+#ifdef GPUINDEXING
 uniform uint m1;
 uniform uint r;
+#endif
+#endif
+
 #endif
 
 #ifdef NORMAL
