@@ -860,6 +860,7 @@ void Export()
         trBeginTile(tr);
         remesh=true;
         drawscene(fullWidth,fullHeight);
+        gl::lastshader=-1;
         ++count;
       } while (trEndTile(tr));
       if(settings::verbose > 1)
@@ -2270,8 +2271,8 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
 void clearCount()
 {
   glUseProgram(zeroShader);
-  glUniform1ui(glGetUniformLocation(zeroShader,"width"),gl::Width);
   gl::lastshader=zeroShader;
+  glUniform1ui(glGetUniformLocation(zeroShader,"width"),gl::Width);
   fpu_trap(false); // Work around FE_INVALID
   glDrawArrays(GL_TRIANGLES, 0, 3);
   fpu_trap(settings::trap());
@@ -2340,7 +2341,7 @@ GLuint partialSums()
 void refreshBuffers()
 {
   GLuint zero=0;
-  GLuint fragments=0;
+  GLuint fragments;
   gl::pixels=gl::Width*gl::Height;
 
   if(initSSBO) {
@@ -2463,7 +2464,8 @@ void refreshBuffers()
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,camp::depthBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
+    if(GPUindexing)
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
   }
 
   gl::lastshader=-1;
@@ -2653,6 +2655,7 @@ void aBufferTransparency()
   // Blend transparent fragments
   glDisable(GL_DEPTH_TEST);
   glUseProgram(blendShader);
+  gl::lastshader=blendShader;
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
   GLuint m=GPUindexing ? gl::pixels/gl::processors : 0;
   GLuint r=gl::pixels-m*gl::processors;
@@ -2661,7 +2664,6 @@ void aBufferTransparency()
   glUniform4f(glGetUniformLocation(blendShader,"background"),
               gl::Background[0],gl::Background[1],gl::Background[2],
               gl::Background[3]);
-  gl::lastshader=blendShader;
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
@@ -2680,7 +2682,8 @@ void aBufferTransparency()
       gl::deleteBlendShader();
       gl::initBlendShader();
     }
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
+    if(GPUindexing)
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
   }
 
   glEnable(GL_DEPTH_TEST);

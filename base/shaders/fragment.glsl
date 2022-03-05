@@ -34,6 +34,7 @@ layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
+#ifdef GPUINDEXING
 layout(binding=1, std430) buffer sum1Buffer {
   uint sum1[];
 };
@@ -45,6 +46,7 @@ layout(binding=2, std430) buffer sum2Buffer {
 layout(binding=3, std430) buffer sum3Buffer {
   uint sum3[];
 };
+#endif
 
 layout(binding=4, std430) buffer countBuffer {
   uint count[];
