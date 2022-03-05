@@ -91,7 +91,6 @@ GLint sum3Shader;
 GLuint countBuffer;
 GLuint offsetBuffer;
 GLuint sum1Buffer;
-GLuint sum2Buffer;
 GLuint sum3Buffer;
 GLuint fragmentBuffer;
 GLuint depthBuffer;
@@ -769,7 +768,6 @@ void setBuffers()
   glGenBuffers(1, &camp::offsetBuffer);
   if(GPUindexing) {
     glGenBuffers(1, &camp::sum1Buffer);
-    glGenBuffers(1, &camp::sum2Buffer);
     glGenBuffers(1, &camp::sum3Buffer);
   }
   glGenBuffers(1, &camp::fragmentBuffer);
@@ -2286,18 +2284,11 @@ void initPartialSums()
   gl::processors=gl::localsize*gl::gs2;
   GLuint zero=0;
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum1Buffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::processors)*sizeof(GLuint),NULL,
+  glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::processors+gl::gs2+2)*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                     GL_UNSIGNED_BYTE,&zero);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::sum1Buffer);
-
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum2Buffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::gs2)*sizeof(GLuint),NULL,
-               GL_DYNAMIC_DRAW);
-  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                    GL_UNSIGNED_BYTE,&zero);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::sum2Buffer);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::sum3Buffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::gs)*sizeof(GLuint),NULL,
@@ -2318,11 +2309,14 @@ GLuint partialSums()
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
   glUseProgram(sum2Shader);
+  GLuint offset2=gl::processors+1;
+  glUniform1ui(glGetUniformLocation(sum2Shader,"offset2"),offset2);
   glDispatchCompute(gl::gs,1,1);
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
   glUseProgram(sum3Shader);
+  glUniform1ui(glGetUniformLocation(sum3Shader,"offset2"),offset2);
   glDispatchCompute(gl::g,1,1);
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -2482,6 +2476,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
 
     if(camp::ssbo && (shader == transparentShader || !interlock)) {
+      GLuint offset2=1+gl::processors;
+      glUniform1ui(glGetUniformLocation(shader,"offset2"),offset2);
       GLuint m=GPUindexing ? gl::pixels/gl::processors : 0;
       GLuint r=gl::pixels-m*gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"m1"),m);
@@ -2657,6 +2653,8 @@ void aBufferTransparency()
   glUseProgram(blendShader);
   gl::lastshader=blendShader;
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
+  GLuint offset2=gl::processors+1;
+  glUniform1ui(glGetUniformLocation(blendShader,"offset2"),offset2);
   GLuint m=GPUindexing ? gl::pixels/gl::processors : 0;
   GLuint r=gl::pixels-m*gl::processors;
   glUniform1ui(glGetUniformLocation(blendShader,"m1"),m);
