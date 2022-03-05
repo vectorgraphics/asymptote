@@ -2,39 +2,36 @@ layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
-#ifdef GPUINDEXING
-uniform uint offset2;
-
-layout(binding=1, std430) buffer sum1Buffer {
-  uint sum1[];
-};
-
-layout(binding=3, std430) buffer sum3Buffer {
-  uint sum3[];
-};
-#endif
-
-layout(binding=4, std430) buffer countBuffer {
+layout(binding=1, std430) buffer countBuffer {
   uint count[];
 };
 
-layout(binding=5, std430) buffer fragmentBuffer {
+#ifdef GPUINDEXING
+uniform uint pixels;
+uniform uint offset2;
+
+layout(binding=2, std430) buffer partialSumBuffer {
+  uint partialSum[];
+};
+#endif
+
+layout(binding=3, std430) buffer fragmentBuffer {
   vec4 fragment[];
 };
 
-layout(binding=6, std430) buffer depthBuffer {
+layout(binding=4, std430) buffer depthBuffer {
   float depth[];
 };
 
-layout(binding=7, std430) buffer opaqueBuffer {
+layout(binding=5, std430) buffer opaqueBuffer {
   vec4 opaqueColor[];
 };
 
-layout(binding=8, std430) buffer opaqueDepthBuffer {
+layout(binding=6, std430) buffer opaqueDepthBuffer {
   float opaqueDepth[];
 };
 
-layout(binding=9, std430) buffer maxBuffer {
+layout(binding=7, std430) buffer maxBuffer {
   uint maxSize;
 };
 
@@ -53,7 +50,11 @@ vec4 blend(vec4 outColor, vec4 color)
 void main()
 {
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+#ifdef GPUINDEXING
+  uint size=offset[pixels+headIndex];
+#else
   uint size=count[headIndex];
+#endif
   float OpaqueDepth=opaqueDepth[headIndex];
   if(size == 0u) {
 #ifdef GPUINDEXING
@@ -67,11 +68,11 @@ void main()
 
 #ifdef GPUINDEXING
   uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
-  uint listIndex=sum1[p]+sum1[offset2+p/m2]+sum3[p/(m2*m2)]+
+  uint listIndex=count[p]+count[offset2+p/m2]+partialSum[p/(m2*m2)]+
+    offset[headIndex];
 #else
-  uint listIndex=
+  uint listIndex=offset[headIndex]-size;
 #endif
-    offset[headIndex]-size;
 
   uint k=0u;
   if(OpaqueDepth != 0.0)
@@ -132,9 +133,12 @@ void main()
       }
   }
 
-  count[headIndex]=0u;
+
   opaqueDepth[headIndex]=0.0;
 #ifdef GPUINDEXING
   offset[headIndex]=0u;
+  offset[pixels+headIndex]=0u;
+#else
+  count[headIndex]=0u;
 #endif
 }

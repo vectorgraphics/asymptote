@@ -27,9 +27,10 @@ void main(void)
     stop=row+m;
   }
 
-  uint Sum=offset[row];
+  uint Sum=offset[elements+row];
+  offset[row]=Sum;
   for(uint i=row+1u; i < stop; ++i) {
-    Sum += offset[i];
+    Sum += offset[elements+i];
     offset[i]=Sum;
   }
 

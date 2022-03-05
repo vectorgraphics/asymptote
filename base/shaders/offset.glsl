@@ -3,9 +3,10 @@ layout(binding=0, std430) buffer offsetBuffer {
 };
 
 uniform uint width;
+uniform uint pixels;
 
 void main()
 {
-  atomicAdd(offset[uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x)],1u);
+  atomicAdd(offset[pixels+uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x)],1u);
   discard;
 }

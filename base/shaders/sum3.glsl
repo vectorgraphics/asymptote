@@ -7,8 +7,8 @@ layout(binding=1, std430) buffer sumBuffer
   uint sum[];
 };
 
-layout(binding=3, std430) buffer sum3Buffer {
-  uint sum3[];
+layout(binding=2, std430) buffer partialSumBuffer {
+  uint partialSum[];
 };
 
 void main(void)
@@ -24,5 +24,5 @@ void main(void)
     sum[i]=Sum;
   }
 
-  sum3[id+1u]=Sum;
+  partialSum[id+1u]=Sum;
 }
