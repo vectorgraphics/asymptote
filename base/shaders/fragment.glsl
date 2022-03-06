@@ -30,7 +30,6 @@ float Roughness;
 
 #ifdef HAVE_SSBO
 
-uniform uint pixels;
 uniform uint offset2;
 
 layout(binding=0, std430) buffer offsetBuffer {
