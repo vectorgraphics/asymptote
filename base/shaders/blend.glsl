@@ -9,6 +9,8 @@ layout(binding=1, std430) buffer countBuffer {
 #ifdef GPUINDEXING
 uniform uint pixels;
 uniform uint offset2;
+uniform uint m1;
+uniform uint r;
 
 layout(binding=2, std430) buffer partialSumBuffer {
   uint partialSum[];
@@ -38,8 +40,6 @@ layout(binding=7, std430) buffer maxBuffer {
 out vec4 outColor;
 
 uniform uint width;
-uniform uint m1;
-uniform uint r;
 uniform vec4 background;
 
 vec4 blend(vec4 outColor, vec4 color)
