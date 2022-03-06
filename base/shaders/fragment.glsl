@@ -36,29 +36,32 @@ layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
+#ifdef GPUINDEXING
+layout(binding=2, std430) buffer localSumBuffer {
+  uint localSum[];
+};
+layout(binding=3, std430) buffer globalSumBuffer {
+  uint globalSum[];
+};
+#else
 layout(binding=1, std430) buffer countBuffer {
   uint count[];
 };
-
-#ifdef GPUINDEXING
-layout(binding=2, std430) buffer partialSumBuffer {
-  uint partialSum[];
-};
 #endif
 
-layout(binding=3, std430) buffer fragmentBuffer {
+layout(binding=4, std430) buffer fragmentBuffer {
   vec4 fragment[];
 };
 
-layout(binding=4, std430) buffer depthBuffer {
+layout(binding=5, std430) buffer depthBuffer {
   float depth[];
 };
 
-layout(binding=5, std430) buffer opaqueBuffer {
+layout(binding=6, std430) buffer opaqueBuffer {
   vec4 opaqueColor[];
 };
 
-layout(binding=6, std430) buffer opaqueDepthBuffer {
+layout(binding=7, std430) buffer opaqueDepthBuffer {
   float opaqueDepth[];
 };
 
@@ -273,7 +276,7 @@ void main()
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 #ifdef GPUINDEXING
   uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
-  uint listIndex=count[p]+count[offset2+p/m2]+partialSum[p/(m2*m2)]+
+  uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
     atomicAdd(offset[headIndex],-1u)-1u;
 #else
   uint listIndex=offset[headIndex]-atomicAdd(count[headIndex],1u)-1u;

@@ -2,13 +2,13 @@ layout(local_size_x=LOCAL_SIZE_X) in;
 
 uniform uint offset2;
 
-layout(binding=1, std430) buffer sumBuffer
+layout(binding=2, std430) buffer localSumBuffer
 {
-  uint sum[];
+  uint localSum[];
 };
 
-layout(binding=2, std430) buffer partialSumBuffer {
-  uint partialSum[];
+layout(binding=3, std430) buffer globalSumBuffer {
+  uint globalSum[];
 };
 
 void main(void)
@@ -18,11 +18,11 @@ void main(void)
   uint row=offset2+LOCAL_SIZE_X*id;
   uint stop=row+LOCAL_SIZE_X;
 
-  uint Sum=sum[row];
+  uint Sum=localSum[row];
   for(uint i=row+1u; i < stop; ++i) {
-    Sum += sum[i];
-    sum[i]=Sum;
+    Sum += localSum[i];
+    localSum[i]=Sum;
   }
 
-  partialSum[id+1u]=Sum;
+  globalSum[id+1u]=Sum;
 }
