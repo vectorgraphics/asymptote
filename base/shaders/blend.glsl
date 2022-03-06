@@ -3,11 +3,11 @@ layout(binding=0, std430) buffer offsetBuffer {
 };
 
 layout(binding=1, std430) buffer countBuffer {
+  uint maxSize;
   uint count[];
 };
 
 #ifdef GPUINDEXING
-uniform uint pixels;
 uniform uint offset2;
 uniform uint m1;
 uniform uint r;
@@ -35,10 +35,6 @@ layout(binding=6, std430) buffer opaqueBuffer {
 
 layout(binding=7, std430) buffer opaqueDepthBuffer {
   float opaqueDepth[];
-};
-
-layout(binding=8, std430) buffer maxBuffer {
-  uint maxSize;
 };
 
 out vec4 outColor;

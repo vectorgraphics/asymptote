@@ -45,6 +45,7 @@ layout(binding=3, std430) buffer globalSumBuffer {
 };
 #else
 layout(binding=1, std430) buffer countBuffer {
+  uint maxSize;
   uint count[];
 };
 #endif

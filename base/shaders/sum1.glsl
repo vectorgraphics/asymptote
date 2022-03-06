@@ -8,6 +8,7 @@ layout(binding=0, std430) buffer offsetBuffer
 };
 
 layout(binding=1, std430) buffer countBuffer {
+  uint maxSize;
   uint count[];
 };
 
