@@ -1,7 +1,12 @@
-layout(binding=1, std430) buffer countBuffer {
-  uint maxSize;
+#ifdef GPUINDEXING
+layout(binding=0, std430) buffer offsetBuffer {
   uint count[];
 };
+#else
+layout(binding=2, std430) buffer countBuffer {
+  uint count[];
+};
+#endif
 
 uniform uint width;
 

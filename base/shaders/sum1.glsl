@@ -7,11 +7,6 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
-layout(binding=1, std430) buffer countBuffer {
-  uint maxSize;
-  uint count[];
-};
-
 layout(binding=2, std430) buffer localSumBuffer
 {
   uint localSum[];
@@ -32,11 +27,11 @@ void main(void)
     stop=row+m;
   }
 
-  uint Sum=count[row];
-  offset[row]=Sum;
+  uint Sum=offset[row];
+  offset[elements+row]=Sum;
   for(uint i=row+1u; i < stop; ++i) {
-    Sum += count[i];
-    offset[i]=Sum;
+    Sum += offset[i];
+    offset[elements+i]=Sum;
   }
 
   localSum[id+1u]=Sum;

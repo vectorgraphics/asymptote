@@ -30,22 +30,27 @@ float Roughness;
 
 #ifdef HAVE_SSBO
 
-uniform uint offset2;
-
 layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
 #ifdef GPUINDEXING
+
+#if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
+uniform uint offset2;
+uniform uint m1;
+uniform uint r;
+#endif
+
 layout(binding=2, std430) buffer localSumBuffer {
   uint localSum[];
 };
+
 layout(binding=3, std430) buffer globalSumBuffer {
   uint globalSum[];
 };
 #else
-layout(binding=1, std430) buffer countBuffer {
-  uint maxSize;
+layout(binding=2, std430) buffer countBuffer {
   uint count[];
 };
 #endif
@@ -67,13 +72,7 @@ layout(binding=7, std430) buffer opaqueDepthBuffer {
 };
 
 uniform uint width;
-
-#if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
-#ifdef GPUINDEXING
-uniform uint m1;
-uniform uint r;
-#endif
-#endif
+uniform uint pixels;
 
 #endif
 
@@ -278,7 +277,7 @@ void main()
 #ifdef GPUINDEXING
   uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
   uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
-    atomicAdd(offset[headIndex],-1u)-1u;
+    atomicAdd(offset[pixels+headIndex],-1u)-1u;
 #else
   uint listIndex=offset[headIndex]-atomicAdd(count[headIndex],1u)-1u;
 #endif
