@@ -1004,6 +1004,11 @@ void reshape0(int width, int height)
   X=(X/Width)*width;
   Y=(Y/Height)*height;
 
+  if(View && width*height > 1 && (width != Width || height != Height) &&
+     settings::verbose > 1)
+    cout << "Rendering " << stripDir(Prefix) << " as "
+         << width << "x" << height << " image" << endl;
+
   Width=width;
   Height=height;
 
@@ -2164,10 +2169,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #endif
 #endif
-
-  if(View && settings::verbose > 1)
-    cout << "Rendering " << stripDir(prefix) << " as "
-         << Width << "x" << Height << " image" << endl;
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
