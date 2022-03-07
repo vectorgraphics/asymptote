@@ -1004,13 +1004,18 @@ void reshape0(int width, int height)
   X=(X/Width)*width;
   Y=(Y/Height)*height;
 
-  if(View && width*height > 1 && (width != Width || height != Height) &&
-     settings::verbose > 1)
-    cout << "Rendering " << stripDir(Prefix) << " as "
-         << width << "x" << height << " image" << endl;
-
   Width=width;
   Height=height;
+
+  static int lastWidth=1;
+  static int lastHeight=1;
+  if(View && Width*Height > 1 && (Width != lastWidth || Height != lastHeight)
+     && settings::verbose > 1) {
+    cout << "Rendering " << stripDir(Prefix) << " as "
+         << Width << "x" << Height << " image" << endl;
+    lastWidth=Width;
+    lastHeight=Height;
+  }
 
   setProjection();
   glViewport(0,0,Width,Height);
