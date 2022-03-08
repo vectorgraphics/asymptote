@@ -1,26 +1,21 @@
 # LspCpp
 
 ## Dependencies
-`LspCpp` depends on the boost and rapidjson,utfcpp,uri and threadpool
+`LspCpp` depends on boost, rapidjson, utfcpp, uri, and threadpool.
 
 ## Build
 
 ### Linux / Mac
-1. On linux ,install boost
+1. On linux, install boost
    ```shell
       $ sudo apt-get install libboost-dev 
    ``` 
-   On Mac,install boost on Mac
+   On Mac, install boost on Mac
    ```shell
       $ brew install boost
    ``` 
 
-2. [Restore the submodules][4].
-   ```shell
-     $ git submodule init
-     $ git submodule update
-   ``` 
-3. Building with ``CMake``
+2. Building with ``CMake``
 -----------------------
 	$ mkdir _build
 	$ cd _build
@@ -29,20 +24,15 @@
 
 ### Windows
 
-  1. [Restore the submodules][4].
-     ```shell
-      git submodule init
-      git submodule update
-     ``` 
-  2. Open cmd or powershell and generate visual studio project  with ``CMake``.
+  1. Open cmd or powershell and generate visual studio project  with ``CMake``.
   -----------------------
     mkdir _build
 	cd _build
 	cmake -DUri_BUILD_TESTS=OFF -DUri_USE_STATIC_CRT=OFF ..
 
-  3. "cmake -help" is useful if you are not familiar with cmake.
+  2. "cmake -help" is useful if you are not familiar with cmake.
   
-  4. Build it with Visual Studio.
+  3. Build it with Visual Studio.
  
 ## Reference
  Some code from :[cquery][1]
@@ -60,4 +50,3 @@
 [1]: https://github.com/cquery-project/cquery "cquery:"
 [2]: https://www.javacardos.com/tools "JcKit:"
 [3]: https://docs.microsoft.com/en-us/nuget/consume-packages/package-restore "Package Restore"
-[4]: https://git-scm.com/book/en/v2/Git-Tools-Submodules "Git-Tools-Submodules"
