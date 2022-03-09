@@ -36,8 +36,7 @@ cp /usr/local/src/$GC.tar.gz asymptote-$VERSION
 cp /usr/local/src/libatomic_ops-$ATOMICVERSION.tar.gz asymptote-$VERSION
 chown -R root.root asymptote-$VERSION
 cd asymptote-$VERSION
-find . -type d -exec /bin/bash -c "cd '{}';rm -rf .git" \;
-rm -rf .gitignore .vscode
+find . -name ".[^.]*" -exec rm -rf {} \;
 ./autogen.sh
 ./configure
 make $MAKEFLAGS check || exit
