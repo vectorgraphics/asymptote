@@ -76,12 +76,15 @@ void main()
 
   // Combine fragments
 
-  outColor=OpaqueDepth != 0.0 ? opaqueColor[headIndex] : vec4(1);
+  if(OpaqueDepth != 0.0) {
+    opaqueDepth[headIndex]=0.0;
+    outColor=opaqueColor[headIndex];
+  } else
+    outColor=background;
   if(i > 0u) {
     for (uint k = 0u; k < i; ++k)
       outColor=blend(outColor,sortedColor[k]);
   }
 
   tail[headIndex]=0u;
-  opaqueDepth[headIndex]=0.0;
 }
