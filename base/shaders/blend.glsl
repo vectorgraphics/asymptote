@@ -64,7 +64,8 @@ void main()
 #ifdef GPUINDEXING
     offset[pixels+headIndex]=0u;
 #endif
-    opaqueDepth[headIndex]=0.0;
+    if(OpaqueDepth != 0.0)
+      opaqueDepth[headIndex]=0.0;
     discard;
   }
 
@@ -137,8 +138,8 @@ void main()
       }
   }
 
-
-  opaqueDepth[headIndex]=0.0;
+  if(OpaqueDepth != 0.0)
+    opaqueDepth[headIndex]=0.0;
 #ifdef GPUINDEXING
   offset[headIndex]=0u;
   offset[pixels+headIndex]=0u;

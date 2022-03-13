@@ -287,8 +287,7 @@ void main()
   discard;
 #endif
 #else
-#ifndef OPAQUE
-#ifdef HAVE_INTERLOCK
+#if defined(HAVE_INTERLOCK) && !defined(OPAQUE)
   beginInvocationInterlockARB();
   if(opaqueDepth[headIndex] == 0.0 || gl_FragCoord.z < opaqueDepth[headIndex])
     {
@@ -296,7 +295,6 @@ void main()
     opaqueColor[headIndex]=outColor;
   }
   endInvocationInterlockARB();
-#endif
 #endif
 #endif
 #endif
