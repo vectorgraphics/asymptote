@@ -533,12 +533,6 @@ void noShaders()
   exit(-1);
 }
 
-// Return ceil(log2(n)) where n is a 32 bit unsigned integer.
-uint32_t ceillog2(uint32_t n)
-{
-  return 32-CLZ(n-1);
-}
-
 void initComputeShaders()
 {
   string sum1=locateFile("shaders/sum1.glsl");
