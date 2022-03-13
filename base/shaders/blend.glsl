@@ -112,6 +112,8 @@ void main()
       for(uint j=0u; j < i; ++j)
         outColor=blend(outColor,fragment[listIndex+Index[j]]);
     }
+    if(OpaqueDepth != 0.0)
+      opaqueDepth[headIndex]=0.0;
   } else {
     atomicMax(maxSize,size);
     for(uint i=k+1u; i < size; i++) {
@@ -131,15 +133,15 @@ void main()
     if(OpaqueDepth == 0.0)
       for(uint i=listIndex+k; i < stop; i++)
         outColor=blend(outColor,fragment[i]);
-    else
+    else {
       for(uint i=listIndex+k; i < stop; i++) {
         if(depth[i] < OpaqueDepth)
           outColor=blend(outColor,fragment[i]);
       }
+      opaqueDepth[headIndex]=0.0;
+    }
   }
 
-  if(OpaqueDepth != 0.0)
-    opaqueDepth[headIndex]=0.0;
 #ifdef GPUINDEXING
   offset[headIndex]=0u;
   offset[pixels+headIndex]=0u;
