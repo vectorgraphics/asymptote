@@ -87,30 +87,33 @@ void main()
   // Sort the fragments with respect to descending depth
   if(size-k <= ARRAYSIZE) {
     if(k < size) {
-      uint Index[ARRAYSIZE];
-      float Depth[ARRAYSIZE];
-      Index[0]=k;
-      Depth[0]=depth[listIndex+k];
+      struct element {
+        uint index;
+        float depth;
+      };
+
+      element E[ARRAYSIZE];
+      E[0]=element(k,depth[listIndex+k]);
       ++k;
       uint i=1u;
       while(true) {
-        if(OpaqueDepth != 0.0)
-          while(k < size && depth[listIndex+k] >= OpaqueDepth)
-            ++k;
-        if(k == size) break;
         float d=depth[listIndex+k];
+        if(OpaqueDepth != 0.0)
+          while(k < size && d >= OpaqueDepth) {
+            d=depth[listIndex+k];
+            ++k;
+          }
+        if(k == size) break;
         uint j=i;
-        while(j > 0u && d > Depth[j-1u]) {
-          Index[j]=Index[j-1u];
-          Depth[j]=Depth[j-1u];
+        while(j > 0u && d > E[j-1u].depth) {
+          E[j]=E[j-1u];
           --j;
         }
-        Index[j]=k++;
-        Depth[j]=d;
+        E[j]=element(k++,d);
         ++i;
       }
       for(uint j=0u; j < i; ++j)
-        outColor=blend(outColor,fragment[listIndex+Index[j]]);
+        outColor=blend(outColor,fragment[listIndex+E[j].index]);
     }
     if(OpaqueDepth != 0.0)
       opaqueDepth[headIndex]=0.0;
