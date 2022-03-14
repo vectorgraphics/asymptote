@@ -290,3 +290,30 @@ linefit leastsquares(real[] x, real[] y)
   }
   return L;
 }
+
+// Do a least-squares fit of data in real arrays x and y weighted by w
+// to the line y=m*x+b, by minimizing sum(w*(y-m*x-b)^2).
+linefit leastsquares(real[] x, real[] y, real[] w)
+{
+  linefit L;
+  int n=x.length;
+  if(n == 1) abort("Least squares fit requires at least 2 data points");
+  real sx=sum(w*x);
+  real sy=sum(w*y);
+  real W=sum(w);
+  real sxx=W*sum(w*x^2)-sx^2;
+  real sxy=W*sum(w*x*y)-sx*sy;
+  L.m=sxy/sxx;
+  L.b=(sy-L.m*sx)/W;
+  if(n > 2) {
+    real syy=W*sum(w*y^2)-sy^2;
+    if(sxx == 0 || syy == 0) return L;
+    L.r=sxy/sqrt(sxx*syy);
+    real arg=syy-sxy^2/sxx;
+    if(arg <= 0) return L;
+    real s=sqrt(arg/(n-2));
+    L.dm=s*sqrt(1/sxx);
+    L.db=s*sqrt(1+sx^2/sxx)/W;
+  }
+  return L;
+}
