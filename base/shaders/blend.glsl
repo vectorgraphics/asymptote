@@ -72,9 +72,7 @@ void main()
   outColor=OpaqueDepth != 0.0 ? opaqueColor[headIndex] : background;
 
 #ifdef GPUINDEXING
-  uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
-  uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
-    offset[pixels+headIndex];
+  uint listIndex=offset[pixels+headIndex];
 #else
   uint listIndex=offset[headIndex]-size;
 #endif

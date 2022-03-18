@@ -275,9 +275,7 @@ void main()
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 #ifdef GPUINDEXING
-  uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
-  uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
-    atomicAdd(offset[pixels+headIndex],-1u)-1u;
+  uint listIndex=atomicAdd(offset[pixels+headIndex],-1u)-1u;
 #else
   uint listIndex=offset[headIndex]-atomicAdd(count[headIndex],1u)-1u;
 #endif

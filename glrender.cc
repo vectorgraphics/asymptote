@@ -87,6 +87,9 @@ GLint zeroShader;
 GLint sum1Shader;
 GLint sum2Shader;
 GLint sum3Shader;
+GLint sum4Shader;
+GLint sum5Shader;
+GLint sum6Shader;
 
 GLuint offsetBuffer;
 GLuint countBuffer;
@@ -538,8 +541,11 @@ void initComputeShaders()
   string sum1=locateFile("shaders/sum1.glsl");
   string sum2=locateFile("shaders/sum2.glsl");
   string sum3=locateFile("shaders/sum3.glsl");
+  string sum4=locateFile("shaders/sum4.glsl");
+  string sum5=locateFile("shaders/sum5.glsl");
+  string sum6=locateFile("shaders/sum6.glsl");
 
-  if(sum1.empty() || sum2.empty() || sum3.empty())
+  if(sum1.empty() || sum2.empty() || sum3.empty() || sum4.empty() || sum5.empty() || sum6.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
@@ -564,6 +570,18 @@ void initComputeShaders()
 
     shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
     camp::sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+                                          true);
+
+    shaders[0]=ShaderfileModePair(sum4.c_str(),GL_COMPUTE_SHADER);
+    camp::sum4Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+                                          true);
+
+    shaders[0]=ShaderfileModePair(sum5.c_str(),GL_COMPUTE_SHADER);
+    camp::sum5Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+                                          true);
+
+    shaders[0]=ShaderfileModePair(sum6.c_str(),GL_COMPUTE_SHADER);
+    camp::sum6Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
   }
 }
@@ -714,6 +732,9 @@ void deleteComputeShaders()
   glDeleteProgram(camp::sum1Shader);
   glDeleteProgram(camp::sum2Shader);
   glDeleteProgram(camp::sum3Shader);
+  glDeleteProgram(camp::sum4Shader);
+  glDeleteProgram(camp::sum5Shader);
+  glDeleteProgram(camp::sum6Shader);
 }
 
 void deleteBlendShader()
@@ -2325,6 +2346,19 @@ GLuint partialSums()
     sum[i]=fragments;
   }
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+  glUseProgram(sum4Shader);
+  glUniform1ui(glGetUniformLocation(sum4Shader,"offset2"),offset2);
+  glDispatchCompute(gl::g,1,1);
+
+  glUseProgram(sum5Shader);
+  glUniform1ui(glGetUniformLocation(sum5Shader,"offset2"),offset2);
+  glDispatchCompute(gl::gs,1,1);
+
+  glUseProgram(sum6Shader);
+  glUniform1ui(glGetUniformLocation(sum6Shader,"elements"),gl::pixels);
+  glDispatchCompute(gl::gs2,1,1);
+
   return fragments;
 }
 
@@ -2379,6 +2413,8 @@ void refreshBuffers()
       }
       gl::g=G;
       initPartialSums();
+      cout << gl::pixels << endl;
+      cout << "Tmin=" << Tmin << endl;
     } else {
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
