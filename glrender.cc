@@ -2347,13 +2347,19 @@ GLuint partialSums()
   }
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
   glUseProgram(sum4Shader);
   glUniform1ui(glGetUniformLocation(sum4Shader,"offset2"),offset2);
   glDispatchCompute(gl::g,1,1);
 
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
   glUseProgram(sum5Shader);
   glUniform1ui(glGetUniformLocation(sum5Shader,"offset2"),offset2);
   glDispatchCompute(gl::gs,1,1);
+
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
   glUseProgram(sum6Shader);
   glUniform1ui(glGetUniformLocation(sum6Shader,"elements"),gl::pixels);
