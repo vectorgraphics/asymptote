@@ -7,6 +7,7 @@ layout(binding=1, std430) buffer maxBuffer {
 };
 
 #ifdef GPUINDEXING
+uniform uint pixels;
 uniform uint offset2;
 uniform uint m1;
 uniform uint r;
@@ -43,7 +44,6 @@ layout(binding=7, std430) buffer opaqueDepthBuffer {
 out vec4 outColor;
 
 uniform uint width;
-uniform uint pixels;
 uniform vec4 background;
 
 vec4 blend(vec4 outColor, vec4 color)

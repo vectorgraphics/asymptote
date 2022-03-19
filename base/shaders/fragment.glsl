@@ -35,6 +35,7 @@ layout(binding=0, std430) buffer offsetBuffer {
 };
 
 #ifdef GPUINDEXING
+uniform uint pixels;
 
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 uniform uint offset2;
@@ -72,7 +73,6 @@ layout(binding=7, std430) buffer opaqueDepthBuffer {
 };
 
 uniform uint width;
-uniform uint pixels;
 
 #endif
 
