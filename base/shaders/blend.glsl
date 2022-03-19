@@ -94,9 +94,8 @@ void main()
 
       element E[ARRAYSIZE];
       E[0]=element(k,depth[listIndex+k]);
-      ++k;
       uint i=1u;
-      while(k < size) {
+      while(++k < size) {
         float d=depth[listIndex+k];
         if(OpaqueDepth != 0.0) {
           while(k < size && d >= OpaqueDepth) {
@@ -110,7 +109,7 @@ void main()
           E[j]=E[j-1u];
           --j;
         }
-        E[j]=element(k++,d);
+        E[j]=element(k,d);
         ++i;
       }
       for(uint j=0u; j < i; ++j)
