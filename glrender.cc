@@ -780,8 +780,8 @@ void setBuffers()
   if(GPUindexing) {
     glGenBuffers(1, &camp::localSumBuffer);
     glGenBuffers(1, &camp::globalSumBuffer);
-  } else
-    glGenBuffers(1, &camp::countBuffer);
+  }
+  glGenBuffers(1, &camp::countBuffer);
   glGenBuffers(1, &camp::fragmentBuffer);
   glGenBuffers(1, &camp::depthBuffer);
   glGenBuffers(1, &camp::opaqueBuffer);
@@ -2327,7 +2327,7 @@ GLuint partialSums()
 
   glUseProgram(sum2Shader);
   GLuint offset2=gl::processors+1;
-  glUniform1ui(glGetUniformLocation(sum2Shader,"offset2"),offset2);
+  glUniform1ui(glGetUniformLocation(sum2Shader,"offset2p"),offset2+1);
   glDispatchCompute(gl::gs,1,1);
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -2376,17 +2376,23 @@ void refreshBuffers()
 
   if(initSSBO) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 (GPUindexing ? 2:1)*gl::pixels*sizeof(GLuint),
+    glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_BYTE,&zero);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
+                 NULL,GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::countBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::maxBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::maxBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,camp::maxBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
 
@@ -2421,14 +2427,8 @@ void refreshBuffers()
       initPartialSums();
       cout << gl::pixels << endl;
       cout << "Tmin=" << Tmin << endl;
-    } else {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
-                   NULL,GL_DYNAMIC_DRAW);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_BYTE,&zero);
     }
+
     initSSBO=false;
   }
 
@@ -2511,10 +2511,6 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
     if(normal)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
-
-    if(camp::ssbo && GPUindexing &&
-       (shader == transparentShader || !interlock))
-      glUniform1ui(glGetUniformLocation(shader,"pixels"),gl::pixels);
   }
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
@@ -2685,8 +2681,6 @@ void aBufferTransparency()
   glUseProgram(blendShader);
   gl::lastshader=blendShader;
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
-  if(GPUindexing)
-    glUniform1ui(glGetUniformLocation(blendShader,"pixels"),gl::pixels);
   glUniform4f(glGetUniformLocation(blendShader,"background"),
               gl::Background[0],gl::Background[1],gl::Background[2],
               gl::Background[3]);

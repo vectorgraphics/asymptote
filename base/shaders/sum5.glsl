@@ -10,11 +10,11 @@ layout(binding=2, std430) buffer localSumBuffer
 void main(void)
 {
   uint id=gl_GlobalInvocationID.x;
+  uint Sum=localSum[offset2+id];
 
   uint row=LOCAL_SIZE_X*id;
   uint stop=row+LOCAL_SIZE_X;
 
-  uint Sum=localSum[offset2+id];
   for(uint i=row; i < stop; ++i) {
     Sum += localSum[i];
     localSum[i]=Sum;

@@ -34,10 +34,8 @@ layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
-#ifdef GPUINDEXING
-uniform uint pixels;
-#else
-layout(binding=2, std430) buffer countBuffer {
+#ifndef GPUINDEXING
+layout(binding=1, std430) buffer countBuffer {
   uint count[];
 };
 #endif
@@ -261,7 +259,7 @@ void main()
   uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 #ifdef GPUINDEXING
-  uint listIndex=atomicAdd(offset[pixels+headIndex],-1u)-1u;
+  uint listIndex=atomicAdd(offset[headIndex],-1u)-1u;
 #else
   uint listIndex=offset[headIndex]-atomicAdd(count[headIndex],1u)-1u;
 #endif

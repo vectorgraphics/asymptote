@@ -7,6 +7,11 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
+layout(binding=1, std430) buffer countBuffer
+{
+  uint count[];
+};
+
 layout(binding=2, std430) buffer localSumBuffer
 {
   uint localSum[];
@@ -15,6 +20,7 @@ layout(binding=2, std430) buffer localSumBuffer
 void main(void)
 {
   uint id=gl_GlobalInvocationID.x;
+  uint Sum=localSum[id];
 
   uint m=elements/(gl_WorkGroupSize.x*gl_NumWorkGroups.x);
   uint r=elements-m*gl_WorkGroupSize.x*gl_NumWorkGroups.x;
@@ -27,9 +33,8 @@ void main(void)
     stop=row+m;
   }
 
-  uint Sum=localSum[id];
   for(uint i=row; i < stop; ++i) {
-    Sum += offset[i];
-    offset[elements+i]=Sum;
+    Sum += count[i];
+    offset[i]=Sum;
   }
 }

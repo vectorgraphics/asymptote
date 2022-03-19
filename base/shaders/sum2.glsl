@@ -1,6 +1,6 @@
 layout(local_size_x=LOCAL_SIZE_X) in;
 
-uniform uint offset2;
+uniform uint offset2p;
 
 layout(binding=2, std430) buffer localSumBuffer
 {
@@ -18,5 +18,5 @@ void main(void)
   for(uint i=row+1u; i < stop; ++i)
     Sum += localSum[i];
 
-  localSum[offset2+id+1u]=Sum;
+  localSum[offset2p+id]=Sum;
 }
