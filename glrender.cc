@@ -2513,15 +2513,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
 
     if(camp::ssbo && GPUindexing &&
-       (shader == transparentShader || !interlock)) {
+       (shader == transparentShader || !interlock))
       glUniform1ui(glGetUniformLocation(shader,"pixels"),gl::pixels);
-      GLuint offset2=1+gl::processors;
-      glUniform1ui(glGetUniformLocation(shader,"offset2"),offset2);
-      GLuint m=GPUindexing ? gl::pixels/gl::processors : 0;
-      GLuint r=gl::pixels-m*gl::processors;
-      glUniform1ui(glGetUniformLocation(shader,"m1"),m);
-      glUniform1ui(glGetUniformLocation(shader,"r"),r);
-    }
   }
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
@@ -2692,15 +2685,8 @@ void aBufferTransparency()
   glUseProgram(blendShader);
   gl::lastshader=blendShader;
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
-  if(GPUindexing) {
+  if(GPUindexing)
     glUniform1ui(glGetUniformLocation(blendShader,"pixels"),gl::pixels);
-    GLuint offset2=gl::processors+1;
-    glUniform1ui(glGetUniformLocation(blendShader,"offset2"),offset2);
-    GLuint m=GPUindexing ? gl::pixels/gl::processors : 0;
-    GLuint r=gl::pixels-m*gl::processors;
-    glUniform1ui(glGetUniformLocation(blendShader,"m1"),m);
-    glUniform1ui(glGetUniformLocation(blendShader,"r"),r);
-  }
   glUniform4f(glGetUniformLocation(blendShader,"background"),
               gl::Background[0],gl::Background[1],gl::Background[2],
               gl::Background[3]);

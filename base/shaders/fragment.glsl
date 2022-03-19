@@ -34,7 +34,9 @@ layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
-#ifndef GPUINDEXING
+#ifdef GPUINDEXING
+uniform uint pixels;
+#else
 layout(binding=2, std430) buffer countBuffer {
   uint count[];
 };
@@ -57,7 +59,6 @@ layout(binding=7, std430) buffer opaqueDepthBuffer {
 };
 
 uniform uint width;
-uniform uint pixels;
 
 #endif
 

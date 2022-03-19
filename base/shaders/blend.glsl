@@ -6,7 +6,9 @@ layout(binding=1, std430) buffer maxBuffer {
   uint maxSize;
 };
 
-#ifndef GPUINDEXING
+#ifdef GPUINDEXING
+uniform uint pixels;
+#else
 layout(binding=2, std430) buffer countBuffer {
   uint count[];
 };
@@ -31,7 +33,6 @@ layout(binding=7, std430) buffer opaqueDepthBuffer {
 out vec4 outColor;
 
 uniform uint width;
-uniform uint pixels;
 uniform vec4 background;
 
 vec4 blend(vec4 outColor, vec4 color)
