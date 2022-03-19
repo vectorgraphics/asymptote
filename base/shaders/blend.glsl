@@ -6,19 +6,7 @@ layout(binding=1, std430) buffer maxBuffer {
   uint maxSize;
 };
 
-#ifdef GPUINDEXING
-uniform uint offset2;
-uniform uint m1;
-uniform uint r;
-
-layout(binding=2, std430) buffer localSumBuffer {
-  uint localSum[];
-};
-
-layout(binding=3, std430) buffer globalSumBuffer {
-  uint globalSum[];
-};
-#else
+#ifndef GPUINDEXING
 layout(binding=2, std430) buffer countBuffer {
   uint count[];
 };

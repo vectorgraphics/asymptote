@@ -29,6 +29,8 @@ void main(void)
 
   uint Sum=offset[row];
   Sum=localSum[id];
-  for(uint i=row; i < stop; ++i)
-    offset[elements+i] += Sum;
+  for(uint i=row; i < stop; ++i) {
+    Sum += offset[i];
+    offset[elements+i]=Sum;
+  }
 }

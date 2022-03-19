@@ -19,10 +19,8 @@ void main(void)
   uint stop=row+LOCAL_SIZE_X;
 
   uint Sum=localSum[row];
-  for(uint i=row+1u; i < stop; ++i) {
+  for(uint i=row+1u; i < stop; ++i)
     Sum += localSum[i];
-    localSum[i]=Sum;
-  }
 
   globalSum[id+1u]=Sum;
 }

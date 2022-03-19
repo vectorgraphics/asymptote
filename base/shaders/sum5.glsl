@@ -15,6 +15,8 @@ void main(void)
   uint stop=row+LOCAL_SIZE_X;
 
   uint Sum=localSum[offset2+id];
-  for(uint i=row; i < stop; ++i)
-    localSum[i] += Sum;
+  for(uint i=row; i < stop; ++i) {
+    Sum += localSum[i];
+    localSum[i]=Sum;
+  }
 }
