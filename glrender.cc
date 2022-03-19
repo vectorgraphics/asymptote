@@ -2365,8 +2365,7 @@ void refreshBuffers()
     if(GPUindexing) {
       double Tmin=HUGE_VAL;
       GLuint G=1;
-      for(gl::g=2; gl::g <= gl::maxgroups;
-          gl::g *= 2) {
+      for(gl::g=2; gl::g <= gl::maxgroups; gl::g *= 2) {
         initPartialSums();
         partialSums();
         seconds();
@@ -2418,8 +2417,8 @@ void refreshBuffers()
   else {
     // Compute partial sums on the CPU
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    GLuint *count=((GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,
-                                          GL_READ_ONLY));
+    GLuint *count=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,
+                                         GL_READ_ONLY);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     GLuint *offset=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,

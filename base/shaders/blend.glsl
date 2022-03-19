@@ -96,14 +96,15 @@ void main()
       E[0]=element(k,depth[listIndex+k]);
       ++k;
       uint i=1u;
-      while(true) {
+      while(k < size) {
         float d=depth[listIndex+k];
-        if(OpaqueDepth != 0.0)
+        if(OpaqueDepth != 0.0) {
           while(k < size && d >= OpaqueDepth) {
-            d=depth[listIndex+k];
             ++k;
+            d=depth[listIndex+k];
           }
-        if(k == size) break;
+          if(k == size) break;
+        }
         uint j=i;
         while(j > 0u && d > E[j-1u].depth) {
           E[j]=E[j-1u];
