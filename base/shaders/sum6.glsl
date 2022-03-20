@@ -34,7 +34,10 @@ void main(void)
   }
 
   for(uint i=row; i < stop; ++i) {
-    Sum += count[i];
-    offset[i]=Sum;
+    uint c=count[i];
+    if(c != 0u) {
+      Sum += c;
+      offset[i]=Sum;
+   }
   }
 }

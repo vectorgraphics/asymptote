@@ -831,8 +831,6 @@ int ceilquotient(int x, int y)
   return (x+y-1)/y;
 }
 
-bool exporting=false;
-
 void Export()
 {
   size_t ndata=3*fullWidth*fullHeight;
@@ -840,7 +838,6 @@ void Export()
   glReadBuffer(GL_BACK_LEFT);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
   glFinish();
-  exporting=true;
 
   try {
     unsigned char *data=new unsigned char[ndata];
@@ -910,7 +907,6 @@ void Export()
   }
 #endif
 #endif
-  exporting=false;
   camp::initSSBO=true;
 }
 
@@ -2379,8 +2375,6 @@ void refreshBuffers()
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_BYTE,&zero);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
@@ -2430,14 +2424,6 @@ void refreshBuffers()
     }
 
     initSSBO=false;
-  }
-
-  if(GPUindexing && gl::exporting) {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_BYTE,&zero);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
   }
 
   // Determine the fragment offsets

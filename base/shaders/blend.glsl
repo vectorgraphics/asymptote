@@ -42,9 +42,6 @@ void main()
   uint size=count[headIndex];
   float OpaqueDepth=opaqueDepth[headIndex];
   if(size == 0u) {
-#ifdef GPUINDEXING
-    offset[headIndex]=0u;
-#endif
     if(OpaqueDepth != 0.0)
       opaqueDepth[headIndex]=0.0;
     discard;
@@ -126,7 +123,4 @@ void main()
   }
 
   count[headIndex]=0u;
-#ifdef GPUINDEXING
-  offset[headIndex]=0u;
-#endif
 }
