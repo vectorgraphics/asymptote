@@ -17,6 +17,7 @@ layout(binding=2, std430) buffer localSumBuffer {
 };
 
 layout(binding=3, std430) buffer globalSumBuffer {
+  uint maxCount;
   uint globalSum[];
 };
 #else
