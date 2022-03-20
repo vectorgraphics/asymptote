@@ -2,10 +2,6 @@ layout(binding=0, std430) buffer offsetBuffer {
   uint offset[];
 };
 
-layout(binding=8, std430) buffer maxBuffer {
-  uint maxSize;
-};
-
 layout(binding=1, std430) buffer countBuffer {
   uint count[];
 };
@@ -24,6 +20,10 @@ layout(binding=6, std430) buffer opaqueBuffer {
 
 layout(binding=7, std430) buffer opaqueDepthBuffer {
   float opaqueDepth[];
+};
+
+layout(binding=8, std430) buffer maxBuffer {
+  uint maxSize;
 };
 
 out vec4 outColor;

@@ -8,12 +8,21 @@ layout(binding=2, std430) buffer localSumBuffer
 };
 
 layout(binding=3, std430) buffer globalSumBuffer {
+  uint maxCount;
   uint globalSum[];
+};
+
+layout(binding=8, std430) buffer maxBuffer {
+  uint maxSize;
 };
 
 void main(void)
 {
   uint id=gl_GlobalInvocationID.x;
+  if(id == 0u) {
+    maxCount=maxSize;
+    maxSize=0u;
+  }
 
   uint row=offset2+LOCAL_SIZE_X*id;
   uint stop=row+LOCAL_SIZE_X;

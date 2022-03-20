@@ -609,6 +609,18 @@ void initBlendShader()
   camp::blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
 }
 
+// Return the smallest power of 2 greater than or equal to n.
+inline GLuint ceilpow2(GLuint n)
+{
+  --n;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  return ++n;
+}
+
 void initShaders()
 {
   Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
@@ -760,6 +772,13 @@ void deleteShaders()
     glDeleteProgram(camp::materialShader[opaque]);
   }
   glDeleteProgram(camp::pixelShader);
+}
+
+void resizeBlendShader()
+{
+  gl::maxSize=ceilpow2(gl::maxSize);
+  gl::deleteBlendShader();
+  gl::initBlendShader();
 }
 
 void setBuffers()
@@ -2304,14 +2323,14 @@ void initPartialSums()
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::localSumBuffer);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,(1+gl::gs)*sizeof(GLuint),NULL,
+  glBufferData(GL_SHADER_STORAGE_BUFFER,(2+gl::gs)*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                     GL_UNSIGNED_BYTE,&zero);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::globalSumBuffer);
 }
 
-GLuint partialSums()
+GLuint partialSums(bool readSize=false)
 {
   GLuint fragments;
   // Compute local partial sums on the GPU
@@ -2334,13 +2353,22 @@ GLuint partialSums()
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
   // Compute global partial sums, including number of fragments, on the CPU
-  GLuint *sum=(GLuint *) (glMapBuffer(GL_SHADER_STORAGE_BUFFER,
-                                      GL_READ_WRITE));
+  GLuint *buffer=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,
+                                        GL_READ_WRITE);
+  if(readSize) {
+    gl::maxSize=buffer[0];
+    if(gl::maxSize > 0)
+      gl::resizeBlendShader();
+  }
+
+  GLuint *sum=buffer+1;
+
   fragments=0;
   for(GLint i=1; i <= gl::gs; ++i) {
     fragments += sum[i];
     sum[i]=fragments;
   }
+
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -2383,13 +2411,6 @@ void refreshBuffers()
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::maxBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(GLuint),
-                 NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,camp::maxBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_BYTE,&zero);
-
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(glm::vec4),NULL,
                  GL_DYNAMIC_DRAW);
@@ -2401,6 +2422,13 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,camp::opaqueDepthBuffer);
     const GLfloat zerof=0.0;
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32F,GL_RED,GL_FLOAT,&zerof);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::maxBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(GLuint),
+                 NULL,GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,camp::maxBuffer);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_BYTE,&zero);
 
     if(GPUindexing) {
       double Tmin=HUGE_VAL;
@@ -2442,7 +2470,7 @@ void refreshBuffers()
   glDepthMask(GL_TRUE); // Write to depth buffer
 
   if(GPUindexing)
-    fragments=partialSums();
+    fragments=partialSums(true);
   else {
     // Compute partial sums on the CPU
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
@@ -2643,18 +2671,6 @@ void drawTriangle()
   triangleData.clear();
 }
 
-// Return the smallest power of 2 greater than or equal to n.
-inline GLuint ceilpow2(GLuint n)
-{
-  --n;
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
-  return ++n;
-}
-
 void aBufferTransparency()
 {
   // Collect transparent fragments
@@ -2676,18 +2692,16 @@ void aBufferTransparency()
   fpu_trap(settings::trap());
   transparentData.clear();
 
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::maxBuffer);
-  GLuint *p=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
-  gl::maxSize=p[0];
-  p[0]=0;
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-  if(gl::maxSize > 0) {
-    gl::maxSize=ceilpow2(gl::maxSize);
-    gl::deleteBlendShader();
-    gl::initBlendShader();
+  if(!GPUindexing) {
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::maxBuffer);
+    GLuint *p=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
+    gl::maxSize=p[0];
+    if(gl::maxSize > 0) {
+      p[0]=0;
+      gl::resizeBlendShader();
+    }
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   }
-  if(GPUindexing)
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
 
   glEnable(GL_DEPTH_TEST);
 }
