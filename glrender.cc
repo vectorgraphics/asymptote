@@ -2676,20 +2676,18 @@ void aBufferTransparency()
   fpu_trap(settings::trap());
   transparentData.clear();
 
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::maxBuffer);
+  GLuint *p=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
+  gl::maxSize=p[0];
+  p[0]=0;
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   if(gl::maxSize > 0) {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::maxBuffer);
-    GLuint *p=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
-    gl::maxSize=p[0];
-    p[0]=0;
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-    if(gl::maxSize > 0) {
-      gl::maxSize=ceilpow2(gl::maxSize);
-      gl::deleteBlendShader();
-      gl::initBlendShader();
-    }
-    if(GPUindexing)
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
+    gl::maxSize=ceilpow2(gl::maxSize);
+    gl::deleteBlendShader();
+    gl::initBlendShader();
   }
+  if(GPUindexing)
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
 
   glEnable(GL_DEPTH_TEST);
 }
