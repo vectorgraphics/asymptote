@@ -2297,14 +2297,14 @@ void initPartialSums()
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::localSumBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::processors+gl::gs2+2)*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
-  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                     GL_UNSIGNED_BYTE,&zero);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::localSumBuffer);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,(2+gl::gs)*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
-  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                     GL_UNSIGNED_BYTE,&zero);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::globalSumBuffer);
 }
@@ -2369,7 +2369,7 @@ void refreshBuffers()
     glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::maxBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
@@ -2405,7 +2405,7 @@ void refreshBuffers()
       glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
                    NULL,GL_DYNAMIC_DRAW);
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE,&zero);
     }
     initSSBO=false;
