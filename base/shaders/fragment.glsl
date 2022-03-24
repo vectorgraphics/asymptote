@@ -30,47 +30,58 @@ float Roughness;
 
 #ifdef HAVE_SSBO
 
-layout(binding=0, std430) buffer offsetBuffer {
+layout(binding=0, std430) buffer offsetBuffer
+{
   uint offset[];
 };
 
 #ifdef GPUINDEXING
-uniform uint pixels;
-
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 uniform uint offset2;
 uniform uint m1;
 uniform uint r;
 #endif
-
-layout(binding=2, std430) buffer localSumBuffer {
+layout(binding=2, std430) buffer localSumBuffer
+{
   uint localSum[];
 };
 
-layout(binding=3, std430) buffer globalSumBuffer {
+layout(binding=3, std430) buffer globalSumBuffer
+{
   uint maxCount;
   uint globalSum[];
 };
 #else
-layout(binding=2, std430) buffer countBuffer {
+layout(binding=1, std430) buffer countBuffer
+{
   uint count[];
 };
 #endif
 
-layout(binding=4, std430) buffer fragmentBuffer {
+layout(binding=4, std430) buffer fragmentBuffer
+{
   vec4 fragment[];
 };
 
-layout(binding=5, std430) buffer depthBuffer {
+layout(binding=5, std430) buffer depthBuffer
+{
   float depth[];
 };
 
-layout(binding=6, std430) buffer opaqueBuffer {
+layout(binding=6, std430) buffer opaqueBuffer
+{
   vec4 opaqueColor[];
 };
 
-layout(binding=7, std430) buffer opaqueDepthBuffer {
+layout(binding=7, std430) buffer opaqueDepthBuffer
+{
   float opaqueDepth[];
+};
+
+layout(binding=8, std430) buffer indexBuffer
+{
+  uint maxSize;
+  uint index[];
 };
 
 uniform uint width;
@@ -273,14 +284,15 @@ void main()
 
 #ifndef WIDTH
 #ifdef HAVE_SSBO
-  uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+  uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+  uint element=index[pixel];
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 #ifdef GPUINDEXING
-  uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
+  uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
   uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
-    atomicAdd(offset[pixels+headIndex],-1u)-1u;
+    atomicAdd(offset[element],-1u)-1u;
 #else
-  uint listIndex=offset[headIndex]-atomicAdd(count[headIndex],1u)-1u;
+  uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
 #endif
   fragment[listIndex]=outColor;
   depth[listIndex]=gl_FragCoord.z;
@@ -290,10 +302,10 @@ void main()
 #else
 #if defined(HAVE_INTERLOCK) && !defined(OPAQUE)
   beginInvocationInterlockARB();
-  if(opaqueDepth[headIndex] == 0.0 || gl_FragCoord.z < opaqueDepth[headIndex])
+  if(opaqueDepth[pixel] == 0.0 || gl_FragCoord.z < opaqueDepth[pixel])
     {
-    opaqueDepth[headIndex]=gl_FragCoord.z;
-    opaqueColor[headIndex]=outColor;
+    opaqueDepth[pixel]=gl_FragCoord.z;
+    opaqueColor[pixel]=outColor;
   }
   endInvocationInterlockARB();
 #endif

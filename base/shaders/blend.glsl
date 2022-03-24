@@ -1,36 +1,37 @@
-layout(binding=0, std430) buffer offsetBuffer {
+layout(binding=0, std430) buffer offsetBuffer
+{
   uint offset[];
 };
 
-layout(binding=1, std430) buffer maxBuffer {
-  uint maxSize;
+layout(binding=1, std430) buffer countBuffer
+{
+  uint count[];
 };
 
 #ifdef GPUINDEXING
-uniform uint pixels;
 uniform uint offset2;
 uniform uint m1;
 uniform uint r;
 
-layout(binding=2, std430) buffer localSumBuffer {
+layout(binding=2, std430) buffer localSumBuffer
+{
   uint localSum[];
 };
 
-layout(binding=3, std430) buffer globalSumBuffer {
+layout(binding=3, std430) buffer globalSumBuffer
+{
   uint maxCount;
   uint globalSum[];
 };
-#else
-layout(binding=2, std430) buffer countBuffer {
-  uint count[];
-};
 #endif
 
-layout(binding=4, std430) buffer fragmentBuffer {
+layout(binding=4, std430) buffer fragmentBuffer
+{
   vec4 fragment[];
 };
 
-layout(binding=5, std430) buffer depthBuffer {
+layout(binding=5, std430) buffer depthBuffer
+{
   float depth[];
 };
 
@@ -40,6 +41,12 @@ layout(binding=6, std430) buffer opaqueBuffer {
 
 layout(binding=7, std430) buffer opaqueDepthBuffer {
   float opaqueDepth[];
+};
+
+layout(binding=8, std430) buffer indexBuffer
+{
+  uint maxSize;
+  uint index[];
 };
 
 out vec4 outColor;
@@ -54,27 +61,27 @@ vec4 blend(vec4 outColor, vec4 color)
 
 void main()
 {
-  uint headIndex=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
-#ifdef GPUINDEXING
-  uint size=offset[headIndex];
-#else
-  uint size=count[headIndex];
-#endif
-  float OpaqueDepth=opaqueDepth[headIndex];
-  if(size == 0u) {
-    if(OpaqueDepth != 0.0)
-      opaqueDepth[headIndex]=0.0;
+  uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+  float OpaqueDepth=opaqueDepth[pixel];
+  uint element=index[pixel];
+
+  if(element == 0u) {
+   if(OpaqueDepth != 0.0)
+      opaqueDepth[pixel]=0.0;
     discard;
   }
 
-  outColor=OpaqueDepth != 0.0 ? opaqueColor[headIndex] : background;
+  uint size=count[element];
+
+
+  outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
 
 #ifdef GPUINDEXING
-  uint p=headIndex < r*(m1+1u) ? headIndex/(m1+1u) : (headIndex-r)/m1;
+  uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
   uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
-    offset[pixels+headIndex];
+    offset[element];
 #else
-  uint listIndex=offset[headIndex]-size;
+  uint listIndex=offset[element]-size;
 #endif
 
   uint k=0u;
@@ -119,9 +126,12 @@ void main()
     }
 
     if(OpaqueDepth != 0.0)
-      opaqueDepth[headIndex]=0.0;
+      opaqueDepth[pixel]=0.0;
   } else {
     atomicMax(maxSize,size);
+#ifndef GPUINDEXING
+    count[0]=maxSize;
+#endif
     for(uint i=k+1u; i < size; i++) {
       vec4 temp=fragment[listIndex+i];
       float d=depth[listIndex+i];
@@ -144,13 +154,9 @@ void main()
         if(depth[i] < OpaqueDepth)
           outColor=blend(outColor,fragment[i]);
       }
-      opaqueDepth[headIndex]=0.0;
+      opaqueDepth[pixel]=0.0;
     }
   }
 
-#ifdef GPUINDEXING
-  offset[headIndex]=0u;
-#else
-  count[headIndex]=0u;
-#endif
+  index[pixel]=0u;
 }
