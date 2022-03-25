@@ -10,7 +10,6 @@ layout(binding=2, std430) buffer localSumBuffer
 
 layout(binding=3, std430) buffer globalSumBuffer
 {
-  uint maxCount;
   uint globalSum[];
 };
 
@@ -23,9 +22,6 @@ layout(binding=8, std430) buffer indexBuffer
 void main(void)
 {
   uint id=gl_GlobalInvocationID.x;
-  if(id == 0u)
-    maxCount=maxSize;
-
   uint row=offset2+LOCAL_SIZE_X*id;
   uint stop=row+LOCAL_SIZE_X;
 
@@ -34,6 +30,10 @@ void main(void)
     localSum[i]=Sum += localSum[i];
 
   uint id1=id+1u;
-  globalSum[id1]=id1 < gl_WorkGroupSize.x*gl_NumWorkGroups.x ?
-    Sum : Sum+localSum[offset2-1u]+localSum[final];
+  if(id1 < gl_WorkGroupSize.x*gl_NumWorkGroups.x)
+    globalSum[id1]=Sum;
+  else {
+    globalSum[0]=maxSize;
+    globalSum[id1]=Sum+localSum[offset2-1u]+localSum[final];
+  }
 }
