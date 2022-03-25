@@ -12,7 +12,7 @@ void main(void)
   uint id=gl_GlobalInvocationID.x;
   uint Sum=localSum[offset2+id];
 
-  uint row=LOCAL_SIZE_X*id;
+  uint row=LOCAL_SIZE_X*id+1u;
   uint stop=row+LOCAL_SIZE_X;
 
   for(uint i=row; i < stop; ++i) {

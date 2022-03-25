@@ -24,7 +24,7 @@ void main(void)
     maxSize=0u;
   }
 
-  uint row=offset2+LOCAL_SIZE_X*id;
+  uint row=offset2+LOCAL_SIZE_X*id+1u;
   uint stop=row+LOCAL_SIZE_X;
 
   uint Sum=localSum[row];
