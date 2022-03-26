@@ -681,7 +681,7 @@ void initShaders()
   if(interlock) shaderParams.push_back("HAVE_INTERLOCK");
   camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
                                                interlock);
-  if(!camp::materialShader[0]) {
+  if(interlock && !camp::materialShader[0]) {
     shaderParams.pop_back();
     interlock=false;
     camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo);
@@ -2391,6 +2391,8 @@ void refreshBuffers()
   gl::pixels=gl::Width*gl::Height;
 
   if(initSSBO) {
+    gl::processors=1;
+
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::pixels+1)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
