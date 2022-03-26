@@ -2406,11 +2406,9 @@ void refreshBuffers()
 
     GLuint one=1;
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,camp::elementsBuffer);
-    glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),NULL,
+    glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
-    glClearBufferData(GL_ATOMIC_COUNTER_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_INT,&one);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(glm::vec4),NULL,
@@ -2442,7 +2440,6 @@ void refreshBuffers()
 
   compressCount();
 
-  glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,camp::elementsBuffer);
   GLuint *p=(GLuint *) glMapBuffer(GL_ATOMIC_COUNTER_BUFFER,GL_READ_WRITE);
   gl::elements=GPUindexing ? p[0] : p[0]-1;
   p[0]=1;
