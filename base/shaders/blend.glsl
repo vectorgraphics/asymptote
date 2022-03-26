@@ -72,7 +72,6 @@ void main()
 
   uint size=count[element];
 
-
   outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
 
 #ifdef GPUINDEXING

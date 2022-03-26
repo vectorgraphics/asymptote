@@ -2445,6 +2445,8 @@ void refreshBuffers()
   p[0]=1;
   glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
 
+  if(gl::elements == 0) return;
+
   if(initSSBO) {
     if(GPUindexing) {
       double Tmin=HUGE_VAL;
