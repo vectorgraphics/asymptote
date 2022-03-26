@@ -2503,7 +2503,13 @@ void refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-    clearCount();
+    if(gl::exporting && !GPUindexing) {
+      GLuint zero=0;
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                        GL_UNSIGNED_INT,&zero);
+    } else
+      clearCount();
 
     if(gl::maxSize > gl::lastSize)
       gl::resizeBlendShader();
@@ -2697,13 +2703,6 @@ void drawTriangle()
 
 void aBufferTransparency()
 {
-  if(gl::exporting && !GPUindexing) {
-    GLuint zero=0;
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_INT,&zero);
-  }
-
   // Collect transparent fragments
   glDepthMask(GL_FALSE); // Disregard depth
   drawBuffer(transparentData,transparentShader,true);
