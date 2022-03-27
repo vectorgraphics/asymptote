@@ -13,10 +13,10 @@ layout(binding=3, std430) buffer globalSumBuffer
   uint globalSum[];
 };
 
-layout(binding=8, std430) buffer indexBuffer
+layout(binding=7, std430) buffer opaqueDepthBuffer
 {
   uint maxSize;
-  uint index[];
+  float opaqueDepth[];
 };
 
 void main(void)

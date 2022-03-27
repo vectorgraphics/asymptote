@@ -71,7 +71,6 @@ using vm::array;
 
 void runFile(const string& filename);
 
-
 namespace settings {
 
 using camp::pair;
@@ -1248,6 +1247,9 @@ void initSettings() {
                             "Compute indexing partial sums on GPU", true));
   addOption(new boolSetting("GPUinterlock", 0,
                             "Use fragment shader interlock", true));
+  addOption(new boolSetting("GPUcompress", 0,
+                            "Compress GPU transparent fragment counts",
+                            false));
   addOption(new IntSetting("GPUlocalSize", 0, "n",
                            "Compute shader local size", 16));
 

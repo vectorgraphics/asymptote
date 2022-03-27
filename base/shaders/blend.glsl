@@ -39,14 +39,21 @@ layout(binding=6, std430) buffer opaqueBuffer {
 };
 
 layout(binding=7, std430) buffer opaqueDepthBuffer {
+  uint maxSize;
   float opaqueDepth[];
 };
 
+#ifdef GPUCOMPRESS
 layout(binding=8, std430) buffer indexBuffer
 {
-  uint maxSize;
   uint index[];
 };
+#define INDEX(pixel) index[pixel]
+#define COUNT(pixel) index[pixel]
+#else
+#define INDEX(pixel) pixel
+#define COUNT(pixel) count[pixel]
+#endif
 
 out vec4 outColor;
 
@@ -62,7 +69,7 @@ void main()
 {
   uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
   float OpaqueDepth=opaqueDepth[pixel];
-  uint element=index[pixel];
+  uint element=INDEX(pixel);
 
   if(element == 0u) {
    if(OpaqueDepth != 0.0)
@@ -156,5 +163,5 @@ void main()
     }
   }
 
-  index[pixel]=0u;
+  COUNT(pixel)=0u;
 }

@@ -74,14 +74,19 @@ layout(binding=6, std430) buffer opaqueBuffer
 
 layout(binding=7, std430) buffer opaqueDepthBuffer
 {
+  uint maxSize;
   float opaqueDepth[];
 };
 
+#ifdef GPUCOMPRESS
 layout(binding=8, std430) buffer indexBuffer
 {
-  uint maxSize;
   uint index[];
 };
+#define INDEX(pixel) index[pixel]
+#else
+#define INDEX(pixel) pixel
+#endif
 
 uniform uint width;
 
@@ -284,7 +289,7 @@ void main()
 #ifndef WIDTH
 #ifdef HAVE_SSBO
   uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
-  uint element=index[pixel];
+  uint element=INDEX(pixel);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 #ifdef GPUINDEXING
   uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;

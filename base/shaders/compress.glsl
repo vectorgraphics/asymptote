@@ -7,7 +7,6 @@ layout(binding=0) uniform atomic_uint elements;
 
 layout(binding=8, std430) buffer indexBuffer
 {
-  uint maxSize;
   uint index[];
 };
 

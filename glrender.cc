@@ -29,6 +29,7 @@
 extern uint32_t CLZ(uint32_t a);
 
 bool GPUindexing;
+bool GPUcompress;
 
 namespace gl {
 #ifdef HAVE_PTHREAD
@@ -590,6 +591,8 @@ void initBlendShader()
   shaderParams.push_back(m2.str().c_str());
   if(GPUindexing)
     shaderParams.push_back("GPUINDEXING");
+  if(GPUcompress)
+    shaderParams.push_back("GPUCOMPRESS");
   shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
   shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
   camp::blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
@@ -639,6 +642,8 @@ void initShaders()
 #ifdef HAVE_SSBO
   if(GPUindexing)
     shaderParams.push_back("GPUINDEXING");
+  if(GPUcompress)
+    shaderParams.push_back("GPUCOMPRESS");
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
   camp::countShader=compileAndLinkShader(shaders,shaderParams,true);
   if(camp::countShader)
@@ -717,10 +722,10 @@ void initShaders()
   if(ssbo) {
     if(GPUindexing)
       shaderParams.push_back("GPUINDEXING");
-    shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
+     shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
     shaders[1]=ShaderfileModePair(compress.c_str(),GL_FRAGMENT_SHADER);
     camp::compressShader=compileAndLinkShader(shaders,shaderParams,ssbo);
-    if(GPUindexing)
+     if(GPUindexing)
       shaderParams.pop_back();
     else {
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
@@ -1889,6 +1894,12 @@ void init_osmesa()
 
 #endif /* HAVE_GL */
 
+bool NVIDIA()
+{
+  char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+  return string(GLSL_VERSION).find("NVIDIA") != string::npos;
+}
+
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
@@ -1898,12 +1909,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *diffuse, double *specular, bool view, int oldpid)
 {
   Iconify=getSetting<bool>("iconify");
-
-#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
-  GPUindexing=getSetting<bool>("GPUindexing");
-#else
-  GPUindexing=false;
-#endif
 
   if(zoom == 0.0) zoom=1.0;
 
@@ -2150,6 +2155,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif // HAVE_LIBOSMESA
 
   initialized=true;
+
+#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
+  GPUindexing=getSetting<bool>("GPUindexing");
+  GPUcompress=NVIDIA() ? true : getSetting<bool>("GPUcompress");
+#else
+  GPUindexing=false;
+  GPUcompress=false;
+#endif
 
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
@@ -2399,22 +2412,24 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::pixels+2)*sizeof(GLuint),
+    glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::pixels+1)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::countBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::pixels+1)*sizeof(GLuint),
-                 NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,camp::indexBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+    if(GPUcompress) {
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
+      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
+                   NULL,GL_DYNAMIC_DRAW);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,camp::indexBuffer);
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
 
-    GLuint one=1;
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,camp::elementsBuffer);
-    glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
-                 GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
+      GLuint one=1;
+      glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,camp::elementsBuffer);
+      glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
+                   GL_DYNAMIC_DRAW);
+      glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
+    }
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(glm::vec4),NULL,
@@ -2422,7 +2437,8 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,camp::opaqueBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueDepthBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLfloat),NULL,
+    glBufferData(GL_SHADER_STORAGE_BUFFER,
+                 sizeof(GLuint)+gl::pixels*sizeof(GLfloat),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,camp::opaqueDepthBuffer);
     const GLfloat zerof=0.0;
@@ -2444,14 +2460,16 @@ void refreshBuffers()
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
-  compressCount();
+  if(GPUcompress) {
+    compressCount();
 
-  GLuint *p=(GLuint *) glMapBuffer(GL_ATOMIC_COUNTER_BUFFER,GL_READ_WRITE);
-  gl::elements=GPUindexing ? p[0] : p[0]-1;
-  p[0]=1;
-  glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-
-  if(gl::elements == 0) return;
+    GLuint *p=(GLuint *) glMapBuffer(GL_ATOMIC_COUNTER_BUFFER,GL_READ_WRITE);
+    gl::elements=GPUindexing ? p[0] : p[0]-1;
+    p[0]=1;
+    glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+    if(gl::elements == 0) return;
+  } else
+    gl::elements=gl::pixels;
 
   if(initSSBO) {
     if(GPUindexing) {

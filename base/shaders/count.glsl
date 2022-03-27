@@ -1,6 +1,9 @@
+#ifdef GPUCOMPRESS
 layout(binding=8, std430) buffer indexBuffer
+#else
+layout(binding=1, std430) buffer countBuffer
+#endif
 {
-  uint maxSize;
   uint index[];
 };
 
