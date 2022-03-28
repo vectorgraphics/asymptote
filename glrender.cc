@@ -2410,7 +2410,7 @@ void refreshBuffers()
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 ((GPUindexing ? 2 : 1)*gl::pixels+1)*sizeof(GLuint),
+                 (GPUindexing ? 2 : 1)*(gl::pixels+1)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
 
@@ -2475,7 +2475,6 @@ void refreshBuffers()
     if(gl::elements == 0) return;
   } else
     gl::elements=gl::pixels;
-
 
   if(initSSBO) {
     if(GPUindexing) {
