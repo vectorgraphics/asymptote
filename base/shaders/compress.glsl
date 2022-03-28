@@ -1,11 +1,19 @@
-layout(binding=1, std430) buffer countBuffer
+#ifdef GPUINDEXING
+layout(binding=0, std430) buffer offsetBuffer
+{
+  uint offset[];
+};
+#define count offset
+#else
+layout(binding=2, std430) buffer countBuffer
 {
   uint count[];
 };
+#endif
 
 layout(binding=0) uniform atomic_uint elements;
 
-layout(binding=8, std430) buffer indexBuffer
+layout(binding=1, std430) buffer indexBuffer
 {
   uint index[];
 };

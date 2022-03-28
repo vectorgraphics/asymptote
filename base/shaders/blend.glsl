@@ -3,12 +3,8 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
-layout(binding=1, std430) buffer countBuffer
-{
-  uint count[];
-};
-
 #ifdef GPUINDEXING
+uniform uint elements;
 uniform uint offset2;
 uniform uint m1;
 uniform uint r;
@@ -21,6 +17,12 @@ layout(binding=2, std430) buffer localSumBuffer
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
+};
+#define count offset
+#else
+layout(binding=2, std430) buffer countBuffer
+{
+  uint count[];
 };
 #endif
 
@@ -44,7 +46,7 @@ layout(binding=7, std430) buffer opaqueDepthBuffer {
 };
 
 #ifdef GPUCOMPRESS
-layout(binding=8, std430) buffer indexBuffer
+layout(binding=1, std430) buffer indexBuffer
 {
   uint index[];
 };
@@ -84,7 +86,7 @@ void main()
 #ifdef GPUINDEXING
   uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
   uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
-    offset[element];
+    offset[elements+element];
 #else
   uint listIndex=offset[element]-size;
 #endif
