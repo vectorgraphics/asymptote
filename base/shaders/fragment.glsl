@@ -290,8 +290,8 @@ void main()
 #ifndef WIDTH
 #ifdef HAVE_SSBO
   uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
-  uint element=INDEX(pixel);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
+  uint element=INDEX(pixel);
 #ifdef GPUINDEXING
   uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
   uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+

@@ -73,13 +73,23 @@ void main()
   float OpaqueDepth=opaqueDepth[pixel];
   uint element=INDEX(pixel);
 
+#ifdef GPUCOMPRESS
   if(element == 0u) {
    if(OpaqueDepth != 0.0)
       opaqueDepth[pixel]=0.0;
     discard;
   }
+#endif
 
   uint size=count[element];
+
+#ifndef GPUCOMPRESS
+  if(size == 0u) {
+    if(OpaqueDepth != 0.0)
+      opaqueDepth[pixel]=0.0;
+    discard;
+  }
+#endif
 
   outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
 
