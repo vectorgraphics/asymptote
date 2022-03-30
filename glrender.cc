@@ -2323,6 +2323,7 @@ void clearCount()
 
 void compressCount()
 {
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
   glUseProgram(compressShader);
   gl::lastshader=compressShader;
   glUniform1ui(glGetUniformLocation(compressShader,"width"),gl::Width);
