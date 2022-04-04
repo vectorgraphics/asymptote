@@ -2389,11 +2389,10 @@ GLuint partialSums(bool readSize=false)
       gl::resizeBlendShader();
   }
 
-  fragments=0;
-  for(GLint i=1; i <= gl::gs; ++i) {
-    fragments += sum[i];
-    sum[i]=fragments;
-  }
+  fragments=sum[1];
+  for(GLint i=2; i < gl::gs; ++i)
+    sum[i]=fragments += sum[i];
+  fragments += sum[gl::gs];
 
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
