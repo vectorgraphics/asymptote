@@ -168,6 +168,7 @@ GLint gs;
 GLint g;
 GLuint processors;
 GLuint localsize;
+GLuint lastlocalsize;
 GLint maxgroups;
 GLuint maxSize;
 GLuint lastSize;
@@ -2164,7 +2165,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
 
   if(GPUindexing)
-    localsize=getSetting<Int>("GPUlocalSize");
+    lastlocalsize=localsize=getSetting<Int>("GPUlocalSize");
 
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
@@ -2475,12 +2476,18 @@ void refreshBuffers()
       double Tmin=HUGE_VAL;
       GLuint G=1;
       GLuint twos3=2*gl::localsize*gl::localsize*gl::localsize;
+
       if(twos3 > gl::elements) {
         gl::localsize=1;
         twos3=2;
+      } else gl::localsize=settings::getSetting<Int>("GPUlocalSize");
+
+      if(gl::localsize != gl::lastlocalsize) {
         gl::deleteComputeShaders();
         gl::initComputeShaders();
+        gl::lastlocalsize=gl::localsize;
       }
+
       GLint stop=min(gl::maxgroups,(GLint) (gl::elements/twos3));
       for(gl::g=2; gl::g <= stop; gl::g *= 2) {
         initPartialSums();
