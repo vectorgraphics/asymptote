@@ -7,6 +7,7 @@ layout(binding=0, std430) buffer offsetBuffer
 uniform uint elements;
 uniform uint offset2;
 uniform uint m1;
+uniform uint m2;
 uniform uint r;
 
 layout(binding=2, std430) buffer localSumBuffer

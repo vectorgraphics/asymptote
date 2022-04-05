@@ -584,11 +584,9 @@ void initBlendShader()
   std::vector<ShaderfileModePair> shaders(2);
   std::vector<std::string> shaderParams;
 
-  ostringstream s,m2;
+  ostringstream s;
   s << "ARRAYSIZE " << maxSize << "u" << endl;
   shaderParams.push_back(s.str().c_str());
-  m2 << "m2 " << localsize;
-  shaderParams.push_back(m2.str().c_str());
   if(GPUindexing)
     shaderParams.push_back("GPUINDEXING");
   if(GPUcompress)
@@ -662,10 +660,6 @@ void initShaders()
   if(!ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
          << endl;
-
-  ostringstream m2;
-  m2 << "m2 " << localsize;
-  shaderParams.push_back(m2.str().c_str());
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
@@ -2480,7 +2474,15 @@ void refreshBuffers()
     if(GPUindexing) {
       double Tmin=HUGE_VAL;
       GLuint G=1;
-      for(gl::g=2; gl::g <= gl::maxgroups; gl::g *= 2) {
+      GLuint twos3=2*gl::localsize*gl::localsize*gl::localsize;
+      if(twos3 > gl::elements) {
+        gl::localsize=1;
+        twos3=2;
+        gl::deleteComputeShaders();
+        gl::initComputeShaders();
+      }
+      GLint stop=min(gl::maxgroups,(GLint) (gl::elements/twos3));
+      for(gl::g=2; gl::g <= stop; gl::g *= 2) {
         initPartialSums();
         partialSums();
         seconds();
@@ -2577,6 +2579,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
       GLuint m=gl::elements/gl::processors;
       GLuint r=gl::elements-m*gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"m1"),m);
+      glUniform1ui(glGetUniformLocation(shader,"m2"),gl::localsize);
       glUniform1ui(glGetUniformLocation(shader,"r"),r);
     }
   }
@@ -2744,6 +2747,7 @@ void aBufferTransparency()
     GLuint m=gl::elements/gl::processors;
     GLuint r=gl::elements-m*gl::processors;
     glUniform1ui(glGetUniformLocation(blendShader,"m1"),m);
+    glUniform1ui(glGetUniformLocation(blendShader,"m2"),gl::localsize);
     glUniform1ui(glGetUniformLocation(blendShader,"r"),r);
   }
   glUniform4f(glGetUniformLocation(blendShader,"background"),

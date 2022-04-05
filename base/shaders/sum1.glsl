@@ -1,6 +1,5 @@
 layout(local_size_x=LOCAL_SIZE_X) in;
 
-uniform uint pixels;
 uniform uint elements;
 
 layout(binding=0, std430) buffer offsetBuffer
