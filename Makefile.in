@@ -355,7 +355,10 @@ cleaner: FORCE clean
 
 distclean: FORCE cleaner
 	cd doc && $(MAKE) distclean
-	cd LspCpp && rm -rf CMakeCache.txt CMakeDoxyfile.in CMakeDoxygenDefaults.cmake CMakeFiles Makefile cmake_install.cmake
+	cd LspCpp && rm -rf CMakeCache.txt CMakeDoxyfile.in \
+	  CMakeDoxygenDefaults.cmake CMakeFiles Makefile cmake_install.cmake \
+	  third_party/uri/src/CMakeFiles/network-uri.dir/detail
+
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
