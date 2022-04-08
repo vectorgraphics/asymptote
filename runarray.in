@@ -34,6 +34,16 @@ static const char *installFFTW=
   "Please install fftw3, then ./configure; make";
 #endif
 
+#ifdef HAVE_EIGEN_DENSE
+#include <Eigen/Dense>
+static const char *square="matrix must be square";
+using Eigen::MatrixXcd;
+using Eigen::ComplexSchur;
+#else
+static const char *installEIGEN=
+  "Please install eigen3, then ./configure; make";
+#endif
+
 using namespace camp;
 using namespace vm;
 
@@ -1962,6 +1972,58 @@ pairarray3* fft(pairarray3 *a, Int sign=1)
   error(installFFTW);
 #endif //  HAVE_LIBFFTW3
   return c;
+}
+
+// Compute the Schur decomposition of a 2D pair array
+pairarray3* _schur(pairarray2 *a)
+{
+#ifdef HAVE_EIGEN_DENSE
+  size_t n=checkArray(a);
+
+  MatrixXcd A=MatrixXcd::Random(n,n);
+  ComplexSchur<MatrixXcd> schur(n);
+
+  array *S=new array(2);
+
+  if(n) {
+    for(size_t i=0; i < n; ++i) {
+      array *ai=read<array *>(a,i);
+      size_t aisize=checkArray(ai);
+      if(aisize != n) error(square);
+      for(size_t j=0; j < n; ++j) {
+        pair z=read<pair>(ai,j);
+        A(i,j)=Complex(z.getx(),z.gety());
+      }
+    }
+
+    schur.compute(A);
+    MatrixXcd U=schur.matrixU();
+    MatrixXcd T=schur.matrixT();
+
+    array *u=new array(n);
+    array *t=new array(n);
+    (*S)[0]=u;
+    (*S)[1]=t;
+
+    for(size_t i=0; i < n; ++i) {
+      array *ui=new array(n);
+      array *ti=new array(n);
+      (*u)[i]=ui;
+      (*t)[i]=ti;
+      for(size_t j=0; j < n; ++j) {
+        Complex z=U(i,j);
+        Complex w=T(i,j);
+        (*ui)[j]=pair(z.real(),z.imag());
+        (*ti)[j]=pair(w.real(),w.imag());
+      }
+    }
+  }
+#else
+  unused(a);
+  array *S=new array(0);
+  error(installEIGEN);
+#endif //  HAVE_EIGEN_DENSE
+  return S;
 }
 
 Intarray2 *triangulate(pairarray *z)

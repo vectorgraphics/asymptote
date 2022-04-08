@@ -264,7 +264,7 @@ struct cputime {
 cputime cputime()
 {
   static processtime last;
-  real [] a=_cputime();
+  real[] a=_cputime();
   cputime cputime;
   real clock=a[4];
   cputime.parent.user=a[0];
@@ -300,6 +300,20 @@ void write(string s="", cputime c, string format=cputimeformat,
            suffix suffix=endl)
 {
   write(stdout,s,c,format,suffix);
+}
+
+struct schur {
+  pair[][] U;
+  pair[][] T;
+}
+
+schur schur(pair[][] a)
+{
+  pair[][][] S=_schur(a);
+  schur schur;
+  schur.U=S[0];
+  schur.T=S[1];
+  return schur;
 }
 
 if(settings.autoimport != "") {

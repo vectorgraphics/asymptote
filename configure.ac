@@ -237,6 +237,7 @@ AC_ARG_ENABLE(gc-full-debug,
 ])
 
 INCL=$INCL" -I/usr/include/tirpc"
+INCL=$INCL" -I/usr/include/eigen3"
 
 if test "$OSTYPE" = "msdos"; then
 CPPFLAGS=$CPPFLAGS" -D__MSDOS__ -I/usr/include/w32api -I/usr/include -DCALLBACK=__stdcall $INCL"
@@ -385,6 +386,7 @@ fi
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS(fpu_control.h)
+AC_CHECK_HEADERS(Eigen/Dense)
 AC_CHECK_FUNCS([feenableexcept])
 
 

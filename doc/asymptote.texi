@@ -5570,6 +5570,12 @@ using the given @code{sign};
 returns the unnormalized three-dimensional Fourier transform of
 @code{a} using the given @code{sign};
 
+@cindex @code{schur}
+@item schur schur(pair[][] a)
+returns a struct containing a unitary matrix @code{U} and
+a triangular matrix @code{T} such that
+@code{a=U*T*conj(transpose(U))};
+
 @cindex @code{dot}
 @item real dot(real[] a, real[] b)
 returns the dot product of the vectors @code{a} and @code{b};
