@@ -5570,6 +5570,13 @@ using the given @code{sign};
 returns the unnormalized three-dimensional Fourier transform of
 @code{a} using the given @code{sign};
 
+@cindex @code{realschur}
+@cindex @code{schur}
+@item realschur schur(real[][] a)
+returns a struct containing a unitary matrix @code{U} and
+a quasitriangular matrix @code{T} such that
+@code{a=U*T*transpose(U)};
+
 @cindex @code{schur}
 @item schur schur(pair[][] a)
 returns a struct containing a unitary matrix @code{U} and

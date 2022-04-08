@@ -302,6 +302,20 @@ void write(string s="", cputime c, string format=cputimeformat,
   write(stdout,s,c,format,suffix);
 }
 
+struct realschur {
+  real[][] U;
+  real[][] T;
+}
+
+realschur schur(real[][] a)
+{
+  real[][][] S=_schur(a);
+  realschur schur;
+  schur.U=S[0];
+  schur.T=S[1];
+  return schur;
+}
+
 struct schur {
   pair[][] U;
   pair[][] T;

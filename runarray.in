@@ -12,6 +12,7 @@ Intarray*  => IntArray()
 Intarray2*  => IntArray2()
 realarray* => realArray()
 realarray2* => realArray2()
+realarray3* => realArray3()
 pairarray* => pairArray()
 pairarray2* => pairArray2()
 pairarray3* => pairArray3()
@@ -37,7 +38,9 @@ static const char *installFFTW=
 #ifdef HAVE_EIGEN_DENSE
 #include <Eigen/Dense>
 static const char *square="matrix must be square";
+using Eigen::MatrixXd;
 using Eigen::MatrixXcd;
+using Eigen::RealSchur;
 using Eigen::ComplexSchur;
 #else
 static const char *installEIGEN=
@@ -56,6 +59,7 @@ typedef array Intarray;
 typedef array Intarray2;
 typedef array realarray;
 typedef array realarray2;
+typedef array realarray3;
 typedef array pairarray;
 typedef array pairarray2;
 typedef array pairarray3;
@@ -66,6 +70,7 @@ using types::IntArray;
 using types::IntArray2;
 using types::realArray;
 using types::realArray2;
+using types::realArray3;
 using types::pairArray;
 using types::pairArray2;
 using types::pairArray3;
@@ -1972,6 +1977,54 @@ pairarray3* fft(pairarray3 *a, Int sign=1)
   error(installFFTW);
 #endif //  HAVE_LIBFFTW3
   return c;
+}
+
+// Compute the real Schur decomposition of a 2D pair array
+realarray3* _schur(realarray2 *a)
+{
+#ifdef HAVE_EIGEN_DENSE
+  size_t n=checkArray(a);
+
+  MatrixXd A=MatrixXd::Random(n,n);
+  RealSchur<MatrixXd> schur(n);
+
+  array *S=new array(2);
+
+  if(n) {
+    for(size_t i=0; i < n; ++i) {
+      array *ai=read<array *>(a,i);
+      size_t aisize=checkArray(ai);
+      if(aisize != n) error(square);
+      for(size_t j=0; j < n; ++j)
+        A(i,j)=read<double>(ai,j);
+    }
+
+    schur.compute(A);
+    MatrixXd U=schur.matrixU();
+    MatrixXd T=schur.matrixT();
+
+    array *u=new array(n);
+    array *t=new array(n);
+    (*S)[0]=u;
+    (*S)[1]=t;
+
+    for(size_t i=0; i < n; ++i) {
+      array *ui=new array(n);
+      array *ti=new array(n);
+      (*u)[i]=ui;
+      (*t)[i]=ti;
+      for(size_t j=0; j < n; ++j) {
+        (*ui)[j]=U(i,j);
+        (*ti)[j]=T(i,j);
+      }
+    }
+  }
+#else
+  unused(a);
+  array *S=new array(0);
+  error(installEIGEN);
+#endif //  HAVE_EIGEN_DENSE
+  return S;
 }
 
 // Compute the Schur decomposition of a 2D pair array
