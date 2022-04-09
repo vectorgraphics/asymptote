@@ -171,7 +171,7 @@ string[] reverse(string[] a) {return a[reverse(a.length)];}
 real[] uniform(real a, real b, int n)
 {
   if(n <= 0) return new real[];
-  return a+(b-a)/n*sequence(n+1);
+  return a+sequence(n+1)/n*(b-a);
 }
 
 void eval(string s, bool embedded=false)
