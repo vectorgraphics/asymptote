@@ -5573,13 +5573,13 @@ returns the unnormalized three-dimensional Fourier transform of
 @cindex @code{realschur}
 @cindex @code{schur}
 @item realschur schur(real[][] a)
-returns a struct containing a unitary matrix @code{U} and
+returns a struct @code{realschur} containing a unitary matrix @code{U} and
 a quasitriangular matrix @code{T} such that
 @code{a=U*T*transpose(U)};
 
 @cindex @code{schur}
 @item schur schur(pair[][] a)
-returns a struct containing a unitary matrix @code{U} and
+returns a struct @code{schur} containing a unitary matrix @code{U} and
 a triangular matrix @code{T} such that
 @code{a=U*T*conj(transpose(U))};
 
