@@ -37,6 +37,7 @@ static const char *installFFTW=
 
 #ifdef HAVE_EIGEN_DENSE
 #include <Eigen/Dense>
+typedef std::complex<double> Complex;
 static const char *square="matrix must be square";
 using Eigen::MatrixXd;
 using Eigen::MatrixXcd;
