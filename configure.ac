@@ -305,8 +305,6 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
 fi
 
 AC_ARG_ENABLE(readline,
-CPPFLAGS="$CPPFLAGS "`pkg-config --cflags readline`
-LDFLAGS="$LDFLAGS "`pkg-config --libs readline`
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
 
 AC_ARG_ENABLE(static,
@@ -350,6 +348,8 @@ LDFLAGS=$LDFLAGS0
 ])
 
 if test "x$enable_readline" != "xno"; then
+CPPFLAGS="$CPPFLAGS "`pkg-config --cflags readline`
+LDFLAGS="$LDFLAGS "`pkg-config --libs readline`
 AC_COMPILE_IFELSE([
 AC_LANG_PROGRAM([
 #include <stdio.h>
