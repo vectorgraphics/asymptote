@@ -236,9 +236,6 @@ AC_ARG_ENABLE(gc-full-debug,
  fi
 ])
 
-INCL=$INCL" -I/usr/include/tirpc"
-INCL=$INCL" -I/usr/include/eigen3"
-
 if test "$OSTYPE" = "msdos"; then
 CPPFLAGS=$CPPFLAGS" -D__MSDOS__ -I/usr/include/w32api -I/usr/include -DCALLBACK=__stdcall $INCL"
 else
@@ -375,20 +372,30 @@ AC_ARG_ENABLE(fftw,
 [AS_HELP_STRING(--enable-fftw[[[=yes]]],enable FFTW Library)])
 
 if test "x$enable_fftw" != "xno"; then
-
+CPPFLAGS="$CPPFLAGS "`pkg-config --cflags fftw3`
+LDFLAGS="$LDFLAGS "`pkg-config --libs fftw3`
 AC_CHECK_HEADER(fftw3.h,
 AC_CHECK_LIB_STATIC([fftw3],[fftw_execute],HAVE_LIBFFTW3,
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
      AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 fi
 
+AC_ARG_ENABLE(eigen,
+[AS_HELP_STRING(--enable-eigen[[[=yes]]],enable Eigen Library)])
+
+if test "x$enable_eigen" != "xno"; then
+CPPFLAGS="$CPPFLAGS "`pkg-config --cflags eigen3`
+AC_CHECK_HEADERS(Eigen/Dense)
+fi
+
 # Checks for header files.
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS(fpu_control.h)
-AC_CHECK_HEADERS(Eigen/Dense)
 AC_CHECK_FUNCS([feenableexcept])
 
+CPPFLAGS="$CPPFLAGS "`pkg-config --cflags libtirpc`
+LDFLAGS="$LDFLAGS "`pkg-config --libs libtirpc`
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
@@ -400,6 +407,8 @@ AC_ARG_ENABLE(gsl,
 [AS_HELP_STRING(--enable-gsl[[[=yes]]],enable GNU Scientific Library)])
 
 if test "x$enable_gsl" != "xno"; then
+  CPPFLAGS="$CPPFLAGS "`pkg-config --cflags gsl`
+  LDFLAGS="$LDFLAGS "`pkg-config --libs gsl`
   AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_debye_6, [AC_DEFINE(HAVE_LIBGSL,1,
    DEFINE_LIB[gsl]) LIBS=$LIBS"-lgsl -lgslcblas "],

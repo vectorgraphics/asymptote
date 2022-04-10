@@ -949,6 +949,7 @@ struct versionOption : public option {
     bool ssbo=false;
     bool gsl=false;
     bool fftw3=false;
+    bool eigen=false;
     bool xdr=false;
     bool curl=false;
     bool lsp=false;
@@ -976,6 +977,10 @@ struct versionOption : public option {
 
 #ifdef HAVE_LIBFFTW3
     fftw3=true;
+#endif
+
+#ifdef HAVE_EIGEN_DENSE
+    eigen=true;
 #endif
 
 #ifdef HAVE_RPC_RPC_H
@@ -1022,6 +1027,7 @@ struct versionOption : public option {
     feature("SSBO     GLSL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
+    feature("Eigen    Eigenvalue library",eigen);
     feature("XDR      External Data Representation (portable binary file format for V3D)",xdr);
     feature("CURL     URL support",curl);
     feature("LSP      Language Server Protocol",lsp);
