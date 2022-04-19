@@ -2438,8 +2438,10 @@ void refreshBuffers()
         initPartialSums();
         partialSums();
         seconds();
-        partialSums();
-        double T=seconds();
+        unsigned int N=100;
+        for(unsigned int k=0; k < N; ++k)
+          partialSums();
+        double T=seconds()/N;
         if(T < Tmin) {
           Tmin=T;
           G=gl::g;
@@ -2449,6 +2451,7 @@ void refreshBuffers()
       initPartialSums();
       cout << gl::pixels << endl;
       cout << "Tmin=" << Tmin << endl;
+      cout << "Megapixels/second=" << gl::pixels/Tmin/1e6 << endl;
     }
 
     initSSBO=false;
