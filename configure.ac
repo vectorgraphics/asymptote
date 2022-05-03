@@ -396,8 +396,14 @@ AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS(fpu_control.h)
 AC_CHECK_FUNCS([feenableexcept])
 
-CPPFLAGS="$CPPFLAGS "`pkg-config --cflags libtirpc`
-LDFLAGS="$LDFLAGS "`pkg-config --libs libtirpc`
+case "$OSTYPE" in
+     darwin*)
+     ;;
+     *)
+     CPPFLAGS="$CPPFLAGS "`pkg-config --cflags libtirpc`
+     LDFLAGS="$LDFLAGS "`pkg-config --libs libtirpc`
+     ;;
+esac
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
