@@ -2408,7 +2408,6 @@ void refreshBuffers()
                  (GPUindexing ? 2 : 1)*(gl::pixels+1)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
-
     if(GPUcompress) {
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
@@ -2422,6 +2421,10 @@ void refreshBuffers()
       glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
                    GL_DYNAMIC_DRAW);
       glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
+    } else {
+      if(GPUindexing)
+        glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                          GL_UNSIGNED_BYTE,&zero);
     }
 
     if(!GPUindexing) {
@@ -2446,6 +2449,13 @@ void refreshBuffers()
   }
 
   // Determine the fragment offsets
+
+  if(gl::exporting && GPUindexing && !GPUcompress) {
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_BYTE,&zero);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
+  }
 
   if(!interlock) {
     drawBuffer(material1Data,countShader);
@@ -2535,8 +2545,7 @@ void refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-    if(gl::exporting && !GPUindexing) {
-      GLuint zero=0;
+    if(gl::exporting) {
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);

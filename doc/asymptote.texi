@@ -4048,6 +4048,7 @@ value, @code{settings.scroll=0}, specifies continuous scrolling.
 
 The routines
 @cindex @code{getstring}
+@cindex @code{getint}
 @cindex @code{getreal}
 @cindex @code{getpair}
 @cindex @code{gettriple}
