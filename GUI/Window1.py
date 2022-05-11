@@ -1060,9 +1060,10 @@ class MainWindow1(Qw.QMainWindow):
 
         for item in xasyObjects['objects']:
             key=item['transfKey']
-            if(key) in obj.transfKeymap.keys():
-                continue
-            obj.maxKey=max(obj.maxKey,int(key))
+            if existsAsy:
+                if(key) in obj.transfKeymap.keys():
+                    continue
+                obj.maxKey=max(obj.maxKey,int(key))
             if item['type'] == 'xasyScript':
                 print("Uh oh, there should not be any asy objects loaded")
 
@@ -1083,7 +1084,8 @@ class MainWindow1(Qw.QMainWindow):
                 print("ERROR")
 
         self.asy2psmap = x2a.asyTransform(xasyObjects['asy2psmap'])
-        self.globalObjectCounter = obj.maxKey+1
+        if existsAsy:
+            self.globalObjectCounter = obj.maxKey+1
 
         self.asyfyCanvas()
 
@@ -2046,7 +2048,7 @@ class MainWindow1(Qw.QMainWindow):
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
             postCanvas.setRenderHints(self.mainCanvas.renderHints())
             postCanvas.setTransform(self.getScrsTransform())
-            # self.makePenCosmetic(postCanvas)
+            self.makePenCosmetic(postCanvas)
 
             self.drawTransformPreview(postCanvas)
 
