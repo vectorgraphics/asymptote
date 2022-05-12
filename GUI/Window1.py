@@ -190,6 +190,7 @@ class MainWindow1(Qw.QMainWindow):
         self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedIndex': None, 'keyIndex': None}
         self.pendingSelectedObjList = []
         self.pendingSelectedObjIndex = -1
+        self.mostRecentObject = None
 
         self.savedMousePosition = None
         self.currentBoundingBox = None
@@ -1570,6 +1571,7 @@ class MainWindow1(Qw.QMainWindow):
             self.currentlySelectedObj['selectedIndex'] = selectedIndex
             self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet(
             )
+            self.mostRecentObject = selectedIndex
 
             self.currentBoundingBox = self.drawObjects[maj][minor].boundingBox
 
@@ -2427,7 +2429,9 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.statusbar.showMessage('No object to paste')
 
     def contextMenuEvent(self, event):
-        object = self.currentlySelectedObj['selectedIndex'] #Currently doesn't work
+        maj,min = self.mostRecentObject
+        object = self.drawObjects[maj][min]
+
         contextMenu = Qw.QMenu(self)
         fillAct = contextMenu.addAction("Fill")
         unfillAct = contextMenu.addAction("Unfill")
@@ -2435,6 +2439,6 @@ class MainWindow1(Qw.QMainWindow):
 
         if object is not None:
             if action == fillAct: #Should we use the py3.10 match?
-                object.path.fill = True
+                object.fill = True
             elif action == unfillAct:
-                object.path.fill = False #Will these be enough?
+                object.fill = False
