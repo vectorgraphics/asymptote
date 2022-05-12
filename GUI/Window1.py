@@ -2425,3 +2425,16 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
         else:
             self.ui.statusbar.showMessage('No object to paste')
+
+    def contextMenuEvent(self, event):
+        object = self.currentlySelectedObj['selectedIndex'] #Currently doesn't work
+        contextMenu = Qw.QMenu(self)
+        fillAct = contextMenu.addAction("Fill")
+        unfillAct = contextMenu.addAction("Unfill")
+        action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+
+        if object is not None:
+            if action == fillAct: #Should we use the py3.10 match?
+                object.path.fill = True
+            elif action == unfillAct:
+                object.path.fill = False #Will these be enough?
