@@ -26,16 +26,24 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
         super().__init__()
         self.shape = shape
         layout = Qw.QVBoxLayout()
-        self.label = Qw.QLabel("Another Window")
-        layout.addWidget(self.label)
 
+        self.label = Qw.QLabel("Fill:")
+        layout.addWidget(self.label)
         self.fillButton = Qw.QComboBox()
-        self.fillButton.addItem("unfill")
-        self.fillButton.addItem("fill")
+        self.fillButton.addItem("Unfilled")
+        self.fillButton.addItem("Filled")
+        self.fillButton.setCurrentIndex(int(self.shape.fill))
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         layout.addWidget(self.fillButton)
 
+        self.label = Qw.QLabel("Arrowhead:")
+        layout.addWidget(self.label)
+        self.arrowheadButton = Qw.QComboBox()
+        self.arrowheadButton.addItem("Not currently implemented")
+        layout.addWidget(self.arrowheadButton)
+
         self.setLayout(layout)
+        self.setWindowTitle("Shape Options Window")
 
     def fillChange(self, i):
-        self.shape.fill = (i == 1)
+        self.shape.fill = bool(i)
