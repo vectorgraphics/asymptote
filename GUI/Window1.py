@@ -32,6 +32,7 @@ import xasyStrings as xs
 
 import PrimitiveShape
 import InplaceAddObj
+import ContextWindow
 
 import CustMatTransform
 import SetCustomAnchor
@@ -2428,17 +2429,14 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.ui.statusbar.showMessage('No object to paste')
 
-    def contextMenuEvent(self, event):
+    def contextMenuEvent(self, event): #Make this into a selection mode
         maj,min = self.mostRecentObject
         object = self.drawObjects[maj][min]
 
         contextMenu = Qw.QMenu(self)
-        fillAct = contextMenu.addAction("Fill")
-        unfillAct = contextMenu.addAction("Unfill")
+        menuAct = contextMenu.addAction("Menu")
         action = contextMenu.exec_(self.mapToGlobal(event.pos()))
 
         if object is not None:
-            if action == fillAct: #Should we use the py3.10 match?
-                object.fill = True
-            elif action == unfillAct:
-                object.fill = False
+            self.a = ContextWindow.AnotherWindow(object)
+            self.a.show()
