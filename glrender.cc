@@ -2588,7 +2588,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
 
     if(camp::ssbo && GPUindexing &&
-       (shader == transparentShader || !interlock)) {
+       (shader == transparentShader || (!Opaque && !interlock))) {
       GLuint offset2=1+gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"elements"),gl::elements);
       glUniform1ui(glGetUniformLocation(shader,"offset2"),offset2);
