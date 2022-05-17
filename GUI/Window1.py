@@ -128,6 +128,7 @@ class MainWindow1(Qw.QMainWindow):
         devicePixelRatio=self.devicePixelRatio()
         self.ui.setupUi(self)
         self.ui.menubar.setNativeMenuBar(False)
+        self.setWindowIcon(Qg.QIcon("../asy.ico"))
 
         self.settings = xo.BasicConfigs.defaultOpt
         self.keyMaps = xo.BasicConfigs.keymaps
