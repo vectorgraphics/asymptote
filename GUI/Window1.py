@@ -2429,14 +2429,8 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.ui.statusbar.showMessage('No object to paste')
 
-    def contextMenuEvent(self, event): #Make this into a selection mode
+    def contextMenuEvent(self, event):
         maj,min = self.mostRecentObject
         object = self.drawObjects[maj][min]
-
-        contextMenu = Qw.QMenu(self)
-        menuAct = contextMenu.addAction("Menu")
-        action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-
-        if object is not None:
-            self.a = ContextWindow.AnotherWindow(object)
-            self.a.show()
+        self.a = ContextWindow.AnotherWindow(object)
+        self.a.show()
