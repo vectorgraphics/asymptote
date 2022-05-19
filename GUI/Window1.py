@@ -2432,6 +2432,5 @@ class MainWindow1(Qw.QMainWindow):
 
     def contextMenuEvent(self, event):
         maj,min = self.mostRecentObject
-        object = self.drawObjects[maj][min]
-        self.a = ContextWindow.AnotherWindow(object)
+        self.a = ContextWindow.AnotherWindow(self.fileItems[maj],self)
         self.a.show()

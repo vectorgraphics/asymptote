@@ -20,11 +20,11 @@ import CustMatTransform
 import SetCustomAnchor
 import GuidesManager
 
-#https://www.pythonguis.com/tutorials/creating-multiple-windows/
 class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
-    def __init__(self, shape):
+    def __init__(self, shape, parent):
         super().__init__()
         self.shape = shape
+        self.parent = parent
         layout = Qw.QVBoxLayout()
 
         self.label = Qw.QLabel("Fill:")
@@ -32,7 +32,7 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
         self.fillButton = Qw.QComboBox()
         self.fillButton.addItem("Unfilled")
         self.fillButton.addItem("Filled")
-        self.fillButton.setCurrentIndex(int(self.shape.fill))
+        self.fillButton.setCurrentIndex(int(self.shape.path.fill))
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         layout.addWidget(self.fillButton)
 
@@ -46,4 +46,5 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
         self.setWindowTitle("Shape Options Window")
 
     def fillChange(self, i):
-        self.shape.fill = bool(i)
+        if self.shape.path.fill != bool(i):
+            self.shape.swapFill()
