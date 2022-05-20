@@ -8592,7 +8592,7 @@ by @code{y} in the @math{y} direction, and by @code{z} in the @math{z}
 direction;
 @cindex @code{rotate}
 @item rotate(real angle, triple v)
-rotates by @code{angle} in degrees about an axis @code{v} through the origin;
+rotates by @code{angle} in degrees about the axis @code{O--v};
 @item rotate(real angle, triple u, triple v)
 rotates by @code{angle} in degrees about the axis @code{u--v};
 @item reflect(triple u, triple v, triple w)
