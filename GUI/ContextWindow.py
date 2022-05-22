@@ -19,6 +19,7 @@ import InplaceAddObj
 import CustMatTransform
 import SetCustomAnchor
 import GuidesManager
+import time
 
 class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
     def __init__(self, shape, parent):
@@ -48,3 +49,4 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
     def fillChange(self, i):
         if self.shape.path.fill != bool(i):
             self.shape.swapFill()
+            self.parent.quickUpdate()
