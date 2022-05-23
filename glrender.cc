@@ -171,7 +171,6 @@ GLuint localsize;
 GLuint lastlocalsize;
 GLint maxgroups;
 GLuint maxSize;
-GLuint lastSize;
 
 bool outlinemode=false;
 bool ibl=false;
@@ -765,12 +764,11 @@ void deleteShaders()
   glDeleteProgram(camp::pixelShader);
 }
 
-void resizeBlendShader()
+void resizeBlendShader(uint maxsize)
 {
-  gl::maxSize=ceilpow2(gl::maxSize);
+  gl::maxSize=ceilpow2(maxsize);
   gl::deleteBlendShader();
   gl::initBlendShader();
-  gl::lastSize=gl::maxSize;
 }
 
 void setBuffers()
@@ -1893,6 +1891,9 @@ void init_osmesa()
 
 bool NVIDIA()
 {
+  cout << (char *) glGetString(GL_VENDOR) << endl;
+  cout << (char *) glGetString(GL_RENDERER) << endl;
+
   char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
@@ -2333,17 +2334,18 @@ void initPartialSums()
   gl::gs=gl::localsize*gl::g;
   gl::gs2=gl::localsize*gl::gs;
   gl::processors=gl::localsize*gl::gs2;
+
   GLuint zero=0;
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::localSumBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,
-               (gl::processors+gl::gs2+2)*sizeof(GLuint),NULL,
+               (gl::processors+1)*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                     GL_UNSIGNED_INT,&zero);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::localSumBuffer);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::gs+1)*sizeof(GLuint),NULL,
+  glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::gs2+1)*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                     GL_UNSIGNED_INT,&zero);
@@ -2359,7 +2361,9 @@ GLuint partialSums(bool readSize=false)
 
   glDispatchCompute(gl::gs2,1,1);
 
+    /*
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
 
   glUseProgram(sum2Shader);
   GLuint offset2=gl::processors+1;
@@ -2373,19 +2377,21 @@ GLuint partialSums(bool readSize=false)
   glUniform1ui(glGetUniformLocation(sum3Shader,"final"),offset2+gl::gs2);
   glDispatchCompute(gl::g,1,1);
 
+  */
+
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
   // Compute global partial sums, including number of fragments, on the CPU
   GLuint *sum=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
 
   if(readSize) {
-    gl::maxSize=sum[0];
+    GLuint maxsize=sum[0];
     sum[0]=0;
-    if(gl::maxSize > gl::lastSize)
-      gl::resizeBlendShader();
+    if(maxsize > gl::maxSize)
+      gl::resizeBlendShader(maxsize);
   }
 
   fragments=sum[1];
-  for(GLint i=2; i < gl::gs; ++i)
+  for(GLint i=2; i < gl::gs2; ++i)
     sum[i]=fragments += sum[i];
   fragments += sum[gl::gs];
 
@@ -2526,7 +2532,7 @@ void refreshBuffers()
     GLuint *p=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                               0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
-    gl::maxSize=p[0];
+    GLuint maxsize=p[0];
     GLuint *count=p+1;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
@@ -2552,8 +2558,8 @@ void refreshBuffers()
     } else
       clearCount();
 
-    if(gl::maxSize > gl::lastSize)
-      gl::resizeBlendShader();
+    if(maxsize > gl::maxSize)
+      gl::resizeBlendShader(maxsize);
   }
 
   if(fragments > maxFragments) {

@@ -12,8 +12,22 @@ layout(binding=2, std430) buffer localSumBuffer
   uint localSum[];
 };
 
+layout(binding=3, std430) buffer globalSumBuffer
+{
+  uint globalSum[];
+};
+
+layout(binding=7, std430) buffer opaqueDepthBuffer
+{
+  uint maxSize;
+  float opaqueDepth[];
+};
+
+shared uint groupSum[gl_WorkGroupSize.x+1u];
+
 void main(void)
 {
+
   uint id=gl_GlobalInvocationID.x;
 
   uint m=elements/(gl_WorkGroupSize.x*gl_NumWorkGroups.x);
@@ -27,10 +41,34 @@ void main(void)
     stop=row+m;
   }
 
-  uint Sum=offset[row];
-  offset[elements+row]=Sum;
+  uint sum;
+  offset[elements+row]=sum=offset[row];
   for(uint i=row+1u; i < stop; ++i)
-    offset[elements+i]=Sum += offset[i];
+    offset[elements+i]=sum += offset[i];
 
-  localSum[id+1u]=Sum;
+  uint index=gl_LocalInvocationID.x;
+  if(index == 0u)
+   groupSum[0u]=0u;
+
+  groupSum[index+1u]=sum;
+
+  barrier();
+
+  // Hillis and Steele over all sums in workgroup
+  for(uint shift=1u; shift < gl_WorkGroupSize.x; shift *= 2u) {
+    uint read=index < shift ? groupSum[index] :
+      groupSum[index]+groupSum[index-shift];
+    barrier();
+    groupSum[index]=read;
+    barrier();
+  }
+
+  uint read=groupSum[index];
+  localSum[id]=read;
+
+  if(index+1u == LOCAL_SIZE_X) {
+    if(gl_WorkGroupID == 0u)
+      globalSum[0]=maxSize;
+    globalSum[gl_WorkGroupID.x+1u]=read+sum;
+  }
 }

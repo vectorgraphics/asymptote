@@ -295,7 +295,7 @@ void main()
   uint element=INDEX(pixel);
 #ifdef GPUINDEXING
   uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
-  uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
+  uint listIndex=localSum[p]+globalSum[p/m2]+
     atomicAdd(offset[elements+element],-1u)-1u;
 #else
   uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
