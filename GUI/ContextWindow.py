@@ -37,6 +37,15 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         layout.addWidget(self.fillButton)
 
+        self.label = Qw.QLabel("Reflection:")
+        layout.addWidget(self.label)
+        self.reflectionButton = Qw.QComboBox()
+        self.reflectionButton.addItem("None")
+        self.reflectionButton.addItem("Horizontal")
+        self.reflectionButton.addItem("Vertical")
+        self.reflectionButton.currentIndexChanged.connect(self.reflectionChange)
+        layout.addWidget(self.reflectionButton)
+
         self.label = Qw.QLabel("Arrowhead:")
         layout.addWidget(self.label)
         self.arrowheadButton = Qw.QComboBox()
@@ -50,3 +59,14 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
         if self.shape.path.fill != bool(i):
             self.shape.swapFill()
             self.parent.quickUpdate()
+
+    def reflectionChange(self, i):
+        currentAnchor = Qc.QPointF(0, 0)
+        if i == 0:
+            self.parent.newTransform = xT.makeScaleTransform(1, 1, currentAnchor).toQTransform()
+        if i == 1:
+            self.parent.newTransform = xT.makeScaleTransform(1, -1, currentAnchor).toQTransform()
+        if i == 2:
+            self.parent.newTransform = xT.makeScaleTransform(-1, 1, currentAnchor).toQTransform()
+        self.parent.currentlySelectedObj['selectedIndex'] = self.parent.mostRecentObject
+        self.parent.releaseTransform()
