@@ -70,3 +70,4 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
             self.parent.newTransform = xT.makeScaleTransform(-1, 1, currentAnchor).toQTransform()
         self.parent.currentlySelectedObj['selectedIndex'] = self.parent.mostRecentObject
         self.parent.releaseTransform()
+        self.parent.newTransform = Qg.QTransform()
