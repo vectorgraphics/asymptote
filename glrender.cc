@@ -2334,8 +2334,11 @@ void initPartialSums()
   gl::gs=gl::localsize*gl::g;
   gl::gs2=gl::localsize*gl::gs;
   gl::processors=gl::localsize*gl::gs2;
+  GLuint m=gl::elements/gl::processors;
+      cout << "m=" << m << endl;
 
   GLuint zero=0;
+  /*
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::localSumBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,
                (gl::processors+1)*sizeof(GLuint),NULL,
@@ -2343,6 +2346,7 @@ void initPartialSums()
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                     GL_UNSIGNED_INT,&zero);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::localSumBuffer);
+  */
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::gs2+1)*sizeof(GLuint),NULL,
@@ -2517,6 +2521,7 @@ void refreshBuffers()
         }
       }
       gl::g=G;
+      cout << "g=" << gl::g << " Tmin=" << Tmin << endl;
       initPartialSums();
     }
     initSSBO=false;
