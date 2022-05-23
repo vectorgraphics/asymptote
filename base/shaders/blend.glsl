@@ -10,6 +10,11 @@ uniform uint m1;
 uniform uint m2;
 uniform uint r;
 
+layout(binding=2, std430) buffer localSumBuffer
+{
+  uint localSum[];
+};
+
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
@@ -91,7 +96,7 @@ void main()
 
 #ifdef GPUINDEXING
   uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
-  uint listIndex=globalSum[p/m2]+
+  uint listIndex=localSum[p/m2]+globalSum[p/(m2*m2)]+
     offset[elements+element];
 #else
   uint listIndex=offset[element]-size;

@@ -2338,7 +2338,6 @@ void initPartialSums()
       cout << "m=" << m << endl;
 
   GLuint zero=0;
-  /*
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::localSumBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,
                (gl::processors+1)*sizeof(GLuint),NULL,
@@ -2346,10 +2345,9 @@ void initPartialSums()
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                     GL_UNSIGNED_INT,&zero);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::localSumBuffer);
-  */
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::gs2+1)*sizeof(GLuint),NULL,
+  glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::gs+1)*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                     GL_UNSIGNED_INT,&zero);
@@ -2365,23 +2363,22 @@ GLuint partialSums(bool readSize=false)
 
   glDispatchCompute(gl::gs2,1,1);
 
-    /*
-  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-
-
-  glUseProgram(sum2Shader);
   GLuint offset2=gl::processors+1;
+
+  /*
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+  glUseProgram(sum2Shader);
   glUniform1ui(glGetUniformLocation(sum2Shader,"offset2"),offset2);
   glDispatchCompute(gl::gs,1,1);
+  */
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
 
   glUseProgram(sum3Shader);
   glUniform1ui(glGetUniformLocation(sum3Shader,"offset2"),offset2);
-  glUniform1ui(glGetUniformLocation(sum3Shader,"final"),offset2+gl::gs2);
+//  glUniform1ui(glGetUniformLocation(sum3Shader,"final"),offset2+gl::gs2);
   glDispatchCompute(gl::g,1,1);
-
-  */
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
   // Compute global partial sums, including number of fragments, on the CPU
@@ -2395,7 +2392,7 @@ GLuint partialSums(bool readSize=false)
   }
 
   fragments=sum[1];
-  for(GLint i=2; i < gl::gs2; ++i)
+  for(GLint i=2; i < gl::gs; ++i)
     sum[i]=fragments += sum[i];
   fragments += sum[gl::gs];
 

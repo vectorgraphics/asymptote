@@ -7,15 +7,9 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
-layout(binding=3, std430) buffer globalSumBuffer
+layout(binding=2, std430) buffer localSumBuffer
 {
-  uint globalSum[];
-};
-
-layout(binding=7, std430) buffer opaqueDepthBuffer
-{
-  uint maxSize;
-  float opaqueDepth[];
+  uint localSum[];
 };
 
 shared uint groupSum[gl_WorkGroupSize.x+1u];
@@ -35,7 +29,7 @@ void main(void)
     stop=m;
   }
 
-  uint cache[8]; // Assumes m < 8
+  uint cache[32]; // Assumes m < 8
 
   uint sum;
   cache[0]=sum=offset[row];
@@ -61,12 +55,10 @@ void main(void)
 
   uint shift=groupSum[index];
 
+  uint start=elements+row;
   for(uint i=0u; i < stop; ++i)
-    offset[elements+row+i]=cache[i]+shift;
+    offset[start+i]=cache[i]+shift;
 
-  if(index+1u == LOCAL_SIZE_X) {
-    if(gl_WorkGroupID == 0u)
-      globalSum[0]=maxSize;
-    globalSum[gl_WorkGroupID.x+1u]=sum+shift;
-  }
+  if(index+1u == LOCAL_SIZE_X)
+    localSum[gl_WorkGroupID.x+1u]=sum+shift;
 }

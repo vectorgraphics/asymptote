@@ -1,7 +1,6 @@
 layout(local_size_x=LOCAL_SIZE_X) in;
 
 uniform uint offset2;
-uniform uint final;
 
 layout(binding=2, std430) buffer localSumBuffer
 {
@@ -22,7 +21,7 @@ layout(binding=7, std430) buffer opaqueDepthBuffer
 void main(void)
 {
   uint id=gl_GlobalInvocationID.x;
-  uint row=offset2+LOCAL_SIZE_X*id;
+  uint row=LOCAL_SIZE_X*id;
   uint stop=row+LOCAL_SIZE_X;
 
   uint Sum=localSum[row];
@@ -34,6 +33,6 @@ void main(void)
     globalSum[id1]=Sum;
   else {
     globalSum[0]=maxSize;
-    globalSum[id1]=Sum+localSum[offset2-1u]+localSum[final];
+    globalSum[id1]=Sum+localSum[offset2-1u];
   }
 }
