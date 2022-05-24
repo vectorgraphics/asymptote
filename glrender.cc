@@ -2379,13 +2379,10 @@ GLuint partialSums(bool readSize=false)
     fragments=sum[1];
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   } else {
-    fragments=5400000;
-    GLuint maxsize=8;
-    if(maxsize > gl::maxSize)
-      gl::resizeBlendShader(maxsize);
-
-//    glFinish();
+    fragments=0;
+    glFinish();
   }
+
   return fragments;
 }
 
