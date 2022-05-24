@@ -2347,7 +2347,7 @@ void initPartialSums()
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::localSumBuffer);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::gs+1)*sizeof(GLuint),NULL,
+  glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::g+1)*sizeof(GLuint),NULL,
                GL_DYNAMIC_DRAW);
   glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                     GL_UNSIGNED_INT,&zero);
@@ -2363,21 +2363,8 @@ GLuint partialSums(bool readSize=false)
 
   glDispatchCompute(gl::gs2,1,1);
 
-  GLuint offset2=gl::processors+1;
-
-  /*
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-  glUseProgram(sum2Shader);
-  glUniform1ui(glGetUniformLocation(sum2Shader,"offset2"),offset2);
-  glDispatchCompute(gl::gs,1,1);
-  */
-
-  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-
-
   glUseProgram(sum3Shader);
-  glUniform1ui(glGetUniformLocation(sum3Shader,"offset2"),offset2);
-//  glUniform1ui(glGetUniformLocation(sum3Shader,"final"),offset2+gl::gs2);
   glDispatchCompute(gl::g,1,1);
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -2392,9 +2379,9 @@ GLuint partialSums(bool readSize=false)
   }
 
   fragments=sum[1];
-  for(GLint i=2; i < gl::gs; ++i)
+  for(GLint i=2; i < gl::g; ++i)
     sum[i]=fragments += sum[i];
-  fragments += sum[gl::gs];
+  fragments += sum[gl::g];
 
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
@@ -2509,16 +2496,21 @@ void refreshBuffers()
       for(gl::g=2; gl::g <= stop; gl::g *= 2) {
         initPartialSums();
         partialSums();
+        unsigned int N=1000;
         seconds();
-        partialSums();
-        double T=seconds();
+        for(unsigned int k=0; k < N; ++k)
+          partialSums();
+        double T=seconds()/N;
+//        double T=seconds();
         if(T < Tmin) {
           Tmin=T;
           G=gl::g;
         }
       }
       gl::g=G;
+      cout << "elements=" << gl::elements << endl;
       cout << "g=" << gl::g << " Tmin=" << Tmin << endl;
+      cout << "Megapixels/second=" << gl::elements/Tmin/1e6 << endl;
       initPartialSums();
     }
     initSSBO=false;
@@ -2597,9 +2589,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
     if(camp::ssbo && GPUindexing &&
        (shader == transparentShader || (!Opaque && !interlock))) {
-      GLuint offset2=1+gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"elements"),gl::elements);
-      glUniform1ui(glGetUniformLocation(shader,"offset2"),offset2);
       GLuint m=gl::elements/gl::processors;
       GLuint r=gl::elements-m*gl::processors;
       glUniform1ui(glGetUniformLocation(shader,"m1"),m);
@@ -2765,9 +2755,7 @@ void aBufferTransparency()
   gl::lastshader=blendShader;
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
   if(GPUindexing) {
-    GLuint offset2=gl::processors+1;
     glUniform1ui(glGetUniformLocation(blendShader,"elements"),gl::elements);
-    glUniform1ui(glGetUniformLocation(blendShader,"offset2"),offset2);
     GLuint m=gl::elements/gl::processors;
     GLuint r=gl::elements-m*gl::processors;
     glUniform1ui(glGetUniformLocation(blendShader,"m1"),m);

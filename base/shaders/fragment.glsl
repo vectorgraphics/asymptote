@@ -38,7 +38,6 @@ layout(binding=0, std430) buffer offsetBuffer
 #ifdef GPUINDEXING
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
 uniform uint elements;
-uniform uint offset2;
 uniform uint m1;
 uniform uint m2;
 uniform uint r;
@@ -295,7 +294,7 @@ void main()
   uint element=INDEX(pixel);
 #ifdef GPUINDEXING
   uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
-  uint listIndex=localSum[p/m2]+globalSum[p/(m2*m2)]+
+  uint listIndex=localSum[p/m2]+globalSum[p/(m2*m2*m2)]+
     atomicAdd(offset[elements+element],-1u)-1u;
 #else
   uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;

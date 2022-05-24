@@ -5,7 +5,6 @@ layout(binding=0, std430) buffer offsetBuffer
 
 #ifdef GPUINDEXING
 uniform uint elements;
-uniform uint offset2;
 uniform uint m1;
 uniform uint m2;
 uniform uint r;
@@ -96,7 +95,7 @@ void main()
 
 #ifdef GPUINDEXING
   uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
-  uint listIndex=localSum[p/m2]+globalSum[p/(m2*m2)]+
+  uint listIndex=localSum[p/m2]+globalSum[p/(m2*m2*m2)]+
     offset[elements+element];
 #else
   uint listIndex=offset[element]-size;

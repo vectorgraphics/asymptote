@@ -29,7 +29,7 @@ void main(void)
     stop=m;
   }
 
-  uint cache[32]; // Assumes m < 8
+  uint cache[6]; // Assumes m < 8
 
   uint sum;
   cache[0]=sum=offset[row];
