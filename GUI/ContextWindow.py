@@ -21,7 +21,7 @@ import SetCustomAnchor
 import GuidesManager
 import time
 
-class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
+class AnotherWindow(Qw.QWidget):
     def __init__(self, shape, parent):
         super().__init__()
         self.shape = shape
@@ -33,7 +33,6 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
         self.fillButton = Qw.QComboBox()
         self.fillButton.addItem("Unfilled")
         self.fillButton.addItem("Filled")
-        self.fillButton.setCurrentIndex(int(self.shape.path.fill))
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         layout.addWidget(self.fillButton)
 
@@ -51,6 +50,12 @@ class AnotherWindow(Qw.QWidget): #Fill, Arrowhead
         self.arrowheadButton = Qw.QComboBox()
         self.arrowheadButton.addItem("Not currently implemented")
         layout.addWidget(self.arrowheadButton)
+
+        if not isinstance(self.shape, x2a.xasyShape):
+            self.fillButton.setDisabled(True)
+            self.arrowheadButton.setDisabled(True)
+        else:
+            self.fillButton.setCurrentIndex(int(self.shape.path.fill))
 
         self.setLayout(layout)
         self.setWindowTitle("Shape Options Window")
