@@ -29,7 +29,7 @@ void main(void)
     stop=m;
   }
 
-  uint cache[4]; // must be bigger than m.
+  uint cache[3]; // must be bigger than m.
 
   uint sum;
   cache[0]=sum=offset[row];
