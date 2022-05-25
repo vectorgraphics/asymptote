@@ -12,7 +12,7 @@ layout(binding=2, std430) buffer localSumBuffer
   uint localSum[];
 };
 
-shared uint groupSum[gl_WorkGroupSize.x+1u];
+shared uint groupSum[gl_WorkGroupSize.x];
 
 void main(void)
 {
@@ -29,7 +29,7 @@ void main(void)
     stop=m;
   }
 
-  uint cache[6]; // Assumes m < 8
+  uint cache[8]; // Size must be larger than m
 
   uint sum;
   cache[0]=sum=offset[row];
@@ -37,10 +37,7 @@ void main(void)
     cache[i]=sum += offset[row+i];
 
   uint index=gl_LocalInvocationID.x;
-  if(index == 0u)
-   groupSum[0u]=0u;
-
-  groupSum[index+1u]=sum;
+  groupSum[index]=sum;
 
   barrier();
 
@@ -53,7 +50,7 @@ void main(void)
     barrier();
   }
 
-  uint shift=groupSum[index];
+  uint shift=index > 0 ? groupSum[index-1u] : 0u;
 
   uint start=elements+row;
   for(uint i=0u; i < stop; ++i)
