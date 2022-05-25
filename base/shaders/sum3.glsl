@@ -10,12 +10,6 @@ layout(binding=3, std430) buffer globalSumBuffer
   uint globalSum[];
 };
 
-layout(binding=9, std430) buffer globalBuffer
-{
-  uint MaxSize;
-  uint Sum;
-};
-
 layout(binding=7, std430) buffer opaqueDepthBuffer
 {
   uint maxSize;
@@ -59,22 +53,10 @@ void main(void)
     localSum[row+i]=cache[i]+shift;
 
   if(index+1u == LOCAL_SIZE_X) {
-/*
     if(gl_WorkGroupID.x == 0u) {
       globalSum[0]=maxSize;
       globalSum[gl_WorkGroupID.x+1u]=sum+shift;
     }
-*/
     globalSum[gl_WorkGroupID.x+1u]=sum+shift;
-  }
-
-  barrier();
-
-  if(id+1u == gl_WorkGroupSize.x*gl_NumWorkGroups.x) {
-    sum=globalSum[1u];
-    for(uint i=2u; i < gl_NumWorkGroups.x; ++i)
-      globalSum[i]=sum += globalSum[i];
-    MaxSize=maxSize;
-    Sum=sum+globalSum[gl_NumWorkGroups.x];
   }
 }
