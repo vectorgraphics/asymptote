@@ -53,10 +53,8 @@ void main(void)
     localSum[row+i]=cache[i]+shift;
 
   if(index+1u == LOCAL_SIZE_X) {
-    if(gl_WorkGroupID.x == 0u) {
+    if(gl_WorkGroupID.x == 0u)
       globalSum[0]=maxSize;
-      globalSum[gl_WorkGroupID.x+1u]=sum+shift;
-    }
     globalSum[gl_WorkGroupID.x+1u]=sum+shift;
   }
 }

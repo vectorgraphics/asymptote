@@ -3,27 +3,21 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
-#ifdef GPUINDEXING
-uniform uint elements;
-uniform uint m1;
-uniform uint m2;
-uniform uint r;
-
-layout(binding=2, std430) buffer localSumBuffer
+layout(binding=2, std430) buffer countBuffer
 {
-  uint localSum[];
+  uint count[];
 };
+
+#ifdef GPUINDEXING
+#define LOCALSIZE 256u
+#define CHUNKSIZE 16u
+const uint GROUPSIZE=LOCALSIZE*CHUNKSIZE;
 
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
 };
-#define count offset
 #else
-layout(binding=2, std430) buffer countBuffer
-{
-  uint count[];
-};
 #endif
 
 layout(binding=4, std430) buffer fragmentBuffer
@@ -94,9 +88,8 @@ void main()
   outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
 
 #ifdef GPUINDEXING
-  uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
-  uint listIndex=localSum[p/m2]+globalSum[p/(m2*m2*m2)]+
-    offset[elements+element];
+  uint listIndex=globalSum[element/GROUPSIZE]+
+    offset[element];
 #else
   uint listIndex=offset[element]-size;
 #endif

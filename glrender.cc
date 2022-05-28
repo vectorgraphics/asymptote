@@ -94,7 +94,6 @@ GLuint offsetBuffer;
 GLuint indexBuffer;
 GLuint elementsBuffer;
 GLuint countBuffer;
-GLuint localSumBuffer;
 GLuint globalSumBuffer;
 GLuint fragmentBuffer;
 GLuint depthBuffer;
@@ -785,11 +784,9 @@ void setBuffers()
 
 #ifdef HAVE_SSBO
   glGenBuffers(1, &camp::offsetBuffer);
-  if(GPUindexing) {
-    glGenBuffers(1, &camp::localSumBuffer);
+  if(GPUindexing)
     glGenBuffers(1, &camp::globalSumBuffer);
-  } else
-    glGenBuffers(1, &camp::countBuffer);
+  glGenBuffers(1, &camp::countBuffer);
   if(GPUcompress) {
     glGenBuffers(1, &camp::indexBuffer);
     glGenBuffers(1, &camp::elementsBuffer);
@@ -1891,9 +1888,6 @@ void init_osmesa()
 
 bool NVIDIA()
 {
-  cout << (char *) glGetString(GL_VENDOR) << endl;
-  cout << (char *) glGetString(GL_RENDERER) << endl;
-
   char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
@@ -2329,45 +2323,15 @@ void compressCount()
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
-void initPartialSums()
-{
-  gl::gs=gl::localsize*gl::g;
-  gl::gs2=gl::localsize*gl::gs;
-  gl::processors=gl::localsize*gl::gs2;
-  GLuint m=gl::elements/gl::processors;
-      cout << "m=" << m << endl;
-
-  GLuint zero=0;
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::localSumBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,
-               (gl::processors+1)*sizeof(GLuint),NULL,
-               GL_DYNAMIC_DRAW);
-  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                    GL_UNSIGNED_INT,&zero);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::localSumBuffer);
-
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::g+1)*sizeof(GLuint),NULL,
-               GL_DYNAMIC_DRAW);
-  glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                    GL_UNSIGNED_INT,&zero);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::globalSumBuffer);
-}
-
 GLuint partialSums(bool readSize=false)
 {
   GLuint fragments;
   // Compute local partial sums on the GPU
   glUseProgram(sum1Shader);
-  glUniform1ui(glGetUniformLocation(sum1Shader,"elements"),gl::elements);
-
-  glDispatchCompute(gl::gs2,1,1);
-
-  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-  glUseProgram(sum3Shader);
   glDispatchCompute(gl::g,1,1);
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
   // Compute global partial sums, including number of fragments, on the CPU
   GLuint *sum=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
 
@@ -2381,6 +2345,7 @@ GLuint partialSums(bool readSize=false)
   fragments=sum[1];
   for(GLint i=2; i < gl::g; ++i)
     sum[i]=fragments += sum[i];
+
   fragments += sum[gl::g];
 
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -2394,39 +2359,50 @@ void refreshBuffers()
   GLuint fragments;
   gl::pixels=gl::Width*gl::Height;
 
+  const GLint CHUNKSIZE=16;
+  const GLint LOCALSIZE=256;
+  const GLint GROUPSIZE=LOCALSIZE*CHUNKSIZE;
+
   if(initSSBO) {
     gl::processors=1;
 
+    GLuint Pixels;
+    if(GPUindexing) {
+      GLuint G=gl::ceilquotient(gl::pixels,GROUPSIZE);
+      Pixels=GROUPSIZE*G;
+
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
+      glBufferData(GL_SHADER_STORAGE_BUFFER,(G+1)*sizeof(GLuint),NULL,
+                   GL_DYNAMIC_READ);
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                        GL_UNSIGNED_INT,&zero);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::globalSumBuffer);
+    } else Pixels=gl::pixels;
+
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 (GPUindexing ? 2 : 1)*(gl::pixels+1)*sizeof(GLuint),
+    glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+1)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+1)*sizeof(GLuint),
+                 NULL,GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
+
     if(GPUcompress) {
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
                    NULL,GL_DYNAMIC_DRAW);
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::indexBuffer);
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_INT,&zero);
 
       GLuint one=1;
       glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,camp::elementsBuffer);
       glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
                    GL_DYNAMIC_DRAW);
       glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
-    } else {
-      if(GPUindexing)
-        glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                          GL_UNSIGNED_BYTE,&zero);
-    }
-
-    if(!GPUindexing) {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::pixels+1)*sizeof(GLuint),
-                   NULL,GL_DYNAMIC_DRAW);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
-    }
+    } else
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
+                        GL_UNSIGNED_BYTE,&zero); // Clear the count buffer
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(glm::vec4),NULL,
@@ -2440,12 +2416,15 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,camp::opaqueDepthBuffer);
     const GLfloat zerof=0.0;
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32F,GL_RED,GL_FLOAT,&zerof);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
+    initSSBO=false;
   }
 
   // Determine the fragment offsets
 
   if(gl::exporting && GPUindexing && !GPUcompress) {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                       GL_UNSIGNED_BYTE,&zero);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
@@ -2475,50 +2454,26 @@ void refreshBuffers()
   } else
     gl::elements=gl::pixels;
 
-  if(initSSBO) {
-    if(GPUindexing) {
-      double Tmin=HUGE_VAL;
-      GLuint G=1;
-      GLuint twos3=2*gl::localsize*gl::localsize*gl::localsize;
+  if(GPUindexing) {
+    gl::g=gl::ceilquotient(gl::elements,GROUPSIZE);
+    gl::elements=GROUPSIZE*gl::g;
 
-      if(twos3 > gl::elements) {
-        gl::localsize=1;
-        twos3=2;
-      } else gl::localsize=settings::getSetting<Int>("GPUlocalSize");
-
-      if(gl::localsize != gl::lastlocalsize) {
-        gl::deleteComputeShaders();
-        gl::initComputeShaders();
-        gl::lastlocalsize=gl::localsize;
-      }
-
-      GLint stop=min(gl::maxgroups,(GLint) (gl::elements/twos3));
-      for(gl::g=2; gl::g <= stop; gl::g *= 2) {
-        initPartialSums();
+    if(settings::verbose > 3) {
+      static bool first=true;
+      if(first) {
         partialSums();
-        unsigned int N=1000;
-        seconds();
-        for(unsigned int k=0; k < N; ++k)
-          partialSums();
-        double T=seconds()/N;
-//        double T=seconds();
-        if(T < Tmin) {
-          Tmin=T;
-          G=gl::g;
-        }
+        first=false;
       }
-      gl::g=G;
+      seconds();
+      partialSums();
+      double T=seconds();
       cout << "elements=" << gl::elements << endl;
-      cout << "g=" << gl::g << " Tmin=" << Tmin << endl;
-      cout << "Megapixels/second=" << gl::elements/Tmin/1e6 << endl;
-      initPartialSums();
+      cout << "Tmin (ms)=" << T*1e3 << endl;
+      cout << "Megapixels/second=" << gl::elements/T/1e6 << endl;
     }
-    initSSBO=false;
-  }
 
-  if(GPUindexing)
     fragments=partialSums(true);
-  else {
+  } else {
     size_t size=gl::elements*sizeof(GLuint);
 
     // Compute partial sums on the CPU

@@ -35,27 +35,21 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
-#ifdef GPUINDEXING
-#if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
-uniform uint elements;
-uniform uint m1;
-uniform uint m2;
-uniform uint r;
-#endif
-layout(binding=2, std430) buffer localSumBuffer
+layout(binding=2, std430) buffer countBuffer
 {
-  uint localSum[];
+  uint count[];
 };
+
+#ifdef GPUINDEXING
+#define LOCALSIZE 256u
+#define CHUNKSIZE 16u
+const uint GROUPSIZE=LOCALSIZE*CHUNKSIZE;
 
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
 };
 #else
-layout(binding=2, std430) buffer countBuffer
-{
-  uint count[];
-};
 #endif
 
 layout(binding=4, std430) buffer fragmentBuffer
@@ -293,9 +287,8 @@ void main()
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
 #ifdef GPUINDEXING
-  uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
-  uint listIndex=localSum[p/m2]+globalSum[p/(m2*m2*m2)]+
-    atomicAdd(offset[elements+element],-1u)-1u;
+  uint listIndex=globalSum[element/GROUPSIZE]+
+    atomicAdd(offset[element],-1u)-1u;
 #else
   uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
 #endif
