@@ -34,7 +34,7 @@ void main(void)
 
   uint dataOffset=start+id;
   uint shuffleOffset=id/blockSize+id;
-  uint stride=localSize/blockSize+localSize;
+  const uint stride=localSize/blockSize+localSize;
   for(uint i=0; i < blockSize; i++)
     shuffle[shuffleOffset+i*stride]=count[dataOffset+i*localSize];
 
