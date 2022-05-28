@@ -87,8 +87,6 @@ GLint blendShader;
 GLint zeroShader;
 GLint compressShader;
 GLint sum1Shader;
-GLint sum2Shader;
-GLint sum3Shader;
 
 GLuint offsetBuffer;
 GLuint indexBuffer;
@@ -166,8 +164,9 @@ GLint gs2;
 GLint gs;
 GLint g;
 GLuint processors;
-GLuint localsize;
-GLuint lastlocalsize;
+GLuint localSize;
+GLuint blockSize;
+GLuint groupSize;
 GLint maxgroups;
 GLuint maxSize;
 
@@ -540,19 +539,19 @@ void noShaders()
 void initComputeShaders()
 {
   string sum1=locateFile("shaders/sum1.glsl");
-  string sum2=locateFile("shaders/sum2.glsl");
-  string sum3=locateFile("shaders/sum3.glsl");
 
-  if(sum1.empty() || sum2.empty() || sum3.empty())
+  if(sum1.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
   std::vector<std::string> shaderParams;
 
   shaders[0]=ShaderfileModePair(sum1.c_str(),GL_COMPUTE_SHADER);
-  ostringstream s;
-  s << "LOCAL_SIZE_X " << localsize << "u" << endl;
+  ostringstream s,s2;
+  s << "localSize " << gl::localSize << "u" << endl;
   shaderParams.push_back(s.str().c_str());
+  s2 << "blockSize " << gl::blockSize << "u" << endl;
+  shaderParams.push_back(s2.str().c_str());
   GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true);
   if(rc == 0) {
     GPUindexing=false; // Compute shaders are unavailable.
@@ -560,15 +559,8 @@ void initComputeShaders()
       cout << "No compute shader support" << endl;
   } else {
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxgroups);
-    maxgroups=min(1024,maxgroups/(GLint) (localsize*localsize));
+    maxgroups=min(1024,maxgroups/(GLint) (localSize*localSize));
     camp::sum1Shader=rc;
-
-    shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
-    camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,true);
-
-    shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
-    camp::sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
-                                          true);
   }
 }
 
@@ -733,8 +725,6 @@ void initShaders()
 void deleteComputeShaders()
 {
   glDeleteProgram(camp::sum1Shader);
-  glDeleteProgram(camp::sum2Shader);
-  glDeleteProgram(camp::sum3Shader);
 }
 
 void deleteBlendShader()
@@ -2159,8 +2149,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
 
-  if(GPUindexing)
-    lastlocalsize=localsize=getSetting<Int>("GPUlocalSize");
+  if(GPUindexing) {
+    gl::localSize=getSetting<Int>("GPUlocalSize");
+    gl::blockSize=getSetting<Int>("GPUblockSize");
+    gl::groupSize=gl::localSize*gl::blockSize;
+  }
 
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
@@ -2359,17 +2352,13 @@ void refreshBuffers()
   GLuint fragments;
   gl::pixels=gl::Width*gl::Height;
 
-  const GLint CHUNKSIZE=16;
-  const GLint LOCALSIZE=256;
-  const GLint GROUPSIZE=LOCALSIZE*CHUNKSIZE;
-
   if(initSSBO) {
     gl::processors=1;
 
     GLuint Pixels;
     if(GPUindexing) {
-      GLuint G=gl::ceilquotient(gl::pixels,GROUPSIZE);
-      Pixels=GROUPSIZE*G;
+      GLuint G=gl::ceilquotient(gl::pixels,gl::groupSize);
+      Pixels=gl::groupSize*G;
 
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,(G+1)*sizeof(GLuint),NULL,
@@ -2455,8 +2444,8 @@ void refreshBuffers()
     gl::elements=gl::pixels;
 
   if(GPUindexing) {
-    gl::g=gl::ceilquotient(gl::elements,GROUPSIZE);
-    gl::elements=GROUPSIZE*gl::g;
+    gl::g=gl::ceilquotient(gl::elements,gl::groupSize);
+    gl::elements=gl::groupSize*gl::g;
 
     if(settings::verbose > 3) {
       static bool first=true;
@@ -2546,12 +2535,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
     if(camp::ssbo && GPUindexing &&
        (shader == transparentShader || (!Opaque && !interlock))) {
-      glUniform1ui(glGetUniformLocation(shader,"elements"),gl::elements);
-      GLuint m=gl::elements/gl::processors;
-      GLuint r=gl::elements-m*gl::processors;
-      glUniform1ui(glGetUniformLocation(shader,"m1"),m);
-      glUniform1ui(glGetUniformLocation(shader,"m2"),gl::localsize);
-      glUniform1ui(glGetUniformLocation(shader,"r"),r);
+      glUniform1ui(glGetUniformLocation(shader,"groupSize"),gl::groupSize);
     }
   }
 
@@ -2711,14 +2695,8 @@ void aBufferTransparency()
   glUseProgram(blendShader);
   gl::lastshader=blendShader;
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
-  if(GPUindexing) {
-    glUniform1ui(glGetUniformLocation(blendShader,"elements"),gl::elements);
-    GLuint m=gl::elements/gl::processors;
-    GLuint r=gl::elements-m*gl::processors;
-    glUniform1ui(glGetUniformLocation(blendShader,"m1"),m);
-    glUniform1ui(glGetUniformLocation(blendShader,"m2"),gl::localsize);
-    glUniform1ui(glGetUniformLocation(blendShader,"r"),r);
-  }
+  if(GPUindexing)
+    glUniform1ui(glGetUniformLocation(blendShader,"groupSize"),gl::groupSize);
   glUniform4f(glGetUniformLocation(blendShader,"background"),
               gl::Background[0],gl::Background[1],gl::Background[2],
               gl::Background[3]);

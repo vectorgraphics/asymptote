@@ -1,8 +1,6 @@
-#define LOCALSIZE 256u
-#define CHUNKSIZE 16u
-const uint GROUPSIZE=LOCALSIZE*CHUNKSIZE;
+const uint groupSize=localSize*blockSize;
 
-layout(local_size_x=LOCALSIZE) in;
+layout(local_size_x=localSize) in;
 
 layout(binding=0, std430) buffer offsetBuffer
 {
@@ -26,24 +24,24 @@ layout(binding=7, std430) buffer opaqueDepthBuffer
 };
 
 // avoid bank conflicts and coalesce global memory accesses
-shared uint groupSum[LOCALSIZE+1u];
-shared uint shuffle[GROUPSIZE+LOCALSIZE];
+shared uint groupSum[localSize+1u];
+shared uint shuffle[groupSize+localSize];
 
 void main(void)
 {
   uint id=gl_LocalInvocationID.x;
-  uint start=gl_WorkGroupID.x*GROUPSIZE;
+  uint start=gl_WorkGroupID.x*groupSize;
 
   uint dataOffset=start+id;
-  uint shuffleOffset=id/CHUNKSIZE+id;
-  uint stride=LOCALSIZE/CHUNKSIZE+LOCALSIZE;
-  for(uint i=0; i < CHUNKSIZE; i++)
-    shuffle[shuffleOffset+i*stride]=count[dataOffset+i*LOCALSIZE];
+  uint shuffleOffset=id/blockSize+id;
+  uint stride=localSize/blockSize+localSize;
+  for(uint i=0; i < blockSize; i++)
+    shuffle[shuffleOffset+i*stride]=count[dataOffset+i*localSize];
 
   barrier();
 
-  uint Offset=id*CHUNKSIZE+id;
-  uint stop=Offset+CHUNKSIZE;
+  uint Offset=id*blockSize+id;
+  uint stop=Offset+blockSize;
   uint sum=shuffle[Offset];
   for(uint i=Offset+1u; i < stop; ++i)
     shuffle[i]=sum += shuffle[i];
@@ -53,21 +51,21 @@ void main(void)
   groupSum[id+1u]=sum;
   barrier();
 
-  for(uint shift=1u; shift < LOCALSIZE; shift *= 2u) {
+  for(uint shift=1u; shift < localSize; shift *= 2u) {
     uint read=id < shift ? groupSum[id] : groupSum[id]+groupSum[id-shift];
     barrier();
     groupSum[id]=read;
     barrier();
   }
 
-  for(uint i=0u; i < CHUNKSIZE; i++)
-    offset[dataOffset+i*LOCALSIZE]=
-      shuffle[shuffleOffset+i*stride]+groupSum[(i*LOCALSIZE+id)/CHUNKSIZE];
+  for(uint i=0u; i < blockSize; i++)
+    offset[dataOffset+i*localSize]=
+      shuffle[shuffleOffset+i*stride]+groupSum[(i*localSize+id)/blockSize];
 
-  if(id+1u == LOCALSIZE) {
+  if(id+1u == localSize) {
     if(gl_WorkGroupID.x == 0u)
       globalSum[0u]=maxSize;
     globalSum[gl_WorkGroupID.x+1u]=
-      shuffle[shuffleOffset+CHUNKSIZE*stride-stride]+groupSum[LOCALSIZE-1u];
+      shuffle[shuffleOffset+blockSize*stride-stride]+groupSum[localSize-1u];
   }
 }
