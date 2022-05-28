@@ -2150,7 +2150,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 #if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
   GPUindexing=getSetting<bool>("GPUindexing");
-  GPUcompress=NVIDIA() || getSetting<bool>("GPUcompress");
+  GPUcompress=getSetting<bool>("GPUcompress");
 #else
   GPUindexing=false;
   GPUcompress=false;
@@ -2464,9 +2464,11 @@ void refreshBuffers()
         partialSums();
         first=false;
       }
+      unsigned int N=1000;
       seconds();
-      partialSums();
-      double T=seconds();
+      for(unsigned int i=0; i < N; ++i)
+        partialSums();
+      double T=seconds()/N;
       cout << "elements=" << gl::elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;
       cout << "Megapixels/second=" << gl::elements/T/1e6 << endl;
