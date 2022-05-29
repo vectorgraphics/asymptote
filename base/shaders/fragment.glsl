@@ -57,7 +57,6 @@ layout(binding=4, std430) buffer fragmentBuffer
 
 layout(binding=5, std430) buffer depthBuffer
 {
-  uint maxSize;
   float depth[];
 };
 
@@ -66,12 +65,11 @@ layout(binding=6, std430) buffer opaqueBuffer
   vec4 opaqueColor[];
 };
 
-/*
 layout(binding=7, std430) buffer opaqueDepthBuffer
 {
+  uint maxSize;
   float opaqueDepth[];
 };
-*/
 
 #ifdef GPUCOMPRESS
 layout(binding=1, std430) buffer indexBuffer
@@ -300,9 +298,11 @@ void main()
 #else
 #if defined(HAVE_INTERLOCK) && !defined(OPAQUE)
   beginInvocationInterlockARB();
-  float depth=opaqueColor[pixel].a;
-  if(depth == 0.0 || gl_FragCoord.z < depth)
-    opaqueColor[pixel]=vec4(outColor.rgb,gl_FragCoord.z);
+  if(opaqueDepth[pixel] == 0.0 || gl_FragCoord.z < opaqueDepth[pixel])
+    {
+    opaqueDepth[pixel]=gl_FragCoord.z;
+    opaqueColor[pixel]=outColor;
+  }
   endInvocationInterlockARB();
 #endif
 #endif

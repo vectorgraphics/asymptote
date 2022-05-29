@@ -2414,15 +2414,11 @@ void refreshBuffers()
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE,&zero); // Clear the count buffer
 
-    glm::vec4 zerov=glm::vec4(0.0,0.0,0.0,0.0);
-
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(glm::vec4),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,camp::opaqueBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_RGBA32F,GL_RGBA,GL_FLOAT,&zerov);
 
-    /*
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueDepthBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
                  sizeof(GLuint)+gl::pixels*sizeof(GLfloat),NULL,
@@ -2430,7 +2426,6 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,camp::opaqueDepthBuffer);
     const GLfloat zerof=0.0;
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32F,GL_RED,GL_FLOAT,&zerof);
-    */
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
     initSSBO=false;

@@ -25,7 +25,6 @@ layout(binding=4, std430) buffer fragmentBuffer
 
 layout(binding=5, std430) buffer depthBuffer
 {
-  uint maxSize;
   float depth[];
 };
 
@@ -33,11 +32,10 @@ layout(binding=6, std430) buffer opaqueBuffer {
   vec4 opaqueColor[];
 };
 
-/*
 layout(binding=7, std430) buffer opaqueDepthBuffer {
+  uint maxSize;
   float opaqueDepth[];
 };
-*/
 
 #ifdef GPUCOMPRESS
 layout(binding=1, std430) buffer indexBuffer
@@ -64,13 +62,13 @@ vec4 blend(vec4 outColor, vec4 color)
 void main()
 {
   uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
-  float OpaqueDepth=opaqueColor[pixel].a;
+  float OpaqueDepth=opaqueDepth[pixel];
   uint element=INDEX(pixel);
 
 #ifdef GPUCOMPRESS
   if(element == 0u) {
    if(OpaqueDepth != 0.0)
-      opaqueColor[pixel].a=0.0;
+      opaqueDepth[pixel]=0.0;
     discard;
   }
 #endif
@@ -80,12 +78,12 @@ void main()
 #ifndef GPUCOMPRESS
   if(size == 0u) {
     if(OpaqueDepth != 0.0)
-      opaqueColor[pixel].a=0.0;
+      opaqueDepth[pixel]=0.0;
     discard;
   }
 #endif
 
-  outColor=OpaqueDepth != 0.0 ? vec4(opaqueColor[pixel].rgb,1.0) : background;
+  outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
 
 #ifdef GPUINDEXING
   uint listIndex=globalSum[element/groupSize]+
@@ -136,7 +134,7 @@ void main()
     }
 
     if(OpaqueDepth != 0.0)
-      opaqueColor[pixel].a=0.0;
+      opaqueDepth[pixel]=0.0;
   } else {
     atomicMax(maxSize,size);
 #ifndef GPUINDEXING
@@ -164,7 +162,7 @@ void main()
         if(depth[i] < OpaqueDepth)
           outColor=blend(outColor,fragment[i]);
       }
-      opaqueColor[pixel].a=0.0;
+      opaqueDepth[pixel]=0.0;
     }
   }
 
