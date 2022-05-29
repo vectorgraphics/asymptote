@@ -530,9 +530,12 @@ class AddArrowSkeleton(InplaceObjProcess):
         super().__init__(parent)
         self.object = object
 
+    def mouseDown(self):
+        pass
+
     def mouseRelease(self): #Misnomer?
         self.objectCreated.emit(self.getXasyObject())
-        self._active = False
 
     def getXasyObject(self):
+        #print(self.object)
         return self.object

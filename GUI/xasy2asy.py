@@ -1291,7 +1291,7 @@ class xasyShape(xasyDrawnItem):
         return type(self)(self.path,self._asyengine,self.pen)
 
     def arrowify(self):
-        newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen) #transform
+        newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transfKey = self.transfKey) #transform
         return newObj
 
 
@@ -1827,7 +1827,7 @@ class DrawObject(QtCore.QObject):
 
 class asyArrow(asyObj):
 
-    def __init__(self, path, asyengine, pen=None, transform=identity()):
+    def __init__(self, path, asyengine, pen=None, transform=identity(), transfKey=None):
         #super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
         """Initialize the label with the given test, location, and pen"""
         asyObj.__init__(self)
@@ -1836,7 +1836,7 @@ class asyArrow(asyObj):
             self.pen = asyPen()
         self.path = path
         self.path.asyengine = asyengine
-        self.transfKey = 0 #Is this right?
+        self.transfKey = transfKey
         self.transfKeymap = {self.transfKey: [transform]}
 
         self.location = (0,0)

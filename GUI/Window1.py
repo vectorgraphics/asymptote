@@ -2441,32 +2441,33 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
 
     def replaceObject(self,objectIndex,newObject):
-        maj, minor = objectIndex
-        selectedObj = self.drawObjects[maj][minor]
+        if True: #For Debugging
+            maj, minor = objectIndex
+            selectedObj = self.drawObjects[maj][minor]
 
-        parent = selectedObj.parent()
+            parent = selectedObj.parent()
 
-        if isinstance(parent, x2a.xasyScript):
-            objKey=(selectedObj.key, selectedObj.keyIndex)
-            self.hiddenKeys.add(objKey)
-            self.undoRedoStack.add(self.createAction(
-                SoftDeletionChanges(selectedObj.parent(), objKey)
+            if isinstance(parent, x2a.xasyScript):
+                objKey=(selectedObj.key, selectedObj.keyIndex)
+                self.hiddenKeys.add(objKey)
+                self.undoRedoStack.add(self.createAction(
+                    SoftDeletionChanges(selectedObj.parent(), objKey)
+                    ))
+                self.softDeleteObj((maj, minor))
+            else:
+                index = self.fileItems.index(selectedObj.parent())
+
+                self.undoRedoStack.add(self.createAction(
+                    HardDeletionChanges(selectedObj.parent(), index)
                 ))
-            self.softDeleteObj((maj, minor))
-        else:
-            index = self.fileItems.index(selectedObj.parent())
 
-            self.undoRedoStack.add(self.createAction(
-                HardDeletionChanges(selectedObj.parent(), index)
-            ))
+                self.fileItems.remove(selectedObj.parent())
 
-            self.fileItems.remove(selectedObj.parent())
-
-        self.addMode = InplaceAddObj.AddArrowSkeleton(self,newObject)
+        self.fileItems.append(newObject)
+        self.drawObjects.append(newObject.generateDrawObjects(True)) #THIS DOES WORK, IT'S JUST REGENERATING THE SHAPE. 
 
         self.checkUndoRedoButtons()
         self.fileChanged = True
 
         self.clearSelection()
-        self.asyfyCanvas()
 
