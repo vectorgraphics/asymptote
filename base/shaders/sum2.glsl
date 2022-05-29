@@ -7,6 +7,12 @@ layout(binding=3, std430) buffer globalSumBuffer
   uint globalSum[];
 };
 
+layout(binding=8, std430) buffer feedbackBuffer
+{
+  uint fragments;
+  uint maxSize;
+};
+
 // avoid bank conflicts and coalesce global memory accesses
 shared uint groupSum[localSize+1u];
 shared uint shuffle[groupSize+localSize];
@@ -33,6 +39,7 @@ void main(void)
   groupSum[id+1u]=sum;
   barrier();
 
+  uint read;
   for(uint shift=1u; shift < localSize; shift *= 2u) {
     uint read=id < shift ? groupSum[id] : groupSum[id]+groupSum[id-shift];
     barrier();
@@ -43,4 +50,8 @@ void main(void)
   for(uint i=0u; i < blockSize; i++)
     globalSum[dataOffset+i*localSize]=
       shuffle[shuffleOffset+i*stride]+groupSum[(i*localSize+id)/blockSize];
+
+  if(id+1u == localSize)
+//    fragments=read;
+    fragments=4199531u;
 }
