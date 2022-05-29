@@ -88,7 +88,6 @@ GLint zeroShader;
 GLint compressShader;
 GLint sum1Shader;
 GLint sum2Shader;
-GLint sum3Shader;
 
 GLuint offsetBuffer;
 GLuint indexBuffer;
@@ -542,9 +541,8 @@ void initComputeShaders()
 {
   string sum1=locateFile("shaders/sum1.glsl");
   string sum2=locateFile("shaders/sum2.glsl");
-  string sum3=locateFile("shaders/sum3.glsl");
 
-  if(sum1.empty() || sum2.empty() || sum3.empty())
+  if(sum1.empty() || sum2.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
@@ -568,10 +566,6 @@ void initComputeShaders()
 
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
     camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
-                                          true);
-
-    shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
-    camp::sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
   }
 }
@@ -739,7 +733,6 @@ void deleteComputeShaders()
 {
   glDeleteProgram(camp::sum1Shader);
   glDeleteProgram(camp::sum2Shader);
-  glDeleteProgram(camp::sum3Shader);
 }
 
 void deleteBlendShader()
@@ -2343,7 +2336,7 @@ GLuint partialSums(bool readSize=false)
   glUseProgram(sum2Shader);
   glDispatchCompute(1,1,1);
 
-  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+//  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
 #if 0
   // Compute global partial sums, including number of fragments, on the CPU
@@ -2369,9 +2362,6 @@ GLuint partialSums(bool readSize=false)
 #endif
 
   fragments=5500000;
-
-  glUseProgram(sum3Shader);
-  glDispatchCompute(gl::g,1,1);
 
   return fragments;
 }
