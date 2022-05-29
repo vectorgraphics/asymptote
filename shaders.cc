@@ -92,7 +92,8 @@ GLuint createShaderFile(std::string file, int shaderType,
   shaderFile.open(file.c_str());
   std::stringstream shaderSrc;
 
-  shaderSrc << "#version " << GLSLversion << "\n";
+//  shaderSrc << "#version " << GLSLversion << "\n";
+  shaderSrc << "#version 460" << "\n";
 #ifndef __APPLE__
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable" << "\n";
 #ifdef HAVE_SSBO

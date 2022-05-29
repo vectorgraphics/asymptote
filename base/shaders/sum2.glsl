@@ -1,5 +1,7 @@
 layout(local_size_x=localSize) in;
 
+layout(binding=0) uniform atomic_uint elements;
+
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
@@ -56,6 +58,7 @@ void main(void)
       shuffle[shuffleOffset+i*stride]+groupSum[(i*localSize+id)/blockSize];
 
   if(id == final % localSize) {
+    atomicCounterExchange(elements,1u);
     maxDepth=maxSize;
     maxSize=0u;
     fragments=globalSum[final];

@@ -2435,9 +2435,8 @@ void refreshBuffers()
   if(GPUcompress) {
     compressCount();
 
-    GLuint *p=(GLuint *) glMapBuffer(GL_ATOMIC_COUNTER_BUFFER,GL_READ_WRITE);
+    GLuint *p=(GLuint *) glMapBuffer(GL_ATOMIC_COUNTER_BUFFER,GL_READ_ONLY);
     gl::elements=GPUindexing ? p[0] : p[0]-1;
-    p[0]=1;
     glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
     if(gl::elements == 0) return;
   } else
