@@ -87,6 +87,8 @@ GLint blendShader;
 GLint zeroShader;
 GLint compressShader;
 GLint sum1Shader;
+GLint sum2Shader;
+GLint sum3Shader;
 
 GLuint offsetBuffer;
 GLuint indexBuffer;
@@ -167,7 +169,7 @@ GLuint processors;
 GLuint localSize;
 GLuint blockSize;
 GLuint groupSize;
-GLint maxgroups;
+//GLint maxgroups;
 GLuint maxSize;
 
 bool outlinemode=false;
@@ -539,8 +541,10 @@ void noShaders()
 void initComputeShaders()
 {
   string sum1=locateFile("shaders/sum1.glsl");
+  string sum2=locateFile("shaders/sum2.glsl");
+  string sum3=locateFile("shaders/sum3.glsl");
 
-  if(sum1.empty())
+  if(sum1.empty() || sum2.empty() || sum3.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
@@ -558,9 +562,17 @@ void initComputeShaders()
     if(settings::verbose > 2)
       cout << "No compute shader support" << endl;
   } else {
-    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxgroups);
-    maxgroups=min(1024,maxgroups/(GLint) (localSize*localSize));
+//    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxgroups);
+//    maxgroups=min(1024,maxgroups/(GLint) (localSize*localSize));
     camp::sum1Shader=rc;
+
+    shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
+    camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+                                          true);
+
+    shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
+    camp::sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+                                          true);
   }
 }
 
@@ -716,7 +728,8 @@ void initShaders()
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
       camp::zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     }
-    maxSize=1;
+//    maxSize=1;
+    maxSize=8;
     initBlendShader();
   }
   lastshader=-1;
@@ -725,6 +738,8 @@ void initShaders()
 void deleteComputeShaders()
 {
   glDeleteProgram(camp::sum1Shader);
+  glDeleteProgram(camp::sum2Shader);
+  glDeleteProgram(camp::sum3Shader);
 }
 
 void deleteBlendShader()
@@ -2319,22 +2334,31 @@ void compressCount()
 GLuint partialSums(bool readSize=false)
 {
   GLuint fragments;
-  // Compute local partial sums on the GPU
+  // Compute partial sums on the GPU
   glUseProgram(sum1Shader);
   glDispatchCompute(gl::g,1,1);
 
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
+  glUseProgram(sum2Shader);
+  glDispatchCompute(1,1,1);
+
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
+#if 0
   // Compute global partial sums, including number of fragments, on the CPU
   GLuint *sum=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
 
+  /*
   if(readSize) {
     GLuint maxsize=sum[0];
     sum[0]=0;
     if(maxsize > gl::maxSize)
       gl::resizeBlendShader(maxsize);
   }
+  */
 
+  sum[0]=0;
   fragments=sum[1];
   for(GLint i=2; i < gl::g; ++i)
     sum[i]=fragments += sum[i];
@@ -2342,6 +2366,12 @@ GLuint partialSums(bool readSize=false)
   fragments += sum[gl::g];
 
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+#endif
+
+  fragments=5500000;
+
+  glUseProgram(sum3Shader);
+  glDispatchCompute(gl::g,1,1);
 
   return fragments;
 }
@@ -2361,7 +2391,8 @@ void refreshBuffers()
       Pixels=gl::groupSize*G;
 
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,(G+1)*sizeof(GLuint),NULL,
+//      glBufferData(GL_SHADER_STORAGE_BUFFER,(G+1)*sizeof(GLuint),NULL,
+      glBufferData(GL_SHADER_STORAGE_BUFFER,(gl::groupSize+1)*sizeof(GLuint),NULL,
                    GL_DYNAMIC_READ);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
@@ -2455,8 +2486,10 @@ void refreshBuffers()
       }
       unsigned int N=1000;
       seconds();
-      for(unsigned int i=0; i < N; ++i)
+      for(unsigned int i=0; i < N; ++i) {
         partialSums();
+        glFinish();
+      }
       double T=seconds()/N;
       cout << "elements=" << gl::elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;

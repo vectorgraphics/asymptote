@@ -285,8 +285,7 @@ void main()
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
 #ifdef GPUINDEXING
-  uint listIndex=globalSum[element/groupSize]+
-    atomicAdd(offset[element],-1u)-1u;
+  uint listIndex=atomicAdd(offset[element],-1u)-1u;
 #else
   uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
 #endif
