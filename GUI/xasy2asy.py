@@ -1290,6 +1290,10 @@ class xasyShape(xasyDrawnItem):
     def copy(self):
         return type(self)(self.path,self._asyengine,self.pen)
 
+    def arrowify(self):
+        newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen) #transform
+        return newObj
+
 
 class xasyFilledShape(xasyShape):
     """ A filled shape drawn on the GUI """
@@ -1819,3 +1823,81 @@ class DrawObject(QtCore.QObject):
 
     def getID(self):
         return self.originalObj
+
+
+class asyArrow(asyObj):
+
+    def __init__(self, path, asyengine, pen=None, transform=identity()):
+        #super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
+        """Initialize the label with the given test, location, and pen"""
+        asyObj.__init__(self)
+        self.pen = pen
+        if pen is None:
+            self.pen = asyPen()
+        self.path = path
+        self.path.asyengine = asyengine
+        self.transfKey = 0 #Is this right?
+        self.transfKeymap = {self.transfKey: [transform]}
+
+        self.location = (0,0)
+        self.text = 'a'
+
+    def updateCode(self, asy2psmap = identity()):
+        """ Generate the code describing the label """
+        newLoc = asy2psmap.inverted() * self.location
+        locStr = xu.tuple2StrWOspaces(newLoc)
+        #self.asyCode = 'Label("{0}",{1},p={2}{4},align={3})'.format(self.text, locStr, self.pen.getCode(), self.align, self.getFontSizeText())
+        self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+
+
+    def getFontSizeText(self):
+        if self.fontSize is not None:
+            return '+fontsize({:.6g})'.format(self.fontSize)
+        else:
+            return ''
+
+    def setText(self, text):
+        """ Set the label's text """
+        self.text = text
+        self.updateCode()
+
+    def setPen(self, pen):
+        """ Set the label's pen """
+        self.pen = pen
+        self.updateCode()
+
+    def moveTo(self, newl):
+        """ Translate the label's location """
+        self.location = newl
+
+    def getObjectCode(self, asy2psmap=identity()):
+        if self.path.fill:
+            return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        else:
+            return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+
+    def getTransformCode(self, asy2psmap=identity()):
+        transf = self.transfKeymap[self.transfKey][0]
+        if transf == identity():
+            return ''
+        else:
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+'\n'
+
+    def generateDrawObjects(self, forceUpdate=False):
+        if self.path.containsCurve:
+            self.path.computeControls()
+        transf = self.transfKeymap[self.transfKey][0]
+
+        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=transf, pen=self.pen,
+                            key=self.transfKey)
+        newObj.originalObj = self
+        newObj.setParent(self)
+        newObj.fill=self.path.fill
+        return [newObj]
+
+    def __str__(self):
+        """ Create a string describing this shape """
+        return "xasyShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
+
+    def swapFill(self):
+        self.path.fill = not self.path.fill

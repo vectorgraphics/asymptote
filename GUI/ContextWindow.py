@@ -48,7 +48,9 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Arrowhead:")
         layout.addWidget(self.label)
         self.arrowheadButton = Qw.QComboBox()
-        self.arrowheadButton.addItem("Not currently implemented")
+        self.arrowheadButton.addItem("None")
+        self.arrowheadButton.addItem("Test")
+        self.arrowheadButton.currentIndexChanged.connect(self.arrowheadChange)
         layout.addWidget(self.arrowheadButton)
 
         if not isinstance(self.shape, x2a.xasyShape):
@@ -60,10 +62,16 @@ class AnotherWindow(Qw.QWidget):
         self.setLayout(layout)
         self.setWindowTitle("Shape Options Window")
 
+    def arrowheadChange(self, i):
+        #Convert from xasyShape to asyArrow
+        #print(type(self.shape))
+        if i == 1:
+            #print(self.shape.arrowify())
+            self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
+
     def fillChange(self, i):
         if self.shape.path.fill != bool(i):
             self.shape.swapFill()
-            self.parent.quickUpdate()
 
     def reflectionChange(self, i):
         if i == 0:

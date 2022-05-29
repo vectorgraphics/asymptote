@@ -2433,5 +2433,40 @@ class MainWindow1(Qw.QMainWindow):
     def contextMenuEvent(self, event):
         maj,min = self.mostRecentObject
         if self.fileItems[maj] is not None:
-            self.a = ContextWindow.AnotherWindow(self.fileItems[maj],self)
-            self.a.show()
+            self.contextWindow = ContextWindow.AnotherWindow(self.fileItems[maj],self)
+            self.contextWindow.show()
+
+    def focusInEvent(self,event):
+        if self.mainCanvas.isActive():
+            self.quickUpdate()
+
+    def replaceObject(self,objectIndex,newObject):
+        maj, minor = objectIndex
+        selectedObj = self.drawObjects[maj][minor]
+
+        parent = selectedObj.parent()
+
+        if isinstance(parent, x2a.xasyScript):
+            objKey=(selectedObj.key, selectedObj.keyIndex)
+            self.hiddenKeys.add(objKey)
+            self.undoRedoStack.add(self.createAction(
+                SoftDeletionChanges(selectedObj.parent(), objKey)
+                ))
+            self.softDeleteObj((maj, minor))
+        else:
+            index = self.fileItems.index(selectedObj.parent())
+
+            self.undoRedoStack.add(self.createAction(
+                HardDeletionChanges(selectedObj.parent(), index)
+            ))
+
+            self.fileItems.remove(selectedObj.parent())
+
+        self.addMode = InplaceAddObj.AddArrowSkeleton(self,newObject)
+
+        self.checkUndoRedoButtons()
+        self.fileChanged = True
+
+        self.clearSelection()
+        self.asyfyCanvas()
+
