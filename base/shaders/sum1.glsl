@@ -54,8 +54,6 @@ void main(void)
   if(id+1u == localSize) {
     globalSum[gl_WorkGroupID.x+1u]=
       shuffle[shuffleOffset+(blockSize-1u)*stride]+read;
-//    if(gl_WorkGroupID.x == 0u)
-//      globalSum[0u]=maxSize;
   }
 
   for(uint i=0u; i < blockSize; i++)
