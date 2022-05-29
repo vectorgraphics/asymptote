@@ -725,8 +725,7 @@ void initShaders()
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
       camp::zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     }
-//    maxSize=1;
-    maxSize=8;
+    maxSize=1;
     initBlendShader();
   }
   lastshader=-1;
@@ -2338,6 +2337,7 @@ void partialSums(bool readSize=false)
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
   glUseProgram(sum2Shader);
+  glUniform1ui(glGetUniformLocation(sum2Shader,"final"),gl::g);
   glDispatchCompute(1,1,1);
 }
 
@@ -2700,16 +2700,11 @@ void drawTransparent()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::feedbackBuffer);
     GLuint *feedback=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
 
-#if 0
-    if(readSize) {
-      GLuint maxsize=sum[0];
-      sum[0]=0;
-      if(maxsize > gl::maxSize)
-        gl::resizeBlendShader(maxsize);
-    }
-#endif
+    GLuint maxDepth=feedback[0];
+    if(maxDepth > gl::maxSize)
+      gl::resizeBlendShader(maxDepth);
 
-    fragments=feedback[0];
+    fragments=feedback[1];
 
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   }

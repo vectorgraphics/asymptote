@@ -1,30 +1,34 @@
 layout(local_size_x=localSize) in;
 
-const uint groupSize=localSize*blockSize;
-
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
 };
 
+layout(binding=7, std430) buffer opaqueDepthBuffer {
+  uint maxSize;
+  float opaqueDepth[];
+};
+
 layout(binding=8, std430) buffer feedbackBuffer
 {
+  uint maxDepth;
   uint fragments;
-  uint maxSize;
 };
+
+uniform uint final;
 
 // avoid bank conflicts and coalesce global memory accesses
 shared uint groupSum[localSize+1u];
-shared uint shuffle[groupSize+localSize];
+shared uint shuffle[localSize*(blockSize+1u)];
 
 void main(void)
 {
   uint id=gl_LocalInvocationID.x;
-  uint dataOffset=gl_WorkGroupID.x*groupSize+id;
   uint shuffleOffset=id/blockSize+id;
   const uint stride=localSize/blockSize+localSize;
   for(uint i=0; i < blockSize; i++)
-    shuffle[shuffleOffset+i*stride]=globalSum[dataOffset+i*localSize];
+    shuffle[shuffleOffset+i*stride]=globalSum[id+i*localSize];
 
   barrier();
 
@@ -48,10 +52,12 @@ void main(void)
   }
 
   for(uint i=0u; i < blockSize; i++)
-    globalSum[dataOffset+i*localSize]=
+    globalSum[id+i*localSize]=
       shuffle[shuffleOffset+i*stride]+groupSum[(i*localSize+id)/blockSize];
 
-  if(id+1u == localSize)
-//    fragments=read;
-    fragments=4199531u;
+  if(id == final % localSize) {
+    maxDepth=maxSize;
+    maxSize=0u;
+    fragments=globalSum[final];
+  }
 }
