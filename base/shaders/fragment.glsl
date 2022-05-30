@@ -32,7 +32,7 @@ float Roughness;
 
 layout(binding=0, std430) buffer offsetBuffer
 {
-  uint maxSize;
+  uint maxDepth;
   uint offset[];
 };
 
@@ -46,7 +46,7 @@ layout(binding=3, std430) buffer globalSumBuffer
 #else
 layout(binding=2, std430) buffer countBuffer
 {
-  uint maxDepth;
+  uint maxSize;
   uint count[];
 };
 #endif
