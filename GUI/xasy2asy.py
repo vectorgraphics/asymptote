@@ -1291,7 +1291,7 @@ class xasyShape(xasyDrawnItem):
         return type(self)(self.path,self._asyengine,self.pen)
 
     def arrowify(self):
-        newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transfKey = self.transfKey) #transform
+        newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas) #transform
         return newObj
 
 
@@ -1825,30 +1825,43 @@ class DrawObject(QtCore.QObject):
         return self.originalObj
 
 
-class asyArrow(asyObj):
+class asyArrow(xasyItem):
 
-    def __init__(self, path, asyengine, pen=None, transform=identity(), transfKey=None):
+    def __init__(self, path, asyengine, pen=None, transform=identity(), transfKey=None, canvas=None):
         #super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
         """Initialize the label with the given test, location, and pen"""
-        asyObj.__init__(self)
-        self.pen = pen
+        #asyObj.__init__(self)
+        super().__init__(canvas=canvas, asyengine=asyengine) #CANVAS? Seems to work.
         if pen is None:
-            self.pen = asyPen()
+            pen = asyPen()
+        if pen.asyEngine is None:
+            pen.asyEngine = asyengine
+        self.pen = pen
         self.path = path
         self.path.asyengine = asyengine
         self.transfKey = transfKey
         self.transfKeymap = {self.transfKey: [transform]}
 
         self.location = (0,0)
-        self.text = 'a'
+        self.text = "broken arrow"
+        self.label = asyLabel(self.text, self.location, self.pen, "N", fontSize = 12)
+        self.asyfied = False
+        self.onCanvas = canvas
+        self.fontSize = 12
+
+    def setKey(self, newKey = None):
+        transform = self.transfKeymap[self.transfKey][0]
+
+        self.transfKey = newKey
+        self.transfKeymap = {self.transfKey: [transform]}
 
     def updateCode(self, asy2psmap = identity()):
         """ Generate the code describing the label """
         newLoc = asy2psmap.inverted() * self.location
         locStr = xu.tuple2StrWOspaces(newLoc)
-        #self.asyCode = 'Label("{0}",{1},p={2}{4},align={3})'.format(self.text, locStr, self.pen.getCode(), self.align, self.getFontSizeText())
-        self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
-
+        #self.asyCode = 'Label("{0}",{1},p={2}{4},align={3})'.format(self.text, locStr, self.pen.getCode(), "N", self.getFontSizeText())
+        self.asyCode = 'draw(KEY="{0}",{1},{2},Arrow);'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        #self.asyCode = 'draw({0},{1},Arrow);'.format(self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
     def getFontSizeText(self):
         if self.fontSize is not None:
@@ -1884,16 +1897,23 @@ class asyArrow(asyObj):
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+'\n'
 
     def generateDrawObjects(self, forceUpdate=False):
-        if self.path.containsCurve:
-            self.path.computeControls()
-        transf = self.transfKeymap[self.transfKey][0]
+        useAsy = True
 
-        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=transf, pen=self.pen,
-                            key=self.transfKey)
-        newObj.originalObj = self
-        newObj.setParent(self)
-        newObj.fill=self.path.fill
-        return [newObj]
+        if useAsy:
+            self.asyfy(forceUpdate)
+            return self.drawObjects #should be self.drawObjects
+
+        else:
+            if self.path.containsCurve:
+                self.path.computeControls()
+            transf = self.transfKeymap[self.transfKey][0]
+
+            newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=transf, pen=self.pen,
+                                key=self.transfKey)
+            newObj.originalObj = self
+            newObj.setParent(self)
+            newObj.fill=self.path.fill
+            return [newObj]
 
     def __str__(self):
         """ Create a string describing this shape """
@@ -1901,3 +1921,10 @@ class asyArrow(asyObj):
 
     def swapFill(self):
         self.path.fill = not self.path.fill
+
+    def getBoundingBox(self):
+        self.asyfy()
+        return self.imageList[0].bbox
+
+    def copy(self):
+        return type(self)(self.label.text,self.label.location,self._asyengine)

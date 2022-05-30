@@ -2470,4 +2470,6 @@ class MainWindow1(Qw.QMainWindow):
         self.fileChanged = True
 
         self.clearSelection()
+        #self.asyfyCanvas()
+        #self.quickUpdate()
 
