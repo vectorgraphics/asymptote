@@ -35,11 +35,6 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
-layout(binding=2, std430) buffer countBuffer
-{
-  uint count[];
-};
-
 #ifdef GPUINDEXING
 uniform uint groupSize;
 
@@ -48,6 +43,11 @@ layout(binding=3, std430) buffer globalSumBuffer
   uint globalSum[];
 };
 #else
+layout(binding=2, std430) buffer countBuffer
+{
+  uint maxSize;
+  uint count[];
+};
 #endif
 
 layout(binding=4, std430) buffer fragmentBuffer
@@ -67,7 +67,6 @@ layout(binding=6, std430) buffer opaqueBuffer
 
 layout(binding=7, std430) buffer opaqueDepthBuffer
 {
-  uint maxSize;
   float opaqueDepth[];
 };
 

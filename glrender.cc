@@ -2369,7 +2369,7 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+1)*sizeof(GLuint),
+    glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
 
@@ -2471,10 +2471,10 @@ void refreshBuffers()
     // Compute partial sums on the CPU
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     GLuint *p=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
-                                              0,size+sizeof(GLuint),
+                                          0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
     GLuint maxsize=p[0];
-    GLuint *count=p+1;
+    GLuint *count=p+2;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     GLuint *offset=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,

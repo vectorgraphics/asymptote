@@ -9,6 +9,7 @@ layout(binding=0, std430) buffer offsetBuffer
 
 layout(binding=2, std430) buffer countBuffer
 {
+  uint maxSize;
   uint count[];
 };
 
@@ -51,12 +52,9 @@ void main(void)
     barrier();
   }
 
-  if(id+1u == localSize) {
+  if(id+1u == localSize)
     globalSum[gl_WorkGroupID.x+1u]=
       shuffle[shuffleOffset+(blockSize-1u)*stride]+read;
-//    if(gl_WorkGroupID.x == 0u)
-//      globalSum[0u]=maxSize;
-  }
 
   for(uint i=0u; i < blockSize; i++)
     offset[dataOffset+i*localSize]=

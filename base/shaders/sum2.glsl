@@ -2,14 +2,15 @@ layout(local_size_x=localSize) in;
 
 layout(binding=0) uniform atomic_uint elements;
 
+layout(binding=2, std430) buffer countBuffer
+{
+  uint maxSize;
+  uint count[];
+};
+
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
-};
-
-layout(binding=7, std430) buffer opaqueDepthBuffer {
-  uint maxSize;
-  float opaqueDepth[];
 };
 
 layout(binding=8, std430) buffer feedbackBuffer
