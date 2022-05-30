@@ -1,5 +1,6 @@
 layout(binding=0, std430) buffer offsetBuffer
 {
+  uint maxDepth;
   uint offset[];
 };
 
@@ -136,7 +137,10 @@ void main()
     if(OpaqueDepth != 0.0)
       opaqueDepth[pixel]=0.0;
   } else {
-    atomicMax(maxSize,size);
+    atomicMax(maxDepth,size);
+#ifndef GPUINDEXING
+    maxSize=maxDepth;
+#endif
     for(uint i=k+1u; i < size; i++) {
       vec4 temp=fragment[listIndex+i];
       float d=depth[listIndex+i];

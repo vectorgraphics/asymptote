@@ -4,6 +4,7 @@ const uint groupSize=localSize*blockSize;
 
 layout(binding=0, std430) buffer offsetBuffer
 {
+  uint maxDepth;
   uint offset[];
 };
 

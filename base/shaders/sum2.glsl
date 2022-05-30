@@ -2,10 +2,10 @@ layout(local_size_x=localSize) in;
 
 layout(binding=0) uniform atomic_uint elements;
 
-layout(binding=2, std430) buffer countBuffer
+layout(binding=0, std430) buffer offsetBuffer
 {
-  uint maxSize;
-  uint count[];
+  uint maxDepth;
+  uint offset[];
 };
 
 layout(binding=3, std430) buffer globalSumBuffer
@@ -15,7 +15,7 @@ layout(binding=3, std430) buffer globalSumBuffer
 
 layout(binding=8, std430) buffer feedbackBuffer
 {
-  uint maxDepth;
+  uint maxSize;
   uint fragments;
 };
 
@@ -60,8 +60,8 @@ void main(void)
 
   if(id == final % localSize) {
     atomicCounterExchange(elements,1u);
-    maxDepth=maxSize;
-    maxSize=0u;
+    maxSize=maxDepth;
+    maxDepth=0u;
     fragments=globalSum[final];
   }
 }
