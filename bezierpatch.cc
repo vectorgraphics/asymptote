@@ -23,12 +23,16 @@ const double FillFactor=0.1;
 void BezierPatch::init(double res)
 {
   res2=res*res;
-  Epsilon=transparent ? 0.0 : FillFactor*res;
 
-  MaterialIndex=transparent ?
-    (color ? -1-materialIndex : 1+materialIndex) : materialIndex;
-
-  pvertex=transparent ? &vertexBuffer::tvertex : &vertexBuffer::vertex;
+  if(transparent) {
+    Epsilon=0.0;
+    MaterialIndex=color ? -1-materialIndex : 1+materialIndex;
+    pvertex=&vertexBuffer::tvertex;
+  } else {
+    Epsilon=FillFactor*res;
+    MaterialIndex=materialIndex;
+    pvertex=&vertexBuffer::vertex;
+  }
 }
 
 void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)

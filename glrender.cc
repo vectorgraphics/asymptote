@@ -2489,7 +2489,7 @@ void refreshBuffers()
                                           0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
     GLuint maxsize=p[0];
-    GLuint *count=p+2;
+    GLuint *count=p+1;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     GLuint *offset=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
