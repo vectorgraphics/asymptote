@@ -23,7 +23,7 @@ const double FillFactor=0.1;
 void BezierPatch::init(double res)
 {
   res2=res*res;
-  Epsilon=FillFactor*res;
+  Epsilon=transparent ? 0.0 : FillFactor*res;
 
   MaterialIndex=transparent ?
     (color ? -1-materialIndex : 1+materialIndex) : materialIndex;
