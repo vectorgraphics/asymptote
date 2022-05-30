@@ -1213,3 +1213,10 @@ bool isometry(transform t)
 {
   return t.isIsometry();
 }
+
+real bezier(real a, real b, real c, real d, real t)
+{
+  real onemt=1-t;
+  real onemt2=onemt*onemt;
+  return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
+}
