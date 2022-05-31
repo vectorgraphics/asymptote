@@ -49,7 +49,7 @@ class AnotherWindow(Qw.QWidget):
         layout.addWidget(self.label)
         self.arrowheadButton = Qw.QComboBox()
         self.arrowheadButton.addItem("None")
-        self.arrowheadButton.addItem("Test")
+        self.arrowheadButton.addItem("Arrow")
         self.arrowheadButton.currentIndexChanged.connect(self.arrowheadChange)
         layout.addWidget(self.arrowheadButton)
 
@@ -58,7 +58,7 @@ class AnotherWindow(Qw.QWidget):
             if isinstance(self.shape, x2a.asyArrow):
                 self.arrowheadButton.setCurrentIndex(int(self.shape.arrowActive))
             else:
-                self.arrowheadButton.setDisabled(True) #Still have to typeguard
+                self.arrowheadButton.setDisabled(True)
         else:
             self.fillButton.setCurrentIndex(int(self.shape.path.fill))
 

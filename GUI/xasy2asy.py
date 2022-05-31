@@ -1842,13 +1842,9 @@ class asyArrow(xasyItem):
         self.transfKey = transfKey
         self.transfKeymap = {self.transfKey: [transform]}
         self.arrowActive = arrowActive
-
         self.location = (0,0)
-        self.text = "broken arrow"
-        self.label = asyLabel(self.text, self.location, self.pen, "N", fontSize = 12)
         self.asyfied = False
         self.onCanvas = canvas
-        self.fontSize = 12
 
     def setKey(self, newKey = None):
         transform = self.transfKeymap[self.transfKey][0]
@@ -1857,24 +1853,11 @@ class asyArrow(xasyItem):
         self.transfKeymap = {self.transfKey: [transform]}
 
     def updateCode(self, asy2psmap = identity()):
-        """ Generate the code describing the label """
         newLoc = asy2psmap.inverted() * self.location
-        locStr = xu.tuple2StrWOspaces(newLoc)
         if self.arrowActive:
             self.asyCode = 'draw(KEY="{0}",{1},{2},Arrow);'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
         else:
             self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
-
-    def getFontSizeText(self):
-        if self.fontSize is not None:
-            return '+fontsize({:.6g})'.format(self.fontSize)
-        else:
-            return ''
-
-    def setText(self, text):
-        """ Set the label's text """
-        self.text = text
-        self.updateCode()
 
     def setPen(self, pen):
         """ Set the label's pen """
@@ -1929,7 +1912,7 @@ class asyArrow(xasyItem):
         return self.imageList[0].bbox
 
     def copy(self):
-        return type(self)(self.label.text,self.label.location,self._asyengine)
+        return type(self)(self.path,self._asyengine,pen=self.pen,canvas=self.onCanvas,arrowActive=self.arrowActive)
 
     def setArrow(self, setting):
         self.arrowActive = setting
