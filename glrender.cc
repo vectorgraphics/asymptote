@@ -2339,7 +2339,7 @@ void partialSums(bool readSize=false)
 {
   // Compute partial sums on the GPU
   glUseProgram(sum1Shader);
-  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(gl::g,1,1);
 
   glUseProgram(sum2Shader);

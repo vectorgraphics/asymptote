@@ -46,10 +46,12 @@ void main(void)
   groupSum[id+1u]=sum;
   barrier();
 
+  // Apply Hillis-Steele algorithm over all sums in workgroup
   for(uint shift=1u; shift < localSize; shift *= 2u) {
-    uint read=id < shift ? groupSum[id] : groupSum[id]+groupSum[id-shift];
+    uint read;
+    if(shift <= id) read=groupSum[id]+groupSum[id-shift];
     barrier();
-    groupSum[id]=read;
+    if(shift <= id) groupSum[id]=read;
     barrier();
   }
 
