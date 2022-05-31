@@ -60,7 +60,7 @@ GLuint createShader(const std::string& src, int shaderType,
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
   if(status != GL_TRUE) {
-//    if(ssbo || interlock || compute) return 0;
+    if(ssbo || interlock || compute) return 0;
     GLint length;
 
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
@@ -92,8 +92,7 @@ GLuint createShaderFile(std::string file, int shaderType,
   shaderFile.open(file.c_str());
   std::stringstream shaderSrc;
 
-//  shaderSrc << "#version " << GLSLversion << "\n";
-  shaderSrc << "#version 460" << "\n";
+  shaderSrc << "#version " << GLSLversion << "\n";
 #ifndef __APPLE__
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable" << "\n";
 #ifdef HAVE_SSBO

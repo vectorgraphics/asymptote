@@ -60,7 +60,6 @@ void main(void)
       shuffle[shuffleOffset+i*stride]+groupSum[(i*localSize+id)/blockSize];
 
   if(id == final % localSize) {
-    atomicCounterExchange(elements,1u);
     maxSize=maxDepth;
     maxDepth=0u;
     fragments=globalSum[final];
