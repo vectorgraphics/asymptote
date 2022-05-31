@@ -2473,3 +2473,8 @@ class MainWindow1(Qw.QMainWindow):
         #self.asyfyCanvas()
         #self.quickUpdate()
 
+    def terminateContextWindow(self):
+        if self.contextWindow is not None:
+            self.contextWindow.close()
+        self.asyfyCanvas()
+        self.quickUpdate()

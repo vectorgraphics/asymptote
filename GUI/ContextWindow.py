@@ -66,12 +66,13 @@ class AnotherWindow(Qw.QWidget):
         #Convert from xasyShape to asyArrow
         #print(type(self.shape))
         if i == 1:
-            #print(self.shape.arrowify())
             self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
+            self.parent.terminateContextWindow()
 
     def fillChange(self, i):
         if self.shape.path.fill != bool(i):
             self.shape.swapFill()
+            self.parent.terminateContextWindow()
 
     def reflectionChange(self, i):
         if i == 0:
