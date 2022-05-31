@@ -1827,7 +1827,7 @@ class DrawObject(QtCore.QObject):
 
 class asyArrow(xasyItem):
 
-    def __init__(self, path, asyengine, pen=None, transform=identity(), transfKey=None, canvas=None):
+    def __init__(self, path, asyengine, pen=None, transform=identity(), transfKey=None, canvas=None, arrowActive=True):
         #super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
         """Initialize the label with the given test, location, and pen"""
         #asyObj.__init__(self)
@@ -1841,6 +1841,7 @@ class asyArrow(xasyItem):
         self.path.asyengine = asyengine
         self.transfKey = transfKey
         self.transfKeymap = {self.transfKey: [transform]}
+        self.arrowActive = arrowActive
 
         self.location = (0,0)
         self.text = "broken arrow"
@@ -1859,9 +1860,10 @@ class asyArrow(xasyItem):
         """ Generate the code describing the label """
         newLoc = asy2psmap.inverted() * self.location
         locStr = xu.tuple2StrWOspaces(newLoc)
-        #self.asyCode = 'Label("{0}",{1},p={2}{4},align={3})'.format(self.text, locStr, self.pen.getCode(), "N", self.getFontSizeText())
-        self.asyCode = 'draw(KEY="{0}",{1},{2},Arrow);'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
-        #self.asyCode = 'draw({0},{1},Arrow);'.format(self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        if self.arrowActive:
+            self.asyCode = 'draw(KEY="{0}",{1},{2},Arrow);'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        else:
+            self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
     def getFontSizeText(self):
         if self.fontSize is not None:
@@ -1928,3 +1930,7 @@ class asyArrow(xasyItem):
 
     def copy(self):
         return type(self)(self.label.text,self.label.location,self._asyengine)
+
+    def setArrow(self, setting):
+        self.arrowActive = setting
+        return self

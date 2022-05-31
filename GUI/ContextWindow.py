@@ -55,7 +55,10 @@ class AnotherWindow(Qw.QWidget):
 
         if not isinstance(self.shape, x2a.xasyShape):
             self.fillButton.setDisabled(True)
-            self.arrowheadButton.setDisabled(True)
+            if isinstance(self.shape, x2a.asyArrow):
+                self.arrowheadButton.setCurrentIndex(int(self.shape.arrowActive))
+            else:
+                self.arrowheadButton.setDisabled(True) #Still have to typeguard
         else:
             self.fillButton.setCurrentIndex(int(self.shape.path.fill))
 
@@ -63,11 +66,14 @@ class AnotherWindow(Qw.QWidget):
         self.setWindowTitle("Shape Options Window")
 
     def arrowheadChange(self, i):
-        #Convert from xasyShape to asyArrow
-        #print(type(self.shape))
-        if i == 1:
-            self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
-            self.parent.terminateContextWindow()
+        if isinstance(self.shape, x2a.xasyShape):
+            if i == 1:
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
+                self.parent.terminateContextWindow()
+        else:
+            if i != self.shape.arrowActive:
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setArrow(i!=0))
+                self.parent.terminateContextWindow()
 
     def fillChange(self, i):
         if self.shape.path.fill != bool(i):
