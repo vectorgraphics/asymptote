@@ -46,7 +46,6 @@ void main(void)
   groupSum[id+1u]=sum;
   barrier();
 
-  uint read;
   for(uint shift=1u; shift < localSize; shift *= 2u) {
     uint read=id < shift ? groupSum[id] : groupSum[id]+groupSum[id-shift];
     barrier();

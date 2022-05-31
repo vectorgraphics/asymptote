@@ -36,14 +36,7 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
-#ifdef GPUINDEXING
-uniform uint groupSize;
-
-layout(binding=3, std430) buffer globalSumBuffer
-{
-  uint globalSum[];
-};
-#else
+#ifndef GPUINDEXING
 layout(binding=2, std430) buffer countBuffer
 {
   uint maxSize;
@@ -285,8 +278,7 @@ void main()
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
 #ifdef GPUINDEXING
-  uint listIndex=globalSum[element/groupSize]+
-    atomicAdd(offset[element],-1u)-1u;
+  uint listIndex=atomicAdd(offset[element],-1u)-1u;
 #else
   uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
 #endif

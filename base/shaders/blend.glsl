@@ -10,16 +10,6 @@ layout(binding=2, std430) buffer countBuffer
   uint count[];
 };
 
-#ifdef GPUINDEXING
-uniform uint groupSize;
-
-layout(binding=3, std430) buffer globalSumBuffer
-{
-  uint globalSum[];
-};
-#else
-#endif
-
 layout(binding=4, std430) buffer fragmentBuffer
 {
   vec4 fragment[];
@@ -87,8 +77,7 @@ void main()
   outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
 
 #ifdef GPUINDEXING
-  uint listIndex=globalSum[element/groupSize]+
-    offset[element];
+  uint listIndex=offset[element];
 #else
   uint listIndex=offset[element]-size;
 #endif

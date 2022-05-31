@@ -88,6 +88,7 @@ GLint zeroShader;
 GLint compressShader;
 GLint sum1Shader;
 GLint sum2Shader;
+GLint sum3Shader;
 
 GLuint fragments;
 
@@ -544,8 +545,9 @@ void initComputeShaders()
 {
   string sum1=locateFile("shaders/sum1.glsl");
   string sum2=locateFile("shaders/sum2.glsl");
+  string sum3=locateFile("shaders/sum3.glsl");
 
-  if(sum1.empty() || sum2.empty())
+  if(sum1.empty() || sum2.empty() || sum3.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
@@ -569,6 +571,10 @@ void initComputeShaders()
 
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
     camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+                                          true);
+
+    shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
+    camp::sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
   }
 }
@@ -735,6 +741,7 @@ void deleteComputeShaders()
 {
   glDeleteProgram(camp::sum1Shader);
   glDeleteProgram(camp::sum2Shader);
+  glDeleteProgram(camp::sum3Shader);
 }
 
 void deleteBlendShader()
@@ -2332,14 +2339,17 @@ void partialSums(bool readSize=false)
 {
   // Compute partial sums on the GPU
   glUseProgram(sum1Shader);
-  glDispatchCompute(gl::g,1,1);
-
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+  glDispatchCompute(gl::g,1,1);
 
   glUseProgram(sum2Shader);
   glUniform1ui(glGetUniformLocation(sum2Shader,"final"),gl::g);
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
+  glUseProgram(sum3Shader);
+  glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+  glDispatchCompute(gl::g,1,1);
 }
 
 void resizeFragmentBuffer()
@@ -2488,12 +2498,11 @@ void refreshBuffers()
         partialSums();
         first=false;
       }
-      unsigned int N=1000;
+      unsigned int N=10000;
       seconds();
-      for(unsigned int i=0; i < N; ++i) {
+      for(unsigned int i=0; i < N; ++i)
         partialSums();
-        glFinish();
-      }
+      glFinish();
       double T=seconds()/N;
       cout << "elements=" << gl::elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;
