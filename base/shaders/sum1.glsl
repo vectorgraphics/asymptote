@@ -15,7 +15,6 @@ layout(binding=3, std430) buffer globalSumBuffer
 
 // avoid bank conflicts and coalesce global memory accesses
 shared uint groupSum[localSize+1u];
-shared uint shuffle[groupSize+localSize];
 
 void main(void)
 {
@@ -30,15 +29,12 @@ void main(void)
   groupSum[id+1u]=sum;
   barrier();
 
-  // Apply Hillis-Steele algorithm over all sums in workgroup
-  uint read;
-  for(uint shift=1u; shift < localSize; shift *= 2u) {
-    if(shift <= id) read=groupSum[id]+groupSum[id-shift];
-    barrier();
-    if(shift <= id) groupSum[id]=read;
+  for(uint s=localSize/2; s > 0u; s >>= 1u) {
+    if(id < s)
+      groupSum[id] += groupSum[id+s];
     barrier();
   }
 
   if(id+1u == localSize)
-    globalSum[gl_WorkGroupID.x+1u]=sum+read;
+    globalSum[gl_WorkGroupID.x+1u]=sum+groupSum[0u];
 }
