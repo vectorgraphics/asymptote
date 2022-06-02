@@ -19,13 +19,14 @@ layout(binding=3, std430) buffer globalSumBuffer
   uint globalSum[];
 };
 
-// avoid bank conflicts and coalesce global memory accesses
-shared uint groupSum[localSize+1u];
 shared uint shuffle[groupSize+localSize];
+shared uint groupSum[localSize+1u];
 
 void main(void)
 {
   uint id=gl_LocalInvocationID.x;
+
+// avoid bank conflicts and coalesce global memory accesses
   uint dataOffset=gl_WorkGroupID.x*groupSize+id;
   uint shuffleOffset=id/blockSize+id;
   const uint stride=localSize/blockSize+localSize;
@@ -36,8 +37,8 @@ void main(void)
 
   uint Offset=id*blockSize+id;
   uint stop=Offset+blockSize;
-  uint sum=shuffle[Offset];
-  for(uint i=Offset+1u; i < stop; ++i)
+  uint sum=0u;
+  for(uint i=Offset; i < stop; ++i)
     shuffle[i]=sum += shuffle[i];
 
   if(id == 0u)

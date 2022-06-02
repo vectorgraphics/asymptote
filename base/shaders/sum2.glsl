@@ -37,9 +37,8 @@ void main(void)
   uint blocksize=ceilquotient(workgroups,localSize);
 
   uint dataOffset=blocksize*id;
-  uint sum;
-  localSum[0]=sum=globalSum[dataOffset];
-  for(uint i=1u; i < blocksize; i++)
+  uint sum=0u;
+  for(uint i=0u; i < blocksize; i++)
     localSum[i]=sum += globalSum[dataOffset+i];
 
   groupSum[id]=sum;

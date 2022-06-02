@@ -13,16 +13,16 @@ layout(binding=3, std430) buffer globalSumBuffer
   uint globalSum[];
 };
 
-// avoid bank conflicts and coalesce global memory accesses
 shared uint groupSum[localSize+1u];
 
 void main(void)
 {
   uint id=gl_LocalInvocationID.x;
   uint dataOffset=gl_WorkGroupID.x*groupSize+id;
-  uint sum=count[dataOffset];
-  for(uint i=localSize; i < groupSize; i += localSize)
-    sum += count[dataOffset+i];
+  uint stop=dataOffset+groupSize;
+  uint sum=0u;
+  for(uint i=dataOffset; i < stop; i += localSize)
+    sum += count[i];
 
   if(id == 0u)
     groupSum[0u]=0u;
@@ -35,6 +35,6 @@ void main(void)
     barrier();
   }
 
-  if(id+1u == localSize)
+  if(id == localSize-1u)
     globalSum[gl_WorkGroupID.x+1u]=sum+groupSum[0u];
 }
