@@ -2342,7 +2342,7 @@ void partialSums(bool readSize=false)
   glDispatchCompute(gl::g,1,1);
 
   glUseProgram(sum2Shader);
-  glUniform1ui(glGetUniformLocation(sum2Shader,"final"),gl::g);
+  glUniform1ui(glGetUniformLocation(sum2Shader,"workgroups"),gl::g);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 

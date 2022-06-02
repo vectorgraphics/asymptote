@@ -1,6 +1,8 @@
 layout(local_size_x=localSize) in;
 
-layout(binding=0) uniform atomic_uint elements;
+const uint BLOCKSIZE=2048u;
+
+uniform uint workgroups;
 
 layout(binding=0, std430) buffer offsetBuffer
 {
@@ -19,31 +21,28 @@ layout(binding=8, std430) buffer feedbackBuffer
   uint fragments;
 };
 
-uniform uint final;
+shared uint groupSum[localSize];
 
-// avoid bank conflicts and coalesce global memory accesses
-shared uint groupSum[localSize+1u];
-shared uint shuffle[localSize*(blockSize+1u)];
+// Return x divided by y rounded up to the nearest integer.
+uint ceilquotient(uint x, uint y)
+{
+  return (x+y-1)/y;
+}
 
 void main(void)
 {
   uint id=gl_LocalInvocationID.x;
-  uint shuffleOffset=id/blockSize+id;
-  const uint stride=localSize/blockSize+localSize;
-  for(uint i=0; i < blockSize; i++)
-    shuffle[shuffleOffset+i*stride]=globalSum[id+i*localSize];
+  uint localSum[BLOCKSIZE];
 
-  barrier();
+  uint blocksize=ceilquotient(workgroups,localSize);
 
-  uint Offset=id*blockSize+id;
-  uint stop=Offset+blockSize;
-  uint sum=shuffle[Offset];
-  for(uint i=Offset+1u; i < stop; ++i)
-    shuffle[i]=sum += shuffle[i];
+  uint dataOffset=blocksize*id;
+  uint sum;
+  localSum[0]=sum=globalSum[dataOffset];
+  for(uint i=1u; i < blocksize; i++)
+    localSum[i]=sum += globalSum[dataOffset+i];
 
-  if(id == 0u)
-    groupSum[0u]=0u;
-  groupSum[id+1u]=sum;
+  groupSum[id]=sum;
   barrier();
 
   // Apply Hillis-Steele algorithm over all sums in workgroup
@@ -55,13 +54,15 @@ void main(void)
     barrier();
   }
 
-  for(uint i=0u; i < blockSize; i++)
-    globalSum[id+i*localSize]=
-      shuffle[shuffleOffset+i*stride]+groupSum[(i*localSize+id)/blockSize];
+  // shift workgroup sums and store
+  uint shift=id > 0u ? groupSum[id-1u] : 0u;
 
-  if(id == final % localSize) {
+  for(uint i=0; i < blocksize; i++)
+    globalSum[dataOffset+i]=localSum[i]+shift;
+
+  if(id == workgroups % localSize) {
     maxSize=maxDepth;
     maxDepth=0u;
-    fragments=globalSum[final];
+    fragments=globalSum[workgroups];
   }
 }
