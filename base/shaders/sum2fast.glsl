@@ -1,6 +1,6 @@
 layout(local_size_x=localSize) in;
 
-const uint groupSize=localSize*blockSize;
+uniform uint workGroups; // Number of workgroups in sum1 and sum3 shaders
 
 layout(binding=0, std430) buffer offsetBuffer
 {
@@ -8,18 +8,18 @@ layout(binding=0, std430) buffer offsetBuffer
   uint offset[];
 };
 
-layout(binding=2, std430) buffer countBuffer
-{
-  uint maxSize;
-  uint count[];
-};
-
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
 };
 
-shared uint shuffle[groupSize+localSize];
+layout(binding=8, std430) buffer feedbackBuffer
+{
+  uint maxSize;
+  uint fragments;
+};
+
+shared uint shuffle[localSize*(blockSize+1u)];
 shared uint groupSum[localSize+1u];
 
 void main(void)
@@ -27,18 +27,17 @@ void main(void)
   uint id=gl_LocalInvocationID.x;
 
 // avoid bank conflicts and coalesce global memory accesses
-  uint dataOffset=gl_WorkGroupID.x*groupSize+id;
   uint shuffleOffset=id/blockSize+id;
   const uint stride=localSize/blockSize+localSize;
   for(uint i=0; i < blockSize; i++)
-    shuffle[shuffleOffset+i*stride]=count[dataOffset+i*localSize];
+    shuffle[shuffleOffset+i*stride]=globalSum[id+i*localSize];
 
   barrier();
 
   uint Offset=id*blockSize+id;
   uint stop=Offset+blockSize;
-  uint sum=0u;
-  for(uint i=Offset; i < stop; ++i)
+  uint sum=shuffle[Offset];
+  for(uint i=Offset+1u; i < stop; ++i)
     shuffle[i]=sum += shuffle[i];
 
   if(id == 0u)
@@ -46,7 +45,7 @@ void main(void)
   groupSum[id+1u]=sum;
   barrier();
 
-  // Apply Hillis-Steele algorithm over all sums in work group
+  // Apply Hillis-Steele algorithm over all sums in workgroup
   for(uint shift=1u; shift < localSize; shift *= 2u) {
     uint read;
     if(shift <= id) read=groupSum[id]+groupSum[id-shift];
@@ -55,9 +54,13 @@ void main(void)
     barrier();
   }
 
-  uint groupOffset=globalSum[gl_WorkGroupID.x];
   for(uint i=0u; i < blockSize; i++)
-    offset[dataOffset+i*localSize]=
-      shuffle[shuffleOffset+i*stride]+groupSum[(i*localSize+id)/blockSize]+
-      groupOffset;
+    globalSum[id+i*localSize]=
+      shuffle[shuffleOffset+i*stride]+groupSum[(i*localSize+id)/blockSize];
+
+  if(id == workGroups % localSize) {
+    maxSize=maxDepth;
+    maxDepth=0u;
+    fragments=globalSum[workGroups];
+  }
 }

@@ -1259,7 +1259,7 @@ void initSettings() {
   addOption(new IntSetting("GPUlocalSize", 0, "n",
                            "Compute shader local size", 256));
   addOption(new IntSetting("GPUblockSize", 0, "n",
-                           "Compute shader block size", 16));
+                           "Compute shader block size", 8));
 
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));
