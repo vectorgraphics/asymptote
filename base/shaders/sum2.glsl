@@ -1,60 +1,43 @@
-layout(local_size_x=localSize) in;
+layout(local_size_x=LOCALSIZE) in;
 
-const uint groupSize=localSize*blockSize;
+const uint groupSize=LOCALSIZE*BLOCKSIZE;
 
-uniform uint blockSize2;
-uniform uint workGroups; // Number of workgroups in sum1 and sum3 shaders
-
-layout(binding=0, std430) buffer offsetBuffer
-{
-  uint maxDepth;
-  uint offset[];
-};
+uniform uint blockSize;
 
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
 };
 
-layout(binding=8, std430) buffer feedbackBuffer
-{
-  uint maxSize;
-  uint fragments;
-};
+shared uint groupSum[LOCALSIZE];
 
-shared uint groupSum[localSize];
-
-void main(void)
+void main()
 {
-  uint id=gl_LocalInvocationID.x;
   uint localSum[groupSize];
+  uint id=gl_LocalInvocationID.x;
 
-  uint dataOffset=blockSize2*id;
+  uint dataOffset=blockSize*id;
   uint sum=0u;
-  for(uint i=0u; i < blockSize2; i++)
-    localSum[i]=sum += globalSum[dataOffset+i];
+  for(uint i=0; i < blockSize; ++i) {
+    localSum[i]=sum;
+    sum += globalSum[dataOffset+i];
+  }
 
   groupSum[id]=sum;
   barrier();
 
-  // Apply Hillis-Steele algorithm over all sums in work group
-  for(uint shift=1u; shift < localSize; shift *= 2u) {
+  for(uint shift=1u; shift < LOCALSIZE; shift *= 2u) {
     uint read;
-    if(shift <= id) read=groupSum[id]+groupSum[id-shift];
+    if(shift <= id)
+      read=groupSum[id]+groupSum[id-shift];
     barrier();
-    if(shift <= id) groupSum[id]=read;
+    if(shift <= id)
+      groupSum[id]=read;
     barrier();
   }
 
-  // shift work group sums and store
+  // shift local sums and store
   uint shift=id > 0u ? groupSum[id-1u] : 0u;
-
-  for(uint i=0; i < blockSize2; i++)
+  for(uint i=0u; i < blockSize; ++i)
     globalSum[dataOffset+i]=localSum[i]+shift;
-
-  if(id == workGroups % localSize) {
-    maxSize=maxDepth;
-    maxDepth=0u;
-    fragments=globalSum[workGroups];
-  }
 }

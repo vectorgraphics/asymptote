@@ -557,9 +557,9 @@ void initComputeShaders()
 
   shaders[0]=ShaderfileModePair(sum1.c_str(),GL_COMPUTE_SHADER);
   ostringstream s,s2;
-  s << "localSize " << gl::localSize << "u" << endl;
+  s << "LOCALSIZE " << gl::localSize << "u" << endl;
   shaderParams.push_back(s.str().c_str());
-  s2 << "blockSize " << gl::blockSize << "u" << endl;
+  s2 << "BLOCKSIZE " << gl::blockSize << "u" << endl;
   shaderParams.push_back(s2.str().c_str());
   GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true);
   if(rc == 0) {
@@ -728,10 +728,10 @@ void initShaders()
   if(ssbo) {
     if(GPUindexing)
       shaderParams.push_back("GPUINDEXING");
-     shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
+    shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
     shaders[1]=ShaderfileModePair(compress.c_str(),GL_FRAGMENT_SHADER);
     camp::compressShader=compileAndLinkShader(shaders,shaderParams,ssbo);
-     if(GPUindexing)
+    if(GPUindexing)
       shaderParams.pop_back();
     else {
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
@@ -2348,19 +2348,18 @@ void partialSums(bool readSize=false)
   glUseProgram(sum1Shader);
   glDispatchCompute(gl::g,1,1);
 
-  if(gl::elements <= gl::groupSize*gl::groupSize) {
+  if(gl::elements <= gl::groupSize*gl::groupSize)
     glUseProgram(sum2fastShader);
-    glUniform1ui(glGetUniformLocation(sum2fastShader,"workGroups"),gl::g);
-  } else {
+  else {
     glUseProgram(sum2Shader);
-    glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize2"),
+    glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
                  gl::ceilquotient(gl::g,gl::localSize));
-    glUniform1ui(glGetUniformLocation(sum2Shader,"workGroups"),gl::g);
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
   glUseProgram(sum3Shader);
+  glUniform1ui(glGetUniformLocation(sum3Shader,"final"),gl::elements-1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(gl::g,1,1);
 }
@@ -2412,8 +2411,9 @@ void refreshBuffers()
       GLuint G=gl::ceilquotient(gl::pixels,gl::groupSize);
       Pixels=gl::groupSize*G;
 
+      GLuint globalSize=gl::localSize*gl::ceilquotient(G,gl::localSize);
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,(G+1)*sizeof(GLuint),NULL,
+      glBufferData(GL_SHADER_STORAGE_BUFFER,globalSize*sizeof(GLuint),NULL,
                    GL_DYNAMIC_READ);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
