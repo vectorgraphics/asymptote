@@ -48,31 +48,56 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Arrowhead:")
         layout.addWidget(self.label)
         self.arrowheadButton = Qw.QComboBox()
-        self.arrowheadButton.addItem("None")
-        self.arrowheadButton.addItem("Arrow")
+        self.arrowList = ["None","Arrow","ArcArrow"]
+        for arrowMode in self.arrowList:
+            self.arrowheadButton.addItem(arrowMode)
         self.arrowheadButton.currentIndexChanged.connect(self.arrowheadChange)
         layout.addWidget(self.arrowheadButton)
+
+        self.label = Qw.QLabel("Arrow Style:")
+        layout.addWidget(self.label)
+        self.arrowstyleButton = Qw.QComboBox()
+        self.arrowstyleList = ["()","(SimpleHead)","(HookHead)","(TeXHead)"]
+        for arrowStyle in self.arrowstyleList:
+            self.arrowstyleButton.addItem(arrowStyle)
+        self.arrowstyleButton.currentIndexChanged.connect(self.arrowstyleChange)
+        layout.addWidget(self.arrowstyleButton)
 
         if not isinstance(self.shape, x2a.xasyShape):
             self.fillButton.setDisabled(True)
             if isinstance(self.shape, x2a.asyArrow):
                 self.arrowheadButton.setCurrentIndex(int(self.shape.arrowActive))
+                self.arrowstyleButton.setCurrentIndex(int(self.shape.arrowStyle))
             else:
                 self.arrowheadButton.setDisabled(True)
         else:
             self.fillButton.setCurrentIndex(int(self.shape.path.fill))
+        if not isinstance(self.shape, x2a.asyArrow):
+            self.arrowstyleButton.setDisabled(True)
 
         self.setLayout(layout)
         self.setWindowTitle("Shape Options Window")
 
     def arrowheadChange(self, i):
+        #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):
-            if i == 1:
+            if i != 0:
                 self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
                 self.parent.terminateContextWindow()
         else:
             if i != self.shape.arrowActive:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setArrow(i!=0))
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setArrow(i))
+                self.parent.terminateContextWindow()
+
+    def arrowstyleChange(self, i):
+        #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
+        if isinstance(self.shape, x2a.xasyShape):
+            if i != 0:
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
+                self.parent.terminateContextWindow()
+        else:
+            if i != self.shape.arrowActive:
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setStyle(i))
                 self.parent.terminateContextWindow()
 
     def fillChange(self, i):

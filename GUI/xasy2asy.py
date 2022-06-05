@@ -1845,6 +1845,9 @@ class asyArrow(xasyItem):
         self.location = (0,0)
         self.asyfied = False
         self.onCanvas = canvas
+        self.arrowList = ["","Arrow","ArcArrow"]
+        self.arrowStyle = 0
+        self.arrowStyleList = ["()","(SimpleHead)","(HookHead)","(TeXHead)"]
 
     def setKey(self, newKey = None):
         transform = self.transfKeymap[self.transfKey][0]
@@ -1855,7 +1858,7 @@ class asyArrow(xasyItem):
     def updateCode(self, asy2psmap = identity()):
         newLoc = asy2psmap.inverted() * self.location
         if self.arrowActive:
-            self.asyCode = 'draw(KEY="{0}",{1},{2},Arrow);'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+            self.asyCode = 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode(), self.arrowList[self.arrowActive],self.arrowStyleList[self.arrowStyle])+'\n\n'
         else:
             self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
@@ -1916,4 +1919,8 @@ class asyArrow(xasyItem):
 
     def setArrow(self, setting):
         self.arrowActive = setting
+        return self
+
+    def setStyle(self, setting):
+        self.arrowStyle = setting
         return self
