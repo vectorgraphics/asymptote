@@ -96,7 +96,7 @@ class AnotherWindow(Qw.QWidget):
                 self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
                 self.parent.terminateContextWindow()
         else:
-            if i != self.shape.arrowActive:
+            if i != self.shape.arrowStyle:
                 self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setStyle(i))
                 self.parent.terminateContextWindow()
 
