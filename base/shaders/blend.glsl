@@ -64,7 +64,12 @@ void main()
   }
 #endif
 
+#ifdef GPUINDEXING
+  uint listIndex=offset[element];
+  uint size=offset[element+1u]-listIndex;
+#else
   uint size=count[element];
+#endif
 
 #ifndef GPUCOMPRESS
   if(size == 0u) {
@@ -76,9 +81,7 @@ void main()
 
   outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
 
-#ifdef GPUINDEXING
-  uint listIndex=offset[element];
-#else
+#ifndef GPUINDEXING
   uint listIndex=offset[element]-size;
 #endif
 

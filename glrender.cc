@@ -2401,7 +2401,7 @@ void resizeFragmentBuffer()
 void refreshBuffers()
 {
   GLuint zero=0;
-  gl::pixels=gl::Width*gl::Height;
+  gl::pixels=(gl::Width+1)*(gl::Height+1);
 
   if(initSSBO) {
     gl::processors=1;
@@ -2421,7 +2421,7 @@ void refreshBuffers()
     } else Pixels=gl::pixels;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+1)*sizeof(GLuint),
+    glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
 
@@ -2570,11 +2570,6 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
     if(normal)
       glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
-
-    if(camp::ssbo && GPUindexing &&
-       (shader == transparentShader || (!Opaque && !interlock))) {
-      glUniform1ui(glGetUniformLocation(shader,"groupSize"),gl::groupSize);
-    }
   }
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
@@ -2733,8 +2728,6 @@ void aBufferTransparency()
   glUseProgram(blendShader);
   gl::lastshader=blendShader;
   glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
-  if(GPUindexing)
-    glUniform1ui(glGetUniformLocation(blendShader,"groupSize"),gl::groupSize);
   glUniform4f(glGetUniformLocation(blendShader,"background"),
               gl::Background[0],gl::Background[1],gl::Background[2],
               gl::Background[3]);

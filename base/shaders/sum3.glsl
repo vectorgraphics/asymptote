@@ -75,6 +75,6 @@ void main()
   if(diff < groupSize && diff % LOCALSIZE == 0) {
     size=maxDepth;
     maxDepth=0u;
-    fragments=offset[final];
+    fragments=offset[final+1u]=offset[final];
   }
 }

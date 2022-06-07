@@ -2,12 +2,6 @@ layout(local_size_x=LOCALSIZE) in;
 
 const uint groupSize=LOCALSIZE*BLOCKSIZE;
 
-layout(binding=0, std430) buffer offsetBuffer
-{
-  uint maxDepth;
-  uint offset[];
-};
-
 layout(binding=3, std430) buffer globalSumBuffer
 {
   uint globalSum[];
