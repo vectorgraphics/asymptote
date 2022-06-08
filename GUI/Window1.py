@@ -2441,27 +2441,26 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
 
     def replaceObject(self,objectIndex,newObject):
-        if True: #For Debugging
-            maj, minor = objectIndex
-            selectedObj = self.drawObjects[maj][minor]
+        maj, minor = objectIndex
+        selectedObj = self.drawObjects[maj][minor]
 
-            parent = selectedObj.parent()
+        parent = selectedObj.parent()
 
-            if isinstance(parent, x2a.xasyScript):
-                objKey=(selectedObj.key, selectedObj.keyIndex)
-                self.hiddenKeys.add(objKey)
-                self.undoRedoStack.add(self.createAction(
-                    SoftDeletionChanges(selectedObj.parent(), objKey)
-                    ))
-                self.softDeleteObj((maj, minor))
-            else:
-                index = self.fileItems.index(selectedObj.parent())
-
-                self.undoRedoStack.add(self.createAction(
-                    HardDeletionChanges(selectedObj.parent(), index)
+        if isinstance(parent, x2a.xasyScript):
+            objKey=(selectedObj.key, selectedObj.keyIndex)
+            self.hiddenKeys.add(objKey)
+            self.undoRedoStack.add(self.createAction(
+                SoftDeletionChanges(selectedObj.parent(), objKey)
                 ))
+            self.softDeleteObj((maj, minor))
+        else:
+            index = self.fileItems.index(selectedObj.parent())
 
-                self.fileItems.remove(selectedObj.parent())
+            self.undoRedoStack.add(self.createAction(
+                HardDeletionChanges(selectedObj.parent(), index)
+            ))
+
+            self.fileItems.remove(selectedObj.parent())
 
         self.fileItems.append(newObject)
         self.drawObjects.append(newObject.generateDrawObjects(True)) #THIS DOES WORK, IT'S JUST REGENERATING THE SHAPE. 
