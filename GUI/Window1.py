@@ -2431,7 +2431,11 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.statusbar.showMessage('No object to paste')
 
     def contextMenuEvent(self, event):
-        maj,min = self.mostRecentObject
+        #Note that we can't get anything from self.selectOnHover() here.
+        if self.mostRecentObject:
+            maj,min = self.mostRecentObject
+        else:
+            return
         if self.fileItems[maj] is not None:
             self.contextWindow = ContextWindow.AnotherWindow(self.fileItems[maj],self)
             self.contextWindow.show()
