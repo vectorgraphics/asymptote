@@ -57,6 +57,7 @@ const windowTrim=10;
 const third=1/3;
 const pi=Math.acos(-1.0);
 const radians=pi/180.0;
+const maxDepth=Math.ceil(1-Math.log2(Number.EPSILON));
 
 let Zoom;
 let lastZoom;
@@ -701,7 +702,15 @@ class BezierPatch extends Geometry {
 
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
-    this.L2norm(this.controlpoints);
+
+    let norm2=this.L2norm2(this.controlpoints);
+    let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+    this.epsilon=norm2*Number.EPSILON;
+
+    if(this.controlpoints.length == 16) {
+      this.Min=this.Bounds(this.controlpoints,Math.min,fuzz);
+      this.Max=this.Bounds(this.controlpoints,Math.max,fuzz);
+    }
   }
 
   setMaterialIndex() {
@@ -715,15 +724,82 @@ class BezierPatch extends Geometry {
     }
   }
 
+  cornerbound(p,m) {
+    let b=m(p[0],p[3]);
+    b=m(b,p[12]);
+    return m(b,p[15]);
+  }
+
+  controlbound(p,m) {
+    let b=m(p[1],p[2]);
+    b=m(b,p[4]);
+    b=m(b,p[5]);
+    b=m(b,p[6]);
+    b=m(b,p[7]);
+    b=m(b,p[8]);
+    b=m(b,p[9]);
+    b=m(b,p[10]);
+    b=m(b,p[11]);
+    b=m(b,p[13]);
+    return m(b,p[14]);
+  }
+
+  bound(p,m,b,fuzz,depth) {
+    b=m(b,this.cornerbound(p,m));
+    if(m(-1.0,1.0)*(b-this.controlbound(p,m)) >= -fuzz || depth == 0)
+      return b;
+
+    --depth;
+    fuzz *= 2;
+
+    let c0=new Split(p[0],p[1],p[2],p[3]);
+    let c1=new Split(p[4],p[5],p[6],p[7]);
+    let c2=new Split(p[8],p[9],p[10],p[11]);
+    let c3=new Split(p[12],p[13],p[14],p[15]);
+
+    let c4=new Split(p[0],p[4],p[8],p[12]);
+    let c5=new Split(c0.m0,c1.m0,c2.m0,c3.m0);
+    let c6=new Split(c0.m3,c1.m3,c2.m3,c3.m3);
+    let c7=new Split(c0.m5,c1.m5,c2.m5,c3.m5);
+    let c8=new Split(c0.m4,c1.m4,c2.m4,c3.m4);
+    let c9=new Split(c0.m2,c1.m2,c2.m2,c3.m2);
+    let c10=new Split(p[3],p[7],p[11],p[15]);
+
+    // Check all 4 Bezier subpatches.
+    let s0=[p[0],c0.m0,c0.m3,c0.m5,c4.m0,c5.m0,c6.m0,c7.m0,
+            c4.m3,c5.m3,c6.m3,c7.m3,c4.m5,c5.m5,c6.m5,c7.m5];
+    b=this.bound(s0,m,b,fuzz,depth);
+    let s1=[c4.m5,c5.m5,c6.m5,c7.m5,c4.m4,c5.m4,c6.m4,c7.m4,
+            c4.m2,c5.m2,c6.m2,c7.m2,p[12],c3.m0,c3.m3,c3.m5];
+    b=this.bound(s1,m,b,fuzz,depth);
+    let s2=[c7.m5,c8.m5,c9.m5,c10.m5,c7.m4,c8.m4,c9.m4,c10.m4,
+            c7.m2,c8.m2,c9.m2,c10.m2,c3.m5,c3.m4,c3.m2,p[15]];
+    b=this.bound(s2,m,b,fuzz,depth);
+    let s3=[c0.m5,c0.m4,c0.m2,p[3],c7.m0,c8.m0,c9.m0,c10.m0,
+            c7.m3,c8.m3,c9.m3,c10.m3,c7.m5,c8.m5,c9.m5,c10.m5];
+    return this.bound(s3,m,b,fuzz,depth);
+  }
+
+  Bounds(p,m,fuzz) {
+    let b=Array(3);
+    let n=p.length;
+    let x=Array(n);
+    for(let i=0; i < 3; ++i) {
+      for(let j=0; j < n; ++j)
+        x[j]=p[j][i];
+      b[i]=this.bound(x,m,x[0],fuzz,maxDepth);
+    }
+    return [b[0],b[1],b[2]];
+  }
+
 // Render a Bezier patch via subdivision.
-  L2norm(p) {
+  L2norm2(p) {
     let p0=p[0];
-    this.epsilon=0;
+    let norm2=0;
     let n=p.length;
     for(let i=1; i < n; ++i)
-      this.epsilon=Math.max(this.epsilon,
-        abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    this.epsilon *= Number.EPSILON
+      norm2=Math.max(norm2,abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
+    return norm2;
   }
 
   processTriangle(p) {
@@ -2036,6 +2112,17 @@ function initShader(options=[])
   return shader;
 }
 
+class Split {
+  constructor(z0,c0,c1,z1) {
+    this.m0=0.5*(z0+c0);
+    let m1=0.5*(c0+c1);
+    this.m2=0.5*(c1+z1);
+    this.m3=0.5*(this.m0+m1);
+    this.m4=0.5*(m1+this.m2);
+    this.m5=0.5*(this.m3+this.m4);
+  }
+}
+
 class Split3 {
   constructor(z0,c0,c1,z1) {
     this.m0=[0.5*(z0[0]+c0[0]),0.5*(z0[1]+c0[1]),0.5*(z0[2]+c0[2])];
@@ -2749,8 +2836,8 @@ function drawScene()
   gl.clearColor(Background[0],Background[1],Background[2],Background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  for(let i=0; i < P.length; ++i)
-    P[i].render();
+  for(const p of P)
+    p.render();
 
   drawBuffers();
 
