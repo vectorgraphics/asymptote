@@ -118,18 +118,18 @@ void drawBezierPatch::bounds(const double* t, bbox3& b)
 
     double c0=cx[0];
     double fuzz=Fuzz*run::norm(cx,16);
-    x=bound(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
-    X=bound(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
+    x=bound(cx,min,c0,fuzz,maxdepth);
+    X=bound(cx,max,c0,fuzz,maxdepth);
 
     c0=cy[0];
     fuzz=Fuzz*run::norm(cy,16);
-    y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
-    Y=bound(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+    y=bound(cy,min,c0,fuzz,maxdepth);
+    Y=bound(cy,max,c0,fuzz,maxdepth);
 
     c0=cz[0];
     fuzz=Fuzz*run::norm(cz,16);
-    z=bound(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
-    Z=bound(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
+    z=bound(cz,min,c0,fuzz,maxdepth);
+    Z=bound(cz,max,c0,fuzz,maxdepth);
   }
 
   b.add(x,y,z);
@@ -378,18 +378,18 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
 
     double c0=cx[0];
     double fuzz=Fuzz*run::norm(cx,10);
-    x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
-    X=boundtri(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
+    x=boundtri(cx,min,c0,fuzz,maxdepth);
+    X=boundtri(cx,max,c0,fuzz,maxdepth);
 
     c0=cy[0];
     fuzz=Fuzz*run::norm(cy,10);
-    y=boundtri(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
-    Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+    y=boundtri(cy,min,c0,fuzz,maxdepth);
+    Y=boundtri(cy,max,c0,fuzz,maxdepth);
 
     c0=cz[0];
     fuzz=Fuzz*run::norm(cz,10);
-    z=boundtri(cz,min,b.empty ? c0 : min(c0,b.near),fuzz,maxdepth);
-    Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.far),fuzz,maxdepth);
+    z=boundtri(cz,min,c0,fuzz,maxdepth);
+    Z=boundtri(cz,max,c0,fuzz,maxdepth);
   }
 
   b.add(x,y,z);
