@@ -1850,11 +1850,16 @@ class asyArrow(xasyItem):
         self.arrowStyleList = ["","arrowhead=SimpleHead","arrowhead=HookHead","arrowhead=TeXHead"]
         self.arrowSize = None #Is this necessary?
         self.arrowAngle = None 
+        self.arrowFill = 0
+        self.arrowFillList = ["","FillDraw","Fill","NoFill","UnFill","Draw"]
 
     def getArrowSettings(self):
         settings = "("
 
+        if self.arrowStyle != 0:
+            settings += "arrowhead="
         settings += self.arrowStyleList[self.arrowStyle]
+
         if self.arrowSize != None:
             if settings != "(": #This is really messy.
                 settings += ","
@@ -1864,6 +1869,12 @@ class asyArrow(xasyItem):
             if settings != "(": 
                 settings += ","
             settings += "angle=" + str(self.arrowAngle)
+
+        if self.arrowFill != 0:
+            if settings != "(":
+                settings += ","
+            settings += "filltype="
+        settings += self.arrowFillList[self.arrowFill]
 
         settings += ")"
         #print(settings)
@@ -1951,4 +1962,8 @@ class asyArrow(xasyItem):
 
     def setAngle(self, angle): #Is this really necessary to have these as functions?
         self.arrowAngle = angle
+        return self
+        
+    def setFill(self, fill): #Is this really necessary to have these as functions?
+        self.arrowFill = fill
         return self

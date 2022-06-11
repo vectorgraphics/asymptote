@@ -57,7 +57,7 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Arrow Style:")
         layout.addWidget(self.label)
         self.arrowstyleButton = Qw.QComboBox()
-        self.arrowstyleList = ["()","(SimpleHead)","(HookHead)","(TeXHead)"]
+        self.arrowstyleList = ["()","(SimpleHead)","(HookHead)","(TeXHead)"] #Pull this from the arrow if you can. 
         for arrowStyle in self.arrowstyleList:
             self.arrowstyleButton.addItem(arrowStyle)
         self.arrowstyleButton.currentIndexChanged.connect(self.arrowstyleChange)
@@ -75,12 +75,22 @@ class AnotherWindow(Qw.QWidget):
         self.arrowAngleBox.returnPressed.connect(self.angleChange)
         layout.addWidget(self.arrowAngleBox)
 
+        self.label = Qw.QLabel("Arrow Fill:")
+        layout.addWidget(self.label)
+        self.arrowFillButton = Qw.QComboBox()
+        self.arrowFillList = ["","FillDraw","Fill","NoFill","UnFill","Draw"] #Pull this from the arrow if you can. 
+        for arrowFillStyle in self.arrowFillList:
+            self.arrowFillButton.addItem(arrowFillStyle)
+        self.arrowFillButton.currentIndexChanged.connect(self.arrowFillChange)
+        layout.addWidget(self.arrowFillButton)
+
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
             self.fillButton.setDisabled(True)
             if isinstance(self.shape, x2a.asyArrow):
                 self.arrowheadButton.setCurrentIndex(int(self.shape.arrowActive))
                 self.arrowstyleButton.setCurrentIndex(int(self.shape.arrowStyle))
+                self.arrowFillButton.setCurrentIndex(int(self.shape.arrowFill))
             else:
                 self.arrowheadButton.setDisabled(True)
         else:
@@ -89,6 +99,7 @@ class AnotherWindow(Qw.QWidget):
             self.arrowstyleButton.setDisabled(True)
             self.arrowSizeBox.setDisabled(True)
             self.arrowAngleBox.setDisabled(True)
+            self.arrowFillButton.setDisabled(True)
 
         self.setLayout(layout)
         self.setWindowTitle("Shape Options Window")
@@ -106,7 +117,7 @@ class AnotherWindow(Qw.QWidget):
 
     def arrowstyleChange(self, i):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
-        if isinstance(self.shape, x2a.xasyShape):
+        if isinstance(self.shape, x2a.xasyShape): #Is this redunant now?
             if i != 0:
                 self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
                 self.parent.terminateContextWindow()
@@ -150,4 +161,15 @@ class AnotherWindow(Qw.QWidget):
                 self.parent.terminateContextWindow() #Is this always necessary?
         except:
             return #TODO: Show error message.
+            
+    def arrowFillChange(self, i):
+        #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
+        if isinstance(self.shape, x2a.xasyShape):
+            if i != 0:
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
+                self.parent.terminateContextWindow()
+        else:
+            if i != self.shape.arrowFill:
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setFill(i))
+                self.parent.terminateContextWindow()
         
