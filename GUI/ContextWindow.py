@@ -63,6 +63,13 @@ class AnotherWindow(Qw.QWidget):
         self.arrowstyleButton.currentIndexChanged.connect(self.arrowstyleChange)
         layout.addWidget(self.arrowstyleButton)
 
+        self.label = Qw.QLabel("Arrow Size:")
+        layout.addWidget(self.label)
+        self.arrowSizeBox = Qw.QLineEdit()
+        self.arrowSizeBox.returnPressed.connect(self.sizeChange)
+        layout.addWidget(self.arrowSizeBox)
+
+        #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
             self.fillButton.setDisabled(True)
             if isinstance(self.shape, x2a.asyArrow):
@@ -74,6 +81,7 @@ class AnotherWindow(Qw.QWidget):
             self.fillButton.setCurrentIndex(int(self.shape.path.fill))
         if not isinstance(self.shape, x2a.asyArrow):
             self.arrowstyleButton.setDisabled(True)
+            self.arrowSizeBox.setDisabled(True)
 
         self.setLayout(layout)
         self.setWindowTitle("Shape Options Window")
@@ -115,3 +123,14 @@ class AnotherWindow(Qw.QWidget):
         self.parent.currentlySelectedObj['selectedIndex'] = self.parent.mostRecentObject
         self.parent.releaseTransform()
         self.parent.newTransform = Qg.QTransform()
+
+    def sizeChange(self):
+        newSize = self.arrowSizeBox.text()
+        try:
+            newSize = int(newSize)
+            if self.shape.arrowSize != newSize:
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setSize(newSize))
+                self.parent.terminateContextWindow() #Is this always necessary?
+        except:
+            return #TODO: Show error message.
+        
