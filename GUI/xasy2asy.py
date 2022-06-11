@@ -1849,6 +1849,7 @@ class asyArrow(xasyItem):
         self.arrowStyle = 0
         self.arrowStyleList = ["","arrowhead=SimpleHead","arrowhead=HookHead","arrowhead=TeXHead"]
         self.arrowSize = None #Is this necessary?
+        self.arrowAngle = None 
 
     def getArrowSettings(self):
         settings = "("
@@ -1858,8 +1859,14 @@ class asyArrow(xasyItem):
             if settings != "(": #This is really messy.
                 settings += ","
             settings += "size=" + str(self.arrowSize) #Should I add options to this? Like for cm?
+            
+        if self.arrowAngle != None: #This is so similar, you should be able to turn this into a function or something.
+            if settings != "(": 
+                settings += ","
+            settings += "angle=" + str(self.arrowAngle)
 
         settings += ")"
+        #print(settings)
         return settings
 
     def setKey(self, newKey = None):
@@ -1940,4 +1947,8 @@ class asyArrow(xasyItem):
 
     def setSize(self, size):
         self.arrowSize = size
+        return self
+
+    def setAngle(self, angle): #Is this really necessary to have these as functions?
+        self.arrowAngle = angle
         return self

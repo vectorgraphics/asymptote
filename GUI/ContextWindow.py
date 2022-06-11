@@ -69,6 +69,12 @@ class AnotherWindow(Qw.QWidget):
         self.arrowSizeBox.returnPressed.connect(self.sizeChange)
         layout.addWidget(self.arrowSizeBox)
 
+        self.label = Qw.QLabel("Arrow Angle:")
+        layout.addWidget(self.label)
+        self.arrowAngleBox = Qw.QLineEdit()
+        self.arrowAngleBox.returnPressed.connect(self.angleChange)
+        layout.addWidget(self.arrowAngleBox)
+
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
             self.fillButton.setDisabled(True)
@@ -79,9 +85,10 @@ class AnotherWindow(Qw.QWidget):
                 self.arrowheadButton.setDisabled(True)
         else:
             self.fillButton.setCurrentIndex(int(self.shape.path.fill))
-        if not isinstance(self.shape, x2a.asyArrow):
+        if not isinstance(self.shape, x2a.asyArrow): #Make these all a list or something.
             self.arrowstyleButton.setDisabled(True)
             self.arrowSizeBox.setDisabled(True)
+            self.arrowAngleBox.setDisabled(True)
 
         self.setLayout(layout)
         self.setWindowTitle("Shape Options Window")
@@ -127,9 +134,19 @@ class AnotherWindow(Qw.QWidget):
     def sizeChange(self):
         newSize = self.arrowSizeBox.text()
         try:
-            newSize = int(newSize)
+            newSize = float(newSize)
             if self.shape.arrowSize != newSize:
                 self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setSize(newSize))
+                self.parent.terminateContextWindow() #Is this always necessary?
+        except:
+            return #TODO: Show error message.
+
+    def angleChange(self): #Refactor this with the above. 
+        newAngle = self.arrowAngleBox.text()
+        try:
+            newAngle = float(newAngle)
+            if self.shape.arrowAngle != newAngle:
+                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setAngle(newAngle))
                 self.parent.terminateContextWindow() #Is this always necessary?
         except:
             return #TODO: Show error message.
