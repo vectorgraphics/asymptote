@@ -1847,7 +1847,7 @@ class asyArrow(xasyItem):
         self.onCanvas = canvas
         self.arrowList = ["","Arrow","ArcArrow"]
         self.arrowStyle = 0
-        self.arrowStyleList = ["","arrowhead=SimpleHead","arrowhead=HookHead","arrowhead=TeXHead"]
+        self.arrowStyleList = ["","SimpleHead","HookHead","TeXHead"]
         self.arrowSize = None #Is this necessary?
         self.arrowAngle = None 
         self.arrowFill = 0

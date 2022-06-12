@@ -26,6 +26,7 @@ class AnotherWindow(Qw.QWidget):
         super().__init__()
         self.shape = shape
         self.parent = parent
+        self.newShape = self.shape
         layout = Qw.QVBoxLayout()
 
         self.label = Qw.QLabel("Fill:")
@@ -72,7 +73,7 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Arrow Angle:")
         layout.addWidget(self.label)
         self.arrowAngleBox = Qw.QLineEdit()
-        self.arrowAngleBox.returnPressed.connect(self.angleChange)
+        self.arrowAngleBox.returnPressed.connect(self.angleChange) #Bug: have to hit enter to change.
         layout.addWidget(self.arrowAngleBox)
 
         self.label = Qw.QLabel("Arrow Fill:")
@@ -83,6 +84,10 @@ class AnotherWindow(Qw.QWidget):
             self.arrowFillButton.addItem(arrowFillStyle)
         self.arrowFillButton.currentIndexChanged.connect(self.arrowFillChange)
         layout.addWidget(self.arrowFillButton)
+
+        self.confirmButton = Qw.QPushButton("OK")
+        self.confirmButton.clicked.connect(self.renderChanges)
+        layout.addWidget(self.confirmButton)
 
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
@@ -108,30 +113,25 @@ class AnotherWindow(Qw.QWidget):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):
             if i != 0:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
-                self.parent.terminateContextWindow()
+                self.newShape = self.newShape.arrowify()
         else:
             if i != self.shape.arrowActive:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setArrow(i))
-                self.parent.terminateContextWindow()
+                self.newShape = self.newShape.setArrow(i) #Simplify the logic
 
     def arrowstyleChange(self, i):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape): #Is this redunant now?
             if i != 0:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
-                self.parent.terminateContextWindow()
+                self.newShape = self.newShape.arrowify()
         else:
             if i != self.shape.arrowStyle:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setStyle(i))
-                self.parent.terminateContextWindow()
+                self.newShape = self.newShape.setStyle(i)
 
     def fillChange(self, i):
         if self.shape.path.fill != bool(i):
-            self.shape.swapFill()
-            self.parent.terminateContextWindow()
+            self.newShape = self.newShape.swapFill()
 
-    def reflectionChange(self, i):
+    def reflectionChange(self, i): #TODO: Modernize this.
         if i == 0:
             self.parent.newTransform = xT.makeScaleTransform(1, 1, self.parent.currentAnchor).toQTransform()
         if i == 1:
@@ -147,8 +147,7 @@ class AnotherWindow(Qw.QWidget):
         try:
             newSize = float(newSize)
             if self.shape.arrowSize != newSize:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setSize(newSize))
-                self.parent.terminateContextWindow() #Is this always necessary?
+                self.newShape = self.newShape.setSize(newSize)
         except:
             return #TODO: Show error message.
 
@@ -157,19 +156,18 @@ class AnotherWindow(Qw.QWidget):
         try:
             newAngle = float(newAngle)
             if self.shape.arrowAngle != newAngle:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setAngle(newAngle))
-                self.parent.terminateContextWindow() #Is this always necessary?
+                self.newShape = self.newShape.setAngle(newAngle)
         except:
             return #TODO: Show error message.
             
     def arrowFillChange(self, i):
-        #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):
             if i != 0:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.arrowify())
-                self.parent.terminateContextWindow()
+                self.newShape = self.newShape.arrowify() #Can this ever be reached?
         else:
             if i != self.shape.arrowFill:
-                self.parent.replaceObject(self.parent.mostRecentObject,self.shape.setFill(i))
-                self.parent.terminateContextWindow()
+                self.newShape = self.newShape.setFill(i)
         
+    def renderChanges(self):
+        self.parent.replaceObject(self.parent.mostRecentObject,self.newShape)
+        self.parent.terminateContextWindow()        
