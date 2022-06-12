@@ -55,56 +55,53 @@ class AnotherWindow(Qw.QWidget):
         self.arrowheadButton.currentIndexChanged.connect(self.arrowheadChange)
         layout.addWidget(self.arrowheadButton)
 
-        self.label = Qw.QLabel("Arrow Style:")
-        layout.addWidget(self.label)
-        self.arrowstyleButton = Qw.QComboBox()
-        self.arrowstyleList = ["()","(SimpleHead)","(HookHead)","(TeXHead)"] #Pull this from the arrow if you can. 
-        for arrowStyle in self.arrowstyleList:
-            self.arrowstyleButton.addItem(arrowStyle)
-        self.arrowstyleButton.currentIndexChanged.connect(self.arrowstyleChange)
-        layout.addWidget(self.arrowstyleButton)
-
-        self.label = Qw.QLabel("Arrow Size:")
-        layout.addWidget(self.label)
-        self.arrowSizeBox = Qw.QLineEdit()
-        self.arrowSizeBox.returnPressed.connect(self.sizeChange)
-        layout.addWidget(self.arrowSizeBox)
-
-        self.label = Qw.QLabel("Arrow Angle:")
-        layout.addWidget(self.label)
-        self.arrowAngleBox = Qw.QLineEdit()
-        self.arrowAngleBox.returnPressed.connect(self.angleChange) #Bug: have to hit enter to change.
-        layout.addWidget(self.arrowAngleBox)
-
-        self.label = Qw.QLabel("Arrow Fill:")
-        layout.addWidget(self.label)
-        self.arrowFillButton = Qw.QComboBox()
-        self.arrowFillList = ["","FillDraw","Fill","NoFill","UnFill","Draw"] #Pull this from the arrow if you can. 
-        for arrowFillStyle in self.arrowFillList:
-            self.arrowFillButton.addItem(arrowFillStyle)
-        self.arrowFillButton.currentIndexChanged.connect(self.arrowFillChange)
-        layout.addWidget(self.arrowFillButton)
-
-        self.confirmButton = Qw.QPushButton("OK")
-        self.confirmButton.clicked.connect(self.renderChanges)
-        layout.addWidget(self.confirmButton)
-
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
             self.fillButton.setDisabled(True)
             if isinstance(self.shape, x2a.asyArrow):
                 self.arrowheadButton.setCurrentIndex(int(self.shape.arrowActive))
-                self.arrowstyleButton.setCurrentIndex(int(self.shape.arrowStyle))
-                self.arrowFillButton.setCurrentIndex(int(self.shape.arrowFill))
             else:
                 self.arrowheadButton.setDisabled(True)
         else:
             self.fillButton.setCurrentIndex(int(self.shape.path.fill))
-        if not isinstance(self.shape, x2a.asyArrow): #Make these all a list or something.
-            self.arrowstyleButton.setDisabled(True)
-            self.arrowSizeBox.setDisabled(True)
-            self.arrowAngleBox.setDisabled(True)
-            self.arrowFillButton.setDisabled(True)
+
+        if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowActive: #Make these all a list or something.
+            self.label = Qw.QLabel("Arrow Style:")
+            layout.addWidget(self.label)
+            self.arrowstyleButton = Qw.QComboBox()
+            self.arrowstyleList = ["()","(SimpleHead)","(HookHead)","(TeXHead)"] #Pull this from the arrow if you can. 
+            for arrowStyle in self.arrowstyleList:
+                self.arrowstyleButton.addItem(arrowStyle)
+            self.arrowstyleButton.currentIndexChanged.connect(self.arrowstyleChange)
+            layout.addWidget(self.arrowstyleButton)
+
+            self.label = Qw.QLabel("Arrow Size:")
+            layout.addWidget(self.label)
+            self.arrowSizeBox = Qw.QLineEdit()
+            self.arrowSizeBox.returnPressed.connect(self.sizeChange)
+            layout.addWidget(self.arrowSizeBox)
+
+            self.label = Qw.QLabel("Arrow Angle:")
+            layout.addWidget(self.label)
+            self.arrowAngleBox = Qw.QLineEdit()
+            self.arrowAngleBox.returnPressed.connect(self.angleChange) #Bug: have to hit enter to change.
+            layout.addWidget(self.arrowAngleBox)
+
+            self.label = Qw.QLabel("Arrow Fill:")
+            layout.addWidget(self.label)
+            self.arrowFillButton = Qw.QComboBox()
+            self.arrowFillList = ["","FillDraw","Fill","NoFill","UnFill","Draw"] #Pull this from the arrow if you can. 
+            for arrowFillStyle in self.arrowFillList:
+                self.arrowFillButton.addItem(arrowFillStyle)
+            self.arrowFillButton.currentIndexChanged.connect(self.arrowFillChange)
+            layout.addWidget(self.arrowFillButton)
+
+            self.arrowstyleButton.setCurrentIndex(int(self.shape.arrowStyle))
+            self.arrowFillButton.setCurrentIndex(int(self.shape.arrowFill))
+
+        self.confirmButton = Qw.QPushButton("OK")
+        self.confirmButton.clicked.connect(self.renderChanges)
+        layout.addWidget(self.confirmButton)
 
         self.setLayout(layout)
         self.setWindowTitle("Shape Options Window")
