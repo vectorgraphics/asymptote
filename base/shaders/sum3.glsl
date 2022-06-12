@@ -27,7 +27,7 @@ layout(binding=8, std430) buffer feedbackBuffer
   uint fragments;
 };
 
-shared uint shuffle[groupSize+LOCALSIZE];
+shared uint shuffle[groupSize+LOCALSIZE-1u];
 shared uint groupSum[LOCALSIZE+1u];
 
 void main()
