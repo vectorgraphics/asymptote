@@ -1290,8 +1290,8 @@ class xasyShape(xasyDrawnItem):
     def copy(self):
         return type(self)(self.path,self._asyengine,self.pen)
 
-    def arrowify(self):
-        newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas) #transform
+    def arrowify(self,arrowhead=0):
+        newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead) #transform
         return newObj
 
 
@@ -1827,7 +1827,7 @@ class DrawObject(QtCore.QObject):
 
 class asyArrow(xasyItem):
 
-    def __init__(self, path, asyengine, pen=None, transform=identity(), transfKey=None, canvas=None, arrowActive=True):
+    def __init__(self, path, asyengine, pen=None, transform=identity(), transfKey=None, canvas=None, arrowActive=False):
         #super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
         """Initialize the label with the given test, location, and pen"""
         #asyObj.__init__(self)
@@ -1841,40 +1841,37 @@ class asyArrow(xasyItem):
         self.path.asyengine = asyengine
         self.transfKey = transfKey
         self.transfKeymap = {self.transfKey: [transform]}
-        self.arrowActive = arrowActive
         self.location = (0,0)
         self.asyfied = False
         self.onCanvas = canvas
-        self.arrowList = ["","Arrow","ArcArrow"]
-        self.arrowStyle = 0
+
+        self.arrowSettings = {"active": arrowActive, "style": 0, "fill": 0} #Rename active?
+        self.arrowList = ["","Arrow","ArcArrow"] #The first setting corresponds to no arrow. 
         self.arrowStyleList = ["","SimpleHead","HookHead","TeXHead"]
-        self.arrowSize = None #Is this necessary?
-        self.arrowAngle = None 
-        self.arrowFill = 0
         self.arrowFillList = ["","FillDraw","Fill","NoFill","UnFill","Draw"]
 
     def getArrowSettings(self):
         settings = "("
 
-        if self.arrowStyle != 0:
+        if self.arrowSettings["style"] != 0:
             settings += "arrowhead="
-        settings += self.arrowStyleList[self.arrowStyle]
+        settings += self.arrowStyleList[self.arrowSettings["style"]]
 
-        if self.arrowSize != None:
+        if "size" in self.arrowSettings:
             if settings != "(": #This is really messy.
                 settings += ","
-            settings += "size=" + str(self.arrowSize) #Should I add options to this? Like for cm?
+            settings += "size=" + str(self.arrowSettings["size"]) #Should I add options to this? Like for cm?
             
-        if self.arrowAngle != None: #This is so similar, you should be able to turn this into a function or something.
+        if "angle" in self.arrowSettings: #This is so similar, you should be able to turn this into a function or something.
             if settings != "(": 
                 settings += ","
-            settings += "angle=" + str(self.arrowAngle)
+            settings += "angle=" + str(self.arrowSettings["angle"])
 
-        if self.arrowFill != 0:
+        if self.arrowSettings["fill"] != 0:
             if settings != "(":
                 settings += ","
             settings += "filltype="
-        settings += self.arrowFillList[self.arrowFill]
+        settings += self.arrowFillList[self.arrowSettings["fill"]]
 
         settings += ")"
         #print(settings)
@@ -1888,8 +1885,8 @@ class asyArrow(xasyItem):
 
     def updateCode(self, asy2psmap = identity()):
         newLoc = asy2psmap.inverted() * self.location
-        if self.arrowActive:
-            self.asyCode = 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode(), self.arrowList[self.arrowActive],self.getArrowSettings())+'\n\n'
+        if self.arrowSettings["active"]:
+            self.asyCode = 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
         else:
             self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
 
@@ -1946,24 +1943,5 @@ class asyArrow(xasyItem):
         return self.imageList[0].bbox
 
     def copy(self):
-        return type(self)(self.path,self._asyengine,pen=self.pen,canvas=self.onCanvas,arrowActive=self.arrowActive)
-
-    def setArrow(self, setting):
-        self.arrowActive = setting
-        return self
-
-    def setStyle(self, setting):
-        self.arrowStyle = setting
-        return self
-
-    def setSize(self, size):
-        self.arrowSize = size
-        return self
-
-    def setAngle(self, angle): #Is this really necessary to have these as functions?
-        self.arrowAngle = angle
-        return self
-        
-    def setFill(self, fill): #Is this really necessary to have these as functions?
-        self.arrowFill = fill
-        return self
+        #Include all parameters?
+        return type(self)(self.path,self._asyengine,pen=self.pen,canvas=self.onCanvas,arrowActive=self.arrowSettings["active"])

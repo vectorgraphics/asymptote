@@ -59,13 +59,13 @@ class AnotherWindow(Qw.QWidget):
         if not isinstance(self.shape, x2a.xasyShape):
             self.fillButton.setDisabled(True)
             if isinstance(self.shape, x2a.asyArrow):
-                self.arrowheadButton.setCurrentIndex(int(self.shape.arrowActive))
+                self.arrowheadButton.setCurrentIndex(int(self.shape.arrowSettings["active"]))
             else:
                 self.arrowheadButton.setDisabled(True)
         else:
             self.fillButton.setCurrentIndex(int(self.shape.path.fill))
 
-        if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowActive: #Make these all a list or something.
+        if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]: #Make these all a list or something.
             self.label = Qw.QLabel("Arrow Style:")
             layout.addWidget(self.label)
             self.arrowstyleButton = Qw.QComboBox()
@@ -96,8 +96,8 @@ class AnotherWindow(Qw.QWidget):
             self.arrowFillButton.currentIndexChanged.connect(self.arrowFillChange)
             layout.addWidget(self.arrowFillButton)
 
-            self.arrowstyleButton.setCurrentIndex(int(self.shape.arrowStyle))
-            self.arrowFillButton.setCurrentIndex(int(self.shape.arrowFill))
+            self.arrowstyleButton.setCurrentIndex(int(self.shape.arrowSettings["style"]))
+            self.arrowFillButton.setCurrentIndex(int(self.shape.arrowSettings["fill"]))
 
         self.confirmButton = Qw.QPushButton("OK")
         self.confirmButton.clicked.connect(self.renderChanges)
@@ -110,19 +110,12 @@ class AnotherWindow(Qw.QWidget):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):
             if i != 0:
-                self.newShape = self.newShape.arrowify()
+                self.newShape = self.newShape.arrowify(arrowhead=i)
         else:
-            if i != self.shape.arrowActive:
-                self.newShape = self.newShape.setArrow(i) #Simplify the logic
+            self.newShape.arrowSettings["active"] = i #Simplify the logic
 
     def arrowstyleChange(self, i):
-        #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
-        if isinstance(self.shape, x2a.xasyShape): #Is this redunant now?
-            if i != 0:
-                self.newShape = self.newShape.arrowify()
-        else:
-            if i != self.shape.arrowStyle:
-                self.newShape = self.newShape.setStyle(i)
+        self.newShape.arrowSettings["style"] = i
 
     def fillChange(self, i):
         if self.shape.path.fill != bool(i):
@@ -142,28 +135,19 @@ class AnotherWindow(Qw.QWidget):
     def sizeChange(self):
         newSize = self.arrowSizeBox.text()
         try:
-            newSize = float(newSize)
-            if self.shape.arrowSize != newSize:
-                self.newShape = self.newShape.setSize(newSize)
+            self.newShape.arrowSettings["size"] = float(newSize)
         except:
             return #TODO: Show error message.
 
     def angleChange(self): #Refactor this with the above. 
         newAngle = self.arrowAngleBox.text()
         try:
-            newAngle = float(newAngle)
-            if self.shape.arrowAngle != newAngle:
-                self.newShape = self.newShape.setAngle(newAngle)
+            self.newShape.arrowSettings["angle"] = float(newAngle)
         except:
             return #TODO: Show error message.
             
-    def arrowFillChange(self, i):
-        if isinstance(self.shape, x2a.xasyShape):
-            if i != 0:
-                self.newShape = self.newShape.arrowify() #Can this ever be reached?
-        else:
-            if i != self.shape.arrowFill:
-                self.newShape = self.newShape.setFill(i)
+    def arrowFillChange(self, i): #Can I lambda this? 
+        self.newShape.arrowSettings["fill"] = i
         
     def renderChanges(self):
         self.parent.replaceObject(self.parent.mostRecentObject,self.newShape)
