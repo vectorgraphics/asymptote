@@ -78,13 +78,11 @@ class AnotherWindow(Qw.QWidget):
             self.label = Qw.QLabel("Arrow Size:")
             layout.addWidget(self.label)
             self.arrowSizeBox = Qw.QLineEdit()
-            self.arrowSizeBox.returnPressed.connect(self.sizeChange)
             layout.addWidget(self.arrowSizeBox)
 
             self.label = Qw.QLabel("Arrow Angle:")
             layout.addWidget(self.label)
             self.arrowAngleBox = Qw.QLineEdit()
-            self.arrowAngleBox.returnPressed.connect(self.angleChange) #Bug: have to hit enter to change.
             layout.addWidget(self.arrowAngleBox)
 
             self.label = Qw.QLabel("Arrow Fill:")
@@ -145,6 +143,9 @@ class AnotherWindow(Qw.QWidget):
     def arrowFillChange(self, i): #Can I lambda this? 
         self.newShape.arrowSettings["fill"] = i
         
-    def renderChanges(self):
+    def renderChanges(self): #Pull from text boxes here.
+        if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]:
+            self.sizeChange()
+            self.angleChange()
         self.parent.replaceObject(self.parent.mostRecentObject,self.newShape)
         self.parent.terminateContextWindow()        
