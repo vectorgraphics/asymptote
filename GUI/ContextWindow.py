@@ -122,12 +122,8 @@ class AnotherWindow(Qw.QWidget):
             self.newShape = self.newShape.swapFill()
 
     def reflectionChange(self, i): #TODO: Modernize this.
-        if i == 0:
-            self.parent.newTransform = xT.makeScaleTransform(1, 1, self.parent.currentAnchor).toQTransform()
-        if i == 1:
-            self.parent.newTransform = xT.makeScaleTransform(1, -1, self.parent.currentAnchor).toQTransform()
-        if i == 2:
-            self.parent.newTransform = xT.makeScaleTransform(-1, 1, self.parent.currentAnchor).toQTransform()
+        reflectionList = [[1,1],[1,-1],[-1,1]]
+        self.parent.newTransform = xT.makeScaleTransform(*reflectionList[i], self.parent.currentAnchor).toQTransform()
         self.parent.currentlySelectedObj['selectedIndex'] = self.parent.mostRecentObject
         self.parent.releaseTransform()
         self.parent.newTransform = Qg.QTransform()
