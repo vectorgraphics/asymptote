@@ -969,7 +969,7 @@ class xasyItem(QtCore.QObject):
             if transfExists:
                 transfExists = localCount <= len(self.transfKeymap[key]) - 1
                 if transfExists:
-                    validKey = not self.transfKeymap[key][localCount].deleted
+                    validKey = not self.transfKeymap[key][localCount].deleted #Does this ever exist?
             else:
                 validKey = False
 
@@ -1291,6 +1291,7 @@ class xasyShape(xasyDrawnItem):
         return type(self)(self.path,self._asyengine,self.pen)
 
     def arrowify(self,arrowhead=0):
+        #newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transform=self.transfKeymap[self.transfKey], transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead) #transform
         newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead) #transform
         return newObj
 

@@ -69,8 +69,7 @@ class AnotherWindow(Qw.QWidget):
             self.label = Qw.QLabel("Arrow Style:")
             layout.addWidget(self.label)
             self.arrowstyleButton = Qw.QComboBox()
-            self.arrowstyleList = ["()","(SimpleHead)","(HookHead)","(TeXHead)"] #Pull this from the arrow if you can. 
-            for arrowStyle in self.arrowstyleList:
+            for arrowStyle in self.shape.arrowStyleList:
                 self.arrowstyleButton.addItem(arrowStyle)
             self.arrowstyleButton.currentIndexChanged.connect(self.arrowstyleChange)
             layout.addWidget(self.arrowstyleButton)
@@ -88,8 +87,7 @@ class AnotherWindow(Qw.QWidget):
             self.label = Qw.QLabel("Arrow Fill:")
             layout.addWidget(self.label)
             self.arrowFillButton = Qw.QComboBox()
-            self.arrowFillList = ["","FillDraw","Fill","NoFill","UnFill","Draw"] #Pull this from the arrow if you can. 
-            for arrowFillStyle in self.arrowFillList:
+            for arrowFillStyle in self.shape.arrowFillList:
                 self.arrowFillButton.addItem(arrowFillStyle)
             self.arrowFillButton.currentIndexChanged.connect(self.arrowFillChange)
             layout.addWidget(self.arrowFillButton)
