@@ -906,6 +906,17 @@ class MainWindow1(Qw.QMainWindow):
         newItem.setKey(key)
         self.fileItems.append(newItem)
 
+    def addXasyArrowFromPath(self, location, pen, transform, key, arrowSettings):
+        if not pen:
+            pen = self.currentPen
+        else:
+            pen = x2a.asyPen(self.asyEngine, color = pen['color'], width = pen['width'], pen_options = pen['options'])
+
+        newItem = x2a.asyArrow(location, self.asyEngine, pen, transform, key, canvas=self.xasyDrawObj)
+        newItem.setKey(key)
+        newItem.arrowSettings = arrowSettings
+        self.fileItems.append(newItem)
+
     def addXasyTextFromData(self, text, location, pen, transform, key, align, fontSize):
         if not pen:
             pen = self.currentPen
@@ -1083,6 +1094,12 @@ class MainWindow1(Qw.QMainWindow):
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
+
+            elif item['type'] == 'asyArrow':
+                print("Not yet implemented - 1088")
+                path = x2a.asyPath(self.asyEngine)
+                self.addXasyArrowFromPath(path, item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'])
+
             else:
                 print("ERROR")
 
