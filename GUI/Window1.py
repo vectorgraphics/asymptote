@@ -906,13 +906,13 @@ class MainWindow1(Qw.QMainWindow):
         newItem.setKey(key)
         self.fileItems.append(newItem)
 
-    def addXasyArrowFromPath(self, location, pen, transform, key, arrowSettings):
+    def addXasyArrowFromPath(self, pen, transform, key, arrowSettings, code):
         if not pen:
             pen = self.currentPen
         else:
             pen = x2a.asyPen(self.asyEngine, color = pen['color'], width = pen['width'], pen_options = pen['options'])
 
-        newItem = x2a.asyArrow(location, self.asyEngine, pen, transform, key, canvas=self.xasyDrawObj)
+        newItem = x2a.asyArrow(self.asyEngine, pen, transform, key, canvas=self.xasyDrawObj, code=code)
         newItem.setKey(key)
         newItem.arrowSettings = arrowSettings
         self.fileItems.append(newItem)
@@ -1096,9 +1096,8 @@ class MainWindow1(Qw.QMainWindow):
                 self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
 
             elif item['type'] == 'asyArrow':
-                print("Not yet implemented - 1088")
-                path = x2a.asyPath(self.asyEngine)
-                self.addXasyArrowFromPath(path, item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'])
+                self.addXasyArrowFromPath(item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'], item['code'])
+                #self.addXasyArrowFromPath(item['oldpath'], item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'])
 
             else:
                 print("ERROR")

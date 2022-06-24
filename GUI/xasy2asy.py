@@ -1292,7 +1292,7 @@ class xasyShape(xasyDrawnItem):
 
     def arrowify(self,arrowhead=0):
         #newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transform=self.transfKeymap[self.transfKey], transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead) #transform
-        newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead) #transform
+        newObj = asyArrow(self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead, code = self.path.getCode(identity())) #transform
         return newObj
 
 
@@ -1828,7 +1828,7 @@ class DrawObject(QtCore.QObject):
 
 class asyArrow(xasyItem):
 
-    def __init__(self, path, asyengine, pen=None, transform=identity(), transfKey=None, canvas=None, arrowActive=False):
+    def __init__(self, asyengine, pen=None, transform=identity(), transfKey=None, canvas=None, arrowActive=False, code=None):
         #super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
         """Initialize the label with the given test, location, and pen"""
         #asyObj.__init__(self)
@@ -1838,8 +1838,9 @@ class asyArrow(xasyItem):
         if pen.asyEngine is None:
             pen.asyEngine = asyengine
         self.pen = pen
-        self.path = path
-        self.path.asyengine = asyengine
+        self.code = code
+        #self.path = path
+        #self.path.asyengine = asyengine
         self.transfKey = transfKey
         self.transfKeymap = {self.transfKey: [transform]}
         self.location = (0,0)
@@ -1887,9 +1888,9 @@ class asyArrow(xasyItem):
     def updateCode(self, asy2psmap = identity()):
         newLoc = asy2psmap.inverted() * self.location
         if self.arrowSettings["active"]:
-            self.asyCode = 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
+            self.asyCode = 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
         else:
-            self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+            self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.pen.getCode())+'\n\n'
 
     def setPen(self, pen):
         """ Set the label's pen """
@@ -1901,7 +1902,7 @@ class asyArrow(xasyItem):
         self.location = newl
 
     def getObjectCode(self, asy2psmap=identity()):
-        if self.path.fill:
+        if self.arrowSettings["fill"]:
             return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
         else:
             return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
@@ -1914,30 +1915,15 @@ class asyArrow(xasyItem):
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+'\n'
 
     def generateDrawObjects(self, forceUpdate=False):
-        useAsy = True
-
-        if useAsy:
-            self.asyfy(forceUpdate)
-            return self.drawObjects #should be self.drawObjects
-
-        else:
-            if self.path.containsCurve:
-                self.path.computeControls()
-            transf = self.transfKeymap[self.transfKey][0]
-
-            newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=transf, pen=self.pen,
-                                key=self.transfKey)
-            newObj.originalObj = self
-            newObj.setParent(self)
-            newObj.fill=self.path.fill
-            return [newObj]
+        self.asyfy(forceUpdate)
+        return self.drawObjects
 
     def __str__(self):
         """ Create a string describing this shape """
         return "xasyShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
     def swapFill(self):
-        self.path.fill = not self.path.fill
+        self.arrowSettings["fill"] = not self.arrowSettings["fill"]
 
     def getBoundingBox(self):
         self.asyfy()
@@ -1945,4 +1931,4 @@ class asyArrow(xasyItem):
 
     def copy(self):
         #Include all parameters?
-        return type(self)(self.path,self._asyengine,pen=self.pen,canvas=self.onCanvas,arrowActive=self.arrowSettings["active"])
+        return type(self)(self._asyengine,pen=self.pen,canvas=self.onCanvas,arrowActive=self.arrowSettings["active"])

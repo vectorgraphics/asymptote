@@ -118,7 +118,8 @@ def xasyToDict(file, xasyItems, asy2psmap):
                     'pen': penData,
                     'transform': item.transfKeymap[item.transfKey][0].t,
                     'transfKey': item.transfKey,
-                    'settings': item.arrowSettings
+                    'settings': item.arrowSettings,
+                    'code': item.code
                     })
 
         else:
