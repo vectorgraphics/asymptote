@@ -192,7 +192,6 @@ class MainWindow1(Qw.QMainWindow):
         self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedIndex': None, 'keyIndex': None}
         self.pendingSelectedObjList = []
         self.pendingSelectedObjIndex = -1
-        self.mostRecentObject = None
 
         self.savedMousePosition = None
         self.currentBoundingBox = None
@@ -1095,7 +1094,7 @@ class MainWindow1(Qw.QMainWindow):
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
 
-            elif item['type'] == 'asyArrow':
+            elif item['type'] == 'asyArrow':    
                 self.addXasyArrowFromPath(item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'], item['code'])
                 #self.addXasyArrowFromPath(item['oldpath'], item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'])
 
@@ -1589,7 +1588,6 @@ class MainWindow1(Qw.QMainWindow):
             self.currentlySelectedObj['selectedIndex'] = selectedIndex
             self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet(
             )
-            self.mostRecentObject = selectedIndex
 
             self.currentBoundingBox = self.drawObjects[maj][minor].boundingBox
 
@@ -2448,10 +2446,11 @@ class MainWindow1(Qw.QMainWindow):
 
     def contextMenuEvent(self, event):
         #Note that we can't get anything from self.selectOnHover() here.
-        if self.mostRecentObject:
-            maj,min = self.mostRecentObject
-        else:
+        try:
+            maj,min = self.selectObject()[0]
+        except:
             return
+
         if self.fileItems[maj] is not None:
             self.contextWindow = ContextWindow.AnotherWindow(self.fileItems[maj],self)
             self.contextWindow.show()
