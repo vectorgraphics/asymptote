@@ -2447,11 +2447,13 @@ class MainWindow1(Qw.QMainWindow):
     def contextMenuEvent(self, event):
         #Note that we can't get anything from self.selectOnHover() here.
         try:
-            maj,min = self.selectObject()[0]
+            self.contextWindowIndex = self.selectObject()[0] #for arrowifying
+            maj = self.contextWindowIndex[0]
         except:
             return
 
         if self.fileItems[maj] is not None:
+            self.contextWindowObject = self.fileItems[maj] #For arrowifying
             self.contextWindow = ContextWindow.AnotherWindow(self.fileItems[maj],self)
             self.contextWindow.show()
 
@@ -2460,7 +2462,7 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
 
     def replaceObject(self,objectIndex,newObject):
-        maj, minor = objectIndex
+        maj, minor = self.contextWindowIndex
         selectedObj = self.drawObjects[maj][minor]
 
         parent = selectedObj.parent()
