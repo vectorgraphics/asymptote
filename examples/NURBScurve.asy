@@ -3,9 +3,11 @@ settings.prc=true;
 
 import three;
 
-size(10cm);
+viewportmargin=(0,0);
+size(10cm,0,IgnoreAspect);
+currentprojection=orthographic(1,1,1);
 
-currentprojection=perspective(50,80,50);
+//currentprojection=perspective(50,80,50);
 
 // Nonrational curve:
 // udegree=3, nu=6;
@@ -33,4 +35,4 @@ triple[] P={point(g,0),postcontrol(g,0),precontrol(g,1),point(g,1)};
 real[] weights=array(P.length,1.0);
 weights[2]=5;
 
-draw(P,knot,weights,red);
+//draw(P,knot,weights,red);
