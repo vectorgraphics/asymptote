@@ -4287,7 +4287,7 @@ structure.  Trying to use a field of a null reference will cause an error.
 @cindex @code{!=}
 The function @code{bool alias(T,T)} checks to see if two structure references
 refer to the same instance of the structure (or both to @code{null}).
-In example at the beginning of this section, @code{alias(foo,bar)}
+In the example at the beginning of this section, @code{alias(foo,bar)}
 would return true, but @code{alias(foo,new T)} would return false, as @code{new
 T} creates a new instance of the structure @code{T}.  The boolean operators
 @code{==} and @code{!=} are by default equivalent to @code{alias} and
