@@ -674,6 +674,15 @@ class Geometry {
   }
 }
 
+function boundPoints(p,m)
+{
+  let b=p[0];
+  let n=p.length;
+  for(let i=1; i < n; ++i)
+    b=m(b,p[i]);
+  return b;
+}
+
 class BezierPatch extends Geometry {
   /**
    * Constructor for Bezier Patch
@@ -815,13 +824,6 @@ class BezierPatch extends Geometry {
     return this.boundtri(c,m,b,fuzz,depth);
   }
 
-  boundPoints(p,m,b) {
-    let n=p.length;
-    for(let i=1; i < n; ++i)
-      b=m(b,p[i]);
-    return b;
-  }
-
   Bounds(p,m,fuzz) {
     let b=Array(3);
     let n=p.length;
@@ -834,7 +836,7 @@ class BezierPatch extends Geometry {
       else if(n == 10)
         b[i]=this.boundtri(x,m,x[0],fuzz,maxDepth);
       else
-        b[i]=this.boundPoints(x,m,x[0]);
+        b[i]=boundPoints(x,m);
     }
     return [b[0],b[1],b[2]];
   }
@@ -1998,8 +2000,8 @@ class Pixel extends Geometry {
     this.width=width;
     this.CenterIndex=0;
     this.MaterialIndex=MaterialIndex;
-    this.Min=minBound; // FIXME
-    this.Max=maxBound;
+    this.Min=controlpoint;
+    this.Max=controlpoint;
   }
 
   setMaterialIndex() {
@@ -2025,8 +2027,8 @@ class Triangles extends Geometry {
     super();
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
-    this.Min=minBound; // FIXME
-    this.Max=maxBound;
+    this.Min=this.Bounds(Positions,Math.min);
+    this.Max=this.Bounds(Positions,Math.max);
 
     this.controlpoints=Positions;
     this.Normals=Normals;
@@ -2037,6 +2039,18 @@ class Triangles extends Geometry {
     Colors=[];
     Indices=[];
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
+  }
+
+  Bounds(p,m) {
+    let b=Array(3);
+    let n=p.length;
+    let x=Array(n);
+    for(let i=0; i < 3; ++i) {
+      for(let j=0; j < n; ++j)
+        x[j]=p[j][i];
+      b[i]=boundPoints(x,m);
+    }
+    return [b[0],b[1],b[2]];
   }
 
   setMaterialIndex() {
