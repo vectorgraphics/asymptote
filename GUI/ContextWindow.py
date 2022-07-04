@@ -78,11 +78,13 @@ class AnotherWindow(Qw.QWidget):
             layout.addWidget(self.label)
             self.arrowSizeBox = Qw.QLineEdit()
             layout.addWidget(self.arrowSizeBox)
+            self.arrowSizeBox.setPlaceholderText(self.getInfo("DefaultHead.size(currentpen)"))
 
             self.label = Qw.QLabel("Arrow Angle:")
             layout.addWidget(self.label)
             self.arrowAngleBox = Qw.QLineEdit()
             layout.addWidget(self.arrowAngleBox)
+            self.arrowAngleBox.setPlaceholderText(self.getInfo("arrowangle"))
 
             self.label = Qw.QLabel("Arrow Fill:")
             layout.addWidget(self.label)
@@ -95,7 +97,7 @@ class AnotherWindow(Qw.QWidget):
             self.arrowstyleButton.setCurrentIndex(int(self.shape.arrowSettings["style"]))
             self.arrowFillButton.setCurrentIndex(int(self.shape.arrowSettings["fill"]))
 
-        self.confirmButton = Qw.QPushButton("OK")
+        self.confirmButton = Qw.QPushButton("Render")
         self.confirmButton.clicked.connect(self.renderChanges)
         layout.addWidget(self.confirmButton)
 
@@ -147,3 +149,18 @@ class AnotherWindow(Qw.QWidget):
             self.angleChange()
         self.parent.replaceObject(self.parent.contextWindowObject,self.newShape)
         self.parent.terminateContextWindow()        
+
+    def getInfo(self,value):
+        """ Find out the size of an arbitrary Asymptote pen """
+        self.asyEngine = self.parent.asyEngine
+        assert isinstance(self.asyEngine, x2a.AsymptoteEngine)
+        assert self.asyEngine.active
+
+        fout = self.asyEngine.ostream
+        fin = self.asyEngine.istream
+
+        fout.write("write(_outpipe,{},endl);\n".format(value))
+        fout.write(self.asyEngine.xasy)
+        fout.flush()
+
+        return fin.readline()

@@ -1292,7 +1292,7 @@ class xasyShape(xasyDrawnItem):
 
     def arrowify(self,arrowhead=0):
         #newObj = asyArrow(self.path, self.path.asyengine, pen=self.pen, transform=self.transfKeymap[self.transfKey], transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead) #transform
-        newObj = asyArrow(self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead, code = self.path.getCode(yflip())) #transform #identity()
+        newObj = asyArrow(self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead, code = self.path.getCode(yflip())) #transform
         return newObj
 
 
