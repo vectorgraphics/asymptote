@@ -232,7 +232,6 @@ void jsfile::addIndices(const uint32_t *I)
 }
 
 void jsfile::addRawPatch(triple const* controls, size_t n,
-                         const triple& Min, const triple& Max,
                          const prc::RGBAColour *c, size_t nc)
 {
   out << "patch([" << newl;
@@ -240,8 +239,7 @@ void jsfile::addRawPatch(triple const* controls, size_t n,
   for(size_t i=0; i < last; ++i)
     out << controls[i] << "," << newl;
   out << controls[last] << newl << "],"
-      << drawElement::centerIndex << "," << materialIndex << ","
-      << newl << Min << "," << newl << Max;
+      << drawElement::centerIndex << "," << materialIndex;
   if(c) {
     out << ",[" << newl;
     for(size_t i=0; i < nc; ++i) {
@@ -254,35 +252,31 @@ void jsfile::addRawPatch(triple const* controls, size_t n,
 }
 
 void jsfile::addCurve(const triple& z0, const triple& c0,
-                      const triple& c1, const triple& z1,
-                      const triple& Min, const triple& Max)
+                      const triple& c1, const triple& z1)
 {
   out << "curve([" << newl;
   out << z0 << "," << newl
       << c0 << "," << newl
       << c1 << "," << newl
       << z1 << newl << "],"
-      << drawElement::centerIndex << "," << materialIndex << ","
-      << newl << Min << "," << newl << Max << ");" << newl << newl;
+      << drawElement::centerIndex << "," << materialIndex
+      << ");" << newl << newl;
 }
 
-void jsfile::addCurve(const triple& z0, const triple& z1,
-                      const triple& Min, const triple& Max)
+void jsfile::addCurve(const triple& z0, const triple& z1)
 {
   out << "curve([" << newl;
   out << z0 << "," << newl
       << z1 << newl << "],"
-      << drawElement::centerIndex << "," << materialIndex << ","
-      << newl << Min << "," << newl << Max << ");" << newl << newl;
+      << drawElement::centerIndex << "," << materialIndex
+      << ");" << newl << newl;
 }
 
-void jsfile::addPixel(const triple& z0, double width,
-                      const triple& Min, const triple& Max)
+void jsfile::addPixel(const triple& z0, double width)
 {
   out << "pixel(" << newl;
-  out << z0 << "," << width << "," << newl
-      << materialIndex << "," << newl << Min << "," << newl << Max << ");"
-      << newl << newl;
+  out << z0 << "," << width << "," << newl << materialIndex
+      << ");" << newl << newl;
 }
 
 #ifdef HAVE_LIBGLM
@@ -297,8 +291,7 @@ void jsfile::addMaterial(Material const& material)
 void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
                           const triple* N, size_t nC, const prc::RGBAColour* C,
                           size_t nI, const uint32_t (*PI)[3],
-                          const uint32_t (*NI)[3], const uint32_t (*CI)[3],
-                          const triple& Min, const triple& Max)
+                          const uint32_t (*NI)[3], const uint32_t (*CI)[3])
 {
   for(size_t i=0; i < nP; ++i)
     out << "Positions.push(" << P[i] << ");" << newl;
@@ -330,8 +323,8 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
     out << "]);" << newl;
   }
   out << "triangles("
-      << drawElement::centerIndex << "," << materialIndex << "," << newl
-      << newl << Min << "," << newl << Max << ");" << newl << newl;
+      << drawElement::centerIndex << "," << materialIndex
+      << ");" << newl << newl;
 }
 
 void jsfile::addSphere(const triple& center, double radius)
@@ -371,9 +364,7 @@ void jsfile::addDisk(const triple& center, double radius,
       << ");" << newl << newl;
 }
 
-void jsfile::addTube(const triple *g, double width,
-                     const triple& Min, const triple& Max, bool core)
-
+void jsfile::addTube(const triple *g, double width, bool core)
 {
   out << "tube(["
       << g[0] << "," << newl
@@ -381,37 +372,31 @@ void jsfile::addTube(const triple *g, double width,
       << g[2] << "," << newl
       << g[3] << newl << "],"
       << width << ","
-      << drawElement::centerIndex << "," << materialIndex << ","
-      << newl << Min << "," << newl << Max << "," << core <<");"
-      << newl << newl;
+      << drawElement::centerIndex << "," << materialIndex << "," << core
+      << ");" << newl << newl;
 }
 
-void jsfile::addPatch(triple const* controls,
-                      triple const& Min, triple const& Max,
-                      prc::RGBAColour const* c)
+void jsfile::addPatch(triple const* controls, prc::RGBAColour const* c)
 {
-  addRawPatch(controls,16,Min,Max,c,4);
+  addRawPatch(controls,16,c,4);
 }
 
 void jsfile::addStraightPatch(triple const* controls,
-                              triple const& Min, triple const& Max,
                               prc::RGBAColour const* c)
 {
-  addRawPatch(controls,4,Min,Max,c,4);
+  addRawPatch(controls,4,c,4);
 }
 
 void jsfile::addBezierTriangle(triple const* controls,
-                               triple const& Min, triple const& Max,
                                prc::RGBAColour const* c)
 {
-  addRawPatch(controls,10,Min,Max,c,3);
+  addRawPatch(controls,10,c,3);
 }
 
 void jsfile::addStraightBezierTriangle(triple const* controls,
-                                       triple const& Min, triple const& Max,
                                        prc::RGBAColour const* c)
 {
-  addRawPatch(controls,3,Min,Max,c,3);
+  addRawPatch(controls,3,c,3);
 }
 
 }

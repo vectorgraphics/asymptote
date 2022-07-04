@@ -680,17 +680,13 @@ class BezierPatch extends Geometry {
    * @param {*} controlpoints array of 16 control points
    * @param {*} CenterIndex center index of billboard labels (or 0)
    * @param {*} MaterialIndex material index (>= 0)
-   * @param {*} Min bounding box corner
-   * @param {*} Max bounding box corner
    * @param {*} colors array of 4 RGBA color arrays
    */
-  constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max,color) {
+  constructor(controlpoints,CenterIndex,MaterialIndex,color,Min,Max) {
     super();
     this.controlpoints=controlpoints;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
-    this.Min=Min;
-    this.Max=Max;
     this.color=color;
     let n=controlpoints.length;
     if(color) {
@@ -707,10 +703,8 @@ class BezierPatch extends Geometry {
     let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
     this.epsilon=norm2*Number.EPSILON;
 
-    if(this.controlpoints.length == 16) {
-      this.Min=this.Bounds(this.controlpoints,Math.min,fuzz);
-      this.Max=this.Bounds(this.controlpoints,Math.max,fuzz);
-    }
+    this.Min=Min ? Min : this.Bounds(this.controlpoints,Math.min,fuzz);
+    this.Max=Max ? Max : this.Bounds(this.controlpoints,Math.max,fuzz);
   }
 
   setMaterialIndex() {
@@ -780,6 +774,54 @@ class BezierPatch extends Geometry {
     return this.bound(s3,m,b,fuzz,depth);
   }
 
+  cornerboundtri(p,m) {
+    let b=m(p[0],p[6]);
+    return m(b,p[9]);
+  }
+
+  controlboundtri(p,m) {
+    let b=m(p[1],p[2]);
+    b=m(b,p[3]);
+    b=m(b,p[4]);
+    b=m(b,p[5]);
+    b=m(b,p[7]);
+    return m(b,p[8]);
+  }
+
+  boundtri(p,m,b,fuzz,depth) {
+    b=m(b,this.cornerboundtri(p,m));
+    if(m(-1.0,1.0)*(b-this.controlboundtri(p,m)) >= -fuzz || depth == 0)
+      return b;
+
+    --depth;
+    fuzz *= 2;
+
+    let s=new Splittri(p);
+
+    let l=[s.l003,s.l102,s.l012,s.l201,s.l111,
+           s.l021,s.l300,s.l210,s.l120,s.l030]; // left
+    b=this.boundtri(l,m,b,fuzz,depth);
+
+    let r=[s.l300,s.r102,s.r012,s.r201,s.r111,
+           s.r021,s.r300,s.r210,s.r120,s.r030]; // right
+    b=this.boundtri(r,m,b,fuzz,depth);
+
+    let u=[s.l030,s.u102,s.u012,s.u201,s.u111,
+           s.u021,s.r030,s.u210,s.u120,s.u030]; // up
+    b=this.boundtri(u,m,b,fuzz,depth);
+
+    let c=[s.r030,s.u201,s.r021,s.u102,s.c111,
+           s.r012,s.l030,s.l120,s.l210,s.l300]; // center
+    return this.boundtri(c,m,b,fuzz,depth);
+  }
+
+  boundPoints(p,m,b) {
+    let n=p.length;
+    for(let i=1; i < n; ++i)
+      b=m(b,p[i]);
+    return b;
+  }
+
   Bounds(p,m,fuzz) {
     let b=Array(3);
     let n=p.length;
@@ -787,7 +829,12 @@ class BezierPatch extends Geometry {
     for(let i=0; i < 3; ++i) {
       for(let j=0; j < n; ++j)
         x[j]=p[j][i];
-      b[i]=this.bound(x,m,x[0],fuzz,maxDepth);
+      if(n == 16)
+        b[i]=this.bound(x,m,x[0],fuzz,maxDepth)
+      else if(n == 10)
+        b[i]=this.boundtri(x,m,x[0],fuzz,maxDepth);
+      else
+        b[i]=this.boundPoints(x,m,x[0]);
     }
     return [b[0],b[1],b[2]];
   }
@@ -1858,8 +1905,8 @@ class BezierCurve extends Geometry {
     this.controlpoints=controlpoints;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
-    this.Min=Min;
-    this.Max=Max;
+    this.Min=Min ? Min : minBound; // FIXME
+    this.Max=Max ? Max : maxBound;
   }
 
   setMaterialIndex() {
@@ -1945,14 +1992,14 @@ class BezierCurve extends Geometry {
 }
 
 class Pixel extends Geometry {
-  constructor(controlpoint,width,MaterialIndex,Min,Max) {
+  constructor(controlpoint,width,MaterialIndex) {
     super();
     this.controlpoint=controlpoint;
     this.width=width;
     this.CenterIndex=0;
     this.MaterialIndex=MaterialIndex;
-    this.Min=Min;
-    this.Max=Max;
+    this.Min=minBound; // FIXME
+    this.Max=maxBound;
   }
 
   setMaterialIndex() {
@@ -1974,12 +2021,12 @@ class Pixel extends Geometry {
 }
 
 class Triangles extends Geometry {
-  constructor(CenterIndex,MaterialIndex,Min,Max) {
+  constructor(CenterIndex,MaterialIndex) {
     super();
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
-    this.Min=Min;
-    this.Max=Max;
+    this.Min=minBound; // FIXME
+    this.Max=maxBound;
 
     this.controlpoints=Positions;
     this.Normals=Normals;
@@ -2136,6 +2183,65 @@ class Split3 {
              0.5*(m1_2+this.m2[2])];
     this.m5=[0.5*(this.m3[0]+this.m4[0]),0.5*(this.m3[1]+this.m4[1]),
              0.5*(this.m3[2]+this.m4[2])];
+  }
+}
+
+class Splittri {
+  constructor(p) {
+    this.l003=p[0];
+    let p102=p[1];
+    let p012=p[2];
+    let p201=p[3];
+    let p111=p[4];
+    let p021=p[5];
+    this.r300=p[6];
+    let p210=p[7];
+    let p120=p[8];
+    this.u030=p[9];
+
+    this.u021=0.5*(this.u030+p021);
+    this.u120=0.5*(this.u030+p120);
+
+    let p033=0.5*(p021+p012);
+    let p231=0.5*(p120+p111);
+    let p330=0.5*(p120+p210);
+
+    let p123=0.5*(p012+p111);
+
+    this.l012=0.5*(p012+this.l003);
+    let p312=0.5*(p111+p201);
+    this.r210=0.5*(p210+this.r300);
+
+    this.l102=0.5*(this.l003+p102);
+    let p303=0.5*(p102+p201);
+    this.r201=0.5*(p201+this.r300);
+
+    this.u012=0.5*(this.u021+p033);
+    this.u210=0.5*(this.u120+p330);
+    this.l021=0.5*(p033+this.l012);
+    let p4xx=0.5*p231+0.25*(p111+p102);
+    this.r120=0.5*(p330+this.r210);
+    let px4x=0.5*p123+0.25*(p111+p210);
+    let pxx4=0.25*(p021+p111)+0.5*p312;
+    this.l201=0.5*(this.l102+p303);
+    this.r102=0.5*(p303+this.r201);
+
+    this.l210=0.5*(px4x+this.l201); // = m120
+    this.r012=0.5*(px4x+this.r102); // = m021
+    this.l300=0.5*(this.l201+this.r102); // = r003 = m030
+
+    this.r021=0.5*(pxx4+this.r120); // = m012
+    this.u201=0.5*(this.u210+pxx4); // = m102
+    this.r030=0.5*(this.u210+this.r120); // = u300 = m003
+
+    this.u102=0.5*(this.u012+p4xx); // = m201
+    this.l120=0.5*(this.l021+p4xx); // = m210
+    this.l030=0.5*(this.u012+this.l021); // = u003 = m300
+
+    this.l111=0.5*(p123+this.l102);
+    this.r111=0.5*(p312+this.r210);
+    this.u111=0.5*(this.u021+p231);
+    this.c111=0.25*(p033+p330+p303+p111);
   }
 }
 
@@ -3054,25 +3160,24 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
                               fresnel0));
 }
 
-function patch(controlpoints,CenterIndex,MaterialIndex,Min,Max,color)
+function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
-  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,Min,Max,
-                         color));
+  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color));
 }
 
-function curve(controlpoints,CenterIndex,MaterialIndex,Min,Max)
+function curve(controlpoints,CenterIndex,MaterialIndex)
 {
-  P.push(new BezierCurve(controlpoints,CenterIndex,MaterialIndex,Min,Max));
+  P.push(new BezierCurve(controlpoints,CenterIndex,MaterialIndex));
 }
 
-function pixel(controlpoint,width,MaterialIndex,Min,Max)
+function pixel(controlpoint,width,MaterialIndex)
 {
-  P.push(new Pixel(controlpoint,width,MaterialIndex,Min,Max));
+  P.push(new Pixel(controlpoint,width,MaterialIndex));
 }
 
-function triangles(CenterIndex,MaterialIndex,Min,Max)
+function triangles(CenterIndex,MaterialIndex)
 {
-  P.push(new Triangles(CenterIndex,MaterialIndex,Min,Max));
+  P.push(new Triangles(CenterIndex,MaterialIndex));
 }
 
 // draw a sphere of radius r about center
@@ -3153,7 +3258,7 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
       for(let k=s; k <= 1; k += 2) {
         rz=k*r;
         for(let m=0; m < 2; ++m)
-          P.push(new BezierPatch(T(octant[m]),CenterIndex,MaterialIndex,
+          P.push(new BezierPatch(T(octant[m]),CenterIndex,MaterialIndex,null,
                                  Min,Max));
       }
     }
@@ -3201,7 +3306,8 @@ function disk(center,r,CenterIndex,MaterialIndex,dir)
   }
 
   let v=Tcorners(A.T.bind(A),[-r,-r,0],[r,r,0]);
-  P.push(new BezierPatch(T(unitdisk),CenterIndex,MaterialIndex,v[0],v[1]));
+  P.push(new BezierPatch(T(unitdisk),CenterIndex,MaterialIndex,null,
+                         v[0],v[1]));
 }
 
 // draw a cylinder with circular base of radius r about center and height h
@@ -3249,7 +3355,7 @@ function cylinder(center,r,h,CenterIndex,MaterialIndex,dir,core)
     rx=i*r;
     for(let j=-1; j <= 1; j += 2) {
       ry=j*r;
-      P.push(new BezierPatch(T(unitcylinder),CenterIndex,MaterialIndex,
+      P.push(new BezierPatch(T(unitcylinder),CenterIndex,MaterialIndex,null,
                              Min,Max));
     }
   }
@@ -3373,7 +3479,7 @@ function rmf(z0,c0,c1,z1,t)
 }
 
 // draw a tube of width w using control points v
-function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
+function tube(v,w,CenterIndex,MaterialIndex,core)
 {
   let Rmf=rmf(v[0],v[1],v[2],v[3],[0,1/3,2/3,1]);
 
@@ -3407,7 +3513,7 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
                   T8*x+T9*y+w2];
       }
     }
-    P.push(new BezierPatch(s,CenterIndex,MaterialIndex,Min,Max));
+    P.push(new BezierPatch(s,CenterIndex,MaterialIndex));
   }
 
   f(1,0,0,1);
@@ -3416,7 +3522,7 @@ function tube(v,w,CenterIndex,MaterialIndex,Min,Max,core)
   f(0,1,-1,0);
 
   if(core)
-    P.push(new BezierCurve(v,CenterIndex,MaterialIndex,Min,Max));
+    P.push(new BezierCurve(v,CenterIndex,MaterialIndex));
 }
 
 async function getReq(req)

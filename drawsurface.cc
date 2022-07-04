@@ -232,7 +232,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
   out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
-    out->addStraightPatch(Controls,Min,Max,colors);
+    out->addStraightPatch(Controls,colors);
   } else {
     double prerender=renderResolution();
     if(prerender) {
@@ -247,7 +247,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
                        Min,Max);
       dt.write(out);
     } else
-      out->addPatch(controls,Min,Max,colors);
+      out->addPatch(controls,colors);
   }
   out->precision(getSetting<Int>("digits"));
 
@@ -493,7 +493,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
   out->precision(digits);
   if(straight) {
     triple Controls[]={controls[0],controls[6],controls[9]};
-    out->addStraightBezierTriangle(Controls,Min,Max,colors);
+    out->addStraightBezierTriangle(Controls,colors);
   } else {
     double prerender=renderResolution();
     if(prerender) {
@@ -508,7 +508,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
                        Min,Max);
       dt.write(out);
     } else
-      out->addBezierTriangle(controls,Min,Max,colors);
+      out->addBezierTriangle(controls,colors);
   }
   out->precision(getSetting<Int>("digits"));
 
@@ -911,7 +911,7 @@ bool drawTube::write(abs3Doutfile *out)
   b.add(T*triple(M.getx(),M.gety(),m.getz()));
   b.add(T*M);
 
-  out->addTube(g,width,b.Min(),b.Max(),core);
+  out->addTube(g,width,core);
 
 #endif
   return true;
@@ -995,7 +995,7 @@ bool drawTriangles::write(abs3Doutfile *out)
   } else drawElement::centerIndex=0;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
-  out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI,Min,Max);
+  out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI);
 #endif
   return true;
 }
