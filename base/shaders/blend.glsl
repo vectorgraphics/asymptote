@@ -1,31 +1,14 @@
 layout(binding=0, std430) buffer offsetBuffer
 {
+  uint maxDepth;
   uint offset[];
 };
 
-#ifdef GPUINDEXING
-uniform uint elements;
-uniform uint offset2;
-uniform uint m1;
-uniform uint m2;
-uniform uint r;
-
-layout(binding=2, std430) buffer localSumBuffer
-{
-  uint localSum[];
-};
-
-layout(binding=3, std430) buffer globalSumBuffer
-{
-  uint globalSum[];
-};
-#define count offset
-#else
 layout(binding=2, std430) buffer countBuffer
 {
+  uint maxSize;
   uint count[];
 };
-#endif
 
 layout(binding=4, std430) buffer fragmentBuffer
 {
@@ -42,7 +25,6 @@ layout(binding=6, std430) buffer opaqueBuffer {
 };
 
 layout(binding=7, std430) buffer opaqueDepthBuffer {
-  uint maxSize;
   float opaqueDepth[];
 };
 
@@ -82,7 +64,12 @@ void main()
   }
 #endif
 
+#ifdef GPUINDEXING
+  uint listIndex=offset[element];
+  uint size=offset[element+1u]-listIndex;
+#else
   uint size=count[element];
+#endif
 
 #ifndef GPUCOMPRESS
   if(size == 0u) {
@@ -94,11 +81,7 @@ void main()
 
   outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
 
-#ifdef GPUINDEXING
-  uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
-  uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
-    offset[elements+element];
-#else
+#ifndef GPUINDEXING
   uint listIndex=offset[element]-size;
 #endif
 
@@ -146,9 +129,9 @@ void main()
     if(OpaqueDepth != 0.0)
       opaqueDepth[pixel]=0.0;
   } else {
-    atomicMax(maxSize,size);
+    atomicMax(maxDepth,size);
 #ifndef GPUINDEXING
-    count[0]=maxSize;
+    maxSize=maxDepth;
 #endif
     for(uint i=k+1u; i < size; i++) {
       vec4 temp=fragment[listIndex+i];
