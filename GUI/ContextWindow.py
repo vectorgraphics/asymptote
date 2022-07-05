@@ -147,7 +147,7 @@ class AnotherWindow(Qw.QWidget):
         if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]:
             self.sizeChange()
             self.angleChange()
-        self.parent.replaceObject(self.parent.contextWindowObject,self.newShape)
+            self.parent.replaceObject(self.parent.contextWindowObject,self.newShape)
         self.parent.terminateContextWindow()        
 
     def getInfo(self,value):

@@ -571,9 +571,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.txtTerminalPrompt.clear()
 
     def btnFillOnClick(self, checked):
-        if self.currentModeStack == [SelectionMode.selectEdit]:
-            if isinstance(self.addMode,xbi.InteractiveBezierEditor):
-                self.addMode.swapObjFill() #Check for crashes
         self.currAddOptions['fill'] = checked
         self.ui.btnOpenCurve.setEnabled(not checked)
         self.ui.btnOpenPoly.setEnabled(not checked)
