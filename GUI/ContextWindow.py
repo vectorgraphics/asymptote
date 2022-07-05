@@ -70,7 +70,7 @@ class AnotherWindow(Qw.QWidget):
             layout.addWidget(self.label)
             self.arrowstyleButton = Qw.QComboBox()
             for arrowStyle in self.shape.arrowStyleList:
-                self.arrowstyleButton.addItem(arrowStyle)
+                self.arrowstyleButton.addItem(arrowStyle if arrowStyle else "(default)")
             self.arrowstyleButton.currentIndexChanged.connect(self.arrowstyleChange)
             layout.addWidget(self.arrowstyleButton)
 
@@ -90,7 +90,7 @@ class AnotherWindow(Qw.QWidget):
             layout.addWidget(self.label)
             self.arrowFillButton = Qw.QComboBox()
             for arrowFillStyle in self.shape.arrowFillList:
-                self.arrowFillButton.addItem(arrowFillStyle)
+                self.arrowFillButton.addItem(arrowFillStyle if arrowFillStyle else "(default)")
             self.arrowFillButton.currentIndexChanged.connect(self.arrowFillChange)
             layout.addWidget(self.arrowFillButton)
 
