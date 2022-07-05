@@ -1901,14 +1901,128 @@ class BezierPatch extends Geometry {
   }
 }
 
+// Calculate the coefficients of a Bezier derivative divided by 3.
+function derivative(z0,c0,c1,z1)
+{
+  let a=z1-z0+3.0*(c0-c1);
+  let b=2.0*(z0+c1)-4.0*c0;
+  let c=c0-z0;
+  return [a,b,c];
+}
+
+function goodroot(t)
+{
+  return 0.0 <= t && t <= 1.0;
+}
+
+// Accurate computation of sqrt(1+x)-1.
+function sqrt1pxm1(x)
+{
+  return x/(Math.sqrt(1.0+x)+1.0);
+}
+
+// Solve for the real roots of the quadratic equation ax^2+bx+c=0.
+class quadraticroots {
+  constructor(a,b,c) {
+    const Fuzz2=1000*Number.EPSILON;
+    const Fuzz4=Fuzz2*Fuzz2;
+
+    // Remove roots at numerical infinity.
+    if(Math.abs(a) <= Fuzz2*Math.abs(b)+Fuzz4*Math.abs(c)) {
+      if(Math.abs(b) > Fuzz2*Math.abs(c)) {
+        this.roots=1;
+        this.t1=-c/b;
+      } else if(c == 0.0) {
+        this.roots=1;
+        this.t1=0.0;
+      } else {
+        this.roots=0;
+      }
+    } else {
+      let factor=0.5*b/a;
+      let denom=b*factor;
+      if(Math.abs(denom) <= Fuzz2*Math.abs(c)) {
+        let x=-c/a;
+        if(x >= 0.0) {
+          this.roots=2;
+          this.t2=Math.sqrt(x);
+          this.t1=-this.t2;
+        } else
+          this.roots=0;
+      } else {
+        let x=-2.0*c/denom;
+        if(x > -1.0) {
+          this.roots=2;
+          let r2=factor*sqrt1pxm1(x);
+          let r1=-r2-2.0*factor;
+          if(r1 <= r2) {
+            this.t1=r1;
+            this.t2=r2;
+          } else {
+            this.t1=r2;
+            this.t2=r1;
+          }
+        } else if(x == -1.0) {
+          this.roots=1;
+          this.t1=this.t2=-factor;
+        } else
+          this.roots=0;
+      }
+    }
+  }
+}
+
 class BezierCurve extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
     super();
     this.controlpoints=controlpoints;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
-    this.Min=Min ? Min : minBound; // FIXME
-    this.Max=Max ? Max : maxBound;
+
+    if(Min && Max) {
+      this.Min=Min;
+      this.Max=Max;
+    } else {
+      let b=this.Bounds(this.controlpoints);
+      this.Min=b[0];
+      this.Max=b[1];
+    }
+  }
+
+  Bounds(p) {
+    let b=Array(3);
+    let B=Array(3);
+    let n=p.length;
+    let x=Array(n);
+    for(let i=0; i < 3; ++i) {
+      for(let j=0; j < n; ++j)
+        x[j]=p[j][i];
+      let m,M;
+      m=M=x[0];
+      if(n == 4) {
+        m=Math.min(m,x[3]);
+        M=Math.max(M,x[3]);
+        let a=derivative(x[0],x[1],x[2],x[3]);
+        let q=new quadraticroots(a[0],a[1],a[2]);
+        if(q.roots != 0 && goodroot(q.t1)) {
+          let v=bezier(x[0],x[1],x[2],x[3],q.t1);
+          m=Math.min(m,v);
+          M=Math.max(M,v);
+        }
+        if(q.roots == 2 && goodroot(q.t2)) {
+          let v=bezier(x[0],x[1],x[2],x[3],q.t2);
+          m=Math.min(m,v);
+          M=Math.max(M,v);
+        }
+      } else {
+        let v=x[1];
+        m=Math.min(m,v);
+        M=Math.max(M,v);
+      }
+      b[i]=m;
+      B[i]=M;
+    }
+    return [[b[0],b[1],b[2]],[B[0],B[1],B[2]]];
   }
 
   setMaterialIndex() {
@@ -2280,6 +2394,14 @@ function cross(u,v)
   return [u[1]*v[2]-u[2]*v[1],
           u[2]*v[0]-u[0]*v[2],
           u[0]*v[1]-u[1]*v[0]];
+}
+
+// Evaluate the Bezier curve defined by a,b,c,d at t.
+function bezier(a,b,c,d,t)
+{
+  let onemt=1-t;
+  let onemt2=onemt*onemt;
+  return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
 }
 
 // Return one-third of the first derivative of the Bezier curve defined
