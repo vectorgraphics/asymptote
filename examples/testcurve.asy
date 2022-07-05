@@ -485,9 +485,8 @@ struct NURBScurve {
       triple[] current_Bezier_cps=nurb_control_points[Bezier_first_cp_index: Bezier_last_cp_index+1];
       real[] current_Bezier_weights=nurb_weights[Bezier_first_cp_index: Bezier_last_cp_index+1];
       int m=Bezier_last_cp_index-Bezier_first_cp_index+1; // number of control points in the current Bezier segment
-      triple[] sample_points=new triple[m+1];
+      triple[] sample_points=new triple[m];
       bool NR_bool=true;
-
       for(int i=0; i < m; ++i) {
         if(current_Bezier_weights[i] != 1) {
           NR_bool=false;
@@ -496,15 +495,14 @@ struct NURBScurve {
       if(NR_bool && Bezier_last_cp_index < n) {
         g.push(current_Bezier_cps[0]..controls current_Bezier_cps[1] and current_Bezier_cps[2]..current_Bezier_cps[3]);
       } else {
-        for(int i=0; i <= m; ++i) {
-          sample_points[i]=RBezier_evaluation(i/m,current_Bezier_cps,current_Bezier_weights);
+        for(int i=0; i <= m-1; ++i) {
+          sample_points[i]=RBezier_evaluation(i/(m-1),current_Bezier_cps,current_Bezier_weights);
         }
+        write(sample_points);
         real tolerance=NURBStolerance*norm(new triple[][] {current_Bezier_cps});
         triple[] NR_Bezier_control_points=conversion_RBezier_to_NRBezier(current_Bezier_cps,current_Bezier_cps,sample_points,tolerance);
-
-        if(NR_Bezier_control_points.length == 4) {
-          g.push(NR_Bezier_control_points[0]..controls NR_Bezier_control_points[1] and NR_Bezier_control_points[2]..NR_Bezier_control_points[3]);
-        }
+        g.push(NR_Bezier_control_points[0]..controls NR_Bezier_control_points[1] and NR_Bezier_control_points[2]..NR_Bezier_control_points[3]);
+        
       }
       Bezier_first_cp_index=Bezier_last_cp_index;
       Bezier_last_cp_index=Bezier_last_cp_index+output_degree;
@@ -560,8 +558,8 @@ triple[] testPoints={
    real[] testKnots={0,0,0,0,0.5,1,1,1,1}; */
 real[] testKnots={1,1,1,2,3,4,5,6,6,6};
 real[] weights=array(testPoints.length,1.0);
+weights[4]=5;
 weights[5]=6;
-
 NURBScurve n=NURBScurve(testPoints,testKnots,weights);
 n.draw();
 dot(n.data.controlPoints,red);
