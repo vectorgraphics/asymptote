@@ -3296,8 +3296,9 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
                               fresnel0));
 }
 
-function patch(controlpoints,CenterIndex,MaterialIndex,color)
+function patch(controlpoints,CenterIndex,MaterialIndex,Min,Max,color)
 {
+  if(Max == null) color=Min; // For backwards compatibility
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color));
 }
 
