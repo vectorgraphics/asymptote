@@ -769,7 +769,7 @@ setlocal errorformat=%f:\ %l.%c:\ %m
 Syntax highlighting support for the @acronym{KDE} editor @code{Kate}
 can be enabled by running @code{asy-kate.sh} in the
 @code{@value{Datadir}/asymptote} directory and putting the generated
-@code{asymptote.xml} file in @code{~/.kde/share/apps/katepart/syntax/}.
+@code{asymptote.xml} file in @code{~/.local/share/}.
 
 @node Git, Uninstall, Editing modes, Installation
 @section Git
