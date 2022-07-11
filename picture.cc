@@ -685,7 +685,7 @@ int picture::pdftoeps(const string& pdfname, const string& epsname, bool eps)
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
-  cmd.push_back("-dNOCACHE");
+  cmd.push_back("-dNoOutputFonts");
   cmd.push_back("-dNOPAUSE");
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");
