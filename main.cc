@@ -270,11 +270,8 @@ int main(int argc, char *argv[])
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
-        while(true) {
-          Signal(SIGURG,exitHandler);
-          camp::glrenderWrapper();
-          gl::initialize=true;
-        }
+        Signal(SIGURG,exitHandler);
+        camp::glrenderWrapper(); // Does not return
       } else gl::glthread=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
