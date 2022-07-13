@@ -37,6 +37,10 @@ class AnotherWindow(Qw.QWidget):
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         layout.addWidget(self.fillButton)
 
+        self.colorButton = Qw.QPushButton("Set Line Colour")
+        self.colorButton.clicked.connect(self.pickColor)
+        #layout.addWidget(self.colorButton)
+
         self.label = Qw.QLabel("Reflection:")
         layout.addWidget(self.label)
         self.reflectionButton = Qw.QComboBox()
@@ -57,7 +61,7 @@ class AnotherWindow(Qw.QWidget):
 
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
-            self.fillButton.setDisabled(True)
+            #self.fillButton.setDisabled(True)
             if isinstance(self.shape, x2a.asyArrow):
                 self.arrowheadButton.setCurrentIndex(int(self.shape.arrowSettings["active"]))
             else:
@@ -116,7 +120,9 @@ class AnotherWindow(Qw.QWidget):
         self.newShape.arrowSettings["style"] = i
 
     def fillChange(self, i):
-        if self.shape.path.fill != bool(i):
+        if isinstance(self.shape, x2a.asyArrow):
+            self.shape.arrowSettings["fill"] = not self.shape.arrowSettings["fill"]
+        elif self.shape.path.fill != bool(i):
             self.newShape = self.newShape.swapFill()
 
     def reflectionChange(self, i): #TODO: Modernize this.
@@ -165,3 +171,10 @@ class AnotherWindow(Qw.QWidget):
         fout.flush()
 
         return fin.readline()
+
+    def pickColor(self):
+        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.color['line']), self)
+        self.colorDialog.show()
+        result = self.colorDialog.exec()
+        if result == Qw.QDialog.Accepted:
+            self.shape.color['line'] = self.colorDialog.selectedColor()

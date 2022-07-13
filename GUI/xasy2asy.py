@@ -1838,6 +1838,7 @@ class asyArrow(xasyItem):
         if pen.asyEngine is None:
             pen.asyEngine = asyengine
         self.pen = pen
+        self.fillPen = pen
         self.code = code
         #self.path = path
         #self.path.asyengine = asyengine
@@ -1889,6 +1890,8 @@ class asyArrow(xasyItem):
         newLoc = asy2psmap.inverted() * self.location
         if self.arrowSettings["active"]:
             self.asyCode = 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
+            if self.arrowSettings["fill"]:
+                self.asyCode += 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.fillPen.getCode())+'\n\n'
         else:
             self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.pen.getCode())+'\n\n'
 
