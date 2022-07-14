@@ -3743,6 +3743,17 @@ void draw(picture pic = currentpicture, Label L = "", circle c,
   else draw(pic, L, (path)c, align, p, arrow, bar, margin, legend, marker);
 }
 
+void fill(picture pic = currentpicture, circle c, pen p = currentpen)
+{
+  if (!degenerate(c)) fill(pic, (path)c, p);
+}
+
+void filldraw(picture pic = currentpicture, circle c, pen fillpen = currentpen, pen drawpen = currentpen)
+{
+  fill(pic, c, fillpen);
+  draw(pic, c, drawpen);
+}
+
 /*<asyxml><function type="void" signature="draw(picture,Label,ellipse,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "", ellipse el,
           align align = NoAlign, pen p = currentpen,
@@ -3751,6 +3762,17 @@ void draw(picture pic = currentpicture, Label L = "", ellipse el,
 {/*<asyxml></code><documentation></documentation>Draw the ellipse 'el' if it is not degenerated else draw 'el.l'.</function></asyxml>*/
   if(degenerate(el)) draw(pic, L, el.l, align, p, arrow, legend, marker);
   else draw(pic, L, (path)el, align, p, arrow, bar, margin, legend, marker);
+}
+
+void fill(picture pic = currentpicture, ellipse el, pen p = currentpen)
+{
+  if (!degenerate(el)) fill(pic, (path)el, p);
+}
+
+void filldraw(picture pic = currentpicture, ellipse el, pen fillpen = currentpen, pen drawpen = currentpen)
+{
+  fill(pic, el, fillpen);
+  draw(pic, el, drawpen);
 }
 
 /*<asyxml><function type="void" signature="draw(picture,Label,parabola,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
@@ -6286,10 +6308,31 @@ void draw(picture pic = currentpicture, triangle t, pen p = currentpen, marker m
   draw(pic, (path)t, p, marker);
 }
 
+void fill(picture pic = currentpicture, triangle t, pen p = currentpen)
+{
+  fill(pic, (path)t, p);
+}
+
+void filldraw(picture pic = currentpicture, triangle t, pen fillpen = currentpen, pen drawpen = currentpen)
+{
+  fill(pic, t, fillpen);
+  draw(pic, t, drawpen);
+}
+
 /*<asyxml><function type="void" signature="draw(picture,triangle[],pen,marker)"><code></asyxml>*/
-void draw(picture pic = currentpicture, triangle[] t, pen p = currentpen, marker marker = nomarker)
+void draw(picture pic = currentpicture, triangle[] ts, pen p = currentpen, marker marker = nomarker)
 {/*<asyxml></code><documentation>Draw sides of the triangles 't' on picture 'pic' using pen 'p'.</documentation></function></asyxml>*/
-  for(int i = 0; i < t.length; ++i) draw(pic, t[i], p, marker);
+  for(triangle t: ts) draw(pic, t, p, marker);
+}
+
+void fill(picture pic = currentpicture, triangle[] ts, pen p = currentpen)
+{
+  for(triangle t: ts) fill(pic, t, p);
+}
+
+void filldraw(picture pic = currentpicture, triangle[] ts, pen fillpen = currentpen, pen drawpen = currentpen)
+{
+  for(triangle t: ts) filldraw(pic, t, fillpen, drawpen);
 }
 
 /*<asyxml><function type="void" signature="drawline(picture,triangle,pen)"><code></asyxml>*/
