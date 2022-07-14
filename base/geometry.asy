@@ -1556,6 +1556,11 @@ segment operator cast(line l)
   return segment(l.A, l.B);
 }
 
+path operator ecast(segment s)
+{
+  return s.A -- s.B;
+}
+
 /*<asyxml><operator type = "line" signature="*(transform,line)"><code></asyxml>*/
 line operator *(transform t, line l)
 {/*<asyxml></code><documentation>Provide transform * line</documentation></operator></asyxml>*/
