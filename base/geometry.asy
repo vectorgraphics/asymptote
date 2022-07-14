@@ -5539,9 +5539,9 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
   real gamma() {return degrees(acos((a()^2 + b()^2 - c()^2)/(2a() * b())));}
 
   /*<asyxml><method type = "path" signature="Path()"><code></asyxml>*/
-  path Path()
+  path Path()  // retained for backward compatibility
   {/*<asyxml></code><documentation>The path of the triangle.</documentation></method></asyxml>*/
-    return A--C--B--cycle;
+    return A--B--C--cycle;
   }
 
   /*<asyxml><struct signature="side"><code></asyxml>*/
@@ -5583,6 +5583,8 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
   }
 
 }/*<asyxml></struct></asyxml>*/
+
+path operator cast(triangle t) { return t.A -- t.B -- t.C -- cycle; }
 
 from triangle unravel side; // The structure 'side' is now available outside the triangle structure.
 from triangle unravel vertex; // The structure 'vertex' is now available outside the triangle structure.
@@ -6276,7 +6278,7 @@ void show(picture pic = currentpicture,
 /*<asyxml><function type="void" signature="draw(picture,triangle,pen,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, triangle t, pen p = currentpen, marker marker = nomarker)
 {/*<asyxml></code><documentation>Draw sides of the triangle 't' on picture 'pic' using pen 'p'.</documentation></function></asyxml>*/
-  draw(pic, t.Path(), p, marker);
+  draw(pic, (path)t, p, marker);
 }
 
 /*<asyxml><function type="void" signature="draw(picture,triangle[],pen,marker)"><code></asyxml>*/
