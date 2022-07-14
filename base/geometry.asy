@@ -5383,8 +5383,8 @@ void dot(picture pic = currentpicture, Label L, explicit mass M, align align = N
 
 // *=======================================================*
 // *.......................TRIANGLES.......................*
-/*<asyxml><function type="point" signature="orthocentercenter(point,point,point)"><code></asyxml>*/
-point orthocentercenter(point A, point B, point C)
+/*<asyxml><function type="point" signature="orthocenter(point,point,point)"><code></asyxml>*/
+point orthocenter(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the orthocenter of the triangle ABC.</documentation></function></asyxml>*/
   point[] P = standardizecoordsys(A, B, C);
   coordsys R = P[0].coordsys;
@@ -5715,10 +5715,10 @@ line altitude(side side)
   return altitude(opposite(side));
 }
 
-/*<asyxml><function type="point" signature="orthocentercenter(triangle)"><code></asyxml>*/
-point orthocentercenter(triangle t)
+/*<asyxml><function type="point" signature="orthocenter(triangle)"><code></asyxml>*/
+point orthocenter(triangle t)
 {/*<asyxml></code><documentation>Return the orthocenter of the triangle t.</documentation></function></asyxml>*/
-  return orthocentercenter(t.A, t.B, t.C);
+  return orthocenter(t.A, t.B, t.C);
 }
 
 /*<asyxml><function type="point" signature="centroid(triangle)"><code></asyxml>*/
@@ -7192,9 +7192,18 @@ path arc(explicit pair B, explicit pair A, explicit pair C, real r)
   return arc(A, abs(r), BA, CA, (r < 0) ^ ((BA-CA) % 360 < 180) ? CW : CCW);
 }
 
+point orthocentercenter(point A, point B, point C)
+{
+    return orthocenter(A, B, C);
+}
+
+point orthocentercenter(triangle t)
+{
+  return orthocenter(t.A, t.B, t.C);
+}
+
 // *.......End of compatibility routines........*
 // *=======================================================*
 
 // *........................FOOTER.........................*
 // *=======================================================*
-
