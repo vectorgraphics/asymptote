@@ -37,9 +37,14 @@ class AnotherWindow(Qw.QWidget):
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         layout.addWidget(self.fillButton)
 
-        self.colorButton = Qw.QPushButton("Set Line Colour")
-        self.colorButton.clicked.connect(self.pickColor)
-        #layout.addWidget(self.colorButton)
+        if False: #Debug flag for buttons
+            self.colorButton = Qw.QPushButton("Set Line Colour")
+            self.colorButton.clicked.connect(self.pickColor)
+            layout.addWidget(self.colorButton)
+
+            self.colorButton = Qw.QPushButton("Set Fill Colour")
+            self.colorButton.clicked.connect(self.pickFillColor)
+            layout.addWidget(self.colorButton)
 
         self.label = Qw.QLabel("Reflection:")
         layout.addWidget(self.label)
@@ -173,8 +178,17 @@ class AnotherWindow(Qw.QWidget):
         return fin.readline()
 
     def pickColor(self):
-        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.color['line']), self)
+        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.colors['line']), self)
         self.colorDialog.show()
         result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
-            self.shape.color['line'] = self.colorDialog.selectedColor()
+            self.shape.colors['line'] = x2a.asyPen.getColorFromQColor(self.colorDialog.selectedColor())
+            self.parent.updateFrameDispColor()
+
+    def pickFillColor(self): #This is a copy of the above, how do you set the var as it is set?
+        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.colors['fill']), self)
+        self.colorDialog.show()
+        result = self.colorDialog.exec()
+        if result == Qw.QDialog.Accepted:
+            self.shape.colors['fill'] = x2a.asyPen.getColorFromQColor(self.colorDialog.selectedColor())
+            self.parent.updateFrameDispColor()
