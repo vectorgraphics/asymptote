@@ -66,7 +66,7 @@ class AnotherWindow(Qw.QWidget):
 
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
-            #self.fillButton.setDisabled(True)
+            self.fillButton.setCurrentIndex(int(self.shape.arrowSettings["fill"]))
             if isinstance(self.shape, x2a.asyArrow):
                 self.arrowheadButton.setCurrentIndex(int(self.shape.arrowSettings["active"]))
             else:
@@ -126,7 +126,7 @@ class AnotherWindow(Qw.QWidget):
 
     def fillChange(self, i):
         if isinstance(self.shape, x2a.asyArrow):
-            self.shape.arrowSettings["fill"] = not self.shape.arrowSettings["fill"]
+            self.shape.arrowSettings["fill"] = bool(i)
         elif self.shape.path.fill != bool(i):
             self.newShape = self.newShape.swapFill()
 
