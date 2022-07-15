@@ -31,12 +31,18 @@ NURBSCurveData conversion_4DBSpline_to_3DNurbs(BSpline BSpline_4D) {
   NURBSCurveData new_nurb;
   triple[] x=new_nurb.controlPoints;
   real[] weights=new_nurb.weights;
+  real[] control_point_4D = new real[4];
+  real weight = 1;
+  triple new_3D_control_point;
+  
   for(int j=0; j < BSpline_4D.controlPoints.length; ++j) {
-    real[] control_point_4D=BSpline_4D.controlPoints[j];
-    real weight=control_point_4D[3];
-    triple new_3D_control_point=(control_point_4D[0],control_point_4D[1],control_point_4D[2])/weight;
-    weights.push(weight);
+    control_point_4D=copy(BSpline_4D.controlPoints[j]);
+    weight=control_point_4D[3];
+    if(weight!=0){
+      new_3D_control_point=(control_point_4D[0],control_point_4D[1],control_point_4D[2])/weight;
+    }
     x.push(new_3D_control_point);
+    weights.push(weight);
   }
   new_nurb.degree=BSpline_4D.degree;
   new_nurb.controlPoints=x;
@@ -49,14 +55,14 @@ NURBSCurveData conversion_4DBSpline_to_3DNurbs(BSpline BSpline_4D) {
 BSpline conversion_3DNurbs_to_4DBSpline(NURBSCurveData NURBSS_3D) {
   BSpline new_BSpline_4D;
   real[][] x=new_BSpline_4D.controlPoints;
+  triple control_point_3D;
+  real weight;
   for(int j=0; j < NURBSS_3D.controlPoints.length; ++j) {
-    triple control_point_3D=NURBSS_3D.controlPoints[j];
-    real weight=NURBSS_3D.weights[j];
+    control_point_3D=NURBSS_3D.controlPoints[j];
+    weight=NURBSS_3D.weights[j];
     real[] new_control_point_4D={control_point_3D.x*weight,control_point_3D.y*weight,control_point_3D.z*weight,weight};
-    x.push(new_control_point_4D);
+    x.push(copy(new_control_point_4D));
   }
-  //   write("NURBSS_3D.degree");
-  //   write(NURBSS_3D.degree);
   new_BSpline_4D.degree=NURBSS_3D.degree;
   new_BSpline_4D.controlPoints=x;
   new_BSpline_4D.knots=copy(NURBSS_3D.knots);
@@ -212,11 +218,7 @@ BSpline DegreeElevationCurve(BSpline curve_data, int t) {
   }
   BSpline new_curve;
   new_curve.controlPoints=Qw;
-  //   write("new curve control points");
-  //   write(new_curve.controlPoints);
   new_curve.knots=Uh;
-  //   write("new curve knots");
-  //   write(new_curve.knots);
   return new_curve;
 }
 
@@ -350,8 +352,6 @@ BSpline DegreeReduceCurve(BSpline curve_data) {
       for(int i=0; i < r; ++i) {
         bpts[i]=Nextbpts[i];
       }
-      //         write("old curve control points length");
-      //         write(Pw.length);
 
       for(int i=r; i <= p; ++i) {
         bpts[i]=Pw[b-p+i];
@@ -368,11 +368,7 @@ BSpline DegreeReduceCurve(BSpline curve_data) {
   } //end of(b < m) loop
 
   new_curve_data.controlPoints=new_curve_cp;
-  //   write("new curve control points");
-  //   write(new_curve_data.controlPoints);
   new_curve_data.knots=new_curve_knots;
-  //   write("new curve knots");
-  //   write(new_curve_data.knots);
   return new_curve_data;
 }
 
@@ -425,15 +421,13 @@ triple[] conversion_RBezier_to_NRBezier(triple[] RBcontrolPoints, triple[] adjus
       approximation_bool=false;
     }
   }
-
   for(int j=0; j < k; ++j) {
-    local_sample_points[j]=de_casteljau_triple(j/(k-1),local_control_points);
+    local_sample_points[j]=de_casteljau_triple(j/(k-1),copy(local_control_points));
   }
 
   if(approximation_bool == true) {
     return local_control_points; // non-rational Bezier control points are returned
   }
-  //write(local_control_points);
   return conversion_RBezier_to_NRBezier(RBcontrolPoints,local_control_points,local_sample_points,tolerance);
 }
 
@@ -441,15 +435,18 @@ triple RBezier_evaluation(real t, triple[] control_points, real[] weights) {
 
   int n=control_points.length;
   triple[] weighted_control_points=new triple[n];
-
+  triple point_on_curve;
   for(int i=0; i < n; ++i) {
     weighted_control_points[i]=control_points[i]*weights[i];
   }
-
   triple numerator=de_casteljau_triple(t,weighted_control_points);
-  real denominator_inverse=1/de_casteljau_real(t,weights);
-  triple point_on_curve=numerator*denominator_inverse;
-
+  real denominator=de_casteljau_real(t,weights);
+  if(denominator!=0){
+    point_on_curve=numerator/denominator;
+  }
+  else{
+    point_on_curve=(0,0,0);
+  }
   return point_on_curve;
 }
 
@@ -498,9 +495,10 @@ struct NURBScurve {
         for(int i=0; i <= m-1; ++i) {
           sample_points[i]=RBezier_evaluation(i/(m-1),current_Bezier_cps,current_Bezier_weights);
         }
-        write(sample_points);
+        dot(copy(sample_points),yellow);
         real tolerance=NURBStolerance*norm(new triple[][] {current_Bezier_cps});
         triple[] NR_Bezier_control_points=conversion_RBezier_to_NRBezier(current_Bezier_cps,current_Bezier_cps,sample_points,tolerance);
+        dot(copy(NR_Bezier_control_points),pink);
         g.push(NR_Bezier_control_points[0]..controls NR_Bezier_control_points[1] and NR_Bezier_control_points[2]..NR_Bezier_control_points[3]);
         
       }
@@ -550,7 +548,7 @@ triple[] testPoints={
   ( 0.0,2.0,-2.0),
   ( 1.5,5.0,-6.0),
   ( 4.0,1.0,0.0),
-  (-4.0,-6.0,6.0)
+  (-4.0,-6.0,6.0),
 };
 /* triple[] testPoints ={
    (4,6,0),(7,12,0),(11,6,0),(15,2,0),(20,6,0)
@@ -558,8 +556,7 @@ triple[] testPoints={
    real[] testKnots={0,0,0,0,0.5,1,1,1,1}; */
 real[] testKnots={1,1,1,2,3,4,5,6,6,6};
 real[] weights=array(testPoints.length,1.0);
-weights[4]=5;
-weights[5]=6;
+weights[4]=0;
 NURBScurve n=NURBScurve(testPoints,testKnots,weights);
 n.draw();
 dot(n.data.controlPoints,red);
