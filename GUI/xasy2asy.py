@@ -1838,7 +1838,8 @@ class asyArrow(xasyItem):
         if pen.asyEngine is None:
             pen.asyEngine = asyengine
         self.pen = pen
-        self.colors = {'line': (0,0,0), 'fill': (0,0,0)}
+        self.fillPen = asyPen()
+        self.fillPen.asyEngine = asyengine
         self.code = code
         #self.path = path
         #self.path.asyengine = asyengine
@@ -1889,11 +1890,9 @@ class asyArrow(xasyItem):
     def updateCode(self, asy2psmap = identity()):
         newLoc = asy2psmap.inverted() * self.location
         if self.arrowSettings["active"]:
-            self.pen.setColor(self.colors['line'])
-            self.asyCode = 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
             if self.arrowSettings["fill"]:
-                self.pen.setColor(self.colors['fill'])
-                self.asyCode += 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.pen.getCode())+'\n\n'
+                self.asyCode = 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.fillPen.getCode())+'\n\n'
+            self.asyCode += 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
         else:
             self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.pen.getCode())+'\n\n'
 

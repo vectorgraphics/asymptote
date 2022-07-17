@@ -27,42 +27,58 @@ class AnotherWindow(Qw.QWidget):
         self.shape = shape
         self.parent = parent
         self.newShape = self.shape
-        layout = Qw.QVBoxLayout()
+        self.layout = Qw.QVBoxLayout(self)
+        
+        # Initialize tab screen
+        self.tabs = Qw.QTabWidget()
+        self.fillTab = Qw.QWidget()
+        self.arrowTab = Qw.QWidget()
+        self.othersTab = Qw.QWidget()
+        self.tabs.resize(300,200)
+        self.fillTab.layout = Qw.QVBoxLayout(self)
+        self.arrowTab.layout = Qw.QVBoxLayout(self)
+        self.othersTab.layout = Qw.QVBoxLayout(self)
+        self.tabs.addTab(self.fillTab,"Fill Options")
+        self.tabs.addTab(self.arrowTab,"Arrow Options")
+        self.tabs.addTab(self.othersTab,"Misc. Options")
+
+        self.layout.addWidget(self.tabs)
+        self.setLayout(self.layout)
+        self.setWindowTitle("Shape Options Window")
 
         self.label = Qw.QLabel("Fill:")
-        layout.addWidget(self.label)
+        self.fillTab.layout.addWidget(self.label)
         self.fillButton = Qw.QComboBox()
         self.fillButton.addItem("Unfilled")
         self.fillButton.addItem("Filled")
         self.fillButton.currentIndexChanged.connect(self.fillChange)
-        layout.addWidget(self.fillButton)
+        self.fillTab.layout.addWidget(self.fillButton)
 
-        if False: #Debug flag for buttons
-            self.colorButton = Qw.QPushButton("Set Line Colour")
-            self.colorButton.clicked.connect(self.pickColor)
-            layout.addWidget(self.colorButton)
+        self.colorButton = Qw.QPushButton("Set Line Colour")
+        self.colorButton.clicked.connect(self.pickColor)
+        self.fillTab.layout.addWidget(self.colorButton)
 
-            self.colorButton = Qw.QPushButton("Set Fill Colour")
-            self.colorButton.clicked.connect(self.pickFillColor)
-            layout.addWidget(self.colorButton)
+        self.colorButton = Qw.QPushButton("Set Fill Colour")
+        self.colorButton.clicked.connect(self.pickFillColor)
+        self.fillTab.layout.addWidget(self.colorButton)
 
         self.label = Qw.QLabel("Reflection:")
-        layout.addWidget(self.label)
+        self.othersTab.layout.addWidget(self.label)
         self.reflectionButton = Qw.QComboBox()
         self.reflectionButton.addItem("None")
         self.reflectionButton.addItem("Horizontal")
         self.reflectionButton.addItem("Vertical")
         self.reflectionButton.currentIndexChanged.connect(self.reflectionChange)
-        layout.addWidget(self.reflectionButton)
+        self.othersTab.layout.addWidget(self.reflectionButton)
 
         self.label = Qw.QLabel("Arrowhead:")
-        layout.addWidget(self.label)
+        self.arrowTab.layout.addWidget(self.label)
         self.arrowheadButton = Qw.QComboBox()
         self.arrowList = ["None","Arrow","ArcArrow"]
         for arrowMode in self.arrowList:
             self.arrowheadButton.addItem(arrowMode)
         self.arrowheadButton.currentIndexChanged.connect(self.arrowheadChange)
-        layout.addWidget(self.arrowheadButton)
+        self.arrowTab.layout.addWidget(self.arrowheadButton)
 
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
@@ -76,42 +92,43 @@ class AnotherWindow(Qw.QWidget):
 
         if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]: #Make these all a list or something.
             self.label = Qw.QLabel("Arrow Style:")
-            layout.addWidget(self.label)
+            self.arrowTab.layout.addWidget(self.label)
             self.arrowstyleButton = Qw.QComboBox()
             for arrowStyle in self.shape.arrowStyleList:
                 self.arrowstyleButton.addItem(arrowStyle if arrowStyle else "(default)")
             self.arrowstyleButton.currentIndexChanged.connect(self.arrowstyleChange)
-            layout.addWidget(self.arrowstyleButton)
+            self.arrowTab.layout.addWidget(self.arrowstyleButton)
 
             self.label = Qw.QLabel("Arrow Size:")
-            layout.addWidget(self.label)
+            self.arrowTab.layout.addWidget(self.label)
             self.arrowSizeBox = Qw.QLineEdit()
-            layout.addWidget(self.arrowSizeBox)
+            self.arrowTab.layout.addWidget(self.arrowSizeBox)
             self.arrowSizeBox.setPlaceholderText(self.getInfo("DefaultHead.size(currentpen)"))
 
             self.label = Qw.QLabel("Arrow Angle:")
-            layout.addWidget(self.label)
+            self.arrowTab.layout.addWidget(self.label)
             self.arrowAngleBox = Qw.QLineEdit()
-            layout.addWidget(self.arrowAngleBox)
+            self.arrowTab.layout.addWidget(self.arrowAngleBox)
             self.arrowAngleBox.setPlaceholderText(self.getInfo("arrowangle"))
 
             self.label = Qw.QLabel("Arrow Fill:")
-            layout.addWidget(self.label)
+            self.arrowTab.layout.addWidget(self.label)
             self.arrowFillButton = Qw.QComboBox()
             for arrowFillStyle in self.shape.arrowFillList:
                 self.arrowFillButton.addItem(arrowFillStyle if arrowFillStyle else "(default)")
             self.arrowFillButton.currentIndexChanged.connect(self.arrowFillChange)
-            layout.addWidget(self.arrowFillButton)
+            self.arrowTab.layout.addWidget(self.arrowFillButton)
 
             self.arrowstyleButton.setCurrentIndex(int(self.shape.arrowSettings["style"]))
             self.arrowFillButton.setCurrentIndex(int(self.shape.arrowSettings["fill"]))
 
+        self.fillTab.setLayout(self.fillTab.layout)
+        self.arrowTab.setLayout(self.arrowTab.layout)
+        self.othersTab.setLayout(self.othersTab.layout)
+
         self.confirmButton = Qw.QPushButton("Render")
         self.confirmButton.clicked.connect(self.renderChanges)
-        layout.addWidget(self.confirmButton)
-
-        self.setLayout(layout)
-        self.setWindowTitle("Shape Options Window")
+        self.layout.addWidget(self.confirmButton)
 
     def arrowheadChange(self, i):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
@@ -178,17 +195,23 @@ class AnotherWindow(Qw.QWidget):
         return fin.readline()
 
     def pickColor(self):
-        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.colors['line']), self)
+        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.pen.color), self)
         self.colorDialog.show()
         result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
-            self.shape.colors['line'] = x2a.asyPen.getColorFromQColor(self.colorDialog.selectedColor())
+            self.shape.pen.setColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
 
     def pickFillColor(self): #This is a copy of the above, how do you set the var as it is set?
-        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.colors['fill']), self)
+        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.fillPen.color), self)
         self.colorDialog.show()
         result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
-            self.shape.colors['fill'] = x2a.asyPen.getColorFromQColor(self.colorDialog.selectedColor())
+            self.shape.fillPen.setColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
+
+    @Qc.pyqtSlot()
+    def on_click(self):
+        print("\n")
+        for currentQTableWidgetItem in self.tableWidget.selectedItems():
+            print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())

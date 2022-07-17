@@ -2453,6 +2453,7 @@ class MainWindow1(Qw.QMainWindow):
             self.contextWindowObject = self.fileItems[maj] #For arrowifying
             self.contextWindow = ContextWindow.AnotherWindow(self.fileItems[maj],self)
             self.contextWindow.setMinimumWidth(420)
+            #self.setCentralWidget(self.contextWindow) #I don't know what this does tbh. 
             self.contextWindow.show()
 
     def focusInEvent(self,event):
