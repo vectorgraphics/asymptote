@@ -1891,8 +1891,11 @@ class asyArrow(xasyItem):
         newLoc = asy2psmap.inverted() * self.location
         if self.arrowSettings["active"]:
             if self.arrowSettings["fill"]:
-                self.asyCode = 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.fillPen.getCode())+'\n\n'
+                self.asyCode = 'begingroup();\n\n'
+                self.asyCode += 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.fillPen.getCode())+'\n\n'
             self.asyCode += 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
+            if self.arrowSettings["fill"]:
+                self.asyCode += 'endgroup();\n\n'
         else:
             self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.pen.getCode())+'\n\n'
 
