@@ -88,11 +88,24 @@ class AnotherWindow(Qw.QWidget):
         self.linestyleButton = Qw.QComboBox()
         self.lineListStrings = ["SolidLine","DashLine","DotLine","DashDotLine"] #Is there a way to pull these directly
         self.lineList = [Qc.Qt.PenStyle.SolidLine,Qc.Qt.PenStyle.DashLine,Qc.Qt.PenStyle.DotLine,Qc.Qt.PenStyle.DashDotLine]
+        self.linestyleButton.setCurrentIndex(self.lineList.index(self.shape.pen.style)) #Doesn't work
 
         for lineMode in self.lineListStrings:
             self.linestyleButton.addItem(lineMode)
         self.linestyleButton.currentIndexChanged.connect(self.linestyleChange)
         self.lineTab.layout.addWidget(self.linestyleButton)
+
+        self.label = Qw.QLabel("Line Cap Style:")
+        self.lineTab.layout.addWidget(self.label)
+        self.lineCapStyleButton = Qw.QComboBox()
+        self.lineCapListStrings = ["SquareCap","FlatCap","RoundCap"] #Is there a way to pull these directly
+        self.lineCapList = [Qc.Qt.PenCapStyle.SquareCap,Qc.Qt.PenCapStyle.FlatCap,Qc.Qt.PenCapStyle.RoundCap]
+        self.lineCapStyleButton.setCurrentIndex(self.lineCapList.index(self.shape.pen.capStyle)) #Doesn't work
+
+        for lineMode in self.lineCapListStrings:
+            self.lineCapStyleButton.addItem(lineMode)
+        self.lineCapStyleButton.currentIndexChanged.connect(self.lineCapStyleChange)
+        self.lineTab.layout.addWidget(self.lineCapStyleButton)
 
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
@@ -159,16 +172,8 @@ class AnotherWindow(Qw.QWidget):
     def linestyleChange(self, i): #I think add an attribute to asyPen
         self.shape.pen.setStyle(self.lineList[i])
 
-        #newPen = self.newShape.pen.toQPen()
-        #newPen.setStyle(self.lineList[i])
-        #newPen._deferAsyfy = False #???
-
-        #newPen.color = newPen.color()
-        #self.newShape.pen = x2a.asyPen.toQPen()
-
-        #finalPen = x2a.asyPen()
-        #finalPen.color = newPen.color()
-        #self.newShape.pen = finalPen.toQPen(newPen)
+    def lineCapStyleChange(self, i): #I think add an attribute to asyPen
+        self.shape.pen.setCapStyle(self.lineCapList[i])
 
     def fillChange(self, i):
         if isinstance(self.shape, x2a.asyArrow):

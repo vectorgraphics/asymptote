@@ -417,6 +417,7 @@ class asyPen(asyObj):
         self.options = pen_options
         self.width = width
         self.style = QtCore.Qt.PenStyle.SolidLine
+        self.capStyle = QtCore.Qt.PenCapStyle.SquareCap
         self._asyengine = asyengine
         self._deferAsyfy = False
         if pen_options:
@@ -447,6 +448,10 @@ class asyPen(asyObj):
 
     def setStyle(self, style):
         self.style = style
+        self.updateCode()
+
+    def setCapStyle(self, style):
+        self.capStyle = style
         self.updateCode()
 
     def setColor(self, color):
@@ -500,6 +505,7 @@ class asyPen(asyObj):
         newPen = QtGui.QPen()
         newPen.setColor(asyPen.convertToQColor(self.color))
         newPen.setStyle(self.style)
+        newPen.setCapStyle(self.capStyle)
         newPen.setWidthF(self.width)
 
         return newPen
