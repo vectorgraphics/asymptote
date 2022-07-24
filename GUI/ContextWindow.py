@@ -32,13 +32,16 @@ class AnotherWindow(Qw.QWidget):
         # Initialize tab screen
         self.tabs = Qw.QTabWidget()
         self.fillTab = Qw.QWidget()
+        self.lineTab = Qw.QWidget()
         self.arrowTab = Qw.QWidget()
         self.othersTab = Qw.QWidget()
         self.tabs.resize(300,200)
         self.fillTab.layout = Qw.QVBoxLayout(self)
+        self.lineTab.layout = Qw.QVBoxLayout(self)
         self.arrowTab.layout = Qw.QVBoxLayout(self)
         self.othersTab.layout = Qw.QVBoxLayout(self)
         self.tabs.addTab(self.fillTab,"Fill Options")
+        self.tabs.addTab(self.lineTab,"Line Options")
         self.tabs.addTab(self.arrowTab,"Arrow Options")
         self.tabs.addTab(self.othersTab,"Misc. Options")
 
@@ -79,6 +82,17 @@ class AnotherWindow(Qw.QWidget):
             self.arrowheadButton.addItem(arrowMode)
         self.arrowheadButton.currentIndexChanged.connect(self.arrowheadChange)
         self.arrowTab.layout.addWidget(self.arrowheadButton)
+
+        self.label = Qw.QLabel("Line Style:")
+        self.lineTab.layout.addWidget(self.label)
+        self.linestyleButton = Qw.QComboBox()
+        self.lineListStrings = ["SolidLine","DashLine","DotLine","DashDotLine"] #Is there a way to pull these directly
+        self.lineList = [Qc.Qt.PenStyle.SolidLine,Qc.Qt.PenStyle.DashLine,Qc.Qt.PenStyle.DotLine,Qc.Qt.PenStyle.DashDotLine]
+
+        for lineMode in self.lineListStrings:
+            self.linestyleButton.addItem(lineMode)
+        self.linestyleButton.currentIndexChanged.connect(self.linestyleChange)
+        self.lineTab.layout.addWidget(self.linestyleButton)
 
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
@@ -123,6 +137,7 @@ class AnotherWindow(Qw.QWidget):
             self.arrowFillButton.setCurrentIndex(int(self.shape.arrowSettings["fill"]))
 
         self.fillTab.setLayout(self.fillTab.layout)
+        self.lineTab.setLayout(self.lineTab.layout)
         self.arrowTab.setLayout(self.arrowTab.layout)
         self.othersTab.setLayout(self.othersTab.layout)
 
@@ -140,6 +155,20 @@ class AnotherWindow(Qw.QWidget):
 
     def arrowstyleChange(self, i):
         self.newShape.arrowSettings["style"] = i
+
+    def linestyleChange(self, i): #I think add an attribute to asyPen
+        self.shape.pen.setStyle(self.lineList[i])
+
+        #newPen = self.newShape.pen.toQPen()
+        #newPen.setStyle(self.lineList[i])
+        #newPen._deferAsyfy = False #???
+
+        #newPen.color = newPen.color()
+        #self.newShape.pen = x2a.asyPen.toQPen()
+
+        #finalPen = x2a.asyPen()
+        #finalPen.color = newPen.color()
+        #self.newShape.pen = finalPen.toQPen(newPen)
 
     def fillChange(self, i):
         if isinstance(self.shape, x2a.asyArrow):
