@@ -418,6 +418,7 @@ class asyPen(asyObj):
         self.width = width
         self.style = QtCore.Qt.PenStyle.SolidLine
         self.capStyle = QtCore.Qt.PenCapStyle.SquareCap
+        self.opacity = 255 #Should these be in a dictionary?
         self._asyengine = asyengine
         self._deferAsyfy = False
         if pen_options:
@@ -452,6 +453,10 @@ class asyPen(asyObj):
 
     def setCapStyle(self, style):
         self.capStyle = style
+        self.updateCode()
+
+    def setOpacity(self, opacity):
+        self.opacity = opacity
         self.updateCode()
 
     def setColor(self, color):
@@ -503,7 +508,9 @@ class asyPen(asyObj):
         if self._deferAsyfy:
             self.computeColor()
         newPen = QtGui.QPen()
-        newPen.setColor(asyPen.convertToQColor(self.color))
+        color = asyPen.convertToQColor(self.color)
+        color.setAlpha(self.opacity)
+        newPen.setColor(color)
         newPen.setStyle(self.style)
         newPen.setCapStyle(self.capStyle)
         newPen.setWidthF(self.width)

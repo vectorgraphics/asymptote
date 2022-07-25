@@ -74,6 +74,11 @@ class AnotherWindow(Qw.QWidget):
         self.reflectionButton.currentIndexChanged.connect(self.reflectionChange)
         self.othersTab.layout.addWidget(self.reflectionButton)
 
+        self.label = Qw.QLabel("Opacity:")
+        self.othersTab.layout.addWidget(self.label)
+        self.opacityBox = Qw.QLineEdit()
+        self.othersTab.layout.addWidget(self.opacityBox)
+
         self.label = Qw.QLabel("Arrowhead:")
         self.arrowTab.layout.addWidget(self.label)
         self.arrowheadButton = Qw.QComboBox()
@@ -204,8 +209,19 @@ class AnotherWindow(Qw.QWidget):
             
     def arrowFillChange(self, i): #Can I lambda this? 
         self.newShape.arrowSettings["fill"] = i
+
+    def opacityChange(self):
+        newOpacity = self.opacityBox.text()
+        try:
+            newOpacity = int(newOpacity)
+            if newOpacity >= 0 and newOpacity <= 255:
+                self.shape.pen.setOpacity(newOpacity)
+                self.newShape.pen.setOpacity(newOpacity)
+        except:
+            pass
         
     def renderChanges(self): #Pull from text boxes here.
+        self.opacityChange()
         if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]:
             self.sizeChange()
             self.angleChange()
