@@ -8276,7 +8276,7 @@ The @acronym{PRC} specification is available from
 external viewer or conversion to an alternate 3D format with the Python
 @code{pyv3d} library. The @code{V3D} specification and the
 @code{pyv3d} library are available at
-@url{https://gitlab.com/vectorgraphics/v3d}.
+@url{https://github.com/vectorgraphics/v3d}.
 A @code{V3D} file @code{file.v3d} may be imported and viewed by
 @code{Asymptote} either by specifying @code{file.v3d} on the command line
 @verbatim
