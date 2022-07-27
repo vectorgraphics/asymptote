@@ -78,6 +78,7 @@ class AnotherWindow(Qw.QWidget):
         self.othersTab.layout.addWidget(self.label)
         self.opacityBox = Qw.QLineEdit()
         self.othersTab.layout.addWidget(self.opacityBox)
+        self.opacityBox.setPlaceholderText(str(self.shape.pen.opacity))
 
         self.label = Qw.QLabel("Arrowhead:")
         self.arrowTab.layout.addWidget(self.label)
