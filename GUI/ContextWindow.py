@@ -94,24 +94,24 @@ class AnotherWindow(Qw.QWidget):
         self.linestyleButton = Qw.QComboBox()
         self.lineListStrings = ["SolidLine","DashLine","DotLine","DashDotLine"] #Is there a way to pull these directly
         self.lineList = [Qc.Qt.PenStyle.SolidLine,Qc.Qt.PenStyle.DashLine,Qc.Qt.PenStyle.DotLine,Qc.Qt.PenStyle.DashDotLine]
-        self.linestyleButton.setCurrentIndex(self.lineList.index(self.shape.pen.style)) #Doesn't work
-
+        
         for lineMode in self.lineListStrings:
             self.linestyleButton.addItem(lineMode)
         self.linestyleButton.currentIndexChanged.connect(self.linestyleChange)
         self.lineTab.layout.addWidget(self.linestyleButton)
+        self.linestyleButton.setCurrentIndex(self.lineList.index(self.shape.pen.style))
 
         self.label = Qw.QLabel("Line Cap Style:")
         self.lineTab.layout.addWidget(self.label)
         self.lineCapStyleButton = Qw.QComboBox()
         self.lineCapListStrings = ["SquareCap","FlatCap","RoundCap"] #Is there a way to pull these directly
         self.lineCapList = [Qc.Qt.PenCapStyle.SquareCap,Qc.Qt.PenCapStyle.FlatCap,Qc.Qt.PenCapStyle.RoundCap]
-        self.lineCapStyleButton.setCurrentIndex(self.lineCapList.index(self.shape.pen.capStyle)) #Doesn't work
 
         for lineMode in self.lineCapListStrings:
             self.lineCapStyleButton.addItem(lineMode)
         self.lineCapStyleButton.currentIndexChanged.connect(self.lineCapStyleChange)
         self.lineTab.layout.addWidget(self.lineCapStyleButton)
+        self.lineCapStyleButton.setCurrentIndex(self.lineCapList.index(self.shape.pen.capStyle))
 
         #TODO: Make this a function. 
         if not isinstance(self.shape, x2a.xasyShape):
