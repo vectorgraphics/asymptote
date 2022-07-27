@@ -193,9 +193,10 @@ void *asymain(void *A)
     } else {
       for(int ind=0; ind < n; ind++) {
         string name=(getArg(ind));
-        if(name == stripExt(name)+".v3d") {
+        string prefix=stripExt(name);
+        if(name == prefix+".v3d") {
           interact::uptodate=false;
-          runString("import v3d; defaultfilename=\""+stripDir(name)+
+          runString("import v3d; defaultfilename=\""+stripDir(prefix)+
                     "\"; importv3d(\""+name+"\");");
         } else
           processFile(name,n > 1);
