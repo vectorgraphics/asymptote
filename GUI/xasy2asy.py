@@ -442,6 +442,14 @@ class asyPen(asyObj):
         else:
             return False
 
+    def qtCapStyleToAsyCapStyle(self, style):
+        lineCapList = [QtCore.Qt.PenCapStyle.SquareCap,QtCore.Qt.PenCapStyle.FlatCap,QtCore.Qt.PenCapStyle.RoundCap]
+        asyCapList = ["extendcap","flatcap","roundcap"]
+        if style in lineCapList:
+            return asyCapList[lineCapList.index(style)]
+        else:
+            return False
+
     def updateCode(self, asy2psmap = identity()):
         """ Generate the pen's code """
         if self._deferAsyfy:
