@@ -57,13 +57,19 @@ class AnotherWindow(Qw.QWidget):
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         self.fillTab.layout.addWidget(self.fillButton)
 
-        self.colorButton = Qw.QPushButton("Set Line Colour")
-        self.colorButton.clicked.connect(self.pickColor)
-        self.fillTab.layout.addWidget(self.colorButton)
+        if isinstance(self.shape, x2a.asyArrow):
+            self.colorButton = Qw.QPushButton("Set Line Colour")
+            self.colorButton.clicked.connect(self.pickColor)
+            self.fillTab.layout.addWidget(self.colorButton)
 
-        self.colorButton = Qw.QPushButton("Set Fill Colour")
-        self.colorButton.clicked.connect(self.pickFillColor)
-        self.fillTab.layout.addWidget(self.colorButton)
+            self.colorButton = Qw.QPushButton("Set Fill Colour")
+            self.colorButton.clicked.connect(self.pickFillColor)
+            self.fillTab.layout.addWidget(self.colorButton)
+
+        elif isinstance(self.shape, x2a.xasyShape):
+            self.colorButton = Qw.QPushButton("Set Colour")
+            self.colorButton.clicked.connect(self.pickColor)
+            self.fillTab.layout.addWidget(self.colorButton)
 
         self.label = Qw.QLabel("Reflection:")
         self.othersTab.layout.addWidget(self.label)
