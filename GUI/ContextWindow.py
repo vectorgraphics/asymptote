@@ -98,7 +98,7 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Line Style:")
         self.lineTab.layout.addWidget(self.label)
         self.linestyleButton = Qw.QComboBox()
-        self.lineListStrings = ["SolidLine","DashLine","DotLine","DashDotLine"] #Is there a way to pull these directly
+        self.lineListStrings = ["","dashed","dotted","dashdotted"] #Is there a way to pull these directly
         self.lineList = [Qc.Qt.PenStyle.SolidLine,Qc.Qt.PenStyle.DashLine,Qc.Qt.PenStyle.DotLine,Qc.Qt.PenStyle.DashDotLine]
         
         for lineMode in self.lineListStrings:
@@ -110,7 +110,7 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Line Cap Style:")
         self.lineTab.layout.addWidget(self.label)
         self.lineCapStyleButton = Qw.QComboBox()
-        self.lineCapListStrings = ["SquareCap","FlatCap","RoundCap"] #Is there a way to pull these directly
+        self.lineCapListStrings = ["extendcap","flatcap","roundcap"] #Is there a way to pull these directly
         self.lineCapList = [Qc.Qt.PenCapStyle.SquareCap,Qc.Qt.PenCapStyle.FlatCap,Qc.Qt.PenCapStyle.RoundCap]
 
         for lineMode in self.lineCapListStrings:
