@@ -434,6 +434,14 @@ class asyPen(asyObj):
     def asyEngine(self, value):
         self._asyengine = value
 
+    def qtStyleToAsyStyle(self, style):
+        lineList = [QtCore.Qt.PenStyle.SolidLine,QtCore.Qt.PenStyle.DashLine,QtCore.Qt.PenStyle.DotLine,QtCore.Qt.PenStyle.DashDotLine]
+        asyList = ["","dashed","dotted","dashdotted"]
+        if style in lineList:
+            return asyList[lineList.index(style)]
+        else:
+            return False
+
     def updateCode(self, asy2psmap = identity()):
         """ Generate the pen's code """
         if self._deferAsyfy:
@@ -441,6 +449,8 @@ class asyPen(asyObj):
         self.asyCode = 'rgb({:g},{:g},{:g})+{:s}'.format(self.color[0], self.color[1], self.color[2], str(self.width))
         if len(self.options) > 0:
             self.asyCode = self.asyCode + '+' + self.options
+        if self.qtStyleToAsyStyle(self.style):
+            self.asyCode = self.qtStyleToAsyStyle(self.style) + '+' + self.asyCode
 
     def setWidth(self, newWidth):
         """ Set the pen's width """
