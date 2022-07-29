@@ -1009,9 +1009,9 @@ void mode()
       outlinemode=true;
       ibl=false;
       nlights=0; // Force shader recompilation
+      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
     case 2: // wireframe
-      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       outlinemode=false;
       Nlights=1; // Force shader recompilation
       break;
