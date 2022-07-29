@@ -712,7 +712,7 @@ void initShaders()
   shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
-  if(Mode == 2)
+  if(Mode != 0)
     shaderParams.push_back("WIREFRAME");
   camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
                                               interlock);
