@@ -201,15 +201,15 @@ class AnotherWindow(Qw.QWidget):
         self.parent.newTransform = Qg.QTransform()
 
     def sizeChange(self):
-        newSize = self.arrowSizeBox.text()
         try:
+            newSize = self.arrowSizeBox.text() 
             self.newShape.arrowSettings["size"] = float(newSize)
         except:
             return #TODO: Show error message.
 
     def angleChange(self): #Refactor this with the above. 
-        newAngle = self.arrowAngleBox.text()
         try:
+            newAngle = self.arrowAngleBox.text()
             self.newShape.arrowSettings["angle"] = float(newAngle)
         except:
             return #TODO: Show error message.
