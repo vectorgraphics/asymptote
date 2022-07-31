@@ -1,31 +1,35 @@
 import three;
 import graph;
+import testcurve;
+
+real NURBStolerance=sqrtEpsilon;
 
 struct NURBSsurfaceData{
     triple[][] controlPoints;
-    real[] U_knots;
-    real[] V_knots;
+    real[] U_knot;
+    real[] V_knot;
     real[][] weights;
-    void operator init(triple[][] controlPoints, real[] U_knots, real[] V_knots, real[][] weights) {
-        this.U_knots=U_knots;
-        this.V_knots=V_knots;
+    void operator init(triple[][] controlPoints, real[] U_knot, real[] V_knot, real[][] weights) {
+        this.U_knot=U_knot;
+        this.V_knot=V_knot;
         this.controlPoints=controlPoints;
         this.weights=weights;
   }
 }
-struct BSplinesurfaceData{
+
+struct BSplineSurfaceData{
     real[][][] controlPoints;
-    real[] U_knots;
-    real[] V_knots;
-    void operator init(real[][][] controlPoints, real[] U_knots, real[] V_knots) {
-        this.U_knots=U_knots;
-        this.V_knots=V_knots;
+    real[] U_knot;
+    real[] V_knot;
+    void operator init(real[][][] controlPoints, real[] U_knot, real[] V_knot) {
+        this.U_knot=U_knot;
+        this.V_knot=V_knot;
         this.controlPoints=controlPoints;
   }
 }
 
-BSplinesurfaceData conversion_3DNurbs_to_4DBSpline(NURBSsurfaceData NURBS_3D) {
-    BSplinesurfaceData new_BSpline_4D;
+BSplineSurfaceData conversion_3DNurbs_to_4DBSpline(NURBSsurfaceData NURBS_3D) {
+    BSplineSurfaceData new_BSpline_4D;
     real[][][] x=new real[NURBS_3D.controlPoints.length][NURBS_3D.controlPoints[0].length][4];
     triple control_point_3D;
     real weight;
@@ -38,15 +42,15 @@ BSplinesurfaceData conversion_3DNurbs_to_4DBSpline(NURBSsurfaceData NURBS_3D) {
         }
     }
     new_BSpline_4D.controlPoints=copy(x);
-    new_BSpline_4D.U_knots=copy(NURBS_3D.U_knots);
-    new_BSpline_4D.V_knots=copy(NURBS_3D.V_knots);
+    new_BSpline_4D.U_knot=copy(NURBS_3D.U_knot);
+    new_BSpline_4D.V_knot=copy(NURBS_3D.V_knot);
     return new_BSpline_4D;
 }
 
-NURBSsurfaceData conversion_4DBSpline_to_3DNurbs(BSplinesurfaceData BSpline_4D) {
+NURBSsurfaceData conversion_4DBSpline_to_3DNurbs(BSplineSurfaceData BSpline_4D) {
   NURBSsurfaceData nurb_3D;
   triple[][] x=new triple[BSpline_4D.controlPoints.length][BSpline_4D.controlPoints[0].length];
-  real[][] weights=nurb_3D.weights;
+  real[][] weights=new real[BSpline_4D.controlPoints.length][BSpline_4D.controlPoints[0].length];
   real[] control_point_4D;
   real weight=1;
   triple new_3D_control_point;
@@ -63,37 +67,42 @@ NURBSsurfaceData conversion_4DBSpline_to_3DNurbs(BSplinesurfaceData BSpline_4D) 
     }
   }
   nurb_3D.controlPoints=x;
-  nurb_3D.U_knots=BSpline_4D.U_knots;
-  nurb_3D.V_knots=BSpline_4D.V_knots;
+  nurb_3D.U_knot=BSpline_4D.U_knot;
+  nurb_3D.V_knot=BSpline_4D.V_knot;
   nurb_3D.weights=weights;
 
   return nurb_3D;
 }
 
-triple[][] DecomposeSurface_U_dir(int m,int n,int p,real[] U,triple[][] Pw){
+void DecomposeSurface_U_dir(BSplineSurfaceData BSpline_4D_surface,int p){
     /*  Decompose surface into Bezier strips in u direction */
-    /*  Input: n,p,U,Pw */
+    /*  Input: BSpline_4D_surface, p */
     /*  
-        m is the number of control points in v-direction
-        n is the number of control points in u-direction
         p is the degree in u-direction
-        U is the knot vector in u-direction 
-        Pw is the control points of the surface
     */
-    /*  Output: nb, Qw */
-    /*
-        Qw is the control points set having p+1 rows
-        Qw_return is the whole set of control points Pw eleviated to degree p
-    */
-        triple[][] Qw=new triple[p+1][m];
-        triple[][] Qw_copy=copy(Qw);
-        triple[][] Qw_return;
+        real[][][] control_points = BSpline_4D_surface.controlPoints;
+        int n = control_points.length; //number of control points in u-direction
+        int m = control_points[0].length; //number of control points in v-direction
+
+        real[] U = BSpline_4D_surface.U_knot; // U direction knots
+        real[] Uh; // Used for storing elevated knots in U direction
+
+        real[][][] Qw=new real[p+1][m][4];
+        real[][][] Qw_copy=copy(Qw);
+        real[][][] Qw_return;
+
         int a=p;
         int b=p+1;
         int nb=0;
+        int kind=p+1;
+
+        for(int i=0; i < p; ++i) {
+            Uh[i]=U[a];
+        }
+
         for(int i=0;i<=p;++i){
             for(int col_num=0;col_num<m;++col_num){
-                Qw[i][col_num]=Pw[i][col_num];
+                Qw[i][col_num]=copy(control_points[i][col_num]);
             }
         }
         int U_len=U.length;
@@ -123,39 +132,52 @@ triple[][] DecomposeSurface_U_dir(int m,int n,int p,real[] U,triple[][] Pw){
                     for (int k=p;k>=s;--k){
                         real alpha=alphas[k-s];
                         for(int col_num=0;col_num<m;++col_num){
-                            Qw[k][col_num]=alpha*Qw[k][col_num]+(1.0-alpha)*Qw[k-1][col_num];
+                            Qw[k][col_num]=alpha*copy(Qw[k][col_num])+(1.0-alpha)*copy(Qw[k-1][col_num]);
                         }
                     }
                     Qw_copy = copy(Qw);
                     if (b<n){
                         for(int col_num=0;col_num<m;++col_num){
-                            Qw[save][col_num]=Qw_copy[p][col_num];
+                            Qw[save][col_num]=copy(Qw_copy[p][col_num]);
                         }
                     }
                 }
             }
+
+            if(a != p) {
+                // load the knot ua
+                for(int i=0;i<p;++i) {
+                    Uh[kind]=U[a];
+                    ++kind;
+                }
+            }
+
             for(int i;i<Qw_copy.length;++i){
-                Qw_return.push(Qw_copy[i]);
+                Qw_return.push(copy(Qw_copy[i]));
             }
             if(b<n){
                 for(int i=p-multi;i<=p;++i){
                     for(int col_num=0;col_num<m;++col_num){
-                        Qw[i][col_num]=Pw[b-p+i][col_num];
+                        Qw[i][col_num]=copy(control_points[b-p+i][col_num]);
                     }
                 }
                 a=b;
                 ++b;
             }
             else{
-                // need to change knot vector
+                //set end knot values
+                for(int i=0;i<=p;++i) {
+                    Uh[kind+i]=U[b];
+                }
                 break;
             }
         }
+        U = Uh;
+        control_points = Qw_return;
         write("End of Decompose U function");
-        return Qw_return;
 }
 
-triple[][] DecomposeSurface_V_dir(int m,int n,int q,real[] V,triple[][] Pw){
+void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int q){
 /*  Decompose surface into Bezier strips in v direction */
     /*  Input: m,q,V,Pw*/
     /*
@@ -169,29 +191,42 @@ triple[][] DecomposeSurface_V_dir(int m,int n,int q,real[] V,triple[][] Pw){
     /*
         Qw is the control points set
     */
-        triple[][] Qw=new triple[q+1][n];
-        triple[][] Qw_copy=copy(Qw);
-        triple[][] Qw_return;
-        int V_len=V.length;
+        real[][][] control_points = BSpline_4D_surface.controlPoints;
+        int n = control_points.length; //number of control points in u-direction
+        int m = control_points[0].length; //number of control points in v-direction
+
+        real[] V = BSpline_4D_surface.V_knot; // U direction knots
+        real[] Vh; // Used for storing elevated knots in U direction
+
+        real[][][] Qw=new real[q+1][n][4];
+        real[][][] Qw_copy=copy(Qw);
+        real[][][] Qw_return;
+
         int a=q;
         int b=q+1;
         int nb=0;
+        int kind=q+1;
+
+        for(int i=0; i < q; ++i) {
+            Vh[i]=V[a];
+        }
+
         for(int i=0;i<=q;++i){
             for(int row_num=0;row_num<n;++row_num){
-                Qw[i][row_num]=Pw[row_num][i];
+                Qw[i][row_num]=copy(control_points[row_num][i]);
             }
         }
         int oldb;
         int multi;
         real[] alphas=new real[q-1]; // interpolation ratios
 
-        while(b<V_len){
+        while(b<V.length){
             oldb=b;
-            while(b<V_len-1&&V[b]==V[b+1]){
+            while(b<V.length-1&&V[b]==V[b+1]){
                 ++b;
             }
             multi=b-oldb+1;
-            if(b==V_len-1&&V[b]!=V[b-1]){
+            if(b==V.length-1&&V[b]!=V[b-1]){
                 multi=1;
             }
             Qw_copy=copy(Qw);
@@ -207,15 +242,22 @@ triple[][] DecomposeSurface_V_dir(int m,int n,int q,real[] V,triple[][] Pw){
                     for (int k=q;k>=s;--k){
                         real alpha=alphas[k-s];
                         for(int row_num=0;row_num<n;++row_num){
-                            Qw[k][row_num] = alpha*Qw[k][row_num]+(1.0-alpha)*Qw[k-1][row_num];
+                            Qw[k][row_num] = alpha*copy(Qw[k][row_num])+(1.0-alpha)*copy(Qw[k-1][row_num]);
                         }
                     }
                     Qw_copy=copy(Qw);
                     if (b<m){
                         for(int row_num=0;row_num<n;++row_num){
-                            Qw[save][row_num]=Qw_copy[q][row_num];
+                            Qw[save][row_num]=copy(Qw_copy[q][row_num]);
                         }
                     }
+                }
+            }
+            if(a != q) {
+                // load the knot ua
+                for(int i=0;i<q;++i) {
+                    Vh[kind]=V[a];
+                    ++kind;
                 }
             }
             for(int i;i<Qw_copy.length;++i){
@@ -224,39 +266,137 @@ triple[][] DecomposeSurface_V_dir(int m,int n,int q,real[] V,triple[][] Pw){
             if(b<m){
                 for(int i=q-multi;i<=q;++i){
                     for(int row_num=0;row_num<n;++row_num){
-                        Qw[i][row_num]=Pw[row_num][b-q+i];
+                        Qw[i][row_num]=copy(control_points[row_num][b-q+i]);
                     }
                 }
                 a=b;
                 ++b;
             }
             else{
+                //set end knot values
+                for(int i=0;i<q;++i) {
+                    Vh[kind+i]=V[b];
+                }
                 break;
             }
         }
+    // overwrite knot vector V
+    V = Vh;
+    // create four dimension transpose for Qw_return
+    real[][][] Qw_tranpose = new real[Qw_return[0].length][Qw_return.length][4];
+    for(int i=0;i<Qw_return.length;++i){
+        for(int j=0;j<Qw_return[i].length;++j){
+            Qw_tranpose[j][i]=Qw_return[i][j];
+        }
+    }
+    // overwrite control points
+    control_points = Qw_tranpose;
     write("End of Decompose V function");
-    return transpose(Qw_return);
 }
 
+int[] removeDuplicates(int[] array)
+{
+    // Return if array is empty or contains a single element
+    int n=array.length;
+    if (n==0||n==1){
+        return copy(array);
+    }
+ 
+    int[] temp;
+ 
+    // Start traversing elements
+    int j=0;
+    // If current element is not equal to next element
+    // then store that current element
+    for (int i=0;i<n-1;++i){
+        if (array[i]!=array[i+1]){
+            temp[j]=array[i];
+            ++j;
+        }
+    }
+ 
+    // Store the last element as whether it is unique or
+    // repeated, it hasn't stored previously
+    temp[j]=array[n-1];
+    ++j;
+    return copy(temp);
+}
 
 void drawNURBSsurface(triple[][] cp, real[] U_knot, real[] V_knot, real[][] weights = array(cp.length,array(cp[0].length,1.0))){
     int n = cp.length; // number of control points in u direction
     int p = 3; //U_knot.length - n - 1;//degree of u
     int m = cp[0].length; // number of control points in v direction
     int q = 3; //V_knot.length - m - 1;//degree of v
-    // First apply knot insertion in u direction to get Bezier strips
-    triple[][] Bezier_u_strips = DecomposeSurface_U_dir(m,n,p,U_knot,cp);
+    // Get the Rational rows and columns(weights not equal to 1)
 
-    n=Bezier_u_strips.length;
-    m=Bezier_u_strips[0].length;
-    triple[][] Bezier_v_strips=DecomposeSurface_V_dir(m,n,q,V_knot,Bezier_u_strips);
-    triple[][][][] Bezier_surfaces = new triple[ceil(Bezier_v_strips.length/(p+1))][ceil(Bezier_v_strips[0].length/(q+1))][][];
+    NURBSsurfaceData data;
+    data =  NURBSsurfaceData(cp,U_knot,V_knot,weights);
+    BSplineSurfaceData BSpline_4D_surface = conversion_3DNurbs_to_4DBSpline(data);
+
+    // knot insertion in u direction to get Bezier strips
+    DecomposeSurface_U_dir(BSpline_4D_surface,p);
+    // knot insertion in v direction to get Bezier surfaces
+    DecomposeSurface_V_dir(BSpline_4D_surface,q);
+    // convert 4D Bezier surfaces to 3D rational Bezier surfaces
+    NURBSsurfaceData RBezier_3D_surfaces = conversion_4DBSpline_to_3DNurbs(BSpline_4D_surface);
+    // get the rational rows and columns of the control points rational Bezier surfaces
+    int[] rational_rows;
+    int[] rational_cols;
+    for(int i=0;i<RBezier_3D_surfaces.weights.length;++i){
+        for(int j=0;j<RBezier_3D_surfaces.weights[i].length;++j){
+            if(weights[i][j]!=1){
+                rational_rows.push(i);
+                rational_cols.push(j);
+            }
+        }
+    }
+    rational_rows=removeDuplicates(rational_rows);
+    rational_cols=removeDuplicates(rational_cols);
+    write("rational_rows");
+    write(rational_rows);
+    write("rational_cols");
+    write(rational_cols);
+    // convert the rational rows to non-rational Bezier curves
+    for(int i=0;i<rational_rows.length;++i){
+        triple[] rational_row = copy(RBezier_3D_surfaces.controlPoints[rational_rows[i]]);
+        int row_len = rational_row.length;
+        triple[] sample_points = new triple[row_len];
+        for(int j=0;j<row_len;++j) {
+          sample_points[j]=RBezier_evaluation(j/(row_len-1),rational_row,RBezier_3D_surfaces.weights[rational_rows[i]]);
+        }
+        //dot(copy(sample_points),yellow);
+        real tolerance=NURBStolerance*norm(new triple[][] {rational_row});
+        RBezier_3D_surfaces.controlPoints[rational_rows[i]] = conversion_RBezier_to_NRBezier(rational_row,rational_row,sample_points,tolerance);
+    }
+
+    // convert the rational columns to non-rational Bezier curves
+    n = RBezier_3D_surfaces.controlPoints.length;
+    for(int h=0;h<rational_cols.length;++h){
+        triple[] rational_col = new triple[n];
+        real[] col_weights = new real[n];
+        for(int i=0;i<n;++i){
+            rational_col[i]=RBezier_3D_surfaces.controlPoints[i][rational_cols[h]];
+            col_weights[i]=RBezier_3D_surfaces.weights[i][rational_cols[h]];
+        }
+        triple[] sample_points = new triple[n];
+        for(int k=0;k<n;++k) {
+          sample_points[k]=RBezier_evaluation(k/(n-1),rational_col,col_weights);
+        }
+        //dot(copy(sample_points),yellow);
+        real tolerance=NURBStolerance*norm(new triple[][] {rational_col});
+        triple[] non_rational_col = conversion_RBezier_to_NRBezier(rational_col,rational_col,sample_points,tolerance);
+        for(int i=0;i<n;++i){
+            RBezier_3D_surfaces.controlPoints[i][rational_cols[h]]=non_rational_col[i];
+        }
+    }
+
+    triple[][][][] Bezier_surfaces = new triple[ceil(n/(p+1))][ceil(RBezier_3D_surfaces.controlPoints[0].length/(q+1))][][];
 
     triple[][] row_trunc;
     triple[][] matrix_trunc;
-    for(int i=0;i<ceil(Bezier_v_strips.length/(p+1));++i){
-        row_trunc=Bezier_v_strips[i*(p+1):(i+1)*(p+1)];
-        for(int j=0;j<ceil(Bezier_v_strips[i].length/(q+1));++j){
+    for(int i=0;i<ceil(n/(p+1));++i){
+        row_trunc=RBezier_3D_surfaces.controlPoints[i*(p+1):(i+1)*(p+1)];
+        for(int j=0;j<ceil(RBezier_3D_surfaces.controlPoints[i].length/(q+1));++j){
             for(int k=0;k<row_trunc.length;++k){
                 matrix_trunc[k]=row_trunc[k][j*(q+1):(j+1)*(q+1)];
             }
@@ -356,5 +496,12 @@ triple[][] surface2=
     }
 };
 
+real[][] weights = {
+    {1,1,1,1},
+    {1,1,1,1},
+    {1,2,1,1},
+    {1,1,1,1}
+};
+
 size(10cm);
-drawNURBSsurface(surface2,uknot,vknot);
+drawNURBSsurface(surface2,uknot,vknot,weights);
