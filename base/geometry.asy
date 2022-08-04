@@ -1556,6 +1556,11 @@ segment operator cast(line l)
   return segment(l.A, l.B);
 }
 
+path operator ecast(segment s)
+{
+  return s.A -- s.B;
+}
+
 /*<asyxml><operator type = "line" signature="*(transform,line)"><code></asyxml>*/
 line operator *(transform t, line l)
 {/*<asyxml></code><documentation>Provide transform * line</documentation></operator></asyxml>*/
@@ -3738,6 +3743,17 @@ void draw(picture pic = currentpicture, Label L = "", circle c,
   else draw(pic, L, (path)c, align, p, arrow, bar, margin, legend, marker);
 }
 
+void fill(picture pic = currentpicture, circle c, pen p = currentpen)
+{
+  if (!degenerate(c)) fill(pic, (path)c, p);
+}
+
+void filldraw(picture pic = currentpicture, circle c, pen fillpen = currentpen, pen drawpen = currentpen)
+{
+  fill(pic, c, fillpen);
+  draw(pic, c, drawpen);
+}
+
 /*<asyxml><function type="void" signature="draw(picture,Label,ellipse,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "", ellipse el,
           align align = NoAlign, pen p = currentpen,
@@ -3746,6 +3762,17 @@ void draw(picture pic = currentpicture, Label L = "", ellipse el,
 {/*<asyxml></code><documentation></documentation>Draw the ellipse 'el' if it is not degenerated else draw 'el.l'.</function></asyxml>*/
   if(degenerate(el)) draw(pic, L, el.l, align, p, arrow, legend, marker);
   else draw(pic, L, (path)el, align, p, arrow, bar, margin, legend, marker);
+}
+
+void fill(picture pic = currentpicture, ellipse el, pen p = currentpen)
+{
+  if (!degenerate(el)) fill(pic, (path)el, p);
+}
+
+void filldraw(picture pic = currentpicture, ellipse el, pen fillpen = currentpen, pen drawpen = currentpen)
+{
+  fill(pic, el, fillpen);
+  draw(pic, el, drawpen);
 }
 
 /*<asyxml><function type="void" signature="draw(picture,Label,parabola,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
@@ -5383,8 +5410,8 @@ void dot(picture pic = currentpicture, Label L, explicit mass M, align align = N
 
 // *=======================================================*
 // *.......................TRIANGLES.......................*
-/*<asyxml><function type="point" signature="orthocentercenter(point,point,point)"><code></asyxml>*/
-point orthocentercenter(point A, point B, point C)
+/*<asyxml><function type="point" signature="orthocenter(point,point,point)"><code></asyxml>*/
+point orthocenter(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the orthocenter of the triangle ABC.</documentation></function></asyxml>*/
   point[] P = standardizecoordsys(A, B, C);
   coordsys R = P[0].coordsys;
@@ -5539,9 +5566,9 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
   real gamma() {return degrees(acos((a()^2 + b()^2 - c()^2)/(2a() * b())));}
 
   /*<asyxml><method type = "path" signature="Path()"><code></asyxml>*/
-  path Path()
+  path Path()  // retained for backward compatibility
   {/*<asyxml></code><documentation>The path of the triangle.</documentation></method></asyxml>*/
-    return A--C--B--cycle;
+    return A--B--C--cycle;
   }
 
   /*<asyxml><struct signature="side"><code></asyxml>*/
@@ -5583,6 +5610,8 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
   }
 
 }/*<asyxml></struct></asyxml>*/
+
+path operator cast(triangle t) { return t.A -- t.B -- t.C -- cycle; }
 
 from triangle unravel side; // The structure 'side' is now available outside the triangle structure.
 from triangle unravel vertex; // The structure 'vertex' is now available outside the triangle structure.
@@ -5715,10 +5744,10 @@ line altitude(side side)
   return altitude(opposite(side));
 }
 
-/*<asyxml><function type="point" signature="orthocentercenter(triangle)"><code></asyxml>*/
-point orthocentercenter(triangle t)
+/*<asyxml><function type="point" signature="orthocenter(triangle)"><code></asyxml>*/
+point orthocenter(triangle t)
 {/*<asyxml></code><documentation>Return the orthocenter of the triangle t.</documentation></function></asyxml>*/
-  return orthocentercenter(t.A, t.B, t.C);
+  return orthocenter(t.A, t.B, t.C);
 }
 
 /*<asyxml><function type="point" signature="centroid(triangle)"><code></asyxml>*/
@@ -6276,13 +6305,34 @@ void show(picture pic = currentpicture,
 /*<asyxml><function type="void" signature="draw(picture,triangle,pen,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, triangle t, pen p = currentpen, marker marker = nomarker)
 {/*<asyxml></code><documentation>Draw sides of the triangle 't' on picture 'pic' using pen 'p'.</documentation></function></asyxml>*/
-  draw(pic, t.Path(), p, marker);
+  draw(pic, (path)t, p, marker);
+}
+
+void fill(picture pic = currentpicture, triangle t, pen p = currentpen)
+{
+  fill(pic, (path)t, p);
+}
+
+void filldraw(picture pic = currentpicture, triangle t, pen fillpen = currentpen, pen drawpen = currentpen)
+{
+  fill(pic, t, fillpen);
+  draw(pic, t, drawpen);
 }
 
 /*<asyxml><function type="void" signature="draw(picture,triangle[],pen,marker)"><code></asyxml>*/
-void draw(picture pic = currentpicture, triangle[] t, pen p = currentpen, marker marker = nomarker)
+void draw(picture pic = currentpicture, triangle[] ts, pen p = currentpen, marker marker = nomarker)
 {/*<asyxml></code><documentation>Draw sides of the triangles 't' on picture 'pic' using pen 'p'.</documentation></function></asyxml>*/
-  for(int i = 0; i < t.length; ++i) draw(pic, t[i], p, marker);
+  for(triangle t: ts) draw(pic, t, p, marker);
+}
+
+void fill(picture pic = currentpicture, triangle[] ts, pen p = currentpen)
+{
+  for(triangle t: ts) fill(pic, t, p);
+}
+
+void filldraw(picture pic = currentpicture, triangle[] ts, pen fillpen = currentpen, pen drawpen = currentpen)
+{
+  for(triangle t: ts) filldraw(pic, t, fillpen, drawpen);
 }
 
 /*<asyxml><function type="void" signature="drawline(picture,triangle,pen)"><code></asyxml>*/
@@ -7192,9 +7242,18 @@ path arc(explicit pair B, explicit pair A, explicit pair C, real r)
   return arc(A, abs(r), BA, CA, (r < 0) ^ ((BA-CA) % 360 < 180) ? CW : CCW);
 }
 
+point orthocentercenter(point A, point B, point C)
+{
+    return orthocenter(A, B, C);
+}
+
+point orthocentercenter(triangle t)
+{
+  return orthocenter(t.A, t.B, t.C);
+}
+
 // *.......End of compatibility routines........*
 // *=======================================================*
 
 // *........................FOOTER.........................*
 // *=======================================================*
-

@@ -1424,7 +1424,7 @@ void draw(frame f, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
-  bool normals=n.length > 0;
+  bool normals=ni.length > 0;
   if(!normals) {
     ni=new int[vi.length][3];
     normals=computeNormals(v,vi,n,ni) > 0;
@@ -1432,6 +1432,35 @@ void draw(frame f, triple[] v, int[][] vi,
   if(p.length > 0)
     m=mean(p);
   m=material(m,light);
+
+  if(prc()) {
+    int[] vertexNormal=new int[ni.length];
+    int[] vertexPen=new int[pi.length];
+
+    bool pens=pi.length > 0;
+
+    for(int i=0; i < vi.length; ++i) {
+      int[] vii=vi[i];
+      int[] nii=ni[i];
+      for(int j=0; j < 3; ++j) {
+        int V=vii[j];
+        vertexNormal[V]=nii[j];
+        if(pens)
+          vertexPen[V]=pi[i][j];
+      }
+    }
+
+    for(int i=0; i < vi.length; ++i) {
+      int[] vii=vi[i];
+      for(int j=0; j < 3; ++j) {
+        int V=vii[j];
+        ni[i][j]=vertexNormal[V];
+        if(pens)
+          pi[i][j]=vertexPen[V];
+      }
+    }
+  }
+
   draw(f,v,vi,render.interaction.center,n,ni,
        m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi,
        render.interaction.type);
@@ -1442,8 +1471,7 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
-  bool prc=prc();
-  bool normals=n.length > 0;
+  bool normals=ni.length > 0;
   if(!normals) {
     ni=new int[vi.length][3];
     normals=computeNormals(v,vi,n,ni) > 0;

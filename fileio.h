@@ -56,9 +56,8 @@ inline void openpipeout()
   int fd=intcast(settings::getSetting<Int>("outpipe"));
   if(!pipeout && fd >= 0) pipeout=fdopen(fd,"w");
   if(!pipeout) {
-    ostringstream buf;
-    buf << "Cannot open outpipe " << fd;
-    reportError(buf);
+    cerr << "Cannot open outpipe " << fd << endl;
+    exit(-1);
   }
 }
 

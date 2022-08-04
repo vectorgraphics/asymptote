@@ -1462,7 +1462,7 @@ void initSettings() {
   addOption(new stringSetting("dvipsOptions", 0, "string", ""));
   addOption(new stringSetting("dvisvgmOptions", 0, "string", ""));
   addOption(new boolSetting("dvisvgmMultipleFiles", 0,
-                            "dvisvgm supports multiple files", false));
+                            "dvisvgm supports multiple files", true));
   addOption(new stringSetting("convertOptions", 0, "string", ""));
   addOption(new stringSetting("gsOptions", 0, "string", ""));
   addOption(new stringSetting("htmlviewerOptions", 0, "string", ""));

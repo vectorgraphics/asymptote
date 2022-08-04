@@ -712,7 +712,7 @@ void initShaders()
   shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
-  if(Mode == 2)
+  if(Mode != 0)
     shaderParams.push_back("WIREFRAME");
   camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
                                               interlock);
@@ -1009,9 +1009,9 @@ void mode()
       outlinemode=true;
       ibl=false;
       nlights=0; // Force shader recompilation
+      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
     case 2: // wireframe
-      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       outlinemode=false;
       Nlights=1; // Force shader recompilation
       break;

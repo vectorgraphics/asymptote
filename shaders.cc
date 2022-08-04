@@ -60,7 +60,7 @@ GLuint createShader(const std::string& src, int shaderType,
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
   if(status != GL_TRUE) {
-//    if(ssbo || interlock || compute) return 0;
+    if(ssbo || interlock || compute) return 0;
     GLint length;
 
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
