@@ -416,9 +416,10 @@ class asyPen(asyObj):
         self.color = (0, 0, 0)
         self.options = pen_options
         self.width = width
-        self.style = QtCore.Qt.PenStyle.SolidLine
+        self.style = QtCore.Qt.PenStyle.SolidLine #Probably deprecated?
         self.capStyle = QtCore.Qt.PenCapStyle.SquareCap
         self.opacity = 255 #Should these be in a dictionary?
+        self.dashPattern = None #???
         self._asyengine = asyengine
         self._deferAsyfy = False
         if pen_options:
@@ -464,6 +465,10 @@ class asyPen(asyObj):
         """ Set the pen's width """
         self.width = newWidth
         self.updateCode()
+
+    def setDashPattern(self, pattern):
+        self.dashPattern = pattern
+        self.updateCode() #Get working
 
     def setStyle(self, style):
         self.style = style
@@ -532,6 +537,8 @@ class asyPen(asyObj):
         newPen.setStyle(self.style)
         newPen.setCapStyle(self.capStyle)
         newPen.setWidthF(self.width)
+        if self.dashPattern:
+            newPen.setDashPattern(self.dashPattern)
 
         return newPen
 

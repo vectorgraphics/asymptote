@@ -232,6 +232,8 @@ class AnotherWindow(Qw.QWidget):
         if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]:
             self.sizeChange()
             self.angleChange()
+        elif (not isinstance(self.shape, x2a.asyArrow)) and (self.linestyleButton.currentIndex() > 0):
+            self.renderLineStyle()
         if self.newShape:
             self.parent.replaceObject(self.parent.contextWindowObject,self.newShape)
         self.parent.terminateContextWindow()        
@@ -249,7 +251,36 @@ class AnotherWindow(Qw.QWidget):
         fout.write(self.asyEngine.xasy)
         fout.flush()
 
+        return fin.readline()       
+
+    def getPattern(self,pattern,path):
+        """ Find out the adjusted pattern of an Asymptote pen """
+        self.asyEngine = self.parent.asyEngine
+        assert isinstance(self.asyEngine, x2a.AsymptoteEngine)
+        assert self.asyEngine.active
+
+        fout = self.asyEngine.ostream
+        fin = self.asyEngine.istream
+
+        #fout.write("pen p=adjust({pattern},arclength({path}),cyclic({path}));\n")
+        fout.write(f"write(_outpipe,adjust({pattern},arclength({path}),cyclic({path})),endl);\n")
+        fout.write(self.asyEngine.xasy)
+        fout.flush()
+
         return fin.readline()
+
+    def renderLineStyle(self):
+        #Should only get called with asy shapes
+
+        rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
+        pattern = []
+        for value in rawPattern[2:-3].split(' '):
+            pattern.append(float(value))
+
+        try:
+            self.newShape.pen.setDashPattern(pattern) #pen is going to be a asyPen, add as an attribute
+        except:
+            print("Pen format error")
 
     def pickColor(self):
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.pen.color), self)
