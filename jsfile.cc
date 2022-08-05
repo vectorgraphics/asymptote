@@ -8,6 +8,8 @@ using namespace settings;
 
 namespace camp {
 
+const string s="document.asy.";
+
 #ifndef HAVE_LIBGLM
 size_t materialIndex=0;
 #endif
@@ -140,58 +142,58 @@ void jsfile::open(string name)
 
   out << newl << "<script>" << newl;
   out << newl
-      << "canvasWidth=" << gl::fullWidth << ";" << newl
-      << "canvasHeight=" << gl::fullHeight << ";" << newl << newl
-      << "webgl2=" << std::boolalpha << webgl2 << ";"
+      << s << "canvasWidth=" << gl::fullWidth << ";" << newl
+      << s << "canvasHeight=" << gl::fullHeight << ";" << newl << newl
+      << s << "webgl2=" << std::boolalpha << webgl2 << ";"
       << newl
-      << "ibl=" << std::boolalpha << ibl << ";"
+      << s << "ibl=" << std::boolalpha << ibl << ";"
       << newl
-      << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
+      << s << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
       << newl;
   if(ibl) {
-    out << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
-    out << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
+    out << s << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
+    out << s << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
   }
   out << newl
-      <<  "minBound=[" << gl::Xmin << "," << gl::Ymin << "," << gl::Zmin << "];"
+      <<  s << "minBound=[" << gl::Xmin << "," << gl::Ymin << "," << gl::Zmin << "];"
       << newl
-      <<  "maxBound=[" << gl::Xmax << "," << gl::Ymax << "," << gl::Zmax << "];"
+      <<  s << "maxBound=[" << gl::Xmax << "," << gl::Ymax << "," << gl::Zmax << "];"
       << newl
-      << "orthographic=" << gl::orthographic << ";"
+      << s << "orthographic=" << gl::orthographic << ";"
       << newl
-      << "angleOfView=" << gl::Angle << ";"
+      << s << "angleOfView=" << gl::Angle << ";"
       << newl
-      << "initialZoom=" << gl::Zoom0 << ";" << newl;
+      << s << "initialZoom=" << gl::Zoom0 << ";" << newl;
     if(gl::Shift != pair(0.0,0.0))
-      out << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
-    out << "viewportMargin=" << gl::Margin << ";" << newl << newl
-      << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
-      << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
+      out << s << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
+    out << s << "viewportMargin=" << gl::Margin << ";" << newl << newl
+        << s << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
+        << s << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
-      << "zoomPinchCap=" << getSetting<double>("zoomPinchCap") << ";" << newl
-      << "zoomStep=" << getSetting<double>("zoomstep") << ";" << newl
-      << "shiftHoldDistance=" << getSetting<double>("shiftHoldDistance") << ";"
+        << s << "zoomPinchCap=" << getSetting<double>("zoomPinchCap") << ";" << newl
+        << s << "zoomStep=" << getSetting<double>("zoomstep") << ";" << newl
+        << s << "shiftHoldDistance=" << getSetting<double>("shiftHoldDistance") << ";"
       << newl
-      << "shiftWaitTime=" << getSetting<double>("shiftWaitTime") << ";"
+        << s << "shiftWaitTime=" << getSetting<double>("shiftWaitTime") << ";"
       << newl
-      << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
-      << newl << newl
-      << "Lights=[";
-  for(size_t i=0; i < gl::nlights; ++i) {
-    size_t i4=4*i;
-    out << "new Light(" << newl
-        << gl::Lights[i] << "," << newl
-        << "[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
-        << gl::Diffuse[i4+2] << "])," << newl;
-  }
-  out << "];" << newl << newl;
-  out << "Background=[" << gl::Background[0] << "," << gl::Background[1] << ","
+        << s << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
+        << newl << newl;
+  out << s << "background=[" << gl::Background[0] << "," << gl::Background[1] << ","
       << gl::Background[2] << "," << gl::Background[3] << "];"
       << newl << newl;
-  out << "Transform=[" << gl::T[0];
+  out << s << "Transform=[" << gl::T[0];
   for(int i=1; i < 16; ++i)
     out << "," << newl << gl::T[i];
   out << "];" << newl << newl;
+
+  for(size_t i=0; i < gl::nlights; ++i) {
+    size_t i4=4*i;
+    out << "light(" << newl
+        << gl::Lights[i] << "," << newl
+        << "[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
+        << gl::Diffuse[i4+2] << "]);" << newl;
+  }
+  out << newl;
 
   camp::clearCenters();
   camp::clearMaterials();
@@ -204,7 +206,7 @@ void jsfile::finish(string name)
   finished=true;
   size_t ncenters=drawElement::centers.size();
   if(ncenters > 0) {
-    out << "Centers=[";
+    out << s << "Centers=[";
     for(size_t i=0; i < ncenters; ++i)
       out << newl << drawElement::centers[i] << ",";
     out << newl << "];" << newl;
