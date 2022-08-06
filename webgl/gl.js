@@ -1,6 +1,7 @@
 // AsyGL library core
 
 (function() {
+
 document.asy={
   canvasWidth:0,
   canvasHeight:0,
@@ -439,9 +440,9 @@ function drawBuffer(data,shader,indices=data.indices)
   gl.vertexAttribPointer(materialAttribute,1,gl.SHORT,false,2,0);
 
   if(shader == colorShader || shader == transparentShader) {
-    data.colorsBuffer=registerBuffer(new Uint8Array(data.colors),
+    data.colorsBuffer=registerBuffer(new Float32Array(data.colors),
                                      data.colorsBuffer,copy);
-    gl.vertexAttribPointer(colorAttribute,4,gl.UNSIGNED_BYTE,true,0,0);
+    gl.vertexAttribPointer(colorAttribute,4,gl.FLOAT,true,0,0);
   }
 
   data.indicesBuffer=registerBuffer(indexExt ? new Uint32Array(indices) :
@@ -3812,4 +3813,5 @@ function webGLStart()
   window['disk']=disk;
   window['cylinder']=cylinder;
   window['tube']=tube;
+
 })();

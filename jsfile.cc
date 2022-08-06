@@ -224,8 +224,7 @@ void jsfile::finish(string name)
 
 void jsfile::addColor(const prc::RGBAColour& c)
 {
-  out << "[" << byte(c.R) << "," << byte(c.G) << "," << byte(c.B)
-      << "," << byte(c.A) << "]";
+  out << "[" << c.R << "," << c.G << "," << c.B << "," << c.A << "]";
 }
 
 void jsfile::addIndices(const uint32_t *I)
