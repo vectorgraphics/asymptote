@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[2.82git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[2.83git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -148,7 +148,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
                    DEFINE([<unordered_map>])),
   [AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-ASYGLVERSION=1.01
+ASYGLVERSION=1.02
 
 GCVERSION=8.2.0
 ATOMICVERSION=7.6.12
