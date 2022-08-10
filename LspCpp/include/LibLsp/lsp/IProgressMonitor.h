@@ -77,7 +77,7 @@ namespace lsp {
                 /**
                  * Internal method to handle scaling correctly. This method
                  * must not be called by a client. Clients should
-                 * always use the method </code>worked(int)</code>.
+                 * always use the method <code>worked(int)</code>.
                  */
                 virtual void internalWorked(double work)
                 {
@@ -141,5 +141,3 @@ namespace lsp {
                 virtual void catch_exception(void*) = 0;
         };
 }
-
-
