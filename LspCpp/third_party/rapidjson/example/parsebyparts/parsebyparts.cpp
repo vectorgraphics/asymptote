@@ -35,7 +35,7 @@ public:
         if (!parseThread_.joinable())
             return;
 
-        {        
+        {
             std::unique_lock<std::mutex> lock(mutex_);
 
             // Wait until the buffer is read up (or parsing is completed)
@@ -54,7 +54,7 @@ public:
 
     void ParsePart(const char* buffer, size_t length) {
         std::unique_lock<std::mutex> lock(mutex_);
-        
+
         // Wait until the buffer is read up (or parsing is completed)
         while (!stream_.Empty() && !completed_)
             finish_.wait(lock);
@@ -156,7 +156,7 @@ int main() {
         std::cout << "Error at offset " << d.GetErrorOffset() << ": " << GetParseError_En(d.GetParseError()) << std::endl;
         return EXIT_FAILURE;
     }
-    
+
     // Stringify the JSON to cout
     OStreamWrapper os(std::cout);
     Writer<OStreamWrapper> writer(os);
@@ -166,7 +166,7 @@ int main() {
     return EXIT_SUCCESS;
 }
 
-#else // Not supporting C++11 
+#else // Not supporting C++11
 
 #include <iostream>
 int main() {

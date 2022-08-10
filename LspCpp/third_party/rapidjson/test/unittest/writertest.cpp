@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
+//
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #include "unittest.h"
@@ -102,13 +102,13 @@ TEST(Writer, String) {
 
 TEST(Writer, Issue_889) {
     char buf[100] = "Hello";
-    
+
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
     writer.StartArray();
     writer.String(buf);
     writer.EndArray();
-    
+
     EXPECT_STREQ("[\"Hello\"]", buffer.GetString());
     EXPECT_TRUE(writer.IsComplete()); \
 }
@@ -220,15 +220,15 @@ private:
 
 TEST(Writer, OStreamWrapper) {
     StringStream s("{ \"hello\" : \"world\", \"t\" : true , \"f\" : false, \"n\": null, \"i\":123, \"pi\": 3.1416, \"a\":[1, 2, 3], \"u64\": 1234567890123456789, \"i64\":-1234567890123456789 } ");
-    
+
     std::stringstream ss;
     OStreamWrapper os(ss);
-    
+
     Writer<OStreamWrapper> writer(os);
 
     Reader reader;
     reader.Parse<0>(s, writer);
-    
+
     std::string actual = ss.str();
     EXPECT_STREQ("{\"hello\":\"world\",\"t\":true,\"f\":false,\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[1,2,3],\"u64\":1234567890123456789,\"i64\":-1234567890123456789}", actual.c_str());
 }
@@ -449,7 +449,7 @@ TEST(Writer, InvalidEventSequence) {
         EXPECT_FALSE(writer.IsComplete());
     }
 
-    // { 1: 
+    // { 1:
     {
         StringBuffer buffer;
         Writer<StringBuffer> writer(buffer);

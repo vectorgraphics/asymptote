@@ -15,7 +15,7 @@ namespace TextDocumentDidSave  {
     // when the save notifcation was requested.
     boost::optional<std::string>  text;
 
-	MAKE_SWAP_METHOD(TextDocumentDidSave::Params, textDocument, text);
+        MAKE_SWAP_METHOD(TextDocumentDidSave::Params, textDocument, text);
   };
 
 };

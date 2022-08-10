@@ -197,7 +197,7 @@ if(USE_SYSTEM_RAPIDJSON)
     endif()
 endif()
 if(NOT RapidJSON_FOUND)
-    if(EXISTS "${CMAKE_SOURCE_DIR}/third_party/rapidjson/include")
+    if(EXISTS "${PROJECT_SOURCE_DIR}/third_party/rapidjson/include")
         message(STATUS "Using local RapidJSON")
         set(RapidJSON_INCLUDE_DIRS third_party/rapidjson/include)
     else()
@@ -227,7 +227,6 @@ target_include_directories(lspcpp
 target_link_libraries(lspcpp PUBLIC network-uri  ${Boost_LIBRARIES})
 
 set(LSPCPP_THIRD_PARTY_DIR_LIST
-        ${LSPCPP_THIRD_PARTY_DIR}/threadpool
         ${LSPCPP_THIRD_PARTY_DIR}/utfcpp/source
         )
 

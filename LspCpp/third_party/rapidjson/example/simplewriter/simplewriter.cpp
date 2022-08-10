@@ -8,8 +8,8 @@ using namespace std;
 int main() {
     StringBuffer s;
     Writer<StringBuffer> writer(s);
-    
-    writer.StartObject();               // Between StartObject()/EndObject(), 
+
+    writer.StartObject();               // Between StartObject()/EndObject(),
     writer.Key("hello");                // output a key,
     writer.String("world");             // follow by a value.
     writer.Key("t");
