@@ -1333,16 +1333,14 @@ void shift(int x, int y)
 
 void pan(int x, int y)
 {
-  if(orthographic) {
-    double Zoominv=1.0/Zoom;
-    X += (x-x0)*Zoominv;
-    Y += (y0-y)*Zoominv;
-  } else {
+  if(orthographic)
+    shift(x,y);
+  else {
     cx += (x-x0)*(xmax-xmin)/Width;
     cy += (y0-y)*(ymax-ymin)/Height;
+    x0=x; y0=y;
+    update();
   }
-  x0=x; y0=y;
-  update();
 }
 
 void zoom(int x, int y)
