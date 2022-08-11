@@ -2165,10 +2165,6 @@ class Triangles extends Geometry {
     this.Normals=Normals;
     this.Colors=Colors;
     this.Indices=Indices;
-    Positions=[];
-    Normals=[];
-    Colors=[];
-    Indices=[];
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
   }
 
@@ -3334,6 +3330,10 @@ function pixel(controlpoint,width,MaterialIndex)
 function triangles(CenterIndex,MaterialIndex)
 {
   P.push(new Triangles(CenterIndex,MaterialIndex));
+  window.Positions=Positions=[];
+  window.Normals=Normals=[];
+  window.Colors=Colors=[];
+  window.Indices=Indices=[];
 }
 
 // draw a sphere of radius r about center
@@ -3802,16 +3802,20 @@ function webGLStart()
     initIBL().then(SetIBL).then(redrawScene);
 }
 
-  window['webGLStart']=webGLStart;
-  window['light']=light;
-  window['material']=material;
-  window['patch']=patch;
-  window['curve']=curve;
-  window['pixel']=pixel;
-  window['triangles']=triangles;
-  window['sphere']=sphere;
-  window['disk']=disk;
-  window['cylinder']=cylinder;
-  window['tube']=tube;
+  window.webGLStart=webGLStart;
+  window.light=light;
+  window.material=material;
+  window.patch=patch;
+  window.curve=curve;
+  window.pixel=pixel;
+  window.triangles=triangles;
+  window.sphere=sphere;
+  window.disk=disk;
+  window.cylinder=cylinder;
+  window.tube=tube;
+  window.Positions=Positions;
+  window.Normals=Normals;
+  window.Colors=Colors;
+  window.Indices=Indices;
 
 })();

@@ -20,7 +20,7 @@ triple coons3(path3 external) {
 
 struct patch {
   triple[][] P;
-  pen[] colors;     // Optionally specify 4 corner colors.
+  pen[] colors;     // Optionally specify corner colors.
   bool straight;    // Patch is based on a piecewise straight external path.
   bool3 planar;     // Patch is planar.
   bool triangular;  // Patch is a Bezier triangle.
