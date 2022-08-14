@@ -263,6 +263,7 @@ class AnotherWindow(Qw.QWidget):
         fin = self.asyEngine.istream
 
         #fout.write("pen p=adjust({pattern},arclength({path}),cyclic({path}));\n")
+        #print(f"write(_outpipe,adjust({pattern},arclength({path}),cyclic({path})),endl);\n")
         fout.write(f"write(_outpipe,adjust({pattern},arclength({path}),cyclic({path})),endl);\n")
         fout.write(self.asyEngine.xasy)
         fout.flush()
@@ -273,6 +274,7 @@ class AnotherWindow(Qw.QWidget):
         #Should only get called with asy shapes
 
         rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
+        #print(rawPattern)
         pattern = []
         for value in rawPattern[2:-3].split(' '):
             pattern.append(float(value))

@@ -1335,7 +1335,7 @@ class xasyShape(xasyDrawnItem):
         return type(self)(self.path,self._asyengine,self.pen)
 
     def arrowify(self,arrowhead=0):
-        newObj = asyArrow(self.path.asyengine, pen=self.pen, transfKey = self.transfKey, canvas = self.onCanvas, arrowActive = arrowhead, code = self.path.getCode(yflip())) #transform
+        newObj = asyArrow(self.path.asyengine, pen=self.pen, transfKey = self.transfKey, transfKeymap = self.transfKeymap, canvas = self.onCanvas, arrowActive = arrowhead, code = self.path.getCode(yflip())) #transform
         newObj.arrowSettings["fill"] = self.path.fill
         return newObj
 
@@ -1872,7 +1872,7 @@ class DrawObject(QtCore.QObject):
 
 class asyArrow(xasyItem):
 
-    def __init__(self, asyengine, pen=None, transform=identity(), transfKey=None, canvas=None, arrowActive=False, code=None):
+    def __init__(self, asyengine, pen=None, transform=identity(), transfKey=None, transfKeymap = None, canvas=None, arrowActive=False, code=None):
         #super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
         """Initialize the label with the given test, location, and pen"""
         #asyObj.__init__(self)
@@ -1888,7 +1888,10 @@ class asyArrow(xasyItem):
         #self.path = path
         #self.path.asyengine = asyengine
         self.transfKey = transfKey
-        self.transfKeymap = {self.transfKey: [transform]}
+        if transfKeymap == None: #Better way?
+            self.transfKeymap = {self.transfKey: [transform]}
+        else:
+            self.transfKeymap = transfKeymap
         self.location = (0,0)
         self.asyfied = False
         self.onCanvas = canvas
@@ -1967,6 +1970,9 @@ class asyArrow(xasyItem):
 
     def generateDrawObjects(self, forceUpdate=False):
         self.asyfy(forceUpdate)
+        transf = self.transfKeymap[self.transfKey][0]
+        for drawObject in self.drawObjects:
+            drawObject.pTransform = transf
         return self.drawObjects
 
     def __str__(self):
