@@ -169,7 +169,7 @@ class AnotherWindow(Qw.QWidget):
         self.confirmButton = Qw.QPushButton("Render")
         self.confirmButton.clicked.connect(self.renderChanges)
         self.layout.addWidget(self.confirmButton)
-
+        
     def arrowheadChange(self, i):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):

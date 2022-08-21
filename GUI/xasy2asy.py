@@ -1936,6 +1936,7 @@ class asyArrow(xasyItem):
 
     def updateCode(self, asy2psmap = identity()):
         newLoc = asy2psmap.inverted() * self.location
+        self.asyCode = ''
         if self.arrowSettings["active"]:
             if self.arrowSettings["fill"]:
                 self.asyCode = 'begingroup();\n\n'
