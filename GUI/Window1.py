@@ -231,7 +231,7 @@ class MainWindow1(Qw.QMainWindow):
         self.previewCurve = None
         self.mouseDown = False
 
-        self.globalObjectCounter = 0
+        self.globalObjectCounter = 1
 
         self.fileItems = []
         self.drawObjects = []
