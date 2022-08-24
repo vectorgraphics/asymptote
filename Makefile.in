@@ -22,6 +22,8 @@ BISON ?= bison
 PYRCC ?= pyrcc5
 PYUIC ?= pyuic5
 
+MAKECPUCOUNT ?= 1
+
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
 SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
@@ -164,6 +166,10 @@ liblspcpp.a:
 	cd LspCpp && $(CMAKE) -DCMAKE_CXX_FLAGS="-fPIE @OPTIONS@ -I../$(GC)/include" CMakeLists.txt && $(MAKE)
 
 all:  	asy sty man faq asy-keywords.el
+
+dockerized-asy:
+	docker system prune
+	docker build ${CURDIR} -t asy -f dockerfile/asy.dockerfile --build-arg MAKE_CPU_COUNT=$(MAKECPUCOUNT) -t asy
 
 $(GCLIB): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
