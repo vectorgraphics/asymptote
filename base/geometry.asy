@@ -6418,13 +6418,13 @@ inversion inversion(circle c1, circle c2, real sgn = 1)
     point O = radicalcenter(c1, c2);
     return inversion(O^c1, O);
   }
-  real a = abs(c1.r/c2.r);
-  if(sgn > 0) {
-    point O = c1.C + a/abs(1 - a) * (c2.C - c1.C);
-    return inversion(a * abs(abs(O - c2.C)^2 - c2.r^2), O);
+  else {
+   point C1 = c1.C, C2 = c2.C;
+    real r1 = c1.r, r2 = sgn(sgn) * c2.r;
+    return inversion(
+      r1 * r2 * (1 - (length(C2 - C1) / (r1 + r2))^2),
+      (r2 * C1 + r1 * C2) / (r1 + r2));
   }
-  point O = c1.C + a/abs(1 + a) * (c2.C - c1.C);
-  return inversion(-a * abs(abs(O - c2.C)^2 - c2.r^2), O);
 }
 
 /*<asyxml><function type="inversion" signature="inversion(circle,circle,circle)"><code></asyxml>*/
