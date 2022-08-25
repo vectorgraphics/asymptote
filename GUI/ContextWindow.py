@@ -174,7 +174,10 @@ class AnotherWindow(Qw.QWidget):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):
             if i != 0:
-                self.newShape = self.newShape.arrowify(arrowhead=i)
+                if self.newShape:
+                    self.newShape = self.newShape.arrowify(arrowhead=i)
+                else:
+                    self.newShape = self.shape.arrowify(arrowhead=i)
         else:
             self.newShape.arrowSettings["active"] = i #Simplify the logic
 
@@ -190,8 +193,10 @@ class AnotherWindow(Qw.QWidget):
     def fillChange(self, i):
         if isinstance(self.shape, x2a.asyArrow):
             self.shape.arrowSettings["fill"] = bool(i)
-        elif self.shape.path.fill != bool(i):
+        elif (self.shape.path.fill != bool(i)) and not isinstance(self.newShape, x2a.asyArrow):
             self.newShape = self.newShape.swapFill()
+        if isinstance(self.newShape, x2a.asyArrow):
+            self.newShape.arrowSettings["fill"] = bool(i)
 
     def reflectionChange(self, i): #TODO: Modernize this.
         reflectionList = [[1,1],[1,-1],[-1,1]]
