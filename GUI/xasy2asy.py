@@ -1555,11 +1555,23 @@ class xasyScript(xasyItem):
                 if i + 1 in keylist.keys():
                     # this case, we have a key.
                     with io.StringIO() as raw_line:
-                        for j in range(len(curr_str)):
+                        n=len(curr_str)
+                        for j in range(n):
                             raw_line.write(curr_str[j])
                             if j + 1 in keylist[i + 1]:
                                 # at this point, replace keys with xkey
-                                raw_line.write('KEY="{0:s}",'.format(linenum2key[(i + 1, j + 1)]))
+                                sep=','
+                                k=j+1
+                                # assume begingroup is on a single line for now
+                                while k < n:
+                                    c=curr_str[k]
+                                    if c == ')':
+                                        sep=''
+                                        break
+                                    if not c.isspace():
+                                        break
+                                    ++k
+                                raw_line.write('KEY="{0:s}"'.format(linenum2key[(i + 1, j + 1)])+sep)
                                 self.userKeys.add(linenum2key[(i + 1, j + 1)])
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.

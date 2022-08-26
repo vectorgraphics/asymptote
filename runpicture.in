@@ -545,6 +545,7 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
     }
     bool clip=false;
     if((*p)->begingroup()) {
+      string key=(*p)->KEY;
       ++level;
       while(p != f->nodes.end() && level) {
         if(!Delete) {
@@ -563,6 +564,8 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
             fflush(pipeout);
             error(nobegin);
           }
+          if(level == 0)
+            (*p)->KEY=key;
         }
       }
     }
