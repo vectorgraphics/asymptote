@@ -9,7 +9,7 @@ namespace TextDocumentDocumentLink  {
   struct Params {
     // The document to provide document links for.
     lsTextDocumentIdentifier textDocument;
-	MAKE_SWAP_METHOD(Params, textDocument)
+        MAKE_SWAP_METHOD(Params, textDocument)
   };
 
 };
@@ -27,9 +27,9 @@ struct lsDocumentLink {
   boost::optional<lsDocumentUri> target;
 
   boost::optional<lsp::Any> data;
-	
+
   MAKE_SWAP_METHOD(lsDocumentLink, range, target, data)
-	
+
 };
 MAKE_REFLECT_STRUCT(lsDocumentLink, range, target,data);
 

@@ -285,14 +285,13 @@ patharray2 *_texpath(stringarray *s, penarray *p)
 
   int status=opentex(texname,prefix,!xe);
 
-  string pdfname,pdfname2,psname2;
+  string pdfname,psname2;
   bool keep=getSetting<bool>("keep");
 
   if(!status) {
     if(xe) {
       string psdriver=getSetting<string>("psdriver");
       pdfname=auxname(prefix,"pdf");
-      pdfname2=auxname(prefix+"_","pdf");
       psname2=auxname(prefix+"_","ps");
       if(!fs::exists(pdfname)) return new array(n);
       std::ofstream ps(psname.c_str(),std::ios::binary);
@@ -300,34 +299,21 @@ patharray2 *_texpath(stringarray *s, penarray *p)
 
       showpath(ps);
 
-      mem::vector<string> pcmd;
-      pcmd.push_back(getSetting<string>("gs"));
-      pcmd.push_back("-q");
-      pcmd.push_back("-dNOCACHE");
-      pcmd.push_back("-dNOPAUSE");
-      pcmd.push_back("-dBATCH");
-      if(safe) pcmd.push_back("-dSAFER");
-      pcmd.push_back("-sDEVICE=pdfwrite");
-      pcmd.push_back("-sOutputFile="+pdfname2);
-      pcmd.push_back(pdfname);
-      status=System(pcmd,0,true,"gs");
-      if(status == 0) {
-        mem::vector<string> cmd;
-        cmd.push_back(getSetting<string>("gs"));
-        cmd.push_back("-q");
-        cmd.push_back("-dNOCACHE");
-        cmd.push_back("-dNOPAUSE");
-        cmd.push_back("-dBATCH");
-        if(safe) cmd.push_back("-dSAFER");
-        cmd.push_back("-sDEVICE="+psdriver);
-        cmd.push_back("-sOutputFile="+psname2);
-        cmd.push_back(pdfname2);
-        status=System(cmd,0,true,"gs");
+      mem::vector<string> cmd;
+      cmd.push_back(getSetting<string>("gs"));
+      cmd.push_back("-q");
+      cmd.push_back("-dNoOutputFonts");
+      cmd.push_back("-dNOPAUSE");
+      cmd.push_back("-dBATCH");
+      if(safe) cmd.push_back("-dSAFER");
+      cmd.push_back("-sDEVICE="+psdriver);
+      cmd.push_back("-sOutputFile="+psname2);
+      cmd.push_back(pdfname);
+      status=System(cmd,0,true,"gs");
 
-        std::ifstream in(psname2.c_str());
-        ps << in.rdbuf();
-        ps.close();
-      }
+      std::ifstream in(psname2.c_str());
+      ps << in.rdbuf();
+      ps.close();
     } else {
       if(!fs::exists(dviname)) return new array(n);
       mem::vector<string> dcmd;
@@ -349,11 +335,7 @@ patharray2 *_texpath(stringarray *s, penarray *p)
     if(!getSetting<bool>("keepaux"))
       unlink(auxname(prefix,"aux").c_str());
     unlink(auxname(prefix,"log").c_str());
-    if(xe) {
-      unlink(pdfname.c_str());
-      unlink(pdfname2.c_str());
-    } else
-      unlink(dviname.c_str());
+    unlink(xe ? pdfname.c_str() : dviname.c_str());
     if(settings::context(texengine)) {
       unlink(auxname(prefix,"top").c_str());
       unlink(auxname(prefix,"tua").c_str());
@@ -401,7 +383,7 @@ patharray2 *textpath(stringarray *s, penarray *p)
   mem::vector<string> cmd2;
   cmd2.push_back(getSetting<string>("gs"));
   cmd2.push_back("-q");
-  cmd2.push_back("-dNOCACHE");
+  cmd2.push_back("-dNoOutputFonts");
   cmd2.push_back("-dNOPAUSE");
   cmd2.push_back("-dBATCH");
   cmd2.push_back("-P");

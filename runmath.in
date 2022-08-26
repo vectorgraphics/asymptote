@@ -17,8 +17,6 @@ pairarray* => pairArray()
 #ifdef __CYGWIN__
   extern "C" double yn(int, double);
 extern "C" double jn(int, double);
-extern "C" int __signgam;
-#define signgam __signgam
 #endif
 
 using namespace camp;

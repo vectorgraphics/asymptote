@@ -22,10 +22,6 @@
 #include "process.h"
 #include "locate.h"
 
-#define GC_THREADS
-
-#include "gc.h"
-
 #define REGISTER_REQ_FN(typ, fn) remoteEndPoint->registerHandler(\
   [this](typ::request const& req) { return this->fn(req); });
 #define REGISTER_NOTIF_FN(typ, handler) remoteEndPoint->registerHandler(\

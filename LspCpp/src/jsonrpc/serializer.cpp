@@ -148,67 +148,67 @@ void Reflect(Writer& visitor, SerializeFormat& value) {
 
 std::string JsonReader::ToString() const
 {
-	rapidjson::StringBuffer strBuf;
-	strBuf.Clear();
-	rapidjson::Writer<rapidjson::StringBuffer> writer(strBuf);
-	m_->Accept(writer);
-	std::string strJson = strBuf.GetString();
-	return strJson;
+        rapidjson::StringBuffer strBuf;
+        strBuf.Clear();
+        rapidjson::Writer<rapidjson::StringBuffer> writer(strBuf);
+        m_->Accept(writer);
+        std::string strJson = strBuf.GetString();
+        return strJson;
 }
 
 void JsonReader::IterMap(std::function<void(const char*, Reader&)> fn)
 {
-	path_.push_back("0");
-	for (auto& entry : m_->GetObject())
-	{
-		auto saved = m_;
-		m_ = &(entry.value);
+        path_.push_back("0");
+        for (auto& entry : m_->GetObject())
+        {
+                auto saved = m_;
+                m_ = &(entry.value);
 
-		fn(entry.name.GetString(), *this);
-		m_ = saved;
-	}
-	path_.pop_back();
+                fn(entry.name.GetString(), *this);
+                m_ = saved;
+        }
+        path_.pop_back();
 }
 
  void JsonReader::IterArray(std::function<void(Reader&)> fn)
 {
-	if (!m_->IsArray())
-		throw std::invalid_argument("array");
-	// Use "0" to indicate any element for now.
-	path_.push_back("0");
-	for (auto& entry : m_->GetArray())
-	{
-		auto saved = m_;
-		m_ = &entry;
-		fn(*this);
-		m_ = saved;
-	}
-	path_.pop_back();
+        if (!m_->IsArray())
+                throw std::invalid_argument("array");
+        // Use "0" to indicate any element for now.
+        path_.push_back("0");
+        for (auto& entry : m_->GetArray())
+        {
+                auto saved = m_;
+                m_ = &entry;
+                fn(*this);
+                m_ = saved;
+        }
+        path_.pop_back();
 }
 
 void JsonReader::DoMember(const char* name, std::function<void(Reader&)> fn)
 {
-	path_.push_back(name);
-	auto it = m_->FindMember(name);
-	if (it != m_->MemberEnd())
-	{
-		auto saved = m_;
-		m_ = &it->value;
-		fn(*this);
-		m_ = saved;
-	}
-	path_.pop_back();
+        path_.push_back(name);
+        auto it = m_->FindMember(name);
+        if (it != m_->MemberEnd())
+        {
+                auto saved = m_;
+                m_ = &it->value;
+                fn(*this);
+                m_ = saved;
+        }
+        path_.pop_back();
 }
 
 std::string JsonReader::GetPath() const
 {
-	std::string ret;
-	for (auto& t : path_)
-	{
-		ret += '/';
-		ret += t;
-	}
-	ret.pop_back();
-	return ret;
+        std::string ret;
+        for (auto& t : path_)
+        {
+                ret += '/';
+                ret += t;
+        }
+        ret.pop_back();
+        return ret;
 }
 

@@ -89,9 +89,9 @@ class Client : public std::enable_shared_from_this<Client>
     std::string user_agent_;
     std::shared_ptr < lsp::ProtocolJsonHandler >  protocol_json_handler = std::make_shared< lsp::ProtocolJsonHandler>();
     DummyLog _log;
-	
+
     std::shared_ptr<GenericEndpoint>  endpoint = std::make_shared<GenericEndpoint>(_log);
-	
+
     std::shared_ptr<lsp::websocket_stream_wrapper>  proxy_;
 public:
    RemoteEndPoint point;
@@ -104,7 +104,7 @@ public:
         , ws_(net::make_strand(ioc)),point(protocol_json_handler, endpoint, _log)
     {
         proxy_ = std::make_shared<lsp::websocket_stream_wrapper>(ws_);
- 
+
     }
 
     // Start the asynchronous operation
@@ -127,12 +127,12 @@ public:
         {
                ioc.run();
         }).detach();
-        while (!point.IsWorking())
+        while (!point.isWorking())
         {
             std::this_thread::sleep_for(std::chrono::milliseconds (50));
         }
     }
-    
+
     void
         on_resolve(
             beast::error_code ec,
@@ -189,7 +189,7 @@ public:
             return;
 
         // Send the message
-    
+
 
         point.startProcessingMessages(proxy_, proxy_);
         // Read a message into our buffer
@@ -215,7 +215,7 @@ public:
         std::vector<char> elements(data, data + bytes_transferred);
         buffer_.clear();
         proxy_->on_request.EnqueueAll(std::move(elements), false);
-        
+
         ws_.async_read(
             buffer_,
             beast::bind_front_handler(
@@ -249,7 +249,7 @@ public:
                 code_lens_options.resolveProvider = true;
                 rsp.result.capabilities.codeLensProvider = code_lens_options;
                 return rsp;
-		});
+                });
         std::thread([&]()
             {
                 server.run();
@@ -261,7 +261,7 @@ public:
     }
     std::shared_ptr <  lsp::ProtocolJsonHandler >  protocol_json_handler = std::make_shared < lsp::ProtocolJsonHandler >();
     DummyLog _log;
-    
+
     std::shared_ptr < GenericEndpoint >  endpoint = std::make_shared<GenericEndpoint>(_log);
     lsp::WebSocketServer server;
 
@@ -271,11 +271,11 @@ int main()
 {
     std::string user_agent = std::string(BOOST_BEAST_VERSION_STRING) +" websocket-server-async";
     Server server(user_agent);
-   
+
     auto client = std::make_shared<Client>();
     user_agent = std::string(BOOST_BEAST_VERSION_STRING) + " websocket-client-async";
     client->run(_address.c_str(), _port.c_str(), user_agent.c_str());
-	
+
     td_initialize::request req;
 
     auto rsp = client->point.waitResponse(req);

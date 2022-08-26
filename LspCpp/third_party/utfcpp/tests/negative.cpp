@@ -13,7 +13,7 @@ const unsigned* INVALID_LINES_END = INVALID_LINES + sizeof(INVALID_LINES)/sizeof
 int main(int argc, char** argv)
 {
     string test_file_path;
-    if (argc == 2) 
+    if (argc == 2)
         test_file_path = argv[1];
     else {
         cout << "Wrong number of arguments" << endl;
