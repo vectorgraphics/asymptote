@@ -278,8 +278,15 @@ class AnotherWindow(Qw.QWidget):
     def renderLineStyle(self):
         #Should only get called with asy shapes
 
-        rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
-        #print(rawPattern)
+        if not isinstance(self.newShape,x2a.asyArrow):
+            print(self.newShape.path.getCode())
+            rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
+        else:
+            #self.newShape.updateCode() #idk if this is necessary.
+            print(self.newShape.code)
+            rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.code)
+        
+        print(rawPattern)
         pattern = []
         for value in rawPattern[2:-3].split(' '):
             pattern.append(float(value))
