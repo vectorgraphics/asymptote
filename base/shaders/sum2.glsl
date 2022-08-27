@@ -1,22 +1,43 @@
-layout(local_size_x=LOCAL_SIZE_X) in;
+layout(local_size_x=LOCALSIZE) in;
 
-uniform uint offset2;
+const uint groupSize=LOCALSIZE*BLOCKSIZE;
 
-layout(binding=2, std430) buffer localSumBuffer
+uniform uint blockSize;
+
+layout(binding=3, std430) buffer globalSumBuffer
 {
-  uint localSum[];
+  uint globalSum[];
 };
 
-void main(void)
+shared uint groupSum[LOCALSIZE];
+
+void main()
 {
-  uint id=gl_GlobalInvocationID.x;
+  uint localSum[groupSize];
+  uint id=gl_LocalInvocationID.x;
 
-  uint row=LOCAL_SIZE_X*id;
-  uint stop=row+LOCAL_SIZE_X;
+  uint dataOffset=blockSize*id;
+  uint sum=0u;
+  for(uint i=0; i < blockSize; ++i) {
+    localSum[i]=sum;
+    sum += globalSum[dataOffset+i];
+  }
 
-  uint Sum=localSum[row];
-  for(uint i=row+1u; i < stop; ++i)
-    localSum[i]=Sum += localSum[i];
+  groupSum[id]=sum;
+  barrier();
 
-  localSum[offset2+id+1u]=Sum;
+  for(uint shift=1u; shift < LOCALSIZE; shift *= 2u) {
+    uint read;
+    if(shift <= id)
+      read=groupSum[id]+groupSum[id-shift];
+    barrier();
+    if(shift <= id)
+      groupSum[id]=read;
+    barrier();
+  }
+
+  // shift local sums and store
+  uint shift=id > 0u ? groupSum[id-1u] : 0u;
+  for(uint i=0u; i < blockSize; ++i)
+    globalSum[dataOffset+i]=localSum[i]+shift;
 }

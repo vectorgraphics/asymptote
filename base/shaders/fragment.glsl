@@ -32,29 +32,14 @@ float Roughness;
 
 layout(binding=0, std430) buffer offsetBuffer
 {
+  uint maxDepth;
   uint offset[];
 };
 
-#ifdef GPUINDEXING
-#if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
-uniform uint elements;
-uniform uint offset2;
-uniform uint m1;
-uniform uint m2;
-uniform uint r;
-#endif
-layout(binding=2, std430) buffer localSumBuffer
-{
-  uint localSum[];
-};
-
-layout(binding=3, std430) buffer globalSumBuffer
-{
-  uint globalSum[];
-};
-#else
+#ifndef GPUINDEXING
 layout(binding=2, std430) buffer countBuffer
 {
+  uint maxSize;
   uint count[];
 };
 #endif
@@ -76,7 +61,6 @@ layout(binding=6, std430) buffer opaqueBuffer
 
 layout(binding=7, std430) buffer opaqueDepthBuffer
 {
-  uint maxSize;
   float opaqueDepth[];
 };
 
@@ -294,9 +278,7 @@ void main()
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
 #ifdef GPUINDEXING
-  uint p=element < r*(m1+1u) ? element/(m1+1u) : (element-r)/m1;
-  uint listIndex=localSum[p]+localSum[offset2+p/m2]+globalSum[p/(m2*m2)]+
-    atomicAdd(offset[elements+element],-1u)-1u;
+  uint listIndex=atomicAdd(offset[element],-1u)-1u;
 #else
   uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
 #endif

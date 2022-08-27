@@ -1604,11 +1604,23 @@ class xasyScript(xasyItem):
                 if i + 1 in keylist.keys():
                     # this case, we have a key.
                     with io.StringIO() as raw_line:
-                        for j in range(len(curr_str)):
+                        n=len(curr_str)
+                        for j in range(n):
                             raw_line.write(curr_str[j])
                             if j + 1 in keylist[i + 1]:
                                 # at this point, replace keys with xkey
-                                raw_line.write('KEY="{0:s}",'.format(linenum2key[(i + 1, j + 1)]))
+                                sep=','
+                                k=j+1
+                                # assume begingroup is on a single line for now
+                                while k < n:
+                                    c=curr_str[k]
+                                    if c == ')':
+                                        sep=''
+                                        break
+                                    if not c.isspace():
+                                        break
+                                    ++k
+                                raw_line.write('KEY="{0:s}"'.format(linenum2key[(i + 1, j + 1)])+sep)
                                 self.userKeys.add(linenum2key[(i + 1, j + 1)])
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.
@@ -1897,7 +1909,7 @@ class asyArrow(xasyItem):
         self.onCanvas = canvas
 
         self.arrowSettings = {"active": arrowActive, "style": 0, "fill": 0} #Rename active?
-        self.arrowList = ["","Arrow","ArcArrow"] #The first setting corresponds to no arrow. 
+        self.arrowList = ["","Arrow","ArcArrow"] #The first setting corresponds to no arrow.
         self.arrowStyleList = ["","SimpleHead","HookHead","TeXHead"]
         self.arrowFillList = ["","FillDraw","Fill","NoFill","UnFill","Draw"]
 
@@ -1912,9 +1924,9 @@ class asyArrow(xasyItem):
             if settings != "(": #This is really messy.
                 settings += ","
             settings += "size=" + str(self.arrowSettings["size"]) #Should I add options to this? Like for cm?
-            
+
         if "angle" in self.arrowSettings: #This is so similar, you should be able to turn this into a function or something.
-            if settings != "(": 
+            if settings != "(":
                 settings += ","
             settings += "angle=" + str(self.arrowSettings["angle"])
 
@@ -1939,9 +1951,11 @@ class asyArrow(xasyItem):
         self.asyCode = ''
         if self.arrowSettings["active"]:
             if self.arrowSettings["fill"]:
-                self.asyCode = 'begingroup();\n\n'
-                self.asyCode += 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.fillPen.getCode())+'\n\n'
-            self.asyCode += 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
+                self.asyCode += 'begingroup(KEY="{0}");'.format(self.transfKey)+'\n\n'
+                self.asyCode += 'fill({0},{1});'.format(self.code, self.fillPen.getCode())+'\n\n'
+                self.asyCode += 'draw({0},{1},arrow={2}{3});'.format(self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
+            else:
+                self.asyCode += 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
             if self.arrowSettings["fill"]:
                 self.asyCode += 'endgroup();\n\n'
         else:

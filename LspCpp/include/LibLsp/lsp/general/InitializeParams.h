@@ -6,10 +6,10 @@
 #include "LibLsp/lsp/workspace/workspaceFolders.h"
 
 struct ClientInfo {
-	std::string name;
-	boost::optional<std::string> version;
-	
-	MAKE_SWAP_METHOD(ClientInfo,name,version);
+        std::string name;
+        boost::optional<std::string> version;
+
+        MAKE_SWAP_METHOD(ClientInfo,name,version);
 };
 MAKE_REFLECT_STRUCT(ClientInfo,name,version);
 
@@ -19,7 +19,7 @@ struct lsInitializeParams {
   // If the parent process is not alive then the server should exit (see exit
   // notification) its process.
   boost::optional<int> processId;
-	
+
   /**
    * Information about the client
    *
@@ -37,7 +37,7 @@ struct lsInitializeParams {
    * @since 3.16.0
    */
   boost::optional<std::string> locale;
-	
+
   // The rootPath of the workspace. Is null
   // if no folder is open.
   //
@@ -64,13 +64,13 @@ struct lsInitializeParams {
   boost::optional< std::string >clientName;
 
 
-	
+
   enum class lsTrace {
     // NOTE: serialized as a string, one of 'off' | 'messages' | 'verbose';
     Off,       // off
     Messages,  // messages
     Verbose    // verbose
-  	
+
   };
 
   // The initial trace setting. If omitted trace is disabled ('off').
@@ -117,9 +117,9 @@ struct lsInitializeError {
   bool retry;
   void swap(lsInitializeError& arg) noexcept
   {
-	  auto tem = retry;
-	  retry = arg.retry;
-	  arg.retry = tem;
+          auto tem = retry;
+          retry = arg.retry;
+          arg.retry = tem;
   }
 };
 MAKE_REFLECT_STRUCT(lsInitializeError, retry);

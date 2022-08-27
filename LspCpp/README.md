@@ -1,7 +1,7 @@
 # LspCpp
 
 ## Dependencies
-`LspCpp` depends on boost, rapidjson, utfcpp, uri, and threadpool.
+`LspCpp` depends on boost, rapidjson, utfcpp, uri.
 
 ## Build
 

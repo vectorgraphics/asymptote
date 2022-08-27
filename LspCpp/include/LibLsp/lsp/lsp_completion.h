@@ -57,8 +57,8 @@ MAKE_REFLECT_TYPE_PROXY(lsInsertTextFormat);
 
 namespace lsp
 {
-	std::string ToString(lsCompletionItemKind);
-	std::string ToString(lsInsertTextFormat);
+        std::string ToString(lsCompletionItemKind);
+        std::string ToString(lsInsertTextFormat);
 }
 /**
  * The Completion request is sent from the client to the server to compute completion items at a given cursor position.
@@ -67,7 +67,7 @@ namespace lsp
  * completion item is selected in the user class.
  */
 struct lsCompletionItem {
- 
+
   // The label of this completion item. By default
   // also the text that is inserted when selecting
   // this completion.
@@ -89,11 +89,11 @@ struct lsCompletionItem {
    * Indicates if this item is deprecated.
    */
   boost::optional< bool >deprecated;
-	
+
 
    /**
    * Select this item when showing.
-   * 
+   *
    * *Note* that only one completion item can be selected and that the
    * tool / client decides which item that is. The rule is that the *first
    * item of those that match best is selected.
@@ -177,18 +177,18 @@ struct lsCompletionItem {
   boost::optional<lsp::Any> data;
   std::string ToString();
   MAKE_SWAP_METHOD(lsCompletionItem,
-	  label,
-	  kind,
-	  detail,
-	  documentation,
-	  sortText,
-	  insertText,
-	  filterText,
-	  insertTextFormat,
-	  textEdit,
-	  deprecated, preselect, additionalTextEdits, commitCharacters,
-	  command, data);
-	
+          label,
+          kind,
+          detail,
+          documentation,
+          sortText,
+          insertText,
+          filterText,
+          insertTextFormat,
+          textEdit,
+          deprecated, preselect, additionalTextEdits, commitCharacters,
+          command, data);
+
 };
 
 
@@ -204,21 +204,21 @@ MAKE_REFLECT_STRUCT(lsCompletionItem,
                     insertTextFormat,
                     textEdit,
                     deprecated, preselect, additionalTextEdits, commitCharacters,
-	command, data);
+        command, data);
 
 
 
 struct CompletionList {
-	// This list it not complete. Further typing should result in recomputing
-	// this list.
-	bool isIncomplete = false;
-	// The completion items.
-	std::vector<lsCompletionItem> items;
+        // This list it not complete. Further typing should result in recomputing
+        // this list.
+        bool isIncomplete = false;
+        // The completion items.
+        std::vector<lsCompletionItem> items;
 
-	void swap(CompletionList& arg) noexcept
-	{
-		items.swap(arg.items);
-		std::swap(isIncomplete, arg.isIncomplete);
-	}
+        void swap(CompletionList& arg) noexcept
+        {
+                items.swap(arg.items);
+                std::swap(isIncomplete, arg.isIncomplete);
+        }
 };
 MAKE_REFLECT_STRUCT(CompletionList, isIncomplete, items);

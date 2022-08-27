@@ -32,7 +32,7 @@ int main(int, char*[]) {
     printf("\nParsing to document succeeded.\n");
 
     ////////////////////////////////////////////////////////////////////////////
-    // 2. Access values in document. 
+    // 2. Access values in document.
 
     printf("\nAccess values in document:\n");
     assert(document.IsObject());    // Document is a JSON value represents the root of DOM. Root can be either an object or array.
@@ -69,7 +69,7 @@ int main(int, char*[]) {
         assert(a.IsArray());
         for (SizeType i = 0; i < a.Size(); i++) // rapidjson uses SizeType instead of size_t.
             printf("a[%d] = %d\n", i, a[i].GetInt());
-        
+
         int y = a[0].GetInt();
         (void)y;
 
@@ -128,7 +128,7 @@ int main(int, char*[]) {
         // Shorter but slower version:
         // document["hello"].SetString(buffer, document.GetAllocator());
 
-        // Constructor version: 
+        // Constructor version:
         // Value author(buffer, len, document.GetAllocator());
         // Value author(buffer, document.GetAllocator());
         memset(buffer2, 0, sizeof(buffer2)); // For demonstration purpose.

@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
+//
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #define RAPIDJSON_SCHEMA_VERBOSE 0
@@ -192,7 +192,7 @@ TEST(SchemaValidator, Typeless) {
     Document sd;
     sd.Parse("{}");
     SchemaDocument s(sd);
-    
+
     VALIDATE(s, "42", true);
     VALIDATE(s, "\"I'm a string\"", true);
     VALIDATE(s, "{ \"an\": [ \"arbitrarily\", \"nested\" ], \"data\": \"structure\" }", true);
@@ -1030,7 +1030,7 @@ TEST(SchemaValidator, Object) {
     SchemaDocument s(sd);
 
     VALIDATE(s, "{\"key\":\"value\",\"another_key\":\"another_value\"}", true);
-    VALIDATE(s, "{\"Sun\":1.9891e30,\"Jupiter\":1.8986e27,\"Saturn\":5.6846e26,\"Neptune\":10.243e25,\"Uranus\":8.6810e25,\"Earth\":5.9736e24,\"Venus\":4.8685e24,\"Mars\":6.4185e23,\"Mercury\":3.3022e23,\"Moon\":7.349e22,\"Pluto\":1.25e22}", true);    
+    VALIDATE(s, "{\"Sun\":1.9891e30,\"Jupiter\":1.8986e27,\"Saturn\":5.6846e26,\"Neptune\":10.243e25,\"Uranus\":8.6810e25,\"Earth\":5.9736e24,\"Venus\":4.8685e24,\"Mars\":6.4185e23,\"Mercury\":3.3022e23,\"Moon\":7.349e22,\"Pluto\":1.25e22}", true);
     INVALIDATE(s, "[\"An\", \"array\", \"not\", \"an\", \"object\"]", "", "type", "",
         "{ \"type\": {"
         "    \"errorCode\": 20,"
@@ -2089,9 +2089,9 @@ TEST(SchemaValidator, ValidateMetaSchema_UTF16) {
 template <typename SchemaDocumentType = SchemaDocument>
 class RemoteSchemaDocumentProvider : public IGenericRemoteSchemaDocumentProvider<SchemaDocumentType> {
 public:
-    RemoteSchemaDocumentProvider() : 
-        documentAllocator_(documentBuffer_, sizeof(documentBuffer_)), 
-        schemaAllocator_(schemaBuffer_, sizeof(schemaBuffer_)) 
+    RemoteSchemaDocumentProvider() :
+        documentAllocator_(documentBuffer_, sizeof(documentBuffer_)),
+        schemaAllocator_(schemaBuffer_, sizeof(schemaBuffer_))
     {
         const char* filenames[kCount] = {
             "jsonschema/remotes/integer.json",
@@ -2402,11 +2402,11 @@ TEST(SchemaValidator, Issue1017_allOfHandler) {
     GenericSchemaValidator<SchemaDocument, Writer<StringBuffer> > validator(s, writer);
     EXPECT_TRUE(validator.StartObject());
     EXPECT_TRUE(validator.Key("cyanArray2", 10, false));
-    EXPECT_TRUE(validator.StartArray());    
-    EXPECT_TRUE(validator.EndArray(0));    
+    EXPECT_TRUE(validator.StartArray());
+    EXPECT_TRUE(validator.EndArray(0));
     EXPECT_TRUE(validator.Key("blackArray", 10, false));
-    EXPECT_TRUE(validator.StartArray());    
-    EXPECT_TRUE(validator.EndArray(0));    
+    EXPECT_TRUE(validator.StartArray());
+    EXPECT_TRUE(validator.EndArray(0));
     EXPECT_TRUE(validator.EndObject(0));
     EXPECT_TRUE(validator.IsValid());
     EXPECT_STREQ("{\"cyanArray2\":[],\"blackArray\":[]}", sb.GetString());

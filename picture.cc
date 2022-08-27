@@ -464,7 +464,7 @@ string dvisvgmCommand(mem::vector<string>& cmd, const string& outname)
   string libgs=getSetting<string>("libgs");
   if(!libgs.empty())
     cmd.push_back("--libgs="+libgs);
-//  cmd.push_back("--optimize"); // Requires dvisvgm > 2.9.1
+  cmd.push_back("--optimize");
   push_split(cmd,getSetting<string>("dvisvgmOptions"));
   string outfile=stripDir(outname);
   if(!outfile.empty())
@@ -685,7 +685,7 @@ int picture::pdftoeps(const string& pdfname, const string& epsname, bool eps)
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
-  cmd.push_back("-dNOCACHE");
+  cmd.push_back("-dNoOutputFonts");
   cmd.push_back("-dNOPAUSE");
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");

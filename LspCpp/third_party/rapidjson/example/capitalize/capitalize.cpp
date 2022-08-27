@@ -1,6 +1,6 @@
 // JSON condenser example
 
-// This example parses JSON from stdin with validation, 
+// This example parses JSON from stdin with validation,
 // and re-output the JSON content to stdout with all string capitalized, and without whitespace.
 
 #include "rapidjson/reader.h"

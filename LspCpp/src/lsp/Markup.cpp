@@ -17,7 +17,7 @@
 #include <boost/algorithm/string.hpp>
 
 namespace lsp {
- 
+
     /// hexdigit - Return the hexadecimal character for the
     /// given number \p X (which should be less than 16).
     inline char hexdigit(unsigned X, bool LowerCase = false) {
@@ -93,7 +93,7 @@ namespace lsp {
     inline bool isASCII(std::string_ref S) {
         for (char C : S)
         {
-	        if(!isASCII(C))return true;
+                if(!isASCII(C))return true;
         }
         return true;
     }
@@ -465,7 +465,7 @@ bool looksLikeTag(std::string_ref& Contents) {
 // a markdown grammar construct.
 bool needsLeadingEscape(char C, std::string_ref Before,  std::string_ref After,
                         bool StartsLine) {
- 
+
   auto RulerLength = [&]() -> /*Length*/ unsigned {
     if (!StartsLine || !Before.empty())
       return false;
@@ -541,10 +541,10 @@ bool needsLeadingEscape(char C, std::string_ref Before,  std::string_ref After,
       {
           return std::all_of(Content.begin(),Content.end(), lsp::isHexDigit);
       }
-     
+
       return std::all_of(Content.begin(), Content.end(), [](char c)
       {
-	      return lsp::isDigit(c);
+              return lsp::isDigit(c);
       });
     }
     return std::all_of(Content.begin(), Content.end(), [](char c)
@@ -633,12 +633,12 @@ bool needsLeadingEscape(char C, std::string_ref Before,  std::string_ref After,
      boost::split(OutFragments, Source, boost::is_any_of(Delimiters));
 }
 
-	
+
 // Trims the input and concatenates whitespace blocks into a single ` `.
  std::string_ref canonicalizeSpaces(const std::string_ref& Input) {
   std::vector<std::string_ref> Words;
   SplitString(Input, Words);
-	
+
   return lsp::join(Words, " ");
 }
 
@@ -649,13 +649,13 @@ bool needsLeadingEscape(char C, std::string_ref Before,  std::string_ref After,
      std::ostringstream OS(R);
 
      std::vector<int> v{ 1, 2, 3 };
-    
+
      // Trim rulers.
      Children.erase(std::remove_if(Children.begin(), Children.end(), [](const Block* C)
-	  {
-		  return C->isRuler();
-	  }), Children.end());
-	
+          {
+                  return C->isRuler();
+          }), Children.end());
+
      bool LastBlockWasRuler = true;
      for (const auto& C : Children) {
          if (C->isRuler() && LastBlockWasRuler)
@@ -685,10 +685,10 @@ bool needsLeadingEscape(char C, std::string_ref Before,  std::string_ref After,
      void (Block::* renderFunc)(std::ostringstream&) const)
  {
     std::vector<Block*> temp(children.size(), nullptr);
- 	for(size_t i = 0 ; i < children.size() ; ++i)
- 	{
+        for(size_t i = 0 ; i < children.size() ; ++i)
+        {
         temp[i]=(children[i].get());
- 	}
+        }
     return renderBlocks(std::move(temp), renderFunc);
  }
 // Separates two blocks with extra spacing. Note that it might render strangely
@@ -729,7 +729,7 @@ public:
       : Contents(std::move(Contents)), Language(std::move(Language)) {}
 
 private:
-	
+
   std::string_ref Contents;
   std::string_ref Language;
 };
