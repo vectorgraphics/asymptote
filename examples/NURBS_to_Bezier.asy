@@ -3,6 +3,11 @@ import graph;
 
 real NURBStolerance=sqrtEpsilon;
 
+int ceilquotient(int a, int b)
+{
+  return (a+b-1)#b;
+}
+
 //de_Casteljau algorithm for triple
 triple de_casteljau_triple(real t,triple[] coefs) {
   int n=coefs.length;
@@ -110,7 +115,7 @@ NURBSCurveData conversion_4DBSpline_to_3DNurbs(BSplineCurveData BSpline_4D) {
   real[] control_point_4D = new real[4];
   real weight = 1;
   triple new_3D_control_point;
-  
+
   for(int j=0; j < BSpline_4D.controlPoints.length; ++j) {
     control_point_4D=copy(BSpline_4D.controlPoints[j]);
     weight=control_point_4D[3];
@@ -500,7 +505,7 @@ BSplineCurveData DegreeReduceCurve(BSplineCurveData curve_data) {
 void DecomposeSurface_U_dir(BSplineSurfaceData BSpline_4D_surface,int p){
     /*  Decompose surface into Bezier strips in u direction */
     /*  Input: BSpline_4D_surface, p */
-    /*  
+    /*
         p is the degree elevate to in u-direction
     */
         real[][][] control_points = BSpline_4D_surface.controlPoints;
@@ -754,9 +759,9 @@ int[] removeDuplicates(int[] array){
     if (n==0||n==1){
         return copy(array);
     }
- 
+
     int[] temp;
- 
+
     // Start traversing elements
     int j=0;
     // If current element is not equal to next element
@@ -767,7 +772,7 @@ int[] removeDuplicates(int[] array){
             ++j;
         }
     }
- 
+
     // Store the last element as whether it is unique or
     // repeated, it hasn't stored previously
     temp[j]=array[n-1];
@@ -826,7 +831,7 @@ struct NURBScurve{
         triple[] NR_Bezier_control_points=conversion_RBezier_to_NRBezier(current_Bezier_cps,current_Bezier_cps,sample_points,tolerance);
         dot(copy(NR_Bezier_control_points),pink);
         g.push(NR_Bezier_control_points[0]..controls NR_Bezier_control_points[1] and NR_Bezier_control_points[2]..NR_Bezier_control_points[3]);
-        
+
       }
       Bezier_first_cp_index=Bezier_last_cp_index;
       Bezier_last_cp_index=Bezier_last_cp_index+output_degree;
@@ -875,7 +880,7 @@ struct NURBSsurface{
             q=BSpline_4D.V_degree;
         }
         // need to code for degree reduction
-        /* 
+        /*
         if{p>output_degree}{
 
         }
@@ -931,13 +936,15 @@ struct NURBSsurface{
             }
         }
 
-        triple[][][][] Bezier_surfaces = new triple[ceil(n/(p+1))][ceil(RBezier_3D.controlPoints[0].length/(q+1))][][];
+        triple[][][][] Bezier_surfaces =
+          new triple[ceilquotient(n,p+1)]
+          [ceilquotient(RBezier_3D.controlPoints[0].length,q+1)][][];
 
         triple[][] row_trunc;
         triple[][] matrix_trunc;
-        for(int i=0;i<ceil(n/(p+1));++i){
+        for(int i=0;i<ceilquotient(n,p+1);++i){
             row_trunc=RBezier_3D.controlPoints[i*(p+1):(i+1)*(p+1)];
-            for(int j=0;j<ceil(RBezier_3D.controlPoints[i].length/(q+1));++j){
+            for(int j=0;j<ceilquotient(RBezier_3D.controlPoints[i].length,q+1);++j){
                 for(int k=0;k<row_trunc.length;++k){
                     matrix_trunc[k]=row_trunc[k][j*(q+1):(j+1)*(q+1)];
                 }
