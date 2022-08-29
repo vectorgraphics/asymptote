@@ -1,7 +1,5 @@
-settings.outformat="pdf";
-settings.prc=true;
-
 import three;
+import NURBS_to_Bezier;
 
 size(10cm);
 
@@ -56,7 +54,12 @@ triple[][] P=
    }
   };
 
-draw(P,uknot,vknot,new pen[] {red,green,blue,magenta});
+//draw(P,uknot,vknot,new pen[] {red,green,blue,magenta});
+draw(P,uknot,vknot,red);
+
+real[][] weights=array(P.length,array(P[0].length,1.0));
+//NURBSsurface surface1=NURBSsurface(P,uknot,vknot,weights);
+//surface1.draw(red);
 
 // Rational Bezier patch:
 // udegree=3, vdegree=3, nu=4, nv=4;
@@ -66,6 +69,9 @@ triple[][] P=scale3(20)*octant1x.P;
 
 // Optional weights:
 real[][] weights=array(P.length,array(P[0].length,1.0));
-weights[0][2]=5.0;
+//weights[0][2]=5.0;
 
 draw(P,uknot,vknot,weights,blue);
+
+NURBSsurface surface2=NURBSsurface(P,uknot,vknot,weights);
+surface2.draw(blue);
