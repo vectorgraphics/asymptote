@@ -892,21 +892,28 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.execCustomCommand(commandText)
 
-    def addXasyShapeFromPath(self, path, pen = None, transform = x2a.identity(), key = None):
+    def addXasyShapeFromPath(self, path, pen = None, transform = x2a.identity(), key = None, fill = False):
+        dashPattern = pen['dashPattern'] #?
         if not pen:
             pen = self.currentPen
         else:
             pen = x2a.asyPen(self.asyEngine, color = pen['color'], width = pen['width'], pen_options = pen['options'])
+            if dashPattern:
+                pen.setDashPattern(dashPattern)
 
         newItem = x2a.xasyShape(path, self.asyEngine, pen = pen, transform = transform)
+        if fill:
+            newItem.swapFill()
         newItem.setKey(key)
         self.fileItems.append(newItem)
 
-    def addXasyArrowFromPath(self, pen, transform, key, arrowSettings, code):
+    def addXasyArrowFromPath(self, pen, transform, key, arrowSettings, code, dashPattern = None):
         if not pen:
             pen = self.currentPen
         else:
             pen = x2a.asyPen(self.asyEngine, color = pen['color'], width = pen['width'], pen_options = pen['options'])
+            if dashPattern:
+                pen.setDashPattern(dashPattern)
 
         newItem = x2a.asyArrow(self.asyEngine, pen, transform, key, canvas=self.xasyDrawObj, code=code)
         newItem.setKey(key)
@@ -1089,7 +1096,7 @@ class MainWindow1(Qw.QMainWindow):
                 linkSet = item['links']
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
-                self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
+                self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'], fill = item['fill'])
 
             elif item['type'] == 'asyArrow':    
                 self.addXasyArrowFromPath(item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'], item['code'])

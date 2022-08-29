@@ -1971,10 +1971,8 @@ class asyArrow(xasyItem):
         self.location = newl
 
     def getObjectCode(self, asy2psmap=identity()):
-        if self.arrowSettings["fill"]:
-            return 'fill(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
-        else:
-            return 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.path.getCode(asy2psmap), self.pen.getCode())+'\n\n'
+        self.updateCode()
+        return self.asyCode
 
     def getTransformCode(self, asy2psmap=identity()):
         transf = self.transfKeymap[self.transfKey][0]
