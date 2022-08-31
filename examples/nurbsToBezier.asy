@@ -233,7 +233,7 @@ real[][] BezierMultiDegreeElevate(real[][] input_control_points, int r) {
   int n=input_control_points.length;
   int p=n-1; // p is the degree of the curve
   int elevated_cp_len=n+r;
-  int elevated_cp_len_half=floor((elevated_cp_len-1)/2);
+  int elevated_cp_len_half=(elevated_cp_len-1)#2;
   real[][] bezcoefs=new real[elevated_cp_len][n];
   real[] init_array=array(d,0.0);
   real[][] elevated_cp=array(elevated_cp_len,init_array);
@@ -270,7 +270,7 @@ BSplineCurveData DegreeElevationCurve(BSplineCurveData curve_data, int t) {
   int m=curve_data.knots.length;
   int n=curve_data.controlPoints.length;
   int ph=p+t;
-  int ph2=floor(ph/2);
+  int ph2=ph#2;
   real[] U=copy(curve_data.knots);
   real[][] Pw=copy(curve_data.controlPoints);
 
@@ -410,7 +410,7 @@ real[][] BezDegreeReduce(real[][] bpts) {
     real[] leftp=(bpts[r]-alphar*rcpts[r-1])/(1-alphar);
     real alphar1=(r+1)/p;
     real[] rightp=(bpts[r+1]-(1-alphar1)*rcpts[r+1])/alphar1;
-    rcpts[r]=(leftp+rightp)/2;
+    rcpts[r]=0.5*(leftp+rightp);
   }
   return rcpts;
 }
@@ -467,7 +467,7 @@ BSplineCurveData DegreeReduceCurve(BSplineCurveData curve_data) {
     r=p-multi;
 
     if(oldr>0) {
-      lbz=floor((oldr+2)/2);
+      lbz=(oldr+2)#2;
     }
     else{
       lbz=1;
@@ -813,7 +813,7 @@ void DegreeReduce_V_dir(BSplineSurfaceData BSpline_4D_surface,int output_degree)
       /*
       Input:
         BSpline_4D_surface is the surface data input for degree reduction
-        output_degree is the degree of the degree_reduced surface 
+        output_degree is the degree of the degree_reduced surface
     */
     real[][][] BS_control_points=copy(BSpline_4D_surface.controlPoints);
     real[] BS_V_knot=copy(BSpline_4D_surface.V_knot);
@@ -951,7 +951,7 @@ struct NURBSsurface{
             }
             //dot(copy(sample_points),yellow);
             //real tolerance=NURBStolerance*norm(new triple[][] {rational_row});
-            real tolerance=0.01*norm(new triple[][] {rational_row});
+            real tolerance=sqrtEpsilon*norm(new triple[][] {rational_row});
             RBezier_3D.controlPoints[rational_rows[i]] = conversion_RBezier_to_NRBezier(rational_row,rational_row,sample_points,tolerance);
         }
         // convert the rational columns to non-rational Bezier curves

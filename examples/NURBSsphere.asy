@@ -1,7 +1,5 @@
-settings.outformat="pdf";
-settings.prc=true;
-
 import three;
+import nurbsToBezier;
 
 /* Reference:
    @article{Qin97,
@@ -42,8 +40,13 @@ real[] vknot={0,0,0,0,1,1,1,1};
 
 int N=1;
 
-for(int k=0; k < N; ++k)
-  for(int i=0; i < 4; ++i)
-    draw(shift(k*Z)*P[i:i+3],uknot,vknot,weights,blue);
+for(int k=0; k < N; ++k) {
+  for(int i=0; i < 4; ++i) {
+    triple[][] Q=shift(k*Z)*P[i:i+3];
+    draw(Q,uknot,vknot,weights,blue);
+    NURBSsurface surface2=NURBSsurface(Q,uknot,vknot,weights);
+    surface2.draw(blue);
+  }
+}
 
 // draw(unitsphere,red+opacity(0.1));

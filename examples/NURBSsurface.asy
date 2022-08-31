@@ -1,5 +1,5 @@
 import three;
-import NURBS_to_Bezier;
+import nurbsToBezier;
 
 size(10cm);
 
@@ -58,8 +58,8 @@ triple[][] P=
 draw(P,uknot,vknot,red);
 
 real[][] weights=array(P.length,array(P[0].length,1.0));
-//NURBSsurface surface1=NURBSsurface(P,uknot,vknot,weights);
-//surface1.draw(red);
+NURBSsurface surface1=NURBSsurface(P,uknot,vknot,weights);
+surface1.draw(red);
 
 // Rational Bezier patch:
 // udegree=3, vdegree=3, nu=4, nv=4;
