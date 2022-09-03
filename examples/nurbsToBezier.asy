@@ -1,7 +1,7 @@
 import three;
 import graph;
 
-real NURBStolerance=sqrtEpsilon;
+real NURBStolerance=0.01;
 
 int ceilquotient(int a, int b)
 {
@@ -194,8 +194,8 @@ BSplineSurfaceData conversion_3DNurbs_to_4DBSpline(NURBSsurfaceData NURBS_3D) {
     new_BSpline_4D.controlPoints=copy(x);
     new_BSpline_4D.U_knot=copy(NURBS_3D.U_knot);
     new_BSpline_4D.V_knot=copy(NURBS_3D.V_knot);
-    new_BSpline_4D.U_degree=new_BSpline_4D.U_knot.length-new_BSpline_4D.controlPoints.length-1;
-    new_BSpline_4D.V_degree=new_BSpline_4D.V_knot.length-new_BSpline_4D.controlPoints[0].length-1;
+    new_BSpline_4D.U_degree=NURBS_3D.U_degree;
+    new_BSpline_4D.V_degree=NURBS_3D.V_degree;
     return new_BSpline_4D;
 }
 
@@ -222,8 +222,8 @@ NURBSsurfaceData conversion_4DBSpline_to_3DNurbs(BSplineSurfaceData BSpline_4D) 
     nurb_3D.U_knot=BSpline_4D.U_knot;
     nurb_3D.V_knot=BSpline_4D.V_knot;
     nurb_3D.weights=weights;
-    nurb_3D.U_degree=nurb_3D.U_knot.length-nurb_3D.controlPoints.length-1;
-    nurb_3D.V_degree=nurb_3D.V_knot.length-nurb_3D.controlPoints[0].length-1;
+    nurb_3D.U_degree=BSpline_4D.U_degree;
+    nurb_3D.V_degree=BSpline_4D.V_degree;
     return nurb_3D;
 }
 
@@ -233,7 +233,7 @@ real[][] BezierMultiDegreeElevate(real[][] input_control_points, int r) {
   int n=input_control_points.length;
   int p=n-1; // p is the degree of the curve
   int elevated_cp_len=n+r;
-  int elevated_cp_len_half=(elevated_cp_len-1)#2;
+  int elevated_cp_len_half=floor((elevated_cp_len-1)/2);
   real[][] bezcoefs=new real[elevated_cp_len][n];
   real[] init_array=array(d,0.0);
   real[][] elevated_cp=array(elevated_cp_len,init_array);
@@ -270,7 +270,6 @@ BSplineCurveData DegreeElevationCurve(BSplineCurveData curve_data, int t) {
   int m=curve_data.knots.length;
   int n=curve_data.controlPoints.length;
   int ph=p+t;
-  int ph2=ph#2;
   real[] U=copy(curve_data.knots);
   real[][] Pw=copy(curve_data.controlPoints);
 
@@ -340,7 +339,7 @@ BSplineCurveData DegreeElevationCurve(BSplineCurveData curve_data, int t) {
     //Bezier Degree Elevation
     elevated_bpts=BezierMultiDegreeElevate(bpts,t);
 
-    if(a != p) {
+    if(a!=p) {
       // load the knot ua
       for(int i=0;i<ph;++i) {
         Uh[kind]=ua;
@@ -353,7 +352,7 @@ BSplineCurveData DegreeElevationCurve(BSplineCurveData curve_data, int t) {
       Qw[cind]=elevated_bpts[j];
       ++cind;
     }
-    if(b < n) {
+    if(b<n) {
       //Set up for the next pass through loop
       for(int j=0;j<r;++j) {
         bpts[j]=Nextbpts[j];
@@ -410,7 +409,7 @@ real[][] BezDegreeReduce(real[][] bpts) {
     real[] leftp=(bpts[r]-alphar*rcpts[r-1])/(1-alphar);
     real alphar1=(r+1)/p;
     real[] rightp=(bpts[r+1]-(1-alphar1)*rcpts[r+1])/alphar1;
-    rcpts[r]=0.5*(leftp+rightp);
+    rcpts[r]=(leftp+rightp)/2;
   }
   return rcpts;
 }
@@ -467,7 +466,7 @@ BSplineCurveData DegreeReduceCurve(BSplineCurveData curve_data) {
     r=p-multi;
 
     if(oldr>0) {
-      lbz=(oldr+2)#2;
+      lbz=floor((oldr+2)/2);
     }
     else{
       lbz=1;
@@ -551,6 +550,7 @@ triple[] conversion_RBezier_to_NRBezier(triple[] RBcontrolPoints,triple[] adjust
     local_control_points[i]=local_control_points[i]+adjusting_vectors[i];
     if(ad_vector_length>tolerance) {
       approximation_bool=false;
+      break;
     }
   }
   for(int j=0;j<k;++j) {
@@ -563,210 +563,253 @@ triple[] conversion_RBezier_to_NRBezier(triple[] RBcontrolPoints,triple[] adjust
   return conversion_RBezier_to_NRBezier(RBcontrolPoints,local_control_points,local_sample_points,tolerance);
 }
 
-void DecomposeSurface_U_dir(BSplineSurfaceData BSpline_4D_surface,int p){
-    /*  Decompose surface into Bezier strips in u direction */
-    /*  Input: BSpline_4D_surface, p */
-    /*
-        p is the degree elevate to in u-direction
-    */
-        real[][][] control_points = BSpline_4D_surface.controlPoints;
-        int n = control_points.length; //number of control points in u-direction
-        int m = control_points[0].length; //number of control points in v-direction
-
-        real[] U = BSpline_4D_surface.U_knot; // U direction knots
-        real[] Uh; // Used for storing elevated knots in U direction
-
-        real[][][] Qw=new real[p+1][m][];
-        real[][][] Qw_copy=copy(Qw);
-        real[][][] Qw_return;
-
-        int a=p;
-        int b=p+1;
-        int nb=0;
-        int kind=p+1;
-
-        for(int i=0; i <= p; ++i) {
-            Uh[i]=U[a];
-        }
-
-        for(int i=0;i<=p;++i){
-            for(int col_num=0;col_num<m;++col_num){
-                Qw[i][col_num]=copy(control_points[i][col_num]);
-            }
-        }
-        int U_len=U.length;
-        int oldb;
-        int multi;
-        real[] alphas = new real[p-1]; // interpolation ratios
-
-        while(b<U_len){
-            oldb=b;
-            while(b<U_len-1 && U[b]==U[b+1]){
-                ++b;
-            }
-            multi=b-oldb+1;
-            if(b==U_len-1 && U[b]!=U[b-1]){
-                multi=1;
-            }
-            Qw_copy=copy(Qw);
-            if(multi<p){
-                real numerator=U[b]-U[a];
-                for(int i=p;i>multi;--i){
-                    real denominator=U[a+i]-U[a];
-                    alphas[i-multi-1]=numerator/denominator;
-                }
-                for (int j=1;j<=p-multi;++j){
-                    int save=p-multi-j;
-                    int s=multi+j;
-                    for (int k=p;k>=s;--k){
-                        real alpha=alphas[k-s];
-                        for(int col_num=0;col_num<m;++col_num){
-                            Qw[k][col_num]=alpha*copy(Qw[k][col_num])+(1.0-alpha)*copy(Qw[k-1][col_num]);
-                        }
-                    }
-                    Qw_copy = copy(Qw);
-                    if (b<n){
-                        for(int col_num=0;col_num<m;++col_num){
-                            Qw[save][col_num]=copy(Qw_copy[p][col_num]);
-                        }
-                    }
-                }
-            }
-
-            if(a != p) {
-                // load the knot ua
-                for(int i=0;i<p;++i) {
-                    Uh[kind]=U[a];
-                    ++kind;
-                }
-            }
-
-            for(int i;i<Qw_copy.length;++i){
-                Qw_return.push(copy(Qw_copy[i]));
-            }
-            if(b<n){
-                for(int i=p-multi;i<=p;++i){
-                    for(int col_num=0;col_num<m;++col_num){
-                        Qw[i][col_num]=copy(control_points[b-p+i][col_num]);
-                    }
-                }
-                a=b;
-                ++b;
-            }
-            else{
-                //set end knot values
-                for(int i=0;i<=p;++i) {
-                    Uh[kind+i]=U[b];
-                }
-                break;
-            }
-        }
-        BSpline_4D_surface.U_degree=p;
-        BSpline_4D_surface.U_knot=Uh;
-        BSpline_4D_surface.controlPoints=Qw_return;
-        //write("End of Decompose U function");
-}
-
-void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int q){
+void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int t){
     /*  Decompose surface into Bezier strips in v direction */
-    /*  Input: BSplineSurfaceData BSpline_4D_surface,q*/
+    /*  Input: BSpline_4D_surface, t */
     /*
-        q is the degree elevated to in v-direction
+        t is the degree we elevate in v-direction
     */
-        real[][][] control_points = BSpline_4D_surface.controlPoints;
-        int n = control_points.length; //number of control points in u-direction
-        int m = control_points[0].length; //number of control points in v-direction
+        real[][][] control_points=copy(BSpline_4D_surface.controlPoints);
+        int q=BSpline_4D_surface.V_degree;
+        int m=control_points.length; //number of control points in u-direction
+        int n=control_points[0].length; //number of control points in v-direction
+        int qh=q+t;
 
-        real[] V = BSpline_4D_surface.V_knot; // U direction knots
-        real[] Vh; // Used for storing elevated knots in U direction
+        real[] V_knot=BSpline_4D_surface.V_knot; // U direction knots
 
-        real[][][] Qw=new real[q+1][n][4];
-        real[][][] Qw_copy=copy(Qw);
-        real[][][] Qw_return;
+        real[][][] bpts=new real[m][q+1][];
+        real[][][] Nextbpts=new real[m][q-1][];
+        real[][][] elevated_bpts=new real[m][q+t+1][];
+        //initialize Qw_return
+        real[][][] Qw_return=new real[m][][];
+        for(int i=0;i<m;++i){
+            Qw_return[i][0]=control_points[i][0];
+        }
 
+        int r=-1;
+        int oldr;
         int a=q;
         int b=q+1;
-        int nb=0;
-        int kind=q+1;
+        int kind=qh+1;
+        int cind=1;
+        int old_cind=cind;
 
-        for(int i=0; i <= q; ++i) {
-            Vh[i]=V[a];
+        real va=V_knot[0];
+        real vb;
+        real[] Vh_knot; // Used for storing elevated knots in U direction
+        for(int k=0;k<=qh;++k) {
+            Vh_knot[k]=va;
         }
 
-        for(int i=0;i<=q;++i){
-            for(int row_num=0;row_num<n;++row_num){
-                Qw[i][row_num]=copy(control_points[row_num][i]);
-            }
-        }
+        int V_len=V_knot.length;
         int oldb;
         int multi;
         real[] alphas=new real[q-1]; // interpolation ratios
 
-        while(b<V.length){
+        while(b<V_len){
             oldb=b;
-            while(b<V.length-1&&V[b]==V[b+1]){
+            while(b<V_len-1 && V_knot[b]==V_knot[b+1]){
                 ++b;
             }
             multi=b-oldb+1;
-            if(b==V.length-1&&V[b]!=V[b-1]){
+            if(b==V_len-1 && V_knot[b]!=V_knot[b-1]){
                 multi=1;
             }
-            Qw_copy=copy(Qw);
-            if(multi<q){
-                real numerator=V[b]-V[a];
-                for(int i=q;i>multi;--i){
-                    real denominator=V[a+i]-V[a];
-                    alphas[i-multi-1]=numerator/denominator;
+            vb=V_knot[b];
+            oldr=r;
+            r=q-multi;
+            real numerator=vb-va;
+            for(int i=q;i>multi;--i){
+                real denominator=V_knot[a+i]-va;
+                alphas[i-multi-1]=numerator/denominator;
+            }
+            for(int i=0;i<m;++i){
+                cind=old_cind;
+                for(int j=0;j<=q;++j){
+                    //initialize bpts for each row i
+                    bpts[i][j]=control_points[i][j];    
                 }
-                for (int j=1;j<=q-multi;++j){
-                    int save=q-multi-j;
-                    int s=multi+j;
-                    for (int k=q;k>=s;--k){
-                        real alpha=alphas[k-s];
-                        for(int row_num=0;row_num<n;++row_num){
-                            Qw[k][row_num] = alpha*copy(Qw[k][row_num])+(1.0-alpha)*copy(Qw[k-1][row_num]);
+                if(r>0){
+                    for (int ind=1;ind<=r;++ind){
+                        int save=r-ind;
+                        int s=multi+ind;
+                        for (int k=q;k>=s;--k){
+                            real alpha=alphas[k-s];
+                            bpts[i][k]=alpha*copy(bpts[i][k])+(1.0-alpha)*copy(bpts[i][k-1]);
                         }
+                        Nextbpts[i][save]=bpts[i][q];
+                    }  
+                }
+                //End of knot insertion
+            
+                //Bezier Degree elevation
+                elevated_bpts[i]=BezierMultiDegreeElevate(bpts[i],t);
+                for(int j=1;j<=qh;++j){
+                    //load elevated control points
+                    Qw_return[i][cind]=elevated_bpts[i][j];
+                    ++cind;
+                }
+                if(b<n){
+                    //Set up for the next pass through loop
+                    for(int j=0;j<r;++j) {
+                        bpts[i][j]=Nextbpts[i][j];
                     }
-                    Qw_copy=copy(Qw);
-                    if (b<m){
-                        for(int row_num=0;row_num<n;++row_num){
-                            Qw[save][row_num]=copy(Qw_copy[q][row_num]);
-                        }
+                    for(int j=r;j<=q;++j) {
+                        bpts[i][j]=control_points[i][b-q+j];
                     }
                 }
             }
-            if(a != q) {
+            for(int j=1;j<=qh;++j){
+                ++old_cind;
+            }
+            if(a!=q) {
                 // load the knot ua
-                for(int i=0;i<q;++i) {
-                    Vh[kind]=V[a];
+                for(int i=0;i<qh;++i) {
+                    Vh_knot[kind]=va;
                     ++kind;
                 }
             }
-            for(int i;i<Qw_copy.length;++i){
-                Qw_return.push(Qw_copy[i]);
-            }
-            if(b<m){
-                for(int i=q-multi;i<=q;++i){
-                    for(int row_num=0;row_num<n;++row_num){
-                        Qw[i][row_num]=copy(control_points[row_num][b-q+i]);
-                    }
-                }
+            if(b<n){
                 a=b;
                 ++b;
+                va=vb;
             }
             else{
                 //set end knot values
                 for(int i=0;i<=q;++i) {
-                    Vh[kind+i]=V[b];
+                    Vh_knot[kind+i]=vb;
+                }
+                break;
+            }
+        }
+        BSpline_4D_surface.V_degree=qh;
+        BSpline_4D_surface.V_knot=Vh_knot;
+        BSpline_4D_surface.controlPoints=Qw_return;
+        //write("End of Decompose U function");
+}
+
+void DecomposeSurface_U_dir(BSplineSurfaceData BSpline_4D_surface,int t){
+    /*  Decompose surface into Bezier strips in v direction */
+    /*  Input: BSplineSurfaceData BSpline_4D_surface,q*/
+    /*
+        t is the degree elevate in v-direction
+    */
+        real[][][] control_points=copy(BSpline_4D_surface.controlPoints);
+        int p=BSpline_4D_surface.U_degree;
+        int m=control_points.length; //number of control points in v-direction
+        int n=control_points[0].length; //number of control points in u-direction
+        int ph=p+t;
+
+        real[] U_knot=BSpline_4D_surface.U_knot; // V direction knots
+
+        real[][][] bpts=new real[n][p+1][];
+        real[][][] Nextbpts=new real[n][p-1][];
+        real[][][] elevated_bpts=new real[n][p+t+1][];
+        real[][][] Qw_return=new real[n][][];
+        for(int j=0;j<n;++j){
+            Qw_return[j][0]=control_points[0][j];
+        }
+        int r=-1;
+        int oldr;
+        int a=p;
+        int b=p+1;
+        int kind=p+1;
+        int cind=1;
+        int old_cind=cind;
+
+        real ua=U_knot[0];
+        real ub;
+
+        real[] Uh_knot; // Used for storing elevated knots in V direction
+        for(int i=0; i <= p; ++i) {
+            Uh_knot[i]=ua;
+        }
+
+        int U_len=U_knot.length;
+        int oldb;
+        int multi;
+        real[] alphas=new real[p-1]; // interpolation ratios
+
+        while(b<U_len){
+            oldb=b;
+            while(b<U_len-1&&U_knot[b]==U_knot[b+1]){
+                ++b;
+            }
+            multi=b-oldb+1;
+            if(b==U_len-1&&U_knot[b]!=U_knot[b-1]){
+                multi=1;
+            }
+            ub=U_knot[b];
+            oldr=r;
+            r=p-multi;
+            real numerator=ub-ua;
+            for(int i=p;i>multi;--i){
+                real denominator=U_knot[a+i]-ua;
+                alphas[i-multi-1]=numerator/denominator;
+            }
+            for(int j=0;j<n;++j){
+                cind=old_cind;
+                for(int i=0;i<=p;++i){
+                    //initialize bpts for each col j
+                    bpts[j][i]=control_points[i][j];
+                }
+                if(r>0){
+                    for (int ind=1;ind<=r;++ind){
+                        int save=r-ind;
+                        int s=multi+ind;
+                        for (int k=p;k>=s;--k){
+                            real alpha=alphas[k-s];
+                            bpts[j][k] = alpha*copy(bpts[j][k])+(1.0-alpha)*copy(bpts[j][k-1]);
+                        }
+                        Nextbpts[j][save]=bpts[j][p];
+                    }
+                }
+                //End of knot insertion
+
+                //Bezier Degree elevation
+                elevated_bpts[j]=BezierMultiDegreeElevate(bpts[j],t);
+
+                for(int i=1;i<=ph;++i){
+                    Qw_return[j][cind]=elevated_bpts[j][i];
+                    ++cind;
+                }
+                if(b<m){
+                    //Set up for the next pass through loop
+                    for(int i=0;i<r;++i) {
+                        bpts[j][i]=Nextbpts[j][i];
+                    }
+                    for(int i=r;i<=p;++i) {
+                        bpts[j][i]=control_points[b-p+i][j];
+                    }
+                }
+            }
+            for(int j=1;j<=ph;++j){
+                ++old_cind;
+            }
+            if(a != p) {
+                // load the knot ua
+                for(int i=0;i<p;++i) {
+                    Uh_knot[kind]=U_knot[a];
+                    ++kind;
+                }
+            }
+            if(b<m){
+                a=b;
+                ++b;
+                ua=ub;
+            }
+            else{
+                //set end knot values
+                for(int i=0;i<=p;++i) {
+                    Uh_knot[kind+i]=ub;
                 }
                 break;
             }
         }
     // overwrite knot vector V
-    BSpline_4D_surface.V_degree=q;
-    BSpline_4D_surface.V_knot=Vh;
-    // create four dimension transpose for Qw_return
-    real[][][] Qw_tranpose = new real[Qw_return[0].length][Qw_return.length][4];
+    BSpline_4D_surface.U_degree=ph;
+    BSpline_4D_surface.U_knot=Uh_knot;
+    real[][][] Qw_tranpose = new real[Qw_return[0].length][Qw_return.length][];
     for(int i=0;i<Qw_return.length;++i){
         for(int j=0;j<Qw_return[i].length;++j){
             Qw_tranpose[j][i]=Qw_return[i][j];
@@ -775,6 +818,25 @@ void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int q){
     // overwrite control points
     BSpline_4D_surface.controlPoints=Qw_tranpose;
     //write("End of Decompose V function");
+}
+
+void DegreeReduce_V_dir(BSplineSurfaceData BSpline_4D_surface,int output_degree){
+      /*
+      Input:
+        BSpline_4D_surface is the surface data input for degree reduction
+        output_degree is the degree of the degree_reduced surface 
+    */
+    real[][][] BS_control_points=copy(BSpline_4D_surface.controlPoints);
+    real[] BS_V_knot=copy(BSpline_4D_surface.V_knot);
+    int q=BSpline_4D_surface.V_degree;
+    for(int i=0;i<BS_control_points.length;++i){
+        BSplineCurveData row_i_BSplineCurve=BSplineCurveData(BS_control_points[i],BS_V_knot);
+        for(int k=0;k<q-output_degree;++k){
+          row_i_BSplineCurve=DegreeReduceCurve(row_i_BSplineCurve);
+        }
+        BSpline_4D_surface.controlPoints[i]=row_i_BSplineCurve.controlPoints;
+    }
+    BSpline_4D_surface.V_degree=output_degree;
 }
 
 void DegreeReduce_U_dir(BSplineSurfaceData BSpline_4D_surface,int output_degree){
@@ -807,25 +869,6 @@ void DegreeReduce_U_dir(BSplineSurfaceData BSpline_4D_surface,int output_degree)
     BSpline_4D_surface.U_degree=output_degree;
     BSpline_4D_surface.controlPoints=reduced_BS_cp_tranpose;
     //BSpline_4D_surface.controlPoints=;
-}
-
-void DegreeReduce_V_dir(BSplineSurfaceData BSpline_4D_surface,int output_degree){
-      /*
-      Input:
-        BSpline_4D_surface is the surface data input for degree reduction
-        output_degree is the degree of the degree_reduced surface
-    */
-    real[][][] BS_control_points=copy(BSpline_4D_surface.controlPoints);
-    real[] BS_V_knot=copy(BSpline_4D_surface.V_knot);
-    int q=BSpline_4D_surface.V_degree;
-    for(int i=0;i<BS_control_points.length;++i){
-        BSplineCurveData row_i_BSplineCurve=BSplineCurveData(BS_control_points[i],BS_V_knot);
-        for(int k=0;k<q-output_degree;++k){
-          row_i_BSplineCurve=DegreeReduceCurve(row_i_BSplineCurve);
-        }
-        BSpline_4D_surface.controlPoints[i]=row_i_BSplineCurve.controlPoints;
-    }
-    BSpline_4D_surface.U_degree=output_degree;
 }
 
 struct NURBScurve{
@@ -911,15 +954,29 @@ struct NURBSsurface{
     NURBSsurfaceData data;
 
     void operator init(triple[][] control_points,real[] U_knot,real[] V_knot,real[][] weights) {
-        data = NURBSsurfaceData(control_points,U_knot,V_knot,weights);
-        BSplineSurfaceData BSpline_4D = conversion_3DNurbs_to_4DBSpline(data);
+        data=NURBSsurfaceData(control_points,U_knot,V_knot,weights);
+        BSplineSurfaceData BSpline_4D=conversion_3DNurbs_to_4DBSpline(data);
 
         int p=BSpline_4D.U_degree;
         int q=BSpline_4D.V_degree;
         int output_degree=3;
-
-        DecomposeSurface_U_dir(BSpline_4D,p);
-        DecomposeSurface_V_dir(BSpline_4D,q);
+        write(p);
+        write(q);
+        if(p<output_degree){
+          DecomposeSurface_U_dir(BSpline_4D,output_degree-p);
+        }
+        else{
+          DecomposeSurface_U_dir(BSpline_4D,p-output_degree);
+        }
+        if(q<output_degree){
+          DecomposeSurface_V_dir(BSpline_4D,output_degree-q);
+        }
+        else{
+          DecomposeSurface_V_dir(BSpline_4D,q-output_degree);
+        }
+        p=BSpline_4D.U_degree;
+        q=BSpline_4D.V_degree;
+        write("end of decompose");
         // need to code for degree reduction
         if(p>output_degree){
           DegreeReduce_U_dir(BSpline_4D,output_degree);
@@ -942,39 +999,38 @@ struct NURBSsurface{
         rational_rows=removeDuplicates(rational_rows);
         rational_cols=removeDuplicates(rational_cols);
         // convert the rational rows to non-rational Bezier curves
+        int n = RBezier_3D.controlPoints.length;
         for(int i=0;i<rational_rows.length;++i){
-            triple[] rational_row=copy(RBezier_3D.controlPoints[rational_rows[i]]);
-            int row_len=rational_row.length;
-            triple[] sample_points = new triple[row_len];
-            for(int j=0;j<row_len;++j) {
-              sample_points[j]=RBezier_curve_evaluation(j/(row_len-1),rational_row,RBezier_3D.weights[rational_rows[i]]);
-            }
-            //dot(copy(sample_points),yellow);
-            //real tolerance=NURBStolerance*norm(new triple[][] {rational_row});
-            real tolerance=sqrtEpsilon*norm(new triple[][] {rational_row});
-            RBezier_3D.controlPoints[rational_rows[i]] = conversion_RBezier_to_NRBezier(rational_row,rational_row,sample_points,tolerance);
+          triple[] rational_row=copy(RBezier_3D.controlPoints[rational_rows[i]]);
+          int row_len=rational_row.length;
+          triple[] sample_points = new triple[row_len];
+          for(int j=0;j<row_len;++j) {
+            sample_points[j]=RBezier_curve_evaluation(j/(row_len-1),rational_row,RBezier_3D.weights[rational_rows[i]]);
+          }
+          //dot(copy(sample_points),yellow);
+          //real tolerance=NURBStolerance*norm(new triple[][] {rational_row});
+          real tolerance=0.01*norm(new triple[][] {rational_row});
+          RBezier_3D.controlPoints[rational_rows[i]]=conversion_RBezier_to_NRBezier(rational_row,rational_row,sample_points,tolerance);
         }
         // convert the rational columns to non-rational Bezier curves
-        int n = RBezier_3D.controlPoints.length;
         for(int h=0;h<rational_cols.length;++h){
-            triple[] rational_col = new triple[n];
-            real[] col_weights = new real[n];
-            for(int i=0;i<n;++i){
-                rational_col[i]=RBezier_3D.controlPoints[i][rational_cols[h]];
-                col_weights[i]=RBezier_3D.weights[i][rational_cols[h]];
-            }
-            triple[] sample_points = new triple[n];
-            for(int k=0;k<n;++k) {
+          triple[] rational_col = new triple[n];
+          real[] col_weights = new real[n];
+          for(int i=0;i<n;++i){
+              rational_col[i]=RBezier_3D.controlPoints[i][rational_cols[h]];
+              col_weights[i]=RBezier_3D.weights[i][rational_cols[h]];
+          }
+          triple[] sample_points = new triple[n];
+          for(int k=0;k<n;++k) {
             sample_points[k]=RBezier_curve_evaluation(k/(n-1),rational_col,col_weights);
-            }
-            //dot(copy(sample_points),yellow);
-            real tolerance=NURBStolerance*norm(new triple[][] {rational_col});
-            triple[] non_rational_col = conversion_RBezier_to_NRBezier(rational_col,rational_col,sample_points,tolerance);
-            for(int i=0;i<n;++i){
-                RBezier_3D.controlPoints[i][rational_cols[h]]=non_rational_col[i];
-            }
-        }
-
+          }
+          //dot(copy(sample_points),yellow);
+          real tolerance=NURBStolerance*norm(new triple[][] {rational_col});
+          triple[] non_rational_col=conversion_RBezier_to_NRBezier(rational_col,rational_col,sample_points,tolerance);
+          for(int i=0;i<n;++i){
+            RBezier_3D.controlPoints[i][rational_cols[h]]=non_rational_col[i];
+          }
+        } 
         triple[][][][] Bezier_surfaces =
           new triple[ceilquotient(n,p+1)]
           [ceilquotient(RBezier_3D.controlPoints[0].length,q+1)][][];
@@ -982,23 +1038,25 @@ struct NURBSsurface{
         triple[][] row_trunc;
         triple[][] matrix_trunc;
         for(int i=0;i<ceilquotient(n,p+1);++i){
-            row_trunc=RBezier_3D.controlPoints[i*(p+1):(i+1)*(p+1)];
-            for(int j=0;j<ceilquotient(RBezier_3D.controlPoints[i].length,q+1);++j){
-                for(int k=0;k<row_trunc.length;++k){
-                    matrix_trunc[k]=row_trunc[k][j*(q+1):(j+1)*(q+1)];
-                }
-                Bezier_surfaces[i][j]=copy(matrix_trunc);
+          row_trunc=RBezier_3D.controlPoints[i*p:(i+1)*p+1];
+          for(int j=0;j<ceilquotient(RBezier_3D.controlPoints[i].length,q+1);++j){
+            for(int k=0;k<row_trunc.length;++k){
+                matrix_trunc[k]=row_trunc[k][j*q:(j+1)*q+1];
             }
+            Bezier_surfaces[i][j]=copy(matrix_trunc);
+            write((i,j));
+            write(Bezier_surfaces[i][j]);
+          }
         }
 
         for(int i=0;i<Bezier_surfaces.length;++i){
-            for(int j=0;j<Bezier_surfaces[i].length;++j){
-                g.push(surface(patch(Bezier_surfaces[i][j])));
-            }
+          for(int j=0;j<Bezier_surfaces[i].length;++j){
+            g.push(surface(patch(Bezier_surfaces[i][j])));
+          }
         }
     }
 
     void draw(picture pic=currentpicture,pen p=currentpen) {
-        draw(pic,g,p);
+      draw(pic,g,p);
     }
 }
