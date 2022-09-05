@@ -15,7 +15,7 @@ import nurbsToBezier;
 */
 
 size(10cm);
-currentprojection=perspective(5,4,2,autoadjust=false);
+currentprojection=perspective(5,4,2);
 
 // udegree=2, vdegree=3, nu=3, nv=4;
 
@@ -49,4 +49,4 @@ for(int k=0; k < N; ++k) {
   }
 }
 
-// draw(unitsphere,red+opacity(0.1));
+//draw(unitsphere,red+opacity(0.1));
