@@ -2188,7 +2188,7 @@ picture vectorfield(path vector(real), path g, int n, bool truesize=false,
 
 real maxlength(pair a, pair b, int nx, int ny)
 {
-  return min((b.x-a.x)/nx,(b.y-a.y)/ny);
+  return min((b.x-a.x)/(nx-1),(b.y-a.y)/(ny-1));
 }
 
 // return a vector field over box(a,b).
@@ -2199,29 +2199,33 @@ picture vectorfield(path vector(pair), pair a, pair b,
                     arrowbar arrow=Arrow, margin margin=PenMargin)
 {
   picture pic;
-  real dx=1/nx;
-  real dy=1/ny;
+  real dx=(b.x-a.x)/(nx-1);
+  real dy=(b.y-a.y)/(ny-1);
   bool all=cond == null;
   real scale;
 
   if(maxlength > 0) {
     real size(pair z) {
       path g=vector(z);
-      return abs(point(g,size(g)-1)-point(g,0));
+      pair w=point(g,size(g)-1)-point(g,0);
+      return max(w.x,w.y);
     }
     real max=size(a);
-    for(int i=0; i <= nx; ++i) {
-      real x=interp(a.x,b.x,i*dx);
-      for(int j=0; j <= ny; ++j)
-        max=max(max,size((x,interp(a.y,b.y,j*dy))));
+    for(int i=0; i < nx; ++i) {
+      real x=a.x+i*dx;
+      for(int j=0; j < ny; ++j) {
+        real y=a.y+j*dy;
+        max=max(max,size((x,y)));
+      }
     }
     scale=max > 0 ? maxlength/max : 1;
+    write(maxlength,max);
   } else scale=1;
 
-  for(int i=0; i <= nx; ++i) {
-    real x=interp(a.x,b.x,i*dx);
-    for(int j=0; j <= ny; ++j) {
-      real y=interp(a.y,b.y,j*dy);
+  for(int i=0; i < nx; ++i) {
+    real x=a.x+i*dx;
+    for(int j=0; j < ny; ++j) {
+      real y=a.y+j*dy;
       pair z=(x,y);
       if(all || cond(z)) {
         path g=scale(scale)*vector(z);
