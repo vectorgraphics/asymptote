@@ -16,22 +16,26 @@ int[] removeDuplicates(int[] array){
     }
 
     int[] temp;
-
+    bool no_rep=true;
     // Start traversing elements
     int j=0;
     // If current element is not equal to next element
     // then store that current element
-    for (int i=0;i<n-1;++i){
-        if (array[i]!=array[i+1]){
-            temp[j]=array[i];
-            ++j;
+    for (int i=0;i<n;++i){
+      for(int k=0;k<i;++k){
+        if (array[i]==array[k]){
+          no_rep=false;
         }
+      }
+      if(no_rep){
+        temp[j]=array[i];
+        ++j;
+      }
+      no_rep=true;
     }
 
     // Store the last element as whether it is unique or
     // repeated, it hasn't stored previously
-    temp[j]=array[n-1];
-    ++j;
     return copy(temp);
 }
 
@@ -960,8 +964,6 @@ struct NURBSsurface{
         int p=BSpline_4D.U_degree;
         int q=BSpline_4D.V_degree;
         int output_degree=3;
-        write(p);
-        write(q);
         if(p<output_degree){
           DecomposeSurface_U_dir(BSpline_4D,output_degree-p);
         }
@@ -976,7 +978,7 @@ struct NURBSsurface{
         }
         p=BSpline_4D.U_degree;
         q=BSpline_4D.V_degree;
-        write("end of decompose");
+        //write("end of decompose");
         // need to code for degree reduction
         if(p>output_degree){
           DegreeReduce_U_dir(BSpline_4D,output_degree);
@@ -998,6 +1000,7 @@ struct NURBSsurface{
         }
         rational_rows=removeDuplicates(rational_rows);
         rational_cols=removeDuplicates(rational_cols);
+
         // convert the rational rows to non-rational Bezier curves
         int n = RBezier_3D.controlPoints.length;
         for(int i=0;i<rational_rows.length;++i){
@@ -1044,8 +1047,6 @@ struct NURBSsurface{
                 matrix_trunc[k]=row_trunc[k][j*q:(j+1)*q+1];
             }
             Bezier_surfaces[i][j]=copy(matrix_trunc);
-            write((i,j));
-            write(Bezier_surfaces[i][j]);
           }
         }
 
