@@ -2186,15 +2186,9 @@ picture vectorfield(path vector(real), path g, int n, bool truesize=false,
   return pic;
 }
 
-real maxlength(pair a, pair b, int nx, int ny)
-{
-  return min((b.x-a.x)/(nx-1),(b.y-a.y)/(ny-1));
-}
-
 // return a vector field over box(a,b).
 picture vectorfield(path vector(pair), pair a, pair b,
                     int nx=nmesh, int ny=nx, bool truesize=false,
-                    real maxlength=truesize ? 0 : maxlength(a,b,nx,ny),
                     bool cond(pair z)=null, pen p=currentpen,
                     arrowbar arrow=Arrow, margin margin=PenMargin)
 {
@@ -2204,22 +2198,20 @@ picture vectorfield(path vector(pair), pair a, pair b,
   bool all=cond == null;
   real scale;
 
-  if(maxlength > 0) {
-    real size(pair z) {
-      path g=vector(z);
-      pair w=point(g,size(g)-1)-point(g,0);
-      return max(abs(w.x),abs(w.y));
+  pair size(pair z) {
+    path g=scale(dx,dy)*vector(z);
+    pair w=point(g,size(g)-1)-point(g,0);
+    return (abs(w.x),abs(w.y));
+  }
+  pair max=size(a);
+  for(int i=0; i < nx; ++i) {
+    real x=a.x+i*dx;
+    for(int j=0; j < ny; ++j) {
+      real y=a.y+j*dy;
+      max=maxbound(max,size((x,y)));
     }
-    real max=size(a);
-    for(int i=0; i < nx; ++i) {
-      real x=a.x+i*dx;
-      for(int j=0; j < ny; ++j) {
-        real y=a.y+j*dy;
-        max=max(max,size((x,y)));
-      }
-    }
-    scale=max > 0 ? maxlength/max : 1;
-  } else scale=1;
+  }
+  scale=min(dx/max.x,dy/max.y);
 
   for(int i=0; i < nx; ++i) {
     real x=a.x+i*dx;
@@ -2227,7 +2219,7 @@ picture vectorfield(path vector(pair), pair a, pair b,
       real y=a.y+j*dy;
       pair z=(x,y);
       if(all || cond(z)) {
-        path g=scale(scale)*vector(z);
+        path g=scale(scale)*scale(dx,dy)*vector(z);
         if(truesize)
           draw(z,pic,g,p,arrow);
         else
