@@ -2198,9 +2198,11 @@ picture vectorfield(path vector(pair), pair a, pair b,
   bool all=cond == null;
   real scale;
 
+  transform t=scale(dx,dy);
   pair size(pair z) {
-    path g=scale(dx,dy)*vector(z);
-    pair w=point(g,size(g)-1)-point(g,0);
+    path g=t*vector(z);
+    int n=size(g);
+    pair w=n == 1 ? point(g,0) : point(g,n-1)-point(g,0);
     return (abs(w.x),abs(w.y));
   }
   pair max=size(a);
@@ -2219,7 +2221,8 @@ picture vectorfield(path vector(pair), pair a, pair b,
       real y=a.y+j*dy;
       pair z=(x,y);
       if(all || cond(z)) {
-        path g=scale(scale)*scale(dx,dy)*vector(z);
+        path v=scale(scale)*t*vector(z);
+        path g=size(v) == 1 ? (0,0)--v : v;
         if(truesize)
           draw(z,pic,g,p,arrow);
         else
