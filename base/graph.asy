@@ -2219,7 +2219,6 @@ picture vectorfield(path vector(pair), pair a, pair b,
       }
     }
     scale=max > 0 ? maxlength/max : 1;
-    write(maxlength,max);
   } else scale=1;
 
   for(int i=0; i < nx; ++i) {
