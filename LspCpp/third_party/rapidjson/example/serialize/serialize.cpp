@@ -50,7 +50,7 @@ public:
     template <typename Writer>
     void Serialize(Writer& writer) const {
         writer.StartObject();
-        
+
         writer.String("school");
 #if RAPIDJSON_HAS_STDSTRING
         writer.String(school_);
@@ -104,7 +104,7 @@ private:
 };
 
 Dependent::~Dependent() {
-    delete education_; 
+    delete education_;
 }
 
 class Employee : public Person {

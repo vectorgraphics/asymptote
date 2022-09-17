@@ -2201,21 +2201,24 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
                     string name="", render render=defaultrender)
 {
   picture pic;
-  real du=1/nu;
-  real dv=1/nv;
+  real du=(b.x-a.x)/(nu-1);
+  real dv=(b.y-a.y)/(nv-1);
   bool all=cond == null;
   real scale;
 
   if(maxlength > 0) {
     real size(pair z) {
       path3 g=vector(z);
-      return abs(point(g,size(g)-1)-point(g,0));
+      triple w=point(g,size(g)-1)-point(g,0);
+      return max(w.x,w.y,w.z);
     }
-    real max=size((0,0));
+    real max=size(a);
     for(int i=0; i <= nu; ++i) {
-      real x=interp(a.x,b.x,i*du);
-      for(int j=0; j <= nv; ++j)
-        max=max(max,size((x,interp(a.y,b.y,j*dv))));
+      real u=a.x+i*du;
+      for(int j=0; j < nv; ++j) {
+        real v=a.y+j*dv;
+        max=max(max,size((u,v)));
+      }
     }
     scale=max > 0 ? maxlength/max : 1;
   } else scale=1;
@@ -2224,9 +2227,10 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
   if(group)
     begingroup3(pic,name == "" ? "vectorfield" : name,render);
   for(int i=0; i <= nu; ++i) {
-    real x=interp(a.x,b.x,i*du);
+    real u=a.x+i*du;
     for(int j=0; j <= nv; ++j) {
-      pair z=(x,interp(a.y,b.y,j*dv));
+      real v=a.y+j*dv;
+      pair z=(u,v);
       if(all || cond(z)) {
         path3 g=scale3(scale)*vector(z);
         string name="vector";

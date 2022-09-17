@@ -75,12 +75,12 @@ protected:
         kEnteringArray,
         kExitingArray
     };
-    
+
     Value v_;
     LookaheadParsingState st_;
     Reader r_;
     InsituStringStream ss_;
-    
+
     static const int parseFlags = kParseDefaultFlags | kParseInsituFlag;
 };
 
@@ -94,14 +94,14 @@ void LookaheadParserHandler::ParseNext() {
         st_ = kError;
         return;
     }
-    
+
     r_.IterativeParseNext<parseFlags>(ss_, *this);
 }
 
 class LookaheadParser : protected LookaheadParserHandler {
 public:
     LookaheadParser(char* str) : LookaheadParserHandler(str) {}
-    
+
     bool EnterObject();
     bool EnterArray();
     const char* NextObjectKey();
@@ -117,9 +117,9 @@ public:
     void SkipValue();
     Value* PeekValue();
     int PeekType(); // returns a rapidjson::Type, or -1 for no value (at end of object/array)
-    
+
     bool IsValid() { return st_ != kError; }
-    
+
 protected:
     void SkipOut(int depth);
 };
@@ -129,7 +129,7 @@ bool LookaheadParser::EnterObject() {
         st_  = kError;
         return false;
     }
-    
+
     ParseNext();
     return true;
 }
@@ -139,7 +139,7 @@ bool LookaheadParser::EnterArray() {
         st_  = kError;
         return false;
     }
-    
+
     ParseNext();
     return true;
 }
@@ -150,12 +150,12 @@ const char* LookaheadParser::NextObjectKey() {
         ParseNext();
         return result;
     }
-    
+
     if (st_ != kExitingObject) {
         st_ = kError;
         return 0;
     }
-    
+
     ParseNext();
     return 0;
 }
@@ -165,7 +165,7 @@ bool LookaheadParser::NextArrayValue() {
         ParseNext();
         return false;
     }
-    
+
     if (st_ == kError || st_ == kExitingObject || st_ == kHasKey) {
         st_ = kError;
         return false;
@@ -190,7 +190,7 @@ double LookaheadParser::GetDouble() {
         st_  = kError;
         return 0.;
     }
-    
+
     double result = v_.GetDouble();
     ParseNext();
     return result;
@@ -201,7 +201,7 @@ bool LookaheadParser::GetBool() {
         st_  = kError;
         return false;
     }
-    
+
     bool result = v_.GetBool();
     ParseNext();
     return result;
@@ -221,7 +221,7 @@ const char* LookaheadParser::GetString() {
         st_  = kError;
         return 0;
     }
-    
+
     const char* result = v_.GetString();
     ParseNext();
     return result;
@@ -260,7 +260,7 @@ Value* LookaheadParser::PeekValue() {
     if (st_ >= kHasNull && st_ <= kHasKey) {
         return &v_;
     }
-    
+
     return 0;
 }
 
@@ -268,11 +268,11 @@ int LookaheadParser::PeekType() {
     if (st_ >= kHasNull && st_ <= kHasKey) {
         return v_.GetType();
     }
-    
+
     if (st_ == kEnteringArray) {
         return kArrayType;
     }
-    
+
     if (st_ == kEnteringObject) {
         return kObjectType;
     }
@@ -292,7 +292,7 @@ int main() {
         "\"skipString\":\"zzz\", \"reachedEnd\":null, \"t\":true }";
 
     LookaheadParser r(json);
-    
+
     RAPIDJSON_ASSERT(r.PeekType() == kObjectType);
 
     r.EnterObject();
@@ -319,9 +319,9 @@ int main() {
         }
         else if (0 == strcmp(key, "a")) {
             RAPIDJSON_ASSERT(r.PeekType() == kArrayType);
-            
+
             r.EnterArray();
-            
+
             cout << key << ":[ ";
             while (r.NextArrayValue()) {
                 if (r.PeekType() == kNumberType) {
@@ -335,7 +335,7 @@ int main() {
                     break;
                 }
             }
-            
+
             cout << "]" << endl;
         }
         else {
@@ -343,7 +343,7 @@ int main() {
             r.SkipValue();
         }
     }
-    
+
     return 0;
 }
 

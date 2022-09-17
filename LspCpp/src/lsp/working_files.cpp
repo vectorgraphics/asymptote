@@ -139,7 +139,7 @@ bool WorkingFiles::OnClose(const lsTextDocumentIdentifier& close) {
   if( findIt != d_ptr->files.end())
   {
       d_ptr->files.erase(findIt);
-	  return true;
+          return true;
   }
   return false;
 }

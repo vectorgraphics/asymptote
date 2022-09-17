@@ -11,39 +11,39 @@
 
 
 namespace lsp {
-	struct tcp_connect_session;
+        struct tcp_connect_session;
 
 
-		class tcp_stream_wrapper :public istream, public ostream
-	    {
-	    public:
-		    tcp_stream_wrapper(tcp_connect_session& _w);
+                class tcp_stream_wrapper :public istream, public ostream
+            {
+            public:
+                    tcp_stream_wrapper(tcp_connect_session& _w);
 
-	        tcp_connect_session& session;
-	        std::atomic<bool> quit{};
-	        std::shared_ptr < MultiQueueWaiter> request_waiter;
-	        ThreadedQueue< char > on_request;
+                tcp_connect_session& session;
+                std::atomic<bool> quit{};
+                std::shared_ptr < MultiQueueWaiter> request_waiter;
+                ThreadedQueue< char > on_request;
             std::string error_message;
 
 
-	        bool fail() override
-	        {
-	            return  bad();
-	        }
+                bool fail() override
+                {
+                    return  bad();
+                }
 
 
 
-	        bool eof() override
-	        {
-	            return  bad();
-	        }
-	        bool good() override
-	        {
-	            return  !bad();
-	        }
-	        tcp_stream_wrapper& read(char* str, std::streamsize count)
+                bool eof() override
+                {
+                    return  bad();
+                }
+                bool good() override
+                {
+                    return  !bad();
+                }
+                tcp_stream_wrapper& read(char* str, std::streamsize count)
                   override
-	        {
+                {
                 auto some = on_request.TryDequeueSome(static_cast<size_t>( count ));
                 memcpy(str,some.data(),some.size());
                 for (std::streamsize i = some.size(); i < count; ++i)
@@ -51,41 +51,41 @@ namespace lsp {
                     str[i] = static_cast<char>(get());
                 }
 
-	            return *this;
-	        }
-	        int get() override
-	        {
-	            return on_request.Dequeue();
-	        }
+                    return *this;
+                }
+                int get() override
+                {
+                    return on_request.Dequeue();
+                }
 
-	        bool bad() override;
+                bool bad() override;
 
-	        tcp_stream_wrapper& write(const std::string& c) override;
+                tcp_stream_wrapper& write(const std::string& c) override;
 
-	        tcp_stream_wrapper& write(std::streamsize _s) override;
+                tcp_stream_wrapper& write(std::streamsize _s) override;
 
-	        tcp_stream_wrapper& flush() override
-	        {
-	            return *this;
-	        }
-	        void reset_state()
-	        {
-	            return;
-	        }
+                tcp_stream_wrapper& flush() override
+                {
+                    return *this;
+                }
+                void reset_state()
+                {
+                    return;
+                }
 
-		    void clear() override
-	        {
+                    void clear() override
+                {
 
-	        }
+                }
 
-		    std::string what() override;
-		    bool need_to_clear_the_state() override
-		    {
+                    std::string what() override;
+                    bool need_to_clear_the_state() override
+                    {
                 return false;
-		    }
-	    };
-	    struct tcp_connect_session:std::enable_shared_from_this<tcp_connect_session>
-	    {
+                    }
+            };
+            struct tcp_connect_session:std::enable_shared_from_this<tcp_connect_session>
+            {
             /// Buffer for incoming data.
             std::array<unsigned char, 8192> buffer_;
             boost::asio::ip::tcp::socket socket_;
@@ -93,7 +93,7 @@ namespace lsp {
             boost::asio::io_context::strand strand_;
             std::shared_ptr<tcp_stream_wrapper>  proxy_;
             explicit tcp_connect_session(boost::asio::io_context& io_context, boost::asio::ip::tcp::socket&& _socket)
-	            : socket_(std::move(_socket)), strand_(io_context), proxy_(new tcp_stream_wrapper(*this))
+                    : socket_(std::move(_socket)), strand_(io_context), proxy_(new tcp_stream_wrapper(*this))
             {
                 do_read();
             }
@@ -127,22 +127,22 @@ namespace lsp {
 
                 }));
             }
-	    };
+            };
 
-	tcp_stream_wrapper::tcp_stream_wrapper(tcp_connect_session& _w): session(_w)
-	{
-	}
+        tcp_stream_wrapper::tcp_stream_wrapper(tcp_connect_session& _w): session(_w)
+        {
+        }
 
-	bool tcp_stream_wrapper::bad()
+        bool tcp_stream_wrapper::bad()
     {
         return !session.socket_.is_open();
     }
 
-	tcp_stream_wrapper& tcp_stream_wrapper::write(const std::string& c)
-	{
-		session.do_write(c);
-		return *this;
-	}
+        tcp_stream_wrapper& tcp_stream_wrapper::write(const std::string& c)
+        {
+                session.do_write(c);
+                return *this;
+        }
 
     tcp_stream_wrapper& tcp_stream_wrapper::write(std::streamsize _s)
     {
@@ -150,8 +150,8 @@ namespace lsp {
         return *this;
     }
 
-	std::string tcp_stream_wrapper::what()
-	{
+        std::string tcp_stream_wrapper::what()
+        {
         if (error_message.size())
             return error_message;
 
@@ -159,21 +159,21 @@ namespace lsp {
        {
            return  "Socket is not open.";
        }
-		return {};
-	}
+                return {};
+        }
 
     struct TcpServer::Data
     {
         Data(
             lsp::Log& log, uint32_t _max_workers) :
-		    acceptor_(io_context_), _log(log)
-	    {
-	    }
+                    acceptor_(io_context_), _log(log)
+            {
+            }
 
-	    ~Data()
-	    {
+            ~Data()
+            {
 
-	    }
+            }
         /// The io_context used to perform asynchronous operations.
         boost::asio::io_context io_context_;
 
@@ -187,10 +187,10 @@ namespace lsp {
 
     };
 
-	    TcpServer::~TcpServer()
-	    {
+            TcpServer::~TcpServer()
+            {
             delete d_ptr;
-	    }
+            }
 
         TcpServer::TcpServer(const std::string& address, const std::string& port,
             std::shared_ptr < MessageJsonHandler> json_handler,
@@ -238,7 +238,7 @@ namespace lsp {
         {
             try
             {
-            	if(d_ptr->work)
+                if(d_ptr->work)
                     d_ptr->work.reset();
 
                 do_stop();
@@ -262,17 +262,17 @@ namespace lsp {
 
                     if (!ec)
                     {
-                    	if(d_ptr->_connect_session)
-                    	{
-                    		if(d_ptr->_connect_session->socket_.is_open())
-                    		{
+                        if(d_ptr->_connect_session)
+                        {
+                                if(d_ptr->_connect_session->socket_.is_open())
+                                {
                                 std::string desc = "Disconnect previous client " + d_ptr->_connect_session->socket_.local_endpoint().address().to_string();
                                 d_ptr->_log.log(lsp::Log::Level::INFO, desc);
                                 d_ptr->_connect_session->socket_.close();
-                    		}
+                                }
 
-                            point.Stop();
-                    	}
+                            point.stop();
+                        }
                         auto local_point = socket.local_endpoint();
 
                         std::string desc = ("New client " + local_point.address().to_string() + " connect.");
@@ -289,7 +289,7 @@ namespace lsp {
         {
             d_ptr->acceptor_.close();
 
-           point.Stop();
+            point.stop();
 
         }
 

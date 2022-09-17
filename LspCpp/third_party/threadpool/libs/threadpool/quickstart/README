@@ -1,7 +1,0 @@
-Supposing the boost directory is in /usr/local/lib, it is also worth to mention that they need to 
-set LD_LIBRARY_PATH as follows: 
-export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):/usr/local/lib
-
-Please adapt threadpool.makefile to your system.
-
-Special thanks to Rudy Prabowo who contributed this example to help linux users.

@@ -684,9 +684,9 @@ TEST(builder_test, clear_query_test) {
 }
 
 TEST(uri_test, clear_query_params_with_no_query) {
-	network::uri original("http://example.com/path");
-	network::uri_builder builder(original);
-	builder.clear_query();
+        network::uri original("http://example.com/path");
+        network::uri_builder builder(original);
+        builder.clear_query();
 }
 
 TEST(builder_test, clear_fragment_test) {

@@ -17,7 +17,7 @@ void traverse(const Value& v, const Pointer& p) {
             traverse(v[i], p.Append(i));
         break;
     case kObjectType:
-        for (Value::ConstMemberIterator m = v.MemberBegin(); m != v.MemberEnd(); ++m) 
+        for (Value::ConstMemberIterator m = v.MemberBegin(); m != v.MemberEnd(); ++m)
             traverse(m->value, p.Append(m->name.GetString(), m->name.GetStringLength()));
         break;
     default:

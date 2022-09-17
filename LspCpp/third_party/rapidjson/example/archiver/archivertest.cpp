@@ -55,7 +55,7 @@ void test1() {
 
 //////////////////////////////////////////////////////////////////////////////
 // Test2: std::vector <=> JSON array
-// 
+//
 // You can map a JSON array to other data structures as well
 
 struct Group {
@@ -67,7 +67,7 @@ struct Group {
 template <typename Archiver>
 Archiver& operator&(Archiver& ar, Group& g) {
     ar.StartObject();
-    
+
     ar.Member("groupName");
     ar & g.groupName;
 
@@ -203,14 +203,14 @@ class Canvas {
 public:
     Canvas() : shapes_() {}
     ~Canvas() { Clear(); }
-    
+
     void Clear() {
         for (std::vector<Shape*>::iterator itr = shapes_.begin(); itr != shapes_.end(); ++itr)
             delete *itr;
     }
 
     void AddShape(Shape* shape) { shapes_.push_back(shape); }
-    
+
     void Print(std::ostream& os) {
         for (std::vector<Shape*>::iterator itr = shapes_.begin(); itr != shapes_.end(); ++itr) {
             (*itr)->Print(os);

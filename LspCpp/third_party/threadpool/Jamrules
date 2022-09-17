@@ -1,1 +1,0 @@
-project boost : $(BOOST_ROOT) ;

@@ -2,7 +2,7 @@
 echo  '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE language SYSTEM "language.dtd">
 <!-- based on asy-keywords.el and Highlighting file asymptote.xml by Christoph Hormann-->
-<language version="1.0" kateversion="3.2.2" name="asymptote" section="Sources" extensions="*.asy" mimetype="text/x-asymptote" licence="LGPL" author="Carsten Brenner">
+<language version="1.0" kateversion="3.2.2" name="Asymptote" section="Sources" extensions="*.asy" mimetype="text/x-asymptote" licence="LGPL" author="Carsten Brenner">
 
 <highlighting>
 ' > asymptote.xml
@@ -122,7 +122,7 @@ echo '
 			<itemData name="Decimal"      defStyleNum="dsDecVal"/>
 			<itemData name="Extensions"   defStyleNum="dsKeyword" color="#0095ff" selColor="#ffffff" bold="1" italic="0"/>
 			<itemData name="Float"        defStyleNum="dsFloat"/>
-			<itemData name="Function"     defStyleNum="dsFunction" />			
+			<itemData name="Function"     defStyleNum="dsFunction" />
 			<itemData name="Hex"          defStyleNum="dsBaseN"/>
 			<itemData name="Keyword"      defStyleNum="dsKeyword"/>
 			<itemData name="Normal Text"  defStyleNum="dsNormal"/>

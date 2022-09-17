@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
+//
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #include "unittest.h"
@@ -259,7 +259,7 @@ static const unsigned char utf8d[] = {
     12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
     12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
     12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
-    12,36,12,12,12,12,12,12,12,12,12,12, 
+    12,36,12,12,12,12,12,12,12,12,12,12,
 };
 
 static unsigned inline decode(unsigned* state, unsigned* codep, unsigned byte) {
@@ -377,7 +377,7 @@ TEST(EncodingsTest, UTF16) {
                 unsigned decodedCodepoint;
                 bool result = UTF16<>::Decode(is, &decodedCodepoint);
                 EXPECT_TRUE(result);
-                EXPECT_EQ(codepoint, decodedCodepoint);         
+                EXPECT_EQ(codepoint, decodedCodepoint);
                 if (!result || codepoint != decodedCodepoint)
                     std::cout << std::hex << codepoint << " " << decodedCodepoint << std::endl;
             }
@@ -408,7 +408,7 @@ TEST(EncodingsTest, UTF32) {
                 unsigned decodedCodepoint;
                 bool result = UTF32<>::Decode(is, &decodedCodepoint);
                 EXPECT_TRUE(result);
-                EXPECT_EQ(codepoint, decodedCodepoint);         
+                EXPECT_EQ(codepoint, decodedCodepoint);
                 if (!result || codepoint != decodedCodepoint)
                     std::cout << std::hex << codepoint << " " << decodedCodepoint << std::endl;
             }
