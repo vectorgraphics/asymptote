@@ -28,7 +28,7 @@ class AnotherWindow(Qw.QWidget):
         self.parent = parent
         self.newShape = self.shape
         self.layout = Qw.QVBoxLayout(self)
-        
+
         # Initialize tab screen
         self.tabs = Qw.QTabWidget()
         self.fillTab = Qw.QWidget()
@@ -100,7 +100,7 @@ class AnotherWindow(Qw.QWidget):
         self.linestyleButton = Qw.QComboBox()
         self.lineListStrings = ["","dashed","dotted","dashdotted"] #Is there a way to pull these directly
         self.lineList = [Qc.Qt.PenStyle.SolidLine,Qc.Qt.PenStyle.DashLine,Qc.Qt.PenStyle.DotLine,Qc.Qt.PenStyle.DashDotLine]
-        
+
         for lineMode in self.lineListStrings:
             self.linestyleButton.addItem(lineMode)
         self.linestyleButton.currentIndexChanged.connect(self.linestyleChange)
@@ -119,7 +119,7 @@ class AnotherWindow(Qw.QWidget):
         self.lineTab.layout.addWidget(self.lineCapStyleButton)
         self.lineCapStyleButton.setCurrentIndex(self.lineCapList.index(self.shape.pen.capStyle))
 
-        #TODO: Make this a function. 
+        #TODO: Make this a function.
         if not isinstance(self.shape, x2a.xasyShape):
             self.fillButton.setCurrentIndex(int(self.shape.arrowSettings["fill"]))
             if isinstance(self.shape, x2a.asyArrow):
@@ -169,12 +169,12 @@ class AnotherWindow(Qw.QWidget):
         self.confirmButton = Qw.QPushButton("Render")
         self.confirmButton.clicked.connect(self.renderChanges)
         self.layout.addWidget(self.confirmButton)
-        
+
     def arrowheadChange(self, i):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):
             if i != 0:
-                if self.newShape:
+                if self.newShape == x2a.asyArrow:
                     self.newShape = self.newShape.arrowify(arrowhead=i)
                 else:
                     self.newShape = self.shape.arrowify(arrowhead=i)
@@ -207,19 +207,19 @@ class AnotherWindow(Qw.QWidget):
 
     def sizeChange(self):
         try:
-            newSize = self.arrowSizeBox.text() 
+            newSize = self.arrowSizeBox.text()
             self.newShape.arrowSettings["size"] = float(newSize)
         except:
             return #TODO: Show error message.
 
-    def angleChange(self): #Refactor this with the above. 
+    def angleChange(self): #Refactor this with the above.
         try:
             newAngle = self.arrowAngleBox.text()
             self.newShape.arrowSettings["angle"] = float(newAngle)
         except:
             return #TODO: Show error message.
-            
-    def arrowFillChange(self, i): #Can I lambda this? 
+
+    def arrowFillChange(self, i): #Can I lambda this?
         self.newShape.arrowSettings["fill"] = i
 
     def opacityChange(self):
@@ -231,7 +231,7 @@ class AnotherWindow(Qw.QWidget):
                 self.newShape.pen.setOpacity(newOpacity)
         except:
             pass
-        
+
     def renderChanges(self): #Pull from text boxes here.
         self.opacityChange()
         if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]:
@@ -241,7 +241,7 @@ class AnotherWindow(Qw.QWidget):
             self.renderLineStyle()
         if self.newShape:
             self.parent.replaceObject(self.parent.contextWindowObject,self.newShape)
-        self.parent.terminateContextWindow()        
+        self.parent.terminateContextWindow()
 
     def getInfo(self,value):
         """ Find out the size of an arbitrary Asymptote pen """
@@ -256,7 +256,7 @@ class AnotherWindow(Qw.QWidget):
         fout.write(self.asyEngine.xasy)
         fout.flush()
 
-        return fin.readline()       
+        return fin.readline()
 
     def getPattern(self,pattern,path):
         """ Find out the adjusted pattern of an Asymptote pen """
@@ -283,7 +283,7 @@ class AnotherWindow(Qw.QWidget):
         else:
             #self.newShape.updateCode() #idk if this is necessary.
             rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.code)
-        
+
         #print(rawPattern)
         pattern = []
         for value in rawPattern[2:-3].split(' '):
