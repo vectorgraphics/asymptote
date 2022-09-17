@@ -103,13 +103,25 @@ def xasyToDict(file, xasyItems, asy2psmap):
                     })
 
         elif isinstance(item, xasy2asy.xasyShape):
-            penData = {'color': item.pen.color, 'width': item.pen.width, 'options': item.pen.options}
+            penData = {'color': item.pen.color, 'width': item.pen.width, 'dashPattern': item.pen.dashPattern, 'options': item.pen.options}
             fileItems.append({'type': 'xasyShape',
                     'nodes': item.path.nodeSet,
                     'links': item.path.linkSet,
+                    'fill': item.path.fill,
                     'transform': item.transfKeymap[item.transfKey][0].t,
                     'transfKey': item.transfKey,
                     'pen': penData
+                    })
+
+        elif isinstance(item, xasy2asy.asyArrow): #Will this ever even be reached?
+            penData = {'color': item.pen.color, 'width': item.pen.width, 'dashPattern': item.pen.dashPattern, 'options': item.pen.options}
+            fileItems.append({'type': 'asyArrow',
+                    'pen': penData,
+                    'arrowSettings': item.arrowSettings,
+                    'transform': item.transfKeymap[item.transfKey][0].t,
+                    'transfKey': item.transfKey,
+                    'settings': item.arrowSettings,
+                    'code': item.code
                     })
 
         else:
