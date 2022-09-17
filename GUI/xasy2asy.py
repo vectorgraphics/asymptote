@@ -419,7 +419,7 @@ class asyPen(asyObj):
         self.style = QtCore.Qt.PenStyle.SolidLine #Probably deprecated?
         self.capStyle = QtCore.Qt.PenCapStyle.SquareCap
         self.opacity = 255 #Should these be in a dictionary?
-        self.dashPattern = None #???
+        self.dashPattern = [1,0]
         self._asyengine = asyengine
         self._deferAsyfy = False
         if pen_options:
@@ -437,7 +437,7 @@ class asyPen(asyObj):
 
     def qtStyleToAsyStyle(self, style):
         lineList = [QtCore.Qt.PenStyle.SolidLine,QtCore.Qt.PenStyle.DashLine,QtCore.Qt.PenStyle.DotLine,QtCore.Qt.PenStyle.DashDotLine]
-        asyList = ["","dashed","dotted","dashdotted"]
+        asyList = ["solid","dashed","dotted","dashdotted"]
         if style in lineList:
             return asyList[lineList.index(style)]
         else:

@@ -57,19 +57,19 @@ class AnotherWindow(Qw.QWidget):
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         self.fillTab.layout.addWidget(self.fillButton)
 
-        if isinstance(self.shape, x2a.asyArrow):
-            self.colorButton = Qw.QPushButton("Set Line Colour")
-            self.colorButton.clicked.connect(self.pickColor)
-            self.fillTab.layout.addWidget(self.colorButton)
+#        if isinstance(self.shape, x2a.asyArrow):
+#            self.colorButton = Qw.QPushButton("Set Line Colour")
+#            self.colorButton.clicked.connect(self.pickColor)
+#            self.fillTab.layout.addWidget(self.colorButton)
 
-            self.colorButton = Qw.QPushButton("Set Fill Colour")
-            self.colorButton.clicked.connect(self.pickFillColor)
-            self.fillTab.layout.addWidget(self.colorButton)
+#            self.colorButton = Qw.QPushButton("Set Fill Colour")
+#            self.colorButton.clicked.connect(self.pickFillColor)
+#            self.fillTab.layout.addWidget(self.colorButton)
 
-        elif isinstance(self.shape, x2a.xasyShape):
-            self.colorButton = Qw.QPushButton("Set Colour")
-            self.colorButton.clicked.connect(self.pickColor)
-            self.fillTab.layout.addWidget(self.colorButton)
+#        elif isinstance(self.shape, x2a.xasyShape):
+#            self.colorButton = Qw.QPushButton("Set Colour")
+#            self.colorButton.clicked.connect(self.pickColor)
+#            self.fillTab.layout.addWidget(self.colorButton)
 
         self.label = Qw.QLabel("Reflection:")
         self.othersTab.layout.addWidget(self.label)
@@ -98,7 +98,7 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Line Style:")
         self.lineTab.layout.addWidget(self.label)
         self.linestyleButton = Qw.QComboBox()
-        self.lineListStrings = ["","dashed","dotted","dashdotted"] #Is there a way to pull these directly
+        self.lineListStrings = ["solid","dashed","dotted","dashdotted"]
         self.lineList = [Qc.Qt.PenStyle.SolidLine,Qc.Qt.PenStyle.DashLine,Qc.Qt.PenStyle.DotLine,Qc.Qt.PenStyle.DashDotLine]
 
         for lineMode in self.lineListStrings:
@@ -194,7 +194,8 @@ class AnotherWindow(Qw.QWidget):
         if isinstance(self.shape, x2a.asyArrow):
             self.shape.arrowSettings["fill"] = bool(i)
         elif (self.shape.path.fill != bool(i)) and not isinstance(self.newShape, x2a.asyArrow):
-            self.newShape = self.newShape.swapFill()
+            if self.newShape:
+                self.newShape = self.newShape.swapFill()
         if isinstance(self.newShape, x2a.asyArrow):
             self.newShape.arrowSettings["fill"] = bool(i)
 
@@ -237,7 +238,7 @@ class AnotherWindow(Qw.QWidget):
         if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]:
             self.sizeChange()
             self.angleChange()
-        elif (not isinstance(self.shape, x2a.asyArrow)) and (self.linestyleButton.currentIndex() > 0):
+        elif (not isinstance(self.shape, x2a.asyArrow)):
             self.renderLineStyle()
         if self.newShape:
             self.parent.replaceObject(self.parent.contextWindowObject,self.newShape)
@@ -277,17 +278,20 @@ class AnotherWindow(Qw.QWidget):
 
     def renderLineStyle(self):
         #Should only get called with asy shapes
-
+        if not self.newShape:
+            self.newShape=self.shape
         if not isinstance(self.newShape,x2a.asyArrow):
             rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
         else:
             #self.newShape.updateCode() #idk if this is necessary.
             rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.code)
 
-        #print(rawPattern)
         pattern = []
-        for value in rawPattern[2:-3].split(' '):
-            pattern.append(float(value)+1)
+        if len(rawPattern) == 5:
+            pattern=[1,0]
+        else:
+            for value in rawPattern[2:-3].split(' '):
+                pattern.append(float(value)+1)
 
         try:
             self.newShape.pen.setDashPattern(pattern) #pen is going to be a asyPen, add as an attribute
