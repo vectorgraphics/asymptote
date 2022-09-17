@@ -98,10 +98,9 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Line Style:")
         self.lineTab.layout.addWidget(self.label)
         self.linestyleButton = Qw.QComboBox()
-        self.lineListStrings = ["solid","dashed","dotted","dashdotted"]
-        self.lineList = [Qc.Qt.PenStyle.SolidLine,Qc.Qt.PenStyle.DashLine,Qc.Qt.PenStyle.DotLine,Qc.Qt.PenStyle.DashDotLine]
+        self.lineList = ["solid","dashed","dotted","dashdotted"]
 
-        for lineMode in self.lineListStrings:
+        for lineMode in self.lineList:
             self.linestyleButton.addItem(lineMode)
         self.linestyleButton.currentIndexChanged.connect(self.linestyleChange)
         self.lineTab.layout.addWidget(self.linestyleButton)
@@ -281,10 +280,10 @@ class AnotherWindow(Qw.QWidget):
         if not self.newShape:
             self.newShape=self.shape
         if not isinstance(self.newShape,x2a.asyArrow):
-            rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
+            rawPattern = self.getPattern(self.lineList[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
         else:
             #self.newShape.updateCode() #idk if this is necessary.
-            rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.code)
+            rawPattern = self.getPattern(self.lineList[self.linestyleButton.currentIndex()],self.newShape.code)
 
         pattern = []
         if len(rawPattern) == 5:
