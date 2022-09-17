@@ -287,7 +287,7 @@ class AnotherWindow(Qw.QWidget):
         #print(rawPattern)
         pattern = []
         for value in rawPattern[2:-3].split(' '):
-            pattern.append(float(value))
+            pattern.append(float(value)+1)
 
         try:
             self.newShape.pen.setDashPattern(pattern) #pen is going to be a asyPen, add as an attribute
