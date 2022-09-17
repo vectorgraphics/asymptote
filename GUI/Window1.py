@@ -1015,6 +1015,8 @@ class MainWindow1(Qw.QMainWindow):
                 ext = 'asy'
             else:
                 ext = ext[1][1:]
+            if ext == '':
+                ext='asy'
             if ext == 'asy':
                 pathToFile = os.path.splitext(file)[0]+'.'+ext
                 asyFile = io.open(os.path.realpath(pathToFile), 'w')
@@ -1098,7 +1100,7 @@ class MainWindow1(Qw.QMainWindow):
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'], fill = item['fill'])
 
-            elif item['type'] == 'asyArrow':    
+            elif item['type'] == 'asyArrow':
                 self.addXasyArrowFromPath(item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'], item['code'])
                 #self.addXasyArrowFromPath(item['oldpath'], item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'])
 
@@ -2460,7 +2462,7 @@ class MainWindow1(Qw.QMainWindow):
             self.contextWindowObject = self.fileItems[maj] #For arrowifying
             self.contextWindow = ContextWindow.AnotherWindow(self.fileItems[maj],self)
             self.contextWindow.setMinimumWidth(420)
-            #self.setCentralWidget(self.contextWindow) #I don't know what this does tbh. 
+            #self.setCentralWidget(self.contextWindow) #I don't know what this does tbh.
             self.contextWindow.show()
 
     def focusInEvent(self,event):
@@ -2490,7 +2492,7 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.remove(selectedObj.parent())
 
         self.fileItems.append(newObject)
-        self.drawObjects.append(newObject.generateDrawObjects(True)) #THIS DOES WORK, IT'S JUST REGENERATING THE SHAPE. 
+        self.drawObjects.append(newObject.generateDrawObjects(True)) #THIS DOES WORK, IT'S JUST REGENERATING THE SHAPE.
 
         self.checkUndoRedoButtons()
         self.fileChanged = True
