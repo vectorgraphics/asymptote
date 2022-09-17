@@ -57,19 +57,19 @@ class AnotherWindow(Qw.QWidget):
         self.fillButton.currentIndexChanged.connect(self.fillChange)
         self.fillTab.layout.addWidget(self.fillButton)
 
-#        if isinstance(self.shape, x2a.asyArrow):
-#            self.colorButton = Qw.QPushButton("Set Line Colour")
-#            self.colorButton.clicked.connect(self.pickColor)
-#            self.fillTab.layout.addWidget(self.colorButton)
+        if isinstance(self.shape, x2a.asyArrow):
+            self.colorButton = Qw.QPushButton("Set Line Colour")
+            self.colorButton.clicked.connect(self.pickColor)
+            self.fillTab.layout.addWidget(self.colorButton)
 
-#            self.colorButton = Qw.QPushButton("Set Fill Colour")
-#            self.colorButton.clicked.connect(self.pickFillColor)
-#            self.fillTab.layout.addWidget(self.colorButton)
+            self.colorButton = Qw.QPushButton("Set Fill Colour")
+            self.colorButton.clicked.connect(self.pickFillColor)
+            self.fillTab.layout.addWidget(self.colorButton)
 
-#        elif isinstance(self.shape, x2a.xasyShape):
-#            self.colorButton = Qw.QPushButton("Set Colour")
-#            self.colorButton.clicked.connect(self.pickColor)
-#            self.fillTab.layout.addWidget(self.colorButton)
+        elif isinstance(self.shape, x2a.xasyShape):
+            self.colorButton = Qw.QPushButton("Set Colour")
+            self.colorButton.clicked.connect(self.pickColor)
+            self.fillTab.layout.addWidget(self.colorButton)
 
         self.label = Qw.QLabel("Reflection:")
         self.othersTab.layout.addWidget(self.label)
@@ -302,7 +302,7 @@ class AnotherWindow(Qw.QWidget):
         self.colorDialog.show()
         result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
-            self.shape.pen.setColor(self.colorDialog.selectedColor())
+            self.shape.pen.setColorFromQColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
 
     def pickFillColor(self): #This is a copy of the above, how do you set the var as it is set?
@@ -310,7 +310,7 @@ class AnotherWindow(Qw.QWidget):
         self.colorDialog.show()
         result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
-            self.shape.fillPen.setColor(self.colorDialog.selectedColor())
+            self.shape.fillPen.setColorFromQColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
 
     @Qc.pyqtSlot()
