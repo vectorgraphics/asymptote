@@ -635,7 +635,11 @@ bool picture::texprocess(const string& texname, const string& outname,
 
 int picture::epstopdf(const string& epsname, const string& pdfname)
 {
-  string compress=getSetting<bool>("compress") ? "true" : "false";
+  string outputformat=getSetting<string>("outformat");
+  bool pdf=settings::pdf(getSetting<string>("tex"));
+  bool pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
+  string compress=getSetting<bool>("compress") && pdfformat ?
+    "true" : "false";
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
