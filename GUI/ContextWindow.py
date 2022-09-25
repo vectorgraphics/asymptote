@@ -173,8 +173,8 @@ class AnotherWindow(Qw.QWidget):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):
             if i != 0:
-                if self.newShape == x2a.asyArrow:
-                    self.newShape = self.newShape.arrowify(arrowhead=i)
+                if isinstance(self.newShape,x2a.asyArrow):
+                    self.newShape.arrowSettings["active"] = i
                 else:
                     self.newShape = self.shape.arrowify(arrowhead=i)
         else:
