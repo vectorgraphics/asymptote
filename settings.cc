@@ -101,7 +101,7 @@ string defaultPSViewer="open";
 string defaultPDFViewer="open";
 string defaultHTMLViewer="open";
 #else
-string defaultPSViewer="gv";
+string defaultPSViewer="evince";
 string defaultPDFViewer="acroread";
 string defaultHTMLViewer="google-chrome";
 #endif
@@ -118,14 +118,12 @@ bool msdos=true;
 string HOME="USERPROFILE";
 string docdir="c:\\Program Files\\Asymptote";
 const char pathSeparator=';';
-//string defaultPSViewer="gsview32.exe";
 string defaultPSViewer="cmd";
 //string defaultPDFViewer="AcroRd32.exe";
 string defaultPDFViewer="cmd";
 string defaultHTMLViewer="cmd";
 string defaultGhostscript;
 string defaultGhostscriptLibrary;
-//string defaultDisplay="imdisplay";
 string defaultDisplay="cmd";
 //string defaultAnimate="animate";
 string defaultAnimate="cmd";
@@ -203,8 +201,6 @@ void queryRegistry()
   if(defaultPDFViewer != "cmd")
     defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
       defaultPDFViewer;
-  if(defaultPSViewer != "cmd")
-    defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
   string s;
   s=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
   if(!s.empty()) docdir=s;
