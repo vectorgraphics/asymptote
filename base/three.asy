@@ -2907,11 +2907,6 @@ object embed(string prefix=outprefix(), string label=prefix,
   if((preview || (prc && settings.render == 0)) && settings.embed) {
     image=prefix;
     if(settings.inlinetex) image += "_0";
-    if(!preview && !S.pic2.empty2()) {
-      transform T=S.pic2.scaling(S.width,S.height);
-      _shipout(image,S.pic2.fit(T),newframe,nativeformat(),false,false);
-    }
-
     image += "."+nativeformat();
     if(!settings.inlinetex) file3.push(image);
     image=graphic(image,"hiresbb");
