@@ -335,6 +335,8 @@ struct simplex {
 
       for(int k=0; k < m; ++k)
         x[Bindices[k]-1]=D[k][0];
+
+      xStandard=copy(x);
     }
 
     if(case == UNBOUNDED) {
@@ -414,10 +416,7 @@ struct simplex {
     simplexInit(C,a,b,count);
     operator init(C,a,b,phase1);
 
-    if(case != INFEASIBLE) {
-      xStandard=copy(x);
-      if(count > 0)
-        x.delete(n,n+count-1);
-    }
+    if(case != INFEASIBLE && count > 0)
+      x.delete(n,n+count-1);
   }
 }
