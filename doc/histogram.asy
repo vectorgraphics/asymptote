@@ -12,8 +12,7 @@ draw(graph(Gaussian,min(a),max(a)),blue);
 // Optionally calculate "optimal" number of bins a la Shimazaki and Shinomoto.
 int N=bins(a);
 
-histogram(a,min(a),max(a),N,normalize=true,low=0,lightred,black,bars=false);
+histogram(a,min(a),max(a),N,normalize=true,low=0,lightred,black,bars=true);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$dP/dx$",LeftRight,RightTicks(trailingzero));
-
