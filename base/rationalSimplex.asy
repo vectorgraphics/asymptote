@@ -1,6 +1,8 @@
 // Rational simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 import rational;
 
+bool optimizeTableau=true;
+
 void simplexInit(rational[] c, rational[][] A, int[] s=new int[],
                  rational[] b, int count) {}
 void simplexTableau(rational[][] E, int[] Bindices, int I=-1, int J=-1) {}
@@ -223,8 +225,9 @@ struct simplex {
       }
 
       int checkTableau() {
-        for(int j=1; j <= n; ++j)
-          if(checkBasis(j)) return j;
+        if(optimizeTableau)
+          for(int j=1; j <= n; ++j)
+            if(checkBasis(j)) return j;
         return 0;
       }
 
