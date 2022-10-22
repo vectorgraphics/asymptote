@@ -114,7 +114,14 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_MAKE_SET
-AC_PROG_YACC
+
+AC_ARG_VAR([BISON], [bison command])
+AC_CHECK_PROG([BISON], [bison -y], [yes], [no])
+AS_IF([test "x$BISON" = "xno"], [AC_MSG_ERROR([bison not found])])
+
+AC_ARG_VAR([FLEX], [flex command])
+AC_CHECK_PROG([FLEX], [flex -y], [yes], [no])
+AS_IF([test "x$FLEX" = "xno"], [AC_MSG_ERROR([flex not found])])
 
 if test "$GXX" = yes ; then
    ac_gcc_version=`echo __GNUC__ | $CC -E - | grep -v ^\#`
@@ -169,7 +176,7 @@ enable system Boehm garbage collector)]
                         fi
                         ])
 
-OPTIONS="-D_FILE_OFFSET_BITS=64 "
+OPTIONS="-D_FILE_OFFSET_BIS=64 "
 GCLIB=
 GCPPLIB=
 INCL="-I."
@@ -259,8 +266,8 @@ AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 
 # Checks for libraries.
-AC_SEARCH_LIBS([lgamma],[m c],,
-AC_MSG_ERROR([*** Please install libm on your system ***]))
+#AC_SEARCH_LIBS([lgamma],[m c],,
+#AC_MSG_ERROR([*** Please install libm on your system ***]))
 AC_CHECK_LIB([z], [deflate],,
 AC_MSG_ERROR([*** Please install libz or zlib-devel on your system ***]))
 
