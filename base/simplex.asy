@@ -42,7 +42,7 @@ struct simplex {
     }
   }
 
-  int iterate(real[][] E, int N, int[] Bindices) {
+  int iterate(real[][] E, int N, int[] Bindices, bool phase1=false) {
     while(true) {
       // Bland's rule: first negative entry in reduced cost (bottom) row enters
       real[] Em=E[m];
@@ -77,11 +77,13 @@ struct simplex {
       // Generate new tableau
       Bindices[I]=J;
       rowreduce(E,N,I,J);
+
+      if(phase1 && abs(Em[0]) <= EpsilonA) break;
     }
     return OPTIMAL;
   }
 
-  int iterateDual(real[][] E, int N, int[] Bindices) {
+  int iterateDual(real[][] E, int N, int[] Bindices, bool phase1=false) {
     while(true) {
       // Bland's rule: negative variable with smallest subscript exits
       int I;
@@ -218,7 +220,8 @@ struct simplex {
       }
 
       basicValues();
-      iterate(E,n+k,Bindices);
+
+      iterate(E,n+k,Bindices,true);
 
       if(abs(Em[0]) > EpsilonA) {
       case=INFEASIBLE;
