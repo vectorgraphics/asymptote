@@ -102,7 +102,7 @@ string defaultPDFViewer="open";
 string defaultHTMLViewer="open";
 #else
 string defaultPSViewer="evince";
-string defaultPDFViewer="acroread";
+string defaultPDFViewer="evince";
 string defaultHTMLViewer="google-chrome";
 #endif
 string defaultGhostscript="gs";
