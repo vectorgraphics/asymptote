@@ -209,7 +209,7 @@ man:	asy sty
 faq:	asy sty
 	cd doc && $(MAKE) faq
 
-$(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
+$(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in revision.cc
 	$(PERL) ./runtime.pl $(@:.cc=)
 
 $(SYMBOL_FILES:=.symbols.h): %.symbols.h: findsym.pl %.cc
