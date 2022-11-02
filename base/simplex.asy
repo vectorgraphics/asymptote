@@ -184,30 +184,28 @@ struct simplex {
 
     if(phase1) {
       Bindices=new int[m];
-      int p=0;
+      int k=0;
 
       // Check for redundant basis vectors.
-      bool checkBasis(int j) {
-        for(int i=0; i < m; ++i) {
-          real[] Ei=E[i];
-          if(i != p ? abs(Ei[j]) >= epsilonA : Ei[j] <= epsilonA) return false;
+      for(int p=0; p < m; ++p) {
+        bool checkBasis(int j) {
+          for(int i=0; i < m; ++i) {
+            real[] Ei=E[i];
+            if(i != p ? abs(Ei[j]) >= epsilonA : Ei[j] <= epsilonA)
+              return false;
+          }
+          return true;
         }
-        return true;
-      }
 
-      int checkTableau() {
-        for(int j=1; j <= n; ++j)
-          if(checkBasis(j)) return j;
-        return 0;
-      }
+        int checkTableau() {
+          for(int j=1; j <= n; ++j)
+            if(checkBasis(j)) return j;
+          return 0;
+        }
 
-      int k=0;
-      while(p < m) {
         int j=checkTableau();
-        if(j > 0)
-          Bindices[p]=j;
-        else { // Add an artificial variable
-          Bindices[p]=n+1+k;
+        Bindices[p]=n+1+p;
+        if(j == 0) { // Add an artificial variable
           for(int i=0; i < p; ++i)
             E[i].push(0.0);
           E[p].push(1.0);
@@ -216,7 +214,6 @@ struct simplex {
           E[m].push(0.0);
           ++k;
         }
-        ++p;
       }
 
       basicValues();
@@ -237,8 +234,7 @@ struct simplex {
     if(phase1) {
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
-        int k=Bindices[i];
-        if(k > n) {
+        if(Bindices[i] > n) {
           real[] Ei=E[i];
           int j;
           for(j=1; j <= n; ++j)
