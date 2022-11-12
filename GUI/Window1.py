@@ -1949,7 +1949,7 @@ class MainWindow1(Qw.QMainWindow):
             preCanvas.setPen(minorGridCol)
             self.makePenCosmetic(preCanvas)
             for xMinor in range(1, minorGridCount + 1):
-                xCoord = x + ((xMinor / (minorGridCount + 1)) * majorGrid)
+                xCoord = round(x + ((xMinor / (minorGridCount + 1)) * majorGrid))
                 preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
                 preCanvas.drawLine(Qc.QLine(-xCoord, -9999, -xCoord, 9999))
 
@@ -1957,20 +1957,22 @@ class MainWindow1(Qw.QMainWindow):
             preCanvas.setPen(minorGridCol)
             self.makePenCosmetic(preCanvas)
             for yMinor in range(1, minorGridCount + 1):
-                yCoord = y + ((yMinor / (minorGridCount + 1)) * majorGrid)
+                yCoord = round(y + ((yMinor / (minorGridCount + 1)) * majorGrid))
                 preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
                 preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
 
             preCanvas.setPen(majorGridCol)
             self.makePenCosmetic(preCanvas)
-            preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
-            preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
+            roundY = round(y)
+            preCanvas.drawLine(Qc.QLine(-9999, roundY, 9999, roundY))
+            preCanvas.drawLine(Qc.QLine(-9999, -roundY, 9999, -roundY))
 
         for x in np.arange(0, 2 * x_range + 1, majorGrid):
             preCanvas.setPen(majorGridCol)
             self.makePenCosmetic(preCanvas)
-            preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
-            preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
+            roundX = round(x)
+            preCanvas.drawLine(Qc.QLine(roundX, -9999, roundX, 9999))
+            preCanvas.drawLine(Qc.QLine(-roundX, -9999, -roundX, 9999))
 
     def drawPolarGrid(self, preCanvas):
         center = Qc.QPointF(0, 0)
