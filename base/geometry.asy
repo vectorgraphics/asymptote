@@ -6357,21 +6357,21 @@ void dot(picture pic = currentpicture, triangle t, pen p = currentpen)
 /*<asyxml><function type="point" signature="inverse(real k,point,point)"><code></asyxml>*/
 point inverse(real k, point A, point M)
 {/*<asyxml></code><documentation>Return the inverse point of 'M' with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  return A + k/conj(M - A);
+  pair A0 = locate(A), M0 = locate(M);
+  pair M1 = A0 + k / conj(M0 - A0);
+  return M1 / currentcoordsys;
 }
 
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
-  point[] P = standardizecoordsys(c1.C, c2.C);
   real k = c1.r^2 - c2.r^2;
-  pair C1 = locate(c1.C);
-  pair C2 = locate(c2.C);
-  pair oop = C2 - C1;
-  pair K = (abs(oop) == 0) ?
+  pair C1 = locate(c1.C), C2 = locate(c2.C);
+  pair D = C2 - C1;
+  pair K = C1 == C2 ?
     (infinity, infinity) :
-    midpoint(C1--C2) + 0.5 * k * oop/dot(oop, oop);
-  return point(P[0].coordsys, K/P[0].coordsys);
+    0.5 * (C1 + C2 + k * D / abs2(D));
+  return K / currentcoordsys;
 }
 
 /*<asyxml><function type="line" signature="radicalline(circle,circle)"><code></asyxml>*/
@@ -6418,13 +6418,11 @@ inversion inversion(circle c1, circle c2, real sgn = 1)
     point O = radicalcenter(c1, c2);
     return inversion(O^c1, O);
   }
-  else {
-   point C1 = c1.C, C2 = c2.C;
-    real r1 = c1.r, r2 = sgn(sgn) * c2.r;
-    return inversion(
-      r1 * r2 * (1 - (length(C2 - C1) / (r1 + r2))^2),
-      (r2 * C1 + r1 * C2) / (r1 + r2));
-  }
+  pair C1 = locate(c1.C), C2 = locate(c2.C);
+  real r1 = c1.r, r2 = sgn(sgn) * c2.r;
+  pair O = (r2 * C1 + r1 * C2) / (r1 + r2);
+  real k =  r1 * r2 * (1 - abs2(C2 - C1) / (r1 + r2)^2);
+  return inversion(k, O / currentcoordsys);
 }
 
 /*<asyxml><function type="inversion" signature="inversion(circle,circle,circle)"><code></asyxml>*/
@@ -6491,14 +6489,16 @@ circle inverse(real k, point A, circle c)
   if(degenerate(c)) return inverse(k, A, c.l);
   if(A @ c) {
     lineinversion();
-    point M = rotate(180, c.C) * A, Mp = rotate(90, c.C) * A;
+    point M1 = rotate(90, c.C) * A, M2 = rotate(-90, c.C) * A;
     circle oc = circle(A, infinity);
-    oc.l = line(inverse(k, A, M), inverse(k, A, Mp));
+    oc.l = line(inverse(k, A, M1), inverse(k, A, M2));
     return oc;
   }
-  point[] P = standardizecoordsys(A, c.C);
-  real s = k/((P[1].x - P[0].x)^2 + (P[1].y - P[0].y)^2 - c.r^2);
-  return circle(P[0] + s * (P[1]-P[0]), abs(s) * c.r);
+  pair A1 = locate(A), C1 = locate(c.C);
+  pair D = C1 - A1;
+  real s = k / (abs2(D) - c.r^2);
+  pair C2 = A1 + s * D;
+  return circle((point)(C2 / currentcoordsys), abs(s) * c.r);
 }
 
 /*<asyxml><operator type = "circle" signature="*(inversion,circle)"><code></asyxml>*/
