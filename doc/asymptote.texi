@@ -9509,6 +9509,7 @@ interactiveMask=true;
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime.
 @cindex @code{dvipsOptions}
+@cindex @code{dvisvgmOptions}
 @cindex @code{hyperrefOptions}
 @cindex @code{convertOptions}
 @cindex @code{gsOptions}
@@ -9517,7 +9518,6 @@ variables may also be changed at runtime.
 @cindex @code{pdfviewerOptions}
 @cindex @code{pdfreloadOptions}
 @cindex @code{glOptions}
-@cindex @code{dvisvgmOptions}
 The advanced configuration variables @code{dvipsOptions},
 @code{hyperrefOptions}, @code{convertOptions}, @code{gsOptions},
 @code{htmlviewerOptions}, @code{psviewerOptions},
