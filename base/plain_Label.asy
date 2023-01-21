@@ -337,7 +337,6 @@ struct Label {
       Align=position <= sqrtEpsilon ? S :
         position >= length(g)-sqrtEpsilon ? N : E;
     }
-    Align += 0.5*linewidth(p)*unit(Align)/labelmargin(p);
 
     pic.add(new void (frame f, transform t) {
         out(f,t,point(g,position),alignrelative ?

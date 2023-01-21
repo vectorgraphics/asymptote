@@ -1,4 +1,4 @@
-real labelmargin=0.3;
+real labelmargin=0.28;
 real dotfactor=6;
 
 pen solid=linetype(new real[]);
@@ -173,7 +173,7 @@ pen fontsize(real size)
 
 real labelmargin(pen p=currentpen)
 {
-  return labelmargin*fontsize(p);
+  return labelmargin*fontsize(p)+0.5*linewidth(p);
 }
 
 void write(file file=stdout, string s="", pen[] p)
