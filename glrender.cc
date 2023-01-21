@@ -68,7 +68,7 @@ pthread_t mainthread;
 #endif
 
 using settings::locateFile;
-using utils::seconds;
+using utils::stopWatch;
 
 #endif // HAVE_GL
 
@@ -1194,6 +1194,8 @@ void nextframe(int)
   if(Step) Animate=false;
 }
 
+stopWatch Timer;
+
 void display()
 {
   if(queueScreen) {
@@ -1205,9 +1207,9 @@ void display()
   drawscene(Width,Height);
   if(fps) {
     if(framecount < 20) // Measure steady-state framerate
-      seconds();
+      Timer.reset();
     else {
-      double s=seconds();
+      double s=Timer.seconds(true);
       if(s > 0.0) {
         double rate=1.0/s;
         S.add(rate);
@@ -2508,11 +2510,11 @@ void refreshBuffers()
         first=false;
       }
       unsigned int N=10000;
-      seconds();
+      stopWatch Timer;
       for(unsigned int i=0; i < N; ++i)
         partialSums();
       glFinish();
-      double T=seconds()/N;
+      double T=Timer.seconds()/N;
       cout << "elements=" << gl::elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;
       cout << "Megapixels/second=" << gl::elements/T/1e6 << endl;

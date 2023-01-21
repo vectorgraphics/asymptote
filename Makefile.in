@@ -46,7 +46,7 @@ PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
         callable name symbol entry exp newexp stack camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
-	fftw++asy simpson coder coenv impdatum \
+	fftw++asy parallel simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
 	$(PRC) glrender tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures \

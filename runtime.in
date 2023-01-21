@@ -179,6 +179,8 @@ const item Default=item(default_t());
 
 namespace run {
 
+stopWatch wallClock;
+
 const char *arrayempty="cannot take min or max of empty array";
 const char *noruntime="no runtime environment for embedded eval";
 
@@ -1045,7 +1047,7 @@ realarray *_cputime()
   (*t)[1]=((real) buf.tms_stime)*ticktime;
   (*t)[2]=((real) buf.tms_cutime)*ticktime;
   (*t)[3]=((real) buf.tms_cstime)*ticktime;
-  (*t)[4]=utils::totalseconds();
+  (*t)[4]=wallClock.seconds();
   return t;
 }
 
