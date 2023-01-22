@@ -380,7 +380,7 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
-%.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.h)
+%.o: %.cc $(GENERATEDENUMS:=.h)
 	$(CXX) $(OPTS) -o $@ -c $<
 %.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
 	@echo Creating $@; \
