@@ -63,7 +63,7 @@ ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
 PYGENERATEDENUMS=$(GENERATEDENUMS:=.py)
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
-	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
+	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
         $(SYMBOLSH) $(PYFILES) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS)
 
 NAME = asy
@@ -126,7 +126,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version glew.o @LSPLIB@
+asy:	version $(FILES:=.o) glew.o @LSPLIB@
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -134,7 +134,7 @@ asy:	version glew.o @LSPLIB@
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
-version: $(GCLIB) $(FILES:=.o) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py $(ASYGENERATEDENUMS) $(PYGENERATEDENUMS)
+version: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py $(ASYGENERATEDENUMS) $(PYGENERATEDENUMS)
 	if test ! -s revision.cc || test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
@@ -209,7 +209,7 @@ man:	asy sty
 faq:	asy sty
 	cd doc && $(MAKE) faq
 
-$(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in revision.cc
+$(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
 	$(PERL) ./runtime.pl $(@:.cc=)
 
 $(SYMBOL_FILES:=.symbols.h): %.symbols.h: findsym.pl %.cc
@@ -380,7 +380,7 @@ glew.o: glew.c GL/glew.h GL/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
-%.o: %.cc $(GENERATEDENUMS:=.h)
+%.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
 %.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
 	@echo Creating $@; \
