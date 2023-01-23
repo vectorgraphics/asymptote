@@ -12,6 +12,7 @@
 #include <fstream>
 #include <cstring>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "locate.h"
