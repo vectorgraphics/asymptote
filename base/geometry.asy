@@ -6384,7 +6384,7 @@ point inverse(inversion i, point P)
 
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2)
-{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+{/*<asyxml></code><documentation><url href="http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
   real k = c1.r^2 - c2.r^2;
   pair C1 = locate(c1.C), C2 = locate(c2.C);
   pair D = C2 - C1;
@@ -6396,14 +6396,14 @@ point radicalcenter(circle c1, circle c2)
 
 /*<asyxml><function type="line" signature="radicalline(circle,circle)"><code></asyxml>*/
 line radicalline(circle c1, circle c2)
-{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+{/*<asyxml></code><documentation><url href="http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
   if (c1.C == c2.C) abort("radicalline: the centers must be distinct");
   return perpendicular(radicalcenter(c1, c2), line(c1.C, c2.C));
 }
 
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2, circle c3)
-{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+{/*<asyxml></code><documentation><url href="http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
   return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3));
 }
 
@@ -7150,20 +7150,20 @@ arc arc(explicit arc a, point M, point N)
   return arc(a, relabscissa(a, M), relabscissa(a, N));
 }
 
-/*<asyxml><function type="arc" signature="inverse(real,point,segment)"><code></asyxml>*/
-arc inverse(real k, point A, segment s)
+/*<asyxml><function type="arc" signature="inverse(inversion,segment)"><code></asyxml>*/
+arc inverse(inversion i, segment s)
 {/*<asyxml></code><documentation>Return the inverse arc circle of 's'
-   with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  point Ap = inverse(k, A, s.A), Bp = inverse(k, A, s.B),
-    M = inverse(k, A, midpoint(s));
+   with respect to inversion 'i'.</documentation></function></asyxml>*/
+  point Ap = inverse(i, s.A), Bp = inverse(i, s.B),
+    M = inverse(i, midpoint(s));
   return arccircle(Ap, M, Bp);
 }
 
-/*<asyxml><operator type = "arc" signature="*(inversion,segment)"><code></asyxml>*/
+/*<asyxml><operator type="arc" signature="*(inversion,segment)"><code></asyxml>*/
 arc operator *(inversion i, segment s)
 {/*<asyxml></code><documentation>Provide
    inversion * segment.</documentation></operator></asyxml>*/
-  return inverse(i.k, i.C, s);
+  return inverse(i, s);
 }
 
 /*<asyxml><operator type = "path" signature="*(inversion,triangle)"><code></asyxml>*/
