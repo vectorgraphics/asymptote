@@ -278,7 +278,7 @@ install-asy: asy sty
 		$(webgldir)
 	-${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
 	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
-	${INSTALL} -p -m 644 GUI/icons_rc.py $(GUIdir)
+	-${INSTALL} -p -m 644 GUI/icons_rc.py $(GUIdir)
 	${INSTALL} -p -m 644 GUI/res/icons/*.svg $(GUIdir)/res/icons
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
 	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
@@ -364,7 +364,6 @@ maintainer-clean: FORCE distclean
 	-rm -f configure config.h.in $(DIST)
 	-rm -rf autom4te.cache
 	-rm -rf GUI/pyUIClass
-	-rm -rf GUI/icons_rc.py
 
 test: asy FORCE
 	./wce
