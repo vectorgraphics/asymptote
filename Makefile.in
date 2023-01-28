@@ -279,7 +279,7 @@ install-asy: asy sty
 		$(webgldir)
 	-${INSTALL} -p -m 644 GUI/pyUIClass/*.py $(GUIdir)/pyUIClass
 	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
-	${INSTALL} -p -m 644 GUI/res/icons.qrc $(GUIdir)/res
+	${INSTALL} -p -m 644 GUI/icons_rc.py $(GUIdir)
 	${INSTALL} -p -m 644 GUI/res/icons/*.svg $(GUIdir)/res/icons
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
 	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
@@ -315,7 +315,7 @@ uninstall-asy:
 	-rmdir $(GUIdir)/configs
 	-cd $(GUIdir)/res/icons && rm -f *.svg
 	-rmdir $(GUIdir)/res/icons
-	-cd $(GUIdir)/res && rm -f icons.qrc
+	-cd $(GUIdir) && rm -f icons_rc.py
 	-rmdir $(GUIdir)/res
 	-rmdir $(GUIdir)
 	-cd $(shaderdir) && rm -f *.glsl
