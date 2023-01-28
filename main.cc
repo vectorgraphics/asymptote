@@ -147,7 +147,9 @@ void *asymain(void *A)
   setsignal(signalHandler);
   Args *args=(Args *) A;
   fpu_trap(trap());
+#ifdef HAVE_LIBFFTW3
   fftwpp::wisdomName=".wisdom";
+#endif
 
   if(interactive) {
     Signal(SIGINT,interruptHandler);
