@@ -69,8 +69,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py GUI/icons_rc.py $(XNAME) doc/asy-latex.pdf \
-        $(SYMBOLSH)
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
@@ -365,6 +364,7 @@ maintainer-clean: FORCE distclean
 	-rm -f configure config.h.in $(DIST)
 	-rm -rf autom4te.cache
 	-rm -rf GUI/pyUIClass
+	-rm -rf GUI/icons_rc.py
 
 test: asy FORCE
 	./wce
