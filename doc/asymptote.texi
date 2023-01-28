@@ -388,8 +388,8 @@ where @code{x.xx} denotes the latest version.
 A working @TeX{} implementation (we recommend
 @url{https://www.tug.org/texlive} or
 @url{http://www.miktex.org}) will be required to typeset labels.
-You will also need to install @code{GPL Ghostscript} version 9.52 or
-later from @url{http://downloads.ghostscript.com/public}.
+You will also need to install @code{GPL Ghostscript} version 9.56 or
+later from @url{https://www.ghostscript.com/}.
 
 To view @code{PostScript} output, you can install the
 program @code{Sumatra PDF} available from
