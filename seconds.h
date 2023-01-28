@@ -17,9 +17,28 @@ inline double cpuTime() {
 #else
 #include <unistd.h>
 #include <time.h>
+
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
 inline double cpuTime() {
   timespec t;
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID,&t);
+  clockid_t cid;
+
+#ifdef CLOCK_THREAD_CPUTIME_ID
+  cid=CLOCK_THREAD_CPUTIME_ID;
+#else
+ #ifdef HAVE_PTHREAD
+  pthread_getcpuclockid(pthread_self(),&cid);
+ #elif CLOCK_PROCESS_CPUTIME_ID
+  cid=CLOCK_PROCESS_CPUTIME_ID;
+ #else
+  cid=CLOCK_REALTIME;
+ #endif
+#endif
+
+  clock_gettime(cid,&t);
   return 1.0e9*t.tv_sec+t.tv_nsec;
 }
 #endif
