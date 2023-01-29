@@ -1247,7 +1247,6 @@ void display()
 void update()
 {
   glutDisplayFunc(display);
-  Animate=getSetting<bool>("autoplay");
   glutShowWindow();
   if(Zoom != lastzoom) remesh=true;
   lastzoom=Zoom;
