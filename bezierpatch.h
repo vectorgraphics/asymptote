@@ -28,6 +28,8 @@ struct BezierPatch
   vertexFunction pvertex;
   bool Onscreen;
 
+  BezierPatch() : Onscreen(true) {}
+
   void init(double res);
 
   void init(double res, GLfloat *colors) {
