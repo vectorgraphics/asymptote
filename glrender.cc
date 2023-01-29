@@ -436,7 +436,6 @@ double T[16];
 
 #ifdef HAVE_LIBGLUT
 timeval lasttime;
-timeval lastframetime;
 int oldWidth,oldHeight;
 
 bool queueScreen=false;
@@ -1166,15 +1165,8 @@ void togglefitscreen()
   fitscreen();
 }
 
-void initTimer()
-{
-  gettimeofday(&lasttime,NULL);
-  lastframetime=lasttime;
-}
-
 void idleFunc(void (*f)())
 {
-  initTimer();
   glutIdleFunc(f);
 }
 
@@ -1184,14 +1176,25 @@ void screen()
     fitscreen(false);
 }
 
-void nextframe(int)
+stopWatch frameTimer;
+
+void nextframe()
 {
 #ifdef HAVE_PTHREAD
   endwait(readySignal,readyLock);
 #endif
-  double framedelay=getSetting<double>("framedelay");
-  if(framedelay > 0)
-    usleep((unsigned int) (1000.0*framedelay+0.5));
+  double delay=getSetting<double>("framerate");
+  if(delay != 0.0) delay=1.0/delay;
+  double seconds=frameTimer.seconds(true);
+  delay -= seconds;
+  if(delay > 0) {
+    timespec req;
+    timespec rem;
+    req.tv_sec=(unsigned int) delay;
+    req.tv_nsec=(unsigned int) (1.0e9*(delay-req.tv_sec));
+    while(nanosleep(&req,&rem) < 0)
+      req=rem;
+  }
   if(Step) Animate=false;
 }
 
@@ -1226,20 +1229,7 @@ void display()
 #ifdef HAVE_PTHREAD
   if(glthread && Animate) {
     queueExport=false;
-    double delay=getSetting<double>("framerate");
-    if(delay != 0.0) delay=1.0/delay;
-    timeval tv;
-    gettimeofday(&tv,NULL);
-    double seconds=tv.tv_sec-lastframetime.tv_sec+
-      ((double) tv.tv_usec-lastframetime.tv_usec)*1.0e6;
-    lastframetime=tv;
-    double milliseconds=1000.0*(delay-seconds);
-    double framedelay=getSetting<double>("framedelay");
-    if(framedelay > 0) milliseconds -= framedelay;
-    if(milliseconds > 0)
-      glutTimerFunc((int) (milliseconds+0.5),nextframe,0);
-    else
-      nextframe(0);
+    nextframe();
   }
 #endif
   if(queueExport) {
@@ -1919,6 +1909,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
+  gettimeofday(&lasttime,NULL);
   Iconify=getSetting<bool>("iconify");
 
   if(zoom == 0.0) zoom=1.0;

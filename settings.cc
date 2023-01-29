@@ -1470,8 +1470,6 @@ void initSettings() {
                             60.0));
   addOption(new realSetting("framerate", 0, "frames/s", "Animation speed",
                             30.0));
-  addOption(new realSetting("framedelay", 0, "ms",
-                            "Additional frame delay", 0.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
   addOption(new IntSetting("digits", 0, "n",
                            "Default output file precision", 7));
