@@ -1192,7 +1192,7 @@ void nextframe()
     timespec rem;
     req.tv_sec=(unsigned int) delay;
     req.tv_nsec=(unsigned int) (1.0e9*(delay-req.tv_sec));
-    while(nanosleep(&req,&rem) < 0)
+    while(nanosleep(&req,&rem) < 0 && errno == EINTR)
       req=rem;
   }
   if(Step) Animate=false;
