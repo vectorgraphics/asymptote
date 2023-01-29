@@ -1226,18 +1226,20 @@ void display()
 #ifdef HAVE_PTHREAD
   if(glthread && Animate) {
     queueExport=false;
-    double delay=1.0/getSetting<double>("framerate");
+    double delay=getSetting<double>("framerate");
+    if(delay != 0.0) delay=1.0/delay;
     timeval tv;
     gettimeofday(&tv,NULL);
     double seconds=tv.tv_sec-lastframetime.tv_sec+
-      ((double) tv.tv_usec-lastframetime.tv_usec)/1000000.0;
+      ((double) tv.tv_usec-lastframetime.tv_usec)*1.0e6;
     lastframetime=tv;
     double milliseconds=1000.0*(delay-seconds);
     double framedelay=getSetting<double>("framedelay");
     if(framedelay > 0) milliseconds -= framedelay;
     if(milliseconds > 0)
       glutTimerFunc((int) (milliseconds+0.5),nextframe,0);
-    else nextframe(0);
+    else
+      nextframe(0);
   }
 #endif
   if(queueExport) {
