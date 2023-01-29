@@ -28,7 +28,7 @@ struct BezierPatch
   vertexFunction pvertex;
   bool Onscreen;
 
-  BezierPatch() : Onscreen(true) {}
+  BezierPatch() : transparent(false), color(false), Onscreen(true) {}
 
   void init(double res);
 
