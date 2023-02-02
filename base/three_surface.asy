@@ -485,16 +485,21 @@ patch reverse(patch s)
   return S;
 }
 
+triple[][] degenerate(triple[][] P)
+{
+  return new triple[][] {{P[0][0],P[0][0],P[0][0],P[0][0]},
+      {P[1][0],P[1][0]*2/3+P[1][1]/3,P[1][0]/3+P[1][1]*2/3,P[1][1]},
+        {P[2][0],P[2][0]/3+P[2][1]*2/3,P[2][1]*2/3+P[2][2]/3,P[2][2]},
+          {P[3][0],P[3][1],P[3][2],P[3][3]}};
+}
+
 // Return a degenerate tensor patch representation of a Bezier triangle.
 patch tensor(patch s) {
-  if(!s.triangular) return patch(s);
-  triple[][] P=s.P;
-  return patch(new triple[][] {{P[0][0],P[0][0],P[0][0],P[0][0]},
-        {P[1][0],P[1][0]*2/3+P[1][1]/3,P[1][0]/3+P[1][1]*2/3,P[1][1]},
-          {P[2][0],P[2][0]/3+P[2][1]*2/3,P[2][1]*2/3+P[2][2]/3,P[2][2]},
-            {P[3][0],P[3][1],P[3][2],P[3][3]}},
-    s.colors.length > 0 ? new pen[] {s.colors[0],s.colors[1],s.colors[2],s.colors[0]} : new pen[],
-    s.straight,s.planar,false,false);
+  if(!s.triangular) return s;
+  return patch(degenerate(s.P),
+               s.colors.length > 0 ? new pen[] {
+                 s.colors[0],s.colors[1],s.colors[2],s.colors[0]} : new pen[],
+               s.straight,s.planar,false,false);
 }
 
 // Return the tensor product patch control points corresponding to path p
@@ -1268,15 +1273,11 @@ patch subpatch(patch s, pair a, pair b)
   return patch(subpatch(s.P,a,b),s.straight,s.planar);
 }
 
-private string triangular=
-  "Intersection of path3 with Bezier triangle is not yet implemented";
-
 // return an array containing the times for one intersection of path p and
 // patch s.
 real[] intersect(path3 p, patch s, real fuzz=-1)
 {
-  if(s.triangular) abort(triangular);
-  return intersect(p,s.P,fuzz);
+  return intersect(p,s.triangular ? degenerate(s.P) : s.P,fuzz);
 }
 
 // return an array containing the times for one intersection of path p and
@@ -1293,8 +1294,7 @@ real[] intersect(path3 p, surface s, real fuzz=-1)
 // return an array containing all intersection times of path p and patch s.
 real[][] intersections(path3 p, patch s, real fuzz=-1)
 {
-  if(s.triangular) abort(triangular);
-  return sort(intersections(p,s.P,fuzz));
+  return sort(intersections(p,s.triangular ? degenerate(s.P) : s.P,fuzz));
 }
 
 // return an array containing all intersection times of path p and surface s.
