@@ -1787,7 +1787,7 @@ class MainWindow1(Qw.QMainWindow):
         # and subtract pan offset and center points
         # but it's much more work...
         newCenter = self.magnification * newCenter
-        self.panOffset = [-newCenter.x(), newCenter.y()]
+        self.panOffset = [-newCenter.x(), -newCenter.y()]
 
         self.quickUpdate()
 
@@ -2411,6 +2411,7 @@ class MainWindow1(Qw.QMainWindow):
 
         finally:
             f.close()
+            self.btnPanCenterOnClick()
 
     def populateCanvasWithItems(self, forceUpdate=False):
         self.itemCount = 0
