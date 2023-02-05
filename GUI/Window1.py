@@ -942,7 +942,7 @@ class MainWindow1(Qw.QMainWindow):
         asyFile = io.open(os.path.realpath(pathToFile), 'w')
         xf.saveFile(asyFile, self.fileItems, self.asy2psmap)
         asyFile.close()
-        self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as Asymptote File.")
+        self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as an Asymptote file.")
 
     def btnExportToAsyOnClick(self):
         if self.fileName:
@@ -1019,9 +1019,8 @@ class MainWindow1(Qw.QMainWindow):
                 ext='asy'
             if ext == 'asy':
                 pathToFile = os.path.splitext(file)[0]+'.'+ext
-                asyFile = io.open(os.path.realpath(pathToFile), 'w')
-                xf.saveFile(asyFile, self.fileItems, self.asy2psmap)
-                asyFile.close()
+                self.updateScript()
+                self.actionExport(pathToFile)
             else:
                 with subprocess.Popen(args=[self.asyPath, '-f{0}'.format(ext), '-o{0}'.format(file), '-'], encoding='utf-8',
                                     stdin=subprocess.PIPE) as asy:
