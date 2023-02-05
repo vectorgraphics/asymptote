@@ -29,6 +29,7 @@ SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
 vpath %.cc prc
 vpath %.ui GUI/windows
 vpath %.py GUI/pyUIClass
+vpath %.py GUI
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
@@ -133,7 +134,7 @@ asy:	version $(FILES:=.o) glew.o @LSPLIB@
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
-version: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) GUI/icons_rc.py $(ASYGENERATEDENUMS) $(PYGENERATEDENUMS)
+version: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) icons_rc.py $(ASYGENERATEDENUMS) $(PYGENERATEDENUMS)
 	if test ! -s revision.cc || test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
@@ -223,7 +224,7 @@ allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
 
 symbol.o: $(SYMBOLSH)
 
-GUI/icons_rc.py: GUI/res/icons.qrc
+icons_rc.py: GUI/res/icons.qrc
 	-$(PYRCC) GUI/res/icons.qrc -o GUI/icons_rc.py
 
 camp.tab.cc: camp.y
