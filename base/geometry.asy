@@ -345,7 +345,6 @@ void show(picture pic = currentpicture, Label lo = "$O$",
           arrowbar arrow = Arrow)
 {/*<asyxml></code><documentation>Draw the components (O, i, j, x - axis, y - axis) of 'R'.</documentation></function></asyxml>*/
  unravel R;
- dot(pic, O, dotpen);
  drawline(pic, O, O + i, xpen);
  drawline(pic, O, O + j, ypen);
  draw(pic, li, O--(O + i), ipen, arrow);
@@ -353,6 +352,7 @@ void show(picture pic = currentpicture, Label lo = "$O$",
  lj.align(lj.align, unit(I * j));
  draw(pic, lj, O--(O + j), jpen, arrow);
  draw(pic, lj, O--(O + j), jpen, arrow);
+ dot(pic, O, dotpen);
  Label lo = lo.copy();
  lo.align(lo.align, -2 * dir(O--O + i, O--O + j));
  lo.p(dotpen);
