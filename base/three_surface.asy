@@ -742,7 +742,21 @@ path[] regularize(path p, bool checkboundary=true)
 }
 
 typedef void drawfcn(frame f, transform3 t=identity4, material[] m,
-            light light=currentlight, render render=defaultrender);
+                     light light=currentlight, render render=defaultrender);
+typedef bool primitivefcn(transform3 t);
+
+bool unscaled(transform3 t, triple v, triple w) {
+  return abs(length(t*v)-length(t*w)) < sqrtEpsilon;
+}
+
+struct primitive {
+  drawfcn draw;
+  primitivefcn valid;
+  void operator init(drawfcn draw, primitivefcn valid) {
+    this.draw=draw;
+    this.valid=valid;
+  }
+}
 
 struct surface {
   patch[] s;
@@ -750,7 +764,7 @@ struct surface {
   bool vcyclic;
   transform3 T=identity4;
 
-  drawfcn draw;
+  primitive primitive=null;
   bool PRCprimitive=true; // True unless no PRC primitive is available.
 
   bool empty() {
@@ -1050,7 +1064,7 @@ surface operator * (transform3 t, surface s)
   S.index=copy(s.index);
   S.vcyclic=(bool) s.vcyclic;
   S.T=t*s.T;
-  S.draw=s.draw;
+  S.primitive=s.primitive;
   S.PRCprimitive=s.PRCprimitive;
 
   return S;
@@ -1564,7 +1578,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   bool is3D=is3D();
   if(is3D) {
     bool prc=prc();
-    if(s.draw != null && (primitive() || (prc && s.PRCprimitive))) {
+    if(s.primitive != null && (primitive() || (prc && s.PRCprimitive)) &&
+       s.primitive.valid(shiftless(s.T))) {
       bool noprerender=settings.prerender == 0;
       for(int k=0; k < s.s.length; ++k) {
         patch p=s.s[k];
@@ -1572,7 +1587,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
         if(p.colors.length > 0) noprerender=false;
       }
       if(noprerender)
-        s.draw(f,s.T,surfacepen,light,render);
+        s.primitive.draw(f,s.T,surfacepen,light,render);
     } else {
       bool group=name != "" || render.defaultnames;
       if(group)
@@ -2144,24 +2159,27 @@ restricted surface unithemisphere=surface(octant1,t1*octant1,t2*octant1,
 restricted surface unitsphere=surface(octant1,t1*octant1,t2*octant1,t3*octant1,
                                       i*octant1,i*t1*octant1,i*t2*octant1,
                                       i*t3*octant1);
-
-unitsphere.draw=
+unitsphere.primitive=primitive(
   new void(frame f, transform3 t=identity4, material[] m,
            light light=currentlight, render render=defaultrender)
   {
    material m=material(m[0],light);
    drawSphere(f,t,half=false,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
              render.sphere);
-  };
+  },new bool(transform3 t) {
+    return unscaled(t,X,Y) && unscaled(t,Y,Z);
+  });
 
-unithemisphere.draw=
+unithemisphere.primitive=primitive(
   new void(frame f, transform3 t=identity4, material[] m,
            light light=currentlight, render render=defaultrender)
   {
    material m=material(m[0],light);
    drawSphere(f,t,half=true,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
              render.sphere);
-  };
+  },new bool(transform3 t) {
+    return unscaled(t,X,Y) && unscaled(t,Y,Z);
+  });
 
 restricted patch unitfrustum1(real ta, real tb)
 {
@@ -2200,7 +2218,10 @@ drawfcn unitcylinderDraw(bool core) {
   };
 }
 
-unitcylinder.draw=unitcylinderDraw(false);
+unitcylinder.primitive=primitive(unitcylinderDraw(false),
+                           new bool(transform3 t) {
+                             return unscaled(t,X,Y);
+                           });
 
 private patch unitplane=patch(new triple[] {O,X,X+Y,Y});
 restricted surface unitcube=surface(reverse(unitplane),
@@ -2212,13 +2233,16 @@ restricted surface unitcube=surface(reverse(unitplane),
 restricted surface unitplane=surface(unitplane);
 restricted surface unitdisk=surface(unitcircle3);
 
-unitdisk.draw=
+unitdisk.primitive=primitive(
   new void(frame f, transform3 t=identity4, material[] m,
            light light=currentlight, render render=defaultrender)
   {
    material m=material(m[0],light);
    drawDisk(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0);
-  };
+  },
+  new bool(transform3 t) {
+    return unscaled(t,X,Y);
+  });
 
 void dot(frame f, triple v, material p=currentpen,
          light light=nolight, string name="",
