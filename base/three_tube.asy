@@ -138,7 +138,7 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   s.PRCprimitive=false;
   s.primitive=primitive(drawTube(g,w,min(s),max(s)),
                         new bool(transform3 t) {
-                          return length(t*X) == length(t*Y);
+                          return unscaled(t,X,Y);
                         });
   return s;
 }
@@ -218,7 +218,7 @@ struct tube
           surface unittube=t*unitcylinder;
           unittube.primitive=primitive(unitcylinderDraw(core=true),
                                        new bool(transform3 t) {
-                                         return length(t*X) == length(t*Y);
+                                         return unscaled(t,X,Y);
                                        });
           s.push(unittube);
         } else
