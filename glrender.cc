@@ -2424,19 +2424,19 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
 
     if(GPUcompress) {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
-                   NULL,GL_DYNAMIC_DRAW);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::indexBuffer);
-
       GLuint one=1;
       glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,camp::elementsBuffer);
       glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
                    GL_DYNAMIC_DRAW);
       glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
-    } else
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_BYTE,&zero); // Clear the count buffer
+
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
+      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
+                   NULL,GL_DYNAMIC_DRAW);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::indexBuffer);
+    }
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_INT,&zero); // Clear count or index buffer
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(glm::vec4),NULL,
@@ -2464,8 +2464,8 @@ void refreshBuffers()
 
   if(gl::exporting && GPUindexing && !GPUcompress) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_BYTE,&zero);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_INT,&zero);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::feedbackBuffer);
   }
 
