@@ -434,8 +434,9 @@ double T[16];
 
 #ifdef HAVE_GL
 
-#ifdef HAVE_LIBGLUT
 timeval lasttime;
+
+#ifdef HAVE_LIBGLUT
 int oldWidth,oldHeight;
 
 bool queueScreen=false;
@@ -1896,7 +1897,11 @@ void init_osmesa()
 
 bool NVIDIA()
 {
+#ifdef GL_SHADING_LANGUAGE_VERSION
   char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+#else
+  char *GLSL_VERSION="";
+#endif
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
 
