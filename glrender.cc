@@ -432,9 +432,9 @@ void home(bool webgl=false)
 
 double T[16];
 
-#ifdef HAVE_GL
-
 timeval lasttime;
+
+#ifdef HAVE_GL
 
 #ifdef HAVE_LIBGLUT
 int oldWidth,oldHeight;
@@ -1893,8 +1893,6 @@ void init_osmesa()
 #endif // HAVE_LIBOSMESA
 }
 
-#endif /* HAVE_GL */
-
 bool NVIDIA()
 {
 #ifdef GL_SHADING_LANGUAGE_VERSION
@@ -1904,6 +1902,8 @@ bool NVIDIA()
 #endif
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
+
+#endif /* HAVE_GL */
 
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
