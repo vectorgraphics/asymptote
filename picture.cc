@@ -16,6 +16,7 @@
 #include "drawlayer.h"
 #include "drawsurface.h"
 #include "drawpath3.h"
+#include "picture.h"
 
 #ifdef __MSDOS__
 #include "sys/cygwin.h"
@@ -53,6 +54,8 @@ texstream::~texstream() {
 }
 
 namespace camp {
+
+AsyVkRender *vk;
 
 extern void draw();
 
@@ -1303,7 +1306,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   }
 
 #ifdef HAVE_GL
-  drawBuffers();
+  // drawBuffers();
 #endif
 }
 
@@ -1339,10 +1342,24 @@ void glrenderWrapper()
   wait(initSignal,initLock);
   endwait(initSignal,initLock);
 #endif
-  if(allowRender)
-    glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-             com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
-             com.nlights,com.lights,com.diffuse,com.specular,com.view);
+  if(allowRender) {
+    // std::cout << "glrenderWrapper" << std::endl;
+    // glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
+    //          com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
+    //          com.nlights,com.lights,com.diffuse,com.specular,com.view);
+    std::cout << "done" << std::endl;
+    AsyVkRender::Options options;
+    options.display = true;
+    options.title = string(settings::PROGRAM)+": "+com.prefix;
+    // Todo: this initializer cannot be called twice.
+    vk = new AsyVkRender(options);
+    vk->vkrender(com.pic,com.format,com.width,com.height,com.angle,
+                com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
+                com.nlights,com.lights,com.diffuse,com.specular,com.view);
+    delete vk;
+    std::cout << "done" << std::endl;
+    exit(0);
+  }
 #endif
 }
 
@@ -1477,8 +1494,10 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
 #if HAVE_LIBGLM
-  glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
-           background,nlights,lights,diffuse,specular,View,oldpid);
+  std::cout << "glrender" << std::endl;
+  throw std::runtime_error("glrender");
+  // glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
+  //          background,nlights,lights,diffuse,specular,View,oldpid);
 
   if(format3d) {
     string name=buildname(prefix,format);
@@ -1511,14 +1530,15 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl && View)
       htmlView(name);
 
-#ifdef HAVE_GL
-    if(format3dWait) {
-      gl::format3dWait=false;
-#ifdef HAVE_PTHREAD
-      endwait(initSignal,initLock);
-#endif
-    }
-#endif
+  // TODO: what is this?
+// #ifdef HAVE_GL
+//     if(format3dWait) {
+//       gl::format3dWait=false;
+// #ifdef HAVE_PTHREAD
+//       endwait(initSignal,initLock);
+// #endif
+//     }
+// #endif
 
     return true;
   }

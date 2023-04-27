@@ -17,7 +17,7 @@ void BezierCurve::init(double res)
   this->res=res;
   res2=res*res;
 
-  MaterialIndex=materialIndex;
+  MaterialIndex=vk->materialIndex;
 }
 
 inline triple normal(triple bP, triple bPP)
@@ -41,13 +41,12 @@ void BezierCurve::render(const triple *p, bool straight)
     n1=normal(p3-p2,p3+p1-2.0*p2);
   }
 
-  GLuint i0=data.vertex(p0,n0);
-  GLuint i3=data.vertex(p3,n1);
+  size_t i0=data.addVertex(MaterialVertex{p0,n0,MaterialIndex});
+  size_t i3=data.addVertex(MaterialVertex{p3,n1,MaterialIndex});
 
   if(straight) {
-    std::vector<GLuint> &q=data.indices;
-    q.push_back(i0);
-    q.push_back(i3);
+    data.indices.push_back(i0);
+    data.indices.push_back(i3);
   } else
     render(p,i0,i3);
   append();
@@ -65,9 +64,8 @@ void BezierCurve::render(const triple *p, GLuint I0, GLuint I1)
   if(Straightness(p0,p1,p2,p3) < res2) { // Segment is flat
     triple P[]={p0,p3};
     if(!offscreen(2,P)) {
-      std::vector<GLuint> &q=data.indices;
-      q.push_back(I0);
-      q.push_back(I1);
+      data.indices.push_back(I0);
+      data.indices.push_back(I1);
     }
   } else { // Segment is not flat
     if(offscreen(4,p)) return;
@@ -82,7 +80,7 @@ void BezierCurve::render(const triple *p, GLuint I0, GLuint I1)
     triple s1[]={m5,m4,m2,p3};
 
     triple n0=normal(bezierPh(p0,p1,p2,p3),bezierPPh(p0,p1,p2,p3));
-    GLuint i0=data.vertex(m5,n0);
+    size_t i0=data.addVertex(MaterialVertex{m5,n0,MaterialIndex});
 
     render(s0,I0,i0);
     render(s1,i0,I1);

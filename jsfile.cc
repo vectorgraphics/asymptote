@@ -1,7 +1,7 @@
 #include "jsfile.h"
 
 #include "settings.h"
-#include "glrender.h"
+// #include "glrender.h"
 #include "drawelement.h"
 
 using namespace settings;

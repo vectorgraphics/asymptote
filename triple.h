@@ -15,6 +15,8 @@
 #include <cmath>
 #include <cstring>
 
+#include <glm/glm.hpp>
+
 #include "common.h"
 #include "angle.h"
 #include "pair.h"
@@ -45,6 +47,8 @@ public:
   triple() : x(0.0), y(0.0), z(0.0) {}
   triple(double x, double y=0.0, double z=0.0) : x(x), y(y), z(z) {}
   triple(const Triple& v) : x(v[0]), y(v[1]), z(v[2]) {}
+  triple(const glm::vec3& v) : x(v.x), y(v.y), z(v.z) {}
+  triple(const glm::dvec3& v) : x(v.x), y(v.y), z(v.z) {}
 
   virtual ~triple() {}
 
@@ -53,6 +57,9 @@ public:
   double getx() const { return x; }
   double gety() const { return y; }
   double getz() const { return z; }
+
+  operator glm::vec3() const { return glm::vec3(x, y, z); }
+  operator glm::dvec3() const { return glm::dvec3(x, y, z); }
 
   // transform by row-major matrix
   friend triple operator* (const double* t, const triple& v) {

@@ -12,20 +12,23 @@
 
 namespace camp {
 
+extern AsyVkRender *vk;
+
 #ifdef HAVE_LIBGLM
 
 struct BezierPatch
 {
-  vertexBuffer data;
+  VertexBuffer data;
+
   bool transparent;
   bool color;
   double epsilon;
   double Epsilon;
   double res2;
   double Res2; // Reduced resolution for Bezier triangles flatness test.
-  typedef GLuint (vertexBuffer::*vertexFunction)(const triple &v,
-                                                 const triple& n);
-  vertexFunction pvertex;
+  // typedef GLuint (vertexBuffer::*vertexFunction)(const triple &v,
+  //                                                const triple& n);
+  // vertexFunction pvertex; // pointer to vertex function to use (transparent or not)
   bool Onscreen;
 
   void init(double res);
@@ -137,23 +140,12 @@ struct BezierPatch
 
   void append() {
     if(transparent)
-      transparentData.Append(data);
+      vk->transparentData.extendColor(data);
     else {
       if(color)
-        colorData.Append(data);
+        vk->colorData.extendColor(data);
       else
-        materialData.append(data);
-    }
-  }
-
-  virtual void notRendered() {
-    if(transparent)
-      transparentData.rendered=false;
-    else {
-      if(color)
-        colorData.rendered=false;
-      else
-        materialData.rendered=false;
+        vk->materialData.extendMaterial(data);
     }
   }
 
@@ -163,7 +155,6 @@ struct BezierPatch
     Onscreen=true;
     transparent=Transparent;
     color=colors;
-    notRendered();
     init(pixelResolution*ratio);
     render(g,straight,colors);
   }
@@ -196,6 +187,7 @@ public:
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL);
 };
 
+// triangle groups (can mix vertex dependent and material index color)
 struct Triangles : public BezierPatch {
 public:
   Triangles() : BezierPatch() {}
@@ -207,18 +199,10 @@ public:
 
   void append() {
     if(transparent)
-      transparentData.Append(data);
+      vk->transparentData.extendColor(data);
     else
-      triangleData.Append(data);
+      vk->triangleData.extendColor(data);
   }
-
-  void notRendered() {
-    if(transparent)
-      transparentData.rendered=false;
-    else
-      triangleData.rendered=false;
-  }
-
 };
 
 extern void sortTriangles();

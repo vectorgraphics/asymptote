@@ -35,7 +35,7 @@
 #include "pipestream.h"
 #include "array.h"
 
-#include "glrender.h"
+// #include "glrender.h"
 
 #ifdef HAVE_LIBCURSES
 extern "C" {
@@ -963,6 +963,7 @@ struct versionOption : public option {
     glm=true;
 #endif
 
+// how to deal with / replace this?
 #ifdef HAVE_GL
     gl=true;
 #endif

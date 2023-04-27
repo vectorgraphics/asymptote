@@ -30,7 +30,7 @@ doc:	$(DOCFILES) asy.1 faq
 manpage: $(MANFILES)
 
 man:	$(DOCFILES) manpage
-	cd png && $(MAKE) asymptote.info
+	# cd png && $(MAKE) asymptote.info
 
 faq:
 	cd FAQ && $(MAKE) faq

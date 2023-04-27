@@ -121,18 +121,18 @@ public:
     center=t*s->center;
   }
 
-  double renderResolution() {
-    double prerender=settings::getSetting<double>("prerender");
-    if(prerender <= 0.0) return 0.0;
-    prerender=1.0/prerender;
-    double perspective=gl::orthographic ? 0.0 : 1.0/gl::Zmax;
-    double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
-    triple b(gl::Xmin,gl::Ymin,gl::Zmin);
-    triple B(gl::Xmax,gl::Ymax,gl::Zmax);
-    pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-    pair size2(gl::fullWidth,gl::fullHeight);
-    return prerender*size3.length()/size2.length();
-  }
+  // double renderResolution() {
+  //   double prerender=settings::getSetting<double>("prerender");
+  //   if(prerender <= 0.0) return 0.0;
+  //   prerender=1.0/prerender;
+  //   double perspective=gl::orthographic ? 0.0 : 1.0/gl::Zmax;
+  //   double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
+  //   triple b(gl::Xmin,gl::Ymin,gl::Zmin);
+  //   triple B(gl::Xmax,gl::Ymax,gl::Zmax);
+  //   pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+  //   pair size2(gl::fullWidth,gl::fullHeight);
+  //   return prerender*size3.length()/size2.length();
+  // }
 
   virtual ~drawSurface() {}
 
@@ -584,11 +584,11 @@ public:
   }
 
 #ifdef HAVE_LIBGLM
-  drawBaseTriangles(const vertexBuffer& vb, const triple& center,
+  drawBaseTriangles(const VertexBuffer& vb, const triple& center,
                     Interaction interaction, bool isColor,
                     const triple& Min, const triple& Max) :
     transparent(false),
-    nP(isColor ? vb.Vertices.size() : vb.vertices.size()), center(center),
+    nP(isColor ? vb.colorVertices.size() : vb.materialVertices.size()), center(center),
     nN(nP), nI(vb.indices.size()/3), Ni(0),
     interaction(interaction), Min(Min), Max(Max) {
     init();
@@ -596,15 +596,15 @@ public:
     P=new(UseGC) triple[nP];
     N=new(UseGC) triple[nN];
     if(!isColor) {
-      for (size_t i=0; i < vb.vertices.size(); ++i) {
-        P[i]=triple(vb.vertices[i].position[0], vb.vertices[i].position[1], vb.vertices[i].position[2]);
-        N[i]=triple(vb.vertices[i].normal[0], vb.vertices[i].normal[1], vb.vertices[i].normal[2]);
+      for (size_t i=0; i < vb.materialVertices.size(); ++i) {
+        P[i]=triple(vb.materialVertices[i].position[0], vb.materialVertices[i].position[1], vb.materialVertices[i].position[2]);
+        N[i]=triple(vb.materialVertices[i].normal[0], vb.materialVertices[i].normal[1], vb.materialVertices[i].normal[2]);
       }
     }
     else {
-      for (size_t i=0; i < vb.Vertices.size(); ++i) {
-        P[i]=triple(vb.Vertices[i].position[0], vb.Vertices[i].position[1], vb.Vertices[i].position[2]);
-        N[i]=triple(vb.Vertices[i].normal[0], vb.Vertices[i].normal[1], vb.Vertices[i].normal[2]);
+      for (size_t i=0; i < vb.colorVertices.size(); ++i) {
+        P[i]=triple(vb.colorVertices[i].position[0], vb.colorVertices[i].position[1], vb.colorVertices[i].position[2]);
+        N[i]=triple(vb.colorVertices[i].normal[0], vb.colorVertices[i].normal[1], vb.colorVertices[i].normal[2]);
       }
     }
 
@@ -749,7 +749,7 @@ public:
   }
 
 #ifdef HAVE_LIBGLM
-  drawTriangles(vertexBuffer const& vb, const triple &center, bool isColor,
+  drawTriangles(VertexBuffer const& vb, const triple &center, bool isColor,
                 prc::RGBAColour diffuse,
                 prc::RGBAColour emissive,
                 prc::RGBAColour specular,
@@ -760,7 +760,7 @@ public:
                 bool invisible,
                 const triple& Min, const triple& Max) :
     drawBaseTriangles(vb,center,interaction,isColor,Min,Max),
-    nC(isColor ? vb.Vertices.size() : 0), C(nullptr),
+    nC(isColor ? vb.colorVertices.size() : 0), C(nullptr),
     CI(isColor ? PI : nullptr),
     Ci(isColor ? Ni : 0),
     diffuse(diffuse), emissive(emissive), specular(specular),
@@ -769,10 +769,10 @@ public:
     if(isColor) {
       C=new(UseGC) prc::RGBAColour[nC];
       for(size_t i=0; i < nC; ++i) {
-        C[i].Set(vb.Vertices[i].color[0],
-                 vb.Vertices[i].color[1],
-                 vb.Vertices[i].color[2],
-                 vb.Vertices[i].color[3]);
+        C[i].Set(vb.colorVertices[i].color[0],
+                 vb.colorVertices[i].color[1],
+                 vb.colorVertices[i].color[2],
+                 vb.colorVertices[i].color[3]);
       }
     }
   }

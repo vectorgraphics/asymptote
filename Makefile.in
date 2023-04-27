@@ -12,7 +12,7 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -ldl -lglfw -lvulkan
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
 CMAKE ?= cmake
@@ -50,7 +50,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
 	$(PRC) glrender tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures \
-	lspserv symbolmaps
+	lspserv symbolmaps vkrender
 
 FILES = $(COREFILES) main
 
@@ -204,7 +204,7 @@ html:	asy sty
 	cd doc && $(MAKE) doc
 
 man:	asy sty
-	cd doc && $(MAKE) man
+	# cd doc && $(MAKE) man
 
 faq:	asy sty
 	cd doc && $(MAKE) faq
@@ -224,7 +224,7 @@ allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
 
 symbol.o: $(SYMBOLSH)
 
-GUI/icons_rc.py: GUI/res/icons.qrc
+GUI/icons_rc.py:
 	-$(PYRCC) GUI/res/icons.qrc -o GUI/icons_rc.py
 
 camp.tab.cc: camp.y

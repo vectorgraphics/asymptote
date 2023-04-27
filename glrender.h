@@ -201,15 +201,17 @@ struct Billboard {
   }
 };
 
+// for billboard labels (global varaible for communication)
 extern Billboard BB;
 
 #ifdef HAVE_LIBGLM
 typedef mem::map<CONST Material,size_t> MaterialMap;
 
+// what is all this for?
 extern std::vector<Material> materials;
 extern MaterialMap materialMap;
-extern size_t materialIndex;
-extern int MaterialIndex;
+extern size_t materialIndex; // used in drawsurface.cc and glrender.cc
+extern int MaterialIndex; // communication to tell the current material index being used
 
 extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
 extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers

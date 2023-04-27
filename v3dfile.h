@@ -20,7 +20,7 @@
 #include "xstream.h"
 #include "triple.h"
 #include "material.h"
-#include "glrender.h"
+// #include "glrender.h"
 #define transform transform_
 #include "v3dtypes.h"
 #undef transform

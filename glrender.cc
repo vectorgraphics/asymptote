@@ -26,6 +26,8 @@
 #include "interact.h"
 #include "fpu.h"
 
+#include "glrender.h"
+
 extern uint32_t CLZ(uint32_t a);
 
 bool GPUindexing;
@@ -121,11 +123,18 @@ namespace camp {
 bool initSSBO;
 GLuint maxFragments;
 
+// could remove one or two of materialData, colorData, and triangleData?
+
 vertexBuffer material0Data(GL_POINTS);
+// how does the normal work for lines?
 vertexBuffer material1Data(GL_LINES);
 vertexBuffer materialData;
 vertexBuffer colorData;
 vertexBuffer transparentData;
+// difference between materialData and triangleData seems to be materialShader vs generalShader
+// triangleData also has a color attribute (triangle vs. color ?)
+// can use general all the time?
+// generalShader can do both material index and color based color for each vertex (passed by materialIndex sign)
 vertexBuffer triangleData;
 
 const size_t Nbuffer=10000;
@@ -223,9 +232,9 @@ int screenWidth,screenHeight;
 int maxTileWidth;
 int maxTileHeight;
 
-double Angle;
+double Angle; // FOV angle (the initial zoom value)
 bool orthographic;
-double H;
+double H; // height of the scene
 
 double xmin,xmax;
 double ymin,ymax;
@@ -234,11 +243,13 @@ double Xmin,Xmax;
 double Ymin,Ymax;
 double Zmin,Zmax;
 
-pair Shift;
+// shifting shifts the viewport or image?
+// panning actually moves the camera?
+pair Shift; // record of incoming shift
 pair Margin;
-double X,Y;
-int x0,y0;
-double cx,cy;
+double X,Y; // offset for shifting the viewport
+int x0,y0; // last x0 and last y0 (for tracking mouse position)
+double cx,cy; // something to with panning (coordinates of the center of the object)
 double Xfactor,Yfactor;
 double ArcballFactor;
 
@@ -256,7 +267,7 @@ double *Diffuse;
 double *Specular;
 bool antialias;
 
-double Zoom;
+double Zoom; // used to change zoom after intialy set by angle
 double Zoom0;
 double lastzoom;
 
@@ -842,6 +853,7 @@ void drawscene(int Width, int Height)
 
   double size2=hypot(Width,Height);
 
+  // what is this for?
   if(remesh)
     camp::clearCenters();
 
