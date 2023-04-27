@@ -4,8 +4,10 @@ GC=7.6.2
 MACHINE=`uname -m`
 if [ $MACHINE == i686 ]; then
 BINDIR=i386-windows
+HEAPSIZE=2048
 else
 BINDIR=x86_64-windows
+HEAPSIZE=4096
 fi
 SHARED=~/shared/asy
 MAKEFLAGS=-j8
@@ -22,12 +24,13 @@ echo Building asymptote-$VERSION
 cd ~/
 rm -rf asymptote-$VERSION
 mkdir -p CTAN
-rm -rf CTAN/asymptote-$VERSION
+rm -rf CTAN/asymptote
 cd CTAN
 tar -vzxf $SHARED/asymptote-$VERSION.src.tgz | grep "/\." | xargs rm -rf
+mv asymptote-$VERSION asymptote
 cd ..
 tar -zxf $SHARED/asymptote-$VERSION.src.tgz
-mkdir -p CTAN/asymptote-$VERSION/binaries/$BINDIR/texlive
+mkdir -p CTAN/asymptote/binaries/$BINDIR/texlive
 cd asymptote-$VERSION
 fi
 BUILD=build-$VERSION
@@ -39,10 +42,11 @@ mkdir -p $BUILD
 cp -a $HOME/dll/cygwin/*.dll $BUILD
 cp /etc/pki/tls/certs/ca-bundle.crt $BUILD
 chmod 0644 $BUILD/*.dll
-cp -a $BUILD/*.dll ~/CTAN/asymptote-$VERSION/binaries/$BINDIR/
+cp -a $BUILD/*.dll ~/CTAN/asymptote/binaries/$BINDIR/
 make MSDOS=1 DESTDIR="$BUILD/" docdir="$BUILD/"
 test -f asy.list || make MSDOS=1 keywords DESTDIR="$BUILD/" docdir="$BUILD/"
 make MSDOS=1 install-asy DESTDIR="$BUILD/" docdir="$BUILD/"
+peflags --cygwin-heap=$HEAPSIZE asy.exe
 cp asy.ico README LICENSE* $BUILD
 pushd $BUILD
 mv usr/local/bin/* .
@@ -81,21 +85,22 @@ cd asymptote-${VERSION}TL
 rm settings.o
 rm -f doc/*.aux doc/*.log doc/*.dvi
 make MSDOS=1 DESTDIR="$BUILD/"
+peflags --cygwin-heap=4096 asy.exe
 make MSDOS=1 install-asy DESTDIR="$BUILD/"
 mv $BUILD/usr/local/bin/asy.exe $BUILD
-cp $BUILD/asy.exe ~/CTAN/asymptote-$VERSION/binaries/$BINDIR/texlive
-cp -a configure.ac ~/CTAN/asymptote-$VERSION/
-cp -a $SHARED/asydoc/* ~/CTAN/asymptote-$VERSION/doc
-cd ~/CTAN/asymptote-$VERSION/binaries/$BINDIR
+cp $BUILD/asy.exe ~/CTAN/asymptote/binaries/$BINDIR/texlive
+cp -a configure.ac ~/CTAN/asymptote/
+cp -a $SHARED/asydoc/* ~/CTAN/asymptote/doc
+cd ~/CTAN/asymptote/binaries/$BINDIR
 cp -a ../../README .
 cd ~/CTAN
-cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/$BINDIR/texlive/README
-SHAREDBIN=$SHARED/CTAN/asymptote-$VERSION
+cp -a ~/asymptote/build-scripts/README-binaries asymptote/binaries/$BINDIR/texlive/README
+SHAREDBIN=$SHARED/CTAN/asymptote
 if [ $MACHINE == i686 ]; then
 mkdir -p $SHAREDBIN
-cp -a asymptote-$VERSION/binaries/$BINDIR $SHAREDBIN
+cp -a asymptote/binaries/$BINDIR $SHAREDBIN
 else
-cp -a $SHAREDBIN/i386-windows ~/CTAN/asymptote-$VERSION/binaries
+cp -a $SHAREDBIN/i386-windows ~/CTAN/asymptote/binaries
 fi
-tar cfz asymptote-$VERSION-CTAN.tgz asymptote-$VERSION
+tar cfz asymptote-$VERSION-CTAN.tgz asymptote
 cp -a --no-preserve=mode asymptote-$VERSION-CTAN.tgz $SHARED

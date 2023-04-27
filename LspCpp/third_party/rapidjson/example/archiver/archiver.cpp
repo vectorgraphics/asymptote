@@ -69,7 +69,7 @@ JsonReader& JsonReader::Member(const char* name) {
     if (!mError) {
         if (CURRENT.IsObject() && TOP.state == JsonReaderStackItem::Started) {
             Value::ConstMemberIterator memberItr = CURRENT.FindMember(name);
-            if (memberItr != CURRENT.MemberEnd()) 
+            if (memberItr != CURRENT.MemberEnd())
                 STACK->push(JsonReaderStackItem(&memberItr->value, JsonReaderStackItem::BeforeStart));
             else
                 mError = true;
@@ -218,7 +218,7 @@ JsonWriter::JsonWriter() : mWriter(), mStream() {
     mWriter = new PrettyWriter<StringBuffer>(*STREAM);
 }
 
-JsonWriter::~JsonWriter() { 
+JsonWriter::~JsonWriter() {
     delete WRITER;
     delete STREAM;
 }
@@ -249,7 +249,7 @@ bool JsonWriter::HasMember(const char*) const {
 }
 
 JsonWriter& JsonWriter::StartArray(size_t*) {
-    WRITER->StartArray();   
+    WRITER->StartArray();
     return *this;
 }
 

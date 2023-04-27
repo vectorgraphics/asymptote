@@ -17,7 +17,7 @@ public:
 
     /// Starts an object
     Archiver& StartObject();
-    
+
     /// After calling StartObject(), assign a member with a name
     Archiver& Member(const char* name);
 

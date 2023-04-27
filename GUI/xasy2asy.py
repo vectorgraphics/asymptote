@@ -416,6 +416,10 @@ class asyPen(asyObj):
         self.color = (0, 0, 0)
         self.options = pen_options
         self.width = width
+        self.style = "solid"
+        self.capStyle = QtCore.Qt.PenCapStyle.SquareCap
+        self.opacity = 255 #Should these be in a dictionary?
+        self.dashPattern = [1,0]
         self._asyengine = asyengine
         self._deferAsyfy = False
         if pen_options:
@@ -431,6 +435,14 @@ class asyPen(asyObj):
     def asyEngine(self, value):
         self._asyengine = value
 
+    def qtCapStyleToAsyCapStyle(self, style):
+        lineCapList = [QtCore.Qt.PenCapStyle.SquareCap,QtCore.Qt.PenCapStyle.FlatCap,QtCore.Qt.PenCapStyle.RoundCap]
+        asyCapList = ["extendcap","flatcap","roundcap"]
+        if style in lineCapList:
+            return asyCapList[lineCapList.index(style)]
+        else:
+            return False
+
     def updateCode(self, asy2psmap = identity()):
         """ Generate the pen's code """
         if self._deferAsyfy:
@@ -438,10 +450,28 @@ class asyPen(asyObj):
         self.asyCode = 'rgb({:g},{:g},{:g})+{:s}'.format(self.color[0], self.color[1], self.color[2], str(self.width))
         if len(self.options) > 0:
             self.asyCode = self.asyCode + '+' + self.options
+        if self.style != "solid":
+            self.asyCode = self.style + '+' + self.asyCode
 
     def setWidth(self, newWidth):
         """ Set the pen's width """
         self.width = newWidth
+        self.updateCode()
+
+    def setDashPattern(self, pattern):
+        self.dashPattern = pattern
+        self.updateCode() #Get working
+
+    def setStyle(self, style):
+        self.style = style
+        self.updateCode()
+
+    def setCapStyle(self, style):
+        self.capStyle = style
+        self.updateCode()
+
+    def setOpacity(self, opacity):
+        self.opacity = opacity
         self.updateCode()
 
     def setColor(self, color):
@@ -493,8 +523,13 @@ class asyPen(asyObj):
         if self._deferAsyfy:
             self.computeColor()
         newPen = QtGui.QPen()
-        newPen.setColor(asyPen.convertToQColor(self.color))
+        color = asyPen.convertToQColor(self.color)
+        color.setAlpha(self.opacity)
+        newPen.setColor(color)
+        newPen.setCapStyle(self.capStyle)
         newPen.setWidthF(self.width)
+        if self.dashPattern:
+            newPen.setDashPattern(self.dashPattern)
 
         return newPen
 
@@ -969,7 +1004,7 @@ class xasyItem(QtCore.QObject):
             if transfExists:
                 transfExists = localCount <= len(self.transfKeymap[key]) - 1
                 if transfExists:
-                    validKey = not self.transfKeymap[key][localCount].deleted
+                    validKey = not self.transfKeymap[key][localCount].deleted #Does this ever exist?
             else:
                 validKey = False
 
@@ -1290,6 +1325,11 @@ class xasyShape(xasyDrawnItem):
     def copy(self):
         return type(self)(self.path,self._asyengine,self.pen)
 
+    def arrowify(self,arrowhead=0):
+        newObj = asyArrow(self.path.asyengine, pen=self.pen, transfKey = self.transfKey, transfKeymap = self.transfKeymap, canvas = self.onCanvas, arrowActive = arrowhead, code = self.path.getCode(yflip())) #transform
+        newObj.arrowSettings["fill"] = self.path.fill
+        return newObj
+
 
 class xasyFilledShape(xasyShape):
     """ A filled shape drawn on the GUI """
@@ -1555,11 +1595,23 @@ class xasyScript(xasyItem):
                 if i + 1 in keylist.keys():
                     # this case, we have a key.
                     with io.StringIO() as raw_line:
-                        for j in range(len(curr_str)):
+                        n=len(curr_str)
+                        for j in range(n):
                             raw_line.write(curr_str[j])
                             if j + 1 in keylist[i + 1]:
                                 # at this point, replace keys with xkey
-                                raw_line.write('KEY="{0:s}",'.format(linenum2key[(i + 1, j + 1)]))
+                                sep=','
+                                k=j+1
+                                # assume begingroup is on a single line for now
+                                while k < n:
+                                    c=curr_str[k]
+                                    if c == ')':
+                                        sep=''
+                                        break
+                                    if not c.isspace():
+                                        break
+                                    ++k
+                                raw_line.write('KEY="{0:s}"'.format(linenum2key[(i + 1, j + 1)])+sep)
                                 self.userKeys.add(linenum2key[(i + 1, j + 1)])
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.
@@ -1819,3 +1871,125 @@ class DrawObject(QtCore.QObject):
 
     def getID(self):
         return self.originalObj
+
+
+class asyArrow(xasyItem):
+
+    def __init__(self, asyengine, pen=None, transform=identity(), transfKey=None, transfKeymap = None, canvas=None, arrowActive=False, code=None):
+        #super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
+        """Initialize the label with the given test, location, and pen"""
+        #asyObj.__init__(self)
+        super().__init__(canvas=canvas, asyengine=asyengine) #CANVAS? Seems to work.
+        if pen is None:
+            pen = asyPen()
+        if pen.asyEngine is None:
+            pen.asyEngine = asyengine
+        self.pen = pen
+        self.fillPen = asyPen()
+        self.fillPen.asyEngine = asyengine
+        self.code = code
+        #self.path = path
+        #self.path.asyengine = asyengine
+        self.transfKey = transfKey
+        if transfKeymap == None: #Better way?
+            self.transfKeymap = {self.transfKey: [transform]}
+        else:
+            self.transfKeymap = transfKeymap
+        self.location = (0,0)
+        self.asyfied = False
+        self.onCanvas = canvas
+
+        self.arrowSettings = {"active": arrowActive, "style": 0, "fill": 0} #Rename active?
+        self.arrowList = ["","Arrow","ArcArrow"] #The first setting corresponds to no arrow.
+        self.arrowStyleList = ["","SimpleHead","HookHead","TeXHead"]
+        self.arrowFillList = ["","FillDraw","Fill","NoFill","UnFill","Draw"]
+
+    def getArrowSettings(self):
+        settings = "("
+
+        if self.arrowSettings["style"] != 0:
+            settings += "arrowhead="
+        settings += self.arrowStyleList[self.arrowSettings["style"]]
+
+        if "size" in self.arrowSettings:
+            if settings != "(": #This is really messy.
+                settings += ","
+            settings += "size=" + str(self.arrowSettings["size"]) #Should I add options to this? Like for cm?
+
+        if "angle" in self.arrowSettings: #This is so similar, you should be able to turn this into a function or something.
+            if settings != "(":
+                settings += ","
+            settings += "angle=" + str(self.arrowSettings["angle"])
+
+        if self.arrowSettings["fill"] != 0:
+            if settings != "(":
+                settings += ","
+            settings += "filltype="
+        settings += self.arrowFillList[self.arrowSettings["fill"]]
+
+        settings += ")"
+        #print(settings)
+        return settings
+
+    def setKey(self, newKey = None):
+        transform = self.transfKeymap[self.transfKey][0]
+
+        self.transfKey = newKey
+        self.transfKeymap = {self.transfKey: [transform]}
+
+    def updateCode(self, asy2psmap = identity()):
+        newLoc = asy2psmap.inverted() * self.location
+        self.asyCode = ''
+        if self.arrowSettings["active"]:
+            if self.arrowSettings["fill"]:
+                self.asyCode += 'begingroup(KEY="{0}");'.format(self.transfKey)+'\n\n'
+                self.asyCode += 'fill({0},{1});'.format(self.code, self.fillPen.getCode())+'\n\n'
+                self.asyCode += 'draw({0},{1},arrow={2}{3});'.format(self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
+            else:
+                self.asyCode += 'draw(KEY="{0}",{1},{2},arrow={3}{4});'.format(self.transfKey, self.code, self.pen.getCode(), self.arrowList[self.arrowSettings["active"]],self.getArrowSettings())+'\n\n'
+            if self.arrowSettings["fill"]:
+                self.asyCode += 'endgroup();\n\n'
+        else:
+            self.asyCode = 'draw(KEY="{0}",{1},{2});'.format(self.transfKey, self.code, self.pen.getCode())+'\n\n'
+
+    def setPen(self, pen):
+        """ Set the label's pen """
+        self.pen = pen
+        self.updateCode()
+
+    def moveTo(self, newl):
+        """ Translate the label's location """
+        self.location = newl
+
+    def getObjectCode(self, asy2psmap=identity()):
+        self.updateCode()
+        return self.asyCode
+
+    def getTransformCode(self, asy2psmap=identity()):
+        transf = self.transfKeymap[self.transfKey][0]
+        if transf == identity():
+            return ''
+        else:
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode(asy2psmap))+'\n'
+
+    def generateDrawObjects(self, forceUpdate=False):
+        self.asyfy(forceUpdate)
+        transf = self.transfKeymap[self.transfKey][0]
+        for drawObject in self.drawObjects:
+            drawObject.pTransform = transf
+        return self.drawObjects
+
+    def __str__(self):
+        """ Create a string describing this shape """
+        return "xasyShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
+
+    def swapFill(self):
+        self.arrowSettings["fill"] = not self.arrowSettings["fill"]
+
+    def getBoundingBox(self):
+        self.asyfy()
+        return self.imageList[0].bbox
+
+    def copy(self):
+        #Include all parameters?
+        return type(self)(self._asyengine,pen=self.pen,canvas=self.onCanvas,arrowActive=self.arrowSettings["active"])

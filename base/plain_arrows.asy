@@ -157,7 +157,7 @@ TeXHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
   if(relative) position=reltime(g,position);
   path r=subpath(g,position,0);
   pair y=point(r,arctime(r,size));
-  return shift(y)*rotate(degrees(-dir(r,arctime(r,0.5*size))))*gp;
+  return shift(y)*rotate(degrees(-dir(r,arctime(r,0.5*size)),false))*gp;
 };
 TeXHead.defaultfilltype=new filltype(pen p) {return Fill(p);};
 

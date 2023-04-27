@@ -15,7 +15,7 @@
 
 namespace lsp
 {
-	
+
 
 // Returns true if |value| starts/ends with |start| or |ending|.
 bool StartsWith(std::string value, std::string start);

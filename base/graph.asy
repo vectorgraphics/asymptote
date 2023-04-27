@@ -2186,45 +2186,49 @@ picture vectorfield(path vector(real), path g, int n, bool truesize=false,
   return pic;
 }
 
-real maxlength(pair a, pair b, int nx, int ny)
-{
-  return min((b.x-a.x)/nx,(b.y-a.y)/ny);
-}
-
 // return a vector field over box(a,b).
 picture vectorfield(path vector(pair), pair a, pair b,
                     int nx=nmesh, int ny=nx, bool truesize=false,
-                    real maxlength=truesize ? 0 : maxlength(a,b,nx,ny),
                     bool cond(pair z)=null, pen p=currentpen,
                     arrowbar arrow=Arrow, margin margin=PenMargin)
 {
   picture pic;
-  real dx=1/nx;
-  real dy=1/ny;
+  real dx=(b.x-a.x)/(nx-1);
+  real dy=(b.y-a.y)/(ny-1);
   bool all=cond == null;
   real scale;
 
-  if(maxlength > 0) {
-    real size(pair z) {
-      path g=vector(z);
-      return abs(point(g,size(g)-1)-point(g,0));
+  transform t=scale(dx,dy);
+  pair size(pair z) {
+    path g=t*vector(z);
+    int n=size(g);
+    pair w=n == 1 ? point(g,0) : point(g,n-1)-point(g,0);
+    return (abs(w.x),abs(w.y));
+  }
+  pair max=size(a);
+  for(int i=0; i < nx; ++i) {
+    real x=a.x+i*dx;
+    for(int j=0; j < ny; ++j) {
+      real y=a.y+j*dy;
+      max=maxbound(max,size((x,y)));
     }
-    real max=size(a);
-    for(int i=0; i <= nx; ++i) {
-      real x=interp(a.x,b.x,i*dx);
-      for(int j=0; j <= ny; ++j)
-        max=max(max,size((x,interp(a.y,b.y,j*dy))));
-    }
-    scale=max > 0 ? maxlength/max : 1;
-  } else scale=1;
+  }
 
-  for(int i=0; i <= nx; ++i) {
-    real x=interp(a.x,b.x,i*dx);
-    for(int j=0; j <= ny; ++j) {
-      real y=interp(a.y,b.y,j*dy);
+  if(max.x == 0)
+    scale=max.y == 0 ? 1.0 : dy/max.y;
+  else if(max.y == 0)
+    scale=dx/max.x;
+  else
+    scale=min(dx/max.x,dy/max.y);
+
+  for(int i=0; i < nx; ++i) {
+    real x=a.x+i*dx;
+    for(int j=0; j < ny; ++j) {
+      real y=a.y+j*dy;
       pair z=(x,y);
       if(all || cond(z)) {
-        path g=scale(scale)*vector(z);
+        path v=scale(scale)*t*vector(z);
+        path g=size(v) == 1 ? (0,0)--v : v;
         if(truesize)
           draw(z,pic,g,p,arrow);
         else

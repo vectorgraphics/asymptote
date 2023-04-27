@@ -44,6 +44,10 @@
 #include "interact.h"
 #include "fileio.h"
 
+#ifdef HAVE_LIBFFTW3
+#include "fftw++.h"
+#endif
+
 #ifdef HAVE_LSP
 #include "lspserv.h"
 #endif
@@ -114,6 +118,9 @@ void signalHandler(int)
 
 void interruptHandler(int)
 {
+#ifdef HAVE_LIBFFTW3
+  fftwpp::saveWisdom();
+#endif
   em.Interrupt(true);
 }
 
@@ -140,6 +147,9 @@ void *asymain(void *A)
   setsignal(signalHandler);
   Args *args=(Args *) A;
   fpu_trap(trap());
+#ifdef HAVE_LIBFFTW3
+  fftwpp::wisdomName=".wisdom";
+#endif
 
   if(interactive) {
     Signal(SIGINT,interruptHandler);

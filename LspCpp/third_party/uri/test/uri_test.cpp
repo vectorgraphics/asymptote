@@ -470,7 +470,7 @@ TEST(uri_test, range_test) {
   const std::string url("http://www.example.com/");
   network::uri instance(url);
   EXPECT_TRUE(std::equal(std::begin(instance), std::end(instance),
-			 std::begin(url)));
+                         std::begin(url)));
 }
 
 TEST(uri_test, issue_104_test) {

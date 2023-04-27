@@ -10,17 +10,17 @@
  * @since 3.16.0
  */
 struct MarkdownClientCapabilities {
-	/**
-	 * The name of the parser.
-	 */
-	std::string parser;
+        /**
+         * The name of the parser.
+         */
+        std::string parser;
 
-	/**
-	 * The version of the parser.
-	 */
-	boost::optional<std::string>  version;
-	MAKE_SWAP_METHOD(MarkdownClientCapabilities, parser, version)
-	
+        /**
+         * The version of the parser.
+         */
+        boost::optional<std::string>  version;
+        MAKE_SWAP_METHOD(MarkdownClientCapabilities, parser, version)
+
 };
 MAKE_REFLECT_STRUCT(MarkdownClientCapabilities, parser, version)
 
@@ -32,7 +32,7 @@ struct lsClientCapabilities {
   boost::optional<lsTextDocumentClientCapabilities> textDocument;
 
   /**
-	* Window specific client capabilities.
+        * Window specific client capabilities.
   */
   boost::optional<lsp::Any>  window;
   /**

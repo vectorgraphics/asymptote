@@ -28,20 +28,20 @@ MAKE_REFLECT_TYPE_PROXY(lsDiagnosticSeverity);
  */
 enum class DiagnosticTag :uint8_t {
 
-	/**
-	 * Unused or unnecessary code.
-	 *
-	 * Clients are allowed to render diagnostics with this tag faded out instead of having
-	 * an error squiggle.
-	 */
-	Unnecessary=(1),
+        /**
+         * Unused or unnecessary code.
+         *
+         * Clients are allowed to render diagnostics with this tag faded out instead of having
+         * an error squiggle.
+         */
+        Unnecessary=(1),
 
-	/**
-	 * Deprecated or obsolete code.
-	 *
-	 * Clients are allowed to rendered diagnostics with this tag strike through.
-	 */
-	 Deprecated=(2),
+        /**
+         * Deprecated or obsolete code.
+         *
+         * Clients are allowed to rendered diagnostics with this tag strike through.
+         */
+         Deprecated=(2),
 };
 MAKE_REFLECT_TYPE_PROXY(DiagnosticTag);
 
@@ -56,19 +56,19 @@ MAKE_REFLECT_TYPE_PROXY(DiagnosticTag);
  */
 
 struct DiagnosticRelatedInformation {
-	/**
-	 * The location of this related diagnostic information.
-	 */
+        /**
+         * The location of this related diagnostic information.
+         */
 
     lsLocation location;
 
-	/**
-	 * The message of this related diagnostic information.
-	 */
+        /**
+         * The message of this related diagnostic information.
+         */
 
-	 std::string message;
+         std::string message;
 
-	 MAKE_SWAP_METHOD(DiagnosticRelatedInformation, location, message)
+         MAKE_SWAP_METHOD(DiagnosticRelatedInformation, location, message)
 };
 MAKE_REFLECT_STRUCT(DiagnosticRelatedInformation, location, message)
 /**
@@ -77,11 +77,11 @@ MAKE_REFLECT_STRUCT(DiagnosticRelatedInformation, location, message)
  * @since 3.16.0
  */
 struct DiagnosticCodeDescription {
-	/**
-	 * An URI to open with more information about the diagnostic error.
-	 */
-	std::string href;
-	MAKE_SWAP_METHOD(DiagnosticCodeDescription, href)
+        /**
+         * An URI to open with more information about the diagnostic error.
+         */
+        std::string href;
+        MAKE_SWAP_METHOD(DiagnosticCodeDescription, href)
 };
 MAKE_REFLECT_STRUCT(DiagnosticCodeDescription, href)
 
@@ -114,7 +114,7 @@ struct lsDiagnostic {
    * @since 3.15.0
    */
   boost::optional<std::vector<DiagnosticTag>> tags;
-	
+
 
   /**
  * An array of related diagnostic information, e.g. when symbol-names within a scope collide
@@ -142,8 +142,8 @@ MAKE_REFLECT_STRUCT(lsDiagnostic, range, severity, code, codeDescription, source
 
 
 struct Rsp_Error : ResponseError<lsResponseError, Rsp_Error> {
-	
-	MAKE_SWAP_METHOD(Rsp_Error, jsonrpc, id, error)
+
+        MAKE_SWAP_METHOD(Rsp_Error, jsonrpc, id, error)
 };
 MAKE_REFLECT_STRUCT(Rsp_Error, jsonrpc, id, error)
 

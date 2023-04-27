@@ -42,7 +42,7 @@ struct simplex {
     }
   }
 
-  int iterate(real[][] E, int N, int[] Bindices) {
+  int iterate(real[][] E, int N, int[] Bindices, bool phase1=false) {
     while(true) {
       // Bland's rule: first negative entry in reduced cost (bottom) row enters
       real[] Em=E[m];
@@ -77,11 +77,13 @@ struct simplex {
       // Generate new tableau
       Bindices[I]=J;
       rowreduce(E,N,I,J);
+
+      if(phase1 && abs(Em[0]) <= EpsilonA) break;
     }
     return OPTIMAL;
   }
 
-  int iterateDual(real[][] E, int N, int[] Bindices) {
+  int iterateDual(real[][] E, int N, int[] Bindices, bool phase1=false) {
     while(true) {
       // Bland's rule: negative variable with smallest subscript exits
       int I;
@@ -182,30 +184,28 @@ struct simplex {
 
     if(phase1) {
       Bindices=new int[m];
-      int p=0;
+      int k=0;
 
       // Check for redundant basis vectors.
-      bool checkBasis(int j) {
-        for(int i=0; i < m; ++i) {
-          real[] Ei=E[i];
-          if(i != p ? abs(Ei[j]) >= epsilonA : Ei[j] <= epsilonA) return false;
+      for(int p=0; p < m; ++p) {
+        bool checkBasis(int j) {
+          for(int i=0; i < m; ++i) {
+            real[] Ei=E[i];
+            if(i != p ? abs(Ei[j]) >= epsilonA : Ei[j] <= epsilonA)
+              return false;
+          }
+          return true;
         }
-        return true;
-      }
 
-      int checkTableau() {
-        for(int j=1; j <= n; ++j)
-          if(checkBasis(j)) return j;
-        return 0;
-      }
+        int checkTableau() {
+          for(int j=1; j <= n; ++j)
+            if(checkBasis(j)) return j;
+          return 0;
+        }
 
-      int k=0;
-      while(p < m) {
         int j=checkTableau();
-        if(j > 0)
-          Bindices[p]=j;
-        else { // Add an artificial variable
-          Bindices[p]=n+1+k;
+        Bindices[p]=n+1+p;
+        if(j == 0) { // Add an artificial variable
           for(int i=0; i < p; ++i)
             E[i].push(0.0);
           E[p].push(1.0);
@@ -214,11 +214,11 @@ struct simplex {
           E[m].push(0.0);
           ++k;
         }
-        ++p;
       }
 
       basicValues();
-      iterate(E,n+k,Bindices);
+
+      iterate(E,n+k,Bindices,true);
 
       if(abs(Em[0]) > EpsilonA) {
       case=INFEASIBLE;
@@ -234,8 +234,7 @@ struct simplex {
     if(phase1) {
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
-        int k=Bindices[i];
-        if(k > n) {
+        if(Bindices[i] > n) {
           real[] Ei=E[i];
           int j;
           for(j=1; j <= n; ++j)

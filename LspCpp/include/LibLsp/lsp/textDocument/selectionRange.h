@@ -8,35 +8,35 @@
 #include "LibLsp/lsp/lsTextDocumentIdentifier.h"
 
 struct SelectionRangeParams {
-	/**
-	 * The text document.
-	 */
+        /**
+         * The text document.
+         */
 
-	lsTextDocumentIdentifier textDocument;
+        lsTextDocumentIdentifier textDocument;
 
-	/**
-	 * The positions inside the text document.
-	 */
+        /**
+         * The positions inside the text document.
+         */
 
-	std::vector<lsPosition> positions;
-	
-	MAKE_SWAP_METHOD(SelectionRangeParams, textDocument, positions)
-	
+        std::vector<lsPosition> positions;
+
+        MAKE_SWAP_METHOD(SelectionRangeParams, textDocument, positions)
+
 };
 MAKE_REFLECT_STRUCT(SelectionRangeParams, textDocument, positions)
 
 struct SelectionRange {
-	/**
-	 * The [range](#Range) of this selection range.
-	 */
+        /**
+         * The [range](#Range) of this selection range.
+         */
 
-	lsRange range;
+        lsRange range;
 
-	/**
-	 * The parent selection range containing this range. Therefore `parent.range` must contain `this.range`.
-	 */
-	boost::optional<SelectionRange*> parent;
-	MAKE_SWAP_METHOD(SelectionRange, range, parent)
+        /**
+         * The parent selection range containing this range. Therefore `parent.range` must contain `this.range`.
+         */
+        boost::optional<SelectionRange*> parent;
+        MAKE_SWAP_METHOD(SelectionRange, range, parent)
 };
 
 extern  void Reflect(Reader& visitor, boost::optional<SelectionRange*>& value);

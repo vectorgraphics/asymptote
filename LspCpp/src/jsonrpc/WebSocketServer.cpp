@@ -115,29 +115,29 @@ namespace lsp {
 
         void close()
         {
-        	if(ws_.is_open())
-        	{
-        		boost::system::error_code ec;
-        		ws_.close(websocket::close_code::normal, ec);
-        	}
+                if(ws_.is_open())
+                {
+                        boost::system::error_code ec;
+                        ws_.close(websocket::close_code::normal, ec);
+                }
 
         }
     };
 
     //------------------------------------------------------------------------------
 
-	    struct WebSocketServer::Data
-	    {
+            struct WebSocketServer::Data
+            {
             Data(const std::string& user_agent, lsp::Log& log) :
-			    acceptor_(io_context_), user_agent_(user_agent), _log(log)
+                            acceptor_(io_context_), user_agent_(user_agent), _log(log)
 
-		    {
-		    }
+                    {
+                    }
 
-	    	~Data()
-		    {
+                ~Data()
+                    {
 
-		    }
+                    }
             /// The io_context used to perform asynchronous operations.
             boost::asio::io_context io_context_;
 
@@ -151,68 +151,68 @@ namespace lsp {
             std::string user_agent_;
             lsp::Log& _log;
 
-	    };
+            };
 
     websocket_stream_wrapper::websocket_stream_wrapper(boost::beast::websocket::stream<boost::beast::tcp_stream>& _w):
-	    ws_(_w), request_waiter(new MultiQueueWaiter()),
-	    on_request(request_waiter)
+            ws_(_w), request_waiter(new MultiQueueWaiter()),
+            on_request(request_waiter)
     {
     }
 
     bool websocket_stream_wrapper::fail()
     {
-	    return bad();
+            return bad();
     }
 
     bool websocket_stream_wrapper::eof()
     {
-	    return bad();
+            return bad();
     }
 
     bool websocket_stream_wrapper::good()
     {
-	    return !bad();
+            return !bad();
     }
 
     websocket_stream_wrapper& websocket_stream_wrapper::read(char* str, std::streamsize count)
     {
-	    auto some = on_request.TryDequeueSome(static_cast<size_t>(count));
+            auto some = on_request.TryDequeueSome(static_cast<size_t>(count));
         memcpy(str,some.data(),some.size());
         for (std::streamsize i = some.size(); i < count; ++i)
         {
             str[i] = static_cast<char>(get());
         }
-	    return *this;
+            return *this;
     }
 
     int websocket_stream_wrapper::get()
     {
-	    return on_request.Dequeue();
+            return on_request.Dequeue();
     }
 
     bool websocket_stream_wrapper::bad()
     {
-	    return !ws_.next_layer().socket().is_open();
+            return !ws_.next_layer().socket().is_open();
     }
 
     websocket_stream_wrapper& websocket_stream_wrapper::write(const std::string& c)
     {
-	    ws_.write(boost::asio::buffer(std::string(c)));
-	    return *this;
+            ws_.write(boost::asio::buffer(std::string(c)));
+            return *this;
     }
 
 
     websocket_stream_wrapper& websocket_stream_wrapper::write(std::streamsize _s)
     {
-	    std::ostringstream temp;
-	    temp << _s;
-	    ws_.write(boost::asio::buffer(temp.str()));
-	    return *this;
+            std::ostringstream temp;
+            temp << _s;
+            ws_.write(boost::asio::buffer(temp.str()));
+            return *this;
     }
 
     websocket_stream_wrapper& websocket_stream_wrapper::flush()
     {
-	    return *this;
+            return *this;
     }
 
     void websocket_stream_wrapper::clear()
@@ -224,17 +224,17 @@ namespace lsp {
             if (!error_message.empty())
                      return  error_message;
 
-	    if (!ws_.next_layer().socket().is_open())
-	    {
-		    return "Socket is not open.";
-	    }
-	    return {};
+            if (!ws_.next_layer().socket().is_open())
+            {
+                    return "Socket is not open.";
+            }
+            return {};
     }
 
     WebSocketServer::~WebSocketServer()
-	    {
+            {
             delete d_ptr;
-	    }
+            }
 
         WebSocketServer::WebSocketServer(const std::string& user_agent, const std::string& address, const std::string& port,
             std::shared_ptr < MessageJsonHandler> json_handler,
@@ -282,7 +282,7 @@ namespace lsp {
         {
             try
             {
-            	if(d_ptr->work)
+                if(d_ptr->work)
                     d_ptr->work.reset();
 
                 do_stop();
@@ -305,17 +305,17 @@ namespace lsp {
                     }
                     if (!ec)
                     {
-                    	if(d_ptr->_server_session)
-                    	{
-	                        try
-	                        {
+                        if(d_ptr->_server_session)
+                        {
+                                try
+                                {
                                 d_ptr->_server_session->close();
-                                point.Stop();
-	                        }
-	                        catch (...)
-	                        {
-	                        }
-                    	}
+                                point.stop();
+                                }
+                                catch (...)
+                                {
+                                }
+                        }
                         d_ptr->_server_session = std::make_shared<server_session>(std::move(socket), d_ptr->user_agent_);
                         d_ptr->_server_session->run();
 
@@ -330,7 +330,7 @@ namespace lsp {
         {
             d_ptr->acceptor_.close();
 
-          point.Stop();
+            point.stop();
 
         }
 

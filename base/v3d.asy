@@ -321,7 +321,7 @@ struct v3dfile
     int material=xdrfile;
 
     surface s=shift(origin)*scale3(radius)*unitsphere;
-    s.draw=unitsphere.draw;
+    s.primitive=unitsphere.primitive;
     primitive(center,material,s);
   }
 
@@ -336,7 +336,7 @@ struct v3dfile
     real azimuth=xdrfile;
 
     surface s=shift(origin)*Align(polar,azimuth)*scale3(radius)*unithemisphere;
-    s.draw=unithemisphere.draw;
+    s.primitive=unithemisphere.primitive;
     primitive(center,material,s);
   }
 
@@ -351,7 +351,7 @@ struct v3dfile
     real azimuth=xdrfile;
 
     surface s=shift(origin)*Align(polar,azimuth)*scale3(radius)*unitdisk;
-    s.draw=unitdisk.draw;
+    s.primitive=unitdisk.primitive;
     primitive(center,material,s);
   }
 
@@ -396,7 +396,7 @@ struct v3dfile
       path3(center,material,T*(O--Z));
 
     surface s=T*unitcylinder;
-    s.draw=unitcylinder.draw;
+    s.primitive=unitcylinder.primitive;
     primitive(center,material,s);
   }
 
@@ -414,7 +414,10 @@ struct v3dfile
       path3(center,material,g[0]..controls g[1] and g[2]..g[3]);
 
     surface s=tube(g[0],g[1],g[2],g[3],width);
-    s.draw=drawTube(g,width,info.b,info.B);
+    s.primitive=primitive(drawTube(g,width,info.b,info.B),
+                          new bool(transform3 t) {
+                            return unscaled(t,X,Y);
+                          });
     primitive(center,material,s);
   }
 

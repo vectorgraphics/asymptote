@@ -32,6 +32,7 @@ import xasyStrings as xs
 
 import PrimitiveShape
 import InplaceAddObj
+import ContextWindow
 
 import CustMatTransform
 import SetCustomAnchor
@@ -127,6 +128,7 @@ class MainWindow1(Qw.QMainWindow):
         devicePixelRatio=self.devicePixelRatio()
         self.ui.setupUi(self)
         self.ui.menubar.setNativeMenuBar(False)
+        self.setWindowIcon(Qg.QIcon("../asy.ico"))
 
         self.settings = xo.BasicConfigs.defaultOpt
         self.keyMaps = xo.BasicConfigs.keymaps
@@ -229,7 +231,7 @@ class MainWindow1(Qw.QMainWindow):
         self.previewCurve = None
         self.mouseDown = False
 
-        self.globalObjectCounter = 0
+        self.globalObjectCounter = 1
 
         self.fileItems = []
         self.drawObjects = []
@@ -569,9 +571,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.txtTerminalPrompt.clear()
 
     def btnFillOnClick(self, checked):
-        if self.currentModeStack == [SelectionMode.selectEdit]:
-            if isinstance(self.addMode,xbi.InteractiveBezierEditor):
-                self.addMode.swapObjFill() #Check for crashes
         self.currAddOptions['fill'] = checked
         self.ui.btnOpenCurve.setEnabled(not checked)
         self.ui.btnOpenPoly.setEnabled(not checked)
@@ -893,14 +892,32 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.execCustomCommand(commandText)
 
-    def addXasyShapeFromPath(self, path, pen = None, transform = x2a.identity(), key = None):
+    def addXasyShapeFromPath(self, path, pen = None, transform = x2a.identity(), key = None, fill = False):
+        dashPattern = pen['dashPattern'] #?
         if not pen:
             pen = self.currentPen
         else:
             pen = x2a.asyPen(self.asyEngine, color = pen['color'], width = pen['width'], pen_options = pen['options'])
+            if dashPattern:
+                pen.setDashPattern(dashPattern)
 
         newItem = x2a.xasyShape(path, self.asyEngine, pen = pen, transform = transform)
+        if fill:
+            newItem.swapFill()
         newItem.setKey(key)
+        self.fileItems.append(newItem)
+
+    def addXasyArrowFromPath(self, pen, transform, key, arrowSettings, code, dashPattern = None):
+        if not pen:
+            pen = self.currentPen
+        else:
+            pen = x2a.asyPen(self.asyEngine, color = pen['color'], width = pen['width'], pen_options = pen['options'])
+            if dashPattern:
+                pen.setDashPattern(dashPattern)
+
+        newItem = x2a.asyArrow(self.asyEngine, pen, transform, key, canvas=self.xasyDrawObj, code=code)
+        newItem.setKey(key)
+        newItem.arrowSettings = arrowSettings
         self.fileItems.append(newItem)
 
     def addXasyTextFromData(self, text, location, pen, transform, key, align, fontSize):
@@ -925,7 +942,7 @@ class MainWindow1(Qw.QMainWindow):
         asyFile = io.open(os.path.realpath(pathToFile), 'w')
         xf.saveFile(asyFile, self.fileItems, self.asy2psmap)
         asyFile.close()
-        self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as Asymptote File.")
+        self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as an Asymptote file.")
 
     def btnExportToAsyOnClick(self):
         if self.fileName:
@@ -998,11 +1015,12 @@ class MainWindow1(Qw.QMainWindow):
                 ext = 'asy'
             else:
                 ext = ext[1][1:]
+            if ext == '':
+                ext='asy'
             if ext == 'asy':
                 pathToFile = os.path.splitext(file)[0]+'.'+ext
-                asyFile = io.open(os.path.realpath(pathToFile), 'w')
-                xf.saveFile(asyFile, self.fileItems, self.asy2psmap)
-                asyFile.close()
+                self.updateScript()
+                self.actionExport(pathToFile)
             else:
                 with subprocess.Popen(args=[self.asyPath, '-f{0}'.format(ext), '-o{0}'.format(file), '-'], encoding='utf-8',
                                     stdin=subprocess.PIPE) as asy:
@@ -1079,7 +1097,12 @@ class MainWindow1(Qw.QMainWindow):
                 linkSet = item['links']
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
-                self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'])
+                self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'], fill = item['fill'])
+
+            elif item['type'] == 'asyArrow':
+                self.addXasyArrowFromPath(item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'], item['code'])
+                #self.addXasyArrowFromPath(item['oldpath'], item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'])
+
             else:
                 print("ERROR")
 
@@ -1764,7 +1787,7 @@ class MainWindow1(Qw.QMainWindow):
         # and subtract pan offset and center points
         # but it's much more work...
         newCenter = self.magnification * newCenter
-        self.panOffset = [-newCenter.x(), newCenter.y()]
+        self.panOffset = [-newCenter.x(), -newCenter.y()]
 
         self.quickUpdate()
 
@@ -1925,7 +1948,7 @@ class MainWindow1(Qw.QMainWindow):
             preCanvas.setPen(minorGridCol)
             self.makePenCosmetic(preCanvas)
             for xMinor in range(1, minorGridCount + 1):
-                xCoord = x + ((xMinor / (minorGridCount + 1)) * majorGrid)
+                xCoord = round(x + ((xMinor / (minorGridCount + 1)) * majorGrid))
                 preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
                 preCanvas.drawLine(Qc.QLine(-xCoord, -9999, -xCoord, 9999))
 
@@ -1933,20 +1956,22 @@ class MainWindow1(Qw.QMainWindow):
             preCanvas.setPen(minorGridCol)
             self.makePenCosmetic(preCanvas)
             for yMinor in range(1, minorGridCount + 1):
-                yCoord = y + ((yMinor / (minorGridCount + 1)) * majorGrid)
+                yCoord = round(y + ((yMinor / (minorGridCount + 1)) * majorGrid))
                 preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
                 preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
 
             preCanvas.setPen(majorGridCol)
             self.makePenCosmetic(preCanvas)
-            preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
-            preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
+            roundY = round(y)
+            preCanvas.drawLine(Qc.QLine(-9999, roundY, 9999, roundY))
+            preCanvas.drawLine(Qc.QLine(-9999, -roundY, 9999, -roundY))
 
         for x in np.arange(0, 2 * x_range + 1, majorGrid):
             preCanvas.setPen(majorGridCol)
             self.makePenCosmetic(preCanvas)
-            preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
-            preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
+            roundX = round(x)
+            preCanvas.drawLine(Qc.QLine(roundX, -9999, roundX, 9999))
+            preCanvas.drawLine(Qc.QLine(-roundX, -9999, -roundX, 9999))
 
     def drawPolarGrid(self, preCanvas):
         center = Qc.QPointF(0, 0)
@@ -2386,6 +2411,7 @@ class MainWindow1(Qw.QMainWindow):
 
         finally:
             f.close()
+            self.btnPanCenterOnClick()
 
     def populateCanvasWithItems(self, forceUpdate=False):
         self.itemCount = 0
@@ -2425,3 +2451,60 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
         else:
             self.ui.statusbar.showMessage('No object to paste')
+
+    def contextMenuEvent(self, event):
+        #Note that we can't get anything from self.selectOnHover() here.
+        try:
+            self.contextWindowIndex = self.selectObject()[0] #for arrowifying
+            maj = self.contextWindowIndex[0]
+        except:
+            return
+
+        if self.fileItems[maj] is not None:
+            self.contextWindowObject = self.fileItems[maj] #For arrowifying
+            self.contextWindow = ContextWindow.AnotherWindow(self.fileItems[maj],self)
+            self.contextWindow.setMinimumWidth(420)
+            #self.setCentralWidget(self.contextWindow) #I don't know what this does tbh.
+            self.contextWindow.show()
+
+    def focusInEvent(self,event):
+        if self.mainCanvas.isActive():
+            self.quickUpdate()
+
+    def replaceObject(self,objectIndex,newObject):
+        maj, minor = self.contextWindowIndex
+        selectedObj = self.drawObjects[maj][minor]
+
+        parent = selectedObj.parent()
+
+        if isinstance(parent, x2a.xasyScript):
+            objKey=(selectedObj.key, selectedObj.keyIndex)
+            self.hiddenKeys.add(objKey)
+            self.undoRedoStack.add(self.createAction(
+                SoftDeletionChanges(selectedObj.parent(), objKey)
+                ))
+            self.softDeleteObj((maj, minor))
+        else:
+            index = self.fileItems.index(selectedObj.parent())
+
+            self.undoRedoStack.add(self.createAction(
+                HardDeletionChanges(selectedObj.parent(), index)
+            ))
+
+            self.fileItems.remove(selectedObj.parent())
+
+        self.fileItems.append(newObject)
+        self.drawObjects.append(newObject.generateDrawObjects(True)) #THIS DOES WORK, IT'S JUST REGENERATING THE SHAPE.
+
+        self.checkUndoRedoButtons()
+        self.fileChanged = True
+
+        self.clearSelection()
+        #self.asyfyCanvas()
+        #self.quickUpdate()
+
+    def terminateContextWindow(self):
+        if self.contextWindow is not None:
+            self.contextWindow.close()
+        self.asyfyCanvas()
+        self.quickUpdate()

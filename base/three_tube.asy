@@ -136,7 +136,10 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   f(t3);
 
   s.PRCprimitive=false;
-  s.draw=drawTube(g,w,min(s),max(s));
+  s.primitive=primitive(drawTube(g,w,min(s),max(s)),
+                        new bool(transform3 t) {
+                          return unscaled(t,X,Y);
+                        });
   return s;
 }
 
@@ -213,7 +216,10 @@ struct tube
           transform3 t=shift(v)*align(unit(u))*scale(r,r,abs(u));
           // Draw opaque surfaces with core for better small-scale rendering.
           surface unittube=t*unitcylinder;
-          unittube.draw=unitcylinderDraw(core=true);
+          unittube.primitive=primitive(unitcylinderDraw(core=true),
+                                       new bool(transform3 t) {
+                                         return unscaled(t,X,Y);
+                                       });
           s.push(unittube);
         } else
           s.append(render(subpath(p,i,i+1),r));

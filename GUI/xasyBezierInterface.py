@@ -51,13 +51,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.prospectiveCtrlPts = []
 
         #The magnification isn't being set. Here I'm manually setting it to be the square root of the determinant.
-        self.info['magnification'] = math.sqrt(self.transf.xx * self.transf.yy - self.transf.xy * self.transf.yx)
-        self.parent = parent
-        if isinstance(obj,xasy2asy.xasyFilledShape) or isinstance(obj,xasy2asy.xasyShape):
-            parent.ui.btnFill.setChecked(obj.path.fill)
-
-    def swapObjFill(self):
-        self.obj.swapFill() #This may end up being more in the future
+        self.info['magnification'] = math.sqrt(abs(self.transf.xx * self.transf.yy - self.transf.xy * self.transf.yx))
 
     def setSelectionBoundaries(self):
         self.nodeSelRects = self.handleNodeSelectionBounds()

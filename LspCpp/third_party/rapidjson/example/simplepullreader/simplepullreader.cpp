@@ -15,7 +15,7 @@ template <typename T> std::string stringify(T x) {
 struct MyHandler {
     const char* type;
     std::string data;
-    
+
     MyHandler() : type(), data() {}
 
     bool Null() { type = "Null"; data.clear(); return true; }

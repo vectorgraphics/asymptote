@@ -31,6 +31,8 @@ struct BezierPatch
   // vertexFunction pvertex; // pointer to vertex function to use (transparent or not)
   bool Onscreen;
 
+  BezierPatch() : transparent(false), color(false), Onscreen(true) {}
+
   void init(double res);
 
   void init(double res, GLfloat *colors) {
