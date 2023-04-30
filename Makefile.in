@@ -11,7 +11,7 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
+LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src -L/opt/homebrew/lib -I/opt/homebrew/include
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -ldl -lglfw -lvulkan
 DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
 
@@ -50,7 +50,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy parallel simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures \
+	$(PRC) tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures \
 	lspserv symbolmaps vkrender
 
 FILES = $(COREFILES) main

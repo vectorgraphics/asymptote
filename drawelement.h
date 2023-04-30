@@ -28,8 +28,6 @@ namespace camp {
 
 extern int MaterialIndex;
 
-extern AsyVkRender *vk;
-
 static const double pixelResolution=1.0; // Adaptive rendering constant.
 
 enum Interaction {EMBEDDED=0,BILLBOARD};

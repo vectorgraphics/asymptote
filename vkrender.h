@@ -28,8 +28,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/transform.hpp>
 
 // #include "settings.h"
 
@@ -448,7 +448,7 @@ public:
                 double* diffuse, double* specular, bool view);
 
   triple billboardTransform(const triple& center, const triple& v) const;
-  double getRenderResolution(triple Min) const {};
+  double getRenderResolution(triple Min) const;
 
   bool framebufferResized = false;
 
@@ -473,11 +473,51 @@ public:
 
   bool outlinemode = false;
 
+  bool orthographic;
+
   glm::dmat4 rotateMat;
   glm::dmat4 projMat;
   glm::dmat4 viewMat;
   glm::dmat4 projViewMat;
   glm::dmat3 normMat;
+
+  double xmin, xmax;
+  double ymin, ymax;
+
+  double Xmin, Xmax;
+  double Ymin, Ymax;
+  double Zmin, Zmax;
+
+  int fullWidth, fullHeight; // TODO: pixel density, expand?
+  // What is the difference between these?
+  double Angle;
+  double Zoom0;
+  pair Shift;
+  pair Margin;
+
+  camp::triple* Lights;
+  size_t nlights;
+  double* Diffuse;
+  double Background[4];
+
+  const double* dprojView;
+  const double* dView;
+
+  double BBT[9];
+  double T[16];
+
+  size_t Nmaterials;   // Number of materials compiled in shader
+  size_t nmaterials;   // Current size of materials buffer
+  size_t Maxmaterials; // Maxinum size of materials buffer
+
+  void updateProjection();
+  void frustum(GLdouble left, GLdouble right, GLdouble bottom,
+               GLdouble top, GLdouble nearVal, GLdouble farVal);
+  void ortho(GLdouble left, GLdouble right, GLdouble bottom,
+             GLdouble top, GLdouble nearVal, GLdouble farVal);
+
+  void clearCenters();
+  void clearMaterials();
 
 private:
   struct DeviceBuffer {
@@ -499,26 +539,10 @@ private:
 
   const picture* pic;
 
-  double xmin, xmax;
-  double ymin, ymax;
-
-  double Xmin, Xmax;
-  double Ymin, Ymax;
-  double Zmin, Zmax;
-
-  // What is the difference between these?
-  double angle;
-  double zoom;
-
-  bool orthographic;
-
   double H;
   double xfactor, yfactor; // what is this for?
 
   double x, y; // make these more descriptive (something to do with shift?)
-
-  pair shift;
-  pair margin;
 
   double cx, cy; // ??
 
@@ -665,5 +689,7 @@ private:
   void mainLoop();
   void cleanup();
 };
+
+extern AsyVkRender* vk;
 
 } // namespace camp

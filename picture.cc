@@ -1288,14 +1288,14 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
   if(!texengineSave.empty()) Setting("tex")=texengineSave;
 
-  if(htmlformat) {
-    jsfile out;
-    out.svgtohtml(prefix);
-    string name=buildname(prefix,"html");
-    display(name,"html",wait,true,false);
-    if(!keep)
-      unlink(outname.c_str());
-  }
+  // if(htmlformat) {
+  //   jsfile out;
+  //   out.svgtohtml(prefix);
+  //   string name=buildname(prefix,"html");
+  //   display(name,"html",wait,true,false);
+  //   if(!keep)
+  //     unlink(outname.c_str());
+  // }
 
   return true;
 }
@@ -1442,12 +1442,12 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool v3d=format == "v3d";
   bool format3d=webgl || v3d;
 
-  if(!format3d) {
-#ifdef HAVE_GL
-    if(glthread && !offscreen) {
-#ifdef HAVE_PTHREAD
-      if(gl::initialize) {
-        gl::initialize=false;
+//   if(!format3d) {
+// #ifdef HAVE_GL
+//     if(glthread && !offscreen) {
+// #ifdef HAVE_PTHREAD
+//       if(gl::initialize) {
+//         gl::initialize=false;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1480,62 +1480,62 @@ bool picture::shipout3(const string& prefix, const string& format,
           pthread_cond_wait(&readySignal,&readyLock);
           pthread_mutex_unlock(&readyLock);
         }
-        return true;
-      }
-      if(Wait)
-        pthread_mutex_lock(&readyLock);
-#endif
-    } else {
-      int pid=fork();
-      if(pid == -1)
-        camp::reportError("Cannot fork process");
-      if(pid != 0)  {
-        oldpid=pid;
-        waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
-        return true;
-      }
-    }
-#endif
-  }
+//         return true;
+//       }
+//       if(Wait)
+//         pthread_mutex_lock(&readyLock);
+// #endif
+//     } else {
+//       int pid=fork();
+//       if(pid == -1)
+//         camp::reportError("Cannot fork process");
+//       if(pid != 0)  {
+//         oldpid=pid;
+//         waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
+//         return true;
+//       }
+//     }
+// #endif
+//   }
 
-#if HAVE_LIBGLM
-  std::cout << "glrender" << std::endl;
-  throw std::runtime_error("glrender");
-  // glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
-  //          background,nlights,lights,diffuse,specular,View,oldpid);
+// #if HAVE_LIBGLM
+//   std::cout << "glrender" << std::endl;
+//   throw std::runtime_error("glrender");
+//   // glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
+//   //          background,nlights,lights,diffuse,specular,View,oldpid);
 
-  if(format3d) {
-    string name=buildname(prefix,format);
-    abs3Doutfile *fileObj=nullptr;
+//   if(format3d) {
+//     string name=buildname(prefix,format);
+//     abs3Doutfile *fileObj=nullptr;
 
-    if(webgl)
-      fileObj=new jsfile(name);
-    else if(v3d)
-#ifdef HAVE_RPC_RPC_H
-      fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
-                            getSetting<double>("prerender") > 0.0);
-#else
-    {
-    ostringstream buf;
-    buf << name << ": XDR write support not enabled";
-    reportError(buf);
-    }
-#endif
+//     if(webgl)
+//       fileObj=new jsfile(name);
+//     else if(v3d)
+// #ifdef HAVE_RPC_RPC_H
+//       fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
+//                             getSetting<double>("prerender") > 0.0);
+// #else
+//     {
+//     ostringstream buf;
+//     buf << name << ": XDR write support not enabled";
+//     reportError(buf);
+//     }
+// #endif
 
-    if(fileObj) {
-      for (auto& p : pic->nodes) {
-        assert(p);
-        p->write(fileObj);
-      }
+//     if(fileObj) {
+//       for (auto& p : pic->nodes) {
+//         assert(p);
+//         p->write(fileObj);
+//       }
 
-      fileObj->close();
-      delete fileObj;
-    }
+//       fileObj->close();
+//       delete fileObj;
+//     }
 
-    if(webgl && View)
-      htmlView(name);
+//     if(webgl && View)
+//       htmlView(name);
 
-  // TODO: what is this?
+//   // TODO: what is this?
 // #ifdef HAVE_GL
 //     if(format3dWait) {
 //       gl::format3dWait=false;
@@ -1545,9 +1545,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 //     }
 // #endif
 
-    return true;
-  }
-#endif
+//     return true;
+//   }
+// #endif
 
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD

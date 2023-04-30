@@ -43,6 +43,7 @@
  */
 
 #include "common.h"
+#include "vkrender.h"
 
 #ifdef HAVE_GL
 
@@ -58,16 +59,6 @@
 #define DEFAULT_TILE_WIDTH  256
 #define DEFAULT_TILE_HEIGHT 256
 #define DEFAULT_TILE_BORDER 0
-
-namespace gl {
-void frustum(GLdouble left, GLdouble right, GLdouble bottom,
-             GLdouble top, GLdouble nearVal, GLdouble farVal);
-void ortho(GLdouble left, GLdouble right, GLdouble bottom,
-           GLdouble top, GLdouble nearVal, GLdouble farVal);
-}
-
-using gl::frustum;
-using gl::ortho;
 
 struct _TRctx {
   /* Final image parameters */
@@ -358,9 +349,9 @@ void trBeginTile(TRcontext *tr)
   top = bottom + (tr->Top - tr->Bottom) * tileHeight / tr->ImageHeight;
 
   if (tr->Perspective)
-    frustum(left, right, bottom, top, tr->Near, tr->Far);
+    camp::vk->frustum(left, right, bottom, top, tr->Near, tr->Far);
   else
-    ortho(left, right, bottom, top, tr->Near, tr->Far);
+    camp::vk->ortho(left, right, bottom, top, tr->Near, tr->Far);
 }
 
 

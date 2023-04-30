@@ -95,9 +95,6 @@ public:
   }
 };
 
-extern size_t Nmaterials; // Number of materials compiled in shader
-extern size_t nmaterials; // Current size of materials buffer
-extern size_t Maxmaterials; // Maxinum size of materials buffer
 }
 
 #endif

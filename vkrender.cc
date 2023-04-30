@@ -31,11 +31,42 @@ Tasks for today:
 TODO: put consts everywhere?
 */
 
+namespace gl {
+bool glthread;
+bool initialize;
+
+#ifdef HAVE_PTHREAD
+pthread_t mainthread;
+
+pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
+
+void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
+{
+  pthread_mutex_lock(&lock);
+  pthread_cond_signal(&signal);
+  pthread_mutex_unlock(&lock);
+}
+void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
+{
+  pthread_mutex_lock(&lock);
+  pthread_cond_signal(&signal);
+  pthread_cond_wait(&signal,&lock);
+  pthread_mutex_unlock(&lock);
+}
+#endif
+}
+
+
 namespace camp
 {
 
 std::vector<const char*> instanceExtensions = {
         VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
 #ifdef VALIDATION
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 #endif
@@ -77,9 +108,9 @@ std::vector<char> readFile(const std::string& filename)
 void AsyVkRender::setDimensions(int width, int height, double x, double y)
 {
   double aspect = ((double) width) / height;
-  double xshift = (x / (double) width + shift.getx() * xfactor) * zoom;
-  double yshift = (y / (double) height + shift.gety() * yfactor) * zoom;
-  double zoominv = 1.0 / zoom;
+  double xshift = (x / (double) width + Shift.getx() * xfactor) * Zoom0;
+  double yshift = (y / (double) height + Shift.gety() * yfactor) * Zoom0;
+  double zoominv = 1.0 / Zoom0;
   if (orthographic) {
     double xsize = Xmax - Xmin;
     double ysize = Ymax - Ymin;
@@ -169,6 +200,8 @@ AsyVkRender::AsyVkRender(Options& options) : options(options)
   if (this->options.display) {
     width = 800;
     height = 600;
+    fullWidth = width;
+    fullHeight = height;
     x = 0;
     y = 0;
     cx = 0;
@@ -194,6 +227,8 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->y = (app->y / app->height) * height;
   app->width = width;
   app->height = height;
+  app->fullWidth = width;
+  app->fullHeight = height;
   app->framebufferResized = true;
   app->redraw = true;
 }
@@ -201,7 +236,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-  app->zoom *= (1.0 + yoffset);
+  app->Zoom0 *= (1.0 + yoffset);
   app->remesh = true;
   app->redraw = true;
 }
@@ -217,7 +252,7 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
     Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
     triple axis = arcball.axis;
     const double arcballFactor = 1.0;
-    app->rotateMat = glm::rotate((2 * arcball.angle / app->zoom * arcballFactor), glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
+    app->rotateMat = glm::rotate((2 * arcball.angle / app->Zoom0 * arcballFactor), glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
     app->redraw = true;
   }
 
@@ -244,20 +279,20 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   std::cout << "vkrender" << std::endl;
   this->pic = pic;
 
-  this->angle = angle * M_PI / 180.0;
-  this->zoom = zoom;
-  this->shift = shift / zoom;
-  this->margin = margin;
+  this->Angle = angle * M_PI / 180.0;
+  this->Zoom0 = zoom;
+  this->Shift = shift / zoom;
+  this->Margin = margin;
 
-  Xmin= mins.getx();
+  Xmin = mins.getx();
   Xmax = maxs.getx();
   Ymin = mins.gety();
   Ymax = maxs.gety();
   Zmin = mins.getz();
   Zmax = maxs.getz();
 
-  orthographic = (this->angle == 0.0);
-  H = orthographic ? 0.0 : -tan(0.5 * this->angle) * Zmax;
+  orthographic = (this->Angle == 0.0);
+  H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
   xfactor = yfactor = 1.0;
 
   rotateMat = glm::mat4(1.0);
@@ -362,7 +397,8 @@ void AsyVkRender::createInstance()
     extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
     hasExternalMemoryCapabilitiesExtension = true;
   }
-  auto instanceCI = vk::InstanceCreateInfo(vk::InstanceCreateFlags(), &appInfo, VEC_VIEW(validationLayers), VEC_VIEW(extensions));
+  auto instanceFlags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
+  auto instanceCI = vk::InstanceCreateInfo(instanceFlags, &appInfo, VEC_VIEW(validationLayers), VEC_VIEW(extensions));
   instance = vk::createInstanceUnique(instanceCI);
 }
 
@@ -401,6 +437,16 @@ void AsyVkRender::pickPhysicalDevice()
     cout << "Using Device: " << devices.at(options.device_index).getProperties().deviceName << endl;
     physicalDevice = devices.at(options.device_index);
   }
+
+  // get VkPhysicalDeviceExternalMemoryHostPropertiesEXT
+  auto physicalDeviceProperties2 = vk::PhysicalDeviceProperties2();
+  auto physicalDeviceExternalMemoryHostProperties = vk::PhysicalDeviceExternalMemoryHostPropertiesEXT();
+  physicalDeviceExternalMemoryHostProperties.pNext = physicalDeviceProperties2.pNext;
+  physicalDeviceProperties2.pNext = &physicalDeviceExternalMemoryHostProperties;
+  physicalDevice.getProperties2(&physicalDeviceProperties2);
+  // print out result
+  std::cout << "VkPhysicalDeviceExternalMemoryHostPropertiesEXT:" << std::endl;
+  std::cout << "  minImportedHostPointerAlignment: " << physicalDeviceExternalMemoryHostProperties.minImportedHostPointerAlignment << std::endl;
 }
 
 
@@ -518,7 +564,8 @@ void AsyVkRender::createLogicalDevice()
   }
   if (hasExternalMemoryExtension && supportedDeviceExtensions.find(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
-    hasExternalMemoryHostExtension = true;
+    // this probably won't work because of minImportedHostPointerAlignment and importing the same memory to a device twice can fail
+    // hasExternalMemoryHostExtension = true;
   }
 
   if (options.display) {
@@ -918,8 +965,7 @@ void AsyVkRender::createMaterialPipeline()
   auto pipelineCI = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlags(), ARR_VIEW(shaderStages), &vertexInputCI, &inputAssemblyCI, nullptr, &viewportStateCI, &rasterizerCI, &multisamplingCI, nullptr, &colorBlendCI, nullptr, *materialPipelineLayout, *materialRenderPass, 0, nullptr);
 
   auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
-  if (result.result != vk::Result::eSuccess)
-  {
+  if (result.result != vk::Result::eSuccess) {
     throw std::runtime_error("failed to create graphics pipeline!");
   }
   materialPipeline = std::move(result.value);
@@ -967,18 +1013,7 @@ void AsyVkRender::drawFrame()
   device->resetFences(1, &*frameObject.inFlightFence);
 
   uint32_t imageIndex; // index of the current swap chain image to render to
-  // wait until we have a good swapchain image
-  while (true) {
-    auto result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(), *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
-    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
-      recreateSwapChain();
-      continue;
-    } else if (result != vk::Result::eSuccess) {
-      throw std::runtime_error("failed to present swap chain image!");
-    } else {
-      break;
-    }
-  }
+  device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(), *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
 
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlags());
 
@@ -1024,6 +1059,7 @@ void AsyVkRender::drawFrame()
   auto result = renderQueue.presentKHR(presentInfo);
   if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
     recreateSwapChain();
+    std::cout << "recreating swap chain" << std::endl;
   } else if (result != vk::Result::eSuccess) {
     throw std::runtime_error("failed to present swap chain image!");
   }
@@ -1062,8 +1098,13 @@ void AsyVkRender::mainLoop()
     // glfwPollEvents();
     glfwWaitEvents();
 
+    if (framebufferResized) {
+      recreateSwapChain();
+    }
+
     if (redraw) {
       redraw = false;
+      cout << "redraw - width: " << width << " height: " << height << endl;
       display();
     } else {
       // may not be needed if we are waiting for events
@@ -1072,6 +1113,35 @@ void AsyVkRender::mainLoop()
   }
 
   vkDeviceWaitIdle(*device);
+}
+
+void AsyVkRender::updateProjection()
+{
+  projViewMat = glm::mat4(projMat * viewMat);
+}
+
+void AsyVkRender::frustum(GLdouble left, GLdouble right, GLdouble bottom,
+                          GLdouble top, GLdouble nearVal, GLdouble farVal)
+{
+  projMat = glm::frustum(left, right, bottom, top, nearVal, farVal);
+  updateProjection();
+}
+
+void AsyVkRender::ortho(GLdouble left, GLdouble right, GLdouble bottom,
+                        GLdouble top, GLdouble nearVal, GLdouble farVal)
+{
+  projMat = glm::ortho(left, right, bottom, top, nearVal, farVal);
+  updateProjection();
+}
+
+void AsyVkRender::clearCenters()
+{
+  throw std::runtime_error("not implemented");
+}
+
+void AsyVkRender::clearMaterials()
+{
+  throw std::runtime_error("not implemented");
 }
 
 } // namespace camp

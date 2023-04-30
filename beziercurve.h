@@ -12,8 +12,6 @@
 
 namespace camp {
 
-extern AsyVkRender *vk;
-
 #ifdef HAVE_GL
 
 extern const double Fuzz;

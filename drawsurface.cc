@@ -65,8 +65,8 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
   if(p != vk->materialMap.end()) vk->materialIndex=p->second;
   else {
     vk->materialIndex=vk->materials.size();
-    if(vk->materialIndex >= nmaterials)
-      nmaterials=min(Maxmaterials,2*nmaterials);
+    if(vk->materialIndex >= vk->nmaterials)
+      vk->nmaterials=min(vk->Maxmaterials,2*vk->nmaterials);
     vk->materials.push_back(m);
     vk->materialMap[m]=vk->materialIndex;
     if(out)
