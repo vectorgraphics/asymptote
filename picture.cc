@@ -1355,7 +1355,7 @@ void glrenderWrapper()
     std::cout << "done" << std::endl;
     AsyVkRender::Options options;
     options.display = true;
-    options.title = string(settings::PROGRAM)+": "+com.prefix;
+    options.title = std::string(settings::PROGRAM)+": ";//+com.prefix;
     // Todo: this initializer cannot be called twice.
     vk = new AsyVkRender(options);
     vk->vkrender(com.pic,com.format,com.width,com.height,com.angle,

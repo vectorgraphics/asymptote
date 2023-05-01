@@ -535,7 +535,7 @@ private:
         : usage(usage), properties(properties) {}
   };
 
-  const Options options;
+  Options options;
 
   const picture* pic;
 

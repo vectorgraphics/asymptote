@@ -428,8 +428,8 @@ void AsyVkRender::pickPhysicalDevice()
         // devices[i].getProperties().deviceType;
       }
       cout << "Select Device: ";
-      throw std::runtime_error("Device not specified!");
-      // cin >> options.device_index;
+//      throw std::runtime_error("Device not specified!");
+      cin >> options.device_index; // FIXME
     }
     if (options.device_index >= devices.size()) {
       throw std::runtime_error("Invalid device index");
@@ -667,7 +667,7 @@ void AsyVkRender::createSwapChain()
   if (queueFamilyIndices.renderQueueFamily != queueFamilyIndices.presentQueueFamily) {
     swapchainCI.imageSharingMode = vk::SharingMode::eConcurrent;
     swapchainCI.queueFamilyIndexCount = 2;
-    swapchainCI.pQueueFamilyIndices = (uint32_t[]){queueFamilyIndices.renderQueueFamily, queueFamilyIndices.presentQueueFamily};
+    swapchainCI.pQueueFamilyIndices=new uint32_t[2] {queueFamilyIndices.renderQueueFamily,queueFamilyIndices.presentQueueFamily};
   }
 
   swapChain = device->createSwapchainKHRUnique(swapchainCI, nullptr);
