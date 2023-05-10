@@ -2213,7 +2213,13 @@ picture vectorfield(path vector(pair), pair a, pair b,
       max=maxbound(max,size((x,y)));
     }
   }
-  scale=min(dx/max.x,dy/max.y);
+
+  if(max.x == 0)
+    scale=max.y == 0 ? 1.0 : dy/max.y;
+  else if(max.y == 0)
+    scale=dx/max.x;
+  else
+    scale=min(dx/max.x,dy/max.y);
 
   for(int i=0; i < nx; ++i) {
     real x=a.x+i*dx;

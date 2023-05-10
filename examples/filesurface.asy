@@ -7,16 +7,16 @@ file in=input("filesurface.dat").line();
 real[] x=in;
 real[] y=in;
 
-real[][] f=in;
+real[][] z=in;
 
 triple f(pair t) {
   int i=round(t.x);
   int j=round(t.y);
-  return (x[i],y[j],f[i][j]);
+  return (x[i],y[j],z[i][j]);
 }
 
 surface s=surface(f,(0,0),(x.length-1,y.length-1),x.length-1,y.length-1);
-real[] level=uniform(min(f)*(1-sqrtEpsilon),max(f)*(1+sqrtEpsilon),4);
+real[] level=uniform(min(z)*(1-sqrtEpsilon),max(z)*(1+sqrtEpsilon),4);
 
 s.colors(palette(s.map(new real(triple v) {return find(level >= v.z);}),
                  Rainbow()));
@@ -41,5 +41,3 @@ zaxis3("$z$",Bounds,InTicks);
 
 currentprojection=perspective(camera=target+realmult(dir(68,225),M-m),
                               target=target);
-
-

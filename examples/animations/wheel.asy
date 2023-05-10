@@ -6,9 +6,10 @@ import graph;
 
 import animation;
 
-size(0,200);
+size(0,500);
 
-defaultpen(3);
+import fontsize;
+defaultpen(fontsize(48pt)+3);
 dotfactor=4;
 
 pair wheelpoint(real t)
@@ -26,7 +27,7 @@ guide wheel(guide g=nullpath, real a, real b, int n)
   return g;
 }
 
-real t1=0; 
+real t1=0;
 real t2=t1+2*pi;
 
 animation a;
@@ -45,7 +46,7 @@ int n=10;
 real dt=(t2-t1)/n;
 for(int i=0; i <= n; ++i) {
   save();
-  
+
   real t=t1+dt*i;
   draw(circle((t,0),1),red);
   dot(wheelpoint(t));

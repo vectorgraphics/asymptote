@@ -78,7 +78,7 @@ asyRefCard.pdf: asyRefCard.tex
 	pdftex asyRefCard
 
 clean: FORCE
-	-rm -f asy-latex.{aux,idx,ins,log,toc}
+	-rm -f asy-latex.{aux,idx,ins,log,toc,out,hd,ins}
 	-rm -f $(ASYFILES:.asy=.pdf)
 	-rm -f *.eps latexusage.{dvi,eps,pdf,log,aux,out,*.eps} latexusage-* \
             latexusage.pre

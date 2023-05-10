@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{https://asymptote.sourceforge.io}
 
-Copyright @copyright{} 2004-22 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-23 Andy Hammerlindl, John Bowman, and Tom Prince.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -388,8 +388,8 @@ where @code{x.xx} denotes the latest version.
 A working @TeX{} implementation (we recommend
 @url{https://www.tug.org/texlive} or
 @url{http://www.miktex.org}) will be required to typeset labels.
-You will also need to install @code{GPL Ghostscript} version 9.52 or
-later from @url{http://downloads.ghostscript.com/public}.
+You will also need to install @code{GPL Ghostscript} version 9.56 or
+later from @url{https://www.ghostscript.com/}.
 
 To view @code{PostScript} output, you can install the
 program @code{Sumatra PDF} available from
@@ -415,21 +415,13 @@ subdirectory of the installation directory (by default,
 @cindex @code{-V}
 In interactive mode, or when given the @code{-V} option (the default
 when running @code{Asymptote} on a single file under @code{MSDOS}),
-@code{Asymptote} will automatically invoke the @code{PostScript}
-viewer @code{gv} (under @code{UNIX}) or @code{gsview} (under
-@code{MSDOS}) to display graphical output.
+@code{Asymptote} will automatically invoke your @code{PostScript}
+viewer (@code{evince} under @code{UNIX}) to display graphical output.
 The @code{PostScript} viewer should be capable of automatically
-redrawing whenever the output file is updated. The default @code{UNIX}
+redrawing whenever the output file is updated. The @code{UNIX}
 @code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
-signal). Version @code{gv-3.6.3} or later (from
-@url{https://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
-work properly.
-Users of @code{ggv} will need to enable @code{Watch file} under
+signal). Users of @code{ggv} will need to enable @code{Watch file} under
 @code{Edit/PostScript Viewer Preferences}.
-Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
-(however, under @code{MSDOS} it is still necessary to click on the
-@code{gsview} window; under @code{UNIX} one must manually redisplay by
-pressing the @code{r} key).
 
 @cindex @code{psviewer}
 @cindex @code{pdfviewer}
@@ -451,7 +443,7 @@ important configuration variables under @code{UNIX}:
 import settings;
 pdfviewer="acroread";
 htmlviewer="google-chrome";
-psviewer="gv";
+psviewer="evince";
 display="display";
 animate="animate";
 gs="gs";
@@ -549,7 +541,7 @@ all disabled warnings.
 Configuration variables may also be set or overwritten with a
 command-line option:
 @verbatim
-asy -psviewer=gsview -V venn
+asy -psviewer=evince -V venn
 @end verbatim
 
 @cindex environment variables
@@ -559,7 +551,7 @@ environment variable name is obtained by converting the configuration
 variable name to upper case  and prepending @code{ASYMPTOTE_}:
 for example, to set the environment variable
 @verbatim
-ASYMPTOTE_PSVIEWER="C:\Program Files\Ghostgum\gsview\gsview32.exe";
+ASYMPTOTE_PAPERTYPE="a4";
 @end verbatim
 @noindent
 under @code{Microsoft Windows XP}:
@@ -9517,6 +9509,7 @@ interactiveMask=true;
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime.
 @cindex @code{dvipsOptions}
+@cindex @code{dvisvgmOptions}
 @cindex @code{hyperrefOptions}
 @cindex @code{convertOptions}
 @cindex @code{gsOptions}
@@ -9525,7 +9518,6 @@ variables may also be changed at runtime.
 @cindex @code{pdfviewerOptions}
 @cindex @code{pdfreloadOptions}
 @cindex @code{glOptions}
-@cindex @code{dvisvgmOptions}
 The advanced configuration variables @code{dvipsOptions},
 @code{hyperrefOptions}, @code{convertOptions}, @code{gsOptions},
 @code{htmlviewerOptions}, @code{psviewerOptions},
@@ -10189,7 +10181,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
 @c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt
-@c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf cutbefore strptime
+@c  LocalWords:  ghostview SIGHUP PDF acroread xpdf cutbefore strptime
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
@@ -10315,7 +10307,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
 @c  LocalWords:  Michail 0pt 1filll 's 3D labelpath3 2D graph3 0pt 3D
-@c  LocalWords:  grid3 contour3 x86_64 psv a4 gsview32 freeglut 'load '
+@c  LocalWords:  grid3 contour3 x86_64 psv a4 freeglut 'load '
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
 @c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
 @c  LocalWords:  z2 before' struct X11 x11colors type1cm 12pt OT1 5mm

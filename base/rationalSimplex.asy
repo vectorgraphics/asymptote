@@ -1,9 +1,14 @@
 // Rational simplex solver written by John C. Bowman and Pouria Ramazi, 2018.
 import rational;
 
+bool optimizeTableau=true;
+
+int[] artificialColumn;
+
 void simplexInit(rational[] c, rational[][] A, int[] s=new int[],
                  rational[] b, int count) {}
-void simplexTableau(rational[][] E, int[] Bindices, int I=-1, int J=-1) {}
+void simplexTableau(rational[][] E, int[] Bindices, int I=-1, int J=-1,
+                    int n=E[0].length-1) {}
 void simplexPhase1(rational[] c, rational[][] A, rational[] b,
                    int[] Bindices) {}
 void simplexPhase2() {}
@@ -71,7 +76,7 @@ struct simplex {
     }
   }
 
-  int iterate(rational[][] E, int N, int[] Bindices) {
+  int iterate(rational[][] E, int N, int[] Bindices, bool phase1=false) {
     while(true) {
       // Bland's rule: first negative entry in reduced cost (bottom) row enters
       rational[] Em=E[m];
@@ -108,11 +113,13 @@ struct simplex {
       // Generate new tableau
       Bindices[I]=J;
       rowreduce(E,N,I,J);
+
+      if(phase1 && Em[0] == 0) break;
     }
     return OPTIMAL;
   }
 
-  int iterateDual(rational[][] E, int N, int[] Bindices) {
+  int iterateDual(rational[][] E, int N, int[] Bindices, bool phase1=false) {
     while(true) {
       // Bland's rule: negative variable with smallest subscript exits
       int I;
@@ -211,30 +218,31 @@ struct simplex {
 
     if(phase1) {
       Bindices=new int[m];
-      int p=0;
-
-      // Check for redundant basis vectors.
-      bool checkBasis(int j) {
-        for(int i=0; i < m; ++i) {
-          rational[] Ei=E[i];
-          if(i != p ? Ei[j] != 0 : Ei[j] <= 0) return false;
-        }
-        return true;
-      }
-
-      int checkTableau() {
-        for(int j=1; j <= n; ++j)
-          if(checkBasis(j)) return j;
-        return 0;
-      }
-
       int k=0;
-      while(p < m) {
+
+      artificialColumn.delete();
+      // Check for redundant basis vectors.
+      for(int p=0; p < m; ++p) {
+        bool checkBasis(int j) {
+          for(int i=0; i < m; ++i) {
+            rational[] Ei=E[i];
+            if(i != p ? Ei[j] != 0 : Ei[j] <= 0)
+              return false;
+          }
+          return true;
+        }
+
+        int checkTableau() {
+          if(optimizeTableau)
+            for(int j=1; j <= n; ++j)
+              if(checkBasis(j)) return j;
+          return 0;
+        }
+
         int j=checkTableau();
-        if(j > 0)
-          Bindices[p]=j;
-        else { // Add an artificial variable
-          Bindices[p]=n+1+k;
+        Bindices[p]=n+1+p;
+        if(j == 0) { // Add an artificial variable
+          artificialColumn.push(p+1);
           for(int i=0; i < p; ++i)
             E[i].push(0);
           E[p].push(1);
@@ -243,14 +251,13 @@ struct simplex {
           E[m].push(0);
           ++k;
         }
-        ++p;
       }
 
       basicValues();
 
       simplexPhase1(c,A,b,Bindices);
 
-      iterate(E,n+k,Bindices);
+      iterate(E,n+k,Bindices,true);
 
       if(Em[0] != 0) {
         simplexTableau(E,Bindices);
@@ -265,23 +272,22 @@ struct simplex {
     rational[] cB=phase1 ? new rational[m] : c[n-m:n];
     rational[][] D=phase1 ? new rational[m+1][n+1] : E;
     if(phase1) {
-      bool output=true;
+      write("n=",n);
+      write(Bindices);
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
-        int k=Bindices[i];
-        if(k > n) {
+        if(Bindices[i] > n) {
           rational[] Ei=E[i];
           int j;
           for(j=1; j <= n; ++j)
             if(Ei[j] != 0) break;
           if(j > n) continue;
-          output=false;
-          simplexTableau(E,Bindices,i,j);
+          simplexTableau(E,Bindices,i,j,n);
           Bindices[i]=j;
           rowreduce(E,n,i,j);
         }
       }
-      if(output) simplexTableau(E,Bindices);
+      simplexTableau(E,Bindices,-1,-1,n);
       int ip=0; // reduced i
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
@@ -307,7 +313,6 @@ struct simplex {
         D.delete(ip,m-1);
         m=ip;
       }
-      if(!output) simplexTableau(D,Bindices);
     }
 
     rational[] Dm=D[m];
@@ -335,6 +340,8 @@ struct simplex {
 
       for(int k=0; k < m; ++k)
         x[Bindices[k]-1]=D[k][0];
+
+      xStandard=copy(x);
     }
 
     if(case == UNBOUNDED) {
@@ -414,10 +421,7 @@ struct simplex {
     simplexInit(C,a,b,count);
     operator init(C,a,b,phase1);
 
-    if(case != INFEASIBLE) {
-      xStandard=copy(x);
-      if(count > 0)
-        x.delete(n,n+count-1);
-    }
+    if(case != INFEASIBLE && count > 0)
+      x.delete(n,n+count-1);
   }
 }

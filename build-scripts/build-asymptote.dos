@@ -4,8 +4,10 @@ GC=7.6.2
 MACHINE=`uname -m`
 if [ $MACHINE == i686 ]; then
 BINDIR=i386-windows
+HEAPSIZE=2048
 else
 BINDIR=x86_64-windows
+HEAPSIZE=4096
 fi
 SHARED=~/shared/asy
 MAKEFLAGS=-j8
@@ -44,6 +46,7 @@ cp -a $BUILD/*.dll ~/CTAN/asymptote/binaries/$BINDIR/
 make MSDOS=1 DESTDIR="$BUILD/" docdir="$BUILD/"
 test -f asy.list || make MSDOS=1 keywords DESTDIR="$BUILD/" docdir="$BUILD/"
 make MSDOS=1 install-asy DESTDIR="$BUILD/" docdir="$BUILD/"
+peflags --cygwin-heap=$HEAPSIZE asy.exe
 cp asy.ico README LICENSE* $BUILD
 pushd $BUILD
 mv usr/local/bin/* .
@@ -82,6 +85,7 @@ cd asymptote-${VERSION}TL
 rm settings.o
 rm -f doc/*.aux doc/*.log doc/*.dvi
 make MSDOS=1 DESTDIR="$BUILD/"
+peflags --cygwin-heap=4096 asy.exe
 make MSDOS=1 install-asy DESTDIR="$BUILD/"
 mv $BUILD/usr/local/bin/asy.exe $BUILD
 cp $BUILD/asy.exe ~/CTAN/asymptote/binaries/$BINDIR/texlive

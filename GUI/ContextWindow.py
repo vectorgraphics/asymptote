@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
@@ -98,10 +100,9 @@ class AnotherWindow(Qw.QWidget):
         self.label = Qw.QLabel("Line Style:")
         self.lineTab.layout.addWidget(self.label)
         self.linestyleButton = Qw.QComboBox()
-        self.lineListStrings = ["","dashed","dotted","dashdotted"] #Is there a way to pull these directly
-        self.lineList = [Qc.Qt.PenStyle.SolidLine,Qc.Qt.PenStyle.DashLine,Qc.Qt.PenStyle.DotLine,Qc.Qt.PenStyle.DashDotLine]
+        self.lineList = ["solid","dashed","dotted","dashdotted"]
 
-        for lineMode in self.lineListStrings:
+        for lineMode in self.lineList:
             self.linestyleButton.addItem(lineMode)
         self.linestyleButton.currentIndexChanged.connect(self.linestyleChange)
         self.lineTab.layout.addWidget(self.linestyleButton)
@@ -174,8 +175,8 @@ class AnotherWindow(Qw.QWidget):
         #None, {Arrow, ArcArrow} x {(),(SimpleHead),(HookHead),(TeXHead)}
         if isinstance(self.shape, x2a.xasyShape):
             if i != 0:
-                if self.newShape == x2a.asyArrow:
-                    self.newShape = self.newShape.arrowify(arrowhead=i)
+                if isinstance(self.newShape,x2a.asyArrow):
+                    self.newShape.arrowSettings["active"] = i
                 else:
                     self.newShape = self.shape.arrowify(arrowhead=i)
         else:
@@ -194,7 +195,8 @@ class AnotherWindow(Qw.QWidget):
         if isinstance(self.shape, x2a.asyArrow):
             self.shape.arrowSettings["fill"] = bool(i)
         elif (self.shape.path.fill != bool(i)) and not isinstance(self.newShape, x2a.asyArrow):
-            self.newShape = self.newShape.swapFill()
+            if self.newShape:
+                self.newShape = self.newShape.swapFill()
         if isinstance(self.newShape, x2a.asyArrow):
             self.newShape.arrowSettings["fill"] = bool(i)
 
@@ -237,7 +239,7 @@ class AnotherWindow(Qw.QWidget):
         if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]:
             self.sizeChange()
             self.angleChange()
-        elif (not isinstance(self.shape, x2a.asyArrow)) and (self.linestyleButton.currentIndex() > 0):
+        elif (not isinstance(self.shape, x2a.asyArrow)):
             self.renderLineStyle()
         if self.newShape:
             self.parent.replaceObject(self.parent.contextWindowObject,self.newShape)
@@ -277,17 +279,20 @@ class AnotherWindow(Qw.QWidget):
 
     def renderLineStyle(self):
         #Should only get called with asy shapes
-
+        if not self.newShape:
+            self.newShape=self.shape
         if not isinstance(self.newShape,x2a.asyArrow):
-            rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
+            rawPattern = self.getPattern(self.lineList[self.linestyleButton.currentIndex()],self.newShape.path.getCode())
         else:
             #self.newShape.updateCode() #idk if this is necessary.
-            rawPattern = self.getPattern(self.lineListStrings[self.linestyleButton.currentIndex()],self.newShape.code)
+            rawPattern = self.getPattern(self.lineList[self.linestyleButton.currentIndex()],self.newShape.code)
 
-        #print(rawPattern)
         pattern = []
-        for value in rawPattern[2:-3].split(' '):
-            pattern.append(float(value))
+        if len(rawPattern) == 5:
+            pattern=[1,0]
+        else:
+            for value in rawPattern[2:-3].split(' '):
+                pattern.append(float(value)+1)
 
         try:
             self.newShape.pen.setDashPattern(pattern) #pen is going to be a asyPen, add as an attribute
@@ -299,7 +304,7 @@ class AnotherWindow(Qw.QWidget):
         self.colorDialog.show()
         result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
-            self.shape.pen.setColor(self.colorDialog.selectedColor())
+            self.shape.pen.setColorFromQColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
 
     def pickFillColor(self): #This is a copy of the above, how do you set the var as it is set?
@@ -307,7 +312,7 @@ class AnotherWindow(Qw.QWidget):
         self.colorDialog.show()
         result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
-            self.shape.fillPen.setColor(self.colorDialog.selectedColor())
+            self.shape.fillPen.setColorFromQColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
 
     @Qc.pyqtSlot()

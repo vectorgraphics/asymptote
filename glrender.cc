@@ -12,6 +12,7 @@
 #include <fstream>
 #include <cstring>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "locate.h"
@@ -68,7 +69,7 @@ pthread_t mainthread;
 #endif
 
 using settings::locateFile;
-using utils::seconds;
+using utils::stopWatch;
 
 #endif // HAVE_GL
 
@@ -431,11 +432,11 @@ void home(bool webgl=false)
 
 double T[16];
 
+timeval lasttime;
+
 #ifdef HAVE_GL
 
 #ifdef HAVE_LIBGLUT
-timeval lasttime;
-timeval lastframetime;
 int oldWidth,oldHeight;
 
 bool queueScreen=false;
@@ -1165,15 +1166,8 @@ void togglefitscreen()
   fitscreen();
 }
 
-void initTimer()
-{
-  gettimeofday(&lasttime,NULL);
-  lastframetime=lasttime;
-}
-
 void idleFunc(void (*f)())
 {
-  initTimer();
   glutIdleFunc(f);
 }
 
@@ -1183,16 +1177,29 @@ void screen()
     fitscreen(false);
 }
 
-void nextframe(int)
+stopWatch frameTimer;
+
+void nextframe()
 {
 #ifdef HAVE_PTHREAD
   endwait(readySignal,readyLock);
 #endif
-  double framedelay=getSetting<double>("framedelay");
-  if(framedelay > 0)
-    usleep((unsigned int) (1000.0*framedelay+0.5));
+  double delay=getSetting<double>("framerate");
+  if(delay != 0.0) delay=1.0/delay;
+  double seconds=frameTimer.seconds(true);
+  delay -= seconds;
+  if(delay > 0) {
+    timespec req;
+    timespec rem;
+    req.tv_sec=(unsigned int) delay;
+    req.tv_nsec=(unsigned int) (1.0e9*(delay-req.tv_sec));
+    while(nanosleep(&req,&rem) < 0 && errno == EINTR)
+      req=rem;
+  }
   if(Step) Animate=false;
 }
+
+stopWatch Timer;
 
 void display()
 {
@@ -1205,9 +1212,9 @@ void display()
   drawscene(Width,Height);
   if(fps) {
     if(framecount < 20) // Measure steady-state framerate
-      seconds();
+      Timer.reset();
     else {
-      double s=seconds();
+      double s=Timer.seconds(true);
       if(s > 0.0) {
         double rate=1.0/s;
         S.add(rate);
@@ -1223,18 +1230,7 @@ void display()
 #ifdef HAVE_PTHREAD
   if(glthread && Animate) {
     queueExport=false;
-    double delay=1.0/getSetting<double>("framerate");
-    timeval tv;
-    gettimeofday(&tv,NULL);
-    double seconds=tv.tv_sec-lastframetime.tv_sec+
-      ((double) tv.tv_usec-lastframetime.tv_usec)/1000000.0;
-    lastframetime=tv;
-    double milliseconds=1000.0*(delay-seconds);
-    double framedelay=getSetting<double>("framedelay");
-    if(framedelay > 0) milliseconds -= framedelay;
-    if(milliseconds > 0)
-      glutTimerFunc((int) (milliseconds+0.5),nextframe,0);
-    else nextframe(0);
+    nextframe();
   }
 #endif
   if(queueExport) {
@@ -1252,7 +1248,6 @@ void display()
 void update()
 {
   glutDisplayFunc(display);
-  Animate=getSetting<bool>("autoplay");
   glutShowWindow();
   if(Zoom != lastzoom) remesh=true;
   lastzoom=Zoom;
@@ -1898,13 +1893,17 @@ void init_osmesa()
 #endif // HAVE_LIBOSMESA
 }
 
-#endif /* HAVE_GL */
-
 bool NVIDIA()
 {
+#ifdef GL_SHADING_LANGUAGE_VERSION
   char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+#else
+  char *GLSL_VERSION="";
+#endif
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
+
+#endif /* HAVE_GL */
 
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
@@ -1914,6 +1913,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
+  gettimeofday(&lasttime,NULL);
   Iconify=getSetting<bool>("iconify");
 
   if(zoom == 0.0) zoom=1.0;
@@ -2429,19 +2429,19 @@ void refreshBuffers()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
 
     if(GPUcompress) {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
-                   NULL,GL_DYNAMIC_DRAW);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::indexBuffer);
-
       GLuint one=1;
       glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,camp::elementsBuffer);
       glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
                    GL_DYNAMIC_DRAW);
       glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
-    } else
-      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                        GL_UNSIGNED_BYTE,&zero); // Clear the count buffer
+
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
+      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
+                   NULL,GL_DYNAMIC_DRAW);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::indexBuffer);
+    }
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_INT,&zero); // Clear count or index buffer
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(glm::vec4),NULL,
@@ -2469,8 +2469,8 @@ void refreshBuffers()
 
   if(gl::exporting && GPUindexing && !GPUcompress) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R8UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_BYTE,&zero);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_INT,&zero);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::feedbackBuffer);
   }
 
@@ -2508,11 +2508,11 @@ void refreshBuffers()
         first=false;
       }
       unsigned int N=10000;
-      seconds();
+      stopWatch Timer;
       for(unsigned int i=0; i < N; ++i)
         partialSums();
       glFinish();
-      double T=seconds()/N;
+      double T=Timer.seconds()/N;
       cout << "elements=" << gl::elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;
       cout << "Megapixels/second=" << gl::elements/T/1e6 << endl;

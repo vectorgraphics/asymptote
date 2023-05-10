@@ -416,10 +416,10 @@ class asyPen(asyObj):
         self.color = (0, 0, 0)
         self.options = pen_options
         self.width = width
-        self.style = QtCore.Qt.PenStyle.SolidLine #Probably deprecated?
+        self.style = "solid"
         self.capStyle = QtCore.Qt.PenCapStyle.SquareCap
         self.opacity = 255 #Should these be in a dictionary?
-        self.dashPattern = None #???
+        self.dashPattern = [1,0]
         self._asyengine = asyengine
         self._deferAsyfy = False
         if pen_options:
@@ -434,14 +434,6 @@ class asyPen(asyObj):
     @asyEngine.setter
     def asyEngine(self, value):
         self._asyengine = value
-
-    def qtStyleToAsyStyle(self, style):
-        lineList = [QtCore.Qt.PenStyle.SolidLine,QtCore.Qt.PenStyle.DashLine,QtCore.Qt.PenStyle.DotLine,QtCore.Qt.PenStyle.DashDotLine]
-        asyList = ["","dashed","dotted","dashdotted"]
-        if style in lineList:
-            return asyList[lineList.index(style)]
-        else:
-            return False
 
     def qtCapStyleToAsyCapStyle(self, style):
         lineCapList = [QtCore.Qt.PenCapStyle.SquareCap,QtCore.Qt.PenCapStyle.FlatCap,QtCore.Qt.PenCapStyle.RoundCap]
@@ -458,8 +450,8 @@ class asyPen(asyObj):
         self.asyCode = 'rgb({:g},{:g},{:g})+{:s}'.format(self.color[0], self.color[1], self.color[2], str(self.width))
         if len(self.options) > 0:
             self.asyCode = self.asyCode + '+' + self.options
-        if self.qtStyleToAsyStyle(self.style):
-            self.asyCode = self.qtStyleToAsyStyle(self.style) + '+' + self.asyCode
+        if self.style != "solid":
+            self.asyCode = self.style + '+' + self.asyCode
 
     def setWidth(self, newWidth):
         """ Set the pen's width """
@@ -534,7 +526,6 @@ class asyPen(asyObj):
         color = asyPen.convertToQColor(self.color)
         color.setAlpha(self.opacity)
         newPen.setColor(color)
-        newPen.setStyle(self.style)
         newPen.setCapStyle(self.capStyle)
         newPen.setWidthF(self.width)
         if self.dashPattern:

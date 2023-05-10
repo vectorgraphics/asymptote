@@ -51,4 +51,4 @@ spectrum(m,s,l);
 
 shipout("triadkpq");
 
-erase();
+currentpicture.erase();
