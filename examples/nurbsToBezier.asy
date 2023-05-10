@@ -1,10 +1,9 @@
 import three;
 import graph;
 
-real NURBStolerance=0.01;
+real NURBStolerance=sqrtEpsilon;
 
-int ceilquotient(int a, int b)
-{
+int ceilquotient(int a, int b){
   return (a+b-1)#b;
 }
 
@@ -39,8 +38,8 @@ int[] removeDuplicates(int[] array){
     return copy(temp);
 }
 
-//de_Casteljau algorithm for triple
-triple de_casteljau_triple(real t,triple[] coefs) {
+triple de_casteljau(real t,triple[] coefs){
+  //de_Casteljau algorithm for triple
   int n=coefs.length;
   triple[] local_coefs=copy(coefs);
   for(int i=1;i<n;++i) {
@@ -51,8 +50,20 @@ triple de_casteljau_triple(real t,triple[] coefs) {
   return local_coefs[0]; // the point on the curve evaluated with given t
 }
 
-//de_Casteljau algorithm for real
-real de_casteljau_real(real t,real[] coefs) {
+triple de_casteljau(real u,real v, triple[][] coefs){
+  int m=coefs.length;//number of rows
+  int n=coefs[0].length;//number of columns
+  triple[] Bezier_cp=new triple[m];
+  for(int i=0;i<m;++i){
+    Bezier_cp[i]=de_casteljau(v,coefs[i]);
+  }
+
+  triple point_return=de_casteljau(u,Bezier_cp);
+  return point_return;
+}
+
+real de_casteljau(real t,real[] coefs){
+  //de_Casteljau algorithm for real
   int n=coefs.length;
   real[] local_coefs=copy(coefs);
   for(int i=1;i<n;++i) {
@@ -63,17 +74,16 @@ real de_casteljau_real(real t,real[] coefs) {
   return local_coefs[0]; // the point on the curve evaluated with given t
 }
 
-// evaluate one point on the Rational Bezier curve
-triple RBezier_curve_evaluation(real t,triple[] control_points,real[] weights) {
-
+triple RBezier_curve_evaluation(real t, triple[] control_points,real[] weights){
+  // evaluate one point on the Rational Bezier curve
   int n=control_points.length;
-  triple[] weighted_control_points=new triple[n];
+  triple[] weighted_cp=new triple[n];
   triple point_on_curve;
   for(int i=0;i<n;++i) {
-    weighted_control_points[i]=control_points[i]*weights[i];
+    weighted_cp[i]=control_points[i]*weights[i];
   }
-  triple numerator=de_casteljau_triple(t,weighted_control_points);
-  real denominator=de_casteljau_real(t,weights);
+  triple numerator=de_casteljau(t,weighted_cp);
+  real denominator=de_casteljau(t,weights);
   if(denominator!=0){
     point_on_curve=numerator/denominator;
   }
@@ -83,7 +93,26 @@ triple RBezier_curve_evaluation(real t,triple[] control_points,real[] weights) {
   return point_on_curve;
 }
 
-struct NURBSCurveData {
+triple RBezier_surface_evaluation(real u, real v, triple[][] control_points, real[][] weights){
+  // evaluate one point on the Rational Bezier surface
+  int m=control_points.length;//number of rows
+  int n=control_points[0].length;//number of columns
+  //triple[][] weighted_cp=new triple[m][n];
+  triple[] Bezier_curve_cp=new triple[m];
+  real[] weight_berstein=new real[m];
+  triple point_on_surface;
+
+  for(int i=0;i<m;++i){
+    Bezier_curve_cp[i]=RBezier_curve_evaluation(v,control_points[i],weights[i]);
+    weight_berstein[i]=de_casteljau(v,weights[i]);
+  }
+
+  point_on_surface=RBezier_curve_evaluation(u,Bezier_curve_cp,weight_berstein);
+
+  return point_on_surface;
+}
+
+struct NURBSCurveData{
   triple[] controlPoints;
   real[] knots;
   real[] weights;
@@ -96,8 +125,8 @@ struct NURBSCurveData {
   }
 }
 
-struct BSplineCurveData {
-  real[][] controlPoints;
+struct BSplineCurveData{
+  real[][] controlPoints;// the fourth entry of a BSpline curve control points is weight
   real[] knots;
   int degree=knots.length-controlPoints.length-1;
   void operator init(real[][] controlPoints, real[] knots) {
@@ -139,7 +168,8 @@ struct BSplineSurfaceData{
   }
 }
 
-NURBSCurveData conversion_4DBSpline_to_3DNurbs(BSplineCurveData BSpline_4D) {
+NURBSCurveData conversion_4DBSpline_to_3DNurbs(BSplineCurveData BSpline_4D){
+  //convert a 4D BSpline curve to a 3D Nurb curve by adding the influence of weight(controlPoints[3])
   NURBSCurveData new_nurb;
   triple[] x=new_nurb.controlPoints;
   real[] weights=new_nurb.weights;
@@ -164,7 +194,8 @@ NURBSCurveData conversion_4DBSpline_to_3DNurbs(BSplineCurveData BSpline_4D) {
   return new_nurb;
 }
 
-BSplineCurveData conversion_3DNurbs_to_4DBSpline(NURBSCurveData NURBS_3D) {
+BSplineCurveData conversion_3DNurbs_to_4DBSpline(NURBSCurveData NURBS_3D){
+  //convert a 3D Nurb curve to a 4D BSpline curve by considering weight as the fourth entry in BSpline(controlPoints[3])
   BSplineCurveData new_BSpline_4D;
   real[][] x=new_BSpline_4D.controlPoints;
   triple control_point_3D;
@@ -182,7 +213,8 @@ BSplineCurveData conversion_3DNurbs_to_4DBSpline(NURBSCurveData NURBS_3D) {
   return new_BSpline_4D;
 }
 
-BSplineSurfaceData conversion_3DNurbs_to_4DBSpline(NURBSsurfaceData NURBS_3D) {
+BSplineSurfaceData conversion_3DNurbs_to_4DBSpline(NURBSsurfaceData NURBS_3D){
+    //convert a 3D Nurb surface to a 4D BSpline surface by adding the influence of weight(controlPoints[3])
     BSplineSurfaceData new_BSpline_4D;
     real[][][] x=new real[NURBS_3D.controlPoints.length][NURBS_3D.controlPoints[0].length][4];
     triple control_point_3D;
@@ -203,7 +235,8 @@ BSplineSurfaceData conversion_3DNurbs_to_4DBSpline(NURBSsurfaceData NURBS_3D) {
     return new_BSpline_4D;
 }
 
-NURBSsurfaceData conversion_4DBSpline_to_3DNurbs(BSplineSurfaceData BSpline_4D) {
+NURBSsurfaceData conversion_4DBSpline_to_3DNurbs(BSplineSurfaceData BSpline_4D){
+    //convert a 4D BSpline surface to a 3D Nurb surface by adding the influence of weight(controlPoints[3])
     NURBSsurfaceData nurb_3D;
     triple[][] x=new triple[BSpline_4D.controlPoints.length][BSpline_4D.controlPoints[0].length];
     real[][] weights=new real[BSpline_4D.controlPoints.length][BSpline_4D.controlPoints[0].length];
@@ -231,8 +264,8 @@ NURBSsurfaceData conversion_4DBSpline_to_3DNurbs(BSplineSurfaceData BSpline_4D) 
     return nurb_3D;
 }
 
-real[][] BezierMultiDegreeElevate(real[][] input_control_points, int r) {
-  // elevate Bezier curve by degree r
+real[][] BezierMultiDegreeElevate(real[][] input_control_points, int r){
+  // elevate Bezier curve by degree r, returns control points
   int d=input_control_points[0].length; // dimension of input control points
   int n=input_control_points.length;
   int p=n-1; // p is the degree of the curve
@@ -268,8 +301,8 @@ real[][] BezierMultiDegreeElevate(real[][] input_control_points, int r) {
   return elevated_cp;
 }
 
-BSplineCurveData DegreeElevationCurve(BSplineCurveData curve_data, int t) {
-  // Degree elevate a curve t times
+BSplineCurveData DegreeElevationCurve(BSplineCurveData curve_data, int t){
+  // Degree elevate a BSpline curve t times, returns BSplineCurveData data structure
   int p=curve_data.degree;
   int m=curve_data.knots.length;
   int n=curve_data.controlPoints.length;
@@ -382,7 +415,7 @@ BSplineCurveData DegreeElevationCurve(BSplineCurveData curve_data, int t) {
   return new_curve;
 }
 
-real[][] BezDegreeReduce(real[][] bpts) {
+real[][] BezDegreeReduce(real[][] bpts){
   int p=bpts.length-1; // p=degree of bts Bezier curve
   real[][] rcpts=new real[p][] ; // reduced control points
   int r=ceilquotient((p-1),2);
@@ -418,7 +451,7 @@ real[][] BezDegreeReduce(real[][] bpts) {
   return rcpts;
 }
 
-BSplineCurveData DegreeReduceCurve(BSplineCurveData curve_data) {
+BSplineCurveData DegreeReduceCurve(BSplineCurveData curve_data){
   // reduce the BSpline curve from degree p to p-1
   int n=curve_data.controlPoints.length;
   int p=curve_data.degree;
@@ -529,8 +562,8 @@ BSplineCurveData DegreeReduceCurve(BSplineCurveData curve_data) {
   return new_curve_data;
 }
 
-triple[] PIA(triple[] data_points,triple[] sample_points) {
-  // Progressive Iterative Approximation algorithm to find the adjust vectors
+triple[] PIA(triple[] data_points,triple[] sample_points){
+  // Progressive Iterative Approximation algorithm to find the adjust vectors(curve)
   int n=data_points.length;
   triple[] adjusting_vectors=new triple[n]; // adjusting vectors for return
   for(int i=0;i<n;++i) {
@@ -539,32 +572,78 @@ triple[] PIA(triple[] data_points,triple[] sample_points) {
   return adjusting_vectors;
 }
 
+triple[][] PIA(triple[][] data_points,triple[][] sample_points){
+  // Progressive Iterative Approximation algorithm to find the adjust vectors(surface)
+  int m=data_points.length;//number of rows
+  int n=data_points[0].length;//number of columns
+  triple[][] adjusting_vectors=new triple[m][n]; // adjusting vectors for return
+  for(int i=0;i<m;++i)
+    for(int j=0;j<n;++j)
+      adjusting_vectors[i][j]=data_points[i][j]-sample_points[i][j];
+  return adjusting_vectors;
+}
+
 triple[] conversion_RBezier_to_NRBezier(triple[] RBcontrolPoints,triple[] adjust_controlPoints,triple[] sample_points,real tolerance) {
-
-  triple[] local_control_points=copy(adjust_controlPoints); // local control points will be adjusted according to the adjusting vectors
+  // conversion from Rational Bezier curve to Non-Rational Bezier curve
+  triple[] local_cp=copy(adjust_controlPoints); // local control points will be adjusted according to the adjusting vectors
   triple[] local_sample_points=copy(sample_points); // local sample points will be resampled using the newly generated local control points
-  int n=local_control_points.length;
+  int n=local_cp.length;
   int k=local_sample_points.length;
-  bool approximation_bool=true; // change to false if the approximation error(of one vector) is greater than the allowed_error
 
+  bool approximation_bool=true; // change to false if the approximation error(of one vector) is greater than the allowed_error
   triple[] adjusting_vectors=PIA(RBcontrolPoints, local_sample_points);
   real ad_vector_length=0;
+
   for(int i=0;i<n;++i) {
     ad_vector_length=length(adjusting_vectors[i]);
-    local_control_points[i]=local_control_points[i]+adjusting_vectors[i];
+    local_cp[i]=local_cp[i]+adjusting_vectors[i];
     if(ad_vector_length>tolerance) {
       approximation_bool=false;
       break;
     }
   }
   for(int j=0;j<k;++j) {
-    local_sample_points[j]=de_casteljau_triple(j/(k-1),copy(local_control_points));
+    local_sample_points[j]=de_casteljau(j/(k-1),copy(local_cp));
   }
 
   if(approximation_bool==true) {
-    return local_control_points; // non-rational Bezier control points are returned
+    return local_cp; // non-rational Bezier control points are returned
   }
-  return conversion_RBezier_to_NRBezier(RBcontrolPoints,local_control_points,local_sample_points,tolerance);
+  return conversion_RBezier_to_NRBezier(RBcontrolPoints,local_cp,local_sample_points,tolerance);
+}
+
+triple[][] conversion_RBezier_to_NRBezier(triple[][] RBcontrolPoints,triple[][] adjust_controlPoints,triple[][] sample_points,real tolerance){
+  //convert a Rational Bezier surface to a non-rational Bezier surface
+  triple[][] local_cp=copy(adjust_controlPoints);
+  triple[][] local_sp=copy(sample_points);
+  int m=local_cp.length;//number of rows
+  int n=local_cp[0].length;
+  int u=local_sp.length;
+  int v=local_sp[0].length;
+
+  bool approximation_bool=true; //change to false if the approximation error(of one vector) is greater than the allowed_error
+  triple[][] adjusting_vectors=PIA(RBcontrolPoints,local_sp);
+  real ad_vector_length=0;
+  for(int i=0;i<m;++i){
+    for(int j=0;j<n;++j){
+      ad_vector_length=length(adjusting_vectors[i][j]);
+      local_cp[i][j]=local_cp[i][j]+adjusting_vectors[i][j];
+      if(ad_vector_length>tolerance){
+        approximation_bool=false;
+        break;
+      }
+    }
+  }
+
+  for(int i=0;i<u;++i){
+    for(int j=0;j<v;++j){
+      local_sp[i][j]=de_casteljau(i/(u-1),j/(v-1),copy(local_cp));
+    }
+  }
+  if(approximation_bool){
+    return local_cp;
+  }
+  return conversion_RBezier_to_NRBezier(RBcontrolPoints,local_cp,local_sp,tolerance);
 }
 
 void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int t){
@@ -631,7 +710,7 @@ void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int t){
                 cind=old_cind;
                 for(int j=0;j<=q;++j){
                     //initialize bpts for each row i
-                    bpts[i][j]=control_points[i][j];    
+                    bpts[i][j]=control_points[i][j];
                 }
                 if(r>0){
                     for (int ind=1;ind<=r;++ind){
@@ -642,10 +721,10 @@ void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int t){
                             bpts[i][k]=alpha*copy(bpts[i][k])+(1.0-alpha)*copy(bpts[i][k-1]);
                         }
                         Nextbpts[i][save]=bpts[i][q];
-                    }  
+                    }
                 }
                 //End of knot insertion
-            
+
                 //Bezier Degree elevation
                 elevated_bpts[i]=BezierMultiDegreeElevate(bpts[i],t);
                 for(int j=1;j<=qh;++j){
@@ -693,10 +772,10 @@ void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int t){
 }
 
 void DecomposeSurface_U_dir(BSplineSurfaceData BSpline_4D_surface,int t){
-    /*  Decompose surface into Bezier strips in v direction */
+    /*  Decompose surface into Bezier strips in u direction */
     /*  Input: BSplineSurfaceData BSpline_4D_surface,q*/
     /*
-        t is the degree elevate in v-direction
+        t is the degree elevate in u-direction
     */
         real[][][] control_points=copy(BSpline_4D_surface.controlPoints);
         int p=BSpline_4D_surface.U_degree;
@@ -828,7 +907,7 @@ void DegreeReduce_V_dir(BSplineSurfaceData BSpline_4D_surface,int output_degree)
       /*
       Input:
         BSpline_4D_surface is the surface data input for degree reduction
-        output_degree is the degree of the degree_reduced surface 
+        output_degree is the degree of the degree_reduced surface
     */
     real[][][] BS_control_points=copy(BSpline_4D_surface.controlPoints);
     real[] BS_V_knot=copy(BSpline_4D_surface.V_knot);
@@ -986,61 +1065,38 @@ struct NURBSsurface{
         if(q>output_degree){
           DegreeReduce_V_dir(BSpline_4D,output_degree);
         }
+        p=BSpline_4D.U_degree;
+        q=BSpline_4D.V_degree;
         NURBSsurfaceData RBezier_3D=conversion_4DBSpline_to_3DNurbs(BSpline_4D);
-        // get the rational rows and columns of the control points rational Bezier surfaces
-        int[] rational_rows;
-        int[] rational_cols;
-        for(int i=0;i<RBezier_3D.weights.length;++i){
-            for(int j=0;j<RBezier_3D.weights[i].length;++j){
-                if(RBezier_3D.weights[i][j]!=1){
-                    rational_rows.push(i);
-                    rational_cols.push(j);
-                }
-            }
-        }
-        rational_rows=removeDuplicates(rational_rows);
-        rational_cols=removeDuplicates(rational_cols);
-
-        // convert the rational rows to non-rational Bezier curves
-        int n = RBezier_3D.controlPoints.length;
-        for(int i=0;i<rational_rows.length;++i){
-          triple[] rational_row=copy(RBezier_3D.controlPoints[rational_rows[i]]);
-          int row_len=rational_row.length;
-          triple[] sample_points = new triple[row_len];
-          for(int j=0;j<row_len;++j) {
-            sample_points[j]=RBezier_curve_evaluation(j/(row_len-1),rational_row,RBezier_3D.weights[rational_rows[i]]);
-          }
-          //dot(copy(sample_points),yellow);
-          //real tolerance=NURBStolerance*norm(new triple[][] {rational_row});
-          real tolerance=0.01*norm(new triple[][] {rational_row});
-          RBezier_3D.controlPoints[rational_rows[i]]=conversion_RBezier_to_NRBezier(rational_row,rational_row,sample_points,tolerance);
-        }
-        // convert the rational columns to non-rational Bezier curves
-        for(int h=0;h<rational_cols.length;++h){
-          triple[] rational_col = new triple[n];
-          real[] col_weights = new real[n];
-          for(int i=0;i<n;++i){
-              rational_col[i]=RBezier_3D.controlPoints[i][rational_cols[h]];
-              col_weights[i]=RBezier_3D.weights[i][rational_cols[h]];
-          }
-          triple[] sample_points = new triple[n];
-          for(int k=0;k<n;++k) {
-            sample_points[k]=RBezier_curve_evaluation(k/(n-1),rational_col,col_weights);
-          }
-          //dot(copy(sample_points),yellow);
-          real tolerance=NURBStolerance*norm(new triple[][] {rational_col});
-          triple[] non_rational_col=conversion_RBezier_to_NRBezier(rational_col,rational_col,sample_points,tolerance);
-          for(int i=0;i<n;++i){
-            RBezier_3D.controlPoints[i][rational_cols[h]]=non_rational_col[i];
-          }
-        } 
+        int m=RBezier_3D.controlPoints.length;
+        int n=RBezier_3D.controlPoints[0].length;
+        triple[][] sample_points=new triple[p+1][q+1];
+        triple[][] matrix_trunc=new triple[p+1][q+1];
+        real[][] weight_trunc=new real[p+1][q+1];
         triple[][][][] Bezier_surfaces =
-          new triple[ceilquotient(n,p+1)]
+          new triple[ceilquotient(m,p+1)]
           [ceilquotient(RBezier_3D.controlPoints[0].length,q+1)][][];
 
+        for(int i=0;i<ceilquotient(m,p+1);++i){
+          for(int j=0;j<ceilquotient(RBezier_3D.controlPoints[i].length,q+1);++j){
+            for(int u=0;u<=p;++u){
+              for(int v=0;v<=q;++v){
+                matrix_trunc[u][v]=RBezier_3D.controlPoints[i*p+u][j*q+v];
+                weight_trunc[u][v]=RBezier_3D.weights[i*p+u][j*q+v];
+              }
+            }
+            for(int u=0;u<=p;++u){
+              for(int v=0;v<=q;++v){
+                sample_points[u][v]=RBezier_surface_evaluation(u/p,v/q,matrix_trunc,weight_trunc);
+              }
+            }
+            RBezier_3D.controlPoints[i*p:(i+1)*p+1][j*q:(j+1)*q+1]=conversion_RBezier_to_NRBezier(matrix_trunc,matrix_trunc,sample_points,0.01);
+          }
+        }
+        //RBezier_3D.controlPoints=conversion_RBezier_to_NRBezier(RBezier_3D.controlPoints,RBezier_3D.controlPoints,sample_points,0.01);
+
         triple[][] row_trunc;
-        triple[][] matrix_trunc;
-        for(int i=0;i<ceilquotient(n,p+1);++i){
+        for(int i=0;i<ceilquotient(m,p+1);++i){
           row_trunc=RBezier_3D.controlPoints[i*p:(i+1)*p+1];
           for(int j=0;j<ceilquotient(RBezier_3D.controlPoints[i].length,q+1);++j){
             for(int k=0;k<row_trunc.length;++k){

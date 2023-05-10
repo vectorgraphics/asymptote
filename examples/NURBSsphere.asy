@@ -47,7 +47,7 @@ for(int k=0; k < N; ++k) {
   for(int i=0; i < 1; ++i) {
     triple[][] Q=shift(k*Z)*P[i:i+3];
     if(prc())
-      draw(Q,uknot,vknot,weights,red);
+      draw(Q,uknot,vknot,weights,blue);
     else {
       NURBSsurface surface2=NURBSsurface(Q,uknot,vknot,weights);
       surface2.draw(blue+opacity(0.5));
@@ -55,4 +55,5 @@ for(int k=0; k < N; ++k) {
   }
 }
 
-draw(unitsphere,red);
+draw(xscale3(-1)*octant1,red);
+draw(xscale3(-1)*zscale3(-1)*octant1,red);
