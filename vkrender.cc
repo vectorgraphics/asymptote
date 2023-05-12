@@ -236,7 +236,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-  app->Zoom0 *= (1.0 + yoffset);
+  app->Zoom0 *= yoffset > 0 ? 1.1 : 1 / 1.1;
   app->remesh = true;
   app->redraw = true;
 }
