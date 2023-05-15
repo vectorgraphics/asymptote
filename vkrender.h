@@ -548,7 +548,7 @@ private:
 
   int width, height; // width and height of the window
 
-  bool remesh = false; // whether picture needs to be remeshed
+  bool remesh = true; // whether picture needs to be remeshed
   bool redraw = true;  // whether a new frame needs to be rendered
 
   bool hasExternalMemoryCapabilitiesExtension = false;
