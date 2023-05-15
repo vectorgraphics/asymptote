@@ -276,7 +276,6 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view)
 {
-  std::cout << "vkrender" << std::endl;
   this->pic = pic;
 
   this->Angle = angle * M_PI / 180.0;
@@ -337,7 +336,6 @@ void AsyVkRender::initVulkan()
 
 void AsyVkRender::recreateSwapChain()
 {
-  std::cout << "Recreating SC..." << std::endl;
   int width = 0, height = 0;
   glfwGetFramebufferSize(window, &width, &height);
 
@@ -355,8 +353,6 @@ void AsyVkRender::recreateSwapChain()
   createMaterialPipeline();
   createAttachments();
   createFramebuffers();
-
-  std::cout << "Done recreating SC..." << std::endl;
 }
 
 std::set<std::string> AsyVkRender::getInstanceExtensions()
@@ -417,11 +413,31 @@ void AsyVkRender::pickPhysicalDevice()
   {
     std::size_t score = 0u;
 
-    if (!this->isDeviceSuitable(device))
-      return score;
+    // todo uncomment
+    //if (!this->isDeviceSuitable(device))
+    //  return score;
+
+    auto const props = device.getProperties();
+
+    std::string deviceType;
+
+    if (vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType)
+      score += 10, deviceType = "discrete";
+    else if (vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType)
+      score += 5, deviceType = "integrated";
+    else if (vk::PhysicalDeviceType::eCpu == props.deviceType)
+      deviceType = "cpu";
+    else if (vk::PhysicalDeviceType::eVirtualGpu == props.deviceType)
+      deviceType = "virtual";
+    else if (vk::PhysicalDeviceType::eOther == props.deviceType)
+      deviceType = "other";
     
-    // this is the only scoring criteria currently
     score += getMaxMSAASamples(device);
+
+    std::cout << "==================================================" << std::endl;
+    std::cout << "Information for: " << props.deviceName << std::endl;
+    std::cout << "\t type: " << deviceType << std::endl;
+    std::cout << "\t max viewports: " << props.limits.maxViewports << std::endl;
 
     return score;
   };
@@ -632,13 +648,11 @@ void AsyVkRender::createSwapChain()
   vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
   vk::Extent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
 
-  std::cout << "swap chain minImageCount: " << swapChainSupport.capabilities.minImageCount << std::endl;
   uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
   if (swapChainSupport.capabilities.maxImageCount > 0 &&
       imageCount > swapChainSupport.capabilities.maxImageCount) {
     imageCount = swapChainSupport.capabilities.maxImageCount;
   }
-  std::cout << "imageCount: " << imageCount << std::endl;
 
   vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), *surface, imageCount, surfaceFormat.format, surfaceFormat.colorSpace, extent, 1, vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, 0, nullptr, swapChainSupport.capabilities.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque, presentMode, VK_TRUE, nullptr, nullptr);
   if (*swapChain)
@@ -1062,7 +1076,6 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
 
 void AsyVkRender::drawFrame()
 {
-  std::cout << "Drawing..." << std::endl;
   auto& frameObject = frameObjects[currentFrame];
 
   // wait until this frame is finished before we start drawing the next one
