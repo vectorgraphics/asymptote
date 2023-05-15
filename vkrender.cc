@@ -335,17 +335,15 @@ void AsyVkRender::initVulkan()
 
 void AsyVkRender::recreateSwapChain()
 {
+  std::cout << "Recreating SC..." << std::endl;
   int width = 0, height = 0;
   glfwGetFramebufferSize(window, &width, &height);
-  // wait if the window is minimized
-  while (width == 0 || height == 0) {
+
+  while (width == 0 || height == 0)
+  {
     glfwGetFramebufferSize(window, &width, &height);
     glfwWaitEvents();
   }
-  framebufferResized = false;
-
-  std::cout << "local width: " << width << " height: " << height << std::endl;
-  std::cout << "this width: " << this->width << " height: " << this->height << std::endl;
 
   vkDeviceWaitIdle(*device);
 
@@ -355,7 +353,7 @@ void AsyVkRender::recreateSwapChain()
   createMaterialPipeline();
   createFramebuffers();
 
-  std::cout << "swap chain width: " << swapChainExtent.width << " height: " << swapChainExtent.height << std::endl;
+  std::cout << "Done recreating SC..." << std::endl;
 }
 
 std::set<std::string> AsyVkRender::getInstanceExtensions()
@@ -640,6 +638,8 @@ void AsyVkRender::createSwapChain()
   std::cout << "imageCount: " << imageCount << std::endl;
 
   vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), *surface, imageCount, surfaceFormat.format, surfaceFormat.colorSpace, extent, 1, vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, 0, nullptr, swapChainSupport.capabilities.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque, presentMode, VK_TRUE, nullptr, nullptr);
+  if (*swapChain)
+    swapchainCI.oldSwapchain = *swapChain;
 
   if (queueFamilyIndices.renderQueueFamily != queueFamilyIndices.presentQueueFamily) {
     swapchainCI.imageSharingMode = vk::SharingMode::eConcurrent;
@@ -954,7 +954,6 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
   // flip Y coordinate for Vulkan (Vulkan has different coordinate system than OpenGL)
   auto verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
   ubo.projViewMat = verticalFlipMat * projViewMat;
-  std::cout << glm::to_string(ubo.projViewMat) << std::endl;
 
   auto data = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
   memcpy(data, &ubo, sizeof(ubo));
@@ -982,16 +981,24 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
 
 void AsyVkRender::drawFrame()
 {
+  std::cout << "Drawing..." << std::endl;
   auto& frameObject = frameObjects[currentFrame];
 
   // wait until this frame is finished before we start drawing the next one
   device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-  // signal this frame as in use
-  device->resetFences(1, &*frameObject.inFlightFence);
 
   uint32_t imageIndex; // index of the current swap chain image to render to
-  device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(), *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
+  if (auto const result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(),
+                                                      *frameObject.imageAvailableSemaphore, nullptr,
+                                                      &imageIndex);
+      result == vk::Result::eErrorOutOfDateKHR
+      || result == vk::Result::eSuboptimalKHR)
+    return recreateSwapChain();
+  else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
+    throw std::runtime_error("Failed to acquire next swapchain image.");
 
+  // signal this frame as in use
+  device->resetFences(1, &*frameObject.inFlightFence);
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlags());
 
   updateUniformBuffer(currentFrame);
@@ -1033,12 +1040,22 @@ void AsyVkRender::drawFrame()
 
   auto presentInfo = vk::PresentInfoKHR(ARR_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
 
-  auto result = renderQueue.presentKHR(presentInfo);
-  if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
-    recreateSwapChain();
-    std::cout << "recreating swap chain" << std::endl;
-  } else if (result != vk::Result::eSuccess) {
-    throw std::runtime_error("failed to present swap chain image!");
+  try
+  {
+    if (auto const result = renderQueue.presentKHR(presentInfo);
+        result == vk::Result::eErrorOutOfDateKHR
+        || result == vk::Result::eSuboptimalKHR
+        || framebufferResized)
+      framebufferResized = false, recreateSwapChain();
+    else if (result != vk::Result::eSuccess)
+      throw std::runtime_error( "Failed to present swapchain image." );
+  }
+  catch(std::exception const & e)
+  {
+    if (std::string(e.what()).find("ErrorOutOfDateKHR") != std::string::npos)
+      framebufferResized = false, recreateSwapChain();
+    else
+      throw;
   }
 
   currentFrame = (currentFrame + 1) % options.maxFramesInFlight;
@@ -1081,7 +1098,6 @@ void AsyVkRender::mainLoop()
 
     if (redraw) {
       redraw = false;
-      cout << "redraw - width: " << width << " height: " << height << endl;
       display();
     } else {
       // may not be needed if we are waiting for events
