@@ -330,6 +330,8 @@ void AsyVkRender::initVulkan()
   createMaterialRenderPass();
   createMaterialPipeline();
 
+  createAttachments();
+
   createFramebuffers();
 }
 
@@ -351,6 +353,7 @@ void AsyVkRender::recreateSwapChain()
   createImageViews();
   createMaterialRenderPass();
   createMaterialPipeline();
+  createAttachments();
   createFramebuffers();
 
   std::cout << "Done recreating SC..." << std::endl;
@@ -674,8 +677,9 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(const std::vector<char>& 
 void AsyVkRender::createFramebuffers()
 {
   swapChainFramebuffers.resize(swapChainImageViews.size());
-  for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-    vk::ImageView attachments[] = {*swapChainImageViews[i]};
+  for (auto i = 0u; i < swapChainImageViews.size(); i++)
+  {
+    vk::ImageView attachments[] = {*swapChainImageViews[i], *depthImageView};
     auto framebufferCI = vk::FramebufferCreateInfo(vk::FramebufferCreateFlags(), *materialRenderPass, ARR_VIEW(attachments), swapChainExtent.width, swapChainExtent.height, 1);
     swapChainFramebuffers[i] = device->createFramebufferUnique(framebufferCI);
   }
@@ -888,14 +892,33 @@ void AsyVkRender::createBuffers()
 void AsyVkRender::createMaterialRenderPass()
 {
   auto colorAttachment = vk::AttachmentDescription(vk::AttachmentDescriptionFlags(), swapChainImageFormat, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
+  auto depthAttachment = vk::AttachmentDescription(vk::AttachmentDescriptionFlags(), vk::Format::eD32Sfloat, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare);
+
+  depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+  depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
   auto colorAttachmentRef = vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
+  auto depthAttachmentRef = vk::AttachmentReference(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
   auto subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, 0, nullptr, 1, &colorAttachmentRef);
 
-  auto dependency = vk::SubpassDependency(VK_SUBPASS_EXTERNAL, 0, vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+  subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
-  auto renderPassCI = vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), 1, &colorAttachment, 1, &subpass, 1, &dependency);
+  std::vector< vk::AttachmentDescription > attachments {colorAttachment, depthAttachment};
+
+  auto dependency = vk::SubpassDependency();
+
+  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependency.dstSubpass = 0;
+  dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
+                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+  dependency.srcAccessMask = vk::AccessFlagBits::eNone;
+  dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
+                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+  dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
+                              | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+  auto renderPassCI = vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), attachments.size(), &attachments[0], 1, &subpass, 1, &dependency);
 
   materialRenderPass = device->createRenderPassUnique(renderPassCI, nullptr);
 }
@@ -935,17 +958,71 @@ void AsyVkRender::createMaterialPipeline()
 
   auto colorBlendCI = vk::PipelineColorBlendStateCreateInfo(vk::PipelineColorBlendStateCreateFlags(), VK_FALSE, vk::LogicOp::eCopy, 1, &colorBlendAttachment, {0.0f, 0.0f, 0.0f, 0.0f});
 
+  auto depthStencilCI = vk::PipelineDepthStencilStateCreateInfo();
+
+  depthStencilCI.depthTestEnable = VK_TRUE;
+  depthStencilCI.depthWriteEnable = VK_TRUE;
+  depthStencilCI.depthCompareOp = vk::CompareOp::eLess;
+  depthStencilCI.depthBoundsTestEnable = VK_FALSE;
+  depthStencilCI.minDepthBounds = 0.f;
+  depthStencilCI.maxDepthBounds = 1.f;
+  depthStencilCI.stencilTestEnable = VK_FALSE;
+
   auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), 1, &*descriptorSetLayout, 0, nullptr);
 
   materialPipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
-  auto pipelineCI = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlags(), ARR_VIEW(shaderStages), &vertexInputCI, &inputAssemblyCI, nullptr, &viewportStateCI, &rasterizerCI, &multisamplingCI, nullptr, &colorBlendCI, nullptr, *materialPipelineLayout, *materialRenderPass, 0, nullptr);
+  auto pipelineCI = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlags(), ARR_VIEW(shaderStages), &vertexInputCI, &inputAssemblyCI, nullptr, &viewportStateCI, &rasterizerCI, &multisamplingCI, &depthStencilCI, &colorBlendCI, nullptr, *materialPipelineLayout, *materialRenderPass, 0, nullptr);
 
-  auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
-  if (result.result != vk::Result::eSuccess) {
+  if (auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
+      result.result != vk::Result::eSuccess)
     throw std::runtime_error("failed to create graphics pipeline!");
-  }
-  materialPipeline = std::move(result.value);
+  else
+    materialPipeline = std::move(result.value);
+}
+
+void AsyVkRender::createAttachments()
+{
+  auto info = vk::ImageCreateInfo();
+
+  info.imageType = vk::ImageType::e2D;
+  info.extent = vk::Extent3D(swapChainExtent, 1);
+  info.mipLevels = 1;
+  info.arrayLayers = 1;
+  info.format = vk::Format::eD32Sfloat;
+  info.tiling = vk::ImageTiling::eOptimal;
+  info.initialLayout = vk::ImageLayout::eUndefined;
+  info.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
+  info.sharingMode = vk::SharingMode::eExclusive;
+  info.samples = vk::SampleCountFlagBits::e1;
+
+  depthImage = device->createImageUnique(info);
+
+  auto const req = device->getImageMemoryRequirements(*depthImage);
+
+  vk::MemoryAllocateInfo alloc(
+    req.size,
+    selectMemory(req, vk::MemoryPropertyFlagBits::eDeviceLocal)
+  );
+
+  depthImageMemory = device->allocateMemoryUnique(alloc);
+  device->bindImageMemory(*depthImage, *depthImageMemory, 0);
+
+  auto view_info = vk::ImageViewCreateInfo();
+
+  view_info.image = *depthImage;
+  view_info.viewType = vk::ImageViewType::e2D;
+  view_info.format = vk::Format::eD32Sfloat;
+  view_info.components = vk::ComponentMapping();
+  view_info.subresourceRange = vk::ImageSubresourceRange(
+    vk::ImageAspectFlagBits::eDepth,
+    0,
+    1,
+    0,
+    1
+  );
+
+  depthImageView = device->createImageViewUnique(view_info);
 }
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
@@ -964,8 +1041,12 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
 {
   auto beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
   commandBuffer.begin(beginInfo);
-  auto clearColor = vk::ClearValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f});
-  auto renderPassInfo = vk::RenderPassBeginInfo(*materialRenderPass, *swapChainFramebuffers[imageIndex], vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent), 1, &clearColor);
+  std::array<vk::ClearValue, 2> clearColors;
+  clearColors[0].color = vk::ClearColorValue(0.75f, 0.75f, 0.75f, 1.f);
+  clearColors[1].depthStencil.depth = 1.f;
+  clearColors[1].depthStencil.stencil = 0;
+
+  auto renderPassInfo = vk::RenderPassBeginInfo(*materialRenderPass, *swapChainFramebuffers[imageIndex], vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent), clearColors.size(), &clearColors[0]);
   commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
   commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *materialPipeline);
   std::vector<vk::Buffer> vertexBuffers = {*frameObjects[currentFrame].materialVertexBuffer.buffer};

@@ -26,6 +26,7 @@
 #include <GLFW/glfw3.h>
 
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -544,7 +545,7 @@ private:
 
   double x, y; // make these more descriptive (something to do with shift?)
 
-  double cx, cy; // ??
+  double cx, cy; // center variables
 
   int width, height; // width and height of the window
 
@@ -576,6 +577,10 @@ private:
   vk::Extent2D swapChainExtent;
   std::vector<vk::UniqueImageView> swapChainImageViews;
   std::vector<vk::UniqueFramebuffer> swapChainFramebuffers;
+
+  vk::UniqueImage depthImage;
+  vk::UniqueImageView depthImageView;
+  vk::UniqueDeviceMemory depthImageMemory;
 
   vk::UniqueCommandPool transferCommandPool;
   vk::UniqueCommandPool renderCommandPool;
@@ -681,6 +686,8 @@ private:
 
   void createMaterialRenderPass();
   void createMaterialPipeline();
+
+  void createAttachments();
 
   void updateUniformBuffer(uint32_t currentImage);
   void drawFrame();
