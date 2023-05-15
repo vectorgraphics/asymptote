@@ -412,43 +412,59 @@ void AsyVkRender::createSurface()
 
 void AsyVkRender::pickPhysicalDevice()
 {
-  auto devices = instance->enumeratePhysicalDevices();
+  auto const getDeviceScore = [this](vk::PhysicalDevice& device) -> std::size_t
+  {
+    std::size_t score = 0u;
 
-  if (devices.size() == 0) {
-    throw std::runtime_error("Failed to find a device with Vulkan support!");
-  } else if (devices.size() == 1) {
-    cout << "Using Device: " << devices[0].getProperties().deviceName << endl;
-    physicalDevice = devices[0];
-  } else {
-    // TODO: pick best device if not specified
-    if (options.device_index == -1) {
-      cout << "Device Options:" << endl;
-      for (size_t i = 0; i < devices.size(); i++) {
-        cout << i << ": " << devices[i].getProperties().deviceName << endl;
-        // devices[i].getProperties().deviceType;
-      }
-      cout << "Select Device: ";
-//      throw std::runtime_error("Device not specified!");
-      cin >> options.device_index; // FIXME
-    }
-    if (options.device_index >= devices.size()) {
-      throw std::runtime_error("Invalid device index");
-    }
-    cout << "Using Device: " << devices.at(options.device_index).getProperties().deviceName << endl;
-    physicalDevice = devices.at(options.device_index);
+    if (!this->isDeviceSuitable(device))
+      return score;
+    
+    // this is the only scoring criteria currently
+    score += getMaxMSAASamples(device);
+
+    return score;
+  };
+  
+  std::pair<std::size_t, vk::PhysicalDevice> highestDeviceScore { };
+
+  for (auto & dev: instance->enumeratePhysicalDevices())
+  {
+    auto const score = getDeviceScore(dev);
+
+    if (nullptr == highestDeviceScore.second
+        || score > highestDeviceScore.first)
+      highestDeviceScore = std::make_pair(score, dev);
   }
 
-  // get VkPhysicalDeviceExternalMemoryHostPropertiesEXT
-  auto physicalDeviceProperties2 = vk::PhysicalDeviceProperties2();
-  auto physicalDeviceExternalMemoryHostProperties = vk::PhysicalDeviceExternalMemoryHostPropertiesEXT();
-  physicalDeviceExternalMemoryHostProperties.pNext = physicalDeviceProperties2.pNext;
-  physicalDeviceProperties2.pNext = &physicalDeviceExternalMemoryHostProperties;
-  physicalDevice.getProperties2(&physicalDeviceProperties2);
-  // print out result
-  std::cout << "VkPhysicalDeviceExternalMemoryHostPropertiesEXT:" << std::endl;
-  std::cout << "  minImportedHostPointerAlignment: " << physicalDeviceExternalMemoryHostProperties.minImportedHostPointerAlignment << std::endl;
+  if (0 == highestDeviceScore.first)
+    throw std::runtime_error("No suitable GPUs.");
+
+  physicalDevice = highestDeviceScore.second;
 }
 
+VkSampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
+{
+	vk::PhysicalDeviceProperties props { };
+
+  gpu.getProperties( &props );
+
+	auto const count = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
+
+	if (count & vk::SampleCountFlagBits::e64)
+		return VK_SAMPLE_COUNT_64_BIT;
+	if (count & vk::SampleCountFlagBits::e32)
+		return VK_SAMPLE_COUNT_32_BIT;
+	if (count & vk::SampleCountFlagBits::e16)
+		return VK_SAMPLE_COUNT_16_BIT;
+	if (count & vk::SampleCountFlagBits::e8)
+		return VK_SAMPLE_COUNT_8_BIT;
+	if (count & vk::SampleCountFlagBits::e4)
+		return VK_SAMPLE_COUNT_4_BIT;
+	if (count & vk::SampleCountFlagBits::e2)
+		return VK_SAMPLE_COUNT_2_BIT;
+	
+	return VK_SAMPLE_COUNT_1_BIT;
+}
 
 // maybe we should prefer using the same queue family for both transfer and render?
 // TODO: use if instead of goto and favor same queue family
@@ -458,85 +474,46 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
 
   auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
-  // find a queue family that supports graphics and compute for rendering OIT (preferred without presentation)
-  for (int i = 0; i < queueFamilies.size(); i++) {
-    auto queueFamily = queueFamilies[i];
-    vk::Bool32 presentSupport = false;
-    if (surface) presentSupport = physicalDevice.getSurfaceSupportKHR(i, *surface);
-    if ((queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) && (queueFamily.queueFlags & vk::QueueFlagBits::eCompute) && !presentSupport) {
-      indices.renderQueueFamily = i;
+  for (auto u = 0u; u < queueFamilies.size(); u++)
+  {
+    auto const & family = queueFamilies[u];
+
+    if (family.queueFlags & vk::QueueFlagBits::eGraphics)
+      indices.renderQueueFamily = u,
       indices.renderQueueFamilyFound = true;
-      goto foundRenderQueueFamily;
-    }
-  }
-  for (int i = 0; i < queueFamilies.size(); i++) {
-    auto queueFamily = queueFamilies[i];
-    if ((queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) && (queueFamily.queueFlags & vk::QueueFlagBits::eCompute)) {
-      indices.renderQueueFamily = i;
-      indices.renderQueueFamilyFound = true;
-      goto foundRenderQueueFamily;
-    }
-  }
-foundRenderQueueFamily:
-  // find a queue family that supports presentation (preferably different from render queue family)
-  if (surface) {
-    for (int i = 0; i < queueFamilies.size(); i++) {
-      vk::Bool32 presentSupport = physicalDevice.getSurfaceSupportKHR(i, *surface);
-      if (presentSupport && i != indices.renderQueueFamily) {
-        indices.presentQueueFamily = i;
-        indices.presentQueueFamilyFound = true;
-        goto foundPresentQueueFamily;
-      }
-    }
-    for (int i = 0; i < queueFamilies.size(); i++) {
-      vk::Bool32 presentSupport = physicalDevice.getSurfaceSupportKHR(i, *surface);
-      if (presentSupport) {
-        indices.presentQueueFamily = i;
-        indices.presentQueueFamilyFound = true;
-        goto foundPresentQueueFamily;
-      }
-    }
-  }
-foundPresentQueueFamily:
-  // find a queue family that supports transfer (preferably different from other queue families)
-  for (int i = 0; i < queueFamilies.size(); i++) {
-    auto queueFamily = queueFamilies[i];
-    if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer && i != indices.renderQueueFamily && (i != indices.presentQueueFamily || !indices.presentQueueFamilyFound)) {
-      indices.transferQueueFamily = i;
+    
+    if (VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface))
+      indices.presentQueueFamily = u,
+      indices.presentQueueFamilyFound = true;
+
+    if (family.queueFlags & vk::QueueFlagBits::eTransfer)
+      indices.transferQueueFamily = u,
       indices.transferQueueFamilyFound = true;
-      goto foundTransferQueueFamily;
-    }
   }
-  for (int i = 0; i < queueFamilies.size(); i++) {
-    auto queueFamily = queueFamilies[i];
-    if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer) {
-      indices.transferQueueFamily = i;
-      indices.transferQueueFamilyFound = true;
-      goto foundTransferQueueFamily;
-    }
-  }
-foundTransferQueueFamily:
 
   return indices;
 }
-
 
 bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 {
   QueueFamilyIndices indices = findQueueFamilies(device, options.display ? &*surface : nullptr);
 
-  bool extensionsSupported = checkDeviceExtensionSupport(device);
+  if (auto const indices = findQueueFamilies(device, options.display ? &*surface : nullptr);
+      !indices.transferQueueFamilyFound
+      || !indices.renderQueueFamilyFound
+      || !(indices.presentQueueFamilyFound || !options.display))
+      return false;
 
-  bool swapChainAdequate = false;
-  if (options.display && extensionsSupported) {
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, *surface);
-    swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-  }
+  if (!checkDeviceExtensionSupport(device))
+    return false;
 
-  auto supportedFeatures = device.getFeatures();
+  if (auto const swapSupport = querySwapChainSupport(device, *surface);
+      options.display && (swapSupport.formats.empty() || swapSupport.presentModes.empty()))
+    return false;
 
-  // TODO: check if we want anisotropy
-  return indices.transferQueueFamilyFound && indices.renderQueueFamilyFound && (indices.presentQueueFamilyFound || !options.display) && extensionsSupported && (swapChainAdequate || !options.display) && supportedFeatures.samplerAnisotropy;
+  auto const features = device.getFeatures();
+
+  return features.samplerAnisotropy;
 }
 
 bool AsyVkRender::checkDeviceExtensionSupport(vk::PhysicalDevice& device)
@@ -593,7 +570,7 @@ void AsyVkRender::createLogicalDevice()
   presentQueue = device->getQueue(queueFamilyIndices.presentQueueFamily, 0);
 }
 
-SwapChainSupportDetails AsyVkRender::querySwapChainSupport(vk::PhysicalDevice& device, vk::SurfaceKHR& surface)
+SwapChainSupportDetails AsyVkRender::querySwapChainSupport(vk::PhysicalDevice device, vk::SurfaceKHR& surface)
 {
   SwapChainSupportDetails details;
 

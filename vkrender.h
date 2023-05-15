@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <utility>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -432,7 +433,6 @@ public:
     bool display;
     std::string title;
     int maxFramesInFlight = 1;
-    int device_index = -1;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
   };
@@ -636,11 +636,12 @@ private:
   void createInstance();
   void createSurface();
   void pickPhysicalDevice();
+  VkSampleCountFlagBits getMaxMSAASamples( vk::PhysicalDevice& gpu );
   QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* surface);
   bool isDeviceSuitable(vk::PhysicalDevice& device);
   bool checkDeviceExtensionSupport(vk::PhysicalDevice& device);
   void createLogicalDevice();
-  SwapChainSupportDetails querySwapChainSupport(vk::PhysicalDevice& device, vk::SurfaceKHR& surface);
+  SwapChainSupportDetails querySwapChainSupport(vk::PhysicalDevice device, vk::SurfaceKHR& surface);
   vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
   vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);
   vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities);
