@@ -321,6 +321,7 @@ void AsyVkRender::initVulkan()
   createSyncObjects();
 
   createDescriptorSetLayout();
+  createComputeDescriptorSetLayout();
   // createUniformBuffers();
   createBuffers();
   createDescriptorPool();
@@ -328,6 +329,7 @@ void AsyVkRender::initVulkan()
 
   createMaterialRenderPass();
   createMaterialPipeline();
+  createComputePipeline();
 
   createAttachments();
 
@@ -891,7 +893,24 @@ void AsyVkRender::createDescriptorSetLayout()
 {
   auto uboLayoutBinding = vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
   auto layoutCI = vk::DescriptorSetLayoutCreateInfo(vk::DescriptorSetLayoutCreateFlags(), 1, &uboLayoutBinding);
-  descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutCI);
+  materialDescriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutCI);
+}
+
+void AsyVkRender::createComputeDescriptorSetLayout()
+{
+  std::vector< vk::DescriptorSetLayoutBinding > layoutBindings
+  {
+    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eCompute),
+    vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
+    vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute)
+  };
+  auto layoutCI = vk::DescriptorSetLayoutCreateInfo(
+    vk::DescriptorSetLayoutCreateFlags(),
+    layoutBindings.size(),
+    &layoutBindings[0]
+  );
+
+  computeDescriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutCI);
 }
 
 void AsyVkRender::createDescriptorPool()
@@ -903,7 +922,7 @@ void AsyVkRender::createDescriptorPool()
 
 void AsyVkRender::createDescriptorSets()
 {
-  std::vector<vk::DescriptorSetLayout> layouts(options.maxFramesInFlight, *descriptorSetLayout);
+  std::vector<vk::DescriptorSetLayout> layouts(options.maxFramesInFlight, *materialDescriptorSetLayout);
   auto allocInfo = vk::DescriptorSetAllocateInfo(*descriptorPool, VEC_VIEW(layouts));
   auto descriptorSets = device->allocateDescriptorSetsUnique(allocInfo);
 
@@ -1003,7 +1022,7 @@ void AsyVkRender::createMaterialPipeline()
   depthStencilCI.maxDepthBounds = 1.f;
   depthStencilCI.stencilTestEnable = VK_FALSE;
 
-  auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), 1, &*descriptorSetLayout, 0, nullptr);
+  auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), 1, &*materialDescriptorSetLayout, 0, nullptr);
 
   materialPipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
@@ -1014,6 +1033,41 @@ void AsyVkRender::createMaterialPipeline()
     throw std::runtime_error("failed to create graphics pipeline!");
   else
     materialPipeline = std::move(result.value);
+}
+
+void AsyVkRender::createComputePipeline()
+{
+  auto computeShaderCode = readFile("shaders/compute.comp.spv");
+
+  vk::UniqueShaderModule computeShaderModule = createShaderModule(computeShaderCode);
+
+  auto computeShaderStageInfo = vk::PipelineShaderStageCreateInfo(
+    vk::PipelineShaderStageCreateFlags(),
+    vk::ShaderStageFlagBits::eCompute,
+    *computeShaderModule,
+    "main"
+  );
+
+  auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(
+    vk::PipelineLayoutCreateFlags(),
+    1,
+    &*computeDescriptorSetLayout,
+    0,
+    nullptr
+  );
+
+  computePipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
+
+  auto computePipelineCI = vk::ComputePipelineCreateInfo();
+
+  computePipelineCI.layout = *computePipelineLayout;
+  computePipelineCI.stage = computeShaderStageInfo;
+
+  if (auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
+      result.result != vk::Result::eSuccess)
+    throw std::runtime_error("failed to create compute pipeline!");
+  else
+    computePipeline = std::move(result.value);
 }
 
 void AsyVkRender::createAttachments()

@@ -586,11 +586,15 @@ private:
   vk::UniqueCommandPool renderCommandPool;
 
   vk::UniqueDescriptorPool descriptorPool;
-  vk::UniqueDescriptorSetLayout descriptorSetLayout;
 
   vk::UniqueRenderPass materialRenderPass;
+  vk::UniqueDescriptorSetLayout materialDescriptorSetLayout;
   vk::UniquePipelineLayout materialPipelineLayout;
   vk::UniquePipeline materialPipeline;
+
+  vk::UniqueDescriptorSetLayout computeDescriptorSetLayout;
+  vk::UniquePipelineLayout computePipelineLayout;
+  vk::UniquePipeline computePipeline;
 
   struct FrameObjects {
     vk::UniqueSemaphore imageAvailableSemaphore;
@@ -603,6 +607,9 @@ private:
 
     vk::UniqueBuffer uniformBuffer;
     vk::UniqueDeviceMemory uniformBufferMemory;
+
+    vk::UniqueBuffer ssbo;
+    vk::UniqueDeviceMemory ssboMemory;
 
     DeviceBuffer materialVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
     DeviceBuffer materialIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -675,6 +682,7 @@ private:
   void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size);
 
   void createDescriptorSetLayout();
+  void createComputeDescriptorSetLayout();
   // void createUniformBuffers();
   void createDescriptorPool();
   void createDescriptorSets();
@@ -686,6 +694,7 @@ private:
 
   void createMaterialRenderPass();
   void createMaterialPipeline();
+  void createComputePipeline();
 
   void createAttachments();
 
