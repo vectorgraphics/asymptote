@@ -161,7 +161,9 @@ renderDocSettings
 !index.html
 !webgl/WebGL*.html
 
+### Vulkan generated files
 v3dheadertypes.h
 v3dtypes.h
 base/v3dheadertypes.asy
 base/v3dtypes.asy
+shaders/*.spv
