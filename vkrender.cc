@@ -432,7 +432,28 @@ void AsyVkRender::pickPhysicalDevice()
     else if (vk::PhysicalDeviceType::eOther == props.deviceType)
       deviceType = "other";
     
-    score += getMaxMSAASamples(device);
+    auto const msaa = getMaxMSAASamples(device);
+
+    switch (msaa)
+    {
+      case vk::SampleCountFlagBits::e64:
+      case vk::SampleCountFlagBits::e32:
+      case vk::SampleCountFlagBits::e16:
+      
+        score += 10;
+        break;
+      
+      case vk::SampleCountFlagBits::e8:
+      case vk::SampleCountFlagBits::e4:
+      case vk::SampleCountFlagBits::e2:
+
+        score += 5;
+        break;
+      
+      default:
+
+        break;
+    }
 
     std::cout << "==================================================" << std::endl;
     std::cout << "Information for: " << props.deviceName << std::endl;
@@ -459,7 +480,7 @@ void AsyVkRender::pickPhysicalDevice()
   physicalDevice = highestDeviceScore.second;
 }
 
-VkSampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
+vk::SampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
 {
 	vk::PhysicalDeviceProperties props { };
 
@@ -468,19 +489,19 @@ VkSampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
 	auto const count = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
 
 	if (count & vk::SampleCountFlagBits::e64)
-		return VK_SAMPLE_COUNT_64_BIT;
+		return vk::SampleCountFlagBits::e64;
 	if (count & vk::SampleCountFlagBits::e32)
-		return VK_SAMPLE_COUNT_32_BIT;
+		return vk::SampleCountFlagBits::e32;
 	if (count & vk::SampleCountFlagBits::e16)
-		return VK_SAMPLE_COUNT_16_BIT;
+		return vk::SampleCountFlagBits::e16;
 	if (count & vk::SampleCountFlagBits::e8)
-		return VK_SAMPLE_COUNT_8_BIT;
+		return vk::SampleCountFlagBits::e8;
 	if (count & vk::SampleCountFlagBits::e4)
-		return VK_SAMPLE_COUNT_4_BIT;
+		return vk::SampleCountFlagBits::e4;
 	if (count & vk::SampleCountFlagBits::e2)
-		return VK_SAMPLE_COUNT_2_BIT;
+		return vk::SampleCountFlagBits::e2;
 	
-	return VK_SAMPLE_COUNT_1_BIT;
+	return vk::SampleCountFlagBits::e1;
 }
 
 // maybe we should prefer using the same queue family for both transfer and render?

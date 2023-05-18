@@ -641,7 +641,7 @@ private:
   void createInstance();
   void createSurface();
   void pickPhysicalDevice();
-  VkSampleCountFlagBits getMaxMSAASamples( vk::PhysicalDevice& gpu );
+  vk::SampleCountFlagBits getMaxMSAASamples( vk::PhysicalDevice& gpu );
   QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* surface);
   bool isDeviceSuitable(vk::PhysicalDevice& device);
   bool checkDeviceExtensionSupport(vk::PhysicalDevice& device);
