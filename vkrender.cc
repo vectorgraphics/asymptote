@@ -332,6 +332,7 @@ void AsyVkRender::initVulkan()
   createComputePipeline();
 
   createAttachments();
+  createColorResources();
 
   createFramebuffers();
 }
@@ -480,6 +481,7 @@ void AsyVkRender::pickPhysicalDevice()
     throw std::runtime_error("No suitable GPUs.");
 
   physicalDevice = highestDeviceScore.second;
+  msaaSamples = getMaxMSAASamples(physicalDevice);
 }
 
 vk::SampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
@@ -716,8 +718,15 @@ void AsyVkRender::createFramebuffers()
   swapChainFramebuffers.resize(swapChainImageViews.size());
   for (auto i = 0u; i < swapChainImageViews.size(); i++)
   {
-    vk::ImageView attachments[] = {*swapChainImageViews[i], *depthImageView};
-    auto framebufferCI = vk::FramebufferCreateInfo(vk::FramebufferCreateFlags(), *materialRenderPass, ARR_VIEW(attachments), swapChainExtent.width, swapChainExtent.height, 1);
+    vk::ImageView attachments[] = {*colorImageView, *depthImageView, *swapChainImageViews[i]};
+    auto framebufferCI = vk::FramebufferCreateInfo(
+      vk::FramebufferCreateFlags(),
+      *materialRenderPass,
+      ARR_VIEW(attachments),
+      swapChainExtent.width,
+      swapChainExtent.height,
+      1
+    );
     swapChainFramebuffers[i] = device->createFramebufferUnique(framebufferCI);
   }
 }
@@ -838,6 +847,36 @@ void AsyVkRender::copyToBuffer(const vk::Buffer& buffer, const void* data, vk::D
   }
 }
 
+void AsyVkRender::createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
+                              vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
+                              vk::UniqueDeviceMemory & mem)
+{
+  auto info = vk::ImageCreateInfo();
+
+  info.imageType      = vk::ImageType::e2D;
+  info.extent         = vk::Extent3D(w, h, 1);
+  info.mipLevels      = 1;
+  info.arrayLayers    = 1;
+  info.format         = fmt;
+  info.tiling         = vk::ImageTiling::eOptimal;
+  info.initialLayout  = vk::ImageLayout::eUndefined;
+  info.usage          = usage;
+  info.sharingMode    = vk::SharingMode::eExclusive;
+  info.samples        = samples;
+
+  img = device->createImageUnique(info);
+
+  auto const req = device->getImageMemoryRequirements(*img);
+
+  vk::MemoryAllocateInfo alloc(
+    req.size,
+    selectMemory(req, props)
+  );
+
+  mem = device->allocateMemoryUnique(alloc);
+  device->bindImageMemory(*img, *mem, 0);
+}
+
 // void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size,
 //                                  bool wait = true, vk::Fence fence = {}, const vk::Semaphore semaphore = {},
 //                                  vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {})
@@ -945,20 +984,60 @@ void AsyVkRender::createBuffers()
 
 void AsyVkRender::createMaterialRenderPass()
 {
-  auto colorAttachment = vk::AttachmentDescription(vk::AttachmentDescriptionFlags(), swapChainImageFormat, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
-  auto depthAttachment = vk::AttachmentDescription(vk::AttachmentDescriptionFlags(), vk::Format::eD32Sfloat, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare);
+  auto colorAttachment = vk::AttachmentDescription(
+    vk::AttachmentDescriptionFlags(),
+    swapChainImageFormat,
+    msaaSamples,
+    vk::AttachmentLoadOp::eClear,
+    vk::AttachmentStoreOp::eStore,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::eColorAttachmentOptimal
+  );
+  auto colorResolveAttachment = vk::AttachmentDescription(
+    vk::AttachmentDescriptionFlags(),
+    swapChainImageFormat,
+    vk::SampleCountFlagBits::e1,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eStore,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::ePresentSrcKHR
+  );
+  auto depthAttachment = vk::AttachmentDescription(
+    vk::AttachmentDescriptionFlags(),
+    vk::Format::eD32Sfloat,
+    msaaSamples,
+    vk::AttachmentLoadOp::eClear,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::eDepthStencilAttachmentOptimal
+  );
 
   depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
   depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
   auto colorAttachmentRef = vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
   auto depthAttachmentRef = vk::AttachmentReference(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+  auto colorResolveAttachmentRef = vk::AttachmentReference(2, vk::ImageLayout::eColorAttachmentOptimal);
 
-  auto subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, 0, nullptr, 1, &colorAttachmentRef);
+  auto subpass = vk::SubpassDescription(
+    vk::SubpassDescriptionFlags(),
+    vk::PipelineBindPoint::eGraphics,
+    0,
+    nullptr,
+    1,
+    &colorAttachmentRef
+  );
 
+  subpass.pResolveAttachments = &colorResolveAttachmentRef;
   subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
-  std::vector< vk::AttachmentDescription > attachments {colorAttachment, depthAttachment};
+  std::vector< vk::AttachmentDescription > attachments {colorAttachment, depthAttachment, colorResolveAttachment};
 
   auto dependency = vk::SubpassDependency();
 
@@ -1006,7 +1085,7 @@ void AsyVkRender::createMaterialPipeline()
   // TODO: ask about frontface and cullmode
   auto rasterizerCI = vk::PipelineRasterizationStateCreateInfo(vk::PipelineRasterizationStateCreateFlags(), VK_FALSE, VK_FALSE, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone, vk::FrontFace::eCounterClockwise, VK_FALSE, 0.0f, 0.0f, 0.0f, 1.0f);
 
-  auto multisamplingCI = vk::PipelineMultisampleStateCreateInfo(vk::PipelineMultisampleStateCreateFlags(), vk::SampleCountFlagBits::e1, VK_FALSE, 0.0f, nullptr, VK_FALSE, VK_FALSE);
+  auto multisamplingCI = vk::PipelineMultisampleStateCreateInfo(vk::PipelineMultisampleStateCreateFlags(), msaaSamples, VK_FALSE, 0.0f, nullptr, VK_FALSE, VK_FALSE);
 
   auto colorBlendAttachment = vk::PipelineColorBlendAttachmentState(VK_FALSE, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
@@ -1072,30 +1151,9 @@ void AsyVkRender::createComputePipeline()
 
 void AsyVkRender::createAttachments()
 {
-  auto info = vk::ImageCreateInfo();
-
-  info.imageType = vk::ImageType::e2D;
-  info.extent = vk::Extent3D(swapChainExtent, 1);
-  info.mipLevels = 1;
-  info.arrayLayers = 1;
-  info.format = vk::Format::eD32Sfloat;
-  info.tiling = vk::ImageTiling::eOptimal;
-  info.initialLayout = vk::ImageLayout::eUndefined;
-  info.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-  info.sharingMode = vk::SharingMode::eExclusive;
-  info.samples = vk::SampleCountFlagBits::e1;
-
-  depthImage = device->createImageUnique(info);
-
-  auto const req = device->getImageMemoryRequirements(*depthImage);
-
-  vk::MemoryAllocateInfo alloc(
-    req.size,
-    selectMemory(req, vk::MemoryPropertyFlagBits::eDeviceLocal)
-  );
-
-  depthImageMemory = device->allocateMemoryUnique(alloc);
-  device->bindImageMemory(*depthImage, *depthImageMemory, 0);
+  createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples, vk::Format::eD32Sfloat,
+              vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, depthImage,
+              depthImageMemory);
 
   auto view_info = vk::ImageViewCreateInfo();
 
@@ -1112,6 +1170,29 @@ void AsyVkRender::createAttachments()
   );
 
   depthImageView = device->createImageViewUnique(view_info);
+}
+
+void AsyVkRender::createColorResources()
+{
+  createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples, swapChainImageFormat,
+              vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
+              vk::MemoryPropertyFlagBits::eDeviceLocal, colorImage, colorImageMemory);
+
+  auto view_info = vk::ImageViewCreateInfo();
+
+  view_info.image = *colorImage;
+  view_info.viewType = vk::ImageViewType::e2D;
+  view_info.format = swapChainImageFormat;
+  view_info.components = vk::ComponentMapping();
+  view_info.subresourceRange = vk::ImageSubresourceRange(
+    vk::ImageAspectFlagBits::eColor,
+    0,
+    1,
+    0,
+    1
+  );
+
+  colorImageView = device->createImageViewUnique(view_info);
 }
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)

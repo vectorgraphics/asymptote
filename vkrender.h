@@ -582,6 +582,11 @@ private:
   vk::UniqueImageView depthImageView;
   vk::UniqueDeviceMemory depthImageMemory;
 
+  vk::SampleCountFlagBits msaaSamples;
+  vk::UniqueImage colorImage;
+  vk::UniqueImageView colorImageView;
+  vk::UniqueDeviceMemory colorImageMemory;
+
   vk::UniqueCommandPool transferCommandPool;
   vk::UniqueCommandPool renderCommandPool;
 
@@ -675,6 +680,9 @@ private:
   void copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size);
   void copyToBuffer(const vk::Buffer& buffer, const void* data, vk::DeviceSize size,
                     vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {});
+  void createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
+                   vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
+                   vk::UniqueDeviceMemory & mem);
   // void copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size,
   //                     bool wait = true, vk::Fence fence = {}, const vk::Semaphore semaphore = {},
   //                     vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {});
@@ -697,6 +705,7 @@ private:
   void createComputePipeline();
 
   void createAttachments();
+  void createColorResources();
 
   void updateUniformBuffer(uint32_t currentImage);
   void drawFrame();
