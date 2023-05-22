@@ -332,7 +332,6 @@ void AsyVkRender::initVulkan()
   createComputePipeline();
 
   createAttachments();
-  createColorResources();
 
   createFramebuffers();
 }
@@ -877,6 +876,26 @@ void AsyVkRender::createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountF
   device->bindImageMemory(*img, *mem, 0);
 }
 
+void AsyVkRender::createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags,
+                                  vk::UniqueImage& img, vk::UniqueImageView& imgView)
+{
+  auto info = vk::ImageViewCreateInfo();
+
+  info.image = *img;
+  info.viewType = vk::ImageViewType::e2D;
+  info.format = fmt;
+  info.components = vk::ComponentMapping();
+  info.subresourceRange = vk::ImageSubresourceRange(
+    flags,
+    0,
+    1,
+    0,
+    1
+  );
+
+  imgView = device->createImageViewUnique(info);
+}
+
 // void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size,
 //                                  bool wait = true, vk::Fence fence = {}, const vk::Semaphore semaphore = {},
 //                                  vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {})
@@ -1151,48 +1170,15 @@ void AsyVkRender::createComputePipeline()
 
 void AsyVkRender::createAttachments()
 {
-  createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples, vk::Format::eD32Sfloat,
-              vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, depthImage,
-              depthImageMemory);
-
-  auto view_info = vk::ImageViewCreateInfo();
-
-  view_info.image = *depthImage;
-  view_info.viewType = vk::ImageViewType::e2D;
-  view_info.format = vk::Format::eD32Sfloat;
-  view_info.components = vk::ComponentMapping();
-  view_info.subresourceRange = vk::ImageSubresourceRange(
-    vk::ImageAspectFlagBits::eDepth,
-    0,
-    1,
-    0,
-    1
-  );
-
-  depthImageView = device->createImageViewUnique(view_info);
-}
-
-void AsyVkRender::createColorResources()
-{
   createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples, swapChainImageFormat,
               vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
               vk::MemoryPropertyFlagBits::eDeviceLocal, colorImage, colorImageMemory);
+  createImageView(swapChainImageFormat, vk::ImageAspectFlagBits::eColor, colorImage, colorImageView);
 
-  auto view_info = vk::ImageViewCreateInfo();
-
-  view_info.image = *colorImage;
-  view_info.viewType = vk::ImageViewType::e2D;
-  view_info.format = swapChainImageFormat;
-  view_info.components = vk::ComponentMapping();
-  view_info.subresourceRange = vk::ImageSubresourceRange(
-    vk::ImageAspectFlagBits::eColor,
-    0,
-    1,
-    0,
-    1
-  );
-
-  colorImageView = device->createImageViewUnique(view_info);
+  createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples, vk::Format::eD32Sfloat,
+              vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, depthImage,
+              depthImageMemory);
+  createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthImage, depthImageView);
 }
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
