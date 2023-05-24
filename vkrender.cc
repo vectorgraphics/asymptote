@@ -433,7 +433,7 @@ void AsyVkRender::pickPhysicalDevice()
       deviceType = "virtual";
     else if (vk::PhysicalDeviceType::eOther == props.deviceType)
       deviceType = "other";
-    
+
     auto const msaa = getMaxMSAASamples(device);
 
     switch (msaa)
@@ -441,17 +441,17 @@ void AsyVkRender::pickPhysicalDevice()
       case vk::SampleCountFlagBits::e64:
       case vk::SampleCountFlagBits::e32:
       case vk::SampleCountFlagBits::e16:
-      
+
         score += 10;
         break;
-      
+
       case vk::SampleCountFlagBits::e8:
       case vk::SampleCountFlagBits::e4:
       case vk::SampleCountFlagBits::e2:
 
         score += 5;
         break;
-      
+
       default:
 
         break;
@@ -464,7 +464,7 @@ void AsyVkRender::pickPhysicalDevice()
 
     return score;
   };
-  
+
   std::pair<std::size_t, vk::PhysicalDevice> highestDeviceScore { };
 
   for (auto & dev: instance->enumeratePhysicalDevices())
@@ -503,7 +503,7 @@ vk::SampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu
 		return vk::SampleCountFlagBits::e4;
 	if (count & vk::SampleCountFlagBits::e2)
 		return vk::SampleCountFlagBits::e2;
-	
+
 	return vk::SampleCountFlagBits::e1;
 }
 
@@ -522,7 +522,7 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
     if (family.queueFlags & vk::QueueFlagBits::eGraphics)
       indices.renderQueueFamily = u,
       indices.renderQueueFamilyFound = true;
-    
+
     if (VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface))
       indices.presentQueueFamily = u,
       indices.presentQueueFamilyFound = true;
@@ -1198,7 +1198,8 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
   auto beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
   commandBuffer.begin(beginInfo);
   std::array<vk::ClearValue, 2> clearColors;
-  clearColors[0].color = vk::ClearColorValue(0.75f, 0.75f, 0.75f, 1.f);
+
+  clearColors[0] = vk::ClearValue(std::array<float, 4>{0.0, 0.0, 0.0, 1.0});
   clearColors[1].depthStencil.depth = 1.f;
   clearColors[1].depthStencil.stencil = 0;
 
