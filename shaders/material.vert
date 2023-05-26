@@ -2,7 +2,7 @@
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;
-    vec3 lightPos;
+    mat3 normMat;
     vec3 viewPos;
 } ubo;
 
@@ -16,7 +16,7 @@ layout(location = 2) flat out int materialIndex;
 
 void main() {
     position = inPosition;
-    normal = inNormal;
+    normal = normalize(inNormal * ubo.normMat);
     materialIndex = inMaterial;
     gl_Position = ubo.projViewMat * vec4(inPosition, 1.0);
 }

@@ -949,8 +949,17 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk
 
 void AsyVkRender::createDescriptorSetLayout()
 {
-  auto uboLayoutBinding = vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
-  auto layoutCI = vk::DescriptorSetLayoutCreateInfo(vk::DescriptorSetLayoutCreateFlags(), 1, &uboLayoutBinding);
+  auto uboLayoutBinding = vk::DescriptorSetLayoutBinding(
+    0,
+    vk::DescriptorType::eUniformBuffer,
+    1,
+    vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
+  );
+  auto layoutCI = vk::DescriptorSetLayoutCreateInfo(
+    vk::DescriptorSetLayoutCreateFlags(),
+    1,
+    &uboLayoutBinding
+  );
   materialDescriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutCI);
 }
 
@@ -996,8 +1005,11 @@ void AsyVkRender::createBuffers()
 {
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
     // uniform buffer
-    createBufferUnique(frameObjects[i].uniformBuffer, frameObjects[i].uniformBufferMemory, vk::BufferUsageFlagBits::eUniformBuffer,
-                       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, sizeof(UniformBufferObject));
+    createBufferUnique(frameObjects[i].uniformBuffer,
+                       frameObjects[i].uniformBufferMemory,
+                       vk::BufferUsageFlagBits::eUniformBuffer,
+                       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                       sizeof(UniformBufferObject));
   }
 }
 
@@ -1183,10 +1195,11 @@ void AsyVkRender::createAttachments()
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 {
-  UniformBufferObject ubo{};
+  UniformBufferObject ubo{ };
   // flip Y coordinate for Vulkan (Vulkan has different coordinate system than OpenGL)
   auto verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
   ubo.projViewMat = verticalFlipMat * projViewMat;
+  ubo.normMat = glm::mat3(glm::inverse(viewMat));
 
   auto data = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
   memcpy(data, &ubo, sizeof(ubo));

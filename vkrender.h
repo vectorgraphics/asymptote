@@ -397,7 +397,7 @@ struct QueueFamilyIndices {
 
 struct UniformBufferObject {
   alignas(16) glm::mat4 projViewMat;
-  alignas(16) glm::vec3 lightPos;
+  alignas(16) glm::mat3 normMat;
   alignas(16) glm::vec3 viewPos;
 };
 

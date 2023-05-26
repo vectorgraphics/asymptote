@@ -5,39 +5,120 @@ struct Material
     vec3 color;
 };
 
+struct Light
+{
+    vec3 position;
+    vec3 color;
+};
+
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;
-    vec3 lightPos;
+    mat3 normMat;
     vec3 viewPos;
 } ubo;
 
-// layout(binding = 1) buffer MaterialSSBO { Material materials[]; };
-
-// will this data be bound to 0 and cause a problem?
 layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 normal;
+layout(location = 1) in vec3 norm;
 layout(location = 2) flat in int materialIndex;
 
 layout(location = 0) out vec4 outColor;
 
-// could we normalize this stuff in the vertex shader or even in asymptote?
+vec3 Diffuse;
+vec3 Emissive;
+vec3 Specular;
+float Metallic;
+float Fresnel0;
+float Roughness2;
+float Roughness;
+
+vec3 normal;
+
+float NDF_TRG(vec3 h)
+{
+    float ndoth=max(dot(normal,h),0.0);
+    float alpha2=Roughness2*Roughness2;
+    float denom=ndoth*ndoth*(alpha2-1.0)+1.0;
+    return denom != 0.0 ? alpha2/(denom*denom) : 0.0;
+}
+
+float GGX_Geom(vec3 v)
+{
+    float ndotv=max(dot(v,normal),0.0);
+    float ap=1.0+Roughness2;
+    float k=0.125*ap*ap;
+    return ndotv/((ndotv*(1.0-k))+k);
+}
+
+float Geom(vec3 v, vec3 l)
+{
+    return GGX_Geom(v) * GGX_Geom(l);
+}
+
+float Fresnel(vec3 h, vec3 v, float fresnel0)
+{
+    float a=1.0-max(dot(h,v),0.0);
+    float b=a*a;
+    return fresnel0+(1.0-fresnel0)*b*b*a;
+}
+
+vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
+{
+    vec3 lambertian=Diffuse;
+    // Cook-Torrance model
+    vec3 h=normalize(lightDirection+viewDirection);
+
+    float omegain=max(dot(viewDirection,normal),0.0);
+    float omegaln=max(dot(lightDirection,normal),0.0);
+
+    float D=NDF_TRG(h);
+    float G=Geom(viewDirection,lightDirection);
+    float F=Fresnel(h,viewDirection,Fresnel0);
+
+    float denom=4.0*omegain*omegaln;
+    float rawReflectance=denom > 0.0 ? (D*G)/denom : 0.0;
+
+    vec3 dielectric=mix(lambertian,rawReflectance*Specular,F);
+    vec3 metal=rawReflectance*Diffuse;
+
+    return mix(dielectric,metal,Metallic);
+}
+
 void main() {
-    // Material material = materials[materialIndex];
-    Material material = Material(vec3(0.0, 0.0, 1.0));
-    // ambient
-    vec3 ambient = 0.05 * material.color;
-    // diffuse
-    vec3 lightDir = normalize(ubo.lightPos - position);
-    vec3 normal_ = normalize(normal);
-    float diff = max(dot(lightDir, normal_), 0.0);
-    vec3 diffuse = diff * material.color;
-    // specular
-    vec3 viewDir = normalize(ubo.viewPos - position);
-    vec3 reflectDir = reflect(-lightDir, normal_);
 
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal_, halfwayDir), 0.0), 32.0);
+    /****************************************
+    *
+    * test light
+    *
+    ****************************************/
 
-    vec3 specular = vec3(0.3) * spec; // assuming bright white light color
-    outColor = vec4(ambient + diffuse + specular, 1.0);
+    Light light;
+
+    light.position = normalize(vec3(0, 0, 10));
+    light.color = vec3(1.0, 1.0, 1.0);
+
+    /****************************************
+    *
+    * test material params
+    *
+    ****************************************/
+
+    Diffuse = vec3(0.25, 25, 0.25);
+    Emissive = vec3(0.0, 0.0, 1.0);
+    Specular = vec3(0.5, 0.5, 0.5);
+    Metallic = 0.f;
+    Fresnel0 = 0.f;
+    Roughness = 0.f;
+    Roughness2 = Roughness * Roughness;
+
+    vec3 viewDirection = normalize(ubo.viewPos - position);
+    normal = normalize(norm);
+
+    if (!gl_FrontFacing)
+        normal = -normal;
+
+    outColor = vec4(Emissive.rgb, 1.0);
+
+    vec3 lightDirection = normalize(light.position - position);
+    float radiance = max(dot(normal, lightDirection), 0.0);
+    outColor += vec4(BRDF(viewDirection, lightDirection) * radiance, 0.0);
 }
