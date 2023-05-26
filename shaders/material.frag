@@ -2,7 +2,8 @@
 
 struct Material
 {
-    vec3 color;
+    vec4 diffuse, emissive, specular;
+    vec4 parameters;
 };
 
 struct Light
@@ -16,6 +17,10 @@ layout(binding = 0) uniform UniformBufferObject {
     mat3 normMat;
     vec3 viewPos;
 } ubo;
+
+layout(binding = 1, std430) buffer MaterialBuffer {
+    Material materials[];
+};
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 norm;
@@ -93,7 +98,7 @@ void main() {
 
     Light light;
 
-    light.position = normalize(vec3(0, 0, 10));
+    light.position = normalize(vec3(1.0, 0, 0));
     light.color = vec3(1.0, 1.0, 1.0);
 
     /****************************************
@@ -104,7 +109,7 @@ void main() {
 
     Diffuse = vec3(0.25, 25, 0.25);
     Emissive = vec3(0.0, 0.0, 1.0);
-    Specular = vec3(0.5, 0.5, 0.5);
+    Specular = vec3(0.3, 0.3, 0.3);
     Metallic = 0.f;
     Fresnel0 = 0.f;
     Roughness = 0.f;

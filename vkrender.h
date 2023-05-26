@@ -557,6 +557,8 @@ private:
   bool hasExternalMemoryExtension = false;
   bool hasExternalMemoryHostExtension = false;
 
+  size_t NMaterials = 48;
+
   GLFWwindow* window;
 
   vk::UniqueInstance instance;
@@ -601,6 +603,9 @@ private:
   vk::UniqueDescriptorSetLayout computeDescriptorSetLayout;
   vk::UniquePipelineLayout computePipelineLayout;
   vk::UniquePipeline computePipeline;
+
+  vk::UniqueBuffer materialBuffer;
+  vk::UniqueDeviceMemory materialBufferMemory;
 
   struct FrameObjects {
     vk::UniqueSemaphore imageAvailableSemaphore;

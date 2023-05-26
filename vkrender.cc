@@ -960,10 +960,22 @@ void AsyVkRender::createDescriptorSetLayout()
     1,
     vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
   );
+  auto materialBufferBinding = vk::DescriptorSetLayoutBinding(
+    1,
+    vk::DescriptorType::eStorageBuffer,
+    1,
+    vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
+  );
+
+  std::vector<vk::DescriptorSetLayoutBinding> layoutBindings {
+    uboLayoutBinding,
+    materialBufferBinding
+  };
+
   auto layoutCI = vk::DescriptorSetLayoutCreateInfo(
     vk::DescriptorSetLayoutCreateFlags(),
-    1,
-    &uboLayoutBinding
+    layoutBindings.size(),
+    &layoutBindings[0]
   );
   materialDescriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutCI);
 }
@@ -987,8 +999,19 @@ void AsyVkRender::createComputeDescriptorSetLayout()
 
 void AsyVkRender::createDescriptorPool()
 {
-  auto poolSize = vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, options.maxFramesInFlight);
-  auto poolCI = vk::DescriptorPoolCreateInfo(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, options.maxFramesInFlight, 1, &poolSize);
+  std::array<vk::DescriptorPoolSize, 2> poolSizes;
+
+  poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
+  poolSizes[0].descriptorCount = options.maxFramesInFlight;
+  poolSizes[1].type = vk::DescriptorType::eStorageBuffer;
+  poolSizes[1].descriptorCount = 1;
+
+  auto poolCI = vk::DescriptorPoolCreateInfo(
+    vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+    options.maxFramesInFlight,
+    poolSizes.size(),
+    &poolSizes[0]
+  );
   descriptorPool = device->createDescriptorPoolUnique(poolCI);
 }
 
@@ -1000,16 +1023,51 @@ void AsyVkRender::createDescriptorSets()
 
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
     frameObjects[i].descriptorSet = std::move(descriptorSets[i]);
-    auto bufferInfo = vk::DescriptorBufferInfo(*frameObjects[i].uniformBuffer, 0, sizeof(UniformBufferObject));
-    auto descriptorWrite = vk::WriteDescriptorSet(*frameObjects[i].descriptorSet, 0, 0, 1, vk::DescriptorType::eUniformBuffer, nullptr, &bufferInfo);
-    device->updateDescriptorSets(1, &descriptorWrite, 0, nullptr);
+
+    auto uboInfo = vk::DescriptorBufferInfo();
+
+    uboInfo.buffer = *frameObjects[i].uniformBuffer;
+    uboInfo.offset = 0;
+    uboInfo.range = sizeof(UniformBufferObject);
+
+    auto materialBufferInfo = vk::DescriptorBufferInfo();
+
+    materialBufferInfo.buffer = *materialBuffer;
+    materialBufferInfo.offset = 0;
+    materialBufferInfo.range = sizeof(camp::Material) * NMaterials;
+
+    std::array<vk::WriteDescriptorSet, 2> writes;
+
+    writes[0].dstSet = *frameObjects[i].descriptorSet;
+    writes[0].dstBinding = 0;
+    writes[0].dstArrayElement = 0;
+    writes[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+    writes[0].descriptorCount = 1;
+    writes[0].pBufferInfo = &uboInfo;
+
+    writes[1].dstSet = *frameObjects[i].descriptorSet;
+    writes[1].dstBinding = 1;
+    writes[1].dstArrayElement = 0;
+    writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[1].descriptorCount = 1;
+    writes[1].pBufferInfo = &materialBufferInfo;
+
+    device->updateDescriptorSets(writes.size(), &writes[0], 0, nullptr);
   }
 }
 
 void AsyVkRender::createBuffers()
 {
+  // todo fill materials in staging buffer, copy to material buffer, then remove staging buffer
+  // material buffer should only be visible to gpu for better performance
+  createBufferUnique(materialBuffer,
+                     materialBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                     sizeof(camp::Material) * NMaterials);
+
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
-    // uniform buffer
+
     createBufferUnique(frameObjects[i].uniformBuffer,
                        frameObjects[i].uniformBufferMemory,
                        vk::BufferUsageFlagBits::eUniformBuffer,
