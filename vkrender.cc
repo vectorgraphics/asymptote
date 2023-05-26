@@ -415,10 +415,6 @@ void AsyVkRender::pickPhysicalDevice()
   {
     std::size_t score = 0u;
 
-    // todo uncomment
-    //if (!this->isDeviceSuitable(device))
-    //  return score;
-
     auto const props = device.getProperties();
 
     std::string deviceType;
@@ -433,6 +429,16 @@ void AsyVkRender::pickPhysicalDevice()
       deviceType = "virtual";
     else if (vk::PhysicalDeviceType::eOther == props.deviceType)
       deviceType = "other";
+
+
+    std::cout << "==================================================" << std::endl;
+    std::cout << "Information for: " << props.deviceName << std::endl;
+    std::cout << "\t type: " << deviceType << std::endl;
+    std::cout << "\t max viewports: " << props.limits.maxViewports << std::endl;
+
+    // todo uncomment
+    if (!this->isDeviceSuitable(device))
+      return std::cout << "NOT SUITABLE" << std::endl, score;
 
     auto const msaa = getMaxMSAASamples(device);
 
@@ -456,11 +462,6 @@ void AsyVkRender::pickPhysicalDevice()
 
         break;
     }
-
-    std::cout << "==================================================" << std::endl;
-    std::cout << "Information for: " << props.deviceName << std::endl;
-    std::cout << "\t type: " << deviceType << std::endl;
-    std::cout << "\t max viewports: " << props.limits.maxViewports << std::endl;
 
     return score;
   };
@@ -562,7 +563,9 @@ bool AsyVkRender::checkDeviceExtensionSupport(vk::PhysicalDevice& device)
   auto extensions = device.enumerateDeviceExtensionProperties();
   std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
   if (options.display) requiredExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+  std::cout << "\t extensions: " << std::endl;
   for (auto& extension : extensions) {
+    std::cout << "\t\t" << extension.extensionName << std::endl;
     requiredExtensions.erase(extension.extensionName);
   }
   return requiredExtensions.empty();
