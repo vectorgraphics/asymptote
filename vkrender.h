@@ -495,6 +495,7 @@ public:
   double Zoom0;
   pair Shift;
   pair Margin;
+  double ArcballFactor;
 
   camp::triple* Lights;
   size_t nlights;

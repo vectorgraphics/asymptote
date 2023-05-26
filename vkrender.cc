@@ -251,8 +251,8 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
     auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
     Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
     triple axis = arcball.axis;
-    const double arcballFactor = 1.0;
-    app->rotateMat = glm::rotate((2 * arcball.angle / app->Zoom0 * arcballFactor), glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
+    app->rotateMat = glm::rotate(2 * arcball.angle / app->Zoom0 * app->ArcballFactor,
+                                 glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
     app->redraw = true;
   }
 
@@ -302,6 +302,8 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   // std::cout << "data size: " << data.size() << std::endl;
   // setDeviceBufferData(testBuffer, data.data(), data.size() * sizeof(data));
   // std::cout << "done setting device buffer" << std::endl;
+
+  ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(width, height);
 
   mainLoop();
 }
