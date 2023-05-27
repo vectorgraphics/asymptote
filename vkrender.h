@@ -714,6 +714,7 @@ private:
   void createAttachments();
 
   void updateUniformBuffer(uint32_t currentImage);
+  void updateMaterialBuffer();
   void drawFrame();
   void recreateSwapChain();
   vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);

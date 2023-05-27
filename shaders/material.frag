@@ -22,6 +22,11 @@ layout(binding = 1, std430) buffer MaterialBuffer {
     Material materials[];
 };
 
+layout(binding = 2, std430) buffer LightBuffer {
+    int nlights;
+    Light lights[];
+};
+
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 norm;
 layout(location = 2) flat in int materialIndex;
@@ -98,7 +103,7 @@ void main() {
 
     Light light;
 
-    light.position = normalize(vec3(1.0, 0, 0));
+    light.position = vec3(5.0, 0, 0);
     light.color = vec3(1.0, 1.0, 1.0);
 
     /****************************************
@@ -107,12 +112,14 @@ void main() {
     *
     ****************************************/
 
-    Diffuse = vec3(0.25, 25, 0.25);
-    Emissive = vec3(0.0, 0.0, 1.0);
-    Specular = vec3(0.3, 0.3, 0.3);
-    Metallic = 0.f;
-    Fresnel0 = 0.f;
-    Roughness = 0.f;
+    Material mat = materials[materialIndex];
+
+    Diffuse = mat.diffuse.rgb;
+    Emissive = mat.emissive.rgb;
+    Specular = mat.specular.rgb;
+    Roughness = 1.f - mat.parameters[0];
+    Metallic = mat.parameters[1];
+    Fresnel0 = mat.parameters[2];
     Roughness2 = Roughness * Roughness;
 
     vec3 viewDirection = normalize(ubo.viewPos - position);

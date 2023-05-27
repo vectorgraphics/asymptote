@@ -1062,8 +1062,8 @@ void AsyVkRender::createBuffers()
   // material buffer should only be visible to gpu for better performance
   createBufferUnique(materialBuffer,
                      materialBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer,
-                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
                      sizeof(camp::Material) * NMaterials);
 
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
@@ -1264,9 +1264,16 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
   ubo.projViewMat = verticalFlipMat * projViewMat;
   ubo.normMat = glm::mat3(glm::inverse(viewMat));
 
-  auto data = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
-  memcpy(data, &ubo, sizeof(ubo));
+  auto uboData = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
+  memcpy(uboData, &ubo, sizeof(ubo));
   device->unmapMemory(*frameObjects[currentFrame].uniformBufferMemory);
+}
+
+void AsyVkRender::updateMaterialBuffer()
+{
+  std::cout << "material buffer size: " << materials.size() << std::endl;
+
+  copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
 }
 
 void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex)
@@ -1315,6 +1322,7 @@ void AsyVkRender::drawFrame()
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlags());
 
   updateUniformBuffer(currentFrame);
+  updateMaterialBuffer();
 
   // optimize:
   //  - use semaphores instead of fences for vertex/index buffer upload
