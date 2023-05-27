@@ -379,6 +379,12 @@ struct VertexBuffer {
   }
 };
 
+struct Light
+{
+  glm::vec3 direction;
+  glm::vec3 color;
+};
+
 struct SwapChainSupportDetails {
   vk::SurfaceCapabilitiesKHR capabilities;
   std::vector<vk::SurfaceFormatKHR> formats;
@@ -399,6 +405,7 @@ struct UniformBufferObject {
   alignas(16) glm::mat4 projViewMat;
   alignas(16) glm::mat3 normMat;
   alignas(16) glm::vec3 viewPos;
+  alignas(16) int nlights;
 };
 
 struct Arcball {
@@ -607,6 +614,9 @@ private:
   vk::UniqueBuffer materialBuffer;
   vk::UniqueDeviceMemory materialBufferMemory;
 
+  vk::UniqueBuffer lightBuffer;
+  vk::UniqueDeviceMemory lightBufferMemory;
+
   struct FrameObjects {
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore renderFinishedSemaphore;
@@ -714,7 +724,7 @@ private:
   void createAttachments();
 
   void updateUniformBuffer(uint32_t currentImage);
-  void updateMaterialBuffer();
+  void updateBuffers();
   void drawFrame();
   void recreateSwapChain();
   vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);

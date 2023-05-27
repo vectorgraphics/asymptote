@@ -8,7 +8,7 @@ struct Material
 
 struct Light
 {
-    vec3 position;
+    vec3 direction;
     vec3 color;
 };
 
@@ -95,23 +95,6 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
 void main() {
 
-    /****************************************
-    *
-    * test light
-    *
-    ****************************************/
-
-    Light light;
-
-    light.position = vec3(5.0, 0, 0);
-    light.color = vec3(1.0, 1.0, 1.0);
-
-    /****************************************
-    *
-    * test material params
-    *
-    ****************************************/
-
     Material mat = materials[materialIndex];
 
     Diffuse = mat.diffuse.rgb;
@@ -130,7 +113,11 @@ void main() {
 
     outColor = vec4(Emissive.rgb, 1.0);
 
-    vec3 lightDirection = normalize(light.position - position);
-    float radiance = max(dot(normal, lightDirection), 0.0);
-    outColor += vec4(BRDF(viewDirection, lightDirection) * radiance, 0.0);
+    for (int i = 0; i < nlights; i++)
+    {
+        Light light = lights[i];
+
+        float radiance = max(dot(normal, light.direction), 0.0);
+        outColor += vec4(BRDF(viewDirection, light.direction) * radiance, 0.0);
+    }
 }
