@@ -14,7 +14,7 @@ struct Light
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;
-    mat3 normMat;
+    mat4 normMat;
     vec3 viewPos;
 } ubo;
 
