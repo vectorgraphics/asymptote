@@ -525,7 +525,6 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
   const string Done="Done";
   const string Error="Error";
 
-  unsigned arg=0;
   xmap_t xmap=processData().xmap;
   transform Tinv=inverse(T);
 
@@ -606,7 +605,6 @@ void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
           }
 
           fflush(pipeout);
-          ++arg;
         }
       } else {
         drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);

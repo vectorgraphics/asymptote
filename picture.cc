@@ -310,7 +310,6 @@ bbox3 picture::bounds3()
     b3=bbox3();
 
   matrixstack ms;
-  size_t i=0;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if((*p)->begingroup3())
@@ -319,7 +318,6 @@ bbox3 picture::bounds3()
       ms.pop();
     else
       (*p)->bounds(ms.T(),b3);
-    i++;
   }
 
   lastnumber3=n;
