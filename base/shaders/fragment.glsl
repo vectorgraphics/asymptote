@@ -220,7 +220,7 @@ void main()
 #endif
   }
 #else
-  m=Materials[int(materialIndex)];
+  m=Materials[materialIndex];
   emissive=m.emissive;
 #ifdef COLOR
   diffuse=Color;
