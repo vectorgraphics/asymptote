@@ -1250,8 +1250,6 @@ void AsyVkRender::createMaterialPipeline()
     1.0f
   );
 
-  std::cout << "MODE: " << int(options.mode) << std::endl;
-
   auto multisamplingCI = vk::PipelineMultisampleStateCreateInfo(vk::PipelineMultisampleStateCreateFlags(), msaaSamples, VK_FALSE, 0.0f, nullptr, VK_FALSE, VK_FALSE);
 
   auto colorBlendAttachment = vk::PipelineColorBlendAttachmentState(VK_FALSE, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
@@ -1559,6 +1557,10 @@ void AsyVkRender::clearMaterials()
 
 void AsyVkRender::travelHome()
 {
+  cx = cy = 0;
+  rotateMat = viewMat = glm::mat4(1.0);
+  Zoom0 = 1.0;
+  redraw = true;
 }
 
 void AsyVkRender::cycleMode()
