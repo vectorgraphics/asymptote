@@ -631,6 +631,9 @@ void AsyVkRender::createLogicalDevice()
 
   vk::PhysicalDeviceFeatures deviceFeatures;
 
+  // for wireframe, alternative draw modes
+  deviceFeatures.fillModeNonSolid = true;
+
   auto deviceCI = vk::DeviceCreateInfo(vk::DeviceCreateFlags(), VEC_VIEW(queueCIs), VEC_VIEW(validationLayers), VEC_VIEW(extensions), &deviceFeatures);
 
   device = physicalDevice.createDeviceUnique(deviceCI, nullptr);
@@ -1233,7 +1236,21 @@ void AsyVkRender::createMaterialPipeline()
   auto viewportStateCI = vk::PipelineViewportStateCreateInfo(vk::PipelineViewportStateCreateFlags(), 1, &viewport, 1, &scissor);
 
   // TODO: ask about frontface and cullmode
-  auto rasterizerCI = vk::PipelineRasterizationStateCreateInfo(vk::PipelineRasterizationStateCreateFlags(), VK_FALSE, VK_FALSE, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone, vk::FrontFace::eCounterClockwise, VK_FALSE, 0.0f, 0.0f, 0.0f, 1.0f);
+  auto rasterizerCI = vk::PipelineRasterizationStateCreateInfo(
+    vk::PipelineRasterizationStateCreateFlags(),
+    VK_FALSE,
+    VK_FALSE,
+    options.mode == Mode::MODE_NORMAL ? vk::PolygonMode::eFill : vk::PolygonMode::eLine,
+    vk::CullModeFlagBits::eNone,
+    vk::FrontFace::eCounterClockwise,
+    VK_FALSE,
+    0.0f,
+    0.0f,
+    0.0f,
+    1.0f
+  );
+
+  std::cout << "MODE: " << int(options.mode) << std::endl;
 
   auto multisamplingCI = vk::PipelineMultisampleStateCreateInfo(vk::PipelineMultisampleStateCreateFlags(), msaaSamples, VK_FALSE, 0.0f, nullptr, VK_FALSE, VK_FALSE);
 
@@ -1379,9 +1396,15 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
 void AsyVkRender::drawFrame()
 {
   auto& frameObject = frameObjects[currentFrame];
-
   // wait until this frame is finished before we start drawing the next one
   device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+
+  // check to see if any pipeline state changed.
+  if (recreatePipeline)
+  {
+    createMaterialPipeline();
+    recreatePipeline = false;
+  }
 
   uint32_t imageIndex; // index of the current swap chain image to render to
   if (auto const result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(),
@@ -1536,12 +1559,13 @@ void AsyVkRender::clearMaterials()
 
 void AsyVkRender::travelHome()
 {
-  std::cout << "H" << std::endl;
 }
 
 void AsyVkRender::cycleMode()
 {
   options.mode = Mode((options.mode + 1) % Mode::MODE_MAX);
+  recreatePipeline = true;
+  redraw = true;
 }
 
 } // namespace camp

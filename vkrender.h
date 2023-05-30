@@ -444,7 +444,7 @@ public:
       MODE_OUTLINE,
       MODE_WIREFRAME,
       MODE_MAX
-    } mode;
+    } mode = MODE_NORMAL;
 
     bool display;
     std::string title;
@@ -469,6 +469,7 @@ public:
   double getRenderResolution(triple Min) const;
 
   bool framebufferResized = false;
+  bool recreatePipeline = false;
 
   // VertexQueue<MaterialVertex> materialVertices;
   // VertexQueue<ColorVertex> colorVertices;
