@@ -438,12 +438,22 @@ class AsyVkRender
 {
 public:
   struct Options {
+    enum Mode: int
+    {
+      MODE_NORMAL,
+      MODE_OUTLINE,
+      MODE_WIREFRAME,
+      MODE_MAX
+    } mode;
+
     bool display;
     std::string title;
     int maxFramesInFlight = 1;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
   };
+
+  using Mode = Options::Mode;
 
   AsyVkRender(Options& options);
   ~AsyVkRender();
@@ -660,6 +670,7 @@ private:
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
   static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
   static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
+  static void keyCallback(GLFWwindow * window, int key, int scancode, int action, int mods);
 
   void initWindow();
   void initVulkan();
@@ -731,6 +742,10 @@ private:
   void display();
   void mainLoop();
   void cleanup();
+
+  // user controls
+  void travelHome();
+  void cycleMode();
 };
 
 extern AsyVkRender* vk;

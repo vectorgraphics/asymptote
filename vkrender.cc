@@ -215,6 +215,7 @@ AsyVkRender::AsyVkRender(Options& options) : options(options)
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
     glfwSetScrollCallback(window, scrollCallback);
     glfwSetCursorPosCallback(window, cursorPosCallback);
+    glfwSetKeyCallback(window, keyCallback);
   }
   initVulkan();
 }
@@ -259,6 +260,24 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
   if (first) first = false;
   xprev = xpos;
   yprev = ypos;
+}
+
+void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int action, int mods)
+{
+  if (action != GLFW_PRESS)
+    return;
+
+  auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+
+  switch (key)
+  {
+    case 'H':
+      app->travelHome();
+      break;
+    case 'M':
+      app->cycleMode();
+      break;
+  }
 }
 
 AsyVkRender::~AsyVkRender()
@@ -1513,6 +1532,16 @@ void AsyVkRender::clearCenters()
 void AsyVkRender::clearMaterials()
 {
   throw std::runtime_error("not implemented");
+}
+
+void AsyVkRender::travelHome()
+{
+  std::cout << "H" << std::endl;
+}
+
+void AsyVkRender::cycleMode()
+{
+  options.mode = Mode((options.mode + 1) % Mode::MODE_MAX);
 }
 
 } // namespace camp
