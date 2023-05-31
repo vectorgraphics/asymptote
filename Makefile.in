@@ -126,7 +126,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version $(FILES:=.o) glew.o @LSPLIB@
+asy:	version $(FILES:=.o) glew.o @LSPLIB@ vulkan
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -163,7 +163,7 @@ asymptote.so: $(COREFILES:=.pic.o) glew.o
 liblspcpp.a:
 	cd LspCpp && $(CMAKE) -DCMAKE_CXX_FLAGS="-fPIE @OPTIONS@ -I../$(GC)/include" CMakeLists.txt && $(MAKE)
 
-all:  	asy sty man faq asy-keywords.el
+all:  	asy sty faq asy-keywords.el
 
 $(GCLIB): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
@@ -203,11 +203,11 @@ dvi:	asy sty
 html:	asy sty
 	cd doc && $(MAKE) doc
 
-man:	asy sty
-	# cd doc && $(MAKE) man
-
 faq:	asy sty
 	cd doc && $(MAKE) faq
+
+vulkan:
+	cd shaders && $(MAKE)
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
 	$(PERL) ./runtime.pl $(@:.cc=)
@@ -293,7 +293,7 @@ install-asy: asy sty
 install-html: html
 	cd doc && $(MAKE) install-all
 
-install-man: man
+install-man: asy sty
 	cd doc && $(MAKE) install
 
 install-prebuilt: install-asy
