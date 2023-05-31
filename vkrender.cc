@@ -1422,6 +1422,8 @@ void AsyVkRender::drawFrame()
   updateUniformBuffer(currentFrame);
   updateBuffers();
 
+  std::cout << "color size: " << materialData.materialVertices.size() << std::endl;
+
   if (options.mode == DRAWMODE_OUTLINE)
     recordCommandBuffer(*frameObject.commandBuffer,
                         currentFrame,
@@ -1478,6 +1480,8 @@ void AsyVkRender::display()
 
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
+
+  clearVertexBuffers();
   pic->render(diagonalSize, (xmin, ymin, Zmin), (xmax, ymax, Zmax), perspective, remesh);
 
   // createMaterialVertexBuffer();
@@ -1485,8 +1489,8 @@ void AsyVkRender::display()
 
   drawFrame();
 
-  // TODO: why?
-  if (!outlinemode) remesh = false;
+  if (options.mode != DRAWMODE_OUTLINE)
+    remesh = false;
 }
 
 void AsyVkRender::mainLoop()
@@ -1533,9 +1537,20 @@ void AsyVkRender::ortho(GLdouble left, GLdouble right, GLdouble bottom,
   updateProjection();
 }
 
+void AsyVkRender::clearVertexBuffers()
+{
+  materialData.clear();
+  colorData.clear();
+  triangleData.clear();
+  transparentData.clear();
+  lineData.clear();
+  pointData.clear();
+}
+
 void AsyVkRender::clearCenters()
 {
-  throw std::runtime_error("not implemented");
+  camp::drawElement::centers.clear();
+  camp::drawElement::centermap.clear();
 }
 
 void AsyVkRender::clearMaterials()

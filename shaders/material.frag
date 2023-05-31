@@ -1,7 +1,5 @@
 #version 450
 
-#define FLAG_NOLIGHT (1 << 0)
-
 struct Material
 {
     vec4 diffuse, emissive, specular;
@@ -19,7 +17,6 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;
     mat4 normMat;
     vec4 viewPos;
-    uvec4 flags;
 } ubo;
 
 layout(binding = 1, std430) buffer MaterialBuffer {
@@ -116,14 +113,13 @@ void main() {
 
     outColor = vec4(Emissive.rgb, 1.0);
 
-    if ((ubo.flags[0] & FLAG_NOLIGHT) != 0)
-        return;
-
     for (int i = 0; lights[i].valid == 1; i++)
     {
         Light light = lights[i];
 
-        float radiance = max(dot(normal, light.direction.xyz), 0.0);
+        vec3 radiance = max(dot(normal, light.direction.xyz), 0.0) * light.color.rgb;
         outColor += vec4(BRDF(viewDirection, light.direction.xyz) * radiance, 0.0);
     }
+
+    outColor = vec4(outColor.rgb, mat.diffuse.a);
 }
