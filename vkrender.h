@@ -403,9 +403,10 @@ struct QueueFamilyIndices {
 };
 
 struct UniformBufferObject {
-  alignas(16) glm::mat4 projViewMat;
-  alignas(16) glm::mat4 normMat;
-  alignas(16) glm::vec3 viewPos;
+  alignas(16) glm::mat4 projViewMat { };
+  alignas(16) glm::mat4 normMat { };
+  alignas(16) glm::vec4 viewPos { };
+  alignas(16) glm::uvec4 flags { };
 };
 
 struct Arcball {

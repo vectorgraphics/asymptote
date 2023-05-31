@@ -1173,7 +1173,7 @@ void AsyVkRender::createMaterialRenderPass()
 
   subpass.pResolveAttachments = &colorResolveAttachmentRef;
   subpass.pDepthStencilAttachment = &depthAttachmentRef;
-  
+
   if (msaaSamples == vk::SampleCountFlagBits::e1)
   {
     colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
@@ -1334,6 +1334,11 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
   auto uboData = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
   memcpy(uboData, &ubo, sizeof(ubo));
   device->unmapMemory(*frameObjects[currentFrame].uniformBufferMemory);
+
+  if (options.mode != DRAWMODE_NORMAL)
+    ubo.flags[0] = 1;
+  else
+    ubo.flags[0] = 0;
 }
 
 void AsyVkRender::updateBuffers()

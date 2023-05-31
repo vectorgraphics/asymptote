@@ -3,7 +3,8 @@
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;
     mat4 normMat;
-    vec3 viewPos;
+    vec4 viewPos;
+    uvec4 flags;
 } ubo;
 
 layout(location = 0) in vec3 inPosition;

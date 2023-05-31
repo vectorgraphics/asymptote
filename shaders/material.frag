@@ -1,5 +1,7 @@
 #version 450
 
+#define FLAG_NOLIGHT (1 << 0)
+
 struct Material
 {
     vec4 diffuse, emissive, specular;
@@ -16,7 +18,8 @@ struct Light
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;
     mat4 normMat;
-    vec3 viewPos;
+    vec4 viewPos;
+    uvec4 flags;
 } ubo;
 
 layout(binding = 1, std430) buffer MaterialBuffer {
@@ -105,13 +108,16 @@ void main() {
     Fresnel0 = mat.parameters[2];
     Roughness2 = Roughness * Roughness;
 
-    vec3 viewDirection = normalize(ubo.viewPos - position);
+    vec3 viewDirection = normalize(ubo.viewPos.xyz - position);
     normal = normalize(norm);
 
     if (!gl_FrontFacing)
         normal = -normal;
 
     outColor = vec4(Emissive.rgb, 1.0);
+
+    if ((ubo.flags[0] & FLAG_NOLIGHT) != 0)
+        return;
 
     for (int i = 0; lights[i].valid == 1; i++)
     {
