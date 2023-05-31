@@ -1229,7 +1229,11 @@ void AsyVkRender::createMaterialPipeline()
   auto attributeDescriptions = MaterialVertex::getAttributeDescriptions();
   auto vertexInputCI = vk::PipelineVertexInputStateCreateInfo(vk::PipelineVertexInputStateCreateFlags(), 1, &bindingDescription, VEC_VIEW(attributeDescriptions));
 
-  auto inputAssemblyCI = vk::PipelineInputAssemblyStateCreateInfo(vk::PipelineInputAssemblyStateCreateFlags(), vk::PrimitiveTopology::eTriangleList, VK_FALSE);
+  auto inputAssemblyCI = vk::PipelineInputAssemblyStateCreateInfo(
+    vk::PipelineInputAssemblyStateCreateFlags(),
+    options.mode == DRAWMODE_OUTLINE ? vk::PrimitiveTopology::eLineList : vk::PrimitiveTopology::eTriangleList, 
+    VK_FALSE
+  );
 
   auto viewport = vk::Viewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height), 0.0f, 1.0f);
   auto scissor = vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent);
@@ -1240,7 +1244,7 @@ void AsyVkRender::createMaterialPipeline()
     vk::PipelineRasterizationStateCreateFlags(),
     VK_FALSE,
     VK_FALSE,
-    options.mode == Mode::MODE_NORMAL ? vk::PolygonMode::eFill : vk::PolygonMode::eLine,
+    options.mode != DRAWMODE_NORMAL ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
     vk::CullModeFlagBits::eNone,
     vk::FrontFace::eCounterClockwise,
     VK_FALSE,
@@ -1367,7 +1371,7 @@ void AsyVkRender::updateBuffers()
   delete[] buffer;
 }
 
-void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex)
+void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex, DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data)
 {
   auto beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
   commandBuffer.begin(beginInfo);
@@ -1380,13 +1384,19 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
   auto renderPassInfo = vk::RenderPassBeginInfo(*materialRenderPass, *swapChainFramebuffers[imageIndex], vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent), clearColors.size(), &clearColors[0]);
   commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
   commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *materialPipeline);
-  std::vector<vk::Buffer> vertexBuffers = {*frameObjects[currentFrame].materialVertexBuffer.buffer};
+
+  // Initialize buffer data
+  setDeviceBufferData(vertexBuffer, data->materialVertices.data(), data->materialVertices.size() * sizeof(data->materialVertices[0]));
+  setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]));
+
+  std::vector<vk::Buffer> vertexBuffers = {*vertexBuffer.buffer};
   std::vector<vk::DeviceSize> vertexOffsets = {0};
+
   commandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
-  commandBuffer.bindIndexBuffer(*frameObjects[currentFrame].materialIndexBuffer.buffer, 0, vk::IndexType::eUint32);
+  commandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
   commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *materialPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
   // TODO: we would need to guarantee that materialVertices and the buffers are synced or have another variable for this
-  commandBuffer.drawIndexed(materialData.indices.size(), 1, 0, 0, 0);
+  commandBuffer.drawIndexed(data->indices.size(), 1, 0, 0, 0);
   commandBuffer.endRenderPass();
   commandBuffer.end();
 }
@@ -1421,32 +1431,20 @@ void AsyVkRender::drawFrame()
   updateUniformBuffer(currentFrame);
   updateBuffers();
 
-  // optimize:
-  //  - use semaphores instead of fences for vertex/index buffer upload
-  //    - use locks (maybe a sperate task/thread) for waiting to release lock? (firgure out / do research)
-  //  - smarter memroy management (make custom buffer class that acts like a vector?)
-
-  // TODO: handle case with no vertices (Validation Error with allocationSize = 0)
-  // TODO: check if the buffer actually needs to be updated
-
-  // material vertex buffer
-  // vk::DeviceSize materialVertexBufferSize = sizeof(materialVertices.vertices[0]) * materialVertices.vertices.size();
-  // createBufferUnique(frameObject.materialVertexBuffer, frameObject.materialVertexBufferMemory, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
-  //                    vk::MemoryPropertyFlagBits::eDeviceLocal, materialVertexBufferSize);
-  // copyToBuffer(*frameObject.materialVertexBuffer, materialVertices.vertices.data(), materialVertexBufferSize);
-
-  // // material index buffer
-  // vk::DeviceSize materialIndexBufferSize = sizeof(materialVertices.indices[0]) * materialVertices.indices.size();
-  // createBufferUnique(frameObject.materialIndexBuffer, frameObject.materialIndexBufferMemory, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
-  //                    vk::MemoryPropertyFlagBits::eDeviceLocal, materialIndexBufferSize);
-  // copyToBuffer(*frameObject.materialIndexBuffer, materialVertices.indices.data(), materialIndexBufferSize);
-
-  // material vertex buffer
-  setDeviceBufferData(frameObject.materialVertexBuffer, materialData.materialVertices.data(), materialData.materialVertices.size() * sizeof(materialData.materialVertices[0]));
-  // material index buffer
-  setDeviceBufferData(frameObject.materialIndexBuffer, materialData.indices.data(), materialData.indices.size() * sizeof(materialData.indices[0]));
-
-  recordCommandBuffer(*frameObject.commandBuffer, currentFrame, imageIndex);
+  if (options.mode == DRAWMODE_OUTLINE)
+    recordCommandBuffer(*frameObject.commandBuffer, 
+                        currentFrame, 
+                        imageIndex, 
+                        frameObject.materialVertexBuffer, 
+                        frameObject.materialIndexBuffer, 
+                        &lineData);
+  else
+    recordCommandBuffer(*frameObject.commandBuffer, 
+                        currentFrame, 
+                        imageIndex, 
+                        frameObject.materialVertexBuffer, 
+                        frameObject.materialIndexBuffer, 
+                        &materialData);
 
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
   vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -1565,8 +1563,9 @@ void AsyVkRender::travelHome()
 
 void AsyVkRender::cycleMode()
 {
-  options.mode = Mode((options.mode + 1) % Mode::MODE_MAX);
+  options.mode = DrawMode((options.mode + 1) % DRAWMODE_MAX);
   recreatePipeline = true;
+  remesh = true;
   redraw = true;
 }
 

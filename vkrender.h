@@ -434,18 +434,19 @@ struct Arcball {
   }
 };
 
+enum DrawMode: int
+{
+   DRAWMODE_NORMAL,
+   DRAWMODE_OUTLINE,
+   DRAWMODE_WIREFRAME,
+   DRAWMODE_MAX
+};
+
 class AsyVkRender
 {
 public:
   struct Options {
-    enum Mode: int
-    {
-      MODE_NORMAL,
-      MODE_OUTLINE,
-      MODE_WIREFRAME,
-      MODE_MAX
-    } mode = MODE_NORMAL;
-
+    DrawMode mode = DRAWMODE_NORMAL;
     bool display;
     std::string title;
     int maxFramesInFlight = 1;
@@ -453,7 +454,7 @@ public:
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
   };
 
-  using Mode = Options::Mode;
+  Options options;
 
   AsyVkRender(Options& options);
   ~AsyVkRender();
@@ -555,7 +556,6 @@ private:
         : usage(usage), properties(properties) {}
   };
 
-  Options options;
 
   const picture* pic;
 
@@ -695,7 +695,7 @@ private:
   void createFramebuffers();
   void createCommandPools();
   void createCommandBuffers();
-  void recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex);
+  void recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex, DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data);
   void createSyncObjects();
 
   uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
