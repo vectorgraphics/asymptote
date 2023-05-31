@@ -381,8 +381,9 @@ struct VertexBuffer {
 
 struct Light
 {
-  glm::vec3 direction;
-  glm::vec3 color;
+  glm::vec4 direction;
+  glm::vec4 color;
+  int valid;
 };
 
 struct SwapChainSupportDetails {

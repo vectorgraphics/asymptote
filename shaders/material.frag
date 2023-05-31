@@ -8,8 +8,9 @@ struct Material
 
 struct Light
 {
-    vec3 direction;
-    vec3 color;
+    vec4 direction;
+    vec4 color;
+    int valid;
 };
 
 layout(binding = 0) uniform UniformBufferObject {
@@ -112,11 +113,11 @@ void main() {
 
     outColor = vec4(Emissive.rgb, 1.0);
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; lights[i].valid == 1; i++)
     {
         Light light = lights[i];
 
-        float radiance = max(dot(normal, light.direction), 0.0);
-        outColor += vec4(BRDF(viewDirection, light.direction) * radiance, 0.0);
+        float radiance = max(dot(normal, light.direction.xyz), 0.0);
+        outColor += vec4(BRDF(viewDirection, light.direction.xyz) * radiance, 0.0);
     }
 }

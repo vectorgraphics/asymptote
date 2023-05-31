@@ -198,7 +198,7 @@ AsyVkRender::AsyVkRender(Options& options) : options(options)
   double pixelRatio = settings::getSetting<double>("devicepixelratio");
 
   if (this->options.display) {
-    width = 800;
+    width = 400;
     height = 600;
     fullWidth = width;
     fullHeight = height;
@@ -231,6 +231,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->fullHeight = height;
   app->framebufferResized = true;
   app->redraw = true;
+  app->remesh = true;
 }
 
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -294,6 +295,9 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view)
 {
+  // Do not query disabled devices
+  setenv("DRI_PRIME","1",0);
+
   this->pic = pic;
 
   this->Angle = angle * M_PI / 180.0;
@@ -317,18 +321,6 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   this->nlights = nlightsin;
   this->Lights = lights;
-  std::cout << "LIGHTSIN: " << nlightsin << std::endl;
-  std::cout << "LIGHTS PTR: " << (void*)lights << std::endl;
-
-  std::cout << "LIGHTS[0].x: " << lights[0].getx() << std::endl;
-  std::cout << "LIGHTS[0].y: " << lights[0].gety() << std::endl;
-  std::cout << "LIGHTS[0].z: " << lights[0].getz() << std::endl;
-
-  // DeviceBuffer testBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eStorageBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-  // std::vector<uint8_t> data = {0, 1, 2, 3};
-  // std::cout << "data size: " << data.size() << std::endl;
-  // setDeviceBufferData(testBuffer, data.data(), data.size() * sizeof(data));
-  // std::cout << "done setting device buffer" << std::endl;
 
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(width, height);
 
@@ -441,35 +433,12 @@ void AsyVkRender::createSurface()
 
 void AsyVkRender::pickPhysicalDevice()
 {
-  setenv("DRI_PRIME","1",0);
   auto const getDeviceScore = [this](vk::PhysicalDevice& device) -> std::size_t
   {
     std::size_t score = 0u;
 
-    auto const props = device.getProperties();
-
-    std::string deviceType;
-
-    if (vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType)
-      score += 10, deviceType = "discrete";
-    else if (vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType)
-      score += 5, deviceType = "integrated";
-    else if (vk::PhysicalDeviceType::eCpu == props.deviceType)
-      deviceType = "cpu";
-    else if (vk::PhysicalDeviceType::eVirtualGpu == props.deviceType)
-      deviceType = "virtual";
-    else if (vk::PhysicalDeviceType::eOther == props.deviceType)
-      deviceType = "other";
-
-
-    std::cout << "==================================================" << std::endl;
-    std::cout << "Information for: " << props.deviceName << std::endl;
-    std::cout << "\t type: " << deviceType << std::endl;
-    std::cout << "\t max viewports: " << props.limits.maxViewports << std::endl;
-
-    // todo uncomment
     if (!this->isDeviceSuitable(device))
-      return std::cout << "NOT SUITABLE" << std::endl, score;
+      return score;
 
     auto const msaa = getMaxMSAASamples(device);
 
@@ -493,6 +462,13 @@ void AsyVkRender::pickPhysicalDevice()
 
         break;
     }
+
+    auto const props = device.getProperties();
+
+    if (vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType)
+      score += 10;
+    else if (vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType)
+      score += 5;
 
     return score;
   };
@@ -1081,7 +1057,7 @@ void AsyVkRender::createDescriptorSets()
 
     lightBufferInfo.buffer = *lightBuffer;
     lightBufferInfo.offset = 0;
-    lightBufferInfo.range = sizeof(Light) * nlights;
+    lightBufferInfo.range = sizeof(Light) * (nlights + 1);
 
     std::array<vk::WriteDescriptorSet, 3> writes;
 
@@ -1124,7 +1100,7 @@ void AsyVkRender::createBuffers()
                      lightBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     sizeof(camp::Light) * nlights);
+                     sizeof(camp::Light) * (nlights + 1));
 
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
 
@@ -1347,22 +1323,19 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
 void AsyVkRender::updateBuffers()
 {
-  std::cout << "material buffer size: " << materials.size() << std::endl;
-  std::cout << "nlights: " << nlights << std::endl;
-
   std::vector<Light> lights;
 
   for (int i = 0; i < nlights; i++)
     lights.emplace_back(
       Light {
-        {Lights[i].getx(), Lights[i].gety(), Lights[i].getz()},
-        {1.f, 1.f, 1.f}
+        {Lights[i].getx(), Lights[i].gety(), Lights[i].getz(), 0.f},
+        {1.f, 1.f, 1.f, 0.f},
+        1
       }
     );
 
-  std::cout << "LIGHTS[0].x: " << lights[0].direction[0] << std::endl;
-  std::cout << "LIGHTS[0].y: " << lights[0].direction[1] << std::endl;
-  std::cout << "LIGHTS[0].z: " << lights[0].direction[2] << std::endl;
+  // Add null light to the end to terminate the loop in fragment shader
+  lights.emplace_back(Light {{}, {}, 0});
 
   copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
   copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
