@@ -441,6 +441,7 @@ void AsyVkRender::createSurface()
 
 void AsyVkRender::pickPhysicalDevice()
 {
+  setenv("DRI_PRIME","1",0);
   auto const getDeviceScore = [this](vk::PhysicalDevice& device) -> std::size_t
   {
     std::size_t score = 0u;
@@ -1231,7 +1232,7 @@ void AsyVkRender::createMaterialPipeline()
 
   auto inputAssemblyCI = vk::PipelineInputAssemblyStateCreateInfo(
     vk::PipelineInputAssemblyStateCreateFlags(),
-    options.mode == DRAWMODE_OUTLINE ? vk::PrimitiveTopology::eLineList : vk::PrimitiveTopology::eTriangleList, 
+    options.mode == DRAWMODE_OUTLINE ? vk::PrimitiveTopology::eLineList : vk::PrimitiveTopology::eTriangleList,
     VK_FALSE
   );
 
@@ -1428,18 +1429,18 @@ void AsyVkRender::drawFrame()
   updateBuffers();
 
   if (options.mode == DRAWMODE_OUTLINE)
-    recordCommandBuffer(*frameObject.commandBuffer, 
-                        currentFrame, 
-                        imageIndex, 
-                        frameObject.materialVertexBuffer, 
-                        frameObject.materialIndexBuffer, 
+    recordCommandBuffer(*frameObject.commandBuffer,
+                        currentFrame,
+                        imageIndex,
+                        frameObject.materialVertexBuffer,
+                        frameObject.materialIndexBuffer,
                         &lineData);
   else
-    recordCommandBuffer(*frameObject.commandBuffer, 
-                        currentFrame, 
-                        imageIndex, 
-                        frameObject.materialVertexBuffer, 
-                        frameObject.materialIndexBuffer, 
+    recordCommandBuffer(*frameObject.commandBuffer,
+                        currentFrame,
+                        imageIndex,
+                        frameObject.materialVertexBuffer,
+                        frameObject.materialIndexBuffer,
                         &materialData);
 
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
