@@ -1350,17 +1350,16 @@ void glrenderWrapper()
     // glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
     //          com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
     //          com.nlights,com.lights,com.diffuse,com.specular,com.view);
-    std::cout << "done" << std::endl;
     AsyVkRender::Options options;
     options.display = true;
     options.title = std::string(settings::PROGRAM)+": ";//+com.prefix;
     // Todo: this initializer cannot be called twice.
     vk = new AsyVkRender(options);
+    std::cout << "com.nlights " << com.nlights << std::endl;
     vk->vkrender(com.pic,com.format,com.width,com.height,com.angle,
                 com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
                 com.nlights,com.lights,com.diffuse,com.specular,com.view);
     delete vk;
-    std::cout << "done" << std::endl;
     exit(0);
   }
 #endif

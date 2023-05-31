@@ -217,7 +217,6 @@ AsyVkRender::AsyVkRender(Options& options) : options(options)
     glfwSetCursorPosCallback(window, cursorPosCallback);
     glfwSetKeyCallback(window, keyCallback);
   }
-  initVulkan();
 }
 
 void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int height)
@@ -319,6 +318,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   this->nlights = nlightsin;
   this->Lights = lights;
   std::cout << "LIGHTSIN: " << nlightsin << std::endl;
+  std::cout << "LIGHTS PTR: " << (void*)lights << std::endl;
 
   // DeviceBuffer testBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eStorageBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
   // std::vector<uint8_t> data = {0, 1, 2, 3};
@@ -328,6 +328,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(width, height);
 
+  initVulkan();
   mainLoop();
 }
 
@@ -1113,12 +1114,7 @@ void AsyVkRender::createBuffers()
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      sizeof(camp::Material) * NMaterials);
-  std::cout << "NLIGHTS: " << nlights << std::endl;
-
-  // TODO REMOVE THIS
-  nlights = 1;
-  Lights = new triple(1.0, 0, 0);
-
+  
   createBufferUnique(lightBuffer,
                      lightBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
