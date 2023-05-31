@@ -226,7 +226,6 @@ AsyVkRender::AsyVkRender(Options& options) : options(options)
 
 void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
-  // can width or height be 0?
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
   app->x = (app->x / app->width) * width;
   app->y = (app->y / app->height) * height;
@@ -506,18 +505,19 @@ vk::SampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu
   gpu.getProperties( &props );
 
 	auto const count = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
+  auto const maxSamples = settings::getSetting<Int>("multisample");
 
-	if (count & vk::SampleCountFlagBits::e64)
+	if (count & vk::SampleCountFlagBits::e64 && maxSamples >= 64)
 		return vk::SampleCountFlagBits::e64;
-	if (count & vk::SampleCountFlagBits::e32)
+	if (count & vk::SampleCountFlagBits::e32 && maxSamples >= 32)
 		return vk::SampleCountFlagBits::e32;
-	if (count & vk::SampleCountFlagBits::e16)
+	if (count & vk::SampleCountFlagBits::e16 && maxSamples >= 16)
 		return vk::SampleCountFlagBits::e16;
-	if (count & vk::SampleCountFlagBits::e8)
+	if (count & vk::SampleCountFlagBits::e8 && maxSamples >= 8)
 		return vk::SampleCountFlagBits::e8;
-	if (count & vk::SampleCountFlagBits::e4)
+	if (count & vk::SampleCountFlagBits::e4 && maxSamples >= 4)
 		return vk::SampleCountFlagBits::e4;
-	if (count & vk::SampleCountFlagBits::e2)
+	if (count & vk::SampleCountFlagBits::e2 && maxSamples >= 2)
 		return vk::SampleCountFlagBits::e2;
 
 	return vk::SampleCountFlagBits::e1;
@@ -1173,6 +1173,14 @@ void AsyVkRender::createMaterialRenderPass()
 
   subpass.pResolveAttachments = &colorResolveAttachmentRef;
   subpass.pDepthStencilAttachment = &depthAttachmentRef;
+  
+  if (msaaSamples == vk::SampleCountFlagBits::e1)
+  {
+    colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+    colorResolveAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    subpass.pColorAttachments = &colorResolveAttachmentRef;
+    subpass.pResolveAttachments = nullptr;
+  }
 
   std::vector< vk::AttachmentDescription > attachments {colorAttachment, depthAttachment, colorResolveAttachment};
 
@@ -1352,11 +1360,12 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
 {
   auto beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
   commandBuffer.begin(beginInfo);
-  std::array<vk::ClearValue, 2> clearColors;
+  std::array<vk::ClearValue, 3> clearColors;
 
   clearColors[0] = vk::ClearValue(Background);
   clearColors[1].depthStencil.depth = 1.f;
   clearColors[1].depthStencil.stencil = 0;
+  clearColors[2] = vk::ClearValue(Background);
 
   auto renderPassInfo = vk::RenderPassBeginInfo(*materialRenderPass, *swapChainFramebuffers[imageIndex], vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent), clearColors.size(), &clearColors[0]);
   commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
