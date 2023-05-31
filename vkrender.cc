@@ -198,10 +198,10 @@ AsyVkRender::AsyVkRender(Options& options) : options(options)
   double pixelRatio = settings::getSetting<double>("devicepixelratio");
 
   if (this->options.display) {
-    width = 400;
-    height = 600;
-    fullWidth = width;
-    fullHeight = height;
+    width = 1200;
+    height = 800;
+    fullWidth = width / 10;
+    fullHeight = height / 10;
     x = 0;
     y = 0;
     cx = 0;
@@ -570,9 +570,8 @@ bool AsyVkRender::checkDeviceExtensionSupport(vk::PhysicalDevice& device)
   auto extensions = device.enumerateDeviceExtensionProperties();
   std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
   if (options.display) requiredExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-  std::cout << "\t extensions: " << std::endl;
+
   for (auto& extension : extensions) {
-    std::cout << "\t\t" << extension.extensionName << std::endl;
     requiredExtensions.erase(extension.extensionName);
   }
   return requiredExtensions.empty();
@@ -1470,7 +1469,6 @@ void AsyVkRender::display()
 
 void AsyVkRender::mainLoop()
 {
-  int i = 0;
   while (!glfwWindowShouldClose(window)) {
     // TODO: would we only need to rerender on a new event?
     // poll blocks until resizing is finished
@@ -1525,7 +1523,7 @@ void AsyVkRender::clearMaterials()
 
 void AsyVkRender::travelHome()
 {
-  cx = cy = 0;
+  x = y = cx = cy = 0;
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   redraw = true;
