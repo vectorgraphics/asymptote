@@ -320,6 +320,10 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   std::cout << "LIGHTSIN: " << nlightsin << std::endl;
   std::cout << "LIGHTS PTR: " << (void*)lights << std::endl;
 
+  std::cout << "LIGHTS[0].x: " << lights[0].getx() << std::endl;
+  std::cout << "LIGHTS[0].y: " << lights[0].gety() << std::endl;
+  std::cout << "LIGHTS[0].z: " << lights[0].getz() << std::endl;
+
   // DeviceBuffer testBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eStorageBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
   // std::vector<uint8_t> data = {0, 1, 2, 3};
   // std::cout << "data size: " << data.size() << std::endl;
@@ -1076,7 +1080,7 @@ void AsyVkRender::createDescriptorSets()
 
     lightBufferInfo.buffer = *lightBuffer;
     lightBufferInfo.offset = 0;
-    lightBufferInfo.range = sizeof(Light) * nlights + sizeof(int);
+    lightBufferInfo.range = sizeof(Light) * nlights;
 
     std::array<vk::WriteDescriptorSet, 3> writes;
 
@@ -1114,12 +1118,12 @@ void AsyVkRender::createBuffers()
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      sizeof(camp::Material) * NMaterials);
-  
+
   createBufferUnique(lightBuffer,
                      lightBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     sizeof(camp::Light) * nlights + sizeof(int));
+                     sizeof(camp::Light) * nlights);
 
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
 
@@ -1334,7 +1338,6 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
   auto verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
   ubo.projViewMat = verticalFlipMat * projViewMat;
   ubo.normMat = glm::inverse(viewMat);
-  ubo.nlights = nlights;
 
   auto uboData = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
   memcpy(uboData, &ubo, sizeof(ubo));
@@ -1356,15 +1359,12 @@ void AsyVkRender::updateBuffers()
       }
     );
 
-  auto buffer = new char[lights.size() * sizeof(Light) + sizeof(int)];
-
-  *reinterpret_cast<int*>(buffer) = nlights;
-  memcpy(buffer + sizeof(int), &lights[0], lights.size() * sizeof(Light));
+  std::cout << "LIGHTS[0].x: " << lights[0].direction[0] << std::endl;
+  std::cout << "LIGHTS[0].y: " << lights[0].direction[1] << std::endl;
+  std::cout << "LIGHTS[0].z: " << lights[0].direction[2] << std::endl;
 
   copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
-  copyToBuffer(*lightBuffer, buffer, nlights * sizeof(Light) + sizeof(int));
-
-  delete[] buffer;
+  copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
 }
 
 void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex, DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data)

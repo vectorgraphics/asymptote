@@ -23,7 +23,6 @@ layout(binding = 1, std430) buffer MaterialBuffer {
 };
 
 layout(binding = 2, std430) buffer LightBuffer {
-    int nlights;
     Light lights[];
 };
 
@@ -113,7 +112,7 @@ void main() {
 
     outColor = vec4(Emissive.rgb, 1.0);
 
-    for (int i = 0; i < nlights; i++)
+    for (int i = 0; i < 1; i++)
     {
         Light light = lights[i];
 
