@@ -180,7 +180,13 @@ triple AsyVkRender::billboardTransform(const triple& center, const triple& v) co
 double AsyVkRender::getRenderResolution(triple Min) const
 {
   double prerender = settings::getSetting<double>("prerender");
-  if (prerender <= 0.0) return 0.0;
+  std::cout << "HERE" << std::endl;
+
+  if (prerender <= 0.0)
+    return 0.0;
+
+  std::cout << "HERE2" << std::endl;
+
   prerender = 1.0 / prerender;
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double s = perspective ? Min.getz() * perspective : 1.0;
@@ -194,14 +200,13 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 AsyVkRender::AsyVkRender(Options& options) : options(options)
 {
-  // VertexData2<MaterialVertex>::getBindingDescription();
   double pixelRatio = settings::getSetting<double>("devicepixelratio");
 
   if (this->options.display) {
     width = 1200;
     height = 800;
-    fullWidth = width / 10;
-    fullHeight = height / 10;
+    fullWidth = width;
+    fullHeight = height;
     x = 0;
     y = 0;
     cx = 0;
@@ -321,6 +326,9 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   this->nlights = nlightsin;
   this->Lights = lights;
+
+  for (int i = 0; i < 4; i++)
+    this->Background[i] = static_cast<float>(background[i]);
 
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(width, height);
 
@@ -1346,7 +1354,7 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
   commandBuffer.begin(beginInfo);
   std::array<vk::ClearValue, 2> clearColors;
 
-  clearColors[0] = vk::ClearValue(std::array<float, 4>{0.0, 0.0, 0.0, 1.0});
+  clearColors[0] = vk::ClearValue(Background);
   clearColors[1].depthStencil.depth = 1.f;
   clearColors[1].depthStencil.stencil = 0;
 
