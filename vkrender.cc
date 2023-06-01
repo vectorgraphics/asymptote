@@ -198,16 +198,7 @@ void AsyVkRender::initWindow()
   double pixelRatio = settings::getSetting<double>("devicepixelratio");
 
   if (this->options.display) {
-    // width = 1200;
-    // height = 600;
-    // fullWidth = width;
-    // fullHeight = height;
-    // x = 0;
-    // y = 0;
-    // cx = 0;
-    // cy = 0;
 
-    glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     // remember last window position and size? (have as options?)
     window = glfwCreateWindow(width, height, options.title.data(), nullptr, nullptr);
@@ -347,11 +338,18 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   pair maxtile=settings::getSetting<pair>("maxtile");
   int maxTileWidth=(int) maxtile.getx();
   int maxTileHeight=(int) maxtile.gety();
-  if(maxTileWidth <= 0) maxTileWidth=1024;
-  if(maxTileHeight <= 0) maxTileHeight=768;
 
-  screenWidth = maxTileWidth;
-  screenHeight = maxTileHeight;
+  if(maxTileWidth <= 0)
+    maxTileWidth=1024;
+  if(maxTileHeight <= 0)
+    maxTileHeight=768;
+
+  int mx, my, workWidth, workHeight;
+
+  glfwInit();
+  glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &mx, &my, &workWidth, &workHeight);
+  screenWidth=workWidth;
+  screenHeight=workHeight;
 
   // Force a hard viewport limit to work around direct rendering bugs.
   // Alternatively, one can use -glOptions=-indirect (with a performance
@@ -364,6 +362,8 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   if(maxWidth <= 0) maxWidth=max(maxHeight,2);
   if(maxHeight <= 0) maxHeight=max(maxWidth,2);
 
+  std::cout << "MX: " << maxViewport.getx() << " MY: " << maxViewport.gety() << std::endl;
+
   if(screenWidth <= 0) screenWidth=maxWidth;
   else screenWidth=min(screenWidth,maxWidth);
   if(screenHeight <= 0) screenHeight=maxHeight;
@@ -372,12 +372,16 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   fullWidth=(int) ceil(expand*w);
   fullHeight=(int) ceil(expand*h);
 
-  if(format3d) {
+  std::cout << "w: " << maxTileWidth << std::endl;
+  std::cout << "h: " << maxTileHeight << std::endl;
+
+
+  if(!format3d) {
     width=fullWidth;
     height=fullHeight;
   } else {
-    width=min(fullWidth,screenWidth);
-    height=min(fullHeight,screenHeight);
+    width=screenWidth;
+    height=screenHeight;
 
     if(width > height*aspect)
       width=min((int) (ceil(height*aspect)),screenWidth);
