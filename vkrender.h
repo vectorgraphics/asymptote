@@ -568,7 +568,10 @@ private:
 
   double cx, cy; // center variables
 
+  int screenWidth, screenHeight;
   int width, height; // width and height of the window
+  double aspect;
+  double oWidth, oHeight;
 
   bool remesh = true; // whether picture needs to be remeshed
   bool redraw = true;  // whether a new frame needs to be rendered

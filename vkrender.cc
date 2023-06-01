@@ -97,14 +97,6 @@ std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
-// template<class T>
-// void VertexQueue<T>::append(const VertexQueue<T>& other)
-// {
-//   appendOffset(indices, other.indices, vertices.size());
-//   vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
-//   materials.insert(materials.end(), other.materials.begin(), other.materials.end());
-// }
-
 void AsyVkRender::setDimensions(int width, int height, double x, double y)
 {
   double aspect = ((double) width) / height;
@@ -199,18 +191,21 @@ double AsyVkRender::getRenderResolution(triple Min) const
 }
 
 AsyVkRender::AsyVkRender(Options& options) : options(options)
+{ }
+
+void AsyVkRender::initWindow()
 {
   double pixelRatio = settings::getSetting<double>("devicepixelratio");
 
   if (this->options.display) {
-    width = 1200;
-    height = 800;
-    fullWidth = width;
-    fullHeight = height;
-    x = 0;
-    y = 0;
-    cx = 0;
-    cy = 0;
+    // width = 1200;
+    // height = 600;
+    // fullWidth = width;
+    // fullHeight = height;
+    // x = 0;
+    // y = 0;
+    // cx = 0;
+    // cy = 0;
 
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -236,12 +231,19 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->framebufferResized = true;
   app->redraw = true;
   app->remesh = true;
+  //app->setProjection();
 }
 
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-  app->Zoom0 *= yoffset > 0 ? (1. + 0.1 * yoffset) : 1 / (1 - 0.1 * yoffset);
+  auto zoomFactor = settings::getSetting<double>("zoomfactor");
+
+  if (yoffset > 0)
+    app->Zoom0 *= zoomFactor * yoffset;
+  else
+    app->Zoom0 /= -zoomFactor / yoffset;
+
   app->remesh = true;
   app->redraw = true;
 }
@@ -252,8 +254,11 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
   static double yprev = 0.0;
   static bool first = true;
 
+
   if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !first) {
     auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+
+    
     Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
     triple axis = arcball.axis;
     app->rotateMat = glm::rotate(2 * arcball.angle / app->Zoom0 * app->ArcballFactor,
@@ -293,7 +298,7 @@ AsyVkRender::~AsyVkRender()
 }
 
 void AsyVkRender::vkrender(const picture* pic, const string& format,
-                           double width, double height, double angle, double zoom,
+                           double w, double h, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
                            const pair& margin, double* t,
                            double* background, size_t nlightsin, triple* lights,
@@ -329,8 +334,58 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   for (int i = 0; i < 4; i++)
     this->Background[i] = static_cast<float>(background[i]);
 
-  ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(width, height);
+  // hardcode this for now
+  bool format3d = true;
+  double expand = 1.0;
 
+  ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(w, h);
+
+  oWidth = w;
+  oHeight = h;
+  aspect=w/h;
+
+  pair maxtile=settings::getSetting<pair>("maxtile");
+  int maxTileWidth=(int) maxtile.getx();
+  int maxTileHeight=(int) maxtile.gety();
+  if(maxTileWidth <= 0) maxTileWidth=1024;
+  if(maxTileHeight <= 0) maxTileHeight=768;
+
+  screenWidth = maxTileWidth;
+  screenHeight = maxTileHeight;
+
+  // Force a hard viewport limit to work around direct rendering bugs.
+  // Alternatively, one can use -glOptions=-indirect (with a performance
+  // penalty).
+  pair maxViewport=settings::getSetting<pair>("maxviewport");
+  int maxWidth=maxViewport.getx() > 0 ? (int) ceil(maxViewport.getx()) :
+    screenWidth;
+  int maxHeight=maxViewport.gety() > 0 ? (int) ceil(maxViewport.gety()) :
+    screenHeight;
+  if(maxWidth <= 0) maxWidth=max(maxHeight,2);
+  if(maxHeight <= 0) maxHeight=max(maxWidth,2);
+
+  if(screenWidth <= 0) screenWidth=maxWidth;
+  else screenWidth=min(screenWidth,maxWidth);
+  if(screenHeight <= 0) screenHeight=maxHeight;
+  else screenHeight=min(screenHeight,maxHeight);
+
+  fullWidth=(int) ceil(expand*w);
+  fullHeight=(int) ceil(expand*h);
+
+  if(format3d) {
+    width=fullWidth;
+    height=fullHeight;
+  } else {
+    width=min(fullWidth,screenWidth);
+    height=min(fullHeight,screenHeight);
+
+    if(width > height*aspect)
+      width=min((int) (ceil(height*aspect)),screenWidth);
+    else
+      height=min((int) (ceil(width/aspect)),screenHeight);
+  }
+
+  initWindow();
   initVulkan();
   mainLoop();
 }
@@ -1422,8 +1477,6 @@ void AsyVkRender::drawFrame()
   updateUniformBuffer(currentFrame);
   updateBuffers();
 
-  std::cout << "color size: " << materialData.materialVertices.size() << std::endl;
-
   if (options.mode == DRAWMODE_OUTLINE)
     recordCommandBuffer(*frameObject.commandBuffer,
                         currentFrame,
@@ -1475,17 +1528,14 @@ void AsyVkRender::display()
   setProjection();
 
   // what is this for?
-  // if(remesh)
-  //   camp::clearCenters();
+  if(remesh)
+    clearCenters();
 
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
 
   clearVertexBuffers();
-  pic->render(diagonalSize, (xmin, ymin, Zmin), (xmax, ymax, Zmax), perspective, remesh);
-
-  // createMaterialVertexBuffer();
-  // createMaterialIndexBuffer();
+  pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
 
   drawFrame();
 
