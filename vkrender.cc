@@ -362,8 +362,6 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   if(maxWidth <= 0) maxWidth=max(maxHeight,2);
   if(maxHeight <= 0) maxHeight=max(maxWidth,2);
 
-  std::cout << "MX: " << maxViewport.getx() << " MY: " << maxViewport.gety() << std::endl;
-
   if(screenWidth <= 0) screenWidth=maxWidth;
   else screenWidth=min(screenWidth,maxWidth);
   if(screenHeight <= 0) screenHeight=maxHeight;
@@ -371,10 +369,6 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   fullWidth=(int) ceil(expand*w);
   fullHeight=(int) ceil(expand*h);
-
-  std::cout << "w: " << maxTileWidth << std::endl;
-  std::cout << "h: " << maxTileHeight << std::endl;
-
 
   if(!format3d) {
     width=fullWidth;
@@ -1123,7 +1117,7 @@ void AsyVkRender::createDescriptorSets()
 
     lightBufferInfo.buffer = *lightBuffer;
     lightBufferInfo.offset = 0;
-    lightBufferInfo.range = sizeof(Light) * (nlights + 1);
+    lightBufferInfo.range = sizeof(Light) * nlights;
 
     std::array<vk::WriteDescriptorSet, 3> writes;
 
@@ -1166,7 +1160,7 @@ void AsyVkRender::createBuffers()
                      lightBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     sizeof(camp::Light) * (nlights + 1));
+                     sizeof(camp::Light) * nlights);
 
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
 
@@ -1321,7 +1315,16 @@ void AsyVkRender::createMaterialPipeline()
   depthStencilCI.maxDepthBounds = 1.f;
   depthStencilCI.stencilTestEnable = VK_FALSE;
 
+  auto flagsPushConstant = vk::PushConstantRange(
+    vk::ShaderStageFlagBits::eFragment,
+    0,
+    sizeof(PushConstants)
+  );
+
   auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), 1, &*materialDescriptorSetLayout, 0, nullptr);
+
+  pipelineLayoutCI.pPushConstantRanges = &flagsPushConstant;
+  pipelineLayoutCI.pushConstantRangeCount = 1;
 
   materialPipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
@@ -1408,16 +1411,25 @@ void AsyVkRender::updateBuffers()
     lights.emplace_back(
       Light {
         {Lights[i].getx(), Lights[i].gety(), Lights[i].getz(), 0.f},
-        {1.f, 1.f, 1.f, 0.f},
-        1
+        {1.f, 1.f, 1.f, 0.f}
       }
     );
 
-  // Add null light to the end to terminate the loop in fragment shader
-  lights.emplace_back(Light {{}, {}, 0});
-
   copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
   copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
+}
+
+PushConstants AsyVkRender::buildPushConstants()
+{
+  auto pushConstants = PushConstants { };
+
+  pushConstants.constants[0] = PUSHFLAGS_NONE;
+  pushConstants.constants[1] = nlights;
+
+  if (options.mode != DRAWMODE_NORMAL)
+    pushConstants.constants[0] |= PUSHFLAGS_NOLIGHT;
+  
+  return pushConstants;
 }
 
 void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex, DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data)
@@ -1441,10 +1453,12 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
 
   std::vector<vk::Buffer> vertexBuffers = {*vertexBuffer.buffer};
   std::vector<vk::DeviceSize> vertexOffsets = {0};
+  auto const pushConstants = buildPushConstants();
 
   commandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   commandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
   commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *materialPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
+  commandBuffer.pushConstants(*materialPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   // TODO: we would need to guarantee that materialVertices and the buffers are synced or have another variable for this
   commandBuffer.drawIndexed(data->indices.size(), 1, 0, 0, 0);
   commandBuffer.endRenderPass();

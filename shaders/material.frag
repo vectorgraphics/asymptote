@@ -1,5 +1,7 @@
 #version 450
 
+#define PUSHFLAGS_NOLIGHT (1 << 0)
+
 struct Material
 {
     vec4 diffuse, emissive, specular;
@@ -10,7 +12,6 @@ struct Light
 {
     vec4 direction;
     vec4 color;
-    int valid;
 };
 
 layout(binding = 0) uniform UniformBufferObject {
@@ -30,6 +31,11 @@ layout(binding = 2, std430) buffer LightBuffer {
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 norm;
 layout(location = 2) flat in int materialIndex;
+
+layout(push_constant) uniform PushConstants
+{
+	uvec4 constants;
+} push;
 
 layout(location = 0) out vec4 outColor;
 
@@ -112,8 +118,11 @@ void main() {
         normal = -normal;
 
     outColor = vec4(Emissive.rgb, 1.0);
+    
+    if ((push.constants[0] & PUSHFLAGS_NOLIGHT) != 0)
+        return;
 
-    for (int i = 0; lights[i].valid == 1; i++)
+    for (int i = 0; i < push.constants[1]; i++)
     {
         Light light = lights[i];
 

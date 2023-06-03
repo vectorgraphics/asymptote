@@ -383,7 +383,6 @@ struct Light
 {
   glm::vec4 direction;
   glm::vec4 color;
-  int valid;
 };
 
 struct SwapChainSupportDetails {
@@ -407,6 +406,19 @@ struct UniformBufferObject {
   glm::mat4 normMat { };
   glm::vec4 viewPos { };
   glm::uvec4 flags { };
+};
+
+enum FlagsPushConstant: unsigned int
+{
+  PUSHFLAGS_NONE    = 0,
+  PUSHFLAGS_NOLIGHT = 1 << 0
+};
+
+struct PushConstants
+{
+  glm::uvec4 constants;
+  // constants[0] = flags
+  // constants[1] = nlights
 };
 
 struct Arcball {
@@ -700,6 +712,7 @@ private:
   void createFramebuffers();
   void createCommandPools();
   void createCommandBuffers();
+  PushConstants buildPushConstants();
   void recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex, DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data);
   void createSyncObjects();
 
