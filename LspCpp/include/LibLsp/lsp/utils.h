@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <LibLsp/lsp/AbsolutePath.h>
 
 #include "lsPosition.h"
@@ -80,7 +80,7 @@ std::string EscapeFileName(std::string path);
 
 // FIXME: Move ReadContent into ICacheManager?
 bool FileExists(const std::string& filename);
-std::optional<std::string> ReadContent(const AbsolutePath& filename);
+boost::optional<std::string> ReadContent(const AbsolutePath& filename);
 std::vector<std::string> ReadLinesWithEnding(const AbsolutePath& filename);
 
 bool WriteToFile(const std::string& filename, const std::string& content);

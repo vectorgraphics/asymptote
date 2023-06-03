@@ -26,7 +26,7 @@ struct lschangeAnnotationSupport
 	 * for instance all edits labelled with "Changes in Strings" would
 	 * be a tree node.
 	 */
-	std::optional<bool> groupsOnLabel;
+	boost::optional<bool> groupsOnLabel;
 	MAKE_SWAP_METHOD(lschangeAnnotationSupport, groupsOnLabel)
 };
 MAKE_REFLECT_STRUCT(lschangeAnnotationSupport, groupsOnLabel)
@@ -35,7 +35,7 @@ struct WorkspaceEditCapabilities {
 	/**
 	 * The client supports versioned document changes in `WorkspaceEdit`s
 	 */
-	std::optional<bool>  documentChanges;
+	boost::optional<bool>  documentChanges;
 
 	/**
 	 * The client supports resource changes
@@ -44,7 +44,7 @@ struct WorkspaceEditCapabilities {
 	 * @deprecated Since LSP introduces resource operations, use {link #resourceOperations}
 	 */
 
-	std::optional<bool> resourceChanges;
+	boost::optional<bool> resourceChanges;
 
 	/**
 	 * The resource operations the client supports. Clients should at least
@@ -52,7 +52,7 @@ struct WorkspaceEditCapabilities {
 	 *
 	 * @since 3.13.0
 	 */
-	std::optional< std::vector<std::string> > resourceOperations;
+	boost::optional< std::vector<std::string> > resourceOperations;
 
 	/**
 	 * The failure handling strategy of a client if applying the workspace edit
@@ -60,7 +60,7 @@ struct WorkspaceEditCapabilities {
 	 *
 	 * See {@link FailureHandlingKind} for allowed values.
 	 */
-	std::optional<std::string > failureHandling;
+	boost::optional<std::string > failureHandling;
 
 	/**
 	 * Whether the client normalizes line endings to the client specific
@@ -70,7 +70,7 @@ struct WorkspaceEditCapabilities {
 	 *
 	 * @since 3.16.0
 	 */
-	std::optional<bool> normalizesLineEndings;;
+	boost::optional<bool> normalizesLineEndings;;
 
 	/**
 	 * Whether the client in general supports change annotations on text edits,
@@ -78,7 +78,7 @@ struct WorkspaceEditCapabilities {
 	 *
 	 * @since 3.16.0
 	 */
-	std::optional<lschangeAnnotationSupport> changeAnnotationSupport;
+	boost::optional<lschangeAnnotationSupport> changeAnnotationSupport;
 	
 	MAKE_SWAP_METHOD(WorkspaceEditCapabilities, documentChanges, resourceChanges, resourceOperations, failureHandling, normalizesLineEndings, changeAnnotationSupport)
 
@@ -88,7 +88,7 @@ MAKE_REFLECT_STRUCT(WorkspaceEditCapabilities,documentChanges, resourceChanges, 
 
 struct DynamicRegistrationCapabilities {
 	// Did foo notification supports dynamic registration.
-	std::optional<bool> dynamicRegistration;
+	boost::optional<bool> dynamicRegistration;
 
 	MAKE_SWAP_METHOD(DynamicRegistrationCapabilities,
 		dynamicRegistration);
@@ -102,7 +102,7 @@ MAKE_REFLECT_STRUCT(DynamicRegistrationCapabilities,
 // Workspace specific client capabilities.
 struct SymbolKindCapabilities
 {
-	std::optional< std::vector<lsSymbolKind> >  valueSet;
+	boost::optional< std::vector<lsSymbolKind> >  valueSet;
 
 	MAKE_SWAP_METHOD(SymbolKindCapabilities, valueSet)
 
@@ -117,7 +117,7 @@ struct SymbolCapabilities :public DynamicRegistrationCapabilities {
 	/**
 	 * Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
 	 */
-	std::optional<SymbolKindCapabilities>  symbolKind;
+	boost::optional<SymbolKindCapabilities>  symbolKind;
 
 	MAKE_SWAP_METHOD(SymbolCapabilities,
 		symbolKind, dynamicRegistration)
@@ -132,37 +132,37 @@ struct lsFileOperations
  * Whether the client supports dynamic registration for file
  * requests/notifications.
  */
-	std::optional<bool> dynamicRegistration ;
+	boost::optional<bool> dynamicRegistration ;
 
 	/**
 	 * The client has support for sending didCreateFiles notifications.
 	 */
-	std::optional<bool>didCreate ;
+	boost::optional<bool>didCreate ;
 
 	/**
 	 * The client has support for sending willCreateFiles requests.
 	 */
-	std::optional<bool>willCreate ;
+	boost::optional<bool>willCreate ;
 
 	/**
 	 * The client has support for sending didRenameFiles notifications.
 	 */
-	std::optional<bool>didRename ;
+	boost::optional<bool>didRename ;
 
 	/**
 	 * The client has support for sending willRenameFiles requests.
 	 */
-	std::optional<bool>willRename ;
+	boost::optional<bool>willRename ;
 
 	/**
 	 * The client has support for sending didDeleteFiles notifications.
 	 */
-	std::optional<bool>didDelete ;
+	boost::optional<bool>didDelete ;
 
 	/**
 	 * The client has support for sending willDeleteFiles requests.
 	 */
-	std::optional<bool> willDelete ;
+	boost::optional<bool> willDelete ;
 	MAKE_SWAP_METHOD(lsFileOperations, dynamicRegistration, didCreate, willCreate,
 		didRename, willRename, didDelete, willDelete)
 };
@@ -171,28 +171,28 @@ MAKE_REFLECT_STRUCT(lsFileOperations, dynamicRegistration, didCreate, willCreate
 
 struct lsWorkspaceClientCapabilites {
   // The client supports applying batch edits to the workspace.
-  std::optional<bool> applyEdit;
+  boost::optional<bool> applyEdit;
 
  
 
   // Capabilities specific to `WorkspaceEdit`s
-  std::optional<WorkspaceEditCapabilities> workspaceEdit;
+  boost::optional<WorkspaceEditCapabilities> workspaceEdit;
 
 
 
   // Capabilities specific to the `workspace/didChangeConfiguration`
   // notification.
-  std::optional<DynamicRegistrationCapabilities> didChangeConfiguration;
+  boost::optional<DynamicRegistrationCapabilities> didChangeConfiguration;
 
   // Capabilities specific to the `workspace/didChangeWatchedFiles`
   // notification.
-  std::optional<DynamicRegistrationCapabilities> didChangeWatchedFiles;
+  boost::optional<DynamicRegistrationCapabilities> didChangeWatchedFiles;
 
   // Capabilities specific to the `workspace/symbol` request.
-  std::optional<SymbolCapabilities> symbol;
+  boost::optional<SymbolCapabilities> symbol;
 
   // Capabilities specific to the `workspace/executeCommand` request.
-  std::optional<DynamicRegistrationCapabilities> executeCommand;
+  boost::optional<DynamicRegistrationCapabilities> executeCommand;
 
 
   /**
@@ -200,14 +200,14 @@ struct lsWorkspaceClientCapabilites {
  *
  * Since 3.6.0
  */
-  std::optional<bool> workspaceFolders;
+  boost::optional<bool> workspaceFolders;
 
   /**
    * The client supports `workspace/configuration` requests.
    *
    * Since 3.6.0
    */
-  std::optional<bool> configuration;
+  boost::optional<bool> configuration;
 
 
   /**
@@ -216,7 +216,7 @@ struct lsWorkspaceClientCapabilites {
 		 *
 		 * @since 3.16.0
 		 */
-  std::optional<DynamicRegistrationCapabilities> semanticTokens ;
+  boost::optional<DynamicRegistrationCapabilities> semanticTokens ;
 
   /**
    * Capabilities specific to the code lens requests scoped to the
@@ -224,14 +224,14 @@ struct lsWorkspaceClientCapabilites {
    *
    * @since 3.16.0
    */
-  std::optional<DynamicRegistrationCapabilities> codeLens ;
+  boost::optional<DynamicRegistrationCapabilities> codeLens ;
 
   /**
    * The client has support for file requests/notifications.
    *
    * @since 3.16.0
    */
-  std::optional<lsFileOperations> fileOperations;
+  boost::optional<lsFileOperations> fileOperations;
 	
   MAKE_SWAP_METHOD(lsWorkspaceClientCapabilites,
 	  applyEdit,

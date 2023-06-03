@@ -35,7 +35,7 @@ struct LocationLink
 	 * Used as the underlined span for mouse interaction. Defaults to the word range at
 	 * the mouse position.
 	 */
-	std::optional<lsRange>  originSelectionRange;
+	boost::optional<lsRange>  originSelectionRange;
 
 	/**
 	 * The target resource identifier of this link.

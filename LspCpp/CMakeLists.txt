@@ -90,7 +90,7 @@ function(lspcpp_set_target_options target)
     set_property(TARGET ${target} PROPERTY CXX_STANDARD_REQUIRED ON)
 
     # Enable C++14 (Required)
-    set_property(TARGET ${target} PROPERTY CXX_STANDARD 17)
+    set_property(TARGET ${target} PROPERTY CXX_STANDARD 14)
 
     set_property(TARGET ${target} PROPERTY CXX_EXTENSIONS OFF)
 

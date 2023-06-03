@@ -33,7 +33,7 @@ MAKE_REFLECT_STRUCT(ApplyWorkspaceEditParams, edit, label);
 struct  ApplyWorkspaceEditResponse
 {
 	bool applied;
-	std::optional<std::string> failureReason;
+	boost::optional<std::string> failureReason;
 	MAKE_SWAP_METHOD(ApplyWorkspaceEditResponse, applied, failureReason)
 };
 MAKE_REFLECT_STRUCT(ApplyWorkspaceEditResponse, applied, failureReason);

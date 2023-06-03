@@ -7,7 +7,7 @@
 #include "LibLsp/lsp/lsTextDocumentPositionParams.h"
 
 extern  void Reflect(Reader& visitor, 
-	std::pair<std::optional<std::string>, std::optional<MarkupContent>>& value);
+	std::pair<boost::optional<std::string>, boost::optional<MarkupContent>>& value);
 
 
 
@@ -20,7 +20,7 @@ struct lsParameterInformation {
 
   // The human-readable doc-comment of this parameter. Will be shown
   // in the UI but can be omitted.
-  std::optional< std::pair<  std::optional<std::string>  , std::optional <MarkupContent>  > > documentation;
+  boost::optional< std::pair<  boost::optional<std::string>  , boost::optional <MarkupContent>  > > documentation;
 
   MAKE_SWAP_METHOD(lsParameterInformation, label, documentation)
 };
@@ -36,7 +36,7 @@ struct lsSignatureInformation {
 
   // The human-readable doc-comment of this signature. Will be shown
   // in the UI but can be omitted.
-  std::optional< std::pair<  std::optional<std::string>, std::optional <MarkupContent>  > > documentation;
+  boost::optional< std::pair<  boost::optional<std::string>, boost::optional <MarkupContent>  > > documentation;
 
   // The parameters of this signature.
   std::vector<lsParameterInformation> parameters;
@@ -59,7 +59,7 @@ struct lsSignatureHelp {
   // rely on a default value.
   // In future version of the protocol this property might become
   // mandantory to better express this.
-  std::optional<int> activeSignature;
+  boost::optional<int> activeSignature;
 
   // The active parameter of the active signature. If omitted or the value
   // lies outside the range of `signatures[activeSignature].parameters`
@@ -68,7 +68,7 @@ struct lsSignatureHelp {
   // In future version of the protocol this property might become
   // mandantory to better express the active parameter if the
   // active signature does have any.
-  std::optional<int> activeParameter;
+  boost::optional<int> activeParameter;
 
 
   MAKE_SWAP_METHOD(lsSignatureHelp,

@@ -20,7 +20,7 @@
 // Note that markdown strings will be sanitized - that means html will be
 // escaped.
 struct lsMarkedString {
-	std::optional<std::string> language;
+	boost::optional<std::string> language;
 	std::string value;
 };
 

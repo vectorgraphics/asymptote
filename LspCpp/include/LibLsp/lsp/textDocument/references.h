@@ -11,7 +11,7 @@ namespace  TextDocumentReferences {
 
   struct lsReferenceContext {
     // Include the declaration of the current symbol.
-    std::optional<bool>  includeDeclaration;
+    boost::optional<bool>  includeDeclaration;
    MAKE_REFLECT_STRUCT(lsReferenceContext,
 	   includeDeclaration)
   };

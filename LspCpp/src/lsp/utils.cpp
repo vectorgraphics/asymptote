@@ -191,7 +191,7 @@ bool FileExists(const std::string& filename) {
   return cache.is_open();
 }
 
-std::optional<std::string> ReadContent(const AbsolutePath& filename) {
+boost::optional<std::string> ReadContent(const AbsolutePath& filename) {
 
   std::ifstream cache;
   cache.open(filename.path);
