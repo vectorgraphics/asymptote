@@ -416,7 +416,7 @@ public:
 
   void Read(bool &val) {string t; readwhite(t); val=(t == "true");}
   void Read(Int& val) {*stream >> val;}
-  void Read(double& val) {*stream >> val;}
+  void Read(double& val);
   void Read(pair& val) {*stream >> val;}
   void Read(triple& val) {*stream >> val;}
   void Read(char& val) {stream->get(val);}
