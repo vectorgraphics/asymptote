@@ -1391,16 +1391,12 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
   // flip Y coordinate for Vulkan (Vulkan has different coordinate system than OpenGL)
   auto verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
   ubo.projViewMat = verticalFlipMat * projViewMat;
+  ubo.viewMat = viewMat;
   ubo.normMat = glm::inverse(viewMat);
 
   auto uboData = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
   memcpy(uboData, &ubo, sizeof(ubo));
   device->unmapMemory(*frameObjects[currentFrame].uniformBufferMemory);
-
-  if (options.mode != DRAWMODE_NORMAL)
-    ubo.flags[0] = 1;
-  else
-    ubo.flags[0] = 0;
 }
 
 void AsyVkRender::updateBuffers()

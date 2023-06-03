@@ -16,8 +16,8 @@ struct Light
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;
+    mat4 viewMat;
     mat4 normMat;
-    vec4 viewPos;
 } ubo;
 
 layout(binding = 1, std430) buffer MaterialBuffer {
@@ -29,18 +29,20 @@ layout(binding = 2, std430) buffer LightBuffer {
 };
 
 layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 norm;
-layout(location = 2) flat in int materialIndex;
+layout(location = 1) in vec3 viewPos;
+layout(location = 2) in vec3 norm;
+layout(location = 3) flat in int materialIndex;
 
 layout(push_constant) uniform PushConstants
 {
 	uvec4 constants;
+    // constants[0] = flags
+    // constants[1] = nlights
 } push;
 
 layout(location = 0) out vec4 outColor;
 
 vec3 Diffuse;
-vec3 Emissive;
 vec3 Specular;
 float Metallic;
 float Fresnel0;
@@ -103,21 +105,25 @@ void main() {
 
     Material mat = materials[materialIndex];
 
+    mat.diffuse = vec4(0.000000, 0.000000, 1.000000, 1.000000);
+    mat.emissive = vec4(0.000000, 0.000000, 0.000000, 1.000000);
+    mat.parameters = vec4(0.850000, 0.000000, 0.040000, 0.000000);
+    mat.specular = vec4(0.750000, 0.750000, 0.750000, 1.000000);
+
     Diffuse = mat.diffuse.rgb;
-    Emissive = mat.emissive.rgb;
     Specular = mat.specular.rgb;
     Roughness = 1.f - mat.parameters[0];
     Metallic = mat.parameters[1];
     Fresnel0 = mat.parameters[2];
     Roughness2 = Roughness * Roughness;
 
-    vec3 viewDirection = normalize(ubo.viewPos.xyz - position);
+    vec3 viewDirection = -normalize(viewPos);
     normal = normalize(norm);
 
     if (!gl_FrontFacing)
         normal = -normal;
 
-    outColor = vec4(Emissive.rgb, 1.0);
+    outColor = mat.emissive;
     
     if ((push.constants[0] & PUSHFLAGS_NOLIGHT) != 0)
         return;

@@ -403,9 +403,8 @@ struct QueueFamilyIndices {
 
 struct UniformBufferObject {
   glm::mat4 projViewMat { };
+  glm::mat4 viewMat { };
   glm::mat4 normMat { };
-  glm::vec4 viewPos { };
-  glm::uvec4 flags { };
 };
 
 enum FlagsPushConstant: unsigned int
