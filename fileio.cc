@@ -80,8 +80,9 @@ void ifile::Read(double& val) {
   std::string str;
   bool neg;
 
-  while(isspace(c = stream->peek())) stream->ignore();
-  neg = stream->peek() == '-';
+  while(isspace(c=stream->peek()))
+    stream->ignore();
+  neg=stream->peek() == '-';
   // Try parsing the input as a number.
   if(*stream >> val)
     return;
@@ -91,24 +92,27 @@ void ifile::Read(double& val) {
   switch(stream->peek()) {
     case 'I': case 'i': // inf
     case 'N': case 'n': // NaN
-      for(Int i=0; i < 3 && stream->good(); i++) str += stream->get();
+      for(Int i=0; i < 3 && stream->good(); i++)
+        str += stream->get();
       break;
     default:
       stream->setstate(std::ios_base::failbit);
       return;
   }
 
-  if (!strcasecmp(str.c_str(), "inf"))
-    val = std::numeric_limits<double>::infinity();
-  else if (!strcasecmp(str.c_str(), "nan"))
-    val = std::numeric_limits<double>::quiet_NaN();
+  if(strcasecmp(str.c_str(),"inf") == 0)
+    val=std::numeric_limits < double > ::infinity();
+  else if(strcasecmp(str.c_str(),"nan") == 0)
+    val=std::numeric_limits < double > ::quiet_NaN();
   else {
-    for(auto it=str.rbegin(); it!=str.rend(); ++it) stream->putback(*it);
+    for(auto it=str.rbegin(); it != str.rend(); ++it)
+      stream->putback(*it);
     stream->setstate(std::ios_base::failbit);
     return;
   }
 
-  if (neg) val = -val;
+  if(neg)
+    val=-val;
 }
 
 bool ifile::eol()
