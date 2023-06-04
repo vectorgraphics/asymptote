@@ -18,12 +18,12 @@ struct CreateFileOptions{
 	/**
 	 * Overwrite existing file. Overwrite wins over `ignoreIfExists`
 	 */
-	boost::optional<bool>  overwrite = false;
+	std::optional<bool>  overwrite = false;
 
 	/**
 	 * Ignore if exists.
 	 */
-	boost::optional< bool> ignoreIfExists =false;
+	std::optional< bool> ignoreIfExists =false;
 	
 	MAKE_SWAP_METHOD(CreateFileOptions, overwrite, ignoreIfExists)
 };
@@ -39,7 +39,7 @@ struct lsCreateFile :public ResourceOperation {
 	/**
 	 * Additional options
 	 */
-	boost::optional<CreateFileOptions>  options;
+	std::optional<CreateFileOptions>  options;
 
 
 	/**
@@ -47,7 +47,7 @@ struct lsCreateFile :public ResourceOperation {
 	 *
 	 * @since 3.16.0
 	 */
-	boost::optional<lsChangeAnnotationIdentifier> annotationId;
+	std::optional<lsChangeAnnotationIdentifier> annotationId;
 	
 	MAKE_SWAP_METHOD(lsCreateFile, kind, uri, options, annotationId)
 };
@@ -58,12 +58,12 @@ struct DeleteFileOptions {
 	/**
 	 * Delete the content recursively if a folder is denoted.
 	 */
-	boost::optional<bool>  recursive = false;
+	std::optional<bool>  recursive = false;
 
 	/**
 	 * Ignore the operation if the file doesn't exist.
 	 */
-	boost::optional<bool> ignoreIfNotExists = false;
+	std::optional<bool> ignoreIfNotExists = false;
 
 
 	MAKE_SWAP_METHOD(DeleteFileOptions, recursive, ignoreIfNotExists);
@@ -81,7 +81,7 @@ struct lsDeleteFile :public ResourceOperation {
 	/**
 	 * Delete options.
 	 */
-	boost::optional<DeleteFileOptions>  options;
+	std::optional<DeleteFileOptions>  options;
 
 	MAKE_SWAP_METHOD(lsDeleteFile, kind, uri, options);
 };
@@ -104,14 +104,14 @@ struct lsRenameFile :public ResourceOperation {
 	/**
 	 * Rename options.
 	 */
-	boost::optional<RenameFileOptions>  options;
+	std::optional<RenameFileOptions>  options;
 
 	/**
 	 * An optional annotation identifer describing the operation.
 	 *
 	 * @since 3.16.0
 	 */
-	boost::optional<lsChangeAnnotationIdentifier> annotationId;
+	std::optional<lsChangeAnnotationIdentifier> annotationId;
 	
 	MAKE_SWAP_METHOD(lsRenameFile, kind, oldUri, newUri, options, annotationId)
 };

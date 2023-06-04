@@ -32,7 +32,7 @@ void Reflect(Writer& writer, lsInitializeParams::lsTrace& value)
 		break;
 	}
 }
- void Reflect(Reader& visitor, std::pair<boost::optional<lsTextDocumentSyncKind>, boost::optional<lsTextDocumentSyncOptions> >& value)
+ void Reflect(Reader& visitor, std::pair<std::optional<lsTextDocumentSyncKind>, std::optional<lsTextDocumentSyncOptions> >& value)
 {
 	if(((JsonReader&)visitor).m_->IsObject())
 	{

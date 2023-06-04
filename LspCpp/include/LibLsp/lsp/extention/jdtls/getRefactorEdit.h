@@ -47,7 +47,7 @@ struct GetRefactorEditParams
 	std::string command;
 	std::vector<lsp::Any>  commandArguments;
 	lsCodeActionParams context;
-	boost::optional<lsFormattingOptions> options;
+	std::optional<lsFormattingOptions> options;
 	MAKE_SWAP_METHOD(GetRefactorEditParams, command, context, options);
 };
 MAKE_REFLECT_STRUCT(GetRefactorEditParams, command, context, options);
@@ -65,9 +65,9 @@ struct RefactorWorkspaceEdit {
 	 * command, first the edit is executed and then the command.
 	 */
 	
-	boost::optional<std::string> errorMessage;
+	std::optional<std::string> errorMessage;
 	
-	boost::optional < lsCommandWithAny > command;
+	std::optional < lsCommandWithAny > command;
 	
 	MAKE_SWAP_METHOD(RefactorWorkspaceEdit, edit, command, errorMessage)
 };

@@ -42,8 +42,8 @@ void Reflect(Writer& writer, TypeHierarchyDirection& value);
 
 struct TypeHierarchyParams :public lsTextDocumentPositionParams
 {
-	boost::optional<int>  resolve;
-	boost::optional<TypeHierarchyDirection> direction ;
+	std::optional<int>  resolve;
+	std::optional<TypeHierarchyDirection> direction ;
 	
 	MAKE_SWAP_METHOD(TypeHierarchyParams, textDocument, position, resolve, direction)
 };
@@ -67,7 +67,7 @@ struct  TypeHierarchyItem {
 	/**
 	 * Optional detail for the hierarchy item. It can be, for instance, the signature of a function or method.
 	 */
-	boost::optional<std::string>
+	std::optional<std::string>
 	 detail;
 
 	/**
@@ -80,7 +80,7 @@ struct  TypeHierarchyItem {
 	 * {@code true} if the hierarchy item is deprecated. Otherwise, {@code false}. It is {@code false} by default.
 	 */
 	
-	boost::optional<bool> deprecated;
+	std::optional<bool> deprecated;
 
 	/**
 	 * The URI of the text document where this type hierarchy item belongs to.
@@ -111,18 +111,18 @@ struct  TypeHierarchyItem {
 	 * If this type hierarchy item is resolved, it contains the direct parents. Could be empty if the item does not have any
 	 * direct parents. If not defined, the parents have not been resolved yet.
 	 */
-	boost::optional< std::vector<TypeHierarchyItem> >  parents;
+	std::optional< std::vector<TypeHierarchyItem> >  parents;
 
 	/**
 	 * If this type hierarchy item is resolved, it contains the direct children of the current item.
 	 * Could be empty if the item does not have any descendants. If not defined, the children have not been resolved.
 	 */
-	boost::optional< std::vector<TypeHierarchyItem> >  children;
+	std::optional< std::vector<TypeHierarchyItem> >  children;
 
 	/**
- * An boost::optional data field can be used to identify a type hierarchy item in a resolve request.
+ * An std::optional data field can be used to identify a type hierarchy item in a resolve request.
  */
-	boost::optional<lsp::Any> data;
+	std::optional<lsp::Any> data;
 
 	MAKE_SWAP_METHOD(TypeHierarchyItem, name, detail, kind, deprecated, uri, range, selectionRange, parents, children, data)
 };

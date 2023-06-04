@@ -35,10 +35,10 @@ struct CallHierarchyItem {
 	SymbolKind kind;
 
 	/// Tags for this item.
-	boost::optional<std::vector<SymbolTag>>  tags;
+	std::optional<std::vector<SymbolTag>>  tags;
 
 	/// More detaill for this item, e.g. the signature of a function.
-	boost::optional<std::string>  detail;
+	std::optional<std::string>  detail;
 
 	/// The resource identifier of this item.
 	lsDocumentUri uri;
@@ -60,7 +60,7 @@ struct CallHierarchyItem {
 	 * A data entry field that is preserved between a call hierarchy prepare and
 	 * incoming calls or outgoing calls requests.
 	 */
-	boost::optional<lsp::Any>  data;
+	std::optional<lsp::Any>  data;
 	MAKE_SWAP_METHOD(CallHierarchyItem, name, kind, tags, detail, uri, range, selectionRange, data)
 };
 MAKE_REFLECT_STRUCT(CallHierarchyItem, name, kind, tags, detail, uri, range, selectionRange, data)
@@ -112,10 +112,10 @@ MAKE_REFLECT_STRUCT(CallHierarchyOutgoingCall, to, fromRanges)
 
 
 DEFINE_REQUEST_RESPONSE_TYPE(td_prepareCallHierarchy, CallHierarchyPrepareParams,
-	boost::optional<std::vector<CallHierarchyItem>>, "textDocument/prepareCallHierarchy")
+	std::optional<std::vector<CallHierarchyItem>>, "textDocument/prepareCallHierarchy")
 
 DEFINE_REQUEST_RESPONSE_TYPE(td_incomingCalls, CallHierarchyIncomingCallsParams,
-	boost::optional<std::vector<CallHierarchyIncomingCall>>, "callHierarchy/incomingCalls")
+	std::optional<std::vector<CallHierarchyIncomingCall>>, "callHierarchy/incomingCalls")
 
 DEFINE_REQUEST_RESPONSE_TYPE(td_outgoingCalls, CallHierarchyOutgoingCallsParams,
-	boost::optional<std::vector<CallHierarchyOutgoingCall>>, "callHierarchy/CallHierarchyOutgoingCall")
+	std::optional<std::vector<CallHierarchyOutgoingCall>>, "callHierarchy/CallHierarchyOutgoingCall")

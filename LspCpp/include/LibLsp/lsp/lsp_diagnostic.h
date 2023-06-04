@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include "lsRange.h"
 #include "lsTextEdit.h"
 #include "lsDocumentUri.h"
@@ -92,15 +93,15 @@ struct lsDiagnostic {
 
   // The diagnostic's severity. Can be omitted. If omitted it is up to the
   // client to interpret diagnostics as error, warning, info or hint.
-  boost::optional<lsDiagnosticSeverity> severity;
+  std::optional<lsDiagnosticSeverity> severity;
 
   // The diagnostic's code. Can be omitted.
-  boost::optional<  std::pair<boost::optional<std::string>, boost::optional<int>> >  code;
+  std::optional<  std::pair<std::optional<std::string>, std::optional<int>> >  code;
 
-  boost::optional<DiagnosticCodeDescription> codeDescription;
+  std::optional<DiagnosticCodeDescription> codeDescription;
   // A human-readable string describing the source of this
   // diagnostic, e.g. 'typescript' or 'super lint'.
-  boost::optional < std::string >source ;
+  std::optional < std::string >source ;
 
   // The diagnostic's message.
   std::string message;
@@ -113,7 +114,7 @@ struct lsDiagnostic {
    *
    * @since 3.15.0
    */
-  boost::optional<std::vector<DiagnosticTag>> tags;
+  std::optional<std::vector<DiagnosticTag>> tags;
 	
 
   /**
@@ -122,7 +123,7 @@ struct lsDiagnostic {
  *
  * Since 3.7.0
  */
-  boost::optional<std::vector<DiagnosticRelatedInformation>> relatedInformation;
+  std::optional<std::vector<DiagnosticRelatedInformation>> relatedInformation;
 
   /**
    * A data entry field that is preserved between a
@@ -131,7 +132,7 @@ struct lsDiagnostic {
    *
    * @since 3.16.0
    */
-  boost::optional<lsp::Any> data;
+  std::optional<lsp::Any> data;
   bool operator==(const lsDiagnostic& rhs) const;
   bool operator!=(const lsDiagnostic& rhs) const;
 

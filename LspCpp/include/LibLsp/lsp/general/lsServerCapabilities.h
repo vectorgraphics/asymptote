@@ -10,7 +10,7 @@
 #include "LibLsp/lsp/textDocument/SemanticTokens.h"
 
 
-extern void Reflect(Reader&, std::pair<boost::optional<lsTextDocumentSyncKind>, boost::optional<lsTextDocumentSyncOptions> >&);
+extern void Reflect(Reader&, std::pair<std::optional<lsTextDocumentSyncKind>, std::optional<lsTextDocumentSyncOptions> >&);
 
 //
  // Code Action options.
@@ -32,7 +32,7 @@ struct CodeLensOptions : WorkDoneProgressOptions {
 	//
 	 // Code lens has a resolve provider as well.
 	 //
-	boost::optional<bool> resolveProvider ;
+	std::optional<bool> resolveProvider ;
 	MAKE_SWAP_METHOD(CodeLensOptions, workDoneProgress, resolveProvider);
 };
 MAKE_REFLECT_STRUCT(CodeLensOptions, workDoneProgress, resolveProvider)
@@ -56,7 +56,7 @@ struct RenameOptions : WorkDoneProgressOptions {
 	//
 	 // Renames should be checked and tested before being executed.
 	 //
-	boost::optional<bool> prepareProvider;
+	std::optional<bool> prepareProvider;
 	MAKE_SWAP_METHOD(RenameOptions, workDoneProgress, prepareProvider);
 };
 MAKE_REFLECT_STRUCT(RenameOptions,workDoneProgress,prepareProvider)
@@ -65,11 +65,11 @@ struct DocumentFilter{
 	//
 	 // A language id, like `typescript`.
 	 //
-	boost::optional<std::string> language;
+	std::optional<std::string> language;
 	//
 	 // A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
 	 //
-	boost::optional<std::string>scheme;
+	std::optional<std::string>scheme;
 	//
 	 // A glob pattern, like `*.{ts,js}`.
 	 //
@@ -85,7 +85,7 @@ struct DocumentFilter{
 	 //   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but
 	 //   not `example.0`)
 	 //
-	boost::optional<std::string>pattern;
+	std::optional<std::string>pattern;
 	MAKE_SWAP_METHOD(DocumentFilter, language, scheme, pattern)
 };
 MAKE_REFLECT_STRUCT(DocumentFilter, language, scheme, pattern)
@@ -96,7 +96,7 @@ using DocumentSelector = std::vector<DocumentFilter>;
 // Document link options
 struct lsDocumentLinkOptions :WorkDoneProgressOptions {
 	// Document links have a resolve provider as well.
-	boost::optional<bool> resolveProvider;
+	std::optional<bool> resolveProvider;
 	MAKE_SWAP_METHOD(lsDocumentLinkOptions, workDoneProgress, resolveProvider);
 };
 MAKE_REFLECT_STRUCT(lsDocumentLinkOptions, workDoneProgress,resolveProvider);
@@ -116,7 +116,7 @@ struct TextDocumentRegistrationOptions
  // A document selector to identify the scope of the registration. If set to null
  // the document selector provided on the client side will be used.
  //
-	boost::optional<DocumentSelector>  documentSelector;
+	std::optional<DocumentSelector>  documentSelector;
 
 	MAKE_SWAP_METHOD(TextDocumentRegistrationOptions, documentSelector);
 };
@@ -131,7 +131,7 @@ struct StaticRegistrationOptions :public TextDocumentRegistrationOptions
 	 // The id used to register the request. The id can be used to deregister
 	 // the request again. See also Registration#id.
 	 //
-	boost::optional<std::string> id;
+	std::optional<std::string> id;
 	MAKE_SWAP_METHOD(StaticRegistrationOptions, documentSelector, id)
 };
 MAKE_REFLECT_STRUCT(StaticRegistrationOptions, documentSelector,id)
@@ -146,7 +146,7 @@ struct WorkspaceFoldersOptions {
 	//
 	 // The server has support for workspace folders
 	 //
-	boost::optional<bool>  supported;
+	std::optional<bool>  supported;
 
 	//
 	 // Whether the server wants to receive workspace folder
@@ -157,7 +157,7 @@ struct WorkspaceFoldersOptions {
 	 // side. The ID can be used to unregister for these events
 	 // using the `client/unregisterCapability` request.
 	 //
-	boost::optional<std::pair<  boost::optional<std::string>, boost::optional<bool> > > changeNotifications;
+	std::optional<std::pair<  std::optional<std::string>, std::optional<bool> > > changeNotifications;
 	MAKE_SWAP_METHOD(WorkspaceFoldersOptions, supported, changeNotifications);
 };
 MAKE_REFLECT_STRUCT(WorkspaceFoldersOptions, supported, changeNotifications);
@@ -185,7 +185,7 @@ struct lsFileOperationPatternOptions {
 	//
 	 // The pattern should be matched ignoring casing.
 	 //
-	boost::optional<bool> ignoreCase;
+	std::optional<bool> ignoreCase;
 	MAKE_SWAP_METHOD(lsFileOperationPatternOptions, ignoreCase)
 };
 MAKE_REFLECT_STRUCT(lsFileOperationPatternOptions, ignoreCase)
@@ -216,12 +216,12 @@ struct lsFileOperationPattern {
 	 //
 	 // Matches both if undefined.
 	 //
-	boost::optional<lsFileOperationPatternKind> matches;
+	std::optional<lsFileOperationPatternKind> matches;
 
 	//
 	 // Additional options used during matching.
 	 //
-	boost::optional<lsFileOperationPatternOptions> options ;
+	std::optional<lsFileOperationPatternOptions> options ;
 	MAKE_SWAP_METHOD(lsFileOperationPattern, glob, matches, options)
 };
 MAKE_REFLECT_STRUCT(lsFileOperationPattern, glob, matches, options)
@@ -236,12 +236,12 @@ struct lsFileOperationFilter {
 	//
 	 // A Uri like `file` or `untitled`.
 	 //
-	boost::optional<std::string>  scheme;
+	std::optional<std::string>  scheme;
 
 	//
 	 // The actual file operation pattern.
 	 //
-	boost::optional<lsFileOperationPattern>	pattern;
+	std::optional<lsFileOperationPattern>	pattern;
 	MAKE_SWAP_METHOD(lsFileOperationFilter, scheme, pattern)
 };
 MAKE_REFLECT_STRUCT(lsFileOperationFilter, scheme, pattern)
@@ -254,7 +254,7 @@ struct lsFileOperationRegistrationOptions {
 	//
 	 // The actual filters.
 	 //
-	boost::optional<std::vector<lsFileOperationFilter>> filters;
+	std::optional<std::vector<lsFileOperationFilter>> filters;
 	MAKE_SWAP_METHOD(lsFileOperationRegistrationOptions, filters)
 };
 MAKE_REFLECT_STRUCT(lsFileOperationRegistrationOptions, filters)
@@ -279,38 +279,38 @@ struct WorkspaceServerCapabilities {
 		 // The server is interested in receiving didCreateFiles
 		 // notifications.
 		 //
-		boost::optional<lsFileOperationRegistrationOptions> didCreate;
+		std::optional<lsFileOperationRegistrationOptions> didCreate;
 
 		//
 		 // The server is interested in receiving willCreateFiles requests.
 		 //
-		boost::optional<lsFileOperationRegistrationOptions> willCreate;
+		std::optional<lsFileOperationRegistrationOptions> willCreate;
 
 		//
 		 // The server is interested in receiving didRenameFiles
 		 // notifications.
 		 //
-		boost::optional<lsFileOperationRegistrationOptions> didRename;
+		std::optional<lsFileOperationRegistrationOptions> didRename;
 
 		//
 		 // The server is interested in receiving willRenameFiles requests.
 		 //
-		boost::optional<lsFileOperationRegistrationOptions> willRename;
+		std::optional<lsFileOperationRegistrationOptions> willRename;
 
 		//
 		 // The server is interested in receiving didDeleteFiles file
 		 // notifications.
 		 //
-		boost::optional<lsFileOperationRegistrationOptions> didDelete;
+		std::optional<lsFileOperationRegistrationOptions> didDelete;
 
 		//
 		 // The server is interested in receiving willDeleteFiles file
 		 // requests.
 		 //
-		boost::optional<lsFileOperationRegistrationOptions> willDelete;
+		std::optional<lsFileOperationRegistrationOptions> willDelete;
 		MAKE_SWAP_METHOD(lsFileOperations, didCreate, willCreate, didRename, willRename, didDelete, willDelete)
 	};
-	boost::optional<lsFileOperations>fileOperations;
+	std::optional<lsFileOperations>fileOperations;
 
 
 	MAKE_SWAP_METHOD(WorkspaceServerCapabilities, workspaceFolders, fileOperations)
@@ -356,24 +356,24 @@ struct SemanticTokensWithRegistrationOptions
 	 // Server supports providing semantic tokens for a specific range
 	 // of a document.
 	 //
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<lsp::Any> > >  range;
+	std::optional< std::pair< std::optional<bool>, std::optional<lsp::Any> > >  range;
 
 	//
 	 // Server supports providing semantic tokens for a full document.
 	 //
-	boost::optional< std::pair< boost::optional<bool>,
-	boost::optional<SemanticTokensServerFull> > >  full;
+	std::optional< std::pair< std::optional<bool>,
+	std::optional<SemanticTokensServerFull> > >  full;
 
 	//
 	 // A document selector to identify the scope of the registration. If set to null
 	 // the document selector provided on the client side will be used.
 	 //
-	boost::optional < std::vector<DocumentFilter> > documentSelector;
+	std::optional < std::vector<DocumentFilter> > documentSelector;
 	//
 	 // The id used to register the request. The id can be used to deregister
 	 // the request again. See also Registration#id.
 	 //
-	boost::optional<std::string> id;
+	std::optional<std::string> id;
 	MAKE_SWAP_METHOD(SemanticTokensWithRegistrationOptions, legend, range, full, documentSelector, id)
 };
 MAKE_REFLECT_STRUCT(SemanticTokensWithRegistrationOptions, legend, range, full, documentSelector ,id)
@@ -385,20 +385,20 @@ struct lsServerCapabilities {
 	// defining each notification or for backwards compatibility the
 
 	// TextDocumentSyncKind number.
-	boost::optional< std::pair<boost::optional<lsTextDocumentSyncKind>,
-	boost::optional<lsTextDocumentSyncOptions> >> textDocumentSync;
+	std::optional< std::pair<std::optional<lsTextDocumentSyncKind>,
+	std::optional<lsTextDocumentSyncOptions> >> textDocumentSync;
 
 	// The server provides hover support.
-	boost::optional<bool>  hoverProvider;
+	std::optional<bool>  hoverProvider;
 
 	// The server provides completion support.
-	boost::optional < lsCompletionOptions > completionProvider;
+	std::optional < lsCompletionOptions > completionProvider;
 
 	// The server provides signature help support.
-	boost::optional < lsSignatureHelpOptions > signatureHelpProvider;
+	std::optional < lsSignatureHelpOptions > signatureHelpProvider;
 
 	// The server provides goto definition support.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<WorkDoneProgressOptions> > > definitionProvider;
+	std::optional< std::pair< std::optional<bool>, std::optional<WorkDoneProgressOptions> > > definitionProvider;
 
 
   //
@@ -406,44 +406,44 @@ struct lsServerCapabilities {
    //
    // Since 3.6.0
    //
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<StaticRegistrationOptions> > > typeDefinitionProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<StaticRegistrationOptions> > > typeDefinitionProvider ;
 
 	// The server provides implementation support.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<StaticRegistrationOptions> > >  implementationProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<StaticRegistrationOptions> > >  implementationProvider ;
 
 	// The server provides find references support.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<WorkDoneProgressOptions> > > referencesProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<WorkDoneProgressOptions> > > referencesProvider ;
 
 	// The server provides document highlight support.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<WorkDoneProgressOptions> > > documentHighlightProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<WorkDoneProgressOptions> > > documentHighlightProvider ;
 
 	// The server provides document symbol support.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<WorkDoneProgressOptions> > > documentSymbolProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<WorkDoneProgressOptions> > > documentSymbolProvider ;
 
 	// The server provides workspace symbol support.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<WorkDoneProgressOptions> > > workspaceSymbolProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<WorkDoneProgressOptions> > > workspaceSymbolProvider ;
 
 	// The server provides code actions.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<CodeActionOptions> > > codeActionProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<CodeActionOptions> > > codeActionProvider ;
 
 	// The server provides code lens.
-	boost::optional<CodeLensOptions> codeLensProvider;
+	std::optional<CodeLensOptions> codeLensProvider;
 
 	// The server provides document formatting.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<WorkDoneProgressOptions> > > documentFormattingProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<WorkDoneProgressOptions> > > documentFormattingProvider ;
 
 	// The server provides document range formatting.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<WorkDoneProgressOptions> > > documentRangeFormattingProvider ;
+	std::optional< std::pair< std::optional<bool>, std::optional<WorkDoneProgressOptions> > > documentRangeFormattingProvider ;
 
 	// The server provides document formatting on typing.
-	boost::optional<lsDocumentOnTypeFormattingOptions> documentOnTypeFormattingProvider;
+	std::optional<lsDocumentOnTypeFormattingOptions> documentOnTypeFormattingProvider;
 
 	// The server provides rename support.
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<RenameOptions> > >  renameProvider;
+	std::optional< std::pair< std::optional<bool>, std::optional<RenameOptions> > >  renameProvider;
 
 
 	// The server provides document link support.
-	boost::optional<lsDocumentLinkOptions > documentLinkProvider;
+	std::optional<lsDocumentLinkOptions > documentLinkProvider;
 
 
 	//
@@ -451,7 +451,7 @@ struct lsServerCapabilities {
 	 //
 	 // @since 3.6.0
 	 //
-	boost::optional< std::pair< boost::optional<bool>, boost::optional<DocumentColorOptions> > >  colorProvider;
+	std::optional< std::pair< std::optional<bool>, std::optional<DocumentColorOptions> > >  colorProvider;
 
 
 	//
@@ -459,22 +459,22 @@ struct lsServerCapabilities {
 		 //
 		 // @since 3.10.0
 		 //
-	boost::optional <  std::pair< boost::optional<bool>, boost::optional<FoldingRangeOptions> >   > foldingRangeProvider;
+	std::optional <  std::pair< std::optional<bool>, std::optional<FoldingRangeOptions> >   > foldingRangeProvider;
 
 	// The server provides execute command support.
-	boost::optional < lsExecuteCommandOptions >executeCommandProvider;
+	std::optional < lsExecuteCommandOptions >executeCommandProvider;
 
 
 	//
 	 // Workspace specific server capabilities
 	 //
-	boost::optional< WorkspaceServerCapabilities > workspace;
+	std::optional< WorkspaceServerCapabilities > workspace;
 
 	//
 	 // Semantic highlighting server capabilities.
 	 //
 
-	 boost::optional<	 SemanticHighlightingServerCapabilities >semanticHighlighting;
+	 std::optional<	 SemanticHighlightingServerCapabilities >semanticHighlighting;
 
 	//
 	 // Server capability for calculating super- and subtype hierarchies.
@@ -486,31 +486,31 @@ struct lsServerCapabilities {
 	 // language feature</a> is not yet part of the official LSP specification.
 	 //
 
-	 boost::optional< std::pair< boost::optional<bool>,
-	boost::optional<StaticRegistrationOptions> > > typeHierarchyProvider;
+	 std::optional< std::pair< std::optional<bool>,
+	std::optional<StaticRegistrationOptions> > > typeHierarchyProvider;
 
 	//
 	 // The server provides Call Hierarchy support.
 	 //
 
-	 boost::optional< std::pair< boost::optional<bool>,
-	boost::optional<StaticRegistrationOptions> > > callHierarchyProvider;
+	 std::optional< std::pair< std::optional<bool>,
+	std::optional<StaticRegistrationOptions> > > callHierarchyProvider;
 
 	//
 	 // The server provides selection range support.
 	 //
 	 // Since 3.15.0
 	 //
-	 boost::optional< std::pair< boost::optional<bool>,
-	boost::optional<StaticRegistrationOptions> > > selectionRangeProvider;
+	 std::optional< std::pair< std::optional<bool>,
+	std::optional<StaticRegistrationOptions> > > selectionRangeProvider;
 
 	 //
 	  // The server provides linked editing range support.
 	  //
 	  // Since 3.16.0
 	  //
-	 boost::optional< std::pair< boost::optional<bool>,
-		 boost::optional<StaticRegistrationOptions> > > linkedEditingRangeProvider;
+	 std::optional< std::pair< std::optional<bool>,
+		 std::optional<StaticRegistrationOptions> > > linkedEditingRangeProvider;
 
 
 	 //
@@ -518,17 +518,17 @@ struct lsServerCapabilities {
 	  //
 	  // Since 3.16.0
 	  //
-	 boost::optional < SemanticTokensWithRegistrationOptions> semanticTokensProvider;
+	 std::optional < SemanticTokensWithRegistrationOptions> semanticTokensProvider;
 
 	 //
 	  // Whether server provides moniker support.
 	  //
 	  // Since 3.16.0
 	  //
-	 boost::optional< std::pair< boost::optional<bool>,
-		 boost::optional<StaticRegistrationOptions> > >  monikerProvider;
+	 std::optional< std::pair< std::optional<bool>,
+		 std::optional<StaticRegistrationOptions> > >  monikerProvider;
 
-	boost::optional<lsp::Any> experimental;
+	std::optional<lsp::Any> experimental;
 
 
 	MAKE_SWAP_METHOD(lsServerCapabilities,

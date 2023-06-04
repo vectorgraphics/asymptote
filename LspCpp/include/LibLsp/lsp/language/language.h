@@ -89,7 +89,7 @@ struct ActionableNotification {
 	 *
 	 */
 
-	boost::optional<lsp::Any> data;
+	std::optional<lsp::Any> data;
 
 
 	/**
