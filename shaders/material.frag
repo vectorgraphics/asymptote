@@ -1,6 +1,7 @@
 #version 450
 
 #define PUSHFLAGS_NOLIGHT (1 << 0)
+#define PUSHFLAGS_COLORED (1 << 1)
 
 struct Material
 {
@@ -31,7 +32,8 @@ layout(binding = 2, std430) buffer LightBuffer {
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 viewPos;
 layout(location = 2) in vec3 norm;
-layout(location = 3) flat in int materialIndex;
+layout(location = 3) in vec4 inColor;
+layout(location = 4) flat in int materialIndex;
 
 layout(push_constant) uniform PushConstants
 {
@@ -103,12 +105,16 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
 void main() {
 
-    Material mat = materials[materialIndex];
+    uint flags = push.constants[0];
+    uint nlights = push.constants[1];
 
-    mat.diffuse = vec4(0.000000, 0.000000, 1.000000, 1.000000);
-    mat.emissive = vec4(0.000000, 0.000000, 0.000000, 1.000000);
-    mat.parameters = vec4(0.850000, 0.000000, 0.040000, 0.000000);
-    mat.specular = vec4(0.750000, 0.750000, 0.750000, 1.000000);
+    Material mat;
+
+    if (materialIndex >= 0)
+        mat = materials[materialIndex];
+
+    if ((flags & PUSHFLAGS_COLORED) != 0)
+        mat.diffuse = inColor;
 
     Diffuse = mat.diffuse.rgb;
     Specular = mat.specular.rgb;
@@ -123,12 +129,15 @@ void main() {
     if (!gl_FrontFacing)
         normal = -normal;
 
+    if (nlights == 0)
+        mat.emissive += inColor;
+
     outColor = mat.emissive;
     
-    if ((push.constants[0] & PUSHFLAGS_NOLIGHT) != 0)
+    if ((flags & PUSHFLAGS_NOLIGHT) != 0)
         return;
 
-    for (int i = 0; i < push.constants[1]; i++)
+    for (int i = 0; i < nlights; i++)
     {
         Light light = lights[i];
 

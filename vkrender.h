@@ -268,18 +268,20 @@ struct MaterialVertex // vertexData
   glm::vec3 position;
   glm::vec3 normal;
   glm::i32 material;
+  glm::vec4 color;
 
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
   }
 
-  static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
+  static std::array<vk::VertexInputAttributeDescription, 4> getAttributeDescriptions()
   {
-    return std::array<vk::VertexInputAttributeDescription, 3>{
+    return std::array<vk::VertexInputAttributeDescription, 4>{
             vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)),
             vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)),
-            vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material))};
+            vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material)),
+            vk::VertexInputAttributeDescription(3, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, color))};
   }
 };
 
@@ -410,7 +412,8 @@ struct UniformBufferObject {
 enum FlagsPushConstant: unsigned int
 {
   PUSHFLAGS_NONE    = 0,
-  PUSHFLAGS_NOLIGHT = 1 << 0
+  PUSHFLAGS_NOLIGHT = 1 << 0,
+  PUSHFLAGS_COLORED = 1 << 1
 };
 
 struct PushConstants
@@ -711,7 +714,7 @@ private:
   void createFramebuffers();
   void createCommandPools();
   void createCommandBuffers();
-  PushConstants buildPushConstants();
+  PushConstants buildPushConstants(bool colorVertices);
   void recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex, DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data);
   void createSyncObjects();
 
