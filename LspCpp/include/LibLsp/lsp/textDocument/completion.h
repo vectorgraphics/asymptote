@@ -41,9 +41,9 @@ struct lsCompletionParams : lsTextDocumentPositionParams {
   // send this using
   // `ClientCapabilities.textDocument.completion.contextSupport === true`
   std::optional<lsCompletionContext> context;
-	
+
   MAKE_SWAP_METHOD(lsCompletionParams, textDocument, position, context);
-	
+
 };
 MAKE_REFLECT_STRUCT(lsCompletionParams, textDocument, position, context);
 
@@ -56,9 +56,9 @@ MAKE_REFLECT_STRUCT(lsCompletionParams, textDocument, position, context);
 
 
 namespace TextDocumentComplete{
-	
-	typedef  std::pair< std::optional<std::vector<lsCompletionItem>>, std::optional<CompletionList> > Either;
-	
+
+        typedef  std::pair< std::optional<std::vector<lsCompletionItem>>, std::optional<CompletionList> > Either;
+
 };
 extern  void Reflect(Reader& visitor, TextDocumentComplete::Either& value);
 

@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
         }
         fclose(fp);
     }
-    
+
     // Then convert the Document into SchemaDocument
     SchemaDocument sd(d);
 

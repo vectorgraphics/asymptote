@@ -20,7 +20,7 @@ class FilterKeyHandler {
 public:
     typedef char Ch;
 
-    FilterKeyHandler(OutputHandler& outputHandler, const Ch* keyString, SizeType keyLength) : 
+    FilterKeyHandler(OutputHandler& outputHandler, const Ch* keyString, SizeType keyLength) :
         outputHandler_(outputHandler), keyString_(keyString), keyLength_(keyLength), filterValueDepth_(), filteredKeyCount_()
     {}
 
@@ -33,8 +33,8 @@ public:
     bool Double(double d)   { return filterValueDepth_ > 0 ? EndValue() : outputHandler_.Double(d) && EndValue(); }
     bool RawNumber(const Ch* str, SizeType len, bool copy) { return filterValueDepth_ > 0 ? EndValue() : outputHandler_.RawNumber(str, len, copy) && EndValue(); }
     bool String   (const Ch* str, SizeType len, bool copy) { return filterValueDepth_ > 0 ? EndValue() : outputHandler_.String   (str, len, copy) && EndValue(); }
-    
-    bool StartObject() { 
+
+    bool StartObject() {
         if (filterValueDepth_ > 0) {
             filterValueDepth_++;
             return true;
@@ -44,9 +44,9 @@ public:
             return outputHandler_.StartObject();
         }
     }
-    
-    bool Key(const Ch* str, SizeType len, bool copy) { 
-        if (filterValueDepth_ > 0) 
+
+    bool Key(const Ch* str, SizeType len, bool copy) {
+        if (filterValueDepth_ > 0)
             return true;
         else if (len == keyLength_ && std::memcmp(str, keyString_, len) == 0) {
             filterValueDepth_ = 1;
@@ -112,7 +112,7 @@ class FilterKeyReader {
 public:
     typedef char Ch;
 
-    FilterKeyReader(InputStream& is, const Ch* keyString, SizeType keyLength) : 
+    FilterKeyReader(InputStream& is, const Ch* keyString, SizeType keyLength) :
         is_(is), keyString_(keyString), keyLength_(keyLength), parseResult_()
     {}
 

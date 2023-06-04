@@ -322,118 +322,118 @@ bool IsDirectory(const std::string& path) {
 // links. This is a variant of realpath(2), C++ rewrite of
 // https://github.com/freebsd/freebsd/blob/master/lib/libc/stdlib/realpath.c
 AbsolutePath RealPathNotExpandSymlink(std::string path,
-	bool ensure_exists) {
-	if (path.empty()) {
-		errno = EINVAL;
-		return {};
-	}
-	if (path[0] == '\0') {
-		errno = ENOENT;
-		return {};
-	}
+        bool ensure_exists) {
+        if (path.empty()) {
+                errno = EINVAL;
+                return {};
+        }
+        if (path[0] == '\0') {
+                errno = ENOENT;
+                return {};
+        }
 
-	// Do not use PATH_MAX because it is tricky on Linux.
-	// See https://eklitzke.org/path-max-is-tricky
-	char tmp[1024];
-	std::string resolved;
-	size_t i = 0;
-	struct stat sb;
-	if (path[0] == '/') {
-		resolved = "/";
-		i = 1;
-	}
-	else {
-		if (!getcwd(tmp, sizeof tmp) && ensure_exists)
-			return {};
-		resolved = tmp;
-	}
+        // Do not use PATH_MAX because it is tricky on Linux.
+        // See https://eklitzke.org/path-max-is-tricky
+        char tmp[1024];
+        std::string resolved;
+        size_t i = 0;
+        struct stat sb;
+        if (path[0] == '/') {
+                resolved = "/";
+                i = 1;
+        }
+        else {
+                if (!getcwd(tmp, sizeof tmp) && ensure_exists)
+                        return {};
+                resolved = tmp;
+        }
 
-	while (i < path.size()) {
-		auto j = path.find('/', i);
-		if (j == std::string::npos)
-			j = path.size();
-		auto next_token = path.substr(i, j - i);
-		i = j + 1;
-		if (resolved.back() != '/')
-			resolved += '/';
-		if (next_token.empty() || next_token == ".") {
-			// Handle consequential slashes and "."
-			continue;
-		}
-		else if (next_token == "..") {
-			// Strip the last path component except when it is single "/"
-			if (resolved.size() > 1)
-				resolved.resize(resolved.rfind('/', resolved.size() - 2) + 1);
-			continue;
-		}
-		// Append the next path component.
-		// Here we differ from realpath(3), we use stat(2) instead of
-		// lstat(2) because we do not want to resolve symlinks.
-		resolved += next_token;
-		if (stat(resolved.c_str(), &sb) != 0 && ensure_exists)
-			return {};
-		if (!S_ISDIR(sb.st_mode) && j < path.size() && ensure_exists) {
-			errno = ENOTDIR;
-			return {};
-		}
-	}
+        while (i < path.size()) {
+                auto j = path.find('/', i);
+                if (j == std::string::npos)
+                        j = path.size();
+                auto next_token = path.substr(i, j - i);
+                i = j + 1;
+                if (resolved.back() != '/')
+                        resolved += '/';
+                if (next_token.empty() || next_token == ".") {
+                        // Handle consequential slashes and "."
+                        continue;
+                }
+                else if (next_token == "..") {
+                        // Strip the last path component except when it is single "/"
+                        if (resolved.size() > 1)
+                                resolved.resize(resolved.rfind('/', resolved.size() - 2) + 1);
+                        continue;
+                }
+                // Append the next path component.
+                // Here we differ from realpath(3), we use stat(2) instead of
+                // lstat(2) because we do not want to resolve symlinks.
+                resolved += next_token;
+                if (stat(resolved.c_str(), &sb) != 0 && ensure_exists)
+                        return {};
+                if (!S_ISDIR(sb.st_mode) && j < path.size() && ensure_exists) {
+                        errno = ENOTDIR;
+                        return {};
+                }
+        }
 
-	// Remove trailing slash except when a single "/".
-	if (resolved.size() > 1 && resolved.back() == '/')
-		resolved.pop_back();
-	return AbsolutePath(resolved, true /*validate*/);
+        // Remove trailing slash except when a single "/".
+        if (resolved.size() > 1 && resolved.back() == '/')
+                resolved.pop_back();
+        return AbsolutePath(resolved, true /*validate*/);
 }
 #endif
 
 
 AbsolutePath NormalizePath(const std::string& path0,
-	bool ensure_exists ,
-	bool force_lower_on_windows) {
+        bool ensure_exists ,
+        bool force_lower_on_windows) {
 #ifdef _WIN32
 
-	std::wstring path = lsp::s2ws(path0);
+        std::wstring path = lsp::s2ws(path0);
 
-	wchar_t buffer[MAX_PATH] = (L"");
+        wchar_t buffer[MAX_PATH] = (L"");
 
-	// Normalize the path name, ie, resolve `..`.
-	unsigned long len = GetFullPathNameW(path.c_str(), MAX_PATH, buffer, nullptr);
-	if (!len)
-		return {};
-	path = std::wstring(buffer, len);
+        // Normalize the path name, ie, resolve `..`.
+        unsigned long len = GetFullPathNameW(path.c_str(), MAX_PATH, buffer, nullptr);
+        if (!len)
+                return {};
+        path = std::wstring(buffer, len);
 
-	// Get the actual casing of the path, ie, if the file on disk is `C:\FooBar`
-	// and this function is called with `c:\fooBar` this will return `c:\FooBar`.
-	// (drive casing is lowercase).
-	if (ensure_exists) {
-		len = GetLongPathNameW(path.c_str(), buffer, MAX_PATH);
-		if (!len)
-			return {};
-		path = std::wstring(buffer, len);
-	}
+        // Get the actual casing of the path, ie, if the file on disk is `C:\FooBar`
+        // and this function is called with `c:\fooBar` this will return `c:\FooBar`.
+        // (drive casing is lowercase).
+        if (ensure_exists) {
+                len = GetLongPathNameW(path.c_str(), buffer, MAX_PATH);
+                if (!len)
+                        return {};
+                path = std::wstring(buffer, len);
+        }
 
-	// Empty paths have no meaning.
-	if (path.empty())
-		return {};
+        // Empty paths have no meaning.
+        if (path.empty())
+                return {};
 
-	// We may need to normalize the drive name to upper-case; at the moment
-	// vscode sends lower-case path names.
-	/*
-	path[0] = toupper(path[0]);
-	*/
-	// Make the path all lower-case, since windows is case-insensitive.
-	if (force_lower_on_windows) {
-		for (size_t i = 0; i < path.size(); ++i)
-			path[i] = (wchar_t)tolower(path[i]);
-	}
+        // We may need to normalize the drive name to upper-case; at the moment
+        // vscode sends lower-case path names.
+        /*
+        path[0] = toupper(path[0]);
+        */
+        // Make the path all lower-case, since windows is case-insensitive.
+        if (force_lower_on_windows) {
+                for (size_t i = 0; i < path.size(); ++i)
+                        path[i] = (wchar_t)tolower(path[i]);
+        }
 
-	// cquery assumes forward-slashes.
-	std::replace(path.begin(), path.end(), '\\', '/');
+        // cquery assumes forward-slashes.
+        std::replace(path.begin(), path.end(), '\\', '/');
 
 
-	return AbsolutePath(lsp::ws2s(path), false /*validate*/);
+        return AbsolutePath(lsp::ws2s(path), false /*validate*/);
 #else
 
-	return RealPathNotExpandSymlink(path0, ensure_exists);
+        return RealPathNotExpandSymlink(path0, ensure_exists);
 
 #endif
 
@@ -445,166 +445,166 @@ AbsolutePath NormalizePath(const std::string& path0,
 // We use a UTF-8 iterator to approximate UTF-16 in the specification (weird).
 // This is good enough and fails only for UTF-16 surrogate pairs.
 int GetOffsetForPosition(lsPosition position, const std::string& content) {
-	size_t i = 0;
-	// Iterate lines until we have found the correct line.
-	while (position.line > 0 && i < content.size()) {
-		if (content[i] == '\n')
-			position.line--;
-		i++;
-	}
-	// Iterate characters on the target line.
-	while (position.character > 0 && i < content.size()) {
-		if (uint8_t(content[i++]) >= 128) {
-			// Skip 0b10xxxxxx
-			while (i < content.size() && uint8_t(content[i]) >= 128 &&
-				uint8_t(content[i]) < 192)
-				i++;
-		}
-		position.character--;
-	}
-	return int(i);
+        size_t i = 0;
+        // Iterate lines until we have found the correct line.
+        while (position.line > 0 && i < content.size()) {
+                if (content[i] == '\n')
+                        position.line--;
+                i++;
+        }
+        // Iterate characters on the target line.
+        while (position.character > 0 && i < content.size()) {
+                if (uint8_t(content[i++]) >= 128) {
+                        // Skip 0b10xxxxxx
+                        while (i < content.size() && uint8_t(content[i]) >= 128 &&
+                                uint8_t(content[i]) < 192)
+                                i++;
+                }
+                position.character--;
+        }
+        return int(i);
 }
 
 
 lsPosition GetPositionForOffset(size_t offset,const  std::string& content) {
-	lsPosition result;
-	for (size_t i = 0; i < offset && i < content.length(); ++i) {
-		if (content[i] == '\n') {
-			result.line++;
-			result.character = 0;
-		}
-		else {
-			result.character++;
-		}
-	}
-	return result;
+        lsPosition result;
+        for (size_t i = 0; i < offset && i < content.length(); ++i) {
+                if (content[i] == '\n') {
+                        result.line++;
+                        result.character = 0;
+                }
+                else {
+                        result.character++;
+                }
+        }
+        return result;
 }
 
 lsPosition CharPos(const  std::string& search,
-	char character,
-	int character_offset) {
-	lsPosition result;
-	size_t index = 0;
-	while (index < search.size()) {
-		char c = search[index];
-		if (c == character)
-			break;
-		if (c == '\n') {
-			result.line += 1;
-			result.character = 0;
-		}
-		else {
-			result.character += 1;
-		}
-		++index;
-	}
-	assert(index < search.size());
-	result.character += character_offset;
-	return result;
+        char character,
+        int character_offset) {
+        lsPosition result;
+        size_t index = 0;
+        while (index < search.size()) {
+                char c = search[index];
+                if (c == character)
+                        break;
+                if (c == '\n') {
+                        result.line += 1;
+                        result.character = 0;
+                }
+                else {
+                        result.character += 1;
+                }
+                ++index;
+        }
+        assert(index < search.size());
+        result.character += character_offset;
+        return result;
 }
 
 void scanDirsUseRecursive(const std::wstring& rootPath, std::vector<std::wstring>& ret)
 {
-	namespace fs = boost::filesystem;
-	fs::path fullpath(rootPath);
-	if (!fs::exists(fullpath)) { return; }
-	fs::recursive_directory_iterator end_iter;
-	for (fs::recursive_directory_iterator iter(fullpath); iter != end_iter; iter++) {
-		try {
-			if (fs::is_directory(*iter)) {
-				ret.push_back(iter->path().wstring());
-			}
-		}
-		catch (const std::exception& ex) {
-			continue;
-		}
-	}
+        namespace fs = boost::filesystem;
+        fs::path fullpath(rootPath);
+        if (!fs::exists(fullpath)) { return; }
+        fs::recursive_directory_iterator end_iter;
+        for (fs::recursive_directory_iterator iter(fullpath); iter != end_iter; iter++) {
+                try {
+                        if (fs::is_directory(*iter)) {
+                                ret.push_back(iter->path().wstring());
+                        }
+                }
+                catch (const std::exception& ex) {
+                        continue;
+                }
+        }
 }
 
 void scanDirsNoRecursive(const std::wstring& rootPath, std::vector<std::wstring>& ret)
 {
-	namespace fs = boost::filesystem;
-	boost::filesystem::path myPath(rootPath);
-	if (!fs::exists(rootPath)) { return; }
-	boost::filesystem::directory_iterator endIter;
-	for (boost::filesystem::directory_iterator iter(myPath); iter != endIter; iter++) {
-		if (boost::filesystem::is_directory(*iter)) {
-			ret.push_back(iter->path().wstring());
-		}
-	}
+        namespace fs = boost::filesystem;
+        boost::filesystem::path myPath(rootPath);
+        if (!fs::exists(rootPath)) { return; }
+        boost::filesystem::directory_iterator endIter;
+        for (boost::filesystem::directory_iterator iter(myPath); iter != endIter; iter++) {
+                if (boost::filesystem::is_directory(*iter)) {
+                        ret.push_back(iter->path().wstring());
+                }
+        }
 }
 
 void scanFilesUseRecursive(
-	const std::wstring& rootPath,
-	std::vector<std::wstring>& ret,
-	std::wstring suf) {
-	namespace fs = boost::filesystem;
-	boost::to_lower(suf);
+        const std::wstring& rootPath,
+        std::vector<std::wstring>& ret,
+        std::wstring suf) {
+        namespace fs = boost::filesystem;
+        boost::to_lower(suf);
 
-	fs::path fullpath(rootPath);
-	if (!fs::exists(fullpath)) { return; }
-	fs::recursive_directory_iterator end_iter;
-	for (fs::recursive_directory_iterator iter(fullpath); iter != end_iter; iter++) {
-		try {
-			if (!fs::is_directory(*iter) && fs::is_regular_file(*iter)) {
-				auto temp_path = iter->path().wstring();
-				auto size = suf.size();
-				if (!size)
-				{
-					ret.push_back(std::move(temp_path));
-				}
-				else
-				{
+        fs::path fullpath(rootPath);
+        if (!fs::exists(fullpath)) { return; }
+        fs::recursive_directory_iterator end_iter;
+        for (fs::recursive_directory_iterator iter(fullpath); iter != end_iter; iter++) {
+                try {
+                        if (!fs::is_directory(*iter) && fs::is_regular_file(*iter)) {
+                                auto temp_path = iter->path().wstring();
+                                auto size = suf.size();
+                                if (!size)
+                                {
+                                        ret.push_back(std::move(temp_path));
+                                }
+                                else
+                                {
 
-					if (temp_path.size() < size) continue;
-					auto suf_temp = temp_path.substr(temp_path.size() - size);
-					boost::to_lower(suf_temp);
-					if (suf_temp == suf)
-					{
-						ret.push_back(std::move(temp_path));
-					}
-				}
-			}
-		}
-		catch (const std::exception&) {
-			continue;
-		}
-	}
+                                        if (temp_path.size() < size) continue;
+                                        auto suf_temp = temp_path.substr(temp_path.size() - size);
+                                        boost::to_lower(suf_temp);
+                                        if (suf_temp == suf)
+                                        {
+                                                ret.push_back(std::move(temp_path));
+                                        }
+                                }
+                        }
+                }
+                catch (const std::exception&) {
+                        continue;
+                }
+        }
 }
 
 void scanFileNamesUseRecursive(const std::wstring& rootPath, std::vector<std::wstring>& ret,
-	std::wstring strSuf)
+        std::wstring strSuf)
 {
-	scanFilesUseRecursive(rootPath, ret, strSuf);
-	std::vector<std::wstring> names;
-	for (auto& it : ret)
-	{
-		if (it.size() >= rootPath.size())
-		{
-			names.push_back(it.substr(rootPath.size()));
-		}
-	}
-	ret.swap(names);
+        scanFilesUseRecursive(rootPath, ret, strSuf);
+        std::vector<std::wstring> names;
+        for (auto& it : ret)
+        {
+                if (it.size() >= rootPath.size())
+                {
+                        names.push_back(it.substr(rootPath.size()));
+                }
+        }
+        ret.swap(names);
 }
 
 void scanFileNamesUseRecursive(const std::string& rootPath, std::vector<std::string>& ret, std::string strSuf)
 {
-	std::vector<std::wstring> out;
-	scanFileNamesUseRecursive(s2ws(rootPath), out, s2ws(strSuf));
-	for (auto& it : out)
-	{
-		ret.push_back(ws2s(it));
-	}
+        std::vector<std::wstring> out;
+        scanFileNamesUseRecursive(s2ws(rootPath), out, s2ws(strSuf));
+        for (auto& it : out)
+        {
+                ret.push_back(ws2s(it));
+        }
 }
 
 void scanFilesUseRecursive(const std::string& rootPath, std::vector<std::string>& ret, std::string strSuf)
 {
-	std::vector<std::wstring> out;
-	scanFilesUseRecursive(s2ws(rootPath), out, s2ws(strSuf));
-	for (auto& it : out)
-	{
-		ret.push_back(ws2s(it));
-	}
+        std::vector<std::wstring> out;
+        scanFilesUseRecursive(s2ws(rootPath), out, s2ws(strSuf));
+        for (auto& it : out)
+        {
+                ret.push_back(ws2s(it));
+        }
 }
 
 

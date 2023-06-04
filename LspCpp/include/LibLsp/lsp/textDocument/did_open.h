@@ -11,15 +11,15 @@ namespace TextDocumentDidOpen {
   struct Params {
     lsTextDocumentItem textDocument;
 
- 
+
 
    /**
   * Legacy property to support protocol version 1.0 requests.
   */
     std::optional<std::string> text;
-  	
+
    MAKE_SWAP_METHOD(TextDocumentDidOpen::Params, textDocument, text);
-  
+
   };
 
 }

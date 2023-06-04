@@ -16,21 +16,21 @@
 
 namespace TextDocumentHover
 {
-	typedef  std::optional< std::vector< std::pair<std::optional<std::string>, std::optional<lsMarkedString>> > > Left;
-	typedef   std::pair< Left, std::optional<MarkupContent> >  Either;
-	struct Result {
-		/**
-		 * The hover's content as markdown
-		 */
-		Either  contents;
-		
-		/**
-		 * An std::optional range
-		 */
-		std::optional<lsRange> range;
+        typedef  std::optional< std::vector< std::pair<std::optional<std::string>, std::optional<lsMarkedString>> > > Left;
+        typedef   std::pair< Left, std::optional<MarkupContent> >  Either;
+        struct Result {
+                /**
+                 * The hover's content as markdown
+                 */
+                Either  contents;
 
-		MAKE_SWAP_METHOD(Result, contents, range)
-	};
+                /**
+                 * An std::optional range
+                 */
+                std::optional<lsRange> range;
+
+                MAKE_SWAP_METHOD(Result, contents, range)
+        };
 }
 MAKE_REFLECT_STRUCT(TextDocumentHover::Result, contents, range);
 
@@ -44,12 +44,12 @@ DEFINE_REQUEST_RESPONSE_TYPE(td_hover, lsTextDocumentPositionParams, TextDocumen
 //
 //};
 //MAKE_REFLECT_STRUCT(Rsp_TextDocumentHover,
-//	jsonrpc,
-//	id,
-//	result);
+//      jsonrpc,
+//      id,
+//      result);
 
 //MAKE_REFLECT_STRUCT_OPTIONALS_MANDATORY(Rsp_TextDocumentHover,
 //                                        jsonrpc,
-//										 id,
+//                                                                               id,
 //                                        result);
 

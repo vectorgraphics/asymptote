@@ -1,7 +1,7 @@
 // JSON to JSONx conversion example, using SAX API.
 // JSONx is an IBM standard format to represent JSON as XML.
 // https://www-01.ibm.com/support/knowledgecenter/SS9H2Y_7.1.0/com.ibm.dp.doc/json_jsonx.html
-// This example parses JSON text from stdin with validation, 
+// This example parses JSON text from stdin with validation,
 // and convert to JSONx format to stdout.
 // Need compile with -D__STDC_FORMAT_MACROS for defining PRId64 and PRIu64 macros.
 
@@ -24,34 +24,34 @@ public:
     bool Null() {
         return WriteStartElement("null", true);
     }
-    
+
     bool Bool(bool b) {
-        return 
+        return
             WriteStartElement("boolean") &&
             WriteString(b ? "true" : "false") &&
             WriteEndElement("boolean");
     }
-    
+
     bool Int(int i) {
         char buffer[12];
         return WriteNumberElement(buffer, sprintf(buffer, "%d", i));
     }
-    
+
     bool Uint(unsigned i) {
         char buffer[11];
         return WriteNumberElement(buffer, sprintf(buffer, "%u", i));
     }
-    
+
     bool Int64(int64_t i) {
         char buffer[21];
         return WriteNumberElement(buffer, sprintf(buffer, "%" PRId64, i));
     }
-    
+
     bool Uint64(uint64_t i) {
         char buffer[21];
         return WriteNumberElement(buffer, sprintf(buffer, "%" PRIu64, i));
     }
-    
+
     bool Double(double d) {
         char buffer[30];
         return WriteNumberElement(buffer, sprintf(buffer, "%.17g", d));

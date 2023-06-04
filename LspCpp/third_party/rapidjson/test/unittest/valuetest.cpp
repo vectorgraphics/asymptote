@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
+//
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #include "unittest.h"
@@ -161,7 +161,7 @@ TEST(Value, AssignmentOperator) {
 #endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
 }
 
-template <typename A, typename B> 
+template <typename A, typename B>
 void TestEqual(const A& a, const B& b) {
     EXPECT_TRUE (a == b);
     EXPECT_FALSE(a != b);
@@ -169,7 +169,7 @@ void TestEqual(const A& a, const B& b) {
     EXPECT_FALSE(b != a);
 }
 
-template <typename A, typename B> 
+template <typename A, typename B>
 void TestUnequal(const A& a, const B& b) {
     EXPECT_FALSE(a == b);
     EXPECT_TRUE (a != b);
@@ -1345,7 +1345,7 @@ static void TestObject(T& x, Allocator& allocator) {
 #endif
 
     // member iterator
-    Value::MemberIterator itr = x.MemberBegin(); 
+    Value::MemberIterator itr = x.MemberBegin();
     EXPECT_TRUE(itr != x.MemberEnd());
     EXPECT_STREQ("A", itr->name.GetString());
     EXPECT_STREQ("Apple", itr->value.GetString());
@@ -1361,7 +1361,7 @@ static void TestObject(T& x, Allocator& allocator) {
     EXPECT_FALSE(itr != x.MemberEnd());
 
     // const member iterator
-    Value::ConstMemberIterator citr = y.MemberBegin(); 
+    Value::ConstMemberIterator citr = y.MemberBegin();
     EXPECT_TRUE(citr != y.MemberEnd());
     EXPECT_STREQ("A", citr->name.GetString());
     EXPECT_STREQ("Apple", citr->value.GetString());

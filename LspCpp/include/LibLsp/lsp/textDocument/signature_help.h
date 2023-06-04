@@ -6,8 +6,8 @@
 #include "LibLsp/lsp/lsMarkedString.h"
 #include "LibLsp/lsp/lsTextDocumentPositionParams.h"
 
-extern  void Reflect(Reader& visitor, 
-	std::pair<std::optional<std::string>, std::optional<MarkupContent>>& value);
+extern  void Reflect(Reader& visitor,
+        std::pair<std::optional<std::string>, std::optional<MarkupContent>>& value);
 
 
 
@@ -72,9 +72,9 @@ struct lsSignatureHelp {
 
 
   MAKE_SWAP_METHOD(lsSignatureHelp,
-	  signatures,
-	  activeSignature,
-	  activeParameter)
+          signatures,
+          activeSignature,
+          activeParameter)
 };
 MAKE_REFLECT_STRUCT(lsSignatureHelp,
                     signatures,

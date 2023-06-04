@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
+//
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #include "perftest.h"
@@ -91,14 +91,14 @@ TEST_F(Platform, Whitespace_strlen) {
     for (int i = 0; i < kTrialCount; i++) {
         size_t l = strlen(whitespace_);
         EXPECT_GT(l, whitespace_length_);
-    }       
+    }
 }
 
 TEST_F(Platform, Whitespace_strspn) {
     for (int i = 0; i < kTrialCount; i++) {
         size_t l = strspn(whitespace_, " \n\r\t");
         EXPECT_EQ(whitespace_length_, l);
-    }       
+    }
 }
 
 TEST_F(Platform, fread) {
