@@ -35,11 +35,11 @@ struct SelectionRange {
         /**
          * The parent selection range containing this range. Therefore `parent.range` must contain `this.range`.
          */
-        std::optional<SelectionRange*> parent;
+        optional<SelectionRange*> parent;
         MAKE_SWAP_METHOD(SelectionRange, range, parent)
 };
 
-extern  void Reflect(Reader& visitor, std::optional<SelectionRange*>& value);
+extern  void Reflect(Reader& visitor, optional<SelectionRange*>& value);
 extern void Reflect(Writer& visitor, SelectionRange* value);
 
 MAKE_REFLECT_STRUCT(SelectionRange,range,parent)

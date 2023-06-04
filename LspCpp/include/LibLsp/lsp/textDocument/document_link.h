@@ -24,9 +24,9 @@ struct lsDocumentLink {
   // The range this link applies to.
   lsRange range;
   // The uri this link points to. If missing a resolve request is sent later.
-  std::optional<lsDocumentUri> target;
+  optional<lsDocumentUri> target;
 
-  std::optional<lsp::Any> data;
+  optional<lsp::Any> data;
 
   MAKE_SWAP_METHOD(lsDocumentLink, range, target, data)
 

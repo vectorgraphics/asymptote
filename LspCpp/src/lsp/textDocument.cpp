@@ -231,7 +231,7 @@ void Reflect(Reader& visitor, TextDocumentDocumentSymbol::Either& value)
         }
 }
 
-void Reflect(Reader& visitor, std::pair<std::optional<std::string>, std::optional<lsMarkedString>>& value)
+void Reflect(Reader& visitor, std::pair<optional<std::string>, optional<lsMarkedString>>& value)
 {
 
         if (!visitor.IsString())
@@ -244,7 +244,7 @@ void Reflect(Reader& visitor, std::pair<std::optional<std::string>, std::optiona
         }
 }
 
-void Reflect(Reader& visitor, std::pair<std::optional<std::string>, std::optional<MarkupContent>>& value)
+void Reflect(Reader& visitor, std::pair<optional<std::string>, optional<MarkupContent>>& value)
 {
         if (!visitor.IsString())
         {

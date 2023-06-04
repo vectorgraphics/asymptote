@@ -104,7 +104,7 @@ namespace lsp {
 /// (If the context is within multiple nested tasks, true if any are cancelled).
 /// Always zero if there is no active cancelable task.
 /// This isn't free (context lookup) - don't call it in a tight loop.
-        std::optional<CancelMonitor> getCancelledMonitor(const lsRequestId& id, const Context& ctx = Context::current()){
+        optional<CancelMonitor> getCancelledMonitor(const lsRequestId& id, const Context& ctx = Context::current()){
                 for (const CancelState* state = ctx.get(g_stateKey); state != nullptr;
                         state = state->parent)
                 {

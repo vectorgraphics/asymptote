@@ -32,7 +32,7 @@ MAKE_REFLECT_STRUCT(PrepareRenameResult,range,placeholder)
 
 
 
-typedef  std::pair< std::optional< lsRange>, std::optional<PrepareRenameResult>> TextDocumentPrepareRenameResult;
+typedef  std::pair< optional< lsRange>, optional<PrepareRenameResult>> TextDocumentPrepareRenameResult;
 extern void  Reflect(Reader& visitor, TextDocumentPrepareRenameResult& value);
 
 

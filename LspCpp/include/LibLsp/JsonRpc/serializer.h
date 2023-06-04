@@ -12,6 +12,7 @@
 #include <map>
 #include <algorithm>
 
+#include "optionalVersion.h"
 
 struct AbsolutePath;
 
@@ -202,7 +203,7 @@ void Reflect(Writer& visitor, SerializeFormat& value);
 
 //// Type constructors
 template <typename T>
-void Reflect(Reader& visitor, std::optional<T>& value) {
+void Reflect(Reader& visitor, optional<T>& value) {
         if (visitor.IsNull()) {
                 visitor.GetNull();
                 return;
@@ -212,7 +213,7 @@ void Reflect(Reader& visitor, std::optional<T>& value) {
         value = std::move(real_value);
 }
 template <typename T>
-void Reflect(Writer& visitor, std::optional<T>& value) {
+void Reflect(Writer& visitor, optional<T>& value) {
         if (value)
                 Reflect(visitor, *value);
         else
@@ -221,7 +222,7 @@ void Reflect(Writer& visitor, std::optional<T>& value) {
 
 
 template <typename T>
-void ReflectMember(Writer& visitor, const char* name, std::optional<T>& value) {
+void ReflectMember(Writer& visitor, const char* name, optional<T>& value) {
         // For TypeScript optional property key?: value in the spec,
         // We omit both key and value if value is std::nullopt (null) for JsonWriter
         // to reduce output. But keep it for other serialization formats.
@@ -323,7 +324,7 @@ void ReflectMember(Writer& visitor, const char* name, T& value) {
 }
 
 template<class _Ty1, class _Ty2>
-void Reflect(Writer& visitor, std::pair<  std::optional<_Ty1>, std::optional<_Ty2> >& value)
+void Reflect(Writer& visitor, std::pair<  optional<_Ty1>, optional<_Ty2> >& value)
 {
         if (value.first)
         {
@@ -335,7 +336,7 @@ void Reflect(Writer& visitor, std::pair<  std::optional<_Ty1>, std::optional<_Ty
         }
 }
 template<class _Ty2>
-void Reflect(Reader& visitor, std::pair<  std::optional<bool>, std::optional<_Ty2> >& value)
+void Reflect(Reader& visitor, std::pair<  optional<bool>, optional<_Ty2> >& value)
 {
         if(visitor.IsBool())
         {
@@ -346,7 +347,7 @@ void Reflect(Reader& visitor, std::pair<  std::optional<bool>, std::optional<_Ty
         Reflect(visitor, value.second);
 }
 template<class _Ty2>
-void Reflect(Reader& visitor, std::pair<  std::optional<std::string>, std::optional<_Ty2> >& value)
+void Reflect(Reader& visitor, std::pair<  optional<std::string>, optional<_Ty2> >& value)
 {
         if (visitor.IsString())
         {
@@ -359,7 +360,7 @@ void Reflect(Reader& visitor, std::pair<  std::optional<std::string>, std::optio
 
 
 template<class _Ty1, class _Ty2>
-void Reflect(Reader& visitor, std::pair<  std::optional<_Ty1>, std::optional<_Ty2> >& value)
+void Reflect(Reader& visitor, std::pair<  optional<_Ty1>, optional<_Ty2> >& value)
 {
         try
         {

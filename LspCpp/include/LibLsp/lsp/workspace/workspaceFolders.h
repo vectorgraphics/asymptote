@@ -30,5 +30,5 @@ MAKE_REFLECT_STRUCT(WorkspaceFolder, uri, name);
  *         the workspace folders otherwise.
  */
 DEFINE_REQUEST_RESPONSE_TYPE(WorkspaceFolders,
-        std::optional<JsonNull>, std::optional<std::vector< WorkspaceFolder>>, "workspace/workspaceFolders");
+        optional<JsonNull>, optional<std::vector< WorkspaceFolder>>, "workspace/workspaceFolders");
 

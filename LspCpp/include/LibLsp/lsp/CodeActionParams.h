@@ -77,7 +77,7 @@ struct lsCodeActionContext {
          *
          * See {@link CodeActionKind} for allowed values.
          */
-        std::optional<std::vector<std::string>> only;
+        optional<std::vector<std::string>> only;
 
         MAKE_SWAP_METHOD(lsCodeActionContext,
                 diagnostics, only);

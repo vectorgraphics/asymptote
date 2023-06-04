@@ -8,7 +8,7 @@
 //and partial result progress to support streaming of results.
 struct  ProgressParams
 {
-        std::pair<std::optional<std::string> , std::optional<int> > token;
+        std::pair<optional<std::string> , optional<int> > token;
         lsp::Any value;
         MAKE_SWAP_METHOD(ProgressParams, token, value)
 };

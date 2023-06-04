@@ -38,7 +38,7 @@ public:
 MAKE_REFLECT_STRUCT(FileRenameParams, files);
 
 
-DEFINE_REQUEST_RESPONSE_TYPE(td_didRenameFiles, FileRenameParams, std::optional<lsWorkspaceEdit>, "java/didRenameFiles");
+DEFINE_REQUEST_RESPONSE_TYPE(td_didRenameFiles, FileRenameParams, optional<lsWorkspaceEdit>, "java/didRenameFiles");
 
 
-DEFINE_REQUEST_RESPONSE_TYPE(td_willRenameFiles, FileRenameParams, std::optional<lsWorkspaceEdit>, "java/willRenameFiles");
+DEFINE_REQUEST_RESPONSE_TYPE(td_willRenameFiles, FileRenameParams, optional<lsWorkspaceEdit>, "java/willRenameFiles");

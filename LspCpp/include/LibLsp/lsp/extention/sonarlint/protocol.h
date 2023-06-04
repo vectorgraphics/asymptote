@@ -18,8 +18,8 @@ struct LintRule
                 return name + " (" + key + ")";
         }
         bool activeByDefault = true;
-        std::optional<std::string> severity;
-        std::optional<std::string> type;
+        optional<std::string> severity;
+        optional<std::string> type;
         int icon_index = -1;
         MAKE_SWAP_METHOD(LintRule, key, name, activeByDefault, severity, type);
 
@@ -29,25 +29,25 @@ MAKE_REFLECT_STRUCT(LintRule, key, name, activeByDefault, severity, type);
 
 struct RuleParameter {
         std::string name;
-        std::optional<std::string>  description;
-        std::optional<std::string> defaultValue;
+        optional<std::string>  description;
+        optional<std::string> defaultValue;
 
 };
 MAKE_REFLECT_STRUCT(RuleParameter, name, description, defaultValue);
 
 struct ShowRuleDescriptionParams {
 
-        std::optional<std::string> key;
+        optional<std::string> key;
 
-        std::optional<std::string> name;
+        optional<std::string> name;
 
-        std::optional<std::string> htmlDescription;
+        optional<std::string> htmlDescription;
 
-        std::optional<std::string>  type;
+        optional<std::string>  type;
 
-        std::optional<std::string>  severity;
+        optional<std::string>  severity;
 
-        std::optional< std::vector<RuleParameter> >   parameters;
+        optional< std::vector<RuleParameter> >   parameters;
         MAKE_SWAP_METHOD(ShowRuleDescriptionParams, key, name, htmlDescription, type, severity, parameters)
 
 
@@ -82,7 +82,7 @@ struct ServerConnectionSettings {
         std::string connectionId;
         std::string serverUrl;
         std::string token;
-        std::optional<std::string> organizationKey;
+        optional<std::string> organizationKey;
         MAKE_SWAP_METHOD(ServerConnectionSettings, connectionId, serverUrl, token, organizationKey)
 
 };
@@ -114,28 +114,28 @@ struct RuleSetting
                         off();
                 }
         }
-        std::optional< std::map<std::string, std::string > > parameters;
+        optional< std::map<std::string, std::string > > parameters;
 };
 MAKE_REFLECT_STRUCT(RuleSetting, level, parameters)
 
 struct ConsoleParams
 {
-        std::optional < bool >showAnalyzerLogs;
-        std::optional < bool >showVerboseLogs;
+        optional < bool >showAnalyzerLogs;
+        optional < bool >showVerboseLogs;
         MAKE_SWAP_METHOD(ConsoleParams, showAnalyzerLogs, showVerboseLogs)
 };
 MAKE_REFLECT_STRUCT(ConsoleParams, showAnalyzerLogs, showVerboseLogs)
 
 struct SonarLintWorkspaceSettings
 {
-        std::optional < bool > disableTelemetry;
-        std::optional < std::map<std::string, ServerConnectionSettings> >connectedMode;
-        std::optional<std::map<std::string, RuleSetting>>  rules;
-        std::optional<ConsoleParams> output;
+        optional < bool > disableTelemetry;
+        optional < std::map<std::string, ServerConnectionSettings> >connectedMode;
+        optional<std::map<std::string, RuleSetting>>  rules;
+        optional<ConsoleParams> output;
 
-        std::optional<std::string >  pathToNodeExecutable;
+        optional<std::string >  pathToNodeExecutable;
 
-        std::optional< std::map<std::string, std::string > > getConfigurationParameters(const std::string& ruleKey);
+        optional< std::map<std::string, std::string > > getConfigurationParameters(const std::string& ruleKey);
 
 
 };

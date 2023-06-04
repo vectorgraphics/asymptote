@@ -14,7 +14,7 @@
 
 struct  WorkDoneProgressOptions
 {
-        std::optional<bool>workDoneProgress;
+        optional<bool>workDoneProgress;
         MAKE_SWAP_METHOD(WorkDoneProgressOptions, workDoneProgress);
 };
 MAKE_REFLECT_STRUCT(WorkDoneProgressOptions, workDoneProgress);
@@ -24,7 +24,7 @@ struct lsCompletionOptions:WorkDoneProgressOptions
 {
   // The server provides support to resolve additional
   // information for a completion item.
-  std::optional<bool>  resolveProvider = false;
+  optional<bool>  resolveProvider = false;
 
   //
    // Most tools trigger completion request automatically without explicitly requesting
@@ -37,14 +37,14 @@ struct lsCompletionOptions:WorkDoneProgressOptions
    // an identifier (for example `.` in JavaScript) list them in `triggerCharacters`.
    //
   // https://github.com/Microsoft/language-server-protocol/issues/138.
-  std::optional< std::vector<std::string> > triggerCharacters ;
+  optional< std::vector<std::string> > triggerCharacters ;
 
   //
    // The list of all possible characters that commit a completion. This field can be used
    // if clients don't support individual commmit characters per completion item. See
    // `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
    //
-  std::optional< std::vector<std::string> > allCommitCharacters;
+  optional< std::vector<std::string> > allCommitCharacters;
 
   MAKE_SWAP_METHOD(lsCompletionOptions, workDoneProgress, resolveProvider, triggerCharacters, allCommitCharacters);
 };
@@ -102,16 +102,16 @@ MAKE_REFLECT_TYPE_PROXY(lsTextDocumentSyncKind)
 
 struct lsTextDocumentSyncOptions {
   // Open and close notifications are sent to the server.
-  std::optional<bool>  openClose ;
+  optional<bool>  openClose ;
   // Change notificatins are sent to the server. See TextDocumentSyncKind.None,
   // TextDocumentSyncKind.Full and TextDocumentSyncKindIncremental.
-  std::optional< lsTextDocumentSyncKind> change ;
+  optional< lsTextDocumentSyncKind> change ;
   // Will save notifications are sent to the server.
-  std::optional<bool> willSave;
+  optional<bool> willSave;
   // Will save wait until requests are sent to the server.
-  std::optional<bool> willSaveWaitUntil;
+  optional<bool> willSaveWaitUntil;
   // Save notifications are sent to the server.
-  std::optional<lsSaveOptions> save;
+  optional<lsSaveOptions> save;
 
   MAKE_SWAP_METHOD(lsTextDocumentSyncOptions,
           openClose,
@@ -129,18 +129,18 @@ MAKE_REFLECT_STRUCT(lsTextDocumentSyncOptions,
 
 struct SynchronizationCapabilities {
         // Whether text document synchronization supports dynamic registration.
-        std::optional<bool> dynamicRegistration;
+        optional<bool> dynamicRegistration;
 
         // The client supports sending will save notifications.
-        std::optional<bool> willSave;
+        optional<bool> willSave;
 
         // The client supports sending a will save request and
         // waits for a response providing text edits which will
         // be applied to the document before it is saved.
-        std::optional<bool> willSaveWaitUntil;
+        optional<bool> willSaveWaitUntil;
 
         // The client supports did save notifications.
-        std::optional<bool> didSave;
+        optional<bool> didSave;
 
         MAKE_SWAP_METHOD(SynchronizationCapabilities,
                 dynamicRegistration,
@@ -156,7 +156,7 @@ MAKE_REFLECT_STRUCT(SynchronizationCapabilities,
 
 struct CompletionItemKindCapabilities
 {
-        std::optional<std::vector<lsCompletionItemKind> >valueSet;
+        optional<std::vector<lsCompletionItemKind> >valueSet;
         MAKE_SWAP_METHOD(CompletionItemKindCapabilities, valueSet);
 };
 MAKE_REFLECT_STRUCT(CompletionItemKindCapabilities, valueSet);
@@ -168,26 +168,26 @@ struct CompletionItemCapabilities {
         // and `${3:foo}`. `$0` defines the final tab stop, it defaults to
         // the end of the snippet. Placeholders with equal identifiers are linked,
         // that is typing in one will update others too.
-        std::optional<bool> snippetSupport;
+        optional<bool> snippetSupport;
 
         // Client supports commit characters on a completion item.
 
-        std::optional<bool> commitCharactersSupport;
+        optional<bool> commitCharactersSupport;
 
 
         // Client supports the following content formats for the documentation
         // property. The order describes the preferred format of the client.
 
-        std::optional< std::vector<std::string> > documentationFormat;
+        optional< std::vector<std::string> > documentationFormat;
 
         // Client supports the deprecated property on a completion item.
 
-        std::optional<bool> deprecatedSupport;
+        optional<bool> deprecatedSupport;
 
         //
          // Client supports the preselect property on a completion item.
          //
-        std::optional<bool> preselectSupport;
+        optional<bool> preselectSupport;
 
         MAKE_SWAP_METHOD(CompletionItemCapabilities,
                 snippetSupport,
@@ -207,25 +207,25 @@ MAKE_REFLECT_STRUCT(CompletionItemCapabilities,
  //
 struct CompletionCapabilities {
         // Whether completion supports dynamic registration.
-        std::optional<bool> dynamicRegistration;
+        optional<bool> dynamicRegistration;
 
 
 
         // The client supports the following `CompletionItem` specific
         // capabilities.
-        std::optional<CompletionItemCapabilities> completionItem;
+        optional<CompletionItemCapabilities> completionItem;
 
         //
          // The client supports the following `CompletionItemKind` specific
          // capabilities.
          //
-        std::optional<CompletionItemKindCapabilities> completionItemKind;
+        optional<CompletionItemKindCapabilities> completionItemKind;
 
         //
          // The client supports sending additional context information for a
          // `textDocument/completion` request.
          //
-        std::optional<bool> contextSupport;
+        optional<bool> contextSupport;
 
 
         MAKE_SWAP_METHOD(CompletionCapabilities,
@@ -246,7 +246,7 @@ struct HoverCapabilities:public DynamicRegistrationCapabilities
  //
  // See {@link MarkupKind} for allowed values.
  //
-        std::optional<std::vector<std::string>> contentFormat;
+        optional<std::vector<std::string>> contentFormat;
 
         MAKE_SWAP_METHOD(HoverCapabilities, dynamicRegistration, contentFormat);
 };
@@ -262,7 +262,7 @@ struct  ParameterInformationCapabilities {
          //
          // Since 3.14.0
          //
-        std::optional<bool> labelOffsetSupport;
+        optional<bool> labelOffsetSupport;
 
         MAKE_SWAP_METHOD(ParameterInformationCapabilities, labelOffsetSupport);
 };
@@ -293,7 +293,7 @@ struct SignatureHelpCapabilities :public DynamicRegistrationCapabilities
          // The client supports the following `SignatureInformation`
          // specific properties.
          //
-        std::optional< SignatureInformationCapabilities  > signatureInformation;
+        optional< SignatureInformationCapabilities  > signatureInformation;
 
         MAKE_SWAP_METHOD(SignatureHelpCapabilities, dynamicRegistration, signatureInformation)
 };
@@ -303,12 +303,12 @@ struct DocumentSymbolCapabilities :public DynamicRegistrationCapabilities {
         //
          // Specific capabilities for the `SymbolKind`.
          //
-        std::optional<SymbolKindCapabilities>  symbolKind;
+        optional<SymbolKindCapabilities>  symbolKind;
 
         //
          // The client support hierarchical document symbols.
          //
-         std::optional<bool> hierarchicalDocumentSymbolSupport;
+         optional<bool> hierarchicalDocumentSymbolSupport;
 
          MAKE_SWAP_METHOD(DocumentSymbolCapabilities, dynamicRegistration, symbolKind, hierarchicalDocumentSymbolSupport)
 };
@@ -318,7 +318,7 @@ struct DeclarationCapabilities:public DynamicRegistrationCapabilities{
         //
          // The client supports additional metadata in the form of declaration links.
          //
-        std::optional<bool>linkSupport;
+        optional<bool>linkSupport;
 
         MAKE_SWAP_METHOD(DeclarationCapabilities, dynamicRegistration, linkSupport);
 };
@@ -335,7 +335,7 @@ struct CodeActionKindCapabilities
          //
          // See {@link CodeActionKind} for allowed values.
          //
-        std::optional< std::vector< std::string> >valueSet;
+        optional< std::vector< std::string> >valueSet;
 
         MAKE_SWAP_METHOD(CodeActionKindCapabilities, valueSet)
 };
@@ -343,7 +343,7 @@ MAKE_REFLECT_STRUCT(CodeActionKindCapabilities,valueSet)
 
 struct CodeActionLiteralSupportCapabilities
 {
-        std::optional<CodeActionKindCapabilities> codeActionKind;
+        optional<CodeActionKindCapabilities> codeActionKind;
 
         MAKE_SWAP_METHOD(CodeActionLiteralSupportCapabilities, codeActionKind)
 };
@@ -354,7 +354,7 @@ struct CodeActionCapabilities:public DynamicRegistrationCapabilities{
  // The client support code action literals as a valid
  // response of the `textDocument/codeAction` request.
  //
-        std::optional<CodeActionLiteralSupportCapabilities> codeActionLiteralSupport;
+        optional<CodeActionLiteralSupportCapabilities> codeActionLiteralSupport;
 
         MAKE_SWAP_METHOD(CodeActionCapabilities, dynamicRegistration, codeActionLiteralSupport)
 };
@@ -365,7 +365,7 @@ struct RenameCapabilities :public DynamicRegistrationCapabilities {
  // The client support code action literals as a valid
  // response of the `textDocument/codeAction` request.
  //
-        std::optional<bool> prepareSupport;
+        optional<bool> prepareSupport;
 
         MAKE_SWAP_METHOD(RenameCapabilities, dynamicRegistration, prepareSupport)
 };
@@ -385,7 +385,7 @@ struct PublishDiagnosticsClientCapabilities :public DynamicRegistrationCapabilit
  * The client support code action literals as a valid
  * response of the `textDocument/codeAction` request.
  */
-        std::optional<bool> relatedInformation;
+        optional<bool> relatedInformation;
 
         /**
          * Client supports the tag property to provide meta data about a diagnostic.
@@ -398,7 +398,7 @@ struct PublishDiagnosticsClientCapabilities :public DynamicRegistrationCapabilit
          *
          * Since 3.15
          */
-        std::optional < std::pair<std::optional<bool>, std::optional<DiagnosticsTagSupport> > >  tagSupport;
+        optional < std::pair<optional<bool>, optional<DiagnosticsTagSupport> > >  tagSupport;
 
         /**
          * Whether the client interprets the version property of the
@@ -406,14 +406,14 @@ struct PublishDiagnosticsClientCapabilities :public DynamicRegistrationCapabilit
          *
          * Since 3.15.0
          */
-        std::optional<bool> versionSupport;
+        optional<bool> versionSupport;
 
         /**
  * Client supports a codeDescription property
  *
  * @since 3.16.0
  */
-        std::optional<bool> codeDescriptionSupport ;
+        optional<bool> codeDescriptionSupport ;
 
         /**
          * Whether code action supports the `data` property which is
@@ -422,7 +422,7 @@ struct PublishDiagnosticsClientCapabilities :public DynamicRegistrationCapabilit
          *
          * @since 3.16.0
          */
-        std::optional<bool> dataSupport ;
+        optional<bool> dataSupport ;
 
 
         MAKE_SWAP_METHOD(PublishDiagnosticsClientCapabilities, dynamicRegistration, relatedInformation, tagSupport,versionSupport,codeDescriptionSupport,dataSupport)
@@ -435,13 +435,13 @@ struct FoldingRangeCapabilities :public DynamicRegistrationCapabilities {
          // The maximum number of folding ranges that the client prefers to receive per document. The value serves as a
          // hint, servers are free to follow the limit.
          //
-        std::optional<int> rangeLimit;
+        optional<int> rangeLimit;
 
         //
          // If set, the client signals that it only supports folding complete lines. If set, client will
          // ignore specified `startCharacter` and `endCharacter` properties in a FoldingRange.
          //
-        std::optional<bool> lineFoldingOnly;
+        optional<bool> lineFoldingOnly;
         MAKE_SWAP_METHOD(FoldingRangeCapabilities, dynamicRegistration, rangeLimit, lineFoldingOnly)
 };
 MAKE_REFLECT_STRUCT(FoldingRangeCapabilities, dynamicRegistration, rangeLimit,lineFoldingOnly)
@@ -452,7 +452,7 @@ struct SemanticHighlightingCapabilities :public DynamicRegistrationCapabilities 
  // The client support code action literals as a valid
  // response of the `textDocument/codeAction` request.
  //
-        std::optional<bool> semanticHighlighting;
+        optional<bool> semanticHighlighting;
 
         MAKE_SWAP_METHOD(SemanticHighlightingCapabilities, dynamicRegistration, semanticHighlighting)
 };
@@ -478,13 +478,13 @@ struct SemanticTokensClientCapabilities :  public DynamicRegistrationCapabilitie
                  // The client will send the `textDocument/semanticTokens/range` request
                  // if the server provides a corresponding handler.
                  //
-                std::optional<std::pair< std::optional<bool>,
-                std::optional<SemanticTokensClientCapabilitiesRequestsFull>>>  range;
+                optional<std::pair< optional<bool>,
+                optional<SemanticTokensClientCapabilitiesRequestsFull>>>  range;
                 //
                  // The client will send the `textDocument/semanticTokens/full` request
                  // if the server provides a corresponding handler.
                  //
-                std::optional<std::pair< std::optional<bool>, std::optional<lsp::Any>>> full;
+                optional<std::pair< optional<bool>, optional<lsp::Any>>> full;
                 MAKE_SWAP_METHOD(lsRequests, range, full)
         };
 
@@ -505,12 +505,12 @@ struct SemanticTokensClientCapabilities :  public DynamicRegistrationCapabilitie
         //
          // Whether the client supports tokens that can overlap each other.
          //
-        std::optional < bool >overlappingTokenSupport;
+        optional < bool >overlappingTokenSupport;
 
         //
          // Whether the client supports tokens that can span multiple lines.
          //
-        std::optional < bool > multilineTokenSupport;
+        optional < bool > multilineTokenSupport;
 
         MAKE_SWAP_METHOD(SemanticTokensClientCapabilities, dynamicRegistration,requests, tokenTypes, tokenModifiers,
                 formats, overlappingTokenSupport, multilineTokenSupport)
@@ -527,37 +527,37 @@ struct lsTextDocumentClientCapabilities {
 
 
   // Capabilities specific to the `textDocument/completion`
-  std::optional<CompletionCapabilities> completion;
+  optional<CompletionCapabilities> completion;
 
 
 
   // Capabilities specific to the `textDocument/hover`
-  std::optional<HoverCapabilities> hover;
+  optional<HoverCapabilities> hover;
 
   // Capabilities specific to the `textDocument/signatureHelp`
-  std::optional<SignatureHelpCapabilities> signatureHelp;
+  optional<SignatureHelpCapabilities> signatureHelp;
 
   // Capabilities specific to the `textDocument/references`
-  std::optional<DynamicRegistrationCapabilities> references;
+  optional<DynamicRegistrationCapabilities> references;
 
 
 
 
 
   // Capabilities specific to the `textDocument/documentHighlight`
-  std::optional<DynamicRegistrationCapabilities> documentHighlight;
+  optional<DynamicRegistrationCapabilities> documentHighlight;
 
   // Capabilities specific to the `textDocument/documentSymbol`
-  std::optional<DocumentSymbolCapabilities> documentSymbol;
+  optional<DocumentSymbolCapabilities> documentSymbol;
 
   // Capabilities specific to the `textDocument/formatting`
-  std::optional<DynamicRegistrationCapabilities> formatting;
+  optional<DynamicRegistrationCapabilities> formatting;
 
   // Capabilities specific to the `textDocument/rangeFormatting`
-  std::optional<DynamicRegistrationCapabilities> rangeFormatting;
+  optional<DynamicRegistrationCapabilities> rangeFormatting;
 
   // Capabilities specific to the `textDocument/onTypeFormatting`
-  std::optional<DynamicRegistrationCapabilities> onTypeFormatting;
+  optional<DynamicRegistrationCapabilities> onTypeFormatting;
 
 
   //
@@ -565,12 +565,12 @@ struct lsTextDocumentClientCapabilities {
  //
  // Since 3.14.0
  //
-  std::optional< DeclarationCapabilities> declaration;
+  optional< DeclarationCapabilities> declaration;
 
 
   typedef  DeclarationCapabilities DefinitionCapabilities;
   // Capabilities specific to the `textDocument/definition`
-  std::optional<DefinitionCapabilities> definition;
+  optional<DefinitionCapabilities> definition;
 
 
 
@@ -580,23 +580,23 @@ struct lsTextDocumentClientCapabilities {
 // Since 3.6.0
 //
   typedef  DeclarationCapabilities TypeDefinitionCapabilities;
-  std::optional<TypeDefinitionCapabilities>  typeDefinition;
+  optional<TypeDefinitionCapabilities>  typeDefinition;
 
 
   typedef  DeclarationCapabilities ImplementationCapabilities;
   // Capabilities specific to the `textDocument/implementation`
-  std::optional<ImplementationCapabilities> implementation;
+  optional<ImplementationCapabilities> implementation;
 
 
   // Capabilities specific to the `textDocument/codeAction`
-  std::optional<CodeActionCapabilities> codeAction;
+  optional<CodeActionCapabilities> codeAction;
 
 
   // Capabilities specific to the `textDocument/codeLens`
-  std::optional<DynamicRegistrationCapabilities> codeLens;
+  optional<DynamicRegistrationCapabilities> codeLens;
 
   // Capabilities specific to the `textDocument/documentLink`
-  std::optional<DynamicRegistrationCapabilities> documentLink;
+  optional<DynamicRegistrationCapabilities> documentLink;
 
   //
  // Capabilities specific to the `textDocument/documentColor` and the
@@ -604,33 +604,33 @@ struct lsTextDocumentClientCapabilities {
  //
  // Since 3.6.0
  //
-  std::optional<DynamicRegistrationCapabilities> colorProvider;
+  optional<DynamicRegistrationCapabilities> colorProvider;
 
   // Capabilities specific to the `textDocument/rename`
-  std::optional<RenameCapabilities> rename;
+  optional<RenameCapabilities> rename;
 
 //
 // Capabilities specific to `textDocument/publishDiagnostics`.
 //
-  std::optional<PublishDiagnosticsClientCapabilities> publishDiagnostics;
+  optional<PublishDiagnosticsClientCapabilities> publishDiagnostics;
 
   //
 // Capabilities specific to `textDocument/foldingRange` requests.
 //
 // Since 3.10.0
 //
-  std::optional< FoldingRangeCapabilities > foldingRange;
+  optional< FoldingRangeCapabilities > foldingRange;
 
 
   //
    // Capabilities specific to {@code textDocument/semanticHighlighting}.
    //
-  std::optional< SemanticHighlightingCapabilities >  semanticHighlightingCapabilities;
+  optional< SemanticHighlightingCapabilities >  semanticHighlightingCapabilities;
 
   //
    // Capabilities specific to {@code textDocument/typeHierarchy}.
    //
-  std::optional< DynamicRegistrationCapabilities >  typeHierarchyCapabilities;
+  optional< DynamicRegistrationCapabilities >  typeHierarchyCapabilities;
 
 
 
@@ -638,35 +638,35 @@ struct lsTextDocumentClientCapabilities {
 // Capabilities specific to `textDocument/selectionRange` requests
 //
 
-  std::optional< DynamicRegistrationCapabilities > selectionRange;
+  optional< DynamicRegistrationCapabilities > selectionRange;
 
   //
          // Capabilities specific to the `textDocument/linkedEditingRange` request.
          //
          // @since 3.16.0
          //
-  std::optional< DynamicRegistrationCapabilities > linkedEditingRange;
+  optional< DynamicRegistrationCapabilities > linkedEditingRange;
 
   //
    // Capabilities specific to the various call hierarchy requests.
    //
    // @since 3.16.0
    //
-  std::optional< DynamicRegistrationCapabilities > callHierarchy;
+  optional< DynamicRegistrationCapabilities > callHierarchy;
 
   //
    // Capabilities specific to the various semantic token requests.
    //
    // @since 3.16.0
    //
-  std::optional< SemanticTokensClientCapabilities > semanticTokens;
+  optional< SemanticTokensClientCapabilities > semanticTokens;
 
   //
    // Capabilities specific to the `textDocument/moniker` request.
    //
    // @since 3.16.0
    //
-  std::optional< DynamicRegistrationCapabilities >  moniker;
+  optional< DynamicRegistrationCapabilities >  moniker;
 
   MAKE_SWAP_METHOD(lsTextDocumentClientCapabilities,
           synchronization,
