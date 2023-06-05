@@ -683,10 +683,13 @@ private:
 
   uint32_t currentFrame = 0;
   std::vector<FrameObjects> frameObjects;
+  std::string lastAction = "";
 
   void setDimensions(int Width, int Height, double X, double Y);
   void setProjection();
 
+  static std::string getAction(int button, int mod);
+  static void mouseButtonCallback(GLFWwindow * window, int button, int action, int mods);
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
   static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
   static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
@@ -765,6 +768,9 @@ private:
   void cleanup();
 
   // user controls
+  void shift(double dx, double dy);
+  void pan(double dx, double dy);
+  void zoom(double dx, double dy);
   void travelHome();
   void cycleMode();
 };

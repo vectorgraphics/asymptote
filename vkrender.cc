@@ -150,6 +150,7 @@ void AsyVkRender::setProjection()
   projViewMat = projMat * viewMat;
   // should this also be transposed? (would need to update billboardTransform)
   normMat = glm::inverse(viewMat);
+  redraw = true;
 }
 
 triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
@@ -203,11 +204,73 @@ void AsyVkRender::initWindow()
     // remember last window position and size? (have as options?)
     window = glfwCreateWindow(width, height, options.title.data(), nullptr, nullptr);
     glfwSetWindowUserPointer(window, this);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
     glfwSetScrollCallback(window, scrollCallback);
     glfwSetCursorPosCallback(window, cursorPosCallback);
     glfwSetKeyCallback(window, keyCallback);
   }
+}
+
+std::string AsyVkRender::getAction(int button, int mods)
+{
+  size_t Button;
+  size_t nButtons=5;
+  switch(button) {
+    case GLFW_MOUSE_BUTTON_LEFT:
+      Button=0;
+      break;
+    case GLFW_MOUSE_BUTTON_MIDDLE:
+      Button=1;
+      break;
+    case GLFW_MOUSE_BUTTON_RIGHT:
+      Button=2;
+      break;
+    default:
+      Button=nButtons;
+  }
+
+  size_t Mod;
+  size_t nMods=4;
+
+  if (mods == 0)
+    Mod=0;
+  else if(mods & GLFW_MOD_SHIFT)
+    Mod=1;
+  else if(mods & GLFW_MOD_CONTROL)
+    Mod=2;
+  else if(mods & GLFW_MOD_ALT)
+    Mod=3;
+  else
+    Mod=nMods;
+
+  if(Button < nButtons) {
+    auto left=settings::getSetting<vm::array *>("leftbutton");
+    auto middle=settings::getSetting<vm::array *>("middlebutton");
+    auto right=settings::getSetting<vm::array *>("rightbutton");
+    auto wheelup=settings::getSetting<vm::array *>("wheelup");
+    auto wheeldown=settings::getSetting<vm::array *>("wheeldown");
+    vm::array *Buttons[]={left,middle,right,wheelup,wheeldown};
+    auto a=Buttons[button];
+    size_t size=checkArray(a);
+
+    if(Mod < size)
+      return vm::read<std::string>(a,Mod);
+  }
+
+  return "";
+}
+
+void AsyVkRender::mouseButtonCallback(GLFWwindow * window, int button, int action, int mods)
+{
+  auto const currentAction = getAction(button, mods);
+
+  if (currentAction.empty())
+    return;
+
+  auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+
+  app->lastAction = currentAction;
 }
 
 void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int height)
@@ -230,10 +293,13 @@ void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoff
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
   auto zoomFactor = settings::getSetting<double>("zoomfactor");
 
+  if (zoomFactor == 0.0)
+    return;
+
   if (yoffset > 0)
-    app->Zoom0 *= zoomFactor * yoffset;
+    app->Zoom0 *= zoomFactor;
   else
-    app->Zoom0 /= -zoomFactor / yoffset;
+    app->Zoom0 /= -zoomFactor;
 
   app->remesh = true;
   app->redraw = true;
@@ -245,10 +311,18 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
   static double yprev = 0.0;
   static bool first = true;
 
+  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS)
+  {
+    xprev = xpos;
+    yprev = ypos;
+    return;
+  }
+  
+  auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
 
-  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !first) {
-    auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+  std::cout << app->lastAction << std::endl;
 
+  if (app->lastAction == "rotate") {
     
     Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
     triple axis = arcball.axis;
@@ -256,8 +330,23 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
                                  glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
     app->redraw = true;
   }
+  else if (app->lastAction == "shift") {
 
-  if (first) first = false;
+    app->shift(xpos - xprev, ypos - yprev);
+  }
+  else if (app->lastAction == "pan") {
+
+    if (app->orthographic)
+      app->shift(xpos - xprev, ypos - yprev);
+    else {
+      app->pan(xpos - xprev, ypos - yprev);
+    }
+  }
+  else if (app->lastAction == "zoom") {
+
+    app->zoom(0.0, ypos - yprev);
+  }
+
   xprev = xpos;
   yprev = ypos;
 }
@@ -1531,9 +1620,6 @@ void AsyVkRender::drawFrame()
                           &colorData);
   }
 
-  std::cout << "mat: " << colorData.materialVertices.size() << std::endl;
-  std::cout << "clr: " << colorData.colorVertices.size() << std::endl;
-
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
   vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
   vk::Semaphore signalSemaphores[] = {*frameObject.renderFinishedSemaphore};
@@ -1648,6 +1734,39 @@ void AsyVkRender::clearCenters()
 void AsyVkRender::clearMaterials()
 {
   throw std::runtime_error("not implemented");
+}
+
+void AsyVkRender::shift(double dx, double dy)
+{
+  double Zoominv=1.0/Zoom0;
+
+  x += dx*Zoominv;
+  y += -dy*Zoominv;
+  setProjection();
+}
+
+void AsyVkRender::pan(double dx, double dy)
+{
+  cx += dx * (xmax - xmin) / width;
+  cy += dy * (ymax - ymin) / height;
+  setProjection();
+}
+
+void AsyVkRender::zoom(double dx, double dy)
+{
+  double zoomFactor=settings::getSetting<double>("zoomfactor");
+
+  if (zoomFactor == 0.0)
+    return;
+
+  double zoomStep=settings::getSetting<double>("zoomstep");
+  const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
+  double stepPower=zoomStep*dy;
+  if(fabs(stepPower) < limit) {
+    Zoom0 *= std::pow(zoomFactor,stepPower);
+    //capzoom();
+    setProjection();
+  }
 }
 
 void AsyVkRender::travelHome()
