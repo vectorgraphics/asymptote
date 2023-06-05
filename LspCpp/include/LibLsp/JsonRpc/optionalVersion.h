@@ -1,8 +1,10 @@
-#if __cplusplus < 201703L
 #ifndef boost
+
+#if __cplusplus < 201703L
 #include <boost/optional.hpp>
 using boost::optional;
-#endif
 #else
 using std::optional;
+#endif
+
 #endif
