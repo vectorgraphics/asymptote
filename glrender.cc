@@ -1891,9 +1891,10 @@ void init_osmesa()
 bool NVIDIA()
 {
 #ifdef GL_SHADING_LANGUAGE_VERSION
-  char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+  const char *GLSL_VERSION=(const char *)
+    glGetString(GL_SHADING_LANGUAGE_VERSION);
 #else
-  char *GLSL_VERSION="";
+  const char *GLSL_VERSION="";
 #endif
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
@@ -2179,7 +2180,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(glinitialize) {
     glinitialize=false;
 
-    char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+    const char *GLSL_VERSION=(const char *)
+      glGetString(GL_SHADING_LANGUAGE_VERSION);
     GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
 
     if(GLSLversion < 130) {
