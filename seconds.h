@@ -59,7 +59,8 @@ public:
     auto Stop=std::chrono::steady_clock::now();
     double ns=std::chrono::duration_cast<std::chrono::nanoseconds>
       (Stop-Start).count();
-    if(reset) Start=Stop;
+    if(reset)
+      Start=Stop;
     return ns;
   }
 
@@ -82,17 +83,20 @@ public:
     reset();
   }
 
-  double nanoseconds() {
+  double nanoseconds(bool reset=false) {
     auto Stop=std::chrono::steady_clock::now();
     double stop=cpuTime();
-
-    return
-      std::min((double) std::chrono::duration_cast<std::chrono::nanoseconds>
-               (Stop-Start).count(),stop-start);
+    double ns=std::min((double) std::chrono::duration_cast<std::chrono::nanoseconds>
+                       (Stop-Start).count(),stop-start);
+    if(reset) {
+      Start=Stop;
+      start=stop;
+    }
+    return ns;
   }
 
-  double seconds() {
-    return 1.0e-9*nanoseconds();
+  double seconds(bool reset=false) {
+    return 1.0e-9*nanoseconds(reset);
   }
 };
 

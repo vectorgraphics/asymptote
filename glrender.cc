@@ -397,9 +397,17 @@ bool Step;
 
 #ifdef HAVE_GL
 
+stopWatch spinTimer;
+
+void idleFunc(void (*f)())
+{
+  spinTimer.reset();
+  glutIdleFunc(f);
+}
+
 void idle()
 {
-  glutIdleFunc(NULL);
+  idleFunc(NULL);
   Xspin=Yspin=Zspin=Animate=Step=false;
 }
 #endif
@@ -431,8 +439,6 @@ void home(bool webgl=false)
 }
 
 double T[16];
-
-timeval lasttime;
 
 #ifdef HAVE_GL
 
@@ -1166,11 +1172,6 @@ void togglefitscreen()
   fitscreen();
 }
 
-void idleFunc(void (*f)())
-{
-  glutIdleFunc(f);
-}
-
 void screen()
 {
   if(glthread && !interact::interactive)
@@ -1580,13 +1581,7 @@ void mouse(int button, int state, int x, int y)
 
 double spinstep()
 {
-  timeval tv;
-  gettimeofday(&tv,NULL);
-  double step=getSetting<double>("spinstep")*
-    (tv.tv_sec-lasttime.tv_sec+
-     ((double) tv.tv_usec-lasttime.tv_usec)/1000000.0);
-  lasttime=tv;
-  return step;
+  return getSetting<double>("spinstep")*spinTimer.seconds(true);
 }
 
 void xspin()
@@ -1913,7 +1908,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
-  gettimeofday(&lasttime,NULL);
   Iconify=getSetting<bool>("iconify");
 
   if(zoom == 0.0) zoom=1.0;
