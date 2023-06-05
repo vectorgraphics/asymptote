@@ -267,8 +267,8 @@ cputime cputime()
   real[] a=_cputime();
   cputime cputime;
   real clock=a[4];
-  cputime.parent.user=a[0];
-  cputime.parent.system=a[1];
+  cputime.parent.user=a[0]; // Includes system time
+  cputime.parent.system=0;
   cputime.parent.clock=clock;
   cputime.child.user=a[2];
   cputime.child.system=a[3];

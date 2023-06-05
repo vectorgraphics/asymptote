@@ -2,6 +2,7 @@
 #define __seconds_h__ 1
 
 #include <chrono>
+#include <sys/resource.h>
 
 namespace utils {
 
@@ -18,28 +19,25 @@ inline double cpuTime() {
 #include <unistd.h>
 #include <time.h>
 
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-#endif
-
 inline double cpuTime() {
-  timespec t;
-  clockid_t cid;
-
 #ifdef CLOCK_THREAD_CPUTIME_ID
-  cid=CLOCK_THREAD_CPUTIME_ID;
-#else
- #ifdef HAVE_PTHREAD
-  pthread_getcpuclockid(pthread_self(),&cid);
- #elif CLOCK_PROCESS_CPUTIME_ID
-  cid=CLOCK_PROCESS_CPUTIME_ID;
- #else
-  cid=CLOCK_REALTIME;
- #endif
+#define GETTIME_ID CLOCK_THREAD_CPUTIME_ID
+#elif defined(CLOCK_PROCESS_CPUTIME_ID)
+#define GETTIME_ID CLOCK_PROCESS_CPUTIME_ID
 #endif
 
-  clock_gettime(cid,&t);
+#ifdef GETTIME_ID
+  timespec t;
+  clock_gettime(GETTIME_ID,&t);
   return 1.0e9*t.tv_sec+t.tv_nsec;
+#undef GETTIME_ID
+#else
+  struct rusage ru;
+  if(getrusage(RUSAGE_SELF, &ru))
+    return 0;
+  return 1.0e9*(ru.ru_utime.tv_sec+ru.ru_stime.tv_sec)
+    +1.0e3*(ru.ru_utime.tv_usec+ru.ru_stime.tv_usec);
+#endif
 }
 #endif
 
