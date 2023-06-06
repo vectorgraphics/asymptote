@@ -33,7 +33,6 @@ namespace AsymptoteLsp
   using std::shared_ptr;
   using absyntax::block;
   using Level=lsp::Log::Level;
-  using boost::make_optional;
 
   class SearchPathAddition
   {

@@ -8,8 +8,6 @@
 
 namespace AsymptoteLsp
 {
-  using boost::make_optional;
-
   [[nodiscard]]
   bool isVirtualFile(std::string const& filename)
   {
