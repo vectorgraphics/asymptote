@@ -784,7 +784,7 @@ void deleteShaders()
   glDeleteProgram(camp::pixelShader);
 }
 
-void resizeBlendShader(uint maxsize)
+void resizeBlendShader(GLuint maxsize)
 {
   gl::maxSize=ceilpow2(maxsize);
   gl::deleteBlendShader();
