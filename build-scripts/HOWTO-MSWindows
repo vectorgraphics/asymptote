@@ -20,7 +20,7 @@ make install
 
 readline-devel:
 ./configure --prefix=/usr --without-curses --disable-shared
-make install
+make install LOCAL_CFLAGS=-DNEED_EXTERN_PC
 
 fftw3-devel:
 ./configure --prefix=/usr --disable-shared
