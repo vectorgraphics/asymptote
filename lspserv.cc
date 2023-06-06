@@ -33,6 +33,7 @@ namespace AsymptoteLsp
   using std::shared_ptr;
   using absyntax::block;
   using Level=lsp::Log::Level;
+  using boost::make_optional;
 
   class SearchPathAddition
   {
@@ -113,7 +114,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   TextDocumentHover::Either fromString(std::string const& str)
   {
-    auto strobj=std::make_pair(boost::make_optional(str), optional<lsMarkedString>());
+    auto strobj=std::make_pair(make_optional(str), optional<lsMarkedString>());
     std::vector<decltype(strobj)> vec{strobj};
     return std::make_pair(vec, nullopt);
   }
@@ -577,7 +578,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
         posRanges.splice(posRanges.begin(), ctx->searchLitFuncPositions(std::get<0>(st.value()), pos));
       }
     }
-    rsp.result.first=boost::make_optional(std::vector<lsLocation>());
+    rsp.result.first=make_optional(std::vector<lsLocation>());
     std::transform(
             posRanges.begin(), posRanges.end(), std::back_inserter(rsp.result.first.value()),
             [](posRangeInFile const& posRange)

@@ -18,10 +18,16 @@
 #endif
 
 #ifdef HAVE_LSP
-#include <boost/optional.hpp>
+#include <LibLsp/JsonRpc/optionalVersion.h>
+
+#if __cplusplus < 201703L
+#include "optional.hpp"
 #include <boost/none.hpp>
-using boost::optional;
-using boost::make_optional;
+#define nullopt boost::none
+#else
+using std::nullopt;
+#endif
+
 #else
 #include "optional.hpp"
 #define boost nonstd
