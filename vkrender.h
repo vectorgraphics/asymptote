@@ -718,7 +718,10 @@ private:
   void createCommandPools();
   void createCommandBuffers();
   PushConstants buildPushConstants(bool colorVertices);
-  void recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex, DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data);
+  vk::CommandBuffer & getCommandBuffer();
+  void beginFrame(uint32_t imageIndex);
+  void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data);
+  void endFrame();
   void createSyncObjects();
 
   uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);

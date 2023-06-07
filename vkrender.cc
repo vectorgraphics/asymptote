@@ -1515,8 +1515,15 @@ PushConstants AsyVkRender::buildPushConstants(bool colorVertices)
   return pushConstants;
 }
 
-void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t currentFrame, uint32_t imageIndex, DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data)
+vk::CommandBuffer & AsyVkRender::getCommandBuffer()
 {
+  return *frameObjects[currentFrame].commandBuffer;
+}
+
+void AsyVkRender::beginFrame(uint32_t imageIndex)
+{
+  auto & commandBuffer = getCommandBuffer();
+
   auto beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
   commandBuffer.begin(beginInfo);
   std::array<vk::ClearValue, 3> clearColors;
@@ -1528,18 +1535,23 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
 
   auto renderPassInfo = vk::RenderPassBeginInfo(*materialRenderPass, *swapChainFramebuffers[imageIndex], vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent), clearColors.size(), &clearColors[0]);
   commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-  commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *materialPipeline);
+}
 
+void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data)
+{
+  auto & commandBuffer= getCommandBuffer();
   // Initialize buffer data
   auto colorVertices = false;
 
   if (!data->materialVertices.empty())
   {
     setDeviceBufferData(vertexBuffer, data->materialVertices.data(), data->materialVertices.size() * sizeof(camp::MaterialVertex));
+    std::cout << "setting " << data->materialVertices.size() << " vertices" << std::endl;
   }
   else if (!data->colorVertices.empty())
   {
     setDeviceBufferData(vertexBuffer, data->colorVertices.data(), data->colorVertices.size() * sizeof(camp::ColorVertex));
+    std::cout << "setting " << data->colorVertices.size() << " vertices" << std::endl;
     colorVertices = true;
   }
 
@@ -1549,12 +1561,18 @@ void AsyVkRender::recordCommandBuffer(vk::CommandBuffer commandBuffer, uint32_t 
   std::vector<vk::DeviceSize> vertexOffsets = {0};
   auto const pushConstants = buildPushConstants(colorVertices);
 
+  commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *materialPipeline);
   commandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   commandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
   commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *materialPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
   commandBuffer.pushConstants(*materialPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   // TODO: we would need to guarantee that materialVertices and the buffers are synced or have another variable for this
   commandBuffer.drawIndexed(data->indices.size(), 1, 0, 0, 0);
+}
+
+void AsyVkRender::endFrame()
+{
+  auto & commandBuffer = getCommandBuffer();
   commandBuffer.endRenderPass();
   commandBuffer.end();
 }
@@ -1589,31 +1607,26 @@ void AsyVkRender::drawFrame()
   updateUniformBuffer(currentFrame);
   updateBuffers();
 
+  beginFrame(imageIndex);
+
   if (options.mode == DRAWMODE_OUTLINE)
-    recordCommandBuffer(*frameObject.commandBuffer,
-                        currentFrame,
-                        imageIndex,
-                        frameObject.materialVertexBuffer,
+    recordCommandBuffer(frameObject.materialVertexBuffer,
                         frameObject.materialIndexBuffer,
                         &lineData);
-  else
-  {
+
+  if (options.mode != DRAWMODE_OUTLINE) {
     if (!materialData.materialVertices.empty())
-      recordCommandBuffer(*frameObject.commandBuffer,
-                          currentFrame,
-                          imageIndex,
-                          frameObject.materialVertexBuffer,
+      recordCommandBuffer(frameObject.materialVertexBuffer,
                           frameObject.materialIndexBuffer,
                           &materialData);
 
     if (!colorData.colorVertices.empty())
-      recordCommandBuffer(*frameObject.commandBuffer,
-                          currentFrame,
-                          imageIndex,
-                          frameObject.colorVertexBuffer,
+      recordCommandBuffer(frameObject.colorVertexBuffer,
                           frameObject.colorIndexBuffer,
                           &colorData);
   }
+
+  endFrame();
 
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
   vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
