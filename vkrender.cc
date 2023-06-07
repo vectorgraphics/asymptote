@@ -173,12 +173,9 @@ triple AsyVkRender::billboardTransform(const triple& center, const triple& v) co
 double AsyVkRender::getRenderResolution(triple Min) const
 {
   double prerender = settings::getSetting<double>("prerender");
-  std::cout << "HERE" << std::endl;
 
   if (prerender <= 0.0)
     return 0.0;
-
-  std::cout << "HERE2" << std::endl;
 
   prerender = 1.0 / prerender;
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
@@ -319,8 +316,6 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
   }
   
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-
-  std::cout << app->lastAction << std::endl;
 
   if (app->lastAction == "rotate") {
     
