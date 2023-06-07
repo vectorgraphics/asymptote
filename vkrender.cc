@@ -1763,7 +1763,7 @@ void AsyVkRender::zoom(double dx, double dy)
   const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
   double stepPower=zoomStep*dy;
   if(fabs(stepPower) < limit) {
-    Zoom0 *= std::pow(zoomFactor,stepPower);
+    Zoom0 *= std::pow(zoomFactor,-stepPower);
     //capzoom();
     setProjection();
   }
