@@ -19,7 +19,7 @@ gsl-devel:
 make install
 
 readline-devel:
-./configure --prefix=/usr --without-curses --disable-shared
+./configure --prefix=/usr --disable-shared
 make install LOCAL_CFLAGS=-DNEED_EXTERN_PC
 
 fftw3-devel:
