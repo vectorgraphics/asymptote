@@ -787,8 +787,8 @@ SwapChainSupportDetails AsyVkRender::querySwapChainSupport(vk::PhysicalDevice de
 vk::SurfaceFormatKHR AsyVkRender::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
 {
   for (const auto& availableFormat : availableFormats) {
-    if (availableFormat.format == vk::Format::eB8G8R8A8Srgb &&
-        availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
+    if (availableFormat.format == vk::Format::eB8G8R8A8Uint &&
+        availableFormat.colorSpace == vk::ColorSpaceKHR::eAdobergbLinearEXT) {
       return availableFormat;
     }
   }
