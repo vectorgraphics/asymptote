@@ -299,7 +299,7 @@ void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoff
   if (yoffset > 0)
     app->Zoom0 *= zoomFactor;
   else
-    app->Zoom0 /= -zoomFactor;
+    app->Zoom0 /= zoomFactor;
 
   app->remesh = true;
   app->redraw = true;
