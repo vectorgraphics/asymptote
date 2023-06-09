@@ -425,9 +425,10 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       // animate();
       break;
     case 17: // Ctrl-q
-    case 'q':
+    case 'Q':
       //if(!Format.empty()) Export();
-      quit();
+      app->quit();
+      std::cout << "quit" << std::endl;
       break;
   }
 }
@@ -1810,6 +1811,12 @@ void AsyVkRender::clearCenters()
 void AsyVkRender::clearMaterials()
 {
   throw std::runtime_error("not implemented");
+}
+
+void AsyVkRender::quit()
+{
+  glfwDestroyWindow(window);
+  exit(0);
 }
 
 void AsyVkRender::idleFunc(std::function<void()> f)

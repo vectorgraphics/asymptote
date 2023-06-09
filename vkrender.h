@@ -787,6 +787,8 @@ private:
   void idle();
 
   // user controls
+  void quit();
+  
   double spinStep();
   void rotateX(double step);
   void rotateY(double step);
