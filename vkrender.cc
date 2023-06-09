@@ -144,6 +144,8 @@ void AsyVkRender::setProjection()
   } else {
     projMat = glm::frustum(xmin, xmax, ymin, ymax, -Zmax, -Zmin);
   }
+
+  newUniformBuffer = true;
 }
 
 void AsyVkRender::updateViewmodelData()
@@ -163,8 +165,10 @@ void AsyVkRender::update()
   
   setProjection();
   updateViewmodelData();
-  
-  projViewMat = projMat * viewMat;
+
+  static auto const verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
+
+  projViewMat = verticalFlipMat * projMat * viewMat;
   redraw=true;
   //remesh=true;
 }
@@ -557,7 +561,7 @@ void AsyVkRender::initVulkan()
   createSyncObjects();
 
   createDescriptorSetLayout();
-  createComputeDescriptorSetLayout();
+  //createComputeDescriptorSetLayout();
   // createUniformBuffers();
   createBuffers();
   createDescriptorPool();
@@ -565,7 +569,7 @@ void AsyVkRender::initVulkan()
 
   createMaterialRenderPass();
   createMaterialPipeline();
-  createComputePipeline();
+  //createComputePipeline();
 
   createAttachments();
 
@@ -1233,9 +1237,9 @@ void AsyVkRender::createDescriptorPool()
   poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
   poolSizes[0].descriptorCount = options.maxFramesInFlight;
   poolSizes[1].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[1].descriptorCount = 1;
+  poolSizes[1].descriptorCount = options.maxFramesInFlight;
   poolSizes[2].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[2].descriptorCount = 1;
+  poolSizes[2].descriptorCount = options.maxFramesInFlight;
 
   auto poolCI = vk::DescriptorPoolCreateInfo(
     vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
@@ -1541,16 +1545,20 @@ void AsyVkRender::createAttachments()
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 {
+  if (!newUniformBuffer)
+    return;
+
   UniformBufferObject ubo{ };
   // flip Y coordinate for Vulkan (Vulkan has different coordinate system than OpenGL)
-  auto verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
-  ubo.projViewMat = verticalFlipMat * projViewMat;
+  ubo.projViewMat = projViewMat;
   ubo.viewMat = viewMat;
   ubo.normMat = glm::inverse(viewMat);
 
   auto uboData = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
   memcpy(uboData, &ubo, sizeof(ubo));
   device->unmapMemory(*frameObjects[currentFrame].uniformBufferMemory);
+
+  newUniformBuffer = false;
 }
 
 void AsyVkRender::updateBuffers()
@@ -1654,6 +1662,10 @@ void AsyVkRender::drawFrame()
 {
   auto& frameObject = frameObjects[currentFrame];
   // wait until this frame is finished before we start drawing the next one
+
+  updateUniformBuffer(currentFrame);
+  updateBuffers();
+
   device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
 
   // check to see if any pipeline state changed.
@@ -1676,9 +1688,6 @@ void AsyVkRender::drawFrame()
   // signal this frame as in use
   device->resetFences(1, &*frameObject.inFlightFence);
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlags());
-
-  updateUniformBuffer(currentFrame);
-  updateBuffers();
 
   beginFrame(imageIndex);
 

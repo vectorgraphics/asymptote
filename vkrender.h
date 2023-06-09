@@ -489,6 +489,7 @@ public:
   bool framebufferResized = false;
   bool recreatePipeline = false;
   bool newBufferData = true;
+  bool newUniformBuffer = true;
 
   // VertexQueue<MaterialVertex> materialVertices;
   // VertexQueue<ColorVertex> colorVertices;
