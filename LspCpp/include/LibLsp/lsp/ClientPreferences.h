@@ -79,14 +79,14 @@ public:
                 return v3supported && isDynamicRegistrationSupported(textDocument.signatureHelp);
         }
         template<typename  T>
-        static bool isDynamicRegistrationSupported(boost::optional<T>& capability)
+        static bool isDynamicRegistrationSupported(optional<T>& capability)
         {
                 if(capability)
                         return (capability.value().dynamicRegistration.value());
                 return false;
         }
 
-        bool isTrue(const boost::optional<bool>& value)
+        bool isTrue(const optional<bool>& value)
         {
                 return  value.get_value_or(false);
         }
@@ -282,8 +282,8 @@ public:
                 return false;
         }
 
-        bool isTagSupported(const boost::optional < std::pair<boost::optional<bool>,
-                boost::optional<DiagnosticsTagSupport> > >& tagSupport) {
+        bool isTagSupported(const optional < std::pair<optional<bool>,
+                optional<DiagnosticsTagSupport> > >& tagSupport) {
                 if(tagSupport)
                 {
                         auto &v = tagSupport.value();

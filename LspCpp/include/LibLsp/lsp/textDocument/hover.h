@@ -16,8 +16,8 @@
 
 namespace TextDocumentHover
 {
-        typedef  boost::optional< std::vector< std::pair<boost::optional<std::string>, boost::optional<lsMarkedString>> > > Left;
-        typedef   std::pair< Left, boost::optional<MarkupContent> >  Either;
+        typedef  optional< std::vector< std::pair<optional<std::string>, optional<lsMarkedString>> > > Left;
+        typedef   std::pair< Left, optional<MarkupContent> >  Either;
         struct Result {
                 /**
                  * The hover's content as markdown
@@ -25,16 +25,16 @@ namespace TextDocumentHover
                 Either  contents;
 
                 /**
-                 * An boost::optional range
+                 * An optional range
                  */
-                boost::optional<lsRange> range;
+                optional<lsRange> range;
 
                 MAKE_SWAP_METHOD(Result, contents, range)
         };
 }
 MAKE_REFLECT_STRUCT(TextDocumentHover::Result, contents, range);
 
-extern  void Reflect(Reader& visitor, std::pair<boost::optional<std::string>, boost::optional<lsMarkedString>>& value);
+extern  void Reflect(Reader& visitor, std::pair<optional<std::string>, optional<lsMarkedString>>& value);
 extern  void Reflect(Reader& visitor, TextDocumentHover::Either& value);
 
 

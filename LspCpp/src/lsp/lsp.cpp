@@ -397,7 +397,7 @@ bool lsp::Any::GetForMapHelper(std::string& value)
         return Get(value);
 }
 
-bool lsp::Any::GetForMapHelper(boost::optional<std::string>& value)
+bool lsp::Any::GetForMapHelper(optional<std::string>& value)
 {
         return Get(value);
 }
@@ -558,7 +558,7 @@ lsRenameFile::lsRenameFile()
 }
 
 
-void Reflect(Reader& visitor, boost::optional< SelectionRange* >& value)
+void Reflect(Reader& visitor, optional< SelectionRange* >& value)
 {
         if (visitor.IsNull()) {
                 visitor.GetNull();

@@ -9,9 +9,9 @@
 #include "LibLsp/lsp/lsDocumentUri.h"
 struct lsTextDocumentContentChangeEvent {
         // The range of the document that changed.
-        boost::optional<lsRange> range;
+        optional<lsRange> range;
         // The length of the range that got replaced.
-        boost::optional<int> rangeLength;
+        optional<int> rangeLength;
         // The new text of the range/document.
         std::string text;
 
@@ -28,7 +28,7 @@ struct lsTextDocumentDidChangeParams {
          * Legacy property to support protocol version 1.0 requests.
          */
 
-        boost::optional<lsDocumentUri>  uri;
+        optional<lsDocumentUri>  uri;
 
         void swap(lsTextDocumentDidChangeParams& arg) noexcept
         {

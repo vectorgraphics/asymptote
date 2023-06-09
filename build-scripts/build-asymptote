@@ -3,7 +3,7 @@
 HOME=~bowman
 SHARED=$HOME/shared/asy
 
-GCVERSION=8.2.0
+GCVERSION=8.2.4
 ATOMICVERSION=7.6.12
 GC=gc-$GCVERSION
 
@@ -34,7 +34,7 @@ wget https://github.com/ivmai/bdwgc/releases/download/v$GCVERSION/gc-$GCVERSION.
 wget https://github.com/ivmai/libatomic_ops/releases/download/v$ATOMICVERSION/libatomic_ops-$ATOMICVERSION.tar.gz
 cp /usr/local/src/$GC.tar.gz asymptote-$VERSION
 cp /usr/local/src/libatomic_ops-$ATOMICVERSION.tar.gz asymptote-$VERSION
-chown -R root.root asymptote-$VERSION
+chown -R root:root asymptote-$VERSION
 cd asymptote-$VERSION
 find . -name ".[^.]*" -exec rm -rf {} \;
 ./autogen.sh

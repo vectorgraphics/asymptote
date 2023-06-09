@@ -108,7 +108,7 @@ struct lsResponseError {
          * A primitive or structured value that contains additional
          * information about the error. Can be omitted.
          */
-        boost::optional<lsp::Any> data;
+        optional<lsp::Any> data;
         std::string ToString();
         void Write(Writer& visitor);
 

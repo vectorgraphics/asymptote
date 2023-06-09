@@ -27,13 +27,13 @@ struct lsChangeAnnotation
          * A flag which indicates that user confirmation is needed
          * before applying the change.
          */
-        boost::optional<bool>  needsConfirmation;
+        optional<bool>  needsConfirmation;
 
         /**
          * A human-readable string which is rendered less prominent in
          * the user interface.
          */
-        boost::optional < std::string >  description;
+        optional < std::string >  description;
         MAKE_REFLECT_STRUCT(lsChangeAnnotation, label, needsConfirmation, description)
 };
 MAKE_REFLECT_STRUCT(lsChangeAnnotation, label, needsConfirmation, description)
@@ -75,7 +75,7 @@ struct lsTextEdit {
         /**
  * The actual annotation identifier.
  */
-        boost::optional<lsChangeAnnotationIdentifier>  annotationId;
+        optional<lsChangeAnnotationIdentifier>  annotationId;
 
 
                 bool operator==(const lsTextEdit& that);

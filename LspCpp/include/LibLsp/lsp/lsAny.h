@@ -64,7 +64,7 @@ namespace lsp
                 template <typename  T>
                 bool GetForMapHelper(T& value);
                 bool GetForMapHelper(std::string& value);
-                bool GetForMapHelper(boost::optional<std::string>& value);
+                bool GetForMapHelper(optional<std::string>& value);
         private:
                 std::unique_ptr<Reader> GetReader();
                 std::unique_ptr<Writer> GetWriter() const;

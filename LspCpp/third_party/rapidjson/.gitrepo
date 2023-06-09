@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/Tencent/rapidjson
 	branch = master
-	commit = fd3dc29a5c2852df569e1ea81dbde2c412ac5051
+	commit = 973dc9c06dcd3d035ebd039cfb9ea457721ec213
 	parent = b25bcb9c2de273ef723c30fecca87e787ca88c45
 	method = merge
-	cmdver = 0.4.1
+	cmdver = 0.4.6

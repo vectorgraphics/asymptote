@@ -10,7 +10,7 @@ struct lsVersionedTextDocumentIdentifier
 {
         lsDocumentUri uri;
         // The version number of this document.  number | null
-        boost::optional<int> version;
+        optional<int> version;
 
         lsTextDocumentIdentifier AsTextDocumentIdentifier() const;
 

@@ -13,7 +13,7 @@ struct ExecuteCommandParams {
          * The arguments are typically specified when a command is returned from the server to the client.
          * Example requests that return a command are textDocument/codeAction or textDocument/codeLens.
          */
-        boost::optional<std::vector<lsp::Any>>  arguments;
+        optional<std::vector<lsp::Any>>  arguments;
 
         MAKE_SWAP_METHOD(ExecuteCommandParams, command, arguments);
 };

@@ -199,7 +199,7 @@ struct  SemanticTokens{
          * A server can then instead of computing all semantic tokens again simply
          * send a delta.
          */
-   boost::optional<std::string> resultId;
+   optional<std::string> resultId;
    MAKE_SWAP_METHOD(SemanticTokens, data, resultId)
 };
 MAKE_REFLECT_STRUCT(SemanticTokens, data, resultId)
@@ -245,12 +245,12 @@ MAKE_REFLECT_STRUCT(SemanticTokensEdit, startToken, deleteTokens, tokens)
 /// This models LSP SemanticTokensDelta | SemanticTokens, which is the result of
 /// textDocument/semanticTokens/full/delta.
 struct SemanticTokensOrDelta {
-        boost::optional<std::string >  resultId;
+        optional<std::string >  resultId;
         /// Set if we computed edits relative to a previous set of tokens.
-        boost::optional< std::vector<SemanticTokensEdit> > edits;
+        optional< std::vector<SemanticTokensEdit> > edits;
         /// Set if we computed a fresh set of tokens.
         /// Set if we computed edits relative to a previous set of tokens.
-        boost::optional<std::vector<int32_t>> tokens; // encoded as integer array
+        optional<std::vector<int32_t>> tokens; // encoded as integer array
         MAKE_REFLECT_STRUCT(SemanticTokensOrDelta, resultId, edits, tokens)
 };
 MAKE_REFLECT_STRUCT(SemanticTokensOrDelta, resultId, edits, tokens)
@@ -263,5 +263,5 @@ struct SemanticTokensLegend {
 };
 MAKE_REFLECT_STRUCT(SemanticTokensLegend, tokenTypes, tokenModifiers)
 
-DEFINE_REQUEST_RESPONSE_TYPE(td_semanticTokens_full, SemanticTokensParams,boost::optional<SemanticTokens >,"textDocument/semanticTokens/full")
-DEFINE_REQUEST_RESPONSE_TYPE(td_semanticTokens_full_delta, SemanticTokensDeltaParams, boost::optional<SemanticTokensOrDelta >, "textDocument/semanticTokens/full/delta")
+DEFINE_REQUEST_RESPONSE_TYPE(td_semanticTokens_full, SemanticTokensParams,optional<SemanticTokens >,"textDocument/semanticTokens/full")
+DEFINE_REQUEST_RESPONSE_TYPE(td_semanticTokens_full_delta, SemanticTokensDeltaParams, optional<SemanticTokensOrDelta >, "textDocument/semanticTokens/full/delta")

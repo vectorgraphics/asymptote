@@ -1408,10 +1408,13 @@ void initSettings() {
                             "Input code over multiple lines at the prompt"));
   addOption(new boolSetting("xasy", 0,
                             "Interactive mode for xasy"));
+#ifdef HAVE_LSP
   addOption(new boolSetting("lsp", 0, "Interactive mode for the Language Server Protocol"));
-  addOption(new boolSetting("wsl", 0, "Run asy under the Windows Subsystem for Linux."));
   addOption(new envSetting("lspport", ""));
   addOption(new envSetting("lsphost", "127.0.0.1"));
+#endif
+
+  addOption(new boolSetting("wsl", 0, "Run asy under the Windows Subsystem for Linux"));
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));

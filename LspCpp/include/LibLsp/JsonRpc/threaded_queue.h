@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/optional/optional.hpp>
+#include <optional>
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "optionalVersion.h"
 
 struct MultiQueueWaiter;
 
@@ -156,7 +157,7 @@ struct ThreadedQueue : public BaseThreadQueue {
 
   // Get the first element from the queue without blocking. Returns a null
   // value if the queue is empty.
-  boost::optional<T> TryDequeue(bool priority) {
+  optional<T> TryDequeue(bool priority) {
     std::lock_guard<std::mutex> lock(mutex);
 
     auto pop = [&](std::deque<T>* q) {
@@ -167,7 +168,7 @@ struct ThreadedQueue : public BaseThreadQueue {
     };
 
     auto get_result = [&](std::deque<T>* first,
-                          std::deque<T>* second) -> boost::optional<T> {
+                          std::deque<T>* second) -> optional<T> {
       if (!first->empty())
         return pop(first);
       if (!second->empty())
