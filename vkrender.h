@@ -466,7 +466,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display;
     std::string title;
-    int maxFramesInFlight = 1;
+    int maxFramesInFlight = 2;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
   };
