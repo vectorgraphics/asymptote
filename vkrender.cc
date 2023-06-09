@@ -144,13 +144,14 @@ void AsyVkRender::setProjection()
   } else {
     projMat = glm::frustum(xmin, xmax, ymin, ymax, -Zmax, -Zmin);
   }
+}
 
-  // double cz = 0.5 * (Zmin + Zmax);
-  // viewMat = glm::translate(glm::translate(glm::dmat4(1.0), glm::dvec3(cx, cy, cz)) * rotateMat, glm::dvec3(0, 0, -cz));
-  // projViewMat = projMat * viewMat;
-  // // should this also be transposed? (would need to update billboardTransform)
-  // normMat = glm::inverse(viewMat);
-  // redraw = true;
+void AsyVkRender::updateViewmodelData()
+{
+  normMat = glm::inverse(viewMat);
+  double *T=glm::value_ptr(normMat);
+  for(size_t i=0; i < 9; ++i)
+    BBT[i]=T[i];
 }
 
 void AsyVkRender::update()
@@ -161,10 +162,11 @@ void AsyVkRender::update()
   viewMat = glm::translate(glm::translate(glm::dmat4(1.0), glm::dvec3(cx, cy, cz)) * rotateMat, glm::dvec3(0, 0, -cz));
   
   setProjection();
+  updateViewmodelData();
   
   projViewMat = projMat * viewMat;
-  normMat = glm::inverse(viewMat);
   redraw=true;
+  remesh=true;
 }
 
 triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
@@ -312,8 +314,7 @@ void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoff
   else
     app->Zoom0 /= zoomFactor;
 
-  app->remesh = true;
-  app->redraw = true;
+  app->update();
 }
 
 void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
@@ -337,11 +338,12 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
     triple axis = arcball.axis;
     app->rotateMat = glm::rotate(2 * arcball.angle / app->Zoom0 * app->ArcballFactor,
                                  glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
-    app->redraw = true;
+    app->update();
   }
   else if (app->lastAction == "shift") {
 
     app->shift(xpos - xprev, ypos - yprev);
+    app->update();
   }
   else if (app->lastAction == "pan") {
 
@@ -350,6 +352,7 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
     else {
       app->pan(xpos - xprev, ypos - yprev);
     }
+    app->update();
   }
   else if (app->lastAction == "zoom") {
 
@@ -534,6 +537,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   initWindow();
   initVulkan();
+  update();
   mainLoop();
 }
 
@@ -1723,17 +1727,19 @@ void AsyVkRender::drawFrame()
 
 void AsyVkRender::display()
 {
-  update();
+  setProjection();
 
-  // what is this for?
   if(remesh)
     clearCenters();
 
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
 
-  clearVertexBuffers();
-  pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
+  if (remesh)
+  {
+    clearVertexBuffers();
+    pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
+  }
 
   drawFrame();
 
@@ -1743,6 +1749,7 @@ void AsyVkRender::display()
 
 void AsyVkRender::mainLoop()
 {
+  int redrawCount = 0;
   while (!glfwWindowShouldClose(window)) {
     
     glfwPollEvents();
@@ -1755,8 +1762,7 @@ void AsyVkRender::mainLoop()
       redraw = false;
       display();
     } else {
-      // may not be needed if we are waiting for events
-      // usleep(5000);
+      usleep(1);
     }
 
     if (currentIdleFunc != nullptr)
@@ -1947,7 +1953,7 @@ void AsyVkRender::travelHome()
   x = y = cx = cy = 0;
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
-  redraw = true;
+  update();
 }
 
 void AsyVkRender::cycleMode()

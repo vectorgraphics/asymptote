@@ -697,6 +697,7 @@ private:
   std::string lastAction = "";
 
   void setDimensions(int Width, int Height, double X, double Y);
+  void updateViewmodelData();
   void setProjection();
   void update();
 
