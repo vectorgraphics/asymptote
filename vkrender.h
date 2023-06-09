@@ -586,6 +586,7 @@ private:
   int width, height; // width and height of the window
   double aspect;
   double oWidth, oHeight;
+  double lastZoom;
 
   bool remesh = true; // whether picture needs to be remeshed
   bool redraw = true;  // whether a new frame needs to be rendered
@@ -773,6 +774,7 @@ private:
   // user controls
   void shift(double dx, double dy);
   void pan(double dx, double dy);
+  void capzoom();
   void zoom(double dx, double dy);
   void travelHome();
   void cycleMode();

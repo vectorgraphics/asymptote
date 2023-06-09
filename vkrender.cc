@@ -1546,12 +1546,10 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   if (!data->materialVertices.empty())
   {
     setDeviceBufferData(vertexBuffer, data->materialVertices.data(), data->materialVertices.size() * sizeof(camp::MaterialVertex));
-    std::cout << "setting " << data->materialVertices.size() << " vertices" << std::endl;
   }
   else if (!data->colorVertices.empty())
   {
     setDeviceBufferData(vertexBuffer, data->colorVertices.data(), data->colorVertices.size() * sizeof(camp::ColorVertex));
-    std::cout << "setting " << data->colorVertices.size() << " vertices" << std::endl;
     colorVertices = true;
   }
 
@@ -1613,8 +1611,7 @@ void AsyVkRender::drawFrame()
     recordCommandBuffer(frameObject.materialVertexBuffer,
                         frameObject.materialIndexBuffer,
                         &lineData);
-
-  if (options.mode != DRAWMODE_OUTLINE) {
+  else {
     if (!materialData.materialVertices.empty())
       recordCommandBuffer(frameObject.materialVertexBuffer,
                           frameObject.materialIndexBuffer,
@@ -1760,6 +1757,17 @@ void AsyVkRender::pan(double dx, double dy)
   setProjection();
 }
 
+void AsyVkRender::capzoom()
+{
+  static double maxzoom=sqrt(DBL_MAX);
+  static double minzoom=1.0/maxzoom;
+  if(Zoom0 <= minzoom) Zoom0=minzoom;
+  if(Zoom0 >= maxzoom) Zoom0=maxzoom;
+
+  if(Zoom0 != lastZoom) remesh=true;
+  lastZoom=Zoom0;
+}
+
 void AsyVkRender::zoom(double dx, double dy)
 {
   double zoomFactor=settings::getSetting<double>("zoomfactor");
@@ -1772,7 +1780,7 @@ void AsyVkRender::zoom(double dx, double dy)
   double stepPower=zoomStep*dy;
   if(fabs(stepPower) < limit) {
     Zoom0 *= std::pow(zoomFactor,-stepPower);
-    //capzoom();
+    capzoom();
     setProjection();
   }
 }
