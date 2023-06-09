@@ -650,8 +650,15 @@ private:
 
   vk::UniqueRenderPass materialRenderPass;
   vk::UniqueDescriptorSetLayout materialDescriptorSetLayout;
+
   vk::UniquePipelineLayout materialPipelineLayout;
   vk::UniquePipeline materialPipeline;
+
+  vk::UniquePipelineLayout linePipelineLayout;
+  vk::UniquePipeline linePipeline;
+
+  vk::UniquePipelineLayout pointPipelineLayout;
+  vk::UniquePipeline pointPipeline;
 
   vk::UniqueDescriptorSetLayout computeDescriptorSetLayout;
   vk::UniquePipelineLayout computePipelineLayout;
@@ -693,8 +700,8 @@ private:
     DeviceBuffer lineVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
     DeviceBuffer lineIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    // DeviceBuffer pointVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    // DeviceBuffer pointIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer pointVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer pointIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
   };
 
   uint32_t currentFrame = 0;
@@ -738,7 +745,7 @@ private:
   PushConstants buildPushConstants(bool colorVertices);
   vk::CommandBuffer & getCommandBuffer();
   void beginFrame(uint32_t imageIndex);
-  void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data);
+  void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline);
   void endFrame();
   void createSyncObjects();
 
@@ -774,7 +781,8 @@ private:
   void createBuffers();
 
   void createMaterialRenderPass();
-  void createMaterialPipeline();
+  void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline, vk::PrimitiveTopology topology, vk::PolygonMode fillMode);
+  void createGraphicsPipelines();
   void createComputePipeline();
 
   void createAttachments();

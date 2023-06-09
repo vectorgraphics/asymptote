@@ -25,4 +25,5 @@ void main() {
     materialIndex   = inMaterial;
 
     gl_Position     = ubo.projViewMat * vec4(inPosition, 1.0);
+    gl_PointSize = 1;
 }

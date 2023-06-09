@@ -568,7 +568,7 @@ void AsyVkRender::initVulkan()
   createDescriptorSets();
 
   createMaterialRenderPass();
-  createMaterialPipeline();
+  createGraphicsPipelines();
   //createComputePipeline();
 
   createAttachments();
@@ -592,7 +592,7 @@ void AsyVkRender::recreateSwapChain()
   createSwapChain();
   createImageViews();
   createMaterialRenderPass();
-  createMaterialPipeline();
+  createGraphicsPipelines();
   createAttachments();
   createFramebuffers();
 }
@@ -1412,7 +1412,7 @@ void AsyVkRender::createMaterialRenderPass()
   materialRenderPass = device->createRenderPassUnique(renderPassCI, nullptr);
 }
 
-void AsyVkRender::createMaterialPipeline()
+void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline, vk::PrimitiveTopology topology, vk::PolygonMode fillMode)
 {
   auto vertShaderCode = readFile("shaders/material.vert.spv");
   auto fragShaderCode = readFile("shaders/material.frag.spv");
@@ -1434,7 +1434,7 @@ void AsyVkRender::createMaterialPipeline()
 
   auto inputAssemblyCI = vk::PipelineInputAssemblyStateCreateInfo(
     vk::PipelineInputAssemblyStateCreateFlags(),
-    options.mode == DRAWMODE_OUTLINE ? vk::PrimitiveTopology::eLineList : vk::PrimitiveTopology::eTriangleList,
+    topology,
     VK_FALSE
   );
 
@@ -1447,7 +1447,7 @@ void AsyVkRender::createMaterialPipeline()
     vk::PipelineRasterizationStateCreateFlags(),
     VK_FALSE,
     VK_FALSE,
-    options.mode != DRAWMODE_NORMAL ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+    fillMode,
     vk::CullModeFlagBits::eNone,
     vk::FrontFace::eCounterClockwise,
     VK_FALSE,
@@ -1484,15 +1484,28 @@ void AsyVkRender::createMaterialPipeline()
   pipelineLayoutCI.pPushConstantRanges = &flagsPushConstant;
   pipelineLayoutCI.pushConstantRangeCount = 1;
 
-  materialPipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
+  layout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
   auto pipelineCI = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlags(), ARR_VIEW(shaderStages), &vertexInputCI, &inputAssemblyCI, nullptr, &viewportStateCI, &rasterizerCI, &multisamplingCI, &depthStencilCI, &colorBlendCI, nullptr, *materialPipelineLayout, *materialRenderPass, 0, nullptr);
 
   if (auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
       result.result != vk::Result::eSuccess)
-    throw std::runtime_error("failed to create graphics pipeline!");
+    throw std::runtime_error("failed to create pipeline!");
   else
-    materialPipeline = std::move(result.value);
+    pipeline = std::move(result.value);
+}
+
+void AsyVkRender::createGraphicsPipelines()
+{
+  createGraphicsPipeline(materialPipelineLayout, materialPipeline,
+                         vk::PrimitiveTopology::eTriangleList,
+                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill);
+  createGraphicsPipeline(linePipelineLayout, linePipeline,
+                         vk::PrimitiveTopology::eLineList,
+                         vk::PolygonMode::eFill);
+  createGraphicsPipeline(pointPipelineLayout, pointPipeline,
+                         vk::PrimitiveTopology::ePointList,
+                         vk::PolygonMode::eFill);
 }
 
 void AsyVkRender::createComputePipeline()
@@ -1620,7 +1633,7 @@ void AsyVkRender::beginFrame(uint32_t imageIndex)
   commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data)
+void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline)
 {
   auto & commandBuffer= getCommandBuffer();
   // Initialize buffer data
@@ -1635,6 +1648,12 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
     setDeviceBufferData(vertexBuffer, data->colorVertices.data(), data->colorVertices.size() * sizeof(camp::ColorVertex));
     colorVertices = true;
   }
+  else if(!data->pointVertices.empty())
+  {
+    setDeviceBufferData(vertexBuffer, data->pointVertices.data(), data->pointVertices.size() * sizeof(camp::PointVertex));
+  }
+  else
+    return;
 
   setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]));
 
@@ -1642,7 +1661,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   std::vector<vk::DeviceSize> vertexOffsets = {0};
   auto const pushConstants = buildPushConstants(colorVertices);
 
-  commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *materialPipeline);
+  commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
   commandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   commandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
   commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *materialPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
@@ -1671,7 +1690,8 @@ void AsyVkRender::drawFrame()
   // check to see if any pipeline state changed.
   if (recreatePipeline)
   {
-    createMaterialPipeline();
+    device->waitIdle();
+    createGraphicsPipelines();
     recreatePipeline = false;
   }
 
@@ -1691,22 +1711,28 @@ void AsyVkRender::drawFrame()
 
   beginFrame(imageIndex);
 
-  if (options.mode == DRAWMODE_OUTLINE)
+  recordCommandBuffer(frameObject.lineVertexBuffer,
+                      frameObject.lineIndexBuffer,
+                      &lineData,
+                      linePipeline);
+
+  if (options.mode != DRAWMODE_OUTLINE)
+  {
     recordCommandBuffer(frameObject.materialVertexBuffer,
                         frameObject.materialIndexBuffer,
-                        &lineData);
-  else {
-    if (!materialData.materialVertices.empty())
-      recordCommandBuffer(frameObject.materialVertexBuffer,
-                          frameObject.materialIndexBuffer,
-                          &materialData);
+                        &materialData,
+                        materialPipeline);
 
-    if (!colorData.colorVertices.empty())
-      recordCommandBuffer(frameObject.colorVertexBuffer,
-                          frameObject.colorIndexBuffer,
-                          &colorData);
+    recordCommandBuffer(frameObject.colorVertexBuffer,
+                        frameObject.colorIndexBuffer,
+                        &colorData,
+                        materialPipeline);
+
+    // recordCommandBuffer(frameObject.pointVertexBuffer,
+    //                     frameObject.pointIndexBuffer,
+    //                     &pointData,
+    //                     pointPipeline);
   }
-
   endFrame();
 
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
