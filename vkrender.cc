@@ -145,12 +145,26 @@ void AsyVkRender::setProjection()
     projMat = glm::frustum(xmin, xmax, ymin, ymax, -Zmax, -Zmin);
   }
 
+  // double cz = 0.5 * (Zmin + Zmax);
+  // viewMat = glm::translate(glm::translate(glm::dmat4(1.0), glm::dvec3(cx, cy, cz)) * rotateMat, glm::dvec3(0, 0, -cz));
+  // projViewMat = projMat * viewMat;
+  // // should this also be transposed? (would need to update billboardTransform)
+  // normMat = glm::inverse(viewMat);
+  // redraw = true;
+}
+
+void AsyVkRender::update()
+{
+  capzoom();
+
   double cz = 0.5 * (Zmin + Zmax);
   viewMat = glm::translate(glm::translate(glm::dmat4(1.0), glm::dvec3(cx, cy, cz)) * rotateMat, glm::dvec3(0, 0, -cz));
+  
+  setProjection();
+  
   projViewMat = projMat * viewMat;
-  // should this also be transposed? (would need to update billboardTransform)
   normMat = glm::inverse(viewMat);
-  redraw = true;
+  redraw=true;
 }
 
 triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
@@ -358,8 +372,59 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
     case 'H':
       app->travelHome();
       break;
+    case 'F':
+      //toggleFitScreen();
+      break;
+    case 'X':
+      app->spinx();
+      break;
+    case 'Y':
+      app->spiny();
+      break;
+    case 'Z':
+      app->spinz();
+      break;
+    case 'S':
+      //idle();
+      break;
     case 'M':
       app->cycleMode();
+      break;
+    case 'E':
+      //export();
+      break;
+    case 'C':
+      //showCamera();
+      break;
+    case '+':
+    case '=':
+    case '>':
+      //expand();
+      break;
+    case '-':
+    case '_':
+    case '<':
+      //shrink();
+      break;
+    case 'p':
+      // if(getSetting<bool>("reverse")) Animate=false;
+      // Setting("reverse")=Step=false;
+      // animate();
+      break;
+    case 'r':
+      // if(!getSetting<bool>("reverse")) Animate=false;
+      // Setting("reverse")=true;
+      // Step=false;
+      // animate();
+      break;
+    case ' ':
+      // Step=true;
+      // animate();
+      break;
+    case 17: // Ctrl-q
+    case 'q':
+      //if(!Format.empty()) Export();
+      quit();
       break;
   }
 }
@@ -1658,7 +1723,7 @@ void AsyVkRender::drawFrame()
 
 void AsyVkRender::display()
 {
-  setProjection();
+  update();
 
   // what is this for?
   if(remesh)
@@ -1679,11 +1744,8 @@ void AsyVkRender::display()
 void AsyVkRender::mainLoop()
 {
   while (!glfwWindowShouldClose(window)) {
-    // TODO: would we only need to rerender on a new event?
-    // poll blocks until resizing is finished
-    //  - would need to render on a separate thread to have smooth resizing
-    // glfwPollEvents();
-    glfwWaitEvents();
+    
+    glfwPollEvents();
 
     if (framebufferResized) {
       recreateSwapChain();
@@ -1696,6 +1758,9 @@ void AsyVkRender::mainLoop()
       // may not be needed if we are waiting for events
       // usleep(5000);
     }
+
+    if (currentIdleFunc != nullptr)
+      currentIdleFunc();
   }
 
   vkDeviceWaitIdle(*device);
@@ -1741,20 +1806,112 @@ void AsyVkRender::clearMaterials()
   throw std::runtime_error("not implemented");
 }
 
+void AsyVkRender::idleFunc(std::function<void()> f)
+{
+  spinTimer.reset();
+  currentIdleFunc = f;
+}
+
+void AsyVkRender::idle()
+{
+  idleFunc(nullptr);
+  Xspin=Yspin=Zspin=Animate=Step=false;
+}
+
+double AsyVkRender::spinStep()
+{
+  return settings::getSetting<double>("spinstep")*spinTimer.seconds(true);
+}
+
+void AsyVkRender::rotateX(double step)
+{
+  glm::dmat4 tmpRot(1.0);
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),glm::dvec3(1,0,0));
+  rotateMat=tmpRot*rotateMat;
+
+  update();
+}
+
+void AsyVkRender::rotateY(double step)
+{
+  glm::dmat4 tmpRot(1.0);
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),glm::dvec3(0,1,0));
+  rotateMat=tmpRot*rotateMat;
+
+  update();
+}
+
+void AsyVkRender::rotateZ(double step)
+{
+  glm::dmat4 tmpRot(1.0);
+  tmpRot=glm::rotate(tmpRot,glm::radians(step),glm::dvec3(0,0,1));
+  rotateMat=tmpRot*rotateMat;
+
+  update();
+}
+
+void AsyVkRender::xspin()
+{
+  rotateX(spinStep());
+}
+
+void AsyVkRender::yspin()
+{
+  rotateY(spinStep());
+}
+
+void AsyVkRender::zspin()
+{
+  rotateZ(spinStep());
+}
+
+void AsyVkRender::spinx()
+{
+  if(Xspin)
+    idle();
+  else {
+    idleFunc([this](){xspin();});
+    Xspin=true;
+    Yspin=Zspin=false;
+  }
+}
+
+void AsyVkRender::spiny()
+{
+  if(Yspin)
+    idle();
+  else {
+    idleFunc([this](){yspin();});
+    Yspin=true;
+    Xspin=Zspin=false;
+  }
+}
+
+void AsyVkRender::spinz()
+{
+  if(Zspin)
+    idle();
+  else {
+    idleFunc([this](){zspin();});
+    Zspin=true;
+    Xspin=Yspin=false;
+  }
+}
+
 void AsyVkRender::shift(double dx, double dy)
 {
   double Zoominv=1.0/Zoom0;
 
   x += dx*Zoominv;
   y += -dy*Zoominv;
-  setProjection();
+  update();
 }
 
 void AsyVkRender::pan(double dx, double dy)
 {
   cx += dx * (xmax - xmin) / width;
   cy += dy * (ymax - ymin) / height;
-  setProjection();
+  update();
 }
 
 void AsyVkRender::capzoom()
@@ -1781,7 +1938,7 @@ void AsyVkRender::zoom(double dx, double dy)
   if(fabs(stepPower) < limit) {
     Zoom0 *= std::pow(zoomFactor,-stepPower);
     capzoom();
-    setProjection();
+    update();
   }
 }
 

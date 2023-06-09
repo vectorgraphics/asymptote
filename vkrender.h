@@ -48,6 +48,7 @@
 #include "material.h"
 #include "pen.h"
 #include "triple.h"
+#include "seconds.h"
 
 /*
 allow rendering output to file on systems without swapchain support
@@ -546,6 +547,7 @@ public:
   size_t nmaterials;   // Current size of materials buffer
   size_t Maxmaterials; // Maxinum size of materials buffer
 
+
   void updateProjection();
   void frustum(GLdouble left, GLdouble right, GLdouble bottom,
                GLdouble top, GLdouble nearVal, GLdouble farVal);
@@ -587,6 +589,14 @@ private:
   double aspect;
   double oWidth, oHeight;
   double lastZoom;
+
+  utils::stopWatch spinTimer;
+  std::function<void()> currentIdleFunc = nullptr;
+  bool Xspin = false;
+  bool Yspin = false;
+  bool Zspin = false;
+  bool Animate = false;
+  bool Step = false;
 
   bool remesh = true; // whether picture needs to be remeshed
   bool redraw = true;  // whether a new frame needs to be rendered
@@ -688,6 +698,7 @@ private:
 
   void setDimensions(int Width, int Height, double X, double Y);
   void setProjection();
+  void update();
 
   static std::string getAction(int button, int mod);
   static void mouseButtonCallback(GLFWwindow * window, int button, int action, int mods);
@@ -771,7 +782,21 @@ private:
   void mainLoop();
   void cleanup();
 
+  void idleFunc(std::function<void()> f);
+  void idle();
+
   // user controls
+  double spinStep();
+  void rotateX(double step);
+  void rotateY(double step);
+  void rotateZ(double step);
+  void xspin();
+  void yspin();
+  void zspin();
+  void spinx();
+  void spiny();
+  void spinz();
+  
   void shift(double dx, double dy);
   void pan(double dx, double dy);
   void capzoom();
