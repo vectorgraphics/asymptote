@@ -298,7 +298,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->framebufferResized = true;
   app->redraw = true;
   app->remesh = true;
-  //app->setProjection();
+  app->update();
 }
 
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -1572,7 +1572,6 @@ void AsyVkRender::updateBuffers()
   copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
 
   newBufferData = false;
-  std::cout << "copy buffer." << std::endl;
 }
 
 PushConstants AsyVkRender::buildPushConstants(bool colorVertices)
@@ -1742,11 +1741,6 @@ void AsyVkRender::display()
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
 
-  if (remesh)
-  {
-    std::cout << "REMESH" << std::endl;
-  }
-
   clearVertexBuffers();
   pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
 
@@ -1764,10 +1758,6 @@ void AsyVkRender::mainLoop()
   while (!glfwWindowShouldClose(window)) {
     
     glfwPollEvents();
-
-    if (framebufferResized) {
-      recreateSwapChain();
-    }
 
     if(fps) {
       if(framecount < 20) // Measure steady-state framerate
