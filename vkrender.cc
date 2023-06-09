@@ -1737,7 +1737,10 @@ void AsyVkRender::display()
   double diagonalSize = hypot(width, height);
 
   if (remesh)
+  {
     clearVertexBuffers();
+    std::cout << "REMESH" << std::endl;
+  }
 
   pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
 
