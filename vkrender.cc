@@ -1555,6 +1555,9 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
 void AsyVkRender::updateBuffers()
 {
+  if (!newBufferData)
+    return;
+
   std::vector<Light> lights;
 
   for (int i = 0; i < nlights; i++)
@@ -1567,6 +1570,9 @@ void AsyVkRender::updateBuffers()
 
   copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
   copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
+
+  newBufferData = false;
+  std::cout << "copy buffer." << std::endl;
 }
 
 PushConstants AsyVkRender::buildPushConstants(bool colorVertices)
@@ -1738,10 +1744,10 @@ void AsyVkRender::display()
 
   if (remesh)
   {
-    clearVertexBuffers();
     std::cout << "REMESH" << std::endl;
   }
 
+  clearVertexBuffers();
   pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
 
   drawFrame();
@@ -1783,7 +1789,7 @@ void AsyVkRender::mainLoop()
       redraw = false;
       display();
     } else {
-      usleep(1);
+      //usleep(1);
     }
 
     if (currentIdleFunc != nullptr)
