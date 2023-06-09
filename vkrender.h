@@ -49,6 +49,7 @@
 #include "pen.h"
 #include "triple.h"
 #include "seconds.h"
+#include "statistics.h"
 
 /*
 allow rendering output to file on systems without swapchain support
@@ -466,7 +467,7 @@ public:
     bool display;
     std::string title;
     int maxFramesInFlight = 1;
-    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
+    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
   };
 
@@ -591,6 +592,8 @@ private:
   double lastZoom;
 
   utils::stopWatch spinTimer;
+  utils::stopWatch fpsTimer;
+  utils::statistics fpsStats;
   std::function<void()> currentIdleFunc = nullptr;
   bool Xspin = false;
   bool Yspin = false;
@@ -788,7 +791,7 @@ private:
 
   // user controls
   void quit();
-  
+
   double spinStep();
   void rotateX(double step);
   void rotateY(double step);

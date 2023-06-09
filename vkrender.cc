@@ -166,7 +166,7 @@ void AsyVkRender::update()
   
   projViewMat = projMat * viewMat;
   redraw=true;
-  remesh=true;
+  //remesh=true;
 }
 
 triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
@@ -1737,10 +1737,9 @@ void AsyVkRender::display()
   double diagonalSize = hypot(width, height);
 
   if (remesh)
-  {
     clearVertexBuffers();
-    pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
-  }
+
+  pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
 
   drawFrame();
 
@@ -1750,7 +1749,9 @@ void AsyVkRender::display()
 
 void AsyVkRender::mainLoop()
 {
-  int redrawCount = 0;
+  auto const fps = settings::verbose > 2;
+  int framecount = 0;
+
   while (!glfwWindowShouldClose(window)) {
     
     glfwPollEvents();
@@ -1759,7 +1760,23 @@ void AsyVkRender::mainLoop()
       recreateSwapChain();
     }
 
-    if (redraw) {
+    if(fps) {
+      if(framecount < 20) // Measure steady-state framerate
+        fpsTimer.reset();
+      else {
+        double s=fpsTimer.seconds(true);
+        if(s > 0.0) {
+          double rate=1.0/s;
+          fpsStats.add(rate);
+          if(framecount % 20 == 0)
+            cout << "FPS=" << rate << "\t" << fpsStats.mean()
+                 << " +/- " << fpsStats.stdev() << endl;
+        }
+      }
+      ++framecount;
+    }
+
+    if (redraw || true) {
       redraw = false;
       display();
     } else {
