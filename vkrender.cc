@@ -1412,10 +1412,13 @@ void AsyVkRender::createMaterialRenderPass()
   materialRenderPass = device->createRenderPassUnique(renderPassCI, nullptr);
 }
 
-void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline, vk::PrimitiveTopology topology, vk::PolygonMode fillMode)
+template<typename V>
+void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
+                                         vk::PrimitiveTopology topology, vk::PolygonMode fillMode,
+                                         std::string const & shaderFile)
 {
-  auto vertShaderCode = readFile("shaders/material.vert.spv");
-  auto fragShaderCode = readFile("shaders/material.frag.spv");
+  auto vertShaderCode = readFile("shaders/" + shaderFile + ".vert.spv");
+  auto fragShaderCode = readFile("shaders/" + shaderFile + ".frag.spv");
 
   vk::UniqueShaderModule vertShaderModule = createShaderModule(vertShaderCode);
   vk::UniqueShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -1428,8 +1431,8 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
   auto fragShaderStageCI = vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, *fragShaderModule, "main", &specializationInfo);
   vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageCI, fragShaderStageCI};
 
-  auto bindingDescription = MaterialVertex::getBindingDescription();
-  auto attributeDescriptions = MaterialVertex::getAttributeDescriptions();
+  auto bindingDescription = V::getBindingDescription();
+  auto attributeDescriptions = V::getAttributeDescriptions();
   auto vertexInputCI = vk::PipelineVertexInputStateCreateInfo(vk::PipelineVertexInputStateCreateFlags(), 1, &bindingDescription, VEC_VIEW(attributeDescriptions));
 
   auto inputAssemblyCI = vk::PipelineInputAssemblyStateCreateInfo(
@@ -1497,15 +1500,21 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
 
 void AsyVkRender::createGraphicsPipelines()
 {
-  createGraphicsPipeline(materialPipelineLayout, materialPipeline,
+  createGraphicsPipeline<MaterialVertex>
+                         (materialPipelineLayout, materialPipeline,
                          vk::PrimitiveTopology::eTriangleList,
-                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill);
-  createGraphicsPipeline(linePipelineLayout, linePipeline,
+                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                         "material");
+  createGraphicsPipeline<MaterialVertex>
+                         (linePipelineLayout, linePipeline,
                          vk::PrimitiveTopology::eLineList,
-                         vk::PolygonMode::eFill);
-  createGraphicsPipeline(pointPipelineLayout, pointPipeline,
+                         vk::PolygonMode::eFill,
+                         "material");
+  createGraphicsPipeline<PointVertex>
+                         (pointPipelineLayout, pointPipeline,
                          vk::PrimitiveTopology::ePointList,
-                         vk::PolygonMode::eFill);
+                         vk::PolygonMode::ePoint,
+                         "point");
 }
 
 void AsyVkRender::createComputePipeline()
@@ -1715,6 +1724,10 @@ void AsyVkRender::drawFrame()
                       frameObject.lineIndexBuffer,
                       &lineData,
                       linePipeline);
+  recordCommandBuffer(frameObject.pointVertexBuffer,
+                      frameObject.pointIndexBuffer,
+                      &pointData,
+                      pointPipeline);
 
   if (options.mode != DRAWMODE_OUTLINE)
   {
@@ -1727,11 +1740,6 @@ void AsyVkRender::drawFrame()
                         frameObject.colorIndexBuffer,
                         &colorData,
                         materialPipeline);
-
-    // recordCommandBuffer(frameObject.pointVertexBuffer,
-    //                     frameObject.pointIndexBuffer,
-    //                     &pointData,
-    //                     pointPipeline);
   }
   endFrame();
 

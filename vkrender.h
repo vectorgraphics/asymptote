@@ -781,7 +781,10 @@ private:
   void createBuffers();
 
   void createMaterialRenderPass();
-  void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline, vk::PrimitiveTopology topology, vk::PolygonMode fillMode);
+  template<typename V>
+  void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
+                              vk::PrimitiveTopology topology, vk::PolygonMode fillMode,
+                              std::string const & shaderFile);
   void createGraphicsPipelines();
   void createComputePipeline();
 
