@@ -1574,7 +1574,7 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
     return;
 
   UniformBufferObject ubo{ };
-  // flip Y coordinate for Vulkan (Vulkan has different coordinate system than OpenGL)
+
   ubo.projViewMat = projViewMat;
   ubo.viewMat = viewMat;
   ubo.normMat = glm::inverse(viewMat);
@@ -1588,8 +1588,8 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
 void AsyVkRender::updateBuffers()
 {
-  //if (!newBufferData)
-   // return;
+  if (!newBufferData)
+    return;
 
   std::vector<Light> lights;
 
@@ -1647,7 +1647,6 @@ void AsyVkRender::beginFrame(uint32_t imageIndex)
 void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags /*= PUSHFLAGS_NONE*/)
 {
   auto & commandBuffer= getCommandBuffer();
-  // Initialize buffer data
 
   if (data->indices.empty())
     return;
@@ -1764,7 +1763,6 @@ void AsyVkRender::drawFrame()
   else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
     throw std::runtime_error("Failed to acquire next swapchain image.");
 
-  // signal this frame as in use
   device->resetFences(1, &*frameObject.inFlightFence);
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlags());
 
