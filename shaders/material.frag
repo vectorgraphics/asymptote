@@ -2,6 +2,7 @@
 
 #define PUSHFLAGS_NOLIGHT (1 << 0)
 #define PUSHFLAGS_COLORED (1 << 1)
+#define PUSHFLAGS_GENERAL (1 << 2)
 
 struct Material
 {
@@ -110,12 +111,22 @@ void main() {
 
     Material mat;
 
-    if (materialIndex >= 0)
+        
+    if ((flags & PUSHFLAGS_GENERAL) != 0)
+    {
+        mat = materials[abs(materialIndex) - 1];
+
+        if (materialIndex < 0)
+            mat.diffuse = inColor;
+    }
+    else
+    {
         mat = materials[materialIndex];
 
-    if ((flags & PUSHFLAGS_COLORED) != 0)
-        mat.diffuse = inColor;
-
+        if ((flags & PUSHFLAGS_COLORED) != 0)
+            mat.diffuse = inColor;
+    }
+            
     Diffuse = mat.diffuse.rgb;
     Specular = mat.specular.rgb;
     Roughness = 1.f - mat.parameters[0];

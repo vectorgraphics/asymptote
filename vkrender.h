@@ -415,7 +415,8 @@ enum FlagsPushConstant: unsigned int
 {
   PUSHFLAGS_NONE    = 0,
   PUSHFLAGS_NOLIGHT = 1 << 0,
-  PUSHFLAGS_COLORED = 1 << 1
+  PUSHFLAGS_COLORED = 1 << 1,
+  PUSHFLAGS_GENERAL = 1 << 2
 };
 
 struct PushConstants
@@ -536,6 +537,7 @@ public:
   double ArcballFactor;
 
   camp::triple* Lights;
+  double* LightsDiffuse;
   size_t nlights;
   double* Diffuse;
   std::array<float, 4> Background;
@@ -691,11 +693,11 @@ private:
     DeviceBuffer colorVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
     DeviceBuffer colorIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    // DeviceBuffer triangleVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    // DeviceBuffer triangleIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer triangleVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer triangleIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    // DeviceBuffer transparentVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    // DeviceBuffer transparentIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer transparentVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer transparentIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     DeviceBuffer lineVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
     DeviceBuffer lineIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -742,10 +744,10 @@ private:
   void createFramebuffers();
   void createCommandPools();
   void createCommandBuffers();
-  PushConstants buildPushConstants(bool colorVertices);
+  PushConstants buildPushConstants(FlagsPushConstant addFlags);
   vk::CommandBuffer & getCommandBuffer();
   void beginFrame(uint32_t imageIndex);
-  void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline);
+  void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags = PUSHFLAGS_NONE);
   void endFrame();
   void createSyncObjects();
 

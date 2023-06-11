@@ -478,6 +478,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   this->nlights = nlightsin;
   this->Lights = lights;
+  this->LightsDiffuse = diffuse;
 
   for (int i = 0; i < 4; i++)
     this->Background[i] = static_cast<float>(background[i]);
@@ -1585,8 +1586,8 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
 void AsyVkRender::updateBuffers()
 {
-  if (!newBufferData)
-    return;
+  //if (!newBufferData)
+   // return;
 
   std::vector<Light> lights;
 
@@ -1594,7 +1595,9 @@ void AsyVkRender::updateBuffers()
     lights.emplace_back(
       Light {
         {Lights[i].getx(), Lights[i].gety(), Lights[i].getz(), 0.f},
-        {1.f, 1.f, 1.f, 0.f}
+        {static_cast<float>(LightsDiffuse[4 * i]),
+         static_cast<float>(LightsDiffuse[4 * i + 1]),
+         static_cast<float>(LightsDiffuse[4 * i + 2]), 0.f}
       }
     );
 
@@ -1604,18 +1607,15 @@ void AsyVkRender::updateBuffers()
   newBufferData = false;
 }
 
-PushConstants AsyVkRender::buildPushConstants(bool colorVertices)
+PushConstants AsyVkRender::buildPushConstants(FlagsPushConstant addFlags)
 {
   auto pushConstants = PushConstants { };
 
-  pushConstants.constants[0] = PUSHFLAGS_NONE;
+  pushConstants.constants[0] = addFlags;
   pushConstants.constants[1] = nlights;
 
   if (options.mode != DRAWMODE_NORMAL)
     pushConstants.constants[0] |= PUSHFLAGS_NOLIGHT;
-  
-  if (colorVertices)
-    pushConstants.constants[0] |= PUSHFLAGS_COLORED;
   
   return pushConstants;
 }
@@ -1642,11 +1642,10 @@ void AsyVkRender::beginFrame(uint32_t imageIndex)
   commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline)
+void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags /*= PUSHFLAGS_NONE*/)
 {
   auto & commandBuffer= getCommandBuffer();
   // Initialize buffer data
-  auto colorVertices = false;
 
   if (!data->materialVertices.empty())
   {
@@ -1655,7 +1654,6 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   else if (!data->colorVertices.empty())
   {
     setDeviceBufferData(vertexBuffer, data->colorVertices.data(), data->colorVertices.size() * sizeof(camp::ColorVertex));
-    colorVertices = true;
   }
   else if(!data->pointVertices.empty())
   {
@@ -1668,7 +1666,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
 
   std::vector<vk::Buffer> vertexBuffers = {*vertexBuffer.buffer};
   std::vector<vk::DeviceSize> vertexOffsets = {0};
-  auto const pushConstants = buildPushConstants(colorVertices);
+  auto const pushConstants = buildPushConstants(addFlags);
 
   commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
   commandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
@@ -1689,11 +1687,11 @@ void AsyVkRender::endFrame()
 void AsyVkRender::drawFrame()
 {
   auto& frameObject = frameObjects[currentFrame];
-  // wait until this frame is finished before we start drawing the next one
 
   updateUniformBuffer(currentFrame);
   updateBuffers();
 
+  // wait until this frame is finished before we start drawing the next one
   device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
 
   // check to see if any pipeline state changed.
@@ -1729,6 +1727,12 @@ void AsyVkRender::drawFrame()
                       &pointData,
                       pointPipeline);
 
+  recordCommandBuffer(frameObject.triangleVertexBuffer,
+                      frameObject.triangleIndexBuffer,
+                      &triangleData,
+                      materialPipeline,
+                      PUSHFLAGS_GENERAL);
+
   if (options.mode != DRAWMODE_OUTLINE)
   {
     recordCommandBuffer(frameObject.materialVertexBuffer,
@@ -1739,8 +1743,10 @@ void AsyVkRender::drawFrame()
     recordCommandBuffer(frameObject.colorVertexBuffer,
                         frameObject.colorIndexBuffer,
                         &colorData,
-                        materialPipeline);
+                        materialPipeline,
+                        PUSHFLAGS_COLORED);
   }
+
   endFrame();
 
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
@@ -1791,34 +1797,33 @@ void AsyVkRender::display()
 
   if (options.mode != DRAWMODE_OUTLINE)
     remesh = false;
+
+  static auto const fps = settings::verbose > 2;
+  static auto framecount = 0;
+  if(fps) {
+    if(framecount < 20) // Measure steady-state framerate
+      fpsTimer.reset();
+    else {
+      double s=fpsTimer.seconds(true);
+      if(s > 0.0) {
+        double rate=1.0/s;
+        fpsStats.add(rate);
+        if(framecount % 20 == 0)
+          cout << "FPS=" << rate << "\t" << fpsStats.mean()
+               << " +/- " << fpsStats.stdev() << endl;
+      }
+    }
+    ++framecount;
+  }
 }
 
 void AsyVkRender::mainLoop()
 {
-  auto const fps = settings::verbose > 2;
-  int framecount = 0;
-
   while (!glfwWindowShouldClose(window)) {
     
     glfwPollEvents();
 
-    if(fps) {
-      if(framecount < 20) // Measure steady-state framerate
-        fpsTimer.reset();
-      else {
-        double s=fpsTimer.seconds(true);
-        if(s > 0.0) {
-          double rate=1.0/s;
-          fpsStats.add(rate);
-          if(framecount % 20 == 0)
-            cout << "FPS=" << rate << "\t" << fpsStats.mean()
-                 << " +/- " << fpsStats.stdev() << endl;
-        }
-      }
-      ++framecount;
-    }
-
-    if (redraw || true) {
+    if (redraw) {
       redraw = false;
       display();
     } else {
