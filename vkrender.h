@@ -559,7 +559,6 @@ public:
   void ortho(GLdouble left, GLdouble right, GLdouble bottom,
              GLdouble top, GLdouble nearVal, GLdouble farVal);
 
-  void clearVertexBuffers();
   void clearCenters();
   void clearMaterials();
 

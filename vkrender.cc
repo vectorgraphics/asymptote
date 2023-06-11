@@ -1814,7 +1814,6 @@ void AsyVkRender::display()
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
 
-  clearVertexBuffers();
   pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
 
   drawFrame();
@@ -1878,16 +1877,6 @@ void AsyVkRender::ortho(GLdouble left, GLdouble right, GLdouble bottom,
 {
   projMat = glm::ortho(left, right, bottom, top, nearVal, farVal);
   updateProjection();
-}
-
-void AsyVkRender::clearVertexBuffers()
-{
-  materialData.clear();
-  colorData.clear();
-  triangleData.clear();
-  transparentData.clear();
-  lineData.clear();
-  pointData.clear();
 }
 
 void AsyVkRender::clearCenters()
