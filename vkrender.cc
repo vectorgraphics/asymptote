@@ -1684,6 +1684,53 @@ void AsyVkRender::endFrame()
   commandBuffer.end();
 }
 
+void AsyVkRender::drawPoints(FrameObject & object)
+{
+  recordCommandBuffer(object.pointVertexBuffer,
+                      object.pointIndexBuffer,
+                      &pointData,
+                      pointPipeline);
+  pointData.clear();
+}
+
+void AsyVkRender::drawLines(FrameObject & object)
+{
+  recordCommandBuffer(object.lineVertexBuffer,
+                      object.lineIndexBuffer,
+                      &lineData,
+                      linePipeline);
+  lineData.clear();
+}
+
+void AsyVkRender::drawMaterials(FrameObject & object)
+{
+  recordCommandBuffer(object.materialVertexBuffer,
+                      object.materialIndexBuffer,
+                      &materialData,
+                      materialPipeline);
+  materialData.clear();
+}
+
+void AsyVkRender::drawColors(FrameObject & object)
+{
+  recordCommandBuffer(object.colorVertexBuffer,
+                      object.colorIndexBuffer,
+                      &colorData,
+                      materialPipeline,
+                      PUSHFLAGS_COLORED);
+  colorData.clear();
+}
+
+void AsyVkRender::drawTriangles(FrameObject & object)
+{
+  recordCommandBuffer(object.triangleVertexBuffer,
+                      object.triangleIndexBuffer,
+                      &triangleData,
+                      materialPipeline,
+                      PUSHFLAGS_GENERAL);
+  triangleData.clear();
+}
+
 void AsyVkRender::drawFrame()
 {
   auto& frameObject = frameObjects[currentFrame];
@@ -1718,34 +1765,11 @@ void AsyVkRender::drawFrame()
 
   beginFrame(imageIndex);
 
-  recordCommandBuffer(frameObject.lineVertexBuffer,
-                      frameObject.lineIndexBuffer,
-                      &lineData,
-                      linePipeline);
-  recordCommandBuffer(frameObject.pointVertexBuffer,
-                      frameObject.pointIndexBuffer,
-                      &pointData,
-                      pointPipeline);
-
-  recordCommandBuffer(frameObject.triangleVertexBuffer,
-                      frameObject.triangleIndexBuffer,
-                      &triangleData,
-                      materialPipeline,
-                      PUSHFLAGS_GENERAL);
-
-  if (options.mode != DRAWMODE_OUTLINE)
-  {
-    recordCommandBuffer(frameObject.materialVertexBuffer,
-                        frameObject.materialIndexBuffer,
-                        &materialData,
-                        materialPipeline);
-
-    recordCommandBuffer(frameObject.colorVertexBuffer,
-                        frameObject.colorIndexBuffer,
-                        &colorData,
-                        materialPipeline,
-                        PUSHFLAGS_COLORED);
-  }
+  drawPoints(frameObject);
+  drawLines(frameObject);
+  drawMaterials(frameObject);
+  drawColors(frameObject);
+  drawTriangles(frameObject);
 
   endFrame();
 

@@ -672,7 +672,7 @@ private:
   vk::UniqueBuffer lightBuffer;
   vk::UniqueDeviceMemory lightBufferMemory;
 
-  struct FrameObjects {
+  struct FrameObject {
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore renderFinishedSemaphore;
     vk::UniqueFence inFlightFence;
@@ -707,7 +707,7 @@ private:
   };
 
   uint32_t currentFrame = 0;
-  std::vector<FrameObjects> frameObjects;
+  std::vector<FrameObject> frameObjects;
   std::string lastAction = "";
 
   void setDimensions(int Width, int Height, double X, double Y);
@@ -794,6 +794,11 @@ private:
 
   void updateUniformBuffer(uint32_t currentImage);
   void updateBuffers();
+  void drawPoints(FrameObject & object);
+  void drawLines(FrameObject & object);
+  void drawMaterials(FrameObject & object);
+  void drawColors(FrameObject & object);
+  void drawTriangles(FrameObject & object);
   void drawFrame();
   void recreateSwapChain();
   vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
