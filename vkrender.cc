@@ -1647,6 +1647,9 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   auto & commandBuffer= getCommandBuffer();
   // Initialize buffer data
 
+  if (data->indices.empty())
+    return;
+
   if (!data->materialVertices.empty())
   {
     setDeviceBufferData(vertexBuffer, data->materialVertices.data(), data->materialVertices.size() * sizeof(camp::MaterialVertex));
