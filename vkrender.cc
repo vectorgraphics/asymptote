@@ -915,9 +915,11 @@ void AsyVkRender::createSwapChain()
     swapchainCI.oldSwapchain = *swapChain;
 
   if (queueFamilyIndices.renderQueueFamily != queueFamilyIndices.presentQueueFamily) {
+    static uint32_t indices[] = {queueFamilyIndices.renderQueueFamily,queueFamilyIndices.presentQueueFamily};
+
     swapchainCI.imageSharingMode = vk::SharingMode::eConcurrent;
     swapchainCI.queueFamilyIndexCount = 2;
-    swapchainCI.pQueueFamilyIndices=new uint32_t[2] {queueFamilyIndices.renderQueueFamily,queueFamilyIndices.presentQueueFamily};
+    swapchainCI.pQueueFamilyIndices= indices;
   }
 
   swapChain = device->createSwapchainKHRUnique(swapchainCI, nullptr);
