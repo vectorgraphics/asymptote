@@ -939,6 +939,8 @@ void AsyVkRender::createImageViews()
 
 vk::UniqueShaderModule AsyVkRender::createShaderModule(const std::vector<char>& code)
 {
+  //glslang::InitializeProcess();
+
   auto shaderModuleCI =
           vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), code.size(),
                                      reinterpret_cast<const uint32_t*>(code.data()));
@@ -1721,7 +1723,7 @@ void AsyVkRender::drawColors(FrameObject & object)
                       object.colorIndexBuffer,
                       &colorData,
                       materialPipeline,
-                      PUSHFLAGS_COLORED);
+                      options.mode != DRAWMODE_WIREFRAME ? PUSHFLAGS_COLORED : PUSHFLAGS_NONE);
   colorData.clear();
 }
 
