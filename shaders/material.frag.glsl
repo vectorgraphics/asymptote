@@ -1,8 +1,6 @@
 #version 450
-
-#define PUSHFLAGS_NOLIGHT (1 << 0)
-#define PUSHFLAGS_COLORED (1 << 1)
-#define PUSHFLAGS_GENERAL (1 << 2)
+#define MATERIAL
+#define NORMAL
 
 struct Material
 {
@@ -39,12 +37,12 @@ layout(location = 4) flat in int materialIndex;
 layout(push_constant) uniform PushConstants
 {
 	uvec4 constants;
-    // constants[0] = flags
-    // constants[1] = nlights
+    // constants[0] = nlights
 } push;
 
 layout(location = 0) out vec4 outColor;
 
+vec3 Emissive;
 vec3 Diffuse;
 vec3 Specular;
 float Metallic;
@@ -106,27 +104,33 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
 void main() {
 
-    uint flags = push.constants[0];
-    uint nlights = push.constants[1];
+    uint nlights = push.constants[0];
 
     Material mat;
 
-        
-    if ((flags & PUSHFLAGS_GENERAL) != 0)
-    {
-        mat = materials[abs(materialIndex) - 1];
+#ifdef GENERAL
+    mat = materials[abs(materialIndex) - 1];
 
-        if (materialIndex < 0)
-            mat.diffuse = inColor;
+    if (materialIndex < 0) {
+        mat.diffuse = inColor;
+#ifdef NOLIGHTS
+        mat.emissive += inColor;
+#endif /*NOLIGHTS*/
     }
-    else
-    {
-        mat = materials[materialIndex];
 
-        if ((flags & PUSHFLAGS_COLORED) != 0)
-            mat.diffuse = inColor;
-    }
-            
+#else
+
+    mat = materials[materialIndex];
+
+#ifdef COLOR
+    mat.diffuse = inColor;
+#endif /*COLOR*/
+#endif /*GENERAL*/
+
+    outColor = mat.emissive;
+
+#ifdef NORMAL
+
     Diffuse = mat.diffuse.rgb;
     Specular = mat.specular.rgb;
     Roughness = 1.f - mat.parameters[0];
@@ -140,14 +144,6 @@ void main() {
     if (!gl_FrontFacing)
         normal = -normal;
 
-    if (nlights == 0)
-        mat.emissive += inColor;
-
-    outColor = mat.emissive;
-    
-    if ((flags & PUSHFLAGS_NOLIGHT) != 0)
-        return;
-
     for (int i = 0; i < nlights; i++)
     {
         Light light = lights[i];
@@ -157,4 +153,5 @@ void main() {
     }
 
     outColor = vec4(outColor.rgb, mat.diffuse.a);
+#endif /*NORMAL*/
 }

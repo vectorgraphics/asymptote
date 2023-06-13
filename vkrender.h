@@ -22,7 +22,7 @@
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
-//#include <glslang/SPIRV/GlslangToSpv.h>
+#include <glslang/SPIRV/GlslangToSpv.h>
 
 #include <GLFW/glfw3.h>
 
@@ -266,25 +266,29 @@ std::vector<char> readFile(const std::string& filename);
 //   }
 // };
 
+#define POSITION_LOCATION 0
+#define NORMAL_LOCATION   1
+#define MATERIAL_LOCATION 2
+#define COLOR_LOCATION    3
+#define WIDTH_LOCATION    4
+
 struct MaterialVertex // vertexData
 {
   glm::vec3 position;
   glm::vec3 normal;
   glm::i32 material;
-  glm::vec4 color;
 
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
   }
 
-  static std::array<vk::VertexInputAttributeDescription, 4> getAttributeDescriptions()
+  static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
   {
-    return std::array<vk::VertexInputAttributeDescription, 4>{
-            vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)),
-            vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)),
-            vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material)),
-            vk::VertexInputAttributeDescription(3, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, color))};
+    return std::array<vk::VertexInputAttributeDescription, 3>{
+            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)),
+            vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)),
+            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material))};
   }
 };
 
@@ -303,10 +307,10 @@ struct ColorVertex // VertexData
   static std::array<vk::VertexInputAttributeDescription, 4> getAttributeDescriptions()
   {
     return std::array<vk::VertexInputAttributeDescription, 4>{
-            vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)),
-            vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)),
-            vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)),
-            vk::VertexInputAttributeDescription(3, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, color))};
+            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)),
+            vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)),
+            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)),
+            vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, color))};
   }
 };
 
@@ -324,9 +328,9 @@ struct PointVertex // vertexData0
   static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
   {
     return std::array<vk::VertexInputAttributeDescription, 3>{
-            vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)),
-            vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)),
-            vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(PointVertex, material))};
+            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)),
+            vk::VertexInputAttributeDescription(WIDTH_LOCATION, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)),
+            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(PointVertex, material))};
   }
 };
 
@@ -656,6 +660,12 @@ private:
   vk::UniquePipelineLayout materialPipelineLayout;
   vk::UniquePipeline materialPipeline;
 
+  vk::UniquePipelineLayout colorPipelineLayout;
+  vk::UniquePipeline colorPipeline;
+
+  vk::UniquePipelineLayout trianglePipelineLayout;
+  vk::UniquePipeline trianglePipeline;
+
   vk::UniquePipelineLayout linePipelineLayout;
   vk::UniquePipeline linePipeline;
 
@@ -744,7 +754,7 @@ private:
   void createFramebuffers();
   void createCommandPools();
   void createCommandBuffers();
-  PushConstants buildPushConstants(FlagsPushConstant addFlags);
+  PushConstants buildPushConstants();
   vk::CommandBuffer & getCommandBuffer();
   void beginFrame(uint32_t imageIndex);
   void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags = PUSHFLAGS_NONE);

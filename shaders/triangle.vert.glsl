@@ -1,6 +1,8 @@
 #version 450
 #define MATERIAL
+#define COLOR
 #define NORMAL
+#define GENERAL
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;

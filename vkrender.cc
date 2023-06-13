@@ -1510,6 +1510,16 @@ void AsyVkRender::createGraphicsPipelines()
                          vk::PrimitiveTopology::eTriangleList,
                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
                          "material");
+  createGraphicsPipeline<ColorVertex>
+                         (colorPipelineLayout, colorPipeline,
+                         vk::PrimitiveTopology::eTriangleList,
+                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                         "color");
+  createGraphicsPipeline<ColorVertex>
+                         (trianglePipelineLayout, trianglePipeline,
+                         vk::PrimitiveTopology::eTriangleList,
+                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                         "triangle");
   createGraphicsPipeline<MaterialVertex>
                          (linePipelineLayout, linePipeline,
                          vk::PrimitiveTopology::eLineList,
@@ -1611,15 +1621,11 @@ void AsyVkRender::updateBuffers()
   newBufferData = false;
 }
 
-PushConstants AsyVkRender::buildPushConstants(FlagsPushConstant addFlags)
+PushConstants AsyVkRender::buildPushConstants()
 {
   auto pushConstants = PushConstants { };
 
-  pushConstants.constants[0] = addFlags;
-  pushConstants.constants[1] = nlights;
-
-  if (options.mode != DRAWMODE_NORMAL)
-    pushConstants.constants[0] |= PUSHFLAGS_NOLIGHT;
+  pushConstants.constants[0] = options.mode!= DRAWMODE_NORMAL ? 0 : nlights;
   
   return pushConstants;
 }
@@ -1672,7 +1678,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
 
   std::vector<vk::Buffer> vertexBuffers = {*vertexBuffer.buffer};
   std::vector<vk::DeviceSize> vertexOffsets = {0};
-  auto const pushConstants = buildPushConstants(addFlags);
+  auto const pushConstants = buildPushConstants();
 
   commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
   commandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
@@ -1722,7 +1728,7 @@ void AsyVkRender::drawColors(FrameObject & object)
   recordCommandBuffer(object.colorVertexBuffer,
                       object.colorIndexBuffer,
                       &colorData,
-                      materialPipeline,
+                      colorPipeline,
                       options.mode != DRAWMODE_WIREFRAME ? PUSHFLAGS_COLORED : PUSHFLAGS_NONE);
   colorData.clear();
 }
@@ -1732,8 +1738,7 @@ void AsyVkRender::drawTriangles(FrameObject & object)
   recordCommandBuffer(object.triangleVertexBuffer,
                       object.triangleIndexBuffer,
                       &triangleData,
-                      materialPipeline,
-                      PUSHFLAGS_GENERAL);
+                      trianglePipeline);
   triangleData.clear();
 }
 

@@ -1,16 +1,25 @@
-shaders: material_vert material_frag point_vert point_frag compute_comp
+shaders: material color point triangle
 
-material_vert: material.vert.glsl
+material:
+	python3 genShaders.py material MATERIAL NORMAL
+
 	glslangValidator -V material.vert.glsl -o material.vert.spv -S vert
-
-material_frag: material.frag.glsl
 	glslangValidator -V material.frag.glsl -o material.frag.spv -S frag
 
-point_vert: point.vert.glsl
+color:
+	python3 genShaders.py color MATERIAL COLOR NORMAL
+
+	glslangValidator -V color.vert.glsl -o color.vert.spv -S vert
+	glslangValidator -V color.frag.glsl -o color.frag.spv -S frag
+
+triangle:
+	python3 genShaders.py triangle MATERIAL COLOR NORMAL GENERAL
+
+	glslangValidator -V triangle.vert.glsl -o triangle.vert.spv -S vert
+	glslangValidator -V triangle.frag.glsl -o triangle.frag.spv -S frag
+
+point:
+	python3 genShaders.py point MATERIAL NOLIGHTS WIDTH
+
 	glslangValidator -V point.vert.glsl -o point.vert.spv -S vert
-
-point_frag: point.frag.glsl
 	glslangValidator -V point.frag.glsl -o point.frag.spv -S frag
-
-compute_comp: compute.comp
-	glslangValidator -V compute.comp -o compute.comp.spv -S comp

@@ -1,5 +1,6 @@
 #version 450
 #define MATERIAL
+#define COLOR
 #define NORMAL
 
 layout(binding = 0) uniform UniformBufferObject {

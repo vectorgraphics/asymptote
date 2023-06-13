@@ -1,7 +1,7 @@
 #version 450
 #define MATERIAL
-#define NOLIGHTS
-#define WIDTH
+#define COLOR
+#define NORMAL
 
 struct Material
 {
