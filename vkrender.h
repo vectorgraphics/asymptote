@@ -468,13 +468,16 @@ enum DrawMode: int
 class AsyVkRender
 {
 public:
+
   struct Options {
     DrawMode mode = DRAWMODE_NORMAL;
-    bool display;
-    std::string title;
+    bool display = false;
+    std::string title = "";
     int maxFramesInFlight = 2;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
+
+    Options() = default;
   };
 
   Options options;
