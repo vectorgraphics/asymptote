@@ -482,7 +482,7 @@ public:
 
   Options options;
 
-  AsyVkRender(Options& options);
+  AsyVkRender() = default;
   ~AsyVkRender();
 
   void vkrender(const picture* pic, const string& format,
@@ -499,6 +499,9 @@ public:
   bool recreatePipeline = false;
   bool newBufferData = true;
   bool newUniformBuffer = true;
+  bool queueExport = false;
+  bool format3dWait = false;
+  bool init = false;
 
   // VertexQueue<MaterialVertex> materialVertices;
   // VertexQueue<ColorVertex> colorVertices;
@@ -604,6 +607,7 @@ private:
 
   utils::stopWatch spinTimer;
   utils::stopWatch fpsTimer;
+  utils::stopWatch frameTimer;
   utils::statistics fpsStats;
   std::function<void()> currentIdleFunc = nullptr;
   bool Xspin = false;
@@ -815,6 +819,7 @@ private:
   void drawFrame();
   void recreateSwapChain();
   vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
+  void nextFrame();
   void display();
   void mainLoop();
   void cleanup();

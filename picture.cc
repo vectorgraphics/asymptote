@@ -55,7 +55,7 @@ texstream::~texstream() {
 
 namespace camp {
 
-AsyVkRender *vk;
+AsyVkRender *vk = new AsyVkRender();
 
 extern void draw();
 
@@ -1349,12 +1349,11 @@ void glrenderWrapper()
     AsyVkRender::Options options;
     options.display = true;
     options.title = std::string(settings::PROGRAM)+": "+com.prefix.c_str();
-    vk = new AsyVkRender(options);
+
+    vk->options = options;
     vk->vkrender(com.pic,com.format,com.width,com.height,com.angle,
                 com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
                 com.nlights,com.lights,com.diffuse,com.specular,com.view);
-    delete vk;
-    exit(0);
   }
 #endif
 }
@@ -1433,12 +1432,13 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool v3d=format == "v3d";
   bool format3d=webgl || v3d;
 
-//   if(!format3d) {
-// #ifdef HAVE_GL
-//     if(glthread && !offscreen) {
-// #ifdef HAVE_PTHREAD
-//       if(gl::initialize) {
-//         gl::initialize=false;
+  if(!format3d) {
+#ifdef HAVE_GL
+    if(glthread && !offscreen) {
+#ifdef HAVE_PTHREAD
+  static bool asd = true;
+      if(asd) {
+        asd=false;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1471,74 +1471,74 @@ bool picture::shipout3(const string& prefix, const string& format,
           pthread_cond_wait(&readySignal,&readyLock);
           pthread_mutex_unlock(&readyLock);
         }
-//         return true;
-//       }
-//       if(Wait)
-//         pthread_mutex_lock(&readyLock);
-// #endif
-//     } else {
-//       int pid=fork();
-//       if(pid == -1)
-//         camp::reportError("Cannot fork process");
-//       if(pid != 0)  {
-//         oldpid=pid;
-//         waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
-//         return true;
-//       }
-//     }
-// #endif
-//   }
+         return true;
+       }
+       if(Wait)
+         pthread_mutex_lock(&readyLock);
+#endif
+     } else {
+       int pid=fork();
+       if(pid == -1)
+         camp::reportError("Cannot fork process");
+       if(pid != 0)  {
+         oldpid=pid;
+         waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
+         return true;
+       }
+     }
+ #endif
+   }
 
-// #if HAVE_LIBGLM
-//   std::cout << "glrender" << std::endl;
-//   throw std::runtime_error("glrender");
-//   // glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
-//   //          background,nlights,lights,diffuse,specular,View,oldpid);
+ #if HAVE_LIBGLM
+  vk->vkrender(pic,format,width,height,angle,
+               zoom,m,M,shift,margin,t,background,
+               nlights,lights,diffuse,specular,view);
 
-//   if(format3d) {
-//     string name=buildname(prefix,format);
-//     abs3Doutfile *fileObj=nullptr;
+   if(format3d) {
+     string name=buildname(prefix,format);
+     abs3Doutfile *fileObj=nullptr;
 
-//     if(webgl)
-//       fileObj=new jsfile(name);
-//     else if(v3d)
-// #ifdef HAVE_RPC_RPC_H
-//       fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
-//                             getSetting<double>("prerender") > 0.0);
-// #else
-//     {
-//     ostringstream buf;
-//     buf << name << ": XDR write support not enabled";
-//     reportError(buf);
-//     }
-// #endif
+     if(webgl)
+       fileObj=new jsfile(name);
+     else if(v3d)
+ #ifdef HAVE_RPC_RPC_H
+       fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
+                             getSetting<double>("prerender") > 0.0);
+ #else
+     {
+     ostringstream buf;
+     buf << name << ": XDR write support not enabled";
+     reportError(buf);
+     }
+ #endif
 
-//     if(fileObj) {
-//       for (auto& p : pic->nodes) {
-//         assert(p);
-//         p->write(fileObj);
-//       }
+     if(fileObj) {
+       for (auto& p : pic->nodes) {
+         assert(p);
+         p->write(fileObj);
+       }
 
-//       fileObj->close();
-//       delete fileObj;
-//     }
+       fileObj->close();
+       delete fileObj;
+     }
 
-//     if(webgl && View)
-//       htmlView(name);
+     if(webgl && View)
+       htmlView(name);
 
-//   // TODO: what is this?
-// #ifdef HAVE_GL
-//     if(format3dWait) {
-//       gl::format3dWait=false;
-// #ifdef HAVE_PTHREAD
-//       endwait(initSignal,initLock);
-// #endif
-//     }
-// #endif
+   // TODO: what is this?
+   bool format3dWait = false;
+ #ifdef HAVE_GL
+     if(format3dWait) {
+       format3dWait=false;
+ #ifdef HAVE_PTHREAD
+       endwait(initSignal,initLock);
+ #endif
+     }
+ #endif
 
-//     return true;
-//   }
-// #endif
+     return true;
+   }
+ #endif
 
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD

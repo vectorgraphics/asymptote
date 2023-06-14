@@ -208,9 +208,6 @@ double AsyVkRender::getRenderResolution(triple Min) const
   return prerender * size3.length() / size2.length();
 }
 
-AsyVkRender::AsyVkRender(Options& options) : options(options)
-{ }
-
 void AsyVkRender::initWindow()
 {
   double pixelRatio = settings::getSetting<double>("devicepixelratio");
@@ -454,13 +451,15 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 {
   // Do not query disabled devices
   setenv("DRI_PRIME","1",0);
-
+  
   this->pic = pic;
 
   this->Angle = angle * M_PI / 180.0;
   this->Zoom0 = zoom;
   this->Shift = shift / zoom;
   this->Margin = margin;
+  redraw = true;
+  remesh = true;
 
   Xmin = mins.getx();
   Xmax = maxs.getx();
@@ -473,15 +472,18 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
   xfactor = yfactor = 1.0;
 
-  rotateMat = glm::mat4(1.0);
-  viewMat = glm::mat4(1.0);
-
   this->nlights = nlightsin;
   this->Lights = lights;
   this->LightsDiffuse = diffuse;
 
   for (int i = 0; i < 4; i++)
     this->Background[i] = static_cast<float>(background[i]);
+
+  if (init)
+    return;
+
+  rotateMat = glm::mat4(1.0);
+  viewMat = glm::mat4(1.0);
 
   // hardcode this for now
   bool format3d = true;
@@ -543,6 +545,8 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   initWindow();
   initVulkan();
+  init = true;
+
   update();
   mainLoop();
 }
@@ -1744,6 +1748,18 @@ void AsyVkRender::drawTriangles(FrameObject & object)
 
 void AsyVkRender::drawFrame()
 {
+#ifdef HAVE_PTHREAD
+  static bool first=true;
+  if(gl::glthread && first) {
+    gl::wait(gl::initSignal,gl::initLock);
+    gl::endwait(gl::initSignal,gl::initLock);
+    first=false;
+  }
+
+  if(format3dWait)
+    gl::wait(gl::initSignal,gl::initLock);
+#endif
+
   auto& frameObject = frameObjects[currentFrame];
 
   updateUniformBuffer(currentFrame);
@@ -1814,6 +1830,26 @@ void AsyVkRender::drawFrame()
   currentFrame = (currentFrame + 1) % options.maxFramesInFlight;
 }
 
+void AsyVkRender::nextFrame()
+{
+#ifdef HAVE_PTHREAD
+  gl::endwait(gl::readySignal,gl::readyLock);
+#endif
+  double delay=settings::getSetting<double>("framerate");
+  if(delay != 0.0) delay=1.0/delay;
+  double seconds=frameTimer.seconds(true);
+  delay -= seconds;
+  if(delay > 0) {
+    timespec req;
+    timespec rem;
+    req.tv_sec=(unsigned int) delay;
+    req.tv_nsec=(unsigned int) (1.0e9*(delay-req.tv_sec));
+    while(nanosleep(&req,&rem) < 0 && errno == EINTR)
+      req=rem;
+  }
+  if(Step) Animate=false;
+}
+
 void AsyVkRender::display()
 {
   setProjection();
@@ -1848,6 +1884,13 @@ void AsyVkRender::display()
     }
     ++framecount;
   }
+
+#ifdef HAVE_PTHREAD
+  if(gl::glthread && Animate) {
+    queueExport=false;
+    nextFrame();
+  }
+#endif
 }
 
 void AsyVkRender::mainLoop()
