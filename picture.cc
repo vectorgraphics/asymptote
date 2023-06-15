@@ -27,7 +27,7 @@ using std::ofstream;
 using vm::array;
 
 using namespace settings;
-using namespace gl;
+using namespace vk;
 
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
@@ -1342,8 +1342,8 @@ void glrenderWrapper()
 {
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
-  wait(initSignal,initLock);
-  endwait(initSignal,initLock);
+  vk->wait(vk->initSignal,vk->initLock);
+  vk->endwait(vk->initSignal,vk->initLock);
 #endif
   if(allowRender) {
     AsyVkRender::Options options;
@@ -1434,11 +1434,10 @@ bool picture::shipout3(const string& prefix, const string& format,
 
   if(!format3d) {
 #ifdef HAVE_GL
-    if(glthread && !offscreen) {
+    if(vk->vkthread && !offscreen) {
 #ifdef HAVE_PTHREAD
-  static bool asd = true;
-      if(asd) {
-        asd=false;
+      if(vk->initialize) {
+        vk->initialize=false;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1458,23 +1457,23 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.specular=specular;
         com.view=View;
         if(Wait)
-          pthread_mutex_lock(&readyLock);
-        wait(initSignal,initLock);
-        endwait(initSignal,initLock);
+          pthread_mutex_lock(&vk->readyLock);
+        vk->wait(vk->initSignal,vk->initLock);
+        vk->endwait(vk->initSignal,vk->initLock);
         static bool initialize=true;
         if(initialize) {
-          wait(initSignal,initLock);
-          endwait(initSignal,initLock);
+          vk->wait(vk->initSignal,vk->initLock);
+          vk->endwait(vk->initSignal,vk->initLock);
           initialize=false;
         }
         if(Wait) {
-          pthread_cond_wait(&readySignal,&readyLock);
-          pthread_mutex_unlock(&readyLock);
+          pthread_cond_wait(&vk->readySignal,&vk->readyLock);
+          pthread_mutex_unlock(&vk->readyLock);
         }
          return true;
        }
        if(Wait)
-         pthread_mutex_lock(&readyLock);
+         pthread_mutex_lock(&vk->readyLock);
 #endif
      } else {
        int pid=fork();
@@ -1531,7 +1530,7 @@ bool picture::shipout3(const string& prefix, const string& format,
      if(format3dWait) {
        format3dWait=false;
  #ifdef HAVE_PTHREAD
-       endwait(initSignal,initLock);
+       vk->endwait(vk->initSignal,vk->initLock);
  #endif
      }
  #endif
@@ -1542,9 +1541,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
-  if(glthread && !offscreen && Wait) {
-    pthread_cond_wait(&readySignal,&readyLock);
-    pthread_mutex_unlock(&readyLock);
+  if(vk->vkthread && !offscreen && Wait) {
+    pthread_cond_wait(&vk->readySignal,&vk->readyLock);
+    pthread_mutex_unlock(&vk->readyLock);
   }
   return true;
 #endif

@@ -501,7 +501,35 @@ public:
   bool newUniformBuffer = true;
   bool queueExport = false;
   bool format3dWait = false;
-  bool init = false;
+  bool vkexit = false;
+
+  bool vkthread=false;;
+  bool initialize=true;
+  bool vkinit=false;
+
+#ifdef HAVE_PTHREAD
+  pthread_t mainthread;
+
+  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
+
+  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
+
+  void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
+  {
+    pthread_mutex_lock(&lock);
+    pthread_cond_signal(&signal);
+    pthread_mutex_unlock(&lock);
+  }
+  void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
+  {
+    pthread_mutex_lock(&lock);
+    pthread_cond_signal(&signal);
+    pthread_cond_wait(&signal,&lock);
+    pthread_mutex_unlock(&lock);
+  }
+#endif
 
   // VertexQueue<MaterialVertex> materialVertices;
   // VertexQueue<ColorVertex> colorVertices;

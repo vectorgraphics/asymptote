@@ -53,6 +53,7 @@
 #endif
 
 #include "stack.h"
+#include "vkrender.h"
 
 using namespace settings;
 
@@ -85,7 +86,7 @@ int sigsegv_handler (void *, int emergency)
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
 #ifdef HAVE_GL
-  if(gl::glthread)
+  if(camp::vk->vkthread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -230,12 +231,12 @@ void *asymain(void *A)
   }
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
-  if(gl::glthread) {
+  if(camp::vk->vkthread) {
 #ifdef __MSDOS__ // Signals are unreliable in MSWindows
-    gl::glexit=true;
+    camp::vk->vkexit=true;
 #else
-    pthread_kill(gl::mainthread,SIGURG);
-    pthread_join(gl::mainthread,NULL);
+    pthread_kill(camp::vk->mainthread,SIGURG);
+    pthread_join(camp::vk->mainthread,NULL);
 #endif
   }
 #endif
@@ -269,14 +270,14 @@ int main(int argc, char *argv[])
 #else
   bool usethreads=view();
 #endif
-  gl::glthread=usethreads ? getSetting<bool>("threads") : false;
+  camp::vk->vkthread=usethreads ? getSetting<bool>("threads") : false;
 #if HAVE_PTHREAD
 #ifndef HAVE_LIBOSMESA
-  if(gl::glthread) {
+  if(camp::vk->vkthread) {
     pthread_t thread;
     try {
       if(pthread_create(&thread,NULL,asymain,&args) == 0) {
-        gl::mainthread=pthread_self();
+        camp::vk->mainthread=pthread_self();
         sigset_t set;
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
@@ -284,16 +285,16 @@ int main(int argc, char *argv[])
         while(true) {
           Signal(SIGURG,exitHandler);
           camp::glrenderWrapper();
-          gl::initialize=true;
+          camp::vk->initialize=true;
         }
-      } else gl::glthread=false;
+      } else camp::vk->vkthread=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
 #endif
 #endif
-  gl::glthread=false;
+  camp::vk->vkthread=false;
 #endif
   asymain(&args);
 }

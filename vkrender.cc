@@ -31,36 +31,6 @@ Tasks for today:
 TODO: put consts everywhere?
 */
 
-namespace gl {
-bool glthread;
-bool initialize;
-
-#ifdef HAVE_PTHREAD
-pthread_t mainthread;
-
-pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
-
-pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
-
-void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
-{
-  pthread_mutex_lock(&lock);
-  pthread_cond_signal(&signal);
-  pthread_mutex_unlock(&lock);
-}
-void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
-{
-  pthread_mutex_lock(&lock);
-  pthread_cond_signal(&signal);
-  pthread_cond_wait(&signal,&lock);
-  pthread_mutex_unlock(&lock);
-}
-#endif
-}
-
-
 namespace camp
 {
 
@@ -482,7 +452,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   clearMaterials();
 
-  if (init)
+  if (vkinit)
     return;
 
   rotateMat = glm::mat4(1.0);
@@ -548,8 +518,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   initWindow();
   initVulkan();
-  init = true;
-
+  vkinit=true;
   update();
   mainLoop();
 }
@@ -1756,14 +1725,14 @@ void AsyVkRender::drawFrame()
 {
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(gl::glthread && first) {
-    gl::wait(gl::initSignal,gl::initLock);
-    gl::endwait(gl::initSignal,gl::initLock);
+  if(vkthread && first) {
+    wait(initSignal,initLock);
+    endwait(initSignal,initLock);
     first=false;
   }
 
   if(format3dWait)
-    gl::wait(gl::initSignal,gl::initLock);
+    wait(initSignal,initLock);
 #endif
 
   auto& frameObject = frameObjects[currentFrame];
@@ -1839,7 +1808,7 @@ void AsyVkRender::drawFrame()
 void AsyVkRender::nextFrame()
 {
 #ifdef HAVE_PTHREAD
-  gl::endwait(gl::readySignal,gl::readyLock);
+  endwait(readySignal,readyLock);
 #endif
   double delay=settings::getSetting<double>("framerate");
   if(delay != 0.0) delay=1.0/delay;
@@ -1892,7 +1861,7 @@ void AsyVkRender::display()
   }
 
 #ifdef HAVE_PTHREAD
-  if(gl::glthread && Animate) {
+  if(vkthread && Animate) {
     queueExport=false;
     nextFrame();
   }

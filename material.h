@@ -58,6 +58,13 @@ public:
     specular(m.specular), parameters(m.parameters) {}
   ~Material() {}
 
+  std::size_t hash() const {
+
+    return ((std::hash<glm::vec4>()(diffuse) ^ (std::hash<glm::vec4>()(emissive) << 1) >> 1)
+            ^ (std::hash<glm::vec4>()(specular) << 1) >> 1)
+            ^ (std::hash<glm::vec4>()(parameters) << 1);
+  }
+
   Material& operator=(Material const& m)
   {
     diffuse=m.diffuse;
@@ -69,10 +76,7 @@ public:
 
   friend bool operator == (const Material& m1, const Material& m2) {
 
-    return m1.diffuse == m2.diffuse
-           && m1.emissive == m2.emissive
-           && m1.specular == m2.specular
-           && m1.parameters == m2.parameters;
+    return m1.hash() == m2.hash();
   }
 
   friend bool operator < (const Material& m1, const Material& m2) {
@@ -106,29 +110,6 @@ public:
   }
 };
 
-}
-
-namespace std {
-
-  template<>
-  struct hash<camp::Material>
-  {
-    std::size_t operator()(const camp::Material& m) const {
-
-      return ((hash<glm::vec4>()(m.diffuse) ^ (hash<glm::vec4>()(m.emissive) << 1) >> 1)
-              ^ (hash<glm::vec4>()(m.specular) << 1) >> 1)
-              ^ (hash<glm::vec4>()(m.parameters) << 1);
-    }
-  };
-
-  template<>
-  struct equal_to<camp::Material>
-  {
-    bool operator()(const camp::Material& m1, const camp::Material& m2) const {
-      
-      return std::hash<camp::Material>()(m1) == std::hash<camp::Material>()(m2);
-    }
-  };
 }
 
 #endif
