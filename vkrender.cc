@@ -1638,22 +1638,29 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   if (data->indices.empty())
     return;
 
-  if (!data->materialVertices.empty())
-  {
-    setDeviceBufferData(vertexBuffer, data->materialVertices.data(), data->materialVertices.size() * sizeof(camp::MaterialVertex));
-  }
-  else if (!data->colorVertices.empty())
-  {
-    setDeviceBufferData(vertexBuffer, data->colorVertices.data(), data->colorVertices.size() * sizeof(camp::ColorVertex));
-  }
-  else if(!data->pointVertices.empty())
-  {
-    setDeviceBufferData(vertexBuffer, data->pointVertices.data(), data->pointVertices.size() * sizeof(camp::PointVertex));
-  }
-  else
-    return;
+  auto const badBuffer = static_cast<void*>(*vertexBuffer.buffer) == nullptr;
+  auto const rendered = data->renderCount >= options.maxFramesInFlight;
+  auto const copy = (remesh || data->partial || !rendered || badBuffer) && !copied;
 
-  setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]));
+  if (copy) {
+
+    if (!data->materialVertices.empty())
+    {
+      setDeviceBufferData(vertexBuffer, data->materialVertices.data(), data->materialVertices.size() * sizeof(camp::MaterialVertex));
+    }
+    else if (!data->colorVertices.empty())
+    {
+      setDeviceBufferData(vertexBuffer, data->colorVertices.data(), data->colorVertices.size() * sizeof(camp::ColorVertex));
+    }
+    else if(!data->pointVertices.empty())
+    {
+      setDeviceBufferData(vertexBuffer, data->pointVertices.data(), data->pointVertices.size() * sizeof(camp::PointVertex));
+    }
+    else
+      return;
+
+    setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]));
+  }
 
   std::vector<vk::Buffer> vertexBuffers = {*vertexBuffer.buffer};
   std::vector<vk::DeviceSize> vertexOffsets = {0};
@@ -1666,6 +1673,8 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   commandBuffer.pushConstants(*materialPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   // TODO: we would need to guarantee that materialVertices and the buffers are synced or have another variable for this
   commandBuffer.drawIndexed(data->indices.size(), 1, 0, 0, 0);
+
+  data->renderCount++;
 }
 
 void AsyVkRender::endFrame()
@@ -1829,8 +1838,13 @@ void AsyVkRender::display()
 {
   setProjection();
 
-  if(remesh)
+  if(remesh) {
     clearCenters();
+    
+    for (int i = 0; i < options.maxFramesInFlight; i++) {
+      frameObjects[i].reset();
+    }
+  }
 
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
@@ -1918,6 +1932,12 @@ void AsyVkRender::clearMaterials()
   materials.clear();
   materials.reserve(nmaterials);
   materialMap.clear();
+
+  pointData.partial=false;
+  lineData.partial=false;
+  materialData.partial=false;
+  colorData.partial=false;
+  triangleData.partial=false;
 }
 
 void AsyVkRender::quit()

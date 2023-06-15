@@ -340,6 +340,9 @@ struct VertexBuffer {
   std::vector<PointVertex> pointVertices;
   std::vector<GLuint> indices;
 
+  int renderCount = 0;
+  bool partial = false;
+
   void clear()
   {
     materialVertices.clear();
@@ -506,6 +509,7 @@ public:
   bool vkthread=false;;
   bool initialize=true;
   bool vkinit=false;
+  bool copied=false;
 
 #ifdef HAVE_PTHREAD
   pthread_t mainthread;
@@ -750,6 +754,34 @@ private:
 
     DeviceBuffer pointVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
     DeviceBuffer pointIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+  
+    void reset() {
+      
+      if (*materialVertexBuffer.buffer) {
+
+        *materialVertexBuffer.buffer = nullptr;
+      }
+      if (*colorVertexBuffer.buffer) {
+        
+        *colorVertexBuffer.buffer = nullptr;
+      }
+      if (*triangleVertexBuffer.buffer) {
+        
+        *triangleVertexBuffer.buffer = nullptr;
+      }
+      if (*transparentVertexBuffer.buffer) {
+        
+        *transparentVertexBuffer.buffer = nullptr;
+      }
+      if (*lineVertexBuffer.buffer) {
+        
+        *lineVertexBuffer.buffer = nullptr;
+      }
+      if (*pointVertexBuffer.buffer) {
+        
+        *pointVertexBuffer.buffer = nullptr;
+      }
+    }
   };
 
   uint32_t currentFrame = 0;

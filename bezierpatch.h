@@ -149,12 +149,24 @@ struct BezierPatch
     }
   }
 
+  virtual void notRendered() {
+    if(transparent)
+      vk->transparentData.renderCount=0;
+    else {
+      if(color)
+        vk->colorData.renderCount=0;
+      else
+        vk->materialData.renderCount=0;
+    }
+  }
+
   void queue(const triple *g, bool straight, double ratio, bool Transparent,
              GLfloat *colors=NULL) {
     data.clear();
     Onscreen=true;
     transparent=Transparent;
     color=colors;
+    notRendered();
     init(pixelResolution*ratio);
     render(g,straight,colors);
   }
@@ -202,6 +214,13 @@ public:
       vk->transparentData.extendColor(data);
     else
       vk->triangleData.extendColor(data);
+  }
+
+  void notRendered() {
+    if(transparent)
+      vk->transparentData.renderCount=0;
+    else
+      vk->triangleData.renderCount=0;
   }
 };
 
