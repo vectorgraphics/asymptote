@@ -9,7 +9,10 @@
 #include "common.h"
 #include "triple.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
 
 namespace glm {
 
@@ -64,6 +67,14 @@ public:
     return *this;
   }
 
+  friend bool operator == (const Material& m1, const Material& m2) {
+
+    return m1.diffuse == m2.diffuse
+           && m1.emissive == m2.emissive
+           && m1.specular == m2.specular
+           && m1.parameters == m2.parameters;
+  }
+
   friend bool operator < (const Material& m1, const Material& m2) {
     return m1.diffuse < m2.diffuse ||
                         (m1.diffuse == m2.diffuse &&
@@ -95,6 +106,29 @@ public:
   }
 };
 
+}
+
+namespace std {
+
+  template<>
+  struct hash<camp::Material>
+  {
+    std::size_t operator()(const camp::Material& m) const {
+
+      return ((hash<glm::vec4>()(m.diffuse) ^ (hash<glm::vec4>()(m.emissive) << 1) >> 1)
+              ^ (hash<glm::vec4>()(m.specular) << 1) >> 1)
+              ^ (hash<glm::vec4>()(m.parameters) << 1);
+    }
+  };
+
+  template<>
+  struct equal_to<camp::Material>
+  {
+    bool operator()(const camp::Material& m1, const camp::Material& m2) const {
+      
+      return std::hash<camp::Material>()(m1) == std::hash<camp::Material>()(m2);
+    }
+  };
 }
 
 #endif

@@ -83,5 +83,5 @@
     "C_Cpp.dimInactiveRegions": true,
     "editor.tabSize": 2,
     "javascript.format.enable": false,
-    "python.languageServer": "Microsoft"
+    "python.languageServer": "Default"
 }

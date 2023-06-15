@@ -451,15 +451,16 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 {
   // Do not query disabled devices
   setenv("DRI_PRIME","1",0);
-  
+
   this->pic = pic;
 
   this->Angle = angle * M_PI / 180.0;
   this->Zoom0 = zoom;
   this->Shift = shift / zoom;
   this->Margin = margin;
-  redraw = true;
-  remesh = true;
+  this->updateLights = true;
+  this->redraw = true;
+  this->remesh = true;
 
   Xmin = mins.getx();
   Xmax = maxs.getx();
@@ -478,6 +479,8 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   for (int i = 0; i < 4; i++)
     this->Background[i] = static_cast<float>(background[i]);
+
+  clearMaterials();
 
   if (init)
     return;
@@ -1604,25 +1607,28 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
 void AsyVkRender::updateBuffers()
 {
-  if (!newBufferData)
-    return;
+  if (updateLights) {
+    std::vector<Light> lights;
 
-  std::vector<Light> lights;
+    for (int i = 0; i < nlights; i++)
+      lights.emplace_back(
+        Light {
+          {Lights[i].getx(), Lights[i].gety(), Lights[i].getz(), 0.f},
+          {static_cast<float>(LightsDiffuse[4 * i]),
+          static_cast<float>(LightsDiffuse[4 * i + 1]),
+          static_cast<float>(LightsDiffuse[4 * i + 2]), 0.f}
+        }
+      );
 
-  for (int i = 0; i < nlights; i++)
-    lights.emplace_back(
-      Light {
-        {Lights[i].getx(), Lights[i].gety(), Lights[i].getz(), 0.f},
-        {static_cast<float>(LightsDiffuse[4 * i]),
-         static_cast<float>(LightsDiffuse[4 * i + 1]),
-         static_cast<float>(LightsDiffuse[4 * i + 2]), 0.f}
-      }
-    );
+    copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
+  }
 
-  copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
-  copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
+  if (materials != oldMaterials) {
 
-  newBufferData = false;
+    copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
+    oldMaterials = materials;
+  }
+
 }
 
 PushConstants AsyVkRender::buildPushConstants()
@@ -1940,7 +1946,9 @@ void AsyVkRender::clearCenters()
 
 void AsyVkRender::clearMaterials()
 {
-  throw std::runtime_error("not implemented");
+  materials.clear();
+  materials.reserve(nmaterials);
+  materialMap.clear();
 }
 
 void AsyVkRender::quit()

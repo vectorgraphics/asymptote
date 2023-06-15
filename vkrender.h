@@ -497,7 +497,7 @@ public:
 
   bool framebufferResized = false;
   bool recreatePipeline = false;
-  bool newBufferData = true;
+  bool updateLights = true;
   bool newUniformBuffer = true;
   bool queueExport = false;
   bool format3dWait = false;
@@ -519,6 +519,7 @@ public:
 
   // clear every frame?
   std::vector<Material> materials;
+  std::vector<Material> oldMaterials;
   MaterialMap materialMap;
   size_t materialIndex;
 
