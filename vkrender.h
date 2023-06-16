@@ -493,7 +493,7 @@ public:
                 const triple& m, const triple& M, const pair& shift,
                 const pair& margin, double* t,
                 double* background, size_t nlightsin, triple* lights,
-                double* diffuse, double* specular, bool view);
+                double* diffuse, double* specular, bool view, int oldpid=0);
 
   triple billboardTransform(const triple& center, const triple& v) const;
   double getRenderResolution(triple Min) const;
@@ -610,8 +610,8 @@ private:
   struct DeviceBuffer {
     vk::BufferUsageFlags usage;
     vk::MemoryPropertyFlags properties;
-    vk::DeviceSize bufferSize = 0;
     vk::DeviceSize memorySize = 0;
+    std::size_t nobjects;
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
     // only used if hasExternalMemoryHostExtension == false
@@ -621,7 +621,6 @@ private:
     DeviceBuffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties)
         : usage(usage), properties(properties) {}
   };
-
 
   const picture* pic;
 
@@ -637,6 +636,7 @@ private:
   double aspect;
   double oWidth, oHeight;
   double lastZoom;
+  int Oldpid;
 
   utils::stopWatch spinTimer;
   utils::stopWatch fpsTimer;
@@ -756,6 +756,8 @@ private:
     DeviceBuffer pointIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
   
     void reset() {
+
+      // todo do something better than this
       
       if (*materialVertexBuffer.buffer) {
 
@@ -847,7 +849,7 @@ private:
   //                     bool wait = true, vk::Fence fence = {}, const vk::Semaphore semaphore = {},
   //                     vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {});
 
-  void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size);
+  void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects=0);
 
   void createDescriptorSetLayout();
   void createComputeDescriptorSetLayout();
@@ -882,6 +884,7 @@ private:
   vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
   void nextFrame();
   void display();
+  void poll();
   void mainLoop();
   void cleanup();
 

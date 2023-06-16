@@ -31,6 +31,8 @@ Tasks for today:
 TODO: put consts everywhere?
 */
 
+void exitHandler(int);
+
 namespace camp
 {
 
@@ -129,6 +131,7 @@ void AsyVkRender::updateViewmodelData()
 void AsyVkRender::update()
 {
   capzoom();
+  glfwShowWindow(window);
 
   double cz = 0.5 * (Zmin + Zmax);
   viewMat = glm::translate(glm::translate(glm::dmat4(1.0), glm::dvec3(cx, cy, cz)) * rotateMat, glm::dvec3(0, 0, -cz));
@@ -140,7 +143,6 @@ void AsyVkRender::update()
 
   projViewMat = verticalFlipMat * projMat * viewMat;
   redraw=true;
-  //remesh=true;
 }
 
 triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
@@ -182,18 +184,23 @@ void AsyVkRender::initWindow()
 {
   double pixelRatio = settings::getSetting<double>("devicepixelratio");
 
-  if (this->options.display) {
+  if (!this->options.display)
+    return;
+
+  if (!window) {
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     // remember last window position and size? (have as options?)
     window = glfwCreateWindow(width, height, options.title.data(), nullptr, nullptr);
-    glfwSetWindowUserPointer(window, this);
-    glfwSetMouseButtonCallback(window, mouseButtonCallback);
-    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-    glfwSetScrollCallback(window, scrollCallback);
-    glfwSetCursorPosCallback(window, cursorPosCallback);
-    glfwSetKeyCallback(window, keyCallback);
   }
+
+  glfwShowWindow(window);
+  glfwSetWindowUserPointer(window, this);
+  glfwSetMouseButtonCallback(window, mouseButtonCallback);
+  glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+  glfwSetScrollCallback(window, scrollCallback);
+  glfwSetCursorPosCallback(window, cursorPosCallback);
+  glfwSetKeyCallback(window, keyCallback);
 }
 
 std::string AsyVkRender::getAction(int button, int mods)
@@ -266,10 +273,9 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->height = height;
   app->fullWidth = width;
   app->fullHeight = height;
+  app->update();
   app->framebufferResized = true;
   app->redraw = true;
-  app->remesh = true;
-  app->update();
 }
 
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -399,7 +405,6 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
     case 'Q':
       //if(!Format.empty()) Export();
       app->quit();
-      std::cout << "quit" << std::endl;
       break;
   }
 }
@@ -417,20 +422,31 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
                            const triple& mins, const triple& maxs, const pair& shift,
                            const pair& margin, double* t,
                            double* background, size_t nlightsin, triple* lights,
-                           double* diffuse, double* specular, bool view)
+                           double* diffuse, double* specular, bool view, int oldpid/*=0*/)
 {
   // Do not query disabled devices
   setenv("DRI_PRIME","1",0);
 
   this->pic = pic;
-
-  this->Angle = angle * M_PI / 180.0;
-  this->Zoom0 = zoom;
-  this->Shift = shift / zoom;
-  this->Margin = margin;
   this->updateLights = true;
   this->redraw = true;
   this->remesh = true;
+  this->nlights = nlightsin;
+  this->Lights = lights;
+  this->LightsDiffuse = diffuse;
+  this->Oldpid = oldpid;
+
+  if (vkinit) {
+
+    if (window)
+      update();
+    
+    return;
+  }
+
+  this->Angle = angle * M_PI / 180.0;
+  this->Shift = shift / zoom;
+  this->Margin = margin;
 
   Xmin = mins.getx();
   Xmax = maxs.getx();
@@ -443,18 +459,12 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
   xfactor = yfactor = 1.0;
 
-  this->nlights = nlightsin;
-  this->Lights = lights;
-  this->LightsDiffuse = diffuse;
-
   for (int i = 0; i < 4; i++)
     this->Background[i] = static_cast<float>(background[i]);
 
   clearMaterials();
 
-  if (vkinit)
-    return;
-
+  this->Zoom0 = zoom;
   rotateMat = glm::mat4(1.0);
   viewMat = glm::mat4(1.0);
 
@@ -1124,7 +1134,7 @@ void AsyVkRender::createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags,
 //   device->unmapMemory(*stagingBufferMemory);
 // }
 
-void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size)
+void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects)
 {
   // Vulkan doesn't allow a buffer to have a size of 0
   auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(1), size), buffer.usage);
@@ -1132,6 +1142,7 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk
 
   auto memRequirements = device->getBufferMemoryRequirements(*buffer.buffer);
   uint32_t memoryTypeIndex = selectMemory(memRequirements, buffer.properties);
+  buffer.nobjects = nobjects;
   if (size > buffer.memorySize || buffer.memorySize == 0) {
     // minimum array size of 16 bytes to avoid some Vulkan issues
     auto newSize = 16;
@@ -1156,6 +1167,8 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk
     } else {
       copyToBuffer(*buffer.buffer, data, size, *buffer.stagingBuffer, *buffer.stagingBufferMemory);
     }
+
+    buffer.memorySize = size;
   }
 }
 
@@ -1659,7 +1672,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
     else
       return;
 
-    setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]));
+    setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]), data->indices.size());
   }
 
   std::vector<vk::Buffer> vertexBuffers = {*vertexBuffer.buffer};
@@ -1671,8 +1684,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   commandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
   commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *materialPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
   commandBuffer.pushConstants(*materialPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
-  // TODO: we would need to guarantee that materialVertices and the buffers are synced or have another variable for this
-  commandBuffer.drawIndexed(data->indices.size(), 1, 0, 0, 0);
+  commandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
 
   data->renderCount++;
 }
@@ -1880,14 +1892,33 @@ void AsyVkRender::display()
     nextFrame();
   }
 #endif
+if(queueExport) {
+    //Export();
+    queueExport=false;
+  }
+  if(!vkthread) {
+    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
+      kill(Oldpid,SIGHUP);
+      Oldpid=0;
+    }
+  }
+}
+
+void AsyVkRender::poll() {
+
+  vkexit |= glfwWindowShouldClose(window);
+
+  if (vkexit) {
+    exitHandler(0);
+    vkexit=false;
+  }
+  glfwPollEvents();
 }
 
 void AsyVkRender::mainLoop()
 {
-  while (!glfwWindowShouldClose(window)) {
+  while (poll(), true) {
     
-    glfwPollEvents();
-
     if (redraw) {
       redraw = false;
       display();
@@ -1942,8 +1973,33 @@ void AsyVkRender::clearMaterials()
 
 void AsyVkRender::quit()
 {
-  glfwDestroyWindow(window);
+#ifdef HAVE_LIBOSMESA
+  if(osmesa_buffer) delete[] osmesa_buffer;
+  if(ctx) OSMesaDestroyContext(ctx);
   exit(0);
+#endif
+#ifdef HAVE_LIBGLUT
+  if(vkthread) {
+    bool animating=settings::getSetting<bool>("animating");
+    if(animating)
+      settings::Setting("interrupt")=true;
+    travelHome();
+    Animate=settings::getSetting<bool>("autoplay");
+#ifdef HAVE_PTHREAD
+    if(!interact::interactive || animating) {
+      idle();
+      //options.display=false;
+      endwait(readySignal,readyLock);
+    }
+#endif
+    if(interact::interactive)
+      glfwHideWindow(window);
+  } else {
+    glfwDestroyWindow(window);
+    window = nullptr;
+    exit(0);
+  }
+#endif
 }
 
 void AsyVkRender::idleFunc(std::function<void()> f)
