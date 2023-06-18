@@ -175,7 +175,6 @@ double AsyVkRender::getRenderResolution(triple Min) const
   triple b(Xmin, Ymin, Zmin);
   triple B(Xmax, Ymin, Zmax);
   pair size3(s * (B.getx() - b.getx()), s * (B.gety() - b.gety()));
-  // TODO: fullwidth, fullheight ?
   pair size2(width, height);
   return prerender * size3.length() / size2.length();
 }
@@ -190,7 +189,6 @@ void AsyVkRender::initWindow()
   if (!window) {
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    // remember last window position and size? (have as options?)
     window = glfwCreateWindow(width, height, options.title.data(), nullptr, nullptr);
   }
 
@@ -273,9 +271,8 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->height = height;
   app->fullWidth = width;
   app->fullHeight = height;
-  app->update();
   app->framebufferResized = true;
-  app->redraw = true;
+  app->update();
 }
 
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -582,6 +579,8 @@ void AsyVkRender::recreateSwapChain()
   createGraphicsPipelines();
   createAttachments();
   createFramebuffers();
+
+  redraw=true;
 }
 
 std::set<std::string> AsyVkRender::getInstanceExtensions()
@@ -1644,8 +1643,8 @@ void AsyVkRender::beginFrame(uint32_t imageIndex)
   commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags /*= PUSHFLAGS_NONE*/)
-{
+void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags /*= PUSHFLAGS_NONE*/) {
+  
   auto & commandBuffer= getCommandBuffer();
 
   if (data->indices.empty())
@@ -1923,7 +1922,7 @@ void AsyVkRender::mainLoop()
       redraw = false;
       display();
     } else {
-      //usleep(1);
+      usleep(1);
     }
 
     if (currentIdleFunc != nullptr)
