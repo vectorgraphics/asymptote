@@ -433,14 +433,6 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   this->LightsDiffuse = diffuse;
   this->Oldpid = oldpid;
 
-  if (vkinit) {
-
-    if (window)
-      update();
-    
-    return;
-  }
-
   this->Angle = angle * M_PI / 180.0;
   this->Shift = shift / zoom;
   this->Margin = margin;
@@ -459,9 +451,18 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   for (int i = 0; i < 4; i++)
     this->Background[i] = static_cast<float>(background[i]);
 
+  this->Zoom0 = zoom;
+
+  if (vkinit) {
+
+    if (window)
+      update();
+    
+    return;
+  }
+
   clearMaterials();
 
-  this->Zoom0 = zoom;
   rotateMat = glm::mat4(1.0);
   viewMat = glm::mat4(1.0);
 
