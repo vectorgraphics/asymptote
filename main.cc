@@ -283,7 +283,6 @@ int main(int argc, char *argv[])
         pthread_sigmask(SIG_BLOCK, &set, NULL);
         while(true) {
           Signal(SIGURG,exitHandler);
-          cout << "HI" << endl;
           camp::glrenderWrapper();
           camp::vk->initialize=true;
         }
