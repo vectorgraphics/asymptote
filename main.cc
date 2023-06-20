@@ -31,7 +31,7 @@
 
 #define GC_PTHREAD_SIGMASK_NEEDED
 
-#include "common.h"
+#include "vkrender.h"
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
@@ -53,7 +53,6 @@
 #endif
 
 #include "stack.h"
-#include "vkrender.h"
 
 using namespace settings;
 
@@ -284,6 +283,7 @@ int main(int argc, char *argv[])
         pthread_sigmask(SIG_BLOCK, &set, NULL);
         while(true) {
           Signal(SIGURG,exitHandler);
+          cout << "HI" << endl;
           camp::glrenderWrapper();
           camp::vk->initialize=true;
         }

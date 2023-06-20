@@ -22,7 +22,6 @@
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
-#include <glslang/SPIRV/GlslangToSpv.h>
 
 #include <GLFW/glfw3.h>
 
@@ -754,33 +753,33 @@ private:
 
     DeviceBuffer pointVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
     DeviceBuffer pointIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-  
+
     void reset() {
 
       // todo do something better than this
-      
+
       if (*materialVertexBuffer.buffer) {
 
         *materialVertexBuffer.buffer = nullptr;
       }
       if (*colorVertexBuffer.buffer) {
-        
+
         *colorVertexBuffer.buffer = nullptr;
       }
       if (*triangleVertexBuffer.buffer) {
-        
+
         *triangleVertexBuffer.buffer = nullptr;
       }
       if (*transparentVertexBuffer.buffer) {
-        
+
         *transparentVertexBuffer.buffer = nullptr;
       }
       if (*lineVertexBuffer.buffer) {
-        
+
         *lineVertexBuffer.buffer = nullptr;
       }
       if (*pointVertexBuffer.buffer) {
-        
+
         *pointVertexBuffer.buffer = nullptr;
       }
     }
@@ -904,7 +903,7 @@ private:
   void spinx();
   void spiny();
   void spinz();
-  
+
   void shift(double dx, double dy);
   void pan(double dx, double dy);
   void capzoom();
