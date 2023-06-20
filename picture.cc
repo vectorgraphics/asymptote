@@ -1493,7 +1493,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   options.display = true;
   options.title = std::string(settings::PROGRAM)+": "+prefix.c_str();
   vk->options = options;
-
+  
   vk->vkrender(pic,format,width,height,angle,
                zoom,m,M,shift,margin,t,background,
                nlights,lights,diffuse,specular,view,

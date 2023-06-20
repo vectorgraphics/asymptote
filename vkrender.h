@@ -621,7 +621,7 @@ private:
         : usage(usage), properties(properties) {}
   };
 
-  const picture* pic;
+  const picture* pic = nullptr;
 
   double H;
   double xfactor, yfactor; // what is this for?
@@ -646,7 +646,9 @@ private:
   bool Yspin = false;
   bool Zspin = false;
   bool Animate = false;
+  bool queueScreen = false;
   bool Step = false;
+  bool View = false;
 
   bool remesh = true; // whether picture needs to be remeshed
   bool redraw = true;  // whether a new frame needs to be rendered
@@ -793,6 +795,8 @@ private:
   void updateViewmodelData();
   void setProjection();
   void update();
+
+  static void updateHandler(int);
 
   static std::string getAction(int button, int mod);
   static void mouseButtonCallback(GLFWwindow * window, int button, int action, int mods);

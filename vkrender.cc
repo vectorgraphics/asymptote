@@ -201,6 +201,17 @@ void AsyVkRender::initWindow()
   glfwSetKeyCallback(window, keyCallback);
 }
 
+void AsyVkRender::updateHandler(int) {
+
+  vk->queueScreen=true;
+  vk->remesh=true;
+  vk->redraw=true;
+  vk->update();
+  if(interact::interactive || !vk->Animate) {
+    glfwShowWindow(vk->window);
+  }
+}
+
 std::string AsyVkRender::getAction(int button, int mods)
 {
   size_t Button;
@@ -273,6 +284,14 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->fullHeight = height;
   app->framebufferResized = true;
   app->update();
+
+  if(app->vkthread) {
+    static bool initialize=true;
+    if(initialize) {
+      initialize=false;
+      Signal(SIGUSR1,updateHandler);
+    }
+  }
 }
 
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -436,6 +455,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   this->Angle = angle * M_PI / 180.0;
   this->Shift = shift / zoom;
   this->Margin = margin;
+  this->View = view;
 
   Xmin = mins.getx();
   Xmax = maxs.getx();
@@ -453,11 +473,20 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   this->Zoom0 = zoom;
 
-  if (vkinit) {
+#ifdef HAVE_PTHREAD
+  if(vkthread && vkinit) {
+    if(View) {
+#ifdef __MSDOS__ // Signals are unreliable in MSWindows
+      vkupdate=true;
+#else
+      pthread_kill(mainthread,SIGUSR1);
+#endif
+    } //else readyAfterExport=queueExport=true;
+    return;
+  }
+#endif
 
-    if (window)
-      update();
-    
+  if (vkinit) {
     return;
   }
 
