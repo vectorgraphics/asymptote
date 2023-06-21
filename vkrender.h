@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string>
 #include <sys/time.h>
+#include <unordered_map>
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
@@ -78,7 +79,7 @@ class picture;
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
 
-typedef mem::map<const Material, size_t> MaterialMap;
+typedef std::unordered_map<const Material, size_t> MaterialMap;
 
 template<class T>
 inline T ceilquotient(T a, T b)

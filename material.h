@@ -112,5 +112,16 @@ public:
 
 }
 
+namespace std
+{
+  template<>
+  struct hash<const camp::Material> {
+
+    size_t operator()(const camp::Material& m) const {
+      return m.hash();
+    }
+  };
+}
+
 #endif
 #endif

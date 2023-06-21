@@ -1305,6 +1305,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if(remesh) (*p)->meshinit();
+    
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
 
