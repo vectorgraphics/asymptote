@@ -681,12 +681,6 @@ private:
   vk::Queue presentQueue;  // prefer separate for no good reason
 
   vk::UniqueSwapchainKHR swapChain;
-  vk::UniqueImage exportImage;
-  vk::UniqueImage exportImageCopy;
-  vk::UniqueDeviceMemory exportImageMemory;
-  vk::UniqueDeviceMemory exportImageCopyMemory;
-  vk::UniqueImageView exportImageView;
-  vk::UniqueFramebuffer exportImageFramebuffer;
   vk::UniqueCommandBuffer exportCommandBuffer;
   vk::UniqueFence exportFence;
   std::vector<vk::Image> swapChainImages;

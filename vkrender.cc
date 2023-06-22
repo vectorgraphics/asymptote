@@ -945,42 +945,6 @@ void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
 
 void AsyVkRender::createExportResources()
 {
-  createImage(swapChainExtent.width, swapChainExtent.height,
-              vk::SampleCountFlagBits::e1, swapChainImageFormat,
-              vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
-              vk::MemoryPropertyFlagBits::eDeviceLocal,
-              exportImage, exportImageMemory);
-  // createImage(swapChainExtent.width, swapChainExtent.height,
-  //             vk::SampleCountFlagBits::e1, swapChainImageFormat,
-  //             vk::ImageUsageFlagBits::eTransferDst,
-  //             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-  //             exportImageCopy, exportImageCopyMemory);
-
-  auto const imageViewInfo = vk::ImageViewCreateInfo(
-    { },
-    *exportImage,
-    vk::ImageViewType::e2D,
-    swapChainImageFormat,
-    { },
-    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
-  );
-
-  exportImageView = device->createImageViewUnique(imageViewInfo);
-
-  vk::ImageView attachments[] = {*colorImageView, *depthImageView, *exportImageView};
-
-  auto const framebufferInfo = vk::FramebufferCreateInfo(
-    { },
-    *materialRenderPass,
-    3,
-    attachments,
-    swapChainExtent.width,
-    swapChainExtent.height,
-    1
-  );
-
-  exportImageFramebuffer = device->createFramebufferUnique(framebufferInfo);
-
   auto const cmdInfo = vk::CommandBufferAllocateInfo(
     *renderCommandPool,
     vk::CommandBufferLevel::ePrimary,
@@ -989,20 +953,6 @@ void AsyVkRender::createExportResources()
 
   exportCommandBuffer = std::move(device->allocateCommandBuffersUnique(cmdInfo)[0]);
   exportFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-
-  auto cmd = beginSingleCommands();
-
-  transitionImageLayout(cmd,
-    *exportImage,
-    vk::AccessFlagBits::eNone,
-    vk::AccessFlagBits::eMemoryRead,
-    vk::ImageLayout::eUndefined,
-    vk::ImageLayout::eGeneral,
-    vk::PipelineStageFlagBits::eTransfer,
-    vk::PipelineStageFlagBits::eTransfer,
-    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-
-  endSingleCommands(cmd);
 }
 
 void AsyVkRender::createSwapChain()
