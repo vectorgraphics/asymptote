@@ -654,6 +654,7 @@ private:
   string Prefix;
   bool ViewExport;
   bool antialias = false;
+  bool readyAfterExport=false;
 
   bool remesh = true; // whether picture needs to be remeshed
   bool redraw = true;  // whether a new frame needs to be rendered
@@ -857,7 +858,7 @@ private:
   vk::CommandBuffer & getFrameCommandBuffer();
   void beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd);
   void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags = PUSHFLAGS_NONE);
-  void endFrame();
+  void endFrame(int imageIndex);
   void createSyncObjects();
 
   uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
@@ -921,7 +922,7 @@ private:
   void idle();
 
   // user controls
-  void Export();
+  void Export(int imageIndex);
   void quit();
 
   double spinStep();

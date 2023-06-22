@@ -423,7 +423,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       break;
     case 17: // Ctrl-q
     case 'Q':
-      if(!app->Format.empty()) app->Export();
+      if(!app->Format.empty()) app->Export(0);
       app->quit();
       break;
   }
@@ -506,6 +506,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(w, h);
 
+  antialias=settings::getSetting<Int>("multisample")>1;
   oWidth = w;
   oHeight = h;
   aspect=w/h;
@@ -1018,7 +1019,7 @@ void AsyVkRender::createSwapChain()
     imageCount = swapChainSupport.capabilities.maxImageCount;
   }
 
-  vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), *surface, imageCount, surfaceFormat.format, surfaceFormat.colorSpace, extent, 1, vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, 0, nullptr, swapChainSupport.capabilities.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque, presentMode, VK_TRUE, nullptr, nullptr);
+  vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), *surface, imageCount, surfaceFormat.format, surfaceFormat.colorSpace, extent, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, 0, nullptr, swapChainSupport.capabilities.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque, presentMode, VK_TRUE, nullptr, nullptr);
   if (*swapChain)
     swapchainCI.oldSwapchain = *swapChain;
 
@@ -1841,7 +1842,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   data->renderCount++;
 }
 
-void AsyVkRender::endFrame()
+void AsyVkRender::endFrame(int imageIndex)
 {
   currentCommandBuffer.endRenderPass();
   currentCommandBuffer.end();
@@ -1944,7 +1945,7 @@ void AsyVkRender::drawFrame()
   drawColors(frameObject);
   drawTriangles(frameObject);
 
-  endFrame();
+  endFrame(imageIndex);
 
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
   vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -1973,6 +1974,9 @@ void AsyVkRender::drawFrame()
     else
       throw;
   }
+
+  if (queueExport)
+    Export(imageIndex);
 
   currentFrame = (currentFrame + 1) % options.maxFramesInFlight;
 }
@@ -2070,15 +2074,15 @@ void AsyVkRender::mainLoop()
 {
   while (poll(), true) {
     
-    if (redraw) {
+    if (redraw || queueExport) {
       redraw = false;
       display();
     } else {
       usleep(1);
     }
 
-    if (queueExport)
-      Export();
+    // if (queueExport)
+    //   Export();
 
     if (currentIdleFunc != nullptr)
       currentIdleFunc();
@@ -2125,25 +2129,13 @@ void AsyVkRender::clearMaterials()
   triangleData.partial=false;
 }
 
-void AsyVkRender::Export() {
+void AsyVkRender::Export(int imageIndex) {
 
-  device->waitForFences(1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-  exportCommandBuffer->reset(vk::CommandBufferResetFlags());
+  exportCommandBuffer->reset();
   device->resetFences(1, &*exportFence);
+  exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
-  beginFrame(*exportImageFramebuffer, *exportCommandBuffer);
-
-  auto& frameObject = frameObjects[currentFrame];
-  drawPoints(frameObject);
-  drawLines(frameObject);
-  drawMaterials(frameObject);
-  drawColors(frameObject);
-  drawTriangles(frameObject);
-
-  exportCommandBuffer->endRenderPass();
-  //endFrame();
-
-  auto const size = device->getImageMemoryRequirements(*exportImage).size;
+  auto const size = device->getImageMemoryRequirements(swapChainImages[0]).size;
   auto const swapExtent = vk::Extent3D(
     swapChainExtent.width,
     swapChainExtent.height,
@@ -2161,20 +2153,15 @@ void AsyVkRender::Export() {
   );
   vk::DeviceMemory mem;
   vk::Buffer dst;
-
-  createBuffer(dst, mem, vk::BufferUsageFlagBits::eTransferDst, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
-
-  // exportCommandBuffer->reset(vk::CommandBufferResetFlags());
-  // exportCommandBuffer->begin(vk::CommandBufferBeginInfo(
-  //   vk::CommandBufferUsageFlagBits::eOneTimeSubmit
-  // ));
-
+  createBuffer(dst, mem, vk::BufferUsageFlagBits::eTransferDst,
+               vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+               size);
   transitionImageLayout(
     *exportCommandBuffer,
-    *exportImage,
+    swapChainImages[imageIndex],
     vk::AccessFlagBits::eMemoryRead,
     vk::AccessFlagBits::eTransferRead,
-    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::ePresentSrcKHR,
     vk::ImageLayout::eTransferSrcOptimal,
     vk::PipelineStageFlagBits::eTransfer,
     vk::PipelineStageFlagBits::eTransfer,
@@ -2187,15 +2174,15 @@ void AsyVkRender::Export() {
     )
   );
 
-  exportCommandBuffer->copyImageToBuffer(*exportImage, vk::ImageLayout::eTransferSrcOptimal, dst, 1, &reg);
-
+  exportCommandBuffer->copyImageToBuffer(swapChainImages[imageIndex], vk::ImageLayout::eTransferSrcOptimal, dst, 1, &reg);
+  
   transitionImageLayout(
     *exportCommandBuffer,
-    *exportImage,
+    swapChainImages[imageIndex],
     vk::AccessFlagBits::eTransferRead,
     vk::AccessFlagBits::eMemoryRead,
     vk::ImageLayout::eTransferSrcOptimal,
-    vk::ImageLayout::eGeneral,
+    vk::ImageLayout::ePresentSrcKHR,
     vk::PipelineStageFlagBits::eTransfer,
     vk::PipelineStageFlagBits::eTransfer,
     vk::ImageSubresourceRange(
@@ -2223,24 +2210,33 @@ void AsyVkRender::Export() {
     throw std::runtime_error("failed to submit draw command buffer!");
   
   device->waitForFences(1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+  
+  auto * data = static_cast<unsigned char*>(device->mapMemory(mem, 0, size));
+  auto * fmt = new unsigned char[swapChainExtent.width * swapChainExtent.height * 3]; // 3 for RGB
 
-  void * data = device->mapMemory(mem, 0, size);
-
-  std::cout << ((unsigned*)data)[0] << std::endl;
+  for (int i = 0; i < swapChainExtent.height; i++)
+    for (int j = 0; j < swapChainExtent.width; j++)
+      for (int k = 0; k < 3; k++)
+        // need to flip vertically and swap byte order due to little endian in image data
+        // 4 for sizeof unsigned (RGBA)
+        fmt[(swapChainExtent.height-1-i)*swapChainExtent.width*3+j*3+(2-k)]=data[i*swapChainExtent.width*4+j*4+k];
 
   picture pic;
   double w=oWidth;
   double h=oHeight;
-  double Aspect=((double) fullWidth)/fullHeight;
+  double Aspect=((double) swapChainExtent.width)/swapChainExtent.height;
   if(w > h*Aspect) w=(int) (h*Aspect+0.5);
   else h=(int) (w/Aspect+0.5);
 
-  auto * const Image=new camp::drawRawImage(reinterpret_cast<unsigned char*>(data),fullWidth,fullHeight,
-                                           transform(0.0,0.0,w,0.0,0.0,h),
-                                           antialias);
+  auto * const Image=new camp::drawRawImage(fmt,
+                                            swapChainExtent.width,
+                                            swapChainExtent.height,
+                                            transform(0.0,0.0,w,0.0,0.0,h),
+                                            antialias);
   pic.append(Image);
   pic.shipout(NULL,Prefix,Format,false,View);
   delete Image;
+  delete[] fmt;
 
   device->unmapMemory(mem);
 
@@ -2248,130 +2244,19 @@ void AsyVkRender::Export() {
   device->destroyBuffer(dst);
 
   queueExport = false;
-
-  // vk::UniqueImage swapchainImageCopy;
-  // vk::UniqueDeviceMemory imageMemory;
-
-  // createImage(swapChainExtent.width, swapChainExtent.height, vk::SampleCountFlagBits::e1, swapChainImageFormat,
-  //             vk::ImageUsageFlagBits::eTransferDst,
-  //             vk::MemoryPropertyFlagBits::eDeviceLocal,
-  //             swapchainImageCopy, imageMemory);
-
-  // auto const size = device->getImageMemoryRequirements(swapChainImages[0]).size;
-  // auto const imageSubresource = vk::ImageSubresourceLayers(
-  //     vk::ImageAspectFlagBits::eColor, 0, 0, 1
-  // );
-  // auto const swapExtent = vk::Extent3D(
-  //   swapChainExtent.width,
-  //   swapChainExtent.height,
-  //   1
-  // );
-  // auto const copyRegion = vk::ImageCopy(
-  //   imageSubresource,
-  //    { },
-  //    imageSubresource,
-  //    { },
-  //   swapExtent
-  // );
-  // auto const reg = vk::BufferImageCopy(
-  //   0,
-  //   swapChainExtent.width,
-  //   swapChainExtent.height,
-  //   vk::ImageSubresourceLayers(
-  //     vk::ImageAspectFlagBits::eColor, 0, 0, 1
-  //   ),
-  //   { },
-  //   swapExtent
-  // );
-  // auto mem = vk::DeviceMemory();
-  // auto dst = vk::Buffer();
-  
-  // createBuffer(dst, mem, vk::BufferUsageFlagBits::eTransferDst, vk::MemoryPropertyFlagBits::eHostVisible, size);
-
-  // auto const cmd = beginSingleCommands();
-
-  // cmd.copyImage(swapChainImages[0], vk::ImageLayout::eTransferSrcOptimal,
-  //               *swapchainImageCopy, vk::ImageLayout::eTransferDstOptimal,
-  //               1, &copyRegion);
-  //cmd.copyImageToBuffer(swapChainImages[0], vk::ImageLayout::ePresentSrcKHR, dst, 1, &reg);
-
-  // endSingleCommands(cmd);
-
-  // std::cout << "here" << std::endl;
-
-  // size_t ndata=3*fullWidth*fullHeight;
-  // if(ndata == 0) return;
-  // glReadBuffer(GL_BACK_LEFT);
-  // glPixelStorei(GL_PACK_ALIGNMENT,1);
-  // glFinish();
-  // //exporting=true;
-
-  // try {
-  //   unsigned char *data=new unsigned char[ndata];
-  //   if(data) {
-  //     TRcontext *tr=trNew();
-  //     int width=ceilquotient(fullWidth,
-  //                            ceilquotient(fullWidth,min(maxTileWidth,Width)));
-  //     int height=ceilquotient(fullHeight,
-  //                             ceilquotient(fullHeight,
-  //                                          min(maxTileHeight,Height)));
-  //     if(settings::verbose > 1)
-  //       cout << "Exporting " << Prefix << " as " << fullWidth << "x"
-  //            << fullHeight << " image" << " using tiles of size "
-  //            << width << "x" << height << endl;
-
-  //     unsigned border=min(min(1,width/2),height/2);
-  //     trTileSize(tr,width,height,border);
-  //     trImageSize(tr,fullWidth,fullHeight);
-  //     trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
-
-  //     setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
-  //     (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-
-  //     size_t count=0;
-  //     do {
-  //       trBeginTile(tr);
-  //       remesh=true;
-  //       drawscene(fullWidth,fullHeight);
-  //       gl::lastshader=-1;
-  //       ++count;
-  //     } while (trEndTile(tr));
-  //     if(settings::verbose > 1)
-  //       cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
-  //     trDelete(tr);
-
-  //     picture pic;
-  //     double w=oWidth;
-  //     double h=oHeight;
-  //     double Aspect=((double) fullWidth)/fullHeight;
-  //     if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-  //     else h=(int) (w/Aspect+0.5);
-  //     // Render an antialiased image.
-  //     auto *Image=new camp::drawRawImage(data,fullWidth,fullHeight,
-  //                                          transform(0.0,0.0,w,0.0,0.0,h),
-  //                                          antialias);
-  //     pic.append(Image);
-  //     pic.shipout(NULL,Prefix,Format,false,ViewExport);
-  //     delete Image;
-  //     delete[] data;
-  //   }
-  // } catch(handled_error const&) {
-  // } catch(std::bad_alloc&) {
-  //   outOfMemory();
-  // }
-  // remesh=true;
-  // setProjection();
+  remesh=true;
+  setProjection();
 
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLUT
-  //glutPostRedisplay();
+  redraw=true;
 #endif
 
 #ifdef HAVE_PTHREAD
-  // if(glthread && readyAfterExport) {
-  //   readyAfterExport=false;
-  //   endwait(readySignal,readyLock);
-  // }
+  if(vkthread && readyAfterExport) {
+    readyAfterExport=false;
+    endwait(readySignal,readyLock);
+  }
 #endif
 #endif
   // exporting=false;
