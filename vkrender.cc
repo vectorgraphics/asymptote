@@ -1,5 +1,6 @@
 #include "vkrender.h"
 #include "picture.h"
+#include "drawimage.h"
 
 /*
 look into subpasses again https://vulkan-tutorial.com/Drawing_a_triangle/Graphics_pipeline_basics/Render_passes
@@ -199,6 +200,9 @@ void AsyVkRender::initWindow()
   glfwSetScrollCallback(window, scrollCallback);
   glfwSetCursorPosCallback(window, cursorPosCallback);
   glfwSetKeyCallback(window, keyCallback);
+
+  // call this to set thread signal behavior
+  framebufferResizeCallback(window, width, height);
 }
 
 void AsyVkRender::updateHandler(int) {
@@ -387,7 +391,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       app->cycleMode();
       break;
     case 'E':
-      //export();
+      app->queueExport = true;
       break;
     case 'C':
       //showCamera();
@@ -419,7 +423,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       break;
     case 17: // Ctrl-q
     case 'Q':
-      //if(!Format.empty()) Export();
+      if(!app->Format.empty()) app->Export();
       app->quit();
       break;
   }
@@ -444,6 +448,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   setenv("DRI_PRIME","1",0);
 
   this->pic = pic;
+  this->Format = format;
   this->updateLights = true;
   this->redraw = true;
   this->remesh = true;
@@ -588,6 +593,7 @@ void AsyVkRender::initVulkan()
   createAttachments();
 
   createFramebuffers();
+  createExportResources();
 }
 
 void AsyVkRender::recreateSwapChain()
@@ -609,6 +615,7 @@ void AsyVkRender::recreateSwapChain()
   createGraphicsPipelines();
   createAttachments();
   createFramebuffers();
+  createExportResources();
 
   redraw=true;
 }
@@ -865,6 +872,7 @@ SwapChainSupportDetails AsyVkRender::querySwapChainSupport(vk::PhysicalDevice de
   details.capabilities = device.getSurfaceCapabilitiesKHR(surface);
   details.formats = device.getSurfaceFormatsKHR(surface);
   details.presentModes = device.getSurfacePresentModesKHR(surface);
+  details.capabilities.supportedUsageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
 
   return details;
 }
@@ -909,6 +917,91 @@ vk::Extent2D AsyVkRender::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& cap
 
     return actualExtent;
   }
+}
+
+void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
+                             vk::Image image,
+			                       vk::AccessFlags srcAccessMask,
+			                       vk::AccessFlags dstAccessMask,
+			                       vk::ImageLayout oldImageLayout,
+			                       vk::ImageLayout newImageLayout,
+			                       vk::PipelineStageFlags srcStageMask,
+			                       vk::PipelineStageFlags dstStageMask,
+			                       vk::ImageSubresourceRange subresourceRange)
+{
+  auto barrier = vk::ImageMemoryBarrier(
+    srcAccessMask,
+    dstAccessMask,
+    oldImageLayout,
+    newImageLayout,
+    0, 0,
+    image,
+    subresourceRange
+  );
+
+  cmd.pipelineBarrier(srcStageMask, dstStageMask, { }, 0, nullptr, 0, nullptr, 1, &barrier);
+}
+
+void AsyVkRender::createExportResources()
+{
+  createImage(swapChainExtent.width, swapChainExtent.height,
+              vk::SampleCountFlagBits::e1, swapChainImageFormat,
+              vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
+              vk::MemoryPropertyFlagBits::eDeviceLocal,
+              exportImage, exportImageMemory);
+  // createImage(swapChainExtent.width, swapChainExtent.height,
+  //             vk::SampleCountFlagBits::e1, swapChainImageFormat,
+  //             vk::ImageUsageFlagBits::eTransferDst,
+  //             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+  //             exportImageCopy, exportImageCopyMemory);
+
+  auto const imageViewInfo = vk::ImageViewCreateInfo(
+    { },
+    *exportImage,
+    vk::ImageViewType::e2D,
+    swapChainImageFormat,
+    { },
+    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+  );
+
+  exportImageView = device->createImageViewUnique(imageViewInfo);
+
+  vk::ImageView attachments[] = {*colorImageView, *depthImageView, *exportImageView};
+
+  auto const framebufferInfo = vk::FramebufferCreateInfo(
+    { },
+    *materialRenderPass,
+    3,
+    attachments,
+    swapChainExtent.width,
+    swapChainExtent.height,
+    1
+  );
+
+  exportImageFramebuffer = device->createFramebufferUnique(framebufferInfo);
+
+  auto const cmdInfo = vk::CommandBufferAllocateInfo(
+    *renderCommandPool,
+    vk::CommandBufferLevel::ePrimary,
+    1
+  );
+
+  exportCommandBuffer = std::move(device->allocateCommandBuffersUnique(cmdInfo)[0]);
+  exportFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+
+  auto cmd = beginSingleCommands();
+
+  transitionImageLayout(cmd,
+    *exportImage,
+    vk::AccessFlagBits::eNone,
+    vk::AccessFlagBits::eMemoryRead,
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::eGeneral,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+
+  endSingleCommands(cmd);
 }
 
 void AsyVkRender::createSwapChain()
@@ -995,6 +1088,39 @@ void AsyVkRender::createCommandBuffers()
   auto commandBuffers = device->allocateCommandBuffersUnique(allocInfo);
   for (int i = 0; i < options.maxFramesInFlight; i++)
     frameObjects[i].commandBuffer = std::move(commandBuffers[i]);
+}
+
+vk::CommandBuffer AsyVkRender::beginSingleCommands()
+{
+  auto const info = vk::CommandBufferAllocateInfo(
+    *renderCommandPool,
+    vk::CommandBufferLevel::ePrimary,
+    1,
+    nullptr
+  );
+
+  auto const cmd = device->allocateCommandBuffers(info)[0];
+
+  cmd.begin(vk::CommandBufferBeginInfo(
+    vk::CommandBufferUsageFlagBits::eOneTimeSubmit
+  ));
+
+  return cmd;
+}
+
+void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
+{
+  cmd.end();
+
+  auto info = vk::SubmitInfo();
+
+  info.commandBufferCount = 1;
+  info.pCommandBuffers = &cmd;
+
+  renderQueue.submit(1, &info, nullptr);
+  renderQueue.waitIdle();
+
+  device->freeCommandBuffers(*renderCommandPool, 1, &cmd);
 }
 
 void AsyVkRender::createSyncObjects()
@@ -1651,17 +1777,16 @@ PushConstants AsyVkRender::buildPushConstants()
   return pushConstants;
 }
 
-vk::CommandBuffer & AsyVkRender::getCommandBuffer()
+vk::CommandBuffer & AsyVkRender::getFrameCommandBuffer()
 {
   return *frameObjects[currentFrame].commandBuffer;
 }
 
-void AsyVkRender::beginFrame(uint32_t imageIndex)
+void AsyVkRender::beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd)
 {
-  auto & commandBuffer = getCommandBuffer();
-
+  currentCommandBuffer = cmd;
   auto beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
-  commandBuffer.begin(beginInfo);
+  currentCommandBuffer.begin(beginInfo);
   std::array<vk::ClearValue, 3> clearColors;
 
   clearColors[0] = vk::ClearValue(Background);
@@ -1669,14 +1794,12 @@ void AsyVkRender::beginFrame(uint32_t imageIndex)
   clearColors[1].depthStencil.stencil = 0;
   clearColors[2] = vk::ClearValue(Background);
 
-  auto renderPassInfo = vk::RenderPassBeginInfo(*materialRenderPass, *swapChainFramebuffers[imageIndex], vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent), clearColors.size(), &clearColors[0]);
-  commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+  auto renderPassInfo = vk::RenderPassBeginInfo(*materialRenderPass, framebuffer, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent), clearColors.size(), &clearColors[0]);
+  currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
 void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags /*= PUSHFLAGS_NONE*/) {
   
-  auto & commandBuffer= getCommandBuffer();
-
   if (data->indices.empty())
     return;
 
@@ -1708,21 +1831,20 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   std::vector<vk::DeviceSize> vertexOffsets = {0};
   auto const pushConstants = buildPushConstants();
 
-  commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
-  commandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
-  commandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
-  commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *materialPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
-  commandBuffer.pushConstants(*materialPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
-  commandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
+  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
+  currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
+  currentCommandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
+  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *materialPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
+  currentCommandBuffer.pushConstants(*materialPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
+  currentCommandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
 
   data->renderCount++;
 }
 
 void AsyVkRender::endFrame()
 {
-  auto & commandBuffer = getCommandBuffer();
-  commandBuffer.endRenderPass();
-  commandBuffer.end();
+  currentCommandBuffer.endRenderPass();
+  currentCommandBuffer.end();
 }
 
 void AsyVkRender::drawPoints(FrameObject & object)
@@ -1814,7 +1936,7 @@ void AsyVkRender::drawFrame()
   device->resetFences(1, &*frameObject.inFlightFence);
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlags());
 
-  beginFrame(imageIndex);
+  beginFrame(*swapChainFramebuffers[imageIndex], getFrameCommandBuffer());
 
   drawPoints(frameObject);
   drawLines(frameObject);
@@ -1955,6 +2077,9 @@ void AsyVkRender::mainLoop()
       usleep(1);
     }
 
+    if (queueExport)
+      Export();
+
     if (currentIdleFunc != nullptr)
       currentIdleFunc();
   }
@@ -1998,6 +2123,259 @@ void AsyVkRender::clearMaterials()
   materialData.partial=false;
   colorData.partial=false;
   triangleData.partial=false;
+}
+
+void AsyVkRender::Export() {
+
+  device->waitForFences(1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+  exportCommandBuffer->reset(vk::CommandBufferResetFlags());
+  device->resetFences(1, &*exportFence);
+
+  beginFrame(*exportImageFramebuffer, *exportCommandBuffer);
+
+  auto& frameObject = frameObjects[currentFrame];
+  drawPoints(frameObject);
+  drawLines(frameObject);
+  drawMaterials(frameObject);
+  drawColors(frameObject);
+  drawTriangles(frameObject);
+
+  exportCommandBuffer->endRenderPass();
+  //endFrame();
+
+  auto const size = device->getImageMemoryRequirements(*exportImage).size;
+  auto const swapExtent = vk::Extent3D(
+    swapChainExtent.width,
+    swapChainExtent.height,
+    1
+  );
+  auto const reg = vk::BufferImageCopy(
+    0,
+    swapChainExtent.width,
+    swapChainExtent.height,
+    vk::ImageSubresourceLayers(
+      vk::ImageAspectFlagBits::eColor, 0, 0, 1
+    ),
+    { },
+    swapExtent
+  );
+  vk::DeviceMemory mem;
+  vk::Buffer dst;
+
+  createBuffer(dst, mem, vk::BufferUsageFlagBits::eTransferDst, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
+
+  // exportCommandBuffer->reset(vk::CommandBufferResetFlags());
+  // exportCommandBuffer->begin(vk::CommandBufferBeginInfo(
+  //   vk::CommandBufferUsageFlagBits::eOneTimeSubmit
+  // ));
+
+  transitionImageLayout(
+    *exportCommandBuffer,
+    *exportImage,
+    vk::AccessFlagBits::eMemoryRead,
+    vk::AccessFlagBits::eTransferRead,
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::eTransferSrcOptimal,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::ImageSubresourceRange(
+      vk::ImageAspectFlagBits::eColor,
+      0,
+      1,
+      0,
+      1
+    )
+  );
+
+  exportCommandBuffer->copyImageToBuffer(*exportImage, vk::ImageLayout::eTransferSrcOptimal, dst, 1, &reg);
+
+  transitionImageLayout(
+    *exportCommandBuffer,
+    *exportImage,
+    vk::AccessFlagBits::eTransferRead,
+    vk::AccessFlagBits::eMemoryRead,
+    vk::ImageLayout::eTransferSrcOptimal,
+    vk::ImageLayout::eGeneral,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::ImageSubresourceRange(
+      vk::ImageAspectFlagBits::eColor,
+      0,
+      1,
+      0,
+      1
+    )
+  );
+
+  exportCommandBuffer->end();
+
+  auto const submitInfo = vk::SubmitInfo(
+    0,
+    nullptr,
+    nullptr,
+    1,
+    &*exportCommandBuffer,
+    0,
+    nullptr
+  );
+
+  if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
+    throw std::runtime_error("failed to submit draw command buffer!");
+  
+  device->waitForFences(1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+
+  void * data = device->mapMemory(mem, 0, size);
+
+  std::cout << ((unsigned*)data)[0] << std::endl;
+
+  picture pic;
+  double w=oWidth;
+  double h=oHeight;
+  double Aspect=((double) fullWidth)/fullHeight;
+  if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+  else h=(int) (w/Aspect+0.5);
+
+  auto * const Image=new camp::drawRawImage(reinterpret_cast<unsigned char*>(data),fullWidth,fullHeight,
+                                           transform(0.0,0.0,w,0.0,0.0,h),
+                                           antialias);
+  pic.append(Image);
+  pic.shipout(NULL,Prefix,Format,false,View);
+  delete Image;
+
+  device->unmapMemory(mem);
+
+  device->freeMemory(mem);
+  device->destroyBuffer(dst);
+
+  queueExport = false;
+
+  // vk::UniqueImage swapchainImageCopy;
+  // vk::UniqueDeviceMemory imageMemory;
+
+  // createImage(swapChainExtent.width, swapChainExtent.height, vk::SampleCountFlagBits::e1, swapChainImageFormat,
+  //             vk::ImageUsageFlagBits::eTransferDst,
+  //             vk::MemoryPropertyFlagBits::eDeviceLocal,
+  //             swapchainImageCopy, imageMemory);
+
+  // auto const size = device->getImageMemoryRequirements(swapChainImages[0]).size;
+  // auto const imageSubresource = vk::ImageSubresourceLayers(
+  //     vk::ImageAspectFlagBits::eColor, 0, 0, 1
+  // );
+  // auto const swapExtent = vk::Extent3D(
+  //   swapChainExtent.width,
+  //   swapChainExtent.height,
+  //   1
+  // );
+  // auto const copyRegion = vk::ImageCopy(
+  //   imageSubresource,
+  //    { },
+  //    imageSubresource,
+  //    { },
+  //   swapExtent
+  // );
+  // auto const reg = vk::BufferImageCopy(
+  //   0,
+  //   swapChainExtent.width,
+  //   swapChainExtent.height,
+  //   vk::ImageSubresourceLayers(
+  //     vk::ImageAspectFlagBits::eColor, 0, 0, 1
+  //   ),
+  //   { },
+  //   swapExtent
+  // );
+  // auto mem = vk::DeviceMemory();
+  // auto dst = vk::Buffer();
+  
+  // createBuffer(dst, mem, vk::BufferUsageFlagBits::eTransferDst, vk::MemoryPropertyFlagBits::eHostVisible, size);
+
+  // auto const cmd = beginSingleCommands();
+
+  // cmd.copyImage(swapChainImages[0], vk::ImageLayout::eTransferSrcOptimal,
+  //               *swapchainImageCopy, vk::ImageLayout::eTransferDstOptimal,
+  //               1, &copyRegion);
+  //cmd.copyImageToBuffer(swapChainImages[0], vk::ImageLayout::ePresentSrcKHR, dst, 1, &reg);
+
+  // endSingleCommands(cmd);
+
+  // std::cout << "here" << std::endl;
+
+  // size_t ndata=3*fullWidth*fullHeight;
+  // if(ndata == 0) return;
+  // glReadBuffer(GL_BACK_LEFT);
+  // glPixelStorei(GL_PACK_ALIGNMENT,1);
+  // glFinish();
+  // //exporting=true;
+
+  // try {
+  //   unsigned char *data=new unsigned char[ndata];
+  //   if(data) {
+  //     TRcontext *tr=trNew();
+  //     int width=ceilquotient(fullWidth,
+  //                            ceilquotient(fullWidth,min(maxTileWidth,Width)));
+  //     int height=ceilquotient(fullHeight,
+  //                             ceilquotient(fullHeight,
+  //                                          min(maxTileHeight,Height)));
+  //     if(settings::verbose > 1)
+  //       cout << "Exporting " << Prefix << " as " << fullWidth << "x"
+  //            << fullHeight << " image" << " using tiles of size "
+  //            << width << "x" << height << endl;
+
+  //     unsigned border=min(min(1,width/2),height/2);
+  //     trTileSize(tr,width,height,border);
+  //     trImageSize(tr,fullWidth,fullHeight);
+  //     trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
+
+  //     setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
+  //     (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+
+  //     size_t count=0;
+  //     do {
+  //       trBeginTile(tr);
+  //       remesh=true;
+  //       drawscene(fullWidth,fullHeight);
+  //       gl::lastshader=-1;
+  //       ++count;
+  //     } while (trEndTile(tr));
+  //     if(settings::verbose > 1)
+  //       cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
+  //     trDelete(tr);
+
+  //     picture pic;
+  //     double w=oWidth;
+  //     double h=oHeight;
+  //     double Aspect=((double) fullWidth)/fullHeight;
+  //     if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+  //     else h=(int) (w/Aspect+0.5);
+  //     // Render an antialiased image.
+  //     auto *Image=new camp::drawRawImage(data,fullWidth,fullHeight,
+  //                                          transform(0.0,0.0,w,0.0,0.0,h),
+  //                                          antialias);
+  //     pic.append(Image);
+  //     pic.shipout(NULL,Prefix,Format,false,ViewExport);
+  //     delete Image;
+  //     delete[] data;
+  //   }
+  // } catch(handled_error const&) {
+  // } catch(std::bad_alloc&) {
+  //   outOfMemory();
+  // }
+  // remesh=true;
+  // setProjection();
+
+#ifndef HAVE_LIBOSMESA
+#ifdef HAVE_LIBGLUT
+  //glutPostRedisplay();
+#endif
+
+#ifdef HAVE_PTHREAD
+  // if(glthread && readyAfterExport) {
+  //   readyAfterExport=false;
+  //   endwait(readySignal,readyLock);
+  // }
+#endif
+#endif
+  // exporting=false;
+  // camp::initSSBO=true;
 }
 
 void AsyVkRender::quit()

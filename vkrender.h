@@ -648,8 +648,12 @@ private:
   bool Zspin = false;
   bool Animate = false;
   bool queueScreen = false;
+  string Format;
   bool Step = false;
   bool View = false;
+  string Prefix;
+  bool ViewExport;
+  bool antialias = false;
 
   bool remesh = true; // whether picture needs to be remeshed
   bool redraw = true;  // whether a new frame needs to be rendered
@@ -676,6 +680,14 @@ private:
   vk::Queue presentQueue;  // prefer separate for no good reason
 
   vk::UniqueSwapchainKHR swapChain;
+  vk::UniqueImage exportImage;
+  vk::UniqueImage exportImageCopy;
+  vk::UniqueDeviceMemory exportImageMemory;
+  vk::UniqueDeviceMemory exportImageCopyMemory;
+  vk::UniqueImageView exportImageView;
+  vk::UniqueFramebuffer exportImageFramebuffer;
+  vk::UniqueCommandBuffer exportCommandBuffer;
+  vk::UniqueFence exportFence;
   std::vector<vk::Image> swapChainImages;
   vk::Format swapChainImageFormat;
   vk::Extent2D swapChainExtent;
@@ -789,6 +801,7 @@ private:
   };
 
   uint32_t currentFrame = 0;
+  vk::CommandBuffer currentCommandBuffer;
   std::vector<FrameObject> frameObjects;
   std::string lastAction = "";
 
@@ -823,14 +836,26 @@ private:
   vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
   vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);
   vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities);
+  void transitionImageLayout(vk::CommandBuffer cmd,
+                             vk::Image image,
+			                       vk::AccessFlags srcAccessMask,
+			                       vk::AccessFlags dstAccessMask,
+			                       vk::ImageLayout oldImageLayout,
+			                       vk::ImageLayout newImageLayout,
+			                       vk::PipelineStageFlags srcStageMask,
+			                       vk::PipelineStageFlags dstStageMask,
+			                       vk::ImageSubresourceRange subresourceRange);
+  void createExportResources();
   void createSwapChain();
   void createImageViews();
   void createFramebuffers();
   void createCommandPools();
   void createCommandBuffers();
+  vk::CommandBuffer beginSingleCommands();
+  void endSingleCommands(vk::CommandBuffer cmd);
   PushConstants buildPushConstants();
-  vk::CommandBuffer & getCommandBuffer();
-  void beginFrame(uint32_t imageIndex);
+  vk::CommandBuffer & getFrameCommandBuffer();
+  void beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd);
   void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags = PUSHFLAGS_NONE);
   void endFrame();
   void createSyncObjects();
@@ -896,6 +921,7 @@ private:
   void idle();
 
   // user controls
+  void Export();
   void quit();
 
   double spinStep();
