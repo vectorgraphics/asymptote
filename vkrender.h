@@ -476,7 +476,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    int maxFramesInFlight = 2;
+    int maxFramesInFlight = 16;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
@@ -655,6 +655,7 @@ private:
   bool ViewExport;
   bool antialias = false;
   bool readyAfterExport=false;
+  bool exporting=false;
 
   bool remesh = true; // whether picture needs to be remeshed
   bool redraw = true;  // whether a new frame needs to be rendered

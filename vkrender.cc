@@ -132,7 +132,6 @@ void AsyVkRender::updateViewmodelData()
 void AsyVkRender::update()
 {
   capzoom();
-  glfwShowWindow(window);
 
   double cz = 0.5 * (Zmin + Zmax);
   viewMat = glm::translate(glm::translate(glm::dmat4(1.0), glm::dvec3(cx, cy, cz)) * rotateMat, glm::dvec3(0, 0, -cz));
@@ -1709,6 +1708,7 @@ void AsyVkRender::updateBuffers()
       );
 
     copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
+    updateLights=false;
   }
 
   if (materials != oldMaterials) {
@@ -1736,8 +1736,7 @@ vk::CommandBuffer & AsyVkRender::getFrameCommandBuffer()
 void AsyVkRender::beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd)
 {
   currentCommandBuffer = cmd;
-  auto beginInfo = vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
-  currentCommandBuffer.begin(beginInfo);
+  currentCommandBuffer.begin(vk::CommandBufferBeginInfo());
   std::array<vk::ClearValue, 3> clearColors;
 
   clearColors[0] = vk::ClearValue(Background);
@@ -1860,10 +1859,6 @@ void AsyVkRender::drawFrame()
 
   auto& frameObject = frameObjects[currentFrame];
 
-  updateUniformBuffer(currentFrame);
-  updateBuffers();
-
-  // wait until this frame is finished before we start drawing the next one
   device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
 
   // check to see if any pipeline state changed.
@@ -1885,7 +1880,9 @@ void AsyVkRender::drawFrame()
     throw std::runtime_error("Failed to acquire next swapchain image.");
 
   device->resetFences(1, &*frameObject.inFlightFence);
-  frameObject.commandBuffer->reset(vk::CommandBufferResetFlags());
+  frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
+  updateUniformBuffer(currentFrame);
+  updateBuffers();
 
   beginFrame(*swapChainFramebuffers[imageIndex], getFrameCommandBuffer());
 
@@ -1909,7 +1906,7 @@ void AsyVkRender::drawFrame()
 
   try
   {
-    if (auto const result = renderQueue.presentKHR(presentInfo);
+    if (auto const result = presentQueue.presentKHR(presentInfo);
         result == vk::Result::eErrorOutOfDateKHR
         || result == vk::Result::eSuboptimalKHR
         || framebufferResized)
@@ -2027,12 +2024,7 @@ void AsyVkRender::mainLoop()
     if (redraw || queueExport) {
       redraw = false;
       display();
-    } else {
-      usleep(1);
     }
-
-    // if (queueExport)
-    //   Export();
 
     if (currentIdleFunc != nullptr)
       currentIdleFunc();
@@ -2209,7 +2201,7 @@ void AsyVkRender::Export(int imageIndex) {
   }
 #endif
 #endif
-  // exporting=false;
+  exporting=false;
   // camp::initSSBO=true;
 }
 
