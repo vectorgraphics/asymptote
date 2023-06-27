@@ -769,17 +769,19 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
   {
     auto const & family = queueFamilies[u];
 
-    if (family.queueFlags & vk::QueueFlagBits::eGraphics)
+    if (family.queueFlags & vk::QueueFlagBits::eGraphics) {
       indices.renderQueueFamily = u,
       indices.renderQueueFamilyFound = true;
-
-    if (VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface))
+    }
+    
+    if (VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface)) {
       indices.presentQueueFamily = u,
       indices.presentQueueFamilyFound = true;
-
-    if (family.queueFlags & vk::QueueFlagBits::eTransfer)
+    }
+    
+    if (family.queueFlags & vk::QueueFlagBits::eTransfer) {
       indices.transferQueueFamily = u,
-      indices.transferQueueFamilyFound = true;
+      indices.transferQueueFamilyFound = true;    }
   }
 
   return indices;
@@ -787,8 +789,6 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
 
 bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 {
-  QueueFamilyIndices indices = findQueueFamilies(device, options.display ? &*surface : nullptr);
-
   if (auto const indices = findQueueFamilies(device, options.display ? &*surface : nullptr);
       !indices.transferQueueFamilyFound
       || !indices.renderQueueFamilyFound
@@ -934,7 +934,7 @@ void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
     dstAccessMask,
     oldImageLayout,
     newImageLayout,
-    0, 0,
+    VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
     image,
     subresourceRange
   );
