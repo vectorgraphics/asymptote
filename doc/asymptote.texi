@@ -2908,10 +2908,9 @@ the routine
 @verbatim
 pen rgb(string s);
 @end verbatim
-@noindent
-A pen can be converted to a hexadecimal string with
+@item A pen can be converted to a hexadecimal string with
 @cindex @code{hex}
-@item string hex(pen p);
+@code{string hex(pen p);}
 
 Various shades and mixtures of the grayscale primary colors
 @code{black} and @code{white}, @acronym{RGB} primary colors
