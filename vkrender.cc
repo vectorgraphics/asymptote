@@ -1426,6 +1426,7 @@ void AsyVkRender::createBuffers()
                        vk::BufferUsageFlagBits::eUniformBuffer,
                        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                        sizeof(UniformBufferObject));
+    frameObjects[i].uboData = device->mapMemory(*frameObjects[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), vk::MemoryMapFlags());
   }
 }
 
@@ -1685,9 +1686,7 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
   ubo.viewMat = viewMat;
   ubo.normMat = glm::inverse(viewMat);
 
-  auto uboData = device->mapMemory(*frameObjects[currentFrame].uniformBufferMemory, 0, sizeof(ubo), vk::MemoryMapFlags());
-  memcpy(uboData, &ubo, sizeof(ubo));
-  device->unmapMemory(*frameObjects[currentFrame].uniformBufferMemory);
+  memcpy(frameObjects[currentFrame].uboData, &ubo, sizeof(ubo));
 
   newUniformBuffer = false;
 }

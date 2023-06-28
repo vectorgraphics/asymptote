@@ -743,6 +743,7 @@ private:
 
     vk::UniqueBuffer uniformBuffer;
     vk::UniqueDeviceMemory uniformBufferMemory;
+    void * uboData;
 
     vk::UniqueBuffer ssbo;
     vk::UniqueDeviceMemory ssboMemory;
