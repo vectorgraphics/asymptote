@@ -595,7 +595,8 @@ void AsyVkRender::initVulkan()
   createDescriptorSets();
   createComputeDescriptorSet();
 
-  createMaterialRenderPass();
+  createOpaqueRenderPass();
+  createTransparentRenderPass();
   createGraphicsPipelines();
   createComputePipelines();
 
@@ -620,7 +621,8 @@ void AsyVkRender::recreateSwapChain()
 
   createSwapChain();
   createImageViews();
-  createMaterialRenderPass();
+  createOpaqueRenderPass();
+  createTransparentRenderPass();
   createGraphicsPipelines();
   createAttachments();
   createFramebuffers();
@@ -1615,7 +1617,7 @@ void AsyVkRender::createBuffers()
   }
 }
 
-void AsyVkRender::createMaterialRenderPass()
+void AsyVkRender::createOpaqueRenderPass()
 {
   auto colorAttachment = vk::AttachmentDescription(
     vk::AttachmentDescriptionFlags(),
@@ -1650,9 +1652,6 @@ void AsyVkRender::createMaterialRenderPass()
     vk::ImageLayout::eUndefined,
     vk::ImageLayout::eDepthStencilAttachmentOptimal
   );
-
-  depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
-  depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
   auto colorAttachmentRef = vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
   auto depthAttachmentRef = vk::AttachmentReference(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
@@ -1697,10 +1696,90 @@ void AsyVkRender::createMaterialRenderPass()
   materialRenderPass = device->createRenderPassUnique(renderPassCI, nullptr);
 }
 
+void AsyVkRender::createTransparentRenderPass()
+{ 
+  auto colorAttachment = vk::AttachmentDescription(
+    vk::AttachmentDescriptionFlags(),
+    swapChainImageFormat,
+    msaaSamples,
+    vk::AttachmentLoadOp::eLoad,
+    vk::AttachmentStoreOp::eStore,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::ImageLayout::eColorAttachmentOptimal,
+    vk::ImageLayout::eColorAttachmentOptimal
+  );
+  auto colorResolveAttachment = vk::AttachmentDescription(
+    vk::AttachmentDescriptionFlags(),
+    swapChainImageFormat,
+    vk::SampleCountFlagBits::e1,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eStore,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::ePresentSrcKHR
+  );
+  auto depthAttachment = vk::AttachmentDescription(
+    vk::AttachmentDescriptionFlags(),
+    vk::Format::eD32Sfloat,
+    msaaSamples,
+    vk::AttachmentLoadOp::eLoad,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::ImageLayout::eDepthStencilAttachmentOptimal,
+    vk::ImageLayout::eDepthStencilAttachmentOptimal
+  );
+
+  auto colorAttachmentRef = vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
+  auto depthAttachmentRef = vk::AttachmentReference(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+  auto colorResolveAttachmentRef = vk::AttachmentReference(2, vk::ImageLayout::eColorAttachmentOptimal);
+
+  auto subpass = vk::SubpassDescription(
+    vk::SubpassDescriptionFlags(),
+    vk::PipelineBindPoint::eGraphics,
+    0,
+    nullptr,
+    1,
+    &colorAttachmentRef
+  );
+
+  subpass.pResolveAttachments = &colorResolveAttachmentRef;
+  subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+  if (msaaSamples == vk::SampleCountFlagBits::e1)
+  {
+    colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+    colorResolveAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    subpass.pColorAttachments = &colorResolveAttachmentRef;
+    subpass.pResolveAttachments = nullptr;
+  }
+
+  std::vector< vk::AttachmentDescription > attachments {colorAttachment, depthAttachment, colorResolveAttachment};
+
+  auto dependency = vk::SubpassDependency();
+
+  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependency.dstSubpass = 0;
+  dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
+                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+  dependency.srcAccessMask = vk::AccessFlagBits::eNone;
+  dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
+                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+  dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
+                              | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+  auto renderPassCI = vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), attachments.size(), &attachments[0], 1, &subpass, 1, &dependency);
+
+  transparentRenderPass = device->createRenderPassUnique(renderPassCI, nullptr);
+}
+
 template<typename V>
 void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
                                          vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
-                                         vk::PolygonMode fillMode, std::string const & shaderFile)
+                                         vk::PolygonMode fillMode, std::string const & shaderFile,
+                                         bool enableDepthWrite)
 {
   auto vertShaderCode = readFile("shaders/" + shaderFile + ".vert.spv");
   auto fragShaderCode = readFile("shaders/" + shaderFile + ".frag.spv");
@@ -1788,7 +1867,7 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
   auto depthStencilCI = vk::PipelineDepthStencilStateCreateInfo();
 
   depthStencilCI.depthTestEnable = VK_TRUE;
-  depthStencilCI.depthWriteEnable = VK_TRUE;
+  depthStencilCI.depthWriteEnable = enableDepthWrite;
   depthStencilCI.depthCompareOp = vk::CompareOp::eLess;
   depthStencilCI.depthBoundsTestEnable = VK_FALSE;
   depthStencilCI.minDepthBounds = 0.f;
@@ -1873,6 +1952,12 @@ void AsyVkRender::createGraphicsPipelines()
                          vk::PrimitiveTopology::ePointList,
                          vk::PolygonMode::ePoint,
                          "point");
+  createGraphicsPipeline<ColorVertex> // todo make dynamic state for depth write enable
+                         (transparentPipelineLayout, transparentPipeline,
+                         transparentCountPipeline,
+                         vk::PrimitiveTopology::eTriangleList,
+                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                         "color", false);
 }
 
 void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
@@ -2004,7 +2089,7 @@ void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
   currentCommandBuffer.begin(vk::CommandBufferBeginInfo());
 }
 
-void AsyVkRender::beginFrameRender(vk::Framebuffer framebuffer)
+void AsyVkRender::beginOpaqueFrameRender(vk::Framebuffer framebuffer)
 {
   std::array<vk::ClearValue, 3> clearColors;
 
@@ -2024,7 +2109,20 @@ void AsyVkRender::beginFrameRender(vk::Framebuffer framebuffer)
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd)
+void AsyVkRender::beginTransparentFrameRender(vk::Framebuffer framebuffer)
+{
+  auto renderPassInfo = vk::RenderPassBeginInfo(
+    *transparentRenderPass,
+    framebuffer,
+    vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
+    0,
+    nullptr
+  );
+
+  currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+}
+
+void AsyVkRender::resetFrameCopyData()
 {
   materialData.copiedThisFrame=false;
   colorData.copiedThisFrame=false;
@@ -2032,9 +2130,6 @@ void AsyVkRender::beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd)
   transparentData.copiedThisFrame=false;
   lineData.copiedThisFrame=false;
   pointData.copiedThisFrame=false;
-
-  beginFrameCommands(cmd);
-  beginFrameRender(framebuffer);
 }
 
 void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
@@ -2151,6 +2246,16 @@ void AsyVkRender::drawTriangles(FrameObject & object)
   triangleData.clear();
 }
 
+void AsyVkRender::drawTransparent(FrameObject & object)
+{
+  recordCommandBuffer(object.transparentVertexBuffer,
+                      object.transparentIndexBuffer,
+                      &transparentData,
+                      transparentPipeline,
+                      transparentPipelineLayout);
+  colorData.clear();
+}
+
 int ceilquotient(int x, int y)
 {
   return (x+y-1)/y;
@@ -2248,6 +2353,8 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
   }
 
   if (!interlock) {
+    beginOpaqueFrameRender(*swapChainFramebuffers[imageIndex]);
+
     recordCommandBuffer(object.pointVertexBuffer,
                         object.pointIndexBuffer,
                         &pointData,
@@ -2273,11 +2380,11 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
                         &triangleData,
                         triangleCountPipeline,
                         trianglePipelineLayout);
+    endFrameRender();
   }
 
   // draw transparent
 
-  endFrameRender();
 
   if (GPUcompress) {
     // ...
@@ -2319,7 +2426,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   Opaque=transparentData.indices.empty();
   auto transparent=!Opaque;
 
-  if (ssbo && transparent || TRUE) { // todo
+  if (ssbo && transparent && false) { // todo
 
     refreshBuffers(object, imageIndex);
 
@@ -2327,15 +2434,19 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
       resizeFragmentBuffer();
       copied=true;
     }
-
-    beginFrameRender(*swapChainFramebuffers[imageIndex]);
   }
 
+  beginOpaqueFrameRender(*swapChainFramebuffers[imageIndex]);
   drawPoints(object);
   drawLines(object);
   drawMaterials(object);
   drawColors(object);
   drawTriangles(object);
+  endFrameRender();
+  
+  beginTransparentFrameRender(*swapChainFramebuffers[imageIndex]);
+  drawTransparent(object);
+  endFrameRender();
 
   if (transparent) {
     
@@ -2390,11 +2501,12 @@ void AsyVkRender::drawFrame()
   updateUniformBuffer(currentFrame);
   updateBuffers();
 
-  beginFrame(*swapChainFramebuffers[imageIndex], getFrameCommandBuffer());
+  resetFrameCopyData();
+  beginFrameCommands(getFrameCommandBuffer());
 
   drawBuffers(frameObject, imageIndex);
 
-  endFrame(imageIndex);
+  endFrameCommands();
 
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
   vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -2412,17 +2524,17 @@ void AsyVkRender::drawFrame()
       // copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
 
       // std::cout << "PIXEL0: " << data[0] << std::endl;
-      // std::cout << "PIXEL1: " << data[1] << std::endl;
-      // std::cout << "PIXEL2: " << data[2] << std::endl;
-      // std::cout << "PIXEL3: " << data[3] << std::endl;
-      // std::cout << "PIXEL4: " << data[4] << std::endl;
-      // std::cout << "PIXEL4: " << data[5] << std::endl;
-      // std::cout << "PIXEL4: " << data[6] << std::endl;
-      // std::cout << "PIXEL4: " << data[7] << std::endl;
-      // std::cout << "PIXEL4: " << data[8] << std::endl;
-      // std::cout << "PIXEL4: " << data[9] << std::endl;
-      // std::cout << "PIXEL4: " << data[10] << std::endl;
-      // std::cout << "PIXEL4: " << data[11] << std::endl;
+      //  std::cout << "PIXEL1: " << data[1] << std::endl;
+      //  std::cout << "PIXEL2: " << data[2] << std::endl;
+      //  std::cout << "PIXEL3: " << data[3] << std::endl;
+      //  std::cout << "PIXEL4: " << data[4] << std::endl;
+      //  std::cout << "PIXEL4: " << data[5] << std::endl;
+      //  std::cout << "PIXEL4: " << data[6] << std::endl;
+      //  std::cout << "PIXEL4: " << data[7] << std::endl;
+      //  std::cout << "PIXEL4: " << data[8] << std::endl;
+      //  std::cout << "PIXEL4: " << data[9] << std::endl;
+      //  std::cout << "PIXEL4: " << data[10] << std::endl;
+      //  std::cout << "PIXEL4: " << data[11] << std::endl;
 
       // delete[] data;
     }

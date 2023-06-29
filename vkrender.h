@@ -563,6 +563,7 @@ private:
   vk::UniqueDescriptorPool descriptorPool;
 
   vk::UniqueRenderPass materialRenderPass;
+  vk::UniqueRenderPass transparentRenderPass;
   vk::UniqueDescriptorSetLayout materialDescriptorSetLayout;
 
   vk::UniquePipelineLayout materialPipelineLayout;
@@ -742,8 +743,9 @@ private:
   PushConstants buildPushConstants();
   vk::CommandBuffer & getFrameCommandBuffer();
   void beginFrameCommands(vk::CommandBuffer cmd);
-  void beginFrameRender(vk::Framebuffer framebuffer);
-  void beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd);
+  void beginOpaqueFrameRender(vk::Framebuffer framebuffer);
+  void beginTransparentFrameRender(vk::Framebuffer framebuffer);
+  void resetFrameCopyData();
   void recordCommandBuffer(DeviceBuffer & vertexBuffer,
                            DeviceBuffer & indexBuffer,
                            VertexBuffer * data,
@@ -786,11 +788,13 @@ private:
 
   void createBuffers();
 
-  void createMaterialRenderPass();
+  void createOpaqueRenderPass();
+  void createTransparentRenderPass();
   template<typename V>
   void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
                               vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
-                              vk::PolygonMode fillMode, std::string const & shaderFile);
+                              vk::PolygonMode fillMode, std::string const & shaderFile,
+                              bool enableDepthWrite=true);
   void createGraphicsPipelines();
   void createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
                              std::string const & shaderFile);
@@ -805,6 +809,7 @@ private:
   void drawMaterials(FrameObject & object);
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
+  void drawTransparent(FrameObject & object);
   void partialSums(bool readSize=false);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer();

@@ -18,6 +18,7 @@ void main()
 {
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
   index[pixel]=pixel;
+  maxSize=max(maxSize,uint(gl_FragCoord.x));
   //atomicAdd(index[uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x)],1u);
   
   outColor = vec4(gl_FragCoord.y / push.constants[1], maxSize/255.f, 0.f, 1.f);
