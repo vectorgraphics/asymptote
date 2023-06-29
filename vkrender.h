@@ -121,151 +121,6 @@ inline void extendOffset(std::vector<T>& a, const std::vector<T>& b, T offset)
 
 std::vector<char> readFile(const std::string& filename);
 
-// struct MaterialVertex {
-//   glm::vec3 position;
-//   glm::vec3 normal;
-//   glm::i32 material; // should this be a signed or unsigned int?
-
-//   static vk::VertexInputBindingDescription getBindingDescription()
-//   {
-//     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
-//   }
-
-//   static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
-//   {
-//     return std::array<vk::VertexInputAttributeDescription, 3>{
-//             vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)),
-//             vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)),
-//             vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material))};
-//   }
-// };
-
-// struct ColorVertex {
-//   glm::vec3 position;
-//   glm::vec3 normal;
-//   glm::i32 material;
-//   glm::vec3 color;
-
-//   static vk::VertexInputBindingDescription getBindingDescription()
-//   {
-//     return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
-//   }
-
-//   static std::array<vk::VertexInputAttributeDescription, 4> getAttributeDescriptions()
-//   {
-//     return std::array<vk::VertexInputAttributeDescription, 4>{
-//             vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)),
-//             vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)),
-//             vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)),
-//             vk::VertexInputAttributeDescription(3, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, color))};
-//   }
-// };
-
-// struct TriangleVertex {
-//   glm::vec3 position;
-//   glm::vec3 normal;
-//   glm::i32 material;
-//   glm::vec3 color;
-
-//   static vk::VertexInputBindingDescription getBindingDescription()
-//   {
-//     return vk::VertexInputBindingDescription(0, sizeof(TriangleVertex), vk::VertexInputRate::eVertex);
-//   }
-
-//   static std::array<vk::VertexInputAttributeDescription, 4> getAttributeDescriptions()
-//   {
-//     return std::array<vk::VertexInputAttributeDescription, 4>{
-//             vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(TriangleVertex, position)),
-//             vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(TriangleVertex, normal)),
-//             vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(TriangleVertex, material)),
-//             vk::VertexInputAttributeDescription(3, 0, vk::Format::eR32G32B32Sfloat, offsetof(TriangleVertex, color))};
-//   }
-// };
-
-// struct TransparentVertex {
-//   glm::vec3 position;
-//   glm::vec3 normal;
-//   glm::i32 material;
-//   glm::vec4 color;
-
-//   static vk::VertexInputBindingDescription getBindingDescription()
-//   {
-//     return vk::VertexInputBindingDescription(0, sizeof(TransparentVertex), vk::VertexInputRate::eVertex);
-//   }
-
-//   static std::array<vk::VertexInputAttributeDescription, 4> getAttributeDescriptions()
-//   {
-//     return std::array<vk::VertexInputAttributeDescription, 4>{
-//             vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(TransparentVertex, position)),
-//             vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(TransparentVertex, normal)),
-//             vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(TransparentVertex, material)),
-//             vk::VertexInputAttributeDescription(3, 0, vk::Format::eR32G32B32Sfloat, offsetof(TransparentVertex, color))};
-//   }
-// };
-
-// struct LineVertex {
-//   glm::vec3 position;
-//   glm::vec3 normal;
-//   glm::i32 material;
-//   // glm::vec3 color;
-
-//   static vk::VertexInputBindingDescription getBindingDescription()
-//   {
-//     return vk::VertexInputBindingDescription(0, sizeof(LineVertex), vk::VertexInputRate::eVertex);
-//   }
-
-//   static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
-//   {
-//     return std::array<vk::VertexInputAttributeDescription, 3>{
-//             vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(LineVertex, position)),
-//             vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(LineVertex, normal)),
-//             vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sint, offsetof(LineVertex, material))};
-//   }
-// };
-
-// struct PointVertex {
-//   glm::vec3 position;
-//   glm::i32 material;
-//   glm::f32 width;
-//   // glm::vec3 color;
-
-//   static vk::VertexInputBindingDescription getBindingDescription()
-//   {
-//     return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
-//   }
-
-//   static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
-//   {
-//     return std::array<vk::VertexInputAttributeDescription, 3>{
-//             vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)),
-//             vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32Sint, offsetof(PointVertex, material)),
-//             vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width))};
-//   }
-// };
-
-// template<class T>
-// struct VertexQueue {
-//   std::vector<T> vertices;
-//   std::vector<glm::u32> indices;
-
-//   // std::vector<Material> materials;
-
-//   void extend(const VertexQueue<T>& other)
-//   {
-//     extendOffset<glm::u32>(indices, other.indices, vertices.size());
-//     vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
-//     // materials.insert(materials.end(), other.materials.begin(), other.materials.end());
-//   }
-
-//   // combine this? addIndexedVertex?
-//   size_t addVertex(const T& vertex)
-//   {
-//     size_t nvertices = vertices.size();
-//     vertices.push_back(vertex);
-//     return nvertices;
-//   }
-// };
-
 #define POSITION_LOCATION 0
 #define NORMAL_LOCATION   1
 #define MATERIAL_LOCATION 2
@@ -342,6 +197,7 @@ struct VertexBuffer {
 
   int renderCount = 0;
   bool partial = false;
+  bool copiedThisFrame=false;
 
   void clear()
   {
@@ -419,19 +275,12 @@ struct UniformBufferObject {
   glm::mat4 normMat { };
 };
 
-enum FlagsPushConstant: unsigned int
-{
-  PUSHFLAGS_NONE    = 0,
-  PUSHFLAGS_NOLIGHT = 1 << 0,
-  PUSHFLAGS_COLORED = 1 << 1,
-  PUSHFLAGS_GENERAL = 1 << 2
-};
-
 struct PushConstants
 {
   glm::uvec4 constants;
-  // constants[0] = flags
-  // constants[1] = nlights
+  // GRAPHICS:
+    // constants[0] = flags
+    // constants[1] = width
 };
 
 struct Arcball {
@@ -476,7 +325,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    int maxFramesInFlight = 16;
+    int maxFramesInFlight = 2;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
@@ -535,13 +384,6 @@ public:
   }
 #endif
 
-  // VertexQueue<MaterialVertex> materialVertices;
-  // VertexQueue<ColorVertex> colorVertices;
-  // VertexQueue<TriangleVertex> triangleVertices;
-  // VertexQueue<TransparentVertex> transparentVertices;
-  // VertexQueue<LineVertex> lineVertices;
-  // VertexQueue<PointVertex> pointVertices;
-
   VertexBuffer materialData;
   VertexBuffer colorData;
   VertexBuffer triangleData;
@@ -549,14 +391,14 @@ public:
   VertexBuffer lineData;
   VertexBuffer pointData;
 
-  // clear every frame?
   std::vector<Material> materials;
   std::vector<Material> oldMaterials;
   MaterialMap materialMap;
   size_t materialIndex;
 
+  unsigned int Opaque=0;
   bool outlinemode = false;
-
+  std::uint32_t pixels;
   bool orthographic;
 
   glm::dmat4 rotateMat;
@@ -572,8 +414,7 @@ public:
   double Ymin, Ymax;
   double Zmin, Zmax;
 
-  int fullWidth, fullHeight; // TODO: pixel density, expand?
-  // What is the difference between these?
+  int fullWidth, fullHeight;
   double Angle;
   double Zoom0;
   pair Shift;
@@ -592,10 +433,9 @@ public:
   double BBT[9];
   double T[16];
 
-  size_t Nmaterials;   // Number of materials compiled in shader
-  size_t nmaterials;   // Current size of materials buffer
-  size_t Maxmaterials; // Maxinum size of materials buffer
-
+  size_t Nmaterials;  
+  size_t nmaterials;  
+  size_t Maxmaterials;
 
   void updateProjection();
   void frustum(GLdouble left, GLdouble right, GLdouble bottom,
@@ -657,8 +497,26 @@ private:
   bool readyAfterExport=false;
   bool exporting=false;
 
-  bool remesh = true; // whether picture needs to be remeshed
-  bool redraw = true;  // whether a new frame needs to be rendered
+  bool remesh=true; // whether picture needs to be remeshed
+  bool redraw=true; // whether a new frame needs to be rendered
+  bool ssbo=true;
+  bool interlock=false;
+  bool GPUindexing=true;
+  bool GPUcompress=false;
+  bool initSSBO=true;
+
+  GLint gs2;
+  GLint gs;
+  GLint g;
+  GLuint processors;
+  GLuint localSize;
+  GLuint blockSize;
+  GLuint groupSize;
+  GLuint elements;
+  GLuint fragments;
+  GLuint maxFragments=0;
+  //GLint maxgroups;
+  GLuint maxSize;
 
   bool hasExternalMemoryCapabilitiesExtension = false;
   bool hasExternalMemoryExtension = false;
@@ -709,28 +567,59 @@ private:
 
   vk::UniquePipelineLayout materialPipelineLayout;
   vk::UniquePipeline materialPipeline;
+  vk::UniquePipeline materialCountPipeline;
 
   vk::UniquePipelineLayout colorPipelineLayout;
   vk::UniquePipeline colorPipeline;
+  vk::UniquePipeline colorCountPipeline;
+
+  vk::UniquePipelineLayout transparentPipelineLayout;
+  vk::UniquePipeline transparentPipeline;
+  vk::UniquePipeline transparentCountPipeline;
 
   vk::UniquePipelineLayout trianglePipelineLayout;
   vk::UniquePipeline trianglePipeline;
+  vk::UniquePipeline triangleCountPipeline;
 
   vk::UniquePipelineLayout linePipelineLayout;
   vk::UniquePipeline linePipeline;
+  vk::UniquePipeline lineCountPipeline;
 
   vk::UniquePipelineLayout pointPipelineLayout;
   vk::UniquePipeline pointPipeline;
+  vk::UniquePipeline pointCountPipeline;
 
+  vk::UniqueDescriptorPool computeDescriptorPool;
   vk::UniqueDescriptorSetLayout computeDescriptorSetLayout;
-  vk::UniquePipelineLayout computePipelineLayout;
-  vk::UniquePipeline computePipeline;
+  vk::UniqueDescriptorSet computeDescriptorSet;
+  vk::UniquePipelineLayout sum1PipelineLayout;
+  vk::UniquePipeline sum1Pipeline;
+  vk::UniquePipelineLayout sum2PipelineLayout;
+  vk::UniquePipeline sum2Pipeline;
+  vk::UniquePipelineLayout sum3PipelineLayout;
+  vk::UniquePipeline sum3Pipeline;
 
   vk::UniqueBuffer materialBuffer;
   vk::UniqueDeviceMemory materialBufferMemory;
 
   vk::UniqueBuffer lightBuffer;
   vk::UniqueDeviceMemory lightBufferMemory;
+
+  std::size_t countBufferSize;
+  vk::UniqueBuffer countBuffer;
+  vk::UniqueDeviceMemory countBufferMemory;
+
+  std::size_t globalSize;
+  vk::UniqueBuffer globalSumBuffer;
+  vk::UniqueDeviceMemory globalSumBufferMemory;
+
+  std::size_t offsetBufferSize;
+  vk::UniqueBuffer offsetBuffer;
+  vk::UniqueDeviceMemory offsetBufferMemory;
+
+  std::size_t feedbackBufferSize;
+  vk::UniqueBuffer feedbackBuffer;
+  vk::UniqueDeviceMemory feedbackBufferMemory;
 
   struct FrameObject {
     vk::UniqueSemaphore imageAvailableSemaphore;
@@ -852,13 +741,22 @@ private:
   void endSingleCommands(vk::CommandBuffer cmd);
   PushConstants buildPushConstants();
   vk::CommandBuffer & getFrameCommandBuffer();
+  void beginFrameCommands(vk::CommandBuffer cmd);
+  void beginFrameRender(vk::Framebuffer framebuffer);
   void beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd);
-  void recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags = PUSHFLAGS_NONE);
+  void recordCommandBuffer(DeviceBuffer & vertexBuffer,
+                           DeviceBuffer & indexBuffer,
+                           VertexBuffer * data,
+                           vk::UniquePipeline & pipeline, 
+                           vk::UniquePipelineLayout & pipelineLayout);
+  void endFrameRender();
+  void endFrameCommands();
   void endFrame(int imageIndex);
   void createSyncObjects();
 
   uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
 
+  void zeroBuffer(vk::Buffer & buf, vk::DeviceSize size);
   void createBuffer(vk::Buffer& buffer, vk::DeviceMemory& bufferMemory, vk::BufferUsageFlags usage,
                     vk::MemoryPropertyFlags properties, vk::DeviceSize size);
   void createBufferUnique(vk::UniqueBuffer& buffer, vk::UniqueDeviceMemory& bufferMemory,
@@ -871,9 +769,7 @@ private:
                    vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
                    vk::UniqueDeviceMemory & mem);
   void createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags, vk::UniqueImage& img, vk::UniqueImageView& imgView);
-  // void copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size,
-  //                     bool wait = true, vk::Fence fence = {}, const vk::Semaphore semaphore = {},
-  //                     vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {});
+  void copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size);
 
   void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects=0);
 
@@ -881,7 +777,9 @@ private:
   void createComputeDescriptorSetLayout();
   // void createUniformBuffers();
   void createDescriptorPool();
+  void createComputeDescriptorPool();
   void createDescriptorSets();
+  void createComputeDescriptorSet();
 
   void createMaterialVertexBuffer();
   void createMaterialIndexBuffer();
@@ -890,11 +788,13 @@ private:
 
   void createMaterialRenderPass();
   template<typename V>
-  void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
-                              vk::PrimitiveTopology topology, vk::PolygonMode fillMode,
-                              std::string const & shaderFile);
+  void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
+                              vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
+                              vk::PolygonMode fillMode, std::string const & shaderFile);
   void createGraphicsPipelines();
-  void createComputePipeline();
+  void createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
+                             std::string const & shaderFile);
+  void createComputePipelines();
 
   void createAttachments();
 
@@ -905,6 +805,11 @@ private:
   void drawMaterials(FrameObject & object);
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
+  void partialSums(bool readSize=false);
+  void resizeBlendShader(std::uint32_t maxDepth);
+  void resizeFragmentBuffer();
+  void refreshBuffers(FrameObject & object, int imageIndex);
+  void drawBuffers(FrameObject & object, int imageIndex);
   void drawFrame();
   void recreateSwapChain();
   vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);

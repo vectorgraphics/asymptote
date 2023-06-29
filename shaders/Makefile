@@ -1,4 +1,4 @@
-shaders: material color point triangle
+shaders: material color point triangle partials
 
 material:
 	python3 genShaders.py material MATERIAL NORMAL
@@ -23,3 +23,10 @@ point:
 
 	glslangValidator -V point.vert.glsl -o point.vert.spv -S vert
 	glslangValidator -V point.frag.glsl -o point.frag.spv -S frag
+
+partials:
+
+	glslangValidator -V count.frag.glsl -o count.frag.spv -S frag
+	glslangValidator -V sum1.comp.glsl -o sum1.comp.spv -S comp
+	glslangValidator -V sum2.comp.glsl -o sum2.comp.spv -S comp
+	glslangValidator -V sum3.comp.glsl -o sum3.comp.spv -S comp

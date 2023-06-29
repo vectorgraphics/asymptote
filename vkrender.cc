@@ -490,6 +490,12 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   }
 #endif
 
+  if(GPUindexing) {
+    localSize=settings::getSetting<Int>("GPUlocalSize");
+    blockSize=settings::getSetting<Int>("GPUblockSize");
+    groupSize=localSize*blockSize;
+  }
+
   if (vkinit) {
     return;
   }
@@ -580,15 +586,18 @@ void AsyVkRender::initVulkan()
   createSyncObjects();
 
   createDescriptorSetLayout();
-  //createComputeDescriptorSetLayout();
-  // createUniformBuffers();
+  createComputeDescriptorSetLayout();
+
   createBuffers();
+
   createDescriptorPool();
+  createComputeDescriptorPool();
   createDescriptorSets();
+  createComputeDescriptorSet();
 
   createMaterialRenderPass();
   createGraphicsPipelines();
-  //createComputePipeline();
+  createComputePipelines();
 
   createAttachments();
 
@@ -1092,6 +1101,14 @@ uint32_t AsyVkRender::selectMemory(const vk::MemoryRequirements memRequirements,
   throw std::runtime_error("failed to find suitable memory type!");
 }
 
+void AsyVkRender::zeroBuffer(vk::Buffer & buf, vk::DeviceSize size) {
+
+  auto const cmd = beginSingleCommands();
+
+  cmd.fillBuffer(buf, 0, size, 0);
+
+  endSingleCommands(cmd);
+}
 
 void AsyVkRender::createBuffer(vk::Buffer& buffer, vk::DeviceMemory& bufferMemory, vk::BufferUsageFlags usage,
                                vk::MemoryPropertyFlags properties, vk::DeviceSize size)
@@ -1139,7 +1156,6 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
   if (submitResult != vk::Result::eSuccess) throw std::runtime_error("failed to submit command buffer!");
   device->waitForFences(1, &*fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
 }
-
 
 void AsyVkRender::copyToBuffer(const vk::Buffer& buffer, const void* data, vk::DeviceSize size,
                                vk::Buffer stagingBuffer, vk::DeviceMemory stagingBufferMemory)
@@ -1223,21 +1239,27 @@ void AsyVkRender::createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags,
   imgView = device->createImageViewUnique(info);
 }
 
-// void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size,
-//                                  bool wait = true, vk::Fence fence = {}, const vk::Semaphore semaphore = {},
-//                                  vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {})
-// {
-//   vk::UniqueBuffer stagingBuffer;
-//   vk::UniqueDeviceMemory stagingBufferMemory;
-//   createBufferUnique(stagingBuffer, stagingBufferMemory, vk::BufferUsageFlagBits::eTransferDst,
-//                      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
+void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size)
+{
+  vk::UniqueBuffer stagingBuffer;
+  vk::UniqueDeviceMemory stagingBufferMemory;
 
-//   copyBufferToBuffer(buffer, *stagingBuffer, size);
+  createBufferUnique(stagingBuffer, stagingBufferMemory, vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
+  
+  auto const cmd = beginSingleCommands();
+  auto const cpy = vk::BufferCopy(
+    0, 0, size
+  );
 
-//   void* memoryPtr = device->mapMemory(*stagingBufferMemory, 0, size, vk::MemoryMapFlags());
-//   memcpy(data, memoryPtr, size);
-//   device->unmapMemory(*stagingBufferMemory);
-// }
+  cmd.copyBuffer(buffer, *stagingBuffer, 1, &cpy);
+
+  endSingleCommands(cmd);
+
+  void* memoryPtr = device->mapMemory(*stagingBufferMemory, 0, size, vk::MemoryMapFlags());
+  memcpy(data, memoryPtr, size);
+  device->unmapMemory(*stagingBufferMemory);
+}
 
 void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects)
 {
@@ -1297,11 +1319,18 @@ void AsyVkRender::createDescriptorSetLayout()
     1,
     vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
   );
+  auto countBufferBinding = vk::DescriptorSetLayoutBinding(
+    3,
+    vk::DescriptorType::eStorageBuffer,
+    1,
+    vk::ShaderStageFlagBits::eFragment
+  );
 
   std::vector<vk::DescriptorSetLayoutBinding> layoutBindings {
     uboLayoutBinding,
     materialBufferBinding,
-    lightBufferBinding
+    lightBufferBinding,
+    countBufferBinding
   };
 
   auto layoutCI = vk::DescriptorSetLayoutCreateInfo(
@@ -1316,9 +1345,10 @@ void AsyVkRender::createComputeDescriptorSetLayout()
 {
   std::vector< vk::DescriptorSetLayoutBinding > layoutBindings
   {
-    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eCompute),
+    vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
     vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
-    vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute)
+    vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
+    vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute)
   };
   auto layoutCI = vk::DescriptorSetLayoutCreateInfo(
     vk::DescriptorSetLayoutCreateFlags(),
@@ -1331,14 +1361,19 @@ void AsyVkRender::createComputeDescriptorSetLayout()
 
 void AsyVkRender::createDescriptorPool()
 {
-  std::array<vk::DescriptorPoolSize, 3> poolSizes;
+  std::array<vk::DescriptorPoolSize, 4> poolSizes;
 
   poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
   poolSizes[0].descriptorCount = options.maxFramesInFlight;
+
   poolSizes[1].type = vk::DescriptorType::eStorageBuffer;
   poolSizes[1].descriptorCount = options.maxFramesInFlight;
+
   poolSizes[2].type = vk::DescriptorType::eStorageBuffer;
   poolSizes[2].descriptorCount = options.maxFramesInFlight;
+
+  poolSizes[3].type = vk::DescriptorType::eStorageBuffer;
+  poolSizes[3].descriptorCount = options.maxFramesInFlight;
 
   auto poolCI = vk::DescriptorPoolCreateInfo(
     vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
@@ -1347,6 +1382,35 @@ void AsyVkRender::createDescriptorPool()
     &poolSizes[0]
   );
   descriptorPool = device->createDescriptorPoolUnique(poolCI);
+}
+
+void AsyVkRender::createComputeDescriptorPool()
+{
+  std::array<vk::DescriptorPoolSize, 4> poolSizes;
+
+  // countBuffer
+  poolSizes[0].type = vk::DescriptorType::eStorageBuffer;
+  poolSizes[0].descriptorCount = 1;
+
+  // globalSumBuffer
+  poolSizes[1].type = vk::DescriptorType::eStorageBuffer;
+  poolSizes[1].descriptorCount = 1;
+
+  // offsetBuffer
+  poolSizes[2].type = vk::DescriptorType::eStorageBuffer;
+  poolSizes[2].descriptorCount = 1;
+
+  // feedbackBuffer
+  poolSizes[3].type = vk::DescriptorType::eStorageBuffer;
+  poolSizes[3].descriptorCount = 1;
+
+  auto poolCI = vk::DescriptorPoolCreateInfo(
+    vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+    1,
+    poolSizes.size(),
+    &poolSizes[0]
+  );
+  computeDescriptorPool = device->createDescriptorPoolUnique(poolCI);
 }
 
 void AsyVkRender::createDescriptorSets()
@@ -1376,7 +1440,13 @@ void AsyVkRender::createDescriptorSets()
     lightBufferInfo.offset = 0;
     lightBufferInfo.range = sizeof(Light) * nlights;
 
-    std::array<vk::WriteDescriptorSet, 3> writes;
+    auto countBufferInfo = vk::DescriptorBufferInfo();
+
+    countBufferInfo.buffer = *countBuffer;
+    countBufferInfo.offset = 0;
+    countBufferInfo.range = countBufferSize;
+
+    std::array<vk::WriteDescriptorSet, 4> writes;
 
     writes[0].dstSet = *frameObjects[i].descriptorSet;
     writes[0].dstBinding = 0;
@@ -1399,14 +1469,102 @@ void AsyVkRender::createDescriptorSets()
     writes[2].descriptorCount = 1;
     writes[2].pBufferInfo = &lightBufferInfo;
 
+    writes[3].dstSet = *frameObjects[i].descriptorSet;
+    writes[3].dstBinding = 3;
+    writes[3].dstArrayElement = 0;
+    writes[3].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[3].descriptorCount = 1;
+    writes[3].pBufferInfo = &countBufferInfo;
+
     device->updateDescriptorSets(writes.size(), &writes[0], 0, nullptr);
   }
 }
 
+void AsyVkRender::createComputeDescriptorSet()
+{
+  auto allocInfo = vk::DescriptorSetAllocateInfo(
+    *computeDescriptorPool,
+    1,
+    &*computeDescriptorSetLayout
+  );
+
+  computeDescriptorSet = std::move(device->allocateDescriptorSetsUnique(allocInfo)[0]);
+
+  auto countBufferInfo = vk::DescriptorBufferInfo();
+
+  countBufferInfo.buffer = *countBuffer;
+  countBufferInfo.offset = 0;
+  countBufferInfo.range = countBufferSize;
+
+  auto globalSumBufferInfo = vk::DescriptorBufferInfo();
+
+  globalSumBufferInfo.buffer = *globalSumBuffer;
+  globalSumBufferInfo.offset = 0;
+  globalSumBufferInfo.range = globalSize;
+
+  auto offsetBufferInfo = vk::DescriptorBufferInfo();
+
+  offsetBufferInfo.buffer = *offsetBuffer;
+  offsetBufferInfo.offset = 0;
+  offsetBufferInfo.range = offsetBufferSize;
+
+  auto feedbackBufferInfo = vk::DescriptorBufferInfo();
+
+  feedbackBufferInfo.buffer = *feedbackBuffer;
+  feedbackBufferInfo.offset = 0;
+  feedbackBufferInfo.range = feedbackBufferSize;
+
+  std::array<vk::WriteDescriptorSet, 4> writes;
+
+  writes[0].dstSet = *computeDescriptorSet;
+  writes[0].dstBinding = 0;
+  writes[0].dstArrayElement = 0;
+  writes[0].descriptorType = vk::DescriptorType::eStorageBuffer;
+  writes[0].descriptorCount = 1;
+  writes[0].pBufferInfo = &countBufferInfo;
+
+  writes[1].dstSet = *computeDescriptorSet;
+  writes[1].dstBinding = 1;
+  writes[1].dstArrayElement = 0;
+  writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+  writes[1].descriptorCount = 1;
+  writes[1].pBufferInfo = &globalSumBufferInfo;
+
+  writes[2].dstSet = *computeDescriptorSet;
+  writes[2].dstBinding = 2;
+  writes[2].dstArrayElement = 0;
+  writes[2].descriptorType = vk::DescriptorType::eStorageBuffer;
+  writes[2].descriptorCount = 1;
+  writes[2].pBufferInfo = &offsetBufferInfo;
+
+  writes[3].dstSet = *computeDescriptorSet;
+  writes[3].dstBinding = 3;
+  writes[3].dstArrayElement = 0;
+  writes[3].descriptorType = vk::DescriptorType::eStorageBuffer;
+  writes[3].descriptorCount = 1;
+  writes[3].pBufferInfo = &feedbackBufferInfo;
+
+  device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+}
+
 void AsyVkRender::createBuffers()
 {
-  // todo fill materials in staging buffer, copy to material buffer, then remove staging buffer
-  // material buffer should only be visible to gpu for better performance
+  pixels=(swapChainExtent.width+1)*(swapChainExtent.height+1);
+  GLuint Pixels;
+
+  if (GPUindexing) {
+    GLuint G=ceilquotient(pixels,groupSize);
+    Pixels=groupSize*G;
+    globalSize=localSize*ceilquotient(G,localSize);
+  }
+  else {
+    Pixels=pixels;
+  }
+
+  countBufferSize=(Pixels+2)*sizeof(std::uint32_t);
+  offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
+  feedbackBufferSize=2*sizeof(std::uint32_t);
+
   createBufferUnique(materialBuffer,
                      materialBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
@@ -1418,6 +1576,33 @@ void AsyVkRender::createBuffers()
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      sizeof(camp::Light) * nlights);
+
+  createBufferUnique(countBuffer,
+                     countBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     countBufferSize);
+
+  createBufferUnique(globalSumBuffer,
+                     globalSumBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     globalSize);
+
+  createBufferUnique(offsetBuffer,
+                     offsetBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     offsetBufferSize);
+
+  createBufferUnique(feedbackBuffer,
+                     feedbackBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     feedbackBufferSize);
+
+  uint32_t i = 50;
+  copyToBuffer(*countBuffer, &i, 4);
 
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
 
@@ -1513,27 +1698,54 @@ void AsyVkRender::createMaterialRenderPass()
 }
 
 template<typename V>
-void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
-                                         vk::PrimitiveTopology topology, vk::PolygonMode fillMode,
-                                         std::string const & shaderFile)
+void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
+                                         vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
+                                         vk::PolygonMode fillMode, std::string const & shaderFile)
 {
   auto vertShaderCode = readFile("shaders/" + shaderFile + ".vert.spv");
   auto fragShaderCode = readFile("shaders/" + shaderFile + ".frag.spv");
+  auto countShaderCode = readFile("shaders/count.frag.spv");
 
   vk::UniqueShaderModule vertShaderModule = createShaderModule(vertShaderCode);
   vk::UniqueShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+  vk::UniqueShaderModule countShaderModule = createShaderModule(countShaderCode);
 
   vk::SpecializationMapEntry specializationMapEntries[] = {};
   uint32_t specializationData[] = {};
   auto specializationInfo = vk::SpecializationInfo(ARR_VIEW(specializationMapEntries), RAW_VIEW(specializationData));
 
-  auto vertShaderStageCI = vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex, *vertShaderModule, "main", &specializationInfo);
-  auto fragShaderStageCI = vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment, *fragShaderModule, "main", &specializationInfo);
-  vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageCI, fragShaderStageCI};
+  auto vertShaderStageCI = vk::PipelineShaderStageCreateInfo(
+    vk::PipelineShaderStageCreateFlags(),
+    vk::ShaderStageFlagBits::eVertex,
+    *vertShaderModule,
+    "main",
+    &specializationInfo
+  );
+  auto fragShaderStageCI = vk::PipelineShaderStageCreateInfo(
+    vk::PipelineShaderStageCreateFlags(),
+    vk::ShaderStageFlagBits::eFragment,
+    *fragShaderModule,
+    "main",
+    &specializationInfo
+  );
+  auto countShaderStageCI = vk::PipelineShaderStageCreateInfo(
+    vk::PipelineShaderStageCreateFlags(),
+    vk::ShaderStageFlagBits::eFragment,
+    *countShaderModule,
+    "main",
+    &specializationInfo
+  );
+  vk::PipelineShaderStageCreateInfo defaultStages[] = {vertShaderStageCI, fragShaderStageCI};
+  vk::PipelineShaderStageCreateInfo countStages[] = {vertShaderStageCI, countShaderStageCI};
 
   auto bindingDescription = V::getBindingDescription();
   auto attributeDescriptions = V::getAttributeDescriptions();
-  auto vertexInputCI = vk::PipelineVertexInputStateCreateInfo(vk::PipelineVertexInputStateCreateFlags(), 1, &bindingDescription, VEC_VIEW(attributeDescriptions));
+  auto vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
+    vk::PipelineVertexInputStateCreateFlags(),
+    1,
+    &bindingDescription,
+    VEC_VIEW(attributeDescriptions)
+  );
 
   auto inputAssemblyCI = vk::PipelineInputAssemblyStateCreateInfo(
     vk::PipelineInputAssemblyStateCreateFlags(),
@@ -1545,7 +1757,6 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
   auto scissor = vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent);
   auto viewportStateCI = vk::PipelineViewportStateCreateInfo(vk::PipelineViewportStateCreateFlags(), 1, &viewport, 1, &scissor);
 
-  // TODO: ask about frontface and cullmode
   auto rasterizerCI = vk::PipelineRasterizationStateCreateInfo(
     vk::PipelineRasterizationStateCreateFlags(),
     VK_FALSE,
@@ -1560,7 +1771,15 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
     1.0f
   );
 
-  auto multisamplingCI = vk::PipelineMultisampleStateCreateInfo(vk::PipelineMultisampleStateCreateFlags(), msaaSamples, VK_FALSE, 0.0f, nullptr, VK_FALSE, VK_FALSE);
+  auto multisamplingCI = vk::PipelineMultisampleStateCreateInfo(
+    vk::PipelineMultisampleStateCreateFlags(),
+    msaaSamples,
+    VK_FALSE,
+    0.0f,
+    nullptr,
+    VK_FALSE,
+    VK_FALSE
+  );
 
   auto colorBlendAttachment = vk::PipelineColorBlendAttachmentState(VK_FALSE, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
@@ -1589,47 +1808,77 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
 
   layout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
-  auto pipelineCI = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlags(), ARR_VIEW(shaderStages), &vertexInputCI, &inputAssemblyCI, nullptr, &viewportStateCI, &rasterizerCI, &multisamplingCI, &depthStencilCI, &colorBlendCI, nullptr, *materialPipelineLayout, *materialRenderPass, 0, nullptr);
+  auto const makePipeline = [=](vk::UniquePipeline & pipeline,
+                                vk::PipelineShaderStageCreateInfo * stages)
+  {
+    auto pipelineCI = vk::GraphicsPipelineCreateInfo(
+      vk::PipelineCreateFlags(),
+      2,
+      stages,
+      &vertexInputCI,
+      &inputAssemblyCI,
+      nullptr,
+      &viewportStateCI,
+      &rasterizerCI,
+      &multisamplingCI, 
+      &depthStencilCI,
+      &colorBlendCI,
+      nullptr,
+      *materialPipelineLayout,
+      *materialRenderPass,
+      0,
+      nullptr
+    );
 
-  if (auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
-      result.result != vk::Result::eSuccess)
-    throw std::runtime_error("failed to create pipeline!");
-  else
-    pipeline = std::move(result.value);
+    if (auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
+        result.result != vk::Result::eSuccess)
+      throw std::runtime_error("failed to create pipeline!");
+    else
+      pipeline = std::move(result.value);
+  };
+
+  makePipeline(graphicsPipeline, defaultStages);
+  makePipeline(countPipeline, countStages);
 }
 
 void AsyVkRender::createGraphicsPipelines()
 {
   createGraphicsPipeline<MaterialVertex>
                          (materialPipelineLayout, materialPipeline,
+                         materialCountPipeline,
                          vk::PrimitiveTopology::eTriangleList,
                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
                          "material");
   createGraphicsPipeline<ColorVertex>
                          (colorPipelineLayout, colorPipeline,
+                         colorCountPipeline,
                          vk::PrimitiveTopology::eTriangleList,
                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
                          "color");
   createGraphicsPipeline<ColorVertex>
                          (trianglePipelineLayout, trianglePipeline,
+                         triangleCountPipeline,
                          vk::PrimitiveTopology::eTriangleList,
                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
                          "triangle");
   createGraphicsPipeline<MaterialVertex>
                          (linePipelineLayout, linePipeline,
+                         lineCountPipeline,
                          vk::PrimitiveTopology::eLineList,
                          vk::PolygonMode::eFill,
                          "material");
   createGraphicsPipeline<PointVertex>
                          (pointPipelineLayout, pointPipeline,
+                         pointCountPipeline,
                          vk::PrimitiveTopology::ePointList,
                          vk::PolygonMode::ePoint,
                          "point");
 }
 
-void AsyVkRender::createComputePipeline()
+void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
+                                        std::string const & shaderFile)
 {
-  auto computeShaderCode = readFile("shaders/compute.comp.spv");
+  auto computeShaderCode = readFile("shaders/" + shaderFile + ".comp.spv");
 
   vk::UniqueShaderModule computeShaderModule = createShaderModule(computeShaderCode);
 
@@ -1640,6 +1889,12 @@ void AsyVkRender::createComputePipeline()
     "main"
   );
 
+  auto miscConstant = vk::PushConstantRange(
+    vk::ShaderStageFlagBits::eCompute,
+    0,
+    sizeof(std::uint32_t)
+  );
+
   auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(
     vk::PipelineLayoutCreateFlags(),
     1,
@@ -1648,18 +1903,28 @@ void AsyVkRender::createComputePipeline()
     nullptr
   );
 
-  computePipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
+  pipelineLayoutCI.pPushConstantRanges = &miscConstant;
+  pipelineLayoutCI.pushConstantRangeCount = 1;
+
+  layout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
   auto computePipelineCI = vk::ComputePipelineCreateInfo();
 
-  computePipelineCI.layout = *computePipelineLayout;
+  computePipelineCI.layout = *layout;
   computePipelineCI.stage = computeShaderStageInfo;
 
   if (auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
       result.result != vk::Result::eSuccess)
     throw std::runtime_error("failed to create compute pipeline!");
   else
-    computePipeline = std::move(result.value);
+    pipeline = std::move(result.value);
+}
+
+void AsyVkRender::createComputePipelines()
+{
+  createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1");
+  createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2");
+  createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3");
 }
 
 void AsyVkRender::createAttachments()
@@ -1723,6 +1988,7 @@ PushConstants AsyVkRender::buildPushConstants()
   auto pushConstants = PushConstants { };
 
   pushConstants.constants[0] = options.mode!= DRAWMODE_NORMAL ? 0 : nlights;
+  pushConstants.constants[1] = swapChainExtent.width;
   
   return pushConstants;
 }
@@ -1732,10 +1998,14 @@ vk::CommandBuffer & AsyVkRender::getFrameCommandBuffer()
   return *frameObjects[currentFrame].commandBuffer;
 }
 
-void AsyVkRender::beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd)
+void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
 {
   currentCommandBuffer = cmd;
   currentCommandBuffer.begin(vk::CommandBufferBeginInfo());
+}
+
+void AsyVkRender::beginFrameRender(vk::Framebuffer framebuffer)
+{
   std::array<vk::ClearValue, 3> clearColors;
 
   clearColors[0] = vk::ClearValue(Background);
@@ -1743,18 +2013,42 @@ void AsyVkRender::beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd)
   clearColors[1].depthStencil.stencil = 0;
   clearColors[2] = vk::ClearValue(Background);
 
-  auto renderPassInfo = vk::RenderPassBeginInfo(*materialRenderPass, framebuffer, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent), clearColors.size(), &clearColors[0]);
+  auto renderPassInfo = vk::RenderPassBeginInfo(
+    *materialRenderPass,
+    framebuffer,
+    vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
+    clearColors.size(),
+    &clearColors[0]
+  );
+
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer & indexBuffer, VertexBuffer * data, vk::UniquePipeline & pipeline, FlagsPushConstant addFlags /*= PUSHFLAGS_NONE*/) {
+void AsyVkRender::beginFrame(vk::Framebuffer framebuffer, vk::CommandBuffer cmd)
+{
+  materialData.copiedThisFrame=false;
+  colorData.copiedThisFrame=false;
+  triangleData.copiedThisFrame=false;
+  transparentData.copiedThisFrame=false;
+  lineData.copiedThisFrame=false;
+  pointData.copiedThisFrame=false;
+
+  beginFrameCommands(cmd);
+  beginFrameRender(framebuffer);
+}
+
+void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
+                                      DeviceBuffer & indexBuffer,
+                                      VertexBuffer * data,
+                                      vk::UniquePipeline & pipeline,
+                                      vk::UniquePipelineLayout & pipelineLayout) {
   
   if (data->indices.empty())
     return;
 
   auto const badBuffer = static_cast<void*>(*vertexBuffer.buffer) == nullptr;
   auto const rendered = data->renderCount >= options.maxFramesInFlight;
-  auto const copy = (remesh || data->partial || !rendered || badBuffer) && !copied;
+  auto const copy = (remesh || data->partial || !rendered || badBuffer) && !copied && !data->copiedThisFrame;
 
   if (copy) {
 
@@ -1774,6 +2068,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
       return;
 
     setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]), data->indices.size());
+    data->copiedThisFrame=true;
   }
 
   std::vector<vk::Buffer> vertexBuffers = {*vertexBuffer.buffer};
@@ -1783,17 +2078,27 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer, DeviceBuffer 
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
   currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   currentCommandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
-  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *materialPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
-  currentCommandBuffer.pushConstants(*materialPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
+  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *pipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
+  currentCommandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   currentCommandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
 
   data->renderCount++;
 }
 
-void AsyVkRender::endFrame(int imageIndex)
+void AsyVkRender::endFrameRender()
 {
   currentCommandBuffer.endRenderPass();
+}
+
+void AsyVkRender::endFrameCommands()
+{
   currentCommandBuffer.end();
+}
+
+void AsyVkRender::endFrame(int imageIndex)
+{
+  endFrameRender();
+  endFrameCommands();
 }
 
 void AsyVkRender::drawPoints(FrameObject & object)
@@ -1801,7 +2106,8 @@ void AsyVkRender::drawPoints(FrameObject & object)
   recordCommandBuffer(object.pointVertexBuffer,
                       object.pointIndexBuffer,
                       &pointData,
-                      pointPipeline);
+                      pointPipeline,
+                      pointPipelineLayout);
   pointData.clear();
 }
 
@@ -1810,7 +2116,8 @@ void AsyVkRender::drawLines(FrameObject & object)
   recordCommandBuffer(object.lineVertexBuffer,
                       object.lineIndexBuffer,
                       &lineData,
-                      linePipeline);
+                      linePipeline,
+                      linePipelineLayout);
   lineData.clear();
 }
 
@@ -1819,7 +2126,8 @@ void AsyVkRender::drawMaterials(FrameObject & object)
   recordCommandBuffer(object.materialVertexBuffer,
                       object.materialIndexBuffer,
                       &materialData,
-                      materialPipeline);
+                      materialPipeline,
+                      materialPipelineLayout);
   materialData.clear();
 }
 
@@ -1829,7 +2137,7 @@ void AsyVkRender::drawColors(FrameObject & object)
                       object.colorIndexBuffer,
                       &colorData,
                       colorPipeline,
-                      options.mode != DRAWMODE_WIREFRAME ? PUSHFLAGS_COLORED : PUSHFLAGS_NONE);
+                      colorPipelineLayout);
   colorData.clear();
 }
 
@@ -1838,8 +2146,207 @@ void AsyVkRender::drawTriangles(FrameObject & object)
   recordCommandBuffer(object.triangleVertexBuffer,
                       object.triangleIndexBuffer,
                       &triangleData,
-                      trianglePipeline);
+                      trianglePipeline,
+                      trianglePipelineLayout);
   triangleData.clear();
+}
+
+int ceilquotient(int x, int y)
+{
+  return (x+y-1)/y;
+}
+
+void AsyVkRender::partialSums(bool readSize)
+{
+  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum1PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
+
+  // run sum1
+  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum1Pipeline);
+  currentCommandBuffer.dispatch(g, 1, 1);
+
+  // run sum2
+  auto const writeBarrier = vk::MemoryBarrier( // todo sum2 fast
+    vk::AccessFlagBits::eShaderRead,
+    vk::AccessFlagBits::eShaderWrite
+  );
+  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum2Pipeline);
+  currentCommandBuffer.pushConstants(*sum2PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &blockSize);
+  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader, 
+                                       vk::PipelineStageFlagBits::eComputeShader,
+                                       { },
+                                       1,
+                                       &writeBarrier, 
+                                       0,
+                                       nullptr,
+                                       0,
+                                       nullptr);
+  currentCommandBuffer.dispatch(1, 1, 1);
+
+  // run sum3
+  auto const Final=elements-1;
+  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum3Pipeline);
+  currentCommandBuffer.pushConstants(*sum3PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &Final);
+  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader, 
+                                       vk::PipelineStageFlagBits::eComputeShader,
+                                       { },
+                                       1,
+                                       &writeBarrier, 
+                                       0,
+                                       nullptr,
+                                       0,
+                                       nullptr);
+  currentCommandBuffer.dispatch(g, 1, 1);
+}
+
+void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
+
+}
+
+void AsyVkRender::resizeFragmentBuffer() {
+
+  if (GPUindexing) {
+    auto const barrier = vk::BufferMemoryBarrier(
+      vk::AccessFlagBits::eShaderRead,
+      vk::AccessFlagBits::eShaderWrite,
+      queueFamilyIndices.renderQueueFamily,
+      queueFamilyIndices.renderQueueFamily,
+      *feedbackBuffer,
+      0,
+      feedbackBufferSize
+    );
+    currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
+                                         vk::PipelineStageFlagBits::eFragmentShader,
+                                         { },
+                                         0,
+                                         nullptr,
+                                         1,
+                                         &barrier,
+                                         0,
+                                         nullptr);
+    std::array<std::uint32_t, 2> feedbackBufferMap;
+    copyFromBuffer(*feedbackBuffer, feedbackBufferMap.data(), feedbackBufferSize);
+    auto const maxDepth=feedbackBufferMap[0];
+
+    if (maxDepth>maxSize) {
+      resizeBlendShader(maxDepth);
+    }
+
+    fragments=feedbackBufferMap[1];
+  }
+
+  if (fragments>maxFragments) {
+
+    maxFragments=11*fragments/10;
+    /// ...
+  }
+}
+
+void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
+{
+  if (GPUindexing && !GPUcompress) {
+    zeroBuffer(*countBuffer, countBufferSize);
+  }
+
+  if (!interlock) {
+    recordCommandBuffer(object.pointVertexBuffer,
+                        object.pointIndexBuffer,
+                        &pointData,
+                        pointCountPipeline,
+                        pointPipelineLayout);
+    recordCommandBuffer(object.lineVertexBuffer,
+                        object.lineIndexBuffer,
+                        &lineData,
+                        lineCountPipeline,
+                        linePipelineLayout);
+    recordCommandBuffer(object.materialVertexBuffer,
+                        object.materialIndexBuffer,
+                        &materialData,
+                        materialCountPipeline,
+                        materialPipelineLayout);
+    recordCommandBuffer(object.colorVertexBuffer,
+                        object.colorIndexBuffer,
+                        &colorData,
+                        colorCountPipeline,
+                        colorPipelineLayout);
+    recordCommandBuffer(object.triangleVertexBuffer,
+                        object.triangleIndexBuffer,
+                        &triangleData,
+                        triangleCountPipeline,
+                        trianglePipelineLayout);
+  }
+
+  // draw transparent
+
+  endFrameRender();
+
+  if (GPUcompress) {
+    // ...
+  }
+  else {
+    elements = pixels;
+  }
+
+  if (GPUindexing) {
+    
+    g=ceilquotient(elements,groupSize);
+    elements=groupSize*g;
+
+    if(settings::verbose > 3) {
+      static bool first=true;
+      if(first) {
+        partialSums();
+        first=false;
+      }
+      unsigned int N=10000;
+      utils::stopWatch Timer;
+      for(unsigned int i=0; i < N; ++i)
+        partialSums();
+      
+      // glFinish(); ??
+      double T=Timer.seconds()/N;
+      cout << "elements=" << elements << endl;
+      cout << "Tmin (ms)=" << T*1e3 << endl;
+      cout << "Megapixels/second=" << elements/T/1e6 << endl;
+    }
+
+    partialSums(true);
+  }
+}
+
+void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
+{
+  copied=false;
+  Opaque=transparentData.indices.empty();
+  auto transparent=!Opaque;
+
+  if (ssbo && transparent || TRUE) { // todo
+
+    refreshBuffers(object, imageIndex);
+
+    if (!interlock) {
+      resizeFragmentBuffer();
+      copied=true;
+    }
+
+    beginFrameRender(*swapChainFramebuffers[imageIndex]);
+  }
+
+  drawPoints(object);
+  drawLines(object);
+  drawMaterials(object);
+  drawColors(object);
+  drawTriangles(object);
+
+  if (transparent) {
+    
+    copied=true;
+
+    if (interlock) {
+      resizeFragmentBuffer();
+    }
+  }
+
+  Opaque=0;
 }
 
 void AsyVkRender::drawFrame()
@@ -1885,11 +2392,7 @@ void AsyVkRender::drawFrame()
 
   beginFrame(*swapChainFramebuffers[imageIndex], getFrameCommandBuffer());
 
-  drawPoints(frameObject);
-  drawLines(frameObject);
-  drawMaterials(frameObject);
-  drawColors(frameObject);
-  drawTriangles(frameObject);
+  drawBuffers(frameObject, imageIndex);
 
   endFrame(imageIndex);
 
@@ -1900,6 +2403,30 @@ void AsyVkRender::drawFrame()
 
   if (renderQueue.submit(1, &submitInfo, *frameObject.inFlightFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
+
+  {
+    {
+      // renderQueue.waitIdle();
+      // std::uint32_t * data = (std::uint32_t*)(new char[offsetBufferSize]);
+
+      // copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
+
+      // std::cout << "PIXEL0: " << data[0] << std::endl;
+      // std::cout << "PIXEL1: " << data[1] << std::endl;
+      // std::cout << "PIXEL2: " << data[2] << std::endl;
+      // std::cout << "PIXEL3: " << data[3] << std::endl;
+      // std::cout << "PIXEL4: " << data[4] << std::endl;
+      // std::cout << "PIXEL4: " << data[5] << std::endl;
+      // std::cout << "PIXEL4: " << data[6] << std::endl;
+      // std::cout << "PIXEL4: " << data[7] << std::endl;
+      // std::cout << "PIXEL4: " << data[8] << std::endl;
+      // std::cout << "PIXEL4: " << data[9] << std::endl;
+      // std::cout << "PIXEL4: " << data[10] << std::endl;
+      // std::cout << "PIXEL4: " << data[11] << std::endl;
+
+      // delete[] data;
+    }
+  }
 
   auto presentInfo = vk::PresentInfoKHR(ARR_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
 
