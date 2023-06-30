@@ -278,6 +278,7 @@ struct UniformBufferObject {
 struct PushConstants
 {
   glm::uvec4 constants;
+  glm::vec4 background;
   // GRAPHICS:
     // constants[0] = flags
     // constants[1] = width
@@ -514,7 +515,7 @@ private:
   GLuint groupSize;
   GLuint elements;
   GLuint fragments;
-  GLuint maxFragments=0;
+  GLuint maxFragments=1;
   //GLint maxgroups;
   GLuint maxSize;
 
@@ -590,6 +591,10 @@ private:
   vk::UniquePipeline pointPipeline;
   vk::UniquePipeline pointCountPipeline;
 
+  vk::UniquePipelineLayout blendPipelineLayout;
+  vk::UniquePipeline blendPipeline;
+  vk::UniquePipeline blendCountPipeline;
+
   vk::UniqueDescriptorPool computeDescriptorPool;
   vk::UniqueDescriptorSetLayout computeDescriptorSetLayout;
   vk::UniqueDescriptorSet computeDescriptorSet;
@@ -621,6 +626,22 @@ private:
   std::size_t feedbackBufferSize;
   vk::UniqueBuffer feedbackBuffer;
   vk::UniqueDeviceMemory feedbackBufferMemory;
+
+  std::size_t fragmentBufferSize;
+  vk::UniqueBuffer fragmentBuffer;
+  vk::UniqueDeviceMemory fragmentBufferMemory;
+
+  std::size_t depthBufferSize;
+  vk::UniqueBuffer depthBuffer;
+  vk::UniqueDeviceMemory depthBufferMemory;
+
+  std::size_t opaqueBufferSize;
+  vk::UniqueBuffer opaqueBuffer;
+  vk::UniqueDeviceMemory opaqueBufferMemory;
+
+  std::size_t opaqueDepthBufferSize;
+  vk::UniqueBuffer opaqueDepthBuffer;
+  vk::UniqueDeviceMemory opaqueDepthBufferMemory;
 
   struct FrameObject {
     vk::UniqueSemaphore imageAvailableSemaphore;
@@ -781,6 +802,7 @@ private:
   void createDescriptorPool();
   void createComputeDescriptorPool();
   void createDescriptorSets();
+  void updateSceneDependentBuffers();
   void createComputeDescriptorSet();
 
   void createMaterialVertexBuffer();
@@ -814,6 +836,7 @@ private:
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer();
   void refreshBuffers(FrameObject & object, int imageIndex);
+  void blendFrame(int imageIndex);
   void drawBuffers(FrameObject & object, int imageIndex);
   void drawFrame();
   void recreateSwapChain();

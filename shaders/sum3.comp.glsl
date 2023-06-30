@@ -85,4 +85,6 @@ void main()
     maxDepth=0u;
     fragments=offset[push.final+1u]=offset[push.final];
   }
+
+  //fragments=40;
 }

@@ -1,6 +1,9 @@
 #version 450
 #define MATERIAL
 #define NORMAL
+#define HAVE_INTERLOCK
+#define HAVE_SSBO
+#define GPUINDEXING
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;
