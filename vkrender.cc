@@ -2253,6 +2253,7 @@ PushConstants AsyVkRender::buildPushConstants()
 
   pushConstants.constants[0] = options.mode!= DRAWMODE_NORMAL ? 0 : nlights;
   pushConstants.constants[1] = swapChainExtent.width;
+  pushConstants.constants[2] = swapChainExtent.height;
   
   for (int i = 0; i < 4; i++)
     pushConstants.background[i]=Background[i];
@@ -2437,7 +2438,7 @@ void AsyVkRender::drawTransparent(FrameObject & object)
                       transparentPipeline,
                       transparentPipelineLayout);
 
-  colorData.clear();
+  transparentData.clear();
 }
 
 int ceilquotient(int x, int y)
@@ -2522,7 +2523,7 @@ void AsyVkRender::resizeFragmentBuffer() {
     }
 
     fragments=feedbackBufferMap[1];
-  std::cout << "DEPTH: " << maxDepth << std::endl;
+    std::cout << "DEPTH: " << maxDepth << std::endl;
   }
 
   std::cout << "FRAGMENTS: " << fragments << std::endl;
@@ -2569,19 +2570,20 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
                         &triangleData,
                         triangleCountPipeline,
                         trianglePipelineLayout);
+    recordCommandBuffer(object.transparentVertexBuffer,
+                        object.transparentIndexBuffer,
+                        &transparentData,
+                        transparentCountPipeline,
+                        transparentPipelineLayout);
     endFrameRender();
   }
 
   // draw transparent
 
-  beginTransparentFrameRender(*swapChainFramebuffers[imageIndex]);
-  recordCommandBuffer(object.transparentVertexBuffer,
-                      object.transparentIndexBuffer,
-                      &transparentData,
-                      transparentCountPipeline,
-                      transparentPipelineLayout);
-  endFrameRender();
+  // beginTransparentFrameRender(*swapChainFramebuffers[imageIndex]);
+  // endFrameRender();
 
+  std::cout << swapChainExtent.height << std::endl;
 
   if (GPUcompress) {
     // ...
@@ -2674,7 +2676,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
     drawTransparent(object);
     endFrameRender();
     
-    blendFrame(imageIndex);
+    //blendFrame(imageIndex);
     std::cout << "BLENDED!" << std::endl;
 
     copied=true;
@@ -2745,25 +2747,25 @@ void AsyVkRender::drawFrame()
 
   {
     {
-      // renderQueue.waitIdle();
-      // std::uint32_t * data = (std::uint32_t*)(new char[offsetBufferSize]);
+      renderQueue.waitIdle();
+      int * data = (int*)(new char[offsetBufferSize]);
 
-      // copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
+      copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
 
-      // std::cout << "PIXEL0: " << data[0] << std::endl;
-      //  std::cout << "PIXEL1: " << data[1] << std::endl;
-      //  std::cout << "PIXEL2: " << data[2] << std::endl;
-      //  std::cout << "PIXEL3: " << data[3] << std::endl;
-      //  std::cout << "PIXEL4: " << data[4] << std::endl;
-      //  std::cout << "PIXEL4: " << data[5] << std::endl;
-      //  std::cout << "PIXEL4: " << data[6] << std::endl;
-      //  std::cout << "PIXEL4: " << data[7] << std::endl;
-      //  std::cout << "PIXEL4: " << data[8] << std::endl;
-      //  std::cout << "PIXEL4: " << data[9] << std::endl;
-      //  std::cout << "PIXEL4: " << data[10] << std::endl;
-      //  std::cout << "PIXEL4: " << data[11] << std::endl;
+        //std::cout << "PIXEL0: " << data[0] << std::endl;
+       std::cout << "PIXEL1: " << data[1] << std::endl;
+       std::cout << "PIXEL2: " << data[2] << std::endl;
+       std::cout << "PIXEL3: " << data[3] << std::endl;
+       std::cout << "PIXEL4: " << data[4] << std::endl;
+       std::cout << "PIXEL4: " << data[5] << std::endl;
+       std::cout << "PIXEL4: " << data[6] << std::endl;
+       std::cout << "PIXEL4: " << data[7] << std::endl;
+       std::cout << "PIXEL4: " << data[8] << std::endl;
+       std::cout << "PIXEL4: " << data[9] << std::endl;
+       std::cout << "PIXEL4: " << data[10] << std::endl;
+       std::cout << "PIXEL4: " << data[11] << std::endl;
 
-      // delete[] data;
+      delete[] data;
     }
   }
 
