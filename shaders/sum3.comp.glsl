@@ -88,9 +88,5 @@ void main()
     fragments=offset[push.final+1u]=offset[push.final];
   }
   
-  size=0;
-
   barrier();
-
-  size=max(size,gl_WorkGroupID.x);
 }

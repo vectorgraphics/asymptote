@@ -165,7 +165,7 @@ struct ColorVertex // VertexData
             vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)),
             vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)),
             vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)),
-            vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, color))};
+            vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32A32Sfloat, offsetof(ColorVertex, color))};
   }
 };
 

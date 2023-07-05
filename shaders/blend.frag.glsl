@@ -1,7 +1,7 @@
 #version 450
 
 #define GPUINDEXING
-#define ARRAYSIZE 128
+#define ARRAYSIZE 64
 
 layout(binding = 3, std430) buffer CountBuffer
 {
@@ -92,8 +92,6 @@ void main()
 #endif
 
   outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : push.background;
-
-  return;
 
 #ifndef GPUINDEXING
   uint listIndex=offset[element]-size;

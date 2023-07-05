@@ -994,7 +994,26 @@ void AsyVkRender::createSwapChain()
     imageCount = swapChainSupport.capabilities.maxImageCount;
   }
 
-  vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), *surface, imageCount, surfaceFormat.format, surfaceFormat.colorSpace, extent, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, 0, nullptr, swapChainSupport.capabilities.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque, presentMode, VK_TRUE, nullptr, nullptr);
+  vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(
+    vk::SwapchainCreateFlagsKHR(),
+    *surface, 
+    imageCount,
+    surfaceFormat.format,
+    surfaceFormat.colorSpace,
+    extent,
+    1,
+    vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
+    vk::SharingMode::eExclusive,
+    0,
+    nullptr,
+    swapChainSupport.capabilities.currentTransform,
+    vk::CompositeAlphaFlagBitsKHR::eOpaque,
+    presentMode,
+    VK_TRUE,
+    nullptr,
+    nullptr
+  );
+
   if (*swapChain)
     swapchainCI.oldSwapchain = *swapChain;
 
@@ -2528,15 +2547,15 @@ void AsyVkRender::resizeFragmentBuffer() {
       0,
       feedbackBufferSize
     );
-    currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
-                                         vk::PipelineStageFlagBits::eFragmentShader,
-                                         { },
-                                         0,
-                                         nullptr,
-                                         1,
-                                         &barrier,
-                                         0,
-                                         nullptr);
+    // currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
+    //                                      vk::PipelineStageFlagBits::eFragmentShader,
+    //                                      { },
+    //                                      0,
+    //                                      nullptr,
+    //                                      1,
+    //                                      &barrier,
+    //                                      0,
+    //                                      nullptr);
     // todo premade buffer for this
     std::array<std::uint32_t, 2> feedbackBufferMap;
     copyFromBuffer(*feedbackBuffer, feedbackBufferMap.data(), feedbackBufferSize);
@@ -2547,16 +2566,15 @@ void AsyVkRender::resizeFragmentBuffer() {
     }
 
     fragments=feedbackBufferMap[1];
-    std::cout << "DEPTH: " << maxDepth << std::endl;
-    std::cout << "FRAGMENTS: " << fragments << std::endl;
+    // std::cout << "DEPTMAXDEPTH: " << maxDepth << std::endl;
+    // std::cout << "FRAGMENTS: " << fragments << std::endl;
   }
 
 
   if (fragments>maxFragments) {
 
-
     maxFragments=11*fragments/10;
-    //updateSceneDependentBuffers();
+    updateSceneDependentBuffers();
   }
 }
 
@@ -2649,19 +2667,19 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
 
 void AsyVkRender::blendFrame(int imageIndex)
 {
-  // auto const writeBarrier = vk::MemoryBarrier(
-  //   vk::AccessFlagBits::eShaderRead,
-  //   vk::AccessFlagBits::eShaderWrite
-  // );
-  // currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader, 
-  //                                      vk::PipelineStageFlagBits::eVertexShader,
-  //                                      { },
-  //                                      1,
-  //                                      &writeBarrier, 
-  //                                      0,
-  //                                      nullptr,
-  //                                      0,
-  //                                      nullptr);
+  auto const writeBarrier = vk::MemoryBarrier(
+    vk::AccessFlagBits::eShaderWrite,
+    vk::AccessFlagBits::eShaderRead
+  );
+  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader, 
+                                       vk::PipelineStageFlagBits::eVertexShader,
+                                       { },
+                                       1,
+                                       &writeBarrier, 
+                                       0,
+                                       nullptr,
+                                       0,
+                                       nullptr);
 
   beginOpaqueFrameRender(*swapChainFramebuffers[imageIndex]);
 
@@ -2682,13 +2700,23 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
   if (ssbo && transparent) { // todo
 
+    beginFrameCommands(getFrameCommandBuffer());
     refreshBuffers(object, imageIndex);
+    endFrameCommands();
+
+    auto info = vk::SubmitInfo();
+
+    info.commandBufferCount = 1;
+    info.pCommandBuffers = &currentCommandBuffer;
+
+    renderQueue.submit(1, &info, nullptr);
 
     if (!interlock) {
       resizeFragmentBuffer();
     }
   }
 
+  beginFrameCommands(getFrameCommandBuffer());
   beginOpaqueFrameRender(*swapChainFramebuffers[imageIndex]);
   drawPoints(object);
   drawLines(object);
@@ -2700,11 +2728,11 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
   if (transparent) {
     
-    // beginTransparentFrameRender(*swapChainFramebuffers[imageIndex]);
-    // drawTransparent(object);
-    // endFrameRender();
-    
-    //blendFrame(imageIndex);
+    //  beginTransparentFrameRender(*swapChainFramebuffers[imageIndex]);
+    //  drawTransparent(object);
+    //  endFrameRender();
+  
+    blendFrame(imageIndex);
     //std::cout << "BLENDED!" << std::endl;
 
     copied=true;
@@ -2759,7 +2787,6 @@ void AsyVkRender::drawFrame()
   updateBuffers();
 
   resetFrameCopyData();
-  beginFrameCommands(getFrameCommandBuffer());
 
   drawBuffers(frameObject, imageIndex);
 
@@ -2774,57 +2801,52 @@ void AsyVkRender::drawFrame()
     throw std::runtime_error("failed to submit draw command buffer!");
 
   {
-    {
-      // renderQueue.waitIdle();
-      // int * data = (int*)(new char[offsetBufferSize]);
+    // {
+    //    renderQueue.waitIdle();
+    //    int * data = (int*)(new char[offsetBufferSize]);
 
-      // copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
+    //    copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
 
-      //  std::cout << "g: " << g << std::endl;
-      //  std::cout << "MAXSIZE: " << data[0] << std::endl;
-      //  std::cout << "PIXEL1: " << data[1] << std::endl;
-      //  std::cout << "PIXEL2: " << data[2] << std::endl;
-      //   std::cout << "PIXEL3: " << data[3] << std::endl;
-      //   std::cout << "PIXEL255: " << data[255] << std::endl;
-      //   std::cout << "PIXEL256: " << data[256] << std::endl;
-      //   std::cout << "PIXEL257: " << data[257] << std::endl;
-      //   std::cout << "PIXEL512: " << data[512] << std::endl;
-      //   std::cout << "PIXEL400 000: " << data[500000] << std::endl;
-      // //  std::cout << "PIXEL4: " << data[4] << std::endl;
-      // //  std::cout << "PIXEL4: " << data[5] << std::endl;
-      // //  std::cout << "PIXEL4: " << data[6] << std::endl;
-      // //  std::cout << "PIXEL4: " << data[7] << std::endl;
-      // //  std::cout << "PIXEL4: " << data[8] << std::endl;
-      // //  std::cout << "PIXEL4: " << data[9] << std::endl;
-      // //  std::cout << "PIXEL4: " << data[10] << std::endl;
-      // //  std::cout << "PIXEL4: " << data[11] << std::endl;
-      // //std::cout << "PIXEL-1 " << data[elements-1] << std::endl;
-      // //std::cout << "PIXEL-2 " << data[elements-2] << std::endl;
-      // //std::cout << "PIXEL-3 " << data[elements-3] << std::endl;
-      // //std::cout << "ARRSIZE: " << swapChainExtent.width * swapChainExtent.height << std::endl;
-      // //std::cout << "ARRSIZE+1: " << (swapChainExtent.width+1) * (swapChainExtent.height+1) << std::endl;
-      // std::cout << "W H " << swapChainExtent.width << " " << swapChainExtent.height << std::endl;
-      // //std::cout << "g " << g << std::endl;
-      // //std::cout << "BLOCKSIZE " << blockSize << std::endl;
-      // //std::cout << "groupSize " << groupSize << std::endl;
+    //     std::cout << "g: " << g << std::endl;
+    //     std::cout << "MAXSIZE: " << data[0] << std::endl;
+    //     std::cout << "PIXEL1: " << data[1] << std::endl;
+    //     std::cout << "PIXEL2: " << data[2] << std::endl;
+    //      std::cout << "PIXEL3: " << data[3] << std::endl;
+    //    //  std::cout << "PIXEL4: " << data[4] << std::endl;
+    //    //  std::cout << "PIXEL4: " << data[5] << std::endl;
+    //    //  std::cout << "PIXEL4: " << data[6] << std::endl;
+    //    //  std::cout << "PIXEL4: " << data[7] << std::endl;
+    //    //  std::cout << "PIXEL4: " << data[8] << std::endl;
+    //    //  std::cout << "PIXEL4: " << data[9] << std::endl;
+    //    //  std::cout << "PIXEL4: " << data[10] << std::endl;
+    //    //  std::cout << "PIXEL4: " << data[11] << std::endl;
+    //    //std::cout << "PIXEL-1 " << data[elements-1] << std::endl;
+    //    //std::cout << "PIXEL-2 " << data[elements-2] << std::endl;
+    //    //std::cout << "PIXEL-3 " << data[elements-3] << std::endl;
+    //    //std::cout << "ARRSIZE: " << swapChainExtent.width * swapChainExtent.height << std::endl;
+    //    //std::cout << "ARRSIZE+1: " << (swapChainExtent.width+1) * (swapChainExtent.height+1) << std::endl;
+    //    std::cout << "W H " << swapChainExtent.width << " " << swapChainExtent.height << std::endl;
+    //    //std::cout << "g " << g << std::endl;
+    //    //std::cout << "BLOCKSIZE " << blockSize << std::endl;
+    //    //std::cout << "groupSize " << groupSize << std::endl;
 
-      // int maxidx = -1;
+    //    int maxidx = -1;
 
-      // for (int i = 1; i < elements; i++)
-      // {
-      //   if (data[i] != 0)
-      //     maxidx = std::max(maxidx, i);
+    //    for (int i = 1; i < elements; i++)
+    //    {
+    //      if (data[i] != 0)
+    //        maxidx = std::max(maxidx, i);
 
-      //   if (data[i]<data[i-1])
-      //     std::cout << "BREAK: " << i << " " << data[i] << std::endl;
-      // }
+    //      if (data[i]<data[i-1])
+    //        std::cout << "BREAK: " << i << " " << data[i] << std::endl;
+    //    }
 
-      // std::cout << "maxidx: " << maxidx << std::endl;
-      // std::cout << "elements: " << elements << std::endl;
-      // std::cout << "pixels " << pixels << std::endl;
+    //    std::cout << "maxidx: " << maxidx << std::endl;
+    //    std::cout << "elements: " << elements << std::endl;
+    //    std::cout << "pixels " << pixels << std::endl;
 
-      // delete[] data;
-    }
+    //    delete[] data;
+    // }
   }
 
   auto presentInfo = vk::PresentInfoKHR(ARR_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
