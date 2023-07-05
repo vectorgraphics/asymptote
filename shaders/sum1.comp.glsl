@@ -40,4 +40,6 @@ void main()
 
   if(id == 0u)
     globalSum[gl_WorkGroupID.x]=groupSum[0u];
+
+  barrier();
 }

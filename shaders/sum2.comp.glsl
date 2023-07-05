@@ -23,6 +23,12 @@ layout(binding=1, std430) buffer globalSumBuffer
   uint globalSum[];
 };
 
+layout(binding=3, std430) buffer feedbackBuffer
+{
+  uint size;
+  uint fragments;
+};
+
 shared uint groupSum[LOCALSIZE];
 
 void main()
@@ -54,4 +60,6 @@ void main()
   uint shift=id > 0u ? groupSum[id-1u] : 0u;
   for(uint i=0u; i < push.blockSize; ++i)
     globalSum[dataOffset+i]=localSum[i]+shift;
+
+  barrier();
 }
