@@ -62,4 +62,5 @@ void main()
     globalSum[dataOffset+i]=localSum[i]+shift;
 
   barrier();
+  size=42;
 }

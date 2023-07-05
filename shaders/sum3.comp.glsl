@@ -83,10 +83,14 @@ void main()
 
   uint diff=push.final-dataOffset;
   if(diff < groupSize && diff % LOCALSIZE == 0) {
-    //size=maxDepth;
+    size=maxDepth;
     maxDepth=0u;
     fragments=offset[push.final+1u]=offset[push.final];
   }
   
+  size=0;
+
   barrier();
+
+  size=max(size,gl_WorkGroupID.x);
 }

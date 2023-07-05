@@ -17,6 +17,6 @@ layout(location = 0) out vec4 outColor;
 void main()
 {
   //index[uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x)]=1;
-  atomicAdd(index[uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x)],1u);
+  atomicAdd(index[(push.constants[2] - uint(gl_FragCoord.y) - 1u)*push.constants[1]+uint(gl_FragCoord.x)],1u);
   discard;
 }

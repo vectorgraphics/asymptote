@@ -1717,7 +1717,7 @@ void AsyVkRender::createBuffers()
   if (GPUindexing) {
     GLuint G=ceilquotient(pixels,groupSize);
     Pixels=groupSize*G;
-    globalSize=localSize*ceilquotient(G,localSize);
+    globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
   }
   else {
     Pixels=pixels;
@@ -2460,19 +2460,27 @@ void AsyVkRender::partialSums(bool readSize)
   //std::cout << "calcBlockSize: " << ceilquotient(g,localSize) << std::endl;
   //std::cout << "elements " << elements << std::endl;
 
+  auto const writeBarrier = vk::MemoryBarrier( // todo sum2 fast
+    vk::AccessFlagBits::eShaderWrite,
+    vk::AccessFlagBits::eShaderRead
+  );
+
   // run sum1
-  usleep(10000);
+  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader, 
+                                       vk::PipelineStageFlagBits::eComputeShader,
+                                       { },
+                                       1,
+                                       &writeBarrier, 
+                                       0,
+                                       nullptr,
+                                       0,
+                                       nullptr);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum1PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum1Pipeline);
   currentCommandBuffer.dispatch(g, 1, 1);
 
   // run sum2
   auto const BlockSize=ceilquotient(g,localSize);
-  auto const writeBarrier = vk::MemoryBarrier( // todo sum2 fast
-    vk::AccessFlagBits::eShaderRead,
-    vk::AccessFlagBits::eShaderWrite
-  );
-  usleep(10000);
   currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader, 
                                        vk::PipelineStageFlagBits::eComputeShader,
                                        { },
@@ -2498,12 +2506,10 @@ void AsyVkRender::partialSums(bool readSize)
                                        nullptr,
                                        0,
                                        nullptr);
-  usleep(10000);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum3PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum3Pipeline);
   currentCommandBuffer.pushConstants(*sum3PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &Final);
   currentCommandBuffer.dispatch(g, 1, 1);
-  usleep(10000);
 }
 
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
@@ -2561,6 +2567,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
   }
 
   if (!interlock) {
+
     beginOpaqueFrameRender(*swapChainFramebuffers[imageIndex]);
 
     recordCommandBuffer(object.pointVertexBuffer,
@@ -2679,7 +2686,6 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
     if (!interlock) {
       resizeFragmentBuffer();
-      //copied=true;
     }
   }
 
@@ -2689,7 +2695,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   drawMaterials(object);
   drawColors(object);
   drawTriangles(object);
-    drawTransparent(object);
+  drawTransparent(object);
   endFrameRender();
 
   if (transparent) {
@@ -2699,7 +2705,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
     // endFrameRender();
     
     //blendFrame(imageIndex);
-    std::cout << "BLENDED!" << std::endl;
+    //std::cout << "BLENDED!" << std::endl;
 
     copied=true;
 
@@ -2769,54 +2775,55 @@ void AsyVkRender::drawFrame()
 
   {
     {
-      renderQueue.waitIdle();
-      int * data = (int*)(new char[offsetBufferSize]);
+      // renderQueue.waitIdle();
+      // int * data = (int*)(new char[offsetBufferSize]);
 
-      copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
+      // copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
 
-       // std::cout << "MAXSIZE: " << data[0] << std::endl;
-       std::cout << "PIXEL1: " << data[1] << std::endl;
-       std::cout << "PIXEL2: " << data[2] << std::endl;
-        std::cout << "PIXEL3: " << data[3] << std::endl;
-        std::cout << "PIXEL255: " << data[255] << std::endl;
-        std::cout << "PIXEL256: " << data[256] << std::endl;
-        std::cout << "PIXEL257: " << data[257] << std::endl;
-        std::cout << "PIXEL512: " << data[512] << std::endl;
-        std::cout << "PIXEL400 000: " << data[500000] << std::endl;
-      //  std::cout << "PIXEL4: " << data[4] << std::endl;
-      //  std::cout << "PIXEL4: " << data[5] << std::endl;
-      //  std::cout << "PIXEL4: " << data[6] << std::endl;
-      //  std::cout << "PIXEL4: " << data[7] << std::endl;
-      //  std::cout << "PIXEL4: " << data[8] << std::endl;
-      //  std::cout << "PIXEL4: " << data[9] << std::endl;
-      //  std::cout << "PIXEL4: " << data[10] << std::endl;
-      //  std::cout << "PIXEL4: " << data[11] << std::endl;
-      //std::cout << "PIXEL-1 " << data[elements-1] << std::endl;
-      //std::cout << "PIXEL-2 " << data[elements-2] << std::endl;
-      //std::cout << "PIXEL-3 " << data[elements-3] << std::endl;
-      //std::cout << "ARRSIZE: " << swapChainExtent.width * swapChainExtent.height << std::endl;
-      //std::cout << "ARRSIZE+1: " << (swapChainExtent.width+1) * (swapChainExtent.height+1) << std::endl;
-      //std::cout << "W H " << swapChainExtent.width << " " << swapChainExtent.height << std::endl;
-      //std::cout << "g " << g << std::endl;
-      //std::cout << "BLOCKSIZE " << blockSize << std::endl;
-      //std::cout << "groupSize " << groupSize << std::endl;
+      //  std::cout << "g: " << g << std::endl;
+      //  std::cout << "MAXSIZE: " << data[0] << std::endl;
+      //  std::cout << "PIXEL1: " << data[1] << std::endl;
+      //  std::cout << "PIXEL2: " << data[2] << std::endl;
+      //   std::cout << "PIXEL3: " << data[3] << std::endl;
+      //   std::cout << "PIXEL255: " << data[255] << std::endl;
+      //   std::cout << "PIXEL256: " << data[256] << std::endl;
+      //   std::cout << "PIXEL257: " << data[257] << std::endl;
+      //   std::cout << "PIXEL512: " << data[512] << std::endl;
+      //   std::cout << "PIXEL400 000: " << data[500000] << std::endl;
+      // //  std::cout << "PIXEL4: " << data[4] << std::endl;
+      // //  std::cout << "PIXEL4: " << data[5] << std::endl;
+      // //  std::cout << "PIXEL4: " << data[6] << std::endl;
+      // //  std::cout << "PIXEL4: " << data[7] << std::endl;
+      // //  std::cout << "PIXEL4: " << data[8] << std::endl;
+      // //  std::cout << "PIXEL4: " << data[9] << std::endl;
+      // //  std::cout << "PIXEL4: " << data[10] << std::endl;
+      // //  std::cout << "PIXEL4: " << data[11] << std::endl;
+      // //std::cout << "PIXEL-1 " << data[elements-1] << std::endl;
+      // //std::cout << "PIXEL-2 " << data[elements-2] << std::endl;
+      // //std::cout << "PIXEL-3 " << data[elements-3] << std::endl;
+      // //std::cout << "ARRSIZE: " << swapChainExtent.width * swapChainExtent.height << std::endl;
+      // //std::cout << "ARRSIZE+1: " << (swapChainExtent.width+1) * (swapChainExtent.height+1) << std::endl;
+      // std::cout << "W H " << swapChainExtent.width << " " << swapChainExtent.height << std::endl;
+      // //std::cout << "g " << g << std::endl;
+      // //std::cout << "BLOCKSIZE " << blockSize << std::endl;
+      // //std::cout << "groupSize " << groupSize << std::endl;
 
-      int maxidx = -1;
+      // int maxidx = -1;
 
-      for (int i = 1; i < elements; i++)
-      {
-        if (data[i] != 0)
-          maxidx = std::max(maxidx, i);
+      // for (int i = 1; i < elements; i++)
+      // {
+      //   if (data[i] != 0)
+      //     maxidx = std::max(maxidx, i);
 
-        if (data[i]<data[i-1])
-          std::cout << "BREAK: " << i << " " << data[i] << std::endl;
-      }
+      //   if (data[i]<data[i-1])
+      //     std::cout << "BREAK: " << i << " " << data[i] << std::endl;
+      // }
 
-      std::cout << "maxidx: " << maxidx << std::endl;
-      std::cout << "elements: " << elements << std::endl;
-      std::cout << "pixels " << pixels << std::endl;
+      // std::cout << "maxidx: " << maxidx << std::endl;
+      // std::cout << "elements: " << elements << std::endl;
+      // std::cout << "pixels " << pixels << std::endl;
 
-      delete[] data;
+      // delete[] data;
     }
   }
 
