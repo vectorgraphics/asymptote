@@ -599,7 +599,7 @@ void AsyVkRender::initVulkan()
   createDescriptorPool();
   createComputeDescriptorPool();
   createDescriptorSets();
-  createComputeDescriptorSet();
+  writeDescriptorSets();
 
   createOpaqueRenderPass();
   createTransparentRenderPass();
@@ -626,6 +626,8 @@ void AsyVkRender::recreateSwapChain()
   vkDeviceWaitIdle(*device);
 
   createSwapChain();
+  createDependentBuffers();
+  writeDescriptorSets();
   createImageViews();
   createOpaqueRenderPass();
   createTransparentRenderPass();
@@ -1533,12 +1535,29 @@ void AsyVkRender::createComputeDescriptorPool()
 void AsyVkRender::createDescriptorSets()
 {
   std::vector<vk::DescriptorSetLayout> layouts(options.maxFramesInFlight, *materialDescriptorSetLayout);
-  auto allocInfo = vk::DescriptorSetAllocateInfo(*descriptorPool, VEC_VIEW(layouts));
+  auto allocInfo = vk::DescriptorSetAllocateInfo(
+    *descriptorPool,
+    VEC_VIEW(layouts)
+  );
   auto descriptorSets = device->allocateDescriptorSetsUnique(allocInfo);
 
-  for (size_t i = 0; i < options.maxFramesInFlight; i++) {
+  for (size_t i = 0; i < options.maxFramesInFlight; i++)
     frameObjects[i].descriptorSet = std::move(descriptorSets[i]);
 
+
+  auto computeAllocInfo = vk::DescriptorSetAllocateInfo(
+    *computeDescriptorPool,
+    1,
+    &*computeDescriptorSetLayout
+  );
+
+  computeDescriptorSet = std::move(device->allocateDescriptorSetsUnique(computeAllocInfo)[0]);
+}
+
+void AsyVkRender::writeDescriptorSets()
+{
+  for (size_t i = 0; i < options.maxFramesInFlight; i++)
+  {
     auto uboInfo = vk::DescriptorBufferInfo();
 
     uboInfo.buffer = *frameObjects[i].uniformBuffer;
@@ -1636,73 +1655,8 @@ void AsyVkRender::createDescriptorSets()
   }
 
   updateSceneDependentBuffers();
-}
 
-void AsyVkRender::updateSceneDependentBuffers() {
-
-  fragmentBufferSize = maxFragments*sizeof(glm::vec4);
-  createBufferUnique(fragmentBuffer, fragmentBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     fragmentBufferSize);
-
-  depthBufferSize = maxFragments*sizeof(float);
-  createBufferUnique(depthBuffer, depthBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     depthBufferSize);
-
-
-  for (size_t i = 0; i < options.maxFramesInFlight; i++) {
-
-    auto fragmentBufferInfo = vk::DescriptorBufferInfo(
-      *fragmentBuffer,
-      0,
-      fragmentBufferSize
-    );
-    auto depthBufferInfo = vk::DescriptorBufferInfo(
-      *depthBuffer,
-      0,
-      depthBufferSize
-    );
-
-    std::array<vk::WriteDescriptorSet, 2> writes;
-
-    writes[0] = vk::WriteDescriptorSet(
-      *frameObjects[i].descriptorSet,
-      5,
-      0,
-      1,
-      vk::DescriptorType::eStorageBuffer,
-      nullptr,
-      &fragmentBufferInfo,
-      nullptr
-    );
-    writes[1] = vk::WriteDescriptorSet(
-      *frameObjects[i].descriptorSet,
-      6,
-      0,
-      1,
-      vk::DescriptorType::eStorageBuffer,
-      nullptr,
-      &depthBufferInfo,
-      nullptr
-    );
-
-    // todo remove frame-dependent descriptor sets
-    device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
-  }
-}
-
-void AsyVkRender::createComputeDescriptorSet()
-{
-  auto allocInfo = vk::DescriptorSetAllocateInfo(
-    *computeDescriptorPool,
-    1,
-    &*computeDescriptorSetLayout
-  );
-
-  computeDescriptorSet = std::move(device->allocateDescriptorSetsUnique(allocInfo)[0]);
+  // compute descriptors
 
   auto countBufferInfo = vk::DescriptorBufferInfo();
 
@@ -1761,7 +1715,98 @@ void AsyVkRender::createComputeDescriptorSet()
   device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
 }
 
+void AsyVkRender::updateSceneDependentBuffers() {
+
+  fragmentBufferSize = maxFragments*sizeof(glm::vec4);
+  createBufferUnique(fragmentBuffer, fragmentBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     fragmentBufferSize);
+
+  depthBufferSize = maxFragments*sizeof(float);
+  createBufferUnique(depthBuffer, depthBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     depthBufferSize);
+
+
+  for (size_t i = 0; i < options.maxFramesInFlight; i++) {
+
+    auto fragmentBufferInfo = vk::DescriptorBufferInfo(
+      *fragmentBuffer,
+      0,
+      fragmentBufferSize
+    );
+    auto depthBufferInfo = vk::DescriptorBufferInfo(
+      *depthBuffer,
+      0,
+      depthBufferSize
+    );
+
+    std::array<vk::WriteDescriptorSet, 2> writes;
+
+    writes[0] = vk::WriteDescriptorSet(
+      *frameObjects[i].descriptorSet,
+      5,
+      0,
+      1,
+      vk::DescriptorType::eStorageBuffer,
+      nullptr,
+      &fragmentBufferInfo,
+      nullptr
+    );
+    writes[1] = vk::WriteDescriptorSet(
+      *frameObjects[i].descriptorSet,
+      6,
+      0,
+      1,
+      vk::DescriptorType::eStorageBuffer,
+      nullptr,
+      &depthBufferInfo,
+      nullptr
+    );
+
+    // todo remove frame-dependent descriptor sets
+    device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+  }
+}
+
 void AsyVkRender::createBuffers()
+{
+  feedbackBufferSize=2*sizeof(std::uint32_t);
+
+  createBufferUnique(materialBuffer,
+                     materialBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     sizeof(camp::Material) * NMaterials);
+
+  createBufferUnique(lightBuffer,
+                     lightBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     sizeof(camp::Light) * nlights);
+
+  createBufferUnique(feedbackBuffer,
+                     feedbackBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     feedbackBufferSize);
+
+  for (size_t i = 0; i < options.maxFramesInFlight; i++) {
+
+    createBufferUnique(frameObjects[i].uniformBuffer,
+                       frameObjects[i].uniformBufferMemory,
+                       vk::BufferUsageFlagBits::eUniformBuffer,
+                       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                       sizeof(UniformBufferObject));
+    frameObjects[i].uboData = device->mapMemory(*frameObjects[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), vk::MemoryMapFlags());
+  }
+
+  createDependentBuffers();
+}
+
+void AsyVkRender::createDependentBuffers()
 {
   pixels=(swapChainExtent.width+1)*(swapChainExtent.height+1);
   GLuint Pixels;
@@ -1777,49 +1822,26 @@ void AsyVkRender::createBuffers()
 
   countBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
-  feedbackBufferSize=2*sizeof(std::uint32_t);
   opaqueBufferSize=pixels*sizeof(glm::vec4);
   opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
 
-  std::cout << "countBufferSize: " << countBufferSize << std::endl;
-  std::cout << "offsetBufferSize: " << offsetBufferSize << std::endl;
-  std::cout << "globalSize: " << globalSize << std::endl;
-
-  createBufferUnique(materialBuffer,
-                     materialBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     sizeof(camp::Material) * NMaterials);
-
-  createBufferUnique(lightBuffer,
-                     lightBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     sizeof(camp::Light) * nlights);
-
   createBufferUnique(countBuffer,
                      countBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      countBufferSize);
 
   createBufferUnique(globalSumBuffer,
                      globalSumBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::BufferUsageFlagBits::eStorageBuffer,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      globalSize);
 
   createBufferUnique(offsetBuffer,
                      offsetBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::BufferUsageFlagBits::eStorageBuffer,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      offsetBufferSize);
-
-  createBufferUnique(feedbackBuffer,
-                     feedbackBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     feedbackBufferSize);
 
   createBufferUnique(opaqueBuffer,
                      opaqueBufferMemory,
@@ -1832,19 +1854,6 @@ void AsyVkRender::createBuffers()
                      vk::BufferUsageFlagBits::eStorageBuffer,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      opaqueBufferSize);
-
-  //uint32_t i = 50;
-  //copyToBuffer(*countBuffer, &i, 4);
-
-  for (size_t i = 0; i < options.maxFramesInFlight; i++) {
-
-    createBufferUnique(frameObjects[i].uniformBuffer,
-                       frameObjects[i].uniformBufferMemory,
-                       vk::BufferUsageFlagBits::eUniformBuffer,
-                       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-                       sizeof(UniformBufferObject));
-    frameObjects[i].uboData = device->mapMemory(*frameObjects[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), vk::MemoryMapFlags());
-  }
 }
 
 void AsyVkRender::createOpaqueRenderPass()

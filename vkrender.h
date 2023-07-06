@@ -810,13 +810,14 @@ private:
   void createDescriptorPool();
   void createComputeDescriptorPool();
   void createDescriptorSets();
+  void writeDescriptorSets();
   void updateSceneDependentBuffers();
-  void createComputeDescriptorSet();
 
   void createMaterialVertexBuffer();
   void createMaterialIndexBuffer();
 
   void createBuffers();
+  void createDependentBuffers();
 
   void createOpaqueRenderPass();
   void createTransparentRenderPass();
