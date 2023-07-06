@@ -548,10 +548,15 @@ private:
   vk::Extent2D swapChainExtent;
   std::vector<vk::UniqueImageView> swapChainImageViews;
   std::vector<vk::UniqueFramebuffer> swapChainFramebuffers;
+  std::vector<vk::UniqueFramebuffer> depthResolveFramebuffers;
 
   vk::UniqueImage depthImage;
   vk::UniqueImageView depthImageView;
   vk::UniqueDeviceMemory depthImageMemory;
+
+  vk::UniqueImage depthResolveImage;
+  vk::UniqueImageView depthResolveImageView;
+  vk::UniqueDeviceMemory depthResolveImageMemory;
 
   vk::SampleCountFlagBits msaaSamples;
   vk::UniqueImage colorImage;
@@ -816,7 +821,7 @@ private:
   void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
                               vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
                               vk::PolygonMode fillMode, std::string const & shaderFile,
-                              bool enableDepthWrite=true);
+                              vk::RenderPass renderPass, bool enableDepthWrite=true, bool disableMultisample=false);
   void createGraphicsPipelines();
   void createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
                              std::string const & shaderFile);
