@@ -652,8 +652,10 @@ private:
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore renderFinishedSemaphore;
     vk::UniqueFence inFlightFence;
+    vk::UniqueFence inComputeFence;
 
     vk::UniqueCommandBuffer commandBuffer;
+    vk::UniqueCommandBuffer computeCommandBuffer;
 
     vk::UniqueDescriptorSet descriptorSet;
 
@@ -768,6 +770,7 @@ private:
   void endSingleCommands(vk::CommandBuffer cmd);
   PushConstants buildPushConstants();
   vk::CommandBuffer & getFrameCommandBuffer();
+  vk::CommandBuffer & getFrameComputeCommandBuffer();
   void beginFrameCommands(vk::CommandBuffer cmd);
   void beginOpaqueFrameRender(vk::Framebuffer framebuffer);
   void beginTransparentFrameRender(vk::Framebuffer framebuffer);

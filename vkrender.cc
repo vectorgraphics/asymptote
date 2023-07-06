@@ -1106,10 +1106,13 @@ void AsyVkRender::createCommandPools()
 
 void AsyVkRender::createCommandBuffers()
 {
-  auto allocInfo = vk::CommandBufferAllocateInfo(*renderCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight));
+  auto allocInfo = vk::CommandBufferAllocateInfo(*renderCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight * 2));
   auto commandBuffers = device->allocateCommandBuffersUnique(allocInfo);
   for (int i = 0; i < options.maxFramesInFlight; i++)
-    frameObjects[i].commandBuffer = std::move(commandBuffers[i]);
+  {
+    frameObjects[i].commandBuffer = std::move(commandBuffers[2 * i]);
+    frameObjects[i].computeCommandBuffer = std::move(commandBuffers[2 * i + 1]);
+  }
 }
 
 vk::CommandBuffer AsyVkRender::beginSingleCommands()
@@ -1151,6 +1154,7 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
   }
 }
 
@@ -2320,6 +2324,11 @@ vk::CommandBuffer & AsyVkRender::getFrameCommandBuffer()
   return *frameObjects[currentFrame].commandBuffer;
 }
 
+vk::CommandBuffer & AsyVkRender::getFrameComputeCommandBuffer()
+{
+  return *frameObjects[currentFrame].computeCommandBuffer;
+}
+
 void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
 {
   currentCommandBuffer = cmd;
@@ -2742,9 +2751,9 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   Opaque=transparentData.indices.empty();
   auto transparent=!Opaque;
 
-  if (ssbo && transparent) { // todo
+  if (ssbo && transparent) {
 
-    beginFrameCommands(getFrameCommandBuffer());
+    beginFrameCommands(getFrameComputeCommandBuffer());
     refreshBuffers(object, imageIndex);
     endFrameCommands();
 
@@ -2753,7 +2762,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
     info.commandBufferCount = 1;
     info.pCommandBuffers = &currentCommandBuffer;
 
-    renderQueue.submit(1, &info, nullptr);
+    renderQueue.submit(1, &info, *object.inComputeFence);
 
     if (!interlock) {
       resizeFragmentBuffer();
@@ -2784,6 +2793,8 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
     }
   }
 
+  endFrameCommands();
+
   Opaque=0;
 }
 
@@ -2803,7 +2814,9 @@ void AsyVkRender::drawFrame()
 
   auto& frameObject = frameObjects[currentFrame];
 
-  device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+  std::array<vk::Fence, 2> fences {*frameObject.inFlightFence, *frameObject.inComputeFence};
+
+  device->waitForFences(fences.size(), fences.data(), VK_TRUE, std::numeric_limits<uint64_t>::max());
 
   // check to see if any pipeline state changed.
   if (recreatePipeline)
@@ -2823,16 +2836,16 @@ void AsyVkRender::drawFrame()
   else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
     throw std::runtime_error("Failed to acquire next swapchain image.");
 
-  device->resetFences(1, &*frameObject.inFlightFence);
+  device->resetFences(fences.size(), fences.data());
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
+  frameObject.computeCommandBuffer->reset(vk::CommandBufferResetFlagBits());
+
   updateUniformBuffer(currentFrame);
   updateBuffers();
 
   resetFrameCopyData();
 
   drawBuffers(frameObject, imageIndex);
-
-  endFrameCommands();
 
   vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
   vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
