@@ -2277,6 +2277,7 @@ PushConstants AsyVkRender::buildPushConstants()
   pushConstants.constants[0] = options.mode!= DRAWMODE_NORMAL ? 0 : nlights;
   pushConstants.constants[1] = swapChainExtent.width;
   pushConstants.constants[2] = swapChainExtent.height;
+  pushConstants.constants[3] = maxSize;
   
   for (int i = 0; i < 4; i++)
     pushConstants.background[i]=Background[i];
@@ -2531,8 +2532,20 @@ void AsyVkRender::partialSums(bool readSize)
   currentCommandBuffer.dispatch(g, 1, 1);
 }
 
+GLuint ceilpow2(GLuint n)
+{
+  --n;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  return ++n;
+}
+
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
+  maxSize=ceilpow2(maxDepth);
 }
 
 void AsyVkRender::resizeFragmentBuffer() {
@@ -2566,8 +2579,6 @@ void AsyVkRender::resizeFragmentBuffer() {
     }
 
     fragments=feedbackBufferMap[1];
-    // std::cout << "DEPTMAXDEPTH: " << maxDepth << std::endl;
-    // std::cout << "FRAGMENTS: " << fragments << std::endl;
   }
 
 

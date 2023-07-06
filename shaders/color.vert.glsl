@@ -2,7 +2,6 @@
 #define MATERIAL
 #define COLOR
 #define NORMAL
-#define HAVE_INTERLOCK
 #define HAVE_SSBO
 #define GPUINDEXING
 

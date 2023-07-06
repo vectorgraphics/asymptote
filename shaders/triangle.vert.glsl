@@ -3,7 +3,6 @@
 #define COLOR
 #define NORMAL
 #define GENERAL
-#define HAVE_INTERLOCK
 #define HAVE_SSBO
 #define GPUINDEXING
 

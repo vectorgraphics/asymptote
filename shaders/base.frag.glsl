@@ -213,7 +213,6 @@ void main() {
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
   discard;
-  //return;
 #endif /*WIREFRAME*/
 #else
 #if defined(HAVE_INTERLOCK) && !defined(OPAQUE)

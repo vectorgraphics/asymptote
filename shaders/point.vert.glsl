@@ -2,7 +2,6 @@
 #define MATERIAL
 #define NOLIGHTS
 #define WIDTH
-#define HAVE_INTERLOCK
 #define HAVE_SSBO
 #define GPUINDEXING
 

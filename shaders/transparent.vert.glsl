@@ -2,10 +2,10 @@
 #define MATERIAL
 #define COLOR
 #define NORMAL
+#define GENERAL
 #define TRANSPARENT
 #define HAVE_SSBO
 #define GPUINDEXING
-#define HAVE_INTERLOCK
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projViewMat;

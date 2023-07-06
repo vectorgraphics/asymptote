@@ -2,7 +2,6 @@
 #define MATERIAL
 #define COLOR
 #define NORMAL
-#define HAVE_INTERLOCK
 #define HAVE_SSBO
 #define GPUINDEXING
 
@@ -220,7 +219,6 @@ void main() {
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
   discard;
-  //return;
 #endif /*WIREFRAME*/
 #else
 #if defined(HAVE_INTERLOCK) && !defined(OPAQUE)

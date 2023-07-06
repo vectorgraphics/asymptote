@@ -517,7 +517,7 @@ private:
   GLuint fragments;
   GLuint maxFragments=1;
   //GLint maxgroups;
-  GLuint maxSize;
+  GLuint maxSize=1;
 
   bool hasExternalMemoryCapabilitiesExtension = false;
   bool hasExternalMemoryExtension = false;

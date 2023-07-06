@@ -1,7 +1,6 @@
 #version 450
 #define MATERIAL
 #define NORMAL
-#define HAVE_INTERLOCK
 #define HAVE_SSBO
 #define GPUINDEXING
 
