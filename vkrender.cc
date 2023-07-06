@@ -2624,23 +2624,23 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
                         &triangleData,
                         triangleCountPipeline,
                         trianglePipelineLayout);
-    recordCommandBuffer(object.transparentVertexBuffer,
-                        object.transparentIndexBuffer,
-                        &transparentData,
-                        transparentCountPipeline,
-                        transparentPipelineLayout);
+    // recordCommandBuffer(object.transparentVertexBuffer,
+    //                     object.transparentIndexBuffer,
+    //                     &transparentData,
+    //                     transparentCountPipeline,
+    //                     transparentPipelineLayout);
     endFrameRender();
   }
 
   // draw transparent
 
-  // beginTransparentFrameRender(*swapChainFramebuffers[imageIndex]);
-  //recordCommandBuffer(object.transparentVertexBuffer,
-  //                    object.transparentIndexBuffer,
-  //                    &transparentData,
-  //                    transparentCountPipeline,
-  //                    transparentPipelineLayout);
-  // endFrameRender();
+  beginTransparentFrameRender(*swapChainFramebuffers[imageIndex]);
+  recordCommandBuffer(object.transparentVertexBuffer,
+                      object.transparentIndexBuffer,
+                      &transparentData,
+                      transparentCountPipeline,
+                      transparentPipelineLayout);
+  endFrameRender();
 
   if (GPUcompress) {
     // ...
