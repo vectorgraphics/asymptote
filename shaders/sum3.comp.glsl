@@ -79,14 +79,10 @@ void main()
     offset[dataOffset+i*LOCALSIZE]=shuffle[shuffleOffset+i*stride]+
       groupSum[(i*LOCALSIZE+id)/BLOCKSIZE]+groupOffset;
 
-  barrier();
-
   uint diff=push.final-dataOffset;
   if(diff < groupSize && diff % LOCALSIZE == 0) {
     size=maxDepth;
     maxDepth=0u;
     fragments=offset[push.final+1u]=offset[push.final];
   }
-  
-  barrier();
 }

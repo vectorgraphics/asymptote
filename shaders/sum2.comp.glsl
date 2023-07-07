@@ -60,7 +60,4 @@ void main()
   uint shift=id > 0u ? groupSum[id-1u] : 0u;
   for(uint i=0u; i < push.blockSize; ++i)
     globalSum[dataOffset+i]=localSum[i]+shift;
-
-  barrier();
-  size=42;
 }
