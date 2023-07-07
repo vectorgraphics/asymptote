@@ -623,7 +623,7 @@ void AsyVkRender::recreateSwapChain()
     glfwWaitEvents();
   }
 
-  vkDeviceWaitIdle(*device);
+  device->waitIdle();
 
   createSwapChain();
   createDependentBuffers();
@@ -1192,12 +1192,10 @@ void AsyVkRender::createBuffer(vk::Buffer& buffer, vk::DeviceMemory& bufferMemor
   device->bindBufferMemory(buffer, bufferMemory, 0);
 }
 
-// TODO: try without unique? (then use for staging buffers)
 void AsyVkRender::createBufferUnique(vk::UniqueBuffer& buffer, vk::UniqueDeviceMemory& bufferMemory,
                                      vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
                                      vk::DeviceSize size)
 {
-  // TODO: sharing mode and queue family indices
   auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), size, usage);
   buffer = device->createBufferUnique(bufferCI);
 
@@ -1436,6 +1434,7 @@ void AsyVkRender::createDescriptorSetLayout()
     opaqueBufferBinding,
     opaqueDepthBufferBinding
   };
+
 
   auto layoutCI = vk::DescriptorSetLayoutCreateInfo(
     vk::DescriptorSetLayoutCreateFlags(),
@@ -1729,7 +1728,6 @@ void AsyVkRender::updateSceneDependentBuffers() {
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      depthBufferSize);
 
-
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
 
     auto fragmentBufferInfo = vk::DescriptorBufferInfo(
@@ -1789,8 +1787,8 @@ void AsyVkRender::createBuffers()
 
   createBufferUnique(feedbackBuffer,
                      feedbackBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached,
                      feedbackBufferSize);
 
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
@@ -2599,43 +2597,24 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
   maxSize=ceilpow2(maxDepth);
 }
 
-void AsyVkRender::resizeFragmentBuffer() {
+void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   if (GPUindexing) {
-    auto const barrier = vk::BufferMemoryBarrier(
-      vk::AccessFlagBits::eShaderRead,
-      vk::AccessFlagBits::eShaderWrite,
-      queueFamilyIndices.renderQueueFamily,
-      queueFamilyIndices.renderQueueFamily,
-      *feedbackBuffer,
-      0,
-      feedbackBufferSize
-    );
-    // currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
-    //                                      vk::PipelineStageFlagBits::eFragmentShader,
-    //                                      { },
-    //                                      0,
-    //                                      nullptr,
-    //                                      1,
-    //                                      &barrier,
-    //                                      0,
-    //                                      nullptr);
-    // todo premade buffer for this
-    std::array<std::uint32_t, 2> feedbackBufferMap;
-    copyFromBuffer(*feedbackBuffer, feedbackBufferMap.data(), feedbackBufferSize);
-    auto const maxDepth=feedbackBufferMap[0];
+    
+    const auto feedbackMap=static_cast<std::uint32_t*>(device->mapMemory(*feedbackBufferMemory, 0, feedbackBufferSize, vk::MemoryMapFlags()));
+    const auto maxDepth=feedbackMap[0];
+    fragments=feedbackMap[1];
+    device->unmapMemory(*feedbackBufferMemory);
 
     if (maxDepth>maxSize) {
       resizeBlendShader(maxDepth);
     }
-
-    fragments=feedbackBufferMap[1];
   }
-
 
   if (fragments>maxFragments) {
 
     maxFragments=11*fragments/10;
+    device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max());
     updateSceneDependentBuffers();
   }
 }
@@ -2675,16 +2654,10 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
                         &triangleData,
                         triangleCountPipeline,
                         trianglePipelineLayout);
-    // recordCommandBuffer(object.transparentVertexBuffer,
-    //                     object.transparentIndexBuffer,
-    //                     &transparentData,
-    //                     transparentCountPipeline,
-    //                     transparentPipelineLayout);
     endFrameRender();
   }
 
   // draw transparent
-
   beginTransparentFrameRender(*depthResolveFramebuffers[imageIndex]);
   recordCommandBuffer(object.transparentVertexBuffer,
                       object.transparentIndexBuffer,
@@ -2777,7 +2750,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
     renderQueue.submit(1, &info, *object.inComputeFence);
 
     if (!interlock) {
-      resizeFragmentBuffer();
+      resizeFragmentBuffer(object);
     }
   }
 
@@ -2801,7 +2774,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
     copied=true;
 
     if (interlock) {
-      resizeFragmentBuffer();
+      resizeFragmentBuffer(object);
     }
   }
 

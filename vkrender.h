@@ -843,7 +843,7 @@ private:
   void drawTransparent(FrameObject & object);
   void partialSums(bool readSize=false);
   void resizeBlendShader(std::uint32_t maxDepth);
-  void resizeFragmentBuffer();
+  void resizeFragmentBuffer(FrameObject & object);
   void refreshBuffers(FrameObject & object, int imageIndex);
   void blendFrame(int imageIndex);
   void drawBuffers(FrameObject & object, int imageIndex);
