@@ -326,7 +326,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    int maxFramesInFlight = 2;
+    int maxFramesInFlight = 4;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
@@ -653,6 +653,7 @@ private:
     vk::UniqueSemaphore renderFinishedSemaphore;
     vk::UniqueFence inFlightFence;
     vk::UniqueFence inComputeFence;
+    vk::UniqueEvent sumFinishedEvent;
 
     vk::UniqueCommandBuffer commandBuffer;
     vk::UniqueCommandBuffer computeCommandBuffer;

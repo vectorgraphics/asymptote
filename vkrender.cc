@@ -1157,6 +1157,7 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
   }
 }
 
@@ -2601,6 +2602,13 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   if (GPUindexing) {
     
+    vk::Result result;
+
+    do
+    {
+      result = device->getEventStatus(*object.sumFinishedEvent);
+    } while(result != vk::Result::eEventSet);
+
     const auto feedbackMap=static_cast<std::uint32_t*>(device->mapMemory(*feedbackBufferMemory, 0, feedbackBufferSize, vk::MemoryMapFlags()));
     const auto maxDepth=feedbackMap[0];
     fragments=feedbackMap[1];
@@ -2736,10 +2744,12 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   if (ssbo && transparent) {
 
     device->resetFences(1, &*object.inComputeFence);
+    device->resetEvent(*object.sumFinishedEvent);
     object.computeCommandBuffer->reset(vk::CommandBufferResetFlagBits());
     
     beginFrameCommands(getFrameComputeCommandBuffer());
     refreshBuffers(object, imageIndex);
+    currentCommandBuffer.setEvent(*object.sumFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
     endFrameCommands();
 
     auto info = vk::SubmitInfo();
