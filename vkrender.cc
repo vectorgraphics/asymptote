@@ -2762,6 +2762,9 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
   if (ssbo && transparent) {
 
+    device->resetFences(1, &*object.inComputeFence);
+    object.computeCommandBuffer->reset(vk::CommandBufferResetFlagBits());
+    
     beginFrameCommands(getFrameComputeCommandBuffer());
     refreshBuffers(object, imageIndex);
     endFrameCommands();
@@ -2825,7 +2828,7 @@ void AsyVkRender::drawFrame()
 
   std::array<vk::Fence, 2> fences {*frameObject.inFlightFence, *frameObject.inComputeFence};
 
-  device->waitForFences(fences.size(), fences.data(), VK_TRUE, std::numeric_limits<uint64_t>::max());
+  device->waitForFences(1, fences.data(), VK_TRUE, std::numeric_limits<uint64_t>::max());
 
   // check to see if any pipeline state changed.
   if (recreatePipeline)
@@ -2845,9 +2848,8 @@ void AsyVkRender::drawFrame()
   else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
     throw std::runtime_error("Failed to acquire next swapchain image.");
 
-  device->resetFences(fences.size(), fences.data());
+  device->resetFences(1, &*frameObject.inFlightFence);
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
-  frameObject.computeCommandBuffer->reset(vk::CommandBufferResetFlagBits());
 
   updateUniformBuffer(currentFrame);
   updateBuffers();
