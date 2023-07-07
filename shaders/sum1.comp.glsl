@@ -16,12 +16,6 @@ layout(binding=1, std430) buffer globalSumBuffer
   uint globalSum[];
 };
 
-layout(binding=3, std430) buffer feedbackBuffer
-{
-  uint size;
-  uint fragments;
-};
-
 shared uint groupSum[LOCALSIZE];
 
 const uint groupSize=LOCALSIZE*BLOCKSIZE;

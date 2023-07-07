@@ -12,21 +12,9 @@ layout(push_constant) uniform PushConstants
 	uint blockSize;
 } push;
 
-layout(binding=0, std430) buffer countBuffer
-{
-  uint maxSize;
-  uint count[];
-};
-
 layout(binding=1, std430) buffer globalSumBuffer
 {
   uint globalSum[];
-};
-
-layout(binding=3, std430) buffer feedbackBuffer
-{
-  uint size;
-  uint fragments;
 };
 
 shared uint groupSum[LOCALSIZE];
