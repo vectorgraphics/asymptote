@@ -326,7 +326,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    int maxFramesInFlight = 4;
+    int maxFramesInFlight = 5;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
@@ -780,7 +780,8 @@ private:
                            DeviceBuffer & indexBuffer,
                            VertexBuffer * data,
                            vk::UniquePipeline & pipeline, 
-                           vk::UniquePipelineLayout & pipelineLayout);
+                           vk::UniquePipelineLayout & pipelineLayout,
+                           bool incrementRenderCount=true);
   void endFrameRender();
   void endFrameCommands();
   void endFrame(int imageIndex);

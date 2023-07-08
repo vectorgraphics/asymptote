@@ -1768,6 +1768,11 @@ void AsyVkRender::updateSceneDependentBuffers() {
     // todo remove frame-dependent descriptor sets
     device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
   }
+
+  // if the fragment buffer size changes, all
+  // transparent data needs to be re-rendered
+  // for every frame
+  transparentData.renderCount = 0;
 }
 
 void AsyVkRender::createBuffers()
@@ -2375,7 +2380,6 @@ void AsyVkRender::beginTransparentFrameRender(vk::Framebuffer framebuffer)
     nullptr
   );
 
-
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
@@ -2393,7 +2397,8 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
                                       DeviceBuffer & indexBuffer,
                                       VertexBuffer * data,
                                       vk::UniquePipeline & pipeline,
-                                      vk::UniquePipelineLayout & pipelineLayout) {
+                                      vk::UniquePipelineLayout & pipelineLayout,
+                                      bool incrementRenderCount) {
   
   if (data->indices.empty())
     return;
@@ -2434,7 +2439,8 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
   currentCommandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   currentCommandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
 
-  data->renderCount++;
+  if(incrementRenderCount)
+    data->renderCount++;
 }
 
 void AsyVkRender::endFrameRender()
@@ -2641,27 +2647,32 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
                         object.pointIndexBuffer,
                         &pointData,
                         pointCountPipeline,
-                        pointPipelineLayout);
+                        pointPipelineLayout,
+                        false);
     recordCommandBuffer(object.lineVertexBuffer,
                         object.lineIndexBuffer,
                         &lineData,
                         lineCountPipeline,
-                        linePipelineLayout);
+                        linePipelineLayout,
+                        false);
     recordCommandBuffer(object.materialVertexBuffer,
                         object.materialIndexBuffer,
                         &materialData,
                         materialCountPipeline,
-                        materialPipelineLayout);
+                        materialPipelineLayout,
+                        false);
     recordCommandBuffer(object.colorVertexBuffer,
                         object.colorIndexBuffer,
                         &colorData,
                         colorCountPipeline,
-                        colorPipelineLayout);
+                        colorPipelineLayout,
+                        false);
     recordCommandBuffer(object.triangleVertexBuffer,
                         object.triangleIndexBuffer,
                         &triangleData,
                         triangleCountPipeline,
-                        trianglePipelineLayout);
+                        trianglePipelineLayout,
+                        false);
     endFrameRender();
   }
 
@@ -2671,7 +2682,8 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
                       object.transparentIndexBuffer,
                       &transparentData,
                       transparentCountPipeline,
-                      transparentPipelineLayout);
+                      transparentPipelineLayout,
+                      false);
   endFrameRender();
 
   if (GPUcompress) {
