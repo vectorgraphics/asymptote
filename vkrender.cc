@@ -601,6 +601,7 @@ void AsyVkRender::initVulkan()
   createDescriptorSets();
   writeDescriptorSets();
 
+  createCountRenderPass();
   createOpaqueRenderPass();
   createTransparentRenderPass();
   createBlendRenderPass();
@@ -630,6 +631,7 @@ void AsyVkRender::recreateSwapChain()
   createDependentBuffers();
   writeDescriptorSets();
   createImageViews();
+  createCountRenderPass();
   createOpaqueRenderPass();
   createTransparentRenderPass();
   createBlendRenderPass();
@@ -1071,6 +1073,7 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(const std::vector<char>& 
 // how will this work with multiple pipelines and without a swapchain?
 void AsyVkRender::createFramebuffers()
 {
+  depthFramebuffers.resize(swapChainImageViews.size());
   swapChainFramebuffers.resize(swapChainImageViews.size());
   depthResolveFramebuffers.resize(swapChainImageViews.size());
   blendFramebuffers.resize(swapChainImageViews.size());
@@ -1078,6 +1081,21 @@ void AsyVkRender::createFramebuffers()
   for (auto i = 0u; i < swapChainImageViews.size(); i++)
   {
     vk::ImageView attachments[] = {*colorImageView, *depthImageView, *depthResolveImageView, *swapChainImageViews[i]};
+    std::array<vk::ImageView, 1> depthAttachments
+    {
+      *depthImageView,
+      //*depthResolveImageView
+    };
+
+    auto depthFramebufferCI = vk::FramebufferCreateInfo(
+      {},
+      *countRenderPass,
+      depthAttachments.size(),
+      depthAttachments.data(),
+      swapChainExtent.width,
+      swapChainExtent.height,
+      1
+    );
     auto framebufferCI = vk::FramebufferCreateInfo(
       vk::FramebufferCreateFlags(),
       *opaqueRenderPass,
@@ -1086,7 +1104,7 @@ void AsyVkRender::createFramebuffers()
       swapChainExtent.height,
       1
     );
-    auto depthFramebufferCI = vk::FramebufferCreateInfo(
+    auto depthResolveFramebufferCI = vk::FramebufferCreateInfo(
       {},
       *transparentRenderPass,
       0,
@@ -1106,8 +1124,9 @@ void AsyVkRender::createFramebuffers()
       1
     );
 
+    depthFramebuffers[i] = device->createFramebufferUnique(depthFramebufferCI);
     swapChainFramebuffers[i] = device->createFramebufferUnique(framebufferCI);
-    depthResolveFramebuffers[i] = device->createFramebufferUnique(depthFramebufferCI);
+    depthResolveFramebuffers[i] = device->createFramebufferUnique(depthResolveFramebufferCI);
     blendFramebuffers[i] = device->createFramebufferUnique(blendFramebufferCI);
   }
 }
@@ -1874,6 +1893,104 @@ void AsyVkRender::createDependentBuffers()
                      opaqueBufferSize);
 }
 
+void AsyVkRender::createCountRenderPass()
+{
+  auto depthAttachment = vk::AttachmentDescription2(
+    vk::AttachmentDescriptionFlags(),
+    vk::Format::eD32Sfloat,
+    msaaSamples,
+    vk::AttachmentLoadOp::eClear,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::eDepthStencilAttachmentOptimal
+  );
+  auto depthResolveAttachment = vk::AttachmentDescription2(
+    vk::AttachmentDescriptionFlags(),
+    vk::Format::eD32Sfloat,
+    vk::SampleCountFlagBits::e1,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eStore,
+    vk::AttachmentLoadOp::eDontCare,
+    vk::AttachmentStoreOp::eDontCare,
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::eDepthStencilAttachmentOptimal
+  );
+
+  auto depthAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+  auto depthResolveAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+  auto depthResolveSubpass = vk::SubpassDescriptionDepthStencilResolve(
+    vk::ResolveModeFlagBits::eMin,
+    vk::ResolveModeFlagBits::eMax,
+    &depthResolveAttachmentRef
+  );
+  
+  std::array<vk::SubpassDescription2, 2> subpasses;
+
+  subpasses[0] = vk::SubpassDescription2(
+    vk::SubpassDescriptionFlags(),
+    vk::PipelineBindPoint::eGraphics,
+    0,
+    0,
+    nullptr,
+    0,
+    nullptr,
+    &depthAttachmentRef,
+    nullptr,
+    0,
+    nullptr,
+    nullptr
+    //&depthResolveSubpass
+  );
+  subpasses[1] = vk::SubpassDescription2(
+    vk::SubpassDescriptionFlags(),
+    vk::PipelineBindPoint::eGraphics,
+    0,
+    0,
+    nullptr,
+    0,
+    nullptr,
+    nullptr,
+    //&depthResolveAttachmentRef,
+    nullptr,
+    0,
+    nullptr,
+    nullptr
+  );
+
+  std::array<vk::AttachmentDescription2, 1> attachments
+  {
+    depthAttachment,
+    //depthResolveAttachment
+  };
+
+  auto dependency = vk::SubpassDependency2();
+
+  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependency.dstSubpass = 0;
+  dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
+                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+  dependency.srcAccessMask = vk::AccessFlagBits::eNone;
+  dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
+                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+  dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
+                              | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+  auto renderPassCI = vk::RenderPassCreateInfo2(
+    vk::RenderPassCreateFlags(),
+    attachments.size(),
+    attachments.data(),
+    subpasses.size(),
+    subpasses.data(),
+    1,
+    &dependency
+  );
+
+  countRenderPass = device->createRenderPass2Unique(renderPassCI);
+}
+
 void AsyVkRender::createOpaqueRenderPass()
 {
   auto colorAttachment = vk::AttachmentDescription2(
@@ -2074,7 +2191,8 @@ template<typename V>
 void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
                                          vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
                                          vk::PolygonMode fillMode, std::string const & shaderFile,
-                                         vk::RenderPass renderPass, bool enableDepthWrite, bool disableMultisample)
+                                         vk::RenderPass renderPass, bool enableDepthWrite, bool transparent,
+                                         bool disableMultisample)
 {
   auto vertShaderCode = readFile("shaders/" + shaderFile + ".vert.spv");
   auto fragShaderCode = readFile("shaders/" + shaderFile + ".frag.spv");
@@ -2147,7 +2265,7 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
 
   auto multisamplingCI = vk::PipelineMultisampleStateCreateInfo(
     vk::PipelineMultisampleStateCreateFlags(),
-    disableMultisample ? vk::SampleCountFlagBits::e1 : msaaSamples,
+    transparent || disableMultisample ? vk::SampleCountFlagBits::e1 : msaaSamples,
     VK_FALSE,
     0.0f,
     nullptr,
@@ -2183,7 +2301,9 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
   layout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
   auto const makePipeline = [=](vk::UniquePipeline & pipeline,
-                                vk::PipelineShaderStageCreateInfo * stages)
+                                vk::PipelineShaderStageCreateInfo * stages,
+                                vk::RenderPass renderPass,
+                                std::uint32_t subpass)
   {
     auto pipelineCI = vk::GraphicsPipelineCreateInfo(
       vk::PipelineCreateFlags(),
@@ -2200,7 +2320,7 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
       nullptr,
       *materialPipelineLayout,
       renderPass,
-      0,
+      subpass,
       nullptr
     );
 
@@ -2211,8 +2331,8 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
       pipeline = std::move(result.value);
   };
 
-  makePipeline(graphicsPipeline, defaultStages);
-  makePipeline(countPipeline, countStages);
+  makePipeline(graphicsPipeline, defaultStages, renderPass, 0);
+  makePipeline(countPipeline, countStages, *countRenderPass, transparent ? 1 : 0);
 }
 
 void AsyVkRender::createGraphicsPipelines()
@@ -2258,7 +2378,7 @@ void AsyVkRender::createGraphicsPipelines()
                          blendCountPipeline, // todo remove blend count pipeline
                          vk::PrimitiveTopology::eTriangleList,
                          vk::PolygonMode::eFill,
-                         "blend", *blendRenderPass, false, true);
+                         "blend", *blendRenderPass, false, false, true);
 }
 
 void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
@@ -2402,6 +2522,26 @@ void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
 {
   currentCommandBuffer = cmd;
   currentCommandBuffer.begin(vk::CommandBufferBeginInfo());
+}
+
+void AsyVkRender::beginCountFrameRender(int imageIndex)
+{
+  std::array<vk::ClearValue, 2> clearColors;
+  
+  clearColors[0].depthStencil.depth = 1.f;
+  clearColors[0].depthStencil.stencil = 0;
+  clearColors[1].depthStencil.depth = 1.f;
+  clearColors[1].depthStencil.stencil = 0;
+  
+  auto renderPassInfo = vk::RenderPassBeginInfo(
+    *countRenderPass,
+    *depthFramebuffers[imageIndex],
+    vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
+    clearColors.size(),
+    clearColors.data()
+  );
+
+  currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
 void AsyVkRender::beginOpaqueFrameRender(int imageIndex)
@@ -2710,9 +2850,9 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
     zeroBuffer(*countBuffer, countBufferSize);
   }
 
-  if (!interlock) {
+  beginCountFrameRender(imageIndex);
 
-    beginOpaqueFrameRender(imageIndex);
+  if (!interlock) {
 
     recordCommandBuffer(object.pointVertexBuffer,
                         object.pointIndexBuffer,
@@ -2744,11 +2884,11 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
                         triangleCountPipeline,
                         trianglePipelineLayout,
                         false);
-    endFrameRender();
   }
 
+  currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
+
   // draw transparent
-  beginTransparentFrameRender(imageIndex);
   recordCommandBuffer(object.transparentVertexBuffer,
                       object.transparentIndexBuffer,
                       &transparentData,
