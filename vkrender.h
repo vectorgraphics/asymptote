@@ -549,6 +549,7 @@ private:
   std::vector<vk::UniqueImageView> swapChainImageViews;
   std::vector<vk::UniqueFramebuffer> swapChainFramebuffers;
   std::vector<vk::UniqueFramebuffer> depthResolveFramebuffers;
+  std::vector<vk::UniqueFramebuffer> blendFramebuffers;
 
   vk::UniqueImage depthImage;
   vk::UniqueImageView depthImageView;
@@ -568,8 +569,9 @@ private:
 
   vk::UniqueDescriptorPool descriptorPool;
 
-  vk::UniqueRenderPass materialRenderPass;
+  vk::UniqueRenderPass opaqueRenderPass;
   vk::UniqueRenderPass transparentRenderPass;
+  vk::UniqueRenderPass blendRenderPass;
   vk::UniqueDescriptorSetLayout materialDescriptorSetLayout;
 
   vk::UniquePipelineLayout materialPipelineLayout;
@@ -773,8 +775,9 @@ private:
   vk::CommandBuffer & getFrameCommandBuffer();
   vk::CommandBuffer & getFrameComputeCommandBuffer();
   void beginFrameCommands(vk::CommandBuffer cmd);
-  void beginOpaqueFrameRender(vk::Framebuffer framebuffer);
-  void beginTransparentFrameRender(vk::Framebuffer framebuffer);
+  void beginOpaqueFrameRender(int imageIndex);
+  void beginTransparentFrameRender(int imageIndex);
+  void beginBlendFrameRender(int imageIndex);
   void resetFrameCopyData();
   void recordCommandBuffer(DeviceBuffer & vertexBuffer,
                            DeviceBuffer & indexBuffer,
@@ -823,6 +826,7 @@ private:
 
   void createOpaqueRenderPass();
   void createTransparentRenderPass();
+  void createBlendRenderPass();
   template<typename V>
   void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
                               vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
