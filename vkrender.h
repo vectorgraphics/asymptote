@@ -547,10 +547,8 @@ private:
   vk::Format swapChainImageFormat;
   vk::Extent2D swapChainExtent;
   std::vector<vk::UniqueImageView> swapChainImageViews;
-  std::vector<vk::UniqueFramebuffer> swapChainFramebuffers;
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
-  std::vector<vk::UniqueFramebuffer> depthResolveFramebuffers;
-  std::vector<vk::UniqueFramebuffer> blendFramebuffers;
+  std::vector<vk::UniqueFramebuffer> graphicsFramebuffers;
 
   vk::UniqueImage depthImage;
   vk::UniqueImageView depthImageView;
@@ -571,9 +569,7 @@ private:
   vk::UniqueDescriptorPool descriptorPool;
 
   vk::UniqueRenderPass countRenderPass;
-  vk::UniqueRenderPass opaqueRenderPass;
-  vk::UniqueRenderPass transparentRenderPass;
-  vk::UniqueRenderPass blendRenderPass;
+  vk::UniqueRenderPass graphicsRenderPass;
   vk::UniqueDescriptorSetLayout materialDescriptorSetLayout;
 
   vk::UniquePipelineLayout materialPipelineLayout;
@@ -778,9 +774,7 @@ private:
   vk::CommandBuffer & getFrameComputeCommandBuffer();
   void beginFrameCommands(vk::CommandBuffer cmd);
   void beginCountFrameRender(int imageIndex);
-  void beginOpaqueFrameRender(int imageIndex);
-  void beginTransparentFrameRender(int imageIndex);
-  void beginBlendFrameRender(int imageIndex);
+  void beginGraphicsFrameRender(int imageIndex);
   void resetFrameCopyData();
   void recordCommandBuffer(DeviceBuffer & vertexBuffer,
                            DeviceBuffer & indexBuffer,
@@ -828,6 +822,7 @@ private:
   void createDependentBuffers();
 
   void createCountRenderPass();
+  void createGraphicsRenderPass();
   void createOpaqueRenderPass();
   void createTransparentRenderPass();
   void createBlendRenderPass();
@@ -835,8 +830,8 @@ private:
   void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
                               vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
                               vk::PolygonMode fillMode, std::string const & shaderFile,
-                              vk::RenderPass renderPass, bool enableDepthWrite=true, bool transparent=false,
-                              bool disableMultisample=false);
+                              vk::RenderPass renderPass, int graphicsSubpass, bool enableDepthWrite=true,
+                              bool transparent=false, bool disableMultisample=false);
   void createGraphicsPipelines();
   void createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
                              std::string const & shaderFile);

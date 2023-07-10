@@ -602,9 +602,7 @@ void AsyVkRender::initVulkan()
   writeDescriptorSets();
 
   createCountRenderPass();
-  createOpaqueRenderPass();
-  createTransparentRenderPass();
-  createBlendRenderPass();
+  createGraphicsRenderPass();
   createGraphicsPipelines();
   createComputePipelines();
 
@@ -632,9 +630,7 @@ void AsyVkRender::recreateSwapChain()
   writeDescriptorSets();
   createImageViews();
   createCountRenderPass();
-  createOpaqueRenderPass();
-  createTransparentRenderPass();
-  createBlendRenderPass();
+  createGraphicsRenderPass();
   createGraphicsPipelines();
   createAttachments();
   createFramebuffers();
@@ -1074,9 +1070,7 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(const std::vector<char>& 
 void AsyVkRender::createFramebuffers()
 {
   depthFramebuffers.resize(swapChainImageViews.size());
-  swapChainFramebuffers.resize(swapChainImageViews.size());
-  depthResolveFramebuffers.resize(swapChainImageViews.size());
-  blendFramebuffers.resize(swapChainImageViews.size());
+  graphicsFramebuffers.resize(swapChainImageViews.size());
 
   for (auto i = 0u; i < swapChainImageViews.size(); i++)
   {
@@ -1096,38 +1090,17 @@ void AsyVkRender::createFramebuffers()
       swapChainExtent.height,
       1
     );
-    auto framebufferCI = vk::FramebufferCreateInfo(
+    auto graphicsFramebufferCI = vk::FramebufferCreateInfo(
       vk::FramebufferCreateFlags(),
-      *opaqueRenderPass,
+      *graphicsRenderPass,
       ARR_VIEW(attachments),
-      swapChainExtent.width,
-      swapChainExtent.height,
-      1
-    );
-    auto depthResolveFramebufferCI = vk::FramebufferCreateInfo(
-      {},
-      *transparentRenderPass,
-      0,
-      nullptr,
-      //msaaSamples == vk::SampleCountFlagBits::e1 ? &*depthImageView : &*depthResolveImageView,
-      swapChainExtent.width,
-      swapChainExtent.height,
-      1
-    );
-    auto blendFramebufferCI = vk::FramebufferCreateInfo(
-      {},
-      *blendRenderPass,
-      1,
-      &*swapChainImageViews[i],
       swapChainExtent.width,
       swapChainExtent.height,
       1
     );
 
     depthFramebuffers[i] = device->createFramebufferUnique(depthFramebufferCI);
-    swapChainFramebuffers[i] = device->createFramebufferUnique(framebufferCI);
-    depthResolveFramebuffers[i] = device->createFramebufferUnique(depthResolveFramebufferCI);
-    blendFramebuffers[i] = device->createFramebufferUnique(blendFramebufferCI);
+    graphicsFramebuffers[i] = device->createFramebufferUnique(graphicsFramebufferCI);
   }
 }
 
@@ -1991,7 +1964,7 @@ void AsyVkRender::createCountRenderPass()
   countRenderPass = device->createRenderPass2Unique(renderPassCI);
 }
 
-void AsyVkRender::createOpaqueRenderPass()
+void AsyVkRender::createGraphicsRenderPass()
 {
   auto colorAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
@@ -2043,33 +2016,49 @@ void AsyVkRender::createOpaqueRenderPass()
   auto depthResolveAttachmentRef = vk::AttachmentReference2(2, vk::ImageLayout::eDepthStencilAttachmentOptimal);
   auto colorResolveAttachmentRef = vk::AttachmentReference2(3, vk::ImageLayout::eColorAttachmentOptimal);
 
-  auto subpass = vk::SubpassDescription2(
+  std::array<vk::SubpassDescription2, 3> subpasses;
+
+  subpasses[0] = vk::SubpassDescription2(
     vk::SubpassDescriptionFlags(),
     vk::PipelineBindPoint::eGraphics,
     0,
     0,
     nullptr,
     1,
-    &colorAttachmentRef
+    &colorAttachmentRef,
+    &colorResolveAttachmentRef,
+    &depthAttachmentRef
   );
-  auto depthResolveSubpass = vk::SubpassDescriptionDepthStencilResolve(
-    vk::ResolveModeFlagBits::eMin,
-    vk::ResolveModeFlagBits::eMax,
-    &depthResolveAttachmentRef
+  subpasses[1] = vk::SubpassDescription2(
+    vk::SubpassDescriptionFlags(),
+    vk::PipelineBindPoint::eGraphics,
+    0,
+    0,
+    nullptr,
+    0,
+    nullptr,
+    nullptr,
+    nullptr
+    //&depthResolveAttachmentRef
   );
-
-  subpass.pResolveAttachments = &colorResolveAttachmentRef;
-  subpass.pDepthStencilAttachment = &depthAttachmentRef;
+  subpasses[2] = vk::SubpassDescription2(
+    vk::SubpassDescriptionFlags(),
+    vk::PipelineBindPoint::eGraphics,
+    0,
+    0,
+    nullptr,
+    1,
+    &colorResolveAttachmentRef
+  );
 
   if (msaaSamples == vk::SampleCountFlagBits::e1)
   {
     colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
     colorResolveAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-    subpass.pColorAttachments = &colorResolveAttachmentRef;
-    subpass.pResolveAttachments = nullptr;
+
+    subpasses[0].pColorAttachments = &colorResolveAttachmentRef;
+    subpasses[0].pResolveAttachments = nullptr;
   }
-  // else
-  //   subpass.pNext = &depthResolveSubpass;
 
   std::vector<vk::AttachmentDescription2> attachments
   {
@@ -2079,120 +2068,45 @@ void AsyVkRender::createOpaqueRenderPass()
     colorResolveAttachment
   };
 
-  auto dependency = vk::SubpassDependency2();
+  std::array<vk::SubpassDependency2, 2> dependencies;
 
-  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-  dependency.dstSubpass = 0;
-  dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
-                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-  dependency.srcAccessMask = vk::AccessFlagBits::eNone;
-  dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
-                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-  dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
-                              | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+  dependencies[0] = vk::SubpassDependency2(
+    VK_SUBPASS_EXTERNAL,
+    0,
+    vk::PipelineStageFlagBits::eColorAttachmentOutput,
+    vk::PipelineStageFlagBits::eColorAttachmentOutput,
+    vk::AccessFlagBits::eNone,
+    vk::AccessFlagBits::eColorAttachmentWrite
+  );
+  dependencies[1] = vk::SubpassDependency2(
+    0,
+    2,
+    vk::PipelineStageFlagBits::eColorAttachmentOutput,
+    vk::PipelineStageFlagBits::eColorAttachmentOutput,
+    vk::AccessFlagBits::eNone,
+    vk::AccessFlagBits::eNone
+  );
+
+  auto dependency = vk::SubpassDependency2();
 
   auto renderPassCI = vk::RenderPassCreateInfo2(
     vk::RenderPassCreateFlags(),
     attachments.size(),
     &attachments[0],
-    1,
-    &subpass,
-    1,
-    &dependency
+    subpasses.size(),
+    subpasses.data(),
+    dependencies.size(),
+    dependencies.data()
   );
-  opaqueRenderPass = device->createRenderPass2Unique(renderPassCI);
-}
-
-void AsyVkRender::createTransparentRenderPass()
-{ 
-  auto depthAttachment = vk::AttachmentDescription(
-    vk::AttachmentDescriptionFlags(),
-    vk::Format::eD32Sfloat,
-    vk::SampleCountFlagBits::e1,
-    vk::AttachmentLoadOp::eLoad,
-    vk::AttachmentStoreOp::eDontCare,
-    vk::AttachmentLoadOp::eDontCare,
-    vk::AttachmentStoreOp::eDontCare,
-    vk::ImageLayout::eDepthStencilAttachmentOptimal,
-    vk::ImageLayout::eDepthStencilAttachmentOptimal
-  );
-
-  auto depthAttachmentRef = vk::AttachmentReference(0, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-  auto subpass = vk::SubpassDescription(
-    vk::SubpassDescriptionFlags(),
-    vk::PipelineBindPoint::eGraphics
-  );
-
-  //subpass.pDepthStencilAttachment = &depthAttachmentRef;
-
-  std::vector< vk::AttachmentDescription > attachments {depthAttachment};
-
-  auto dependency = vk::SubpassDependency();
-
-  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-  dependency.dstSubpass = 0;
-  dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
-                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-  dependency.srcAccessMask = vk::AccessFlagBits::eNone;
-  dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
-                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-  dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
-                              | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-
-  auto renderPassCI = vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), 0, &attachments[0], 1, &subpass, 0, &dependency);
-
-  transparentRenderPass = device->createRenderPassUnique(renderPassCI, nullptr);
-}
-
-void AsyVkRender::createBlendRenderPass()
-{
-  auto colorAttachment = vk::AttachmentDescription(
-    vk::AttachmentDescriptionFlags(),
-    swapChainImageFormat,
-    vk::SampleCountFlagBits::e1,
-    vk::AttachmentLoadOp::eClear,
-    vk::AttachmentStoreOp::eStore,
-    vk::AttachmentLoadOp::eDontCare,
-    vk::AttachmentStoreOp::eDontCare,
-    vk::ImageLayout::eUndefined,
-    vk::ImageLayout::ePresentSrcKHR
-  );
-
-  auto colorAttachmentRef = vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
-
-  auto subpass = vk::SubpassDescription(
-    vk::SubpassDescriptionFlags(),
-    vk::PipelineBindPoint::eGraphics,
-    0,
-    nullptr,
-    1,
-    &colorAttachmentRef
-  );
-
-  auto dependency = vk::SubpassDependency();
-
-  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-  dependency.dstSubpass = 0;
-  dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
-                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-  dependency.srcAccessMask = vk::AccessFlagBits::eNone;
-  dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
-                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-  dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
-                              | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-
-  auto renderPassCI = vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), 1, &colorAttachment, 1, &subpass, 1, &dependency);
-
-  blendRenderPass = device->createRenderPassUnique(renderPassCI, nullptr);
+  graphicsRenderPass = device->createRenderPass2Unique(renderPassCI);
 }
 
 template<typename V>
 void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
                                          vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
                                          vk::PolygonMode fillMode, std::string const & shaderFile,
-                                         vk::RenderPass renderPass, bool enableDepthWrite, bool transparent,
-                                         bool disableMultisample)
+                                         vk::RenderPass renderPass, int graphicsSubpass, bool enableDepthWrite,
+                                         bool transparent, bool disableMultisample)
 {
   auto vertShaderCode = readFile("shaders/" + shaderFile + ".vert.spv");
   auto fragShaderCode = readFile("shaders/" + shaderFile + ".frag.spv");
@@ -2331,7 +2245,7 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
       pipeline = std::move(result.value);
   };
 
-  makePipeline(graphicsPipeline, defaultStages, renderPass, 0);
+  makePipeline(graphicsPipeline, defaultStages, renderPass, graphicsSubpass);
   makePipeline(countPipeline, countStages, *countRenderPass, transparent ? 1 : 0);
 }
 
@@ -2342,43 +2256,43 @@ void AsyVkRender::createGraphicsPipelines()
                          materialCountPipeline,
                          vk::PrimitiveTopology::eTriangleList,
                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                         "material", *opaqueRenderPass);
+                         "material", *graphicsRenderPass, 0);
   createGraphicsPipeline<ColorVertex>
                          (colorPipelineLayout, colorPipeline,
                          colorCountPipeline,
                          vk::PrimitiveTopology::eTriangleList,
                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                         "color", *opaqueRenderPass);
+                         "color", *graphicsRenderPass, 0);
   createGraphicsPipeline<ColorVertex>
                          (trianglePipelineLayout, trianglePipeline,
                          triangleCountPipeline,
                          vk::PrimitiveTopology::eTriangleList,
                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                         "triangle", *opaqueRenderPass);
+                         "triangle", *graphicsRenderPass, 0);
   createGraphicsPipeline<MaterialVertex>
                          (linePipelineLayout, linePipeline,
                          lineCountPipeline,
                          vk::PrimitiveTopology::eLineList,
                          vk::PolygonMode::eFill,
-                         "material", *opaqueRenderPass);
+                         "material", *graphicsRenderPass, 0);
   createGraphicsPipeline<PointVertex>
                          (pointPipelineLayout, pointPipeline,
                          pointCountPipeline,
                          vk::PrimitiveTopology::ePointList,
                          vk::PolygonMode::ePoint,
-                         "point", *opaqueRenderPass);
+                         "point", *graphicsRenderPass, 0);
   createGraphicsPipeline<ColorVertex> // todo make dynamic state for depth write enable
                          (transparentPipelineLayout, transparentPipeline,
                          transparentCountPipeline,
                          vk::PrimitiveTopology::eTriangleList,
                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                         "transparent", *transparentRenderPass, false, true);
+                         "transparent", *graphicsRenderPass, 1, false, true);
   createGraphicsPipeline<ColorVertex> // todo make dynamic state for depth write enable
                          (blendPipelineLayout, blendPipeline,
                          blendCountPipeline, // todo remove blend count pipeline
                          vk::PrimitiveTopology::eTriangleList,
                          vk::PolygonMode::eFill,
-                         "blend", *blendRenderPass, false, false, true);
+                         "blend", *graphicsRenderPass, 2, false, false, true);
 }
 
 void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
@@ -2544,7 +2458,7 @@ void AsyVkRender::beginCountFrameRender(int imageIndex)
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::beginOpaqueFrameRender(int imageIndex)
+void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
 {
   std::array<vk::ClearValue, 4> clearColors;
 
@@ -2556,39 +2470,11 @@ void AsyVkRender::beginOpaqueFrameRender(int imageIndex)
   clearColors[3] = vk::ClearValue(Background);
 
   auto renderPassInfo = vk::RenderPassBeginInfo(
-    *opaqueRenderPass,
-    *swapChainFramebuffers[imageIndex],
+    *graphicsRenderPass,
+    *graphicsFramebuffers[imageIndex],
     vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
     clearColors.size(),
     &clearColors[0]
-  );
-
-  currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-}
-
-void AsyVkRender::beginTransparentFrameRender(int imageIndex)
-{
-  auto renderPassInfo = vk::RenderPassBeginInfo(
-    *transparentRenderPass,
-    *depthResolveFramebuffers[imageIndex],
-    vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
-    0,
-    nullptr
-  );
-
-  currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-}
-
-void AsyVkRender::beginBlendFrameRender(int imageIndex)
-{
-  auto clear = vk::ClearValue(Background);
-
-  auto renderPassInfo = vk::RenderPassBeginInfo(
-    *blendRenderPass,
-    *blendFramebuffers[imageIndex],
-    vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
-    1,
-    &clear
   );
 
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
@@ -2826,10 +2712,9 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
       result = device->getEventStatus(*object.sumFinishedEvent);
     } while(result != vk::Result::eEventSet);
 
-    const auto feedbackMap=static_cast<std::uint32_t*>(device->mapMemory(*feedbackBufferMemory, 0, feedbackBufferSize, vk::MemoryMapFlags()));
+    static const auto feedbackMap=static_cast<std::uint32_t*>(device->mapMemory(*feedbackBufferMemory, 0, feedbackBufferSize, vk::MemoryMapFlags()));
     const auto maxDepth=feedbackMap[0];
     fragments=feedbackMap[1];
-    device->unmapMemory(*feedbackBufferMemory);
 
     if (maxDepth>maxSize) {
       resizeBlendShader(maxDepth);
@@ -2841,6 +2726,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
     maxFragments=11*fragments/10;
     device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max());
     updateSceneDependentBuffers();
+    std::cout << "RESIZE" << std::endl;
   }
 }
 
@@ -2933,15 +2819,11 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
 
 void AsyVkRender::blendFrame(int imageIndex)
 {
-  beginBlendFrameRender(imageIndex);
-
   auto push = buildPushConstants();
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *blendPipeline);
   currentCommandBuffer.pushConstants(*blendPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *blendPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
   currentCommandBuffer.draw(3, 1, 0, 0);
-
-  endFrameRender();
 }
 
 void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
@@ -2974,29 +2856,34 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   }
 
   beginFrameCommands(getFrameCommandBuffer());
-  beginOpaqueFrameRender(imageIndex);
+  beginGraphicsFrameRender(imageIndex);
   drawPoints(object);
   drawLines(object);
   drawMaterials(object);
   drawColors(object);
   drawTriangles(object);
-  endFrameRender();
+
+  currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   if (transparent) {
     
-    beginTransparentFrameRender(imageIndex);
     drawTransparent(object);
-    endFrameRender();
   
+    currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
+
     blendFrame(imageIndex);
 
-    copied=true;
+    // copied=true;
 
-    if (interlock) {
-      resizeFragmentBuffer(object);
-    }
+    // if (interlock) {
+    //   resizeFragmentBuffer(object);
+    // }
+  }
+  else {
+    currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
   }
 
+  endFrameRender();
   endFrameCommands();
 
   Opaque=0;
