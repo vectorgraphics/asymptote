@@ -1910,7 +1910,8 @@ void AsyVkRender::createCountRenderPass()
     nullptr,
     0,
     nullptr,
-    &depthAttachmentRef,
+    nullptr,
+    //&depthAttachmentRef,
     nullptr,
     0,
     nullptr,
@@ -2076,7 +2077,7 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::PipelineStageFlagBits::eColorAttachmentOutput,
     vk::PipelineStageFlagBits::eColorAttachmentOutput,
     vk::AccessFlagBits::eNone,
-    vk::AccessFlagBits::eColorAttachmentWrite
+    vk::AccessFlagBits::eNone
   );
   dependencies[1] = vk::SubpassDependency2(
     0,
@@ -2726,7 +2727,6 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
     maxFragments=11*fragments/10;
     device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max());
     updateSceneDependentBuffers();
-    std::cout << "RESIZE" << std::endl;
   }
 }
 
