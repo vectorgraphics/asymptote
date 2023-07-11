@@ -2733,7 +2733,8 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
 {
   if (GPUindexing && !GPUcompress) {
-    zeroBuffer(*countBuffer, countBufferSize);
+
+    currentCommandBuffer.fillBuffer(*countBuffer, 0, countBufferSize, 0);
   }
 
   beginCountFrameRender(imageIndex);
