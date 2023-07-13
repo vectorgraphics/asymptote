@@ -2,6 +2,7 @@
 #define MATERIAL
 #define COLOR
 #define NORMAL
+#define TRANSPARENT
 #define GENERAL
 
 layout(binding = 0) uniform UniformBufferObject {

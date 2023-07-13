@@ -580,6 +580,7 @@ private:
     PIPELINE_COUNT,
     PIPELINE_INDEXING,
     PIPELINE_INDEXING_SSBO,
+    PIPELINE_INDEXING_SSBO_INTERLOCK,
     PIPELINE_MAX
   };
   std::string const shaderExtensions[PIPELINE_MAX] =
@@ -587,7 +588,8 @@ private:
     "Opaque",
     "Count",
     "Indexing",
-    "IndexingSSBO"
+    "IndexingSSBO",
+    "IndexingSSBOInterlock"
   };
 
   std::array<vk::UniquePipeline, PIPELINE_MAX> materialPipelines;

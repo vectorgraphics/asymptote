@@ -2,6 +2,7 @@
 #define MATERIAL
 #define COLOR
 #define NORMAL
+#define TRANSPARENT
 #define GENERAL
 
 struct Material

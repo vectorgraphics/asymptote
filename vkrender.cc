@@ -2,36 +2,6 @@
 #include "picture.h"
 #include "drawimage.h"
 
-/*
-look into subpasses again https://vulkan-tutorial.com/Drawing_a_triangle/Graphics_pipeline_basics/Render_passes
-
-TODO: replace everything with ARR_VIEW
-
-keep validation as a define because the user might not have the vulkan SDK installed
- - Could still make it a runtime option
-
-TODO: make naming like CI/Info consistent
-TODO: make struct initialization consistent
-
-How to handle image size / zoom when the window is resized?
-
-"Note that we don't recreate the renderpass here for simplicity. In theory it can be possible for the swap chain image format to change during an applications' lifetime, e.g. when moving a window from an standard range to an high dynamic range monitor. This may require the application to recreate the renderpass to make sure the change between dynamic ranges is properly reflected."
-
-What is the variable 'outlinemode' for?
-
-What about 'home' function?
-
-do this (https://stackoverflow.com/questions/62182124/most-generally-correct-way-of-updating-a-vertex-buffer-in-vulkan) to skip waitForIdle on vertex buffer update?
-
-Tasks for today:
-- remove glrender
-- add other vulkan pipelines
-- add no display mode
-- finish up most Vulkan stuff
-
-TODO: put consts everywhere?
-*/
-
 void exitHandler(int);
 
 namespace camp
@@ -55,7 +25,7 @@ std::vector<const char*> deviceExtensions = {
 
 std::vector<const char*> validationLayers = {
 #ifdef VALIDATION
-        "VK_LAYER_KHRONOS_validation",
+  "VK_LAYER_KHRONOS_validation",
 #endif
 };
 
@@ -2530,6 +2500,11 @@ vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline,
     
     if (ssbo) {
 
+      if (interlock) {
+
+        return pipelines[PIPELINE_INDEXING_SSBO_INTERLOCK];
+      }
+
       return pipelines[PIPELINE_INDEXING_SSBO];
     }
 
@@ -2816,6 +2791,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
     maxFragments=11*fragments/10;
     device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max());
     updateSceneDependentBuffers();
+    std::cout << "Frag" << maxFragments << std::endl;
   }
 }
 
@@ -2934,7 +2910,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
     renderQueue.submit(1, &info, *object.inComputeFence);
 
-    if (!interlock) {
+    if (!interlock || true) {
       resizeFragmentBuffer(object);
     }
   }
