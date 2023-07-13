@@ -1,3 +1,6 @@
+#version 450
+#define GPUINDEXING
+#define HAVE_SSBO
 
 #define GPUINDEXING
 #define ARRAYSIZE 128

@@ -1,3 +1,5 @@
+#version 450
+#define GPUINDEXING
 
 #define GPUINDEXING
 #define ARRAYSIZE 128

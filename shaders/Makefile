@@ -1,39 +1,37 @@
 shaders: material color point triangle transparent blend partials
 
 material:
-	python3 genShaders.py material MATERIAL NORMAL HAVE_SSBO GPUINDEXING
-
-	glslangValidator -V material.vert.glsl -o material.vert.spv -S vert
-	glslangValidator -V material.frag.glsl -o material.frag.spv -S frag
+	python3 genShaders.py base materialOpaque MATERIAL NORMAL OPAQUE
+	python3 genShaders.py base materialCount MATERIAL NORMAL
+	python3 genShaders.py base materialIndexing MATERIAL NORMAL GPUINDEXING
+	python3 genShaders.py base materialIndexingSSBO MATERIAL NORMAL GPUINDEXING HAVE_SSBO
 
 color:
-	python3 genShaders.py color MATERIAL COLOR NORMAL HAVE_SSBO GPUINDEXING
-
-	glslangValidator -V color.vert.glsl -o color.vert.spv -S vert
-	glslangValidator -V color.frag.glsl -o color.frag.spv -S frag
+	python3 genShaders.py base colorOpaque MATERIAL COLOR NORMAL OPAQUE
+	python3 genShaders.py base colorCount MATERIAL COLOR NORMAL
+	python3 genShaders.py base colorIndexing MATERIAL COLOR NORMAL GPUINDEXING
+	python3 genShaders.py base colorIndexingSSBO MATERIAL NORMAL GPUINDEXING HAVE_SSBO
 
 triangle:
-	python3 genShaders.py triangle MATERIAL COLOR NORMAL GENERAL HAVE_SSBO GPUINDEXING
-
-	glslangValidator -V triangle.vert.glsl -o triangle.vert.spv -S vert
-	glslangValidator -V triangle.frag.glsl -o triangle.frag.spv -S frag
+	python3 genShaders.py base triangleOpaque MATERIAL COLOR NORMAL GENERAL OPAQUE
+	python3 genShaders.py base triangleCount MATERIAL COLOR NORMAL GENERAL
+	python3 genShaders.py base triangleIndexing MATERIAL COLOR NORMAL GENERAL GPUINDEXING
+	python3 genShaders.py base triangleIndexingSSBO MATERIAL COLOR NORMAL GENERAL GPUINDEXING HAVE_SSBO
 
 point:
-	python3 genShaders.py point MATERIAL NOLIGHTS WIDTH HAVE_SSBO GPUINDEXING
-
-	glslangValidator -V point.vert.glsl -o point.vert.spv -S vert
-	glslangValidator -V point.frag.glsl -o point.frag.spv -S frag
+	python3 genShaders.py base pointOpaque MATERIAL NOLIGHTS WIDTH OPAQUE
+	python3 genShaders.py base pointCount MATERIAL NOLIGHTS WIDTH
+	python3 genShaders.py base pointIndexing MATERIAL NOLIGHTS WIDTH GPUINDEXING
+	python3 genShaders.py base pointIndexingSSBO MATERIAL NOLIGHTS WIDTH GPUINDEXING HAVE_SSBO
 
 transparent:
-	python3 genShaders.py transparent MATERIAL COLOR NORMAL GENERAL TRANSPARENT HAVE_SSBO GPUINDEXING
-
-	glslangValidator -V transparent.vert.glsl -o transparent.vert.spv -S vert
-	glslangValidator -V transparent.frag.glsl -o transparent.frag.spv -S frag
+	python3 genShaders.py base transparentCount MATERIAL COLOR NORMAL GENERAL
+	python3 genShaders.py base transparentIndexing MATERIAL COLOR NORMAL GENERAL TRANSPARENT GPUINDEXING
+	python3 genShaders.py base transparentIndexingSSBO MATERIAL COLOR NORMAL GENERAL TRANSPARENT GPUINDEXING HAVE_SSBO
 
 blend:
-
-	glslangValidator -V blend.vert.glsl -o blend.vert.spv -S vert
-	glslangValidator -V blend.frag.glsl -o blend.frag.spv -S frag
+	python3 genShaders.py blend blendIndexing GPUINDEXING
+	python3 genShaders.py blend blendIndexingSSBO GPUINDEXING HAVE_SSBO
 
 partials:
 

@@ -496,11 +496,25 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   }
 #endif
 
+#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
+  GPUindexing=settings::getSetting<bool>("GPUindexing");
+  GPUcompress=settings::getSetting<bool>("GPUcompress");
+#else
+  GPUindexing=false;
+  GPUcompress=false;
+#endif
+
   if(GPUindexing) {
     localSize=settings::getSetting<Int>("GPUlocalSize");
     blockSize=settings::getSetting<Int>("GPUblockSize");
     groupSize=localSize*blockSize;
   }
+
+#ifdef HAVE_LIBOSMESA
+  interlock=false;
+#else
+  interlock=settings::getSetting<bool>("GPUinterlock");
+#endif
 
   if (vkinit) {
     return;
@@ -603,6 +617,7 @@ void AsyVkRender::initVulkan()
 
   createCountRenderPass();
   createGraphicsRenderPass();
+  createGraphicsPipelineLayout();
   createGraphicsPipelines();
   createComputePipelines();
 
@@ -858,6 +873,14 @@ void AsyVkRender::createLogicalDevice()
 
   if (options.display) {
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+  }
+
+  if (interlock) {
+
+    if (supportedDeviceExtensions.find("VK_EXT_fragment_shader_interlock") == supportedDeviceExtensions.end())
+      interlock=false;
+    else
+      extensions.emplace_back("VK_EXT_fragment_shader_interlock");
   }
 
   queueFamilyIndices = findQueueFamilies(physicalDevice, options.display ? &*surface : nullptr);
@@ -2102,20 +2125,49 @@ void AsyVkRender::createGraphicsRenderPass()
   graphicsRenderPass = device->createRenderPass2Unique(renderPassCI);
 }
 
+void AsyVkRender::createGraphicsPipelineLayout()
+{
+  auto flagsPushConstant = vk::PushConstantRange(
+    vk::ShaderStageFlagBits::eFragment,
+    0,
+    sizeof(PushConstants)
+  );
+
+  auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(
+    vk::PipelineLayoutCreateFlags(),
+    1,
+    &*materialDescriptorSetLayout,
+    1,
+    &flagsPushConstant
+  );
+
+  graphicsPipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
+}
+
 template<typename V>
-void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
-                                         vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
-                                         vk::PolygonMode fillMode, std::string const & shaderFile,
-                                         vk::RenderPass renderPass, int graphicsSubpass, bool enableDepthWrite,
+void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
+                                         vk::PolygonMode fillMode, std::string const & shader,
+                                         int graphicsSubpass, bool enableDepthWrite,
                                          bool transparent, bool disableMultisample)
 {
-  auto vertShaderCode = readFile("shaders/" + shaderFile + ".vert.spv");
-  auto fragShaderCode = readFile("shaders/" + shaderFile + ".frag.spv");
-  auto countShaderCode = readFile("shaders/count.frag.spv");
+  std::string vertShaderName = "shaders/" + shader + shaderExtensions[type] + ".vert.spv";
+  std::string fragShaderName = "shaders/";
+
+  if (type != PIPELINE_COUNT) {
+
+    fragShaderName += shader + shaderExtensions[type];
+  } else {
+
+    fragShaderName += "count";
+  }
+
+  fragShaderName += ".frag.spv";
+
+  auto vertShaderCode = readFile(vertShaderName);
+  auto fragShaderCode = readFile(fragShaderName);
 
   vk::UniqueShaderModule vertShaderModule = createShaderModule(vertShaderCode);
   vk::UniqueShaderModule fragShaderModule = createShaderModule(fragShaderCode);
-  vk::UniqueShaderModule countShaderModule = createShaderModule(countShaderCode);
 
   vk::SpecializationMapEntry specializationMapEntries[] = {};
   uint32_t specializationData[] = {};
@@ -2135,15 +2187,8 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
     "main",
     &specializationInfo
   );
-  auto countShaderStageCI = vk::PipelineShaderStageCreateInfo(
-    vk::PipelineShaderStageCreateFlags(),
-    vk::ShaderStageFlagBits::eFragment,
-    *countShaderModule,
-    "main",
-    &specializationInfo
-  );
-  vk::PipelineShaderStageCreateInfo defaultStages[] = {vertShaderStageCI, fragShaderStageCI};
-  vk::PipelineShaderStageCreateInfo countStages[] = {vertShaderStageCI, countShaderStageCI};
+
+  vk::PipelineShaderStageCreateInfo stages[] = {vertShaderStageCI, fragShaderStageCI};
 
   auto bindingDescription = V::getBindingDescription();
   auto attributeDescriptions = V::getAttributeDescriptions();
@@ -2160,9 +2205,27 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
     VK_FALSE
   );
 
-  auto viewport = vk::Viewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height), 0.0f, 1.0f);
-  auto scissor = vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent);
-  auto viewportStateCI = vk::PipelineViewportStateCreateInfo(vk::PipelineViewportStateCreateFlags(), 1, &viewport, 1, &scissor);
+  auto viewport = vk::Viewport(
+    0.0f,
+    0.0f,
+    static_cast<float>(swapChainExtent.width),
+    static_cast<float>(swapChainExtent.height),
+    0.0f,
+    1.0f
+  );
+
+  auto scissor = vk::Rect2D(
+    vk::Offset2D(0, 0),
+    swapChainExtent
+  );
+
+  auto viewportStateCI = vk::PipelineViewportStateCreateInfo(
+    vk::PipelineViewportStateCreateFlags(), 
+    1,
+    &viewport,
+    1,
+    &scissor
+  );
 
   auto rasterizerCI = vk::PipelineRasterizationStateCreateInfo(
     vk::PipelineRasterizationStateCreateFlags(),
@@ -2188,9 +2251,25 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
     VK_FALSE
   );
 
-  auto colorBlendAttachment = vk::PipelineColorBlendAttachmentState(VK_FALSE, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+  auto colorBlendAttachment = vk::PipelineColorBlendAttachmentState(
+    VK_FALSE,
+    vk::BlendFactor::eZero,
+    vk::BlendFactor::eZero,
+    vk::BlendOp::eAdd,
+    vk::BlendFactor::eZero,
+    vk::BlendFactor::eZero,
+    vk::BlendOp::eAdd,
+    vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
+  );
 
-  auto colorBlendCI = vk::PipelineColorBlendStateCreateInfo(vk::PipelineColorBlendStateCreateFlags(), VK_FALSE, vk::LogicOp::eCopy, 1, &colorBlendAttachment, {0.0f, 0.0f, 0.0f, 0.0f});
+  auto colorBlendCI = vk::PipelineColorBlendStateCreateInfo(
+    vk::PipelineColorBlendStateCreateFlags(),
+    VK_FALSE,
+    vk::LogicOp::eCopy,
+    1,
+    &colorBlendAttachment,
+    {0.0f, 0.0f, 0.0f, 0.0f}
+  );
 
   auto depthStencilCI = vk::PipelineDepthStencilStateCreateInfo();
 
@@ -2201,19 +2280,6 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
   depthStencilCI.minDepthBounds = 0.f;
   depthStencilCI.maxDepthBounds = 1.f;
   depthStencilCI.stencilTestEnable = VK_FALSE;
-
-  auto flagsPushConstant = vk::PushConstantRange(
-    vk::ShaderStageFlagBits::eFragment,
-    0,
-    sizeof(PushConstants)
-  );
-
-  auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(vk::PipelineLayoutCreateFlags(), 1, &*materialDescriptorSetLayout, 0, nullptr);
-
-  pipelineLayoutCI.pPushConstantRanges = &flagsPushConstant;
-  pipelineLayoutCI.pushConstantRangeCount = 1;
-
-  layout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
   auto const makePipeline = [=](vk::UniquePipeline & pipeline,
                                 vk::PipelineShaderStageCreateInfo * stages,
@@ -2233,7 +2299,7 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
       &depthStencilCI,
       &colorBlendCI,
       nullptr,
-      *materialPipelineLayout,
+      *graphicsPipelineLayout,
       renderPass,
       subpass,
       nullptr
@@ -2246,54 +2312,71 @@ void AsyVkRender::createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::
       pipeline = std::move(result.value);
   };
 
-  makePipeline(graphicsPipeline, defaultStages, renderPass, graphicsSubpass);
-  makePipeline(countPipeline, countStages, *countRenderPass, transparent ? 1 : 0);
+  makePipeline(graphicsPipeline, stages, type == PIPELINE_COUNT ? *countRenderPass : *graphicsRenderPass, graphicsSubpass);
 }
 
 void AsyVkRender::createGraphicsPipelines()
 {
-  createGraphicsPipeline<MaterialVertex>
-                         (materialPipelineLayout, materialPipeline,
-                         materialCountPipeline,
-                         vk::PrimitiveTopology::eTriangleList,
-                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                         "material", *graphicsRenderPass, 0);
-  createGraphicsPipeline<ColorVertex>
-                         (colorPipelineLayout, colorPipeline,
-                         colorCountPipeline,
-                         vk::PrimitiveTopology::eTriangleList,
-                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                         "color", *graphicsRenderPass, 0);
-  createGraphicsPipeline<ColorVertex>
-                         (trianglePipelineLayout, trianglePipeline,
-                         triangleCountPipeline,
-                         vk::PrimitiveTopology::eTriangleList,
-                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                         "triangle", *graphicsRenderPass, 0);
-  createGraphicsPipeline<MaterialVertex>
-                         (linePipelineLayout, linePipeline,
-                         lineCountPipeline,
-                         vk::PrimitiveTopology::eLineList,
-                         vk::PolygonMode::eFill,
-                         "material", *graphicsRenderPass, 0);
-  createGraphicsPipeline<PointVertex>
-                         (pointPipelineLayout, pointPipeline,
-                         pointCountPipeline,
-                         vk::PrimitiveTopology::ePointList,
-                         vk::PolygonMode::ePoint,
-                         "point", *graphicsRenderPass, 0);
-  createGraphicsPipeline<ColorVertex> // todo make dynamic state for depth write enable
-                         (transparentPipelineLayout, transparentPipeline,
-                         transparentCountPipeline,
-                         vk::PrimitiveTopology::eTriangleList,
-                         (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                         "transparent", *graphicsRenderPass, 1, false, true);
-  createGraphicsPipeline<ColorVertex> // todo make dynamic state for depth write enable
-                         (blendPipelineLayout, blendPipeline,
-                         blendCountPipeline, // todo remove blend count pipeline
-                         vk::PrimitiveTopology::eTriangleList,
-                         vk::PolygonMode::eFill,
-                         "blend", *graphicsRenderPass, 2, false, false, true);
+  for (auto u = 0u; u < PIPELINE_MAX; u++)
+    createGraphicsPipeline<MaterialVertex>
+                          (PipelineType(u), materialPipelines[u], vk::PrimitiveTopology::eTriangleList,
+                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                          "material",
+                          0);
+
+  for (auto u = 0u; u < PIPELINE_MAX; u++)
+    createGraphicsPipeline<ColorVertex>
+                          (PipelineType(u), colorPipelines[u], vk::PrimitiveTopology::eTriangleList,
+                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                          "color",
+                          0);
+
+  for (auto u = 0u; u < PIPELINE_MAX; u++)
+    createGraphicsPipeline<ColorVertex>
+                          (PipelineType(u), colorPipelines[u], vk::PrimitiveTopology::eTriangleList,
+                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                          "triangle",
+                          0);
+
+  for (auto u = 0u; u < PIPELINE_MAX; u++)
+    createGraphicsPipeline<MaterialVertex>
+                          (PipelineType(u), linePipelines[u], vk::PrimitiveTopology::eLineList,
+                          vk::PolygonMode::eFill,
+                          "material",
+                          0);
+
+  for (auto u = 0u; u < PIPELINE_MAX; u++)
+    createGraphicsPipeline<PointVertex>
+                          (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::eTriangleList,
+                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                          "point",
+                          0);
+
+  for (unsigned u = PIPELINE_COUNT; u < PIPELINE_MAX; u++)
+    createGraphicsPipeline<ColorVertex>
+                          (PipelineType(u), transparentPipelines[u], vk::PrimitiveTopology::eTriangleList,
+                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                          "transparent",
+                          1,
+                          false,
+                          true);
+
+  for (unsigned u = PIPELINE_INDEXING; u < PIPELINE_MAX; u++)
+    createGraphicsPipeline<ColorVertex>
+                          (PipelineType(u), blendPipelines[u], vk::PrimitiveTopology::eTriangleList,
+                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
+                          "blend",
+                          2,
+                          false,
+                          false,
+                          true);
+
+  // createGraphicsPipeline<ColorVertex> // todo make dynamic state for depth write enable
+  //                        (blendPipelineLayout, blendPipeline,
+  //                        blendCountPipeline, // todo remove blend count pipeline
+  //                        vk::PrimitiveTopology::eTriangleList,
+  //                        vk::PolygonMode::eFill,
+  //                        "blend", *graphicsRenderPass, 2, false, false, true);
 }
 
 void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
@@ -2433,6 +2516,29 @@ vk::CommandBuffer & AsyVkRender::getFrameComputeCommandBuffer()
   return *frameObjects[currentFrame].computeCommandBuffer;
 }
 
+vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines, bool count)
+{
+  if (Opaque) {
+    return pipelines[PIPELINE_OPAQUE];
+  }
+
+  if (count) {
+    return pipelines[PIPELINE_COUNT];
+  }
+
+  if (GPUindexing) {
+    
+    if (ssbo) {
+
+      return pipelines[PIPELINE_INDEXING_SSBO];
+    }
+
+    return pipelines[PIPELINE_INDEXING];
+  }
+
+  throw std::runtime_error("No valid pipeline.");
+}
+
 void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
 {
   currentCommandBuffer = cmd;
@@ -2495,7 +2601,6 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
                                       DeviceBuffer & indexBuffer,
                                       VertexBuffer * data,
                                       vk::UniquePipeline & pipeline,
-                                      vk::UniquePipelineLayout & pipelineLayout,
                                       bool incrementRenderCount) {
   
   if (data->indices.empty())
@@ -2533,8 +2638,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
   currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   currentCommandBuffer.bindIndexBuffer(*indexBuffer.buffer, 0, vk::IndexType::eUint32);
-  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *pipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
-  currentCommandBuffer.pushConstants(*pipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
+  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   currentCommandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
 
   if(incrementRenderCount)
@@ -2562,8 +2666,7 @@ void AsyVkRender::drawPoints(FrameObject & object)
   recordCommandBuffer(object.pointVertexBuffer,
                       object.pointIndexBuffer,
                       &pointData,
-                      pointPipeline,
-                      pointPipelineLayout);
+                      getPipelineType(pointPipelines));
   pointData.clear();
 }
 
@@ -2572,8 +2675,7 @@ void AsyVkRender::drawLines(FrameObject & object)
   recordCommandBuffer(object.lineVertexBuffer,
                       object.lineIndexBuffer,
                       &lineData,
-                      linePipeline,
-                      linePipelineLayout);
+                      getPipelineType(linePipelines));
   lineData.clear();
 }
 
@@ -2582,8 +2684,7 @@ void AsyVkRender::drawMaterials(FrameObject & object)
   recordCommandBuffer(object.materialVertexBuffer,
                       object.materialIndexBuffer,
                       &materialData,
-                      materialPipeline,
-                      materialPipelineLayout);
+                      getPipelineType(materialPipelines));
   materialData.clear();
 }
 
@@ -2592,8 +2693,7 @@ void AsyVkRender::drawColors(FrameObject & object)
   recordCommandBuffer(object.colorVertexBuffer,
                       object.colorIndexBuffer,
                       &colorData,
-                      colorPipeline,
-                      colorPipelineLayout);
+                      getPipelineType(colorPipelines));
   colorData.clear();
 }
 
@@ -2602,8 +2702,7 @@ void AsyVkRender::drawTriangles(FrameObject & object)
   recordCommandBuffer(object.triangleVertexBuffer,
                       object.triangleIndexBuffer,
                       &triangleData,
-                      trianglePipeline,
-                      trianglePipelineLayout);
+                      getPipelineType(trianglePipelines));
   triangleData.clear();
 }
 
@@ -2613,8 +2712,7 @@ void AsyVkRender::drawTransparent(FrameObject & object)
   recordCommandBuffer(object.transparentVertexBuffer,
                       object.transparentIndexBuffer,
                       &transparentData,
-                      transparentPipeline,
-                      transparentPipelineLayout);
+                      getPipelineType(transparentPipelines));
 
   transparentData.clear();
 }
@@ -2626,18 +2724,12 @@ int ceilquotient(int x, int y)
 
 void AsyVkRender::partialSums(bool readSize)
 {
-  //std::cout << "=====" << std::endl;
-  //std::cout << "localSize " << localSize << std::endl;
-  //std::cout << "blockSize " << blockSize << std::endl;
-  //std::cout << "groupSize " << groupSize << std::endl;
-  //std::cout << "g  " << g << std::endl;
-  //std::cout << "calcBlockSize: " << ceilquotient(g,localSize) << std::endl;
-  //std::cout << "elements " << elements << std::endl;
-
   auto const writeBarrier = vk::MemoryBarrier( // todo sum2 fast
     vk::AccessFlagBits::eShaderWrite,
     vk::AccessFlagBits::eShaderRead
   );
+
+  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum1PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
 
   // run sum1
   currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader, 
@@ -2649,7 +2741,6 @@ void AsyVkRender::partialSums(bool readSize)
                                        nullptr,
                                        0,
                                        nullptr);
-  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum1PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum1Pipeline);
   currentCommandBuffer.dispatch(g, 1, 1);
 
@@ -2664,7 +2755,6 @@ void AsyVkRender::partialSums(bool readSize)
                                        nullptr,
                                        0,
                                        nullptr);
-  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum2PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum2Pipeline);
   currentCommandBuffer.pushConstants(*sum2PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &BlockSize);
   currentCommandBuffer.dispatch(1, 1, 1);
@@ -2680,7 +2770,6 @@ void AsyVkRender::partialSums(bool readSize)
                                        nullptr,
                                        0,
                                        nullptr);
-  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum3PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum3Pipeline);
   currentCommandBuffer.pushConstants(*sum3PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &Final);
   currentCommandBuffer.dispatch(g, 1, 1);
@@ -2738,38 +2827,34 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
   }
 
   beginCountFrameRender(imageIndex);
+  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
 
   if (!interlock) {
 
     recordCommandBuffer(object.pointVertexBuffer,
                         object.pointIndexBuffer,
                         &pointData,
-                        pointCountPipeline,
-                        pointPipelineLayout,
+                        getPipelineType(pointPipelines, true),
                         false);
     recordCommandBuffer(object.lineVertexBuffer,
                         object.lineIndexBuffer,
                         &lineData,
-                        lineCountPipeline,
-                        linePipelineLayout,
+                        getPipelineType(linePipelines, true),
                         false);
     recordCommandBuffer(object.materialVertexBuffer,
                         object.materialIndexBuffer,
                         &materialData,
-                        materialCountPipeline,
-                        materialPipelineLayout,
+                        getPipelineType(materialPipelines, true),
                         false);
     recordCommandBuffer(object.colorVertexBuffer,
                         object.colorIndexBuffer,
                         &colorData,
-                        colorCountPipeline,
-                        colorPipelineLayout,
+                        getPipelineType(colorPipelines, true),
                         false);
     recordCommandBuffer(object.triangleVertexBuffer,
                         object.triangleIndexBuffer,
                         &triangleData,
-                        triangleCountPipeline,
-                        trianglePipelineLayout,
+                        getPipelineType(trianglePipelines, true),
                         false);
   }
 
@@ -2779,8 +2864,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
   recordCommandBuffer(object.transparentVertexBuffer,
                       object.transparentIndexBuffer,
                       &transparentData,
-                      transparentCountPipeline,
-                      transparentPipelineLayout,
+                      getPipelineType(transparentPipelines, true),
                       false);
   endFrameRender();
 
@@ -2821,9 +2905,8 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
 void AsyVkRender::blendFrame(int imageIndex)
 {
   auto push = buildPushConstants();
-  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *blendPipeline);
-  currentCommandBuffer.pushConstants(*blendPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
-  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *blendPipelineLayout, 0, 1, &*frameObjects[currentFrame].descriptorSet, 0, nullptr);
+  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *blendPipelines[PIPELINE_INDEXING]);
+  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
   currentCommandBuffer.draw(3, 1, 0, 0);
 }
 
@@ -2858,6 +2941,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
   beginFrameCommands(getFrameCommandBuffer());
   beginGraphicsFrameRender(imageIndex);
+  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
   drawPoints(object);
   drawLines(object);
   drawMaterials(object);
@@ -2945,55 +3029,6 @@ void AsyVkRender::drawFrame()
 
   if (renderQueue.submit(1, &submitInfo, *frameObject.inFlightFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
-
-  {
-    // {
-    //    renderQueue.waitIdle();
-    //    int * data = (int*)(new char[offsetBufferSize]);
-
-    //    copyFromBuffer(*offsetBuffer, data, offsetBufferSize);
-
-    //     std::cout << "g: " << g << std::endl;
-    //     std::cout << "MAXSIZE: " << data[0] << std::endl;
-    //     std::cout << "PIXEL1: " << data[1] << std::endl;
-    //     std::cout << "PIXEL2: " << data[2] << std::endl;
-    //      std::cout << "PIXEL3: " << data[3] << std::endl;
-    //    //  std::cout << "PIXEL4: " << data[4] << std::endl;
-    //    //  std::cout << "PIXEL4: " << data[5] << std::endl;
-    //    //  std::cout << "PIXEL4: " << data[6] << std::endl;
-    //    //  std::cout << "PIXEL4: " << data[7] << std::endl;
-    //    //  std::cout << "PIXEL4: " << data[8] << std::endl;
-    //    //  std::cout << "PIXEL4: " << data[9] << std::endl;
-    //    //  std::cout << "PIXEL4: " << data[10] << std::endl;
-    //    //  std::cout << "PIXEL4: " << data[11] << std::endl;
-    //    //std::cout << "PIXEL-1 " << data[elements-1] << std::endl;
-    //    //std::cout << "PIXEL-2 " << data[elements-2] << std::endl;
-    //    //std::cout << "PIXEL-3 " << data[elements-3] << std::endl;
-    //    //std::cout << "ARRSIZE: " << swapChainExtent.width * swapChainExtent.height << std::endl;
-    //    //std::cout << "ARRSIZE+1: " << (swapChainExtent.width+1) * (swapChainExtent.height+1) << std::endl;
-    //    std::cout << "W H " << swapChainExtent.width << " " << swapChainExtent.height << std::endl;
-    //    //std::cout << "g " << g << std::endl;
-    //    //std::cout << "BLOCKSIZE " << blockSize << std::endl;
-    //    //std::cout << "groupSize " << groupSize << std::endl;
-
-    //    int maxidx = -1;
-
-    //    for (int i = 1; i < elements; i++)
-    //    {
-    //      if (data[i] != 0)
-    //        maxidx = std::max(maxidx, i);
-
-    //      if (data[i]<data[i-1])
-    //        std::cout << "BREAK: " << i << " " << data[i] << std::endl;
-    //    }
-
-    //    std::cout << "maxidx: " << maxidx << std::endl;
-    //    std::cout << "elements: " << elements << std::endl;
-    //    std::cout << "pixels " << pixels << std::endl;
-
-    //    delete[] data;
-    // }
-  }
 
   auto presentInfo = vk::PresentInfoKHR(ARR_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
 

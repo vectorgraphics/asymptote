@@ -2,10 +2,11 @@
 
 import sys
 import os
+import subprocess
 
-def writeShader(name, type, definitions):
+def writeShader(base, name, type, definitions):
     
-    inFile = open("base." + type + ".glsl", "r")
+    inFile = open(base + "." + type + ".glsl", "r")
     outFileName = name + "." + type + ".glsl"
 
     if (os.path.exists(outFileName)):
@@ -17,9 +18,13 @@ def writeShader(name, type, definitions):
     inFile.close()
     outFile.close()
 
-name = sys.argv[1]
-options =sys.argv[2:]
+base = sys.argv[1]
+name = sys.argv[2]
+options =sys.argv[3:]
 definitions = ''.join(["#define " + option + "\n" for option in options])
 
-writeShader(name, "frag", definitions)
-writeShader(name, "vert", definitions)
+writeShader(base, name, "vert", definitions)
+writeShader(base, name, "frag", definitions)
+
+subprocess.run(['glslangValidator', '-V', f'{name}.vert.glsl', '-o', f'{name}.vert.spv', '-S', 'vert'])
+subprocess.run(['glslangValidator', '-V', f'{name}.frag.glsl', '-o', f'{name}.frag.spv', '-S', 'frag'])

@@ -502,7 +502,7 @@ private:
   bool redraw=true; // whether a new frame needs to be rendered
   bool ssbo=true;
   bool interlock=false;
-  bool GPUindexing=true;
+  bool GPUindexing=false;
   bool GPUcompress=false;
   bool initSSBO=true;
 
@@ -572,33 +572,31 @@ private:
   vk::UniqueRenderPass graphicsRenderPass;
   vk::UniqueDescriptorSetLayout materialDescriptorSetLayout;
 
-  vk::UniquePipelineLayout materialPipelineLayout;
-  vk::UniquePipeline materialPipeline;
-  vk::UniquePipeline materialCountPipeline;
+  vk::UniquePipelineLayout graphicsPipelineLayout;
 
-  vk::UniquePipelineLayout colorPipelineLayout;
-  vk::UniquePipeline colorPipeline;
-  vk::UniquePipeline colorCountPipeline;
+  enum PipelineType
+  {
+    PIPELINE_OPAQUE,
+    PIPELINE_COUNT,
+    PIPELINE_INDEXING,
+    PIPELINE_INDEXING_SSBO,
+    PIPELINE_MAX
+  };
+  std::string const shaderExtensions[PIPELINE_MAX] =
+  {
+    "Opaque",
+    "Count",
+    "Indexing",
+    "IndexingSSBO"
+  };
 
-  vk::UniquePipelineLayout transparentPipelineLayout;
-  vk::UniquePipeline transparentPipeline;
-  vk::UniquePipeline transparentCountPipeline;
-
-  vk::UniquePipelineLayout trianglePipelineLayout;
-  vk::UniquePipeline trianglePipeline;
-  vk::UniquePipeline triangleCountPipeline;
-
-  vk::UniquePipelineLayout linePipelineLayout;
-  vk::UniquePipeline linePipeline;
-  vk::UniquePipeline lineCountPipeline;
-
-  vk::UniquePipelineLayout pointPipelineLayout;
-  vk::UniquePipeline pointPipeline;
-  vk::UniquePipeline pointCountPipeline;
-
-  vk::UniquePipelineLayout blendPipelineLayout;
-  vk::UniquePipeline blendPipeline;
-  vk::UniquePipeline blendCountPipeline;
+  std::array<vk::UniquePipeline, PIPELINE_MAX> materialPipelines;
+  std::array<vk::UniquePipeline, PIPELINE_MAX> colorPipelines;
+  std::array<vk::UniquePipeline, PIPELINE_MAX> transparentPipelines;
+  std::array<vk::UniquePipeline, PIPELINE_MAX> trianglePipelines;
+  std::array<vk::UniquePipeline, PIPELINE_MAX> linePipelines;
+  std::array<vk::UniquePipeline, PIPELINE_MAX> pointPipelines;
+  std::array<vk::UniquePipeline, PIPELINE_MAX> blendPipelines;
 
   vk::UniqueDescriptorPool computeDescriptorPool;
   vk::UniqueDescriptorSetLayout computeDescriptorSetLayout;
@@ -772,6 +770,7 @@ private:
   PushConstants buildPushConstants();
   vk::CommandBuffer & getFrameCommandBuffer();
   vk::CommandBuffer & getFrameComputeCommandBuffer();
+  vk::UniquePipeline & getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines, bool count=false);
   void beginFrameCommands(vk::CommandBuffer cmd);
   void beginCountFrameRender(int imageIndex);
   void beginGraphicsFrameRender(int imageIndex);
@@ -780,7 +779,6 @@ private:
                            DeviceBuffer & indexBuffer,
                            VertexBuffer * data,
                            vk::UniquePipeline & pipeline, 
-                           vk::UniquePipelineLayout & pipelineLayout,
                            bool incrementRenderCount=true);
   void endFrameRender();
   void endFrameCommands();
@@ -826,11 +824,11 @@ private:
   void createOpaqueRenderPass();
   void createTransparentRenderPass();
   void createBlendRenderPass();
+  void createGraphicsPipelineLayout();
   template<typename V>
-  void createGraphicsPipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & graphicsPipeline,
-                              vk::UniquePipeline & countPipeline, vk::PrimitiveTopology topology,
-                              vk::PolygonMode fillMode, std::string const & shaderFile,
-                              vk::RenderPass renderPass, int graphicsSubpass, bool enableDepthWrite=true,
+  void createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
+                              vk::PolygonMode fillMode, std::string const & shader,
+                              int graphicsSubpass, bool enableDepthWrite=true,
                               bool transparent=false, bool disableMultisample=false);
   void createGraphicsPipelines();
   void createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,

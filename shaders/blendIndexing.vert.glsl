@@ -1,3 +1,5 @@
+#version 450
+#define GPUINDEXING
 
 void main()
 {
