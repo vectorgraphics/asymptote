@@ -1107,12 +1107,13 @@ void AsyVkRender::createCommandPools()
 
 void AsyVkRender::createCommandBuffers()
 {
-  auto allocInfo = vk::CommandBufferAllocateInfo(*renderCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight * 2));
+  auto allocInfo = vk::CommandBufferAllocateInfo(*renderCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight * 3));
   auto commandBuffers = device->allocateCommandBuffersUnique(allocInfo);
   for (int i = 0; i < options.maxFramesInFlight; i++)
   {
-    frameObjects[i].commandBuffer = std::move(commandBuffers[2 * i]);
-    frameObjects[i].computeCommandBuffer = std::move(commandBuffers[2 * i + 1]);
+    frameObjects[i].commandBuffer = std::move(commandBuffers[3 * i]);
+    frameObjects[i].countCommandBuffer = std::move(commandBuffers[3 * i + 1]);
+    frameObjects[i].computeCommandBuffer = std::move(commandBuffers[3 * i + 2]);
   }
 }
 
@@ -1156,6 +1157,7 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    frameObjects[i].compressionFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
   }
 }
@@ -1422,6 +1424,18 @@ void AsyVkRender::createDescriptorSetLayout()
     1,
     vk::ShaderStageFlagBits::eFragment
   );
+  auto indexBufferBinding = vk::DescriptorSetLayoutBinding(
+    9,
+    vk::DescriptorType::eStorageBuffer,
+    1,
+    vk::ShaderStageFlagBits::eFragment
+  );
+  auto elementBufferBinding = vk::DescriptorSetLayoutBinding(
+    10,
+    vk::DescriptorType::eStorageBuffer,
+    1,
+    vk::ShaderStageFlagBits::eFragment
+  );
 
   std::vector<vk::DescriptorSetLayoutBinding> layoutBindings {
     uboLayoutBinding,
@@ -1432,7 +1446,9 @@ void AsyVkRender::createDescriptorSetLayout()
     fragmentBufferBinding,
     depthBufferBinding,
     opaqueBufferBinding,
-    opaqueDepthBufferBinding
+    opaqueDepthBufferBinding,
+    indexBufferBinding,
+    elementBufferBinding
   };
 
 
@@ -1446,7 +1462,7 @@ void AsyVkRender::createDescriptorSetLayout()
 
 void AsyVkRender::createComputeDescriptorSetLayout()
 {
-  std::vector< vk::DescriptorSetLayoutBinding > layoutBindings
+  std::vector<vk::DescriptorSetLayoutBinding> layoutBindings
   {
     vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
     vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
@@ -1464,7 +1480,7 @@ void AsyVkRender::createComputeDescriptorSetLayout()
 
 void AsyVkRender::createDescriptorPool()
 {
-  std::array<vk::DescriptorPoolSize, 9> poolSizes;
+  std::array<vk::DescriptorPoolSize, 11> poolSizes;
 
   poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
   poolSizes[0].descriptorCount = options.maxFramesInFlight;
@@ -1492,6 +1508,12 @@ void AsyVkRender::createDescriptorPool()
 
   poolSizes[8].type = vk::DescriptorType::eStorageBuffer;
   poolSizes[8].descriptorCount = options.maxFramesInFlight;
+
+  poolSizes[9].type = vk::DescriptorType::eStorageBuffer;
+  poolSizes[9].descriptorCount = options.maxFramesInFlight;
+
+  poolSizes[10].type = vk::DescriptorType::eStorageBuffer;
+  poolSizes[10].descriptorCount = options.maxFramesInFlight;
 
   auto poolCI = vk::DescriptorPoolCreateInfo(
     vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
@@ -1599,7 +1621,19 @@ void AsyVkRender::writeDescriptorSets()
     opaqueDepthBufferInfo.offset = 0;
     opaqueDepthBufferInfo.range = opaqueDepthBufferSize;
 
-    std::array<vk::WriteDescriptorSet, 7> writes;
+    auto indexBufferInfo = vk::DescriptorBufferInfo();
+
+    indexBufferInfo.buffer = *indexBuffer;
+    indexBufferInfo.offset = 0;
+    indexBufferInfo.range = indexBufferSize;
+
+    auto elementBufferInfo = vk::DescriptorBufferInfo();
+
+    elementBufferInfo.buffer = *elementBuffer;
+    elementBufferInfo.offset = 0;
+    elementBufferInfo.range = elementBufferSize;
+
+    std::array<vk::WriteDescriptorSet, 9> writes;
 
     writes[0].dstSet = *frameObjects[i].descriptorSet;
     writes[0].dstBinding = 0;
@@ -1650,7 +1684,21 @@ void AsyVkRender::writeDescriptorSets()
     writes[6].descriptorCount = 1;
     writes[6].pBufferInfo = &opaqueDepthBufferInfo;
 
-    device->updateDescriptorSets(writes.size(), &writes[0], 0, nullptr);
+    writes[7].dstSet = *frameObjects[i].descriptorSet;
+    writes[7].dstBinding = 9;
+    writes[7].dstArrayElement = 0;
+    writes[7].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[7].descriptorCount = 1;
+    writes[7].pBufferInfo = &indexBufferInfo;
+
+    writes[8].dstSet = *frameObjects[i].descriptorSet;
+    writes[8].dstBinding = 10;
+    writes[8].dstArrayElement = 0;
+    writes[8].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[8].descriptorCount = 1;
+    writes[8].pBufferInfo = &elementBufferInfo;
+
+    device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
   }
 
   updateSceneDependentBuffers();
@@ -1777,6 +1825,7 @@ void AsyVkRender::updateSceneDependentBuffers() {
 void AsyVkRender::createBuffers()
 {
   feedbackBufferSize=2*sizeof(std::uint32_t);
+  elementBufferSize=sizeof(std::uint32_t);
 
   createBufferUnique(materialBuffer,
                      materialBufferMemory,
@@ -1795,6 +1844,12 @@ void AsyVkRender::createBuffers()
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
                      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached,
                      feedbackBufferSize);
+
+  createBufferUnique(elementBuffer,
+                     elementBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached,
+                     elementBufferSize);
 
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
 
@@ -1827,6 +1882,7 @@ void AsyVkRender::createDependentBuffers()
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   opaqueBufferSize=pixels*sizeof(glm::vec4);
   opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
+  indexBufferSize=pixels*sizeof(std::uint32_t);
 
   createBufferUnique(countBuffer,
                      countBufferMemory,
@@ -1857,6 +1913,12 @@ void AsyVkRender::createDependentBuffers()
                      vk::BufferUsageFlagBits::eStorageBuffer,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      opaqueBufferSize);
+
+  createBufferUnique(indexBuffer,
+                     indexBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     indexBufferSize);
 }
 
 void AsyVkRender::createCountRenderPass()
@@ -1893,7 +1955,7 @@ void AsyVkRender::createCountRenderPass()
     &depthResolveAttachmentRef
   );
   
-  std::array<vk::SubpassDescription2, 2> subpasses;
+  std::array<vk::SubpassDescription2, 3> subpasses;
 
   subpasses[0] = vk::SubpassDescription2(
     vk::SubpassDescriptionFlags(),
@@ -1926,6 +1988,21 @@ void AsyVkRender::createCountRenderPass()
     nullptr,
     nullptr
   );
+  subpasses[2] = vk::SubpassDescription2(
+    vk::SubpassDescriptionFlags(),
+    vk::PipelineBindPoint::eGraphics,
+    0,
+    0,
+    nullptr,
+    0,
+    nullptr,
+    nullptr,
+    //&depthResolveAttachmentRef,
+    nullptr,
+    0,
+    nullptr,
+    nullptr
+  );
 
   std::array<vk::AttachmentDescription2, 1> attachments
   {
@@ -1933,17 +2010,32 @@ void AsyVkRender::createCountRenderPass()
     //depthResolveAttachment
   };
 
-  auto dependency = vk::SubpassDependency2();
+  std::array<vk::SubpassDependency2, 3> dependencies;
 
-  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-  dependency.dstSubpass = 0;
-  dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
-                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-  dependency.srcAccessMask = vk::AccessFlagBits::eNone;
-  dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput
-                            | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-  dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
-                              | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+  dependencies[0] = vk::SubpassDependency2(
+    VK_SUBPASS_EXTERNAL,
+    0,
+    vk::PipelineStageFlagBits::eColorAttachmentOutput,
+    vk::PipelineStageFlagBits::eFragmentShader,
+    vk::AccessFlagBits::eNone,
+    vk::AccessFlagBits::eNone
+  );
+  dependencies[1] = vk::SubpassDependency2(
+    0,
+    1,
+    vk::PipelineStageFlagBits::eFragmentShader,
+    vk::PipelineStageFlagBits::eFragmentShader,
+    vk::AccessFlagBits::eNone,
+    vk::AccessFlagBits::eNone
+  );
+  dependencies[2] = vk::SubpassDependency2(
+    1,
+    2,
+    vk::PipelineStageFlagBits::eBottomOfPipe,
+    vk::PipelineStageFlagBits::eFragmentShader,
+    vk::AccessFlagBits::eMemoryWrite,
+    vk::AccessFlagBits::eMemoryRead
+  );
 
   auto renderPassCI = vk::RenderPassCreateInfo2(
     vk::RenderPassCreateFlags(),
@@ -1951,8 +2043,8 @@ void AsyVkRender::createCountRenderPass()
     attachments.data(),
     subpasses.size(),
     subpasses.data(),
-    1,
-    &dependency
+    dependencies.size(),
+    dependencies.data()
   );
 
   countRenderPass = device->createRenderPass2Unique(renderPassCI);
@@ -2123,12 +2215,18 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   std::string vertShaderName = "shaders/" + shader + shaderExtensions[type] + ".vert.spv";
   std::string fragShaderName = "shaders/";
 
-  if (type != PIPELINE_COUNT) {
+  if (type != PIPELINE_COUNT && type != PIPELINE_COUNT_COMPRESS) {
 
-    fragShaderName += shader + shaderExtensions[type];
+    if (type == PIPELINE_CUSTOM)
+      fragShaderName += shader;
+    else
+      fragShaderName += shader + shaderExtensions[type];
   } else {
 
     fragShaderName += "count";
+
+    if (type == PIPELINE_COUNT_COMPRESS)
+      fragShaderName += "Compress";
   }
 
   fragShaderName += ".frag.spv";
@@ -2282,7 +2380,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
       pipeline = std::move(result.value);
   };
 
-  makePipeline(graphicsPipeline, stages, type == PIPELINE_COUNT ? *countRenderPass : *graphicsRenderPass, graphicsSubpass);
+  makePipeline(graphicsPipeline, stages, type == PIPELINE_COUNT || type == PIPELINE_CUSTOM || type == PIPELINE_COUNT_COMPRESS ? *countRenderPass : *graphicsRenderPass, graphicsSubpass);
 }
 
 void AsyVkRender::createGraphicsPipelines()
@@ -2341,12 +2439,14 @@ void AsyVkRender::createGraphicsPipelines()
                           false,
                           true);
 
-  // createGraphicsPipeline<ColorVertex> // todo make dynamic state for depth write enable
-  //                        (blendPipelineLayout, blendPipeline,
-  //                        blendCountPipeline, // todo remove blend count pipeline
-  //                        vk::PrimitiveTopology::eTriangleList,
-  //                        vk::PolygonMode::eFill,
-  //                        "blend", *graphicsRenderPass, 2, false, false, true);
+  createGraphicsPipeline<ColorVertex>
+                        (PIPELINE_CUSTOM, compressPipeline, vk::PrimitiveTopology::eTriangleList,
+                        vk::PolygonMode::eFill,
+                        "compress",
+                        2,
+                        false,
+                        false,
+                        true);
 }
 
 void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
@@ -2493,6 +2593,11 @@ vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline,
   }
 
   if (count) {
+
+    if (GPUcompress) {
+      return pipelines[PIPELINE_COUNT_COMPRESS];
+    }
+
     return pipelines[PIPELINE_COUNT];
   }
 
@@ -2501,6 +2606,11 @@ vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline,
     if (ssbo) {
 
       if (interlock) {
+
+        if (GPUcompress) {
+
+          return pipelines[PIPELINE_INDEXING_SSBO_INTERLOCK_COMPRESS];
+        }
 
         return pipelines[PIPELINE_INDEXING_SSBO_INTERLOCK];
       }
@@ -2697,7 +2807,7 @@ int ceilquotient(int x, int y)
   return (x+y-1)/y;
 }
 
-void AsyVkRender::partialSums(bool readSize)
+void AsyVkRender::partialSums(FrameObject & object, bool readSize)
 {
   auto const writeBarrier = vk::MemoryBarrier( // todo sum2 fast
     vk::AccessFlagBits::eShaderWrite,
@@ -2748,6 +2858,7 @@ void AsyVkRender::partialSums(bool readSize)
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum3Pipeline);
   currentCommandBuffer.pushConstants(*sum3PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &Final);
   currentCommandBuffer.dispatch(g, 1, 1);
+  currentCommandBuffer.setEvent(*object.sumFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
 }
 
 GLuint ceilpow2(GLuint n)
@@ -2791,12 +2902,24 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
     maxFragments=11*fragments/10;
     device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max());
     updateSceneDependentBuffers();
-    std::cout << "Frag" << maxFragments << std::endl;
+    std::cout << "maxFragments: " << maxFragments << std::endl;
   }
+}
+
+void AsyVkRender::compressCount(FrameObject & object)
+{
+  auto push = buildPushConstants();
+  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *compressPipeline);
+  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
+  currentCommandBuffer.draw(3, 1, 0, 0);
 }
 
 void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
 {
+  std::vector<vk::CommandBuffer> commandsToSubmit {*object.countCommandBuffer, *object.computeCommandBuffer};
+
+  beginFrameCommands(*object.countCommandBuffer);
+
   if (GPUindexing && !GPUcompress) {
 
     currentCommandBuffer.fillBuffer(*countBuffer, 0, countBufferSize, 0);
@@ -2842,14 +2965,50 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
                       &transparentData,
                       getPipelineType(transparentPipelines, true),
                       false);
-  endFrameRender();
+
+  currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   if (GPUcompress) {
-    // ...
+
+    static std::uint32_t* p = nullptr;
+
+    if (p == nullptr) {
+      p=static_cast<std::uint32_t*>(device->mapMemory(*elementBufferMemory, 0, elementBufferSize));
+      *p=1;
+    }
+
+    compressCount(object);
+    endFrameRender();
+    currentCommandBuffer.setEvent(*object.compressionFinishedEvent, vk::PipelineStageFlagBits::eFragmentShader);
+    endFrameCommands();
+
+    auto info = vk::SubmitInfo();
+
+    info.commandBufferCount = 1;
+    info.pCommandBuffers = &commandsToSubmit[0];
+
+    renderQueue.submit(1, &info, nullptr);
+    commandsToSubmit.erase(commandsToSubmit.begin());
+
+    vk::Result result;
+
+    do
+    {
+      result = device->getEventStatus(*object.compressionFinishedEvent);
+    } while(result != vk::Result::eEventSet);
+
+    elements=GPUindexing ? p[0] : p[0]-1;
+    p[0]=1;
+  } else {
+    endFrameRender();
+    endFrameCommands();
+    elements=pixels;
   }
-  else {
-    elements = pixels;
-  }
+
+  if (elements==0)
+    return;
+
+  beginFrameCommands(*object.computeCommandBuffer);
 
   if (GPUindexing) {
     
@@ -2859,13 +3018,13 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
     if(settings::verbose > 3) {
       static bool first=true;
       if(first) {
-        partialSums();
+        partialSums(object);
         first=false;
       }
       unsigned int N=10000;
       utils::stopWatch Timer;
       for(unsigned int i=0; i < N; ++i)
-        partialSums();
+        partialSums(object);
       
       // glFinish(); ??
       double T=Timer.seconds()/N;
@@ -2874,14 +3033,26 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
       cout << "Megapixels/second=" << elements/T/1e6 << endl;
     }
 
-    partialSums(true);
+    partialSums(object, true);
   }
+
+  endFrameCommands();
+
+  auto info = vk::SubmitInfo();
+
+  info.commandBufferCount = commandsToSubmit.size();
+  info.pCommandBuffers = commandsToSubmit.data();
+
+  renderQueue.submit(1, &info, *object.inComputeFence);
 }
 
 void AsyVkRender::blendFrame(int imageIndex)
 {
   auto push = buildPushConstants();
-  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *blendPipelines[PIPELINE_INDEXING]);
+  currentCommandBuffer.bindPipeline(
+    vk::PipelineBindPoint::eGraphics,
+    GPUcompress ? *blendPipelines[PIPELINE_INDEXING_SSBO_INTERLOCK_COMPRESS] : *blendPipelines[PIPELINE_INDEXING_SSBO_INTERLOCK]
+  );
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
   currentCommandBuffer.draw(3, 1, 0, 0);
 }
@@ -2896,19 +3067,12 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
     device->resetFences(1, &*object.inComputeFence);
     device->resetEvent(*object.sumFinishedEvent);
-    object.computeCommandBuffer->reset(vk::CommandBufferResetFlagBits());
+    device->resetEvent(*object.compressionFinishedEvent);
+
+    object.countCommandBuffer->reset();
+    object.computeCommandBuffer->reset();
     
-    beginFrameCommands(getFrameComputeCommandBuffer());
     refreshBuffers(object, imageIndex);
-    currentCommandBuffer.setEvent(*object.sumFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
-    endFrameCommands();
-
-    auto info = vk::SubmitInfo();
-
-    info.commandBufferCount = 1;
-    info.pCommandBuffers = &currentCommandBuffer;
-
-    renderQueue.submit(1, &info, *object.inComputeFence);
 
     if (!interlock || true) {
       resizeFragmentBuffer(object);
@@ -3023,7 +3187,10 @@ void AsyVkRender::drawFrame()
     if (std::string(e.what()).find("ErrorOutOfDateKHR") != std::string::npos)
       framebufferResized = false, recreateSwapChain();
     else
+    {
+      std::cout << "Other error: " << e.what() << std::endl;
       throw;
+    }
   }
 
   if (queueExport)

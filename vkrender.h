@@ -535,10 +535,9 @@ private:
 
   QueueFamilyIndices queueFamilyIndices;
 
-  // TODO: test and think about case where all queues are same family
-  vk::Queue transferQueue; // not needed?
-  vk::Queue renderQueue;   // supports both graphics and compute for OIT rendering (guaranteed to be available by Vulkan spec)
-  vk::Queue presentQueue;  // prefer separate for no good reason
+  vk::Queue transferQueue;
+  vk::Queue renderQueue;
+  vk::Queue presentQueue;
 
   vk::UniqueSwapchainKHR swapChain;
   vk::UniqueCommandBuffer exportCommandBuffer;
@@ -578,18 +577,23 @@ private:
   {
     PIPELINE_OPAQUE,
     PIPELINE_COUNT,
+    PIPELINE_COUNT_COMPRESS,
     PIPELINE_INDEXING,
     PIPELINE_INDEXING_SSBO,
     PIPELINE_INDEXING_SSBO_INTERLOCK,
-    PIPELINE_MAX
+    PIPELINE_INDEXING_SSBO_INTERLOCK_COMPRESS,
+    PIPELINE_MAX,
+    PIPELINE_CUSTOM
   };
   std::string const shaderExtensions[PIPELINE_MAX] =
   {
     "Opaque",
     "Count",
+    "CountCompress",
     "Indexing",
     "IndexingSSBO",
-    "IndexingSSBOInterlock"
+    "IndexingSSBOInterlock",
+    "IndexingSSBOInterlockCompress"
   };
 
   std::array<vk::UniquePipeline, PIPELINE_MAX> materialPipelines;
@@ -599,6 +603,7 @@ private:
   std::array<vk::UniquePipeline, PIPELINE_MAX> linePipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> pointPipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> blendPipelines;
+  vk::UniquePipeline compressPipeline;
 
   vk::UniqueDescriptorPool computeDescriptorPool;
   vk::UniqueDescriptorSetLayout computeDescriptorSetLayout;
@@ -648,14 +653,24 @@ private:
   vk::UniqueBuffer opaqueDepthBuffer;
   vk::UniqueDeviceMemory opaqueDepthBufferMemory;
 
+  std::size_t indexBufferSize;
+  vk::UniqueBuffer indexBuffer;
+  vk::UniqueDeviceMemory indexBufferMemory;
+
+  std::size_t elementBufferSize;
+  vk::UniqueBuffer elementBuffer;
+  vk::UniqueDeviceMemory elementBufferMemory;
+
   struct FrameObject {
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore renderFinishedSemaphore;
     vk::UniqueFence inFlightFence;
     vk::UniqueFence inComputeFence;
+    vk::UniqueEvent compressionFinishedEvent;
     vk::UniqueEvent sumFinishedEvent;
 
     vk::UniqueCommandBuffer commandBuffer;
+    vk::UniqueCommandBuffer countCommandBuffer;
     vk::UniqueCommandBuffer computeCommandBuffer;
 
     vk::UniqueDescriptorSet descriptorSet;
@@ -847,9 +862,10 @@ private:
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
-  void partialSums(bool readSize=false);
+  void partialSums(FrameObject & object, bool readSize=false);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
+  void compressCount(FrameObject & object);
   void refreshBuffers(FrameObject & object, int imageIndex);
   void blendFrame(int imageIndex);
   void drawBuffers(FrameObject & object, int imageIndex);
