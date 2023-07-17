@@ -1137,6 +1137,7 @@ vk::CommandBuffer AsyVkRender::beginSingleCommands()
 
 void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
 {
+  vk::UniqueFence fence = device->createFenceUnique(vk::FenceCreateInfo());
   cmd.end();
 
   auto info = vk::SubmitInfo();
@@ -1144,8 +1145,8 @@ void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
   info.commandBufferCount = 1;
   info.pCommandBuffers = &cmd;
 
-  renderQueue.submit(1, &info, nullptr);
-  renderQueue.waitIdle();
+  renderQueue.submit(1, &info, *fence); // todo transfer queue
+  device->waitForFences(1, &*fence, true, std::numeric_limits<std::uint64_t>::max());
 
   device->freeCommandBuffers(*renderCommandPool, 1, &cmd);
 }
@@ -1876,6 +1877,7 @@ void AsyVkRender::createDependentBuffers()
   }
   else {
     Pixels=pixels;
+    globalSize=1;
   }
 
   countBufferSize=(Pixels+2)*sizeof(std::uint32_t);
@@ -1886,7 +1888,7 @@ void AsyVkRender::createDependentBuffers()
 
   createBufferUnique(countBuffer,
                      countBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      countBufferSize);
 
@@ -1898,7 +1900,7 @@ void AsyVkRender::createDependentBuffers()
 
   createBufferUnique(offsetBuffer,
                      offsetBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      offsetBufferSize);
 
@@ -2429,7 +2431,7 @@ void AsyVkRender::createGraphicsPipelines()
                           false,
                           true);
 
-  for (unsigned u = PIPELINE_INDEXING; u < PIPELINE_MAX; u++)
+  for (unsigned u = PIPELINE_DEFAULT; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<ColorVertex>
                           (PipelineType(u), blendPipelines[u], vk::PrimitiveTopology::eTriangleList,
                           (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
@@ -2621,7 +2623,7 @@ vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline,
     return pipelines[PIPELINE_INDEXING];
   }
 
-  throw std::runtime_error("No valid pipeline.");
+  return pipelines[PIPELINE_DEFAULT];
 }
 
 void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
@@ -2902,7 +2904,6 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
     maxFragments=11*fragments/10;
     device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max());
     updateSceneDependentBuffers();
-    std::cout << "maxFragments: " << maxFragments << std::endl;
   }
 }
 
@@ -2916,11 +2917,11 @@ void AsyVkRender::compressCount(FrameObject & object)
 
 void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
 {
-  std::vector<vk::CommandBuffer> commandsToSubmit {*object.countCommandBuffer, *object.computeCommandBuffer};
+  std::vector<vk::CommandBuffer> commandsToSubmit {};
 
   beginFrameCommands(*object.countCommandBuffer);
 
-  if (GPUindexing && !GPUcompress) {
+  if (!GPUcompress) {
 
     currentCommandBuffer.fillBuffer(*countBuffer, 0, countBufferSize, 0);
   }
@@ -3003,15 +3004,15 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
     endFrameRender();
     endFrameCommands();
     elements=pixels;
+    commandsToSubmit.emplace_back(currentCommandBuffer);
   }
 
   if (elements==0)
     return;
 
-  beginFrameCommands(*object.computeCommandBuffer);
-
   if (GPUindexing) {
-    
+
+    beginFrameCommands(*object.computeCommandBuffer);
     g=ceilquotient(elements,groupSize);
     elements=groupSize*g;
 
@@ -3034,9 +3035,9 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
     }
 
     partialSums(object, true);
+    endFrameCommands();
+    commandsToSubmit.emplace_back(currentCommandBuffer);
   }
-
-  endFrameCommands();
 
   auto info = vk::SubmitInfo();
 
@@ -3044,14 +3045,61 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
   info.pCommandBuffers = commandsToSubmit.data();
 
   renderQueue.submit(1, &info, *object.inComputeFence);
+
+  if (!GPUindexing) { // todo transfer queue
+
+    device->waitForFences(1, &*object.inComputeFence, true, std::numeric_limits<std::uint64_t>::max());
+
+    elements=pixels;
+    auto size=elements*sizeof(GLuint);
+
+    bool initBuffers = false;
+    static GLuint * countBufferData = nullptr;
+    static GLuint * offsetBufferData = nullptr;
+
+    if (!initBuffers) {
+
+      countBufferData = static_cast<GLuint*>(malloc(countBufferSize));
+      offsetBufferData = static_cast<GLuint*>(malloc(countBufferSize));
+    }
+
+    auto offset=offsetBufferData+1;
+    copyFromBuffer(*countBuffer, countBufferData, countBufferSize);
+
+    auto p = countBufferData;
+
+    GLuint maxsize=p[0];
+    GLuint *count=p+1;
+    size_t Offset=offset[0]=count[0];
+
+    for(size_t i=1; i < elements; ++i)
+      offset[i]=Offset += count[i];
+
+    fragments=Offset;
+
+    if (maxsize > maxSize)
+      resizeBlendShader(maxsize);
+
+    copyToBuffer(*offsetBuffer, offsetBufferData, offsetBufferSize);
+  }
 }
 
 void AsyVkRender::blendFrame(int imageIndex)
 {
+  vk::Pipeline blendPipeline;
+
+  if (!GPUindexing) {
+    blendPipeline = *blendPipelines[PIPELINE_DEFAULT];
+  } else if (GPUcompress) {
+    blendPipeline = *blendPipelines[PIPELINE_INDEXING_SSBO_INTERLOCK_COMPRESS];
+  } else {
+    blendPipeline = *blendPipelines[PIPELINE_INDEXING_SSBO_INTERLOCK];
+  }
+
   auto push = buildPushConstants();
   currentCommandBuffer.bindPipeline(
     vk::PipelineBindPoint::eGraphics,
-    GPUcompress ? *blendPipelines[PIPELINE_INDEXING_SSBO_INTERLOCK_COMPRESS] : *blendPipelines[PIPELINE_INDEXING_SSBO_INTERLOCK]
+    blendPipeline
   );
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
   currentCommandBuffer.draw(3, 1, 0, 0);
@@ -3080,6 +3128,11 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   }
 
   beginFrameCommands(getFrameCommandBuffer());
+
+  if (!GPUindexing) {
+    currentCommandBuffer.fillBuffer(*countBuffer, 0, countBufferSize, 0);
+  }
+
   beginGraphicsFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
   drawPoints(object);

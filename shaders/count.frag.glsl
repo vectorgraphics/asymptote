@@ -19,8 +19,6 @@ layout(push_constant) uniform PushConstants
     // constants[1] = width
 } push;
 
-layout(location = 0) out vec4 outColor;
-
 void main()
 {
   atomicAdd(index[uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x)],1u);

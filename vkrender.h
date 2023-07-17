@@ -326,7 +326,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    int maxFramesInFlight = 5;
+    int maxFramesInFlight = 6;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
@@ -578,6 +578,7 @@ private:
     PIPELINE_OPAQUE,
     PIPELINE_COUNT,
     PIPELINE_COUNT_COMPRESS,
+    PIPELINE_DEFAULT,
     PIPELINE_INDEXING,
     PIPELINE_INDEXING_SSBO,
     PIPELINE_INDEXING_SSBO_INTERLOCK,
@@ -590,6 +591,7 @@ private:
     "Opaque",
     "Count",
     "CountCompress",
+    "Default",
     "Indexing",
     "IndexingSSBO",
     "IndexingSSBOInterlock",

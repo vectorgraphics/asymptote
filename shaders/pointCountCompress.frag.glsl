@@ -217,7 +217,6 @@ void main() {
   fragment[listIndex]=outColor;
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
-return;
   discard;
 #endif /*WIREFRAME*/
 #else
