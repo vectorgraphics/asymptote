@@ -348,7 +348,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       app->travelHome();
       break;
     case 'F':
-      //toggleFitScreen();
+      app->toggleFitScreen();
       break;
     case 'X':
       app->spinx();
@@ -553,8 +553,21 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
     else
       height=min((int) (ceil(width/aspect)),screenHeight);
   }
+  
+  setosize();
+
+  Animate=settings::getSetting<bool>("autoplay") && vkthread;
 
   initWindow();
+
+  if(View) {
+    if(!settings::getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+    firstFit=true;
+    fitscreen();
+    setosize();
+  }
+
   initVulkan();
   vkinit=true;
   update();
@@ -3695,16 +3708,160 @@ void AsyVkRender::zoom(double dx, double dy)
   }
 }
 
-void AsyVkRender::travelHome()
+bool AsyVkRender::capsize(int& w, int& h) {
+
+  bool resize=false;
+  if(width > screenWidth) {
+    width=screenWidth;
+    resize=true;
+  }
+  if(height > screenHeight) {
+    height=screenHeight;
+    resize=true;
+  }
+  return resize;
+}
+
+void AsyVkRender::windowposition(int& x, int& y, int width, int height)
 {
+  if (width==-1) {
+    width=this->width;
+  }
+  if (height==-1) {
+    height=this->height;
+  }
+
+  pair z=settings::getSetting<pair>("position");
+  x=(int) z.getx();
+  y=(int) z.gety();
+  if(x < 0) {
+    x += screenWidth-width;
+    if(x < 0) x=0;
+  }
+  if(y < 0) {
+    y += screenHeight-height;
+    if(y < 0) y=0;
+  }
+}
+
+void AsyVkRender::setsize(int w, int h, bool reposition) {
+
+  int x,y;
+
+  capsize(w,h);
+
+  if (reposition) {
+
+    windowposition(x, y, w, h);
+    glfwSetWindowPos(window, x, y);
+  }
+  else {
+
+    glfwGetWindowPos(window, &x, &y);
+    glfwSetWindowPos(window, max(x-2,0), max(y-2, 0));
+  }
+
+  glfwSetWindowSize(window, w, h);
+  update();
+}
+
+void AsyVkRender::fullscreen(bool reposition) {
+
+  width=screenWidth;
+  height=screenHeight;
+
+  if (firstFit) {
+
+    if (width < height*aspect) {
+      Zoom0 *= width/(height*aspect);
+    }
+    capzoom();
+    setProjection();
+    firstFit=false;
+  }
+  Xfactor=((double) screenHeight)/height;
+  Yfactor=((double) screenWidth)/width;
+  reshape0(width, height);
+  if (reposition) {
+    glfwSetWindowPos(window, 0, 0);
+  }
+  glfwSetWindowSize(window, width, height);
+}
+
+void AsyVkRender::reshape0(int width, int height) {
+
+  X=(X/this->width)*width;
+  Y=(Y/this->height)*height;
+
+  this->width=width;
+  this->height=height;
+
+  static int lastWidth=1;
+  static int lastHeight=1;
+  if(View && this->width*this->height > 1 && (this->width != lastWidth || this->height != lastHeight)
+     && settings::verbose > 1) {
+    cout << "Rendering " << stripDir(Prefix) << " as "
+         << this->width << "x" << this->height << " image" << endl;
+    lastWidth=this->width;
+    lastHeight=this->height;
+  }
+
+  setProjection();
+}
+
+void AsyVkRender::setosize() {
+  oldWidth=(int) ceil(oWidth);
+  oldHeight=(int) ceil(oHeight);
+}
+
+void AsyVkRender::fitscreen(bool reposition) {
+
+  if(Animate && Fitscreen == 2) Fitscreen=0;
+
+  switch(Fitscreen) {
+    case 0: // Original size
+    {
+      Xfactor=Yfactor=1.0;
+      double pixelRatio=settings::getSetting<double>("devicepixelratio");
+      setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
+      break;
+    }
+    case 1: // Fit to screen in one dimension
+    {
+      oldWidth=width;
+      oldHeight=height;
+      int w=screenWidth;
+      int h=screenHeight;
+      if(w > h*aspect)
+        w=min((int) ceil(h*aspect),w);
+      else
+        h=min((int) ceil(w/aspect),h);
+
+      setsize(w,h,reposition);
+      break;
+    }
+    case 2: // Full screen
+    {
+      fullscreen(reposition);
+      break;
+    }
+  }
+}
+
+void AsyVkRender::toggleFitScreen() {
+
+  Fitscreen = (Fitscreen + 1) % 3;
+  fitscreen();
+}
+
+void AsyVkRender::travelHome() {
   x = y = cx = cy = 0;
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   update();
 }
 
-void AsyVkRender::cycleMode()
-{
+void AsyVkRender::cycleMode() {
   options.mode = DrawMode((options.mode + 1) % DRAWMODE_MAX);
   recreatePipeline = true;
   remesh = true;

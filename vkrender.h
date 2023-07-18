@@ -416,6 +416,7 @@ public:
   double Zmin, Zmax;
 
   int fullWidth, fullHeight;
+  double X,Y;
   double Angle;
   double Zoom0;
   pair Shift;
@@ -474,9 +475,13 @@ private:
 
   int screenWidth, screenHeight;
   int width, height; // width and height of the window
+  int oldWidth,oldHeight;
+  bool firstFit=true;
+  double Xfactor,Yfactor;
   double aspect;
   double oWidth, oHeight;
   double lastZoom;
+  int Fitscreen=1;
   int Oldpid;
 
   utils::stopWatch spinTimer;
@@ -902,6 +907,14 @@ private:
   void pan(double dx, double dy);
   void capzoom();
   void zoom(double dx, double dy);
+  bool capsize(int& w, int& h);
+  void windowposition(int& x, int& y, int width=-1, int height=-1);
+  void setsize(int w, int h, bool reposition=true);
+  void fullscreen(bool reposition=true);
+  void reshape0(int width, int height);
+  void setosize();
+  void fitscreen(bool reposition=true);
+  void toggleFitScreen();
   void travelHome();
   void cycleMode();
 };
