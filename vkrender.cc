@@ -2986,10 +2986,9 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
     auto info = vk::SubmitInfo();
 
     info.commandBufferCount = 1;
-    info.pCommandBuffers = &commandsToSubmit[0];
+    info.pCommandBuffers = &currentCommandBuffer;
 
     renderQueue.submit(1, &info, nullptr);
-    commandsToSubmit.erase(commandsToSubmit.begin());
 
     vk::Result result;
 
