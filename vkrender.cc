@@ -1925,7 +1925,7 @@ void AsyVkRender::createDependentBuffers()
   createBufferUnique(countBuffer,
                      countBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                      countBufferSize);
 
   createBufferUnique(countStageBuffer,
