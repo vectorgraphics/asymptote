@@ -631,8 +631,7 @@ private:
   std::size_t countBufferSize;
   vk::UniqueBuffer countBuffer;
   vk::UniqueDeviceMemory countBufferMemory;
-  vk::UniqueBuffer countStageBuffer;
-  vk::UniqueDeviceMemory countStageBufferMemory;
+  std::uint32_t *countBufferMap = nullptr;
 
   std::size_t globalSize;
   vk::UniqueBuffer globalSumBuffer;
@@ -641,8 +640,7 @@ private:
   std::size_t offsetBufferSize;
   vk::UniqueBuffer offsetBuffer;
   vk::UniqueDeviceMemory offsetBufferMemory;
-  vk::UniqueBuffer offsetStageBuffer;
-  vk::UniqueDeviceMemory offsetStageBufferMemory;
+  std::uint32_t *offsetBufferMap = nullptr;
 
   std::size_t feedbackBufferSize;
   vk::UniqueBuffer feedbackBuffer;

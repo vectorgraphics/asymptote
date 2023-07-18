@@ -1922,16 +1922,23 @@ void AsyVkRender::createDependentBuffers()
   opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
   indexBufferSize=pixels*sizeof(std::uint32_t);
 
+  vk::Flags<vk::MemoryPropertyFlagBits> countBufferFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+  vk::Flags<vk::MemoryPropertyFlagBits> offsetBufferFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+  if (!GPUindexing) {
+    countBufferFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached;
+    offsetBufferFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+  }
+
+  if (countBufferMap || offsetBufferMap) {
+    device->unmapMemory(*countBufferMemory);
+    device->unmapMemory(*offsetBufferMemory);
+  }
+
   createBufferUnique(countBuffer,
                      countBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc,
-                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-                     countBufferSize);
-
-  createBufferUnique(countStageBuffer,
-                     countStageBufferMemory,
-                     vk::BufferUsageFlagBits::eTransferDst,
-                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                     countBufferFlags,
                      countBufferSize);
 
   createBufferUnique(globalSumBuffer,
@@ -1943,13 +1950,7 @@ void AsyVkRender::createDependentBuffers()
   createBufferUnique(offsetBuffer,
                      offsetBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     offsetBufferSize);
-
-  createBufferUnique(offsetStageBuffer,
-                     offsetStageBufferMemory,
-                     vk::BufferUsageFlagBits::eTransferSrc,
-                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                     offsetBufferFlags,
                      offsetBufferSize);
 
   createBufferUnique(opaqueBuffer,
@@ -1969,6 +1970,12 @@ void AsyVkRender::createDependentBuffers()
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      indexBufferSize);
+
+  if (!GPUindexing) {
+
+    countBufferMap =  static_cast<std::uint32_t*>(device->mapMemory(*countBufferMemory, 0, countBufferSize));
+    offsetBufferMap = static_cast<std::uint32_t*>(device->mapMemory(*offsetBufferMemory, 0, offsetBufferSize));
+  }
 }
 
 void AsyVkRender::createCountRenderPass()
@@ -3098,35 +3105,11 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     device->waitForFences(1, &*object.inComputeFence, true, std::numeric_limits<std::uint64_t>::max());
 
     elements=pixels;
-    auto size=elements*sizeof(GLuint);
 
-    device->resetFences(1, &*object.inCountBufferCopy);
-    object.copyCountCommandBuffer->reset();
-    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
-
-    auto countCopy = vk::BufferCopy(
-      0, 0, countBufferSize
-    );
-    auto offsetCopy = vk::BufferCopy(
-      0, 0, offsetBufferSize
-    );
-
-    object.copyCountCommandBuffer->copyBuffer(*countBuffer, *countStageBuffer, 1, &countCopy);
-    object.copyCountCommandBuffer->end();
-
-    auto info = vk::SubmitInfo();
-
-    info.commandBufferCount = 1;
-    info.pCommandBuffers = &*object.copyCountCommandBuffer;
-    
-    transferQueue.submit(1, &info, *object.inCountBufferCopy);
-    device->waitForFences(1, &*object.inCountBufferCopy, true, std::numeric_limits<std::uint64_t>::max());
-
-    auto p = static_cast<std::uint32_t*>(device->mapMemory(*countStageBufferMemory, 0, countBufferSize));
-    auto offset = static_cast<std::uint32_t*>(device->mapMemory(*offsetStageBufferMemory, sizeof(std::uint32_t), offsetBufferSize-sizeof(std::uint32_t)));
-
-    GLuint maxsize=p[0];
-    GLuint *count=p+1;
+    auto size=elements*sizeof(std::uint32_t);
+    auto offset = offsetBufferMap+1;
+    auto maxsize=countBufferMap[0];
+    auto count=countBufferMap+1;
     size_t Offset=offset[0]=count[0];
 
     for(size_t i=1; i < elements; ++i)
@@ -3136,17 +3119,6 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
     if (maxsize > maxSize)
       resizeBlendShader(maxsize);
-
-    device->unmapMemory(*countStageBufferMemory);
-    device->unmapMemory(*offsetStageBufferMemory);
-
-    device->resetFences(1, &*object.inCountBufferCopy);
-    object.copyCountCommandBuffer->reset();
-    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
-    object.copyCountCommandBuffer->copyBuffer(*offsetStageBuffer, *offsetBuffer, 1, &offsetCopy);
-    object.copyCountCommandBuffer->end();
-    transferQueue.submit(1, &info, *object.inCountBufferCopy);
-    device->waitForFences(1, &*object.inCountBufferCopy, true, std::numeric_limits<std::uint64_t>::max());
   }
 }
 
