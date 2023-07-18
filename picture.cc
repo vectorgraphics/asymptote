@@ -1504,8 +1504,7 @@ bool picture::shipout3(const string& prefix, const string& format,
      string name=buildname(prefix,format);
      abs3Doutfile *fileObj=nullptr;
 
-     if(webgl)
-       fileObj=new jsfile(name);
+     if(webgl) fileObj=new jsfile(name);
      else if(v3d)
  #ifdef HAVE_RPC_RPC_H
        fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||

@@ -496,8 +496,9 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   viewMat = glm::mat4(1.0);
 
   // hardcode this for now
-  bool format3d = true;
-  double expand = 1.0;
+  bool v3d=format == "v3d";
+  bool webgl=format == "html";
+  bool format3d=webgl || v3d;
 
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(w, h);
 
@@ -505,6 +506,16 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   oWidth = w;
   oHeight = h;
   aspect=w/h;
+
+  double expand;
+  if(format3d)
+    expand=1.0;
+  else {
+    expand=settings::getSetting<double>("render");
+    if(expand < 0)
+      expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
+    if(antialias) expand *= 2.0;
+  }
 
   pair maxtile=settings::getSetting<pair>("maxtile");
   int maxTileWidth=(int) maxtile.getx();
@@ -541,7 +552,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   fullWidth=(int) ceil(expand*w);
   fullHeight=(int) ceil(expand*h);
 
-  if(!format3d) {
+  if(format3d) {
     width=fullWidth;
     height=fullHeight;
   } else {
@@ -554,6 +565,13 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
       height=min((int) (ceil(width/aspect)),screenHeight);
   }
   
+  travelHome(format3d);
+  setProjection();
+  if(format3d) {
+    remesh=true;
+    return;
+  }
+
   setosize();
 
   Animate=settings::getSetting<bool>("autoplay") && vkthread;
@@ -3854,7 +3872,7 @@ void AsyVkRender::toggleFitScreen() {
   fitscreen();
 }
 
-void AsyVkRender::travelHome() {
+void AsyVkRender::travelHome(bool webgl) {
   x = y = cx = cy = 0;
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;

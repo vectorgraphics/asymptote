@@ -190,8 +190,8 @@ void jsfile::open(string name)
     size_t i4=4*i;
     out << "light(" << newl
         << vk->Lights[i] << "," << newl
-        << "[" << vk->Diffuse[i4] << "," << vk->Diffuse[i4+1] << ","
-        << vk->Diffuse[i4+2] << "]);" << newl;
+        << "[" << vk->LightsDiffuse[i4] << "," << vk->LightsDiffuse[i4+1] << ","
+        << vk->LightsDiffuse[i4+2] << "]);" << newl;
   }
   out << newl;
 

@@ -915,7 +915,7 @@ private:
   void setosize();
   void fitscreen(bool reposition=true);
   void toggleFitScreen();
-  void travelHome();
+  void travelHome(bool webgl=false);
   void cycleMode();
 };
 
