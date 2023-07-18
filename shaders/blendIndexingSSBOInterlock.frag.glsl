@@ -3,7 +3,7 @@
 #define HAVE_INTERLOCK
 
 #define GPUINDEXING
-#define ARRAYSIZE 128
+#define ARRAYSIZE 10
 
 layout(binding = 3, std430) buffer CountBuffer
 {

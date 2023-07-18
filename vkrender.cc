@@ -2403,7 +2403,7 @@ void AsyVkRender::createGraphicsPipelines()
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<ColorVertex>
-                          (PipelineType(u), colorPipelines[u], vk::PrimitiveTopology::eTriangleList,
+                          (PipelineType(u), trianglePipelines[u], vk::PrimitiveTopology::eTriangleList,
                           (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
                           "triangle",
                           0);
