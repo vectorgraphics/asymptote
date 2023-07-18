@@ -631,6 +631,8 @@ private:
   std::size_t countBufferSize;
   vk::UniqueBuffer countBuffer;
   vk::UniqueDeviceMemory countBufferMemory;
+  vk::UniqueBuffer countStageBuffer;
+  vk::UniqueDeviceMemory countStageBufferMemory;
 
   std::size_t globalSize;
   vk::UniqueBuffer globalSumBuffer;
@@ -639,6 +641,8 @@ private:
   std::size_t offsetBufferSize;
   vk::UniqueBuffer offsetBuffer;
   vk::UniqueDeviceMemory offsetBufferMemory;
+  vk::UniqueBuffer offsetStageBuffer;
+  vk::UniqueDeviceMemory offsetStageBufferMemory;
 
   std::size_t feedbackBufferSize;
   vk::UniqueBuffer feedbackBuffer;
@@ -673,12 +677,14 @@ private:
     vk::UniqueSemaphore renderFinishedSemaphore;
     vk::UniqueFence inFlightFence;
     vk::UniqueFence inComputeFence;
+    vk::UniqueFence inCountBufferCopy;
     vk::UniqueEvent compressionFinishedEvent;
     vk::UniqueEvent sumFinishedEvent;
 
     vk::UniqueCommandBuffer commandBuffer;
     vk::UniqueCommandBuffer countCommandBuffer;
     vk::UniqueCommandBuffer computeCommandBuffer;
+    vk::UniqueCommandBuffer copyCountCommandBuffer;
 
     vk::UniqueDescriptorSet descriptorSet;
 

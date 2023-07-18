@@ -1138,13 +1138,17 @@ void AsyVkRender::createCommandPools()
 
 void AsyVkRender::createCommandBuffers()
 {
-  auto allocInfo = vk::CommandBufferAllocateInfo(*renderCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight * 3));
-  auto commandBuffers = device->allocateCommandBuffersUnique(allocInfo);
+  auto renderAllocInfo = vk::CommandBufferAllocateInfo(*renderCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight * 4));
+  auto transferAllocInfo = vk::CommandBufferAllocateInfo(*transferCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight));
+  auto renderCommands = device->allocateCommandBuffersUnique(renderAllocInfo);
+  auto transferCommands = device->allocateCommandBuffersUnique(transferAllocInfo);
+
   for (int i = 0; i < options.maxFramesInFlight; i++)
   {
-    frameObjects[i].commandBuffer = std::move(commandBuffers[3 * i]);
-    frameObjects[i].countCommandBuffer = std::move(commandBuffers[3 * i + 1]);
-    frameObjects[i].computeCommandBuffer = std::move(commandBuffers[3 * i + 2]);
+    frameObjects[i].commandBuffer = std::move(renderCommands[3 * i]);
+    frameObjects[i].countCommandBuffer = std::move(renderCommands[3 * i + 1]);
+    frameObjects[i].computeCommandBuffer = std::move(renderCommands[3 * i + 2]);
+    frameObjects[i].copyCountCommandBuffer = std::move(transferCommands[i]);
   }
 }
 
@@ -1189,6 +1193,7 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    frameObjects[i].inCountBufferCopy = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].compressionFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
   }
@@ -1923,6 +1928,12 @@ void AsyVkRender::createDependentBuffers()
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      countBufferSize);
 
+  createBufferUnique(countStageBuffer,
+                     countStageBufferMemory,
+                     vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                     countBufferSize);
+
   createBufferUnique(globalSumBuffer,
                      globalSumBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer,
@@ -1933,6 +1944,12 @@ void AsyVkRender::createDependentBuffers()
                      offsetBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     offsetBufferSize);
+
+  createBufferUnique(offsetStageBuffer,
+                     offsetStageBufferMemory,
+                     vk::BufferUsageFlagBits::eTransferSrc,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                      offsetBufferSize);
 
   createBufferUnique(opaqueBuffer,
@@ -2946,8 +2963,8 @@ void AsyVkRender::compressCount(FrameObject & object)
   currentCommandBuffer.draw(3, 1, 0, 0);
 }
 
-void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
-{
+void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
+
   std::vector<vk::CommandBuffer> commandsToSubmit {};
 
   beginFrameCommands(*object.countCommandBuffer);
@@ -3083,20 +3100,30 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
     elements=pixels;
     auto size=elements*sizeof(GLuint);
 
-    bool initBuffers = false;
-    static GLuint * countBufferData = nullptr;
-    static GLuint * offsetBufferData = nullptr;
+    device->resetFences(1, &*object.inCountBufferCopy);
+    object.copyCountCommandBuffer->reset();
+    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
-    if (!initBuffers) {
+    auto countCopy = vk::BufferCopy(
+      0, 0, countBufferSize
+    );
+    auto offsetCopy = vk::BufferCopy(
+      0, 0, offsetBufferSize
+    );
 
-      countBufferData = static_cast<GLuint*>(malloc(countBufferSize));
-      offsetBufferData = static_cast<GLuint*>(malloc(countBufferSize));
-    }
+    object.copyCountCommandBuffer->copyBuffer(*countBuffer, *countStageBuffer, 1, &countCopy);
+    object.copyCountCommandBuffer->end();
 
-    auto offset=offsetBufferData+1;
-    copyFromBuffer(*countBuffer, countBufferData, countBufferSize);
+    auto info = vk::SubmitInfo();
 
-    auto p = countBufferData;
+    info.commandBufferCount = 1;
+    info.pCommandBuffers = &*object.copyCountCommandBuffer;
+    
+    transferQueue.submit(1, &info, *object.inCountBufferCopy);
+    device->waitForFences(1, &*object.inCountBufferCopy, true, std::numeric_limits<std::uint64_t>::max());
+
+    auto p = static_cast<std::uint32_t*>(device->mapMemory(*countStageBufferMemory, 0, countBufferSize));
+    auto offset = static_cast<std::uint32_t*>(device->mapMemory(*offsetStageBufferMemory, sizeof(std::uint32_t), offsetBufferSize-sizeof(std::uint32_t)));
 
     GLuint maxsize=p[0];
     GLuint *count=p+1;
@@ -3110,7 +3137,16 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex)
     if (maxsize > maxSize)
       resizeBlendShader(maxsize);
 
-    copyToBuffer(*offsetBuffer, offsetBufferData, offsetBufferSize);
+    device->unmapMemory(*countStageBufferMemory);
+    device->unmapMemory(*offsetStageBufferMemory);
+
+    device->resetFences(1, &*object.inCountBufferCopy);
+    object.copyCountCommandBuffer->reset();
+    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+    object.copyCountCommandBuffer->copyBuffer(*offsetStageBuffer, *offsetBuffer, 1, &offsetCopy);
+    object.copyCountCommandBuffer->end();
+    transferQueue.submit(1, &info, *object.inCountBufferCopy);
+    device->waitForFences(1, &*object.inCountBufferCopy, true, std::numeric_limits<std::uint64_t>::max());
   }
 }
 
