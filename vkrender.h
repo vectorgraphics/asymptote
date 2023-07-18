@@ -326,7 +326,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    int maxFramesInFlight = 6;
+    int maxFramesInFlight = 16;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
@@ -640,7 +640,9 @@ private:
   std::size_t offsetBufferSize;
   vk::UniqueBuffer offsetBuffer;
   vk::UniqueDeviceMemory offsetBufferMemory;
-  std::uint32_t *offsetBufferMap = nullptr;
+  vk::UniqueBuffer offsetStageBuffer;
+  vk::UniqueDeviceMemory offsetStageBufferMemory;
+  std::uint32_t *offsetStageBufferMap = nullptr;
 
   std::size_t feedbackBufferSize;
   vk::UniqueBuffer feedbackBuffer;
@@ -673,9 +675,9 @@ private:
   struct FrameObject {
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore renderFinishedSemaphore;
+    vk::UniqueSemaphore inCountBufferCopy;
     vk::UniqueFence inFlightFence;
     vk::UniqueFence inComputeFence;
-    vk::UniqueFence inCountBufferCopy;
     vk::UniqueEvent compressionFinishedEvent;
     vk::UniqueEvent sumFinishedEvent;
 

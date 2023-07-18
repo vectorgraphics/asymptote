@@ -3,7 +3,7 @@
 #define HAVE_SSBO
 
 #define GPUINDEXING
-#define ARRAYSIZE 10
+#define ARRAYSIZE 4
 
 layout(binding = 3, std430) buffer CountBuffer
 {

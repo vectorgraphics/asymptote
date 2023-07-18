@@ -1191,9 +1191,9 @@ void AsyVkRender::createSyncObjects()
   for (size_t i = 0; i < options.maxFramesInFlight; i++) {
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
+    frameObjects[i].inCountBufferCopy = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-    frameObjects[i].inCountBufferCopy = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].compressionFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
   }
@@ -1923,16 +1923,14 @@ void AsyVkRender::createDependentBuffers()
   indexBufferSize=pixels*sizeof(std::uint32_t);
 
   vk::Flags<vk::MemoryPropertyFlagBits> countBufferFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
-  vk::Flags<vk::MemoryPropertyFlagBits> offsetBufferFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
 
   if (!GPUindexing) {
     countBufferFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached;
-    offsetBufferFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
   }
 
-  if (countBufferMap || offsetBufferMap) {
+  if (countBufferMap || offsetStageBufferMap) {
     device->unmapMemory(*countBufferMemory);
-    device->unmapMemory(*offsetBufferMemory);
+    device->unmapMemory(*offsetStageBufferMemory);
   }
 
   createBufferUnique(countBuffer,
@@ -1950,8 +1948,16 @@ void AsyVkRender::createDependentBuffers()
   createBufferUnique(offsetBuffer,
                      offsetBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     offsetBufferFlags,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
                      offsetBufferSize);
+
+  if (!GPUindexing) {
+    createBufferUnique(offsetStageBuffer,
+                       offsetStageBufferMemory,
+                       vk::BufferUsageFlagBits::eTransferSrc,
+                       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached,
+                       offsetBufferSize);
+  }
 
   createBufferUnique(opaqueBuffer,
                      opaqueBufferMemory,
@@ -1974,7 +1980,7 @@ void AsyVkRender::createDependentBuffers()
   if (!GPUindexing) {
 
     countBufferMap =  static_cast<std::uint32_t*>(device->mapMemory(*countBufferMemory, 0, countBufferSize));
-    offsetBufferMap = static_cast<std::uint32_t*>(device->mapMemory(*offsetBufferMemory, 0, offsetBufferSize));
+    offsetStageBufferMap = static_cast<std::uint32_t*>(device->mapMemory(*offsetStageBufferMemory, 0, offsetBufferSize));
   }
 }
 
@@ -3107,7 +3113,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     elements=pixels;
 
     auto size=elements*sizeof(std::uint32_t);
-    auto offset = offsetBufferMap+1;
+    auto offset = offsetStageBufferMap+1;
     auto maxsize=countBufferMap[0];
     auto count=countBufferMap+1;
     size_t Offset=offset[0]=count[0];
@@ -3119,6 +3125,24 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
     if (maxsize > maxSize)
       resizeBlendShader(maxsize);
+
+    auto const copy = vk::BufferCopy(
+      0, 0, offsetBufferSize
+    );
+
+    object.copyCountCommandBuffer->reset();
+    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo());
+    object.copyCountCommandBuffer->copyBuffer(*offsetStageBuffer, *offsetBuffer, 1, &copy);
+    object.copyCountCommandBuffer->end();
+
+    auto info = vk::SubmitInfo();
+
+    info.commandBufferCount = 1;
+    info.pCommandBuffers = &*object.copyCountCommandBuffer;
+    info.signalSemaphoreCount = 1;
+    info.pSignalSemaphores = &*object.inCountBufferCopy;
+
+    transferQueue.submit(1, &info, nullptr);
   }
 }
 
@@ -3253,10 +3277,24 @@ void AsyVkRender::drawFrame()
 
   drawBuffers(frameObject, imageIndex);
 
-  vk::Semaphore waitSemaphores[] = {*frameObject.imageAvailableSemaphore};
-  vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+  std::vector<vk::Semaphore> waitSemaphores {*frameObject.imageAvailableSemaphore};
+  std::vector<vk::PipelineStageFlags> waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+  if (!GPUindexing) {
+
+    waitSemaphores.emplace_back(*frameObject.inCountBufferCopy);
+    waitStages.emplace_back(vk::PipelineStageFlagBits::eFragmentShader);
+  }
+
   vk::Semaphore signalSemaphores[] = {*frameObject.renderFinishedSemaphore};
-  auto submitInfo = vk::SubmitInfo(ARR_VIEW(waitSemaphores), &waitStages, 1, &*frameObject.commandBuffer, ARR_VIEW(signalSemaphores));
+  auto submitInfo = vk::SubmitInfo(
+    waitSemaphores.size(),
+    waitSemaphores.data(),
+    waitStages.data(),
+    1,
+    &*frameObject.commandBuffer,
+    ARR_VIEW(signalSemaphores)
+  );
 
   if (renderQueue.submit(1, &submitInfo, *frameObject.inFlightFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
