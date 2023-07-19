@@ -12,7 +12,8 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -ldl -lglfw -lvulkan
+GLSLANGLIBS = -lglslang -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -ldl -lglfw -lvulkan $(GLSLANGLIBS)
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 
 CMAKE ?= cmake
