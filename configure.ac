@@ -263,7 +263,6 @@ AC_SUBST(LSPLIB)
 AC_SUBST(LSPLIBS)
 AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
-AC_SUBST(GLEW)
 
 # Checks for libraries.
 #AC_SEARCH_LIBS([lgamma],[m c],,
@@ -431,24 +430,8 @@ if test "x$enable_gsl" != "xno"; then
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 fi
 
-AC_ARG_ENABLE(gl,
-[AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-    [#include <GL/gl.h>]
-    [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_shader_storage_buffer_object)]
-    [#error]
-    [#endif ]
-    )],
-    AC_DEFINE(HAVE_SSBO,1,DEFINE([GLSL shader storage buffer objects])))
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-    [#include <GL/gl.h>]
-    [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_compute_shader)]
-    [#error]
-    [#endif ]
-    )],
-    AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
+AC_ARG_ENABLE(vulkan,
+[AS_HELP_STRING(--enable-vulkan[[[=yes]]],enable Vulkan Library)])
 
 AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
@@ -458,9 +441,9 @@ AC_ARG_ENABLE(OpenImageIO,
 
             AC_CHECK_HEADER(glm/glm.hpp,
                        [AC_DEFINE(HAVE_LIBGLM,1,
-                    DEFINE([the <glm/glm.hpp> header]))],AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL support ***]))
+                    DEFINE([the <glm/glm.hpp> header]))],AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or Vulkan support ***]))
 
-if test "x$enable_gl" != "xno"; then
+if test "x$enable_vulkan" != "xno"; then
                     AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 if test "x$enable_openimageio" = "xyes"; then
             AC_CHECK_HEADER([OpenEXR/ImathVec.h],
@@ -469,43 +452,17 @@ if test "x$enable_openimageio" = "xyes"; then
 fi
 
 case "$OSTYPE" in
-     msdos)
-              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-              AC_CHECK_HEADER(GL/glut.h,
-                                  [AC_DEFINE(HAVE_LIBGLUT,1,
-                     DEFINE_LIB[freeglut])
-                             LIBS=$LIBS"-lfreeglut "],
-                                   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
-              AC_CHECK_HEADER(GL/gl.h,
-                                  [AC_DEFINE(HAVE_LIBGL,1,
-                     DEFINE_LIB[opengl32])
-                             LIBS=$LIBS"-lopengl32 "
-                             GLEW="glew.o "],
-                                   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
-        ;;
-     darwin*)
-              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-              AC_CHECK_HEADER(OpenGL/gl.h,
-                             [AC_DEFINE(HAVE_LIBGL,1,
-                             DEFINE([<gl.h> header]))])
-              AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
-                   DEFINE_LIB[GLUT])
-                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
-                           GLEW="glew.o "],
-                                 AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
-        ;;
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-          AC_CHECK_LIB([glut], [glutMainLoop],,
-                       AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
-         AC_CHECK_LIB([GL], [glDepthMask],
-                                 [AC_DEFINE(HAVE_LIBGL,1,
-                             DEFINE_LIB([GL]))
-                             LIBS=$LIBS"-lGL "
-                             GLEW="glew.o "
-                             AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
-                             GLEW=$GLEW"-lGLX ")],
-                                   AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
+          AC_CHECK_LIB([glfw], [glfwShowWindow],,
+                       AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
+         AC_CHECK_LIB([vulkan], [vkCreateInstance],
+                                 [AC_DEFINE(HAVE_LIBVULKAN,1,
+                             DEFINE_LIB([vulkan]))
+                             LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler "
+                             AC_CHECK_LIB([glslang],[glslang_initialize_process],
+                             LIBS=$LIBS"-lglslang  ")],
+                                   AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,

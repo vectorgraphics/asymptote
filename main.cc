@@ -84,7 +84,7 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
   if(camp::vk->vkthread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
@@ -228,7 +228,7 @@ void *asymain(void *A)
     int status;
     while(wait(&status) > 0);
   }
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
   if(camp::vk->vkthread) {
 #ifdef __MSDOS__ // Signals are unreliable in MSWindows
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
   }
 
   Args args(argc,argv);
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 #ifdef __APPLE__
   bool usethreads=true;
 #else

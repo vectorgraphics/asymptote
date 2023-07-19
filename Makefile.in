@@ -12,8 +12,7 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
-GLSLANGLIBS = -lglslang -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -ldl -lglfw -lvulkan $(GLSLANGLIBS)
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@ -ldl
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 
 CMAKE ?= cmake
@@ -51,8 +50,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy parallel simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures \
-	lspserv symbolmaps vkrender
+	$(PRC) jsfile v3dfile tinyexr EXRFiles lspserv symbolmaps vkrender
 
 FILES = $(COREFILES) main
 
@@ -84,8 +82,6 @@ ASY = ./asy -dir base -config "" -render=0
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp/include
-
-GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -127,7 +123,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version $(FILES:=.o) glew.o @LSPLIB@ vulkan
+asy:	version $(FILES:=.o) @LSPLIB@ vulkan
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -158,7 +154,7 @@ version: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) icons_rc.py $(ASYGENERATEDENUMS) 
 	  windres -o asy.o; \
 	fi
 
-asymptote.so: $(COREFILES:=.pic.o) glew.o
+asymptote.so: $(COREFILES:=.pic.o)
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 liblspcpp.a:
@@ -376,9 +372,6 @@ check: test
 check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
-
-glew.o: glew.c GL/glew.h GL/glew.c config.h
-	$(CC) -I. $(GLEWOPTS) -o glew.o -c glew.c
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)

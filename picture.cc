@@ -1305,11 +1305,11 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if(remesh) (*p)->meshinit();
-    
+
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
 
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
   // drawBuffers();
 #endif
 }
@@ -1341,7 +1341,7 @@ extern bool allowRender;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
   vk->wait(vk->initSignal,vk->initLock);
   vk->endwait(vk->initSignal,vk->initLock);
@@ -1379,9 +1379,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
 #ifndef HAVE_LIBOSMESA
-#ifndef HAVE_GL
+#ifndef HAVE_VULKAN
   if(!webgl)
-    camp::reportError("to support onscreen OpenGL rendering; please install the glut library, then ./configure; make");
+    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang libraries, then ./configure; make");
 #endif
 #endif
 
@@ -1419,7 +1419,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
   bool offscreen=false;
 #ifdef HAVE_LIBOSMESA
   offscreen=true;
@@ -1434,7 +1434,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool format3d=webgl || v3d;
 
   if(!format3d) {
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
     if(vk->vkthread && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(vk->initialize) {
@@ -1489,12 +1489,12 @@ bool picture::shipout3(const string& prefix, const string& format,
  #endif
    }
 
- #if HAVE_LIBGLM  
+ #if HAVE_LIBGLM
   AsyVkRender::Options options;
   options.display = true;
   options.title = std::string(settings::PROGRAM)+": "+prefix.c_str();
   vk->options = options;
-  
+
   vk->vkrender(pic,format,width,height,angle,
                zoom,m,M,shift,margin,t,background,
                nlights,lights,diffuse,specular,view,
@@ -1532,7 +1532,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
    // TODO: what is this?
    bool format3dWait = false;
- #ifdef HAVE_GL
+ #ifdef HAVE_VULKAN
      if(format3dWait) {
        format3dWait=false;
  #ifdef HAVE_PTHREAD
@@ -1545,7 +1545,7 @@ bool picture::shipout3(const string& prefix, const string& format,
    }
  #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
   if(vk->vkthread && !offscreen && Wait) {
     pthread_cond_wait(&vk->readySignal,&vk->readyLock);

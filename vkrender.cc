@@ -113,7 +113,7 @@ void AsyVkRender::update()
 
   double cz = 0.5 * (Zmin + Zmax);
   viewMat = glm::translate(glm::translate(glm::dmat4(1.0), glm::dvec3(cx, cy, cz)) * rotateMat, glm::dvec3(0, 0, -cz));
-  
+
   setProjection();
   updateViewmodelData();
 
@@ -303,11 +303,11 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
     yprev = ypos;
     return;
   }
-  
+
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
 
   if (app->lastAction == "rotate") {
-    
+
     Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
     triple axis = arcball.axis;
     app->rotateMat = glm::rotate(2 * arcball.angle / app->Zoom0 * app->ArcballFactor,
@@ -566,7 +566,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
     else
       height=min((int) (ceil(width/aspect)),screenHeight);
   }
-  
+
   travelHome(format3d);
   setProjection();
   if(format3d) {
@@ -812,12 +812,12 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
       indices.renderQueueFamily = u,
       indices.renderQueueFamilyFound = true;
     }
-    
+
     if (VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface)) {
       indices.presentQueueFamily = u,
       indices.presentQueueFamilyFound = true;
     }
-    
+
     if (family.queueFlags & vk::QueueFlagBits::eTransfer) {
       indices.transferQueueFamily = u,
       indices.transferQueueFamilyFound = true;    }
@@ -900,7 +900,7 @@ void AsyVkRender::createLogicalDevice()
   }
 
   vk::PhysicalDeviceFeatures deviceFeatures;
-  
+
   auto interlockFeatures = vk::PhysicalDeviceFragmentShaderInterlockFeaturesEXT(
     true,
     true,
@@ -923,7 +923,7 @@ void AsyVkRender::createLogicalDevice()
   deviceFeatures.fillModeNonSolid = true;
 
   auto deviceCI = vk::DeviceCreateInfo(
-    vk::DeviceCreateFlags(), 
+    vk::DeviceCreateFlags(),
     VEC_VIEW(queueCIs),
     VEC_VIEW(validationLayers),
     VEC_VIEW(extensions),
@@ -1042,7 +1042,7 @@ void AsyVkRender::createSwapChain()
 
   vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(
     vk::SwapchainCreateFlagsKHR(),
-    *surface, 
+    *surface,
     imageCount,
     surfaceFormat.format,
     surfaceFormat.colorSpace,
@@ -1356,7 +1356,7 @@ void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::Devic
 
   createBufferUnique(stagingBuffer, stagingBufferMemory, vk::BufferUsageFlagBits::eTransferDst,
                      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
-  
+
   auto const cmd = beginSingleCommands();
   auto const cpy = vk::BufferCopy(
     0, 0, size
@@ -2021,7 +2021,7 @@ void AsyVkRender::createCountRenderPass()
     vk::ResolveModeFlagBits::eMax,
     &depthResolveAttachmentRef
   );
-  
+
   std::array<vk::SubpassDescription2, 3> subpasses;
 
   subpasses[0] = vk::SubpassDescription2(
@@ -2355,7 +2355,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   );
 
   auto viewportStateCI = vk::PipelineViewportStateCreateInfo(
-    vk::PipelineViewportStateCreateFlags(), 
+    vk::PipelineViewportStateCreateFlags(),
     1,
     &viewport,
     1,
@@ -2430,7 +2430,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
       nullptr,
       &viewportStateCI,
       &rasterizerCI,
-      &multisamplingCI, 
+      &multisamplingCI,
       &depthStencilCI,
       &colorBlendCI,
       nullptr,
@@ -2636,10 +2636,10 @@ PushConstants AsyVkRender::buildPushConstants()
   pushConstants.constants[1] = swapChainExtent.width;
   pushConstants.constants[2] = swapChainExtent.height;
   pushConstants.constants[3] = maxSize;
-  
+
   for (int i = 0; i < 4; i++)
     pushConstants.background[i]=Background[i];
-  
+
   return pushConstants;
 }
 
@@ -2669,7 +2669,7 @@ vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline,
   }
 
   if (GPUindexing) {
-    
+
     if (ssbo) {
 
       if (interlock) {
@@ -2700,12 +2700,12 @@ void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
 void AsyVkRender::beginCountFrameRender(int imageIndex)
 {
   std::array<vk::ClearValue, 2> clearColors;
-  
+
   clearColors[0].depthStencil.depth = 1.f;
   clearColors[0].depthStencil.stencil = 0;
   clearColors[1].depthStencil.depth = 1.f;
   clearColors[1].depthStencil.stencil = 0;
-  
+
   auto renderPassInfo = vk::RenderPassBeginInfo(
     *countRenderPass,
     *depthFramebuffers[imageIndex],
@@ -2754,7 +2754,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
                                       VertexBuffer * data,
                                       vk::UniquePipeline & pipeline,
                                       bool incrementRenderCount) {
-  
+
   if (data->indices.empty())
     return;
 
@@ -2884,11 +2884,11 @@ void AsyVkRender::partialSums(FrameObject & object, bool readSize)
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum1PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
 
   // run sum1
-  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader, 
+  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader,
                                        vk::PipelineStageFlagBits::eComputeShader,
                                        { },
                                        1,
-                                       &writeBarrier, 
+                                       &writeBarrier,
                                        0,
                                        nullptr,
                                        0,
@@ -2898,11 +2898,11 @@ void AsyVkRender::partialSums(FrameObject & object, bool readSize)
 
   // run sum2
   auto const BlockSize=ceilquotient(g,localSize);
-  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader, 
+  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
                                        vk::PipelineStageFlagBits::eComputeShader,
                                        { },
                                        1,
-                                       &writeBarrier, 
+                                       &writeBarrier,
                                        0,
                                        nullptr,
                                        0,
@@ -2913,11 +2913,11 @@ void AsyVkRender::partialSums(FrameObject & object, bool readSize)
 
   // run sum3
   auto const Final=elements-1;
-  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader, 
+  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
                                        vk::PipelineStageFlagBits::eComputeShader,
                                        { },
                                        1,
-                                       &writeBarrier, 
+                                       &writeBarrier,
                                        0,
                                        nullptr,
                                        0,
@@ -2947,7 +2947,7 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   if (GPUindexing) {
-    
+
     vk::Result result;
 
     do
@@ -3090,7 +3090,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
       utils::stopWatch Timer;
       for(unsigned int i=0; i < N; ++i)
         partialSums(object);
-      
+
       // glFinish(); ??
       double T=Timer.seconds()/N;
       cout << "elements=" << elements << endl;
@@ -3185,7 +3185,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
     object.countCommandBuffer->reset();
     object.computeCommandBuffer->reset();
-    
+
     refreshBuffers(object, imageIndex);
 
     if (!interlock || true) {
@@ -3210,9 +3210,9 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   if (transparent) {
-    
+
     drawTransparent(object);
-  
+
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
     blendFrame(imageIndex);
@@ -3358,7 +3358,7 @@ void AsyVkRender::display()
 
   if(remesh) {
     clearCenters();
-    
+
     for (int i = 0; i < options.maxFramesInFlight; i++) {
       frameObjects[i].reset();
     }
@@ -3424,7 +3424,7 @@ void AsyVkRender::poll() {
 void AsyVkRender::mainLoop()
 {
   while (poll(), true) {
-    
+
     if (redraw || queueExport) {
       redraw = false;
       display();
@@ -3521,7 +3521,7 @@ void AsyVkRender::Export(int imageIndex) {
   );
 
   exportCommandBuffer->copyImageToBuffer(swapChainImages[imageIndex], vk::ImageLayout::eTransferSrcOptimal, dst, 1, &reg);
-  
+
   transitionImageLayout(
     *exportCommandBuffer,
     swapChainImages[imageIndex],
@@ -3554,9 +3554,9 @@ void AsyVkRender::Export(int imageIndex) {
 
   if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
-  
+
   device->waitForFences(1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-  
+
   auto * data = static_cast<unsigned char*>(device->mapMemory(mem, 0, size));
   auto * fmt = new unsigned char[swapChainExtent.width * swapChainExtent.height * 3]; // 3 for RGB
 
@@ -3594,7 +3594,7 @@ void AsyVkRender::Export(int imageIndex) {
   setProjection();
 
 #ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
   redraw=true;
 #endif
 
@@ -3616,7 +3616,7 @@ void AsyVkRender::quit()
   if(ctx) OSMesaDestroyContext(ctx);
   exit(0);
 #endif
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
   if(vkthread) {
     bool animating=settings::getSetting<bool>("animating");
     if(animating)

@@ -2,8 +2,7 @@
 
 // TODO: remove / move headers to .cc to avoid circular dependencies
 
-// prevents errors, to remove later
-#include <GL/glew.h>
+typedef unsigned int GLuint;
 
 #include <algorithm>
 #include <chrono>
@@ -435,8 +434,8 @@ public:
   double BBT[9];
   double T[16];
 
-  size_t Nmaterials;  
-  size_t nmaterials;  
+  size_t Nmaterials;
+  size_t nmaterials;
   size_t Maxmaterials;
 
   void updateProjection();
@@ -808,7 +807,7 @@ private:
   void recordCommandBuffer(DeviceBuffer & vertexBuffer,
                            DeviceBuffer & indexBuffer,
                            VertexBuffer * data,
-                           vk::UniquePipeline & pipeline, 
+                           vk::UniquePipeline & pipeline,
                            bool incrementRenderCount=true);
   void endFrameRender();
   void endFrameCommands();

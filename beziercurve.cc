@@ -10,7 +10,7 @@
 
 namespace camp {
 
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 
 void BezierCurve::init(double res)
 {

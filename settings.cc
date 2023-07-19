@@ -983,7 +983,7 @@ struct versionOption : public option {
 #endif
 
 // how to deal with / replace this?
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
     gl=true;
 #endif
 

@@ -31,7 +31,7 @@ protected:
   bool billboard;
   size_t centerIndex;
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
   BezierCurve R;
 #endif
   void init() {
@@ -203,7 +203,7 @@ class drawPixel : public drawElement {
   bool invisible;
   triple Min,Max;
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
   Pixel R;
 #endif
   drawPixel(const triple& v, const pen& p, double width, const string& key="")
