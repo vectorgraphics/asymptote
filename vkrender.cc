@@ -2,6 +2,8 @@
 #include "picture.h"
 #include "drawimage.h"
 
+#include <glslang/SPIRV/GlslangToSpv.h>
+
 void exitHandler(int);
 
 namespace camp
@@ -594,6 +596,8 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
 void AsyVkRender::initVulkan()
 {
+  glslang::InitializeProcess();
+
   frameObjects.resize(options.maxFramesInFlight);
 
   createInstance();
