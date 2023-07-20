@@ -2068,10 +2068,10 @@ void AsyVkRender::createBuffers()
 void AsyVkRender::createDependentBuffers()
 {
   pixels=(swapChainExtent.width+1)*(swapChainExtent.height+1);
-  GLuint Pixels;
+  std::uint32_t Pixels;
 
   if (GPUindexing) {
-    GLuint G=ceilquotient(pixels,groupSize);
+    std::uint32_t G=ceilquotient(pixels,groupSize);
     Pixels=groupSize*G;
     globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
   }
@@ -3106,7 +3106,7 @@ void AsyVkRender::partialSums(FrameObject & object, bool readSize)
   currentCommandBuffer.setEvent(*object.sumFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
 }
 
-GLuint ceilpow2(GLuint n)
+std::uint32_t ceilpow2(std::uint32_t n)
 {
   --n;
   n |= n >> 1;

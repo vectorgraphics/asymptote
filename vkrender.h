@@ -2,8 +2,6 @@
 
 // TODO: remove / move headers to .cc to avoid circular dependencies
 
-typedef unsigned int GLuint;
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -194,7 +192,7 @@ struct VertexBuffer {
   std::vector<MaterialVertex> materialVertices;
   std::vector<ColorVertex> colorVertices;
   std::vector<PointVertex> pointVertices;
-  std::vector<GLuint> indices;
+  std::vector<std::uint32_t> indices;
 
   int renderCount = 0;
   bool partial = false;
@@ -208,42 +206,42 @@ struct VertexBuffer {
     indices.clear();
   }
 
-  GLuint addVertex(const MaterialVertex& vertex)
+  std::uint32_t addVertex(const MaterialVertex& vertex)
   {
-    GLuint nvertices = materialVertices.size();
+    std::uint32_t nvertices = materialVertices.size();
     materialVertices.push_back(vertex);
     return nvertices;
   }
 
-  GLuint addVertex(const ColorVertex& vertex)
+  std::uint32_t addVertex(const ColorVertex& vertex)
   {
-    GLuint nvertices = colorVertices.size();
+    std::uint32_t nvertices = colorVertices.size();
     colorVertices.push_back(vertex);
     return nvertices;
   }
 
-  GLuint addVertex(const PointVertex& vertex)
+  std::uint32_t addVertex(const PointVertex& vertex)
   {
-    GLuint nvertices = pointVertices.size();
+    std::uint32_t nvertices = pointVertices.size();
     pointVertices.push_back(vertex);
     return nvertices;
   }
 
   void extendMaterial(const VertexBuffer& other)
   {
-    extendOffset<GLuint>(indices, other.indices, materialVertices.size());
+    extendOffset<std::uint32_t>(indices, other.indices, materialVertices.size());
     materialVertices.insert(materialVertices.end(), other.materialVertices.begin(), other.materialVertices.end());
   }
 
   void extendColor(const VertexBuffer& other)
   {
-    extendOffset<GLuint>(indices, other.indices, colorVertices.size());
+    extendOffset<std::uint32_t>(indices, other.indices, colorVertices.size());
     colorVertices.insert(colorVertices.end(), other.colorVertices.begin(), other.colorVertices.end());
   }
 
   void extendPoint(const VertexBuffer& other)
   {
-    extendOffset<GLuint>(indices, other.indices, pointVertices.size());
+    extendOffset<std::uint32_t>(indices, other.indices, pointVertices.size());
     pointVertices.insert(pointVertices.end(), other.pointVertices.begin(), other.pointVertices.end());
   }
 };
@@ -513,18 +511,18 @@ private:
   bool GPUcompress=false;
   bool initSSBO=true;
 
-  GLint gs2;
-  GLint gs;
-  GLint g;
-  GLuint processors;
-  GLuint localSize;
-  GLuint blockSize;
-  GLuint groupSize;
-  GLuint elements;
-  GLuint fragments;
-  GLuint maxFragments=1;
-  //GLint maxgroups;
-  GLuint maxSize=1;
+  std::int32_t gs2;
+  std::int32_t gs;
+  std::int32_t g;
+  std::uint32_t processors;
+  std::uint32_t localSize;
+  std::uint32_t blockSize;
+  std::uint32_t groupSize;
+  std::uint32_t elements;
+  std::uint32_t fragments;
+  std::uint32_t maxFragments=1;
+  //std::uint32_t maxgroups;
+  std::uint32_t maxSize=1;
 
   bool hasExternalMemoryCapabilitiesExtension = false;
   bool hasExternalMemoryExtension = false;
