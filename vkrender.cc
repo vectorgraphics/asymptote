@@ -468,7 +468,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   }
 #endif
 
-#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
+#if !defined(HAVE_LIBOSMESA)
   GPUindexing=settings::getSetting<bool>("GPUindexing");
   GPUcompress=settings::getSetting<bool>("GPUcompress");
 #else
