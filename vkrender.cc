@@ -723,7 +723,7 @@ void AsyVkRender::pickPhysicalDevice()
     if (!this->isDeviceSuitable(device))
       return score;
 
-    auto const msaa = getMaxMSAASamples(device);
+    auto const msaa = getMaxMSAASamples(device).second;
 
     switch (msaa)
     {
@@ -771,10 +771,16 @@ void AsyVkRender::pickPhysicalDevice()
     throw std::runtime_error("No suitable GPUs.");
 
   physicalDevice = highestDeviceScore.second;
-  msaaSamples = getMaxMSAASamples(physicalDevice);
+  std::uint32_t nSamples;
+
+  std::tie(nSamples, msaaSamples) = getMaxMSAASamples(physicalDevice);
+
+  if(settings::verbose > 1 && msaaSamples != vk::SampleCountFlagBits::e1)
+      cout << "Multisampling enabled with sample width " << nSamples
+           << endl;
 }
 
-vk::SampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
+std::pair<std::uint32_t, vk::SampleCountFlagBits> AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
 {
 	vk::PhysicalDeviceProperties props { };
 
@@ -784,19 +790,19 @@ vk::SampleCountFlagBits AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu
   auto const maxSamples = settings::getSetting<Int>("multisample");
 
 	if (count & vk::SampleCountFlagBits::e64 && maxSamples >= 64)
-		return vk::SampleCountFlagBits::e64;
+		return std::make_pair(64, vk::SampleCountFlagBits::e64);
 	if (count & vk::SampleCountFlagBits::e32 && maxSamples >= 32)
-		return vk::SampleCountFlagBits::e32;
+		return std::make_pair(32, vk::SampleCountFlagBits::e32);
 	if (count & vk::SampleCountFlagBits::e16 && maxSamples >= 16)
-		return vk::SampleCountFlagBits::e16;
+		return std::make_pair(16, vk::SampleCountFlagBits::e16);
 	if (count & vk::SampleCountFlagBits::e8 && maxSamples >= 8)
-		return vk::SampleCountFlagBits::e8;
+		return std::make_pair(8, vk::SampleCountFlagBits::e8);
 	if (count & vk::SampleCountFlagBits::e4 && maxSamples >= 4)
-		return vk::SampleCountFlagBits::e4;
+		return std::make_pair(4, vk::SampleCountFlagBits::e4);
 	if (count & vk::SampleCountFlagBits::e2 && maxSamples >= 2)
-		return vk::SampleCountFlagBits::e2;
+		return std::make_pair(2, vk::SampleCountFlagBits::e2);
 
-	return vk::SampleCountFlagBits::e1;
+	return std::make_pair(1, vk::SampleCountFlagBits::e1);
 }
 
 // maybe we should prefer using the same queue family for both transfer and render?
