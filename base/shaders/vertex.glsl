@@ -1,54 +1,45 @@
-in vec3 position;
 
+layout(binding = 0) uniform UniformBufferObject {
+    mat4 projViewMat;
+    mat4 viewMat;
+    mat4 normMat;
+} ubo;
+
+layout(location = 0) in vec3 inPosition;
 #ifdef NORMAL
-
-#ifndef ORTHOGRAPHIC
-uniform mat4 viewMat;
-out vec3 ViewPosition;
+layout(location = 1) in vec3 inNormal;
 #endif
-
-uniform mat3 normMat;
-in vec3 normal;
-out vec3 Normal;
-
-#endif
-
 #ifdef MATERIAL
-in int material;
-flat out int materialIndex;
+layout(location = 2) in int inMaterial;
 #endif
-
 #ifdef COLOR
-in vec4 color;
-out vec4 Color;
+layout(location = 3) in vec4 inColor;
 #endif
-
 #ifdef WIDTH
-in float width;
+layout(location = 4) in float inWidth;
 #endif
 
-uniform mat4 projViewMat;
+layout(location = 0) out vec3 position;
+layout(location = 1) out vec3 viewPos;
+layout(location = 2) out vec3 normal;
+layout(location = 3) out vec4 color;
+layout(location = 4) flat out int materialIndex;
 
-void main()
-{
-  vec4 v=vec4(position,1.0);
-  gl_Position=projViewMat*v;
+void main() {
+    position        = inPosition;
+    viewPos         = (ubo.viewMat * vec4(inPosition, 1.0)).xyz;
 #ifdef NORMAL
-#ifndef ORTHOGRAPHIC
-  ViewPosition=(viewMat*v).xyz;
+    normal          = normalize((vec4(inNormal, 1.0) * ubo.normMat).xyz);
 #endif
-  Normal=normalize(normal*normMat);
-#endif
-
-#ifdef COLOR
-  Color=color;
-#endif
-
-#ifdef WIDTH
-  gl_PointSize=width;
-#endif
-
 #ifdef MATERIAL
-  materialIndex=material;
+    materialIndex   = inMaterial;
+#endif
+#ifdef COLOR
+    color           = inColor;
+#endif
+
+    gl_Position     = ubo.projViewMat * vec4(inPosition, 1.0);
+#ifdef WIDTH
+    gl_PointSize    = inWidth;
 #endif
 }

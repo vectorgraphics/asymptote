@@ -1,35 +1,38 @@
-layout(binding=0, std430) buffer offsetBuffer
-{
-  uint maxDepth;
-  uint offset[];
-};
 
-layout(binding=2, std430) buffer countBuffer
+layout(binding = 3, std430) buffer CountBuffer
 {
   uint maxSize;
   uint count[];
 };
 
-layout(binding=4, std430) buffer fragmentBuffer
+layout(binding = 4, std430) buffer OffsetBuffer
+{
+  uint maxDepth;
+  uint offset[];
+};
+
+layout(binding = 5, std430) buffer FragmentBuffer
 {
   vec4 fragment[];
 };
 
-layout(binding=5, std430) buffer depthBuffer
+layout(binding = 6, std430) buffer DepthBuffer
 {
   float depth[];
 };
 
-layout(binding=6, std430) buffer opaqueBuffer {
+layout(binding = 7, std430) buffer OpaqueBuffer
+{
   vec4 opaqueColor[];
 };
 
-layout(binding=7, std430) buffer opaqueDepthBuffer {
+layout(binding = 8, std430) buffer OpaqueDepthBuffer
+{
   float opaqueDepth[];
 };
 
 #ifdef GPUCOMPRESS
-layout(binding=1, std430) buffer indexBuffer
+layout(binding=9, std430) buffer indexBuffer
 {
   uint index[];
 };
@@ -40,10 +43,15 @@ layout(binding=1, std430) buffer indexBuffer
 #define COUNT(pixel) count[pixel]
 #endif
 
-out vec4 outColor;
+layout(push_constant) uniform PushConstants
+{
+	uvec4 constants;
+  vec4 background;
+  // constants[0] = nlights
+  // constants[1] = width
+} push;
 
-uniform uint width;
-uniform vec4 background;
+layout(location = 0) out vec4 outColor;
 
 vec4 blend(vec4 outColor, vec4 color)
 {
@@ -52,7 +60,7 @@ vec4 blend(vec4 outColor, vec4 color)
 
 void main()
 {
-  uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+  uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
   float OpaqueDepth=opaqueDepth[pixel];
   uint element=INDEX(pixel);
 
@@ -79,7 +87,7 @@ void main()
   }
 #endif
 
-  outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : background;
+  outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : push.background;
 
 #ifndef GPUINDEXING
   uint listIndex=offset[element]-size;
@@ -122,6 +130,8 @@ void main()
         E[j]=element(k,d);
         ++i;
       }
+
+
       for(uint j=0u; j < i; ++j)
         outColor=blend(outColor,fragment[listIndex+E[j].index]);
     }

@@ -2,6 +2,8 @@
 #include "picture.h"
 #include "drawimage.h"
 
+#define SHADER_DIRECTORY "base/shaders/"
+
 void exitHandler(int);
 
 namespace camp
@@ -2452,15 +2454,16 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
 template<typename V>
 void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
                                          vk::PolygonMode fillMode, std::vector<std::string> options,
-                                         std::string const & shaderFile,
+                                         std::string const & vertexShader,
+                                         std::string const & fragmentShader,
                                          int graphicsSubpass, bool enableDepthWrite,
                                          bool transparent, bool disableMultisample)
 {
-  std::string vertShaderName = "shaders/" + shaderFile + ".vert.glsl";
-  std::string fragShaderName = "shaders/" + shaderFile + ".frag.glsl";
+  std::string vertShaderName = SHADER_DIRECTORY + vertexShader + ".glsl";
+  std::string fragShaderName = SHADER_DIRECTORY + fragmentShader + ".glsl";
 
   if (type == PIPELINE_COUNT) {
-    fragShaderName = "shaders/count.frag.glsl";
+    fragShaderName = SHADER_DIRECTORY "count.glsl";
   }
 
   modifyShaderOptions(options, type);
@@ -2628,7 +2631,8 @@ void AsyVkRender::createGraphicsPipelines()
                           (PipelineType(u), materialPipelines[u], vk::PrimitiveTopology::eTriangleList,
                           drawMode,
                           materialShaderOptions,
-                          "base",
+                          "vertex",
+                          "fragment",
                           0);
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
@@ -2636,7 +2640,8 @@ void AsyVkRender::createGraphicsPipelines()
                           (PipelineType(u), colorPipelines[u], vk::PrimitiveTopology::eTriangleList,
                           drawMode,
                           colorShaderOptions,
-                          "base",
+                          "vertex",
+                          "fragment",
                           0);
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
@@ -2644,7 +2649,8 @@ void AsyVkRender::createGraphicsPipelines()
                           (PipelineType(u), trianglePipelines[u], vk::PrimitiveTopology::eTriangleList,
                           drawMode,
                           triangleShaderOptions,
-                          "base",
+                          "vertex",
+                          "fragment",
                           0);
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
@@ -2652,7 +2658,8 @@ void AsyVkRender::createGraphicsPipelines()
                           (PipelineType(u), linePipelines[u], vk::PrimitiveTopology::eLineList,
                           vk::PolygonMode::eFill,
                           materialShaderOptions,
-                          "base",
+                          "vertex",
+                          "fragment",
                           0);
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
@@ -2660,7 +2667,8 @@ void AsyVkRender::createGraphicsPipelines()
                           (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::eTriangleList,
                           drawMode,
                           pointShaderOptions,
-                          "base",
+                          "vertex",
+                          "fragment",
                           0);
 
   for (unsigned u = PIPELINE_TRANSPARENT; u < PIPELINE_MAX; u++)
@@ -2668,7 +2676,8 @@ void AsyVkRender::createGraphicsPipelines()
                           (PipelineType(u), transparentPipelines[u], vk::PrimitiveTopology::eTriangleList,
                           drawMode,
                           transparentShaderOptions,
-                          "base",
+                          "vertex",
+                          "fragment",
                           1,
                           false,
                           true);
@@ -2677,6 +2686,7 @@ void AsyVkRender::createGraphicsPipelines()
                         (PIPELINE_DONTCARE, compressPipeline, vk::PrimitiveTopology::eTriangleList,
                         vk::PolygonMode::eFill,
                         {},
+                        "screen",
                         "compress",
                         2,
                         false,
@@ -2692,6 +2702,7 @@ void AsyVkRender::createBlendPipeline() {
                         (PIPELINE_DONTCARE, blendPipeline, vk::PrimitiveTopology::eTriangleList,
                         vk::PolygonMode::eFill,
                         {},
+                        "screen",
                         "blend",
                         2,
                         false,
@@ -2702,7 +2713,7 @@ void AsyVkRender::createBlendPipeline() {
 void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
                                         std::string const & shaderFile)
 {
-  auto const filename = "shaders/" + shaderFile + ".comp.glsl";
+  auto const filename = SHADER_DIRECTORY + shaderFile + ".glsl";
 
   std::vector<std::string> options;
 

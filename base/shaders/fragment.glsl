@@ -1,71 +1,66 @@
 struct Material
 {
-  vec4 diffuse,emissive,specular;
+  vec4 diffuse, emissive, specular;
   vec4 parameters;
 };
 
 struct Light
 {
-  vec3 direction;
-  vec3 color;
+  vec4 direction;
+  vec4 color;
 };
 
-uniform uint nlights;
-uniform Light lights[max(Nlights,1)];
+layout(binding = 0) uniform UniformBufferObject
+{
+  mat4 projViewMat;
+  mat4 viewMat;
+  mat4 normMat;
+} ubo;
 
-uniform MaterialBuffer {
-  Material Materials[Nmaterials];
+layout(binding = 1, std430) buffer MaterialBuffer
+{
+  Material materials[];
 };
 
-flat in int materialIndex;
-out vec4 outColor;
+layout(binding = 2, std430) buffer LightBuffer
+{
+  Light lights[];
+};
 
-// PBR material parameters
-vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
-vec3 Specular; // Specular tint for nonmetals
-float Metallic; // Metallic/Nonmetals parameter
-float Fresnel0; // Fresnel at zero for nonmetals
-float Roughness2; // roughness squared, for smoothing
-float Roughness;
+layout(binding = 3, std430) buffer CountBuffer
+{
+  uint maxSize;
+  uint count[];
+};
 
-#ifdef HAVE_SSBO
-
-layout(binding=0, std430) buffer offsetBuffer
+layout(binding = 4, std430) buffer OffsetBuffer
 {
   uint maxDepth;
   uint offset[];
 };
 
-#ifndef GPUINDEXING
-layout(binding=2, std430) buffer countBuffer
-{
-  uint maxSize;
-  uint count[];
-};
-#endif
-
-layout(binding=4, std430) buffer fragmentBuffer
+layout(binding = 5, std430) buffer FragmentBuffer
 {
   vec4 fragment[];
 };
 
-layout(binding=5, std430) buffer depthBuffer
+layout(binding = 6, std430) buffer DepthBuffer
 {
   float depth[];
 };
 
-layout(binding=6, std430) buffer opaqueBuffer
+layout(binding = 7, std430) buffer OpaqueBuffer
 {
   vec4 opaqueColor[];
 };
 
-layout(binding=7, std430) buffer opaqueDepthBuffer
+layout(binding = 8, std430) buffer OpaqueDepthBuffer
 {
   float opaqueDepth[];
 };
 
 #ifdef GPUCOMPRESS
-layout(binding=1, std430) buffer indexBuffer
+layout(binding=9, std430) buffer indexBuffer
 {
   uint index[];
 };
@@ -74,76 +69,32 @@ layout(binding=1, std430) buffer indexBuffer
 #define INDEX(pixel) pixel
 #endif
 
-uniform uint width;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 viewPos;
+layout(location = 2) in vec3 norm;
+layout(location = 3) in vec4 inColor;
+layout(location = 4) flat in int materialIndex;
 
-#endif
+layout(push_constant) uniform PushConstants
+{
+	uvec4 constants;
+  vec4 background;
+  // constants[0] = nlights
+  // constants[1] = width;
+} push;
 
-#ifdef NORMAL
+layout(location = 0) out vec4 outColor;
 
-#ifndef ORTHOGRAPHIC
-in vec3 ViewPosition;
-#endif
-in vec3 Normal;
+vec3 Emissive;
+vec3 Diffuse;
+vec3 Specular;
+float Metallic;
+float Fresnel0;
+float Roughness2;
+float Roughness;
+
 vec3 normal;
 
-#ifdef USE_IBL
-uniform sampler2D reflBRDFSampler;
-uniform sampler2D diffuseSampler;
-uniform sampler3D reflImgSampler;
-
-const float pi=acos(-1.0);
-const float piInv=1.0/pi;
-const float twopi=2.0*pi;
-const float twopiInv=1.0/twopi;
-
-// (x,y,z) -> (r,theta,phi);
-// theta -> [0,pi]: colatitude
-// phi -> [-pi,pi]: longitude
-vec3 cart2sphere(vec3 cart)
-{
-  float x=cart.x;
-  float y=cart.z;
-  float z=cart.y;
-
-  float r=length(cart);
-  float theta=r > 0.0 ? acos(z/r) : 0.0;
-  float phi=atan(y,x);
-
-  return vec3(r,theta,phi);
-}
-
-vec2 normalizedAngle(vec3 cartVec)
-{
-  vec3 sphericalVec=cart2sphere(cartVec);
-  sphericalVec.y=sphericalVec.y*piInv;
-  sphericalVec.z=0.75-sphericalVec.z*twopiInv;
-
-  return sphericalVec.zy;
-}
-
-vec3 IBLColor(vec3 viewDir)
-{
-  //
-  // based on the split sum formula approximation
-  // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
-  // which, by the split sum approiximation (assuming independence+GGX distrubition),
-  // roughly equals (within a margin of error)
-  // [\int_\Omega L(l)] * [\int_\Omega f(l,v) \cos \theta_l].
-  // the first term is the reflectance irradiance integral
-
-  vec3 IBLDiffuse=Diffuse*texture(diffuseSampler,normalizedAngle(normal)).rgb;
-  vec3 reflectVec=normalize(reflect(-viewDir,normal));
-  vec2 reflCoord=normalizedAngle(reflectVec);
-  vec3 IBLRefl=texture(reflImgSampler,vec3(reflCoord,Roughness)).rgb;
-  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),Roughness)).rg;
-  float specularMultiplier=Fresnel0*IBLbrdf.x+IBLbrdf.y;
-  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
-  vec3 metal=Diffuse*IBLRefl;
-  return mix(dielectric,metal,Metallic);
-}
-#else
-// h is the halfway vector between normal and light direction
-// GGX Trowbridge-Reitz Approximation
 float NDF_TRG(vec3 h)
 {
   float ndoth=max(dot(normal,h),0.0);
@@ -162,10 +113,9 @@ float GGX_Geom(vec3 v)
 
 float Geom(vec3 v, vec3 l)
 {
-  return GGX_Geom(v)*GGX_Geom(l);
+  return GGX_Geom(v) * GGX_Geom(l);
 }
 
-// Schlick's approximation
 float Fresnel(vec3 h, vec3 v, float fresnel0)
 {
   float a=1.0-max(dot(h,v),0.0);
@@ -194,99 +144,75 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   return mix(dielectric,metal,Metallic);
 }
-#endif
 
-#endif
+void main() {
 
-#ifdef COLOR
-in vec4 Color;
-#endif
+  uint nlights = push.constants[0];
 
-void main()
-{
-  vec4 diffuse;
-  vec4 emissive;
+  Material mat;
 
-  Material m;
 #ifdef GENERAL
-  m=Materials[abs(materialIndex)-1];
-  emissive=m.emissive;
-  if(materialIndex >= 0)
-    diffuse=m.diffuse;
-  else {
-    diffuse=Color;
-#if Nlights == 0
-    emissive += Color;
-#endif
+  mat = materials[abs(materialIndex) - 1];
+
+  if (materialIndex < 0) {
+    mat.diffuse = inColor;
+#ifdef NOLIGHTS
+      mat.emissive += inColor;
+#endif /*NOLIGHTS*/
   }
+
 #else
-  m=Materials[materialIndex];
-  emissive=m.emissive;
+
+  mat = materials[materialIndex];
+
 #ifdef COLOR
-  diffuse=Color;
-#if Nlights == 0
-  emissive += Color;
-#endif
-#else
-  diffuse=m.diffuse;
-#endif
-#endif
+  mat.diffuse = inColor;
+#endif /*COLOR*/
+#endif /*GENERAL*/
 
-#if defined(NORMAL) && Nlights > 0
-  Specular=m.specular.rgb;
-  vec4 parameters=m.parameters;
-  Roughness=1.0-parameters[0];
-  Roughness2=Roughness*Roughness;
-  Metallic=parameters[1];
-  Fresnel0=parameters[2];
-  Diffuse=diffuse.rgb;
+  outColor = mat.emissive;
 
-  // Given a point x and direction \omega,
-  // L_i=\int_{\Omega}f(x,\omega_i,\omega) L(x,\omega_i)(\hat{n}\cdot \omega_i)
-  // d\omega_i, where \Omega is the hemisphere covering a point,
-  // f is the BRDF function, L is the radiance from a given angle and position.
+#ifdef NORMAL
 
-  normal=normalize(Normal);
-  normal=gl_FrontFacing ? normal : -normal;
-#ifdef ORTHOGRAPHIC
-  vec3 viewDir=vec3(0.0,0.0,1.0);
-#else
-  vec3 viewDir=-normalize(ViewPosition);
-#endif
-  vec3 color;
-#ifdef USE_IBL
-  color=IBLColor(viewDir);
-#else
-  // For a finite point light, the rendering equation simplifies.
-  color=emissive.rgb;
-  for(uint i=0u; i < nlights; ++i) {
-    Light Li=lights[i];
-    vec3 L=Li.direction;
-    float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
-    vec3 radiance=cosTheta*Li.color;
-    color += BRDF(viewDir,L)*radiance;
+  Diffuse = mat.diffuse.rgb;
+  Specular = mat.specular.rgb;
+  Roughness = 1.f - mat.parameters[0];
+  Metallic = mat.parameters[1];
+  Fresnel0 = mat.parameters[2];
+  Roughness2 = Roughness * Roughness;
+
+  vec3 viewDirection = -normalize(viewPos);
+  normal = normalize(norm);
+
+  if (!gl_FrontFacing)
+      normal = -normal;
+
+  for (int i = 0; i < nlights; i++)
+  {
+      Light light = lights[i];
+
+      vec3 radiance = max(dot(normal, light.direction.xyz), 0.0) * light.color.rgb;
+      outColor += vec4(BRDF(viewDirection, light.direction.xyz) * radiance, 0.0);
   }
-#endif
-  outColor=vec4(color,diffuse.a);
-#else
-  outColor=emissive;
-#endif
 
-#ifndef WIDTH
+  outColor = vec4(outColor.rgb, mat.diffuse.a);
+#endif /*NORMAL*/
+
+#ifndef WIDTH // TODO DO NOT DO THE DEPTH COMPARISON WHEN NO TRANSPARENT OBJECTS!
 #ifdef HAVE_SSBO
-  uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+  uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
 #ifdef GPUINDEXING
   uint listIndex=atomicAdd(offset[element],-1u)-1u;
 #else
   uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
-#endif
+#endif /*GPUINDEXING*/
   fragment[listIndex]=outColor;
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
   discard;
-#endif
+#endif /*WIREFRAME*/
 #else
 #if defined(HAVE_INTERLOCK) && !defined(OPAQUE)
   beginInvocationInterlockARB();

@@ -872,7 +872,8 @@ private:
   template<typename V>
   void createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
                               vk::PolygonMode fillMode, std::vector<std::string> options,
-                              std::string const & shaderFile,
+                              std::string const & vertexShader,
+                              std::string const & fragmentShader,
                               int graphicsSubpass, bool enableDepthWrite=true,
                               bool transparent=false, bool disableMultisample=false);
   void createGraphicsPipelines();
