@@ -2,8 +2,6 @@
 #include "picture.h"
 #include "drawimage.h"
 
-#include <glslang/SPIRV/GlslangToSpv.h>
-
 void exitHandler(int);
 
 namespace camp
@@ -412,6 +410,8 @@ AsyVkRender::~AsyVkRender()
     glfwDestroyWindow(this->window);
     glfwTerminate();
   }
+
+  glslang::FinalizeProcess();
 }
 
 void AsyVkRender::vkrender(const picture* pic, const string& format,
@@ -596,7 +596,8 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 
 void AsyVkRender::initVulkan()
 {
-  glslang::InitializeProcess();
+  if (!glslang::InitializeProcess())
+    throw std::runtime_error("Unable to initialize glslang.");
 
   frameObjects.resize(options.maxFramesInFlight);
 
@@ -1086,15 +1087,166 @@ void AsyVkRender::createImageViews()
   }
 }
 
-vk::UniqueShaderModule AsyVkRender::createShaderModule(const std::vector<char>& code)
+TBuiltInResource AsyVkRender::getDefaultShaderResources() {
+
+  TBuiltInResource res;
+
+  res.maxLights = 32;
+	res.maxClipPlanes = 6;
+	res.maxTextureUnits = 32;
+	res.maxTextureCoords = 32;
+	res.maxVertexAttribs = 64;
+	res.maxVertexUniformComponents = 4096;
+	res.maxVaryingFloats = 64;
+	res.maxVertexTextureImageUnits = 32;
+	res.maxCombinedTextureImageUnits = 80;
+	res.maxTextureImageUnits = 32;
+	res.maxFragmentUniformComponents = 4096;
+	res.maxDrawBuffers = 32;
+	res.maxVertexUniformVectors = 128;
+	res.maxVaryingVectors = 8;
+	res.maxFragmentUniformVectors = 16;
+	res.maxVertexOutputVectors = 16;
+	res.maxFragmentInputVectors = 15;
+	res.minProgramTexelOffset = -8;
+	res.maxProgramTexelOffset = 7;
+	res.maxClipDistances = 8;
+	res.maxComputeWorkGroupCountX = 65535;
+	res.maxComputeWorkGroupCountY = 65535;
+	res.maxComputeWorkGroupCountZ = 65535;
+	res.maxComputeWorkGroupSizeX = 1024;
+	res.maxComputeWorkGroupSizeY = 1024;
+	res.maxComputeWorkGroupSizeZ = 64;
+	res.maxComputeUniformComponents = 1024;
+	res.maxComputeTextureImageUnits = 16;
+	res.maxComputeImageUniforms = 8;
+	res.maxComputeAtomicCounters = 8;
+	res.maxComputeAtomicCounterBuffers = 1;
+	res.maxVaryingComponents = 60;
+	res.maxVertexOutputComponents = 64;
+	res.maxGeometryInputComponents = 64;
+	res.maxGeometryOutputComponents = 128;
+	res.maxFragmentInputComponents = 128;
+	res.maxImageUnits = 8;
+	res.maxCombinedImageUnitsAndFragmentOutputs = 8;
+	res.maxCombinedShaderOutputResources = 8;
+	res.maxImageSamples = 0;
+	res.maxVertexImageUniforms = 0;
+	res.maxTessControlImageUniforms = 0;
+	res.maxTessEvaluationImageUniforms = 0;
+	res.maxGeometryImageUniforms = 0;
+	res.maxFragmentImageUniforms = 8;
+	res.maxCombinedImageUniforms = 8;
+	res.maxGeometryTextureImageUnits = 16;
+	res.maxGeometryOutputVertices = 256;
+	res.maxGeometryTotalOutputComponents = 1024;
+	res.maxGeometryUniformComponents = 1024;
+	res.maxGeometryVaryingComponents = 64;
+	res.maxTessControlInputComponents = 128;
+	res.maxTessControlOutputComponents = 128;
+	res.maxTessControlTextureImageUnits = 16;
+	res.maxTessControlUniformComponents = 1024;
+	res.maxTessControlTotalOutputComponents = 4096;
+	res.maxTessEvaluationInputComponents = 128;
+	res.maxTessEvaluationOutputComponents = 128;
+	res.maxTessEvaluationTextureImageUnits = 16;
+	res.maxTessEvaluationUniformComponents = 1024;
+	res.maxTessPatchComponents = 120;
+	res.maxPatchVertices = 32;
+	res.maxTessGenLevel = 64;
+	res.maxViewports = 16;
+	res.maxVertexAtomicCounters = 0;
+	res.maxTessControlAtomicCounters = 0;
+	res.maxTessEvaluationAtomicCounters = 0;
+	res.maxGeometryAtomicCounters = 0;
+	res.maxFragmentAtomicCounters = 8;
+	res.maxCombinedAtomicCounters = 8;
+	res.maxAtomicCounterBindings = 1;
+	res.maxVertexAtomicCounterBuffers = 0;
+	res.maxTessControlAtomicCounterBuffers = 0;
+	res.maxTessEvaluationAtomicCounterBuffers = 0;
+	res.maxGeometryAtomicCounterBuffers = 0;
+	res.maxFragmentAtomicCounterBuffers = 1;
+	res.maxCombinedAtomicCounterBuffers = 1;
+	res.maxAtomicCounterBufferSize = 16384;
+	res.maxTransformFeedbackBuffers = 4;
+	res.maxTransformFeedbackInterleavedComponents = 64;
+	res.maxCullDistances = 8;
+	res.maxCombinedClipAndCullDistances = 8;
+	res.maxSamples = 64;
+	res.maxMeshOutputVerticesNV = 256;
+	res.maxMeshOutputPrimitivesNV = 512;
+	res.maxMeshWorkGroupSizeX_NV = 32;
+	res.maxMeshWorkGroupSizeY_NV = 1;
+	res.maxMeshWorkGroupSizeZ_NV = 1;
+	res.maxTaskWorkGroupSizeX_NV = 32;
+	res.maxTaskWorkGroupSizeY_NV = 1;
+	res.maxTaskWorkGroupSizeZ_NV = 1;
+	res.maxMeshViewCountNV = 4;
+	res.limits.nonInductiveForLoops = 1;
+	res.limits.whileLoops = 1;
+	res.limits.doWhileLoops = 1;
+	res.limits.generalUniformIndexing = 1;
+	res.limits.generalAttributeMatrixVectorIndexing = 1;
+	res.limits.generalVaryingIndexing = 1;
+	res.limits.generalSamplerIndexing = 1;
+	res.limits.generalVariableIndexing = 1;
+	res.limits.generalConstantMatrixVectorIndexing = 1;
+
+  return res;
+}
+
+vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options)
 {
-  auto shaderModuleCI =
-          vk::ShaderModuleCreateInfo({}, code.size(),
-                                     reinterpret_cast<const uint32_t*>(code.data()));
+  std::string header = "#version 450\n";
+
+  for (auto const & option: options) {
+    header += "#define " + option + "\n";
+  }
+
+  auto fileContents = readFile(filename);
+  fileContents.emplace_back(0); // terminate string
+
+  std::vector<char> source(header.begin(), header.end());
+  source.insert(source.end(), fileContents.begin(), fileContents.end());
+
+  std::vector<const char*> const shaderSources {source.data()};
+  auto const res = getDefaultShaderResources();
+  auto const compileMessages = EShMessages(EShMsgSpvRules | EShMsgVulkanRules);
+  auto shader = glslang::TShader(lang);
+  glslang::TProgram program;
+  std::vector<std::uint32_t> spirv;
+
+  shader.setStrings(shaderSources.data(), shaderSources.size());
+
+  if (!shader.parse(&res, 100, false, compileMessages)) {
+    std::cout << fileContents.size() << std::endl;
+    std::cout << fileContents.data() << std::endl;
+    throw std::runtime_error("Failed to parse shader "
+                             + filename
+                             + ": " + shader.getInfoLog()
+                             + " " + shader.getInfoDebugLog());
+  }
+
+  program.addShader(&shader);
+
+  if (!program.link(compileMessages)) {
+    throw std::runtime_error("Failed to link shader "
+                             + filename
+                             + ": " + shader.getInfoLog());
+  }
+
+  glslang::GlslangToSpv(*program.getIntermediate(lang), spirv);
+
+  auto shaderModuleCI = vk::ShaderModuleCreateInfo(
+    {},
+    spirv.size() * sizeof(std::uint32_t),
+    spirv.data()
+  );
+
   return device->createShaderModuleUnique(shaderModuleCI);
 }
 
-// how will this work with multiple pipelines and without a swapchain?
 void AsyVkRender::createFramebuffers()
 {
   depthFramebuffers.resize(swapChainImageViews.size());
@@ -2273,36 +2425,48 @@ void AsyVkRender::createGraphicsPipelineLayout()
   graphicsPipelineLayout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 }
 
+void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, PipelineType type) {
+
+  options.emplace_back("HAVE_SSBO");
+
+  if (type == PIPELINE_OPAQUE) {
+    options.emplace_back("OPAQUE");
+    return;
+  }
+
+  if (GPUindexing) {
+    options.emplace_back("GPUINDEXING");
+  }
+  if (GPUcompress) {
+    options.emplace_back("GPUCOMPRESS");
+  }
+  if (interlock) {
+    options.emplace_back("HAVE_INTERLOCK");
+  }
+
+  options.emplace_back("LOCALSIZE " + std::to_string(localSize));
+  options.emplace_back("BLOCKSIZE " + std::to_string(blockSize));
+  options.emplace_back("ARRAYSIZE " + std::to_string(maxSize));
+}
+
 template<typename V>
 void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
-                                         vk::PolygonMode fillMode, std::string const & shader,
+                                         vk::PolygonMode fillMode, std::vector<std::string> options,
+                                         std::string const & shaderFile,
                                          int graphicsSubpass, bool enableDepthWrite,
                                          bool transparent, bool disableMultisample)
 {
-  std::string vertShaderName = "shaders/" + shader + shaderExtensions[type] + ".vert.spv";
-  std::string fragShaderName = "shaders/";
+  std::string vertShaderName = "shaders/" + shaderFile + ".vert.glsl";
+  std::string fragShaderName = "shaders/" + shaderFile + ".frag.glsl";
 
-  if (type != PIPELINE_COUNT && type != PIPELINE_COUNT_COMPRESS) {
-
-    if (type == PIPELINE_CUSTOM)
-      fragShaderName += shader;
-    else
-      fragShaderName += shader + shaderExtensions[type];
-  } else {
-
-    fragShaderName += "count";
-
-    if (type == PIPELINE_COUNT_COMPRESS)
-      fragShaderName += "Compress";
+  if (type == PIPELINE_COUNT) {
+    fragShaderName = "shaders/count.frag.glsl";
   }
 
-  fragShaderName += ".frag.spv";
+  modifyShaderOptions(options, type);
 
-  auto vertShaderCode = readFile(vertShaderName);
-  auto fragShaderCode = readFile(fragShaderName);
-
-  vk::UniqueShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-  vk::UniqueShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+  auto vertShaderModule = createShaderModule(EShLangVertex, vertShaderName, options);
+  auto fragShaderModule = createShaderModule(EShLangFragment, fragShaderName, options);
 
   vk::SpecializationMapEntry specializationMapEntries[] = {};
   uint32_t specializationData[] = {};
@@ -2447,69 +2611,88 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
       pipeline = std::move(result.value);
   };
 
-  makePipeline(graphicsPipeline, stages, type == PIPELINE_COUNT || type == PIPELINE_CUSTOM || type == PIPELINE_COUNT_COMPRESS ? *countRenderPass : *graphicsRenderPass, graphicsSubpass);
+  makePipeline(
+    graphicsPipeline,
+    stages,
+    type == PIPELINE_COUNT ? *countRenderPass : *graphicsRenderPass,
+    graphicsSubpass
+  );
 }
 
 void AsyVkRender::createGraphicsPipelines()
 {
+  auto const drawMode = options.mode == DRAWMODE_WIREFRAME ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
+
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<MaterialVertex>
                           (PipelineType(u), materialPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                          "material",
+                          drawMode,
+                          materialShaderOptions,
+                          "base",
                           0);
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<ColorVertex>
                           (PipelineType(u), colorPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                          "color",
+                          drawMode,
+                          colorShaderOptions,
+                          "base",
                           0);
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<ColorVertex>
                           (PipelineType(u), trianglePipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                          "triangle",
+                          drawMode,
+                          triangleShaderOptions,
+                          "base",
                           0);
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<MaterialVertex>
                           (PipelineType(u), linePipelines[u], vk::PrimitiveTopology::eLineList,
                           vk::PolygonMode::eFill,
-                          "material",
+                          materialShaderOptions,
+                          "base",
                           0);
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<PointVertex>
                           (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                          "point",
+                          drawMode,
+                          pointShaderOptions,
+                          "base",
                           0);
 
-  for (unsigned u = PIPELINE_COUNT; u < PIPELINE_MAX; u++)
+  for (unsigned u = PIPELINE_TRANSPARENT; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<ColorVertex>
                           (PipelineType(u), transparentPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                          "transparent",
+                          drawMode,
+                          transparentShaderOptions,
+                          "base",
                           1,
                           false,
                           true);
 
-  for (unsigned u = PIPELINE_DEFAULT; u < PIPELINE_MAX; u++)
-    createGraphicsPipeline<ColorVertex>
-                          (PipelineType(u), blendPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          (options.mode == DRAWMODE_WIREFRAME) ? vk::PolygonMode::eLine : vk::PolygonMode::eFill,
-                          "blend",
-                          2,
-                          false,
-                          false,
-                          true);
+  createGraphicsPipeline<ColorVertex>
+                        (PIPELINE_DONTCARE, compressPipeline, vk::PrimitiveTopology::eTriangleList,
+                        vk::PolygonMode::eFill,
+                        {},
+                        "compress",
+                        2,
+                        false,
+                        false,
+                        true);
+
+  createBlendPipeline();
+}
+
+void AsyVkRender::createBlendPipeline() {
 
   createGraphicsPipeline<ColorVertex>
-                        (PIPELINE_CUSTOM, compressPipeline, vk::PrimitiveTopology::eTriangleList,
+                        (PIPELINE_DONTCARE, blendPipeline, vk::PrimitiveTopology::eTriangleList,
                         vk::PolygonMode::eFill,
-                        "compress",
+                        {},
+                        "blend",
                         2,
                         false,
                         false,
@@ -2519,9 +2702,13 @@ void AsyVkRender::createGraphicsPipelines()
 void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
                                         std::string const & shaderFile)
 {
-  auto computeShaderCode = readFile("shaders/" + shaderFile + ".comp.spv");
+  auto const filename = "shaders/" + shaderFile + ".comp.glsl";
 
-  vk::UniqueShaderModule computeShaderModule = createShaderModule(computeShaderCode);
+  std::vector<std::string> options;
+
+  modifyShaderOptions(options, PIPELINE_DONTCARE);
+
+  vk::UniqueShaderModule computeShaderModule = createShaderModule(EShLangCompute, filename, options);
 
   auto computeShaderStageInfo = vk::PipelineShaderStageCreateInfo(
     vk::PipelineShaderStageCreateFlags(),
@@ -2635,7 +2822,6 @@ PushConstants AsyVkRender::buildPushConstants()
   pushConstants.constants[0] = options.mode!= DRAWMODE_NORMAL ? 0 : nlights;
   pushConstants.constants[1] = swapChainExtent.width;
   pushConstants.constants[2] = swapChainExtent.height;
-  pushConstants.constants[3] = maxSize;
 
   for (int i = 0; i < 4; i++)
     pushConstants.background[i]=Background[i];
@@ -2655,40 +2841,15 @@ vk::CommandBuffer & AsyVkRender::getFrameComputeCommandBuffer()
 
 vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines, bool count)
 {
+  if (count) {
+    return pipelines[PIPELINE_COUNT];
+  }
+
   if (Opaque) {
     return pipelines[PIPELINE_OPAQUE];
   }
 
-  if (count) {
-
-    if (GPUcompress) {
-      return pipelines[PIPELINE_COUNT_COMPRESS];
-    }
-
-    return pipelines[PIPELINE_COUNT];
-  }
-
-  if (GPUindexing) {
-
-    if (ssbo) {
-
-      if (interlock) {
-
-        if (GPUcompress) {
-
-          return pipelines[PIPELINE_INDEXING_SSBO_INTERLOCK_COMPRESS];
-        }
-
-        return pipelines[PIPELINE_INDEXING_SSBO_INTERLOCK];
-      }
-
-      return pipelines[PIPELINE_INDEXING_SSBO];
-    }
-
-    return pipelines[PIPELINE_INDEXING];
-  }
-
-  return pipelines[PIPELINE_DEFAULT];
+  return pipelines[PIPELINE_TRANSPARENT];
 }
 
 void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
@@ -2942,6 +3103,7 @@ GLuint ceilpow2(GLuint n)
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
   maxSize=ceilpow2(maxDepth);
+  recreateBlendPipeline=true;
 }
 
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
@@ -3152,20 +3314,10 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
 void AsyVkRender::blendFrame(int imageIndex)
 {
-  vk::Pipeline blendPipeline;
-
-  if (!GPUindexing) {
-    blendPipeline = *blendPipelines[PIPELINE_DEFAULT];
-  } else if (GPUcompress) {
-    blendPipeline = *blendPipelines[PIPELINE_INDEXING_SSBO_INTERLOCK_COMPRESS];
-  } else {
-    blendPipeline = *blendPipelines[PIPELINE_INDEXING_SSBO_INTERLOCK];
-  }
-
   auto push = buildPushConstants();
   currentCommandBuffer.bindPipeline(
     vk::PipelineBindPoint::eGraphics,
-    blendPipeline
+    *blendPipeline
   );
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
   currentCommandBuffer.draw(3, 1, 0, 0);
@@ -3324,6 +3476,13 @@ void AsyVkRender::drawFrame()
       std::cout << "Other error: " << e.what() << std::endl;
       throw;
     }
+  }
+
+  if (recreateBlendPipeline) {
+
+    device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+    createBlendPipeline();
+    recreateBlendPipeline=false;
   }
 
   if (queueExport)

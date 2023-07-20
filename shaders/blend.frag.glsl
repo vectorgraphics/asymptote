@@ -1,7 +1,4 @@
 
-#define GPUINDEXING
-#define ARRAYSIZE 4
-
 layout(binding = 3, std430) buffer CountBuffer
 {
   uint maxSize;
@@ -52,7 +49,6 @@ layout(push_constant) uniform PushConstants
   vec4 background;
   // constants[0] = nlights
   // constants[1] = width
-  // constants[3] = arraySize
 } push;
 
 layout(location = 0) out vec4 outColor;
@@ -65,7 +61,6 @@ vec4 blend(vec4 outColor, vec4 color)
 void main()
 {
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
-  uint arraySize=push.constants[3];
   float OpaqueDepth=opaqueDepth[pixel];
   uint element=INDEX(pixel);
 
@@ -106,7 +101,7 @@ void main()
   uint n=size-k;
 
   // Sort the fragments with respect to descending depth
-  if(n <= arraySize) {
+  if(n <= ARRAYSIZE) {
     if(n == 1)
       outColor=blend(outColor,fragment[listIndex+k]);
     else if(n > 0) {
@@ -135,8 +130,8 @@ void main()
         E[j]=element(k,d);
         ++i;
       }
-      
-      
+
+
       for(uint j=0u; j < i; ++j)
         outColor=blend(outColor,fragment[listIndex+E[j].index]);
     }

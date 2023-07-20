@@ -1,4 +1,3 @@
-#version 450
 
 #ifdef GPUCOMPRESS
 layout(binding=9, std430) buffer indexBuffer

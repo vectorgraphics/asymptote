@@ -23,6 +23,8 @@ typedef unsigned int GLuint;
 
 #include <vulkan/vulkan.hpp>
 
+#include <glslang/SPIRV/GlslangToSpv.h>
+
 #include <GLFW/glfw3.h>
 
 #define GLM_FORCE_RADIANS
@@ -349,6 +351,7 @@ public:
 
   bool framebufferResized = false;
   bool recreatePipeline = false;
+  bool recreateBlendPipeline = false;
   bool updateLights = true;
   bool newUniformBuffer = true;
   bool queueExport = false;
@@ -580,26 +583,37 @@ private:
   enum PipelineType
   {
     PIPELINE_OPAQUE,
+    PIPELINE_TRANSPARENT,
     PIPELINE_COUNT,
-    PIPELINE_COUNT_COMPRESS,
-    PIPELINE_DEFAULT,
-    PIPELINE_INDEXING,
-    PIPELINE_INDEXING_SSBO,
-    PIPELINE_INDEXING_SSBO_INTERLOCK,
-    PIPELINE_INDEXING_SSBO_INTERLOCK_COMPRESS,
     PIPELINE_MAX,
-    PIPELINE_CUSTOM
+    PIPELINE_DONTCARE
   };
-  std::string const shaderExtensions[PIPELINE_MAX] =
-  {
-    "Opaque",
-    "Count",
-    "CountCompress",
-    "Default",
-    "Indexing",
-    "IndexingSSBO",
-    "IndexingSSBOInterlock",
-    "IndexingSSBOInterlockCompress"
+  std::vector<std::string> materialShaderOptions {
+    "MATERIAL",
+    "NORMAL"
+  };
+  std::vector<std::string> colorShaderOptions {
+    "MATERIAL",
+    "COLOR",
+    "NORMAL"
+  };
+  std::vector<std::string> triangleShaderOptions {
+    "MATERIAL",
+    "COLOR",
+    "NORMAL",
+    "GENERAL"
+  };
+  std::vector<std::string> pointShaderOptions {
+    "MATERIAL",
+    "NOLIGHTS",
+    "WIDTH"
+  };
+  std::vector<std::string> transparentShaderOptions {
+    "MATERIAL",
+    "COLOR",
+    "NORMAL",
+    "GENERAL",
+    "TRANSPARENT"
   };
 
   std::array<vk::UniquePipeline, PIPELINE_MAX> materialPipelines;
@@ -608,7 +622,7 @@ private:
   std::array<vk::UniquePipeline, PIPELINE_MAX> trianglePipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> linePipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> pointPipelines;
-  std::array<vk::UniquePipeline, PIPELINE_MAX> blendPipelines;
+  vk::UniquePipeline blendPipeline;
   vk::UniquePipeline compressPipeline;
 
   vk::UniqueDescriptorPool computeDescriptorPool;
@@ -854,12 +868,15 @@ private:
   void createTransparentRenderPass();
   void createBlendRenderPass();
   void createGraphicsPipelineLayout();
+  void modifyShaderOptions(std::vector<std::string>& options, PipelineType type);
   template<typename V>
   void createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
-                              vk::PolygonMode fillMode, std::string const & shader,
+                              vk::PolygonMode fillMode, std::vector<std::string> options,
+                              std::string const & shaderFile,
                               int graphicsSubpass, bool enableDepthWrite=true,
                               bool transparent=false, bool disableMultisample=false);
   void createGraphicsPipelines();
+  void createBlendPipeline();
   void createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
                              std::string const & shaderFile);
   void createComputePipelines();
@@ -883,7 +900,8 @@ private:
   void drawBuffers(FrameObject & object, int imageIndex);
   void drawFrame();
   void recreateSwapChain();
-  vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
+  TBuiltInResource getDefaultShaderResources();
+  vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
   void nextFrame();
   void display();
   void poll();

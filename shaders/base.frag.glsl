@@ -1,4 +1,3 @@
-
 struct Material
 {
   vec4 diffuse, emissive, specular;

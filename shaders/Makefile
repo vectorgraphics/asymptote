@@ -1,4 +1,4 @@
-shaders: material color point triangle transparent blend compress partials
+shaders:
 
 material:
 	python3 genShaders.py base materialOpaque MATERIAL NORMAL OPAQUE

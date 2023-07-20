@@ -1,8 +1,3 @@
-#version 450
-
-#define LOCALSIZE 256
-#define BLOCKSIZE 8
-
 layout(local_size_x=LOCALSIZE) in;
 
 const uint groupSize=LOCALSIZE*BLOCKSIZE;
