@@ -123,7 +123,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version $(FILES:=.o) @LSPLIB@ vulkan
+asy:	version $(FILES:=.o) @LSPLIB@
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -202,9 +202,6 @@ html:	asy sty
 
 faq:	asy sty
 	cd doc && $(MAKE) faq
-
-vulkan:
-	cd shaders && $(MAKE)
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
 	$(PERL) ./runtime.pl $(@:.cc=)
