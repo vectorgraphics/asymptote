@@ -459,7 +459,7 @@ case "$OSTYPE" in
          AC_CHECK_LIB([vulkan], [vkCreateInstance],
                                  [AC_DEFINE(HAVE_LIBVULKAN,1,
                              DEFINE_LIB([vulkan]))
-                             LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler "
+                             LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler -lSPIRV "
                              AC_CHECK_LIB([glslang],[glslang_initialize_process],
                              LIBS=$LIBS"-lglslang  ")],
                                    AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***]))
