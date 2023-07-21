@@ -347,14 +347,15 @@ public:
   triple billboardTransform(const triple& center, const triple& v) const;
   double getRenderResolution(triple Min) const;
 
-  bool framebufferResized = false;
-  bool recreatePipeline = false;
-  bool recreateBlendPipeline = false;
-  bool updateLights = true;
-  bool newUniformBuffer = true;
-  bool queueExport = false;
-  bool format3dWait = false;
-  bool vkexit = false;
+  bool framebufferResized=false;
+  bool recreatePipeline=false;
+  bool recreateBlendPipeline=false;
+  bool updateLights=true;
+  bool newUniformBuffer=true;
+  bool queueExport=false;
+  bool format3dWait=false;
+  bool ibl=false;
+  bool vkexit=false;
 
   bool vkthread=false;;
   bool initialize=true;
@@ -522,7 +523,7 @@ private:
   std::uint32_t fragments;
   std::uint32_t maxFragments=1;
   //std::uint32_t maxgroups;
-  std::uint32_t maxSize=1;
+  std::uint32_t maxSize=2;
 
   bool hasExternalMemoryCapabilitiesExtension = false;
   bool hasExternalMemoryExtension = false;
@@ -683,6 +684,21 @@ private:
   vk::UniqueBuffer elementBuffer;
   vk::UniqueDeviceMemory elementBufferMemory;
 
+  vk::UniqueImage irradiance;
+  vk::UniqueImageView irradianceView;
+  vk::UniqueSampler irradianceSampler;
+  vk::UniqueDeviceMemory irradianceMemory;
+
+  vk::UniqueImage brdfTex;
+  vk::UniqueImageView brdfView;
+  vk::UniqueSampler brdfSampler;
+  vk::UniqueDeviceMemory brdfTexMemory;
+
+  vk::UniqueImage reflection;
+  vk::UniqueImageView reflectionView;
+  vk::UniqueSampler reflectionSampler;
+  vk::UniqueDeviceMemory reflectionMemory;
+
   struct FrameObject {
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore renderFinishedSemaphore;
@@ -839,9 +855,13 @@ private:
                     vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {});
   void createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
                    vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
-                   vk::UniqueDeviceMemory & mem);
-  void createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags, vk::UniqueImage& img, vk::UniqueImageView& imgView);
+                   vk::UniqueDeviceMemory & mem, vk::ImageType type=vk::ImageType::e2D);
+  void createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags, vk::UniqueImage& img,
+                       vk::UniqueImageView& imgView, vk::ImageViewType type=vk::ImageViewType::e2D);
+  void createImageSampler(vk::UniqueSampler & sampler);
   void copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size);
+  void transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to, vk::Image img);
+  void copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img, std::uint32_t w, std::uint32_t h);
 
   void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects=0);
 
@@ -859,6 +879,8 @@ private:
 
   void createBuffers();
   void createDependentBuffers();
+
+  void initIBL();
 
   void createCountRenderPass();
   void createGraphicsRenderPass();

@@ -1,6 +1,7 @@
 #include "vkrender.h"
 #include "picture.h"
 #include "drawimage.h"
+#include "EXRFiles.h"
 
 #define SHADER_DIRECTORY "base/shaders/"
 
@@ -499,7 +500,6 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   rotateMat = glm::mat4(1.0);
   viewMat = glm::mat4(1.0);
 
-  // hardcode this for now
   bool v3d=format == "v3d";
   bool webgl=format == "html";
   bool format3d=webgl || v3d;
@@ -579,6 +579,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   setosize();
 
   Animate=settings::getSetting<bool>("autoplay") && vkthread;
+  ibl=settings::getSetting<bool>("ibl");
 
   initWindow();
 
@@ -617,6 +618,10 @@ void AsyVkRender::initVulkan()
   createComputeDescriptorSetLayout();
 
   createBuffers();
+
+  if (ibl) {
+    initIBL();
+  }
 
   createDescriptorPool();
   createComputeDescriptorPool();
@@ -1461,11 +1466,11 @@ void AsyVkRender::copyToBuffer(const vk::Buffer& buffer, const void* data, vk::D
 
 void AsyVkRender::createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
                               vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
-                              vk::UniqueDeviceMemory & mem)
+                              vk::UniqueDeviceMemory & mem, vk::ImageType type)
 {
   auto info = vk::ImageCreateInfo();
 
-  info.imageType      = vk::ImageType::e2D;
+  info.imageType      = type;
   info.extent         = vk::Extent3D(w, h, 1);
   info.mipLevels      = 1;
   info.arrayLayers    = 1;
@@ -1490,12 +1495,13 @@ void AsyVkRender::createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountF
 }
 
 void AsyVkRender::createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags,
-                                  vk::UniqueImage& img, vk::UniqueImageView& imgView)
+                                  vk::UniqueImage& img, vk::UniqueImageView& imgView,
+                                  vk::ImageViewType type)
 {
   auto info = vk::ImageViewCreateInfo();
 
   info.image = *img;
-  info.viewType = vk::ImageViewType::e2D;
+  info.viewType = type;
   info.format = fmt;
   info.components = vk::ComponentMapping();
   info.subresourceRange = vk::ImageSubresourceRange(
@@ -1529,6 +1535,93 @@ void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::Devic
   void* memoryPtr = device->mapMemory(*stagingBufferMemory, 0, size, vk::MemoryMapFlags());
   memcpy(data, memoryPtr, size);
   device->unmapMemory(*stagingBufferMemory);
+}
+
+void AsyVkRender::createImageSampler(vk::UniqueSampler & sampler) {
+
+  auto info = vk::SamplerCreateInfo(
+    vk::SamplerCreateFlags(),
+    vk::Filter::eLinear,
+    vk::Filter::eLinear,
+    vk::SamplerMipmapMode::eNearest,
+    vk::SamplerAddressMode::eRepeat,
+    vk::SamplerAddressMode::eRepeat,
+    vk::SamplerAddressMode::eRepeat,
+    0.f,
+    false,
+    0.f,
+    false,
+    vk::CompareOp::eAlways,
+    0.f,
+    0.f
+  );
+
+  sampler = device->createSamplerUnique(info);
+}
+
+void AsyVkRender::transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to, vk::Image img) {
+
+  auto const cmd = beginSingleCommands();
+  auto barrier = vk::ImageMemoryBarrier(
+    vk::AccessFlagBits::eMemoryWrite,
+    vk::AccessFlagBits::eMemoryWrite,
+    from,
+    to,
+    VK_QUEUE_FAMILY_IGNORED,
+    VK_QUEUE_FAMILY_IGNORED,
+    img
+  );
+
+  barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+  barrier.subresourceRange.baseMipLevel = 0;
+  barrier.subresourceRange.levelCount = 1;
+  barrier.subresourceRange.baseArrayLayer = 0;
+  barrier.subresourceRange.layerCount = 1;
+  cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe,
+                      vk::PipelineStageFlagBits::eTransfer,
+                      {},
+                      0,
+                      nullptr,
+                      0,
+                      nullptr,
+                      1,
+                      &barrier);
+  endSingleCommands(cmd);
+}
+
+void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img, std::uint32_t w, std::uint32_t h) {
+
+  vk::UniqueBuffer stagingBuffer;
+  vk::UniqueDeviceMemory stagingBufferMemory;
+
+  createBufferUnique(stagingBuffer, stagingBufferMemory, vk::BufferUsageFlagBits::eTransferSrc,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, size);
+
+  auto * mem = device->mapMemory(*stagingBufferMemory, 0, size);
+  memcpy(mem, data, size);
+  device->unmapMemory(*stagingBufferMemory);
+
+  auto const cmd = beginSingleCommands();
+  auto cpy = vk::BufferImageCopy(
+    0,
+    0,
+    0
+  );
+
+  cpy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+  cpy.imageSubresource.mipLevel = 0;
+  cpy.imageSubresource.baseArrayLayer = 0;
+  cpy.imageSubresource.layerCount = 1;
+  cpy.imageOffset = vk::Offset3D {0, 0, 0};
+  cpy.imageExtent = vk::Extent3D {
+      w,
+      h,
+      1
+  };
+
+  cmd.copyBufferToImage(*stagingBuffer, img, vk::ImageLayout::eTransferDstOptimal, 1, &cpy);
+
+  endSingleCommands(cmd);
 }
 
 void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects)
@@ -1637,6 +1730,24 @@ void AsyVkRender::createDescriptorSetLayout()
     1,
     vk::ShaderStageFlagBits::eFragment
   );
+  auto irradianceSamplerBinding = vk::DescriptorSetLayoutBinding(
+    11,
+    vk::DescriptorType::eCombinedImageSampler,
+    1,
+    vk::ShaderStageFlagBits::eFragment
+  );
+  auto brdfSamplerBinding = vk::DescriptorSetLayoutBinding(
+    12,
+    vk::DescriptorType::eCombinedImageSampler,
+    1,
+    vk::ShaderStageFlagBits::eFragment
+  );
+  auto reflectionSamplerBinding = vk::DescriptorSetLayoutBinding(
+    13,
+    vk::DescriptorType::eCombinedImageSampler,
+    1,
+    vk::ShaderStageFlagBits::eFragment
+  );
 
   std::vector<vk::DescriptorSetLayoutBinding> layoutBindings {
     uboLayoutBinding,
@@ -1652,6 +1763,11 @@ void AsyVkRender::createDescriptorSetLayout()
     elementBufferBinding
   };
 
+  if (ibl) {
+    layoutBindings.emplace_back(irradianceSamplerBinding);
+    layoutBindings.emplace_back(brdfSamplerBinding);
+    layoutBindings.emplace_back(reflectionSamplerBinding);
+  }
 
   auto layoutCI = vk::DescriptorSetLayoutCreateInfo(
     vk::DescriptorSetLayoutCreateFlags(),
@@ -1681,8 +1797,9 @@ void AsyVkRender::createComputeDescriptorSetLayout()
 
 void AsyVkRender::createDescriptorPool()
 {
-  std::array<vk::DescriptorPoolSize, 11> poolSizes;
+  std::vector<vk::DescriptorPoolSize> poolSizes;
 
+  poolSizes.resize(11);
   poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
   poolSizes[0].descriptorCount = options.maxFramesInFlight;
 
@@ -1715,6 +1832,27 @@ void AsyVkRender::createDescriptorPool()
 
   poolSizes[10].type = vk::DescriptorType::eStorageBuffer;
   poolSizes[10].descriptorCount = options.maxFramesInFlight;
+
+  if (ibl) {
+    poolSizes.emplace_back(
+      vk::DescriptorPoolSize(
+        vk::DescriptorType::eCombinedImageSampler,
+        options.maxFramesInFlight
+      )
+    );
+    poolSizes.emplace_back(
+      vk::DescriptorPoolSize(
+        vk::DescriptorType::eCombinedImageSampler,
+        options.maxFramesInFlight
+      )
+    );
+    poolSizes.emplace_back(
+      vk::DescriptorPoolSize(
+        vk::DescriptorType::eCombinedImageSampler,
+        options.maxFramesInFlight
+      )
+    );
+  }
 
   auto poolCI = vk::DescriptorPoolCreateInfo(
     vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
@@ -1900,6 +2038,52 @@ void AsyVkRender::writeDescriptorSets()
     writes[8].pBufferInfo = &elementBufferInfo;
 
     device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+
+    if (ibl) {
+
+      auto irradianceSampInfo = vk::DescriptorImageInfo();
+
+      irradianceSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      irradianceSampInfo.imageView = *irradianceView;
+      irradianceSampInfo.sampler = *irradianceSampler;
+
+      auto brdfSampInfo = vk::DescriptorImageInfo();
+
+      brdfSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      brdfSampInfo.imageView = *brdfView;
+      brdfSampInfo.sampler = *brdfSampler;
+
+      auto reflSampInfo = vk::DescriptorImageInfo();
+
+      reflSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      reflSampInfo.imageView = *reflectionView;
+      reflSampInfo.sampler = *reflectionSampler;
+
+      std::array<vk::WriteDescriptorSet, 3> samplerWrites;
+
+      samplerWrites[0].dstSet = *frameObjects[i].descriptorSet;
+      samplerWrites[0].dstBinding = 11;
+      samplerWrites[0].dstArrayElement = 0;
+      samplerWrites[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      samplerWrites[0].descriptorCount = 1;
+      samplerWrites[0].pImageInfo = &irradianceSampInfo;
+
+      samplerWrites[1].dstSet = *frameObjects[i].descriptorSet;
+      samplerWrites[1].dstBinding = 12;
+      samplerWrites[1].dstArrayElement = 0;
+      samplerWrites[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      samplerWrites[1].descriptorCount = 1;
+      samplerWrites[1].pImageInfo = &brdfSampInfo;
+
+      samplerWrites[2].dstSet = *frameObjects[i].descriptorSet;
+      samplerWrites[2].dstBinding = 13;
+      samplerWrites[2].dstArrayElement = 0;
+      samplerWrites[2].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      samplerWrites[2].descriptorCount = 1;
+      samplerWrites[2].pImageInfo = &reflSampInfo;
+
+      device->updateDescriptorSets(samplerWrites.size(), samplerWrites.data(), 0, nullptr);
+    }
   }
 
   updateSceneDependentBuffers();
@@ -2146,6 +2330,86 @@ void AsyVkRender::createDependentBuffers()
     countBufferMap =  static_cast<std::uint32_t*>(device->mapMemory(*countBufferMemory, 0, countBufferSize));
     offsetStageBufferMap = static_cast<std::uint32_t*>(device->mapMemory(*offsetStageBufferMemory, 0, offsetBufferSize));
   }
+}
+
+void * padImage(camp::IEXRFile const & file, std::uint32_t nChannels) {
+
+  auto const channelSize = sizeof(std::uint16_t);
+  auto const oldData = reinterpret_cast<std::uint16_t const*>(file.getData());
+  auto const newData = reinterpret_cast<std::uint16_t*>(new unsigned char[file.size().first * file.size().second * channelSize * 4]);
+
+  for (int i = 0; i < file.size().second; i++) {
+    for (int j = 0; i < file.size().first; j++) {
+      auto destIndex = (i * file.size().first + j) * 4;
+      auto srcIndex = (i * file.size().first + j) * nChannels;
+
+      for (int k = 0; k < nChannels; k++)
+        newData[destIndex + k]=oldData[srcIndex + k];
+    }
+  }
+
+  return newData;
+}
+
+void AsyVkRender::initIBL() {
+
+  string imageDir=settings::locateFile(settings::getSetting<string>("imageDir"))+"/";
+  string imagePath=imageDir+settings::getSetting<string>("image")+"/";
+
+  camp::IEXRFile irradianceFile(imagePath+"diffuse.exr");
+  createImage(irradianceFile.size().first, irradianceFile.size().second,
+              vk::SampleCountFlagBits::e1,
+              vk::Format::eR16G16B16A16Sfloat,
+              vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+              vk::MemoryPropertyFlagBits::eDeviceLocal,
+              irradiance,
+              irradianceMemory
+  );
+  transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *irradiance);
+  copyDataToImage(irradianceFile.getData(),
+                  sizeof(std::int16_t) * 4 * irradianceFile.size().first * irradianceFile.size().second,
+                  *irradiance,
+                  irradianceFile.size().first, irradianceFile.size().second);
+  transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *irradiance);
+  createImageView(vk::Format::eR16G16B16A16Sfloat, vk::ImageAspectFlagBits::eColor, irradiance, irradianceView);
+  createImageSampler(irradianceSampler);
+
+  camp::IEXRFile reflectionFile(imageDir+"refl.exr");
+  createImage(reflectionFile.size().first, reflectionFile.size().second,
+              vk::SampleCountFlagBits::e1,
+              vk::Format::eR16G16B16A16Sfloat,
+              vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+              vk::MemoryPropertyFlagBits::eDeviceLocal,
+              brdfTex,
+              brdfTexMemory
+  );
+  transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *brdfTex);
+  copyDataToImage(reflectionFile.getData(),
+                  sizeof(std::int16_t) * 4 * reflectionFile.size().first * reflectionFile.size().second,
+                  *brdfTex,
+                  reflectionFile.size().first, reflectionFile.size().second);
+  transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *brdfTex);
+  createImageView(vk::Format::eR16G16B16A16Sfloat, vk::ImageAspectFlagBits::eColor, brdfTex, brdfView);
+  createImageSampler(brdfSampler);
+
+  camp::IEXRFile reflectionTextureFile(imagePath+"refl0.exr");
+  createImage(reflectionTextureFile.size().first, reflectionTextureFile.size().second,
+              vk::SampleCountFlagBits::e1,
+              vk::Format::eR16G16B16A16Sfloat,
+              vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+              vk::MemoryPropertyFlagBits::eDeviceLocal,
+              reflection,
+              reflectionMemory,
+              vk::ImageType::e3D
+  );
+  transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *reflection);
+  copyDataToImage(reflectionTextureFile.getData(),
+                  sizeof(std::int16_t) * 4 * reflectionTextureFile.size().first * reflectionTextureFile.size().second,
+                  *reflection,
+                  reflectionTextureFile.size().first, reflectionTextureFile.size().second);
+  transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *reflection);
+  createImageView(vk::Format::eR16G16B16A16Sfloat, vk::ImageAspectFlagBits::eColor, reflection, reflectionView, vk::ImageViewType::e3D);
+  createImageSampler(reflectionSampler);
 }
 
 void AsyVkRender::createCountRenderPass()
@@ -2436,6 +2700,10 @@ void AsyVkRender::createGraphicsPipelineLayout()
 void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, PipelineType type) {
 
   options.emplace_back("HAVE_SSBO");
+
+  if (ibl) {
+    options.emplace_back("USE_IBL");
+  }
 
   if (type == PIPELINE_OPAQUE) {
     options.emplace_back("OPAQUE");
@@ -4110,6 +4378,13 @@ void AsyVkRender::cycleMode() {
   recreatePipeline = true;
   remesh = true;
   redraw = true;
+
+  if (options.mode == DRAWMODE_NORMAL) {
+    ibl=settings::getSetting<bool>("ibl");
+  }
+  if (options.mode == DRAWMODE_OUTLINE) {
+    ibl=false;
+  }
 }
 
 } // namespace camp

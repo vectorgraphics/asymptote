@@ -95,6 +95,65 @@ float Roughness;
 
 vec3 normal;
 
+#ifdef USE_IBL
+
+layout(binding=11) uniform sampler2D diffuseSampler;
+layout(binding=12) uniform sampler2D reflBRDFSampler;
+layout(binding=13) uniform sampler3D reflImgSampler;
+
+const float pi=acos(-1.0);
+const float piInv=1.0/pi;
+const float twopi=2.0*pi;
+const float twopiInv=1.0/twopi;
+
+// (x,y,z) -> (r,theta,phi);
+// theta -> [0,pi]: colatitude
+// phi -> [-pi,pi]: longitude
+vec3 cart2sphere(vec3 cart)
+{
+  float x=cart.x;
+  float y=cart.z;
+  float z=cart.y;
+
+  float r=length(cart);
+  float theta=r > 0.0 ? acos(z/r) : 0.0;
+  float phi=atan(y,x);
+
+  return vec3(r,theta,phi);
+}
+
+vec2 normalizedAngle(vec3 cartVec)
+{
+  vec3 sphericalVec=cart2sphere(cartVec);
+  sphericalVec.y=sphericalVec.y*piInv;
+  sphericalVec.z=0.75-sphericalVec.z*twopiInv;
+
+  return sphericalVec.zy;
+}
+
+vec3 IBLColor(vec3 viewDir)
+{
+  //
+  // based on the split sum formula approximation
+  // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
+  // which, by the split sum approiximation (assuming independence+GGX distrubition),
+  // roughly equals (within a margin of error)
+  // [\int_\Omega L(l)] * [\int_\Omega f(l,v) \cos \theta_l].
+  // the first term is the reflectance irradiance integral
+
+  vec3 IBLDiffuse=Diffuse*texture(diffuseSampler,normalizedAngle(normal)).rgb;
+  vec3 reflectVec=normalize(reflect(-viewDir,normal));
+  vec2 reflCoord=normalizedAngle(reflectVec);
+  vec3 IBLRefl=texture(reflImgSampler,vec3(reflCoord,Roughness)).rgb;
+  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),Roughness)).rg;
+  float specularMultiplier=Fresnel0*IBLbrdf.x+IBLbrdf.y;
+  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
+  vec3 metal=Diffuse*IBLRefl;
+  return mix(dielectric,metal,Metallic);
+}
+
+#else
+
 float NDF_TRG(vec3 h)
 {
   float ndoth=max(dot(normal,h),0.0);
@@ -145,6 +204,8 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
   return mix(dielectric,metal,Metallic);
 }
 
+#endif
+
 void main() {
 
   uint nlights = push.constants[0];
@@ -187,6 +248,9 @@ void main() {
   if (!gl_FrontFacing)
       normal = -normal;
 
+#ifdef USE_IBL
+  outColor=vec4(IBLColor(viewDirection), outColor.a);
+#else
   for (int i = 0; i < nlights; i++)
   {
       Light light = lights[i];
@@ -196,6 +260,7 @@ void main() {
   }
 
   outColor = vec4(outColor.rgb, mat.diffuse.a);
+#endif /*USE_IBL*/
 #endif /*NORMAL*/
 
 #ifndef WIDTH // TODO DO NOT DO THE DEPTH COMPARISON WHEN NO TRANSPARENT OBJECTS!
