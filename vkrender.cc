@@ -372,7 +372,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       app->queueExport = true;
       break;
     case 'C':
-      //showCamera();
+      app->showCamera();
       break;
     case '+':
     case '=':
@@ -490,6 +490,9 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 #else
   interlock=settings::getSetting<bool>("GPUinterlock");
 #endif
+
+  for(int i=0; i < 16; ++i)
+    T[i]=t[i];
 
   if (vkinit) {
     return;
@@ -3928,6 +3931,54 @@ void AsyVkRender::clearMaterials()
   triangleData.partial=false;
 }
 
+projection AsyVkRender::camera(bool user)
+{
+  if(!vkinit) return projection();
+
+  camp::Triple vCamera,vUp,vTarget;
+
+  double cz=0.5*(Zmin+Zmax);
+
+  double *Rotate=value_ptr(rotateMat);
+
+  if(user) {
+    for(int i=0; i < 3; ++i) {
+      double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
+      int i4=4*i;
+      for(int j=0; j < 4; ++j) {
+        int j4=4*j;
+        double R0=Rotate[j4];
+        double R1=Rotate[j4+1];
+        double R2=Rotate[j4+2];
+        double R3=Rotate[j4+3];
+        double T4ij=T[i4+j];
+        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
+        sumUp += T4ij*R1;
+        sumTarget += T4ij*(R3-cx*R0-cy*R1);
+      }
+      vCamera[i]=sumCamera;
+      vUp[i]=sumUp;
+      vTarget[i]=sumTarget;
+    }
+  } else {
+    for(int i=0; i < 3; ++i) {
+      int i4=4*i;
+      double R0=Rotate[i4];
+      double R1=Rotate[i4+1];
+      double R2=Rotate[i4+2];
+      double R3=Rotate[i4+3];
+      vCamera[i]=R3-cx*R0-cy*R1-cz*R2;
+      vUp[i]=R1;
+      vTarget[i]=R3-cx*R0-cy*R1;
+    }
+  }
+
+  return projection(orthographic,vCamera,vUp,vTarget,Zoom0,
+                    2.0*atan(tan(0.5*Angle)/Zoom0)/radians,
+                    pair(x/width+Shift.getx(),
+                         y/height+Shift.gety()));
+}
+
 void AsyVkRender::Export(int imageIndex) {
 
   exportCommandBuffer->reset();
@@ -4183,6 +4234,26 @@ void AsyVkRender::spinz()
     Zspin=true;
     Xspin=Yspin=false;
   }
+}
+
+void AsyVkRender::showCamera()
+{
+  projection P=camera();
+  string projection=P.orthographic ? "orthographic(" : "perspective(";
+  string indent(2+projection.length(),' ');
+  cout << endl
+       << "currentprojection=" << endl << "  "
+       << projection << "camera=" << P.camera << "," << endl
+       << indent << "up=" << P.up << "," << endl
+       << indent << "target=" << P.target << "," << endl
+       << indent << "zoom=" << P.zoom;
+  if(!orthographic)
+    cout << "," << endl << indent << "angle=" << P.angle;
+  if(P.viewportshift != pair(0.0,0.0))
+    cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom0;
+  if(!orthographic)
+    cout << "," << endl << indent << "autoadjust=false";
+  cout << ");" << endl;
 }
 
 void AsyVkRender::shift(double dx, double dy)

@@ -309,6 +309,25 @@ struct Arcball {
   }
 };
 
+struct projection
+{
+public:
+  bool orthographic;
+  camp::triple camera;
+  camp::triple up;
+  camp::triple target;
+  double zoom;
+  double angle;
+  camp::pair viewportshift;
+
+  projection(bool orthographic=false, camp::triple camera=0.0,
+             camp::triple up=0.0, camp::triple target=0.0,
+             double zoom=0.0, double angle=0.0,
+             camp::pair viewportshift=0.0) :
+    orthographic(orthographic), camera(camera), up(up), target(target),
+    zoom(zoom), angle(angle), viewportshift(viewportshift) {}
+};
+
 enum DrawMode: int
 {
    DRAWMODE_NORMAL,
@@ -464,6 +483,10 @@ private:
     DeviceBuffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties)
         : usage(usage), properties(properties) {}
   };
+
+  const double pi=acos(-1.0);
+  const double degrees=180.0/pi;
+  const double radians=1.0/degrees;
 
   const picture* pic = nullptr;
 
@@ -947,6 +970,8 @@ private:
   void spiny();
   void spinz();
 
+  projection camera(bool user=true);
+  void showCamera();
   void shift(double dx, double dy);
   void pan(double dx, double dy);
   void capzoom();
