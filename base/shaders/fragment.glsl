@@ -242,7 +242,11 @@ void main() {
   Fresnel0 = mat.parameters[2];
   Roughness2 = Roughness * Roughness;
 
-  vec3 viewDirection = -normalize(viewPos);
+#ifdef ORTHOGRAPHIC
+  vec3 viewDirection=vec3(0.0,0.0,1.0);
+#else
+  vec3 viewDirection=-normalize(viewPos);
+#endif
   normal = normalize(norm);
 
   if (!gl_FrontFacing)

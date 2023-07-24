@@ -2710,6 +2710,9 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
   if (ibl) {
     options.emplace_back("USE_IBL");
   }
+  if (orthographic) {
+    options.emplace_back("ORTHOGRAPHIC");
+  }
 
   if (type == PIPELINE_OPAQUE) {
     options.emplace_back("OPAQUE");
@@ -4193,9 +4196,13 @@ void AsyVkRender::shift(double dx, double dy)
 
 void AsyVkRender::pan(double dx, double dy)
 {
-  cx += dx * (xmax - xmin) / width;
-  cy += dy * (ymax - ymin) / height;
-  update();
+  if(orthographic)
+    shift(dx,dy);
+  else {
+    cx += dx * (xmax - xmin) / width;
+    cy += dy * (ymax - ymin) / height;
+    update();
+  }
 }
 
 void AsyVkRender::capzoom()
