@@ -855,7 +855,7 @@ private:
                     vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {});
   void createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
                    vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
-                   vk::UniqueDeviceMemory & mem, vk::ImageType type=vk::ImageType::e2D);
+                   vk::UniqueDeviceMemory & mem, vk::ImageType type=vk::ImageType::e2D, std::uint32_t depth=1);
   void createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags, vk::UniqueImage& img,
                        vk::UniqueImageView& imgView, vk::ImageViewType type=vk::ImageViewType::e2D);
   void createImageSampler(vk::UniqueSampler & sampler);

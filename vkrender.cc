@@ -1466,12 +1466,12 @@ void AsyVkRender::copyToBuffer(const vk::Buffer& buffer, const void* data, vk::D
 
 void AsyVkRender::createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
                               vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
-                              vk::UniqueDeviceMemory & mem, vk::ImageType type)
+                              vk::UniqueDeviceMemory & mem, vk::ImageType type, std::uint32_t depth)
 {
   auto info = vk::ImageCreateInfo();
 
   info.imageType      = type;
-  info.extent         = vk::Extent3D(w, h, 1);
+  info.extent         = vk::Extent3D(w, h, depth);
   info.mipLevels      = 1;
   info.arrayLayers    = 1;
   info.format         = fmt;
@@ -1545,8 +1545,8 @@ void AsyVkRender::createImageSampler(vk::UniqueSampler & sampler) {
     vk::Filter::eLinear,
     vk::SamplerMipmapMode::eNearest,
     vk::SamplerAddressMode::eRepeat,
-    vk::SamplerAddressMode::eRepeat,
-    vk::SamplerAddressMode::eRepeat,
+    vk::SamplerAddressMode::eClampToEdge,
+    vk::SamplerAddressMode::eClampToEdge,
     0.f,
     false,
     0.f,
@@ -2332,23 +2332,26 @@ void AsyVkRender::createDependentBuffers()
   }
 }
 
-void * padImage(camp::IEXRFile const & file, std::uint32_t nChannels) {
+template<unsigned N=4>
+std::uint32_t* padImage(camp::IEXRFile const & file, std::uint32_t nChannels) {
 
-  auto const channelSize = sizeof(std::uint16_t);
-  auto const oldData = reinterpret_cast<std::uint16_t const*>(file.getData());
-  auto const newData = reinterpret_cast<std::uint16_t*>(new unsigned char[file.size().first * file.size().second * channelSize * 4]);
+  auto && w = file.size().first;
+  auto && h = file.size().second;
+  auto const cells = w * h;
+  auto data = new std::uint32_t[cells * N];
 
-  for (int i = 0; i < file.size().second; i++) {
-    for (int j = 0; i < file.size().first; j++) {
-      auto destIndex = (i * file.size().first + j) * 4;
-      auto srcIndex = (i * file.size().first + j) * nChannels;
+  for (auto i = 0; i < h; i++) {
+    for (auto j = 0; j < w; j++) {
+      auto const refIndex = nChannels * (i * w + j);
+      auto const baseIndex = N * (i * w + j);
 
-      for (int k = 0; k < nChannels; k++)
-        newData[destIndex + k]=oldData[srcIndex + k];
+      for (auto k = 0; k < nChannels; k++) {
+        data[baseIndex+N-1-k]=reinterpret_cast<std::uint32_t const*>(file.getData())[refIndex+k];
+      }
     }
   }
 
-  return newData;
+  return data;
 }
 
 void AsyVkRender::initIBL() {
@@ -2357,6 +2360,7 @@ void AsyVkRender::initIBL() {
   string imagePath=imageDir+settings::getSetting<string>("image")+"/";
 
   camp::IEXRFile irradianceFile(imagePath+"diffuse.exr");
+  auto const padIrradiance = padImage(irradianceFile, 3);
   createImage(irradianceFile.size().first, irradianceFile.size().second,
               vk::SampleCountFlagBits::e1,
               vk::Format::eR16G16B16A16Sfloat,
@@ -2366,8 +2370,8 @@ void AsyVkRender::initIBL() {
               irradianceMemory
   );
   transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *irradiance);
-  copyDataToImage(irradianceFile.getData(),
-                  sizeof(std::int16_t) * 4 * irradianceFile.size().first * irradianceFile.size().second,
+  copyDataToImage(padIrradiance,
+                  sizeof(std::uint32_t) * 4 * irradianceFile.size().first * irradianceFile.size().second,
                   *irradiance,
                   irradianceFile.size().first, irradianceFile.size().second);
   transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *irradiance);
@@ -2375,6 +2379,7 @@ void AsyVkRender::initIBL() {
   createImageSampler(irradianceSampler);
 
   camp::IEXRFile reflectionFile(imageDir+"refl.exr");
+  auto const padReflection = padImage(reflectionFile, 2);
   createImage(reflectionFile.size().first, reflectionFile.size().second,
               vk::SampleCountFlagBits::e1,
               vk::Format::eR16G16B16A16Sfloat,
@@ -2384,8 +2389,8 @@ void AsyVkRender::initIBL() {
               brdfTexMemory
   );
   transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *brdfTex);
-  copyDataToImage(reflectionFile.getData(),
-                  sizeof(std::int16_t) * 4 * reflectionFile.size().first * reflectionFile.size().second,
+  copyDataToImage(padReflection,
+                  sizeof(std::uint32_t) * 4 * reflectionFile.size().first * reflectionFile.size().second,
                   *brdfTex,
                   reflectionFile.size().first, reflectionFile.size().second);
   transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *brdfTex);
@@ -2393,6 +2398,7 @@ void AsyVkRender::initIBL() {
   createImageSampler(brdfSampler);
 
   camp::IEXRFile reflectionTextureFile(imagePath+"refl0.exr");
+  auto const padReflectionTexture = padImage(reflectionTextureFile, 3);
   createImage(reflectionTextureFile.size().first, reflectionTextureFile.size().second,
               vk::SampleCountFlagBits::e1,
               vk::Format::eR16G16B16A16Sfloat,
@@ -2403,8 +2409,8 @@ void AsyVkRender::initIBL() {
               vk::ImageType::e3D
   );
   transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *reflection);
-  copyDataToImage(reflectionTextureFile.getData(),
-                  sizeof(std::int16_t) * 4 * reflectionTextureFile.size().first * reflectionTextureFile.size().second,
+  copyDataToImage(padReflectionTexture,
+                  sizeof(std::uint32_t) * 4 * reflectionTextureFile.size().first * reflectionTextureFile.size().second,
                   *reflection,
                   reflectionTextureFile.size().first, reflectionTextureFile.size().second);
   transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *reflection);
