@@ -3327,11 +3327,6 @@ void AsyVkRender::drawTransparent(FrameObject & object)
   transparentData.clear();
 }
 
-int ceilquotient(int x, int y)
-{
-  return (x+y-1)/y;
-}
-
 void AsyVkRender::partialSums(FrameObject & object, bool readSize)
 {
   auto const writeBarrier = vk::MemoryBarrier( // todo sum2 fast

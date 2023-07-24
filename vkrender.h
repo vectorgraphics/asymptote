@@ -537,7 +537,7 @@ private:
 
   std::int32_t gs2;
   std::int32_t gs;
-  std::int32_t g;
+  std::uint32_t g;
   std::uint32_t processors;
   std::uint32_t localSize;
   std::uint32_t blockSize;
