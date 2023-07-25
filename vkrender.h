@@ -884,7 +884,8 @@ private:
   void createImageSampler(vk::UniqueSampler & sampler);
   void copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size);
   void transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to, vk::Image img);
-  void copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img, std::uint32_t w, std::uint32_t h);
+  void copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img,
+                       std::uint32_t w, std::uint32_t h, vk::Offset3D const & offset={});
 
   void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects=0);
 

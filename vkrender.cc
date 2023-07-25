@@ -1592,7 +1592,8 @@ void AsyVkRender::transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to
   endSingleCommands(cmd);
 }
 
-void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img, std::uint32_t w, std::uint32_t h) {
+void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img,
+                                  std::uint32_t w, std::uint32_t h, vk::Offset3D const & offset) {
 
   vk::UniqueBuffer stagingBuffer;
   vk::UniqueDeviceMemory stagingBufferMemory;
@@ -1615,7 +1616,7 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Ima
   cpy.imageSubresource.mipLevel = 0;
   cpy.imageSubresource.baseArrayLayer = 0;
   cpy.imageSubresource.layerCount = 1;
-  cpy.imageOffset = vk::Offset3D {0, 0, 0};
+  cpy.imageOffset = offset;
   cpy.imageExtent = vk::Extent3D {
       w,
       h,
@@ -2335,90 +2336,87 @@ void AsyVkRender::createDependentBuffers()
   }
 }
 
-template<unsigned N=4>
-std::uint32_t* padImage(camp::IEXRFile const & file, std::uint32_t nChannels) {
-
-  auto && w = file.size().first;
-  auto && h = file.size().second;
-  auto const cells = w * h;
-  auto data = new std::uint32_t[cells * N];
-
-  for (auto i = 0; i < h; i++) {
-    for (auto j = 0; j < w; j++) {
-      auto const refIndex = nChannels * (i * w + j);
-      auto const baseIndex = N * (i * w + j);
-
-      for (auto k = 0; k < nChannels; k++) {
-        data[baseIndex+N-1-k]=reinterpret_cast<std::uint32_t const*>(file.getData())[refIndex+k];
-      }
-    }
-  }
-
-  return data;
-}
-
 void AsyVkRender::initIBL() {
 
   string imageDir=settings::locateFile(settings::getSetting<string>("imageDir"))+"/";
   string imagePath=imageDir+settings::getSetting<string>("image")+"/";
 
-  camp::IEXRFile irradianceFile(imagePath+"diffuse.exr");
-  auto const padIrradiance = padImage(irradianceFile, 3);
-  createImage(irradianceFile.size().first, irradianceFile.size().second,
-              vk::SampleCountFlagBits::e1,
-              vk::Format::eR16G16B16A16Sfloat,
-              vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-              vk::MemoryPropertyFlagBits::eDeviceLocal,
-              irradiance,
-              irradianceMemory
-  );
-  transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *irradiance);
-  copyDataToImage(padIrradiance,
-                  sizeof(std::uint32_t) * 4 * irradianceFile.size().first * irradianceFile.size().second,
-                  *irradiance,
-                  irradianceFile.size().first, irradianceFile.size().second);
-  transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *irradiance);
-  createImageView(vk::Format::eR16G16B16A16Sfloat, vk::ImageAspectFlagBits::eColor, irradiance, irradianceView);
-  createImageSampler(irradianceSampler);
+  auto const createReflectionSampler = [=](
+    vk::UniqueImage& image,
+    vk::UniqueDeviceMemory& mem,
+    vk::UniqueImageView& imageView,
+    vk::UniqueSampler& sampler,
+    std::vector<string> texturePaths
+  ) {
 
-  camp::IEXRFile reflectionFile(imageDir+"refl.exr");
-  auto const padReflection = padImage(reflectionFile, 2);
-  createImage(reflectionFile.size().first, reflectionFile.size().second,
-              vk::SampleCountFlagBits::e1,
-              vk::Format::eR16G16B16A16Sfloat,
-              vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-              vk::MemoryPropertyFlagBits::eDeviceLocal,
-              brdfTex,
-              brdfTexMemory
-  );
-  transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *brdfTex);
-  copyDataToImage(padReflection,
-                  sizeof(std::uint32_t) * 4 * reflectionFile.size().first * reflectionFile.size().second,
-                  *brdfTex,
-                  reflectionFile.size().first, reflectionFile.size().second);
-  transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *brdfTex);
-  createImageView(vk::Format::eR16G16B16A16Sfloat, vk::ImageAspectFlagBits::eColor, brdfTex, brdfView);
-  createImageSampler(brdfSampler);
+    auto const imageType = texturePaths.size() > 1 ? vk::ImageType::e3D : vk::ImageType::e2D;
+    auto const imageViewType = texturePaths.size() > 1 ? vk::ImageViewType::e3D : vk::ImageViewType::e2D;
+    auto offset = 0u;
+    for (auto const& f: texturePaths) {
 
-  camp::IEXRFile reflectionTextureFile(imagePath+"refl0.exr");
-  auto const padReflectionTexture = padImage(reflectionTextureFile, 3);
-  createImage(reflectionTextureFile.size().first, reflectionTextureFile.size().second,
-              vk::SampleCountFlagBits::e1,
-              vk::Format::eR16G16B16A16Sfloat,
-              vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-              vk::MemoryPropertyFlagBits::eDeviceLocal,
-              reflection,
-              reflectionMemory,
-              vk::ImageType::e3D
+      camp::IEXRFile texture(f);
+
+      auto && w = texture.size().first;
+      auto && h = texture.size().second;
+
+      if (static_cast<void*>(*image) == nullptr) {
+
+        createImage(w, h,
+                    vk::SampleCountFlagBits::e1,
+                    vk::Format::eR32G32B32A32Sfloat,
+                    vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+                    vk::MemoryPropertyFlagBits::eDeviceLocal,
+                    image,
+                    mem,
+                    imageType,
+                    texturePaths.size()
+        );
+        transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *image);
+      }
+
+      copyDataToImage(texture.getData(),
+                      sizeof(glm::vec4) * w * h,
+                      *image,
+                      w, h,
+                      {0, 0, offset++});
+    }
+
+    transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *image);
+    createImageView(vk::Format::eR32G32B32A32Sfloat, vk::ImageAspectFlagBits::eColor, image, imageView, imageViewType);
+    createImageSampler(sampler);
+  };
+
+  createReflectionSampler(
+    irradiance,
+    irradianceMemory,
+    irradianceView,
+    irradianceSampler,
+    {imagePath+"diffuse.exr"}
   );
-  transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *reflection);
-  copyDataToImage(padReflectionTexture,
-                  sizeof(std::uint32_t) * 4 * reflectionTextureFile.size().first * reflectionTextureFile.size().second,
-                  *reflection,
-                  reflectionTextureFile.size().first, reflectionTextureFile.size().second);
-  transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *reflection);
-  createImageView(vk::Format::eR16G16B16A16Sfloat, vk::ImageAspectFlagBits::eColor, reflection, reflectionView, vk::ImageViewType::e3D);
-  createImageSampler(reflectionSampler);
+
+  createReflectionSampler(
+    brdfTex,
+    brdfTexMemory,
+    brdfView,
+    brdfSampler,
+    {imageDir+"refl.exr"}
+  );
+
+  std::vector<string> files;
+
+  constexpr auto NTEXTURES=11;
+  for(auto i = 0; i < NTEXTURES; ++i) {
+
+    files.emplace_back(imagePath+"refl"+std::to_string(i).c_str()+".exr");
+  }
+
+  createReflectionSampler(
+    reflection,
+    reflectionMemory,
+    reflectionView,
+    reflectionSampler,
+    files
+  );
 }
 
 void AsyVkRender::createCountRenderPass()
