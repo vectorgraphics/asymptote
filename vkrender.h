@@ -971,6 +971,8 @@ private:
   void spiny();
   void spinz();
 
+  void expand();
+  void shrink();
   projection camera(bool user=true);
   void showCamera();
   void shift(double dx, double dy);

@@ -374,15 +374,19 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
     case 'C':
       app->showCamera();
       break;
+    case '.': // '>' = '.' + shift
+      if (!(mods & GLFW_MOD_SHIFT))
+        break;
     case '+':
     case '=':
-    case '>':
-      //expand();
+      app->expand();
       break;
+    case ',': // '<' = ',' + shift
+      if (!(mods & GLFW_MOD_SHIFT))
+        break;
     case '-':
     case '_':
-    case '<':
-      //shrink();
+      app->shrink();
       break;
     case 'p':
       // if(getSetting<bool>("reverse")) Animate=false;
@@ -3922,6 +3926,21 @@ void AsyVkRender::clearMaterials()
   materialData.partial=false;
   colorData.partial=false;
   triangleData.partial=false;
+}
+
+void AsyVkRender::expand()
+{
+  double resizeStep=settings::getSetting<double>("resizestep");
+  if(resizeStep > 0.0)
+    setsize((int) (width*resizeStep+0.5),(int) (height*resizeStep+0.5));
+}
+
+void AsyVkRender::shrink()
+{
+  double resizeStep=settings::getSetting<double>("resizestep");
+  if(resizeStep > 0.0)
+    setsize(max((int) (width/resizeStep+0.5),1),
+            max((int) (height/resizeStep+0.5),1));
 }
 
 projection AsyVkRender::camera(bool user)
