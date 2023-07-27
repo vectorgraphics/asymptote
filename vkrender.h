@@ -356,7 +356,7 @@ public:
   AsyVkRender() = default;
   ~AsyVkRender();
 
-  void vkrender(const picture* pic, const string& format,
+  void vkrender(const string& prefix, const picture* pic, const string& format,
                 double width, double height, double angle, double zoom,
                 const triple& m, const triple& M, const pair& shift,
                 const pair& margin, double* t,
@@ -957,6 +957,7 @@ private:
   void idle();
 
   // user controls
+  static void exportHandler(int=0);
   void Export(int imageIndex);
   void quit();
 
@@ -971,6 +972,7 @@ private:
   void spiny();
   void spinz();
 
+  void animate();
   void expand();
   void shrink();
   projection camera(bool user=true);

@@ -389,21 +389,20 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       app->shrink();
       break;
     case 'p':
-      // if(getSetting<bool>("reverse")) Animate=false;
-      // Setting("reverse")=Step=false;
-      // animate();
+      if(settings::getSetting<bool>("reverse")) app->Animate=false;
+      settings::Setting("reverse")=app->Step=false;
+      app->animate();
       break;
     case 'r':
-      // if(!getSetting<bool>("reverse")) Animate=false;
-      // Setting("reverse")=true;
-      // Step=false;
-      // animate();
+      if(!settings::getSetting<bool>("reverse")) app->Animate=false;
+      settings::Setting("reverse")=true;
+      app->Step=false;
+      app->animate();
       break;
     case ' ':
-      // Step=true;
-      // animate();
+      app->Step=true;
+      app->animate();
       break;
-    case 17: // Ctrl-q
     case 'Q':
       if(!app->Format.empty()) app->Export(0);
       app->quit();
@@ -421,7 +420,7 @@ AsyVkRender::~AsyVkRender()
   glslang::FinalizeProcess();
 }
 
-void AsyVkRender::vkrender(const picture* pic, const string& format,
+void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
                            double w, double h, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
                            const pair& margin, double* t,
@@ -432,6 +431,7 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
   setenv("DRI_PRIME","1",0);
 
   this->pic = pic;
+  this->Prefix=prefix;
   this->Format = format;
   this->updateLights = true;
   this->redraw = true;
@@ -470,7 +470,9 @@ void AsyVkRender::vkrender(const picture* pic, const string& format,
 #else
       pthread_kill(mainthread,SIGUSR1);
 #endif
-    } //else readyAfterExport=queueExport=true;
+    } else readyAfterExport=queueExport=true;
+
+    std::cout << "here" << std::endl;
     return;
   }
 #endif
@@ -615,10 +617,10 @@ void AsyVkRender::initVulkan()
   if (options.display) createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
-  if (options.display) createSwapChain();
-  if (options.display) createImageViews();
   createCommandPools();
   createCommandBuffers();
+  if (options.display) createSwapChain();
+  if (options.display) createImageViews();
   createSyncObjects();
 
   createDescriptorSetLayout();
@@ -1096,6 +1098,10 @@ void AsyVkRender::createSwapChain()
   swapChainImages = device->getSwapchainImagesKHR(*swapChain);
   swapChainImageFormat = surfaceFormat.format;
   swapChainExtent = extent;
+
+  for(auto & image: swapChainImages) {
+    transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, image);
+  }
 }
 
 void AsyVkRender::createImageViews()
@@ -3753,7 +3759,8 @@ void AsyVkRender::drawFrame()
 
   try
   {
-    if (auto const result = presentQueue.presentKHR(presentInfo);
+    if (!View);
+    else if (auto const result = presentQueue.presentKHR(presentInfo);
         result == vk::Result::eErrorOutOfDateKHR
         || result == vk::Result::eSuboptimalKHR
         || framebufferResized)
@@ -3779,8 +3786,10 @@ void AsyVkRender::drawFrame()
     recreateBlendPipeline=false;
   }
 
-  if (queueExport)
+  if(queueExport) {
     Export(imageIndex);
+    queueExport=false;
+  }
 
   currentFrame = (currentFrame + 1) % options.maxFramesInFlight;
 }
@@ -3851,10 +3860,6 @@ void AsyVkRender::display()
     nextFrame();
   }
 #endif
-if(queueExport) {
-    //Export();
-    queueExport=false;
-  }
   if(!vkthread) {
     if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
@@ -3876,6 +3881,8 @@ void AsyVkRender::poll() {
 
 void AsyVkRender::mainLoop()
 {
+  int nFrames = 0;
+
   while (poll(), true) {
 
     if (redraw || queueExport) {
@@ -3885,9 +3892,22 @@ void AsyVkRender::mainLoop()
 
     if (currentIdleFunc != nullptr)
       currentIdleFunc();
+
+    if (!View && nFrames > options.maxFramesInFlight)
+      break;
+
+    nFrames++;
   }
 
   vkDeviceWaitIdle(*device);
+  if(vkthread) {
+    readyAfterExport=true;
+    Signal(SIGUSR1,exportHandler);
+    exportHandler();
+  } else {
+    exportHandler();
+    quit();
+  }
 }
 
 void AsyVkRender::updateProjection()
@@ -3926,6 +3946,18 @@ void AsyVkRender::clearMaterials()
   materialData.partial=false;
   colorData.partial=false;
   triangleData.partial=false;
+}
+
+void AsyVkRender::animate()
+{
+  Animate=!Animate;
+  if(Animate) {
+    if(Fitscreen == 2) {
+      toggleFitScreen();
+      toggleFitScreen();
+    }
+    update();
+  } else idle();
 }
 
 void AsyVkRender::expand()
@@ -3989,6 +4021,12 @@ projection AsyVkRender::camera(bool user)
                     2.0*atan(tan(0.5*Angle)/Zoom0)/radians,
                     pair(x/width+Shift.getx(),
                          y/height+Shift.gety()));
+}
+
+void AsyVkRender::exportHandler(int) {
+
+  vk->readyAfterExport=true;
+  vk->Export(0);
 }
 
 void AsyVkRender::Export(int imageIndex) {
@@ -4105,7 +4143,7 @@ void AsyVkRender::Export(int imageIndex) {
   device->freeMemory(mem);
   device->destroyBuffer(dst);
 
-  queueExport = false;
+  queueExport=false;
   remesh=true;
   setProjection();
 

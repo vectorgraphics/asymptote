@@ -1352,7 +1352,7 @@ void glrenderWrapper()
     options.title = std::string(settings::PROGRAM)+": "+com.prefix.c_str();
     vk->options = options;
 
-    vk->vkrender(com.pic,com.format,com.width,com.height,com.angle,
+    vk->vkrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
                 com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
                 com.nlights,com.lights,com.diffuse,com.specular,com.view);
   }
@@ -1495,7 +1495,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   options.title = std::string(settings::PROGRAM)+": "+prefix.c_str();
   vk->options = options;
 
-  vk->vkrender(pic,format,width,height,angle,
+  vk->vkrender(prefix,pic,format,width,height,angle,
                zoom,m,M,shift,margin,t,background,
                nlights,lights,diffuse,specular,view,
                oldpid);
