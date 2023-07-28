@@ -3625,6 +3625,8 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
   if (ssbo && transparent) {
 
+    device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+    device->resetFences(1, &*object.inComputeFence);
     device->resetEvent(*object.sumFinishedEvent);
     device->resetEvent(*object.compressionFinishedEvent);
 
@@ -3704,9 +3706,6 @@ void AsyVkRender::drawFrame()
     return recreateSwapChain();
   else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
     throw std::runtime_error("Failed to acquire next swapchain image.");
-
-  device->waitForFences(1, &*frameObject.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-  device->resetFences(1, &*frameObject.inComputeFence);
 
   updateUniformBuffer(currentFrame);
   updateBuffers();
