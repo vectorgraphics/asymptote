@@ -444,6 +444,8 @@ AC_ARG_ENABLE(OpenImageIO,
                     DEFINE([the <glm/glm.hpp> header]))],AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or Vulkan support ***]))
 
 if test "x$enable_vulkan" != "xno"; then
+CPPFLAGS="$CPPFLAGS "`pkg-config --cflags SPIRV-Tools`
+LDFLAGS="$LDFLAGS "`pkg-config --libs SPIRV-Tools`
                     AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 if test "x$enable_openimageio" = "xyes"; then
             AC_CHECK_HEADER([OpenEXR/ImathVec.h],
