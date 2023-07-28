@@ -638,7 +638,9 @@ void AsyVkRender::initVulkan()
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
-  createComputePipelines();
+  if (GPUindexing) {
+    createComputePipelines();
+  }
 
   createAttachments();
 
@@ -3631,10 +3633,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
     object.computeCommandBuffer->reset();
 
     refreshBuffers(object, imageIndex);
-
-    if (!interlock || true) {
-      resizeFragmentBuffer(object);
-    }
+    resizeFragmentBuffer(object);
   }
 
   beginFrameCommands(getFrameCommandBuffer());
@@ -3656,16 +3655,8 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   if (transparent) {
 
     drawTransparent(object);
-
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
-
     blendFrame(imageIndex);
-
-    // copied=true;
-
-    // if (interlock) {
-    //   resizeFragmentBuffer(object);
-    // }
   }
   else {
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
@@ -3720,9 +3711,7 @@ void AsyVkRender::drawFrame()
 
   updateUniformBuffer(currentFrame);
   updateBuffers();
-
   resetFrameCopyData();
-
   drawBuffers(frameObject, imageIndex);
 
   std::vector<vk::Semaphore> waitSemaphores {*frameObject.imageAvailableSemaphore};
