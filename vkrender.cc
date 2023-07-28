@@ -160,8 +160,6 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 void AsyVkRender::initWindow()
 {
-  double pixelRatio = settings::getSetting<double>("devicepixelratio");
-
   if (!this->options.display)
     return;
 
@@ -296,7 +294,6 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
 {
   static double xprev = 0.0;
   static double yprev = 0.0;
-  static bool first = true;
 
   if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS)
   {
@@ -851,8 +848,8 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
 
 bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 {
-  if (auto const indices = findQueueFamilies(device, options.display ? &*surface : nullptr);
-      !indices.transferQueueFamilyFound
+  auto const indices = findQueueFamilies(device, options.display ? &*surface : nullptr);
+  if (!indices.transferQueueFamilyFound
       || !indices.renderQueueFamilyFound
       || !(indices.presentQueueFamilyFound || !options.display))
       return false;
@@ -860,8 +857,8 @@ bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
   if (!checkDeviceExtensionSupport(device))
     return false;
 
-  if (auto const swapSupport = querySwapChainSupport(device, *surface);
-      options.display && (swapSupport.formats.empty() || swapSupport.presentModes.empty()))
+  auto const swapSupport = querySwapChainSupport(device, *surface);
+  if (options.display && (swapSupport.formats.empty() || swapSupport.presentModes.empty()))
     return false;
 
   auto const features = device.getFeatures();
@@ -1370,7 +1367,7 @@ void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
 
 void AsyVkRender::createSyncObjects()
 {
-  for (size_t i = 0; i < options.maxFramesInFlight; i++) {
+  for (auto i = 0; i < options.maxFramesInFlight; i++) {
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inCountBufferCopy = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
@@ -1649,7 +1646,7 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk
   buffer.nobjects = nobjects;
   if (size > buffer.memorySize || buffer.memorySize == 0) {
     // minimum array size of 16 bytes to avoid some Vulkan issues
-    auto newSize = 16;
+    vk::DeviceSize newSize = 16;
     while (newSize < size) newSize *= 2;
     buffer.memorySize = newSize;
     auto memoryAI = vk::MemoryAllocateInfo(buffer.memorySize, memoryTypeIndex);
@@ -1915,7 +1912,7 @@ void AsyVkRender::createDescriptorSets()
   );
   auto descriptorSets = device->allocateDescriptorSetsUnique(allocInfo);
 
-  for (size_t i = 0; i < options.maxFramesInFlight; i++)
+  for (auto i = 0; i < options.maxFramesInFlight; i++)
     frameObjects[i].descriptorSet = std::move(descriptorSets[i]);
 
 
@@ -1930,7 +1927,7 @@ void AsyVkRender::createDescriptorSets()
 
 void AsyVkRender::writeDescriptorSets()
 {
-  for (size_t i = 0; i < options.maxFramesInFlight; i++)
+  for (auto i = 0; i < options.maxFramesInFlight; i++)
   {
     auto uboInfo = vk::DescriptorBufferInfo();
 
@@ -2175,7 +2172,7 @@ void AsyVkRender::updateSceneDependentBuffers() {
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      depthBufferSize);
 
-  for (size_t i = 0; i < options.maxFramesInFlight; i++) {
+  for(auto i = 0; i < options.maxFramesInFlight; i++) {
 
     auto fragmentBufferInfo = vk::DescriptorBufferInfo(
       *fragmentBuffer,
@@ -2250,7 +2247,7 @@ void AsyVkRender::createBuffers()
                      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached,
                      elementBufferSize);
 
-  for (size_t i = 0; i < options.maxFramesInFlight; i++) {
+  for (auto i = 0; i < options.maxFramesInFlight; i++) {
 
     createBufferUnique(frameObjects[i].uniformBuffer,
                        frameObjects[i].uniformBufferMemory,
@@ -2361,7 +2358,7 @@ void AsyVkRender::initIBL() {
 
     auto const imageType = texturePaths.size() > 1 ? vk::ImageType::e3D : vk::ImageType::e2D;
     auto const imageViewType = texturePaths.size() > 1 ? vk::ImageViewType::e3D : vk::ImageViewType::e2D;
-    auto offset = 0u;
+    auto offset = 0;
     for (auto const& f: texturePaths) {
 
       camp::IEXRFile texture(f);
@@ -2442,26 +2439,26 @@ void AsyVkRender::createCountRenderPass()
     vk::ImageLayout::eUndefined,
     vk::ImageLayout::eDepthStencilAttachmentOptimal
   );
-  auto depthResolveAttachment = vk::AttachmentDescription2(
-    vk::AttachmentDescriptionFlags(),
-    vk::Format::eD32Sfloat,
-    vk::SampleCountFlagBits::e1,
-    vk::AttachmentLoadOp::eDontCare,
-    vk::AttachmentStoreOp::eStore,
-    vk::AttachmentLoadOp::eDontCare,
-    vk::AttachmentStoreOp::eDontCare,
-    vk::ImageLayout::eUndefined,
-    vk::ImageLayout::eDepthStencilAttachmentOptimal
-  );
+  // auto depthResolveAttachment = vk::AttachmentDescription2(
+  //   vk::AttachmentDescriptionFlags(),
+  //   vk::Format::eD32Sfloat,
+  //   vk::SampleCountFlagBits::e1,
+  //   vk::AttachmentLoadOp::eDontCare,
+  //   vk::AttachmentStoreOp::eStore,
+  //   vk::AttachmentLoadOp::eDontCare,
+  //   vk::AttachmentStoreOp::eDontCare,
+  //   vk::ImageLayout::eUndefined,
+  //   vk::ImageLayout::eDepthStencilAttachmentOptimal
+  // );
 
-  auto depthAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-  auto depthResolveAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+  //auto depthAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+  //auto depthResolveAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-  auto depthResolveSubpass = vk::SubpassDescriptionDepthStencilResolve(
-    vk::ResolveModeFlagBits::eMin,
-    vk::ResolveModeFlagBits::eMax,
-    &depthResolveAttachmentRef
-  );
+  // auto depthResolveSubpass = vk::SubpassDescriptionDepthStencilResolve(
+  //   vk::ResolveModeFlagBits::eMin,
+  //   vk::ResolveModeFlagBits::eMax,
+  //   &depthResolveAttachmentRef
+  // );
 
   std::array<vk::SubpassDescription2, 3> subpasses;
 
@@ -2607,7 +2604,7 @@ void AsyVkRender::createGraphicsRenderPass()
 
   auto colorAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eColorAttachmentOptimal);
   auto depthAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-  auto depthResolveAttachmentRef = vk::AttachmentReference2(2, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+  //auto depthResolveAttachmentRef = vk::AttachmentReference2(2, vk::ImageLayout::eDepthStencilAttachmentOptimal);
   auto colorResolveAttachmentRef = vk::AttachmentReference2(3, vk::ImageLayout::eColorAttachmentOptimal);
 
   std::array<vk::SubpassDescription2, 3> subpasses;
@@ -2680,8 +2677,6 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::AccessFlagBits::eNone,
     vk::AccessFlagBits::eNone
   );
-
-  auto dependency = vk::SubpassDependency2();
 
   auto renderPassCI = vk::RenderPassCreateInfo2(
     vk::RenderPassCreateFlags(),
@@ -2765,9 +2760,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   auto vertShaderModule = createShaderModule(EShLangVertex, vertShaderName, options);
   auto fragShaderModule = createShaderModule(EShLangFragment, fragShaderName, options);
 
-  vk::SpecializationMapEntry specializationMapEntries[] = {};
-  uint32_t specializationData[] = {};
-  auto specializationInfo = vk::SpecializationInfo(ARR_VIEW(specializationMapEntries), RAW_VIEW(specializationData));
+  auto specializationInfo = vk::SpecializationInfo();
 
   auto vertShaderStageCI = vk::PipelineShaderStageCreateInfo(
     vk::PipelineShaderStageCreateFlags(),
@@ -2901,8 +2894,8 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
       nullptr
     );
 
-    if (auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
-        result.result != vk::Result::eSuccess)
+    auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
+    if (result.result != vk::Result::eSuccess)
       throw std::runtime_error("failed to create pipeline!");
     else
       pipeline = std::move(result.value);
@@ -3046,8 +3039,8 @@ void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::U
   computePipelineCI.layout = *layout;
   computePipelineCI.stage = computeShaderStageInfo;
 
-  if (auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
-      result.result != vk::Result::eSuccess)
+auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
+  if (result.result != vk::Result::eSuccess)
     throw std::runtime_error("failed to create compute pipeline!");
   else
     pipeline = std::move(result.value);
@@ -3099,7 +3092,7 @@ void AsyVkRender::updateBuffers()
   if (updateLights) {
     std::vector<Light> lights;
 
-    for (int i = 0; i < nlights; i++)
+    for (auto i = 0u; i < nlights; i++)
       lights.emplace_back(
         Light {
           {Lights[i].getx(), Lights[i].gety(), Lights[i].getz(), 0.f},
@@ -3578,7 +3571,6 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
     elements=pixels;
 
-    auto size=elements*sizeof(std::uint32_t);
     auto offset = offsetStageBufferMap+1;
     auto maxsize=countBufferMap[0];
     auto count=countBufferMap+1;
@@ -3714,10 +3706,10 @@ void AsyVkRender::drawFrame()
   }
 
   uint32_t imageIndex; // index of the current swap chain image to render to
-  if (auto const result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(),
+  auto const result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(),
                                                       *frameObject.imageAvailableSemaphore, nullptr,
                                                       &imageIndex);
-      result == vk::Result::eErrorOutOfDateKHR
+  if (result == vk::Result::eErrorOutOfDateKHR
       || result == vk::Result::eSuboptimalKHR)
     return recreateSwapChain();
   else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
@@ -3759,9 +3751,8 @@ void AsyVkRender::drawFrame()
 
   try
   {
-    if (!View);
-    else if (auto const result = presentQueue.presentKHR(presentInfo);
-        result == vk::Result::eErrorOutOfDateKHR
+    auto const result = presentQueue.presentKHR(presentInfo);
+    if (result == vk::Result::eErrorOutOfDateKHR
         || result == vk::Result::eSuboptimalKHR
         || framebufferResized)
       framebufferResized = false, recreateSwapChain();
@@ -4114,9 +4105,9 @@ void AsyVkRender::Export(int imageIndex) {
   auto * data = static_cast<unsigned char*>(device->mapMemory(mem, 0, size));
   auto * fmt = new unsigned char[swapChainExtent.width * swapChainExtent.height * 3]; // 3 for RGB
 
-  for (int i = 0; i < swapChainExtent.height; i++)
-    for (int j = 0; j < swapChainExtent.width; j++)
-      for (int k = 0; k < 3; k++)
+  for (auto i = 0u; i < swapChainExtent.height; i++)
+    for (auto j = 0u; j < swapChainExtent.width; j++)
+      for (auto k = 0u; k < 3; k++)
         // need to flip vertically and swap byte order due to little endian in image data
         // 4 for sizeof unsigned (RGBA)
         fmt[(swapChainExtent.height-1-i)*swapChainExtent.width*3+j*3+(2-k)]=data[i*swapChainExtent.width*4+j*4+k];
