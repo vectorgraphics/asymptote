@@ -942,6 +942,7 @@ private:
   void compressCount(FrameObject & object);
   void refreshBuffers(FrameObject & object, int imageIndex);
   void blendFrame(int imageIndex);
+  void preDrawBuffers(FrameObject & object, int imageIndex);
   void drawBuffers(FrameObject & object, int imageIndex);
   void drawFrame();
   void recreateSwapChain();

@@ -3617,7 +3617,7 @@ void AsyVkRender::blendFrame(int imageIndex)
   currentCommandBuffer.draw(3, 1, 0, 0);
 }
 
-void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
+void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 {
   copied=false;
   Opaque=transparentData.indices.empty();
@@ -3625,7 +3625,6 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
   if (ssbo && transparent) {
 
-    device->resetFences(1, &*object.inComputeFence);
     device->resetEvent(*object.sumFinishedEvent);
     device->resetEvent(*object.compressionFinishedEvent);
 
@@ -3635,7 +3634,11 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
     refreshBuffers(object, imageIndex);
     resizeFragmentBuffer(object);
   }
+}
 
+void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
+{
+  auto transparent=!Opaque;
   beginFrameCommands(getFrameCommandBuffer());
 
   if (!GPUindexing) {
@@ -3684,10 +3687,6 @@ void AsyVkRender::drawFrame()
 
   auto& frameObject = frameObjects[currentFrame];
 
-  std::array<vk::Fence, 2> fences {*frameObject.inFlightFence, *frameObject.inComputeFence};
-
-  device->waitForFences(1, fences.data(), VK_TRUE, std::numeric_limits<uint64_t>::max());
-
   // check to see if any pipeline state changed.
   if (recreatePipeline)
   {
@@ -3706,12 +3705,18 @@ void AsyVkRender::drawFrame()
   else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
     throw std::runtime_error("Failed to acquire next swapchain image.");
 
-  device->resetFences(1, &*frameObject.inFlightFence);
-  frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
+  device->waitForFences(1, &*frameObject.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+  device->resetFences(1, &*frameObject.inComputeFence);
 
   updateUniformBuffer(currentFrame);
   updateBuffers();
   resetFrameCopyData();
+  preDrawBuffers(frameObject, imageIndex);
+
+  device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+  device->resetFences(1, &*frameObject.inFlightFence);
+  frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
+
   drawBuffers(frameObject, imageIndex);
 
   std::vector<vk::Semaphore> waitSemaphores {*frameObject.imageAvailableSemaphore};
