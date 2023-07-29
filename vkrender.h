@@ -344,7 +344,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    int maxFramesInFlight = 16;
+    int maxFramesInFlight = 8;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
@@ -576,6 +576,7 @@ private:
   vk::Extent2D swapChainExtent;
   std::vector<vk::UniqueImageView> swapChainImageViews;
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
+  std::vector<vk::UniqueFramebuffer> opaqueGraphicsFramebuffers;
   std::vector<vk::UniqueFramebuffer> graphicsFramebuffers;
 
   vk::UniqueImage depthImage;
@@ -597,6 +598,7 @@ private:
   vk::UniqueDescriptorPool descriptorPool;
 
   vk::UniqueRenderPass countRenderPass;
+  vk::UniqueRenderPass opaqueGraphicsRenderPass;
   vk::UniqueRenderPass graphicsRenderPass;
   vk::UniqueDescriptorSetLayout materialDescriptorSetLayout;
 

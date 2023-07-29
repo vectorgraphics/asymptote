@@ -1275,6 +1275,7 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
 void AsyVkRender::createFramebuffers()
 {
   depthFramebuffers.resize(swapChainImageViews.size());
+  opaqueGraphicsFramebuffers.resize(swapChainImageViews.size());
   graphicsFramebuffers.resize(swapChainImageViews.size());
 
   for (auto i = 0u; i < swapChainImageViews.size(); i++)
@@ -1295,6 +1296,14 @@ void AsyVkRender::createFramebuffers()
       swapChainExtent.height,
       1
     );
+    auto opaqueGraphicsFramebufferCI = vk::FramebufferCreateInfo(
+      vk::FramebufferCreateFlags(),
+      *opaqueGraphicsRenderPass,
+      ARR_VIEW(attachments),
+      swapChainExtent.width,
+      swapChainExtent.height,
+      1
+    );
     auto graphicsFramebufferCI = vk::FramebufferCreateInfo(
       vk::FramebufferCreateFlags(),
       *graphicsRenderPass,
@@ -1305,6 +1314,7 @@ void AsyVkRender::createFramebuffers()
     );
 
     depthFramebuffers[i] = device->createFramebufferUnique(depthFramebufferCI);
+    opaqueGraphicsFramebuffers[i] = device->createFramebufferUnique(opaqueGraphicsFramebufferCI);
     graphicsFramebuffers[i] = device->createFramebufferUnique(graphicsFramebufferCI);
   }
 }
@@ -2680,6 +2690,18 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::AccessFlagBits::eNone
   );
 
+  // only use the first subpass and first dependency
+  auto opaqueRenderPassCI = vk::RenderPassCreateInfo2(
+    vk::RenderPassCreateFlags(),
+    attachments.size(),
+    &attachments[0],
+    1,
+    subpasses.data(),
+    1,
+    dependencies.data()
+  );
+  opaqueGraphicsRenderPass = device->createRenderPass2Unique(opaqueRenderPassCI);
+
   auto renderPassCI = vk::RenderPassCreateInfo2(
     vk::RenderPassCreateFlags(),
     attachments.size(),
@@ -2903,10 +2925,18 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
       pipeline = std::move(result.value);
   };
 
+  auto renderPass = *graphicsRenderPass;
+
+  if (type == PIPELINE_OPAQUE) {
+    renderPass = *opaqueGraphicsRenderPass;
+  } else if (type == PIPELINE_COUNT) {
+    renderPass = *countRenderPass;
+  }
+
   makePipeline(
     graphicsPipeline,
     stages,
-    type == PIPELINE_COUNT ? *countRenderPass : *graphicsRenderPass,
+    renderPass,
     graphicsSubpass
   );
 }
@@ -3190,8 +3220,8 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
   clearColors[3] = vk::ClearValue(Background);
 
   auto renderPassInfo = vk::RenderPassBeginInfo(
-    *graphicsRenderPass,
-    *graphicsFramebuffers[imageIndex],
+    Opaque ? *opaqueGraphicsRenderPass : *graphicsRenderPass,
+    Opaque ? *opaqueGraphicsFramebuffers[imageIndex] : *graphicsFramebuffers[imageIndex],
     vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
     clearColors.size(),
     &clearColors[0]
@@ -3655,16 +3685,13 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   drawColors(object);
   drawTriangles(object);
 
-  currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   if (transparent) {
 
+    currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
     drawTransparent(object);
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
     blendFrame(imageIndex);
-  }
-  else {
-    currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
   }
 
   endFrameRender();
