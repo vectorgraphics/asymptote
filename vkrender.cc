@@ -3707,15 +3707,14 @@ void AsyVkRender::drawFrame()
   else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
     throw std::runtime_error("Failed to acquire next swapchain image.");
 
-  updateUniformBuffer(currentFrame);
-  updateBuffers();
-  resetFrameCopyData();
-  preDrawBuffers(frameObject, imageIndex);
-
   device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
   device->resetFences(1, &*frameObject.inFlightFence);
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
 
+  updateUniformBuffer(currentFrame);
+  updateBuffers();
+  resetFrameCopyData();
+  preDrawBuffers(frameObject, imageIndex);
   drawBuffers(frameObject, imageIndex);
 
   std::vector<vk::Semaphore> waitSemaphores {*frameObject.imageAvailableSemaphore};
