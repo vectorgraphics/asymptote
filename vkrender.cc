@@ -4,6 +4,7 @@
 #include "EXRFiles.h"
 
 #define SHADER_DIRECTORY "base/shaders/"
+#define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 
 void exitHandler(int);
 
@@ -24,12 +25,6 @@ std::vector<const char*> deviceExtensions = {
   "VK_KHR_create_renderpass2",
   "VK_KHR_multiview",
   "VK_KHR_maintenance2"
-};
-
-std::vector<const char*> validationLayers = {
-#ifdef VALIDATION
-  "VK_LAYER_KHRONOS_validation",
-#endif
 };
 
 std::vector<char> readFile(const std::string& filename)
@@ -469,7 +464,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 #endif
     } else readyAfterExport=queueExport=true;
 
-    std::cout << "here" << std::endl;
     return;
   }
 #endif
@@ -685,6 +679,16 @@ std::set<std::string> AsyVkRender::getInstanceExtensions()
   return extensions;
 }
 
+std::set<std::string> AsyVkRender::getInstanceLayers()
+{
+  std::set<std::string> layers;
+  auto availableLayers = vk::enumerateInstanceLayerProperties();
+  for (auto& layer : availableLayers) {
+    layers.insert(layer.layerName);
+  }
+  return layers;
+}
+
 std::set<std::string> AsyVkRender::getDeviceExtensions(vk::PhysicalDevice& device)
 {
   std::set<std::string> extensions;
@@ -710,10 +714,21 @@ void AsyVkRender::createInstance()
   auto appInfo = vk::ApplicationInfo("Asymptote", VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_2);
   auto extensions = getRequiredInstanceExtensions();
   auto supportedExtensions = getInstanceExtensions();
+  auto supportedLayers = getInstanceLayers();
+
   if (supportedExtensions.find(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME) != supportedExtensions.end()) {
     extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
     hasExternalMemoryCapabilitiesExtension = true;
   }
+
+#ifdef VALIDATION
+  if (supportedLayers.find(VALIDATION_LAYER) != supportedLayers.end()) {
+    validationLayers.emplace_back(VALIDATION_LAYER);
+  } else if (settings::verbose > 1) {
+    std::cout << "Validation layers are not supported by the current Vulkan instance." << std::endl;
+  }
+#endif
+
   auto instanceFlags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
   auto instanceCI = vk::InstanceCreateInfo(instanceFlags, &appInfo, VEC_VIEW(validationLayers), VEC_VIEW(extensions));
   instance = vk::createInstanceUnique(instanceCI);
@@ -923,10 +938,15 @@ void AsyVkRender::createLogicalDevice()
 
   vk::PhysicalDeviceFeatures deviceFeatures;
 
+  auto portability = vk::PhysicalDevicePortabilitySubsetFeaturesKHR();
+
+  portability.events = true;
+
   auto interlockFeatures = vk::PhysicalDeviceFragmentShaderInterlockFeaturesEXT(
     true,
     true,
-    false
+    false,
+    &portability
   );
 
   auto resolveExtension = vk::PhysicalDeviceDepthStencilResolveProperties(

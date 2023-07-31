@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <vector>
 
+#define VK_ENABLE_BETA_EXTENSIONS
 #include <vulkan/vulkan.hpp>
 
 #include <glslang/SPIRV/GlslangToSpv.h>
@@ -557,6 +558,7 @@ private:
   GLFWwindow* window;
 
   vk::UniqueInstance instance;
+  std::vector<const char*> validationLayers {};
   vk::UniqueSurfaceKHR surface;
 
   vk::PhysicalDevice physicalDevice = nullptr;
@@ -818,6 +820,7 @@ private:
   void initWindow();
   void initVulkan();
   std::set<std::string> getInstanceExtensions();
+  std::set<std::string> getInstanceLayers();
   std::set<std::string> getDeviceExtensions(vk::PhysicalDevice& device);
   std::vector<const char*> getRequiredInstanceExtensions();
   void createInstance();
