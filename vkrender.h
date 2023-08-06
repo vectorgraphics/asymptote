@@ -866,11 +866,11 @@ private:
   void beginCountFrameRender(int imageIndex);
   void beginGraphicsFrameRender(int imageIndex);
   void resetFrameCopyData();
-  void recordCommandBuffer(DeviceBuffer & vertexBuffer,
-                           DeviceBuffer & indexBuffer,
-                           VertexBuffer * data,
-                           vk::UniquePipeline & pipeline,
-                           bool incrementRenderCount=true);
+  void drawBuffer(DeviceBuffer & vertexBuffer,
+                  DeviceBuffer & indexBuffer,
+                  VertexBuffer * data,
+                  vk::UniquePipeline & pipeline,
+                  bool incrementRenderCount=true);
   void endFrameRender();
   void endFrameCommands();
   void endFrame(int imageIndex);

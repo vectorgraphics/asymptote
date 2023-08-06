@@ -3163,11 +3163,11 @@ void AsyVkRender::resetFrameCopyData()
   pointData.copiedThisFrame=false;
 }
 
-void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
-                                      DeviceBuffer & indexBuffer,
-                                      VertexBuffer * data,
-                                      vk::UniquePipeline & pipeline,
-                                      bool incrementRenderCount) {
+void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
+                             DeviceBuffer & indexBuffer,
+                             VertexBuffer * data,
+                             vk::UniquePipeline & pipeline,
+                             bool incrementRenderCount) {
 
   if (data->indices.empty())
     return;
@@ -3229,56 +3229,56 @@ void AsyVkRender::endFrame(int imageIndex)
 
 void AsyVkRender::drawPoints(FrameObject & object)
 {
-  recordCommandBuffer(object.pointVertexBuffer,
-                      object.pointIndexBuffer,
-                      &pointData,
-                      getPipelineType(pointPipelines));
+  drawBuffer(object.pointVertexBuffer,
+             object.pointIndexBuffer,
+             &pointData,
+             getPipelineType(pointPipelines));
   pointData.clear();
 }
 
 void AsyVkRender::drawLines(FrameObject & object)
 {
-  recordCommandBuffer(object.lineVertexBuffer,
-                      object.lineIndexBuffer,
-                      &lineData,
-                      getPipelineType(linePipelines));
+  drawBuffer(object.lineVertexBuffer,
+             object.lineIndexBuffer,
+             &lineData,
+             getPipelineType(linePipelines));
   lineData.clear();
 }
 
 void AsyVkRender::drawMaterials(FrameObject & object)
 {
-  recordCommandBuffer(object.materialVertexBuffer,
-                      object.materialIndexBuffer,
-                      &materialData,
-                      getPipelineType(materialPipelines));
+  drawBuffer(object.materialVertexBuffer,
+             object.materialIndexBuffer,
+             &materialData,
+             getPipelineType(materialPipelines));
   materialData.clear();
 }
 
 void AsyVkRender::drawColors(FrameObject & object)
 {
-  recordCommandBuffer(object.colorVertexBuffer,
-                      object.colorIndexBuffer,
-                      &colorData,
-                      getPipelineType(colorPipelines));
+  drawBuffer(object.colorVertexBuffer,
+             object.colorIndexBuffer,
+             &colorData,
+             getPipelineType(colorPipelines));
   colorData.clear();
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
 {
-  recordCommandBuffer(object.triangleVertexBuffer,
-                      object.triangleIndexBuffer,
-                      &triangleData,
-                      getPipelineType(trianglePipelines));
+  drawBuffer(object.triangleVertexBuffer,
+             object.triangleIndexBuffer,
+             &triangleData,
+             getPipelineType(trianglePipelines));
   triangleData.clear();
 }
 
 void AsyVkRender::drawTransparent(FrameObject & object)
 {
   // todo has camp::ssbo
-  recordCommandBuffer(object.transparentVertexBuffer,
-                      object.transparentIndexBuffer,
-                      &transparentData,
-                      getPipelineType(transparentPipelines));
+  drawBuffer(object.transparentVertexBuffer,
+             object.transparentIndexBuffer,
+             &transparentData,
+             getPipelineType(transparentPipelines));
 
   transparentData.clear();
 }
@@ -3406,41 +3406,41 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   if (!interlock) {
 
-    recordCommandBuffer(object.pointVertexBuffer,
-                        object.pointIndexBuffer,
-                        &pointData,
-                        getPipelineType(pointPipelines, true),
-                        false);
-    recordCommandBuffer(object.lineVertexBuffer,
-                        object.lineIndexBuffer,
-                        &lineData,
-                        getPipelineType(linePipelines, true),
-                        false);
-    recordCommandBuffer(object.materialVertexBuffer,
-                        object.materialIndexBuffer,
-                        &materialData,
-                        getPipelineType(materialPipelines, true),
-                        false);
-    recordCommandBuffer(object.colorVertexBuffer,
-                        object.colorIndexBuffer,
-                        &colorData,
-                        getPipelineType(colorPipelines, true),
-                        false);
-    recordCommandBuffer(object.triangleVertexBuffer,
-                        object.triangleIndexBuffer,
-                        &triangleData,
-                        getPipelineType(trianglePipelines, true),
-                        false);
+    drawBuffer(object.pointVertexBuffer,
+               object.pointIndexBuffer,
+               &pointData,
+               getPipelineType(pointPipelines, true),
+               false);
+    drawBuffer(object.lineVertexBuffer,
+               object.lineIndexBuffer,
+               &lineData,
+               getPipelineType(linePipelines, true),
+               false);
+    drawBuffer(object.materialVertexBuffer,
+               object.materialIndexBuffer,
+               &materialData,
+               getPipelineType(materialPipelines, true),
+               false);
+    drawBuffer(object.colorVertexBuffer,
+               object.colorIndexBuffer,
+               &colorData,
+               getPipelineType(colorPipelines, true),
+               false);
+    drawBuffer(object.triangleVertexBuffer,
+               object.triangleIndexBuffer,
+               &triangleData,
+               getPipelineType(trianglePipelines, true),
+               false);
   }
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   // draw transparent
-  recordCommandBuffer(object.transparentVertexBuffer,
-                      object.transparentIndexBuffer,
-                      &transparentData,
-                      getPipelineType(transparentPipelines, true),
-                      false);
+  drawBuffer(object.transparentVertexBuffer,
+             object.transparentIndexBuffer,
+             &transparentData,
+             getPipelineType(transparentPipelines, true),
+             false);
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
