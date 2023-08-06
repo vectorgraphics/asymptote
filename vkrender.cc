@@ -507,6 +507,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(w, h);
 
   antialias=settings::getSetting<Int>("multisample")>1;
+  maxFramesInFlight=settings::getSetting<Int>("maxFramesInFlight");
   oWidth = w;
   oHeight = h;
   aspect=w/h;
@@ -599,10 +600,15 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
 void AsyVkRender::initVulkan()
 {
-  if (!glslang::InitializeProcess())
+  if (!glslang::InitializeProcess()) {
     throw std::runtime_error("Unable to initialize glslang.");
+  }
 
-  frameObjects.resize(options.maxFramesInFlight);
+  frameObjects.resize(maxFramesInFlight);
+
+  if (settings::verbose > 1) {
+    std::cout << "Using " << maxFramesInFlight << " maximum frames in flight." << std::endl;
+  }
 
   createInstance();
   if (options.display) createSurface();
@@ -1349,12 +1355,12 @@ void AsyVkRender::createCommandPools()
 
 void AsyVkRender::createCommandBuffers()
 {
-  auto renderAllocInfo = vk::CommandBufferAllocateInfo(*renderCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight * 4));
-  auto transferAllocInfo = vk::CommandBufferAllocateInfo(*transferCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(options.maxFramesInFlight));
+  auto renderAllocInfo = vk::CommandBufferAllocateInfo(*renderCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(maxFramesInFlight * 4));
+  auto transferAllocInfo = vk::CommandBufferAllocateInfo(*transferCommandPool, vk::CommandBufferLevel::ePrimary, static_cast<uint32_t>(maxFramesInFlight));
   auto renderCommands = device->allocateCommandBuffersUnique(renderAllocInfo);
   auto transferCommands = device->allocateCommandBuffersUnique(transferAllocInfo);
 
-  for (int i = 0; i < options.maxFramesInFlight; i++)
+  for (int i = 0; i < maxFramesInFlight; i++)
   {
     frameObjects[i].commandBuffer = std::move(renderCommands[3 * i]);
     frameObjects[i].countCommandBuffer = std::move(renderCommands[3 * i + 1]);
@@ -1399,7 +1405,7 @@ void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
 
 void AsyVkRender::createSyncObjects()
 {
-  for (auto i = 0; i < options.maxFramesInFlight; i++) {
+  for (auto i = 0; i < maxFramesInFlight; i++) {
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inCountBufferCopy = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
@@ -1844,62 +1850,62 @@ void AsyVkRender::createDescriptorPool()
 
   poolSizes.resize(11);
   poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
-  poolSizes[0].descriptorCount = options.maxFramesInFlight;
+  poolSizes[0].descriptorCount = maxFramesInFlight;
 
   poolSizes[1].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[1].descriptorCount = options.maxFramesInFlight;
+  poolSizes[1].descriptorCount = maxFramesInFlight;
 
   poolSizes[2].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[2].descriptorCount = options.maxFramesInFlight;
+  poolSizes[2].descriptorCount = maxFramesInFlight;
 
   poolSizes[3].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[3].descriptorCount = options.maxFramesInFlight;
+  poolSizes[3].descriptorCount = maxFramesInFlight;
 
   poolSizes[4].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[4].descriptorCount = options.maxFramesInFlight;
+  poolSizes[4].descriptorCount = maxFramesInFlight;
 
   poolSizes[5].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[5].descriptorCount = options.maxFramesInFlight;
+  poolSizes[5].descriptorCount = maxFramesInFlight;
 
   poolSizes[6].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[6].descriptorCount = options.maxFramesInFlight;
+  poolSizes[6].descriptorCount = maxFramesInFlight;
 
   poolSizes[7].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[7].descriptorCount = options.maxFramesInFlight;
+  poolSizes[7].descriptorCount = maxFramesInFlight;
 
   poolSizes[8].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[8].descriptorCount = options.maxFramesInFlight;
+  poolSizes[8].descriptorCount = maxFramesInFlight;
 
   poolSizes[9].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[9].descriptorCount = options.maxFramesInFlight;
+  poolSizes[9].descriptorCount = maxFramesInFlight;
 
   poolSizes[10].type = vk::DescriptorType::eStorageBuffer;
-  poolSizes[10].descriptorCount = options.maxFramesInFlight;
+  poolSizes[10].descriptorCount = maxFramesInFlight;
 
   if (ibl) {
     poolSizes.emplace_back(
       vk::DescriptorPoolSize(
         vk::DescriptorType::eCombinedImageSampler,
-        options.maxFramesInFlight
+        maxFramesInFlight
       )
     );
     poolSizes.emplace_back(
       vk::DescriptorPoolSize(
         vk::DescriptorType::eCombinedImageSampler,
-        options.maxFramesInFlight
+        maxFramesInFlight
       )
     );
     poolSizes.emplace_back(
       vk::DescriptorPoolSize(
         vk::DescriptorType::eCombinedImageSampler,
-        options.maxFramesInFlight
+        maxFramesInFlight
       )
     );
   }
 
   auto poolCI = vk::DescriptorPoolCreateInfo(
     vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-    options.maxFramesInFlight,
+    maxFramesInFlight,
     poolSizes.size(),
     &poolSizes[0]
   );
@@ -1937,16 +1943,15 @@ void AsyVkRender::createComputeDescriptorPool()
 
 void AsyVkRender::createDescriptorSets()
 {
-  std::vector<vk::DescriptorSetLayout> layouts(options.maxFramesInFlight, *materialDescriptorSetLayout);
+  std::vector<vk::DescriptorSetLayout> layouts(maxFramesInFlight, *materialDescriptorSetLayout);
   auto allocInfo = vk::DescriptorSetAllocateInfo(
     *descriptorPool,
     VEC_VIEW(layouts)
   );
   auto descriptorSets = device->allocateDescriptorSetsUnique(allocInfo);
 
-  for (auto i = 0; i < options.maxFramesInFlight; i++)
+  for (auto i = 0; i < maxFramesInFlight; i++)
     frameObjects[i].descriptorSet = std::move(descriptorSets[i]);
-
 
   auto computeAllocInfo = vk::DescriptorSetAllocateInfo(
     *computeDescriptorPool,
@@ -1959,7 +1964,7 @@ void AsyVkRender::createDescriptorSets()
 
 void AsyVkRender::writeDescriptorSets()
 {
-  for (auto i = 0; i < options.maxFramesInFlight; i++)
+  for (auto i = 0; i < maxFramesInFlight; i++)
   {
     auto uboInfo = vk::DescriptorBufferInfo();
 
@@ -2204,7 +2209,7 @@ void AsyVkRender::updateSceneDependentBuffers() {
                      vk::MemoryPropertyFlagBits::eDeviceLocal,
                      depthBufferSize);
 
-  for(auto i = 0; i < options.maxFramesInFlight; i++) {
+  for(auto i = 0; i < maxFramesInFlight; i++) {
 
     auto fragmentBufferInfo = vk::DescriptorBufferInfo(
       *fragmentBuffer,
@@ -2279,7 +2284,7 @@ void AsyVkRender::createBuffers()
                      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached,
                      elementBufferSize);
 
-  for (auto i = 0; i < options.maxFramesInFlight; i++) {
+  for (auto i = 0; i < maxFramesInFlight; i++) {
 
     createBufferUnique(frameObjects[i].uniformBuffer,
                        frameObjects[i].uniformBufferMemory,
@@ -3270,7 +3275,7 @@ void AsyVkRender::recordCommandBuffer(DeviceBuffer & vertexBuffer,
     return;
 
   auto const badBuffer = static_cast<void*>(*vertexBuffer.buffer) == nullptr;
-  auto const rendered = data->renderCount >= options.maxFramesInFlight;
+  auto const rendered = data->renderCount >= maxFramesInFlight;
   auto const copy = (remesh || data->partial || !rendered || badBuffer) && !copied && !data->copiedThisFrame;
 
   if (copy) {
@@ -3821,7 +3826,7 @@ void AsyVkRender::drawFrame()
     queueExport=false;
   }
 
-  currentFrame = (currentFrame + 1) % options.maxFramesInFlight;
+  currentFrame = (currentFrame + 1) % maxFramesInFlight;
 }
 
 void AsyVkRender::nextFrame()
@@ -3851,7 +3856,7 @@ void AsyVkRender::display()
   if(remesh) {
     clearCenters();
 
-    for (int i = 0; i < options.maxFramesInFlight; i++) {
+    for (int i = 0; i < maxFramesInFlight; i++) {
       frameObjects[i].reset();
     }
   }
@@ -3923,7 +3928,7 @@ void AsyVkRender::mainLoop()
     if (currentIdleFunc != nullptr)
       currentIdleFunc();
 
-    if (!View && nFrames > options.maxFramesInFlight)
+    if (!View && nFrames > maxFramesInFlight)
       break;
 
     nFrames++;

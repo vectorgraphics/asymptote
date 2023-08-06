@@ -345,7 +345,6 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    int maxFramesInFlight = 8;
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
@@ -381,6 +380,8 @@ public:
   bool initialize=true;
   bool vkinit=false;
   bool copied=false;
+
+  int maxFramesInFlight;
 
 #ifdef HAVE_PTHREAD
   pthread_t mainthread;
