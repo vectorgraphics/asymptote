@@ -716,8 +716,7 @@ std::vector<const char*> AsyVkRender::getRequiredInstanceExtensions()
 
 void AsyVkRender::createInstance()
 {
-  // TODO: replace with asy version
-  auto appInfo = vk::ApplicationInfo("Asymptote", VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_2);
+  auto appInfo = vk::ApplicationInfo(PACKAGE_STRING, VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_2);
   auto extensions = getRequiredInstanceExtensions();
   auto supportedExtensions = getInstanceExtensions();
   auto supportedLayers = getInstanceLayers();
