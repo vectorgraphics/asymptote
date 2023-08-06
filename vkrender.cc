@@ -11,22 +11,6 @@ void exitHandler(int);
 namespace camp
 {
 
-std::vector<const char*> instanceExtensions = {
-        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-#ifdef VALIDATION
-        VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-#endif
-};
-
-std::vector<const char*> deviceExtensions = {
-  "VK_EXT_fragment_shader_interlock",
-  "VK_KHR_depth_stencil_resolve",
-  "VK_KHR_create_renderpass2",
-  "VK_KHR_multiview",
-  "VK_KHR_maintenance2"
-};
-
 std::vector<char> readFile(const std::string& filename)
 {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -42,6 +26,86 @@ std::vector<char> readFile(const std::string& filename)
   file.close();
 
   return buffer;
+}
+
+SwapChainDetails::SwapChainDetails(
+  vk::PhysicalDevice gpu,
+  vk::SurfaceKHR surface) :
+  capabilities {gpu.getSurfaceCapabilitiesKHR(surface)},
+  formats {gpu.getSurfaceFormatsKHR(surface)},
+  presentModes {gpu.getSurfacePresentModesKHR(surface)}
+{ }
+
+SwapChainDetails::operator bool() const
+{
+  return !formats.empty() && !presentModes.empty();
+}
+
+vk::SurfaceFormatKHR
+SwapChainDetails::chooseSurfaceFormat() const
+{
+  for (const auto& availableFormat : formats) {
+    if (availableFormat.format == vk::Format::eB8G8R8A8Uint &&
+        availableFormat.colorSpace == vk::ColorSpaceKHR::eAdobergbLinearEXT) {
+      return availableFormat;
+    }
+  }
+
+  return formats.front();
+}
+
+vk::PresentModeKHR
+SwapChainDetails::choosePresentMode() const
+{
+  for (const auto& mode : presentModes) {
+    if (mode == vk->options.presentMode) {
+      return mode;
+    }
+  }
+
+  return presentModes.front();
+}
+
+vk::Extent2D
+SwapChainDetails::chooseExtent() const
+{
+  if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+    return capabilities.currentExtent;
+  }
+
+  int width, height;
+  glfwGetFramebufferSize(vk->window, &width, &height);
+
+  auto extent = vk::Extent2D(
+    static_cast<uint32_t>(width),
+    static_cast<uint32_t>(height)
+  );
+
+  extent.width = glm::clamp(
+                  extent.width,
+                  capabilities.minImageExtent.width,
+                  capabilities.maxImageExtent.width
+                 );
+  extent.height = glm::clamp(
+                    extent.height,
+                    capabilities.minImageExtent.height,
+                    capabilities.maxImageExtent.height
+                  );
+
+  return extent;
+}
+
+std::uint32_t
+SwapChainDetails::chooseImageCount() const
+{
+  auto imageCount = capabilities.minImageCount + 1;
+
+  if(capabilities.maxImageCount > 0 &&
+     imageCount > capabilities.maxImageCount) {
+    imageCount = capabilities.maxImageCount;
+  }
+
+  return imageCount;
 }
 
 void AsyVkRender::setDimensions(int width, int height, double x, double y)
@@ -685,16 +749,6 @@ std::set<std::string> AsyVkRender::getInstanceExtensions()
   return extensions;
 }
 
-std::set<std::string> AsyVkRender::getInstanceLayers()
-{
-  std::set<std::string> layers;
-  auto availableLayers = vk::enumerateInstanceLayerProperties();
-  for (auto& layer : availableLayers) {
-    layers.insert(layer.layerName);
-  }
-  return layers;
-}
-
 std::set<std::string> AsyVkRender::getDeviceExtensions(vk::PhysicalDevice& device)
 {
   std::set<std::string> extensions;
@@ -707,49 +761,66 @@ std::set<std::string> AsyVkRender::getDeviceExtensions(vk::PhysicalDevice& devic
 
 std::vector<const char*> AsyVkRender::getRequiredInstanceExtensions()
 {
-  uint32_t glfwExtensionCount = 0;
-  const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-  std::set<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-  for (auto& extension : instanceExtensions) extensions.insert(extension);
-  return std::vector<const char*>(extensions.begin(), extensions.end());
+  uint32_t glfwExtensionCount;
+  auto const glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+  std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+  for(auto& extension : instanceExtensions) {
+    extensions.emplace_back(extension);
+  }
+
+  return extensions;
 }
 
 void AsyVkRender::createInstance()
 {
-  auto appInfo = vk::ApplicationInfo(PACKAGE_STRING, VK_MAKE_VERSION(1, 0, 0), "No Engine", VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_2);
+  auto appInfo = vk::ApplicationInfo(
+    PACKAGE_STRING,
+    VK_MAKE_VERSION(1, 0, 0),
+    "No Engine",
+    VK_MAKE_VERSION(1, 0, 0),
+    VK_API_VERSION_1_2
+  );
   auto extensions = getRequiredInstanceExtensions();
-  auto supportedExtensions = getInstanceExtensions();
-  auto supportedLayers = getInstanceLayers();
-
-  if (supportedExtensions.find(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME) != supportedExtensions.end()) {
-    extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
-    hasExternalMemoryCapabilitiesExtension = true;
-  }
+  auto supportedLayers = vk::enumerateInstanceLayerProperties();
 
 #ifdef VALIDATION
-  if (supportedLayers.find(VALIDATION_LAYER) != supportedLayers.end()) {
+  if (std::find_if(
+        supportedLayers.begin(),
+        supportedLayers.end(),
+        [](vk::LayerProperties const& layer) {
+          return layer.layerName.data() == std::string(VALIDATION_LAYER);
+        }) != supportedLayers.end()) {
     validationLayers.emplace_back(VALIDATION_LAYER);
   } else if (settings::verbose > 1) {
     std::cout << "Validation layers are not supported by the current Vulkan instance." << std::endl;
   }
 #endif
 
-  auto instanceFlags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
-  auto instanceCI = vk::InstanceCreateInfo(instanceFlags, &appInfo, VEC_VIEW(validationLayers), VEC_VIEW(extensions));
+  auto const instanceCI = vk::InstanceCreateInfo(
+    vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
+    &appInfo,
+    validationLayers.size(),
+    validationLayers.data(),
+    extensions.size(),
+    extensions.data()
+  );
   instance = vk::createInstanceUnique(instanceCI);
 }
 
 void AsyVkRender::createSurface()
 {
   VkSurfaceKHR surfaceTmp;
-  if (glfwCreateWindowSurface(*instance, window, nullptr, &surfaceTmp) != VK_SUCCESS)
+  if (glfwCreateWindowSurface(*instance, window, nullptr, &surfaceTmp) != VK_SUCCESS) {
     throw std::runtime_error("Failed to create window surface!");
+  }
   surface = vk::UniqueSurfaceKHR(surfaceTmp, *instance);
 }
 
 void AsyVkRender::pickPhysicalDevice()
 {
-  auto const getDeviceScore = [this](vk::PhysicalDevice& device) -> std::size_t
+  auto const getDeviceScore =
+  [this](vk::PhysicalDevice& device) -> std::size_t
   {
     std::size_t score = 0u;
 
@@ -781,15 +852,17 @@ void AsyVkRender::pickPhysicalDevice()
 
     auto const props = device.getProperties();
 
-    if (vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType)
+    if(vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType) {
       score += 10;
-    else if (vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType)
+    }
+    else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
       score += 5;
+    }
 
     return score;
   };
 
-  std::pair<std::size_t, vk::PhysicalDevice> highestDeviceScore { };
+  std::pair<std::size_t, vk::PhysicalDevice> highestDeviceScore;
 
   for (auto & dev: instance->enumeratePhysicalDevices())
   {
@@ -800,8 +873,9 @@ void AsyVkRender::pickPhysicalDevice()
       highestDeviceScore = std::make_pair(score, dev);
   }
 
-  if (0 == highestDeviceScore.first)
+  if (0 == highestDeviceScore.first) {
     throw std::runtime_error("No suitable GPUs.");
+  }
 
   physicalDevice = highestDeviceScore.second;
   std::uint32_t nSamples;
@@ -813,7 +887,8 @@ void AsyVkRender::pickPhysicalDevice()
            << endl;
 }
 
-std::pair<std::uint32_t, vk::SampleCountFlagBits> AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
+std::pair<std::uint32_t, vk::SampleCountFlagBits>
+AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
 {
 	vk::PhysicalDeviceProperties props { };
 
@@ -838,8 +913,6 @@ std::pair<std::uint32_t, vk::SampleCountFlagBits> AsyVkRender::getMaxMSAASamples
 	return std::make_pair(1, vk::SampleCountFlagBits::e1);
 }
 
-// maybe we should prefer using the same queue family for both transfer and render?
-// TODO: use if instead of goto and favor same queue family
 QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* surface)
 {
   QueueFamilyIndices indices;
@@ -862,7 +935,8 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
 
     if (family.queueFlags & vk::QueueFlagBits::eTransfer) {
       indices.transferQueueFamily = u,
-      indices.transferQueueFamilyFound = true;    }
+      indices.transferQueueFamilyFound = true;
+    }
   }
 
   return indices;
@@ -879,9 +953,11 @@ bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
   if (!checkDeviceExtensionSupport(device))
     return false;
 
-  auto const swapSupport = querySwapChainSupport(device, *surface);
-  if (options.display && (swapSupport.formats.empty() || swapSupport.presentModes.empty()))
+  auto const swapDetails = SwapChainDetails(device, *surface);
+
+  if (options.display && !swapDetails) {
     return false;
+  }
 
   auto const features = device.getFeatures();
 
@@ -902,72 +978,61 @@ bool AsyVkRender::checkDeviceExtensionSupport(vk::PhysicalDevice& device)
 
 void AsyVkRender::createLogicalDevice()
 {
+  auto const supportedDeviceExtensions = getDeviceExtensions(physicalDevice);
   std::vector<const char*> extensions(deviceExtensions.begin(), deviceExtensions.end());
 
-  std::set<std::string> supportedDeviceExtensions = getDeviceExtensions(physicalDevice);
-  if (supportedDeviceExtensions.find("VK_KHR_portability_subset") != supportedDeviceExtensions.end()) {
-    extensions.push_back("VK_KHR_portability_subset");
+  if (supportedDeviceExtensions.find(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
+    extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
-  if (hasExternalMemoryCapabilitiesExtension && supportedDeviceExtensions.find(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
-    extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
-    hasExternalMemoryExtension = true;
-  }
-  if (hasExternalMemoryExtension && supportedDeviceExtensions.find(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
-    extensions.push_back(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
-    // this probably won't work because of minImportedHostPointerAlignment and importing the same memory to a device twice can fail
-    // hasExternalMemoryHostExtension = true;
-  }
-
   if (options.display) {
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
-
   if (interlock) {
-
-    if (supportedDeviceExtensions.find("VK_EXT_fragment_shader_interlock") == supportedDeviceExtensions.end())
+    if (supportedDeviceExtensions.find(VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME) == supportedDeviceExtensions.end()) {
       interlock=false;
-    else
-      extensions.emplace_back("VK_EXT_fragment_shader_interlock");
+    }
+    else {
+      extensions.emplace_back(VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME);
+    }
   }
 
   queueFamilyIndices = findQueueFamilies(physicalDevice, options.display ? &*surface : nullptr);
 
   std::vector<vk::DeviceQueueCreateInfo> queueCIs;
-  std::set<uint32_t> uniqueQueueFamilies = {queueFamilyIndices.transferQueueFamily, queueFamilyIndices.renderQueueFamily, queueFamilyIndices.presentQueueFamily};
+  std::set<uint32_t> uniqueQueueFamilies = {
+    queueFamilyIndices.transferQueueFamily,
+    queueFamilyIndices.renderQueueFamily,
+    queueFamilyIndices.presentQueueFamily
+  };
 
   float queuePriority = 1.0f;
-  for (uint32_t queueFamily : uniqueQueueFamilies) {
+  for(auto queueFamily : uniqueQueueFamilies) {
     vk::DeviceQueueCreateInfo queueCI(vk::DeviceQueueCreateFlags(), queueFamily, 1, &queuePriority);
     queueCIs.push_back(queueCI);
   }
 
-  vk::PhysicalDeviceFeatures deviceFeatures;
-
-  auto portability = vk::PhysicalDevicePortabilitySubsetFeaturesKHR();
-
-  portability.events = true;
-
+  auto portability = vk::PhysicalDevicePortabilitySubsetFeaturesKHR(
+    false,
+    true
+  );
   auto interlockFeatures = vk::PhysicalDeviceFragmentShaderInterlockFeaturesEXT(
     true,
     true,
     false,
     &portability
   );
-
   auto resolveExtension = vk::PhysicalDeviceDepthStencilResolveProperties(
     vk::ResolveModeFlagBits::eMin,
     vk::ResolveModeFlagBits::eMin
   );
-
   auto props = vk::PhysicalDeviceProperties2(
     {},
     &resolveExtension
   );
+  vk::PhysicalDeviceFeatures deviceFeatures;
+  deviceFeatures.fillModeNonSolid = true;
 
   physicalDevice.getProperties2(&props);
-
-  // for wireframe, alternative draw modes
-  deviceFeatures.fillModeNonSolid = true;
 
   auto deviceCI = vk::DeviceCreateInfo(
     vk::DeviceCreateFlags(),
@@ -982,60 +1047,6 @@ void AsyVkRender::createLogicalDevice()
   transferQueue = device->getQueue(queueFamilyIndices.transferQueueFamily, 0);
   renderQueue = device->getQueue(queueFamilyIndices.renderQueueFamily, 0);
   presentQueue = device->getQueue(queueFamilyIndices.presentQueueFamily, 0);
-}
-
-SwapChainSupportDetails AsyVkRender::querySwapChainSupport(vk::PhysicalDevice device, vk::SurfaceKHR& surface)
-{
-  SwapChainSupportDetails details;
-
-  details.capabilities = device.getSurfaceCapabilitiesKHR(surface);
-  details.formats = device.getSurfaceFormatsKHR(surface);
-  details.presentModes = device.getSurfacePresentModesKHR(surface);
-  details.capabilities.supportedUsageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
-
-  return details;
-}
-
-vk::SurfaceFormatKHR AsyVkRender::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
-{
-  for (const auto& availableFormat : availableFormats) {
-    if (availableFormat.format == vk::Format::eB8G8R8A8Uint &&
-        availableFormat.colorSpace == vk::ColorSpaceKHR::eAdobergbLinearEXT) {
-      return availableFormat;
-    }
-  }
-
-  return availableFormats[0];
-}
-
-vk::PresentModeKHR AsyVkRender::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes)
-{
-  for (const auto& availablePresentMode : availablePresentModes) {
-    if (availablePresentMode == options.presentMode) {
-      return options.presentMode;
-    }
-  }
-
-  return vk::PresentModeKHR::eFifo;
-}
-
-vk::Extent2D AsyVkRender::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities)
-{
-  if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-    return capabilities.currentExtent;
-  } else {
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-
-    vk::Extent2D actualExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
-
-    actualExtent.width = std::min(std::max(actualExtent.width, capabilities.minImageExtent.width),
-                                  capabilities.maxImageExtent.width);
-    actualExtent.height = std::min(std::max(actualExtent.height, capabilities.minImageExtent.height),
-                                   capabilities.maxImageExtent.height);
-
-    return actualExtent;
-  }
 }
 
 void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
@@ -1075,52 +1086,49 @@ void AsyVkRender::createExportResources()
 
 void AsyVkRender::createSwapChain()
 {
-  auto swapChainSupport = querySwapChainSupport(physicalDevice, *surface);
-
-  vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-  vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-  vk::Extent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
-
-  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-  if (swapChainSupport.capabilities.maxImageCount > 0 &&
-      imageCount > swapChainSupport.capabilities.maxImageCount) {
-    imageCount = swapChainSupport.capabilities.maxImageCount;
-  }
+  auto const swapDetails = SwapChainDetails(physicalDevice, *surface);
+  auto && format = swapDetails.chooseSurfaceFormat();
+  auto && extent = swapDetails.chooseExtent();
 
   vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(
     vk::SwapchainCreateFlagsKHR(),
     *surface,
-    imageCount,
-    surfaceFormat.format,
-    surfaceFormat.colorSpace,
+    swapDetails.chooseImageCount(),
+    format.format,
+    format.colorSpace,
     extent,
     1,
     vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
     vk::SharingMode::eExclusive,
     0,
     nullptr,
-    swapChainSupport.capabilities.currentTransform,
+    swapDetails.capabilities.currentTransform,
     vk::CompositeAlphaFlagBitsKHR::eOpaque,
-    presentMode,
+    swapDetails.choosePresentMode(),
     VK_TRUE,
     nullptr,
     nullptr
   );
 
-  if (*swapChain)
+  if (*swapChain) {
     swapchainCI.oldSwapchain = *swapChain;
+  }
 
   if (queueFamilyIndices.renderQueueFamily != queueFamilyIndices.presentQueueFamily) {
-    static uint32_t indices[] = {queueFamilyIndices.renderQueueFamily,queueFamilyIndices.presentQueueFamily};
+    static std::array<std::uint32_t, 2> indices
+    {
+      queueFamilyIndices.renderQueueFamily,
+      queueFamilyIndices.presentQueueFamily
+    };
 
     swapchainCI.imageSharingMode = vk::SharingMode::eConcurrent;
-    swapchainCI.queueFamilyIndexCount = 2;
-    swapchainCI.pQueueFamilyIndices= indices;
+    swapchainCI.queueFamilyIndexCount = indices.size();
+    swapchainCI.pQueueFamilyIndices= indices.data();
   }
 
   swapChain = device->createSwapchainKHRUnique(swapchainCI, nullptr);
   swapChainImages = device->getSwapchainImagesKHR(*swapChain);
-  swapChainImageFormat = surfaceFormat.format;
+  swapChainImageFormat = format.format;
   swapChainExtent = extent;
 
   for(auto & image: swapChainImages) {
@@ -1482,7 +1490,7 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
 void AsyVkRender::copyToBuffer(const vk::Buffer& buffer, const void* data, vk::DeviceSize size,
                                vk::Buffer stagingBuffer, vk::DeviceMemory stagingBufferMemory)
 {
-  if (hasExternalMemoryHostExtension) {
+  if (false) {
     auto externalMemoryBufferCI = vk::ExternalMemoryBufferCreateInfo(vk::ExternalMemoryHandleTypeFlagBits::eHostAllocationEXT);
     auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), size, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, 0, nullptr, &externalMemoryBufferCI);
     auto hostBuffer = device->createBufferUnique(bufferCI);
@@ -1690,7 +1698,7 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk
     buffer.memory = device->allocateMemoryUnique(memoryAI);
 
     // check whether we need a staging buffer
-    if (!hasExternalMemoryHostExtension) {
+    if (true) {
       createBufferUnique(buffer.stagingBuffer, buffer.stagingBufferMemory, vk::BufferUsageFlagBits::eTransferSrc,
                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, buffer.memorySize);
     }
@@ -1700,7 +1708,7 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk
 
   device->bindBufferMemory(*buffer.buffer, *buffer.memory, 0);
   if (data) {
-    if (hasExternalMemoryHostExtension) {
+    if (false) {
       copyToBuffer(*buffer.buffer, data, size);
     } else {
       copyToBuffer(*buffer.buffer, data, size, *buffer.stagingBuffer, *buffer.stagingBufferMemory);

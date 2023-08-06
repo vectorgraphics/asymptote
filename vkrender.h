@@ -34,33 +34,12 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 
-// #include "settings.h"
-
-// #include "common.h"
-// #include "locate.h"
-// #include "seconds.h"
-// #include "statistics.h"
-
-// #include "pair.h"
-// #include "picture.h"
-// #include "triple.h"
-
 #include "common.h"
 #include "material.h"
 #include "pen.h"
 #include "triple.h"
 #include "seconds.h"
 #include "statistics.h"
-
-/*
-allow rendering output to file on systems without swapchain support
-
-seperate function for present mode or flag?
-
-seperate subclass for objects recreated every frame?
-
-orthographic projection
-*/
 
 namespace camp
 {
@@ -253,10 +232,19 @@ struct Light
   glm::vec4 color;
 };
 
-struct SwapChainSupportDetails {
+struct SwapChainDetails {
   vk::SurfaceCapabilitiesKHR capabilities;
   std::vector<vk::SurfaceFormatKHR> formats;
   std::vector<vk::PresentModeKHR> presentModes;
+
+  SwapChainDetails(vk::PhysicalDevice gpu, vk::SurfaceKHR surface);
+
+  operator bool() const;
+
+  vk::SurfaceFormatKHR chooseSurfaceFormat() const;
+  vk::PresentModeKHR choosePresentMode() const;
+  vk::Extent2D chooseExtent() const;
+  std::uint32_t chooseImageCount() const;
 };
 
 struct QueueFamilyIndices {
@@ -335,6 +323,32 @@ enum DrawMode: int
    DRAWMODE_OUTLINE,
    DRAWMODE_WIREFRAME,
    DRAWMODE_MAX
+};
+
+constexpr
+std::array<
+        const char*,
+        2
+#ifdef VALIDATION
+        + 1
+#endif
+> instanceExtensions
+{
+  VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+  VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+#ifdef VALIDATION
+  VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+#endif
+};
+
+constexpr
+std::array<const char*, 5> deviceExtensions
+{
+  VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,
+  VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
+  VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+  VK_KHR_MULTIVIEW_EXTENSION_NAME,
+  VK_KHR_MAINTENANCE2_EXTENSION_NAME
 };
 
 class AsyVkRender
@@ -549,10 +563,6 @@ private:
   std::uint32_t maxFragments=1;
   //std::uint32_t maxgroups;
   std::uint32_t maxSize=2;
-
-  bool hasExternalMemoryCapabilitiesExtension = false;
-  bool hasExternalMemoryExtension = false;
-  bool hasExternalMemoryHostExtension = false;
 
   size_t NMaterials = 48;
 
@@ -821,7 +831,6 @@ private:
   void initWindow();
   void initVulkan();
   std::set<std::string> getInstanceExtensions();
-  std::set<std::string> getInstanceLayers();
   std::set<std::string> getDeviceExtensions(vk::PhysicalDevice& device);
   std::vector<const char*> getRequiredInstanceExtensions();
   void createInstance();
@@ -832,10 +841,6 @@ private:
   bool isDeviceSuitable(vk::PhysicalDevice& device);
   bool checkDeviceExtensionSupport(vk::PhysicalDevice& device);
   void createLogicalDevice();
-  SwapChainSupportDetails querySwapChainSupport(vk::PhysicalDevice device, vk::SurfaceKHR& surface);
-  vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
-  vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);
-  vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities);
   void transitionImageLayout(vk::CommandBuffer cmd,
                              vk::Image image,
 			                       vk::AccessFlags srcAccessMask,
@@ -998,6 +1003,8 @@ private:
   void toggleFitScreen();
   void travelHome(bool webgl=false);
   void cycleMode();
+
+  friend class SwapChainDetails;
 };
 
 extern AsyVkRender* vk;
