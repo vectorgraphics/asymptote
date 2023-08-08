@@ -351,6 +351,9 @@ std::array<const char*, 5> deviceExtensions
   VK_KHR_MAINTENANCE2_EXTENSION_NAME
 };
 
+constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
+
 class AsyVkRender
 {
 public:
@@ -498,6 +501,10 @@ private:
 
     DeviceBuffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties)
         : usage(usage), properties(properties) {}
+
+    void reset() {
+      *buffer=nullptr;
+    }
   };
 
   const double pi=acos(-1.0);
@@ -760,52 +767,32 @@ private:
     vk::UniqueBuffer ssbo;
     vk::UniqueDeviceMemory ssboMemory;
 
-    DeviceBuffer materialVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer materialIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer materialVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer materialIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    DeviceBuffer colorVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer colorIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer colorVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer colorIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    DeviceBuffer triangleVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer triangleIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer triangleVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer triangleIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    DeviceBuffer transparentVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer transparentIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer transparentVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer transparentIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    DeviceBuffer lineVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer lineIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer lineVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer lineIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    DeviceBuffer pointVertexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer pointIndexBuffer = DeviceBuffer(vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer pointVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer pointIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     void reset() {
 
-      // todo do something better than this
-
-      if (*materialVertexBuffer.buffer) {
-
-        *materialVertexBuffer.buffer = nullptr;
-      }
-      if (*colorVertexBuffer.buffer) {
-
-        *colorVertexBuffer.buffer = nullptr;
-      }
-      if (*triangleVertexBuffer.buffer) {
-
-        *triangleVertexBuffer.buffer = nullptr;
-      }
-      if (*transparentVertexBuffer.buffer) {
-
-        *transparentVertexBuffer.buffer = nullptr;
-      }
-      if (*lineVertexBuffer.buffer) {
-
-        *lineVertexBuffer.buffer = nullptr;
-      }
-      if (*pointVertexBuffer.buffer) {
-
-        *pointVertexBuffer.buffer = nullptr;
-      }
+        materialVertexBuffer.reset();
+        colorVertexBuffer.reset();
+        triangleVertexBuffer.reset();
+        transparentVertexBuffer.reset();
+        lineVertexBuffer.reset();
+        pointVertexBuffer.reset();
     }
   };
 
