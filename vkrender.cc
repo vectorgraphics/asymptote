@@ -419,7 +419,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       app->spinz();
       break;
     case 'S':
-      //idle();
+      app->idle();
       break;
     case 'M':
       app->cycleMode();
@@ -1205,11 +1205,7 @@ void AsyVkRender::createFramebuffers()
   for (auto i = 0u; i < swapChainImageViews.size(); i++)
   {
     vk::ImageView attachments[] = {*colorImageView, *depthImageView, *depthResolveImageView, *swapChainImageViews[i]};
-    std::array<vk::ImageView, 1> depthAttachments
-    {
-      *depthImageView,
-      //*depthResolveImageView
-    };
+    std::array<vk::ImageView, 1> depthAttachments {*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
       {},
@@ -1385,7 +1381,7 @@ void AsyVkRender::copyToBuffer(const vk::Buffer& buffer, const void* data, vk::D
     auto externalMemoryBufferCI = vk::ExternalMemoryBufferCreateInfo(vk::ExternalMemoryHandleTypeFlagBits::eHostAllocationEXT);
     auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), size, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, 0, nullptr, &externalMemoryBufferCI);
     auto hostBuffer = device->createBufferUnique(bufferCI);
-    // ERROR: How to bind this?
+
     copyBufferToBuffer(*hostBuffer, buffer, size);
   } else {
     bool cleanupStagingBuffer = false;
@@ -1593,8 +1589,6 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk
       createBufferUnique(buffer.stagingBuffer, buffer.stagingBufferMemory, vk::BufferUsageFlagBits::eTransferSrc,
                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, buffer.memorySize);
     }
-  } else {
-    // TODO: downsize memory?
   }
 
   device->bindBufferMemory(*buffer.buffer, *buffer.memory, 0);
@@ -2374,26 +2368,6 @@ void AsyVkRender::createCountRenderPass()
     vk::ImageLayout::eUndefined,
     vk::ImageLayout::eDepthStencilAttachmentOptimal
   );
-  // auto depthResolveAttachment = vk::AttachmentDescription2(
-  //   vk::AttachmentDescriptionFlags(),
-  //   vk::Format::eD32Sfloat,
-  //   vk::SampleCountFlagBits::e1,
-  //   vk::AttachmentLoadOp::eDontCare,
-  //   vk::AttachmentStoreOp::eStore,
-  //   vk::AttachmentLoadOp::eDontCare,
-  //   vk::AttachmentStoreOp::eDontCare,
-  //   vk::ImageLayout::eUndefined,
-  //   vk::ImageLayout::eDepthStencilAttachmentOptimal
-  // );
-
-  //auto depthAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-  //auto depthResolveAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-  // auto depthResolveSubpass = vk::SubpassDescriptionDepthStencilResolve(
-  //   vk::ResolveModeFlagBits::eMin,
-  //   vk::ResolveModeFlagBits::eMax,
-  //   &depthResolveAttachmentRef
-  // );
 
   std::array<vk::SubpassDescription2, 3> subpasses;
 
@@ -2406,12 +2380,10 @@ void AsyVkRender::createCountRenderPass()
     0,
     nullptr,
     nullptr,
-    //&depthAttachmentRef,
     nullptr,
     0,
     nullptr,
     nullptr
-    //&depthResolveSubpass
   );
   subpasses[1] = vk::SubpassDescription2(
     vk::SubpassDescriptionFlags(),
@@ -2422,7 +2394,6 @@ void AsyVkRender::createCountRenderPass()
     0,
     nullptr,
     nullptr,
-    //&depthResolveAttachmentRef,
     nullptr,
     0,
     nullptr,
@@ -2437,18 +2408,13 @@ void AsyVkRender::createCountRenderPass()
     0,
     nullptr,
     nullptr,
-    //&depthResolveAttachmentRef,
     nullptr,
     0,
     nullptr,
     nullptr
   );
 
-  std::array<vk::AttachmentDescription2, 1> attachments
-  {
-    depthAttachment,
-    //depthResolveAttachment
-  };
+  std::array<vk::AttachmentDescription2, 1> attachments {depthAttachment};
 
   std::array<vk::SubpassDependency2, 3> dependencies;
 
@@ -2539,7 +2505,6 @@ void AsyVkRender::createGraphicsRenderPass()
 
   auto colorAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eColorAttachmentOptimal);
   auto depthAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-  //auto depthResolveAttachmentRef = vk::AttachmentReference2(2, vk::ImageLayout::eDepthStencilAttachmentOptimal);
   auto colorResolveAttachmentRef = vk::AttachmentReference2(3, vk::ImageLayout::eColorAttachmentOptimal);
 
   std::array<vk::SubpassDescription2, 3> subpasses;
@@ -2565,7 +2530,6 @@ void AsyVkRender::createGraphicsRenderPass()
     nullptr,
     nullptr,
     nullptr
-    //&depthResolveAttachmentRef
   );
   subpasses[2] = vk::SubpassDescription2(
     vk::SubpassDescriptionFlags(),
@@ -2817,37 +2781,6 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   depthStencilCI.maxDepthBounds = 1.f;
   depthStencilCI.stencilTestEnable = VK_FALSE;
 
-  auto const makePipeline = [=](vk::UniquePipeline & pipeline,
-                                vk::PipelineShaderStageCreateInfo * stages,
-                                vk::RenderPass renderPass,
-                                std::uint32_t subpass)
-  {
-    auto pipelineCI = vk::GraphicsPipelineCreateInfo(
-      vk::PipelineCreateFlags(),
-      2,
-      stages,
-      &vertexInputCI,
-      &inputAssemblyCI,
-      nullptr,
-      &viewportStateCI,
-      &rasterizerCI,
-      &multisamplingCI,
-      &depthStencilCI,
-      &colorBlendCI,
-      nullptr,
-      *graphicsPipelineLayout,
-      renderPass,
-      subpass,
-      nullptr
-    );
-
-    auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
-    if (result.result != vk::Result::eSuccess)
-      throw std::runtime_error("failed to create pipeline!");
-    else
-      pipeline = std::move(result.value);
-  };
-
   auto renderPass = *graphicsRenderPass;
 
   if (type == PIPELINE_OPAQUE) {
@@ -2856,12 +2789,30 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
     renderPass = *countRenderPass;
   }
 
-  makePipeline(
-    graphicsPipeline,
+  auto pipelineCI = vk::GraphicsPipelineCreateInfo(
+    vk::PipelineCreateFlags(),
+    2,
     stages,
+    &vertexInputCI,
+    &inputAssemblyCI,
+    nullptr,
+    &viewportStateCI,
+    &rasterizerCI,
+    &multisamplingCI,
+    &depthStencilCI,
+    &colorBlendCI,
+    nullptr,
+    *graphicsPipelineLayout,
     renderPass,
-    graphicsSubpass
+    graphicsSubpass,
+    nullptr
   );
+
+  auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
+  if (result.result != vk::Result::eSuccess)
+    throw std::runtime_error("failed to create pipeline!");
+  else
+    graphicsPipeline = std::move(result.value);
 }
 
 void AsyVkRender::createGraphicsPipelines()
@@ -3070,7 +3021,7 @@ void AsyVkRender::updateBuffers()
 
 PushConstants AsyVkRender::buildPushConstants()
 {
-  auto pushConstants = PushConstants { };
+  auto pushConstants = PushConstants {};
 
   pushConstants.constants[0] = options.mode!= DRAWMODE_NORMAL ? 0 : nlights;
   pushConstants.constants[1] = swapChainExtent.width;
@@ -3274,7 +3225,6 @@ void AsyVkRender::drawTriangles(FrameObject & object)
 
 void AsyVkRender::drawTransparent(FrameObject & object)
 {
-  // todo has camp::ssbo
   drawBuffer(object.transparentVertexBuffer,
              object.transparentIndexBuffer,
              &transparentData,
@@ -3520,7 +3470,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   renderQueue.submit(1, &info, *object.inComputeFence);
 
-  if (!GPUindexing) { // todo transfer queue
+  if (!GPUindexing) {
 
     device->waitForFences(1, &*object.inComputeFence, true, std::numeric_limits<std::uint64_t>::max());
 
@@ -4093,7 +4043,6 @@ void AsyVkRender::Export(int imageIndex) {
 #endif
 #endif
   exporting=false;
-  // camp::initSSBO=true;
 }
 
 void AsyVkRender::quit()

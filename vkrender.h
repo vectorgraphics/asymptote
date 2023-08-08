@@ -1,7 +1,5 @@
 #pragma once
 
-// TODO: remove / move headers to .cc to avoid circular dependencies
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -46,7 +44,6 @@ namespace camp
 
 class picture;
 
-// TODO: remove, add in makefile
 #define DEBUG
 
 #ifdef DEBUG
@@ -106,7 +103,7 @@ std::vector<char> readFile(const std::string& filename);
 #define COLOR_LOCATION    3
 #define WIDTH_LOCATION    4
 
-struct MaterialVertex // vertexData
+struct MaterialVertex
 {
   glm::vec3 position;
   glm::vec3 normal;
@@ -126,7 +123,7 @@ struct MaterialVertex // vertexData
   }
 };
 
-struct ColorVertex // VertexData
+struct ColorVertex
 {
   glm::vec3 position;
   glm::vec3 normal;
@@ -148,7 +145,7 @@ struct ColorVertex // VertexData
   }
 };
 
-struct PointVertex // vertexData0
+struct PointVertex
 {
   glm::vec3 position;
   glm::f32 width;
@@ -362,7 +359,7 @@ public:
     DrawMode mode = DRAWMODE_NORMAL;
     bool display = false;
     std::string title = "";
-    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate; //vk::PresentModeKHR::eFifo;
+    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate;
     vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
     Options() = default;
@@ -495,11 +492,10 @@ private:
     std::size_t nobjects;
     vk::UniqueBuffer buffer;
     vk::UniqueDeviceMemory memory;
-    // only used if hasExternalMemoryHostExtension == false
     vk::UniqueBuffer stagingBuffer;
     vk::UniqueDeviceMemory stagingBufferMemory;
 
-    DeviceBuffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties)
+    DeviceBuffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties=vk::MemoryPropertyFlagBits::eDeviceLocal)
         : usage(usage), properties(properties) {}
 
     void reset() {
@@ -514,14 +510,12 @@ private:
   const picture* pic = nullptr;
 
   double H;
-  double xfactor, yfactor; // what is this for?
-
-  double x, y; // make these more descriptive (something to do with shift?)
-
-  double cx, cy; // center variables
+  double xfactor, yfactor;
+  double x, y;
+  double cx, cy;
 
   int screenWidth, screenHeight;
-  int width, height; // width and height of the window
+  int width, height;
   int oldWidth,oldHeight;
   bool firstFit=true;
   double Xfactor,Yfactor;
@@ -550,8 +544,8 @@ private:
   bool readyAfterExport=false;
   bool exporting=false;
 
-  bool remesh=true; // whether picture needs to be remeshed
-  bool redraw=true; // whether a new frame needs to be rendered
+  bool remesh=true;
+  bool redraw=true;
   bool ssbo=true;
   bool interlock=false;
   bool GPUindexing=false;
@@ -568,7 +562,6 @@ private:
   std::uint32_t elements;
   std::uint32_t fragments;
   std::uint32_t maxFragments=1;
-  //std::uint32_t maxgroups;
   std::uint32_t maxSize=2;
 
   size_t NMaterials = 48;
@@ -767,23 +760,23 @@ private:
     vk::UniqueBuffer ssbo;
     vk::UniqueDeviceMemory ssboMemory;
 
-    DeviceBuffer materialVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer materialIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer materialVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
+    DeviceBuffer materialIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
 
-    DeviceBuffer colorVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer colorIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer colorVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
+    DeviceBuffer colorIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
 
-    DeviceBuffer triangleVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer triangleIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer triangleVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
+    DeviceBuffer triangleIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
 
-    DeviceBuffer transparentVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer transparentIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer transparentVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
+    DeviceBuffer transparentIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
 
-    DeviceBuffer lineVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer lineIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer lineVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
+    DeviceBuffer lineIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
 
-    DeviceBuffer pointVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
-    DeviceBuffer pointIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    DeviceBuffer pointVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
+    DeviceBuffer pointIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
 
     void reset() {
 
@@ -884,12 +877,10 @@ private:
   void transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to, vk::Image img);
   void copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img,
                        std::uint32_t w, std::uint32_t h, vk::Offset3D const & offset={});
-
   void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects=0);
 
   void createDescriptorSetLayout();
   void createComputeDescriptorSetLayout();
-  // void createUniformBuffers();
   void createDescriptorPool();
   void createComputeDescriptorPool();
   void createDescriptorSets();
