@@ -300,7 +300,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(vk->options.mode == DRAWMODE_OUTLINE) {
+  if(vk->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};

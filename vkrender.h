@@ -355,18 +355,6 @@ class AsyVkRender
 {
 public:
 
-  struct Options {
-    DrawMode mode = DRAWMODE_NORMAL;
-    bool display = false;
-    std::string title = "";
-    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate;
-    vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
-
-    Options() = default;
-  };
-
-  Options options;
-
   AsyVkRender() = default;
   ~AsyVkRender();
 
@@ -396,6 +384,9 @@ public:
   bool copied=false;
 
   int maxFramesInFlight;
+  DrawMode mode = DRAWMODE_NORMAL;
+  std::string title = "";
+  vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
 #ifdef HAVE_PTHREAD
   pthread_t mainthread;

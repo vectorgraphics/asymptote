@@ -58,7 +58,7 @@ vk::PresentModeKHR
 SwapChainDetails::choosePresentMode() const
 {
   for (const auto& mode : presentModes) {
-    if (mode == vk->options.presentMode) {
+    if (mode == vk::PresentModeKHR::eImmediate) {
       return mode;
     }
   }
@@ -219,13 +219,13 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 void AsyVkRender::initWindow()
 {
-  if (!this->options.display)
+  if (!this->View)
     return;
 
   if (!window) {
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    window = glfwCreateWindow(width, height, options.title.data(), nullptr, nullptr);
+    window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
   }
 
   glfwShowWindow(window);
@@ -468,7 +468,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
 
 AsyVkRender::~AsyVkRender()
 {
-  if (this->options.display) {
+  if (this->View) {
     glfwDestroyWindow(this->window);
     glfwTerminate();
   }
@@ -501,6 +501,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->Shift = shift / zoom;
   this->Margin = margin;
   this->View = view;
+  this->title = std::string(settings::PROGRAM)+": "+prefix.c_str();
 
   Xmin = mins.getx();
   Xmax = maxs.getx();
@@ -675,13 +676,13 @@ void AsyVkRender::initVulkan()
   }
 
   createInstance();
-  if (options.display) createSurface();
+  if (View) createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
   createCommandPools();
   createCommandBuffers();
-  if (options.display) createSwapChain();
-  if (options.display) createImageViews();
+  if (View) createSwapChain();
+  if (View) createImageViews();
   createSyncObjects();
 
   createDescriptorSetLayout();
@@ -944,10 +945,10 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
 
 bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 {
-  auto const indices = findQueueFamilies(device, options.display ? &*surface : nullptr);
+  auto const indices = findQueueFamilies(device, View ? &*surface : nullptr);
   if (!indices.transferQueueFamilyFound
       || !indices.renderQueueFamilyFound
-      || !(indices.presentQueueFamilyFound || !options.display))
+      || !(indices.presentQueueFamilyFound || !View))
       return false;
 
   if (!checkDeviceExtensionSupport(device))
@@ -955,7 +956,7 @@ bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 
   auto const swapDetails = SwapChainDetails(device, *surface);
 
-  if (options.display && !swapDetails) {
+  if (View && !swapDetails) {
     return false;
   }
 
@@ -968,7 +969,7 @@ bool AsyVkRender::checkDeviceExtensionSupport(vk::PhysicalDevice& device)
 {
   auto extensions = device.enumerateDeviceExtensionProperties();
   std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-  if (options.display) requiredExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+  if (View) requiredExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
   for (auto& extension : extensions) {
     requiredExtensions.erase(extension.extensionName);
@@ -984,7 +985,7 @@ void AsyVkRender::createLogicalDevice()
   if (supportedDeviceExtensions.find(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
-  if (options.display) {
+  if (View) {
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
   if (interlock) {
@@ -996,7 +997,7 @@ void AsyVkRender::createLogicalDevice()
     }
   }
 
-  queueFamilyIndices = findQueueFamilies(physicalDevice, options.display ? &*surface : nullptr);
+  queueFamilyIndices = findQueueFamilies(physicalDevice, View ? &*surface : nullptr);
 
   std::vector<vk::DeviceQueueCreateInfo> queueCIs;
   std::set<uint32_t> uniqueQueueFamilies = {
@@ -2817,7 +2818,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
 void AsyVkRender::createGraphicsPipelines()
 {
-  auto const drawMode = options.mode == DRAWMODE_WIREFRAME ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
+  auto const drawMode = mode == DRAWMODE_WIREFRAME ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<MaterialVertex>
@@ -3023,7 +3024,7 @@ PushConstants AsyVkRender::buildPushConstants()
 {
   auto pushConstants = PushConstants {};
 
-  pushConstants.constants[0] = options.mode!= DRAWMODE_NORMAL ? 0 : nlights;
+  pushConstants.constants[0] = mode!= DRAWMODE_NORMAL ? 0 : nlights;
   pushConstants.constants[1] = swapChainExtent.width;
   pushConstants.constants[2] = swapChainExtent.height;
 
@@ -3716,7 +3717,7 @@ void AsyVkRender::display()
 
   drawFrame();
 
-  if (options.mode != DRAWMODE_OUTLINE)
+  if (mode != DRAWMODE_OUTLINE)
     remesh = false;
 
   static auto const fps = settings::verbose > 2;
@@ -4062,7 +4063,6 @@ void AsyVkRender::quit()
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
       idle();
-      //options.display=false;
       endwait(readySignal,readyLock);
     }
 #endif
@@ -4390,15 +4390,15 @@ void AsyVkRender::travelHome(bool webgl) {
 }
 
 void AsyVkRender::cycleMode() {
-  options.mode = DrawMode((options.mode + 1) % DRAWMODE_MAX);
+  mode = DrawMode((mode + 1) % DRAWMODE_MAX);
   recreatePipeline = true;
   remesh = true;
   redraw = true;
 
-  if (options.mode == DRAWMODE_NORMAL) {
+  if (mode == DRAWMODE_NORMAL) {
     ibl=settings::getSetting<bool>("ibl");
   }
-  if (options.mode == DRAWMODE_OUTLINE) {
+  if (mode == DRAWMODE_OUTLINE) {
     ibl=false;
   }
 }
