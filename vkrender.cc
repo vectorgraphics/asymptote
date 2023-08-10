@@ -1205,7 +1205,7 @@ void AsyVkRender::createFramebuffers()
 
   for (auto i = 0u; i < swapChainImageViews.size(); i++)
   {
-    vk::ImageView attachments[] = {*colorImageView, *depthImageView, *depthResolveImageView, *swapChainImageViews[i]};
+    vk::ImageView attachments[] = {*colorImageView, *depthImageView, *swapChainImageViews[i]};
     std::array<vk::ImageView, 1> depthAttachments {*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
@@ -2492,21 +2492,10 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::ImageLayout::eUndefined,
     vk::ImageLayout::eDepthStencilAttachmentOptimal
   );
-  auto depthResolveAttachment = vk::AttachmentDescription2(
-    vk::AttachmentDescriptionFlags(),
-    vk::Format::eD32Sfloat,
-    vk::SampleCountFlagBits::e1,
-    vk::AttachmentLoadOp::eDontCare,
-    vk::AttachmentStoreOp::eStore,
-    vk::AttachmentLoadOp::eDontCare,
-    vk::AttachmentStoreOp::eDontCare,
-    vk::ImageLayout::eUndefined,
-    vk::ImageLayout::eDepthStencilAttachmentOptimal
-  );
 
   auto colorAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eColorAttachmentOptimal);
   auto depthAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-  auto colorResolveAttachmentRef = vk::AttachmentReference2(3, vk::ImageLayout::eColorAttachmentOptimal);
+  auto colorResolveAttachmentRef = vk::AttachmentReference2(2, vk::ImageLayout::eColorAttachmentOptimal);
 
   std::array<vk::SubpassDescription2, 3> subpasses;
 
@@ -2555,7 +2544,6 @@ void AsyVkRender::createGraphicsRenderPass()
   {
     colorAttachment,
     depthAttachment,
-    depthResolveAttachment,
     colorResolveAttachment
   };
 
@@ -3085,14 +3073,12 @@ void AsyVkRender::beginCountFrameRender(int imageIndex)
 
 void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
 {
-  std::array<vk::ClearValue, 4> clearColors;
+  std::array<vk::ClearValue, 3> clearColors;
 
   clearColors[0] = vk::ClearValue(Background);
   clearColors[1].depthStencil.depth = 1.f;
   clearColors[1].depthStencil.stencil = 0;
-  clearColors[2].depthStencil.depth = 1.f;
-  clearColors[2].depthStencil.stencil = 0;
-  clearColors[3] = vk::ClearValue(Background);
+  clearColors[2] = vk::ClearValue(Background);
 
   auto renderPassInfo = vk::RenderPassBeginInfo(
     Opaque ? *opaqueGraphicsRenderPass : *graphicsRenderPass,
