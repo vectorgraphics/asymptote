@@ -6,8 +6,18 @@
 
 #define SHADER_DIRECTORY "base/shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
+#define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
 void exitHandler(int);
+
+std::vector<const char*> instanceExtensions
+{
+  VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+  VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+#ifdef VALIDATION
+  VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+#endif
+};
 
 namespace camp
 {
@@ -785,18 +795,30 @@ void AsyVkRender::createInstance()
   auto extensions = getRequiredInstanceExtensions();
   auto supportedLayers = vk::enumerateInstanceLayerProperties();
 
+  auto isLayerSupported = [supportedLayers](std::string layerName) {
+    return std::find_if(
+      supportedLayers.begin(),
+      supportedLayers.end(),
+      [layerName](vk::LayerProperties const& layer) {
+        return layer.layerName.data() == layerName;
+      }) != supportedLayers.end();
+  };
+
 #ifdef VALIDATION
-  if (std::find_if(
-        supportedLayers.begin(),
-        supportedLayers.end(),
-        [](vk::LayerProperties const& layer) {
-          return layer.layerName.data() == std::string(VALIDATION_LAYER);
-        }) != supportedLayers.end()) {
+  if (isLayerSupported(VALIDATION_LAYER)) {
     validationLayers.emplace_back(VALIDATION_LAYER);
   } else if (settings::verbose > 1) {
     std::cout << "Validation layers are not supported by the current Vulkan instance." << std::endl;
   }
 #endif
+
+  if (settings::verbose > 2) {
+    if (isLayerSupported(MESA_OVERLAY_LAYER)) {
+      validationLayers.emplace_back(MESA_OVERLAY_LAYER);
+    } else if (settings::verbose > 1) {
+      std::cout << "Mesa overlay layer is not supported by the current Vulkan instance." << std::endl;
+    }
+  }
 
   auto const instanceCI = vk::InstanceCreateInfo(
     vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,

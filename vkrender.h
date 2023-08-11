@@ -323,22 +323,6 @@ enum DrawMode: int
 };
 
 constexpr
-std::array<
-        const char*,
-        2
-#ifdef VALIDATION
-        + 1
-#endif
-> instanceExtensions
-{
-  VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-  VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-#ifdef VALIDATION
-  VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-#endif
-};
-
-constexpr
 std::array<const char*, 5> deviceExtensions
 {
   VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,
