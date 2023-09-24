@@ -3548,8 +3548,7 @@ The @code{options}, @code{script}, and @code{projection} parameters
 are only relevant for 3D pictures. If @code{defaultfilename} is an
 empty string, the prefix @code{outprefix()} will be used.
 
-A @code{shipout()} command is added implicitly at file exit if no
-previous @code{shipout} commands have been executed.
+A @code{shipout()} command is added implicitly at file exit.
 @cindex @code{orientation}
 @cindex @code{Portrait}
 @cindex @code{Landscape}
