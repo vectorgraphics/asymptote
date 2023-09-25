@@ -1,0 +1,9 @@
+# default behavior for all files
+* text=auto
+
+config.sub text eol=lf
+config.guess text eol=lf
+*.in text eol=lf
+wce text eol=lf
+
+build-scripts/build-* text eol=lf
