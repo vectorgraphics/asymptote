@@ -1880,6 +1880,27 @@ surface surface(picture pic=currentpicture, real[][] f, real[] x, real[] y,
                 splinetype ysplinetype=xsplinetype,
                 bool[][] cond={})
 {
+  if(xsplinetype == linear && ysplinetype == linear) {
+    int nx=f.length-1;
+    int ny=nx > 0 ? f[0].length-1 : 0;
+
+    if(nx == 0 || ny == 0) return nullsurface;
+
+    bool all=cond.length == 0;
+
+    triple[][] v=new triple[nx+1][ny+1];
+
+    for(int i=0; i <= nx; ++i) {
+      bool[] condi=all ? null : cond[i];
+      real xi=x[i];
+      real[] fi=f[i];
+      triple[] vi=v[i];
+        for(int j=0; j <= ny; ++j)
+          vi[j]=(xi,y[j],fi[j]);
+    }
+    return surface(pic,v,cond);
+  }
+
   real[][] f=ScaleZ(pic,f);
   real[] x=map(pic.scale.x.T,x);
   real[] y=map(pic.scale.y.T,y);

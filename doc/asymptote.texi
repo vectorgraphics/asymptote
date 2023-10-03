@@ -6909,6 +6909,7 @@ The points are connected using the interpolation specified by @code{join}:
 @item @code{operator ..} (piecewise Bezier cubic spline interpolation;
 the abbreviation @code{Spline} is also accepted);
 
+@cindex @code{linear}
 @cindex @code{Hermite}
 @cindex @code{notaknot}
 @cindex @code{natural}
@@ -6916,6 +6917,7 @@ the abbreviation @code{Spline} is also accepted);
 @cindex @code{clamped}
 @cindex @code{monotonic}
 @cindex @code{Hermite(splinetype splinetype}
+@item @code{linear} (linear interpolation),
 @item @code{Hermite} (standard cubic spline interpolation using boundary
 condition @code{notaknot}, @code{natural},  @code{periodic},
 @code{clamped(real slopea, real slopeb)}), or @code{monotonic}.
