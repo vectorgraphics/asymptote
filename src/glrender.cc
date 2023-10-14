@@ -1,4 +1,4 @@
-/*****
+g/*****
  * glrender.cc
  * John Bowman, Orest Shardt, and Supakorn "Jamie" Rassameemasmuang
  * Render 3D Bezier paths and surfaces.
