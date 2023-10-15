@@ -12,6 +12,7 @@
 #include <iostream>
 #include <memory>
 #include <climits>
+#include <cstdint>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -58,25 +59,10 @@ using std::make_pair;
 
 #include "memory.h"
 
-#if defined(HAVE_LONG_LONG) && defined(LLONG_MAX) && defined(LLONG_MIN)
-#define Int_MAX2 LLONG_MAX
-#define Int_MIN LLONG_MIN
-typedef long long Int;
-typedef unsigned long long unsignedInt;
-#else
-#undef HAVE_LONG_LONG
-#ifdef HAVE_LONG
-#define Int_MAX2 LONG_MAX
-#define Int_MIN LONG_MIN
-typedef long Int;
-typedef unsigned long unsignedInt;
-#else
-#define Int_MAX2 INT_MAX
-#define Int_MIN INT_MIN
-typedef int Int;
-typedef unsigned int unsignedInt;
-#endif
-#endif
+#define Int_MAX2 INT64_MAX
+#define Int_MIN INT64_MIN
+typedef int64_t Int;
+typedef uint64_t unsignedInt;
 
 #ifndef COMPACT
 #if Int_MAX2 >= 0x7fffffffffffffffLL
