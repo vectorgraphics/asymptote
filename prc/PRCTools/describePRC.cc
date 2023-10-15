@@ -24,7 +24,7 @@
 #include <string>
 #include <sstream>
 
-#include "../PRC.h"
+#include "../include/prc/PRC.h"
 #include "describePRC.h"
 
 using std::ostringstream; using std::cout; using std::endl;
@@ -374,7 +374,7 @@ void describeModelFileData(BitByBitData &mData,
 // subsections
 // void describe(BitByBitData &mData)
 // {
-//   
+//
 // }
 
 void describeLight(BitByBitData &mData)
@@ -646,7 +646,7 @@ void describeCurvPolyLine(BitByBitData &mData)
 
   unsigned int number_of_points = mData.readUnsignedInt();
   cout << getIndent() << "number_of_points " << number_of_points << endl;
-  
+
   indent();
   for(unsigned int i = 0; i < number_of_points; ++i)
   {
@@ -785,7 +785,7 @@ void describeTopoLoop(BitByBitData &mData)
   indent();
 
   describeBaseTopology(mData);
-  
+
   cout << getIndent() << "orientation_with_surface "
       << static_cast<unsigned int>(mData.readChar()) << endl;
   unsigned int number_of_coedge = mData.readUnsignedInt();
@@ -1089,7 +1089,7 @@ void describeBody(BitByBitData &mData)
       describeObject(mData); // curve
 
       break;
-    } 
+    }
     case PRC_TYPE_TOPO_BrepDataCompress:
     case PRC_TYPE_TOPO_SingleWireBodyCompress:
       cout << getIndent() << "TODO: Unhandled body type " << type << endl;
@@ -1838,7 +1838,7 @@ void describeTextureDefinition(BitByBitData &mData)
   cout << getIndent() << "--Texture Definition--" << endl;
   if(!checkSectionCode(mData,PRC_TYPE_GRAPH_TextureDefinition))
     return;
-  
+
   cout << getIndent() << "TODO: Can't describe textures yet." << endl;
 }
 
@@ -1913,7 +1913,7 @@ void describeCategory1LineStyle(BitByBitData &mData)
   indent();
 
   // This was missing from the docs!!!!! argh!
-  describeContentPRCBase(mData,true); 
+  describeContentPRCBase(mData,true);
 
 
   cout << getIndent() << "line_width " << mData.readDouble() << " mm" << endl;

@@ -19,12 +19,12 @@
 *
 *************/
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
+#include "include/prc/oPRCFile.h"
 #include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <string>
-#include "oPRCFile.h"
 
 using namespace std;
 
@@ -51,7 +51,7 @@ int main()
     colours[i%N_COLOURS].B = 0.95;
     colours[i%N_COLOURS].A = 0.75;
   }
-  
+
   PRCmaterial materials[N_COLOURS];
   for(size_t i = 0; i < N_COLOURS; ++i)
   {
@@ -74,12 +74,12 @@ int main()
     materials[i%N_COLOURS].alpha      = 0.75;
     materials[i%N_COLOURS].shininess  = 0.1;
   }
-  
+
   if(1) {
   double knotsU[] = {1,1,1,1,2,2,2,2};
   double knotsV[] = {1,1,1,1,2,2,2,2};
   const size_t NUMBER_OF_PATCHES = 32;
-  double controlPoints[NUMBER_OF_PATCHES][16][3] = 
+  double controlPoints[NUMBER_OF_PATCHES][16][3] =
   {
     { // Patch 0
       {1.4,0,2.4},{1.4,-0.784,2.4},{0.784,-1.4,2.4},{0,-1.4,2.4},
@@ -300,7 +300,7 @@ int main()
     }
     file.endgroup();
   }
-  
+
   const size_t NUMBER_OF_POINTS = 31;
   double points[NUMBER_OF_POINTS][3];
   for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
@@ -742,11 +742,11 @@ int main()
 // following box examples show a) different ways to represent a surface consisting of flat rectangles
 // b) that the only way to have almost working transparency is a set of NURBS bodies.
 // (Or may be other topology types like plane also work
-// demonstration how non-transparent materials work the same for all kinds of objects  
+// demonstration how non-transparent materials work the same for all kinds of objects
 
-  if(1) { // demonstration how non-transparent materials work the same for all kinds of objects  
+  if(1) { // demonstration how non-transparent materials work the same for all kinds of objects
     const size_t NUMBER_OF_PATCHES = 6;
-    double vertices[NUMBER_OF_PATCHES][4][3] = 
+    double vertices[NUMBER_OF_PATCHES][4][3] =
     {
       { // Patch 0
        {-1,-1,-1},
@@ -951,4 +951,3 @@ int main()
 #endif
   return 0;
 }
-

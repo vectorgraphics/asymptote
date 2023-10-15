@@ -18,9 +18,9 @@
 *
 *************/
 
-#include "../PRC.h"
-#include "../PRCdouble.h"
 #include "bitData.h"
+#include "../include/prc/PRC.h"
+#include "../include/prc/PRCdouble.h"
 
 using std::cout; using std::endl; using std::hex; using std::cerr;
 
