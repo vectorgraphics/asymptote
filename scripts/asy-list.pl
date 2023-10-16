@@ -2,9 +2,12 @@
 #####
 # asy-list.pl
 #
-#  Build asy-keywords.el from list of asy global functions and variables 
+#  Build asy-keywords.el from list of asy global functions and variables
 #
 #####
+
+use strict;
+use warnings;
 
 open(keywords, "> asy-keywords.el") ||
     die("Couldn't open asy-keywords.el for writing.");
@@ -61,15 +64,15 @@ while (<asylist>) {
 }
 
 @saw{@types} = ();
-@types = sort keys %saw; 
+@types = sort keys %saw;
 undef %saw;
 
 @saw{@functions} = ();
-@functions = sort keys %saw; 
+@functions = sort keys %saw;
 undef %saw;
 
 @saw{@variables} = ();
-@variables = sort keys %saw; 
+@variables = sort keys %saw;
 undef %saw;
 
 print keywords <<END;
@@ -103,4 +106,3 @@ foreach(@variables) {
 }
 
 print keywords "))\n";
-

@@ -7,6 +7,9 @@
 #  translated only once when creating the symbol table.
 #####
 
+use strict;
+use warnings;
+
 $outname = shift(@ARGV);
 if (not $outname) {
     print STDERR "usage ./findsym.pl out_symbols.h file1.cc file2.cc ...\n";

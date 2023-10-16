@@ -7,6 +7,9 @@
 #  keywords are used in autocompletion at the interactive prompt.
 #####
 
+use strict;
+use warnings;
+
 # Extra keywords to add that aren't automatically extracted, currently none.
 @extrawords = ();
 
@@ -57,4 +60,3 @@ while (<process>) {
     add($1);
   }
 }
-

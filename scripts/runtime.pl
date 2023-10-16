@@ -7,6 +7,9 @@
 #
 #####
 
+use strict;
+use warnings;
+
 $prefix = shift(@ARGV);
 if (not $prefix) {
     print STDERR "usage: ./runtime.pl module_name\n";

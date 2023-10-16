@@ -6,6 +6,9 @@
 # Extract mapping such as '+' --> SYM_PLUS from camp.l
 #####
 
+use strict;
+use warnings;
+
 open(header, ">opsymbols.h") ||
     die("Couldn't open opsymbols.h for writing");
 
