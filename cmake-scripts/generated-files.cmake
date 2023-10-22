@@ -48,8 +48,9 @@ macro(add_runtime_file runtime_file)
     _int_add_runtime_file(${runtime_file})
     list(APPEND ASY_GENERATED_BUILD_SOURCES
             ${GENERATED_SRC_DIR}/${runtime_file}.cc
-            ${GENERATED_INCLUDE_DIR}/${runtime_file}.h
     )
+    list(APPEND ASYMPTOTE_GENERATED_HEADERS
+            ${GENERATED_INCLUDE_DIR}/${runtime_file}.h)
 endmacro()
 
 foreach(RUNTIME_FILE ${RUNTIME_BUILD_FILES})
