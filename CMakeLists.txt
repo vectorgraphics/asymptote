@@ -9,7 +9,6 @@ include(cmake-scripts/options.cmake)
 
 set(CMAKE_CXX_STANDARD_REQUIRED 17)
 
-
 include(cmake-scripts/basic-parameters.cmake)
 include(cmake-scripts/buildfiles-to-src.cmake)
 
@@ -22,8 +21,14 @@ include(cmake-scripts/external-libs.cmake)
 # PRC
 add_subdirectory(prc/)
 list(APPEND ASY_STATIC_LIBARIES PRC)
+
+get_target_property(prc_incl_dir PRC INCLUDE_DIRECTORIES)
 list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:PRC,INCLUDE_DIRECTORIES>)
 
+include(cmake-scripts/gnu-install-macros.cmake)
+include(cmake-scripts/asy-macro.cmake)
+
+include(cmake-scripts/generated-files.cmake)
 
 # defining asy target
 add_executable(
@@ -32,23 +37,7 @@ add_executable(
         ${ASY_GENERATED_BUILD_SOURCES}
         ${ASY_SRC_DIR}/main.cc
 )
-
-include(cmake-scripts/gnu-install-macros.cmake)
-include(cmake-scripts/asy-macro.cmake)
-include(cmake-scripts/generated-files.cmake)
-
+target_include_directories(asy PUBLIC ${ASYMPTOTE_INCLUDES})
 add_dependencies(asy asy_gen_headers)
-
-target_include_directories(asy
-    PUBLIC ${ASYMPTOTE_INCLUDES}
-)
-
-target_link_libraries(
-        asy
-        PUBLIC ${ASY_STATIC_LIBARIES}
-)
-
-target_compile_definitions(
-        asy
-        PUBLIC ${ASY_MACROS}
-)
+target_link_libraries(asy PUBLIC ${ASY_STATIC_LIBARIES})
+target_compile_definitions(asy PUBLIC ${ASY_MACROS})

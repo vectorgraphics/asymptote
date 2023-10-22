@@ -1,4 +1,3 @@
-
 set(GENERATED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/include")
 file(MAKE_DIRECTORY ${GENERATED_INCLUDE_DIR})
 
@@ -61,16 +60,14 @@ endforeach()
 # allsymbols.h
 
 macro(create_preprocess_gcc_options out_var_name)
-    set(include_flags ${ASYMPTOTE_INCLUDES})
-    list(TRANSFORM include_flags APPEND \")
-    list(TRANSFORM include_flags PREPEND -I\")
-
     set(macro_flags ${ASY_MACROS})
     list(TRANSFORM macro_flags PREPEND -D)
 
     set(addr_flags -DNOSYM -E)
 
-    set(${out_var_name} ${include_flags} ${macro_flags} ${addr_flags})
+    set(${out_var_name}
+            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:asy,INCLUDE_DIRECTORIES>,PREPEND,-I>" ${macro_flags} ${addr_flags}
+    )
 
     message(STATUS "asy flag is ${${out_var_name}}")
 endmacro()
@@ -105,9 +102,10 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname)
 
     add_custom_command(
             OUTPUT ${output_var}
-            COMMAND ${CMAKE_CXX_COMPILER} ${asy_cc_compile_flags}
-                ${OUTPUT_ARGS} ${src_dir}/${symfile}.cc
+            COMMAND ${CMAKE_CXX_COMPILER} ${asy_cc_compile_flags} ${OUTPUT_ARGS} ${src_dir}/${symfile}.cc
             MAIN_DEPENDENCY ${src_dir}/${symfile}.cc
+            COMMAND_EXPAND_LISTS
+            VERBATIM
     )
 
 endfunction()
