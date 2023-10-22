@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
+include(cmake-scripts/common.cmake)
 include(pkg-info.cmake)
 
 project(${ASY_PACKAGE_NAME})
