@@ -90,13 +90,15 @@ sub read_types {
 
 # Scrape the symbol names of the operators from opsymbols.h.
 my %opsymbols = ();
-open(opsyms, $opsymbolsFile) ||
+open(my $opsyms, $opsymbolsFile) ||
         die("Couldn't open $opsymbolsFile");
-while (<opsyms>) {
+while (<$opsyms>) {
     if (m/^OPSYMBOL\(\"(.*)\", ([A-Za-z_]+)\);/) {
         $opsymbols{ $1 } = $2;
     }
 }
+
+close($opsyms);
 
 # Turn a name into a symbol.
 sub symbolize {
@@ -300,12 +302,15 @@ print "} // namespace trans\n";
 push @header, "}\n\n";
 
 undef $/;
-open HEADER, "<", $outHeaderFile;
-my $orig_header = <HEADER>;
+open my $HEADER, "<", $outHeaderFile;
+my $orig_header = <$HEADER>;
+close $HEADER;
+
 my $new_header = join "", @header;
 if ($new_header ne $orig_header) {
-	open HEADER, ">", $outHeaderFile;
-	print HEADER $new_header;
+	open $HEADER, ">", $outHeaderFile;
+	print $HEADER $new_header;
+    close $HEADER;
 }
 
 if ($errors) {
