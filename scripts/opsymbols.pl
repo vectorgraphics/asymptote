@@ -9,7 +9,17 @@
 use strict;
 use warnings;
 
-open(header, ">opsymbols.h") ||
+use Getopt::Long;
+
+my $campfile;
+my $outfile;
+
+GetOptions(
+    'campfile=s' => \$campfile,
+    'output=s' => \$outfile
+) || die("Argument errors");
+
+open(header, ">$outfile") ||
     die("Couldn't open opsymbols.h for writing");
 
 print header <<END;
@@ -32,7 +42,8 @@ sub add {
     print header "OPSYMBOL(\"".$_[0]."\", " . $_[1] . ");\n";
 }
 
-open(lexer, "camp.l") ||
+
+open(lexer, $campfile) ||
         die("Couldn't open camp.l");
 
 while (<lexer>) {
