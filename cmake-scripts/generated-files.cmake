@@ -52,11 +52,91 @@ macro(add_runtime_file runtime_file)
     )
 endmacro()
 
-set(RUNTIME_FILES
-        runtime runbacktrace runpicture runlabel runhistory runarray
-        runfile runsystem runpair runtriple runpath runpath3d runstring runmath
-)
-
-foreach(RUNTIME_FILE ${RUNTIME_FILES})
+foreach(RUNTIME_FILE ${RUNTIME_BUILD_FILES})
     add_runtime_file(${RUNTIME_FILE})
 endforeach()
+
+
+# allsymbols.h
+
+macro(create_preprocess_gcc_options out_var_name)
+    set(include_flags ${ASYMPTOTE_INCLUDES})
+    list(TRANSFORM include_flags APPEND \")
+    list(TRANSFORM include_flags PREPEND -I\")
+
+    set(macro_flags ${ASY_MACROS})
+    list(TRANSFORM macro_flags PREPEND -D)
+
+    set(addr_flags -DNOSYM -E)
+
+    set(${out_var_name} ${include_flags} ${macro_flags} ${addr_flags})
+
+    message(STATUS "asy flag is ${${out_var_name}}")
+endmacro()
+
+macro(create_preprocess_msvc_options out_var_name)
+    TODO_NOTIMPL("Implement for msvc!")
+endmacro()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    create_preprocess_gcc_options(asy_cc_compile_flags)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    create_preprocess_msvc_options(asy_cc_compile_flags)
+endif()
+
+# directory for auxilliary files
+set(GENERATED_AUX_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/aux")
+file(MAKE_DIRECTORY ${GENERATED_AUX_DIR})
+
+# generating preprocessed files
+
+function(symfile_preprocess src_dir symfile symfile_raw_output_varname)
+    set(symfile_raw_output_var ${symfile_raw_output_varname})
+
+    set(output_var ${GENERATED_AUX_DIR}/${symfile}.raw.i)
+    set(${symfile_raw_output_var} ${output_var} PARENT_SCOPE)
+
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(OUTPUT_ARGS -o ${output_var})
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        TODO_NOTIMPL("Implement for msvc!")
+    endif()
+
+    add_custom_command(
+            OUTPUT ${output_var}
+            COMMAND ${CMAKE_CXX_COMPILER} ${asy_cc_compile_flags}
+                ${OUTPUT_ARGS} ${src_dir}/${symfile}.cc
+            MAIN_DEPENDENCY ${src_dir}/${symfile}.cc
+    )
+
+endfunction()
+
+# preprocess each individual symbol files
+
+foreach(SYM_FILE ${SYMBOL_STATIC_BUILD_FILES})
+    symfile_preprocess(${ASY_SRC_DIR} ${SYM_FILE} SYMFILE_OUT)
+    list(APPEND SYMFILE_OUT_LIST ${SYMFILE_OUT})
+endforeach()
+
+foreach(SYM_FILE ${RUNTIME_BUILD_FILES})
+    symfile_preprocess(${GENERATED_SRC_DIR} ${SYM_FILE} SYMFILE_OUT)
+    list(APPEND SYMFILE_OUT_LIST ${SYMFILE_OUT})
+endforeach ()
+
+# combine all files into allsymbols.h
+set(FINDSYM_FILE ${ASY_SCRIPTS_DIR}/findsym.pl)
+
+add_custom_command(
+        OUTPUT ${GENERATED_INCLUDE_DIR}/allsymbols.h
+        COMMAND ${PERL_INTERPRETER} ${FINDSYM_FILE}
+            ${GENERATED_INCLUDE_DIR}/allsymbols.h
+            ${SYMFILE_OUT_LIST}
+        DEPENDS ${FINDSYM_FILE} ${SYMFILE_OUT_LIST}
+)
+
+list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/allsymbols.h)
+
+
+add_custom_target(asy_gen_headers
+        DEPENDS ${ASYMPTOTE_GENERATED_HEADERS}
+)
