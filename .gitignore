@@ -61,7 +61,7 @@ GUI/*/__pycache__
 /doc/asy.1
 /glrender.d.54461
 /gsl.symbols.h
-/keywords.cc
+/keywords.h
 /lex.yy.cc
 /opsymbols.h
 /types.symbols.h
