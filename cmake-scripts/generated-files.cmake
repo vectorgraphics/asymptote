@@ -137,6 +137,19 @@ add_custom_command(
 
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/allsymbols.h)
 
+# keywords.h
+
+add_custom_command(
+        OUTPUT ${GENERATED_INCLUDE_DIR}/keywords.h
+        COMMAND ${PERL_INTERPRETER} ${ASY_SCRIPTS_DIR}/keywords.pl
+            --camplfile ${ASY_RESOURCE_DIR}/camp.l
+            --output ${GENERATED_INCLUDE_DIR}/keywords.h
+            --process-file ${ASY_SRC_DIR}/process.cc
+        MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/camp.l
+        DEPENDS ${ASY_SCRIPTS_DIR}/keywords.pl ${ASY_SRC_DIR}/process.cc
+)
+
+list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/keywords.h)
 
 add_custom_target(asy_gen_headers
         DEPENDS ${ASYMPTOTE_GENERATED_HEADERS}
