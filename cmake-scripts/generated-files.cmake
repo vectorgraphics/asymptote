@@ -59,14 +59,11 @@ endforeach()
 
 # allsymbols.h
 
-macro(create_preprocess_gcc_options out_var_name)
+macro(create_base_gcc_options out_var_name)
     set(macro_flags ${ASY_MACROS})
     list(TRANSFORM macro_flags PREPEND -D)
-
-    set(addr_flags -DNOSYM -E)
-
     set(${out_var_name}
-            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:asy,INCLUDE_DIRECTORIES>,PREPEND,-I>" ${macro_flags} ${addr_flags}
+            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:asy,INCLUDE_DIRECTORIES>,PREPEND,-I>" ${macro_flags}
     )
 
     message(STATUS "asy flag is ${${out_var_name}}")
@@ -77,7 +74,7 @@ macro(create_preprocess_msvc_options out_var_name)
 endmacro()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    create_preprocess_gcc_options(asy_cc_compile_flags)
+    create_base_gcc_options(asy_cc_compile_flags)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     create_preprocess_msvc_options(asy_cc_compile_flags)
 endif()
@@ -88,42 +85,68 @@ file(MAKE_DIRECTORY ${GENERATED_AUX_DIR})
 
 # generating preprocessed files
 
-function(symfile_preprocess src_dir symfile symfile_raw_output_varname)
-    set(symfile_raw_output_var ${symfile_raw_output_varname})
+set(FINDSYM_FILE ${ASY_SCRIPTS_DIR}/findsym.pl)
 
-    set(output_var ${GENERATED_AUX_DIR}/${symfile}.raw.i)
-    set(${symfile_raw_output_var} ${output_var} PARENT_SCOPE)
+# combine all files into allsymbols.h
+function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_output_varname)
+    set(symfile_raw_output_var ${symfile_raw_output_varname})
+    set(processed_output_file ${GENERATED_AUX_DIR}/${symfile}.raw.i)
+    set(${symfile_raw_output_var} ${processed_output_file} PARENT_SCOPE)
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set(OUTPUT_ARGS -o ${output_var})
+        set(ADDR_ARGS -E -DNOSYM)
+        set(OUTPUT_ARGS -o ${processed_output_file})
+
+        add_custom_target(${symfile}_depfile
+                COMMAND ${CMAKE_CXX_COMPILER} ${asy_cc_compile_flags}
+                    -DDEPEND -M -MG -O0 -MF ${GENERATED_AUX_DIR}/${symfile}.d
+                    ${src_dir}/${symfile}.cc
+                DEPENDS ${src_dir}/${symfile}.cc
+                BYPRODUCTS ${GENERATED_AUX_DIR}/${symfile}.d
+                COMMAND_EXPAND_LISTS
+                VERBATIM
+        )
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         TODO_NOTIMPL("Implement for msvc!")
     endif()
 
     add_custom_command(
-            OUTPUT ${output_var}
-            COMMAND ${CMAKE_CXX_COMPILER} ${asy_cc_compile_flags} ${OUTPUT_ARGS} ${src_dir}/${symfile}.cc
-            MAIN_DEPENDENCY ${src_dir}/${symfile}.cc
+            OUTPUT ${processed_output_file}
+            COMMAND ${CMAKE_CXX_COMPILER} ${asy_cc_compile_flags} ${ADDR_ARGS} ${OUTPUT_ARGS} ${src_dir}/${symfile}.cc
+            DEPFILE ${GENERATED_AUX_DIR}/${symfile}.d
+            DEPENDS ${src_dir}/${symfile}.cc ${symfile}_depfile
             COMMAND_EXPAND_LISTS
             VERBATIM
     )
+
+    # *.symbols.h file
+    set(symfile_raw_output_var ${header_output_varname})
+    set(sym_header_file ${GENERATED_INCLUDE_DIR}/${symfile}.symbols.h)
+    set(${symfile_raw_output_var} ${sym_header_file} PARENT_SCOPE)
+    add_custom_command(
+            OUTPUT ${sym_header_file}
+            COMMAND ${PERL_INTERPRETER} ${FINDSYM_FILE}
+                ${sym_header_file}
+                ${processed_output_file}
+            MAIN_DEPENDENCY ${processed_output_file}
+    )
+
 
 endfunction()
 
 # preprocess each individual symbol files
 
 foreach(SYM_FILE ${SYMBOL_STATIC_BUILD_FILES})
-    symfile_preprocess(${ASY_SRC_DIR} ${SYM_FILE} SYMFILE_OUT)
+    symfile_preprocess(${ASY_SRC_DIR} ${SYM_FILE} SYMFILE_OUT HEADER_OUT)
     list(APPEND SYMFILE_OUT_LIST ${SYMFILE_OUT})
+    list(APPEND ASYMPTOTE_GENERATED_HEADERS ${HEADER_OUT})
 endforeach()
 
 foreach(SYM_FILE ${RUNTIME_BUILD_FILES})
-    symfile_preprocess(${GENERATED_SRC_DIR} ${SYM_FILE} SYMFILE_OUT)
+    symfile_preprocess(${GENERATED_SRC_DIR} ${SYM_FILE} SYMFILE_OUT HEADER_OUT)
     list(APPEND SYMFILE_OUT_LIST ${SYMFILE_OUT})
+    list(APPEND ASYMPTOTE_GENERATED_HEADERS ${HEADER_OUT})
 endforeach ()
-
-# combine all files into allsymbols.h
-set(FINDSYM_FILE ${ASY_SCRIPTS_DIR}/findsym.pl)
 
 add_custom_command(
         OUTPUT ${GENERATED_INCLUDE_DIR}/allsymbols.h
