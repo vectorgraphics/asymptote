@@ -201,3 +201,9 @@ add_custom_command(
 
 list(APPEND ASY_GENERATED_BUILD_SOURCES ${bison_output})
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${bison_header})
+
+# macro files
+message(STATUS "Generating revision.cc file")
+set(revision_cc_file ${GENERATED_SRC_DIR}/revision.cc)
+configure_file(${ASY_RESOURCE_DIR}/template_rev.cc.in ${revision_cc_file})
+list(APPEND ASY_GENERATED_BUILD_SOURCES ${revision_cc_file})
