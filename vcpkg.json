@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+
+  "name": "asymptote",
+  "version": "0.0-snapshot",
+  "dependencies": [
+    "tinyexr",
+    "zlib"
+  ]
+}
