@@ -10,12 +10,24 @@
 use strict;
 use warnings;
 
+use Getopt::Long;
+
+my $camplfile;
+my $output_keywords_file;
+my $process_file;
+
+GetOptions(
+    "camplfile=s"    => \$camplfile,
+    "output=s"       => \$output_keywords_file,
+    "process-file=s" => \$process_file
+) || die("Argument error");
+
 # Extra keywords to add that aren't automatically extracted, currently none.
-@extrawords = ();
+my @extrawords = ();
 
 
-open(keywords, ">keywords.cc") ||
-    die("Couldn't open keywords.out for writing.");
+open(keywords, ">$output_keywords_file") ||
+    die("Couldn't open $output_keywords_file for writing.");
 
 print keywords <<END;
 /*****
@@ -29,11 +41,10 @@ sub add {
   print keywords "ADD(".$_[0].");\n";
 }
 
-foreach $word (@extrawords) {
+foreach my $word (@extrawords) {
   add($word);
 }
-
-open(camp, "camp.l") || die("Couldn't open camp.l");
+open(camp, $camplfile) || die("Couldn't open $camplfile");
 
 # Search for the %% separator, after which the definitions start.
 while (<camp>) {
@@ -53,7 +64,7 @@ while (<camp>) {
 }
 
 # Grab the special commands from the interactive prompt.
-open(process, "process.cc") || dir("Couldn't open process.cc");
+open(process, $process_file) || die("Couldn't open $process_file");
 
 while (<process>) {
   if (/^\s*ADDCOMMAND\(\s*([A-Za-z_][A-Za-z0-9_]*),/) {
