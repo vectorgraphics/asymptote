@@ -152,3 +152,29 @@ list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/keywords.h)
 add_custom_target(asy_gen_headers
         DEPENDS ${ASYMPTOTE_GENERATED_HEADERS}
 )
+
+set(camp_lex_output ${GENERATED_SRC_DIR}/lex.yy.cc)
+set(camp_l_file ${ASY_RESOURCE_DIR}/camp.l)
+
+# flex + bison
+add_custom_command(
+        OUTPUT ${camp_lex_output}
+        COMMAND ${FLEX_EXECUTABLE} -o ${camp_lex_output} ${camp_l_file}
+        MAIN_DEPENDENCY ${camp_l_file}
+)
+
+list(APPEND ASY_GENERATED_BUILD_SOURCES ${camp_lex_output})
+
+# bison
+
+set(bison_output ${GENERATED_SRC_DIR}/camp.tab.cc)
+set(bison_header ${GENERATED_INCLUDE_DIR}/camp.tab.h)
+set(bison_input ${ASY_RESOURCE_DIR}/camp.y)
+add_custom_command(
+        OUTPUT ${bison_output} ${bison_header}
+        COMMAND ${BISON_EXECUTABLE} -t --header=${bison_header} -o ${bison_output} ${bison_input}
+        MAIN_DEPENDENCY ${bison_input}
+)
+
+list(APPEND ASY_GENERATED_BUILD_SOURCES ${bison_output})
+list(APPEND ASYMPTOTE_GENERATED_HEADERS ${bison_header})

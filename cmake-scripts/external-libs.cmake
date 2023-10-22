@@ -14,3 +14,19 @@ list(APPEND ASY_STATIC_LIBARIES unofficial::tinyexr::tinyexr)
 # zlib
 find_package(ZLIB REQUIRED)
 list(APPEND ASY_STATIC_LIBARIES ZLIB::ZLIB)
+
+# flex + bison
+if (UNIX)
+    include(FindFLEX)
+    include(FindBISON)
+
+    if (NOT FLEX_FOUND)
+        message(FATAL_ERROR "FLEX is required for building")
+    endif()
+
+    if (NOT BISON_FOUND)
+        message(FATAL_ERROR "Bison is required for building")
+    endif()
+elseif(WIN32)
+    TODO_NOTIMPL("Download win-bison and use that")
+endif()
