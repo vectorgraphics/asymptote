@@ -41,3 +41,5 @@ target_include_directories(asy PUBLIC ${ASYMPTOTE_INCLUDES})
 add_dependencies(asy asy_gen_headers)
 target_link_libraries(asy PUBLIC ${ASY_STATIC_LIBARIES})
 target_compile_definitions(asy PUBLIC ${ASY_MACROS})
+
+include(cmake-scripts/asy-base-files.cmake)
