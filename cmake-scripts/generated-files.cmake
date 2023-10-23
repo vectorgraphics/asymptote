@@ -58,27 +58,6 @@ endforeach()
 
 
 # allsymbols.h
-
-macro(create_base_gcc_options out_var_name)
-    set(macro_flags ${ASY_MACROS})
-    list(TRANSFORM macro_flags PREPEND -D)
-    set(${out_var_name}
-            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:asy,INCLUDE_DIRECTORIES>,PREPEND,-I>" ${macro_flags}
-    )
-
-    message(STATUS "asy flag is ${${out_var_name}}")
-endmacro()
-
-macro(create_preprocess_msvc_options out_var_name)
-    TODO_NOTIMPL("Implement for msvc!")
-endmacro()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    create_base_gcc_options(asy_cc_compile_flags)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    create_preprocess_msvc_options(asy_cc_compile_flags)
-endif()
-
 # directory for auxilliary files
 set(GENERATED_AUX_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/aux")
 file(MAKE_DIRECTORY ${GENERATED_AUX_DIR})
@@ -93,32 +72,28 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
     set(processed_output_file ${GENERATED_AUX_DIR}/${symfile}.raw.i)
     set(${symfile_raw_output_var} ${processed_output_file} PARENT_SCOPE)
 
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set(ADDR_ARGS -E -DNOSYM)
-        set(OUTPUT_ARGS -o ${processed_output_file})
-
-        add_custom_target(${symfile}_depfile
-                COMMAND ${CMAKE_CXX_COMPILER} ${asy_cc_compile_flags}
-                    -DDEPEND -M -MG -O0 -MF ${GENERATED_AUX_DIR}/${symfile}.d
-                    ${src_dir}/${symfile}.cc
-                DEPENDS ${src_dir}/${symfile}.cc
-                BYPRODUCTS ${GENERATED_AUX_DIR}/${symfile}.d
-                COMMAND_EXPAND_LISTS
-                VERBATIM
-        )
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        TODO_NOTIMPL("Implement for msvc!")
+    if (MSVC)
+        set(msvc_flag --msvc)
     endif()
+
+    set(asy_includes_list "$<TARGET_PROPERTY:asy,INCLUDE_DIRECTORIES>")
+    set(asy_macros_list "$<TARGET_PROPERTY:asy,COMPILE_DEFINITIONS>")
 
     add_custom_command(
             OUTPUT ${processed_output_file}
-            COMMAND ${CMAKE_CXX_COMPILER} ${asy_cc_compile_flags} ${ADDR_ARGS} ${OUTPUT_ARGS} ${src_dir}/${symfile}.cc
+            COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
+            --cxx-compiler=${CMAKE_CXX_COMPILER}
+            "$<$<BOOL:${asy_includes_list}>:--include-dirs=${asy_includes_list}>"
+            "$<$<BOOL:${asy_macros_list}>:--macro-defs=${asy_macros_list}>"
+            --out-dep-file=${GENERATED_AUX_DIR}/${symfile}.d
+            --out-i-file=${processed_output_file}
+            --in-src-file=${src_dir}/${symfile}.cc
+            ${msvc_flag}
             DEPFILE ${GENERATED_AUX_DIR}/${symfile}.d
-            DEPENDS ${src_dir}/${symfile}.cc ${symfile}_depfile
-            COMMAND_EXPAND_LISTS
+            BYPRODUCTS ${GENERATED_AUX_DIR}/${symfile}.d
+            DEPENDS ${src_dir}/${symfile}.cc ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
             VERBATIM
     )
-
     # *.symbols.h file
     set(symfile_raw_output_var ${header_output_varname})
     set(sym_header_file ${GENERATED_INCLUDE_DIR}/${symfile}.symbols.h)
