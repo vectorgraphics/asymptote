@@ -6,6 +6,8 @@
   "dependencies": [
     "tinyexr",
     "zlib",
-    "bdwgc"
+    "bdwgc",
+    "readline",
+    "ncurses"
   ]
 }
