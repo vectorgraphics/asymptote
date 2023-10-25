@@ -82,3 +82,18 @@ if (CURL_FOUND)
 else()
     message(WARNING "curl not found; will compile without curl")
 endif()
+
+
+# pthreads
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+include(FindThreads)
+if (CMAKE_USE_PTHREADS_INIT)
+    message(STATUS "Using pthreads")
+    list(APPEND ASY_STATIC_LIBARIES Threads::Threads)
+    list(APPEND ASY_MACROS HAVE_PTHREAD=1)
+elseif(CMAKE_USE_WIN32_THREADS_INIT)
+    TODO_NOTIMPL("Implement win32 threads for windows, or find a way to use pthreads")
+else()
+    message(WARNING "No thread library specified; will not use threads")
+endif()
