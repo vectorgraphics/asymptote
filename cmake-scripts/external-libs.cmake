@@ -30,3 +30,15 @@ if (UNIX)
 elseif(WIN32)
     TODO_NOTIMPL("Download win-bison and use that")
 endif()
+
+# boehm gc
+
+find_package(BDWgc CONFIG)
+if (BDWgc_FOUND)
+    list(APPEND ASY_STATIC_LIBARIES BDWgc::gc BDWgc::gccpp)
+    list(APPEND ASY_MACROS USEGC)
+else()
+    message(WARNING "BDWgc not found; compiling without gc")
+endif()
+
+# libreadline
