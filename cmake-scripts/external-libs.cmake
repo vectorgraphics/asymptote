@@ -41,4 +41,33 @@ else()
     message(WARNING "BDWgc not found; compiling without gc")
 endif()
 
+# curses
+set(CURSES_NEED_NCURSES TRUE)
+find_package(Curses)
+if (Curses_FOUND)
+    list(APPEND ASYMPTOTE_INCLUDES ${CURSES_INCLUDE_DIRS})
+    list(APPEND ASY_COMPILE_OPTS ${CURSES_CFLAGS})
+    list(APPEND ASY_STATIC_LIBRARIES ${CURSES_LIBRARIES})
+
+    list(APPEND ASY_MACROS HAVE_NCURSES_CURSES_H HAVE_LIBCURSES)
+else()
+    message(WARNING "curses not found; will compile without curses")
+endif()
+
 # libreadline
+if (UNIX)
+    include(FindPkgConfig)
+    pkg_check_modules(readline IMPORTED_TARGET readline)
+
+    if (readline_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES PkgConfig::readline)
+        list(APPEND ASY_MACROS HAVE_LIBREADLINE)
+    else ()
+        message(WARNING "readline not found; will compile without libreadline")
+    endif()
+
+elseif(WIN32)
+    TODO_NOTIMPL("Implement readline for windows")
+else()
+    message(FATAL_ERROR "Only supported on Unix or Win32 systems")
+endif()
