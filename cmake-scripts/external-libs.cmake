@@ -71,3 +71,14 @@ elseif(WIN32)
 else()
     message(FATAL_ERROR "Only supported on Unix or Win32 systems")
 endif()
+
+
+# libcurl
+
+find_package(CURL)
+if (CURL_FOUND)
+    list(APPEND ASY_STATIC_LIBARIES CURL::libcurl)
+    list(APPEND ASY_MACROS HAVE_LIBCURL)
+else()
+    message(WARNING "curl not found; will compile without curl")
+endif()
