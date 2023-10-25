@@ -5,6 +5,7 @@
   "version": "0.0-snapshot",
   "dependencies": [
     "tinyexr",
-    "zlib"
+    "zlib",
+    "bdwgc"
   ]
 }
