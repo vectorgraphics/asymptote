@@ -171,7 +171,7 @@ size_t curlCallback(char *data, size_t size, size_t n, stringstream& buf)
   return Size;
 }
 
-#ifdef CURLOPT_XFERINFODATA
+#if defined(CURLOPT_XFERINFODATA) || (LIBCURL_VERSION_NUM >= 0x072000) // libcurl 7.32.0
 #define CURL_OFF_T curl_off_t
 #else
 #define CURL_OFF_T double
