@@ -107,3 +107,13 @@ if (GSL_FOUND)
 else()
     message(WARNING "GSL not found; will compile without gsl")
 endif()
+
+
+# eigen
+find_package(Eigen3 CONFIG)
+if (Eigen3_FOUND)
+    list(APPEND ASY_STATIC_LIBARIES Eigen3::Eigen)
+    list(APPEND ASY_MACROS HAVE_EIGEN_DENSE)
+else()
+    message(WARNING "eigen3 not found; will compile without eigen")
+endif()
