@@ -97,3 +97,13 @@ elseif(CMAKE_USE_WIN32_THREADS_INIT)
 else()
     message(WARNING "No thread library specified; will not use threads")
 endif()
+
+
+# gsl
+find_package(GSL)
+if (GSL_FOUND)
+    list(APPEND ASY_STATIC_LIBARIES GSL::gsl)
+    list(APPEND ASY_MACROS HAVE_LIBGSL)
+else()
+    message(WARNING "GSL not found; will compile without gsl")
+endif()
