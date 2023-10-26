@@ -11,6 +11,7 @@
     "ncurses",
     "curl",
     "pthreads",
-    "gsl"
+    "gsl",
+    "eigen3"
   ]
 }
