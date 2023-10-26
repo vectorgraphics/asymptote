@@ -10,6 +10,7 @@
     "readline",
     "ncurses",
     "curl",
-    "pthreads"
+    "pthreads",
+    "gsl"
   ]
 }
