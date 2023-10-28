@@ -8,7 +8,14 @@
     "zlib",
     "bdwgc",
     "readline",
-    "ncurses",
+    {
+      "name": "ncurses",
+      "platform": "!windows"
+    },
+    {
+      "name": "pdcurses",
+      "platform": "windows"
+    },
     "curl",
     "pthreads",
     "gsl",
