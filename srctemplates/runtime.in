@@ -53,7 +53,10 @@ stringarray2* => stringArray2()
 #include <iostream>
 #include <fstream>
 #include <time.h>
+
+#if !defined(_WIN32)
 #include <sys/times.h>
+#endif
 #include <locale.h>
 
 #include "angle.h"
