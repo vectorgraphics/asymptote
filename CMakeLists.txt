@@ -31,6 +31,11 @@ include(cmake-scripts/asy-macro.cmake)
 
 include(cmake-scripts/generated-files.cmake)
 
+if (WIN32)
+    include(cmake-scripts/win32-specific.cmake)
+endif()
+
+
 # defining asy target
 add_executable(
         asy
