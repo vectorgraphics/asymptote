@@ -179,3 +179,4 @@ CTestTestfile.cmake
 _deps
 
 cmake-build-*
+CMakeUserPresets.json
