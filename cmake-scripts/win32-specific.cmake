@@ -7,3 +7,8 @@ add_subdirectory(backports/getopt)
 
 list(APPEND ASY_STATIC_LIBARIES getopt)
 list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:getopt,INCLUDE_DIRECTORIES>)
+
+# msvc compile options
+if (MSVC)
+    list(APPEND ASY_COMPILE_OPTS /Zc:__cplusplus)
+endif()
