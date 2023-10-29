@@ -13,3 +13,6 @@ if (MSVC)
     list(APPEND ASY_COMPILE_OPTS /Zc:__cplusplus)
     list(APPEND ASY_MACROS NOMINMAX)
 endif()
+
+# alot of asymptote sources use __MSDOS__ macro for checking windows
+list(APPEND ASY_MACROS __MSDOS__=1)
