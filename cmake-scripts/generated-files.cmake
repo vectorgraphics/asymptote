@@ -29,6 +29,14 @@ function(_int_add_runtime_file runtime_file)
     set(OPSYM_FILE ${GENERATED_INCLUDE_DIR}/opsymbols.h)
     set(RUNTIME_BASE_FILE ${ASY_SRC_TEMPLATES_DIR}/runtimebase.in)
 
+    if (MSVC)
+    # hack since msvc does not support "-MG" option to treat missing headers as 
+    # generated files
+        if (NOT (runtime_file STREQUAL "runtime"))
+            set(RUNTIME_FILE_DEP ${GENERATED_INCLUDE_DIR}/runtime.h)
+        endif()
+    endif()
+
     add_custom_command(
             OUTPUT ${RUNTIME_FILES_OUT}
             COMMAND ${PERL_INTERPRETER} ${RUNTIME_SCRIPT}
@@ -39,7 +47,7 @@ function(_int_add_runtime_file runtime_file)
             --header-out-dir ${GENERATED_INCLUDE_DIR}
             --src-out-dir ${GENERATED_SRC_DIR}
             MAIN_DEPENDENCY ${RUNTIME_FILE_IN_BASE}.in
-            DEPENDS ${RUNTIME_SCRIPT} ${OPSYM_FILE} ${RUNTIME_BASE_FILE}
+            DEPENDS ${RUNTIME_SCRIPT} ${OPSYM_FILE} ${RUNTIME_BASE_FILE} ${RUNTIME_FILE_DEP}
     )
 endfunction()
 
