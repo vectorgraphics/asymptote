@@ -41,14 +41,21 @@
 extern "C" {
 
 #ifdef HAVE_NCURSES_CURSES_H
+#define USE_SETUPTERM
 #include <ncurses/curses.h>
 #include <ncurses/term.h>
 #elif HAVE_NCURSES_H
+#define USE_SETUPTERM
 #include <ncurses.h>
 #include <term.h>
 #elif HAVE_CURSES_H
 #include <curses.h>
+
+#if defined(HAVE_TERM_H)
+#define USE_SETUPTERM
 #include <term.h>
+#endif
+
 #endif
 }
 #endif
@@ -1810,7 +1817,7 @@ Int getScroll()
     if(!terminal)
       terminal=getenv("TERM");
     if(terminal) {
-#ifndef __MSDOS__
+#if defined(USE_SETUPTERM)
       int error=setupterm(terminal,1,&error);
       if(error == 0) scroll=lines > 2 ? lines-1 : 1;
       else
