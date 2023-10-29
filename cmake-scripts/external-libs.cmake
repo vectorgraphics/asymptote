@@ -28,7 +28,30 @@ if (UNIX)
         message(FATAL_ERROR "Bison is required for building")
     endif()
 elseif(WIN32)
-    TODO_NOTIMPL("Download win-bison and use that")
+    if ((NOT WIN32_FLEX_BINARY) OR (NOT WIN32_BISON_BINARY))
+        # downlod winflexbison
+        message(STATUS "Flex or bison not given; downloading winflexbison.")
+        include(FetchContent)
+
+        FetchContent_Declare(
+                winflexbison
+                URL https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip
+                URL_HASH SHA256=8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135
+        )
+        FetchContent_MakeAvailable(winflexbison)
+        message(STATUS "Downloaded winflexbison")
+
+        if (NOT WIN32_FLEX_BINARY)
+            set(FLEX_EXECUTABLE ${winflexbison_SOURCE_DIR}/win_flex.exe)
+        endif()
+
+        if (NOT WIN32_BISON_BINARY)
+            set(BISON_EXECUTABLE ${winflexbison_SOURCE_DIR}/win_bison.exe)
+        endif()
+    else()
+        set(FLEX_EXECUTABLE ${WIN32_FLEX_BINARY})
+        set(BISON_EXECUTABLE ${WIN32_BISON_BINARY})
+    endif()
 endif()
 
 # boehm gc
