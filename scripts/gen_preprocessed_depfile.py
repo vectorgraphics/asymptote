@@ -1,7 +1,25 @@
 #!/usr/bin/env python3
+import io
 from argparse import ArgumentParser
 from typing import List, Optional
 import subprocess as sp
+import sys
+import tempfile
+import json
+
+
+def execute_and_report_err(args: List[str], error_heading="Error"):
+    try:
+        return sp.run(
+            args, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True, check=True
+        )
+    except sp.CalledProcessError as e:
+        sys.stderr.write(f"{error_heading}\n")
+        sys.stderr.write(e.stderr)
+        sys.stderr.write(f"stdout:\n{e.stdout}")
+        sys.stderr.write("\n")
+        sys.stderr.flush()
+        raise
 
 
 def parse_args():
@@ -124,19 +142,45 @@ def compile_for_preproc_gcc(compile_opt: CompileOptions, src_in: str, preproc_ou
     sp.run(args, check=True, stdout=sp.DEVNULL, stderr=sp.STDOUT)
 
 
-def compile_for_preproc_msvc(
-    compile_opt: CompileOptions, src_in: str, preproc_out: str
+def escape_windows_path(raw_path: str) -> str:
+    escape_chars = {" ", "$", "#"}
+    with io.StringIO() as ret_str_io:
+        for char in raw_path:
+            if char in escape_chars:
+                ret_str_io.write("\\")
+            ret_str_io.write(char)
+        return ret_str_io.getvalue()
+
+
+def compile_for_preproc_and_depfile_msvc(
+    compile_opt: CompileOptions, src_in: str, preproc_out: str, depfile_out: str
 ):
-    args = [compile_opt.compiler] + compile_opt.build_args_for_msvc(
-        src_in, None, ["/E"]
+    with tempfile.TemporaryDirectory() as td:
+        args = [compile_opt.compiler] + compile_opt.build_args_for_msvc(
+            src_in,
+            None,
+            [
+                "/DNOSYM",
+                "/DDEPEND",
+                "/P",
+                f"/Fi{preproc_out}",
+                "/sourceDependencies",
+                f"{td}/srcdep.json",
+            ],
+        )
+        execute_and_report_err(args, "MSVC Error")
+        with open(f"{td}/srcdep.json", "r", encoding="utf-8") as fread:
+            dep_data = json.load(fread)
+
+    include_fil_str = " ".join(
+        escape_windows_path(include_fil)
+        for include_fil in dep_data["Data"].get("Includes", [])
     )
-    proc = sp.run(args, stdout=sp.PIPE, stderr=sp.PIPE)
 
-    if proc.returncode != 0:
-        raise RuntimeError(f"called proc error. err={proc.stderr}")
-
-    with open(preproc_out, "wb") as fil:
-        fil.write(proc.stdout)
+    with open(depfile_out, "w", encoding="utf-8") as depfile_writer:
+        depfile_writer.write(escape_windows_path(preproc_out))
+        depfile_writer.write(": ")
+        depfile_writer.write(include_fil_str)
 
 
 def main():
@@ -149,7 +193,9 @@ def main():
     )
 
     if args.msvc:
-        raise NotImplementedError("Implement depfile + preprocess for msvc")
+        compile_for_preproc_and_depfile_msvc(
+            opt, args.in_src_file, args.out_i_file, args.out_dep_file
+        )
     else:
         compile_for_depfile_gcc(
             opt, args.in_src_file, args.out_i_file, args.out_dep_file
