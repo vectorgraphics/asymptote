@@ -93,23 +93,15 @@ else()
 endif()
 
 # libreadline
-if (UNIX)
-    include(FindPkgConfig)
-    pkg_check_modules(readline IMPORTED_TARGET readline)
+include(FindPkgConfig)
+pkg_check_modules(readline IMPORTED_TARGET readline)
 
-    if (readline_FOUND)
-        list(APPEND ASY_STATIC_LIBARIES PkgConfig::readline)
-        list(APPEND ASY_MACROS HAVE_LIBREADLINE)
-    else ()
-        message(WARNING "readline not found; will compile without libreadline")
-    endif()
-
-elseif(WIN32)
-    TODO_NOTIMPL("Implement readline for windows")
-else()
-    message(FATAL_ERROR "Only supported on Unix or Win32 systems")
+if (readline_FOUND)
+    list(APPEND ASY_STATIC_LIBARIES PkgConfig::readline)
+    list(APPEND ASY_MACROS HAVE_LIBREADLINE)
+else ()
+    message(WARNING "readline not found; will compile without libreadline")
 endif()
-
 
 # libcurl
 
