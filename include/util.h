@@ -22,7 +22,13 @@ extern "C" int sigaction(int signum, const struct sigaction *act, struct sigacti
 
 #include "common.h"
 
+#if !defined(_MSC_VER)
 #include <strings.h>
+#else
+#include <cstring>
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+#endif
 
 // Demangle a typeid name (if the proper library is installed.
 string demangle(const char *s);
