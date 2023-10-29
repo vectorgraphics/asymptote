@@ -36,6 +36,11 @@ def parse_args():
         type=str,
         help="Macro definitions in the form VALA=CONTENTA or VALB",
     )
+
+    args_parser.add_argument(
+        "--cxx-standard",
+        type=str,
+    )
     return args_parser.parse_args()
 
 
@@ -46,11 +51,13 @@ class CompileOptions:
         include_dirs: Optional[List[str]] = None,
         macros: Optional[List[str]] = None,
         extra_flags: Optional[List[str]] = None,
+        standard: Optional[str] = None,
     ):
         self._compiler = compiler
         self._include_dirs = include_dirs or []
         self._macros = macros or []
         self._extra_flags = extra_flags or []
+        self._standard = standard or "17"
 
     @property
     def compiler(self):
@@ -65,6 +72,7 @@ class CompileOptions:
         base_args = (
             [f"-I{include_dir}" for include_dir in self._include_dirs]
             + [f"-D{macro}" for macro in self._macros]
+            + [f"-std=c++{self._standard}"]
             + self._extra_flags
         )
 
@@ -74,6 +82,26 @@ class CompileOptions:
         if out_file:
             base_args.extend(["-o", out_file])
 
+        base_args.append(src_file)
+        return base_args
+
+    def build_args_for_msvc(
+        self,
+        src_file: str,
+        out_file: Optional[str],
+        addr_flags: Optional[List[str]] = None,
+    ):
+        base_args = (
+            [f"/I{include_dir}" for include_dir in self._include_dirs]
+            + [f"/D{macro}" for macro in self._macros]
+            + [f"/std:c++{self._standard}", "/Zc:__cplusplus"]
+            + self._extra_flags
+        )
+        if addr_flags:
+            base_args.extend(addr_flags)
+
+        if out_file:
+            base_args.extend(["/F", out_file])
         base_args.append(src_file)
         return base_args
 
@@ -96,12 +124,28 @@ def compile_for_preproc_gcc(compile_opt: CompileOptions, src_in: str, preproc_ou
     sp.run(args, check=True, stdout=sp.DEVNULL, stderr=sp.STDOUT)
 
 
+def compile_for_preproc_msvc(
+    compile_opt: CompileOptions, src_in: str, preproc_out: str
+):
+    args = [compile_opt.compiler] + compile_opt.build_args_for_msvc(
+        src_in, None, ["/E"]
+    )
+    proc = sp.run(args, stdout=sp.PIPE, stderr=sp.PIPE)
+
+    if proc.returncode != 0:
+        raise RuntimeError(f"called proc error. err={proc.stderr}")
+
+    with open(preproc_out, "wb") as fil:
+        fil.write(proc.stdout)
+
+
 def main():
     args = parse_args()
     opt = CompileOptions(
         args.cxx_compiler,
         args.include_dirs.split(";") if args.include_dirs else None,
         args.macro_defs.split(";") if args.macro_defs else None,
+        standard=args.cxx_standard,
     )
 
     if args.msvc:

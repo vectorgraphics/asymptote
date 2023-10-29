@@ -78,12 +78,14 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
 
     set(asy_includes_list "$<TARGET_PROPERTY:asy,INCLUDE_DIRECTORIES>")
     set(asy_macros_list "$<TARGET_PROPERTY:asy,COMPILE_DEFINITIONS>")
+    set(asy_cxx_std "$<TARGET_PROPERTY:asy,CXX_STANDARD>")
 
     add_custom_command(
             OUTPUT ${processed_output_file}
             COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
             --cxx-compiler=${CMAKE_CXX_COMPILER}
             "$<$<BOOL:${asy_includes_list}>:--include-dirs=${asy_includes_list}>"
+            "$<$<BOOL:${asy_cxx_std}>:--cxx-standard=${asy_cxx_std}>"
             "$<$<BOOL:${asy_macros_list}>:--macro-defs=${asy_macros_list}>"
             --out-dep-file=${GENERATED_AUX_DIR}/${symfile}.d
             --out-i-file=${processed_output_file}
