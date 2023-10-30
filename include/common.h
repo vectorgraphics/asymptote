@@ -14,6 +14,11 @@
 #include <climits>
 #include <cstdint>
 
+#if defined(_MSC_VER)
+// for and/or/not operators. not supported natively on MSVC
+#include <ciso646>
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
