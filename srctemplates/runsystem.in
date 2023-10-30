@@ -9,7 +9,7 @@ callable* => voidFunction()
 callableBp* => breakpointFunction()
 runnable* => primCode()
 
-#include "process.h"
+#include "processutils.h"
 #include "stack.h"
 #include "locate.h"
 

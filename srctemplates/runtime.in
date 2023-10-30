@@ -82,7 +82,7 @@ stringarray2* => stringArray2()
 #include "callable.h"
 #include "stm.h"
 #include "lexical.h"
-#include "process.h"
+#include "processutils.h"
 #include "arrayop.h"
 #include "seconds.h"
 

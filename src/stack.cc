@@ -14,7 +14,7 @@
 #include "errormsg.h"
 #include "util.h"
 #include "runtime.h"
-#include "process.h"
+#include "processutils.h"
 
 #include "profiler.h"
 

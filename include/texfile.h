@@ -22,7 +22,7 @@
 #include "array.h"
 #include "psfile.h"
 #include "settings.h"
-#include "process.h"
+#include "processutils.h"
 
 namespace camp {
 

@@ -19,7 +19,7 @@
 #include <thread>
 
 #include "dec.h"
-#include "process.h"
+#include "processutils.h"
 #include "locate.h"
 
 #define REGISTER_REQ_FN(typ, fn) remoteEndPoint->registerHandler(\
