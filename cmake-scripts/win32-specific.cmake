@@ -10,7 +10,10 @@ list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:getopt,INCLUDE_DIRECTORIES>)
 
 # msvc compile options
 if (MSVC)
-    list(APPEND ASY_COMPILE_OPTS /Zc:__cplusplus)
+    list(APPEND ASY_COMPILE_OPTS
+            /Zc:__cplusplus /Zc:__STDC__
+            /Zc:externC /Zc:preprocessor
+            /Zc:hiddenFriend)
     list(APPEND ASY_MACROS NOMINMAX)
 endif()
 
