@@ -54,6 +54,14 @@ elseif(WIN32)
     endif()
 endif()
 
+# getopt (win32 only)
+
+if (WIN32)
+    find_package(unofficial-getopt-win32 REQUIRED)
+    list(APPEND ASY_STATIC_LIBARIES unofficial::getopt-win32::getopt)
+endif()
+
+
 # boehm gc
 
 find_package(BDWgc CONFIG)

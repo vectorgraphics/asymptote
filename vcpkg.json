@@ -16,6 +16,10 @@
       "name": "pdcurses",
       "platform": "windows"
     },
+    {
+      "name": "getopt-win32",
+      "platform": "windows"
+    },
     "curl",
     "pthreads",
     "gsl",
