@@ -183,7 +183,7 @@ string simpleline(string prompt) {
 #endif
       {
         cout << endl;
-        throw eof();
+        throw EofException();
       }
     return "";
   }

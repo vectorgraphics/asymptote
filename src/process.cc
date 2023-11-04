@@ -830,7 +830,7 @@ public:
       } catch(interrupted&) {
         em.Interrupt(false);
         restart=true;
-      } catch(eof&) {
+      } catch(EofException&) {
         restart=false;
       }
     } while(restart);
