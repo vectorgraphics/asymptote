@@ -4,11 +4,17 @@
  *
  *****/
 
+
+
 #include <fstream>
 #include <sstream>
 #include <cstring>
 #include <fcntl.h>
 #include <algorithm>
+
+#ifdef HAVE_LIBCURL
+#include <curl/curl.h>
+#endif
 
 #include "common.h"
 
@@ -16,9 +22,6 @@
 #include <sys/stat.h>
 #endif
 
-#ifdef HAVE_LIBCURL
-#include <curl/curl.h>
-#endif
 
 #include "interact.h"
 #include "locate.h"
