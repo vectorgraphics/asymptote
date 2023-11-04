@@ -17,6 +17,10 @@
 
 #include "common.h"
 
+#if defined(_WIN32)
+#include <Windows.h>
+#endif
+
 #if HAVE_GNU_GETOPT_H
 #include <getopt.h>
 #else
@@ -1550,7 +1554,14 @@ void setInteractive()
   if(getSetting<bool>("localhistory"))
     historyname=string(getPath())+dirsep+"."+suffix+"_history";
   else {
-    if(mkdir(initdir.c_str(),0777) != 0 && errno != EEXIST)
+#if defined(_WIN32)
+    bool mkdirResult = CreateDirectoryA(initdir.c_str(), nullptr);
+    bool mkdirSuccess = mkdirResult || GetLastError() == ERROR_ALREADY_EXISTS;
+#else
+    int mkdirResult = mkdir(initdir.c_str(),0777);
+    bool mkdirSuccess = mkdirResult == 0 || errno == EEXIST
+#endif
+    if(!mkdirSuccess)
       cerr << "failed to create directory "+initdir+"." << endl;
     historyname=initdir+"/history";
   }
