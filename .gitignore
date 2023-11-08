@@ -184,3 +184,6 @@ CMakeUserPresets.json
 # visual studio files
 .vs
 *.DotSettings.user
+
+# ignore directory
+idir
