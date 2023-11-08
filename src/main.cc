@@ -26,7 +26,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <cerrno>
-#include <sys/wait.h>
 #include <sys/types.h>
 
 #define GC_PTHREAD_SIGMASK_NEEDED
@@ -53,6 +52,12 @@
 #endif
 
 #include "stack.h"
+
+#if defined(_WIN32)
+#include <Windows.h>
+#else
+#include <sys/wait.h>
+#endif
 
 using namespace settings;
 
@@ -103,7 +108,9 @@ void setsignal(void (*handler)(int))
                                 mystack,sizeof (mystack));
   sigsegv_install_handler(&sigsegv_handler);
 #endif
+#if !defined(_WIN32)
   Signal(SIGBUS,handler);
+#endif
   Signal(SIGFPE,handler);
 }
 
@@ -112,7 +119,9 @@ void signalHandler(int)
   // Print the position and trust the shell to print an error message.
   em.runtime(vm::getPos());
 
+#if !defined(_WIN32)
   Signal(SIGBUS,SIG_DFL);
+#endif
   Signal(SIGFPE,SIG_DFL);
 }
 
@@ -186,7 +195,9 @@ void *asymain(void *A)
     if(n == 0) {
       int inpipe=intcast(settings::getSetting<Int>("inpipe"));
       if(inpipe >= 0) {
+#if !defined(_WIN32)
         Signal(SIGHUP,hangup_handler);
+#endif
         camp::openpipeout();
         fprintf(camp::pipeout,"\n");
         fflush(camp::pipeout);
@@ -225,8 +236,12 @@ void *asymain(void *A)
 #endif
 
   if(getSetting<bool>("wait")) {
+#if defined(_WIN32)
+#warning "TODO: wait option not implement yet"
+#else
     int status;
     while(wait(&status) > 0);
+#endif
   }
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
@@ -251,8 +266,13 @@ void exitHandler(int)
 int main(int argc, char *argv[])
 {
 #ifdef HAVE_LIBGSL
+#if defined(_WIN32)
+  _putenv("GSL_RNG_SEED=");
+  _putenv("GSL_RNG_TYPE=");
+#else
   unsetenv("GSL_RNG_SEED");
   unsetenv("GSL_RNG_TYPE");
+#endif
 #endif
   setsignal(signalHandler);
 
@@ -300,6 +320,6 @@ int main(int argc, char *argv[])
 
 #ifdef USEGC
 GC_API void GC_CALL GC_throw_bad_alloc() {
-  std::bad_alloc();
+  throw std::bad_alloc();
 }
 #endif
