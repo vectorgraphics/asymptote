@@ -54,10 +54,8 @@ stringarray2* => stringArray2()
 #include <fstream>
 #include <time.h>
 
-#if !defined(_WIN32)
-#include <sys/times.h>
-#endif
-#include <locale.h>
+#include <chrono>
+#include <thread>
 
 #include "angle.h"
 #include "pair.h"
@@ -709,13 +707,13 @@ void assert(bool b, string s=emptystring)
 void sleep(Int seconds)
 {
   if(seconds <= 0) return;
-  sleep(seconds);
+  std::this_thread::sleep_for(std::chrono::seconds(seconds));
 }
 
 void usleep(Int microseconds)
 {
   if(microseconds <= 0) return;
-  usleep((unsigned long) microseconds);
+  std::this_thread::sleep_for(std::chrono::microseconds(microseconds));
 }
 
 void _eval(string *s, bool embedded, bool interactiveWrite=false)
@@ -1042,15 +1040,25 @@ guide *reverse(guide *g)
 
 realarray *_cputime()
 {
+#if !defined(_WIN32)
   static const real ticktime=1.0/sysconf(_SC_CLK_TCK);
   struct tms buf;
-
   ::times(&buf);
+
+  real realCutime=((real)buf.tms_cutime)*ticktime;
+  real realCstime=((real)buf.tms_cstime)*ticktime;
+#else
+  // FIXME: See if there's a way to get cutime/cstime on windows,
+  //        if it's possible.
+  real realCutime=0.0;
+  real realCstime=0.0;
+#endif
+
   array *t=new array(5);
   (*t)[0]=cpuTime.seconds(); // Includes system time
   (*t)[1]=0.0;
-  (*t)[2]=((real) buf.tms_cutime)*ticktime;
-  (*t)[3]=((real) buf.tms_cstime)*ticktime;
+  (*t)[2]=realCutime;
+  (*t)[3]=realCstime;
   (*t)[4]=wallClock.seconds();
   return t;
 }
