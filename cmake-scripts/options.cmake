@@ -54,3 +54,7 @@ option(WIN32_FLEX_BINARY
         "Flex binary for windows. If not specified, downloads from winflexibson. This option is inert on UNIX systems")
 option(WIN32_BISON_BINARY
         "Bison binary for windows. If not specified, downloads from winflexbison. This option is inert on UNIX systems")
+
+# feature libraries
+
+option(ENABLE_LIBREADLINE "libreadline" true)

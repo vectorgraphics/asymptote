@@ -101,14 +101,19 @@ else()
 endif()
 
 # libreadline
-include(FindPkgConfig)
-pkg_check_modules(readline IMPORTED_TARGET readline)
 
-if (readline_FOUND)
-    list(APPEND ASY_STATIC_LIBARIES PkgConfig::readline)
-    list(APPEND ASY_MACROS HAVE_LIBREADLINE)
-else ()
-    message(WARNING "readline not found; will compile without libreadline")
+if (ENABLE_LIBREADLINE)
+    include(FindPkgConfig)
+    pkg_check_modules(readline IMPORTED_TARGET readline)
+
+    if (readline_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES PkgConfig::readline)
+        list(APPEND ASY_MACROS HAVE_LIBREADLINE)
+    else ()
+        message(WARNING "readline not found; will compile without libreadline")
+    endif()
+else()
+    message(STATUS "libreadline disabled; will not use libreadline")
 endif()
 
 # libcurl
