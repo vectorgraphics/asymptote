@@ -57,6 +57,11 @@ stringarray2* => stringArray2()
 #include <chrono>
 #include <thread>
 
+#if !defined(_WIN32)
+#include <sys/times.h>
+#endif
+
+#include <locale.h>
 #include "angle.h"
 #include "pair.h"
 #include "triple.h"

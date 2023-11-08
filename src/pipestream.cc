@@ -22,7 +22,8 @@
 #include <cstring>
 #include <cerrno>
 #include <sstream>
-#include <signal.h>
+#include <csignal>
+#include <fcntl.h>
 
 #include "pipestream.h"
 #include "common.h"

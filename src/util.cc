@@ -40,7 +40,6 @@
 
 using namespace settings;
 using camp::reportError;
-namespace w32 = camp::w32;
 
 bool False=false;
 
@@ -76,6 +75,8 @@ string demangle(const char* s)
 #pragma
 // windows specific unnamed spaces
 #if defined(_WIN32)
+namespace w32 = camp::w32;
+
 namespace
 {
 /** @brief System, but for Windows.
