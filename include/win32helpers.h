@@ -16,9 +16,12 @@ namespace camp::w32
 
 void checkResult(BOOL result, string const& message="");
 
+string buildWindowsCmd(const mem::vector<string>& command);
+
 class HandleRaiiWrapper
 {
 public:
+    HandleRaiiWrapper() = default;
     HandleRaiiWrapper(HANDLE const& handle);
     ~HandleRaiiWrapper();
 
@@ -30,10 +33,14 @@ public:
     // already hold a handle, should not consume another one
     HandleRaiiWrapper& operator=(HandleRaiiWrapper&& other) = delete;
 
+    [[nodiscard]]
     HANDLE getHandle() const;
 
+    LPHANDLE put();
+
 private:
-    HANDLE hd;
+    HANDLE hd = nullptr;
+
 };
 
 } // namespace camp::w32

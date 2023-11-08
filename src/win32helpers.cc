@@ -18,7 +18,7 @@ void checkResult(BOOL result, string const& message)
   {
     DWORD errorCode= GetLastError();
     ostringstream msg;
-    msg << message << "; error code = 0x" << std::hex << errorCode;
+    msg << message << "; error code = 0x" << std::hex << errorCode << std::dec;
     reportError(msg);
   }
 }
@@ -51,7 +51,33 @@ HANDLE HandleRaiiWrapper::getHandle() const
   return hd;
 }
 
+LPHANDLE HandleRaiiWrapper::put()
+{
+  if (hd)
+  {
+    w32::checkResult(CloseHandle(hd));
+    hd = nullptr;
+  }
+
+  return &hd;
+}
+
 #pragma endregion
+
+string buildWindowsCmd(const mem::vector<string>& command)
+{
+  ostringstream out;
+  for (auto it= command.begin(); it != command.end(); ++it)
+  {
+    out << '"' << *it << '"';
+    if (std::next(it) != command.end())
+    {
+      out << ' ';
+    }
+  }
+
+  return out.str();
+}
 
 }// namespace camp::w32
 

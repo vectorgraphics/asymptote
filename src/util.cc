@@ -82,28 +82,10 @@ namespace
  *         Any handle placed in outHandle must be properly closed */
 int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
                 const char* hint, const char* application, int* ppid);
-
-string buildWindowsCmd(const mem::vector<string>& command);
-
 }
 
 namespace
 {
-string buildWindowsCmd(const mem::vector<string>& command)
-{
-  ostringstream out;
-  for (auto it= command.begin(); it != command.end(); ++it)
-  {
-    out << '"' << *it << '"';
-    if (std::next(it) != command.end())
-    {
-      out << ' ';
-    }
-  }
-
-  return out.str();
-}
-
 int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
                 const char* hint, const char* application, int* ppid)
 {
@@ -113,8 +95,7 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
     camp::reportError("Command cannot be empty");
     return -1;
   }
-
-  string cmdlineStr=buildWindowsCmd(command);
+  string cmdlineStr=camp::w32::buildWindowsCmd(command);
 
   STARTUPINFOA startInfo={};
   startInfo.cb=sizeof(startInfo);
