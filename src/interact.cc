@@ -8,12 +8,17 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
-#include <sys/wait.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+
+#if !defined(_WIN32)
+#include <sys/wait.h>
+#else
+#include <Windows.h>
+#endif
 
 #include "interact.h"
 #include "runhistory.h"

@@ -17,8 +17,8 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 
-#ifdef __MSDOS__
-#include "sys/cygwin.h"
+#if defined(_WIN32)
+#include <Windows.h>
 #endif
 
 using std::ifstream;
@@ -519,7 +519,15 @@ bool picture::texprocess(const string& texname, const string& outname,
           string dvipsrc=getSetting<string>("dir");
           if(dvipsrc.empty()) dvipsrc=systemDir;
           dvipsrc += dirsep+"nopapersize.ps";
+#if !defined(_WIN32)
           setenv("DVIPSRC",dvipsrc.c_str(),1);
+#else
+          auto setEnvResult = SetEnvironmentVariableA("DVIPSRC",dvipsrc.c_str());
+          if (!setEnvResult)
+          {
+              camp::reportError("Cannot set DVIPSRC environment variable");
+          }
+#endif
           string papertype=getSetting<string>("papertype") == "letter" ?
             "letterSize" : "a4size";
           cmd.push_back(getSetting<string>("dvips"));
@@ -789,17 +797,7 @@ void htmlView(string name)
 {
   mem::vector<string> cmd;
   push_command(cmd,getSetting<string>("htmlviewer"));
-#ifdef __MSDOS__
-  ssize_t size=cygwin_conv_path(CCP_POSIX_TO_WIN_A,
-                                locateFile(name,true).c_str(),NULL,0);
-  if(size <= 0) return;
-  char filename[size];
-  size=cygwin_conv_path(CCP_POSIX_TO_WIN_A,locateFile(name,true).c_str(),
-                        filename,size);
-  cmd.push_back("file://"+string(filename));
-#else
   cmd.push_back(locateFile(name,true));
-#endif
   push_split(cmd,getSetting<string>("htmlviewerOptions"));
   System(cmd,2,false);
 }
@@ -882,6 +880,10 @@ bool picture::postprocess(const string& prename, const string& outname,
 bool picture::display(const string& outname, const string& outputformat,
                       bool wait, bool view, bool epsformat)
 {
+#if defined(_WIN32)
+  // FIXME: Implement display on windows
+#warning FIXME: Implement display on windows
+#else
   int status=0;
   static mem::map<CONST string,int> pids;
   bool View=settings::view() && view;
@@ -947,7 +949,7 @@ bool picture::display(const string& outname, const string& outputformat,
       }
     }
   }
-
+#endif
   return true;
 }
 

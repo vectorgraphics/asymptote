@@ -94,7 +94,9 @@ char *getArg(int n);
 
 Int getScroll();
 
+#if !defined(_MSC_VER)
 extern mode_t mask;
+#endif
 
 bool xe(const string& texengine);
 bool lua(const string& texengine);

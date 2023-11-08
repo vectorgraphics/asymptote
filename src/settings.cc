@@ -12,7 +12,11 @@
 #include <sys/stat.h>
 #include <cfloat>
 #include <locale.h>
+
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
+
 #include <algorithm>
 
 #include "common.h"
@@ -1546,9 +1550,15 @@ void setInteractive()
     exit(-1);
   }
 
+#if defined(HAVE_LSP)
+  bool lspmode=getSetting<Int>("lsp");
+#else
+  bool lspmode=false;
+#endif
+
   if(numArgs() == 0 && !getSetting<bool>("listvariables") &&
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || xasy || getSetting<Int>("lsp")))
+     (isatty(STDIN_FILENO) || xasy || lspmode))
     interact::interactive=true;
 
   if(getSetting<bool>("localhistory"))
@@ -1559,7 +1569,7 @@ void setInteractive()
     bool mkdirSuccess = mkdirResult || GetLastError() == ERROR_ALREADY_EXISTS;
 #else
     int mkdirResult = mkdir(initdir.c_str(),0777);
-    bool mkdirSuccess = mkdirResult == 0 || errno == EEXIST
+    bool mkdirSuccess = mkdirResult == 0 || errno == EEXIST;
 #endif
     if(!mkdirSuccess)
       cerr << "failed to create directory "+initdir+"." << endl;
@@ -1634,12 +1644,14 @@ void initDir() {
   if(initdir.empty())
     initdir=Getenv(HOME.c_str(),msdos)+dirsep+"."+suffix;
 
-#ifdef __MSDOS__
-  mask=umask(0);
-  if(mask == 0) mask=0027;
-  umask(mask);
+#if defined(_WIN32)
+  DWORD dirAttrib = GetFileAttributesA(initdir.c_str());
+  bool dirExists = dirAttrib != INVALID_FILE_ATTRIBUTES && ((dirAttrib & FILE_ATTRIBUTE_DIRECTORY) != 0);
+#else
+  bool dirExists = access(initdir.c_str(),F_OK) == 0;
 #endif
-  if(access(initdir.c_str(),F_OK) == 0) {
+
+  if(dirExists) {
     if(!quiet && verbose > 1)
       cerr << "Using configuration directory " << initdir << endl;
   }
@@ -1657,7 +1669,14 @@ void setPath() {
     }
     if(i < asydir.length()) searchPath.push_back(asydir.substr(i));
   }
-  if(access(initdir.c_str(),F_OK) == 0)
+#if defined(_WIN32)
+  DWORD dirAttrib = GetFileAttributesA(initdir.c_str());
+  bool dirExists = dirAttrib != INVALID_FILE_ATTRIBUTES && ((dirAttrib & FILE_ATTRIBUTE_DIRECTORY) != 0);
+#else
+  bool dirExists = access(initdir.c_str(),F_OK) == 0;
+#endif
+
+  if(dirExists)
     searchPath.push_back(initdir);
   string sysdir=getSetting<string>("sysdir");
   if(sysdir != "")

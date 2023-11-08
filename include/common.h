@@ -16,7 +16,12 @@
 
 #if defined(_MSC_VER)
 // for and/or/not operators. not supported natively on MSVC
+#include <BaseTsd.h>
 #include <ciso646>
+typedef SSIZE_T ssize_t;
+#define STDOUT_FILENO 1
+#define STDIN_FILENO 0
+#define STDERR_FILENO 2
 #endif
 
 #ifdef HAVE_CONFIG_H
