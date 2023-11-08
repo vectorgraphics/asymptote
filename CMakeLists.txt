@@ -37,16 +37,25 @@ endif()
 
 
 # defining asy target
-add_executable(
-        asy
+
+add_library(
+        asycore
         ${CORE_SOURCE_FILES}
         ${ASY_GENERATED_BUILD_SOURCES}
-        ${ASY_SRC_DIR}/main.cc
 )
-target_include_directories(asy PUBLIC ${ASYMPTOTE_INCLUDES})
-add_dependencies(asy asy_gen_headers)
-target_link_libraries(asy PUBLIC ${ASY_STATIC_LIBARIES})
-target_compile_definitions(asy PUBLIC ${ASY_MACROS})
-target_compile_options(asy PUBLIC ${ASY_COMPILE_OPTS})
+
+target_include_directories(asycore PUBLIC ${ASYMPTOTE_INCLUDES})
+add_dependencies(asycore asy_gen_headers)
+target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBARIES})
+target_compile_definitions(asycore PUBLIC ${ASY_MACROS})
+target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
+
+# asy executable
+
+add_executable(
+        asy ${ASY_SRC_DIR}/main.cc
+)
+
+target_link_libraries(asy PRIVATE asycore)
 
 include(cmake-scripts/asy-base-files.cmake)
