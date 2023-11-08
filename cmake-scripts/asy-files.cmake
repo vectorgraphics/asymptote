@@ -26,5 +26,5 @@ set(CORE_BUILD_FILES
         fftw++asy parallel simpson coder coenv impdatum locate parser program application
         varinit fundec refaccess envcompleter process constructor array
         Delaunay predicates glrender tr shaders jsfile v3dfile
-        EXRFiles GLTextures lspserv symbolmaps win32helpers
+        EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream
 )

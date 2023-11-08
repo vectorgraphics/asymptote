@@ -16,6 +16,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
+#if !defined(_WIN32)
+
 #include <iostream>
 #include <cstring>
 #include <cerrno>
@@ -222,3 +224,5 @@ void iopipestream::Write(const string &s)
     camp::reportFatal("write to pipe failed");
   }
 }
+
+#endif

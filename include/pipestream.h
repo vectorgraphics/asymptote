@@ -21,16 +21,14 @@
 #define PIPESTREAM_H
 
 #if defined(_WIN32)
-#include <Windows.h>
-#define ssize_t SSIZE_T
+
+#include "win32pipestream.h"
+typedef w32::Win32IoPipeStream iopipestream;
+
 #else
+
 #include <sys/wait.h>
 #include <unistd.h>
-#endif
-
-#include <fcntl.h>
-
-#include "common.h"
 
 // bidirectional stream for reading and writing to pipes
 class iopipestream {
@@ -108,4 +106,5 @@ public:
   }
 };
 
+#endif
 #endif
