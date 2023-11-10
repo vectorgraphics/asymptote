@@ -162,12 +162,29 @@ GLuint initHDR();
 
 projection camera(bool user=true);
 
-void glrender(const string& prefix, const camp::picture* pic,
-              const string& format, double width, double height, double angle,
-              double zoom, const camp::triple& m, const camp::triple& M,
-              const camp::pair& shift, const camp::pair& margin, double *t,
-              double *background, size_t nlights, camp::triple *lights,
-              double *diffuse, double *specular, bool view, int oldpid=0);
+struct GLRenderArgs
+{
+  string prefix;
+  camp::picture* pic;
+  string format;
+  double width;
+  double height;
+  double angle;
+  double zoom;
+  camp::triple m;
+  camp::triple M;
+  camp::pair shift;
+  camp::pair margin;
+  double *t;
+  double *background;
+  size_t nlights;
+  camp::triple *lights;
+  double *diffuse;
+  double *specular;
+  bool view;
+};
+
+void glrender(GLRenderArgs const& args, int oldpid=0);
 
 extern const double *dprojView;
 extern const double *dView;

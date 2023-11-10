@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <cstring>
+#include <cmath>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -1902,41 +1903,36 @@ bool NVIDIA()
 #endif /* HAVE_GL */
 
 // angle=0 means orthographic.
-void glrender(const string& prefix, const picture *pic, const string& format,
-              double width, double height, double angle, double zoom,
-              const triple& m, const triple& M, const pair& shift,
-              const pair& margin, double *t,
-              double *background, size_t nlightsin, triple *lights,
-              double *diffuse, double *specular, bool view, int oldpid)
+void glrender(GLRenderArgs const& args, int oldpid)
 {
   Iconify=getSetting<bool>("iconify");
 
-  if(zoom == 0.0) zoom=1.0;
+  auto zoomVal = fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
 
-  Prefix=prefix;
-  Picture=pic;
-  Format=format;
+  Prefix=args.prefix;
+  Picture=args.pic;
+  Format=args.format;
 
-  nlights0=nlights=nlightsin;
+  nlights0=nlights=args.nlights;
 
-  Lights=lights;
-  Diffuse=diffuse;
-  Specular=specular;
-  View=view;
-  Angle=angle*radians;
-  Zoom0=zoom;
+  Lights=args.lights;
+  Diffuse=args.diffuse;
+  Specular=args.specular;
+  View=args.view;
+  Angle=args.angle*radians;
+  Zoom0=zoomVal;
   Oldpid=oldpid;
-  Shift=shift/zoom;
-  Margin=margin;
+  Shift=args.shift/zoomVal;
+  Margin=args.margin;
   for(size_t i=0; i < 4; ++i)
-    Background[i]=background[i];
+    Background[i]=args.background[i];
 
-  Xmin=m.getx();
-  Xmax=M.getx();
-  Ymin=m.gety();
-  Ymax=M.gety();
-  Zmin=m.getz();
-  Zmax=M.getz();
+  Xmin=args.m.getx();
+  Xmax=args.M.getx();
+  Ymin=args.m.gety();
+  Ymax=args.M.gety();
+  Zmin=args.m.getz();
+  Zmax=args.M.getz();
 
   orthographic=Angle == 0.0;
   H=orthographic ? 0.0 : -tan(0.5*Angle)*Zmax;
@@ -1950,8 +1946,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxTileWidth <= 0) maxTileWidth=1024;
   if(maxTileHeight <= 0) maxTileHeight=768;
 
-  bool v3d=format == "v3d";
-  bool webgl=format == "html";
+  bool v3d=args.format == "v3d";
+  bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
 
 #ifdef HAVE_GL
@@ -1983,7 +1979,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
   for(int i=0; i < 16; ++i)
-    T[i]=t[i];
+    T[i]=args.t[i];
 
   static bool initialized=false;
 
@@ -2000,9 +1996,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       if(antialias) expand *= 2.0;
     }
 
-    oWidth=width;
-    oHeight=height;
-    Aspect=width/height;
+    oWidth=args.width;
+    oHeight=args.height;
+    Aspect=args.width/args.height;
 
     // Force a hard viewport limit to work around direct rendering bugs.
     // Alternatively, one can use -glOptions=-indirect (with a performance
@@ -2020,8 +2016,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     if(screenHeight <= 0) screenHeight=maxHeight;
     else screenHeight=min(screenHeight,maxHeight);
 
-    fullWidth=(int) ceil(expand*width);
-    fullHeight=(int) ceil(expand*height);
+    fullWidth=(int) ceil(expand*args.width);
+    fullHeight=(int) ceil(expand*args.height);
 
     if(format3d) {
       Width=fullWidth;
@@ -2115,7 +2111,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif
 #endif
-      string title=string(settings::PROGRAM)+": "+prefix;
+      string title=string(settings::PROGRAM)+": "+args.prefix;
       fpu_trap(false); // Work around FE_INVALID
       window=glutCreateWindow(title.c_str());
       fpu_trap(settings::trap());
@@ -2204,7 +2200,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setBuffers();
   }
 
-  glClearColor(background[0],background[1],background[2],background[3]);
+  glClearColor(args.background[0],args.background[1],args.background[2],args.background[3]);
 
 #ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA

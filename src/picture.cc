@@ -1312,26 +1312,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
 #endif
 }
 
-struct Communicate : public gc {
-  string prefix;
-  picture* pic;
-  string format;
-  double width;
-  double height;
-  double angle;
-  double zoom;
-  triple m;
-  triple M;
-  pair shift;
-  pair margin;
-  double *t;
-  double *background;
-  size_t nlights;
-  triple *lights;
-  double *diffuse;
-  double *specular;
-  bool view;
-};
+typedef gl::GLRenderArgs Communicate;
 
 Communicate com;
 
@@ -1345,9 +1326,7 @@ void glrenderWrapper()
   endwait(initSignal,initLock);
 #endif
   if(allowRender)
-    glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-             com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
-             com.nlights,com.lights,com.diffuse,com.specular,com.view);
+    glrender(com);
 #endif
 }
 
@@ -1482,8 +1461,27 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
 #if HAVE_LIBGLM
-  glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,margin,t,
-           background,nlights,lights,diffuse,specular,View,oldpid);
+  gl::GLRenderArgs args;
+  args.prefix=prefix;
+  args.pic=pic;
+  args.format=outputformat;
+  args.width=width;
+  args.height=height;
+  args.angle=angle;
+  args.zoom=zoom;
+  args.m=m;
+  args.M=M;
+  args.shift=shift;
+  args.margin=margin;
+  args.t=t;
+  args.background=background;
+  args.nlights=nlights;
+  args.lights=lights;
+  args.diffuse=diffuse;
+  args.specular=specular;
+  args.view=View;
+
+  glrender(args,oldpid);
 
   if(format3d) {
     string name=buildname(prefix,format);
