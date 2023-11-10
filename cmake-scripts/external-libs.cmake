@@ -226,3 +226,19 @@ if (ENABLE_RPC_FEATURES)
     list(APPEND ASY_STATIC_LIBARIES PkgConfig::TIRPC)
     list(APPEND ASY_MACROS HAVE_RPC_RPC_H)
 endif()
+
+# fftw3
+
+set(FFTW3_USABLE TRUE)
+find_package(FFTW3 CONFIG)
+if (NOT FFTW3_FOUND)
+    message(WARNING "libfftw3 not found; will not use fftw3")
+    set(FFTW3_USABLE FALSE)
+endif()
+
+if (FFTW3_USABLE)
+    list(APPEND ASY_STATIC_LIBARIES FFTW3::fftw3)
+    list(APPEND ASY_MACROS HAVE_LIBFFTW3 FFTWPP_SINGLE_THREAD)
+else()
+    message(WARNING "environment lacks needed fftw3 features; will not use fftw3")
+endif()
