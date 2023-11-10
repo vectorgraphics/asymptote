@@ -1,0 +1,31 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 26,
+    "patch": 0
+  },
+
+  "configurePresets": [
+    {
+      "name": "linux/release",
+      "displayName": "linux/release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/cmake-build-linux/release",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }],
+
+  "buildPresets": [
+    {
+      "name": "linux/release",
+      "configurePreset": "linux/release"
+    }
+  ]
+}
