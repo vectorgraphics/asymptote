@@ -1,3 +1,4 @@
+include(FindPkgConfig)
 
 if (ENABLE_LSP)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/LspCpp)
@@ -103,7 +104,6 @@ endif()
 # libreadline
 
 if (ENABLE_LIBREADLINE)
-    include(FindPkgConfig)
     pkg_check_modules(readline IMPORTED_TARGET readline)
 
     if (readline_FOUND)
