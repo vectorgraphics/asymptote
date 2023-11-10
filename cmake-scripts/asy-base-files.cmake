@@ -35,6 +35,7 @@ macro (copy_base_file base_file_name)
             ${ASY_SOURCE_BASE_DIR}/${base_file_name}
             ${ASY_BUILD_BASE_DIR}/${base_file_name}
             BYPRODUCTS ${ASY_BUILD_BASE_DIR}/${base_file_name}
+            MAIN_DEPENDENCY ${ASY_SOURCE_BASE_DIR}/${base_file_name}
     )
 endmacro()
 
