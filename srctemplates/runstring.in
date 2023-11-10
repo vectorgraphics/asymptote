@@ -9,6 +9,9 @@ stringarray2* => stringArray2()
 
 #include <cfloat>
 #include <cstring>
+#include <iomanip>
+#include <ctime>
+#include <chrono>
 #include <algorithm>
 
 #include "array.h"
@@ -445,12 +448,25 @@ string time(Int seconds, string format=defaulttimeformat)
 
 Int seconds(string t=emptystring, string format=emptystring)
 {
-#if defined(HAVE_STRPTIME)
-  const time_t bintime=time(NULL);
-  tm tm=*localtime(&bintime);
-  if(t != "" && !strptime(t.c_str(),format.c_str(),&tm)) return -1;
-  return (Int) mktime(&tm);
-#else
-  return -1;
-#endif
+  if (t == "")
+  {
+    auto clock = std::chrono::system_clock::now();
+    return static_cast<Int>(
+            std::chrono::duration_cast<std::chrono::seconds>(
+                    clock.time_since_epoch()
+                    ).count()
+            );
+  }
+
+  std::tm tmObj = {};
+  istringstream instream(t);
+  instream.imbue(std::locale(""));
+  instream >> std::get_time(&tmObj,format.c_str());
+
+  if(instream.fail())
+  {
+    return -1;
+  }
+
+  return static_cast<Int>(std::mktime(&tmObj));
 }
