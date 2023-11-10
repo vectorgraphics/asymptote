@@ -132,14 +132,28 @@ def compile_for_depfile_gcc(
         None,
         ["-DDEPEND", "-DNOSYM", "-M", "-MG", "-O0", "-MT", src_out, "-MF", depfile_out],
     )
-    sp.run(args, check=True, stdout=sp.DEVNULL, stderr=sp.STDOUT)
+    try:
+        sp.run(args, check=True, stdout=sp.DEVNULL, stderr=sp.STDOUT, text=True)
+    except sp.CalledProcessError as e:
+        sys.stderr.write('Process stderr:\n')
+        sys.stderr.write(e.stderr)
+        sys.stderr.write('Process stderr:\n')
+        sys.stderr.write(e.stdout)
+        raise
 
 
 def compile_for_preproc_gcc(compile_opt: CompileOptions, src_in: str, preproc_out: str):
     args = [compile_opt.compiler] + compile_opt.build_args_for_gcc(
         src_in, preproc_out, ["-E", "-DNOSYM"]
     )
-    sp.run(args, check=True, stdout=sp.DEVNULL, stderr=sp.STDOUT)
+    try:
+        sp.run(args, check=True, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
+    except sp.CalledProcessError as e:
+        sys.stderr.write('Process stderr:\n')
+        sys.stderr.write(e.stderr)
+        sys.stderr.write('Process stderr:\n')
+        sys.stderr.write(e.stdout)
+        raise
 
 
 def escape_windows_path(raw_path: str) -> str:
