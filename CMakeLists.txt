@@ -56,6 +56,11 @@ add_executable(
         asy ${ASY_SRC_DIR}/main.cc
 )
 
-target_link_libraries(asy PRIVATE asycore)
+target_link_libraries(asy PUBLIC asycore)
 
+# base files
 include(cmake-scripts/asy-base-files.cmake)
+
+# asy + base files
+add_custom_target(asy-basefiles DEPENDS ${ASY_OUTPUT_BASE_FILES})
+add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles)

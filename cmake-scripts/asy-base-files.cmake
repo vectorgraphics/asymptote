@@ -24,19 +24,22 @@ file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR})
 
 # version.asy
 configure_file(${ASY_RESOURCE_DIR}/versionTemplate.asy.in ${ASY_BUILD_BASE_DIR}/version.asy)
+list(APPEND ASY_OUTPUT_BASE_FILES ${ASY_BUILD_BASE_DIR}/version.asy)
 
 # copy base files to build dir
 
+add_custom_target(asy_base_files)
+
 macro (copy_base_file base_file_name)
     add_custom_command(
-            TARGET asy
-            POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
             ${ASY_SOURCE_BASE_DIR}/${base_file_name}
             ${ASY_BUILD_BASE_DIR}/${base_file_name}
-            BYPRODUCTS ${ASY_BUILD_BASE_DIR}/${base_file_name}
+            OUTPUT ${ASY_BUILD_BASE_DIR}/${base_file_name}
             MAIN_DEPENDENCY ${ASY_SOURCE_BASE_DIR}/${base_file_name}
     )
+
+    list(APPEND ASY_OUTPUT_BASE_FILES ${ASY_BUILD_BASE_DIR}/${base_file_name})
 endmacro()
 
 foreach(ASY_STATIC_BASE_FILE ${ASY_STATIC_BASE_FILES})
@@ -51,8 +54,7 @@ endforeach ()
 # generated csv files
 foreach(csv_enum_file ${ASY_CSV_ENUM_FILES})
     add_custom_command(
-            TARGET asy POST_BUILD
-            BYPRODUCTS ${ASY_BUILD_BASE_DIR}/${csv_enum_file}.asy
+            OUTPUT ${ASY_BUILD_BASE_DIR}/${csv_enum_file}.asy
             COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/generate_enums.py
             --language asy
             --name ${csv_enum_file}
@@ -60,4 +62,6 @@ foreach(csv_enum_file ${ASY_CSV_ENUM_FILES})
             --output ${ASY_BUILD_BASE_DIR}/${csv_enum_file}.asy
             MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/${csv_enum_file}.csv
     )
+
+    list(APPEND ASY_OUTPUT_BASE_FILES ${ASY_BUILD_BASE_DIR}/${csv_enum_file}.asy)
 endforeach ()
