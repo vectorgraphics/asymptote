@@ -218,3 +218,11 @@ if (ENABLE_OPENGL)
         message(WARNING "Compute shader disabled")
     endif()
 endif()
+
+
+if (ENABLE_RPC_FEATURES)
+    pkg_check_modules(TIRPC REQUIRED IMPORTED_TARGET libtirpc)
+
+    list(APPEND ASY_STATIC_LIBARIES PkgConfig::TIRPC)
+    list(APPEND ASY_MACROS HAVE_RPC_RPC_H)
+endif()

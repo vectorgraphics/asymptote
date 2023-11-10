@@ -60,3 +60,17 @@ option(WIN32_BISON_BINARY
 option(ENABLE_LIBREADLINE "libreadline" true)
 option(ENABLE_OPENGL "Whether to enable opengl or not." true)
 option(ENABLE_GL_COMPUTE_SHADERS "Whether to enable compute shaders for OpenGL" true)
+
+
+# RPC.
+if (UNIX)
+    set(DEFAULT_ENABLE_RPC TRUE)
+else()
+    # Not sure if there's a way to get rpc lib working on windows, as of yet
+    set(DEFAULT_ENABLE_RPC FALSE)
+endif()
+
+option(
+        ENABLE_RPC_FEATURES
+        "Whether to enable XDR/RPC features. Also enables V3D. For Unix systems only"
+        ${DEFAULT_ENABLE_RPC})
