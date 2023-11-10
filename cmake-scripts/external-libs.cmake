@@ -217,6 +217,13 @@ if (ENABLE_OPENGL)
     else()
         message(WARNING "Compute shader disabled")
     endif()
+
+    if (ENABLE_GL_SSBO)
+        list(APPEND ASY_MACROS HAVE_SSBO)
+    else()
+        message(WARNING "SSBO disabled")
+    endif()
+
 endif()
 
 

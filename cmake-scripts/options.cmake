@@ -60,6 +60,8 @@ option(WIN32_BISON_BINARY
 option(ENABLE_LIBREADLINE "libreadline" true)
 option(ENABLE_OPENGL "Whether to enable opengl or not." true)
 option(ENABLE_GL_COMPUTE_SHADERS "Whether to enable compute shaders for OpenGL" true)
+option(ENABLE_GL_SSBO
+        "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object" true)
 
 
 # RPC.
