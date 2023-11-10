@@ -23,6 +23,10 @@
     "curl",
     "pthreads",
     "gsl",
-    "eigen3"
+    "eigen3",
+    "opengl",
+    "freeglut",
+    "glew",
+    "glm"
   ]
 }
