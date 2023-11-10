@@ -58,3 +58,5 @@ option(WIN32_BISON_BINARY
 # feature libraries
 
 option(ENABLE_LIBREADLINE "libreadline" true)
+option(ENABLE_OPENGL "Whether to enable opengl or not." true)
+option(ENABLE_GL_COMPUTE_SHADERS "Whether to enable compute shaders for OpenGL" true)

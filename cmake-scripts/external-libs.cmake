@@ -170,3 +170,51 @@ if (Eigen3_FOUND)
 else()
     message(WARNING "eigen3 not found; will compile without eigen")
 endif()
+
+# OpenGL stuff
+
+if (ENABLE_OPENGL)
+    # fatal error here, since OpenGL is optional
+    find_package(OpenGL REQUIRED)
+    if (OPENGL_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES OpenGL::GL)
+    else()
+        message(WARNING "gl libraries not found")
+    endif()
+
+    find_package(GLEW)
+    if (GLEW_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES GLEW::GLEW)
+    else()
+        message(WARNING "glew not found")
+    endif()
+
+    if (OPENGL_GLU_FOUND AND GLEW_FOUND)
+        list(APPEND ASY_MACROS HAVE_GL)
+    else()
+        message(FATAL_ERROR "GL components incomplete; will not use OpenGL")
+    endif()
+
+    find_package(glm CONFIG)
+    if (glm_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES glm::glm)
+        list(APPEND ASY_MACROS HAVE_LIBGLM)
+    else()
+        message(FATAL_ERROR "glm not found; will not use glm")
+    endif()
+
+    find_package(FreeGLUT CONFIG)
+    if (FreeGLUT_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES
+                $<IF:$<TARGET_EXISTS:FreeGLUT::freeglut>,FreeGLUT::freeglut,FreeGLUT::freeglut_static>)
+        list(APPEND ASY_MACROS FREEGLUT HAVE_LIBGLUT)
+    else()
+        message(FATAL_ERROR "freeglut not found; will not use freeglut")
+    endif()
+
+    if (ENABLE_GL_COMPUTE_SHADERS)
+        list(APPEND ASY_MACROS HAVE_COMPUTE_SHADER)
+    else()
+        message(WARNING "Compute shader disabled")
+    endif()
+endif()
