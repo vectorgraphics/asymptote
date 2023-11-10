@@ -47,3 +47,17 @@ file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR}/shaders)
 foreach(ASY_STATIC_SHADER_FILE ${ASY_STATIC_SHADER_FILES})
     copy_base_file(shaders/${ASY_STATIC_SHADER_FILE}.glsl)
 endforeach ()
+
+# generated csv files
+foreach(csv_enum_file ${ASY_CSV_ENUM_FILES})
+    add_custom_command(
+            TARGET asy POST_BUILD
+            BYPRODUCTS ${ASY_BUILD_BASE_DIR}/${csv_enum_file}.asy
+            COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/generate_enums.py
+            --language asy
+            --name ${csv_enum_file}
+            --input ${ASY_RESOURCE_DIR}/${csv_enum_file}.csv
+            --output ${ASY_BUILD_BASE_DIR}/${csv_enum_file}.asy
+            MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/${csv_enum_file}.csv
+    )
+endforeach ()

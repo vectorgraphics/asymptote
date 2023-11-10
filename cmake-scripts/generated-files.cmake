@@ -30,7 +30,7 @@ function(_int_add_runtime_file runtime_file)
     set(RUNTIME_BASE_FILE ${ASY_SRC_TEMPLATES_DIR}/runtimebase.in)
 
     if (MSVC)
-    # hack since msvc does not support "-MG" option to treat missing headers as 
+    # hack since msvc does not support "-MG" option to treat missing headers as
     # generated files
         if (NOT (runtime_file STREQUAL "runtime"))
             set(RUNTIME_FILE_DEP ${GENERATED_INCLUDE_DIR}/runtime.h)
@@ -157,10 +157,6 @@ add_custom_command(
 
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/keywords.h)
 
-add_custom_target(asy_gen_headers
-        DEPENDS ${ASYMPTOTE_GENERATED_HEADERS}
-)
-
 set(camp_lex_output ${GENERATED_SRC_DIR}/lex.yy.cc)
 set(camp_l_file ${ASY_RESOURCE_DIR}/camp.l)
 
@@ -192,3 +188,28 @@ message(STATUS "Generating revision.cc file")
 set(revision_cc_file ${GENERATED_SRC_DIR}/revision.cc)
 configure_file(${ASY_RESOURCE_DIR}/template_rev.cc.in ${revision_cc_file})
 list(APPEND ASY_GENERATED_BUILD_SOURCES ${revision_cc_file})
+
+# generate enums from csv
+
+
+foreach(csv_enum_file ${ASY_CSV_ENUM_FILES})
+    set(generated_header_file ${GENERATED_INCLUDE_DIR}/${csv_enum_file}.h)
+
+    add_custom_command(
+            OUTPUT ${generated_header_file}
+            COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/generate_enums.py
+            --language cpp
+            --name ${csv_enum_file}
+            --input ${ASY_RESOURCE_DIR}/${csv_enum_file}.csv
+            --output ${generated_header_file}
+            --xopt namespace=camp
+            MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/${csv_enum_file}.csv
+            DEPENDS ${ASY_SCRIPTS_DIR}/generate_enums.py
+    )
+
+    list(APPEND ASYMPTOTE_GENERATED_HEADERS ${generated_header_file})
+endforeach ()
+
+add_custom_target(asy_gen_headers
+        DEPENDS ${ASYMPTOTE_GENERATED_HEADERS}
+)
