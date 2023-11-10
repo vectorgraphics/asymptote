@@ -27,6 +27,7 @@
     "opengl",
     "freeglut",
     "glew",
-    "glm"
+    "glm",
+    "fftw3"
   ]
 }
