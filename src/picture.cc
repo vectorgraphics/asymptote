@@ -1448,6 +1448,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         pthread_mutex_lock(&readyLock);
 #endif
     } else {
+#if !defined(_WIN32)
       int pid=fork();
       if(pid == -1)
         camp::reportError("Cannot fork process");
@@ -1456,6 +1457,9 @@ bool picture::shipout3(const string& prefix, const string& format,
         waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
         return true;
       }
+#else
+#warning "TODO: Check if (1) we need detach-based gl renderer"
+#endif
     }
 #endif
   }

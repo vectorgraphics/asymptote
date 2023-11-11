@@ -1237,10 +1237,12 @@ void display()
     queueExport=false;
   }
   if(!glthread) {
+#if !defined(_WIN32)
     if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
       Oldpid=0;
     }
+#endif
   }
 }
 
@@ -1305,7 +1307,9 @@ void reshape(int width, int height)
     static bool initialize=true;
     if(initialize) {
       initialize=false;
+#if !defined(_WIN32)
       Signal(SIGUSR1,updateHandler);
+#endif
     }
   }
 
@@ -2254,12 +2258,16 @@ void glrender(GLRenderArgs const& args, int oldpid)
       if(havewindow) {
         readyAfterExport=true;
 #ifdef HAVE_PTHREAD
+#if !defined(_WIN32)
         pthread_kill(mainthread,SIGUSR1);
+#endif
 #endif
       } else {
         initialized=true;
         readyAfterExport=true;
+#if !defined(_WIN32)
         Signal(SIGUSR1,exportHandler);
+#endif
         exportHandler();
       }
     } else {

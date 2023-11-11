@@ -2,19 +2,7 @@
 #define __TOGL_SHADERSPROC
 
 #define GLEW_NO_GLU
-
-#ifdef __MSDOS__
-#define GLEW_STATIC
-#define _WIN32
-#endif
-
-#include "GL/glew.h"
-
-#ifdef __MSDOS__
-#undef _WIN32
-#include <GL/wglew.h>
-#include <GL/wglext.h>
-#endif
+#include <GL/glew.h>
 
 #include <string>
 

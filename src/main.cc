@@ -284,7 +284,12 @@ int main(int argc, char *argv[])
 
   Args args(argc,argv);
 #ifdef HAVE_GL
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(_WIN32)
+
+#if defined(_WIN32)
+#warning "TODO: Check if (1) we need detach-based gl renderer"
+#endif
+
   bool usethreads=true;
 #else
   bool usethreads=view();
@@ -297,12 +302,16 @@ int main(int argc, char *argv[])
     try {
       if(pthread_create(&thread,NULL,asymain,&args) == 0) {
         gl::mainthread=pthread_self();
+#if !defined(_WIN32)
         sigset_t set;
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
+#endif
         while(true) {
+#if !defined(_WIN32)
           Signal(SIGURG,exitHandler);
+#endif
           camp::glrenderWrapper();
           gl::initialize=true;
         }
