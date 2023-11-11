@@ -77,3 +77,8 @@ option(
         ENABLE_RPC_FEATURES
         "Whether to enable XDR/RPC features. Also enables V3D. For Unix systems only"
         ${DEFAULT_ENABLE_RPC})
+
+# Additional options
+
+option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
+option(DEBUG_GC_BACKTRACE_ENABLE "Enable backtrace for gc" false)
