@@ -2,10 +2,9 @@ cmake_minimum_required(VERSION 3.26)
 
 include(cmake-scripts/common.cmake)
 include(pkg-info.cmake)
+include(cmake-scripts/options.cmake)
 
 project(${ASY_PACKAGE_NAME})
-
-include(cmake-scripts/options.cmake)
 
 set(CMAKE_CXX_STANDARD  17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
