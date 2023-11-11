@@ -20,12 +20,33 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
-    }],
+    },
+    {
+      "name": "clang64-win/release",
+      "displayName": "clang64-win/release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/cmake-build-clang64-win/release",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_LIBREADLINE": "false",
+        "ENABLE_OPENGL": "false"
+      }
+    }
+  ],
 
   "buildPresets": [
     {
       "name": "linux/release",
       "configurePreset": "linux/release"
+    },
+    {
+      "name": "clang64-win/release",
+      "configurePreset": "clang64-win/release"
     }
   ]
 }
