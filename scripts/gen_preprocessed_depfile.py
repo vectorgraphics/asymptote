@@ -133,7 +133,7 @@ def compile_for_depfile_gcc(
         ["-DDEPEND", "-DNOSYM", "-M", "-MG", "-O0", "-MT", src_out, "-MF", depfile_out],
     )
     try:
-        sp.run(args, check=True, stdout=sp.DEVNULL, stderr=sp.STDOUT, text=True)
+        sp.run(args, check=True, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
     except sp.CalledProcessError as e:
         sys.stderr.write('Process stderr:\n')
         sys.stderr.write(e.stderr)
