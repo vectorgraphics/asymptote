@@ -82,3 +82,13 @@ option(
 
 option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
 option(DEBUG_GC_BACKTRACE_ENABLE "Enable backtrace for gc" false)
+
+# additional optimization options
+
+if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
+    set(default_lto true)
+else()
+    set(default_lto false)
+endif()
+
+option(OPTIMIZE_LINK_TIME "Enable link-time optimization. Enabled by default in release build types" ${default_lto})

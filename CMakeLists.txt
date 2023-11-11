@@ -6,9 +6,7 @@ include(cmake-scripts/options.cmake)
 
 project(${ASY_PACKAGE_NAME})
 
-set(CMAKE_CXX_STANDARD  17)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-
+include(cmake-scripts/compiler-config.cmake)
 include(cmake-scripts/basic-parameters.cmake)
 include(cmake-scripts/buildfiles-to-src.cmake)
 
