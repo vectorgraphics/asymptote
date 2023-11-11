@@ -39,7 +39,7 @@ should be shown during vcpkg install
 
 ### Quick start (Linux)
 
-Make sure `ninja` and `cmake` is installed, as well as `gcc`.
+Make sure `ninja` and `cmake`, `python3` and `perl` are installed, as well as `gcc`.
 Then run
 
 ```bash
@@ -54,6 +54,14 @@ The asymptote binary should be available in `cmake-build-linux/release` director
 ### Quick start (Windows)
 
 Firstly, make sure `ninja` and `cmake` is installed.
+
+Additionally, building Asymptote requires `perl` and Python 3 to be installed.
+
+- Perl can be found at [Strawberry Perl](https://strawberryperl.com/).
+  We do not recommend ActiveState perl because of licensing issues.
+- Python 3 can be found at https://www.python.org/downloads/.
+
+Ensure both executables are available in Windows PATH.
 
 Install clang. While [LLVM Releases page](https://releases.llvm.org/download.html) may work,
 we recommend using [MSYS2](https://www.msys2.org/) to install clang64 toolchain.
