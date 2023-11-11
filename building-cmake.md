@@ -45,7 +45,7 @@ Then run
 ```bash
 mkdir -p cmake-build-linux/release
 cmake --preset linux/release 
-cmake --build --preset linux/release --target asy
+cmake --build --preset linux/release --target asy-with-basefiles
 ```
 
 The asymptote binary should be available in `cmake-build-linux/release` directory.
