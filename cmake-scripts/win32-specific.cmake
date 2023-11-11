@@ -8,11 +8,10 @@ if (MSVC)
             /Zc:__cplusplus /Zc:__STDC__
             /Zc:externC /Zc:preprocessor
             /Zc:hiddenFriend)
-    list(APPEND ASY_MACROS NOMINMAX)
 endif()
 
 # alot of asymptote sources use __MSDOS__ macro for checking windows
-list(APPEND ASY_MACROS __MSDOS__=1)
+list(APPEND ASY_MACROS NOMINMAX __MSDOS__=1)
 
 
 # set ASYMPTOTE_SYSTEM_DIR to empty string
