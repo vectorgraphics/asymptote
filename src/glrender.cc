@@ -12,6 +12,8 @@
 #include <fstream>
 #include <cstring>
 #include <cmath>
+#include <chrono>
+#include <thread>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -1191,12 +1193,7 @@ void nextframe()
   double seconds=frameTimer.seconds(true);
   delay -= seconds;
   if(delay > 0) {
-    timespec req;
-    timespec rem;
-    req.tv_sec=(unsigned int) delay;
-    req.tv_nsec=(unsigned int) (1.0e9*(delay-req.tv_sec));
-    while(nanosleep(&req,&rem) < 0 && errno == EINTR)
-      req=rem;
+    std::this_thread::sleep_for(std::chrono::duration<double>(delay));
   }
   if(Step) Animate=false;
 }
