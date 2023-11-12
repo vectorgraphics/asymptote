@@ -300,7 +300,21 @@ int main(int argc, char *argv[])
   if(gl::glthread) {
     pthread_t thread;
     try {
-      if(pthread_create(&thread,NULL,asymain,&args) == 0) {
+#if defined(_WIN32)
+      auto asymainPtr = [](void* args) -> void*
+      {
+        GC_stack_base gsb;
+        GC_get_stack_base(&gsb);
+        GC_register_my_thread(&gsb);
+        auto* ret = asymain(args);
+
+        GC_unregister_my_thread();
+        return reinterpret_cast<void*>(ret);
+      };
+#else
+      auto* asymainPtr = asymain;
+#endif
+      if(pthread_create(&thread,NULL,asymainPtr,&args) == 0) {
         gl::mainthread=pthread_self();
 #if !defined(_WIN32)
         sigset_t set;
