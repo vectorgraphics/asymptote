@@ -33,7 +33,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ENABLE_LIBREADLINE": "false",
+        "ENABLE_READLINE": "false",
         "ENABLE_OPENGL": "false"
       }
     }

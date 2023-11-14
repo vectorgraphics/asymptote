@@ -57,7 +57,13 @@ option(WIN32_BISON_BINARY
 
 # feature libraries
 
-option(ENABLE_LIBREADLINE "libreadline" true)
+option(ENABLE_GC "enable boehm gc support" true)
+option(ENABLE_CURL "enable curl support" true)
+option(ENABLE_READLINE "libreadline" true)
+option(ENABLE_THREADING "enable threading support" true)
+option(ENABLE_GSL "Enable GSL support" true)
+option(ENABLE_EIGEN3 "Enable eigen3 support" true)
+option(ENABLE_FFTW3 "Enable fftw3 support" true)
 option(ENABLE_OPENGL "Whether to enable opengl or not." true)
 option(ENABLE_GL_COMPUTE_SHADERS
         "Whether to enable compute shaders for OpenGL. Requires OpenGL >= 4.3 and GL_ARB_compute_shader" true)

@@ -5,28 +5,58 @@
   "version": "0.0-snapshot",
   "dependencies": [
     "zlib",
-    "bdwgc",
-    "readline",
-    {
-      "name": "ncurses",
-      "platform": "!windows"
-    },
-    {
-      "name": "pdcurses",
-      "platform": "windows"
-    },
+    "glm",
     {
       "name": "getopt-win32",
       "platform": "windows"
+    }
+  ],
+  "features": {
+    "threading": {
+      "description": "Enable threading support",
+      "dependencies": ["pthreads"]
     },
-    "curl",
-    "pthreads",
-    "gsl",
-    "eigen3",
-    "opengl",
-    "freeglut",
-    "glew",
-    "glm",
-    "fftw3"
-  ]
+    "readline": {
+      "description": "Enable readline support",
+      "dependencies": [
+        "readline",
+        {
+          "name": "ncurses",
+          "platform": "!windows"
+        },
+        {
+          "name": "pdcurses",
+          "platform": "windows"
+        }
+      ]
+    },
+    "gc": {
+      "description": "Enable garbage collection support",
+      "dependencies": ["bdwgc"]
+    },
+    "curl": {
+      "description": "Enable curl support",
+      "dependencies": ["curl"]
+    },
+    "eigen3": {
+      "description": "eigen3 support",
+      "dependencies": ["eigen3"]
+    },
+    "gsl": {
+      "description": "GSL support",
+      "dependencies": ["gsl"]
+    },
+    "fftw3": {
+      "description": "fftw3 support",
+      "dependencies": ["fftw3"]
+    },
+    "opengl": {
+      "description": "OpenGL Support",
+      "dependencies": [
+        "opengl",
+        "freeglut",
+        "glew"
+      ]
+    }
+  }
 }

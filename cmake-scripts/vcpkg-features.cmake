@@ -1,0 +1,31 @@
+if (ENABLE_GC)
+    list(APPEND VCPKG_MANIFEST_FEATURES gc)
+endif()
+
+if (ENABLE_READLINE)
+    list(APPEND VCPKG_MANIFEST_FEATURES readline)
+endif()
+
+if (ENABLE_CURL)
+    list(APPEND VCPKG_MANIFEST_FEATURES curl)
+endif()
+
+if (ENABLE_GSL)
+    list(APPEND VCPKG_MANIFEST_FEATURES gsl)
+endif()
+
+if (ENABLE_EIGEN3)
+    list(APPEND VCPKG_MANIFEST_FEATURES eigen3)
+endif()
+
+if (ENABLE_FFTW3)
+    list(APPEND VCPKG_MANIFEST_FEATURES fftw3)
+endif()
+
+if (ENABLE_OPENGL)
+    list(APPEND VCPKG_MANIFEST_FEATURES opengl)
+endif()
+
+if (ENABLE_THREADING)
+    list(APPEND VCPKG_MANIFEST_FEATURES threading)
+endif()

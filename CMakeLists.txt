@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.26)
 include(cmake-scripts/common.cmake)
 include(pkg-info.cmake)
 include(cmake-scripts/options.cmake)
+include(cmake-scripts/vcpkg-features.cmake)
 
 project(${ASY_PACKAGE_NAME})
-
 
 include(cmake-scripts/compiler-config.cmake)
 include(cmake-scripts/basic-parameters.cmake)
