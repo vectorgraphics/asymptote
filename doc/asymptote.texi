@@ -9030,7 +9030,7 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
                     arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
 @end verbatim
 as illustrated in the examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfield3.html,,vectorfield3}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfield3.asy,,.asy}} and
-@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfieldsphere.html,,vectorfieldsphere}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfieldsphere.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vectorfieldsphere.html,,vectorfieldsphere}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vectorfieldsphere.asy,,.asy}}.
 
 @node grid3, solids, graph3, Base modules
 @section @code{grid3}
