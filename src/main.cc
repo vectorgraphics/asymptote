@@ -303,12 +303,16 @@ int main(int argc, char *argv[])
 #if defined(_WIN32)
       auto asymainPtr = [](void* args) -> void*
       {
+#if defined(USEGC)
         GC_stack_base gsb;
         GC_get_stack_base(&gsb);
         GC_register_my_thread(&gsb);
+#endif
         auto* ret = asymain(args);
 
+#if defined(USEGC)
         GC_unregister_my_thread();
+#endif
         return reinterpret_cast<void*>(ret);
       };
 #else
