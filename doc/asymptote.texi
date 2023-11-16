@@ -2908,10 +2908,9 @@ the routine
 @verbatim
 pen rgb(string s);
 @end verbatim
-@noindent
-A pen can be converted to a hexadecimal string with
+@item A pen can be converted to a hexadecimal string with
 @cindex @code{hex}
-@item string hex(pen p);
+@code{string hex(pen p);}
 
 Various shades and mixtures of the grayscale primary colors
 @code{black} and @code{white}, @acronym{RGB} primary colors
@@ -3549,8 +3548,7 @@ The @code{options}, @code{script}, and @code{projection} parameters
 are only relevant for 3D pictures. If @code{defaultfilename} is an
 empty string, the prefix @code{outprefix()} will be used.
 
-A @code{shipout()} command is added implicitly at file exit if no
-previous @code{shipout} commands have been executed.
+A @code{shipout()} command is added implicitly at file exit.
 @cindex @code{orientation}
 @cindex @code{Portrait}
 @cindex @code{Landscape}
@@ -6911,6 +6909,7 @@ The points are connected using the interpolation specified by @code{join}:
 @item @code{operator ..} (piecewise Bezier cubic spline interpolation;
 the abbreviation @code{Spline} is also accepted);
 
+@cindex @code{linear}
 @cindex @code{Hermite}
 @cindex @code{notaknot}
 @cindex @code{natural}
@@ -6918,6 +6917,7 @@ the abbreviation @code{Spline} is also accepted);
 @cindex @code{clamped}
 @cindex @code{monotonic}
 @cindex @code{Hermite(splinetype splinetype}
+@item @code{linear} (linear interpolation),
 @item @code{Hermite} (standard cubic spline interpolation using boundary
 condition @code{notaknot}, @code{natural},  @code{periodic},
 @code{clamped(real slopea, real slopeb)}), or @code{monotonic}.
@@ -9030,7 +9030,7 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
                     arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
 @end verbatim
 as illustrated in the examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfield3.html,,vectorfield3}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfield3.asy,,.asy}} and
-@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfieldsphere.html,,vectorfieldsphere}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfieldsphere.asy,,.asy}}.
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vectorfieldsphere.html,,vectorfieldsphere}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vectorfieldsphere.asy,,.asy}}.
 
 @node grid3, solids, graph3, Base modules
 @section @code{grid3}

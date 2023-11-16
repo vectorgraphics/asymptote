@@ -188,17 +188,18 @@ void eval(code s, bool embedded=false)
   if(!embedded) restoredefaults();
 }
 
-// Associate a parametrized type with a name.
-void type(string type, string name)
+string mapArrayString(string From, string To)
 {
-  eval("typedef "+type+" "+name,true);
+  return "typedef "+From+" From;
+  typedef "+To+" To;
+  To[] map(To f(From), From[] a) {
+    return sequence(new To(int i) {return f(a[i]);},a.length);
+  }";
 }
 
 void mapArray(string From, string To)
 {
-  type(From,"From");
-  type(To,"To");
-  eval("To[] map(To f(From), From[] a) {return sequence(new To(int i) {return f(a[i]);},a.length);}",true);
+  eval(mapArrayString(From,To),true);
 }
 
 // Evaluate user command line option.
