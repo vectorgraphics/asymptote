@@ -37,6 +37,10 @@
 #include <GLFW/glfw3.h>
 #endif
 
+#ifdef HAVE_LIBOSMESA
+#include <GL/osmesa.h>
+#endif
+
 #include "material.h"
 #include "pen.h"
 #include "triple.h"

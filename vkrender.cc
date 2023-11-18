@@ -3,6 +3,7 @@
 #include "picture.h"
 #include "drawimage.h"
 #include "EXRFiles.h"
+#include "fpu.h"
 
 #define SHADER_DIRECTORY "base/shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
@@ -497,6 +498,69 @@ AsyVkRender::~AsyVkRender()
 
 #endif
 
+#ifdef HAVE_LIBOSMESA
+OSMesaContext ctx;
+unsigned char *osmesa_buffer;
+
+//Temporary:
+int screenWidth=1080, screenHeight=1920;
+
+#endif
+
+void init_osmesa()
+{
+#ifdef HAVE_LIBOSMESA
+  // create context and buffer
+  if(settings::verbose > 1)
+    cout << "Allocating osmesa_buffer of size " << screenWidth << "x"
+         << screenHeight << "x4x" << sizeof(GLubyte) << endl;
+  osmesa_buffer=new unsigned char[screenWidth*screenHeight*4*sizeof(GLubyte)];
+  if(!osmesa_buffer) {
+    cerr << "Cannot allocate image buffer." << endl;
+    exit(-1);
+  }
+
+  const int attribs[]={
+    OSMESA_FORMAT,OSMESA_RGBA,
+    OSMESA_DEPTH_BITS,16,
+    OSMESA_STENCIL_BITS,0,
+    OSMESA_ACCUM_BITS,0,
+    OSMESA_PROFILE,OSMESA_CORE_PROFILE,
+    OSMESA_CONTEXT_MAJOR_VERSION,4,
+    OSMESA_CONTEXT_MINOR_VERSION,3,
+    0,0
+  };
+
+  ctx=OSMesaCreateContextAttribs(attribs,NULL);
+  if(!ctx) {
+    ctx=OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
+    if(!ctx) {
+      cerr << "OSMesaCreateContextExt failed." << endl;
+      exit(-1);
+    }
+  }
+
+  if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,
+                        screenWidth,screenHeight )) {
+    cerr << "OSMesaMakeCurrent failed." << endl;
+    exit(-1);
+  }
+
+  int z=0, s=0, a=0;
+  glGetIntegerv(GL_DEPTH_BITS,&z);
+  glGetIntegerv(GL_STENCIL_BITS,&s);
+  glGetIntegerv(GL_ACCUM_RED_BITS,&a);
+  if(settings::verbose > 1)
+    cout << "Offscreen context settings: Depth=" << z << " Stencil=" << s
+         << " Accum=" << a << endl;
+
+  if(z <= 0) {
+    cerr << "Error initializing offscreen context: Depth=" << z << endl;
+    exit(-1);
+  }
+#endif // HAVE_LIBOSMESA
+}
+
 void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
                            double w, double h, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
@@ -589,6 +653,21 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   bool v3d=format == "v3d";
   bool webgl=format == "html";
   bool format3d=webgl || v3d;
+
+#ifdef HAVE_LIBOSMESA
+  if(!webgl) {
+//    screenWidth=maxTileWidth;
+//    screenHeight=maxTileHeight;
+
+    static bool osmesa_initialized=false;
+    if(!osmesa_initialized) {
+      osmesa_initialized=true;
+      fpu_trap(false); // Work around FE_INVALID.
+      init_osmesa();
+      fpu_trap(settings::trap());
+    }
+  }
+#endif
 
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(w, h);
 
