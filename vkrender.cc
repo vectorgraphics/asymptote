@@ -585,9 +585,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   bool webgl=format == "html";
   bool format3d=webgl || v3d;
 
-  if(vkthread && format3d)
-    format3dWait=true;
-
   clearMaterials();
 
   rotateMat = glm::mat4(1.0);
@@ -3611,9 +3608,6 @@ void AsyVkRender::drawFrame()
     endwait(initSignal,initLock);
     first=false;
   }
-
-  if(format3dWait)
-    wait(initSignal,initLock);
 #endif
 
   auto& frameObject = frameObjects[currentFrame];

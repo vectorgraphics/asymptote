@@ -1519,15 +1519,6 @@ bool picture::shipout3(const string& prefix, const string& format,
      if(webgl && View)
        htmlView(name);
 
- #ifdef HAVE_VULKAN
-     if(vk->format3dWait) {
-       vk->format3dWait=false;
- #ifdef HAVE_PTHREAD
-       vk->endwait(vk->initSignal,vk->initLock);
- #endif
-     }
- #endif
-
      return true;
    }
  #endif

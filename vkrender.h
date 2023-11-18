@@ -372,7 +372,6 @@ public:
   bool updateLights=true;
   bool newUniformBuffer=true;
   bool queueExport=false;
-  bool format3dWait=false;
   bool ibl=false;
   bool vkexit=false;
 
