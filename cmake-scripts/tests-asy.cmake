@@ -5,8 +5,7 @@ if (WIN32)
 endif()
 
 set(ASY_ASYLANG_TEST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-set(ASY_ASYLANG_TEST_SCRATCH_DIR ${CMAKE_CURRENT_BINARY_DIR}/testartifacts/)
-file(MAKE_DIRECTORY ${ASY_ASYLANG_TEST_SCRATCH_DIR})
+set(ASY_ASYLANG_TEST_SCRATCH_DIR ${ASY_ASYLANG_TEST_ROOT}/out/)
 
 function(add_individual_asy_tests)
     set(fn_opts)
@@ -45,9 +44,9 @@ macro(add_asy_tests)
 
     foreach(artifact ${ASY_TESTING_TEST_ARTIFACTS})
         set_property(
-                DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                TARGET asy
                 APPEND
-                PROPERTY ADDITIONAL_CLEAN_FILES testartifacts/${artifact}
+                PROPERTY ADDITIONAL_CLEAN_FILES ${ASY_ASYLANG_TEST_SCRATCH_DIR}/${artifact}
         )
     endforeach()
 endmacro()
@@ -70,7 +69,8 @@ add_asy_tests(
 if (ENABLE_GC)
     add_asy_tests(
             TEST_DIR gc
-            TESTS array file funcall guide label path shipout string struct transform
+            TESTS array funcall guide label path shipout string struct transform
+            TEST_ARTIFACTS .eps
     )
 endif()
 
