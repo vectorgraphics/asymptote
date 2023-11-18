@@ -59,11 +59,11 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('{\n')
 
         for enumTxt, enumNum, *ar in enums:
-            fil.write('{0}={1},\n'.format(enumTxt, enumNum))
             if len(ar) > 0:
                 comment=cleanComment(ar[-1])
                 if comment is not None:
-                    fil.write('// {0}\n\n'.format(comment.strip()))
+                    fil.write('// {0}\n'.format(comment.strip()))
+            fil.write('{0}={1},\n\n'.format(enumTxt, enumNum))
 
         fil.write('};\n\n')
 
