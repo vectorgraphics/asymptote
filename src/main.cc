@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
       auto asymainPtr = [](void* args) -> void*
       {
 #if defined(USEGC)
-        GC_stack_base gsb;
+        GC_stack_base gsb {};
         GC_get_stack_base(&gsb);
         GC_register_my_thread(&gsb);
 #endif
