@@ -14,7 +14,7 @@ namespace utils {
 #define getpid GetCurrentProcessId
 inline double cpuTime() {
   FILETIME a,b,c,d;
-  return GetProcessTimes(GetCurrentThread(),&a,&b,&c,&d) != 0 ?
+  return GetProcessTimes(GetCurrentProcess(),&a,&b,&c,&d) != 0 ?
     (double) (d.dwLowDateTime |
               ((unsigned long long)d.dwHighDateTime << 32))*100.0 : 0.0;
 }
