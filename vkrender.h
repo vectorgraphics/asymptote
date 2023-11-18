@@ -454,7 +454,6 @@ public:
   camp::triple* Lights;
   double* LightsDiffuse;
   size_t nlights;
-  double* Diffuse;
   std::array<float, 4> Background;
 
   const double* dprojView;
