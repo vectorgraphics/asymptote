@@ -60,27 +60,8 @@ extern "C" {
 }
 #endif
 
-inline void *asy_malloc(size_t n)
-{
-#ifdef GC_DEBUG
-  if(void *mem=GC_debug_malloc_ignore_off_page(n, GC_EXTRAS))
-#else
-    if(void *mem=GC_malloc_ignore_off_page(n))
-#endif
-      return mem;
-  throw std::bad_alloc();
-}
-
-inline void *asy_malloc_atomic(size_t n)
-{
-#ifdef GC_DEBUG
-  if(void *mem=GC_debug_malloc_atomic_ignore_off_page(n, GC_EXTRAS))
-#else
-    if(void *mem=GC_malloc_atomic_ignore_off_page(n))
-#endif
-      return mem;
-  throw std::bad_alloc();
-}
+void* asy_malloc(size_t n);
+void* asy_malloc_atomic(size_t n);
 
 #undef GC_MALLOC
 #undef GC_MALLOC_ATOMIC
@@ -187,8 +168,8 @@ typedef std::basic_ostringstream<char,std::char_traits<char>,
                                  gc_allocator<char> > ostringstream;
 typedef std::basic_stringbuf<char,std::char_traits<char>,
                              gc_allocator<char> > stringbuf;
-inline void compact(int x) {GC_set_dont_expand(x);}
-inline std::string stdString(string s) {return std::string(s.c_str());}
+
+void compact(int x);
 #else
 inline void compact(int x) {}
 typedef std::string string;
@@ -196,8 +177,9 @@ typedef std::stringstream stringstream;
 typedef std::istringstream istringstream;
 typedef std::ostringstream ostringstream;
 typedef std::stringbuf stringbuf;
-inline std::string stdString(string s) {return s;}
 #endif // USEGC
+
+std::string stdString(string s);
 
 } // namespace mem
 

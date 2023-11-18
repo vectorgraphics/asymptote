@@ -24,7 +24,7 @@ set(CORE_BUILD_FILES
         callable name symbol entry exp newexp stack
         access virtualfieldaccess absyn record interact fileio
         fftw++asy parallel simpson coder coenv impdatum locate parser program application
-        varinit fundec refaccess envcompleter process constructor array
+        varinit fundec refaccess envcompleter process constructor array memory
         Delaunay predicates glrender tr shaders jsfile v3dfile
         EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream
 )
