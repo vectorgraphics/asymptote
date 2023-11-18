@@ -34,7 +34,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "ENABLE_READLINE": "false",
-        "ENABLE_OPENGL": "false"
+        "ENABLE_OPENGL": "false",
+        "ENABLE_ASY_CXXTEST": "false"
       }
     }
   ],
