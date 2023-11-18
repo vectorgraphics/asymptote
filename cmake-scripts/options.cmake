@@ -98,3 +98,9 @@ else()
 endif()
 
 option(OPTIMIZE_LINK_TIME "Enable link-time optimization. Enabled by default in release build types" ${default_lto})
+
+# testing
+option(ENABLE_ASY_CXXTEST "Enable C++-side testing. This option is inert for final asy libraries and binaries" true)
+option(
+        DOWNLOAD_GTEST_FROM_SRC "Download google test from googletest's github repo. Otherwise use system libraries."
+        true)

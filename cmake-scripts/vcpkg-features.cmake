@@ -29,3 +29,7 @@ endif()
 if (ENABLE_THREADING)
     list(APPEND VCPKG_MANIFEST_FEATURES threading)
 endif()
+
+if (ENABLE_ASY_CXXTEST)
+    list(APPEND VCPKG_MANIFEST_FEATURES build-cxx-testing)
+endif()
