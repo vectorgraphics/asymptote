@@ -28,15 +28,6 @@ function(_int_add_runtime_file runtime_file)
     set(RUNTIME_SCRIPT ${ASY_SCRIPTS_DIR}/runtime.pl)
     set(OPSYM_FILE ${GENERATED_INCLUDE_DIR}/opsymbols.h)
     set(RUNTIME_BASE_FILE ${ASY_SRC_TEMPLATES_DIR}/runtimebase.in)
-
-    if (MSVC)
-    # hack since msvc does not support "-MG" option to treat missing headers as
-    # generated files
-        if (NOT (runtime_file STREQUAL "runtime"))
-            set(RUNTIME_FILE_DEP ${GENERATED_INCLUDE_DIR}/runtime.h)
-        endif()
-    endif()
-
     add_custom_command(
             OUTPUT ${RUNTIME_FILES_OUT}
             COMMAND ${PERL_INTERPRETER} ${RUNTIME_SCRIPT}
@@ -80,8 +71,14 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
     set(processed_output_file ${GENERATED_AUX_DIR}/${symfile}.raw.i)
     set(${symfile_raw_output_var} ${processed_output_file} PARENT_SCOPE)
 
+    set(cxx_preprocessor ${CMAKE_CXX_COMPILER})
+
     if (MSVC)
-        set(msvc_flag --msvc)
+        if (GCCCOMPAT_CXX_COMPILER_FOR_MSVC)
+            set(cxx_preprocessor ${GCCCOMPAT_CXX_COMPILER_FOR_MSVC})
+        else()
+            set(msvc_flag --msvc)
+        endif()
     endif()
 
     set(asy_includes_list "$<TARGET_PROPERTY:asy,INCLUDE_DIRECTORIES>")
@@ -91,7 +88,7 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
     add_custom_command(
             OUTPUT ${processed_output_file}
             COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
-            --cxx-compiler=${CMAKE_CXX_COMPILER}
+            --cxx-compiler=${cxx_preprocessor}
             "$<$<BOOL:${asy_includes_list}>:--include-dirs=${asy_includes_list}>"
             "$<$<BOOL:${asy_cxx_std}>:--cxx-standard=${asy_cxx_std}>"
             "$<$<BOOL:${asy_macros_list}>:--macro-defs=${asy_macros_list}>"

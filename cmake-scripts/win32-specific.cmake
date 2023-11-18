@@ -18,3 +18,19 @@ list(APPEND ASY_MACROS NOMINMAX __MSDOS__=1)
 list(APPEND ASY_MACROS ASYMPTOTE_SYSDIR="")
 
 set(BUILD_SHARED_LIBS OFF)
+
+if (MSVC)
+    if (NOT GCCCOMPAT_CXX_COMPILER_FOR_MSVC)
+        message(
+                WARNING
+                "
+GCC-compatible C++ compiler not specified, target dependency resolution for generated files may
+not work properly. If you are looking for a GCC-compatible C++ compiler on windows for preprocessing,
+we recommend the LLVM toolchain. You can find LLVM at
+
+https://releases.llvm.org/download.html
+
+or through msys2."
+        )
+    endif()
+endif()

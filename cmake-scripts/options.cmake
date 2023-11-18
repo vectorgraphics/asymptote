@@ -104,3 +104,12 @@ option(ENABLE_ASY_CXXTEST "Enable C++-side testing. This option is inert for fin
 option(
         DOWNLOAD_GTEST_FROM_SRC "Download google test from googletest's github repo. Otherwise use system libraries."
         true)
+
+# msvc-specific
+# The only reason this option is here is because msvc compiler (cl.exe) does not partial preprocessing
+# (e.g. ignore missing headers and treat them as generated files or depfile generation with missing headers)
+# We use MSVC compiler for all C++ compilation/linking
+option(GCCCOMPAT_CXX_COMPILER_FOR_MSVC
+        "gcc-compatible C++ compiler for preprocessing with MSVC toolchain. This option is inert if not using MSVC.
+This option is only used for preprocessing, it is not used for compilation."
+)
