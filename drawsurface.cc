@@ -548,7 +548,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(vk->outlinemode) {
+  if(vk->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};

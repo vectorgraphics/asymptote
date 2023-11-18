@@ -425,7 +425,6 @@ public:
   size_t materialIndex;
 
   unsigned int Opaque=0;
-  bool outlinemode = false;
   std::uint32_t pixels;
   bool orthographic;
 
