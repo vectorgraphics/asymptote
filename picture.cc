@@ -1520,10 +1520,8 @@ bool picture::shipout3(const string& prefix, const string& format,
        htmlView(name);
 
  #ifdef HAVE_VULKAN
-     // TODO: what is this?
-     bool format3dWait = false;
-     if(format3dWait) {
-       format3dWait=false;
+     if(vk->format3dWait) {
+       vk->format3dWait=false;
  #ifdef HAVE_PTHREAD
        vk->endwait(vk->initSignal,vk->initLock);
  #endif

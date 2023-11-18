@@ -581,14 +581,17 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     return;
   }
 
+  bool v3d=format == "v3d";
+  bool webgl=format == "html";
+  bool format3d=webgl || v3d;
+
+  if(vkthread && format3d)
+    format3dWait=true;
+
   clearMaterials();
 
   rotateMat = glm::mat4(1.0);
   viewMat = glm::mat4(1.0);
-
-  bool v3d=format == "v3d";
-  bool webgl=format == "html";
-  bool format3d=webgl || v3d;
 
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(w, h);
 
