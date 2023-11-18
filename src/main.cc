@@ -31,6 +31,7 @@
 #define GC_PTHREAD_SIGMASK_NEEDED
 
 #include "common.h"
+#include "exithandlers.h"
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
@@ -114,42 +115,12 @@ void setsignal(void (*handler)(int))
   Signal(SIGFPE,handler);
 }
 
-void signalHandler(int)
-{
-  // Print the position and trust the shell to print an error message.
-  em.runtime(vm::getPos());
-
-#if !defined(_WIN32)
-  Signal(SIGBUS,SIG_DFL);
-#endif
-  Signal(SIGFPE,SIG_DFL);
-}
-
-void interruptHandler(int)
-{
-#ifdef HAVE_LIBFFTW3
-  fftwpp::saveWisdom();
-#endif
-  em.Interrupt(true);
-}
-
-bool hangup=false;
-void hangup_handler(int sig)
-{
-  hangup=true;
-}
-
 struct Args
 {
   int argc;
   char **argv;
   Args(int argc, char **argv) : argc(argc), argv(argv) {}
 };
-
-int returnCode()
-{
-  return em.processStatus() || interact::interactive ? 0 : 1;
-}
 
 void *asymain(void *A)
 {
@@ -258,10 +229,6 @@ void *asymain(void *A)
   exit(returnCode());
 }
 
-void exitHandler(int)
-{
-  exit(returnCode());
-}
 
 int main(int argc, char *argv[])
 {

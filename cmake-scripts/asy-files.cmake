@@ -21,7 +21,7 @@ set(GENERATED_SOURCE_BUILD_FILES
 set(CORE_BUILD_FILES
         ${CAMP_BUILD_FILES} ${SYMBOL_STATIC_BUILD_FILES}
         env genv stm dec errormsg
-        callable name symbol entry exp newexp stack
+        callable name symbol entry exp newexp stack exithandlers
         access virtualfieldaccess absyn record interact fileio
         fftw++asy parallel simpson coder coenv impdatum locate parser program application
         varinit fundec refaccess envcompleter process constructor array memory

@@ -17,6 +17,7 @@
 #endif
 
 #include "common.h"
+#include "exithandlers.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -36,7 +37,6 @@ extern int yydebug;
 extern int yy_flex_debug;
 extern bool lexerEOF();
 extern void reportEOF();
-extern bool hangup;
 
 namespace parser {
 
