@@ -27,7 +27,6 @@ using std::ofstream;
 using vm::array;
 
 using namespace settings;
-using namespace vk;
 
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
@@ -1520,9 +1519,9 @@ bool picture::shipout3(const string& prefix, const string& format,
      if(webgl && View)
        htmlView(name);
 
-   // TODO: what is this?
-   bool format3dWait = false;
  #ifdef HAVE_VULKAN
+     // TODO: what is this?
+     bool format3dWait = false;
      if(format3dWait) {
        format3dWait=false;
  #ifdef HAVE_PTHREAD

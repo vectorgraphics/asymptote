@@ -10,6 +10,7 @@
 
 void exitHandler(int);
 
+#ifdef HAVE_VULKAN
 std::vector<const char*> instanceExtensions
 {
   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
@@ -18,6 +19,9 @@ std::vector<const char*> instanceExtensions
   VK_EXT_DEBUG_UTILS_EXTENSION_NAME
 #endif
 };
+#endif
+
+#ifdef HAVE_LIBGLM
 
 namespace camp
 {
@@ -38,6 +42,7 @@ std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
+#ifdef HAVE_VULKAN
 SwapChainDetails::SwapChainDetails(
   vk::PhysicalDevice gpu,
   vk::SurfaceKHR surface) :
@@ -210,6 +215,8 @@ triple AsyVkRender::billboardTransform(const triple& center, const triple& v) co
                 x * BBT[2] + y * BBT[5] + z * BBT[8] + cz);
 }
 
+#endif
+
 double AsyVkRender::getRenderResolution(triple Min) const
 {
   double prerender = settings::getSetting<double>("prerender");
@@ -226,6 +233,8 @@ double AsyVkRender::getRenderResolution(triple Min) const
   pair size2(width, height);
   return prerender * size3.length() / size2.length();
 }
+
+#ifdef HAVE_VULKAN
 
 void AsyVkRender::initWindow()
 {
@@ -486,6 +495,8 @@ AsyVkRender::~AsyVkRender()
   glslang::FinalizeProcess();
 }
 
+#endif
+
 void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
                            double w, double h, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
@@ -608,8 +619,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   int mx, my, workWidth, workHeight;
 
+#ifdef HAVE_VULKAN
+
   glfwInit();
   glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &mx, &my, &workWidth, &workHeight);
+
   screenWidth=workWidth;
   screenHeight=workHeight;
 
@@ -671,8 +685,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   vkinit=true;
   update();
   mainLoop();
+#endif
+
 }
 
+#ifdef HAVE_VULKAN
 void AsyVkRender::initVulkan()
 {
   if (!glslang::InitializeProcess()) {
@@ -682,7 +699,8 @@ void AsyVkRender::initVulkan()
   frameObjects.resize(maxFramesInFlight);
 
   if (settings::verbose > 1) {
-    std::cout << "Using " << maxFramesInFlight << " maximum frames in flight." << std::endl;
+    std::cout << "Using " << maxFramesInFlight << " maximum frames in flight."
+              << std::endl;
   }
 
   createInstance();
@@ -1167,6 +1185,7 @@ void AsyVkRender::createImageViews()
     swapChainImageViews[i] = device->createImageViewUnique(viewCI, nullptr);
   }
 }
+
 
 vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options)
 {
@@ -2633,8 +2652,6 @@ void AsyVkRender::createGraphicsPipelineLayout()
 
 void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, PipelineType type) {
 
-  options.emplace_back("HAVE_SSBO");
-
   if (ibl) {
     options.emplace_back("USE_IBL");
   }
@@ -3535,7 +3552,7 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
   Opaque=transparentData.indices.empty();
   auto transparent=!Opaque;
 
-  if (ssbo && transparent) {
+  if (transparent) {
 
     device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
     device->resetFences(1, &*object.inComputeFence);
@@ -3760,7 +3777,8 @@ void AsyVkRender::display()
   }
 }
 
-void AsyVkRender::poll() {
+void AsyVkRender::poll()
+{
 
   vkexit |= glfwWindowShouldClose(window);
 
@@ -3807,19 +3825,21 @@ void AsyVkRender::updateProjection()
   projViewMat = glm::mat4(projMat * viewMat);
 }
 
-void AsyVkRender::frustum(GLdouble left, GLdouble right, GLdouble bottom,
-                          GLdouble top, GLdouble nearVal, GLdouble farVal)
+void AsyVkRender::frustum(double left, double right, double bottom,
+                          double top, double nearVal, double farVal)
 {
   projMat = glm::frustum(left, right, bottom, top, nearVal, farVal);
   updateProjection();
 }
 
-void AsyVkRender::ortho(GLdouble left, GLdouble right, GLdouble bottom,
-                        GLdouble top, GLdouble nearVal, GLdouble farVal)
+void AsyVkRender::ortho(double left, double right, double bottom,
+                        double top, double nearVal, double farVal)
 {
   projMat = glm::ortho(left, right, bottom, top, nearVal, farVal);
   updateProjection();
 }
+
+#endif
 
 void AsyVkRender::clearCenters()
 {
@@ -3839,6 +3859,8 @@ void AsyVkRender::clearMaterials()
   colorData.partial=false;
   triangleData.partial=false;
 }
+
+#ifdef HAVE_VULKAN
 
 void AsyVkRender::animate()
 {
@@ -4040,7 +4062,7 @@ void AsyVkRender::Export(int imageIndex) {
   setProjection();
 
 #ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
+#ifdef HAVE_VULKAN
   redraw=true;
 #endif
 
@@ -4061,7 +4083,7 @@ void AsyVkRender::quit()
   if(ctx) OSMesaDestroyContext(ctx);
   exit(0);
 #endif
-#ifdef HAVE_LIBGLFW
+#ifdef HAVE_VULKAN
   if(vkthread) {
     bool animating=settings::getSetting<bool>("animating");
     if(animating)
@@ -4083,6 +4105,8 @@ void AsyVkRender::quit()
   }
 #endif
 }
+
+#ifdef HAVE_VULKAN
 
 void AsyVkRender::idleFunc(std::function<void()> f)
 {
@@ -4411,4 +4435,10 @@ void AsyVkRender::cycleMode() {
   }
 }
 
+#endif
+
+#endif
+
 } // namespace camp
+
+#endif // HAVE_LIBGLM

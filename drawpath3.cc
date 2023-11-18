@@ -183,8 +183,8 @@ void drawNurbsPath3::displacement()
 #ifdef HAVE_VULKAN
   size_t nknots=degree+n+1;
   if(Controls == NULL) {
-    Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
-    Knots=new(UseGC) GLfloat[nknots];
+    Controls=new(UseGC)  float[(weights ? 4 : 3)*n];
+    Knots=new(UseGC) float[nknots];
   }
   if(weights)
     for(size_t i=0; i < n; ++i)

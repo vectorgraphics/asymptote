@@ -55,7 +55,7 @@ void BezierCurve::render(const triple *p, bool straight)
 // Use a uniform partition to draw a Bezier curve.
 // p is an array of 4 triples representing the control points.
 // Ii are the vertex indices.
-void BezierCurve::render(const triple *p, GLuint I0, GLuint I1)
+void BezierCurve::render(const triple *p, uint32_t I0, uint32_t I1)
 {
   triple p0=p[0];
   triple p1=p[1];

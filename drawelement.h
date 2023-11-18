@@ -19,7 +19,6 @@
 #include "prcfile.h"
 #include "jsfile.h"
 #include "v3dfile.h"
-// #include "glrender.h"
 #include "arrayop.h"
 #include "material.h"
 #include "vkrender.h"

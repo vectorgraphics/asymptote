@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef HAVE_VULKAN
 #include <glslang/SPIRV/GlslangToSpv.h>
 
 inline TBuiltInResource getShaderResources()
@@ -110,3 +111,5 @@ inline TBuiltInResource getShaderResources()
 
   return res;
 }
+
+#endif

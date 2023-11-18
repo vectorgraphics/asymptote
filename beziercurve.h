@@ -37,7 +37,7 @@ struct BezierCurve
   }
 
   void render(const triple *p, bool straight);
-  void render(const triple *p, GLuint I0, GLuint I1);
+  void render(const triple *p, std::uint32_t I0, std::uint32_t I1);
 
   void append() {
     vk->lineData.extendMaterial(data);

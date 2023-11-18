@@ -24,7 +24,7 @@ struct BezierPatch
   double Epsilon;
   double res2;
   double Res2; // Reduced resolution for Bezier triangles flatness test.
-  // typedef GLuint (vertexBuffer::*vertexFunction)(const triple &v,
+  // typedef std::uint32_t (vertexBuffer::*vertexFunction)(const triple &v,
   //                                                const triple& n);
   // vertexFunction pvertex; // pointer to vertex function to use (transparent or not)
   bool Onscreen;
@@ -33,7 +33,7 @@ struct BezierPatch
 
   void init(double res);
 
-  void init(double res, GLfloat *colors) {
+  void init(double res, float *colors) {
     transparent=false;
     color=colors;
     init(res);
@@ -130,13 +130,13 @@ struct BezierPatch
     return false;
   }
 
-  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
+  virtual void render(const triple *p, bool straight, float *c0=NULL);
   void render(const triple *p,
-              GLuint I0, GLuint I1, GLuint I2, GLuint I3,
+              std::uint32_t I0, std::uint32_t I1, std::uint32_t I2, std::uint32_t I3,
               triple P0, triple P1, triple P2, triple P3,
               bool flat0, bool flat1, bool flat2, bool flat3,
-              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL,
-              GLfloat *C3=NULL);
+              float *C0=NULL, float *C1=NULL, float *C2=NULL,
+              float *C3=NULL);
 
   void append() {
     if(transparent)
@@ -161,7 +161,7 @@ struct BezierPatch
   }
 
   void queue(const triple *g, bool straight, double ratio, bool Transparent,
-             GLfloat *colors=NULL) {
+             float *colors=NULL) {
     data.clear();
     Onscreen=true;
     transparent=Transparent;
@@ -191,12 +191,12 @@ public:
     return max(d,Straightness(p6,p[7],p[8],p9));
   }
 
-  void render(const triple *p, bool straight, GLfloat *c0=NULL);
+  void render(const triple *p, bool straight, float *c0=NULL);
   void render(const triple *p,
-              GLuint I0, GLuint I1, GLuint I2,
+              std::uint32_t I0, std::uint32_t I1, std::uint32_t I2,
               triple P0, triple P1, triple P2,
               bool flat0, bool flat1, bool flat2,
-              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL);
+              float *C0=NULL, float *C1=NULL, float *C2=NULL);
 };
 
 // triangle groups (can mix vertex dependent and material index color)

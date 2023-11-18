@@ -268,7 +268,6 @@ void main() {
 #endif /*NORMAL*/
 
 #ifndef WIDTH // TODO DO NOT DO THE DEPTH COMPARISON WHEN NO TRANSPARENT OBJECTS!
-#ifdef HAVE_SSBO
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
@@ -291,7 +290,6 @@ void main() {
     opaqueColor[pixel]=outColor;
   }
   endInvocationInterlockARB();
-#endif
 #endif
 #endif
 #endif

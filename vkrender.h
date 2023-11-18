@@ -16,13 +16,7 @@
 #include <sys/time.h>
 #include <unordered_map>
 #include <vector>
-
-#define VK_ENABLE_BETA_EXTENSIONS
-#include <vulkan/vulkan.hpp>
-
-#include <glslang/SPIRV/GlslangToSpv.h>
-
-#include <GLFW/glfw3.h>
+#include <array>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -33,6 +27,16 @@
 #include <glm/gtx/transform.hpp>
 
 #include "common.h"
+
+#ifdef HAVE_VULKAN
+#define VK_ENABLE_BETA_EXTENSIONS
+#include <vulkan/vulkan.hpp>
+
+#include <glslang/SPIRV/GlslangToSpv.h>
+
+#include <GLFW/glfw3.h>
+#endif
+
 #include "material.h"
 #include "pen.h"
 #include "triple.h"
@@ -63,21 +67,21 @@ inline T ceilquotient(T a, T b)
   return (a + b - 1) / b;
 }
 
-inline void store(GLfloat* f, double* C)
+inline void store(float* f, double* C)
 {
   f[0] = C[0];
   f[1] = C[1];
   f[2] = C[2];
 }
 
-inline void store(GLfloat* control, const triple& v)
+inline void store(float* control, const triple& v)
 {
   control[0] = v.getx();
   control[1] = v.gety();
   control[2] = v.getz();
 }
 
-inline void store(GLfloat* control, const triple& v, double weight)
+inline void store(float* control, const triple& v, double weight)
 {
   control[0] = v.getx() * weight;
   control[1] = v.gety() * weight;
@@ -103,12 +107,21 @@ std::vector<char> readFile(const std::string& filename);
 #define COLOR_LOCATION    3
 #define WIDTH_LOCATION    4
 
+enum DrawMode: int
+{
+   DRAWMODE_NORMAL,
+   DRAWMODE_OUTLINE,
+   DRAWMODE_WIREFRAME,
+   DRAWMODE_MAX
+};
+
 struct MaterialVertex
 {
   glm::vec3 position;
   glm::vec3 normal;
   glm::i32 material;
 
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
@@ -121,6 +134,7 @@ struct MaterialVertex
             vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)),
             vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material))};
   }
+#endif
 };
 
 struct ColorVertex
@@ -130,6 +144,7 @@ struct ColorVertex
   glm::i32 material;
   glm::vec4 color;
 
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
@@ -143,6 +158,7 @@ struct ColorVertex
             vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)),
             vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32A32Sfloat, offsetof(ColorVertex, color))};
   }
+#endif
 };
 
 struct PointVertex
@@ -151,6 +167,7 @@ struct PointVertex
   glm::f32 width;
   glm::i32 material;
 
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
@@ -163,6 +180,7 @@ struct PointVertex
             vk::VertexInputAttributeDescription(WIDTH_LOCATION, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)),
             vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(PointVertex, material))};
   }
+#endif
 };
 
 struct VertexBuffer {
@@ -229,6 +247,7 @@ struct Light
   glm::vec4 color;
 };
 
+#ifdef HAVE_VULKAN
 struct SwapChainDetails {
   vk::SurfaceCapabilitiesKHR capabilities;
   std::vector<vk::SurfaceFormatKHR> formats;
@@ -243,6 +262,7 @@ struct SwapChainDetails {
   vk::Extent2D chooseExtent() const;
   std::uint32_t chooseImageCount() const;
 };
+#endif
 
 struct QueueFamilyIndices {
   uint32_t transferQueueFamily;
@@ -314,14 +334,7 @@ public:
     zoom(zoom), angle(angle), viewportshift(viewportshift) {}
 };
 
-enum DrawMode: int
-{
-   DRAWMODE_NORMAL,
-   DRAWMODE_OUTLINE,
-   DRAWMODE_WIREFRAME,
-   DRAWMODE_MAX
-};
-
+#ifdef HAVE_VULKAN
 constexpr
 std::array<const char*, 5> deviceExtensions
 {
@@ -334,6 +347,7 @@ std::array<const char*, 5> deviceExtensions
 
 constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
 constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
+#endif
 
 class AsyVkRender
 {
@@ -370,7 +384,6 @@ public:
   int maxFramesInFlight;
   DrawMode mode = DRAWMODE_NORMAL;
   std::string title = "";
-  vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 
 #ifdef HAVE_PTHREAD
   pthread_t mainthread;
@@ -394,6 +407,10 @@ public:
     pthread_cond_wait(&signal,&lock);
     pthread_mutex_unlock(&lock);
   }
+#endif
+
+#ifdef HAVE_VULKAN
+  vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 #endif
 
   VertexBuffer materialData;
@@ -451,15 +468,16 @@ public:
   size_t Maxmaterials;
 
   void updateProjection();
-  void frustum(GLdouble left, GLdouble right, GLdouble bottom,
-               GLdouble top, GLdouble nearVal, GLdouble farVal);
-  void ortho(GLdouble left, GLdouble right, GLdouble bottom,
-             GLdouble top, GLdouble nearVal, GLdouble farVal);
+  void frustum(double left, double right, double bottom,
+               double top, double nearVal, double farVal);
+  void ortho(double left, double right, double bottom,
+             double top, double nearVal, double farVal);
 
   void clearCenters();
   void clearMaterials();
 
 private:
+#ifdef HAVE_VULKAN
   struct DeviceBuffer {
     vk::BufferUsageFlags usage;
     vk::MemoryPropertyFlags properties;
@@ -477,6 +495,7 @@ private:
       *buffer=nullptr;
     }
   };
+#endif
 
   const double pi=acos(-1.0);
   const double degrees=180.0/pi;
@@ -521,11 +540,9 @@ private:
 
   bool remesh=true;
   bool redraw=true;
-  bool ssbo=true;
   bool interlock=false;
   bool GPUindexing=false;
   bool GPUcompress=false;
-  bool initSSBO=true;
 
   std::int32_t gs2;
   std::int32_t gs;
@@ -540,6 +557,8 @@ private:
   std::uint32_t maxSize=2;
 
   size_t NMaterials = 48;
+
+#ifdef HAVE_VULKAN
 
   GLFWwindow* window;
 
@@ -769,6 +788,8 @@ private:
   std::vector<FrameObject> frameObjects;
   std::string lastAction = "";
 
+#endif
+
   void setDimensions(int Width, int Height, double X, double Y);
   void updateViewmodelData();
   void setProjection();
@@ -777,6 +798,8 @@ private:
   static void updateHandler(int);
 
   static std::string getAction(int button, int mod);
+
+#ifdef HAVE_VULKAN
   static void mouseButtonCallback(GLFWwindow * window, int button, int action, int mods);
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
   static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
@@ -911,6 +934,8 @@ private:
   void drawFrame();
   void recreateSwapChain();
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
+#endif
+
   void nextFrame();
   void display();
   void poll();

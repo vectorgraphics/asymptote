@@ -22,7 +22,7 @@ const string need3pens="array of 3 pens required";
 namespace camp {
 
 #ifdef HAVE_LIBGLM
-void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
+void storecolor(float *colors, int i, const vm::array &pens, int j);
 #endif
 
 class drawSurface : public drawElement {
@@ -227,10 +227,10 @@ protected:
   triple Min,Max;
 
 #ifdef HAVE_LIBGLM
-  GLfloat *colors;
-  GLfloat *Controls;
-  GLfloat *uKnots;
-  GLfloat *vKnots;
+  float *colors;
+  float *Controls;
+  float *uKnots;
+  float *vKnots;
 #endif
 
 public:
@@ -298,7 +298,7 @@ public:
     Controls=NULL;
     int size=checkArray(&pens);
     if(size > 0) {
-      colors=new(UseGC) GLfloat[16];
+      colors=new(UseGC) float[16];
       if(size != 4) reportError(wrongsize);
       storecolor(colors,0,pens,0);
       storecolor(colors,8,pens,1);

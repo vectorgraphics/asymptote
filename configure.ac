@@ -456,15 +456,28 @@ fi
 case "$OSTYPE" in
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-          AC_CHECK_LIB([glfw], [glfwShowWindow],,
-                       AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
-         AC_CHECK_LIB([vulkan], [vkCreateInstance],
-                                 [AC_DEFINE(HAVE_LIBVULKAN,1,
-                             DEFINE_LIB([vulkan]))
-                             LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler -lSPIRV "
-                             AC_CHECK_LIB([glslang],[glslang_initialize_process],
-                             LIBS=$LIBS"-lglslang  ")],
-                                   AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***]))
+          AC_CHECK_LIB([glfw], [glfwShowWindow],
+          [
+          AC_CHECK_LIB([vulkan], [vkCreateInstance],
+          [
+          LIBS_SAVE=$LIBS
+          LIBS=$LIBS"-lglfw -lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler -lSPIRV "
+          AC_CHECK_LIB([glslang],[glslang_initialize_process],
+          [
+          AC_DEFINE(HAVE_LIBVULKAN,1,
+          DEFINE_LIB([vulkan]))
+          LIBS=$LIBS"-lglslang "
+          OPTIONS=$OPTIONS"-DYYDEBUG=0 "
+          ],
+          [
+          AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
+          LIBS=$LIBS_SAVE
+          ]
+          )
+          ],
+          AC_MSG_NOTICE([*** Could not find libvulkan: will compile without Vulkan support ***]))
+          ],
+          AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
