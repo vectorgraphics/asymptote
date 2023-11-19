@@ -617,9 +617,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   if(maxTileHeight <= 0)
     maxTileHeight=768;
 
-  int mx, my, workWidth, workHeight;
-
 #ifdef HAVE_VULKAN
+  int mx, my, workWidth, workHeight;
 
   glfwInit();
   glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &mx, &my, &workWidth, &workHeight);
