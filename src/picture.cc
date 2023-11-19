@@ -882,7 +882,7 @@ bool picture::display(const string& outname, const string& outputformat,
 {
 #if defined(_WIN32)
   // FIXME: Implement display on windows
-#warning FIXME: Implement display on windows
+#pragma message("FIXME: Implement display on windows")
 #else
   int status=0;
   static mem::map<CONST string,int> pids;
@@ -1458,7 +1458,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         return true;
       }
 #else
-#warning "TODO: Check if (1) we need detach-based gl renderer"
+#pragma message("TODO: Check if (1) we need detach-based gl renderer")
 #endif
     }
 #endif

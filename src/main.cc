@@ -208,7 +208,7 @@ void *asymain(void *A)
 
   if(getSetting<bool>("wait")) {
 #if defined(_WIN32)
-#warning "TODO: wait option not implement yet"
+#pragma message("TODO: wait option not implement yet")
 #else
     int status;
     while(wait(&status) > 0);
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 #if defined(__APPLE__) || defined(_WIN32)
 
 #if defined(_WIN32)
-#warning "TODO: Check if (1) we need detach-based gl renderer"
+#pragma message("TODO: Check if (1) we need detach-based gl renderer")
 #endif
 
   bool usethreads=true;
