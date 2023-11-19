@@ -4384,8 +4384,6 @@ void AsyVkRender::fitscreen(bool reposition) {
     }
     case 1: // Fit to screen in one dimension
     {
-      oldWidth=width;
-      oldHeight=height;
       int w=screenWidth;
       int h=screenHeight;
       if(w > h*aspect)
