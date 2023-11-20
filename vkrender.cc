@@ -654,10 +654,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   rotateMat = glm::mat4(1.0);
   viewMat = glm::mat4(1.0);
 
-  bool v3d=format == "v3d";
-  bool webgl=format == "html";
-  bool format3d=webgl || v3d;
-
 #ifdef HAVE_LIBOSMESA
   if(!webgl) {
 //    screenWidth=maxTileWidth;
