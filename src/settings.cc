@@ -95,7 +95,9 @@ const bool havegl=true;
 const bool havegl=false;
 #endif
 
+#if !defined(_WIN32)
 mode_t mask;
+#endif
 
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultPSdriver="ps2write";
