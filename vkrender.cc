@@ -645,6 +645,10 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     return;
   }
 
+  bool v3d=format == "v3d";
+  bool webgl=format == "html";
+  bool format3d=webgl || v3d;
+
   clearMaterials();
 
   rotateMat = glm::mat4(1.0);
@@ -696,9 +700,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   if(maxTileHeight <= 0)
     maxTileHeight=768;
 
-  int mx, my, workWidth, workHeight;
-
 #ifdef HAVE_VULKAN
+  int mx, my, workWidth, workHeight;
 
   glfwInit();
   glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &mx, &my, &workWidth, &workHeight);
@@ -3687,9 +3690,6 @@ void AsyVkRender::drawFrame()
     endwait(initSignal,initLock);
     first=false;
   }
-
-  if(format3dWait)
-    wait(initSignal,initLock);
 #endif
 
   auto& frameObject = frameObjects[currentFrame];
@@ -4389,18 +4389,16 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
 
   capsize(w,h);
 
-  if (reposition) {
+  glfwSetWindowSize(window, w, h);
 
+  if (reposition) {
     windowposition(x, y, w, h);
     glfwSetWindowPos(window, x, y);
-  }
-  else {
-
+  } else {
     glfwGetWindowPos(window, &x, &y);
     glfwSetWindowPos(window, max(x-2,0), max(y-2, 0));
   }
 
-  glfwSetWindowSize(window, w, h);
   update();
 }
 
@@ -4421,10 +4419,10 @@ void AsyVkRender::fullscreen(bool reposition) {
   Xfactor=((double) screenHeight)/height;
   Yfactor=((double) screenWidth)/width;
   reshape0(width, height);
+  glfwSetWindowSize(window, width, height);
   if (reposition) {
     glfwSetWindowPos(window, 0, 0);
   }
-  glfwSetWindowSize(window, width, height);
 }
 
 void AsyVkRender::reshape0(int width, int height) {
@@ -4467,8 +4465,6 @@ void AsyVkRender::fitscreen(bool reposition) {
     }
     case 1: // Fit to screen in one dimension
     {
-      oldWidth=width;
-      oldHeight=height;
       int w=screenWidth;
       int h=screenHeight;
       if(w > h*aspect)

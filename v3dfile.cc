@@ -51,8 +51,7 @@ void v3dfile::addHeaders()
     size_t i4=4*i;
     headers.emplace_back(make_unique<LightHeader>(
                            vk->Lights[i],
-                           prc::RGBAColour(vk->Diffuse[i4], vk->Diffuse[i4+1], vk->Diffuse[i4+2], 1.0)
-                           ));
+                           prc::RGBAColour(vk->LightsDiffuse[i4], vk->LightsDiffuse[i4+1], vk->LightsDiffuse[i4+2], 1.0)));
   }
 
   headers.emplace_back(make_unique<RGBAHeader>(

@@ -376,7 +376,6 @@ public:
   bool updateLights=true;
   bool newUniformBuffer=true;
   bool queueExport=false;
-  bool format3dWait=false;
   bool ibl=false;
   bool vkexit=false;
 
@@ -430,7 +429,6 @@ public:
   size_t materialIndex;
 
   unsigned int Opaque=0;
-  bool outlinemode = false;
   std::uint32_t pixels;
   bool orthographic;
 
@@ -458,7 +456,6 @@ public:
   camp::triple* Lights;
   double* LightsDiffuse;
   size_t nlights;
-  double* Diffuse;
   std::array<float, 4> Background;
 
   const double* dprojView;
