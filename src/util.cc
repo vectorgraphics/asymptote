@@ -15,20 +15,26 @@
 #include <cfloat>
 #include <sstream>
 #include <cerrno>
-#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <cstring>
 #include <algorithm>
-#include <dirent.h>
+
 
 #if !defined(_WIN32)
 #include <sys/wait.h>
+#include <sys/param.h>
+#include <unistd.h>
+#include <dirent.h>
 #else
 #include <Windows.h>
+#include <Shlwapi.h>
+#include <direct.h>
 #include "win32helpers.h"
+
+#define getcwd _getcwd
+#define chdir _chdir
 #endif
 
 #include "util.h"
@@ -585,4 +591,13 @@ Int Intcast(unsignedInt n)
   if(n > (unsignedInt) Int_MAX)
     vm::error(intrange);
   return (Int) n;
+}
+
+bool fileExists(string const& path)
+{
+#if defined(_WIN32)
+  return PathFileExistsA(path.c_str());
+#else
+  return access(path.c_str(), R_OK) == 0;
+#endif
 }

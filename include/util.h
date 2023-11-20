@@ -169,4 +169,6 @@ unsignedInt unsignedIntcast(Int n);
 int intcast(Int n);
 Int Intcast(unsignedInt n);
 
+bool fileExists(string const& path);
+
 #endif
