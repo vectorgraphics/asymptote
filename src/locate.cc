@@ -5,12 +5,9 @@
  * Locate files in search path.
  *****/
 
-#include <unistd.h>
-
 #include "settings.h"
 #include "util.h"
 #include "locate.h"
-
 
 
 namespace settings {
@@ -28,7 +25,7 @@ string extension(string name)
 
 bool exists(string filename)
 {
-  return ::access(filename.c_str(), R_OK) == 0;
+  return fileExists(filename);
 }
 
 } // namespace fs
