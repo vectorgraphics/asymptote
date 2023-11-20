@@ -12,18 +12,17 @@
 #include <sys/stat.h>
 #include <cfloat>
 #include <locale.h>
-
-#if !defined(_MSC_VER)
-#include <unistd.h>
-#endif
-
 #include <algorithm>
-
-#include "common.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
+#include <io.h>
+#define isatty _isatty
+#else
+#include <unistd.h>
 #endif
+
+#include "common.h"
 
 #if HAVE_GNU_GETOPT_H
 #include <getopt.h>

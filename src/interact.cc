@@ -9,15 +9,17 @@
 #include <iostream>
 #include <sstream>
 #include <sys/types.h>
-#include <unistd.h>
 #include <csignal>
 #include <cstdio>
 #include <cstring>
 
 #if !defined(_WIN32)
 #include <sys/wait.h>
+#include <unistd.h>
 #else
 #include <Windows.h>
+#include <io.h>
+#define isatty _isatty
 #endif
 
 #include "interact.h"

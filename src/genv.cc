@@ -14,7 +14,7 @@
  *****/
 
 #include <sstream>
-#include <unistd.h>
+
 #include <algorithm>
 
 #include "genv.h"
@@ -28,6 +28,10 @@
 #include "locate.h"
 #include "interact.h"
 #include "builtin.h"
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
 
 using namespace types;
 using settings::getSetting;

@@ -14,8 +14,11 @@
 #include <cmath>
 #include <chrono>
 #include <thread>
+
+#if !defined(_WIN32)
 #include <sys/time.h>
 #include <unistd.h>
+#endif
 
 #include "common.h"
 #include "locate.h"
