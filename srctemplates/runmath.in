@@ -12,6 +12,7 @@ pairarray* => pairArray()
 #include <chrono>
 #include <random>
 #include <memory>
+#include <cmath>
 #include <inttypes.h>
 
 #include "mathop.h"
@@ -327,12 +328,7 @@ Int choose(Int n, Int k) {
 
 real gamma(real x)
 {
-#ifdef HAVE_TGAMMA
-  return tgamma(x);
-#else
-  real lg = lgamma(x);
-  return signgam*exp(lg);
-#endif
+  return std::tgamma(x);
 }
 
 realarray *quadraticroots(real a, real b, real c)
