@@ -4306,18 +4306,16 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
 
   capsize(w,h);
 
-  if (reposition) {
+  glfwSetWindowSize(window, w, h);
 
+  if (reposition) {
     windowposition(x, y, w, h);
     glfwSetWindowPos(window, x, y);
-  }
-  else {
-
+  } else {
     glfwGetWindowPos(window, &x, &y);
     glfwSetWindowPos(window, max(x-2,0), max(y-2, 0));
   }
 
-  glfwSetWindowSize(window, w, h);
   update();
 }
 
@@ -4338,10 +4336,10 @@ void AsyVkRender::fullscreen(bool reposition) {
   Xfactor=((double) screenHeight)/height;
   Yfactor=((double) screenWidth)/width;
   reshape0(width, height);
+  glfwSetWindowSize(window, width, height);
   if (reposition) {
     glfwSetWindowPos(window, 0, 0);
   }
-  glfwSetWindowSize(window, width, height);
 }
 
 void AsyVkRender::reshape0(int width, int height) {
