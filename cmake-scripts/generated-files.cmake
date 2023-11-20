@@ -157,10 +157,14 @@ list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/keywords.h)
 set(camp_lex_output ${GENERATED_SRC_DIR}/lex.yy.cc)
 set(camp_l_file ${ASY_RESOURCE_DIR}/camp.l)
 
+if (WIN32)
+    list(APPEND FLEX_ARGS --wincompat)
+endif()
+
 # flex + bison
 add_custom_command(
         OUTPUT ${camp_lex_output}
-        COMMAND ${FLEX_EXECUTABLE} -o ${camp_lex_output} ${camp_l_file}
+        COMMAND ${FLEX_EXECUTABLE} ${FLEX_ARGS} -o ${camp_lex_output} ${camp_l_file}
         MAIN_DEPENDENCY ${camp_l_file}
 )
 
