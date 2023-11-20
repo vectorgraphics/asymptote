@@ -34,3 +34,7 @@ or through msys2."
         )
     endif()
 endif()
+
+
+# additional win32 api libraries
+list(APPEND ASY_STATIC_LIBARIES Shlwapi)
