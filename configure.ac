@@ -433,9 +433,6 @@ fi
 AC_ARG_ENABLE(vulkan,
 [AS_HELP_STRING(--enable-vulkan[[[=yes]]],enable Vulkan Library)])
 
-AC_ARG_ENABLE(offscreen,
-[AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
-
 AC_ARG_ENABLE(OpenImageIO,
 [AS_HELP_STRING(--enable-openimageio[[[=no]]],enable experimental OpenImageIO Library)])
 
@@ -479,10 +476,6 @@ case "$OSTYPE" in
           ],
           AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
 esac
-   if test "x$enable_offscreen" = "xyes"; then
-           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
-                        AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
-   fi
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.

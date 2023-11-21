@@ -1033,11 +1033,7 @@ struct versionOption : public option {
 
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
-#ifdef HAVE_LIBOSMESA
-    feature("Vulkan   3D OSMesa offscreen rendering",gl);
-#else
     feature("Vulkan   3D Vulkan rendering",gl);
-#endif
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("Eigen    Eigenvalue library",eigen);
@@ -1259,6 +1255,8 @@ void initSettings() {
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
+  addOption(new boolSetting("offscreen", 0,
+                            "Use offscreen rendering",false));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
