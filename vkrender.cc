@@ -238,7 +238,7 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 void AsyVkRender::initWindow()
 {
-  if (!this->View)
+  if (!View || offscreen)
     return;
 
   if (!window) {
@@ -669,6 +669,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   Animate=settings::getSetting<bool>("autoplay") && vkthread;
   ibl=settings::getSetting<bool>("ibl");
+  offscreen=settings::getSetting<bool>("offscreen");
+
+  if (settings::verbose > 1) {
+    std::cout << "Using offscreen mode." << std::endl;
+  }
 
   initWindow();
 
@@ -1167,21 +1172,21 @@ void AsyVkRender::createSwapChain()
   }
 
   swapChain = device->createSwapchainKHRUnique(swapchainCI, nullptr);
-  swapChainImages = device->getSwapchainImagesKHR(*swapChain);
-  swapChainImageFormat = format.format;
-  swapChainExtent = extent;
+  backbufferImages = device->getSwapchainImagesKHR(*swapChain);
+  backbufferImageFormat = format.format;
+  backbufferExtent = extent;
 
-  for(auto & image: swapChainImages) {
+  for(auto & image: backbufferImages) {
     transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, image);
   }
 }
 
 void AsyVkRender::createImageViews()
 {
-  swapChainImageViews.resize(swapChainImages.size());
-  for (size_t i = 0; i < swapChainImages.size(); i++) {
-    vk::ImageViewCreateInfo viewCI = vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), swapChainImages[i], vk::ImageViewType::e2D, swapChainImageFormat, vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-    swapChainImageViews[i] = device->createImageViewUnique(viewCI, nullptr);
+  backbufferImageViews.resize(backbufferImages.size());
+  for (size_t i = 0; i < backbufferImages.size(); i++) {
+    vk::ImageViewCreateInfo viewCI = vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), backbufferImages[i], vk::ImageViewType::e2D, backbufferImageFormat, vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+    backbufferImageViews[i] = device->createImageViewUnique(viewCI, nullptr);
   }
 }
 
@@ -1239,13 +1244,13 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
 
 void AsyVkRender::createFramebuffers()
 {
-  depthFramebuffers.resize(swapChainImageViews.size());
-  opaqueGraphicsFramebuffers.resize(swapChainImageViews.size());
-  graphicsFramebuffers.resize(swapChainImageViews.size());
+  depthFramebuffers.resize(backbufferImageViews.size());
+  opaqueGraphicsFramebuffers.resize(backbufferImageViews.size());
+  graphicsFramebuffers.resize(backbufferImageViews.size());
 
-  for (auto i = 0u; i < swapChainImageViews.size(); i++)
+  for (auto i = 0u; i < backbufferImageViews.size(); i++)
   {
-    vk::ImageView attachments[] = {*colorImageView, *depthImageView, *swapChainImageViews[i]};
+    vk::ImageView attachments[] = {*colorImageView, *depthImageView, *backbufferImageViews[i]};
     std::array<vk::ImageView, 1> depthAttachments {*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
@@ -1253,24 +1258,24 @@ void AsyVkRender::createFramebuffers()
       *countRenderPass,
       depthAttachments.size(),
       depthAttachments.data(),
-      swapChainExtent.width,
-      swapChainExtent.height,
+      backbufferExtent.width,
+      backbufferExtent.height,
       1
     );
     auto opaqueGraphicsFramebufferCI = vk::FramebufferCreateInfo(
       vk::FramebufferCreateFlags(),
       *opaqueGraphicsRenderPass,
       ARR_VIEW(attachments),
-      swapChainExtent.width,
-      swapChainExtent.height,
+      backbufferExtent.width,
+      backbufferExtent.height,
       1
     );
     auto graphicsFramebufferCI = vk::FramebufferCreateInfo(
       vk::FramebufferCreateFlags(),
       *graphicsRenderPass,
       ARR_VIEW(attachments),
-      swapChainExtent.width,
-      swapChainExtent.height,
+      backbufferExtent.width,
+      backbufferExtent.height,
       1
     );
 
@@ -2232,7 +2237,7 @@ void AsyVkRender::createBuffers()
 
 void AsyVkRender::createDependentBuffers()
 {
-  pixels=(swapChainExtent.width+1)*(swapChainExtent.height+1);
+  pixels=(backbufferExtent.width+1)*(backbufferExtent.height+1);
   std::uint32_t Pixels;
 
   if (GPUindexing) {
@@ -2501,7 +2506,7 @@ void AsyVkRender::createGraphicsRenderPass()
 {
   auto colorAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
-    swapChainImageFormat,
+    backbufferImageFormat,
     msaaSamples,
     vk::AttachmentLoadOp::eClear,
     vk::AttachmentStoreOp::eStore,
@@ -2512,7 +2517,7 @@ void AsyVkRender::createGraphicsRenderPass()
   );
   auto colorResolveAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
-    swapChainImageFormat,
+    backbufferImageFormat,
     vk::SampleCountFlagBits::e1,
     vk::AttachmentLoadOp::eDontCare,
     vk::AttachmentStoreOp::eStore,
@@ -2735,15 +2740,15 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   auto viewport = vk::Viewport(
     0.0f,
     0.0f,
-    static_cast<float>(swapChainExtent.width),
-    static_cast<float>(swapChainExtent.height),
+    static_cast<float>(backbufferExtent.width),
+    static_cast<float>(backbufferExtent.height),
     0.0f,
     1.0f
   );
 
   auto scissor = vk::Rect2D(
     vk::Offset2D(0, 0),
-    swapChainExtent
+    backbufferExtent
   );
 
   auto viewportStateCI = vk::PipelineViewportStateCreateInfo(
@@ -2988,17 +2993,17 @@ void AsyVkRender::createComputePipelines()
 
 void AsyVkRender::createAttachments()
 {
-  createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples, swapChainImageFormat,
+  createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, backbufferImageFormat,
               vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
               vk::MemoryPropertyFlagBits::eDeviceLocal, colorImage, colorImageMemory);
-  createImageView(swapChainImageFormat, vk::ImageAspectFlagBits::eColor, colorImage, colorImageView);
+  createImageView(backbufferImageFormat, vk::ImageAspectFlagBits::eColor, colorImage, colorImageView);
 
-  createImage(swapChainExtent.width, swapChainExtent.height, msaaSamples, vk::Format::eD32Sfloat,
+  createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, vk::Format::eD32Sfloat,
               vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, depthImage,
               depthImageMemory);
   createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthImage, depthImageView);
 
-  createImage(swapChainExtent.width, swapChainExtent.height, vk::SampleCountFlagBits::e1, vk::Format::eD32Sfloat,
+  createImage(backbufferExtent.width, backbufferExtent.height, vk::SampleCountFlagBits::e1, vk::Format::eD32Sfloat,
               vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, depthResolveImage,
               depthResolveImageMemory);
   createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthResolveImage, depthResolveImageView);
@@ -3051,8 +3056,8 @@ PushConstants AsyVkRender::buildPushConstants()
   auto pushConstants = PushConstants {};
 
   pushConstants.constants[0] = mode!= DRAWMODE_NORMAL ? 0 : nlights;
-  pushConstants.constants[1] = swapChainExtent.width;
-  pushConstants.constants[2] = swapChainExtent.height;
+  pushConstants.constants[1] = backbufferExtent.width;
+  pushConstants.constants[2] = backbufferExtent.height;
 
   for (int i = 0; i < 4; i++)
     pushConstants.background[i]=Background[i];
@@ -3101,7 +3106,7 @@ void AsyVkRender::beginCountFrameRender(int imageIndex)
   auto renderPassInfo = vk::RenderPassBeginInfo(
     *countRenderPass,
     *depthFramebuffers[imageIndex],
-    vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
+    vk::Rect2D(vk::Offset2D(0, 0), backbufferExtent),
     clearColors.size(),
     clearColors.data()
   );
@@ -3121,7 +3126,7 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
   auto renderPassInfo = vk::RenderPassBeginInfo(
     Opaque ? *opaqueGraphicsRenderPass : *graphicsRenderPass,
     Opaque ? *opaqueGraphicsFramebuffers[imageIndex] : *graphicsFramebuffers[imageIndex],
-    vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent),
+    vk::Rect2D(vk::Offset2D(0, 0), backbufferExtent),
     clearColors.size(),
     &clearColors[0]
   );
@@ -3945,16 +3950,16 @@ void AsyVkRender::Export(int imageIndex) {
   device->resetFences(1, &*exportFence);
   exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
-  auto const size = device->getImageMemoryRequirements(swapChainImages[0]).size;
+  auto const size = device->getImageMemoryRequirements(backbufferImages[0]).size;
   auto const swapExtent = vk::Extent3D(
-    swapChainExtent.width,
-    swapChainExtent.height,
+    backbufferExtent.width,
+    backbufferExtent.height,
     1
   );
   auto const reg = vk::BufferImageCopy(
     0,
-    swapChainExtent.width,
-    swapChainExtent.height,
+    backbufferExtent.width,
+    backbufferExtent.height,
     vk::ImageSubresourceLayers(
       vk::ImageAspectFlagBits::eColor, 0, 0, 1
     ),
@@ -3968,7 +3973,7 @@ void AsyVkRender::Export(int imageIndex) {
                size);
   transitionImageLayout(
     *exportCommandBuffer,
-    swapChainImages[imageIndex],
+    backbufferImages[imageIndex],
     vk::AccessFlagBits::eMemoryRead,
     vk::AccessFlagBits::eTransferRead,
     vk::ImageLayout::ePresentSrcKHR,
@@ -3984,11 +3989,11 @@ void AsyVkRender::Export(int imageIndex) {
     )
   );
 
-  exportCommandBuffer->copyImageToBuffer(swapChainImages[imageIndex], vk::ImageLayout::eTransferSrcOptimal, dst, 1, &reg);
+  exportCommandBuffer->copyImageToBuffer(backbufferImages[imageIndex], vk::ImageLayout::eTransferSrcOptimal, dst, 1, &reg);
 
   transitionImageLayout(
     *exportCommandBuffer,
-    swapChainImages[imageIndex],
+    backbufferImages[imageIndex],
     vk::AccessFlagBits::eTransferRead,
     vk::AccessFlagBits::eMemoryRead,
     vk::ImageLayout::eTransferSrcOptimal,
@@ -4022,25 +4027,25 @@ void AsyVkRender::Export(int imageIndex) {
   device->waitForFences(1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
 
   auto * data = static_cast<unsigned char*>(device->mapMemory(mem, 0, size));
-  auto * fmt = new unsigned char[swapChainExtent.width * swapChainExtent.height * 3]; // 3 for RGB
+  auto * fmt = new unsigned char[backbufferExtent.width * backbufferExtent.height * 3]; // 3 for RGB
 
-  for (auto i = 0u; i < swapChainExtent.height; i++)
-    for (auto j = 0u; j < swapChainExtent.width; j++)
+  for (auto i = 0u; i < backbufferExtent.height; i++)
+    for (auto j = 0u; j < backbufferExtent.width; j++)
       for (auto k = 0u; k < 3; k++)
         // need to flip vertically and swap byte order due to little endian in image data
         // 4 for sizeof unsigned (RGBA)
-        fmt[(swapChainExtent.height-1-i)*swapChainExtent.width*3+j*3+(2-k)]=data[i*swapChainExtent.width*4+j*4+k];
+        fmt[(backbufferExtent.height-1-i)*backbufferExtent.width*3+j*3+(2-k)]=data[i*backbufferExtent.width*4+j*4+k];
 
   picture pic;
   double w=oWidth;
   double h=oHeight;
-  double Aspect=((double) swapChainExtent.width)/swapChainExtent.height;
+  double Aspect=((double) backbufferExtent.width)/backbufferExtent.height;
   if(w > h*Aspect) w=(int) (h*Aspect+0.5);
   else h=(int) (w/Aspect+0.5);
 
   auto * const Image=new camp::drawRawImage(fmt,
-                                            swapChainExtent.width,
-                                            swapChainExtent.height,
+                                            backbufferExtent.width,
+                                            backbufferExtent.height,
                                             transform(0.0,0.0,w,0.0,0.0,h),
                                             antialias);
   pic.append(Image);

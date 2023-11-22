@@ -373,6 +373,7 @@ public:
   bool newUniformBuffer=true;
   bool queueExport=false;
   bool ibl=false;
+  bool offscreen=false;
   bool vkexit=false;
 
   bool vkthread=false;;
@@ -575,10 +576,10 @@ private:
   vk::UniqueSwapchainKHR swapChain;
   vk::UniqueCommandBuffer exportCommandBuffer;
   vk::UniqueFence exportFence;
-  std::vector<vk::Image> swapChainImages;
-  vk::Format swapChainImageFormat;
-  vk::Extent2D swapChainExtent;
-  std::vector<vk::UniqueImageView> swapChainImageViews;
+  vk::Format backbufferImageFormat=vk::Format::eB8G8R8A8Srgb;
+  vk::Extent2D backbufferExtent;
+  std::vector<vk::Image> backbufferImages;
+  std::vector<vk::UniqueImageView> backbufferImageViews;
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
   std::vector<vk::UniqueFramebuffer> opaqueGraphicsFramebuffers;
   std::vector<vk::UniqueFramebuffer> graphicsFramebuffers;
