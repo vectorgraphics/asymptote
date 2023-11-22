@@ -336,9 +336,8 @@ public:
 
 #ifdef HAVE_VULKAN
 constexpr
-std::array<const char*, 5> deviceExtensions
+std::array<const char*, 4> deviceExtensions
 {
-  VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,
   VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
   VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
   VK_KHR_MULTIVIEW_EXTENSION_NAME,
@@ -576,8 +575,10 @@ private:
   vk::UniqueSwapchainKHR swapChain;
   vk::UniqueCommandBuffer exportCommandBuffer;
   vk::UniqueFence exportFence;
-  vk::Format backbufferImageFormat=vk::Format::eB8G8R8A8Srgb;
+  vk::Format backbufferImageFormat=vk::Format::eB8G8R8A8Unorm;
   vk::Extent2D backbufferExtent;
+  vk::UniqueImage defaultBackbufferImage;
+  vk::UniqueDeviceMemory defaultBackbufferImageMemory;
   std::vector<vk::Image> backbufferImages;
   std::vector<vk::UniqueImageView> backbufferImageViews;
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
@@ -828,6 +829,7 @@ private:
 			                       vk::ImageSubresourceRange subresourceRange);
   void createExportResources();
   void createSwapChain();
+  void createOffscreenBuffers();
   void createImageViews();
   void createFramebuffers();
   void createCommandPools();

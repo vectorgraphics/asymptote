@@ -708,12 +708,13 @@ void AsyVkRender::initVulkan()
   }
 
   createInstance();
-  if (View) createSurface();
+  if (View && !offscreen) createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
   createCommandPools();
   createCommandBuffers();
-  if (View) createSwapChain();
+  if (View && !offscreen) createSwapChain();
+  else if (offscreen) createOffscreenBuffers();
   if (View) createImageViews();
   createSyncObjects();
 
@@ -903,6 +904,10 @@ void AsyVkRender::pickPhysicalDevice()
     else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
       score += 5;
     }
+    else if (vk::PhysicalDeviceType::eCpu == props.deviceType && offscreen) {
+      // Force using cpu for offscreen
+      score += 100;
+    }
 
     return score;
   };
@@ -973,7 +978,7 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
       indices.renderQueueFamilyFound = true;
     }
 
-    if (VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface)) {
+    if (surface != nullptr && VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface)) {
       indices.presentQueueFamily = u,
       indices.presentQueueFamilyFound = true;
     }
@@ -989,22 +994,26 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
 
 bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 {
-  auto const indices = findQueueFamilies(device, View ? &*surface : nullptr);
+  auto const indices = findQueueFamilies(device, View && !offscreen ? &*surface : nullptr);
   if (!indices.transferQueueFamilyFound
       || !indices.renderQueueFamilyFound
-      || !(indices.presentQueueFamilyFound || !View))
+      || !(indices.presentQueueFamilyFound || !View || offscreen))
       return false;
 
   if (!checkDeviceExtensionSupport(device))
     return false;
+
+  auto const features = device.getFeatures();
+
+  if (offscreen) {
+    return features.samplerAnisotropy;
+  }
 
   auto const swapDetails = SwapChainDetails(device, *surface);
 
   if (View && !swapDetails) {
     return false;
   }
-
-  auto const features = device.getFeatures();
 
   return features.samplerAnisotropy;
 }
@@ -1029,7 +1038,7 @@ void AsyVkRender::createLogicalDevice()
   if (supportedDeviceExtensions.find(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
-  if (View) {
+  if (View && !offscreen) {
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
   if (interlock) {
@@ -1041,14 +1050,17 @@ void AsyVkRender::createLogicalDevice()
     }
   }
 
-  queueFamilyIndices = findQueueFamilies(physicalDevice, View ? &*surface : nullptr);
+  queueFamilyIndices = findQueueFamilies(physicalDevice, View && !offscreen ? &*surface : nullptr);
 
   std::vector<vk::DeviceQueueCreateInfo> queueCIs;
   std::set<uint32_t> uniqueQueueFamilies = {
     queueFamilyIndices.transferQueueFamily,
-    queueFamilyIndices.renderQueueFamily,
-    queueFamilyIndices.presentQueueFamily
+    queueFamilyIndices.renderQueueFamily
   };
+
+  if (queueFamilyIndices.presentQueueFamilyFound) {
+    uniqueQueueFamilies.emplace(queueFamilyIndices.presentQueueFamily);
+  }
 
   float queuePriority = 1.0f;
   for(auto queueFamily : uniqueQueueFamilies) {
@@ -1056,15 +1068,14 @@ void AsyVkRender::createLogicalDevice()
     queueCIs.push_back(queueCI);
   }
 
-  auto portability = vk::PhysicalDevicePortabilitySubsetFeaturesKHR(
+  auto portabilityFeatures = vk::PhysicalDevicePortabilitySubsetFeaturesKHR(
     false,
     true
   );
   auto interlockFeatures = vk::PhysicalDeviceFragmentShaderInterlockFeaturesEXT(
     true,
     true,
-    false,
-    &portability
+    false
   );
   auto resolveExtension = vk::PhysicalDeviceDepthStencilResolveProperties(
     vk::ResolveModeFlagBits::eMin,
@@ -1074,10 +1085,15 @@ void AsyVkRender::createLogicalDevice()
     {},
     &resolveExtension
   );
+
   vk::PhysicalDeviceFeatures deviceFeatures;
   deviceFeatures.fillModeNonSolid = true;
 
   physicalDevice.getProperties2(&props);
+
+  if (interlock) {
+    portabilityFeatures.pNext = &interlockFeatures;
+  }
 
   auto deviceCI = vk::DeviceCreateInfo(
     vk::DeviceCreateFlags(),
@@ -1085,13 +1101,15 @@ void AsyVkRender::createLogicalDevice()
     VEC_VIEW(validationLayers),
     VEC_VIEW(extensions),
     &deviceFeatures,
-    &interlockFeatures
+    &portabilityFeatures
   );
 
   device = physicalDevice.createDeviceUnique(deviceCI, nullptr);
   transferQueue = device->getQueue(queueFamilyIndices.transferQueueFamily, 0);
   renderQueue = device->getQueue(queueFamilyIndices.renderQueueFamily, 0);
-  presentQueue = device->getQueue(queueFamilyIndices.presentQueueFamily, 0);
+  if (queueFamilyIndices.presentQueueFamilyFound) {
+    presentQueue = device->getQueue(queueFamilyIndices.presentQueueFamily, 0);
+  }
 }
 
 void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
@@ -1178,6 +1196,20 @@ void AsyVkRender::createSwapChain()
 
   for(auto & image: backbufferImages) {
     transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, image);
+  }
+}
+
+void AsyVkRender::createOffscreenBuffers() {
+  backbufferExtent=vk::Extent2D(width, height);
+  createImage(backbufferExtent.width, backbufferExtent.height,
+              vk::SampleCountFlagBits::e1, backbufferImageFormat,
+              vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
+              vk::MemoryPropertyFlagBits::eDeviceLocal,
+              defaultBackbufferImage, defaultBackbufferImageMemory);
+  backbufferImages.emplace_back(*defaultBackbufferImage);
+
+  for(auto & image: backbufferImages) {
+    transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, image);
   }
 }
 
@@ -2524,7 +2556,7 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::AttachmentLoadOp::eDontCare,
     vk::AttachmentStoreOp::eDontCare,
     vk::ImageLayout::eUndefined,
-    vk::ImageLayout::ePresentSrcKHR
+    offscreen ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR
   );
   auto depthAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
@@ -3624,15 +3656,19 @@ void AsyVkRender::drawFrame()
     recreatePipeline = false;
   }
 
-  uint32_t imageIndex; // index of the current swap chain image to render to
-  auto const result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(),
-                                                      *frameObject.imageAvailableSemaphore, nullptr,
-                                                      &imageIndex);
-  if (result == vk::Result::eErrorOutOfDateKHR
-      || result == vk::Result::eSuboptimalKHR)
-    return recreateSwapChain();
-  else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
-    throw std::runtime_error("Failed to acquire next swapchain image.");
+  uint32_t imageIndex=0; // index of the current swap chain image to render to
+
+  // Get the image index from the swapchain if not rendering offscreen.
+  if (!offscreen) {
+    auto const result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(),
+                                                        *frameObject.imageAvailableSemaphore, nullptr,
+                                                        &imageIndex);
+    if (result == vk::Result::eErrorOutOfDateKHR
+        || result == vk::Result::eSuboptimalKHR)
+      return recreateSwapChain();
+    else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
+      throw std::runtime_error("Failed to acquire next swapchain image.");
+  }
 
   device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
   device->resetFences(1, &*frameObject.inFlightFence);
@@ -3644,59 +3680,67 @@ void AsyVkRender::drawFrame()
   preDrawBuffers(frameObject, imageIndex);
   drawBuffers(frameObject, imageIndex);
 
-  std::vector<vk::Semaphore> waitSemaphores {*frameObject.imageAvailableSemaphore};
+  std::vector<vk::Semaphore> waitSemaphores {}, signalSemaphores {};
+
+  // Wait for the swapchain to get an image if we are rendering onscreen
+  // Also signal to the swapchain that the render has finished if rendering onscreen
+  if (!offscreen) {
+    waitSemaphores.emplace_back(*frameObject.imageAvailableSemaphore);
+    signalSemaphores.emplace_back(*frameObject.renderFinishedSemaphore);
+  }
+
   std::vector<vk::PipelineStageFlags> waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
   if (!GPUindexing) {
-
     waitSemaphores.emplace_back(*frameObject.inCountBufferCopy);
     waitStages.emplace_back(vk::PipelineStageFlagBits::eFragmentShader);
   }
 
-  vk::Semaphore signalSemaphores[] = {*frameObject.renderFinishedSemaphore};
   auto submitInfo = vk::SubmitInfo(
     waitSemaphores.size(),
     waitSemaphores.data(),
     waitStages.data(),
     1,
     &*frameObject.commandBuffer,
-    ARR_VIEW(signalSemaphores)
+    VEC_VIEW(signalSemaphores)
   );
 
   if (renderQueue.submit(1, &submitInfo, *frameObject.inFlightFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
 
-  auto presentInfo = vk::PresentInfoKHR(ARR_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
-
-  try
-  {
-    auto const result = presentQueue.presentKHR(presentInfo);
-    if (result == vk::Result::eErrorOutOfDateKHR
-        || result == vk::Result::eSuboptimalKHR
-        || framebufferResized)
-      framebufferResized = false, recreateSwapChain();
-    else if (result != vk::Result::eSuccess)
-      throw std::runtime_error( "Failed to present swapchain image." );
-  }
-  catch(std::exception const & e)
-  {
-    if (std::string(e.what()).find("ErrorOutOfDateKHR") != std::string::npos)
-      framebufferResized = false, recreateSwapChain();
-    else
+  // Present to the swapchain if we are rendering on-screen.
+  if (!offscreen) {
+    try
     {
-      std::cout << "Other error: " << e.what() << std::endl;
-      throw;
+      auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
+      auto const result = presentQueue.presentKHR(presentInfo);
+      if (result == vk::Result::eErrorOutOfDateKHR
+          || result == vk::Result::eSuboptimalKHR
+          || framebufferResized)
+        framebufferResized = false, recreateSwapChain();
+      else if (result != vk::Result::eSuccess)
+        throw std::runtime_error( "Failed to present swapchain image." );
+    }
+    catch(std::exception const & e)
+    {
+      if (std::string(e.what()).find("ErrorOutOfDateKHR") != std::string::npos)
+        framebufferResized = false, recreateSwapChain();
+      else
+      {
+        std::cout << "Other error: " << e.what() << std::endl;
+        throw;
+      }
     }
   }
 
   if (recreateBlendPipeline) {
-
     device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
     createBlendPipeline();
     recreateBlendPipeline=false;
   }
 
   if(queueExport) {
+    device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
     Export(imageIndex);
     queueExport=false;
   }
@@ -3780,14 +3824,18 @@ void AsyVkRender::display()
 
 void AsyVkRender::poll()
 {
-
-  vkexit |= glfwWindowShouldClose(window);
+  if (!offscreen) {
+    vkexit |= glfwWindowShouldClose(window);
+  }
 
   if (vkexit) {
     exitHandler(0);
     vkexit=false;
   }
-  glfwPollEvents();
+
+  if (!offscreen) { //
+    glfwPollEvents();
+  }
 }
 
 void AsyVkRender::mainLoop()
@@ -3976,7 +4024,7 @@ void AsyVkRender::Export(int imageIndex) {
     backbufferImages[imageIndex],
     vk::AccessFlagBits::eMemoryRead,
     vk::AccessFlagBits::eTransferRead,
-    vk::ImageLayout::ePresentSrcKHR,
+    offscreen ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
     vk::ImageLayout::eTransferSrcOptimal,
     vk::PipelineStageFlagBits::eTransfer,
     vk::PipelineStageFlagBits::eTransfer,
@@ -3997,7 +4045,7 @@ void AsyVkRender::Export(int imageIndex) {
     vk::AccessFlagBits::eTransferRead,
     vk::AccessFlagBits::eMemoryRead,
     vk::ImageLayout::eTransferSrcOptimal,
-    vk::ImageLayout::ePresentSrcKHR,
+    offscreen ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
     vk::PipelineStageFlagBits::eTransfer,
     vk::PipelineStageFlagBits::eTransfer,
     vk::ImageSubresourceRange(
@@ -4311,14 +4359,16 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
 
   capsize(w,h);
 
-  glfwSetWindowSize(window, w, h);
+  if (!offscreen) {
+    glfwSetWindowSize(window, w, h);
 
-  if (reposition) {
-    windowposition(x, y, w, h);
-    glfwSetWindowPos(window, x, y);
-  } else {
-    glfwGetWindowPos(window, &x, &y);
-    glfwSetWindowPos(window, max(x-2,0), max(y-2, 0));
+    if (reposition) {
+      windowposition(x, y, w, h);
+      glfwSetWindowPos(window, x, y);
+    } else {
+      glfwGetWindowPos(window, &x, &y);
+      glfwSetWindowPos(window, max(x-2,0), max(y-2, 0));
+    }
   }
 
   update();
