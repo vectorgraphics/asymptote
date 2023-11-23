@@ -340,9 +340,8 @@ public:
 
 #ifdef HAVE_VULKAN
 constexpr
-std::array<const char*, 5> deviceExtensions
+std::array<const char*, 4> deviceExtensions
 {
-  VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,
   VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
   VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
   VK_KHR_MULTIVIEW_EXTENSION_NAME,

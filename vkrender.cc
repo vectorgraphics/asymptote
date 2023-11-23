@@ -977,6 +977,20 @@ void AsyVkRender::pickPhysicalDevice()
     else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
       score += 5;
     }
+    else if(vk::PhysicalDeviceType::eVirtualGpu == props.deviceType) {
+      score += 10;
+      std::cout << "virtual gpu" << std::endl;
+    }
+    else if(vk::PhysicalDeviceType::eOther == props.deviceType) {
+      score += 10;
+      std::cout << "other gpu" << std::endl;
+    }
+    else if(vk::PhysicalDeviceType::eOther == props.deviceType) {
+      score += 10;
+      std::cout << "using cpu" << std::endl;
+    }
+
+    std::cout << "score: " << score << std::endl;
 
     return score;
   };
@@ -1063,6 +1077,7 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
 
 bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 {
+  return true;
   auto const indices = findQueueFamilies(device, View ? &*surface : nullptr);
   if (!indices.transferQueueFamilyFound
       || !indices.renderQueueFamilyFound
@@ -1137,8 +1152,7 @@ void AsyVkRender::createLogicalDevice()
   auto interlockFeatures = vk::PhysicalDeviceFragmentShaderInterlockFeaturesEXT(
     true,
     true,
-    false,
-    &portability
+    false
   );
   auto resolveExtension = vk::PhysicalDeviceDepthStencilResolveProperties(
     vk::ResolveModeFlagBits::eMin,
@@ -1159,7 +1173,7 @@ void AsyVkRender::createLogicalDevice()
     VEC_VIEW(validationLayers),
     VEC_VIEW(extensions),
     &deviceFeatures,
-    &interlockFeatures
+    &portability
   );
 
   device = physicalDevice.createDeviceUnique(deviceCI, nullptr);
