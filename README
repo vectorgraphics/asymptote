@@ -44,14 +44,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Note that the MSWindows executable version of Asymptote can only be
 released under the GNU General Public License (GPL) as it is linked against
 the GNU Scientific Library, GNU Readline library, and other GPL
-libraries. This version of Asymptote also ships with the cygwin1.dll libraries
-noted below.
+libraries.
 
 ========================================================================
-
-Source code for the x86_64 and i386 3.3.3 cygwin1.dll libraries is
-available under the GPL license:
-https://cygwin.com/snapshots/
 
 Source for various icons is available under the MIT license from
 https://github.com/driftyco/ionicons/archive/v2.0.1.zip
