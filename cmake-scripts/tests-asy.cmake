@@ -17,7 +17,7 @@ function(add_individual_asy_tests)
 
     set(TEST_PATH ${ASY_ASYLANG_TEST_ROOT}/${ASY_TEST_DIR}/${ASY_TEST_FILE}.asy)
     add_test(
-            NAME "asy:${ASY_TEST_DIR}/${ASY_TEST_FILE}"
+            NAME "asy.${ASY_TEST_DIR}.${ASY_TEST_FILE}"
             COMMAND asy
                 -dir ${ASY_BUILD_BASE_DIR} ${SYSDIR_ARGS} ${TEST_PATH}
                 -o ${ASY_ASYLANG_TEST_SCRATCH_DIR}
