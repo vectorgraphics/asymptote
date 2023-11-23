@@ -15,6 +15,7 @@
 #include <cfloat>
 #include <sstream>
 #include <cerrno>
+#include <cstdlib>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -196,29 +197,26 @@ char *StrdupMalloc(string s)
 
 string stripDir(string name)
 {
-  size_t p;
-#ifdef __MSDOS__
-  p=name.rfind('\\');
-  if(p < string::npos) name.erase(0,p+1);
-#endif
-  p=name.rfind('/');
+#if defined(_WIN32)
+  char* nameBuf=Strdup(std::move(name));
+  PathStripPathA(nameBuf);
+
+  return nameBuf;
+#else
+  size_t p=name.rfind('/');
   if(p < string::npos) name.erase(0,p+1);
   return name;
+#endif
 }
 
 string stripFile(string name)
 {
-  size_t p;
-  bool dir=false;
-#ifdef __MSDOS__
-  p=name.rfind('\\');
-  if(p < string::npos) {
-    dir=true;
-    while(p > 0 && name[p-1] == '\\') --p;
-    name.erase(p+1);
-  }
+#if defined(_WIN32)
+  std::replace(name.begin(), name.end(), '\\', '/');
 #endif
-  p=name.rfind('/');
+
+  bool dir=false;
+  size_t p=name.rfind('/');
   if(p < string::npos) {
     dir=true;
     while(p > 0 && name[p-1] == '/') --p;
@@ -254,11 +252,29 @@ void spaceToUnderscore(string& s)
 
 string Getenv(const char *name, bool msdos)
 {
+#if defined(_WIN32)
+  size_t envSize=0;
+  getenv_s(&envSize,nullptr,0,name);
+  if (envSize == 0)
+  {
+    return "";
+  }
+
+  mem::vector<char> resultingData(envSize);
+  if (getenv_s(&envSize, resultingData.data(), resultingData.size(), name) != 0)
+  {
+    camp::reportError("Cannot retrieve environment variable");
+  }
+
+  return resultingData.data();
+
+#else
   char *s=getenv(name);
   if(!s) return "";
   string S=string(s);
   if(msdos) backslashToSlash(S);
   return S;
+#endif
 }
 
 void readDisabled()
