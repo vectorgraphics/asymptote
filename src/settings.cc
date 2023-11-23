@@ -11,13 +11,15 @@
 #include <cerrno>
 #include <sys/stat.h>
 #include <cfloat>
-#include <locale.h>
+#include <clocale>
 #include <algorithm>
 
 #if defined(_WIN32)
 #include <Windows.h>
 #include <io.h>
 #define isatty _isatty
+
+#include "win32helpers.h"
 #else
 #include <unistd.h>
 #endif
@@ -106,7 +108,7 @@ string defaultPNGdriver="png16m"; // pngalpha has issues at high resolutions
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
   string(AsyGLVersion)+".js";
 
-#ifndef __MSDOS__
+#if !defined(_WIN32)
 
 bool msdos=false;
 string HOME="HOME";
@@ -145,64 +147,140 @@ string defaultDisplay="cmd";
 string defaultAnimate="cmd";
 const string dirsep="\\";
 
-#include <dirent.h>
-
-// Use key to look up an entry in the MSWindows registry, respecting wild cards
-string getEntry(const string& location, const string& key)
+/**
+ * Use key to look up an entry in the MSWindows registry,
+ * @param baseRegLocation base location for a key
+ * @param key Key to look up, respecting wild cards
+ * @remark Wildcards can only be in keys, not in the final value
+ * @return Entry value, or an empty string if not found
+ */
+string getEntry(const HKEY& baseRegLocation, const string& key)
 {
-  string path="/proc/registry"+location+key;
+  string path=key;
   size_t star;
   string head;
-  while((star=path.find("*")) < string::npos) {
+  while((star=path.find('*')) < string::npos) {
+    // has asterisk in the path
+
     string prefix=path.substr(0,star);
-    string suffix=path.substr(star+1);
-    size_t slash=suffix.find("/");
+    string pathSuffix=path.substr(star+1);
+    // path = prefix [*] pathSuffix
+    size_t slash=pathSuffix.find('/');
     if(slash < string::npos) {
-      path=suffix.substr(slash);
-      suffix=suffix.substr(0,slash);
+      // pathsuffix is not leaf yet
+      // pathSuffix = <new path suffix>[/<new path>]
+      path=pathSuffix.substr(slash);
+      pathSuffix=pathSuffix.substr(0,slash);
     } else {
-      path=suffix;
-      suffix="";
+      // pathSuffix is entirely part of registry value name
+      // pathSuffix = <new path>, new path suffix is empty
+      path=pathSuffix;
+      pathSuffix="";
     }
     string directory=head+stripFile(prefix);
     string file=stripDir(prefix);
-    DIR *dir=opendir(directory.c_str());
-    if(dir == NULL) return "";
-    dirent *p;
-    string rsuffix=suffix;
+    // prefix = directory/file
+    // [old path] = directory/file [*] pathSuffix [/path]
+    // or, if asterisk is in the leaf
+    // [old path] = directory/file[*]path, pathSuffix is empty
+
+    camp::w32::RegKeyWrapper currRegDirectory;
+    if (RegOpenKeyExA(baseRegLocation, directory.c_str(), 0, KEY_READ, currRegDirectory.put()) != ERROR_SUCCESS)
+    {
+      currRegDirectory.release();
+      return "";
+    }
+
+    string rsuffix=pathSuffix;
     reverse(rsuffix.begin(),rsuffix.end());
-    while((p=readdir(dir)) != NULL) {
-      string dname=p->d_name;
+    DWORD numSubKeys;
+    DWORD longestSubkeySize;
+
+    if (RegQueryInfoKeyA(
+                currRegDirectory.getKey(),
+                nullptr, nullptr, nullptr,
+                &numSubKeys, &longestSubkeySize,
+                nullptr, nullptr, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
+    {
+      numSubKeys = 0;
+      longestSubkeySize = 0;
+    }
+
+    mem::vector<char> subkeyBuffer(longestSubkeySize + 1);
+
+    bool found=false;
+    for (DWORD i=0;i<numSubKeys;++i)
+    {
+      DWORD cchValue=longestSubkeySize;
+      if (RegEnumKeyExA(
+                  currRegDirectory.getKey(),i,subkeyBuffer.data(),
+                  &cchValue,
+                  nullptr,nullptr,nullptr,nullptr) != ERROR_SUCCESS)
+      {
+        continue;
+      }
+
+      string const dname(subkeyBuffer.data());
       string rdname=dname;
       reverse(rdname.begin(),rdname.end());
-      if(dname != "." && dname != ".." &&
-         dname.substr(0,file.size()) == file &&
-         rdname.substr(0,suffix.size()) == rsuffix) {
-        head=directory+p->d_name;
+      if(dname.substr(0,file.size()) == file &&
+         rdname.substr(0, pathSuffix.size()) == rsuffix) {
+        // dname matches file [*} pathSuffix
+        head=directory+dname;
+        found=true;
         break;
       }
     }
-    if(p == NULL) return "";
+
+    if (!found)
+    {
+      return "";
+    }
   }
-  std::ifstream fin((head+path).c_str());
-  if(fin) {
-    string s;
-    getline(fin,s);
-    size_t end=s.find('\0');
-    if(end < string::npos)
-      return s.substr(0,end);
+
+  if (path.find('/') == 0)
+  {
+    path = path.substr(1); // strip the prefix separator
   }
-  return "";
+
+  DWORD requiredStrSize=0;
+  // FIXME: Add handling of additional types
+  if (RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
+                   RRF_RT_REG_SZ, nullptr, nullptr, &requiredStrSize) != ERROR_SUCCESS)
+  {
+    return "";
+  }
+
+  mem::vector<BYTE> outputBuffer(requiredStrSize);
+
+  if (RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
+                   RRF_RT_REG_SZ, nullptr, outputBuffer.data(), nullptr) != ERROR_SUCCESS)
+  {
+    return "";
+  }
+
+  return reinterpret_cast<char const*>(outputBuffer.data());
 }
 
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
 string getEntry(const string& key)
 {
-  string entry=getEntry("64/HKEY_CURRENT_USER/Software/",key);
-  if(entry.empty()) entry=getEntry("64/HKEY_LOCAL_MACHINE/SOFTWARE/",key);
-  if(entry.empty()) entry=getEntry("/HKEY_CURRENT_USER/Software/",key);
-  if(entry.empty()) entry=getEntry("/HKEY_LOCAL_MACHINE/SOFTWARE/",key);
-  return entry;
+  for (HKEY keyToSearch : { HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE })
+  {
+    camp::w32::RegKeyWrapper baseRegKey;
+    if (RegOpenKeyExA(keyToSearch, "Software", 0, KEY_READ, baseRegKey.put()) != ERROR_SUCCESS)
+    {
+      baseRegKey.release();
+      continue;
+    }
+
+    if (string entry=getEntry(baseRegKey.getKey(),key); !entry.empty())
+    {
+      return entry;
+    }
+  }
+
+  return "";
 }
 
 void queryRegistry()
