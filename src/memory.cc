@@ -32,10 +32,12 @@ void* asy_malloc_atomic(size_t n)
   throw std::bad_alloc();
 }
 
+#if !defined(_WIN32)
 GC_API void GC_CALL GC_throw_bad_alloc()
 {
   throw std::bad_alloc();
 }
+#endif
 
 #endif // defined(USEGC)
 
