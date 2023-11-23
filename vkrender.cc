@@ -3852,7 +3852,7 @@ void AsyVkRender::mainLoop()
     if (currentIdleFunc != nullptr)
       currentIdleFunc();
 
-    if (!View && nFrames > maxFramesInFlight)
+    if ((!View || offscreen) && nFrames > maxFramesInFlight)
       break;
 
     nFrames++;

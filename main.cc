@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 #ifdef __APPLE__
   bool usethreads=true;
 #else
-  bool usethreads=view();
+  bool usethreads=view() || settings::getSetting<bool>("offscreen");
 #endif
   camp::vk->vkthread=usethreads ? getSetting<bool>("threads") : false;
 #if HAVE_PTHREAD
