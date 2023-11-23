@@ -23,6 +23,65 @@ void checkResult(BOOL result, string const& message)
   }
 }
 
+void checkLStatus(LSTATUS result, string const& message)
+{
+  checkResult(result == ERROR_SUCCESS, message);
+}
+
+#pragma region RegKeyWrapper
+
+RegKeyWrapper::RegKeyWrapper(HKEY const& regKey)
+    : key(regKey)
+{
+}
+RegKeyWrapper::RegKeyWrapper() : key(nullptr)
+{
+}
+RegKeyWrapper::~RegKeyWrapper()
+{
+  closeExistingKey();
+}
+RegKeyWrapper::RegKeyWrapper(RegKeyWrapper&& other) noexcept
+        : key(std::exchange(other.key, nullptr))
+{
+}
+
+RegKeyWrapper& RegKeyWrapper::operator=(RegKeyWrapper&& other) noexcept
+{
+  if (this != &other)
+  {
+    closeExistingKey();
+    this->key = std::exchange(other.key, nullptr);
+  }
+  return *this;
+}
+
+HKEY RegKeyWrapper::getKey() const
+{
+  return key;
+}
+
+void RegKeyWrapper::closeExistingKey()
+{
+  if (this->key != nullptr)
+  {
+    RegCloseKey(this->key);
+    this->key = nullptr;
+  }
+}
+
+PHKEY RegKeyWrapper::put()
+{
+  closeExistingKey();
+  return &(this->key);
+}
+void RegKeyWrapper::release()
+{
+  this->key = nullptr;
+}
+
+#pragma endregion
+
 #pragma region HandleRaiiWrapper
 
 HandleRaiiWrapper::HandleRaiiWrapper(HANDLE const& handle)

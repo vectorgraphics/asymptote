@@ -15,8 +15,39 @@ namespace camp::w32
 {
 
 void checkResult(BOOL result, string const& message="");
+void checkLStatus(LSTATUS result, string const& message="");
 
 string buildWindowsCmd(const mem::vector<string>& command);
+
+/**
+ * A simple wraper for <tt>HKEY</tt>
+ */
+class RegKeyWrapper
+{
+public:
+  RegKeyWrapper(HKEY const& regKey);
+  RegKeyWrapper();
+
+  ~RegKeyWrapper();
+  RegKeyWrapper(RegKeyWrapper const&) = delete;
+  RegKeyWrapper& operator=(RegKeyWrapper const&) = delete;
+
+  RegKeyWrapper(RegKeyWrapper&& other) noexcept;
+  RegKeyWrapper& operator=(RegKeyWrapper&& other) noexcept;
+
+  /**
+   * @return The registry key held by the wrapper
+   */
+  [[nodiscard]]
+  HKEY getKey() const;
+  PHKEY put();
+
+  void release();
+
+private:
+  void closeExistingKey();
+  HKEY key;
+};
 
 class HandleRaiiWrapper
 {
