@@ -345,7 +345,9 @@ struct signature : public gc {
     : numKeywordOnly(0), rest(0), isOpen(false)
   {}
 
-  static const struct OPEN_t {} OPEN;
+  struct OPEN_t {};
+
+  static const OPEN_t OPEN;
 
   explicit signature(OPEN_t) : numKeywordOnly(0), rest(0), isOpen(true) {}
 

@@ -30,6 +30,8 @@ void arrayDeleteHelper(vm::stack *Stack);
 
 namespace types {
 
+const signature::OPEN_t signature::OPEN;
+
 /* Base types */
 #define PRIMITIVE(name,Name,asyName)            \
   primitiveTy p##Name(ty_##name);               \
