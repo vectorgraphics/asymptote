@@ -487,7 +487,11 @@ GLTexture3<float,GL_FLOAT> fromEXR3(
     std::copy(fil3.getData(),fil3.getData()+imSize,std::back_inserter(data));
   }
 
-  return GLTexture3<float,GL_FLOAT> {data.data(),std::tuple<int,int,int>(wi,ht,count),textureNumber,fmt};
+  return GLTexture3<float,GL_FLOAT> {
+          data.data(),
+          std::tuple<int,int,int>(wi,ht,static_cast<int>(count)),textureNumber,
+          fmt
+  };
 }
 
 void initIBL()
