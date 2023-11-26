@@ -19,6 +19,24 @@ git clone https://github.com/microsoft/vcpkg.git
 ./vcpkg/bootstrap-vcpkg.bat
 ```
 
+### Windows-specific note
+
+On Windows, make sure the environment VCPKG_ROOT points to where your vcpkg repository is at user or machine scope.
+
+#### For User scope
+This can be done either by Start -> "Edit environment variables for your account" and then adding
+VCPKG_ROOT entry, or by Powershell,
+
+```powershell
+[Environment]::SetEnvironmentVariable('VCPKG_ROOT', '<path to vcpkg>', 'User')
+```
+
+#### For machine scope
+
+Otherwise, you can also set VCPKG_ROOT for everyone in your machine.
+
+#### Regarding Visual Studio
+
 Make sure Visual Studio is installed (or a C++ compiler that is compatible with vcpkg.)
 Unfortunately vcpkg is not yet compatible fully with the LLVM toolchain nor does it
 provide LLVM-related triplets.
