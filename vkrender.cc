@@ -243,7 +243,7 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 void AsyVkRender::initWindow()
 {
-  if (!View || offscreen)
+  if (!View)
     return;
 
   if (!window) {
@@ -762,14 +762,14 @@ void AsyVkRender::initVulkan()
   }
 
   createInstance();
-  if (View && !offscreen) createSurface();
+  if (View) createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
   createCommandPools();
   createCommandBuffers();
-  if (View && !offscreen) createSwapChain();
-  else if (offscreen) createOffscreenBuffers();
-  if (View) createImageViews();
+  if (View) createSwapChain();
+  else createOffscreenBuffers();
+  createImageViews();
   createSyncObjects();
 
   createDescriptorSetLayout();
@@ -1051,10 +1051,10 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
 
 bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 {
-  auto const indices = findQueueFamilies(device, View && !offscreen ? &*surface : nullptr);
+  auto const indices = findQueueFamilies(device, View ? &*surface : nullptr);
   if (!indices.transferQueueFamilyFound
       || !indices.renderQueueFamilyFound
-      || !(indices.presentQueueFamilyFound || !View || offscreen))
+      || !(indices.presentQueueFamilyFound || !View))
       return false;
 
   if (!checkDeviceExtensionSupport(device))
@@ -1062,7 +1062,7 @@ bool AsyVkRender::isDeviceSuitable(vk::PhysicalDevice& device)
 
   auto const features = device.getFeatures();
 
-  if (offscreen) {
+  if (!View) {
     return features.samplerAnisotropy;
   }
 
@@ -1095,7 +1095,7 @@ void AsyVkRender::createLogicalDevice()
   if (supportedDeviceExtensions.find(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
-  if (View && !offscreen) {
+  if (View) {
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
   if (interlock) {
@@ -1107,7 +1107,7 @@ void AsyVkRender::createLogicalDevice()
     }
   }
 
-  queueFamilyIndices = findQueueFamilies(physicalDevice, View && !offscreen ? &*surface : nullptr);
+  queueFamilyIndices = findQueueFamilies(physicalDevice, View ? &*surface : nullptr);
 
   std::vector<vk::DeviceQueueCreateInfo> queueCIs;
   std::set<uint32_t> uniqueQueueFamilies = {
@@ -2613,7 +2613,7 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::AttachmentLoadOp::eDontCare,
     vk::AttachmentStoreOp::eDontCare,
     vk::ImageLayout::eUndefined,
-    offscreen ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR
+    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR
   );
   auto depthAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
@@ -3715,8 +3715,8 @@ void AsyVkRender::drawFrame()
 
   uint32_t imageIndex=0; // index of the current swap chain image to render to
 
-  // Get the image index from the swapchain if not rendering offscreen.
-  if (!offscreen) {
+  // Get the image index from the swapchain if not viewing.
+  if (View) {
     auto const result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(),
                                                         *frameObject.imageAvailableSemaphore, nullptr,
                                                         &imageIndex);
@@ -3741,7 +3741,7 @@ void AsyVkRender::drawFrame()
 
   // Wait for the swapchain to get an image if we are rendering onscreen
   // Also signal to the swapchain that the render has finished if rendering onscreen
-  if (!offscreen) {
+  if (View) {
     waitSemaphores.emplace_back(*frameObject.imageAvailableSemaphore);
     signalSemaphores.emplace_back(*frameObject.renderFinishedSemaphore);
   }
@@ -3766,7 +3766,7 @@ void AsyVkRender::drawFrame()
     throw std::runtime_error("failed to submit draw command buffer!");
 
   // Present to the swapchain if we are rendering on-screen.
-  if (!offscreen) {
+  if (View) {
     try
     {
       auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
@@ -3881,7 +3881,7 @@ void AsyVkRender::display()
 
 void AsyVkRender::poll()
 {
-  if (!offscreen) {
+  if (View) {
     vkexit |= glfwWindowShouldClose(window);
   }
 
@@ -3890,7 +3890,7 @@ void AsyVkRender::poll()
     vkexit=false;
   }
 
-  if (!offscreen) { //
+  if (View) {
     glfwPollEvents();
   }
 }
@@ -3909,7 +3909,7 @@ void AsyVkRender::mainLoop()
     if (currentIdleFunc != nullptr)
       currentIdleFunc();
 
-    if ((!View || offscreen) && nFrames > maxFramesInFlight)
+    if (!View && nFrames > maxFramesInFlight)
       break;
 
     nFrames++;
@@ -4081,7 +4081,7 @@ void AsyVkRender::Export(int imageIndex) {
     backbufferImages[imageIndex],
     vk::AccessFlagBits::eMemoryRead,
     vk::AccessFlagBits::eTransferRead,
-    offscreen ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
+    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
     vk::ImageLayout::eTransferSrcOptimal,
     vk::PipelineStageFlagBits::eTransfer,
     vk::PipelineStageFlagBits::eTransfer,
@@ -4102,7 +4102,7 @@ void AsyVkRender::Export(int imageIndex) {
     vk::AccessFlagBits::eTransferRead,
     vk::AccessFlagBits::eMemoryRead,
     vk::ImageLayout::eTransferSrcOptimal,
-    offscreen ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
+    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
     vk::PipelineStageFlagBits::eTransfer,
     vk::PipelineStageFlagBits::eTransfer,
     vk::ImageSubresourceRange(
@@ -4416,7 +4416,7 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
 
   capsize(w,h);
 
-  if (!offscreen) {
+  if (View) {
     glfwSetWindowSize(window, w, h);
 
     if (reposition) {

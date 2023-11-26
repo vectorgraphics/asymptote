@@ -1410,7 +1410,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_LIBGLM
   static int oldpid=0;
-  bool View=(settings::view() || settings::getSetting<bool>("offscreen")) && view;
+  bool View=settings::view() && !settings::getSetting<bool>("offscreen") && view;
 #endif
 
 #ifdef HAVE_VULKAN
@@ -1486,7 +1486,7 @@ bool picture::shipout3(const string& prefix, const string& format,
  #if HAVE_LIBGLM
   vk->vkrender(prefix,pic,format,width,height,angle,
                zoom,m,M,shift,margin,t,background,
-               nlights,lights,diffuse,specular,view,
+               nlights,lights,diffuse,specular,View,
                oldpid);
 
    if(format3d) {
