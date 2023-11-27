@@ -677,7 +677,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   Animate=settings::getSetting<bool>("autoplay") && vkthread;
   ibl=settings::getSetting<bool>("ibl");
 
-  if (settings::verbose > 1) {
+  if (offscreen && settings::verbose > 1) {
     std::cout << "Using offscreen mode." << std::endl;
   }
 
