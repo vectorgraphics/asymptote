@@ -512,6 +512,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   // Do not query disabled devices
   setenv("DRI_PRIME","1",0);
 
+  offscreen=settings::getSetting<bool>("offscreen");
+
   this->pic = pic;
   this->Prefix=prefix;
   this->Format = format;
@@ -527,10 +529,13 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->Zoom0 = zoom;
   this->Shift = shift / zoom;
   this->Margin = margin;
+
   for (int i = 0; i < 4; i++)
     this->Background[i] = static_cast<float>(background[i]);
 
-  View = view;
+  this->ViewExport=view;
+  this->View = view && !offscreen;
+
   this->title = std::string(settings::PROGRAM)+": "+prefix.c_str();
 
   Xmin = mins.getx();
@@ -682,7 +687,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   Animate=settings::getSetting<bool>("autoplay") && vkthread;
   ibl=settings::getSetting<bool>("ibl");
-  offscreen=settings::getSetting<bool>("offscreen");
 
   if (offscreen && settings::verbose > 1) {
     std::cout << "Using offscreen mode." << std::endl;
@@ -4154,7 +4158,7 @@ void AsyVkRender::Export(int imageIndex) {
                                             transform(0.0,0.0,w,0.0,0.0,h),
                                             antialias);
   pic.append(Image);
-  pic.shipout(NULL,Prefix,Format,false,View);
+  pic.shipout(NULL,Prefix,Format,false,ViewExport);
   delete Image;
   delete[] fmt;
 
