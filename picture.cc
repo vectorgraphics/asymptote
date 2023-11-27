@@ -1410,7 +1410,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_LIBGLM
   static int oldpid=0;
-  bool View=settings::view() && !settings::getSetting<bool>("offscreen") && view;
+  bool View=settings::view() && view;
 #endif
 
 #ifdef HAVE_VULKAN
