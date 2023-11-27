@@ -593,7 +593,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(w, h);
 
   antialias=settings::getSetting<Int>("multisample")>1;
-  maxFramesInFlight=settings::getSetting<Int>("maxFramesInFlight");
+  if (view) {
+    maxFramesInFlight=settings::getSetting<Int>("maxFramesInFlight");
+  } else {
+    maxFramesInFlight=1;
+  }
   oWidth = w;
   oHeight = h;
   aspect=w/h;
@@ -703,7 +707,7 @@ void AsyVkRender::initVulkan()
   frameObjects.resize(maxFramesInFlight);
 
   if (settings::verbose > 1) {
-    std::cout << "Using " << maxFramesInFlight << " maximum frames in flight."
+    std::cout << "Using " << maxFramesInFlight << " maximum frame(s) in flight."
               << std::endl;
   }
 
