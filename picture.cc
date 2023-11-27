@@ -1285,14 +1285,14 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
   if(!texengineSave.empty()) Setting("tex")=texengineSave;
 
-  // if(htmlformat) {
-  //   jsfile out;
-  //   out.svgtohtml(prefix);
-  //   string name=buildname(prefix,"html");
-  //   display(name,"html",wait,true,false);
-  //   if(!keep)
-  //     unlink(outname.c_str());
-  // }
+  if(htmlformat) {
+    jsfile out;
+    out.svgtohtml(prefix);
+    string name=buildname(prefix,"html");
+    display(name,"html",wait,true,false);
+    if(!keep)
+      unlink(outname.c_str());
+  }
 
   return true;
 }
