@@ -508,6 +508,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   setenv("DRI_PRIME","1",0);
 
   offscreen=settings::getSetting<bool>("offscreen");
+  GLFWmonitor* monitor=glfwGetPrimaryMonitor();
+  if(!monitor) offscreen=true;
 
   this->pic = pic;
   this->Prefix=prefix;
@@ -625,13 +627,15 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     maxTileHeight=768;
 
 #ifdef HAVE_VULKAN
-  int mx, my, workWidth, workHeight;
+  int mx,my;
 
   glfwInit();
-  glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &mx, &my, &workWidth, &workHeight);
 
-  screenWidth=workWidth;
-  screenHeight=workHeight;
+  if(offscreen) {
+    screenWidth=oWidth;
+    screenHeight=oHeight;
+  } else
+  glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
 
   // Force a hard viewport limit to work around direct rendering bugs.
   // Alternatively, one can use -glOptions=-indirect (with a performance
