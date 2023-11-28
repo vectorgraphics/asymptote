@@ -507,6 +507,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   // Do not query disabled devices
   setenv("DRI_PRIME","1",0);
 
+  glfwInit();
+
   offscreen=settings::getSetting<bool>("offscreen");
   GLFWmonitor* monitor=glfwGetPrimaryMonitor();
   if(!monitor) offscreen=true;
@@ -628,8 +630,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
 #ifdef HAVE_VULKAN
   int mx,my;
-
-  glfwInit();
 
   fullWidth=(int) ceil(expand*w);
   fullHeight=(int) ceil(expand*h);
