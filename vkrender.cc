@@ -631,11 +631,14 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   glfwInit();
 
+  fullWidth=(int) ceil(expand*w);
+  fullHeight=(int) ceil(expand*h);
+
   if(offscreen) {
-    screenWidth=oWidth;
-    screenHeight=oHeight;
+    screenWidth=fullWidth;
+    screenHeight=fullHeight;
   } else
-  glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+    glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
 
   // Force a hard viewport limit to work around direct rendering bugs.
   // Alternatively, one can use -glOptions=-indirect (with a performance
@@ -652,9 +655,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   else screenWidth=min(screenWidth,maxWidth);
   if(screenHeight <= 0) screenHeight=maxHeight;
   else screenHeight=min(screenHeight,maxHeight);
-
-  fullWidth=(int) ceil(expand*w);
-  fullHeight=(int) ceil(expand*h);
 
   if(format3d) {
     width=fullWidth;
