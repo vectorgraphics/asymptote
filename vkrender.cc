@@ -989,6 +989,10 @@ void AsyVkRender::pickPhysicalDevice()
   }
 
   physicalDevice = highestDeviceScore.second;
+  if(settings::verbose > 1)
+    cout << "Using device " << physicalDevice.getProperties().deviceName
+         << endl;
+
   std::uint32_t nSamples;
 
   std::tie(nSamples, msaaSamples) = getMaxMSAASamples(physicalDevice);
@@ -4151,6 +4155,10 @@ void AsyVkRender::Export(int imageIndex) {
   double Aspect=((double) backbufferExtent.width)/backbufferExtent.height;
   if(w > h*Aspect) w=(int) (h*Aspect+0.5);
   else h=(int) (w/Aspect+0.5);
+
+  if(settings::verbose > 1)
+    cout << "Exporting " << Prefix << " as " << fullWidth << "x"
+         << fullHeight << " image" << endl;
 
   auto * const Image=new camp::drawRawImage(fmt,
                                             backbufferExtent.width,
