@@ -42,9 +42,7 @@ using std::make_optional;
 
 using std::make_pair;
 
-#if !defined(FOR_SHARED) &&                                             \
-  ((defined(HAVE_LIBVULKAN) && defined(HAVE_LIBGLM)) || \
-   defined(HAVE_LIBOSMESA))
+#if !defined(FOR_SHARED) && defined(HAVE_LIBVULKAN) && defined(HAVE_LIBGLM)
 #define HAVE_VULKAN
 #endif
 

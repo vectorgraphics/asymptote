@@ -561,13 +561,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 #endif
 
-#if !defined(HAVE_LIBOSMESA)
   GPUindexing=settings::getSetting<bool>("GPUindexing");
   GPUcompress=settings::getSetting<bool>("GPUcompress");
-#else
-  GPUindexing=false;
-  GPUcompress=false;
-#endif
 
   if(GPUindexing) {
     localSize=settings::getSetting<Int>("GPUlocalSize");
@@ -575,11 +570,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     groupSize=localSize*blockSize;
   }
 
-#ifdef HAVE_LIBOSMESA
-  interlock=false;
-#else
   interlock=settings::getSetting<bool>("GPUinterlock");
-#endif
 
   for(int i=0; i < 16; ++i)
     T[i]=t[i];
@@ -4128,7 +4119,6 @@ void AsyVkRender::Export(int imageIndex) {
   remesh=true;
   setProjection();
 
-#ifndef HAVE_LIBOSMESA
 #ifdef HAVE_VULKAN
   redraw=true;
 #endif
@@ -4139,17 +4129,11 @@ void AsyVkRender::Export(int imageIndex) {
     endwait(readySignal,readyLock);
   }
 #endif
-#endif
   exporting=false;
 }
 
 void AsyVkRender::quit()
 {
-#ifdef HAVE_LIBOSMESA
-  if(osmesa_buffer) delete[] osmesa_buffer;
-  if(ctx) OSMesaDestroyContext(ctx);
-  exit(0);
-#endif
 #ifdef HAVE_VULKAN
   if(vkthread) {
     bool animating=settings::getSetting<bool>("animating");
