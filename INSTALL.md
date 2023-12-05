@@ -87,12 +87,22 @@ Additionally, building Asymptote requires `perl` and Python 3 to be installed.
 
 Additionally, we (highly) suggest installing a GCC-compatible C++ compiler for preprocessing.
 Our recommendation is to use clang/LLVM tools, available [here](https://releases.llvm.org/).
-Once your compiler is installed, set `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` environment variable to
-your GCC-compatible C++ compiler. For example,
+Once your compiler is installed, there are a few options.
 
-```powershell
-$env:GCCCOMPAT_CXX_COMPILER_FOR_MSVC="<LLVM install location>/bin/clang++.exe"
-```
+- (Recommended) Set `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` environment variable to 
+  your GCC-compatible C++ compiler. For example
+  ```powershell
+  $env:GCCCOMPAT_CXX_COMPILER_FOR_MSVC="<LLVM install location>/bin/clang++.exe
+  ```
+- If you want to make the environment variable permanent, run
+  ```powershell
+  [Environment]::SetEnvironmentVariable('GCCCOMPAT_CXX_COMPILER_FOR_MSVC', '<LLVM install location>/bin/clang++.exe', 'User
+  ```
+- Or, add your clang++.exe to `PATH` and leave `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` unset.
+  The build script will automatically try to locate `clang++.exe` or `g++.exe` in places
+  within `PATH`. Be warned that the build script may select a different compiler depending
+  on if there are other compilers available in `PATH`.
+
 
 #### Building steps
 
