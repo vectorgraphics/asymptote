@@ -1,4 +1,5 @@
 #include "LibLsp/lsp/ParentProcessWatcher.h"
+#include <algorithm>
 #include <boost/process.hpp>
 
 #ifdef _WIN32

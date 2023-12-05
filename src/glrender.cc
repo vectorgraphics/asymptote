@@ -1156,8 +1156,6 @@ void fitscreen(bool reposition=true)
     }
     case 1: // Fit to screen in one dimension
     {
-      oldWidth=Width;
-      oldHeight=Height;
       int w=screenWidth;
       int h=screenHeight;
       if(w > h*Aspect)

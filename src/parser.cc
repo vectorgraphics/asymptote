@@ -4,8 +4,6 @@
  *
  *****/
 
-
-
 #include <fstream>
 #include <sstream>
 #include <cstring>
@@ -22,7 +20,6 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
-
 
 #include "interact.h"
 #include "locate.h"
@@ -174,14 +171,7 @@ size_t curlCallback(char *data, size_t size, size_t n, stringstream& buf)
   return Size;
 }
 
-#if defined(CURLOPT_XFERINFODATA) || (LIBCURL_VERSION_NUM >= 0x072000) // libcurl 7.32.0
-#define CURL_OFF_T curl_off_t
-#else
-#define CURL_OFF_T double
-#define CURLOPT_XFERINFOFUNCTION CURLOPT_PROGRESSFUNCTION
-#endif
-
-int curlProgress(void *, CURL_OFF_T, CURL_OFF_T, CURL_OFF_T, CURL_OFF_T)
+int curlProgress(void *, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
 {
   return errorstream::interrupt ? -1 : 0;
 }

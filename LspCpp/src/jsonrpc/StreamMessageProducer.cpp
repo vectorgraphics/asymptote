@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "LibLsp/JsonRpc/stream.h"
+#include "LibLsp/lsp/Markup/string_ref.h"
 
 
 bool StartsWith(std::string value, std::string start);
@@ -23,7 +24,7 @@ namespace
 
 }
 
-  void StreamMessageProducer::parseHeader(std::string& line, StreamMessageProducer::Headers& headers)
+  void LSPStreamMessageProducer::parseHeader(std::string& line, LSPStreamMessageProducer::Headers& headers)
   {
           int sepIndex = line.find(':');
           if (sepIndex >= 0) {
@@ -42,7 +43,7 @@ namespace
   }
 
 
-void StreamMessageProducer::listen(MessageConsumer callBack)
+void LSPStreamMessageProducer::listen(MessageConsumer callBack)
 {
         if(!input)
                 return;
@@ -94,51 +95,51 @@ void StreamMessageProducer::listen(MessageConsumer callBack)
                 else
                 {
 
-                        debugBuilder.push_back((char)c);
-                        if (c == '\n')
-                        {
-                                if (newLine) {
-                                        // Two consecutive newlines have been read, which signals the start of the message content
-                                        if (headers.contentLength <= 0)
-                                        {
-                                                string info = "Unexpected token:" + debugBuilder;
-                                                info = +"  (expected Content-Length: sequence);";
-                                                 MessageIssue issue(info, lsp::Log::Level::WARNING);
-                                                 issueHandler.handle(std::move(issue));
-                                        }
-                                        else {
-                                                bool result = handleMessage(headers,callBack);
-                                                if (!result)
-                                                        keepRunning = false;
-                                                newLine = false;
-                                        }
-                                        headers.clear();
-                                        debugBuilder.clear();
-                                }
-                                else if (!headerBuilder.empty()) {
-                                        // A single newline ends a header line
-                                        parseHeader(headerBuilder, headers);
-                                        headerBuilder.clear();
-                                }
-                                newLine = true;
+                    debugBuilder.push_back((char)c);
+                    if (c == '\n')
+                    {
+                        if (newLine) {
+                            // Two consecutive newlines have been read, which signals the start of the message content
+                            if (headers.contentLength <= 0)
+                            {
+                                    string info = "Unexpected token:" + debugBuilder;
+                                    info = +"  (expected Content-Length: sequence);";
+                                     MessageIssue issue(info, lsp::Log::Level::WARNING);
+                                     issueHandler.handle(std::move(issue));
+                            }
+                            else {
+                                    bool result = handleMessage(headers,callBack);
+                                    if (!result)
+                                            keepRunning = false;
+                                    newLine = false;
+                            }
+                            headers.clear();
+                            debugBuilder.clear();
                         }
-                        else if (c != '\r') {
-                                // Add the input to the current header line
+                        else if (!headerBuilder.empty()) {
+                            // A single newline ends a header line
+                            parseHeader(headerBuilder, headers);
+                            headerBuilder.clear();
+                        }
+                        newLine = true;
+                    }
+                    else if (c != '\r') {
+                        // Add the input to the current header line
 
-                                headerBuilder.push_back((char)c);
-                                newLine = false;
-                        }
+                        headerBuilder.push_back((char)c);
+                        newLine = false;
+                    }
                 }
         }
 
 }
 
-void StreamMessageProducer::bind(std::shared_ptr<lsp::istream>_in)
+void LSPStreamMessageProducer::bind(std::shared_ptr<lsp::istream>_in)
 {
         input = _in;
 }
 
-bool StreamMessageProducer::handleMessage(Headers& headers ,MessageConsumer callBack)
+bool LSPStreamMessageProducer::handleMessage(Headers& headers ,MessageConsumer callBack)
 {
                          // Read content.
         auto content_length = headers.contentLength;
@@ -188,4 +189,109 @@ bool StreamMessageProducer::handleMessage(Headers& headers ,MessageConsumer call
 
         return true;
 }
+
+
+
+/// For lit tests we support a simplified syntax:
+/// - messages are delimited by '// -----' on a line by itself
+/// - lines starting with // are ignored.
+/// This is a testing path, so favor simplicity over performance here.
+
+void DelimitedStreamMessageProducer::listen(MessageConsumer callBack)
+{
+    if(!input)
+        return;
+
+    keepRunning = true;
+
+    auto readLine = [&]( std::string_ref& lineBuilder) -> bool  {
+        while (keepRunning)
+        {
+            if(input->bad())
+            {
+                std::string info = "Input stream is bad.";
+                auto what = input->what();
+                if (what.size())
+                {
+                    info += "Reason:";
+                    info += input->what();
+                }
+                MessageIssue issue(info, lsp::Log::Level::SEVERE);
+                issueHandler.handle(std::move(issue));
+                return false;
+            }
+            if(input->fail())
+            {
+                std::string info = "Input fail.";
+                auto what = input->what();
+                if(what.size())
+                {
+                    info += "Reason:";
+                    info += input->what();
+                }
+                MessageIssue issue(info, lsp::Log::Level::WARNING);
+                issueHandler.handle(std::move(issue));
+                if(input->need_to_clear_the_state())
+                    input->clear();
+                else
+                {
+                    return false;
+                }
+            }
+            int c = input->get();
+            if (c == EOF) {
+                // End of input stream has been reached
+                keepRunning = false;
+            }
+            else
+            {
+                if (c == '\n')
+                {
+                    if(!lineBuilder.empty()){
+                        lineBuilder.push_back(c);
+                        return true;
+                    }
+                }
+                else if (c != '\r') {
+                    // Add the input to the current header line
+
+                    lineBuilder.push_back((char)c);
+                }
+            }
+        }
+        return false;
+    };
+
+    auto getMessage = [&](std::string& json) -> bool {
+        std::string_ref lineBuilder ;
+        while (readLine(lineBuilder)){
+            lineBuilder.trim();
+            if(lineBuilder.start_with("//")){
+                // Found a delimiter for the message.
+                if (lineBuilder == "// -----")
+                {
+                    return  true;
+                }
+            }
+            json += lineBuilder;
+        }
+        return false;
+    };
+
+
+    while (true) {
+        std::string json;
+        if (getMessage(json)) {
+            callBack(std::move(json));
+        }else{
+            return ;
+        }
+    }
+}
+
+void DelimitedStreamMessageProducer::bind(std::shared_ptr<lsp::istream>_in)
+{
+    input = _in;
+}
+
 

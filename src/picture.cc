@@ -1520,7 +1520,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_GL
     if(format3dWait) {
-      gl::format3dWait=false;
+      format3dWait=false;
 #ifdef HAVE_PTHREAD
       endwait(initSignal,initLock);
 #endif

@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-                execPath = "STDIO_SERVER_EXAMPLE.exe";
+                execPath = "StdIOServerExample";
         }
 
         Client client(execPath, {});

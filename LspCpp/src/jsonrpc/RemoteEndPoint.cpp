@@ -144,14 +144,18 @@ PendingRequestInfo::PendingRequestInfo(const std::string& md) : method(md)
 }
 struct RemoteEndPoint::Data
 {
-        explicit Data(uint8_t workers,lsp::Log& _log , RemoteEndPoint* owner)
-          : max_workers(workers), m_id(0),next_request_cookie(0), message_producer(new StreamMessageProducer(*owner)), log(_log)
+        explicit Data(lsp::JSONStreamStyle style,uint8_t workers,lsp::Log& _log , RemoteEndPoint* owner)
+          : max_workers(workers), m_id(0),next_request_cookie(0), log(_log)
         {
-
+            if(style == lsp::JSONStreamStyle::Standard )
+                message_producer = (new LSPStreamMessageProducer(*owner)) ;
+            else{
+                message_producer = (new DelimitedStreamMessageProducer(*owner)) ;
+            }
         }
         ~Data()
         {
-           delete       message_producer;
+           delete  message_producer;
         }
     uint8_t max_workers;
         std::atomic<int> m_id;
@@ -333,8 +337,9 @@ CancelMonitor RemoteEndPoint::getCancelMonitor(const lsRequestId& id)
 }
 
 RemoteEndPoint::RemoteEndPoint(
-        const std::shared_ptr < MessageJsonHandler >& json_handler,const std::shared_ptr < Endpoint>& localEndPoint, lsp::Log& _log, uint8_t max_workers):
-    d_ptr(new Data(max_workers,_log,this)),jsonHandler(json_handler), local_endpoint(localEndPoint)
+        const std::shared_ptr < MessageJsonHandler >& json_handler,const std::shared_ptr < Endpoint>& localEndPoint,
+        lsp::Log& _log,  lsp::JSONStreamStyle style, uint8_t max_workers):
+       d_ptr(new Data(style,max_workers,_log,this)),jsonHandler(json_handler), local_endpoint(localEndPoint)
 {
         jsonHandler->method2notification[Notify_Cancellation::notify::kMethodInfo] = [](Reader& visitor)
         {
@@ -342,7 +347,6 @@ RemoteEndPoint::RemoteEndPoint(
         };
 
         d_ptr->quit.store(false, std::memory_order_relaxed);
-
 }
 
 RemoteEndPoint::~RemoteEndPoint()
