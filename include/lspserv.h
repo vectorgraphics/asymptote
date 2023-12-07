@@ -1,6 +1,4 @@
 #pragma once
-#include "common.h"
-#include "symbolmaps.h"
 
 #include "LibLsp/lsp/ProtocolJsonHandler.h"
 #include "LibLsp/lsp/AbsolutePath.h"
@@ -23,12 +21,16 @@
 #include "LibLsp/lsp/textDocument/did_change.h"
 #include "LibLsp/lsp/textDocument/did_save.h"
 #include "LibLsp/lsp/textDocument/did_close.h"
+#include "LibLsp/JsonRpc/stream.h"
+
+
+#include "common.h"
+#include "symbolmaps.h"
 
 //everything else
 #include <functional>
 #include <cctype>
 #include <unordered_map>
-#include "LibLsp/JsonRpc/stream.h"
 
 namespace absyntax
 {

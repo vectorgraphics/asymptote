@@ -2,10 +2,7 @@
 // Created by Supakorn on 5/13/2021.
 //
 
-#include "common.h"
-
 #ifdef HAVE_LSP
-
 #include "lspserv.h"
 
 #include <LibLsp/JsonRpc/stream.h>
@@ -18,6 +15,7 @@
 
 #include <thread>
 
+#include "common.h"
 #include "dec.h"
 #include "processutils.h"
 #include "locate.h"
