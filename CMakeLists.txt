@@ -33,6 +33,12 @@ include(cmake-scripts/asy-macro.cmake)
 
 include(cmake-scripts/generated-files.cmake)
 
+# asy-reflect
+if (ENABLE_CUDA_ASY_REFLECT)
+    message(STATUS "asy reflect target enabled")
+    add_subdirectory(cudareflect/)
+endif()
+
 # defining asy target
 
 add_library(

@@ -113,3 +113,19 @@ option(GCCCOMPAT_CXX_COMPILER_FOR_MSVC
         "gcc-compatible C++ compiler for preprocessing with MSVC toolchain. This option is inert if not using MSVC.
 This option is only used for preprocessing, it is not used for compilation."
 )
+
+# CUDA + asy cuda reflect
+set(ENABLE_CUDA_ASY_REFLECT_DEFAULT false)
+include(CheckLanguage)
+check_language(CUDA)
+
+if (CMAKE_CUDA_COMPILER)
+    set(ENABLE_CUDA_ASY_REFLECT_DEFAULT true)
+endif()
+
+option(
+    ENABLE_CUDA_ASY_REFLECT
+    "Enable target for reflect excutable for generating IBL lighting data.
+Requires CUDA installed and a CUDA-compatible NVIDIA Graphics card"
+    ${ENABLE_CUDA_ASY_REFLECT_DEFAULT}
+)
