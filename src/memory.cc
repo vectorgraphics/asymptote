@@ -52,7 +52,7 @@ void compact(int x)
   GC_set_dont_expand(x);
 }
 
-inline std::string stdString(string s)
+std::string stdString(string s)
 {
   return std::string(s.c_str());
 }
