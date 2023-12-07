@@ -1507,7 +1507,9 @@ void initSettings() {
   addOption(new envSetting("lsphost", "127.0.0.1"));
 #endif
 
+#if defined(LINUX_SYSTEM)
   addOption(new boolSetting("wsl", 0, "Run asy under the Windows Subsystem for Linux"));
+#endif
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));
