@@ -1,17 +1,30 @@
 include(FindPkgConfig)
+include(FetchContent)
+
+FetchContent_Declare(
+        lspcpp
+        GIT_REPOSITORY https://github.com/vectorgraphics/LspCpp
+        GIT_TAG release-2023-12-8
+)
 
 if (ENABLE_LSP)
+
     message(STATUS "LSP Enabled.")
     # disable New Boost version warning
     set(Boost_NO_WARN_NEW_VERSIONS 1)
     set(USE_SYSTEM_RAPIDJSON 1)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/)
+    set(LSPCPP_USE_CPP17 1)
+    # For transitive URI dependency
+    set(Uri_BUILD_DOCS 0)
+    set(Uri_BUILD_TESTS 0)
+    FetchContent_MakeAvailable(lspcpp)
     list(APPEND ASY_STATIC_LIBARIES lspcpp)
     list(APPEND ASY_MACROS HAVE_LSP=1)
 else()
+    FetchContent_Populate(lspcpp)
     # only include lsp libraries
     message(STATUS "LSP Disabled. Will not have language server protocol support.")
-    list(APPEND ASYMPTOTE_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/include)
+    list(APPEND ASYMPTOTE_INCLUDES ${lspcpp_SOURCE_DIR}/include)
 endif()
 
 # zlib
@@ -34,7 +47,7 @@ elseif(WIN32)
     if ((NOT WIN32_FLEX_BINARY) OR (NOT WIN32_BISON_BINARY))
         # downlod winflexbison
         message(STATUS "Flex or bison not given; downloading winflexbison.")
-        include(FetchContent)
+
 
         FetchContent_Declare(
                 winflexbison
