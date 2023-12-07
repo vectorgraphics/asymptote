@@ -82,3 +82,8 @@ list(APPEND ASY_STATIC_LIBARIES Shlwapi)
 # RC file
 set(ASY_WIN_RESOURCE_DIR ${ASY_RESOURCE_DIR}/windows)
 list(APPEND ASY_WIN_RC_FILE ${ASY_WIN_RESOURCE_DIR}/asy.rc)
+
+# Minimum Windows version - for now, pinning on windows 10,
+# since that is currently the minimum supported version by Microsoft
+# See https://learn.microsoft.com/en-us/windows/win32/winprog/using-the-windows-headers
+list(APPEND ASY_MACROS _WIN32_WINNT=_WIN32_WINNT_WIN10)
