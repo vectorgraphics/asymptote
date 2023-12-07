@@ -129,3 +129,10 @@ option(
 Requires CUDA installed and a CUDA-compatible NVIDIA Graphics card"
     ${ENABLE_CUDA_ASY_REFLECT_DEFAULT}
 )
+
+# Language server protocol
+option(
+    ENABLE_LSP
+    "Enable Language Server Protocol support."
+    true
+)

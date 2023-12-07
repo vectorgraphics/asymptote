@@ -1,11 +1,16 @@
 include(FindPkgConfig)
 
 if (ENABLE_LSP)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/LspCpp)
-list(APPEND ASY_STATIC_LIBARIES lspcpp)
-
+    message(STATUS "LSP Enabled.")
+    # disable New Boost version warning
+    set(Boost_NO_WARN_NEW_VERSIONS 1)
+    set(USE_SYSTEM_RAPIDJSON 1)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/)
+    list(APPEND ASY_STATIC_LIBARIES lspcpp)
+    list(APPEND ASY_MACROS HAVE_LSP=1)
 else()
     # only include lsp libraries
+    message(STATUS "LSP Disabled. Will not have language server protocol support.")
     list(APPEND ASYMPTOTE_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/include)
 endif()
 
