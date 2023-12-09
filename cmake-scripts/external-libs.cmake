@@ -14,6 +14,7 @@ if (ENABLE_LSP)
     set(Boost_NO_WARN_NEW_VERSIONS 1)
     set(USE_SYSTEM_RAPIDJSON 1)
     set(LSPCPP_USE_CPP17 1)
+    set(LSPCPP_SUPPORT_BOEHM_GC 1)
     # For transitive URI dependency
     set(Uri_BUILD_DOCS 0)
     set(Uri_BUILD_TESTS 0)
