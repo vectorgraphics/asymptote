@@ -19,55 +19,24 @@
 #ifndef __xstream_h__
 #define __xstream_h__ 1
 
-#ifndef _ALL_SOURCE
-#define _ALL_SOURCE 1
-#endif
+#if defined(HAVE_RPC_RPC_H)
 
 #include <cstdio>
+#include <iostream>
 #include <vector>
-#include <algorithm>
-
-#include <sys/types.h>
-#include <rpc/types.h>
-
-#define quad_t long long
-#define u_quad_t unsigned long long
-
-#if defined(__CYGWIN__) || defined(__FreeBSD__)
-#include <sys/select.h>
-#define u_char unsigned char
-#define u_int unsigned int
-#define u_short unsigned short
-#define u_long unsigned long
-extern "C" int fseeko(FILE *, off_t, int);
-extern "C" off_t ftello(FILE *);
-extern "C" FILE *open_memstream(char **, size_t *);
+#include <cstdlib>
+#if defined(_WIN32)
+#include <fmem.h>
 #endif
 
-#ifdef __APPLE__
-#include <rpc/xdr.h>
+#include "xdrcommon.h"
 
-inline bool_t xdr_long(XDR *__xdrs, long *__lp) {
-  return xdr_longlong_t(__xdrs,(long long *) __lp);
-}
-
-inline bool_t xdr_u_long(XDR *__xdrs, unsigned long *__lp) {
-  return xdr_u_longlong_t(__xdrs,(unsigned long long *) __lp);
-}
-
-#endif
-
-#ifdef __OpenBSD__
-#define xdr_longlong_t xdr_int64_t
-#define xdr_u_longlong_t xdr_u_int64_t
-#endif
-
-#ifdef _POSIX_SOURCE
-#undef _POSIX_SOURCE
-#include <rpc/rpc.h>
-#define _POSIX_SOURCE
+#if defined(_WIN32)
+typedef __int64 OffsetType;
+#define fseeko _fseeki64
+#define ftello _ftelli64
 #else
-#include <rpc/rpc.h>
+#define OffsetType off_t
 #endif
 
 namespace xdr {
@@ -110,14 +79,14 @@ public:
 
   void precision(int) {}
 
-  xstream& seek(off_t pos, seekdir dir=beg) {
+  xstream& seek(OffsetType pos, seekdir dir=beg) {
     if(buf) {
       clear();
       if(fseeko(buf,pos,dir) != 0) set(failbit);
     }
     return *this;
   }
-  off_t tell() {
+  OffsetType tell() {
     return ftello(buf);
   }
 };
@@ -272,15 +241,27 @@ public:
 class memoxstream : public oxstream
 {
 private:
-  char* baseBuf;
-  size_t len;
+#if defined(_WIN32)
+  fmem fmInstance;
+#else
+  char* buffer=nullptr;
+  size_t size=0;
+#endif
 
 public:
   memoxstream(bool singleprecision=false) :
-    oxstream(singleprecision), baseBuf(nullptr), len(0)
+    oxstream(singleprecision)
+#if defined(_WIN32)
+        ,fmInstance()
+#endif
   {
     clear();
-    buf=open_memstream(&baseBuf,&len);
+#if defined(_WIN32)
+    fmem_init(&fmInstance);
+    buf=fmem_open(&fmInstance, "w+");
+#else
+    buf=open_memstream(&buffer,&size);
+#endif
     if(buf)
       xdrstdio_create(&xdro,buf,XDR_ENCODE);
     else
@@ -290,19 +271,59 @@ public:
   ~memoxstream() override
   {
     closefile();
-    free(baseBuf);
+#if defined(_WIN32)
+    fmem_term(&fmInstance);
+#else
+    free(buffer);
+#endif
   }
 
-  [[nodiscard]]
-  char const* stream() const
+  std::vector<uint8_t> createCopyOfCurrentData()
   {
-    return baseBuf;
-  }
+    auto flushResult = fflush(buf);
+    if (flushResult != 0)
+    {
+      std::cerr << "cannot flush memory xstream";
+      exit(EXIT_FAILURE);
+    }
+#if defined(_WIN32)
+    size_t retSize=0;
+    void* streamPtr=nullptr;
 
-  [[nodiscard]]
-  size_t const& getLength() const
-  {
-    return len;
+    // DANGER: There's a /severe/ issue with certain systems (though such cases should be rare)
+    // about a potential memory leak.
+
+    // See https://github.com/Kreijstal/fmem/issues/6
+
+    // Right now, we have no reasonable way to determine if tmpfile implementation is being used
+    // or not, so we cannot have a way to conditionally free the memory.
+
+    // In most systems, we have open_memstream and Windows tmpfile API
+    // which the allocation/mapping is handled by the system and hence
+    // no need to free the pointer ourselves, but tmpfile implementation uses malloc that doesn't
+    // get freed, so it is our job to manually free it.
+    fmem_mem(&fmInstance, &streamPtr, &retSize);
+
+    if (streamPtr == nullptr)
+    {
+      return {};
+    }
+
+    auto* bytePtr = static_cast<uint8_t*>(streamPtr);
+    std::vector ret(bytePtr, bytePtr + retSize);
+    return ret;
+#else
+    // for sanity check, always want to make sure we have a vector of bytes
+    static_assert(sizeof(char) == sizeof(uint8_t));
+
+    if (buffer == nullptr)
+    {
+      return {};
+    }
+
+    auto* retPtr = reinterpret_cast<uint8_t*>(buffer);
+    return {retPtr, retPtr + size};
+#endif
   }
 };
 
@@ -380,5 +401,7 @@ inline oxstream& flush(oxstream& s) {s.flush(); return s;}
 }
 
 #undef quad_t
+
+#endif
 
 #endif
