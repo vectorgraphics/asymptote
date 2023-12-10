@@ -268,10 +268,29 @@ endif()
 
 
 if (ENABLE_RPC_FEATURES)
-    pkg_check_modules(TIRPC REQUIRED IMPORTED_TARGET libtirpc)
+    if(UNIX)
+        pkg_check_modules(TIRPC REQUIRED IMPORTED_TARGET libtirpc)
+        list(APPEND ASY_STATIC_LIBARIES PkgConfig::TIRPC)
+    endif()
 
-    list(APPEND ASY_STATIC_LIBARIES PkgConfig::TIRPC)
+    if (WIN32)
+        # win32 does not have native open_memstream support
+        set(OLD_BUILD_TESTING ${BUILD_TESTING})
+        set(BUILD_TESTING false)
+        FetchContent_Declare(
+                fmem
+                GIT_REPOSITORY https://github.com/Kreijstal/fmem.git
+                GIT_TAG 6274a441380a8fcfd4e1a6e47b3d1f0b28b3c48a
+        )
+        FetchContent_MakeAvailable(fmem)
+        set(BUILD_TESTING ${OLD_BUILD_TESTING})
+
+        list(APPEND ASY_STATIC_LIBARIES fmem)
+        list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:fmem,INCLUDE_DIRECTORIES>)
+    endif()
     list(APPEND ASY_MACROS HAVE_RPC_RPC_H)
+
+
 else()
     message(STATUS "Disabling rpc and xdr/v3d support")
 endif()
