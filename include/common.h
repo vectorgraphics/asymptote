@@ -9,6 +9,10 @@
 
 #undef NDEBUG
 
+#if defined(_WIN32)
+#include <Winsock2.h>
+#endif
+
 #include <iostream>
 #include <memory>
 #include <climits>
