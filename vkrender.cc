@@ -10,6 +10,10 @@
 
 //using namespace settings;
 
+bool havewindow;
+
+static bool initialized=false;
+
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
@@ -566,8 +570,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   for(int i=0; i < 16; ++i)
     T[i]=t[i];
 
-  static bool initialized=false;
-
   if(!(initialized && (interact::interactive ||
                        settings::getSetting<bool>("animating")))) {
     antialias=settings::getSetting<Int>("antialias") > 1;
@@ -629,7 +631,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 
 #ifdef HAVE_VULKAN
-  bool havewindow=initialized && vkthread;
+  havewindow=initialized && vkthread;
 
   clearMaterials();
   initialized=true;
@@ -702,34 +704,14 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   update();
 
-  if(View) {
 #ifdef __MSDOS__
-    if(vkthread && interact::interactive)
-      poll(0);
+//  if(vkthread && interact::interactive)
+//    poll(0);
 #endif
 
-    mainLoop();
-  } else {
-    if(vkthread) {
-      if(havewindow) {
-        readyAfterExport=true;
-#ifdef HAVE_PTHREAD
-        pthread_kill(mainthread,SIGUSR1);
-#endif
-      } else {
-        initialized=true;
-        readyAfterExport=true;
-        Signal(SIGUSR1,exportHandler);
-        exportHandler();
-      }
-    } else {
-      exportHandler();
-      quit();
-    }
-  }
+  mainLoop();
 
 #endif
-
 }
 
 #ifdef HAVE_VULKAN
@@ -3901,13 +3883,24 @@ void AsyVkRender::mainLoop()
   }
 
   vkDeviceWaitIdle(*device);
-  if(vkthread) {
-    readyAfterExport=true;
-    Signal(SIGUSR1,exportHandler);
-    exportHandler();
-  } else {
-    exportHandler();
-    quit();
+
+  if(!View) {
+    if(vkthread) {
+      if(havewindow) {
+        readyAfterExport=true;
+#ifdef HAVE_PTHREAD
+        pthread_kill(mainthread,SIGUSR1);
+#endif
+      } else {
+        initialized=true;
+        readyAfterExport=true;
+        Signal(SIGUSR1,exportHandler);
+        exportHandler();
+      }
+    } else {
+      exportHandler();
+      quit();
+    }
   }
 }
 

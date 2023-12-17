@@ -58,10 +58,6 @@ using namespace settings;
 
 using interact::interactive;
 
-namespace gl {
-extern bool glexit;
-}
-
 namespace run {
 void purge();
 }
@@ -267,9 +263,10 @@ int main(int argc, char *argv[])
 #ifdef __APPLE__
   bool usethreads=true;
 #else
-  bool usethreads=view() || settings::getSetting<bool>("offscreen");
+  bool usethreads=view();
 #endif
-  camp::vk->vkthread=usethreads ? getSetting<bool>("threads") : false;
+  camp::vk->vkthread=(usethreads && getSetting<bool>("threads")) ||
+    settings::getSetting<bool>("offscreen");
 #if HAVE_PTHREAD
   if(camp::vk->vkthread) {
     pthread_t thread;
