@@ -1307,10 +1307,6 @@ void picture::render(double size2, const triple& Min, const triple& Max,
 
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
-
-#ifdef HAVE_VULKAN
-  // drawBuffers();
-#endif
 }
 
 struct Communicate : public gc {

@@ -2905,7 +2905,9 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
 void AsyVkRender::createGraphicsPipelines()
 {
-  auto const drawMode = mode == DRAWMODE_WIREFRAME ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
+  auto const drawMode =
+    (mode == DRAWMODE_WIREFRAME || mode == DRAWMODE_OUTLINE) ?
+    vk::PolygonMode::eLine : vk::PolygonMode::eFill;
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<MaterialVertex>
