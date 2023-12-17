@@ -271,7 +271,6 @@ int main(int argc, char *argv[])
 #endif
   camp::vk->vkthread=usethreads ? getSetting<bool>("threads") : false;
 #if HAVE_PTHREAD
-#ifndef HAVE_LIBOSMESA
   if(camp::vk->vkthread) {
     pthread_t thread;
     try {
@@ -291,7 +290,6 @@ int main(int argc, char *argv[])
       outOfMemory();
     }
   }
-#endif
 #endif
   camp::vk->vkthread=false;
 #endif

@@ -652,13 +652,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 #endif
 
-#if !defined(HAVE_LIBOSMESA)
   GPUindexing=settings::getSetting<bool>("GPUindexing");
   GPUcompress=settings::getSetting<bool>("GPUcompress");
-#else
-  GPUindexing=false;
-  GPUcompress=false;
-#endif
 
   if(GPUindexing) {
     localSize=settings::getSetting<Int>("GPUlocalSize");
@@ -670,18 +665,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   if(vkinitialize) {
     vkinitialize=false;
 
-#ifdef HAVE_LIBOSMESA
-  interlock=false;
-#else
   interlock=settings::getSetting<bool>("GPUinterlock");
-#endif
-
-//  if (vkinit) {
-//    return;
-//  }
-
-//  clearMaterials();
-
 
 #ifdef HAVE_VULKAN
     Aspect=((double) width)/height;
@@ -760,12 +744,12 @@ void AsyVkRender::initVulkan()
     throw std::runtime_error("Unable to initialize glslang.");
   }
 
-  maxFramesInFlight=settings::getSetting<Int>("maxFramesInFlight");
+  maxFramesInFlight=View ? settings::getSetting<Int>("maxFramesInFlight") : 1;
   frameObjects.resize(maxFramesInFlight);
 
   if (settings::verbose > 1) {
-    std::cout << "Using " << maxFramesInFlight << " maximum frames in flight."
-              << std::endl;
+    std::cout << "Using " << maxFramesInFlight
+              << " maximum frame(s) in flight." << std::endl;
   }
 
   createInstance();
@@ -4182,7 +4166,6 @@ void AsyVkRender::Export(int imageIndex) {
   remesh=true;
   setProjection();
 
-#ifndef HAVE_LIBOSMESA
 #ifdef HAVE_VULKAN
   redraw=true;
 #endif
@@ -4193,17 +4176,11 @@ void AsyVkRender::Export(int imageIndex) {
     endwait(readySignal,readyLock);
   }
 #endif
-#endif
   exporting=false;
 }
 
 void AsyVkRender::quit()
 {
-#ifdef HAVE_LIBOSMESA
-  if(osmesa_buffer) delete[] osmesa_buffer;
-  if(ctx) OSMesaDestroyContext(ctx);
-  exit(0);
-#endif
 #ifdef HAVE_VULKAN
   if(vkthread) {
     bool animating=settings::getSetting<bool>("animating");

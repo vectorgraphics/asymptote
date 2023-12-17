@@ -1372,13 +1372,10 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("to support WebGL rendering, please install glm header files, then ./configure; make");
 #endif
 
-#ifndef HAVE_LIBOSMESA
 #ifndef HAVE_VULKAN
   if(!webgl)
     camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang libraries, then ./configure; make");
 #endif
-#endif
-
 
   picture *pic = new picture;
 
