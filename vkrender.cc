@@ -570,8 +570,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   if(!(initialized && (interact::interactive ||
                        settings::getSetting<bool>("animating")))) {
-    int mx, my;
-
     antialias=settings::getSetting<Int>("antialias") > 1;
     double expand;
     if(format3d)
@@ -589,8 +587,10 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     if(offscreen) {
       screenWidth=fullWidth;
       screenHeight=fullHeight;
-    } else
+    } else {
+      int mx, my;
       glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+    }
 
     oWidth=Width;
     oHeight=Height;
@@ -4410,6 +4410,7 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
     }
   }
 
+  reshape0(w,h);
   update();
 }
 
