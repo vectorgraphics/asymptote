@@ -512,7 +512,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   // Do not query disabled devices
   setenv("DRI_PRIME","1",0);
 
+  glfwInit();
+
   offscreen=settings::getSetting<bool>("offscreen");
+  GLFWmonitor* monitor=glfwGetPrimaryMonitor();
+  if(!monitor) offscreen=true;
 
   this->pic = pic;
   this->Prefix=prefix;
@@ -570,14 +574,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   if(!(initialized && (interact::interactive ||
                        settings::getSetting<bool>("animating")))) {
 
-  int mx, my, workWidth, workHeight;
-
-  glfwInit();
-  glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &mx, &my, &workWidth, &workHeight);
-
-  screenWidth=workWidth;
-  screenHeight=workHeight;
-
+    int mx, my;
 
     antialias=settings::getSetting<Int>("antialias") > 1;
     double expand;
@@ -590,12 +587,18 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       if(antialias) expand *= 2.0;
     }
 
+    fullWidth=(int) ceil(expand*Width);
+    fullHeight=(int) ceil(expand*Height);
+
+    if(offscreen) {
+      screenWidth=fullWidth;
+      screenHeight=fullHeight;
+    } else
+      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+
     oWidth=Width;
     oHeight=Height;
     Aspect=Width/Height;
-
-    fullWidth=(int) ceil(expand*Width);
-    fullHeight=(int) ceil(expand*Height);
 
     if(format3d) {
       width=fullWidth;
