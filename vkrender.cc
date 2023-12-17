@@ -509,7 +509,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view, int oldpid/*=0*/)
 {
-  // Do not query disabled devices
+  // By default use discrete GPU.
   setenv("DRI_PRIME","1",0);
 
   glfwInit();
@@ -551,7 +551,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   orthographic = (this->Angle == 0.0);
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
-//  ignorezoom=false;
   Xfactor = Yfactor = 1.0;
 
   bool v3d=format == "v3d";
@@ -560,10 +559,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
-  if(vkinitialize) {
-//    if(!format3d) initVulkan();
+  if(vkinitialize)
     Fitscreen=1;
-  }
 #endif
 
   for(int i=0; i < 16; ++i)
@@ -573,7 +570,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   if(!(initialized && (interact::interactive ||
                        settings::getSetting<bool>("animating")))) {
-
     int mx, my;
 
     antialias=settings::getSetting<Int>("antialias") > 1;
@@ -704,7 +700,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     initializedView=true;
   }
 
-//  vkinit=true;
   update();
 
   if(View) {
@@ -3987,7 +3982,7 @@ void AsyVkRender::shrink()
 
 projection AsyVkRender::camera(bool user)
 {
-  if(!vkinit) return projection();
+  if(!vkinitialize) return projection();
 
   camp::Triple vCamera,vUp,vTarget;
 

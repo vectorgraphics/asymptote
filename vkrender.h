@@ -374,7 +374,6 @@ public:
 
   bool vkthread=false;;
   bool initialize=true;
-  bool vkinit=false;
   bool copied=false;
 
   int maxFramesInFlight;
