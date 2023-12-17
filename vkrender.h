@@ -498,16 +498,14 @@ private:
   const picture* pic = nullptr;
 
   double H;
-  double xfactor, yfactor;
-  double x, y;
+  double Xfactor, Yfactor;
   double cx, cy;
 
   int screenWidth, screenHeight;
   int width, height;
   int oldWidth,oldHeight;
   bool firstFit=true;
-  double Xfactor,Yfactor;
-  double aspect;
+  double Aspect;
   double oWidth, oHeight;
   double lastZoom;
   int Fitscreen=1;

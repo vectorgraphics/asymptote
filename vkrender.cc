@@ -8,6 +8,8 @@
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
+//using namespace settings;
+
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
@@ -25,6 +27,9 @@ std::vector<const char*> instanceExtensions
 
 namespace camp
 {
+
+static bool vkinitialize=true;
+
 std::vector<char> readFile(const std::string& filename)
 {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -126,8 +131,8 @@ SwapChainDetails::chooseImageCount() const
 void AsyVkRender::setDimensions(int width, int height, double x, double y)
 {
   double aspect = ((double) width) / height;
-  double xshift = (x / (double) width + Shift.getx() * xfactor) * Zoom0;
-  double yshift = (y / (double) height + Shift.gety() * yfactor) * Zoom0;
+  double xshift = (x / (double) width + Shift.getx() * Xfactor) * Zoom0;
+  double yshift = (y / (double) height + Shift.gety() * Yfactor) * Zoom0;
   double zoominv = 1.0 / Zoom0;
   if (orthographic) {
     double xsize = Xmax - Xmin;
@@ -163,7 +168,7 @@ void AsyVkRender::setDimensions(int width, int height, double x, double y)
 
 void AsyVkRender::setProjection()
 {
-  setDimensions(width, height, x, y);
+  setDimensions(width, height, X, Y);
 
   if (orthographic) {
     projMat = glm::ortho(xmin, xmax, ymin, ymax, -Zmax, -Zmin);
@@ -334,8 +339,8 @@ void AsyVkRender::mouseButtonCallback(GLFWwindow * window, int button, int actio
 void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-  app->x = (app->x / app->width) * width;
-  app->y = (app->y / app->height) * height;
+  app->Y = (app->X / app->width) * width;
+  app->Y = (app->Y / app->height) * height;
   app->width = width;
   app->height = height;
   app->fullWidth = width;
@@ -498,7 +503,7 @@ AsyVkRender::~AsyVkRender()
 #endif
 
 void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
-                           double w, double h, double angle, double zoom,
+                           double Width, double Height, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
                            const pair& margin, double* t,
                            double* background, size_t nlightsin, triple* lights,
@@ -518,10 +523,14 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->LightsDiffuse = diffuse;
   this->Oldpid = oldpid;
 
-  this->Angle = angle * M_PI / 180.0;
+  this->Angle = angle * radians;
+  this->Zoom0 = zoom;
   this->Shift = shift / zoom;
   this->Margin = margin;
-  this->View = view;
+  for (int i = 0; i < 4; i++)
+    this->Background[i] = static_cast<float>(background[i]);
+
+  View = view;
   this->title = std::string(settings::PROGRAM)+": "+prefix.c_str();
 
   Xmin = mins.getx();
@@ -533,15 +542,97 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   orthographic = (this->Angle == 0.0);
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
-  xfactor = yfactor = 1.0;
+//  ignorezoom=false;
+  Xfactor = Yfactor = 1.0;
 
-  for (int i = 0; i < 4; i++)
-    this->Background[i] = static_cast<float>(background[i]);
-
-  this->Zoom0 = zoom;
+  bool v3d=format == "v3d";
+  bool webgl=format == "html";
+  bool format3d=webgl || v3d;
 
 #ifdef HAVE_PTHREAD
-  if(vkthread && vkinit) {
+  static bool initializedView=false;
+  if(vkinitialize) {
+//    if(!format3d) initVulkan();
+    Fitscreen=1;
+  }
+#endif
+
+  for(int i=0; i < 16; ++i)
+    T[i]=t[i];
+
+  static bool initialized=false;
+
+  if(!(initialized && (interact::interactive ||
+                       settings::getSetting<bool>("animating")))) {
+
+  int mx, my, workWidth, workHeight;
+
+  glfwInit();
+  glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &mx, &my, &workWidth, &workHeight);
+
+  screenWidth=workWidth;
+  screenHeight=workHeight;
+
+
+    antialias=settings::getSetting<Int>("antialias") > 1;
+    double expand;
+    if(format3d)
+      expand=1.0;
+    else {
+      expand=settings::getSetting<double>("render");
+      if(expand < 0)
+        expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
+      if(antialias) expand *= 2.0;
+    }
+
+    oWidth=Width;
+    oHeight=Height;
+    Aspect=Width/Height;
+
+    fullWidth=(int) ceil(expand*Width);
+    fullHeight=(int) ceil(expand*Height);
+
+    if(format3d) {
+      width=fullWidth;
+      height=fullHeight;
+    } else {
+      width=min(fullWidth,screenWidth);
+      height=min(fullHeight,screenHeight);
+
+      if(width > height*Aspect)
+        width=min((int) (ceil(height*Aspect)),screenWidth);
+      else
+        height=min((int) (ceil(width/Aspect)),screenHeight);
+    }
+
+    travelHome(format3d);
+    setProjection();
+    if(format3d) {
+      remesh=true;
+      return;
+    }
+
+    maxFragments=1;
+
+    rotateMat = glm::mat4(1.0);
+    viewMat = glm::mat4(1.0);
+    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(width,height);
+
+#ifdef HAVE_VULKAN
+    Aspect=((double) width)/height; // CHECK
+    setosize();
+#endif
+  }
+
+#ifdef HAVE_VULKAN
+  bool havewindow=initialized && vkthread;
+
+  clearMaterials();
+  initialized=true;
+#endif
+
+#ifdef HAVE_PTHREAD
+  if(vkthread && initializedView) {
     if(View) {
 #ifdef __MSDOS__ // Signals are unreliable in MSWindows
       vkupdate=true;
@@ -549,7 +640,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       pthread_kill(mainthread,SIGUSR1);
 #endif
     } else readyAfterExport=queueExport=true;
-
     return;
   }
 #endif
@@ -568,113 +658,38 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     groupSize=localSize*blockSize;
   }
 
+#ifdef HAVE_VULKAN
+  if(vkinitialize) {
+    vkinitialize=false;
+
 #ifdef HAVE_LIBOSMESA
   interlock=false;
 #else
   interlock=settings::getSetting<bool>("GPUinterlock");
 #endif
 
-  for(int i=0; i < 16; ++i)
-    T[i]=t[i];
+//  if (vkinit) {
+//    return;
+//  }
 
-  if (vkinit) {
-    return;
-  }
+//  clearMaterials();
 
-  bool v3d=format == "v3d";
-  bool webgl=format == "html";
-  bool format3d=webgl || v3d;
-
-  clearMaterials();
-
-  rotateMat = glm::mat4(1.0);
-  viewMat = glm::mat4(1.0);
-
-  ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(w, h);
-
-  antialias=settings::getSetting<Int>("multisample")>1;
-  maxFramesInFlight=settings::getSetting<Int>("maxFramesInFlight");
-  oWidth = w;
-  oHeight = h;
-  aspect=w/h;
-
-  double expand;
-  if(format3d)
-    expand=1.0;
-  else {
-    expand=settings::getSetting<double>("render");
-    if(expand < 0)
-      expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
-    if(antialias) expand *= 2.0;
-  }
-
-  pair maxtile=settings::getSetting<pair>("maxtile");
-  int maxTileWidth=(int) maxtile.getx();
-  int maxTileHeight=(int) maxtile.gety();
-
-  if(maxTileWidth <= 0)
-    maxTileWidth=1024;
-  if(maxTileHeight <= 0)
-    maxTileHeight=768;
 
 #ifdef HAVE_VULKAN
-  int mx, my, workWidth, workHeight;
-
-  glfwInit();
-  glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &mx, &my, &workWidth, &workHeight);
-
-  screenWidth=workWidth;
-  screenHeight=workHeight;
-
-  // Force a hard viewport limit to work around direct rendering bugs.
-  // Alternatively, one can use -glOptions=-indirect (with a performance
-  // penalty).
-  pair maxViewport=settings::getSetting<pair>("maxviewport");
-  int maxWidth=maxViewport.getx() > 0 ? (int) ceil(maxViewport.getx()) :
-    screenWidth;
-  int maxHeight=maxViewport.gety() > 0 ? (int) ceil(maxViewport.gety()) :
-    screenHeight;
-  if(maxWidth <= 0) maxWidth=max(maxHeight,2);
-  if(maxHeight <= 0) maxHeight=max(maxWidth,2);
-
-  if(screenWidth <= 0) screenWidth=maxWidth;
-  else screenWidth=min(screenWidth,maxWidth);
-  if(screenHeight <= 0) screenHeight=maxHeight;
-  else screenHeight=min(screenHeight,maxHeight);
-
-  fullWidth=(int) ceil(expand*w);
-  fullHeight=(int) ceil(expand*h);
-
-  if(format3d) {
-    width=fullWidth;
-    height=fullHeight;
-  } else {
-    width=screenWidth;
-    height=screenHeight;
-
-    if(width > height*aspect)
-      width=min((int) (ceil(height*aspect)),screenWidth);
-    else
-      height=min((int) (ceil(width/aspect)),screenHeight);
-  }
-
-  travelHome(format3d);
-  setProjection();
-  if(format3d) {
-    remesh=true;
-    return;
-  }
-
-  setosize();
+    Aspect=((double) width)/height;
+    setosize();
+#endif
 
   Animate=settings::getSetting<bool>("autoplay") && vkthread;
   ibl=settings::getSetting<bool>("ibl");
   offscreen=settings::getSetting<bool>("offscreen");
 
-  if (settings::verbose > 1) {
+  if (offscreen && settings::verbose > 1) {
     std::cout << "Using offscreen mode." << std::endl;
   }
 
+    travelHome(format3d);
+    setProjection();
   initWindow();
 
   if(View) {
@@ -686,9 +701,47 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 
   initVulkan();
-  vkinit=true;
+  }
+
+
+  if(View) {
+    if(!settings::getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+    firstFit=true;
+    fitscreen();
+    setosize();
+    initializedView=true;
+  }
+
+//  vkinit=true;
   update();
-  mainLoop();
+
+  if(View) {
+#ifdef __MSDOS__
+    if(vkthread && interact::interactive)
+      poll(0);
+#endif
+
+    mainLoop();
+  } else {
+    if(vkthread) {
+      if(havewindow) {
+        readyAfterExport=true;
+#ifdef HAVE_PTHREAD
+        pthread_kill(mainthread,SIGUSR1);
+#endif
+      } else {
+        initialized=true;
+        readyAfterExport=true;
+        Signal(SIGUSR1,exportHandler);
+        exportHandler();
+      }
+    } else {
+      exportHandler();
+      quit();
+    }
+  }
+
 #endif
 
 }
@@ -700,6 +753,7 @@ void AsyVkRender::initVulkan()
     throw std::runtime_error("Unable to initialize glslang.");
   }
 
+  maxFramesInFlight=settings::getSetting<Int>("maxFramesInFlight");
   frameObjects.resize(maxFramesInFlight);
 
   if (settings::verbose > 1) {
@@ -727,11 +781,13 @@ void AsyVkRender::initVulkan()
     initIBL();
   }
 
+    cout << 1 << endl;
   createDescriptorPool();
   createComputeDescriptorPool();
   createDescriptorSets();
   writeDescriptorSets();
 
+    cout << 2 << endl;
   createCountRenderPass();
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
@@ -739,6 +795,7 @@ void AsyVkRender::initVulkan()
   if (GPUindexing) {
     createComputePipelines();
   }
+    cout << 3 << endl;
 
   createAttachments();
 
@@ -3982,8 +4039,8 @@ projection AsyVkRender::camera(bool user)
 
   return projection(orthographic,vCamera,vUp,vTarget,Zoom0,
                     2.0*atan(tan(0.5*Angle)/Zoom0)/radians,
-                    pair(x/width+Shift.getx(),
-                         y/height+Shift.gety()));
+                    pair(X/width+Shift.getx(),
+                         Y/height+Shift.gety()));
 }
 
 void AsyVkRender::exportHandler(int) {
@@ -4273,8 +4330,8 @@ void AsyVkRender::shift(double dx, double dy)
 {
   double Zoominv=1.0/Zoom0;
 
-  x += dx*Zoominv;
-  y += -dy*Zoominv;
+  X += dx*Zoominv;
+  Y += -dy*Zoominv;
   update();
 }
 
@@ -4331,13 +4388,13 @@ bool AsyVkRender::capsize(int& w, int& h) {
   return resize;
 }
 
-void AsyVkRender::windowposition(int& x, int& y, int width, int height)
+void AsyVkRender::windowposition(int& x, int& y, int Width, int Height)
 {
-  if (width==-1) {
-    width=this->width;
+  if (width == -1) {
+    Width=width;
   }
-  if (height==-1) {
-    height=this->height;
+  if (height == -1) {
+    Height=height;
   }
 
   pair z=settings::getSetting<pair>("position");
@@ -4381,8 +4438,8 @@ void AsyVkRender::fullscreen(bool reposition) {
 
   if (firstFit) {
 
-    if (width < height*aspect) {
-      Zoom0 *= width/(height*aspect);
+    if (width < height*Aspect) {
+      Zoom0 *= width/(height*Aspect);
     }
     capzoom();
     setProjection();
@@ -4397,22 +4454,22 @@ void AsyVkRender::fullscreen(bool reposition) {
   }
 }
 
-void AsyVkRender::reshape0(int width, int height) {
+void AsyVkRender::reshape0(int Width, int Height) {
 
-  X=(X/this->width)*width;
-  Y=(Y/this->height)*height;
+  X=(X/Width)*Width;
+  Y=(Y/Height)*Height;
 
-  this->width=width;
-  this->height=height;
+  width=Width;
+  height=Height;
 
   static int lastWidth=1;
   static int lastHeight=1;
-  if(View && this->width*this->height > 1 && (this->width != lastWidth || this->height != lastHeight)
+  if(View && width*height > 1 && (width != lastWidth || height != lastHeight)
      && settings::verbose > 1) {
     cout << "Rendering " << stripDir(Prefix) << " as "
-         << this->width << "x" << this->height << " image" << endl;
-    lastWidth=this->width;
-    lastHeight=this->height;
+         << width << "x" << height << " image" << endl;
+    lastWidth=width;
+    lastHeight=height;
   }
 
   setProjection();
@@ -4439,10 +4496,10 @@ void AsyVkRender::fitscreen(bool reposition) {
     {
       int w=screenWidth;
       int h=screenHeight;
-      if(w > h*aspect)
-        w=min((int) ceil(h*aspect),w);
+      if(w > h*Aspect)
+        w=min((int) ceil(h*Aspect),w);
       else
-        h=min((int) ceil(w/aspect),h);
+        h=min((int) ceil(w/Aspect),h);
 
       setsize(w,h,reposition);
       break;
@@ -4462,7 +4519,7 @@ void AsyVkRender::toggleFitScreen() {
 }
 
 void AsyVkRender::travelHome(bool webgl) {
-  x = y = cx = cy = 0;
+  X = Y = cx = cy = 0;
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   update();
