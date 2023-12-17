@@ -620,7 +620,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       return;
     }
 
-    maxFragments=1;
+    maxFragments=0;
 
     rotateMat = glm::mat4(1.0);
     viewMat = glm::mat4(1.0);
@@ -772,13 +772,11 @@ void AsyVkRender::initVulkan()
     initIBL();
   }
 
-    cout << 1 << endl;
   createDescriptorPool();
   createComputeDescriptorPool();
   createDescriptorSets();
   writeDescriptorSets();
 
-    cout << 2 << endl;
   createCountRenderPass();
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
@@ -786,7 +784,6 @@ void AsyVkRender::initVulkan()
   if (GPUindexing) {
     createComputePipelines();
   }
-    cout << 3 << endl;
 
   createAttachments();
 
@@ -2155,8 +2152,6 @@ void AsyVkRender::writeDescriptorSets()
       device->updateDescriptorSets(samplerWrites.size(), samplerWrites.data(), 0, nullptr);
     }
   }
-
-  updateSceneDependentBuffers();
 
   // compute descriptors
 

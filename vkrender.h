@@ -545,8 +545,8 @@ private:
   std::uint32_t groupSize;
   std::uint32_t elements;
   std::uint32_t fragments;
-  std::uint32_t maxFragments=1;
-  std::uint32_t maxSize=2;
+  std::uint32_t maxFragments;
+  std::uint32_t maxSize=1;
 
   size_t NMaterials = 48;
 
