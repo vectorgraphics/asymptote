@@ -3099,13 +3099,10 @@ void AsyVkRender::updateBuffers()
       );
 
     copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
-    updateLights=false;
-  }
-
-  if (materials != oldMaterials) {
 
     copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
-    oldMaterials = materials;
+
+    updateLights=false;
   }
 }
 
@@ -3321,9 +3318,9 @@ void AsyVkRender::drawTransparent(FrameObject & object)
   transparentData.clear();
 }
 
-void AsyVkRender::partialSums(FrameObject & object, bool readSize)
+void AsyVkRender::partialSums(FrameObject & object)
 {
-  auto const writeBarrier = vk::MemoryBarrier( // todo sum2 fast
+  auto const writeBarrier = vk::MemoryBarrier(
     vk::AccessFlagBits::eShaderWrite,
     vk::AccessFlagBits::eShaderRead
   );
@@ -3532,21 +3529,23 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
       static bool first=true;
       if(first) {
         partialSums(object);
+        vkDeviceWaitIdle(*device);
         first=false;
       }
       unsigned int N=10000;
       utils::stopWatch Timer;
-      for(unsigned int i=0; i < N; ++i)
+      for(unsigned int i=0; i < N; ++i) {
         partialSums(object);
+        vkDeviceWaitIdle(*device);
+      }
 
-      // glFinish(); ??
       double T=Timer.seconds()/N;
       cout << "elements=" << elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;
       cout << "Megapixels/second=" << elements/T/1e6 << endl;
     }
 
-    partialSums(object, true);
+    partialSums(object);
     endFrameCommands();
     commandsToSubmit.emplace_back(currentCommandBuffer);
   }
@@ -3934,7 +3933,6 @@ void AsyVkRender::clearCenters()
 void AsyVkRender::clearMaterials()
 {
   materials.clear();
-  materials.reserve(nmaterials);
   materialMap.clear();
 
   pointData.partial=false;

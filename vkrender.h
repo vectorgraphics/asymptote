@@ -186,8 +186,8 @@ struct VertexBuffer {
   std::vector<PointVertex> pointVertices;
   std::vector<std::uint32_t> indices;
 
-  int renderCount = 0;
-  bool partial = false;
+  int renderCount=0;  // Are all patches in this buffer fully rendered?
+  bool partial=false; // Does buffer contain incomplete data?
   bool copiedThisFrame=false;
 
   void clear()
@@ -455,10 +455,6 @@ public:
 
   double BBT[9];
   double T[16];
-
-  size_t Nmaterials;
-  size_t nmaterials;
-  size_t Maxmaterials;
 
   void updateProjection();
   void frustum(double left, double right, double bottom,
@@ -917,7 +913,7 @@ private:
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
-  void partialSums(FrameObject & object, bool readSize=false);
+  void partialSums(FrameObject & object);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
   void compressCount(FrameObject & object);
