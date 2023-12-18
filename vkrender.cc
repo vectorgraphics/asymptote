@@ -3372,20 +3372,9 @@ void AsyVkRender::partialSums(FrameObject & object)
   currentCommandBuffer.setEvent(*object.sumFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
 }
 
-std::uint32_t ceilpow2(std::uint32_t n)
-{
-  --n;
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
-  return ++n;
-}
-
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
-  maxSize=ceilpow2(maxDepth);
+  maxSize=maxDepth;
   recreateBlendPipeline=true;
 }
 
