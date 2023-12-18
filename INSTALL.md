@@ -104,7 +104,28 @@ Once your compiler is installed, there are a few options.
   on if there are other compilers available in `PATH`.
 
 
+#### Windows (quicker) start
+
+If you are getting started and want a quick configuration, run `./quick-start-win32.ps1`.
+This script automatically checks that you have vcpkg, and if not, clones and bootstraps vcpkg on your system.
+
+Additionally, this script auto locates your Visual Studio installation and establishes all needed environment variables.
+
 #### Building steps
+
+Ensure you have `cl.exe` in your path.
+The easiest way is to use Visual Studio Developer Powershell, though be careful that by default
+VS Developer Powershell selects 32-bit cl.exe.
+
+To explicitly select 64-bit Visual Studio Developer Powershell, one can use visual studio locator
+alongside its developer shell script as
+
+```powershell
+$vsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
+& "$($vsInfo.InstallLocation)\Common7\Tools\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+```
+
+This prompt should put you in to 64-bit Visual Studio Developer Powershell.
 
 After that, run cmake with 
 ```powershell
