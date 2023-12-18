@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/asy",
-            "args": ["-v", "${input:asyArgFile}"],
+            "args": ["-V", "${input:asyArgFile}"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [

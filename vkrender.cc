@@ -3657,8 +3657,6 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
   endFrameRender();
   endFrameCommands();
-
-  Opaque=0;
 }
 
 void AsyVkRender::drawFrame()
@@ -3717,7 +3715,7 @@ void AsyVkRender::drawFrame()
 
   std::vector<vk::PipelineStageFlags> waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
-  if (!GPUindexing) {
+  if (!GPUindexing && !Opaque) {
     waitSemaphores.emplace_back(*frameObject.inCountBufferCopy);
     waitStages.emplace_back(vk::PipelineStageFlagBits::eFragmentShader);
   }
