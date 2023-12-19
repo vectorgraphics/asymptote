@@ -232,6 +232,7 @@ string format(string *format, Int x, string locale=emptystring)
   }
 
   string f=format->substr(start-p0,p-start);
+  f.insert(p-start-1,"ll");
 
   const char *oldlocale=NULL;
 
