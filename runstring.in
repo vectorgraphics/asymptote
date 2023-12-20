@@ -10,6 +10,8 @@ stringarray2* => stringArray2()
 #include <cfloat>
 #include <cstring>
 #include <algorithm>
+#include <functional>
+#include <random>
 
 #include "array.h"
 
@@ -36,6 +38,11 @@ static const string defaulttimeformat=string("%a %b %d %T %Z %Y");
 static const size_t nTime=256;
 static char Time[nTime];
 #endif
+
+#ifdef RETURN_NESTED
+  #error "RETURN_NESTED macro is already defined."
+#endif
+#define RETURN_NESTED return
 
 void checkformat(const char *ptr, bool intformat)
 {
@@ -404,6 +411,27 @@ Int ascii(string s)
   return s.empty() ? -1 : (unsigned char) s[0];
 }
 
+Int hash(string s, bool try_consistent=false)
+{
+  static unsigned long long per_run_entropy = []() -> unsigned long long{
+    // The following code will be run only once:
+    std::random_device rd;
+    std::uniform_int_distribution<unsigned long long> dist(0, 0x3fffffffffffffffULL);
+    RETURN_NESTED dist(rd);
+  }();
+  unsigned long long hash_result = std::hash<string>{}(s);
+  // Zero out the highest two bits to avoid conflicts with DefaultValue and Undefined:
+  long long retv = hash_result & 0x3fffffffffffffffULL;
+  // Mix in the highest two bits in case the hash distribution needs them.
+  retv ^= (hash_result >> 62);
+  // Xor with a random bitstring to ensure the hash behaves differently each
+  // run; see Hyrum's Law.
+  if (not try_consistent) {
+    retv ^= per_run_entropy;
+  }
+  return retv;
+}
+
 string string(Int x)
 {
   ostringstream buf;
@@ -454,3 +482,5 @@ Int seconds(string t=emptystring, string format=emptystring)
   return -1;
 #endif
 }
+
+#undef RETURN_NESTED
