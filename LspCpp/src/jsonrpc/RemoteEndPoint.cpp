@@ -11,13 +11,14 @@
 #include "LibLsp/JsonRpc/Context.h"
 #include "rapidjson/error/en.h"
 #include "LibLsp/JsonRpc/json.h"
-#include "LibLsp/JsonRpc/GCThreadContext.h"
 #include "LibLsp/JsonRpc/ScopeExit.h"
 #include "LibLsp/JsonRpc/stream.h"
 #include <atomic>
 #include <optional>
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/post.hpp>
+
+#include "LibLsp/JsonRpc/GCThreadContext.h"
 
 namespace lsp {
 
@@ -612,7 +613,7 @@ void RemoteEndPoint::startProcessingMessages(std::shared_ptr<lsp::istream> r,
                         const auto temp = std::make_shared<std::string>(std::move(content));
             boost::asio::post(*d_ptr->tp,
                         [this, temp]{
-#ifdef USEGC
+#ifdef LSPCPP_USEGC
                         GCThreadContext gcContext;
 #endif
 
