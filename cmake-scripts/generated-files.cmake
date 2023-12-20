@@ -58,7 +58,7 @@ endforeach()
 
 # allsymbols.h
 # directory for auxilliary files
-set(GENERATED_AUX_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/aux")
+set(GENERATED_AUX_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/auxiliary")
 file(MAKE_DIRECTORY ${GENERATED_AUX_DIR})
 
 # generating preprocessed files
