@@ -182,7 +182,7 @@ GCPPLIB=
 INCL="-I."
 GCNAME="Boehm Garbage Collector"
 if test "x$ac_cv_use_gc" != "xno" ; then
-   OPTIONS=$OPTIONS"-DUSEGC "
+   OPTIONS=$OPTIONS"-DUSEGC -DLSPCPP_USEGC "
    case _$ac_cv_use_gc in
    _|_system|_*[[\\/]]*)
       if test "x$ac_cv_use_gc" = "xsystem" ; then
