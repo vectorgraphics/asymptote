@@ -365,7 +365,7 @@ public:
   bool framebufferResized=false;
   bool recreatePipeline=false;
   bool recreateBlendPipeline=false;
-  bool updateLights=true;
+  bool shouldUpdateBuffers=true;
   bool newUniformBuffer=true;
   bool queueExport=false;
   bool ibl=false;
@@ -543,7 +543,8 @@ private:
   std::uint32_t maxFragments;
   std::uint32_t maxSize=1;
 
-  size_t NMaterials = 48;
+  size_t NMaterials = 48; // Default number of materials allocated in memory
+  size_t nmaterials = NMaterials; // Number of materials currently allocated in memory
 
 #ifdef HAVE_VULKAN
 
@@ -873,12 +874,14 @@ private:
   void createComputeDescriptorPool();
   void createDescriptorSets();
   void writeDescriptorSets();
+  void writeMaterialAndLightDescriptors();
   void updateSceneDependentBuffers();
 
   void createMaterialVertexBuffer();
   void createMaterialIndexBuffer();
 
   void createBuffers();
+  void createMaterialAndLightBuffers();
   void createDependentBuffers();
 
   void initIBL();

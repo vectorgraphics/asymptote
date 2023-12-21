@@ -525,7 +525,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->pic = pic;
   this->Prefix=prefix;
   this->Format = format;
-  this->updateLights = true;
+  this->shouldUpdateBuffers = true;
   this->redraw = true;
   this->remesh = true;
   this->nlights = nlightsin;
@@ -753,6 +753,7 @@ void AsyVkRender::initVulkan()
   createComputeDescriptorPool();
   createDescriptorSets();
   writeDescriptorSets();
+  writeMaterialAndLightDescriptors();
 
   createCountRenderPass();
   createGraphicsRenderPass();
@@ -1968,18 +1969,6 @@ void AsyVkRender::writeDescriptorSets()
     uboInfo.offset = 0;
     uboInfo.range = sizeof(UniformBufferObject);
 
-    auto materialBufferInfo = vk::DescriptorBufferInfo();
-
-    materialBufferInfo.buffer = *materialBuffer;
-    materialBufferInfo.offset = 0;
-    materialBufferInfo.range = sizeof(camp::Material) * NMaterials;
-
-    auto lightBufferInfo = vk::DescriptorBufferInfo();
-
-    lightBufferInfo.buffer = *lightBuffer;
-    lightBufferInfo.offset = 0;
-    lightBufferInfo.range = sizeof(Light) * nlights;
-
     auto countBufferInfo = vk::DescriptorBufferInfo();
 
     countBufferInfo.buffer = *countBuffer;
@@ -2016,7 +2005,7 @@ void AsyVkRender::writeDescriptorSets()
     elementBufferInfo.offset = 0;
     elementBufferInfo.range = elementBufferSize;
 
-    std::array<vk::WriteDescriptorSet, 9> writes;
+    std::array<vk::WriteDescriptorSet, 7> writes;
 
     writes[0].dstSet = *frameObjects[i].descriptorSet;
     writes[0].dstBinding = 0;
@@ -2026,60 +2015,46 @@ void AsyVkRender::writeDescriptorSets()
     writes[0].pBufferInfo = &uboInfo;
 
     writes[1].dstSet = *frameObjects[i].descriptorSet;
-    writes[1].dstBinding = 1;
+    writes[1].dstBinding = 3;
     writes[1].dstArrayElement = 0;
     writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
     writes[1].descriptorCount = 1;
-    writes[1].pBufferInfo = &materialBufferInfo;
+    writes[1].pBufferInfo = &countBufferInfo;
 
     writes[2].dstSet = *frameObjects[i].descriptorSet;
-    writes[2].dstBinding = 2;
+    writes[2].dstBinding = 4;
     writes[2].dstArrayElement = 0;
     writes[2].descriptorType = vk::DescriptorType::eStorageBuffer;
     writes[2].descriptorCount = 1;
-    writes[2].pBufferInfo = &lightBufferInfo;
+    writes[2].pBufferInfo = &offsetBufferInfo;
 
     writes[3].dstSet = *frameObjects[i].descriptorSet;
-    writes[3].dstBinding = 3;
+    writes[3].dstBinding = 7;
     writes[3].dstArrayElement = 0;
     writes[3].descriptorType = vk::DescriptorType::eStorageBuffer;
     writes[3].descriptorCount = 1;
-    writes[3].pBufferInfo = &countBufferInfo;
+    writes[3].pBufferInfo = &opaqueBufferInfo;
 
     writes[4].dstSet = *frameObjects[i].descriptorSet;
-    writes[4].dstBinding = 4;
+    writes[4].dstBinding = 8;
     writes[4].dstArrayElement = 0;
     writes[4].descriptorType = vk::DescriptorType::eStorageBuffer;
     writes[4].descriptorCount = 1;
-    writes[4].pBufferInfo = &offsetBufferInfo;
+    writes[4].pBufferInfo = &opaqueDepthBufferInfo;
 
     writes[5].dstSet = *frameObjects[i].descriptorSet;
-    writes[5].dstBinding = 7;
+    writes[5].dstBinding = 9;
     writes[5].dstArrayElement = 0;
     writes[5].descriptorType = vk::DescriptorType::eStorageBuffer;
     writes[5].descriptorCount = 1;
-    writes[5].pBufferInfo = &opaqueBufferInfo;
+    writes[5].pBufferInfo = &indexBufferInfo;
 
     writes[6].dstSet = *frameObjects[i].descriptorSet;
-    writes[6].dstBinding = 8;
+    writes[6].dstBinding = 10;
     writes[6].dstArrayElement = 0;
     writes[6].descriptorType = vk::DescriptorType::eStorageBuffer;
     writes[6].descriptorCount = 1;
-    writes[6].pBufferInfo = &opaqueDepthBufferInfo;
-
-    writes[7].dstSet = *frameObjects[i].descriptorSet;
-    writes[7].dstBinding = 9;
-    writes[7].dstArrayElement = 0;
-    writes[7].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[7].descriptorCount = 1;
-    writes[7].pBufferInfo = &indexBufferInfo;
-
-    writes[8].dstSet = *frameObjects[i].descriptorSet;
-    writes[8].dstBinding = 10;
-    writes[8].dstArrayElement = 0;
-    writes[8].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[8].descriptorCount = 1;
-    writes[8].pBufferInfo = &elementBufferInfo;
+    writes[6].pBufferInfo = &elementBufferInfo;
 
     device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
 
@@ -2189,6 +2164,41 @@ void AsyVkRender::writeDescriptorSets()
   device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
 }
 
+void AsyVkRender::writeMaterialAndLightDescriptors() {
+
+  for (auto i = 0; i < maxFramesInFlight; i++) {
+    auto materialBufferInfo = vk::DescriptorBufferInfo();
+
+    materialBufferInfo.buffer = *materialBuffer;
+    materialBufferInfo.offset = 0;
+    materialBufferInfo.range = sizeof(camp::Material) * nmaterials;
+
+    auto lightBufferInfo = vk::DescriptorBufferInfo();
+
+    lightBufferInfo.buffer = *lightBuffer;
+    lightBufferInfo.offset = 0;
+    lightBufferInfo.range = sizeof(Light) * nlights;
+
+    std::array<vk::WriteDescriptorSet, 2> writes;
+
+    writes[0].dstSet = *frameObjects[i].descriptorSet;
+    writes[0].dstBinding = 1;
+    writes[0].dstArrayElement = 0;
+    writes[0].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[0].descriptorCount = 1;
+    writes[0].pBufferInfo = &materialBufferInfo;
+
+    writes[1].dstSet = *frameObjects[i].descriptorSet;
+    writes[1].dstBinding = 2;
+    writes[1].dstArrayElement = 0;
+    writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[1].descriptorCount = 1;
+    writes[1].pBufferInfo = &lightBufferInfo;
+
+    device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+  }
+}
+
 void AsyVkRender::updateSceneDependentBuffers() {
 
   fragmentBufferSize = maxFragments*sizeof(glm::vec4);
@@ -2254,18 +2264,6 @@ void AsyVkRender::createBuffers()
   feedbackBufferSize=2*sizeof(std::uint32_t);
   elementBufferSize=sizeof(std::uint32_t);
 
-  createBufferUnique(materialBuffer,
-                     materialBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     sizeof(camp::Material) * NMaterials);
-
-  createBufferUnique(lightBuffer,
-                     lightBufferMemory,
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     vk::MemoryPropertyFlagBits::eDeviceLocal,
-                     sizeof(camp::Light) * nlights);
-
   createBufferUnique(feedbackBuffer,
                      feedbackBufferMemory,
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
@@ -2288,7 +2286,23 @@ void AsyVkRender::createBuffers()
     frameObjects[i].uboData = device->mapMemory(*frameObjects[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), vk::MemoryMapFlags());
   }
 
+  createMaterialAndLightBuffers();
   createDependentBuffers();
+}
+
+
+void AsyVkRender::createMaterialAndLightBuffers() {
+  createBufferUnique(materialBuffer,
+                      materialBufferMemory,
+                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                      vk::MemoryPropertyFlagBits::eDeviceLocal,
+                      sizeof(camp::Material) * nmaterials);
+
+  createBufferUnique(lightBuffer,
+                     lightBufferMemory,
+                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::MemoryPropertyFlagBits::eDeviceLocal,
+                     sizeof(camp::Light) * nlights);
 }
 
 void AsyVkRender::createDependentBuffers()
@@ -3085,7 +3099,7 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
 void AsyVkRender::updateBuffers()
 {
-  if (updateLights) {
+  if (shouldUpdateBuffers) {
     std::vector<Light> lights;
 
     for (auto i = 0u; i < nlights; i++)
@@ -3098,11 +3112,19 @@ void AsyVkRender::updateBuffers()
         }
       );
 
-    copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
 
+    if (materials.size() > nmaterials) {
+      nmaterials *= 2;
+    }
+
+    device->waitIdle();
+    createMaterialAndLightBuffers();
+    writeMaterialAndLightDescriptors();
+
+    copyToBuffer(*lightBuffer, &lights[0], lights.size() * sizeof(Light));
     copyToBuffer(*materialBuffer, &materials[0], materials.size() * sizeof(camp::Material));
 
-    updateLights=false;
+    shouldUpdateBuffers=false;
   }
 }
 
