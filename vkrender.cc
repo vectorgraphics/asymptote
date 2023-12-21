@@ -3114,7 +3114,7 @@ void AsyVkRender::updateBuffers()
 
 
     if (materials.size() > nmaterials) {
-      nmaterials *= 2;
+      nmaterials=materials.size();
     }
 
     device->waitIdle();

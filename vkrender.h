@@ -416,7 +416,6 @@ public:
   VertexBuffer pointData;
 
   std::vector<Material> materials;
-  std::vector<Material> oldMaterials;
   MaterialMap materialMap;
   size_t materialIndex;
 
@@ -543,8 +542,7 @@ private:
   std::uint32_t maxFragments;
   std::uint32_t maxSize=1;
 
-  size_t NMaterials = 48; // Default number of materials allocated in memory
-  size_t nmaterials = NMaterials; // Number of materials currently allocated in memory
+  size_t nmaterials=1; // Number of materials currently allocated in memory
 
 #ifdef HAVE_VULKAN
 

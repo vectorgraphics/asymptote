@@ -74,6 +74,11 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
 
 #endif
 
+void clearMaterials()
+{
+  vk->clearMaterials();
+}
+
 void drawBezierPatch::bounds(const double* t, bbox3& b)
 {
   double x,y,z;
