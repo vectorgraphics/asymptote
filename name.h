@@ -87,7 +87,11 @@ public:
     out << "<base name>";
   }
 
-  virtual symbol getName() = 0;
+  [[nodiscard]]
+  virtual symbol getName() const = 0;
+
+  [[nodiscard]]
+  virtual AsymptoteLsp::SymbolLit getLit() const = 0;
 };
 
 inline ostream& operator<< (ostream& out, const name& n) {
@@ -102,25 +106,30 @@ public:
   simpleName(position pos, symbol id)
     : name(pos), id(id) {}
 
-  trans::varEntry *getVarEntry(coenv &e);
+  trans::varEntry *getVarEntry(coenv &e) override;
 
   // As a variable:
-  void varTrans(action act, coenv &e, types::ty *target);
-  types::ty *varGetType(coenv &);
-  trans::varEntry *getCallee(coenv &e, types::signature *sig);
+  void varTrans(action act, coenv &e, types::ty *target) override;
+  types::ty *varGetType(coenv &) override;
+  trans::varEntry *getCallee(coenv &e, types::signature *sig) override;
 
   // As a type:
-  types::ty *typeTrans(coenv &e, bool tacit = false);
-  virtual trans::tyEntry *tyEntryTrans(coenv &e);
-  trans::frame *tyFrameTrans(coenv &e);
+  types::ty *typeTrans(coenv &e, bool tacit = false) override;
+  virtual trans::tyEntry *tyEntryTrans(coenv &e) override;
+  trans::frame *tyFrameTrans(coenv &e) override;
 
-  void prettyprint(ostream &out, Int indent);
-  void print(ostream& out) const {
+  void prettyprint(ostream &out, Int indent) override;
+  void print(ostream& out) const override {
     out << id;
   }
-  symbol getName() {
+
+  [[nodiscard]]
+  symbol getName() const override {
     return id;
   }
+
+  [[nodiscard]]
+  AsymptoteLsp::SymbolLit getLit() const override;
 };
 
 
@@ -133,10 +142,10 @@ class qualifiedName : public name {
   record *castToRecord(types::ty *t, bool tacit = false);
 
   // Translates as a virtual field, if possible.  qt is the type of the
-  // qualifier.  Return true if there was a matching virtual field. 
+  // qualifier.  Return true if there was a matching virtual field.
   bool varTransVirtual(action act, coenv &e,
                        types::ty *target, types::ty *qt);
-  
+
   // Translates as an ordinary (non-virtual) field of a record, r.
   void varTransField(action act, coenv &e,
                      types::ty *target, record *r);
@@ -144,25 +153,30 @@ public:
   qualifiedName(position pos, name *qualifier, symbol id)
     : name(pos), qualifier(qualifier), id(id) {}
 
-  trans::varEntry *getVarEntry(coenv &e);
+  trans::varEntry *getVarEntry(coenv &e) override;
 
   // As a variable:
-  void varTrans(action act, coenv &, types::ty *target);
-  types::ty *varGetType(coenv &);
-  trans::varEntry *getCallee(coenv &e, types::signature *sig);
+  void varTrans(action act, coenv &, types::ty *target) override;
+  types::ty *varGetType(coenv &) override;
+  trans::varEntry *getCallee(coenv &e, types::signature *sig) override;
 
   // As a type:
-  types::ty *typeTrans(coenv &e, bool tacit = false);
-  trans::tyEntry *tyEntryTrans(coenv &e);
-  trans::frame *tyFrameTrans(coenv &e);
+  types::ty *typeTrans(coenv &e, bool tacit = false) override;
+  trans::tyEntry *tyEntryTrans(coenv &e) override;
+  trans::frame *tyFrameTrans(coenv &e) override;
 
-  void prettyprint(ostream &out, Int indent);
-  void print(ostream& out) const {
+  void prettyprint(ostream &out, Int indent) override;
+  void print(ostream& out) const override {
     out << *qualifier << "." << id;
   }
-  symbol getName() {
+
+  [[nodiscard]]
+  symbol getName() const override {
     return id;
   }
+
+  [[nodiscard]]
+  AsymptoteLsp::SymbolLit getLit() const override;
 };
 
 } // namespace absyntax

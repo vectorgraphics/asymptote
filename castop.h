@@ -48,18 +48,16 @@ template<class T>
 void castString(vm::stack *s)
 {
   string *S=pop<string*>(s);
-  if(S->empty()) {
-    T x=0;
-    s->push(x);
-  } else {
-    try {
-      s->push(lexical::cast<T>(*S));
-    } catch (lexical::bad_cast&) {
-      ostringstream buf;
-      buf << "invalid cast from string \"" << *S << "\"";
-      vm::error(buf);
-    }
+  try {
+    s->push(lexical::cast<T>(*S));
+  } catch (lexical::bad_cast&) {
+    s->push(vm::Default);
   }
+}
+
+void initialized(vm::stack *s)
+{
+  s->push(!vm::isdefault(pop(s)));
 }
 
 template<class T, class S>
@@ -104,7 +102,7 @@ void read(vm::stack *s)
 }
 
 inline Int Limit(Int nx) {return nx == 0 ? Int_MAX : nx;}
-inline void reportEof(camp::file *f, Int count) 
+inline void reportEof(camp::file *f, Int count)
 {
   if(count > 0) {
     ostringstream buf;
@@ -148,7 +146,7 @@ void readArray(vm::stack *s, Int nx=-1, Int ny=-1, Int nz=-1)
                 }
                 cij->push(v);
                 if(f->LineMode() && f->nexteol()) {
-                  if(f->nexteol()) break2=true;
+                  if(f->nexteol() && !f->CSVMode()) break2=true;
                   break;
                 }
               }
@@ -192,19 +190,19 @@ void readArray(vm::stack *s, Int nx=-1, Int ny=-1, Int nz=-1)
 template<class T>
 void readArray1(vm::stack *s)
 {
-  readArray<T>(s,0); 
+  readArray<T>(s,0);
 }
 
 template<class T>
 void readArray2(vm::stack *s)
 {
-  readArray<T>(s,0,0); 
+  readArray<T>(s,0,0);
 }
 
 template<class T>
 void readArray3(vm::stack *s)
 {
-  readArray<T>(s,0,0,0); 
+  readArray<T>(s,0,0,0);
 }
 
 } // namespace run

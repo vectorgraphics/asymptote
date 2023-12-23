@@ -7,13 +7,15 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
   pair pmin=min(f)-lb;
   pair pmax=max(f)+rt;
   string s="%.6f";
-  postscript(tiling,"<< /PaintType 1 /PatternType 1 /TilingType 1 
+  postscript(tiling,"<< /PaintType 1 /PatternType 1 /TilingType 1
 /BBox ["+format(s,pmin.x,"C")+" "+format(s,pmin.y,"C")+" "+
              format(s,pmax.x,"C")+" "+format(s,pmax.y,"C")+"]
 /XStep "+format(s,pmax.x-pmin.x,"C")+"
 /YStep "+format(s,pmax.y-pmin.y,"C")+"
 /PaintProc {pop");
+  gsave(tiling);
   add(tiling,f);
+  grestore(tiling);
   postscript(tiling,"} >>
  matrix makepattern
 /"+name+" exch def");
@@ -64,7 +66,7 @@ picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)
 }
 
 real hatchepsilon=1e-4;
-picture hatch(real H=5mm, pair dir=NE, pen p=currentpen) 
+picture hatch(real H=5mm, pair dir=NE, pen p=currentpen)
 {
   picture tiling;
   real theta=angle(dir);
@@ -99,4 +101,3 @@ picture crosshatch(real H=5mm, pen p=currentpen)
   add(tiling,shift(H*sqrt(2))*rotate(90)*hatch(H,p));
   return tiling;
 }
-

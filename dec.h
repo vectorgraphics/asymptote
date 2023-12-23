@@ -53,7 +53,7 @@ public:
   virtual void prettyprint(ostream &out, Int indent) = 0;
 
   // If we introduced a new type, automatically add corresponding functions for
-  // that type.  
+  // that type.
   virtual void addOps(coenv &, record *) {}
 
   // Returns the internal representation of the type.  This method can
@@ -62,6 +62,11 @@ public:
   virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
 
   virtual trans::tyEntry *transAsTyEntry(coenv &e, record *where);
+
+  virtual operator string() const = 0;
+#ifdef USEGC
+  operator std::string() const { return mem::stdString(this->operator string()); }
+#endif
 };
 
 class nameTy : public ty {
@@ -74,10 +79,12 @@ public:
   nameTy(name *id)
     : ty(id->getPos()), id(id) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  types::ty *trans(coenv &e, bool tacit = false);
-  trans::tyEntry *transAsTyEntry(coenv &e, record *where);
+  types::ty *trans(coenv &e, bool tacit = false) override;
+  trans::tyEntry *transAsTyEntry(coenv &e, record *where) override;
+
+  virtual operator string() const override;
 };
 
 class dimensions : public absyn {
@@ -90,7 +97,7 @@ public:
 
   void increase()
   { depth++; }
-  
+
   size_t size() {
     return depth;
   }
@@ -109,11 +116,13 @@ public:
   arrayTy(name *id, dimensions *dims)
     : ty(dims->getPos()), cell(new nameTy(id)), dims(dims) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  void addOps(coenv &e, record *r);
+  void addOps(coenv &e, record *r) override;
 
-  types::ty *trans(coenv &e, bool tacit = false);
+  types::ty *trans(coenv &e, bool tacit = false) override;
+
+  operator string() const override;
 };
 
 // Similar to varEntryExp, this helper class always translates to the same fixed
@@ -126,12 +135,13 @@ public:
 
   tyEntryTy(position pos, types::ty *t);
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  types::ty *trans(coenv &e, bool tacit = false);
-  trans::tyEntry *transAsTyEntry(coenv &, record *) {
+  types::ty *trans(coenv &e, bool tacit = false) override;
+  trans::tyEntry *transAsTyEntry(coenv &, record *) override {
     return ent;
   }
+  operator string() const override;
 };
 
 // Runnable is anything that can be executed by the program, including
@@ -142,13 +152,13 @@ public:
     : absyn(pos) {}
 
   virtual void prettyprint(ostream &out, Int indent) = 0;
-  
+
   void markTrans(coenv &e)
   {
     markPos(e);
     trans(e);
   }
-  
+
   /* Translates the stm or dec as if it were in a function definition. */
   virtual void trans(coenv &e) {
     transAsField(e, 0);
@@ -182,10 +192,10 @@ public:
   { return false; }
 
   // Returns true if it is syntatically allowable to modify this
-  // runnable by a PUBLIC or PRIVATE modifier. 
+  // runnable by a PUBLIC or PRIVATE modifier.
   virtual bool allowPermissions()
   { return false; }
-}; 
+};
 
 class block : public runnable {
 public:
@@ -208,11 +218,11 @@ public:
     stms.push_back(r);
   }
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  void trans(coenv &e);
+  void trans(coenv &e) override;
 
-  void transAsField(coenv &e, record *r);
+  void transAsField(coenv &e, record *r) override;
 
   void transAsRecordBody(coenv &e, record *r);
 
@@ -233,7 +243,9 @@ public:
   // }
   //
   // is not guaranteed to return.
-  bool returns();
+  bool returns() override;
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 class modifierList : public absyn {
@@ -307,7 +319,7 @@ public:
   decidstart(position pos, symbol id, dimensions *dims = 0)
     : absyn(pos), id(id), dims(dims) {}
 
-  virtual void prettyprint(ostream &out, Int indent);
+  virtual void prettyprint(ostream &out, Int indent) override;
 
   virtual types::ty *getType(types::ty *base, coenv &, bool = false);
   virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e,
@@ -319,6 +331,9 @@ public:
 
   virtual symbol getName()
   { return id; }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 // Forward declaration.
@@ -352,14 +367,17 @@ public:
   decid(position pos, decidstart *start, varinit *init = 0)
     : absyn(pos), start(start), init(init) {}
 
-  virtual void prettyprint(ostream &out, Int indent);
+  virtual void prettyprint(ostream &out, Int indent) override;
 
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
-  // Translate, but add the names in as types rather than variables. 
+  // Translate, but add the names in as types rather than variables.
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 
   decidstart *getStart() { return start; }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 class decidlist : public absyn {
@@ -370,18 +388,18 @@ public:
     : absyn(pos) {}
 
   virtual ~decidlist() {}
-  
+
   void add(decid *p) {
     decs.push_back(p);
   }
 
-  virtual void prettyprint(ostream &out, Int indent);
+  virtual void prettyprint(ostream &out, Int indent) override;
 
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
-  // Translate, but add the names in as types rather than variables. 
+  // Translate, but add the names in as types rather than variables.
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
-  
+
   // If the list consists of a single entry, return it.
   decid *singleEntry()
   {
@@ -390,6 +408,9 @@ public:
     else
       return 0;
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
 
 class dec : public runnable {
@@ -397,10 +418,10 @@ public:
   dec(position pos)
     : runnable(pos) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
   // Declarations can be public or private.
-  bool allowPermissions()
+  bool allowPermissions() override
   { return true; }
 };
 
@@ -420,15 +441,15 @@ public:
   {
     decs->add(di);
   }
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  void transAsField(coenv &e, record *r)
+  void transAsField(coenv &e, record *r) override
   {
     base->addOps(e, r);
     decs->transAsField(e, r, base->trans(e));
   }
 
-  // Translate, but add the names in as types rather than variables. 
+  // Translate, but add the names in as types rather than variables.
   virtual void transAsTypedefField(coenv &e, record *r);
 
   // If the vardec encodes a single declaration, return the name of that
@@ -438,6 +459,8 @@ public:
   // If the vardec encodes a single declaration, return the type of that
   // declaration (otherwise 0).
   types::ty *singleGetType(coenv& e);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 struct idpair : public absyn {
@@ -462,15 +485,17 @@ struct idpair : public absyn {
     }
   }
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
   // Translates as: access src as dest;
   void transAsAccess(coenv &e, record *r);
-  
+
   // Translates as: from _ unravel src as dest;
   // where _ is the qualifier record with source as its fields and types.
   void transAsUnravel(coenv &e, record *r,
                       protoenv &source, varEntry *qualifier);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 struct idpairlist : public gc {
@@ -486,6 +511,17 @@ struct idpairlist : public gc {
 
   void transAsUnravel(coenv &e, record *r,
                       protoenv &source, varEntry *qualifier);
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext);
+
+  template<typename TFn>
+  void processListFn(TFn const& fn)
+  {
+    for (auto* idp : base)
+    {
+      fn(idp->src, idp->dest);
+    }
+  }
 };
 
 extern idpairlist * const WILDCARD;
@@ -498,11 +534,13 @@ public:
   accessdec(position pos, idpairlist *base)
     : dec(pos), base(base) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  void transAsField(coenv &e, record *r) {
+  void transAsField(coenv &e, record *r) override {
     base->transAsAccess(e,r);
   }
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Abstract base class for
@@ -542,9 +580,9 @@ public:
   fromdec(position pos, idpairlist *fields)
     : dec(pos), fields(fields) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  void transAsField(coenv &e, record *r);
+  void transAsField(coenv &e, record *r) override;
 };
 
 // An unravel declaration dumps fields and types of a record into the local
@@ -552,12 +590,14 @@ public:
 class unraveldec : public fromdec {
   name *id;
 
-  qualifier getQualifier(coenv &e, record *);
+  qualifier getQualifier(coenv &e, record *) override;
 public:
   unraveldec(position pos, name *id, idpairlist *fields)
     : fromdec(pos, fields), id(id) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // A fromaccess declaration dumps fields and types of a module into the local
@@ -565,12 +605,14 @@ public:
 class fromaccessdec : public fromdec {
   symbol id;
 
-  qualifier getQualifier(coenv &e, record *r);
+  qualifier getQualifier(coenv &e, record *r) override;
 public:
   fromaccessdec(position pos, symbol id, idpairlist *fields)
     : fromdec(pos, fields), id(id) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // An import declaration dumps fields and types of a module into the local
@@ -587,15 +629,17 @@ public:
     base.add(new unraveldec(pos, new simpleName(pos, id->dest), WILDCARD));
   }
 
-  void trans(coenv &e) {
+  void trans(coenv &e) override {
     base.trans(e);
   }
 
-  void transAsField(coenv &e, record *r) {
+  void transAsField(coenv &e, record *r) override {
     base.transAsField(e, r);
   }
-  
-  void prettyprint(ostream &out, Int indent);
+
+  void prettyprint(ostream &out, Int indent) override;
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Parses the file given, and translates the resulting runnables as if they
@@ -609,10 +653,12 @@ public:
   includedec(position pos, symbol id)
     : dec(pos), filename(id) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
   void loadFailed(coenv &e);
 
-  void transAsField(coenv &e, record *r);
+  void transAsField(coenv &e, record *r) override;
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Types defined from others in typedef.
@@ -653,17 +699,18 @@ public:
   virtual ~recorddec()
   {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  void transAsField(coenv &e, record *parent);
+  void transAsField(coenv &e, record *parent) override;
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
 // Returns a runnable that facilitates the autoplain feature.
 runnable *autoplainRunnable();
 
 void addVar(coenv &e, record *r, varEntry *v, symbol id);
-  
+
 } // namespace absyntax
 
 #endif
-

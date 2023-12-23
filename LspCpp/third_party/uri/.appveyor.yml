@@ -1,0 +1,14 @@
+os:
+  - Visual Studio 2015
+
+build_script:
+  - git submodule init
+  - git submodule update
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build .
+  - ctest
+
+on_failure:
+  - type Testing\Temporary\LastTest.log

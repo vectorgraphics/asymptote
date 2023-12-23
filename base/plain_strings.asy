@@ -49,13 +49,13 @@ triple gettriple(string name="", triple default=(0,0,0), string prompt="",
 
 // returns a string with all occurrences of string 'before' in string 's'
 // changed to string 'after'.
-string replace(string s, string before, string after) 
+string replace(string s, string before, string after)
 {
   return replace(s,new string[][] {{before,after}});
 }
 
 // Like texify but don't convert embedded TeX commands: \${}
-string TeXify(string s) 
+string TeXify(string s)
 {
   static string[][] t={{"&","\&"},{"%","\%"},{"_","\_"},{"#","\#"},{"<","$<$"},
                        {">","$>$"},{"|","$|$"},{"^","$\hat{\ }$"},
@@ -68,7 +68,7 @@ private string[][] trans1={{'\\',"\backslash "},
 private string[][] trans2={{"\backslash ","$\backslash$"}};
 
 // Convert string to TeX
-string texify(string s) 
+string texify(string s)
 {
   return TeXify(replace(replace(s,trans1),trans2));
 }
@@ -85,7 +85,7 @@ string verbatim(string s)
 
 // Split a string into an array of substrings delimited by delimiter
 // If delimiter is an empty string, use space delimiter but discard empty
-// substrings.
+// substrings. TODO: Move to C++ code.
 string[] split(string s, string delimiter="")
 {
   bool prune=false;
@@ -93,7 +93,7 @@ string[] split(string s, string delimiter="")
     prune=true;
     delimiter=" ";
   }
-  
+
   string[] S;
   int last=0;
   int i;
@@ -109,7 +109,28 @@ string[] split(string s, string delimiter="")
   return S;
 }
 
-int system(string s) 
+// Returns an array of strings obtained by splitting s into individual
+// characters. TODO: Move to C++ code.
+string[] array(string s)
+{
+  int len=length(s);
+  string[] S=new string[len];
+  for(int i=0; i < len; ++i)
+    S[i]=substr(s,i,1);
+  return S;
+}
+
+// Concatenate an array of strings into a single string.
+// TODO: Move to C++ code.
+string operator +(...string[] a)
+{
+  string S;
+  for(string s : a)
+    S += s;
+  return S;
+}
+
+int system(string s)
 {
   return system(split(s));
 }
@@ -140,8 +161,8 @@ string italic(string s)
   return s != "" ? "{\it "+s+"}" : s;
 }
 
-string baseline(string s, string template="\strut") 
-{ 
+string baseline(string s, string template="\strut")
+{
   return s != "" && settings.tex != "none" ? "\vphantom{"+template+"}"+s : s;
 }
 
@@ -150,7 +171,7 @@ string math(string s)
   return s != "" ? "$"+s+"$" : s;
 }
 
-private void notimplemented(string text) 
+private void notimplemented(string text)
 {
   abort(text+" is not implemented for the '"+settings.tex+"' TeX engine");
 }
@@ -165,14 +186,8 @@ string graphic(string name, string options="")
 {
   if(latex()) {
     if(options != "") options="["+options+"]";
-    bool pdf=pdf();
     string includegraphics="\includegraphics"+options;
-    if(settings.inlinetex)
-      return includegraphics+"{"+jobname(name)+"}";
-    else
-      return includegraphics+
-        (find(name," ") < 0 ? "{"+name+"}" :
-         (pdf ? "{\""+stripextension(name)+"\".pdf}" : "{\""+name+"\"}"));
+    return includegraphics+"{"+(settings.inlinetex ? jobname(name) : name)+"}";
   }
   if(settings.tex != "context")
     notimplemented("graphic");
@@ -202,25 +217,16 @@ void usepackage(string s, string options="")
   texpreamble(usepackage+"{"+s+"}");
 }
 
-void pause(string w="Hit enter to continue") 
+void pause(string w="Hit enter to continue")
 {
   write(w);
   w=stdin;
 }
 
-string math(real x)
+string format(string format=defaultformat, bool forcemath=false, real x,
+              string locale="")
 {
-  return math((string) x);
-}
-
-string format(string format, real x, string locale="")
-{
-  return format(format,defaultseparator,x,locale);
-}
-
-string format(real x, string locale="")
-{
-  return format(defaultformat,defaultseparator,x,locale);
+  return format(format,forcemath,defaultseparator,x,locale);
 }
 
 string phantom(string s)

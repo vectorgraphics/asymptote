@@ -25,27 +25,33 @@ using namespace types;
 
 void stm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"stm",indent);
+  prettyname(out,"stm",indent, getPos());
 }
 
 
 void emptyStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"emptyStm",indent);
+  prettyname(out,"emptyStm",indent, getPos());
 }
 
 
 void blockStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"blockStm",indent);
+  prettyname(out,"blockStm",indent, getPos());
 
   base->prettyprint(out, indent+1);
 }
 
+void blockStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  base->createSymMap(symContext->newContext(getPos().LineColumn()));
+#endif
+}
 
 void expStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"expStm",indent);
+  prettyname(out,"expStm",indent, getPos());
 
   body->prettyprint(out, indent+1);
 }
@@ -80,7 +86,7 @@ void tryToWriteTypeOfExp(types::ty *t, exp *body)
     cout << ">" << endl;
   }
 }
-  
+
 // From dec.cc:
 varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t);
 
@@ -103,7 +109,7 @@ void storeAndWriteExp(coenv &e, types::ty *t, exp *expr) {
 
   position pos=expr->getPos();
   baseExpTrans(e, new callExp(pos, new nameExp(pos, "write"),
-                                   new nameExp(pos, "operator answer")));
+                              new nameExp(pos, "operator answer")));
 }
 
 void tryToWriteExp(coenv &e, exp *expr)
@@ -112,7 +118,7 @@ void tryToWriteExp(coenv &e, exp *expr)
   types::ty *t=expr->cgetType(e);
 
   if(!t) return;
-  
+
   // If the original expression is bad, just print the errors.
   // If it is a function which returns void, just call the function.
   if (t->kind == ty_error || t->kind == ty_void) {
@@ -130,7 +136,7 @@ void tryToWriteExp(coenv &e, exp *expr)
       expr->trans(e);
       em.sync();
       assert(em.errors());
-      
+
       // Then, write out all of the types.
       tryToWriteTypeOfExp(t, expr);
     }
@@ -163,17 +169,23 @@ void tryToWriteExp(coenv &e, exp *expr)
 void expStm::interactiveTrans(coenv &e)
 {
   // First check if it is the kind of expression that should be written.
-  if (body->writtenToPrompt() && 
+  if (body->writtenToPrompt() &&
       settings::getSetting<bool>("interactiveWrite"))
     tryToWriteExp(e, body);
   else
     baseExpTrans(e, body);
 }
 
+void expStm::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
+#ifdef HAVE_LSP
+  body->createSymMap(symContext);
+#endif
+}
+
 
 void ifStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"ifStm",indent);
+  prettyname(out,"ifStm",indent, getPos());
 
   test->prettyprint(out, indent+1);
   onTrue->prettyprint(out, indent+1);
@@ -189,7 +201,7 @@ void ifStm::trans(coenv &e)
   test->transConditionalJump(e, false, elseLabel);
 
   onTrue->markTrans(e);
-  
+
   if (onFalse) {
     // Encode the jump around the 'else' clause at the end of the 'if' clause
     e.c.useLabel(inst::jmp,end);
@@ -204,11 +216,24 @@ void ifStm::trans(coenv &e)
   e.c.defLabel(end);
 }
 
+  void ifStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+  {
+#ifdef HAVE_LSP
+    test->createSymMap(symContext);
+    onTrue->createSymMap(symContext);
+
+    if (onFalse)
+    {
+      onFalse->createSymMap(symContext);
+    }
+#endif
+  }
+
 
 void transLoopBody(coenv &e, stm *body) {
   // The semantics of the language are defined so that any variable declared
   // inside a loop are new variables for each iteration of the loop.  For
-  // instance, the code 
+  // instance, the code
   //
   //     int f();
   //     for (int i = 0; i < 10; ++i) {
@@ -251,7 +276,7 @@ void transLoopBody(coenv &e, stm *body) {
 
 void whileStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"whileStm",indent);
+  prettyname(out,"whileStm",indent, getPos());
 
   test->prettyprint(out, indent+1);
   body->prettyprint(out, indent+1);
@@ -273,10 +298,29 @@ void whileStm::trans(coenv &e)
   e.c.popLoop();
 }
 
-
-void doStm::prettyprint(ostream &out, Int indent)
+void whileStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
-  prettyname(out,"doStm",indent);
+#ifdef HAVE_LSP
+  // while (<xyz>) { <body> }
+  // the <xyz> part belongs in the main context as the while statement,
+  // as it cannot declare new variables and only knows the symbols from that context.
+
+  test->createSymMap(symContext);
+
+  // for the body part, { <body> } are encapsulated in
+  // the blockStm, while <body> are direct statements.
+  // If the while block does not use { <body> }, then the body
+  // can be considered the same context as it cannot declare new variables and again, can
+  // only uses the variable already known before this while statement.
+
+  body->createSymMap(symContext);
+#endif
+}
+
+
+  void doStm::prettyprint(ostream &out, Int indent)
+{
+  prettyname(out,"doStm",indent, getPos());
 
   body->prettyprint(out, indent+1);
   test->prettyprint(out, indent+1);
@@ -287,11 +331,11 @@ void doStm::trans(coenv &e)
   label testLabel = e.c.fwdLabel();
   label end = e.c.fwdLabel();
   e.c.pushLoop(testLabel, end);
- 
+
   label start = e.c.defNewLabel();
 
-  transLoopBody(e,body);  
-  
+  transLoopBody(e,body);
+
   e.c.defLabel(testLabel);
 
   test->transConditionalJump(e, true, start);
@@ -301,10 +345,18 @@ void doStm::trans(coenv &e)
   e.c.popLoop();
 }
 
+void doStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  body->createSymMap(symContext);
+  test->createSymMap(symContext);
+#endif
+}
+
 
 void forStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"forStm",indent);
+  prettyname(out,"forStm",indent, getPos());
 
   if (init) init->prettyprint(out, indent+1);
   if (test) test->prettyprint(out, indent+1);
@@ -331,7 +383,7 @@ void forStm::trans(coenv &e)
   transLoopBody(e,body);
 
   e.c.defLabel(ctarget);
-  
+
   if (update)
     update->markTrans(e);
   e.c.useLabel(inst::jmp,start);
@@ -341,6 +393,28 @@ void forStm::trans(coenv &e)
   e.c.popLoop();
 
   e.e.endScope();
+}
+
+void forStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  AsymptoteLsp::SymbolContext* ctx(symContext);
+  if (init)
+  {
+    auto* declCtx(symContext->newContext(getPos().LineColumn()));
+    init->createSymMap(declCtx);
+    ctx = declCtx;
+  }
+  if (test)
+  {
+    test->createSymMap(ctx);
+  }
+  if (update)
+  {
+    update->createSymMap(ctx);
+  }
+  body->createSymMap(ctx);
+#endif
 }
 
 void extendedForStm::prettyprint(ostream &out, Int indent)
@@ -377,7 +451,7 @@ void extendedForStm::trans(coenv &e) {
     if (at->kind != ty_array) {
       em.error(set->getPos());
       em << "expression is not an array of inferable type";
-      
+
       // On failure, don't bother trying to translate the loop.
       return;
     }
@@ -397,7 +471,7 @@ void extendedForStm::trans(coenv &e) {
   // { start var=a[i]; body }
   block b(pos);
   decid dec2(pos,
-             new decidstart(pos, var), 
+             new decidstart(pos, var),
              new subscriptExp(pos, new nameExp(pos, a),
                               new nameExp(pos, i)));
   b.add(new vardec(pos, start, &dec2));
@@ -407,9 +481,9 @@ void extendedForStm::trans(coenv &e) {
   //   <block>
   forStm(pos,
          new vardec(pos, new tyEntryTy(pos, primInt()),
-                         new decid(pos,
-                                   new decidstart(pos, i),
-                                   new intExp(pos, 0))),
+                    new decid(pos,
+                              new decidstart(pos, i),
+                              new intExp(pos, 0))),
          new binaryExp(pos,
                        new nameExp(pos, i),
                        SYM_LT,
@@ -420,11 +494,32 @@ void extendedForStm::trans(coenv &e) {
          new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS)),
          new blockStm(pos, &b)).trans(e);
 }
-                              
+
+void extendedForStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  auto* declCtx(symContext->newContext(getPos().LineColumn()));
+
+  std::string varName(var);
+
+  // FIXME: How do we get the position of the actual variable name?
+  //        Right now, we only get the starting position of the type declaration
+  declCtx->symMap.varDec.emplace(std::piecewise_construct,
+          std::forward_as_tuple(varName),
+          std::forward_as_tuple(
+                  varName,
+                  static_cast<std::string>(*start),
+                  start->getPos().LineColumn()
+                  ));
+  set->createSymMap(symContext);
+  body->createSymMap(declCtx);
+#endif
+}
+
 
 void breakStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"breakStm",indent);
+  prettyname(out,"breakStm",indent, getPos());
 }
 
 void breakStm::trans(coenv &e)
@@ -438,13 +533,13 @@ void breakStm::trans(coenv &e)
 
 void continueStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out,"continueStm",indent);
+  prettyname(out,"continueStm",indent, getPos());
 }
 
 void continueStm::trans(coenv &e)
 {
   if (!e.c.encodeContinue()) {
-    em.error(getPos()); 
+    em.error(getPos());
     em << "continue statement outside of a loop";
   }
 }
@@ -452,7 +547,7 @@ void continueStm::trans(coenv &e)
 
 void returnStm::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "returnStm",indent);
+  prettyname(out, "returnStm",indent, getPos());
 
   if (value)
     value->prettyprint(out, indent+1);
@@ -485,10 +580,20 @@ void returnStm::trans(coenv &e)
   e.c.encode(inst::ret);
 }
 
+void returnStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  if (value)
+  {
+    value->createSymMap(symContext);
+  }
+#endif
+}
+
 
 void stmExpList::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "stmExpList",indent);
+  prettyname(out, "stmExpList",indent, getPos());
 
   for (mem::list<stm *>::iterator p = stms.begin(); p != stms.end(); ++p)
     (*p)->prettyprint(out, indent+1);

@@ -1,0 +1,52 @@
+(defun change (old-pat new-pat) "Replace all occurences of old-pat to new-pat in current buffer."
+(interactive "r")
+(goto-char (point-min))
+(replace-string old-pat new-pat))
+
+(defun changereg (old-regexp new-regexp) "Replace all occurences of old-regexp to new-regexp in current buffer."
+(interactive "r")
+(goto-char (point-min))
+(replace-regexp old-regexp new-regexp))
+
+(defun querychangereg (old-regexp new-regexp) "Replace all occurences of old-regexp to new-regexp in current buffer, with query."
+(interactive "r")
+(goto-char (point-min))
+(query-replace-regexp old-regexp new-regexp))
+
+(set-variable 'case-fold-search nil)
+(change " + " "+")
+(change " - " "-")
+(change " * " "*")
+(change " / " "/")
+(change " = " "=")
+(change " --" "--")
+(change "-- " "--")
+(change " ++" "++")
+(change "++ " "++")
+(change " .. " "..")
+(change " ^^ " "^^")
+(change " & " "&")
+(change " :: " "::")
+(change ";--" "; --")
+(change " (" "(")
+(change " )" ")")
+(change " }" "}")
+(changereg "( \\([^/]\\)" "(\\1")
+(changereg "{ \\([^/]\\)" "{\\1")
+(changereg "\\([^ ]\\)\\?" "\\1 ?")
+(changereg "\\?\\([^ ]\\)" "? \\1")
+(changereg ";\\([^ \\}
+]\\)" "; \\1")
+;;(changereg "\\([^ ]\\):" "\\1 :")
+(changereg ":\\([^ ]\\)" ": \\1")
+(changereg "\\([+-*/=!]\\)=\\([^ ]\\)" "\\1= \\2")
+(changereg "\\([^ ]\\)\\([+-*/=!]\\)=" "\\1 \\2=")
+(changereg "\\([]\\)\\([^ =]\\)" "\\1 \\2")
+(changereg "\\([^ ]\\)\\([]\\)" "\\1 \\2")
+(changereg "&&\\([^ ]\\)" "&& \\1")
+(changereg "||\\([^ ]\\)" "|| \\1")
+(changereg "\\[\\]\\([^ []\\)" "[] \\1")
+(indent-region (point-min) (point-max))
+
+(querychangereg ", " ",")
+

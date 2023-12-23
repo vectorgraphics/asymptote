@@ -33,3 +33,5 @@ Andy: operator tuple, to let people define their own tuples
 Andy: Decide if we should change vm::error to em in application.cc
 
 John or Andy: Add unit test for AddOps.
+
+Jamie: Finish environment texture & other PBR refinements.

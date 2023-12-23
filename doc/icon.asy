@@ -4,7 +4,7 @@ size(30,30,IgnoreAspect);
 
 real f(real t) {return t < 0 ? -1/t : -0.5/t;}
 
-picture logo(pair s=0, pen q) 
+picture logo(pair s=0, pen q)
 {
   picture pic;
   pen p=linewidth(3)+q;
@@ -17,6 +17,6 @@ picture logo(pair s=0, pen q)
   draw(pic,z+c+eps--z,p);
   yaxis(pic,p);
   return shift(s)*pic;
-} 
+}
 
 add(logo(red));

@@ -1,11 +1,11 @@
 // Copyright 2015 Charles Staats III
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -72,7 +72,7 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
   assert(u1normals.length == 3);
   assert(v0normals.length == 3);
   assert(v1normals.length == 3);
-  
+
   triple[][] controlpoints = new triple[4][4];
   controlpoints[0][0] = point(external,0);
   controlpoints[1][0] = postcontrol(external,0);
@@ -217,7 +217,7 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
           + "on bezier patch. Using coons patch.");
     return patch(external);
   }
-  
+
   for (int i = 1; i <= 2; ++i) {
     for (int j = 1; j <= 2; ++j) {
       int position = 3 * (2 * (i-1) + (j-1));
@@ -268,7 +268,7 @@ patch trianglewithnormals(path3 external, triple n1,
   tangent = dir(external, 2.5);
   n3 -= dot(n3,tangent)*tangent;
   n3 = unit(n3);
-  
+
   real wild = 2 * wildnessweight;
   real[][] matrix = { {n1.x, n1.y, n1.z},
                       {n2.x, n2.y, n2.z},
@@ -591,7 +591,7 @@ triple projecttospan(triple toproject, triple v1, triple v2,
 path3 pathbetween(path3 edgecycle, int vertex1, int vertex2) {
   triple point1 = point(edgecycle, vertex1);
   triple point2 = point(edgecycle, vertex2);
-  
+
   triple v1 = -dir(edgecycle, vertex1, sign=-1);
   triple v2 =  dir(edgecycle, vertex1, sign= 1);
   triple direction1 = projecttospan(unit(point2-point1), v1, v2);
@@ -802,7 +802,7 @@ patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
 
   return new patch[] {patchwithnormals(quad0, grad),
       patchwithnormals(quad1, grad),
-      patchwithnormals(quad2, grad)};   
+      patchwithnormals(quad2, grad)};
 }
 
 // Attempts to fill the path external (which should by a cyclic path consisting of
@@ -837,7 +837,7 @@ patch[] maketriangle(path3 external, real f(triple),
     return new patch[] {beziertriangle};
 
   if (!allowsubdivide) return new patch[0];
-  
+
   positionedvector m1 = positionedvector(m1, n1);
   positionedvector m2 = positionedvector(m2, n2);
   positionedvector m3 = positionedvector(m3, n3);
@@ -855,7 +855,7 @@ patch[] maketriangle(path3 external, real f(triple),
   triangles.append(maketriangle(subpath(external, 0.5, 1.5) & reverse(p12) & cycle,
                                 f, grad=grad, allowsubdivide=false));
   if (triangles.length < 3) return new patch[0];
-  
+
   triangles.append(maketriangle(subpath(external, 1.5, 2.5) & reverse(p23) & cycle,
                                 f, grad=grad, allowsubdivide=false));
   if (triangles.length < 4) return new patch[0];
@@ -913,7 +913,7 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
 
   // The tolerance for considering two points "essentially identical."
   static real tolerance = 2.5 * rootfinder_settings.roottolerance;
-  
+
   // If there are two neighboring vertices that are essentially identical,
   // unify them into one.
   for (int i = 0; i < corners.length; ++i) {
@@ -948,7 +948,7 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
       return null;
     }
   }
-  
+
   if (length(edgecycle) == 3) {
     patch[] toreturn = usetriangles ? maketriangle(edgecycle, f, grad)
         : triangletoquads(edgecycle, f, grad, a, b);
@@ -961,12 +961,12 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
 
   int[] bisectorindices;
   path3 middleguide = bisector(edgecycle, bisectorindices);
-  
+
   triple testpoint = point(middleguide, 0.5);
   if (!checkpt(testpoint, f, grad, a, b)) {
     return null;
   }
-  
+
   patch[] toreturn = null;
   path3 firstpatch = subpath(edgecycle, bisectorindices[0], bisectorindices[1])
     & reverse(middleguide) & cycle;
@@ -1328,7 +1328,7 @@ struct gridwithzeros {
       }
       return null;
     }
-    
+
     currentface = XLOW;
     nextface = YHIGH;
     pushifnonnull(zdirzeros[0][1][0]);
@@ -1393,12 +1393,12 @@ struct gridwithzeros {
       if (!checkpt(testpoint, f, grad, corners[0][0][0], corners[1][1][1])) {
         return subdividecube();
       }
-       
+
       edgecycle = edgecycle & currentpath;
     }
     edgecycle = edgecycle & cycle;
 
-    
+
     {  // Ensure the outward normals are pointing in the same direction as the gradient.
       triple tangentin = patchcorners[0].position - precontrol(edgecycle, 0);
       triple tangentout = postcontrol(edgecycle, 0) - patchcorners[0].position;
@@ -1482,7 +1482,7 @@ struct gridwithzeros {
         if (k >= nz) reportactive[ZHIGH] = true;
       }
     }
-    
+
     for (int i = 0; i < nx+1; ++i) {
       for (int j = 0; j < ny+1; ++j) {
         for (int k = 0; k < nz+1; ++k) {
@@ -1532,7 +1532,7 @@ struct gridwithzeros {
   };
 }
 
-// The external interface of this whole module. Accepts exactly one 
+// The external interface of this whole module. Accepts exactly one
 // function (throws an error if two or zero functions are specified).
 // The function should be differentiable. (Whatever you do, do not
 // pass in an indicator function!) Ideally, the zero locus of the

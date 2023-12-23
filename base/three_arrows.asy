@@ -37,7 +37,7 @@ triple bend(triple p, path3 g, real scale)
   return bend(g,arctime(g,arclength(g)+p.z-scale))*(p.x,p.y,0);
 }
 
-void bend(surface s, path3 g, real L) 
+void bend(surface s, path3 g, real L)
 {
   for(patch p : s.s) {
     for(int i=0; i < 4; ++i) {
@@ -71,7 +71,7 @@ struct arrowhead3
   real arcsize(pen p)=arcarrowsize;
   real gap=1;
   real size;
-  bool splitpath=true;
+  bool splitpath=false;
 
   surface head(path3 g, position position=EndPoint,
                pen p=currentpen, real size=0, real angle=arrowangle,
@@ -105,8 +105,11 @@ struct arrowhead3
           s.append(shift(-n)*t*extrude(g,width*Z));
     }
     if(draw)
-      for(path3 g : H)
-        s.append(tube(g,width).s);
+      for(path3 g : H) {
+        tube T=tube(g,width);
+        for(surface S : T.s)
+          s.append(S);
+      }
     return shift(v)*s;
   }
 
@@ -137,7 +140,7 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
 
   path3 r=subpath(g,position,0);
   path3 s=subpath(r,arctime(r,size),0);
-  int n=length(s);      
+  int n=length(s);
   bool straight1=n == 1 && straight(g,0);
   real aspect=Tan(angle);
   real width=size*aspect;
@@ -150,27 +153,26 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
     real remainL=size;
     bool first=true;
     for(int i=0; i < n; ++i) {
-      render(subpath(s,i,i+1),new void(path3 q, real) {
-          if(remainL > 0) {
-            real l=arclength(q);
-            real w=remainL*aspect;
-            surface segment=scale(w,w,l)*unitcylinder;
-            if(first) { // add base
-              first=false;
-              segment.append(scale(w,w,1)*unitdisk);
+      path3 q=subpath(s,i,i+1);
+      if(remainL > 0) {
+        real l=arclength(q);
+        real w=remainL*aspect;
+        surface segment=scale(w,w,l)*unitcylinder;
+        if(first) { // add base
+          first=false;
+          segment.append(scale(w,w,1)*unitdisk);
+        }
+        for(patch p : segment.s) {
+          for(int i=0; i < 4; ++i) {
+            for(int j=0; j < 4; ++j) {
+              real k=1-p.P[i][j].z/remainL;
+              p.P[i][j]=bend((k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z),q,l);
             }
-            for(patch p : segment.s) {
-              for(int i=0; i < 4; ++i) {
-                for(int j=0; j < 4; ++j) {
-                  real k=1-p.P[i][j].z/remainL;
-                  p.P[i][j]=bend((k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z),q,l);
-                }
-              }
-            }
-            head.append(segment);
-            remainL -= l;
           }
-        });
+        }
+        head.append(segment);
+        remainL -= l;
+      }
     }
   }
   return head;
@@ -184,7 +186,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
                      filltype filltype=null, bool forwards=true,
                      projection P=currentprojection) {
     if(size == 0) size=a.size(p);
-    
+
     bool relative=position.relative;
     real position=position.position.x;
     if(relative) position=reltime(g,position);
@@ -196,7 +198,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
                   YZplane);
     surface head=surface(O,reverse(approach(subpath(H,1,0),7,1.5))&
                          approach(subpath(H,1,2),4,2),Z);
-  
+
     if(straight1) {
       triple v=point(s,0);
       triple u=point(s,1)-v;
@@ -286,6 +288,7 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb, triple normal=O)
   };
   a.arrowhead2=HookHead;
   a.gap=1.005;
+  a.splitpath=true;
   return a;
 }
 arrowhead3 HookHead2=HookHead2();
@@ -308,7 +311,6 @@ arrowhead3 TeXHead2(triple normal=O) {
   };
   a.arrowhead2=TeXHead;
   a.size=TeXHead.size;
-  a.splitpath=false;
   a.gap=1.005;
   return a;
 }
@@ -322,7 +324,7 @@ private real position(position position, real size, path3 g, bool center)
     position *= arclength(g);
     if(center) position += 0.5*size;
     position=arctime(g,position);
-  } else if(center) 
+  } else if(center)
     position=arctime(g,arclength(subpath(g,0,position))+0.5*size);
   return position;
 }
@@ -448,7 +450,7 @@ picture arrow2(arrowhead3 arrowhead=DefaultHead3,
                path3 g, material p=currentpen, material arrowheadpen=p,
                real size=0, real angle=arrowangle, filltype filltype=null,
                margin3 margin=NoMargin3, light light=nolight,
-               light arrowheadlight=currentlight) 
+               light arrowheadlight=currentlight)
 {
   pen q=(pen) p;
   if(size == 0) size=arrowhead.size(q);
@@ -537,7 +539,7 @@ void bar(picture pic, triple a, triple d, triple perp=O,
   pic.addPoint(a,v-M);
   pic.addPoint(a,v+M);
 }
-                                                      
+
 picture bar(triple a, triple dir, triple perp=O, material p=currentpen)
 {
   picture pic;
@@ -618,11 +620,11 @@ arrowbar3 BeginArcArrow3(arrowhead3 arrowhead=DefaultHead3,
                          material arrowheadpen=nullpen)
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
-                  light light, light arrowheadlight) { 
+                  light light, light arrowheadlight) {
     real size=size == 0 ? arrowhead.arcsize((pen) p) : size;
     add(pic,arrowhead,size,angle,filltype,position,arrowheadpen,g,p,
         forwards=false,margin,light,arrowheadlight);
-    return false; 
+    return false;
   };
 }
 
@@ -683,7 +685,7 @@ arrowbar3 BeginBar3(real size=0, triple dir=O)
   };
 }
 
-arrowbar3 Bar3(real size=0, triple dir=O) 
+arrowbar3 Bar3(real size=0, triple dir=O)
 {
   return new bool(picture pic, path3 g, material p, margin3 margin, light light,
                   light) {
@@ -694,9 +696,9 @@ arrowbar3 Bar3(real size=0, triple dir=O)
   };
 }
 
-arrowbar3 EndBar3(real size=0, triple dir=O)=Bar3; 
+arrowbar3 EndBar3(real size=0, triple dir=O)=Bar3;
 
-arrowbar3 Bars3(real size=0, triple dir=O) 
+arrowbar3 Bars3(real size=0, triple dir=O)
 {
   return new bool(picture pic, path3 g, material p, margin3 margin, light light,
                   light) {

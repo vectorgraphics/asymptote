@@ -17,14 +17,14 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-// COMMENTARY: 
+// COMMENTARY:
 
-// THANKS: 
+// THANKS:
 
-// BUGS: 
+// BUGS:
 // magnetic points are experimental...
 
-// CODE: 
+// CODE:
 
 real magneticRadius=1; // unit is bp in postscript coordinates.
 real trembleFuzz(){return min(1e-3,magneticRadius/10);}
@@ -34,7 +34,7 @@ real trembleAngle=4, trembleFrequency=0.5, trembleRandom=2;
 struct tremble
 {
   static real test=5;
-  
+
   real angle,frequency,random,fuzz;
 
   pair[] single(pair[] P)
@@ -141,7 +141,7 @@ struct tremble
     this.random=random;
     this.fuzz=fuzz;
   }
-  
+
   path deform(path g...pair[] magneticPoints) {
     /* Return g as it was handwriting.
        The postcontrols and precontrols of the nodes of g will be rotated

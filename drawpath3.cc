@@ -5,102 +5,105 @@
  *****/
 
 #include "drawpath3.h"
+#include "drawsurface.h"
+#include "material.h"
+
+#ifdef HAVE_LIBGLM
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#endif
 
 namespace camp {
 
 using vm::array;
 using namespace prc;
-  
+
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
-  Int n=g.length();
-  if(n == 0 || invisible)
+  if(invisible)
     return true;
 
   if(straight) {
-    triple *controls=new(UseGC) triple[n+1];
-    for(Int i=0; i <= n; ++i)
-      controls[i]=g.point(i);
-    
-    out->addLine(n+1,controls,color);
+    triple controls[]={g.point((Int) 0),g.point((Int) 1)};
+    out->addLine(2,controls,diffuse);
   } else {
-    int m=3*n+1;
-    triple *controls=new(UseGC) triple[m];
-    controls[0]=g.point((Int) 0);
-    controls[1]=g.postcontrol((Int) 0);
-    size_t k=1;
-    for(Int i=1; i < n; ++i) {
-      controls[++k]=g.precontrol(i);
-      controls[++k]=g.point(i);
-      controls[++k]=g.postcontrol(i);
-    }
-    controls[++k]=g.precontrol(n);
-    controls[++k]=g.point(n);
-    out->addBezierCurve(m,controls,color);
+    triple controls[]={g.point((Int) 0),g.postcontrol((Int) 0),
+                       g.precontrol((Int) 1),g.point((Int) 1)};
+    out->addBezierCurve(4,controls,diffuse);
   }
-  
+
   return true;
 }
 
-void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
-                       double, bool lighton, bool transparent)
+bool drawPath3::write(abs3Doutfile *out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  if(billboard) {
+    meshinit();
+    drawElement::centerIndex=centerIndex;
+  } else drawElement::centerIndex=0;
+
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+
+  if(straight)
+    out->addCurve(g.point((Int) 0),g.point((Int) 1));
+  else
+    out->addCurve(g.point((Int) 0),g.postcontrol((Int) 0),
+                  g.precontrol((Int) 1),g.point((Int) 1));
+#endif
+  return true;
+}
+
+void drawPath3::render(double size2, const triple& b, const triple& B,
+                       double perspective, bool remesh)
 {
 #ifdef HAVE_GL
-  Int n=g.length();
-  if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
-    return;
+  if(invisible) return;
 
-  bool havebillboard=interaction == BILLBOARD;
-  
-  GLfloat Diffuse[]={0.0,0.0,0.0,(GLfloat) color.A};
-  glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
-  
-  static GLfloat Black[]={0.0,0.0,0.0,1.0};
-  glMaterialfv(GL_FRONT,GL_AMBIENT,Black);
-    
-  GLfloat Emissive[]={(GLfloat) color.R,(GLfloat) color.G,(GLfloat) color.B,
-		      (GLfloat) color.A};
-  glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
-    
-  glMaterialfv(GL_FRONT,GL_SPECULAR,Black);
-  
-  glMaterialf(GL_FRONT,GL_SHININESS,128.0);
-  
-  if(havebillboard) BB.init();
-  
-  if(straight) {
-    glBegin(GL_LINE_STRIP);
-    for(Int i=0; i <= n; ++i) {
-      triple v=g.point(i);
-      if(havebillboard) {
-        static GLfloat controlpoints[3];
-        BB.store(controlpoints,v,center);
-        glVertex3fv(controlpoints);
-      } else
-        glVertex3f(v.getx(),v.gety(),v.getz());
-    }
-    glEnd();
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
+
+  setMaterial(material1Data,drawMaterial1);
+
+  bool offscreen;
+  if(billboard) {
+    drawElement::centerIndex=centerIndex;
+    BB.init(center);
+    offscreen=bbox2(Min,Max,BB).offscreen();
+  } else
+    offscreen=bbox2(Min,Max).offscreen();
+
+  if(offscreen) { // Fully offscreen
+    R.Onscreen=false;
+    R.data.clear();
+    R.notRendered();
+    return;
+  }
+
+  triple controls[]={g.point((Int) 0),g.postcontrol((Int) 0),
+                     g.precontrol((Int) 1),g.point((Int) 1)};
+  triple *Controls;
+  triple Controls0[4];
+  if(billboard) {
+    Controls=Controls0;
+    for(size_t i=0; i < 4; i++)
+      Controls[i]=BB.transform(controls[i]);
   } else {
-    for(Int i=0; i < n; ++i) {
-      static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
-      static GLfloat controlpoints[12];
-      if(havebillboard) {
-        BB.store(controlpoints,g.point(i),center);
-        BB.store(controlpoints+3,g.postcontrol(i),center);
-        BB.store(controlpoints+6,g.precontrol(i+1),center);
-        BB.store(controlpoints+9,g.point(i+1),center);
-      } else {
-        store(controlpoints,g.point(i));
-        store(controlpoints+3,g.postcontrol(i));
-        store(controlpoints+6,g.precontrol(i+1));
-        store(controlpoints+9,g.point(i+1));
-      }
-      
-      gluBeginCurve(nurb);
-      gluNurbsCurve(nurb,8,knots,3,controlpoints,4,GL_MAP1_VERTEX_3);
-      gluEndCurve(nurb);
+    Controls=controls;
+    if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
+      R.append();
+      return;
     }
   }
+
+  double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
+
+  const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+
+  R.queue(controls,straight,size3.length()/size2);
 #endif
 }
 
@@ -108,14 +111,14 @@ drawElement *drawPath3::transformed(const double* t)
 {
   return new drawPath3(t,this);
 }
-  
+
 bool drawNurbsPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
 
   out->addCurve(degree,n,controls,knots,color,weights);
-  
+
   return true;
 }
 
@@ -124,7 +127,7 @@ void drawNurbsPath3::bounds(const double* t, bbox3& b)
 {
   double x,y,z;
   double X,Y,Z;
-  
+
   triple* Controls;
   if(t == NULL) Controls=controls;
   else {
@@ -132,12 +135,12 @@ void drawNurbsPath3::bounds(const double* t, bbox3& b)
     for(size_t i=0; i < n; i++)
       Controls[i]=t*controls[i];
   }
-  
+
   boundstriples(x,y,z,X,Y,Z,n,Controls);
-  
+
   b.add(x,y,z);
   b.add(X,Y,Z);
-  
+
   if(t == NULL) {
     Min=triple(x,y,z);
     Max=triple(X,Y,Z);
@@ -159,13 +162,13 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
     for(size_t i=0; i < n; i++)
       Controls[i]=t*controls[i];
   }
-  
+
   if(first) {
     first=false;
     triple v=Controls[0];
     b=pair(xratio(v),yratio(v));
   }
-  
+
   double x=b.getx();
   double y=b.gety();
   for(size_t i=0; i < n; ++i) {
@@ -174,7 +177,7 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
     y=m(y,yratio(v));
   }
   b=pair(x,y);
-  
+
   if(t != NULL)
     delete[] Controls;
 }
@@ -193,47 +196,69 @@ void drawNurbsPath3::displacement()
   else
     for(size_t i=0; i < n; ++i)
       store(Controls+3*i,controls[i]);
-  
+
   for(size_t i=0; i < nknots; ++i)
     Knots[i]=knots[i];
-#endif  
+#endif
 }
 
-void drawNurbsPath3::render(GLUnurbs *nurb, double, const triple&,
-                            const triple&, double, bool lighton,
-                            bool transparent)
+void drawNurbsPath3::render(double, const triple&, const triple&,
+                            double, bool remesh)
 {
 #ifdef HAVE_GL
-  if(invisible || ((color.A < 1.0) ^ transparent))
-    return;
-  
-  GLfloat Diffuse[]={0.0,0.0,0.0,(GLfloat) color.A};
-  glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
-  
-  static GLfloat Black[]={0.0,0.0,0.0,1.0};
-  glMaterialfv(GL_FRONT,GL_AMBIENT,Black);
-    
-  GLfloat Emissive[]={(GLfloat) color.R,(GLfloat) color.G,(GLfloat) color.B,
-		      (GLfloat) color.A};
-  glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
-    
-  glMaterialfv(GL_FRONT,GL_SPECULAR,Black);
-  
-  glMaterialf(GL_FRONT,GL_SHININESS,128.0);
-  
-  if(weights)
-    gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex4fv);
-  else gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
+  if(invisible) return;
 
-  gluBeginCurve(nurb);
-  int order=degree+1;
-  gluNurbsCurve(nurb,order+n,Knots,weights ? 4 : 3,Controls,order,
-                weights ? GL_MAP1_VERTEX_4 : GL_MAP1_VERTEX_3);
-  gluEndCurve(nurb);
-  
-  if(weights)
-    gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
+// TODO: implement NURBS renderer
 #endif
+}
+
+bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
+{
+  if(invisible)
+    return true;
+
+  out->addPoint(v,color,width);
+
+  return true;
+}
+
+bool drawPixel::write(abs3Doutfile *out)
+{
+#ifdef HAVE_LIBGLM
+  if(invisible)
+    return true;
+
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(color,color,Black,1.0,0.0,0.04,out);
+
+  out->addPixel(v,width);
+#endif
+  return true;
+}
+
+void drawPixel::render(double size2, const triple& b, const triple& B,
+                       double perspective, bool remesh)
+{
+#ifdef HAVE_GL
+  if(invisible) return;
+
+  RGBAColour Black(0.0,0.0,0.0,color.A);
+  setcolors(color,color,Black,1.0,0.0,0.04);
+
+  setMaterial(material0Data,drawMaterial0);
+
+  if(bbox2(Min,Max).offscreen()) { // Fully offscreen
+    R.data.clear();
+    return;
+  }
+
+  R.queue(v,width);
+#endif
+}
+
+drawElement *drawPixel::transformed(const double* t)
+{
+  return new drawPixel(t*v,p,width,KEY);
 }
 
 } //namespace camp

@@ -29,6 +29,8 @@ using mem::string;
 
 #define YY_NO_INPUT
 
+#define register
+
 static void yyunput(int, char *);
 void (*unused)(int,char *) = yyunput;
 
@@ -204,7 +206,7 @@ void getstring(void)
 LETTER [_A-Za-z]
 ESC \\
 ENDL \\?(\r\n|\n|\r)
-EXTRAOPS <<|>>|$|$$|@|@@|~
+EXTRAOPS <<|>>|$|$$|@|@@|~|<>
 
 %%
 

@@ -1,4 +1,4 @@
-pen rgbint(int r, int g, int b) 
+pen rgbint(int r, int g, int b)
 {
   return rgb(r/255,g/255,b/255);
 }

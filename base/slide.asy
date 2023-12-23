@@ -32,7 +32,7 @@ real minipagemargin=1inch;
 real minipagewidth=pagewidth-2minipagemargin;
 
 transform tinv=inverse(fixedscaling((-1,-1),(1,1),currentpen));
-  
+
 pen itempen=fontsize(24pt);
 pen codepen=fontsize(20pt);
 pen titlepagepen=fontsize(36pt);
@@ -43,6 +43,8 @@ pen urlpen=datepen;
 
 real itemskip=0.5;
 real codeskip=0.25;
+real aboveequationskip=-1.25;
+
 pair dateskip=(0,0.1);
 pair urlskip=(0,0.2);
 
@@ -53,7 +55,7 @@ real titleskip=0.5;
 string oldbulletcolor;
 string newbulletcolor="red";
 string bullet="{\bulletcolor\textbullet}";
-                                              
+
 pair pagenumberposition=S+E;
 pair pagenumberalign=4NW;
 pen pagenumberpen=fontsize(12);
@@ -88,7 +90,7 @@ bool empty()
   return currentpicture.nodes.length <= preamblenodes;
 }
 
-void background() 
+void background()
 {
   if(!background.empty()) {
     add(background);
@@ -165,6 +167,7 @@ normalvideo();
 
 texpreamble(bulletcolor(newbulletcolor));
 texpreamble("\hyphenpenalty=10000\tolerance=1000");
+texpreamble("\usepackage{amsmath}");
 
 // Evaluate user command line option.
 void usersetting()
@@ -194,7 +197,7 @@ void nextpage(pen p=pagenumberpen)
   firststep=true;
 }
 
-void newslide(bool stepping=true) 
+void newslide(bool stepping=true)
 {
   allowstepping=stepping;
   nextpage();
@@ -222,7 +225,7 @@ void erasestep(int erasenode) {
   for(int i=0; i < firstnode.length; ++i) {
     for(int j=firstnode[i]; j <= lastnode[i]; ++j) {
       tex(bulletcolor(oldbulletcolor));
-      currentpicture.add(currentpicture.nodes[j]);
+      currentpicture.add(currentpicture.nodes[j].d);
     }
   }
   firstnode.push(currentpicture.nodes.length-1);
@@ -261,11 +264,11 @@ void outline(string s="Outline", pair position=N, pair align=titlealign,
 
 void remark(bool center=false, string s, pair align=0, pen p=itempen,
             real indent=0, bool minipage=true, real skip=itemskip,
-            filltype filltype=NoFill, bool step=false) 
+            filltype filltype=NoFill, bool step=false)
 {
   checkposition();
   if(minipage) s=minipage(s,minipagewidth);
-  
+
   pair offset;
   if(center) {
     if(align == 0) align=S;
@@ -274,12 +277,12 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
     if(align == 0) align=SE;
     offset=currentposition;
   }
-  
+
   frame f;
   label(f,s,(indent,0),align,p,filltype);
   pair m=tinv*min(f);
   pair M=tinv*min(f);
-  
+
   if(abs(offset.x+M.x) > 1)
     warning("slidetoowide","slide too wide on page "+(string) page+':\n'+
             (string) s);
@@ -306,12 +309,7 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
 
 void center(string s, pen p=itempen)
 {
-  remark("\center "+s,p);
-}
-
-void equation(string s, pen p=itempen)
-{
-  remark(center=true,"\vbox{$$"+s+"$$}",p,minipage=false,skip=0);
+  remark(center=true,"\center "+s,p);
 }
 
 void vbox(string s, pen p=itempen)
@@ -319,14 +317,24 @@ void vbox(string s, pen p=itempen)
   remark(center=true,"\vbox{"+s+"}",p,minipage=false,skip=0);
 }
 
-void equations(string s, pen p=itempen)
-{
-  vbox("\begin{eqnarray*}"+s+"\end{eqnarray*}",p);
-}
-
 void skip(real n=1)
 {
   incrementposition((0,(tinv*(-n*itemskip*I*lineskip(itempen)*pt)).y));
+}
+
+void equation(string s, pen p=itempen)
+{
+  skip(aboveequationskip);
+  vbox("\begin{gather*}"+s+"\end{gather*}",p);
+}
+
+void equations(string s, pen p=itempen)
+{
+  skip(aboveequationskip);
+  if(find(s,"&") >= 0)
+    vbox("\begin{align*}"+s+"\end{align*}",p);
+  else
+    vbox("\begin{gather*}"+s+"\end{gather*}",p);
 }
 
 void display(frame[] f, real margin=0, pair align=S, pen p=itempen,
@@ -391,7 +399,7 @@ void display(string s, string caption="", pair align=S, pen p=itempen,
   display(new string[] {s},caption,align,p,figuremattpen, final);
 }
 
-void figure(string[] s, string options="", real margin=0, 
+void figure(string[] s, string options="", real margin=0,
             string[] captions=new string[], string caption="",
             pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
             bool final=true)
@@ -427,7 +435,7 @@ void multifigure(string[] slist, string options="", string caption="",
   firststep=false;
 }
 
-void indexedfigure(string prefix, int first, int last, 
+void indexedfigure(string prefix, int first, int last,
                    string options="", string caption="",
                    pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
                    bool step=itemstep)
@@ -465,7 +473,7 @@ string cropcode(string s)
 
 void code(bool center=false, string s, pen p=codepen,
           real indent=0, real skip=codeskip,
-          filltype filltype=NoFill) 
+          filltype filltype=NoFill)
 {
   remark(center,"{\tt "+verbatim(cropcode(s))+"}",p,indent,skip,filltype);
 }
@@ -561,7 +569,7 @@ void bibliographystyle(string name)
   texpreamble("\bibliographystyle{"+name+"}");
 }
 
-void bibliography(string name) 
+void bibliography(string name)
 {
   numberpage();
   havepagenumber=false;

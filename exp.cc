@@ -22,6 +22,9 @@
 #include "stm.h"
 #include "inst.h"
 #include "opsymbols.h"
+#include "process.h"
+
+//void runCode(absyntax::block *code);
 
 namespace absyntax {
 
@@ -29,18 +32,20 @@ using namespace types;
 using namespace trans;
 using vm::inst;
 using mem::vector;
-
+using mem::stdString;
+using vm::getPos;
 
 #if 0
 void exp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "exp",indent);
+  prettyname(out, "exp",indent, getPos());
 }
 #endif
 
 void exp::transAsType(coenv &e, types::ty *target) {
-  types::ty *t=trans(e);
-  assert(t->kind==ty_error || equivalent(t,target));
+  trans(e);
+//  types::ty *t=trans(e);
+//  assert(t->kind==ty_error || equivalent(t,target));
 }
 
 void exp::transToType(coenv &e, types::ty *target)
@@ -60,7 +65,7 @@ void exp::transToType(coenv &e, types::ty *target)
     access *a = e.e.fastLookupCast(target, ct);
     if (a) {
       transAsType(e, ct);
-      a->encode(CALL, getPos(), e.c);
+      a->encode(trans::CALL, getPos(), e.c);
       return;
     }
   }
@@ -70,6 +75,7 @@ void exp::transToType(coenv &e, types::ty *target)
     if (target->kind != ty_error) {
       types::ty *sources=cgetType(e);
       em.error(getPos());
+
       em << "cannot cast ";
       if (sources->kind==ty_overloaded)
         em << "expression";
@@ -95,7 +101,7 @@ void exp::testCachedType(coenv &e) {
     types::ty *t = getType(e);
     if (!equivalent(t, ct)) {
       em.compiler(getPos());
-      em << "cached type '" << *ct 
+      em << "cached type '" << *ct
          << "' doesn't match actual type '" << *t << "'";
       em.sync();
     }
@@ -127,7 +133,7 @@ tempExp::tempExp(coenv &e, varinit *v, types::ty *t)
 }
 
 void tempExp::prettyprint(ostream &out, Int indent) {
-  prettyname(out, "tempExp", indent);
+  prettyname(out, "tempExp", indent, getPos());
 }
 
 types::ty *tempExp::trans(coenv &e) {
@@ -142,7 +148,7 @@ varEntryExp::varEntryExp(position pos, types::ty *t, vm::bltin f)
   : exp(pos), v(new trans::varEntry(t, new bltinAccess(f), 0, position())) {}
 
 void varEntryExp::prettyprint(ostream &out, Int indent) {
-  prettyname(out, "varEntryExp", indent);
+  prettyname(out, "varEntryExp", indent, getPos());
 }
 
 types::ty *varEntryExp::getType(coenv &) {
@@ -170,15 +176,39 @@ void varEntryExp::transWrite(coenv &e, types::ty *target, exp *value) {
   transAct(WRITE, e, target);
 }
 void varEntryExp::transCall(coenv &e, types::ty *target) {
-  transAct(CALL, e, target);
+  transAct(trans::CALL, e, target);
 }
 
 
 void nameExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "nameExp",indent);
+  prettyname(out, "nameExp",indent, getPos());
 
   value->prettyprint(out, indent+1);
+}
+
+void nameExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  AsymptoteLsp::SymbolLit accessedName(value->getLit());
+  position basePos = getPos();
+  AsymptoteLsp::filePos castedPos = dynamic_cast<qualifiedName*>(value) ?
+          std::make_pair(stdString(basePos.filename()),
+                         std::make_pair(basePos.Line(), basePos.Column() + 1)) :
+          static_cast<AsymptoteLsp::filePos>(basePos);
+
+  auto varUsageIt = symContext->symMap.varUsage.find(accessedName);
+  if (varUsageIt == symContext->symMap.varUsage.end())
+  {
+    symContext->symMap.varUsage.emplace(accessedName, castedPos);
+  }
+  else
+  {
+    varUsageIt->second.add(castedPos);
+  }
+
+  symContext->symMap.usageByLines.emplace_back(castedPos.second, accessedName);
+#endif
 }
 
 
@@ -300,7 +330,7 @@ types::ty *subscriptExp::getType(coenv &e)
   return a ? (isAnArray(e, index) ? a : a->celltype) :
     primError();
 }
-     
+
 void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
   // Put array, index, and value on the stack in that order, then call
@@ -310,14 +340,14 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
     return;
 
   if (!equivalent(a->celltype, t))
-  {
-    em.error(getPos());
-    em << "array expression cannot be used as an address";
+    {
+      em.error(getPos());
+      em << "array expression cannot be used as an address";
 
-    // Translate the value for errors.
-    value->transToType(e, t);
-    return;
-  }
+      // Translate the value for errors.
+      value->transToType(e, t);
+      return;
+    }
 
   index->transToType(e, types::primInt());
 
@@ -329,15 +359,15 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 
 void slice::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "slice", indent);
+  prettyname(out, "slice", indent, getPos());
   if (left)
     left->prettyprint(out, indent+1);
   else
-    prettyname(out, "left omitted", indent+1);
+    prettyname(out, "left omitted", indent+1, getPos());
   if (right)
     right->prettyprint(out, indent+1);
   else
-    prettyname(out, "right omitted", indent+1);
+    prettyname(out, "right omitted", indent+1, getPos());
 }
 
 void slice::trans(coenv &e)
@@ -355,7 +385,7 @@ void slice::trans(coenv &e)
 
 void sliceExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "sliceExp", indent);
+  prettyname(out, "sliceExp", indent, getPos());
   set->prettyprint(out, indent+1);
   index->prettyprint(out, indent+1);
 }
@@ -397,7 +427,7 @@ void sliceExp::transWrite(coenv &e, types::ty *t, exp *value)
 
 void thisExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "thisExp", indent);
+  prettyname(out, "thisExp", indent, getPos());
 }
 
 types::ty *thisExp::trans(coenv &e)
@@ -416,7 +446,7 @@ types::ty *thisExp::getType(coenv &e)
 
 void equalityExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "equalityExp", indent);
+  prettyname(out, "equalityExp", indent, getPos());
   callExp::prettyprint(out, indent+1);
 }
 
@@ -442,17 +472,17 @@ types::ty *uniqueFunction(types::ty *t) {
   if (t->isOverloaded()) {
     types::ty *ft = 0;
     for (ty_iterator i = t->begin(); i != t->end(); ++i)
-    {
-      if ((*i)->kind != types::ty_function) 
-        continue;
+      {
+        if ((*i)->kind != types::ty_function)
+          continue;
 
-      if (ft) {
-        // Multiple function types.
-        return 0;
+        if (ft) {
+          // Multiple function types.
+          return 0;
+        }
+
+        ft = *i;
       }
-
-      ft = *i;
-    }
 
     return ft;
   }
@@ -470,20 +500,20 @@ types::ty *uniqueFunction(types::ty *t1, types::ty *t2) {
   if (t1->isOverloaded()) {
     types::ty *ft = 0;
     for (ty_iterator i = t1->begin(); i != t1->end(); ++i)
-    {
-      if ((*i)->kind != types::ty_function) 
-        continue;
+      {
+        if ((*i)->kind != types::ty_function)
+          continue;
 
-      if (!equivalent(*i, t2))
-        continue;
+        if (!equivalent(*i, t2))
+          continue;
 
-      if (ft) {
-        // Multiple function types.
-        return 0;
+        if (ft) {
+          // Multiple function types.
+          return 0;
+        }
+
+        ft = *i;
       }
-
-      ft = *i;
-    }
 
     return ft;
   }
@@ -545,7 +575,7 @@ void scaleExp::prettyprint(ostream &out, Int indent)
 {
   exp *left=getLeft(); exp *right=getRight();
 
-  prettyname(out, "scaleExp",indent);
+  prettyname(out, "scaleExp",indent, getPos());
   left->prettyprint(out, indent+1);
   right->prettyprint(out, indent+1);
 }
@@ -583,8 +613,8 @@ void intExp::prettyprint(ostream &out, Int indent)
 types::ty *intExp::trans(coenv &e)
 {
   e.c.encode(inst::intpush,value);
-  
-  return types::primInt();  
+
+  return types::primInt();
 }
 
 
@@ -597,8 +627,8 @@ void realExp::prettyprint(ostream &out, Int indent)
 types::ty *realExp::trans(coenv &e)
 {
   e.c.encode(inst::constpush,(item)value);
-  
-  return types::primReal();  
+
+  return types::primReal();
 }
 
 void stringExp::prettyprint(ostream &out, Int indent)
@@ -610,8 +640,8 @@ void stringExp::prettyprint(ostream &out, Int indent)
 types::ty *stringExp::trans(coenv &e)
 {
   e.c.encode(inst::constpush,(item) string(str));
-  
-  return types::primString();  
+
+  return types::primString();
 }
 
 
@@ -624,75 +654,75 @@ void booleanExp::prettyprint(ostream &out, Int indent)
 types::ty *booleanExp::trans(coenv &e)
 {
   e.c.encode(inst::constpush,(item)value);
-  
-  return types::primBoolean();  
+
+  return types::primBoolean();
 }
 
 void newPictureExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "newPictureExp",indent);
+  prettyname(out, "newPictureExp",indent, getPos());
 }
 
 types::ty *newPictureExp::trans(coenv &e)
 {
   e.c.encode(inst::builtin, run::newPicture);
-  
-  return types::primPicture();  
+
+  return types::primPicture();
 }
 
 void cycleExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "cycleExp",indent);
+  prettyname(out, "cycleExp",indent, getPos());
 }
 
 types::ty *cycleExp::trans(coenv &e)
 {
   e.c.encode(inst::builtin, run::newCycleToken);
-  
-  return types::primCycleToken();  
+
+  return types::primCycleToken();
 }
 
 void nullPathExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "nullPathExp",indent);
+  prettyname(out, "nullPathExp",indent, getPos());
 }
 
 types::ty *nullPathExp::trans(coenv &e)
 {
   e.c.encode(inst::builtin, run::nullPath);
-  
-  return types::primPath();  
+
+  return types::primPath();
 }
 
 void nullExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "nullExp",indent);
+  prettyname(out, "nullExp",indent, getPos());
 }
 
 types::ty *nullExp::trans(coenv &)
 {
   // Things get put on the stack when ty_null
   // is cast to an appropriate type
-  return types::primNull();  
+  return types::primNull();
 }
 
 
 void quoteExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "quoteExp", indent);
+  prettyname(out, "quoteExp", indent, getPos());
   value->prettyprint(out, indent+1);
 }
 
 types::ty *quoteExp::trans(coenv &e)
 {
   e.c.encode(inst::constpush,(item)value);
-  
-  return types::primCode();  
+
+  return types::primCode();
 }
 
 void explist::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "explist",indent);
+  prettyname(out, "explist",indent, getPos());
   for (expvector::iterator p = exps.begin();
        p != exps.end(); ++p)
     (*p)->prettyprint(out, indent+1);
@@ -710,17 +740,34 @@ void argument::prettyprint(ostream &out, Int indent)
   val->prettyprint(out, indent+1);
 }
 
+void argument::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  val->createSymMap(symContext);
+#endif
+}
+
 void arglist::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "arglist",indent);
+  prettyname(out, "arglist",indent, getPos());
   for (argvector::iterator p = args.begin();
        p != args.end(); ++p)
     p->prettyprint(out, indent+1);
 }
 
+void arglist::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  for (auto& p: args)
+  {
+    p.createSymMap(symContext);
+  }
+#endif
+}
+
 void callExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "callExp",indent);
+  prettyname(out, "callExp",indent, getPos());
 
   callee->prettyprint(out, indent+1);
   args->prettyprint(out, indent+1);
@@ -735,7 +782,22 @@ signature *callExp::argTypes(coenv &e, bool *searchable)
   *searchable = true;
 
   size_t n = args->size();
+
   for (size_t i = 0; i < n; i++) {
+    if(string(args->args[i].name) == "KEY") {
+      stringExp *s=dynamic_cast<stringExp*>(args->args[i].val);
+      if(s) {
+        if(getPos().filename() == processData().fileName) {
+          processDataStruct *P=&processData();
+          P->xkey[getPos().shift(P->xmapCount).LineColumn()]=
+            Strdup(s->getString());
+        }
+        args->args.erase(args->args.begin()+i);
+        --n;
+        if(i == n) break;
+      }
+    }
+
     argument a=(*args)[i];
     types::ty *t = a.val->cgetType(e);
     if (t->kind == types::ty_error)
@@ -787,7 +849,9 @@ application *callExp::resolve(coenv &e, overloaded *o, signature *source,
         em << "call of function \'" << s;
       else
         em << "call with signature \'";
-      em << *source << "\' is ambiguous";
+      em << *source << "\' is ambiguous:\n\n";
+      for(app_list::iterator p=l.begin(); p != l.end(); ++p)
+        em << *(*p)->getType() << "\n";
     }
 
     return 0;
@@ -834,7 +898,7 @@ void callExp::reportMismatch(function *ft, signature *source)
 void callExp::reportArgErrors(coenv &e)
 {
   // Cycle through the parameters to report all errors.
-  // NOTE: This may report inappropriate ambiguity errors. 
+  // NOTE: This may report inappropriate ambiguity errors.
   for (size_t i = 0; i < args->size(); i++) {
     (*args)[i].val->trans(e);
   }
@@ -843,12 +907,12 @@ void callExp::reportArgErrors(coenv &e)
 }
 
 void callExp::reportNonFunction() {
-    em.error(getPos());
-    symbol s = callee->getName();
-    if (s)
-      em << "\'" << s << "\' is not a function";
-    else
-      em << "called expression is not a function";
+  em.error(getPos());
+  symbol s = callee->getName();
+  if (s)
+    em << "\'" << s << "\' is not a function";
+  else
+    em << "called expression is not a function";
 }
 
 types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
@@ -863,7 +927,7 @@ types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
   cout << "getApp for ";
   if (callee->getName())
     cout << *callee->getName();
-  else 
+  else
     cout << "unnamed";
   cout << " at " << getPos() << endl;
   cout << "searchable: " << searchable << endl;
@@ -899,7 +963,7 @@ types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 
 #ifdef DEBUG_GETAPP
   string name = callee->getName() ? string(*callee->getName()) :
-                                    string("unnamed");
+    string("unnamed");
   if (!callee->getName())
     cout << getPos() << endl;
 #endif
@@ -961,7 +1025,7 @@ types::ty *callExp::transPerfectMatch(coenv &e) {
     args->rest.val->trans(e);
 
   // Call the function.
-  ve->encode(CALL, getPos(), e.c);
+  ve->encode(trans::CALL, getPos(), e.c);
 
   // That's it.  Return the return type of the function.
   return ct ? ct : dynamic_cast<function *>(ve->getType())->getResult();
@@ -1018,11 +1082,84 @@ bool callExp::resolved(coenv &e) {
     cacheAppOrVarEntry(e, true);
   return cachedApp || cachedVarEntry;
 }
-  
-    
+
+void callExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  callee->createSymMap(symContext);
+  args->createSymMap(symContext);
+
+  if (auto col=getColorInformation())
+  {
+    auto const& v=col.value();
+    auto const& colVal=std::get<0>(v);
+    auto const& alpha=std::get<1>(v);
+    auto const& beginArgPos=std::get<2>(v);
+    auto const& lastArgPos=std::get<3>(v);
+    if (alpha.has_value())
+    {
+
+      auto const& red=std::get<0>(colVal);
+      auto const& green=std::get<1>(colVal);
+      auto const& blue=std::get<2>(colVal);
+      std::tuple<double, double, double, double> rgba(red, green, blue, alpha.value());
+
+      symContext->addRGBAColor(rgba, beginArgPos, lastArgPos);
+    }
+    else
+    {
+      symContext->addRGBColor(colVal, beginArgPos, lastArgPos);
+    }
+  }
+#endif
+}
+
+
+optional<std::tuple<callExp::colorInfo, optional<double>, AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>>
+callExp::getColorInformation()
+{
+#ifdef HAVE_LSP
+  if (auto* namedCallee = dynamic_cast<nameExp*>(callee))
+  {
+    std::string calleeName = static_cast<std::string>(namedCallee->getName());
+    std::vector<double> colors;
+
+    auto getLineColumn = [&argsval = args->args](int const& idx)
+    {
+      return argsval[idx].val->getPos().LineColumn();
+    };
+
+    if (calleeName == "rgb" || calleeName == "rgba")
+    {
+      for (auto const& expVec : args->args)
+      {
+        if (auto* valExp=dynamic_cast<realExp*>(expVec.val))
+        {
+          colors.push_back(valExp->getValue<double>());
+        } else if (auto* valExpI=dynamic_cast<intExp*>(expVec.val))
+        {
+          colors.push_back(valExpI->getValue<double>());
+        }
+      }
+    }
+    if (calleeName == "rgb" && colors.size() == 3)
+    {
+      callExp::colorInfo col(colors[0], colors[1], colors[2]);
+      return std::make_tuple(col, optional<double>(), callee->getPos().LineColumn(), getLineColumn(2));
+    }
+    else if (calleeName == "rgba" && colors.size() == 4)
+    {
+      callExp::colorInfo col(colors[0], colors[1], colors[2]);
+      return std::make_tuple(col, optional<double>(colors[3]), callee->getPos().LineColumn(), getLineColumn(3));
+    }
+  }
+#endif
+  return nullopt;
+}
+
 void pairExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "pairExp",indent);
+  prettyname(out, "pairExp",indent, getPos());
 
   x->prettyprint(out, indent+1);
   y->prettyprint(out, indent+1);
@@ -1040,7 +1177,7 @@ types::ty *pairExp::trans(coenv &e)
 
 void tripleExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "tripleExp",indent);
+  prettyname(out, "tripleExp",indent, getPos());
 
   x->prettyprint(out, indent+1);
   y->prettyprint(out, indent+1);
@@ -1060,7 +1197,7 @@ types::ty *tripleExp::trans(coenv &e)
 
 void transformExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "transformExp",indent);
+  prettyname(out, "transformExp",indent, getPos());
 
   x->prettyprint(out, indent+1);
   y->prettyprint(out, indent+1);
@@ -1086,7 +1223,7 @@ types::ty *transformExp::trans(coenv &e)
 
 void castExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "castExp",indent);
+  prettyname(out, "castExp",indent, getPos());
 
   target->prettyprint(out, indent+1);
   castee->prettyprint(out, indent+1);
@@ -1109,7 +1246,7 @@ types::ty *castExp::tryCast(coenv &e, types::ty *t, types::ty *s,
 
     access *a=e.e.lookupCast(t, ss, csym);
     assert(a);
-    a->encode(CALL, getPos(), e.c);
+    a->encode(trans::CALL, getPos(), e.c);
     return ss;
   }
 }
@@ -1135,10 +1272,17 @@ types::ty *castExp::getType(coenv &e)
   return target->trans(e, true);
 }
 
+void castExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  castee->createSymMap(symContext);
+#endif
+}
+
 
 void conditionalExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "conditionalExp",indent);
+  prettyname(out, "conditionalExp",indent, getPos());
 
   test->prettyprint(out, indent+1);
   onTrue->prettyprint(out, indent+1);
@@ -1200,7 +1344,7 @@ types::ty *promote(coenv &e, types::ty *x, types::ty *y)
         bool castToFirst=e.castable(x, y, symbol::castsym);
         bool castToSecond=e.castable(y, x, symbol::castsym);
 
-        return (castToFirst && castToSecond) ? both(x,y) : 
+        return (castToFirst && castToSecond) ? both(x,y) :
           castToFirst ? x :
           castToSecond ? y :
           0;
@@ -1248,11 +1392,11 @@ types::ty *conditionalExp::getType(coenv &e)
   types::ty *t = promote(e, tt, ft);
   return t ? t : primError();
 }
- 
+
 
 void orExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "orExp", indent);
+  prettyname(out, "orExp", indent, getPos());
 
   left->prettyprint(out, indent+1);
   right->prettyprint(out, indent+1);
@@ -1288,7 +1432,7 @@ void orExp::transConditionalJump(coenv &e, bool cond, label dest)
 
 void andExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "andExp", indent);
+  prettyname(out, "andExp", indent, getPos());
 
   left->prettyprint(out, indent+1);
   right->prettyprint(out, indent+1);
@@ -1323,7 +1467,7 @@ void andExp::transConditionalJump(coenv &e, bool cond, label dest)
 
 void joinExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "joinExp",indent);
+  prettyname(out, "joinExp",indent, getPos());
 
   callee->prettyprint(out, indent+1);
   args->prettyprint(out, indent+1);
@@ -1333,7 +1477,7 @@ void joinExp::prettyprint(ostream &out, Int indent)
 void specExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out,indent);
-  out << "specExp '" << op << "' " 
+  out << "specExp '" << op << "' "
       << (s==camp::OUT ? "out" :
           s==camp::IN  ? "in" :
           "invalid side") << '\n';
@@ -1357,7 +1501,7 @@ types::ty *specExp::getType(coenv &e)
 
 void assignExp::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "assignExp",indent);
+  prettyname(out, "assignExp",indent, getPos());
 
   dest->prettyprint(out, indent+1);
   value->prettyprint(out, indent+1);
@@ -1414,6 +1558,14 @@ types::ty *assignExp::getType(coenv &e)
   return t ? t : primError();
 }
 
+void assignExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{
+#ifdef HAVE_LSP
+  dest->createSymMap(symContext);
+  value->createSymMap(symContext);
+#endif
+}
+
 
 void selfExp::prettyprint(ostream &out, Int indent)
 {
@@ -1436,7 +1588,7 @@ void prefixExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "prefixExp '" << op << "'\n";
-  
+
   dest->prettyprint(out, indent+1);
 }
 
@@ -1476,4 +1628,3 @@ types::ty *postfixExp::trans(coenv &)
 
 
 } // namespace absyntax
-

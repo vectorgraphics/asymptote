@@ -1,6 +1,6 @@
 !define PRODUCT_NAME "Asymptote"
 !include AsymptoteInstallInfo.nsi
-!define PRODUCT_WEB_SITE "http://asymptote.sourceforge.net/"
+!define PRODUCT_WEB_SITE "https://asymptote.sourceforge.io/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Asymptote"
 !define PRODUCT_FILE_TYPE_REGKEY1 "Software\Classes\.asy"
 !define PRODUCT_FILE_TYPE_REGKEY2 "Software\Classes\ASYFile\shell\open\command"
@@ -14,7 +14,6 @@ XPStyle On
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
 !include "LogicLib.nsh"
-!include "EnvVarUpdate.nsh"
 !include "lnkX64IconFix.nsh"
 
 ; MUI Settings
@@ -65,15 +64,13 @@ var ICONS_GROUP
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "asymptote-${PRODUCT_VERSION}-setup.exe"
-InstallDir "$PROGRAMFILES\Asymptote"
+InstallDir "$PROGRAMFILES64\Asymptote"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
 
 Section "Asymptote" SEC01
   SetOutPath "$INSTDIR"
-  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
-  Delete "$INSTDIR\_imagingtk.pyd"
   SetOverwrite try
   File /r build-${PRODUCT_VERSION}\*
 
@@ -113,8 +110,8 @@ Section "Asymptote" SEC01
   ${lnkX64IconFix} "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk"
   CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
   ${lnkX64IconFix} "$DESKTOP\Asymptote.lnk"
-  CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\xasy.py"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
+  CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\GUI\xasy.py" "--asypath $\"$INSTDIR\asy.exe$\""
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\GUI\xasy.py" "--asypath $\"$INSTDIR\asy.exe$\""
   SetOutPath "$INSTDIR"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
@@ -164,7 +161,6 @@ Section Uninstall
   Delete "$INSTDIR\uninst.exe"
   !include AsymptoteUninstallList.nsi
   Delete "$INSTDIR\asy.bat"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"   
   RMDir "$INSTDIR"
   
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"

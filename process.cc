@@ -1,6 +1,6 @@
 /*****
  * process.cc
- * Andy Hammerlindl 2006/08/19 
+ * Andy Hammerlindl 2006/08/19
  *
  * Handles processing blocks of code (including files, strings, and the
  * interactive prompt, for listing and parse-only modes as well as actually
@@ -16,7 +16,7 @@
 #include "program.h"
 #include "interact.h"
 #include "envcompleter.h"
-#include "parser.h"
+
 #include "fileio.h"
 
 #include "stack.h"
@@ -31,6 +31,8 @@ pen& defaultpen() {
 }
 }
 
+unsigned int count=0;
+
 namespace run {
 void cleanup();
 void exitFunction(vm::stack *Stack);
@@ -39,7 +41,7 @@ void purge(Int divisor=0);
 }
 
 namespace vm {
-bool indebugger;  
+bool indebugger;
 }
 
 using namespace settings;
@@ -134,10 +136,10 @@ public:
     : runnable(base->getPos()), base(base) {}
 
   void prettyprint(ostream &out, Int indent) {
-    absyntax::prettyname(out, "interactiveRunnable", indent);
+    absyntax::prettyname(out, "interactiveRunnable", indent, base->getPos());
     base->prettyprint(out, indent+1);
   }
-  
+
   void trans(coenv &e) {
     base->interactiveTrans(e);
   }
@@ -148,11 +150,8 @@ public:
     base->transAsField(e, r);
   }
 };
-  
-enum transMode {
-  TRANS_INTERACTIVE,
-  TRANS_NORMAL
-};
+
+
 
 
 // How to run a runnable in runnable-at-a-time mode.
@@ -175,7 +174,7 @@ bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
     // Should an interactive error hurt the status?
     em.statusError();
 
-    return false;   
+    return false;
   }
   return true;
 }
@@ -185,163 +184,122 @@ void runAutoplain(coenv &e, istack &s) {
   runRunnable(r,e,s);
 }
 
-// Abstract base class for the core object being run in line-at-a-time mode, it
-// may be a block of code, file, or interactive prompt.
-struct icore {
-  virtual ~icore() {}
+// icore
 
-  virtual void doParse() = 0;
-  virtual void doList() = 0;
 
-public:
+// preRun and postRun are the optional activities that take place before and
+// after running the code specified.  They can be overridden by a derived
+// class that wishes different behaviour.
+void icore::preRun(coenv &e, istack &s) {
+  if(getSetting<bool>("autoplain"))
+    runAutoplain(e,s);
+}
 
-  // preRun and postRun are the optional activities that take place before and
-  // after running the code specified.  They can be overridden by a derived
-  // class that wishes different behaviour.
-  virtual void preRun(coenv &e, istack &s) {
-    if(getSetting<bool>("autoplain"))
-      runAutoplain(e,s);
+void icore::postRun(coenv &, istack &s) {
+  run::exitFunction(&s);
+}
+
+void icore::doRun(bool purge, transMode tm) {
+  em.sync();
+  if(em.errors())
+    return;
+
+  try {
+    if(purge) run::purge();
+
+    penv pe;
+    env base_env(pe.ge());
+    coder base_coder(nullPos, "icore::doRun");
+    coenv e(base_coder,base_env);
+
+    vm::interactiveStack s;
+    s.setInitMap(pe.ge().getInitMap());
+    s.setEnvironment(&e);
+
+    preRun(e,s);
+
+    if(purge) run::purge();
+
+    // Now that everything is set up, run the core.
+    run(e,s,tm);
+
+    postRun(e,s);
+
+  } catch(std::bad_alloc&) {
+    outOfMemory();
+  } catch(quit const&) {
+    // Exception to quit running the current code. Nothing more to do.
+  } catch(handled_error const&) {
+    em.statusError();
   }
 
-  virtual void run(coenv &e, istack &s, transMode tm=TRANS_NORMAL) = 0;
+  run::cleanup();
 
-  virtual void postRun(coenv &, istack &s) {
-    run::exitFunction(&s);
-  }
+  em.clear();
+}
 
-  virtual void doRun(bool purge=false, transMode tm=TRANS_NORMAL) {
-    em.sync();
-    if(em.errors())
-      return;
 
+void icore::process(bool purge) {
+  if (!interactive && getSetting<bool>("parseonly"))
+    doParse();
+  else if (getSetting<bool>("listvariables"))
+    doList();
+  else
+    doRun(purge);
+}
+
+itree::itree(string name) : name(name), cachedTree(0) { }
+
+
+block *itree::getTree() {
+  if (cachedTree==0) {
     try {
-      if(purge) run::purge();
-      
-      penv pe;
-      env base_env(pe.ge());
-      coder base_coder(nullPos, "icore::doRun");
-      coenv e(base_coder,base_env);
-
-      vm::interactiveStack s;
-      s.setInitMap(pe.ge().getInitMap());
-      s.setEnvironment(&e);
-
-      preRun(e,s);
-
-      if(purge) run::purge();
-
-      // Now that everything is set up, run the core.
-      run(e,s,tm);
-
-      postRun(e,s);
-
-    } catch(std::bad_alloc&) {
-      outOfMemory();
-    } catch(quit) {
-      // Exception to quit running the current code. Nothing more to do.
-    } catch(handled_error) {
+      cachedTree=buildTree();
+    } catch(handled_error const&) {
       em.statusError();
-    }
-    
-    run::cleanup();
-    
-    em.clear();
-  }
-
-  virtual void process(bool purge=false) {
-    if (!interactive && getSetting<bool>("parseonly"))
-      doParse();
-    else if (getSetting<bool>("listvariables"))
-      doList();
-    else
-      doRun(purge);
-  }
-};
-
-// Abstract base class for one-time processing of an abstract syntax tree.
-class itree : public icore {
-  string name;
-
-  block *cachedTree;
-public:
-  itree(string name="<unnamed>")
-    : name(name), cachedTree(0) {}
-
-  // Build the tree, possibly throwing a handled_error if it cannot be built.
-  virtual block *buildTree() = 0;
-
-  virtual block *getTree() {
-    if (cachedTree==0) {
-      try {
-        cachedTree=buildTree();
-      } catch(handled_error) {
-        em.statusError();
-        return 0;
-      }
-    }
-    return cachedTree;
-  }
-
-  virtual string getName() {
-    return name;
-  }
-
-  void doParse() {
-    block *tree=getTree();
-    em.sync();
-    if(tree && !em.errors())
-      tree->prettyprint(cout, 0);
-  }
-
-  void doList() {
-    block *tree=getTree();
-    if (tree) {
-      penv pe;
-      record *r=tree->transAsFile(pe.ge(), symbol::trans(getName()));
-      r->e.list(r);
+      return 0;
     }
   }
+  return cachedTree;
+}
 
-  void run(coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
-    block *tree=getTree();
-    if (tree) {
-      for(mem::list<runnable *>::iterator r=tree->stms.begin();
-          r != tree->stms.end(); ++r)
-        if(!em.errors() || getSetting<bool>("debug"))
-          runRunnable(*r,e,s,tm);
+string itree::getName() {
+  return name;
+}
+
+void itree::doParse() {
+  block *tree=getTree();
+  em.sync();
+  if(tree && !em.errors())
+    tree->prettyprint(cout, 0);
+}
+
+void itree::doList() {
+  block *tree=getTree();
+  if (tree) {
+    penv pe;
+    record *r=tree->transAsFile(pe.ge(), symbol::trans(getName()));
+    r->e.list(r);
+  }
+}
+
+void itree::run(coenv &e, istack &s, transMode tm) {
+  block *tree=getTree();
+  if (tree) {
+    for(mem::list<runnable *>::iterator r=tree->stms.begin();
+        r != tree->stms.end(); ++r) {
+      processData().fileName=(*r)->getPos().filename();
+      if(!em.errors() || getSetting<bool>("debug"))
+        runRunnable(*r,e,s,tm);
     }
   }
+}
 
-  void doExec(transMode tm=TRANS_NORMAL) {
-    // Don't prepare an environment to run the code if there isn't any code.
-    if (getTree())
-      icore::doRun(false,tm);
-  }
-};
-
-class icode : public itree {
-  block *tree;
-
-public:
-  icode(block *tree, string name="<unnamed>")
-    : itree(name), tree(tree) {}
-
-  block *buildTree() {
-    return tree;
-  }
-};
-
-class istring : public itree {
-  string str;
-
-public:
-  istring(const string& str, string name="<eval>")
-    : itree(name), str(str) {}
-
-  block *buildTree() {
-    return parser::parseString(str, getName());
-  }
-};
+void itree::doExec(transMode tm) {
+  // Don't prepare an environment to run the code if there isn't any code.
+  if (getTree())
+    icore::doRun(false,tm);
+}
 
 void printGreeting(bool interactive) {
   if(!getSetting<bool>("quiet")) {
@@ -352,54 +310,46 @@ void printGreeting(bool interactive) {
   }
 }
 
-class ifile : public itree {
-  string filename;
-  string outname;
-  string outname_save;
+ifile::ifile(const string& filename)
+  : itree(filename),
+    filename(filename),
+    outname(stripDir(stripExt(string(filename == "-" ? settings::outname() : filename), suffix))) {}
 
-public:
-  ifile(const string& filename)
-    : itree(filename),
-      filename(filename),
-      outname((string) (filename == "-" ? settings::outname() :
-                        stripDir(stripExt(string(filename), suffix)))) {}
-  
-  block *buildTree() {
-    return !filename.empty() ? parser::parseFile(filename,"Loading") : 0;
+block *ifile::buildTree() {
+  return !filename.empty() ? parser::parseFile(filename,"Loading") : 0;
+}
+
+void ifile::preRun(coenv& e, istack& s) {
+  outname_save=getSetting<string>("outname");
+  if(stripDir(outname_save).empty())
+    Setting("outname")=outname_save+outname;
+
+  itree::preRun(e, s);
+}
+
+void ifile::postRun(coenv &e, istack& s) {
+  itree::postRun(e, s);
+
+  Setting("outname")=outname_save;
+}
+
+void ifile::process(bool purge) {
+  if(verbose > 1) printGreeting(false);
+  try {
+    init();
+  } catch(handled_error const&) {
   }
 
-  void preRun(coenv& e, istack& s) {
-    outname_save=getSetting<string>("outname");
-    if(stripDir(outname_save).empty())
-      Setting("outname")=outname_save+outname;
+  if (verbose >= 1)
+    cout << "Processing " << outname << endl;
 
-    itree::preRun(e, s);
+  try {
+    icore::process(purge);
   }
-
-  void postRun(coenv &e, istack& s) {
-    itree::postRun(e, s);
-
-    Setting("outname")=outname_save;
+  catch(handled_error const&) {
+    em.statusError();
   }
-
-  void process(bool purge=false) {
-    if(verbose > 1) printGreeting(false);
-    try {
-      init();
-    } catch(handled_error) {
-    }
-
-    if (verbose >= 1)
-      cout << "Processing " << outname << endl;
-    
-    try {
-      icore::process(purge);
-    }
-    catch(handled_error) {
-      em.statusError();
-    }
-  }
-};
+}
 
 // Add a semi-colon terminator, if one is not there.
 string terminateLine(const string line) {
@@ -562,7 +512,8 @@ string endCommentOrString(const string line) {
 
 bool isSlashed(const string line) {
   // NOTE: This doesn't fully handle escaped slashed in a string literal.
-  return line[line.size()-1]=='\\';
+  unsigned n=line.size();
+  return n > 0 ? line[line.size()-1] == '\\' : false;
 }
 string deslash(const string line) {
   return isSlashed(line) ? line.substr(0,line.size()-1) : line;
@@ -589,13 +540,13 @@ class iprompt : public icore {
 
   void postRun(coenv &, istack &) {
   }
-  
+
   // Commands are chopped into the starting word and the rest of the line.
   struct commandLine {
     string line;
     string word;
     string rest;
-    
+
     commandLine(string line) : line(line) {
       string::iterator c=line.begin();
 
@@ -749,7 +700,9 @@ class iprompt : public icore {
   // line and is being continued (either because of a backslash or the parser
   // detecting it in multiline mode).
   string getline(bool continuation) {
-    string prompt=getSetting<string>(continuation ? "prompt2" : "prompt");
+    string prompt;
+    if(!getSetting<bool>("xasy"))
+      prompt=getSetting<string>(continuation ? "prompt2" : "prompt");
     string line=interact::simpleline(prompt);
 
     if (continuation)
@@ -775,15 +728,32 @@ class iprompt : public icore {
     }
   }
 
+  // Continue taking input until a termination command is received from xasy.
+  block *parseXasyLine(string line) {
+#ifdef __MSDOS__
+    const string EOT="\x04\r\n";
+#else
+    const string EOT="\x04\n";
+#endif
+    string s;
+    while((s=getline(true)) != EOT)
+      line += s;
+    return parser::parseString(line, "-", true);
+  }
+
   void runLine(coenv &e, istack &s, string line) {
     try {
-      if (getSetting<bool>("multiline")) {
+      if(getSetting<bool>("multiline")) {
         block *code=parseExtendableLine(line);
-        
+
         icode i(code);
         i.run(e,s,TRANS_INTERACTIVE);
-      }
-      else {
+      } else if(getSetting<bool>("xasy")) {
+        block *code=parseXasyLine(line);
+
+        icode i(code);
+        i.run(e,s,TRANS_INTERACTIVE);
+      } else {
         // Add a semi-colon to the end of the line if one is not there.  Do this
         // to the history as well, so the transcript can be run as regular asy
         // code.  This also makes the history work correctly if the multiline
@@ -799,7 +769,7 @@ class iprompt : public icore {
       run::updateFunction(&s);
       uptodate=false;
 
-    } catch(handled_error) {
+    } catch(handled_error const&) {
       vm::indebugger=false;
     } catch(interrupted&) {
       // Turn off the interrupted flag.
@@ -836,7 +806,6 @@ public:
     while (running) {
       // Read a line from the prompt.
       string line=getline(false);
-
       // Check if it is a special command.
       if (handleCommand(e,s,line))
         continue;
@@ -850,7 +819,7 @@ public:
     interact::init_interactive();
     try {
       setPath("",true);
-    } catch(handled_error) {
+    } catch(handled_error const&) {
     }
 
     do {
@@ -865,7 +834,7 @@ public:
         restart=false;
       }
     } while(restart);
-      
+
     interact::cleanup_interactive();
   }
 };
@@ -946,17 +915,17 @@ public:
     assert(!em.errors()); // TODO: Decide how to handle prior errors.
 
     try {
-      { withProcessData token(pe.pd()); 
+      { withProcessData token(pe.pd());
         ::runRunnable(r, e, s, TRANS_INTERACTIVE);
       }
     } catch(std::bad_alloc&) {
       // TODO: give calling application useful message.
       cerr << "out of memory" << endl;
-    } catch (quit) {
+    } catch (quit const&) {
       // I'm not sure whether this counts as successfully running the code or
       // not.
       cerr << "quit exception" << endl;
-    } catch (handled_error) {
+    } catch (handled_error const&) {
       // Normally, this is the result of an error that changes the return code
       // of the free-standing asymptote program.
       // An error should probably be reported to the application calling the

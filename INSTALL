@@ -16,7 +16,7 @@ you should change the first line to
 ./configure --prefix=$HOME/asymptote
 
 If you get errors from a broken texinfo or pdftex installation, simply put
-http://asymptote.sourceforge.net/asymptote.pdf
+https://asymptote.sourceforge.io/asymptote.pdf
 in the doc directory and repeat the commands make all and make install.
 
 For a list of configure options, type

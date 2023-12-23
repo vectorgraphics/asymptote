@@ -5,7 +5,6 @@ frame f;
 // Equivalent to draw(f,g,p):
 fill(f,strokepath(g,p),red);
 shipout("strokepathframe",f);
-shipped=false;
 
 size(400);
 

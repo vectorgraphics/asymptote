@@ -10,6 +10,10 @@
 
 #include "triple.h"
 
+// For CYGWIN
+#undef near
+#undef far
+
 namespace camp {
 
 // The box that encloses a path
@@ -17,46 +21,46 @@ struct bbox3 {
   bool empty;
   double left;
   double bottom;
-  double lower;
+  double near;
   double right;
   double top;
-  double upper;
-  
+  double far;
+
   // Start bbox3 about the origin
   bbox3()
-    : empty(true), left(0.0), bottom(0.0), lower(0.0),
-      right(0.0), top(0.0), upper(0.0)
+    : empty(true), left(0.0), bottom(0.0), near(0.0),
+      right(0.0), top(0.0), far(0.0)
   {
   }
 
-  bbox3(double left, double bottom, double lower,
-        double right, double top, double upper)
-    : empty(false), left(left), bottom(bottom), lower(lower),
-      right(right), top(top), upper(upper)
+  bbox3(double left, double bottom, double near,
+        double right, double top, double far)
+    : empty(false), left(left), bottom(bottom), near(near),
+      right(right), top(top), far(far)
   {
   }
 
   // Start a bbox3 with a point
   bbox3(double x, double y, double z)
-    : empty(false), left(x), bottom(y), lower(z), right(x), top(y), upper(z)
+    : empty(false), left(x), bottom(y), near(z), right(x), top(y), far(z)
   {
   }
 
   // Start a bbox3 with a point
   bbox3(const triple& v)
-    : empty(false), left(v.getx()), bottom(v.gety()), lower(v.getz()),
-      right(v.getx()), top(v.gety()), upper(v.getz())
+    : empty(false), left(v.getx()), bottom(v.gety()), near(v.getz()),
+      right(v.getx()), top(v.gety()), far(v.getz())
   {
   }
 
   // Start a bbox3 with 2 points
   bbox3(const triple& m, const triple& M)
     : empty(false),
-      left(m.getx()), bottom(m.gety()), lower(m.getz()),
-      right(M.getx()),    top(M.gety()), upper(M.getz())
+      left(m.getx()), bottom(m.gety()), near(m.getz()),
+      right(M.getx()),    top(M.gety()), far(M.getz())
   {
   }
-  
+
   // Add a point to a bbox3
   void add(const triple& v)
   {
@@ -68,22 +72,22 @@ struct bbox3 {
     if (empty) {
       left = right = x;
       top = bottom = y;
-      lower = upper = z;
+      near = far = z;
       empty = false;
     }
     else {
       if(x < left)
-        left = x;  
+        left = x;
       else if(x > right)
-        right = x;  
+        right = x;
       if(y < bottom)
         bottom = y;
       else if(y > top)
         top = y;
-      if(z < lower)
-        lower = z;
-      else if(z > upper)
-        upper = z;
+      if(z < near)
+        near = z;
+      else if(z > far)
+        far = z;
     }
   }
 
@@ -91,17 +95,32 @@ struct bbox3 {
   void addnonempty(double x, double y, double z)
   {
     if(x < left)
-      left = x;  
+      left = x;
     else if(x > right)
-      right = x;  
+      right = x;
     if(y < bottom)
       bottom = y;
     else if(y > top)
       top = y;
-    if(z < lower)
-      lower = z;
-    else if(z > upper)
-      upper = z;
+    if(z < near)
+      near = z;
+    else if(z > far)
+      far = z;
+  }
+
+  // Add (x,y) pair to a nonempty bbox3
+  void addnonempty(pair v)
+  {
+    double x=v.getx();
+    if(x < left)
+      left = x;
+    else if(x > right)
+      right = x;
+    double y=v.gety();
+    if(y < bottom)
+      bottom = y;
+    else if(y > top)
+      top = y;
   }
 
   // Add a point to a nonempty bbox3
@@ -116,11 +135,11 @@ struct bbox3 {
     double x = v.getx(), y = v.gety(), z = v.getz();
 
     if(x < left) {
-      left = x;  
+      left = x;
       times.left = t;
     }
     else if(x > right) {
-      right = x;  
+      right = x;
       times.right = t;
     }
     if(y < bottom) {
@@ -131,13 +150,13 @@ struct bbox3 {
       top = y;
       times.top = t;
     }
-    if(z < lower) {
-      lower = z;
-      times.lower=t;
+    if(z < near) {
+      near = z;
+      times.near=t;
     }
-    else if(z > upper) {
-      upper = z;
-      times.upper=t;
+    else if(z > far) {
+      far = z;
+      times.far=t;
     }
   }
 
@@ -148,40 +167,27 @@ struct bbox3 {
   }
 
   triple Min() const {
-    return triple(left,bottom,lower);
+    return triple(left,bottom,near);
   }
-  
+
   triple Max() const {
-    return triple(right,top,upper);
+    return triple(right,top,far);
   }
-  
-  // transform bbox3 by 4x4 matrix
-  void transform(const double* m)
-  {
-    const double xmin = left;
-    const double ymin = bottom;
-    const double zmin = lower;
-    const double xmax = right;
-    const double ymax = top;
-    const double zmax = upper;
-    
-    empty = true;
-    add(m*triple(xmin,ymin,zmin));
-    addnonempty(m*triple(xmin,ymin,zmax));
-    addnonempty(m*triple(xmin,ymax,zmin));
-    addnonempty(m*triple(xmin,ymax,zmax));
-    addnonempty(m*triple(xmax,ymin,zmin));
-    addnonempty(m*triple(xmax,ymin,zmax));
-    addnonempty(m*triple(xmax,ymax,zmin));
-    addnonempty(m*triple(xmax,ymax,zmax));
+
+  pair Min2() const {
+    return pair(left,bottom);
   }
-  
+
+  pair Max2() const {
+    return pair(right,top);
+  }
+
   friend ostream& operator << (ostream& out, const bbox3& b)
   {
     out << "Min " << b.Min() << " Max " << b.Max();
     return out;
   }
-  
+
 };
 
 } // namespace camp

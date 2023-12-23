@@ -16,4 +16,3 @@ filldraw(faces.push(l),project(l),lightgrey);
 filldraw(faces.push(g),project(g),green);
 
 add(faces);
-

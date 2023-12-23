@@ -20,7 +20,6 @@ path roundbox(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   pair m=min(src);
   pair M=max(src);
   pair bound=M-m;
-  int sign=filltype == NoFill ? 1 : -1;
   real a=bound.x+2*xmargin;
   real b=bound.y+2*ymargin;
   real ds=0;
@@ -29,7 +28,7 @@ path roundbox(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   (dw,b)--(a-dw,b){right}..{down}
   (a,b-dw)--(a,dw){down}..{left}
   (a-dw,0)--(dw,0){left}..{up}cycle);
-  
+
   frame F;
   if(above == false) {
     filltype.fill(F,g,p);
@@ -82,7 +81,7 @@ typedef path envelope(frame dest, frame src=dest, real xmargin=0,
                       filltype filltype=NoFill, bool above=true);
 
 object object(Label L, envelope e, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill, bool above=true) 
+	      pen p=currentpen, filltype filltype=NoFill, bool above=true)
 {
   object F;
   F.L=L.copy();
@@ -90,13 +89,13 @@ object object(Label L, envelope e, real xmargin=0, real ymargin=xmargin,
   L0.position(0);
   L0.p(p);
   add(F.f,L0);
-  F.g=e(F.f,xmargin,ymargin,p,filltype);
+  F.g=e(F.f,xmargin,ymargin,p,filltype,above);
   return F;
 }
 
-object draw(picture pic=currentpicture, Label L, envelope e, 
+object draw(picture pic=currentpicture, Label L, envelope e,
 	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	    filltype filltype=NoFill, bool above=true) 
+	    filltype filltype=NoFill, bool above=true)
 {
   object F=object(L,e,xmargin,ymargin,p,filltype,above);
   pic.add(new void (frame f, transform t) {
@@ -116,7 +115,7 @@ object draw(picture pic=currentpicture, Label L, envelope e, pair position,
   return draw(pic,Label(L,position),e,xmargin,ymargin,p,filltype,above);
 }
 
-pair point(object F, pair dir, transform t=identity()) 
+pair point(object F, pair dir, transform t=identity())
 {
   pair m=min(F.g);
   pair M=max(F.g);
@@ -131,7 +130,9 @@ frame bbox(picture pic=currentpicture,
            real xmargin=0, real ymargin=xmargin,
            pen p=currentpen, filltype filltype=NoFill)
 {
-  frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
+  real penwidth=linewidth(p);
+  frame f=pic.fit(max(pic.xsize-2*(xmargin+penwidth),0),
+                  max(pic.ysize-2*(ymargin+penwidth),0));
   box(f,xmargin,ymargin,p,filltype,above=false);
   return f;
 }

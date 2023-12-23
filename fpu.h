@@ -1,26 +1,27 @@
 #ifndef FPU_H
 #define FPU_H
 
-#ifdef HAVE_FENV_H
-#ifdef _GNU_SOURCE
-#define HAVE_FEENABLEEXCEPT
+#ifdef __GNU_VISIBLE
+#undef __GNU_VISIBLE
+#define __GNU_VISIBLE 1
 #endif
-#endif
+
+#include "common.h"
 
 #ifdef HAVE_FEENABLEEXCEPT
 #include <fenv.h>
 
 inline int fpu_exceptions() {
   int excepts=0;
-#ifdef FE_INVALID    
+#ifdef FE_INVALID
   excepts |= FE_INVALID;
-#endif    
+#endif
 #ifdef FE_DIVBYZERO
   excepts |= FE_DIVBYZERO;
-#endif  
+#endif
 #ifdef FE_OVERFLOW
   excepts |= FE_OVERFLOW;
-#endif  
+#endif
   return excepts;
 }
 

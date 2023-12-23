@@ -16,7 +16,7 @@ label(background,"$x\sin\frac{1}{x}$",F(0.92/pi),3SE,grey+fontsize(14pt));
 frame f=background.fit();
 box(f,RadialShade(yellow,0.6*yellow+red),above=false);
 background.erase();
-add(background,f);  
+add(background,f);
 
 title("Young Researchers' Conference",align=3S,fontsize(48pt));
 center("University of Alberta, Edmonton, April 1--2, 2006");

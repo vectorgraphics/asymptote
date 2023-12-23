@@ -5,7 +5,7 @@ real legendmargin=10;
 real legendmaxrelativewidth=1;
 
 // Return a unit polygon with n sides.
-path polygon(int n) 
+path polygon(int n)
 {
   guide g;
   for(int i=0; i < n; ++i) g=g--expi(2pi*(i+0.5)/n-0.5*pi);
@@ -14,7 +14,7 @@ path polygon(int n)
 
 // Return a unit n-point cyclic cross, with optional inner radius r and
 // end rounding.
-path cross(int n, bool round=true, real r=0) 
+path cross(int n, bool round=true, real r=0)
 {
   assert(n > 1);
   real r=min(r,1);
@@ -41,7 +41,8 @@ path cross(int n, bool round=true, real r=0)
   return g--cycle;
 }
 
-path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
+path plus=rotate(45)*cross(4);
+path diamond=rotate(45)*polygon(4);
 
 typedef void markroutine(picture pic=currentpicture, frame f, path g);
 
@@ -98,9 +99,9 @@ struct marker {
     markroutine(pic,f,g);
   };
 }
-  
+
 marker marker(frame f=newframe, markroutine markroutine=marknodes,
-              bool above=true) 
+              bool above=true)
 {
   marker m=new marker;
   m.f=f;
@@ -147,15 +148,18 @@ real circlescale=0.85;
 
 path[] MarkPath={scale(circlescale)*unitcircle,
                  polygon(3),polygon(4),polygon(5),invert*polygon(3),
-                 cross(4),cross(6)};
+                 cross(4),cross(6),diamond,plus};
+
+int[] MarkFillable={0,1,2,3,4,7};
 
 marker[] Mark=sequence(new marker(int i) {return marker(MarkPath[i]);},
                        MarkPath.length);
 
-marker[] MarkFill=sequence(new marker(int i) {return marker(MarkPath[i],Fill);},
-                           MarkPath.length-2);
+marker[] MarkFill=sequence(new marker(int i) {
+    return marker(MarkPath[MarkFillable[i]],Fill);
+  },MarkFillable.length);
 
-marker Mark(int n) 
+marker Mark(int n)
 {
   n=n % (Mark.length+MarkFill.length);
   if(n < Mark.length) return Mark[n];
@@ -194,7 +198,7 @@ picture legend(Legend[] Legend, int perline=1, real linelength,
   if(Legend.length == 0)
     return inset;
 
-  // Check for legend entries with lines: 
+  // Check for legend entries with lines:
   bool bLineEntriesAvailable=false;
   for(int i=0; i < Legend.length; ++i) {
     if(Legend[i].p != invisible) {
@@ -231,8 +235,8 @@ picture legend(Legend[] Legend, int perline=1, real linelength,
       totalwidth += size(pic).x;
     }
   }
-  // Does everything fit into one line? 
-  if(((perline < 1) || (perline >= Legend.length)) && 
+  // Does everything fit into one line?
+  if(((perline < 1) || (perline >= Legend.length)) &&
      (maxwidth >= totalwidth+(totalwidth/Legend.length)*
       (Legend.length-1)*(hskip-1))) {
     // One-line legend
@@ -285,7 +289,7 @@ frame legend(picture pic=currentpicture, int perline=1,
              real xmargin=legendmargin, real ymargin=xmargin,
              real linelength=legendlinelength,
              real hskip=legendhskip, real vskip=legendvskip,
-             real maxwidth=perline == 0 ? 
+             real maxwidth=perline == 0 ?
              legendmaxrelativewidth*size(pic).x : 0, real maxheight=0,
 	     bool hstretch=false, bool vstretch=false, pen p=currentpen)
 {
@@ -305,13 +309,16 @@ pair[] pairs(real[] x, real[] y)
   return sequence(new pair(int i) {return (x[i],y[i]);},x.length);
 }
 
-void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
+filltype dotfilltype = Fill;
+
+void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype)
 {
   if(filltype == Fill)
     draw(f,z,dotsize(p)+p);
   else {
-    transform t=shift(z);
-    path g=t*scale(0.5*(dotsize(p)-linewidth(p)))*unitcircle;
+    real s=0.5*(dotsize(p)-linewidth(p));
+    if(s <= 0) return;
+    path g=shift(z)*scale(s)*unitcircle;
     begingroup(f);
     filltype.fill(f,g,p);
     draw(f,g,p);
@@ -320,7 +327,7 @@ void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
 }
 
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype)
 {
   pic.add(new void(frame f, transform t) {
       dot(f,t*z,p,filltype);
@@ -329,7 +336,7 @@ void dot(picture pic=currentpicture, pair z, pen p=currentpen,
 }
 
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen, filltype filltype=Fill)
+         string format=defaultformat, pen p=currentpen, filltype filltype=dotfilltype)
 {
   Label L=L.copy();
   L.position(z);
@@ -345,7 +352,7 @@ void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
 
 void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
 	 align align=NoAlign, string format=defaultformat, pen p=currentpen,
-	 filltype filltype=Fill)
+	 filltype filltype=dotfilltype)
 {
   int stop=min(L.length,z.length);
   for(int i=0; i < stop; ++i)
@@ -356,7 +363,7 @@ void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
 
 void dot(picture pic=currentpicture, Label[] L=new Label[],
 	 explicit path g, align align=RightSide, string format=defaultformat,
-	 pen p=currentpen, filltype filltype=Fill)
+	 pen p=currentpen, filltype filltype=dotfilltype)
 {
   int n=size(g);
   int stop=min(L.length,n);
@@ -367,20 +374,20 @@ void dot(picture pic=currentpicture, Label[] L=new Label[],
 }
 
 void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype)
 {
   for(int i=0; i < g.length; ++i)
     dot(pic,g[i],p,filltype);
 }
 
 void dot(picture pic=currentpicture, Label L, pen p=currentpen,
-         filltype filltype=Fill)
+         filltype filltype=dotfilltype)
 {
   dot(pic,L,L.position,p,filltype);
 }
 
 // A dot in a frame.
-frame dotframe(pen p=currentpen, filltype filltype=Fill)
+frame dotframe(pen p=currentpen, filltype filltype=dotfilltype)
 {
   frame f;
   dot(f,(0,0),p,filltype);
@@ -389,10 +396,10 @@ frame dotframe(pen p=currentpen, filltype filltype=Fill)
 
 frame dotframe=dotframe();
 
-marker dot(pen p=currentpen, filltype filltype=Fill)
+marker dot(pen p=currentpen, filltype filltype=dotfilltype)
 {
   return marker(dotframe(p,filltype));
 }
 
 marker dot=dot();
-    
+

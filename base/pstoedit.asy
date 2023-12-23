@@ -15,4 +15,4 @@ void grestore(picture pic=currentpicture)
       grestore(f);
     },true);
 }
-    
+

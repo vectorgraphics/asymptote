@@ -11,22 +11,23 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <deque>
 #include <string>
 #include <sstream>
 
 #ifndef NOHASH
 
-#ifdef HAVE_UNORDERED_MAP
+#ifdef HAVE_TR1_UNORDERED_MAP
 
 #include <memory>
-#include <unordered_map>
-#define EXT std
+#include <tr1/unordered_map>
+#define EXT std::tr1
 
 #else
 
-#ifdef HAVE_TR1_UNORDERED_MAP
-#include <tr1/unordered_map>
-#define EXT std::tr1
+#ifdef HAVE_UNORDERED_MAP
+#include <unordered_map>
+#define EXT std
 #else
 #define EXT __gnu_cxx
 #include <ext/hash_map>
@@ -41,12 +42,16 @@
 #ifdef __DECCXX_LIBCXX_RH70
 #define CONST
 #else
-#define CONST const  
+#define CONST const
 #endif
-  
+
 #ifdef USEGC
 
 #define GC_THREADS
+#ifdef __clang__
+#define GC_ATTR_EXPLICIT
+#define GC_NOEXCEPT
+#endif
 #include <gc.h>
 
 #ifdef GC_DEBUG
@@ -86,6 +91,8 @@ inline void *asy_malloc_atomic(size_t n)
 #include <gc_allocator.h>
 #include <gc_cpp.h>
 
+#define gc_allocator gc_allocator_ignore_off_page
+
 #else // USEGC
 
 using std::allocator;
@@ -101,8 +108,8 @@ inline void* operator new(size_t size, GCPlacement) {
 }
 
 inline void* operator new[](size_t size, GCPlacement) {
-  return operator new(size);
-}
+                           return operator new(size);
+                         }
 
 template<class T>
 struct GC_type_traits {};
@@ -124,6 +131,7 @@ namespace mem {
 
 GC_CONTAINER(list);
 GC_CONTAINER(vector);
+GC_CONTAINER(deque);
 
 template <typename T, typename Container = vector<T> >
 struct stack : public std::stack<T, Container>, public gc {
@@ -148,15 +156,15 @@ GC_CONTAINER(multimap);
 #undef GC_CONTAINER
 
 #ifndef NOHASH
-#define GC_CONTAINER(KIND)                                              \
-  template <typename Key, typename T,                                   \
-            typename Hash = EXT::hash<Key>,                             \
-            typename Eq = std::equal_to<Key> >                          \
-  struct KIND : public                                                  \
-  EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC>, public gc {                      \
-    KIND() : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> () {}                  \
-    KIND(size_t n)                                                      \
-      : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> (n) {}                      \
+#define GC_CONTAINER(KIND)                              \
+  template <typename Key, typename T,                   \
+            typename Hash = EXT::hash<Key>,             \
+            typename Eq = std::equal_to<Key> >          \
+  struct KIND : public                                  \
+  EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC>, public gc {      \
+    KIND() : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> () {}  \
+    KIND(size_t n)                                      \
+      : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> (n) {}      \
   }
 
 GC_CONTAINER(unordered_map);
@@ -179,11 +187,8 @@ typedef std::basic_ostringstream<char,std::char_traits<char>,
                                  gc_allocator<char> > ostringstream;
 typedef std::basic_stringbuf<char,std::char_traits<char>,
                              gc_allocator<char> > stringbuf;
-#if GC_TMP_VERSION_MAJOR >= 7 && GC_TMP_VERSION_MINOR > 1
 inline void compact(int x) {GC_set_dont_expand(x);}
-#else
-inline void compact(int x) {GC_dont_expand=x;}
-#endif    
+inline std::string stdString(string s) {return std::string(s.c_str());}
 #else
 inline void compact(int x) {}
 typedef std::string string;
@@ -191,6 +196,7 @@ typedef std::stringstream stringstream;
 typedef std::istringstream istringstream;
 typedef std::ostringstream ostringstream;
 typedef std::stringbuf stringbuf;
+inline std::string stdString(string s) {return s;}
 #endif // USEGC
 
 } // namespace mem

@@ -2,7 +2,7 @@ size(0,100);
 import geometry;
 
 triangle t=triangle(b=3,alpha=90,c=4);
-  
+
 dot((0,0));
 
 draw(t);

@@ -1,6 +1,6 @@
 settings.tex="context";
 // Work around ConTeXT bug for font sizes less than 12pt:
-texpreamble("\setupbodyfont[8pt]"); 
+texpreamble("\setupbodyfont[8pt]");
 
 usetypescript("iwona");
 usetypescript("antykwa-torunska");

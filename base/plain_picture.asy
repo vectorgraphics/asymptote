@@ -59,10 +59,10 @@ struct coords3 {
     }
   }
 }
-  
+
 // scaleT and Legend <<<
 typedef real scalefcn(real x);
-                                              
+
 struct scaleT {
   scalefcn T,Tinv;
   bool logarithmic;
@@ -86,7 +86,7 @@ scaleT operator init()
   scaleT S=scaleT(identity,identity);
   return S;
 }
-                                  
+
 typedef void boundRoutine();
 
 struct autoscaleT {
@@ -97,11 +97,11 @@ struct autoscaleT {
   bool automin=false, automax=false;
   bool automin() {return automin && scale.automin;}
   bool automax() {return automax && scale.automax;}
-  
+
   real T(real x) {return postscale.T(scale.T(x));}
   scalefcn T() {return scale.logarithmic ? postscale.T : T;}
   real Tinv(real x) {return scale.Tinv(postscale.Tinv(x));}
-  
+
   autoscaleT copy() {
     autoscaleT dest=new autoscaleT;
     dest.scale=scale.copy();
@@ -120,7 +120,7 @@ struct ScaleT {
   autoscaleT x;
   autoscaleT y;
   autoscaleT z;
-  
+
   ScaleT copy() {
     ScaleT dest=new ScaleT;
     dest.set=set;
@@ -169,6 +169,15 @@ typedef void drawer(frame f, transform t);
 // TODO: Add documentation as to what T is.
 typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 
+struct node {
+  drawerBound d;
+  string key;
+  void operator init(drawerBound d, string key=xasyKEY()) {
+    this.d=d;
+    this.key=key;
+  }
+}
+
 // PairOrTriple <<<1
 // This struct is used to represent a userMin/userMax which serves as both a
 // pair and a triple depending on the context.
@@ -199,9 +208,18 @@ struct picture { // <<<1
   typedef void drawerBound3(frame f, transform3 t, transform3 T,
                             picture pic, projection P, triple lb, triple rt);
 
+  struct node3 {
+    drawerBound3 d;
+    string key;
+    void operator init(drawerBound3 d, string key=xasyKEY()) {
+      this.d=d;
+      this.key=key;
+    }
+  }
+
   // The functions to do the deferred drawing.
-  drawerBound[] nodes;
-  drawerBound3[] nodes3;
+  node[] nodes;
+  node3[] nodes3;
 
   bool uptodate=true;
 
@@ -222,15 +240,15 @@ struct picture { // <<<1
       return b;
     }
   }
-  
+
   bounds bounds;
   bounds3 bounds3;
-    
+
   // Other Fields <<<2
   // Transform to be applied to this picture.
   transform T;
   transform3 T3;
-  
+
   // The internal representation of the 3D user bounds.
   private pairOrTriple umin, umax;
   private bool usetx, usety, usetz;
@@ -249,14 +267,14 @@ struct picture { // <<<1
   // Fixed unitsizes in the x y, and z directions; zero means use
   // xsize, ysize, and zsize.
   real xunitsize=0, yunitsize=0, zunitsize=0;
-  
+
   // If true, the x and y directions must be scaled by the same amount.
   bool keepAspect=true;
 
   // A fixed scaling transform.
   bool fixed;
   transform fixedscaling;
-  
+
   // Init and erase <<<2
   void init() {
     umin.init();
@@ -265,19 +283,24 @@ struct picture { // <<<1
     T3=identity(4);
   }
   init();
-  
-  // Erase the current picture, retaining any size specification.
-  void erase() {
+
+  // Erase the current picture, retaining bounds.
+  void clear() {
     nodes.delete();
     nodes3.delete();
+    legend.delete();
+  }
+
+  // Erase the current picture, retaining any size specification.
+  void erase() {
+    clear();
     bounds.erase();
     bounds3.erase();
     T=identity();
     scale=new ScaleT;
-    legend.delete();
     init();
   }
-  
+
   // Empty <<<2
   bool empty2() {
     return nodes.length == 0;
@@ -290,7 +313,7 @@ struct picture { // <<<1
   bool empty() {
     return empty2() && empty3();
   }
-  
+
   // User min/max <<<2
   pair userMin2() {return bounds.userMin(); }
   pair userMax2() {return bounds.userMax(); }
@@ -350,27 +373,27 @@ struct picture { // <<<1
     umin.x=x;
     usetx=true;
   }
-  
+
   void userMiny3(real y) {
     umin.y=y;
     usety=true;
   }
-  
+
   void userMinz3(real z) {
     umin.z=z;
     usetz=true;
   }
-  
+
   void userMaxx3(real x) {
     umax.x=x;
     usetx=true;
   }
-  
+
   void userMaxy3(real y) {
     umax.y=y;
     usety=true;
   }
-  
+
   void userMaxz3(real z) {
     umax.z=z;
     usetz=true;
@@ -386,7 +409,7 @@ struct picture { // <<<1
   void userMaxy(real y) { userMaxy2(y); userMaxy3(y); }
   void userMinz(real z) = userMinz3;
   void userMaxz(real z) = userMaxz3;
-  
+
   void userCorners3(triple c000, triple c001, triple c010, triple c011,
                     triple c100, triple c101, triple c110, triple c111) {
     umin.x = min(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x);
@@ -396,7 +419,7 @@ struct picture { // <<<1
     umax.y = max(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y);
     umax.z = max(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z);
   }
-  
+
   // Cache the current user-space bounding box x coodinates
   void userBoxX3(real min, real max, binop m=min, binop M=max) {
     if (usetx) {
@@ -439,21 +462,21 @@ struct picture { // <<<1
     userBoxY3(min.y,max.y);
     userBoxZ3(min.z,max.z);
   }
-  
+
   // Add drawer <<<2
   void add(drawerBound d, bool exact=false, bool above=true) {
     uptodate=false;
     if(!exact) bounds.exact=false;
     if(above)
-      nodes.push(d);
+      nodes.push(node(d));
     else
-      nodes.insert(0,d);
+      nodes.insert(0,node(d));
   }
-  
+
   // Faster implementation of most common case.
   void addExactAbove(drawerBound d) {
     uptodate=false;
-    nodes.push(d);
+    nodes.push(node(d));
   }
 
   void add(drawer d, bool exact=false, bool above=true) {
@@ -466,9 +489,9 @@ struct picture { // <<<1
     uptodate=false;
     if(!exact) bounds.exact=false;
     if(above)
-      nodes3.push(d);
+      nodes3.push(node3(d));
     else
-      nodes3.insert(0,d);
+      nodes3.insert(0,node3(d));
   }
 
   void add(drawer3 d, bool exact=false, bool above=true) {
@@ -495,13 +518,13 @@ struct picture { // <<<1
     bounds.addPoint(user,truesize);
     //userBox(user,user);
   }
-  
+
   // Add a point to the sizing, accounting also for the size of the pen.
   void addPoint(pair user, pair truesize=0, pen p) {
     addPoint(user,truesize+min(p));
     addPoint(user,truesize+max(p));
   }
-  
+
   void addPoint(triple user, triple truesize=(0,0,0)) {
     bounds3.point.push(user,truesize);
     userBox3(user,user);
@@ -595,7 +618,7 @@ struct picture { // <<<1
   }
 
   void append(coords3 point, coords3 min, coords3 max, transform3 t,
-              bounds3 bounds) 
+              bounds3 bounds)
   {
     // Add the coord info to this picture.
     if(t == identity4) {
@@ -615,7 +638,7 @@ struct picture { // <<<1
       point.push(t,bounds.max,bounds.max,bounds.max);
     }
   }
-  
+
   // Scaling and Fit <<<2
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize, bool keepAspect=true,
@@ -637,9 +660,9 @@ struct picture { // <<<1
       return identity(4);
 
     coords3 Coords;
-    
+
     append(Coords,Coords,Coords,T3,bounds3);
-    
+
     real sx;
     if(xunitsize == 0) {
       if(xsize != 0) sx=calculateScaling("x",Coords.x,xsize,warn);
@@ -675,17 +698,20 @@ struct picture { // <<<1
 
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
-    int n = nodes.length;
-    for(int i=0; i < n; ++i)
-      nodes[i](f,t,T0,m,M);
+    for(node n : nodes) {
+      xasyKEY(n.key);
+      n.d(f,t,T0,m,M);
+    }
     return f;
   }
 
   frame fit3(transform3 t, transform3 T0=T3, picture pic, projection P,
              triple m, triple M) {
     frame f;
-    for(int i=0; i < nodes3.length; ++i)
-      nodes3[i](f,t,T0,pic,P,m,M);
+    for(node3 n : nodes3) {
+      xasyKEY(nodes3[0].key);
+      n.d(f,t,T0,pic,P,m,M);
+    }
     return f;
   }
 
@@ -731,7 +757,7 @@ struct picture { // <<<1
     frame f=fit(fixedscaling);
     pair d=size(f);
     static real epsilon=100*realEpsilon;
-    if(d.x > xsize*(1+epsilon)) 
+    if(d.x > xsize*(1+epsilon))
       warning("xlimit","frame exceeds xlimit: "+(string) d.x+" > "+
               (string) xsize);
     if(d.y > ysize*(1+epsilon))
@@ -739,7 +765,7 @@ struct picture { // <<<1
               (string) ysize);
     return f;
   }
-  
+
   // Calculate additional scaling required if only an approximate picture
   // size estimate is available.
   transform scale(frame f, real xsize=this.xsize, real ysize=this.ysize,
@@ -810,24 +836,24 @@ struct picture { // <<<1
            bool keepAspect=this.keepAspect, bool warn=true) {
     return min(calculateTransform(xsize,ysize,keepAspect,warn));
   }
-  
+
   pair max(real xsize=this.xsize, real ysize=this.ysize,
            bool keepAspect=this.keepAspect, bool warn=true) {
     return max(calculateTransform(xsize,ysize,keepAspect,warn));
   }
-  
+
   triple min3(real xsize=this.xsize3, real ysize=this.ysize3,
               real zsize=this.zsize3, bool keepAspect=this.keepAspect,
               bool warn=true, projection P) {
     return min(calculateTransform3(xsize,ysize,zsize,keepAspect,warn,P));
   }
-  
+
   triple max3(real xsize=this.xsize3, real ysize=this.ysize3,
               real zsize=this.zsize3, bool keepAspect=this.keepAspect,
               bool warn=true, projection P) {
     return max(calculateTransform3(xsize,ysize,zsize,keepAspect,warn,P));
   }
-  
+
   // More Fitting <<<2
   // Returns the 2D picture fit to the requested size.
   frame fit2(real xsize=this.xsize, real ysize=this.ysize,
@@ -854,7 +880,7 @@ struct picture { // <<<1
       fitter(prefix,this,format,xsize,ysize,keepAspect,view,options,script,
              light,P);
   }
-  
+
   // Fit a 3D picture.
   frame fit3(projection P=currentprojection) {
     if(settings.render == 0) return fit(P);
@@ -869,7 +895,7 @@ struct picture { // <<<1
 
   // In case only an approximate picture size estimate is available, return the
   // fitted frame slightly scaled (including labels and true size distances)
-  // so that it precisely meets the given size specification. 
+  // so that it precisely meets the given size specification.
   frame scale(real xsize=this.xsize, real ysize=this.ysize,
               bool keepAspect=this.keepAspect) {
     frame f=fit(xsize,ysize,keepAspect);
@@ -879,7 +905,7 @@ struct picture { // <<<1
   }
 
   // Copying <<<2
-  
+
   // Copies enough information to yield the same userMin/userMax.
   void userCopy2(picture pic) {
     userMinx2(pic.userMin2().x);
@@ -895,17 +921,17 @@ struct picture { // <<<1
     usety=pic.usety;
     usetz=pic.usetz;
   }
-  
+
   void userCopy(picture pic) {
     userCopy2(pic);
     userCopy3(pic);
   }
-  
+
   // Copies the drawing information, but not the sizing information into a new
   // picture. Fitting this picture will not scale as the original picture would.
   picture drawcopy() {
     picture dest=new picture;
-    dest.nodes = copy(nodes);
+    dest.nodes=copy(nodes);
     dest.nodes3=copy(nodes3);
     dest.T=T;
     dest.T3=T3;
@@ -928,14 +954,14 @@ struct picture { // <<<1
     dest.uptodate=uptodate;
     dest.bounds=bounds.copy();
     dest.bounds3=bounds3.copy();
-    
+
     dest.xsize=xsize; dest.ysize=ysize;
     dest.xsize3=xsize; dest.ysize3=ysize3; dest.zsize3=zsize3;
     dest.keepAspect=keepAspect;
     dest.xunitsize=xunitsize; dest.yunitsize=yunitsize;
     dest.zunitsize=zunitsize;
     dest.fixed=fixed; dest.fixedscaling=fixedscaling;
-    
+
     return dest;
   }
 
@@ -945,18 +971,20 @@ struct picture { // <<<1
     picture dest=drawcopy();
 
     // Replace nodes with a single drawer that realizes the transform.
-    drawerBound[] oldnodes = dest.nodes;
+    node[] oldnodes = dest.nodes;
     void drawAll(frame f, transform tt, transform T, pair lb, pair rt) {
       transform Tt = T*t;
-      for (var node : oldnodes)
-        node(f, tt, Tt, lb, rt);
+      for (node n : oldnodes) {
+        xasyKEY(n.key);
+        n.d(f,tt,Tt,lb,rt);
+      }
     }
-    dest.nodes = new drawerBound[] { drawAll };
+    dest.nodes = new node[] {node(drawAll)};
 
     dest.uptodate=uptodate;
     dest.bounds=bounds.transformed(t);
     dest.bounds3=bounds3.copy();
-    
+
     dest.bounds.exact=false;
 
     dest.xsize=xsize; dest.ysize=ysize;
@@ -965,7 +993,7 @@ struct picture { // <<<1
     dest.xunitsize=xunitsize; dest.yunitsize=yunitsize;
     dest.zunitsize=zunitsize;
     dest.fixed=fixed; dest.fixedscaling=fixedscaling;
-    
+
     return dest;
   }
 
@@ -979,29 +1007,32 @@ struct picture { // <<<1
     // objects added to it that should not be included in this picture.
 
     if(src == this) abort("cannot add picture to itself");
-    
+
     uptodate=false;
 
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
-    if(srcCopy.nodes.length > 0)
-      nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
+    if(srcCopy.nodes.length > 0) {
+      nodes.push(node(new void(frame f, transform t, transform T,
+                               pair m, pair M) {
           add(f,srcCopy.fit(t,T*srcCopy.T,m,M),group,filltype,above);
-        });
-    
-    if(srcCopy.nodes3.length > 0) {
-      nodes3.push(new void(frame f, transform3 t, transform3 T3, picture pic,
-                           projection P, triple m, triple M) {
-                    add(f,srcCopy.fit3(t,T3*srcCopy.T3,pic,P,m,M),group,above);
-                  });
+          }));
     }
-    
+
+    if(srcCopy.nodes3.length > 0) {
+      nodes3.push(node3(new void(frame f, transform3 t, transform3 T3,
+                                 picture pic, projection P, triple m, triple M)
+                        {
+                    add(f,srcCopy.fit3(t,T3*srcCopy.T3,pic,P,m,M),group,above);
+                        }));
+    }
+
     legend.append(src.legend);
-    
+
     if(src.usetx) userBoxX3(src.umin.x,src.umax.x);
     if(src.usety) userBoxY3(src.umin.y,src.umax.y);
     if(src.usetz) userBoxZ3(src.umin.z,src.umax.z);
-    
+
     bounds.append(srcCopy.T, src.bounds);
     //append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
     append(bounds3.point,bounds3.min,bounds3.max,srcCopy.T3,src.bounds3);
@@ -1042,13 +1073,21 @@ void size(picture pic=currentpicture, real x, real y=x,
   pic.size(x,y,keepAspect);
 }
 
+void size(picture pic=currentpicture, transform t)
+{
+  if(pic.empty3()) {
+    pair z=size(pic.fit(t));
+    pic.size(z.x,z.y);
+  }
+}
+
 void size3(picture pic=currentpicture, real x, real y=x, real z=y,
            bool keepAspect=pic.keepAspect)
 {
   pic.size3(x,y,z,keepAspect);
 }
 
-void unitsize(picture pic=currentpicture, real x, real y=x, real z=y) 
+void unitsize(picture pic=currentpicture, real x, real y=x, real z=y)
 {
   pic.unitsize(x,y,z);
 }
@@ -1074,14 +1113,14 @@ pair min(picture pic, bool user=false)
   pair z=pic.min(t);
   return user ? inverse(t)*z : z;
 }
-  
+
 pair max(picture pic, bool user=false)
 {
   transform t=pic.calculateTransform();
   pair z=pic.max(t);
   return user ? inverse(t)*z : z;
 }
-  
+
 pair size(picture pic, bool user=false)
 {
   transform t=pic.calculateTransform();
@@ -1093,7 +1132,7 @@ pair size(picture pic, bool user=false)
 }
 
 // Frame Alignment <<<
-pair rectify(pair dir) 
+pair rectify(pair dir)
 {
   real scale=max(abs(dir.x),abs(dir.y));
   if(scale != 0) dir *= 0.5/scale;
@@ -1122,13 +1161,13 @@ path[] align(path[] g, transform t=identity(), pair position,
 }
 
 // Returns a transform for aligning frame f in the direction align
-transform shift(frame f, pair align) 
+transform shift(frame f, pair align)
 {
   return shift(align-point(f,-align));
 }
 
 // Returns a copy of frame f aligned in the direction align
-frame align(frame f, pair align) 
+frame align(frame f, pair align)
 {
   return shift(f,align)*f;
 }
@@ -1316,50 +1355,43 @@ void gouraudshade(picture pic=currentpicture, path[] g, bool stroke=false,
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
-                 pen fillrule=currentpen, pen[][] p, path[] b=g,
+                 pen fillrule=currentpen, pen[][] p, path[] b=new path[],
                  pair[][] z=new pair[][], bool copy=true)
 {
+  bool compact=b.length == 0 || b[0] == nullpath;
   if(copy) {
     g=copy(g);
     p=copy(p);
-    b=copy(b);
+    if(!compact) b=copy(b);
     z=copy(z);
   }
   pic.add(new void(frame f, transform t) {
       pair[][] Z=new pair[z.length][];
       for(int i=0; i < z.length; ++i)
         Z[i]=t*z[i];
-      tensorshade(f,t*g,stroke,fillrule,p,t*b,Z,false);
+      path[] G=t*g;
+      if(compact)
+        tensorshade(f,G,stroke,fillrule,p,Z,false);
+      else
+        tensorshade(f,G,stroke,fillrule,p,t*b,Z,false);
     },true);
   pic.addPath(g);
 }
 
 void tensorshade(frame f, path[] g, bool stroke=false,
                  pen fillrule=currentpen, pen[] p,
-                 path b=g.length > 0 ? g[0] : nullpath)
+                 path b=g.length > 0 ? g[0] : nullpath, pair[] z=new pair[])
 {
-  tensorshade(f,g,stroke,fillrule,new pen[][] {p},b);
-}
-
-void tensorshade(frame f, path[] g, bool stroke=false,
-                 pen fillrule=currentpen, pen[] p,
-                 path b=g.length > 0 ? g[0] : nullpath, pair[] z)
-{
-  tensorshade(f,g,stroke,fillrule,new pen[][] {p},b,new pair[][] {z});
+  tensorshade(f,g,stroke,fillrule,new pen[][] {p},b,
+              z.length > 0 ? new pair[][] {z} : new pair[][]);
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
                  pen fillrule=currentpen, pen[] p,
-                 path b=g.length > 0 ? g[0] : nullpath)
+                 path b=nullpath, pair[] z=new pair[])
 {
-  tensorshade(pic,g,stroke,fillrule,new pen[][] {p},b);
-}
-
-void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
-                 pen fillrule=currentpen, pen[] p,
-                 path b=g.length > 0 ? g[0] : nullpath, pair[] z)
-{
-  tensorshade(pic,g,stroke,fillrule,new pen[][] {p},b,new pair[][] {z});
+  tensorshade(pic,g,stroke,fillrule,new pen[][] {p},b,
+              z.length > 0 ? new pair[][] {z} : new pair[][]);
 }
 
 // Smoothly shade the regions between consecutive paths of a sequence using a
@@ -1408,7 +1440,6 @@ void clip(picture pic=currentpicture, path[] g, bool stroke=false,
 {
   if(copy)
     g=copy(g);
-  //pic.userClip(min(g),max(g));
   pic.clip(min(g), max(g),
            new void(frame f, transform t) {
              clip(f,t*g,stroke,fillrule,false);
@@ -1417,7 +1448,7 @@ void clip(picture pic=currentpicture, path[] g, bool stroke=false,
 }
 
 void beginclip(picture pic=currentpicture, path[] g, bool stroke=false,
-               pen fillrule=currentpen, bool copy=true) 
+               pen fillrule=currentpen, bool copy=true)
 {
   if(copy)
     g=copy(g);
@@ -1474,7 +1505,7 @@ void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen,
   pic.addPath(g);
 }
 
-// Use a fixed scaling to map user coordinates in box(min,max) to the 
+// Use a fixed scaling to map user coordinates in box(min,max) to the
 // desired picture size.
 transform fixedscaling(picture pic=currentpicture, pair min, pair max,
                        pen p=nullpen, bool warn=false)
@@ -1640,7 +1671,7 @@ void begin(picture pic=currentpicture, string name, string id="",
 void end(picture pic=currentpicture)
 {
   if(!latex() || !pdf()) return;
-  tex(pic,"\end{ocg}");
+  tex(pic,"\end{ocg}%");
   layer(pic);
 }
 

@@ -91,7 +91,7 @@ real Aerr2(real x){return Aerr(x,0.75);}
 draw(pic2p,graph(pic2p,Aerr2,1e-4,1),black+1.2);
 
 ylimits(pic2p,-5,95);
-yaxis(pic2p,"phase (deg)",LeftRight,RightTicks(new real[] {0,45.1,90}));
+yaxis(pic2p,"phase (deg)",LeftRight,RightTicks(new real[] {0,50,90}));
 xaxis(pic2p,"$f/f_\mathrm{Ny}$",BottomTop,LeftTicks(N=5));
 yequals(pic2p,0,Dotted);
 yequals(pic2p,45,Dotted);

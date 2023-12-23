@@ -5,7 +5,7 @@ currentprojection=perspective(0,0,11,up=Y);
 
 pen color1=green+opacity(0.25);
 pen color2=red;
-real alpha=250;
+real alpha=240;
 
 real f(real x) {return 2x^2-x^3;}
 pair F(real x) {return (x,f(x));}
@@ -18,7 +18,7 @@ real x2=1.7787;
 real x3=1.8043;
 
 path[] p={graph(F,x1,x2,Spline),
-          graph(F,0.7,x1,Spline)--graph(F,x2,x3,Spline),
+          graph(F,0.7,x1,Spline)--graph(F,x2,x3,Spline)&cycle,
           graph(F,0,0.7,Spline)--graph(F,x3,2,Spline)};
 
 pen[] pn=new pen[] {color1,color2,color1};

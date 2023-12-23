@@ -1,4 +1,4 @@
-real labelmargin=0.3;
+real labelmargin=0.28;
 real dotfactor=6;
 
 pen solid=linetype(new real[]);
@@ -8,7 +8,7 @@ pen longdashed=linetype(new real[] {24,8});
 pen dashdotted=linetype(new real[] {8,8,0,8});
 pen longdashdotted=linetype(new real[] {24,8,0,8});
 
-pen linetype(string pattern, real offset=0, bool scale=true, bool adjust=true) 
+pen linetype(string pattern, real offset=0, bool scale=true, bool adjust=true)
 {
   return linetype((real[]) split(pattern),offset,scale,adjust);
 }
@@ -99,7 +99,7 @@ pen deepgreen=rgb(0,0.5,0);
 pen deepblue=rgb(0,0,0.5);
 pen deepcyan=rgb(0,0.5,0.5);
 pen deepmagenta=rgb(0.5,0,0.5);
-pen olive=rgb(0.5,0.5,0);
+pen deepyellow=rgb(0.5,0.5,0);
 pen deepgray=gray(0.1);
 
 pen darkred=rgb(0.25,0,0);
@@ -123,6 +123,7 @@ pen royalblue=rgb(0,0.5,1);
 
 pen salmon=lightred;
 pen brown=deepred;
+pen olive=deepyellow;
 pen darkbrown=darkred;
 pen pink=palemagenta;
 pen palegrey=palegray;
@@ -150,7 +151,7 @@ pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,
                longdashdotted};
 monoPen.cyclic=true;
 
-pen Pen(int n) 
+pen Pen(int n)
 {
   return (settings.gray || settings.bw) ? monoPen[n] : colorPen[n];
 }
@@ -160,19 +161,19 @@ pen Pentype(int n)
   return (settings.gray || settings.bw) ? monoPen[n] : monoPen[n]+colorPen[n];
 }
 
-real dotsize(pen p=currentpen) 
+real dotsize(pen p=currentpen)
 {
   return dotfactor*linewidth(p);
 }
 
-pen fontsize(real size) 
+pen fontsize(real size)
 {
   return fontsize(size,1.2*size);
 }
 
 real labelmargin(pen p=currentpen)
 {
-  return labelmargin*fontsize(p);
+  return labelmargin*fontsize(p)+0.5*linewidth(p);
 }
 
 void write(file file=stdout, string s="", pen[] p)
@@ -188,7 +189,7 @@ void usetypescript(string s, string encoding="")
   texpreamble(s);
 }
 
-pen font(string name, string options="") 
+pen font(string name, string options="")
 {
   // Work around misalignment in ConTeXt switchtobodyfont if font is not found.
   return fontcommand(settings.tex == "context" ?
@@ -198,7 +199,7 @@ pen font(string name, string options="")
                      "\font\ASYfont="+name+"\ASYfont");
 }
 
-pen font(string name, real size, string options="") 
+pen font(string name, real size, string options="")
 {
   string s=(string) (size/pt)+"pt";
   if(settings.tex == "context")
@@ -206,7 +207,7 @@ pen font(string name, real size, string options="")
   return fontsize(size)+font(name+" at "+s);
 }
 
-pen font(string encoding, string family, string series, string shape) 
+pen font(string encoding, string family, string series, string shape)
 {
   return fontcommand("\usefont{"+encoding+"}{"+family+"}{"+series+"}{"+shape+
                      "}");
@@ -315,16 +316,27 @@ real[] rgba(pen p)
   return a;
 }
 
+pen rgb(real[] a)
+{
+  return rgb(a[0],a[1],a[2]);
+}
+
 pen rgba(real[] a)
 {
   return rgb(a[0],a[1],a[2])+opacity(a[3]);
 }
 
-// Return a pen corresponding to a given 6-character RGB hexidecimal string.
-pen rgb(string s) 
+// Return a pen corresponding to a given 6-character RGB hexadecimal string.
+pen rgb(string s)
 {
-  real value(string s, int i) {return hex(substr(s,2i,2))/255;}
+  int offset=substr(s,0,1) == '#' ? 1 : 0;
+  real value(string s, int i) {return byteinv(hex(substr(s,2i+offset,2)));}
   return rgb(value(s,0),value(s,1),value(s,2));
+}
+
+pen RGB(int r, int g, int b)
+{
+  return rgb(r/255,g/255,b/255);
 }
 
 pen[] operator +(pen[] a, pen b)

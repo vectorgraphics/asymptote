@@ -32,7 +32,7 @@ titlepage(long ? "Asymptote: The Vector Graphics Language" :
 %and Instituto Nacional de Matem\'atica Pura e Aplicada (IMPA)
 \medskip\Green{Collaborators: Orest Shardt, Michail Vidiassov}",
 "June 30, 2010",
-"http://asymptote.sf.net/intro.pdf");
+"https://asymptote.sourceforge.io/intro.pdf");
 
 title("History");
 item("1979: \TeX\ and \MF\ (Knuth)");
@@ -48,7 +48,7 @@ subitem("2010: 3D PDF enhancements (Vidiassov \& Bowman)");
 title("Statistics (as of June, 2010)");
 item("Runs under Linux/UNIX, Mac OS X, Microsoft Windows.");
 item("4000 downloads/month from primary\hfill\\
- {\tt asymptote.sourceforge.net} site alone.");
+ {\tt asymptote.sourceforge.io} site alone.");
 item("80\ 000 lines of low-level C++ code.");
 item("36\ 000 lines of high-level Asymptote code.");
 
@@ -941,7 +941,7 @@ defaultpen(0.5);
 title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
 asyinclude("../examples/logo3");
 skip();
-center("\tt http://asymptote.sf.net");
+center("\tt https://asymptote.sourceforge.io");
 center("(freely available under the LGPL license)");
 
 //  LocalWords:  pdflatex mflogo viewportsize pagewidth pagemargin goysr bibtex

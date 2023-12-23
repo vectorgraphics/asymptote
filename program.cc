@@ -1,7 +1,7 @@
 /*****
  * program.cc
  * Tom Prince
- * 
+ *
  * The list of instructions used by the virtual machine.
  *****/
 
@@ -98,9 +98,9 @@ void printInst(ostream& out, const program::label& code,
 {
   out.width(4);
   out << offset(base,code) << " ";
-  
+
   Int i = (Int)code->op;
-  
+
   if (i < 0 || i >= numOps) {
     out << "<<invalid op>>" << i;
     return;
@@ -147,7 +147,7 @@ void printInst(ostream& out, const program::label& code,
 #endif
       break;
     }
-    
+
     default: {
       /* nothing else to do */
       break;
@@ -160,7 +160,7 @@ void print(ostream& out, program *base)
   program::label code = base->begin();
   bool active = true;
   while (active) {
-    if (code->op == inst::ret || 
+    if (code->op == inst::ret ||
         code->op < 0 || code->op >= numOps)
       active = false;
     printInst(out, code, base->begin());

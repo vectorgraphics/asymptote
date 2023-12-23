@@ -1,20 +1,22 @@
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
+file _outpipe;
+if(settings.xasy)
+  _outpipe=output(mode="pipe");
+
 string[] file3;
 
-string outprefix(string prefix=defaultfilename) {
-  return stripextension(prefix != "" ? prefix : outname());
+string outprefix(string prefix=stripextension(defaultfilename)) {
+  return prefix != "" ? prefix : outname();
 }
 
-string outformat(string format="") 
+string outformat(string format="")
 {
   if(format == "") format=settings.outformat;
   if(format == "") format=nativeformat();
   return format;
 }
-
-bool shipped; // Was a picture or frame already shipped out?
 
 frame currentpatterns;
 
@@ -30,6 +32,10 @@ object embed3(string, frame, string, string, string, light, projection);
 string Embed(string name, string text="", string options="", real width=0,
              real height=0);
 
+bool primitive() { // Encode primitive objects
+  return settings.outformat == "html" || settings.outformat=="v3d";
+}
+
 bool prconly(string format="")
 {
   return outformat(format) == "prc";
@@ -37,7 +43,7 @@ bool prconly(string format="")
 
 bool prc0(string format="")
 {
-  return settings.prc && (outformat(format) == "pdf" || prconly() || settings.inlineimage );
+  return settings.outformat == "prc" || (settings.prc && (outformat(format) == "pdf" || prconly() || settings.inlineimage ));
 }
 
 bool prc(string format="") {
@@ -58,35 +64,56 @@ frame enclose(string prefix=defaultfilename, object F, string format="")
   } return F.f;
 }
 
-include plain_xasy;
+void deconstruct(picture pic=currentpicture)
+{
+  if(currentpicture.nodes3.length > 0) {
+    if(currentpicture.xsize3 == 0 &&
+       currentpicture.ysize3 == 0 &&
+       currentpicture.zsize3 == 0)
+      currentpicture.size3(hypot(currentpicture.xsize,currentpicture.ysize));
+    currentpicture.size(0);
+  }
+
+  frame f;
+  transform t=pic.calculateTransform();
+  if(currentpicture.fitter == null)
+    f=pic.fit(t);
+  else
+    f=pic.fit();
+  deconstruct(f,currentpatterns,t);
+}
+
+bool implicitshipout=false;
 
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=false, bool view=true,
 	     string options="", string script="",
-	     light light=currentlight, projection P=currentprojection)
+	     light light=currentlight, projection P=currentprojection,
+             transform t=identity)
 {
   if(is3D(f)) {
     f=enclose(prefix,embed3(prefix,f,format,options,script,light,P));
     if(settings.render != 0 && !prc(format)) {
-      shipped=true;
       return;
     }
   }
 
-  if(inXasyMode) {
-    erase();
-    add(f,group=false);
+  bool defaultprefix=prefix==defaultfilename;
+
+  if(settings.xasy || (!implicitshipout && defaultprefix)) {
+    if(defaultprefix) {
+      currentpicture.clear();
+      add(f,group=false);
+    }
     return;
   }
-  
+
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
   int limit=2000;
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
-  shipout(prefix,f,currentpatterns,format,wait,view,
-          xformStack.empty() ? null : xformStack.pop0);
-  shipped=true;
+  _shipout(prefix,f,currentpatterns,format,wait,view,t);
 }
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
@@ -95,6 +122,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
+  pic.uptodate=true;
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format);
@@ -110,14 +138,24 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
       }
       settings.inlinetex=settings.inlineimage;
     }
-    frame f=pic.fit(prefix,format,view=view,options,script,light,P);
+    frame f;
+    transform t=pic.calculateTransform();
+    if(currentpicture.fitter == null) {
+      pen background=currentlight.background;
+      if(settings.outformat == "html" && background == nullpen)
+        background=white;
+      if(background != nullpen)
+        f=bbox(pic,nullpen,Fill(background));
+      else
+        f=pic.fit(t);
+    }
+    else
+      f=pic.fit(prefix,format,view=view,options,script,light,P);
+
     if(!prconly() && (!pic.empty2() || settings.render == 0 || prc || empty3))
-      shipout(prefix,orientation(f),format,wait,view);
+      shipout(prefix,orientation(f),format,wait,view,t);
     settings.inlinetex=inlinetex;
   }
-  
-  pic.uptodate=true;
-  shipped=true;
 }
 
 void newpage(picture pic=currentpicture)

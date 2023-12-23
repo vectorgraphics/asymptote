@@ -2,6 +2,7 @@ import geometry;
 import math;
 
 size(7cm,0);
+settings.tex="pdflatex";
 
 real theta=degrees(asin(0.5/sqrt(7)));
 
@@ -20,8 +21,6 @@ perpendicular(Cp,NE,Cp--O,blue);
 
 draw(A--B--C--cycle);
 
-currentpen=black;
-
 draw("1",A--O,-0.25*I*dir(A--O));
 draw(O--Ap);
 draw("$\sqrt{7}$",B--O,LeftSide);
@@ -37,4 +36,4 @@ dot("$A'$",Ap,dir(A--Ap),red);
 dot("$B'$",Bp,dir(B--Bp),red);
 dot("$C'$",Cp,dir(C--Cp),red);
 
-label(graphic("piicon","width=2.5cm"),Ap,5ENE,red);
+label(graphic("piicon.png","width=2.5cm, bb=0 0 147 144"),Ap,5ENE);

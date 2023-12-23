@@ -59,7 +59,7 @@ frame *name::frameTrans(coenv &e)
   else
     return tyFrameTrans(e);
 }
-    
+
 
 types::ty *name::getType(coenv &e, bool tacit)
 {
@@ -76,11 +76,11 @@ varEntry *simpleName::getVarEntry(coenv &e)
   types::ty *t=signatureless(varGetType(e));
   return t ? e.e.lookupVarByType(id, t) : 0;
 }
-  
+
 void simpleName::varTrans(action act, coenv &e, types::ty *target)
 {
   varEntry *v = e.e.lookupVarByType(id, target);
-  
+
   if (v) {
     v->encode(act, getPos(), e.c);
     forceEquivalency(act, e, target, v->getType());
@@ -135,7 +135,7 @@ frame *simpleName::tyFrameTrans(coenv &e)
     ent->v->encode(READ, getPos(), e.c);
     return ent->v->getLevel();
   }
-  else 
+  else
     return 0;
 }
 
@@ -145,6 +145,10 @@ void simpleName::prettyprint(ostream &out, Int indent)
   out << "simpleName '" << id << "'\n";
 }
 
+AsymptoteLsp::SymbolLit simpleName::getLit() const
+{
+  return AsymptoteLsp::SymbolLit(static_cast<std::string>(id));
+}
 
 record *qualifiedName::castToRecord(types::ty *t, bool tacit)
 {
@@ -311,7 +315,7 @@ frame *qualifiedName::tyFrameTrans(coenv &e)
       ent->v->encode(READ, getPos(), e.c);
     return ent->v->getLevel();
   }
-  else 
+  else
     return f;
 }
 
@@ -321,6 +325,21 @@ void qualifiedName::prettyprint(ostream &out, Int indent)
   out << "qualifiedName '" << id << "'\n";
 
   qualifier->prettyprint(out, indent+1);
+}
+
+AsymptoteLsp::SymbolLit qualifiedName::getLit() const
+{
+  std::vector<std::string> accessors;
+  name const* currentScope = this->qualifier;
+
+  while (auto* qn = dynamic_cast<qualifiedName const*>(currentScope))
+  {
+    accessors.push_back(static_cast<std::string>(qn->getName()));
+    currentScope = qn->qualifier;
+  }
+  accessors.push_back(static_cast<std::string>(currentScope->getName()));
+
+  return AsymptoteLsp::SymbolLit(static_cast<std::string>(id), std::move(accessors));
 }
 
 } // namespace absyntax

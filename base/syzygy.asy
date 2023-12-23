@@ -78,7 +78,7 @@ bp.draw=new guide[] (picture pic, guide[] ins) {
   return new guide[] {(centre+offset*NW){NW}..z[0]+h*N,
                                                 ins[0]..centre{NE}..z[1]+h*N};
 };
-    
+
 Component bm=new Component;
 bm.in=2; bm.out=2;
 bm.connections=new int[] {1,0};
@@ -99,7 +99,7 @@ bm.draw=new guide[] (picture pic, guide[] ins) {
   return new guide[] {ins[1]..centre{NW}..z[0]+h*N,
                                             (centre+offset*NE){NE}..z[1]+h*N};
 };
-    
+
 Component phi=new Component;
 phi.in=2; phi.out=1;
 phi.connections=new int[] {0,0};
@@ -442,7 +442,7 @@ struct Braid { // {{{1
       p.place + p.c.in <= place ? 0 : // The string doesn't touch it.
       place-p.place+2;*/
   }
-                
+
   int[] pullbackWindow(int step, int w_place, int w_size) {
     int[] a={1};
     for (int place=0; place<n; ++place)
@@ -735,7 +735,7 @@ struct Syzygy { // {{{1
   bool showall=false;
   bool number=false;  // Number the diagrams when drawn.
 
-  string lsym, codename; 
+  string lsym, codename;
 
   bool watched=false;
   bool uptodate=true;

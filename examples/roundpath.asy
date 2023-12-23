@@ -22,7 +22,7 @@ draw(shift(-30,-30)*roundedpath(B,1), red);
 for (int i = 1; i < 20; ++i)                          // only round edges
   draw(shift(0,-30)*roundedpath(B,i/4), rgb(0.5, i*0.049,0) + linewidth(0.5));
 
-for (int i = 1; i < 20; ++i)                          // round edged and scale 
+for (int i = 1; i < 20; ++i)                          // round edged and scale
   draw(shift(0,-60)*roundedpath(B,i/4,1-i/50), rgb(1, 1 - i*0.049,i*0.049) + linewidth(0.5));
 
 for (int i = 1; i < 50; ++i)                          // shift (round edged und scaled shifted version)

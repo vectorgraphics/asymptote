@@ -24,19 +24,43 @@
 #endif
 
 #include <cstdio>
+#include <vector>
+#include <algorithm>
 
 #include <sys/types.h>
 #include <rpc/types.h>
-  
+
 #define quad_t long long
 #define u_quad_t unsigned long long
-  
-#ifdef __CYGWIN__  
+
+#if defined(__CYGWIN__) || defined(__FreeBSD__)
+#include <sys/select.h>
+#define u_char unsigned char
+#define u_int unsigned int
+#define u_short unsigned short
+#define u_long unsigned long
 extern "C" int fseeko(FILE *, off_t, int);
 extern "C" off_t ftello(FILE *);
+extern "C" FILE *open_memstream(char **, size_t *);
+#endif
+
+#ifdef __APPLE__
+#include <rpc/xdr.h>
+
+inline bool_t xdr_long(XDR *__xdrs, long *__lp) {
+  return xdr_longlong_t(__xdrs,(long long *) __lp);
+}
+
+inline bool_t xdr_u_long(XDR *__xdrs, unsigned long *__lp) {
+  return xdr_u_longlong_t(__xdrs,(unsigned long long *) __lp);
+}
+
+#endif
+
+#ifdef __OpenBSD__
 #define xdr_longlong_t xdr_int64_t
-#define xdr_u_longlong_t xdr_uint64_t
-#endif  
+#define xdr_u_longlong_t xdr_u_int64_t
+#endif
 
 #ifdef _POSIX_SOURCE
 #undef _POSIX_SOURCE
@@ -47,7 +71,7 @@ extern "C" off_t ftello(FILE *);
 #endif
 
 namespace xdr {
-  
+
 class xbyte {
   unsigned char c;
 public:
@@ -64,9 +88,9 @@ public:
   enum io_state {goodbit=0, eofbit=1, failbit=2, badbit=4};
   enum open_mode {in=1, out=2, app=8, trunc=16};
   enum seekdir {beg=SEEK_SET, cur=SEEK_CUR, end=SEEK_END};
-private:        
+private:
   int _state;
-public: 
+public:
   int good() const { return _state == 0; }
   int eof() const { return _state & eofbit; }
   int fail() const { return !good();}
@@ -82,14 +106,14 @@ protected:
   FILE *buf;
 public:
   virtual ~xstream() {}
-  xstream() {buf=NULL;}
+  xstream() : xios(), buf(nullptr) {}
 
   void precision(int) {}
-  
+
   xstream& seek(off_t pos, seekdir dir=beg) {
     if(buf) {
       clear();
-      if(fseeko(buf,pos,dir) != 0) set(failbit); 
+      if(fseeko(buf,pos,dir) != 0) set(failbit);
     }
     return *this;
   }
@@ -105,34 +129,42 @@ public:
   {if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
 
 class ixstream : virtual public xstream {
-protected:  
+private:
+  bool singleprecision;
+protected:
   XDR xdri;
 public:
-  void open(const char *filename, open_mode=in) {
+  ixstream(bool singleprecision=false) : singleprecision(singleprecision) {}
+
+  virtual void open(const char *filename, open_mode=in) {
     clear();
     buf=fopen(filename,"r");
     if(buf) xdrstdio_create(&xdri,buf,XDR_DECODE);
     else set(badbit);
   }
-        
-  void close() {
+
+  virtual void close() {
+    closeFile();
+  }
+
+  void closeFile() {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdri);
-#endif                  
+#endif
       fclose(buf);
-      buf=NULL;
+      buf=nullptr;
     }
   }
-      
-  ixstream() {}
-  ixstream(const char *filename) {open(filename);}
-  ixstream(const char *filename, open_mode mode) {open(filename,mode);}
+  ixstream(const char *filename, bool singleprecision=false) :
+    singleprecision(singleprecision) {open(filename);}
+  ixstream(const char *filename, open_mode mode, bool singleprecision=false) :
+    singleprecision(singleprecision) {open(filename,mode);}
   virtual ~ixstream() {close();}
-        
+
   typedef ixstream& (*imanip)(ixstream&);
   ixstream& operator >> (imanip func) { return (*func)(*this); }
-        
+
   IXSTREAM(int,int);
   IXSTREAM(unsigned int,u_int);
   IXSTREAM(long,long);
@@ -142,50 +174,73 @@ public:
   IXSTREAM(short,short);
   IXSTREAM(unsigned short,u_short);
   IXSTREAM(char,char);
-#ifndef _CRAY           
+#ifndef _CRAY
   IXSTREAM(unsigned char,u_char);
-#endif          
+#endif
   IXSTREAM(float,float);
-  IXSTREAM(double,double);
-        
+
+  ixstream& operator >> (double& x)
+  {
+    if(singleprecision) {
+      float f;
+      *this >> f;
+      x=(double) f;
+    } else
+      if(!xdr_double(&xdri, &x)) set(eofbit);
+    return *this;
+  }
+
   ixstream& operator >> (xbyte& x) {
-    x=fgetc(buf);
-    if(x.byte() == EOF) set(eofbit);
+    int c=fgetc(buf);
+    if(c != EOF) x=c;
+    else set(eofbit);
     return *this;
   }
 };
 
 class oxstream : virtual public xstream {
-protected:  
+private:
+  bool singleprecision;
+protected:
   XDR xdro;
 public:
-  void open(const char *filename, open_mode mode=trunc) {
+  oxstream(bool singleprecision=false) : singleprecision(singleprecision) {}
+
+  virtual void open(const char *filename, open_mode mode=trunc) {
     clear();
     buf=fopen(filename,(mode & app) ? "a" : "w");
     if(buf) xdrstdio_create(&xdro,buf,XDR_ENCODE);
     else set(badbit);
   }
-        
-  void close() {
+
+  virtual void close()
+  {
+    closefile();
+  }
+
+  void closefile() {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdro);
-#endif                  
+#endif
       fclose(buf);
       buf=NULL;
     }
   }
-      
-  oxstream() {}
-  oxstream(const char *filename) {open(filename);}
-  oxstream(const char *filename, open_mode mode) {open(filename,mode);}
-  virtual ~oxstream() {close();}
+
+  oxstream(const char *filename, bool singleprecision=false) :
+    singleprecision(singleprecision) {open(filename);}
+  oxstream(const char *filename, open_mode mode, bool singleprecision=false) :
+    singleprecision(singleprecision) {
+    open(filename,mode);
+  }
+  virtual ~oxstream() {closefile();}
 
   oxstream& flush() {if(buf) fflush(buf); return *this;}
-        
+
   typedef oxstream& (*omanip)(oxstream&);
   oxstream& operator << (omanip func) { return (*func)(*this); }
-        
+
   OXSTREAM(int,int);
   OXSTREAM(unsigned int,u_int);
   OXSTREAM(long,long);
@@ -195,21 +250,93 @@ public:
   OXSTREAM(short,short);
   OXSTREAM(unsigned short,u_short);
   OXSTREAM(char,char);
-#ifndef _CRAY           
+#ifndef _CRAY
   OXSTREAM(unsigned char,u_char);
-#endif          
+#endif
   OXSTREAM(float,float);
-  OXSTREAM(double,double);
-        
+
+  oxstream& operator << (double x) {
+    if(singleprecision)
+      *this << (float) x;
+    else
+      if(!xdr_double(&xdro, &x)) set(badbit);
+    return *this;
+  }
+
   oxstream& operator << (xbyte x) {
     if(fputc(x.byte(),buf) == EOF) set(badbit);
     return *this;
   }
 };
 
+class memoxstream : public oxstream
+{
+private:
+  char* baseBuf;
+  size_t len;
+
+public:
+  memoxstream(bool singleprecision=false) :
+    oxstream(singleprecision), baseBuf(nullptr), len(0)
+  {
+    clear();
+    buf=open_memstream(&baseBuf,&len);
+    if(buf)
+      xdrstdio_create(&xdro,buf,XDR_ENCODE);
+    else
+      set(badbit);
+  }
+
+  ~memoxstream() override
+  {
+    closefile();
+    free(baseBuf);
+  }
+
+  [[nodiscard]]
+  char const* stream() const
+  {
+    return baseBuf;
+  }
+
+  [[nodiscard]]
+  size_t const& getLength() const
+  {
+    return len;
+  }
+};
+
+class memixstream: public ixstream
+{
+public:
+  memixstream(char* data, size_t length, bool singleprecision=false) : ixstream(singleprecision)
+  {
+    xdrmem_create(&xdri,data,length,XDR_DECODE);
+  }
+
+  explicit memixstream(std::vector<char>& data, bool singleprecision=false) :
+    memixstream(data.data(), data.size(), singleprecision)
+  {
+  }
+
+  ~memixstream() override
+  {
+    xdr_destroy(&xdri);
+  }
+
+  void close() override
+  {
+    xdr_destroy(&xdri);
+  }
+
+  void open(const char *filename, open_mode = in) override
+  {
+  }
+};
+
 class ioxstream : public ixstream, public oxstream {
 public:
-  void open(const char *filename, open_mode mode=out) {
+  void open(const char *filename, open_mode mode=out) override {
     clear();
     if(mode & app)
       buf=fopen(filename,"a+");
@@ -226,18 +353,18 @@ public:
       xdrstdio_create(&xdro,buf,XDR_ENCODE);
     } else set(badbit);
   }
-        
-  void close() {
+
+  void close() override {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdri);
       xdr_destroy(&xdro);
-#endif                  
+#endif
       fclose(buf);
       buf=NULL;
     }
   }
-  
+
   ioxstream() {}
   ioxstream(const char *filename) {open(filename);}
   ioxstream(const char *filename, open_mode mode) {open(filename,mode);}

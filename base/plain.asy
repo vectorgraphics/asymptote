@@ -18,13 +18,13 @@ if(settings.command != "") {
 
 include plain_constants;
 
-access version;             
+access version;
 if(version.VERSION != VERSION) {
   warning("version","using possibly incompatible version "+
           version.VERSION+" of plain.asy"+'\n');
   nowarn("version");
 }
-   
+
 include plain_strings;
 include plain_pens;
 include plain_paths;
@@ -32,27 +32,30 @@ include plain_filldraw;
 include plain_margins;
 include plain_picture;
 include plain_Label;
-include plain_shipout;
 include plain_arcs;
 include plain_boxes;
+include plain_shipout;
 include plain_markers;
 include plain_arrows;
 include plain_debugger;
 
-typedef void exitfcn();
+real RELEASE=(real) split(VERSION,"-")[0];
 
-bool needshipout() {
-  return !shipped && !currentpicture.empty();
-}
+typedef void exitfcn();
 
 void updatefunction()
 {
+  implicitshipout=true;
   if(!currentpicture.uptodate) shipout();
+  implicitshipout=false;
 }
 
 void exitfunction()
 {
-  if(needshipout()) shipout();
+  implicitshipout=true;
+  if(!currentpicture.empty())
+    shipout();
+  implicitshipout=false;
 }
 
 atupdate(updatefunction);
@@ -105,7 +108,7 @@ addSaveFunction(new restoreThunk () {
   });
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk save() 
+restoreThunk save()
 {
   return restore=buildRestoreThunk();
 }
@@ -131,7 +134,7 @@ restoreThunk buildRestoreDefaults()
 }
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk savedefaults() 
+restoreThunk savedefaults()
 {
   return restoredefaults=buildRestoreDefaults();
 }
@@ -144,10 +147,16 @@ void initdefaults()
   atexit(null);
 }
 
-// Return the sequence n,...m
+// Return the sequence n,...,m
 int[] sequence(int n, int m)
 {
-  return sequence(new int(int x){return x;},m-n+1)+n;
+  return n+sequence(m-n+1);
+}
+
+// Return the sequence n,...,m skipping by skip
+int[] sequence(int n, int m, int skip)
+{
+  return n+skip*sequence((m-n)#skip+1);
 }
 
 int[] reverse(int n) {return sequence(new int(int x){return n-1-x;},n);}
@@ -162,7 +171,7 @@ string[] reverse(string[] a) {return a[reverse(a.length)];}
 real[] uniform(real a, real b, int n)
 {
   if(n <= 0) return new real[];
-  return a+(b-a)/n*sequence(n+1);
+  return a+sequence(n+1)/n*(b-a);
 }
 
 void eval(string s, bool embedded=false)
@@ -179,17 +188,36 @@ void eval(code s, bool embedded=false)
   if(!embedded) restoredefaults();
 }
 
+string mapArrayString(string From, string To)
+{
+  return "typedef "+From+" From;
+  typedef "+To+" To;
+  To[] map(To f(From), From[] a) {
+    return sequence(new To(int i) {return f(a[i]);},a.length);
+  }";
+}
+
+void mapArray(string From, string To)
+{
+  eval(mapArrayString(From,To),true);
+}
+
 // Evaluate user command line option.
 void usersetting()
 {
   eval(settings.user,true);
 }
 
-string stripsuffix(string f, string suffix=".asy") 
+string stripsuffix(string f, string suffix=".asy")
 {
   int n=rfind(f,suffix);
   if(n != -1) f=erase(f,n,-1);
   return f;
+}
+
+string outdirectory()
+{
+  return stripfile(outprefix());
 }
 
 // Conditionally process each file name in array s in a new environment.
@@ -198,8 +226,8 @@ void asy(string format, bool overwrite=false ... string[] s)
   for(string f : s) {
     f=stripsuffix(f);
     string suffix="."+format;
-    string fsuffix=f+suffix;
-    if(overwrite || error(input(fsuffix,check=false))) {
+    string fsuffix=stripdirectory(f+suffix);
+    if(overwrite || error(input(outdirectory()+fsuffix,check=false))) {
       string outformat=settings.outformat;
       bool interactiveView=settings.interactiveView;
       bool batchView=settings.batchView;
@@ -225,6 +253,7 @@ void beep()
 struct processtime {
   real user;
   real system;
+  real clock;
 }
 
 struct cputime {
@@ -233,21 +262,26 @@ struct cputime {
   processtime change;
 }
 
-cputime cputime() 
+cputime cputime()
 {
   static processtime last;
-  real [] a=_cputime();
+  real[] a=_cputime();
   cputime cputime;
-  cputime.parent.user=a[0];
-  cputime.parent.system=a[1];
+  real clock=a[4];
+  cputime.parent.user=a[0]; // Includes system time
+  cputime.parent.system=0;
+  cputime.parent.clock=clock;
   cputime.child.user=a[2];
   cputime.child.system=a[3];
-  real user=a[0]+a[2];
-  real system=a[1]+a[3];
+  cputime.child.clock=0;
+  real user=cputime.parent.user+cputime.child.user;
+  real system=cputime.parent.system+cputime.child.system;
   cputime.change.user=user-last.user;
   cputime.change.system=system-last.system;
+  cputime.change.clock=clock-last.clock;
   last.user=user;
   last.system=system;
+  last.clock=clock;
   return cputime;
 }
 
@@ -269,30 +303,41 @@ void write(string s="", cputime c, string format=cputimeformat,
   write(stdout,s,c,format,suffix);
 }
 
+struct realschur {
+  real[][] U;
+  real[][] T;
+}
+
+realschur schur(real[][] a)
+{
+  real[][][] S=_schur(a);
+  realschur schur;
+  schur.U=S[0];
+  schur.T=S[1];
+  return schur;
+}
+
+struct schur {
+  pair[][] U;
+  pair[][] T;
+}
+
+schur schur(pair[][] a)
+{
+  pair[][][] S=_schur(a);
+  schur schur;
+  schur.U=S[0];
+  schur.T=S[1];
+  return schur;
+}
+
 if(settings.autoimport != "") {
   string s=settings.autoimport;
   settings.autoimport="";
   eval("import \""+s+"\" as dummy",true);
-  shipped=false;
   atupdate(updatefunction);
   atexit(exitfunction);
   settings.autoimport=s;
 }
 
 cputime();
-
-void nosetpagesize() {
-  if(latex()) {
-    // Portably pass nosetpagesize option to graphicx package.
-    if(settings.tex == "lualatex") {
-      texpreamble("\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi");
-      texpreamble("\ifx\pdfpageheight\undefined\let\pdfpageheight\paperheight\fi");
-    } else
-      texpreamble("\let\paperwidthsave\paperwidth\let\paperwidth\undefined\usepackage{graphicx}\let\paperwidth\paperwidthsave");
-  }
-}
-
-nosetpagesize();
-
-if(settings.tex == "luatex")
-  texpreamble("\input luatex85.sty");
