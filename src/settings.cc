@@ -1481,7 +1481,7 @@ void initSettings() {
                                       "Allow read from other directory",
                                       &globalRead, true));
   addSecureSetting(new stringSetting("outname", 'o', "name",
-                                     "Alternative output directory/filename"));
+                                     "Alternative output directory/file prefix"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
                              &startpath));
 
