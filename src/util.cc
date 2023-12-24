@@ -109,11 +109,16 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
   startInfo.cb=sizeof(startInfo);
   startInfo.dwFlags=STARTF_USESTDHANDLES;
 
+  SECURITY_ATTRIBUTES sa;
+  sa.nLength= sizeof(sa);
+  sa.lpSecurityDescriptor=nullptr;
+  sa.bInheritHandle=true;
+
   // windows' "/dev/null" file (a.k.a. "NUL")
   HANDLE nulFile=CreateFileA(
           "NUL", GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ,
-          nullptr,
-          OPEN_EXISTING,
+          &sa,
+          CREATE_ALWAYS,
           FILE_ATTRIBUTE_NORMAL,
           nullptr);
 
