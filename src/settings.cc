@@ -159,13 +159,14 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
   string path=key;
   size_t star;
   string head;
-  while((star=path.find('*')) < string::npos) {
+  while((star=path.find('*')) < string::npos)
+  {
     // has asterisk in the path
 
     string prefix=path.substr(0,star);
     string pathSuffix=path.substr(star+1);
     // path = prefix [*] pathSuffix
-    size_t slash=pathSuffix.find('/');
+    size_t slash=pathSuffix.find('\\');
     if(slash < string::npos) {
       // pathsuffix is not leaf yet
       // pathSuffix = <new path suffix>[/<new path>]
@@ -190,9 +191,7 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
       currRegDirectory.release();
       return "";
     }
-
-    string rsuffix=pathSuffix;
-    reverse(rsuffix.begin(),rsuffix.end());
+    
     DWORD numSubKeys;
     DWORD longestSubkeySize;
 
@@ -205,17 +204,26 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
       numSubKeys = 0;
       longestSubkeySize = 0;
     }
-
     mem::vector<char> subkeyBuffer(longestSubkeySize + 1);
-
     bool found=false;
+
+    string rsuffix= pathSuffix;
+    reverse(rsuffix.begin(), rsuffix.end());
     for (DWORD i=0;i<numSubKeys;++i)
     {
-      DWORD cchValue=longestSubkeySize;
-      if (RegEnumKeyExA(
-                  currRegDirectory.getKey(),i,subkeyBuffer.data(),
+      DWORD cchValue=longestSubkeySize + 1;
+      
+      if (auto const regQueryResult= RegEnumKeyExA(
+                  currRegDirectory.getKey(),
+                  i,
+                  subkeyBuffer.data(),
                   &cchValue,
-                  nullptr,nullptr,nullptr,nullptr) != ERROR_SUCCESS)
+                  nullptr,
+                  nullptr,
+                  nullptr,
+                  nullptr
+          );
+          regQueryResult != ERROR_SUCCESS)
       {
         continue;
       }
@@ -238,23 +246,33 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
     }
   }
 
-  if (path.find('/') == 0)
+  if (path.find('\\') == 0)
   {
     path = path.substr(1); // strip the prefix separator
   }
 
+  if (path == "@")
+  {
+    path= "";// default registry key
+  }
+
   DWORD requiredStrSize=0;
   // FIXME: Add handling of additional types
-  if (RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
-                   RRF_RT_REG_SZ, nullptr, nullptr, &requiredStrSize) != ERROR_SUCCESS)
+  if (RegGetValueA(baseRegLocation, head.c_str(), path.c_str(), RRF_RT_REG_SZ, nullptr, nullptr, &requiredStrSize) !=
+    ERROR_SUCCESS)
   {
     return "";
   }
-
+  
   mem::vector<BYTE> outputBuffer(requiredStrSize);
 
-  if (RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
-                   RRF_RT_REG_SZ, nullptr, outputBuffer.data(), nullptr) != ERROR_SUCCESS)
+  if (auto const retCheck = RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
+              RRF_RT_REG_SZ,
+              nullptr,
+              outputBuffer.data(),
+              &requiredStrSize
+      );
+      retCheck != ERROR_SUCCESS)
   {
     return "";
   }
@@ -265,7 +283,7 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
 string getEntry(const string& key)
 {
-  for (HKEY keyToSearch : { HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE })
+  for (HKEY const keyToSearch : { HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER })
   {
     camp::w32::RegKeyWrapper baseRegKey;
     if (RegOpenKeyExA(keyToSearch, "Software", 0, KEY_READ, baseRegKey.put()) != ERROR_SUCCESS)
@@ -285,19 +303,21 @@ string getEntry(const string& key)
 
 void queryRegistry()
 {
-  string defaultGhostscriptLibrary=getEntry("GPL Ghostscript/*/GS_DLL");
+  defaultGhostscriptLibrary= getEntry(R"(GPL Ghostscript\*\GS_DLL)");
   if(defaultGhostscriptLibrary.empty())
-    defaultGhostscriptLibrary=getEntry("AFPL Ghostscript/*/GS_DLL");
+    defaultGhostscriptLibrary=getEntry(R"(AFPL Ghostscript\*\GS_DLL)");
 
   string gslib=stripDir(defaultGhostscriptLibrary);
   defaultGhostscript=stripFile(defaultGhostscriptLibrary)+
     ((gslib.empty() || gslib.substr(5,2) == "32") ? "gswin32c.exe" : "gswin64c.exe");
   if(defaultPDFViewer != "cmd")
-    defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
+    defaultPDFViewer=getEntry(R"(Adobe\Acrobat Reader\*\InstallPath\@)")+"\\"+
       defaultPDFViewer;
-  string s;
-  s=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
-  if(!s.empty()) docdir=s;
+  
+  if (string const s= getEntry(R"(Microsoft\Windows\CurrentVersion\App Paths\Asymptote\Path)"); !s.empty())
+  {
+    docdir= s;
+  }
   // An empty systemDir indicates a TeXLive build
   if(!systemDir.empty() && !docdir.empty())
     systemDir=docdir;
