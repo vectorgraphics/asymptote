@@ -205,28 +205,31 @@ char *StrdupMalloc(string s)
 string stripDir(string name)
 {
 #if defined(_WIN32)
-  char* nameBuf=Strdup(std::move(name));
-  PathStripPathA(nameBuf);
-
-  return nameBuf;
+  char constexpr separator= '\\';
+  std::replace(name.begin(), name.end(), '/', separator);
 #else
-  size_t p=name.rfind('/');
+  char constexpr separator= '/';
+#endif
+
+  size_t p=name.rfind(separator);
   if(p < string::npos) name.erase(0,p+1);
   return name;
-#endif
 }
 
 string stripFile(string name)
 {
 #if defined(_WIN32)
-  std::replace(name.begin(), name.end(), '\\', '/');
+  char constexpr separator = '\\';
+  std::replace(name.begin(), name.end(), '/', separator);
+#else
+  char constexpr separator= '/';
 #endif
 
   bool dir=false;
-  size_t p=name.rfind('/');
+  size_t p=name.rfind(separator);
   if(p < string::npos) {
     dir=true;
-    while(p > 0 && name[p-1] == '/') --p;
+    while(p > 0 && name[p-1] == separator) --p;
     name.erase(p+1);
   }
 
