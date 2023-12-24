@@ -155,7 +155,9 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
   switch (WaitForSingleObject(procHandle.getHandle(), INFINITE))
   {
     case WAIT_OBJECT_0: {
-      retcode=GetExitCodeProcess(procHandle.getHandle(), &retcode);
+      w32::checkResult(GetExitCodeProcess(
+        procHandle.getHandle(), &retcode
+      ),"Cannot get exit code of process");
       break;
     }
     case WAIT_ABANDONED:// also impossible, we are waiting for a process
