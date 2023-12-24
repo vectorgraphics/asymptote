@@ -57,7 +57,7 @@ void Win32IoPipeStream::open(
     if (!result)
     {
       execError(command.at(0).c_str(), hint, application);
-      camp::reportError("Cannot open application");
+      cw32::checkResult(result, "Cannot open application");
     }
   }
 
