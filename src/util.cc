@@ -125,9 +125,9 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
   PROCESS_INFORMATION procInfo={};
 
   w32::checkResult(CreateProcessA(
-                           command.at(0).c_str(),
+                           nullptr,
                            cmdlineStr.data(),
-                           nullptr, nullptr, false,
+                           nullptr, nullptr, true,
                            0,
                            nullptr, nullptr,
                            &startInfo,

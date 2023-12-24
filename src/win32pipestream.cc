@@ -45,11 +45,11 @@ void Win32IoPipeStream::open(
     startInfo.hStdInput= processStdinRd.getHandle();
     startInfo.hStdOutput= out_fileno == STDOUT_FILENO ? processOutWr.getHandle() : GetStdHandle(STD_OUTPUT_HANDLE);
     startInfo.hStdError= out_fileno == STDERR_FILENO ? processOutWr.getHandle() : GetStdHandle(STD_ERROR_HANDLE);
-
-    auto result= CreateProcessA(
-            command.at(0).c_str(),
+    
+    auto const result= CreateProcessA(
+            nullptr,
             cmd.data(),
-            nullptr, nullptr, false,
+            nullptr, nullptr, true,
             0,
             nullptr, nullptr,
             &startInfo,
