@@ -19,6 +19,9 @@ void checkLStatus(LSTATUS result, string const& message="");
 
 string buildWindowsCmd(const mem::vector<string>& command);
 
+string getErrorMessage(DWORD const& errorCode);
+
+
 /**
  * A simple wraper for <tt>HKEY</tt>
  */

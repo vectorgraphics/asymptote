@@ -18,7 +18,8 @@ void checkResult(BOOL result, string const& message)
   {
     DWORD errorCode= GetLastError();
     ostringstream msg;
-    msg << message << "; error code = 0x" << std::hex << errorCode << std::dec;
+    msg << message << "; error code = 0x" << std::hex << errorCode << std::dec
+        << "; Windows Message: " << getErrorMessage(errorCode);
     reportError(msg);
   }
 }
@@ -136,6 +137,30 @@ string buildWindowsCmd(const mem::vector<string>& command)
   }
 
   return out.str();
+}
+
+string getErrorMessage(DWORD const& errorCode)
+{
+  LPSTR messageOut= nullptr;
+  auto ret = FormatMessageA(
+          FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+          nullptr,
+          errorCode,
+          MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+          reinterpret_cast<LPSTR>(&messageOut),
+          0,
+          nullptr
+  );
+
+  if (ret == 0)
+  {
+    return "Cannot determine error message";
+  }
+
+  string retString(messageOut);
+  LocalFree(messageOut);
+  
+  return retString;
 }
 
 }// namespace camp::w32
