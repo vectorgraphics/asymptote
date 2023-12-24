@@ -120,7 +120,7 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
   // set quiet info
   startInfo.hStdInput= GetStdHandle(STD_INPUT_HANDLE);
   startInfo.hStdOutput= quiet >= 1 ? nulFile : GetStdHandle(STD_OUTPUT_HANDLE);
-  startInfo.hStdOutput= quiet >= 2 ? nulFile : GetStdHandle(STD_ERROR_HANDLE);
+  startInfo.hStdError= quiet >= 2 ? nulFile : GetStdHandle(STD_ERROR_HANDLE);
 
   PROCESS_INFORMATION procInfo={};
 
