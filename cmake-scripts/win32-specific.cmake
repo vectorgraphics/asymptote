@@ -77,7 +77,7 @@ endif()
 
 
 # additional win32 api libraries
-list(APPEND ASY_STATIC_LIBARIES Shlwapi)
+list(APPEND ASY_STATIC_LIBARIES Shlwapi Shell32)
 
 # RC file
 set(ASY_WIN_RESOURCE_DIR ${ASY_RESOURCE_DIR}/windows)
