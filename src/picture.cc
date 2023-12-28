@@ -16,9 +16,11 @@
 #include "drawlayer.h"
 #include "drawsurface.h"
 #include "drawpath3.h"
+#include "win32helpers.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
+#include <shellapi.h>
 #endif
 
 using std::ifstream;
@@ -795,11 +797,44 @@ int picture::epstosvg(const string& epsname, const string& outname,
 
 void htmlView(string name)
 {
-  mem::vector<string> cmd;
-  push_command(cmd,getSetting<string>("htmlviewer"));
-  cmd.push_back(locateFile(name,true));
-  push_split(cmd,getSetting<string>("htmlviewerOptions"));
-  System(cmd,2,false);
+  string const browser=getSetting<string>("htmlviewer");
+  string const htmlFile=locateFile(name, true);
+
+  if (browser.empty())
+  {
+#if defined(_WIN32)
+    // for windows, no browser means to use the windows' default
+    auto const result = reinterpret_cast<INT_PTR>(
+      ShellExecuteA(
+        nullptr,
+        "open",
+        htmlFile.c_str(),
+        nullptr,
+        nullptr,
+        SW_SHOWNORMAL
+      ));
+    // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutea
+    if (result <= 32)
+    {
+      // error code should be stored in GetLastError
+      w32::reportAndFailWithLastError( "Cannot open browser for viewing");
+    }
+#else
+    reportError("No browser specified; please specify your browser in htmlviewer");
+#endif
+  }
+  else
+  {
+    string const browserOptions= getSetting<string>("htmlviewerOptions");
+    mem::vector<string> cmd;
+    push_command(cmd, browser);
+    cmd.push_back(htmlFile);
+    if (browserOptions.empty())
+    {
+      push_split(cmd, browserOptions);
+    }
+    System(cmd, 2, false);
+  }
 }
 
 bool picture::postprocess(const string& prename, const string& outname,
