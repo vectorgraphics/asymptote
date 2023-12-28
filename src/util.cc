@@ -114,40 +114,39 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
   sa.lpSecurityDescriptor=nullptr;
   sa.bInheritHandle=true;
 
+  PROCESS_INFORMATION procInfo= {};
+
   // windows' "/dev/null" file (a.k.a. "NUL")
-  HANDLE nulFile=CreateFileA(
-          "NUL", GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ,
-          &sa,
-          CREATE_ALWAYS,
-          FILE_ATTRIBUTE_NORMAL,
-          nullptr);
+  {
+    w32::HandleRaiiWrapper const nulFileHandle=CreateFileA(
+      "NUL", GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ,
+      &sa,
+      CREATE_ALWAYS,
+      FILE_ATTRIBUTE_NORMAL,
+      nullptr);
 
-  // set quiet info
-  startInfo.hStdInput= GetStdHandle(STD_INPUT_HANDLE);
-  startInfo.hStdOutput= quiet >= 1 ? nulFile : GetStdHandle(STD_OUTPUT_HANDLE);
-  startInfo.hStdError= quiet >= 2 ? nulFile : GetStdHandle(STD_ERROR_HANDLE);
+    // set quiet info
+    startInfo.hStdInput= GetStdHandle(STD_INPUT_HANDLE);
+    startInfo.hStdOutput= quiet >= 1 ? nulFileHandle.getHandle() : GetStdHandle(STD_OUTPUT_HANDLE);
+    startInfo.hStdError= quiet >= 2 ? nulFileHandle.getHandle() : GetStdHandle(STD_ERROR_HANDLE);
 
-  PROCESS_INFORMATION procInfo={};
-
-  w32::checkResult(CreateProcessA(
-                           nullptr,
-                           cmdlineStr.data(),
-                           nullptr, nullptr, true,
-                           0,
-                           nullptr, nullptr,
-                           &startInfo,
-                           &procInfo),
-                   "Cannot open process");
-
-  w32::checkResult(CloseHandle(nulFile), "Cannot close null file handle");
-
+    w32::checkResult(CreateProcessA(
+                       nullptr,
+                       cmdlineStr.data(),
+                       nullptr, nullptr, true,
+                       0,
+                       nullptr, nullptr,
+                       &startInfo,
+                       &procInfo),
+                     "Cannot open process");
+  }
   if (ppid)
   {
-    *ppid=procInfo.dwProcessId;
+    *ppid=static_cast<int>(procInfo.dwProcessId);
   }
 
-  w32::HandleRaiiWrapper procHandle(procInfo.hProcess);
-  w32::HandleRaiiWrapper threadHandle(procInfo.hThread);
+  w32::HandleRaiiWrapper const procHandle(procInfo.hProcess);
+  w32::HandleRaiiWrapper const threadHandle(procInfo.hThread);
 
 
   if (!wait)
