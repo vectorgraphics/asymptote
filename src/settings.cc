@@ -1308,7 +1308,9 @@ array* stringArray(const char **s)
 void initSettings() {
   static bool initialize=true;
   if(initialize) {
+#if defined(_WIN32)
     queryRegistry();
+#endif
     initialize=false;
   }
 
