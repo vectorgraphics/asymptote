@@ -21,6 +21,9 @@ string buildWindowsCmd(const mem::vector<string>& command);
 
 string getErrorMessage(DWORD const& errorCode);
 
+bool isProcessRunning(DWORD const& pid);
+
+
 
 /**
  * A simple wraper for <tt>HKEY</tt>

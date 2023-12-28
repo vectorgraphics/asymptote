@@ -29,6 +29,36 @@ void checkLStatus(LSTATUS result, string const& message)
   checkResult(result == ERROR_SUCCESS, message);
 }
 
+bool isProcessRunning(DWORD const& pid)
+{
+  if (pid == 0)
+  {
+    return true; // system idle is always running
+  }
+
+  HandleRaiiWrapper const processHandle(OpenProcess(PROCESS_QUERY_INFORMATION, false, pid));
+  if (processHandle.getHandle() == nullptr)
+  {
+    // handle not in system, returns false
+    return false;
+  }
+
+  DWORD exitCode=999;
+  if (GetExitCodeProcess(processHandle.getHandle(), &exitCode))
+  {
+    if (exitCode == STILL_ACTIVE)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  return false;
+}
+
 #pragma region RegKeyWrapper
 
 RegKeyWrapper::RegKeyWrapper(HKEY const& regKey)
