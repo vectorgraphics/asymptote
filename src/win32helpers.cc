@@ -12,15 +12,21 @@ using camp::reportError;
 
 namespace camp::w32
 {
+
+void reportAndFailWithLastError(string const& message)
+{
+  DWORD errorCode= GetLastError();
+  ostringstream msg;
+  msg << message << "; error code = 0x" << std::hex << errorCode << std::dec
+      << "; Windows Message: " << getErrorMessage(errorCode);
+  reportError(msg);
+}
+
 void checkResult(BOOL result, string const& message)
 {
   if (!result)
   {
-    DWORD errorCode= GetLastError();
-    ostringstream msg;
-    msg << message << "; error code = 0x" << std::hex << errorCode << std::dec
-        << "; Windows Message: " << getErrorMessage(errorCode);
-    reportError(msg);
+    reportAndFailWithLastError(message);
   }
 }
 
