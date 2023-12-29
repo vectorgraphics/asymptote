@@ -1043,12 +1043,36 @@ bool picture::display(const string& outname, const string& outputformat,
       if(outputformat == "svg" || outputformat == "html")
         htmlView(outname);
       else {
-        mem::vector<string> cmd;
-        push_command(cmd,getSetting<string>("display"));
-        cmd.push_back(outname);
-        string const application="your "+outputformat+" viewer";
-        status=System(cmd,0,wait,"display",application.c_str());
-        if(status != 0) return false;
+        string displayProgram=getSetting<string>("display");
+        if (displayProgram.empty())
+        {
+#if defined(_WIN32)
+
+          auto const result = reinterpret_cast<INT_PTR>(ShellExecuteA(
+            nullptr,
+            "open",
+            outname.c_str(), nullptr, 
+            nullptr, SW_SHOWNORMAL));
+
+          if (result <= 32)
+          {
+            cerr << "Cannot start display viewer" << endl;
+            return false;
+          }
+#else
+          cerr << "No viewer specified; please specify a viewer in 'display' setting" << endl;
+          return false;
+#endif
+        }
+        else
+        {
+          mem::vector<string> cmd;
+          push_command(cmd, displayProgram);
+          cmd.push_back(outname);
+          string const application= "your " + outputformat + " viewer";
+          status= System(cmd, 0, wait, "display", application.c_str());
+          if (status != 0) return false;
+        }
       }
     }
   }
