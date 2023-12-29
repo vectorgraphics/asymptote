@@ -136,15 +136,15 @@ bool msdos=true;
 string HOME="USERPROFILE";
 string docdir="c:\\Program Files\\Asymptote";
 const char pathSeparator=';';
-string defaultPSViewer="cmd";
+string defaultPSViewer;
 //string defaultPDFViewer="AcroRd32.exe";
-string defaultPDFViewer="cmd";
-string defaultHTMLViewer="cmd";
+string defaultPDFViewer;
+string defaultHTMLViewer;
 string defaultGhostscript;
 string defaultGhostscriptLibrary;
-string defaultDisplay="cmd";
+string defaultDisplay;
 //string defaultAnimate="animate";
-string defaultAnimate="cmd";
+string defaultAnimate="";
 const string dirsep="\\";
 
 /**
