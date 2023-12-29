@@ -5284,7 +5284,7 @@ The @code{copy} function listed below provides a deep copy of an array.
 Every array @code{A} of type @code{T[]} has the virtual members
 @itemize
 @item   @code{int length},
-@item   @code{int cyclic},
+@item   @code{bool cyclic},
 @item   @code{int[] keys},
 @item   @code{T push(T x)},
 @item   @code{void append(T[] a)},
