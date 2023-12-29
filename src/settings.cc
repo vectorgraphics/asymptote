@@ -310,9 +310,6 @@ void queryRegistry()
   string gslib=stripDir(defaultGhostscriptLibrary);
   defaultGhostscript=stripFile(defaultGhostscriptLibrary)+
     ((gslib.empty() || gslib.substr(5,2) == "32") ? "gswin32c.exe" : "gswin64c.exe");
-  if(defaultPDFViewer != "cmd")
-    defaultPDFViewer=getEntry(R"(Adobe\Acrobat Reader\*\InstallPath\@)")+"\\"+
-      defaultPDFViewer;
   
   if (string const s= getEntry(R"(Microsoft\Windows\CurrentVersion\App Paths\Asymptote\Path)"); !s.empty())
   {
