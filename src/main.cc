@@ -56,6 +56,10 @@
 #include "fftw++.h"
 #endif
 
+#if defined(_WIN32)
+#include <combaseapi.h>
+#endif
+
 using namespace settings;
 
 using interact::interactive;
@@ -127,6 +131,11 @@ void *asymain(void *A)
   fftwpp::wisdomName=".wisdom";
 #endif
 
+#if defined(_WIN32)
+  // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
+  CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+#endif
+  
   if(interactive) {
     Signal(SIGINT,interruptHandler);
 #ifdef HAVE_LSP
