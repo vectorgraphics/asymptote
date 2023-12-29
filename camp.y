@@ -174,6 +174,10 @@ using mem::string;
 %type  <sel> forupdate stmexplist
 %type  <boo> explicitornot
 
+// Make new classes for the following and add to union above.
+%type  <d> decdec
+%type  <d> decdeclist
+
 /* There are four shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
  *   new ID
@@ -248,6 +252,25 @@ dec:
 | INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
 | INCLUDE STRING ';'
                    { $$ = new includedec($1, $2->getString()); }
+
+// Experimental - templated imports.
+| TYPEDEF IMPORT decidlist ';'
+                   { assert(false); }
+| FROM name '(' decdeclist ')' UNRAVEL idpairlist ';'
+                   { assert(false); }
+;
+
+// List mapping dec to dec as in "Key=string, Value=int"
+decdec:
+    decidstart '=' decidstart
+                   { assert(false); }
+;
+
+decdeclist:
+    decdec
+                   { assert(false); }
+|   decdeclist ',' decdec
+                   { assert(false); }
 ;
 
 idpair:
