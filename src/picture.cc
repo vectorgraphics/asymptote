@@ -23,6 +23,9 @@
 #include <shellapi.h>
 #endif
 
+#include <thread>
+#include <chrono>
+
 using std::ifstream;
 using std::ofstream;
 using vm::array;
@@ -919,7 +922,7 @@ bool picture::display(const string& outname, const string& outputformat,
   if (settings::view() && view)
   {
     int status;
-    
+
     bool const pdf=settings::pdf(getSetting<string>("tex"));
     bool pdfformat=(pdf && outputformat.empty()) || outputformat == "pdf";
 
@@ -967,7 +970,7 @@ bool picture::display(const string& outname, const string& outputformat,
         {
 #if defined(_WIN32)
           // no viewer, use default
-          
+
           string const fullOutFilePath= locateFile(outname, true);
           SHELLEXECUTEINFOA execInfo = {};
           execInfo.cbSize= sizeof(execInfo);
@@ -977,7 +980,7 @@ bool picture::display(const string& outname, const string& outputformat,
           execInfo.lpDirectory = nullptr;
           execInfo.nShow= SW_SHOWNORMAL;
           execInfo.fMask= SEE_MASK_NOCLOSEPROCESS;
-          
+
           if (!ShellExecuteExA(&execInfo))
           {
             return false;
@@ -995,7 +998,7 @@ bool picture::display(const string& outname, const string& outputformat,
             // for example, if an existing PDF viewer with multiple tabs open is the viewer,
             // asymptote thinks no process is being created;
             // in this case, treat it as "no wait"
-            pid=static_cast<int>(GetProcessId(execInfo.hProcess)); 
+            pid=static_cast<int>(GetProcessId(execInfo.hProcess));
             CloseHandle(execInfo.hProcess);
           }
 #else
@@ -1007,7 +1010,7 @@ bool picture::display(const string& outname, const string& outputformat,
         {
           string viewerOptions= getSetting<string>(pdfformat ? "pdfviewerOptions" : "psviewerOptions");
           mem::vector<string> cmd;
-          
+
           push_command(cmd, Viewer);
           if (!viewerOptions.empty()) push_split(cmd, viewerOptions);
           cmd.push_back(outname);
@@ -1021,7 +1024,7 @@ bool picture::display(const string& outname, const string& outputformat,
 
           if (status != 0) return false;
         }
-        
+
         if(!wait) pids[outname]=pid;
 
         if(pdfreload) {
@@ -1051,7 +1054,7 @@ bool picture::display(const string& outname, const string& outputformat,
           auto const result = reinterpret_cast<INT_PTR>(ShellExecuteA(
             nullptr,
             "open",
-            outname.c_str(), nullptr, 
+            outname.c_str(), nullptr,
             nullptr, SW_SHOWNORMAL));
 
           if (result <= 32)
