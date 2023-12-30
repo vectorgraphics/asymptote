@@ -70,19 +70,10 @@ option(ENABLE_GL_COMPUTE_SHADERS
 option(ENABLE_GL_SSBO
         "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object" true)
 
-
-# RPC.
-if (UNIX)
-    set(DEFAULT_ENABLE_RPC TRUE)
-else()
-    # Not sure if there's a way to get rpc lib working on windows, as of yet
-    set(DEFAULT_ENABLE_RPC FALSE)
-endif()
-
 option(
         ENABLE_RPC_FEATURES
-        "Whether to enable XDR/RPC features. Also enables V3D. For Unix systems only"
-        ${DEFAULT_ENABLE_RPC})
+        "Whether to enable XDR/RPC features. Also enables V3D. If compiling on UNIX systems, requires libtirpc to be installed."
+        true)
 
 # Additional options
 
@@ -112,4 +103,27 @@ option(
 option(GCCCOMPAT_CXX_COMPILER_FOR_MSVC
         "gcc-compatible C++ compiler for preprocessing with MSVC toolchain. This option is inert if not using MSVC.
 This option is only used for preprocessing, it is not used for compilation."
+)
+
+# CUDA + asy cuda reflect
+set(ENABLE_CUDA_ASY_REFLECT_DEFAULT false)
+include(CheckLanguage)
+check_language(CUDA)
+
+if (CMAKE_CUDA_COMPILER)
+    set(ENABLE_CUDA_ASY_REFLECT_DEFAULT true)
+endif()
+
+option(
+    ENABLE_CUDA_ASY_REFLECT
+    "Enable target for reflect excutable for generating IBL lighting data.
+Requires CUDA installed and a CUDA-compatible NVIDIA Graphics card"
+    ${ENABLE_CUDA_ASY_REFLECT_DEFAULT}
+)
+
+# Language server protocol
+option(
+    ENABLE_LSP
+    "Enable Language Server Protocol support."
+    true
 )

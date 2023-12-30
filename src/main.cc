@@ -28,36 +28,36 @@
 #include <cerrno>
 #include <sys/types.h>
 
-#define GC_PTHREAD_SIGMASK_NEEDED
-
-#include "common.h"
-#include "exithandlers.h"
+#if !defined(_WIN32)
+#include <sys/wait.h>
+#endif
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
 #endif
 
+#define GC_PTHREAD_SIGMASK_NEEDED
+
+#ifdef HAVE_LSP
+#include "lspserv.h"
+#endif
+
+#include "common.h"
+#include "exithandlers.h"
 #include "errormsg.h"
 #include "fpu.h"
 #include "settings.h"
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
+#include "stack.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
 #endif
 
-#ifdef HAVE_LSP
-#include "lspserv.h"
-#endif
-
-#include "stack.h"
-
 #if defined(_WIN32)
-#include <Windows.h>
-#else
-#include <sys/wait.h>
+#include <combaseapi.h>
 #endif
 
 using namespace settings;
@@ -131,6 +131,11 @@ void *asymain(void *A)
   fftwpp::wisdomName=".wisdom";
 #endif
 
+#if defined(_WIN32)
+  // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
+  CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+#endif
+  
   if(interactive) {
     Signal(SIGINT,interruptHandler);
 #ifdef HAVE_LSP

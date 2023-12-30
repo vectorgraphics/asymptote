@@ -1,12 +1,31 @@
 include(FindPkgConfig)
+include(FetchContent)
+
+FetchContent_Declare(
+        lspcpp
+        GIT_REPOSITORY https://github.com/vectorgraphics/LspCpp
+        GIT_TAG release-2023-12-8
+)
 
 if (ENABLE_LSP)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/LspCpp)
-list(APPEND ASY_STATIC_LIBARIES lspcpp)
 
+    message(STATUS "LSP Enabled.")
+    # disable New Boost version warning
+    set(Boost_NO_WARN_NEW_VERSIONS 1)
+    set(USE_SYSTEM_RAPIDJSON 1)
+    set(LSPCPP_USE_CPP17 1)
+    set(LSPCPP_SUPPORT_BOEHM_GC 1)
+    # For transitive URI dependency
+    set(Uri_BUILD_DOCS 0)
+    set(Uri_BUILD_TESTS 0)
+    FetchContent_MakeAvailable(lspcpp)
+    list(APPEND ASY_STATIC_LIBARIES lspcpp)
+    list(APPEND ASY_MACROS HAVE_LSP=1)
 else()
+    FetchContent_Populate(lspcpp)
     # only include lsp libraries
-    list(APPEND ASYMPTOTE_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/include)
+    message(STATUS "LSP Disabled. Will not have language server protocol support.")
+    list(APPEND ASYMPTOTE_INCLUDES ${lspcpp_SOURCE_DIR}/include)
 endif()
 
 # zlib
@@ -29,7 +48,7 @@ elseif(WIN32)
     if ((NOT WIN32_FLEX_BINARY) OR (NOT WIN32_BISON_BINARY))
         # downlod winflexbison
         message(STATUS "Flex or bison not given; downloading winflexbison.")
-        include(FetchContent)
+
 
         FetchContent_Declare(
                 winflexbison
@@ -249,10 +268,29 @@ endif()
 
 
 if (ENABLE_RPC_FEATURES)
-    pkg_check_modules(TIRPC REQUIRED IMPORTED_TARGET libtirpc)
+    if(UNIX)
+        pkg_check_modules(TIRPC REQUIRED IMPORTED_TARGET libtirpc)
+        list(APPEND ASY_STATIC_LIBARIES PkgConfig::TIRPC)
+    endif()
 
-    list(APPEND ASY_STATIC_LIBARIES PkgConfig::TIRPC)
+    if (WIN32)
+        # win32 does not have native open_memstream support
+        set(OLD_BUILD_TESTING ${BUILD_TESTING})
+        set(BUILD_TESTING false)
+        FetchContent_Declare(
+                fmem
+                GIT_REPOSITORY https://github.com/Kreijstal/fmem.git
+                GIT_TAG 6274a441380a8fcfd4e1a6e47b3d1f0b28b3c48a
+        )
+        FetchContent_MakeAvailable(fmem)
+        set(BUILD_TESTING ${OLD_BUILD_TESTING})
+
+        list(APPEND ASY_STATIC_LIBARIES fmem)
+        list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:fmem,INCLUDE_DIRECTORIES>)
+    endif()
     list(APPEND ASY_MACROS HAVE_RPC_RPC_H)
+
+
 else()
     message(STATUS "Disabling rpc and xdr/v3d support")
 endif()

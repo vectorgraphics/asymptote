@@ -12,20 +12,57 @@ using camp::reportError;
 
 namespace camp::w32
 {
+
+void reportAndFailWithLastError(string const& message)
+{
+  DWORD errorCode= GetLastError();
+  ostringstream msg;
+  msg << message << "; error code = 0x" << std::hex << errorCode << std::dec
+      << "; Windows Message: " << getErrorMessage(errorCode);
+  reportError(msg);
+}
+
 void checkResult(BOOL result, string const& message)
 {
   if (!result)
   {
-    DWORD errorCode= GetLastError();
-    ostringstream msg;
-    msg << message << "; error code = 0x" << std::hex << errorCode << std::dec;
-    reportError(msg);
+    reportAndFailWithLastError(message);
   }
 }
 
 void checkLStatus(LSTATUS result, string const& message)
 {
   checkResult(result == ERROR_SUCCESS, message);
+}
+
+bool isProcessRunning(DWORD const& pid)
+{
+  if (pid == 0)
+  {
+    return true; // system idle is always running
+  }
+
+  HandleRaiiWrapper const processHandle(OpenProcess(PROCESS_QUERY_INFORMATION, false, pid));
+  if (processHandle.getHandle() == nullptr)
+  {
+    // handle not in system, returns false
+    return false;
+  }
+
+  DWORD exitCode=999;
+  if (GetExitCodeProcess(processHandle.getHandle(), &exitCode))
+  {
+    if (exitCode == STILL_ACTIVE)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  return false;
 }
 
 #pragma region RegKeyWrapper
@@ -136,6 +173,30 @@ string buildWindowsCmd(const mem::vector<string>& command)
   }
 
   return out.str();
+}
+
+string getErrorMessage(DWORD const& errorCode)
+{
+  LPSTR messageOut= nullptr;
+  auto ret = FormatMessageA(
+          FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+          nullptr,
+          errorCode,
+          MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+          reinterpret_cast<LPSTR>(&messageOut),
+          0,
+          nullptr
+  );
+
+  if (ret == 0)
+  {
+    return "Cannot determine error message";
+  }
+
+  string retString(messageOut);
+  LocalFree(messageOut);
+  
+  return retString;
 }
 
 }// namespace camp::w32

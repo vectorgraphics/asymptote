@@ -109,40 +109,44 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
   startInfo.cb=sizeof(startInfo);
   startInfo.dwFlags=STARTF_USESTDHANDLES;
 
+  SECURITY_ATTRIBUTES sa;
+  sa.nLength= sizeof(sa);
+  sa.lpSecurityDescriptor=nullptr;
+  sa.bInheritHandle=true;
+
+  PROCESS_INFORMATION procInfo= {};
+
   // windows' "/dev/null" file (a.k.a. "NUL")
-  HANDLE nulFile=CreateFileA(
-          "NUL", GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ,
-          nullptr,
-          OPEN_EXISTING,
-          FILE_ATTRIBUTE_NORMAL,
-          nullptr);
+  {
+    w32::HandleRaiiWrapper const nulFileHandle=CreateFileA(
+      "NUL", GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ,
+      &sa,
+      CREATE_ALWAYS,
+      FILE_ATTRIBUTE_NORMAL,
+      nullptr);
 
-  // set quiet info
-  startInfo.hStdInput= GetStdHandle(STD_INPUT_HANDLE);
-  startInfo.hStdOutput= quiet >= 1 ? nulFile : GetStdHandle(STD_OUTPUT_HANDLE);
-  startInfo.hStdOutput= quiet >= 2 ? nulFile : GetStdHandle(STD_ERROR_HANDLE);
+    // set quiet info
+    startInfo.hStdInput= GetStdHandle(STD_INPUT_HANDLE);
+    startInfo.hStdOutput= quiet >= 1 ? nulFileHandle.getHandle() : GetStdHandle(STD_OUTPUT_HANDLE);
+    startInfo.hStdError= quiet >= 2 ? nulFileHandle.getHandle() : GetStdHandle(STD_ERROR_HANDLE);
 
-  PROCESS_INFORMATION procInfo={};
-
-  w32::checkResult(CreateProcessA(
-                           command.at(0).c_str(),
-                           cmdlineStr.data(),
-                           nullptr, nullptr, false,
-                           0,
-                           nullptr, nullptr,
-                           &startInfo,
-                           &procInfo),
-                   "Cannot open process");
-
-  w32::checkResult(CloseHandle(nulFile), "Cannot close null file handle");
-
+    w32::checkResult(CreateProcessA(
+                       nullptr,
+                       cmdlineStr.data(),
+                       nullptr, nullptr, true,
+                       0,
+                       nullptr, nullptr,
+                       &startInfo,
+                       &procInfo),
+                     "Cannot open process");
+  }
   if (ppid)
   {
-    *ppid=procInfo.dwProcessId;
+    *ppid=static_cast<int>(procInfo.dwProcessId);
   }
 
-  w32::HandleRaiiWrapper procHandle(procInfo.hProcess);
-  w32::HandleRaiiWrapper threadHandle(procInfo.hThread);
+  w32::HandleRaiiWrapper const procHandle(procInfo.hProcess);
+  w32::HandleRaiiWrapper const threadHandle(procInfo.hThread);
 
 
   if (!wait)
@@ -155,7 +159,9 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
   switch (WaitForSingleObject(procHandle.getHandle(), INFINITE))
   {
     case WAIT_OBJECT_0: {
-      retcode=GetExitCodeProcess(procHandle.getHandle(), &retcode);
+      w32::checkResult(GetExitCodeProcess(
+        procHandle.getHandle(), &retcode
+      ),"Cannot get exit code of process");
       break;
     }
     case WAIT_ABANDONED:// also impossible, we are waiting for a process
@@ -198,28 +204,31 @@ char *StrdupMalloc(string s)
 string stripDir(string name)
 {
 #if defined(_WIN32)
-  char* nameBuf=Strdup(std::move(name));
-  PathStripPathA(nameBuf);
-
-  return nameBuf;
+  char constexpr separator= '\\';
+  std::replace(name.begin(), name.end(), '/', separator);
 #else
-  size_t p=name.rfind('/');
+  char constexpr separator= '/';
+#endif
+
+  size_t p=name.rfind(separator);
   if(p < string::npos) name.erase(0,p+1);
   return name;
-#endif
 }
 
 string stripFile(string name)
 {
 #if defined(_WIN32)
-  std::replace(name.begin(), name.end(), '\\', '/');
+  char constexpr separator = '\\';
+  std::replace(name.begin(), name.end(), '/', separator);
+#else
+  char constexpr separator= '/';
 #endif
 
   bool dir=false;
-  size_t p=name.rfind('/');
+  size_t p=name.rfind(separator);
   if(p < string::npos) {
     dir=true;
-    while(p > 0 && name[p-1] == '/') --p;
+    while(p > 0 && name[p-1] == separator) --p;
     name.erase(p+1);
   }
 
@@ -315,9 +324,9 @@ string outpath(string name)
   return outdir+stripDir(name);
 }
 
-string buildname(string name, string suffix, string aux)
+string buildname(string prefix, string suffix, string aux)
 {
-  name=stripExt(outpath(name),defaultformat())+aux;
+  string name=prefix+aux;
   if(!suffix.empty()) name += "."+suffix;
   return name;
 }

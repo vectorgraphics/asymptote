@@ -16,10 +16,15 @@
 #include "drawlayer.h"
 #include "drawsurface.h"
 #include "drawpath3.h"
+#include "win32helpers.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
+#include <shellapi.h>
 #endif
+
+#include <thread>
+#include <chrono>
 
 using std::ifstream;
 using std::ofstream;
@@ -795,11 +800,44 @@ int picture::epstosvg(const string& epsname, const string& outname,
 
 void htmlView(string name)
 {
-  mem::vector<string> cmd;
-  push_command(cmd,getSetting<string>("htmlviewer"));
-  cmd.push_back(locateFile(name,true));
-  push_split(cmd,getSetting<string>("htmlviewerOptions"));
-  System(cmd,2,false);
+  string const browser=getSetting<string>("htmlviewer");
+  string const htmlFile=locateFile(name, true);
+
+  if (browser.empty())
+  {
+#if defined(_WIN32)
+    // for windows, no browser means to use the windows' default
+    auto const result = reinterpret_cast<INT_PTR>(
+      ShellExecuteA(
+        nullptr,
+        "open",
+        htmlFile.c_str(),
+        nullptr,
+        nullptr,
+        SW_SHOWNORMAL
+      ));
+    // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutea
+    if (result <= 32)
+    {
+      // error code should be stored in GetLastError
+      w32::reportAndFailWithLastError( "Cannot open browser for viewing");
+    }
+#else
+    reportError("No browser specified; please specify your browser in htmlviewer");
+#endif
+  }
+  else
+  {
+    string const browserOptions= getSetting<string>("htmlviewerOptions");
+    mem::vector<string> cmd;
+    push_command(cmd, browser);
+    cmd.push_back(htmlFile);
+    if (browserOptions.empty())
+    {
+      push_split(cmd, browserOptions);
+    }
+    System(cmd, 2, false);
+  }
 }
 
 bool picture::postprocess(const string& prename, const string& outname,
@@ -880,59 +918,127 @@ bool picture::postprocess(const string& prename, const string& outname,
 bool picture::display(const string& outname, const string& outputformat,
                       bool wait, bool view, bool epsformat)
 {
-#if defined(_WIN32)
-  // FIXME: Implement display on windows
-#pragma message("FIXME: Implement display on windows")
-#else
-  int status=0;
   static mem::map<CONST string,int> pids;
-  bool View=settings::view() && view;
+  if (settings::view() && view)
+  {
+    int status;
 
-  if(View) {
-    bool pdf=settings::pdf(getSetting<string>("tex"));
-    bool pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
+    bool const pdf=settings::pdf(getSetting<string>("tex"));
+    bool pdfformat=(pdf && outputformat.empty()) || outputformat == "pdf";
 
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
-      mem::map<CONST string,int>::iterator p=pids.find(outname);
+      mem::map<CONST string,int>::iterator const p=pids.find(outname);
       bool running=(p != pids.end());
-      string Viewer=pdfformat ? getSetting<string>("pdfviewer") :
-        getSetting<string>("psviewer");
+      string Viewer=
+        pdfformat ?
+        getSetting<string>("pdfviewer") : getSetting<string>("psviewer");
       int pid;
       if(running) {
         pid=p->second;
         if(pid)
-          running=(waitpid(pid, &status, WNOHANG) != pid);
+        {
+#if defined(_WIN32)
+          running=w32::isProcessRunning(pid);
+#else
+          running= (waitpid(pid, &status, WNOHANG) != pid);
+#endif
+        }
       }
 
       bool pdfreload=pdfformat && getSetting<bool>("pdfreload");
       if(running) {
-        // Tell gv/acroread to reread file.
-        if(Viewer == "gv") kill(pid,SIGHUP);
-        else if(pdfreload)
+#if defined(_WIN32)
+        if (pdfreload)
+        {
           reloadPDF(Viewer,outname);
+        }
+#else // win32 does not support reload by sighup
+        // Tell gv/acroread to reread file.
+        if(Viewer == "gv")
+        {
+          kill(pid,SIGHUP);
+        }
+        else if(pdfreload)
+        {
+          reloadPDF(Viewer,outname);
+        }
+#endif
       } else {
-        mem::vector<string> cmd;
-        push_command(cmd,Viewer);
-        string viewerOptions=getSetting<string>(pdfformat ?
-                                                "pdfviewerOptions" :
-                                                "psviewerOptions");
-        if(!viewerOptions.empty())
-          push_split(cmd,viewerOptions);
-        cmd.push_back(outname);
-        status=System(cmd,0,wait,
-                      pdfformat ? "pdfviewer" : "psviewer",
-                      pdfformat ? "your PDF viewer" : "your PostScript viewer",
-                      &pid);
-        if(status != 0) return false;
+        // start new process
+        if (Viewer.empty())
+        {
+#if defined(_WIN32)
+          // no viewer, use default
+
+          string const fullOutFilePath= locateFile(outname, true);
+          SHELLEXECUTEINFOA execInfo = {};
+          execInfo.cbSize= sizeof(execInfo);
+          execInfo.hwnd = nullptr;
+          execInfo.lpVerb= "open";
+          execInfo.lpFile= fullOutFilePath.c_str();
+          execInfo.lpDirectory = nullptr;
+          execInfo.nShow= SW_SHOWNORMAL;
+          execInfo.fMask= SEE_MASK_NOCLOSEPROCESS;
+
+          if (!ShellExecuteExA(&execInfo))
+          {
+            return false;
+          }
+
+          if (reinterpret_cast<INT_PTR>(execInfo.hInstApp) <= 32)
+          {
+            // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shellexecuteinfoa
+            return false;
+          }
+
+          if (execInfo.hProcess!=nullptr)
+          {
+            // wait option does not always work, especially if a new process is not created
+            // for example, if an existing PDF viewer with multiple tabs open is the viewer,
+            // asymptote thinks no process is being created;
+            // in this case, treat it as "no wait"
+            pid=static_cast<int>(GetProcessId(execInfo.hProcess));
+            CloseHandle(execInfo.hProcess);
+          }
+#else
+          cerr << "No viewer specified" << endl;
+          return false;
+#endif
+        }
+        else
+        {
+          string viewerOptions= getSetting<string>(pdfformat ? "pdfviewerOptions" : "psviewerOptions");
+          mem::vector<string> cmd;
+
+          push_command(cmd, Viewer);
+          if (!viewerOptions.empty()) push_split(cmd, viewerOptions);
+          cmd.push_back(outname);
+
+          status=System(cmd,
+            0,
+            wait,
+            pdfformat ? "pdfviewer" : "psviewer",
+            pdfformat ? "your PDF viewer" : "your PostScript viewer",
+            &pid);
+
+          if (status != 0) return false;
+        }
 
         if(!wait) pids[outname]=pid;
 
         if(pdfreload) {
           // Work around race conditions in acroread initialization script
-          usleep(getSetting<Int>("pdfreloaddelay"));
-          // Only reload if pdf viewer process is already running.
-          if(waitpid(pid, &status, WNOHANG) == pid)
+          std::this_thread::sleep_for(std::chrono::microseconds(
+            getSetting<Int>("pdfreloaddelay")
+          ));
+          // Only reload if pdf viewer process is already running
+#if defined(_WIN32)
+          bool processRunning=w32::isProcessRunning(pid);
+#else
+          bool processRunning= waitpid(pid, &status, WNOHANG) == pid;
+#endif
+          if (processRunning)
             reloadPDF(Viewer,outname);
         }
       }
@@ -940,16 +1046,39 @@ bool picture::display(const string& outname, const string& outputformat,
       if(outputformat == "svg" || outputformat == "html")
         htmlView(outname);
       else {
-        mem::vector<string> cmd;
-        push_command(cmd,getSetting<string>("display"));
-        cmd.push_back(outname);
-        string application="your "+outputformat+" viewer";
-        status=System(cmd,0,wait,"display",application.c_str());
-        if(status != 0) return false;
+        string displayProgram=getSetting<string>("display");
+        if (displayProgram.empty())
+        {
+#if defined(_WIN32)
+
+          auto const result = reinterpret_cast<INT_PTR>(ShellExecuteA(
+            nullptr,
+            "open",
+            outname.c_str(), nullptr,
+            nullptr, SW_SHOWNORMAL));
+
+          if (result <= 32)
+          {
+            cerr << "Cannot start display viewer" << endl;
+            return false;
+          }
+#else
+          cerr << "No viewer specified; please specify a viewer in 'display' setting" << endl;
+          return false;
+#endif
+        }
+        else
+        {
+          mem::vector<string> cmd;
+          push_command(cmd, displayProgram);
+          cmd.push_back(outname);
+          string const application= "your " + outputformat + " viewer";
+          status= System(cmd, 0, wait, "display", application.c_str());
+          if (status != 0) return false;
+        }
       }
     }
   }
-#endif
   return true;
 }
 
@@ -978,10 +1107,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     else htmlformat=false;
   }
 
-#ifndef HAVE_LIBGLM
   if(outputformat == "v3d")
-    camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
-#endif
+    camp::reportError("v3d format only supports 3D files");
 
   bool svgformat=outputformat == "svg";
   bool png=outputformat == "png";
@@ -1001,7 +1128,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool pdf=settings::pdf(texengine);
 
   bool standardout=Prefix == "-";
-  string prefix=standardout ? standardprefix : stripExt(Prefix);
+  string prefix=standardout ? standardprefix : Prefix;
 
   string preformat=nativeformat();
   bool epsformat=outputformat == "eps";
@@ -1343,10 +1470,14 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(width <= 0 || height <= 0) return false;
 
   bool webgl=format == "html";
+  bool v3d=format == "v3d";
 
 #ifndef HAVE_LIBGLM
   if(webgl)
     camp::reportError("to support WebGL rendering, please install glm header files, then ./configure; make");
+
+  if(v3d)
+    camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
 #endif
 
 #ifndef HAVE_LIBOSMESA
@@ -1401,7 +1532,6 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #endif
 
-  bool v3d=format == "v3d";
   bool format3d=webgl || v3d;
 
   if(!format3d) {

@@ -19,6 +19,13 @@ void checkLStatus(LSTATUS result, string const& message="");
 
 string buildWindowsCmd(const mem::vector<string>& command);
 
+string getErrorMessage(DWORD const& errorCode);
+
+bool isProcessRunning(DWORD const& pid);
+
+/** Reports error with message from GetLastError and the user specified message */
+void reportAndFailWithLastError(string const& message);
+
 /**
  * A simple wraper for <tt>HKEY</tt>
  */

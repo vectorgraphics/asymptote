@@ -17,6 +17,14 @@
       "hidden": true
     },
     {
+      "name": "base/ensure-cl-compiler",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      },
+      "hidden": true
+    },
+    {
       "name": "base/vcpkg",
       "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "hidden": true
@@ -80,13 +88,19 @@
       "name": "msvc/release",
       "displayName": "[MSVC-x86/64] Release",
       "binaryDir": "${sourceDir}/cmake-build-msvc/release",
-      "inherits": ["base/buildBaseWithVcpkg", "base/release", "base/gccCompatCacheVar", "base/windows-only"]
+      "inherits": [
+        "base/buildBaseWithVcpkg", "base/release", "base/gccCompatCacheVar",
+        "base/windows-only", "base/ensure-cl-compiler"
+      ]
     },
     {
       "name": "msvc/releaseWithDebugInfo",
       "displayName": "[MSVC-x86/64] Release with debug info",
       "binaryDir": "${sourceDir}/cmake-build-msvc/release-with-dbginfo",
-      "inherits": ["base/buildBaseWithVcpkg", "base/relWithDebInfo", "base/gccCompatCacheVar", "base/windows-only"]
+      "inherits": [
+        "base/buildBaseWithVcpkg", "base/relWithDebInfo", "base/gccCompatCacheVar",
+        "base/windows-only", "base/ensure-cl-compiler"
+      ]
     }
   ],
 

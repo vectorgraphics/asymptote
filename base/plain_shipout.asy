@@ -7,8 +7,8 @@ if(settings.xasy)
 
 string[] file3;
 
-string outprefix(string prefix=defaultfilename) {
-  return stripextension(prefix != "" ? prefix : outname());
+string outprefix(string prefix=stripextension(defaultfilename)) {
+  return prefix != "" ? prefix : outname();
 }
 
 string outformat(string format="")

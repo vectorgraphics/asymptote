@@ -182,3 +182,21 @@ CMakeUserPresets.json
 
 # ignore directory
 idir
+
+# windows-specific ignore
+*.aps
+*.exe
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+*.lnk
+*.stackdump

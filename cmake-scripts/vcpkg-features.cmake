@@ -33,3 +33,7 @@ endif()
 if (ENABLE_ASY_CXXTEST)
     list(APPEND VCPKG_MANIFEST_FEATURES build-cxx-testing)
 endif()
+
+if (ENABLE_LSP)
+    list(APPEND VCPKG_MANIFEST_FEATURES lsp)
+endif()

@@ -57,6 +57,22 @@
         "freeglut",
         "glew"
       ]
+    },
+    "lsp": {
+      "description": "Language Server Protocol Support",
+      "dependencies": [
+        "rapidjson",
+        "boost-asio",
+        "boost-beast",
+        "boost-date-time",
+        "boost-chrono",
+        "boost-filesystem",
+        "boost-system",
+        "boost-uuid",
+        "boost-thread",
+        "boost-process",
+        "boost-program-options"
+      ]
     }
   }
 }
