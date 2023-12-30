@@ -1,0 +1,53 @@
+name: build-asy-cxx
+on:
+  pull_request:
+    branches:
+      - "master"
+      - "a/*"
+jobs:
+  configure-linux-release-x64:
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: Cache Vcpkg
+        id: cache-vcpkg
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/vcpkg/archives
+          key: ${{ runner.os }}-vcpkg-cache
+      - run: |
+          VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" \
+          cmake --preset linux/release
+      - name: tar+gz cmake configuration
+        run: tar -czf cmake-linux-cfg-artifact.tar.gz cmake-build-linux/release
+      - name: Upload configuration artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cmake-linux-x64-release-cfg-tgz
+          path: cmake-linux-cfg-artifact.tar.gz
+  build-linux-release-x64:
+    needs: configure-linux-release-x64
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: Download configuration artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: cmake-linux-x64-release-cfg-tgz
+      - name: Untar configuration artifact
+        run: tar -xzf cmake-linux-cfg-artifact.tar.gz
+      - run: cmake --build --preset linux/release --target asy-with-basefiles -j
+      - name: Archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: asy-buildfiles
+          path: |
+            cmake-build-linux/release/asy
+            cmake-build-linux/release/base
+            cmake-build-linux/release/CTestTestfile.cmake

@@ -1,0 +1,12 @@
+name: initialize-env
+description: Initialize environment
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Ninja
+      uses: ashutoshvarma/setup-ninja@v1.1
+      with:
+        version: 1.10.0
+    - name: Setup OpenGL
+      shell: bash
+      run: sudo apt-get install libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libxrandr-dev libxxf86vm-dev
