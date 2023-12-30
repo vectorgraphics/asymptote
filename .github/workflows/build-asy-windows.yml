@@ -1,0 +1,18 @@
+name: build-asy-cxx-windows
+on:
+  pull_request:
+    branches:
+      - "master"
+      - "a/*"
+jobs:
+  configure-windows-msvc-x64:
+    runs-on: "windows-2022"
+    steps:
+      - shell: pwsh
+        run: Write-Output "hi"
+  build-windows-msvc-x64:
+    needs: configure-windows-msvc-x64
+    runs-on: "windows-2022"
+    steps:
+      - shell: pwsh
+        run: Write-Output "hi"
