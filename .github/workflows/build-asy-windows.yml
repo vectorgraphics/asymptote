@@ -68,3 +68,12 @@ jobs:
           & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
           $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
           cmake --build --preset msvc/release --target asy-with-basefiles -j
+      - name: Archive Asymptote build
+        uses: actions/upload-artifact@v3
+        with:
+          name: asy-win-x64-buildfiles
+          path: |
+            cmake-build-msvc/release/asy.exe
+            cmake-build-msvc/release/base
+            cmake-build-msvc/release/CTestTestfile.cmake
+            cmake-build-msvc/release/*.dll
