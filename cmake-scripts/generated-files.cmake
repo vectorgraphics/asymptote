@@ -24,6 +24,7 @@ add_custom_command(
 
 list(APPEND ASYMPTOTE_INCLUDES ${GENERATED_INCLUDE_DIR})
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/opsymbols.h)
+list(APPEND ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS ${GENERATED_INCLUDE_DIR}/opsymbols.h)
 
 # run-* files
 function(_int_add_runtime_file runtime_file)
@@ -51,8 +52,9 @@ macro(add_runtime_file runtime_file)
     list(APPEND ASY_GENERATED_BUILD_SOURCES
             ${GENERATED_SRC_DIR}/${runtime_file}.cc
     )
-    list(APPEND ASYMPTOTE_GENERATED_HEADERS
-            ${GENERATED_INCLUDE_DIR}/${runtime_file}.h)
+    set(_ASY_GENERATED_HEADER_NAME ${GENERATED_INCLUDE_DIR}/${runtime_file}.h)
+    list(APPEND ASYMPTOTE_GENERATED_HEADERS ${_ASY_GENERATED_HEADER_NAME})
+    list(APPEND ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS ${_ASY_GENERATED_HEADER_NAME})
 endmacro()
 
 foreach(RUNTIME_FILE ${RUNTIME_BUILD_FILES})
@@ -60,8 +62,9 @@ foreach(RUNTIME_FILE ${RUNTIME_BUILD_FILES})
 endforeach()
 
 # keywords.h
+set(KEYWORDS_HEADER_OUT ${GENERATED_INCLUDE_DIR}/keywords.h)
 add_custom_command(
-        OUTPUT ${GENERATED_INCLUDE_DIR}/keywords.h
+        OUTPUT ${KEYWORDS_HEADER_OUT}
         COMMAND ${PERL_INTERPRETER} ${ASY_SCRIPTS_DIR}/keywords.pl
             --camplfile ${ASY_RESOURCE_DIR}/camp.l
             --output ${GENERATED_INCLUDE_DIR}/keywords.h
@@ -70,7 +73,8 @@ add_custom_command(
         DEPENDS ${ASY_SCRIPTS_DIR}/keywords.pl ${ASY_SRC_DIR}/process.cc
 )
 
-list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/keywords.h)
+list(APPEND ASYMPTOTE_GENERATED_HEADERS ${KEYWORDS_HEADER_OUT})
+list(APPEND ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS ${KEYWORDS_HEADER_OUT})
 
 set(camp_lex_output ${GENERATED_SRC_DIR}/lex.yy.cc)
 set(camp_l_file ${ASY_RESOURCE_DIR}/camp.l)
@@ -102,6 +106,7 @@ add_custom_command(
 
 list(APPEND ASY_GENERATED_BUILD_SOURCES ${bison_output})
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${bison_header})
+list(APPEND ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS ${bison_header})
 
 # generate enums from csv
 foreach(csv_enum_file ${ASY_CSV_ENUM_FILES})
@@ -120,6 +125,7 @@ foreach(csv_enum_file ${ASY_CSV_ENUM_FILES})
     )
 
     list(APPEND ASYMPTOTE_GENERATED_HEADERS ${generated_header_file})
+    list(APPEND ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS ${generated_header_file})
 endforeach ()
 
 # raw.i files
@@ -158,7 +164,9 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
             ${msvc_flag}
             DEPFILE ${GENERATED_AUX_DIR}/${symfile}.d
             BYPRODUCTS ${GENERATED_AUX_DIR}/${symfile}.d
-            DEPENDS ${src_dir}/${symfile}.cc ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
+            DEPENDS ${src_dir}/${symfile}.cc
+            ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
+            ${ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS}
             VERBATIM
     )
     # *.symbols.h file
