@@ -1,9 +1,13 @@
 name: build-asy-cxx-windows
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - "master"
       - "a/*"
+  push:
+    branches:
+      - msvc-support
 jobs:
   configure-windows-msvc-x64:
     runs-on: "windows-2022"
