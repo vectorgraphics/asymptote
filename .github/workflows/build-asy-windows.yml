@@ -1,18 +1,79 @@
 name: build-asy-cxx-windows
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - "master"
       - "a/*"
+  push:
+    branches:
+      - msvc-support
 jobs:
   configure-windows-msvc-x64:
     runs-on: "windows-2022"
     steps:
-      - shell: pwsh
-        run: Write-Output "hi"
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-windows-env
+      - name: Cache Vcpkg
+        id: cache-vcpkg
+        uses: actions/cache@v3
+        with:
+          path: ~\AppData\Local\vcpkg\archives
+          key: ${{ runner.os }}-vcpkg-cache
+      - name: Configure MSVC-Release
+        shell: pwsh
+        run: |
+          $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
+          & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+          cmake --preset msvc/release
+      - name: zip cmake configuration
+        shell: pwsh
+        # Compress-Archive cmdlet does not support hidden files
+        run: |
+          $loc = Get-Location
+          [System.IO.Compression.ZipFile]::CreateFromDirectory(`
+            "$($loc.Path)\cmake-build-msvc",`
+            "$($loc.Path)\cmake-msvc-x64-release-cfg.zip",`
+            [System.IO.Compression.CompressionLevel]::NoCompression,`
+            $true`
+          )
+      - name: Upload configuration artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cmake-msvc-x64-release-cfg-zip
+          path: cmake-msvc-x64-release-cfg.zip
   build-windows-msvc-x64:
     needs: configure-windows-msvc-x64
     runs-on: "windows-2022"
     steps:
-      - shell: pwsh
-        run: Write-Output "hi"
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-windows-env
+      - name: Download configuration artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: cmake-msvc-x64-release-cfg-zip
+      - name: Unzip configuration artifact
+        run: |
+          Expand-Archive `
+          -Path cmake-msvc-x64-release-cfg.zip `
+          -DestinationPath .
+      - name: Build asymptote on windows
+        run: |
+          $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
+          & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+          cmake --build --preset msvc/release --target asy-with-basefiles -j
+      - name: Archive Asymptote build
+        uses: actions/upload-artifact@v3
+        with:
+          name: asy-win-x64-buildfiles
+          path: |
+            cmake-build-msvc/release/asy.exe
+            cmake-build-msvc/release/base
+            cmake-build-msvc/release/CTestTestfile.cmake
+            cmake-build-msvc/release/*.dll
