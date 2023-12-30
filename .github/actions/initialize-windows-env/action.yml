@@ -1,0 +1,9 @@
+name: initialize-env
+description: Initialize environment
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Ninja
+      uses: ashutoshvarma/setup-ninja@v1.1
+      with:
+        version: 1.10.0
