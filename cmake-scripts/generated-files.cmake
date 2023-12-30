@@ -1,5 +1,15 @@
+# generated include directories
 set(GENERATED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/include")
 file(MAKE_DIRECTORY ${GENERATED_INCLUDE_DIR})
+
+# directory for auxilliary files
+set(GENERATED_AUX_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/auxiliary")
+file(MAKE_DIRECTORY ${GENERATED_AUX_DIR})
+
+# generated sources
+set(GENERATED_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/src")
+file(MAKE_DIRECTORY ${GENERATED_SRC_DIR})
+
 
 # opsymbols.h
 add_custom_command(
@@ -15,13 +25,7 @@ add_custom_command(
 list(APPEND ASYMPTOTE_INCLUDES ${GENERATED_INCLUDE_DIR})
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${GENERATED_INCLUDE_DIR}/opsymbols.h)
 
-# generated sources
-set(GENERATED_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/src")
-file(MAKE_DIRECTORY ${GENERATED_SRC_DIR})
-
-
 # run-* files
-
 function(_int_add_runtime_file runtime_file)
     set(RUNTIME_FILE_IN_BASE ${ASY_SRC_TEMPLATES_DIR}/${runtime_file})
     set(RUNTIME_FILES_OUT ${GENERATED_SRC_DIR}/${runtime_file}.cc ${GENERATED_INCLUDE_DIR}/${runtime_file}.h)
@@ -57,9 +61,7 @@ endforeach()
 
 
 # allsymbols.h
-# directory for auxilliary files
-set(GENERATED_AUX_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/auxiliary")
-file(MAKE_DIRECTORY ${GENERATED_AUX_DIR})
+
 
 # generating preprocessed files
 
