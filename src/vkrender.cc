@@ -972,27 +972,27 @@ void AsyVkRender::pickPhysicalDevice()
 std::pair<std::uint32_t, vk::SampleCountFlagBits>
 AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
 {
-	vk::PhysicalDeviceProperties props { };
+  vk::PhysicalDeviceProperties props { };
 
   gpu.getProperties( &props );
 
-	auto const count = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
+  auto const count = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
   auto const maxSamples = settings::getSetting<Int>("multisample");
 
-	if (count & vk::SampleCountFlagBits::e64 && maxSamples >= 64)
-		return std::make_pair(64, vk::SampleCountFlagBits::e64);
-	if (count & vk::SampleCountFlagBits::e32 && maxSamples >= 32)
-		return std::make_pair(32, vk::SampleCountFlagBits::e32);
-	if (count & vk::SampleCountFlagBits::e16 && maxSamples >= 16)
-		return std::make_pair(16, vk::SampleCountFlagBits::e16);
-	if (count & vk::SampleCountFlagBits::e8 && maxSamples >= 8)
-		return std::make_pair(8, vk::SampleCountFlagBits::e8);
-	if (count & vk::SampleCountFlagBits::e4 && maxSamples >= 4)
-		return std::make_pair(4, vk::SampleCountFlagBits::e4);
-	if (count & vk::SampleCountFlagBits::e2 && maxSamples >= 2)
-		return std::make_pair(2, vk::SampleCountFlagBits::e2);
+  if (count & vk::SampleCountFlagBits::e64 && maxSamples >= 64)
+    return std::make_pair(64, vk::SampleCountFlagBits::e64);
+  if (count & vk::SampleCountFlagBits::e32 && maxSamples >= 32)
+    return std::make_pair(32, vk::SampleCountFlagBits::e32);
+  if (count & vk::SampleCountFlagBits::e16 && maxSamples >= 16)
+    return std::make_pair(16, vk::SampleCountFlagBits::e16);
+  if (count & vk::SampleCountFlagBits::e8 && maxSamples >= 8)
+    return std::make_pair(8, vk::SampleCountFlagBits::e8);
+  if (count & vk::SampleCountFlagBits::e4 && maxSamples >= 4)
+    return std::make_pair(4, vk::SampleCountFlagBits::e4);
+  if (count & vk::SampleCountFlagBits::e2 && maxSamples >= 2)
+    return std::make_pair(2, vk::SampleCountFlagBits::e2);
 
-	return std::make_pair(1, vk::SampleCountFlagBits::e1);
+  return std::make_pair(1, vk::SampleCountFlagBits::e1);
 }
 
 QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* surface)
@@ -1146,13 +1146,13 @@ void AsyVkRender::createLogicalDevice()
 
 void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
                              vk::Image image,
-			                       vk::AccessFlags srcAccessMask,
-			                       vk::AccessFlags dstAccessMask,
-			                       vk::ImageLayout oldImageLayout,
-			                       vk::ImageLayout newImageLayout,
-			                       vk::PipelineStageFlags srcStageMask,
-			                       vk::PipelineStageFlags dstStageMask,
-			                       vk::ImageSubresourceRange subresourceRange)
+                             vk::AccessFlags srcAccessMask,
+                             vk::AccessFlags dstAccessMask,
+                             vk::ImageLayout oldImageLayout,
+                             vk::ImageLayout newImageLayout,
+                             vk::PipelineStageFlags srcStageMask,
+                             vk::PipelineStageFlags dstStageMask,
+                             vk::ImageSubresourceRange subresourceRange)
 {
   auto barrier = vk::ImageMemoryBarrier(
     srcAccessMask,
