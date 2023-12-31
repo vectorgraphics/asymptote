@@ -44,7 +44,7 @@
 #include "pipestream.h"
 #include "array.h"
 
-#include "glrender.h"
+// #include "glrender.h"
 
 #ifdef HAVE_LIBCURSES
 extern "C" {
@@ -1076,7 +1076,6 @@ struct versionOption : public option {
 
     bool glm=false;
     bool gl=false;
-    bool ssbo=false;
     bool gsl=false;
     bool fftw3=false;
     bool eigen=false;
@@ -1093,12 +1092,8 @@ struct versionOption : public option {
     glm=true;
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
     gl=true;
-#endif
-
-#ifdef HAVE_SSBO
-    ssbo=true;
 #endif
 
 #ifdef HAVE_LIBGSL
@@ -1149,12 +1144,7 @@ struct versionOption : public option {
 
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
-#ifdef HAVE_LIBOSMESA
-    feature("OpenGL   3D OSMesa offscreen rendering",gl);
-#else
-    feature("OpenGL   3D OpenGL rendering",gl);
-#endif
-    feature("SSBO     GLSL shader storage buffer objects",ssbo);
+    feature("Vulkan   3D Vulkan rendering",gl);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("Eigen    Eigenvalue library",eigen);
@@ -1167,7 +1157,7 @@ struct versionOption : public option {
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);
-    feature("threads  Render OpenGL in separate thread",usethreads);
+    feature("threads  Render Vulkan in separate thread",usethreads);
   }
 
   bool getOption() {
@@ -1378,6 +1368,8 @@ void initSettings() {
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
+  addOption(new boolSetting("offscreen", 0,
+                            "Use offscreen rendering",false));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
@@ -1392,6 +1384,8 @@ void initSettings() {
                            "Compute shader local size", 256));
   addOption(new IntSetting("GPUblockSize", 0, "n",
                            "Compute shader block size", 8));
+  addOption(new IntSetting("maxFramesInFlight", 0, "n",
+                           "Maximum frames queued to the GPU", 8));
 
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));

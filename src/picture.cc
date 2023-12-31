@@ -31,7 +31,6 @@ using std::ofstream;
 using vm::array;
 
 using namespace settings;
-using namespace gl;
 
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
@@ -58,6 +57,8 @@ texstream::~texstream() {
 }
 
 namespace camp {
+
+AsyVkRender *vk = new AsyVkRender();
 
 extern void draw();
 
@@ -1433,13 +1434,28 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     if(remesh) (*p)->meshinit();
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
-
-#ifdef HAVE_GL
-  drawBuffers();
-#endif
 }
 
-typedef gl::GLRenderArgs Communicate;
+struct Communicate : public gc {
+  string prefix;
+  picture* pic;
+  string format;
+  double width;
+  double height;
+  double angle;
+  double zoom;
+  triple m;
+  triple M;
+  pair shift;
+  pair margin;
+  double *t;
+  double *background;
+  size_t nlights;
+  triple *lights;
+  double *diffuse;
+  double *specular;
+  bool view;
+};
 
 Communicate com;
 
@@ -1447,13 +1463,16 @@ extern bool allowRender;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
-  wait(initSignal,initLock);
-  endwait(initSignal,initLock);
+  vk->wait(vk->initSignal,vk->initLock);
+  vk->endwait(vk->initSignal,vk->initLock);
 #endif
-  if(allowRender)
-    glrender(com);
+  if(allowRender) {
+    vk->vkrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
+                com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
+                com.nlights,com.lights,com.diffuse,com.specular,com.view);
+  }
 #endif
 }
 
@@ -1480,13 +1499,10 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
 #endif
 
-#ifndef HAVE_LIBOSMESA
-#ifndef HAVE_GL
+#ifndef HAVE_VULKAN
   if(!webgl)
-    camp::reportError("to support onscreen OpenGL rendering; please install the glut library, then ./configure; make");
+    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang libraries, then ./configure; make");
 #endif
-#endif
-
 
   picture *pic = new picture;
 
@@ -1521,11 +1537,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
 #endif
 
-#ifdef HAVE_GL
-  bool offscreen=false;
-#ifdef HAVE_LIBOSMESA
-  offscreen=true;
-#endif
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
@@ -1535,11 +1547,11 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool format3d=webgl || v3d;
 
   if(!format3d) {
-#ifdef HAVE_GL
-    if(glthread && !offscreen) {
+#ifdef HAVE_VULKAN
+    if(vk->vkthread) {
 #ifdef HAVE_PTHREAD
-      if(gl::initialize) {
-        gl::initialize=false;
+      if(vk->initialize) {
+        vk->initialize=false;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1559,23 +1571,23 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.specular=specular;
         com.view=View;
         if(Wait)
-          pthread_mutex_lock(&readyLock);
-        wait(initSignal,initLock);
-        endwait(initSignal,initLock);
+          pthread_mutex_lock(&vk->readyLock);
+        vk->wait(vk->initSignal,vk->initLock);
+        vk->endwait(vk->initSignal,vk->initLock);
         static bool initialize=true;
         if(initialize) {
-          wait(initSignal,initLock);
-          endwait(initSignal,initLock);
+          vk->wait(vk->initSignal,vk->initLock);
+          vk->endwait(vk->initSignal,vk->initLock);
           initialize=false;
         }
         if(Wait) {
-          pthread_cond_wait(&readySignal,&readyLock);
-          pthread_mutex_unlock(&readyLock);
+          pthread_cond_wait(&vk->readySignal,&vk->readyLock);
+          pthread_mutex_unlock(&vk->readyLock);
         }
-        return true;
-      }
-      if(Wait)
-        pthread_mutex_lock(&readyLock);
+         return true;
+       }
+       if(Wait)
+         pthread_mutex_lock(&vk->readyLock);
 #endif
     } else {
 #if !defined(_WIN32)
@@ -1588,34 +1600,17 @@ bool picture::shipout3(const string& prefix, const string& format,
         return true;
       }
 #else
-#pragma message("TODO: Check if (1) we need detach-based gl renderer")
+#pragma message("TODO: Check if (1) we need detach-based VK renderer")
 #endif
     }
 #endif
   }
 
-#if HAVE_LIBGLM
-  gl::GLRenderArgs args;
-  args.prefix=prefix;
-  args.pic=pic;
-  args.format=outputformat;
-  args.width=width;
-  args.height=height;
-  args.angle=angle;
-  args.zoom=zoom;
-  args.m=m;
-  args.M=M;
-  args.shift=shift;
-  args.margin=margin;
-  args.t=t;
-  args.background=background;
-  args.nlights=nlights;
-  args.lights=lights;
-  args.diffuse=diffuse;
-  args.specular=specular;
-  args.view=View;
-
-  glrender(args,oldpid);
+ #if HAVE_LIBGLM
+  vk->vkrender(prefix,pic,format,width,height,angle,
+               zoom,m,M,shift,margin,t,background,
+               nlights,lights,diffuse,specular,View,
+               oldpid);
 
   if(format3d) {
     string name=buildname(prefix,format);
@@ -1648,24 +1643,15 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl && View)
       htmlView(name);
 
-#ifdef HAVE_GL
-    if(format3dWait) {
-      format3dWait=false;
-#ifdef HAVE_PTHREAD
-      endwait(initSignal,initLock);
-#endif
-    }
-#endif
+     return true;
+   }
+ #endif
 
-    return true;
-  }
-#endif
-
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
-  if(glthread && !offscreen && Wait) {
-    pthread_cond_wait(&readySignal,&readyLock);
-    pthread_mutex_unlock(&readyLock);
+  if(vk->vkthread && Wait) {
+    pthread_cond_wait(&vk->readySignal,&vk->readyLock);
+    pthread_mutex_unlock(&vk->readyLock);
   }
   return true;
 #endif

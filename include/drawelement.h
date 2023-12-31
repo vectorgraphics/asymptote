@@ -19,11 +19,13 @@
 #include "prcfile.h"
 #include "jsfile.h"
 #include "v3dfile.h"
-#include "glrender.h"
 #include "arrayop.h"
 #include "material.h"
+#include "vkrender.h"
 
 namespace camp {
+
+extern int MaterialIndex;
 
 static const double pixelResolution=1.0; // Adaptive rendering constant.
 
@@ -106,15 +108,16 @@ public:
     bounds(M);
   }
 
-  bbox2(const triple& m, const triple& M, const Billboard& BB) {
-    Bounds(BB.transform(m));
-    bounds(BB.transform(triple(m.getx(),m.gety(),M.getz())));
-    bounds(BB.transform(triple(m.getx(),M.gety(),m.getz())));
-    bounds(BB.transform(triple(m.getx(),M.gety(),M.getz())));
-    bounds(BB.transform(triple(M.getx(),m.gety(),m.getz())));
-    bounds(BB.transform(triple(M.getx(),m.gety(),M.getz())));
-    bounds(BB.transform(triple(M.getx(),M.gety(),m.getz())));
-    bounds(BB.transform(M));
+  // take account of object bounds
+  bbox2(const triple& m, const triple& M, const triple& BB) {
+    Bounds(vk->billboardTransform(BB,m));
+    bounds(vk->billboardTransform(BB,triple(m.getx(),m.gety(),M.getz())));
+    bounds(vk->billboardTransform(BB,triple(m.getx(),M.gety(),m.getz())));
+    bounds(vk->billboardTransform(BB,triple(m.getx(),M.gety(),M.getz())));
+    bounds(vk->billboardTransform(BB,triple(M.getx(),m.gety(),m.getz())));
+    bounds(vk->billboardTransform(BB,triple(M.getx(),m.gety(),M.getz())));
+    bounds(vk->billboardTransform(BB,triple(M.getx(),M.gety(),m.getz())));
+    bounds(vk->billboardTransform(BB,M));
   }
 
 // Is 2D bounding box formed by projecting 3d points in vector v offscreen?
@@ -126,13 +129,13 @@ public:
   }
 
   void Bounds(const triple& v) {
-    pair V=Transform2T(gl::dprojView,v);
+    pair V=Transform2T(glm::value_ptr(vk->projViewMat),v);
     x=X=V.getx();
     y=Y=V.gety();
   }
 
   void bounds(const triple& v) {
-    pair V=Transform2T(gl::dprojView,v);
+    pair V=Transform2T(glm::value_ptr(vk->projViewMat),v);
     double a=V.getx();
     double b=V.gety();
     if(a < x) x=a;

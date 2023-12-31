@@ -31,7 +31,7 @@ protected:
   bool billboard;
   size_t centerIndex;
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
   BezierCurve R;
 #endif
   void init() {
@@ -121,8 +121,8 @@ protected:
   triple Min,Max;
 
 #ifdef HAVE_LIBGLM
-  GLfloat *Controls;
-  GLfloat *Knots;
+  float *Controls;
+  float *Knots;
 #endif
 
 public:
@@ -203,7 +203,7 @@ class drawPixel : public drawElement {
   bool invisible;
   triple Min,Max;
 public:
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
   Pixel R;
 #endif
   drawPixel(const triple& v, const pen& p, double width, const string& key="")

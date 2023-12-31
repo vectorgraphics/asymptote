@@ -2,26 +2,29 @@ layout(local_size_x=LOCALSIZE) in;
 
 const uint groupSize=LOCALSIZE*BLOCKSIZE;
 
-uniform uint final;
-
-layout(binding=0, std430) buffer offsetBuffer
+layout(push_constant) uniform PushConstants
 {
-  uint maxDepth;
-  uint offset[];
-};
+	uint final;
+} push;
 
-layout(binding=2, std430) buffer countBuffer
+layout(binding=0, std430) buffer countBuffer
 {
   uint maxSize;
   uint count[];
 };
 
-layout(binding=3, std430) buffer globalSumBuffer
+layout(binding=1, std430) buffer globalSumBuffer
 {
   uint globalSum[];
 };
 
-layout(binding=8, std430) buffer feedbackBuffer
+layout(binding=2, std430) buffer offsetBuffer
+{
+  uint maxDepth;
+  uint offset[];
+};
+
+layout(binding=3, std430) buffer feedbackBuffer
 {
   uint size;
   uint fragments;
@@ -71,10 +74,10 @@ void main()
     offset[dataOffset+i*LOCALSIZE]=shuffle[shuffleOffset+i*stride]+
       groupSum[(i*LOCALSIZE+id)/BLOCKSIZE]+groupOffset;
 
-  uint diff=final-dataOffset;
+  uint diff=push.final-dataOffset;
   if(diff < groupSize && diff % LOCALSIZE == 0) {
     size=maxDepth;
     maxDepth=0u;
-    fragments=offset[final+1u]=offset[final];
+    fragments=offset[push.final+1u]=offset[push.final];
   }
 }
