@@ -13,7 +13,6 @@
 #include <sstream>
 #include <stdlib.h>
 #include <string>
-#include <sys/time.h>
 #include <unordered_map>
 #include <vector>
 #include <array>

@@ -4,6 +4,9 @@
 #include "drawimage.h"
 #include "EXRFiles.h"
 
+#include <chrono>
+#include <thread>
+
 #define SHADER_DIRECTORY "base/shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
@@ -513,8 +516,10 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view, int oldpid/*=0*/)
 {
+#if !defined(_WIN32)
   // By default use discrete GPU.
   setenv("DRI_PRIME","1",0);
+#endif
 
   glfwInit();
 
@@ -3792,12 +3797,7 @@ void AsyVkRender::nextFrame()
   double seconds=frameTimer.seconds(true);
   delay -= seconds;
   if(delay > 0) {
-    timespec req;
-    timespec rem;
-    req.tv_sec=(unsigned int) delay;
-    req.tv_nsec=(unsigned int) (1.0e9*(delay-req.tv_sec));
-    while(nanosleep(&req,&rem) < 0 && errno == EINTR)
-      req=rem;
+    std::this_thread::sleep_for(std::chrono::duration<double>(delay));
   }
   if(Step) Animate=false;
 }
