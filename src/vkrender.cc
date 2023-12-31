@@ -7,7 +7,7 @@
 #include <chrono>
 #include <thread>
 
-#define SHADER_DIRECTORY "base/shaders/"
+#define SHADER_DIRECTORY "shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
@@ -1262,8 +1262,8 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
   for (auto const & option: options) {
     header += "#define " + option + "\n";
   }
-
-  auto fileContents = readFile(filename);
+  string filePath = locatefile(string(filename));
+  auto fileContents= readFile(filePath.c_str());
   fileContents.emplace_back(0); // terminate string
 
   std::vector<char> source(header.begin(), header.end());
