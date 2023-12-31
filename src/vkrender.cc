@@ -3859,7 +3859,9 @@ void AsyVkRender::display()
 void AsyVkRender::poll()
 {
   if (View) {
-    vkexit |= glfwWindowShouldClose(window);
+    if (glfwWindowShouldClose(window)) {
+      vkexit = true;
+    }
   }
 
   if (vkexit) {
