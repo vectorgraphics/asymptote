@@ -50,12 +50,12 @@
       "description": "fftw3 support",
       "dependencies": ["fftw3"]
     },
-    "opengl": {
-      "description": "OpenGL Support",
+    "vulkan": {
+      "description": "Vulkan Support",
       "dependencies": [
-        "opengl",
-        "freeglut",
-        "glew"
+        "vulkan",
+        "glslang",
+        "glfw3"
       ]
     },
     "lsp": {
