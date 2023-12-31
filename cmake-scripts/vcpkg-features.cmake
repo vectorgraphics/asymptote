@@ -1,39 +1,21 @@
-if (ENABLE_GC)
-    list(APPEND VCPKG_MANIFEST_FEATURES gc)
-endif()
+# call by map_option_to_vcpkg_feat(OPTION_NAME feat1 ... featn) where
+# feat1 to featn are vcpkg features in the manifest file
 
-if (ENABLE_READLINE)
-    list(APPEND VCPKG_MANIFEST_FEATURES readline)
-endif()
+set(VCPKG_MANIFEST_FEATURES)
 
-if (ENABLE_CURL)
-    list(APPEND VCPKG_MANIFEST_FEATURES curl)
-endif()
+macro(map_option_to_vcpkg_feat option_name)
+    if (${option_name})
+        list(APPEND VCPKG_MANIFEST_FEATURES ${ARGN})
+    endif()
+endmacro()
 
-if (ENABLE_GSL)
-    list(APPEND VCPKG_MANIFEST_FEATURES gsl)
-endif()
-
-if (ENABLE_EIGEN3)
-    list(APPEND VCPKG_MANIFEST_FEATURES eigen3)
-endif()
-
-if (ENABLE_FFTW3)
-    list(APPEND VCPKG_MANIFEST_FEATURES fftw3)
-endif()
-
-if (ENABLE_OPENGL)
-    list(APPEND VCPKG_MANIFEST_FEATURES opengl)
-endif()
-
-if (ENABLE_THREADING)
-    list(APPEND VCPKG_MANIFEST_FEATURES threading)
-endif()
-
-if (ENABLE_ASY_CXXTEST)
-    list(APPEND VCPKG_MANIFEST_FEATURES build-cxx-testing)
-endif()
-
-if (ENABLE_LSP)
-    list(APPEND VCPKG_MANIFEST_FEATURES lsp)
-endif()
+map_option_to_vcpkg_feat(ENABLE_GC gc)
+map_option_to_vcpkg_feat(ENABLE_READLINE readline)
+map_option_to_vcpkg_feat(ENABLE_CURL curl)
+map_option_to_vcpkg_feat(ENABLE_GSL gsl)
+map_option_to_vcpkg_feat(ENABLE_EIGEN3 eigen3)
+map_option_to_vcpkg_feat(ENABLE_FFTW3 fftw3)
+map_option_to_vcpkg_feat(ENABLE_VULKAN vulkan)
+map_option_to_vcpkg_feat(ENABLE_THREADING threading)
+map_option_to_vcpkg_feat(ENABLE_ASY_CXXTEST build-cxx-testing)
+map_option_to_vcpkg_feat(ENABLE_LSP lsp)
