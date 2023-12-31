@@ -7,7 +7,7 @@ on:
       - "a/*"
   push:
     branches:
-      - msvc-support
+      - msvc-*
 jobs:
   configure-linux-release-x64:
     runs-on: "ubuntu-22.04"
