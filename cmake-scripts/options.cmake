@@ -64,12 +64,7 @@ option(ENABLE_THREADING "enable threading support" true)
 option(ENABLE_GSL "Enable GSL support" true)
 option(ENABLE_EIGEN3 "Enable eigen3 support" true)
 option(ENABLE_FFTW3 "Enable fftw3 support" true)
-option(ENABLE_OPENGL "Whether to enable opengl or not." true)
-option(ENABLE_GL_COMPUTE_SHADERS
-        "Whether to enable compute shaders for OpenGL. Requires OpenGL >= 4.3 and GL_ARB_compute_shader" true)
-option(ENABLE_GL_SSBO
-        "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object" true)
-
+option(ENABLE_VULKAN "Whether to enable vulkan or not." true)
 option(
         ENABLE_RPC_FEATURES
         "Whether to enable XDR/RPC features. Also enables V3D. If compiling on UNIX systems, requires libtirpc to be installed."
