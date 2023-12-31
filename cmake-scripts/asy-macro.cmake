@@ -2,6 +2,7 @@ list(APPEND ASY_MACROS
         PACKAGE_NAME="${ASY_PACKAGE_NAME}"
         PACKAGE_VERSION="${ASY_VERSION}"
         PACKAGE_BUGREPORT="${ASY_BUGREPORT}"
+        PACKAGE_STRING="${ASY_PACKAGE_NAME} ${ASY_VERSION}"
 )
 
 # Since we require C++11 and up, some macros are automatically included
