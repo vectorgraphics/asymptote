@@ -3849,10 +3849,14 @@ void AsyVkRender::display()
   }
 #endif
   if(!vkthread) {
+#if defined(_WIN32)
+#pragma message("TODO: Check if we need a threadless-based vk renderer")
+#else
     if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
       Oldpid=0;
     }
+#endif
   }
 }
 
