@@ -7,7 +7,7 @@ on:
       - "a/*"
   push:
     branches:
-      - msvc-support
+      - msvc-*
 jobs:
   configure-windows-msvc-x64:
     runs-on: "windows-2022"
