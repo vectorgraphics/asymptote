@@ -41,6 +41,8 @@
 #include "triple.h"
 #include "seconds.h"
 #include "statistics.h"
+#include "ThreadSafeQueue.h"
+#include "vkRenderMessages.h"
 
 namespace camp
 {
@@ -378,6 +380,11 @@ public:
   int maxFramesInFlight;
   DrawMode mode = DRAWMODE_NORMAL;
   std::string title = "";
+
+  /**
+   * @remark Main thread is the consumer, other thread is the sender of messages;
+   */
+   ThreadSafeQueue<VulkanRendererMessage> messageQueue;
 
 #ifdef HAVE_PTHREAD
   pthread_t mainthread;
@@ -928,9 +935,10 @@ private:
 
   void nextFrame();
   void display();
-  void poll();
+  optional<VulkanRendererMessage> poll();
   void mainLoop();
   void cleanup();
+  void processMessages(VulkanRendererMessage const& msg);
 
   void idleFunc(std::function<void()> f);
   void idle();
@@ -938,6 +946,7 @@ private:
   // user controls
   static void exportHandler(int=0);
   void Export(int imageIndex);
+  bool readyForExport=false;
   void quit();
 
   double spinStep();
