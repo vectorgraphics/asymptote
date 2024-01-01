@@ -32,10 +32,10 @@ typedef SSIZE_T ssize_t;
 #include "config.h"
 #endif
 
-#include <optional>
-using std::optional;
-using std::nullopt;
-using std::make_optional;
+#include "optional.hpp"
+using nonstd::optional;
+using nonstd::nullopt;
+using nonstd::make_optional;
 
 using std::make_pair;
 
