@@ -8,6 +8,12 @@ on:
   push:
     branches:
       - msvc-*
+env:
+  pwsh_initialize_devenv: |
+      $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
+      & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" `
+        -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+      $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
 jobs:
   configure-windows-msvc-x64:
     runs-on: "windows-2022"
@@ -19,9 +25,7 @@ jobs:
       - name: Configure MSVC-Release
         shell: pwsh
         run: |
-          $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
-          & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
-          $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+          ${{ env.pwsh_initialize_devenv }}
           cmake --preset msvc/release
       - name: zip cmake configuration
         shell: pwsh
@@ -60,9 +64,7 @@ jobs:
           -DestinationPath .
       - name: Build asymptote on windows
         run: |
-          $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
-          & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
-          $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+          ${{ env.pwsh_initialize_devenv }}
           cmake --build --preset msvc/release --target asy-with-basefiles -j
       - name: Archive Asymptote build
         uses: actions/upload-artifact@v3
