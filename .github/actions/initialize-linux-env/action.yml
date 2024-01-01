@@ -10,3 +10,9 @@ runs:
     - name: Setup Vulkan dependencies
       shell: bash
       run: sudo apt install libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev pkg-config libwayland-dev
+    - name: Cache Vcpkg
+      id: cache-vcpkg
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/vcpkg/archives
+        key: ${{ runner.os }}-vcpkg-cache
