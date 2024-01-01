@@ -38,12 +38,6 @@
 #endif
 
 #define GC_PTHREAD_SIGMASK_NEEDED
-
-#ifdef HAVE_LSP
-#include "lspserv.h"
-#endif
-
-
 #include "common.h"
 #include "exithandlers.h"
 #include "errormsg.h"
@@ -59,12 +53,13 @@
 #include "fftw++.h"
 #endif
 
+#ifdef HAVE_LSP
+#include "lspserv.h"
+#endif
+
 #if defined(_WIN32)
 #include <combaseapi.h>
 #endif
-
-
-#include "stack.h"
 
 using namespace settings;
 
