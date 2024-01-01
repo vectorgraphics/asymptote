@@ -16,12 +16,6 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
-      - name: Cache Vcpkg
-        id: cache-vcpkg
-        uses: actions/cache@v3
-        with:
-          path: ~\AppData\Local\vcpkg\archives
-          key: ${{ runner.os }}-vcpkg-cache
       - name: Configure MSVC-Release
         shell: pwsh
         run: |
@@ -32,8 +26,10 @@ jobs:
       - name: zip cmake configuration
         shell: pwsh
         # Compress-Archive cmdlet does not support hidden files
+        # remove vcpkg_installed to make config zip smaller
         run: |
           $loc = Get-Location
+          Remove-Item -Recurse -Force cmake-build-msvc\release\vcpkg_installed
           [System.IO.Compression.ZipFile]::CreateFromDirectory(`
             "$($loc.Path)\cmake-build-msvc",`
             "$($loc.Path)\cmake-msvc-x64-release-cfg.zip",`
