@@ -10,3 +10,9 @@ runs:
     - name: Setup OpenGL
       shell: bash
       run: sudo apt-get install libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libxrandr-dev libxxf86vm-dev
+    - name: Cache Vcpkg
+      id: cache-vcpkg
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/vcpkg/archives
+        key: ${{ runner.os }}-vcpkg-cache

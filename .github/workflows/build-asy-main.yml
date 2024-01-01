@@ -16,17 +16,11 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
-      - name: Cache Vcpkg
-        id: cache-vcpkg
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/vcpkg/archives
-          key: ${{ runner.os }}-vcpkg-cache
       - run: |
           VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" \
           cmake --preset linux/release
       - name: tar+gz cmake configuration
-        run: tar -czf cmake-linux-cfg-artifact.tar.gz cmake-build-linux/release
+        run: tar -czf cmake-linux-cfg-artifact.tar.gz --exclude='vcpkg_installed' cmake-build-linux/release
       - name: Upload configuration artifacts
         uses: actions/upload-artifact@v3
         with:
