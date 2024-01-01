@@ -7,6 +7,6 @@ runs:
       uses: ashutoshvarma/setup-ninja@v1.1
       with:
         version: 1.10.0
-    - name: Setup OpenGL
+    - name: Setup Vulkan dependencies
       shell: bash
-      run: sudo apt-get install libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libxrandr-dev libxxf86vm-dev
+      run: sudo apt install libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev pkg-config libwayland-dev
