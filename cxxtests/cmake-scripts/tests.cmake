@@ -2,6 +2,7 @@
 
 set(ASY_CXX_TESTS
         placeholder
+        ThreadSafeQueue
 )
 
 # ----- transform tests --------
