@@ -221,6 +221,11 @@ endif()
 
 # Vulkan stuff
 if (ENABLE_VULKAN)
+    message(STATUS "If a warning about Vulkan::glslang comes up about missing debug configuration,
+that warning can be safely ignored. We are not using glslang from the vulkan package.
+We are using a separate glslang package
+    ")
+
     find_package(Vulkan)
     if (Vulkan_FOUND)
         list(APPEND ASY_STATIC_LIBARIES Vulkan::Vulkan)
