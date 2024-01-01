@@ -947,6 +947,7 @@ private:
   static void exportHandler(int=0);
   void Export(int imageIndex);
   bool readyForExport=false;
+  bool readyForUpdate=false;
   void quit();
 
   double spinStep();
