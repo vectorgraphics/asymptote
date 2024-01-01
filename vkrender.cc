@@ -367,7 +367,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
     static bool initialize=true;
     if(initialize) {
       initialize=false;
-      Signal(SIGUSR1,updateHandler);
+      app->readyForUpdate=true;
     }
   }
 }
@@ -651,11 +651,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 #ifdef HAVE_PTHREAD
   if(vkthread && initializedView) {
     if(View) {
-#ifdef __MSDOS__ // Signals are unreliable in MSWindows
-      vkupdate=true;
-#else
-      pthread_kill(mainthread,SIGUSR1);
-#endif
+      // called from asymain thread, main thread handles vulkan rendering
+      messageQueue.enqueue(updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
   }
@@ -4077,6 +4074,13 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
       }
     }
     break;
+    case updateRenderer: {
+      if (readyForUpdate)
+      {
+        readyForUpdate=false;
+        updateHandler(0);
+      }
+    }
     default:
       break;
   }
