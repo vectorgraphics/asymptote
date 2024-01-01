@@ -5,7 +5,15 @@
 #include "drawimage.h"
 #include "EXRFiles.h"
 
+<<<<<<< HEAD:vkrender.cc
 #define SHADER_DIRECTORY "base/shaders/"
+=======
+#include <chrono>
+#include <thread>
+#include "ThreadSafeQueue.h"
+
+#define SHADER_DIRECTORY "shaders/"
+>>>>>>> e99d98000 (VK: Use thread safe queue for export signaling.):src/vkrender.cc
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
@@ -4039,7 +4047,7 @@ void AsyVkRender::display()
   }
 }
 
-void AsyVkRender::poll()
+optional<VulkanRendererMessage> AsyVkRender::poll()
 {
   if (View) {
     vkexit |= glfwWindowShouldClose(window);
@@ -4053,13 +4061,37 @@ void AsyVkRender::poll()
   if (View) {
     glfwPollEvents();
   }
+
+  return messageQueue.dequeue();
+}
+
+void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
+{
+  switch (msg)
+  {
+    case exportRender: {
+      if (readyForExport)
+      {
+        readyForExport= false;
+        exportHandler(0);
+      }
+    }
+    break;
+    default:
+      break;
+  }
 }
 
 void AsyVkRender::mainLoop()
 {
   int nFrames = 0;
 
-  while (poll(), true) {
+  while (true) {
+    auto const message = poll();
+    if (message.has_value())
+    {
+      processMessages(*message);
+    }
 
     if (redraw || queueExport) {
       redraw = false;
@@ -4075,19 +4107,27 @@ void AsyVkRender::mainLoop()
     nFrames++;
   }
 
-//  vkDeviceWaitIdle(*device);
-
   if(!View) {
     if(vkthread) {
       if(havewindow) {
+        // from where can this thread be called?
+        // signals to the main thread to start exporting
         readyAfterExport=true;
 #ifdef HAVE_PTHREAD
-        pthread_kill(mainthread,SIGUSR1);
+        if (pthread_equal(pthread_self(), this->mainthread))
+        {
+          exportHandler();
+        }
+        else
+        {
+          messageQueue.enqueue(exportRender);
+        }
 #endif
       } else {
+        // from main thread
         initialized=true;
+        readyForExport=true;
         readyAfterExport=true;
-        Signal(SIGUSR1,exportHandler);
         exportHandler();
       }
     } else {
