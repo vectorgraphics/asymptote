@@ -685,10 +685,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   initWindow();
 
   if(View) {
-    if(!settings::getSetting<bool>("fitscreen"))
+    auto const fitscreenSetting= settings::getSetting<bool>("fitscreen");
+    if (!fitscreenSetting)
       Fitscreen=0;
     firstFit=true;
-    fitscreen();
+    fitscreen(fitscreenSetting);
     setosize();
   }
 
@@ -697,10 +698,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
 
   if(View) {
-    if(!settings::getSetting<bool>("fitscreen"))
+  auto const fitscreenSetting= settings::getSetting<bool>("fitscreen");
+  if (!fitscreenSetting)
       Fitscreen=0;
     firstFit=true;
-    fitscreen();
+    fitscreen(fitscreenSetting);
     setosize();
     initializedView=true;
   }
