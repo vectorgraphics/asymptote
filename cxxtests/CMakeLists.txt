@@ -18,4 +18,4 @@ target_link_libraries(asyCxxTests
         PRIVATE asycore GTest::gtest GTest::gmock)
 
 include(GoogleTest)
-gtest_discover_tests(asyCxxTests)
+gtest_discover_tests(asyCxxTests TEST_PREFIX cxxtests.)

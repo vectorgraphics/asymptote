@@ -7,7 +7,7 @@ on:
       - "a/*"
   push:
     branches:
-      - msvc-support
+      - msvc-*
 jobs:
   configure-linux-release-x64:
     runs-on: "ubuntu-22.04"
@@ -16,17 +16,11 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
-      - name: Cache Vcpkg
-        id: cache-vcpkg
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/vcpkg/archives
-          key: ${{ runner.os }}-vcpkg-cache
       - run: |
           VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" \
           cmake --preset linux/release
       - name: tar+gz cmake configuration
-        run: tar -czf cmake-linux-cfg-artifact.tar.gz cmake-build-linux/release
+        run: tar -czf cmake-linux-cfg-artifact.tar.gz --exclude='vcpkg_installed' cmake-build-linux/release
       - name: Upload configuration artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -47,11 +41,66 @@ jobs:
       - name: Untar configuration artifact
         run: tar -xzf cmake-linux-cfg-artifact.tar.gz
       - run: cmake --build --preset linux/release --target asy-with-basefiles -j
-      - name: Archive
+      - name: Archive build files
         uses: actions/upload-artifact@v3
         with:
           name: asy-buildfiles
           path: |
             cmake-build-linux/release/asy
             cmake-build-linux/release/base
-            cmake-build-linux/release/CTestTestfile.cmake
+      - name: Build Asymptote google test files
+        run: cmake --build --preset linux/release --target asyCxxTests -j
+      - name: Archive Asymptote gtest files
+        uses: actions/upload-artifact@v3
+        with:
+          name: asy-gtest-files
+          path: |
+            cmake-build-linux/release/cxxtests/asyCxxTests
+            cmake-build-linux/release/cxxtests/*.cmake
+      - name: Archive Asymptote test files
+        uses: actions/upload-artifact@v3
+        with:
+          name: asy-testfiles
+          path: cmake-build-linux/release/CTest*.cmake
+  test-x64-cxxtests:
+    needs: build-linux-release-x64
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: Download test artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-testfiles
+          path: cmake-build-linux/release/
+      - name: Download artifacts for gtest
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-gtest-files
+          path: cmake-build-linux/release/cxxtests
+      - run: chmod +x cmake-build-linux/release/cxxtests/asyCxxTests
+      - name: google test
+        run: ctest --test-dir cmake-build-linux/release -R "^cxxtests."
+  test-x64-asy-tests:
+    needs: build-linux-release-x64
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-buildfiles
+          path: cmake-build-linux/release/
+      - name: Download test artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-testfiles
+          path: cmake-build-linux/release/
+      - run: chmod +x cmake-build-linux/release/asy
+      - name: asy test
+        run: ctest --test-dir cmake-build-linux/release -R "^asy.*" -E "asy.(gc.*|pic.trans)"

@@ -7,7 +7,13 @@ on:
       - "a/*"
   push:
     branches:
-      - msvc-support
+      - msvc-*
+env:
+  pwsh_initialize_devenv: |
+      $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
+      & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" `
+        -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+      $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
 jobs:
   configure-windows-msvc-x64:
     runs-on: "windows-2022"
@@ -16,24 +22,18 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
-      - name: Cache Vcpkg
-        id: cache-vcpkg
-        uses: actions/cache@v3
-        with:
-          path: ~\AppData\Local\vcpkg\archives
-          key: ${{ runner.os }}-vcpkg-cache
       - name: Configure MSVC-Release
         shell: pwsh
         run: |
-          $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
-          & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
-          $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+          ${{ env.pwsh_initialize_devenv }}
           cmake --preset msvc/release
       - name: zip cmake configuration
         shell: pwsh
         # Compress-Archive cmdlet does not support hidden files
+        # remove vcpkg_installed to make config zip smaller
         run: |
           $loc = Get-Location
+          Remove-Item -Recurse -Force cmake-build-msvc\release\vcpkg_installed
           [System.IO.Compression.ZipFile]::CreateFromDirectory(`
             "$($loc.Path)\cmake-build-msvc",`
             "$($loc.Path)\cmake-msvc-x64-release-cfg.zip",`
@@ -64,9 +64,7 @@ jobs:
           -DestinationPath .
       - name: Build asymptote on windows
         run: |
-          $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
-          & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
-          $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+          ${{ env.pwsh_initialize_devenv }}
           cmake --build --preset msvc/release --target asy-with-basefiles -j
       - name: Archive Asymptote build
         uses: actions/upload-artifact@v3
@@ -75,5 +73,62 @@ jobs:
           path: |
             cmake-build-msvc/release/asy.exe
             cmake-build-msvc/release/base
-            cmake-build-msvc/release/CTestTestfile.cmake
             cmake-build-msvc/release/*.dll
+      - name: Build Asymptote google test
+        run: |
+          ${{ env.pwsh_initialize_devenv }}
+          cmake --build --preset msvc/release --target asyCxxTests -j
+      - name: Archive Asymptote gtest files
+        uses: actions/upload-artifact@v3
+        with:
+          name: asy-win-x64-gtest-files
+          path: |
+            cmake-build-msvc/release/cxxtests/asyCxxTests.exe
+            cmake-build-msvc/release/cxxtests/*.cmake
+            cmake-build-msvc/release/cxxtests/*.dll
+      - name: Archive Asymptote test files
+        uses: actions/upload-artifact@v3
+        with:
+          name: asy-win-x64-testfiles
+          path: |
+            cmake-build-msvc/release/CTest*.cmake
+  test-windows-msvc-x64-cxxtests:
+    needs: build-windows-msvc-x64
+    runs-on: "windows-2022"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-windows-env
+      - name: Download test artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-win-x64-testfiles
+          path: cmake-build-msvc/release/
+      - name: Download artifacts for gtest
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-win-x64-gtest-files
+          path: cmake-build-msvc/release/cxxtests
+      - name: google test
+        run: ctest --test-dir cmake-build-msvc/release -R "^cxxtests."
+  test-windows-msvc-x64-asy-tests:
+    needs: build-windows-msvc-x64
+    runs-on: "windows-2022"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-windows-env
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-win-x64-buildfiles
+          path: cmake-build-msvc/release/
+      - name: Download test artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-win-x64-testfiles
+          path: cmake-build-msvc/release/
+      - name: asy test
+        run: ctest --test-dir cmake-build-msvc/release -R "^asy.*" -E "asy.(gc.*|pic.trans)"

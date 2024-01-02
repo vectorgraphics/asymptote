@@ -552,7 +552,7 @@ types::ty *inferType(position pos, coenv &e, varinit *init)
   exp *base = dynamic_cast<exp *>(init);
   if (base) {
     types::ty *t = base->cgetType(e);
-    if (t->kind != ty_overloaded)
+    if (t->kind != ty_overloaded && t->kind != ty_void)
       return t;
   }
 
