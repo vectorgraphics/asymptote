@@ -550,14 +550,19 @@ types::ty *inferType(position pos, coenv &e, varinit *init)
   }
 
   exp *base = dynamic_cast<exp *>(init);
+  bool Void=false;
+
   if (base) {
     types::ty *t = base->cgetType(e);
-    if (t->kind != ty_overloaded && t->kind != ty_void)
+    Void=t->kind == ty_void;
+    if (t->kind != ty_overloaded && !Void)
       return t;
   }
 
   em.error(pos);
-  em << "could not infer type of initializer";
+  em << (Void ? "cannot infer from void" :
+         "could not infer type of initializer");
+
   return primError();
 }
 
