@@ -256,21 +256,22 @@ dec:
 // Experimental - templated imports.
 | TYPEDEF IMPORT decidlist ';'
                    { assert(false); }
-| FROM name '(' decdeclist ')' UNRAVEL idpairlist ';'
+/* ACCESS name '(' decdeclist ')' 'as' ID */
+| ACCESS name '(' decdeclist ')' ID ID ';'
                    { assert(false); }
 ;
 
 // List mapping dec to dec as in "Key=string, Value=int"
 decdec:
-    decidstart '=' decidstart
-                   { assert(false); }
+    ID ASSIGN type
+                   { $$ = new formal($1.pos, $3, new decidstart($1.pos, $1.sym)); }
 ;
 
 decdeclist:
     decdec
-                   { assert(false); }
+                   { $$ = new formals($1->getPos()); $$->add($1); }
 |   decdeclist ',' decdec
-                   { assert(false); }
+                   { $$ = $1; $$->add($3); }
 ;
 
 idpair:
