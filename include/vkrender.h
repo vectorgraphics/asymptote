@@ -29,6 +29,10 @@
 
 #ifdef HAVE_VULKAN
 #define VK_ENABLE_BETA_EXTENSIONS
+
+#if defined(_WIN32)
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif
 #include <vulkan/vulkan.hpp>
 
 #include <glslang/SPIRV/GlslangToSpv.h>

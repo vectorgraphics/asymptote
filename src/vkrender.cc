@@ -13,6 +13,13 @@
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
+#if defined(_WIN32)
+#include <Windows.h>
+#include <vulkan/vulkan_win32.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif
+
 //using namespace settings;
 
 bool havewindow;
@@ -888,11 +895,27 @@ void AsyVkRender::createInstance()
 
 void AsyVkRender::createSurface()
 {
+#if defined(_WIN32)
+  vk::Win32SurfaceCreateInfoKHR createInfo = {};
+  createInfo.hwnd = glfwGetWin32Window(window);
+  createInfo.hinstance = GetModuleHandleA(nullptr);
+
+  vk::SurfaceKHR tmpSurface;
+  
+  vkutils::checkVkResult(instance->createWin32SurfaceKHR(
+    &createInfo,
+    nullptr,
+    &tmpSurface
+  ));
+
+  surface=vk::UniqueSurfaceKHR(tmpSurface);
+#else
   VkSurfaceKHR surfaceTmp;
   if (glfwCreateWindowSurface(*instance, window, nullptr, &surfaceTmp) != VK_SUCCESS) {
     throw std::runtime_error("Failed to create window surface!");
   }
-  surface = vk::UniqueSurfaceKHR(surfaceTmp, *instance);
+  surface=vk::UniqueSurfaceKHR(surfaceTmp, *instance);
+#endif
 }
 
 void AsyVkRender::pickPhysicalDevice()
