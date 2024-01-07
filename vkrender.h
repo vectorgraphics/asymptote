@@ -927,7 +927,7 @@ private:
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
-  void partialSums(FrameObject & object, vk::CommandBuffer *customBuffer=nullptr);
+  void partialSums(FrameObject & object, bool timing=false, bool bindDescriptors=false);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
   void compressCount(FrameObject & object);
