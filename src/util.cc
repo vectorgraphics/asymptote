@@ -326,7 +326,7 @@ string outpath(string name)
 
 string buildname(string prefix, string suffix, string aux)
 {
-  string name=prefix+aux;
+  string name=outpath(prefix)+aux;
   if(!suffix.empty()) name += "."+suffix;
   return name;
 }
