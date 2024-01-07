@@ -1361,9 +1361,10 @@ void AsyVkRender::createCommandBuffers()
 
   for (int i = 0; i < maxFramesInFlight; i++)
   {
-    frameObjects[i].commandBuffer = std::move(renderCommands[3 * i]);
-    frameObjects[i].countCommandBuffer = std::move(renderCommands[3 * i + 1]);
-    frameObjects[i].computeCommandBuffer = std::move(renderCommands[3 * i + 2]);
+    frameObjects[i].commandBuffer = std::move(renderCommands[4 * i]);
+    frameObjects[i].countCommandBuffer = std::move(renderCommands[4 * i + 1]);
+    frameObjects[i].computeCommandBuffer = std::move(renderCommands[4 * i + 2]);
+    frameObjects[i].partialSumsCommandBuffer = std::move(renderCommands[4 * i + 3]);
     frameObjects[i].copyCountCommandBuffer = std::move(transferCommands[i]);
   }
 }
@@ -1412,7 +1413,20 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].compressionFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
+    frameObjects[i].startTimedSumsEvent = device->createEventUnique(vk::EventCreateInfo());
+    frameObjects[i].timedSumsFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
+
+    std::cout << "MADE EVENT: " << std::hex << *frameObjects[i].startTimedSumsEvent << std::endl;
   }
+}
+
+void AsyVkRender::waitForEvent(vk::Event event) {
+  vk::Result result;
+
+  do
+  {
+    result = device->getEventStatus(event);
+  } while(result != vk::Result::eEventSet);
 }
 
 uint32_t AsyVkRender::selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties)
@@ -3340,58 +3354,60 @@ void AsyVkRender::drawTransparent(FrameObject & object)
   transparentData.clear();
 }
 
-void AsyVkRender::partialSums(FrameObject & object)
+void AsyVkRender::partialSums(FrameObject & object, vk::CommandBuffer *customBuffer/*=nullptr*/)
 {
   auto const writeBarrier = vk::MemoryBarrier(
     vk::AccessFlagBits::eShaderWrite,
     vk::AccessFlagBits::eShaderRead
   );
 
-  currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum1PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
+  vk::CommandBuffer const cmd=customBuffer ? *customBuffer : currentCommandBuffer;
+
+  cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum1PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
 
   // run sum1
-  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader,
-                                       vk::PipelineStageFlagBits::eComputeShader,
-                                       { },
-                                       1,
-                                       &writeBarrier,
-                                       0,
-                                       nullptr,
-                                       0,
-                                       nullptr);
-  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum1Pipeline);
-  currentCommandBuffer.dispatch(g, 1, 1);
+  cmd.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader,
+                      vk::PipelineStageFlagBits::eComputeShader,
+                      { },
+                      1,
+                      &writeBarrier,
+                      0,
+                      nullptr,
+                      0,
+                      nullptr);
+  cmd.bindPipeline(vk::PipelineBindPoint::eCompute, *sum1Pipeline);
+  cmd.dispatch(g, 1, 1);
 
   // run sum2
   auto const BlockSize=ceilquotient(g,localSize);
-  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
-                                       vk::PipelineStageFlagBits::eComputeShader,
-                                       { },
-                                       1,
-                                       &writeBarrier,
-                                       0,
-                                       nullptr,
-                                       0,
-                                       nullptr);
-  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum2Pipeline);
-  currentCommandBuffer.pushConstants(*sum2PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &BlockSize);
-  currentCommandBuffer.dispatch(1, 1, 1);
+  cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
+                      vk::PipelineStageFlagBits::eComputeShader,
+                      { },
+                      1,
+                      &writeBarrier,
+                      0,
+                      nullptr,
+                      0,
+                      nullptr);
+  cmd.bindPipeline(vk::PipelineBindPoint::eCompute, *sum2Pipeline);
+  cmd.pushConstants(*sum2PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &BlockSize);
+  cmd.dispatch(1, 1, 1);
 
   // run sum3
   auto const Final=elements-1;
-  currentCommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
-                                       vk::PipelineStageFlagBits::eComputeShader,
-                                       { },
-                                       1,
-                                       &writeBarrier,
-                                       0,
-                                       nullptr,
-                                       0,
-                                       nullptr);
-  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *sum3Pipeline);
-  currentCommandBuffer.pushConstants(*sum3PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &Final);
-  currentCommandBuffer.dispatch(g, 1, 1);
-  currentCommandBuffer.setEvent(*object.sumFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
+  cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
+                      vk::PipelineStageFlagBits::eComputeShader,
+                      { },
+                      1,
+                      &writeBarrier,
+                      0,
+                      nullptr,
+                      0,
+                      nullptr);
+  cmd.bindPipeline(vk::PipelineBindPoint::eCompute, *sum3Pipeline);
+  cmd.pushConstants(*sum3PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &Final);
+  cmd.dispatch(g, 1, 1);
+  cmd.setEvent(*object.sumFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
 }
 
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
@@ -3403,13 +3419,7 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   if (GPUindexing) {
-
-    vk::Result result;
-
-    do
-    {
-      result = device->getEventStatus(*object.sumFinishedEvent);
-    } while(result != vk::Result::eEventSet);
+    waitForEvent(*object.sumFinishedEvent);
 
     static const auto feedbackMap=static_cast<std::uint32_t*>(device->mapMemory(*feedbackBufferMemory, 0, feedbackBufferSize, vk::MemoryMapFlags()));
     const auto maxDepth=feedbackMap[0];
@@ -3530,6 +3540,8 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   if (elements==0)
     return;
 
+  unsigned int NSUMS=10000;
+
   if (GPUindexing) {
 
     beginFrameCommands(*object.computeCommandBuffer);
@@ -3537,23 +3549,33 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     elements=groupSize*g;
 
     if(settings::verbose > 3) {
-      static bool first=true;
-      if(first) {
-        partialSums(object);
-        vkDeviceWaitIdle(*device);
-        first=false;
-      }
-      unsigned int N=10000;
-      utils::stopWatch Timer;
-      for(unsigned int i=0; i < N; ++i) {
-        partialSums(object);
-        vkDeviceWaitIdle(*device);
+      device->resetEvent(*object.startTimedSumsEvent);
+      device->resetEvent(*object.timedSumsFinishedEvent);
+      // Start recording commands into partialSumsCommandBuffer
+      object.partialSumsCommandBuffer->begin(vk::CommandBufferBeginInfo());
+
+      // Wait to execute the compute shaders util we trigger them from CPU
+      object.partialSumsCommandBuffer->waitEvents(
+        1,
+        &*object.startTimedSumsEvent,
+        vk::PipelineStageFlagBits::eHost,
+        vk::PipelineStageFlagBits::eComputeShader,
+        0,
+        nullptr,
+        0,
+        nullptr,
+        0,
+        nullptr
+      );
+
+      // Record all partial sums calcs into partialSumsCommandBuffer
+      for(unsigned int i=0; i < NSUMS; ++i) {
+        partialSums(object, &*object.partialSumsCommandBuffer);
       }
 
-      double T=Timer.seconds()/N;
-      cout << "elements=" << elements << endl;
-      cout << "Tmin (ms)=" << T*1e3 << endl;
-      cout << "Megapixels/second=" << elements/T/1e6 << endl;
+      // Signal to the CPU the compute shaders have executed
+      object.partialSumsCommandBuffer->setEvent(*object.timedSumsFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
+      object.partialSumsCommandBuffer->end();
     }
 
     partialSums(object);
@@ -3567,6 +3589,36 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   info.pCommandBuffers = commandsToSubmit.data();
 
   renderQueue.submit(1, &info, *object.inComputeFence);
+
+  if (GPUindexing && settings::verbose > 3) {
+    // Wait until the render queue isn't being used, so we only time
+    // our partial sums calcs
+    renderQueue.waitIdle();
+
+    auto partialSumsInfo = vk::SubmitInfo();
+
+    partialSumsInfo.commandBufferCount = 1;
+    partialSumsInfo.pCommandBuffers = &*object.partialSumsCommandBuffer;
+
+    // Send all the partial sum commands to the GPU, where they will wait
+    // until we signal them through the startTimedSums event
+    renderQueue.submit(1, &partialSumsInfo, nullptr);
+
+    // Start recording the time
+    utils::stopWatch Timer;
+
+    // Signal GPU to start partial sums
+    device->setEvent(*object.startTimedSumsEvent);
+
+    // Wait until the GPU tells us the sums are finished
+    waitForEvent(*object.timedSumsFinishedEvent);
+
+    // End recording
+    double T=Timer.seconds()/NSUMS;
+    cout << "elements=" << elements << endl;
+    cout << "Tmin (ms)=" << T*1e3 << endl;
+    cout << "Megapixels/second=" << elements/T/1e6 << endl;
+  }
 
   if (!GPUindexing) {
 

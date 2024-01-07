@@ -720,6 +720,15 @@ private:
   vk::UniqueDeviceMemory reflectionMemory;
 
   struct FrameObject {
+    enum CommandBuffers {
+      CMD_DEFAULT,
+      CMD_COUNT,
+      CMD_COMPUTE,
+      CMD_COPY,
+      CMD_PARTIAL,
+      CMD_MAX
+    };
+
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore renderFinishedSemaphore;
     vk::UniqueSemaphore inCountBufferCopy;
@@ -727,10 +736,13 @@ private:
     vk::UniqueFence inComputeFence;
     vk::UniqueEvent compressionFinishedEvent;
     vk::UniqueEvent sumFinishedEvent;
+    vk::UniqueEvent startTimedSumsEvent;
+    vk::UniqueEvent timedSumsFinishedEvent;
 
     vk::UniqueCommandBuffer commandBuffer;
     vk::UniqueCommandBuffer countCommandBuffer;
     vk::UniqueCommandBuffer computeCommandBuffer;
+    vk::UniqueCommandBuffer partialSumsCommandBuffer;
     vk::UniqueCommandBuffer copyCountCommandBuffer;
 
     vk::UniqueDescriptorSet descriptorSet;
@@ -842,6 +854,7 @@ private:
   void endFrameCommands();
   void endFrame(int imageIndex);
   void createSyncObjects();
+  void waitForEvent(vk::Event event);
 
   uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
 
@@ -914,7 +927,7 @@ private:
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
-  void partialSums(FrameObject & object);
+  void partialSums(FrameObject & object, vk::CommandBuffer *customBuffer=nullptr);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
   void compressCount(FrameObject & object);
