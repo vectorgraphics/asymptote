@@ -864,6 +864,8 @@ void AsyVkRender::createInstance()
   }
 #endif
 
+#if !defined(_WIN32)
+  // mesa is only supported by linux, ignore on windows
   if (settings::verbose > 2) {
     if (isLayerSupported(MESA_OVERLAY_LAYER)) {
       validationLayers.emplace_back(MESA_OVERLAY_LAYER);
@@ -871,6 +873,7 @@ void AsyVkRender::createInstance()
       std::cout << "Mesa overlay layer is not supported by the current Vulkan instance." << std::endl;
     }
   }
+#endif
 
   auto const instanceCI = vk::InstanceCreateInfo(
     vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
