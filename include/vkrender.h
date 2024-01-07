@@ -50,7 +50,9 @@ namespace camp
 class picture;
 
 // Comment out when not debugging:
+#if defined(ENABLE_VK_VALIDATION)
 #define VALIDATION
+#endif
 
 #define VEC_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
 #define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof(x[0])), x

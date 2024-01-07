@@ -65,6 +65,14 @@ option(ENABLE_GSL "Enable GSL support" true)
 option(ENABLE_EIGEN3 "Enable eigen3 support" true)
 option(ENABLE_FFTW3 "Enable fftw3 support" true)
 option(ENABLE_VULKAN "Whether to enable vulkan or not." true)
+
+if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
+    set(default_vk_validation_opt false)
+else()
+    set(default_vk_validation_opt true)
+endif()
+
+option(ENABLE_VK_VALIDATION_LAYERS "Whether to enable Vulkan validation layer" ${default_vk_validation_opt})
 option(
         ENABLE_RPC_FEATURES
         "Whether to enable XDR/RPC features. Also enables V3D. If compiling on UNIX systems, requires libtirpc to be installed."

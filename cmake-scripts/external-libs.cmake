@@ -248,6 +248,10 @@ We are using a separate glslang package
     endif()
 
     list(APPEND ASY_MACROS HAVE_VULKAN)
+
+    if (ENABLE_VK_VALIDATION_LAYERS)
+        list(APPEND ASY_MACROS ENABLE_VK_VALIDATION)
+    endif()
 else()
     message(STATUS "Disabling vulkan support")
 endif()
