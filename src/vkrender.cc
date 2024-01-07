@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <thread>
+#include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
 #define SHADER_DIRECTORY "shaders/"
@@ -1401,8 +1402,10 @@ void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
   info.commandBufferCount = 1;
   info.pCommandBuffers = &cmd;
 
-  renderQueue.submit(1, &info, *fence); // todo transfer queue
-  device->waitForFences(1, &*fence, true, std::numeric_limits<std::uint64_t>::max());
+  vkutils::checkVkResult(renderQueue.submit(1, &info, *fence)); // todo transfer queue
+  vkutils::checkVkResult(device->waitForFences(
+    1, &*fence, true, std::numeric_limits<std::uint64_t>::max()
+  ));
 
   device->freeCommandBuffers(*renderCommandPool, 1, &cmd);
 }
@@ -1481,7 +1484,9 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
   auto submitInfo = vk::SubmitInfo(0, nullptr, nullptr, 1, &*commandBuffer);
   auto submitResult = transferQueue.submit(1, &submitInfo, *fence);
   if (submitResult != vk::Result::eSuccess) throw std::runtime_error("failed to submit command buffer!");
-  device->waitForFences(1, &*fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+  vkutils::checkVkResult(device->waitForFences(
+    1, &*fence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+  ));
 }
 
 void AsyVkRender::copyToBuffer(const vk::Buffer& buffer, const void* data, vk::DeviceSize size,
@@ -3428,7 +3433,9 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   if (fragments>maxFragments) {
 
     maxFragments=11*fragments/10;
-    device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max());
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max()
+    ));
     updateSceneDependentBuffers();
   }
 }
@@ -3514,7 +3521,11 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     info.commandBufferCount = 1;
     info.pCommandBuffers = &currentCommandBuffer;
 
-    renderQueue.submit(1, &info, nullptr);
+    vkutils::checkVkResult(renderQueue.submit(
+      1,
+      &info,
+      nullptr
+    ));
 
     vk::Result result;
 
@@ -3571,11 +3582,16 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   info.commandBufferCount = commandsToSubmit.size();
   info.pCommandBuffers = commandsToSubmit.data();
 
-  renderQueue.submit(1, &info, *object.inComputeFence);
+  vkutils::checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
 
   if (!GPUindexing) {
 
-    device->waitForFences(1, &*object.inComputeFence, true, std::numeric_limits<std::uint64_t>::max());
+    vkutils::checkVkResult(device->waitForFences(
+      1,
+      &*object.inComputeFence,
+      true,
+      std::numeric_limits<std::uint64_t>::max()
+    ));
 
     elements=pixels;
 
@@ -3608,7 +3624,9 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     info.signalSemaphoreCount = 1;
     info.pSignalSemaphores = &*object.inCountBufferCopy;
 
-    transferQueue.submit(1, &info, nullptr);
+    vkutils::checkVkResult(transferQueue.submit(
+      1, &info, nullptr
+    ));
   }
 }
 
@@ -3631,8 +3649,12 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
   if (transparent) {
 
-    device->waitForFences(1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-    device->resetFences(1, &*object.inComputeFence);
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+    ));
+    vkutils::checkVkResult(device->resetFences(
+      1, &*object.inComputeFence
+    ));
     device->resetEvent(*object.sumFinishedEvent);
     device->resetEvent(*object.compressionFinishedEvent);
 
@@ -3709,8 +3731,12 @@ void AsyVkRender::drawFrame()
       throw std::runtime_error("Failed to acquire next swapchain image.");
   }
 
-  device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-  device->resetFences(1, &*frameObject.inFlightFence);
+  vkutils::checkVkResult(device->waitForFences(
+    1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+  ));
+  vkutils::checkVkResult(device->resetFences(
+    1, &*frameObject.inFlightFence
+  ));
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
 
   updateUniformBuffer(currentFrame);
@@ -3773,13 +3799,17 @@ void AsyVkRender::drawFrame()
   }
 
   if (recreateBlendPipeline) {
-    device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+    ));
     createBlendPipeline();
     recreateBlendPipeline=false;
   }
 
   if(queueExport) {
-    device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+    ));
     Export(imageIndex);
     queueExport=false;
   }
@@ -3899,6 +3929,7 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
         updateHandler(0);
       }
     }
+    break;
     default:
       break;
   }
@@ -4086,7 +4117,7 @@ void AsyVkRender::exportHandler(int) {
 void AsyVkRender::Export(int imageIndex) {
 
   exportCommandBuffer->reset();
-  device->resetFences(1, &*exportFence);
+  vkutils::checkVkResult(device->resetFences(1, &*exportFence));
   exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
   auto const size = device->getImageMemoryRequirements(backbufferImages[0]).size;
@@ -4163,7 +4194,9 @@ void AsyVkRender::Export(int imageIndex) {
   if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
 
-  device->waitForFences(1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+  vkutils::checkVkResult(device->waitForFences(
+    1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+  ));
 
   auto * data = static_cast<unsigned char*>(device->mapMemory(mem, 0, size));
   auto * fmt = new unsigned char[backbufferExtent.width * backbufferExtent.height * 3]; // 3 for RGB
