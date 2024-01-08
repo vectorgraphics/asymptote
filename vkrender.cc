@@ -721,6 +721,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 #ifdef HAVE_VULKAN
 void AsyVkRender::initVulkan()
 {
+  VULKAN_HPP_DEFAULT_DISPATCHER.init();
+
   if (!glslang::InitializeProcess()) {
     throw std::runtime_error("Unable to initialize glslang.");
   }
@@ -879,6 +881,7 @@ void AsyVkRender::createInstance()
     extensions.data()
   );
   instance = vk::createInstanceUnique(instanceCI);
+  VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 }
 
 void AsyVkRender::createSurface()
@@ -1168,6 +1171,8 @@ void AsyVkRender::createLogicalDevice()
   );
 
   device = physicalDevice.createDeviceUnique(deviceCI, nullptr);
+  VULKAN_HPP_DEFAULT_DISPATCHER.init(*device);
+
   transferQueue = device->getQueue(queueFamilyIndices.transferQueueFamily, 0);
   renderQueue = device->getQueue(queueFamilyIndices.renderQueueFamily, 0);
   if (queueFamilyIndices.presentQueueFamilyFound) {
