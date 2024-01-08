@@ -543,6 +543,18 @@ public:
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
+// Accesses the file with specified types added to the type environment.
+class templateAccessDec : public dec {
+  symbol src; // The name of the module to access.
+  formals *args;
+  symbol dest;  // What to call it in the local environment.
+
+public:
+  templateAccessDec(position pos, symbol src, formals *args, symbol dest)
+    : dec(pos), src(src), args(args), dest(test) {}
+};
+
+
 // Abstract base class for
 //   from _ access _;  (fromaccessdec)
 // and
