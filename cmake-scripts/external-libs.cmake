@@ -226,7 +226,7 @@ that warning can be safely ignored. We are not using glslang from the vulkan pac
 We are using a separate glslang package
     ")
 
-    find_package(Vulkan)
+    include(FindVulkan)
     if (Vulkan_FOUND)
         list(APPEND ASY_STATIC_LIBARIES Vulkan::Vulkan)
     else()
