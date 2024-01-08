@@ -50,6 +50,20 @@ bool checkKeyword(position pos, symbol sym)
   return true;
 }
 
+// Check if the symbol given is "as".  Returns true in this case and
+// returns false and reports an error otherwise.
+bool checkAs(position pos, symbol sym)
+{
+  if (sym != symbol::trans("as")) {
+    em.error(pos);
+    em << "expected 'as' here";
+
+    return false;
+  }
+  return true;
+}
+
+
 namespace absyntax { file *root; }
 
 using namespace absyntax;
@@ -258,7 +272,8 @@ dec:
                    { assert(false); }
 /* ACCESS name '(' decdeclist ')' 'as' ID */
 | ACCESS name '(' decdeclist ')' ID ID ';'
-                   { assert(false); }
+                   { checkAs($6.pos, $6.sym);
+                     $$ = new templateAccessDec($2, $4, $7); }
 ;
 
 // List mapping dec to dec as in "Key=string, Value=int"
