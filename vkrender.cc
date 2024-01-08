@@ -735,6 +735,9 @@ void AsyVkRender::initVulkan()
   }
 
   createInstance();
+#if defined(VALIDATION)
+  createDebugMessenger();
+#endif
   if (View) createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
@@ -884,6 +887,47 @@ void AsyVkRender::createInstance()
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 }
+
+#if defined(VALIDATION)
+void AsyVkRender::createDebugMessenger()
+{
+  vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
+  vk::DebugUtilsMessageTypeFlagsEXT typeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
+  if (settings::verbose >= 1)
+  {
+    severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
+    typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral;
+  }
+  if (settings::verbose >= 2)
+  {
+    severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo;
+    typeFlags |= typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+  }
+  if (settings::verbose >= 3)
+  {
+    severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
+  }
+
+  auto const debugCreateInfo = vk::DebugUtilsMessengerCreateInfoEXT(
+          {},
+          severityFlags,
+          typeFlags,
+          [](
+                  VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
+                  VkDebugUtilsMessageTypeFlagsEXT msgType,
+                  VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+                  void* pUserData
+          ) -> VkBool32
+          {
+            cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+//            return vk::False;
+            return false;
+          },
+          this
+  );
+  debugMessenger = instance->createDebugUtilsMessengerEXTUnique(debugCreateInfo);
+}
+#endif
 
 void AsyVkRender::createSurface()
 {
