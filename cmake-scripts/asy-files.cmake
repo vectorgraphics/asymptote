@@ -27,7 +27,7 @@ set(CORE_BUILD_FILES
         varinit fundec refaccess envcompleter process constructor array memory
         Delaunay predicates jsfile v3dfile vkrender
         EXRFiles lspserv symbolmaps win32helpers win32pipestream
-        win32xdr xstream vkutils
+        win32xdr xstream vkutils vkdispatchstorage
 )
 
 set(ASY_CSV_ENUM_FILES v3dtypes v3dheadertypes)
