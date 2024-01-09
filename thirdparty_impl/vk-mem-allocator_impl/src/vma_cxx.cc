@@ -43,20 +43,32 @@ VmaAllocator UniqueAllocator::getAllocator() const
   return _allocator;
 }
 
-UniqueBuffer UniqueAllocator::createBuffer(
-        VkBufferCreateInfo const& bufferCreateInfo,
-        VmaAllocationCreateInfo const& allocInfo
-        )
+UniqueBuffer
+UniqueAllocator::createBuffer(VkBufferCreateInfo const& bufferCreateInfo, VmaAllocationCreateInfo const& allocInfo)
 {
   VkBuffer buf;
   VmaAllocation alloc;
   if (vmaCreateBuffer(_allocator, &bufferCreateInfo, &allocInfo, &buf, &alloc, nullptr) != VK_SUCCESS)
   {
-    throw std::runtime_error("Cannot create Vulkan memory allocator");
+    throw std::runtime_error("Cannot create Vulkan memory buffer");
   }
 
-  return { _allocator, alloc, buf };
+  return {_allocator, alloc, buf};
+}
+UniqueImage UniqueAllocator::createImage(
+  VkImageCreateInfo const& imgCreateInfo,
+  VmaAllocationCreateInfo const& allocInfo
+)
+{
+  VkImage resultImage;
+  VmaAllocation resultAllocation;
 
+  if (vmaCreateImage(_allocator, &imgCreateInfo, &allocInfo, &resultImage, &resultAllocation, nullptr) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Cannot create Vulkan image");
+  }
+
+  return {_allocator, resultImage, resultAllocation};
 }
 
 // unique buffer
@@ -66,7 +78,7 @@ UniqueBuffer::UniqueBuffer(
         VmaAllocation const& alloc,
         VkBuffer const& buf
         )
-    : _allocator(allocator), _allocation(alloc), _buffer(buf)
+    : _allocator(allocator), _buffer(buf), _allocation(alloc)
 {
 
 }
@@ -103,7 +115,10 @@ VmaAllocation UniqueBuffer::getAllocation() const
 {
   return _allocation;
 }
-VmaAllocator UniqueBuffer::getAllocator() const { return _allocator; }
+VmaAllocator UniqueBuffer::getAllocator() const
+{
+  return _allocator;
+}
 
 
 MemoryMapperLock::MemoryMapperLock(UniqueBuffer const& buffer) : sourceBuffer(&buffer)
@@ -120,5 +135,37 @@ MemoryMapperLock::~MemoryMapperLock()
     vmaUnmapMemory(sourceBuffer->getAllocator(), sourceBuffer->getAllocation());
   }
 }
+UniqueImage::UniqueImage(VmaAllocator const& allocator, VkImage const& image, VmaAllocation const& allocation)
+    : _allocator(allocator), _image(image), _allocation(allocation)
+{
+  
 }
+UniqueImage::~UniqueImage()
+{
+  if (_allocation != VK_NULL_HANDLE)
+  {
+    vmaDestroyImage(_allocator, _image, _allocation);
+  }
+}
+UniqueImage::UniqueImage(UniqueImage&& other) noexcept
+    : _allocator(std::exchange(other._allocator, VK_NULL_HANDLE)), _image(std::exchange(other._image, VK_NULL_HANDLE)),
+      _allocation(std::exchange(other._allocation, VK_NULL_HANDLE))
+{
+  
+}
+UniqueImage& UniqueImage::operator=(UniqueImage&& other) noexcept
+{
+  if (this != &other)
+  {
+    std::swap(_allocator, other._allocator);
+    std::swap(_image, other._image);
+    std::swap(_allocation, other._allocation);
+  }
+  return *this;
+}
+VkImage UniqueImage::getImage() const
+{
+  return _image;
+}
+}// namespace cxx
 }
