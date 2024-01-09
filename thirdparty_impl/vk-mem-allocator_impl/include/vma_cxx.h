@@ -30,9 +30,9 @@ public:
   VmaAllocator getAllocator() const;
 
 private:
+  VmaAllocator _allocator= VK_NULL_HANDLE;
+  VkBuffer _buffer= VK_NULL_HANDLE;
   VmaAllocation _allocation = VK_NULL_HANDLE;
-  VkBuffer _buffer = VK_NULL_HANDLE;
-  VmaAllocator _allocator = VK_NULL_HANDLE;
 };
 
 class MemoryMapperLock
@@ -58,6 +58,29 @@ private:
   void* copyPtr=nullptr;
 };
 
+class UniqueImage
+{
+public:
+  [[maybe_unused]]
+  UniqueImage() = default;
+  UniqueImage(VmaAllocator const& allocator, VkImage const& image, VmaAllocation const& allocation);
+  ~UniqueImage();
+
+  UniqueImage(UniqueImage const&) = delete;
+  UniqueImage& operator=(UniqueImage const&) = delete;
+
+  UniqueImage(UniqueImage&& other) noexcept;
+  UniqueImage& operator=(UniqueImage&& other) noexcept;
+  
+  [[nodiscard]]
+  VkImage getImage() const;
+
+private:
+  VmaAllocator _allocator= VK_NULL_HANDLE;
+  VkImage _image= VK_NULL_HANDLE;
+  VmaAllocation _allocation= VK_NULL_HANDLE;
+};
+
 
 class UniqueAllocator
 {
@@ -79,6 +102,9 @@ public:
 
   [[nodiscard]]
   UniqueBuffer createBuffer(VkBufferCreateInfo const& bufferCreateInfo, VmaAllocationCreateInfo const& allocInfo);
+
+  [[nodiscard]]
+  UniqueImage createImage(VkImageCreateInfo const& imgCreateInfo, VmaAllocationCreateInfo const& allocInfo);
 
 private:
   VmaAllocator _allocator = VK_NULL_HANDLE;
