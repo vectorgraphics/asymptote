@@ -1264,12 +1264,13 @@ void AsyVkRender::createSwapChain()
 
 void AsyVkRender::createOffscreenBuffers() {
   backbufferExtent=vk::Extent2D(width, height);
-  createImage(backbufferExtent.width, backbufferExtent.height,
+  defaultBackbufferImg = createImage(
+          backbufferExtent.width,
+          backbufferExtent.height,
               vk::SampleCountFlagBits::e1, backbufferImageFormat,
               vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
-              vk::MemoryPropertyFlagBits::eDeviceLocal,
-              defaultBackbufferImage, defaultBackbufferImageMemory);
-  backbufferImages.emplace_back(*defaultBackbufferImage);
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  backbufferImages.emplace_back(defaultBackbufferImg.getImage());
 
   for(auto & image: backbufferImages) {
     transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, image);
@@ -1565,9 +1566,10 @@ void AsyVkRender::copyToBuffer(
   copyToBuffer(buffer, data, size, stagingBuffer);
 }
 
-void AsyVkRender::createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
-                              vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
-                              vk::UniqueDeviceMemory & mem, vk::ImageType type, std::uint32_t depth)
+vma::cxx::UniqueImage AsyVkRender::createImage(
+        std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt, vk::ImageUsageFlags usage,
+        VkMemoryPropertyFlags props, vk::ImageType type, std::uint32_t depth
+)
 {
   auto info = vk::ImageCreateInfo();
 
@@ -1582,26 +1584,21 @@ void AsyVkRender::createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountF
   info.sharingMode    = vk::SharingMode::eExclusive;
   info.samples        = samples;
 
-  img = device->createImageUnique(info);
+  VmaAllocationCreateInfo allocCreateInfo = {};
+  allocCreateInfo.requiredFlags= props;
+  allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+  
 
-  auto const req = device->getImageMemoryRequirements(*img);
-
-  vk::MemoryAllocateInfo alloc(
-    req.size,
-    selectMemory(req, props)
-  );
-
-  mem = device->allocateMemoryUnique(alloc);
-  device->bindImageMemory(*img, *mem, 0);
+  return allocator.createImage(info, allocCreateInfo);
 }
 
 void AsyVkRender::createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags,
-                                  vk::UniqueImage& img, vk::UniqueImageView& imgView,
+                                  vk::Image const& img, vk::UniqueImageView& imgView,
                                   vk::ImageViewType type)
 {
   auto info = vk::ImageViewCreateInfo();
 
-  info.image = *img;
+  info.image = img;
   info.viewType = type;
   info.format = fmt;
   info.components = vk::ComponentMapping();
@@ -2456,8 +2453,7 @@ void AsyVkRender::initIBL() {
   string imagePath=imageDir+settings::getSetting<string>("image")+"/";
 
   auto const createReflectionSampler = [=](
-    vk::UniqueImage& image,
-    vk::UniqueDeviceMemory& mem,
+    vma::cxx::UniqueImage& uniqueImg,
     vk::UniqueImageView& imageView,
     vk::UniqueSampler& sampler,
     std::vector<string> texturePaths
@@ -2473,44 +2469,41 @@ void AsyVkRender::initIBL() {
       auto && w = texture.size().first;
       auto && h = texture.size().second;
 
-      if (static_cast<void*>(*image) == nullptr) {
+      if (uniqueImg.getImage() == VK_NULL_HANDLE) {
 
-        createImage(w, h,
-                    vk::SampleCountFlagBits::e1,
-                    vk::Format::eR32G32B32A32Sfloat,
-                    vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-                    vk::MemoryPropertyFlagBits::eDeviceLocal,
-                    image,
-                    mem,
-                    imageType,
-                    texturePaths.size()
+        uniqueImg = createImage(
+                w, h,
+                vk::SampleCountFlagBits::e1,
+                vk::Format::eR32G32B32A32Sfloat,
+                vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                imageType,
+                texturePaths.size()
         );
-        transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, *image);
+        transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, uniqueImg.getImage());
       }
 
       copyDataToImage(texture.getData(),
                       sizeof(glm::vec4) * w * h,
-                      *image,
+                      uniqueImg.getImage(),
                       w, h,
                       {0, 0, offset++});
     }
 
-    transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, *image);
-    createImageView(vk::Format::eR32G32B32A32Sfloat, vk::ImageAspectFlagBits::eColor, image, imageView, imageViewType);
+    transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, uniqueImg.getImage());
+    createImageView(vk::Format::eR32G32B32A32Sfloat, vk::ImageAspectFlagBits::eColor, uniqueImg.getImage(), imageView, imageViewType);
     createImageSampler(sampler);
   };
 
   createReflectionSampler(
-    irradiance,
-    irradianceMemory,
+    irradianceImg,
     irradianceView,
     irradianceSampler,
     {imagePath+"diffuse.exr"}
   );
 
   createReflectionSampler(
-    brdfTex,
-    brdfTexMemory,
+    brdfImg,
     brdfView,
     brdfSampler,
     {imageDir+"refl.exr"}
@@ -2525,8 +2518,7 @@ void AsyVkRender::initIBL() {
   }
 
   createReflectionSampler(
-    reflection,
-    reflectionMemory,
+    reflectionImg,
     reflectionView,
     reflectionSampler,
     files
@@ -3127,20 +3119,22 @@ void AsyVkRender::createComputePipelines()
 
 void AsyVkRender::createAttachments()
 {
-  createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, backbufferImageFormat,
+  colorImg = createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, backbufferImageFormat,
               vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
-              vk::MemoryPropertyFlagBits::eDeviceLocal, colorImage, colorImageMemory);
-  createImageView(backbufferImageFormat, vk::ImageAspectFlagBits::eColor, colorImage, colorImageView);
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  createImageView(backbufferImageFormat, vk::ImageAspectFlagBits::eColor, colorImg.getImage(), colorImageView);
 
-  createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, vk::Format::eD32Sfloat,
-              vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, depthImage,
-              depthImageMemory);
-  createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthImage, depthImageView);
+  depthImg = createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, vk::Format::eD32Sfloat,
+          vk::ImageUsageFlagBits::eDepthStencilAttachment,
+          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+  );
+  createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthImg.getImage(), depthImageView);
 
-  createImage(backbufferExtent.width, backbufferExtent.height, vk::SampleCountFlagBits::e1, vk::Format::eD32Sfloat,
-              vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, depthResolveImage,
-              depthResolveImageMemory);
-  createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthResolveImage, depthResolveImageView);
+  depthResolveImg = createImage(backbufferExtent.width, backbufferExtent.height, vk::SampleCountFlagBits::e1, vk::Format::eD32Sfloat,
+          vk::ImageUsageFlagBits::eDepthStencilAttachment,
+          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+  );
+  createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthResolveImg.getImage(), depthResolveImageView);
 }
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
