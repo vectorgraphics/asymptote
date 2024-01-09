@@ -575,26 +575,22 @@ private:
   vk::UniqueFence exportFence;
   vk::Format backbufferImageFormat=vk::Format::eB8G8R8A8Unorm;
   vk::Extent2D backbufferExtent;
-  vk::UniqueImage defaultBackbufferImage;
-  vk::UniqueDeviceMemory defaultBackbufferImageMemory;
+  vma::cxx::UniqueImage defaultBackbufferImg;
   std::vector<vk::Image> backbufferImages;
   std::vector<vk::UniqueImageView> backbufferImageViews;
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
   std::vector<vk::UniqueFramebuffer> opaqueGraphicsFramebuffers;
   std::vector<vk::UniqueFramebuffer> graphicsFramebuffers;
 
-  vk::UniqueImage depthImage;
+  vma::cxx::UniqueImage depthImg;
   vk::UniqueImageView depthImageView;
-  vk::UniqueDeviceMemory depthImageMemory;
-
-  vk::UniqueImage depthResolveImage;
+  
+  vma::cxx::UniqueImage depthResolveImg;
   vk::UniqueImageView depthResolveImageView;
-  vk::UniqueDeviceMemory depthResolveImageMemory;
 
   vk::SampleCountFlagBits msaaSamples;
-  vk::UniqueImage colorImage;
+  vma::cxx::UniqueImage colorImg;
   vk::UniqueImageView colorImageView;
-  vk::UniqueDeviceMemory colorImageMemory;
 
   vk::UniqueCommandPool transferCommandPool;
   vk::UniqueCommandPool renderCommandPool;
@@ -699,20 +695,17 @@ private:
   std::size_t elementBufferSize;
   vma::cxx::UniqueBuffer elementBf;
 
-  vk::UniqueImage irradiance;
+  vma::cxx::UniqueImage irradianceImg;
   vk::UniqueImageView irradianceView;
   vk::UniqueSampler irradianceSampler;
-  vk::UniqueDeviceMemory irradianceMemory;
 
-  vk::UniqueImage brdfTex;
+  vma::cxx::UniqueImage brdfImg;
   vk::UniqueImageView brdfView;
   vk::UniqueSampler brdfSampler;
-  vk::UniqueDeviceMemory brdfTexMemory;
 
-  vk::UniqueImage reflection;
+  vma::cxx::UniqueImage reflectionImg;
   vk::UniqueImageView reflectionView;
   vk::UniqueSampler reflectionSampler;
-  vk::UniqueDeviceMemory reflectionMemory;
 
   struct FrameObject {
     vk::UniqueSemaphore imageAvailableSemaphore;
@@ -864,10 +857,13 @@ private:
           const void* data,
           vk::DeviceSize size
   );
-  void createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
-                   vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
-                   vk::UniqueDeviceMemory & mem, vk::ImageType type=vk::ImageType::e2D, std::uint32_t depth=1);
-  void createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags, vk::UniqueImage& img,
+  vma::cxx::UniqueImage createImage(
+    std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
+    vk::ImageUsageFlags usage, VkMemoryPropertyFlags props,
+    vk::ImageType type=vk::ImageType::e2D, std::uint32_t depth=1
+  );
+  void createImageView(
+          vk::Format fmt, vk::ImageAspectFlagBits flags, vk::Image const& img,
                        vk::UniqueImageView& imgView, vk::ImageViewType type=vk::ImageViewType::e2D);
   void createImageSampler(vk::UniqueSampler & sampler);
   void copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size);
