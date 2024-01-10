@@ -2899,7 +2899,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
   if (type == PIPELINE_OPAQUE) {
     renderPass = *opaqueGraphicsRenderPass;
-  } else if (type == PIPELINE_COUNT) {
+  } else if (type == PIPELINE_COUNT || type == PIPELINE_COMPRESS) {
     renderPass = *countRenderPass;
   }
 
@@ -2992,7 +2992,7 @@ void AsyVkRender::createGraphicsPipelines()
                           true);
 
   createGraphicsPipeline<ColorVertex>
-                        (PIPELINE_DONTCARE, compressPipeline, vk::PrimitiveTopology::eTriangleList,
+                        (PIPELINE_COMPRESS, compressPipeline, vk::PrimitiveTopology::eTriangleList,
                         vk::PolygonMode::eFill,
                         {},
                         "screen",

@@ -605,6 +605,7 @@ private:
     PIPELINE_TRANSPARENT,
     PIPELINE_COUNT,
     PIPELINE_MAX,
+    PIPELINE_COMPRESS,
     PIPELINE_DONTCARE
   };
   std::vector<std::string> materialShaderOptions {
