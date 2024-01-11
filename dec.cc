@@ -179,6 +179,14 @@ void block::trans(coenv &e)
 void block::transAsField(coenv &e, record *r)
 {
   if (scope) e.e.beginScope();
+
+  symbol key=symbol::literalTrans("pair");
+  trans::tyEntry *base=e.e.te.look(key);
+  symbol T=symbol::literalTrans("T");
+  decidstart *Tid=new decidstart(getPos(),T);
+  decid *did=new decid(getPos(),Tid);
+  did->transAsTypedefField(e,base,r);
+
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
   }
