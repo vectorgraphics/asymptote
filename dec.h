@@ -224,6 +224,8 @@ public:
 
   void transAsField(coenv &e, record *r) override;
 
+  void transAsTemplatedField(coenv &e, record *r, formals* args);
+
   void transAsRecordBody(coenv &e, record *r);
 
   types::record *transAsFile(genv& ge, symbol id);
@@ -548,10 +550,22 @@ class templateAccessDec : public dec {
   symbol src; // The name of the module to access.
   formals *args;
   symbol dest;  // What to call it in the local environment.
+  bool valid;
 
 public:
-  templateAccessDec(position pos, symbol src, formals *args, symbol dest)
-    : dec(pos), src(src), args(args), dest(test) {}
+  templateAccessDec(position pos, symbol src, formals* args, symbol as,
+                    symbol dest)
+      : dec(pos), src(src), args(args), dest(dest),
+        valid(as == symbol::trans("as")) {}
+  
+  void checkValidity() {
+    if (!valid) {
+      em.error(getPos());
+      em << "expected 'as'";
+    }
+  }
+
+  void transAsTemplatedFile(coenv& e, record* r);
 };
 
 

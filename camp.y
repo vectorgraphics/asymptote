@@ -272,8 +272,7 @@ dec:
                    { assert(false); }
 /* ACCESS name '(' decdeclist ')' 'as' ID */
 | ACCESS name '(' decdeclist ')' ID ID ';'
-                   { checkAs($6.pos, $6.sym);
-                     $$ = new templateAccessDec($2, $4, $7); }
+                   { $$ = new templateAccessDec($1.pos, $2.sym, $4, $6, $7.sym); }
 ;
 
 // List mapping dec to dec as in "Key=string, Value=int"

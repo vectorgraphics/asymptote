@@ -179,11 +179,30 @@ void block::trans(coenv &e)
 void block::transAsField(coenv &e, record *r)
 {
   if (scope) e.e.beginScope();
+
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
   }
   if (scope) e.e.endScope();
 }
+
+void block::transAsTemplatedField(coenv &e, record *r, formals* args)
+{
+  if (scope) e.e.beginScope();
+  // auto p = stms.begin();
+  // if (p == stms.end()) {
+  //   em.error(getPos());
+  //   em << "tried to import empty file as template";
+  // } else {
+
+  // }
+  // Add things from args to e.e.te (type environment)
+  for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
+    (*p)->markTransAsField(e, r);
+  }
+  if (scope) e.e.endScope();
+}
+
 
 void block::transAsRecordBody(coenv &e, record *r)
 {
