@@ -1,2 +1,2 @@
-//typedef real T;
+//typedef pair T;
 T Sqrt(T x) {return sqrt(x);}
