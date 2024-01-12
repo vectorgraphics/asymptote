@@ -30,10 +30,13 @@
 
 #ifdef HAVE_VULKAN
 #define VK_ENABLE_BETA_EXTENSIONS
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 
-#include <glslang/SPIRV/GlslangToSpv.h>
+#include "vk_mem_alloc.h"
+#include <vma_cxx.h>
 
+#include <glslang/SPIRV/GlslangToSpv.h>
 #include <GLFW/glfw3.h>
 #endif
 
@@ -468,19 +471,17 @@ private:
 #ifdef HAVE_VULKAN
   struct DeviceBuffer {
     vk::BufferUsageFlags usage;
-    vk::MemoryPropertyFlags properties;
-    vk::DeviceSize memorySize = 0;
+    VkMemoryPropertyFlagBits properties;
     std::size_t nobjects;
-    vk::UniqueBuffer buffer;
-    vk::UniqueDeviceMemory memory;
-    vk::UniqueBuffer stagingBuffer;
-    vk::UniqueDeviceMemory stagingBufferMemory;
+    vk::DeviceSize stgBufferSize = 0;
+    vma::cxx::UniqueBuffer _buffer;
+    vma::cxx::UniqueBuffer _stgBuffer;
 
-    DeviceBuffer(vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties=vk::MemoryPropertyFlagBits::eDeviceLocal)
+    DeviceBuffer(vk::BufferUsageFlags usage, VkMemoryPropertyFlagBits properties=VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
         : usage(usage), properties(properties) {}
 
     void reset() {
-      *buffer=nullptr;
+      _buffer = vma::cxx::UniqueBuffer();
     }
   };
 #endif
@@ -554,6 +555,8 @@ private:
 
   vk::PhysicalDevice physicalDevice = nullptr;
   vk::UniqueDevice device;
+
+  vma::cxx::UniqueAllocator allocator;
 
   QueueFamilyIndices queueFamilyIndices;
 
@@ -655,55 +658,41 @@ private:
   vk::UniquePipelineLayout sum3PipelineLayout;
   vk::UniquePipeline sum3Pipeline;
 
-  vk::UniqueBuffer materialBuffer;
-  vk::UniqueDeviceMemory materialBufferMemory;
-
-  vk::UniqueBuffer lightBuffer;
-  vk::UniqueDeviceMemory lightBufferMemory;
+  vma::cxx::UniqueBuffer materialBf;
+  vma::cxx::UniqueBuffer lightBf;
 
   std::size_t countBufferSize;
-  vk::UniqueBuffer countBuffer;
-  vk::UniqueDeviceMemory countBufferMemory;
-  std::uint32_t *countBufferMap = nullptr;
+  vma::cxx::UniqueBuffer countBf;
+  std::unique_ptr<vma::cxx::MemoryMapperLock> countBfMappedMem = nullptr;
 
   std::size_t globalSize;
-  vk::UniqueBuffer globalSumBuffer;
-  vk::UniqueDeviceMemory globalSumBufferMemory;
+  vma::cxx::UniqueBuffer globalSumBf;
 
   std::size_t offsetBufferSize;
-  vk::UniqueBuffer offsetBuffer;
-  vk::UniqueDeviceMemory offsetBufferMemory;
-  vk::UniqueBuffer offsetStageBuffer;
-  vk::UniqueDeviceMemory offsetStageBufferMemory;
-  std::uint32_t *offsetStageBufferMap = nullptr;
+  vma::cxx::UniqueBuffer offsetBf;
+  vma::cxx::UniqueBuffer offsetStageBf;
+  std::unique_ptr<vma::cxx::MemoryMapperLock> offsetStageBfMappedMem = nullptr;
 
   std::size_t feedbackBufferSize;
-  vk::UniqueBuffer feedbackBuffer;
-  vk::UniqueDeviceMemory feedbackBufferMemory;
+  vma::cxx::UniqueBuffer feedbackBf;
 
   std::size_t fragmentBufferSize;
-  vk::UniqueBuffer fragmentBuffer;
-  vk::UniqueDeviceMemory fragmentBufferMemory;
+  vma::cxx::UniqueBuffer fragmentBf;
 
   std::size_t depthBufferSize;
-  vk::UniqueBuffer depthBuffer;
-  vk::UniqueDeviceMemory depthBufferMemory;
+  vma::cxx::UniqueBuffer depthBf;
 
   std::size_t opaqueBufferSize;
-  vk::UniqueBuffer opaqueBuffer;
-  vk::UniqueDeviceMemory opaqueBufferMemory;
+  vma::cxx::UniqueBuffer opaqueBf;
 
   std::size_t opaqueDepthBufferSize;
-  vk::UniqueBuffer opaqueDepthBuffer;
-  vk::UniqueDeviceMemory opaqueDepthBufferMemory;
+  vma::cxx::UniqueBuffer opaqueDepthBf;
 
   std::size_t indexBufferSize;
-  vk::UniqueBuffer indexBuffer;
-  vk::UniqueDeviceMemory indexBufferMemory;
+  vma::cxx::UniqueBuffer indexBf;
 
   std::size_t elementBufferSize;
-  vk::UniqueBuffer elementBuffer;
-  vk::UniqueDeviceMemory elementBufferMemory;
+  vma::cxx::UniqueBuffer elementBf;
 
   vk::UniqueImage irradiance;
   vk::UniqueImageView irradianceView;
@@ -748,9 +737,8 @@ private:
 
     vk::UniqueDescriptorSet descriptorSet;
 
-    vk::UniqueBuffer uniformBuffer;
-    vk::UniqueDeviceMemory uniformBufferMemory;
-    void * uboData;
+    vma::cxx::UniqueBuffer uboBf;
+    std::unique_ptr<vma::cxx::MemoryMapperLock> uboMappedMemory;
 
     vk::UniqueBuffer ssbo;
     vk::UniqueDeviceMemory ssboMemory;
@@ -814,6 +802,7 @@ private:
   std::vector<const char*> getRequiredInstanceExtensions();
   void createInstance();
   void createSurface();
+  void createAllocator();
   void pickPhysicalDevice();
   std::pair<std::uint32_t, vk::SampleCountFlagBits> getMaxMSAASamples( vk::PhysicalDevice& gpu );
   QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* surface);
@@ -862,12 +851,22 @@ private:
   void zeroBuffer(vk::Buffer & buf, vk::DeviceSize size);
   void createBuffer(vk::Buffer& buffer, vk::DeviceMemory& bufferMemory, vk::BufferUsageFlags usage,
                     vk::MemoryPropertyFlags properties, vk::DeviceSize size);
-  void createBufferUnique(vk::UniqueBuffer& buffer, vk::UniqueDeviceMemory& bufferMemory,
-                          vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-                          vk::DeviceSize size);
+  vma::cxx::UniqueBuffer createBufferUnique(
+          vk::BufferUsageFlags const& usage,
+          VkMemoryPropertyFlags const& properties,
+          vk::DeviceSize const& size,
+          VmaAllocationCreateFlags const& vmaFlags = 0);
   void copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size);
-  void copyToBuffer(const vk::Buffer& buffer, const void* data, vk::DeviceSize size,
-                    vk::Buffer stagingBuffer = {}, vk::DeviceMemory stagingBufferMemory = {});
+  void copyToBuffer(
+          const vk::Buffer& buffer,
+          const void* data,
+          vk::DeviceSize size,
+          vma::cxx::UniqueBuffer const& stagingBuffer);
+  void copyToBuffer(
+          const vk::Buffer& buffer,
+          const void* data,
+          vk::DeviceSize size
+  );
   void createImage(std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
                    vk::ImageUsageFlags usage, vk::MemoryPropertyFlags props, vk::UniqueImage & img,
                    vk::UniqueDeviceMemory & mem, vk::ImageType type=vk::ImageType::e2D, std::uint32_t depth=1);

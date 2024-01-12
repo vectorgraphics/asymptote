@@ -11,7 +11,7 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
+LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src -L
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@ -ldl
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 
@@ -30,6 +30,7 @@ vpath %.cc prc
 vpath %.ui GUI/windows
 vpath %.py GUI/pyUIClass
 vpath %.py GUI
+vpath %.cc thirdparty_impl/vk-mem-allocator_impl/src/
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
@@ -50,7 +51,8 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy parallel simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) jsfile v3dfile tinyexr EXRFiles lspserv symbolmaps vkrender
+	$(PRC) jsfile v3dfile tinyexr EXRFiles lspserv symbolmaps vkrender \
+	vma_cxx
 
 FILES = $(COREFILES) main
 
@@ -81,7 +83,8 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
-OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp/include
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp/include -Ithirdparty_impl/vk-mem-allocator_impl/include -I thirdparty_impl/VulkanMemoryAllocator/include
+
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
