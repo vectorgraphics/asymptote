@@ -3,11 +3,19 @@
   "license": "SEE LICENSE IN license",
   "version": "1.0.0",
   "description": "WebGL renderer for asymptote",
-
   "dependencies": {
+    "@types/webgl2": "^0.0.10"
+  },
+
+  "scripts": {
+    "prettier": "npx prettier src --check",
+    "eslint": "npx eslint \"src/**\""
   },
 
   "devDependencies": {
-    "typescript": "^5.3.3"
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "eslint": "^9.29.0",
+    "typescript": "^5.8.3"
   }
 }
