@@ -1,0 +1,13 @@
+{
+  "name": "asy-gl",
+  "license": "SEE LICENSE IN license",
+  "version": "1.0.0",
+  "description": "WebGL renderer for asymptote",
+
+  "dependencies": {
+  },
+
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
