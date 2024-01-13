@@ -9,7 +9,6 @@
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
-
 //using namespace settings;
 
 bool havewindow;
@@ -734,6 +733,7 @@ void AsyVkRender::initVulkan()
     std::cout << "Using " << maxFramesInFlight
               << " maximum frame(s) in flight." << std::endl;
   }
+
   createInstance();
   if (View) createSurface();
   pickPhysicalDevice();
@@ -3918,6 +3918,7 @@ void AsyVkRender::display()
 
   if(remesh) {
     clearCenters();
+    device->waitIdle(); // TODO: Use fence instead
 
     for (int i = 0; i < maxFramesInFlight; i++) {
       frameObjects[i].reset();
