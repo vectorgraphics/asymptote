@@ -1488,19 +1488,6 @@ void AsyVkRender::zeroBuffer(vk::Buffer & buf, vk::DeviceSize size) {
   endSingleCommands(cmd);
 }
 
-void AsyVkRender::createBuffer(vk::Buffer& buffer, vk::DeviceMemory& bufferMemory, vk::BufferUsageFlags usage,
-                               vk::MemoryPropertyFlags properties, vk::DeviceSize size)
-{
-  auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), size, usage, vk::SharingMode::eExclusive);
-  buffer = device->createBuffer(bufferCI);
-
-  auto memRequirements = device->getBufferMemoryRequirements(buffer);
-  uint32_t memoryTypeIndex = selectMemory(memRequirements, properties);
-  auto memoryCI = vk::MemoryAllocateInfo(memRequirements.size, memoryTypeIndex);
-  bufferMemory = device->allocateMemory(memoryCI);
-  device->bindBufferMemory(buffer, bufferMemory, 0);
-}
-
 vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
         vk::BufferUsageFlags const& usage,
         VkMemoryPropertyFlags const& properties,
