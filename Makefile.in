@@ -11,7 +11,7 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src -L
+LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@ -ldl
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 
