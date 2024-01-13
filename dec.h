@@ -197,6 +197,9 @@ public:
   { return false; }
 };
 
+// Forward declaration.
+class formals;
+
 class block : public runnable {
 public:
   mem::list<runnable *> stms;
@@ -337,9 +340,6 @@ public:
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
   void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
-
-// Forward declaration.
-class formals;
 
 class fundecidstart : public decidstart {
   formals *params;
@@ -565,7 +565,7 @@ public:
     }
   }
 
-  void transAsTemplatedFile(coenv& e, record* r);
+  void transAsField(coenv& e, record* r) override;
 };
 
 

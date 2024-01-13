@@ -173,8 +173,8 @@ using mem::string;
 %type  <dis> decidstart
 %type  <vi>  varinit
 %type  <ai>  arrayinit basearrayinit varinits
-%type  <fl>  formal
-%type  <fls> formals
+%type  <fl>  formal decdec
+%type  <fls> formals decdeclist
 %type  <e>   value exp fortest
 %type  <arg> argument
 %type  <slice> slice
@@ -188,9 +188,9 @@ using mem::string;
 %type  <sel> forupdate stmexplist
 %type  <boo> explicitornot
 
-// Make new classes for the following and add to union above.
-%type  <d> decdec
-%type  <d> decdeclist
+//// Make new classes for the following and add to union above.
+//%type  <d> decdec
+//%type  <d> decdeclist
 
 /* There are four shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
@@ -268,11 +268,11 @@ dec:
                    { $$ = new includedec($1, $2->getString()); }
 
 // Experimental - templated imports.
-| TYPEDEF IMPORT decidlist ';'
-                   { assert(false); }
+//| TYPEDEF IMPORT decidlist ';'
+//                   { assert(false); }
 /* ACCESS name '(' decdeclist ')' 'as' ID */
 | ACCESS name '(' decdeclist ')' ID ID ';'
-                   { $$ = new templateAccessDec($1.pos, $2.sym, $4, $6, $7.sym); }
+                   { $$ = new templateAccessDec($1, $2->getName(), $4, $6.sym, $7.sym); }
 ;
 
 // List mapping dec to dec as in "Key=string, Value=int"

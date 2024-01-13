@@ -99,6 +99,7 @@ void genv::checkRecursion(string filename) {
 record *genv::getModule(symbol id, string filename) {
   checkRecursion(filename);
 
+  // We need to change imap to consider the signature of templated imports.
   record *r=imap[filename];
   if (r)
     return r;

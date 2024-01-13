@@ -180,6 +180,16 @@ void block::transAsField(coenv &e, record *r)
 {
   if (scope) e.e.beginScope();
 
+  // backend version of `typedef real T;`:
+  //
+  // symbol key=symbol::literalTrans("pair");
+  // trans::tyEntry *base=e.e.te.look(key);
+  // symbol T=symbol::literalTrans("T");
+  // decidstart *Tid=new decidstart(getPos(),T);
+  // decid *did=new decid(getPos(),Tid);
+  // did->transAsTypedefField(e,base,r);
+
+
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
   }
@@ -917,6 +927,13 @@ void accessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 #endif
 }
 
+void templateAccessDec::transAsField(coenv& e, record* r) {
+  this->checkValidity();
+
+  varEntry *v=accessModule(getPos(), e, r, this->src);
+  if (v)
+    addVar(e, r, v, dest);
+}
 
 void fromdec::prettyprint(ostream &out, Int indent)
 {
