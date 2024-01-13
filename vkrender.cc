@@ -10,8 +10,6 @@
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
 
-VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
-
 //using namespace settings;
 
 bool havewindow;
@@ -21,6 +19,8 @@ static bool initialized=false;
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE;
+
 std::vector<const char*> instanceExtensions
 {
   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
@@ -721,7 +721,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 #ifdef HAVE_VULKAN
 void AsyVkRender::initVulkan()
 {
-  VULKAN_HPP_DEFAULT_DISPATCHER.init();
+  VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
   if (!glslang::InitializeProcess()) {
     throw std::runtime_error("Unable to initialize glslang.");
@@ -1592,7 +1592,7 @@ vma::cxx::UniqueImage AsyVkRender::createImage(
   VmaAllocationCreateInfo allocCreateInfo = {};
   allocCreateInfo.requiredFlags= props;
   allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-  
+
 
   return allocator.createImage(info, allocCreateInfo);
 }
