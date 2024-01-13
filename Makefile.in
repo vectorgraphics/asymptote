@@ -83,7 +83,7 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
-OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp/include -Ithirdparty_impl/vk-mem-allocator_impl/include -I thirdparty_impl/VulkanMemoryAllocator/include
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp/include -Ithirdparty_impl/vk-mem-allocator_impl/include -I VulkanMemoryAllocator/include
 
 
 # Options for compiling the object files for the shared library.
