@@ -584,7 +584,7 @@ private:
 
   vma::cxx::UniqueImage depthImg;
   vk::UniqueImageView depthImageView;
-  
+
   vma::cxx::UniqueImage depthResolveImg;
   vk::UniqueImageView depthResolveImageView;
 
@@ -853,8 +853,6 @@ private:
   uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
 
   void zeroBuffer(vk::Buffer & buf, vk::DeviceSize size);
-  void createBuffer(vk::Buffer& buffer, vk::DeviceMemory& bufferMemory, vk::BufferUsageFlags usage,
-                    vk::MemoryPropertyFlags properties, vk::DeviceSize size);
   vma::cxx::UniqueBuffer createBufferUnique(
           vk::BufferUsageFlags const& usage,
           VkMemoryPropertyFlags const& properties,
