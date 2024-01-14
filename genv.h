@@ -44,14 +44,14 @@ class genv : public gc {
 
   // Translate a module to build the record type.
   record *loadModule(symbol name, string s);
-  record *loadTemplatedModule(symbol name, string s);
+  record *loadTemplatedModule(symbol name, string s, mem::vector<absyntax::namedTyEntry> *args);
 
 public:
   genv();
 
   // Get an imported module, translating if necessary.
   record *getModule(symbol name, string s);
-  record *getTemplatedModule(symbol name, string s);
+  record *getTemplatedModule(symbol name, string s, mem::vector<absyntax::namedTyEntry> *args);
 
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.

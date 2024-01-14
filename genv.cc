@@ -86,7 +86,9 @@ record *genv::loadModule(symbol id, string filename) {
   return r;
 }
 
-record *genv::loadTemplatedModule(symbol id, string filename) {
+record *genv::loadTemplatedModule(symbol id, string filename,
+                                  mem::vector<absyntax::namedTyEntry> *args)
+{
   // Hackish way to load an external library.
 #if 0
   if (endswith(".so", filename)) {
@@ -101,7 +103,7 @@ record *genv::loadTemplatedModule(symbol id, string filename) {
 
   em.sync();
 
-  record *r=ast->transAsTemplatedFile(*this, id);
+  record *r=ast->transAsTemplatedFile(*this, id, args);
 
   inTranslation.remove(filename);
 
@@ -122,7 +124,6 @@ void genv::checkRecursion(string filename) {
 record *genv::getModule(symbol id, string filename) {
   checkRecursion(filename);
 
-  // We need to change imap to consider the signature of templated imports.
   record *r=imap[filename];
   if (r)
     return r;
@@ -138,7 +139,9 @@ record *genv::getModule(symbol id, string filename) {
 
 }
 
-record *genv::getTemplatedModule(symbol id, string filename) {
+record *genv::getTemplatedModule(symbol id, string filename,
+                                 mem::vector<absyntax::namedTyEntry>* args)
+{
   checkRecursion(filename);
 
   // We need to change imap to consider the signature of templated imports.
@@ -146,7 +149,7 @@ record *genv::getTemplatedModule(symbol id, string filename) {
   if (r)
     return r;
   else {
-    record *r=loadTemplatedModule(id, filename);
+    record *r=loadTemplatedModule(id, filename, args);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors())

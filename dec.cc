@@ -180,7 +180,7 @@ void block::transAsField(coenv &e, record *r)
 {
   if (scope) e.e.beginScope();
 
-  // backend version of `typedef real T;`:
+  // backend version of `typedef pair T;`:
   //
   // symbol key=symbol::literalTrans("pair");
   // trans::tyEntry *base=e.e.te.look(key);
@@ -241,7 +241,7 @@ record *block::transAsFile(genv& ge, symbol id)
   return r;
 }
 
-record *block::transAsTemplatedFile(genv& ge, symbol id)
+record *block::transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::namedTyEntry>* args)
 {
   // Create the new module.
   record *r = new record(id, new frame(id,0,0));
@@ -252,20 +252,23 @@ record *block::transAsTemplatedFile(genv& ge, symbol id)
   env e(ge);
   coenv ce(c, e);
 
+  // Look up all the types from ge and add them to ce.
+
 
   // Translate the abstract syntax.
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  // backend version of `typedef pair T;`:
-  //
-  symbol key=symbol::literalTrans("pair");
-  trans::tyEntry *base=ce.e.te.look(key);
-  symbol T=symbol::literalTrans("T");
-  decidstart *Tid=new decidstart(getPos(),T);
-  decid *did=new decid(getPos(),Tid);
-  did->transAsTypedefField(ce,base,r);
+  for (auto p = args->begin(); p < args->end(); ++p) {
+    e.addType(p->dest, p->ent);
+  }
+  // symbol key=symbol::literalTrans("pair");
+  // trans::tyEntry *base=ce.e.te.look(key);
+  // symbol T=symbol::literalTrans("T");
+  // decidstart *Tid=new decidstart(getPos(),T);
+  // decid *did=new decid(getPos(),Tid);
+  // did->transAsTypedefField(ce,base,r);
 
   transAsRecordBody(ce, r);
   em.sync();
@@ -854,9 +857,10 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 
 // Creates a local variable to hold the import and translate the accessing of
 // the import, but doesn't add the import to the environment.
-varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id)
+varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
+                                mem::vector<namedTyEntry> *args)
 {
-  record *imp=e.e.getTemplatedModule(id, (string)id);
+  record *imp=e.e.getTemplatedModule(id, (string)id, args);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -989,7 +993,17 @@ void accessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 void templateAccessDec::transAsField(coenv& e, record* r) {
   this->checkValidity();
 
-  varEntry *v=accessTemplatedModule(getPos(), e, r, this->src);
+  args->addOps(e, r);
+
+  auto *computedArgs = new mem::vector<namedTyEntry>();
+  mem::vector<std::pair<ty*, symbol>> *fields = args->getFields();
+  for (auto p = fields->begin(); p < fields->end(); ++p) {
+    ty* theType = p->first;
+    symbol theName = p->second;
+    computedArgs->emplace_back(theName, theType->transAsTyEntry(e, r));
+  }
+
+  varEntry *v=accessTemplatedModule(getPos(), e, r, this->src, computedArgs);
   if (v)
     addVar(e, r, v, dest);
 }

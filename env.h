@@ -18,6 +18,10 @@ namespace types {
 class record;
 }
 
+namespace absyntax {
+class namedTyEntry;
+}
+
 namespace trans {
 
 using sym::symbol;
@@ -180,7 +184,7 @@ public:
   ~env();
 
   record *getModule(symbol id, string filename);
-  record *getTemplatedModule(symbol id, string filename);
+  record *getTemplatedModule(symbol id, string filename, mem::vector<absyntax::namedTyEntry> *args);
 };
 
 } // namespace trans

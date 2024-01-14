@@ -214,9 +214,10 @@ record *env::getModule(symbol id, string filename)
   return ge.getModule(id, filename);
 }
 
-record *env::getTemplatedModule(symbol id, string filename)
+record *env::getTemplatedModule(symbol id, string filename,
+                                mem::vector<absyntax::namedTyEntry>* args)
 {
-  return ge.getTemplatedModule(id, filename);
+  return ge.getTemplatedModule(id, filename, args);
 }
 
 

@@ -200,6 +200,15 @@ public:
 // Forward declaration.
 class formals;
 
+class namedTyEntry : public gc {
+public:
+  symbol dest;
+  trans::tyEntry *ent;
+  namedTyEntry(symbol dest, trans::tyEntry *ent)
+    : dest(dest), ent(ent) {}
+};
+
+
 class block : public runnable {
 public:
   mem::list<runnable *> stms;
@@ -233,7 +242,7 @@ public:
 
   types::record *transAsFile(genv& ge, symbol id);
 
-  types::record *transAsTemplatedFile(genv& ge, symbol id);
+  types::record *transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::namedTyEntry> *args);
 
   // If the block can be interpreted as a single vardec, return that vardec
   // (otherwise 0).
