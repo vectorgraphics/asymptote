@@ -241,6 +241,39 @@ record *block::transAsFile(genv& ge, symbol id)
   return r;
 }
 
+record *block::transAsTemplatedFile(genv& ge, symbol id)
+{
+  // Create the new module.
+  record *r = new record(id, new frame(id,0,0));
+
+  // Create coder and environment to translate the module.
+  // File-level modules have dynamic fields by default.
+  coder c(getPos(), r, 0);
+  env e(ge);
+  coenv ce(c, e);
+
+
+  // Translate the abstract syntax.
+  if (settings::getSetting<bool>("autoplain")) {
+    autoplainRunnable()->transAsField(ce, r);
+  }
+
+  // backend version of `typedef pair T;`:
+  //
+  symbol key=symbol::literalTrans("pair");
+  trans::tyEntry *base=ce.e.te.look(key);
+  symbol T=symbol::literalTrans("T");
+  decidstart *Tid=new decidstart(getPos(),T);
+  decid *did=new decid(getPos(),Tid);
+  did->transAsTypedefField(ce,base,r);
+
+  transAsRecordBody(ce, r);
+  em.sync();
+
+  return r;
+}
+
+
 bool block::returns() {
   // Search for a returning runnable, starting at the end for efficiency.
   for (list<runnable *>::reverse_iterator p=stms.rbegin();
@@ -819,6 +852,32 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   }
 }
 
+// Creates a local variable to hold the import and translate the accessing of
+// the import, but doesn't add the import to the environment.
+varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id)
+{
+  record *imp=e.e.getTemplatedModule(id, (string)id);
+  if (!imp) {
+    em.error(pos);
+    em << "could not load module '" << id << "'";
+    em.sync();
+    return 0;
+  }
+  else {
+    // Create a varinit that evaluates to the module.
+    // This is effectively the expression "loadModule(filename)".
+    callExp init(pos, new loadModuleExp(pos, imp),
+                 new stringExp(pos, (string)id));
+
+    // The varEntry should have whereDefined()==0 as it is not defined inside
+    // the record r.
+    varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+    initializeVar(pos, e, v, &init);
+    return v;
+  }
+}
+
+
 
 void idpair::prettyprint(ostream &out, Int indent)
 {
@@ -930,7 +989,7 @@ void accessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 void templateAccessDec::transAsField(coenv& e, record* r) {
   this->checkValidity();
 
-  varEntry *v=accessModule(getPos(), e, r, this->src);
+  varEntry *v=accessTemplatedModule(getPos(), e, r, this->src);
   if (v)
     addVar(e, r, v, dest);
 }

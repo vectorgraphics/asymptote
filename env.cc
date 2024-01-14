@@ -214,4 +214,10 @@ record *env::getModule(symbol id, string filename)
   return ge.getModule(id, filename);
 }
 
+record *env::getTemplatedModule(symbol id, string filename)
+{
+  return ge.getTemplatedModule(id, filename);
+}
+
+
 }

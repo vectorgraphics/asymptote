@@ -233,6 +233,8 @@ public:
 
   types::record *transAsFile(genv& ge, symbol id);
 
+  types::record *transAsTemplatedFile(genv& ge, symbol id);
+
   // If the block can be interpreted as a single vardec, return that vardec
   // (otherwise 0).
   vardec *asVardec();

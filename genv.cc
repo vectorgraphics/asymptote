@@ -86,6 +86,29 @@ record *genv::loadModule(symbol id, string filename) {
   return r;
 }
 
+record *genv::loadTemplatedModule(symbol id, string filename) {
+  // Hackish way to load an external library.
+#if 0
+  if (endswith(".so", filename)) {
+    return transExternalModule(*this, filename, id);
+  }
+#endif
+
+  // Get the abstract syntax tree.
+  absyntax::file *ast = parser::parseFile(filename,"Loading");
+
+  inTranslation.push_front(filename);
+
+  em.sync();
+
+  record *r=ast->transAsTemplatedFile(*this, id);
+
+  inTranslation.remove(filename);
+
+  return r;
+}
+
+
 void genv::checkRecursion(string filename) {
   if (find(inTranslation.begin(), inTranslation.end(), filename) !=
       inTranslation.end()) {
@@ -114,6 +137,26 @@ record *genv::getModule(symbol id, string filename) {
   }
 
 }
+
+record *genv::getTemplatedModule(symbol id, string filename) {
+  checkRecursion(filename);
+
+  // We need to change imap to consider the signature of templated imports.
+  record *r=imap[filename];
+  if (r)
+    return r;
+  else {
+    record *r=loadTemplatedModule(id, filename);
+    // Don't add an erroneous module to the dictionary in interactive mode, as
+    // the user may try to load it again.
+    if (!interact::interactive || !em.errors())
+      imap[filename]=r;
+
+    return r;
+  }
+
+}
+
 
 typedef vm::stack::importInitMap importInitMap;
 
