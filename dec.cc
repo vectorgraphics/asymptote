@@ -803,7 +803,7 @@ class loadModuleExp : public exp {
 
 public:
   loadModuleExp(position pos, record *imp)
-    : exp(pos) {ft=new function(imp,primString());}
+    : exp(pos) {ft=new function(imp,primString(),primString());}
 
   void prettyprint(ostream &out, Int indent) {
     prettyname(out, "loadModuleExp", indent, getPos());
@@ -843,9 +843,9 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression "loadModule(filename)".
+    // This is effectively the expression 'loadModule(filename,"")'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string)id));
+                 new stringExp(pos, (string)id), new stringExp(pos, ""));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -860,7 +860,15 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 mem::vector<namedTyEntry> *args)
 {
-  record *imp=e.e.getTemplatedModule(id, (string)id, args);
+  static size_t Tcount=0;
+
+  stringstream index;
+  index << Tcount;
+  ++Tcount;
+
+  string s=index.str();
+
+  record *imp=e.e.getTemplatedModule(id, (string) id, s, args);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -869,9 +877,9 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression "loadModule(filename)".
+    // This is effectively the expression 'loadModule(filename,index)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string)id));
+                 new stringExp(pos, (string) id), new stringExp(pos, s));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.

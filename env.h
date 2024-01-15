@@ -184,7 +184,7 @@ public:
   ~env();
 
   record *getModule(symbol id, string filename);
-  record *getTemplatedModule(symbol id, string filename, mem::vector<absyntax::namedTyEntry> *args);
+  record *getTemplatedModule(symbol id, string filename, string index, mem::vector<absyntax::namedTyEntry> *args);
 };
 
 } // namespace trans
