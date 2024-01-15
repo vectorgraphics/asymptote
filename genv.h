@@ -16,6 +16,8 @@
 #ifndef GENV_H
 #define GENV_H
 
+#include <cstdint>
+
 #include "common.h"
 #include "table.h"
 #include "record.h"
@@ -31,7 +33,7 @@ namespace trans {
 
 class genv : public gc {
   // The initializer functions for imports, indexed by filename.
-  typedef mem::map<CONST string,record *> importMap;
+  typedef mem::map<CONST std::pair<string, uint64_t>,record *> importMap;
   importMap imap;
 
   // List of modules in translation.  Used to detect and prevent infinite

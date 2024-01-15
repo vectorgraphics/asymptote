@@ -16,6 +16,8 @@
 #include <sstream>
 #include <unistd.h>
 #include <algorithm>
+#include <cstdint>
+#include <mutex>
 
 #include "genv.h"
 #include "env.h"
@@ -43,7 +45,7 @@ genv::genv()
 {
   // Add settings as a module.  This is so that the init file ~/.asy/config.asy
   // can set settings.
-  imap["settings"]=settings::getSettingsModule();
+  imap[std::make_pair("settings", 0)]=settings::getSettingsModule();
 
   // Translate plain in advance, if we're using autoplain.
   if(getSetting<bool>("autoplain")) {
@@ -124,7 +126,7 @@ void genv::checkRecursion(string filename) {
 record *genv::getModule(symbol id, string filename) {
   checkRecursion(filename);
 
-  record *r=imap[filename];
+  record *r=imap[std::make_pair(filename, 0)];
   if (r)
     return r;
   else {
@@ -132,7 +134,7 @@ record *genv::getModule(symbol id, string filename) {
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors())
-      imap[filename]=r;
+      imap[std::make_pair(filename, 0)]=r;
 
     return r;
   }
@@ -143,20 +145,22 @@ record *genv::getTemplatedModule(symbol id, string filename,
                                  mem::vector<absyntax::namedTyEntry>* args)
 {
   checkRecursion(filename);
+  static uint64_t next_id = 1;
+  static std::mutex* next_id_mutex = new std::mutex();
 
-  // We need to change imap to consider the signature of templated imports.
-  record *r=imap[filename];
-  if (r)
-    return r;
-  else {
-    record *r=loadTemplatedModule(id, filename, args);
-    // Don't add an erroneous module to the dictionary in interactive mode, as
-    // the user may try to load it again.
-    if (!interact::interactive || !em.errors())
-      imap[filename]=r;
-
-    return r;
+  // TODO: Create a version of imap that considers the template parameters.
+  // record *r=imap[filename];
+  // if (r)
+  //   return r;
+  record *r=loadTemplatedModule(id, filename, args);
+  // Don't add an erroneous module to the dictionary in interactive mode, as
+  // the user may try to load it again.
+  if (!interact::interactive || !em.errors()) {
+    std::lock_guard<std::mutex> next_id_guard(*next_id_mutex);
+    imap[std::make_pair(filename, next_id++)]=r;
   }
+
+  return r;
 
 }
 
@@ -170,7 +174,7 @@ importInitMap *genv::getInitMap()
     initMap(genv &ge)
       : ge(ge) {}
     lambda *operator[](string s) {
-      record *r=ge.imap[s];
+      record *r=ge.imap[std::make_pair(s, 0)];
       return r ? r->getInit() : 0;
     }
   };

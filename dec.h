@@ -236,9 +236,10 @@ public:
 
   void transAsField(coenv &e, record *r) override;
 
-  void transAsTemplatedField(coenv &e, record *r, formals* args);
+  void transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args);
 
   void transAsRecordBody(coenv &e, record *r);
+  void transAsTemplatedRecordBody(coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args);
 
   types::record *transAsFile(genv& ge, symbol id);
 
