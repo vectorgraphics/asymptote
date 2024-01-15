@@ -1,3 +1,9 @@
+/**
+ * @file vma_cxx.cc
+ * @author Supakorn "Jamie" Rassameemasmuang (jamievlin [at] outlook.com)
+ * @brief Implementation for vma_cxx.h
+ */
+
 #include "vma_cxx.h"
 
 #include <utility>
