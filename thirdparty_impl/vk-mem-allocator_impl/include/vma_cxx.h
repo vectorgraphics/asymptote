@@ -1,3 +1,9 @@
+/**
+ * @file vma_cxx.h
+ * @author Supakorn "Jamie" Rassameemasmuang (jamievlin [at] outlook.com)
+ * @brief C++ utility classes for VulkanMemoryAllocator
+ */
+
 #pragma once
 #include <vk_mem_alloc.h>
 #include <stdexcept>
