@@ -196,7 +196,7 @@ void block::transAsField(coenv &e, record *r)
   if (scope) e.e.endScope();
 }
 
-void block::transAsTemplatedField(coenv &e, record *r, formals* args)
+void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args)
 {
   if (scope) e.e.beginScope();
   // auto p = stms.begin();
@@ -207,6 +207,10 @@ void block::transAsTemplatedField(coenv &e, record *r, formals* args)
 
   // }
   // Add things from args to e.e.te (type environment)
+  for (auto p = args->begin(); p != args->end(); ++p) {
+    e.e.addType(p->dest, p->ent);
+  }
+
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
   }
@@ -217,6 +221,12 @@ void block::transAsTemplatedField(coenv &e, record *r, formals* args)
 void block::transAsRecordBody(coenv &e, record *r)
 {
   transAsField(e, r);
+  e.c.closeRecord();
+}
+
+void block::transAsTemplatedRecordBody(coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args)
+{
+  transAsTemplatedField(e, r, args);
   e.c.closeRecord();
 }
 
@@ -260,9 +270,6 @@ record *block::transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::n
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  for (auto p = args->begin(); p < args->end(); ++p) {
-    e.addType(p->dest, p->ent);
-  }
   // symbol key=symbol::literalTrans("pair");
   // trans::tyEntry *base=ce.e.te.look(key);
   // symbol T=symbol::literalTrans("T");
@@ -270,7 +277,7 @@ record *block::transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::n
   // decid *did=new decid(getPos(),Tid);
   // did->transAsTypedefField(ce,base,r);
 
-  transAsRecordBody(ce, r);
+  transAsTemplatedRecordBody(ce, r, args);
   em.sync();
 
   return r;
@@ -1005,7 +1012,7 @@ void templateAccessDec::transAsField(coenv& e, record* r) {
 
   auto *computedArgs = new mem::vector<namedTyEntry>();
   mem::vector<std::pair<ty*, symbol>> *fields = args->getFields();
-  for (auto p = fields->begin(); p < fields->end(); ++p) {
+  for (auto p = fields->begin(); p != fields->end(); ++p) {
     ty* theType = p->first;
     symbol theName = p->second;
     computedArgs->emplace_back(theName, theType->transAsTyEntry(e, r));
