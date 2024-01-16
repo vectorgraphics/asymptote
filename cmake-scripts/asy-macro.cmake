@@ -24,3 +24,7 @@ endif()
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(APPEND ASY_MACROS LINUX_SYSTEM)
 endif()
+
+if (CMAKE_BUILD_TYPE IN_LIST cmake_debug_build_types)
+    list(APPEND ASY_MACROS DEBUG)
+endif()
