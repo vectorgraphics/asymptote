@@ -1406,14 +1406,13 @@ void AsyVkRender::createFramebuffers()
 
   for (auto i = 0u; i < backbufferImageViews.size(); i++)
   {
-    vk::ImageView attachments[] = {*colorImageView, *depthImageView, *backbufferImageViews[i]};
+    std::array<vk::ImageView, 3> attachments = {*colorImageView, *depthImageView, *backbufferImageViews[i]};
     std::array<vk::ImageView, 1> depthAttachments {*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
       {},
       *countRenderPass,
-      depthAttachments.size(),
-      depthAttachments.data(),
+      STD_ARR_VIEW(depthAttachments),
       backbufferExtent.width,
       backbufferExtent.height,
       1
@@ -1421,7 +1420,7 @@ void AsyVkRender::createFramebuffers()
     auto opaqueGraphicsFramebufferCI = vk::FramebufferCreateInfo(
       vk::FramebufferCreateFlags(),
       *opaqueGraphicsRenderPass,
-      ARR_VIEW(attachments),
+      STD_ARR_VIEW(attachments),
       backbufferExtent.width,
       backbufferExtent.height,
       1
@@ -1429,7 +1428,7 @@ void AsyVkRender::createFramebuffers()
     auto graphicsFramebufferCI = vk::FramebufferCreateInfo(
       vk::FramebufferCreateFlags(),
       *graphicsRenderPass,
-      ARR_VIEW(attachments),
+      STD_ARR_VIEW(attachments),
       backbufferExtent.width,
       backbufferExtent.height,
       1

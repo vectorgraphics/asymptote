@@ -53,6 +53,7 @@ class picture;
 #endif
 
 #define VEC_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
+#define STD_ARR_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
 #define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof(x[0])), x
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
@@ -578,6 +579,9 @@ private:
   vma::cxx::UniqueImage defaultBackbufferImg;
   std::vector<vk::Image> backbufferImages;
   std::vector<vk::UniqueImageView> backbufferImageViews;
+
+  std::vector<vma::cxx::UniqueImage> immediateRenderTargetImgs;
+  std::vector<vk::UniqueImageView> immRenderTargetViews;
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
   std::vector<vk::UniqueFramebuffer> opaqueGraphicsFramebuffers;
   std::vector<vk::UniqueFramebuffer> graphicsFramebuffers;
@@ -829,6 +833,7 @@ private:
   void createFramebuffers();
   void createCommandPools();
   void createCommandBuffers();
+  void createImmediateRenderTargets();
   vk::CommandBuffer beginSingleCommands();
   void endSingleCommands(vk::CommandBuffer cmd);
   PushConstants buildPushConstants();
