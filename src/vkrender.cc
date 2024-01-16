@@ -1611,6 +1611,21 @@ void AsyVkRender::copyToBuffer(
   }
 }
 
+void AsyVkRender::setDebugObjectName(
+        uint64_t const& object,
+        vk::DebugReportObjectTypeEXT const& objType,
+        std::string const& name
+        )
+{
+#if defined(DEBUG)
+  if (hasDebugMarker)
+  {
+    vk::DebugMarkerObjectNameInfoEXT const tagInfo(objType, object, name.c_str());
+    device->debugMarkerSetObjectNameEXT(tagInfo);
+  }
+#endif
+}
+
 void AsyVkRender::copyToBuffer(
         const vk::Buffer& buffer,
         const void* data,

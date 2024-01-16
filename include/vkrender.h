@@ -859,6 +859,37 @@ private:
   void createSyncObjects();
   void waitForEvent(vk::Event event);
 
+  /**
+   * Sets debug object name. This function is inert if compiling under release mode or if
+   * hardware does not support Debug Markers
+   * @param object Handle to a vulkan object, in uint64_t form
+   * @param objType Debug object reporting type
+   * @param name Name of the object to set
+   */
+  void setDebugObjectName(
+          uint64_t const& object,
+          vk::DebugReportObjectTypeEXT const& objType,
+          std::string const& name
+          );
+
+  /**
+   * Sets debug object name. This function is inert if compiling under release mode or if
+   * hardware does not support Debug Markers
+   * @tparam TVkObj Type of the Vulkan object. Requires debugReportType static constant.
+   * @param object Handle to a vulkan object, under vk:: namespace
+   * @param name Name of the object to set
+   */
+  template<typename TVkObj>
+  void setDebugObjectName(
+          TVkObj object,
+          std::string const& name)
+  {
+    setDebugObjectName(
+            reinterpret_cast<uint64_t>(static_cast<typename TVkObj::NativeType>(object)),
+            TVkObj::debugReportObjectType,
+            name);
+  }
+
   uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
 
   void zeroBuffer(vk::Buffer & buf, vk::DeviceSize size);
