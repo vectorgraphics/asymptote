@@ -222,7 +222,6 @@ void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::nam
   if (scope) e.e.endScope();
 }
 
-
 void block::transAsRecordBody(coenv &e, record *r)
 {
   transAsField(e, r);
@@ -870,17 +869,21 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 // Creates a local variable to hold the import and translate the accessing of
 // the import, but doesn't add the import to the environment.
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
-                                mem::vector<namedTyEntry> *args)
+                                formals *args)
 {
-  static size_t Tcount=0;
+  stringstream s;
+  s << args->getSignature(e)->hash();
+  string sigHash=s.str();
 
-  stringstream index;
-  index << Tcount;
-  ++Tcount;
+  auto *computedArgs = new mem::vector<namedTyEntry>();
+  mem::vector<std::pair<ty*, symbol>> *fields = args->getFields();
+  for (auto p = fields->begin(); p != fields->end(); ++p) {
+    ty* theType = p->first;
+    symbol theName = p->second;
+    computedArgs->emplace_back(theType->getPos(), theName, theType->transAsTyEntry(e, r));
+  }
 
-  string s=index.str();
-
-  record *imp=e.e.getTemplatedModule(id, (string) id, s, args);
+  record *imp=e.e.getTemplatedModule(id, (string) id, sigHash, computedArgs);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -891,7 +894,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,index)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string) id), new stringExp(pos, s));
+                 new stringExp(pos, (string) id), new stringExp(pos, sigHash));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -1015,15 +1018,7 @@ void templateAccessDec::transAsField(coenv& e, record* r) {
 
   args->addOps(e, r);
 
-  auto *computedArgs = new mem::vector<namedTyEntry>();
-  mem::vector<std::pair<ty*, symbol>> *fields = args->getFields();
-  for (auto p = fields->begin(); p != fields->end(); ++p) {
-    ty* theType = p->first;
-    symbol theName = p->second;
-    computedArgs->emplace_back(theType->getPos(), theName, theType->transAsTyEntry(e, r));
-  }
-
-  varEntry *v=accessTemplatedModule(getPos(), e, r, this->src, computedArgs);
+  varEntry *v=accessTemplatedModule(getPos(), e, r, this->src, args);
   if (v)
     addVar(e, r, v, dest);
 }
