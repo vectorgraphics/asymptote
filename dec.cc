@@ -1023,6 +1023,11 @@ void templateAccessDec::transAsField(coenv& e, record* r) {
     addVar(e, r, v, dest);
 }
 
+void receiveTypedefDec::transAsParamMatcher(coenv& e, record *r, mem::vector<namedTyEntry> *args)
+{
+  checkValidity();
+}
+
 void fromdec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "fromdec", indent, getPos());

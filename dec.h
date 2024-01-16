@@ -580,6 +580,34 @@ public:
   void transAsField(coenv& e, record* r) override;
 };
 
+class receiveTypedefDec : public dec {
+  formals* params;
+  block* header;
+  const symbol orSym;
+  const position orPos;
+
+public:
+  receiveTypedefDec(position pos, formals* params, symbol orSym, position OrPos, block* header) 
+    : dec(pos), params(params), header(header), orSym(orSym), orPos(OrPos)
+  { this->header->scope = false; }
+
+  void checkValidity() {
+    const static symbol orTrans = symbol::trans("or");
+    if (orSym != orTrans) {
+      em.error(orPos);
+      em << "expected 'or'";
+    }
+  }
+
+  void transAsField(coenv& e, record *r) override {
+    // Not called if template types are available.
+    checkValidity();
+    header->transAsField(e, r);
+  }
+
+  void transAsParamMatcher(coenv& e, record *r, mem::vector<namedTyEntry> *args);
+};
+
 
 // Abstract base class for
 //   from _ access _;  (fromaccessdec)

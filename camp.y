@@ -270,6 +270,9 @@ dec:
 // Experimental - templated imports.
 //| TYPEDEF IMPORT decidlist ';'
 //                   { assert(false); }
+/* FROM ACCESS TYPEDEF '(' formals ')' 'or' block */
+| FROM ACCESS TYPEDEF '(' formals ')' ID block
+                   { $$ = new receiveTypedefDec($1, $5, $7.sym, $7.pos, $8); }
 /* ACCESS name '(' decdeclist ')' 'as' ID */
 | ACCESS name '(' decdeclist ')' ID ID ';'
                    { $$ = new templateAccessDec($1, $2->getName(), $4, $6.sym, $7.sym); }
