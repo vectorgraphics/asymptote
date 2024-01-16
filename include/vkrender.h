@@ -535,6 +535,10 @@ private:
   bool GPUindexing=false;
   bool GPUcompress=false;
 
+#if defined(DEBUG)
+  bool hasDebugMarker=false;
+#endif
+
   std::int32_t gs2;
   std::int32_t gs;
   std::uint32_t g;

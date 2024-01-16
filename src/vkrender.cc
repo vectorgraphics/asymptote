@@ -32,10 +32,11 @@ void exitHandler(int);
 std::vector<const char*> instanceExtensions
 {
   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-  VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-#ifdef VALIDATION
-  VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+  // VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+#if defined(VALIDATION) || defined(DEBUG)
+  VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 #endif
+
 };
 #endif
 
@@ -888,12 +889,10 @@ void AsyVkRender::createInstance()
 #endif
 
   auto const instanceCI = vk::InstanceCreateInfo(
-    vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
+    {},
     &appInfo,
-    validationLayers.size(),
-    validationLayers.data(),
-    extensions.size(),
-    extensions.data()
+    VEC_VIEW(validationLayers),
+    VEC_VIEW(extensions)
   );
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
@@ -1170,6 +1169,18 @@ void AsyVkRender::createLogicalDevice()
       extensions.emplace_back(VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME);
     }
   }
+
+#if defined(DEBUG)
+  if (supportedDeviceExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) != supportedDeviceExtensions.end())
+  {
+    hasDebugMarker=true;
+    extensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+  }
+  else
+  {
+    reportWarning("Debug marker extension not supported");
+  }
+#endif
 
   queueFamilyIndices = findQueueFamilies(physicalDevice, View ? &*surface : nullptr);
 
