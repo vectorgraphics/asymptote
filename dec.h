@@ -195,6 +195,11 @@ public:
   // runnable by a PUBLIC or PRIVATE modifier.
   virtual bool allowPermissions()
   { return false; }
+
+  // Returns true if this statement is allowed to be the first line of a module
+  // that is imported with type parameters.
+  virtual bool canReceiveTemplateParams()
+  { return false; }
 };
 
 // Forward declaration.
@@ -204,8 +209,9 @@ class namedTyEntry : public gc {
 public:
   symbol dest;
   trans::tyEntry *ent;
-  namedTyEntry(symbol dest, trans::tyEntry *ent)
-    : dest(dest), ent(ent) {}
+  position *pos;
+  namedTyEntry(position pos, symbol dest, trans::tyEntry *ent)
+    : dest(dest), ent(ent), pos(new position(pos)) {}
 };
 
 
@@ -580,14 +586,51 @@ public:
   void transAsField(coenv& e, record* r) override;
 };
 
+class typeParam : public absyn {
+  const bool valid;
+  const symbol paramSym;
+public:
+  typeParam(position pos, symbol typeSym, symbol paramSym)
+    : absyn(pos), valid(typeSym == symbol::trans("type")), paramSym(paramSym) {}
+
+  // undelete copy constructor
+  typeParam(const typeParam &o) : absyn(o.pos), valid(o.valid), paramSym(o.paramSym) {}
+  typeParam(const typeParam &&o) : absyn(o.pos), valid(o.valid), paramSym(o.paramSym) {}
+
+  void checkValidity() {
+    if (!valid) {
+      em.error(getPos());
+      em << "expected 'type'";
+    }
+  }
+
+  void transAsParamMatcher(coenv &e, namedTyEntry arg);
+
+  void prettyprint(ostream &out, Int indent);
+};
+
+class typeParamList : public absyn {
+  mem::vector<typeParam> params;
+
+public:
+  typeParamList(position pos) : absyn(pos) {}
+
+  void add(typeParam *tp);
+
+  void transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args);
+
+  void prettyprint(ostream &out, Int indent);
+};
+
+
 class receiveTypedefDec : public dec {
-  formals* params;
+  typeParamList* params;
   block* header;
   const symbol orSym;
   const position orPos;
 
 public:
-  receiveTypedefDec(position pos, formals* params, symbol orSym, position OrPos, block* header) 
+  receiveTypedefDec(position pos, typeParamList* params, symbol orSym, position OrPos, block* header) 
     : dec(pos), params(params), header(header), orSym(orSym), orPos(OrPos)
   { this->header->scope = false; }
 
@@ -606,6 +649,8 @@ public:
   }
 
   void transAsParamMatcher(coenv& e, record *r, mem::vector<namedTyEntry> *args);
+
+  bool canReceiveTemplateParams() override { return true; }
 };
 
 

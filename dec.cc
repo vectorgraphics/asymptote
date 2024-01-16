@@ -199,20 +199,25 @@ void block::transAsField(coenv &e, record *r)
 void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args)
 {
   if (scope) e.e.beginScope();
-  // auto p = stms.begin();
-  // if (p == stms.end()) {
-  //   em.error(getPos());
-  //   em << "tried to import empty file as template";
-  // } else {
+  auto p = stms.begin();
+  if (p == stms.end()) {
+    em.error(getPos());
+    em << "When a file is imported as a template, the first line must declare the type params.";
+  } else if (!(*p)->canReceiveTemplateParams()) {
+    em.error(getPos());
+    em << "When a file is imported as a template, the first line must declare the type params.";
+  } else {
+    receiveTypedefDec *dec = static_cast<receiveTypedefDec *>(*p);
+    dec->transAsParamMatcher(e, r, args);
+    // }
+    // Add things from args to e.e.te (type environment)
+    // for (auto p = args->begin(); p != args->end(); ++p) {
+    //   e.e.addType(p->dest, p->ent);
+    // }
 
-  // }
-  // Add things from args to e.e.te (type environment)
-  for (auto p = args->begin(); p != args->end(); ++p) {
-    e.e.addType(p->dest, p->ent);
-  }
-
-  for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
-    (*p)->markTransAsField(e, r);
+    for (++p; p != stms.end(); ++p) {
+      (*p)->markTransAsField(e, r);
+    }
   }
   if (scope) e.e.endScope();
 }
@@ -1015,7 +1020,7 @@ void templateAccessDec::transAsField(coenv& e, record* r) {
   for (auto p = fields->begin(); p != fields->end(); ++p) {
     ty* theType = p->first;
     symbol theName = p->second;
-    computedArgs->emplace_back(theName, theType->transAsTyEntry(e, r));
+    computedArgs->emplace_back(theType->getPos(), theName, theType->transAsTyEntry(e, r));
   }
 
   varEntry *v=accessTemplatedModule(getPos(), e, r, this->src, computedArgs);
@@ -1023,9 +1028,56 @@ void templateAccessDec::transAsField(coenv& e, record* r) {
     addVar(e, r, v, dest);
 }
 
+void typeParam::prettyprint(ostream &out, Int indent) {
+  prettyindent(out, indent);
+  out << "typeParam (" << paramSym;
+  if (!valid) {
+    out << " (invalid)";
+  }
+  out <<  ")\n";
+}
+
+void typeParam::transAsParamMatcher(coenv &e, namedTyEntry arg) {
+  checkValidity();
+  if (arg.dest != paramSym) {
+    em.error(*arg.pos);
+    em << "bad template argument: passed as " << arg.dest << ", expected " << paramSym;
+    return;
+  }
+  e.e.addType(paramSym, arg.ent);
+}
+
+void typeParamList::prettyprint(ostream &out, Int indent) {
+  for (auto p = params.begin(); p != params.end(); ++p) {
+    p->prettyprint(out, indent);
+  }
+}
+
+void typeParamList::add(typeParam *tp) {
+  params.push_back(*tp);
+}
+
+void typeParamList::transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args) {
+  if (args->size() != params.size()) {
+    position pos = getPos();
+    if (args->size() >= 1) pos = *(*args)[0].pos;
+    em.error(pos);
+    if (args->size() > params.size()) {
+      em << "too many types passed: got " << args->size() << ", expected " << params.size();
+    } else {
+      em << "too few types passed: got " << args->size() << ", expected " << params.size();
+    }
+    return;
+  }
+  for (size_t i = 0; i < params.size(); ++i) {
+    params[i].transAsParamMatcher(e, (*args)[i]);
+  }
+}
+
 void receiveTypedefDec::transAsParamMatcher(coenv& e, record *r, mem::vector<namedTyEntry> *args)
 {
   checkValidity();
+  params->transAsParamMatcher(e, args);
 }
 
 void fromdec::prettyprint(ostream &out, Int indent)

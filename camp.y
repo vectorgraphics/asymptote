@@ -116,6 +116,8 @@ using mem::string;
   //absyntax::funheader *fh;
   absyntax::formal *fl;
   absyntax::formals *fls;
+  absyntax::typeParam *tp;
+  absyntax::typeParamList *tps;
 }  
 
 %token <ps> ID SELFOP
@@ -187,6 +189,8 @@ using mem::string;
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
 %type  <boo> explicitornot
+%type <tp> typeparam
+%type <tps> typeparamlist
 
 //// Make new classes for the following and add to union above.
 //%type  <d> decdec
@@ -270,8 +274,8 @@ dec:
 // Experimental - templated imports.
 //| TYPEDEF IMPORT decidlist ';'
 //                   { assert(false); }
-/* FROM ACCESS TYPEDEF '(' formals ')' 'or' block */
-| FROM ACCESS TYPEDEF '(' formals ')' ID block
+/* FROM ACCESS TYPEDEF '(' typeparamlist ')' 'or' block */
+| FROM ACCESS TYPEDEF '(' typeparamlist ')' ID block
                    { $$ = new receiveTypedefDec($1, $5, $7.sym, $7.pos, $8); }
 /* ACCESS name '(' decdeclist ')' 'as' ID */
 | ACCESS name '(' decdeclist ')' ID ID ';'
@@ -290,6 +294,17 @@ decdeclist:
 |   decdeclist ',' decdec
                    { $$ = $1; $$->add($3); }
 ;
+
+typeparam:
+/* 'type' ID */
+    ID ID { $$ = new typeParam($1.pos, $1.sym, $2.sym); }
+;
+
+typeparamlist:
+  typeparam
+                   { $$ = new typeParamList($1->getPos()); $$->add($1); }
+| typeparamlist ',' typeparam
+                   { $$ = $1; $$->add($3); }
 
 idpair:
   ID               { $$ = new idpair($1.pos, $1.sym); }
