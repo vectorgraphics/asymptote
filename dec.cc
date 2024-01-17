@@ -203,18 +203,22 @@ void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::nam
   if (p == stms.end()) {
     em.error(getPos());
     em << "When a file is imported as a template, the first line must declare the type params.";
-  // TODO: Replace this function with a dynamic cast.
-  } else if (!(*p)->canReceiveTemplateParams()) {
+    em.sync();
+    return;
+  }
+  receiveTypedefDec *dec = dynamic_cast<receiveTypedefDec *>(*p);
+  if (!dec) {
     em.error(getPos());
     em << "When a file is imported as a template, the first line must declare the type params.";
-  } else {
-    receiveTypedefDec *dec = static_cast<receiveTypedefDec *>(*p);
-    dec->transAsParamMatcher(e, r, args);
-
-    for (++p; p != stms.end(); ++p) {
-      (*p)->markTransAsField(e, r);
-    }
+    em.sync();
+    return;
   }
+  dec->transAsParamMatcher(e, args);
+
+  for (++p; p != stms.end(); ++p) {
+    (*p)->markTransAsField(e, r);
+  }
+  
   if (scope) e.e.endScope();
 }
 
@@ -269,13 +273,6 @@ record *block::transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::n
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
-
-  // symbol key=symbol::literalTrans("pair");
-  // trans::tyEntry *base=ce.e.te.look(key);
-  // symbol T=symbol::literalTrans("T");
-  // decidstart *Tid=new decidstart(getPos(),T);
-  // decid *did=new decid(getPos(),Tid);
-  // did->transAsTypedefField(ce,base,r);
 
   transAsTemplatedRecordBody(ce, r, args);
   em.sync();
@@ -1016,6 +1013,7 @@ void accessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 
 void templateAccessDec::transAsField(coenv& e, record* r) {
   this->checkValidity();
+  if (em.errors()) return;
 
   args->addOps(e, r);
 
@@ -1026,21 +1024,17 @@ void templateAccessDec::transAsField(coenv& e, record* r) {
 
 void typeParam::prettyprint(ostream &out, Int indent) {
   prettyindent(out, indent);
-  out << "typeParam (" << paramSym;
-  if (!valid) {
-    out << " (invalid)";
-  }
-  out <<  ")\n";
+  out << "typeParam (" << paramSym <<  ")\n";
 }
 
-void typeParam::transAsParamMatcher(coenv &e, namedTyEntry arg) {
-  checkValidity();
+bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry arg) {
   if (arg.dest != paramSym) {
     em.error(*arg.pos);
     em << "bad template argument: passed as " << arg.dest << ", expected " << paramSym;
-    return;
+    return false;
   }
   e.e.addType(paramSym, arg.ent);
+  return true;
 }
 
 void typeParamList::prettyprint(ostream &out, Int indent) {
@@ -1053,7 +1047,7 @@ void typeParamList::add(typeParam *tp) {
   params.push_back(*tp);
 }
 
-void typeParamList::transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args) {
+bool typeParamList::transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args) {
   if (args->size() != params.size()) {
     position pos = getPos();
     if (args->size() >= 1) pos = *(*args)[0].pos;
@@ -1063,17 +1057,18 @@ void typeParamList::transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *arg
     } else {
       em << "too few types passed: got " << args->size() << ", expected " << params.size();
     }
-    return;
+    return false;
   }
   for (size_t i = 0; i < params.size(); ++i) {
-    params[i].transAsParamMatcher(e, (*args)[i]);
+    bool succeeded = params[i].transAsParamMatcher(e, (*args)[i]);
+    if (!succeeded) return false;
   }
+  return true;
 }
 
-void receiveTypedefDec::transAsParamMatcher(coenv& e, record *r, mem::vector<namedTyEntry> *args)
+bool receiveTypedefDec::transAsParamMatcher(coenv& e, mem::vector<namedTyEntry> *args)
 {
-  checkValidity();
-  params->transAsParamMatcher(e, args);
+  return params->transAsParamMatcher(e, args);
 }
 
 void fromdec::prettyprint(ostream &out, Int indent)

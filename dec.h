@@ -195,11 +195,6 @@ public:
   // runnable by a PUBLIC or PRIVATE modifier.
   virtual bool allowPermissions()
   { return false; }
-
-  // Returns true if this statement is allowed to be the first line of a module
-  // that is imported with type parameters.
-  virtual bool canReceiveTemplateParams()
-  { return false; }
 };
 
 // Forward declaration.
@@ -569,16 +564,20 @@ class templateAccessDec : public dec {
   formals *args;
   symbol dest;  // What to call it in the local environment.
   bool valid;
+  position expectedAsPos;
 
 public:
   templateAccessDec(position pos, symbol src, formals* args, symbol as,
-                    symbol dest)
+                    symbol dest, position asPos)
       : dec(pos), src(src), args(args), dest(dest),
-        valid(as == symbol::trans("as")) {}
+        valid(as == symbol::trans("as")), expectedAsPos(asPos) {}
+
+  templateAccessDec(position pos, position endPos)
+      : dec(pos), valid(false), expectedAsPos(endPos) {}
   
   void checkValidity() {
     if (!valid) {
-      em.error(getPos());
+      em.error(expectedAsPos);
       em << "expected 'as'";
     }
   }
@@ -587,24 +586,16 @@ public:
 };
 
 class typeParam : public absyn {
-  const bool valid;
   const symbol paramSym;
 public:
-  typeParam(position pos, symbol typeSym, symbol paramSym)
-    : absyn(pos), valid(typeSym == symbol::trans("type")), paramSym(paramSym) {}
+  typeParam(position pos, symbol paramSym)
+    : absyn(pos), paramSym(paramSym) {}
 
   // undelete copy constructor
-  typeParam(const typeParam &o) : absyn(o.pos), valid(o.valid), paramSym(o.paramSym) {}
-  typeParam(const typeParam &&o) : absyn(o.pos), valid(o.valid), paramSym(o.paramSym) {}
+  typeParam(const typeParam &o) : absyn(o.pos), paramSym(o.paramSym) {}
+  typeParam(const typeParam &&o) : absyn(o.pos), paramSym(o.paramSym) {}
 
-  void checkValidity() {
-    if (!valid) {
-      em.error(getPos());
-      em << "expected 'type'";
-    }
-  }
-
-  void transAsParamMatcher(coenv &e, namedTyEntry arg);
+  bool transAsParamMatcher(coenv &e, namedTyEntry arg);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -617,7 +608,7 @@ public:
 
   void add(typeParam *tp);
 
-  void transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args);
+  bool transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -625,32 +616,19 @@ public:
 
 class receiveTypedefDec : public dec {
   typeParamList* params;
-  block* header;
-  const symbol orSym;
-  const position orPos;
 
 public:
-  receiveTypedefDec(position pos, typeParamList* params, symbol orSym, position OrPos, block* header) 
-    : dec(pos), params(params), header(header), orSym(orSym), orPos(OrPos)
-  { this->header->scope = false; }
-
-  void checkValidity() {
-    const static symbol orTrans = symbol::trans("or");
-    if (orSym != orTrans) {
-      em.error(orPos);
-      em << "expected 'or'";
-    }
-  }
+  receiveTypedefDec(position pos, typeParamList* params) 
+    : dec(pos), params(params) {}
 
   void transAsField(coenv& e, record *r) override {
-    // Not called if template types are available.
-    checkValidity();
-    header->transAsField(e, r);
+    em.error(getPos());
+    em << "This line is illegal here. Did you forget to add template parameters"
+       << " before importing this file? Alternatively, it is an error for this"
+       << " line not to be the first line of the file.";
   }
 
-  void transAsParamMatcher(coenv& e, record *r, mem::vector<namedTyEntry> *args);
-
-  bool canReceiveTemplateParams() override { return true; }
+  bool transAsParamMatcher(coenv& e, mem::vector<namedTyEntry> *args);
 };
 
 

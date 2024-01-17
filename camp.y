@@ -50,20 +50,6 @@ bool checkKeyword(position pos, symbol sym)
   return true;
 }
 
-// Check if the symbol given is "as".  Returns true in this case and
-// returns false and reports an error otherwise.
-bool checkAs(position pos, symbol sym)
-{
-  if (sym != symbol::trans("as")) {
-    em.error(pos);
-    em << "expected 'as' here";
-
-    return false;
-  }
-  return true;
-}
-
-
 namespace absyntax { file *root; }
 
 using namespace absyntax;
@@ -274,12 +260,15 @@ dec:
 // Experimental - templated imports.
 //| TYPEDEF IMPORT decidlist ';'
 //                   { assert(false); }
-/* FROM ACCESS TYPEDEF '(' typeparamlist ')' 'or' block */
-| FROM ACCESS TYPEDEF '(' typeparamlist ')' ID block
-                   { $$ = new receiveTypedefDec($1, $5, $7.sym, $7.pos, $8); }
-/* ACCESS name '(' decdeclist ')' 'as' ID */
-| ACCESS name '(' decdeclist ')' ID ID ';'
-                   { $$ = new templateAccessDec($1, $2->getName(), $4, $6.sym, $7.sym); }
+| TYPEDEF IMPORT '(' typeparamlist ')' ';'
+                   { $$ = new receiveTypedefDec($1, $4); }
+/* ACCESS strid '(' decdeclist ')' 'as' ID */
+| ACCESS strid '(' decdeclist ')' ID ID ';'
+                   { $$ = new templateAccessDec($1, $2.sym, $4, $6.sym, $7.sym, $6.pos); }
+| ACCESS strid '(' decdeclist ')' ';'
+                   { $$ = new templateAccessDec($1, $6); }  // logs an error
+| FROM name '(' decdeclist ')' ACCESS idpairlist ';'
+                   { assert(false); }
 ;
 
 // List mapping dec to dec as in "Key=string, Value=int"
@@ -296,8 +285,7 @@ decdeclist:
 ;
 
 typeparam:
-/* 'type' ID */
-    ID ID { $$ = new typeParam($1.pos, $1.sym, $2.sym); }
+    ID { $$ = new typeParam($1.pos, $1.sym); }
 ;
 
 typeparamlist:
