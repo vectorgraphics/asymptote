@@ -203,17 +203,13 @@ void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::nam
   if (p == stms.end()) {
     em.error(getPos());
     em << "When a file is imported as a template, the first line must declare the type params.";
+  // TODO: Replace this function with a dynamic cast.
   } else if (!(*p)->canReceiveTemplateParams()) {
     em.error(getPos());
     em << "When a file is imported as a template, the first line must declare the type params.";
   } else {
     receiveTypedefDec *dec = static_cast<receiveTypedefDec *>(*p);
     dec->transAsParamMatcher(e, r, args);
-    // }
-    // Add things from args to e.e.te (type environment)
-    // for (auto p = args->begin(); p != args->end(); ++p) {
-    //   e.e.addType(p->dest, p->ent);
-    // }
 
     for (++p; p != stms.end(); ++p) {
       (*p)->markTransAsField(e, r);

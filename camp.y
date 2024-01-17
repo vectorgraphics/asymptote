@@ -305,6 +305,7 @@ typeparamlist:
                    { $$ = new typeParamList($1->getPos()); $$->add($1); }
 | typeparamlist ',' typeparam
                    { $$ = $1; $$->add($3); }
+;
 
 idpair:
   ID               { $$ = new idpair($1.pos, $1.sym); }
