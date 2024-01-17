@@ -5284,7 +5284,7 @@ The @code{copy} function listed below provides a deep copy of an array.
 Every array @code{A} of type @code{T[]} has the virtual members
 @itemize
 @item   @code{int length},
-@item   @code{int cyclic},
+@item   @code{bool cyclic},
 @item   @code{int[] keys},
 @item   @code{T push(T x)},
 @item   @code{void append(T[] a)},
@@ -6329,9 +6329,7 @@ To store the figures in a separate directory named @code{asy}, one can define
 @verbatim
 \def\asydir{asy}
 @end verbatim
-in @code{latexusage.tex} and put the contents of
-@url{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/latexmkrc_asydir}
-in a file @code{latexmkrc} in the same directory.
+in @code{latexusage.tex}.
 @noindent
 External @code{Asymptote} code can be included with
 @cindex @code{asyinclude}
