@@ -258,8 +258,6 @@ dec:
                    { $$ = new includedec($1, $2->getString()); }
 
 // Experimental - templated imports.
-//| TYPEDEF IMPORT decidlist ';'
-//                   { assert(false); }
 | TYPEDEF IMPORT '(' typeparamlist ')' ';'
                    { $$ = new receiveTypedefDec($1, $4); }
 /* ACCESS strid '(' decdeclist ')' 'as' ID */
@@ -275,6 +273,7 @@ dec:
 decdec:
     ID ASSIGN type
                    { $$ = new formal($1.pos, $3, new decidstart($1.pos, $1.sym)); }
+| type { $$ = new formal($1->getPos(), $1, nullptr) }  // ultimately logs an error
 ;
 
 decdeclist:

@@ -880,6 +880,12 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   for (auto p = fields->begin(); p != fields->end(); ++p) {
     ty* theType = p->first;
     symbol theName = p->second;
+    if (theName == symbol::nullsym) {
+      em.error(theType->getPos());
+      em << "expected typename=";
+      em.sync();
+      return nullptr;
+    }
     computedArgs->emplace_back(theType->getPos(), theName, theType->transAsTyEntry(e, r));
   }
 
@@ -888,7 +894,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     em.error(pos);
     em << "could not load module '" << id << "'";
     em.sync();
-    return 0;
+    return nullptr;
   }
   else {
     // Create a varinit that evaluates to the module.
