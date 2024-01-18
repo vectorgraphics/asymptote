@@ -2740,82 +2740,62 @@ void AsyVkRender::createGraphicsRenderPass()
 
   auto colorAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eColorAttachmentOptimal);
   auto depthAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-  auto colorResolveAttachmentRef = vk::AttachmentReference2(2, vk::ImageLayout::eColorAttachmentOptimal);
+  auto colorResolveAttachmentRef= vk::AttachmentReference2(2, vk::ImageLayout::eColorAttachmentOptimal);
 
-  std::array<vk::SubpassDescription2, 3> subpasses;
-
-  subpasses[0] = vk::SubpassDescription2(
-    vk::SubpassDescriptionFlags(),
-    vk::PipelineBindPoint::eGraphics,
-    0,
-    0,
-    nullptr,
-    1,
-    &colorAttachmentRef,
-    &colorResolveAttachmentRef,
-    &depthAttachmentRef
-  );
-  subpasses[1] = vk::SubpassDescription2(
-    vk::SubpassDescriptionFlags(),
-    vk::PipelineBindPoint::eGraphics,
-    0,
-    0,
-    nullptr,
-    0,
-    nullptr,
-    nullptr,
-    nullptr
-  );
-  subpasses[2] = vk::SubpassDescription2(
-    vk::SubpassDescriptionFlags(),
-    vk::PipelineBindPoint::eGraphics,
-    0,
-    0,
-    nullptr,
-    1,
-    &colorResolveAttachmentRef
-  );
-
+  std::vector subpasses{
+          vk::SubpassDescription2(
+                  {},
+                  vk::PipelineBindPoint::eGraphics,
+                  0,
+                  0,
+                  nullptr,
+                  1,
+                  &colorAttachmentRef,
+                  &colorResolveAttachmentRef,
+                  &depthAttachmentRef
+          ),
+          vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 0, nullptr, nullptr, nullptr),
+          vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 1, &colorResolveAttachmentRef)
+  };
   if (msaaSamples == vk::SampleCountFlagBits::e1)
   {
-    colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+    colorAttachment.loadOp= vk::AttachmentLoadOp::eDontCare;
     colorResolveAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 
     subpasses[0].pColorAttachments = &colorResolveAttachmentRef;
     subpasses[0].pResolveAttachments = nullptr;
   }
 
-  std::vector<vk::AttachmentDescription2> attachments
+  std::vector const attachments
   {
     colorAttachment,
     depthAttachment,
     colorResolveAttachment
   };
 
-  std::array<vk::SubpassDependency2, 2> dependencies;
-
-  dependencies[0] = vk::SubpassDependency2(
-    VK_SUBPASS_EXTERNAL,
-    0,
-    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-    vk::AccessFlagBits::eNone,
-    vk::AccessFlagBits::eNone
-  );
-  dependencies[1] = vk::SubpassDependency2(
-    0,
-    2,
-    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-    vk::AccessFlagBits::eNone,
-    vk::AccessFlagBits::eNone
-  );
+  std::vector const dependencies{
+          vk::SubpassDependency2(
+                  VK_SUBPASS_EXTERNAL,
+                  0,
+                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                  vk::AccessFlagBits::eNone,
+                  vk::AccessFlagBits::eNone
+          ),
+          vk::SubpassDependency2(
+                  0,
+                  2,
+                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                  vk::AccessFlagBits::eNone,
+                  vk::AccessFlagBits::eNone
+          )
+  };
 
   // only use the first subpass and first dependency
-  auto opaqueRenderPassCI = vk::RenderPassCreateInfo2(
-    vk::RenderPassCreateFlags(),
-    attachments.size(),
-    &attachments[0],
+  auto const opaqueRenderPassCI = vk::RenderPassCreateInfo2(
+    {},
+    VEC_VIEW(attachments),
     1,
     subpasses.data(),
     1,
@@ -2823,14 +2803,11 @@ void AsyVkRender::createGraphicsRenderPass()
   );
   opaqueGraphicsRenderPass = device->createRenderPass2Unique(opaqueRenderPassCI);
 
-  auto renderPassCI = vk::RenderPassCreateInfo2(
-    vk::RenderPassCreateFlags(),
-    attachments.size(),
-    &attachments[0],
-    subpasses.size(),
-    subpasses.data(),
-    dependencies.size(),
-    dependencies.data()
+  auto const renderPassCI = vk::RenderPassCreateInfo2(
+    {},
+    VEC_VIEW(attachments),
+    VEC_VIEW(subpasses),
+    VEC_VIEW(dependencies)
   );
   graphicsRenderPass = device->createRenderPass2Unique(renderPassCI);
 }
