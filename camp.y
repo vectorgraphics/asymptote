@@ -104,7 +104,7 @@ using mem::string;
   absyntax::formals *fls;
   absyntax::typeParam *tp;
   absyntax::typeParamList *tps;
-}  
+}
 
 %token <ps> ID SELFOP
             DOTS COLONS DASHES INCR LONGDASH
@@ -138,7 +138,7 @@ using mem::string;
 %left  DIRTAG CONTROLS TENSION ATLEAST AND
 %left  CURL '{' '}'
 
-%left  '+' '-' 
+%left  '+' '-'
 %left  '*' '/' '%' '#' LIT
 %left  UNARY
 %right '^'
@@ -153,7 +153,7 @@ using mem::string;
 %type  <ps>  strid
 %type  <ip>  idpair stridpair
 %type  <ipl> idpairlist stridpairlist
-%type  <vd>  vardec barevardec 
+%type  <vd>  vardec barevardec
 %type  <t>   type celltype
 %type  <dim> dims
 %type  <dil> decidlist
@@ -253,7 +253,7 @@ dec:
                    { $$ = new fromaccessdec($1, $2.sym, WILDCARD); }
 | IMPORT stridpair ';'
                    { $$ = new importdec($1, $2); }
-| INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
+| INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }
 | INCLUDE STRING ';'
                    { $$ = new includedec($1, $2->getString()); }
 
@@ -273,7 +273,7 @@ dec:
 decdec:
     ID ASSIGN type
                    { $$ = new formal($1.pos, $3, new decidstart($1.pos, $1.sym)); }
-| type { $$ = new formal($1->getPos(), $1, nullptr) }  // ultimately logs an error
+| type { $$ = new formal($1->getPos(), $1, nullptr); }  // ultimately logs an error
 ;
 
 decdeclist:
@@ -456,7 +456,7 @@ slice:
 ;
 
 value:
-  value '.' ID     { $$ = new fieldExp($2, $1, $3.sym); } 
+  value '.' ID     { $$ = new fieldExp($2, $1, $3.sym); }
 | name '[' exp ']' { $$ = new subscriptExp($2,
                               new nameExp($1->getPos(), $1), $3); }
 | value '[' exp ']'{ $$ = new subscriptExp($2, $1, $3); }
@@ -465,9 +465,9 @@ value:
 | value '[' slice ']'{ $$ = new sliceExp($2, $1, $3); }
 | name '(' ')'     { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
-                                      new arglist()); } 
+                                      new arglist()); }
 | name '(' arglist ')'
-                   { $$ = new callExp($2, 
+                   { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
                                       $3); }
 | value '(' ')'    { $$ = new callExp($2, $1, new arglist()); }
@@ -565,7 +565,7 @@ exp:
                    { $$ = new conditionalExp($2, $1, $3, $5); }
 | exp ASSIGN exp   { $$ = new assignExp($2, $1, $3); }
 | '(' tuple ')'    { $$ = new callExp($1, new nameExp($1, SYM_TUPLE), $2); }
-| exp join exp %prec JOIN_PREC 
+| exp join exp %prec JOIN_PREC
                    { $2->pushFront($1); $2->pushBack($3); $$ = $2; }
 | exp dir %prec DIRTAG
                    { $2->setSide(camp::OUT);
@@ -578,7 +578,7 @@ exp:
 | DASHES exp %prec UNARY
                    { $$ = new prefixExp($1.pos, $2, SYM_MINUS); }
 /* Illegal - will be caught during translation. */
-| exp INCR %prec UNARY 
+| exp INCR %prec UNARY
                    { $$ = new postfixExp($2.pos, $1, SYM_PLUS); }
 | exp SELFOP exp   { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
 | QUOTE '{' fileblock '}'
@@ -589,12 +589,12 @@ exp:
 // made a whack of reduce/reduce errors.
 join:
   DASHES           { $$ = new joinExp($1.pos,$1.sym); }
-| basicjoin %prec JOIN_PREC 
+| basicjoin %prec JOIN_PREC
                    { $$ = $1; }
 | dir basicjoin %prec JOIN_PREC
                    { $1->setSide(camp::OUT);
                      $$ = $2; $$->pushFront($1); }
-| basicjoin dir %prec JOIN_PREC 
+| basicjoin dir %prec JOIN_PREC
                    { $2->setSide(camp::IN);
                      $$ = $1; $$->pushBack($2); }
 | dir basicjoin dir %prec JOIN_PREC
@@ -629,7 +629,7 @@ tension:
 | TENSION exp AND exp
                    { $$ = new ternaryExp($1.pos, $2, $1.sym, $4,
                               new booleanExp($1.pos, false)); }
-| TENSION ATLEAST exp 
+| TENSION ATLEAST exp
                    { $$ = new binaryExp($1.pos, $3, $1.sym,
                               new booleanExp($2.pos, true)); }
 | TENSION ATLEAST exp AND exp
