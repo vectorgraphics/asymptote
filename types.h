@@ -412,6 +412,9 @@ struct signature : public gc {
 #endif
 
   size_t hash() const;
+
+  // Return a unique hash for this signature
+  size_t handle();
 };
 
 struct function : public ty {
