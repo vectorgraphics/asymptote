@@ -872,7 +872,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 formals *args)
 {
   stringstream s;
-  s << args->getSignature(e)->hash();
+  s << args->getSignature(e)->handle();
   string sigHash=s.str();
 
   auto *computedArgs = new mem::vector<namedTyEntry>();
