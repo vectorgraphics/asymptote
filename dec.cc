@@ -214,7 +214,8 @@ void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::nam
     em.sync();
     return;
   }
-  dec->transAsParamMatcher(e, args);
+  if(!dec->transAsParamMatcher(e, args))
+    return;
 
   for (++p; p != stms.end() && !em.errors(); ++p) {
     (*p)->markTransAsField(e, r);
@@ -1031,7 +1032,7 @@ void typeParam::prettyprint(ostream &out, Int indent) {
 bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry arg) {
   if (arg.dest != paramSym) {
     em.error(*arg.pos);
-    em << "bad template argument: passed as " << arg.dest << ", expected " << paramSym;
+    em << "bad template argument: passed " << arg.dest << ", expected " << paramSym;
     return false;
   }
   e.e.addType(paramSym, arg.ent);
