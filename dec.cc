@@ -167,38 +167,39 @@ void block::prettyprint(ostream &out, Int indent)
   prettystms(out, indent+1);
 }
 
+// Uses RAII to ensure scope is ended when function returns.
+class Scope {
+  coenv* e;
+public:
+  Scope(coenv &e, bool scope) : e(scope ? &e : 0) {
+    if (this->e) this->e->e.beginScope();
+  }
+  ~Scope() {
+    if (this->e) e->e.endScope();
+  }
+};
+
+
 void block::trans(coenv &e)
 {
-  if (scope) e.e.beginScope();
+  Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTrans(e);
   }
-  if (scope) e.e.endScope();
 }
 
 void block::transAsField(coenv &e, record *r)
 {
-  if (scope) e.e.beginScope();
-
-  // backend version of `typedef pair T;`:
-  //
-  // symbol key=symbol::literalTrans("pair");
-  // trans::tyEntry *base=e.e.te.look(key);
-  // symbol T=symbol::literalTrans("T");
-  // decidstart *Tid=new decidstart(getPos(),T);
-  // decid *did=new decid(getPos(),Tid);
-  // did->transAsTypedefField(e,base,r);
-
-
+  Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
+    if (em.errors()) break;
   }
-  if (scope) e.e.endScope();
 }
 
 void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args)
 {
-  if (scope) e.e.beginScope();
+  Scope scopeHolder(e, scope);
   auto p = stms.begin();
   if (p == stms.end()) {
     em.error(getPos());
@@ -215,11 +216,9 @@ void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::nam
   }
   dec->transAsParamMatcher(e, args);
 
-  for (++p; p != stms.end(); ++p) {
+  for (++p; p != stms.end() && !em.errors(); ++p) {
     (*p)->markTransAsField(e, r);
   }
-  
-  if (scope) e.e.endScope();
 }
 
 void block::transAsRecordBody(coenv &e, record *r)
@@ -251,6 +250,7 @@ record *block::transAsFile(genv& ge, symbol id)
   }
   transAsRecordBody(ce, r);
   em.sync();
+  if (em.errors()) return 0;
 
   return r;
 }
@@ -276,6 +276,7 @@ record *block::transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::n
 
   transAsTemplatedRecordBody(ce, r, args);
   em.sync();
+  if (em.errors()) return 0;
 
   return r;
 }
@@ -1133,7 +1134,12 @@ void fromaccessdec::prettyprint(ostream &out, Int indent)
 
 fromdec::qualifier fromaccessdec::getQualifier(coenv &e, record *r)
 {
-  varEntry *v=accessModule(getPos(), e, r, id);
+  varEntry *v = 0;
+  if (templateArgs) {
+    v = accessTemplatedModule(getPos(), e, r, id, templateArgs);
+  } else {
+    v=accessModule(getPos(), e, r, id);
+  }
   if (v) {
     record *qt=dynamic_cast<record *>(v->getType());
     if (!qt) {

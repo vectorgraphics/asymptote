@@ -626,6 +626,7 @@ public:
     em << "This line is illegal here. Did you forget to add template parameters"
        << " before importing this file? Alternatively, it is an error for this"
        << " line not to be the first line of the file.";
+    em.sync();
   }
 
   bool transAsParamMatcher(coenv& e, mem::vector<namedTyEntry> *args);
@@ -693,11 +694,12 @@ public:
 // scope.  It does not add the module as a variable in the local scope.
 class fromaccessdec : public fromdec {
   symbol id;
+  formals *templateArgs;
 
   qualifier getQualifier(coenv &e, record *r) override;
 public:
-  fromaccessdec(position pos, symbol id, idpairlist *fields)
-    : fromdec(pos, fields), id(id) {}
+  fromaccessdec(position pos, symbol id, idpairlist *fields, formals *templateArgs = 0)
+    : fromdec(pos, fields), id(id), templateArgs(templateArgs) {}
 
   void prettyprint(ostream &out, Int indent) override;
 

@@ -267,8 +267,8 @@ dec:
                    { $$ = new templateAccessDec($1, $2.sym, $4, $6.sym, $7.sym, $6.pos); }
 | ACCESS strid '(' decdeclist ')' ';'
                    { $$ = new templateAccessDec($1, $6); }  // logs an error
-| FROM name '(' decdeclist ')' ACCESS idpairlist ';'
-                   { assert(false); }
+| FROM strid '(' decdeclist ')' ACCESS idpairlist ';'
+                   { $$ = new fromaccessdec($1, $2.sym, $7, $4); }
 ;
 
 // List mapping dec to dec as in "Key=string, Value=int"
