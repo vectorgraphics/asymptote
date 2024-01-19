@@ -193,7 +193,7 @@ void block::transAsField(coenv &e, record *r)
   Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
-    if (em.errors()) break;
+    if (em.errors() && !settings::getSetting<bool>("debug")) break;
   }
 }
 

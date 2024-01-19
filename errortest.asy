@@ -26,12 +26,12 @@
   // line 95
   x y1;
   x y2();
-  x y3(int); 
+  x y3(int);
   int y4(x);
   struct m {
     x y1;
     x y2();
-    x y3(int); 
+    x y3(int);
     int y4(x);
   }
 }
@@ -264,7 +264,7 @@
 
   int x = 1;
   int x = 2;
- 
+
   struct m {
     int f() {
       return 1;
