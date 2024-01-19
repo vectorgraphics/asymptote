@@ -265,6 +265,10 @@ dec:
                    { $$ = new templateAccessDec($1, $2.sym, $4, $6.sym, $7.sym, $6.pos); }
 | ACCESS strid '(' decdeclist ')' ';'
                    { $$ = new templateAccessDec($1, $6); }  // logs an error
+| IMPORT strid '(' decdeclist ')' ';'
+                   { $$ = new badDec($1, $1,
+                     "Parametrized imports disallowed to reduce naming "
+                     "conflicts. Try 'access <module>(<params>) as <newname>;'."); }
 | FROM strid '(' decdeclist ')' ACCESS idpairlist ';'
                    { $$ = new fromaccessdec($1, $2.sym, $7, $4); }
 ;

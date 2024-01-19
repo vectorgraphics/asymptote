@@ -1020,8 +1020,7 @@ void accessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 }
 
 void templateAccessDec::transAsField(coenv& e, record* r) {
-  this->checkValidity();
-  if (em.errors()) return;
+  if (!this->checkValidity()) return;
 
   args->addOps(e, r);
 

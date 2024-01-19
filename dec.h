@@ -558,6 +558,20 @@ public:
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
+class badDec : public dec {
+  position errorPos;
+  string errorMessage;
+
+public:
+  badDec(position pos, position errorPos, string errorMessage)
+      : dec(pos), errorPos(errorPos), errorMessage(errorMessage) {}
+
+  void transAsField(coenv&, record*) override {
+    em.error(errorPos);
+    em << errorMessage;
+  }
+};
+
 // Accesses the file with specified types added to the type environment.
 class templateAccessDec : public dec {
   symbol src; // The name of the module to access.
@@ -575,11 +589,13 @@ public:
   templateAccessDec(position pos, position endPos)
       : dec(pos), valid(false), expectedAsPos(endPos) {}
   
-  void checkValidity() {
+  bool checkValidity() {
     if (!valid) {
       em.error(expectedAsPos);
       em << "expected 'as'";
+      return false;
     }
+    return true;
   }
 
   void transAsField(coenv& e, record* r) override;

@@ -155,3 +155,8 @@ errortest.asy: 452.16: expression is not an array of inferable type
 errortest.asy: 457.16: expression is not an array of inferable type
 errortest.asy: 463.16: expression is not an array of inferable type
 errortest.asy: 470.7: array expression cannot be used as an address
+errortest.asy: 518.29: expected 'as'
+errortest.asy: 519.30: expected 'as'
+errortest.asy: 520.23: expected typename=
+errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<params>) as <newname>;'.
+errortest.asy: 524.3: This line is illegal here. Did you forget to add template parameters before importing this file? Alternatively, it is an error for this line not to be the first line of the file.

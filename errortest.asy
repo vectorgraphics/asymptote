@@ -512,3 +512,14 @@
   int f(real t, int notkeyword x, int y, string z);
   int g(real t, int notkeyword x, int y, string z) { return 7; }
 }
+
+// template import errors
+{
+  access somefilename(T=int);  // Need to specify new name.
+  access somefilename(T=int) notas somefilename_int;  // "as" misspelled
+  access somefilename(int) as somefilename_int;  // missing keyword
+  import somefilename(T=int);  // Templated import not defined.
+}
+{
+  typedef import(T);  // not first line of file
+}
