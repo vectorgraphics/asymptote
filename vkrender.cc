@@ -786,7 +786,7 @@ void AsyVkRender::recreateSwapChain()
     glfwWaitEvents();
   }
 
-  device->waitIdle();
+//  device->waitIdle();
 
   createSwapChain();
   createDependentBuffers();
@@ -3165,7 +3165,7 @@ void AsyVkRender::updateBuffers()
       nmaterials=materials.size();
     }
 
-    device->waitIdle();
+//    device->waitIdle();
     createMaterialAndLightBuffers();
     writeMaterialAndLightDescriptors();
 
@@ -3637,7 +3637,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   if (GPUindexing && settings::verbose > 3) {
     // Wait until the render queue isn't being used, so we only time
-    // our partial sums calcs
+    // our partial sums calculation
     renderQueue.waitIdle();
 
     auto partialSumsInfo = vk::SubmitInfo();
@@ -3782,7 +3782,7 @@ void AsyVkRender::drawFrame()
   // check to see if any pipeline state changed.
   if (recreatePipeline)
   {
-    device->waitIdle();
+//    device->waitIdle();
     createGraphicsPipelines();
     recreatePipeline = false;
   }
@@ -3989,7 +3989,7 @@ void AsyVkRender::mainLoop()
     nFrames++;
   }
 
-  vkDeviceWaitIdle(*device);
+//  vkDeviceWaitIdle(*device);
 
   if(!View) {
     if(vkthread) {
