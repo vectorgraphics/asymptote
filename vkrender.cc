@@ -654,7 +654,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 #endif
 
   GPUindexing=settings::getSetting<bool>("GPUindexing");
-  GPUcompress=settings::getSetting<bool>("GPUcompress");
+  GPUcompress=GPUindexing && settings::getSetting<bool>("GPUcompress");
 
   if(GPUindexing) {
     localSize=settings::getSetting<Int>("GPUlocalSize");
@@ -2087,23 +2087,23 @@ void AsyVkRender::writeDescriptorSets()
     writes[4].descriptorCount = 1;
     writes[4].pBufferInfo = &opaqueDepthBufferInfo;
 
-    writes[5].dstSet = *frameObjects[i].descriptorSet;
-    writes[5].dstBinding = 10;
-    writes[5].dstArrayElement = 0;
-    writes[5].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[5].descriptorCount = 1;
-    writes[5].pBufferInfo = &elementBufferInfo;
-
     if(GPUcompress) {
+      writes[5].dstSet = *frameObjects[i].descriptorSet;
+      writes[5].dstBinding = 9;
+      writes[5].dstArrayElement = 0;
+      writes[5].descriptorType = vk::DescriptorType::eStorageBuffer;
+      writes[5].descriptorCount = 1;
+      writes[5].pBufferInfo = &indexBufferInfo;
+
       writes[6].dstSet = *frameObjects[i].descriptorSet;
-      writes[6].dstBinding = 9;
+      writes[6].dstBinding = 10;
       writes[6].dstArrayElement = 0;
       writes[6].descriptorType = vk::DescriptorType::eStorageBuffer;
       writes[6].descriptorCount = 1;
-      writes[6].pBufferInfo = &indexBufferInfo;
+      writes[6].pBufferInfo = &elementBufferInfo;
     }
 
-    device->updateDescriptorSets(GPUcompress ? writes.size() : writes.size()-1,
+    device->updateDescriptorSets(GPUcompress ? writes.size() : writes.size()-2,
                                  writes.data(), 0, nullptr);
 
     if (ibl) {
@@ -2319,12 +2319,14 @@ void AsyVkRender::createBuffers()
     VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
   );
 
-  elementBf = createBufferUnique(
-    vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
-    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-    elementBufferSize,
-    VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
-  );
+  if(GPUcompress) {
+    elementBf = createBufferUnique(
+      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+      elementBufferSize,
+      VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+      );
+  }
 
   for (auto& frameObj : frameObjects)
   {
@@ -3551,7 +3553,6 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   if (GPUcompress) {
-
     static auto elemBfMappedMem=make_unique<vma::cxx::MemoryMapperLock>(elementBf);
     static std::uint32_t* p = nullptr;
     if (p == nullptr) {
