@@ -731,7 +731,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 #ifdef HAVE_VULKAN
 void AsyVkRender::initVulkan()
 {
-  VULKAN_HPP_DEFAULT_DISPATCHER.init();
+  VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
   if (!glslang::InitializeProcess()) {
     throw std::runtime_error("Unable to initialize glslang.");
