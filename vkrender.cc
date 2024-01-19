@@ -2370,7 +2370,7 @@ void AsyVkRender::createDependentBuffers()
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   opaqueBufferSize=pixels*sizeof(glm::vec4);
   opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
-  indexBufferSize=pixels*sizeof(std::uint32_t);
+  indexBufferSize=GPUcompress ? pixels*sizeof(std::uint32_t) : 0;
 
   VkMemoryPropertyFlags countBufferFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   VmaAllocationCreateFlags vmaFlags = 0;
@@ -2427,11 +2427,13 @@ void AsyVkRender::createDependentBuffers()
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      opaqueBufferSize);
 
-  indexBf = createBufferUnique(
-                     vk::BufferUsageFlagBits::eStorageBuffer,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     indexBufferSize,
-                     VMA_MEMORY_USAGE_GPU_ONLY);
+  if(GPUcompress) {
+    indexBf = createBufferUnique(
+      vk::BufferUsageFlagBits::eStorageBuffer,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      indexBufferSize,
+      VMA_MEMORY_USAGE_GPU_ONLY);
+  }
 
   if (!GPUindexing) {
     countBfMappedMem = make_unique<vma::cxx::MemoryMapperLock>(countBf);
