@@ -2088,20 +2088,23 @@ void AsyVkRender::writeDescriptorSets()
     writes[4].pBufferInfo = &opaqueDepthBufferInfo;
 
     writes[5].dstSet = *frameObjects[i].descriptorSet;
-    writes[5].dstBinding = 9;
+    writes[5].dstBinding = 10;
     writes[5].dstArrayElement = 0;
     writes[5].descriptorType = vk::DescriptorType::eStorageBuffer;
     writes[5].descriptorCount = 1;
-    writes[5].pBufferInfo = &indexBufferInfo;
+    writes[5].pBufferInfo = &elementBufferInfo;
 
-    writes[6].dstSet = *frameObjects[i].descriptorSet;
-    writes[6].dstBinding = 10;
-    writes[6].dstArrayElement = 0;
-    writes[6].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[6].descriptorCount = 1;
-    writes[6].pBufferInfo = &elementBufferInfo;
+    if(GPUcompress) {
+      writes[6].dstSet = *frameObjects[i].descriptorSet;
+      writes[6].dstBinding = 9;
+      writes[6].dstArrayElement = 0;
+      writes[6].descriptorType = vk::DescriptorType::eStorageBuffer;
+      writes[6].descriptorCount = 1;
+      writes[6].pBufferInfo = &indexBufferInfo;
+    }
 
-    device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+    device->updateDescriptorSets(GPUcompress ? writes.size() : writes.size()-1,
+                                 writes.data(), 0, nullptr);
 
     if (ibl) {
 
@@ -2370,7 +2373,7 @@ void AsyVkRender::createDependentBuffers()
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   opaqueBufferSize=pixels*sizeof(glm::vec4);
   opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
-  indexBufferSize=GPUcompress ? pixels*sizeof(std::uint32_t) : 0;
+  indexBufferSize=pixels*sizeof(std::uint32_t);
 
   VkMemoryPropertyFlags countBufferFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   VmaAllocationCreateFlags vmaFlags = 0;
