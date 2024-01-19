@@ -2428,9 +2428,10 @@ void AsyVkRender::createDependentBuffers()
                      opaqueBufferSize);
 
   indexBf = createBufferUnique(
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                     vk::BufferUsageFlagBits::eStorageBuffer,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     indexBufferSize);
+                     indexBufferSize,
+                     VMA_MEMORY_USAGE_GPU_ONLY);
 
   if (!GPUindexing) {
     countBfMappedMem = make_unique<vma::cxx::MemoryMapperLock>(countBf);
@@ -3904,7 +3905,6 @@ void AsyVkRender::display()
 
   if(remesh) {
     clearCenters();
-    device->waitIdle(); // TODO: Use fence instead
 
     for (int i = 0; i < maxFramesInFlight; i++) {
       frameObjects[i].reset();
