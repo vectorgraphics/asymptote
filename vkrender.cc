@@ -3904,16 +3904,7 @@ void AsyVkRender::display()
 
   if(remesh) {
     clearCenters();
-
-    // Get the most recent frame that was started and wait for it to finish
-    // before clearing buffers
-    int previousFrameIndex = currentFrame - 1;
-
-    if (previousFrameIndex < 0) {
-      previousFrameIndex = maxFramesInFlight - 1;
-    }
-
-    device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+    device->waitIdle(); // TODO: Use fence instead
 
     for (int i = 0; i < maxFramesInFlight; i++) {
       frameObjects[i].reset();
