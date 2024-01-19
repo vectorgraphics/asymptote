@@ -765,7 +765,7 @@ void AsyVkRender::initVulkan()
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
-  if (GPUindexing) {
+  if (!Opaque && GPUindexing) {
     createComputePipelines();
   }
 
@@ -789,10 +789,11 @@ void AsyVkRender::recreateSwapChain()
 //  device->waitIdle();
 
   createSwapChain();
-  createDependentBuffers();
+  if(!Opaque) createDependentBuffers();
   writeDescriptorSets();
   createImageViews();
-  createCountRenderPass();
+  if(!Opaque)
+    createCountRenderPass();
   createGraphicsRenderPass();
   createGraphicsPipelines();
   createAttachments();
@@ -3747,7 +3748,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   auto transparent=!Opaque;
   beginFrameCommands(getFrameCommandBuffer());
 
-  if (!GPUindexing) {
+  if (transparent && !GPUindexing) {
     currentCommandBuffer.fillBuffer(countBf.getBuffer(), 0, countBufferSize, 0);
   }
 
