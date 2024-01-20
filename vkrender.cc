@@ -4220,15 +4220,12 @@ void AsyVkRender::Export(int imageIndex) {
     swapExtent
   );
 
-  VmaAllocationCreateInfo allocInfo = {};
-  allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-  allocInfo.memoryTypeBits = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-  vk::BufferCreateInfo bufCreateInfo(
-          {},
-          size,
-          vk::BufferUsageFlagBits::eTransferDst);
+  vma::cxx::UniqueBuffer exportBuf = createBufferUnique(
+    vk::BufferUsageFlagBits::eTransferDst,
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+    size,
+    VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT);
 
-  vma::cxx::UniqueBuffer exportBuf = allocator.createBuffer(bufCreateInfo, allocInfo);
   transitionImageLayout(
     *exportCommandBuffer,
     backbufferImages[imageIndex],
@@ -4288,12 +4285,13 @@ void AsyVkRender::Export(int imageIndex) {
 
   auto * fmt = new unsigned char[backbufferExtent.width * backbufferExtent.height * 3]; // 3 for RGB
 
+  auto data=mappedMemory.getCopyPtr<unsigned char>();
   for (auto i = 0u; i < backbufferExtent.height; i++)
     for (auto j = 0u; j < backbufferExtent.width; j++)
       for (auto k = 0u; k < 3; k++)
         // need to flip vertically and swap byte order due to little endian in image data
         // 4 for sizeof unsigned (RGBA)
-        fmt[(backbufferExtent.height-1-i)*backbufferExtent.width*3+j*3+(2-k)]=mappedMemory.getCopyPtr<unsigned char>()[i*backbufferExtent.width*4+j*4+k];
+        fmt[(backbufferExtent.height-1-i)*backbufferExtent.width*3+j*3+(2-k)]=data[i*backbufferExtent.width*4+j*4+k];
 
   picture pic;
   double w=oWidth;
