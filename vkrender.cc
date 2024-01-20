@@ -1492,12 +1492,13 @@ vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
         vk::BufferUsageFlags const& usage,
         VkMemoryPropertyFlags const& properties,
         vk::DeviceSize const& size,
-        VmaAllocationCreateFlags const& vmaFlags)
+        VmaAllocationCreateFlags const& vmaFlags,
+        VmaMemoryUsage const& memoryUsage)
 {
   auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), size, usage);
 
   VmaAllocationCreateInfo createInfo = {};
-  createInfo.usage = VMA_MEMORY_USAGE_AUTO;
+  createInfo.usage = memoryUsage;
   createInfo.requiredFlags = properties;
   createInfo.flags=vmaFlags;
 
@@ -2438,7 +2439,8 @@ void AsyVkRender::createDependentBuffers()
       vk::BufferUsageFlagBits::eStorageBuffer,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       indexBufferSize,
-      VMA_MEMORY_USAGE_GPU_ONLY);
+      VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+      VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
   }
 
   if (!GPUindexing) {
