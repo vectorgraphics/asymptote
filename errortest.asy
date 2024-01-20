@@ -524,3 +524,8 @@
   typedef import(T);  // not first line of file
   import typedef(T);  // should be "typedef import"
 }
+{
+  access errortestTemplate(A=int, B=string) as ett_a;  // wrong number of params
+  access errortestTemplate(A=int, B=string, T=real) as ett_b;  // third param incorrectly named
+  access errortestTemplate(A=int, C=real, B=string) as ett_c;  // keywords in wrong order
+}
