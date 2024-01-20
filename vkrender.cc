@@ -768,7 +768,8 @@ void AsyVkRender::initVulkan()
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
-  if (!Opaque && GPUindexing) {
+
+  if (GPUindexing) {
     createComputePipelines();
   }
 
@@ -792,11 +793,11 @@ void AsyVkRender::recreateSwapChain()
 //  device->waitIdle();
 
   createSwapChain();
-  if(!Opaque) createDependentBuffers();
+
+  createDependentBuffers();
   writeDescriptorSets();
   createImageViews();
-  if(!Opaque)
-    createCountRenderPass();
+  createCountRenderPass();
   createGraphicsRenderPass();
   createGraphicsPipelines();
   createAttachments();
