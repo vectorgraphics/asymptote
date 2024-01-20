@@ -522,4 +522,5 @@
 }
 {
   typedef import(T);  // not first line of file
+  import typedef(T);  // should be "typedef import"
 }

@@ -260,6 +260,10 @@ dec:
 // Experimental - templated imports.
 | TYPEDEF IMPORT '(' typeparamlist ')' ';'
                    { $$ = new receiveTypedefDec($1, $4); }
+| IMPORT TYPEDEF '(' typeparamlist ')' ';'
+                   { $$ = new badDec($1, $1,
+                     "Unrecognized syntax. Did you mean "
+                     "'typedef import(<stuff>)'?"); }
 /* ACCESS strid '(' decdeclist ')' 'as' ID */
 | ACCESS strid '(' decdeclist ')' ID ID ';'
                    { $$ = new templateAccessDec($1, $2.sym, $4, $6.sym, $7.sym, $6.pos); }
