@@ -1350,10 +1350,22 @@ void AsyVkRender::createOffscreenBuffers() {
 
 void AsyVkRender::createImageViews()
 {
-  backbufferImageViews.resize(backbufferImages.size());
-  for (size_t i = 0; i < backbufferImages.size(); i++) {
-    vk::ImageViewCreateInfo viewCI = vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), backbufferImages[i], vk::ImageViewType::e2D, backbufferImageFormat, vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-    backbufferImageViews[i] = device->createImageViewUnique(viewCI, nullptr);
+  auto const bufferCount= backbufferImages.size();
+  backbufferImageViews.clear();
+  backbufferImageViews.reserve(bufferCount);
+  for (size_t i= 0; i < bufferCount; ++i)
+  {
+    vk::ImageViewCreateInfo const viewCI(
+            vk::ImageViewCreateFlags(),
+            backbufferImages[i],
+            vk::ImageViewType::e2D,
+            backbufferImageFormat,
+            vk::ComponentMapping(),
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+    );
+    auto const& imgView= backbufferImageViews.emplace_back(device->createImageViewUnique(viewCI, nullptr));
+
+    setDebugObjectName(*imgView, "backbufferImageView" + std::to_string(i));
   }
 }
 
@@ -1445,9 +1457,13 @@ void AsyVkRender::createFramebuffers()
       1
     );
 
-    depthFramebuffers[i] = device->createFramebufferUnique(depthFramebufferCI);
-    opaqueGraphicsFramebuffers[i] = device->createFramebufferUnique(opaqueGraphicsFramebufferCI);
-    graphicsFramebuffers[i] = device->createFramebufferUnique(graphicsFramebufferCI);
+    depthFramebuffers[i]= device->createFramebufferUnique(depthFramebufferCI);
+    opaqueGraphicsFramebuffers[i]= device->createFramebufferUnique(opaqueGraphicsFramebufferCI);
+    graphicsFramebuffers[i]= device->createFramebufferUnique(graphicsFramebufferCI);
+
+    setDebugObjectName(*depthFramebuffers[i], "depthFrameBuffer" + std::to_string(i));
+    setDebugObjectName(*opaqueGraphicsFramebuffers[i], "opaqueGraphicsFramebuffers" + std::to_string(i));
+    setDebugObjectName(*graphicsFramebuffers[i], "graphicsFramebuffers" + std::to_string(i));
   }
 }
 
@@ -2793,23 +2809,15 @@ void AsyVkRender::createGraphicsRenderPass()
   };
 
   // only use the first subpass and first dependency
-  auto const opaqueRenderPassCI = vk::RenderPassCreateInfo2(
-    {},
-    VEC_VIEW(attachments),
-    1,
-    subpasses.data(),
-    1,
-    dependencies.data()
-  );
-  opaqueGraphicsRenderPass = device->createRenderPass2Unique(opaqueRenderPassCI);
+  auto const opaqueRenderPassCI=
+          vk::RenderPassCreateInfo2({}, VEC_VIEW(attachments), 1, subpasses.data(), 1, dependencies.data());
+  opaqueGraphicsRenderPass= device->createRenderPass2Unique(opaqueRenderPassCI);
+  setDebugObjectName(*opaqueGraphicsRenderPass, "opaqueGraphicsRenderPass");
 
-  auto const renderPassCI = vk::RenderPassCreateInfo2(
-    {},
-    VEC_VIEW(attachments),
-    VEC_VIEW(subpasses),
-    VEC_VIEW(dependencies)
-  );
-  graphicsRenderPass = device->createRenderPass2Unique(renderPassCI);
+  auto const renderPassCI=
+          vk::RenderPassCreateInfo2({}, VEC_VIEW(attachments), VEC_VIEW(subpasses), VEC_VIEW(dependencies));
+  graphicsRenderPass= device->createRenderPass2Unique(renderPassCI);
+  setDebugObjectName(*graphicsRenderPass, "graphicsRenderPass");
 }
 
 void AsyVkRender::createGraphicsPipelineLayout()
@@ -3176,18 +3184,24 @@ void AsyVkRender::createAttachments()
               vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   createImageView(backbufferImageFormat, vk::ImageAspectFlagBits::eColor, colorImg.getImage(), colorImageView);
+  setDebugObjectName(vk::Image(colorImg.getImage()), "colorImg");
+  setDebugObjectName(*colorImageView, "colorImageView");
 
   depthImg = createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, vk::Format::eD32Sfloat,
           vk::ImageUsageFlagBits::eDepthStencilAttachment,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
   );
   createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthImg.getImage(), depthImageView);
+  setDebugObjectName(vk::Image(depthImg.getImage()), "depthImg");
+  setDebugObjectName(*depthImageView, "depthImageView");
 
   depthResolveImg = createImage(backbufferExtent.width, backbufferExtent.height, vk::SampleCountFlagBits::e1, vk::Format::eD32Sfloat,
           vk::ImageUsageFlagBits::eDepthStencilAttachment,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
   );
   createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthResolveImg.getImage(), depthResolveImageView);
+  setDebugObjectName(vk::Image(depthResolveImg.getImage()), "depthResolve");
+  setDebugObjectName(*depthResolveImageView, "depthResolveImageView");
 }
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
