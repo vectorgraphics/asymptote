@@ -1798,14 +1798,6 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Ima
 
 void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects)
 {
-  // Vulkan doesn't allow a buffer to have a size of 0
-  auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(16), size), buffer.usage);
-  buffer._buffer = createBufferUnique(
-                          buffer.usage,
-                          buffer.properties,
-                          size
-                          );
-
   buffer.nobjects = nobjects;
   if (size > buffer.stgBufferSize) {
     // minimum array size of 16 bytes to avoid some Vulkan issues
@@ -3740,7 +3732,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
     // Send all the partial sum commands to the GPU, where they will wait
     // until we signal them through the startTimedSums event
-    renderQueue.submit(1, &partialSumsInfo, nullptr);
+    (void) renderQueue.submit(1, &partialSumsInfo, nullptr);
 
     // Start recording the time
     utils::stopWatch Timer;
@@ -4026,7 +4018,7 @@ void AsyVkRender::display()
       previousFrameIndex = maxFramesInFlight - 1;
     }
 
-    device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+    (void) device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
 
     for (int i = 0; i < maxFramesInFlight; i++) {
       frameObjects[i].reset();
