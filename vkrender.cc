@@ -1799,7 +1799,7 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Ima
 void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects)
 {
   // Vulkan doesn't allow a buffer to have a size of 0
-  (void) vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(16), size), buffer.usage);
+  vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(16), size), buffer.usage);
   buffer._buffer = createBufferUnique(
                           buffer.usage,
                           buffer.properties,
