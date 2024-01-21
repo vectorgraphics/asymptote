@@ -586,9 +586,6 @@ public:
       : dec(pos), src(src), args(args), dest(dest),
         valid(as == symbol::trans("as")), expectedAsPos(asPos) {}
 
-  templateAccessDec(position pos, position endPos)
-      : dec(pos), valid(false), expectedAsPos(endPos) {}
-  
   bool checkValidity() {
     if (!valid) {
       em.error(expectedAsPos);

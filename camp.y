@@ -268,7 +268,7 @@ dec:
 | ACCESS strid '(' decdeclist ')' ID ID ';'
                    { $$ = new templateAccessDec($1, $2.sym, $4, $6.sym, $7.sym, $6.pos); }
 | ACCESS strid '(' decdeclist ')' ';'
-                   { $$ = new templateAccessDec($1, $6); }  // logs an error
+                   { $$ = new badDec($1, $6, "expected 'as'"); }
 | IMPORT strid '(' decdeclist ')' ';'
                    { $$ = new badDec($1, $1,
                      "Parametrized imports disallowed to reduce naming "
