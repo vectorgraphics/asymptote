@@ -894,17 +894,17 @@ void AsyVkRender::createDebugMessenger()
 {
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
   vk::DebugUtilsMessageTypeFlagsEXT typeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
-  if (settings::verbose >= 1)
+  if (settings::verbose >= 4)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
     typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral;
   }
-  if (settings::verbose >= 2)
+  if (settings::verbose >= 4)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo;
     typeFlags |= typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
   }
-  if (settings::verbose >= 3)
+  if (settings::verbose >= 4)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
   }
@@ -913,15 +913,27 @@ void AsyVkRender::createDebugMessenger()
           {},
           severityFlags,
           typeFlags,
-          [](
-                  VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
-                  VkDebugUtilsMessageTypeFlagsEXT msgType,
-                  VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-                  void* pUserData
-          ) -> VkBool32
-          {
-            cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-//            return vk::False;
+          [](VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
+             VkDebugUtilsMessageTypeFlagsEXT msgType,
+             VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+             void* pUserData) -> VkBool32 {
+            switch (static_cast<vk::DebugUtilsMessageSeverityFlagBitsEXT>(msgSeverity))
+            {
+              case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
+                cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+                break;
+              case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
+                cerr << "[VERBOSE] validation layer: " << pCallbackData->pMessage << std::endl;
+                break;
+              case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
+              case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
+                reportWarning(pCallbackData->pMessage);
+                break;
+              // report error throws an exception; we don't want that
+              default:
+                break;
+            }
+
             return false;
           },
           this
@@ -3689,7 +3701,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   renderQueue.submit(1, &info, *object.inComputeFence);
 
-  if (GPUindexing && settings::verbose > 3) {
+  if (GPUindexing && settings::verbose >= 5) {
     // Wait until the render queue isn't being used, so we only time
     // our partial sums calculation
     renderQueue.waitIdle();
