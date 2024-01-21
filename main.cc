@@ -142,7 +142,6 @@ void *asymain(void *A)
 {
   setsignal(signalHandler);
   Args *args=(Args *) A;
-  fpu_trap(trap());
 #ifdef HAVE_LIBFFTW3
   fftwpp::wisdomName=".wisdom";
 #endif
@@ -258,6 +257,7 @@ int main(int argc, char *argv[])
     em.statusError();
   }
 
+  fpu_trap(trap());
   Args args(argc,argv);
 #ifdef HAVE_VULKAN
 #ifdef __APPLE__
