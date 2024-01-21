@@ -7,6 +7,9 @@ runs:
       uses: ashutoshvarma/setup-ninja@v1.1
       with:
         version: 1.10.0
+    - name: Update apt
+      shell: bash
+      run: sudo apt-get update
     - name: Setup build dependencies
       shell: bash
       run: |
