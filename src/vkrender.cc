@@ -922,14 +922,27 @@ void AsyVkRender::createDebugMessenger()
           {},
           severityFlags,
           typeFlags,
-          [](
-                  VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
-                  VkDebugUtilsMessageTypeFlagsEXT msgType,
-                  VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-                  void* pUserData
-          ) -> VkBool32
-          {
-            cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+          [](VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
+             VkDebugUtilsMessageTypeFlagsEXT msgType,
+             VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+             void* pUserData) -> VkBool32 {
+            switch (static_cast<vk::DebugUtilsMessageSeverityFlagBitsEXT>(msgSeverity))
+            {
+              case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
+                cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+                break;
+              case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
+                cerr << "[VERBOSE] validation layer: " << pCallbackData->pMessage << std::endl;
+                break;
+              case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
+              case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
+                reportWarning(pCallbackData->pMessage);
+                break;
+              // report error throws an exception; we don't want that
+              default:
+                break;
+            }
+
             return vk::False;
           },
           this
