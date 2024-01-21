@@ -4,6 +4,7 @@
 #include "picture.h"
 #include "drawimage.h"
 #include "EXRFiles.h"
+#include "fpu.h"
 
 #include <chrono>
 #include <thread>
@@ -741,6 +742,9 @@ void AsyVkRender::initVulkan()
 #endif
   if (View) createSurface();
   pickPhysicalDevice();
+
+  fpu_trap(false); // Work around FE_INVALID.
+
   createLogicalDevice();
   createAllocator();
   createCommandPools();
@@ -769,6 +773,8 @@ void AsyVkRender::initVulkan()
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
+
+  fpu_trap(settings::trap()); // Work around FE_INVALID.
 
   if (GPUindexing) {
     createComputePipelines();

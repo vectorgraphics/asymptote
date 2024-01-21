@@ -265,8 +265,7 @@ int main(int argc, char *argv[])
 #else
   bool usethreads=view();
 #endif
-  camp::vk->vkthread=(usethreads && getSetting<bool>("threads")) ||
-    settings::getSetting<bool>("offscreen");
+  camp::vk->vkthread=usethreads && getSetting<bool>("threads");
 #if HAVE_PTHREAD
   if(camp::vk->vkthread) {
     pthread_t thread;
