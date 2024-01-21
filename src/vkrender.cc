@@ -3741,7 +3741,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
     // Send all the partial sum commands to the GPU, where they will wait
     // until we signal them through the startTimedSums event
-    renderQueue.submit(1, &partialSumsInfo, nullptr);
+    vkutils::checkVkResult(renderQueue.submit(1, &partialSumsInfo, nullptr));
 
     // Start recording the time
     utils::stopWatch Timer;
