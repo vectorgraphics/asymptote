@@ -72,12 +72,8 @@ void main()
   }
 #endif
 
-#ifdef GPUINDEXING
   uint listIndex=offset[element];
   uint size=offset[element+1u]-listIndex;
-#else
-  uint size=count[element];
-#endif
 
 #ifndef GPUCOMPRESS
   if(size == 0u) {
@@ -88,10 +84,6 @@ void main()
 #endif
 
   outColor=OpaqueDepth != 0.0 ? opaqueColor[pixel] : push.background;
-
-#ifndef GPUINDEXING
-  uint listIndex=offset[element]-size;
-#endif
 
   uint k=0u;
   if(OpaqueDepth != 0.0)
@@ -140,9 +132,7 @@ void main()
       opaqueDepth[pixel]=0.0;
   } else {
     atomicMax(maxDepth,size);
-#ifndef GPUINDEXING
     maxSize=maxDepth;
-#endif
     for(uint i=k+1u; i < size; i++) {
       vec4 temp=fragment[listIndex+i];
       float d=depth[listIndex+i];

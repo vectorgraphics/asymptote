@@ -544,7 +544,6 @@ private:
   bool remesh=true;
   bool redraw=true;
   bool interlock=false;
-  bool GPUindexing=false;
   bool GPUcompress=false;
 
   std::int32_t gs2;

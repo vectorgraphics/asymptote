@@ -655,14 +655,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 #endif
 
-  GPUindexing=settings::getSetting<bool>("GPUindexing");
-  GPUcompress=GPUindexing && settings::getSetting<bool>("GPUcompress");
+  GPUcompress=settings::getSetting<bool>("GPUcompress");
 
-  if(GPUindexing) {
-    localSize=settings::getSetting<Int>("GPUlocalSize");
-    blockSize=settings::getSetting<Int>("GPUblockSize");
-    groupSize=localSize*blockSize;
-  }
+  localSize=settings::getSetting<Int>("GPUlocalSize");
+  blockSize=settings::getSetting<Int>("GPUblockSize");
+  groupSize=localSize*blockSize;
 
 #ifdef HAVE_VULKAN
   if(vkinitialize) {
@@ -776,12 +773,8 @@ void AsyVkRender::initVulkan()
 
   fpu_trap(settings::trap()); // Work around FE_INVALID.
 
-  if (GPUindexing) {
-    createComputePipelines();
-  }
-
+  createComputePipelines();
   createAttachments();
-
   createFramebuffers();
   createExportResources();
 }
@@ -2441,15 +2434,9 @@ void AsyVkRender::createDependentBuffers()
   pixels=(backbufferExtent.width+1)*(backbufferExtent.height+1);
   std::uint32_t Pixels;
 
-  if (GPUindexing) {
-    std::uint32_t G=ceilquotient(pixels,groupSize);
-    Pixels=groupSize*G;
-    globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
-  }
-  else {
-    Pixels=pixels;
-    globalSize=1;
-  }
+  std::uint32_t G=ceilquotient(pixels,groupSize);
+  Pixels=groupSize*G;
+  globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
 
   countBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
@@ -2459,11 +2446,6 @@ void AsyVkRender::createDependentBuffers()
 
   VkMemoryPropertyFlags countBufferFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   VmaAllocationCreateFlags vmaFlags = 0;
-
-  if (!GPUindexing) {
-    countBufferFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-    vmaFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
-  }
 
   if (countBfMappedMem != nullptr)
   {
@@ -2494,14 +2476,6 @@ void AsyVkRender::createDependentBuffers()
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
           offsetBufferSize);
 
-  if (!GPUindexing) {
-    offsetStageBf = createBufferUnique(
-      vk::BufferUsageFlagBits::eTransferSrc,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-      offsetBufferSize,
-      VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
-    );
-  }
   opaqueBf = createBufferUnique(
                      vk::BufferUsageFlagBits::eStorageBuffer,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -2519,11 +2493,6 @@ void AsyVkRender::createDependentBuffers()
       indexBufferSize,
       VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
       VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
-  }
-
-  if (!GPUindexing) {
-    countBfMappedMem = make_unique<vma::cxx::MemoryMapperLock>(countBf);
-    offsetStageBfMappedMem = make_unique<vma::cxx::MemoryMapperLock>(offsetStageBf);
   }
 }
 
@@ -2872,9 +2841,6 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
     return;
   }
 
-  if (GPUindexing) {
-    options.emplace_back("GPUINDEXING");
-  }
   if (GPUcompress) {
     options.emplace_back("GPUCOMPRESS");
   }
@@ -3550,21 +3516,18 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
-  if (GPUindexing) {
-    waitForEvent(*object.sumFinishedEvent);
+  waitForEvent(*object.sumFinishedEvent);
 
-    static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
+  static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
 
-    const auto maxDepth=feedbackMappedPtr->getCopyPtr()[0];
-    fragments=feedbackMappedPtr->getCopyPtr()[1];
+  const auto maxDepth=feedbackMappedPtr->getCopyPtr()[0];
+  fragments=feedbackMappedPtr->getCopyPtr()[1];
 
-    if (maxDepth>maxSize) {
-      resizeBlendShader(maxDepth);
-    }
+  if (maxDepth>maxSize) {
+    resizeBlendShader(maxDepth);
   }
 
   if (fragments>maxFragments) {
-
     maxFragments=11*fragments/10;
     checkVkResult(device->waitForFences(
       1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max()
@@ -3666,7 +3629,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
       result = device->getEventStatus(*object.compressionFinishedEvent);
     } while(result != vk::Result::eEventSet);
 
-    elements=GPUindexing ? p[0] : p[0]-1;
+    elements=p[0];
     p[0]=1;
   } else {
     endFrameRender();
@@ -3680,46 +3643,43 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   unsigned int NSUMS=10000;
 
-  if (GPUindexing) {
+  beginFrameCommands(*object.computeCommandBuffer);
+  g=ceilquotient(elements,groupSize);
+  elements=groupSize*g;
 
-    beginFrameCommands(*object.computeCommandBuffer);
-    g=ceilquotient(elements,groupSize);
-    elements=groupSize*g;
+  if(settings::verbose > 3) {
+    device->resetEvent(*object.startTimedSumsEvent);
+    device->resetEvent(*object.timedSumsFinishedEvent);
+    // Start recording commands into partialSumsCommandBuffer
+    object.partialSumsCommandBuffer->begin(vk::CommandBufferBeginInfo());
 
-    if(settings::verbose > 3) {
-      device->resetEvent(*object.startTimedSumsEvent);
-      device->resetEvent(*object.timedSumsFinishedEvent);
-      // Start recording commands into partialSumsCommandBuffer
-      object.partialSumsCommandBuffer->begin(vk::CommandBufferBeginInfo());
-
-      // Wait to execute the compute shaders util we trigger them from CPU
-      object.partialSumsCommandBuffer->waitEvents(
-        1,
-        &*object.startTimedSumsEvent,
-        vk::PipelineStageFlagBits::eHost,
-        vk::PipelineStageFlagBits::eComputeShader,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        0,
-        nullptr
+    // Wait to execute the compute shaders util we trigger them from CPU
+    object.partialSumsCommandBuffer->waitEvents(
+      1,
+      &*object.startTimedSumsEvent,
+      vk::PipelineStageFlagBits::eHost,
+      vk::PipelineStageFlagBits::eComputeShader,
+      0,
+      nullptr,
+      0,
+      nullptr,
+      0,
+      nullptr
       );
 
-      // Record all partial sums calcs into partialSumsCommandBuffer
-      for(unsigned int i=0; i < NSUMS; ++i) {
-        partialSums(object, true, i==0);
-      }
-
-      // Signal to the CPU once the compute shaders have executed
-      object.partialSumsCommandBuffer->setEvent(*object.timedSumsFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
-      object.partialSumsCommandBuffer->end();
+    // Record all partial sums calcs into partialSumsCommandBuffer
+    for(unsigned int i=0; i < NSUMS; ++i) {
+      partialSums(object, true, i==0);
     }
 
-    partialSums(object);
-    endFrameCommands();
-    commandsToSubmit.emplace_back(currentCommandBuffer);
+    // Signal to the CPU once the compute shaders have executed
+    object.partialSumsCommandBuffer->setEvent(*object.timedSumsFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
+    object.partialSumsCommandBuffer->end();
   }
+
+  partialSums(object);
+  endFrameCommands();
+  commandsToSubmit.emplace_back(currentCommandBuffer);
 
   auto info = vk::SubmitInfo();
 
@@ -3728,7 +3688,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
 
-  if (GPUindexing && settings::verbose >= 5) {
+  if (settings::verbose >= 5) {
     // Wait until the render queue isn't being used, so we only time
     // our partial sums calculation
     renderQueue.waitIdle();
@@ -3756,51 +3716,6 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     cout << "elements=" << elements << endl;
     cout << "Tmin (ms)=" << T*1e3 << endl;
     cout << "Megapixels/second=" << elements/T/1e6 << endl;
-  }
-
-  if (!GPUindexing) {
-
-    checkVkResult(device->waitForFences(
-      1,
-      &*object.inComputeFence,
-      true,
-      std::numeric_limits<std::uint64_t>::max()
-    ));
-
-    elements=pixels;
-
-    auto offset = offsetStageBfMappedMem->getCopyPtr()+1;
-    auto maxsize=countBfMappedMem->getCopyPtr()[0];
-    auto count=countBfMappedMem->getCopyPtr()+1;
-    size_t Offset=offset[0]=count[0];
-
-    for(size_t i=1; i < elements; ++i)
-      offset[i]=Offset += count[i];
-
-    fragments=Offset;
-
-    if (maxsize > maxSize)
-      resizeBlendShader(maxsize);
-
-    auto const copy = vk::BufferCopy(
-      0, 0, offsetBufferSize
-    );
-
-    object.copyCountCommandBuffer->reset();
-    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo());
-    object.copyCountCommandBuffer->copyBuffer(offsetStageBf.getBuffer(), offsetBf.getBuffer(), 1, &copy);
-    object.copyCountCommandBuffer->end();
-
-    auto info = vk::SubmitInfo();
-
-    info.commandBufferCount = 1;
-    info.pCommandBuffers = &*object.copyCountCommandBuffer;
-    info.signalSemaphoreCount = 1;
-    info.pSignalSemaphores = &*object.inCountBufferCopy;
-
-    checkVkResult(transferQueue.submit(
-      1, &info, nullptr
-    ));
   }
 }
 
@@ -3844,10 +3759,6 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 {
   auto transparent=!Opaque;
   beginFrameCommands(getFrameCommandBuffer());
-
-  if (transparent && !GPUindexing) {
-    currentCommandBuffer.fillBuffer(countBf.getBuffer(), 0, countBufferSize, 0);
-  }
 
   beginGraphicsFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
@@ -3929,11 +3840,6 @@ void AsyVkRender::drawFrame()
   }
 
   std::vector<vk::PipelineStageFlags> waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-
-  if (!GPUindexing && !Opaque) {
-    waitSemaphores.emplace_back(*frameObject.inCountBufferCopy);
-    waitStages.emplace_back(vk::PipelineStageFlagBits::eFragmentShader);
-  }
 
   auto submitInfo = vk::SubmitInfo(
     waitSemaphores.size(),
