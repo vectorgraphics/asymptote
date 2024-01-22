@@ -3711,7 +3711,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
         partialSums(object, true, i==0);
       }
 
-      // Signal to the CPU the compute shaders have executed
+      // Signal to the CPU once the compute shaders have executed
       object.partialSumsCommandBuffer->setEvent(*object.timedSumsFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
       object.partialSumsCommandBuffer->end();
     }
