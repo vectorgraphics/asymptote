@@ -266,7 +266,7 @@ void AsyVkRender::initWindow()
     window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
   }
 
-  glfwShowWindow(window);
+  glfwHideWindow(window);
   glfwSetWindowUserPointer(window, this);
   glfwSetMouseButtonCallback(window, mouseButtonCallback);
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -717,11 +717,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 
   update();
-
-#ifdef __MSDOS__
-//  if(vkthread && interact::interactive)
-//    poll(0);
-#endif
+  glfwShowWindow(window);
 
   mainLoop();
 
