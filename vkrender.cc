@@ -1548,15 +1548,6 @@ uint32_t AsyVkRender::selectMemory(const vk::MemoryRequirements memRequirements,
   throw std::runtime_error("failed to find suitable memory type!");
 }
 
-void AsyVkRender::zeroBuffer(vk::Buffer & buf, vk::DeviceSize size) {
-
-  auto const cmd = beginSingleCommands();
-
-  cmd.fillBuffer(buf, 0, size, 0);
-
-  endSingleCommands(cmd);
-}
-
 vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
         vk::BufferUsageFlags const& usage,
         VkMemoryPropertyFlags const& properties,
