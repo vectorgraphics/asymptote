@@ -514,6 +514,14 @@ AsyVkRender::~AsyVkRender()
 
 #endif
 
+bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
+void checkpow2(unsigned int n, string s) {
+  if(!ispow2(n)) {
+    cerr << s << " must be a power of two." << endl;
+    exit(-1);
+  }
+}
+
 void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
                            double Width, double Height, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
@@ -633,7 +641,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(width,height);
 
 #ifdef HAVE_VULKAN
-    Aspect=((double) width)/height; // CHECK
+    Aspect=((double) width)/height;
     setosize();
 #endif
   }
@@ -658,7 +666,9 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   GPUcompress=settings::getSetting<bool>("GPUcompress");
 
   localSize=settings::getSetting<Int>("GPUlocalSize");
+  checkpow2(localSize,"GPUlocalSize");
   blockSize=settings::getSetting<Int>("GPUblockSize");
+  checkpow2(blockSize,"GPUblockSize");
   groupSize=localSize*blockSize;
 
 #ifdef HAVE_VULKAN
@@ -946,9 +956,8 @@ void checkVkResult(vk::Result const& result)
 {
   if (result != vk::Result::eSuccess)
   {
-    ostringstream oss;
-    oss << "Vulkan operation failed; message: " << to_string(result);
-    camp::reportError(oss);
+    cerr << "Vulkan operation failed; message: " << to_string(result) << endl;
+    exit(-1);
   }
 }
 
