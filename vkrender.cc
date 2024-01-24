@@ -42,6 +42,8 @@ namespace camp
 
 static bool vkinitialize=true;
 
+const Int timePartialSumVerbosity=4;
+
 std::vector<char> readFile(const std::string& filename)
 {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -744,7 +746,7 @@ void AsyVkRender::initVulkan()
   }
 
   createInstance();
-#if defined(VALIDATION)
+#ifdef VALIDATION
   createDebugMessenger();
 #endif
   if (View) createSurface();
@@ -899,7 +901,7 @@ void AsyVkRender::createInstance()
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 }
 
-#if defined(VALIDATION)
+#ifdef VALIDATION
 void AsyVkRender::createDebugMessenger()
 {
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
@@ -3641,13 +3643,13 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   if (elements==0)
     return;
 
-  unsigned int NSUMS=10000;
-
   beginFrameCommands(*object.computeCommandBuffer);
   g=ceilquotient(elements,groupSize);
   elements=groupSize*g;
 
-  if(settings::verbose > 3) {
+  const unsigned int NSUMS=10000;
+
+  if(settings::verbose >= timePartialSumVerbosity) {
     device->resetEvent(*object.startTimedSumsEvent);
     device->resetEvent(*object.timedSumsFinishedEvent);
     // Start recording commands into partialSumsCommandBuffer
@@ -3688,7 +3690,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
 
-  if (settings::verbose >= 5) {
+  if(settings::verbose >= timePartialSumVerbosity) {
     // Wait until the render queue isn't being used, so we only time
     // our partial sums calculation
     renderQueue.waitIdle();

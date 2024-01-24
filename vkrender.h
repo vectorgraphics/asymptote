@@ -62,7 +62,7 @@ namespace camp
 class picture;
 
 // Comment out when not debugging:
-#define VALIDATION
+//#define VALIDATION
 
 #define VEC_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
 #define STD_ARR_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
