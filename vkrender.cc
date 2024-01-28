@@ -482,12 +482,12 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
     case '_':
       app->shrink();
       break;
-    case 'p':
+    case 'P':
       if(settings::getSetting<bool>("reverse")) app->Animate=false;
       settings::Setting("reverse")=app->Step=false;
       app->animate();
       break;
-    case 'r':
+    case 'R':
       if(!settings::getSetting<bool>("reverse")) app->Animate=false;
       settings::Setting("reverse")=true;
       app->Step=false;
