@@ -38,6 +38,8 @@ public:
 
   types::ty *getType(coenv &e, bool tacit=false);
 
+  absyntax::ty *getType() { return base; }
+
   virtual void addOps(coenv &e, record *r);
 
   varinit *getDefaultValue() {
@@ -119,6 +121,8 @@ public:
   types::function *getType(types::ty *result, coenv &e,
                            bool encodeDefVal = false,
                            bool tacit = false);
+  
+  mem::vector<std::pair<absyntax::ty*, symbol>> *getFields();
 
   virtual void addOps(coenv &e, record *r);
 

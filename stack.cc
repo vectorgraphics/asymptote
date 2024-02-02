@@ -554,17 +554,18 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string index) {
-  frame *inst=instMap[index];
+void stack::load(string filename, string index) {
+  importIndex_t Index=std::make_pair(filename,index);
+  frame *inst=instMap[Index];
   if (inst)
     push(inst);
   else {
     func f;
     assert(initMap);
-    f.body=(*initMap)[index];
+    f.body=(*initMap)[Index];
     assert(f.body);
     run(&f);
-    instMap[index]=get<frame *>(top());
+    instMap[Index]=get<frame *>(top());
   }
 }
 

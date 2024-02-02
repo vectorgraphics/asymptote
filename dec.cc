@@ -167,27 +167,70 @@ void block::prettyprint(ostream &out, Int indent)
   prettystms(out, indent+1);
 }
 
+// Uses RAII to ensure scope is ended when function returns.
+class Scope {
+  coenv* e;
+public:
+  Scope(coenv &e, bool scope) : e(scope ? &e : 0) {
+    if (this->e) this->e->e.beginScope();
+  }
+  ~Scope() {
+    if (this->e) e->e.endScope();
+  }
+};
+
+
 void block::trans(coenv &e)
 {
-  if (scope) e.e.beginScope();
+  Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTrans(e);
   }
-  if (scope) e.e.endScope();
 }
 
 void block::transAsField(coenv &e, record *r)
 {
-  if (scope) e.e.beginScope();
+  Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
+    if (em.errors() && !settings::getSetting<bool>("debug")) break;
   }
-  if (scope) e.e.endScope();
+}
+
+void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args)
+{
+  Scope scopeHolder(e, scope);
+  auto p = stms.begin();
+  if (p == stms.end()) {
+    em.error(getPos());
+    em << "When a file is imported as a template, the first line must declare the type params.";
+    em.sync();
+    return;
+  }
+  receiveTypedefDec *dec = dynamic_cast<receiveTypedefDec *>(*p);
+  if (!dec) {
+    em.error(getPos());
+    em << "When a file is imported as a template, the first line must declare the type params.";
+    em.sync();
+    return;
+  }
+  if(!dec->transAsParamMatcher(e, args))
+    return;
+
+  for (++p; p != stms.end() && !em.errors(); ++p) {
+    (*p)->markTransAsField(e, r);
+  }
 }
 
 void block::transAsRecordBody(coenv &e, record *r)
 {
   transAsField(e, r);
+  e.c.closeRecord();
+}
+
+void block::transAsTemplatedRecordBody(coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args)
+{
+  transAsTemplatedField(e, r, args);
   e.c.closeRecord();
 }
 
@@ -208,9 +251,37 @@ record *block::transAsFile(genv& ge, symbol id)
   }
   transAsRecordBody(ce, r);
   em.sync();
+  if (em.errors()) return 0;
 
   return r;
 }
+
+record *block::transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::namedTyEntry>* args)
+{
+  // Create the new module.
+  record *r = new record(id, new frame(id,0,0));
+
+  // Create coder and environment to translate the module.
+  // File-level modules have dynamic fields by default.
+  coder c(getPos(), r, 0);
+  env e(ge);
+  coenv ce(c, e);
+
+  // Look up all the types from ge and add them to ce.
+
+
+  // Translate the abstract syntax.
+  if (settings::getSetting<bool>("autoplain")) {
+    autoplainRunnable()->transAsField(ce, r);
+  }
+
+  transAsTemplatedRecordBody(ce, r, args);
+  em.sync();
+  if (em.errors()) return 0;
+
+  return r;
+}
+
 
 bool block::returns() {
   // Search for a returning runnable, starting at the end for efficiency.
@@ -550,14 +621,19 @@ types::ty *inferType(position pos, coenv &e, varinit *init)
   }
 
   exp *base = dynamic_cast<exp *>(init);
+  bool Void=false;
+
   if (base) {
     types::ty *t = base->cgetType(e);
-    if (t->kind != ty_overloaded)
+    Void=t->kind == ty_void;
+    if (t->kind != ty_overloaded && !Void)
       return t;
   }
 
   em.error(pos);
-  em << "could not infer type of initializer";
+  em << (Void ? "cannot infer from void" :
+         "could not infer type of initializer");
+
   return primError();
 }
 
@@ -738,7 +814,7 @@ class loadModuleExp : public exp {
 
 public:
   loadModuleExp(position pos, record *imp)
-    : exp(pos) {ft=new function(imp,primString());}
+    : exp(pos) {ft=new function(imp,primString(),primString());}
 
   void prettyprint(ostream &out, Int indent) {
     prettyname(out, "loadModuleExp", indent, getPos());
@@ -778,9 +854,9 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression "loadModule(filename)".
+    // This is effectively the expression 'loadModule(filename,"")'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string)id));
+                 new stringExp(pos, (string)id), new stringExp(pos, ""));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -789,6 +865,51 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
     return v;
   }
 }
+
+// Creates a local variable to hold the import and translate the accessing of
+// the import, but doesn't add the import to the environment.
+varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
+                                formals *args)
+{
+  stringstream s;
+  s << args->getSignature(e)->handle();
+  string sigHash=s.str();
+
+  auto *computedArgs = new mem::vector<namedTyEntry>();
+  mem::vector<std::pair<ty*, symbol>> *fields = args->getFields();
+  for (auto p = fields->begin(); p != fields->end(); ++p) {
+    ty* theType = p->first;
+    symbol theName = p->second;
+    if (theName == symbol::nullsym) {
+      em.error(theType->getPos());
+      em << "expected typename=";
+      em.sync();
+      return nullptr;
+    }
+    computedArgs->emplace_back(theType->getPos(), theName, theType->transAsTyEntry(e, r));
+  }
+
+  record *imp=e.e.getTemplatedModule(id, (string) id, sigHash, computedArgs);
+  if (!imp) {
+    em.error(pos);
+    em << "could not load module '" << id << "'";
+    em.sync();
+    return nullptr;
+  }
+  else {
+    // Create a varinit that evaluates to the module.
+    // This is effectively the expression 'loadModule(filename,index)'.
+    callExp init(pos, new loadModuleExp(pos, imp),
+                 new stringExp(pos, (string) id), new stringExp(pos, sigHash));
+
+    // The varEntry should have whereDefined()==0 as it is not defined inside
+    // the record r.
+    varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+    initializeVar(pos, e, v, &init);
+    return v;
+  }
+}
+
 
 
 void idpair::prettyprint(ostream &out, Int indent)
@@ -898,6 +1019,64 @@ void accessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 #endif
 }
 
+void templateAccessDec::transAsField(coenv& e, record* r) {
+  if (!this->checkValidity()) return;
+
+  args->addOps(e, r);
+
+  varEntry *v=accessTemplatedModule(getPos(), e, r, this->src, args);
+  if (v)
+    addVar(e, r, v, dest);
+}
+
+void typeParam::prettyprint(ostream &out, Int indent) {
+  prettyindent(out, indent);
+  out << "typeParam (" << paramSym <<  ")\n";
+}
+
+bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry arg) {
+  if (arg.dest != paramSym) {
+    em.error(*arg.pos);
+    em << "bad template argument: passed " << arg.dest << ", expected " << paramSym;
+    return false;
+  }
+  e.e.addType(paramSym, arg.ent);
+  return true;
+}
+
+void typeParamList::prettyprint(ostream &out, Int indent) {
+  for (auto p = params.begin(); p != params.end(); ++p) {
+    p->prettyprint(out, indent);
+  }
+}
+
+void typeParamList::add(typeParam *tp) {
+  params.push_back(*tp);
+}
+
+bool typeParamList::transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args) {
+  if (args->size() != params.size()) {
+    position pos = getPos();
+    if (args->size() >= 1) pos = *(*args)[0].pos;
+    em.error(pos);
+    if (args->size() > params.size()) {
+      em << "too many types passed: got " << args->size() << ", expected " << params.size();
+    } else {
+      em << "too few types passed: got " << args->size() << ", expected " << params.size();
+    }
+    return false;
+  }
+  for (size_t i = 0; i < params.size(); ++i) {
+    bool succeeded = params[i].transAsParamMatcher(e, (*args)[i]);
+    if (!succeeded) return false;
+  }
+  return true;
+}
+
+bool receiveTypedefDec::transAsParamMatcher(coenv& e, mem::vector<namedTyEntry> *args)
+{
+  return params->transAsParamMatcher(e, args);
+}
 
 void fromdec::prettyprint(ostream &out, Int indent)
 {
@@ -961,7 +1140,12 @@ void fromaccessdec::prettyprint(ostream &out, Int indent)
 
 fromdec::qualifier fromaccessdec::getQualifier(coenv &e, record *r)
 {
-  varEntry *v=accessModule(getPos(), e, r, id);
+  varEntry *v = 0;
+  if (templateArgs) {
+    v = accessTemplatedModule(getPos(), e, r, id, templateArgs);
+  } else {
+    v=accessModule(getPos(), e, r, id);
+  }
   if (v) {
     record *qt=dynamic_cast<record *>(v->getType());
     if (!qt) {

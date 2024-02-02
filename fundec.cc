@@ -115,6 +115,14 @@ void formals::addOps(coenv &e, record *r)
     rest->addOps(e, r);
 }
 
+mem::vector<std::pair<absyntax::ty*, symbol>> *formals::getFields() {
+  auto *lst = new mem::vector<std::pair<absyntax::ty*, symbol>>();
+  for (auto frml : fields) {
+    lst->emplace_back(frml->getType(), frml->getName());
+  }
+  return lst;
+}
+
 // Another helper class. Does an assignment, but relying only on the
 // destination for the type.
 class basicAssignExp : public exp {

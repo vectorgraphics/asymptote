@@ -197,6 +197,19 @@ public:
   { return false; }
 };
 
+// Forward declaration.
+class formals;
+
+class namedTyEntry : public gc {
+public:
+  symbol dest;
+  trans::tyEntry *ent;
+  position *pos;
+  namedTyEntry(position pos, symbol dest, trans::tyEntry *ent)
+    : dest(dest), ent(ent), pos(new position(pos)) {}
+};
+
+
 class block : public runnable {
 public:
   mem::list<runnable *> stms;
@@ -224,9 +237,14 @@ public:
 
   void transAsField(coenv &e, record *r) override;
 
+  void transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args);
+
   void transAsRecordBody(coenv &e, record *r);
+  void transAsTemplatedRecordBody(coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args);
 
   types::record *transAsFile(genv& ge, symbol id);
+
+  types::record *transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::namedTyEntry> *args);
 
   // If the block can be interpreted as a single vardec, return that vardec
   // (otherwise 0).
@@ -335,9 +353,6 @@ public:
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
   void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
 };
-
-// Forward declaration.
-class formals;
 
 class fundecidstart : public decidstart {
   formals *params;
@@ -543,15 +558,91 @@ public:
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
+class badDec : public dec {
+  position errorPos;
+  string errorMessage;
+
+public:
+  badDec(position pos, position errorPos, string errorMessage)
+      : dec(pos), errorPos(errorPos), errorMessage(errorMessage) {}
+
+  void transAsField(coenv&, record*) override {
+    em.error(errorPos);
+    em << errorMessage;
+  }
+};
+
 // Accesses the file with specified types added to the type environment.
 class templateAccessDec : public dec {
   symbol src; // The name of the module to access.
   formals *args;
   symbol dest;  // What to call it in the local environment.
+  bool valid;
+  position expectedAsPos;
 
 public:
-  templateAccessDec(position pos, symbol src, formals *args, symbol dest)
-    : dec(pos), src(src), args(args), dest(test) {}
+  templateAccessDec(position pos, symbol src, formals* args, symbol as,
+                    symbol dest, position asPos)
+      : dec(pos), src(src), args(args), dest(dest),
+        valid(as == symbol::trans("as")), expectedAsPos(asPos) {}
+
+  bool checkValidity() {
+    if (!valid) {
+      em.error(expectedAsPos);
+      em << "expected 'as'";
+      return false;
+    }
+    return true;
+  }
+
+  void transAsField(coenv& e, record* r) override;
+};
+
+class typeParam : public absyn {
+  const symbol paramSym;
+public:
+  typeParam(position pos, symbol paramSym)
+    : absyn(pos), paramSym(paramSym) {}
+
+  // undelete copy constructor
+  typeParam(const typeParam &o) : absyn(o.pos), paramSym(o.paramSym) {}
+  typeParam(const typeParam &&o) : absyn(o.pos), paramSym(o.paramSym) {}
+
+  bool transAsParamMatcher(coenv &e, namedTyEntry arg);
+
+  void prettyprint(ostream &out, Int indent);
+};
+
+class typeParamList : public absyn {
+  mem::vector<typeParam> params;
+
+public:
+  typeParamList(position pos) : absyn(pos) {}
+
+  void add(typeParam *tp);
+
+  bool transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args);
+
+  void prettyprint(ostream &out, Int indent);
+};
+
+
+class receiveTypedefDec : public dec {
+  typeParamList* params;
+
+public:
+  receiveTypedefDec(position pos, typeParamList* params) 
+    : dec(pos), params(params) {}
+
+  void transAsField(coenv& e, record *r) override {
+    em.error(getPos());
+    em << "This line is illegal here. Did you forget to add template parameters"
+       << " before importing this file? Alternatively, it is an error for this"
+       << " line not to be the first line of the file.";
+    em.sync();
+  }
+
+  bool transAsParamMatcher(coenv& e, mem::vector<namedTyEntry> *args);
 };
 
 
@@ -616,11 +707,12 @@ public:
 // scope.  It does not add the module as a variable in the local scope.
 class fromaccessdec : public fromdec {
   symbol id;
+  formals *templateArgs;
 
   qualifier getQualifier(coenv &e, record *r) override;
 public:
-  fromaccessdec(position pos, symbol id, idpairlist *fields)
-    : fromdec(pos, fields), id(id) {}
+  fromaccessdec(position pos, symbol id, idpairlist *fields, formals *templateArgs = 0)
+    : fromdec(pos, fields), id(id), templateArgs(templateArgs) {}
 
   void prettyprint(ostream &out, Int indent) override;
 
