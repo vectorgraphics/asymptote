@@ -778,10 +778,10 @@ void AsyVkRender::initVulkan()
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
+  createComputePipelines();
 
   fpu_trap(settings::trap()); // Work around FE_INVALID.
 
-  createComputePipelines();
   createAttachments();
   createFramebuffers();
   createExportResources();
