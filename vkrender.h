@@ -602,8 +602,13 @@ private:
   std::vector<vk::Image> backbufferImages;
   std::vector<vk::UniqueImageView> backbufferImageViews;
 
+#pragma region intermediate frame buffers
   std::vector<vma::cxx::UniqueImage> immediateRenderTargetImgs;
   std::vector<vk::UniqueImageView> immRenderTargetViews;
+
+  std::vector<vma::cxx::UniqueImage> prePresentationImages;
+  std::vector<vk::UniqueImageView> prePresentationImgViews;
+#pragma endregion
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
   std::vector<vk::UniqueFramebuffer> opaqueGraphicsFramebuffers;
   std::vector<vk::UniqueFramebuffer> graphicsFramebuffers;
@@ -790,6 +795,10 @@ private:
 
     DeviceBuffer pointVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
     DeviceBuffer pointIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
+#pragma region post-process compute stuff
+    std::vector<vk::UniqueImage> resolvedColorImages;
+    std::vector<vk::ImageView> resolveColorImgViews;
+#pragma endregion
 
     void reset() {
 

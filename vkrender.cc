@@ -772,6 +772,8 @@ void AsyVkRender::initVulkan()
   createDescriptorPool();
   createComputeDescriptorPool();
   createDescriptorSets();
+
+  createImmediateRenderTargets();
   writeDescriptorSets();
   writeMaterialAndLightDescriptors();
 
@@ -805,6 +807,7 @@ void AsyVkRender::recreateSwapChain()
   setupPostProcessingComputeParameters();
 
   createDependentBuffers();
+  createImmediateRenderTargets();
   writeDescriptorSets();
   createImageViews();
   createCountRenderPass();
@@ -2429,6 +2432,66 @@ void AsyVkRender::createMaterialAndLightBuffers() {
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      sizeof(camp::Light) * nlights);
+}
+
+void AsyVkRender::createImmediateRenderTargets()
+{
+  immRenderTargetViews.clear();
+  immediateRenderTargetImgs.clear();
+  prePresentationImages.clear();
+  prePresentationImgViews.clear();
+
+  auto const framebufferSize= backbufferImages.size();
+
+  immRenderTargetViews.reserve(framebufferSize);
+  immediateRenderTargetImgs.reserve(framebufferSize);
+  prePresentationImages.reserve(framebufferSize);
+  prePresentationImgViews.reserve(framebufferSize);
+
+  for (size_t i= 0; i < framebufferSize; ++i)
+  {
+    // for immediate render target (after pixel shader)
+    auto const& immRenderTarget= immediateRenderTargetImgs.emplace_back(createImage(
+            backbufferExtent.width,
+            backbufferExtent.height,
+            vk::SampleCountFlagBits::e1,
+            backbufferImageFormat,
+            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    ));
+
+    setDebugObjectName(vk::Image(immRenderTarget.getImage()), "immediateRenderTargetImg" + std::to_string(i));
+
+    auto& immRenderImgView= immRenderTargetViews.emplace_back();
+    createImageView(
+            backbufferImageFormat,
+            vk::ImageAspectFlagBits::eColor,
+            immRenderTarget.getImage(),
+            immRenderImgView
+    );
+    setDebugObjectName(*immRenderImgView, "immediateRenderTargetImgView" + std::to_string(i));
+
+    // for pre-presentation (after post-processing)
+    auto const& prePresentationTarget= prePresentationImages.emplace_back(createImage(
+      backbufferExtent.width,
+      backbufferExtent.height,
+      vk::SampleCountFlagBits::e1,
+      backbufferImageFormat,
+      vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    ));
+
+    auto& prePresentationImageView= prePresentationImgViews.emplace_back();
+    createImageView(
+            backbufferImageFormat,
+            vk::ImageAspectFlagBits::eColor,
+            prePresentationTarget.getImage(),
+            prePresentationImageView
+    );
+
+    setDebugObjectName(vk::Image(prePresentationTarget.getImage()), "prePresentationTarget" + std::to_string(i));
+    setDebugObjectName(*prePresentationImageView, "prePresentationImgView" + std::to_string(i));
+  }
 }
 
 void AsyVkRender::createDependentBuffers()
