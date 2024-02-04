@@ -734,6 +734,11 @@ private:
   vk::UniqueImageView reflectionView;
   vk::UniqueSampler reflectionSampler;
 
+#pragma region post-process compute stuff
+  vk::Extent2D postProcessThreadGroupCount;
+  
+
+#pragma endregion
   struct FrameObject {
     enum CommandBuffers {
       CMD_DEFAULT,
@@ -856,6 +861,7 @@ private:
   void createCommandPools();
   void createCommandBuffers();
   void createImmediateRenderTargets();
+  void setupPostProcessingComputeParameters();
   vk::CommandBuffer beginSingleCommands();
   void endSingleCommands(vk::CommandBuffer cmd);
   PushConstants buildPushConstants();
