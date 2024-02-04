@@ -888,6 +888,8 @@ private:
                   VertexBuffer * data,
                   vk::UniquePipeline & pipeline,
                   bool incrementRenderCount=true);
+  void postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
+  void copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void endFrameRender();
   void endFrameCommands();
   void endFrame(int imageIndex);
