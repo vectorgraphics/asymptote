@@ -99,6 +99,18 @@ inline void extendOffset(std::vector<T>& a, const std::vector<T>& b, T offset)
     a[n + i] = b[i] + offset;
 }
 
+/** Returns ceil(a/b) */
+inline uint32_t integerDivRoundUp(uint32_t const& a, uint32_t const& b)
+{
+  // in float, this is a/b + (b-1)/b.
+  // if b divides a, b-1/b is <0 and gets truncated
+  // otherwise, let c = a mod b. Then a=kb + c where c < b
+  // Then, a + b - 1 is kb + c + b - 1 = (k+1) + c - 1.
+  // the (c-1)/b part gets truncated, leaving us with k + 1
+  // which is what we want
+  return (a + (b - 1)) / b;
+}
+
 std::vector<char> readFile(const std::string& filename);
 
 #define POSITION_LOCATION 0
