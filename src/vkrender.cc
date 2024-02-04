@@ -2116,6 +2116,22 @@ void AsyVkRender::createComputeDescriptorPool()
     &poolSizes[0]
   );
   computeDescriptorPool = device->createDescriptorPoolUnique(poolCI);
+
+  // post processing
+
+  auto const poolSetCount= static_cast<uint32_t>(maxFramesInFlight);
+
+  std::vector<vk::DescriptorPoolSize> const postProcPoolSizes
+  {
+    {vk::DescriptorType::eStorageImage, poolSetCount}, // input image
+    {vk::DescriptorType::eStorageImage, poolSetCount},// output image image
+  };
+
+  postProcessDescPool = device->createDescriptorPoolUnique({
+    vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+    poolSetCount,
+    VEC_VIEW(postProcPoolSizes)
+  });
 }
 
 void AsyVkRender::createDescriptorSets()
@@ -2137,6 +2153,13 @@ void AsyVkRender::createDescriptorSets()
   );
 
   computeDescriptorSet = std::move(device->allocateDescriptorSetsUnique(computeAllocInfo)[0]);
+
+  // post processing descs
+
+  std::vector postProcessDescLayouts(maxFramesInFlight, *postProcessDescSetLayout);
+  postProcessDescSet= device->allocateDescriptorSetsUnique({
+    *postProcessDescPool, VEC_VIEW(postProcessDescLayouts)
+  });
 }
 
 void AsyVkRender::writeDescriptorSets()
@@ -2342,6 +2365,22 @@ void AsyVkRender::writeDescriptorSets()
   writes[3].pBufferInfo = &feedbackBufferInfo;
 
   device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+
+void AsyVkRender::writePostProcessDescSets()
+{
+  // post process descriptors
+  for (auto i= 0; i < maxFramesInFlight; ++i)
+  {
+    vk::DescriptorImageInfo inputImgInfo({}, *immRenderTargetViews[i], vk::ImageLayout::eGeneral);
+    vk::DescriptorImageInfo outputImgInfo({}, *prePresentationImgViews[i], vk::ImageLayout::eGeneral);
+
+    std::vector<vk::WriteDescriptorSet> const postProcDescWrite{
+            {*postProcessDescSet[i], 0, 0, 1, vk::DescriptorType::eStorageImage, &inputImgInfo},
+            {*postProcessDescSet[i], 1, 0, 1, vk::DescriptorType::eStorageImage, &outputImgInfo}
+    };
+
+    device->updateDescriptorSets(VEC_VIEW(postProcDescWrite), EMPTY_VIEW);
+  }
 }
 
 void AsyVkRender::writeMaterialAndLightDescriptors() {

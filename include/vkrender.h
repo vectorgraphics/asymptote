@@ -741,6 +741,10 @@ private:
   vk::UniquePipelineLayout postProcessPipelineLayout;
   vk::UniqueDescriptorSetLayout postProcessDescSetLayout;
 
+  vk::UniqueDescriptorPool postProcessDescPool;
+
+  std::vector<vk::UniqueDescriptorSet> postProcessDescSet;
+
 #pragma endregion
   struct FrameObject {
     enum CommandBuffers {
@@ -961,6 +965,7 @@ private:
   void createComputeDescriptorPool();
   void createDescriptorSets();
   void writeDescriptorSets();
+  void writePostProcessDescSets();
   void writeMaterialAndLightDescriptors();
   void updateSceneDependentBuffers();
 
