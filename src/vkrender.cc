@@ -1316,7 +1316,9 @@ void AsyVkRender::createSwapChain()
     format.colorSpace,
     extent,
     1,
-    vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
+    vk::ImageUsageFlagBits::eColorAttachment
+    | vk::ImageUsageFlagBits::eTransferSrc
+    | vk::ImageUsageFlagBits::eTransferDst,
     vk::SharingMode::eExclusive,
     0,
     nullptr,
@@ -1448,10 +1450,10 @@ void AsyVkRender::createFramebuffers()
   opaqueGraphicsFramebuffers.resize(backbufferImageViews.size());
   graphicsFramebuffers.resize(backbufferImageViews.size());
 
-  for (auto i = 0u; i < backbufferImageViews.size(); i++)
+  for (auto i= 0u; i < backbufferImageViews.size(); i++)
   {
-    std::array<vk::ImageView, 3> attachments = {*colorImageView, *depthImageView, *backbufferImageViews[i]};
-    std::array<vk::ImageView, 1> depthAttachments {*depthImageView};
+    std::array<vk::ImageView, 3> attachments= {*colorImageView, *depthImageView, *immRenderTargetViews[i]};
+    std::array<vk::ImageView, 1> depthAttachments{*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
       {},
@@ -2091,6 +2093,8 @@ void AsyVkRender::createDescriptorPool()
 
 void AsyVkRender::createComputeDescriptorPool()
 {
+  // gpu indexing
+  
   std::array<vk::DescriptorPoolSize, 4> poolSizes;
 
   // countBuffer
@@ -2365,6 +2369,9 @@ void AsyVkRender::writeDescriptorSets()
   writes[3].pBufferInfo = &feedbackBufferInfo;
 
   device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+
+  writePostProcessDescSets();
+}
 
 void AsyVkRender::writePostProcessDescSets()
 {
@@ -2873,7 +2880,7 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::AttachmentLoadOp::eDontCare,
     vk::AttachmentStoreOp::eDontCare,
     vk::ImageLayout::eUndefined,
-    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR
+    vk::ImageLayout::eGeneral
   );
   auto depthAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
@@ -3471,7 +3478,7 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
 {
   std::array<vk::ClearValue, 3> clearColors;
 
-  clearColors[0] = vk::ClearValue(Background);
+  clearColors[0]= vk::ClearValue(Background);
   clearColors[1].depthStencil.depth = 1.f;
   clearColors[1].depthStencil.stencil = 0;
   clearColors[2] = vk::ClearValue(Background);
@@ -4089,9 +4096,74 @@ void AsyVkRender::drawFrame()
   preDrawBuffers(frameObject, imageIndex);
 
   // FIXME: can we do scene graph instead of manual barriers?
+#pragma message("FIXME: can we do scene graph instead of manual barriers?")
   beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
+  // current immediate target layout: general
+  
+  // begin postprocessing
+  vk::ImageSubresourceRange constexpr isr(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+  std::vector<vk::ImageMemoryBarrier> const beforePostProcessingBarrier {
+    {
+      {}, vk::AccessFlagBits::eShaderWrite,
+      vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+      vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+      prePresentationImages[imageIndex].getImage(), isr
+    }
+  };
+  frameObject.commandBuffer->pipelineBarrier(
+    vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eComputeShader,
+    {},
+    EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(beforePostProcessingBarrier)
+  );
+
+  postProcessImage(*frameObject.commandBuffer, imageIndex);
+  // done postprocessing,
+
+  std::vector<vk::ImageMemoryBarrier> const preCopyBarriers {
+    {
+      vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead,
+      vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
+      vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+      prePresentationImages[imageIndex].getImage(),
+      isr
+    },
+    {
+      {}, vk::AccessFlagBits::eTransferWrite,
+      vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+      vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+      backbufferImages[imageIndex], isr
+    },
+
+  };
+
+  frameObject.commandBuffer->pipelineBarrier(
+          vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eTransfer,
+    {},
+          EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(preCopyBarriers)
+  );
+  
+  copyToSwapchainImg(*frameObject.commandBuffer, imageIndex);
+  // done copying
+  
+  std::vector<vk::ImageMemoryBarrier> const prePresentationBarrier {
+          {vk::AccessFlagBits::eTransferWrite,
+           {},
+           vk::ImageLayout::eTransferDstOptimal,
+           vk::ImageLayout::ePresentSrcKHR,
+           vk::QueueFamilyIgnored,
+           vk::QueueFamilyIgnored,
+           backbufferImages[imageIndex],
+           isr}
+  };
+
+  frameObject.commandBuffer->pipelineBarrier(
+    vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
+    {},
+    EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(prePresentationBarrier)
+  );
   endFrameCommands();
+  // recording done, not go to submit stage
 
   std::vector<vk::Semaphore> waitSemaphores {}, signalSemaphores {};
 
