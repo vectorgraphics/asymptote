@@ -781,7 +781,7 @@ void AsyVkRender::initVulkan()
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
-  createComputePipelines();
+  createComputePipelines();   // gpu indexing + post processing
 
   fpu_trap(settings::trap()); // Work around FE_INVALID.
 
@@ -1948,6 +1948,7 @@ void AsyVkRender::createDescriptorSetLayout()
 
 void AsyVkRender::createComputeDescriptorSetLayout()
 {
+  // gpu indexing
   std::vector<vk::DescriptorSetLayoutBinding> layoutBindings
   {
     vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
@@ -1962,6 +1963,18 @@ void AsyVkRender::createComputeDescriptorSetLayout()
   );
 
   computeDescriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutCI);
+
+  // post processing
+
+  std::vector<vk::DescriptorSetLayoutBinding> const postProcessingLayoutBindings {
+    { 0, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
+    { 1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
+  };
+
+  postProcessDescSetLayout= device->createDescriptorSetLayoutUnique({
+    {},
+    VEC_VIEW(postProcessingLayoutBindings)
+  });
 }
 
 void AsyVkRender::createDescriptorPool()
@@ -3181,8 +3194,12 @@ void AsyVkRender::createBlendPipeline() {
                         true);
 }
 
-void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
-                                        std::string const & shaderFile)
+void AsyVkRender::createComputePipeline(
+  vk::UniquePipelineLayout& layout,
+  vk::UniquePipeline& pipeline,
+  std::string const& shaderFile,
+  std::vector<vk::DescriptorSetLayout> const& descSetLayout
+)
 {
   auto const filename = SHADER_DIRECTORY + shaderFile + ".glsl";
 
@@ -3207,8 +3224,7 @@ void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::U
 
   auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(
     vk::PipelineLayoutCreateFlags(),
-    1,
-    &*computeDescriptorSetLayout,
+    VEC_VIEW(descSetLayout),
     0,
     nullptr
   );
@@ -3232,9 +3248,17 @@ auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelin
 
 void AsyVkRender::createComputePipelines()
 {
-  createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1");
-  createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2");
-  createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3");
+  if (GPUindexing)
+  {
+    std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
+    createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
+    createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
+    createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
+  }
+
+  std::vector const postProcessDescSetLayoutVec { *postProcessDescSetLayout };
+  // fxaa
+  createComputePipeline(postProcessPipelineLayout, postProcessPipeline, "fxaa.cs", postProcessDescSetLayoutVec);
 }
 
 void AsyVkRender::createAttachments()

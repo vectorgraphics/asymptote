@@ -742,6 +742,9 @@ private:
 #pragma region post-process compute stuff
   vk::Extent2D postProcessThreadGroupCount;
   
+  vk::UniquePipeline postProcessPipeline;
+  vk::UniquePipelineLayout postProcessPipelineLayout;
+  vk::UniqueDescriptorSetLayout postProcessDescSetLayout;
 
 #pragma endregion
   struct FrameObject {
@@ -961,8 +964,12 @@ private:
                               bool transparent=false, bool disableMultisample=false);
   void createGraphicsPipelines();
   void createBlendPipeline();
-  void createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
-                             std::string const & shaderFile);
+  void createComputePipeline(
+    vk::UniquePipelineLayout & layout,
+    vk::UniquePipeline & pipeline,
+    std::string const& shaderFile,
+    std::vector<vk::DescriptorSetLayout> const& descSetLayout
+  );
   void createComputePipelines();
 
   void createAttachments();
