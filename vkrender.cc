@@ -3919,6 +3919,37 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   endFrameRender();
 }
 
+void AsyVkRender::postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
+{
+  cmdBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *postProcessPipeline);
+
+  std::vector const computeDescSet{*postProcessDescSet[frameIndex]};
+  cmdBuffer.bindDescriptorSets(
+          vk::PipelineBindPoint::eCompute,
+          *postProcessPipelineLayout,
+          0,
+          VEC_VIEW(computeDescSet),
+          EMPTY_VIEW
+  );
+  cmdBuffer.dispatch(postProcessThreadGroupCount.width, postProcessThreadGroupCount.height, 1);
+}
+
+void AsyVkRender::copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
+{
+  vk::ImageSubresourceLayers const layers(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
+  std::vector const imgCopyData{
+          vk::ImageCopy(layers, vk::Offset3D(0, 0, 0), layers, vk::Offset3D(0, 0, 0), vk::Extent3D(backbufferExtent, 1))
+  };
+  
+  cmdBuffer.copyImage(
+          prePresentationImages[frameIndex].getImage(),
+          vk::ImageLayout::eTransferSrcOptimal,
+          backbufferImages[frameIndex],
+          vk::ImageLayout::eTransferDstOptimal,
+          VEC_VIEW(imgCopyData)
+  );
+}
+
 void AsyVkRender::drawFrame()
 {
 #ifdef HAVE_PTHREAD
