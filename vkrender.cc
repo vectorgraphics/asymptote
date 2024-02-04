@@ -3859,7 +3859,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 {
   auto transparent=!Opaque;
-  beginFrameCommands(getFrameCommandBuffer());
 
   beginGraphicsFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
@@ -3879,7 +3878,6 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   }
 
   endFrameRender();
-  endFrameCommands();
 }
 
 void AsyVkRender::drawFrame()
@@ -3929,7 +3927,11 @@ void AsyVkRender::drawFrame()
   updateBuffers();
   resetFrameCopyData();
   preDrawBuffers(frameObject, imageIndex);
+
+  // FIXME: can we do scene graph instead of manual barriers?
+  beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
+  endFrameCommands();
 
   std::vector<vk::Semaphore> waitSemaphores {}, signalSemaphores {};
 
