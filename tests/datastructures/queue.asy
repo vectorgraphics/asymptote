@@ -3,16 +3,17 @@ typedef import(T);
 // This is supposed to be an interface. We should probably import it from
 // somewhere outside the test folder. Also we should decide on a style for
 // naming interfaces.
-struct Queue {
+struct Queue_T {
   void push(T value);
   T peek();
   T pop();
   int size();
 }
 
-Queue makeNaiveQueue(T /*specify type for overloading*/) {
-  Queue queue = new Queue;
+Queue_T makeNaiveQueue(T[] initialData) {
+  Queue_T queue = new Queue_T;
   T[] data = new T[0];
+  data.append(initialData);
   queue.push = new void(T value) {
     data.push(value);
   };
@@ -30,7 +31,7 @@ Queue makeNaiveQueue(T /*specify type for overloading*/) {
   return queue;
 }
 
-struct ArrayQueue {
+struct ArrayQueue_T {
   T[] data = new T[8];
   data.cyclic = true;
   int start = 0;
@@ -42,6 +43,23 @@ struct ArrayQueue {
     newData[:size] = data[start : start+size];
     data = newData;
     start = 0;
+  }
+
+  void operator init(T[] initialData) {
+    if (initialData.length == 0 || alias(initialData, null)) {
+      return;
+    }
+    desiredLength = data.length;
+    // TODO: Do this computation using CLZ.
+    while (desiredLength < initialData.length) {
+      desiredLength *= 2;
+    }
+    if (desiredLength != data.length) {
+      data = new T[desiredLength];
+      data.cyclic = true;
+    }
+    size = initialData.length;
+    data[:size] = initialData;
   }
 
   void push(T value) {
@@ -68,8 +86,8 @@ struct ArrayQueue {
   }
 }
 
-Queue cast(ArrayQueue queue) {
-  Queue queue_ = new Queue;
+Queue_T cast(ArrayQueue_T queue) {
+  Queue_T queue_ = new Queue_T;
   queue_.push = queue.push;
   queue_.peek = queue.peek; 
   queue_.pop = queue.pop;
@@ -77,11 +95,11 @@ Queue cast(ArrayQueue queue) {
   return queue_;
 }
 
-Queue makeArrayQueue(T /*specify type for overloading*/) {
-  return new ArrayQueue;
+Queue_T makeArrayQueue(T[] initialData /*specify type for overloading*/) {
+  return ArrayQueue_T(initialData);
 }
 
-struct LinkedQueue {
+struct LinkedQueue_T {
   struct Node {
     T value;
     Node next;
@@ -119,8 +137,8 @@ struct LinkedQueue {
   }
 }
 
-Queue cast(LinkedQueue queue) {
-  Queue queue_ = new Queue;
+Queue_T cast(LinkedQueue_T queue) {
+  Queue_T queue_ = new Queue_T;
   queue_.push = queue.push;
   queue_.peek = queue.peek; 
   queue_.pop = queue.pop;
@@ -128,9 +146,13 @@ Queue cast(LinkedQueue queue) {
   return queue_;
 }
 
-Queue makeLinkedQueue(T /*specify type for overloading*/) {
-  return new LinkedQueue;
+Queue_T makeLinkedQueue(T[] initialData) {
+  var queue = new LinkedQueue_T;
+  for (T value in initialData) {
+    queue.push(value);
+  }
+  return queue;
 }
 
 // Specify a "default" queue implementation.
-Queue makeQueue(T /*specify type for overloading*/) = makeArrayQueue;
+Queue_T makeQueue(T[]) = makeArrayQueue;
