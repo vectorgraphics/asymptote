@@ -2561,8 +2561,6 @@ void AsyVkRender::createImmediateRenderTargets()
             0.f, false, 0.0, false, vk::CompareOp::eNever, 0.0, 0.0, vk::BorderColor::eFloatTransparentBlack,
             true
     )));
-    setDebugObjectName(*sampler, "immRtImgSampler" + std::to_string(i));
-
 
     // for pre-presentation (after post-processing)
     auto const& prePresentationTarget= prePresentationImages.emplace_back(createImage(
