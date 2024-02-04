@@ -756,6 +756,8 @@ void AsyVkRender::initVulkan()
   createCommandBuffers();
   if (View) createSwapChain();
   else createOffscreenBuffers();
+
+  setupPostProcessingComputeParameters();
   createImageViews();
   createSyncObjects();
 
@@ -802,6 +804,7 @@ void AsyVkRender::recreateSwapChain()
   device->waitIdle();
 
   createSwapChain();
+  setupPostProcessingComputeParameters();
   createDependentBuffers();
   writeDescriptorSets();
   createImageViews();
@@ -3121,6 +3124,15 @@ void AsyVkRender::createGraphicsPipelines()
                         true);
 
   createBlendPipeline();
+}
+
+void AsyVkRender::setupPostProcessingComputeParameters()
+{
+#pragma message("TODO: We should share this constant with the shader code & C++ side")
+  uint32_t constexpr localGroupSize=20;
+
+  postProcessThreadGroupCount.width=integerDivRoundUp(backbufferExtent.width, localGroupSize);
+  postProcessThreadGroupCount.height=integerDivRoundUp(backbufferExtent.height, localGroupSize);
 }
 
 void AsyVkRender::createBlendPipeline() {
