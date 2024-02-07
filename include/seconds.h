@@ -23,17 +23,10 @@ inline double cpuTime() {
 #include <time.h>
 
 inline double cpuTime() {
-#ifdef CLOCK_THREAD_CPUTIME_ID
-#define GETTIME_ID CLOCK_THREAD_CPUTIME_ID
-#elif defined(CLOCK_PROCESS_CPUTIME_ID)
-#define GETTIME_ID CLOCK_PROCESS_CPUTIME_ID
-#endif
-
-#ifdef GETTIME_ID
+#ifdef CLOCK_PROCESS_CPUTIME_ID
   timespec t;
-  clock_gettime(GETTIME_ID,&t);
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&t);
   return 1.0e9*t.tv_sec+t.tv_nsec;
-#undef GETTIME_ID
 #else
   struct rusage ru;
   if(getrusage(RUSAGE_SELF, &ru))

@@ -27,9 +27,6 @@ configure_file(${ASY_RESOURCE_DIR}/versionTemplate.asy.in ${ASY_BUILD_BASE_DIR}/
 list(APPEND ASY_OUTPUT_BASE_FILES ${ASY_BUILD_BASE_DIR}/version.asy)
 
 # copy base files to build dir
-
-add_custom_target(asy_base_files)
-
 macro (copy_base_file base_file_name)
     add_custom_command(
             COMMAND ${CMAKE_COMMAND} -E copy
