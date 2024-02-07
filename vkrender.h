@@ -556,6 +556,7 @@ private:
   bool redraw=true;
   bool interlock=false;
   bool GPUcompress=false;
+  bool fxaa=false;
 
   std::int32_t gs2;
   std::int32_t gs;
@@ -741,7 +742,7 @@ private:
 
 #pragma region post-process compute stuff
   vk::Extent2D postProcessThreadGroupCount;
-  
+
   vk::UniquePipeline postProcessPipeline;
   vk::UniquePipelineLayout postProcessPipelineLayout;
   vk::UniqueDescriptorSetLayout postProcessDescSetLayout;
