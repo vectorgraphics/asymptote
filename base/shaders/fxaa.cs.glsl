@@ -12,6 +12,16 @@ writeonly uniform image2D outputImage;
 
 layout(local_size_x=20, local_size_y=20, local_size_z=1) in;
 
+const float gamma=2.2;
+const float invGamma=1.0/gamma;
+
+vec3 linearToPerceptual(vec3 inColor)
+{
+  // an actual 0.5 brightness (half amount of photons) would
+  // look brighter than what our eyes think is "half" light
+  return pow(inColor, vec3(invGamma));
+}
+
 void main()
 {
   ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
@@ -20,7 +30,21 @@ void main()
   {
     return;
   }
+
+  // coordinate is valid
+
+#ifdef ENABLE_FXAA
+  // fxaa code here
+#else
+  // already in perceptual space, no need to do any further
+  // gamma adjustment
   vec3 pixelColor=imageLoad(inputImage,coord).rgb;
-  // coordinate is valid, can process
+
+  imageStore(
+    outputImage,
+    coord,
+    vec4(pixelColor, 1)
+  );
+#endif
 
 }
