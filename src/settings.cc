@@ -191,7 +191,7 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
       currRegDirectory.release();
       return "";
     }
-    
+
     DWORD numSubKeys;
     DWORD longestSubkeySize;
 
@@ -212,7 +212,7 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
     for (DWORD i=0;i<numSubKeys;++i)
     {
       DWORD cchValue=longestSubkeySize + 1;
-      
+
       if (auto const regQueryResult= RegEnumKeyExA(
                   currRegDirectory.getKey(),
                   i,
@@ -263,7 +263,7 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
   {
     return "";
   }
-  
+
   mem::vector<BYTE> outputBuffer(requiredStrSize);
 
   if (auto const retCheck = RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
@@ -310,7 +310,7 @@ void queryRegistry()
   string gslib=stripDir(defaultGhostscriptLibrary);
   defaultGhostscript=stripFile(defaultGhostscriptLibrary)+
     ((gslib.empty() || gslib.substr(5,2) == "32") ? "gswin32c.exe" : "gswin64c.exe");
-  
+
   if (string const s= getEntry(R"(Microsoft\Windows\CurrentVersion\App Paths\Asymptote\Path)"); !s.empty())
   {
     docdir= s;
@@ -1368,6 +1368,8 @@ void initSettings() {
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
+  addOption(new boolSetting("fxaa", 0,
+                           "Enable FXAA. Multisampling is turned off if FXAA is enabled", false));
   addOption(new boolSetting("offscreen", 0,
                             "Use offscreen rendering",false));
   addOption(new boolSetting("twosided", 0,
