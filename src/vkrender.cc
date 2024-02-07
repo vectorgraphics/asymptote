@@ -676,6 +676,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     vkinitialize=false;
 
   interlock=settings::getSetting<bool>("GPUinterlock");
+  fxaa=settings::getSetting<bool>("fxaa");
 
 #ifdef HAVE_VULKAN
     Aspect=((double) width)/height;
@@ -1079,6 +1080,12 @@ void AsyVkRender::pickPhysicalDevice()
 std::pair<std::uint32_t, vk::SampleCountFlagBits>
 AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
 {
+  // FXAA means we disable MSAA
+  if (settings::getSetting<bool>("fxaa"))
+  {
+    return std::make_pair(1, vk::SampleCountFlagBits::e1);
+  }
+
   vk::PhysicalDeviceProperties props { };
 
   gpu.getProperties( &props );
@@ -2016,7 +2023,7 @@ void AsyVkRender::createComputeDescriptorSetLayout()
     { 0, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
     { 1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
   };
-  
+
   postProcessDescSetLayout= device->createDescriptorSetLayoutUnique({
     {},
     VEC_VIEW(postProcessingLayoutBindings)
@@ -2094,7 +2101,7 @@ void AsyVkRender::createDescriptorPool()
 void AsyVkRender::createComputeDescriptorPool()
 {
   // gpu indexing
-  
+
   std::array<vk::DescriptorPoolSize, 4> poolSizes;
 
   // countBuffer
@@ -3006,6 +3013,11 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
   options.emplace_back("LOCALSIZE " + std::to_string(localSize));
   options.emplace_back("BLOCKSIZE " + std::to_string(blockSize));
   options.emplace_back("ARRAYSIZE " + std::to_string(maxSize));
+
+  if (fxaa)
+  {
+    options.emplace_back("ENABLE_FXAA");
+  }
 }
 
 template<typename V>
@@ -4037,7 +4049,7 @@ void AsyVkRender::copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t cons
   std::vector const imgCopyData{
           vk::ImageCopy(layers, vk::Offset3D(0, 0, 0), layers, vk::Offset3D(0, 0, 0), vk::Extent3D(backbufferExtent, 1))
   };
-  
+
   cmdBuffer.copyImage(
           prePresentationImages[frameIndex].getImage(),
           vk::ImageLayout::eTransferSrcOptimal,
@@ -4100,7 +4112,7 @@ void AsyVkRender::drawFrame()
   beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
   // current immediate target layout: general
-  
+
   // begin postprocessing
   vk::ImageSubresourceRange constexpr isr(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
   std::vector<vk::ImageMemoryBarrier> const beforePostProcessingBarrier {
@@ -4142,10 +4154,10 @@ void AsyVkRender::drawFrame()
     {},
           EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(preCopyBarriers)
   );
-  
+
   copyToSwapchainImg(*frameObject.commandBuffer, imageIndex);
   // done copying
-  
+
   std::vector<vk::ImageMemoryBarrier> const prePresentationBarrier {
           {vk::AccessFlagBits::eTransferWrite,
            {},

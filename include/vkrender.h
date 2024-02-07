@@ -548,6 +548,7 @@ private:
   bool interlock=false;
   bool GPUindexing=false;
   bool GPUcompress=false;
+  bool fxaa=false;
 
 #if defined(DEBUG)
   bool hasDebugMarker=false;
@@ -737,7 +738,7 @@ private:
 
 #pragma region post-process compute stuff
   vk::Extent2D postProcessThreadGroupCount;
-  
+
   vk::UniquePipeline postProcessPipeline;
   vk::UniquePipelineLayout postProcessPipelineLayout;
   vk::UniqueDescriptorSetLayout postProcessDescSetLayout;
