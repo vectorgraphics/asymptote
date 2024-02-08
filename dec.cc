@@ -18,6 +18,7 @@
 #include "runtime.h"
 #include "locate.h"
 #include "parser.h"
+// #include "builtin.h"  // for trans::addRecordOps
 
 namespace absyntax {
 
@@ -171,7 +172,7 @@ void block::prettyprint(ostream &out, Int indent)
 class Scope {
   coenv* e;
 public:
-  Scope(coenv &e, bool scope) : e(scope ? &e : 0) {
+  Scope(coenv &e, bool scope) : e(scope ? &e : nullptr) {
     if (this->e) this->e->e.beginScope();
   }
   ~Scope() {
@@ -251,7 +252,7 @@ record *block::transAsFile(genv& ge, symbol id)
   }
   transAsRecordBody(ce, r);
   em.sync();
-  if (em.errors()) return 0;
+  if (em.errors()) return nullptr;
 
   return r;
 }
@@ -277,7 +278,7 @@ record *block::transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::n
 
   transAsTemplatedRecordBody(ce, r, args);
   em.sync();
-  if (em.errors()) return 0;
+  if (em.errors()) return nullptr;
 
   return r;
 }
@@ -1041,6 +1042,26 @@ bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry arg) {
     return false;
   }
   e.e.addType(paramSym, arg.ent);
+  // The code below would add e.g. operator== to the context, but potentially
+  // ignore if the user had overridden that operator:
+  //
+  // types::ty *t = arg.ent->t;
+  // if (t->kind == types::ty_record) {
+  //   record *r = dynamic_cast<record *>(t);
+  //   if (r) {
+  //     trans::addRecordOps(e.e.ve, r);
+  //   }
+  // } else if (t->kind == types::ty_array) {
+  //   array *a = dynamic_cast<array *>(t);
+  //   if (a) {
+  //     trans::addArrayOps(e.e.ve, a);
+  //   }
+  // } else if (t->kind == types::ty_function) {
+  //   function *f = dynamic_cast<function *>(t);
+  //   if (f) {
+  //     trans::addFunctionOps(e.e.ve, f);
+  //   }
+  // }
   return true;
 }
 

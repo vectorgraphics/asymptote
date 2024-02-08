@@ -2,35 +2,24 @@ import TestLib;
 
 StartTest("singletype");
 
-struct A { }
+struct A {}
+
+from "template/imports/wrapperWithEquals"(T=int) access Wrapper_T as Wrapper_int, wrap, operator ==, alias;
+from "template/imports/wrapper"(T=A) access Wrapper_T as Wrapper_A, wrap, alias;
+
+// Basic functionality for ints:
+Wrapper_int w1 = wrap(5);
+Wrapper_int w2 = Wrapper_int(5);  // tests constructor
+assert(w1.t == 5);
+assert(w2.t == 5);
+assert(w1 == w2);
+assert(!alias(w1, w2));
+
+// Basic functionality for A:
 var a = new A;
-
-// Desired behavior: We should not need to specify that operator== is accessed.
-// Two possible justifications:
-//
-// 1. The function operator== has a required parameter of type Wrapper_T, so
-//    overload resolution should prevent it from conflicting with any other
-//    functions of the same name.
-// 2. It is rather confusing to have to worry explicitly about importing a
-//    basic operator like ==.
-//
-// I think that 1 is the stronger justification and would like if we could
-// implement a general feature in which accessing a type also accesses
-// all functions with at least one required parameter of that type.
-from "template/imports/wrapper"(T=int) access Wrapper_T as Wrapper_int, wrap, operator ==;
-// exit();
-// unravel wrapper_int;
-// typedef Wrapper_T wrapper_int;
-//from wrapper_int unravel Wrapper_T as Wrapper_int;  // rename Wrapper_T to Wrapper_int
-//from "template/imports/wrapper"(T=A) access Wrapper_T as Wrapper_A, wrap;
-
-Wrapper_int w = wrap(5);
-// Wrapper_T w = wrap(5);
-assert(w.t == 5);
-// Wrapper_A at = wrap(a);
-// assert(at.t == a);
-
-Wrapper_int w2 = wrap(5);
-assert(w2 == w);
+Wrapper_A w3 = wrap(a);
+Wrapper_A w4 = Wrapper_A(a);  // tests constructor
+assert(w3.t == w4.t);
+assert(!alias(w3, w4));
 
 EndTest();

@@ -178,10 +178,6 @@ using mem::string;
 %type <tp> typeparam
 %type <tps> typeparamlist
 
-//// Make new classes for the following and add to union above.
-//%type  <d> decdec
-//%type  <d> decdeclist
-
 /* There are four shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
  *   new ID

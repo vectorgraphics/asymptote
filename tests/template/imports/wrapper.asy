@@ -10,7 +10,3 @@ struct Wrapper_T {
 Wrapper_T wrap(T t) {
   return Wrapper_T(t);
 }
-
-bool operator == (Wrapper_T a, Wrapper_T b) {
-  return a.t == b.t;
-}
