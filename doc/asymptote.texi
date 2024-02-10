@@ -5400,9 +5400,9 @@ element of the array @code{a}. This is equivalent to
 
 @cindex @code{map}
 @item T2[] map(T2 f(T1), T1[] a)
-constructed by calling @code{mapArray("T1","T2")}, returns the array
-obtained by applying the function @code{f} to each element of the
-array @code{a};
+constructed by running @code{from mapArray(Src=T1, Dst=T2) access map;},
+returns the array obtained by applying the function @code{f} to each
+element of the array @code{a};
 
 @cindex @code{reverse}
 @item int[] reverse(int n)
@@ -6120,9 +6120,6 @@ code s=quote {
 eval(s,true);        // Outputs 1
 @end verbatim
 
-One application of @code{eval} is the creation of parametrized Asymptote
-code, such as a map from one type to another (@pxref{map}).
-
 @cindex @code{include}
 To include the contents of an existing file @code{graph} verbatim (as if the
 contents of the file were inserted at that point), use one of the forms:
@@ -6141,6 +6138,58 @@ void list(string s, bool imports=false);
 @noindent
 Imported global functions and variables are also listed if
 @code{imports} is @code{true}.
+
+@node Templated imports
+@subsection Templated imports
+@cindex template
+
+@strong{Warning:} This feature is experimental. It has known bugs/misfeatures
+and its behavior may (hopefully will) change in the future.
+
+In Asymptote, it is possible to create modules that must have one or more
+types specified when they are imported. The first line of any such module must
+be of the form @code{typedef import(<stuff>)}, where @code{<stuff>} is a list
+of the type parameters. For instance,
+@verbatim
+typedef import(T, S, Number);
+@end verbatim
+@noindent
+would be the first line of a file that requires three type parameters. The
+remaining code in the file can then use @code{T}, @code{S}, and @code{Number}
+as types.
+
+To import such a module, one must specify the types to be used. For instance,
+if the file above were named @code{numberstuff.asy}, it could be accessed
+for types @code{string}, @code{int[]}, and @code{real} with the import
+command
+@verbatim
+access numberstuff(T=string, S=int[], Number=real) as numberstuff_string_int_real;
+@end verbatim
+@noindent
+Note that this is actually an @emph{access} command rather than an @emph{import}
+command, so the names of types, functions, etc. would have to be stated as
+e.g. @code{numberstuff_string_int_real.Wrapper_Number} rather than just
+@code{Wrapper_Number} (where @code{Wrapper_Number} is a type defined in
+@code{numberstuff.asy}).
+
+Alternatively, the module could be imported via a command like
+@verbatim
+from numberstuff(T=string, S=int[], Number=real) access
+    Wrapper_Number as Wrapper_real,
+    operator ==;
+@end verbatim
+@noindent
+This command would automatically rename @code{Wrapper_Number} to @code{Wrapper_real}
+and would also allow the use of any @code{operator ==} overloads defined in the
+module.
+
+For more information, see the examples in
+@url{https://github.com/vectorgraphics/asymptote/tree/647b6c5732ec94a48f0f0b2446f02c86888fe7e7/tests/template}.
+
+Known bugs/misfeatures: Certain standard features of almost any type (such as
+@code{==}, @code{new}, and the ability to call static methods on the type) are
+not necessarily available for type arguments. (They should be available for
+types that are builtin or defined in the @code{plain} module.)
 
 @node Static,  , Import, Programming
 @section Static
