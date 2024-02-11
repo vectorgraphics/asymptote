@@ -95,6 +95,21 @@ float Roughness;
 
 vec3 normal;
 
+const float gamma=2.2;
+const float invGamma=1.0/gamma;
+
+/**
+ * @brief Converts linear color (measuring photon count) to srgb (what our brain thinks
+ * is the brightness
+ * example linearToPerceptual(vec3(0.5)) is approximately vec3(0.729)
+ */
+vec3 linearToPerceptual(vec3 inColor)
+{
+  // an actual 0.5 brightness (half amount of photons) would
+  // look brighter than what our eyes think is "half" light
+  return pow(inColor, vec3(invGamma));
+}
+
 #ifdef USE_IBL
 
 layout(binding=11) uniform sampler2D diffuseSampler;
@@ -266,6 +281,14 @@ void main() {
   outColor = vec4(outColor.rgb, mat.diffuse.a);
 #endif /*USE_IBL*/
 #endif /*NORMAL*/
+
+  // for reasons, the swapchain/FXAA shader expects a "perceptual" color,
+  // while all of our calculations have been linear (i.e. by measuring photon counts)
+  // (e.g. our 0.5 is much much brighter than what swap chain/monitor thinks 0.5 is)
+  // need to give the output image the color our brain perceives with the same photon count
+  // as the original pixel
+  vec3 outColorInPerceptualSpace=linearToPerceptual(outColor.rgb);
+  outColor=vec4(outColorInPerceptualSpace,outColor.a);
 
 #ifndef WIDTH // TODO DO NOT DO THE DEPTH COMPARISON WHEN NO TRANSPARENT OBJECTS!
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
