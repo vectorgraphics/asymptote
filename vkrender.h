@@ -531,7 +531,6 @@ private:
   bool Yspin = false;
   bool Zspin = false;
   bool Animate = false;
-  bool queueScreen = false;
   string Format;
   bool Step = false;
   bool View = false;
@@ -562,7 +561,7 @@ private:
 
 #ifdef HAVE_VULKAN
 
-  GLFWwindow* window;
+  GLFWwindow* window=nullptr;
   vk::UniqueInstance instance;
 
 #if defined(VALIDATION)

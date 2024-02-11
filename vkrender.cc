@@ -279,10 +279,9 @@ void AsyVkRender::initWindow()
 }
 
 void AsyVkRender::updateHandler(int) {
-
-  vk->queueScreen=true;
   vk->remesh=true;
   vk->redraw=true;
+
   vk->update();
   if(interact::interactive || !vk->Animate) {
     glfwShowWindow(vk->window);
@@ -705,7 +704,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   initVulkan();
   }
-
 
   if(View) {
     if(!settings::getSetting<bool>("fitscreen"))
@@ -4352,11 +4350,11 @@ void AsyVkRender::quit()
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
       idle();
+      pthread_mutex_unlock(&vk->readyLock);
       endwait(readySignal,readyLock);
     }
 #endif
-    if(interact::interactive)
-      glfwHideWindow(window);
+    glfwHideWindow(window);
   } else {
     glfwDestroyWindow(window);
     window = nullptr;
