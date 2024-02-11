@@ -82,8 +82,8 @@ vk::SurfaceFormatKHR
 SwapChainDetails::chooseSurfaceFormat() const
 {
   for (const auto& availableFormat : formats) {
-    if (availableFormat.format == vk::Format::eB8G8R8A8Uint &&
-        availableFormat.colorSpace == vk::ColorSpaceKHR::eAdobergbLinearEXT) {
+    if (availableFormat.format == vk::Format::eB8G8R8A8Unorm &&
+        availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
       return availableFormat;
     }
   }
@@ -1426,6 +1426,7 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
   if (!shader.parse(&res, 100, false, compileMessages)) {
     std::cout << fileContents.size() << std::endl;
     std::cout << fileContents.data() << std::endl;
+    std::cerr << "Error: " << shader.getInfoLog();
     throw std::runtime_error("Failed to parse shader "
                              + filename
                              + ": " + shader.getInfoLog()
