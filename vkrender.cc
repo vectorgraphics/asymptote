@@ -543,7 +543,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->pic = pic;
   this->Prefix=prefix;
   this->Format = format;
-  this->shouldUpdateBuffers = true;
   this->redraw = true;
   this->remesh = true;
   this->nlights = nlightsin;
@@ -552,6 +551,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->Oldpid = oldpid;
 
   this->Angle = angle * radians;
+  this->lastZoom = 0;
   this->Zoom0 = zoom;
   this->Shift = shift / zoom;
   this->Margin = margin;
@@ -635,7 +635,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       remesh=true;
       return;
     }
-
     maxFragments=0;
 
     rotateMat = glm::mat4(1.0);
@@ -652,6 +651,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   havewindow=initialized && vkthread;
 
   clearMaterials();
+  this->shouldUpdateBuffers = true;
   initialized=true;
 #endif
 
@@ -3199,7 +3199,10 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
 void AsyVkRender::updateBuffers()
 {
-  if (shouldUpdateBuffers) {
+  // Don't update the material buffer if the materials aren't yet added
+  bool materialsReady = !materials.empty();
+
+  if (shouldUpdateBuffers && materialsReady) {
     std::vector<Light> lights;
 
     for (auto i = 0u; i < nlights; i++)
