@@ -1977,8 +1977,9 @@ void AsyVkRender::createComputeDescriptorSetLayout()
   // post processing
 
   std::vector<vk::DescriptorSetLayoutBinding> const postProcessingLayoutBindings {
-    { 0, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
+    { 0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eCompute },
     { 1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
+    { 2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
   };
 
   postProcessDescSetLayout= device->createDescriptorSetLayoutUnique({
@@ -2091,7 +2092,8 @@ void AsyVkRender::createComputeDescriptorPool()
 
   std::vector<vk::DescriptorPoolSize> const postProcPoolSizes
   {
-    {vk::DescriptorType::eStorageImage, poolSetCount}, // input image
+    {vk::DescriptorType::eCombinedImageSampler, poolSetCount}, // input image
+    {vk::DescriptorType::eStorageImage, poolSetCount}, // input image, non-sampled
     {vk::DescriptorType::eStorageImage, poolSetCount},// output image image
   };
 
@@ -2345,12 +2347,22 @@ void AsyVkRender::writePostProcessDescSets()
   // post process descriptors
   for (auto i= 0; i < maxFramesInFlight; ++i)
   {
-    vk::DescriptorImageInfo inputImgInfo({}, *immRenderTargetViews[i], vk::ImageLayout::eGeneral);
+    vk::DescriptorImageInfo inputImgInfo(
+            *immRenderTargetSampler[i],
+            *immRenderTargetViews[i],
+            vk::ImageLayout::eGeneral
+            );
+    vk::DescriptorImageInfo inputImgInfoNonSampled(
+            {},
+            *immRenderTargetViews[i],
+            vk::ImageLayout::eGeneral
+    );
     vk::DescriptorImageInfo outputImgInfo({}, *prePresentationImgViews[i], vk::ImageLayout::eGeneral);
 
     std::vector<vk::WriteDescriptorSet> const postProcDescWrite{
-            {*postProcessDescSet[i], 0, 0, 1, vk::DescriptorType::eStorageImage, &inputImgInfo},
-            {*postProcessDescSet[i], 1, 0, 1, vk::DescriptorType::eStorageImage, &outputImgInfo}
+            {*postProcessDescSet[i], 0, 0, 1, vk::DescriptorType::eCombinedImageSampler, &inputImgInfo},
+            {*postProcessDescSet[i], 1, 0, 1, vk::DescriptorType::eStorageImage, &inputImgInfoNonSampled},
+            {*postProcessDescSet[i], 2, 0, 1, vk::DescriptorType::eStorageImage, &outputImgInfo}
     };
 
     device->updateDescriptorSets(VEC_VIEW(postProcDescWrite), EMPTY_VIEW);
@@ -2507,6 +2519,7 @@ void AsyVkRender::createImmediateRenderTargets()
   immediateRenderTargetImgs.clear();
   prePresentationImages.clear();
   prePresentationImgViews.clear();
+  immRenderTargetSampler.clear();
 
   auto const framebufferSize= backbufferImages.size();
 
@@ -2514,6 +2527,7 @@ void AsyVkRender::createImmediateRenderTargets()
   immediateRenderTargetImgs.reserve(framebufferSize);
   prePresentationImages.reserve(framebufferSize);
   prePresentationImgViews.reserve(framebufferSize);
+  immRenderTargetSampler.reserve(framebufferSize);
 
   for (size_t i= 0; i < framebufferSize; ++i)
   {
@@ -2523,7 +2537,9 @@ void AsyVkRender::createImmediateRenderTargets()
             backbufferExtent.height,
             vk::SampleCountFlagBits::e1,
             backbufferImageFormat,
-            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage,
+            vk::ImageUsageFlagBits::eColorAttachment
+                    | vk::ImageUsageFlagBits::eSampled
+                    | vk::ImageUsageFlagBits::eStorage,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     ));
 
@@ -2535,6 +2551,18 @@ void AsyVkRender::createImmediateRenderTargets()
             immRenderTarget.getImage(),
             immRenderImgView
     );
+
+    // for sampling imm render target
+    auto& sampler = immRenderTargetSampler.emplace_back(device->createSamplerUnique(vk::SamplerCreateInfo(
+            {},
+            vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest,
+            vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge,
+            vk::SamplerAddressMode::eClampToEdge,
+            0.f, false, 0.0, false, vk::CompareOp::eNever, 0.0, 0.0, vk::BorderColor::eFloatTransparentBlack,
+            true
+    )));
+    setDebugObjectName(*sampler, "immRtImgSampler" + std::to_string(i));
+
 
     // for pre-presentation (after post-processing)
     auto const& prePresentationTarget= prePresentationImages.emplace_back(createImage(

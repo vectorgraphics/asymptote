@@ -607,6 +607,7 @@ private:
 #pragma region intermediate frame buffers
   std::vector<vma::cxx::UniqueImage> immediateRenderTargetImgs;
   std::vector<vk::UniqueImageView> immRenderTargetViews;
+  std::vector<vk::UniqueSampler> immRenderTargetSampler;
 
   std::vector<vma::cxx::UniqueImage> prePresentationImages;
   std::vector<vk::UniqueImageView> prePresentationImgViews;
