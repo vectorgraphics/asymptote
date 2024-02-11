@@ -717,7 +717,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 
   update();
-  glfwShowWindow(window);
+  if(window)
+    glfwShowWindow(window);
 
   mainLoop();
 
