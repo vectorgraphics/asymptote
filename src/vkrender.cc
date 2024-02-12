@@ -3350,13 +3350,11 @@ auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelin
 
 void AsyVkRender::createComputePipelines()
 {
-  if (GPUindexing)
-  {
-    std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
-    createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
-    createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
-    createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
-  }
+  // GPU indexing pipelines
+  std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
+  createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
+  createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
+  createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
 
   std::vector const postProcessDescSetLayoutVec { *postProcessDescSetLayout };
   // fxaa
