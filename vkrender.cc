@@ -4016,7 +4016,6 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
     case updateRenderer: {
       if (readyForUpdate)
       {
-        readyForUpdate=false;
         updateHandler(0);
       }
     }
