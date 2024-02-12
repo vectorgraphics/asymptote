@@ -239,12 +239,12 @@ public:
 
   void transAsField(coenv &e, record *r) override;
 
-  void transAsTemplatedField(
+  bool transAsTemplatedField(
       coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
   );
 
   void transAsRecordBody(coenv &e, record *r);
-  void transAsTemplatedRecordBody(
+  bool transAsTemplatedRecordBody(
       coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
   );
 
@@ -648,15 +648,10 @@ public:
   receiveTypedefDec(position pos, typeParamList* params) 
     : dec(pos), params(params) {}
 
-  void transAsField(coenv& e, record *r) override {
-    em.error(getPos());
-    em << "This line is illegal here. Did you forget to add template "
-       << "parameters before importing this file? Alternatively, it is an "
-       << "error for this line not to be the first line of the file.";
-    em.sync();
-  }
-
-  bool transAsParamMatcher(coenv& e, mem::vector<namedTyEntry*> *args);
+  void transAsField(coenv& e, record *r) override;
+  bool transAsParamMatcher(
+      coenv& e, record *r, mem::vector<namedTyEntry*> *args
+  );
 };
 
 

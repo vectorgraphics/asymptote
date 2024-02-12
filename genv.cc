@@ -148,7 +148,6 @@ record *genv::getTemplatedModule(symbol id, string filename, string index,
 {
   checkRecursion(filename);
   importIndex_t Index=std::make_pair(filename,index);
-  // We need to change imap to consider the signature of templated imports.
   record *r=loadTemplatedModule(id, filename, args);
 
   // Don't add an erroneous module to the dictionary in interactive mode, as
