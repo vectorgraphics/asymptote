@@ -4299,7 +4299,8 @@ void AsyVkRender::display()
 
   if(remesh) {
     clearCenters();
-
+#pragma message("FIXME: See if we can have more fine-grained fence here")
+    device->waitIdle();
     for (int i = 0; i < maxFramesInFlight; i++) {
       frameObjects[i].reset();
     }
