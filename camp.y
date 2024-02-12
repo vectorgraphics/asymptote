@@ -269,8 +269,8 @@ dec:
                    { $$ = new badDec($1, $6, "expected 'as'"); }
 | IMPORT strid '(' decdeclist ')' ';'
                    { $$ = new badDec($1, $1,
-                        "Parametrized imports disallowed to reduce naming
-                        conflicts. Try "
+                        "Parametrized imports disallowed to reduce naming "
+                        "conflicts. Try "
                         "'access <module>(<type parameters>) as <newname>;'."
                      ); }
 | FROM strid '(' decdeclist ')' ACCESS idpairlist ';'

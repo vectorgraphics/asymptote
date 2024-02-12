@@ -158,12 +158,12 @@ errortest.asy: 470.7: array expression cannot be used as an address
 errortest.asy: 518.29: expected 'as'
 errortest.asy: 519.30: expected 'as'
 errortest.asy: 520.23: expected typename=
-errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<params>) as <newname>;'.
+errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
 errortest.asy: 524.3: This line is illegal here. Did you forget to add template parameters before importing this file? Alternatively, it is an error for this line not to be the first line of the file.
 errortest.asy: 525.3: Unrecognized syntax. Did you mean 'typedef import(<stuff>)'?
-errortest.asy: 528.30: too few types passed: got 2, expected 3
-errortest.asy: 528.3: could not load module 'errortestTemplate'
-errortest.asy: 529.47: bad template argument: passed T, expected C
+errortest.asy: 529.30: too few types passed: got 2, expected 3
 errortest.asy: 529.3: could not load module 'errortestTemplate'
-errortest.asy: 530.37: bad template argument: passed C, expected B
-errortest.asy: 530.3: could not load module 'errortestTemplate'
+errortest.asy: 531.47: bad template argument: passed T, expected C
+errortest.asy: 531.3: could not load module 'errortestTemplate'
+errortest.asy: 533.37: bad template argument: passed C, expected B
+errortest.asy: 533.3: could not load module 'errortestTemplate'
