@@ -159,7 +159,7 @@ errortest.asy: 518.29: expected 'as'
 errortest.asy: 519.30: expected 'as'
 errortest.asy: 520.23: expected typename=
 errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
-errortest.asy: 524.3: This line is illegal here. Did you forget to add template parameters before importing this file? Alternatively, it is an error for this line not to be the first line of the file.
+errortest.asy: 524.3: Improper file access: tried to access a templated file without template parameters
 errortest.asy: 525.3: Unrecognized syntax. Did you mean 'typedef import(<stuff>)'?
 errortest.asy: 529.30: too few types passed: got 2, expected 3
 errortest.asy: 529.3: could not load module 'errortestTemplate'

@@ -198,7 +198,7 @@ void block::transAsField(coenv &e, record *r)
   }
 }
 
-void block::transAsTemplatedField(
+bool block::transAsTemplatedField(
     coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
 ) {
   Scope scopeHolder(e, scope);
@@ -208,7 +208,7 @@ void block::transAsTemplatedField(
     em << "When a file is imported as a template, the first line must declare "
        << "the type parameters.";
     em.sync();
-    return;
+    return false;
   }
   receiveTypedefDec *dec = dynamic_cast<receiveTypedefDec *>(*p);
   if (!dec) {
@@ -216,14 +216,16 @@ void block::transAsTemplatedField(
     em << "When a file is imported as a template, the first line must declare "
        << "the type parameters.";
     em.sync();
-    return;
+    return false;
   }
-  if(!dec->transAsParamMatcher(e, args))
-    return;
+  if(!dec->transAsParamMatcher(e, r, args))
+    return false;
 
   for (++p; p != stms.end() && !em.errors(); ++p) {
     (*p)->markTransAsField(e, r);
   }
+  em.sync();
+  return true;
 }
 
 void block::transAsRecordBody(coenv &e, record *r)
@@ -232,11 +234,12 @@ void block::transAsRecordBody(coenv &e, record *r)
   e.c.closeRecord();
 }
 
-void block::transAsTemplatedRecordBody(
+bool block::transAsTemplatedRecordBody(
     coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
 ) {
-  transAsTemplatedField(e, r, args);
+  bool succeeded = transAsTemplatedField(e, r, args);
   e.c.closeRecord();
+  return succeeded;
 }
 
 record *block::transAsFile(genv& ge, symbol id)
@@ -273,17 +276,15 @@ record *block::transAsTemplatedFile(
   env e(ge);
   coenv ce(c, e);
 
-  // Look up all the types from ge and add them to ce.
-
-
   // Translate the abstract syntax.
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  transAsTemplatedRecordBody(ce, r, args);
-  em.sync();
-  if (em.errors()) return nullptr;
+  bool succeeded = transAsTemplatedRecordBody(ce, r, args);
+  if (!succeeded) {
+    return nullptr;
+  }
 
   return r;
 }
@@ -1122,10 +1123,35 @@ bool typeParamList::transAsParamMatcher(
 }
 
 bool receiveTypedefDec::transAsParamMatcher(
-    coenv& e, mem::vector<namedTyEntry*> *args
+    coenv& e, record *r, mem::vector<namedTyEntry*> *args
 ) {
-  return params->transAsParamMatcher(e, args);
+  bool succeeded = params->transAsParamMatcher(e, args);
+
+  symbol int_symbol = symbol::literalTrans("int");
+  types::ty *int_ty = e.e.lookupType(int_symbol);
+  assert(int_ty);
+  symbol templated_name = symbol::literalTrans("/templated");
+  e.e.addVar(templated_name, makeVarEntryWhere(e, nullptr, int_ty, r, getPos()));
+
+  return succeeded;
 }
+
+void receiveTypedefDec::transAsField(coenv& e, record *r) {
+  em.error(getPos());
+  symbol intSymbol = symbol::literalTrans("int");
+  types::ty *intTy = e.e.lookupType(intSymbol);
+  assert(intTy);
+  symbol templatedName = symbol::literalTrans("/templated");
+  if (e.e.lookupVarByType(templatedName, intTy)) {
+    em << "'template import' must be at the start of the file, preceeding any "
+          "other code (including imports)";
+  } else {
+    em << "Improper file access: tried to access a templated file without "
+          "template parameters";
+  }
+  em.sync();
+}
+
 
 void fromdec::prettyprint(ostream &out, Int indent)
 {
