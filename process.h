@@ -55,7 +55,7 @@ public:
   // Return first available index
   size_t available() {
     size_t index=0;
-    for(typename Pointer::iterator p=pointer.begin(); p != pointer.end(); ++p) {
+    for(auto p=pointer.begin(); p != pointer.end(); ++p) {
       if(*p == NULL) {return index;}
       ++index;
     }
@@ -74,7 +74,7 @@ public:
   }
 
   ~terminator() {
-    for(typename Pointer::iterator p=pointer.begin(); p != pointer.end(); ++p) {
+    for(auto p=pointer.begin(); p != pointer.end(); ++p) {
       if(*p != NULL) {
         (*p)->~T();
         (*p)=NULL;

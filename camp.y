@@ -262,13 +262,17 @@ dec:
                      "'typedef import(<stuff>)'?"); }
 /* ACCESS strid '(' decdeclist ')' 'as' ID */
 | ACCESS strid '(' decdeclist ')' ID ID ';'
-                   { $$ = new templateAccessDec($1, $2.sym, $4, $6.sym, $7.sym, $6.pos); }
+                   { $$ = new templateAccessDec(
+                        $1, $2.sym, $4, $6.sym, $7.sym, $6.pos
+                      ); }
 | ACCESS strid '(' decdeclist ')' ';'
                    { $$ = new badDec($1, $6, "expected 'as'"); }
 | IMPORT strid '(' decdeclist ')' ';'
                    { $$ = new badDec($1, $1,
-                     "Parametrized imports disallowed to reduce naming "
-                     "conflicts. Try 'access <module>(<params>) as <newname>;'."); }
+                        "Parametrized imports disallowed to reduce naming
+                        conflicts. Try "
+                        "'access <module>(<type parameters>) as <newname>;'."
+                     ); }
 | FROM strid '(' decdeclist ')' ACCESS idpairlist ';'
                    { $$ = new fromaccessdec($1, $2.sym, $7, $4); }
 ;
@@ -276,8 +280,10 @@ dec:
 // List mapping dec to dec as in "Key=string, Value=int"
 decdec:
     ID ASSIGN type
-                   { $$ = new formal($1.pos, $3, new decidstart($1.pos, $1.sym)); }
-| type { $$ = new formal($1->getPos(), $1, nullptr); }  // ultimately logs an error
+                   { $$ = new formal(
+                        $1.pos, $3, new decidstart($1.pos, $1.sym)
+                      ); }
+| type { $$ = new formal($1->getPos(), $1, nullptr); }  // ultimately log error
 ;
 
 decdeclist:

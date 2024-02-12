@@ -35,7 +35,9 @@ using settings::Setting;
 using vm::importIndex_t;
 
 // Dynamic loading of external libraries.
-types::record *transExternalModule(trans::genv& ge, string filename, symbol id);
+types::record *transExternalModule(
+    trans::genv& ge, string filename, symbol id
+);
 
 namespace trans {
 

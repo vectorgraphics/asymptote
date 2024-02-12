@@ -198,20 +198,23 @@ void block::transAsField(coenv &e, record *r)
   }
 }
 
-void block::transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args)
-{
+void block::transAsTemplatedField(
+    coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args
+) {
   Scope scopeHolder(e, scope);
   auto p = stms.begin();
   if (p == stms.end()) {
     em.error(getPos());
-    em << "When a file is imported as a template, the first line must declare the type params.";
+    em << "When a file is imported as a template, the first line must declare "
+       << "the type parameters.";
     em.sync();
     return;
   }
   receiveTypedefDec *dec = dynamic_cast<receiveTypedefDec *>(*p);
   if (!dec) {
     em.error(getPos());
-    em << "When a file is imported as a template, the first line must declare the type params.";
+    em << "When a file is imported as a template, the first line must declare "
+       << "the type parameters.";
     em.sync();
     return;
   }
@@ -229,8 +232,9 @@ void block::transAsRecordBody(coenv &e, record *r)
   e.c.closeRecord();
 }
 
-void block::transAsTemplatedRecordBody(coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args)
-{
+void block::transAsTemplatedRecordBody(
+    coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args
+) {
   transAsTemplatedField(e, r, args);
   e.c.closeRecord();
 }
@@ -257,8 +261,9 @@ record *block::transAsFile(genv& ge, symbol id)
   return r;
 }
 
-record *block::transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::namedTyEntry>* args)
-{
+record *block::transAsTemplatedFile(
+    genv& ge, symbol id, mem::vector<absyntax::namedTyEntry>* args
+) {
   // Create the new module.
   record *r = new record(id, new frame(id,0,0));
 
@@ -481,8 +486,9 @@ void decidstart::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 #endif
 }
 
-void decidstart::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base)
-{
+void decidstart::createSymMapWType(
+    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+) {
 #ifdef HAVE_LSP
   std::string name(static_cast<std::string>(getName()));
   AsymptoteLsp::posInFile pos(getPos().LineColumn());
@@ -490,20 +496,26 @@ void decidstart::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absy
   {
     if (base == nullptr)
     {
-      decCtx->additionalDecs.emplace(std::piecewise_construct, std::forward_as_tuple(name),
+      decCtx->additionalDecs.emplace(std::piecewise_construct,
+                                     std::forward_as_tuple(name),
                                      std::forward_as_tuple(name, pos));
     }
     else
     {
-      decCtx->additionalDecs.emplace(std::piecewise_construct, std::forward_as_tuple(name),
-                                     std::forward_as_tuple(name, static_cast<std::string>(*base), pos));
+      decCtx->additionalDecs.emplace(
+          std::piecewise_construct,
+          std::forward_as_tuple(name),
+          std::forward_as_tuple(name, static_cast<std::string>(*base), pos)
+      );
     }
   }
   else
   {
     symContext->symMap.varDec[name] = base == nullptr ?
             AsymptoteLsp::SymbolInfo(name, pos) :
-            AsymptoteLsp::SymbolInfo(name, static_cast<std::string>(*base), pos);
+            AsymptoteLsp::SymbolInfo(name,
+                                     static_cast<std::string>(*base),
+                                     pos);
   }
 #endif
 }
@@ -716,8 +728,9 @@ void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 #endif
 }
 
-void decid::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base)
-{
+void decid::createSymMapWType(
+    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+) {
 #ifdef HAVE_LSP
   start->createSymMapWType(symContext, base);
   if (init)
@@ -757,7 +770,9 @@ void decidlist::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
 #endif
 }
 
-void decidlist::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base) {
+void decidlist::createSymMapWType(
+    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+) {
 #ifdef HAVE_LSP
   for (auto const& p : decs)
   {
@@ -767,7 +782,7 @@ void decidlist::createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyn
 }
 
 
-  void vardec::prettyprint(ostream &out, Int indent)
+void vardec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "vardec",indent, getPos());
 
@@ -887,7 +902,9 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
       em.sync();
       return nullptr;
     }
-    computedArgs->emplace_back(theType->getPos(), theName, theType->transAsTyEntry(e, r));
+    computedArgs->emplace_back(
+        theType->getPos(), theName, theType->transAsTyEntry(e, r)
+    );
   }
 
   record *imp=e.e.getTemplatedModule(id, (string) id, sigHash, computedArgs);
@@ -955,7 +972,9 @@ void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
       }
 
       // add (dest, source) to reference map.
-      auto s = symContext->extRefs.fileIdPair.emplace(dest, (std::string) fullSrc.c_str());
+      auto s = symContext->extRefs.fileIdPair.emplace(
+          dest, (std::string) fullSrc.c_str()
+      );
       auto it=std::get<0>(s);
       auto success=std::get<1>(s);
       if (not success)
@@ -1038,7 +1057,8 @@ void typeParam::prettyprint(ostream &out, Int indent) {
 bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry arg) {
   if (arg.dest != paramSym) {
     em.error(*arg.pos);
-    em << "bad template argument: passed " << arg.dest << ", expected " << paramSym;
+    em << "bad template argument: passed " << arg.dest << ", expected "
+       << paramSym;
     return false;
   }
   e.e.addType(paramSym, arg.ent);
@@ -1075,15 +1095,19 @@ void typeParamList::add(typeParam *tp) {
   params.push_back(*tp);
 }
 
-bool typeParamList::transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args) {
+bool typeParamList::transAsParamMatcher(
+    coenv &e, mem::vector<namedTyEntry> *args
+) {
   if (args->size() != params.size()) {
     position pos = getPos();
     if (args->size() >= 1) pos = *(*args)[0].pos;
     em.error(pos);
     if (args->size() > params.size()) {
-      em << "too many types passed: got " << args->size() << ", expected " << params.size();
+      em << "too many types passed: got " << args->size() << ", expected "
+         << params.size();
     } else {
-      em << "too few types passed: got " << args->size() << ", expected " << params.size();
+      em << "too few types passed: got " << args->size() << ", expected "
+         << params.size();
     }
     return false;
   }
@@ -1094,8 +1118,9 @@ bool typeParamList::transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *arg
   return true;
 }
 
-bool receiveTypedefDec::transAsParamMatcher(coenv& e, mem::vector<namedTyEntry> *args)
-{
+bool receiveTypedefDec::transAsParamMatcher(
+    coenv& e, mem::vector<namedTyEntry> *args
+) {
   return params->transAsParamMatcher(e, args);
 }
 
@@ -1240,7 +1265,9 @@ void includedec::transAsField(coenv &e, record *r)
 void includedec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
 #ifdef HAVE_LSP
-  std::string fullname((std::string) settings::locateFile(filename, true).c_str());
+  std::string fullname(
+      (std::string) settings::locateFile(filename, true).c_str()
+  );
   if (not AsymptoteLsp::isVirtualFile(fullname))
   {
     symContext->addEmptyExtRef(fullname);
@@ -1294,7 +1321,9 @@ void recorddec::transAsField(coenv &e, record *parent)
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
     e.c.newRecord(id);
 
-  addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()), id);
+  addTypeWithPermission(
+      e, parent, new trans::tyEntry(r,0,parent,getPos()), id
+  );
   e.e.addRecordOps(r);
   if (parent)
     parent->e.addRecordOps(r);

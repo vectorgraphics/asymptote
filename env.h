@@ -32,8 +32,8 @@ using types::record;
 class genv;
 
 // Keeps track of the name bindings of variables and types.  This is used for
-// the fields of a record, whereas the derived class env is used for unqualified
-// names in translation.
+// the fields of a record, whereas the derived class env is used for
+// unqualified names in translation.
 class protoenv {
 //protected:
 public:

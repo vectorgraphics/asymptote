@@ -6163,13 +6163,14 @@ if the file above were named @code{numberstuff.asy}, it could be accessed
 for types @code{string}, @code{int[]}, and @code{real} with the import
 command
 @verbatim
-access numberstuff(T=string, S=int[], Number=real) as numberstuff_string_int_real;
+access numberstuff(T=string, S=int[], Number=real)
+    as numberstuff_string_int_real;
 @end verbatim
 @noindent
-Note that this is actually an @emph{access} command rather than an @emph{import}
-command, so the names of types, functions, etc. would have to be stated as
-e.g. @code{numberstuff_string_int_real.Wrapper_Number} rather than just
-@code{Wrapper_Number} (where @code{Wrapper_Number} is a type defined in
+Note that this is actually an @emph{access} command rather than an
+@emph{import} command, so the names of types, functions, etc. would have to be
+stated as e.g. @code{numberstuff_string_int_real.Wrapper_Number} rather than
+just @code{Wrapper_Number} (where @code{Wrapper_Number} is a type defined in
 @code{numberstuff.asy}).
 
 Alternatively, the module could be imported via a command like
@@ -6179,9 +6180,9 @@ from numberstuff(T=string, S=int[], Number=real) access
     operator ==;
 @end verbatim
 @noindent
-This command would automatically rename @code{Wrapper_Number} to @code{Wrapper_real}
-and would also allow the use of any @code{operator ==} overloads defined in the
-module.
+This command would automatically rename @code{Wrapper_Number} to
+@code{Wrapper_real} and would also allow the use of any @code{operator ==}
+overloads defined in the module.
 
 For more information, see the examples in
 @url{https://github.com/vectorgraphics/asymptote/tree/647b6c5732ec94a48f0f0b2446f02c86888fe7e7/tests/template}.
