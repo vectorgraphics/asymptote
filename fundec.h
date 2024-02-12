@@ -38,7 +38,7 @@ public:
 
   types::ty *getType(coenv &e, bool tacit=false);
 
-  absyntax::ty *getType() { return base; }
+  absyntax::ty *getAbsyntaxType() { return base; }
 
   virtual void addOps(coenv &e, record *r);
 

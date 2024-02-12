@@ -120,7 +120,7 @@ void formals::addOps(coenv &e, record *r)
 mem::vector<tySymbolPair> *formals::getFields() {
   auto *lst = new mem::vector<tySymbolPair>();
   for (auto frml : fields) {
-    lst->emplace_back(frml->getType(), frml->getName());
+    lst->emplace_back(frml->getAbsyntaxType(), frml->getName());
   }
   return lst;
 }
