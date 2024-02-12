@@ -123,7 +123,6 @@ void *asymain(void *A)
 {
   setsignal(signalHandler);
   Args *args=(Args *) A;
-  fpu_trap(trap());
 #ifdef HAVE_LIBFFTW3
   fftwpp::wisdomName=".wisdom";
 #endif
@@ -251,6 +250,7 @@ int main(int argc, char *argv[])
     em.statusError();
   }
 
+  fpu_trap(trap());
   Args args(argc,argv);
 #ifdef HAVE_VULKAN
 #if defined(__APPLE__) || defined(_WIN32)
@@ -263,8 +263,7 @@ int main(int argc, char *argv[])
 #else
   bool usethreads=view();
 #endif // defined(__APPLE__) || defined(_WIN32)
-  camp::vk->vkthread=(usethreads && getSetting<bool>("threads")) ||
-    settings::getSetting<bool>("offscreen");
+  camp::vk->vkthread=usethreads && getSetting<bool>("threads");
 #if HAVE_PTHREAD
   if(camp::vk->vkthread) {
     pthread_t thread;

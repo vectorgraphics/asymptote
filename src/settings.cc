@@ -1375,8 +1375,6 @@ void initSettings() {
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
-  addOption(new boolSetting("GPUindexing", 0,
-                            "Compute indexing partial sums on GPU", true));
   addOption(new boolSetting("GPUinterlock", 0,
                             "Use fragment shader interlock", true));
   addOption(new boolSetting("GPUcompress", 0,

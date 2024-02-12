@@ -1,8 +1,10 @@
+#define VMA_IMPLEMENTATION
 #include "vkrender.h"
 #include "shaderResources.h"
 #include "picture.h"
 #include "drawimage.h"
 #include "EXRFiles.h"
+#include "fpu.h"
 
 #include <chrono>
 #include <thread>
@@ -29,6 +31,8 @@ static bool initialized=false;
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE;
+
 std::vector<const char*> instanceExtensions
 {
   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
@@ -46,6 +50,8 @@ namespace camp
 {
 
 static bool vkinitialize=true;
+
+const Int timePartialSumVerbosity=4;
 
 std::vector<char> readFile(const std::string& filename)
 {
@@ -269,7 +275,7 @@ void AsyVkRender::initWindow()
     window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
   }
 
-  glfwShowWindow(window);
+  glfwHideWindow(window);
   glfwSetWindowUserPointer(window, this);
   glfwSetMouseButtonCallback(window, mouseButtonCallback);
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -282,10 +288,9 @@ void AsyVkRender::initWindow()
 }
 
 void AsyVkRender::updateHandler(int) {
-
-  vk->queueScreen=true;
   vk->remesh=true;
   vk->redraw=true;
+
   vk->update();
   if(interact::interactive || !vk->Animate) {
     glfwShowWindow(vk->window);
@@ -485,12 +490,12 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
     case '_':
       app->shrink();
       break;
-    case 'p':
+    case 'P':
       if(settings::getSetting<bool>("reverse")) app->Animate=false;
       settings::Setting("reverse")=app->Step=false;
       app->animate();
       break;
-    case 'r':
+    case 'R':
       if(!settings::getSetting<bool>("reverse")) app->Animate=false;
       settings::Setting("reverse")=true;
       app->Step=false;
@@ -519,6 +524,14 @@ AsyVkRender::~AsyVkRender()
 
 #endif
 
+bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
+void checkpow2(unsigned int n, string s) {
+  if(!ispow2(n)) {
+    cerr << s << " must be a power of two." << endl;
+    exit(-1);
+  }
+}
+
 void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
                            double Width, double Height, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
@@ -540,7 +553,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->pic = pic;
   this->Prefix=prefix;
   this->Format = format;
-  this->shouldUpdateBuffers = true;
   this->redraw = true;
   this->remesh = true;
   this->nlights = nlightsin;
@@ -549,6 +561,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->Oldpid = oldpid;
 
   this->Angle = angle * radians;
+  this->lastZoom = 0;
   this->Zoom0 = zoom;
   this->Shift = shift / zoom;
   this->Margin = margin;
@@ -632,7 +645,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       remesh=true;
       return;
     }
-
     maxFragments=0;
 
     rotateMat = glm::mat4(1.0);
@@ -640,7 +652,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(width,height);
 
 #ifdef HAVE_VULKAN
-    Aspect=((double) width)/height; // CHECK
+    Aspect=((double) width)/height;
     setosize();
 #endif
   }
@@ -649,6 +661,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   havewindow=initialized && vkthread;
 
   clearMaterials();
+  this->shouldUpdateBuffers = true;
   initialized=true;
 #endif
 
@@ -662,14 +675,13 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 #endif
 
-  GPUindexing=settings::getSetting<bool>("GPUindexing");
   GPUcompress=settings::getSetting<bool>("GPUcompress");
 
-  if(GPUindexing) {
-    localSize=settings::getSetting<Int>("GPUlocalSize");
-    blockSize=settings::getSetting<Int>("GPUblockSize");
-    groupSize=localSize*blockSize;
-  }
+  localSize=settings::getSetting<Int>("GPUlocalSize");
+  checkpow2(localSize,"GPUlocalSize");
+  blockSize=settings::getSetting<Int>("GPUblockSize");
+  checkpow2(blockSize,"GPUblockSize");
+  groupSize=localSize*blockSize;
 
 #ifdef HAVE_VULKAN
   if(vkinitialize) {
@@ -706,7 +718,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   initVulkan();
   }
 
-
   if(View) {
   auto const fitscreenSetting= settings::getSetting<bool>("fitscreen");
   if (!fitscreenSetting)
@@ -718,11 +729,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 
   update();
-
-#ifdef __MSDOS__
-//  if(vkthread && interact::interactive)
-//    poll(0);
-#endif
+  if(window)
+    glfwShowWindow(window);
 
   mainLoop();
 
@@ -751,6 +759,9 @@ void AsyVkRender::initVulkan()
 #endif
   if (View) createSurface();
   pickPhysicalDevice();
+
+  fpu_trap(false); // Work around FE_INVALID.
+
   createLogicalDevice();
   createAllocator();
   createCommandPools();
@@ -786,9 +797,9 @@ void AsyVkRender::initVulkan()
 
   // gpu indexing + post processing
   createComputePipelines();
+  fpu_trap(settings::trap()); // Work around FE_INVALID.
 
   createAttachments();
-
   createFramebuffers();
   createExportResources();
 }
@@ -804,7 +815,7 @@ void AsyVkRender::recreateSwapChain()
     glfwWaitEvents();
   }
 
-  device->waitIdle();
+//  device->waitIdle();
 
   createSwapChain();
   setupPostProcessingComputeParameters();
@@ -910,17 +921,17 @@ void AsyVkRender::createDebugMessenger()
 {
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
   vk::DebugUtilsMessageTypeFlagsEXT typeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
-  if (settings::verbose >= 1)
+  if (settings::verbose >= 4)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
     typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral;
   }
-  if (settings::verbose >= 2)
+  if (settings::verbose >= 4)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo;
     typeFlags |= typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
   }
-  if (settings::verbose >= 3)
+  if (settings::verbose >= 4)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
   }
@@ -1460,7 +1471,7 @@ void AsyVkRender::createFramebuffers()
 
   for (auto i= 0u; i < backbufferImageViews.size(); i++)
   {
-    std::array<vk::ImageView, 3> attachments= {*colorImageView, *depthImageView, *immRenderTargetViews[i]};
+    std::array<vk::ImageView, 3> attachments = {*colorImageView, *depthImageView, *immRenderTargetViews[i]};
     std::array<vk::ImageView, 1> depthAttachments{*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
@@ -1593,25 +1604,17 @@ uint32_t AsyVkRender::selectMemory(const vk::MemoryRequirements memRequirements,
   throw std::runtime_error("failed to find suitable memory type!");
 }
 
-void AsyVkRender::zeroBuffer(vk::Buffer & buf, vk::DeviceSize size) {
-
-  auto const cmd = beginSingleCommands();
-
-  cmd.fillBuffer(buf, 0, size, 0);
-
-  endSingleCommands(cmd);
-}
-
 vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
         vk::BufferUsageFlags const& usage,
         VkMemoryPropertyFlags const& properties,
         vk::DeviceSize const& size,
-        VmaAllocationCreateFlags const& vmaFlags)
+        VmaAllocationCreateFlags const& vmaFlags,
+        VmaMemoryUsage const& memoryUsage)
 {
   auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), size, usage);
 
   VmaAllocationCreateInfo createInfo = {};
-  createInfo.usage = VMA_MEMORY_USAGE_AUTO;
+  createInfo.usage = memoryUsage;
   createInfo.requiredFlags = properties;
   createInfo.flags=vmaFlags;
 
@@ -1851,7 +1854,7 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Ima
 void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects)
 {
   // Vulkan doesn't allow a buffer to have a size of 0
-  auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(16), size), buffer.usage);
+  vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(16), size), buffer.usage);
   buffer._buffer = createBufferUnique(
                           buffer.usage,
                           buffer.properties,
@@ -2259,21 +2262,24 @@ void AsyVkRender::writeDescriptorSets()
     writes[4].descriptorCount = 1;
     writes[4].pBufferInfo = &opaqueDepthBufferInfo;
 
-    writes[5].dstSet = *frameObjects[i].descriptorSet;
-    writes[5].dstBinding = 9;
-    writes[5].dstArrayElement = 0;
-    writes[5].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[5].descriptorCount = 1;
-    writes[5].pBufferInfo = &indexBufferInfo;
+    if(GPUcompress) {
+      writes[5].dstSet = *frameObjects[i].descriptorSet;
+      writes[5].dstBinding = 9;
+      writes[5].dstArrayElement = 0;
+      writes[5].descriptorType = vk::DescriptorType::eStorageBuffer;
+      writes[5].descriptorCount = 1;
+      writes[5].pBufferInfo = &indexBufferInfo;
 
-    writes[6].dstSet = *frameObjects[i].descriptorSet;
-    writes[6].dstBinding = 10;
-    writes[6].dstArrayElement = 0;
-    writes[6].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[6].descriptorCount = 1;
-    writes[6].pBufferInfo = &elementBufferInfo;
+      writes[6].dstSet = *frameObjects[i].descriptorSet;
+      writes[6].dstBinding = 10;
+      writes[6].dstArrayElement = 0;
+      writes[6].descriptorType = vk::DescriptorType::eStorageBuffer;
+      writes[6].descriptorCount = 1;
+      writes[6].pBufferInfo = &elementBufferInfo;
+    }
 
-    device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+    device->updateDescriptorSets(GPUcompress ? writes.size() : writes.size()-2,
+                                 writes.data(), 0, nullptr);
 
     if (ibl) {
 
@@ -2517,12 +2523,15 @@ void AsyVkRender::createBuffers()
     VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
   );
 
-  elementBf = createBufferUnique(
-    vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
-    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-    elementBufferSize,
-    VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
-  );
+  if(GPUcompress)
+  {
+    elementBf= createBufferUnique(
+            vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+            elementBufferSize,
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+    );
+  }
 
   for (auto& frameObj : frameObjects)
   {
@@ -2633,15 +2642,9 @@ void AsyVkRender::createDependentBuffers()
   pixels=(backbufferExtent.width+1)*(backbufferExtent.height+1);
   std::uint32_t Pixels;
 
-  if (GPUindexing) {
-    std::uint32_t G=ceilquotient(pixels,groupSize);
-    Pixels=groupSize*G;
-    globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
-  }
-  else {
-    Pixels=pixels;
-    globalSize=1;
-  }
+  std::uint32_t G=ceilquotient(pixels,groupSize);
+  Pixels=groupSize*G;
+  globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
 
   countBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
@@ -2651,11 +2654,6 @@ void AsyVkRender::createDependentBuffers()
 
   VkMemoryPropertyFlags countBufferFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   VmaAllocationCreateFlags vmaFlags = 0;
-
-  if (!GPUindexing) {
-    countBufferFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-    vmaFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
-  }
 
   if (countBfMappedMem != nullptr)
   {
@@ -2686,14 +2684,6 @@ void AsyVkRender::createDependentBuffers()
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
           offsetBufferSize);
 
-  if (!GPUindexing) {
-    offsetStageBf = createBufferUnique(
-      vk::BufferUsageFlagBits::eTransferSrc,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-      offsetBufferSize,
-      VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
-    );
-  }
   opaqueBf = createBufferUnique(
                      vk::BufferUsageFlagBits::eStorageBuffer,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -2704,14 +2694,13 @@ void AsyVkRender::createDependentBuffers()
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      opaqueBufferSize);
 
-  indexBf = createBufferUnique(
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     indexBufferSize);
-
-  if (!GPUindexing) {
-    countBfMappedMem = make_unique<vma::cxx::MemoryMapperLock>(countBf);
-    offsetStageBfMappedMem = make_unique<vma::cxx::MemoryMapperLock>(offsetStageBf);
+  if(GPUcompress) {
+    indexBf = createBufferUnique(
+      vk::BufferUsageFlagBits::eStorageBuffer,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      indexBufferSize,
+      VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+      VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
   }
 }
 
@@ -3029,9 +3018,6 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
     return;
   }
 
-  if (GPUindexing) {
-    options.emplace_back("GPUINDEXING");
-  }
   if (GPUcompress) {
     options.emplace_back("GPUCOMPRESS");
   }
@@ -3423,7 +3409,10 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
 void AsyVkRender::updateBuffers()
 {
-  if (shouldUpdateBuffers) {
+  // Don't update the material buffer if the materials aren't yet added
+  bool materialsReady = !materials.empty();
+
+  if (shouldUpdateBuffers && materialsReady) {
     std::vector<Light> lights;
 
     for (auto i = 0u; i < nlights; i++)
@@ -3441,7 +3430,7 @@ void AsyVkRender::updateBuffers()
       nmaterials=materials.size();
     }
 
-    device->waitIdle();
+//    device->waitIdle();
     createMaterialAndLightBuffers();
     writeMaterialAndLightDescriptors();
 
@@ -3738,21 +3727,18 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
-  if (GPUindexing) {
-    waitForEvent(*object.sumFinishedEvent);
+  waitForEvent(*object.sumFinishedEvent);
 
-    static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
+  static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
 
-    const auto maxDepth=feedbackMappedPtr->getCopyPtr()[0];
-    fragments=feedbackMappedPtr->getCopyPtr()[1];
+  const auto maxDepth=feedbackMappedPtr->getCopyPtr()[0];
+  fragments=feedbackMappedPtr->getCopyPtr()[1];
 
-    if (maxDepth>maxSize) {
-      resizeBlendShader(maxDepth);
-    }
+  if (maxDepth>maxSize) {
+    resizeBlendShader(maxDepth);
   }
 
   if (fragments>maxFragments) {
-
     maxFragments=11*fragments/10;
     vkutils::checkVkResult(device->waitForFences(
       1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max()
@@ -3855,7 +3841,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
       result = device->getEventStatus(*object.compressionFinishedEvent);
     } while(result != vk::Result::eEventSet);
 
-    elements=GPUindexing ? p[0] : p[0]-1;
+    elements=p[0];
     p[0]=1;
   } else {
     endFrameRender();
@@ -3867,48 +3853,45 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   if (elements==0)
     return;
 
-  unsigned int NSUMS=10000;
+  beginFrameCommands(*object.computeCommandBuffer);
+  g=ceilquotient(elements,groupSize);
+  elements=groupSize*g;
 
-  if (GPUindexing) {
+  const unsigned int NSUMS=10000;
 
-    beginFrameCommands(*object.computeCommandBuffer);
-    g=ceilquotient(elements,groupSize);
-    elements=groupSize*g;
+  if(settings::verbose >= timePartialSumVerbosity) {
+    device->resetEvent(*object.startTimedSumsEvent);
+    device->resetEvent(*object.timedSumsFinishedEvent);
+    // Start recording commands into partialSumsCommandBuffer
+    object.partialSumsCommandBuffer->begin(vk::CommandBufferBeginInfo());
 
-    if(settings::verbose > 3) {
-      device->resetEvent(*object.startTimedSumsEvent);
-      device->resetEvent(*object.timedSumsFinishedEvent);
-      // Start recording commands into partialSumsCommandBuffer
-      object.partialSumsCommandBuffer->begin(vk::CommandBufferBeginInfo());
-
-      // Wait to execute the compute shaders util we trigger them from CPU
-      object.partialSumsCommandBuffer->waitEvents(
-        1,
-        &*object.startTimedSumsEvent,
-        vk::PipelineStageFlagBits::eHost,
-        vk::PipelineStageFlagBits::eComputeShader,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        0,
-        nullptr
+    // Wait to execute the compute shaders util we trigger them from CPU
+    object.partialSumsCommandBuffer->waitEvents(
+      1,
+      &*object.startTimedSumsEvent,
+      vk::PipelineStageFlagBits::eHost,
+      vk::PipelineStageFlagBits::eComputeShader,
+      0,
+      nullptr,
+      0,
+      nullptr,
+      0,
+      nullptr
       );
 
-      // Record all partial sums calcs into partialSumsCommandBuffer
-      for(unsigned int i=0; i < NSUMS; ++i) {
-        partialSums(object, true, i==0);
-      }
-
-      // Signal to the CPU the compute shaders have executed
-      object.partialSumsCommandBuffer->setEvent(*object.timedSumsFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
-      object.partialSumsCommandBuffer->end();
+    // Record all partial sums calcs into partialSumsCommandBuffer
+    for(unsigned int i=0; i < NSUMS; ++i) {
+      partialSums(object, true, i==0);
     }
 
-    partialSums(object);
-    endFrameCommands();
-    commandsToSubmit.emplace_back(currentCommandBuffer);
+    // Signal to the CPU once the compute shaders have executed
+    object.partialSumsCommandBuffer->setEvent(*object.timedSumsFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
+    object.partialSumsCommandBuffer->end();
   }
+
+  partialSums(object);
+  endFrameCommands();
+  commandsToSubmit.emplace_back(currentCommandBuffer);
 
   auto info = vk::SubmitInfo();
 
@@ -3917,9 +3900,9 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   vkutils::checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
 
-  if (GPUindexing && settings::verbose > 3) {
+  if(settings::verbose >= timePartialSumVerbosity) {
     // Wait until the render queue isn't being used, so we only time
-    // our partial sums calcs
+    // our partial sums calculation
     renderQueue.waitIdle();
 
     auto partialSumsInfo = vk::SubmitInfo();
@@ -3945,51 +3928,6 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     cout << "elements=" << elements << endl;
     cout << "Tmin (ms)=" << T*1e3 << endl;
     cout << "Megapixels/second=" << elements/T/1e6 << endl;
-  }
-
-  if (!GPUindexing) {
-
-    vkutils::checkVkResult(device->waitForFences(
-      1,
-      &*object.inComputeFence,
-      true,
-      std::numeric_limits<std::uint64_t>::max()
-    ));
-
-    elements=pixels;
-
-    auto offset = offsetStageBfMappedMem->getCopyPtr()+1;
-    auto maxsize=countBfMappedMem->getCopyPtr()[0];
-    auto count=countBfMappedMem->getCopyPtr()+1;
-    size_t Offset=offset[0]=count[0];
-
-    for(size_t i=1; i < elements; ++i)
-      offset[i]=Offset += count[i];
-
-    fragments=Offset;
-
-    if (maxsize > maxSize)
-      resizeBlendShader(maxsize);
-
-    auto const copy = vk::BufferCopy(
-      0, 0, offsetBufferSize
-    );
-
-    object.copyCountCommandBuffer->reset();
-    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo());
-    object.copyCountCommandBuffer->copyBuffer(offsetStageBf.getBuffer(), offsetBf.getBuffer(), 1, &copy);
-    object.copyCountCommandBuffer->end();
-
-    auto info = vk::SubmitInfo();
-
-    info.commandBufferCount = 1;
-    info.pCommandBuffers = &*object.copyCountCommandBuffer;
-    info.signalSemaphoreCount = 1;
-    info.pSignalSemaphores = &*object.inCountBufferCopy;
-
-    vkutils::checkVkResult(transferQueue.submit(
-      1, &info, nullptr
-    ));
   }
 }
 
@@ -4032,10 +3970,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 {
   auto transparent=!Opaque;
-
-  if (!GPUindexing) {
-    currentCommandBuffer.fillBuffer(countBf.getBuffer(), 0, countBufferSize, 0);
-  }
 
   beginGraphicsFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
@@ -4104,7 +4038,7 @@ void AsyVkRender::drawFrame()
   // check to see if any pipeline state changed.
   if (recreatePipeline)
   {
-    device->waitIdle();
+//    device->waitIdle();
     createGraphicsPipelines();
     recreatePipeline = false;
   }
@@ -4217,11 +4151,6 @@ void AsyVkRender::drawFrame()
 
   std::vector<vk::PipelineStageFlags> waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
-  if (!GPUindexing && !Opaque) {
-    waitSemaphores.emplace_back(*frameObject.inCountBufferCopy);
-    waitStages.emplace_back(vk::PipelineStageFlagBits::eFragmentShader);
-  }
-
   auto submitInfo = vk::SubmitInfo(
     waitSemaphores.size(),
     waitSemaphores.data(),
@@ -4299,8 +4228,17 @@ void AsyVkRender::display()
 
   if(remesh) {
     clearCenters();
-#pragma message("FIXME: See if we can have more fine-grained fence here")
-    device->waitIdle();
+
+    // Get the most recent frame that was started and wait for it to finish
+    // before clearing buffers
+    int previousFrameIndex = currentFrame - 1;
+
+    if (previousFrameIndex < 0) {
+      previousFrameIndex = maxFramesInFlight - 1;
+    }
+
+    (void) device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+
     for (int i = 0; i < maxFramesInFlight; i++) {
       frameObjects[i].reset();
     }
@@ -4420,8 +4358,6 @@ void AsyVkRender::mainLoop()
 
     nFrames++;
   }
-
-  vkDeviceWaitIdle(*device);
 
   if(!View) {
     if(vkthread) {
@@ -4598,15 +4534,12 @@ void AsyVkRender::Export(int imageIndex) {
     swapExtent
   );
 
-  VmaAllocationCreateInfo allocInfo = {};
-  allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-  allocInfo.memoryTypeBits = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-  vk::BufferCreateInfo bufCreateInfo(
-          {},
-          size,
-          vk::BufferUsageFlagBits::eTransferDst);
+  vma::cxx::UniqueBuffer exportBuf = createBufferUnique(
+    vk::BufferUsageFlagBits::eTransferDst,
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+    size,
+    VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT);
 
-  vma::cxx::UniqueBuffer exportBuf = allocator.createBuffer(bufCreateInfo, allocInfo);
   transitionImageLayout(
     *exportCommandBuffer,
     backbufferImages[imageIndex],
@@ -4668,6 +4601,7 @@ void AsyVkRender::Export(int imageIndex) {
 
   auto * fmt = new unsigned char[backbufferExtent.width * backbufferExtent.height * 3]; // 3 for RGB
 
+  auto data=mappedMemory.getCopyPtr<unsigned char>();
   for (auto i = 0u; i < backbufferExtent.height; i++)
     for (auto j = 0u; j < backbufferExtent.width; j++)
       for (auto k = 0u; k < 3; k++)
@@ -4724,11 +4658,11 @@ void AsyVkRender::quit()
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
       idle();
+      pthread_mutex_unlock(&vk->readyLock);
       endwait(readySignal,readyLock);
     }
 #endif
-    if(interact::interactive)
-      glfwHideWindow(window);
+    glfwHideWindow(window);
   } else {
     glfwDestroyWindow(window);
     window = nullptr;

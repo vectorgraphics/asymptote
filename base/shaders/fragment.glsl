@@ -294,11 +294,7 @@ void main() {
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
-#ifdef GPUINDEXING
   uint listIndex=atomicAdd(offset[element],-1u)-1u;
-#else
-  uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
-#endif /*GPUINDEXING*/
   fragment[listIndex]=outColor;
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME

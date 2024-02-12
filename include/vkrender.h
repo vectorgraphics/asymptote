@@ -56,6 +56,7 @@ class picture;
 #define EMPTY_VIEW 0, nullptr
 #define VEC_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
 #define STD_ARR_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
+#define STD_ARR_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
 #define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof((x)[0])), x
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
@@ -533,7 +534,6 @@ private:
   bool Yspin = false;
   bool Zspin = false;
   bool Animate = false;
-  bool queueScreen = false;
   string Format;
   bool Step = false;
   bool View = false;
@@ -546,7 +546,6 @@ private:
   bool remesh=true;
   bool redraw=true;
   bool interlock=false;
-  bool GPUindexing=false;
   bool GPUcompress=false;
   bool fxaa=false;
 
@@ -570,7 +569,7 @@ private:
 
 #ifdef HAVE_VULKAN
 
-  GLFWwindow* window;
+  GLFWwindow* window=nullptr;
   vk::UniqueInstance instance;
 
 #if defined(VALIDATION)
@@ -937,7 +936,8 @@ private:
           vk::BufferUsageFlags const& usage,
           VkMemoryPropertyFlags const& properties,
           vk::DeviceSize const& size,
-          VmaAllocationCreateFlags const& vmaFlags = 0);
+          VmaAllocationCreateFlags const& vmaFlags = 0,
+          VmaMemoryUsage const& memoryUsage=VMA_MEMORY_USAGE_AUTO);
   void copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size);
   void copyToBuffer(
           const vk::Buffer& buffer,
