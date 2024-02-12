@@ -893,10 +893,10 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   string sigHash=s.str();
 
   auto *computedArgs = new mem::vector<namedTyEntry>();
-  mem::vector<std::pair<ty*, symbol>> *fields = args->getFields();
+  mem::vector<tySymbolPair> *fields = args->getFields();
   for (auto p = fields->begin(); p != fields->end(); ++p) {
-    ty* theType = p->first;
-    symbol theName = p->second;
+    ty* theType = p->ty;
+    symbol theName = p->sym;
     if (theName == symbol::nullsym) {
       em.error(theType->getPos());
       em << "expected typename=";
