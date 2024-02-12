@@ -22,6 +22,9 @@ layout(local_size_x=20, local_size_y=20, local_size_z=1) in;
 const float FXAA_EDGE_THRESHOLD_MIN=1/16.0;
 const float FXAA_EDGE_THRESHOLD=1/8.0;
 
+const float FXAA_EDGE_STEPS[] = {1, 1.5, 2, 2, 2, 2, 2, 2, 2, 4};
+const float FXAA_EDGE_GUESS_IF_NOT_ENDOFEDGE = 8.0;
+
 /** Assumes inColor is in perceptual space */
 float getLumi(vec3 inColor)
 {
@@ -128,40 +131,37 @@ vec3 fxaa(ivec2 coord, ivec2 size)
   float edgeLumiDeltaThreshold = 0.25 * lumiDiff;
 
   // for positive direction
-  int positiveStepCount=-1;
+  float positiveSteps=0;
   bool endOfPosEdge=false;
   float posLumiDelta=0;
-  while (!endOfPosEdge && positiveStepCount < 8)
+  for (int i=0;(!endOfPosEdge) && (i<FXAA_EDGE_STEPS.length()); ++i)
   {
-    positiveStepCount += 1; // first iteration is zero
+    positiveSteps += FXAA_EDGE_STEPS[i];
     posLumiDelta=getLumi(
-        texture(
-          inputImageSampler,
-          edgeCoordBase + (positiveStepCount * edgeOffsetStep)
-        ).rgb
-    ) -edgeLumi;
-
+      texture(inputImageSampler, edgeCoordBase + (positiveSteps * edgeOffsetStep)).rgb
+    )-edgeLumi;
     endOfPosEdge=abs(posLumiDelta) >= edgeLumiDeltaThreshold;
   }
 
+  positiveSteps += endOfPosEdge ? 0 : FXAA_EDGE_GUESS_IF_NOT_ENDOFEDGE;
+
   // for negative direction
-  int negativeStepCount=-1;
+  float negativeSteps=0;
   bool endOfNegEdge=false;
   float negLumiDelta=0;
-  while (!endOfNegEdge && negativeStepCount < 8)
+  for (int i=0;(!endOfNegEdge) && (i<FXAA_EDGE_STEPS.length()); ++i)
   {
-    negativeStepCount += 1; // first iteration is zero
+    negativeSteps += FXAA_EDGE_STEPS[i];
     negLumiDelta=getLumi(
-        texture(
-          inputImageSampler,
-          edgeCoordBase - (negativeStepCount * edgeOffsetStep)
-        ).rgb
+      texture(inputImageSampler, edgeCoordBase - (negativeSteps * edgeOffsetStep)).rgb
     )-edgeLumi;
     endOfNegEdge=abs(negLumiDelta) >= edgeLumiDeltaThreshold;
   }
 
-  bool shortestDistanceIsPositive = positiveStepCount <= negativeStepCount;
-  float shortestStepCount = shortestDistanceIsPositive ? positiveStepCount : negativeStepCount;
+  negativeSteps += endOfNegEdge ? 0 : FXAA_EDGE_GUESS_IF_NOT_ENDOFEDGE;
+
+  bool shortestDistanceIsPositive = positiveSteps <= negativeSteps;
+  float shortestSteps = min(positiveSteps,negativeSteps);
   float shortestLumiDelta= shortestDistanceIsPositive ? posLumiDelta : negLumiDelta;
 
   // if shortest luminance delta is same sign as edge lumaniance delta,
@@ -173,7 +173,7 @@ vec3 fxaa(ivec2 coord, ivec2 size)
     return returnColor;
   }
 
-  float edgeBlendFactor = 0.5 - (float(shortestStepCount) / (negativeStepCount + positiveStepCount));
+  float edgeBlendFactor = 0.5 - (float(shortestSteps) / (positiveSteps + negativeSteps));
 
   return texture(
     inputImageSampler,
