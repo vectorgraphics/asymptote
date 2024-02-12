@@ -2108,7 +2108,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 #ifdef FREEGLUT
 #ifdef GLUT_INIT_MAJOR_VERSION
-    while(true) {
+    for(;;) {
       if(multisample > 0)
         glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif

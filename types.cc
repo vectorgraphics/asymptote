@@ -464,7 +464,7 @@ size_t signature::hash() const {
 size_t signature::handle() {
   processDataStruct *P=&processData();
   size_t h=hash();
-  while(true) {
+  for(;;) {
     auto p=P->sigMap.find(h);
     if(p == P->sigMap.end()) {
       P->sigMap[h]=this;
