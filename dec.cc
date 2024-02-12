@@ -1058,7 +1058,9 @@ void typeParam::prettyprint(ostream &out, Int indent) {
 bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry* arg) {
   if (arg->dest != paramSym) {
     em.error(arg->pos);
-    em << "bad template argument: passed " << arg->dest << ", expected "
+    em << "template argument name does not match module: passed "
+       << arg->dest
+       << ", expected "
        << paramSym;
     return false;
   }
