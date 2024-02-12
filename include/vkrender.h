@@ -930,8 +930,6 @@ private:
   }
 
   uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
-
-  void zeroBuffer(vk::Buffer & buf, vk::DeviceSize size);
   vma::cxx::UniqueBuffer createBufferUnique(
           vk::BufferUsageFlags const& usage,
           VkMemoryPropertyFlags const& properties,
