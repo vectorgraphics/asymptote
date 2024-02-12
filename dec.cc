@@ -194,7 +194,8 @@ void block::transAsField(coenv &e, record *r)
   Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug")) break;
+    if (em.errors() && !settings::getSetting<bool>("debug"))
+      break;
   }
 }
 
@@ -221,8 +222,11 @@ bool block::transAsTemplatedField(
   if(!dec->transAsParamMatcher(e, r, args))
     return false;
 
-  for (++p; p != stms.end() && !em.errors(); ++p) {
+  while (++p != stms.end()) {
     (*p)->markTransAsField(e, r);
+    if (em.errors() && !settings::getSetting<bool>("debug")) {
+      return false;
+    }
   }
   em.sync();
   return true;
@@ -1143,7 +1147,7 @@ void receiveTypedefDec::transAsField(coenv& e, record *r) {
   assert(intTy);
   symbol templatedName = symbol::literalTrans("/templated");
   if (e.e.lookupVarByType(templatedName, intTy)) {
-    em << "'template import' must be at the start of the file, preceeding any "
+    em << "'typedef import' must be at the start of the file, preceeding any "
           "other code (including imports)";
   } else {
     em << "Improper file access: tried to access a templated file without "
