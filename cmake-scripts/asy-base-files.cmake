@@ -12,8 +12,8 @@ set(ASY_STATIC_BASE_FILES
 )
 
 set(ASY_STATIC_SHADER_FILES
-        blend compress count fragment screen sum1 sum2 sum2fast
-        sum3 vertex zero fxaa.cs
+        blend compress count fragment screen sum1 sum2
+        sum3 vertex fxaa.cs
 )
 
 # base dir
