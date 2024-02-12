@@ -199,7 +199,7 @@ void block::transAsField(coenv &e, record *r)
 }
 
 void block::transAsTemplatedField(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args
+    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
 ) {
   Scope scopeHolder(e, scope);
   auto p = stms.begin();
@@ -233,7 +233,7 @@ void block::transAsRecordBody(coenv &e, record *r)
 }
 
 void block::transAsTemplatedRecordBody(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args
+    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
 ) {
   transAsTemplatedField(e, r, args);
   e.c.closeRecord();
@@ -262,7 +262,7 @@ record *block::transAsFile(genv& ge, symbol id)
 }
 
 record *block::transAsTemplatedFile(
-    genv& ge, symbol id, mem::vector<absyntax::namedTyEntry>* args
+    genv& ge, symbol id, mem::vector<absyntax::namedTyEntry*>* args
 ) {
   // Create the new module.
   record *r = new record(id, new frame(id,0,0));
@@ -892,7 +892,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   s << args->getSignature(e)->handle();
   string sigHash=s.str();
 
-  auto *computedArgs = new mem::vector<namedTyEntry>();
+  auto *computedArgs = new mem::vector<namedTyEntry*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
   for (auto p = fields->begin(); p != fields->end(); ++p) {
     ty* theType = p->ty;
@@ -903,9 +903,9 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
       em.sync();
       return nullptr;
     }
-    computedArgs->emplace_back(
+    computedArgs->push_back(new namedTyEntry(
         theType->getPos(), theName, theType->transAsTyEntry(e, r)
-    );
+    ));
   }
 
   record *imp=e.e.getTemplatedModule(id, (string) id, sigHash, computedArgs);
@@ -1055,16 +1055,16 @@ void typeParam::prettyprint(ostream &out, Int indent) {
   out << "typeParam (" << paramSym <<  ")\n";
 }
 
-bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry arg) {
-  if (arg.dest != paramSym) {
-    em.error(*arg.pos);
-    em << "bad template argument: passed " << arg.dest << ", expected "
+bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry* arg) {
+  if (arg->dest != paramSym) {
+    em.error(arg->pos);
+    em << "bad template argument: passed " << arg->dest << ", expected "
        << paramSym;
     return false;
   }
-  e.e.addType(paramSym, arg.ent);
+  e.e.addType(paramSym, arg->ent);
   // The code below would add e.g. operator== to the context, but potentially
-  // ignore if the user had overridden that operator:
+  // ignore overrides of operator==:
   //
   // types::ty *t = arg.ent->t;
   // if (t->kind == types::ty_record) {
@@ -1097,11 +1097,13 @@ void typeParamList::add(typeParam *tp) {
 }
 
 bool typeParamList::transAsParamMatcher(
-    coenv &e, mem::vector<namedTyEntry> *args
+    coenv &e, mem::vector<namedTyEntry*> *args
 ) {
   if (args->size() != params.size()) {
     position pos = getPos();
-    if (args->size() >= 1) pos = *(*args)[0].pos;
+    if (args->size() >= 1) {
+      pos = (*args)[0]->pos;
+    }
     em.error(pos);
     if (args->size() > params.size()) {
       em << "too many types passed: got " << args->size() << ", expected "
@@ -1120,7 +1122,7 @@ bool typeParamList::transAsParamMatcher(
 }
 
 bool receiveTypedefDec::transAsParamMatcher(
-    coenv& e, mem::vector<namedTyEntry> *args
+    coenv& e, mem::vector<namedTyEntry*> *args
 ) {
   return params->transAsParamMatcher(e, args);
 }

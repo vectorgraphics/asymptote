@@ -90,7 +90,7 @@ record *genv::loadModule(symbol id, string filename) {
 }
 
 record *genv::loadTemplatedModule(symbol id, string filename,
-                                  mem::vector<absyntax::namedTyEntry> *args)
+                                  mem::vector<absyntax::namedTyEntry*> *args)
 {
   // Hackish way to load an external library.
 #if 0
@@ -144,7 +144,7 @@ record *genv::getModule(symbol id, string filename) {
 }
 
 record *genv::getTemplatedModule(symbol id, string filename, string index,
-                                 mem::vector<absyntax::namedTyEntry>* args)
+                                 mem::vector<absyntax::namedTyEntry*>* args)
 {
   checkRecursion(filename);
   importIndex_t Index=std::make_pair(filename,index);

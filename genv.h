@@ -45,7 +45,7 @@ class genv : public gc {
   // Translate a module to build the record type.
   record *loadModule(symbol name, string s);
   record *loadTemplatedModule(
-      symbol name, string s, mem::vector<absyntax::namedTyEntry> *args
+      symbol name, string s, mem::vector<absyntax::namedTyEntry*> *args
   );
 
 public:
@@ -57,7 +57,7 @@ public:
       symbol name,
       string s,
       string index,
-      mem::vector<absyntax::namedTyEntry> *args
+      mem::vector<absyntax::namedTyEntry*> *args
   );
 
   // Uses the filename->record map to build a filename->initializer map to be

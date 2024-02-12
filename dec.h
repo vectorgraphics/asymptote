@@ -206,9 +206,9 @@ class namedTyEntry : public gc {
 public:
   symbol dest;
   trans::tyEntry *ent;
-  position *pos;
+  position pos;
   namedTyEntry(position pos, symbol dest, trans::tyEntry *ent)
-    : dest(dest), ent(ent), pos(new position(pos)) {}
+    : dest(dest), ent(ent), pos(pos) {}
 };
 
 
@@ -240,18 +240,18 @@ public:
   void transAsField(coenv &e, record *r) override;
 
   void transAsTemplatedField(
-      coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args
+      coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
   );
 
   void transAsRecordBody(coenv &e, record *r);
   void transAsTemplatedRecordBody(
-      coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args
+      coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
   );
 
   types::record *transAsFile(genv& ge, symbol id);
 
   types::record *transAsTemplatedFile(
-      genv& ge, symbol id, mem::vector<absyntax::namedTyEntry> *args
+      genv& ge, symbol id, mem::vector<absyntax::namedTyEntry*> *args
   );
 
   // If the block can be interpreted as a single vardec, return that vardec
@@ -622,7 +622,7 @@ public:
   typeParam(const typeParam &o) : absyn(o.pos), paramSym(o.paramSym) {}
   typeParam(const typeParam &&o) : absyn(o.pos), paramSym(o.paramSym) {}
 
-  bool transAsParamMatcher(coenv &e, namedTyEntry arg);
+  bool transAsParamMatcher(coenv &e, namedTyEntry *arg);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -635,7 +635,7 @@ public:
 
   void add(typeParam *tp);
 
-  bool transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args);
+  bool transAsParamMatcher(coenv &e, mem::vector<namedTyEntry*> *args);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -656,7 +656,7 @@ public:
     em.sync();
   }
 
-  bool transAsParamMatcher(coenv& e, mem::vector<namedTyEntry> *args);
+  bool transAsParamMatcher(coenv& e, mem::vector<namedTyEntry*> *args);
 };
 
 
