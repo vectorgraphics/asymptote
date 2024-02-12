@@ -31,8 +31,6 @@ static bool initialized=false;
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
-VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE;
-
 std::vector<const char*> instanceExtensions
 {
   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
