@@ -935,7 +935,6 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
 }
 
 
-
 void idpair::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
@@ -1095,12 +1094,12 @@ bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry* arg) {
 
 void typeParamList::prettyprint(ostream &out, Int indent) {
   for (auto p = params.begin(); p != params.end(); ++p) {
-    p->prettyprint(out, indent);
+    (*p)->prettyprint(out, indent);
   }
 }
 
 void typeParamList::add(typeParam *tp) {
-  params.push_back(*tp);
+  params.push_back(tp);
 }
 
 bool typeParamList::transAsParamMatcher(
@@ -1122,7 +1121,7 @@ bool typeParamList::transAsParamMatcher(
     return false;
   }
   for (size_t i = 0; i < params.size(); ++i) {
-    bool succeeded = params[i].transAsParamMatcher(e, (*args)[i]);
+    bool succeeded = params[i]->transAsParamMatcher(e, (*args)[i]);
     if (!succeeded) return false;
   }
   return true;

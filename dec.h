@@ -618,17 +618,13 @@ public:
   typeParam(position pos, symbol paramSym)
     : absyn(pos), paramSym(paramSym) {}
 
-  // undelete copy constructor
-  typeParam(const typeParam &o) : absyn(o.pos), paramSym(o.paramSym) {}
-  typeParam(const typeParam &&o) : absyn(o.pos), paramSym(o.paramSym) {}
-
   bool transAsParamMatcher(coenv &e, namedTyEntry *arg);
 
   void prettyprint(ostream &out, Int indent);
 };
 
 class typeParamList : public absyn {
-  mem::vector<typeParam> params;
+  mem::vector<typeParam*> params;
 
 public:
   typeParamList(position pos) : absyn(pos) {}
