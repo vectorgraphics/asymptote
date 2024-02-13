@@ -46,7 +46,7 @@ genv::genv()
 {
   // Add settings as a module.  This is so that the init file ~/.asy/config.asy
   // can set settings.
-  imap[std::make_pair("settings","")]=settings::getSettingsModule();
+  imap[importIndex_t("settings","")]=settings::getSettingsModule();
 
   // Translate plain in advance, if we're using autoplain.
   if(getSetting<bool>("autoplain")) {
@@ -127,7 +127,7 @@ void genv::checkRecursion(string filename) {
 record *genv::getModule(symbol id, string filename) {
   checkRecursion(filename);
 
-  importIndex_t Index=std::make_pair(filename,"");
+  importIndex_t Index(filename,"");
   record *r=imap[Index];
   if (r)
     return r;
@@ -147,7 +147,7 @@ record *genv::getTemplatedModule(symbol id, string filename, string index,
                                  mem::vector<absyntax::namedTyEntry*>* args)
 {
   checkRecursion(filename);
-  importIndex_t Index=std::make_pair(filename,index);
+  importIndex_t Index(filename,index);
   record *r=loadTemplatedModule(id, filename, args);
 
   // Don't add an erroneous module to the dictionary in interactive mode, as

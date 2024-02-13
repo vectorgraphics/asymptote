@@ -555,7 +555,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 }
 
 void stack::load(string filename, string index) {
-  importIndex_t Index=std::make_pair(filename,index);
+  importIndex_t Index(filename,index);
   frame *inst=instMap[Index];
   if (inst)
     push(inst);

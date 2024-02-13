@@ -42,7 +42,7 @@ class runnable;
 
 extern bool indebugger;
 
-typedef std::pair<string, string> importIndex_t;
+typedef mem::pair<string, string> importIndex_t;
 
 class stack {
 public:
