@@ -554,8 +554,8 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string filename, string index) {
-  importIndex_t Index(filename,index);
+void stack::load(string filename, string sigHandle) {
+  importIndex_t Index(filename,sigHandle);
   frame *inst=instMap[Index];
   if (inst)
     push(inst);

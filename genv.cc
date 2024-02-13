@@ -143,11 +143,11 @@ record *genv::getModule(symbol id, string filename) {
 
 }
 
-record *genv::getTemplatedModule(symbol id, string filename, string index,
+record *genv::getTemplatedModule(symbol id, string filename, string sigHandle,
                                  mem::vector<absyntax::namedTyEntry*>* args)
 {
   checkRecursion(filename);
-  importIndex_t Index(filename,index);
+  importIndex_t Index(filename,sigHandle);
   record *r=loadTemplatedModule(id, filename, args);
 
   // Don't add an erroneous module to the dictionary in interactive mode, as

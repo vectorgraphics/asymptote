@@ -56,7 +56,7 @@ public:
   record *getTemplatedModule(
       symbol name,
       string s,
-      string index,
+      string sigHandle,
       mem::vector<absyntax::namedTyEntry*> *args
   );
 
