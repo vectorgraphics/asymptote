@@ -1128,27 +1128,36 @@ bool typeParamList::transAsParamMatcher(
   return true;
 }
 
+symbol intSymbol() {
+  const static symbol* intSymbol = new symbol(symbol::literalTrans("int"));
+  return *intSymbol;
+}
+
+symbol templatedSymbol() {
+  const static symbol* templatedSymbol =
+      new symbol(symbol::literalTrans("/templated"));
+  return *templatedSymbol;
+}
+
 bool receiveTypedefDec::transAsParamMatcher(
     coenv& e, record *r, mem::vector<namedTyEntry*> *args
 ) {
   bool succeeded = params->transAsParamMatcher(e, args);
 
-  symbol int_symbol = symbol::literalTrans("int");
-  types::ty *int_ty = e.e.lookupType(int_symbol);
-  assert(int_ty);
-  symbol templated_name = symbol::literalTrans("/templated");
-  e.e.addVar(templated_name, makeVarEntryWhere(e, nullptr, int_ty, r, getPos()));
+  types::ty *intTy = e.e.lookupType(intSymbol());
+  assert(intTy);
+  e.e.addVar(templatedSymbol(),
+             makeVarEntryWhere(e, nullptr, intTy, r, getPos())
+            );
 
   return succeeded;
 }
 
 void receiveTypedefDec::transAsField(coenv& e, record *r) {
   em.error(getPos());
-  symbol intSymbol = symbol::literalTrans("int");
-  types::ty *intTy = e.e.lookupType(intSymbol);
+  types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);
-  symbol templatedName = symbol::literalTrans("/templated");
-  if (e.e.lookupVarByType(templatedName, intTy)) {
+  if (e.e.lookupVarByType(templatedSymbol(), intTy)) {
     em << "'typedef import' must be at the start of the file, preceeding any "
           "other code (including imports)";
   } else {
