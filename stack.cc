@@ -250,7 +250,7 @@ void stack::debug()
       break;
     case 'c': // continue
     default:
-      for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+      for(auto p=bplist.begin(); p != bplist.end(); ++p) {
         if(curPos.match(p->f.name()) && curPos.match(p->f.line()) &&
            (newline || !curPos.match(breakPos.filename()) ||
             !curPos.match(breakPos.Line()))) {
@@ -554,8 +554,8 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string filename, string index) {
-  importIndex_t Index=std::make_pair(filename,index);
+void stack::load(string filename, string sigHandle) {
+  importIndex_t Index(filename,sigHandle);
   frame *inst=instMap[Index];
   if (inst)
     push(inst);

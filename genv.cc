@@ -35,7 +35,9 @@ using settings::Setting;
 using vm::importIndex_t;
 
 // Dynamic loading of external libraries.
-types::record *transExternalModule(trans::genv& ge, string filename, symbol id);
+types::record *transExternalModule(
+    trans::genv& ge, string filename, symbol id
+);
 
 namespace trans {
 
@@ -44,7 +46,7 @@ genv::genv()
 {
   // Add settings as a module.  This is so that the init file ~/.asy/config.asy
   // can set settings.
-  imap[std::make_pair("settings","")]=settings::getSettingsModule();
+  imap[importIndex_t("settings","")]=settings::getSettingsModule();
 
   // Translate plain in advance, if we're using autoplain.
   if(getSetting<bool>("autoplain")) {
@@ -88,7 +90,7 @@ record *genv::loadModule(symbol id, string filename) {
 }
 
 record *genv::loadTemplatedModule(symbol id, string filename,
-                                  mem::vector<absyntax::namedTyEntry> *args)
+                                  mem::vector<absyntax::namedTyEntry*> *args)
 {
   // Hackish way to load an external library.
 #if 0
@@ -125,7 +127,7 @@ void genv::checkRecursion(string filename) {
 record *genv::getModule(symbol id, string filename) {
   checkRecursion(filename);
 
-  importIndex_t Index=std::make_pair(filename,"");
+  importIndex_t Index(filename,"");
   record *r=imap[Index];
   if (r)
     return r;
@@ -141,12 +143,11 @@ record *genv::getModule(symbol id, string filename) {
 
 }
 
-record *genv::getTemplatedModule(symbol id, string filename, string index,
-                                 mem::vector<absyntax::namedTyEntry>* args)
+record *genv::getTemplatedModule(symbol id, string filename, string sigHandle,
+                                 mem::vector<absyntax::namedTyEntry*>* args)
 {
   checkRecursion(filename);
-  importIndex_t Index=std::make_pair(filename,index);
-  // We need to change imap to consider the signature of templated imports.
+  importIndex_t Index(filename,sigHandle);
   record *r=loadTemplatedModule(id, filename, args);
 
   // Don't add an erroneous module to the dictionary in interactive mode, as

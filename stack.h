@@ -42,7 +42,7 @@ class runnable;
 
 extern bool indebugger;
 
-typedef std::pair<string, string> importIndex_t;
+typedef mem::pair<string, string> importIndex_t;
 
 class stack {
 public:
@@ -108,9 +108,9 @@ public:
   void breakpoint(absyntax::runnable *r=NULL);
   void debug();
 
-  // Put an import (indexed by name) on top of the stack, initializing it if
-  // necessary.
-  void load(string filename, string index);
+  // Put an import (indexed by filename and signature) on top of the
+  // stack, initializing it if necessary.
+  void load(string filename, string sigHandle);
 
   // These are so that built-in functions can easily manipulate the stack
   void push(item next) {

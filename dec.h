@@ -65,7 +65,9 @@ public:
 
   virtual operator string() const = 0;
 #ifdef USEGC
-  operator std::string() const { return mem::stdString(this->operator string()); }
+  operator std::string() const {
+    return mem::stdString(this->operator string());
+  }
 #endif
 };
 
@@ -102,7 +104,7 @@ public:
     return depth;
   }
 
-  types::array *truetype(types::ty *base);
+  types::array *truetype(types::ty *base, bool tacit=false);
 };
 
 class arrayTy : public ty {
@@ -125,8 +127,8 @@ public:
   operator string() const override;
 };
 
-// Similar to varEntryExp, this helper class always translates to the same fixed
-// type.
+// Similar to varEntryExp, this helper class always translates to the same
+// fixed type.
 class tyEntryTy : public ty {
   trans::tyEntry *ent;
 public:
@@ -204,9 +206,9 @@ class namedTyEntry : public gc {
 public:
   symbol dest;
   trans::tyEntry *ent;
-  position *pos;
+  position pos;
   namedTyEntry(position pos, symbol dest, trans::tyEntry *ent)
-    : dest(dest), ent(ent), pos(new position(pos)) {}
+    : dest(dest), ent(ent), pos(pos) {}
 };
 
 
@@ -237,14 +239,20 @@ public:
 
   void transAsField(coenv &e, record *r) override;
 
-  void transAsTemplatedField(coenv &e, record *r, mem::vector<absyntax::namedTyEntry>* args);
+  bool transAsTemplatedField(
+      coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
+  );
 
   void transAsRecordBody(coenv &e, record *r);
-  void transAsTemplatedRecordBody(coenv &e, record *r, mem::vector<absyntax::namedTyEntry> *args);
+  bool transAsTemplatedRecordBody(
+      coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+  );
 
   types::record *transAsFile(genv& ge, symbol id);
 
-  types::record *transAsTemplatedFile(genv& ge, symbol id, mem::vector<absyntax::namedTyEntry> *args);
+  types::record *transAsTemplatedFile(
+      genv& ge, symbol id, mem::vector<absyntax::namedTyEntry*> *args
+  );
 
   // If the block can be interpreted as a single vardec, return that vardec
   // (otherwise 0).
@@ -351,7 +359,9 @@ public:
   { return id; }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
-  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
+  void createSymMapWType(
+      AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+  );
 };
 
 class fundecidstart : public decidstart {
@@ -392,7 +402,9 @@ public:
   decidstart *getStart() { return start; }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
-  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
+  void createSymMapWType(
+      AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+  );
 };
 
 class decidlist : public absyn {
@@ -425,7 +437,9 @@ public:
   }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
-  void createSymMapWType(AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base);
+  void createSymMapWType(
+      AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+  );
 };
 
 class dec : public runnable {
@@ -604,24 +618,20 @@ public:
   typeParam(position pos, symbol paramSym)
     : absyn(pos), paramSym(paramSym) {}
 
-  // undelete copy constructor
-  typeParam(const typeParam &o) : absyn(o.pos), paramSym(o.paramSym) {}
-  typeParam(const typeParam &&o) : absyn(o.pos), paramSym(o.paramSym) {}
-
-  bool transAsParamMatcher(coenv &e, namedTyEntry arg);
+  bool transAsParamMatcher(coenv &e, namedTyEntry *arg);
 
   void prettyprint(ostream &out, Int indent);
 };
 
 class typeParamList : public absyn {
-  mem::vector<typeParam> params;
+  mem::vector<typeParam*> params;
 
 public:
   typeParamList(position pos) : absyn(pos) {}
 
   void add(typeParam *tp);
 
-  bool transAsParamMatcher(coenv &e, mem::vector<namedTyEntry> *args);
+  bool transAsParamMatcher(coenv &e, mem::vector<namedTyEntry*> *args);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -634,15 +644,10 @@ public:
   receiveTypedefDec(position pos, typeParamList* params) 
     : dec(pos), params(params) {}
 
-  void transAsField(coenv& e, record *r) override {
-    em.error(getPos());
-    em << "This line is illegal here. Did you forget to add template parameters"
-       << " before importing this file? Alternatively, it is an error for this"
-       << " line not to be the first line of the file.";
-    em.sync();
-  }
-
-  bool transAsParamMatcher(coenv& e, mem::vector<namedTyEntry> *args);
+  void transAsField(coenv& e, record *r) override;
+  bool transAsParamMatcher(
+      coenv& e, record *r, mem::vector<namedTyEntry*> *args
+  );
 };
 
 
@@ -654,8 +659,8 @@ class fromdec : public dec {
 protected:
   struct qualifier {
     // The varEntry holds the location and the type of the highest framed
-    // structure that can be put on the stack.  The record holds the actual type
-    // of the qualifier.
+    // structure that can be put on the stack.  The record holds the actual
+    // type of the qualifier.
     // For example:
     //   struct A {
     //     struct B {
@@ -711,8 +716,9 @@ class fromaccessdec : public fromdec {
 
   qualifier getQualifier(coenv &e, record *r) override;
 public:
-  fromaccessdec(position pos, symbol id, idpairlist *fields, formals *templateArgs = 0)
-    : fromdec(pos, fields), id(id), templateArgs(templateArgs) {}
+  fromaccessdec(
+      position pos, symbol id, idpairlist *fields, formals *templateArgs = 0
+  ) : fromdec(pos, fields), id(id), templateArgs(templateArgs) {}
 
   void prettyprint(ostream &out, Int indent) override;
 

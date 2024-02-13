@@ -521,11 +521,16 @@
   import somefilename(T=int);  // Templated import not defined.
 }
 {
-  typedef import(T);  // not first line of file
+  typedef import(T);  // this file isn't accessed as a template
   import typedef(T);  // should be "typedef import"
 }
 {
-  access errortestTemplate(A=int, B=string) as ett_a;  // wrong number of params
-  access errortestTemplate(A=int, B=string, T=real) as ett_b;  // third param incorrectly named
-  access errortestTemplate(A=int, C=real, B=string) as ett_c;  // keywords in wrong order
+  // wrong number of params
+  access errortestTemplate(A=int, B=string) as ett_a;
+  // third param incorrectly named
+  access errortestTemplate(A=int, B=string, T=real) as ett_b;
+  // keywords in wrong order
+  access errortestTemplate(A=int, C=real, B=string) as ett_c;
+  // errortestTemplate.asy has extra "typedef import"
+  access errortestTemplate(A=int, B=string, C=real) as ett_d;
 }

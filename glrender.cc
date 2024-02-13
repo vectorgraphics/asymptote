@@ -1850,7 +1850,7 @@ void init_osmesa()
     OSMESA_DEPTH_BITS,16,
     OSMESA_STENCIL_BITS,0,
     OSMESA_ACCUM_BITS,0,
-    OSMESA_PROFILE,OSMESA_CORE_PROFILE,
+    OSMESA_PROFILE,OSMESA_COMPAT_PROFILE,
     OSMESA_CONTEXT_MAJOR_VERSION,4,
     OSMESA_CONTEXT_MINOR_VERSION,3,
     0,0
@@ -2108,7 +2108,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 #ifdef FREEGLUT
 #ifdef GLUT_INIT_MAJOR_VERSION
-    while(true) {
+    for(;;) {
       if(multisample > 0)
         glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif

@@ -22,7 +22,9 @@ varinit *Default=new definit(nullPos);
 
 void formal::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, keywordOnly ? "formal (keyword only)" : "formal", indent, getPos());
+  prettyname(
+      out, keywordOnly ? "formal (keyword only)" : "formal", indent, getPos()
+  );
 
   base->prettyprint(out, indent+1);
   if (start) start->prettyprint(out, indent+1);
@@ -115,10 +117,10 @@ void formals::addOps(coenv &e, record *r)
     rest->addOps(e, r);
 }
 
-mem::vector<std::pair<absyntax::ty*, symbol>> *formals::getFields() {
-  auto *lst = new mem::vector<std::pair<absyntax::ty*, symbol>>();
+mem::vector<tySymbolPair> *formals::getFields() {
+  auto *lst = new mem::vector<tySymbolPair>();
   for (auto frml : fields) {
-    lst->emplace_back(frml->getType(), frml->getName());
+    lst->emplace_back(frml->getAbsyntaxType(), frml->getName());
   }
   return lst;
 }
@@ -202,7 +204,9 @@ std::pair<std::string, optional<std::string>> formal::fnInfo() const
 {
   std::string typeName(static_cast<std::string>(*base));
   return start != nullptr ?
-    std::make_pair(typeName, make_optional(static_cast<std::string>(start->getName()))) :
+    std::make_pair(typeName,
+                   make_optional(static_cast<std::string>(start->getName()))
+                  ) :
     std::make_pair(typeName, nullopt);
 }
 #endif
@@ -364,7 +368,9 @@ types::ty *fundef::trans(coenv &e) {
 void fundef::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
 #ifdef HAVE_LSP
-  auto* declCtx(symContext->newContext<AsymptoteLsp::AddDeclContexts>(getPos().LineColumn()));
+  auto* declCtx(symContext->newContext<AsymptoteLsp::AddDeclContexts>(
+      getPos().LineColumn()
+  ));
   params->createSymMap(declCtx);
   body->createSymMap(declCtx);
 #endif
@@ -394,9 +400,11 @@ void fundec::transAsField(coenv &e, record *r)
 void fundec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 {
 #ifdef HAVE_LSP
-  AsymptoteLsp::FunctionInfo& fnInfo=symContext->symMap.addFunDef(static_cast<std::string>(id),
-                                              getPos().LineColumn(),
-                                              static_cast<std::string>(*fun.result));
+  AsymptoteLsp::FunctionInfo& fnInfo=
+      symContext->symMap.addFunDef(static_cast<std::string>(id),
+                                   getPos().LineColumn(),
+                                   static_cast<std::string>(*fun.result)
+                                  );
   fun.addArgumentsToFnInfo(fnInfo);
   fun.createSymMap(symContext);
 #endif
