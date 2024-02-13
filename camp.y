@@ -258,8 +258,8 @@ dec:
                    { $$ = new receiveTypedefDec($1, $4); }
 | IMPORT TYPEDEF '(' typeparamlist ')' ';'
                    { $$ = new badDec($1, $1,
-                     "Unrecognized syntax. Did you mean "
-                     "'typedef import(<stuff>)'?"); }
+                     "Expected 'typedef import(<types>);'");
+                   }
 /* ACCESS strid '(' decdeclist ')' 'as' ID */
 | ACCESS strid '(' decdeclist ')' ID ID ';'
                    { $$ = new templateAccessDec(

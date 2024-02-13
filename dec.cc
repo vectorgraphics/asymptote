@@ -205,17 +205,12 @@ bool block::transAsTemplatedField(
   Scope scopeHolder(e, scope);
   auto p = stms.begin();
   if (p == stms.end()) {
-    em.error(getPos());
-    em << "When a file is imported as a template, the first line must declare "
-       << "the type parameters.";
-    em.sync();
-    return false;
+    return true;  // empty file
   }
   receiveTypedefDec *dec = dynamic_cast<receiveTypedefDec *>(*p);
   if (!dec) {
     em.error(getPos());
-    em << "When a file is imported as a template, the first line must declare "
-       << "the type parameters.";
+    em << "Expected 'typedef import(<types>);'";
     em.sync();
     return false;
   }
@@ -895,7 +890,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
 {
   stringstream s;
   s << args->getSignature(e)->handle();
-  string sigHash=s.str();
+  string sigHandle=s.str();
 
   auto *computedArgs = new mem::vector<namedTyEntry*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
@@ -913,7 +908,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(id, (string) id, sigHash, computedArgs);
+  record *imp=e.e.getTemplatedModule(id, (string) id, sigHandle, computedArgs);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -924,7 +919,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,index)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string) id), new stringExp(pos, sigHash));
+                 new stringExp(pos, (string) id), new stringExp(pos, sigHandle));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
