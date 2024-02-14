@@ -1,8 +1,5 @@
 typedef import(T);
 
-// This is supposed to be an interface. We should probably import it from
-// somewhere outside the test folder. Also we should decide on a style for
-// naming interfaces.
 struct Queue_T {
   void push(T value);
   T peek();
