@@ -132,3 +132,23 @@ jobs:
           path: cmake-build-msvc/release/
       - name: asy test
         run: ctest --test-dir cmake-build-msvc/release -R "^asy.*" -E "asy.(gc.*|pic.trans)"
+  package-asymptote-artifacts-win:
+    needs: [ test-windows-msvc-x64-cxxtests, test-windows-msvc-x64-asy-tests ]
+    runs-on: "windows-2022"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-win-x64-buildfiles
+          path: zip-stage
+      - name: Copy examples to zip-stage
+        run: Copy-Item -Recurse -Path examples -Destination zip-stage/examples
+      - name: Archive Asymptote test files
+        uses: actions/upload-artifact@v3
+        with:
+          name: asymptote-build-windows
+          path: |
+            zip-stage/*
