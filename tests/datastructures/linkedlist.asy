@@ -5,6 +5,15 @@ struct LinkedIterator_T {
   bool hasNext();
   void delete();
 }
+typedef LinkedIterator_T Iter;  // for qualified access
+
+struct List_T {
+  int size();
+  void add(T elem);
+  void insertAtBeginning(T elem);
+  LinkedIterator_T iterator();
+}
+typedef List_T L;  // for qualified access
 
 struct LinkedList_T {
   struct Node {
@@ -81,10 +90,13 @@ struct LinkedList_T {
       } else if (next == null) {
         // Delete the tail.
         assert(previous != extraNode, "Bug in iterator");
+        write('Deleting tail');
         tail = previous;  // This works because we did not advance previous when we reached the end of the list.
         tail.next = null;
       } else {
+
         assert(previous != extraNode, "Bug in iterator");
+        write('Deleting middle');
         // Copy next to previous.
         previous.data = next.data;
         previous.next = next.next;
@@ -100,6 +112,24 @@ struct LinkedList_T {
     };
     return it;
   }
+}
+typedef LinkedList_T Linked;
+
+List_T makeLinked(T[] initialData) {
+  List_T list = new List_T;
+  LinkedList_T linked = new LinkedList_T;
+  list.add = linked.add;
+  list.size = linked.size;
+  list.insertAtBeginning = linked.insertAtBeginning;
+  list.iterator = linked.iterator;
+  for (T elem : initialData) {
+    list.add(elem);
+  }
+  return list;
+}
+
+L make() {  // for qualified access
+  return makeLinked(new T[0]);
 }
 
 struct NaiveList_T {
@@ -136,11 +166,37 @@ struct NaiveList_T {
     it.hasNext = new bool() {
       return i < data.length;
     };
-    it.delete = new void() {}
+    it.delete = new void() {
       assert(lastSeen.length == 1, "No element to delete");
       assert(lastSeen.pop() == --i);
       data.delete(i);
     };
     return it;
   }
+}
+typedef NaiveList_T Naive;  // for qualified access
+
+List_T makeNaive(T[] initialData) {
+  List_T list = new List_T;
+  NaiveList_T naive = new NaiveList_T;
+  list.add = naive.add;
+  list.size = naive.size;
+  list.insertAtBeginning = naive.insertAtBeginning;
+  list.iterator = naive.iterator;
+  for (T elem: initialData) {
+    list.add(elem);
+  }
+  return list;
+}
+
+L makeNaive() {  // for qualified access
+  return makeNaive(new T[0]);
+}
+
+T[] toArray(List_T list) {
+  T[] retv = new T[];
+  for (Iter it = list.iterator(); it.hasNext(); ) {
+    retv.push(it.next());
+  }
+  return retv;
 }
