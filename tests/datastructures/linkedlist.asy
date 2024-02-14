@@ -101,3 +101,46 @@ struct LinkedList_T {
     return it;
   }
 }
+
+struct NaiveList_T {
+  T[] data = new T[0];
+
+  int size() {
+    return data.length;
+  }
+
+  void add(T elem) {
+    data.push(elem);
+  }
+
+  void insertAtBeginning(T elem) {
+    data.insert(0, elem);
+  }
+
+  LinkedIterator_T iterator() {
+    int i = 0;
+    int[] lastSeen = new int[];
+    LinkedIterator_T it = new LinkedIterator_T;
+    it.next = new T() {
+      assert(i < data.length, "No more elements in the list");
+      T retv = data[i];
+      if (lastSeen.length > 0) {
+        lastSeen[0] = i;
+      } else {
+        lastSeen.push(i);
+      }
+      assert(lastSeen.length == 1);
+      ++i;
+      return retv;
+    };
+    it.hasNext = new bool() {
+      return i < data.length;
+    };
+    it.delete = new void() {}
+      assert(lastSeen.length == 1, "No element to delete");
+      assert(lastSeen.pop() == --i);
+      data.delete(i);
+    };
+    return it;
+  }
+}
