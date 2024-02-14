@@ -8,6 +8,7 @@ struct Queue_T {
   T peek();
   T pop();
   int size();
+  T[] toArray();
 }
 
 Queue_T makeNaiveQueue(T[] initialData) {
@@ -28,6 +29,9 @@ Queue_T makeNaiveQueue(T[] initialData) {
   queue.size = new int() {
     return data.length;
   };
+  queue.toArray = new T[]() {
+    return copy(data);
+  };
   return queue;
 }
 
@@ -45,11 +49,15 @@ struct ArrayQueue_T {
     start = 0;
   }
 
+  T[] toArray() {
+    return data[start : start+size];
+  }
+
   void operator init(T[] initialData) {
     if (initialData.length == 0 || alias(initialData, null)) {
       return;
     }
-    desiredLength = data.length;
+    int desiredLength = data.length;
     // TODO: Do this computation using CLZ.
     while (desiredLength < initialData.length) {
       desiredLength *= 2;
@@ -86,12 +94,13 @@ struct ArrayQueue_T {
   }
 }
 
-Queue_T cast(ArrayQueue_T queue) {
+Queue_T operator cast(ArrayQueue_T queue) {
   Queue_T queue_ = new Queue_T;
   queue_.push = queue.push;
   queue_.peek = queue.peek; 
   queue_.pop = queue.pop;
   queue_.size = queue.size;
+  queue_.toArray = queue.toArray;
   return queue_;
 }
 
@@ -107,6 +116,15 @@ struct LinkedQueue_T {
   Node head;
   Node tail;
   int size = 0;
+
+  T[] toArray() {
+    T[] retv = new T[];
+    for (Node node = head; node != null; node = node.next) {
+      retv.push(node.value);
+    }
+    assert(retv.length == size, "Size mismatch in toArray");
+    return retv;
+  }
 
   void push(T value) {
     Node node = new Node;
@@ -137,18 +155,19 @@ struct LinkedQueue_T {
   }
 }
 
-Queue_T cast(LinkedQueue_T queue) {
+Queue_T operator cast(LinkedQueue_T queue) {
   Queue_T queue_ = new Queue_T;
   queue_.push = queue.push;
   queue_.peek = queue.peek; 
   queue_.pop = queue.pop;
   queue_.size = queue.size;
+  queue_.toArray = queue.toArray;
   return queue_;
 }
 
 Queue_T makeLinkedQueue(T[] initialData) {
   var queue = new LinkedQueue_T;
-  for (T value in initialData) {
+  for (T value : initialData) {
     queue.push(value);
   }
   return queue;
