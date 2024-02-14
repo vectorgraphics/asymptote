@@ -2,7 +2,7 @@ import TestLib;
 
 StartTest("LinkedList");
 
-access "datastructures/linkedlist"(T=int) as list_int;
+access linkedlist(T=int) as list_int;
 
 struct ListActionEnum {
   static restricted int numActions = 0;
