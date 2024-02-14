@@ -113,8 +113,8 @@ struct LinkedQueue_T {
     T value;
     Node next;
   }
-  Node head;
-  Node tail;
+  Node head = null;
+  Node tail = null;
   int size = 0;
 
   T[] toArray() {

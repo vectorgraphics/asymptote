@@ -1,3 +1,7 @@
+import TestLib;
+
+StartTest("Queue");
+
 from queue(T=int) access
     Queue_T as Queue_int,
     makeNaiveQueue,
@@ -16,18 +20,7 @@ struct ActionEnum {
   static restricted int POP = next();
 }
 
-// Shouldn't this be builtin?
-int[][] transpose(int[][] a) {
-  int n = a.length;
-  int m = a[0].length;
-  int[][] b = new int[m][n];
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < m; ++j) {
-      b[j][i] = a[i][j];
-    }
-  }
-  return b;
-}
+from zip(T=int) access zip;
 
 string differences(Queue_int a, Queue_int b) {
   if (a.size() != b.size()) {
@@ -39,12 +32,76 @@ string differences(Queue_int a, Queue_int b) {
     }
   }
   if (!all(a.toArray() == b.toArray())) {
-    write(transpose(new int[][]{a.toArray(), b.toArray()}));
+    write(zip(a.toArray(), b.toArray()));
     return 'Different contents';
   }
   return '';
 }
 
-typedef void Action(Queue_int);
+string string(int[] a) {
+  string result = '[';
+  for (int i = 0; i < a.length; ++i) {
+    if (i > 0) {
+      result += ', ';
+    }
+    result += string(a[i]);
+  }
+  result += ']';
+  return result;
+}
 
-var actions = new Action[ActionEnum.numActions];
+typedef void Action(...Queue_int[]);
+
+Action[] actions = new Action[ActionEnum.numActions];
+actions[ActionEnum.PUSH] = new void(...Queue_int[] qs) {
+  int toPush = rand();
+  for (Queue_int q : qs) {
+    q.push(toPush);
+  }
+};
+actions[ActionEnum.POP] = new void(...Queue_int[] qs) {
+  int[] results = new int[];
+  for (Queue_int q : qs) {
+    if (q.size() > 0) {
+      results.push(q.pop());
+    }
+  }
+  if (results.length > 0) {
+    int expected = results[0];
+    for (int r : results) {
+      assert(r == expected, 'Different results: ' + string(results));
+    }
+  }
+};
+
+real[] increasingProbs = new real[ActionEnum.numActions];
+increasingProbs[ActionEnum.PUSH] = 0.7;
+increasingProbs[ActionEnum.POP] = 0.3;
+
+real[] decreasingProbs = new real[ActionEnum.numActions];
+decreasingProbs[ActionEnum.PUSH] = 0.3;
+decreasingProbs[ActionEnum.POP] = 0.7;
+
+Queue_int naive = makeNaiveQueue(new int[]);
+Queue_int array = makeArrayQueue(new int[]);
+Queue_int linked = makeLinkedQueue(new int[]);
+
+for (int i = 0; i < 2000; ++i) {
+  // if (i % 100 == 0) {
+  //   write('Step ' + string(i));
+  //   write('Naive: ' + string(naive.toArray()));
+  //   write('Array: ' + string(array.toArray()));
+  //   write('Linked: ' + string(linked.toArray()));
+  // }
+  real[] probs = i < 800 ? increasingProbs : decreasingProbs;
+  int choice = (unitrand() < probs[ActionEnum.PUSH]
+                ? ActionEnum.PUSH
+                : ActionEnum.POP);
+  actions[choice](naive, array, linked);
+  string diffs = differences(naive, array);
+  assert(diffs == '', 'Naive vs array: \n' + diffs);
+  diffs = differences(naive, linked);
+  assert(diffs == '', 'Naive vs linked: \n' + diffs);
+}
+
+EndTest();
