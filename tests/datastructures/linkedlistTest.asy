@@ -147,7 +147,7 @@ iterActions[IterActionEnum.TRY_NEXT] = new void() {
   }
   int[] nexts;
   if (!iters[0].hasNext()) {
-    write('no next');
+    // write('no next');
     for (list_int.Iter iter : iters) {
       if (iter.hasNext()) {
         writeArrays(0);
@@ -159,7 +159,7 @@ iterActions[IterActionEnum.TRY_NEXT] = new void() {
     return;
   }
   for (list_int.Iter iter : iters) {
-    write('examining next');
+    // write('examining next');
     if (!iter.hasNext()) {
       writeArrays(0);
       write('hasNext should be true');
@@ -169,7 +169,7 @@ iterActions[IterActionEnum.TRY_NEXT] = new void() {
   }
   canDelete = true;
   int val = nexts[0];
-  write('next: ' + string(val));
+  // write('next: ' + string(val));
   if (!all(nexts == val)) {
     writeArrays(0);
     write('Nexts should all be ' + string(val));
@@ -184,7 +184,7 @@ iterActions[IterActionEnum.TRY_DELETE] = new void() {
   for (list_int.Iter iter : iters) {
     iter.delete();
   }
-  write('deleted item');
+  // write('deleted item');
   ++numDeletions;
   canDelete = false;
 };
@@ -229,21 +229,16 @@ writeArrays = new void(int unused) {
 };
 
 for (int i = 0; i < 2000; ++i) {
-  write(i);
-  if (i > 200) {
-    write('Step ' + string(i));
-    writeArrays(0);
-  }
+  // write('Step ' + string(i));
+  // writeArrays(0);
   int desiredLength = (i < 800 ? 100 : 1);
   if (inIterMode()) {
     IterActionEnum action = nextIterAction(desiredLength, iters.length);
-    if (i > 200)
-      write('next action: ' + (string)action);
+    // write('next action: ' + (string)action);
     iterActions[action.choice]();
   } else {
     ListActionEnum action = nextListAction(desiredLength, linked.size());
-    if (i > 200)
-      write('next action: ' + (string)action);
+    // write('next action: ' + (string)action);
     listActions[action.choice](naive, linked);
   }
   string diffs = differences(naive, linked);
