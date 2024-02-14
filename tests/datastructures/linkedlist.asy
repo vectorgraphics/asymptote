@@ -35,12 +35,13 @@ struct LinkedList_T {
   }
 
   void add(T data) {
+    Node newNode = Node(data);
     if (head == null) {
-      head = Node(data);
-      tail = head;
+      head = newNode;
+      tail = newNode;
     } else {
-      tail.next = Node(data);
-      tail = tail.next;
+      tail.next = newNode;
+      tail = newNode;
     }
     ++size;
     ++numChanges;
@@ -55,24 +56,23 @@ struct LinkedList_T {
 
   LinkedIterator_T iterator() {
     Node next = head;
-    Node previous = new Node;
-    previous.next = head;
-    Node extraNode = previous;  // This Node is not actually in the list. Remember it for bug checks.
+    Node current = null;
+    Node previous = null;
     LinkedIterator_T it = new LinkedIterator_T;
     int it_numChanges = numChanges;
-    bool canDelete = false;
+    bool canDelete() {
+      return current != null;
+    }
     it.next = new T() {
       assert(next != null, "No more elements in the list");
       assert(it_numChanges == numChanges, "Concurrent modification detected");
-      assert(next == previous.next, "Bug in iterator");
-      T retv = next.data;
-      if (next.next != null) {  // If we're not at the end of the list, advance previous.
-        previous = next;
+      // Advance previous, current, next:
+      if (current != null) {
+        previous = current;
       }
+      current = next;
       next = next.next;
-      canDelete = true;
-      assert(next != extraNode, "Bug in iterator");
-      return retv;
+      return current.data;
     };
     it.hasNext = new bool() {
       assert(it_numChanges == numChanges, "Concurrent modification detected");
@@ -80,35 +80,22 @@ struct LinkedList_T {
     };
     it.delete = new void() {
       assert(it_numChanges == numChanges, "Concurrent modification detected");
-      assert(canDelete, "No element to delete");
-      assert(previous != null, "Bug in iterator");
+      assert(canDelete(), "No element to delete");
       assert(size > 0, "Bug in iterator");
-      if (size == 1) {
-        // Delete the only element in the list.
-        head = null;
-        tail = null;
-      } else if (next == null) {
-        // Delete the tail.
-        assert(previous != extraNode, "Bug in iterator");
-        write('Deleting tail');
-        tail = previous;  // This works because we did not advance previous when we reached the end of the list.
-        tail.next = null;
-      } else {
-
-        assert(previous != extraNode, "Bug in iterator");
-        write('Deleting middle');
-        // Copy next to previous.
-        previous.data = next.data;
-        previous.next = next.next;
-
-        // Advance next.
-        next = next.next;
+      if (current == tail) {
+        tail = previous;
       }
-      
+      if (previous != null) {
+        previous.next = next;
+        current = null;
+      } else {
+        assert(current == head, "Bug in iterator");
+        head = next;
+        current = null;
+      }
       --size;
       ++numChanges;
       ++it_numChanges;
-      canDelete = false;
     };
     return it;
   }
@@ -118,12 +105,12 @@ typedef LinkedList_T Linked;
 List_T makeLinked(T[] initialData) {
   List_T list = new List_T;
   LinkedList_T linked = new LinkedList_T;
-  list.add = linked.add;
   list.size = linked.size;
+  list.add = linked.add;
   list.insertAtBeginning = linked.insertAtBeginning;
   list.iterator = linked.iterator;
-  for (T elem : initialData) {
-    list.add(elem);
+  for (int i = initialData.length - 1; i >= 0; --i) {
+    list.insertAtBeginning(initialData[i]);
   }
   return list;
 }
@@ -179,12 +166,12 @@ typedef NaiveList_T Naive;  // for qualified access
 List_T makeNaive(T[] initialData) {
   List_T list = new List_T;
   NaiveList_T naive = new NaiveList_T;
-  list.add = naive.add;
   list.size = naive.size;
+  list.add = naive.add;
   list.insertAtBeginning = naive.insertAtBeginning;
   list.iterator = naive.iterator;
-  for (T elem: initialData) {
-    list.add(elem);
+  for (int i = initialData.length - 1; i >= 0; --i) {
+    list.insertAtBeginning(initialData[i]);
   }
   return list;
 }

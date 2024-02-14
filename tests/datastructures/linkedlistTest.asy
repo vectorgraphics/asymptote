@@ -31,7 +31,8 @@ bool operator == (ListActionEnum a, int b) {
 string operator ecast(ListActionEnum a) {
   if (a == ListActionEnum.add) {
     return 'ADD';
-  } else if (a == ListActionEnum.insert) {
+  } else
+  if (a == ListActionEnum.insert) {
     return 'INSERT';
   } else if (a == ListActionEnum.iterate) {
     return 'ITERATE';
@@ -200,7 +201,7 @@ real clamp(real x, real keyword min, real keyword max) {
 }
 
 ListActionEnum nextListAction(real desiredLength, int length) {
-  real lengthenProb = clamp(0.1 + 0.01 * (desiredLength - length), min=0, max=1);
+  real lengthenProb = clamp(0.1 + 0.1 * (desiredLength - length), min=0, max=1);
   if (unitrand() < lengthenProb) {
     if (rand() % 2 == 0) {
       return ListActionEnum.add;
@@ -211,7 +212,7 @@ ListActionEnum nextListAction(real desiredLength, int length) {
   return ListActionEnum.iterate;
 }
 IterActionEnum nextIterAction(real desiredLength, int length) {
-  real deleteProb = clamp(0.1 + 0.01 * (length - desiredLength), min=0, max=1);
+  real deleteProb = clamp(0.1 + 0.1 * (length - desiredLength), min=0, max=1);
   if (unitrand() < deleteProb)
     return IterActionEnum.tryDelete;
   real endProb = 1 / (2 * length);
@@ -233,7 +234,7 @@ for (int i = 0; i < 2000; ++i) {
     write('Step ' + string(i));
     writeArrays(0);
   }
-  int desiredLength = (i < 800 ? 10 : -1);
+  int desiredLength = (i < 800 ? 100 : 1);
   if (inIterMode()) {
     IterActionEnum action = nextIterAction(desiredLength, iters.length);
     if (i > 200)
