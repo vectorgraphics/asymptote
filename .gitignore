@@ -58,7 +58,9 @@ GUI/*/__pycache__
 /config.status
 /configure
 /doc/asy-latex.i*
+/doc/asy-latex.hd
 /doc/asy.1
+/doc/asymptote_html/
 /glrender.d.54461
 /gsl.symbols.h
 /keywords.cc
@@ -67,6 +69,10 @@ GUI/*/__pycache__
 /types.symbols.h
 *.dSYM
 .DS_Store
+/errors.temp
+/base/webgl/asygl.js
+/v3dheadertypes.py
+/v3dtypes.py
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
@@ -94,6 +100,9 @@ GUI/*/__pycache__
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
+/doc/latexusage-?.asy
+/doc/latexusage-?.tex
+/doc/latexusage-*.pbsdat
 .asy_*
 
 ## Bibliography auxiliary files (bibtex/biblatex/biber):
@@ -159,6 +168,7 @@ renderDocSettings
 
 *.html
 !index.html
+/doc/png/index.html
 !webgl/WebGL*.html
 
 v3dheadertypes.h
