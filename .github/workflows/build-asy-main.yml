@@ -104,3 +104,26 @@ jobs:
       - run: chmod +x cmake-build-linux/release/asy
       - name: asy test
         run: ctest --test-dir cmake-build-linux/release -R "^asy.*" -E "asy.(gc.*|pic.trans)"
+  package-asymptote-artifacts:
+    needs: [test-x64-cxxtests, test-x64-asy-tests]
+    runs-on: "ubuntu-22.04"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: asy-buildfiles
+        path: tar-stage
+    - name: Link examples directory to tar-stage
+      run: ln -sf ${{ github.workspace }}/examples ${{ github.workspace }}/tar-stage/examples
+    - name: Set asy's +x flag
+      run: chmod +x tar-stage/asy
+    - name: tar package
+      run: tar -C tar-stage -cvhf asymptote-build-linux.tar asy base examples
+    - name: Archive Asymptote test files
+      uses: actions/upload-artifact@v3
+      with:
+        name: asymptote-build-linux
+        path: asymptote-build-linux.tar
