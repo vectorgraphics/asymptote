@@ -2526,7 +2526,6 @@ void AsyVkRender::createImmediateRenderTargets()
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     ));
 
-    setDebugObjectName(vk::Image(immRenderTarget.getImage()), "immediateRenderTargetImg" + std::to_string(i));
 
     auto& immRenderImgView= immRenderTargetViews.emplace_back();
     createImageView(
@@ -2535,7 +2534,6 @@ void AsyVkRender::createImmediateRenderTargets()
             immRenderTarget.getImage(),
             immRenderImgView
     );
-    setDebugObjectName(*immRenderImgView, "immediateRenderTargetImgView" + std::to_string(i));
 
     // for pre-presentation (after post-processing)
     auto const& prePresentationTarget= prePresentationImages.emplace_back(createImage(
@@ -2555,8 +2553,6 @@ void AsyVkRender::createImmediateRenderTargets()
             prePresentationImageView
     );
 
-    setDebugObjectName(vk::Image(prePresentationTarget.getImage()), "prePresentationTarget" + std::to_string(i));
-    setDebugObjectName(*prePresentationImageView, "prePresentationImgView" + std::to_string(i));
   }
 }
 
@@ -3306,13 +3302,10 @@ auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelin
 
 void AsyVkRender::createComputePipelines()
 {
-  if (GPUindexing)
-  {
-    std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
-    createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
-    createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
-    createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
-  }
+  std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
+  createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
+  createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
+  createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
 
   std::vector const postProcessDescSetLayoutVec { *postProcessDescSetLayout };
   // fxaa
@@ -4029,7 +4022,7 @@ void AsyVkRender::drawFrame()
     {
       {}, vk::AccessFlagBits::eShaderWrite,
       vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
-      vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+      VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
       prePresentationImages[imageIndex].getImage(), isr
     }
   };
@@ -4046,14 +4039,14 @@ void AsyVkRender::drawFrame()
     {
       vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead,
       vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
-      vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+      VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
       prePresentationImages[imageIndex].getImage(),
       isr
     },
     {
       {}, vk::AccessFlagBits::eTransferWrite,
       vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-      vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+      VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
       backbufferImages[imageIndex], isr
     },
 
@@ -4073,8 +4066,8 @@ void AsyVkRender::drawFrame()
            {},
            vk::ImageLayout::eTransferDstOptimal,
            vk::ImageLayout::ePresentSrcKHR,
-           vk::QueueFamilyIgnored,
-           vk::QueueFamilyIgnored,
+           VK_QUEUE_FAMILY_IGNORED,
+           VK_QUEUE_FAMILY_IGNORED,
            backbufferImages[imageIndex],
            isr}
   };
