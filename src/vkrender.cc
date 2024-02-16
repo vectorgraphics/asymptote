@@ -687,6 +687,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   interlock=settings::getSetting<bool>("GPUinterlock");
   fxaa=settings::getSetting<bool>("fxaa");
+  srgb=settings::getSetting<bool>("srgb");
 
 #ifdef HAVE_VULKAN
     Aspect=((double) width)/height;
@@ -3030,6 +3031,11 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
   if (fxaa)
   {
     options.emplace_back("ENABLE_FXAA");
+  }
+
+  if (srgb)
+  {
+    options.emplace_back("OUTPUT_AS_SRGB");
   }
 }
 

@@ -547,6 +547,7 @@ private:
   bool interlock=false;
   bool GPUcompress=false;
   bool fxaa=false;
+  bool srgb=false;
 
 #if defined(DEBUG)
   bool hasDebugMarker=false;
