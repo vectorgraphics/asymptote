@@ -1255,6 +1255,8 @@ void initSettings() {
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
+  addOption(new boolSetting("fxaa", 0,
+                           "Enable FXAA. Multisampling is turned off if FXAA is enabled", false));
   addOption(new boolSetting("offscreen", 0,
                             "Use offscreen rendering",false));
   addOption(new boolSetting("twosided", 0,
