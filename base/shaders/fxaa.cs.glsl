@@ -15,6 +15,23 @@ writeonly uniform image2D outputImage;
 
 layout(local_size_x=20, local_size_y=20, local_size_z=1) in;
 
+#ifndef OUTPUT_AS_SRGB
+const float gamma=2.2;
+
+/**
+ * @brief Converts perceptual color (measuring what we think the brightness is)
+ * to linear color (photon count)
+ * example linearToPerceptual(vec3(0.729)) is approximately vec3(0.5)
+ */
+vec3 perceptualToLinear(vec3 inColor)
+{
+  // what we think is 0.5 brightness has much less photons than half
+  // of the light's original photon count
+  return pow(inColor, vec3(gamma));
+}
+#endif
+
+
 #ifdef ENABLE_FXAA
 // based on https://catlikecoding.com/unity/tutorials/advanced-rendering/fxaa/
 
@@ -195,22 +212,35 @@ void main()
   // coordinate is valid
 
 #ifdef ENABLE_FXAA
+  vec3 outputColor=fxaa(coord,size);
+
+#ifdef OUTPUT_AS_SRGB
+  vec3 returnColor=outputColor;
+#else
+  vec3 returnColor=perceptualToLinear(outputColor);
+#endif
 
   // final
   imageStore(
     outputImage,
     coord,
-    vec4(fxaa(coord,size), 1)
+    vec4(returnColor, 1)
   );
 #else
   // already in perceptual space, no need to do any further
   // gamma adjustment
   vec3 pixelColor=imageLoad(inputImage,coord).rgb;
 
+#ifdef OUTPUT_AS_SRGB
+  vec3 returnColor=pixelColor;
+#else
+  vec3 returnColor=perceptualToLinear(pixelColor);
+#endif
+
   imageStore(
     outputImage,
     coord,
-    vec4(pixelColor, 1)
+    vec4(returnColor, 1)
   );
 #endif
 
