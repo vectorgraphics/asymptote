@@ -559,6 +559,7 @@ private:
   bool interlock=false;
   bool GPUcompress=false;
   bool fxaa=false;
+  bool srgb=false;
 
   std::int32_t gs2;
   std::int32_t gs;
