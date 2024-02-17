@@ -2134,7 +2134,7 @@ void AsyVkRender::createComputeDescriptorPool()
 
   // post processing
 
-  auto const poolSetCount= static_cast<uint32_t>(maxFramesInFlight);
+  auto const poolSetCount= static_cast<uint32_t>(backbufferImages.size());
 
   std::vector<vk::DescriptorPoolSize> const postProcPoolSizes
   {
@@ -2172,7 +2172,7 @@ void AsyVkRender::createDescriptorSets()
 
   // post processing descs
 
-  std::vector postProcessDescLayouts(maxFramesInFlight, *postProcessDescSetLayout);
+  std::vector postProcessDescLayouts(backbufferImages.size(), *postProcessDescSetLayout);
   postProcessDescSet= device->allocateDescriptorSetsUnique({
     *postProcessDescPool, VEC_VIEW(postProcessDescLayouts)
   });
@@ -2391,7 +2391,7 @@ void AsyVkRender::writeDescriptorSets()
 void AsyVkRender::writePostProcessDescSets()
 {
   // post process descriptors
-  for (auto i= 0; i < maxFramesInFlight; ++i)
+  for (auto i= 0; i < backbufferImages.size(); ++i)
   {
     vk::DescriptorImageInfo inputImgInfo(
             *immRenderTargetSampler[i],
