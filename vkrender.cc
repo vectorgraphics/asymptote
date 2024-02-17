@@ -2345,7 +2345,7 @@ void AsyVkRender::writeDescriptorSets()
 void AsyVkRender::writePostProcessDescSets()
 {
   // post process descriptors
-  for (auto i= 0; i < backbufferImages.size(); ++i)
+  for (size_t i=0; i < backbufferImages.size(); ++i)
   {
     vk::DescriptorImageInfo inputImgInfo(
             *immRenderTargetSampler[i],
@@ -2553,7 +2553,7 @@ void AsyVkRender::createImmediateRenderTargets()
     );
 
     // for sampling imm render target
-    auto& sampler = immRenderTargetSampler.emplace_back(device->createSamplerUnique(vk::SamplerCreateInfo(
+    immRenderTargetSampler.emplace_back(device->createSamplerUnique(vk::SamplerCreateInfo(
             {},
             vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest,
             vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge,
