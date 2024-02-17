@@ -262,7 +262,8 @@ void AsyVkRender::initWindow()
 
   if (!window) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_FOCUS_ON_SHOW, false);
+    glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
+    glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
     window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
   }
 
