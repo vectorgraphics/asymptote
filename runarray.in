@@ -20,12 +20,25 @@ triplearray2* => tripleArray2()
 callableReal* => realRealFunction()
 
 
+#include <cstdint>
+#include <functional>  // for std::hash
+#include <string>
+
 #include "array.h"
 #include "arrayop.h"
 #include "triple.h"
 #include "path3.h"
 #include "Delaunay.h"
 #include "glrender.h"
+
+#ifdef __has_include
+#  if __has_include(<string_view>)
+#    include <string_view>
+#  endif
+#endif
+#ifndef __cpp_lib_string_view
+#  define __cpp_lib_string_view 0
+#endif
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -930,6 +943,32 @@ Intarray* complement(Intarray *a, Int n)
 
   delete[] keep;
   return r;
+}
+
+Int hash(Intarray *a)
+{
+  size_t asize=checkArray(a);
+#if COMPACT
+  char* dataPointer = static_cast<char*>(static_cast<void*>(a->data()));
+  size_t size = (sizeof(item) / sizeof(char)) * asize;
+#else
+  std::vector<uint64_t> v{asize};
+  for (size_t i = 0; i < asize; ++i) {
+    v[i] = static_cast<uint64_t>(read<Int>(a,i));
+  }
+  char* dataPointer = static_cast<char*>(static_cast<void*>(v->data()));
+  size_t size = (sizeof(uint64_t) / sizeof(char)) * asize;
+#endif
+#if __cpp_lib_string_view
+  std::string_view dataView = {dataPointer, size};
+  uint64_t hashResult = std::hash<std::string_view>{}(dataView);
+#else
+  std::string dataView = {dataPointer, size};
+  uint64_t hashResult = std::hash<std::string>{}(dataView);
+#endif
+  // Zero out the highest two bits to avoid conflicts with DefaultValue and
+  // Undefined:
+  return hashResult & UINT64_C(0x3fffffffffffffff);
 }
 
 // Generate the sequence {f(i) : i=0,1,...n-1} given a function f and integer n
