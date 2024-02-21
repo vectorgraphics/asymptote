@@ -210,7 +210,7 @@ bool block::transAsTemplatedField(
   receiveTypedefDec *dec = dynamic_cast<receiveTypedefDec *>(*p);
   if (!dec) {
     em.error(getPos());
-    em << "Expected 'typedef import(<types>);'";
+    em << "expected 'typedef import(<types>);'";
     em.sync();
     return false;
   }
@@ -1152,11 +1152,9 @@ void receiveTypedefDec::transAsField(coenv& e, record *r) {
   types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);
   if (e.e.lookupVarByType(templatedSymbol(), intTy)) {
-    em << "'typedef import' must be at the start of the file, preceeding any "
-          "other code (including imports)";
+    em << "'typedef import(<types>)' must precede any other code";
   } else {
-    em << "Improper file access: tried to access a templated file without "
-          "template parameters";
+    em << "templated module access requires template parameters";
   }
   em.sync();
 }
@@ -1359,9 +1357,8 @@ void recorddec::transAsField(coenv &e, record *parent)
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
     e.c.newRecord(id);
 
-  addTypeWithPermission(
-      e, parent, new trans::tyEntry(r,0,parent,getPos()), id
-  );
+  addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()),
+                        id);
   e.e.addRecordOps(r);
   if (parent)
     parent->e.addRecordOps(r);

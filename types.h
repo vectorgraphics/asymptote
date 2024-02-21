@@ -413,7 +413,7 @@ struct signature : public gc {
 
   size_t hash() const;
 
-  // Return a unique hash for this signature
+  // Return a unique handle for this signature
   size_t handle();
 };
 
