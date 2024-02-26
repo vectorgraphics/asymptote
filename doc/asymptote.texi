@@ -8318,12 +8318,24 @@ The @acronym{PRC} specification is available from
 @url{https://web.archive.org/web/20081204104459/http://livedocs.adobe.com/acrobat_sdk/9/Acrobat9_HTMLHelp/API_References/PRCReference/PRC_Format_Specification/}
 
 @cindex @code{v3d}
-@item Output a @code{V3D} portable compressed binary file for viewing with an
-external viewer or conversion to an alternate 3D format with the Python
-@code{pyv3d} library. The @code{V3D} specification and the
+@item Output a @acronym{V3D} portable compressed vector graphics file
+using @code{settings.outformat="v3d"}, which can be viewed
+with an external viewer or converted to an alternate 3D format
+using the Python @code{pyv3d} library. @acronym{V3D} content can be automatically embedded within
+a @acronym{PDF} file using the options @code{settings.outformat="pdf"} and
+@code{settings.v3d=true}. Alternatively, a V3D file @code{file.v3d} may be manually embedded
+within a @acronym{PDF} file using the @code{media9} @code{LaTeX} package:
+@verbatim
+\includemedia[noplaybutton,width=100pt,height=200pt]{}{file.v3d}%
+@end verbatim
+An online @code{Javascript}-based V3D-aware @code{PDF} viewer is
+available at
+@url{https://github.com/vectorgraphics/pdfv3dReader}.
+
+The @acronym{V3D} specification and the
 @code{pyv3d} library are available at
 @url{https://github.com/vectorgraphics/v3d}.
-A @code{V3D} file @code{file.v3d} may be imported and viewed by
+A @acronym{V3D} file @code{file.v3d} may be imported and viewed by
 @code{Asymptote} either by specifying @code{file.v3d} on the command line
 @verbatim
 asy -V file.v3d
