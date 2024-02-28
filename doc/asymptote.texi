@@ -9639,7 +9639,8 @@ point to the location of your @code{Ghostscript} library
 @code{dvisvgm} can display @acronym{SVG} output (used by the
 @code{xasy} editor) for embedded @acronym{EPS}, @acronym{PDF},
 @acronym{PNG}, and @acronym{JPEG} images included with the
-@code{graphic()} function.
+@code{graphic()} function. You can optimize the generated output with
+the @code{settings.dvisvgmOptions="--optimize"}.
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
