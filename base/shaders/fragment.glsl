@@ -287,15 +287,18 @@ void main() {
   // (e.g. our 0.5 is much much brighter than what swap chain/monitor thinks 0.5 is)
   // need to give the output image the color our brain perceives with the same photon count
   // as the original pixel
-  vec3 outColorInPerceptualSpace=linearToPerceptual(outColor.rgb);
-  outColor=vec4(outColorInPerceptualSpace,outColor.a);
+  vec4 linearColor=outColor;
+
+  // outColor is our output vector, so save what we have as linear color
+  vec3 outColorInPerceptualSpace=linearToPerceptual(linearColor.rgb);
+  outColor=vec4(outColorInPerceptualSpace,linearColor.a);
 
 #ifndef WIDTH // TODO DO NOT DO THE DEPTH COMPARISON WHEN NO TRANSPARENT OBJECTS!
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
   uint listIndex=atomicAdd(offset[element],-1u)-1u;
-  fragment[listIndex]=outColor;
+  fragment[listIndex]=linearColor;
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
   discard;
@@ -306,7 +309,7 @@ void main() {
   if(opaqueDepth[pixel] == 0.0 || gl_FragCoord.z < opaqueDepth[pixel])
     {
     opaqueDepth[pixel]=gl_FragCoord.z;
-    opaqueColor[pixel]=outColor;
+    opaqueColor[pixel]=linearColor;
   }
   endInvocationInterlockARB();
 #endif
