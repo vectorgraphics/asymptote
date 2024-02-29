@@ -102,6 +102,8 @@ using mem::string;
   //absyntax::funheader *fh;
   absyntax::formal *fl;
   absyntax::formals *fls;
+  absyntax::typeParam *tp;
+  absyntax::typeParamList *tps;
 }
 
 %token <ps> ID SELFOP
@@ -159,8 +161,8 @@ using mem::string;
 %type  <dis> decidstart
 %type  <vi>  varinit
 %type  <ai>  arrayinit basearrayinit varinits
-%type  <fl>  formal
-%type  <fls> formals
+%type  <fl>  formal decdec
+%type  <fls> formals decdeclist
 %type  <e>   value exp fortest
 %type  <arg> argument
 %type  <slice> slice
@@ -173,6 +175,8 @@ using mem::string;
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
 %type  <boo> explicitornot
+%type <tp> typeparam
+%type <tps> typeparamlist
 
 /* There are four shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
@@ -248,6 +252,56 @@ dec:
 | INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }
 | INCLUDE STRING ';'
                    { $$ = new includedec($1, $2->getString()); }
+
+// Experimental - templated imports.
+| TYPEDEF IMPORT '(' typeparamlist ')' ';'
+                   { $$ = new receiveTypedefDec($1, $4); }
+| IMPORT TYPEDEF '(' typeparamlist ')' ';'
+                   { $$ = new badDec($1, $1,
+                     "Expected 'typedef import(<types>);'");
+                   }
+/* ACCESS strid '(' decdeclist ')' 'as' ID */
+| ACCESS strid '(' decdeclist ')' ID ID ';'
+                   { $$ = new templateAccessDec(
+                        $1, $2.sym, $4, $6.sym, $7.sym, $6.pos
+                      ); }
+| ACCESS strid '(' decdeclist ')' ';'
+                   { $$ = new badDec($1, $6, "expected 'as'"); }
+| IMPORT strid '(' decdeclist ')' ';'
+                   { $$ = new badDec($1, $1,
+                        "Parametrized imports disallowed to reduce naming "
+                        "conflicts. Try "
+                        "'access <module>(<type parameters>) as <newname>;'."
+                     ); }
+| FROM strid '(' decdeclist ')' ACCESS idpairlist ';'
+                   { $$ = new fromaccessdec($1, $2.sym, $7, $4); }
+;
+
+// List mapping dec to dec as in "Key=string, Value=int"
+decdec:
+    ID ASSIGN type
+                   { $$ = new formal(
+                        $1.pos, $3, new decidstart($1.pos, $1.sym)
+                      ); }
+| type { $$ = new formal($1->getPos(), $1, nullptr); }  // ultimately log error
+;
+
+decdeclist:
+    decdec
+                   { $$ = new formals($1->getPos()); $$->add($1); }
+|   decdeclist ',' decdec
+                   { $$ = $1; $$->add($3); }
+;
+
+typeparam:
+    ID { $$ = new typeParam($1.pos, $1.sym); }
+;
+
+typeparamlist:
+  typeparam
+                   { $$ = new typeParamList($1->getPos()); $$->add($1); }
+| typeparamlist ',' typeparam
+                   { $$ = $1; $$->add($3); }
 ;
 
 idpair:

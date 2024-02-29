@@ -1166,9 +1166,8 @@ class xasyDrawnItem(xasyItem):
     """
     Purpose:
     --------
-        A base class dedicated to any xasy item that is drawn on GUI. Every object of this class
-        will correspond to a particular drawn xasy item on GUI, which contains all its particular
-        data.
+        A base class dedicated to any xasy item that is drawn with the GUI.
+    Each object of this class corresponds to a particular drawn xasy item.
 
     Attributes:
     -----------

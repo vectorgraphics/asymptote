@@ -2112,7 +2112,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
 #ifdef FREEGLUT
 #ifdef GLUT_INIT_MAJOR_VERSION
-    while(true) {
+    for(;;) {
       if(multisample > 0)
         glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif
@@ -2150,7 +2150,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     fpu_trap(false); // Work around FE_INVALID
-    window=glutCreateWindow("");
+    window=glutCreateWindow(Iconify ? "" : "Asymptote rendering window" );
     fpu_trap(settings::trap());
     glutHideWindow();
   }
