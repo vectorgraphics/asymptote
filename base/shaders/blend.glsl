@@ -58,6 +58,21 @@ vec4 blend(vec4 outColor, vec4 color)
   return mix(outColor,color,color.a);
 }
 
+const float gamma=2.2;
+const float invGamma=1.0/gamma;
+
+/**
+ * @brief Converts linear color (measuring photon count) to srgb (what our brain thinks
+ * is the brightness
+ * example linearToPerceptual(vec3(0.5)) is approximately vec3(0.729)
+ */
+vec3 linearToPerceptual(vec3 inColor)
+{
+  // an actual 0.5 brightness (half amount of photons) would
+  // look brighter than what our eyes think is "half" light
+  return pow(inColor, vec3(invGamma));
+}
+
 void main()
 {
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
@@ -158,6 +173,11 @@ void main()
       opaqueDepth[pixel]=0.0;
     }
   }
+
+  // before we pass to post-processing stage, convert the color into
+  // perceptual (sRGB) first since we blended the colors using linear values
+  vec3 perceptualColor=linearToPerceptual(outColor.rgb);
+  outColor = vec4(perceptualColor, outColor.a);
 
   COUNT(pixel)=0u;
 }
