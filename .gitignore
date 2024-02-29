@@ -200,3 +200,6 @@ ehthumbs_vista.db
 
 *.lnk
 *.stackdump
+
+# version package
+asy-pkg-version-suffix.cmake

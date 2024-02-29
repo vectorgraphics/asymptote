@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.26)
 
 include(cmake-scripts/common.cmake)
 include(pkg-info.cmake)
+include(asy-pkg-version-suffix.cmake OPTIONAL RESULT_VARIABLE ASY_ADDR_VERSION_SUFFIX_FILE)
 include(cmake-scripts/options.cmake)
 include(cmake-scripts/vcpkg-features.cmake)
 
