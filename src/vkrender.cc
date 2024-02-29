@@ -37,6 +37,7 @@ std::vector<const char*> instanceExtensions
   // VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
 #if defined(VALIDATION) || defined(DEBUG)
   VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+  VK_EXT_DEBUG_REPORT_EXTENSION_NAME
 #endif
 
 };
@@ -1207,7 +1208,10 @@ void AsyVkRender::createLogicalDevice()
   }
 
 #if defined(DEBUG)
-  if (supportedDeviceExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) != supportedDeviceExtensions.end())
+  auto const hasDebugMarkerExt=
+    supportedDeviceExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) != supportedDeviceExtensions.end();
+
+  if (hasDebugMarkerExt)
   {
     hasDebugMarker=true;
     extensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
