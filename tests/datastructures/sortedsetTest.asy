@@ -148,7 +148,8 @@ actions[ActionEnum.DELETE] = new void(int maxItem ...Set_wrapped_int[] sets) {
     }
   }
 };
-actions[ActionEnum.CONTAINS] = new void(int maxItem ...Set_wrapped_int[] sets) {
+actions[ActionEnum.CONTAINS] = new void(int maxItem ...Set_wrapped_int[] sets)
+{
   int toCheck = rand() % maxItem;
   // write('Checking ' + string(toCheck) + '\n');
   bool[] results = new bool[];

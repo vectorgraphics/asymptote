@@ -6,14 +6,17 @@ struct SortedSet_T {
   int size();
   bool empty() { return size() == 0; }
   bool contains(T item);
+  T get(T item);         // Returns the item in the collection that is
+                         // equivalent to item, or emptyresponse if there is no
+                         // such item.
   // Returns the least element > item, or emptyresponse if there is no such
   // element.
   T after(T item);
   // Returns the greatest element < item, or emptyresponse if there is no such
   // element.
   T before(T item);
-  T firstGEQ(T item) { return contains(item) ? item : after(item); }
-  T firstLEQ(T item) { return contains(item) ? item : before(item); }
+  T firstGEQ(T item) { return contains(item) ? get(item) : after(item); }
+  T firstLEQ(T item) { return contains(item) ? get(item) : before(item); }
   T min();               // Returns emptyresponse if collection is empty.
   T popMin();            // Returns emptyresponse if collection is empty.
   T max();               // Returns emptyresponse if collection is empty.
@@ -21,9 +24,6 @@ struct SortedSet_T {
   bool insert(T item);   // Returns true iff the collection is modified.
   T replace(T item);     // Inserts item, and returns the item that was
                          // replaced, or emptyresponse if no item was replaced.
-  T get(T item);         // Returns the item in the collection that is
-                         // equivalent to item, or emptyresponse if there is no
-                         // such item.
   bool delete(T item);   // Returns true iff the collection is modified.
   // Calls process on each item in the collection, in ascending order,
   // until process returns false.
