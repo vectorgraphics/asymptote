@@ -62,6 +62,9 @@ jobs:
           Expand-Archive `
           -Path cmake-msvc-x64-release-cfg.zip `
           -DestinationPath .
+      - name: Generate version suffix for github runner
+        run: |
+          "set(ASY_VERSION_SUFFIX `"/github-ci/ref=${{ github.sha }}`")" | Out-File -Path asy-pkg-version-suffix.cmake
       - name: Build asymptote on windows
         run: |
           ${{ env.pwsh_initialize_devenv }}
