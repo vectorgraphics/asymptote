@@ -135,7 +135,7 @@ void *asymain(void *A)
   // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
   CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 #endif
-  
+
   if(interactive) {
     Signal(SIGINT,interruptHandler);
 #ifdef HAVE_LSP
@@ -178,7 +178,7 @@ void *asymain(void *A)
         fprintf(camp::pipeout,"\n");
         fflush(camp::pipeout);
       }
-      while(true) {
+      for(;;) {
         processFile("-",true);
         try {
           setOptions(args->argc,args->argv);
@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif
-        while(true) {
+        for(;;) {
 #if !defined(_WIN32)
           Signal(SIGURG,exitHandler);
 #endif

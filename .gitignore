@@ -61,7 +61,7 @@ GUI/*/__pycache__
 /doc/asy.1
 /glrender.d.54461
 /gsl.symbols.h
-/keywords.h
+/keywords.cc
 /lex.yy.cc
 /opsymbols.h
 /types.symbols.h
@@ -157,9 +157,27 @@ renderDocSettings
 !webgl/WebGL*.html
 
 v3dheadertypes.h
-v3dtypes.h
+v3dheadertypes.py
 base/v3dheadertypes.asy
+
+v3dtypes.h
+v3dtypes.py
 base/v3dtypes.asy
+
+LspCpp/CMakeCache.txt
+LspCpp/CMakeDoxyfile.in
+LspCpp/CMakeDoxygenDefaults.cmake
+LspCpp/CMakeFiles/
+LspCpp/Makefile
+LspCpp/cmake_install.cmake
+LspCpp/third_party/uri/CMakeFiles/
+LspCpp/third_party/uri/Doxyfile
+LspCpp/third_party/uri/Makefile
+LspCpp/third_party/uri/cmake_install.cmake
+LspCpp/third_party/uri/src/CMakeFiles/
+LspCpp/third_party/uri/src/Makefile
+LspCpp/third_party/uri/src/cmake_install.cmake
+base/webgl/asygl.js
 
 # CMake files
 CMakeLists.txt.user
@@ -200,3 +218,6 @@ ehthumbs_vista.db
 
 *.lnk
 *.stackdump
+
+# version package
+asy-pkg-version-suffix.cmake

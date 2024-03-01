@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{https://asymptote.sourceforge.io}
 
-Copyright @copyright{} 2004-23 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-24 Andy Hammerlindl, John Bowman, and Tom Prince.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -132,6 +132,10 @@ Functions
 Arrays
 
 * Slices::                      Python-style array slices
+
+Import
+
+* Templated imports::
 
 Base modules
 
@@ -5400,9 +5404,9 @@ element of the array @code{a}. This is equivalent to
 
 @cindex @code{map}
 @item T2[] map(T2 f(T1), T1[] a)
-constructed by calling @code{mapArray("T1","T2")}, returns the array
-obtained by applying the function @code{f} to each element of the
-array @code{a};
+constructed by running @code{from mapArray(Src=T1, Dst=T2) access map;},
+returns the array obtained by applying the function @code{f} to each
+element of the array @code{a};
 
 @cindex @code{reverse}
 @item int[] reverse(int n)
@@ -6120,9 +6124,6 @@ code s=quote {
 eval(s,true);        // Outputs 1
 @end verbatim
 
-One application of @code{eval} is the creation of parametrized Asymptote
-code, such as a map from one type to another (@pxref{map}).
-
 @cindex @code{include}
 To include the contents of an existing file @code{graph} verbatim (as if the
 contents of the file were inserted at that point), use one of the forms:
@@ -6141,6 +6142,61 @@ void list(string s, bool imports=false);
 @noindent
 Imported global functions and variables are also listed if
 @code{imports} is @code{true}.
+
+@menu
+* Templated imports::
+@end menu
+
+@node Templated imports
+@subsection Templated imports
+@cindex template
+
+@strong{Warning:} This feature is experimental: it has known issues and its behavior may change in the future.
+
+In Asymptote, it is possible to create modules that must have one or more
+types specified when they are imported. The first executable line of any such
+module must be of the form @code{typedef import(<types>)}, where
+@code{<types>} is a list of required type parameters. For instance,
+@verbatim
+typedef import(T, S, Number);
+@end verbatim
+@noindent
+could be the first line of a module that requires three type parameters. The
+remaining code in the module can then use @code{T}, @code{S}, and @code{Number}
+as types.
+
+To import such a module, one must specify the types to be used. For instance,
+if the module above were named @code{templatedModule}, it could be accessed
+for types @code{string}, @code{int[]}, and @code{real} with the import
+command
+@verbatim
+access templatedModule(T=string, S=int[], Number=real)
+    as templatedModule_string_int_real;
+@end verbatim
+@noindent
+Note that this is actually an @emph{access} command rather than an
+@emph{import} command, so the names of types, functions, etc. would have to be
+stated as e.g. @code{templatedModule_string_int_real.Wrapper_Number} rather than
+just @code{Wrapper_Number} (where @code{Wrapper_Number} is a type defined in
+@code{templatedModule.asy}).
+
+Alternatively, the module could be imported via a command like
+@verbatim
+from templatedModule(T=string, S=int[], Number=real) access
+    Wrapper_Number as Wrapper_real,
+    operator ==;
+@end verbatim
+@noindent
+This command would automatically rename @code{Wrapper_Number} to
+@code{Wrapper_real} and would also allow the use of any @code{operator ==}
+overloads defined in the module.
+
+For more information, see the examples in
+@url{https://github.com/vectorgraphics/asymptote/tree/647b6c5732ec94a48f0f0b2446f02c86888fe7e7/tests/template}.
+
+Issues: Certain standard features of almost any type (such as
+@code{==}, @code{new}, and the ability to call static methods on the type) may
+only be available for type arguments that are builtin or defined in the @code{plain} module.
 
 @node Static,  , Import, Programming
 @section Static
@@ -8262,12 +8318,24 @@ The @acronym{PRC} specification is available from
 @url{https://web.archive.org/web/20081204104459/http://livedocs.adobe.com/acrobat_sdk/9/Acrobat9_HTMLHelp/API_References/PRCReference/PRC_Format_Specification/}
 
 @cindex @code{v3d}
-@item Output a @code{V3D} portable compressed binary file for viewing with an
-external viewer or conversion to an alternate 3D format with the Python
-@code{pyv3d} library. The @code{V3D} specification and the
+@item Output a @acronym{V3D} portable compressed vector graphics file
+using @code{settings.outformat="v3d"}, which can be viewed
+with an external viewer or converted to an alternate 3D format
+using the Python @code{pyv3d} library. @acronym{V3D} content can be automatically embedded within
+a @acronym{PDF} file using the options @code{settings.outformat="pdf"} and
+@code{settings.v3d=true}. Alternatively, a V3D file @code{file.v3d} may be manually embedded
+within a @acronym{PDF} file using the @code{media9} @code{LaTeX} package:
+@verbatim
+\includemedia[noplaybutton,width=100pt,height=200pt]{}{file.v3d}%
+@end verbatim
+An online @code{Javascript}-based V3D-aware @code{PDF} viewer is
+available at
+@url{https://github.com/vectorgraphics/pdfv3dReader}.
+
+The @acronym{V3D} specification and the
 @code{pyv3d} library are available at
 @url{https://github.com/vectorgraphics/v3d}.
-A @code{V3D} file @code{file.v3d} may be imported and viewed by
+A @acronym{V3D} file @code{file.v3d} may be imported and viewed by
 @code{Asymptote} either by specifying @code{file.v3d} on the command line
 @verbatim
 asy -V file.v3d
@@ -9571,7 +9639,8 @@ point to the location of your @code{Ghostscript} library
 @code{dvisvgm} can display @acronym{SVG} output (used by the
 @code{xasy} editor) for embedded @acronym{EPS}, @acronym{PDF},
 @acronym{PNG}, and @acronym{JPEG} images included with the
-@code{graphic()} function.
+@code{graphic()} function. You can optimize the generated output with
+@code{settings.dvisvgmOptions="--optimize"}.
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
@@ -10305,7 +10374,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
 @c  LocalWords:  Michail 0pt 1filll 's 3D labelpath3 2D graph3 0pt 3D
-@c  LocalWords:  grid3 contour3 x86_64 psv a4 freeglut 'load '
+@c  LocalWords:  grid3 contour3 x86_64 psv a4 freeglut 'load ' 0pt 's
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
 @c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
 @c  LocalWords:  z2 before' struct X11 x11colors type1cm 12pt OT1 5mm
@@ -10370,4 +10439,70 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  renderers 2E ESC AsyGL 48kB 2n 100d 5z 5y 5unit 10cm
 @c  LocalWords:  unicode 144x144 Pedram Emami 204e 10x Ai Ai Ai Ai Ai
 @c  LocalWords:  Ai Ai Ai 5a 5E 5cm 2N 2E devicepixelratio 48kB 2n 5z
-@c  LocalWords:  100d 5y 5unit 144x144
+@c  LocalWords:  100d 5y 5unit 144x144 2004-23 2004-24 top-level 3D
+@c  LocalWords:  1filll Command-line Command-Line command-line 2D 15
+@c  LocalWords:  high-order User-defined Python-style Templated V3D
+@c  LocalWords:  coordinate-based high-quality high-level de-facto 56
+@c  LocalWords:  command-driven graphical-user-interface full-fledged
+@c  LocalWords:  script-generated script-based fixed-sized ASYMPTOTE_
+@c  LocalWords:  user-written Debian-based self-extracting disable-gc
+@c  LocalWords:  google-chrome installation-dependent microsoft-edge
+@c  LocalWords:  ASYMPTOTE_PAPERTYPE Right-click ASYMPTOTE_DIR C-c 72
+@c  LocalWords:  ASYMPTOTE_HOME asymptote-x DCMAKE_INSTALL_PREFIX M-x
+@c  LocalWords:  DCMAKE_C_FLAGS texinfo-tex system-wide asy-mode C-h
+@c  LocalWords:  lasy-mode add-to-list 'load-path 'asy-mode asy-kate
+@c  LocalWords:  'lasy-mode 'asy-insinuate-latex 'auto-mode-alist 100
+@c  LocalWords:  two-mode-mode latex-mode space-separated apt-get 5bp
+@c  LocalWords:  ASYMPTOTE_SITEDIR build-dep Vector_Graphics_Language
+@c  LocalWords:  1cm double-quoted 06 left-hand right-hand even-odd
+@c  LocalWords:  two-dimensional three-dimensional 4g fixed-size a--b
+@c  LocalWords:  bottom-left 45 10 picture-transformed plain_Label 2S
+@c  LocalWords:  comma-separated boundary-drawing plain_boxes 100pt
+@c  LocalWords:  z_0 c_0 z_1 c_1 1-t 3t third-order m_5 first-order
+@c  LocalWords:  m_0 m_1 m_2 m_3 m_4 second-order 14 75 1986 x-I 360
+@c  LocalWords:  inflection-free Java-style user-defined built-in a-c
+@c  LocalWords:  highest-precision floating-point element-by-element
+@c  LocalWords:  a--b--c--cycle b-c counterclockwise-oriented 377 01
+@c  LocalWords:  C-style 1970 02 2007 24 60 non-zero z2-c z1-c b-a 68
+@c  LocalWords:  counter-clockwise t-floor 137 P--Q p--q cubic-spline
+@c  LocalWords:  two-element non-default 255 6-character 140 180 375
+@c  LocalWords:  plain_pens z--z 12pt 2018 UTF-8 CJKfamily right-top
+@c  LocalWords:  foreground--background left-bottom 5mm 90 25 25cm 50
+@c  LocalWords:  end-of-file one-dimensional 64-bit 32-bit C-like i-1
+@c  LocalWords:  end-of-line asy_history_ path-joining 3x 5x 3y 2x 2y
+@c  LocalWords:  602e-19 3sin 10cm 204e-19 non-function 17 L-values
+@c  LocalWords:  so-called 10x 34 43 keyword-only 77 42 Keyword-only
+@c  LocalWords:  21 six-element zero-length n-k Ai_deriv Bi_deriv n-1
+@c  LocalWords:  zero_Ai zero_Bi zero_Ai_deriv zero_Bi_deriv i_scaled
+@c  LocalWords:  k_scaled zero_J Newton-Raphson real-valued f_i T2 T1
+@c  LocalWords:  out-of-bounds higher-indexed Dst n-2 realschur schur
+@c  LocalWords:  quasitriangular 19 33 white-space Python-like 12 103
+@c  LocalWords:  comma-separated-value non-cyclic 107 Non-bridging 5a
+@c  LocalWords:  866025403784439 non-private d-b templatedModule k-1
+@c  LocalWords:  templatedModule_string_int_real Wrapper_Number 36 5E
+@c  LocalWords:  Wrapper_real higher-order Three-dimensional log-log
+@c  LocalWords:  two-variable true-element higher-quality post-scaled
+@c  LocalWords:  polar-coordinate auto-generated textbook-style 1000
+@c  LocalWords:  scientific-style graphwithderiv least-squares 5cm 38
+@c  LocalWords:  256 32766 32761 divs quantized fillcontour 67 57 48
+@c  LocalWords:  shape-invariant 2010021-2010022 vice-versa ibl EXR
+@c  LocalWords:  three_surface three_light plain_prethree image-based
+@c  LocalWords:  pre-rendered imageDir imageURL cudareflect teapotIBL
+@c  LocalWords:  patch-dependent vertex-dependent O--X 2N--2E--E 561
+@c  LocalWords:  vertex-specific three-dimensions Ctrl-q iframe 321
+@c  LocalWords:  frameborder 48kB stand-alone 2n 100d v3d pyv3d v2-c
+@c  LocalWords:  importv3d v1-c O--O u--O v--O v--cycle x-0 5z y-0 5y
+@c  LocalWords:  z-0 O--v u--v a-d b-d c-d near_earth c--c nslice 20
+@c  LocalWords:  O--1 5unit three_arrows diamond-shaped right-angled
+@c  LocalWords:  2-y public-domain in-depth field-defining 144x144 'e
+@c  LocalWords:  ASYMPTOTE_CONFIG non-writable 200 semi-colon ctrl-C
+@c  LocalWords:  asy_history auto-completion Button-1 Button-2 LSP
+@c  LocalWords:  rsvg-convert librsvg2-tools dvisvgmMultipleFiles lsp
+@c  LocalWords:  data-binary 'import lsp-mode 'package melpa 'asyls
+@c  LocalWords:  'package-archives package-initialize package-install
+@c  LocalWords:  package-refresh-contents 'lsp-mode make-lsp-client
+@c  LocalWords:  'lsp-language-id-configuration lsp-register-client
+@c  LocalWords:  new-connection lsp-stdio-connection activation-fn
+@c  LocalWords:  lsp-activate-on major-modes server-id user-generated
+@c  LocalWords:  line-based code-based plain_debugger Guib Skitsko
+@c  LocalWords:  Chaumont Cheng

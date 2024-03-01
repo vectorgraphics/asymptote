@@ -40,6 +40,11 @@ jobs:
           name: cmake-linux-x64-release-cfg-tgz
       - name: Untar configuration artifact
         run: tar -xzf cmake-linux-cfg-artifact.tar.gz
+        # Why we are defining version here and not in configuration stage is because cmake gets
+        # re-run here
+      - name: Generate version suffix
+        run: |
+          echo set\(ASY_VERSION_SUFFIX \"/github-ci/ref=${{ github.sha }}\"\) > asy-pkg-version-suffix.cmake
       - run: cmake --build --preset linux/release --target asy-with-basefiles -j
       - name: Archive build files
         uses: actions/upload-artifact@v3

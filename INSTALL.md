@@ -91,6 +91,17 @@ for my (Jamie's) setup:
 }
 ```
 
+### Additional build information
+
+One can specify additional package string (this is useful for CI for denoting build revision).
+To do this, add a file called `asy-pkg-version-suffix.cmake` with a cmake command 
+```cmake
+set(ASY_VERSION_SUFFIX "<custom version suffix>")
+```
+
+This suffix will get embedded into the final asymptote version. If this file is not specified, the default
+suffix is "+debug" for debug builds, or an empty string for all other builds, including release builds
+
 ## Testing
 
 Asymptote unit testing is integerated into CMake's `CTest` framework.
