@@ -45,6 +45,7 @@
 
 #include <vma_cxx.h>
 
+#include <glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <GLFW/glfw3.h>
 #endif

@@ -458,7 +458,7 @@ case "$OSTYPE" in
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
-          LIBS=$LIBS"-lglfw -lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler -lSPIRV "
+          LIBS=$LIBS"-lglfw -lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV "
           AC_CHECK_LIB([glslang],[glslang_initialize_process],
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
