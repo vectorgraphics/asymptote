@@ -769,7 +769,10 @@ void AsyVkRender::initVulkan()
   if (View) createSwapChain();
   else createOffscreenBuffers();
 
-  setupPostProcessingComputeParameters();
+  if (fxaa)
+  {
+    setupPostProcessingComputeParameters();
+  }
   createImageViews();
   createSyncObjects();
 
@@ -818,7 +821,11 @@ void AsyVkRender::recreateSwapChain()
 //  device->waitIdle();
 
   createSwapChain();
-  setupPostProcessingComputeParameters();
+
+  if (fxaa)
+  {
+    setupPostProcessingComputeParameters();
+  }
   createDependentBuffers();
   createImmediateRenderTargets();
   writeDescriptorSets();
@@ -2045,16 +2052,16 @@ void AsyVkRender::createComputeDescriptorSetLayout()
 
   // post processing
 
-  std::vector<vk::DescriptorSetLayoutBinding> const postProcessingLayoutBindings {
-    { 0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eCompute },
-    { 1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
-    { 2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
-  };
+  if (fxaa)
+  {
+    std::vector<vk::DescriptorSetLayoutBinding> const postProcessingLayoutBindings{
+            {0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eCompute},
+            {1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute},
+            {2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute},
+    };
 
-  postProcessDescSetLayout= device->createDescriptorSetLayoutUnique({
-    {},
-    VEC_VIEW(postProcessingLayoutBindings)
-  });
+    postProcessDescSetLayout= device->createDescriptorSetLayoutUnique({{}, VEC_VIEW(postProcessingLayoutBindings)});
+  }
 }
 
 void AsyVkRender::createDescriptorPool()
@@ -2157,20 +2164,20 @@ void AsyVkRender::createComputeDescriptorPool()
 
   // post processing
 
-  auto const poolSetCount= static_cast<uint32_t>(backbufferImages.size());
-
-  std::vector<vk::DescriptorPoolSize> const postProcPoolSizes
+  if (fxaa)
   {
-    {vk::DescriptorType::eCombinedImageSampler, poolSetCount}, // input image
-    {vk::DescriptorType::eStorageImage, poolSetCount}, // input image, non-sampled
-    {vk::DescriptorType::eStorageImage, poolSetCount},// output image image
-  };
+    auto const poolSetCount= static_cast<uint32_t>(backbufferImages.size());
 
-  postProcessDescPool = device->createDescriptorPoolUnique({
-    vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-    poolSetCount,
-    VEC_VIEW(postProcPoolSizes)
-  });
+    std::vector<vk::DescriptorPoolSize> const postProcPoolSizes{
+            {vk::DescriptorType::eCombinedImageSampler, poolSetCount},// input image
+            {vk::DescriptorType::eStorageImage, poolSetCount},        // input image, non-sampled
+            {vk::DescriptorType::eStorageImage, poolSetCount},        // output image image
+    };
+
+    postProcessDescPool= device->createDescriptorPoolUnique(
+            {vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, poolSetCount, VEC_VIEW(postProcPoolSizes)}
+    );
+  }
 }
 
 void AsyVkRender::createDescriptorSets()
@@ -2195,10 +2202,11 @@ void AsyVkRender::createDescriptorSets()
 
   // post processing descs
 
-  std::vector postProcessDescLayouts(backbufferImages.size(), *postProcessDescSetLayout);
-  postProcessDescSet= device->allocateDescriptorSetsUnique({
-    *postProcessDescPool, VEC_VIEW(postProcessDescLayouts)
-  });
+  if (fxaa)
+  {
+    std::vector postProcessDescLayouts(backbufferImages.size(), *postProcessDescSetLayout);
+    postProcessDescSet= device->allocateDescriptorSetsUnique({*postProcessDescPool, VEC_VIEW(postProcessDescLayouts)});
+  }
 }
 
 void AsyVkRender::writeDescriptorSets()
@@ -2408,7 +2416,10 @@ void AsyVkRender::writeDescriptorSets()
 
   device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
 
-  writePostProcessDescSets();
+  if (fxaa)
+  {
+    writePostProcessDescSets();
+  }
 }
 
 void AsyVkRender::writePostProcessDescSets()
@@ -3397,9 +3408,12 @@ void AsyVkRender::createComputePipelines()
   createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
   createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
 
-  std::vector const postProcessDescSetLayoutVec { *postProcessDescSetLayout };
-  // fxaa
-  createComputePipeline(postProcessPipelineLayout, postProcessPipeline, "fxaa.cs", postProcessDescSetLayoutVec);
+  if (fxaa)
+  {
+    std::vector const postProcessDescSetLayoutVec{*postProcessDescSetLayout};
+    // fxaa
+    createComputePipeline(postProcessPipelineLayout, postProcessPipeline, "fxaa.cs", postProcessDescSetLayoutVec);
+  }
 }
 
 void AsyVkRender::createAttachments()
