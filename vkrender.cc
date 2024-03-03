@@ -3021,11 +3021,22 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
     options.emplace_back("ORTHOGRAPHIC");
   }
 
+  if (fxaa)
+  {
+    options.emplace_back("ENABLE_FXAA");
+  }
+
+  if (srgb)
+  {
+    options.emplace_back("OUTPUT_AS_SRGB");
+  }
+
   if (type == PIPELINE_OPAQUE) {
     options.emplace_back("OPAQUE");
     return;
   }
 
+  // from now on, only things relevant to compute
   if (GPUcompress) {
     options.emplace_back("GPUCOMPRESS");
   }
@@ -3036,16 +3047,6 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
   options.emplace_back("LOCALSIZE " + std::to_string(localSize));
   options.emplace_back("BLOCKSIZE " + std::to_string(blockSize));
   options.emplace_back("ARRAYSIZE " + std::to_string(maxSize));
-
-  if (fxaa)
-  {
-    options.emplace_back("ENABLE_FXAA");
-  }
-
-  if (srgb)
-  {
-    options.emplace_back("OUTPUT_AS_SRGB");
-  }
 }
 
 template<typename V>
