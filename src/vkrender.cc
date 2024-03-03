@@ -1329,6 +1329,15 @@ void AsyVkRender::createSwapChain()
   auto && format = swapDetails.chooseSurfaceFormat();
   auto && extent = swapDetails.chooseExtent();
 
+  vk::ImageUsageFlags swapchainImgUsageFlags =
+          vk::ImageUsageFlagBits::eColorAttachment
+          | vk::ImageUsageFlagBits::eTransferSrc;
+
+  if (fxaa)
+  {
+    swapchainImgUsageFlags |= vk::ImageUsageFlagBits::eTransferDst;
+  }
+
   vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(
     vk::SwapchainCreateFlagsKHR(),
     *surface,
@@ -1337,9 +1346,7 @@ void AsyVkRender::createSwapChain()
     format.colorSpace,
     extent,
     1,
-    vk::ImageUsageFlagBits::eColorAttachment
-    | vk::ImageUsageFlagBits::eTransferSrc
-    | vk::ImageUsageFlagBits::eTransferDst,
+    swapchainImgUsageFlags,
     vk::SharingMode::eExclusive,
     0,
     nullptr,
