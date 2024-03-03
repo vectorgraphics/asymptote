@@ -31,8 +31,6 @@ vec3 perceptualToLinear(vec3 inColor)
 }
 #endif
 
-
-#ifdef ENABLE_FXAA
 // based on https://catlikecoding.com/unity/tutorials/advanced-rendering/fxaa/
 
 // configuration values
@@ -198,8 +196,6 @@ vec3 fxaa(ivec2 coord, ivec2 size)
   ).rgb;
 }
 
-#endif
-
 void main()
 {
   ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
@@ -210,8 +206,6 @@ void main()
   }
 
   // coordinate is valid
-
-#ifdef ENABLE_FXAA
   vec3 outputColor=fxaa(coord,size);
 
 #ifdef OUTPUT_AS_SRGB
@@ -226,22 +220,5 @@ void main()
     coord,
     vec4(returnColor, 1)
   );
-#else
-  // already in perceptual space, no need to do any further
-  // gamma adjustment
-  vec3 pixelColor=imageLoad(inputImage,coord).rgb;
-
-#ifdef OUTPUT_AS_SRGB
-  vec3 returnColor=pixelColor;
-#else
-  vec3 returnColor=perceptualToLinear(pixelColor);
-#endif
-
-  imageStore(
-    outputImage,
-    coord,
-    vec4(returnColor, 1)
-  );
-#endif
 
 }
