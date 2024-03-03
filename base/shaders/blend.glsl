@@ -174,10 +174,14 @@ void main()
     }
   }
 
+  // if FXAA is enabled, convert it to perceptual since FXAA needs it
+  // otherwise, if OUTPUT_AS_SRGB is enabled, also convert it to perceptual
+#if defined(ENABLE_FXAA) || defined(OUTPUT_AS_SRGB)
   // before we pass to post-processing stage, convert the color into
   // perceptual (sRGB) first since we blended the colors using linear values
   vec3 perceptualColor=linearToPerceptual(outColor.rgb);
   outColor = vec4(perceptualColor, outColor.a);
+#endif
 
   COUNT(pixel)=0u;
 }

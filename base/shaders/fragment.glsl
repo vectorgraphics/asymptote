@@ -289,9 +289,15 @@ void main() {
   // as the original pixel
   vec4 linearColor=outColor;
 
+  // if FXAA is enabled, convert it to perceptual since FXAA needs it
+  // otherwise, if OUTPUT_AS_SRGB is enabled, also convert it to perceptual
+#if defined(ENABLE_FXAA) || defined(OUTPUT_AS_SRGB)
   // outColor is our output vector, so save what we have as linear color
   vec3 outColorInPerceptualSpace=linearToPerceptual(linearColor.rgb);
   outColor=vec4(outColorInPerceptualSpace,linearColor.a);
+#else
+  outColor=linearColor;
+#endif
 
 #ifndef WIDTH // TODO DO NOT DO THE DEPTH COMPARISON WHEN NO TRANSPARENT OBJECTS!
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
