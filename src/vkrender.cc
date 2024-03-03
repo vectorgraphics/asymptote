@@ -4155,18 +4155,16 @@ void AsyVkRender::drawFrame()
     signalSemaphores.emplace_back(*frameObject.renderFinishedSemaphore);
   }
 
-  std::vector<vk::PipelineStageFlags> waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+  std::vector<vk::PipelineStageFlags> const waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
-  auto submitInfo = vk::SubmitInfo(
-    waitSemaphores.size(),
-    waitSemaphores.data(),
+  auto const submitInfo = vk::SubmitInfo(
+    VEC_VIEW(waitSemaphores),
     waitStages.data(),
-    1,
-    &*frameObject.commandBuffer,
+    SINGLETON_VIEW(*frameObject.commandBuffer),
     VEC_VIEW(signalSemaphores)
   );
 
-  if (renderQueue.submit(1, &submitInfo, *frameObject.inFlightFence) != vk::Result::eSuccess)
+  if (renderQueue.submit(SINGLETON_VIEW(submitInfo), *frameObject.inFlightFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
 
   // Present to the swapchain if we are rendering on-screen.
