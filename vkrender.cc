@@ -1444,7 +1444,19 @@ void AsyVkRender::createFramebuffers()
 
   for (auto i= 0u; i < backbufferImageViews.size(); i++)
   {
-    std::array<vk::ImageView, 3> attachments= {*colorImageView, *depthImageView, *immRenderTargetViews[i]};
+    // If we are in FXAA, render to an immediate frame buffer
+    // to be processed by the fxaa compute shader,
+    // otherwise,
+    // render directly into swap chain backbuffer
+    // still, we should really be moving to scene graphs.
+    // The code will get more complicated as times go on
+    // (what about multiple post-processing stages, multiple shaders, shadow maps, etc?)
+    
+    vk::ImageView const finalRenderTarget =
+            fxaa ? *immRenderTargetViews[i]
+                 : *backbufferImageViews[i];
+    
+    std::array<vk::ImageView, 3> attachments= {*colorImageView, *depthImageView, finalRenderTarget};
     std::array<vk::ImageView, 1> depthAttachments{*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
@@ -2843,6 +2855,17 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::ImageLayout::eUndefined,
     vk::ImageLayout::eColorAttachmentOptimal
   );
+
+  // If we are using fxaa, the output needs to be eGeneral
+  // since we are passing that to fxaa compute shader, otherwise
+  // we can go to presentSrc since we are passing it to the swap chain
+
+  // Again, we should really be using scene graphs here. The
+  // code will only get more complicated from now on...
+  vk::ImageLayout colorAttachmentFinalLayout = fxaa
+  ? vk::ImageLayout::eGeneral
+  : vk::ImageLayout::ePresentSrcKHR;
+  
   auto colorResolveAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
     backbufferImageFormat,
@@ -2852,7 +2875,7 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::AttachmentLoadOp::eDontCare,
     vk::AttachmentStoreOp::eDontCare,
     vk::ImageLayout::eUndefined,
-    vk::ImageLayout::eGeneral
+          colorAttachmentFinalLayout
   );
   auto depthAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
@@ -4047,69 +4070,67 @@ void AsyVkRender::drawFrame()
 #pragma message("FIXME: can we do scene graph instead of manual barriers?")
   beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
-  // current immediate target layout: general
+  // current immediate target layout: general/presentSrc depending on fxaa
 
-  // begin postprocessing
-  vk::ImageSubresourceRange constexpr isr(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-  std::vector<vk::ImageMemoryBarrier> const beforePostProcessingBarrier {
-    {
-      {}, vk::AccessFlagBits::eShaderWrite,
-      vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
-      VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
-      prePresentationImages[imageIndex].getImage(), isr
-    }
-  };
-  frameObject.commandBuffer->pipelineBarrier(
-    vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eComputeShader,
-    {},
-    EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(beforePostProcessingBarrier)
-  );
+  if (fxaa)
+  {
+    // begin postprocessing
+    vk::ImageSubresourceRange constexpr isr(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+    std::vector<vk::ImageMemoryBarrier> const beforePostProcessingBarrier {
+            {{}, vk::AccessFlagBits::eShaderWrite,
+             vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+             prePresentationImages[imageIndex].getImage(), isr}
+    };
+    frameObject.commandBuffer->pipelineBarrier(
+            vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eComputeShader,
+            {},
+            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(beforePostProcessingBarrier)
+    );
 
-  postProcessImage(*frameObject.commandBuffer, imageIndex);
-  // done postprocessing,
+    postProcessImage(*frameObject.commandBuffer, imageIndex);
+    // done postprocessing,
 
-  std::vector<vk::ImageMemoryBarrier> const preCopyBarriers {
-    {
-      vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead,
-      vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
-      VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
-      prePresentationImages[imageIndex].getImage(),
-      isr
-    },
-    {
-      {}, vk::AccessFlagBits::eTransferWrite,
-      vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-      VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
-      backbufferImages[imageIndex], isr
-    },
+    std::vector<vk::ImageMemoryBarrier> const preCopyBarriers {
+            {vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead,
+             vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
+             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+             prePresentationImages[imageIndex].getImage(),
+             isr},
+            {{}, vk::AccessFlagBits::eTransferWrite,
+             vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+             backbufferImages[imageIndex], isr},
 
-  };
+    };
 
-  frameObject.commandBuffer->pipelineBarrier(
-          vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eTransfer,
-    {},
-          EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(preCopyBarriers)
-  );
+    frameObject.commandBuffer->pipelineBarrier(
+            vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eTransfer,
+            {},
+            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(preCopyBarriers)
+    );
 
-  copyToSwapchainImg(*frameObject.commandBuffer, imageIndex);
-  // done copying
+    copyToSwapchainImg(*frameObject.commandBuffer, imageIndex);
+    // done copying
 
-  std::vector<vk::ImageMemoryBarrier> const prePresentationBarrier {
-          {vk::AccessFlagBits::eTransferWrite,
-           {},
-           vk::ImageLayout::eTransferDstOptimal,
-           vk::ImageLayout::ePresentSrcKHR,
-           VK_QUEUE_FAMILY_IGNORED,
-           VK_QUEUE_FAMILY_IGNORED,
-           backbufferImages[imageIndex],
-           isr}
-  };
+    std::vector<vk::ImageMemoryBarrier> const prePresentationBarrier {
+            {vk::AccessFlagBits::eTransferWrite,
+             {},
+             vk::ImageLayout::eTransferDstOptimal,
+             vk::ImageLayout::ePresentSrcKHR,
+             VK_QUEUE_FAMILY_IGNORED,
+             VK_QUEUE_FAMILY_IGNORED,
+             backbufferImages[imageIndex],
+             isr}
+    };
 
-  frameObject.commandBuffer->pipelineBarrier(
-    vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
-    {},
-    EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(prePresentationBarrier)
-  );
+    frameObject.commandBuffer->pipelineBarrier(
+            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
+            {},
+            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(prePresentationBarrier)
+    );
+  }
+  
   endFrameCommands();
   // recording done, not go to submit stage
 
