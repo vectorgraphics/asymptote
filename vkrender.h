@@ -66,9 +66,10 @@ class picture;
 #define VALIDATION
 
 #define EMPTY_VIEW 0, nullptr
-#define VEC_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
-#define STD_ARR_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
-#define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof(x[0])), x
+#define SINGLETON_VIEW(x) 1, &(x)
+#define VEC_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
+#define STD_ARR_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
+#define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof((x)[0])), x
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
 
