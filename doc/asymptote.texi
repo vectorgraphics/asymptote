@@ -9628,19 +9628,14 @@ produced using the @code{-f} option (or @code{outformat} setting).
 
 @cindex @code{SVG}
 @cindex @code{dvisvgm}
-@cindex @code{libgs}
 @cindex @code{graphic}
 To produce @acronym{SVG} output, you will need @code{dvisvgm} (version
-2.6.3 or later) from @url{https://dvisvgm.de}.
-You might need to adjust the configuration variable @code{libgs} to
-point to the location of your @code{Ghostscript} library
-@code{libgs.so} (or to an empty string, depending on how
-@code{dvisvgm} was configured). The 2.13.1 version (or later) of
-@code{dvisvgm} can display @acronym{SVG} output (used by the
+3.2.1 or later) from @url{https://dvisvgm.de},
+which can display @acronym{SVG} output (used by the
 @code{xasy} editor) for embedded @acronym{EPS}, @acronym{PDF},
 @acronym{PNG}, and @acronym{JPEG} images included with the
-@code{graphic()} function. You can optimize the generated output with
-@code{settings.dvisvgmOptions="--optimize"}.
+@code{graphic()} function. The generated output is optimized
+with the default setting @code{settings.dvisvgmOptions="--optimize"}.
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
