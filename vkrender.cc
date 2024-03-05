@@ -79,8 +79,8 @@ vk::SurfaceFormatKHR
 SwapChainDetails::chooseSurfaceFormat() const
 {
   for (const auto& availableFormat : formats) {
-    if (availableFormat.format == vk::Format::eB8G8R8A8Uint &&
-        availableFormat.colorSpace == vk::ColorSpaceKHR::eAdobergbLinearEXT) {
+    if (availableFormat.format == vk::Format::eB8G8R8A8Unorm &&
+        availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
       return availableFormat;
     }
   }
@@ -678,6 +678,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     vkinitialize=false;
 
   interlock=settings::getSetting<bool>("GPUinterlock");
+  fxaa=settings::getSetting<bool>("fxaa");
+  srgb=settings::getSetting<bool>("srgb");
 
 #ifdef HAVE_VULKAN
     Aspect=((double) width)/height;
@@ -756,6 +758,11 @@ void AsyVkRender::initVulkan()
   createCommandBuffers();
   if (View) createSwapChain();
   else createOffscreenBuffers();
+
+  if (fxaa)
+  {
+    setupPostProcessingComputeParameters();
+  }
   createImageViews();
   createSyncObjects();
 
@@ -771,6 +778,8 @@ void AsyVkRender::initVulkan()
   createDescriptorPool();
   createComputeDescriptorPool();
   createDescriptorSets();
+
+  createImmediateRenderTargets();
   writeDescriptorSets();
   writeMaterialAndLightDescriptors();
 
@@ -778,7 +787,7 @@ void AsyVkRender::initVulkan()
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
-  createComputePipelines();
+  createComputePipelines();   // gpu indexing + post processing
 
   fpu_trap(settings::trap()); // Work around FE_INVALID.
 
@@ -802,7 +811,12 @@ void AsyVkRender::recreateSwapChain()
 
   createSwapChain();
 
+  if (fxaa)
+  {
+    setupPostProcessingComputeParameters();
+  }
   createDependentBuffers();
+  createImmediateRenderTargets();
   writeDescriptorSets();
   createImageViews();
   createCountRenderPass();
@@ -1081,7 +1095,13 @@ void AsyVkRender::pickPhysicalDevice()
 std::pair<std::uint32_t, vk::SampleCountFlagBits>
 AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
 {
-	vk::PhysicalDeviceProperties props { };
+  // FXAA means we disable MSAA
+  if (settings::getSetting<bool>("fxaa"))
+  {
+    return std::make_pair(1, vk::SampleCountFlagBits::e1);
+  }
+
+  vk::PhysicalDeviceProperties props { };
 
   gpu.getProperties( &props );
 
@@ -1229,6 +1249,8 @@ void AsyVkRender::createLogicalDevice()
 
   vk::PhysicalDeviceFeatures deviceFeatures;
   deviceFeatures.fillModeNonSolid = true;
+  deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
+  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
 
   physicalDevice.getProperties2(&props);
 
@@ -1296,6 +1318,15 @@ void AsyVkRender::createSwapChain()
   auto && format = swapDetails.chooseSurfaceFormat();
   auto && extent = swapDetails.chooseExtent();
 
+  vk::ImageUsageFlags swapchainImgUsageFlags =
+          vk::ImageUsageFlagBits::eColorAttachment
+          | vk::ImageUsageFlagBits::eTransferSrc;
+
+  if (fxaa)
+  {
+    swapchainImgUsageFlags |= vk::ImageUsageFlagBits::eTransferDst;
+  }
+
   vk::SwapchainCreateInfoKHR swapchainCI = vk::SwapchainCreateInfoKHR(
     vk::SwapchainCreateFlagsKHR(),
     *surface,
@@ -1304,7 +1335,7 @@ void AsyVkRender::createSwapChain()
     format.colorSpace,
     extent,
     1,
-    vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
+    swapchainImgUsageFlags,
     vk::SharingMode::eExclusive,
     0,
     nullptr,
@@ -1393,6 +1424,7 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
   if (!shader.parse(&res, 100, false, compileMessages)) {
     std::cout << fileContents.size() << std::endl;
     std::cout << fileContents.data() << std::endl;
+    std::cerr << "Error: " << shader.getInfoLog();
     throw std::runtime_error("Failed to parse shader "
                              + filename
                              + ": " + shader.getInfoLog()
@@ -1424,10 +1456,22 @@ void AsyVkRender::createFramebuffers()
   opaqueGraphicsFramebuffers.resize(backbufferImageViews.size());
   graphicsFramebuffers.resize(backbufferImageViews.size());
 
-  for (auto i = 0u; i < backbufferImageViews.size(); i++)
+  for (auto i= 0u; i < backbufferImageViews.size(); i++)
   {
-    std::array<vk::ImageView, 3> attachments = {*colorImageView, *depthImageView, *backbufferImageViews[i]};
-    std::array<vk::ImageView, 1> depthAttachments {*depthImageView};
+    // If we are in FXAA, render to an immediate frame buffer
+    // to be processed by the fxaa compute shader,
+    // otherwise,
+    // render directly into swap chain backbuffer
+    // still, we should really be moving to scene graphs.
+    // The code will get more complicated as times go on
+    // (what about multiple post-processing stages, multiple shaders, shadow maps, etc?)
+    
+    vk::ImageView const finalRenderTarget =
+            fxaa ? *immRenderTargetViews[i]
+                 : *backbufferImageViews[i];
+    
+    std::array<vk::ImageView, 3> attachments= {*colorImageView, *depthImageView, finalRenderTarget};
+    std::array<vk::ImageView, 1> depthAttachments{*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
       {},
@@ -1941,6 +1985,7 @@ void AsyVkRender::createDescriptorSetLayout()
 
 void AsyVkRender::createComputeDescriptorSetLayout()
 {
+  // gpu indexing
   std::vector<vk::DescriptorSetLayoutBinding> layoutBindings
   {
     vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
@@ -1955,6 +2000,19 @@ void AsyVkRender::createComputeDescriptorSetLayout()
   );
 
   computeDescriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutCI);
+
+  // post processing
+
+  if (fxaa)
+  {
+    std::vector<vk::DescriptorSetLayoutBinding> const postProcessingLayoutBindings{
+            {0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eCompute},
+            {1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute},
+            {2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute},
+    };
+
+    postProcessDescSetLayout= device->createDescriptorSetLayoutUnique({{}, VEC_VIEW(postProcessingLayoutBindings)});
+  }
 }
 
 void AsyVkRender::createDescriptorPool()
@@ -2027,6 +2085,8 @@ void AsyVkRender::createDescriptorPool()
 
 void AsyVkRender::createComputeDescriptorPool()
 {
+  // gpu indexing
+
   std::array<vk::DescriptorPoolSize, 4> poolSizes;
 
   // countBuffer
@@ -2052,6 +2112,23 @@ void AsyVkRender::createComputeDescriptorPool()
     &poolSizes[0]
   );
   computeDescriptorPool = device->createDescriptorPoolUnique(poolCI);
+
+  // post processing
+
+  if (fxaa)
+  {
+    auto const poolSetCount= static_cast<uint32_t>(backbufferImages.size());
+
+    std::vector<vk::DescriptorPoolSize> const postProcPoolSizes{
+            {vk::DescriptorType::eCombinedImageSampler, poolSetCount},// input image
+            {vk::DescriptorType::eStorageImage, poolSetCount},        // input image, non-sampled
+            {vk::DescriptorType::eStorageImage, poolSetCount},        // output image image
+    };
+
+    postProcessDescPool= device->createDescriptorPoolUnique(
+            {vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, poolSetCount, VEC_VIEW(postProcPoolSizes)}
+    );
+  }
 }
 
 void AsyVkRender::createDescriptorSets()
@@ -2073,6 +2150,14 @@ void AsyVkRender::createDescriptorSets()
   );
 
   computeDescriptorSet = std::move(device->allocateDescriptorSetsUnique(computeAllocInfo)[0]);
+
+  // post processing descs
+
+  if (fxaa)
+  {
+    std::vector postProcessDescLayouts(backbufferImages.size(), *postProcessDescSetLayout);
+    postProcessDescSet= device->allocateDescriptorSetsUnique({*postProcessDescPool, VEC_VIEW(postProcessDescLayouts)});
+  }
 }
 
 void AsyVkRender::writeDescriptorSets()
@@ -2281,6 +2366,38 @@ void AsyVkRender::writeDescriptorSets()
   writes[3].pBufferInfo = &feedbackBufferInfo;
 
   device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+
+  if (fxaa)
+  {
+    writePostProcessDescSets();
+  }
+}
+
+void AsyVkRender::writePostProcessDescSets()
+{
+  // post process descriptors
+  for (size_t i=0; i < backbufferImages.size(); ++i)
+  {
+    vk::DescriptorImageInfo inputImgInfo(
+            *immRenderTargetSampler[i],
+            *immRenderTargetViews[i],
+            vk::ImageLayout::eGeneral
+            );
+    vk::DescriptorImageInfo inputImgInfoNonSampled(
+            {},
+            *immRenderTargetViews[i],
+            vk::ImageLayout::eGeneral
+    );
+    vk::DescriptorImageInfo outputImgInfo({}, *prePresentationImgViews[i], vk::ImageLayout::eGeneral);
+
+    std::vector<vk::WriteDescriptorSet> const postProcDescWrite{
+            {*postProcessDescSet[i], 0, 0, 1, vk::DescriptorType::eCombinedImageSampler, &inputImgInfo},
+            {*postProcessDescSet[i], 1, 0, 1, vk::DescriptorType::eStorageImage, &inputImgInfoNonSampled},
+            {*postProcessDescSet[i], 2, 0, 1, vk::DescriptorType::eStorageImage, &outputImgInfo}
+    };
+
+    device->updateDescriptorSets(VEC_VIEW(postProcDescWrite), EMPTY_VIEW);
+  }
 }
 
 void AsyVkRender::writeMaterialAndLightDescriptors() {
@@ -2425,6 +2542,76 @@ void AsyVkRender::createMaterialAndLightBuffers() {
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      sizeof(camp::Light) * nlights);
+}
+
+void AsyVkRender::createImmediateRenderTargets()
+{
+  immRenderTargetViews.clear();
+  immediateRenderTargetImgs.clear();
+  prePresentationImages.clear();
+  prePresentationImgViews.clear();
+  immRenderTargetSampler.clear();
+
+  auto const framebufferSize= backbufferImages.size();
+
+  immRenderTargetViews.reserve(framebufferSize);
+  immediateRenderTargetImgs.reserve(framebufferSize);
+  prePresentationImages.reserve(framebufferSize);
+  prePresentationImgViews.reserve(framebufferSize);
+  immRenderTargetSampler.reserve(framebufferSize);
+
+  for (size_t i= 0; i < framebufferSize; ++i)
+  {
+    // for immediate render target (after pixel shader)
+    auto const& immRenderTarget= immediateRenderTargetImgs.emplace_back(createImage(
+            backbufferExtent.width,
+            backbufferExtent.height,
+            vk::SampleCountFlagBits::e1,
+            backbufferImageFormat,
+            vk::ImageUsageFlagBits::eColorAttachment
+                    | vk::ImageUsageFlagBits::eSampled
+                    | vk::ImageUsageFlagBits::eStorage,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    ));
+
+
+    auto& immRenderImgView= immRenderTargetViews.emplace_back();
+    createImageView(
+            backbufferImageFormat,
+            vk::ImageAspectFlagBits::eColor,
+            immRenderTarget.getImage(),
+            immRenderImgView
+    );
+
+    // for sampling imm render target
+    immRenderTargetSampler.emplace_back(device->createSamplerUnique(vk::SamplerCreateInfo(
+            {},
+            vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest,
+            vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge,
+            vk::SamplerAddressMode::eClampToEdge,
+            0.f, false, 0.0, false, vk::CompareOp::eNever, 0.0, 0.0, vk::BorderColor::eFloatTransparentBlack,
+            true
+    )));
+
+    // for pre-presentation (after post-processing)
+    auto const& prePresentationTarget= prePresentationImages.emplace_back(createImage(
+      backbufferExtent.width,
+      backbufferExtent.height,
+      vk::SampleCountFlagBits::e1,
+      backbufferImageFormat,
+      vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    ));
+
+    auto& prePresentationImageView= prePresentationImgViews.emplace_back();
+    createImageView(
+            backbufferImageFormat,
+            vk::ImageAspectFlagBits::eColor,
+            prePresentationTarget.getImage(),
+            prePresentationImageView
+    );
+
+  }
 }
 
 void AsyVkRender::createDependentBuffers()
@@ -2686,6 +2873,17 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::ImageLayout::eUndefined,
     vk::ImageLayout::eColorAttachmentOptimal
   );
+
+  // If we are using fxaa, the output needs to be eGeneral
+  // since we are passing that to fxaa compute shader, otherwise
+  // we can go to presentSrc since we are passing it to the swap chain
+
+  // Again, we should really be using scene graphs here. The
+  // code will only get more complicated from now on...
+  vk::ImageLayout colorAttachmentFinalLayout = fxaa
+  ? vk::ImageLayout::eGeneral
+  : vk::ImageLayout::ePresentSrcKHR;
+  
   auto colorResolveAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
     backbufferImageFormat,
@@ -2695,7 +2893,7 @@ void AsyVkRender::createGraphicsRenderPass()
     vk::AttachmentLoadOp::eDontCare,
     vk::AttachmentStoreOp::eDontCare,
     vk::ImageLayout::eUndefined,
-    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR
+          colorAttachmentFinalLayout
   );
   auto depthAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
@@ -2834,11 +3032,22 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
     options.emplace_back("ORTHOGRAPHIC");
   }
 
+  if (fxaa)
+  {
+    options.emplace_back("ENABLE_FXAA");
+  }
+
+  if (srgb)
+  {
+    options.emplace_back("OUTPUT_AS_SRGB");
+  }
+
   if (type == PIPELINE_OPAQUE) {
     options.emplace_back("OPAQUE");
     return;
   }
 
+  // from now on, only things relevant to compute
   if (GPUcompress) {
     options.emplace_back("GPUCOMPRESS");
   }
@@ -3091,6 +3300,15 @@ void AsyVkRender::createGraphicsPipelines()
   createBlendPipeline();
 }
 
+void AsyVkRender::setupPostProcessingComputeParameters()
+{
+#pragma message("TODO: We should share this constant with the shader code & C++ side")
+  uint32_t constexpr localGroupSize=20;
+
+  postProcessThreadGroupCount.width=integerDivRoundUp(backbufferExtent.width, localGroupSize);
+  postProcessThreadGroupCount.height=integerDivRoundUp(backbufferExtent.height, localGroupSize);
+}
+
 void AsyVkRender::createBlendPipeline() {
 
   createGraphicsPipeline<ColorVertex>
@@ -3105,8 +3323,12 @@ void AsyVkRender::createBlendPipeline() {
                         true);
 }
 
-void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
-                                        std::string const & shaderFile)
+void AsyVkRender::createComputePipeline(
+  vk::UniquePipelineLayout& layout,
+  vk::UniquePipeline& pipeline,
+  std::string const& shaderFile,
+  std::vector<vk::DescriptorSetLayout> const& descSetLayout
+)
 {
   auto const filename = SHADER_DIRECTORY + shaderFile + ".glsl";
 
@@ -3131,8 +3353,7 @@ void AsyVkRender::createComputePipeline(vk::UniquePipelineLayout & layout, vk::U
 
   auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(
     vk::PipelineLayoutCreateFlags(),
-    1,
-    &*computeDescriptorSetLayout,
+    VEC_VIEW(descSetLayout),
     0,
     nullptr
   );
@@ -3156,9 +3377,17 @@ auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelin
 
 void AsyVkRender::createComputePipelines()
 {
-  createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1");
-  createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2");
-  createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3");
+  std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
+  createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
+  createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
+  createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
+
+  if (fxaa)
+  {
+    std::vector const postProcessDescSetLayoutVec{*postProcessDescSetLayout};
+    // fxaa
+    createComputePipeline(postProcessPipelineLayout, postProcessPipeline, "fxaa.cs", postProcessDescSetLayoutVec);
+  }
 }
 
 void AsyVkRender::createAttachments()
@@ -3298,7 +3527,7 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
 {
   std::array<vk::ClearValue, 3> clearColors;
 
-  clearColors[0] = vk::ClearValue(Background);
+  clearColors[0]= vk::ClearValue(Background);
   clearColors[1].depthStencil.depth = 1.f;
   clearColors[1].depthStencil.stencil = 0;
   clearColors[2] = vk::ClearValue(Background);
@@ -3759,7 +3988,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 {
   auto transparent=!Opaque;
-  beginFrameCommands(getFrameCommandBuffer());
 
   beginGraphicsFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
@@ -3779,7 +4007,37 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   }
 
   endFrameRender();
-  endFrameCommands();
+}
+
+void AsyVkRender::postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
+{
+  cmdBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *postProcessPipeline);
+
+  std::vector const computeDescSet{*postProcessDescSet[frameIndex]};
+  cmdBuffer.bindDescriptorSets(
+          vk::PipelineBindPoint::eCompute,
+          *postProcessPipelineLayout,
+          0,
+          VEC_VIEW(computeDescSet),
+          EMPTY_VIEW
+  );
+  cmdBuffer.dispatch(postProcessThreadGroupCount.width, postProcessThreadGroupCount.height, 1);
+}
+
+void AsyVkRender::copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
+{
+  vk::ImageSubresourceLayers const layers(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
+  std::vector const imgCopyData{
+          vk::ImageCopy(layers, vk::Offset3D(0, 0, 0), layers, vk::Offset3D(0, 0, 0), vk::Extent3D(backbufferExtent, 1))
+  };
+
+  cmdBuffer.copyImage(
+          prePresentationImages[frameIndex].getImage(),
+          vk::ImageLayout::eTransferSrcOptimal,
+          backbufferImages[frameIndex],
+          vk::ImageLayout::eTransferDstOptimal,
+          VEC_VIEW(imgCopyData)
+  );
 }
 
 void AsyVkRender::drawFrame()
@@ -3829,7 +4087,74 @@ void AsyVkRender::drawFrame()
   updateBuffers();
   resetFrameCopyData();
   preDrawBuffers(frameObject, imageIndex);
+
+  // FIXME: can we do scene graph instead of manual barriers?
+#pragma message("FIXME: can we do scene graph instead of manual barriers?")
+  beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
+  // current immediate target layout: general/presentSrc depending on fxaa
+
+  if (fxaa)
+  {
+    // begin postprocessing
+    vk::ImageSubresourceRange constexpr isr(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+    std::vector<vk::ImageMemoryBarrier> const beforePostProcessingBarrier {
+            {{}, vk::AccessFlagBits::eShaderWrite,
+             vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+             prePresentationImages[imageIndex].getImage(), isr}
+    };
+    frameObject.commandBuffer->pipelineBarrier(
+            vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eComputeShader,
+            {},
+            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(beforePostProcessingBarrier)
+    );
+
+    postProcessImage(*frameObject.commandBuffer, imageIndex);
+    // done postprocessing,
+
+    std::vector<vk::ImageMemoryBarrier> const preCopyBarriers {
+            {vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead,
+             vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
+             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+             prePresentationImages[imageIndex].getImage(),
+             isr},
+            {{}, vk::AccessFlagBits::eTransferWrite,
+             vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+             backbufferImages[imageIndex], isr},
+
+    };
+
+    frameObject.commandBuffer->pipelineBarrier(
+            vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eTransfer,
+            {},
+            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(preCopyBarriers)
+    );
+
+    copyToSwapchainImg(*frameObject.commandBuffer, imageIndex);
+    // done copying
+
+    std::vector<vk::ImageMemoryBarrier> const prePresentationBarrier {
+            {vk::AccessFlagBits::eTransferWrite,
+             {},
+             vk::ImageLayout::eTransferDstOptimal,
+             vk::ImageLayout::ePresentSrcKHR,
+             VK_QUEUE_FAMILY_IGNORED,
+             VK_QUEUE_FAMILY_IGNORED,
+             backbufferImages[imageIndex],
+             isr}
+    };
+
+    frameObject.commandBuffer->pipelineBarrier(
+            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
+            {},
+            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(prePresentationBarrier)
+    );
+  }
+  
+  endFrameCommands();
+  // recording done, not go to submit stage
 
   std::vector<vk::Semaphore> waitSemaphores {}, signalSemaphores {};
 
@@ -3840,18 +4165,16 @@ void AsyVkRender::drawFrame()
     signalSemaphores.emplace_back(*frameObject.renderFinishedSemaphore);
   }
 
-  std::vector<vk::PipelineStageFlags> waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+  std::vector<vk::PipelineStageFlags> const waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
-  auto submitInfo = vk::SubmitInfo(
-    waitSemaphores.size(),
-    waitSemaphores.data(),
+  auto const submitInfo = vk::SubmitInfo(
+    VEC_VIEW(waitSemaphores),
     waitStages.data(),
-    1,
-    &*frameObject.commandBuffer,
+    SINGLETON_VIEW(*frameObject.commandBuffer),
     VEC_VIEW(signalSemaphores)
   );
 
-  if (renderQueue.submit(1, &submitInfo, *frameObject.inFlightFence) != vk::Result::eSuccess)
+  if (renderQueue.submit(SINGLETON_VIEW(submitInfo), *frameObject.inFlightFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
 
   // Present to the swapchain if we are rendering on-screen.

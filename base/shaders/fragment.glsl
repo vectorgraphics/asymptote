@@ -95,6 +95,21 @@ float Roughness;
 
 vec3 normal;
 
+const float gamma=2.2;
+const float invGamma=1.0/gamma;
+
+/**
+ * @brief Converts linear color (measuring photon count) to srgb (what our brain thinks
+ * is the brightness
+ * example linearToPerceptual(vec3(0.5)) is approximately vec3(0.729)
+ */
+vec3 linearToPerceptual(vec3 inColor)
+{
+  // an actual 0.5 brightness (half amount of photons) would
+  // look brighter than what our eyes think is "half" light
+  return pow(inColor, vec3(invGamma));
+}
+
 #ifdef USE_IBL
 
 layout(binding=11) uniform sampler2D diffuseSampler;
@@ -267,12 +282,29 @@ void main() {
 #endif /*USE_IBL*/
 #endif /*NORMAL*/
 
+  // for reasons, the swapchain/FXAA shader expects a "perceptual" color,
+  // while all of our calculations have been linear (i.e. by measuring photon counts)
+  // (e.g. our 0.5 is much much brighter than what swap chain/monitor thinks 0.5 is)
+  // need to give the output image the color our brain perceives with the same photon count
+  // as the original pixel
+  vec4 linearColor=outColor;
+
+  // if FXAA is enabled, convert it to perceptual since FXAA needs it
+  // otherwise, if OUTPUT_AS_SRGB is enabled, also convert it to perceptual
+#if defined(ENABLE_FXAA) || defined(OUTPUT_AS_SRGB)
+  // outColor is our output vector, so save what we have as linear color
+  vec3 outColorInPerceptualSpace=linearToPerceptual(linearColor.rgb);
+  outColor=vec4(outColorInPerceptualSpace,linearColor.a);
+#else
+  outColor=linearColor;
+#endif
+
 #ifndef WIDTH // TODO DO NOT DO THE DEPTH COMPARISON WHEN NO TRANSPARENT OBJECTS!
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
   uint listIndex=atomicAdd(offset[element],-1u)-1u;
-  fragment[listIndex]=outColor;
+  fragment[listIndex]=linearColor;
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
   discard;
@@ -283,7 +315,7 @@ void main() {
   if(opaqueDepth[pixel] == 0.0 || gl_FragCoord.z < opaqueDepth[pixel])
     {
     opaqueDepth[pixel]=gl_FragCoord.z;
-    opaqueColor[pixel]=outColor;
+    opaqueColor[pixel]=linearColor;
   }
   endInvocationInterlockARB();
 #endif

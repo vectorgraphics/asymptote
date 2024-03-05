@@ -45,6 +45,7 @@
 
 #include <vma_cxx.h>
 
+#include <glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <GLFW/glfw3.h>
 #endif
@@ -63,11 +64,13 @@ namespace camp
 class picture;
 
 // Comment out when not debugging:
-//#define VALIDATION
+#define VALIDATION
 
-#define VEC_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
-#define STD_ARR_VIEW(x) static_cast<uint32_t>(x.size()), x.data()
-#define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof(x[0])), x
+#define EMPTY_VIEW 0, nullptr
+#define SINGLETON_VIEW(x) 1, &(x)
+#define VEC_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
+#define STD_ARR_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
+#define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof((x)[0])), x
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
 
@@ -109,6 +112,18 @@ inline void extendOffset(std::vector<T>& a, const std::vector<T>& b, T offset)
   a.resize(n + m);
   for (size_t i = 0; i < m; ++i)
     a[n + i] = b[i] + offset;
+}
+
+/** Returns ceil(a/b) */
+inline uint32_t integerDivRoundUp(uint32_t const& a, uint32_t const& b)
+{
+  // in float, this is a/b + (b-1)/b.
+  // if b divides a, b-1/b is <0 and gets truncated
+  // otherwise, let c = a mod b. Then a=kb + c where c < b
+  // Then, a + b - 1 is kb + c + b - 1 = (k+1) + c - 1.
+  // the (c-1)/b part gets truncated, leaving us with k + 1
+  // which is what we want
+  return (a + (b - 1)) / b;
 }
 
 std::vector<char> readFile(const std::string& filename);
@@ -545,6 +560,8 @@ private:
   bool redraw=true;
   bool interlock=false;
   bool GPUcompress=false;
+  bool fxaa=false;
+  bool srgb=false;
 
   std::int32_t gs2;
   std::int32_t gs;
@@ -591,8 +608,14 @@ private:
   std::vector<vk::Image> backbufferImages;
   std::vector<vk::UniqueImageView> backbufferImageViews;
 
+#pragma region intermediate frame buffers
   std::vector<vma::cxx::UniqueImage> immediateRenderTargetImgs;
   std::vector<vk::UniqueImageView> immRenderTargetViews;
+  std::vector<vk::UniqueSampler> immRenderTargetSampler;
+
+  std::vector<vma::cxx::UniqueImage> prePresentationImages;
+  std::vector<vk::UniqueImageView> prePresentationImgViews;
+#pragma endregion
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
   std::vector<vk::UniqueFramebuffer> opaqueGraphicsFramebuffers;
   std::vector<vk::UniqueFramebuffer> graphicsFramebuffers;
@@ -723,6 +746,18 @@ private:
   vk::UniqueImageView reflectionView;
   vk::UniqueSampler reflectionSampler;
 
+#pragma region post-process compute stuff
+  vk::Extent2D postProcessThreadGroupCount;
+
+  vk::UniquePipeline postProcessPipeline;
+  vk::UniquePipelineLayout postProcessPipelineLayout;
+  vk::UniqueDescriptorSetLayout postProcessDescSetLayout;
+
+  vk::UniqueDescriptorPool postProcessDescPool;
+
+  std::vector<vk::UniqueDescriptorSet> postProcessDescSet;
+
+#pragma endregion
   struct FrameObject {
     enum CommandBuffers {
       CMD_DEFAULT,
@@ -774,6 +809,10 @@ private:
 
     DeviceBuffer pointVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
     DeviceBuffer pointIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
+#pragma region post-process compute stuff
+    std::vector<vk::UniqueImage> resolvedColorImages;
+    std::vector<vk::ImageView> resolveColorImgViews;
+#pragma endregion
 
     void reset() {
 
@@ -845,6 +884,7 @@ private:
   void createCommandPools();
   void createCommandBuffers();
   void createImmediateRenderTargets();
+  void setupPostProcessingComputeParameters();
   vk::CommandBuffer beginSingleCommands();
   void endSingleCommands(vk::CommandBuffer cmd);
   PushConstants buildPushConstants();
@@ -860,6 +900,8 @@ private:
                   VertexBuffer * data,
                   vk::UniquePipeline & pipeline,
                   bool incrementRenderCount=true);
+  void postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
+  void copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void endFrameRender();
   void endFrameCommands();
   void endFrame(int imageIndex);
@@ -907,6 +949,7 @@ private:
   void createComputeDescriptorPool();
   void createDescriptorSets();
   void writeDescriptorSets();
+  void writePostProcessDescSets();
   void writeMaterialAndLightDescriptors();
   void updateSceneDependentBuffers();
 
@@ -935,8 +978,12 @@ private:
                               bool transparent=false, bool disableMultisample=false);
   void createGraphicsPipelines();
   void createBlendPipeline();
-  void createComputePipeline(vk::UniquePipelineLayout & layout, vk::UniquePipeline & pipeline,
-                             std::string const & shaderFile);
+  void createComputePipeline(
+    vk::UniquePipelineLayout & layout,
+    vk::UniquePipeline & pipeline,
+    std::string const& shaderFile,
+    std::vector<vk::DescriptorSetLayout> const& descSetLayout
+  );
   void createComputePipelines();
 
   void createAttachments();
