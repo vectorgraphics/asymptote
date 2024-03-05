@@ -458,8 +458,18 @@ case "$OSTYPE" in
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
-          LIBS=$LIBS"-lglfw -lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lOGLCompiler -lSPIRV "
+          LIBS=$LIBS"-lglfw -lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang "
           AC_CHECK_LIB([glslang],[glslang_initialize_process],
+          [
+          AC_DEFINE(HAVE_LIBVULKAN,1,
+          DEFINE_LIB([vulkan]))
+          LIBS=$LIBS"-lglslang "
+          OPTIONS=$OPTIONS"-DYYDEBUG=0 "
+          ],
+
+          [
+          LIBS=$LIBS"-lOGLCompiler "
+          AC_CHECK_LIB([glslang],[glslang_finalize_process],
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
           DEFINE_LIB([vulkan]))
@@ -469,6 +479,8 @@ case "$OSTYPE" in
           [
           AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
           LIBS=$LIBS_SAVE
+          ]
+          )
           ]
           )
           ],
