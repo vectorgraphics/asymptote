@@ -1490,7 +1490,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl)
       fileObj=new jsfile(name);
     else if(v3d)
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
       fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
                             getSetting<double>("prerender") > 0.0);
 #else

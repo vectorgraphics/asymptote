@@ -1002,7 +1002,7 @@ struct versionOption : public option {
     eigen=true;
 #endif
 
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
     xdr=true;
 #endif
 

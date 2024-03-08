@@ -396,6 +396,8 @@ AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS(fpu_control.h)
 AC_CHECK_FUNCS([feenableexcept])
 
+AC_ARG_ENABLE(xdr,
+[AS_HELP_STRING(--enable-xdr[[[=yes]]],enable XDR/V3D support)])
 if test "x$enable_xdr" != "xno"; then
 case "$OSTYPE" in
      darwin*)
@@ -407,7 +409,7 @@ esac
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    AC_CHECK_LIB_STATIC(libtirpc,tirpc,xdrstdio_create,
-                    HAVE_RPC_RPC_H,AC_MSG_NOTICE([*** Could not find libtirpc; XDR/V3D support disabled ***])),
+                    HAVE_LIBTIRPC,AC_MSG_NOTICE([*** Could not find libtirpc; XDR/V3D support disabled ***])),
 AC_MSG_NOTICE([*** Broken rpc headers; XDR/V3D support disabled ***]))
 fi
 
