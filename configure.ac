@@ -331,7 +331,11 @@ AC_CHECK_HEADERS(editline/readline.h)
 ])
 
 AC_DEFUN([AC_CHECK_LIB_STATIC],[
-PKGFLAGS=`pkg-config --libs $1`
+PKGFLAGS=`pkg-config --silence-errors --libs $1`
+if test "x$PKGFLAGS" == "x"; then
+PKGFLAGS=-l"$2 "
+echo Will try linking with $PKGFLAGS
+fi
 LDFLAGS_SAVE=$LDFLAGS
 LDFLAGS="$LDFLAGS ""$STATIC ""$PKGFLAGS""$DYNAMIC "
 AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),
@@ -418,7 +422,7 @@ AC_ARG_ENABLE(gsl,
 
 if test "x$enable_gsl" != "xno"; then
   CPPFLAGS="$CPPFLAGS "`pkg-config --cflags gsl`
-  LDFLAGS="$LDFLAGS "`pkg-config --libs gsl`
+  LDFLAGS="$LDFLAGS "`pkg-config --silence-errors --libs gsl`
   AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_debye_6, [AC_DEFINE(HAVE_LIBGSL,1,
    DEFINE_LIB[gsl]) LIBS=$LIBS"-lgsl -lgslcblas "],
