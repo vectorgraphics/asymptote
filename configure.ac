@@ -343,7 +343,7 @@ if test "x$enable_static" = "xyes"; then
 [
 LDFLAGS="$LDFLAGS_SAVE ""$PKGFLAGS"
 AS_UNSET([ac_cv_lib_$2_$3])
-AC_CHECK_LIB($2,$3,,$5)
+AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),$5)
 ]
 else
 $5
