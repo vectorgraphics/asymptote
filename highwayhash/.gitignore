@@ -1,0 +1,13 @@
+bin
+lib
+obj
+deps.mk
+OWNERS
+*.a
+*.o
+benchmark
+nanobenchmark_example
+profiler_example
+sip_hash_test
+vector_test
+highwayhash_test
