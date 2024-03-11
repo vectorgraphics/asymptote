@@ -51,7 +51,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
 	$(PRC) glrender tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures \
-	lspserv symbolmaps
+	lspserv symbolmaps hashing
 
 FILES = $(COREFILES) main
 

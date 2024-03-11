@@ -9,8 +9,9 @@ pair     => primPair()
 realarray* => realArray()
 pairarray* => pairArray()
 
-#include <inttypes.h>
+#include <cstdint>
 
+#include "hashing.h"
 #include "mathop.h"
 #include "path.h"
 
@@ -443,4 +444,36 @@ Int bitreverse(Int a, Int bits)
     return -1;
   unsigned int bytes=(bits+7)/8;
   return B[bytes-1]((unsigned long long) a) >> (8*bytes-bits);
+}
+
+Int hash(Int h, Int bits)
+{
+  if (bits > 62) {
+    ostringstream buf;
+    buf << "binHash can produce at most 62 bits, requested " << bits;
+    error(buf);
+  } else if (bits < 0) {
+    ostringstream buf;
+    buf << "binHash cannot produce negative bits, requested " << bits;
+    error(buf);
+  }
+  int8_t bits8 = static_cast<int8_t>(bits);
+  return hashing::hashInt(static_cast<uint64_t>(h), bits8);
+}
+
+Int hash(real h, Int bits)
+{
+  static_assert(sizeof(real) == sizeof(uint64_t),
+                "To hash a real, it must be a 64-bit float.");
+  if (bits > 62) {
+    ostringstream buf;
+    buf << "binHash can produce at most 62 bits, requested " << bits;
+    error(buf);
+  } else if (bits < 0) {
+    ostringstream buf;
+    buf << "binHash cannot produce negative bits, requested " << bits;
+    error(buf);
+  }
+  uint64_t hAsInt = *reinterpret_cast<uint64_t*>(&h);
+  return hashing::hashInt(hAsInt, static_cast<int8_t>(bits));
 }
