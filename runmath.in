@@ -457,8 +457,8 @@ Int hash(Int h, Int bits)
     buf << "binHash cannot produce negative bits, requested " << bits;
     error(buf);
   }
-  int8_t bits8 = static_cast<int8_t>(bits);
-  return hashing::hashInt(static_cast<uint64_t>(h), bits8);
+  uint64_t h2 = static_cast<uint64_t>(h);
+  return (h2 >> (64 - bits)) ^ (h2 & ((UINT64_C(1) << bits) - 1));
 }
 
 Int hash(real h, Int bits)
@@ -475,5 +475,6 @@ Int hash(real h, Int bits)
     error(buf);
   }
   uint64_t hAsInt = *reinterpret_cast<uint64_t*>(&h);
-  return hashing::hashInt(hAsInt, static_cast<int8_t>(bits));
+  span<const uint64_t> s = {&hAsInt, 1};
+  return hashing::hashSpan(s, static_cast<int8_t>(bits));
 }

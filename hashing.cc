@@ -1,10 +1,24 @@
 #include "hashing.h"
 
 #include <iostream>  // For Debugging ONLY
+#include <algorithm>
 #include <random>
 #include <vector>
 
+#include "highwayhash/highwayhash_target.h"
+#include "highwayhash/instruction_sets.h"
+
 namespace hashing {
+using namespace highwayhash;
+
+// uint64_t highwayHash() {
+//   HH_ALIGNAS(32) const HHKey key = {1, 2, 3, 4};
+//   char in[8] = {1};
+//   HHResult64 result;  // or HHResult128 or HHResult256
+//   InstructionSets::Run<HighwayHash>(key, in, 8, &result);
+//   return result;
+// }
+
 
 uint64_t random_bits(int8_t bits) {
   static std::random_device *rd = new std::random_device();
@@ -13,116 +27,44 @@ uint64_t random_bits(int8_t bits) {
   return dist(*gen);
 }
 
-uint64_t random_odd(int8_t bits) {
-  if (bits == 0) {
-    // There's no odd number with 0 bits, so we return 1.
-    return 1;
-  }
-  uint64_t r = random_bits(bits - 1);
-  return (r << 1) | 1;
+uint64_t hashSpan(span<const char> s, int8_t bits) {
+  HH_ALIGNAS(32) static const HHKey key = {random_bits(64), random_bits(64),
+                                           random_bits(64), random_bits(64)};
+  HHResult64 result;
+  InstructionSets::Run<HighwayHash>(key, s.data(), s.size(), &result);
+  return result & ((UINT64_C(1) << bits) - 1);
 }
-
-bool checkCycleLength(uint64_t m, int minAllowedLength = 1<<20) {
-  uint64_t a = UINT64_C(1);
-  int i;
-  for (i = 0; i < minAllowedLength; ++i) {
-    a *= m;
-    if (a == UINT64_C(1)) return false;
-  }
-  return true;
-}
-
-// Checks a simple bit-distribution condition: no byte can be all 0s or all 1s.
-bool checkBits(uint64_t a) {
-  uint8_t* start = reinterpret_cast<uint8_t*>(&a);
-  for (size_t i = 0; i < sizeof(uint64_t); ++i) {
-    uint8_t currentByte = start[i];
-    if (currentByte == 0 || currentByte == 0xff) {
-      return false;
-    }
-  }
-  return true;
-}
-
-// Note: checkCycle is expensive, so it's disabled by default.
-uint64_t niceRandomOdd(bool checkCycle = false, int8_t bits = 64) {
-  uint64_t m;
-  do {
-    m = random_odd(bits);
-  } while (!checkBits(m) || (checkCycle && !checkCycleLength(m)));
-  return m;
-}
-
-// The id is used to generate different hash functions with the same code
-// (by generating different multipliers and bias).
-template <unsigned int id>
-uint32_t hash64Tuple(const span<const uint32_t> tuple) {
-  static const std::vector<uint64_t> *multipliers = []() {
-    std::vector<uint64_t> *v = new std::vector<uint64_t>(64);
-    for (int8_t i = 0; i < 64; ++i) {
-      (*v)[i] = niceRandomOdd();
-    }
-    return v;
-  }();
-  static const uint64_t bias = niceRandomOdd();
-  uint64_t result = bias;
-  auto tupleIt = tuple.begin();
-  auto multiplierIt = multipliers->begin();
-  for (; tupleIt != tuple.end() && multiplierIt != multipliers->end();
-       ++tupleIt, ++multiplierIt) {
-    result += (*tupleIt) * (*multiplierIt);
-  }
-  return static_cast<uint32_t>(result >> 32);
-}
-
-uint64_t hash32Tuple(const span<const uint64_t> tuple) {
-  span<const uint32_t> tuple32 = {
-      reinterpret_cast<const uint32_t*>(tuple.data()),
-      tuple.size() * sizeof(uint64_t) / sizeof(uint32_t)
-  };
-  return (static_cast<uint64_t>(hash64Tuple<0>(tuple32)) << 32) |
-         hash64Tuple<1>(tuple32);
-}
-
-uint32_t hashSpan(span<const uint32_t> s, int8_t bits) {
-  static constexpr uint64_t p = UINT64_C(1) << 61 - 1;
-  static const uint64_t coefficient = niceRandomOdd(true, 61);
-  uint64_t result = 0;
-  
-}
-
 
 uint64_t hashSpan(span<const uint64_t> s, int8_t bits) {
-  auto condensedSize = (s.size() + 31) >> 5;  // Divide by 32, rounding up.
-  std::vector<uint64_t> condensed{condensedSize};
-  for (int i = 0; i < condensedSize; ++i) {
-    condensed[i] = hash64Tuple(s.subspan(i << 6));
-  }
-  static const uint64_t coefficient = niceRandomOdd(true);
-  uint64_t result = 0;
-  for (uint64_t a : condensed) {
-    result = result * coefficient + a;
-  }
-  return result >> (64 - bits);
+  span<const char> sChar = {reinterpret_cast<const char*>(s.data()),
+                            s.size() * (sizeof(uint64_t) / sizeof(char))};
+  return hashSpan(sChar, bits);
 }
 
-
-uint64_t hashInt(uint64_t h, int8_t bits) {
-  static const std::vector<uint64_t> *multipliers = []() {
-    std::vector<uint64_t> *v = new std::vector<uint64_t>(64);
-    for (int8_t i = 0; i < 64; ++i) {
-      (*v)[i] = niceRandomOdd();
-    }
-    return v;
-  }();
-  // std::cout << "h: " << h << " bits: " << (int)bits << std::endl;
-  uint64_t a = (*multipliers)[bits];
-  // std::cout << "a: " << a << std::endl;
-  // std::cout << "h * a: " << (h * a) << std::endl;
-  // std::cout << "64 - bits: " << (64 - bits) << std::endl;
-  uint64_t result = (h * a) >> (64 - bits);
-  // std::cout << "result: " << result << std::endl;
-  return result;
+std::array<uint64_t, 4> fingerprint(span<const char> s) {
+  // The following key was generated using the Python `secrets` module.
+  // However, since the key is public, the resulting hash is not secure.
+  // (While HighwayHash makes cryptographic claims, those claims rely on
+  // the secrecy of the key.)
+  HH_ALIGNAS(32) static constexpr HHKey key= {
+      UINT64_C(0x6e1b31ab5e83c15a),
+      UINT64_C(0x6648d2208b67c4af),
+      UINT64_C(0xcddc6e8f557f7103),
+      UINT64_C(0x0729a6dd6e86d99a)
+  };
+  HHResult256 result;
+  InstructionSets::Run<HighwayHash>(key, s.data(), s.size(), &result);
+  std::array<uint64_t, 4> fingerprint;
+  std::copy_n(result, 4, fingerprint.begin());
+  return fingerprint;
 }
+
+uint64_t hashInt(uint64_t i, int8_t bits) {
+  static const uint64_t key = random_bits(64);
+  uint64_t mask = (UINT64_C(1) << bits) - 1;
+  uint64_t currentKey = key & mask;
+  return (i >> (64 - bits)) ^ (i & mask) ^ currentKey;
+}
+
 
 }  // namespace hashing
