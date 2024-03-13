@@ -346,6 +346,7 @@ AS_UNSET([ac_cv_lib_$2_$3])
 AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),$5)
 ]
 else
+LDFLAGS=$LDFLAGS_SAVE
 $5
 fi
 )
@@ -405,16 +406,16 @@ AC_ARG_ENABLE(xdr,
 if test "x$enable_xdr" != "xno"; then
 case "$OSTYPE" in
      darwin*)
+          AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
      ;;
      *)
      CPPFLAGS="$CPPFLAGS "`pkg-config --cflags libtirpc`
-     ;;
-esac
-
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    AC_CHECK_LIB_STATIC(libtirpc,tirpc,xdrstdio_create,
                     HAVE_LIBTIRPC,AC_MSG_NOTICE([*** Could not find libtirpc; XDR/V3D support disabled ***])),
 AC_MSG_NOTICE([*** Broken rpc headers; XDR/V3D support disabled ***]))
+     ;;
+esac
 fi
 
 AC_ARG_ENABLE(gsl,
