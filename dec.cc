@@ -264,10 +264,13 @@ record *block::transAsFile(genv& ge, symbol id)
 }
 
 record *block::transAsTemplatedFile(
-    genv& ge, symbol id, mem::vector<absyntax::namedTyEntry*>* args
+    genv& ge,
+    symbol id,
+    mem::vector<absyntax::namedTyEntry*>* args,
+    frame *parent
 ) {
   // Create the new module.
-  record *r = new record(id, new frame(id,0,0));
+  record *r = new record(id, new frame(id,parent,0));
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -908,7 +911,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(id, (string) id, sigHandle, computedArgs);
+  record *imp=e.e.getTemplatedModule(id, (string) id, sigHandle, computedArgs, e.c.getFrame());
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -1054,7 +1057,7 @@ void typeParam::prettyprint(ostream &out, Int indent) {
   out << "typeParam (" << paramSym <<  ")\n";
 }
 
-bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry* arg) {
+bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
   if (arg->dest != paramSym) {
     em.error(arg->pos);
     em << "template argument name does not match module: passed "
@@ -1063,7 +1066,18 @@ bool typeParam::transAsParamMatcher(coenv &e, namedTyEntry* arg) {
        << paramSym;
     return false;
   }
-  e.e.addType(paramSym, arg->ent);
+  addTypeWithPermission(e, r, arg->ent, paramSym);
+  types::ty *t = arg->ent->t;
+  if (t->kind == types::ty_record) {
+    record *local = dynamic_cast<record *>(t);
+    // copied from recorddecc::addPostRecordEnvironment, mutatis mutandis
+    if (r) {
+      r->e.add(local->postdefenv, 0, e.c);
+    }
+    e.e.add(local->postdefenv, 0, e.c);
+  }
+
+  //e.e.addType(paramSym, arg->ent);
   // The code below would add e.g. operator== to the context, but potentially
   // ignore overrides of operator==:
   //
@@ -1098,7 +1112,7 @@ void typeParamList::add(typeParam *tp) {
 }
 
 bool typeParamList::transAsParamMatcher(
-    coenv &e, mem::vector<namedTyEntry*> *args
+    coenv &e, record *r, mem::vector<namedTyEntry*> *args
 ) {
   if (args->size() != params.size()) {
     position pos = getPos();
@@ -1116,7 +1130,7 @@ bool typeParamList::transAsParamMatcher(
     return false;
   }
   for (size_t i = 0; i < params.size(); ++i) {
-    bool succeeded = params[i]->transAsParamMatcher(e, (*args)[i]);
+    bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
     if (!succeeded) return false;
   }
   return true;
@@ -1136,7 +1150,7 @@ symbol templatedSymbol() {
 bool receiveTypedefDec::transAsParamMatcher(
     coenv& e, record *r, mem::vector<namedTyEntry*> *args
 ) {
-  bool succeeded = params->transAsParamMatcher(e, args);
+  bool succeeded = params->transAsParamMatcher(e, r, args);
 
   types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);
