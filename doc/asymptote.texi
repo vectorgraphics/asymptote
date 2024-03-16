@@ -4424,13 +4424,13 @@ the total system cputime followed by ``S''.
 @cindex inheritance
 @cindex virtual functions
 Much like in C++, casting (@pxref{Casts}) provides for an elegant
-implementation of structure inheritance, including virtual functions:
+implementation of structure inheritance, including a virtual function @code{v}:
 @verbatim
 struct parent {
   real x;
   void operator init(int x) {this.x=x;}
-  void virtual(int) {write(0);}
-  void f() {virtual(1);}
+  void v(int) {write(0);}
+  void f() {v(1);}
 }
 
 void write(parent p) {write(p.x);}
@@ -4439,8 +4439,8 @@ struct child {
   parent parent;
   real y=3;
   void operator init(int x) {parent.operator init(x);}
-  void virtual(int x) {write(x);}
-  parent.virtual=virtual;
+  void v(int x) {write(x);}
+  parent.v=v;
   void f()=parent.f;
 }
 
