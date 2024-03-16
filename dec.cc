@@ -1057,6 +1057,20 @@ void typeParam::prettyprint(ostream &out, Int indent) {
   out << "typeParam (" << paramSym <<  ")\n";
 }
 
+void recordInitializer(coenv &e, symbol id, record *parent, position here)
+{
+  // This is equivalent to the code
+  //   A operator init() { return new A; }
+  // where A is the name of the record.
+  formals formals(here);
+  simpleName recordName(here, id);
+  nameTy result(here, &recordName);
+  newRecordExp exp(here, &result);
+  returnStm stm(here, &exp);
+  fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
+  init.transAsField(e, parent);
+}
+
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
   if (arg->dest != paramSym) {
     em.error(arg->pos);
@@ -1070,6 +1084,9 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
   types::ty *t = arg->ent->t;
   if (t->kind == types::ty_record) {
     record *local = dynamic_cast<record *>(t);
+
+    recordInitializer(e,paramSym,r,getPos());
+
     // copied from recorddecc::addPostRecordEnvironment, mutatis mutandis
     if (r) {
       r->e.add(local->postdefenv, 0, e.c);
@@ -1345,19 +1362,7 @@ void recorddec::prettyprint(ostream &out, Int indent)
 
 void recorddec::transRecordInitializer(coenv &e, record *parent)
 {
-  position here=getPos();
-
-  // This is equivalent to the code
-  //   A operator init() { return new A; }
-  // where A is the name of the record.
-  formals formals(here);
-  simpleName recordName(here, id);
-  nameTy result(here, &recordName);
-  newRecordExp exp(here, &result);
-  returnStm stm(here, &exp);
-  fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
-
-  init.transAsField(e, parent);
+  recordInitializer(e,id,parent,getPos());
 }
 
 void recorddec::addPostRecordEnvironment(coenv &e, record *r, record *parent) {
