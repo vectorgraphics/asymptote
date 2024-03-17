@@ -143,7 +143,6 @@ record *genv::getModule(symbol id, string filename) {
 
     return r;
   }
-
 }
 
 record *genv::getTemplatedModule(
@@ -154,19 +153,21 @@ record *genv::getTemplatedModule(
     frame *parent
 ) {
   checkRecursion(filename);
+
   importIndex_t Index(filename,sigHandle);
-  // COMMENT NEEDED: Why are we not checking for imap[Index] before proceeding?
-  // Tests say it's not necessary, but it's not obvious why.
-  record *r=loadTemplatedModule(id, filename, args, parent);
 
-  // Don't add an erroneous module to the dictionary in interactive mode, as
-  // the user may try to load it again.
-  if (!interact::interactive || !em.errors()) {
-    imap[Index]=r;
+  record *r=imap[Index];
+  if (r)
+    return r;
+  else {
+    record *r=loadTemplatedModule(id, filename, args, parent);
+    // Don't add an erroneous module to the dictionary in interactive mode, as
+    // the user may try to load it again.
+    if (!interact::interactive || !em.errors())
+      imap[Index]=r;
+
+    return r;
   }
-
-  return r;
-
 }
 
 
