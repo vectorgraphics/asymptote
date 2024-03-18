@@ -911,7 +911,11 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(id, (string) id, sigHandle, computedArgs, e.c.getFrame());
+  record *imp=e.e.getTemplatedModule(id,
+                                     (string) id,
+                                     sigHandle,
+                                     computedArgs,
+                                     e.c.getFrame());
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
