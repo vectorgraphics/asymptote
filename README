@@ -49,9 +49,9 @@ noted below.
 
 ========================================================================
 
-Source code for the x86_64 and i386 3.3.3 cygwin1.dll libraries is
+Source code for the x86_64 and i386 3.5.1 cygwin1.dll libraries is
 available under the GPL license:
-https://cygwin.com/snapshots/
+https://www.cygwin.com/git.html
 
 Source for various icons is available under the MIT license from
 https://github.com/driftyco/ionicons/archive/v2.0.1.zip

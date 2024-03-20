@@ -888,10 +888,10 @@ void callExp::reportMismatch(function *ft, signature *source)
         em << "without parameters";
         break;
       case 1:
-        em << "with parameter '" << *source << "'";
+        em << "with parameter '" << toString(*source) << "'";
         break;
       default:
-        em << "with parameters\n'" << *source << "'";
+        em << "with parameters\n'" << toString(*source) << "'";
     }
 }
 

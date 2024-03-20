@@ -22,7 +22,7 @@
 #include "common.h"
 #include "angle.h"
 
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
 #include "xstream.h"
 #endif
 
@@ -235,7 +235,7 @@ public:
     return out;
   }
 
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
   friend xdr::oxstream& operator << (xdr::oxstream& out, pair const& v)
   {
       out << v.x << v.y;
