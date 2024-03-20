@@ -398,6 +398,7 @@ struct signature : public gc {
     return n >= formals.size() - numKeywordOnly;
   }
 
+  friend string toString(const signature& s);
   friend ostream& operator<< (ostream& out, const signature& s);
 
   friend bool equivalent(const signature *s1, const signature *s2);

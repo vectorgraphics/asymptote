@@ -4424,13 +4424,13 @@ the total system cputime followed by ``S''.
 @cindex inheritance
 @cindex virtual functions
 Much like in C++, casting (@pxref{Casts}) provides for an elegant
-implementation of structure inheritance, including virtual functions:
+implementation of structure inheritance, including a virtual function @code{v}:
 @verbatim
 struct parent {
   real x;
   void operator init(int x) {this.x=x;}
-  void virtual(int) {write(0);}
-  void f() {virtual(1);}
+  void v(int) {write(0);}
+  void f() {v(1);}
 }
 
 void write(parent p) {write(p.x);}
@@ -4439,8 +4439,8 @@ struct child {
   parent parent;
   real y=3;
   void operator init(int x) {parent.operator init(x);}
-  void virtual(int x) {write(x);}
-  parent.virtual=virtual;
+  void v(int x) {write(x);}
+  parent.v=v;
   void f()=parent.f;
 }
 
@@ -8318,12 +8318,24 @@ The @acronym{PRC} specification is available from
 @url{https://web.archive.org/web/20081204104459/http://livedocs.adobe.com/acrobat_sdk/9/Acrobat9_HTMLHelp/API_References/PRCReference/PRC_Format_Specification/}
 
 @cindex @code{v3d}
-@item Output a @code{V3D} portable compressed binary file for viewing with an
-external viewer or conversion to an alternate 3D format with the Python
-@code{pyv3d} library. The @code{V3D} specification and the
+@item Output a @acronym{V3D} portable compressed vector graphics file
+using @code{settings.outformat="v3d"}, which can be viewed
+with an external viewer or converted to an alternate 3D format
+using the Python @code{pyv3d} library. @acronym{V3D} content can be automatically embedded within
+a @acronym{PDF} file using the options @code{settings.outformat="pdf"} and
+@code{settings.v3d=true}. Alternatively, a V3D file @code{file.v3d} may be manually embedded
+within a @acronym{PDF} file using the @code{media9} @code{LaTeX} package:
+@verbatim
+\includemedia[noplaybutton,width=100pt,height=200pt]{}{file.v3d}%
+@end verbatim
+An online @code{Javascript}-based V3D-aware @code{PDF} viewer is
+available at
+@url{https://github.com/vectorgraphics/pdfv3dReader}.
+
+The @acronym{V3D} specification and the
 @code{pyv3d} library are available at
 @url{https://github.com/vectorgraphics/v3d}.
-A @code{V3D} file @code{file.v3d} may be imported and viewed by
+A @acronym{V3D} file @code{file.v3d} may be imported and viewed by
 @code{Asymptote} either by specifying @code{file.v3d} on the command line
 @verbatim
 asy -V file.v3d
@@ -9616,18 +9628,14 @@ produced using the @code{-f} option (or @code{outformat} setting).
 
 @cindex @code{SVG}
 @cindex @code{dvisvgm}
-@cindex @code{libgs}
 @cindex @code{graphic}
 To produce @acronym{SVG} output, you will need @code{dvisvgm} (version
-2.6.3 or later) from @url{https://dvisvgm.de}.
-You might need to adjust the configuration variable @code{libgs} to
-point to the location of your @code{Ghostscript} library
-@code{libgs.so} (or to an empty string, depending on how
-@code{dvisvgm} was configured). The 2.13.1 version (or later) of
-@code{dvisvgm} can display @acronym{SVG} output (used by the
+3.2.1 or later) from @url{https://dvisvgm.de},
+which can display @acronym{SVG} output (used by the
 @code{xasy} editor) for embedded @acronym{EPS}, @acronym{PDF},
 @acronym{PNG}, and @acronym{JPEG} images included with the
-@code{graphic()} function.
+@code{graphic()} function. The generated output is optimized
+with the default setting @code{settings.dvisvgmOptions="--optimize"}.
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or

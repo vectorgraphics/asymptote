@@ -2146,7 +2146,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     fpu_trap(false); // Work around FE_INVALID
-    window=glutCreateWindow("");
+    window=glutCreateWindow(Iconify ? "" : "Asymptote rendering window" );
     fpu_trap(settings::trap());
     glutHideWindow();
   }
