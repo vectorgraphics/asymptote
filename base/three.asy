@@ -1,7 +1,12 @@
 private import math;
 
-if(prc0()) {
-  if(!latex()) settings.prc=false;
+if(settings.v3d) settings.prc=false;
+
+if(prc0() || settings.v3d) {
+  if(!latex()) {
+    settings.prc=false;
+    settings.v3d=false;
+  }
   else {
     access embed;
     Embed=embed.embedplayer;
@@ -2854,8 +2859,8 @@ object embed(string prefix=outprefix(), string label=prefix,
   light Light=modelview*light;
 
   if(prefix == "") prefix=outprefix();
-  bool preview=settings.render > 0 && !prconly();
-  if(prc) {
+  bool preview=settings.render > 0 && !prconly() && !settings.v3d;
+  if(prc || settings.v3d) {
     // The media9.sty package cannot handle spaces or dots in filenames.
     string dir=stripfile(prefix);
     prefix=dir+replace(stripdirectory(prefix),
@@ -2864,7 +2869,7 @@ object embed(string prefix=outprefix(), string label=prefix,
       prefix += "+"+(string) file3.length;
   } else
     preview=false;
-  if(preview || (!prc && settings.render != 0)) {
+  if(preview || (!prc && settings.render != 0) || settings.v3d) {
     frame f=S.f;
     triple m,M;
     real zcenter;
@@ -2891,7 +2896,7 @@ object embed(string prefix=outprefix(), string label=prefix,
     } else if(M.z >= 0) abort("camera too close");
 
     if(primitive())
-      format=settings.outformat;
+      format=settings.v3d ? "v3d" : settings.outformat;
 
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
@@ -2900,6 +2905,12 @@ object embed(string prefix=outprefix(), string label=prefix,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
              Light.diffuse,Light.specular,
              view && !preview);
+    if(settings.v3d) {
+      string content=prefix+".v3d";
+      F.L=Embed(content,S.width,S.height);
+      if(!settings.inlinetex) file3.push(content);
+      return F;
+    }
     if(!preview) return F;
   }
 
@@ -2997,7 +3008,7 @@ frame embedder(object embedder(string prefix, string format),
                string prefix, string format, bool view, light light)
 {
   frame f;
-  bool prc=prc(format);
+  bool prc=prc(format) || settings.v3d;
   if(!prc && settings.render != 0 && !view) {
     static int previewcount=0;
     bool keep=prefix != "";

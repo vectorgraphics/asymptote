@@ -251,7 +251,10 @@ public:
   types::record *transAsFile(genv& ge, symbol id);
 
   types::record *transAsTemplatedFile(
-      genv& ge, symbol id, mem::vector<absyntax::namedTyEntry*> *args
+      genv& ge,
+      symbol id,
+      mem::vector<absyntax::namedTyEntry*> *args,
+      trans::frame *parent
   );
 
   // If the block can be interpreted as a single vardec, return that vardec
@@ -618,7 +621,7 @@ public:
   typeParam(position pos, symbol paramSym)
     : absyn(pos), paramSym(paramSym) {}
 
-  bool transAsParamMatcher(coenv &e, namedTyEntry *arg);
+  bool transAsParamMatcher(coenv &e, record *r, namedTyEntry *arg);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -631,7 +634,7 @@ public:
 
   void add(typeParam *tp);
 
-  bool transAsParamMatcher(coenv &e, mem::vector<namedTyEntry*> *args);
+  bool transAsParamMatcher(coenv &e, record *r, mem::vector<namedTyEntry*> *args);
 
   void prettyprint(ostream &out, Int indent);
 };

@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[2.87git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[2.89git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -290,15 +290,6 @@ fi
 
 AC_CHECK_LIB([rt], [sched_yield])
 
-AC_ARG_ENABLE(curl,
-[AS_HELP_STRING(--enable-curl[[[=yes]]],enable libcurl and compile with optional URL support)])
-if test "x$enable_curl" != "xno"; then
-  AC_CHECK_LIB([curl],[curl_easy_init],,
-  AC_MSG_NOTICE([*** Could not find libcurl: will compile without optional URL support. ***]))
-else
-  AC_MSG_NOTICE([*** libcurl support disabled by configure flag: will compile without optional URL support. ***])
-fi
-
 LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
@@ -317,11 +308,9 @@ AC_ARG_ENABLE(readline,
 AC_ARG_ENABLE(static,
 [AS_HELP_STRING(--enable-static[[[=no]]],link against static libraries)])
 
-LDSTATIC=""
 STATIC=""
 DYNAMIC=""
 if test "x$enable_static" = "xyes"; then
-  LDSTATIC="-static "
   STATIC="-Wl,-Bstatic "
   DYNAMIC="-Wl,-Bdynamic "
 fi
@@ -332,31 +321,43 @@ AC_CHECK_LIB([edit],[readline])
 AC_CHECK_HEADERS(editline/readline.h)
 ])
 
-AC_DEFUN([CHECK_FOUND_STATIC],[
-AC_DEFINE($1,1,DEFINE_LIB($2))
-LIBS=$LIBS$STATIC"-l$2 "$DYNAMIC
+AC_DEFUN([PKG_CONFIG],[
+ifdef([PKG_CHECK_MODULES],$1="$2 "`pkg-config --silence-errors $3 $4`,)
 ])
 
-AC_DEFUN([AC_CHECK_LIB_STATIC],[
-LDFLAGS0=$LDFLAGS
-LDFLAGS=$LDFLAGS$LDSTATIC
-AC_CHECK_LIB($1,$2,CHECK_FOUND_STATIC($3,$1),
+AC_DEFUN([CHECK_LIB_STATIC],[
+PKG_FLAGS=""
+PKG_CONFIG(PKG_FLAGS,,--libs,$1)
+if test "x$PKG_FLAGS" == "x"; then
+PKG_FLAGS=-l"$2"
+echo Will try linking with $PKG_FLAGS
+fi
+LDFLAGS_SAVE=$LDFLAGS
+LDFLAGS="$LDFLAGS ""$STATIC ""$PKG_FLAGS ""$DYNAMIC "
+AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),
 if test "x$enable_static" = "xyes"; then
 [
-AS_UNSET([ac_cv_lib_$1_$2])
-LDFLAGS=$LDFLAGS0
-AC_CHECK_LIB($1,$2,,$4)
+echo "Static library not found; will check for dynamic version"
+LDFLAGS="$LDFLAGS_SAVE ""$PKG_FLAGS "
+AS_UNSET([ac_cv_lib_$2_$3])
+AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),
+[
+LDFLAGS=$LDFLAGS_SAVE
+$5
+])
 ]
 else
-$4
+[
+LDFLAGS=$LDFLAGS_SAVE
+$5
+]
 fi
+)]
 )
-LDFLAGS=$LDFLAGS0
-])
 
 if test "x$enable_readline" != "xno"; then
-CPPFLAGS="$CPPFLAGS "`pkg-config --cflags readline`
-LDFLAGS="$LDFLAGS "`pkg-config --libs readline`
+PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,readline)
+
 AC_COMPILE_IFELSE([
 AC_LANG_PROGRAM([
 #include <stdio.h>
@@ -367,24 +368,37 @@ AC_LANG_PROGRAM([
 abort
 #endif
 ])],
-AC_CHECK_LIB_STATIC(readline,history_list,HAVE_LIBREADLINE,READLINE),
+CHECK_LIB_STATIC(readline,readline,history_list,HAVE_LIBREADLINE,READLINE),
 READLINE)
 
-AC_CHECK_LIB_STATIC(tinfo,tgetent,HAVE_LIBTINFO,AC_MSG_NOTICE([perhaps tgetent is in -lncurses]))
+PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,tinfo)
+CHECK_LIB_STATIC(tinfo,tinfo,tgetent,HAVE_LIBTINFO,AC_MSG_NOTICE([perhaps tgetent is in -lncurses]))
 
+PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,ncurses)
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
-AC_CHECK_LIB_STATIC([ncurses],[setupterm],HAVE_LIBCURSES,
-                    AC_CHECK_LIB([curses],[setupterm]))
+CHECK_LIB_STATIC(ncurses,ncurses,setupterm,HAVE_LIBCURSES,
+                    AC_CHECK_LIB(curses,setupterm))
+fi
+
+AC_ARG_ENABLE(curl,
+[AS_HELP_STRING(--enable-curl[[[=yes]]],enable libcurl and compile with optional URL support)])
+if test "x$enable_curl" != "xno"; then
+  PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,curl)
+  AC_CHECK_HEADER(curl/curl.h,
+  CHECK_LIB_STATIC(libcurl,curl,curl_easy_init,HAVE_LIBCURL,
+  AC_MSG_NOTICE([*** Could not find libcurl: will compile without optional URL support. ***])),
+     AC_MSG_NOTICE([*** Header file curl.h not found: will compile without optional URL support. ***]))
+else
+  AC_MSG_NOTICE([*** libcurl support disabled by configure flag: will compile without optional URL support. ***])
 fi
 
 AC_ARG_ENABLE(fftw,
 [AS_HELP_STRING(--enable-fftw[[[=yes]]],enable FFTW Library)])
 
 if test "x$enable_fftw" != "xno"; then
-CPPFLAGS="$CPPFLAGS "`pkg-config --cflags fftw3`
-LDFLAGS="$LDFLAGS "`pkg-config --libs fftw3`
+PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,fftw3)
 AC_CHECK_HEADER(fftw3.h,
-AC_CHECK_LIB_STATIC([fftw3],[fftw_execute],HAVE_LIBFFTW3,
+CHECK_LIB_STATIC(fftw3,fftw3,fftw_execute,HAVE_LIBFFTW3,
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
      AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 fi
@@ -393,7 +407,7 @@ AC_ARG_ENABLE(eigen,
 [AS_HELP_STRING(--enable-eigen[[[=yes]]],enable Eigen Library)])
 
 if test "x$enable_eigen" != "xno"; then
-CPPFLAGS="$CPPFLAGS "`pkg-config --cflags eigen3`
+PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,eigen3)
 AC_CHECK_HEADERS(Eigen/Dense)
 fi
 
@@ -403,31 +417,32 @@ AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS(fpu_control.h)
 AC_CHECK_FUNCS([feenableexcept])
 
+AC_ARG_ENABLE(xdr,
+[AS_HELP_STRING(--enable-xdr[[[=yes]]],enable XDR/V3D support)])
+if test "x$enable_xdr" != "xno"; then
 case "$OSTYPE" in
      darwin*)
+          AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
      ;;
      *)
-     CPPFLAGS="$CPPFLAGS "`pkg-config --cflags libtirpc`
-     LDFLAGS="$LDFLAGS "`pkg-config --libs libtirpc`
+     PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,libtirpc)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
+                   CHECK_LIB_STATIC(libtirpc,tirpc,xdrstdio_create,
+                    HAVE_LIBTIRPC,AC_MSG_NOTICE([*** Could not find libtirpc; XDR/V3D support disabled ***])),
+AC_MSG_NOTICE([*** Broken rpc headers; XDR/V3D support disabled ***]))
      ;;
 esac
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
-                   [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
-                    AC_DEFINE(HAVE_RPC_RPC_H,1,
-                   DEFINE([a working <tirpc/rpc/rpc.h> header]))],
-   AC_MSG_WARN([*** Broken rpc headers; XDR/V3D support disabled ***]))
+fi
 
 AC_ARG_ENABLE(gsl,
 [AS_HELP_STRING(--enable-gsl[[[=yes]]],enable GNU Scientific Library)])
 
 if test "x$enable_gsl" != "xno"; then
-  CPPFLAGS="$CPPFLAGS "`pkg-config --cflags gsl`
-  LDFLAGS="$LDFLAGS "`pkg-config --libs gsl`
+  PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,gsl)
+  PKG_CONFIG(LDFLAGS,$LDFLAGS,--libs,gsl)
   AC_CHECK_HEADER(gsl/gsl_sf.h,
-   AC_CHECK_LIB([gsl], gsl_sf_debye_6, [AC_DEFINE(HAVE_LIBGSL,1,
-   DEFINE_LIB[gsl]) LIBS=$LIBS"-lgsl -lgslcblas "],
-           AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
+  CHECK_LIB_STATIC(gsl,gsl,gsl_sf_debye_6,HAVE_LIBGSL,
+           AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***])),
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 fi
 

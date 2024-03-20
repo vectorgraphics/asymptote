@@ -197,6 +197,8 @@ string mapArrayString(string From, string To)
   }";
 }
 
+// This function is deprecated: use
+// from mapArray(Src=T1, Dst=T2) access map;
 void mapArray(string From, string To)
 {
   eval(mapArrayString(From,To),true);
