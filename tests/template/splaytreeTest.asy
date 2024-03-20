@@ -16,9 +16,11 @@ bool operator == (wrapped_int a, wrapped_int b) {
   return a.t == b.t;
 }
 
-from "template/imports/splaytree"(T=wrapped_int) access
+from "template/imports/sortedset"(T=wrapped_int) access
     makeNaiveSortedSet,
-    SortedSet_T as SortedSet_wrapped_int,
+    SortedSet_T as SortedSet_wrapped_int;
+
+from "template/imports/splaytree"(T=wrapped_int) access
     SplayTree_T as SplayTree_wrapped_int,
     operator cast;
 

@@ -15,17 +15,11 @@ bool operator == (wrapped_int a, wrapped_int b) {
   return a.t == b.t;
 }
 
-// ISSUE: We have to import these from sortedset. If we import directly from
-// pureset instead, identical types are not recognized as such when resolving
-// function calls and implicit casts.
-// from "template/imports/pureset"(T=wrapped_int) access
-//     Set_T as Set_wrapped_int,
-//     makeNaiveSet,
-//     operator cast;
+from "template/imports/pureset"(T=wrapped_int) access
+    Set_T as Set_wrapped_int,
+    makeNaiveSet;
 
 from "template/imports/sortedset"(T=wrapped_int) access
-    Set_T as Set_wrapped_int,
-    makeNaiveSet,
     SortedSet_T as SortedSet_wrapped_int,
     makeNaiveSortedSet,
     operator cast,

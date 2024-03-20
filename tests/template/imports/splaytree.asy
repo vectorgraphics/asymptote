@@ -1,7 +1,9 @@
 typedef import(T);
 
-from "template/imports/sortedset"(T=T) access Set_T, SortedSet_T, operator cast,
-    makeNaiveSortedSet;  // needed for bug workaround: https://github.com/vectorgraphics/asymptote/issues/429
+from "template/imports/sortedset"(T=T) access
+    Set_T,
+    SortedSet_T,
+    operator cast;
 
 private struct treenode {
   treenode leftchild;
