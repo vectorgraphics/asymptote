@@ -9,6 +9,6 @@ struct X {
 
 X x;
 
-access "template/imports/p"(T=x.A) as a;
+access "template/imports/p"(T=x.A) as p;
 
 EndTest();
