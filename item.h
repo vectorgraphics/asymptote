@@ -204,7 +204,7 @@ class frame : public gc {
   string name;
   Int parentIndex;
 #endif
-  typedef mem::vector<item> internal_vars_t;
+  using internal_vars_t = mem::vector<item>;
   internal_vars_t vars;
 
   // Allow the stack direct access to vars.
