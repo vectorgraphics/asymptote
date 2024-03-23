@@ -88,7 +88,11 @@ public:
 
         bool isTrue(const optional<bool>& value)
         {
-                return  value.get_value_or(false);
+            if (value) {
+                return *value;
+            } else {
+                return false;
+            }
         }
 
         bool isRenameDynamicRegistrationSupported() {
