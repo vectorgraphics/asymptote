@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2021/12/29 v1.37 Asymptote style file for LaTeX]
+  [2024/02/26 v1.38 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -165,7 +165,7 @@ Licence: GPL2+
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\InputIfFileExists{\jobname.pre}{}{}
+\InputIfFileExists{\jobname.pre}{}{\typeout{No file \jobname.pre.}}
 %    \end{macrocode}
 %
 % \subsection{Allocations}

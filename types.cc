@@ -376,15 +376,10 @@ bool argumentEquivalent(const formal &f1, const formal& f2) {
     return false;
 }
 
-ostream& operator<< (ostream& out, const signature& s)
+
+string toString(const signature& s)
 {
-  if (s.isOpen) {
-    out << "(<open>)";
-    return out;
-  }
-
-  out << "(";
-
+  ostringstream out;
   for (size_t i = 0; i < s.formals.size(); ++i)
     {
       if (i > 0)
@@ -397,6 +392,20 @@ ostream& operator<< (ostream& out, const signature& s)
       out << " ";
     out << "... " << s.rest;
   }
+
+  return out.str();
+}
+
+ostream& operator<< (ostream& out, const signature& s)
+{
+  if (s.isOpen) {
+    out << "(<open>)";
+    return out;
+  }
+
+  out << "(";
+
+  out << toString(s);
 
   out << ")";
 

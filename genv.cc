@@ -89,9 +89,12 @@ record *genv::loadModule(symbol id, string filename) {
   return r;
 }
 
-record *genv::loadTemplatedModule(symbol id, string filename,
-                                  mem::vector<absyntax::namedTyEntry*> *args)
-{
+record *genv::loadTemplatedModule(
+      symbol id,
+      string filename,
+      mem::vector<absyntax::namedTyEntry*> *args,
+      trans::frame *parent
+) {
   // Hackish way to load an external library.
 #if 0
   if (endswith(".so", filename)) {
@@ -106,7 +109,7 @@ record *genv::loadTemplatedModule(symbol id, string filename,
 
   em.sync();
 
-  record *r=ast->transAsTemplatedFile(*this, id, args);
+  record *r=ast->transAsTemplatedFile(*this, id, args, parent);
 
   inTranslation.remove(filename);
 
@@ -140,24 +143,31 @@ record *genv::getModule(symbol id, string filename) {
 
     return r;
   }
-
 }
 
-record *genv::getTemplatedModule(symbol id, string filename, string sigHandle,
-                                 mem::vector<absyntax::namedTyEntry*>* args)
-{
+record *genv::getTemplatedModule(
+    symbol id,
+    string filename,
+    string sigHandle,
+    mem::vector<absyntax::namedTyEntry*>* args,
+    frame *parent
+) {
   checkRecursion(filename);
+
   importIndex_t Index(filename,sigHandle);
-  record *r=loadTemplatedModule(id, filename, args);
 
-  // Don't add an erroneous module to the dictionary in interactive mode, as
-  // the user may try to load it again.
-  if (!interact::interactive || !em.errors()) {
-    imap[Index]=r;
+  record *r=imap[Index];
+  if (r)
+    return r;
+  else {
+    record *r=loadTemplatedModule(id, filename, args, parent);
+    // Don't add an erroneous module to the dictionary in interactive mode, as
+    // the user may try to load it again.
+    if (!interact::interactive || !em.errors())
+      imap[Index]=r;
+
+    return r;
   }
-
-  return r;
-
 }
 
 
