@@ -11,8 +11,8 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src -Lhighwayhash/lib
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -lhighwayhash
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 
 CMAKE ?= cmake
@@ -26,7 +26,7 @@ PYUIC ?= pyuic5
 # We have to remove OpenGL, threading, GC, etc from this.
 SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
 
-vpath %.cc prc
+vpath %.cc prc highwayhash
 vpath %.ui GUI/windows
 vpath %.py GUI/pyUIClass
 vpath %.py GUI
@@ -51,7 +51,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
 	$(PRC) glrender tr shaders jsfile v3dfile tinyexr EXRFiles GLTextures \
-	lspserv symbolmaps
+	lspserv symbolmaps hashing
 
 FILES = $(COREFILES) main
 
@@ -82,7 +82,7 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
-OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp/include
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) -ILspCpp/include -Ihighwayhash
 
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
@@ -126,7 +126,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy:	version $(FILES:=.o) glew.o @LSPLIB@
+asy:	version $(FILES:=.o) glew.o @LSPLIB@ libhighwayhash.a
 	if test -n "$(MSDOS)"; then \
           $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
@@ -162,6 +162,9 @@ asymptote.so: $(COREFILES:=.pic.o) glew.o
 
 liblspcpp.a:
 	cd LspCpp && $(CMAKE) -DCMAKE_CXX_FLAGS="-fPIE @OPTIONS@ -I../$(GC)/include" CMakeLists.txt && $(MAKE)
+
+libhighwayhash.a:
+	cd highwayhash && $(MAKE)
 
 all:  	asy sty man faq asy-keywords.el
 
@@ -339,6 +342,7 @@ uninstall-docdir:
 clean:  FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *mon.out $(CLEAN)
 	-cd LspCpp && $(MAKE) clean
+	-cd highwayhash && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-if test -d $(GC); then \
@@ -358,7 +362,7 @@ distclean: FORCE cleaner
 	cd LspCpp && rm -rf CMakeCache.txt CMakeDoxyfile.in \
 	  CMakeDoxygenDefaults.cmake CMakeFiles Makefile cmake_install.cmake \
 	  third_party/uri/src/CMakeFiles/network-uri.dir/detail
-
+	cd highwayhash && $(MAKE) distclean
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean

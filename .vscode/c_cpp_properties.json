@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/include/gc",
-                "/usr/include/tirpc"
+                "/usr/include/tirpc",
+                "/usr/local/opt/boost",
             ],
             "defines": [
                 "USEGC",
