@@ -1,7 +1,7 @@
 typedef import(T);
 
-from pureset(T) access Set_T, operator cast;
-access linkedlist(T) as list_T;
+from pureset(T=T) access Set_T, operator cast;
+access linkedlist(T=T) as list_T;
 
 int bitWidth(int x) {
   return CLZ(0) - CLZ(x);
@@ -78,7 +78,7 @@ struct HashSet_T {
 
   void forEach(bool process(T)) {
     int numChanges = this.numChanges;
-    for (list_T.L bucket in buckets) {
+    for (list_T.L bucket : buckets) {
       for (list_T.Iter it = bucket.iterator(); it.hasNext();) {
         T item = it.next();
         bool keepGoing = process(item);
@@ -114,7 +114,7 @@ struct HashSet_T {
     for (int i = 0; i < numBuckets; ++i) {
       buckets[i] = list_T.make();
     }
-    for (T item in items) {
+    for (T item : items) {
       addUnsafe(item);
     }
   }
@@ -170,4 +170,9 @@ Set_T operator cast(HashSet_T hashSet) {
 
 T[] operator cast(HashSet_T hashSet) {
   return hashSet.elements();
+}
+
+Set_T makeHashSet(int hash(T, int bits), bool equiv(T, T), T emptyresponse) {
+  HashSet_T result = HashSet_T(hash, equiv, emptyresponse);
+  return result;
 }
