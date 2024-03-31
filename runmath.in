@@ -458,7 +458,7 @@ Int hash(Int h, Int bits)
     error(buf);
   }
   uint64_t h2 = static_cast<uint64_t>(h);
-  return (h2 >> (64 - bits)) ^ (h2 & ((UINT64_C(1) << bits) - 1));
+  return hashing::hashInt(h2, static_cast<int8_t>(bits));
 }
 
 Int hash(real h, Int bits)

@@ -21,7 +21,6 @@ callableReal* => realRealFunction()
 
 
 #include <cstdint>
-#include <functional>  // for std::hash
 #include <string>
 
 #include "array.h"

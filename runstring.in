@@ -6,6 +6,7 @@
  *****/
 
 stringarray2* => stringArray2()
+Intarray*  => IntArray()
 
 #include <cfloat>
 #include <cstdint>
@@ -22,9 +23,11 @@ using namespace settings;
 
 typedef array stringarray;
 typedef array stringarray2;
+typedef array Intarray;
 
 using types::stringArray;
 using types::stringArray2;
+using types::IntArray;
 
 namespace types {
 extern const char *names[];
@@ -420,10 +423,20 @@ Int hash(string s, Int bits)
     error(buf);
   }
   int8_t bits8 = static_cast<int8_t>(bits);
-  uint64_t hashResult = std::hash<string>{}(s);
-  // Zero out the highest two bits to avoid conflicts with DefaultValue and
-  // Undefined:
-  return hashing::hashInt(hashResult, bits8);
+  span<const char> sSpan = {s.data(), s.length()};
+  return hashing::hashSpan(s, bits8);
+}
+
+Intarray* fingerprint2024(string s)
+{
+  span<const char> sSpan = {s.data(), s.length()};
+  std::array<uint64_t, 4> result = hashing::fingerprint(s);
+  array *retv = new array(8);
+  for (int i = 0; i < 4; ++i) {
+    (*retv)[i] = static_cast<Int>(result[i] & ((UINT64_C(1) << 32) - 1));
+    (*retv)[i + 4] = static_cast<Int>(result[i] >> 32);
+  }
+  return retv;
 }
 
 string string(Int x)

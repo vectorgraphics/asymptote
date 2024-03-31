@@ -19,11 +19,17 @@ using namespace highwayhash;
 //   return result;
 // }
 
+uint64_t constexpr shiftLeftDefined(uint64_t x, int8_t shift) {
+  return shift >= 64 ? 0 : x << shift;
+}
+
 
 uint64_t random_bits(int8_t bits) {
   static std::random_device *rd = new std::random_device();
   static auto *gen = new std::mt19937_64((*rd)());
-  std::uniform_int_distribution<uint64_t> dist(0, (UINT64_C(1) << bits) - 1);
+  // uint64_t max = (bits >= 64 ? UINT64_C(-1) : (UINT64_C(1) << bits) - 1);
+  std::uniform_int_distribution<uint64_t> dist(
+    0, shiftLeftDefined(1, bits) - 1);
   return dist(*gen);
 }
 
@@ -32,7 +38,7 @@ uint64_t hashSpan(span<const char> s, int8_t bits) {
                                            random_bits(64), random_bits(64)};
   HHResult64 result;
   InstructionSets::Run<HighwayHash>(key, s.data(), s.size(), &result);
-  return result & ((UINT64_C(1) << bits) - 1);
+  return result & (shiftLeftDefined(1, bits) - 1);
 }
 
 uint64_t hashSpan(span<const uint64_t> s, int8_t bits) {
@@ -60,10 +66,8 @@ std::array<uint64_t, 4> fingerprint(span<const char> s) {
 }
 
 uint64_t hashInt(uint64_t i, int8_t bits) {
-  static const uint64_t key = random_bits(64);
-  uint64_t mask = (UINT64_C(1) << bits) - 1;
-  uint64_t currentKey = key & mask;
-  return (i >> (64 - bits)) ^ (i & mask) ^ currentKey;
+  span<const uint64_t> s = {&i, 1};
+  return hashSpan(s, bits);
 }
 
 
