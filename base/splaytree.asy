@@ -1,7 +1,6 @@
 typedef import(T);
 
-from sortedset(T=T) access Set_T, SortedSet_T, operator cast,
-    makeNaiveSortedSet;  // needed for bug workaround: https://github.com/vectorgraphics/asymptote/issues/429
+from sortedset(T=T) access Set_T, SortedSet_T, operator cast;
 
 private struct treenode {
   treenode leftchild;
@@ -353,7 +352,7 @@ struct SplayTree_T {
   /*
    * returns true iff the tree was modified
    */
-  bool insert(T value) {
+  bool add(T value) {
     if (root == null) {
       root = treenode(value);
       ++size;
@@ -390,9 +389,9 @@ struct SplayTree_T {
     return true;
   }
 
-  T replace(T item) {
+  T update(T item) {
     if (root == null) {
-      insert(item);
+      add(item);
       return emptyresponse;
     }
     treenode[] ancestors = new treenode[0];
@@ -530,8 +529,8 @@ SortedSet_T operator cast(SplayTree_T splaytree) {
   result.popMin = splaytree.popMin;
   result.max = splaytree.max;
   result.popMax = splaytree.popMax;
-  result.insert = splaytree.insert;
-  result.replace = splaytree.replace;
+  result.add = splaytree.add;
+  result.update = splaytree.update;
   result.get = splaytree.get;
   result.delete = splaytree.delete;
   result.forEach = splaytree.forEach;

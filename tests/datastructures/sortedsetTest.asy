@@ -15,17 +15,12 @@ bool operator == (wrapped_int a, wrapped_int b) {
   return a.t == b.t;
 }
 
-// ISSUE: We have to import these from sortedset. If we import directly from
-// pureset instead, identical types are not recognized as such when resolving
-// function calls and implicit casts.
-// from pureset(T=wrapped_int) access
-//     Set_T as Set_wrapped_int,
-//     makeNaiveSet,
-//     operator cast;
-
-from sortedset(T=wrapped_int) access
+from pureset(T=wrapped_int) access
     Set_T as Set_wrapped_int,
     makeNaiveSet,
+    operator cast;
+
+from sortedset(T=wrapped_int) access
     SortedSet_T as SortedSet_wrapped_int,
     makeNaiveSortedSet,
     operator cast,
@@ -36,8 +31,8 @@ struct ActionEnum {
   static private int next() {
     return ++numActions - 1;
   }
-  static restricted int INSERT = next();
-  static restricted int REPLACE = next();
+  static restricted int ADD = next();
+  static restricted int UPDATE = next();
   static restricted int DELETE = next();
   static restricted int CONTAINS = next();
   static restricted int DELETE_CONTAINS = next();
@@ -111,19 +106,19 @@ string string(bool[] a) {
 typedef void Action(int ...Set_wrapped_int[]);
 
 Action[] actions = new Action[ActionEnum.numActions];
-actions[ActionEnum.INSERT] = new void(int maxItem ...Set_wrapped_int[] sets) {
+actions[ActionEnum.ADD] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toInsert = wrap(rand() % maxItem);
   // write('Inserting ' + string(toInsert.t) + '\n');
   for (Set_wrapped_int s : sets) {
-    s.insert(toInsert);
+    s.add(toInsert);
   }
 };
-actions[ActionEnum.REPLACE] = new void(int maxItem ...Set_wrapped_int[] sets) {
+actions[ActionEnum.UPDATE] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toReplace = wrap(rand() % maxItem);
   // write('Replacing ' + string(toReplace.t) + '\n');
   wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
-    results.push(s.replace(toReplace));
+    results.push(s.update(toReplace));
   }
   if (results.length > 0) {
     wrapped_int expected = results[0];
@@ -195,16 +190,16 @@ actions[ActionEnum.DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
   }
 };
 real[] increasingProbs = new real[ActionEnum.numActions];
-increasingProbs[ActionEnum.INSERT] = 0.7;
-increasingProbs[ActionEnum.REPLACE] = 0.1;
+increasingProbs[ActionEnum.ADD] = 0.7;
+increasingProbs[ActionEnum.UPDATE] = 0.1;
 increasingProbs[ActionEnum.DELETE] = 0.05;
 increasingProbs[ActionEnum.CONTAINS] = 0.1;
 increasingProbs[ActionEnum.DELETE_CONTAINS] = 0.05;
 assert(sum(increasingProbs) == 1, 'Probabilities do not sum to 1');
 
 real[] decreasingProbs = new real[ActionEnum.numActions];
-decreasingProbs[ActionEnum.INSERT] = 0.1;
-decreasingProbs[ActionEnum.REPLACE] = 0.1;
+decreasingProbs[ActionEnum.ADD] = 0.1;
+decreasingProbs[ActionEnum.UPDATE] = 0.1;
 decreasingProbs[ActionEnum.DELETE] = 0.4;
 decreasingProbs[ActionEnum.CONTAINS] = 0.1;
 decreasingProbs[ActionEnum.DELETE_CONTAINS] = 0.3;

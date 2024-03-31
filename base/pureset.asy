@@ -6,9 +6,12 @@ struct Set_T {
     return size() == 0;
   }
   bool contains(T item);
-  bool insert(T item);
-  T replace(T item);     // Inserts item, and returns the item that was
-                         // replaced, or emptyresponse if no item was replaced.
+  // If an equivalent item was already present, returns false. Otherwise, adds
+  // the item and returns true.
+  bool add(T item);  
+  // Inserts item, and returns the item that was replaced, or emptyresponse if
+  // no item was replaced.
+  T update(T item);
   T get(T item);
   bool delete(T item);
   // Calls process on each item in the collection until process returns false.
@@ -38,7 +41,7 @@ struct NaiveSet_T {
     return false;
   }
 
-  bool insert(T item) {
+  bool add(T item) {
     if (contains(item)) {
       return false;
     }
@@ -46,7 +49,7 @@ struct NaiveSet_T {
     return true;
   }
 
-  T replace(T item) {
+  T update(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) {
         T old = buffer[i];
@@ -92,8 +95,8 @@ Set_T operator cast(NaiveSet_T naiveSet) {
   Set_T set = new Set_T;
   set.size = naiveSet.size;
   set.contains = naiveSet.contains;
-  set.insert = naiveSet.insert;
-  set.replace = naiveSet.replace;
+  set.add = naiveSet.add;
+  set.update = naiveSet.update;
   set.get = naiveSet.get;
   set.delete = naiveSet.delete;
   set.forEach = naiveSet.forEach;

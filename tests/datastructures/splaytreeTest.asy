@@ -16,9 +16,15 @@ bool operator == (wrapped_int a, wrapped_int b) {
   return a.t == b.t;
 }
 
-from splaytree(T=wrapped_int) access
+from pureset(T=wrapped_int) access
+    Set_T as Set_wrapped_int;
+
+from sortedset(T=wrapped_int) access
     makeNaiveSortedSet,
     SortedSet_T as SortedSet_wrapped_int,
+    operator cast;
+
+from splaytree(T=wrapped_int) access
     SplayTree_T as SplayTree_wrapped_int,
     operator cast;
 
@@ -27,8 +33,8 @@ struct ActionEnum {
   static private int next() {
     return ++numActions - 1;
   }
-  static restricted int INSERT = next();
-  static restricted int REPLACE = next();
+  static restricted int ADD = next();
+  static restricted int UPDATE = next();
   static restricted int DELETE = next();
   static restricted int CONTAINS = next();
   static restricted int DELETE_CONTAINS = next();
@@ -100,21 +106,21 @@ string string(bool[] a) {
 typedef void Action(int ...SortedSet_wrapped_int[]);
 
 Action[] actions = new Action[ActionEnum.numActions];
-actions[ActionEnum.INSERT] =
+actions[ActionEnum.ADD] =
     new void(int maxItem ...SortedSet_wrapped_int[] sets) {
       wrapped_int toInsert = wrap(rand() % maxItem);
       // write('Inserting ' + string(toInsert.t) + '\n');
       for (SortedSet_wrapped_int s : sets) {
-        s.insert(toInsert);
+        s.add(toInsert);
       }
     };
-actions[ActionEnum.REPLACE] =
+actions[ActionEnum.UPDATE] =
     new void(int maxItem ...SortedSet_wrapped_int[] sets) {
       wrapped_int toReplace = wrap(rand() % maxItem);
       // write('Replacing ' + string(toReplace.t) + '\n');
       wrapped_int[] results = new wrapped_int[];
       for (SortedSet_wrapped_int s : sets) {
-        results.push(s.replace(toReplace));
+        results.push(s.update(toReplace));
       }
       if (results.length > 0) {
         wrapped_int expected = results[0];
@@ -188,16 +194,16 @@ actions[ActionEnum.DELETE_CONTAINS] =
       }
     };
 real[] increasingProbs = new real[ActionEnum.numActions];
-increasingProbs[ActionEnum.INSERT] = 0.7;
-increasingProbs[ActionEnum.REPLACE] = 0.1;
+increasingProbs[ActionEnum.ADD] = 0.7;
+increasingProbs[ActionEnum.UPDATE] = 0.1;
 increasingProbs[ActionEnum.DELETE] = 0.05;
 increasingProbs[ActionEnum.CONTAINS] = 0.1;
 increasingProbs[ActionEnum.DELETE_CONTAINS] = 0.05;
 assert(sum(increasingProbs) == 1, 'Probabilities do not sum to 1');
 
 real[] decreasingProbs = new real[ActionEnum.numActions];
-decreasingProbs[ActionEnum.INSERT] = 0.1;
-decreasingProbs[ActionEnum.REPLACE] = 0.1;
+decreasingProbs[ActionEnum.ADD] = 0.1;
+decreasingProbs[ActionEnum.UPDATE] = 0.1;
 decreasingProbs[ActionEnum.DELETE] = 0.4;
 decreasingProbs[ActionEnum.CONTAINS] = 0.1;
 decreasingProbs[ActionEnum.DELETE_CONTAINS] = 0.3;
@@ -257,8 +263,8 @@ struct ActionEnum {
   static restricted int POP_MIN = next();
   static restricted int MAX = next();
   static restricted int POP_MAX = next();
-  static restricted int INSERT = next();
-  static restricted int REPLACE = next();
+  static restricted int ADD = next();
+  static restricted int UPDATE = next();
   static restricted int GET = next();
   static restricted int DELETE = next();
   static restricted int DELETE_CONTAINS = next();
@@ -408,21 +414,21 @@ actions[ActionEnum.POP_MAX] = new void(int ...SortedSet_wrapped_int[] sets) {
     }
   }
 };
-actions[ActionEnum.INSERT] =
+actions[ActionEnum.ADD] =
     new void(int maxItem ...SortedSet_wrapped_int[] sets) {
       wrapped_int toInsert = wrap(rand() % maxItem);
       // write('Inserting ' + string(toInsert.t) + '\n');
       for (SortedSet_wrapped_int s : sets) {
-        s.insert(toInsert);
+        s.add(toInsert);
       }
     };
-actions[ActionEnum.REPLACE] =
+actions[ActionEnum.UPDATE] =
     new void(int maxItem ...SortedSet_wrapped_int[] sets) {
       wrapped_int toReplace = wrap(rand() % maxItem);
       // write('Replacing ' + string(toReplace.t) + '\n');
       wrapped_int[] results = new wrapped_int[];
       for (SortedSet_wrapped_int s : sets) {
-        results.push(s.replace(toReplace));
+        results.push(s.update(toReplace));
       }
       if (results.length > 0) {
         wrapped_int expected = results[0];
@@ -510,8 +516,8 @@ increasingProbs[ActionEnum.GET] = 1 / 2^5;
 // 1/4 probability of this sort of action:
 assert(sum(increasingProbs) == 8 / 2^5);
 // Actions that might add an element:
-increasingProbs[ActionEnum.INSERT] = 1 / 4;
-increasingProbs[ActionEnum.REPLACE] = 1 / 4;
+increasingProbs[ActionEnum.ADD] = 1 / 4;
+increasingProbs[ActionEnum.UPDATE] = 1 / 4;
 assert(sum(increasingProbs) == 3/4);
 // Actions that might remove an element:
 increasingProbs[ActionEnum.POP_MIN] = 1 / 16;
@@ -522,8 +528,8 @@ assert(sum(increasingProbs) == 1, 'Probabilities do not sum to 1');
 
 real[] decreasingProbs = copy(increasingProbs);
 // Actions that might add an element:
-decreasingProbs[ActionEnum.INSERT] = 1 / 8;
-decreasingProbs[ActionEnum.REPLACE] = 1 / 8;
+decreasingProbs[ActionEnum.ADD] = 1 / 8;
+decreasingProbs[ActionEnum.UPDATE] = 1 / 8;
 // Actions that might remove an element:
 decreasingProbs[ActionEnum.POP_MIN] = 1 / 8;
 decreasingProbs[ActionEnum.POP_MAX] = 1 / 8;

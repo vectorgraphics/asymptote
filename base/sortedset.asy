@@ -21,8 +21,8 @@ struct SortedSet_T {
   T popMin();            // Returns emptyresponse if collection is empty.
   T max();               // Returns emptyresponse if collection is empty.
   T popMax();            // Returns emptyresponse if collection is empty.
-  bool insert(T item);   // Returns true iff the collection is modified.
-  T replace(T item);     // Inserts item, and returns the item that was
+  bool add(T item);      // Returns true iff the collection is modified.
+  T update(T item);      // Inserts item, and returns the item that was
                          // replaced, or emptyresponse if no item was replaced.
   bool delete(T item);   // Returns true iff the collection is modified.
   // Calls process on each item in the collection, in ascending order,
@@ -44,8 +44,8 @@ Set_T unSort(SortedSet_T sorted_set) {
   set.size = sorted_set.size;
   set.empty = sorted_set.empty;
   set.contains = sorted_set.contains;
-  set.insert = sorted_set.insert;
-  set.replace = sorted_set.replace;
+  set.add = sorted_set.add;
+  set.update = sorted_set.update;
   set.get = sorted_set.get;
   set.delete = sorted_set.delete;
   set.forEach = sorted_set.forEach;
@@ -128,7 +128,7 @@ struct NaiveSortedSet_T {
     return buffer.pop();
   }
 
-  bool insert(T item) {
+  bool add(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) return false;
       else if (gt(buffer[i], item)) {
@@ -140,7 +140,7 @@ struct NaiveSortedSet_T {
     return true;
   }
 
-  T replace(T item) {
+  T update(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) {
         T toreturn = buffer[i];
@@ -190,8 +190,8 @@ SortedSet_T operator cast(NaiveSortedSet_T naive) {
   toreturn.popMin = naive.popMin;
   toreturn.max = naive.max;
   toreturn.popMax = naive.popMax;
-  toreturn.insert = naive.insert;
-  toreturn.replace = naive.replace;
+  toreturn.add = naive.add;
+  toreturn.update = naive.update;
   toreturn.get = naive.get;
   toreturn.delete = naive.delete;
   toreturn.forEach = naive.forEach;
