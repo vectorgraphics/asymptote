@@ -40,6 +40,7 @@ struct LinkedList_T {
       head = newNode;
       tail = newNode;
     } else {
+      assert(tail != null, "Bug in linked list");
       tail.next = newNode;
       tail = newNode;
     }
@@ -50,6 +51,9 @@ struct LinkedList_T {
   void insertAtBeginning(T data) {
     Node newNode = Node(data, head);
     head = newNode;
+    if (tail == null) {
+      tail = newNode;
+    }
     ++size;
     ++numChanges;
   }
