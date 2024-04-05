@@ -1600,5 +1600,20 @@ If optional argument Force is t then force compilation."
   (asy-master-tex-view 'lasy-view-pdf-via-ps2pdf t t))
 (define-key asy-mode-map (kbd "<C-M-S-return>") 'asy-master-tex-view-ps2pdf-f)
 
+;; Integrate with flycheck
+(with-eval-after-load 'flycheck
+  (flycheck-define-command-checker 'asy
+    "Syntax checking of asymptote files."
+    :command (append
+              (split-string (concat asy-command-location asy-command))
+              '("-noV" "-o" temporary-file-name source))
+    :error-patterns
+    ;; filename.asy: 123.45: warning: message
+    ;; filename.asy: 123.45: error message
+    '((warning line-start (file-name) ":" (* space) line (? ?\. column) ": warning: " (message) line-end)
+      (error line-start (file-name) ":" (* space) line (? ?\. column) ": " (message) line-end))
+    :modes '(asy-mode))
+  (add-to-list 'flycheck-checkers 'asy))
+
 (provide `asy-mode)
 ;;; asy-mode.el ends here
