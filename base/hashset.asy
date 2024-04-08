@@ -63,17 +63,18 @@ struct HashSet_T {
     return emptyresponse;
   }
 
-  bool delete(T item) {
+  T delete(T item) {
     ++numChanges;
     int bucket = hash(item, bits);
     for (list_T.Iter it = buckets[bucket].iterator(); it.hasNext();) {
-      if (equiv(it.next(), item)) {
+      T candidate = it.next();
+      if (equiv(candidate, item)) {
         it.delete();
         --size;
-        return true;
+        return candidate;
       }
     }
-    return false;
+    return emptyresponse;
   }
 
   void forEach(bool process(T)) {

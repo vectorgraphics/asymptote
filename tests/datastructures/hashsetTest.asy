@@ -131,14 +131,16 @@ actions[ActionEnum.UPDATE] = new void(int maxItem ...Set_wrapped_int[] sets) {
 actions[ActionEnum.DELETE] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toDelete = wrap(rand() % maxItem);
   // write('Deleting ' + string(toDelete.t) + '\n');
-  bool[] results = new bool[];
+  wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
     results.push(s.delete(toDelete));
   }
   if (results.length > 0) {
-    bool expected = results[0];
-    for (bool r : results) {
-      assert(r == expected, 'Different results: ' + string(results));
+    wrapped_int expected = results[0];
+    for (wrapped_int r : results) {
+      if (!alias(r, expected)) {
+        assert(false, 'Different results: ' + string(results));
+      }
     }
   }
 };
@@ -182,7 +184,7 @@ actions[ActionEnum.DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
   int i = 0;
   for (Set_wrapped_int s : sets) {
     assert(s.contains(toDelete), 'Contains failed ' + string(i));
-    assert(s.delete(toDelete), 'Delete failed');
+    assert(s.delete(toDelete) == toDelete, 'Delete failed');
     assert(!s.contains(toDelete), 'Contains failed');
     assert(s.size() == initialSize - 1, 'Size failed');
     ++i;
@@ -228,17 +230,17 @@ for (int i = 0; i < 2000; ++i) {
   assert(diffs == '', 'Naive vs hash: \n' + diffs);
   maxSize = max(maxSize, pure_set.size());
 }
-// write('max size: ' + string(maxsize) + '\n');
+// write('Max size: ' + string(maxSize) + '\n');
 
-// int maxsize = 0;
+// int maxSize = 0;
 // for (int i = 0; i < 2000; ++i) {
-//   real[] probs = i < 800 ? increasingprobs : decreasingprobs;
-//   int choice = chooseaction(probs);
+//   real[] probs = i < 800 ? increasingProbs : decreasingProbs;
+//   int choice = chooseAction(probs);
 //   actions[choice](1000, pure_set, hash_set);
 //   string diffs = differences(pure_set, hash_set);
-//   assert(diffs == '', 'naive vs hash: \n' + diffs);
-//   maxsize = max(maxsize, pure_set.size());
+//   assert(diffs == '', 'Naive vs hash: \n' + diffs);
+//   maxSize = max(maxSize, pure_set.size());
 // }
-// write('max size: ' + string(maxsize) + '\n');
+// write('Max size: ' + string(maxSize) + '\n');
 
 EndTest();

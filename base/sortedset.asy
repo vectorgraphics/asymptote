@@ -24,7 +24,8 @@ struct SortedSet_T {
   bool add(T item);      // Returns true iff the collection is modified.
   T update(T item);      // Inserts item, and returns the item that was
                          // replaced, or emptyresponse if no item was replaced.
-  bool delete(T item);   // Returns true iff the collection is modified.
+  T delete(T item);      // Returns the removed item, or emptyresponse if no
+                         // such item was found.
   // Calls process on each item in the collection, in ascending order,
   // until process returns false.
   void forEach(bool process(T item));
@@ -163,14 +164,15 @@ struct NaiveSortedSet_T {
     return emptyresponse;
   }
 
-  bool delete(T item) {
+  T delete(T item) {
     for (int i = 0; i < buffer.length; ++i) {
-      if (equiv(buffer[i], item)) {
+      T candidate = buffer[i];
+      if (equiv(candidate, item)) {
         buffer.delete(i);
-        return true;
+        return candidate;
       }
     }
-    return false;
+    return emptyresponse;
   }
 
   void forEach(bool process(T item)) {

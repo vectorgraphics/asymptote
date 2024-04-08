@@ -132,14 +132,16 @@ actions[ActionEnum.UPDATE] = new void(int maxItem ...Set_wrapped_int[] sets) {
 actions[ActionEnum.DELETE] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toDelete = wrap(rand() % maxItem);
   // write('Deleting ' + string(toDelete.t) + '\n');
-  bool[] results = new bool[];
+  wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
     results.push(s.delete(toDelete));
   }
   if (results.length > 0) {
-    bool expected = results[0];
-    for (bool r : results) {
-      assert(r == expected, 'Different results: ' + string(results));
+    wrapped_int expected = results[0];
+    for (wrapped_int r : results) {
+      if (!alias(r, expected)) {
+        assert(false, 'Different results: ' + string(results));
+      }
     }
   }
 };
@@ -183,7 +185,7 @@ actions[ActionEnum.DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
   int i = 0;
   for (Set_wrapped_int s : sets) {
     assert(s.contains(toDelete), 'Contains failed ' + string(i));
-    assert(s.delete(toDelete), 'Delete failed');
+    assert(s.delete(toDelete) == toDelete, 'Delete failed');
     assert(!s.contains(toDelete), 'Contains failed');
     assert(s.size() == initialSize - 1, 'Size failed');
     ++i;

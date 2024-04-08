@@ -453,9 +453,9 @@ struct SplayTree_T {
   }
 
   /*
-   * returns true iff the tree was modified
+   * returns the removed item, or emptyresponse if the item was not found
    */
-  bool delete(T value) {
+  T delete(T value) {
     treenode[] ancestors = new treenode[0];
     ancestors.cyclic = true;  // Makes ancestors[-1] refer to the last entry.
     ancestors.push(root);
@@ -465,7 +465,7 @@ struct SplayTree_T {
       if (current == null) {
         ancestors.pop();
         root = splay(ancestors, operator<);
-        return false;
+        return emptyresponse;
       }
       if (value < current.value)
         ancestors.push(current.leftchild);
@@ -475,6 +475,7 @@ struct SplayTree_T {
     }
 
     treenode toDelete = ancestors.pop();
+    T retv = toDelete.value;
     treenode parent = null;
     if (ancestors.length > 0) parent = ancestors[-1];
     
@@ -507,7 +508,7 @@ struct SplayTree_T {
 
     if (parent != null) root = splay(ancestors, operator<);
     --size;
-    return true;    
+    return retv;    
   }
 
   void forEach(bool run(T)) {

@@ -13,7 +13,7 @@ struct Set_T {
   // no item was replaced.
   T update(T item);
   T get(T item);
-  bool delete(T item);
+  T delete(T item);
   // Calls process on each item in the collection until process returns false.
   void forEach(bool process(T item));
 }
@@ -70,15 +70,16 @@ struct NaiveSet_T {
     return emptyresponse;
   }
 
-  bool delete(T item) {
+  T delete(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) {
+        T retv = buffer[i];
         buffer[i] = buffer[buffer.length - 1];
         buffer.pop();
-        return true;
+        return retv;
       }
     }
-    return false;
+    return emptyresponse;
   }
 
   void forEach(bool process(T item)) {
