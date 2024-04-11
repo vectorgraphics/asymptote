@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(HAVE_RPC_RPC_H)
+#if defined(HAVE_LIBTIRPC)
 #if defined(_WIN32)
 #include "win32xdr.h"
 typedef Win32XDR XDR;

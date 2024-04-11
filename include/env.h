@@ -188,7 +188,8 @@ public:
   record *getTemplatedModule(symbol id,
                              string filename,
                              string index,
-                             mem::vector<absyntax::namedTyEntry*> *args
+                             mem::vector<absyntax::namedTyEntry*> *args,
+                             trans::frame *parent
                             );
 };
 

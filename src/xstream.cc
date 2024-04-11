@@ -1,4 +1,4 @@
-#if defined(HAVE_RPC_RPC_H)
+#if defined(HAVE_LIBTIRPC)
 #include "xstream.h"
 
 namespace xdr
@@ -20,7 +20,7 @@ xbyte::operator unsigned char() const
   return c;
 }
 
-// xios 
+// xios
 int xios::good() const { return _state == 0; }
 int xios::eof() const { return _state & eofbit; }
 int xios::fail() const { return !good();}
@@ -50,7 +50,7 @@ OffsetType xstream::tell() {
 ixstream::ixstream(bool singleprecision)
   : singleprecision(singleprecision)
 {
-  
+
 }
 
 void ixstream::open(const char* filename, open_mode)
@@ -121,7 +121,7 @@ ixstream& ixstream::operator>>(xbyte& x)
 // oxstream
 oxstream::oxstream(bool singleprecision): singleprecision(singleprecision)
 {
-  
+
 }
 void oxstream::open(const char* filename, open_mode mode)
 {
@@ -307,7 +307,7 @@ void ioxstream::close() {
 }
 ioxstream::ioxstream()
 {
-  
+
 }
 ioxstream::ioxstream(const char* filename)
 {

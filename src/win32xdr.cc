@@ -1,4 +1,4 @@
-#if defined(_WIN32) && defined(HAVE_RPC_RPC_H)
+#if defined(_WIN32) && defined(HAVE_LIBTIRPC)
 
 #include "win32xdr.h"
 

@@ -217,9 +217,10 @@ record *env::getModule(symbol id, string filename)
 record *env::getTemplatedModule(symbol id,
                                 string filename,
                                 string index,
-                                mem::vector<absyntax::namedTyEntry*>* args)
+                                mem::vector<absyntax::namedTyEntry*>* args,
+                                trans::frame *parent)
 {
-  return ge.getTemplatedModule(id, filename, index, args);
+  return ge.getTemplatedModule(id, filename, index, args, parent);
 }
 
 
