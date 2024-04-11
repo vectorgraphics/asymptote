@@ -14,7 +14,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
 
 #include "abs3doutfile.h"
 #include "xstream.h"
