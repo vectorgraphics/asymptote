@@ -19,7 +19,7 @@
 #ifndef __xstream_h__
 #define __xstream_h__ 1
 
-#if defined(HAVE_RPC_RPC_H)
+#if defined(HAVE_LIBTIRPC)
 
 #include <cstdio>
 #include <iostream>

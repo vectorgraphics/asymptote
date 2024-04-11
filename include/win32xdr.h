@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(_WIN32) && defined(HAVE_RPC_RPC_H)
+#if defined(_WIN32) && defined(HAVE_LIBTIRPC)
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
@@ -74,7 +74,7 @@ struct w32_internal_xdr_conv_fn<uint8_t>
   {
     return in;
   }
-  
+
   static auto constexpr host2NetFn = identity;
   static auto constexpr net2HostFn = identity;
 
