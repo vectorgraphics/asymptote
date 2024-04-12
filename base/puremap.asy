@@ -37,7 +37,7 @@ from pureset(T=Pair_K_V) access
     makeNaiveSet;
 
 // Assumes that elements of `pairs` are considered equivalent if their keys
-// are equivalent.
+// are equivalent, and that pairs.emptyresponse is null.
 Map_K_V makeMapHelper(Set_Pair_K_V pairs, V emptyresponse) {
   Map_K_V result = new Map_K_V;
   result.size = pairs.size;
