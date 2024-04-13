@@ -55,7 +55,6 @@
       "description": "Vulkan Support",
       "dependencies": [
         "vulkan",
-        "glslang",
         "glfw3"
       ]
     },

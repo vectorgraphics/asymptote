@@ -233,9 +233,9 @@ that warning can be safely ignored. We are not using glslang from the vulkan pac
 We are using a separate glslang package
     ")
 
-    include(FindVulkan)
-    if (Vulkan_FOUND)
-        list(APPEND ASY_STATIC_LIBARIES Vulkan::Vulkan)
+    find_package(Vulkan COMPONENTS glslang)
+    if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES Vulkan::Vulkan Vulkan::glslang)
     else()
         message(FATAL_ERROR "Vulkan not found")
     endif()
@@ -245,13 +245,6 @@ We are using a separate glslang package
         list(APPEND ASY_STATIC_LIBARIES glfw)
     else()
         message(FATAL_ERROR "glfw3 not found")
-    endif()
-
-    find_package(glslang CONFIG)
-    if (glslang_FOUND)
-        list(APPEND ASY_STATIC_LIBARIES glslang::SPIRV)
-    else()
-        message(FATAL_ERROR "glslang not found")
     endif()
 
     list(APPEND ASY_MACROS HAVE_VULKAN)
