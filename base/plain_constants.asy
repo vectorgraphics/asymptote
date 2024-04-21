@@ -2,6 +2,7 @@ restricted int undefined=(intMax % 2 == 1) ? intMax : intMax-1;
 
 restricted real inches=72;
 restricted real inch=inches;
+restricted real in=inches;
 restricted real cm=inches/2.54;
 restricted real mm=0.1cm;
 restricted real bp=1;      // A PostScript point.
