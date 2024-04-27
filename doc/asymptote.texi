@@ -911,7 +911,6 @@ followed by @code{Enter}, to obtain the above image.
 @cindex arrow keys
 @cindex erase
 @cindex quit
-@noindent
 At this point you can type further @code{draw} commands, which will be added
 to the displayed figure, @code{erase} to clear the canvas,
 @verbatim
@@ -3201,7 +3200,6 @@ pen ZapfDingbats(string series="m", string shape="n");
 @item Starting with the 2018/04/01 release, @LaTeX{} takes UTF-8 as
 the new default input encoding. However, you can still set different input
 encoding (so as the font, font encoding or even language context).
-@noindent
 @cindex Cyrillic
 @cindex Russian
 Here is an example for @code{cp1251} and Russian language in Cyrillic script
@@ -6081,7 +6079,6 @@ nonalphanumeric characters, enclose it with quotation marks:
 @cindex @acronym{libcurl}
 If @code{Asymptote} is compiled with support for @code{libcurl},
 the file name can even be a @acronym{URL}:
-@noindent
 @code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy" as axis3;}
 
 It is an error if modules import themselves (or each other in a cycle).
@@ -6380,7 +6377,6 @@ An even better method for processing a @code{LaTeX} file with embedded
 @noindent
 after putting the contents of
 @url{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/latexmkrc}
-@noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
 latexmk -pdf latexusage
@@ -6394,7 +6390,6 @@ To store the figures in a separate directory named @code{asy}, one can define
 \def\asydir{asy}
 @end verbatim
 in @code{latexusage.tex}.
-@noindent
 External @code{Asymptote} code can be included with
 @cindex @code{asyinclude}
 @verbatim
@@ -6788,7 +6783,6 @@ module, generates higher-quality portable clickable @acronym{PDF} movies, with
 optional controls. This requires installing the module
 @quotation
 @url{http://mirror.ctan.org/macros/latex/contrib/animate/animate.sty}
-@noindent
 @end quotation
 @noindent
 (version 2007/11/30 or later) in a new directory @code{animate} in the
@@ -8957,7 +8951,6 @@ functions in @code{graph.asy}.
 @cindex @code{xaxis3}
 @cindex @code{yaxis3}
 @cindex @code{zaxis3}
-@noindent
 To draw an @math{x} axis in three dimensions, use the routine
 @verbatim
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
@@ -10014,9 +10007,9 @@ available from @url{https://sourceforge.net/projects/pstoedit/}) includes an
 @code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
 backends, this driver includes native clipping, even-odd fill rule,
 @code{PostScript} subpath, and full image support. Here is an example:
+
 @noindent
 @code{asy -V @value{Datadir}/doc/asymptote/examples/venn.asy}
-@noindent
 @verbatim
 pstoedit -f asy venn.eps test.asy
 asy -V test
