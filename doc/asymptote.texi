@@ -4328,59 +4328,8 @@ Creating a new Person is a chore; it takes three lines to create a new instance
 and to initialize its fields (that's still considerably less effort than
 creating a new person in real life, though).
 
-We can reduce the work by defining a constructor function
-@code{Person(string,string)}:
-@verbatim
-struct Person {
-  string firstname;
-  string lastname;
-
-  static Person Person(string firstname, string lastname) {
-    Person p=new Person;
-    p.firstname=firstname;
-    p.lastname=lastname;
-    return p;
-  }
-}
-
-Person joe=Person.Person("Joe", "Jones");
-@end verbatim
-
-While it is now easier than before to create a new instance, we still
-have to refer to the constructor by the qualified name
-@code{Person.Person}.  If we add the line
-@verbatim
-from Person unravel Person;
-@end verbatim
-@noindent
-immediately after the structure definition, then the constructor can be used
-without qualification: @code{Person joe=Person("Joe", "Jones");}.
-
-The constructor is now easy to use, but it is quite a hassle to define.  If you
-write a lot of constructors, you will find that you are repeating a lot of code
-in each of them.  Fortunately, your friendly neighbourhood Asymptote
-developers have devised a way to automate much of the process.
-
+We can reduce the work by defining @code{operator init}:
 @cindex @code{operator init}
-If, in the body of a structure, Asymptote encounters the definition of
-a function of the form @code{void operator init(@var{args})},  it implicitly
-defines a constructor function of the arguments @code{@var{args}} that
-uses the @code{void operator init} function to initialize a
-new instance of the structure.
-That is, it essentially defines the following constructor (assuming the
-structure is called @code{Foo}):
-
-@example
-static Foo Foo(@var{args}) @{
-  Foo instance=new Foo;
-  instance.operator init(@var{args});
-  return instance;
-@}
-@end example
-
-This constructor is also implicitly copied to the enclosing scope after the end
-of the structure definition, so that it can used subsequently without qualifying
-it by the structure name.  Our @code{Person} example can thus be implemented as:
 @verbatim
 struct Person {
   string firstname;
@@ -4400,6 +4349,37 @@ confused with its use to define default values for variables
 (@pxref{Variable initializers}).  Indeed, in the
 first case, the return type of the @code{operator init} must be @code{void}
 while in the second, it must be the (non-@code{void}) type of the variable.
+
+Internally, @code{operator init} implicitly defines a constructor function
+@code{Person(string,string)} as follows, where @var{args} is
+@code{string firstname, string lastname} in this case:
+@example
+struct Person @{
+  string firstname;
+  string lastname;
+
+  static Person Person(@var{args}) @{
+    Person p=new Person;
+    p.operator init(@var{args});
+    return p;
+  @}
+@}
+@end example
+@noindent
+which then can be used as:
+@verbatim
+Person joe=Person.Person("Joe", "Jones");
+@end verbatim
+
+The following is also implicitly generated in the enclosing scope,
+after the end of the structure definition.
+@verbatim
+from Person unravel Person;
+@end verbatim
+@noindent
+It allows us to use the constructor without qualification,
+otherwise we would have to refer to the constructor by the qualified name
+@code{Person.Person}.
 
 @cindex @code{cputime}
 The function @code{cputime()}
