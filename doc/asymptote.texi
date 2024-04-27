@@ -308,6 +308,7 @@ A quick reference card for @code{Asymptote} is available at
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
 * Git::                         Getting the latest development source
+* Building the documentation::  Instruction to build the documentation
 * Uninstall::                   Goodbye, @code{Asymptote}!
 @end menu
 
@@ -791,6 +792,33 @@ dependencies:
 apt-get build-dep asymptote
 @end verbatim
 @noindent
+
+@node Building the documentation
+@section Building the documentation
+If you want to rebuild the documentation
+after a change to @code{doc/asymptote.texi}, do the following:
+@verbatim
+cd doc
+make  # for both PDF version doc/asymptote.pdf and HTML version
+cd png
+make  # alternative method for HTML version doc/png/index.html
+@end verbatim
+Note that the @code{HTML} version cannot be built without
+executing @code{make} from @code{doc} folder first.
+
+If you want to build only the documentation, you don't need @code{make all}.
+However, the @code{asy} executable is required to compile several diagrams
+in the documentation.
+
+With a pre-built @code{asy} executable put in the top-level folder,
+you can do the following:
+@verbatim
+./autogen.sh
+./configure
+make version
+cd doc
+make
+@end verbatim
 
 @node Uninstall,  , Git, Installation
 @section Uninstall
