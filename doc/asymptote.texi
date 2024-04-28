@@ -1136,13 +1136,17 @@ void draw(picture pic=currentpicture, Label L="", path g,
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic} using pen @code{p}
-for drawing, with optional drawing attributes (Label @code{L},
-explicit label alignment @code{align},
-arrows and bars @code{arrow} and @code{bar}, margins @code{margin},
-legend, and markers @code{marker}). Only one parameter, the path, is
+for drawing, with optional drawing attributes.
+Only one parameter, the path, is
 required. For convenience, the arguments @code{arrow} and @code{bar} may be
-specified in either order. The argument @code{legend} is a Label to
+specified in either order.
+
+The optional attributes are:
+@itemize
+@item The argument @code{legend} is a Label to
 use in constructing an optional legend entry.
+@item @code{L} is a label.
+@item @code{align} is the label alignment.
 
 @cindex @code{None}
 @cindex @code{BeginBar}
@@ -1150,7 +1154,8 @@ use in constructing an optional legend entry.
 @cindex @code{Bar}
 @cindex @code{Bars}
 @cindex @code{barsize}
-Bars are useful for indicating dimensions. The possible values of
+@item
+Bars @code{bar} are useful for indicating dimensions. The possible values of
 @code{bar} are @code{None}, @code{BeginBar}, @code{EndBar} (or
 equivalently @code{Bar}), and @code{Bars} (which draws a bar at both
 ends of the path). Each of these bar specifiers (except for
@@ -1168,81 +1173,120 @@ bar length is @code{barsize(pen)}.
 @cindex @code{EndArrow}
 @cindex @code{Arrow}
 @cindex @code{Arrows}
-
-@cindex @code{filltype}
-@cindex @code{FillDraw}
-@cindex @code{Fill}
-@cindex @code{Draw}
-@cindex @code{NoFill}
-@cindex @code{UnFill}
+@item
+The possible values of @code{arrow} are @code{None}, @code{Blank}
+(which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
+@code{EndArrow} (or equivalently @code{Arrow}),
+and @code{Arrows} (which draws an arrow at both ends of the path).
 
 @cindex @code{BeginArcArrow}
 @cindex @code{MidArcArrow}
 @cindex @code{EndArcArrow}
 @cindex @code{ArcArrow}
 @cindex @code{ArcArrows}
+There are also arrow versions with
+slightly modified default values of @code{size} and @code{angle} suitable for
+curved arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
+@code{ArcArrow}), @code{MidArcArrow}, and @code{ArcArrows}.
 
+For example:
+@verbatim
+draw((0,0)--(1,1),arrow=Arrows);
+@end verbatim
+
+All of the arrow specifiers except for @code{None} and @code{Blank}
+may be given the optional arguments, for example:
+@verbatim
+draw((0,0)--(1,1),arrow=Arrow(
+     arrowhead=HookHead,size=3mm,angle=20,filltype=Draw,position=0.9));
+@end verbatim
+
+The function @code{Arrow} has the signature:
+@verbatim
+arrowbar Arrow(arrowhead arrowhead=DefaultHead,
+               real size=0, real angle=arrowangle,
+               filltype filltype=null, position position=EndPoint)
+@end verbatim
+@noindent
+Calling @code{Arrow()} returns @code{Arrow}, which is an @code{arrowbar} object.
+The parameters are:
+
+@itemize
 @cindex @code{arrowhead}
 @cindex @code{DefaultHead}
 @cindex @code{SimpleHead}
 @cindex @code{HookHead}
 @cindex @code{TeXHead}
-The possible values of @code{arrow} are @code{None}, @code{Blank}
-(which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
-@code{EndArrow} (or equivalently @code{Arrow}),
-and @code{Arrows} (which draws an arrow at both ends of the path).
-All of the arrow specifiers except for @code{None} and @code{Blank}
-may be given the optional arguments arrowhead @code{arrowhead} (one of
+@item @code{arrowhead}
+can be one of
 the predefined arrowhead styles @code{DefaultHead}, @code{SimpleHead},
-@code{HookHead}, @code{TeXHead}),
-real @code{size} (arrowhead size in @code{PostScript} coordinates),
-real @code{angle} (arrowhead angle
-in degrees), filltype @code{filltype} (one of @code{FillDraw}, @code{Fill},
-@code{NoFill}, @code{UnFill}, @code{Draw}) and (except for
-@code{MidArrow} and @code{Arrows}) a real @code{position} (in the
-sense of @code{point(path p, real t)}) along the path where the tip of
-the arrow should be placed. The default arrowhead size when drawn
-with a pen @code{p} is @code{arrowsize(p)}. There are also arrow versions with
-slightly modified default values of @code{size} and @code{angle} suitable for
-curved arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
-@code{ArcArrow}), @code{MidArcArrow}, and @code{ArcArrows}.
+@code{HookHead}, @code{TeXHead}.
+@item real @code{size} is the arrowhead size in @code{PostScript} coordinates.
 
+The default arrowhead size when drawn
+with a pen @code{p} is @code{arrowsize(p)}.
+@item real @code{angle} is the arrowhead angle
+in degrees.
+
+@item filltype @code{filltype} (@pxref{filltype}),
+@item (except for
+@code{MidArrow} and @code{Arrows}) real @code{position} (in the
+sense of @code{point(path p, real t)}) along the path where the tip of
+the arrow should be placed.
+@end itemize
+
+@item
+Margins @code{margin} can be used to shrink the visible portion of a path by
+@code{labelmargin(p)} to avoid overlap with other drawn objects.
+
+Typical values of @code{margin}
+are:
+@table @code
 @cindex @code{NoMargin}
+@item NoMargin
 @cindex @code{BeginMargin}
+@item BeginMargin
 @cindex @code{EndMargin}
 @cindex @code{Margin}
+@item EndMargin
+(equivalently @code{Margin})
 @cindex @code{Margins}
+@item Margins
+leaves a margin at both ends of the path.
+@item Margin(real begin, real end=begin)
+specify the size of the beginning and ending margin, respectively,
+in multiples of the units @code{labelmargin(p)} used for aligning labels.
 @cindex @code{BeginPenMargin}
+@item BeginPenMargin
 @cindex @code{EndPenMargin}
 @cindex @code{PenMargin}
+@item EndPenMargin
+(equivalently @code{PenMargin})
 @cindex @code{PenMargins}
-@cindex @code{BeginDotMargin}
-@cindex @code{EndDotMargin}
-@cindex @code{DotMargin}
-@cindex @code{DotMargins}
-@cindex @code{Margin}
-@cindex @code{TrueMargin}
-Margins can be used to shrink the visible portion of a path by
-@code{labelmargin(p)} to avoid overlap with other drawn objects.
-Typical values of @code{margin}
-are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
-equivalently @code{Margin}), and @code{Margins} (which leaves a margin
-at both ends of the path). One may use
-@code{Margin(real begin, real end=begin)}
-to specify the size of the beginning and ending margin, respectively,
-in multiples of the units @code{labelmargin(p)} used for aligning labels.
-Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
-(or equivalently @code{PenMargin}), @code{PenMargins},
-@code{PenMargin(real begin, real end=begin)} specify a margin in units of
+@item PenMargins
+@item PenMargin(real begin, real end=begin)
+specify a margin in units of
 the pen line width, taking account of the pen line width when drawing
-the path or arrow. For example, use @code{DotMargin}, an
-abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
-to draw from the usual beginning point just up to the boundary of an
-end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
-@code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
-similarly. The qualifier @code{TrueMargin(real begin, real end=begin)}
-allows one to specify a margin directly in @code{PostScript} units,
+the path or arrow.
+@cindex @code{DotMargin}
+@item DotMargin
+an abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
+used to draw from the usual beginning point just up to the boundary of an
+end dot of width @code{dotfactor*linewidth(p)}.
+@cindex @code{BeginDotMargin}
+@item BeginDotMargin
+@cindex @code{EndDotMargin}
+@cindex @code{DotMargins}
+@item DotMargins
+work similarly.
+@cindex @code{TrueMargin}
+@item TrueMargin(real begin, real end=begin)
+specify a margin directly in @code{PostScript} units,
 independent of the pen line width.
+@end table
+
+@item markers @code{marker}.
+@end itemize
 
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
@@ -1516,6 +1560,7 @@ For an illustration of picture clipping, see the first example in @ref{LaTeX usa
 @node label,  , clip, Drawing commands
 @section label
 @cindex @code{label}
+@cindex @code{labelmargin}
 @verbatim
 void label(picture pic=currentpicture, Label L, pair position,
            align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
@@ -1526,6 +1571,16 @@ Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
 coordinate @code{position}; otherwise it will be aligned in the
 direction of @code{align} and displaced from @code{position} by
 the @code{PostScript} offset @code{align*labelmargin(p)}.
+
+Here, @code{real labelmargin(pen p=currentpen)} is a quantity used to align labels.
+In the code below,
+@verbatim
+label("abcdefg",(0,0),align=up,basealign);
+@end verbatim
+@noindent
+the baseline of the label will be exactly
+@code{labelmargin(currentpen)} @code{PostScript} units above the center.
+
 @cindex @code{Align}
 The constant @code{Align} can be used to align the
 bottom-left corner of the label at @code{position}.
@@ -1660,7 +1715,10 @@ A group of objects may be packed together into single frame with the routine
 frame pack(pair align=2S ... object inset[]);
 @end verbatim
 @noindent
-To draw or fill a box (or ellipse or other path) around a Label and
+@anchor{envelope}
+@cindex @code{envelope}
+@cindex @code{object}
+To draw or fill a box (or ellipse or other path) around a @code{Label} and
 return the bounding object, use one of the routines
 @verbatim
 object draw(picture pic=currentpicture, Label L, envelope e,
@@ -1672,8 +1730,7 @@ object draw(picture pic=currentpicture, Label L, envelope e, pair position,
 @end verbatim
 @noindent
 Here @code{envelope} is a boundary-drawing routine such as @code{box},
-@code{roundbox}, or @code{ellipse} defined in @code{plain_boxes.asy}
-(@pxref{envelope}).
+@code{roundbox}, or @code{ellipse} defined in @code{plain_boxes.asy}.
 
 @cindex @code{texpath}
 The function @code{path[] texpath(Label L)} returns the path array that
@@ -3483,24 +3540,6 @@ A frame obtained by aligning frame @code{f} in the direction
 frame align(frame f, pair align);
 @end verbatim
 
-@cindex @code{box}
-@cindex @code{ellipse}
-@anchor{envelope}
-@cindex @code{envelope}
-To draw or fill a box or ellipse around a label or frame and return the
-boundary as a path, use one of the predefined @code{envelope} routines
-@verbatim
-path box(frame f, Label L="", real xmargin=0,
-         real ymargin=xmargin, pen p=currentpen,
-         filltype filltype=NoFill, bool above=true);
-path roundbox(frame f, Label L="", real xmargin=0,
-              real ymargin=xmargin, pen p=currentpen,
-              filltype filltype=NoFill, bool above=true);
-path ellipse(frame f, Label L="", real xmargin=0,
-             real ymargin=xmargin, pen p=currentpen,
-             filltype filltype=NoFill, bool above=true);
-@end verbatim
-
 @item picture
 @cindex @code{picture}
 Pictures are high-level structures (@pxref{Structures}) defined in
@@ -3647,6 +3686,7 @@ frame bbox(picture pic=currentpicture, real xmargin=0,
            real ymargin=xmargin, pen p=currentpen,
            filltype filltype=NoFill);
 @end verbatim
+@cindex @code{filltype}
 @anchor{filltype}
 Here @code{filltype} specifies one of the following fill types:
 @table @code
