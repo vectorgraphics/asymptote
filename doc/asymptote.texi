@@ -1801,6 +1801,7 @@ should coincide with the first node of the second path).
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
+* Deferred drawing::            More notes on deferred drawing
 * Files::                       Reading and writing your data
 * Variable initializers::       Initialize your variables
 * Structures::                  Organize your data
@@ -3430,7 +3431,7 @@ The function @code{bool isometry(transform t)} can be used to test if @code{t}
 is an isometry (preserves distance).
 
 
-@node Frames and pictures, Files, Transforms, Programming
+@node Frames and pictures
 @section Frames and pictures
 
 @table @code
@@ -3597,7 +3598,7 @@ To rotate the page by @math{-90} degrees, use the orientation @code{Seascape}.
 The orientation @code{UpsideDown} rotates the page by 180 degrees.
 
 @cindex subpictures
-@cindex @code{fit}
+@cindex @code{picture.fit}
 A picture @code{pic} can be explicitly fit to a frame by calling
 @verbatim
 frame pic.fit(real xsize=pic.xsize, real ysize=pic.ysize,
@@ -3606,13 +3607,14 @@ frame pic.fit(real xsize=pic.xsize, real ysize=pic.ysize,
 The default size and aspect ratio settings are those given to the
 @code{size} command (which default to @code{0}, @code{0}, and
 @code{true}, respectively).
-@cindex @code{calculateTransform}
+@cindex @code{picture.calculateTransform}
 The transformation that would currently be used to fit a picture
 @code{pic} to a frame is returned by the member function
 @code{pic.calculateTransform()}.
 
 In certain cases (e.g.@ 2D graphs) where only an approximate size
 estimate for @code{pic} is available, the picture fitting routine
+@cindex @code{picture.scale}
 @verbatim
 frame pic.scale(real xsize=this.xsize, real ysize=this.ysize,
                 bool keepAspect=this.keepAspect);
@@ -3870,7 +3872,108 @@ that can be used for importing @code{LaTeX} packages.
 
 @end table
 
-@node Files, Variable initializers, Frames and pictures, Programming
+@node Deferred drawing
+@section Deferred drawing
+In some cases, it is desirable to have some elements of a fixed absolute size, regardless of the scaling.
+For example, the size of a dot created with @code{dot}, or the size of the arrowheads created with @code{arrow}
+(@pxref{arrows}) should be independent of the scaling.
+
+However, because of @code{Asymptote}'s automatic scaling feature (@pxref{Figure size}),
+the translation between user coordinate and @code{PostScript} coordinate
+is not determined until shipout time:
+@verbatim
+size(2inch);
+dot((0,0));
+dot((1,1));
+shipout("x"); // at this point, 1 unit coordinate = about 2 inch
+dot((2,2));
+shipout("y"); // at this point, 1 unit coordinate = about 1 inch
+@end verbatim
+@noindent
+As such, it is necessary to defer the drawing of these elements until shipout time.
+
+The simplest cases are already covered above:
+@code{add(picture dest=currentpicture, frame src, pair position, ...)}
+will add a frame at the specified @code{position}.
+@verbatim
+frame f;
+fill(f,circle((0,0),1.5pt));
+add(f,position=(1,1),align=(0,0));
+@end verbatim
+
+@cindex @code{picture.add}
+@cindex @code{drawer}
+In more complicated cases, however, it would be necessary to write a deferred drawing routine.
+
+A deferred drawing routine is an object of type @code{drawer},
+which is a function with signature @code{void(frame f, transform t)}.
+For example:
+@verbatim
+drawer d=new void(frame f, transform t){
+  fill(f,circle(t*(1,1),1.5pt));
+};
+// or equivalently
+void d(frame f, transform t){
+  fill(f,circle(t*(1,1),1.5pt));
+}
+@end verbatim
+@noindent
+Then, if the drawer is added to a picture with
+@verbatim
+pic.add(d);
+@end verbatim
+@noindent
+the picture will get a filled circle at user coordinate @code{(1, 1)}.
+The parameter @code{t} is the transformation from the user coordinate
+to @code{PostScript} coordinate.
+
+@cindex @code{picture.addBox}
+There are a few things to look out for, however. Suppose you write the following:
+@verbatim
+add(new void(frame f, transform t){
+  fill(f,circle(t*(2,2)+(3inch,0),1.5pt));
+});
+@end verbatim
+@noindent
+The code creates a filled circle at @code{3inch} to the right of user coordinate @code{(2,2)}.
+However, what if there is also the following?
+@verbatim
+size(2inch);
+dot((0,0));
+dot((2,2));
+@end verbatim
+It would be impossible have two points @code{3inch} separated from each other
+in a picture with width @code{2inch}.
+
+In practice, @code{Asymptote} will just give up and make the picture width larger than 3 inches.
+
+More innocuously, suppose you modify @code{3inch} to @code{1inch}.
+@verbatim
+add(new void(frame f, transform t){
+  fill(f,circle(t*(2,2)+(1inch,0),1.5pt));
+});
+@end verbatim
+
+Because how @code{Asymptote}'s internal scaling algorithms are implemented,
+the resulting figure size remains a bit off.
+
+In order to avoid that, you should assist Asymptote by adding the following:
+@verbatim
+currentpicture.addBox((2,2),(2,2),(1inch-1.5pt,1.5pt),(1inch+1.5pt,1.5pt));
+@end verbatim
+
+The signature is:
+@verbatim
+void picture.addBox(pair userMin, pair userMax, pair trueMin, pair trueMax);
+@end verbatim
+
+This should be used to signify that there is some object with bounding box
+with bottom-left corner at @code{t*userMin+trueMin}
+and top-right corner at @code{t*userMax+trueMax},
+where @code{t} is the transformation that transforms
+from user coordinate to @code{PostScript} coordinate.
+
+@node Files
 @section Files
 
 @cindex @code{file}
@@ -4139,7 +4242,7 @@ call the @code{ImageMagick} commands @code{convert} and @code{animate},
 respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}.
 
-@node Variable initializers, Structures, Files, Programming
+@node Variable initializers
 @section Variable initializers
 @cindex variable initializers
 @cindex @code{operator init}
