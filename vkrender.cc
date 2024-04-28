@@ -14,6 +14,8 @@
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
+#define VARIABLE_NAME(var) (#var)
+
 //using namespace settings;
 
 bool havewindow;
@@ -265,6 +267,13 @@ void AsyVkRender::initWindow()
     glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
     window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
+
+    if (window == nullptr) {
+      throw std::runtime_error(
+        "Failed to create a window with width "
+        + std::to_string(width) + " and height "
+        + std::to_string(height));
+    }
   }
 
   glfwHideWindow(window);
@@ -1465,11 +1474,11 @@ void AsyVkRender::createFramebuffers()
     // still, we should really be moving to scene graphs.
     // The code will get more complicated as times go on
     // (what about multiple post-processing stages, multiple shaders, shadow maps, etc?)
-    
+
     vk::ImageView const finalRenderTarget =
             fxaa ? *immRenderTargetViews[i]
                  : *backbufferImageViews[i];
-    
+
     std::array<vk::ImageView, 3> attachments= {*colorImageView, *depthImageView, finalRenderTarget};
     std::array<vk::ImageView, 1> depthAttachments{*depthImageView};
 
@@ -1604,7 +1613,8 @@ vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
         VkMemoryPropertyFlags const& properties,
         vk::DeviceSize const& size,
         VmaAllocationCreateFlags const& vmaFlags,
-        VmaMemoryUsage const& memoryUsage)
+        VmaMemoryUsage const& memoryUsage,
+        const char * bufferName)
 {
   auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), size, usage);
 
@@ -1612,6 +1622,10 @@ vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
   createInfo.usage = memoryUsage;
   createInfo.requiredFlags = properties;
   createInfo.flags=vmaFlags;
+
+  if (bufferName != nullptr && settings::verbose >= 4) {
+    std::cout << "Attempting to create buffer " << bufferName << " of size: " << size << std::endl;
+  }
 
   return allocator.createBuffer(bufferCI, createInfo);
 }
@@ -1662,14 +1676,16 @@ void AsyVkRender::copyToBuffer(
         vk::DeviceSize size
 )
 {
-  vma::cxx::UniqueBuffer stagingBuffer = createBufferUnique(
+  vma::cxx::UniqueBuffer copyToStageBf = createBufferUnique(
           vk::BufferUsageFlagBits::eTransferSrc,
           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
           size,
-          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(copyToStageBf)
           );
 
-  copyToBuffer(buffer, data, size, stagingBuffer);
+  copyToBuffer(buffer, data, size, copyToStageBf);
 }
 
 vma::cxx::UniqueImage AsyVkRender::createImage(
@@ -1721,11 +1737,13 @@ void AsyVkRender::createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags,
 
 void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size)
 {
-  vma::cxx::UniqueBuffer stagingBf= createBufferUnique(
+  vma::cxx::UniqueBuffer copyFromStageBf= createBufferUnique(
           vk::BufferUsageFlagBits::eTransferDst,
           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
           size,
-          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(copyFromStageBf)
   );
 
   auto const cmd = beginSingleCommands();
@@ -1733,11 +1751,11 @@ void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::Devic
     0, 0, size
   );
 
-  cmd.copyBuffer(buffer, stagingBf.getBuffer(), 1, &cpy);
+  cmd.copyBuffer(buffer, copyFromStageBf.getBuffer(), 1, &cpy);
 
   endSingleCommands(cmd);
 
-  vma::cxx::MemoryMapperLock const mappedMem(stagingBf);
+  vma::cxx::MemoryMapperLock const mappedMem(copyFromStageBf);
   memcpy(data, mappedMem.getCopyPtr(), size);
 }
 
@@ -1796,14 +1814,16 @@ void AsyVkRender::transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to
 void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img,
                                   std::uint32_t w, std::uint32_t h, vk::Offset3D const & offset) {
 
-  vma::cxx::UniqueBuffer stagingBf = createBufferUnique(
+  vma::cxx::UniqueBuffer copyToImageStageBf = createBufferUnique(
           vk::BufferUsageFlagBits::eTransferSrc,
           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
           size,
-          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(copyToImageStageBf)
     );
 
-  if (vma::cxx::MemoryMapperLock mappedMem(stagingBf); true)
+  if (vma::cxx::MemoryMapperLock mappedMem(copyToImageStageBf); true)
   {
     memcpy(mappedMem.getCopyPtr<uint8_t>(), data, size);
   }
@@ -1826,7 +1846,7 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Ima
       1
   };
 
-  cmd.copyBufferToImage(stagingBf.getBuffer(), img, vk::ImageLayout::eTransferDstOptimal, 1, &cpy);
+  cmd.copyBufferToImage(copyToImageStageBf.getBuffer(), img, vk::ImageLayout::eTransferDstOptimal, 1, &cpy);
 
   endSingleCommands(cmd);
 }
@@ -2441,13 +2461,19 @@ void AsyVkRender::updateSceneDependentBuffers() {
   fragmentBf = createBufferUnique(
           vk::BufferUsageFlagBits::eStorageBuffer,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-          fragmentBufferSize);
+          fragmentBufferSize,
+          0,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(fragmentBf));
 
   depthBufferSize = maxFragments*sizeof(float);
   depthBf = createBufferUnique(
           vk::BufferUsageFlagBits::eStorageBuffer,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-          depthBufferSize);
+          depthBufferSize,
+          0,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(depthBf));
 
   for(auto i = 0; i < maxFramesInFlight; i++) {
 
@@ -2504,7 +2530,9 @@ void AsyVkRender::createBuffers()
     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
     feedbackBufferSize,
-    VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+    VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+    VMA_MEMORY_USAGE_AUTO,
+    VARIABLE_NAME(feedbackBf)
   );
 
   if(GPUcompress) {
@@ -2512,8 +2540,10 @@ void AsyVkRender::createBuffers()
       vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
       elementBufferSize,
-      VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
-      );
+      VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+      VMA_MEMORY_USAGE_AUTO,
+      VARIABLE_NAME(elementBf)
+    );
   }
 
   for (auto& frameObj : frameObjects)
@@ -2522,8 +2552,10 @@ void AsyVkRender::createBuffers()
       vk::BufferUsageFlagBits::eUniformBuffer,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
       sizeof(UniformBufferObject),
-      VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-      );
+      VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+      VMA_MEMORY_USAGE_AUTO,
+      VARIABLE_NAME(frameObj.uboBf)
+    );
     frameObj.uboMappedMemory = make_unique<vma::cxx::MemoryMapperLock>(frameObj.uboBf);
   }
 
@@ -2536,12 +2568,18 @@ void AsyVkRender::createMaterialAndLightBuffers() {
   materialBf = createBufferUnique(
                       vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                      sizeof(camp::Material) * nmaterials);
+                      sizeof(camp::Material) * nmaterials,
+                      0,
+                      VMA_MEMORY_USAGE_AUTO,
+                      VARIABLE_NAME(materialBf));
 
   lightBf = createBufferUnique(
                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     sizeof(camp::Light) * nlights);
+                     sizeof(camp::Light) * nlights,
+                     0,
+                     VMA_MEMORY_USAGE_AUTO,
+                     VARIABLE_NAME(lightBf));
 }
 
 void AsyVkRender::createImmediateRenderTargets()
@@ -2648,28 +2686,42 @@ void AsyVkRender::createDependentBuffers()
                   | vk::BufferUsageFlagBits::eTransferSrc,
           countBufferFlags,
           countBufferSize,
-          vmaFlags
+          vmaFlags,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(countBf)
           );
 
   globalSumBf = createBufferUnique(
           vk::BufferUsageFlagBits::eStorageBuffer,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-          globalSize);
+          globalSize,
+          vmaFlags,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(globalSumBf));
 
   offsetBf = createBufferUnique(
           vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-          offsetBufferSize);
+          offsetBufferSize,
+          vmaFlags,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(offsetBf));
 
   opaqueBf = createBufferUnique(
                      vk::BufferUsageFlagBits::eStorageBuffer,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     opaqueBufferSize);
+                     opaqueBufferSize,
+                     vmaFlags,
+                     VMA_MEMORY_USAGE_AUTO,
+                     VARIABLE_NAME(opaqueBf));
 
   opaqueDepthBf = createBufferUnique(
                      vk::BufferUsageFlagBits::eStorageBuffer,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     opaqueBufferSize);
+                     opaqueBufferSize,
+                     vmaFlags,
+                     VMA_MEMORY_USAGE_AUTO,
+                     VARIABLE_NAME(opaqueDepthBf));
 
   if(GPUcompress) {
     indexBf = createBufferUnique(
@@ -2677,7 +2729,8 @@ void AsyVkRender::createDependentBuffers()
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       indexBufferSize,
       VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-      VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+      VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+      VARIABLE_NAME(indexBf));
   }
 }
 
@@ -2883,7 +2936,7 @@ void AsyVkRender::createGraphicsRenderPass()
   vk::ImageLayout colorAttachmentFinalLayout = fxaa
   ? vk::ImageLayout::eGeneral
   : vk::ImageLayout::ePresentSrcKHR;
-  
+
   auto colorResolveAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
     backbufferImageFormat,
@@ -4152,7 +4205,7 @@ void AsyVkRender::drawFrame()
             EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(prePresentationBarrier)
     );
   }
-  
+
   endFrameCommands();
   // recording done, not go to submit stage
 

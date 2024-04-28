@@ -916,7 +916,8 @@ private:
           VkMemoryPropertyFlags const& properties,
           vk::DeviceSize const& size,
           VmaAllocationCreateFlags const& vmaFlags = 0,
-          VmaMemoryUsage const& memoryUsage=VMA_MEMORY_USAGE_AUTO);
+          VmaMemoryUsage const& memoryUsage=VMA_MEMORY_USAGE_AUTO,
+          const char* bufferName = nullptr);
   void copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size);
   void copyToBuffer(
           const vk::Buffer& buffer,
