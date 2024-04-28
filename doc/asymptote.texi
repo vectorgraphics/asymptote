@@ -1160,6 +1160,7 @@ bar length is @code{barsize(pen)}.
 
 @cindex arrows
 @anchor{arrows}
+@cindex @code{arrowbar}
 @cindex @code{None}
 @cindex @code{Blank}
 @cindex @code{BeginArrow}
@@ -1167,17 +1168,21 @@ bar length is @code{barsize(pen)}.
 @cindex @code{EndArrow}
 @cindex @code{Arrow}
 @cindex @code{Arrows}
+
+@cindex @code{filltype}
 @cindex @code{FillDraw}
 @cindex @code{Fill}
 @cindex @code{Draw}
 @cindex @code{NoFill}
 @cindex @code{UnFill}
+
 @cindex @code{BeginArcArrow}
 @cindex @code{MidArcArrow}
 @cindex @code{EndArcArrow}
 @cindex @code{ArcArrow}
 @cindex @code{ArcArrows}
 
+@cindex @code{arrowhead}
 @cindex @code{DefaultHead}
 @cindex @code{SimpleHead}
 @cindex @code{HookHead}
@@ -1636,11 +1641,13 @@ label(graphic("file.eps","width=1cm"),(0,0),NE);
 layer();
 @end verbatim
 
+@anchor{baseline}
 @cindex @code{baseline}
 The @code{string baseline(string s, string template="\strut")}
 function can be used to enlarge the bounding box of labels to match a
 given template, so that their baselines will be typeset on a
 horizontal line. See @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} for an example.
+Note that @code{basealign} provides another method to align the baselines (@pxref{basealign}).
 
 One can prevent labels from overwriting one another with the
 @code{overwrite} pen attribute (@pxref{overwrite}).
@@ -3128,12 +3135,21 @@ pen basealign=basealign(1);
 @end verbatim
 
 @noindent
-The default setting, @code{nobasealign},which may be changed with
+The default setting, @code{nobasealign}, which may be changed with
 @code{defaultpen(pen)}, causes the label alignment routines to use the
 full label bounding box for alignment. In contrast, @code{basealign}
 requests that the @TeX{} baseline be respected.
 The base align setting of a pen is returned by
 @code{int basealign(pen p=currentpen)}.
+
+For example, in the following image, the baselines of green @math{\pi} and
+@math{\gamma} are aligned, while the bottom border of red @math{-\pi}
+and @math{-\gamma} are aligned.
+@verbatiminclude basealign.asy
+@sp 1
+@center @image{./basealign}
+
+Another method to align the baselines is to use @code{baseline} function (@pxref{baseline}).
 
 @cindex @code{fontsize}
 @cindex @code{lineskip}
