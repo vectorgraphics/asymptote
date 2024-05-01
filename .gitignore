@@ -157,10 +157,13 @@ renderDocSettings
 !webgl/WebGL*.html
 
 v3dheadertypes.h
-v3dtypes.h
+v3dheadertypes.py
 base/v3dheadertypes.asy
-base/v3dtypes.asy
 
+v3dtypes.h
+v3dtypes.py
+base/v3dtypes.asy
+shaders/*.spv
 # CMake files
 CMakeLists.txt.user
 CMakeCache.txt

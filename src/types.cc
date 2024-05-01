@@ -18,6 +18,7 @@
 #include "runtriple.h"
 #include "access.h"
 #include "virtualfieldaccess.h"
+#include "process.h"
 
 namespace run {
 void arrayDeleteHelper(vm::stack *Stack);
@@ -377,15 +378,10 @@ bool argumentEquivalent(const formal &f1, const formal& f2) {
     return false;
 }
 
-ostream& operator<< (ostream& out, const signature& s)
+
+string toString(const signature& s)
 {
-  if (s.isOpen) {
-    out << "(<open>)";
-    return out;
-  }
-
-  out << "(";
-
+  ostringstream out;
   for (size_t i = 0; i < s.formals.size(); ++i)
     {
       if (i > 0)
@@ -398,6 +394,20 @@ ostream& operator<< (ostream& out, const signature& s)
       out << " ";
     out << "... " << s.rest;
   }
+
+  return out.str();
+}
+
+ostream& operator<< (ostream& out, const signature& s)
+{
+  if (s.isOpen) {
+    out << "(<open>)";
+    return out;
+  }
+
+  out << "(";
+
+  out << toString(s);
 
   out << ")";
 
@@ -460,6 +470,22 @@ size_t signature::hash() const {
     x=x*0xACED +rest.t->hash();
 
   return x;
+}
+
+size_t signature::handle() {
+  processDataStruct *P=&processData();
+  size_t h=hash();
+  for(;;) {
+    auto p=P->sigMap.find(h);
+    if(p == P->sigMap.end()) {
+      P->sigMap[h]=this;
+      return h;
+    }
+
+    if(equivalent(p->second,this))
+      return h;
+    ++h;
+  }
 }
 
 trans::access *function::initializer() {

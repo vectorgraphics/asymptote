@@ -174,7 +174,7 @@ void *asymain(void *A)
         fprintf(camp::pipeout,"\n");
         fflush(camp::pipeout);
       }
-      while(true) {
+      for(;;) {
         processFile("-",true);
         try {
           setOptions(args->argc,args->argv);
@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif // !defined(_WIN32)
-        while(true) {
+        for (;;) {
 #if !defined(_WIN32)
           Signal(SIGURG,exitHandler);
 #endif // !defined(_WIN32)
