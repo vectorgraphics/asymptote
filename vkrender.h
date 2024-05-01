@@ -1058,7 +1058,7 @@ private:
   void travelHome(bool webgl=false);
   void cycleMode();
 
-  friend class SwapChainDetails;
+  friend struct SwapChainDetails;
 };
 
 extern AsyVkRender* vk;
