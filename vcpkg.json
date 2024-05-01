@@ -3,7 +3,7 @@
 
   "name": "asymptote",
   "version": "0.0-snapshot",
-  "builtin-baseline": "ad3bae57455a3c3ce528fcd47d8e8027d0498add",
+  "builtin-baseline": "c591ac6466a55ef0a05a3d56bb1489ca36e50102",
   "dependencies": [
     "zlib",
     "glm",
