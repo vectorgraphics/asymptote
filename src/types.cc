@@ -18,7 +18,7 @@
 #include "runtriple.h"
 #include "access.h"
 #include "virtualfieldaccess.h"
-#include "process.h"
+#include "processutils.h"
 
 namespace run {
 void arrayDeleteHelper(vm::stack *Stack);
