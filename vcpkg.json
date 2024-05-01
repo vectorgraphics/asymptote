@@ -50,11 +50,12 @@
     "fftw3": {
       "description": "fftw3 support",
       "dependencies": ["fftw3"]
-    },
+  },
     "vulkan": {
       "description": "Vulkan Support",
       "dependencies": [
         "vulkan",
+        "vulkan-sdk-components",
         "glfw3"
       ]
     },
