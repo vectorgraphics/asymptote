@@ -2704,7 +2704,7 @@ otherwise.
 
 @cindex @code{inside}
 @item pair inside(path p, pen fillrule=currentpen);
-returns an arbitrary point strictly inside a cyclic path @code{p}
+returns an arbitrary point strictly inside a nondegenerate cyclic path @code{p}
 according to the fill rule @code{fillrule} (@pxref{fillrule}).
 
 @cindex @code{strokepath}
