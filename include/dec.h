@@ -644,7 +644,7 @@ class receiveTypedefDec : public dec {
   typeParamList* params;
 
 public:
-  receiveTypedefDec(position pos, typeParamList* params) 
+  receiveTypedefDec(position pos, typeParamList* params)
     : dec(pos), params(params) {}
 
   void transAsField(coenv& e, record *r) override;
@@ -674,7 +674,7 @@ protected:
     //   from a.B unravel x;
     //
     // Here, v->getType() will yield A and v->getLocation() will yield the
-    // location of the the variable a, but the record type t will be B.
+    // location of the variable a, but the record type t will be B.
     record *t;
     varEntry *v;
 
