@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# aid script for development
+python3 -m xasygui.xasy

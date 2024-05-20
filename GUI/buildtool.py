@@ -7,24 +7,34 @@ import click
 from PyQt5.uic import compileUiDir
 
 BUILD_ROOT_DIRECTORY = pathlib.Path(__file__).parent
-PY_UI_FILE_DIR = BUILD_ROOT_DIRECTORY / "pyUIClass"
-PY_ICONS_FILE_DIR = BUILD_ROOT_DIRECTORY / "iconres"
+
+XASY_ICONS_MODULE_NAME = "xasyicons"
+
+PY_UI_FILE_DIR = BUILD_ROOT_DIRECTORY / "xasyqtui"
+PY_ICONS_FILE_DIR = BUILD_ROOT_DIRECTORY / XASY_ICONS_MODULE_NAME
+PY_VERSION_MODULE_DIR = BUILD_ROOT_DIRECTORY / "xasyversion"
 
 
 def _mapUiFile(_: str, fileName: str):
     return str(PY_UI_FILE_DIR), fileName
 
 
+def make_init_py_at_dir(dir_name: pathlib.Path):
+    (dir_name / "__init__.py").touch(exist_ok=True)
+
+
 @click.command()
 def buildUi():
-    compileUiDir("windows", map=_mapUiFile, from_imports=True, import_from="iconres")
-    (PY_UI_FILE_DIR / "__init__.py").touch(exist_ok=True)
+    compileUiDir(
+        "windows", map=_mapUiFile, from_imports=True, import_from=XASY_ICONS_MODULE_NAME
+    )
+    make_init_py_at_dir(PY_UI_FILE_DIR)
 
 
 @click.command()
 def buildIcons():
     PY_ICONS_FILE_DIR.mkdir(exist_ok=True)
-    (PY_ICONS_FILE_DIR / "__init__.py").touch(exist_ok=True)
+    make_init_py_at_dir(PY_ICONS_FILE_DIR)
     subprocess.run(
         [
             "pyrcc5",
