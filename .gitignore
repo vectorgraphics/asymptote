@@ -16,7 +16,6 @@ xasy
 ### Version info
 *version.*
 revision.*
-/GUI/xasyVersion.py
 
 ### Runtime objects
 run*.cc
@@ -41,9 +40,6 @@ newDrawing.asy
 *.svg
 *.roff
 /doc/png/*.html
-GUI/*.pyc
-GUI/*/*.pyc
-GUI/*/__pycache__
 /.wisdom
 /allsymbols.h
 /asy-keywords.el
@@ -113,11 +109,7 @@ core.*
 \#*
 .\#*
 
-### Generated python UI files
-/GUI/pyUIClass/*
-/GUI/__pycache__/*
 /.idea/*
-/GUI/.env
 
 examples/_ig_*.asy
 
@@ -131,14 +123,6 @@ _ig_*/*
 .vscode
 ### Translation binary files
 *.mo
-
-### SVG Icons
-GUI/res/*
-!GUI/res/*/*.svg
-
-### RC Icons
-GUI/icons_rc.py
-
 
 # apitrace outputs
 *.trace
