@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pathlib
+import re
 import subprocess
 import shutil
 
@@ -45,6 +46,28 @@ def buildIcons():
     )
 
 
+CMAKE_VERSION_REGEX = re.compile(r"(?:set|SET)\(\s*ASY_VERSION_BASE\s+([0-9.]+)\s*\)")
+
+
+def determineAsyVersion() -> str:
+    with open(
+        BUILD_ROOT_DIRECTORY.parent / "pkg-info.cmake", "r", encoding="utf-8"
+    ) as f:
+        for line in f:
+            if match_obj := CMAKE_VERSION_REGEX.match(line):
+                return match_obj.group(1) + ".0"
+    return "0.0.0-SNAPSHOT"
+
+
+@click.command()
+def buildVersionModule():
+    PY_VERSION_MODULE_DIR.mkdir(exist_ok=True)
+    make_init_py_at_dir(PY_VERSION_MODULE_DIR)
+    version = determineAsyVersion()
+    with open(PY_VERSION_MODULE_DIR / "version.py", "w", encoding="utf-8") as f:
+        f.write(f'VERSION="{version}"\n')
+
+
 @click.command()
 def clean():
     if PY_UI_FILE_DIR.exists():
@@ -53,12 +76,16 @@ def clean():
     if PY_ICONS_FILE_DIR.exists():
         shutil.rmtree(PY_ICONS_FILE_DIR)
 
+    if PY_VERSION_MODULE_DIR.exists():
+        shutil.rmtree(PY_VERSION_MODULE_DIR)
+
 
 @click.command()
 @click.pass_context
 def build(ctx: click.Context):
     ctx.invoke(buildUi)
     ctx.invoke(buildIcons)
+    ctx.invoke(buildVersionModule)
 
 
 @click.group(invoke_without_command=True)
@@ -70,6 +97,7 @@ def cli(ctx: click.Context):
 
 cli.add_command(buildUi)
 cli.add_command(buildIcons)
+cli.add_command(buildVersionModule)
 cli.add_command(build)
 cli.add_command(clean)
 
