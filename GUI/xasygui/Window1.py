@@ -1,42 +1,36 @@
 #!/usr/bin/env python3
 
-from pyUIClass.window1 import Ui_MainWindow
-
-import PyQt5.QtWidgets as Qw
-import PyQt5.QtGui as Qg
-import PyQt5.QtCore as Qc
-import xasyVersion
-
-import numpy as np
-import os
-import json
+import atexit
+import datetime
 import io
-import pathlib
-import webbrowser
+import os
+import pickle
+import string
 import subprocess
 import tempfile
-import datetime
-import string
-import atexit
-import pickle
+import webbrowser
 
-import xasyUtils as xu
-import xasy2asy as x2a
-import xasyFile as xf
-import xasyOptions as xo
-import UndoRedoStack as Urs
-import xasyArgs as xa
-import xasyBezierInterface as xbi
-from xasyTransform import xasyTransform as xT
-import xasyStrings as xs
+import PyQt5.QtCore as Qc
+import PyQt5.QtGui as Qg
+import PyQt5.QtWidgets as Qw
+import numpy as np
 
-import PrimitiveShape
-import InplaceAddObj
-import ContextWindow
-
-import CustMatTransform
-import SetCustomAnchor
-import GuidesManager
+from xasyqtui.window1 import Ui_MainWindow
+from xasyversion.version import VERSION
+from . import (
+    ContextWindow,
+    CustMatTransform,
+    InplaceAddObj,
+    UndoRedoStack as Urs,
+    xasy2asy as x2a,
+    xasyArgs as xa,
+    xasyBezierInterface as xbi,
+    xasyFile as xf,
+    xasyOptions as xo,
+    xasyStrings as xs,
+    xasyUtils as xu,
+    xasyTransform as xT
+)
 
 
 class ActionChanges:
@@ -936,7 +930,7 @@ class MainWindow1(Qw.QMainWindow):
         webbrowser.open_new(asyManualURL)
 
     def actionAbout(self):
-        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
+        Qw.QMessageBox.about(self,"xasy","This is xasy "+VERSION+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
     def actionExport(self, pathToFile):
         asyFile = io.open(os.path.realpath(pathToFile), 'w')

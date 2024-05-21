@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-import xasy2asy as xasy2asy
-import numpy as numpy
 import math
+
 import PyQt5.QtCore as QtCore
 import PyQt5.QtGui as QtGui
+import numpy as numpy
+
+from . import xasy2asy
 
 
 class PrimitiveShape:

@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
-
-from pyUIClass.labelTextEditor import Ui_Dialog
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtSvg as QtSvg
-import PyQt5.QtGui as QtGui
-import PyQt5.QtCore as QtCore
-import xasyArgs as xasyArgs
-import xasy2asy as xasy2asy
-import xasyOptions as xasyOptions
-import xasyUtils as xasyUtils
+import os
 import subprocess
 import tempfile
 import uuid
-import os
-import io
+
+import PyQt5.QtCore as QtCore
+import PyQt5.QtGui as QtGui
+import PyQt5.QtSvg as QtSvg
+import PyQt5.QtWidgets as QtWidgets
+
+from xasyqtui.labelTextEditor import Ui_Dialog
+from . import xasyArgs, xasyUtils
 
 
 class labelEditor(QtWidgets.QDialog):

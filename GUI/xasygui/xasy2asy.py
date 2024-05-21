@@ -9,32 +9,32 @@
 #
 ###########################################################################
 
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtGui as QtGui
-import PyQt5.QtCore as QtCore
-import PyQt5.QtSvg as QtSvg
-
-import numpy as numpy
-
-import sys
+import atexit
+import copy
+import io
 import os
-import signal
-import threading
-import string
-import subprocess
-import tempfile
+import queue
 import re
 import shutil
-import copy
-import queue
-import io
-import atexit
-import DebugFlags
+import string
+import subprocess
+import sys
+import tempfile
+import threading
 
-import xasyUtils as xu
-import xasyArgs as xa
-import xasyOptions as xo
-import xasySvg as xs
+import PyQt5.QtCore as QtCore
+import PyQt5.QtGui as QtGui
+import PyQt5.QtSvg as QtSvg
+import numpy as numpy
+
+from . import (
+    xasyUtils as xu,
+    xasyArgs as xa,
+    xasyOptions as xo,
+    xasySvg as xs,
+    DebugFlags
+)
+
 
 class AsymptoteEngine:
     """

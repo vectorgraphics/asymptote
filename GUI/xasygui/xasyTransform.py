@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import xasy2asy as xasy2asy
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import numpy as numpy
 import math
+from . import xasy2asy
 
 
 class xasyTransform:
@@ -21,4 +21,3 @@ class xasyTransform:
             origin = (origin.x(), origin.y())
         shiftMat = xasy2asy.asyTransform((0, 0, 1 - sx, 0, 0, 1 - sy)) * origin
         return xasy2asy.asyTransform((shiftMat[0], shiftMat[1], sx, 0, 0, sy))
-

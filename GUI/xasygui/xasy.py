@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
-import sys, signal, os
-import PyQt5.QtWidgets as QtWidgets
+import os
+import signal
+import sys
+
 import PyQt5.QtCore as QtCore
-from Window1 import MainWindow1
+import PyQt5.QtWidgets as QtWidgets
+
+from .Window1 import MainWindow1
+
 
 def main(args):
     os.environ["QT_LOGGING_RULES"]="*.debug=false;qt.qpa.*=false"
