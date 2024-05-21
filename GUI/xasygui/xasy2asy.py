@@ -92,10 +92,7 @@ class AsymptoteEngine:
             self.istream = os.fdopen(ra, 'r')
 
         self.keepFiles = keepFiles
-        if sys.platform[:3] == 'win':
-            self.tmpdir = tempfile.mkdtemp(prefix='xasyData_',dir='./')+'/'
-        else:
-            self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
+        self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
 
         if xa.getArgs().render:
             renderDensity=xa.getArgs().render
