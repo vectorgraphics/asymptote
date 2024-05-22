@@ -16,7 +16,6 @@
 #include <cassert>
 #else
 #include <typeinfo>
-#include <type_traits>
 #endif
 
 namespace vm {
@@ -116,7 +115,6 @@ public:
 
   item(Int i)
     : kind(&typeid(Int)), i(i) {}
-  template<std::enable_if<std::is_same<Int, int>::value, bool>::type = false>
   item(int i)
     : kind(&typeid(Int)), i(i) {}
   item(double x)
@@ -128,7 +126,6 @@ public:
   { kind=&typeid(Int); i=a; return *this; }
   item& operator= (unsigned int a)
   { kind=&typeid(Int); i=a; return *this; }
-  template<std::enable_if<std::is_same<Int, int>::value, bool>::type = false>
   item& operator= (Int a)
   { kind=&typeid(Int); i=a; return *this; }
   item& operator= (double a)
@@ -247,12 +244,13 @@ public:
 template<typename T>
 inline T get(const item& it)
 {
-  if (std::is_same<T, int>::value) {
-    // If Int is the same type as int, this line will never be reached since
-    // the template specialization for Int will be used.
-    throw vm::bad_item_value();
-  }
   return item::help<T>::unwrap(it);
+}
+
+template <>
+inline int get<int>(const item&)
+{
+  throw vm::bad_item_value();
 }
 
 template <>
