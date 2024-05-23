@@ -251,14 +251,6 @@ inline T get(const item& it)
   return item::help<T>::unwrap(it);
 }
 
-#if Int_MIN != INT_MIN
-template <>
-inline int get<int>(const item&)
-{
-  throw vm::bad_item_value();
-}
-#endif
-
 template <>
 inline Int get<Int>(const item& it)
 {
