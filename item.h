@@ -115,11 +115,19 @@ public:
 
   item(Int i)
     : kind(&typeid(Int)), i(i) {}
+#if Int_MIN != INT_MIN
+  item(int i)
+    : kind(&typeid(Int)), i(i) {}
+#endif
   item(double x)
     : kind(&typeid(double)), x(x) {}
   item(bool b)
     : kind(&typeid(bool)), b(b) {}
 
+#if Int_MIN != INT_MIN
+  item& operator= (int a)
+  { kind=&typeid(Int); i=a; return *this; }
+#endif
   item& operator= (unsigned int a)
   { kind=&typeid(Int); i=a; return *this; }
   item& operator= (Int a)
@@ -242,6 +250,14 @@ inline T get(const item& it)
 {
   return item::help<T>::unwrap(it);
 }
+
+#if Int_MIN != INT_MIN
+template <>
+inline int get<int>(const item&)
+{
+  throw vm::bad_item_value();
+}
+#endif
 
 template <>
 inline Int get<Int>(const item& it)
