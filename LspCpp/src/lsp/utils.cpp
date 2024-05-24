@@ -31,6 +31,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/directory.hpp>
 namespace lsp
 {
 
