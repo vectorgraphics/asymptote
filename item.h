@@ -115,7 +115,7 @@ public:
 
   item(Int i)
     : kind(&typeid(Int)), i(i) {}
-#if Int_MIN != INT_MIN
+#ifndef intIsInt
   item(int i)
     : kind(&typeid(Int)), i(i) {}
 #endif
@@ -124,7 +124,7 @@ public:
   item(bool b)
     : kind(&typeid(bool)), b(b) {}
 
-#if Int_MIN != INT_MIN
+#ifndef intIsInt
   item& operator= (int a)
   { kind=&typeid(Int); i=a; return *this; }
 #endif
