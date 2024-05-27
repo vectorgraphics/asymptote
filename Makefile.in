@@ -13,7 +13,7 @@ GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@ -LLspCpp -LLspCpp/third_party/uri/src
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
-DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -lwolfssl -lgdi32 -lwinmm -s -static
+DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 
 CMAKE ?= cmake
 PERL ?= perl
@@ -249,7 +249,7 @@ asy-keywords.el: asy
 	@echo Creating $@;
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
-          grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
+          grep -v three_\* | grep -v map | xargs $(ASY) -l >> asy.list
 	$(PERL) ./asy-list.pl asy.list $(revision)
 
 install-notexhash: asy-keywords.el install-asy install-man

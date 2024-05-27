@@ -33,10 +33,10 @@ struct lsWorkspaceEdit {
         // version of a text document. Whether a client supports versioned document
         // edits is expressed via `WorkspaceClientCapabilites.versionedWorkspaceEdit`.
         //
-        boost::optional< std::map<std::string, std::vector<lsTextEdit> > >  changes;
-        typedef std::pair < boost::optional<lsTextDocumentEdit>, boost::optional<lsp::Any> > Either;
+        optional< std::map<std::string, std::vector<lsTextEdit> > >  changes;
+        typedef std::pair < optional<lsTextDocumentEdit>, optional<lsp::Any> > Either;
 
-        boost::optional <  std::vector< Either > > documentChanges;
+        optional <  std::vector< Either > > documentChanges;
         /**
          * A map of change annotations that can be referenced in
          * `AnnotatedTextEdit`s or create, rename and delete file / folder
@@ -47,7 +47,7 @@ struct lsWorkspaceEdit {
          *
          * @since 3.16.0
          */
-        boost::optional< lsChangeAnnotations > changeAnnotations;
+        optional< lsChangeAnnotations > changeAnnotations;
 
         MAKE_SWAP_METHOD(lsWorkspaceEdit, changes, documentChanges, changeAnnotations)
 };

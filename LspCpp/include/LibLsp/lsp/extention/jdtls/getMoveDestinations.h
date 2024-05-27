@@ -35,7 +35,7 @@ struct MoveParams {
         /**
          * The code action params when the move operation is triggered.
          */
-        boost::optional<lsCodeActionParams>  params;
+        optional<lsCodeActionParams>  params;
         /**
          * The possible destination: a folder/package, class, instanceDeclaration.
          */

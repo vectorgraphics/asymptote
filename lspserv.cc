@@ -113,7 +113,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   TextDocumentHover::Either fromString(std::string const& str)
   {
-    auto strobj=std::make_pair(boost::make_optional(str), optional<lsMarkedString>());
+    auto strobj=std::make_pair(make_optional(str), optional<lsMarkedString>());
     std::vector<decltype(strobj)> vec{strobj};
     return std::make_pair(vec, nullopt);
   }
@@ -465,7 +465,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
         size_t lineOffset = 0;
 
         auto& strLines = fileContentsPtr->at(getDocIdentifierRawPath(req.params.textDocument));
-        char ch=strLines[line + lineOffset + 1][colm - 1 + offset];
+        char ch=strLines[line + lineOffset - 1][colm - 1 + offset];
 
         while (
                 ch != ')' and ch != ';'
@@ -577,7 +577,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
         posRanges.splice(posRanges.begin(), ctx->searchLitFuncPositions(std::get<0>(st.value()), pos));
       }
     }
-    rsp.result.first=boost::make_optional(std::vector<lsLocation>());
+    rsp.result.first=make_optional(std::vector<lsLocation>());
     std::transform(
             posRanges.begin(), posRanges.end(), std::back_inserter(rsp.result.first.value()),
             [](posRangeInFile const& posRange)

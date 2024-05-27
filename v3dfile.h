@@ -14,13 +14,12 @@
 
 #include "common.h"
 
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
 
 #include "abs3doutfile.h"
 #include "xstream.h"
 #include "triple.h"
 #include "material.h"
-#include "glrender.h"
 #define transform transform_
 #include "v3dtypes.h"
 #undef transform

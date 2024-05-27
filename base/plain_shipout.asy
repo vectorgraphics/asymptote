@@ -7,8 +7,8 @@ if(settings.xasy)
 
 string[] file3;
 
-string outprefix(string prefix=defaultfilename) {
-  return stripextension(prefix != "" ? prefix : outname());
+string outprefix(string prefix=stripextension(defaultfilename)) {
+  return prefix != "" ? prefix : outname();
 }
 
 string outformat(string format="")
@@ -33,7 +33,7 @@ string Embed(string name, string text="", string options="", real width=0,
              real height=0);
 
 bool primitive() { // Encode primitive objects
-  return settings.outformat == "html" || settings.outformat=="v3d";
+  return settings.outformat == "html" || settings.outformat=="v3d" || settings.v3d;
 }
 
 bool prconly(string format="")
@@ -125,7 +125,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
   pic.uptodate=true;
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
-    bool prc=prc(format);
+    bool prc=prc(format) || settings.v3d;
     bool empty3=pic.empty3();
     if(prc && !empty3) {
         if(settings.render == 0) {

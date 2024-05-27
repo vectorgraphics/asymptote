@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:nemtrif/utfcpp
 	branch = master
-	commit = b85efd66a76caccbe0c186b00cab34df1e4281fa
+	commit = 2ad995746bf1731d5e21cde47c9c3deff56bdbc2
 	parent = 00591a09dd2303f7e63431bc8d0487d54e316b23
 	method = merge
-	cmdver = 0.4.1
+	cmdver = 0.4.6

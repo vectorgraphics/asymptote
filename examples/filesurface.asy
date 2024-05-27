@@ -6,16 +6,9 @@ size3(200,IgnoreAspect);
 file in=input("filesurface.dat").line();
 real[] x=in;
 real[] y=in;
-
 real[][] z=in;
 
-triple f(pair t) {
-  int i=round(t.x);
-  int j=round(t.y);
-  return (x[i],y[j],z[i][j]);
-}
-
-surface s=surface(f,(0,0),(x.length-1,y.length-1),x.length-1,y.length-1);
+surface s=surface(z,x,y,linear,linear);
 real[] level=uniform(min(z)*(1-sqrtEpsilon),max(z)*(1+sqrtEpsilon),4);
 
 s.colors(palette(s.map(new real(triple v) {return find(level >= v.z);}),

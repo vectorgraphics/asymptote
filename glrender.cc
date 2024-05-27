@@ -397,9 +397,17 @@ bool Step;
 
 #ifdef HAVE_GL
 
+stopWatch spinTimer;
+
+void idleFunc(void (*f)())
+{
+  spinTimer.reset();
+  glutIdleFunc(f);
+}
+
 void idle()
 {
-  glutIdleFunc(NULL);
+  idleFunc(NULL);
   Xspin=Yspin=Zspin=Animate=Step=false;
 }
 #endif
@@ -431,8 +439,6 @@ void home(bool webgl=false)
 }
 
 double T[16];
-
-timeval lasttime;
 
 #ifdef HAVE_GL
 
@@ -778,7 +784,7 @@ void deleteShaders()
   glDeleteProgram(camp::pixelShader);
 }
 
-void resizeBlendShader(uint maxsize)
+void resizeBlendShader(GLuint maxsize)
 {
   gl::maxSize=ceilpow2(maxsize);
   gl::deleteBlendShader();
@@ -1140,8 +1146,6 @@ void fitscreen(bool reposition=true)
     }
     case 1: // Fit to screen in one dimension
     {
-      oldWidth=Width;
-      oldHeight=Height;
       int w=screenWidth;
       int h=screenHeight;
       if(w > h*Aspect)
@@ -1164,11 +1168,6 @@ void togglefitscreen()
   ++Fitscreen;
   if(Fitscreen > 2) Fitscreen=0;
   fitscreen();
-}
-
-void idleFunc(void (*f)())
-{
-  glutIdleFunc(f);
 }
 
 void screen()
@@ -1580,13 +1579,7 @@ void mouse(int button, int state, int x, int y)
 
 double spinstep()
 {
-  timeval tv;
-  gettimeofday(&tv,NULL);
-  double step=getSetting<double>("spinstep")*
-    (tv.tv_sec-lasttime.tv_sec+
-     ((double) tv.tv_usec-lasttime.tv_usec)/1000000.0);
-  lasttime=tv;
-  return step;
+  return getSetting<double>("spinstep")*spinTimer.seconds(true);
 }
 
 void xspin()
@@ -1857,7 +1850,7 @@ void init_osmesa()
     OSMESA_DEPTH_BITS,16,
     OSMESA_STENCIL_BITS,0,
     OSMESA_ACCUM_BITS,0,
-    OSMESA_PROFILE,OSMESA_CORE_PROFILE,
+    OSMESA_PROFILE,OSMESA_COMPAT_PROFILE,
     OSMESA_CONTEXT_MAJOR_VERSION,4,
     OSMESA_CONTEXT_MINOR_VERSION,3,
     0,0
@@ -1896,9 +1889,10 @@ void init_osmesa()
 bool NVIDIA()
 {
 #ifdef GL_SHADING_LANGUAGE_VERSION
-  char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+  const char *GLSL_VERSION=(const char *)
+    glGetString(GL_SHADING_LANGUAGE_VERSION);
 #else
-  char *GLSL_VERSION="";
+  const char *GLSL_VERSION="";
 #endif
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
@@ -1913,7 +1907,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
-  gettimeofday(&lasttime,NULL);
   Iconify=getSetting<bool>("iconify");
 
   if(zoom == 0.0) zoom=1.0;
@@ -2115,7 +2108,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 #ifdef FREEGLUT
 #ifdef GLUT_INIT_MAJOR_VERSION
-    while(true) {
+    for(;;) {
       if(multisample > 0)
         glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif
@@ -2153,7 +2146,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     fpu_trap(false); // Work around FE_INVALID
-    window=glutCreateWindow("");
+    window=glutCreateWindow(Iconify ? "" : "Asymptote rendering window" );
     fpu_trap(settings::trap());
     glutHideWindow();
   }
@@ -2185,7 +2178,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(glinitialize) {
     glinitialize=false;
 
-    char *GLSL_VERSION=(char *) glGetString(GL_SHADING_LANGUAGE_VERSION);
+    const char *GLSL_VERSION=(const char *)
+      glGetString(GL_SHADING_LANGUAGE_VERSION);
     GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
 
     if(GLSLversion < 130) {

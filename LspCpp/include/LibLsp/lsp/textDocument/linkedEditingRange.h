@@ -38,7 +38,7 @@ struct LinkedEditingRanges
          * pattern will be used.
          */
 
-        boost::optional<std::string> wordPattern;
+        optional<std::string> wordPattern;
         MAKE_SWAP_METHOD(LinkedEditingRanges,
                 ranges,
                 wordPattern)
@@ -48,4 +48,4 @@ MAKE_REFLECT_STRUCT(LinkedEditingRanges,
         ranges,
         wordPattern)
 DEFINE_REQUEST_RESPONSE_TYPE(td_linkedEditingRange, LinkedEditingRangeParams,
-        boost::optional<std::vector<LinkedEditingRanges >>,"textDocument/linkedEditingRange")
+        optional<std::vector<LinkedEditingRanges >>,"textDocument/linkedEditingRange")

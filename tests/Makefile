@@ -1,6 +1,6 @@
 .NOTPARALLEL:
 
-TESTDIRS = string arith frames types imp array pic gs
+TESTDIRS = string arith frames types imp array pic gs io template
 
 EXTRADIRS = gsl output
 

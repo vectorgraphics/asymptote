@@ -31,6 +31,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/directory.hpp>
 namespace lsp
 {
 
@@ -191,7 +192,7 @@ bool FileExists(const std::string& filename) {
   return cache.is_open();
 }
 
-boost::optional<std::string> ReadContent(const AbsolutePath& filename) {
+optional<std::string> ReadContent(const AbsolutePath& filename) {
 
   std::ifstream cache;
   cache.open(filename.path);

@@ -18,7 +18,7 @@ struct lsTextDocumentPositionParams {
         /**
          * Legacy property to support protocol version 1.0 requests.
          */
-        boost::optional<lsDocumentUri> uri;
+        optional<lsDocumentUri> uri;
 
    MAKE_SWAP_METHOD(lsTextDocumentPositionParams, textDocument, position, uri);
 

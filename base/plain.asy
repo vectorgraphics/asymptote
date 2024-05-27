@@ -188,17 +188,20 @@ void eval(code s, bool embedded=false)
   if(!embedded) restoredefaults();
 }
 
-// Associate a parametrized type with a name.
-void type(string type, string name)
+string mapArrayString(string From, string To)
 {
-  eval("typedef "+type+" "+name,true);
+  return "typedef "+From+" From;
+  typedef "+To+" To;
+  To[] map(To f(From), From[] a) {
+    return sequence(new To(int i) {return f(a[i]);},a.length);
+  }";
 }
 
+// This function is deprecated: use
+// from mapArray(Src=T1, Dst=T2) access map;
 void mapArray(string From, string To)
 {
-  type(From,"From");
-  type(To,"To");
-  eval("To[] map(To f(From), From[] a) {return sequence(new To(int i) {return f(a[i]);},a.length);}",true);
+  eval(mapArrayString(From,To),true);
 }
 
 // Evaluate user command line option.
@@ -267,8 +270,8 @@ cputime cputime()
   real[] a=_cputime();
   cputime cputime;
   real clock=a[4];
-  cputime.parent.user=a[0];
-  cputime.parent.system=a[1];
+  cputime.parent.user=a[0]; // Includes system time
+  cputime.parent.system=0;
   cputime.parent.clock=clock;
   cputime.child.user=a[2];
   cputime.child.system=a[3];

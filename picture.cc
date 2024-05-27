@@ -462,7 +462,6 @@ string dvisvgmCommand(mem::vector<string>& cmd, const string& outname)
   string libgs=getSetting<string>("libgs");
   if(!libgs.empty())
     cmd.push_back("--libgs="+libgs);
-  cmd.push_back("--optimize");
   push_split(cmd,getSetting<string>("dvisvgmOptions"));
   string outfile=stripDir(outname);
   if(!outfile.empty())
@@ -654,7 +653,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dMaxSubsetPct=100");
   cmd.push_back("-dEncodeColorImages="+compress);
   cmd.push_back("-dEncodeGrayImages="+compress);
-  cmd.push_back("-dCompatibilityLevel=1.4");
+  cmd.push_back("-dCompatibilityLevel=1.5");
   cmd.push_back("-dTransferFunctionInfo=/Apply");
   if(!getSetting<bool>("autorotate"))
     cmd.push_back("-dAutoRotatePages=/None");
@@ -976,10 +975,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     else htmlformat=false;
   }
 
-#ifndef HAVE_LIBGLM
   if(outputformat == "v3d")
-    camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
-#endif
+    camp::reportError("v3d format only supports 3D files");
 
   bool svgformat=outputformat == "svg";
   bool png=outputformat == "png";
@@ -999,7 +996,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool pdf=settings::pdf(texengine);
 
   bool standardout=Prefix == "-";
-  string prefix=standardout ? standardprefix : stripExt(Prefix);
+  string prefix=standardout ? standardprefix : Prefix;
 
   string preformat=nativeformat();
   bool epsformat=outputformat == "eps";
@@ -1362,10 +1359,14 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(width <= 0 || height <= 0) return false;
 
   bool webgl=format == "html";
+  bool v3d=format == "v3d";
 
 #ifndef HAVE_LIBGLM
   if(webgl)
     camp::reportError("to support WebGL rendering, please install glm header files, then ./configure; make");
+
+  if(v3d)
+    camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
 #endif
 
 #ifndef HAVE_LIBOSMESA
@@ -1420,7 +1421,6 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #endif
 
-  bool v3d=format == "v3d";
   bool format3d=webgl || v3d;
 
   if(!format3d) {
@@ -1490,7 +1490,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl)
       fileObj=new jsfile(name);
     else if(v3d)
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
       fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
                             getSetting<double>("prerender") > 0.0);
 #else
@@ -1516,7 +1516,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_GL
     if(format3dWait) {
-      gl::format3dWait=false;
+      format3dWait=false;
 #ifdef HAVE_PTHREAD
       endwait(initSignal,initLock);
 #endif

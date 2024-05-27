@@ -18,7 +18,7 @@ struct ResolveTypeHierarchyItemParams {
         /**
          * The number of hierarchy levels to resolve. {@code 0} indicates no hierarchy level.
          */
-        boost::optional<int>  resolve;
+        optional<int>  resolve;
 
         /**
          * The direction of the type hierarchy resolution.

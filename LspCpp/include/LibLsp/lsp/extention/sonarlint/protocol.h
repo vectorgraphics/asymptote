@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <boost/optional.hpp>
+#include <optional>
 #include "LibLsp/JsonRpc/RequestInMessage.h"
 #include "LibLsp/lsp/lsDocumentUri.h"
 #include "LibLsp/lsp/lsAny.h"
@@ -18,8 +18,8 @@ struct LintRule
                 return name + " (" + key + ")";
         }
         bool activeByDefault = true;
-        boost::optional<std::string> severity;
-        boost::optional<std::string> type;
+        optional<std::string> severity;
+        optional<std::string> type;
         int icon_index = -1;
         MAKE_SWAP_METHOD(LintRule, key, name, activeByDefault, severity, type);
 
@@ -29,25 +29,25 @@ MAKE_REFLECT_STRUCT(LintRule, key, name, activeByDefault, severity, type);
 
 struct RuleParameter {
         std::string name;
-        boost::optional<std::string>  description;
-        boost::optional<std::string> defaultValue;
+        optional<std::string>  description;
+        optional<std::string> defaultValue;
 
 };
 MAKE_REFLECT_STRUCT(RuleParameter, name, description, defaultValue);
 
 struct ShowRuleDescriptionParams {
 
-        boost::optional<std::string> key;
+        optional<std::string> key;
 
-        boost::optional<std::string> name;
+        optional<std::string> name;
 
-        boost::optional<std::string> htmlDescription;
+        optional<std::string> htmlDescription;
 
-        boost::optional<std::string>  type;
+        optional<std::string>  type;
 
-        boost::optional<std::string>  severity;
+        optional<std::string>  severity;
 
-        boost::optional< std::vector<RuleParameter> >   parameters;
+        optional< std::vector<RuleParameter> >   parameters;
         MAKE_SWAP_METHOD(ShowRuleDescriptionParams, key, name, htmlDescription, type, severity, parameters)
 
 
@@ -82,7 +82,7 @@ struct ServerConnectionSettings {
         std::string connectionId;
         std::string serverUrl;
         std::string token;
-        boost::optional<std::string> organizationKey;
+        optional<std::string> organizationKey;
         MAKE_SWAP_METHOD(ServerConnectionSettings, connectionId, serverUrl, token, organizationKey)
 
 };
@@ -114,28 +114,28 @@ struct RuleSetting
                         off();
                 }
         }
-        boost::optional< std::map<std::string, std::string > > parameters;
+        optional< std::map<std::string, std::string > > parameters;
 };
 MAKE_REFLECT_STRUCT(RuleSetting, level, parameters)
 
 struct ConsoleParams
 {
-        boost::optional < bool >showAnalyzerLogs;
-        boost::optional < bool >showVerboseLogs;
+        optional < bool >showAnalyzerLogs;
+        optional < bool >showVerboseLogs;
         MAKE_SWAP_METHOD(ConsoleParams, showAnalyzerLogs, showVerboseLogs)
 };
 MAKE_REFLECT_STRUCT(ConsoleParams, showAnalyzerLogs, showVerboseLogs)
 
 struct SonarLintWorkspaceSettings
 {
-        boost::optional < bool > disableTelemetry;
-        boost::optional < std::map<std::string, ServerConnectionSettings> >connectedMode;
-        boost::optional<std::map<std::string, RuleSetting>>  rules;
-        boost::optional<ConsoleParams> output;
+        optional < bool > disableTelemetry;
+        optional < std::map<std::string, ServerConnectionSettings> >connectedMode;
+        optional<std::map<std::string, RuleSetting>>  rules;
+        optional<ConsoleParams> output;
 
-        boost::optional<std::string >  pathToNodeExecutable;
+        optional<std::string >  pathToNodeExecutable;
 
-        boost::optional< std::map<std::string, std::string > > getConfigurationParameters(const std::string& ruleKey);
+        optional< std::map<std::string, std::string > > getConfigurationParameters(const std::string& ruleKey);
 
 
 };

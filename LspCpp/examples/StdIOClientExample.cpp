@@ -22,6 +22,7 @@
 #include <boost/asio.hpp>
 #include <iostream>
 
+#include <thread>
 
 using namespace boost::asio::ip;
 using namespace std;
@@ -162,7 +163,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-                execPath = "STDIO_SERVER_EXAMPLE.exe";
+                execPath = "StdIOServerExample";
         }
 
         Client client(execPath, {});

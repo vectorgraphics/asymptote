@@ -24,24 +24,24 @@ struct CodeAction
          *
          * Used to filter code actions.
          */
-        boost::optional < std::string> kind;
+        optional < std::string> kind;
 
         /**
          * The diagnostics that this code action resolves.
          */
-        boost::optional < std::vector<lsDiagnostic>> diagnostics;
+        optional < std::vector<lsDiagnostic>> diagnostics;
 
         /**
          * The workspace edit this code action performs.
          */
-        boost::optional < lsWorkspaceEdit >edit;
+        optional < lsWorkspaceEdit >edit;
 
         /**
          * A command this code action executes. If a code action
          * provides a edit and a command, first the edit is
          * executed and then the command.
          */
-         boost::optional< lsCommandWithAny >  command;
+         optional< lsCommandWithAny >  command;
 
          MAKE_SWAP_METHOD(CodeAction, title, kind, diagnostics, edit, command)
 };
@@ -50,7 +50,7 @@ struct TextDocumentCodeAction
 
 {
 
-        typedef  std::pair<boost::optional<lsCommandWithAny>, boost::optional<CodeAction> > Either;
+        typedef  std::pair<optional<lsCommandWithAny>, optional<CodeAction> > Either;
 
 };
 

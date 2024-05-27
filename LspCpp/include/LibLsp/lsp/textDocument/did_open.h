@@ -16,7 +16,7 @@ namespace TextDocumentDidOpen {
    /**
   * Legacy property to support protocol version 1.0 requests.
   */
-    boost::optional<std::string> text;
+    optional<std::string> text;
 
    MAKE_SWAP_METHOD(TextDocumentDidOpen::Params, textDocument, text);
 

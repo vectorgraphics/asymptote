@@ -22,7 +22,7 @@ struct lsCommand {
         // Arguments to run the command with.
         // **NOTE** This must be serialized as an array. Use
         // MAKE_REFLECT_STRUCT_WRITER_AS_ARRAY.
-        boost::optional<AnyArray> arguments;
+        optional<AnyArray> arguments;
 
         void swap(lsCommand<AnyArray>& arg) noexcept
         {

@@ -38,10 +38,21 @@ option_if_not_defined(USE_SYSTEM_RAPIDJSON "Use system RapidJSON instead of the 
 option_if_not_defined(LSPCPP_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option_if_not_defined(LSPCPP_BUILD_EXAMPLES "Build example applications" OFF)
 option_if_not_defined(LSPCPP_BUILD_FUZZER "Build fuzzer" OFF)
+option_if_not_defined(LSPCPP_BUILD_WEBSOCKETS "Build websocket server" ON)
 option_if_not_defined(LSPCPP_ASAN "Build lsp with address sanitizer" OFF)
 option_if_not_defined(LSPCPP_MSAN "Build lsp with memory sanitizer" OFF)
 option_if_not_defined(LSPCPP_TSAN "Build lsp with thread sanitizer" OFF)
 option_if_not_defined(LSPCPP_INSTALL "Create lsp install target" OFF)
+option_if_not_defined(LSPCPP_SUPPORT_BOEHM_GC
+    "Enable support for Boehm GC. Boehm GC must be available by find_package(BDWgc CONFIG REQUIRED)." OFF)
+option_if_not_defined(LSPCPP_USE_CPP17 "Use C++17 for compilation. Setting this to off requires boost-optional." OFF)
+
+
+# Boehm GC
+
+if (LSPCPP_SUPPORT_BOEHM_GC)
+    find_package(BDWgc CONFIG REQUIRED)
+endif()
 
 ###########################################################
 # Directories
@@ -88,8 +99,12 @@ function(lspcpp_set_target_options target)
 
     set_property(TARGET ${target} PROPERTY CXX_STANDARD_REQUIRED ON)
 
-    # Enable C++14 (Required)
-    set_property(TARGET ${target} PROPERTY CXX_STANDARD 14)
+    # Enable C++14/17 (Required)
+    if (LSPCPP_USE_CPP17)
+        set_property(TARGET ${target} PROPERTY CXX_STANDARD 17)
+    else()
+        set_property(TARGET ${target} PROPERTY CXX_STANDARD 14)
+    endif()
 
     set_property(TARGET ${target} PROPERTY CXX_EXTENSIONS OFF)
 
@@ -150,6 +165,11 @@ function(lspcpp_set_target_options target)
     # if(NOT MSVC)
     #     target_compile_options(${target} PRIVATE "-Wl,--no-undefined")
     # endif()
+
+    if (LSPCPP_SUPPORT_BOEHM_GC)
+        target_link_libraries(${target} PUBLIC BDWgc::gc)
+        target_compile_definitions(${target} PUBLIC LSPCPP_USEGC)
+    endif()
 
 endfunction()
 
@@ -241,7 +261,7 @@ foreach(include_dir  ${LSPCPP_THIRD_PARTY_DIR_LIST})
 endforeach()
 
 ### Sources
-set(LSPCPP_LIST
+set(JSONRPC_LIST
         src/jsonrpc/Context.cpp
         src/jsonrpc/Endpoint.cpp
         src/jsonrpc/GCThreadContext.cpp
@@ -252,8 +272,8 @@ set(LSPCPP_LIST
         src/jsonrpc/StreamMessageProducer.cpp
         src/jsonrpc/TcpServer.cpp
         src/jsonrpc/threaded_queue.cpp
-        src/jsonrpc/WebSocketServer.cpp
-
+)
+set(LSPCPP_LIST
         src/lsp/initialize.cpp
         src/lsp/lsp.cpp
         src/lsp/lsp_diagnostic.cpp
@@ -265,7 +285,15 @@ set(LSPCPP_LIST
         src/lsp/working_files.cpp
         )
 
+if(LSPCPP_BUILD_WEBSOCKETS)
+    set(JSONRPC_LIST
+        ${JSONRPC_LIST}
+        src/jsonrpc/WebSocketServer.cpp
+    )
+endif()
+
 target_sources(lspcpp PRIVATE
+        ${JSONRPC_LIST}
         ${LSPCPP_LIST})
 
 ### Compile options

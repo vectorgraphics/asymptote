@@ -26,12 +26,12 @@
   // line 95
   x y1;
   x y2();
-  x y3(int); 
+  x y3(int);
   int y4(x);
   struct m {
     x y1;
     x y2();
-    x y3(int); 
+    x y3(int);
     int y4(x);
   }
 }
@@ -264,7 +264,7 @@
 
   int x = 1;
   int x = 2;
- 
+
   struct m {
     int f() {
       return 1;
@@ -511,4 +511,26 @@
   int g(real t, int notkeyword x, int y) { return 7; }
   int f(real t, int notkeyword x, int y, string z);
   int g(real t, int notkeyword x, int y, string z) { return 7; }
+}
+
+// template import errors
+{
+  access somefilename(T=int);  // Need to specify new name.
+  access somefilename(T=int) notas somefilename_int;  // "as" misspelled
+  access somefilename(int) as somefilename_int;  // missing keyword
+  import somefilename(T=int);  // Templated import not defined.
+}
+{
+  typedef import(T);  // this file isn't accessed as a template
+  import typedef(T);  // should be "typedef import"
+}
+{
+  // wrong number of params
+  access errortestTemplate(A=int, B=string) as ett_a;
+  // third param incorrectly named
+  access errortestTemplate(A=int, B=string, T=real) as ett_b;
+  // keywords in wrong order
+  access errortestTemplate(A=int, C=real, B=string) as ett_c;
+  // errortestTemplate.asy has extra "typedef import"
+  access errortestTemplate(A=int, B=string, C=real) as ett_d;
 }

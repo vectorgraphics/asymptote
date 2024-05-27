@@ -15,7 +15,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
 #include "xstream.h"
 #endif
 
@@ -91,6 +91,9 @@ protected:
 public:
 
   bool Standard() {return standard;}
+
+  bool enabled() {return !standard || settings::verbose > 1 ||
+      interact::interactive || !settings::getSetting<bool>("quiet");}
 
   void standardEOF() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -416,7 +419,7 @@ public:
 
   void Read(bool &val) {string t; readwhite(t); val=(t == "true");}
   void Read(Int& val) {*stream >> val;}
-  void Read(double& val) {*stream >> val;}
+  void Read(double& val);
   void Read(pair& val) {*stream >> val;}
   void Read(triple& val) {*stream >> val;}
   void Read(char& val) {stream->get(val);}
@@ -509,9 +512,6 @@ public:
     else
       return 0;
   }
-
-  bool enabled() {return !standard || settings::verbose > 1 ||
-      interact::interactive || !settings::getSetting<bool>("quiet");}
 
   void write(bool val) {*stream << (val ? "true " : "false ");}
   void write(Int val) {*stream << val;}
@@ -642,7 +642,7 @@ public:
   void writeline() {}
 };
 
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
 
 class ixfile : public file {
 protected:

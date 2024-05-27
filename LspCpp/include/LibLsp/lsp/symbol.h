@@ -66,7 +66,7 @@ struct lsDocumentHighlight {
   lsRange range;
 
   // The highlight kind, default is DocumentHighlightKind.Text.
-  boost::optional<lsDocumentHighlightKind>  kind ;
+  optional<lsDocumentHighlightKind>  kind ;
 
   MAKE_SWAP_METHOD(lsDocumentHighlight, range, kind)
 };
@@ -85,7 +85,7 @@ struct lsSymbolInformation {
   /**
 * Indicates if this symbol is deprecated.
 */
-  boost::optional<bool> deprecated;
+  optional<bool> deprecated;
   /**
    * The location of this symbol. The location's range is used by a tool
    * to reveal the location in the editor. If the symbol is selected in the
@@ -104,7 +104,7 @@ struct lsSymbolInformation {
  * if necessary). It can't be used to re-infer a hierarchy for the document
  * symbols.
  */
-  boost::optional<std::string>  containerName;
+  optional<std::string>  containerName;
 
 
   MAKE_SWAP_METHOD(lsSymbolInformation, name, kind, deprecated, location, containerName);
@@ -144,17 +144,17 @@ struct lsDocumentSymbol {
          * More detail for this symbol, e.g the signature of a function. If not provided the
          * name is used.
          */
-        boost::optional< std::string >  detail;
+        optional< std::string >  detail;
 
         /**
          * Indicates if this symbol is deprecated.
          */
-        boost::optional< bool > deprecated;
+        optional< bool > deprecated;
 
         /**
          * Children of this symbol, e.g. properties of a class.
          */
-        boost::optional < std::vector<lsDocumentSymbol> > children;
+        optional < std::vector<lsDocumentSymbol> > children;
 
         //internal use
         int flags=0;

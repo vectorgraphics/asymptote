@@ -11,10 +11,6 @@
 #include "LibLsp/lsp/lsPosition.h"
 #include "LibLsp/lsp/textDocument/documentColor.h"
 
-#ifndef boost
-#define nullopt boost::none
-#endif
-
 namespace AsymptoteLsp
 {
   struct SymbolLit
@@ -454,9 +450,8 @@ namespace AsymptoteLsp
     ExternalRefs(ExternalRefs const& exRef) = default;
     ExternalRefs& operator=(ExternalRefs const& exRef) = default;
 
-    ExternalRefs(ExternalRefs&& exRef) noexcept = default;
-    ExternalRefs& operator=(ExternalRefs&& exRef) noexcept = default;
-
+//  ExternalRefs(ExternalRefs&& exRef) noexcept = default;
+//  ExternalRefs& operator=(ExternalRefs&& exRef) noexcept = default;
 
     void clear()
     {

@@ -1581,7 +1581,7 @@ TEST(Value, ObjectHelperRangeFor) {
     {
         int i = 0;
         for (auto& m : x.GetObject()) {
-            char name[10];
+            char name[11];
             sprintf(name, "%d", i);
             EXPECT_STREQ(name, m.name.GetString());
             EXPECT_EQ(i, m.value.GetInt());
@@ -1592,7 +1592,7 @@ TEST(Value, ObjectHelperRangeFor) {
     {
         int i = 0;
         for (const auto& m : const_cast<const Value&>(x).GetObject()) {
-            char name[10];
+            char name[11];
             sprintf(name, "%d", i);
             EXPECT_STREQ(name, m.name.GetString());
             EXPECT_EQ(i, m.value.GetInt());
@@ -1717,17 +1717,17 @@ static void TestShortStringOptimization(const char* str) {
     rapidjson::Value val;
     val.SetString(str, len, doc.GetAllocator());
 
-        EXPECT_EQ(val.GetStringLength(), len);
-        EXPECT_STREQ(val.GetString(), str);
+    EXPECT_EQ(val.GetStringLength(), len);
+    EXPECT_STREQ(val.GetString(), str);
 }
 
 TEST(Value, AllocateShortString) {
-        TestShortStringOptimization("");                 // edge case: empty string
-        TestShortStringOptimization("12345678");         // regular case for short strings: 8 chars
-        TestShortStringOptimization("12345678901");      // edge case: 11 chars in 32-bit mode (=> short string)
-        TestShortStringOptimization("123456789012");     // edge case: 12 chars in 32-bit mode (=> regular string)
-        TestShortStringOptimization("123456789012345");  // edge case: 15 chars in 64-bit mode (=> short string)
-        TestShortStringOptimization("1234567890123456"); // edge case: 16 chars in 64-bit mode (=> regular string)
+    TestShortStringOptimization("");                 // edge case: empty string
+    TestShortStringOptimization("12345678");         // regular case for short strings: 8 chars
+    TestShortStringOptimization("12345678901");      // edge case: 11 chars in 32-bit mode (=> short string)
+    TestShortStringOptimization("123456789012");     // edge case: 12 chars in 32-bit mode (=> regular string)
+    TestShortStringOptimization("123456789012345");  // edge case: 15 chars in 64-bit mode (=> short string)
+    TestShortStringOptimization("1234567890123456"); // edge case: 16 chars in 64-bit mode (=> regular string)
 }
 
 template <int e>
