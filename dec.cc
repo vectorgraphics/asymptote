@@ -270,7 +270,9 @@ record *block::transAsTemplatedFile(
     frame *parent
 ) {
   // Create the new module.
-  record *r = new record(id, new frame(id,parent,0));
+  record *r = new record(
+      id, new frame(id, parent->parentIndex() == 0 ? parent : nullptr, 0)
+  );
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -910,6 +912,14 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
         theType->getPos(), theName, theType->transAsTyEntry(e, r)
     ));
   }
+  for (namedTyEntry *arg : *computedArgs) {
+    varEntry *v = arg->ent->v;
+    if (v != nullptr) {
+      // Push the value of v to the stack.
+      v->getLocation()->encode(READ, arg->pos, e.c);
+    }
+  }
+
 
   record *imp=e.e.getTemplatedModule(id,
                                      (string) id,
@@ -1133,6 +1143,30 @@ bool typeParamList::transAsParamMatcher(
     }
     return false;
   }
+  mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
+  for (auto p = args->rbegin(); p != args->rend(); ++p) {
+    varEntry *v = (*p)->ent->v;
+    if (v != nullptr) {
+      varEntry *newV = makeVarEntryWhere(e, r, v->getType(),
+                                         /*where=*/nullptr,  // Is this right?
+                                         (*p)->pos  // Is this right?
+                                        );
+      // Next two lines based on initializeVar:
+      newV->getLocation()->encode(WRITE, (*p)->pos, e.c);
+      e.c.encodePop();
+      // TODO: Should we duplicate other functionality from createVar?
+
+      tyEntry *newEnt = qualifyTyEntry(newV, (*p)->ent);
+      qualifiedArgs->push_back(
+        new namedTyEntry((*p)->pos, (*p)->dest, newEnt)
+      );
+    } else {
+      qualifiedArgs->push_back(*p);
+    }
+  }
+  std::reverse(qualifiedArgs->begin(), qualifiedArgs->end());
+  args = qualifiedArgs;
+
   for (size_t i = 0; i < params.size(); ++i) {
     bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
     if (!succeeded) return false;
