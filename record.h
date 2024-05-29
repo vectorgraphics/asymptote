@@ -24,7 +24,7 @@ using trans::tyEntry;
 
 namespace types {
 
-class record : public ty {
+class record : public tyTy {
   // The base name of this type.
   symbol name;
 
@@ -117,7 +117,7 @@ public:
   dummyRecord(string s);
 
   // Convenient functions for adding fields.
-  void add(string name, ty *t, trans::access *a,
+  void add(string name, tyTy *t, trans::access *a,
            trans::permission perm=trans::PUBLIC);
   void add(string name, function *t, vm::bltin f,
            trans::permission perm=trans::PUBLIC);

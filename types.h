@@ -51,34 +51,34 @@ enum ty_kind {
 };
 
 // Forward declarations.
-class ty;
+class tyTy;
 struct signature;
-typedef mem::vector<ty *> ty_vector;
+typedef mem::vector<tyTy *> ty_vector;
 typedef ty_vector::iterator ty_iterator;
 
 // Checks if two types are equal in the sense of the language.
 // That is primitive types are equal if they are the same kind.
 // Structures are equal if they come from the same struct definition.
 // Arrays are equal if their cell types are equal.
-bool equivalent(const ty *t1, const ty *t2);
+bool equivalent(const tyTy *t1, const tyTy *t2);
 
 // If special is true, this is the same as above.  If special is false, just
 // the signatures are compared.
-bool equivalent(const ty *t1, const ty *t2, bool special);
+bool equivalent(const tyTy *t1, const tyTy *t2, bool special);
 
 class caster {
 public:
   virtual ~caster() {}
-  virtual trans::access *operator() (ty *target, ty *source) = 0;
-  virtual bool castable(ty *target, ty *source) = 0;
+  virtual trans::access *operator() (tyTy *target, tyTy *source) = 0;
+  virtual bool castable(tyTy *target, tyTy *source) = 0;
 };
 
-class ty : public gc {
+class tyTy : public gc {
 public:
   const ty_kind kind;
-  ty(ty_kind kind)
+  tyTy(ty_kind kind)
     : kind(kind) {}
-  virtual ~ty();
+  virtual ~tyTy();
 
   virtual void print (ostream& out) const;
   virtual void printVar (ostream& out, string name) const {
@@ -135,12 +135,12 @@ public:
   // If a cast function is not stored in the environment, ask the type itself.
   // This handles null->record casting, and the like.  The caster is used as a
   // callback to the environment for casts of subtypes.
-  virtual trans::access *castTo(ty *, caster &) {
+  virtual trans::access *castTo(tyTy *, caster &) {
     return 0;
   }
 
   // Just checks if a cast is possible.
-  virtual bool castable(ty *target, caster &c) {
+  virtual bool castable(tyTy *target, caster &c) {
     return castTo(target, c);
   }
 
@@ -157,7 +157,7 @@ public:
   // varGetType for virtual fields.
   // Unless you are using functions for virtual fields, the base implementation
   // should work fine.
-  virtual ty *virtualFieldGetType(symbol id);
+  virtual tyTy *virtualFieldGetType(symbol id);
 
 #if 0
   // Returns the type.  In case of functions, return the equivalent type
@@ -171,7 +171,7 @@ public:
   // Returns true if the other type is equivalent to this one.
   // The general function equivalent should be preferably used, as it properly
   // handles overloaded type comparisons.
-  virtual bool equiv(const ty *other) const
+  virtual bool equiv(const tyTy *other) const
   {
     return this==other;
   }
@@ -182,10 +182,10 @@ public:
   virtual size_t hash() const = 0;
 };
 
-class primitiveTy : public ty {
+class primitiveTy : public tyTy {
 public:
   primitiveTy(ty_kind kind)
-    : ty(kind) {}
+    : tyTy(kind) {}
 
   bool primitive() {
     return true;
@@ -195,10 +195,10 @@ public:
     return false;
   }
 
-  ty *virtualFieldGetType(symbol );
+  tyTy *virtualFieldGetType(symbol );
   trans::varEntry *virtualField(symbol, signature *);
 
-  bool equiv(const ty *other) const
+  bool equiv(const tyTy *other) const
   {
     return this->kind==other->kind;
   }
@@ -217,7 +217,7 @@ public:
     return true;
   }
 
-  trans::access *castTo(ty *target, caster &);
+  trans::access *castTo(tyTy *target, caster &);
 
   size_t hash() const {
     return (size_t)kind + 47;
@@ -225,26 +225,26 @@ public:
 };
 
 // Ostream output, just defer to print.
-inline ostream& operator<< (ostream& out, const ty& t)
+inline ostream& operator<< (ostream& out, const tyTy& t)
 { t.print(out); return out; }
 
-struct array : public ty {
-  ty *celltype;
-  ty *pushtype;
-  ty *poptype;
-  ty *appendtype;
-  ty *inserttype;
-  ty *deletetype;
+struct array : public tyTy {
+  tyTy *celltype;
+  tyTy *pushtype;
+  tyTy *poptype;
+  tyTy *appendtype;
+  tyTy *inserttype;
+  tyTy *deletetype;
 
-  array(ty *celltype)
-    : ty(ty_array), celltype(celltype), pushtype(0), poptype(0),
+  array(tyTy *celltype)
+    : tyTy(ty_array), celltype(celltype), pushtype(0), poptype(0),
       appendtype(0), inserttype(0), deletetype(0) {}
 
   virtual bool isReference() {
     return true;
   }
 
-  bool equiv(const ty *other) const {
+  bool equiv(const tyTy *other) const {
     return other->kind==ty_array &&
       equivalent(this->celltype,((array *)other)->celltype);
   }
@@ -263,11 +263,11 @@ struct array : public ty {
   void print(ostream& out) const
   { out << *celltype << "[]"; }
 
-  ty *pushType();
-  ty *popType();
-  ty *appendType();
-  ty *insertType();
-  ty *deleteType();
+  tyTy *pushType();
+  tyTy *popType();
+  tyTy *appendType();
+  tyTy *insertType();
+  tyTy *deleteType();
 
   // Initialize to an empty array by default.
   trans::access *initializer();
@@ -275,31 +275,31 @@ struct array : public ty {
   // NOTE: General vectorization of casts would be here.
 
   // Add length and push as virtual fields.
-  ty *virtualFieldGetType(symbol id);
+  tyTy *virtualFieldGetType(symbol id);
   trans::varEntry *virtualField(symbol id, signature *sig);
 };
 
 /* Base types */
 #define PRIMITIVE(name,Name,asyName)            \
-  ty *prim##Name();                             \
-  ty *name##Array();                            \
-  ty *name##Array2();                           \
-  ty *name##Array3();
+  tyTy *prim##Name();                             \
+  tyTy *name##Array();                            \
+  tyTy *name##Array2();                           \
+  tyTy *name##Array3();
 #define PRIMERROR
 #include "primitives.h"
 #undef PRIMERROR
 #undef PRIMITIVE
 
-ty *primNull();
+tyTy *primNull();
 
 
 struct formal {
-  ty *t;
+  tyTy *t;
   symbol name;
   bool defval;
   bool Explicit;
 
-  formal(ty *t,
+  formal(tyTy *t,
          symbol name=symbol::nullsym,
          bool optional=false,
          bool Explicit=false)
@@ -418,33 +418,33 @@ struct signature : public gc {
   size_t handle();
 };
 
-struct function : public ty {
-  ty *result;
+struct function : public tyTy {
+  tyTy *result;
   signature sig;
 
-  function(ty *result)
-    : ty(ty_function), result(result) {}
-  function(ty *result, signature::OPEN_t)
-    : ty(ty_function), result(result), sig(signature::OPEN) {}
-  function(ty *result, signature *sig)
-    : ty(ty_function), result(result), sig(*sig) {}
-  function(ty *result, formal f1)
-    : ty(ty_function), result(result) {
+  function(tyTy *result)
+    : tyTy(ty_function), result(result) {}
+  function(tyTy *result, signature::OPEN_t)
+    : tyTy(ty_function), result(result), sig(signature::OPEN) {}
+  function(tyTy *result, signature *sig)
+    : tyTy(ty_function), result(result), sig(*sig) {}
+  function(tyTy *result, formal f1)
+    : tyTy(ty_function), result(result) {
     add(f1);
   }
-  function(ty *result, formal f1, formal f2)
-    : ty(ty_function), result(result) {
+  function(tyTy *result, formal f1, formal f2)
+    : tyTy(ty_function), result(result) {
     add(f1);
     add(f2);
   }
-  function(ty *result, formal f1, formal f2, formal f3)
-    : ty(ty_function), result(result) {
+  function(tyTy *result, formal f1, formal f2, formal f3)
+    : tyTy(ty_function), result(result) {
     add(f1);
     add(f2);
     add(f3);
   }
-  function(ty *result, formal f1, formal f2, formal f3, formal f4)
-    : ty(ty_function), result(result) {
+  function(tyTy *result, formal f1, formal f2, formal f3, formal f4)
+    : tyTy(ty_function), result(result) {
     add(f1);
     add(f2);
     add(f3);
@@ -464,7 +464,7 @@ struct function : public ty {
     return true;
   }
 
-  bool equiv(const ty *other) const
+  bool equiv(const tyTy *other) const
   {
     if (other->kind==ty_function) {
       function *that=(function *)other;
@@ -486,7 +486,7 @@ struct function : public ty {
     out << sig;
   }
 
-  ty *getResult() {
+  tyTy *getResult() {
     return result;
   }
 
@@ -507,7 +507,7 @@ struct function : public ty {
 };
 
 // This is used in getType expressions when an overloaded variable is accessed.
-class overloaded : public ty {
+class overloaded : public tyTy {
 public:
   ty_vector sub;
 
@@ -515,12 +515,12 @@ public:
   // implementation of overloaded.
 public:
   overloaded()
-    : ty(ty_overloaded) {}
-  overloaded(ty *t)
-    : ty(ty_overloaded) { add(t); }
+    : tyTy(ty_overloaded) {}
+  overloaded(tyTy *t)
+    : tyTy(ty_overloaded) { add(t); }
   virtual ~overloaded() {}
 
-  bool equiv(const ty *other) const
+  bool equiv(const tyTy *other) const
   {
     for(ty_vector::const_iterator i=sub.begin();i!=sub.end();++i)
       if (equivalent(*i,other))
@@ -534,7 +534,7 @@ public:
     return 0;
   }
 
-  void add(ty *t) {
+  void add(tyTy *t) {
     if (t->kind == ty_overloaded) {
       overloaded *ot = (overloaded *)t;
       copy(ot->sub.begin(), ot->sub.end(),
@@ -546,11 +546,11 @@ public:
 
   // Only add a type distinct from the ones currently in the overloaded type.
   // If special is false, just the distinct signatures are added.
-  void addDistinct(ty *t, bool special=false);
+  void addDistinct(tyTy *t, bool special=false);
 
   // If there are less than two overloaded types, the type isn't really
   // overloaded.  This gives a more appropriate type in this case.
-  ty *simplify() {
+  tyTy *simplify() {
     switch (sub.size()) {
       case 0:
         return 0;
@@ -563,21 +563,21 @@ public:
   }
 
   // Returns the signature-less type of the set.
-  ty *signatureless();
+  tyTy *signatureless();
 
   // True if one of the subtypes is castable.
-  bool castable(ty *target, caster &c);
+  bool castable(tyTy *target, caster &c);
 
   size_t size() const { return sub.size(); }
 
   // Use default printing for now.
 };
 
-inline ty_iterator ty::begin() {
+inline ty_iterator tyTy::begin() {
   assert(this->isOverloaded());
   return ((overloaded *)this)->sub.begin();
 }
-inline ty_iterator ty::end() {
+inline ty_iterator tyTy::end() {
   return ((overloaded *)this)->sub.end();
 }
 
@@ -587,15 +587,15 @@ inline ty_iterator ty::end() {
 class collector {
 public:
   virtual ~collector() {}
-  virtual ty *base(ty *target, ty *source) = 0;
+  virtual tyTy *base(tyTy *target, tyTy *source) = 0;
 
-  virtual ty *collect(ty *target, ty *source) {
+  virtual tyTy *collect(tyTy *target, tyTy *source) {
     if (overloaded *o=dynamic_cast<overloaded *>(target)) {
       ty_vector &sub=o->sub;
 
       overloaded *oo=new overloaded;
       for(ty_vector::iterator x = sub.begin(); x != sub.end(); ++x) {
-        types::ty *t=collect(*x, source);
+        types::tyTy *t=collect(*x, source);
         if (t)
           oo->add(t);
       }
@@ -610,7 +610,7 @@ public:
         // NOTE: A possible speed optimization would be to replace this with a
         // call to base(), but this is only correct if we can guarantee that an
         // overloaded type has no overloaded sub-types.
-        types::ty *t=collect(target, *y);
+        types::tyTy *t=collect(target, *y);
         if (t)
           oo->add(t);
       }
@@ -625,9 +625,9 @@ public:
 class tester {
 public:
   virtual ~tester() {}
-  virtual bool base(ty *target, ty *source) = 0;
+  virtual bool base(tyTy *target, tyTy *source) = 0;
 
-  virtual bool test(ty *target, ty *source) {
+  virtual bool test(tyTy *target, tyTy *source) {
     if (overloaded *o=dynamic_cast<overloaded *>(target)) {
       ty_vector &sub=o->sub;
 

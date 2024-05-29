@@ -12,14 +12,14 @@
 namespace trans {
 
 // Prints out error messages for the cast methods.
-static inline void castError(position pos, ty *target, ty *source)
+static inline void castError(position pos, tyTy *target, tyTy *source)
 {
   em.error(pos);
   em << "cannot convert \'" << *source
      << "\' to \'" << *target << "\'";
 }
 
-static inline bool accessCast(position pos, ty *target, ty *source,
+static inline bool accessCast(position pos, tyTy *target, tyTy *source,
                               access *a, coder& c)
 {
   if (a) {
@@ -32,13 +32,13 @@ static inline bool accessCast(position pos, ty *target, ty *source,
   }
 }
 
-bool coenv::implicitCast(position pos, ty *target, ty *source)
+bool coenv::implicitCast(position pos, tyTy *target, tyTy *source)
 {
   return accessCast(pos, target, source,
                     e.lookupCast(target, source, symbol::castsym), c);
 }
 
-bool coenv::explicitCast(position pos, ty *target, ty *source)
+bool coenv::explicitCast(position pos, tyTy *target, tyTy *source)
 {
   return accessCast(pos, target, source,
                     e.lookupCast(target, source, symbol::ecastsym), c);

@@ -28,11 +28,11 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  static types::ty *transFromTyEntry(position pos, coenv &e,
+  static types::tyTy *transFromTyEntry(position pos, coenv &e,
                                      trans::tyEntry *ent);
 
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
+  types::tyTy *trans(coenv &e);
+  types::tyTy *getType(coenv &e);
 };
 
 class newArrayExp : public exp {
@@ -51,8 +51,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
+  types::tyTy *trans(coenv &e);
+  types::tyTy *getType(coenv &e);
 };
 
 } // namespace absyntax

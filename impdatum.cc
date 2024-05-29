@@ -45,10 +45,10 @@ public:
     em.error(nullPos); em << "cannot use datum as expression";
   }
 
-  types::ty *getType(coenv &) { return types::primError(); }
-  types::ty *trans(coenv &e) { complain(); return getType(e); }
+  types::tyTy *getType(coenv &) { return types::primError(); }
+  types::tyTy *trans(coenv &e) { complain(); return getType(e); }
 
-  void transAsType(coenv &e, types::ty *target) { complain(); }
+  void transAsType(coenv &e, types::tyTy *target) { complain(); }
 };
 
 // Abstract base class for Datum types.
@@ -158,11 +158,11 @@ void imp_releaseHandle()
 // of the value and its type are stored.
 class ItemDatum : public ImpDatum {
   item i;
-  types::ty *t;
+  types::tyTy *t;
 
 public:
   // Every itemDatum has a fixed (non-overloaded) type, t
-  ItemDatum(types::ty *t) : t(t) {
+  ItemDatum(types::tyTy *t) : t(t) {
     assert(t);
     assert(t->isNotOverloaded());
     assert(t->isNotError());
@@ -212,7 +212,7 @@ public:
   }
 };
 
-ItemDatum *ItemDatumFromExp(types::ty *t, absyntax::exp *e)
+ItemDatum *ItemDatumFromExp(types::tyTy *t, absyntax::exp *e)
 {
   ItemDatum *d = new ItemDatum(t);
   assignExp ae(nullPos, d->getExp(), e);
@@ -276,7 +276,7 @@ ImpDatum *ImpDatum::getField(const char *name)
 
   absyntax::exp *ex = getFieldExp(id);
 
-  types::ty *t = ex->getType(e);
+  types::tyTy *t = ex->getType(e);
   if (t->isError())
     return datumError("no field of that name");
 
@@ -398,7 +398,7 @@ ImpDatum *callDatum(ImpDatum *callee, ImpArguments *args)
 
   callExp callex(nullPos, callee->getExp(), args->getArgs());
 
-  types::ty *t = callex.getType(e);
+  types::tyTy *t = callex.getType(e);
   if (t->isError()) {
     // Run for errors.
     runExp(&callex); em.sync();

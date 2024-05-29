@@ -34,20 +34,20 @@ namespace types {
 /* Base types */
 #define PRIMITIVE(name,Name,asyName)            \
   primitiveTy p##Name(ty_##name);               \
-  ty *prim##Name() { return &p##Name; }         \
+  tyTy *prim##Name() { return &p##Name; }         \
   array name##Array_(prim##Name());             \
-  ty *name##Array() { return &name##Array_; }   \
+  tyTy *name##Array() { return &name##Array_; }   \
   array name##Array2_(name##Array());           \
-  ty *name##Array2() { return &name##Array2_; } \
+  tyTy *name##Array2() { return &name##Array2_; } \
   array name##Array3_(name##Array2());          \
-  ty *name##Array3() { return &name##Array3_; }
+  tyTy *name##Array3() { return &name##Array3_; }
 #define PRIMERROR
 #include "primitives.h"
 #undef PRIMERROR
 #undef PRIMITIVE
 
 nullTy pNull;
-ty *primNull() { return &pNull; }
+tyTy *primNull() { return &pNull; }
 
 const char *names[] = {
   "null",
@@ -62,10 +62,10 @@ const char *names[] = {
   "<array>"
 };
 
-ty::~ty()
+tyTy::~tyTy()
 {}
 
-void ty::print(ostream& out) const
+void tyTy::print(ostream& out) const
 {
   out << names[kind];
 }
@@ -111,18 +111,18 @@ void ty::print(ostream& out) const
   SIGFIELD(SetType,sym,name##Set);
 
 
-ty *dimensionType() {
+tyTy *dimensionType() {
   return new function(primFile(),
                       formal(primInt(),SYM(nx),true),
                       formal(primInt(),SYM(ny),true),
                       formal(primInt(),SYM(nz),true));
 }
 
-ty *modeType() {
+tyTy *modeType() {
   return new function(primFile(),formal(primBoolean(),SYM(b), true));
 }
 
-ty *readType() {
+tyTy *readType() {
   return new function(primFile(), formal(primInt(), SYM(i)));
 }
 
@@ -173,27 +173,27 @@ trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
   return 0;
 }
 
-ty *overloadedDimensionType() {
+tyTy *overloadedDimensionType() {
   overloaded *o=new overloaded;
   o->add(dimensionType());
   o->add(IntArray());
   return o;
 }
 
-ty *overloadedModeType() {
+tyTy *overloadedModeType() {
   overloaded *o=new overloaded;
   o->add(modeType());
   o->add(primBoolean());
   return o;
 }
 
-ty *ty::virtualFieldGetType(symbol id)
+tyTy *tyTy::virtualFieldGetType(symbol id)
 {
   trans::varEntry *v = virtualField(id, 0);
   return v ? v->getType() : 0;
 }
 
-ty *primitiveTy::virtualFieldGetType(symbol id)
+tyTy *primitiveTy::virtualFieldGetType(symbol id)
 {
   if(kind == ty_file) {
     if (id == SYM(dimension))
@@ -219,7 +219,7 @@ ty *primitiveTy::virtualFieldGetType(symbol id)
     return &a;                                  \
   }
 
-trans::access *nullTy::castTo(ty *target, caster &) {
+trans::access *nullTy::castTo(tyTy *target, caster &) {
   switch (target->kind) {
     case ty_array: {
       RETURN_STATIC_BLTIN(pushNullArray);
@@ -240,7 +240,7 @@ trans::access *array::initializer()
   RETURN_STATIC_BLTIN(emptyArray)
     }
 
-ty *array::pushType()
+tyTy *array::pushType()
 {
   if (pushtype == 0)
     pushtype = new function(celltype,formal(celltype,SYM(x)));
@@ -248,7 +248,7 @@ ty *array::pushType()
   return pushtype;
 }
 
-ty *array::popType()
+tyTy *array::popType()
 {
   if (poptype == 0)
     poptype = new function(celltype);
@@ -256,7 +256,7 @@ ty *array::popType()
   return poptype;
 }
 
-ty *array::appendType()
+tyTy *array::appendType()
 {
   if (appendtype == 0)
     appendtype = new function(primVoid(),formal(this,SYM(a)));
@@ -264,7 +264,7 @@ ty *array::appendType()
   return appendtype;
 }
 
-ty *array::insertType()
+tyTy *array::insertType()
 {
   if (inserttype == 0) {
     function *f=new function(primVoid(),formal(primInt(),SYM(i)));
@@ -275,7 +275,7 @@ ty *array::insertType()
   return inserttype;
 }
 
-ty *array::deleteType()
+tyTy *array::deleteType()
 {
   if (deletetype == 0)
     deletetype = new function(primVoid(),formal(primInt(),SYM(i),true),
@@ -284,7 +284,7 @@ ty *array::deleteType()
   return deletetype;
 }
 
-ty *initializedType() {
+tyTy *initializedType() {
   return new function(primBoolean(),formal(primInt(),SYM(i)));
 }
 
@@ -296,7 +296,7 @@ ty *initializedType() {
   ASIGFIELD(insert, SYM(insert), arrayInsert);                  \
   ASIGFIELD(delete, SYM(delete), arrayDelete);                  \
 
-ty *array::virtualFieldGetType(symbol id)
+tyTy *array::virtualFieldGetType(symbol id)
 {
 #define ASIGFIELD(name, sym, func)              \
   if (id == sym)                                \
@@ -306,7 +306,7 @@ ty *array::virtualFieldGetType(symbol id)
 
 #undef ASIGFIELD
 
-    return ty::virtualFieldGetType(id);
+    return tyTy::virtualFieldGetType(id);
 }
 
 trans::varEntry *array::virtualField(symbol id, signature *sig)
@@ -322,7 +322,7 @@ trans::varEntry *array::virtualField(symbol id, signature *sig)
 #undef ASIGFIELD
 
     // Fall back on base class to handle no match.
-    return ty::virtualField(id, sig);
+    return tyTy::virtualField(id, sig);
 }
 
 #undef SIGFIELDLIST
@@ -505,7 +505,7 @@ ty *function::stripDefaults()
 
 // Only add a type with a signature distinct from the ones currently
 // in the overloaded type.
-void overloaded::addDistinct(ty *t, bool special)
+void overloaded::addDistinct(tyTy *t, bool special)
 {
   if (t->kind == ty_overloaded) {
     overloaded *ot = (overloaded *)t;
@@ -531,7 +531,7 @@ void overloaded::addDistinct(ty *t, bool special)
 }
 
 
-ty *overloaded::signatureless()
+tyTy *overloaded::signatureless()
 {
   for(ty_vector::iterator t = sub.begin(); t != sub.end(); ++t)
     if ((*t)->getSignature()==0)
@@ -540,7 +540,7 @@ ty *overloaded::signatureless()
   return 0;
 }
 
-bool overloaded::castable(ty *target, caster &c)
+bool overloaded::castable(tyTy *target, caster &c)
 {
   for(ty_vector::iterator s = sub.begin(); s != sub.end(); ++s)
     if (c.castable(target,*s))
@@ -548,7 +548,7 @@ bool overloaded::castable(ty *target, caster &c)
   return false;
 }
 
-bool equivalent(const ty *t1, const ty *t2)
+bool equivalent(const tyTy *t1, const tyTy *t2)
 {
   // The same pointer must point to the same type.
   if (t1 == t2)
@@ -569,7 +569,7 @@ bool equivalent(const ty *t1, const ty *t2)
 }
 
 
-bool equivalent(const ty *t1, const ty *t2, bool special) {
+bool equivalent(const tyTy *t1, const tyTy *t2, bool special) {
   return special ? equivalent(t1, t2) :
     equivalent(t1->getSignature(), t2->getSignature());
 }

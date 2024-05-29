@@ -25,7 +25,7 @@ using trans::CALL;
 using vm::inst;
 
 
-types::ty *signatureless(types::ty *t) {
+types::tyTy *signatureless(types::tyTy *t) {
   if (overloaded *o=dynamic_cast<overloaded *>(t))
     return o->signatureless();
   else
@@ -34,7 +34,7 @@ types::ty *signatureless(types::ty *t) {
 
 
 void name::forceEquivalency(action act, coenv &e,
-                            types::ty *target, types::ty *source)
+                            types::tyTy *target, types::tyTy *source)
 {
   if (act == READ)
     e.implicitCast(getPos(), target, source);
@@ -48,7 +48,7 @@ void name::forceEquivalency(action act, coenv &e,
 
 frame *name::frameTrans(coenv &e)
 {
-  if (types::ty *t=signatureless(varGetType(e))) {
+  if (types::tyTy *t=signatureless(varGetType(e))) {
     if (t->kind == types::ty_record) {
       varTrans(READ, e, t);
       return ((record *)t)->getLevel();
@@ -61,9 +61,9 @@ frame *name::frameTrans(coenv &e)
 }
 
 
-types::ty *name::getType(coenv &e, bool tacit)
+types::tyTy *name::getType(coenv &e, bool tacit)
 {
-  types::ty *t=signatureless(varGetType(e));
+  types::tyTy *t=signatureless(varGetType(e));
   if (!tacit && t && t->kind == ty_error)
     // Report errors associated with regarding the name as a variable.
     varTrans(trans::READ, e, t);
@@ -73,11 +73,11 @@ types::ty *name::getType(coenv &e, bool tacit)
 
 varEntry *simpleName::getVarEntry(coenv &e)
 {
-  types::ty *t=signatureless(varGetType(e));
+  types::tyTy *t=signatureless(varGetType(e));
   return t ? e.e.lookupVarByType(id, t) : 0;
 }
 
-void simpleName::varTrans(action act, coenv &e, types::ty *target)
+void simpleName::varTrans(action act, coenv &e, types::tyTy *target)
 {
   varEntry *v = e.e.lookupVarByType(id, target);
 
@@ -91,7 +91,7 @@ void simpleName::varTrans(action act, coenv &e, types::ty *target)
   }
 }
 
-types::ty *simpleName::varGetType(coenv &e)
+types::tyTy *simpleName::varGetType(coenv &e)
 {
   return e.e.varGetType(id);
 }
@@ -102,9 +102,9 @@ trans::varEntry *simpleName::getCallee(coenv &e, signature *sig)
   return ve;
 }
 
-types::ty *simpleName::typeTrans(coenv &e, bool tacit)
+types::tyTy *simpleName::typeTrans(coenv &e, bool tacit)
 {
-  types::ty *t = e.e.lookupType(id);
+  types::tyTy *t = e.e.lookupType(id);
   if (t) {
     return t;
   }
@@ -150,7 +150,7 @@ AsymptoteLsp::SymbolLit simpleName::getLit() const
   return AsymptoteLsp::SymbolLit(static_cast<std::string>(id));
 }
 
-record *qualifiedName::castToRecord(types::ty *t, bool tacit)
+record *qualifiedName::castToRecord(types::tyTy *t, bool tacit)
 {
   switch (t->kind) {
     case ty_overloaded:
@@ -173,7 +173,7 @@ record *qualifiedName::castToRecord(types::ty *t, bool tacit)
 }
 
 bool qualifiedName::varTransVirtual(action act, coenv &e,
-                                    types::ty *target, types::ty *qt)
+                                    types::tyTy *target, types::tyTy *qt)
 {
   varEntry *v = qt->virtualField(id, target->getSignature());
   if (v) {
@@ -191,7 +191,7 @@ bool qualifiedName::varTransVirtual(action act, coenv &e,
 }
 
 void qualifiedName::varTransField(action act, coenv &e,
-                                  types::ty *target, record *r)
+                                  types::tyTy *target, record *r)
 {
   varEntry *v = r->e.lookupVarByType(id, target);
 
@@ -210,9 +210,9 @@ void qualifiedName::varTransField(action act, coenv &e,
   }
 }
 
-void qualifiedName::varTrans(action act, coenv &e, types::ty *target)
+void qualifiedName::varTrans(action act, coenv &e, types::tyTy *target)
 {
-  types::ty *qt = qualifier->getType(e);
+  types::tyTy *qt = qualifier->getType(e);
 
   // Use virtual fields if applicable.
   if (varTransVirtual(act, e, target, qt))
@@ -223,12 +223,12 @@ void qualifiedName::varTrans(action act, coenv &e, types::ty *target)
     varTransField(act, e, target, r);
 }
 
-types::ty *qualifiedName::varGetType(coenv &e)
+types::tyTy *qualifiedName::varGetType(coenv &e)
 {
-  types::ty *qt = qualifier->getType(e, true);
+  types::tyTy *qt = qualifier->getType(e, true);
 
   // Look for virtual fields.
-  types::ty *t = qt->virtualFieldGetType(id);
+  types::tyTy *t = qt->virtualFieldGetType(id);
   if (t)
     return t;
 
@@ -249,10 +249,10 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
 {
   varEntry *qv = qualifier->getVarEntry(e);
 
-  types::ty *qt = qualifier->getType(e, true);
+  types::tyTy *qt = qualifier->getType(e, true);
   record *r = castToRecord(qt, true);
   if (r) {
-    types::ty *t = signatureless(r->e.varGetType(id));
+    types::tyTy *t = signatureless(r->e.varGetType(id));
     varEntry *v = t ? r->e.lookupVarByType(id, t) : 0;
     return trans::qualifyVarEntry(qv,v);
   }
@@ -260,9 +260,9 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
     return qv;
 }
 
-types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
+types::tyTy *qualifiedName::typeTrans(coenv &e, bool tacit)
 {
-  types::ty *rt = qualifier->getType(e, tacit);
+  types::tyTy *rt = qualifier->getType(e, tacit);
 
   record *r = castToRecord(rt, tacit);
   if (!r)
@@ -286,7 +286,7 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
 
 tyEntry *qualifiedName::tyEntryTrans(coenv &e)
 {
-  types::ty *rt = qualifier->getType(e, false);
+  types::tyTy *rt = qualifier->getType(e, false);
 
   record *r = castToRecord(rt, false);
   if (!r)

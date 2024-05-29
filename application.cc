@@ -115,7 +115,7 @@ public:
   }
 };
 
-ty *restCellType(signature *sig) {
+tyTy *restCellType(signature *sig) {
   formal& f=sig->getRest();
   if (f.t) {
     array *a=dynamic_cast<array *>(f.t);
@@ -129,7 +129,7 @@ ty *restCellType(signature *sig) {
 void application::initRest() {
   formal& f=sig->getRest();
   if (f.t) {
-    ty *ct = restCellType(sig);
+    tyTy *ct = restCellType(sig);
     if (!ct)
       vm::error("formal rest argument must be an array");
 
@@ -496,7 +496,7 @@ app_list exactMultimatch(env &e,
 }
 
 bool halfExactMightMatch(env &e,
-                         signature *target, types::ty *t1, types::ty *t2)
+                         signature *target, types::tyTy *t1, types::tyTy *t2)
 {
   formal_vector& formals = target->formals;
   if (formals.size() < 2)
@@ -544,8 +544,8 @@ app_list halfExactMultimatch(env &e,
     return l; /* empty */
 
   // Alias the two argument types.
-  types::ty *t1 = formals[0].t;
-  types::ty *t2 = formals[1].t;
+  types::tyTy *t1 = formals[0].t;
+  types::tyTy *t2 = formals[1].t;
 
   assert(t1); assert(t2);
 

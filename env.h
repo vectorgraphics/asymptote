@@ -25,7 +25,7 @@ class namedTyEntry;
 namespace trans {
 
 using sym::symbol;
-using types::ty;
+using types::tyTy;
 using types::function;
 using types::record;
 
@@ -41,7 +41,7 @@ public:
   tenv te;
   venv ve;
 
-  access *baseLookupCast(ty *target, ty *source, symbol name);
+  access *baseLookupCast(tyTy *target, tyTy *source, symbol name);
 
 public:
   // Start an environment for a file-level module.
@@ -70,13 +70,13 @@ public:
     return te.look(s);
   }
 
-  ty *lookupType(symbol s)
+  tyTy *lookupType(symbol s)
   {
     tyEntry *ent=lookupTyEntry(s);
     return ent ? ent->t : 0;
   }
 
-  varEntry *lookupVarByType(symbol name, ty *t)
+  varEntry *lookupVarByType(symbol name, tyTy *t)
   {
     // Search in local vars.
     return ve.lookByType(name, t);
@@ -87,7 +87,7 @@ public:
     return ve.lookBySignature(name, sig);
   }
 
-  access *lookupInitializer(ty *t)
+  access *lookupInitializer(tyTy *t)
   {
     // The initializer's type is a function returning the desired type.
     function *it=new function(t);
@@ -100,22 +100,22 @@ public:
   // Find the function that handles casting between the types.
   // The name is "operator cast" for implicit casting and "operator ecast" for
   // explicit.
-  access *lookupCast(ty *target, ty *source, symbol name);
-  bool castable(ty *target, ty *source, symbol name);
+  access *lookupCast(tyTy *target, tyTy *source, symbol name);
+  bool castable(tyTy *target, tyTy *source, symbol name);
 
   // A cast lookup designed to work quickly with the application matching
   // code.  The target type must not be overloaded.
-  bool fastCastable(ty *target, ty *source);
+  bool fastCastable(tyTy *target, tyTy *source);
 
   // For the lookup, neither target nor source may be overloaded.
-  access *fastLookupCast(ty *target, ty *source);
+  access *fastLookupCast(tyTy *target, tyTy *source);
 
   // Given overloaded types, this resolves which types should be the target and
   // the source of the cast.
-  ty *castTarget(ty *target, ty *source, symbol name);
-  ty *castSource(ty *target, ty *source, symbol name);
+  tyTy *castTarget(tyTy *target, tyTy *source, symbol name);
+  tyTy *castSource(tyTy *target, tyTy *source, symbol name);
 
-  ty *varGetType(symbol name)
+  tyTy *varGetType(symbol name)
   {
     return ve.getType(name);
   }

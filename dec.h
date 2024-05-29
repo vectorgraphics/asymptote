@@ -25,7 +25,7 @@ class access;
 }
 
 namespace types {
-class ty;
+class tyTy;
 struct formal;
 struct signature;
 struct function;
@@ -59,7 +59,7 @@ public:
   // Returns the internal representation of the type.  This method can
   // be called by exp::getType which does not report errors, so tacit is
   // needed to silence errors in this case.
-  virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
+  virtual types::tyTy *trans(coenv &e, bool tacit = false) = 0;
 
   virtual trans::tyEntry *transAsTyEntry(coenv &e, record *where);
 
@@ -83,7 +83,7 @@ public:
 
   void prettyprint(ostream &out, Int indent) override;
 
-  types::ty *trans(coenv &e, bool tacit = false) override;
+  types::tyTy *trans(coenv &e, bool tacit = false) override;
   trans::tyEntry *transAsTyEntry(coenv &e, record *where) override;
 
   virtual operator string() const override;
@@ -104,7 +104,7 @@ public:
     return depth;
   }
 
-  types::array *truetype(types::ty *base, bool tacit=false);
+  types::array *truetype(types::tyTy *base, bool tacit=false);
 };
 
 class arrayTy : public ty {
@@ -122,7 +122,7 @@ public:
 
   void addOps(coenv &e, record *r) override;
 
-  types::ty *trans(coenv &e, bool tacit = false) override;
+  types::tyTy *trans(coenv &e, bool tacit = false) override;
 
   operator string() const override;
 };
@@ -135,11 +135,11 @@ public:
   tyEntryTy(position pos, trans::tyEntry *ent)
     : ty(pos), ent(ent) {}
 
-  tyEntryTy(position pos, types::ty *t);
+  tyEntryTy(position pos, types::tyTy *t);
 
   void prettyprint(ostream &out, Int indent) override;
 
-  types::ty *trans(coenv &e, bool tacit = false) override;
+  types::tyTy *trans(coenv &e, bool tacit = false) override;
   trans::tyEntry *transAsTyEntry(coenv &, record *) override {
     return ent;
   }
@@ -350,13 +350,13 @@ public:
 
   virtual void prettyprint(ostream &out, Int indent) override;
 
-  virtual types::ty *getType(types::ty *base, coenv &, bool = false);
+  virtual types::tyTy *getType(types::tyTy *base, coenv &, bool = false);
   virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e,
                                      record *where);
 
   // If a new type is formed by adding dimensions (or a function signature)
   // after the id, this will add the standard functions for that new type.
-  virtual void addOps(types::ty *base, coenv &e, record *r);
+  virtual void addOps(types::tyTy *base, coenv &e, record *r);
 
   virtual symbol getName()
   { return id; }
@@ -379,9 +379,9 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
+  types::tyTy *getType(types::tyTy *base, coenv &e, bool tacit = false);
   trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e, record *where);
-  void addOps(types::ty *base, coenv &e, record *r);
+  void addOps(types::tyTy *base, coenv &e, record *r);
 };
 
 class decid : public absyn {
@@ -389,7 +389,7 @@ class decid : public absyn {
   varinit *init;
 
   // Returns the default initializer for the type.
-  access *defaultInit(coenv &e, types::ty *t);
+  access *defaultInit(coenv &e, types::tyTy *t);
 
 public:
   decid(position pos, decidstart *start, varinit *init = 0)
@@ -397,7 +397,7 @@ public:
 
   virtual void prettyprint(ostream &out, Int indent) override;
 
-  virtual void transAsField(coenv &e, record *r, types::ty *base);
+  virtual void transAsField(coenv &e, record *r, types::tyTy *base);
 
   // Translate, but add the names in as types rather than variables.
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
@@ -425,7 +425,7 @@ public:
 
   virtual void prettyprint(ostream &out, Int indent) override;
 
-  virtual void transAsField(coenv &e, record *r, types::ty *base);
+  virtual void transAsField(coenv &e, record *r, types::tyTy *base);
 
   // Translate, but add the names in as types rather than variables.
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
@@ -458,7 +458,7 @@ public:
 };
 
 void createVar(position pos, coenv &e, record *r,
-               symbol id, types::ty *t, varinit *init);
+               symbol id, types::tyTy *t, varinit *init);
 
 class vardec : public dec {
   ty *base;
@@ -490,7 +490,7 @@ public:
 
   // If the vardec encodes a single declaration, return the type of that
   // declaration (otherwise 0).
-  types::ty *singleGetType(coenv& e);
+  types::tyTy *singleGetType(coenv& e);
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };

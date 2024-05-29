@@ -35,7 +35,7 @@ public:
   // known in order to translate properly.  For most expressions, this is
   // kept to a minimum.
   // For expression, this also allows an implicit cast, hence the name.
-  virtual void transToType(coenv &e, types::ty *target) = 0;
+  virtual void transToType(coenv &e, types::tyTy *target) = 0;
 };
 
 // A default initializer.  For example:
@@ -50,7 +50,7 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  void transToType(coenv &e, types::ty *target);
+  void transToType(coenv &e, types::tyTy *target);
 };
 
 class arrayinit : public varinit {
@@ -69,7 +69,7 @@ public:
   // Encodes the instructions to make an array from size elements on the stack.
   static void transMaker(coenv &e, Int size, bool rest);
 
-  void transToType(coenv &e, types::ty *target);
+  void transToType(coenv &e, types::tyTy *target);
 
   void add(varinit *init) {
     inits.push_back(init);

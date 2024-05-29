@@ -38,9 +38,9 @@ types::formal formal::trans(coenv &e, bool encodeDefVal, bool tacit) {
                        getExplicit());
 }
 
-types::ty *formal::getType(coenv &e, bool tacit) {
-  types::ty *bt = base->trans(e, tacit);
-  types::ty *t = start ? start->getType(bt, e, tacit) : bt;
+types::tyTy *formal::getType(coenv &e, bool tacit) {
+  types::tyTy *bt = base->trans(e, tacit);
+  types::tyTy *t = start ? start->getType(bt, e, tacit) : bt;
   if (t->kind == ty_void && !tacit) {
     em.error(getPos());
     em << "cannot declare parameters of type void";
@@ -99,7 +99,7 @@ signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
 
 // Returns the corresponding function type, assuming it has a return
 // value of types::ty *result.
-function *formals::getType(types::ty *result, coenv &e,
+function *formals::getType(types::tyTy *result, coenv &e,
                            bool encodeDefVal,
                            bool tacit)
 {
@@ -138,11 +138,11 @@ public:
     prettyname(out, "basicAssignExp", indent, getPos());
   }
 
-  types::ty *getType(coenv &) {
+  types::tyTy *getType(coenv &) {
     return dest->getType();
   }
 
-  types::ty *trans(coenv &e) {
+  types::tyTy *trans(coenv &e) {
     // This doesn't handle overloaded types for the destination.
     value->transToType(e, getType(e));
     dest->encode(WRITE, pos, e.c);
@@ -177,7 +177,7 @@ void formal::transAsVar(coenv &e, Int index) {
 
     // Suppress error messages because they will already be reported
     // when the formals are translated to yield the type earlier.
-    types::ty *t = getType(e, true);
+    types::tyTy *t = getType(e, true);
     varEntry *v = new varEntry(t, a, 0, getPos());
 
     // Translate the default argument before adding the formal to the
@@ -301,7 +301,7 @@ varinit *fundef::makeVarInit(function *ft) {
       prettyname(out, "initializer", indent, getPos());
     }
 
-    void transToType(coenv &e, types::ty *target) {
+    void transToType(coenv &e, types::tyTy *target) {
       assert(ft==target);
       f->baseTrans(e, ft);
     }
@@ -324,7 +324,7 @@ void fundef::baseTrans(coenv &e, types::function *ft)
 
   body->trans(fe);
 
-  types::ty *rt = ft->result;
+  types::tyTy *rt = ft->result;
   if (rt->kind != ty_void &&
       rt->kind != ty_error &&
       !body->returns()) {
@@ -340,7 +340,7 @@ void fundef::baseTrans(coenv &e, types::function *ft)
   e.c.encode(inst::makefunc, l);
 }
 
-types::ty *fundef::trans(coenv &e) {
+types::tyTy *fundef::trans(coenv &e) {
   // I don't see how addFunctionOps can be useful here.
   // For instance, in
   //

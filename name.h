@@ -40,7 +40,7 @@ public:
   // Helper function - ensures target and source match up, using casting in the
   // case of a read.  Issues errors on failure.
   void forceEquivalency(action act, coenv &e,
-                        types::ty *target, types::ty *source);
+                        types::tyTy *target, types::tyTy *source);
 
   // Used for determining the type when the context does not establish
   // the name as a variable or a type.  First, the function looks for a
@@ -51,7 +51,7 @@ public:
   // Because this is used only on qualifiers (ie. names to the left of a
   // dot), it does not look at function variables.
   // Tacit means that no error messages will be reported to the user.
-  virtual types::ty *getType(coenv &e, bool tacit = false);
+  virtual types::tyTy *getType(coenv &e, bool tacit = false);
 
   // Pushes the highest level frame possible onto the stack.  Returning
   // the frame pushed.  If no frame can be pushed, returns 0.
@@ -68,15 +68,15 @@ public:
 
   // As a variable:
   // Translates the name (much like an expression).
-  virtual void varTrans(action act, coenv &e, types::ty *target) = 0;
+  virtual void varTrans(action act, coenv &e, types::tyTy *target) = 0;
   // Returns the possible variable types.  Unlike exp, returns 0 if none
   // match.
-  virtual types::ty *varGetType(coenv &e) = 0;
+  virtual types::tyTy *varGetType(coenv &e) = 0;
   virtual trans::varEntry *getCallee(coenv &e, types::signature *sig) = 0;
 
   // As a type:
   // Determines the type, as used in a variable declaration.
-  virtual types::ty *typeTrans(coenv &e, bool tacit = false) = 0;
+  virtual types::tyTy *typeTrans(coenv &e, bool tacit = false) = 0;
   // Constructs the tyEntry of the name, needed so that we know the
   // parent frame for allocating new objects of that type.  Reports
   // errors as typeTrans() does with tacit=false.
@@ -109,12 +109,12 @@ public:
   trans::varEntry *getVarEntry(coenv &e) override;
 
   // As a variable:
-  void varTrans(action act, coenv &e, types::ty *target) override;
-  types::ty *varGetType(coenv &) override;
+  void varTrans(action act, coenv &e, types::tyTy *target) override;
+  types::tyTy *varGetType(coenv &) override;
   trans::varEntry *getCallee(coenv &e, types::signature *sig) override;
 
   // As a type:
-  types::ty *typeTrans(coenv &e, bool tacit = false) override;
+  types::tyTy *typeTrans(coenv &e, bool tacit = false) override;
   virtual trans::tyEntry *tyEntryTrans(coenv &e) override;
   trans::frame *tyFrameTrans(coenv &e) override;
 
@@ -139,16 +139,16 @@ class qualifiedName : public name {
 
   // Gets the record type associated with the qualifier. Reports an
   // error and returns null if the type is not a record.
-  record *castToRecord(types::ty *t, bool tacit = false);
+  record *castToRecord(types::tyTy *t, bool tacit = false);
 
   // Translates as a virtual field, if possible.  qt is the type of the
   // qualifier.  Return true if there was a matching virtual field.
   bool varTransVirtual(action act, coenv &e,
-                       types::ty *target, types::ty *qt);
+                       types::tyTy *target, types::tyTy *qt);
 
   // Translates as an ordinary (non-virtual) field of a record, r.
   void varTransField(action act, coenv &e,
-                     types::ty *target, record *r);
+                     types::tyTy *target, record *r);
 public:
   qualifiedName(position pos, name *qualifier, symbol id)
     : name(pos), qualifier(qualifier), id(id) {}
@@ -156,12 +156,12 @@ public:
   trans::varEntry *getVarEntry(coenv &e) override;
 
   // As a variable:
-  void varTrans(action act, coenv &, types::ty *target) override;
-  types::ty *varGetType(coenv &) override;
+  void varTrans(action act, coenv &, types::tyTy *target) override;
+  types::tyTy *varGetType(coenv &) override;
   trans::varEntry *getCallee(coenv &e, types::signature *sig) override;
 
   // As a type:
-  types::ty *typeTrans(coenv &e, bool tacit = false) override;
+  types::tyTy *typeTrans(coenv &e, bool tacit = false) override;
   trans::tyEntry *tyEntryTrans(coenv &e) override;
   trans::frame *tyFrameTrans(coenv &e) override;
 

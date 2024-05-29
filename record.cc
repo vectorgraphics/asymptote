@@ -15,7 +15,7 @@
 namespace types {
 
 record::record(symbol name, frame *level)
-  : ty(ty_record),
+  : tyTy(ty_record),
     name(name),
     level(level),
     init(new vm::lambda),
@@ -65,7 +65,7 @@ dummyRecord::dummyRecord(string s)
   c.closeRecord();
 }
 
-void dummyRecord::add(string name, ty *t, trans::access *a,
+void dummyRecord::add(string name, tyTy *t, trans::access *a,
                       trans::permission perm) {
   e.addVar(symbol::trans(name),
            new trans::varEntry(t, a, perm, this, this, position()));

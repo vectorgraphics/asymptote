@@ -79,7 +79,7 @@ void gen_runpath3d_venv(venv &ve);
 void gen_runmath_venv(venv &ve);
 void gen_rungsl_venv(venv &ve);
 
-void addType(tenv &te, symbol name, ty *t)
+void addType(tenv &te, symbol name, tyTy *t)
 {
   te.enter(name, new tyEntry(t,0,0,position()));
 }
@@ -95,7 +95,7 @@ void base_tenv(tenv &te)
 
 const formal noformal(0);
 
-function *functionFromFormals(ty *result,
+function *functionFromFormals(tyTy *result,
                               formal f1=noformal, formal f2=noformal, formal f3=noformal,
                               formal f4=noformal, formal f5=noformal, formal f6=noformal,
                               formal f7=noformal, formal f8=noformal, formal f9=noformal,
@@ -127,7 +127,7 @@ function *functionFromFormals(ty *result,
   return fun;
 }
 
-void addFunc(venv &ve, access *a, ty *result, symbol id,
+void addFunc(venv &ve, access *a, tyTy *result, symbol id,
              formal f1=noformal, formal f2=noformal, formal f3=noformal,
              formal f4=noformal, formal f5=noformal, formal f6=noformal,
              formal f7=noformal, formal f8=noformal, formal f9=noformal,
@@ -146,7 +146,7 @@ void addFunc(venv &ve, access *a, ty *result, symbol id,
 }
 
 // Add a function with one or more default arguments.
-void addFunc(venv &ve, bltin f, ty *result, symbol name,
+void addFunc(venv &ve, bltin f, tyTy *result, symbol name,
              formal f1, formal f2, formal f3, formal f4, formal f5, formal f6,
              formal f7, formal f8, formal f9, formal fA, formal fB, formal fC,
              formal fD, formal fE, formal fF, formal fG, formal fH, formal fI)
@@ -175,7 +175,7 @@ void addFunc(venv &ve, bltin f, ty *result, symbol name,
           fA,fB,fC,fD,fE,fF,fG,fH,fI);
 }
 
-void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
+void addOpenFunc(venv &ve, bltin f, tyTy *result, symbol name)
 {
   function *fun = new function(result, signature::OPEN);
 
@@ -189,7 +189,7 @@ void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
 
 
 // Add a rest function with zero or more default/explicit arguments.
-void addRestFunc(venv &ve, bltin f, ty *result, symbol name, formal frest,
+void addRestFunc(venv &ve, bltin f, tyTy *result, symbol name, formal frest,
                  formal f1=noformal, formal f2=noformal, formal f3=noformal,
                  formal f4=noformal, formal f5=noformal, formal f6=noformal,
                  formal f7=noformal, formal f8=noformal, formal f9=noformal)
@@ -250,12 +250,12 @@ void addRealIntFunc(venv& ve, symbol name, symbol arg1,
           formal(primInt(), arg2));
 }
 
-void addInitializer(venv &ve, ty *t, access *a)
+void addInitializer(venv &ve, tyTy *t, access *a)
 {
   addFunc(ve, a, t, symbol::initsym);
 }
 
-void addInitializer(venv &ve, ty *t, bltin f)
+void addInitializer(venv &ve, tyTy *t, bltin f)
 {
 #ifdef DEBUG_BLTIN
   ostringstream s;
@@ -268,18 +268,18 @@ void addInitializer(venv &ve, ty *t, bltin f)
 
 // Specifies that source may be cast to target, but only if an explicit
 // cast expression is used.
-void addExplicitCast(venv &ve, ty *target, ty *source, access *a) {
+void addExplicitCast(venv &ve, tyTy *target, tyTy *source, access *a) {
   addFunc(ve, a, target, symbol::ecastsym, source);
 }
 
 // Specifies that source may be implicitly cast to target by the
 // function or instruction stores at a.
-void addCast(venv &ve, ty *target, ty *source, access *a) {
+void addCast(venv &ve, tyTy *target, tyTy *source, access *a) {
   //addExplicitCast(target,source,a);
   addFunc(ve, a, target, symbol::castsym, source);
 }
 
-void addExplicitCast(venv &ve, ty *target, ty *source, bltin f) {
+void addExplicitCast(venv &ve, tyTy *target, tyTy *source, bltin f) {
 #ifdef DEBUG_BLTIN
   ostringstream s;
   s << "explicit cast from " << *source << " to " << *target;
@@ -288,7 +288,7 @@ void addExplicitCast(venv &ve, ty *target, ty *source, bltin f) {
   addExplicitCast(ve, target, source, new bltinAccess(f));
 }
 
-void addCast(venv &ve, ty *target, ty *source, bltin f) {
+void addCast(venv &ve, tyTy *target, tyTy *source, bltin f) {
 #ifdef DEBUG_BLTIN
   ostringstream s;
   s << "cast from " << *source << " to " << *target;
@@ -298,7 +298,7 @@ void addCast(venv &ve, ty *target, ty *source, bltin f) {
 }
 
 template<class T>
-void addVariable(venv &ve, T *ref, ty *t, symbol name,
+void addVariable(venv &ve, T *ref, tyTy *t, symbol name,
                  record *module=settings::getSettingsModule()) {
   access *a = new refAccess<T>(ref);
   varEntry *ent = new varEntry(t, a, PUBLIC, module, 0, position());
@@ -306,7 +306,7 @@ void addVariable(venv &ve, T *ref, ty *t, symbol name,
 }
 
 template<class T>
-void addVariable(venv &ve, T value, ty *t, symbol name,
+void addVariable(venv &ve, T value, tyTy *t, symbol name,
                  record *module=settings::getSettingsModule(),
                  permission perm=PUBLIC) {
   item* ref=new item;
@@ -317,7 +317,7 @@ void addVariable(venv &ve, T value, ty *t, symbol name,
 }
 
 template<class T>
-void addConstant(venv &ve, T value, ty *t, symbol name,
+void addConstant(venv &ve, T value, tyTy *t, symbol name,
                  record *module=settings::getSettingsModule()) {
   addVariable(ve,value,t,name,module,RESTRICTED);
 }
@@ -422,35 +422,35 @@ void addGuideOperators(venv &ve)
 }
 
 /* Avoid typing the same type three times. */
-void addSimpleOperator(venv &ve, bltin f, ty *t, symbol name)
+void addSimpleOperator(venv &ve, bltin f, tyTy *t, symbol name)
 {
   addFunc(ve,f,t,name,formal(t,SYM(a)),formal(t,SYM(b)));
 }
-void addBooleanOperator(venv &ve, bltin f, ty *t, symbol name)
+void addBooleanOperator(venv &ve, bltin f, tyTy *t, symbol name)
 {
   addFunc(ve,f,primBoolean(),name,formal(t,SYM(a)),formal(t,SYM(b)));
 }
 
 template<class T, template <class S> class op>
-void addArray2Array2Op(venv &ve, ty *t3, symbol name)
+void addArray2Array2Op(venv &ve, tyTy *t3, symbol name)
 {
   addFunc(ve,array2Array2Op<T,op>,t3,name,formal(t3,SYM(a)),formal(t3,SYM(b)));
 }
 
 template<class T, template <class S> class op>
-void addOpArray2(venv &ve, ty *t1, symbol name, ty *t3)
+void addOpArray2(venv &ve, tyTy *t1, symbol name, tyTy *t3)
 {
   addFunc(ve,opArray2<T,T,op>,t3,name,formal(t1,SYM(a)),formal(t3,SYM(b)));
 }
 
 template<class T, template <class S> class op>
-void addArray2Op(venv &ve, ty *t1, symbol name, ty *t3)
+void addArray2Op(venv &ve, tyTy *t1, symbol name, tyTy *t3)
 {
   addFunc(ve,array2Op<T,T,op>,t3,name,formal(t3,SYM(a)),formal(t1,SYM(b)));
 }
 
 template<class T, template <class S> class op>
-void addOps(venv &ve, ty *t1, symbol name, ty *t2)
+void addOps(venv &ve, tyTy *t1, symbol name, tyTy *t2)
 {
   addSimpleOperator(ve,binaryOp<T,op>,t1,name);
   addFunc(ve,opArray<T,T,op>,t2,name,formal(t1,SYM(a)),formal(t2,SYM(b)));
@@ -459,7 +459,7 @@ void addOps(venv &ve, ty *t1, symbol name, ty *t2)
 }
 
 template<class T, template <class S> class op>
-void addBooleanOps(venv &ve, ty *t1, symbol name, ty *t2)
+void addBooleanOps(venv &ve, tyTy *t1, symbol name, tyTy *t2)
 {
   addBooleanOperator(ve,binaryOp<T,op>,t1,name);
   addFunc(ve,opArray<T,T,op>,
@@ -470,7 +470,7 @@ void addBooleanOps(venv &ve, ty *t1, symbol name, ty *t2)
           formal(t2,SYM(b)));
 }
 
-void addWrite(venv &ve, bltin f, ty *t1, ty *t2)
+void addWrite(venv &ve, bltin f, tyTy *t1, tyTy *t2)
 {
   addRestFunc(ve,f,primVoid(),SYM(write),t2,
               formal(primFile(),SYM(file),true),
@@ -479,7 +479,7 @@ void addWrite(venv &ve, bltin f, ty *t1, ty *t2)
 }
 
 template<class T>
-void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
+void addUnorderedOps(venv &ve, tyTy *t1, tyTy *t2, tyTy *t3, tyTy *t4)
 {
   addBooleanOps<T,equals>(ve,t1,SYM_EQ,t2);
   addBooleanOps<T,notequals>(ve,t1,SYM_NEQ,t2);
@@ -524,7 +524,7 @@ inline T negate(T x) {
 }
 
 template<class T, template <class S> class op>
-void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, symbol name)
+void addBinOps(venv &ve, tyTy *t1, tyTy *t2, tyTy *t3, tyTy *t4, symbol name)
 {
   addFunc(ve,binopArray<T,op>,t1,name,formal(t2,SYM(a)));
   addFunc(ve,binopArray2<T,op>,t1,name,formal(t3,SYM(a)));
@@ -532,7 +532,7 @@ void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, symbol name)
 }
 
 template<class T>
-void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
+void addOrderedOps(venv &ve, tyTy *t1, tyTy *t2, tyTy *t3, tyTy *t4)
 {
   addBooleanOps<T,less>(ve,t1,SYM_LT,t2);
   addBooleanOps<T,lessequals>(ve,t1,SYM_LE,t2);
@@ -552,7 +552,7 @@ void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 }
 
 template<class T>
-void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
+void addBasicOps(venv &ve, tyTy *t1, tyTy *t2, tyTy *t3, tyTy *t4, bool integer=false,
                  bool Explicit=false)
 {
   addOps<T,plus>(ve,t1,SYM_PLUS,t2);
@@ -577,7 +577,7 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
 }
 
 template<class T>
-void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
+void addOps(venv &ve, tyTy *t1, tyTy *t2, tyTy *t3, tyTy *t4, bool integer=false,
             bool Explicit=false)
 {
   addBasicOps<T>(ve,t1,t2,t3,t4,integer,Explicit);
@@ -598,7 +598,7 @@ void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
 // Adds standard functions for a newly added array type.
 void addArrayOps(venv &ve, types::array *t)
 {
-  ty *ct = t->celltype;
+  tyTy *ct = t->celltype;
 
   // Check for the alias function to see if these operation have already been
   // added, if they have, don't add them again.
