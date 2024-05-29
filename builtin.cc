@@ -44,7 +44,7 @@
 
 namespace vm {
 // Defined in stack.cc
-extern vm::frame *make_dummyframe(string name);
+extern vm::vmFrame *make_dummyframe(string name);
 }
 
 using namespace types;
@@ -753,7 +753,7 @@ void addOperators(venv &ve)
 dummyRecord *createDummyRecord(venv &ve, symbol name)
 {
   dummyRecord *r=new dummyRecord(name);
-  vm::frame *f = make_dummyframe(name);
+  vm::vmFrame *f = make_dummyframe(name);
   addConstant(ve, f, r, name);
   addRecordOps(ve, r);
   return r;
