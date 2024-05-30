@@ -98,7 +98,7 @@ stack::vars_t make_dummyframe(string name)
 inline stack::vars_t make_globalframe(size_t size)
 {
   assert(size > 0);
-#if SIMPLE_FRAME
+#ifdef SIMPLE_FRAME
   // The global frame is an indirect frame.  It holds one item, which is the
   // link to another frame.
   stack::vars_t direct = new item[1];
@@ -123,7 +123,7 @@ inline void resize_frame(vmFrame *f, size_t oldsize, size_t newsize)
 {
   //assert("Need to fix this" == 0);
   assert(newsize > oldsize);
-#if SIMPLE_FRAME
+#ifdef SIMPLE_FRAME
   vmFrame *old_indirect = get<vmFrame *>(f[0]);
   vmFrame *new_indirect = new item[newsize];
   std::copy(old_indirect, old_indirect+oldsize, new_indirect);
@@ -148,7 +148,7 @@ void run(lambda *l)
 void stack::marshall(size_t args, stack::vars_t vars)
 {
   for (size_t i = args; i > 0; --i)
-#if SIMPLE_FRAME
+#ifdef SIMPLE_FRAME
     vars[i-1] = pop();
 #else
   (*vars)[i-1] = pop();
