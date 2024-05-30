@@ -491,7 +491,7 @@ trans::access *function::initializer() {
 }
 
 #if 0
-ty *function::stripDefaults()
+tyTy *function::stripDefaults()
 {
   function *f = new function(result);
 

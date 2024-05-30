@@ -162,7 +162,7 @@ public:
 #if 0
   // Returns the type.  In case of functions, return the equivalent type
   // but with no default values for parameters.
-  virtual ty *stripDefaults()
+  virtual tyTy *stripDefaults()
   {
     return this;
   }
@@ -310,7 +310,7 @@ struct formal {
   // constructor has been disabled to make this cost more visible to the
   // programmer.
 #if 0
-  formal(ty *t,
+  formal(tyTy *t,
          const char *name,
          bool optional=false,
          bool Explicit=false)
@@ -499,7 +499,7 @@ struct function : public tyTy {
   }
 
 #if 0
-  ty *stripDefaults();
+  tyTy *stripDefaults();
 #endif
 
   // Initialized to null.
