@@ -887,13 +887,13 @@ public:
 };
 
 class castExp : public exp {
-  ty *target;
+  astType *target;
   exp *castee;
 
   types::tyTy *tryCast(coenv &e, types::tyTy *t, types::tyTy *s,
                      symbol csym);
 public:
-  castExp(position pos, ty *target, exp *castee)
+  castExp(position pos, astType *target, exp *castee)
     : exp(pos), target(target), castee(castee) {}
 
   void prettyprint(ostream &out, Int indent) override;
@@ -949,7 +949,7 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   types::tyTy *trans(coenv &e);
-  //types::ty *getType(coenv &e);
+  //types::tyTy *getType(coenv &e);
 
   bool scalable() { return false; }
 };

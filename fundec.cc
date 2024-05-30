@@ -98,7 +98,7 @@ signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
 
 
 // Returns the corresponding function type, assuming it has a return
-// value of types::ty *result.
+// value of types::tyTy *result.
 function *formals::getType(types::tyTy *result, coenv &e,
                            bool encodeDefVal,
                            bool tacit)

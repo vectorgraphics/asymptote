@@ -15,7 +15,7 @@ using namespace types;
 
 namespace trans {
 
-// Instances of this class are passed to types::ty objects so that they can
+// Instances of this class are passed to types::tyTy objects so that they can
 // call back to env when checking casting of subtypes.
 class envCaster : public caster {
   protoenv &e;

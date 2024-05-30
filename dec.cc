@@ -27,7 +27,7 @@ using namespace types;
 
 using mem::list;
 
-trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
+trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
 {
   return new trans::tyEntry(trans(e, false), 0, where, getPos());
 }
@@ -128,7 +128,7 @@ arrayTy::operator string() const
 }
 
 tyEntryTy::tyEntryTy(position pos, types::tyTy *t)
-  : ty(pos), ent(new trans::tyEntry(t, 0, 0, position()))
+  : astType(pos), ent(new trans::tyEntry(t, 0, 0, position()))
 {
 }
 
@@ -491,7 +491,7 @@ void decidstart::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 }
 
 void decidstart::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   std::string name(static_cast<std::string>(getName()));
@@ -733,7 +733,7 @@ void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 }
 
 void decid::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   start->createSymMapWType(symContext, base);
@@ -775,7 +775,7 @@ void decidlist::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
 }
 
 void decidlist::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   for (auto const& p : decs)
@@ -898,7 +898,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   auto *computedArgs = new mem::vector<namedTyEntry*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
   for (auto p = fields->begin(); p != fields->end(); ++p) {
-    ty* theType = p->ty;
+    astType* theType = p->ty;
     symbol theName = p->sym;
     if (theName == symbol::nullsym) {
       em.error(theType->getPos());
@@ -1085,7 +1085,7 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
   // The code below would add e.g. operator== to the context, but potentially
   // ignore overrides of operator==:
   //
-  // types::ty *t = arg.ent->t;
+  // types::astType *t = arg.ent->t;
   // if (t->kind == types::ty_record) {
   //   record *r = dynamic_cast<record *>(t);
   //   if (r) {
