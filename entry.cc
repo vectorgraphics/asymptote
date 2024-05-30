@@ -16,7 +16,7 @@
 #include "coder.h"
 
 using std::memset;
-using types::tyTy;
+using types::ty;
 using types::signature;
 using types::overloaded;
 using types::ty_vector;
@@ -237,7 +237,7 @@ varEntry *core_venv::storeSpecialAfterTomb(size_t tombIndex,
   DEBUG_CACHE_ASSERT(ent);
   DEBUG_CACHE_ASSERT(ent->getType());
 
-  tyTy *t = ent->getType();
+  ty *t = ent->getType();
 
   for (size_t i = tombIndex+1; ; ++i)
     {
@@ -257,11 +257,11 @@ size_t hashSig(const signature *sig) {
 size_t nonSpecialHash(symbol name, const signature *sig) {
   return name.hash() * 107 + hashSig(sig);
 }
-size_t nonSpecialHash(symbol name, const tyTy *t) {
+size_t nonSpecialHash(symbol name, const ty *t) {
   DEBUG_CACHE_ASSERT(t);
   return nonSpecialHash(name, t->getSignature());
 }
-size_t specialHash(symbol name, const tyTy *t) {
+size_t specialHash(symbol name, const ty *t) {
   DEBUG_CACHE_ASSERT(t);
   return name.hash() * 107 + t->hash();
 }
@@ -293,7 +293,7 @@ varEntry *core_venv::storeSpecial(symbol name, varEntry *ent) {
   DEBUG_CACHE_ASSERT(ent);
   DEBUG_CACHE_ASSERT(ent->getType());
 
-  tyTy *t = ent->getType();
+  ty *t = ent->getType();
 
   for (size_t i = specialHash(name, t); ; ++i)
     {
@@ -318,7 +318,7 @@ varEntry *core_venv::store(symbol name, varEntry *ent) {
     storeNonSpecial(name, ent);
 }
 
-varEntry *core_venv::lookupSpecial(symbol name, const tyTy *t) {
+varEntry *core_venv::lookupSpecial(symbol name, const ty *t) {
   DEBUG_CACHE_ASSERT(name.special());
   DEBUG_CACHE_ASSERT(t);
 
@@ -349,7 +349,7 @@ varEntry *core_venv::lookupNonSpecial(symbol name, const signature *sig) {
     }
 }
 
-varEntry *core_venv::lookup(symbol name, const tyTy *t) {
+varEntry *core_venv::lookup(symbol name, const ty *t) {
   DEBUG_CACHE_ASSERT(t);
 
   return name.special() ? lookupSpecial(name, t) :
@@ -373,7 +373,7 @@ void core_venv::removeNonSpecial(symbol name, const signature *sig) {
     }
 }
 
-void core_venv::removeSpecial(symbol name, const tyTy *t) {
+void core_venv::removeSpecial(symbol name, const ty *t) {
   DEBUG_CACHE_ASSERT(name.special());
   DEBUG_CACHE_ASSERT(t);
 
@@ -391,7 +391,7 @@ void core_venv::removeSpecial(symbol name, const tyTy *t) {
     }
 }
 
-void core_venv::remove(symbol name, const tyTy *t) {
+void core_venv::remove(symbol name, const ty *t) {
   DEBUG_CACHE_ASSERT(t);
 
   if (name.special())
@@ -401,7 +401,7 @@ void core_venv::remove(symbol name, const tyTy *t) {
 }
 
 
-size_t numFormals(tyTy *t) {
+size_t numFormals(ty *t) {
   signature *sig = t->getSignature();
   return sig ? sig->getNumFormals() : 0;
 }
@@ -415,7 +415,7 @@ void venv::checkName(symbol name)
 
   // Get the type, and make it overloaded if it is not (for uniformity).
   overloaded o;
-  tyTy *t = getType(name);
+  ty *t = getType(name);
   if (!t)
     t = &o;
   if (!t->isOverloaded()) {
@@ -449,7 +449,7 @@ void venv::checkName(symbol name)
   assert(matches == size);
 }
 
-void rightKind(tyTy *t) {
+void rightKind(ty *t) {
   if (t && t->isOverloaded()) {
     ty_vector& set=((overloaded *)t)->sub;
     assert(set.size() > 1);
@@ -464,7 +464,7 @@ void rightKind(tyTy *t) {
 #define CHECKNAME(name) (void)(name)
 #endif
 
-void venv::namevalue::addType(tyTy *s) {
+void venv::namevalue::addType(ty *s) {
   RIGHTKIND(t);
 
 #ifdef DEBUG_CACHE
@@ -493,7 +493,7 @@ void venv::namevalue::addType(tyTy *s) {
   RIGHTKIND(t);
 }
 
-void venv::namevalue::replaceType(tyTy *new_t, tyTy *old_t) {
+void venv::namevalue::replaceType(ty *new_t, ty *old_t) {
 #ifdef DEBUG_CACHE
   assert(t != 0);
   RIGHTKIND(t);
@@ -644,7 +644,7 @@ void venv::enter(symbol name, varEntry *v)
   // will be returned.
   varEntry *shadowed = core.store(name, v);
 
-  tyTy *t = v->getType();
+  ty *t = v->getType();
 
   // Record the addition, so it can be undone during endScope.
   if (!scopesizes.empty())
@@ -711,7 +711,7 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
 bool venv::add(symbol src, symbol dest,
                venv& source, varEntry *qualifier, coder &c)
 {
-  tyTy *t=source.getType(src);
+  ty *t=source.getType(src);
 
   if (!t)
     return false;
@@ -739,7 +739,7 @@ bool venv::add(symbol src, symbol dest,
 }
 
 
-tyTy *venv::getType(symbol name)
+ty *venv::getType(symbol name)
 {
   return names[name].t;
 }
@@ -759,7 +759,7 @@ void listValue(symbol name, varEntry *v, record *module)
 
 void venv::listValues(symbol name, record *module)
 {
-  tyTy *t=getType(name);
+  ty *t=getType(name);
 
   if (t->isOverloaded())
     for (ty_iterator i = t->begin(); i != t->end(); ++i)

@@ -40,7 +40,7 @@ using types::array;
 class exp : public varinit {
 protected:
   // The cached type (from a call to cgetType).
-  types::tyTy *ct;
+  types::ty *ct;
 public:
   exp(position pos)
     : varinit(pos), ct(0) {}
@@ -72,17 +72,17 @@ public:
   // Translates the expression to the given target type.  This should only be
   // called with a type returned by getType().  It does not perform implicit
   // casting.
-  virtual void transAsType(coenv &e, types::tyTy *target);
+  virtual void transAsType(coenv &e, types::ty *target);
 
   // Translates the expression to the given target type, possibly using an
   // implicit cast.
-  void transToType(coenv &e, types::tyTy *target);
+  void transToType(coenv &e, types::ty *target);
 
   // Translates the expression and returns the resultant type.
   // For some expressions, this will be ambiguous and return an error.
   // Trans may only return ty_error, if it (or one of its recursively
   // called children in the syntax tree) reported an error to em.
-  virtual types::tyTy *trans(coenv &) = 0;
+  virtual types::ty *trans(coenv &) = 0;
 
   // getType() figures out the type of the expression without translating
   // the code into the virtual machine language or reporting errors to em.
@@ -105,7 +105,7 @@ public:
   //      getType() (or one of the subtypes in case of a superposition)
   //      or any type not implicitly castable from the above must report an
   //      error.
-  virtual types::tyTy *getType(coenv &) = 0;
+  virtual types::ty *getType(coenv &) = 0;
 
   // This is an optimization which works in some cases to by-pass the slow
   // overloaded function resolution provided by the application class.
@@ -131,7 +131,7 @@ public:
   // calls are faster.  For this to work correctly, the expression should
   // only be used in one place, so the environment doesn't change between
   // calls.
-  virtual types::tyTy *cgetType(coenv &e) {
+  virtual types::ty *cgetType(coenv &e) {
 #ifdef DEBUG_CACHE
     testCachedType(e);
 #endif
@@ -145,7 +145,7 @@ public:
   // this expression.
   // In terms of side-effects, this expression must be evaluated (once) before
   // value is evaluated (once).
-  virtual void transWrite(coenv &e, types::tyTy *t, exp *value) {
+  virtual void transWrite(coenv &e, types::ty *t, exp *value) {
     em.error(getPos());
     em << "expression cannot be used as an address";
 
@@ -155,7 +155,7 @@ public:
 
   // Translates code for calling a function.  The arguments, in the order they
   // appear in the function's signature, must all be on the stack.
-  virtual void transCall(coenv &e, types::tyTy *target);
+  virtual void transCall(coenv &e, types::ty *target);
 
   // transConditionalJump must produce code equivalent to the following:
   // Evaluate the expression as a boolean.  If the result equals cond, jump to
@@ -180,7 +180,7 @@ public:
   //
   // The base implementation uses a tempExp (see below).  This is
   // sufficient for most expressions.
-  virtual exp *evaluate(coenv &e, types::tyTy *target);
+  virtual exp *evaluate(coenv &e, types::ty *target);
 
   // NOTE: could add a "side-effects" method which says if the expression has
   // side-effects.  This might allow some small optimizations in translating.
@@ -188,16 +188,16 @@ public:
 
 class tempExp : public exp {
   access *a;
-  types::tyTy *t;
+  types::ty *t;
 
 public:
-  tempExp(coenv &e, varinit *v, types::tyTy *t);
+  tempExp(coenv &e, varinit *v, types::ty *t);
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
+  types::ty *trans(coenv &e);
 
-  types::tyTy *getType(coenv &) {
+  types::ty *getType(coenv &) {
     return t;
   }
 };
@@ -209,19 +209,19 @@ class varEntryExp : public exp {
 public:
   varEntryExp(position pos, trans::varEntry *v)
     : exp(pos), v(v) {}
-  varEntryExp(position pos, types::tyTy *t, access *a);
-  varEntryExp(position pos, types::tyTy *t, vm::bltin f);
+  varEntryExp(position pos, types::ty *t, access *a);
+  varEntryExp(position pos, types::ty *t, vm::bltin f);
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *getType(coenv &);
-  types::tyTy *trans(coenv &e);
+  types::ty *getType(coenv &);
+  types::ty *trans(coenv &e);
   trans::varEntry *getCallee(coenv &e, types::signature *sig);
 
-  void transAct(action act, coenv &e, types::tyTy *target);
-  void transAsType(coenv &e, types::tyTy *target);
-  void transWrite(coenv &e, types::tyTy *t, exp *value);
-  void transCall(coenv &e, types::tyTy *target);
+  void transAct(action act, coenv &e, types::ty *target);
+  void transAsType(coenv &e, types::ty *target);
+  void transWrite(coenv &e, types::ty *t, exp *value);
+  void transCall(coenv &e, types::ty *target);
 };
 
 class nameExp : public exp {
@@ -245,7 +245,7 @@ public:
     return value->getName();
   }
 
-  void transAsType(coenv &e, types::tyTy *target) override {
+  void transAsType(coenv &e, types::ty *target) override {
     value->varTrans(trans::READ, e, target);
 
     // After translation, the cached type is no longer needed and should be
@@ -255,8 +255,8 @@ public:
     ct=0;
   }
 
-  types::tyTy *trans(coenv &e) override {
-    types::tyTy *t=cgetType(e);
+  types::ty *trans(coenv &e) override {
+    types::ty *t=cgetType(e);
     if (t->kind == types::ty_error) {
       em.error(getPos());
       em << "no matching variable \'" << *value << "\'";
@@ -273,8 +273,8 @@ public:
     }
   }
 
-  types::tyTy *getType(coenv &e) override {
-    types::tyTy *t=value->varGetType(e);
+  types::ty *getType(coenv &e) override {
+    types::ty *t=value->varGetType(e);
     return t ? t : types::primError();
   }
 
@@ -285,20 +285,20 @@ public:
     return value->getCallee(e, sig);
   }
 
-  void transWrite(coenv &e, types::tyTy *target, exp *newValue) override {
+  void transWrite(coenv &e, types::ty *target, exp *newValue) override {
     newValue->transToType(e, target);
     this->value->varTrans(trans::WRITE, e, target);
 
     ct=0;  // See note in transAsType.
   }
 
-  void transCall(coenv &e, types::tyTy *target) override {
+  void transCall(coenv &e, types::ty *target) override {
     value->varTrans(trans::CALL, e, target);
 
     ct=0;  // See note in transAsType.
   }
 
-  exp *evaluate(coenv &, types::tyTy *) override {
+  exp *evaluate(coenv &, types::ty *) override {
     // Names have no side-effects.
     return this;
   }
@@ -321,11 +321,11 @@ class fieldExp : public nameExp {
       : name(object->getPos()), object(object) {}
 
     // As a variable:
-    void varTrans(trans::action act, coenv &e, types::tyTy *target) {
+    void varTrans(trans::action act, coenv &e, types::ty *target) {
       assert(act == trans::READ);
       object->transToType(e, target);
     }
-    types::tyTy *varGetType(coenv &e) {
+    types::ty *varGetType(coenv &e) {
       return object->getType(e);
     }
     trans::varEntry *getCallee(coenv &, types::signature *) {
@@ -336,7 +336,7 @@ class fieldExp : public nameExp {
     }
 
     // As a type:
-    types::tyTy *typeTrans(coenv &, bool tacit = false) {
+    types::ty *typeTrans(coenv &, bool tacit = false) {
       if (!tacit) {
         em.error(getPos());
         em << "expression is not a type";
@@ -376,7 +376,7 @@ class fieldExp : public nameExp {
   };
 
   // Try to get this into qualifiedName somehow.
-  types::tyTy *getObject(coenv &e);
+  types::ty *getObject(coenv &e);
 
 public:
   fieldExp(position pos, exp *object, symbol field)
@@ -392,7 +392,7 @@ public:
     return field;
   }
 
-  exp *evaluate(coenv &e, types::tyTy *) {
+  exp *evaluate(coenv &e, types::ty *) {
     // Evaluate the object.
     return new fieldExp(getPos(),
                         new tempExp(e, object, getObject(e)),
@@ -422,11 +422,11 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &e);
-  void transWrite(coenv &e, types::tyTy *t, exp *value);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
+  void transWrite(coenv &e, types::ty *t, exp *value);
 
-  exp *evaluate(coenv &e, types::tyTy *) {
+  exp *evaluate(coenv &e, types::ty *) {
     return new subscriptExp(getPos(),
                             new tempExp(e, set, getArrayType(e)),
                             new tempExp(e, index, types::primInt()));
@@ -467,11 +467,11 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &e);
-  void transWrite(coenv &e, types::tyTy *t, exp *value);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
+  void transWrite(coenv &e, types::ty *t, exp *value);
 
-  exp *evaluate(coenv &e, types::tyTy *) {
+  exp *evaluate(coenv &e, types::ty *) {
     return new sliceExp(getPos(),
                         new tempExp(e, set, getArrayType(e)),
                         index->evaluate(e));
@@ -487,10 +487,10 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &e);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
 
-  exp *evaluate(coenv &, types::tyTy *) {
+  exp *evaluate(coenv &, types::ty *) {
     // this has no side-effects
     return this;
   }
@@ -503,7 +503,7 @@ public:
 
   bool scalable() { return false; }
 
-  exp *evaluate(coenv &, types::tyTy *) {
+  exp *evaluate(coenv &, types::ty *) {
     // Literals are constant, they have no side-effects.
     return this;
   }
@@ -518,8 +518,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primInt(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primInt(); }
 
   template<typename T>
   [[nodiscard]]
@@ -539,8 +539,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primReal(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primReal(); }
 
   template<typename T>
   [[nodiscard]]
@@ -560,8 +560,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primString(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primString(); }
 
   const string& getString() { return str; }
 };
@@ -575,8 +575,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primBoolean(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primBoolean(); }
 };
 
 class cycleExp : public literalExp {
@@ -587,8 +587,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primCycleToken(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primCycleToken(); }
 };
 
 class newPictureExp : public literalExp {
@@ -599,8 +599,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primPicture(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primPicture(); }
 };
 
 class nullPathExp : public literalExp {
@@ -611,8 +611,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primPath(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primPath(); }
 };
 
 class nullExp : public literalExp {
@@ -623,8 +623,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primNull(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primNull(); }
 };
 
 class quoteExp : public exp {
@@ -636,8 +636,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primCode(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primCode(); }
 };
 
 // A list of expressions used in a function call.
@@ -787,9 +787,9 @@ private:
   // arguments, or in cases where the arguments match the function perfectly,
   // the varEntry of the callee (or neither in case of an error).  Returns
   // what getType should return.
-  types::tyTy *cacheAppOrVarEntry(coenv &e, bool tacit);
+  types::ty *cacheAppOrVarEntry(coenv &e, bool tacit);
 
-  types::tyTy *transPerfectMatch(coenv &e);
+  types::ty *transPerfectMatch(coenv &e);
 public:
   callExp(position pos, exp *callee, arglist *args)
     : exp(pos), callee(callee), args(args),
@@ -832,8 +832,8 @@ public:
   optional<std::tuple<colorInfo, optional<double>,
     AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>> getColorInformation();
 
-  types::tyTy *trans(coenv &e) override;
-  types::tyTy *getType(coenv &e) override;
+  types::ty *trans(coenv &e) override;
+  types::ty *getType(coenv &e) override;
 
   // Returns true if the function call resolves uniquely without error.  Used
   // in implementing the special == and != operators for functions.
@@ -851,8 +851,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primPair(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primPair(); }
 };
 
 class tripleExp : public exp {
@@ -866,8 +866,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primTriple(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primTriple(); }
 };
 
 class transformExp : public exp {
@@ -882,15 +882,15 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primTransform(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primTransform(); }
 };
 
 class castExp : public exp {
   astType *target;
   exp *castee;
 
-  types::tyTy *tryCast(coenv &e, types::tyTy *t, types::tyTy *s,
+  types::ty *tryCast(coenv &e, types::ty *t, types::ty *s,
                      symbol csym);
 public:
   castExp(position pos, astType *target, exp *castee)
@@ -898,8 +898,8 @@ public:
 
   void prettyprint(ostream &out, Int indent) override;
 
-  types::tyTy *trans(coenv &e) override;
-  types::tyTy *getType(coenv &e) override;
+  types::ty *trans(coenv &e) override;
+  types::ty *getType(coenv &e) override;
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
@@ -929,8 +929,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &e);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
 };
 
 
@@ -948,8 +948,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  //types::tyTy *getType(coenv &e);
+  types::ty *trans(coenv &e);
+  //types::ty *getType(coenv &e);
 
   bool scalable() { return false; }
 };
@@ -974,11 +974,11 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  void baseTransToType(coenv &e, types::tyTy *target);
+  void baseTransToType(coenv &e, types::ty *target);
 
-  void transToType(coenv &e, types::tyTy *target);
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &e);
+  void transToType(coenv &e, types::ty *target);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
 
 };
 
@@ -992,8 +992,8 @@ public:
   andOrExp(position pos, exp *left, symbol op, exp *right)
     : exp(pos), left(left), op(op), right(right) {}
 
-  virtual types::tyTy *trans(coenv &e) override = 0;
-  virtual types::tyTy *getType(coenv &) override {
+  virtual types::ty *trans(coenv &e) override = 0;
+  virtual types::ty *getType(coenv &) override {
     return types::primBoolean();
   }
 
@@ -1011,7 +1011,7 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
+  types::ty *trans(coenv &e);
   void transConditionalJump(coenv &e, bool cond, label dest);
 };
 
@@ -1022,7 +1022,7 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
+  types::ty *trans(coenv &e);
   void transConditionalJump(coenv &e, bool cond, label dest);
 };
 
@@ -1056,8 +1056,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &e);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
 };
 
 class assignExp : public exp {
@@ -1081,9 +1081,9 @@ public:
   // Don't write the result of an assignment to the prompt.
   bool writtenToPrompt() override { return false; }
 
-  void transAsType(coenv &e, types::tyTy *target) override;
-  types::tyTy *trans(coenv &e) override;
-  types::tyTy *getType(coenv &e) override;
+  void transAsType(coenv &e, types::ty *target) override;
+  types::ty *trans(coenv &e) override;
+  types::ty *getType(coenv &e) override;
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
@@ -1101,7 +1101,7 @@ public:
 
   void prettyprint(ostream &out, Int indent) override;
 
-  void transAsType(coenv &e, types::tyTy *target) override;
+  void transAsType(coenv &e, types::ty *target) override;
 };
 
 class prefixExp : public exp {
@@ -1119,8 +1119,8 @@ public:
   // Don't write the result to the prompt.
   bool writtenToPrompt() override { return false; }
 
-  types::tyTy *trans(coenv &e) override;
-  types::tyTy *getType(coenv &e) override;
+  types::ty *trans(coenv &e) override;
+  types::ty *getType(coenv &e) override;
 };
 
 // Postfix expresions are illegal. This is caught here as we can give a
@@ -1136,8 +1136,8 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::tyTy *trans(coenv &e);
-  types::tyTy *getType(coenv &) { return types::primError(); }
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primError(); }
 };
 
 } // namespace absyntax

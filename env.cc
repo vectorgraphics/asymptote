@@ -15,7 +15,7 @@ using namespace types;
 
 namespace trans {
 
-// Instances of this class are passed to types::tyTy objects so that they can
+// Instances of this class are passed to types::ty objects so that they can
 // call back to env when checking casting of subtypes.
 class envCaster : public caster {
   protoenv &e;
@@ -24,16 +24,16 @@ public:
   envCaster(protoenv &e, symbol name)
     : e(e), name(name) {}
 
-  access *operator() (tyTy *target, tyTy *source) {
+  access *operator() (ty *target, ty *source) {
     return e.lookupCast(target, source, name);
   }
 
-  bool castable(tyTy *target, tyTy *source) {
+  bool castable(ty *target, ty *source) {
     return e.castable(target, source, name);
   }
 };
 
-access *protoenv::baseLookupCast(tyTy *target, tyTy *source, symbol name) {
+access *protoenv::baseLookupCast(ty *target, ty *source, symbol name) {
   static identAccess id;
 
   assert(target->kind != ty_overloaded &&
@@ -53,7 +53,7 @@ access *protoenv::baseLookupCast(tyTy *target, tyTy *source, symbol name) {
   }
 }
 
-access *protoenv::lookupCast(tyTy *target, tyTy *source, symbol name) {
+access *protoenv::lookupCast(ty *target, ty *source, symbol name) {
   access *a=baseLookupCast(target, source, name);
   if (a)
     return a;
@@ -62,7 +62,7 @@ access *protoenv::lookupCast(tyTy *target, tyTy *source, symbol name) {
   return source->castTo(target, ec);
 }
 
-bool protoenv::castable(tyTy *target, tyTy *source, symbol name) {
+bool protoenv::castable(ty *target, ty *source, symbol name) {
   struct castTester : public tester {
     protoenv &e;
     symbol name;
@@ -70,7 +70,7 @@ bool protoenv::castable(tyTy *target, tyTy *source, symbol name) {
     castTester(protoenv &e, symbol name)
       : e(e), name(name) {}
 
-    bool base(tyTy *t, tyTy *s) {
+    bool base(ty *t, ty *s) {
       access *a=e.baseLookupCast(t, s, name);
       if (a)
         return true;
@@ -84,7 +84,7 @@ bool protoenv::castable(tyTy *target, tyTy *source, symbol name) {
   return ct.test(target,source);
 }
 
-bool protoenv::fastCastable(tyTy *target, tyTy *source) {
+bool protoenv::fastCastable(ty *target, ty *source) {
   assert(target->kind != types::ty_overloaded);
   assert(target->kind != types::ty_error);
   assert(source->kind != types::ty_error);
@@ -127,7 +127,7 @@ bool protoenv::fastCastable(tyTy *target, tyTy *source) {
   return source->kind == ty_null && target->isReference();
 }
 
-access *protoenv::fastLookupCast(tyTy *target, tyTy *source) {
+access *protoenv::fastLookupCast(ty *target, ty *source) {
   assert(target->kind != types::ty_overloaded);
   assert(target->kind != types::ty_error);
   assert(source->kind != types::ty_overloaded);
@@ -147,7 +147,7 @@ access *protoenv::fastLookupCast(tyTy *target, tyTy *source) {
 }
 
 
-tyTy *protoenv::castTarget(tyTy *target, tyTy *source, symbol name) {
+ty *protoenv::castTarget(ty *target, ty *source, symbol name) {
   struct resolver : public collector {
     protoenv &e;
     symbol name;
@@ -155,7 +155,7 @@ tyTy *protoenv::castTarget(tyTy *target, tyTy *source, symbol name) {
     resolver(protoenv &e, symbol name)
       : e(e), name(name) {}
 
-    types::tyTy *base(types::tyTy *target, types::tyTy *source) {
+    types::ty *base(types::ty *target, types::ty *source) {
       return e.castable(target, source, name) ? target : 0;
     }
   };
@@ -164,7 +164,7 @@ tyTy *protoenv::castTarget(tyTy *target, tyTy *source, symbol name) {
   return r.collect(target, source);
 }
 
-tyTy *protoenv::castSource(tyTy *target, tyTy *source, symbol name) {
+ty *protoenv::castSource(ty *target, ty *source, symbol name) {
   struct resolver : public collector {
     protoenv &e;
     symbol name;
@@ -172,7 +172,7 @@ tyTy *protoenv::castSource(tyTy *target, tyTy *source, symbol name) {
     resolver(protoenv &e, symbol name)
       : e(e), name(name) {}
 
-    types::tyTy *base(types::tyTy *target, types::tyTy *source) {
+    types::ty *base(types::ty *target, types::ty *source) {
       return e.castable(target, source, name) ? source : 0;
     }
   };

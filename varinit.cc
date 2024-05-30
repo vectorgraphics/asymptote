@@ -24,7 +24,7 @@ void definit::prettyprint(ostream &out, Int indent)
   prettyname(out, "definit",indent, getPos());
 }
 
-void definit::transToType(coenv &e, types::tyTy *target)
+void definit::transToType(coenv &e, types::ty *target)
 {
   if (target->kind != ty_error) {
     access *a=e.e.lookupInitializer(target);
@@ -55,9 +55,9 @@ void arrayinit::transMaker(coenv &e, Int size, bool rest) {
              run::newInitializedArray);
 }
 
-void arrayinit::transToType(coenv &e, types::tyTy *target)
+void arrayinit::transToType(coenv &e, types::ty *target)
 {
-  types::tyTy *celltype;
+  types::ty *celltype;
   if (target->kind != types::ty_array) {
     em.error(getPos());
     em << "array initializer used for non-array";

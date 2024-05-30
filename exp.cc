@@ -42,15 +42,15 @@ void exp::prettyprint(ostream &out, Int indent)
 }
 #endif
 
-void exp::transAsType(coenv &e, types::tyTy *target) {
+void exp::transAsType(coenv &e, types::ty *target) {
   trans(e);
 //  types::ty *t=trans(e);
 //  assert(t->kind==ty_error || equivalent(t,target));
 }
 
-void exp::transToType(coenv &e, types::tyTy *target)
+void exp::transToType(coenv &e, types::ty *target)
 {
-  types::tyTy *ct=cgetType(e);
+  types::ty *ct=cgetType(e);
 
   if (equivalent(target, ct)) {
     transAsType(e, target);
@@ -70,10 +70,10 @@ void exp::transToType(coenv &e, types::tyTy *target)
     }
   }
 
-  types::tyTy *source = e.e.castSource(target, ct, symbol::castsym);
+  types::ty *source = e.e.castSource(target, ct, symbol::castsym);
   if (source==0) {
     if (target->kind != ty_error) {
-      types::tyTy *sources=cgetType(e);
+      types::ty *sources=cgetType(e);
       em.error(getPos());
 
       em << "cannot cast ";
@@ -98,7 +98,7 @@ void exp::transToType(coenv &e, types::tyTy *target)
 
 void exp::testCachedType(coenv &e) {
   if (ct != 0) {
-    types::tyTy *t = getType(e);
+    types::ty *t = getType(e);
     if (!equivalent(t, ct)) {
       em.compiler(getPos());
       em << "cached type '" << *ct
@@ -108,7 +108,7 @@ void exp::testCachedType(coenv &e) {
   }
 }
 
-void exp::transCall(coenv &e, types::tyTy *target)
+void exp::transCall(coenv &e, types::ty *target)
 {
   transAsType(e, target);
   e.c.encode(inst::popcall);
@@ -119,12 +119,12 @@ void exp::transConditionalJump(coenv &e, bool cond, label dest) {
   e.c.useLabel(cond ? inst::cjmp : inst::njmp, dest);
 }
 
-exp *exp::evaluate(coenv &e, types::tyTy *target) {
+exp *exp::evaluate(coenv &e, types::ty *target) {
   return new tempExp(e, this, target);
 }
 
 
-tempExp::tempExp(coenv &e, varinit *v, types::tyTy *t)
+tempExp::tempExp(coenv &e, varinit *v, types::ty *t)
   : exp(v->getPos()), a(e.c.allocLocal()), t(t)
 {
   v->transToType(e, t);
@@ -136,26 +136,26 @@ void tempExp::prettyprint(ostream &out, Int indent) {
   prettyname(out, "tempExp", indent, getPos());
 }
 
-types::tyTy *tempExp::trans(coenv &e) {
+types::ty *tempExp::trans(coenv &e) {
   a->encode(READ, getPos(), e.c);
   return t;
 }
 
 
-varEntryExp::varEntryExp(position pos, types::tyTy *t, access *a)
+varEntryExp::varEntryExp(position pos, types::ty *t, access *a)
   : exp(pos), v(new trans::varEntry(t, a, 0, position())) {}
-varEntryExp::varEntryExp(position pos, types::tyTy *t, vm::bltin f)
+varEntryExp::varEntryExp(position pos, types::ty *t, vm::bltin f)
   : exp(pos), v(new trans::varEntry(t, new bltinAccess(f), 0, position())) {}
 
 void varEntryExp::prettyprint(ostream &out, Int indent) {
   prettyname(out, "varEntryExp", indent, getPos());
 }
 
-types::tyTy *varEntryExp::getType(coenv &) {
+types::ty *varEntryExp::getType(coenv &) {
   return v->getType();
 }
 
-types::tyTy *varEntryExp::trans(coenv &e) {
+types::ty *varEntryExp::trans(coenv &e) {
   v->encode(READ, getPos(), e.c);
   return getType(e);
 }
@@ -164,18 +164,18 @@ trans::varEntry *varEntryExp::getCallee(coenv &e, types::signature *sig) {
   return equivalent(sig, v->getType()->getSignature()) ? v : 0;
 }
 
-void varEntryExp::transAct(action act, coenv &e, types::tyTy *target) {
+void varEntryExp::transAct(action act, coenv &e, types::ty *target) {
   assert(equivalent(getType(e),target));
   v->encode(act, getPos(), e.c);
 }
-void varEntryExp::transAsType(coenv &e, types::tyTy *target) {
+void varEntryExp::transAsType(coenv &e, types::ty *target) {
   transAct(READ, e, target);
 }
-void varEntryExp::transWrite(coenv &e, types::tyTy *target, exp *value) {
+void varEntryExp::transWrite(coenv &e, types::ty *target, exp *value) {
   value->transToType(e, target);
   transAct(WRITE, e, target);
 }
-void varEntryExp::transCall(coenv &e, types::tyTy *target) {
+void varEntryExp::transCall(coenv &e, types::ty *target) {
   transAct(trans::CALL, e, target);
 }
 
@@ -229,9 +229,9 @@ void fieldExp::prettyprint(ostream &out, Int indent)
   object->prettyprint(out, indent+1);
 }
 
-types::tyTy *fieldExp::getObject(coenv& e)
+types::ty *fieldExp::getObject(coenv& e)
 {
-  types::tyTy *t = object->cgetType(e);
+  types::ty *t = object->cgetType(e);
   if (t->kind == ty_overloaded) {
     t=((overloaded *)t)->signatureless();
     if(!t) return primError();
@@ -242,7 +242,7 @@ types::tyTy *fieldExp::getObject(coenv& e)
 
 array *arrayExp::getArrayType(coenv &e)
 {
-  types::tyTy *a = set->cgetType(e);
+  types::ty *a = set->cgetType(e);
   if (a->kind == ty_overloaded) {
     a = ((overloaded *)a)->signatureless();
     if (!a)
@@ -261,7 +261,7 @@ array *arrayExp::getArrayType(coenv &e)
 
 array *arrayExp::transArray(coenv &e)
 {
-  types::tyTy *a = set->cgetType(e);
+  types::ty *a = set->cgetType(e);
   if (a->kind == ty_overloaded) {
     a = ((overloaded *)a)->signatureless();
     if (!a) {
@@ -288,7 +288,7 @@ array *arrayExp::transArray(coenv &e)
 // Checks if the expression can be translated as an array.
 bool isAnArray(coenv &e, exp *x)
 {
-  types::tyTy *t=x->cgetType(e);
+  types::ty *t=x->cgetType(e);
   if (t->kind == ty_overloaded)
     t=dynamic_cast<overloaded *>(t)->signatureless();
   return t && t->kind==ty_array;
@@ -304,7 +304,7 @@ void subscriptExp::prettyprint(ostream &out, Int indent)
   index->prettyprint(out, indent+1);
 }
 
-types::tyTy *subscriptExp::trans(coenv &e)
+types::ty *subscriptExp::trans(coenv &e)
 {
   array *a = transArray(e);
   if (!a)
@@ -324,14 +324,14 @@ types::tyTy *subscriptExp::trans(coenv &e)
   }
 }
 
-types::tyTy *subscriptExp::getType(coenv &e)
+types::ty *subscriptExp::getType(coenv &e)
 {
   array *a = getArrayType(e);
   return a ? (isAnArray(e, index) ? a : a->celltype) :
     primError();
 }
 
-void subscriptExp::transWrite(coenv &e, types::tyTy *t, exp *value)
+void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
   // Put array, index, and value on the stack in that order, then call
   // arrayWrite.
@@ -390,7 +390,7 @@ void sliceExp::prettyprint(ostream &out, Int indent)
   index->prettyprint(out, indent+1);
 }
 
-types::tyTy *sliceExp::trans(coenv &e)
+types::ty *sliceExp::trans(coenv &e)
 {
   array *a = transArray(e);
   if (!a)
@@ -404,13 +404,13 @@ types::tyTy *sliceExp::trans(coenv &e)
   return a;
 }
 
-types::tyTy *sliceExp::getType(coenv &e)
+types::ty *sliceExp::getType(coenv &e)
 {
   array *a = getArrayType(e);
   return a ? a : primError();
 }
 
-void sliceExp::transWrite(coenv &e, types::tyTy *t, exp *value)
+void sliceExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
   array *a = transArray(e);
   if (!a)
@@ -430,7 +430,7 @@ void thisExp::prettyprint(ostream &out, Int indent)
   prettyname(out, "thisExp", indent, getPos());
 }
 
-types::tyTy *thisExp::trans(coenv &e)
+types::ty *thisExp::trans(coenv &e)
 {
   if (!e.c.encodeThis()) {
     em.error(getPos());
@@ -439,7 +439,7 @@ types::tyTy *thisExp::trans(coenv &e)
   return cgetType(e);
 }
 
-types::tyTy *thisExp::getType(coenv &e)
+types::ty *thisExp::getType(coenv &e)
 {
   return e.c.thisType();
 }
@@ -450,9 +450,9 @@ void equalityExp::prettyprint(ostream &out, Int indent)
   callExp::prettyprint(out, indent+1);
 }
 
-types::tyTy *equalityExp::getType(coenv &e) {
+types::ty *equalityExp::getType(coenv &e) {
   // Try to the resolve the expression as a function call first.
-  types::tyTy *t = callExp::getType(e);
+  types::ty *t = callExp::getType(e);
   assert(t);
   if (t->kind != ty_error)
     return t;
@@ -465,12 +465,12 @@ types::tyTy *equalityExp::getType(coenv &e) {
 
 // From a possibly overloaded type, if there is a unique function type, return
 // it, otherwise 0.
-types::tyTy *uniqueFunction(types::tyTy *t) {
+types::ty *uniqueFunction(types::ty *t) {
   if (t->kind == types::ty_function)
     return t;
 
   if (t->isOverloaded()) {
-    types::tyTy *ft = 0;
+    types::ty *ft = 0;
     for (ty_iterator i = t->begin(); i != t->end(); ++i)
       {
         if ((*i)->kind != types::ty_function)
@@ -493,12 +493,12 @@ types::tyTy *uniqueFunction(types::tyTy *t) {
 
 // From two possibly overloaded types, if there is a unique function type
 // common to both, return it, otherwise 0.
-types::tyTy *uniqueFunction(types::tyTy *t1, types::tyTy *t2) {
+types::ty *uniqueFunction(types::ty *t1, types::ty *t2) {
   if (t1->kind == types::ty_function)
     return equivalent(t1, t2) ? t1 : 0;
 
   if (t1->isOverloaded()) {
-    types::tyTy *ft = 0;
+    types::ty *ft = 0;
     for (ty_iterator i = t1->begin(); i != t1->end(); ++i)
       {
         if ((*i)->kind != types::ty_function)
@@ -529,9 +529,9 @@ bltin bltinFromName(symbol name) {
   return run::boolFuncNeq;
 }
 
-types::tyTy *equalityExp::trans(coenv &e) {
+types::ty *equalityExp::trans(coenv &e) {
   // First, try to handle by normal function resolution.
-  types::tyTy *t = callExp::getType(e);
+  types::ty *t = callExp::getType(e);
   assert(t);
   if (t->kind != ty_error)
     return callExp::trans(e);
@@ -540,13 +540,13 @@ types::tyTy *equalityExp::trans(coenv &e) {
   exp *left = (*this->args)[0].val;
   exp *right = (*this->args)[1].val;
 
-  types::tyTy *lt = left->getType(e);
-  types::tyTy *rt = right->getType(e);
+  types::ty *lt = left->getType(e);
+  types::ty *rt = right->getType(e);
 
   // TODO: decide what null == null should do.
 
   // Check for function == null and null == function
-  types::tyTy *ft = 0;
+  types::ty *ft = 0;
   if (rt->kind == types::ty_null)
     ft = uniqueFunction(lt);
   else if (lt->kind == types::ty_null)
@@ -565,7 +565,7 @@ types::tyTy *equalityExp::trans(coenv &e) {
     return primBoolean();
   } else {
     // Let callExp report a "no such function" error.
-    types::tyTy *t = callExp::trans(e);
+    types::ty *t = callExp::trans(e);
     assert(t->kind == ty_error);
     return t;
   }
@@ -580,11 +580,11 @@ void scaleExp::prettyprint(ostream &out, Int indent)
   right->prettyprint(out, indent+1);
 }
 
-types::tyTy *scaleExp::trans(coenv &e)
+types::ty *scaleExp::trans(coenv &e)
 {
   exp *left=getLeft(); exp *right=getRight();
 
-  types::tyTy *lt = left->cgetType(e);
+  types::ty *lt = left->cgetType(e);
   if (lt->kind != types::ty_Int && lt->kind != types::ty_real) {
     if (lt->kind != types::ty_error) {
       em.error(left->getPos());
@@ -610,7 +610,7 @@ void intExp::prettyprint(ostream &out, Int indent)
   out << "intExp: " << value << "\n";
 }
 
-types::tyTy *intExp::trans(coenv &e)
+types::ty *intExp::trans(coenv &e)
 {
   e.c.encode(inst::intpush,value);
 
@@ -624,7 +624,7 @@ void realExp::prettyprint(ostream &out, Int indent)
   out << "realExp: " << value << "\n";
 }
 
-types::tyTy *realExp::trans(coenv &e)
+types::ty *realExp::trans(coenv &e)
 {
   e.c.encode(inst::constpush,(item)value);
 
@@ -637,7 +637,7 @@ void stringExp::prettyprint(ostream &out, Int indent)
   out << "stringExp '" << str << "'\n";
 }
 
-types::tyTy *stringExp::trans(coenv &e)
+types::ty *stringExp::trans(coenv &e)
 {
   e.c.encode(inst::constpush,(item) string(str));
 
@@ -651,7 +651,7 @@ void booleanExp::prettyprint(ostream &out, Int indent)
   out << "booleanExp: " << value << "\n";
 }
 
-types::tyTy *booleanExp::trans(coenv &e)
+types::ty *booleanExp::trans(coenv &e)
 {
   e.c.encode(inst::constpush,(item)value);
 
@@ -663,7 +663,7 @@ void newPictureExp::prettyprint(ostream &out, Int indent)
   prettyname(out, "newPictureExp",indent, getPos());
 }
 
-types::tyTy *newPictureExp::trans(coenv &e)
+types::ty *newPictureExp::trans(coenv &e)
 {
   e.c.encode(inst::builtin, run::newPicture);
 
@@ -675,7 +675,7 @@ void cycleExp::prettyprint(ostream &out, Int indent)
   prettyname(out, "cycleExp",indent, getPos());
 }
 
-types::tyTy *cycleExp::trans(coenv &e)
+types::ty *cycleExp::trans(coenv &e)
 {
   e.c.encode(inst::builtin, run::newCycleToken);
 
@@ -687,7 +687,7 @@ void nullPathExp::prettyprint(ostream &out, Int indent)
   prettyname(out, "nullPathExp",indent, getPos());
 }
 
-types::tyTy *nullPathExp::trans(coenv &e)
+types::ty *nullPathExp::trans(coenv &e)
 {
   e.c.encode(inst::builtin, run::nullPath);
 
@@ -699,7 +699,7 @@ void nullExp::prettyprint(ostream &out, Int indent)
   prettyname(out, "nullExp",indent, getPos());
 }
 
-types::tyTy *nullExp::trans(coenv &)
+types::ty *nullExp::trans(coenv &)
 {
   // Things get put on the stack when ty_null
   // is cast to an appropriate type
@@ -713,7 +713,7 @@ void quoteExp::prettyprint(ostream &out, Int indent)
   value->prettyprint(out, indent+1);
 }
 
-types::tyTy *quoteExp::trans(coenv &e)
+types::ty *quoteExp::trans(coenv &e)
 {
   e.c.encode(inst::constpush,(item)value);
 
@@ -799,7 +799,7 @@ signature *callExp::argTypes(coenv &e, bool *searchable)
     }
 
     argument a=(*args)[i];
-    types::tyTy *t = a.val->cgetType(e);
+    types::ty *t = a.val->cgetType(e);
     if (t->kind == types::ty_error)
       return 0;
     if (t->kind == types::ty_overloaded || a.name)
@@ -809,7 +809,7 @@ signature *callExp::argTypes(coenv &e, bool *searchable)
 
   if (args->rest.val) {
     argument a=args->rest;
-    types::tyTy *t = a.val->cgetType(e);
+    types::ty *t = a.val->cgetType(e);
     if (t->kind == types::ty_error)
       return 0;
     if (t->kind == types::ty_overloaded || a.name)
@@ -915,7 +915,7 @@ void callExp::reportNonFunction() {
     em << "called expression is not a function";
 }
 
-types::tyTy *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
+types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 {
   assert(cachedVarEntry == 0 && cachedApp == 0);
 
@@ -959,7 +959,7 @@ types::tyTy *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
   }
 
   // Figure out what function types we can call.
-  types::tyTy *ft = callee->cgetType(e);
+  types::ty *ft = callee->cgetType(e);
 
 #ifdef DEBUG_GETAPP
   string name = callee->getName() ? string(*callee->getName()) :
@@ -1012,7 +1012,7 @@ types::tyTy *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
   return cachedApp ? cachedApp->getType()->getResult() : primError();
 }
 
-types::tyTy *callExp::transPerfectMatch(coenv &e) {
+types::ty *callExp::transPerfectMatch(coenv &e) {
   // The varEntry of the callee.  (No longer needed after translation.)
   varEntry *ve = cachedVarEntry;
   cachedVarEntry = 0;
@@ -1031,7 +1031,7 @@ types::tyTy *callExp::transPerfectMatch(coenv &e) {
   return ct ? ct : dynamic_cast<function *>(ve->getType())->getResult();
 }
 
-types::tyTy *callExp::trans(coenv &e)
+types::ty *callExp::trans(coenv &e)
 {
   if (cachedVarEntry == 0 && cachedApp == 0)
     cacheAppOrVarEntry(e, false);
@@ -1065,7 +1065,7 @@ types::tyTy *callExp::trans(coenv &e)
   return t->result;
 }
 
-types::tyTy *callExp::getType(coenv &e)
+types::ty *callExp::getType(coenv &e)
 {
   if (cachedApp)
     return cachedApp->getType()->getResult();
@@ -1165,7 +1165,7 @@ void pairExp::prettyprint(ostream &out, Int indent)
   y->prettyprint(out, indent+1);
 }
 
-types::tyTy *pairExp::trans(coenv &e)
+types::ty *pairExp::trans(coenv &e)
 {
   x->transToType(e, types::primReal());
   y->transToType(e, types::primReal());
@@ -1184,7 +1184,7 @@ void tripleExp::prettyprint(ostream &out, Int indent)
   z->prettyprint(out, indent+1);
 }
 
-types::tyTy *tripleExp::trans(coenv &e)
+types::ty *tripleExp::trans(coenv &e)
 {
   x->transToType(e, types::primReal());
   y->transToType(e, types::primReal());
@@ -1207,7 +1207,7 @@ void transformExp::prettyprint(ostream &out, Int indent)
   yy->prettyprint(out, indent+1);
 }
 
-types::tyTy *transformExp::trans(coenv &e)
+types::ty *transformExp::trans(coenv &e)
 {
   x->transToType(e, types::primReal());
   y->transToType(e, types::primReal());
@@ -1229,10 +1229,10 @@ void castExp::prettyprint(ostream &out, Int indent)
   castee->prettyprint(out, indent+1);
 }
 
-types::tyTy *castExp::tryCast(coenv &e, types::tyTy *t, types::tyTy *s,
+types::ty *castExp::tryCast(coenv &e, types::ty *t, types::ty *s,
                             symbol csym)
 {
-  types::tyTy *ss=e.e.castSource(t, s, csym);
+  types::ty *ss=e.e.castSource(t, s, csym);
   if (ss == 0) {
     return 0;
   }
@@ -1251,12 +1251,12 @@ types::tyTy *castExp::tryCast(coenv &e, types::tyTy *t, types::tyTy *s,
   }
 }
 
-types::tyTy *castExp::trans(coenv &e)
+types::ty *castExp::trans(coenv &e)
 {
   target->addOps(e, (record *)0);
-  types::tyTy *t=target->trans(e);
+  types::ty *t=target->trans(e);
 
-  types::tyTy *s=castee->cgetType(e);
+  types::ty *s=castee->cgetType(e);
 
   if (!tryCast(e, t, s, symbol::ecastsym))
     if (!tryCast(e, t, s, symbol::castsym)) {
@@ -1267,7 +1267,7 @@ types::tyTy *castExp::trans(coenv &e)
   return t;
 }
 
-types::tyTy *castExp::getType(coenv &e)
+types::ty *castExp::getType(coenv &e)
 {
   return target->trans(e, true);
 }
@@ -1289,7 +1289,7 @@ void conditionalExp::prettyprint(ostream &out, Int indent)
   onFalse->prettyprint(out, indent+1);
 }
 
-void conditionalExp::baseTransToType(coenv &e, types::tyTy *target) {
+void conditionalExp::baseTransToType(coenv &e, types::ty *target) {
   test->transToType(e, types::primBoolean());
 
   label tlabel = e.c.fwdLabel();
@@ -1306,7 +1306,7 @@ void conditionalExp::baseTransToType(coenv &e, types::tyTy *target) {
   e.c.defLabel(end);
 }
 
-void conditionalExp::transToType(coenv &e, types::tyTy *target)
+void conditionalExp::transToType(coenv &e, types::ty *target)
 {
   if (isAnArray(e, test)) {
     if (target->kind != ty_array) {
@@ -1323,7 +1323,7 @@ void conditionalExp::transToType(coenv &e, types::tyTy *target)
   }
 }
 
-types::tyTy *promote(coenv &e, types::tyTy *x, types::tyTy *y)
+types::ty *promote(coenv &e, types::ty *x, types::ty *y)
 {
   struct promoter : public collector {
     env &e;
@@ -1331,13 +1331,13 @@ types::tyTy *promote(coenv &e, types::tyTy *x, types::tyTy *y)
     promoter(env &e)
       : e(e) {}
 
-    types::tyTy *both (types::tyTy *x, types::tyTy *y) {
+    types::ty *both (types::ty *x, types::ty *y) {
       overloaded *o=new overloaded;
       o->add(x); o->add(y);
       return o;
     }
 
-    types::tyTy *base (types::tyTy *x, types::tyTy *y) {
+    types::ty *base (types::ty *x, types::ty *y) {
       if (equivalent(x,y))
         return x;
       else {
@@ -1356,17 +1356,17 @@ types::tyTy *promote(coenv &e, types::tyTy *x, types::tyTy *y)
   return p.collect(x,y);
 }
 
-types::tyTy *conditionalExp::trans(coenv &e)
+types::ty *conditionalExp::trans(coenv &e)
 {
-  types::tyTy *tt=onTrue->cgetType(e);
-  types::tyTy *ft=onFalse->cgetType(e);
+  types::ty *tt=onTrue->cgetType(e);
+  types::ty *ft=onFalse->cgetType(e);
 
   if (tt->kind==ty_error)
     return onTrue->trans(e);
   if (ft->kind==ty_error)
     return onFalse->trans(e);
 
-  types::tyTy *t=promote(e, tt, ft);
+  types::ty *t=promote(e, tt, ft);
   if (!t) {
     em.error(getPos());
     em << "types in conditional expression do not match";
@@ -1382,14 +1382,14 @@ types::tyTy *conditionalExp::trans(coenv &e)
   return t;
 }
 
-types::tyTy *conditionalExp::getType(coenv &e)
+types::ty *conditionalExp::getType(coenv &e)
 {
-  types::tyTy *tt=onTrue->cgetType(e);
-  types::tyTy *ft=onFalse->cgetType(e);
+  types::ty *tt=onTrue->cgetType(e);
+  types::ty *ft=onFalse->cgetType(e);
   if (tt->kind==ty_error || ft->kind==ty_error)
     return primError();
 
-  types::tyTy *t = promote(e, tt, ft);
+  types::ty *t = promote(e, tt, ft);
   return t ? t : primError();
 }
 
@@ -1402,7 +1402,7 @@ void orExp::prettyprint(ostream &out, Int indent)
   right->prettyprint(out, indent+1);
 }
 
-types::tyTy *orExp::trans(coenv &e)
+types::ty *orExp::trans(coenv &e)
 {
   //     a || b
   // translates into
@@ -1438,7 +1438,7 @@ void andExp::prettyprint(ostream &out, Int indent)
   right->prettyprint(out, indent+1);
 }
 
-types::tyTy *andExp::trans(coenv &e)
+types::ty *andExp::trans(coenv &e)
 {
   //     a && b
   // translates into
@@ -1485,14 +1485,14 @@ void specExp::prettyprint(ostream &out, Int indent)
   arg->prettyprint(out, indent+1);
 }
 
-types::tyTy *specExp::trans(coenv &e)
+types::ty *specExp::trans(coenv &e)
 {
   intExp ie(getPos(), (Int)s);
   binaryExp be(getPos(), arg, op, &ie);
   return be.trans(e);
 }
 
-types::tyTy *specExp::getType(coenv &e)
+types::ty *specExp::getType(coenv &e)
 {
   intExp ie(getPos(), (Int)s);
   binaryExp be(getPos(), arg, op, &ie);
@@ -1507,7 +1507,7 @@ void assignExp::prettyprint(ostream &out, Int indent)
   value->prettyprint(out, indent+1);
 }
 
-void assignExp::transAsType(coenv &e, types::tyTy *target)
+void assignExp::transAsType(coenv &e, types::ty *target)
 {
 #if 0
   // For left-to-right order, we have to evaluate the side-effects of the
@@ -1521,17 +1521,17 @@ void assignExp::transAsType(coenv &e, types::tyTy *target)
   dest->transWrite(e, target, value);
 }
 
-types::tyTy *assignExp::trans(coenv &e)
+types::ty *assignExp::trans(coenv &e)
 {
   exp *uvalue=ultimateValue(dest);
-  types::tyTy *lt = dest->cgetType(e), *rt = uvalue->cgetType(e);
+  types::ty *lt = dest->cgetType(e), *rt = uvalue->cgetType(e);
 
   if (lt->kind == ty_error)
     return dest->trans(e);
   if (rt->kind == ty_error)
     return uvalue->trans(e);
 
-  types::tyTy *t = e.e.castTarget(lt, rt, symbol::castsym);
+  types::ty *t = e.e.castTarget(lt, rt, symbol::castsym);
   if (!t) {
     em.error(getPos());
     em << "cannot convert '" << *rt << "' to '" << *lt << "' in assignment";
@@ -1548,12 +1548,12 @@ types::tyTy *assignExp::trans(coenv &e)
   }
 }
 
-types::tyTy *assignExp::getType(coenv &e)
+types::ty *assignExp::getType(coenv &e)
 {
-  types::tyTy *lt = dest->cgetType(e), *rt = ultimateValue(dest)->cgetType(e);
+  types::ty *lt = dest->cgetType(e), *rt = ultimateValue(dest)->cgetType(e);
   if (lt->kind==ty_error || rt->kind==ty_error)
     return primError();
-  types::tyTy *t = e.e.castTarget(lt, rt, symbol::castsym);
+  types::ty *t = e.e.castTarget(lt, rt, symbol::castsym);
 
   return t ? t : primError();
 }
@@ -1576,7 +1576,7 @@ void selfExp::prettyprint(ostream &out, Int indent)
   value->prettyprint(out, indent+1);
 }
 
-void selfExp::transAsType(coenv &e, types::tyTy *target)
+void selfExp::transAsType(coenv &e, types::ty *target)
 {
   // Create a temp expression for the destination, so it is not evaluated
   // twice.
@@ -1592,7 +1592,7 @@ void prefixExp::prettyprint(ostream &out, Int indent)
   dest->prettyprint(out, indent+1);
 }
 
-types::tyTy *prefixExp::trans(coenv &e)
+types::ty *prefixExp::trans(coenv &e)
 {
   // Convert into the operation and the assign.
   // NOTE: This can cause multiple evaluations.
@@ -1602,7 +1602,7 @@ types::tyTy *prefixExp::trans(coenv &e)
   return se.trans(e);
 }
 
-types::tyTy *prefixExp::getType(coenv &e)
+types::ty *prefixExp::getType(coenv &e)
 {
   // Convert into the operation and the assign.
   intExp ie(getPos(), 1);
@@ -1619,7 +1619,7 @@ void postfixExp::prettyprint(ostream &out, Int indent)
   dest->prettyprint(out, indent+1);
 }
 
-types::tyTy *postfixExp::trans(coenv &)
+types::ty *postfixExp::trans(coenv &)
 {
   em.error(getPos());
   em << "postfix expressions are not allowed";

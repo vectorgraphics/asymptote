@@ -23,7 +23,7 @@ void base_venv(venv &);
 extern const types::formal noformal;
 
 // Add a function with one or more default arguments.
-void addFunc(venv &ve, vm::bltin f, types::tyTy *result, symbol name,
+void addFunc(venv &ve, vm::bltin f, types::ty *result, symbol name,
              types::formal f1=noformal, types::formal f2=noformal,
              types::formal f3=noformal, types::formal f4=noformal,
              types::formal f5=noformal, types::formal f6=noformal,

@@ -43,9 +43,9 @@ typedef mem::vector<score> score_vector;
 typedef mem::vector<tempExp *> temp_vector;
 
 struct arg : public gc {
-  types::tyTy *t;
+  types::ty *t;
 
-  arg(types::tyTy *t)
+  arg(types::ty *t)
     : t(t) {}
   virtual ~arg() {}
 
@@ -55,7 +55,7 @@ struct arg : public gc {
 struct varinitArg : public arg {
   varinit *v;
 
-  varinitArg(varinit *v, types::tyTy *t)
+  varinitArg(varinit *v, types::ty *t)
     : arg(t), v(v)  {}
 
   virtual void trans(coenv &e, temp_vector &) {
@@ -74,7 +74,7 @@ struct varinitArg : public arg {
 // Pushes a default argument token on the stack as a placeholder for the
 // argument.
 struct defaultArg : public arg {
-  defaultArg(types::tyTy *t)
+  defaultArg(types::ty *t)
     : arg(t) {}
 
   virtual void trans(coenv &e, temp_vector &) {
@@ -118,7 +118,7 @@ class sequencer {
   struct sequencedArg : public varinitArg {
     sequencer &parent;
     size_t i;
-    sequencedArg(varinit *v, types::tyTy *t, sequencer &parent, size_t i)
+    sequencedArg(varinit *v, types::ty *t, sequencer &parent, size_t i)
       : varinitArg(v, t), parent(parent), i(i) {}
 
     void trans(coenv &e, temp_vector &temps) {
@@ -165,7 +165,7 @@ class sequencer {
   }
 
 public:
-  arg *addArg(varinit *v, types::tyTy *t, size_t i) {
+  arg *addArg(varinit *v, types::ty *t, size_t i) {
     if (args.size() <= i)
       args.resize(i+1);
     return args[i]=new sequencedArg(v, t, *this, i);

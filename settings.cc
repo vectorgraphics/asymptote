@@ -393,7 +393,7 @@ struct option : public gc {
 const string noarg;
 
 struct setting : public option {
-  types::tyTy *t;
+  types::ty *t;
 
 private:
   trans::permission perm;
@@ -408,7 +408,7 @@ private:
 
 public:
   setting(string name, char code, string argname, string desc,
-          types::tyTy *t, string Default)
+          types::ty *t, string Default)
     : option(name, code, argname, desc, false,Default),
       t(t), perm(trans::PUBLIC), added(false) {}
 
@@ -438,7 +438,7 @@ struct itemSetting : public setting {
 
   itemSetting(string name, char code,
               string argname, string desc,
-              types::tyTy *t, item defaultValue, string Default="")
+              types::ty *t, item defaultValue, string Default="")
     : setting(name, code, argname, desc, t, Default),
       defaultValue(defaultValue) {reset();}
 
@@ -556,7 +556,7 @@ typedef boolSetting::multiOption multiOption;
 struct argumentSetting : public itemSetting {
   argumentSetting(string name, char code,
                   string argname, string desc,
-                  types::tyTy *t, item defaultValue)
+                  types::ty *t, item defaultValue)
     : itemSetting(name, code, argname, desc, t, defaultValue)
   {
     assert(!argname.empty());
@@ -645,7 +645,7 @@ template<class T>
 struct dataSetting : public argumentSetting {
   string text;
   dataSetting(const char *text, string name, char code,
-              string argname, string desc, types::tyTy *type,
+              string argname, string desc, types::ty *type,
               T defaultValue)
     : argumentSetting(name, code, argname, desc,
                       type, (item)defaultValue), text(text) {}
@@ -757,7 +757,7 @@ struct refSetting : public setting {
   string text;
 
   refSetting(string name, char code, string argname,
-             string desc, types::tyTy *t, T *ref, T defaultValue,
+             string desc, types::ty *t, T *ref, T defaultValue,
              const char *text="")
     : setting(name, code, argname, desc, t, stringCast(defaultValue)),
       ref(ref), defaultValue(defaultValue), text(text) {

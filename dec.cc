@@ -40,7 +40,7 @@ void nameTy::prettyprint(ostream &out, Int indent)
   id->prettyprint(out, indent+1);
 }
 
-types::tyTy *nameTy::trans(coenv &e, bool tacit)
+types::ty *nameTy::trans(coenv &e, bool tacit)
 {
   return id->typeTrans(e, tacit);
 }
@@ -61,7 +61,7 @@ void dimensions::prettyprint(ostream &out, Int indent)
   out << "dimensions (" << depth << ")\n";
 }
 
-types::array *dimensions::truetype(types::tyTy *base, bool tacit)
+types::array *dimensions::truetype(types::ty *base, bool tacit)
 {
   if (!tacit && base->kind == ty_void) {
     em.error(getPos());
@@ -89,7 +89,7 @@ void arrayTy::prettyprint(ostream &out, Int indent)
 // NOTE: Can this be merged with trans somehow?
 void arrayTy::addOps(coenv &e, record *r)
 {
-  types::tyTy *t=trans(e, true);
+  types::ty *t=trans(e, true);
 
   // Only add ops if it is an array (and not, say, an error)
   if (t->kind == types::ty_array) {
@@ -101,9 +101,9 @@ void arrayTy::addOps(coenv &e, record *r)
   }
 }
 
-types::tyTy *arrayTy::trans(coenv &e, bool tacit)
+types::ty *arrayTy::trans(coenv &e, bool tacit)
 {
-  types::tyTy *ct = cell->trans(e, tacit);
+  types::ty *ct = cell->trans(e, tacit);
   assert(ct);
 
   // Don't make an array of errors.
@@ -127,7 +127,7 @@ arrayTy::operator string() const
   return ss.str();
 }
 
-tyEntryTy::tyEntryTy(position pos, types::tyTy *t)
+tyEntryTy::tyEntryTy(position pos, types::ty *t)
   : astType(pos), ent(new trans::tyEntry(t, 0, 0, position()))
 {
 }
@@ -138,7 +138,7 @@ void tyEntryTy::prettyprint(ostream &out, Int indent)
   out << "tyEntryTy: " << *(ent->t) << "\n";
 }
 
-types::tyTy *tyEntryTy::trans(coenv &, bool) {
+types::ty *tyEntryTy::trans(coenv &, bool) {
   return ent->t;
 }
 
@@ -450,7 +450,7 @@ void decidstart::prettyprint(ostream &out, Int indent)
     dims->prettyprint(out, indent+1);
 }
 
-types::tyTy *decidstart::getType(types::tyTy *base, coenv &, bool)
+types::ty *decidstart::getType(types::ty *base, coenv &, bool)
 {
   return dims ? dims->truetype(base) : base;
 }
@@ -463,7 +463,7 @@ trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
     base;
 }
 
-void decidstart::addOps(types::tyTy *base, coenv &e, record *r)
+void decidstart::addOps(types::ty *base, coenv &e, record *r)
 {
   if (dims) {
     array *a=dims->truetype(base);
@@ -536,15 +536,15 @@ void decidstart::createSymMapWType(
     params->prettyprint(out, indent+1);
 }
 
-types::tyTy *fundecidstart::getType(types::tyTy *base, coenv &e, bool tacit)
+types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
 {
-  types::tyTy *result = decidstart::getType(base, e, tacit);
+  types::ty *result = decidstart::getType(base, e, tacit);
 
   if (params) {
     return params->getType(result, e, true, tacit);
   }
   else {
-    types::tyTy *t = new function(base);
+    types::ty *t = new function(base);
     return t;
   }
 }
@@ -555,7 +555,7 @@ trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e,
   return new trans::tyEntry(getType(base->t,e,false), 0, where, getPos());
 }
 
-void fundecidstart::addOps(types::tyTy *base, coenv &e, record *r)
+void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
 {
   decidstart::addOps(base, e, r);
 
@@ -580,7 +580,7 @@ void decid::prettyprint(ostream &out, Int indent)
 }
 
 
-varEntry *makeVarEntryWhere(coenv &e, record *r, types::tyTy *t,
+varEntry *makeVarEntryWhere(coenv &e, record *r, types::ty *t,
                             record *where, position pos)
 {
   access *a = r ? r->allocField(e.c.isStatic()) :
@@ -590,7 +590,7 @@ varEntry *makeVarEntryWhere(coenv &e, record *r, types::tyTy *t,
     new varEntry(t, a, where, pos);
 }
 
-varEntry *makeVarEntry(position pos, coenv &e, record *r, types::tyTy *t) {
+varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t) {
   return makeVarEntryWhere(e, r, t, r, pos);
 }
 
@@ -616,7 +616,7 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
 
 void initializeVar(position pos, coenv &e, varEntry *v, varinit *init)
 {
-  types::tyTy *t=v->getType();
+  types::ty *t=v->getType();
 
   if (init)
     init->transToType(e, t);
@@ -629,7 +629,7 @@ void initializeVar(position pos, coenv &e, varEntry *v, varinit *init)
   e.c.encodePop();
 }
 
-types::tyTy *inferType(position pos, coenv &e, varinit *init)
+types::ty *inferType(position pos, coenv &e, varinit *init)
 {
   if (!init) {
     em.error(pos);
@@ -641,7 +641,7 @@ types::tyTy *inferType(position pos, coenv &e, varinit *init)
   bool Void=false;
 
   if (base) {
-    types::tyTy *t = base->cgetType(e);
+    types::ty *t = base->cgetType(e);
     Void=t->kind == ty_void;
     if (t->kind != ty_overloaded && !Void)
       return t;
@@ -655,7 +655,7 @@ types::tyTy *inferType(position pos, coenv &e, varinit *init)
 }
 
 void createVar(position pos, coenv &e, record *r,
-               symbol id, types::tyTy *t, varinit *init)
+               symbol id, types::ty *t, varinit *init)
 {
   // I'm not sure how to handle inferred types in these cases.
   assert(t->kind != types::ty_inferred);
@@ -666,7 +666,7 @@ void createVar(position pos, coenv &e, record *r,
 }
 
 void createVarOutOfOrder(position pos, coenv &e, record *r,
-                         symbol id, types::tyTy *t, varinit *init)
+                         symbol id, types::ty *t, varinit *init)
 {
   /* For declarations such as "var x = 5;", infer the type from the
    * initializer.
@@ -692,9 +692,9 @@ void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol id)
 }
 
 
-void decid::transAsField(coenv &e, record *r, types::tyTy *base)
+void decid::transAsField(coenv &e, record *r, types::ty *base)
 {
-  types::tyTy *t = start->getType(base, e);
+  types::ty *t = start->getType(base, e);
   assert(t);
   if (t->kind == ty_void) {
     em.error(getPos());
@@ -753,7 +753,7 @@ void decidlist::prettyprint(ostream &out, Int indent)
     (*p)->prettyprint(out, indent+1);
 }
 
-void decidlist::transAsField(coenv &e, record *r, types::tyTy *base)
+void decidlist::transAsField(coenv &e, record *r, types::ty *base)
 {
   for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsField(e, r, base);
@@ -808,7 +808,7 @@ symbol vardec::singleName()
   return did->getStart()->getName();
 }
 
-types::tyTy *vardec::singleGetType(coenv &e)
+types::ty *vardec::singleGetType(coenv &e)
 {
   decid *did = decs->singleEntry();
   if (!did)
@@ -840,22 +840,22 @@ public:
     prettyname(out, "loadModuleExp", indent, getPos());
   }
 
-  types::tyTy *trans(coenv &) {
+  types::ty *trans(coenv &) {
     em.compiler(getPos());
     em << "trans called for loadModuleExp";
     return primError();
   }
 
-  void transCall(coenv &e, types::tyTy *t) {
+  void transCall(coenv &e, types::ty *t) {
     assert(equivalent(t, ft));
     e.c.encode(inst::builtin, run::loadModule);
   }
 
-  types::tyTy *getType(coenv &) {
+  types::ty *getType(coenv &) {
     return ft;
   }
 
-  exp *evaluate(coenv &, types::tyTy *) {
+  exp *evaluate(coenv &, types::ty *) {
     // Don't alias.
     return this;
   }
@@ -1071,7 +1071,7 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
     return false;
   }
   addTypeWithPermission(e, r, arg->ent, paramSym);
-  types::tyTy *t = arg->ent->t;
+  types::ty *t = arg->ent->t;
   if (t->kind == types::ty_record) {
     record *local = dynamic_cast<record *>(t);
     // copied from recorddecc::addPostRecordEnvironment, mutatis mutandis
@@ -1156,7 +1156,7 @@ bool receiveTypedefDec::transAsParamMatcher(
 ) {
   bool succeeded = params->transAsParamMatcher(e, r, args);
 
-  types::tyTy *intTy = e.e.lookupType(intSymbol());
+  types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);
   e.e.addVar(templatedSymbol(),
              makeVarEntryWhere(e, nullptr, intTy, r, getPos())
@@ -1167,7 +1167,7 @@ bool receiveTypedefDec::transAsParamMatcher(
 
 void receiveTypedefDec::transAsField(coenv& e, record *r) {
   em.error(getPos());
-  types::tyTy *intTy = e.e.lookupType(intSymbol());
+  types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);
   if (e.e.lookupVarByType(templatedSymbol(), intTy)) {
     em << "'typedef import(<types>)' must precede any other code";

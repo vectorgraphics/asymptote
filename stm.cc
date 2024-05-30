@@ -70,7 +70,7 @@ void expStm::trans(coenv &e) {
 
 // For an object such as currentpicture, write 'picture currentpicture' to
 // give some information.  Only do this when the object has a name.
-void tryToWriteTypeOfExp(types::tyTy *t, exp *body)
+void tryToWriteTypeOfExp(types::ty *t, exp *body)
 {
   symbol name=body->getName();
   if (!name)
@@ -88,9 +88,9 @@ void tryToWriteTypeOfExp(types::tyTy *t, exp *body)
 }
 
 // From dec.cc:
-varEntry *makeVarEntry(position pos, coenv &e, record *r, types::tyTy *t);
+varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t);
 
-void storeExp(coenv &e, types::tyTy *t, exp *expr) {
+void storeExp(coenv &e, types::ty *t, exp *expr) {
   assert(t->kind != ty_error);
   assert(t->kind != ty_void);
   assert(t->kind != ty_overloaded);
@@ -104,7 +104,7 @@ void storeExp(coenv &e, types::tyTy *t, exp *expr) {
   e.c.encodePop();
 }
 
-void storeAndWriteExp(coenv &e, types::tyTy *t, exp *expr) {
+void storeAndWriteExp(coenv &e, types::ty *t, exp *expr) {
   storeExp(e, t, expr);
 
   position pos=expr->getPos();
@@ -115,7 +115,7 @@ void storeAndWriteExp(coenv &e, types::tyTy *t, exp *expr) {
 void tryToWriteExp(coenv &e, exp *expr)
 {
   position pos=expr->getPos();
-  types::tyTy *t=expr->cgetType(e);
+  types::ty *t=expr->cgetType(e);
 
   if(!t) return;
 
@@ -129,7 +129,7 @@ void tryToWriteExp(coenv &e, exp *expr)
   exp *callee=new nameExp(pos, symbol::trans("write"));
   exp *call=new callExp(pos, callee, expr);
 
-  types::tyTy *ct=call->getType(e);
+  types::ty *ct=call->getType(e);
   if (ct->kind == ty_error || ct->kind == ty_overloaded) {
     if (t->kind == ty_overloaded) {
       // Translate the expr in order to print the ambiguity error first.
@@ -443,11 +443,11 @@ void extendedForStm::trans(coenv &e) {
   symbol i=symbol::gensym("i");
 
   // Get the start type.  Handle type inference as a special case.
-  types::tyTy *t = start->trans(e, true);
+  types::ty *t = start->trans(e, true);
   if (t->kind == types::ty_inferred) {
 
     // First ensure the array expression is an unambiguous array.
-    types::tyTy *at = set->cgetType(e);
+    types::ty *at = set->cgetType(e);
     if (at->kind != ty_array) {
       em.error(set->getPos());
       em << "expression is not an array of inferable type";
@@ -555,7 +555,7 @@ void returnStm::prettyprint(ostream &out, Int indent)
 
 void returnStm::trans(coenv &e)
 {
-  types::tyTy *t = e.c.getReturnType();
+  types::ty *t = e.c.getReturnType();
 
   if (t->kind == ty_void) {
     if (value) {

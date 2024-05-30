@@ -27,8 +27,8 @@ public:
   // expression of type target.
   // If it is allowed, the casting instructions (if any) will be added.
   // Otherwise, an appropriate error message will be printed.
-  bool implicitCast(position pos, tyTy *target, tyTy *source);
-  bool explicitCast(position pos, tyTy *target, tyTy *source);
+  bool implicitCast(position pos, ty *target, ty *source);
+  bool explicitCast(position pos, ty *target, ty *source);
 
   void add(protoenv &source, varEntry *qualifier) {
     e.add(source, qualifier, c);

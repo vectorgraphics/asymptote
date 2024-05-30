@@ -36,7 +36,7 @@ public:
   // function body's translation.
   virtual void transAsVar(coenv &e, Int index);
 
-  types::tyTy *getType(coenv &e, bool tacit=false);
+  types::ty *getType(coenv &e, bool tacit=false);
 
   absyntax::astType *getAbsyntaxType() { return base; }
 
@@ -124,7 +124,7 @@ public:
 
   // Returns the corresponding function type, assuming it has a return
   // value of "result."
-  types::function *getType(types::tyTy *result, coenv &e,
+  types::function *getType(types::ty *result, coenv &e,
                            bool encodeDefVal = false,
                            bool tacit = false);
   
@@ -159,11 +159,11 @@ public:
 
   varinit *makeVarInit(types::function *ft);
   virtual void baseTrans(coenv &e, types::function *ft);
-  virtual types::tyTy *trans(coenv &e) override;
+  virtual types::ty *trans(coenv &e) override;
 
   virtual types::function *transType(coenv &e, bool tacit);
   virtual types::function *transTypeAndAddOps(coenv &e, record *r, bool tacit);
-  virtual types::tyTy *getType(coenv &e) override {
+  virtual types::ty *getType(coenv &e) override {
     return transType(e, true);
   }
 

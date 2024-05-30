@@ -68,10 +68,10 @@ bool newRecordExp::encodeLevel(position pos, coenv &e, trans::tyEntry *ent)
     return e.c.encode(level);
 }
 
-types::tyTy *newRecordExp::transFromTyEntry(position pos, coenv &e,
+types::ty *newRecordExp::transFromTyEntry(position pos, coenv &e,
                                           trans::tyEntry *ent)
 {
-  types::tyTy *t = ent->t;
+  types::ty *t = ent->t;
   if (t->kind == ty_error)
     return t;
   else if (t->kind != ty_record) {
@@ -97,14 +97,14 @@ types::tyTy *newRecordExp::transFromTyEntry(position pos, coenv &e,
   return t;
 }
 
-types::tyTy *newRecordExp::trans(coenv &e)
+types::ty *newRecordExp::trans(coenv &e)
 {
   return transFromTyEntry(getPos(), e, result->transAsTyEntry(e, 0));
 }
 
-types::tyTy *newRecordExp::getType(coenv &e)
+types::ty *newRecordExp::getType(coenv &e)
 {
-  types::tyTy *t = result->trans(e, true);
+  types::ty *t = result->trans(e, true);
   if (t->kind != ty_error && t->kind != ty_record)
     return primError();
   else
@@ -121,9 +121,9 @@ void newArrayExp::prettyprint(ostream &out, Int indent)
   if (ai) ai->prettyprint(out, indent+1);
 }
 
-types::tyTy *newArrayExp::trans(coenv &e)
+types::ty *newArrayExp::trans(coenv &e)
 {
-  types::tyTy *c = celltype->trans(e);
+  types::ty *c = celltype->trans(e);
   if (c->kind == ty_void) {
     em.error(getPos());
     em << "cannot declare array of type void";
@@ -161,9 +161,9 @@ types::tyTy *newArrayExp::trans(coenv &e)
   }
 }
 
-types::tyTy *newArrayExp::getType(coenv &e)
+types::ty *newArrayExp::getType(coenv &e)
 {
-  types::tyTy *c = celltype->trans(e);
+  types::ty *c = celltype->trans(e);
   if (c->kind == ty_void) {
     return primError();
   }

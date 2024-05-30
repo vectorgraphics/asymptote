@@ -19,7 +19,7 @@
 #include "modifier.h"
 
 using sym::symbol;
-using types::tyTy;
+using types::ty;
 using types::signature;
 
 // Forward declaration.
@@ -90,21 +90,21 @@ public:
 };
 
 class varEntry : public entry {
-  tyTy *t;
+  ty *t;
   access *location;
 
 public:
-  varEntry(tyTy *t, access *location, record *where, position pos)
+  varEntry(ty *t, access *location, record *where, position pos)
     : entry(where, pos), t(t), location(location) {}
 
-  varEntry(tyTy *t, access *location, permission perm, record *r,
+  varEntry(ty *t, access *location, permission perm, record *r,
            record *where, position pos)
     : entry(perm, r, where, pos), t(t), location(location) {}
 
   // (Non-destructively) merges two varEntries, creating a qualified varEntry.
   varEntry(varEntry &qv, varEntry &v);
 
-  tyTy *getType()
+  ty *getType()
   { return t; }
 
   signature *getSignature()
@@ -129,10 +129,10 @@ varEntry *qualifyVarEntry(varEntry *qv, varEntry *v);
 // information along with the type.
 class tyEntry : public entry {
 public:
-  tyTy *t;
+  ty *t;
   varEntry *v;  // NOTE: Name isn't very descriptive.
 
-  tyEntry(tyTy *t, varEntry *v, record *where, position pos)
+  tyEntry(ty *t, varEntry *v, record *where, position pos)
     : entry(where, pos), t(t), v(v) {}
 
   tyEntry(tyEntry *base, permission perm, record *r)
@@ -209,7 +209,7 @@ public:
       return !empty() and !isATomb();
     }
 
-    bool matches(symbol name, const tyTy *t) {
+    bool matches(symbol name, const ty *t) {
       DEBUG_CACHE_ASSERT(name.special());
       DEBUG_CACHE_ASSERT(t);
 
@@ -289,13 +289,13 @@ public:
 
   // Lookup an entry in the table.
   varEntry *lookupNonSpecial(symbol name, const signature *sig);
-  varEntry *lookupSpecial(symbol name, const tyTy *t);
-  varEntry *lookup(symbol name, const tyTy *t);
+  varEntry *lookupSpecial(symbol name, const ty *t);
+  varEntry *lookup(symbol name, const ty *t);
 
   // Remove an entry from the table.
   void removeNonSpecial(symbol name, const signature *sig);
-  void removeSpecial(symbol name, const tyTy *t);
-  void remove(symbol name, const tyTy *t);
+  void removeSpecial(symbol name, const ty *t);
+  void remove(symbol name, const ty *t);
 
   // Features for iterating over the entire table.
   class const_iterator {
@@ -358,10 +358,10 @@ class venv {
   // Record of added variables in the order they were added.
   struct addition {
     symbol name;
-    tyTy *t;
+    ty *t;
     varEntry *shadowed;
 
-    addition(symbol name, tyTy *t, varEntry *shadowed)
+    addition(symbol name, ty *t, varEntry *shadowed)
       : name(name), t(t), shadowed(shadowed) {}
   };
   typedef mem::stack<addition> addstack;
@@ -386,13 +386,13 @@ class venv {
 
   struct namevalue {
     size_t maxFormals;
-    tyTy *t;
+    ty *t;
 
     namevalue() : maxFormals(0), t(0) {}
 
-    void addType(tyTy *s);
+    void addType(ty *s);
 
-    void replaceType(tyTy *new_t, tyTy *old_t);
+    void replaceType(ty *new_t, ty *old_t);
 
 #if DEBUG_CACHE
     void popType(astType *tnew);
@@ -460,7 +460,7 @@ public:
            venv& source, varEntry *qualifier, coder &c);
 
   // Look for a function that exactly matches the type given.
-  varEntry *lookByType(symbol name, tyTy *t) {
+  varEntry *lookByType(symbol name, ty *t) {
     return core.lookup(name, t);
   }
 
@@ -480,7 +480,7 @@ public:
 
   // Get the (possibly overloaded) type of all variables associated to a
   // particular name.
-  tyTy *getType(symbol name);
+  ty *getType(symbol name);
 
   void beginScope();
   void endScope();

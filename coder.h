@@ -23,7 +23,7 @@
 namespace trans {
 
 using sym::symbol;
-using types::tyTy;
+using types::ty;
 using types::function;
 using types::record;
 
@@ -198,7 +198,7 @@ public:
 
 
   // Says what the return type of the function is.
-  tyTy *getReturnType() {
+  ty *getReturnType() {
     return funtype->result;
   }
 
