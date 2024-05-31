@@ -271,7 +271,7 @@ record *block::transAsTemplatedFile(
 ) {
   // Create the new module.
   record *r = new record(
-      id, new frame(id, parent->parentIndex() == 0 ? parent : nullptr, 0)
+      id, new frame(id, parent, 0)
   );
 
   // Create coder and environment to translate the module.
@@ -925,7 +925,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                      (string) id,
                                      sigHandle,
                                      computedArgs,
-                                     e.c.getFrame());
+                                     e.c.isTopLevel() ? e.c.getFrame() : nullptr);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
