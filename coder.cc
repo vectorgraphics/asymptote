@@ -38,7 +38,7 @@ vm::lambda *newLambda(string name) {
 // Used purely for global variables and static code blocks of file
 // level modules.
 coder::coder(position pos, string name, modifier sord)
-#if SIMPLE_FRAME
+#ifdef SIMPLE_FRAME
   : level(frame::indirect_frame(name)),
 #else
     : level(new frame(name, 0, 0)),

@@ -201,9 +201,9 @@ private:
 
 #ifdef SIMPLE_FRAME
 // In the simple implementation, a frame is just an array of items.
-typedef item frame;
+typedef item vmFrame;
 #else
-class frame : public gc {
+class vmFrame : public gc {
 #ifdef DEBUG_FRAME
   string name;
   Int parentIndex;
@@ -215,7 +215,7 @@ class frame : public gc {
   friend class stack;
 public:
 #ifdef DEBUG_FRAME
-  frame(string name, Int parentIndex, size_t size)
+  vmFrame(string name, Int parentIndex, size_t size)
     : name(name), parentIndex(parentIndex), vars(size)
   {}
 
@@ -223,7 +223,7 @@ public:
 
   Int getParentIndex() { return parentIndex; }
 #else
-  frame(size_t size)
+  vmFrame(size_t size)
     : vars(size)
   {}
 #endif

@@ -395,7 +395,7 @@ class venv {
     void replaceType(ty *new_t, ty *old_t);
 
 #if DEBUG_CACHE
-    void popType(ty *tnew);
+    void popType(astType *tnew);
 #else
     void popType();
 #endif
