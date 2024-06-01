@@ -200,7 +200,8 @@ void block::transAsField(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedField(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args,
+  frame *caller
 ) {
   Scope scopeHolder(e, scope);
   auto p = stms.begin();
@@ -214,7 +215,7 @@ bool block::transAsTemplatedField(
     em.sync();
     return false;
   }
-  if(!dec->transAsParamMatcher(e, r, args))
+  if(!dec->transAsParamMatcher(e, r, args, caller))
     return false;
 
   while (++p != stms.end()) {
@@ -234,9 +235,10 @@ void block::transAsRecordBody(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedRecordBody(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args,
+  frame *caller
 ) {
-  bool succeeded = transAsTemplatedField(e, r, args);
+  bool succeeded = transAsTemplatedField(e, r, args, caller);
   e.c.closeRecord();
   return succeeded;
 }
@@ -267,12 +269,10 @@ record *block::transAsTemplatedFile(
     genv& ge,
     symbol id,
     mem::vector<absyntax::namedTyEntry*>* args,
-    frame *parent
+    frame *caller
 ) {
   // Create the new module.
-  record *r = new record(
-      id, new frame(id, parent, 0)
-  );
+  record *r = new record(id, new frame(id, 0, 0));
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -285,7 +285,7 @@ record *block::transAsTemplatedFile(
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  bool succeeded = transAsTemplatedRecordBody(ce, r, args);
+  bool succeeded = transAsTemplatedRecordBody(ce, r, args, caller);
   if (!succeeded) {
     return nullptr;
   }
@@ -913,19 +913,15 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
   for (namedTyEntry *arg : *computedArgs) {
-    varEntry *v = arg->ent->v;
-    if (v != nullptr) {
-      // Push the value of v to the stack.
-      v->getLocation()->encode(READ, arg->pos, e.c);
-    }
+    tyEntry *ent = arg->ent;
+    if(ent->t->kind == types::ty_record)
+      newRecordExp::encodeLevel(arg->pos,e,ent);
   }
-
 
   record *imp=e.e.getTemplatedModule(id,
                                      (string) id,
                                      sigHandle,
-                                     computedArgs,
-                                     e.c.isTopLevel() ? e.c.getFrame() : nullptr);
+                                     computedArgs,e.c.getFrame());
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -1126,7 +1122,7 @@ void typeParamList::add(typeParam *tp) {
 }
 
 bool typeParamList::transAsParamMatcher(
-    coenv &e, record *r, mem::vector<namedTyEntry*> *args
+  coenv &e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
 ) {
   if (args->size() != params.size()) {
     position pos = getPos();
@@ -1144,25 +1140,24 @@ bool typeParamList::transAsParamMatcher(
     return false;
   }
   mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
-  for (auto p = args->rbegin(); p != args->rend(); ++p) {
-    varEntry *v = (*p)->ent->v;
-    if (v != nullptr) {
-      varEntry *newV = makeVarEntryWhere(e, r, v->getType(),
-                                         /*where=*/nullptr,  // Is this right?
-                                         (*p)->pos  // Is this right?
-                                        );
-      // Next two lines based on initializeVar:
-      newV->getLocation()->encode(WRITE, (*p)->pos, e.c);
-      e.c.encodePop();
-      // TODO: Should we duplicate other functionality from createVar?
 
-      tyEntry *newEnt = qualifyTyEntry(newV, (*p)->ent);
-      qualifiedArgs->push_back(
-        new namedTyEntry((*p)->pos, (*p)->dest, newEnt)
+  const static symbol *id0=new symbol(symbol::literalTrans("/callerContext"));
+  record *callerContext = new record(*id0, caller);
+  assert(callerContext);
+
+  for (auto p = args->rbegin(); p != args->rend(); ++p) {
+    varEntry *newV = makeVarEntryWhere(e, r, callerContext,                                         /*where=*/nullptr,  // Is this right?
+                                       (*p)->pos  // Is this right?
       );
-    } else {
-      qualifiedArgs->push_back(*p);
-    }
+    // Next two lines based on initializeVar:
+    newV->getLocation()->encode(WRITE, (*p)->pos, e.c);
+    e.c.encodePop();
+    // TODO: Should we duplicate other functionality from createVar?
+
+    tyEntry *newEnt = qualifyTyEntry(newV, (*p)->ent);
+    qualifiedArgs->push_back(
+      new namedTyEntry((*p)->pos, (*p)->dest, newEnt)
+      );
   }
   std::reverse(qualifiedArgs->begin(), qualifiedArgs->end());
   args = qualifiedArgs;
@@ -1186,9 +1181,9 @@ symbol templatedSymbol() {
 }
 
 bool receiveTypedefDec::transAsParamMatcher(
-    coenv& e, record *r, mem::vector<namedTyEntry*> *args
+  coenv& e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
 ) {
-  bool succeeded = params->transAsParamMatcher(e, r, args);
+  bool succeeded = params->transAsParamMatcher(e, r, args, caller);
 
   types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);
