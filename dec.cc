@@ -1146,18 +1146,24 @@ bool typeParamList::transAsParamMatcher(
   assert(callerContext);
 
   for (auto p = args->rbegin(); p != args->rend(); ++p) {
-    varEntry *newV = makeVarEntryWhere(e, r, callerContext,                                         /*where=*/nullptr,  // Is this right?
-                                       (*p)->pos  // Is this right?
-      );
-    // Next two lines based on initializeVar:
-    newV->getLocation()->encode(WRITE, (*p)->pos, e.c);
-    e.c.encodePop();
-    // TODO: Should we duplicate other functionality from createVar?
+    namedTyEntry *arg = *p;
+    if (arg->ent->t->kind == types::ty_record) {
+      varEntry *newV = makeVarEntryWhere(e, r, callerContext,
+                                        /*where=*/nullptr,  // Is this right?
+                                        arg->pos           // Is this right?
+        );
+      // Next two lines based on initializeVar:
+      newV->getLocation()->encode(WRITE, arg->pos, e.c);
+      e.c.encodePop();
+      // TODO: Should we duplicate other functionality from createVar?
 
-    tyEntry *newEnt = qualifyTyEntry(newV, (*p)->ent);
-    qualifiedArgs->push_back(
-      new namedTyEntry((*p)->pos, (*p)->dest, newEnt)
-      );
+      tyEntry *newEnt = qualifyTyEntry(newV, arg->ent);
+      qualifiedArgs->push_back(
+        new namedTyEntry(arg->pos, arg->dest, newEnt)
+        );
+    } else {
+      qualifiedArgs->push_back(arg);
+    }
   }
   std::reverse(qualifiedArgs->begin(), qualifiedArgs->end());
   args = qualifiedArgs;
