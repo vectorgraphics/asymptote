@@ -93,7 +93,7 @@ record *genv::loadTemplatedModule(
       symbol id,
       string filename,
       mem::vector<absyntax::namedTyEntry*> *args,
-      trans::frame *parent
+      coenv& e
 ) {
   // Hackish way to load an external library.
 #if 0
@@ -109,7 +109,7 @@ record *genv::loadTemplatedModule(
 
   em.sync();
 
-  record *r=ast->transAsTemplatedFile(*this, id, args, parent);
+  record *r=ast->transAsTemplatedFile(*this, id, args, e);
 
   inTranslation.remove(filename);
 
@@ -150,7 +150,7 @@ record *genv::getTemplatedModule(
     string filename,
     string sigHandle,
     mem::vector<absyntax::namedTyEntry*>* args,
-    frame *parent
+    coenv& e
 ) {
   checkRecursion(filename);
 
@@ -160,7 +160,7 @@ record *genv::getTemplatedModule(
   if (r)
     return r;
   else {
-    record *r=loadTemplatedModule(id, filename, args, parent);
+    record *r=loadTemplatedModule(id, filename, args, e);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors())

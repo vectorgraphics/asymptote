@@ -256,7 +256,7 @@ public:
       genv& ge,
       symbol id,
       mem::vector<absyntax::namedTyEntry*> *args,
-      trans::frame *caller
+      coenv &e
   );
 
   // If the block can be interpreted as a single vardec, return that vardec

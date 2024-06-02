@@ -269,8 +269,17 @@ record *block::transAsTemplatedFile(
     genv& ge,
     symbol id,
     mem::vector<absyntax::namedTyEntry*>* args,
-    frame *caller
+    coenv& cE
 ) {
+
+  for (auto p = args->rbegin(); p != args->rend(); ++p) {
+    namedTyEntry *arg = *p;
+    tyEntry *ent = arg->ent;
+    if(ent->t->kind == types::ty_record) {
+      newRecordExp::encodeLevel(arg->pos,cE,ent,true);
+    }
+  }
+
   // Create the new module.
   record *r = new record(id, new frame(id, 0, 0));
 
@@ -285,7 +294,7 @@ record *block::transAsTemplatedFile(
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  bool succeeded = transAsTemplatedRecordBody(ce, r, args, caller);
+  bool succeeded = transAsTemplatedRecordBody(ce, r, args, cE.c.getFrame());
   if (!succeeded) {
     return nullptr;
   }
@@ -912,17 +921,11 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
         theType->getPos(), theName, theType->transAsTyEntry(e, r)
     ));
   }
-  for (auto p = computedArgs->rbegin(); p != computedArgs->rend(); ++p) {
-    namedTyEntry *arg = *p;
-    tyEntry *ent = arg->ent;
-    if(ent->t->kind == types::ty_record)
-      newRecordExp::encodeLevel(arg->pos,e,ent,true);
-  }
 
   record *imp=e.e.getTemplatedModule(id,
                                      (string) id,
                                      sigHandle,
-                                     computedArgs,e.c.getFrame());
+                                     computedArgs,e);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";

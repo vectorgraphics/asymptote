@@ -48,7 +48,7 @@ class genv : public gc {
       symbol id,
       string filename,
       mem::vector<absyntax::namedTyEntry*> *args,
-      trans::frame *parent
+      coenv& e
   );
 
 public:
@@ -61,7 +61,7 @@ public:
       string filename,
       string sigHandle,
       mem::vector<absyntax::namedTyEntry*> *args,
-      frame *parent
+      coenv& e
   );
 
   // Uses the filename->record map to build a filename->initializer map to be

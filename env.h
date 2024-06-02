@@ -30,6 +30,7 @@ using types::function;
 using types::record;
 
 class genv;
+class coenv;
 
 // Keeps track of the name bindings of variables and types.  This is used for
 // the fields of a record, whereas the derived class env is used for
@@ -189,8 +190,7 @@ public:
                              string filename,
                              string index,
                              mem::vector<absyntax::namedTyEntry*> *args,
-                             trans::frame *parent
-                            );
+                             coenv& e);
 };
 
 } // namespace trans
