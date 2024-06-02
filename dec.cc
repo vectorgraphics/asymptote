@@ -1093,17 +1093,8 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
   }
   addTypeWithPermission(e, r, arg->ent, paramSym);
   types::ty *t = arg->ent->t;
-  if (t->kind == types::ty_record) {
-    record *local = dynamic_cast<record *>(t);
-
+  if (t->kind == types::ty_record)
     recordInitializer(e,paramSym,r,getPos());
-
-    // copied from recorddecc::addPostRecordEnvironment, mutatis mutandis
-    if (r) {
-      r->e.add(local->postdefenv, 0, e.c);
-    }
-    e.e.add(local->postdefenv, 0, e.c);
-  }
 
   //e.e.addType(paramSym, arg->ent);
   // The code below would add e.g. operator== to the context, but potentially
@@ -1164,14 +1155,10 @@ bool typeParamList::transAsParamMatcher(
   assert(callerContext);
   for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
-      varEntry *newV = makeVarEntryWhere(e, r, callerContext,
-                                        /*where=*/nullptr,  // Is this right?
-                                        arg->pos           // Is this right?
-        );
-      // Next two lines based on initializeVar:
+      varEntry *newV = makeVarEntryWhere(e, r, callerContext, nullptr,
+                                         arg->pos);
       newV->getLocation()->encode(WRITE, arg->pos, e.c);
       e.c.encodePop();
-      // TODO: Should we duplicate other functionality from createVar?
 
       tyEntry *newEnt = qualifyTyEntry(newV, arg->ent);
       qualifiedArgs->push_back(
