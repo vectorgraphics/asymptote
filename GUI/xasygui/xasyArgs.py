@@ -20,6 +20,11 @@ def parseArgs(args):
     parser.add_argument('-render', '--render',
                         help='Number of pixels per bp in 3D rendered bitmaps',
                         default=None, type=float)
+    parser.add_argument('-additional-asy-args', '--additional-asy-args',
+                        help='Comma-separated values of additional arguments to pass'
+                             'to Asymptote',
+                        dest='additionalAsyArgs',
+                        type=str, default=None)
     parser.add_argument(
         'filename',
         help='Filename to load (if omitted, initialize blank canvas)',

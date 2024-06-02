@@ -21,6 +21,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+from typing import Optional
 
 import PyQt5.QtCore as QtCore
 import PyQt5.QtGui as QtGui
@@ -70,7 +71,14 @@ class AsymptoteEngine:
     """
 
     xasy=chr(4)+'\n'
-    def __init__(self, path=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True):
+    def __init__(
+        self,
+        path=None,
+        addrArgsParam: Optional[list[str]] = None,
+        keepFiles=DebugFlags.keepFiles,
+        keepDefaultArgs=True
+    ):
+        addrArgs = addrArgsParam or []
         if path is None:
             path = xa.getArgs().asypath
             if path is None:
@@ -103,7 +111,15 @@ class AsymptoteEngine:
                 renderDensity = 2
         renderDensity=max(renderDensity,1)
 
-        self.args=['-xasy', '-noV', '-q', '-outformat=', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-render='+str(renderDensity), '-o', self.tmpdir]
+        self.args=addrArgs + [
+            '-xasy',
+            '-noV',
+            '-q',
+            '-outformat=',
+            '-inpipe=' + str(rx),
+            '-outpipe=' + str(wa),
+            '-render='+str(renderDensity),
+            '-o', self.tmpdir]
 
         self.asyPath = path
         self.asyProcess = None
