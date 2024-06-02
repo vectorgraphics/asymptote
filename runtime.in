@@ -101,7 +101,7 @@ using namespace utils;
 namespace run {
 using camp::pair;
 using vm::array;
-using vm::frame;
+using vm::vmFrame;
 using vm::stack;
 using camp::transform;
 using absyntax::runnable;
@@ -252,7 +252,7 @@ array* :pushNullArray()
   return 0;
 }
 
-frame* :pushNullRecord()
+vmFrame* :pushNullRecord()
 {
   return 0;
 }
