@@ -42,11 +42,11 @@ class runnable;
 
 extern bool indebugger;
 
-typedef mem::pair<string, string> importIndex_t;
+using importIndex_t = mem::pair<string, string>;
 
 class stack {
 public:
-  typedef vmFrame* vars_t;
+  using vars_t = vmFrame*;
 
   struct importInitMap {
     virtual ~importInitMap() {}
@@ -55,7 +55,7 @@ public:
 
 private:
   // stack for operands
-  typedef mem::vector<item> stack_t;
+  using stack_t = mem::vector<item>;
   stack_t theStack;
 
   void draw(ostream& out);
@@ -66,7 +66,7 @@ private:
   // The stack stores a map of initialized imported modules by name, so that
   // each module is initialized only once and each import refers to the same
   // instance.
-  typedef mem::map<CONST importIndex_t,vmFrame *> importInstanceMap;
+  using importInstanceMap = mem::map<CONST importIndex_t, vmFrame*>;
   importInstanceMap instMap;
 
   // One can associate an environment to embedded code while running.
