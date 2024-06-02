@@ -597,23 +597,6 @@ class asyPath(asyObj):
 
         return newObj
 
-    @classmethod
-    def fromBezierPoints(cls, pointList: list, engine=None):
-        if not pointList:
-            return None
-        assert isinstance(pointList[0], BezierCurveEditor.BezierPoint)
-        nodeList = []
-        controlList = []
-        for point in pointList:
-            nodeList.append(BezierCurveEditor.QPoint2Tuple(point.point))
-            if point.rCtrlPoint is not None:  # first
-                controlList.append([BezierCurveEditor.QPoint2Tuple(point.rCtrlPoint)])
-            if point.lCtrlPoint is not None:  # last
-                controlList[-1].append(BezierCurveEditor.QPoint2Tuple(point.lCtrlPoint))
-        newPath = asyPath(asyengine=engine)
-        newPath.initFromControls(nodeList, controlList)
-        return newPath
-
     def setInfo(self, path):
         self.nodeSet = copy.copy(path.nodeSet)
         self.linkSet = copy.copy(path.linkSet)
