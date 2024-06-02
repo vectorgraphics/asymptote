@@ -1146,9 +1146,7 @@ bool typeParamList::transAsParamMatcher(
   const static symbol *id0=new symbol(symbol::literalTrans("/callerContext"));
   record *callerContext = new record(*id0, caller);
   assert(callerContext);
-
-  for (auto p = args->begin(); p != args->end(); ++p) {
-    namedTyEntry *arg = *p;
+  for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *newV = makeVarEntryWhere(e, r, callerContext,
                                         /*where=*/nullptr,  // Is this right?
