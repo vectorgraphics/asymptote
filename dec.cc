@@ -913,11 +913,10 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
   for (auto p = computedArgs->rbegin(); p != computedArgs->rend(); ++p) {
-//  for (namedTyEntry *arg : *computedArgs) {
     namedTyEntry *arg = *p;
     tyEntry *ent = arg->ent;
     if(ent->t->kind == types::ty_record)
-      newRecordExp::encodeLevel(arg->pos,e,ent);
+      newRecordExp::encodeLevel(arg->pos,e,ent,true);
   }
 
   record *imp=e.e.getTemplatedModule(id,

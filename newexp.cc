@@ -34,7 +34,8 @@ void newRecordExp::prettyprint(ostream &out, Int indent) {
   prettyname(out, "newRecordExp", indent, getPos());
 }
 
-bool newRecordExp::encodeLevel(position pos, coenv &e, trans::tyEntry *ent)
+bool newRecordExp::encodeLevel(position pos, coenv &e, trans::tyEntry *ent,
+                               bool statically)
 {
   record *r = dynamic_cast<record *>(ent->t);
   assert(r);
@@ -62,7 +63,7 @@ bool newRecordExp::encodeLevel(position pos, coenv &e, trans::tyEntry *ent)
     // we push a.b onto the stack, but need a as the enclosing frame for
     // allocating an instance of C.
     record *q = dynamic_cast<record *>(ent->v->getType());
-    return e.c.encode(level, q->getLevel());
+    return e.c.encode(level, q->getLevel(statically));
   }
   else
     return e.c.encode(level);
