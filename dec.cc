@@ -912,7 +912,9 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
         theType->getPos(), theName, theType->transAsTyEntry(e, r)
     ));
   }
-  for (namedTyEntry *arg : *computedArgs) {
+  for (auto p = computedArgs->rbegin(); p != computedArgs->rend(); ++p) {
+//  for (namedTyEntry *arg : *computedArgs) {
+    namedTyEntry *arg = *p;
     tyEntry *ent = arg->ent;
     if(ent->t->kind == types::ty_record)
       newRecordExp::encodeLevel(arg->pos,e,ent);
@@ -1145,7 +1147,7 @@ bool typeParamList::transAsParamMatcher(
   record *callerContext = new record(*id0, caller);
   assert(callerContext);
 
-  for (auto p = args->rbegin(); p != args->rend(); ++p) {
+  for (auto p = args->begin(); p != args->end(); ++p) {
     namedTyEntry *arg = *p;
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *newV = makeVarEntryWhere(e, r, callerContext,
@@ -1165,11 +1167,9 @@ bool typeParamList::transAsParamMatcher(
       qualifiedArgs->push_back(arg);
     }
   }
-  std::reverse(qualifiedArgs->begin(), qualifiedArgs->end());
-  args = qualifiedArgs;
 
   for (size_t i = 0; i < params.size(); ++i) {
-    bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
+    bool succeeded = params[i]->transAsParamMatcher(e, r, (*qualifiedArgs)[i]);
     if (!succeeded) return false;
   }
   return true;
