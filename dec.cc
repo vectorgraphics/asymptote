@@ -1095,9 +1095,6 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
     return false;
   }
   addTypeWithPermission(e, r, arg->ent, paramSym);
-  types::ty *t = arg->ent->t;
-  if (t->kind == types::ty_record)
-    recordInitializer(e,paramSym,r,getPos());
 
   //e.e.addType(paramSym, arg->ent);
   // The code below would add e.g. operator== to the context, but potentially
