@@ -7,6 +7,7 @@ AC_INIT([Asymptote],[2.90git],[https://github.com/vectorgraphics/asymptote/issue
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
+m4_include([pkg.m4])
 
 AC_C_BIGENDIAN
 AC_CANONICAL_HOST

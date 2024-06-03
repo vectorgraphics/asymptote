@@ -92,6 +92,9 @@ public:
 
   bool Standard() {return standard;}
 
+  bool enabled() {return !standard || settings::verbose > 1 ||
+      interact::interactive || !settings::getSetting<bool>("quiet");}
+
   void standardEOF() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
     cout << endl;
@@ -509,9 +512,6 @@ public:
     else
       return 0;
   }
-
-  bool enabled() {return !standard || settings::verbose > 1 ||
-      interact::interactive || !settings::getSetting<bool>("quiet");}
 
   void write(bool val) {*stream << (val ? "true " : "false ");}
   void write(Int val) {*stream << val;}
