@@ -1155,7 +1155,8 @@ bool typeParamList::transAsParamMatcher(
   assert(callerContext);
   for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
-      varEntry *newV = makeVarEntryWhere(e, r, callerContext, nullptr,
+      varEntry *v = arg->ent->v;
+      varEntry *newV = makeVarEntryWhere(e, r, v ? v->getType() : callerContext, nullptr,
                                          arg->pos);
       newV->getLocation()->encode(WRITE, arg->pos, e.c);
       e.c.encodePop();
