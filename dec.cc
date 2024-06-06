@@ -1112,23 +1112,18 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
         accessdec a(pos, i);
         a.transAsField(e,r);
 
-        decidstart *paramStart=new decidstart(pos,paramSym);
-        decid *did=new decid(pos,paramStart);
-
         qualifiedName *qn=new qualifiedName(
           pos,
           new simpleName(pos,module->getName()),
           src->getName()
           );
 
-        nameTy *base=new nameTy(pos,qn);
-        vardec v(pos,base,did);
-        v.transAsTypedefField(e,r);
-
+        addTypeWithPermission(e, r, nameTy(pos,qn).transAsTyEntry(e, r),
+                              paramSym);
         recordInitializer(e,paramSym,r,getPos());
         return;
       }
-      recordInitializer(e,paramSym,r,getPos());
+      recordInitializer(e,paramSym,r,pos);
    }
     addTypeWithPermission(e, r, arg->ent, paramSym);
   }();
