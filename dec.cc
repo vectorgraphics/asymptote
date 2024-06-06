@@ -1098,35 +1098,36 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
     return false;
   }
 
-  [&]() {
-    if(arg->ent->t->kind == types::ty_record) {
-      // access module; typedef module.SRC DEST;
+  addTypeWithPermission(e, r, arg->ent, paramSym);
 
-      record *module = dynamic_cast<record *>(arg->ent->v->getType());
-      if(module->getName() != symbol::literalTrans(callerContextName)) {
-        record *src = dynamic_cast<record *>(arg->ent->t);
+  if(arg->ent->t->kind == types::ty_record) {
+    // access module;
 
-        idpairlist *i=new idpairlist;
-        i->add(new idpair(pos, symbol::trans(module->getName())));
+    record *module = dynamic_cast<record *>(arg->ent->v->getType());
+    if(module->getName() != symbol::literalTrans(callerContextName)) {
+      record *src = dynamic_cast<record *>(arg->ent->t);
 
-        accessdec a(pos, i);
-        a.transAsField(e,r);
+      idpairlist *i=new idpairlist;
+      i->add(new idpair(pos, symbol::trans(module->getName())));
 
-        qualifiedName *qn=new qualifiedName(
-          pos,
-          new simpleName(pos,module->getName()),
-          src->getName()
-          );
+      accessdec a(pos, i);
+      a.transAsField(e,r);
 
-        addTypeWithPermission(e, r, nameTy(pos,qn).transAsTyEntry(e, r),
-                              paramSym);
-        recordInitializer(e,paramSym,r,getPos());
-        return;
-      }
+      qualifiedName *Qn=new qualifiedName(
+        pos,
+        new simpleName(pos,module->getName()),
+        src->getName()
+        );
+
+      formals formals(pos);
+      nameTy result(pos,Qn);
+      newRecordExp exp(pos, &result);
+      returnStm stm(pos, &exp);
+      fundec init(pos, &result, symbol::opTrans("init"), &formals, &stm);
+      init.transAsField(e, r);
+    } else
       recordInitializer(e,paramSym,r,pos);
-   }
-    addTypeWithPermission(e, r, arg->ent, paramSym);
-  }();
+  }
 
   //e.e.addType(paramSym, arg->ent);
   // The code below would add e.g. operator== to the context, but potentially
