@@ -1110,8 +1110,15 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
       idpairlist *i=new idpairlist;
       i->add(new idpair(pos, symbol::trans(module->getName())));
 
-      accessdec a(pos, i);
-      a.transAsField(e,r);
+      symbol Module=symbol::trans(module->getName());
+      record *imp=e.e.getModule(Module, (string)Module);
+      assert(imp);
+
+      varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+      initializeVar(pos, e, v,nullptr);
+
+      if (v)
+        addVar(e, r, v, Module);
 
       qualifiedName *Qn=new qualifiedName(
         pos,
