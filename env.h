@@ -22,6 +22,11 @@ namespace absyntax {
 class namedTyEntry;
 }
 
+namespace vm {
+// TODO: Avoid duplicate definition.
+using importIndex_t = mem::pair<string, string>;
+}
+
 namespace trans {
 
 using sym::symbol;
@@ -192,6 +197,7 @@ public:
                              mem::vector<absyntax::namedTyEntry*> *args,
                              coenv& e);
   record *getLoadedModule(symbol id);
+  record *getLoadedModule(const vm::importIndex_t& index);
 };
 
 } // namespace trans

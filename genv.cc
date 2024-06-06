@@ -176,6 +176,10 @@ record *genv::getLoadedModule(symbol id) {
   return idmap[id];
 }
 
+record *genv::getLoadedModule(const importIndex_t& index) {
+  return imap[index];
+}
+
 typedef vm::stack::importInitMap importInitMap;
 
 importInitMap *genv::getInitMap()

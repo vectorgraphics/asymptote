@@ -228,4 +228,9 @@ record *env::getLoadedModule(symbol id)
   return ge.getLoadedModule(id);
 }
 
+record *env::getLoadedModule(const vm::importIndex_t& index)
+{
+  return ge.getLoadedModule(index);
+}
+
 }

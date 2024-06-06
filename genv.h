@@ -68,6 +68,7 @@ public:
       coenv& e
   );
   record *getLoadedModule(symbol name);
+  record *getLoadedModule(const vm::importIndex_t& index);
 
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.
