@@ -145,6 +145,11 @@ record *genv::getModule(symbol id, string filename) {
   }
 }
 
+record *genv::getLoadedModule(symbol id, string filename) {
+  importIndex_t Index(filename,"");
+  return imap[Index];
+}
+
 record *genv::getTemplatedModule(
     symbol id,
     string filename,

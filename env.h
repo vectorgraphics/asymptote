@@ -186,6 +186,7 @@ public:
   ~env();
 
   record *getModule(symbol id, string filename);
+  record *getLoadedModule(symbol id, string filename);
   record *getTemplatedModule(symbol id,
                              string filename,
                              string index,

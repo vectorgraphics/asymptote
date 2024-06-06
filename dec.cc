@@ -1098,24 +1098,16 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
     return false;
   }
 
-  addTypeWithPermission(e, r, arg->ent, paramSym);
-
   if(arg->ent->t->kind == types::ty_record) {
-    // access module;
-
     record *module = dynamic_cast<record *>(arg->ent->v->getType());
-    if(module->getName() != symbol::literalTrans(callerContextName)) {
+    symbol Module=symbol::trans(module->getName());
+    record *imp=e.e.getLoadedModule(Module,Module);
+
+    tyEntry *entry;
+    if(imp) {
       record *src = dynamic_cast<record *>(arg->ent->t);
-
-      symbol Module=symbol::trans(module->getName());
-      record *imp=e.e.getModule(Module,Module);
-      assert(imp);
-
-      // The varEntry should have whereDefined()==0 as it is not defined inside
-      // the record r.
       varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
       initializeVar(pos, e, v, nullptr);
-
       if (v)
         addVar(e, r, v, Module);
 
@@ -1125,9 +1117,11 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
         src->getName()
         );
 
-      addTypeWithPermission(e, r, nameTy(pos,qn).transAsTyEntry(e, r),
-                            paramSym);
+      entry=nameTy(pos,qn).transAsTyEntry(e, r);
+    } else {
+      entry=arg->ent;
     }
+    addTypeWithPermission(e, r, entry, paramSym);
     recordInitializer(e,paramSym,r,pos);
   }
 

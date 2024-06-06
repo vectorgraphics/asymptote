@@ -56,6 +56,7 @@ public:
 
   // Get an imported module, translating if necessary.
   record *getModule(symbol name, string s);
+  record *getLoadedModule(symbol name, string s);
   record *getTemplatedModule(
       symbol id,
       string filename,
