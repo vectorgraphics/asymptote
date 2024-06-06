@@ -1101,7 +1101,7 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
   if(arg->ent->t->kind == types::ty_record) {
     record *module = dynamic_cast<record *>(arg->ent->v->getType());
     symbol Module=symbol::trans(module->getName());
-    record *imp=e.e.getLoadedModule(Module,Module);
+    record *imp=e.e.getLoadedModule(Module);
 
     tyEntry *entry;
     if(imp) {

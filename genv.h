@@ -34,6 +34,10 @@ class genv : public gc {
   typedef mem::map<vm::importIndex_t,record *> importMap;
   importMap imap;
 
+  // The map from an imported id to a record.
+  typedef mem::map<symbol,record *> importIdMap;
+  importIdMap idmap;
+
   // List of modules in translation.  Used to detect and prevent infinite
   // recursion in loading modules.
   mem::list<string> inTranslation;
@@ -56,7 +60,6 @@ public:
 
   // Get an imported module, translating if necessary.
   record *getModule(symbol name, string s);
-  record *getLoadedModule(symbol name, string s);
   record *getTemplatedModule(
       symbol id,
       string filename,
@@ -64,6 +67,7 @@ public:
       mem::vector<absyntax::namedTyEntry*> *args,
       coenv& e
   );
+  record *getLoadedModule(symbol name);
 
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.

@@ -186,12 +186,12 @@ public:
   ~env();
 
   record *getModule(symbol id, string filename);
-  record *getLoadedModule(symbol id, string filename);
   record *getTemplatedModule(symbol id,
                              string filename,
                              string index,
                              mem::vector<absyntax::namedTyEntry*> *args,
                              coenv& e);
+  record *getLoadedModule(symbol id);
 };
 
 } // namespace trans

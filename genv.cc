@@ -42,7 +42,7 @@ types::record *transExternalModule(
 namespace trans {
 
 genv::genv()
-  : imap()
+  : imap(), idmap()
 {
   // Add settings as a module.  This is so that the init file ~/.asy/config.asy
   // can set settings.
@@ -138,16 +138,12 @@ record *genv::getModule(symbol id, string filename) {
     record *r=loadModule(id, filename);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
+    idmap[id]=r;
     if (!interact::interactive || !em.errors())
       imap[Index]=r;
 
     return r;
   }
-}
-
-record *genv::getLoadedModule(symbol id, string filename) {
-  importIndex_t Index(filename,"");
-  return imap[Index];
 }
 
 record *genv::getTemplatedModule(
@@ -168,6 +164,7 @@ record *genv::getTemplatedModule(
     record *r=loadTemplatedModule(id, filename, args, e);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
+    idmap[id]=r;
     if (!interact::interactive || !em.errors())
       imap[Index]=r;
 
@@ -175,6 +172,9 @@ record *genv::getTemplatedModule(
   }
 }
 
+record *genv::getLoadedModule(symbol id) {
+  return idmap[id];
+}
 
 typedef vm::stack::importInitMap importInitMap;
 
