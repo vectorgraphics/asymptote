@@ -20,6 +20,8 @@
 #include "parser.h"
 // #include "builtin.h"  // for trans::addRecordOps
 
+const string callerContextName="callerContext/";
+
 namespace absyntax {
 
 using namespace trans;
@@ -1086,6 +1088,7 @@ void recordInitializer(coenv &e, symbol id, record *parent, position here)
 }
 
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
+  position pos=arg->pos;
   if (arg->dest != paramSym) {
     em.error(arg->pos);
     em << "template argument name does not match module: passed "
@@ -1094,7 +1097,41 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
        << paramSym;
     return false;
   }
-  addTypeWithPermission(e, r, arg->ent, paramSym);
+
+  [&]() {
+    if(arg->ent->t->kind == types::ty_record) {
+      // access module; typedef module.SRC DEST;
+
+      record *module = dynamic_cast<record *>(arg->ent->v->getType());
+      if(module->getName() != symbol::literalTrans(callerContextName)) {
+        record *src = dynamic_cast<record *>(arg->ent->t);
+
+        idpairlist *i=new idpairlist;
+        i->add(new idpair(pos, symbol::trans(module->getName())));
+
+        accessdec a(pos, i);
+        a.transAsField(e,r);
+
+        decidstart *paramStart=new decidstart(pos,paramSym);
+        decid *did=new decid(pos,paramStart);
+
+        qualifiedName *qn=new qualifiedName(
+          pos,
+          new simpleName(pos,module->getName()),
+          src->getName()
+          );
+
+        nameTy *base=new nameTy(pos,qn);
+        vardec v(pos,base,did);
+        v.transAsTypedefField(e,r);
+
+        recordInitializer(e,paramSym,r,getPos());
+        return;
+      }
+      recordInitializer(e,paramSym,r,getPos());
+   }
+    addTypeWithPermission(e, r, arg->ent, paramSym);
+  }();
 
   //e.e.addType(paramSym, arg->ent);
   // The code below would add e.g. operator== to the context, but potentially
@@ -1150,9 +1187,8 @@ bool typeParamList::transAsParamMatcher(
   }
   mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
 
-  const static symbol *id0=new symbol(symbol::literalTrans("/callerContext"));
+  const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
   record *callerContext = new record(*id0, caller);
-  assert(callerContext);
   for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *v = arg->ent->v;
