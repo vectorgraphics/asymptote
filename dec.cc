@@ -1107,33 +1107,28 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
     if(module->getName() != symbol::literalTrans(callerContextName)) {
       record *src = dynamic_cast<record *>(arg->ent->t);
 
-      idpairlist *i=new idpairlist;
-      i->add(new idpair(pos, symbol::trans(module->getName())));
-
       symbol Module=symbol::trans(module->getName());
-      record *imp=e.e.getModule(Module, (string)Module);
+      record *imp=e.e.getModule(Module,Module);
       assert(imp);
 
+      // The varEntry should have whereDefined()==0 as it is not defined inside
+      // the record r.
       varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
-      initializeVar(pos, e, v,nullptr);
+      initializeVar(pos, e, v, nullptr);
 
       if (v)
         addVar(e, r, v, Module);
 
-      qualifiedName *Qn=new qualifiedName(
+      qualifiedName *qn=new qualifiedName(
         pos,
         new simpleName(pos,module->getName()),
         src->getName()
         );
 
-      formals formals(pos);
-      nameTy result(pos,Qn);
-      newRecordExp exp(pos, &result);
-      returnStm stm(pos, &exp);
-      fundec init(pos, &result, symbol::opTrans("init"), &formals, &stm);
-      init.transAsField(e, r);
-    } else
-      recordInitializer(e,paramSym,r,pos);
+      addTypeWithPermission(e, r, nameTy(pos,qn).transAsTyEntry(e, r),
+                            paramSym);
+    }
+    recordInitializer(e,paramSym,r,pos);
   }
 
   //e.e.addType(paramSym, arg->ent);
