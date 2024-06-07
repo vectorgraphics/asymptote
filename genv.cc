@@ -138,9 +138,10 @@ record *genv::getModule(symbol id, string filename) {
     record *r=loadModule(id, filename);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
-    idmap[id]=r;
-    if (!interact::interactive || !em.errors())
+    if (!interact::interactive || !em.errors()) {
       imap[Index]=r;
+      idmap[id]=r;
+    }
 
     return r;
   }
@@ -161,12 +162,14 @@ record *genv::getTemplatedModule(
   if (r)
     return r;
   else {
-    record *r=loadTemplatedModule(id, filename, args, e);
+    symbol *sym=new symbol(symbol::literalTrans(filename+sigHandle));
+    record *r=loadTemplatedModule(*sym, filename, args, e);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
-    idmap[id]=r;
-    if (!interact::interactive || !em.errors())
+    if (!interact::interactive || !em.errors()) {
       imap[Index]=r;
+      idmap[*sym]=r;
+    }
 
     return r;
   }
