@@ -14,10 +14,11 @@
 
 namespace types {
 
-record::record(symbol name, frame *level)
+record::record(symbol name, frame *level, bool statically)
   : ty(ty_record),
     name(name),
     level(level),
+    statically(statically),
     init(new vm::lambda),
     e()
 {
@@ -37,7 +38,7 @@ record *record::newRecord(symbol id, bool statically)
 
   frame *level = new frame(id, underlevel, 0);
 
-  record *r = new record(id, level);
+  record *r = new record(id, level, statically);
   return r;
 }
 

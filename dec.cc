@@ -277,8 +277,9 @@ record *block::transAsTemplatedFile(
   for (auto p = args->rbegin(); p != args->rend(); ++p) {
     namedTyEntry *arg = *p;
     tyEntry *ent = arg->ent;
+    record *R = dynamic_cast<record *>(arg->ent->t);
     if(ent->t->kind == types::ty_record) {
-      newRecordExp::encodeLevel(arg->pos,cE,ent,true);
+      newRecordExp::encodeLevel(arg->pos,cE,ent,R->isStatic());
     }
   }
 
