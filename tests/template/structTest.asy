@@ -32,6 +32,23 @@ D d;
 access 'template/imports/structTemplate'(T=d.E, Lib=InnerStruct)
     as innerStruct;
 
+struct DeeplyNestedStruct {
+  static string testName = "deeply nested struct";
+}
+struct F {
+  static struct G {
+    struct H {
+      static struct I {
+        static int global = 17;
+        int local = 3;
+      }
+    }
+    static G g = new G;
+  }
+}
+access 'template/imports/structTemplate'(T=F.G.g.H.I, Lib=DeeplyNestedStruct)
+    as deeplyNestedStruct;
+
 struct ImportedStruct {
   static string testName = "imported struct";
 }
