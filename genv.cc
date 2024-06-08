@@ -162,7 +162,7 @@ record *genv::getTemplatedModule(
   if (r)
     return r;
   else {
-    symbol *sym=new symbol(symbol::literalTrans(filename+sigHandle));
+    symbol *sym=new symbol(symbol::literalTrans(sigHandle));
     record *r=loadTemplatedModule(*sym, filename, args, e);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.

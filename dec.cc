@@ -879,10 +879,12 @@ public:
 // the import, but doesn't add the import to the environment.
 varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 {
-  record *imp=e.e.getModule(id, (string)id);
+  string s=(string) id;
+  id=symbol::literalTrans(s);
+  record *imp=e.e.getModule(id, s);
   if (!imp) {
     em.error(pos);
-    em << "could not load module '" << id << "'";
+    em << "could not load module '" << s << "'";
     em.sync();
     return 0;
   }
@@ -890,7 +892,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,"")'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string)id), new stringExp(pos, ""));
+                 new stringExp(pos, s), new stringExp(pos, ""));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -905,9 +907,9 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 formals *args)
 {
-  stringstream s;
-  s << args->getSignature(e)->handle();
-  string sigHandle=s.str();
+  stringstream buf;
+  buf << id << '/' << args->getSignature(e)->handle() << '/';
+  string s=buf.str();
 
   auto *computedArgs = new mem::vector<namedTyEntry*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
@@ -927,7 +929,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
 
   record *imp=e.e.getTemplatedModule(id,
                                      (string) id,
-                                     sigHandle,
+                                     s,
                                      computedArgs,e);
   if (!imp) {
     em.error(pos);
@@ -939,7 +941,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,index)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string) id), new stringExp(pos, sigHandle));
+                 new stringExp(pos, (string) id), new stringExp(pos, s));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
