@@ -214,23 +214,17 @@ record *env::getModule(symbol id, string filename)
   return ge.getModule(id, filename);
 }
 
-record *env::getTemplatedModule(symbol id,
+record *env::getTemplatedModule(symbol index,
                                 string filename,
-                                string index,
                                 mem::vector<absyntax::namedTyEntry*>* args,
                                 coenv& e)
 {
-  return ge.getTemplatedModule(id, filename, index, args, e);
+  return ge.getTemplatedModule(index, filename, args, e);
 }
 
 record *env::getLoadedModule(symbol id)
 {
   return ge.getLoadedModule(id);
-}
-
-record *env::getLoadedModule(const vm::importIndex_t& index)
-{
-  return ge.getLoadedModule(index);
 }
 
 }

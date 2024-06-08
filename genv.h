@@ -31,12 +31,8 @@ namespace trans {
 
 class genv : public gc {
   // The initializer functions for imports, indexed by filename.
-  typedef mem::map<vm::importIndex_t,record *> importMap;
+  typedef mem::map<symbol,record *> importMap;
   importMap imap;
-
-  // The map from an imported id to a record.
-  typedef mem::map<symbol,record *> importIdMap;
-  importIdMap idmap;
 
   // List of modules in translation.  Used to detect and prevent infinite
   // recursion in loading modules.
@@ -59,16 +55,14 @@ public:
   genv();
 
   // Get an imported module, translating if necessary.
-  record *getModule(symbol name, string s);
+  record *getModule(symbol name, string filename);
   record *getTemplatedModule(
-      symbol id,
+      symbol index,
       string filename,
-      string sigHandle,
       mem::vector<absyntax::namedTyEntry*> *args,
       coenv& e
   );
-  record *getLoadedModule(symbol name);
-  record *getLoadedModule(const vm::importIndex_t& index);
+  record *getLoadedModule(symbol index);
 
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.
