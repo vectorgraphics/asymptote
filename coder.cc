@@ -113,7 +113,7 @@ record *coder::newRecord(symbol id)
 
   frame *level = new frame(id, underlevel, 0);
 
-  record *r = new record(id, level);
+  record *r = new record(id, level, isStatic());
 
   return r;
 }
@@ -373,4 +373,3 @@ function *bootuptype()
 } // private
 
 } // namespace trans
-

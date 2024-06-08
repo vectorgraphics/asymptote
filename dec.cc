@@ -248,7 +248,7 @@ bool block::transAsTemplatedRecordBody(
 record *block::transAsFile(genv& ge, symbol id)
 {
   // Create the new module.
-  record *r = new record(id, new frame(id,0,0));
+  record *r = new record(id, new frame(id,0,0), false);
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -291,7 +291,7 @@ record *block::transAsTemplatedFile(
   }
 
   // Create the new module.
-  record *r = new record(id, new frame(id, 0, 0));
+  record *r = new record(id, new frame(id, 0, 0), false);
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -886,10 +886,11 @@ public:
 // the import, but doesn't add the import to the environment.
 varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 {
-  record *imp=e.e.getModule(id, (string)id);
+  string filename=(string) id;
+  record *imp=e.e.getModule(id, filename);
   if (!imp) {
     em.error(pos);
-    em << "could not load module '" << id << "'";
+    em << "could not load module '" << filename << "'";
     em.sync();
     return 0;
   }
@@ -897,7 +898,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,"")'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string)id), new stringExp(pos, ""));
+                 new stringExp(pos, filename), new stringExp(pos, filename));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -912,9 +913,10 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 formals *args)
 {
-  stringstream s;
-  s << args->getSignature(e)->handle();
-  string sigHandle=s.str();
+  string filename=(string) id;
+  stringstream buf;
+  buf << id << '/' << args->getSignature(e)->handle() << '/';
+  symbol index=symbol::literalTrans(buf.str());
 
   auto *computedArgs = new mem::vector<namedTyEntry*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
@@ -932,10 +934,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(id,
-                                     (string) id,
-                                     sigHandle,
-                                     computedArgs,e);
+  record *imp=e.e.getTemplatedModule(index,filename,computedArgs,e);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -946,7 +945,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,index)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string) id), new stringExp(pos, sigHandle));
+                 new stringExp(pos, (string) filename), new stringExp(pos, index));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -1189,7 +1188,7 @@ bool typeParamList::transAsParamMatcher(
   mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
 
   const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
-  record *callerContext = new record(*id0, caller);
+  record *callerContext = new record(*id0, caller,false);
   for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *v = arg->ent->v;
