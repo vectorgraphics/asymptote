@@ -277,9 +277,16 @@ record *block::transAsTemplatedFile(
   for (auto p = args->rbegin(); p != args->rend(); ++p) {
     namedTyEntry *arg = *p;
     tyEntry *ent = arg->ent;
-    record *R = dynamic_cast<record *>(arg->ent->t);
     if(ent->t->kind == types::ty_record) {
-      newRecordExp::encodeLevel(arg->pos,cE,ent,R->isStatic());
+      varEntry *v = ent->v;
+      if (v) {
+        // Push the value of v to the stack.
+        v->getLocation()->encode(READ, arg->pos, cE.c);
+      } else  {
+        // Push the appropriate frame to the stack.
+        record *R = dynamic_cast<record *>(ent->t);
+        newRecordExp::encodeLevel(arg->pos,cE,ent,R->isStatic());
+      }
     }
   }
 
