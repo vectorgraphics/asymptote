@@ -206,7 +206,7 @@ typedef item vmFrame;
 class vmFrame : public gc {
 #ifdef DEBUG_FRAME
   string name;
-  Int parentIndex;
+  size_t parentIndex;
 #endif
   using internal_vars_t = mem::vector<item>;
   internal_vars_t vars;
@@ -215,13 +215,13 @@ class vmFrame : public gc {
   friend class stack;
 public:
 #ifdef DEBUG_FRAME
-  vmFrame(string name, Int parentIndex, size_t size)
+  vmFrame(string name, size_t parentIndex, size_t size)
     : name(name), parentIndex(parentIndex), vars(size)
   {}
 
   string getName() { return name; }
 
-  Int getParentIndex() { return parentIndex; }
+  size_t getParentIndex() { return parentIndex; }
 #else
   vmFrame(size_t size)
     : vars(size)
