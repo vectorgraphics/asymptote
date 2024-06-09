@@ -284,8 +284,7 @@ record *block::transAsTemplatedFile(
         v->getLocation()->encode(READ, arg->pos, cE.c);
       } else  {
         // Push the appropriate frame to the stack.
-        record *R = dynamic_cast<record *>(ent->t);
-        newRecordExp::encodeLevel(arg->pos,cE,ent,R->isStatic());
+        newRecordExp::encodeLevel(arg->pos,cE,ent,true);
       }
     }
   }

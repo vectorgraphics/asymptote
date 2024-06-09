@@ -32,9 +32,6 @@ class record : public ty {
   // for fields and specifies the size of the record.
   frame *level;
 
-  // Was this record allocated statically?
-  bool statically;
-
   // The runtime representation of the record used by the virtual machine.
   vm::lambda *init;
 
@@ -47,7 +44,7 @@ public:
   // defined by "operator init" are stored here.
   protoenv postdefenv;
 
-  record(symbol name, frame *level, bool statically=false);
+  record(symbol name, frame *level);
   ~record();
 
   symbol getName()
@@ -57,10 +54,6 @@ public:
 
   bool isReference() {
     return true;
-  }
-
-  bool isStatic() {
-    return statically;
   }
 
   size_t hash() const {
