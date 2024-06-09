@@ -47,7 +47,7 @@ public:
   // defined by "operator init" are stored here.
   protoenv postdefenv;
 
-  record(symbol name, frame *level, bool statically);
+  record(symbol name, frame *level, bool statically=false);
   ~record();
 
   symbol getName()

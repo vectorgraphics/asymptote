@@ -248,7 +248,7 @@ bool block::transAsTemplatedRecordBody(
 record *block::transAsFile(genv& ge, symbol id)
 {
   // Create the new module.
-  record *r = new record(id, new frame(id,0,0), false);
+  record *r = new record(id, new frame(id,0,0));
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -291,7 +291,7 @@ record *block::transAsTemplatedFile(
   }
 
   // Create the new module.
-  record *r = new record(id, new frame(id, 0, 0), false);
+  record *r = new record(id, new frame(id, 0, 0));
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -1191,7 +1191,7 @@ bool typeParamList::transAsParamMatcher(
   mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
 
   const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
-  record *callerContext = new record(*id0, caller,false);
+  record *callerContext = new record(*id0, caller);
   for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *v = arg->ent->v;

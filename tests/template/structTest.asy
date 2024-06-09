@@ -43,10 +43,9 @@ struct G {
       int local = 3;
     }
   }
+  static G g = new G;
 }
-G g;
-
-access 'template/imports/structTemplate'(T=g.H.I, Lib=DeeplyNestedStruct)
+access 'template/imports/structTemplate'(T=G.g.H.I, Lib=DeeplyNestedStruct)
     as deeplyNestedStruct;
 
 struct ImportedStruct {

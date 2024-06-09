@@ -49,7 +49,7 @@ trans::access *record::initializer() {
 }
 
 dummyRecord::dummyRecord(symbol name)
-  : record(name, new frame(name, 0,0), false)
+  : record(name, new frame(name, 0,0))
 {
   // Encode the instructions to put an placeholder instance of the record
   // on the stack.
@@ -58,7 +58,7 @@ dummyRecord::dummyRecord(symbol name)
 }
 
 dummyRecord::dummyRecord(string s)
-  : record (symbol::trans(s), new frame(s,0,0), false)
+  : record (symbol::trans(s), new frame(s,0,0))
 {
   // Encode the instructions to put an placeholder instance of the record
   // on the stack.
