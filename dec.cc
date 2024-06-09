@@ -276,7 +276,14 @@ record *block::transAsTemplatedFile(
     namedTyEntry *arg = *p;
     tyEntry *ent = arg->ent;
     if(ent->t->kind == types::ty_record) {
-      newRecordExp::encodeLevel(arg->pos,cE,ent,true);
+      varEntry *v = ent->v;
+      if (v) {
+        // Push the value of v to the stack.
+        v->getLocation()->encode(READ, arg->pos, cE.c);
+      } else  {
+        // Push the appropriate frame to the stack.
+        newRecordExp::encodeLevel(arg->pos,cE,ent);
+      }
     }
   }
 
@@ -876,18 +883,19 @@ public:
 // the import, but doesn't add the import to the environment.
 varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 {
-  record *imp=e.e.getModule(id, (string)id);
+  string filename=(string) id;
+  record *imp=e.e.getModule(id, filename);
   if (!imp) {
     em.error(pos);
-    em << "could not load module '" << id << "'";
+    em << "could not load module '" << filename << "'";
     em.sync();
     return 0;
   }
   else {
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,"")'.
-    callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string)id), new stringExp(pos, ""));
+    stringExp *filenameExp=new stringExp(pos, filename);
+    callExp init(pos, new loadModuleExp(pos, imp), filenameExp, filenameExp);
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -902,9 +910,10 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 formals *args)
 {
-  stringstream s;
-  s << args->getSignature(e)->handle();
-  string sigHandle=s.str();
+  string filename=(string) id;
+  stringstream buf;
+  buf << id << '/' << args->getSignature(e)->handle() << '/';
+  symbol index=symbol::literalTrans(buf.str());
 
   auto *computedArgs = new mem::vector<namedTyEntry*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
@@ -922,10 +931,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(id,
-                                     (string) id,
-                                     sigHandle,
-                                     computedArgs,e);
+  record *imp=e.e.getTemplatedModule(index,filename,computedArgs,e);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -936,7 +942,8 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,index)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string) id), new stringExp(pos, sigHandle));
+                 new stringExp(pos, filename),
+                 new stringExp(pos, index));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -1086,6 +1093,7 @@ void recordInitializer(coenv &e, symbol id, record *parent, position here)
 }
 
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
+  position pos=arg->pos;
   if (arg->dest != paramSym) {
     em.error(arg->pos);
     em << "template argument name does not match module: passed "
@@ -1094,7 +1102,36 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
        << paramSym;
     return false;
   }
-  addTypeWithPermission(e, r, arg->ent, paramSym);
+
+  if(arg->ent->t->kind == types::ty_record) {
+    record *module = dynamic_cast<record *>(arg->ent->v->getType());
+    symbol Module=symbol::literalTrans(module->getName());
+    record *imp=e.e.getLoadedModule(Module);
+
+    tyEntry *entry;
+    if(imp) {
+      stringExp *filenameExp=new stringExp(pos, module->getName());
+      callExp init(pos, new loadModuleExp(pos, imp), filenameExp, filenameExp);
+      varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+      initializeVar(pos, e, v, &init);
+      if (v)
+        addVar(e, r, v, Module);
+
+      record *src = dynamic_cast<record *>(arg->ent->t);
+      qualifiedName *qn=new qualifiedName(
+        pos,
+        new simpleName(pos,module->getName()),
+        src->getName()
+        );
+
+      entry=nameTy(pos,qn).transAsTyEntry(e, r);
+    } else {
+      entry=arg->ent;
+    }
+    addTypeWithPermission(e, r, entry, paramSym);
+    recordInitializer(e,paramSym,r,pos);
+  } else
+    addTypeWithPermission(e, r, arg->ent, paramSym);
 
   //e.e.addType(paramSym, arg->ent);
   // The code below would add e.g. operator== to the context, but potentially
@@ -1150,9 +1187,9 @@ bool typeParamList::transAsParamMatcher(
   }
   mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
 
-  const static symbol *id0=new symbol(symbol::literalTrans("/callerContext"));
+  const string callerContextName="callerContext/";
+  const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
   record *callerContext = new record(*id0, caller);
-  assert(callerContext);
   for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *v = arg->ent->v;
@@ -1445,7 +1482,7 @@ runnable *autoplainRunnable() {
   // Abstract syntax for the code:
   //   private import plain;
   position pos=position();
-  static importdec ap(pos, new idpair(pos, symbol::trans("plain")));
+  static importdec ap(pos, new idpair(pos, symbol::literalTrans("plain")));
   static modifiedRunnable mr(pos, trans::PRIVATE, &ap);
 
   return &mr;

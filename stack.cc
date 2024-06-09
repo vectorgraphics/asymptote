@@ -555,18 +555,17 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string filename, string sigHandle) {
-  importIndex_t Index(filename,sigHandle);
-  vmFrame *inst=instMap[Index];
+void stack::load(string filename, string index) {
+  vmFrame *inst=instMap[index];
   if (inst)
     push(inst);
   else {
     func f;
     assert(initMap);
-    f.body=(*initMap)[Index];
+    f.body=(*initMap)[index];
     assert(f.body);
     run(&f);
-    instMap[Index]=get<vmFrame *>(top());
+    instMap[index]=get<vmFrame *>(top());
   }
 }
 

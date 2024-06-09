@@ -22,8 +22,7 @@ class newRecordExp : public exp {
   astType *result;
 
 public:
-  static bool encodeLevel(position pos, coenv &e, trans::tyEntry *ent,
-                          bool statically=false);
+  static bool encodeLevel(position pos, coenv &e, trans::tyEntry *ent);
   newRecordExp(position pos, astType *result)
     : exp(pos), result(result) {}
 

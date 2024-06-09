@@ -1198,7 +1198,7 @@ void initSettings() {
     initialize=false;
   }
 
-  settingsModule=new types::dummyRecord(symbol::trans("settings"));
+  settingsModule=new types::dummyRecord(symbol::literalTrans("settings"));
 
 // Default mouse bindings
 
