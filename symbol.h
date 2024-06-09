@@ -88,7 +88,7 @@ struct symbol {
     // Figure out whether it's an operator or an identifier by looking at the
     // first character.
     char c=s[0];
-    return isalpha(c) || c == '_' || c == '.' || (c == '/' && s.length() > 1) ? literalTrans(s) : opTrans(s);
+    return isalpha(c) || c == '_' ? literalTrans(s) : opTrans(s);
   }
 
   // Make a symbol that is guaranteed to be unique.  It will not match any other

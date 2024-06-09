@@ -20,8 +20,6 @@
 #include "parser.h"
 // #include "builtin.h"  // for trans::addRecordOps
 
-const string callerContextName="callerContext/";
-
 namespace absyntax {
 
 using namespace trans;
@@ -1107,7 +1105,7 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
 
   if(arg->ent->t->kind == types::ty_record) {
     record *module = dynamic_cast<record *>(arg->ent->v->getType());
-    symbol Module=symbol::trans(module->getName());
+    symbol Module=symbol::literalTrans(module->getName());
     record *imp=e.e.getLoadedModule(Module);
 
     tyEntry *entry;
@@ -1189,6 +1187,7 @@ bool typeParamList::transAsParamMatcher(
   }
   mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
 
+  const string callerContextName="callerContext/";
   const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
   record *callerContext = new record(*id0, caller);
   for (namedTyEntry *arg : *args) {
@@ -1483,7 +1482,7 @@ runnable *autoplainRunnable() {
   // Abstract syntax for the code:
   //   private import plain;
   position pos=position();
-  static importdec ap(pos, new idpair(pos, symbol::trans("plain")));
+  static importdec ap(pos, new idpair(pos, symbol::literalTrans("plain")));
   static modifiedRunnable mr(pos, trans::PRIVATE, &ap);
 
   return &mr;
