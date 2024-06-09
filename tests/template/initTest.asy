@@ -11,7 +11,7 @@ EndTest();
 
 StartTest("new");
 struct X {
-  static struct A {
+  struct A {
     int x=1;
   }
 }
