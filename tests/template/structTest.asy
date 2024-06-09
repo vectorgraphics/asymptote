@@ -55,3 +55,10 @@ struct ImportedStruct {
 access 'template/imports/notTemplate' as notTemplate;
 access 'template/imports/structTemplate'(T=notTemplate.A, Lib=ImportedStruct)
     as importedStruct;
+
+struct NestedImport {
+  static string testName = "nested import";
+}
+access 'template/imports/notTemplate2' as notTemplate2;
+access 'template/imports/structTemplate'(T=notTemplate2.b.A, Lib=NestedImport)
+    as nestedImport;
