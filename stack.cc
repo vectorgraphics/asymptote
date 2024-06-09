@@ -555,10 +555,11 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string filename, string index) {
+void stack::load(string index) {
   vmFrame *inst=instMap[index];
-  if (inst)
+  if (inst) {
     push(inst);
+  }
   else {
     func f;
     assert(initMap);

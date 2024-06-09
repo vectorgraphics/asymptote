@@ -852,7 +852,7 @@ class loadModuleExp : public exp {
 
 public:
   loadModuleExp(position pos, record *imp)
-    : exp(pos) {ft=new function(imp,primString(),primString());}
+    : exp(pos) {ft=new function(imp,primString());}
 
   void prettyprint(ostream &out, Int indent) {
     prettyname(out, "loadModuleExp", indent, getPos());
@@ -893,9 +893,9 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename,"")'.
-    stringExp *filenameExp=new stringExp(pos, filename);
-    callExp init(pos, new loadModuleExp(pos, imp), filenameExp, filenameExp);
+    // This is effectively the expression 'loadModule(filename)'.
+    callExp init(pos, new loadModuleExp(pos, imp),
+                 new stringExp(pos, filename));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -940,10 +940,8 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename,index)'.
-    callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, filename),
-                 new stringExp(pos, index));
+    // This is effectively the expression 'loadModule(index)'.
+    callExp init(pos, new loadModuleExp(pos, imp), new stringExp(pos, index));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -1110,8 +1108,8 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
 
     tyEntry *entry;
     if(imp) {
-      stringExp *filenameExp=new stringExp(pos, module->getName());
-      callExp init(pos, new loadModuleExp(pos, imp), filenameExp, filenameExp);
+      callExp init(pos, new loadModuleExp(pos, imp),
+                   new stringExp(pos, module->getName()));
       varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
       initializeVar(pos, e, v, &init);
       if (v)
