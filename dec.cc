@@ -897,8 +897,8 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   else {
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,"")'.
-    callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, filename), new stringExp(pos, filename));
+    stringExp *filenameExp=new stringExp(pos, filename);
+    callExp init(pos, new loadModuleExp(pos, imp), filenameExp, filenameExp);
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -945,7 +945,8 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename,index)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string) filename), new stringExp(pos, index));
+                 new stringExp(pos, filename),
+                 new stringExp(pos, index));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -1112,12 +1113,14 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
 
     tyEntry *entry;
     if(imp) {
-      record *src = dynamic_cast<record *>(arg->ent->t);
+      stringExp *filenameExp=new stringExp(pos, module->getName());
+      callExp init(pos, new loadModuleExp(pos, imp), filenameExp, filenameExp);
       varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
-      initializeVar(pos, e, v, nullptr);
+      initializeVar(pos, e, v, &init);
       if (v)
         addVar(e, r, v, Module);
 
+      record *src = dynamic_cast<record *>(arg->ent->t);
       qualifiedName *qn=new qualifiedName(
         pos,
         new simpleName(pos,module->getName()),
