@@ -2704,7 +2704,7 @@ otherwise.
 
 @cindex @code{inside}
 @item pair inside(path p, pen fillrule=currentpen);
-returns an arbitrary point strictly inside a cyclic path @code{p}
+returns an arbitrary point strictly inside a nondegenerate cyclic path @code{p}
 according to the fill rule @code{fillrule} (@pxref{fillrule}).
 
 @cindex @code{strokepath}
@@ -6175,10 +6175,9 @@ access templatedModule(T=string, S=int[], Number=real)
 @end verbatim
 @noindent
 Note that this is actually an @emph{access} command rather than an
-@emph{import} command, so the names of types, functions, etc. would have to be
-stated as e.g. @code{templatedModule_string_int_real.Wrapper_Number} rather than
-just @code{Wrapper_Number} (where @code{Wrapper_Number} is a type defined in
-@code{templatedModule.asy}).
+@emph{import} command, so a type, function, or variable @code{A}
+defined in @code{templatedModule.asy} would need to be accessed
+qualified as @code{templatedModule_string_int_real.A}.
 
 Alternatively, the module could be imported via a command like
 @verbatim
@@ -6191,12 +6190,12 @@ This command would automatically rename @code{Wrapper_Number} to
 @code{Wrapper_real} and would also allow the use of any @code{operator ==}
 overloads defined in the module.
 
-For more information, see the examples in
-@url{https://github.com/vectorgraphics/asymptote/tree/647b6c5732ec94a48f0f0b2446f02c86888fe7e7/tests/template}.
+Further examples can be found in the @code{tests/template} subdirectory
+of the @code{Asymptote} source directory.
 
-Issues: Certain standard features of almost any type (such as
-@code{==}, @code{new}, and the ability to call static methods on the type) may
-only be available for type arguments that are builtin or defined in the @code{plain} module.
+Issues: Certain expected operators (such as
+@code{operator ==}) may only be available for type arguments that are
+builtin or defined in module @code{plain}.
 
 @node Static,  , Import, Programming
 @section Static

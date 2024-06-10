@@ -7,6 +7,7 @@ AC_INIT([Asymptote],[2.90git],[https://github.com/vectorgraphics/asymptote/issue
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
+m4_include([pkg.m4])
 
 AC_C_BIGENDIAN
 AC_CANONICAL_HOST
@@ -322,15 +323,14 @@ AC_CHECK_HEADERS(editline/readline.h)
 ])
 
 AC_DEFUN([PKG_CONFIG],[
-ifdef([PKG_CHECK_MODULES],$1="$2 "`pkg-config --silence-errors $3 $4`,)
+ifdef([PKG_CHECK_MODULES],$1="$2 "`pkg-config --silence-errors $3 $4 || echo`,$1="$2 ")
 ])
 
 AC_DEFUN([CHECK_LIB_STATIC],[
-PKG_FLAGS=""
 PKG_CONFIG(PKG_FLAGS,,--libs,$1)
-if test "x$PKG_FLAGS" == "x"; then
+if test "x$PKG_FLAGS" == "x "; then
 PKG_FLAGS=-l"$2"
-echo Will try linking with $PKG_FLAGS
+echo will try linking with $PKG_FLAGS
 fi
 LDFLAGS_SAVE=$LDFLAGS
 LDFLAGS="$LDFLAGS ""$STATIC ""$PKG_FLAGS ""$DYNAMIC "
