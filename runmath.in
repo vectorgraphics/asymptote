@@ -169,11 +169,6 @@ static inline Int Round(double x)
   return Int(x+((x >= 0) ? 0.5 : -0.5));
 }
 
-inline Int sgn(double x)
-{
-  return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
-}
-
 static bool initializeRandom=true;
 
 void Srand(Int seed)

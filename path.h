@@ -24,6 +24,11 @@ inline double Intcap(double t) {
   return t;
 }
 
+inline Int sgn(double x)
+{
+  return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
+}
+
 // The are like floor and ceil, except they return an integer;
 // if the argument cannot be converted to a valid integer, they return
 // Int_MAX (for positive arguments) or Int_MIN (for negative arguments).

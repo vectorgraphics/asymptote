@@ -1210,28 +1210,34 @@ inline bool inrange(double x0, double x1, double x)
   return (x0 <= x && x <= x1) || (x1 <= x && x <= x0);
 }
 
+// TODO: Move outside to a class.
+
 // Return true if point z is on z0--z1; otherwise compute contribution to
 // winding number.
-bool checkstraight(const pair& z0, const pair& z1, const pair& z, Int& count)
+bool checkstraight(const pair& z0, const pair& z1, const pair& z, Int& count, const pair& outside)
 {
-  if(z0.gety() <= z.gety() && z.gety() <= z1.gety()) {
-    double side=orient2d(z0,z1,z);
-    if(side == 0.0 && inrange(z0.getx(),z1.getx(),z.getx()))
-      return true;
-    if(z.gety() < z1.gety() && side > 0) ++count;
-  } else if(z1.gety() <= z.gety() && z.gety() <= z0.gety()) {
-    double side=orient2d(z0,z1,z);
-    if(side == 0.0 && inrange(z0.getx(),z1.getx(),z.getx()))
-      return true;
-    if(z.gety() < z0.gety() && side < 0) --count;
+  Int s1=sgn(orient2d(z,z0,z1));
+  Int s2=sgn(orient2d(outside,z0,z1));
+
+  if(s1 == s2 && s1 != 0)
+    return false;
+
+  Int s3=sgn(orient2d(z,outside,z0));
+  Int s4=sgn(orient2d(z,outside,z1));
+
+  if(s3 != s4) {
+    if(s1 == 0) return true;
+    count += s3;
   }
+
   return false;
 }
 
 // returns true if point is on curve; otherwise compute contribution to
 // winding number.
 bool checkcurve(const pair& z0, const pair& c0, const pair& c1,
-                const pair& z1, const pair& z, Int& count, unsigned depth)
+                const pair& z1, const pair& z, Int& count, unsigned depth,
+                const pair& outside)
 {
   if(depth == 0) return true;
   --depth;
@@ -1243,10 +1249,10 @@ bool checkcurve(const pair& z0, const pair& c0, const pair& c1,
     const pair m3=0.5*(m0+m1);
     const pair m4=0.5*(m1+m2);
     const pair m5=0.5*(m3+m4);
-    if(checkcurve(z0,m0,m3,m5,z,count,depth) ||
-       checkcurve(m5,m4,m2,z1,z,count,depth)) return true;
+    if(checkcurve(z0,m0,m3,m5,z,count,depth,outside) ||
+       checkcurve(m5,m4,m2,z1,z,count,depth,outside)) return true;
   } else
-    if(checkstraight(z0,z1,z,count)) return true;
+    if(checkstraight(z0,z1,z,count,outside)) return true;
   return false;
 }
 
@@ -1261,6 +1267,7 @@ Int path::windingnumber(const pair& z) const
     reportError("path is not cyclic");
 
   bbox b=bounds();
+  pair outside=2.0*max()-min();
 
   if(z.getx() < b.left || z.getx() > b.right ||
      z.gety() < b.bottom || z.gety() > b.top) return 0;
@@ -1268,11 +1275,11 @@ Int path::windingnumber(const pair& z) const
   Int count=0;
   for(Int i=0; i < n; ++i)
     if(straight(i)) {
-      if(checkstraight(point(i),point(i+1),z,count))
+      if(checkstraight(point(i),point(i+1),z,count,outside))
         return undefined;
     } else
       if(checkcurve(point(i),postcontrol(i),precontrol(i+1),point(i+1),z,count,
-                    maxdepth)) return undefined;
+                    maxdepth,outside)) return undefined;
   return count;
 }
 
