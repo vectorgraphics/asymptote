@@ -71,6 +71,7 @@ typedef unsigned long unsignedInt;
 #else
 #define Int_MAX2 INT_MAX
 #define Int_MIN INT_MIN
+#define intIsInt
 typedef int Int;
 typedef unsigned int unsignedInt;
 #endif

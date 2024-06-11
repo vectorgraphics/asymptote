@@ -78,7 +78,7 @@ using mem::string;
   absyntax::arglist *alist;
   absyntax::slice *slice;
   absyntax::dimensions *dim;
-  absyntax::ty  *t;
+  absyntax::astType  *t;
   absyntax::decid *di;
   absyntax::decidlist *dil;
   absyntax::decidstart *dis;
