@@ -139,7 +139,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
       settings.inlinetex=settings.inlineimage;
     }
     frame f;
-    transform t=pic.calculateTransform();
+    transform t=empty3 ? pic.calculateTransform() : identity;
     if(currentpicture.fitter == null) {
       pen background=currentlight.background;
       if(settings.outformat == "html" && background == nullpen)

@@ -192,8 +192,6 @@ real max(real M, scaling s, coord[] c) {
   return M;
 }
 
-import simplex;
-
 /*
  Calculate the sizing constants for the given array and maximum size.
  Solve the two-variable linear programming problem using the simplex method.
@@ -203,19 +201,16 @@ import simplex;
 */
 real calculateScaling(string dir, coord[] m, coord[] M, real size,
                       bool warn=true) {
-  real[][] A;
-  real[] b;
-  real[] c=new real[] {-1,0,0};
+  from simplex2 access problem;
+  problem p=new problem;
 
   void addMinCoord(coord c) {
     // (a*user + b) + truesize >= 0:
-    A.push(new real[] {c.user,1,-1});
-    b.push(-c.truesize);
+    p.addRestriction(c.user,1,c.truesize);
   }
   void addMaxCoord(coord c) {
     // (a*user + b) + truesize <= size:
-    A.push(new real[] {-c.user,-1,1});
-    b.push(c.truesize-size);
+    p.addRestriction(-c.user,-1,size-c.truesize);
   }
 
   for (int i=0; i < m.length; ++i)
@@ -223,17 +218,15 @@ real calculateScaling(string dir, coord[] m, coord[] M, real size,
   for (int i=0; i < M.length; ++i)
     addMaxCoord(M[i]);
 
-  int[] s=array(A.length,1);
-  simplex S=simplex(c,A,s,b);
-
-  if(S.case == S.OPTIMAL) {
-    return S.x[0];
-  } else if(S.case == S.UNBOUNDED) {
+  int status=p.optimize();
+  if(status == problem.OPTIMAL) {
+    // TODO: Could just be return a;
+    return scaling.build(p.a(),p.b()).a;
+  } else if(status == problem.UNBOUNDED) {
     if(warn) warning("unbounded",dir+" scaling in picture unbounded");
     return 0;
   } else {
     if(!warn) return 1;
-
     bool userzero(coord[] coords) {
       for(var coord : coords)
         if(coord.user != 0) return false;

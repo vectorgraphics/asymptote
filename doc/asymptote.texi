@@ -141,6 +141,7 @@ Base modules
 
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
+* simplex2::                    Two-variable simplex method
 * math::                        Extend @code{Asymptote}'s math capabilities
 * interpolate::                 Interpolation routines
 * geometry::                    Geometry routines
@@ -6441,6 +6442,7 @@ Here now is @code{latexusage.tex}:
 @menu
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
+* simplex2::                    Two-variable simplex method
 * math::                        Extend @code{Asymptote}'s math capabilities
 * interpolate::                 Interpolation routines
 * geometry::                    Geometry routines
@@ -6499,9 +6501,15 @@ option to disable this feature.
 @section @code{simplex}
 @cindex @code{simplex}
 @cindex @code{deferred drawing}
-This module solves the two-variable linear programming problem using the
-simplex method. It is used by the module @code{plain} for automatic
-sizing of pictures.
+This module solves the general linear programming problem using the
+simplex method.
+
+@node simplex2, math, plain, Base modules
+@section @code{simplex2}
+@cindex @code{simplex2}
+@cindex @code{deferred drawing}
+This module solves a special case of the two-variable linear programming
+problem used by the module @code{plain} for automatic sizing of pictures.
 
 @node math, interpolate, simplex, Base modules
 @section @code{math}
