@@ -218,6 +218,7 @@ real calculateScaling(string dir, coord[] m, coord[] M, real size,
   for (int i=0; i < M.length; ++i)
     addMaxCoord(M[i]);
 
+  if(p.rows.length == 2) return 1; // Don't warn if there are no constraints
   int status=p.optimize();
   if(status == problem.OPTIMAL) {
     // TODO: Could just be return a;
