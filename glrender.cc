@@ -1827,6 +1827,7 @@ void init()
   glutInit(&argc,argv);
   fpu_trap(settings::trap());
 
+  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_GLUTMAINLOOP_RETURNS);
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 #endif
@@ -2253,6 +2254,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
     glutMainLoop();
+    cout << endl;
+    exitHandler(0);
 #endif // HAVE_LIBGLUT
   } else {
     if(glthread) {
