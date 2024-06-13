@@ -221,6 +221,8 @@ struct picture { // <<<1
   node3[] nodes3;
 
   bool uptodate=true;
+  bool queueErase=false;
+  bool queueErase3=false;
 
   struct bounds3 {
     coords3 point,min,max;
@@ -285,6 +287,8 @@ struct picture { // <<<1
 
   // Erase the current picture, retaining bounds.
   void clear() {
+    queueErase=nodes.length > 0;
+    queueErase3=nodes3.length > 0;
     nodes.delete();
     nodes3.delete();
     legend.delete();

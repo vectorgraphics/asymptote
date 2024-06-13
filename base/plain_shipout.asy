@@ -151,8 +151,11 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     else
       f=pic.fit(prefix,format,view=view,options,script,light,P);
 
-    if(!prconly() && (!pic.empty2() || settings.render == 0 || prc || empty3))
+     if(!prconly() && (!pic.empty2() || settings.render == 0 || prc ||
+                       pic.queueErase)) {
       shipout(prefix,orientation(f),format,wait,view,t);
+      pic.queueErase=false;
+    }
     settings.inlinetex=inlinetex;
   }
   pic.uptodate=true;
