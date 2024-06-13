@@ -2681,7 +2681,7 @@ struct scene
 
     if(P.absolute)
       this.P=P.copy();
-    else if(P.showtarget && !pic.queueErase3)
+    else if(P.showtarget && !pic.empty3())
       draw(pic,P.target,nullpen);
 
     t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
