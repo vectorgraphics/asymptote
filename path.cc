@@ -1228,6 +1228,17 @@ bool checkstraight(const pair& z0, const pair& z1, const pair& z, Int& count, co
   if(s3 != s4) {
     if(s1 == 0) return true;
     count += s3;
+  } else {
+    if(s1 != 0) return false;
+    if(z0 == z1)
+      return z == z0;
+    while(s3 == 0 && s4 == 0) {
+      double norm=sqrt(max(max(z0.abs2(),z1.abs2()),z.abs2()))/RANDOM_MAX;
+      pair ref(random()*norm,random()*norm);
+      s3=sgn(orient2d(z,ref,z0));
+      s4=sgn(orient2d(z,ref,z1));
+    }
+    return s3 != s4;
   }
 
   return false;
