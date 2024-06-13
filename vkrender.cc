@@ -533,6 +533,8 @@ void checkpow2(unsigned int n, string s) {
   }
 }
 
+void closeWindowHandler(GLFWwindow *);
+
 void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
                            double Width, double Height, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
@@ -730,8 +732,9 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   if(window)
     glfwShowWindow(window);
 
-  mainLoop();
+  glfwSetWindowCloseCallback(window,closeWindowHandler);
 
+  mainLoop();
 #endif
 }
 
@@ -4740,6 +4743,12 @@ void AsyVkRender::quit()
 }
 
 #ifdef HAVE_VULKAN
+
+void closeWindowHandler(GLFWwindow *window)
+{
+  cout << endl;
+  exitHandler(0);
+}
 
 void AsyVkRender::idleFunc(std::function<void()> f)
 {
