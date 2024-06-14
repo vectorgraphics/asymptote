@@ -54,6 +54,12 @@
 
 #include "stack.h"
 
+#ifdef HAVE_LIBCURSES
+#ifdef HAVE_LIBREADLINE
+#include <readline/readline.h>
+#endif
+#endif
+
 using namespace settings;
 
 using interact::interactive;
@@ -240,6 +246,9 @@ void *asymain(void *A)
 
 void exitHandler(int)
 {
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+  rl_cleanup_after_signal();
+#endif
   exit(returnCode());
 }
 
