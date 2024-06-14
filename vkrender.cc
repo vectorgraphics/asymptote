@@ -732,7 +732,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   if(window)
     glfwShowWindow(window);
 
-  glfwSetWindowCloseCallback(window,closeWindowHandler);
+  if(View)
+    glfwSetWindowCloseCallback(window,closeWindowHandler);
 
   mainLoop();
 #endif
