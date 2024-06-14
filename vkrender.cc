@@ -1263,7 +1263,7 @@ void AsyVkRender::createLogicalDevice()
   vk::PhysicalDeviceFeatures deviceFeatures;
   deviceFeatures.fillModeNonSolid = true;
   deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
-  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
+//  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
 
   physicalDevice.getProperties2(&props);
 
