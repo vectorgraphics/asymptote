@@ -542,9 +542,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view, int oldpid/*=0*/)
 {
-  // By default use discrete GPU.
-  setenv("DRI_PRIME","1",0);
-
   glfwInit();
 
   offscreen=settings::getSetting<bool>("offscreen");
@@ -1262,7 +1259,7 @@ void AsyVkRender::createLogicalDevice()
 
   vk::PhysicalDeviceFeatures deviceFeatures;
   deviceFeatures.fillModeNonSolid = true;
-  deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
+//  deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
 //  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
 
   physicalDevice.getProperties2(&props);
