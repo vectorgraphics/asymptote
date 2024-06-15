@@ -1026,8 +1026,11 @@ void AsyVkRender::createAllocator()
 
 void AsyVkRender::pickPhysicalDevice()
 {
+  string display(getenv("DISPLAY"));
+  bool remote=display.find(":") != 0;
+
   auto const getDeviceScore =
-  [this](vk::PhysicalDevice& device) -> std::size_t
+    [this,remote](vk::PhysicalDevice& device) -> std::size_t
   {
     std::size_t score = 0u;
 
@@ -1059,14 +1062,17 @@ void AsyVkRender::pickPhysicalDevice()
 
     auto const props = device.getProperties();
 
+    bool software=offscreen || remote;
+
     if(vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType) {
+      if(software) return 0;
       score += 10;
-    }
-    else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
+    } else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
+      if(software) return 0;
       score += 5;
-    }
-    else if (vk::PhysicalDeviceType::eCpu == props.deviceType && offscreen) {
-      // Force using cpu for offscreen
+    } else if(vk::PhysicalDeviceType::eCpu == props.deviceType &&
+            software) {
+      // Force using software renderer for remote or offscreen rendering
       score += 100;
     }
 
