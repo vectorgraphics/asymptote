@@ -74,7 +74,8 @@ class picture;
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
 
-typedef std::unordered_map<const Material, size_t> MaterialMap;
+//typedef mem::unordered_map<CONST Material, size_t> MaterialMap;
+typedef mem::map<CONST Material, size_t> MaterialMap;
 
 template<class T>
 inline T ceilquotient(T a, T b)
