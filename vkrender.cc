@@ -3320,7 +3320,7 @@ void AsyVkRender::createGraphicsPipelines()
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<MaterialVertex>
                           (PipelineType(u), linePipelines[u], vk::PrimitiveTopology::eLineList,
-                          vk::PolygonMode::eFill,
+                          vk::PolygonMode::eLine,
                           materialShaderOptions,
                           "vertex",
                           "fragment",
@@ -3328,8 +3328,8 @@ void AsyVkRender::createGraphicsPipelines()
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<PointVertex>
-                          (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          drawMode,
+                          (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::ePointList,
+                          vk::PolygonMode::ePoint,
                           pointShaderOptions,
                           "vertex",
                           "fragment",
