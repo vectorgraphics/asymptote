@@ -43,8 +43,13 @@ struct BezierCurve
     vk->lineData.extendMaterial(data);
   }
 
+  void notRendered() {
+    vk->lineData.renderCount=0;
+  }
+
   void queue(const triple *g, bool straight, double ratio) {
     data.clear();
+    notRendered();
     Onscreen=true;
     init(pixelResolution*ratio);
     render(g,straight);
@@ -59,8 +64,13 @@ struct Pixel
     vk->pointData.extendPoint(data);
   }
 
+  void notRendered() {
+    vk->pointData.renderCount=0;
+  }
+
   void queue(const triple& p, double width) {
     data.clear();
+    notRendered();
     MaterialIndex=vk->materialIndex;
     data.indices.push_back(data.addVertex(PointVertex{p,(float)width,MaterialIndex}));
     append();
