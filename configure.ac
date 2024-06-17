@@ -144,17 +144,9 @@ AC_DEFUN([DEFINE_LIB],[
 Define to 1 if you have the `$1' library (-l$1).
 ])
 
-AC_CHECK_HEADER(tr1/unordered_map)
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-    [#include <tr1/unordered_map>]
-    [std::tr1::unordered_map<int,int> map;]
-  )],
-  AC_DEFINE(HAVE_TR1_UNORDERED_MAP,1,
-  DEFINE([<tr1/unordered_map>])),
-  [
-  AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
-                   DEFINE([<unordered_map>])),
-  [AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
+AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
+                DEFINE([<unordered_map>])),
+[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])
 
 ASYGLVERSION=1.02
 

@@ -17,14 +17,6 @@
 
 #ifndef NOHASH
 
-#ifdef HAVE_TR1_UNORDERED_MAP
-
-#include <memory>
-#include <tr1/unordered_map>
-#define EXT std::tr1
-
-#else
-
 #ifdef HAVE_UNORDERED_MAP
 #include <unordered_map>
 #define EXT std
@@ -33,8 +25,6 @@
 #include <ext/hash_map>
 #define unordered_map hash_map
 #define unordered_multimap hash_multimap
-#endif
-
 #endif
 
 #endif
