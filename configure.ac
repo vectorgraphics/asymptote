@@ -473,7 +473,15 @@ case "$OSTYPE" in
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
-          LIBS=$LIBS"-lglfw -lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang "
+          case "$OSTYPE" in
+               darwin*)
+                 VULKAN_LIBS=""
+               ;;
+               *)
+                 VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen "
+               ;;
+          esac
+          LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV -lglslang "
           AC_CHECK_LIB([glslang],[glslang_initialize_process],
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
