@@ -542,7 +542,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view, int oldpid/*=0*/)
 {
-  int k=0;
   bool v3d=format == "v3d";
   bool webgl=format == "html";
   bool format3d=webgl || v3d;
@@ -550,7 +549,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   offscreen=settings::getSetting<bool>("offscreen");
 
   GLFWmonitor* monitor=NULL;
-  if(!format3d) {
+  if(!(offscreen || format3d)) {
     glfwInit();
     monitor=glfwGetPrimaryMonitor();
     if(!monitor) offscreen=true;
