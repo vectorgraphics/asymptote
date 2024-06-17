@@ -1827,7 +1827,10 @@ void init()
   glutInit(&argc,argv);
   fpu_trap(settings::trap());
 
+
+#ifdef FREEGLUT
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+#endif
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 #endif
