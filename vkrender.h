@@ -64,7 +64,7 @@ namespace camp
 class picture;
 
 // Comment out when not debugging:
-#define VALIDATION
+//#define VALIDATION
 
 #define EMPTY_VIEW 0, nullptr
 #define SINGLETON_VIEW(x) 1, &(x)

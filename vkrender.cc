@@ -542,11 +542,19 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view, int oldpid/*=0*/)
 {
-  glfwInit();
+  int k=0;
+  bool v3d=format == "v3d";
+  bool webgl=format == "html";
+  bool format3d=webgl || v3d;
 
   offscreen=settings::getSetting<bool>("offscreen");
-  GLFWmonitor* monitor=glfwGetPrimaryMonitor();
-  if(!monitor) offscreen=true;
+
+  GLFWmonitor* monitor=NULL;
+  if(!format3d) {
+    glfwInit();
+    monitor=glfwGetPrimaryMonitor();
+    if(!monitor) offscreen=true;
+  }
 
   this->pic = pic;
   this->Prefix=prefix;
@@ -583,10 +591,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
   Xfactor = Yfactor = 1.0;
 
-  bool v3d=format == "v3d";
-  bool webgl=format == "html";
-  bool format3d=webgl || v3d;
-
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
   if(vkinitialize)
@@ -612,12 +616,14 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     fullWidth=(int) ceil(expand*Width);
     fullHeight=(int) ceil(expand*Height);
 
-    if(offscreen) {
-      screenWidth=fullWidth;
-      screenHeight=fullHeight;
-    } else {
-      int mx, my;
-      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+    if(!format3d) {
+      if(offscreen) {
+        screenWidth=fullWidth;
+        screenHeight=fullHeight;
+      } else {
+        int mx, my;
+        glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+      }
     }
 
     oWidth=Width;
