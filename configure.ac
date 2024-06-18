@@ -470,10 +470,10 @@ case "$OSTYPE" in
                  VULKAN_LIBS=""
                ;;
                *)
-                 VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen "
+                 VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen -lglslang"
                ;;
           esac
-          LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV -lglslang "
+          LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV "
           AC_CHECK_LIB([glslang],[glslang_initialize_process],
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
