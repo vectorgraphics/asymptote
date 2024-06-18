@@ -224,8 +224,6 @@ public:
   }
 };
 
-extern void sortTriangles();
-
 #endif
 
 } //namespace camp
