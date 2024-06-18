@@ -1030,8 +1030,8 @@ void AsyVkRender::createAllocator()
 
 void AsyVkRender::pickPhysicalDevice()
 {
-  string display(getenv("DISPLAY"));
-  bool remote=display.find(":") != 0;
+  char *display=getenv("DISPLAY");
+  bool remote=display ? string(display).find(":") != 0 : false;
 
   auto const getDeviceScore =
     [this,remote](vk::PhysicalDevice& device) -> std::size_t
