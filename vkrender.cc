@@ -4334,6 +4334,11 @@ void AsyVkRender::display()
 
   drawFrame();
 
+  if(hidden) {
+    glfwShowWindow(window);
+    hidden=false;
+  }
+
   if (mode != DRAWMODE_OUTLINE)
     remesh = false;
 
@@ -5023,7 +5028,6 @@ void AsyVkRender::setosize() {
 }
 
 void AsyVkRender::fitscreen(bool reposition) {
-
   if(Animate && Fitscreen == 2) Fitscreen=0;
 
   switch(Fitscreen) {
@@ -5056,6 +5060,8 @@ void AsyVkRender::fitscreen(bool reposition) {
 
 void AsyVkRender::toggleFitScreen() {
 
+  glfwHideWindow(window);
+  hidden=true;
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
 }

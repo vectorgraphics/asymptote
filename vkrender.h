@@ -401,6 +401,7 @@ public:
   bool ibl=false;
   bool offscreen=false;
   bool vkexit=false;
+  bool hidden=false;
 
   bool vkthread=false;;
   bool initialize=true;
