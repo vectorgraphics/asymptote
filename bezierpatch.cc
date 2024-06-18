@@ -803,6 +803,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
   data.clear();
   Onscreen=true;
   transparent=Transparent;
+  notRendered();
 
   data.colorVertices.resize(nP);
   data.indices.resize(3*nI);
