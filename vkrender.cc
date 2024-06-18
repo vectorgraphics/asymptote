@@ -2576,21 +2576,23 @@ void AsyVkRender::createBuffers()
 
 
 void AsyVkRender::createMaterialAndLightBuffers() {
-  materialBf = createBufferUnique(
-                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                      sizeof(camp::Material) * nmaterials,
-                      0,
-                      VMA_MEMORY_USAGE_AUTO,
-                      VARIABLE_NAME(materialBf));
+  if(nmaterials > 0)
+    materialBf = createBufferUnique(
+      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      sizeof(camp::Material) * nmaterials,
+      0,
+      VMA_MEMORY_USAGE_AUTO,
+      VARIABLE_NAME(materialBf));
 
-  lightBf = createBufferUnique(
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     sizeof(camp::Light) * nlights,
-                     0,
-                     VMA_MEMORY_USAGE_AUTO,
-                     VARIABLE_NAME(lightBf));
+  if(nlights > 0)
+    lightBf = createBufferUnique(
+      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      sizeof(camp::Light) * nlights,
+      0,
+      VMA_MEMORY_USAGE_AUTO,
+      VARIABLE_NAME(lightBf));
 }
 
 void AsyVkRender::createImmediateRenderTargets()
@@ -3517,8 +3519,10 @@ void AsyVkRender::updateBuffers()
     createMaterialAndLightBuffers();
     writeMaterialAndLightDescriptors();
 
-    copyToBuffer(lightBf.getBuffer(), &lights[0], lights.size() * sizeof(Light));
-    copyToBuffer(materialBf.getBuffer(), &materials[0], materials.size() * sizeof(camp::Material));
+    if(lights.size() > 0)
+      copyToBuffer(lightBf.getBuffer(), lights.data(), lights.size() * sizeof(Light));
+    if(materials.size() > 0)
+      copyToBuffer(materialBf.getBuffer(), materials.data(), materials.size() * sizeof(camp::Material));
 
     shouldUpdateBuffers=false;
   }
