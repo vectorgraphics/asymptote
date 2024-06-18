@@ -4957,7 +4957,6 @@ void AsyVkRender::windowposition(int& x, int& y, int Width, int Height)
 }
 
 void AsyVkRender::setsize(int w, int h, bool reposition) {
-
   int x,y;
 
   capsize(w,h);
@@ -5019,6 +5018,8 @@ void AsyVkRender::reshape0(int Width, int Height) {
     lastHeight=height;
   }
 
+  glfwHideWindow(window);
+  hidden=true;
   setProjection();
 }
 
