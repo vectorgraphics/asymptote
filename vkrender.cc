@@ -385,13 +385,12 @@ void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoff
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
   auto zoomFactor = settings::getSetting<double>("zoomfactor");
 
-  if (zoomFactor == 0.0)
-    return;
-
-  if (yoffset > 0)
-    app->Zoom0 *= zoomFactor;
-  else
-    app->Zoom0 /= zoomFactor;
+  if(zoomFactor > 0.0) {
+    if (yoffset > 0)
+      app->Zoom0 *= zoomFactor;
+    else
+      app->Zoom0 /= zoomFactor;
+  }
 
   app->update();
 }
@@ -4905,17 +4904,14 @@ void AsyVkRender::capzoom()
 void AsyVkRender::zoom(double dx, double dy)
 {
   double zoomFactor=settings::getSetting<double>("zoomfactor");
-
-  if (zoomFactor == 0.0)
-    return;
-
-  double zoomStep=settings::getSetting<double>("zoomstep");
-  const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
-  double stepPower=zoomStep*dy;
-  if(fabs(stepPower) < limit) {
-    Zoom0 *= std::pow(zoomFactor,-stepPower);
-    capzoom();
-    update();
+  if (zoomFactor > 0.0) {
+    double zoomStep=settings::getSetting<double>("zoomstep");
+    const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
+    double stepPower=zoomStep*dy;
+    if(fabs(stepPower) < limit) {
+      Zoom0 *= std::pow(zoomFactor,-stepPower);
+      update();
+    }
   }
 }
 
