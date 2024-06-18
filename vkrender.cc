@@ -249,7 +249,7 @@ double AsyVkRender::getRenderResolution(triple Min) const
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double s = perspective ? Min.getz() * perspective : 1.0;
   triple b(Xmin, Ymin, Zmin);
-  triple B(Xmax, Ymin, Zmax);
+  triple B(Xmax, Ymax, Zmax);
   pair size3(s * (B.getx() - b.getx()), s * (B.gety() - b.gety()));
   pair size2(width, height);
   return prerender * size3.length() / size2.length();
