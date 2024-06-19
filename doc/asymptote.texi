@@ -3731,10 +3731,9 @@ as a single entity (@pxref{GUI}), @code{filltype} requests optional
 background filling or clipping, and @code{above} specifies
 whether to add @code{src} above or below existing objects.
 
-There are also routines to add a picture or frame @code{src} specified
-in postscript coordinates to another picture @code{dest} (or
-@code{currentpicture}) about the user coordinate
-@code{position}:
+There are also routines to add a fixed-size picture or frame
+@code{src} to another picture @code{dest} (or @code{currentpicture})
+about the user coordinate @code{position}:
 @anchor{add about}
 @cindex @code{add}
 @cindex picture alignment
