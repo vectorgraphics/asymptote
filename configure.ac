@@ -333,7 +333,7 @@ PKG_FLAGS=-l"$2"
 echo will try linking with $PKG_FLAGS
 fi
 LDFLAGS_SAVE=$LDFLAGS
-LDFLAGS="$LDFLAGS ""$STATIC ""$PKG_FLAGS ""$DYNAMIC "
+LDFLAGS="$LDFLAGS "$STATIC"$PKG_FLAGS "$DYNAMIC
 AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),
 if test "x$enable_static" = "xyes"; then
 [
@@ -344,7 +344,7 @@ AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),
 [
 LDFLAGS=$LDFLAGS_SAVE
 $5
-])
+],$PKG_FLAGS)
 ]
 else
 [
@@ -352,7 +352,7 @@ LDFLAGS=$LDFLAGS_SAVE
 $5
 ]
 fi
-)]
+,$PKG_FLAGS)]
 )
 
 if test "x$enable_readline" != "xno"; then
