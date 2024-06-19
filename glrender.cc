@@ -2775,7 +2775,8 @@ void drawBuffers()
   drawTriangle();
 
   if(transparent) {
-    gl::copied=true;
+    if(camp::ssbo)
+      gl::copied=true;
     if(interlock) resizeFragmentBuffer();
     drawTransparent();
   }
