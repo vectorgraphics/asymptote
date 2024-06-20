@@ -4401,26 +4401,6 @@ confused with its use to define default values for variables
 first case, the return type of the @code{operator init} must be @code{void}
 while in the second, it must be the (non-@code{void}) type of the variable.
 
-@cindex @code{cputime}
-The function @code{cputime()}
-returns a structure @code{cputime} with cumulative @acronym{CPU} times
-broken down into the fields @code{parent.user}, @code{parent.system},
-@code{child.user}, and @code{child.system}, along with the cumulative
-wall clock time in @code{parent.clock}, all measured in seconds.
-For convenience, the incremental fields @code{change.user},
-@code{change.system}, and @code{change.clock} indicate  the change in
-the corresponding fields since the last call to @code{cputime()}. The
-function
-@verbatim
-void write(file file=stdout, string s="", cputime c,
-           string format=cputimeformat, suffix suffix=none);
-@end verbatim
-@noindent
-displays the incremental user cputime followed by ``u'',
-the incremental system cputime followed by ``s'',
-the total user cputime followed by ``U'', and
-the total system cputime followed by ``S''.
-
 @cindex inheritance
 @cindex virtual functions
 Much like in C++, casting (@pxref{Casts}) provides for an elegant
@@ -5227,6 +5207,27 @@ If the iteration fails after the maximum allowed number of loops
 @cindex @code{simpson}
 @item @code{real simpson(real f(real), real a, real b, real acc=realEpsilon, real dxmax=b-a)}
 returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpson integration.
+
+@cindex @code{cputime}
+@noindent
+@item @code{cputime cputime()}
+returns a structure @code{cputime} with cumulative @acronym{CPU} times
+broken down into the fields @code{parent.user}, @code{parent.system},
+@code{child.user}, and @code{child.system}, along with the cumulative
+wall clock time in @code{parent.clock}, all measured in seconds.
+For convenience, the incremental fields @code{change.user},
+@code{change.system}, and @code{change.clock} indicate  the change in
+the corresponding fields since the last call to @code{cputime()}. The
+function
+@verbatim
+void write(file file=stdout, string s="", cputime c,
+           string format=cputimeformat, suffix suffix=none);
+@end verbatim
+@noindent
+displays the incremental user cputime followed by ``u'',
+the incremental system cputime followed by ``s'',
+the total user cputime followed by ``U'', and
+the total system cputime followed by ``S''.
 
 @end table
 
