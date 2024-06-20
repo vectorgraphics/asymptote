@@ -470,7 +470,7 @@ case "$OSTYPE" in
                  VULKAN_LIBS=""
                ;;
                *)
-                 VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen -lglslang"
+                 VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen -lglslang "
                ;;
           esac
           LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV "
