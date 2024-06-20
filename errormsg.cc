@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <regex>
 
 #include "errormsg.h"
 #include "interact.h"
@@ -33,6 +34,7 @@ ostream& operator<< (ostream& out, const position& pos)
     while(count > 0 && getline(fin,s)) {
       count--;
     }
+    s=std::regex_replace(s,std::regex("\t"),"  ");
     out << s << endl;
     for(size_t i=1; i < pos.column; ++i)
       out << " ";

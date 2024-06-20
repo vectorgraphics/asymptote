@@ -1590,13 +1590,11 @@ void add(picture src, bool group=true, filltype filltype=NoFill,
   currentpicture.add(src,group,filltype,above);
 }
 
-// Fit the picture src using the identity transformation (so user
-// coordinates and truesize coordinates agree) and add it about the point
-// position to picture dest.
+// Fit the picture src and add it about the point position to picture dest.
 void add(picture dest, picture src, pair position, bool group=true,
          filltype filltype=NoFill, bool above=true)
 {
-  add(dest,src.fit(identity()),position,group,filltype,above);
+  add(dest,src.fit(),position,group,filltype,true);
 }
 
 void add(picture src, pair position, bool group=true, filltype filltype=NoFill,
