@@ -902,7 +902,7 @@ followed by @code{Enter}, to obtain the above image.
 @cindex arrow keys
 @cindex erase
 @cindex quit
-@noindent
+
 At this point you can type further @code{draw} commands, which will be added
 to the displayed figure, @code{erase} to clear the canvas,
 @verbatim
@@ -1142,7 +1142,7 @@ use in constructing an optional legend entry.
 @cindex @code{Bar}
 @cindex @code{Bars}
 @cindex @code{barsize}
-@item
+
 Bars @code{bar} are useful for indicating dimensions. The possible values of
 @code{bar} are @code{None}, @code{BeginBar}, @code{EndBar} (or
 equivalently @code{Bar}), and @code{Bars} (which draws a bar at both
@@ -1161,7 +1161,7 @@ bar length is @code{barsize(pen)}.
 @cindex @code{EndArrow}
 @cindex @code{Arrow}
 @cindex @code{Arrows}
-@item
+
 The possible values of @code{arrow} are @code{None}, @code{Blank}
 (which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
 @code{EndArrow} (or equivalently @code{Arrow}),
@@ -1223,7 +1223,6 @@ sense of @code{point(path p, real t)}) along the path where the tip of
 the arrow should be placed.
 @end itemize
 
-@item
 Margins @code{margin} can be used to shrink the visible portion of a path by
 @code{labelmargin(p)} to avoid overlap with other drawn objects.
 
@@ -1272,9 +1271,6 @@ work similarly.
 specify a margin directly in @code{PostScript} units,
 independent of the pen line width.
 @end table
-
-@item markers @code{marker}.
-@end itemize
 
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
