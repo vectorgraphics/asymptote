@@ -408,7 +408,7 @@ The @code{ImageMagick} package from
 
 @noindent
 is required to support output formats other than @acronym{HTML},
-@acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
+@acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{magick}).
 The @code{Python 3} interpreter from @url{https://www.python.org} is only
 required if you wish to try out the graphical user interface (@pxref{GUI}).
 
@@ -520,7 +520,7 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 @cindex @code{texcommand}
 @cindex @code{dvips}
 @cindex @code{dvisvgm}
-@cindex @code{convert}
+@cindex @code{magick}
 @cindex @code{ImageMagick}
 @cindex @code{asygl}
 These additional configuration variables normally do not require adjustment:
@@ -3310,7 +3310,7 @@ as described in
 Since @code{PostScript} does not support transparency, this feature is
 only effective with the @code{-f pdf} output format option; other
 formats can be produced from the resulting @acronym{PDF} file with the
-@code{ImageMagick} @code{convert} program.
+@code{ImageMagick} @code{magick} program.
 Labels are always drawn with an @code{opacity} of 1.
 A simple example of transparent filling is provided in the example file
 @code{@uref{https://asymptote.sourceforge.io/gallery/transparency.svg,,transparency}@uref{https://asymptote.sourceforge.io/gallery/transparency.asy,,.asy}}.
@@ -4271,6 +4271,7 @@ rename file @code{from} to file @code{to}.
 Unless the @code{-globalwrite} (or @code{-nosafe}) option is enabled,
 this operation is restricted to the current directory.
 @cindex @code{convert}
+@cindex @code{magick}
 @cindex @code{animate}
 The functions
 @verbatim
@@ -4278,7 +4279,7 @@ int convert(string args="", string file="", string format="");
 int animate(string args="", string file="", string format="");
 @end verbatim
 @noindent
-call the @code{ImageMagick} commands @code{convert} and @code{animate},
+call the @code{ImageMagick} commands @code{magick} and @code{animate},
 respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}.
 
@@ -6916,13 +6917,13 @@ sharp corners of paths, as illustrated in the example file @code{@uref{https://a
 @node animation, embed, roundedpath, Base modules
 @section @code{animation}
 @cindex @code{animation}
-@cindex @code{convert}
+@cindex @code{magick}
 @cindex animation
 @cindex @code{ImageMagick}
 This module allows one to generate animations, as illustrated by the
 files @code{@uref{https://asymptote.sourceforge.io/gallery/animations/wheel.gif,,wheel}@uref{https://asymptote.sourceforge.io/gallery/animations/wheel.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/animations/wavepacket.gif,,wavepacket}@uref{https://asymptote.sourceforge.io/gallery/animations/wavepacket.asy,,.asy}}, and @code{@uref{https://asymptote.sourceforge.io/gallery/animations/cube.gif,,cube}@uref{https://asymptote.sourceforge.io/gallery/animations/cube.asy,,.asy}} in
 the @code{animations} subdirectory of the examples directory. These
-animations use the @code{ImageMagick} @code{convert} program to
+animations use the @code{ImageMagick} @code{magick} program to
 merge multiple images into a @acronym{GIF} or @acronym{MPEG}
 movie.
 
@@ -9753,7 +9754,7 @@ settings.autoplain=true;
 at the beginning of the configuration file, it can contain arbitrary
 @code{Asymptote} code.
 
-@cindex @code{convert}
+@cindex @code{magick}
 @cindex @code{output}
 @cindex @code{format}
 @cindex @code{ImageMagick}
@@ -9770,7 +9771,7 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{EPS}
 @cindex @code{PDF}
 @anchor{texengines}
-@anchor{convert}
+@anchor{magick}
 The default output format is @acronym{EPS} for the (default)
 @code{latex} and @code{tex} tex engine and @acronym{PDF} for the
 @code{pdflatex}, @code{xelatex}, @code{context}, @code{luatex}, and
@@ -9789,20 +9790,18 @@ which can display @acronym{SVG} output (used by the
 with the default setting @code{settings.dvisvgmOptions="--optimize"}.
 
 @code{Asymptote} can also produce any output format supported
-by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
-later recommended; an @code{Invalid Parameter} error message indicates
-that the @code{MSDOS} utility @code{convert} is being used instead of
-the one that comes with @code{ImageMagick}).
+by the @code{ImageMagick} @code{magick} program (version 7 or
+later.
 The optional setting @code{-render n} requests
 an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
 controlled by the parameter @code{antialias}, which by default
 specifies a sampling width of 2 pixels.
-To give other options to @code{convert}, use the
-@code{convertOptions} setting or call convert manually. This example
+To give other options to @code{magick}, use the
+@code{convertOptions} setting or call @code{magick convert} manually. This example
 emulates how @code{Asymptote} produces antialiased @code{tiff} output at
 one pixel per @code{bp}:
 @verbatim
-asy -o - venn | convert -alpha Off -density 144x144 -geometry 50%x eps:- venn.tiff
+asy -o - venn | magick convert -alpha Off -density 144x144 -geometry 50%x eps:- venn.tiff
 @end verbatim
 
 @cindex @code{nosafe}
