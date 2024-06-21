@@ -81,6 +81,7 @@ Installation
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
 * Git::                         Getting the latest development source
+* Building the documentation::  Building the documentation
 * Uninstall::                   Goodbye, @code{Asymptote}!
 
 Tutorial
@@ -105,6 +106,7 @@ Programming
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
+* Deferred drawing::            Witholding drawing until all data is available
 * Files::                       Reading and writing your data
 * Variable initializers::       Initialize your variables
 * Structures::                  Organize your data
@@ -309,6 +311,7 @@ A quick reference card for @code{Asymptote} is available at
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
 * Git::                         Getting the latest development source
+* Building the documentation::  Building the documentation
 * Uninstall::                   Goodbye, @code{Asymptote}!
 @end menu
 
@@ -405,7 +408,7 @@ The @code{ImageMagick} package from
 
 @noindent
 is required to support output formats other than @acronym{HTML},
-@acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
+@acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{magick}).
 The @code{Python 3} interpreter from @url{https://www.python.org} is only
 required if you wish to try out the graphical user interface (@pxref{GUI}).
 
@@ -517,7 +520,7 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 @cindex @code{texcommand}
 @cindex @code{dvips}
 @cindex @code{dvisvgm}
-@cindex @code{convert}
+@cindex @code{magick}
 @cindex @code{ImageMagick}
 @cindex @code{asygl}
 These additional configuration variables normally do not require adjustment:
@@ -793,6 +796,21 @@ apt-get build-dep asymptote
 @end verbatim
 @noindent
 
+@node Building the documentation
+@section Building the documentation
+Here are instructions for building the documentation:
+@verbatim
+cd doc
+make  # for both the PDF version doc/asymptote.pdf and the HTML version
+cd png
+make  # for the HTML version only: doc/png/index.html
+@end verbatim
+Note that the @code{HTML} version cannot be built without
+executing @code{make} from @code{doc} folder first.
+
+The @code{asy} executable is required for compiling the diagrams
+in the documentation.
+
 @node Uninstall,  , Git, Installation
 @section Uninstall
 @cindex uninstall
@@ -884,7 +902,7 @@ followed by @code{Enter}, to obtain the above image.
 @cindex arrow keys
 @cindex erase
 @cindex quit
-@noindent
+
 At this point you can type further @code{draw} commands, which will be added
 to the displayed figure, @code{erase} to clear the canvas,
 @verbatim
@@ -1124,7 +1142,8 @@ use in constructing an optional legend entry.
 @cindex @code{Bar}
 @cindex @code{Bars}
 @cindex @code{barsize}
-Bars are useful for indicating dimensions. The possible values of
+
+Bars @code{bar} are useful for indicating dimensions. The possible values of
 @code{bar} are @code{None}, @code{BeginBar}, @code{EndBar} (or
 equivalently @code{Bar}), and @code{Bars} (which draws a bar at both
 ends of the path). Each of these bar specifiers (except for
@@ -1134,6 +1153,7 @@ bar length is @code{barsize(pen)}.
 
 @cindex arrows
 @anchor{arrows}
+@cindex @code{arrowbar}
 @cindex @code{None}
 @cindex @code{Blank}
 @cindex @code{BeginArrow}
@@ -1141,77 +1161,116 @@ bar length is @code{barsize(pen)}.
 @cindex @code{EndArrow}
 @cindex @code{Arrow}
 @cindex @code{Arrows}
-@cindex @code{FillDraw}
-@cindex @code{Fill}
-@cindex @code{Draw}
-@cindex @code{NoFill}
-@cindex @code{UnFill}
+
+The possible values of @code{arrow} are @code{None}, @code{Blank}
+(which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
+@code{EndArrow} (or equivalently @code{Arrow}),
+and @code{Arrows} (which draws an arrow at both ends of the path).
+
 @cindex @code{BeginArcArrow}
 @cindex @code{MidArcArrow}
 @cindex @code{EndArcArrow}
 @cindex @code{ArcArrow}
 @cindex @code{ArcArrows}
-
-@cindex @code{DefaultHead}
-@cindex @code{SimpleHead}
-@cindex @code{HookHead}
-@cindex @code{TeXHead}
-The possible values of @code{arrow} are @code{None}, @code{Blank}
-(which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
-@code{EndArrow} (or equivalently @code{Arrow}),
-and @code{Arrows} (which draws an arrow at both ends of the path).
-All of the arrow specifiers except for @code{None} and @code{Blank}
-may be given the optional arguments arrowhead @code{arrowhead} (one of
-the predefined arrowhead styles @code{DefaultHead}, @code{SimpleHead},
-@code{HookHead}, @code{TeXHead}),
-real @code{size} (arrowhead size in @code{PostScript} coordinates),
-real @code{angle} (arrowhead angle
-in degrees), filltype @code{filltype} (one of @code{FillDraw}, @code{Fill},
-@code{NoFill}, @code{UnFill}, @code{Draw}) and (except for
-@code{MidArrow} and @code{Arrows}) a real @code{position} (in the
-sense of @code{point(path p, real t)}) along the path where the tip of
-the arrow should be placed. The default arrowhead size when drawn
-with a pen @code{p} is @code{arrowsize(p)}. There are also arrow versions with
+There are also arrow versions with
 slightly modified default values of @code{size} and @code{angle} suitable for
 curved arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
 @code{ArcArrow}), @code{MidArcArrow}, and @code{ArcArrows}.
 
+For example:
+@verbatim
+draw((0,0)--(1,1),arrow=Arrows);
+@end verbatim
+
+All of the arrow specifiers except for @code{None} and @code{Blank}
+may be given optional arguments, for example:
+@verbatim
+draw((0,0)--(1,1),arrow=Arrow(
+     arrowhead=HookHead,size=3mm,angle=20,filltype=Draw,position=0.9));
+@end verbatim
+
+The function @code{Arrow} has the signature
+@verbatim
+arrowbar Arrow(arrowhead arrowhead=DefaultHead,
+               real size=0, real angle=arrowangle,
+               filltype filltype=null, position position=EndPoint)
+@end verbatim
+@noindent
+Calling @code{Arrow()} returns @code{Arrow}, which is an @code{arrowbar} object.
+The parameters are:
+
+@itemize
+@cindex @code{arrowhead}
+@cindex @code{DefaultHead}
+@cindex @code{SimpleHead}
+@cindex @code{HookHead}
+@cindex @code{TeXHead}
+@item @code{arrowhead}
+can be one of
+the predefined arrowhead styles @code{DefaultHead}, @code{SimpleHead},
+@code{HookHead}, @code{TeXHead}.
+@item real @code{size} is the arrowhead size in @code{PostScript} coordinates.
+
+The default arrowhead size when drawn
+with a pen @code{p} is @code{arrowsize(p)}.
+@item real @code{angle} is the arrowhead angle
+in degrees.
+
+@item filltype @code{filltype} (@pxref{filltype}),
+@item (except for
+@code{MidArrow} and @code{Arrows}) real @code{position} (in the
+sense of @code{point(path p, real t)}) along the path where the tip of
+the arrow should be placed.
+@end itemize
+
+Margins @code{margin} can be used to shrink the visible portion of a path by
+@code{labelmargin(p)} to avoid overlap with other drawn objects.
+
+Typical values of @code{margin}
+are:
+@table @code
 @cindex @code{NoMargin}
+@item NoMargin
 @cindex @code{BeginMargin}
+@item BeginMargin
 @cindex @code{EndMargin}
 @cindex @code{Margin}
+@item EndMargin
+(equivalently @code{Margin})
 @cindex @code{Margins}
+@item Margins
+leaves a margin at both ends of the path.
+@item Margin(real begin, real end=begin)
+specify the size of the beginning and ending margin, respectively,
+in multiples of the units @code{labelmargin(p)} used for aligning labels.
 @cindex @code{BeginPenMargin}
+@item BeginPenMargin
 @cindex @code{EndPenMargin}
 @cindex @code{PenMargin}
+@item EndPenMargin
+(equivalently @code{PenMargin})
 @cindex @code{PenMargins}
-@cindex @code{BeginDotMargin}
-@cindex @code{EndDotMargin}
-@cindex @code{DotMargin}
-@cindex @code{DotMargins}
-@cindex @code{Margin}
-@cindex @code{TrueMargin}
-Margins can be used to shrink the visible portion of a path by
-@code{labelmargin(p)} to avoid overlap with other drawn objects.
-Typical values of @code{margin}
-are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
-equivalently @code{Margin}), and @code{Margins} (which leaves a margin
-at both ends of the path). One may use
-@code{Margin(real begin, real end=begin)}
-to specify the size of the beginning and ending margin, respectively,
-in multiples of the units @code{labelmargin(p)} used for aligning labels.
-Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
-(or equivalently @code{PenMargin}), @code{PenMargins},
-@code{PenMargin(real begin, real end=begin)} specify a margin in units of
+@item PenMargins
+@item PenMargin(real begin, real end=begin)
+specify a margin in units of
 the pen line width, taking account of the pen line width when drawing
-the path or arrow. For example, use @code{DotMargin}, an
-abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
-to draw from the usual beginning point just up to the boundary of an
-end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
-@code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
-similarly. The qualifier @code{TrueMargin(real begin, real end=begin)}
-allows one to specify a margin directly in @code{PostScript} units,
+the path or arrow.
+@cindex @code{DotMargin}
+@item DotMargin
+an abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
+used to draw from the usual beginning point just up to the boundary of an
+end dot of width @code{dotfactor*linewidth(p)}.
+@cindex @code{BeginDotMargin}
+@item BeginDotMargin
+@cindex @code{EndDotMargin}
+@cindex @code{DotMargins}
+@item DotMargins
+work similarly.
+@cindex @code{TrueMargin}
+@item TrueMargin(real begin, real end=begin)
+specify a margin directly in @code{PostScript} units,
 independent of the pen line width.
+@end table
 
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
@@ -1485,6 +1544,7 @@ For an illustration of picture clipping, see the first example in @ref{LaTeX usa
 @node label,  , clip, Drawing commands
 @section label
 @cindex @code{label}
+@cindex @code{labelmargin}
 @verbatim
 void label(picture pic=currentpicture, Label L, pair position,
            align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
@@ -1495,6 +1555,16 @@ Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
 coordinate @code{position}; otherwise it will be aligned in the
 direction of @code{align} and displaced from @code{position} by
 the @code{PostScript} offset @code{align*labelmargin(p)}.
+
+Here, @code{real labelmargin(pen p=currentpen)} is a quantity used to align labels.
+In the code below,
+@verbatim
+label("abcdefg",(0,0),align=up,basealign);
+@end verbatim
+@noindent
+the baseline of the label will be exactly
+@code{labelmargin(currentpen)} @code{PostScript} units above the center.
+
 @cindex @code{Align}
 The constant @code{Align} can be used to align the
 bottom-left corner of the label at @code{position}.
@@ -1610,11 +1680,14 @@ label(graphic("file.eps","width=1cm"),(0,0),NE);
 layer();
 @end verbatim
 
+@anchor{baseline}
 @cindex @code{baseline}
 The @code{string baseline(string s, string template="\strut")}
-function can be used to enlarge the bounding box of labels to match a
+function can be used to enlarge the bounding box of a label to match a
 given template, so that their baselines will be typeset on a
 horizontal line. See @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} for an example.
+Alternatively, the pen @code{basealign} may be used to force labels to
+respect the TeX baseline (@pxref{basealign}).
 
 One can prevent labels from overwriting one another with the
 @code{overwrite} pen attribute (@pxref{overwrite}).
@@ -1627,7 +1700,10 @@ A group of objects may be packed together into single frame with the routine
 frame pack(pair align=2S ... object inset[]);
 @end verbatim
 @noindent
-To draw or fill a box (or ellipse or other path) around a Label and
+@anchor{envelope}
+@cindex @code{envelope}
+@cindex @code{object}
+To draw or fill a box (or ellipse or other path) around a @code{Label} and
 return the bounding object, use one of the routines
 @verbatim
 object draw(picture pic=currentpicture, Label L, envelope e,
@@ -1639,8 +1715,7 @@ object draw(picture pic=currentpicture, Label L, envelope e, pair position,
 @end verbatim
 @noindent
 Here @code{envelope} is a boundary-drawing routine such as @code{box},
-@code{roundbox}, or @code{ellipse} defined in @code{plain_boxes.asy}
-(@pxref{envelope}).
+@code{roundbox}, or @code{ellipse} defined in @code{plain_boxes.asy}.
 
 @cindex @code{texpath}
 The function @code{path[] texpath(Label L)} returns the path array that
@@ -1775,6 +1850,7 @@ should coincide with the first node of the second path).
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
+* Deferred drawing::            Witholding drawing until all data is available
 * Files::                       Reading and writing your data
 * Variable initializers::       Initialize your variables
 * Structures::                  Organize your data
@@ -3101,12 +3177,21 @@ pen basealign=basealign(1);
 @end verbatim
 
 @noindent
-The default setting, @code{nobasealign},which may be changed with
+The default setting, @code{nobasealign}, which may be changed with
 @code{defaultpen(pen)}, causes the label alignment routines to use the
 full label bounding box for alignment. In contrast, @code{basealign}
 requests that the @TeX{} baseline be respected.
 The base align setting of a pen is returned by
 @code{int basealign(pen p=currentpen)}.
+
+For example, in the following image, the baselines of green @math{\pi} and
+@math{\gamma} are aligned, while the bottom border of red @math{-\pi}
+and @math{-\gamma} are aligned.
+@verbatiminclude basealign.asy
+@sp 1
+@center @image{./basealign}
+
+Another method for aligning baselines is provided by the @code{baseline} function (@pxref{baseline}).
 
 @cindex @code{fontsize}
 @cindex @code{lineskip}
@@ -3174,7 +3259,6 @@ pen ZapfDingbats(string series="m", string shape="n");
 @item Starting with the 2018/04/01 release, @LaTeX{} takes UTF-8 as
 the new default input encoding. However, you can still set different input
 encoding (so as the font, font encoding or even language context).
-@noindent
 @cindex Cyrillic
 @cindex Russian
 Here is an example for @code{cp1251} and Russian language in Cyrillic script
@@ -3226,7 +3310,7 @@ as described in
 Since @code{PostScript} does not support transparency, this feature is
 only effective with the @code{-f pdf} output format option; other
 formats can be produced from the resulting @acronym{PDF} file with the
-@code{ImageMagick} @code{convert} program.
+@code{ImageMagick} @code{magick} program.
 Labels are always drawn with an @code{opacity} of 1.
 A simple example of transparent filling is provided in the example file
 @code{@uref{https://asymptote.sourceforge.io/gallery/transparency.svg,,transparency}@uref{https://asymptote.sourceforge.io/gallery/transparency.asy,,.asy}}.
@@ -3405,7 +3489,7 @@ The function @code{bool isometry(transform t)} can be used to test if @code{t}
 is an isometry (preserves distance).
 
 
-@node Frames and pictures, Files, Transforms, Programming
+@node Frames and pictures
 @section Frames and pictures
 
 @table @code
@@ -3439,24 +3523,6 @@ A frame obtained by aligning frame @code{f} in the direction
 @code{label} (@pxref{label}), is returned by
 @verbatim
 frame align(frame f, pair align);
-@end verbatim
-
-@cindex @code{box}
-@cindex @code{ellipse}
-@anchor{envelope}
-@cindex @code{envelope}
-To draw or fill a box or ellipse around a label or frame and return the
-boundary as a path, use one of the predefined @code{envelope} routines
-@verbatim
-path box(frame f, Label L="", real xmargin=0,
-         real ymargin=xmargin, pen p=currentpen,
-         filltype filltype=NoFill, bool above=true);
-path roundbox(frame f, Label L="", real xmargin=0,
-              real ymargin=xmargin, pen p=currentpen,
-              filltype filltype=NoFill, bool above=true);
-path ellipse(frame f, Label L="", real xmargin=0,
-             real ymargin=xmargin, pen p=currentpen,
-             filltype filltype=NoFill, bool above=true);
 @end verbatim
 
 @item picture
@@ -3572,7 +3638,7 @@ To rotate the page by @math{-90} degrees, use the orientation @code{Seascape}.
 The orientation @code{UpsideDown} rotates the page by 180 degrees.
 
 @cindex subpictures
-@cindex @code{fit}
+@cindex @code{picture.fit}
 A picture @code{pic} can be explicitly fit to a frame by calling
 @verbatim
 frame pic.fit(real xsize=pic.xsize, real ysize=pic.ysize,
@@ -3581,13 +3647,14 @@ frame pic.fit(real xsize=pic.xsize, real ysize=pic.ysize,
 The default size and aspect ratio settings are those given to the
 @code{size} command (which default to @code{0}, @code{0}, and
 @code{true}, respectively).
-@cindex @code{calculateTransform}
+@cindex @code{picture.calculateTransform}
 The transformation that would currently be used to fit a picture
 @code{pic} to a frame is returned by the member function
 @code{pic.calculateTransform()}.
 
 In certain cases (e.g.@ 2D graphs) where only an approximate size
 estimate for @code{pic} is available, the picture fitting routine
+@cindex @code{picture.scale}
 @verbatim
 frame pic.scale(real xsize=this.xsize, real ysize=this.ysize,
                 bool keepAspect=this.keepAspect);
@@ -3604,6 +3671,7 @@ frame bbox(picture pic=currentpicture, real xmargin=0,
            real ymargin=xmargin, pen p=currentpen,
            filltype filltype=NoFill);
 @end verbatim
+@cindex @code{filltype}
 @anchor{filltype}
 Here @code{filltype} specifies one of the following fill types:
 @table @code
@@ -3731,10 +3799,9 @@ as a single entity (@pxref{GUI}), @code{filltype} requests optional
 background filling or clipping, and @code{above} specifies
 whether to add @code{src} above or below existing objects.
 
-There are also routines to add a picture or frame @code{src} specified
-in postscript coordinates to another picture @code{dest} (or
-@code{currentpicture}) about the user coordinate
-@code{position}:
+There are also routines to add a fixed-size picture or frame
+@code{src} to another picture @code{dest} (or @code{currentpicture})
+about the user coordinate @code{position}:
 @anchor{add about}
 @cindex @code{add}
 @cindex picture alignment
@@ -3845,7 +3912,108 @@ that can be used for importing @code{LaTeX} packages.
 
 @end table
 
-@node Files, Variable initializers, Frames and pictures, Programming
+@node Deferred drawing
+@section Deferred drawing
+In some cases, it is desirable to have some elements of a fixed absolute size, regardless of the scaling.
+For example, the size of a dot created with @code{dot}, or the size of the arrowheads created with @code{arrow}
+(@pxref{arrows}) should be independent of the scaling.
+
+However, because of @code{Asymptote}'s automatic scaling feature (@pxref{Figure size}),
+the translation between user coordinate and @code{PostScript} coordinate
+is not determined until shipout time:
+@verbatim
+size(2inch);
+dot((0,0));
+dot((1,1));
+shipout("x"); // at this point, 1 unit coordinate = about 2 inch
+dot((2,2));
+shipout("y"); // at this point, 1 unit coordinate = about 1 inch
+@end verbatim
+@noindent
+As such, it is necessary to defer the drawing of these elements until shipout time.
+
+The simplest cases are already covered above:
+@code{add(picture dest=currentpicture, frame src, pair position, ...)}
+will add a frame at the specified @code{position}.
+@verbatim
+frame f;
+fill(f,circle((0,0),1.5pt));
+add(f,position=(1,1),align=(0,0));
+@end verbatim
+
+@cindex @code{picture.add}
+@cindex @code{drawer}
+In more complicated cases, however, it would be necessary to write a deferred drawing routine.
+
+A deferred drawing routine is an object of type @code{drawer},
+which is a function with signature @code{void(frame f, transform t)}.
+For example:
+@verbatim
+drawer d=new void(frame f, transform t){
+  fill(f,circle(t*(1,1),1.5pt));
+};
+// or equivalently
+void d(frame f, transform t){
+  fill(f,circle(t*(1,1),1.5pt));
+}
+@end verbatim
+@noindent
+Then, if the drawer is added to a picture with
+@verbatim
+pic.add(d);
+@end verbatim
+@noindent
+the picture will get a filled circle at user coordinate @code{(1, 1)}.
+The parameter @code{t} is the transformation from the user coordinate
+to @code{PostScript} coordinate.
+
+@cindex @code{picture.addBox}
+There are a few things to look out for, however. Suppose you write the following:
+@verbatim
+add(new void(frame f, transform t){
+  fill(f,circle(t*(2,2)+(3inch,0),1.5pt));
+});
+@end verbatim
+@noindent
+The code creates a filled circle at @code{3inch} to the right of user coordinate @code{(2,2)}.
+However, what if there is also the following?
+@verbatim
+size(2inch);
+dot((0,0));
+dot((2,2));
+@end verbatim
+It would be impossible have two points @code{3inch} separated from each other
+in a picture with width @code{2inch}.
+
+In practice, @code{Asymptote} will just give up and make the picture width larger than 3 inches.
+
+More innocuously, suppose you modify @code{3inch} to @code{1inch}.
+@verbatim
+add(new void(frame f, transform t){
+  fill(f,circle(t*(2,2)+(1inch,0),1.5pt));
+});
+@end verbatim
+
+Because how @code{Asymptote}'s internal scaling algorithms are implemented,
+the resulting figure size remains a bit off.
+
+In order to avoid that, you should assist Asymptote by adding the following:
+@verbatim
+currentpicture.addBox((2,2),(2,2),(1inch-1.5pt,1.5pt),(1inch+1.5pt,1.5pt));
+@end verbatim
+
+The signature is:
+@verbatim
+void picture.addBox(pair userMin, pair userMax, pair trueMin, pair trueMax);
+@end verbatim
+
+This should be used to signify that there is some object with bounding box
+with bottom-left corner at @code{t*userMin+trueMin}
+and top-right corner at @code{t*userMax+trueMax},
+where @code{t} is the transformation that transforms
+from user coordinate to @code{PostScript} coordinate.
+
+@node Files
 @section Files
 
 @cindex @code{file}
@@ -4103,6 +4271,7 @@ rename file @code{from} to file @code{to}.
 Unless the @code{-globalwrite} (or @code{-nosafe}) option is enabled,
 this operation is restricted to the current directory.
 @cindex @code{convert}
+@cindex @code{magick}
 @cindex @code{animate}
 The functions
 @verbatim
@@ -4110,11 +4279,11 @@ int convert(string args="", string file="", string format="");
 int animate(string args="", string file="", string format="");
 @end verbatim
 @noindent
-call the @code{ImageMagick} commands @code{convert} and @code{animate},
+call the @code{ImageMagick} commands @code{magick} and @code{animate},
 respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}.
 
-@node Variable initializers, Structures, Files, Programming
+@node Variable initializers
 @section Variable initializers
 @cindex variable initializers
 @cindex @code{operator init}
@@ -4329,59 +4498,8 @@ Creating a new Person is a chore; it takes three lines to create a new instance
 and to initialize its fields (that's still considerably less effort than
 creating a new person in real life, though).
 
-We can reduce the work by defining a constructor function
-@code{Person(string,string)}:
-@verbatim
-struct Person {
-  string firstname;
-  string lastname;
-
-  static Person Person(string firstname, string lastname) {
-    Person p=new Person;
-    p.firstname=firstname;
-    p.lastname=lastname;
-    return p;
-  }
-}
-
-Person joe=Person.Person("Joe", "Jones");
-@end verbatim
-
-While it is now easier than before to create a new instance, we still
-have to refer to the constructor by the qualified name
-@code{Person.Person}.  If we add the line
-@verbatim
-from Person unravel Person;
-@end verbatim
-@noindent
-immediately after the structure definition, then the constructor can be used
-without qualification: @code{Person joe=Person("Joe", "Jones");}.
-
-The constructor is now easy to use, but it is quite a hassle to define.  If you
-write a lot of constructors, you will find that you are repeating a lot of code
-in each of them.  Fortunately, your friendly neighbourhood Asymptote
-developers have devised a way to automate much of the process.
-
+We can reduce the work by defining @code{operator init}:
 @cindex @code{operator init}
-If, in the body of a structure, Asymptote encounters the definition of
-a function of the form @code{void operator init(@var{args})},  it implicitly
-defines a constructor function of the arguments @code{@var{args}} that
-uses the @code{void operator init} function to initialize a
-new instance of the structure.
-That is, it essentially defines the following constructor (assuming the
-structure is called @code{Foo}):
-
-@example
-static Foo Foo(@var{args}) @{
-  Foo instance=new Foo;
-  instance.operator init(@var{args});
-  return instance;
-@}
-@end example
-
-This constructor is also implicitly copied to the enclosing scope after the end
-of the structure definition, so that it can used subsequently without qualifying
-it by the structure name.  Our @code{Person} example can thus be implemented as:
 @verbatim
 struct Person {
   string firstname;
@@ -4401,26 +4519,6 @@ confused with its use to define default values for variables
 (@pxref{Variable initializers}).  Indeed, in the
 first case, the return type of the @code{operator init} must be @code{void}
 while in the second, it must be the (non-@code{void}) type of the variable.
-
-@cindex @code{cputime}
-The function @code{cputime()}
-returns a structure @code{cputime} with cumulative @acronym{CPU} times
-broken down into the fields @code{parent.user}, @code{parent.system},
-@code{child.user}, and @code{child.system}, along with the cumulative
-wall clock time in @code{parent.clock}, all measured in seconds.
-For convenience, the incremental fields @code{change.user},
-@code{change.system}, and @code{change.clock} indicate  the change in
-the corresponding fields since the last call to @code{cputime()}. The
-function
-@verbatim
-void write(file file=stdout, string s="", cputime c,
-           string format=cputimeformat, suffix suffix=none);
-@end verbatim
-@noindent
-displays the incremental user cputime followed by ``u'',
-the incremental system cputime followed by ``s'',
-the total user cputime followed by ``U'', and
-the total system cputime followed by ``S''.
 
 @cindex inheritance
 @cindex virtual functions
@@ -5228,6 +5326,58 @@ If the iteration fails after the maximum allowed number of loops
 @cindex @code{simpson}
 @item @code{real simpson(real f(real), real a, real b, real acc=realEpsilon, real dxmax=b-a)}
 returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpson integration.
+
+Internally, @code{operator init} implicitly defines a constructor function
+@code{Person(string,string)} as follows, where @var{args} is
+@code{string firstname, string lastname} in this case:
+@example
+struct Person @{
+  string firstname;
+  string lastname;
+
+  static Person Person(@var{args}) @{
+    Person p=new Person;
+    p.operator init(@var{args});
+    return p;
+  @}
+@}
+@end example
+@noindent
+which then can be used as:
+@verbatim
+Person joe=Person.Person("Joe", "Jones");
+@end verbatim
+
+The following is also implicitly generated in the enclosing scope,
+after the end of the structure definition.
+@verbatim
+from Person unravel Person;
+@end verbatim
+@noindent
+It allows us to use the constructor without qualification,
+otherwise we would have to refer to the constructor by the qualified name
+@code{Person.Person}.
+
+@cindex @code{cputime}
+@noindent
+@item @code{cputime cputime()}
+returns a structure @code{cputime} with cumulative @acronym{CPU} times
+broken down into the fields @code{parent.user}, @code{parent.system},
+@code{child.user}, and @code{child.system}, along with the cumulative
+wall clock time in @code{parent.clock}, all measured in seconds.
+For convenience, the incremental fields @code{change.user},
+@code{change.system}, and @code{change.clock} indicate  the change in
+the corresponding fields since the last call to @code{cputime()}. The
+function
+@verbatim
+void write(file file=stdout, string s="", cputime c,
+           string format=cputimeformat, suffix suffix=none);
+@end verbatim
+@noindent
+displays the incremental user cputime followed by ``u'',
+the incremental system cputime followed by ``s'',
+the total user cputime followed by ``U'', and
+the total system cputime followed by ``S''.
 
 @end table
 
@@ -6074,7 +6224,6 @@ nonalphanumeric characters, enclose it with quotation marks:
 @cindex @acronym{libcurl}
 If @code{Asymptote} is compiled with support for @code{libcurl},
 the file name can even be a @acronym{URL}:
-@noindent
 @code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy" as axis3;}
 
 It is an error if modules import themselves (or each other in a cycle).
@@ -6372,7 +6521,6 @@ An even better method for processing a @code{LaTeX} file with embedded
 @noindent
 after putting the contents of
 @url{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/latexmkrc}
-@noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
 latexmk -pdf latexusage
@@ -6386,7 +6534,6 @@ To store the figures in a separate directory named @code{asy}, one can define
 \def\asydir{asy}
 @end verbatim
 in @code{latexusage.tex}.
-@noindent
 External @code{Asymptote} code can be included with
 @cindex @code{asyinclude}
 @verbatim
@@ -6770,13 +6917,13 @@ sharp corners of paths, as illustrated in the example file @code{@uref{https://a
 @node animation, embed, roundedpath, Base modules
 @section @code{animation}
 @cindex @code{animation}
-@cindex @code{convert}
+@cindex @code{magick}
 @cindex animation
 @cindex @code{ImageMagick}
 This module allows one to generate animations, as illustrated by the
 files @code{@uref{https://asymptote.sourceforge.io/gallery/animations/wheel.gif,,wheel}@uref{https://asymptote.sourceforge.io/gallery/animations/wheel.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/animations/wavepacket.gif,,wavepacket}@uref{https://asymptote.sourceforge.io/gallery/animations/wavepacket.asy,,.asy}}, and @code{@uref{https://asymptote.sourceforge.io/gallery/animations/cube.gif,,cube}@uref{https://asymptote.sourceforge.io/gallery/animations/cube.asy,,.asy}} in
 the @code{animations} subdirectory of the examples directory. These
-animations use the @code{ImageMagick} @code{convert} program to
+animations use the @code{ImageMagick} @code{magick} program to
 merge multiple images into a @acronym{GIF} or @acronym{MPEG}
 movie.
 
@@ -6787,7 +6934,6 @@ module, generates higher-quality portable clickable @acronym{PDF} movies, with
 optional controls. This requires installing the module
 @quotation
 @url{http://mirror.ctan.org/macros/latex/contrib/animate/animate.sty}
-@noindent
 @end quotation
 @noindent
 (version 2007/11/30 or later) in a new directory @code{animate} in the
@@ -8956,7 +9102,6 @@ functions in @code{graph.asy}.
 @cindex @code{xaxis3}
 @cindex @code{yaxis3}
 @cindex @code{zaxis3}
-@noindent
 To draw an @math{x} axis in three dimensions, use the routine
 @verbatim
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
@@ -9609,7 +9754,7 @@ settings.autoplain=true;
 at the beginning of the configuration file, it can contain arbitrary
 @code{Asymptote} code.
 
-@cindex @code{convert}
+@cindex @code{magick}
 @cindex @code{output}
 @cindex @code{format}
 @cindex @code{ImageMagick}
@@ -9626,7 +9771,7 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{EPS}
 @cindex @code{PDF}
 @anchor{texengines}
-@anchor{convert}
+@anchor{magick}
 The default output format is @acronym{EPS} for the (default)
 @code{latex} and @code{tex} tex engine and @acronym{PDF} for the
 @code{pdflatex}, @code{xelatex}, @code{context}, @code{luatex}, and
@@ -9645,20 +9790,18 @@ which can display @acronym{SVG} output (used by the
 with the default setting @code{settings.dvisvgmOptions="--optimize"}.
 
 @code{Asymptote} can also produce any output format supported
-by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
-later recommended; an @code{Invalid Parameter} error message indicates
-that the @code{MSDOS} utility @code{convert} is being used instead of
-the one that comes with @code{ImageMagick}).
+by the @code{ImageMagick} @code{magick} program (version 7 or
+later.
 The optional setting @code{-render n} requests
 an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
 controlled by the parameter @code{antialias}, which by default
 specifies a sampling width of 2 pixels.
-To give other options to @code{convert}, use the
-@code{convertOptions} setting or call convert manually. This example
+To give other options to @code{magick}, use the
+@code{convertOptions} setting or call @code{magick convert} manually. This example
 emulates how @code{Asymptote} produces antialiased @code{tiff} output at
 one pixel per @code{bp}:
 @verbatim
-asy -o - venn | convert -alpha Off -density 144x144 -geometry 50%x eps:- venn.tiff
+asy -o - venn | magick convert -alpha Off -density 144x144 -geometry 50%x eps:- venn.tiff
 @end verbatim
 
 @cindex @code{nosafe}
@@ -10013,9 +10156,9 @@ available from @url{https://sourceforge.net/projects/pstoedit/}) includes an
 @code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
 backends, this driver includes native clipping, even-odd fill rule,
 @code{PostScript} subpath, and full image support. Here is an example:
+
 @noindent
 @code{asy -V @value{Datadir}/doc/asymptote/examples/venn.asy}
-@noindent
 @verbatim
 pstoedit -f asy venn.eps test.asy
 asy -V test

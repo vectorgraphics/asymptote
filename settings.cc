@@ -1506,7 +1506,7 @@ void initSettings() {
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));
   addOption(new envSetting("dvisvgm", "dvisvgm"));
-  addOption(new envSetting("convert", "convert"));
+  addOption(new envSetting("convert", "magick"));
   addOption(new envSetting("display", defaultDisplay));
   addOption(new envSetting("animate", defaultAnimate));
   addOption(new envSetting("papertype", "letter"));

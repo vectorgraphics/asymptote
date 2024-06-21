@@ -37,7 +37,7 @@ real order=3;
 
 for(int i=0; i < n-1; ++i) {
   real dt=(b-a)*lambda^(n-i);
-  Solution S=integrate(Y0,L,F,a,b,dt,dynamic=false,0.0002,0.0004,ERK3BS,verbose=false);
+  Solution S=integrate(Y0,G,a,b,dt,dynamic=false,0.0002,0.0004,RK3BS,verbose=false);
   real maxnorm=0;
 
   Solution E=integrate(Y0,G,a,b,1e-2*dt,dynamic=false,0.0002,0.0004,RK5);
