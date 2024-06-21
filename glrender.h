@@ -44,6 +44,9 @@
 #endif
 
 #ifdef HAVE_LIBOSMESA
+#ifndef APIENTRY
+#define APIENTRY
+#endif
 #include <GL/osmesa.h>
 #endif
 
@@ -61,6 +64,9 @@
 #endif
 
 #ifdef HAVE_LIBOSMESA
+#ifndef APIENTRY
+#define APIENTRY
+#endif
 #include <GL/osmesa.h>
 #endif
 
