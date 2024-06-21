@@ -3914,27 +3914,30 @@ that can be used for importing @code{LaTeX} packages.
 
 @node Deferred drawing
 @section Deferred drawing
-In some cases, it is desirable to have some elements of a fixed absolute size, regardless of the scaling.
-For example, the size of a dot created with @code{dot}, or the size of the arrowheads created with @code{arrow}
-(@pxref{arrows}) should be independent of the scaling.
+It is sometimes desirable to have elements of a fixed absolute size,
+independent of the picture scaling from user to
+@code{PostScript} coordinates.
+For example, normally one would want the size of a dot created with
+@code{dot}, the size of the arrowheads created with @code{arrow}
+(@pxref{arrows}), and labels to be drawn independent of the scaling.
 
 However, because of @code{Asymptote}'s automatic scaling feature (@pxref{Figure size}),
 the translation between user coordinate and @code{PostScript} coordinate
 is not determined until shipout time:
 @verbatim
-size(2inch);
+size(1cm);
 dot((0,0));
 dot((1,1));
-shipout("x"); // at this point, 1 unit coordinate = about 2 inch
+shipout("x"); // at this point, 1 unit coordinate = 1cm
 dot((2,2));
-shipout("y"); // at this point, 1 unit coordinate = about 1 inch
+shipout("y"); // at this point, 1 unit coordinate = 0.5cm
 @end verbatim
 @noindent
-As such, it is necessary to defer the drawing of these elements until shipout time.
+It is therefore necessary to defer the drawing of these elements until shipout time.
 
-The simplest cases are already covered above:
-@code{add(picture dest=currentpicture, frame src, pair position, ...)}
-will add a frame at the specified @code{position}.
+For example, a frame can be added at a specified user coordinate of a
+picture with the deferred drawing routine
+@code{add(picture dest=currentpicture, frame src, pair position)}:
 @verbatim
 frame f;
 fill(f,circle((0,0),1.5pt));
@@ -3943,75 +3946,73 @@ add(f,position=(1,1),align=(0,0));
 
 @cindex @code{picture.add}
 @cindex @code{drawer}
-In more complicated cases, however, it would be necessary to write a deferred drawing routine.
 
 A deferred drawing routine is an object of type @code{drawer},
 which is a function with signature @code{void(frame f, transform t)}.
-For example:
+For example, if the drawing routine
 @verbatim
-drawer d=new void(frame f, transform t){
-  fill(f,circle(t*(1,1),1.5pt));
-};
-// or equivalently
 void d(frame f, transform t){
-  fill(f,circle(t*(1,1),1.5pt));
+  fill(f,shift(3cm,0)*circle(t*(1,1),2pt));
 }
 @end verbatim
 @noindent
-Then, if the drawer is added to a picture with
+is added to @code{currentpicture} with
 @verbatim
-pic.add(d);
+currentpicture.add(d);
 @end verbatim
 @noindent
-the picture will get a filled circle at user coordinate @code{(1, 1)}.
-The parameter @code{t} is the transformation from the user coordinate
-to @code{PostScript} coordinate.
+a filled circle of radius 2pt will be drawn on currentpicture centered
+3cm to the right of user coordinate @code{(1,1)}. The parameter @code{t} is the
+affine transformation from user coordinates to @code{PostScript} coordinates.
 
-@cindex @code{picture.addBox}
-There are a few things to look out for, however. Suppose you write the following:
+Even though the actual drawing is deferred, you still need to specify to the
+@code{Asymptote} scaling routines that ultimately a fixed-size circle
+of radius 2pt will be drawn 3cm to the right of user-coordinate (1,1),
+by adding a frame about (1,1) that extends beyond (1,1) from
+@code{(3cm-2pt,-2pt)+min(currentpen)} to
+@code{(3cm+2pt,2pt)+max(currentpen)}, where we have even
+accounted for the pen linewidth. The following example will then
+produce a @acronym{PDF} file 10 cm wide:
+
+@cindex @code{picture.addPoint}
 @verbatim
-add(new void(frame f, transform t){
-  fill(f,circle(t*(2,2)+(3inch,0),1.5pt));
-});
-@end verbatim
-@noindent
-The code creates a filled circle at @code{3inch} to the right of user coordinate @code{(2,2)}.
-However, what if there is also the following?
-@verbatim
-size(2inch);
+settings.outformat="pdf";
+size(10cm);
 dot((0,0));
-dot((2,2));
-@end verbatim
-It would be impossible have two points @code{3inch} separated from each other
-in a picture with width @code{2inch}.
-
-In practice, @code{Asymptote} will just give up and make the picture width larger than 3 inches.
-
-More innocuously, suppose you modify @code{3inch} to @code{1inch}.
-@verbatim
-add(new void(frame f, transform t){
-  fill(f,circle(t*(2,2)+(1inch,0),1.5pt));
+dot((1,1),red);
+add(new void(frame f, transform t) {
+  fill(f,shift(3cm,0)*circle(t*(1,1),2pt));
 });
+pair trueMin=(3cm-2pt,-2pt)+min(currentpen);
+pair trueMax=(3cm+2pt,2pt)+max(currentpen);
+currentpicture.addPoint((1,1),trueMin);
+currentpicture.addPoint((1,1),trueMax);
 @end verbatim
-
-Because how @code{Asymptote}'s internal scaling algorithms are implemented,
-the resulting figure size remains a bit off.
-
-In order to avoid that, you should assist Asymptote by adding the following:
+@noindent
+Here we specified the minimum and maximum user and truesize (fixed)
+coordinates of the drawer with the @code{picture} routine
 @verbatim
-currentpicture.addBox((2,2),(2,2),(1inch-1.5pt,1.5pt),(1inch+1.5pt,1.5pt));
+void addPoint(pair user, pair truesize);
 @end verbatim
-
-The signature is:
+@noindent
+Alternatively, one can use
 @verbatim
-void picture.addBox(pair userMin, pair userMax, pair trueMin, pair trueMax);
+void addBox(pair userMin, pair userMax, pair trueMin=0, pair trueMax=0) {
 @end verbatim
-
-This should be used to signify that there is some object with bounding box
-with bottom-left corner at @code{t*userMin+trueMin}
-and top-right corner at @code{t*userMax+trueMax},
+@noindent
+to specify a bounding box
+with bottom-left corner @code{t*(1,1)+trueMin}
+and top-right corner @code{t*(1,1)+trueMax},
 where @code{t} is the transformation that transforms
-from user coordinate to @code{PostScript} coordinate.
+from user coordinates to @code{PostScript} coordinates.
+
+For more details about deferred drawing, see
+``Asymptote: A vector graphics language,'' John C. Bowman and Andy
+Hammerlindl, TUGBOAT: The Communications of the TeX Users Group, 29:2,
+288-294 (2008),
+
+@noindent
+@url{https://www.math.ualberta.ca/~bowman/publications/asyTUG.pdf}.
 
 @node Files
 @section Files
