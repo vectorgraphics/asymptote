@@ -2924,6 +2924,10 @@ void AsyVkRender::createCountRenderPass()
   );
 
   countRenderPass = device->createRenderPass2Unique(renderPassCI);
+
+  if (!countRenderPass) {
+    throw std::runtime_error("Failed to create the count render pass.");
+  }
 }
 
 void AsyVkRender::createGraphicsRenderPass()
@@ -3058,6 +3062,10 @@ void AsyVkRender::createGraphicsRenderPass()
   );
   opaqueGraphicsRenderPass = device->createRenderPass2Unique(opaqueRenderPassCI);
 
+  if (!opaqueGraphicsRenderPass) {
+    throw std::runtime_error("Failed to create the opaque render pass.");
+  }
+
   auto renderPassCI = vk::RenderPassCreateInfo2(
     vk::RenderPassCreateFlags(),
     attachments.size(),
@@ -3068,6 +3076,10 @@ void AsyVkRender::createGraphicsRenderPass()
     dependencies.data()
   );
   graphicsRenderPass = device->createRenderPass2Unique(renderPassCI);
+
+  if (!graphicsRenderPass) {
+    throw std::runtime_error("Failed to create the graphics render pass.");
+  }
 }
 
 void AsyVkRender::createGraphicsPipelineLayout()
