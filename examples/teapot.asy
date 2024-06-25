@@ -202,6 +202,7 @@ triple[][][] Q0={
   }
 };
 
+
 surface regularize(triple[][] P, real fraction=0.02)
 {
   triple[][][] B=hsplit(P,fraction);
@@ -215,7 +216,8 @@ surface regularize(triple[][] P, real fraction=0.02)
 
 surface S=surface(Q);
 for(triple[][] q : Q0)
-  S.append(regularize(q));
+  //  S.append(regularize(q));
+  S.append(surface(patch(q)));
 
 pen color;
 real metallic;

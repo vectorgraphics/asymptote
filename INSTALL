@@ -40,12 +40,12 @@ make install
 Optional packages:
 
 * Fast Fourier Transform library
-  http://www.fftw.org/
+  https://www.fftw.org/
 
   Version requirement >= 3.0
 
 * The GNU Scientific Library for numerical analysis:
-  http://www.gnu.org/software/gsl/
+  https://www.gnu.org/software/gsl/
 
 *****************************************
 Generic Configure Instructions (advanced)
