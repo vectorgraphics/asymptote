@@ -3224,10 +3224,10 @@ function resize()
     window.parent.asyProjection=false;
 
   if(W.absolute && !W.embedded) {
-    W.canvasWidth=W.canvasWith0*window.devicePixelRatio;
+    W.canvasWidth=W.canvasWidth0*window.devicePixelRatio;
     W.canvasHeight=W.canvasHeight0*window.devicePixelRatio;
   } else {
-    let Aspect=W.canvasWith0/W.canvasHeight0;
+    let Aspect=W.canvasWidth0/W.canvasHeight0;
     W.canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     W.canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
@@ -3788,7 +3788,7 @@ function webGLStart()
   W.canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
 
-  W.canvasWith0=W.canvasWidth;
+  W.canvasWidth0=W.canvasWidth;
   W.canvasHeight0=W.canvasHeight;
 
   mat4.identity(rotMat);
