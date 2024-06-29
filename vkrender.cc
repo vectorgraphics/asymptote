@@ -885,8 +885,9 @@ void AsyVkRender::createInstance()
     VK_MAKE_VERSION(1, 0, 0),
     VK_API_VERSION_1_2
   );
-  auto extensions = getRequiredInstanceExtensions();
+  auto supportedExtensions = getInstanceExtensions();
   auto supportedLayers = vk::enumerateInstanceLayerProperties();
+  auto extensions = getRequiredInstanceExtensions();
 
   auto isLayerSupported = [supportedLayers](std::string layerName) {
     return std::find_if(
@@ -895,6 +896,15 @@ void AsyVkRender::createInstance()
       [layerName](vk::LayerProperties const& layer) {
         return layer.layerName.data() == layerName;
       }) != supportedLayers.end();
+  };
+
+  auto isExtensionSupported = [supportedExtensions](std::string extension) {
+    return std::find_if(
+      supportedExtensions.begin(),
+      supportedExtensions.end(),
+      [extension](std::string const& supportedExt) {
+        return supportedExt == extension;
+      }) != supportedExtensions.end();
   };
 
 #ifdef VALIDATION
@@ -911,6 +921,12 @@ void AsyVkRender::createInstance()
     } else if (settings::verbose > 1) {
       std::cout << "Mesa overlay layer is not supported by the current Vulkan instance." << std::endl;
     }
+  }
+
+  // For some Mac users, there is the instance extension available VK_KHR_get_memory_requirements2, which may
+  // be needed for VMA
+  if (isExtensionSupported(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)) {
+    extensions.emplace_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
   }
 
   auto const instanceCI = vk::InstanceCreateInfo(
