@@ -522,7 +522,7 @@ class vertexBuffer {
   }
 
   // indexed colored vertex
-  iVertex(i,v,n,c=[0,0,0,0]) {
+  iVertex(i,v,n,onscreen,c=[0,0,0,0]) {
     let i6=6*i;
     this.vertices[i6]=v[0];
     this.vertices[i6+1]=v[1];
@@ -536,7 +536,8 @@ class vertexBuffer {
     this.colors[i4+1]=c[1];
     this.colors[i4+2]=c[2];
     this.colors[i4+3]=c[3];
-    this.indices.push(i);
+    if(onscreen)
+      this.indices.push(i);
   }
 
   append(data) {
@@ -2188,6 +2189,7 @@ class Triangles extends Geometry {
   }
 
   process(p) {
+
     this.data.vertices=new Array(6*p.length);
     // Override materialIndex to encode color vs material
       materialIndex=this.Colors.length > 0 ?
@@ -2199,41 +2201,40 @@ class Triangles extends Geometry {
       let P0=p[PI[0]];
       let P1=p[PI[1]];
       let P2=p[PI[2]];
-      if(!this.offscreen([P0,P1,P2])) {
-        let NI=index.length > 1 ? index[1] : PI;
-        if(!NI || NI.length == 0) NI=PI;
-        if(this.Colors.length > 0) {
-          let CI=index.length > 2 ? index[2] : PI;
-          if(!CI || CI.length == 0) CI=PI;
-          let C0=this.Colors[CI[0]];
-          let C1=this.Colors[CI[1]];
-          let C2=this.Colors[CI[2]];
-          this.transparent |= C0[3]+C1[3]+C2[3] < 765;
-          if(wireframe == 0) {
-            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
-            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
-            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
-          } else {
-            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
-            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
-            this.data.iVertex(PI[1],P1,this.Normals[NI[1]],C1);
-            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
-            this.data.iVertex(PI[2],P2,this.Normals[NI[2]],C2);
-            this.data.iVertex(PI[0],P0,this.Normals[NI[0]],C0);
-          }
+      let onscreen=!this.offscreen([P0,P1,P2]);
+      let NI=index.length > 1 ? index[1] : PI;
+      if(!NI || NI.length == 0) NI=PI;
+      if(this.Colors.length > 0) {
+        let CI=index.length > 2 ? index[2] : PI;
+        if(!CI || CI.length == 0) CI=PI;
+        let C0=this.Colors[CI[0]];
+        let C1=this.Colors[CI[1]];
+        let C2=this.Colors[CI[2]];
+        this.transparent |= C0[3]+C1[3]+C2[3] < 765;
+        if(wireframe == 0) {
+          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],onscreen,C0);
+          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],onscreen,C1);
+          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],onscreen,C2);
         } else {
-          if(wireframe == 0) {
-            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
-            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
-            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
-          } else {
-            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
-            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
-            this.data.iVertex(PI[1],P1,this.Normals[NI[1]]);
-            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
-            this.data.iVertex(PI[2],P2,this.Normals[NI[2]]);
-            this.data.iVertex(PI[0],P0,this.Normals[NI[0]]);
-          }
+          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],onscreen,C0);
+          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],onscreen,C1);
+          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],onscreen,C1);
+          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],onscreen,C2);
+          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],onscreen,C2);
+          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],onscreen,C0);
+        }
+      } else {
+        if(wireframe == 0) {
+          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],onscreen);
+          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],onscreen);
+          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],onscreen);
+        } else {
+          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],onscreen);
+          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],onscreen);
+          this.data.iVertex(PI[1],P1,this.Normals[NI[1]],onscreen);
+          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],onscreen);
+          this.data.iVertex(PI[2],P2,this.Normals[NI[2]],onscreen);
+          this.data.iVertex(PI[0],P0,this.Normals[NI[0]],onscreen);
         }
       }
     }
