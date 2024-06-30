@@ -17,6 +17,10 @@
 #include "fftw++.h"
 #endif
 
+#if defined(HAVE_LIBCURSES) && defined(HAVE_LIBREADLINE)
+#include <readline/readline.h>
+#endif
+
 void interruptHandler(int)
 {
 #ifdef HAVE_LIBFFTW3
@@ -34,6 +38,9 @@ int returnCode()
 
 void exitHandler(int)
 {
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+  rl_cleanup_after_signal();
+#endif
   exit(returnCode());
 }
 
