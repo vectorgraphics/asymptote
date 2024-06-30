@@ -135,17 +135,12 @@ class MainWindow1(Qw.QMainWindow):
         self.asy2psmap = x2a.yflip()
 
         if self.settings['asyBaseLocation'] is not None:
-            os.environ['ASYMPTOTE_DIR'] = self.settings['asyBaseLocation']\
-
-        if self.args.asypath is not None:
-            asyPath = self.args.asypath
-        else:
-            asyPath = self.settings['asyPath']
+            os.environ['ASYMPTOTE_DIR'] = self.settings['asyBaseLocation']
 
         addrAsyArgsRaw: str = self.args.additionalAsyArgs or \
             self.settings.get('additionalAsyArgs', "")
 
-        self.asyPath = asyPath
+        self.asyPath = self.args.asypath or self.settings.get('asyPath')
         self.asyEngine = x2a.AsymptoteEngine(self.asyPath, addrAsyArgsRaw.split(','))
 
         try:
