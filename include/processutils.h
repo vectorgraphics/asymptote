@@ -19,7 +19,7 @@
 #include "pen.h"
 #include "dec.h"
 #include "transform.h"
-#include "parser.h"
+#include "asyparser.h"
 
 #ifdef HAVE_LIBTIRPC
 #include "xstream.h"

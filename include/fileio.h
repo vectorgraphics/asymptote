@@ -30,7 +30,7 @@
 #include "util.h"
 #include "processutils.h"
 #include "locate.h"
-#include "parser.h"
+#include "asyparser.h"
 
 namespace vm {
 extern bool indebugger;

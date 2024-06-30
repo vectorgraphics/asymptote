@@ -24,7 +24,7 @@
 #include "interact.h"
 #include "locate.h"
 #include "errormsg.h"
-#include "parser.h"
+#include "asyparser.h"
 #include "util.h"
 
 // The lexical analysis and parsing functions used by parseFile.

@@ -77,7 +77,7 @@ stringarray2* => stringArray2()
 #include "builtin.h"
 #include "texfile.h"
 #include "pipestream.h"
-#include "parser.h"
+#include "asyparser.h"
 #include "stack.h"
 #include "util.h"
 #include "locate.h"

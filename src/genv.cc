@@ -24,7 +24,7 @@
 #include "types.h"
 #include "settings.h"
 #include "runtime.h"
-#include "parser.h"
+#include "asyparser.h"
 #include "locate.h"
 #include "interact.h"
 #include "builtin.h"
