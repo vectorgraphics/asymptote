@@ -274,7 +274,7 @@ string escapeCharacters(string const& inText, std::unordered_set<char> const& ch
   }
   retBuffer.emplace_back(0);
 
-  return {retBuffer.begin(), retBuffer.end() };
+  return retBuffer.data();
 }
 
 string Getenv(const char *name, bool msdos)

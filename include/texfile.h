@@ -57,18 +57,21 @@ void latexfontencoding(T& out)
       << "\\makeatother%" << newl;
 }
 
+std::unordered_set const latexCharacters = {'#', '$', '%', '&', '\\', '^', '_', '{', '}', '~'};
+
 template<class T>
 void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
                  bool pipe=false, bool ASYbox=true)
 {
   texuserpreamble(out,preamble,pipe);
   string texengine=settings::getSetting<string>("tex");
+  string outPath=stripFile(settings::outname());
   if(settings::context(texengine))
     out << "\\disabledirectives[system.errorcontext]%" << newl;
   if(ASYbox)
     out << "\\newbox\\ASYbox" << newl
         << "\\newdimen\\ASYdimen" << newl;
-  out << "\\def\\ASYprefix{" << stripFile(settings::outname()) << "}" << newl
+  out << "\\def\\ASYprefix{" << escapeCharacters(outPath, latexCharacters) << "}" << newl
       << "\\long\\def\\ASYbase#1#2{\\leavevmode\\setbox\\ASYbox=\\hbox{#1}%"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl;
