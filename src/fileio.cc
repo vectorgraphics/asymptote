@@ -18,6 +18,103 @@ string newline="\n";
 ofile Stdout("");
 file nullfile("",false,NOMODE,false,true);
 
+void openpipeout()
+{
+  int fd=intcast(settings::getSetting<Int>("outpipe"));
+  if(!pipeout && fd >= 0) pipeout=fdopen(fd,"w");
+  if(!pipeout) {
+    cerr << "Cannot open outpipe " << fd << endl;
+    exit(-1);
+  }
+}
+
+string locatefile(string name)
+{
+  string s=settings::locateFile(name,false,"");
+  return s.empty() ? name : s;
+}
+
+#pragma region "class file"
+
+bool file::Standard()
+{
+  return standard;
+}
+
+void file::standardEOF()
+{
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  cout << endl;
+#endif
+}
+
+void file::purgeStandard(string&)
+{
+  if(cin.eof())
+    standardEOF();
+}
+
+void file::dimension(Int Nx, Int Ny, Int Nz)
+{
+  if(Nx < -2 || Ny < -2 || Nz < -2) {
+    ostringstream buf;
+    buf << "Invalid array dimensions: " << Nx << ", " << Ny << ", " << Nz;
+    reportError(buf);
+  }
+
+  nx=Nx; ny=Ny; nz=Nz;
+}
+
+file::file(
+        string const& name, bool check,
+        Mode type, bool binary,
+        bool closed
+        ) :
+    name(name), check(check), type(type), linemode(false), csvmode(false),
+    wordmode(false), singlereal(false), singleint(true), signedint(true),
+    closed(closed), standard(name.empty()), binary(binary), nullfield(false),
+    whitespace("")
+{
+  dimension();
+}
+
+void file::Check()
+{
+  if(error()) {
+    ostringstream buf;
+    buf << "Cannot open file \"" << name << "\"";
+    reportError(buf);
+  }
+}
+
+file::~file()
+{
+
+}
+
+bool file::isOpen()
+{
+  if(closed) {
+    ostringstream buf;
+    buf << "I/O operation attempted on ";
+    if(name != "") buf << "closed file \'" << name << "\'";
+    else buf << "null file";
+    reportError(buf);
+  }
+  return true;
+}
+void file::unsupported(char const* rw, char const* type)
+{
+  ostringstream buf;
+  buf << rw << " of type " << type << " not supported in " << FileMode()
+      << " mode";
+  reportError(buf);
+}
+
+#pragma endregion
+
+#pragma region "class ifile"
+
 void ifile::open()
 {
   if(standard) {
@@ -229,6 +326,8 @@ void ifile::Read(string& val)
   val=whitespace+s;
 }
 
+#pragma endregion
+
 void ofile::writeline()
 {
   if(standard && interact::query && !vm::indebugger) {
@@ -251,6 +350,114 @@ void ofile::writeline()
     ++interact::lines;
   } else *stream << newline;
   if(errorstream::interrupt) {interact::lines=0; throw interrupted();}
+}
+
+void ofile::open()
+{
+  if(standard) {
+    if(mode & std::ios::binary)
+      reportError("Cannot open standard output in binary mode");
+    stream=&cout;
+  } else {
+    name=outpath(name);
+    stream=fstream=new std::ofstream(name.c_str(),mode | std::ios::trunc);
+    stream->precision(settings::getSetting<Int>("digits"));
+    index=processData().ofile.add(fstream);
+    Check();
+  }
+}
+
+void ofile::close()
+{
+  if(!standard && fstream) {
+    fstream->close();
+    closed=true;
+    delete fstream;
+    fstream=NULL;
+    processData().ofile.remove(index);
+  }
+}
+
+Int ofile::precision(Int p)
+{
+  return p == 0 ? stream->precision(settings::getSetting<Int>("digits")) :
+         stream->precision(p);
+}
+
+void ofile::seek(Int pos, bool begin)
+{
+  if(!standard && fstream) {
+    clear();
+    fstream->seekp(pos,begin ? std::ios::beg : std::ios::end);
+  }
+}
+size_t ofile::tell()
+{
+  if(fstream)
+    return fstream->tellp();
+  else
+    return 0;
+}
+
+bool ofile::enabled()
+{
+  return !standard || settings::verbose > 1 ||
+        interact::interactive || !settings::getSetting<bool>("quiet");
+}
+
+
+#pragma region opipe
+void opipe::write(const string& val) {
+  if (fprintf(pipeout,"%s",val.c_str()) < 0)
+  {
+    reportError("Write failed to pipe");
+  }
+}
+
+void opipe::flush()
+{
+  if(pipeout)
+  {
+    if (fflush(pipeout) == EOF)
+    {
+      reportError("Flushing pipe failed");
+    }
+  }
+}
+
+#pragma endregion
+
+void iofile::writeline()
+{
+  *fstream << newline;
+  if(errorstream::interrupt) throw interrupted();
+}
+
+void igzxfile::open()
+{
+  name=locatefile(inpath(name));
+  gzfile=gzopen(name.c_str(),"rb");
+  Check();
+
+  while(!gzeof(gzfile)) {
+    std::vector<char> tmpBuf(readSize);
+    auto filSz = gzread(gzfile,tmpBuf.data(),readSize);
+    std::copy(tmpBuf.begin(),tmpBuf.begin()+filSz,std::back_inserter(readData));
+  }
+  gzclose(gzfile);
+
+  fstream=new xdr::memixstream(readData);
+  index=processData().ixfile.add(fstream);
+}
+
+void igzxfile::closeFile()
+{
+  if(fstream) {
+    fstream->close();
+    closed=true;
+    delete fstream;
+    processData().ixfile.remove(index);
+  }
 }
 
 } // namespace camp
