@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
         lspcpp
         GIT_REPOSITORY https://github.com/vectorgraphics/LspCpp
-        GIT_TAG release-2023-12-8
+        GIT_TAG 87a67d1623e03cc5f3b054e7529a42f6b19c2869
 )
 
 if (ENABLE_LSP)
