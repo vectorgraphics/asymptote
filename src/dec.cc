@@ -27,7 +27,7 @@ using namespace types;
 
 using mem::list;
 
-trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
+trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
 {
   return new trans::tyEntry(trans(e, false), 0, where, getPos());
 }
@@ -128,7 +128,7 @@ arrayTy::operator string() const
 }
 
 tyEntryTy::tyEntryTy(position pos, types::ty *t)
-  : ty(pos), ent(new trans::tyEntry(t, 0, 0, position()))
+  : astType(pos), ent(new trans::tyEntry(t, 0, 0, position()))
 {
 }
 
@@ -200,7 +200,8 @@ void block::transAsField(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedField(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args,
+  frame *caller
 ) {
   Scope scopeHolder(e, scope);
   auto p = stms.begin();
@@ -214,7 +215,7 @@ bool block::transAsTemplatedField(
     em.sync();
     return false;
   }
-  if(!dec->transAsParamMatcher(e, r, args))
+  if(!dec->transAsParamMatcher(e, r, args, caller))
     return false;
 
   while (++p != stms.end()) {
@@ -234,9 +235,10 @@ void block::transAsRecordBody(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedRecordBody(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args,
+  frame *caller
 ) {
-  bool succeeded = transAsTemplatedField(e, r, args);
+  bool succeeded = transAsTemplatedField(e, r, args, caller);
   e.c.closeRecord();
   return succeeded;
 }
@@ -267,10 +269,26 @@ record *block::transAsTemplatedFile(
     genv& ge,
     symbol id,
     mem::vector<absyntax::namedTyEntry*>* args,
-    frame *parent
+    coenv& cE
 ) {
+
+  for (auto p = args->rbegin(); p != args->rend(); ++p) {
+    namedTyEntry *arg = *p;
+    tyEntry *ent = arg->ent;
+    if(ent->t->kind == types::ty_record) {
+      varEntry *v = ent->v;
+      if (v) {
+        // Push the value of v to the stack.
+        v->getLocation()->encode(READ, arg->pos, cE.c);
+      } else  {
+        // Push the appropriate frame to the stack.
+        newRecordExp::encodeLevel(arg->pos,cE,ent);
+      }
+    }
+  }
+
   // Create the new module.
-  record *r = new record(id, new frame(id,parent,0));
+  record *r = new record(id, new frame(id, 0, 0));
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -283,7 +301,7 @@ record *block::transAsTemplatedFile(
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  bool succeeded = transAsTemplatedRecordBody(ce, r, args);
+  bool succeeded = transAsTemplatedRecordBody(ce, r, args, cE.c.getFrame());
   if (!succeeded) {
     return nullptr;
   }
@@ -491,7 +509,7 @@ void decidstart::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 }
 
 void decidstart::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   std::string name(static_cast<std::string>(getName()));
@@ -733,7 +751,7 @@ void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 }
 
 void decid::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   start->createSymMapWType(symContext, base);
@@ -775,7 +793,7 @@ void decidlist::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
 }
 
 void decidlist::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   for (auto const& p : decs)
@@ -834,7 +852,7 @@ class loadModuleExp : public exp {
 
 public:
   loadModuleExp(position pos, record *imp)
-    : exp(pos) {ft=new function(imp,primString(),primString());}
+    : exp(pos) {ft=new function(imp,primString());}
 
   void prettyprint(ostream &out, Int indent) {
     prettyname(out, "loadModuleExp", indent, getPos());
@@ -865,18 +883,19 @@ public:
 // the import, but doesn't add the import to the environment.
 varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 {
-  record *imp=e.e.getModule(id, (string)id);
+  string filename=(string) id;
+  record *imp=e.e.getModule(id, filename);
   if (!imp) {
     em.error(pos);
-    em << "could not load module '" << id << "'";
+    em << "could not load module '" << filename << "'";
     em.sync();
     return 0;
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename,"")'.
+    // This is effectively the expression 'loadModule(filename)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string)id), new stringExp(pos, ""));
+                 new stringExp(pos, filename));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -891,14 +910,15 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 formals *args)
 {
-  stringstream s;
-  s << args->getSignature(e)->handle();
-  string sigHandle=s.str();
+  string filename=(string) id;
+  stringstream buf;
+  buf << id << '/' << args->getSignature(e)->handle() << '/';
+  symbol index=symbol::literalTrans(buf.str());
 
   auto *computedArgs = new mem::vector<namedTyEntry*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
   for (auto p = fields->begin(); p != fields->end(); ++p) {
-    ty* theType = p->ty;
+    astType* theType = p->ty;
     symbol theName = p->sym;
     if (theName == symbol::nullsym) {
       em.error(theType->getPos());
@@ -911,11 +931,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(id,
-                                     (string) id,
-                                     sigHandle,
-                                     computedArgs,
-                                     e.c.getFrame());
+  record *imp=e.e.getTemplatedModule(index,filename,computedArgs,e);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -924,9 +940,8 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename,index)'.
-    callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string) id), new stringExp(pos, sigHandle));
+    // This is effectively the expression 'loadModule(index)'.
+    callExp init(pos, new loadModuleExp(pos, imp), new stringExp(pos, index));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -1061,7 +1076,22 @@ void typeParam::prettyprint(ostream &out, Int indent) {
   out << "typeParam (" << paramSym <<  ")\n";
 }
 
+void recordInitializer(coenv &e, symbol id, record *parent, position here)
+{
+  // This is equivalent to the code
+  //   A operator init() { return new A; }
+  // where A is the name of the record.
+  formals formals(here);
+  simpleName recordName(here, id);
+  nameTy result(here, &recordName);
+  newRecordExp exp(here, &result);
+  returnStm stm(here, &exp);
+  fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
+  init.transAsField(e, parent);
+}
+
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
+  position pos=arg->pos;
   if (arg->dest != paramSym) {
     em.error(arg->pos);
     em << "template argument name does not match module: passed "
@@ -1070,22 +1100,42 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
        << paramSym;
     return false;
   }
-  addTypeWithPermission(e, r, arg->ent, paramSym);
-  types::ty *t = arg->ent->t;
-  if (t->kind == types::ty_record) {
-    record *local = dynamic_cast<record *>(t);
-    // copied from recorddecc::addPostRecordEnvironment, mutatis mutandis
-    if (r) {
-      r->e.add(local->postdefenv, 0, e.c);
+
+  if(arg->ent->t->kind == types::ty_record) {
+    record *module = dynamic_cast<record *>(arg->ent->v->getType());
+    symbol Module=symbol::literalTrans(module->getName());
+    record *imp=e.e.getLoadedModule(Module);
+
+    tyEntry *entry;
+    if(imp) {
+      callExp init(pos, new loadModuleExp(pos, imp),
+                   new stringExp(pos, module->getName()));
+      varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+      initializeVar(pos, e, v, &init);
+      if (v)
+        addVar(e, r, v, Module);
+
+      record *src = dynamic_cast<record *>(arg->ent->t);
+      qualifiedName *qn=new qualifiedName(
+        pos,
+        new simpleName(pos,module->getName()),
+        src->getName()
+        );
+
+      entry=nameTy(pos,qn).transAsTyEntry(e, r);
+    } else {
+      entry=arg->ent;
     }
-    e.e.add(local->postdefenv, 0, e.c);
-  }
+    addTypeWithPermission(e, r, entry, paramSym);
+    recordInitializer(e,paramSym,r,pos);
+  } else
+    addTypeWithPermission(e, r, arg->ent, paramSym);
 
   //e.e.addType(paramSym, arg->ent);
   // The code below would add e.g. operator== to the context, but potentially
   // ignore overrides of operator==:
   //
-  // types::ty *t = arg.ent->t;
+  // types::astType *t = arg.ent->t;
   // if (t->kind == types::ty_record) {
   //   record *r = dynamic_cast<record *>(t);
   //   if (r) {
@@ -1116,7 +1166,7 @@ void typeParamList::add(typeParam *tp) {
 }
 
 bool typeParamList::transAsParamMatcher(
-    coenv &e, record *r, mem::vector<namedTyEntry*> *args
+  coenv &e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
 ) {
   if (args->size() != params.size()) {
     position pos = getPos();
@@ -1133,8 +1183,30 @@ bool typeParamList::transAsParamMatcher(
     }
     return false;
   }
+  mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
+
+  const string callerContextName="callerContext/";
+  const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
+  record *callerContext = new record(*id0, caller);
+  for (namedTyEntry *arg : *args) {
+    if (arg->ent->t->kind == types::ty_record) {
+      varEntry *v = arg->ent->v;
+      varEntry *newV = makeVarEntryWhere(e, r, v ? v->getType() : callerContext, nullptr,
+                                         arg->pos);
+      newV->getLocation()->encode(WRITE, arg->pos, e.c);
+      e.c.encodePop();
+
+      tyEntry *newEnt = qualifyTyEntry(newV, arg->ent);
+      qualifiedArgs->push_back(
+        new namedTyEntry(arg->pos, arg->dest, newEnt)
+        );
+    } else {
+      qualifiedArgs->push_back(arg);
+    }
+  }
+
   for (size_t i = 0; i < params.size(); ++i) {
-    bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
+    bool succeeded = params[i]->transAsParamMatcher(e, r, (*qualifiedArgs)[i]);
     if (!succeeded) return false;
   }
   return true;
@@ -1152,9 +1224,9 @@ symbol templatedSymbol() {
 }
 
 bool receiveTypedefDec::transAsParamMatcher(
-    coenv& e, record *r, mem::vector<namedTyEntry*> *args
+  coenv& e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
 ) {
-  bool succeeded = params->transAsParamMatcher(e, r, args);
+  bool succeeded = params->transAsParamMatcher(e, r, args, caller);
 
   types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);
@@ -1349,19 +1421,7 @@ void recorddec::prettyprint(ostream &out, Int indent)
 
 void recorddec::transRecordInitializer(coenv &e, record *parent)
 {
-  position here=getPos();
-
-  // This is equivalent to the code
-  //   A operator init() { return new A; }
-  // where A is the name of the record.
-  formals formals(here);
-  simpleName recordName(here, id);
-  nameTy result(here, &recordName);
-  newRecordExp exp(here, &result);
-  returnStm stm(here, &exp);
-  fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
-
-  init.transAsField(e, parent);
+  recordInitializer(e,id,parent,getPos());
 }
 
 void recorddec::addPostRecordEnvironment(coenv &e, record *r, record *parent) {
@@ -1420,7 +1480,7 @@ runnable *autoplainRunnable() {
   // Abstract syntax for the code:
   //   private import plain;
   position pos=position();
-  static importdec ap(pos, new idpair(pos, symbol::trans("plain")));
+  static importdec ap(pos, new idpair(pos, symbol::literalTrans("plain")));
   static modifiedRunnable mr(pos, trans::PRIVATE, &ap);
 
   return &mr;

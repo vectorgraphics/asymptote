@@ -79,6 +79,9 @@ protected:
 public:
 
   bool Standard();
+  bool enabled() {return !standard || settings::verbose > 1 ||
+      interact::interactive || !settings::getSetting<bool>("quiet");}
+
   void standardEOF();
 
   template<class T>

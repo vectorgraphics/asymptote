@@ -22,7 +22,7 @@
 #include <iostream>
 
 namespace vm {
-void draw(ostream& out, frame *v);
+void draw(ostream& out, vmFrame *v);
 }
 #endif
 
@@ -57,9 +57,9 @@ inline stack::vars_t base_frame(
 #else
 #  ifdef DEBUG_FRAME
   assert(!name.empty());
-  vars = new frame(name, parentIndex, size);
+  vars = new vmFrame(name, parentIndex, size);
 #  else
-  vars = new frame(size);
+  vars = new vmFrame(size);
 #  endif
   (*vars)[parentIndex] = closure;
 #endif
@@ -98,7 +98,7 @@ stack::vars_t make_dummyframe(string name)
 inline stack::vars_t make_globalframe(size_t size)
 {
   assert(size > 0);
-#if SIMPLE_FRAME
+#ifdef SIMPLE_FRAME
   // The global frame is an indirect frame.  It holds one item, which is the
   // link to another frame.
   stack::vars_t direct = new item[1];
@@ -119,13 +119,13 @@ inline stack::vars_t make_globalframe(size_t size)
 
 }
 
-inline void resize_frame(frame *f, size_t oldsize, size_t newsize)
+inline void resize_frame(vmFrame *f, size_t oldsize, size_t newsize)
 {
   //assert("Need to fix this" == 0);
   assert(newsize > oldsize);
-#if SIMPLE_FRAME
-  frame *old_indirect = get<frame *>(f[0]);
-  frame *new_indirect = new item[newsize];
+#ifdef SIMPLE_FRAME
+  vmFrame *old_indirect = get<vmFrame *>(f[0]);
+  vmFrame *new_indirect = new item[newsize];
   std::copy(old_indirect, old_indirect+oldsize, new_indirect);
   f[0] = new_indirect;
 #else
@@ -147,12 +147,13 @@ void run(lambda *l)
 // Move arguments from stack to frame.
 void stack::marshall(size_t args, stack::vars_t vars)
 {
-  for (size_t i = args; i > 0; --i)
-#if SIMPLE_FRAME
+  for (size_t i = args; i > 0; --i) {
+#   ifdef SIMPLE_FRAME
     vars[i-1] = pop();
-#else
-  (*vars)[i-1] = pop();
-#endif
+#   else
+    (*vars)[i-1] = pop();
+#   endif
+  }
 }
 
 #ifdef PROFILE
@@ -275,7 +276,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 
 #ifdef SIMPLE_FRAME
   // Link to the variables, be they in a closure or on the stack.
-  frame *varlink;
+  vmFrame *varlink;
 
 #  define SET_VARLINK assert(vars); varlink = vars;
 #  define VAR(n) ( (varlink)[(n) + frameStart] )
@@ -405,7 +406,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::popframe:
           {
             assert(vars);
-            vars=get<frame *>(VAR(0));
+            vars=get<vmFrame *>(VAR(0));
 
             SET_VARLINK;
 
@@ -554,18 +555,18 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string filename, string sigHandle) {
-  importIndex_t Index(filename,sigHandle);
-  frame *inst=instMap[Index];
-  if (inst)
+void stack::load(string index) {
+  vmFrame *inst=instMap[index];
+  if (inst) {
     push(inst);
+  }
   else {
     func f;
     assert(initMap);
-    f.body=(*initMap)[Index];
+    f.body=(*initMap)[index];
     assert(f.body);
     run(&f);
-    instMap[Index]=get<frame *>(top());
+    instMap[index]=get<vmFrame *>(top());
   }
 }
 
@@ -597,7 +598,7 @@ void stack::draw(ostream& out)
   out << "\n";
 }
 
-void draw(ostream& out, frame* v)
+void draw(ostream& out, vmFrame* v)
 {
   out << "vars:" << endl;
 
@@ -613,7 +614,7 @@ void draw(ostream& out, frame* v)
 
       if (i == v->getParentIndex()) {
         try {
-          frame *parent = get<frame *>(link);
+          vmFrame *parent = get<vmFrame *>(link);
           out << (parent ? "link" :  "----");
         } catch (bad_item_value&) {
           out << "non-link " << (*v)[0];
@@ -628,9 +629,9 @@ void draw(ostream& out, frame* v)
     out << "\n";
 
 
-    frame *parent;
+    vmFrame *parent;
     try {
-      parent = get<frame *>(link);
+      parent = get<vmFrame *>(link);
     } catch (bad_item_value&) {
       parent = 0;
     }

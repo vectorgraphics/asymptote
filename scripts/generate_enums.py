@@ -11,6 +11,7 @@
 # Written by Supakorn "Jamie" Rassameemasmuang <jamievlin@outlook.com>
 
 from typing import List, Tuple, Any, Union
+from datetime import datetime, timezone
 import io
 import argparse
 import sys
@@ -45,6 +46,10 @@ def create_enums(filename: str) -> List[Union[Tuple[str, int, str], Tuple[str, i
                 final_list.append((raw_str.strip(), int(raw_number.strip())))
     return final_list
 
+
+def datetime_now():
+    return datetime.fromtimestamp(
+        int(os.environ.get('SOURCE_DATE_EPOCH', time.time())),tz=timezone.utc)
 
 def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
     with io.open(outname, 'w') as fil:

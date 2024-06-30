@@ -1532,8 +1532,8 @@ class xasyScript(xasyItem):
 
     def getObjectCode(self, asy2psmap=identity()):
         numeric=r'([-+]?(?:(?:\d*\.\d+)|(?:\d+\.?)))'
-        rSize=re.compile("size\(\("+numeric+","+numeric+","+numeric+","
-                         +numeric+","+numeric+","+numeric+"\)\); "+
+        rSize=re.compile(r"size\(\("+numeric+","+numeric+","+numeric+","
+                         +numeric+","+numeric+","+numeric+r"\)\); "+
                          self.resizeComment)
 
         newScript = self.getReplacedKeysCode(self.findNonIdKeys())

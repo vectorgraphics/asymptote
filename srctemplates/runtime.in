@@ -107,7 +107,7 @@ using namespace utils;
 namespace run {
 using camp::pair;
 using vm::array;
-using vm::frame;
+using vm::vmFrame;
 using vm::stack;
 using camp::transform;
 using absyntax::runnable;
@@ -197,7 +197,7 @@ void writestring(stack *s)
   string S=pop<string>(s);
   vm::item it=pop(s);
   bool defaultfile=isdefault(it);
-  camp::ofile *f=defaultfile ? &camp::Stdout : vm::get<camp::ofile*>(it);
+  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
   if(!f->isOpen() || !f->enabled()) return;
   if(S != "") f->write(S);
   if(f->text()) {
@@ -258,7 +258,7 @@ array* :pushNullArray()
   return 0;
 }
 
-frame* :pushNullRecord()
+vmFrame* :pushNullRecord()
 {
   return 0;
 }
@@ -768,9 +768,9 @@ string location() {
 }
 
 // Wrapper for the stack::load() method.
-void :loadModule(string *filename, string *index)
+void :loadModule(string *index)
 {
-  Stack->load(*filename,*index);
+  Stack->load(*index);
 }
 
 string cd(string s=emptystring)

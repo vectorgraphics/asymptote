@@ -32,7 +32,7 @@ using types::realArray;
 using types::pairArray;
 
 using run::integeroverflow;
-using vm::frame;
+using vm::vmFrame;
 
 const char *invalidargument="invalid argument";
 
@@ -367,12 +367,12 @@ bool !(bool b)
   return !b;
 }
 
-bool :boolMemEq(frame *a, frame *b)
+bool :boolMemEq(vmFrame *a, vmFrame *b)
 {
   return a == b;
 }
 
-bool :boolMemNeq(frame *a, frame *b)
+bool :boolMemNeq(vmFrame *a, vmFrame *b)
 {
   return a != b;
 }

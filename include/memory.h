@@ -175,7 +175,7 @@ typedef std::basic_stringbuf<char,std::char_traits<char>,
 
 void compact(int x);
 #else
-inline void compact(int x) {}
+inline void compact(int) {}
 typedef std::string string;
 typedef std::stringstream stringstream;
 typedef std::istringstream istringstream;

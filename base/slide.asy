@@ -17,6 +17,8 @@ real pageheight=-2pagemargin;
 bool landscape=orientation == Landscape || orientation == Seascape;
 
 if(landscape) {
+  usepackage("geometry");
+  texpreamble("\geometry{landscape}");
   orientation=Portrait;
   pagewidth += settings.paperheight;
   pageheight += settings.paperwidth;
@@ -581,7 +583,7 @@ void bibliography(string name)
   real hmargin,vmargin;
   if(pdf()) {
     hmargin=1;
-    vmargin=0;
+    vmargin=0.5;
   } else {
     hmargin=1.5;
     vmargin=1;

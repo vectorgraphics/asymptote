@@ -26,7 +26,6 @@ history
 
 
 ### Generated files
-newDrawing.asy
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
@@ -76,6 +75,7 @@ newDrawing.asy
 *.out
 *.toc
 *.tuc
+*.hd
 
 ## Intermediate documents:
 *.dvi
@@ -87,6 +87,7 @@ newDrawing.asy
 *.pre
 *.m9
 #*-[0-9].*
+/doc/latexusage-[0-9]*
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
@@ -138,6 +139,7 @@ renderDocSettings
 
 *.html
 !index.html
+/doc/png/index.html
 !webgl/WebGL*.html
 
 v3dheadertypes.h
