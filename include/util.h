@@ -21,6 +21,7 @@ extern "C" int sigaction(int signum, const struct sigaction *act, struct sigacti
 #include <csignal>
 
 #include "common.h"
+#include <unordered_set>
 
 #if !defined(_MSC_VER)
 #include <strings.h>
@@ -46,6 +47,9 @@ string stripFile(string name);
 
 // Strip the extension from a filename.
 string stripExt(string name, const string& suffix="");
+
+// Escapes characters specified in set
+string escapeCharacters(string const& inText, std::unordered_set<char> const& charactersToEscape);
 
 void readDisabled();
 void writeDisabled();

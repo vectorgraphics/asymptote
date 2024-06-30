@@ -259,6 +259,24 @@ void spaceToUnderscore(string& s)
     s[p]='_';
 }
 
+string escapeCharacters(string const& inText, std::unordered_set<char> const& charactersToEscape)
+{
+  mem::vector<char> retBuffer;
+  retBuffer.reserve(inText.length() + 1);
+
+  for (const char textChar : inText)
+  {
+    if (charactersToEscape.find(textChar) != charactersToEscape.end())
+    {
+      retBuffer.emplace_back('\\');
+    }
+    retBuffer.emplace_back(textChar);
+  }
+  retBuffer.emplace_back(0);
+
+  return {retBuffer.begin(), retBuffer.end() };
+}
+
 string Getenv(const char *name, bool msdos)
 {
 #if defined(_WIN32)
