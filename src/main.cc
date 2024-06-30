@@ -170,7 +170,8 @@ void *asymain(void *A)
     int n=numArgs();
     if(n == 0) {
       int inpipe=intcast(settings::getSetting<Int>("inpipe"));
-      if(inpipe >= 0) {
+      bool hasInpipe=inpipe >= 0;
+      if(hasInpipe) {
 #if !defined(_WIN32)
         Signal(SIGHUP,hangup_handler);
 #endif
