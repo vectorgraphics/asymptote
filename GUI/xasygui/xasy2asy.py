@@ -21,6 +21,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+from cgitb import text
 from typing import Optional
 
 import PyQt5.QtCore as QtCore
@@ -128,9 +129,11 @@ class AsymptoteEngine:
         """ starts a subprocess (opens a pipe) """
         try:
             if sys.platform[:3] == 'win':
-                self.asyProcess = subprocess.Popen([self.asyPath] + self.args,
-                                                stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                                universal_newlines=True)
+                self.asyProcess = subprocess.Popen(
+                    [self.asyPath] + self.args,
+                    stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                    text=True
+                )
                 self.ostream = self.asyProcess.stdin
                 self.istream = self.asyProcess.stderr
             else:
