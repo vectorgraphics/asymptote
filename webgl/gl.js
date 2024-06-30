@@ -3792,7 +3792,7 @@ function webGLStart()
   W.canvasWidth0=W.canvasWidth;
   W.canvasHeight0=W.canvasHeight;
 
-  home();
+  mat4.identity(rotMat);
 
   if(window.innerWidth != 0 && window.innerHeight != 0)
     resize();
@@ -3801,6 +3801,8 @@ function webGLStart()
 
   if(W.ibl)
     initIBL().then(SetIBL).then(redrawScene);
+
+  home();
 }
 
   window.webGLStart=webGLStart;
