@@ -8,6 +8,10 @@
 #include "fileio.h"
 #include "settings.h"
 
+#if !defined(_WIN32)
+#define _fdopen fdopen
+#endif
+
 namespace camp {
 
 FILE *pipeout=NULL;
@@ -21,7 +25,7 @@ file nullfile("",false,NOMODE,false,true);
 void openpipeout()
 {
   int fd=intcast(settings::getSetting<Int>("outpipe"));
-  if(!pipeout && fd >= 0) pipeout=fdopen(fd,"w");
+  if(!pipeout && fd >= 0) pipeout=_fdopen(fd,"w");
   if(!pipeout) {
     cerr << "Cannot open outpipe " << fd << endl;
     exit(-1);

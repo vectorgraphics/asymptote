@@ -47,6 +47,10 @@ extern "C" rl_compentry_func_t *rl_completion_entry_function;
 #include "util.h"
 #include "errormsg.h"
 
+#if !defined(_WIN32)
+#define _fdopen fdopen
+#endif
+
 using namespace settings;
 
 namespace run {
@@ -129,7 +133,10 @@ void pre_readline()
 {
   int fd=intcast(settings::getSetting<Int>("inpipe"));
   if(fd >= 0) {
-    if(!fin) fin=fdopen(fd,"r");
+    if(!fin)
+    {
+      fin=_fdopen(fd,"r");
+    }
     if(!fin) {
       cerr << "Cannot open inpipe " << fd << endl;
       exit(-1);
