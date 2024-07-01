@@ -99,9 +99,10 @@ class xasyOptions:
         except (IOError, ModuleNotFoundError):
             self.setDefaults()
         else:
-            for key in self.options.keys():
+            for key, val in self.options.items():
                 if key in newOptions:
-                    assert isinstance(newOptions[key], type(self.options[key]))
+                    if val is not None:
+                        assert isinstance(newOptions[key], type(val))
                 else:
                     newOptions[key] = self.options[key]
             self.options = newOptions
