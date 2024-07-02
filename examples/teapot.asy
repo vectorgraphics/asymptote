@@ -203,21 +203,21 @@ triple[][][] Q0={
 };
 
 
-surface regularize(triple[][] P, real fraction=0.02)
+surface regularize(triple[][] P, real fraction=0.002)
 {
   triple[][][] B=hsplit(P,fraction);
   triple[][] T=B[0];
-  surface s=surface(T[0][0]..controls T[0][1] and T[0][2]..
-                    T[0][3]..controls T[1][3] and T[2][3]..
-                    T[3][3]..controls T[3][2] and T[3][1]..cycle);
+  surface s=surface(T[0][0]..controls T[3][1] and T[3][2]..
+                    T[3][3]..controls T[2][3] and T[1][3]..
+                            T[0][3]..controls T[0][2] and T[0][1]..cycle);
   s.append(surface(patch(B[1])));
   return s;
 }
 
 surface S=surface(Q);
 for(triple[][] q : Q0)
-  //  S.append(regularize(q));
-  S.append(surface(patch(q)));
+  S.append(regularize(q));
+// S.append(surface(patch(q)));
 
 pen color;
 real metallic;
