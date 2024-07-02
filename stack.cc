@@ -342,6 +342,8 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   string& fileName=P.fileName;
   unsigned int offset=P.xmapCount;
 
+  bool traceless=!settings::getSetting<bool>("debug");
+
   try {
     for (;;) {
       const inst &i = *ip;
@@ -521,7 +523,14 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::popcall: {
             /* get the function reference off of the stack */
             callable* f = pop<callable*>();
-            f->call(this);
+            if(traceless)
+              f->call(this);
+            else {
+              em.traceback.push_back(curPos);
+              f->call(this);
+              if(em.traceback.size())
+                em.traceback.pop_back();
+            }
             break;
           }
 
