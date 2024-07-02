@@ -317,6 +317,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   void AsymptoteLspServer::onChange(Notify_TextDocumentDidChange::notify& notify)
   {
+    std::lock_guard lk(onChangeMutex);
     logInfo("text change notification");
 
     auto& fileChange = notify.params.contentChanges;

@@ -13,6 +13,9 @@ runs:
     - name: Setup OpenGL
       shell: bash
       run: sudo apt-get install libxi-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libxrandr-dev libxxf86vm-dev
+    - name: Run git fetch on vcpkg
+      shell: bash
+      run: cd "$VCPKG_INSTALLATION_ROOT" && git checkout . && git fetch && git pull && ./bootstrap-vcpkg.sh
     - name: Cache Vcpkg
       id: cache-vcpkg
       uses: actions/cache@v3

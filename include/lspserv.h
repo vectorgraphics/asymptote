@@ -175,6 +175,8 @@ namespace AsymptoteLsp
     unique_ptr<SymContextFilemap> symmapContextsPtr;
     unique_ptr<unordered_map<std::string, std::vector<std::string>>> fileContentsPtr;
     std::string plainFile;
+
+    std::mutex onChangeMutex;
   };
 
   class TCPAsymptoteLSPServer : public lsp::TcpServer, public AsymptoteLspServer
