@@ -3,7 +3,8 @@
 bool insideSegment(pair z0, pair z1, pair z) {
   if(z == z1 || z == z0) return true;
   if(z0 == z1) return false;
-  pair h = z0+(z1-z0)*I;
+  real norm = sqrt(max(abs2(z0), abs2(z1), abs2(z)));
+  pair h = z0+unit(z1-z0)*I*norm;
   int s1 = sgn(orient(z0,z,h));
   int s2 = sgn(orient(z1,z,h));
   return s1 != s2;
@@ -36,14 +37,21 @@ struct StraightContribution {
   }
 }
 
-bool insidePolygon(pair[] p, pair z) {
+// Return the winding number of polygon p relative to point z,
+// or the largest odd integer if z lies on p.
+int windingnumberPolygon(pair[] p, pair z) {
   pair outside = 2*maxbound(p) - minbound(p);
   var W=StraightContribution(outside);
   pair prevPoint = p[p.length - 1];
   for (int i=0; i < p.length; ++i) {
     pair currentPoint = p[i];
-    if(W.onBoundary(prevPoint,currentPoint,z)) return true;
+    if(W.onBoundary(prevPoint,currentPoint,z)) return undefined;
     prevPoint = currentPoint;
   }
-  return W.count != 0;
+  return W.count;
+}
+
+// Return true if point z lies on or inside polygon p.
+bool insidePolygon(pair[] p, pair z) {
+  return windingnumberPolygon(p,z) != 0;
 }

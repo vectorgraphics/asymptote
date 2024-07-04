@@ -21,9 +21,17 @@ draw(g);
 pair[] p=points(g);
 
 void test(pair z) {
+
+  /*
   if(inside(g,z))
     dot(z,blue+opacity(0.5)+0.5mm);
   if(insidePolygon(p,z))
+    dot(z,red+0.375mm);
+  */
+
+  if(insidePolygon(p,z))
+    dot(z,blue+opacity(0.1)+0.5mm);
+  else
     dot(z,red+0.375mm);
 
   //  if(insideOpt(p,z))
@@ -45,6 +53,7 @@ for(int i=0; i < N; ++i) {
   test((0,x));
   test((x,1));
   test((1,x));
+  /*
   test((x,-1e-99));
   test((-1e-99,x));
   test((x,1e-99));
@@ -61,4 +70,5 @@ for(int i=0; i < N; ++i) {
   test((-1e-8,x));
   test((x,1e-8));
   test((1e-8,x));
+  */
 }
