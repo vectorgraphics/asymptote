@@ -85,15 +85,19 @@ int count=0;
 
 size(10cm);
 
-int N=10000;
+int N=1000;
+//path3 g=path3(polygon(17));
+//transform3 t=rotate(45,Z)*rotate(30,Y);
 path3 g=unitsquare3;
-path3 g=rotate(45,X)*rotate(30,Y)*path3(polygon(11));
-draw(g);
-triple[] p=points(g);
+transform3 t=identity4;
+path3 G=t*g;
+draw(G);
+triple[] p=points(G);
 
-void test(triple z) {
+void test(triple Z) {
   //  if(inside(g,z))
   //    dot(z,blue+opacity(0.5)+0.5mm);
+  triple z=t*Z;
   if(insidePolygon(p,z))
     dot(z,blue+opacity(0.1)+0.5mm);
   else
@@ -107,14 +111,14 @@ void test(triple z) {
 }
 
 for(int i=0; i < N; ++i) {
-  triple v0=point(g,0);
-  triple u=point(g,1)-v0;
-  triple v=point(g,2)-v0;
-  test(v0+(50*unitrand()-25)*u+(50*unitrand()-25)*v);
-  //  test(v0+(3*unitrand()-2)*u+(3*unitrand()-2)*v);
-  }
+  triple m=min(g);
+  triple M=max(g);
+  real x=unitrand();
+  real y=unitrand();
+  triple d=M-m;
+  test(m-d+3*(d.x*x,d.y*y,0));
+}
 
-if(false)
 for(int i=0; i < N; ++i) {
   real x=3*unitrand()-2;
   test((x,0,0));
