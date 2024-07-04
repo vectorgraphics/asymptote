@@ -8,7 +8,8 @@ struct StraightContribution {
   int count=0;
 
   void operator init(triple outside, triple normal)  {
-    this.outside=outside;
+    triple n=unit(normal);
+    this.outside=outside-dot(outside,n)*n;
     this.normal=normal;
   }
 
@@ -54,7 +55,6 @@ int windingnumberPolygon(triple[] p, triple v) {
 
   triple n=normal(p);
   triple normal=sqrt(norm2)*n;
-  outside=outside-dot(outside,n)*n;
 
   var W=StraightContribution(outside,normal);
   for (int i=0; i < p.length; ++i) {
@@ -86,9 +86,9 @@ int count=0;
 size(10cm);
 
 int N=1000;
-//path3 g=path3(polygon(17));
-//transform3 t=rotate(45,Z)*rotate(30,Y);
+//path3 g=path3(polygon(5));
 path3 g=unitsquare3;
+//transform3 t=rotate(45,Z)*rotate(30,Y);
 transform3 t=identity4;
 path3 G=t*g;
 draw(G);
