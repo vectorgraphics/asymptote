@@ -184,6 +184,7 @@ void warning(string s, string t, bool position=false)
   if(settings::warn(s)) {
     em.warning(position ? getPos() : nullPos,s);
     em << t;
+    em.sync();
   }
 }
 
