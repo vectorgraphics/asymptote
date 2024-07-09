@@ -147,12 +147,13 @@ void run(lambda *l)
 // Move arguments from stack to frame.
 void stack::marshall(size_t args, stack::vars_t vars)
 {
-  for (size_t i = args; i > 0; --i)
-#ifdef SIMPLE_FRAME
+  for (size_t i = args; i > 0; --i) {
+#   ifdef SIMPLE_FRAME
     vars[i-1] = pop();
-#else
-  (*vars)[i-1] = pop();
-#endif
+#   else
+    (*vars)[i-1] = pop();
+#   endif
+  }
 }
 
 #ifdef PROFILE
@@ -341,6 +342,8 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   string& fileName=P.fileName;
   unsigned int offset=P.xmapCount;
 
+  bool traceless=!settings::getSetting<bool>("debug");
+
   try {
     for (;;) {
       const inst &i = *ip;
@@ -520,7 +523,14 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::popcall: {
             /* get the function reference off of the stack */
             callable* f = pop<callable*>();
-            f->call(this);
+            if(traceless)
+              f->call(this);
+            else {
+              em.traceback.push_back(curPos);
+              f->call(this);
+              if(em.traceback.size())
+                em.traceback.pop_back();
+            }
             break;
           }
 
@@ -554,18 +564,18 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string filename, string sigHandle) {
-  importIndex_t Index(filename,sigHandle);
-  vmFrame *inst=instMap[Index];
-  if (inst)
+void stack::load(string index) {
+  vmFrame *inst=instMap[index];
+  if (inst) {
     push(inst);
+  }
   else {
     func f;
     assert(initMap);
-    f.body=(*initMap)[Index];
+    f.body=(*initMap)[index];
     assert(f.body);
     run(&f);
-    instMap[Index]=get<vmFrame *>(top());
+    instMap[index]=get<vmFrame *>(top());
   }
 }
 

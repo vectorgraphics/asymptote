@@ -194,7 +194,7 @@ typedef std::basic_stringbuf<char,std::char_traits<char>,
 inline void compact(int x) {GC_set_dont_expand(x);}
 inline std::string stdString(string s) {return std::string(s.c_str());}
 #else
-inline void compact(int x) {}
+inline void compact(int) {}
 typedef std::string string;
 typedef std::stringstream stringstream;
 typedef std::istringstream istringstream;

@@ -21,8 +21,8 @@ typedef fundef newFunctionExp;
 class newRecordExp : public exp {
   astType *result;
 
-  static bool encodeLevel(position pos, coenv &e, trans::tyEntry *ent);
 public:
+  static bool encodeLevel(position pos, coenv &e, trans::tyEntry *ent);
   newRecordExp(position pos, astType *result)
     : exp(pos), result(result) {}
 

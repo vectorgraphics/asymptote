@@ -1827,6 +1827,10 @@ void init()
   glutInit(&argc,argv);
   fpu_trap(settings::trap());
 
+
+#ifdef FREEGLUT
+  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+#endif
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 #endif
@@ -2253,6 +2257,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
     glutMainLoop();
+    cout << endl;
+    exitHandler(0);
 #endif // HAVE_LIBGLUT
   } else {
     if(glthread) {
@@ -2769,7 +2775,8 @@ void drawBuffers()
   drawTriangle();
 
   if(transparent) {
-    gl::copied=true;
+    if(camp::ssbo)
+      gl::copied=true;
     if(interlock) resizeFragmentBuffer();
     drawTransparent();
   }

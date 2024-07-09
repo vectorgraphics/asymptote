@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[2.90git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[2.91git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -333,7 +333,7 @@ PKG_FLAGS=-l"$2"
 echo will try linking with $PKG_FLAGS
 fi
 LDFLAGS_SAVE=$LDFLAGS
-LDFLAGS="$LDFLAGS ""$STATIC ""$PKG_FLAGS ""$DYNAMIC "
+LDFLAGS="$LDFLAGS "$STATIC"$PKG_FLAGS "$DYNAMIC
 AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),
 if test "x$enable_static" = "xyes"; then
 [
@@ -344,7 +344,7 @@ AC_CHECK_LIB($2,$3,AC_DEFINE($4,1,DEFINE_LIB($2)),
 [
 LDFLAGS=$LDFLAGS_SAVE
 $5
-])
+],$PKG_FLAGS)
 ]
 else
 [
@@ -352,7 +352,7 @@ LDFLAGS=$LDFLAGS_SAVE
 $5
 ]
 fi
-)]
+,$PKG_FLAGS)]
 )
 
 if test "x$enable_readline" != "xno"; then

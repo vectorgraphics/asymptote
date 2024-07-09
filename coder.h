@@ -221,8 +221,9 @@ public:
   frame *getFrame()
   {
     if (isStatic() && !isTopLevel()) {
-      assert(parent->getFrame());
-      return parent->getFrame();
+      frame *result = parent->getFrame();
+      assert(result);
+      return result;
     }
     else
       return level;

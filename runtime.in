@@ -762,9 +762,9 @@ string location() {
 }
 
 // Wrapper for the stack::load() method.
-void :loadModule(string *filename, string *index)
+void :loadModule(string *index)
 {
-  Stack->load(*filename,*index);
+  Stack->load(*index);
 }
 
 string cd(string s=emptystring)

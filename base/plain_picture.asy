@@ -1,5 +1,4 @@
 // Pre picture <<<1
-import plain_scaling;
 import plain_bounds;
 
 include plain_prethree;
@@ -222,6 +221,8 @@ struct picture { // <<<1
   node3[] nodes3;
 
   bool uptodate=true;
+  bool queueErase=false;
+  bool queueErase3=false;
 
   struct bounds3 {
     coords3 point,min,max;
@@ -286,6 +287,8 @@ struct picture { // <<<1
 
   // Erase the current picture, retaining bounds.
   void clear() {
+    queueErase=nodes.length > 0;
+    queueErase3=nodes3.length > 0;
     nodes.delete();
     nodes3.delete();
     legend.delete();
@@ -1587,13 +1590,11 @@ void add(picture src, bool group=true, filltype filltype=NoFill,
   currentpicture.add(src,group,filltype,above);
 }
 
-// Fit the picture src using the identity transformation (so user
-// coordinates and truesize coordinates agree) and add it about the point
-// position to picture dest.
+// Fit the picture src and add it about the point position to picture dest.
 void add(picture dest, picture src, pair position, bool group=true,
          filltype filltype=NoFill, bool above=true)
 {
-  add(dest,src.fit(identity()),position,group,filltype,above);
+  add(dest,src.fit(),position,group,filltype,true);
 }
 
 void add(picture src, pair position, bool group=true, filltype filltype=NoFill,
