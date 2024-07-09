@@ -7,6 +7,14 @@ runs:
       uses: ashutoshvarma/setup-ninja@v1.1
       with:
         version: 1.10.0
+    - name: Update vcpkg
+      shell: pwsh
+      run: |
+        Push-Location "$env:VCPKG_INSTALLATION_ROOT"
+        git fetch
+        git pull
+        ./bootstrap-vcpkg.bat
+        Pop-Location
     - name: Cache Vcpkg
       id: cache-vcpkg
       uses: actions/cache@v3
