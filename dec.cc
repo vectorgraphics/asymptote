@@ -40,6 +40,37 @@ void nameTy::prettyprint(ostream &out, Int indent)
   id->prettyprint(out, indent+1);
 }
 
+void nameTy::addOps(coenv &e, record *r)
+{
+  // If the symbol is TestAuUn
+  if (id->getName() == symbol::literalTrans("TestAuUn")) {
+    // from TestAuAun unravel testAuUn;
+    symbol src = symbol::literalTrans("testAuUn");
+    //idpair *field = new idpair(getPos(), src);
+
+    //auto *ud = new unraveldec(getPos(), id, fields);
+    
+    // getType is where errors in the qualifier are reported.
+    record *qt=dynamic_cast<record *>(id->getType(e, false));
+    if (!qt) {
+      em.error(getPos());
+      em << "qualifier is not a record";
+    }
+    //fromdec::qualifier q = {qt, id->getVarEntry(e)};
+    varEntry *qv = id->getVarEntry(e);
+    if (qt) {
+      //field->transAsUnravel(e, r, q.t->e, q.v);
+      if (r) {
+        r->e.add(src, src, qt->e, qv, e.c);
+      }
+      if (!e.e.add(src, src, qt->e, qv, e.c)) {
+        em.error(getPos());
+        em << "no matching types or fields of name '" << src << "'";
+      }
+    }
+  }
+}
+
 types::ty *nameTy::trans(coenv &e, bool tacit)
 {
   return id->typeTrans(e, tacit);
@@ -404,13 +435,36 @@ bool modifierList::staticSet()
 
 modifier modifierList::getModifier()
 {
-  if (mods.size() > 1) {
-    em.error(getPos());
-    em << "too many modifiers";
-  }
-
   assert(staticSet());
-  return mods.front();
+  int numAutounravel = 0;
+  int numStatic = 0;
+  for (modifier m : mods) {
+    switch (m) {
+      case AUTOUNRAVEL:
+        ++numAutounravel;
+        break;
+      case EXPLICIT_STATIC:
+      case DEFAULT_STATIC:
+        ++numStatic;
+        break;
+      default:
+        em.compiler(getPos());
+        em << "invalid modifier";
+    }
+  }
+  if (numAutounravel > 1) {
+    em.error(getPos());
+    em << "too many autounravel modifiers";
+  }
+  if (numStatic > 1) {
+    em.error(getPos());
+    em << "too many static modifiers";
+  }
+  if (numAutounravel) {
+    return AUTOUNRAVEL;
+  } else {
+    return mods.front();
+  }
 }
 
 permission modifierList::getPermission()

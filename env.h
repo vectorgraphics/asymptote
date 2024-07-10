@@ -145,9 +145,9 @@ public:
   bool add(symbol src, symbol dest,
            protoenv &source, varEntry *qualifier, coder &c)
   {
-    bool teAdd=te.add(src, dest, source.te, qualifier, c);
-    bool veAdd=ve.add(src, dest, source.ve, qualifier, c);
-    return teAdd || veAdd;
+    bool typeAdded=te.add(src, dest, source.te, qualifier, c);
+    bool varAdded=ve.add(src, dest, source.ve, qualifier, c);
+    return typeAdded || varAdded;
   }
 
   // Add the standard functions for a new type.

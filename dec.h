@@ -83,6 +83,7 @@ public:
 
   void prettyprint(ostream &out, Int indent) override;
 
+  void addOps(coenv &e, record *r) override;
   types::ty *trans(coenv &e, bool tacit = false) override;
   trans::tyEntry *transAsTyEntry(coenv &e, record *where) override;
 
@@ -662,7 +663,7 @@ public:
 // and
 //   from _ unravel _;  (unraveldec)
 class fromdec : public dec {
-protected:
+public:  // TODO: Make protected
   struct qualifier {
     // The varEntry holds the location and the type of the highest framed
     // structure that can be put on the stack.  The record holds the actual
