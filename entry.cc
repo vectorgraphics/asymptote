@@ -98,8 +98,9 @@ varEntry *qualifyVarEntry(varEntry *qv, varEntry *v)
 bool tenv::add(symbol dest,
                names_t::value_type &x, varEntry *qualifier, coder &c)
 {
-  if (!x.second.empty()) {
-    tyEntry *ent=x.second.front();
+  mem::list<tyEntry *>& ents=x.second;
+  if (!ents.empty()) {
+    tyEntry *ent=ents.front();
     if (ent->checkPerm(READ, c)) {
       enter(dest, qualifyTyEntry(qualifier, ent));
       return true;

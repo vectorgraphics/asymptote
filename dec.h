@@ -663,7 +663,7 @@ public:
 // and
 //   from _ unravel _;  (unraveldec)
 class fromdec : public dec {
-public:  // TODO: Make protected
+protected:
   struct qualifier {
     // The varEntry holds the location and the type of the highest framed
     // structure that can be put on the stack.  The record holds the actual

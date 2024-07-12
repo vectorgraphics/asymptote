@@ -367,6 +367,10 @@ class venv {
   typedef mem::stack<addition> addstack;
   addstack additions;
 
+  // A list of variables that need to be unraveled whenever the containing
+  // record (if any) becomes available.
+  mem::list<mem::pair<symbol, varEntry *>> autoUnravels;
+
   // A scope can be recorded by the size of the addition stack at the time the
   // scope began.
   typedef mem::stack<size_t> scopestack;
@@ -493,6 +497,14 @@ public:
 
   // Adds to l, all names prefixed by start.
   void completions(mem::list<symbol>& l, string start);
+
+  void registerAutoUnravel(symbol name, varEntry *v) {
+    autoUnravels.emplace_back(name, v);
+  }
+
+  const mem::list<mem::pair<symbol, varEntry *>>& getAutoUnravels() {
+    return autoUnravels;
+  }
 };
 
 } // namespace trans
