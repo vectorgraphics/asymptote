@@ -1317,7 +1317,7 @@ void initSettings() {
                              "Center, Bottom, Top, or Zero page alignment",
                              "C"));
 
-  addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
+  addOption(new boolSetting("debug", 'd', "Enable debugging messages and traceback"));
   addOption(new incrementSetting("verbose", 'v',
                                  "Increase verbosity level (can specify multiple times)", &verbose));
   // Resolve ambiguity with --version

@@ -428,6 +428,7 @@ struct patch {
       };
       planar=true;
       triangular=true;
+      init();
     } else {
       if(internal.length == 0 && planar == default)
         this.planar=normal(external) != O;
