@@ -17,7 +17,7 @@
 
 #include "common.h"
 #include "dec.h"
-#include "processutils.h"
+#include "asyprocess.h"
 #include "locate.h"
 
 #define REGISTER_REQ_FN(typ, fn) remoteEndPoint->registerHandler(\

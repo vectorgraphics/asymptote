@@ -23,7 +23,7 @@
 #include "runtime.h"
 #include "texfile.h"
 
-#include "processutils.h"
+#include "asyprocess.h"
 
 namespace camp {
 pen& defaultpen() {

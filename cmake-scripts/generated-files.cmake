@@ -68,9 +68,9 @@ add_custom_command(
         COMMAND ${PERL_INTERPRETER} ${ASY_SCRIPTS_DIR}/keywords.pl
             --camplfile ${ASY_RESOURCE_DIR}/camp.l
             --output ${GENERATED_INCLUDE_DIR}/keywords.h
-            --process-file ${ASY_SRC_DIR}/process.cc
+            --process-file ${ASY_SRC_DIR}/asyprocess.cc
         MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/camp.l
-        DEPENDS ${ASY_SCRIPTS_DIR}/keywords.pl ${ASY_SRC_DIR}/process.cc
+        DEPENDS ${ASY_SCRIPTS_DIR}/keywords.pl ${ASY_SRC_DIR}/asyprocess.cc
 )
 
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${KEYWORDS_HEADER_OUT})

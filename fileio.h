@@ -28,7 +28,7 @@
 #include "interact.h"
 #include "errormsg.h"
 #include "util.h"
-#include "processutils.h"
+#include "asyprocess.h"
 #include "locate.h"
 #include "asyparser.h"
 

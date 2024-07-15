@@ -1,5 +1,5 @@
 /*****
- * processutils.h
+ * process.h
  * Andy Hammerlindl 2006/08/19
  *
  * Handles processing blocks of code (including files, strings, and the
@@ -7,9 +7,7 @@
  * running it.
  *****/
 
-#ifndef PROCESSUTILS_H
-#define PROCESSUTILS_H
-
+#pragma once
 
 #include "common.h"
 #include "stm.h"
@@ -208,5 +206,3 @@ public:
 };
 
 processDataStruct &processData();
-
-#endif // PROCESSUTILS_H
