@@ -800,6 +800,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
   notRendered();
 
   data.Vertices.resize(nP);
+  data.indices.resize(3*nI);
 
   MaterialIndex=nC ? -1-materialIndex : 1+materialIndex;
 
@@ -833,13 +834,12 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
       data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
     }
     triple Q[]={P0,P1,P2};
-    std::vector<GLuint> &q=data.indices;
     if(!offscreen(3,Q)) {
-      q.push_back(PI0);
-      q.push_back(PI1);
-      q.push_back(PI2);
-    } else
-      data.partial=true;
+      size_t i3=3*i;
+      data.indices[i3]=PI0;
+      data.indices[i3+1]=PI1;
+      data.indices[i3+2]=PI2;
+    }
   }
   append();
 }
