@@ -294,24 +294,35 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
                           size_t nI, const uint32_t (*PI)[3],
                           const uint32_t (*NI)[3], const uint32_t (*CI)[3])
 {
+  out << "Positions.push(";
   for(size_t i=0; i < nP; ++i)
-    out << "Positions.push(" << P[i] << ");" << newl;
+    out << newl << P[i] << ",";
+  out << newl << ");" << newl;
 
-  for(size_t i=0; i < nN; ++i)
-    out << "Normals.push(" << N[i] << ");" << newl;
-
-  for(size_t i=0; i < nC; ++i) {
-    out << "Colors.push(";
-    addColor(C[i]);
-    out << ");" << newl;
+  if(nN) {
+    out << "Normals.push(";
+    for(size_t i=0; i < nN; ++i)
+      out << newl << N[i] << ",";
+    out << newl << ");" << newl;
   }
 
+  if(nC) {
+    out << "Colors.push(";
+    for(size_t i=0; i < nC; ++i) {
+      out << newl;
+      addColor(C[i]);
+      out << ",";
+    }
+    out << newl << ");" << newl;
+  }
+
+  out << "Indices.push(";
   for(size_t i=0; i < nI; ++i) {
-    out << "Indices.push([";
     const uint32_t *PIi=PI[i];
     const uint32_t *NIi=NI[i];
     bool keepNI=distinct(NIi,PIi);
     bool keepCI=nC && distinct(CI[i],PIi);
+    out << newl << "[";
     addIndices(PIi);
     if(keepNI || keepCI) {
       out << ",";
@@ -321,8 +332,10 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
       out << ",";
       addIndices(CI[i]);
     }
-    out << "]);" << newl;
+    out << "],";
   }
+  out << newl << ");" << newl;
+
   out << "triangles("
       << drawElement::centerIndex << "," << vk->materialIndex
       << ");" << newl << newl;
