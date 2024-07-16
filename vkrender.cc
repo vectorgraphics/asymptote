@@ -3660,7 +3660,7 @@ void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
 
   auto const badBuffer = static_cast<void*>(vertexBuffer._buffer.getBuffer()) == nullptr;
   auto const rendered = data->renderCount >= maxFramesInFlight;
-  auto const copy = (remesh || data->partial || !rendered || badBuffer) && !copied && !data->copiedThisFrame;
+  auto const copy = (remesh || !rendered || badBuffer) && !copied && !data->copiedThisFrame;
 
   if (copy) {
 
@@ -4536,12 +4536,6 @@ void AsyVkRender::clearMaterials()
 {
   materials.clear();
   materialMap.clear();
-
-  pointData.partial=false;
-  lineData.partial=false;
-  materialData.partial=false;
-  colorData.partial=false;
-  triangleData.partial=false;
 }
 
 #ifdef HAVE_VULKAN

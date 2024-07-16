@@ -829,7 +829,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
                     (float) C1.A};
       float c2[]={(float) C2.R,(float) C2.G,(float) C2.B,
                     (float) C2.A};
-      transparent |= c0[3]+c1[3]+c2[3] < 765;
+      transparent |= c0[3]+c1[3]+c2[3] < 3.0;
       data.colorVertices[PI0]=ColorVertex{P0,N[NI[0]],MaterialIndex,glm::make_vec4(c0)};
       data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex,glm::make_vec4(c1)};
       data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex,glm::make_vec4(c2)};
@@ -844,8 +844,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
       q.push_back(PI0);
       q.push_back(PI1);
       q.push_back(PI2);
-    } else
-      data.partial=true;
+    }
   }
   append();
 }

@@ -217,7 +217,6 @@ struct VertexBuffer {
   std::vector<std::uint32_t> indices;
 
   int renderCount=0;  // Are all patches in this buffer fully rendered?
-  bool partial=false; // Does buffer contain incomplete data?
   bool copiedThisFrame=false;
 
   void clear()
@@ -253,21 +252,18 @@ struct VertexBuffer {
   {
     extendOffset<std::uint32_t>(indices, other.indices, materialVertices.size());
     materialVertices.insert(materialVertices.end(), other.materialVertices.begin(), other.materialVertices.end());
-    if(other.partial) partial=true;
   }
 
   void extendColor(const VertexBuffer& other)
   {
     extendOffset<std::uint32_t>(indices, other.indices, colorVertices.size());
     colorVertices.insert(colorVertices.end(), other.colorVertices.begin(), other.colorVertices.end());
-    if(other.partial) partial=true;
   }
 
   void extendPoint(const VertexBuffer& other)
   {
     extendOffset<std::uint32_t>(indices, other.indices, pointVertices.size());
     pointVertices.insert(pointVertices.end(), other.pointVertices.begin(), other.pointVertices.end());
-    if(other.partial) partial=true;
   }
 };
 
