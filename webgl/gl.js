@@ -1812,7 +1812,7 @@ class BezierPatch extends Geometry {
     // Check the horizontal flatness.
     let h=Flatness(p0,p12,p3,p15);
     // Check straightness of the horizontal edges and interior control curves.
-    h=Math.max(Straightness(p0,p[4],p[8],p12));
+    h=Math.max(h,Straightness(p0,p[4],p[8],p12));
     h=Math.max(h,Straightness(p[1],p[5],p[9],p[13]));
     h=Math.max(h,Straightness(p3,p[7],p[11],p15));
     h=Math.max(h,Straightness(p[2],p[6],p[10],p[14]));
