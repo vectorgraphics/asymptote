@@ -719,7 +719,7 @@ class BezierPatch extends Geometry {
     if(color) {
       let sum=color[0][3]+color[1][3]+color[2][3];
       this.transparent=(n == 16 || n == 4) ?
-                        sum+color[3][3] < 1020 : sum < 765;
+                        sum+color[3][3] < 4 : sum < 3;
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
 
@@ -2210,7 +2210,7 @@ class Triangles extends Geometry {
         let C0=this.Colors[CI[0]];
         let C1=this.Colors[CI[1]];
         let C2=this.Colors[CI[2]];
-        this.transparent |= C0[3]+C1[3]+C2[3] < 765;
+        this.transparent |= C0[3]+C1[3]+C2[3] < 3;
         if(wireframe == 0) {
           this.data.iVertex(PI[0],P0,this.Normals[NI[0]],onscreen,C0);
           this.data.iVertex(PI[1],P1,this.Normals[NI[1]],onscreen,C1);
