@@ -20,6 +20,8 @@ static nullPosInitializer nullPosInit;
 
 bool errorstream::interrupt=false;
 
+using camp::newl;
+
 ostream& operator<< (ostream& out, const position& pos)
 {
   if (!pos)
@@ -34,7 +36,7 @@ ostream& operator<< (ostream& out, const position& pos)
     while(count > 0 && getline(fin,s)) {
       count--;
     }
-    s=std::regex_replace(s,std::regex("\t"),"  ");
+    s=std::regex_replace(s,std::regex("\t")," ");
     out << s << endl;
     for(size_t i=1; i < pos.column; ++i)
       out << " ";
@@ -42,7 +44,7 @@ ostream& operator<< (ostream& out, const position& pos)
   }
 
   out << filename << ": ";
-  out << pos.line << "." << pos.column << ": ";
+  out << pos.line << "." << pos.column;
 
   if(settings::getSetting<bool>("xasy")) {
     camp::openpipeout();
@@ -62,7 +64,7 @@ void errorstream::clear()
 void errorstream::message(position pos, const string& s)
 {
   if (floating) out << endl;
-  out << pos << s;
+  out << pos << ": " << s;
   floating = true;
 }
 
@@ -125,6 +127,21 @@ void errorstream::cont()
 void errorstream::sync()
 {
   if (floating) out << endl;
+
+  if(traceback.size()) {
+    bool first=true;
+    for(auto p=this->traceback.rbegin(); p != this->traceback.rend(); ++p) {
+      if(p->filename() != "-") {
+        if(first) {
+          out << newl << "TRACEBACK:";
+          first=false;
+        }
+        cout << newl << (*p) << endl;
+      }
+    }
+    traceback.clear();
+  }
+
   floating = false;
 }
 
