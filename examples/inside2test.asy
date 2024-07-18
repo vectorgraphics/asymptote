@@ -1,6 +1,7 @@
 import inside2;
+settings.outformat="pdf";
 
-// Returns a list of nodes for a given path p
+
 pair[] points(path p)
 {
   int n=size(p);
@@ -10,29 +11,30 @@ pair[] points(path p)
   return v;
 }
 
+
 int count=0;
 
 size(10cm);
 
 int N=1000;
-path g=unitsquare;
-//path g=rotate(45)*polygon(5);
+path g=rotate(45)*unitsquare;
+path g=rotate(45)*polygon(5);
+path g=rotate(0)*((0,0)--(0,1)--(0.4,1)--(0.4,0.5)--(0.6,0.5)--(0.6,1)--(1,1)--(1,0)--cycle);
+
+path g=(0,0)--(1,0)--(1,1)--cycle;
 draw(g);
 pair[] p=points(g);
 
 void test(pair z) {
-
-  /*
-  if(inside(g,z))
-    dot(z,blue+opacity(0.5)+0.5mm);
-  if(insidePolygon(p,z))
-    dot(z,red+0.375mm);
-  */
-
-  if(insidePolygon(p,z))
-    dot(z,blue+opacity(0.1)+0.5mm);
+  //  bool v1=inside(g,z);
+  bool v2=insidePolygon(p,z);
+  if(v2)
+    dot(z,blue);
   else
-    dot(z,red+0.375mm);
+    dot(z,red);
+  //  if(v2)
+  //    dot(z,red+0.375mm);
+  //  assert(v1 == v2);
 
   //  if(insideOpt(p,z))
   //    dot(z,green+0.25mm);
@@ -41,11 +43,21 @@ void test(pair z) {
   //    dot(z,red+0.375mm);
 }
 
+test((-0.1,-0.1));
+
 for(int i=0; i < N; ++i) {
   real x=5*unitrand()-3;
   real y=5*unitrand()-3;
   test((x,y));
   }
+
+//if(false)
+test(point(g,0));
+for(int i=0; i < N; ++i) {
+  test(point(g,0));
+  test(point(g,unitrand()*length(g)));
+}
+test(point(g,length(g)));
 
 for(int i=0; i < N; ++i) {
   real x=3*unitrand()-2;
@@ -53,7 +65,7 @@ for(int i=0; i < N; ++i) {
   test((0,x));
   test((x,1));
   test((1,x));
-  /*
+
   test((x,-1e-99));
   test((-1e-99,x));
   test((x,1e-99));
@@ -70,5 +82,4 @@ for(int i=0; i < N; ++i) {
   test((-1e-8,x));
   test((x,1e-8));
   test((1e-8,x));
-  */
 }

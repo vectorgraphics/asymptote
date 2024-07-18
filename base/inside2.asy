@@ -20,6 +20,9 @@ struct StraightContribution {
 
   bool onBoundary(pair z0, pair z1, pair z) {
     int s1 = sgn(orient(z,z0,z1));
+    if (s1 == 0)
+      return insideSegment(z0,z1,z);
+
     int s2 = sgn(orient(outside,z0,z1));
 
     if (s1 == s2 && s1 != 0)
@@ -27,12 +30,10 @@ struct StraightContribution {
 
     int s3 = sgn(orient(z,outside,z0));
     int s4 = sgn(orient(z,outside,z1));
+
     if (s3 != s4) {
-      if (s1 == 0)
-        return true;
       count += s3;
-    } else if (s1 == 0)
-      return insideSegment(z0,z1,z);
+    }
     return false;
   }
 }
@@ -40,8 +41,31 @@ struct StraightContribution {
 // Return the winding number of polygon p relative to point z,
 // or the largest odd integer if z lies on p.
 int windingnumberPolygon(pair[] p, pair z) {
-  pair outside = 2*maxbound(p) - minbound(p);
+  pair M = maxbound(p);
+  pair m = minbound(p);
+  pair outside = 2*M-m;
+  real epsilon = sqrt(realEpsilon);
+  real Epsilon=abs(M-m)*epsilon;
+
+  // Check that each vertex v distinct from z is not colinear w/ outside
+  bool checkColinear(pair v) {
+    if (v != z && orient(v,z,outside) == 0) {
+      pair normal=unit(v-z)*I;
+      outside += normal*Epsilon;
+      return true; // need to restart & recheck
+    }
+    return false;
+  }
+
+  bool check=true;
+  while(check) {
+    check = false;
+    for (pair v : p)
+      check = check || checkColinear(v);
+  }
+
   var W=StraightContribution(outside);
+
   pair prevPoint = p[p.length - 1];
   for (int i=0; i < p.length; ++i) {
     pair currentPoint = p[i];
