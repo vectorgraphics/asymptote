@@ -2159,14 +2159,15 @@ class Triangles extends Geometry {
     super();
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
-    this.Min=this.Bounds(Positions,Math.min);
-    this.Max=this.Bounds(Positions,Math.max);
 
-    this.controlpoints=Positions;
-    this.Normals=Normals;
-    this.Colors=Colors;
-    this.Indices=Indices;
+    this.controlpoints=window.Positions;
+    this.Normals=window.Normals;
+    this.Colors=window.Colors;
+    this.Indices=window.Indices;
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
+
+    this.Min=this.Bounds(this.controlpoints,Math.min);
+    this.Max=this.Bounds(this.controlpoints,Math.max);
   }
 
   Bounds(p,m) {
