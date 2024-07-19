@@ -24,16 +24,14 @@ struct StraightContribution {
       return insideSegment(z0,z1,z);
 
     int s2 = sgn(orient(outside,z0,z1));
-
-    if (s1 == s2 && s1 != 0)
+    if (s1 == s2)
       return false;
 
     int s3 = sgn(orient(z,outside,z0));
     int s4 = sgn(orient(z,outside,z1));
-
-    if (s3 != s4) {
+    if (s3 != s4)
       count += s3;
-    }
+
     return false;
   }
 }
@@ -50,7 +48,7 @@ int windingnumberPolygon(pair[] p, pair z) {
   // Check that each vertex v distinct from z is not colinear w/ outside
   bool checkColinear(pair v) {
     if (v != z && orient(v,z,outside) == 0) {
-      pair normal=unit(v-z)*I;
+      pair normal=unit(z-v)*I;
       outside += normal*Epsilon;
       return true; // need to restart & recheck
     }
