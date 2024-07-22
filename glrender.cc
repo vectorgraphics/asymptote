@@ -568,7 +568,7 @@ void initComputeShaders()
   shaderParams.push_back(s.str().c_str());
   s2 << "BLOCKSIZE " << gl::blockSize << "u" << endl;
   shaderParams.push_back(s2.str().c_str());
-  GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true);
+  GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true,true);
   if(rc == 0) {
     GPUindexing=false; // Compute shaders are unavailable.
     if(settings::verbose > 2)
@@ -662,7 +662,8 @@ void initShaders()
   if(GPUcompress)
     shaderParams.push_back("GPUCOMPRESS");
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
-  camp::countShader=compileAndLinkShader(shaders,shaderParams,true);
+  camp::countShader=compileAndLinkShader(shaders,shaderParams,
+                                         true,false,false,true);
   if(camp::countShader)
     shaderParams.push_back("HAVE_SSBO");
 #else
@@ -697,8 +698,8 @@ void initShaders()
 
   shaderParams.push_back("NORMAL");
   if(interlock) shaderParams.push_back("HAVE_INTERLOCK");
-  camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
-                                               interlock);
+  camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,
+                                               ssbo,interlock,false,true);
   if(interlock && !camp::materialShader[0]) {
     shaderParams.pop_back();
     interlock=false;
