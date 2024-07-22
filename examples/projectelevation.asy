@@ -12,6 +12,6 @@ surface s=surface(f,(-1/2,-1/2),(1/2,1/2),50,Spline);
 surface S=planeproject(unitsquare3)*s;
 S.colors(palette(s.map(zpart),Rainbow()));
 draw(S,nolight);
-draw(s,lightgray+opacity(0.7));
+draw(s,lightgray+opacity(0.7),render(tessellate=false));
 
 grid3(XYZgrid);
