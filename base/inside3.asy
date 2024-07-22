@@ -157,7 +157,8 @@ int windingnumberPolyhedron(triple[][] p, triple v) {
   real norm=abs(M-m);
   real Epsilon=norm*epsilon;
 
-  // Check that edge u--w not colinear with v is not coplanar w/ outside
+  // Check that outside does not lie on the extension of the non-degenerate
+  // triangle u--v--w
   bool checkCoplanar(triple u, triple w) {
     triple normal=unit(cross(v-u,w-u));
     triple H=v+normal;

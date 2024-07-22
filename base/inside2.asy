@@ -45,7 +45,8 @@ int windingnumberPolygon(pair[] p, pair z) {
   real epsilon = sqrt(realEpsilon);
   real Epsilon=abs(M-m)*epsilon;
 
-  // Check that each vertex v distinct from z is not colinear w/ outside
+  // Check that outside does not lie on the extension of the non-degenerate
+  // line segment v--z
   bool checkColinear(pair v) {
     if (v != z && orient(v,z,outside) == 0) {
       pair normal=unit(z-v)*I;
