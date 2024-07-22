@@ -381,19 +381,16 @@ public:
   void append(const vertexBuffer& b) {
     appendOffset(indices,b.indices,vertices.size());
     vertices.insert(vertices.end(),b.vertices.begin(),b.vertices.end());
-    if(b.partial) partial=true;
   }
 
   void Append(const vertexBuffer& b) {
     appendOffset(indices,b.indices,Vertices.size());
     Vertices.insert(Vertices.end(),b.Vertices.begin(),b.Vertices.end());
-    if(b.partial) partial=true;
   }
 
   void append0(const vertexBuffer& b) {
     appendOffset(indices,b.indices,vertices0.size());
     vertices0.insert(vertices0.end(),b.vertices0.begin(),b.vertices0.end());
-    if(b.partial) partial=true;
   }
 };
 

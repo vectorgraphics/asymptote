@@ -1659,7 +1659,7 @@ surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
 
   surface s=surface(count);
   s.index=new int[nx][ny];
-  int k=-1;
+  int k=0;
   for(int i=0; i < nx; ++i) {
     bool[] condi,condp;
     if(!all) {
@@ -1670,13 +1670,15 @@ surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
     triple[] fp=f[i+1];
     int[] indexi=s.index[i];
     for(int j=0; j < ny; ++j) {
-      if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1]))
-        s.s[++k]=patch(new triple[] {
+      if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1])) {
+        s.s[k]=patch(new triple[] {
             Scale(pic,fi[j]),
               Scale(pic,fp[j]),
               Scale(pic,fp[j+1]),
               Scale(pic,fi[j+1])});
-      indexi[j]=k;
+        indexi[j]=k;
+        ++k;
+      }
     }
   }
 
@@ -2062,11 +2064,13 @@ surface surface(picture pic=currentpicture, triple f(pair z),
 
   surface s=surface(sx.length);
   s.index=new int[nu][nv];
-  int k=-1;
+  int k=0;
   for(int i=0; i < nu; ++i) {
     int[] indexi=s.index[i];
-    for(int j=0; j < nv; ++j)
-      indexi[j]=++k;
+    for(int j=0; j < nv; ++j) {
+      indexi[j]=k;
+      ++k;
+    }
   }
 
   for(int k=0; k < sx.length; ++k) {

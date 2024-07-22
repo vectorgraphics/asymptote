@@ -733,7 +733,7 @@ struct picture { // <<<1
     add(new void(frame f, transform t) {
         picture opic=new picture;
         d(opic,t);
-        add(f,opic.fit(identity()));
+        add(f,opic.fit(identity));
       },exact);
   }
 
@@ -1608,7 +1608,7 @@ void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   picture opic;
   fill(opic,g,p);
-  add(pic,opic,origin);
+  add(pic,opic.fit(identity),origin);
 }
 
 void postscript(picture pic=currentpicture, string s)

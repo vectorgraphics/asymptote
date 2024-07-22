@@ -823,7 +823,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
                     (GLfloat) C1.A};
       GLfloat c2[]={(GLfloat) C2.R,(GLfloat) C2.G,(GLfloat) C2.B,
                     (GLfloat) C2.A};
-      transparent |= c0[3]+c1[3]+c2[3] < 765;
+      transparent |= c0[3]+c1[3]+c2[3] < 3.0;
       data.Vertices[PI0]=VertexData(P0,N[NI[0]],c0);
       data.Vertices[PI1]=VertexData(P1,N[NI[1]],c1);
       data.Vertices[PI2]=VertexData(P2,N[NI[2]],c2);
@@ -838,8 +838,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
       q.push_back(PI0);
       q.push_back(PI1);
       q.push_back(PI2);
-    } else
-      data.partial=true;
+    }
   }
   append();
 }
