@@ -207,9 +207,10 @@ void jsfile::finish(string name)
   size_t ncenters=drawElement::centers.size();
   if(ncenters > 0) {
     out << s << "Centers=[";
-    for(size_t i=0; i < ncenters; ++i)
+    size_t last=ncenters-1;
+    for(size_t i=0; i < last; ++i)
       out << newl << drawElement::centers[i] << ",";
-    out << newl << "];" << newl;
+    out << newl << drawElement::centers[last] << newl << "];" << newl;
   }
   out << "</script>"
       << newl << "</head>"
@@ -235,21 +236,23 @@ void jsfile::addIndices(const uint32_t *I)
 void jsfile::addRawPatch(triple const* controls, size_t n,
                          const prc::RGBAColour *c, size_t nc)
 {
-  out << "patch([" << newl;
-  size_t last=n-1;
-  for(size_t i=0; i < last; ++i)
-    out << controls[i] << "," << newl;
-  out << controls[last] << newl << "],"
-      << drawElement::centerIndex << "," << materialIndex;
-  if(c) {
-    out << ",[" << newl;
-    for(size_t i=0; i < nc; ++i) {
-      addColor(c[i]);
-      out << "," << newl;
+  if(n) {
+    out << "patch([" << newl;
+    size_t last=n-1;
+    for(size_t i=0; i < last; ++i)
+      out << controls[i] << "," << newl;
+    out << controls[last] << newl << "],"
+        << drawElement::centerIndex << "," << materialIndex;
+    if(c) {
+      out << ",[" << newl;
+      for(size_t i=0; i < nc; ++i) {
+        addColor(c[i]);
+        out << "," << newl;
+      }
+      out << "]";
     }
-    out << "]";
+    out << ");" << newl << newl;
   }
-  out << ");" << newl << newl;
 }
 
 void jsfile::addCurve(const triple& z0, const triple& c0,
@@ -294,47 +297,59 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
                           size_t nI, const uint32_t (*PI)[3],
                           const uint32_t (*NI)[3], const uint32_t (*CI)[3])
 {
-  out << "Positions.push(";
-  for(size_t i=0; i < nP; ++i)
-    out << newl << P[i] << ",";
-  out << newl << ");" << newl;
+  if(nP) {
+    out << "Positions=[";
+    size_t last=nP-1;
+    for(size_t i=0; i < last; ++i)
+      out << newl << P[i] << ",";
+    out << newl << P[last] << newl << "];" << newl;
+  }
 
   if(nN) {
-    out << "Normals.push(";
-    for(size_t i=0; i < nN; ++i)
+    size_t last=nN-1;
+    out << "Normals=[";
+    for(size_t i=0; i < last; ++i)
       out << newl << N[i] << ",";
-    out << newl << ");" << newl;
+    out << newl << N[last] << newl << "];" << newl;
   }
 
   if(nC) {
-    out << "Colors.push(";
-    for(size_t i=0; i < nC; ++i) {
+    size_t last=nC-1;
+    out << "Colors=[";
+    for(size_t i=0; i < last; ++i) {
       out << newl;
       addColor(C[i]);
       out << ",";
     }
-    out << newl << ");" << newl;
+    out << newl;
+    addColor(C[last]);
+    out << newl << "];" << newl;
   }
 
-  out << "Indices.push(";
-  for(size_t i=0; i < nI; ++i) {
-    const uint32_t *PIi=PI[i];
-    const uint32_t *NIi=NI[i];
-    bool keepNI=distinct(NIi,PIi);
-    bool keepCI=nC && distinct(CI[i],PIi);
-    out << newl << "[";
-    addIndices(PIi);
-    if(keepNI || keepCI) {
-      out << ",";
-      if(keepNI) addIndices(NIi);
+  if(nI) {
+    out << "Indices=[";
+    size_t last=nI-1;
+    for(size_t i=0; i < nI; ++i) {
+      const uint32_t *PIi=PI[i];
+      const uint32_t *NIi=NI[i];
+      bool keepNI=distinct(NIi,PIi);
+      bool keepCI=nC && distinct(CI[i],PIi);
+      out << newl << "[";
+      addIndices(PIi);
+      if(keepNI || keepCI) {
+        out << ",";
+        if(keepNI) addIndices(NIi);
+      }
+      if(keepCI) {
+        out << ",";
+        addIndices(CI[i]);
+      }
+      out << "]";
+      if(i < last)
+        out << ",";
     }
-    if(keepCI) {
-      out << ",";
-      addIndices(CI[i]);
-    }
-    out << "],";
+    out << newl << "];" << newl;
   }
-  out << newl << ");" << newl;
 
   out << "triangles("
       << drawElement::centerIndex << "," << materialIndex
