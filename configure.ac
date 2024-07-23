@@ -20,12 +20,7 @@ AC_SUBST(Datadir)
 
 AC_ARG_ENABLE(lsp,
 [AS_HELP_STRING(--enable-lsp[[[=yes]]],enable Language Server Protocol)])
-if test "x$enable_lsp" != "xno"; then
-cxxstd="c++14"
-else
-cxxstd="c++11"
-AC_MSG_NOTICE([*** Language Server Protocol disabled by configure flag ***])
-fi
+cxxstd="c++17"
 
 test "$CXXFLAGS" || CXXFLAGS="-std=$cxxstd"
 echo Compiling with $CXXFLAGS
