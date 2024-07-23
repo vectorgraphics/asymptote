@@ -27,6 +27,39 @@ echo Compiling with $CXXFLAGS
 
 test "$CFLAGS" || CFLAGS="-g -O3"
 
+# --------------- begin vcpkg option/check ---------------------
+# result:
+# with_vcpkg is yes/no, depending if user wants to use vcpkg or not
+# vcpkg_exec is the executable of vcpkg. this is only given if use_vcpkg is yes.
+
+AC_ARG_WITH(vcpkg,[
+   AS_HELP_STRING(
+      --with-vcpkg=[[[no]]],
+      [Use vcpkg. If VCPKG_ROOT environment variable is set, will use that vcpkg. Otherwise searches in PATH.]
+      )
+],[
+   if test "x$VCPKG_ROOT" = "x"; then  # vcpkg root not given
+      echo "VCPKG_ROOT is not given; searching vcpkg in path"
+      AC_CHECK_PROG(has_vcpkg,vcpkg,true)
+      if test "x$has_vcpkg" = "xtrue"; then
+         vcpkg_exec=vcpkg
+      fi
+   else
+      echo "VCPKG_ROOT is given; is using VCPKG_ROOT"
+      AC_CHECK_FILE($VCPKG_ROOT/vcpkg,[
+         vcpkg_exec=$VCPKG_ROOT/vcpkg
+      ])
+   fi
+
+   # ensure vcpkg is specified
+   if test "x$vcpkg_exec" = "x"; then
+      AC_MSG_ERROR([Please ensure vcpkg is available through VCPKG_ROOT or in PATH])
+   fi
+   echo "Using vcpkg executable $vcpkg_exec"
+])
+
+#----------------- end vcpkg option check --------------------
+
 AC_ARG_WITH(latex,
         [AS_HELP_STRING(--with-latex=PATH,
                         specify path to LaTeX installation)],
@@ -132,11 +165,11 @@ if test "$GXX" = yes ; then
 fi
 
 AC_DEFUN([DEFINE],[
-Define to 1 if you have $1.
+Define to 1 if you have `$1`.
 ])
 
 AC_DEFUN([DEFINE_LIB],[
-Define to 1 if you have the `$1' library (-l$1).
+Define to 1 if you have the `$1` library (-l$1).
 ])
 
 AC_CHECK_HEADER(tr1/unordered_map)
