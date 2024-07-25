@@ -1798,7 +1798,7 @@ it approximates a straight line.
 @cindex @code{and}
 @cindex @code{atleast}
 One can change the spline tension from its default value of 1 to any
-real value greater than or equal to 0.75 (cf. John D. Hobby, Discrete and
+real value greater than or equal to 0.75 (see John D. Hobby, Discrete and
 Computational Geometry 1, 1986):
 @verbatim
 draw((100,0)..tension 2 ..(100,100)..(0,100));
@@ -3913,8 +3913,10 @@ that can be used for importing @code{LaTeX} packages.
 
 @end table
 
+@anchor{deferred drawing}
 @node Deferred drawing
 @section Deferred drawing
+@cindex deferred drawing
 It is sometimes desirable to have elements of a fixed absolute size,
 independent of the picture scaling from user to
 @code{PostScript} coordinates.
@@ -6649,7 +6651,6 @@ option to disable this feature.
 @node simplex, math, plain, Base modules
 @section @code{simplex}
 @cindex @code{simplex}
-@cindex @code{deferred drawing}
 This module solves the general linear programming problem using the
 simplex method.
 
@@ -6658,7 +6659,8 @@ simplex method.
 @cindex @code{simplex2}
 @cindex @code{deferred drawing}
 This module solves a special case of the two-variable linear programming
-problem used by the module @code{plain} for automatic sizing of pictures.
+problem used by the module @code{plain} for automatic sizing of
+pictures (@pxref{deferred drawing}).
 
 @node math, interpolate, simplex, Base modules
 @section @code{math}
@@ -8085,7 +8087,7 @@ dimensions except that triples @code{(x,y,z)} are used in place of pairs
 generalization of John Hobby's spline algorithm is shape-invariant under
 three-dimensional rotation, scaling, and shifting, and reduces in the
 planar case to the two-dimensional algorithm used in @code{Asymptote},
-@code{MetaPost}, and @code{MetaFont} [cf.@ J. C. Bowman, Proceedings in
+@code{MetaPost}, and @code{MetaFont} [see J. C. Bowman, Proceedings in
 Applied Mathematics and Mechanics, 7:1, 2010021-2010022 (2007)].
 
 For example, a unit circle in the @math{XY} plane may be filled and
@@ -8508,7 +8510,7 @@ this approach (@pxref{PostScript3D}).
 
 @end enumerate
 
-@cindex @code{double deferred drawing}
+@cindex double deferred drawing
 Automatic picture sizing in three dimensions is accomplished with double
 deferred drawing. The maximal desired dimensions of the scene in each of
 the three dimensions can optionally be specified with the routine
