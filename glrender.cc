@@ -70,10 +70,6 @@ pthread_t mainthread;
 #include "GLTextures.h"
 #include "EXRFiles.h"
 
-#ifdef HAVE_LIBOPENIMAGEIO
-#include <OpenImageIO/imageio.h>
-#endif
-
 using settings::locateFile;
 using utils::stopWatch;
 
