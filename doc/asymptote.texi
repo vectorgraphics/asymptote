@@ -6863,11 +6863,9 @@ This module creates a struct parameterized by the types specified in
 strings @code{key} and @code{value}, mapping keys to values with a
 specified default:
 @verbatim
-import map;
+from map(Key=string, Value=int) access map;
 
-mapTemplate(name="map",key="string",value="int",default="-1");
-
-map M;
+map M=map(Default=-1);
 
 M.add("z",2);
 M.add("a",3);
