@@ -207,3 +207,6 @@ ehthumbs_vista.db
 
 # version package
 asy-pkg-version-suffix.cmake
+
+# vcpkg
+vcpkg_installed
