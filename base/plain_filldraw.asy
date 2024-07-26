@@ -90,7 +90,7 @@ void filloutside(frame f, path[] g, pen p=currentpen, bool copy=true)
 
 struct filltype
 {
-  typedef void fill2(frame f, path[] g, pen fillpen);
+  using fill2 = void(frame f, path[] g, pen fillpen);
   fill2 fill2;
   pen fillpen;
   pen drawpen;
