@@ -15,8 +15,8 @@ using namespace types;
 
 namespace trans {
 
-// Instances of this class are passed to types::ty objects so that they can call
-// back to env when checking casting of subtypes.
+// Instances of this class are passed to types::ty objects so that they can
+// call back to env when checking casting of subtypes.
 class envCaster : public caster {
   protoenv &e;
   symbol name;
@@ -212,6 +212,19 @@ env::~env()
 record *env::getModule(symbol id, string filename)
 {
   return ge.getModule(id, filename);
+}
+
+record *env::getTemplatedModule(symbol index,
+                                string filename,
+                                mem::vector<absyntax::namedTyEntry*>* args,
+                                coenv& e)
+{
+  return ge.getTemplatedModule(index, filename, args, e);
+}
+
+record *env::getLoadedModule(symbol id)
+{
+  return ge.getLoadedModule(id);
 }
 
 }

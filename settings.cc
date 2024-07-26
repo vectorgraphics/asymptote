@@ -1002,7 +1002,7 @@ struct versionOption : public option {
     eigen=true;
 #endif
 
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
     xdr=true;
 #endif
 
@@ -1198,7 +1198,7 @@ void initSettings() {
     initialize=false;
   }
 
-  settingsModule=new types::dummyRecord(symbol::trans("settings"));
+  settingsModule=new types::dummyRecord(symbol::literalTrans("settings"));
 
 // Default mouse bindings
 
@@ -1248,6 +1248,8 @@ void initSettings() {
                             "Emulate unimplemented SVG shading", true));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", false));
+  addOption(new boolSetting("v3d", 0,
+                            "Embed 3D V3D graphics in PDF output", false));
   addOption(new boolSetting("toolbar", 0,
                             "Show 3D toolbar in PDF output", true));
   addOption(new boolSetting("axes3", 0,
@@ -1319,7 +1321,7 @@ void initSettings() {
                              "Center, Bottom, Top, or Zero page alignment",
                              "C"));
 
-  addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
+  addOption(new boolSetting("debug", 'd', "Enable debugging messages and traceback"));
   addOption(new incrementSetting("verbose", 'v',
                                  "Increase verbosity level (can specify multiple times)", &verbose));
   // Resolve ambiguity with --version
@@ -1481,7 +1483,7 @@ void initSettings() {
   addOption(new realSetting("paperheight", 0, "bp", "Default page height"));
 
   addOption(new stringSetting("dvipsOptions", 0, "str", ""));
-  addOption(new stringSetting("dvisvgmOptions", 0, "str", ""));
+  addOption(new stringSetting("dvisvgmOptions", 0, "str", "", "--optimize"));
   addOption(new boolSetting("dvisvgmMultipleFiles", 0,
                             "dvisvgm supports multiple files", true));
   addOption(new stringSetting("convertOptions", 0, "str", ""));
@@ -1508,7 +1510,7 @@ void initSettings() {
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));
   addOption(new envSetting("dvisvgm", "dvisvgm"));
-  addOption(new envSetting("convert", "convert"));
+  addOption(new envSetting("convert", "magick"));
   addOption(new envSetting("display", defaultDisplay));
   addOption(new envSetting("animate", defaultAnimate));
   addOption(new envSetting("papertype", "letter"));

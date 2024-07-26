@@ -134,7 +134,11 @@ GC_CONTAINER(vector);
 GC_CONTAINER(deque);
 
 template <typename T, typename Container = vector<T> >
-struct stack : public std::stack<T, Container>, public gc {
+struct stack : public std::stack<T, Container>, public gc {};
+
+template <typename T, typename S >
+struct pair : public std::pair<T, S>, public gc {
+  pair(T t, S s) : std::pair<T,S>(t,s) {}
 };
 
 #define PAIR_ALLOC gc_allocator<std::pair<CONST Key,T> > /* space */
@@ -190,7 +194,7 @@ typedef std::basic_stringbuf<char,std::char_traits<char>,
 inline void compact(int x) {GC_set_dont_expand(x);}
 inline std::string stdString(string s) {return std::string(s.c_str());}
 #else
-inline void compact(int x) {}
+inline void compact(int) {}
 typedef std::string string;
 typedef std::stringstream stringstream;
 typedef std::istringstream istringstream;

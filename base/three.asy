@@ -1,7 +1,12 @@
 private import math;
 
-if(prc0()) {
-  if(!latex()) settings.prc=false;
+if(settings.v3d) settings.prc=false;
+
+if(prc0() || settings.v3d) {
+  if(!latex()) {
+    settings.prc=false;
+    settings.v3d=false;
+  }
   else {
     access embed;
     Embed=embed.embedplayer;
@@ -2676,7 +2681,7 @@ struct scene
 
     if(P.absolute)
       this.P=P.copy();
-    else if(P.showtarget)
+    else if(P.showtarget && !pic.empty3())
       draw(pic,P.target,nullpen);
 
     t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
@@ -2854,8 +2859,8 @@ object embed(string prefix=outprefix(), string label=prefix,
   light Light=modelview*light;
 
   if(prefix == "") prefix=outprefix();
-  bool preview=settings.render > 0 && !prconly();
-  if(prc) {
+  bool preview=settings.render > 0 && !prconly() && !settings.v3d;
+  if(prc || settings.v3d) {
     // The media9.sty package cannot handle spaces or dots in filenames.
     string dir=stripfile(prefix);
     prefix=dir+replace(stripdirectory(prefix),
@@ -2864,7 +2869,7 @@ object embed(string prefix=outprefix(), string label=prefix,
       prefix += "+"+(string) file3.length;
   } else
     preview=false;
-  if(preview || (!prc && settings.render != 0)) {
+  if(preview || (!prc && settings.render != 0) || settings.v3d) {
     frame f=S.f;
     triple m,M;
     real zcenter;
@@ -2888,10 +2893,10 @@ object embed(string prefix=outprefix(), string label=prefix,
       triple margin=(S.viewportmargin.x,S.viewportmargin.y,0);
       M += margin;
       m -= margin;
-    } else if(M.z >= 0) abort("camera too close");
+    } else if(M.z >= 0 && !S.pic2.empty()) abort("camera too close");
 
     if(primitive())
-      format=settings.outformat;
+      format=settings.v3d ? "v3d" : settings.outformat;
 
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
@@ -2900,6 +2905,12 @@ object embed(string prefix=outprefix(), string label=prefix,
              tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
              Light.diffuse,Light.specular,
              view && !preview);
+    if(settings.v3d) {
+      string content=prefix+".v3d";
+      F.L=Embed(content,S.width,S.height);
+      if(!settings.inlinetex) file3.push(content);
+      return F;
+    }
     if(!preview) return F;
   }
 
@@ -2997,7 +3008,7 @@ frame embedder(object embedder(string prefix, string format),
                string prefix, string format, bool view, light light)
 {
   frame f;
-  bool prc=prc(format);
+  bool prc=prc(format) || settings.v3d;
   if(!prc && settings.render != 0 && !view) {
     static int previewcount=0;
     bool keep=prefix != "";
@@ -3027,12 +3038,15 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
                                 light light, projection P) {
   frame f;
   bool empty3=pic.empty3();
-  if(!empty3) f=embedder(new object(string prefix, string format) {
+  if(!empty3 || pic.queueErase3) {
+    f=embedder(new object(string prefix, string format) {
       return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,light,P);
     },prefix,format,view,light);
+    pic.queueErase3=false;
+  }
 
-  if(is3D(format) || empty3)
+  if(is3D(format) || pic.queueErase)
     add(f,pic.fit2(xsize,ysize,keepAspect));
   return f;
 };

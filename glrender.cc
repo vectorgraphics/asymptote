@@ -1827,6 +1827,10 @@ void init()
   glutInit(&argc,argv);
   fpu_trap(settings::trap());
 
+
+#ifdef FREEGLUT
+  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+#endif
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 #endif
@@ -1850,7 +1854,7 @@ void init_osmesa()
     OSMESA_DEPTH_BITS,16,
     OSMESA_STENCIL_BITS,0,
     OSMESA_ACCUM_BITS,0,
-    OSMESA_PROFILE,OSMESA_CORE_PROFILE,
+    OSMESA_PROFILE,OSMESA_COMPAT_PROFILE,
     OSMESA_CONTEXT_MAJOR_VERSION,4,
     OSMESA_CONTEXT_MINOR_VERSION,3,
     0,0
@@ -2108,7 +2112,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
 #ifdef FREEGLUT
 #ifdef GLUT_INIT_MAJOR_VERSION
-    while(true) {
+    for(;;) {
       if(multisample > 0)
         glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif
@@ -2146,7 +2150,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     fpu_trap(false); // Work around FE_INVALID
-    window=glutCreateWindow("");
+    window=glutCreateWindow(Iconify ? "" : "Asymptote rendering window" );
     fpu_trap(settings::trap());
     glutHideWindow();
   }
@@ -2253,6 +2257,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif
 
     glutMainLoop();
+    cout << endl;
+    exitHandler(0);
 #endif // HAVE_LIBGLUT
   } else {
     if(glthread) {
@@ -2769,7 +2775,8 @@ void drawBuffers()
   drawTriangle();
 
   if(transparent) {
-    gl::copied=true;
+    if(camp::ssbo)
+      gl::copied=true;
     if(interlock) resizeFragmentBuffer();
     drawTransparent();
   }

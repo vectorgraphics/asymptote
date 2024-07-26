@@ -15,14 +15,14 @@
 namespace absyntax {
 
 class formal : public absyn {
-  ty *base;
+  astType *base;
   decidstart *start;
   bool Explicit;
   varinit *defval;
   bool keywordOnly;
 
 public:
-  formal(position pos, ty *base, decidstart *start=0, varinit *defval=0,
+  formal(position pos, astType *base, decidstart *start=0, varinit *defval=0,
          bool Explicit= false, bool keywordOnly=false)
     : absyn(pos), base(base), start(start), Explicit(Explicit),
       defval(defval), keywordOnly(keywordOnly) {}
@@ -37,6 +37,8 @@ public:
   virtual void transAsVar(coenv &e, Int index);
 
   types::ty *getType(coenv &e, bool tacit=false);
+
+  absyntax::astType *getAbsyntaxType() { return base; }
 
   virtual void addOps(coenv &e, record *r);
 
@@ -58,6 +60,12 @@ public:
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
   std::pair<std::string, optional<std::string>> fnInfo() const;
+};
+
+struct tySymbolPair : public gc {
+  absyntax::astType* ty;
+  symbol sym;
+  tySymbolPair(absyntax::astType* ty, symbol sym) : ty(ty), sym(sym) {}
 };
 
 class formals : public absyn {
@@ -119,6 +127,8 @@ public:
   types::function *getType(types::ty *result, coenv &e,
                            bool encodeDefVal = false,
                            bool tacit = false);
+  
+  mem::vector<tySymbolPair> *getFields();
 
   virtual void addOps(coenv &e, record *r);
 
@@ -131,7 +141,7 @@ public:
 };
 
 class fundef : public exp {
-  ty *result;
+  astType *result;
   formals *params;
   stm *body;
 
@@ -142,7 +152,7 @@ class fundef : public exp {
   friend class fundec;
 
 public:
-  fundef(position pos, ty *result, formals *params, stm *body)
+  fundef(position pos, astType *result, formals *params, stm *body)
     : exp(pos), result(result), params(params), body(body), id() {}
 
   virtual void prettyprint(ostream &out, Int indent) override;
@@ -166,7 +176,7 @@ class fundec : public dec {
   fundef fun;
 
 public:
-  fundec(position pos, ty *result, symbol id, formals *params, stm *body)
+  fundec(position pos, astType *result, symbol id, formals *params, stm *body)
     : dec(pos), id(id), fun(pos, result, params, body)
   { fun.id = id; }
 

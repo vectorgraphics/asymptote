@@ -18,6 +18,10 @@ namespace types {
 class record;
 }
 
+namespace absyntax {
+class namedTyEntry;
+}
+
 namespace trans {
 
 using sym::symbol;
@@ -26,10 +30,11 @@ using types::function;
 using types::record;
 
 class genv;
+class coenv;
 
 // Keeps track of the name bindings of variables and types.  This is used for
-// the fields of a record, whereas the derived class env is used for unqualified
-// names in translation.
+// the fields of a record, whereas the derived class env is used for
+// unqualified names in translation.
 class protoenv {
 //protected:
 public:
@@ -140,8 +145,9 @@ public:
   bool add(symbol src, symbol dest,
            protoenv &source, varEntry *qualifier, coder &c)
   {
-    return te.add(src, dest, source.te, qualifier, c) ||
-      ve.add(src, dest, source.ve, qualifier, c);
+    bool teAdd=te.add(src, dest, source.te, qualifier, c);
+    bool veAdd=ve.add(src, dest, source.ve, qualifier, c);
+    return teAdd || veAdd;
   }
 
   // Add the standard functions for a new type.
@@ -180,6 +186,11 @@ public:
   ~env();
 
   record *getModule(symbol id, string filename);
+  record *getTemplatedModule(symbol index,
+                             string filename,
+                             mem::vector<absyntax::namedTyEntry*> *args,
+                             coenv& e);
+  record *getLoadedModule(symbol id);
 };
 
 } // namespace trans

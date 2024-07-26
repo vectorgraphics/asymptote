@@ -33,7 +33,7 @@ string Embed(string name, string text="", string options="", real width=0,
              real height=0);
 
 bool primitive() { // Encode primitive objects
-  return settings.outformat == "html" || settings.outformat=="v3d";
+  return settings.outformat == "html" || settings.outformat=="v3d" || settings.v3d;
 }
 
 bool prconly(string format="")
@@ -122,10 +122,9 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
-  pic.uptodate=true;
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
-    bool prc=prc(format);
+    bool prc=prc(format) || settings.v3d;
     bool empty3=pic.empty3();
     if(prc && !empty3) {
         if(settings.render == 0) {
@@ -139,7 +138,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
       settings.inlinetex=settings.inlineimage;
     }
     frame f;
-    transform t=pic.calculateTransform();
+    transform t=empty3 ? pic.calculateTransform() : identity;
     if(currentpicture.fitter == null) {
       pen background=currentlight.background;
       if(settings.outformat == "html" && background == nullpen)
@@ -152,10 +151,14 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     else
       f=pic.fit(prefix,format,view=view,options,script,light,P);
 
-    if(!prconly() && (!pic.empty2() || settings.render == 0 || prc || empty3))
+     if(!prconly() && (!pic.empty2() || settings.render == 0 || prc ||
+                       pic.queueErase)) {
       shipout(prefix,orientation(f),format,wait,view,t);
+      pic.queueErase=false;
+    }
     settings.inlinetex=inlinetex;
   }
+  pic.uptodate=true;
 }
 
 void newpage(picture pic=currentpicture)

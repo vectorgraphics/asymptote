@@ -54,6 +54,12 @@
 
 #include "stack.h"
 
+#ifdef HAVE_LIBCURSES
+#ifdef HAVE_LIBREADLINE
+#include <readline/readline.h>
+#endif
+#endif
+
 using namespace settings;
 
 using interact::interactive;
@@ -191,7 +197,7 @@ void *asymain(void *A)
         fprintf(camp::pipeout,"\n");
         fflush(camp::pipeout);
       }
-      while(true) {
+      for(;;) {
         processFile("-",true);
         try {
           setOptions(args->argc,args->argv);
@@ -245,6 +251,9 @@ void *asymain(void *A)
 
 void exitHandler(int)
 {
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+  rl_cleanup_after_signal();
+#endif
   exit(returnCode());
 }
 
@@ -281,7 +290,7 @@ int main(int argc, char *argv[])
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
-        while(true) {
+        for(;;) {
           Signal(SIGURG,exitHandler);
           camp::glrenderWrapper();
           gl::initialize=true;

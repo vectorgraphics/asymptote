@@ -155,3 +155,16 @@ errortest.asy: 452.16: expression is not an array of inferable type
 errortest.asy: 457.16: expression is not an array of inferable type
 errortest.asy: 463.16: expression is not an array of inferable type
 errortest.asy: 470.7: array expression cannot be used as an address
+errortest.asy: 518.29: expected 'as'
+errortest.asy: 519.30: expected 'as'
+errortest.asy: 520.23: expected typename=
+errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
+errortest.asy: 524.3: templated module access requires template parameters
+errortest.asy: 525.3: Expected 'typedef import(<types>);'
+errortest.asy: 529.30: too few types passed: got 2, expected 3
+errortest.asy: 529.3: could not load module 'errortestTemplate'
+errortest.asy: 531.47: template argument name does not match module: passed T, expected C
+errortest.asy: 531.3: could not load module 'errortestTemplate'
+errortest.asy: 533.37: template argument name does not match module: passed C, expected B
+errortest.asy: 533.3: could not load module 'errortestTemplate'
+errortestTemplate.asy: 5.1: 'typedef import(<types>)' must precede any other code

@@ -526,7 +526,7 @@ void venv::namevalue::replaceType(ty *new_t, ty *old_t) {
 }
 
 #ifdef DEBUG_CACHE
-void venv::namevalue::popType(ty *s)
+void venv::namevalue::popType(astType *s)
 #else
   void venv::namevalue::popType()
 #endif

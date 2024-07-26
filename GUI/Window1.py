@@ -2460,9 +2460,10 @@ class MainWindow1(Qw.QMainWindow):
         except:
             return
 
-        if self.fileItems[maj] is not None:
-            self.contextWindowObject = self.fileItems[maj] #For arrowifying
-            self.contextWindow = ContextWindow.AnotherWindow(self.fileItems[maj],self)
+        item=self.fileItems[maj]
+        if item is not None and isinstance(item, x2a.xasyDrawnItem):
+            self.contextWindowObject = item #For arrowifying
+            self.contextWindow = ContextWindow.AnotherWindow(item,self)
             self.contextWindow.setMinimumWidth(420)
             #self.setCentralWidget(self.contextWindow) #I don't know what this does tbh.
             self.contextWindow.show()

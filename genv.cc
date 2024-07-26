@@ -34,7 +34,9 @@ using settings::getSetting;
 using settings::Setting;
 
 // Dynamic loading of external libraries.
-types::record *transExternalModule(trans::genv& ge, string filename, symbol id);
+types::record *transExternalModule(
+    trans::genv& ge, string filename, symbol id
+);
 
 namespace trans {
 
@@ -43,7 +45,7 @@ genv::genv()
 {
   // Add settings as a module.  This is so that the init file ~/.asy/config.asy
   // can set settings.
-  imap["settings"]=settings::getSettingsModule();
+  imap[symbol::literalTrans("settings")]=settings::getSettingsModule();
 
   // Translate plain in advance, if we're using autoplain.
   if(getSetting<bool>("autoplain")) {
@@ -55,7 +57,7 @@ genv::genv()
     Setting("autoplain")=true;
   }
 #ifdef HAVE_LIBGSL
-  imap["gsl"]=trans::getGSLModule();
+  imap[symbol::literalTrans("gsl")]=trans::getGSLModule();
 #endif
 }
 
@@ -86,6 +88,34 @@ record *genv::loadModule(symbol id, string filename) {
   return r;
 }
 
+record *genv::loadTemplatedModule(
+      symbol id,
+      string filename,
+      mem::vector<absyntax::namedTyEntry*> *args,
+      coenv& e
+) {
+  // Hackish way to load an external library.
+#if 0
+  if (endswith(".so", filename)) {
+    return transExternalModule(*this, filename, id);
+  }
+#endif
+
+  // Get the abstract syntax tree.
+  absyntax::file *ast = parser::parseFile(filename,"Loading");
+
+  inTranslation.push_front(filename);
+
+  em.sync();
+
+  record *r=ast->transAsTemplatedFile(*this, id, args, e);
+
+  inTranslation.remove(filename);
+
+  return r;
+}
+
+
 void genv::checkRecursion(string filename) {
   if (find(inTranslation.begin(), inTranslation.end(), filename) !=
       inTranslation.end()) {
@@ -99,19 +129,47 @@ void genv::checkRecursion(string filename) {
 record *genv::getModule(symbol id, string filename) {
   checkRecursion(filename);
 
-  record *r=imap[filename];
+  symbol index=symbol::literalTrans(filename);
+  record *r=imap[index];
   if (r)
     return r;
   else {
     record *r=loadModule(id, filename);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
-    if (!interact::interactive || !em.errors())
-      imap[filename]=r;
+    if (!interact::interactive || !em.errors()) {
+      imap[index]=r;
+    }
 
     return r;
   }
+}
 
+record *genv::getTemplatedModule(
+    symbol index,
+    string filename,
+    mem::vector<absyntax::namedTyEntry*>* args,
+    coenv& e
+) {
+  checkRecursion(filename);
+
+  record *r=imap[index];
+  if (r)
+    return r;
+  else {
+    record *r=loadTemplatedModule(index, filename, args, e);
+    // Don't add an erroneous module to the dictionary in interactive mode, as
+    // the user may try to load it again.
+    if (!interact::interactive || !em.errors()) {
+      imap[index]=r;
+    }
+
+    return r;
+  }
+}
+
+record *genv::getLoadedModule(symbol id) {
+  return imap[id];
 }
 
 typedef vm::stack::importInitMap importInitMap;
@@ -123,7 +181,7 @@ importInitMap *genv::getInitMap()
     initMap(genv &ge)
       : ge(ge) {}
     lambda *operator[](string s) {
-      record *r=ge.imap[s];
+      record *r=ge.imap[symbol::literalTrans(s)];
       return r ? r->getInit() : 0;
     }
   };
