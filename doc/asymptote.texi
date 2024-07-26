@@ -772,7 +772,7 @@ can be enabled by running @code{asy-kate.sh} in the
 @code{@value{Datadir}/asymptote} directory and putting the generated
 @code{asymptote.xml} file in @code{~/.local/share/org.kde.syntax-highlighting/syntax/}.
 
-@node Git, Uninstall, Editing modes, Installation
+@node Git
 @section Git
 @cindex git
 
@@ -812,7 +812,7 @@ executing @code{make} from @code{doc} folder first.
 The @code{asy} executable is required for compiling the diagrams
 in the documentation.
 
-@node Uninstall,  , Git, Installation
+@node Uninstall
 @section Uninstall
 @cindex uninstall
 
@@ -4870,10 +4870,8 @@ c=a;                // Valid: only one possible assignment.
 @item ``Higher-order'' functions, in other words functions that return
 functions, are allowed.
 The return type must be given a signature-free alias with
-@code{using}
+@code{using} or @code{typedef}:
 @cindex @code{using}
-or
-@code{typedef}:
 @cindex @code{typedef}
 @verbatim
 using intop = int(int);
@@ -6650,7 +6648,7 @@ Here now is @code{latexusage.tex}:
 * ode::                         Ordinary differential equations
 @end menu
 
-@node plain, simplex, Base modules, Base modules
+@node plain
 @section @code{plain}
 @cindex @code{plain}
 
@@ -6665,21 +6663,21 @@ the types and functions defined in @code{plain} are accessible in
 almost all @code{Asymptote} code. Use the @code{-noautoplain} command-line
 option to disable this feature.
 
-@node simplex, math, plain, Base modules
+@node simplex
 @section @code{simplex}
 @cindex @code{simplex}
 @cindex @code{deferred drawing}
 This module solves the general linear programming problem using the
 simplex method.
 
-@node simplex2, math, plain, Base modules
+@node simplex2
 @section @code{simplex2}
 @cindex @code{simplex2}
 @cindex @code{deferred drawing}
 This module solves a special case of the two-variable linear programming
 problem used by the module @code{plain} for automatic sizing of pictures.
 
-@node math, interpolate, simplex, Base modules
+@node math
 @section @code{math}
 @cindex @code{math}
 This module extends @code{Asymptote}'s mathematical capabilities with
@@ -10074,7 +10072,7 @@ together on adding them to a picture. However, the elements of a frame
 added to another frame are not grouped together by default: their
 elements will be individually deconstructed (@pxref{add}).
 
-@node Command-Line Interface, PostScript to Asymptote, GUI, Top
+@node Command-Line Interface
 @chapter Command-Line Interface
 @cindex command-line interface
 
@@ -10169,7 +10167,7 @@ M-x lsp
 
 @end itemize
 
-@node PostScript to Asymptote, Help, Command-Line Interface, Top
+@node PostScript to Asymptote, Help, Language server protocol, Top
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
 The excellent @code{PostScript} editor @code{pstoedit} (version 3.50 or later;
