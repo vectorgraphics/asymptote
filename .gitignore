@@ -210,3 +210,8 @@ asy-pkg-version-suffix.cmake
 
 # vcpkg
 vcpkg_installed
+
+# temporary configuration header/sources
+/confdefs.cc
+/confdefs.h
+/conftest.cpp
