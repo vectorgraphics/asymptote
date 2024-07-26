@@ -456,9 +456,15 @@ fundec:
 typedec:
   STRUCT ID block  { $$ = new recorddec($1, $2.sym, $3); }
 | TYPEDEF vardec   { $$ = new typedec($1, $2); }
+// See definition for decidstart. Following C++, "The syntax of the type-id
+// that names type T is exactly the syntax of a declaration of a variable or
+// function of type T, with the identifier omitted."
+// http://en.cppreference.com/w/cpp/language/type#Type_naming
 | USING ID ASSIGN type ';'
                    { decidstart *dis = new decidstart($2.pos, $2.sym);
                      $$ = new typedec($1, dis, $4); }
+// Not needed since `type` already incorporates `dims`:
+// | USING ID ASSIGN type dims ';'
 | USING ID ASSIGN type '(' ')' ';'
                    { decidstart *dis = new fundecidstart($2.pos, $2.sym,
                                                          0, new formals($5));
