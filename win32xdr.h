@@ -1,6 +1,12 @@
 #pragma once
 
-#if defined(_WIN32) && defined(HAVE_LIBTIRPC)
+#if defined(_WIN32)
+
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
+
+#if defined(HAVE_LIBTIRPC)
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
@@ -165,4 +171,5 @@ bool w32_xdr_float(Win32XDR* xdrs, float* ip);
 bool w32_xdr_double(Win32XDR* xdrs, double* ip);
 
 
+#endif
 #endif
