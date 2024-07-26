@@ -60,7 +60,7 @@ struct coords3 {
 }
 
 // scaleT and Legend <<<
-typedef real scalefcn(real x);
+using scalefcn=real(real);
 
 struct scaleT {
   scalefcn T,Tinv;
@@ -86,7 +86,7 @@ scaleT operator init()
   return S;
 }
 
-typedef void boundRoutine();
+using boundRoutine=void();
 
 struct autoscaleT {
   scaleT scale;
@@ -162,11 +162,11 @@ triple max3(pen p)
 
 // A function that draws an object to frame pic, given that the transform
 // from user coordinates to true-size coordinates is t.
-typedef void drawer(frame f, transform t);
+using drawer=void(frame f, transform t);
 
 // A generalization of drawer that includes the final frame's bounds.
 // TODO: Add documentation as to what T is.
-typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
+using drawerBound=void(frame f, transform t, transform T, pair lb, pair rt);
 
 struct node {
   drawerBound d;
@@ -203,8 +203,8 @@ void write(pairOrTriple a) {
 struct picture { // <<<1
   // Nodes <<<2
   // Three-dimensional version of drawer and drawerBound:
-  typedef void drawer3(frame f, transform3 t, picture pic, projection P);
-  typedef void drawerBound3(frame f, transform3 t, transform3 T,
+  using drawer3=void(frame f, transform3 t, picture pic, projection P);
+  using drawerBound3 = void(frame f, transform3 t, transform3 T,
                             picture pic, projection P, triple lb, triple rt);
 
   struct node3 {
@@ -331,7 +331,7 @@ struct picture { // <<<1
   bool userSety3() { return usety; }
   bool userSetz3() { return usetz; }
 
-  private typedef real binop(real, real);
+  private using binop = real(real, real);
 
   // Helper functions for finding the minimum/maximum of two data, one of
   // which may not be defined.
@@ -1225,7 +1225,7 @@ void add(picture pic=currentpicture, drawer d, bool exact=false)
   pic.add(d,exact);
 }
 
-typedef void drawer3(frame f, transform3 t, picture pic, projection P);
+using drawer3 = void(frame f, transform3 t, picture pic, projection P);
 void add(picture pic=currentpicture, drawer3 d, bool exact=false)
 {
   pic.add(d,exact);
