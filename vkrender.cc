@@ -923,19 +923,19 @@ void AsyVkRender::createInstance()
     }
   }
 
-  // For some Mac users, there is the instance extension available VK_KHR_get_memory_requirements2, which may
-  // be needed for VMA
-  if (isExtensionSupported(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)) {
-    extensions.emplace_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
-  }
+  // Use all available extensions temporarily as a test to get VMA to work on some Mac machines
+  std::vector<const char *> allExtensions {};
+
+  // Fill allExtensions with the supported extension list
+  std::transform(supportedExtensions.begin(), supportedExtensions.end(), std::back_inserter(allExtensions), [](std::string const& ext) { return ext.c_str(); });
 
   auto const instanceCI = vk::InstanceCreateInfo(
     vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
     &appInfo,
     validationLayers.size(),
     validationLayers.data(),
-    extensions.size(),
-    extensions.data()
+    allExtensions.size(),
+    allExtensions.data()
   );
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
