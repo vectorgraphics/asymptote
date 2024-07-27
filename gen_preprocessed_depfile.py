@@ -5,6 +5,7 @@ from typing import List, Optional
 import subprocess as sp
 import sys
 import tempfile
+import shlex
 import json
 
 
@@ -47,6 +48,13 @@ def parse_args():
 
     args_parser.add_argument(
         "--include-dirs", type=str, help="Include directories separated by semicolon"
+    )
+
+    args_parser.add_argument(
+        "--additional-raw-arguments",
+        type=str,
+        help="Additional arguments to pass to the compiler. "
+        + "Only for use on UNIX systems",
     )
 
     args_parser.add_argument(
@@ -135,10 +143,11 @@ def compile_for_depfile_gcc(
     try:
         sp.run(args, check=True, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
     except sp.CalledProcessError as e:
-        sys.stderr.write('Process stderr:\n')
+        sys.stderr.write("Process stderr:\n")
         sys.stderr.write(e.stderr)
-        sys.stderr.write('Process stderr:\n')
+        sys.stderr.write("Process output:\n")
         sys.stderr.write(e.stdout)
+        sys.stderr.flush()
         raise
 
 
@@ -149,10 +158,11 @@ def compile_for_preproc_gcc(compile_opt: CompileOptions, src_in: str, preproc_ou
     try:
         sp.run(args, check=True, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
     except sp.CalledProcessError as e:
-        sys.stderr.write('Process stderr:\n')
+        sys.stderr.write("Process stderr:\n")
         sys.stderr.write(e.stderr)
-        sys.stderr.write('Process stderr:\n')
+        sys.stderr.write("Process out:\n")
         sys.stderr.write(e.stdout)
+        sys.stderr.flush()
         raise
 
 
@@ -203,6 +213,11 @@ def main():
         args.cxx_compiler,
         args.include_dirs.split(";") if args.include_dirs else None,
         args.macro_defs.split(";") if args.macro_defs else None,
+        extra_flags=(
+            shlex.split(args.additional_raw_arguments)
+            if args.additional_raw_arguments
+            else None
+        ),
         standard=args.cxx_standard,
     )
 
