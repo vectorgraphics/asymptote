@@ -46,15 +46,15 @@ restricted interaction Billboard=interaction(1);
 
 struct render
 {
-  // PRC parameters:
-  real compression;     // lossy compression parameter (0=no compression)
+  real compression;     // lossy PRC compression parameter (0=no compression)
   real granularity;     // PRC rendering granularity
 
-  bool closed;          // use one-sided rendering?
+  bool closed;          // use one-sided PRC rendering?
+
   bool tessellate;      // use tessellated mesh to store straight patches?
 
-  bool3 merge;          // merge nodes before rendering, for faster but
-                        // lower quality PRC rendering (the value default means
+  bool3 merge;          // merge PRC nodes before rendering, for faster but
+                        // lower quality rendering (the value default means
                         // merge opaque patches only).
 
   int sphere;           // PRC sphere type (PRCsphere or NURBSsphere).
@@ -3046,7 +3046,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
     pic.queueErase3=false;
   }
 
-  if(is3D(format) || pic.queueErase)
+  if(is3D(format) || pic.queueErase || settings.render == 0)
     add(f,pic.fit2(xsize,ysize,keepAspect));
   return f;
 };

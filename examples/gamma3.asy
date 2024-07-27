@@ -22,7 +22,7 @@ real Arg(triple v)
 }
 
 s.colors(palette(s.map(Arg),Wheel()));
-draw(s,render(compression=Low,merge=true));
+draw(s,render(tessellate=false));
 
 real xmin=point((-1,-1,-1)).x;
 real xmax=point((1,1,1)).x;

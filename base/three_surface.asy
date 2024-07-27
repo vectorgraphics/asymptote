@@ -409,14 +409,15 @@ struct patch {
   // A constructor for a triangle or convex quadrilateral.
   void operator init(triple[] external, triple[] internal=new triple[],
                      pen[] colors=new pen[], bool3 planar=default) {
-    init();
-
     straight=true;
 
     if(colors.length != 0)
       this.colors=copy(colors);
 
     if(external.length == 3) {
+      triangular=true;
+      this.planar=true;
+      init();
       P=new triple[][] {
         {external[0]},
         {interp(external[0],external[1],1/3),
@@ -426,10 +427,8 @@ struct patch {
         {external[1],interp(external[1],external[2],1/3),
          interp(external[1],external[2],2/3),external[2]}
       };
-      planar=true;
-      triangular=true;
-      init();
     } else {
+      init();
       if(internal.length == 0 && planar == default)
         this.planar=normal(external) != O;
       else this.planar=planar;
@@ -789,10 +788,11 @@ struct surface {
   }
 
   void operator init(triple[][][] P, pen[][] colors=new pen[][],
+                     bool3 straight=false,
                      bool3 planar=default, bool triangular=false) {
     s=sequence(new patch(int i) {
-        return patch(P[i],colors.length == 0 ? new pen[] : colors[i],planar,
-                     triangular);
+        return patch(P[i],colors.length == 0 ? new pen[] : colors[i],
+                     straight,planar,triangular);
       },P.length);
   }
 
@@ -1421,6 +1421,7 @@ void _draw(frame f, path3 g, triple center=O, material m,
 int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
 {
   triple lastnormal=O;
+  n.delete();
   for(int i=0; i < vi.length; ++i) {
     int[] vii=vi[i];
     int[] nii=ni[i];
@@ -1434,7 +1435,7 @@ int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
   return ni.length;
 }
 
-// Draw triangles on a frame.
+// Draw a triangle group on a frame.
 void draw(frame f, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight, render render=defaultrender)
@@ -1481,21 +1482,25 @@ void draw(frame f, triple[] v, int[][] vi,
        render.interaction.type);
 }
 
-// Draw triangles on a picture.
+// Draw a triangle group on a picture.
 void draw(picture pic=currentpicture, triple[] v, int[][] vi,
           triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight, render render=defaultrender)
 {
-  bool normals=ni.length > 0;
-  if(!normals) {
-    ni=new int[vi.length][3];
-    normals=computeNormals(v,vi,n,ni) > 0;
-  }
   bool colors=pi.length > 0;
+
+  // TODO: copy inputs
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple[] v=t*v;
-      triple[] n=t*n;
+      bool normals=ni.length > 0;
+      if(normals) {
+        transform3 T=transpose(inverse(shiftless(t)));
+        n=sequence(new triple(int i) {return unit(T*n[i]);},n.length) ;
+      } else {
+        ni=new int[vi.length][3];
+        normals=computeNormals(v,vi,n,ni) > 0;
+      }
 
       if(is3D()) {
         render Render=render(render,interaction(render.interaction,
@@ -1540,9 +1545,11 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       }
     },true);
 
-  for(int[] vii : vi)
-    for(int viij : vii)
-      pic.addPoint(v[viij]);
+  for(int[] vii : vi) {
+    pic.addPoint(v[vii[0]]);
+    pic.addPoint(v[vii[1]]);
+    pic.addPoint(v[vii[2]]);
+  }
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1685,6 +1692,112 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   draw(t,f,s,nu,nv,surfacepen,meshpen,light,meshlight,name,render,P);
 }
 
+// draw a triangle group on a frame for the tessellation of a surface
+// containing indexed patches.
+void drawTessellation(frame f, surface s,
+                      material surfacepen=currentpen, pen meshpen=nullpen,
+                      light light=currentlight, light meshlight=nolight,
+                      string name="", render render=defaultrender)
+{
+  int nU=s.index.length;
+  if(nU == 0) return;
+  int nV=s.index[0].length;
+  if(nV == 0) return;
+
+  int N=(nU+1)*(nV+1);
+  triple[] v=new triple[N];
+  triple[] n=new triple[N];
+
+  bool colors=s.s[0].colors.length > 0;
+  pen[] p;
+  if(colors)
+    p=new pen[N];
+
+  int index(int i,int j) {return (nV+1)*i+j;}
+
+  int k=0;
+  for(int U=0; U < nU; ++U) {
+    for(int V=0; V < nV; ++V) {
+      patch q=s.s[s.index[U][V]];
+      v[k]=q.P[0][0];
+      n[k]=unit(q.normal00());
+      if(colors)
+        p[k]=q.colors[0];
+      ++k;
+    }
+    patch q=s.s[s.index[U][nV-1]];
+    v[k]=q.P[0][3];
+    n[k]=unit(q.normal01());
+    if(colors)
+      p[k]=q.colors[3];
+    ++k;
+  }
+
+  for(int V=0; V < nV; ++V) {
+    patch q=s.s[s.index[nU-1][V]];
+    v[k]=q.P[3][0];
+    n[k]=unit(q.normal10());
+    if(colors)
+      p[k]=q.colors[1];
+    ++k;
+  }
+  patch q=s.s[s.index[nU-1][nV-1]];
+  v[k]=q.P[3][3];
+  n[k]=unit(q.normal11());
+  if(colors)
+    p[k]=q.colors[2];
+  ++k;
+
+  int[][] vi=new int[nU*nV][];
+  int k=0;
+  for(int i=0; i < nU; ++i) {
+    for(int j=0; j < nV; ++j) {
+      vi[k]=new int[] {index(i,j),index(i+1,j),index(i+1,j+1)};
+      ++k;
+      vi[k]=new int[] {index(i,j),index(i+1,j+1),index(i,j+1)};
+      ++k;
+    }
+  }
+
+  draw(f,v,vi,n,vi,surfacepen,p,colors ? vi : new int[][],light);
+
+  if(!invisible(meshpen)) {
+    if(is3D()) meshpen=thin()+squarecap+meshpen;
+    bool group=name != "" || render.defaultnames;
+    for(int k=0; k < s.s.length; ++k) {
+      patch q=s.s[k];
+      if(group)
+        begingroup3(f,meshname(name),render);
+      draw(f,q.P[0][0]--q.P[3][0]--q.P[3][3]--q.P[0][3]--cycle,
+           meshpen,meshlight,partname(k,render),render);
+      if(group)
+        endgroup3(f);
+    }
+  }
+}
+
+// draw a triangle group on a picture for the tessellation of a surface
+// containing indexed patches.
+void drawTessellation(picture pic=currentpicture, surface s,
+                      material surfacepen=currentpen, pen meshpen=nullpen,
+                      light light=currentlight, light meshlight=nolight,
+                      string name="", render render=defaultrender)
+{
+  pic.add(new void(frame f, transform3 t, picture, projection) {
+      drawTessellation(f,t*s,surfacepen,meshpen,light,meshlight,name,render);
+    },true);
+
+  pic.addPoint(min(s));
+  pic.addPoint(max(s));
+
+  if(!invisible(meshpen)) {
+    for(int k=0; k < s.s.length; ++k) {
+      patch q=s.s[k];
+      addPath(pic,q.P[0][0]--q.P[3][0]--q.P[3][3]--q.P[0][3]--cycle,meshpen);
+    }
+  }
+}
+
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
           light light=currentlight, light meshlight=nolight, string name="",
@@ -1692,12 +1805,8 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 {
   if(s.empty()) return;
 
-  bool cyclic=surfacepen.cyclic;
   surfacepen=copy(surfacepen);
-  surfacepen.cyclic=cyclic;
-  cyclic=meshpen.cyclic;
   meshpen=copy(meshpen);
-  meshpen.cyclic=cyclic;
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
@@ -1739,11 +1848,15 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
-  material[] surfacepen={surfacepen};
-  pen[] meshpen={meshpen};
-  surfacepen.cyclic=true;
-  meshpen.cyclic=true;
-  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
+  if(render.tessellate && s.index.length > 0 && settings.render != 0) {
+    drawTessellation(pic,s,surfacepen,meshpen,light,meshlight,name,render);
+  } else {
+    material[] surfacepen={surfacepen};
+    surfacepen.cyclic=true;
+    pen[] meshpen={meshpen};
+    meshpen.cyclic=true;
+    draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
+  }
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
