@@ -215,3 +215,6 @@ vcpkg_installed
 /confdefs.cc
 /confdefs.h
 /conftest.cpp
+
+acextlibs
+extbuilds
