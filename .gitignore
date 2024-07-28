@@ -220,3 +220,6 @@ vcpkg_installed
 
 acextlibs
 extbuilds
+
+# generated files from
+*.raw.i
