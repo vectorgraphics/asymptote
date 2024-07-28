@@ -79,7 +79,6 @@ string demangle(const char* s)
 }
 #endif
 
-#pragma
 // windows specific unnamed spaces
 #if defined(_WIN32)
 namespace w32 = camp::w32;
