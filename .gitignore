@@ -215,6 +215,8 @@ vcpkg_installed
 /confdefs.cc
 /confdefs.h
 /conftest.cpp
+/conftest.cc
+/conftest.c
 
 acextlibs
 extbuilds
