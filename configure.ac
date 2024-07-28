@@ -797,6 +797,9 @@ AC_SUBST(DEFS)
 AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 
+# we are on C++ >= 11, so unordered map is a guarantee
+AC_DEFINE(HAVE_UNORDERED_MAP)
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
