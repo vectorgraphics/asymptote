@@ -241,9 +241,12 @@ AC_ARG_WITH(vcpkg-target-triplet,
 
 if test "x$with_vcpkg" != "xno"; then
    VCPKG_INSTALL_ARGUMENTS="--triplet=$vcpkg_triplet "
+   VCPKG_PKG_CONFIG_LOC="vcpkg_installed/$vcpkg_triplet/lib/pkgconfig"
    INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include"
    LIBS=$LIBS" -Lvcpkg_installed/$vcpkg_triplet/lib"
 
+   VCPKG_LIBS_TO_USE_PKG_CONFIG=""
+   AC_DEFUN([ADD_VCPKG_LIB_FOR_PKGCONFIG],[VCPKG_LIBS_TO_USE_PKG_CONFIG=$VCPKG_LIBS_TO_USE_PKG_CONFIG"$1 "])
    AC_DEFUN([ADD_VCPKG_FEATURE],[VCPKG_INSTALL_ARGUMENTS=$VCPKG_INSTALL_ARGUMENTS"--x-feature=$1 "])
 fi
 
@@ -316,7 +319,8 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       # The reason we are not using AC_CHECK_LIB is because
       # we are not installing the dependencies until we collect all the features,
       # hence the library files will not be available
-      LIBS=$LIBS" -lgc -lgccpp "
+      ADD_VCPKG_LIB_FOR_PKGCONFIG(bdw-gc)
+      LIBS=$LIBS"-lgccpp "
    else  # else, determine by prefix or system
       case _$ac_cv_use_gc in
       _|_system|_*[[\\/]]*)
@@ -381,8 +385,8 @@ AC_SUBST(GLEW)
 
 # ----------------- zlib ----------------------------
 if test "x$with_vcpkg" != "xno"; then
-   LIBS=$LIBS"-lz "
    AC_DEFINE(HAVE_ZLIB,1)
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(zlib)
 else
    AC_CHECK_LIB(
       [z],
@@ -529,7 +533,8 @@ if test "x$with_vcpkg" != "xno"; then  # vcpkg
    AC_DEFINE(HAVE_NCURSES_CURSES_H)
    AC_DEFINE(HAVE_LIBCURSES)
    AC_DEFINE(HAVE_LIBREADLINE)
-   LIBS=$LIBS" -lreadline -lncurses "
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(readline)
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(ncurses)
 else  # managed by the system
    PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,readline)
 
@@ -564,7 +569,7 @@ if test "x$enable_curl" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then
    ADD_VCPKG_FEATURE(curl)
    AC_DEFINE(HAVE_LIBCURL)
-   LIBS=$LIBS" -lcurl "
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(libcurl)
 else
   PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,curl)
   AC_CHECK_HEADER(curl/curl.h,
@@ -585,7 +590,7 @@ if test "x$enable_fftw" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # vcpkg
 ADD_VCPKG_FEATURE(fftw3)
 AC_DEFINE(HAVE_LIBFFTW3)
-LIBS=$LIBS" -lfftw3 "
+ADD_VCPKG_LIB_FOR_PKGCONFIG(fftw3)
 else  # system managed
 PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,fftw3)
 AC_CHECK_HEADER(fftw3.h,
@@ -604,6 +609,7 @@ if test "x$enable_eigen" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then
 ADD_VCPKG_FEATURE(eigen3)
 AC_DEFINE(HAVE_EIGEN_DENSE)
+ADD_VCPKG_LIB_FOR_PKGCONFIG(eigen3)
 else
 PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,eigen3)
 AC_CHECK_HEADERS(Eigen/Dense)
@@ -625,7 +631,8 @@ if test "x$enable_gsl" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # vcpkg
    ADD_VCPKG_FEATURE(gsl)
    AC_DEFINE(HAVE_LIBGSL)
-   LIBS=$LIBS"-lgsl "
+   LIBS=$LIBS"-lgsl "  # gsl's pkg-config file is incomplete
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(gsl)
 else
   PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,gsl)
   PKG_CONFIG(LDFLAGS,$LDFLAGS,--libs,gsl)
@@ -689,7 +696,8 @@ if test "x$with_vcpkg" != "no"; then  # managed by vcpkg
    AC_DEFINE(HAVE_GL,1,[OpenGL is enabled])
    AC_DEFINE(FREEGLUT,1)
    AC_DEFINE(HAVE_LIBGLUT,1)
-   LIBS=$LIBS"-lGLEW -lglut "
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(glew)
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(glut)
 else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
@@ -731,6 +739,10 @@ fi
 if test "x$with_vcpkg" != "xno"; then
 AC_MSG_NOTICE([*** Running vcpkg install ***])
 $vcpkg_exec install $VCPKG_INSTALL_ARGUMENTS
+
+LIBS=$LIBS"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --libs $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
+CFLAGS=$CFLAGS" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-other $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
+INCL=$INCL"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
 fi
 
 # ----------------- xdr ------------------------
