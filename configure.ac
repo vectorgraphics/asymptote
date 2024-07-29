@@ -35,6 +35,26 @@ echo Compiling with $CXXFLAGS
 
 test "$CFLAGS" || CFLAGS="-g -O3"
 
+# --------------- external refs ---------------------------
+
+# we need LSP regardless
+EXTERNAL_CODE_ROOT=acextlibs
+
+LSP_GITHUB_REPO=vectorgraphics/LspCpp
+LSP_REF=87a67d1623e03cc5f3b054e7529a42f6b19c2869
+
+#
+# FETCH_FROM_GITHUB(REPO,REF,OUT_VAR_SRC_DIRECTORY)
+AC_DEFUN([FETCH_FROM_GITHUB],[
+   AC_MSG_NOTICE([*** Fetching from github: $1@$2 ***])
+   $3=$EXTERNAL_CODE_ROOT/$1/$2
+   AC_MSG_NOTICE([*** Creating directory $$3 ***])
+   mkdir -p $$3
+   curl -L https://github.com/$1/archive/$2.tar.gz | tar -xz --strip-components=1 -C $$3 -f -
+   AC_MSG_NOTICE([*** Fetch successful ***])
+])
+
+
 # --------------- begin vcpkg option/check ---------------------
 # result:
 # with_vcpkg is yes/no, depending if user wants to use vcpkg or not
@@ -242,8 +262,8 @@ AC_ARG_WITH(vcpkg-target-triplet,
 if test "x$with_vcpkg" != "xno"; then
    VCPKG_INSTALL_ARGUMENTS="--triplet=$vcpkg_triplet "
    VCPKG_PKG_CONFIG_LOC="vcpkg_installed/$vcpkg_triplet/lib/pkgconfig"
-   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include"
-   LIBS=$LIBS" -Lvcpkg_installed/$vcpkg_triplet/lib"
+   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include "
+   LIBS=$LIBS" -Lvcpkg_installed/$vcpkg_triplet/lib "
 
    VCPKG_LIBS_TO_USE_PKG_CONFIG=""
    AC_DEFUN([ADD_VCPKG_LIB_FOR_PKGCONFIG],[VCPKG_LIBS_TO_USE_PKG_CONFIG=$VCPKG_LIBS_TO_USE_PKG_CONFIG"$1 "])
@@ -415,6 +435,12 @@ if test "x$with_vcpkg" = "no"; then  # I couldn't find sigsegv on vcpkg, so this
 fi
 
 # ----------------- lsp -------------------------------
+
+# LSP is needed regardless of
+
+FETCH_FROM_GITHUB($LSP_GITHUB_REPO,$LSP_REF,LSP_ROOT)
+INCL=$INCL"-I$LSP_ROOT/include "
+AC_SUBST(LSP_ROOT)
 
 LSPLIBS=
 LSPLIB=
