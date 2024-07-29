@@ -134,12 +134,8 @@ endif
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy: version $(FILES:=.o) @LSPLIB@
-	if test -n "$(MSDOS)"; then \
-          $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
-	else \
-	  ln -sf GUI/xasy.py $(XNAME); \
-	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
-	fi
+	ln -sf GUI/xasy.py $(XNAME); \
+	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 
 version: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) icons_rc.py $(ASYGENERATEDENUMS) $(PYGENERATEDENUMS)
 	if test ! -s revision.cc || test "$(revision)" != "$(last)"; then \
@@ -158,11 +154,6 @@ version: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) icons_rc.py $(ASYGENERATEDENUMS) 
 
 	echo "#!/usr/bin/env python3" > GUI/xasyVersion.py
 	echo xasyVersion = \"$(revision)\" >> GUI/xasyVersion.py
-
-	if test -n "$(MSDOS)"; then \
-	  cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/$(revision)/" | \
-	  windres -o asy.o; \
-	fi
 
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
