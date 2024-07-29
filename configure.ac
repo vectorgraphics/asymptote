@@ -43,6 +43,8 @@ EXTERNAL_CODE_ROOT=acextlibs
 LSP_GITHUB_REPO=vectorgraphics/LspCpp
 LSP_REF=87a67d1623e03cc5f3b054e7529a42f6b19c2869
 
+TINYEXR_GITHUB_REPO=syoyo/tinyexr
+TINYEXR_REF=v1.0.7
 #
 # FETCH_FROM_GITHUB(REPO,REF,OUT_VAR_SRC_DIRECTORY)
 AC_DEFUN([FETCH_FROM_GITHUB],[
@@ -699,6 +701,10 @@ else
       AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL support ***])
    )
 fi
+
+FETCH_FROM_GITHUB($TINYEXR_GITHUB_REPO,$TINYEXR_REF,TINYEXR_ROOT)
+INCL=$INCL"-I$TINYEXR_ROOT "
+AC_SUBST(TINYEXR_ROOT)
 
 if test "x$enable_gl" != "xno"; then
 if test "x$with_vcpkg" != "no"; then  # managed by vcpkg
