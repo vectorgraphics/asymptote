@@ -133,27 +133,31 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: version $(FILES:=.o) @LSPLIB@
-	ln -sf GUI/xasy.py $(XNAME); \
-	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
+asy: base/version.asy $(FILES:=.o) @LSPLIB@
+	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
-version: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) icons_rc.py $(ASYGENERATEDENUMS) $(PYGENERATEDENUMS)
-	if test ! -s revision.cc || test "$(revision)" != "$(last)"; then \
-	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
-	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> revision.cc; \
-	  if test ! -e base/webgl/asygl.js; then \
-	    cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
-	  fi \
+$(XNAME):
+	ln -sf GUI/xasy.py $(XNAME)
+
+version.txt: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) icons_rc.py $(ASYGENERATEDENUMS) $(PYGENERATEDENUMS)
+	if test ! -s $@ || test "$(revision)" != "$(last)"; then \
+		echo "$(revision)" > $@; \
 	fi
-	$(CXX) $(OPTS) -o revision.o -c revision.cc;
 
-	echo string VERSION=\"$(revision)\"\; > base/version.asy
-	echo @set VERSION $(revision) > doc/version.texi
-	echo @set Datadir @datadir@ >> doc/version.texi
-	echo @set Docdir @docdir@ >> doc/version.texi
+revision.cc: version.txt
+	  echo $(REVISION)\"$(shell cat $<)\"\; > $@
+	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> $@;
 
-	echo "#!/usr/bin/env python3" > GUI/xasyVersion.py
-	echo xasyVersion = \"$(revision)\" >> GUI/xasyVersion.py
+base/webgl/asygl.js: base/webgl/asygl-$(ASYGLVERSION).js
+	cp $< $@;
+
+base/version.asy: version.txt
+	echo string VERSION=\"$(shell cat $<)\"\; > $@
+
+doc/version.texi: version.txt
+	echo @set VERSION $(shell cat $<) > $@
+	echo @set Datadir @datadir@ >> $@
+	echo @set Docdir @docdir@ >> $@
 
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
