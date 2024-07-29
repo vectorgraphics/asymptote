@@ -68,14 +68,15 @@ GENERATEDENUMS=v3dtypes v3dheadertypes
 ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
 PYGENERATEDENUMS=$(GENERATEDENUMS:=.py)
 
-DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
+DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.h \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
         $(SYMBOLSH) $(PYFILES) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS)
 
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
+		version.txt
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
@@ -359,7 +360,7 @@ uninstall-docdir:
 	-rmdir $(docdir)
 
 clean:  FORCE
-	-rm -f asy asymptote.so *.pic.o *.o *.d *mon.out $(CLEAN)
+	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
 	-cd LspCpp && $(MAKE) clean
 
 gc-clean: FORCE clean
@@ -371,7 +372,7 @@ cleaner: FORCE clean
 	-if test -d $(GC); then \
 		rm -rf $(GC); \
 	fi
-	-rm -f Makefile config.h config.log config.status errors.temp
+	-rm -f Makefile config.h config.log config.status errors.temp acextlibs
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 
@@ -387,6 +388,7 @@ maintainer-clean: FORCE distclean
 	-rm -f configure config.h.in $(DIST)
 	-rm -rf autom4te.cache
 	-rm -rf GUI/pyUIClass
+	-rm -rf vcpkg_installed
 
 test: asy FORCE
 	./wce
