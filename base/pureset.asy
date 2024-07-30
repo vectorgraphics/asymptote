@@ -16,6 +16,18 @@ struct Set_T {
   T delete(T item);
   // Calls process on each item in the collection until process returns false.
   void forEach(bool process(T item));
+
+  autounravel T[] operator cast(Set_T set) {
+    T[] buffer = new T[set.size()];
+    int i = 0;
+    set.forEach(new bool(T item) {
+      buffer[i] = item;
+      ++i;
+      return true;
+    });
+    return buffer;
+  }
+
 }
 
 struct NaiveSet_T {
@@ -90,29 +102,18 @@ struct NaiveSet_T {
     }
   }
 
-}
+  autounravel Set_T operator cast(NaiveSet_T naiveSet) {
+    Set_T set = new Set_T;
+    set.size = naiveSet.size;
+    set.contains = naiveSet.contains;
+    set.add = naiveSet.add;
+    set.update = naiveSet.update;
+    set.get = naiveSet.get;
+    set.delete = naiveSet.delete;
+    set.forEach = naiveSet.forEach;
+    return set;
+  }
 
-Set_T operator cast(NaiveSet_T naiveSet) {
-  Set_T set = new Set_T;
-  set.size = naiveSet.size;
-  set.contains = naiveSet.contains;
-  set.add = naiveSet.add;
-  set.update = naiveSet.update;
-  set.get = naiveSet.get;
-  set.delete = naiveSet.delete;
-  set.forEach = naiveSet.forEach;
-  return set;
-}
-
-T[] operator cast(Set_T set) {
-  T[] buffer = new T[set.size()];
-  int i = 0;
-  set.forEach(new bool(T item) {
-    buffer[i] = item;
-    ++i;
-    return true;
-  });
-  return buffer;
 }
 
 Set_T makeNaiveSet(bool equiv(T, T), T emptyresponse) {

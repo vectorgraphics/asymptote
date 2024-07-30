@@ -4,15 +4,11 @@ StartTest("HashSet");
 
 from wrapper(T=int) access
     Wrapper_T as wrapped_int,
-    wrap,
-    alias;
+    wrap;
 
+// This could be done automatically if we had compile-time conditionals.
 bool operator < (wrapped_int a, wrapped_int b) {
   return a.t < b.t;
-}
-
-bool operator == (wrapped_int a, wrapped_int b) {
-  return a.t == b.t;
 }
 
 int hash(wrapped_int a, int bits) {
@@ -21,8 +17,7 @@ int hash(wrapped_int a, int bits) {
 
 from pureset(T=wrapped_int) access
     Set_T as Set_wrapped_int,
-    makeNaiveSet,
-    operator cast;
+    makeNaiveSet;
 
 from hashset(T=wrapped_int) access makeHashSet;
 

@@ -1,6 +1,5 @@
 from pureset(int) access
-    Set_T as set_int,
-    operator cast;
+    Set_T as set_int;
 
 struct Set_smallPositiveInt {
   bool[] buffer = new bool[];

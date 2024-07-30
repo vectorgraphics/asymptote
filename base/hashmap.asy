@@ -1,9 +1,8 @@
 typedef import(K, V);
 
-from genericpair(K=K, V=V) access Pair_K_V, operator >>, alias;
+from genericpair(K=K, V=V) access Pair_K_V;
 from hashset(T=Pair_K_V) access
     Set_T as Set_Pair_K_V,
-    operator cast,
     makeHashSet;
 from puremap(K=K, V=V) access Map_K_V, makeMapHelper;
 

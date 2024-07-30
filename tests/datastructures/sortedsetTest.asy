@@ -4,8 +4,7 @@ StartTest("NaiveSortedSet");
 
 from wrapper(T=int) access
     Wrapper_T as wrapped_int,
-    wrap,
-    alias;
+    wrap;
 
 bool operator < (wrapped_int a, wrapped_int b) {
   return a.t < b.t;
@@ -17,13 +16,11 @@ bool operator == (wrapped_int a, wrapped_int b) {
 
 from pureset(T=wrapped_int) access
     Set_T as Set_wrapped_int,
-    makeNaiveSet,
-    operator cast;
+    makeNaiveSet;
 
 from sortedset(T=wrapped_int) access
     SortedSet_T as SortedSet_wrapped_int,
     makeNaiveSortedSet,
-    operator cast,
     unSort;
 
 struct ActionEnum {

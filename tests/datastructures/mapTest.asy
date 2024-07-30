@@ -3,10 +3,8 @@ import TestLib;
 StartTest("PureMapTest");
 
 from puremap(K=string, V=int) access
-   Pair_K_V as Pair_string_int,
-   operator >>,
+   Pair_K_V as Pair_string_int,  // indirect access -- this is defined in genericpair.asy
    Map_K_V as Map_string_int,
-   operator cast,
    makeNaiveMap;
 
 bool stringsEqual(string, string) = operator ==;

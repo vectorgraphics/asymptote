@@ -1,9 +1,7 @@
 typedef import(T);
 
 from genericpair(K=int, V=T) access
-    Pair_K_V as Pair_int_T,
-    operator >>,
-    alias;
+    Pair_K_V as Pair_int_T;
 
 from puremap(K=int, V=T) access
     Map_K_V as Map_int_T;

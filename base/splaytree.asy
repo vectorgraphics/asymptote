@@ -1,6 +1,6 @@
 typedef import(T);
 
-from sortedset(T=T) access Set_T, SortedSet_T, operator cast;
+from sortedset(T=T) access Set_T, SortedSet_T;
 
 private struct treenode {
   treenode leftchild;

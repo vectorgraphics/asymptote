@@ -1,6 +1,6 @@
 typedef import(T);
 
-from pureset(T=T) access Set_T, operator cast;
+from pureset(T=T) access Set_T;
 access linkedlist(T=T) as list_T;
 
 int bitWidth(int x) {
@@ -155,22 +155,22 @@ struct HashSet_T {
     return emptyresponse;
   }
 
-}
+  autounravel Set_T operator cast(HashSet_T hashSet) {
+    Set_T result = new Set_T;
+    result.size = hashSet.size;
+    result.contains = hashSet.contains;
+    result.add = hashSet.add;
+    result.update = hashSet.update;
+    result.get = hashSet.get;
+    result.delete = hashSet.delete;
+    result.forEach = hashSet.forEach;
+    return result;
+  }
 
-Set_T operator cast(HashSet_T hashSet) {
-  Set_T result = new Set_T;
-  result.size = hashSet.size;
-  result.contains = hashSet.contains;
-  result.add = hashSet.add;
-  result.update = hashSet.update;
-  result.get = hashSet.get;
-  result.delete = hashSet.delete;
-  result.forEach = hashSet.forEach;
-  return result;
-}
+  autounravel T[] operator cast(HashSet_T hashSet) {
+    return hashSet.elements();
+  }
 
-T[] operator cast(HashSet_T hashSet) {
-  return hashSet.elements();
 }
 
 Set_T makeHashSet(int hash(T, int bits), bool equiv(T, T), T emptyresponse) {

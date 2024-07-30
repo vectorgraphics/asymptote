@@ -3,12 +3,10 @@ import TestLib;
 StartTest('HashMap');
 
 from genericpair(K=int, V=real) access
-    Pair_K_V as Pair_int_real,
-    operator >>;
+    Pair_K_V as Pair_int_real;
 
 from puremap(K=int, V=real) access
     Map_K_V as Map_int_real,
-    operator cast,
     makeNaiveMap;
 
 from hashmap(K=int, V=real) access

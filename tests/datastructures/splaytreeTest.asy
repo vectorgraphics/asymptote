@@ -5,15 +5,10 @@ StartTest("SplayTree_as_Set");
 
 from wrapper(T=int) access
     Wrapper_T as wrapped_int,
-    wrap,
-    alias;
+    wrap;
 
 bool operator < (wrapped_int a, wrapped_int b) {
   return a.t < b.t;
-}
-
-bool operator == (wrapped_int a, wrapped_int b) {
-  return a.t == b.t;
 }
 
 from pureset(T=wrapped_int) access
@@ -21,12 +16,10 @@ from pureset(T=wrapped_int) access
 
 from sortedset(T=wrapped_int) access
     makeNaiveSortedSet,
-    SortedSet_T as SortedSet_wrapped_int,
-    operator cast;
+    SortedSet_T as SortedSet_wrapped_int;
 
 from splaytree(T=wrapped_int) access
-    SplayTree_T as SplayTree_wrapped_int,
-    operator cast;
+    SplayTree_T as SplayTree_wrapped_int;
 
 struct ActionEnum {
   static restricted int numActions = 0;

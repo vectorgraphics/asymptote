@@ -1,6 +1,6 @@
 typedef import(K, V);
 
-from genericpair(K=K, V=V) access Pair_K_V, operator >>, alias;
+from genericpair(K=K, V=V) access Pair_K_V;
 
 struct Map_K_V {
   int size();
@@ -33,7 +33,6 @@ Pair_K_V[] operator cast(Map_K_V map) {
 
 from pureset(T=Pair_K_V) access
     Set_T as Set_Pair_K_V,
-    operator cast,
     makeNaiveSet;
 
 // Assumes that elements of `pairs` are considered equivalent if their keys

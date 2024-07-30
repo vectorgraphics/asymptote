@@ -7,8 +7,7 @@ from queue(T=int) access
     makeNaiveQueue,
     makeArrayQueue,
     makeLinkedQueue,
-    makeQueue,
-    operator cast;
+    makeQueue;
 
 
 struct ActionEnum {

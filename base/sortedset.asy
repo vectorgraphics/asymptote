@@ -1,6 +1,6 @@
 typedef import(T);
 
-from pureset(T=T) access Set_T, operator cast, makeNaiveSet;
+from pureset(T=T) access Set_T, makeNaiveSet;
 
 struct SortedSet_T {
   int size();
@@ -29,15 +29,18 @@ struct SortedSet_T {
   // Calls process on each item in the collection, in ascending order,
   // until process returns false.
   void forEach(bool process(T item));
-}
 
-T[] operator cast(SortedSet_T set) {
-  T[] result;
-  set.forEach(new bool(T item) {
-                result.push(item);
-                return true;
-              });
-  return result;
+  autounravel T[] operator cast(SortedSet_T set) {
+    T[] result;
+    set.forEach(new bool(T item) {
+                  result.push(item);
+                  return true;
+                });
+    return result;
+  }
+  
+  autounravel Set_T operator cast(SortedSet_T set);
+
 }
 
 Set_T unSort(SortedSet_T sorted_set) {
@@ -53,7 +56,7 @@ Set_T unSort(SortedSet_T sorted_set) {
   return set;
 }
 
-Set_T operator cast(SortedSet_T) = unSort;
+Set_T.operator cast = unSort;
 
 // For testing purposes, we provide a naive implementation of SortedSet_T.
 // This implementation is highly inefficient, but it is correct, and can be
