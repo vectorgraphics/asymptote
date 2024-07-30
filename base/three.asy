@@ -3046,7 +3046,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
     pic.queueErase3=false;
   }
 
-  if(is3D(format) || pic.queueErase)
+  if(is3D(format) || pic.queueErase || settings.render == 0)
     add(f,pic.fit2(xsize,ysize,keepAspect));
   return f;
 };

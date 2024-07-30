@@ -1692,9 +1692,9 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   draw(t,f,s,nu,nv,surfacepen,meshpen,light,meshlight,name,render,P);
 }
 
-// draw a triangle group for the tessellation of a surface containing
-// indexed patches.
-void drawTessellation(picture pic=currentpicture, surface s,
+// draw a triangle group on a frame for the tessellation of a surface
+// containing indexed patches.
+void drawTessellation(frame f, surface s,
                       material surfacepen=currentpen, pen meshpen=nullpen,
                       light light=currentlight, light meshlight=nolight,
                       string name="", render render=defaultrender)
@@ -1759,26 +1759,38 @@ void drawTessellation(picture pic=currentpicture, surface s,
     }
   }
 
-  draw(pic,v,vi,n,vi,surfacepen,p,colors ? vi : new int[][],light);
+  draw(f,v,vi,n,vi,surfacepen,p,colors ? vi : new int[][],light);
 
   if(!invisible(meshpen)) {
     if(is3D()) meshpen=thin()+squarecap+meshpen;
-    pic.add(new void(frame f, transform3 t, picture pic, projection P) {
-        surface S=t*s;
-        bool group=name != "" || render.defaultnames;
+    bool group=name != "" || render.defaultnames;
+    for(int k=0; k < s.s.length; ++k) {
+      patch q=s.s[k];
+      if(group)
+        begingroup3(f,meshname(name),render);
+      draw(f,q.P[0][0]--q.P[3][0]--q.P[3][3]--q.P[0][3]--cycle,
+           meshpen,meshlight,partname(k,render),render);
+      if(group)
+        endgroup3(f);
+    }
+  }
+}
 
-        for(int k=0; k < S.s.length; ++k) {
-          patch q=S.s[k];
-          if(group)
-            begingroup3(f,meshname(name),render);
-          draw(f,q.P[0][0]--q.P[3][0]--q.P[3][3]--q.P[0][3]--cycle,
-               meshpen,meshlight,partname(k,render),
-               render);
-          if(group)
-            endgroup3(f);
-        }
-      });
+// draw a triangle group on a picture for the tessellation of a surface
+// containing indexed patches.
+void drawTessellation(picture pic=currentpicture, surface s,
+                      material surfacepen=currentpen, pen meshpen=nullpen,
+                      light light=currentlight, light meshlight=nolight,
+                      string name="", render render=defaultrender)
+{
+  pic.add(new void(frame f, transform3 t, picture, projection) {
+      drawTessellation(f,t*s,surfacepen,meshpen,light,meshlight,name,render);
+    },true);
 
+  pic.addPoint(min(s));
+  pic.addPoint(max(s));
+
+  if(!invisible(meshpen)) {
     for(int k=0; k < s.s.length; ++k) {
       patch q=s.s[k];
       addPath(pic,q.P[0][0]--q.P[3][0]--q.P[3][3]--q.P[0][3]--cycle,meshpen);
@@ -1836,7 +1848,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
-  if(render.tessellate && s.index.length > 0) {
+  if(render.tessellate && s.index.length > 0 && settings.render != 0) {
     drawTessellation(pic,s,surfacepen,meshpen,light,meshlight,name,render);
   } else {
     material[] surfacepen={surfacepen};
