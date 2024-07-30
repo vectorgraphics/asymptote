@@ -151,6 +151,13 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
     set(asy_macros_list "$<TARGET_PROPERTY:asy,COMPILE_DEFINITIONS>")
     set(asy_cxx_std "$<TARGET_PROPERTY:asy,CXX_STANDARD>")
 
+    if (UNIX)
+        # for unix systems, need verbatim flag because
+        # the arguments contains semicolon, though somehow
+        # verbatim option causes problems for windows
+        set(ADDITIONAL_ADD_CUSTOM_CMD_ARGS VERBATIM)
+    endif()
+
     add_custom_command(
             OUTPUT ${processed_output_file}
             COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
@@ -167,7 +174,7 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
             DEPENDS ${src_dir}/${symfile}.cc
             ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
             ${ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS}
-            VERBATIM
+            ${ADDITIONAL_ADD_CUSTOM_CMD_ARGS}
     )
     # *.symbols.h file
     set(symfile_raw_output_var ${header_output_varname})
