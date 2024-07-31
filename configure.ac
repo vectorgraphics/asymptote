@@ -39,6 +39,7 @@ test "$CFLAGS" || CFLAGS="-g -O3"
 
 # we need LSP regardless
 EXTERNAL_CODE_ROOT=acextlibs
+EXTERNAL_BUILD_ROOT=acextbuilds
 
 LSP_GITHUB_REPO=vectorgraphics/LspCpp
 LSP_REF=87a67d1623e03cc5f3b054e7529a42f6b19c2869
@@ -448,13 +449,24 @@ AC_SUBST(LSP_ROOT)
 LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
+   LSP_BUILD_ROOT="$EXTERNAL_BUILD_ROOT/$LSP_GITHUB_REPO/$LSP_REF"
+   ROOT_DIR_RELATIVE_TO_LSP=$(realpath -s --relative-to $LSP_BUILD_ROOT .)
+   LSPLIB=$LSP_BUILD_ROOT/liblspcpp.a
+   LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
+   LSP_CMAKE_OPTIONS=
+
    AC_DEFUN(ENABLE_LSP_MACRO,
+      AC_SUBST(ROOT_DIR_RELATIVE_TO_LSP)
+      AC_SUBST(LSP_CXX_BUILD_FLAGS)
+      AC_SUBST(LSP_CMAKE_OPTIONS)
+      AC_SUBST(LSP_BUILD_ROOT)
       AC_DEFINE(HAVE_LSP,1,DEFINE([Language server protocol]))
-      LSPLIBS="-llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread "
-      LSPLIB=liblspcpp.a
    )
    if test "x$with_vcpkg" != "xno"; then
       ADD_VCPKG_FEATURE(lsp)
+      RELATIVE_LSP_VCPKG_ROOT=$(realpath -s --relative-to=$LSP_BUILD_ROOT vcpkg_installed/$vcpkg_triplet)
+      LSP_CXX_BUILD_FLAGS=$LSP_BUILD_FLAGS"-I$RELATIVE_LSP_VCPKG_ROOT/include -L$RELATIVE_LSP_VCPKG_ROOT/lib "
+      LSP_CMAKE_OPTIONS="-DUSE_SYSTEM_RAPIDJSON=True -DCMAKE_PREFIX_PATH=\"$RELATIVE_LSP_VCPKG_ROOT\""
       ENABLE_LSP_MACRO
    else
       AC_CHECK_LIB(
@@ -462,7 +474,9 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
          [
             AC_CHECK_LIB(
                [boost_thread],[pthread_attr_getdetachstate],
-               ENABLE_LSP_MACRO,
+               [
+               ENABLE_LSP_MACRO
+               ],
          AC_MSG_NOTICE([*** Could not find libboost_thread: will compile without optional Language Server Protocol. ***]))
          ],
          AC_MSG_NOTICE([*** Could not find libboost_filesystem: will compile without optional Language Server Protocol. ***])
