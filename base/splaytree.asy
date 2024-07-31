@@ -149,12 +149,35 @@ private treenode splay(treenode[] ancestors, bool lessthan(T a, T b)) {
 struct SplayTree_T {
   private treenode root = null;
   restricted int size = 0;
-  private bool operator < (T a, T b);
+
   private T emptyresponse;
 
-  void operator init(bool lessthan(T,T), T emptyresponse) {
-    operator< = lessthan;
-    this.emptyresponse = emptyresponse;
+  // Add whatever default arguments are available. 
+  if type (bool operator < (T, T), T null) unravel {
+    private bool operator < (T a, T b);
+    void operator init(bool lessThan(T, T) = operator<, T emptyresponse = null)
+    {
+      this.operator< = lessThan;
+      this.emptyresponse = emptyresponse;
+    }
+  } else if type (bool operator < (T, T)) unravel {
+    private bool operator < (T a, T b);
+    void operator init(bool lessThan(T, T) = operator<, T emptyresponse) {
+      this.operator< = lessThan;
+      this.emptyresponse = emptyresponse;
+    }
+  } else if type (T null) unravel {
+    private bool operator < (T a, T b);
+    void operator init(bool lessThan(T, T), T emptyresponse = null) {
+      this.operator< = lessThan;
+      this.emptyresponse = emptyresponse;
+    }
+  } else unravel {
+    private bool operator < (T a, T b);
+    void operator init(bool lessthan(T,T), T emptyresponse) {
+      operator< = lessthan;
+      this.emptyresponse = emptyresponse;
+    }
   }
 
   int size() {

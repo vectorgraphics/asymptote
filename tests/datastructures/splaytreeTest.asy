@@ -7,12 +7,10 @@ from wrapper(T=int) access
     Wrapper_T as wrapped_int,
     wrap;
 
-bool operator < (wrapped_int a, wrapped_int b) {
-  return a.t < b.t;
-}
-
 from pureset(T=wrapped_int) access
     Set_T as Set_wrapped_int;
+from pureset(T=int) access
+    Set_T as Set_int;
 
 from sortedset(T=wrapped_int) access
     makeNaiveSortedSet,
@@ -20,6 +18,8 @@ from sortedset(T=wrapped_int) access
 
 from splaytree(T=wrapped_int) access
     SplayTree_T as SplayTree_wrapped_int;
+from splaytree(T=int) access
+    SplayTree_T as SplayTree_int;
 
 struct ActionEnum {
   static restricted int numActions = 0;
@@ -205,9 +205,11 @@ decreasingProbs[ActionEnum.DELETE_CONTAINS] = 0.3;
 assert(sum(decreasingProbs) == 1, 'Probabilities do not sum to 1');
 
 SortedSet_wrapped_int sorted_set =
-    makeNaiveSortedSet(operator <, (wrapped_int)null);
+    makeNaiveSortedSet();
 SplayTree_wrapped_int splayset =
-    SplayTree_wrapped_int(operator <, (wrapped_int)null);
+    SplayTree_wrapped_int();
+SplayTree_int splayset_int =
+    SplayTree_int(emptyresponse=intMin);
 
 int chooseAction(real[] probs) {
   real r = unitrand();

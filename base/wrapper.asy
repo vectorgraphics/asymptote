@@ -5,15 +5,36 @@ struct Wrapper_T {
   void operator init(T t) {
     this.t = t;
   }
-  autounravel bool operator ==(Wrapper_T a, Wrapper_T b) {
-    // NOTE: This won't compile if T is an array type since == is
-    // vectorized for arrays.
-    return a.t == b.t;
+  if type (bool operator ==(T, T)) unravel {
+    autounravel bool operator ==(Wrapper_T a, Wrapper_T b) {
+      return a.t == b.t;
+    }
+    autounravel bool operator !=(Wrapper_T a, Wrapper_T b) {
+      // Let's not assume that != was overloaded.
+      return !(a.t == b.t);
+    }
   }
-  autounravel bool operator !=(Wrapper_T a, Wrapper_T b) {
-    // Let's not assume that != was overloaded.
-    return !(a.t == b.t);
+  if type (bool operator <(T, T)) unravel {
+    autounravel bool operator <(Wrapper_T a, Wrapper_T b) {
+      return a.t < b.t;
+    }
   }
+  if type (bool operator <=(T, T)) unravel {
+    autounravel bool operator <=(Wrapper_T a, Wrapper_T b) {
+      return a.t <= b.t;
+    }
+  }
+  if type (bool operator >(T, T)) unravel {
+    autounravel bool operator >(Wrapper_T a, Wrapper_T b) {
+      return a.t > b.t;
+    }
+  }
+  if type (bool operator >=(T, T)) unravel {
+    autounravel bool operator >=(Wrapper_T a, Wrapper_T b) {
+      return a.t >= b.t;
+    }
+  }
+
   autounravel bool alias(Wrapper_T, Wrapper_T) = alias;
 }
 

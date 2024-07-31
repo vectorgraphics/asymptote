@@ -62,26 +62,54 @@ Set_T.operator cast = unSort;
 // This implementation is highly inefficient, but it is correct, and can be
 // used to test other implementations of SortedSet_T.
 struct NaiveSortedSet_T {
-  private bool lt(T a, T b);
+  private bool lt(T a, T b) = null;
   private T[] buffer = new T[0];
   private T emptyresponse;
 
-  private bool leq(T a, T b) {
-    return !lt(b, a);
+  private bool leq(T, T), gt(T, T), geq(T, T), equiv(T, T);
+  
+  if type (bool operator <= (T, T)) unravel {
+    leq = operator <=;
+  } else unravel {
+    leq = new bool(T a, T b) {
+      return !lt(b, a);
+    }
   }
-  private bool gt(T a, T b) {
-    return lt(b, a);
+
+  if type (bool operator > (T, T)) unravel {
+    gt = operator <;
+  } else unravel {
+    gt = new bool(T a, T b) {
+      return lt(b, a);
+    }
   }
-  private bool geq(T a, T b) {
-    return leq(b, a);
+
+  if type (bool operator >= (T, T)) unravel {
+    geq = operator >=;
+  } else unravel {
+    geq = new bool(T a, T b) {
+      return leq(b, a);
+    }
   }
-  private bool equiv(T a, T b) {
-    return leq(a, b) && leq(b, a);
+  
+  if type (bool operator == (T, T)) unravel {
+    equiv = operator ==;
+  } else unravel {
+    equiv = new bool(T a, T b) {
+      return leq(a, b) && leq(b, a);
+    }
   }
 
   void operator init(bool lessThan(T, T), T emptyresponse) {
     this.lt = lessThan;
     this.emptyresponse = emptyresponse;
+  }
+
+  if type (bool operator < (T, T), T null) unravel {
+    void operator init() {
+      this.lt = operator <;
+      this.emptyresponse = null;
+    }
   }
 
   int size() {
