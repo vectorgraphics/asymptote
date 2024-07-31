@@ -12,10 +12,10 @@ m4_include([pkg.m4])
 AH_TOP([#pragma once])
 
 AC_C_BIGENDIAN(
-   [AC_DEFINE(WORDS_BIGENDIAN,1)],
+   [AC_DEFINE(WORDS_BIGENDIAN,1,[Build is big endian])],
    [],
    [],
-   [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1)]
+   [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
 )
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
@@ -392,7 +392,7 @@ fi
 
 # ----------------- zlib ----------------------------
 if test "x$with_vcpkg" != "xno"; then
-   AC_DEFINE(HAVE_ZLIB,1)
+   AC_DEFINE(HAVE_ZLIB,1,[ZLib library present])
    ADD_VCPKG_LIB_FOR_PKGCONFIG(zlib)
 else
    AC_CHECK_LIB(
@@ -711,8 +711,8 @@ if test "x$enable_gl" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(opengl)
    AC_DEFINE(HAVE_GL,1,[OpenGL is enabled])
-   AC_DEFINE(FREEGLUT,1)
-   AC_DEFINE(HAVE_LIBGLUT,1)
+   AC_DEFINE(FREEGLUT,1,[Freeglut is enabled])
+   AC_DEFINE(HAVE_LIBGLUT,1,[Freeglut library is available])
    ADD_VCPKG_LIB_FOR_PKGCONFIG(glew)
    ADD_VCPKG_LIB_FOR_PKGCONFIG(glut)
 else  # managed by the system
@@ -805,7 +805,7 @@ AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 
 # we are on C++ >= 11, so unordered map is a guarantee
-AC_DEFINE(HAVE_UNORDERED_MAP)
+AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
@@ -827,6 +827,7 @@ AC_CHECK_FUNCS(strptime)
 AC_CHECK_FUNCS(strnlen)
 
 AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile])
+AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT
 
 if test "x$with_vcpkg" = "xno" -a "x$GCDIR" != "x" ; then
