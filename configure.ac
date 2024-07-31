@@ -86,6 +86,8 @@ AC_ARG_WITH(vcpkg,[
       AC_MSG_ERROR([Please ensure vcpkg is available through VCPKG_ROOT or in PATH])
    fi
    echo "Using vcpkg executable $vcpkg_exec"
+],[
+with_vcpkg=no
 ])
 
 #----------------- end vcpkg option check --------------------
@@ -212,7 +214,6 @@ LIBS=""
 
 # ------------- vcpkg initialization ---------------
 # vcpkg_triplet
-
 
 AC_ARG_WITH(vcpkg-target-triplet,
    AS_HELP_STRING(
