@@ -122,6 +122,8 @@ _ig_*/*
 
 ### IDE Files
 .vscode
+.fleet
+.cache/jb
 ### Translation binary files
 *.mo
 
