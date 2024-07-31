@@ -16,6 +16,8 @@ LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 
+EXTLIB_BUILD_ROOT = @EXTLIB_BUILD_ROOT@
+
 CMAKE ?= cmake
 PERL ?= perl
 PYTHON ?= python3
@@ -140,7 +142,7 @@ asy: base/version.asy $(FILES:=.o) revision.o @LSPLIB@
 $(XNAME):
 	ln -sf GUI/xasy.py $(XNAME)
 
-version.txt: $(GCLIB) $(notdir $(UIFILES:.ui=.py)) icons_rc.py $(ASYGENERATEDENUMS) $(PYGENERATEDENUMS)
+version.txt: FORCE
 	if test ! -s $@ || test "$(revision)" != "$(last)"; then \
 		echo "$(revision)" > $@; \
 	fi
