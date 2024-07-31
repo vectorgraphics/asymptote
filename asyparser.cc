@@ -10,11 +10,12 @@
 #include <fcntl.h>
 #include <algorithm>
 
+#include "common.h"
+
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>
 #endif
 
-#include "common.h"
 #include "exithandlers.h"
 
 #ifdef HAVE_SYS_STAT_H
