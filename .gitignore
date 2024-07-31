@@ -221,6 +221,7 @@ vcpkg_installed
 /conftest.c
 
 acextlibs
+acextbuilds
 extbuilds
 
 # generated files from
