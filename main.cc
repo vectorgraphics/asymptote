@@ -32,6 +32,8 @@
 #include <sys/wait.h>
 #endif
 
+#include "common.h"
+
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
 #endif
@@ -42,7 +44,6 @@
 #include "lspserv.h"
 #endif
 
-#include "common.h"
 #include "exithandlers.h"
 #include "errormsg.h"
 #include "fpu.h"

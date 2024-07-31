@@ -2,6 +2,10 @@
 // Created by Supakorn on 5/13/2021.
 //
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef HAVE_LSP
 #include "lspserv.h"
 
