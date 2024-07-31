@@ -48,12 +48,12 @@ TINYEXR_REF=v1.0.7
 #
 # FETCH_FROM_GITHUB(REPO,REF,OUT_VAR_SRC_DIRECTORY)
 AC_DEFUN([FETCH_FROM_GITHUB],[
-   AC_MSG_NOTICE([*** Fetching from github: $1@$2 ***])
+   AC_MSG_NOTICE([Fetching from github: $1@$2])
    $3=$EXTERNAL_CODE_ROOT/$1/$2
-   AC_MSG_NOTICE([*** Creating directory $$3 ***])
+   AC_MSG_NOTICE([Creating directory $$3])
    mkdir -p $$3
    curl -L https://github.com/$1/archive/$2.tar.gz | tar -xz --strip-components=1 -C $$3 -f -
-   AC_MSG_NOTICE([*** Fetch successful ***])
+   AC_MSG_NOTICE([Fetch successful])
 ])
 
 
@@ -754,7 +754,7 @@ fi
 # ------------------- VCPKG INSTALL
 
 if test "x$with_vcpkg" != "xno"; then
-AC_MSG_NOTICE([*** Running vcpkg install ***])
+AC_MSG_NOTICE([Running vcpkg install])
 $vcpkg_exec install $VCPKG_INSTALL_ARGUMENTS
 
 LIBS=$LIBS"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --libs $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
