@@ -24,7 +24,7 @@ frame Portrait(frame f) {return f;};
 frame Landscape(frame f) {return rotate(90)*f;};
 frame UpsideDown(frame f) {return rotate(180)*f;};
 frame Seascape(frame f) {return rotate(-90)*f;};
-typedef frame orientation(frame);
+using orientation=frame(frame);
 orientation orientation=Portrait;
 
 // Forward references to functions defined in module three.
