@@ -452,7 +452,7 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
       LSPLIBS="-llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread "
       LSPLIB=liblspcpp.a
    )
-   if test "x$with_vcpkg" != "no"; then
+   if test "x$with_vcpkg" != "xno"; then
       ADD_VCPKG_FEATURE(lsp)
       ENABLE_LSP_MACRO
    else
@@ -660,7 +660,7 @@ fi
 AC_ARG_ENABLE(gl,
 [AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
 
-if test "x$with_vcpkg" != "no"; then
+if test "x$with_vcpkg" != "xno"; then
    AC_DEFINE(HAVE_SSBO,1)  # SSBO/Compute shader check should be done at runtime, not at compilation
    AC_DEFINE(HAVE_COMPUTE_SHADER,1)
 else
@@ -687,7 +687,7 @@ AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
 
 # ----------- glm
-if test "x$with_vcpkg" != "no"; then
+if test "x$with_vcpkg" != "xno"; then
    AC_DEFINE(HAVE_LIBGLM,1)
    LIBS=$LIBS"-lglm "
 else
@@ -707,7 +707,7 @@ INCL=$INCL"-I$TINYEXR_ROOT "
 AC_SUBST(TINYEXR_ROOT)
 
 if test "x$enable_gl" != "xno"; then
-if test "x$with_vcpkg" != "no"; then  # managed by vcpkg
+if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(opengl)
    AC_DEFINE(HAVE_GL,1,[OpenGL is enabled])
    AC_DEFINE(FREEGLUT,1)
