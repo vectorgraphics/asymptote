@@ -1,5 +1,9 @@
 import three;
 
+real orient(triple a, triple b, triple c, triple d) {
+  return dot(cross(a-d,b-d),c-d);
+}
+
 struct StraightContribution {
   triple outside,normal;
   triple H;
@@ -170,7 +174,7 @@ int windingnumberPolyhedron(triple[][] p, triple v) {
     }
     return false;
   }
-
+  
   bool check=true;
   while(check) {
     check = false;
