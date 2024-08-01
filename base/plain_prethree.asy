@@ -143,7 +143,7 @@ struct projection {
   static private real sqrtEpsilon = sqrt(realEpsilon);
 
   // Move the camera so that the box(m,M) rotated about target will always
-  // lie in front of the clipping plane.
+  // lie in front of the far clipping plane.
   bool adjust(triple m, triple M) {
     triple v=camera-target;
     real d=distance(m,M);

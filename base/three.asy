@@ -2679,10 +2679,20 @@ struct scene
       warn=false;
     }
 
-    if(P.absolute)
-      this.P=P.copy();
-    else if(P.showtarget && !pic.empty3())
-      draw(pic,P.target,nullpen);
+    this.P=P.copy();
+
+    if(!P.absolute) {
+      // Automatically adjust camera to view target from specified direction.
+      if(P.autoadjust && !pic.keepAspect) {
+        triple M=pic.userMax();
+        triple m=pic.userMin();
+        this.P.target=0.5*(M+m);
+        this.P.camera=this.P.target+realmult(unit(P.vector()),M-m);
+        this.P.normal=this.P.vector();
+      }
+      if(P.showtarget && !pic.empty3())
+        draw(pic,this.P.target,nullpen);
+    }
 
     t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
     adjusted=false;
@@ -2690,7 +2700,7 @@ struct scene
     triple M=pic.max(t);
 
     if(!P.absolute) {
-      this.P=t*P;
+      this.P=t*this.P;
       if(this.P.autoadjust || this.P.infinity)
         adjusted=adjusted | this.P.adjust(m,M);
       if(this.P.center && settings.render != 0) {
@@ -3046,7 +3056,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
     pic.queueErase3=false;
   }
 
-  if(is3D(format) || pic.queueErase)
+  if(is3D(format) || pic.queueErase || settings.render == 0)
     add(f,pic.fit2(xsize,ysize,keepAspect));
   return f;
 };
