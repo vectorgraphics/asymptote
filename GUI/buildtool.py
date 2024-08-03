@@ -3,6 +3,7 @@ import pathlib
 import sys
 import subprocess
 import shutil
+from typing import Optional
 
 import click
 from PyQt5.uic import compileUiDir
@@ -59,10 +60,19 @@ def determineAsyVersion() -> str:
 
 
 @click.command()
-def buildVersionModule():
+@click.option(
+    "--version-override",
+    default=None,
+    type=str,
+    help="Version to use. If not given, uses information from configure.ac.",
+)
+def buildVersionModule(version_override: Optional[str]):
     PY_VERSION_MODULE_DIR.mkdir(exist_ok=True)
     make_init_py_at_dir(PY_VERSION_MODULE_DIR)
-    version = determineAsyVersion()
+    if version_override is not None:
+        version = version_override
+    else:
+        version = determineAsyVersion()
     with open(PY_VERSION_MODULE_DIR / "version.py", "w", encoding="utf-8") as f:
         f.write(f'VERSION="{version}"\n')
 
