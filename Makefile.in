@@ -72,13 +72,13 @@ PYGENERATEDENUMS=$(GENERATEDENUMS:=.py)
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.h \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
-        $(SYMBOLSH) $(PYFILES) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS)
+        $(SYMBOLSH) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS)
 
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
-		version.txt acextbuilds
+		version.txt
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
@@ -371,7 +371,7 @@ uninstall-docdir:
 
 clean:  FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-cd LspCpp && $(MAKE) clean
+	-rm -rf acextbuilds
 
 gc-clean: FORCE clean
 	-if test -d $(GC); then \
@@ -382,16 +382,13 @@ cleaner: FORCE clean
 	-if test -d $(GC); then \
 		rm -rf $(GC); \
 	fi
-	-rm -f Makefile config.h config.log config.status errors.temp acextlibs
+	-rm -f Makefile config.h config.log config.status errors.temp
+	-rm -rf acextlibs
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 
 distclean: FORCE cleaner
 	cd doc && $(MAKE) distclean
-	cd LspCpp && rm -rf CMakeCache.txt CMakeDoxyfile.in \
-	  CMakeDoxygenDefaults.cmake CMakeFiles Makefile cmake_install.cmake \
-	  third_party/uri/src/CMakeFiles/network-uri.dir/detail
-
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
