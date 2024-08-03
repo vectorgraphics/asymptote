@@ -147,6 +147,9 @@ version.txt: FORCE
 		echo "$(revision)" > $@; \
 	fi
 
+GUI/xasyversion: version.txt GUI/buildtool.py
+	cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
+
 revision.cc: version.txt
 	  echo $(REVISION)\"$(shell cat $<)\"\; > $@
 	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> $@;
@@ -257,6 +260,12 @@ symbol.o: $(SYMBOLSH)
 
 icons_rc.py: GUI/res/icons.qrc
 	-$(PYRCC) GUI/res/icons.qrc -o GUI/icons_rc.py
+
+GUI/xasyicons: GUI/res/icons.qrc GUI/buildtool.py
+	cd GUI && $(PYTHON) buildtool.py buildicons
+
+GUI/xasyqtui: $(UIFILES) GUI/buildtool.py
+	cd GUI && $(PYTHON) buildtool.py buildui
 
 camp.tab.cc: camp.y
 	$(BISON) -t --header=camp.tab.h -o $@ $<
@@ -372,6 +381,7 @@ uninstall-docdir:
 clean:  FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
 	-rm -rf acextbuilds
+	-cd GUI && $(PYTHON) buildtool.py clean
 
 gc-clean: FORCE clean
 	-if test -d $(GC); then \
