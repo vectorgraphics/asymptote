@@ -1,6 +1,16 @@
-set(ASY_PACKAGE_NAME Asymptote)
-
 # ASY_VERSION is set by base version + suffix, if present
-set(ASY_VERSION_BASE 2.90)
-set(ASY_BUGREPORT "https://github.com/vectorgraphics/asymptote/issues")
-set(ASY_GL_VERSION 1.02)
+
+execute_process(
+        COMMAND ${PY3_INTERPRETER} ${CMAKE_CURRENT_LIST_DIR}/determine_pkg_info.py
+        OUTPUT_VARIABLE ASY_VERSION_INFO_RAW_OUTPUT
+)  # name, version-base, issue-url,  asygl
+
+macro(SET_ASY_VERSION_INFO INDEX OUTPUT_VAR_NAME)
+    list(GET ASY_VERSION_INFO_RAW_OUTPUT ${INDEX} ${OUTPUT_VAR_NAME})
+    message(STATUS "package info: ${OUTPUT_VAR_NAME} = ${${OUTPUT_VAR_NAME}}")
+endmacro()
+
+SET_ASY_VERSION_INFO(0 ASY_PACKAGE_NAME)
+SET_ASY_VERSION_INFO(1 ASY_VERSION_BASE)
+SET_ASY_VERSION_INFO(2 ASY_BUGREPORT)
+SET_ASY_VERSION_INFO(3 ASY_GL_VERSION)
