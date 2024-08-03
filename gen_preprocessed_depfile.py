@@ -30,7 +30,11 @@ def parse_args():
     )
 
     args_parser.add_argument(
-        "--out-dep-file", type=str, required=True, help="Location of output depfile"
+        "--out-dep-file",
+        type=str,
+        required=False,
+        help="Location of output depfile. Optional when used with gcc. "
+        + "If not given, will not output dep file",
     )
 
     args_parser.add_argument(
@@ -66,6 +70,13 @@ def parse_args():
     args_parser.add_argument(
         "--cxx-standard",
         type=str,
+    )
+
+    args_parser.add_argument(
+        "--dep-file-only",
+        action="store_true",
+        help="If given, will only generate dependency file without preprocessed file."
+        + "For gcc usage only.",
     )
     return args_parser.parse_args()
 
@@ -226,10 +237,14 @@ def main():
             opt, args.in_src_file, args.out_i_file, args.out_dep_file
         )
     else:
-        compile_for_depfile_gcc(
-            opt, args.in_src_file, args.out_i_file, args.out_dep_file
-        )
-        compile_for_preproc_gcc(opt, args.in_src_file, args.out_i_file)
+        if not args.out_dep_file and args.dep_file_only:
+            raise RuntimeError("Dependency file output must be given")
+        if args.out_dep_file:
+            compile_for_depfile_gcc(
+                opt, args.in_src_file, args.out_i_file, args.out_dep_file
+            )
+        if not args.dep_file_only:
+            compile_for_preproc_gcc(opt, args.in_src_file, args.out_i_file)
 
 
 if __name__ == "__main__":

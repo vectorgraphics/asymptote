@@ -234,19 +234,25 @@ $(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
 
 # symbol files
 
+GEN_PREOROCESSED_DEPFILE_BASE_ARGS = \
+    $(PYTHON) gen_preprocessed_depfile.py \
+        --cxx-compiler=$(CXX) \
+        --additional-raw-arguments="$(OPTS)" \
+        --cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
+
 $(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
 	@echo Generating $@ from $<
-	@$(PYTHON) gen_preprocessed_depfile.py \
-		--cxx-compiler=$(CXX) \
-		--additional-raw-arguments="$(OPTS)" \
-		--cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD))) \
-		--out-dep-file=$*.d \
+	@$(GEN_PREOROCESSED_DEPFILE_BASE_ARGS) \
 		--out-i-file=$@ \
 		--in-src-file=$<
 
-$(SYMBOL_FILES:=.d): %.d: %.raw.i
-	@test -f $@ || rm -f $<
-	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) $<
+$(SYMBOL_FILES:=.d): %.d: %.cc gen_preprocessed_depfile.py
+	@echo Generating $@ from $<
+	@$(GEN_PREOROCESSED_DEPFILE_BASE_ARGS) \
+		--out-dep-file=$@ \
+		--dep-file-only \
+		--out-i-file=$*.raw.i \
+		--in-src-file=$<
 
 $(SYMBOL_FILES:=.symbols.h): %.symbols.h: %.raw.i findsym.pl
 	$(PERL) findsym.pl $@ $<
