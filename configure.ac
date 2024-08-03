@@ -727,7 +727,8 @@ if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    AC_DEFINE(HAVE_GL,1,[OpenGL is enabled])
    AC_DEFINE(FREEGLUT,1,[Freeglut is enabled])
    AC_DEFINE(HAVE_LIBGLUT,1,[Freeglut library is available])
-   ADD_VCPKG_LIB_FOR_PKGCONFIG(glew)
+   INCL=$INCL" -Ibackports/glew/include "
+   GLEW="glew.o "
    ADD_VCPKG_LIB_FOR_PKGCONFIG(glut)
 else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
@@ -742,6 +743,7 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
                    DEFINE_LIB[GLUT])
                            LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
+                           INCL=$INCL" -Ibackports/glew/include "
                            GLEW="glew.o "],
                                  AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
         ;;
@@ -754,6 +756,7 @@ case "$OSTYPE" in
                              DEFINE_LIB([GL]))
                              LIBS=$LIBS"-lGL "
                              GLEW="glew.o "
+                             INCL=$INCL" -Ibackports/glew/include "
                              AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
                              GLEW=$GLEW"-lGLX ")],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
