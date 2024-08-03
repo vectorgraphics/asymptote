@@ -3,6 +3,9 @@
 *.d
 *.d.*
 
+### python files
+__pycache__
+
 ### Compressed packages and Garbage Collector
 gc-*
 *.tar.gz
