@@ -64,7 +64,7 @@ FILES = $(COREFILES) main
 
 SYMBOLSH = opsymbols.h allsymbols.h $(SYMBOL_FILES:=.symbols.h)
 UIFILES = $(wildcard GUI/windows/*.ui)
-PYFILES = $(wildcard GUI/pyUIClass/*.py) GUI/icons_rc.py
+PYFILES = GUI/xasyqtui GUI/xasyicons GUI/xasyversion
 
 GENERATEDENUMS=v3dtypes v3dheadertypes
 ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
@@ -139,7 +139,7 @@ export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 asy: base/version.asy $(FILES:=.o) revision.o @LSPLIB@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
-$(XNAME):
+$(XNAME): $(PYFILES)
 	ln -sf GUI/xasy.py $(XNAME)
 
 version.txt: FORCE
