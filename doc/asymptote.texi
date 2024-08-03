@@ -8671,7 +8671,6 @@ at angle @code{beta}, and the @math{z} axis up.
 @cindex @code{autoadjust}
 @item perspective(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, real angle=0, pair viewportshift=0, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true, @*@ @ @ @ @ @ @ @ @ @ @ @ bool center=autoadjust)
 @cindex @code{perspective}
-@cindex @code{NURBS}
 This projects from three to two dimensions, taking account of
 perspective, as seen from the location @code{camera} looking at @code{target},
 orienting the camera so that, if possible, the vector @code{up} points upwards.
@@ -10484,7 +10483,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
-@c  LocalWords:  SimpleHead HookHead TeXHead multipage NURBS inlinemovie dxmax
+@c  LocalWords:  SimpleHead HookHead TeXHead multipage inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
 @c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb TEXMFCONFIG Jn
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
