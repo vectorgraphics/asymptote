@@ -461,7 +461,7 @@ endif
 FORCE:
 
 configure: configure.ac
-	autoconf
+	autoheader && autoconf
 
 Makefile: Makefile.in config.status
 	./config.status
