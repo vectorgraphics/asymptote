@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import pathlib
-import re
+import sys
 import subprocess
 import shutil
 
@@ -8,6 +8,9 @@ import click
 from PyQt5.uic import compileUiDir
 
 BUILD_ROOT_DIRECTORY = pathlib.Path(__file__).parent
+sys.path.append(str(BUILD_ROOT_DIRECTORY.parent))
+
+import determine_pkg_info
 
 XASY_ICONS_MODULE_NAME = "xasyicons"
 
@@ -46,17 +49,13 @@ def buildIcons():
     )
 
 
-CMAKE_VERSION_REGEX = re.compile(r"(?:set|SET)\(\s*ASY_VERSION_BASE\s+([0-9.]+)\s*\)")
-
-
 def determineAsyVersion() -> str:
-    with open(
-        BUILD_ROOT_DIRECTORY.parent / "pkg-info.cmake", "r", encoding="utf-8"
-    ) as f:
-        for line in f:
-            if match_obj := CMAKE_VERSION_REGEX.match(line):
-                return match_obj.group(1) + ".0"
-    return "0.0.0-SNAPSHOT"
+    version_base = determine_pkg_info.determine_asy_pkg_info(
+        BUILD_ROOT_DIRECTORY.parent / "configure.ac"
+    ).get("version-base")
+    if not version_base:
+        return "0.0.0-SNAPSHOT"
+    return version_base
 
 
 @click.command()
