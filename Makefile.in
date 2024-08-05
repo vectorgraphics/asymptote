@@ -136,7 +136,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) revision.o @LSPLIB@
+asy: base/version.asy $(FILES:=.o) revision.o @LSPLIB@ @GLEW@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
