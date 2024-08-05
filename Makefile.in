@@ -311,7 +311,7 @@ install-texhash: install-asy
 	  texhash; \
 	fi
 
-install-asy: asy sty
+install-asy: asy sty $(PYFILES)
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	${INSTALL} -d $(shaderdir) $(webgldir) \
 		$(GUIdir) $(GUIdir)/configs \
