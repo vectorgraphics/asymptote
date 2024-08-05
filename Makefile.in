@@ -210,7 +210,7 @@ $(GCLIB): $(GC).tar.gz
 
 $(GCPPLIB): $(GCLIB)
 
-sty:
+sty: doc/version.texi
 	cd doc && $(MAKE) asy-latex.pdf
 
 dvi:	asy sty
