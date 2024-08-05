@@ -360,8 +360,14 @@ uninstall-asy:
 	-cd $(exampledir) && rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
 	-cd $(GUIdir) && rm -f *.py
-	-cd $(GUIdir)/pyUIClass && rm -f *.py
-	-rmdir $(GUIdir)/pyUIClass
+	-cd $(GUIdir)/xasygui && rm -f *.py
+	-rmdir $(GUIdir)/xasygui
+	-cd $(GUIdir)/xasyicons && rm -f *.py
+	-rmdir $(GUIdir)/xasyicons
+	-cd $(GUIdir)/xasyqtui && rm -f *.py
+	-rmdir $(GUIdir)/xasyqtui
+	-cd $(GUIdir)/xasyversion && rm -f *.py
+	-rmdir $(GUIdir)/xasyversion
 	-cd $(GUIdir)/configs && rm -f *.cson
 	-rmdir $(GUIdir)/configs
 	-cd $(GUIdir)/res/icons && rm -f *.svg
