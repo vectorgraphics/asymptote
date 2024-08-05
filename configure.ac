@@ -393,7 +393,6 @@ fi
 
 # ----------------- zlib ----------------------------
 if test "x$with_vcpkg" != "xno"; then
-   AC_DEFINE(HAVE_ZLIB,1,[ZLib library present])
    ADD_VCPKG_LIB_FOR_PKGCONFIG(zlib)
 else
    AC_CHECK_LIB(
@@ -403,6 +402,7 @@ else
       AC_MSG_ERROR([*** Please install libz or zlib-devel on your system ***])
    )
 fi
+AC_DEFINE(HAVE_ZLIB,1,[ZLib library present])
 
 # -------------- threads -------------------
 
