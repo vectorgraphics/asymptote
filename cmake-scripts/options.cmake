@@ -127,3 +127,30 @@ option(
     "Enable Language Server Protocol support."
     true
 )
+
+# documentation
+find_package(LATEX COMPONENTS PDFLATEX)
+
+set(ENABLE_DOCGEN_DEFAULT false)
+if (LATEX_PDFLATEX_FOUND)
+    if (WIN32)
+        # windows doesn't have an up-to-date
+        # texi2dvi release in multiple years, so
+        # we are using MikTeX's texify
+        find_program(TEXIFY texify)
+        if (TEXIFY)
+            set(ENABLE_DOCGEN_DEFAULT true)
+        endif()
+    elseif(UNIX)
+        find_program(TEXI2DVI texi2dvi)
+        if (TEXI2DVI)
+            set(ENABLE_DOCGEN_DEFAULT true)
+        endif()
+    endif()
+endif()
+
+option(
+    ENABLE_DOCGEN
+    "Enable document generation. Requires pdflatex and texi2dvi to be installed"
+    ${ENABLE_DOCGEN_DEFAULT}
+)

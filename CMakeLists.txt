@@ -70,6 +70,12 @@ include(cmake-scripts/asy-base-files.cmake)
 add_custom_target(asy-basefiles DEPENDS ${ASY_OUTPUT_BASE_FILES})
 add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles)
 
+# documentation generation
+
+if (ENABLE_DOCGEN)
+    include(cmake-scripts/docgen.cmake)
+endif()
+
 # testing
 
 enable_testing()
