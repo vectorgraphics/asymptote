@@ -923,19 +923,13 @@ void AsyVkRender::createInstance()
     }
   }
 
-  // Use all available extensions temporarily as a test to get VMA to work on some Mac machines
-  std::vector<const char *> allExtensions {};
-
-  // Fill allExtensions with the supported extension list
-  std::transform(supportedExtensions.begin(), supportedExtensions.end(), std::back_inserter(allExtensions), [](std::string const& ext) { return ext.c_str(); });
-
   auto const instanceCI = vk::InstanceCreateInfo(
     vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
     &appInfo,
     validationLayers.size(),
     validationLayers.data(),
-    allExtensions.size(),
-    allExtensions.data()
+    extensions.size(),
+    extensions.data()
   );
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
@@ -1033,6 +1027,7 @@ void AsyVkRender::createAllocator()
   VmaVulkanFunctions vkFuncs = {};
   vkFuncs.vkGetInstanceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetInstanceProcAddr;
   vkFuncs.vkGetDeviceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetDeviceProcAddr;
+  vkFuncs.vkGetBufferMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2;
 
   VmaAllocatorCreateInfo createInfo = {};
   createInfo.vulkanApiVersion = VK_API_VERSION_1_2;
