@@ -26,3 +26,19 @@ add_custom_command(
         WORKING_DIRECTORY ${ASY_DOC_ROOT}
         BYPRODUCTS ${ASY_LATEX_DTX_ARTIFACTS}
 )
+
+add_custom_command(
+        OUTPUT ${ASY_TEX_BUILD_ROOT}/latexusage.pdf
+        DEPENDS
+            ${ASY_DOC_ROOT}/latexusage.tex
+            ${ASY_TEX_BUILD_ROOT}/asymptote.sty
+            asy ${ASY_OUTPUT_BASE_FILES}
+        COMMAND ${PY3_INTERPRETER} ${ASY_DOC_ROOT}/build-latexusage-pdf.py
+            --build-dir=${ASY_TEX_BUILD_ROOT}
+            --latexusage-source-dir=${ASY_DOC_ROOT}
+            --pdflatex-executable=${PDFLATEX_COMPILER}
+            --asy-executable=$<TARGET_FILE:asy>
+            --asy-base-dir=${ASY_BUILD_BASE_DIR}
+        WORKING_DIRECTORY ${ASY_DOC_ROOT}
+        BYPRODUCTS ${ASY_TEX_BUILD_ROOT}/latexusage.log
+)
