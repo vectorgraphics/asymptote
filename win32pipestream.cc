@@ -14,6 +14,13 @@ namespace w32
 
 namespace cw32 = camp::w32;
 
+Win32IoPipeStream::~Win32IoPipeStream()
+{
+  // this is not the best idea, but this is what the
+  // original code looks like (pipestream.h)
+  pipeclose();
+}
+
 void Win32IoPipeStream::open(
         mem::vector<string> const& command, char const* hint,
         char const* application, int out_fileno)
@@ -45,7 +52,7 @@ void Win32IoPipeStream::open(
     startInfo.hStdInput= processStdinRd.getHandle();
     startInfo.hStdOutput= out_fileno == STDOUT_FILENO ? processOutWr.getHandle() : GetStdHandle(STD_OUTPUT_HANDLE);
     startInfo.hStdError= out_fileno == STDERR_FILENO ? processOutWr.getHandle() : GetStdHandle(STD_ERROR_HANDLE);
-    
+
     auto const result= CreateProcessA(
             nullptr,
             cmd.data(),
@@ -108,6 +115,13 @@ void Win32IoPipeStream::pipeclose()
   if(pipeopen) {
     cw32::checkResult(CloseHandle(processOutRd));
 
+    if (procInfo.hProcess != nullptr)
+    {
+      if (!TerminateProcess(procInfo.hProcess, 0) && GetLastError() != ERROR_ACCESS_DENIED)
+      {
+        camp::reportError("cannot terminate process");
+      }
+    }
     Running=false;
     pipeopen=false;
     wait();
@@ -193,7 +207,7 @@ ssize_t Win32IoPipeStream::readbuffer()
   }
 
   DWORD nc;
-  
+
   if (!ReadFile(processOutRd, buffer, BUFFER_LEN - 1, &nc, nullptr))
   {
     if (GetLastError() != ERROR_BROKEN_PIPE)

@@ -27,6 +27,8 @@ public:
           const char *application="",
           int out_fileno=STDOUT_FILENO);
 
+  virtual ~Win32IoPipeStream();
+
   [[nodiscard]]
   bool isopen() const;
 
