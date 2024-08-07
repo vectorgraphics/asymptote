@@ -193,11 +193,15 @@ ssize_t Win32IoPipeStream::readbuffer()
   }
 
   DWORD nc;
-
-  cw32::checkResult(ReadFile(
-          processOutRd,buffer,BUFFER_LEN-1,&nc,
-          nullptr
-          ));
+  
+  if (!ReadFile(processOutRd, buffer, BUFFER_LEN - 1, &nc, nullptr))
+  {
+    if (GetLastError() != ERROR_BROKEN_PIPE)
+    {
+      // process could have exited
+      camp::reportError("read failed from pipe");
+    }
+  }
 
   buffer[nc]=0;
 
