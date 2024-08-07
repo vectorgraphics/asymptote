@@ -16,11 +16,14 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
+#if !defined(_WIN32)
+
 #include <iostream>
 #include <cstring>
 #include <cerrno>
 #include <sstream>
-#include <signal.h>
+#include <csignal>
+#include <fcntl.h>
 
 #include "pipestream.h"
 #include "common.h"
@@ -222,3 +225,5 @@ void iopipestream::Write(const string &s)
     camp::reportFatal("write to pipe failed");
   }
 }
+
+#endif

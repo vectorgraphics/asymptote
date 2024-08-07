@@ -8,12 +8,19 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
-#include <sys/wait.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+
+#if !defined(_WIN32)
+#include <sys/wait.h>
+#include <unistd.h>
+#else
+#include <Windows.h>
+#include <io.h>
+#define isatty _isatty
+#endif
 
 #include "interact.h"
 #include "runhistory.h"
@@ -39,6 +46,10 @@ extern "C" rl_compentry_func_t *rl_completion_entry_function;
 
 #include "util.h"
 #include "errormsg.h"
+
+#if !defined(_WIN32)
+#define _fdopen fdopen
+#endif
 
 using namespace settings;
 
@@ -122,7 +133,10 @@ void pre_readline()
 {
   int fd=intcast(settings::getSetting<Int>("inpipe"));
   if(fd >= 0) {
-    if(!fin) fin=fdopen(fd,"r");
+    if(!fin)
+    {
+      fin=_fdopen(fd,"r");
+    }
     if(!fin) {
       cerr << "Cannot open inpipe " << fd << endl;
       exit(-1);
@@ -183,7 +197,7 @@ string simpleline(string prompt) {
 #endif
       {
         cout << endl;
-        throw eof();
+        throw EofException();
       }
     return "";
   }

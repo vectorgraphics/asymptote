@@ -2,7 +2,10 @@
 #define __seconds_h__ 1
 
 #include <chrono>
+
+#if !defined(_WIN32)
 #include <sys/resource.h>
+#endif
 
 namespace utils {
 

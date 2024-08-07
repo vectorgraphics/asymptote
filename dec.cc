@@ -17,7 +17,7 @@
 #include "modifier.h"
 #include "runtime.h"
 #include "locate.h"
-#include "parser.h"
+#include "asyparser.h"
 // #include "builtin.h"  // for trans::addRecordOps
 
 namespace absyntax {

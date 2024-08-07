@@ -14,7 +14,7 @@
 #include "errormsg.h"
 #include "util.h"
 #include "runtime.h"
-#include "process.h"
+#include "asyprocess.h"
 
 #include "profiler.h"
 
@@ -159,10 +159,10 @@ void stack::marshall(size_t args, stack::vars_t vars)
 #ifdef PROFILE
 
 #ifndef DEBUG_FRAME
-#warning "profiler needs DEBUG_FRAME for function names"
+#pragma message("WARNING: profiler needs DEBUG_FRAME for function names")
 #endif
 #ifndef DEBUG_BLTIN
-#warning "profiler needs DEBUG_BLTIN for builtin function names"
+#pragma message("WARNING: profiler needs DEBUG_BLTIN for builtin function names")
 #endif
 
 profiler prof;

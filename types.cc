@@ -18,7 +18,7 @@
 #include "runtriple.h"
 #include "access.h"
 #include "virtualfieldaccess.h"
-#include "process.h"
+#include "asyprocess.h"
 
 namespace run {
 void arrayDeleteHelper(vm::stack *Stack);
@@ -30,6 +30,8 @@ void arrayDeleteHelper(vm::stack *Stack);
 #endif
 
 namespace types {
+
+const signature::OPEN_t signature::OPEN;
 
 /* Base types */
 #define PRIMITIVE(name,Name,asyName)            \

@@ -19,7 +19,7 @@ using std::ostream;
 struct handled_error : std::exception {}; // Exception to process next file.
 struct interrupted : std::exception {};   // Exception to interrupt execution.
 struct quit : std::exception {};          // Exception to quit current operation.
-struct eof : std::exception {};           // Exception to exit interactive mode.
+struct EofException : std::exception {};           // Exception to exit interactive mode.
 
 class fileinfo : public gc {
   string filename;
