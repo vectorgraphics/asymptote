@@ -439,6 +439,7 @@ void home(bool webgl=false)
 }
 
 double T[16];
+double Tup[16];
 
 #ifdef HAVE_GL
 
@@ -1784,7 +1785,7 @@ projection camera(bool user)
         double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
         sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-        sumUp += T4ij*R1;
+        sumUp += Tup[i4+j]*R1;
         sumTarget += T4ij*(R3-cx*R0-cy*R1);
       }
       vCamera[i]=sumCamera;
@@ -1910,7 +1911,7 @@ bool NVIDIA()
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
               const triple& m, const triple& M, const pair& shift,
-              const pair& margin, double *t,
+              const pair& margin, double *t, double *tup,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
@@ -1989,6 +1990,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   for(int i=0; i < 16; ++i)
     T[i]=t[i];
+
+  for(int i=0; i < 16; ++i)
+    Tup[i]=tup[i];
 
   static bool initialized=false;
 
