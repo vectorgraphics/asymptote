@@ -8644,7 +8644,7 @@ positive @math{y} axis is drawn at this angle in degrees.
 @cindex @code{target}
 @cindex @code{showtarget}
 @cindex @code{center}
-@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, pair viewportshift=0, bool showtarget=true, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool center=false)
+@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, pair viewportshift=0, bool showtarget=true, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool center=true)
 This projects from three to two dimensions using the view as seen at a point
 infinitely far away in the direction @code{unit(camera)}, orienting the camera
 so that, if possible, the vector @code{up} points upwards. Parallel
@@ -8653,7 +8653,7 @@ to include @code{target} if @code{showtarget=true}.
 If @code{center=true}, the target will be adjusted to the center of the
 bounding volume.
 
-@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, pair viewportshift=0, bool showtarget=true, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool center=false)
+@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, pair viewportshift=0, bool showtarget=true, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool center=true)
 This is equivalent to
 @verbatim
 orthographic((x,y,z),up,target,zoom,viewportshift,showtarget,center)

@@ -921,6 +921,7 @@ void autoscale3(picture pic=currentpicture, axis axis)
 {
   bool set=pic.scale.set;
   autoscale(pic,axis);
+  currentprojection.recenter(pic.userMin3(),pic.userMax3());
 
   if(!set) {
     bounds mz;

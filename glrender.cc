@@ -1661,7 +1661,9 @@ void showCamera()
     cout << "," << endl << indent << "angle=" << P.angle;
   if(P.viewportshift != pair(0.0,0.0))
     cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom;
-  if(!orthographic)
+  if(orthographic)
+    cout << ",center=false";
+  else
     cout << "," << endl << indent << "autoadjust=false";
   cout << ");" << endl;
 }

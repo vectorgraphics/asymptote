@@ -122,6 +122,10 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
+  projection P=P.copy();
+  // Automatically adjust camera to view target from specified direction.
+  if(P.autoadjust && !pic.keepAspect)
+    P.recenter(pic.userMin3(),pic.userMax3());
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format) || settings.v3d;
