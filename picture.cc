@@ -1442,27 +1442,6 @@ void picture::render(double size2, const triple& Min, const triple& Max,
 }
 
 typedef gl::GLRenderArgs Communicate;
-struct Communicate : public gc {
-  string prefix;
-  picture* pic;
-  string format;
-  double width;
-  double height;
-  double angle;
-  double zoom;
-  triple m;
-  triple M;
-  pair shift;
-  pair margin;
-  double *t;
-  double *tup;
-  double *background;
-  size_t nlights;
-  triple *lights;
-  double *diffuse;
-  double *specular;
-  bool view;
-};
 
 Communicate com;
 
