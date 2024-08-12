@@ -5236,7 +5236,9 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 @cindex @code{histogram}
 @cindex @code{factorial}
 @cindex @code{choose}
-Random numbers can be seeded with @code{srand(int)} and generated with
+Random numbers can be seeded with @code{srand(int)}
+(for example, with @code{srand(round((cputime().parent.clock%1)*1e9))})
+and generated with
 the @code{int rand()} function, which returns a random integer between 0
 and the integer @code{randMax}. The @code{unitrand()} function returns
 a random number uniformly distributed in the interval [0,1].
