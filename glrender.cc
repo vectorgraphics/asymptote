@@ -1992,7 +1992,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
     T[i]=args.t[i];
 
   for(int i=0; i < 16; ++i)
-    Tup[i]=tup[i];
+    Tup[i]=args.tup[i];
 
   static bool initialized=false;
 
