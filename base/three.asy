@@ -51,7 +51,7 @@ struct render
 
   bool closed;          // use one-sided PRC rendering?
 
-  bool tessellate;      // use tessellated mesh to store straight patches?
+  bool tessellate;      // use tessellated mesh to store straight patches
 
   bool3 merge;          // merge PRC nodes before rendering, for faster but
                         // lower quality rendering (the value default means
@@ -60,7 +60,7 @@ struct render
   int sphere;           // PRC sphere type (PRCsphere or NURBSsphere).
 
   // General parameters:
-  real margin;          // shrink amount for rendered openGL viewport, in bp.
+  real margin;          // shrink amount for rendered OpenGL viewport, in bp.
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
   interaction interaction; // billboard interaction mode
