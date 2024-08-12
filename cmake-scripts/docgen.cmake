@@ -100,3 +100,13 @@ foreach(ASY_DOC_FILE_PREFIX ${ASY_DOC_FILE_PREFIXES})
     )
     list(APPEND ASY_DOC_PDF_FILES ${ASY_DOC_FILE_OUTPUT})
 endforeach()
+
+
+# options file
+add_custom_command(
+        OUTPUT ${ASY_TEX_BUILD_ROOT}/options
+        DEPENDS asy ${ASY_DOC_ROOT}/gen-asy-options-file.py
+        COMMAND ${PY3_INTERPRETER} ${ASY_DOC_ROOT}/gen-asy-options-file.py
+            --asy-executable=$<TARGET_FILE:asy>
+            --output-file=${ASY_TEX_BUILD_ROOT}/options
+)
