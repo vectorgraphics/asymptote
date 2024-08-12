@@ -924,8 +924,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
 }
 
 // Internal routine to autoscale the user limits of a picture.
-void autoscale3(picture pic=currentpicture, axis axis,
-                projection P=currentprojection)
+void autoscale3(picture pic=currentpicture, axis axis, projection P)
 {
   bool set=pic.scale.set;
   autoscale(pic,axis);
