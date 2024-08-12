@@ -745,7 +745,7 @@ struct picture { // <<<1
       },exact,above);
   }
 
-  void add(void d(picture, transform3, transform3, triple, triple),
+  void add(void d(picture, transform3, transform3, projection P=currentprojection, triple, triple),
            bool exact=false, bool above=true) {
     add(new void(frame f, transform3 t, transform3 T, picture pic2,
                  projection P, triple lb, triple rt) {
