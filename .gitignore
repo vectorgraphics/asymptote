@@ -18,6 +18,7 @@ xasy
 
 ### Version info
 *version.*
+!version.texi.in
 revision.*
 
 ### Runtime objects
