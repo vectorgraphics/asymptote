@@ -59,7 +59,7 @@ void error(const string& filename)
 {
   em.sync();
   em << "error: could not load module '" << filename << "'\n";
-  em.sync(sync);
+  em.sync(true);
   throw handled_error();
 }
 }
