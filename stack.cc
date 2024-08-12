@@ -658,7 +658,7 @@ void errornothrow(const char* message)
 {
   em.error(curPos);
   em << message;
-  em.sync();
+  em.sync(true);
 }
 
 void error(const char* message)

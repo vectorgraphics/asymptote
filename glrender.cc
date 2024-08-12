@@ -441,6 +441,7 @@ void home(bool webgl=false)
 }
 
 double T[16];
+double Tup[16];
 
 #ifdef HAVE_GL
 
@@ -1666,7 +1667,9 @@ void showCamera()
     cout << "," << endl << indent << "angle=" << P.angle;
   if(P.viewportshift != pair(0.0,0.0))
     cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom;
-  if(!orthographic)
+  if(orthographic)
+    cout << ",center=false";
+  else
     cout << "," << endl << indent << "autoadjust=false";
   cout << ");" << endl;
 }
@@ -1787,7 +1790,7 @@ projection camera(bool user)
         double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
         sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-        sumUp += T4ij*R1;
+        sumUp += Tup[i4+j]*R1;
         sumTarget += T4ij*(R3-cx*R0-cy*R1);
       }
       vCamera[i]=sumCamera;
@@ -1987,6 +1990,9 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
   for(int i=0; i < 16; ++i)
     T[i]=args.t[i];
+
+  for(int i=0; i < 16; ++i)
+    Tup[i]=tup[i];
 
   static bool initialized=false;
 

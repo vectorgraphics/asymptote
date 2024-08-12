@@ -1442,6 +1442,27 @@ void picture::render(double size2, const triple& Min, const triple& Max,
 }
 
 typedef gl::GLRenderArgs Communicate;
+struct Communicate : public gc {
+  string prefix;
+  picture* pic;
+  string format;
+  double width;
+  double height;
+  double angle;
+  double zoom;
+  triple m;
+  triple M;
+  pair shift;
+  pair margin;
+  double *t;
+  double *tup;
+  double *background;
+  size_t nlights;
+  triple *lights;
+  double *diffuse;
+  double *specular;
+  bool view;
+};
 
 Communicate com;
 
@@ -1462,7 +1483,8 @@ void glrenderWrapper()
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
                        const triple& m, const triple& M, const pair& shift,
-                       const pair& margin, double *t, double *background,
+                       const pair& margin, double *t, double *tup,
+                       double *background,
                        size_t nlights, triple *lights, double *diffuse,
                        double *specular, bool view)
 {
@@ -1554,6 +1576,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.shift=shift;
         com.margin=margin;
         com.t=t;
+        com.tup=tup;
         com.background=background;
         com.nlights=nlights;
         com.lights=lights;
@@ -1610,6 +1633,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.shift=shift;
   args.margin=margin;
   args.t=t;
+  args.tup=tup;
   args.background=background;
   args.nlights=nlights;
   args.lights=lights;

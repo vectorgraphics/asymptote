@@ -167,6 +167,7 @@ struct GLRenderArgs
   camp::pair shift;
   camp::pair margin;
   double *t;
+  double *tup;
   double *background;
   size_t nlights;
   camp::triple *lights;

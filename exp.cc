@@ -103,7 +103,7 @@ void exp::testCachedType(coenv &e) {
       em.compiler(getPos());
       em << "cached type '" << *ct
          << "' doesn't match actual type '" << *t << "'";
-      em.sync();
+      em.sync(true);
     }
   }
 }

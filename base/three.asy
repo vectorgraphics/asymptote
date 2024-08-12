@@ -293,6 +293,7 @@ projection operator * (transform3 t, projection P)
       P.normal=t*(target+P.normal)-P.target;
     else
       P.normal=P.vector();
+    P.vector0=t*P.vector0;
     P.calculate();
   }
   return P;
@@ -346,7 +347,7 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O,
 
 projection orthographic(triple camera, triple up=Z, triple target=O,
                         real zoom=1, pair viewportshift=0,
-                        bool showtarget=true, bool center=false)
+                        bool showtarget=true, bool center=true)
 {
   return projection(camera,up,target,zoom,viewportshift,showtarget,
                     center=center,new transformation(triple camera, triple up,
@@ -356,7 +357,7 @@ projection orthographic(triple camera, triple up=Z, triple target=O,
 
 projection orthographic(real x, real y, real z, triple up=Z,
                         triple target=O, real zoom=1, pair viewportshift=0,
-                        bool showtarget=true, bool center=false)
+                        bool showtarget=true, bool center=true)
 {
   return orthographic((x,y,z),up,target,zoom,viewportshift,showtarget,
                       center=center);
@@ -2681,18 +2682,8 @@ struct scene
 
     this.P=P.copy();
 
-    if(!P.absolute) {
-      // Automatically adjust camera to view target from specified direction.
-      if(P.autoadjust && !pic.keepAspect) {
-        triple M=pic.userMax();
-        triple m=pic.userMin();
-        this.P.target=0.5*(M+m);
-        this.P.camera=this.P.target+realmult(unit(P.vector()),M-m);
-        this.P.normal=this.P.vector();
-      }
-      if(P.showtarget && !pic.empty3())
-        draw(pic,this.P.target,nullpen);
-    }
+    if(!P.absolute && P.showtarget && !pic.empty3())
+      draw(pic,this.P.target,nullpen);
 
     t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
     adjusted=false;
@@ -2908,11 +2899,13 @@ object embed(string prefix=outprefix(), string label=prefix,
     if(primitive())
       format=settings.v3d ? "v3d" : settings.outformat;
 
+    transform3 s=inv*shift(0,0,zcenter);
+
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,S.viewportmargin,
-             tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
+             tinv*s,s,Light.background(),Light.position,
              Light.diffuse,Light.specular,
              view && !preview);
     if(settings.v3d) {
@@ -3050,9 +3043,9 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   bool empty3=pic.empty3();
   if(!empty3 || pic.queueErase3) {
     f=embedder(new object(string prefix, string format) {
-      return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
-                   options,script,light,P);
-    },prefix,format,view,light);
+        return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
+                     options,script,light,P);
+      },prefix,format,view,light);
     pic.queueErase3=false;
   }
 
