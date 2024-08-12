@@ -92,7 +92,7 @@ struct projection {
   }
 
   void recenter(triple min, triple max) {
-    if(center) {
+    if(center && min != max) {
       target=0.5*(max+min);
       camera=target+realmult(unit(vector0),max-min);
       normal=vector();
