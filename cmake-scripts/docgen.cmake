@@ -42,3 +42,61 @@ add_custom_command(
         WORKING_DIRECTORY ${ASY_DOC_ROOT}
         BYPRODUCTS ${ASY_TEX_BUILD_ROOT}/latexusage.log
 )
+
+# asy files
+set(ASY_DOC_FILE_PREFIXES
+        axis3 basealign bezier bezier2 beziercurve bigdiagonal binarytreetest Bode brokenaxis
+        CAD1 colons colors cube cylinderskeleton datagraph diagonal dots
+        eetomumu elliptic errorbars exp  fillcontour flow flowchartdemo
+        GaussianSurface generalaxis generalaxis3 graphmarkers graphwithderiv grid3xyz
+        hatch helix HermiteSpline histogram Hobbycontrol Hobbydir icon image imagecontour
+        irregularcontour join join3 knots labelsquare legend lineargraph lineargraph0
+        linetype log2graph loggraph loggrid logimage logticks makepen markers1 markers2 mexicanhat
+        monthaxis multicontour onecontour parametricgraph penfunctionimage penimage planes quartercircle
+        saddle scaledgraph shadedtiling slopefield1 square subpictures superpath tile
+        triangulate unitcircle3 vectorfield
+)
+
+# handle CDlabel, filegraph, leastsquares, logo separately
+set(ASY_FILE_WITH_CSV diatom secondaryaxis westnile)
+
+set(ASY_DOC_PDF_FILES "")
+
+set(CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS ${CMAKE_COMMAND} -E copy -t ${ASY_TEX_BUILD_ROOT})
+set(ASY_BASE_ARGUMENTS asy -dir ${ASY_BUILD_BASE_DIR} -config '' -render=0 -noprc -noV)
+
+# independent asymptote files that can be generated with any other files
+foreach(ASY_DOC_FILE_PREFIX ${ASY_DOC_FILE_PREFIXES})
+    set(ASY_DOC_FILE_OUTPUT ${ASY_TEX_BUILD_ROOT}/${ASY_DOC_FILE_PREFIX}.pdf)
+    # asymptote has some problems (currently as writing this) with asy files involving tex
+    # and output directory not matching, so a workaround is to copy to the doc build root
+    add_custom_command(
+            OUTPUT ${ASY_DOC_FILE_OUTPUT}
+            DEPENDS ${ASY_DOC_ROOT}/${ASY_DOC_FILE_PREFIX}.asy asy ${ASY_OUTPUT_BASE_FILES}
+            # copy <docroot>/file.asy -> <buildroot>/file.asy
+            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/${ASY_DOC_FILE_PREFIX}.asy
+            COMMAND ${ASY_BASE_ARGUMENTS} -fpdf ${ASY_DOC_FILE_PREFIX}.asy
+            # cleanup <buildroot>/file.asy
+            COMMAND ${CMAKE_COMMAND} -E rm ${ASY_TEX_BUILD_ROOT}/${ASY_DOC_FILE_PREFIX}.asy
+            # cleanup tex artifacts, if exist
+            COMMAND ${CMAKE_COMMAND} -E rm -f ${ASY_TEX_BUILD_ROOT}/${ASY_DOC_FILE_PREFIX}_.tex
+            WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
+    )
+    list(APPEND ASY_DOC_PDF_FILES ${ASY_DOC_FILE_OUTPUT})
+endforeach()
+
+foreach(ASY_DOC_FILE_PREFIX ${ASY_DOC_FILE_PREFIXES})
+    set(ASY_DOC_FILE_OUTPUT ${ASY_TEX_BUILD_ROOT}/${ASY_DOC_FILE_PREFIX}.pdf)
+    # asymptote has some problems (currently as writing this) with asy files involving tex
+    # and output directory not matching, so a workaround is to copy to the doc build root
+    add_custom_command(
+            OUTPUT ${ASY_DOC_FILE_OUTPUT}
+            DEPENDS ${ASY_DOC_ROOT}/${ASY_DOC_FILE_PREFIX}.asy asy ${ASY_OUTPUT_BASE_FILES}
+            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/${ASY_DOC_FILE_PREFIX}.asy
+            COMMAND ${ASY_BASE_ARGUMENTS} -fpdf ${ASY_DOC_FILE_PREFIX}.asy
+            COMMAND ${CMAKE_COMMAND} -E rm ${ASY_TEX_BUILD_ROOT}/${ASY_DOC_FILE_PREFIX}.asy
+            COMMAND ${CMAKE_COMMAND} -E rm -f ${ASY_TEX_BUILD_ROOT}/${ASY_DOC_FILE_PREFIX}_.tex
+            WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
+    )
+    list(APPEND ASY_DOC_PDF_FILES ${ASY_DOC_FILE_OUTPUT})
+endforeach()
