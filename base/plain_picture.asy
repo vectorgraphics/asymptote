@@ -745,12 +745,12 @@ struct picture { // <<<1
       },exact,above);
   }
 
-  void add(void d(picture, transform3, transform3, projection P=currentprojection, triple, triple),
+  void add(void d(picture, transform3, transform3, projection, triple, triple),
            bool exact=false, bool above=true) {
     add(new void(frame f, transform3 t, transform3 T, picture pic2,
                  projection P, triple lb, triple rt) {
           picture opic=new picture;
-          d(opic,t,T,lb,rt);
+          d(opic,t,T,P,lb,rt);
           add(f,opic.fit3(identity4,pic2,P));
         },exact,above);
   }
