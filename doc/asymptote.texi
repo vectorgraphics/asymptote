@@ -1460,9 +1460,10 @@ In the second form, the elements of @code{z} are taken to be successive
 nodes of path @code{g}. The pens in @code{p} must belong to the same
 color space. Illustrations of Gouraud shading are provided in the example file
 @code{@uref{https://asymptote.sourceforge.io/gallery/PDFs/Gouraud.pdf,,Gouraud}@uref{https://asymptote.sourceforge.io/gallery/PDFs/Gouraud.asy,,.asy}}.
-The edge flags used in Gouraud shading are documented here:
+The edge flags used in Gouraud shading are documented on pages 270--274
+of the PostScript Language Reference (3rd edition):
 @quotation
-@url{https://www.adobe.com/content/dam/acom/en/devnet/postscript/pdfs/TN5600.SmoothShading.pdf}
+@url{https://www.adobe.com/jp/print/postscript/pdfs/PLRM.pdf}
 @end quotation
 
 @cindex Coons shading
