@@ -134,7 +134,7 @@ void tryToWriteExp(coenv &e, exp *expr)
     if (t->kind == ty_overloaded) {
       // Translate the expr in order to print the ambiguity error first.
       expr->trans(e);
-      em.sync();
+      em.sync(true);
       assert(em.errors());
 
       // Then, write out all of the types.
