@@ -76,6 +76,7 @@ struct projection {
   bool center=false;    // Center target within bounding volume?
   int ninterpolate;     // Used for projecting nurbs to 2D Bezier curves.
   bool bboxonly=true;   // Typeset label bounding box only.
+  triple vector0;       // Specified camera-target vector
 
   transformation T;
 
@@ -88,6 +89,15 @@ struct projection {
 
   triple vector() {
     return camera-target;
+  }
+
+  void recenter(triple min, triple max) {
+    if(center && min != max) {
+      target=0.5*(max+min);
+      camera=target+realmult(unit(vector0),max-min);
+      normal=vector();
+      calculate();
+    }
   }
 
   void operator init(triple camera, triple up=(0,0,1), triple target=(0,0,0),
@@ -106,6 +116,7 @@ struct projection {
     this.autoadjust=autoadjust;
     this.center=center;
     this.projector=projector;
+    this.vector0=vector();
     calculate();
   }
 
@@ -127,6 +138,7 @@ struct projection {
     P.projector=projector;
     P.ninterpolate=ninterpolate;
     P.bboxonly=bboxonly;
+    P.vector0=vector0;
     P.T=T.copy();
     return P;
   }

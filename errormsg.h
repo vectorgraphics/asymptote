@@ -225,7 +225,7 @@ public:
 
   // Reporting errors to the stream may be incomplete.  This draws the
   // appropriate newlines or file excerpts that may be needed at the end.
-  void sync();
+  void sync(bool reportTraceback=false);
 
   void cont();
 

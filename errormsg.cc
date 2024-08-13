@@ -124,11 +124,11 @@ void errorstream::cont()
   floating = false;
 }
 
-void errorstream::sync()
+void errorstream::sync(bool reportTraceback)
 {
   if (floating) out << endl;
 
-  if(traceback.size()) {
+  if(reportTraceback && traceback.size()) {
     bool first=true;
     for(auto p=this->traceback.rbegin(); p != this->traceback.rend(); ++p) {
       if(p->filename() != "-") {

@@ -68,7 +68,7 @@ triple ticklabelshift(triple align, pen p=currentpen)
 // Signature of routines that draw labelled paths with ticks and tick labels.
 typedef void ticks3(picture, transform3, Label, path3, path3, pen,
                     arrowbar3, margin3, ticklocate, int[], bool opposite=false,
-                    bool primary=true);
+                    bool primary=true, projection P);
 
 // Label a tick on a frame.
 void labeltick(picture pic, transform3 T, path3 g,
@@ -164,7 +164,8 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
 {
   return new void(picture pic, transform3 t, Label L, path3 g, path3 g2, pen p,
                   arrowbar3 arrow, margin3 margin, ticklocate locate,
-                  int[] divisor, bool opposite, bool primary) {
+                  int[] divisor, bool opposite, bool primary,
+                  projection P=currentprojection) {
     // Use local copy of context variables:
     int Sign=opposite ? -1 : 1;
     int sign=Sign*sign;
@@ -261,17 +262,18 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
   return new void(picture pic, transform3 T, Label L,
                   path3 g, path3 g2, pen p,
                   arrowbar3 arrow, margin3 margin=NoMargin3, ticklocate locate,
-                  int[] divisor, bool opposite, bool primary) {
+                  int[] divisor, bool opposite, bool primary,
+                  projection P=currentprojection) {
     path3 G=T*g;
     real limit=Step == 0 ? axiscoverage*arclength(G) : 0;
     tickvalues values=modify(generateticks(sign,F,ticklabel,N,n,Step,step,
                                            Size,size,identity(),1,
-                                           project(G,currentprojection),
+                                           project(G,P),
                                            limit,p,locate,divisor,
                                            opposite));
     Ticks3(sign,F,ticklabel,beginlabel,endlabel,values.major,values.minor,
            values.N,begin,end,Size,size,extend,pTick,ptick)
-      (pic,T,L,g,g2,p,arrow,margin,locate,divisor,opposite,primary);
+      (pic,T,L,g,g2,p,arrow,margin,locate,divisor,opposite,primary,P);
   };
 }
 
@@ -279,7 +281,8 @@ ticks3 NoTicks3()
 {
   return new void(picture pic, transform3 T, Label L, path3 g,
                   path3, pen p, arrowbar3 arrow, margin3 margin,
-                  ticklocate, int[], bool opposite, bool primary) {
+                  ticklocate, int[], bool opposite, bool primary,
+                  projection P=currentprojection) {
     path3 G=T*g;
     if(primary) draw(pic,margin(G,p).g,p,arrow,margin);
     else draw(pic,G,p);
@@ -478,9 +481,10 @@ void axis(picture pic=currentpicture, Label L="", path3 g, path3 g2=nullpath3,
   divisor=copy(divisor);
   locate=locate.copy();
 
-  pic.add(new void (picture f, transform3 t, transform3 T, triple, triple) {
+  pic.add(new void (picture f, transform3 t, transform3 T,
+                    projection P, triple, triple) {
       picture d;
-      ticks(d,t,L,g,g2,p,arrow,margin,locate,divisor,opposite,true);
+      ticks(d,t,L,g,g2,p,arrow,margin,locate,divisor,opposite,true,P);
       add(f,t*T*inverse(t)*d);
     },above=above);
 
@@ -522,12 +526,13 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
               real xmin=-infinity, real xmax=infinity, pen p=currentpen,
               ticks3 ticks=NoTicks3,
               arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=true,
-              bool opposite=false, bool opposite2=false, bool primary=true)
+              bool opposite=false, bool opposite2=false, bool primary=true,
+              projection P=currentprojection)
 {
   int type=axis.type;
   int type2=axis.type2;
   triple dir=axis.align.dir3 == O ?
-    defaultdir(Y,Z,X,opposite^opposite2,currentprojection) : axis.align.dir3;
+    defaultdir(Y,Z,X,opposite^opposite2,P) : axis.align.dir3;
   Label L=L.copy();
   if(L.align.dir3 == O && L.align.dir == 0) L.align(opposite ? -dir : dir);
 
@@ -536,8 +541,8 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
   real y2,z2;
   int[] divisor=copy(axis.xdivisor);
 
-  pic.add(new void(picture f, transform3 t, transform3 T, triple lb,
-                   triple rt) {
+  pic.add(new void(picture f, transform3 t, transform3 T, projection P,
+                   triple lb, triple rt) {
             transform3 tinv=inverse(t);
             triple a=xmin == -infinity ? tinv*(lb.x-min3(p).x,ytrans(t,y),
                                                ztrans(t,z)) : (xmin,y,z);
@@ -573,7 +578,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
             ticks(d,t,L,a--b,finite(y0) && finite(z0) ? a2--b2 : nullpath3,
                   p,arrow,margin,
                   ticklocate(a.x,b.x,pic.scale.x,Dir(dir)),divisor,
-                  opposite,primary);
+                  opposite,primary,P);
             add(f,t*T*tinv*d);
           },above=above);
 
@@ -621,7 +626,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
       ticks(d,pic.scaling3(warn=false),L,
             (a.x,0,0)--(b.x,0,0),(a2.x,0,0)--(b2.x,0,0),p,arrow,margin,
             ticklocate(a.x,b.x,pic.scale.x,Dir(dir)),divisor,
-            opposite,primary);
+            opposite,primary,P);
       frame f;
       if(L.s != "") {
         Label L0=L.copy();
@@ -655,12 +660,13 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
               real ymin=-infinity, real ymax=infinity, pen p=currentpen,
               ticks3 ticks=NoTicks3,
               arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=true,
-              bool opposite=false, bool opposite2=false, bool primary=true)
+              bool opposite=false, bool opposite2=false, bool primary=true,
+              projection P=currentprojection)
 {
   int type=axis.type;
   int type2=axis.type2;
   triple dir=axis.align.dir3 == O ?
-    defaultdir(X,Z,Y,opposite^opposite2,currentprojection) : axis.align.dir3;
+    defaultdir(X,Z,Y,opposite^opposite2,P) : axis.align.dir3;
   Label L=L.copy();
   if(L.align.dir3 == O && L.align.dir == 0) L.align(opposite ? -dir : dir);
 
@@ -669,8 +675,8 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
   real x2,z2;
   int[] divisor=copy(axis.ydivisor);
 
-  pic.add(new void(picture f, transform3 t, transform3 T, triple lb,
-                   triple rt) {
+  pic.add(new void(picture f, transform3 t, transform3 T, projection P,
+                   triple lb, triple rt) {
             transform3 tinv=inverse(t);
             triple a=ymin == -infinity ? tinv*(xtrans(t,x),lb.y-min3(p).y,
                                                ztrans(t,z)) : (x,ymin,z);
@@ -706,7 +712,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
             ticks(d,t,L,a--b,finite(x0) && finite(z0) ? a2--b2 : nullpath3,
                   p,arrow,margin,
                   ticklocate(a.y,b.y,pic.scale.y,Dir(dir)),divisor,
-                  opposite,primary);
+                  opposite,primary,P);
             add(f,t*T*tinv*d);
           },above=above);
 
@@ -754,7 +760,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
       ticks(d,pic.scaling3(warn=false),L,
             (0,a.y,0)--(0,b.y,0),(0,a2.y,0)--(0,a2.y,0),p,arrow,margin,
             ticklocate(a.y,b.y,pic.scale.y,Dir(dir)),divisor,
-            opposite,primary);
+            opposite,primary,P);
       frame f;
       if(L.s != "") {
         Label L0=L.copy();
@@ -788,12 +794,13 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
               real zmin=-infinity, real zmax=infinity, pen p=currentpen,
               ticks3 ticks=NoTicks3,
               arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=true,
-              bool opposite=false, bool opposite2=false, bool primary=true)
+              bool opposite=false, bool opposite2=false, bool primary=true,
+              projection P=currentprojection)
 {
   int type=axis.type;
   int type2=axis.type2;
   triple dir=axis.align.dir3 == O ?
-    defaultdir(X,Y,Z,opposite^opposite2,currentprojection) : axis.align.dir3;
+    defaultdir(X,Y,Z,opposite^opposite2,P) : axis.align.dir3;
   Label L=L.copy();
   if(L.align.dir3 == O && L.align.dir == 0) L.align(opposite ? -dir : dir);
 
@@ -802,8 +809,8 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
   real x2,y2;
   int[] divisor=copy(axis.zdivisor);
 
-  pic.add(new void(picture f, transform3 t, transform3 T, triple lb,
-                   triple rt) {
+  pic.add(new void(picture f, transform3 t, transform3 T, projection P,
+                   triple lb, triple rt) {
             transform3 tinv=inverse(t);
             triple a=zmin == -infinity ? tinv*(xtrans(t,x),ytrans(t,y),
                                                lb.z-min3(p).z) : (x,y,zmin);
@@ -839,7 +846,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
             ticks(d,t,L,a--b,finite(x0) && finite(y0) ? a2--b2 : nullpath3,
                   p,arrow,margin,
                   ticklocate(a.z,b.z,pic.scale.z,Dir(dir)),divisor,
-                  opposite,primary);
+                  opposite,primary,P);
             add(f,t*T*tinv*d);
           },above=above);
 
@@ -887,7 +894,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
       ticks(d,pic.scaling3(warn=false),L,
             (0,0,a.z)--(0,0,b.z),(0,0,a2.z)--(0,0,a2.z),p,arrow,margin,
             ticklocate(a.z,b.z,pic.scale.z,Dir(dir)),divisor,
-            opposite,primary);
+            opposite,primary,P);
       frame f;
       if(L.s != "") {
         Label L0=L.copy();
@@ -917,10 +924,11 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
 }
 
 // Internal routine to autoscale the user limits of a picture.
-void autoscale3(picture pic=currentpicture, axis axis)
+void autoscale3(picture pic=currentpicture, axis axis, projection P)
 {
   bool set=pic.scale.set;
   autoscale(pic,axis);
+  P.recenter(pic.userMin3(),pic.userMax3());
 
   if(!set) {
     bounds mz;
@@ -945,7 +953,8 @@ void autoscale3(picture pic=currentpicture, axis axis)
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
             real xmin=-infinity, real xmax=infinity, pen p=currentpen,
             ticks3 ticks=NoTicks3,
-            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false)
+            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false,
+            projection P=currentprojection)
 {
   if(xmin > xmax) return;
 
@@ -954,7 +963,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 
   if(!pic.scale.set) {
     axis(pic,axis);
-    autoscale3(pic,axis);
+    autoscale3(pic,axis,P);
   }
 
   bool newticks=false;
@@ -1001,7 +1010,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 
   bool back=false;
   if(axis.type == Both) {
-    triple v=currentprojection.normal;
+    triple v=P.normal;
     back=dot((0,pic.userMax().y-pic.userMin().y,0),v)*sgn(v.z) > 0;
   }
 
@@ -1019,7 +1028,8 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
             real ymin=-infinity, real ymax=infinity, pen p=currentpen,
             ticks3 ticks=NoTicks3,
-            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false)
+            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false,
+            projection P=currentprojection)
 {
   if(ymin > ymax) return;
 
@@ -1028,7 +1038,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 
   if(!pic.scale.set) {
     axis(pic,axis);
-    autoscale3(pic,axis);
+    autoscale3(pic,axis,P);
   }
 
   bool newticks=false;
@@ -1076,7 +1086,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 
   bool back=false;
   if(axis.type == Both) {
-    triple v=currentprojection.normal;
+    triple v=P.normal;
     back=dot((pic.userMax().x-pic.userMin().x,0,0),v)*sgn(v.z) > 0;
   }
 
@@ -1094,7 +1104,8 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
             real zmin=-infinity, real zmax=infinity, pen p=currentpen,
             ticks3 ticks=NoTicks3,
-            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false)
+            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false,
+            projection P=currentprojection)
 {
   if(zmin > zmax) return;
 
@@ -1103,7 +1114,7 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 
   if(!pic.scale.set) {
     axis(pic,axis);
-    autoscale3(pic,axis);
+    autoscale3(pic,axis,P);
   }
 
   bool newticks=false;
@@ -1150,7 +1161,7 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 
   bool back=false;
   if(axis.type == Both) {
-    triple v=currentprojection.vector();
+    triple v=P.vector();
     back=dot((pic.userMax().x-pic.userMin().x,0,0),v)*sgn(v.y) > 0;
   }
 
@@ -1200,11 +1211,12 @@ void axes3(picture pic=currentpicture,
            bool extend=false,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
-           pen p=currentpen, arrowbar3 arrow=None, margin3 margin=NoMargin3)
+           pen p=currentpen, arrowbar3 arrow=None, margin3 margin=NoMargin3,
+           projection P=currentprojection)
 {
-  xaxis3(pic,xlabel,YZZero(extend),min.x,max.x,p,arrow,margin);
-  yaxis3(pic,ylabel,XZZero(extend),min.y,max.y,p,arrow,margin);
-  zaxis3(pic,zlabel,XYZero(extend),min.z,max.z,p,arrow,margin);
+  xaxis3(pic,xlabel,YZZero(extend),min.x,max.x,p,arrow,margin,P);
+  yaxis3(pic,ylabel,XZZero(extend),min.y,max.y,p,arrow,margin,P);
+  zaxis3(pic,zlabel,XYZero(extend),min.z,max.z,p,arrow,margin,P);
 }
 
 triple Scale(picture pic=currentpicture, triple v)
