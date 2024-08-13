@@ -2,7 +2,7 @@ import graph3;
 import gsl;
 
 size(10cm,15cm,IgnoreAspect);
-currentprojection=orthographic(150,50,1);
+currentprojection=orthographic(dir(70,60));
 
 real f(pair z) {real r=abs(z); return r == 0 ? 1 : (2.0*J(1,r)/r)^2;}
 

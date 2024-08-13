@@ -4,7 +4,7 @@ import graph3;
 
 defaultrender.merge=true;
 
-currentprojection=orthographic(25,10,10);
+currentprojection=orthographic(dir(60,25));
 size(0,12cm);
 real a=3;
 real b=4;
@@ -22,4 +22,3 @@ surface s=surface(f,(0,0),(10,10),20,Spline);
 s.colors(palette(s.map(zpart),Rainbow()+opacity(0.5)));
 draw(s);
 axes3("$x$","$y$","$z$",Arrow3);
-
