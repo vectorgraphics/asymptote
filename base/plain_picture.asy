@@ -1134,6 +1134,23 @@ pair size(picture pic, bool user=false)
   return t*M-t*m;
 }
 
+// Return a projection adjusted to view center of pic from specified direction.
+projection centered(projection P, picture pic=currentpicture) {
+  projection P=P.copy();
+  if(!pic.keepAspect && P.autoadjust && P.center) {
+    triple min=pic.userMin3();
+    triple max=pic.userMax3();
+    if(min != max) {
+      triple target=0.5*(max+min);
+      P.camera=target+realmult(unit(P.vector()),max-min);
+      P.target=target;
+      P.normal=P.vector();
+      P.calculate();
+    }
+  }
+  return P;
+}
+
 // Frame Alignment <<<
 pair rectify(pair dir)
 {

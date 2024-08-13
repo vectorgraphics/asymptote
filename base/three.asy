@@ -293,7 +293,6 @@ projection operator * (transform3 t, projection P)
       P.normal=t*(target+P.normal)-P.target;
     else
       P.normal=P.vector();
-    P.vector0=t*P.vector0;
     P.calculate();
   }
   return P;

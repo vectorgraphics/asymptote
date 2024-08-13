@@ -924,11 +924,10 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
 }
 
 // Internal routine to autoscale the user limits of a picture.
-void autoscale3(picture pic=currentpicture, axis axis, projection P)
+void autoscale3(picture pic=currentpicture, axis axis)
 {
   bool set=pic.scale.set;
   autoscale(pic,axis);
-  P.recenter(pic.userMin3(),pic.userMax3());
 
   if(!set) {
     bounds mz;
@@ -963,7 +962,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 
   if(!pic.scale.set) {
     axis(pic,axis);
-    autoscale3(pic,axis,P);
+    autoscale3(pic,axis);
   }
 
   bool newticks=false;
@@ -1010,6 +1009,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 
   bool back=false;
   if(axis.type == Both) {
+    projection P=centered(P,pic);
     triple v=P.normal;
     back=dot((0,pic.userMax().y-pic.userMin().y,0),v)*sgn(v.z) > 0;
   }
@@ -1038,7 +1038,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 
   if(!pic.scale.set) {
     axis(pic,axis);
-    autoscale3(pic,axis,P);
+    autoscale3(pic,axis);
   }
 
   bool newticks=false;
@@ -1086,6 +1086,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 
   bool back=false;
   if(axis.type == Both) {
+    projection P=centered(P,pic);
     triple v=P.normal;
     back=dot((pic.userMax().x-pic.userMin().x,0,0),v)*sgn(v.z) > 0;
   }
@@ -1114,7 +1115,7 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 
   if(!pic.scale.set) {
     axis(pic,axis);
-    autoscale3(pic,axis,P);
+    autoscale3(pic,axis);
   }
 
   bool newticks=false;
@@ -1161,6 +1162,7 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 
   bool back=false;
   if(axis.type == Both) {
+    projection P=centered(P,pic);
     triple v=P.vector();
     back=dot((pic.userMax().x-pic.userMin().x,0,0),v)*sgn(v.y) > 0;
   }
