@@ -201,7 +201,7 @@ Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
 @code{LaTeX} provides for scientific text. By default it produces
 @code{PostScript} output, but it can also generate @code{OpenGL}, @code{PDF},
-@code{SVG}, @code{WebGL}, @code{V3D}, and @code{PRC} vector graphics,
+@code{SVG}, @code{WebGL}, @code{V3D}, and legacy @code{PRC} vector graphics,
 along with any format that the @code{ImageMagick} package can
 produce. You can even try it out in your Web browser without
 installing it, using the @code{Asymptote Web Application}
@@ -8219,7 +8219,7 @@ options to the surface drawing routines, via arguments such as:
   bool defaultnames; // assign default names to unnamed objects
   interaction interaction; // billboard interaction mode
 @end verbatim
-along with the rendering parameters for the legacy PRC format
+along with the rendering parameters for the legacy @acronym{PRC} format
 described in @code{three.asy}.
 
 @cindex image-based lighting
@@ -8253,7 +8253,7 @@ The examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertex
 vertex-dependent colors, which are supported by
 @code{Asymptote}'s native @code{OpenGL}/@code{WebGL} renderers
 and the two-dimensional vector output format (@code{settings.render=0}). Since
-the @acronym{PRC} output format does not currently support vertex
+the legacy @acronym{PRC} output format does not support vertex
 shading of Bezier surfaces, @acronym{PRC} patches are shaded with the mean of the four vertex colors.
 
 @cindex @code{surface}
@@ -8467,7 +8467,7 @@ with the setting @code{iconify=true}.
 
 @cindex @code{prc}
 @cindex @code{views}
-@item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
+@item Embed the 3D legacy @acronym{PRC} format in a @acronym{PDF} file
 and view the resulting @acronym{PDF} file with
 version @code{9.0} or later of @code{Adobe Reader}.
 This requires @code{settings.outformat="pdf"} and @code{settings.prc=true},
