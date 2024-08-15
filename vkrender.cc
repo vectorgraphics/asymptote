@@ -1041,6 +1041,7 @@ void AsyVkRender::createAllocator()
   vkFuncs.vkGetInstanceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetInstanceProcAddr;
   vkFuncs.vkGetDeviceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetDeviceProcAddr;
   vkFuncs.vkGetBufferMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2KHR;
+  vkFuncs.vkGetImageMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2KHR;
 
   VmaAllocatorCreateInfo createInfo = {};
   createInfo.vulkanApiVersion = VK_API_VERSION_1_2;
