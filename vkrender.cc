@@ -1,4 +1,6 @@
 #define VMA_IMPLEMENTATION
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include "vkrender.h"
 #include "shaderResources.h"
