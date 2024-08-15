@@ -3,6 +3,8 @@ import palette;
 
 size3(200,IgnoreAspect);
 
+currentprojection=perspective(dir(68,225));
+
 file in=input("filesurface.dat").line();
 real[] x=in;
 real[] y=in;
@@ -16,13 +18,6 @@ s.colors(palette(s.map(new real(triple v) {return find(level >= v.z);}),
 
 draw(s,meshpen=thick(),render(tessellate=true));
 
-triple m=currentpicture.userMin();
-triple M=currentpicture.userMax();
-triple target=0.5*(m+M);
-
 xaxis3("$x$",Bounds,InTicks);
 yaxis3("$y$",Bounds,InTicks(Step=1,step=0.1));
 zaxis3("$z$",Bounds,InTicks);
-
-currentprojection=perspective(camera=target+realmult(dir(68,225),M-m),
-                              target=target);

@@ -7,8 +7,9 @@ import cpkcolors;
 currentlight=White;
 //currentlight=nolight;
 
-defaultrender.merge=true;  // Fast low-quality rendering
-//defaultrender.merge=false; // Slow high-quality rendering
+//defaultrender.merge=true;  // Fast low-quality PRC rendering
+//defaultrender.merge=false; // Slow high-quality PRC rendering
+
 bool pixel=false; // Set to true to draw dots as pixels.
 real width=6;
 

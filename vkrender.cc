@@ -537,7 +537,7 @@ void closeWindowHandler(GLFWwindow *);
 void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
                            double Width, double Height, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
-                           const pair& margin, double* t,
+                           const pair& margin, double* t, double *tup,
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view, int oldpid/*=0*/)
 {
@@ -597,6 +597,9 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   for(int i=0; i < 16; ++i)
     T[i]=t[i];
+
+  for(int i=0; i < 16; ++i)
+    Tup[i]=tup[i];
 
   if(!(initialized && (interact::interactive ||
                        settings::getSetting<bool>("animating")))) {
@@ -4584,7 +4587,7 @@ projection AsyVkRender::camera(bool user)
         double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
         sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-        sumUp += T4ij*R1;
+        sumUp += Tup[i4+j]*R1;
         sumTarget += T4ij*(R3-cx*R0-cy*R1);
       }
       vCamera[i]=sumCamera;

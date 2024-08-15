@@ -1322,6 +1322,7 @@ struct Communicate : public gc {
   pair shift;
   pair margin;
   double *t;
+  double *tup;
   double *background;
   size_t nlights;
   triple *lights;
@@ -1341,18 +1342,19 @@ void glrenderWrapper()
   vk->wait(vk->initSignal,vk->initLock);
   vk->endwait(vk->initSignal,vk->initLock);
 #endif
-  if(allowRender) {
+  if(allowRender)
     vk->vkrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-                com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
-                com.nlights,com.lights,com.diffuse,com.specular,com.view);
-  }
+                 com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.tup,
+                 com.background,com.nlights,com.lights,com.diffuse,com.specular,
+                 com.view);
 #endif
 }
 
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
                        const triple& m, const triple& M, const pair& shift,
-                       const pair& margin, double *t, double *background,
+                       const pair& margin, double *t, double *tup,
+                       double *background,
                        size_t nlights, triple *lights, double *diffuse,
                        double *specular, bool view)
 {
@@ -1437,6 +1439,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.shift=shift;
         com.margin=margin;
         com.t=t;
+        com.tup=tup;
         com.background=background;
         com.nlights=nlights;
         com.lights=lights;
@@ -1475,11 +1478,9 @@ bool picture::shipout3(const string& prefix, const string& format,
  #endif
    }
 
- #if HAVE_LIBGLM
-  vk->vkrender(prefix,pic,format,width,height,angle,
-               zoom,m,M,shift,margin,t,background,
-               nlights,lights,diffuse,specular,View,
-               oldpid);
+#if HAVE_LIBGLM
+  vk->vkrender(prefix,pic,format,width,height,angle,zoom,m,M,shift,margin,
+               t,tup,background,nlights,lights,diffuse,specular,View,oldpid);
 
    if(format3d) {
      string name=buildname(prefix,format);

@@ -384,7 +384,7 @@ public:
   void vkrender(const string& prefix, const picture* pic, const string& format,
                 double width, double height, double angle, double zoom,
                 const triple& m, const triple& M, const pair& shift,
-                const pair& margin, double* t,
+                const pair& margin, double* t, double *tup,
                 double* background, size_t nlightsin, triple* lights,
                 double* diffuse, double* specular, bool view, int oldpid=0);
 
@@ -489,6 +489,7 @@ public:
 
   double BBT[9];
   double T[16];
+  double Tup[16];
 
   void updateProjection();
   void frustum(double left, double right, double bottom,

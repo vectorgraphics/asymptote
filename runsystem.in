@@ -184,7 +184,7 @@ void warning(string s, string t, bool position=false)
   if(settings::warn(s)) {
     em.warning(position ? getPos() : nullPos,s);
     em << t;
-    em.sync();
+    em.sync(true);
   }
 }
 
@@ -212,7 +212,10 @@ Int convert(string args=emptystring, string file=emptystring,
 {
   string name=convertname(file,format);
   mem::vector<string> cmd;
-  cmd.push_back(getSetting<string>("convert"));
+  string s=getSetting<string>("convert");
+  cmd.push_back(s);
+    if(s == "magick")
+      cmd.push_back("convert");
   push_split(cmd,args);
   cmd.push_back(name);
   bool quiet=verbose <= 1;
@@ -238,16 +241,17 @@ Int convert(string args=emptystring, string file=emptystring,
 Int animate(string args=emptystring, string file=emptystring,
             string format=emptystring)
 {
-#ifndef __MSDOS__
   string name=convertname(file,format);
   if(view()) {
     mem::vector<string> cmd;
-    cmd.push_back(getSetting<string>("animate"));
+    string s=getSetting<string>("animate");
+    cmd.push_back(s);
+    if(s == "magick")
+      cmd.push_back("animate");
     push_split(cmd,args);
     cmd.push_back(name);
     return System(cmd,0,false,"animate","your animated GIF viewer");
   }
-#endif
   return 0;
 }
 

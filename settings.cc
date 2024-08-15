@@ -108,7 +108,7 @@ string defaultHTMLViewer="google-chrome";
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="";
 string defaultDisplay="display";
-string defaultAnimate="animate";
+string defaultAnimate="magick";
 void queryRegistry() {}
 const string dirsep="/";
 
@@ -125,7 +125,7 @@ string defaultHTMLViewer="cmd";
 string defaultGhostscript;
 string defaultGhostscriptLibrary;
 string defaultDisplay="cmd";
-//string defaultAnimate="animate";
+//string defaultAnimate="magick";
 string defaultAnimate="cmd";
 const string dirsep="\\";
 
