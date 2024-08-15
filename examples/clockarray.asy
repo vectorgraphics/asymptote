@@ -3,8 +3,6 @@ int ny=4;
 real xmargin=1cm;
 real ymargin=xmargin;
 
-size(settings.paperwidth,settings.paperheight);
-
 picture pic;
 real width=settings.paperwidth/nx-xmargin;
 real height=settings.paperheight/ny-ymargin;
@@ -36,4 +34,3 @@ pair size=size(f)+(xmargin,ymargin);
 for(int i=0; i < nx; ++i)
   for(int j=0; j < ny; ++j)
     add(shift(realmult(size,(i,j)))*f);
-

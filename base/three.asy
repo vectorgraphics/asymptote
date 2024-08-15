@@ -293,7 +293,6 @@ projection operator * (transform3 t, projection P)
       P.normal=t*(target+P.normal)-P.target;
     else
       P.normal=P.vector();
-    P.vector0=t*P.vector0;
     P.calculate();
   }
   return P;
@@ -2694,11 +2693,6 @@ struct scene
       this.P=t*this.P;
       if(this.P.autoadjust || this.P.infinity)
         adjusted=adjusted | this.P.adjust(m,M);
-      if(this.P.center && settings.render != 0) {
-        triple target=0.5*(m+M);
-        this.P.target=target;
-        this.P.calculate();
-      }
     }
 
     bool scale=xsize != 0 || ysize != 0;

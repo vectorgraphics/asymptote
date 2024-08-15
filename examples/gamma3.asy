@@ -2,7 +2,7 @@ import graph3;
 import palette;
 
 size(12cm,IgnoreAspect);
-currentprojection=orthographic(1,-2,1);
+currentprojection=orthographic(dir(80,290));
 
 real X=4.5;
 real M=abs(gamma((X,0)));
