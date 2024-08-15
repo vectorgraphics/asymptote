@@ -1042,6 +1042,8 @@ void AsyVkRender::createAllocator()
   vkFuncs.vkGetDeviceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetDeviceProcAddr;
   vkFuncs.vkGetBufferMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2KHR;
   vkFuncs.vkGetImageMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2KHR;
+  vkFuncs.vkBindBufferMemory2KHR = vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2 ? vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2 : vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2KHR;
+  vkFuncs.vkBindImageMemory2KHR = vk::defaultDispatchLoaderDynamic.vkBindImageMemory2 ? vk::defaultDispatchLoaderDynamic.vkBindImageMemory2 : vk::defaultDispatchLoaderDynamic.vkBindImageMemory2KHR;
 
   VmaAllocatorCreateInfo createInfo = {};
   createInfo.vulkanApiVersion = VK_API_VERSION_1_2;
@@ -1260,6 +1262,10 @@ void AsyVkRender::createLogicalDevice()
     extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
     std::cout << "Using logical device memory requirements extension!" << std::endl;
+  }
+
+  if (supportedDeviceExtensions.find(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
+    extensions.push_back(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
   }
 
   queueFamilyIndices = findQueueFamilies(physicalDevice, View ? &*surface : nullptr);
