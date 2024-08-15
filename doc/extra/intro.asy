@@ -1,6 +1,6 @@
-orientation=Landscape;
-
 settings.tex="pdflatex";
+
+orientation=Landscape;
 
 import slide;
 import three;
@@ -10,14 +10,15 @@ bool long=true;
 
 usepackage("mflogo");
 
-usersetting();
-
 viewportsize=pagewidth-2pagemargin;
 
-// To generate bibliographic references:
+usersetting();
+
+// Commands to generate optional bibtex citations:
 // asy -k intro
-// bibtex intro_ 
+// bibtex intro_
 // asy -k intro
+
 bibliographystyle("alpha");
 
 itempen=fontsize(22pt);
@@ -30,7 +31,7 @@ titlepage(long ? "Asymptote: The Vector Graphics Language" :
 "Department of Mathematical and Statistical Sciences\\
           University of Alberta\\
 %and Instituto Nacional de Matem\'atica Pura e Aplicada (IMPA)
-\medskip\Green{Collaborators: Orest Shardt, Michail Vidiassov}",
+\smallskip\Green{Collaborators: Orest Shardt, Michail Vidiassov}",
 "June 30, 2010",
 "https://asymptote.sourceforge.io/intro.pdf");
 
@@ -196,6 +197,7 @@ draw(g--cycle,dashed);
 add(output, currentpicture.fit(), (+0.5inch, 0), E);
 restore();
 
+erase(); // Suppress implicit shipout of currentpicture.
 shipout(output);
 "));
 
@@ -350,7 +352,7 @@ item("The resulting shape may be adjusted by modifying optional {\it tension\/} 
 title("Hobby's 2D Control Point Algorithm");
 item("Having prescribed outgoing and incoming path directions $e^{i\theta}$
 at node~$z_0$ and $e^{i\phi}$ at node $z_1$ relative to the
-vector $z_1-z_0$, the control points are determined as:");  
+vector $z_1-z_0$, the control points are determined as:");
 
 equations("u&=&z_0+e^{i\theta}(z_1-z_0)f(\theta,-\phi),\nonumber\\
 v&=&z_1-e^{i\phi}(z_1-z_0)f(-\phi,\theta),");
@@ -390,7 +392,7 @@ item("Must reduce to 2D algorithm in planar case.");
 item("Determine directions by applying Hobby's algorithm in the plane containing $z_{k-1}$, $z_k$, $z_{k+1}$.");
 
 // Reformulate Hobby's equations in terms of the angle $\psi_k=$
-item("The only ambiguity that can arise is the overall sign of the angles, which relates to viewing each 2D plane from opposing normal directions."); 
+item("The only ambiguity that can arise is the overall sign of the angles, which relates to viewing each 2D plane from opposing normal directions.");
 
 item("A reference vector based on the mean unit normal of successive segments can be used to resolve such ambiguities \cite{Bowman07,Bowman09}");
 
@@ -436,65 +438,15 @@ title("Smooth 3D surfaces");
 asyinclude("../examples/sinc",25cm);
 
 title("Curved 3D Arrows");
-asyinclude("../examples/arrows3",20cm);
+asyinclude("../examples/arrows3",16cm);
 
 title("Slide Presentations");
 item("Asymptote has a module for preparing slides.");
-item("It even supports embedded high-resolution PDF movies.");
 
 code('
 title("Slide Presentations");
 item("Asymptote has a module for preparing slides.");
-item("It even supports embedded high-resolution PDF movies.");
 ');
-remark("\quad\ldots");
-
-import graph;
-
-pen p=linewidth(1);
-pen dotpen=linewidth(5);
-
-pair wheelpoint(real t) {return (t+cos(t),-sin(t));}
-
-guide wheel(guide g=nullpath, real a, real b, int n)
-{
-  real width=(b-a)/n;
-  for(int i=0; i <= n; ++i) {
-    real t=a+width*i;
-    g=g--wheelpoint(t);
-  }
-  return g;
-}
-
-real t1=0; 
-real t2=t1+2*pi;
-
-picture base;
-draw(base,circle((0,0),1),p);
-draw(base,wheel(t1,t2,100),p+linetype("0 2"));
-yequals(base,Label("$y=-1$",1.0),-1,extend=true,p+linetype("4 4"));
-xaxis(base,Label("$x$",align=3SW),0,p);
-yaxis(base,"$y$",0,1.3,p);
-pair z1=wheelpoint(t1);
-pair z2=wheelpoint(t2);
-dot(base,z1,dotpen);
-dot(base,z2,dotpen);
-
-animation a;
-
-int n=25;
-real dt=(t2-t1)/n;
-for(int i=0; i <= n; ++i) {
-  picture pic;
-  size(pic,24cm);
-  real t=t1+dt*i;
-  add(pic,base);
-  draw(pic,circle((t,0),1),p+red);
-  dot(pic,wheelpoint(t),dotpen);
-  a.add(pic);
-}
-
-display(a.pdf(delay=150,"controls"));
 
 title("Automatic Sizing");
 item("Figures can be specified in user coordinates, then
@@ -584,6 +536,7 @@ pen p=fontsize(30pt);
 frame f;
 label(f, \"$E=mc^2$\", p);
 draw(f, box(min(f),max(f)));
+erase(); // Suppress implicit shipout of currentpicture.
 shipout(f);
 "));
 
@@ -681,7 +634,7 @@ item("Rest arguments allow one to write a function that takes an arbitrary
     number of arguments:");
 code("
 int sum(... int[] nums) {
-  int total=0; 
+  int total=0;
   for(int i=0; i < nums.length; ++i)
     total += nums[i];
   return total;
