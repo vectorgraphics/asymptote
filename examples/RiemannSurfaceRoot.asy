@@ -6,7 +6,7 @@ int n=3;
 
 size(200,300,keepAspect=false);
 
-currentprojection=orthographic(10,10,30);
+currentprojection=orthographic(dir(60,60));
 currentlight=(10,10,5);
 triple f(pair t) {return (t.x*cos(t.y),t.x*sin(t.y),t.x^(1/n)*sin(t.y/n));}
 

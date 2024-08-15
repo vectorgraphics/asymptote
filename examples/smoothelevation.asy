@@ -6,7 +6,7 @@ currentlight=Viewport;
 
 if(settings.render <= 0) settings.prc=false;
 
-currentprojection=orthographic(1,2,13);
+currentprojection=orthographic(dir(40,60));
 
 size(400,300,IgnoreAspect);
 
