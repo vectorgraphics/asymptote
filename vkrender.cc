@@ -1255,6 +1255,12 @@ void AsyVkRender::createLogicalDevice()
     }
   }
 
+  if (supportedDeviceExtensions.find(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
+    extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+
+    std::cout << "Using logical device memory requirements extension!" << std::endl;
+  }
+
   queueFamilyIndices = findQueueFamilies(physicalDevice, View ? &*surface : nullptr);
 
   std::vector<vk::DeviceQueueCreateInfo> queueCIs;
