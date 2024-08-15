@@ -929,13 +929,20 @@ void AsyVkRender::createInstance()
     }
   }
 
+  std::vector<const char*> all_extensions;
+  all_extensions.reserve(supportedExtensions.size());
+
+  for (const auto& str : supportedExtensions) {
+      all_extensions.push_back(str.c_str());
+  }
+
   auto const instanceCI = vk::InstanceCreateInfo(
     vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
     &appInfo,
     validationLayers.size(),
     validationLayers.data(),
-    extensions.size(),
-    extensions.data()
+    all_extensions.size(),
+    all_extensions.data()
   );
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
@@ -1033,7 +1040,7 @@ void AsyVkRender::createAllocator()
   VmaVulkanFunctions vkFuncs = {};
   vkFuncs.vkGetInstanceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetInstanceProcAddr;
   vkFuncs.vkGetDeviceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetDeviceProcAddr;
-  vkFuncs.vkGetBufferMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2;
+  vkFuncs.vkGetBufferMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2KHR;
 
   VmaAllocatorCreateInfo createInfo = {};
   createInfo.vulkanApiVersion = VK_API_VERSION_1_2;
