@@ -1,4 +1,5 @@
 #define VMA_IMPLEMENTATION
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include "vkrender.h"
 #include "shaderResources.h"
 #include "picture.h"
