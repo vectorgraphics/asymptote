@@ -1303,6 +1303,8 @@ void AsyVkRender::createLogicalDevice()
 
   vk::PhysicalDeviceFeatures deviceFeatures;
   deviceFeatures.fillModeNonSolid = true;
+  // Needed for some Mac machines.
+  deviceFeatures.fragmentStoresAndAtomics = true;
 //  deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
 //  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
 
