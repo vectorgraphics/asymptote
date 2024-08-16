@@ -126,7 +126,7 @@ string defaultHTMLViewer="google-chrome";
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="";
 string defaultDisplay="display";
-string defaultAnimate="animate";
+string defaultAnimate="magick";
 void queryRegistry() {}
 const string dirsep="/";
 
@@ -143,7 +143,7 @@ string defaultHTMLViewer;
 string defaultGhostscript;
 string defaultGhostscriptLibrary;
 string defaultDisplay;
-//string defaultAnimate="animate";
+//string defaultAnimate="magick";
 string defaultAnimate="";
 const string dirsep="\\";
 
@@ -191,7 +191,7 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
       currRegDirectory.release();
       return "";
     }
-    
+
     DWORD numSubKeys;
     DWORD longestSubkeySize;
 
@@ -212,7 +212,7 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
     for (DWORD i=0;i<numSubKeys;++i)
     {
       DWORD cchValue=longestSubkeySize + 1;
-      
+
       if (auto const regQueryResult= RegEnumKeyExA(
                   currRegDirectory.getKey(),
                   i,
@@ -263,7 +263,7 @@ string getEntry(const HKEY& baseRegLocation, const string& key)
   {
     return "";
   }
-  
+
   mem::vector<BYTE> outputBuffer(requiredStrSize);
 
   if (auto const retCheck = RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
@@ -310,7 +310,7 @@ void queryRegistry()
   string gslib=stripDir(defaultGhostscriptLibrary);
   defaultGhostscript=stripFile(defaultGhostscriptLibrary)+
     ((gslib.empty() || gslib.substr(5,2) == "32") ? "gswin32c.exe" : "gswin64c.exe");
-  
+
   if (string const s= getEntry(R"(Microsoft\Windows\CurrentVersion\App Paths\Asymptote\Path)"); !s.empty())
   {
     docdir= s;
