@@ -1,4 +1,4 @@
-if (NOT ENABLE_DOCGEN_DEFAULT)
+if (NOT ENABLE_DOCGEN)
     message(FATAL_ERROR "Documentation generation is disabled")
 endif()
 
@@ -164,3 +164,39 @@ add_custom_command(
         --asy-executable=$<TARGET_FILE:asy>
         --output-file=${ASY_TEX_BUILD_ROOT}/options
 )
+
+# asymptote.pdf
+
+set(TEXI_ARTIFACT_EXTENSIONS log tmp cp toc cps aux)
+list(
+        TRANSFORM TEXI_ARTIFACT_EXTENSIONS
+        PREPEND ${ASY_TEX_BUILD_ROOT}/asymptote.
+        OUTPUT_VARIABLE ASYMPTOTE_PDF_EXTRA_ARTIFACTS
+    )
+
+if (WIN32)
+if (WIN32_TEXINDEX STREQUAL WSL)
+    set(TEXINDEX_WRAPPER ${CMAKE_CURRENT_SOURCE_DIR}/windows/texindex-wsl.cmd)
+else()
+    set(TEXINDEX_WRAPPER ${WIN32_TEXINDEX})
+endif()
+add_custom_command(
+        OUTPUT ${ASY_TEX_BUILD_ROOT}/asymptote.pdf
+        DEPENDS
+            ${ASY_TEX_BUILD_ROOT}/options
+            ${ASY_TEX_BUILD_ROOT}/latexusage.pdf
+            ${ASY_DOC_ROOT}/asymptote.texi
+            ${ASY_DOC_PDF_FILES}
+        COMMAND ${PY3_INTERPRETER}
+            ${ASY_DOC_ROOT}/build-asymptote-pdf-win.py
+            --texify-loc=${TEXIFY}
+            --texindex-loc=${TEXINDEX_WRAPPER}
+            --texi-file=${ASY_DOC_ROOT}/asymptote.texi
+        WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
+        BYPRODUCTS ${ASYMPTOTE_PDF_EXTRA_ARTIFACTS}
+)
+
+add_custom_target(docgen DEPENDS ${ASY_TEX_BUILD_ROOT}/asymptote.pdf)
+else()
+    # TODO: Add asymptote.pdf generation for linux
+endif()
