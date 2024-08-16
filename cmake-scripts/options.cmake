@@ -1,3 +1,5 @@
+include(CMakeDependentOption)
+
 # Perl
 
 option(PERL_INTERPRETER "Perl interpreter")
@@ -129,28 +131,65 @@ option(
 )
 
 # documentation
-find_package(LATEX COMPONENTS PDFLATEX)
 
-set(ENABLE_DOCGEN_DEFAULT false)
+set(WIN32_TEXINDEX "WSL" CACHE STRING
+        "Location to texindex for windows, or WSL to use internal WSL wrapper.
+Inert for non-windows systems.")
+
+function(determine_docgen_possible_win32)
+    # windows doesn't have an up-to-date
+    # texi2dvi release in multiple years, so
+    # we are using MikTeX's texify
+    find_program(TEXIFY texify)
+    if (NOT TEXIFY)
+        message(STATUS "texify not found; will not enable docgen by default")
+        set(ENABLE_DOCGEN_POSSIBLE false PARENT_SCOPE)
+        return()
+    endif()
+
+    if (NOT WIN32_TEXINDEX)
+        message(STATUS "texindex for windows not given; will not enable docgen by default")
+        set(ENABLE_DOCGEN_POSSIBLE false PARENT_SCOPE)
+        return()
+    endif()
+
+    # another issue is that
+    if (WIN32_TEXINDEX STREQUAL WSL)
+        execute_process(
+                COMMAND wsl sh -c "which texindex >/dev/null 2>/dev/null && echo OK"
+                OUTPUT_VARIABLE TEXINDEX_RESULT
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if (NOT TEXINDEX_RESULT STREQUAL "OK")
+            message(STATUS "Cannot execute texindex on wsl; will not enable docgen by default")
+            set(ENABLE_DOCGEN_POSSIBLE false PARENT_SCOPE)
+            return()
+        endif()
+    endif()
+    set(ENABLE_DOCGEN_POSSIBLE true PARENT_SCOPE)
+endfunction()
+
+set(ENABLE_DOCGEN_POSSIBLE false)
+find_package(LATEX COMPONENTS PDFLATEX)
 if (LATEX_PDFLATEX_FOUND)
     if (WIN32)
-        # windows doesn't have an up-to-date
-        # texi2dvi release in multiple years, so
-        # we are using MikTeX's texify
-        find_program(TEXIFY texify)
-        if (TEXIFY)
-            set(ENABLE_DOCGEN_DEFAULT true)
-        endif()
+        determine_docgen_possible_win32()
     elseif(UNIX)
         find_program(TEXI2DVI texi2dvi)
         if (TEXI2DVI)
-            set(ENABLE_DOCGEN_DEFAULT true)
+            set(ENABLE_DOCGEN_POSSIBLE true)
         endif()
     endif()
 endif()
 
-option(
+if (NOT ENABLE_DOCGEN_POSSIBLE)
+    message(STATUS "System does not have the preqrequisites for building documentation")
+endif()
+
+cmake_dependent_option(
     ENABLE_DOCGEN
-    "Enable document generation. Requires pdflatex and texi2dvi to be installed"
-    ${ENABLE_DOCGEN_DEFAULT}
+    "Enable document generation. Requires pdflatex and "
+    true
+    "ENABLE_DOCGEN_POSSIBLE"
+    false
 )
