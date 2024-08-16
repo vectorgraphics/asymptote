@@ -21,6 +21,8 @@
 #if defined(_WIN32)
 #include <Windows.h>
 #include <shellapi.h>
+#include <cstdio>
+#define unlink _unlink
 #endif
 
 #include <thread>
