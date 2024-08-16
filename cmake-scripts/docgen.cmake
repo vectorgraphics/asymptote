@@ -195,8 +195,18 @@ add_custom_command(
         WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
         BYPRODUCTS ${ASYMPTOTE_PDF_EXTRA_ARTIFACTS}
 )
+else()
+add_custom_command(
+        OUTPUT ${ASY_TEX_BUILD_ROOT}/asymptote.pdf
+        DEPENDS
+        ${ASY_TEX_BUILD_ROOT}/options
+        ${ASY_TEX_BUILD_ROOT}/latexusage.pdf
+        ${ASY_DOC_ROOT}/asymptote.texi
+        ${ASY_DOC_PDF_FILES}
+        COMMAND ${TEXI2DVI} --pdf ${ASY_DOC_ROOT}/asymptote.texi
+        WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
+        BYPRODUCTS ${ASYMPTOTE_PDF_EXTRA_ARTIFACTS}
+)
+endif()
 
 add_custom_target(docgen DEPENDS ${ASY_TEX_BUILD_ROOT}/asymptote.pdf)
-else()
-    # TODO: Add asymptote.pdf generation for linux
-endif()
