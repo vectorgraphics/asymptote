@@ -1604,6 +1604,11 @@ vk::CommandBuffer AsyVkRender::beginSingleCommands()
 void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
 {
   vk::UniqueFence fence = device->createFenceUnique(vk::FenceCreateInfo());
+
+  if (!fence.get()) {
+    std::cout << "Fence failed to allocate." << std::endl;
+  }
+
   cmd.end();
 
   auto info = vk::SubmitInfo();
