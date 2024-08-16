@@ -140,21 +140,21 @@ add_custom_command(
         WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
 )
 
-# <build-root>/logo.asy + <doc-root>/CDLabel.asy -> <build-root>/CDLabel.pdf
+# <build-root>/logo.asy + <doc-root>/CDlabel.asy -> <build-root>/CDlabel.pdf
 add_custom_command(
-        OUTPUT ${ASY_TEX_BUILD_ROOT}/CDLabel.pdf
-        DEPENDS ${ASY_DOC_ROOT}/CDLabel.asy asy ${ASY_OUTPUT_BASE_FILES} ${ASY_TEX_BUILD_ROOT}/logo.asy
+        OUTPUT ${ASY_TEX_BUILD_ROOT}/CDlabel.pdf
+        DEPENDS ${ASY_DOC_ROOT}/CDlabel.asy asy ${ASY_OUTPUT_BASE_FILES} ${ASY_TEX_BUILD_ROOT}/logo.asy
         # copy <docroot>/file.asy -> <buildroot>/file.asy
-        COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/CDLabel.asy
-        COMMAND ${ASY_BASE_ARGUMENTS} -fpdf CDLabel.asy
+        COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/CDlabel.asy
+        COMMAND ${ASY_BASE_ARGUMENTS} -fpdf CDlabel.asy
         # cleanup <buildroot>/file.asy
-        COMMAND ${CMAKE_RM_BASE_ARGUMENTS} ${ASY_TEX_BUILD_ROOT}/CDLabel.asy
+        COMMAND ${CMAKE_RM_BASE_ARGUMENTS} ${ASY_TEX_BUILD_ROOT}/CDlabel.asy
         # cleanup tex artifacts, if exist
-        COMMAND ${CMAKE_RM_BASE_ARGUMENTS} -f ${ASY_TEX_BUILD_ROOT}/CDLabel_.tex
+        COMMAND ${CMAKE_RM_BASE_ARGUMENTS} -f ${ASY_TEX_BUILD_ROOT}/CDlabel_.tex
         WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
 )
 
-list(APPEND ASY_DOC_PDF_FILES ${ASY_TEX_BUILD_ROOT}/logo.pdf ${ASY_TEX_BUILD_ROOT}/CDLabel.pdf )
+list(APPEND ASY_DOC_PDF_FILES ${ASY_TEX_BUILD_ROOT}/logo.pdf ${ASY_TEX_BUILD_ROOT}/CDlabel.pdf )
 
 # options file
 add_custom_command(
