@@ -2,7 +2,7 @@ include(CMakeDependentOption)
 
 # Perl
 
-option(PERL_INTERPRETER "Perl interpreter")
+set(PERL_INTERPRETER "" CACHE STRING "Perl interpreter. If left empty, will try to determine interpreter automatically")
 
 if(NOT PERL_INTERPRETER)
     message(STATUS "No Perl interpreter specified, attempting to find perl")
@@ -12,16 +12,15 @@ if(NOT PERL_INTERPRETER)
             REQUIRED
     )
     message(STATUS "Found perl at ${PERL_INTERPRETER_FOUND}")
-    set(PERL_INTERPRETER ${PERL_INTERPRETER_FOUND})
+    set(PERL_INTERPRETER ${PERL_INTERPRETER_FOUND} CACHE STRING "" FORCE)
 endif()
 
 execute_process(COMMAND ${PERL_INTERPRETER} -e "print \"$]\"" OUTPUT_VARIABLE PERL_VERSION)
 message(STATUS "Perl version: ${PERL_VERSION}")
 
-
 # Python
 
-option(PY3_INTERPRETER "Python 3 interpreter")
+set(PY3_INTERPRETER "" CACHE STRING "Python 3 interpreter. If left empty, will try to determine Python automatically")
 
 function(verify_py3_interpreter_is_py3 validator_result_var py_interpreter)
     execute_process(
@@ -41,21 +40,29 @@ if(NOT PY3_INTERPRETER)
             REQUIRED
     )
     message(STATUS "Found python3 at ${PY3_INTERPRETER_FOUND}")
-    set(PY3_INTERPRETER ${PY3_INTERPRETER_FOUND})
+    set(PY3_INTERPRETER ${PY3_INTERPRETER_FOUND} CACHE STRING "" FORCE)
 else()
     set(PY_INTERPRETER_IS_PY3 TRUE)
     set(VARIABLE_RESULT_VAR PY_INTERPRETER_IS_PY3)
     verify_py3_interpreter_is_py3(VARIABLE_RESULT_VAR ${PY3_INTERPRETER})
+
+    if (NOT PY_INTERPRETER_IS_PY3)
+        message(FATAL_ERROR "Specified python interpreter cannot be used as python3 interpreter!")
+    endif()
 endif()
 
 execute_process(COMMAND ${PY3_INTERPRETER} --version OUTPUT_VARIABLE PY3_VERSION)
 message(STATUS "Version: ${PY3_VERSION}")
 
 # windows flex + bison
-option(WIN32_FLEX_BINARY
-        "Flex binary for windows. If not specified, downloads from winflexibson. This option is inert on UNIX systems")
-option(WIN32_BISON_BINARY
-        "Bison binary for windows. If not specified, downloads from winflexbison. This option is inert on UNIX systems")
+set(
+        WIN32_FLEX_BINARY "" CACHE STRING
+        "Flex binary for windows. If not specified, downloads from winflexibson. This option is inert on UNIX systems"
+)
+set(
+        WIN32_BISON_BINARY "" CACHE STRING
+        "Bison binary for windows. If not specified, downloads from winflexbison. This option is inert on UNIX systems"
+)
 
 # feature libraries
 
@@ -67,10 +74,12 @@ option(ENABLE_GSL "Enable GSL support" true)
 option(ENABLE_EIGEN3 "Enable eigen3 support" true)
 option(ENABLE_FFTW3 "Enable fftw3 support" true)
 option(ENABLE_OPENGL "Whether to enable opengl or not." true)
-option(ENABLE_GL_COMPUTE_SHADERS
-        "Whether to enable compute shaders for OpenGL. Requires OpenGL >= 4.3 and GL_ARB_compute_shader" true)
-option(ENABLE_GL_SSBO
-        "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object" true)
+cmake_dependent_option(ENABLE_GL_COMPUTE_SHADERS
+        "Whether to enable compute shaders for OpenGL. Requires OpenGL >= 4.3 and GL_ARB_compute_shader"
+        true "ENABLE_OPENGL" false)
+cmake_dependent_option(ENABLE_GL_SSBO
+        "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object"
+        true "ENABLE_OPENGL" false)
 
 option(
         ENABLE_RPC_FEATURES
@@ -102,25 +111,25 @@ option(
 # The only reason this option is here is because msvc compiler (cl.exe) does not partial preprocessing
 # (e.g. ignore missing headers and treat them as generated files or depfile generation with missing headers)
 # We use MSVC compiler for all C++ compilation/linking
-option(GCCCOMPAT_CXX_COMPILER_FOR_MSVC
+set(GCCCOMPAT_CXX_COMPILER_FOR_MSVC
+        "" CACHE STRING
         "gcc-compatible C++ compiler for preprocessing with MSVC toolchain. This option is inert if not using MSVC.
 This option is only used for preprocessing, it is not used for compilation."
 )
 
 # CUDA + asy cuda reflect
-set(ENABLE_CUDA_ASY_REFLECT_DEFAULT false)
 include(CheckLanguage)
 check_language(CUDA)
 
 if (CMAKE_CUDA_COMPILER)
-    set(ENABLE_CUDA_ASY_REFLECT_DEFAULT true)
+    set(CAN_COMPILE_CUDA_REFLECT true)
 endif()
 
-option(
+cmake_dependent_option(
     ENABLE_CUDA_ASY_REFLECT
     "Enable target for reflect excutable for generating IBL lighting data.
 Requires CUDA installed and a CUDA-compatible NVIDIA Graphics card"
-    ${ENABLE_CUDA_ASY_REFLECT_DEFAULT}
+    true "CAN_COMPILE_CUDA_REFLECT" false
 )
 
 # Language server protocol
