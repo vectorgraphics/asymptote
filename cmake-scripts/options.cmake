@@ -1,5 +1,12 @@
 include(CMakeDependentOption)
 
+# version override
+
+set(
+        ASY_VERSION_OVERRIDE "" CACHE STRING
+        "Overriding asymptote version. If left blank, version is determined from configure.ac."
+)
+
 # Perl
 
 set(PERL_INTERPRETER "" CACHE STRING "Perl interpreter. If left empty, will try to determine interpreter automatically")
