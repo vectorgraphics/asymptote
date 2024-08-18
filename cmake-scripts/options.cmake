@@ -209,3 +209,11 @@ cmake_dependent_option(
     "ENABLE_DOCGEN_POSSIBLE"
     false
 )
+
+
+# windows-specific installation
+option(
+        ALLOW_PARTIAL_INSTALLATION
+        "Allow installation to go through, even if not every component is buildable. CMake will produce a warning instead of a fatal error."
+        false
+)

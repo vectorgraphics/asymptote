@@ -84,3 +84,9 @@ include(cmake-scripts/tests-asy.cmake)
 if (ENABLE_ASY_CXXTEST)
     add_subdirectory(cxxtests)
 endif()
+
+
+# installation (on windows, pre-NSIS)
+if (WIN32)
+    include(cmake-scripts/win32-pre-nsis-installer.cmake)
+endif()
