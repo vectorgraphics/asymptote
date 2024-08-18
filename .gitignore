@@ -184,6 +184,7 @@ CTestTestfile.cmake
 _deps
 
 cmake-build-*
+cmake-install-*
 CMakeUserPresets.json
 
 # visual studio files
