@@ -24,8 +24,6 @@ if (NOT ASY_TEX_BUILD_ROOT)
     action_if_component_not_buildable("Documentation is not buildable")
 endif()
 
-
-
 set(ASYMPTOTE_NSI_CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}/nsifiles)
 file(MAKE_DIRECTORY ${ASYMPTOTE_NSI_CONFIGURATION_DIR})
 
@@ -35,46 +33,65 @@ configure_file(
 )
 
 set(ASY_INSTALL_DIRECTORY build-${ASY_VERSION})
-set(ASY_PRE_NSIS_COMPONENT_NAME asy-pre-nsis)
 
+set(BUILD_ASY_INSTALLER_SCRIPT ${ASY_WIN_RESOURCE_DIR}/build-asymptote-installer.py)
+configure_file(
+        ${ASY_WIN_RESOURCE_DIR}/build-asy-installer.ps1.in
+        ${ASYMPTOTE_NSI_CONFIGURATION_DIR}/build-asy-installer.ps1
+)
+
+set(ASY_PRE_NSIS_COMPONENT_NAME asy-pre-nsis)
 set(ASY_NSIS_INSTALL_ARGUMENT
         COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME}
         DESTINATION ${ASY_INSTALL_DIRECTORY}
 )
 
+set(ASY_NSIS_INSTALL_RESOURCES_ARGUMENT
+        COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME}
+        DESTINATION .
+)
+
 # <build-root>/asy.exe -> <install-root>/asy.exe
 install(TARGETS asy
-        ${ASY_NSIS_INSTALL_ARGUMENT}
-        RUNTIME DESTINATION ${ASY_INSTALL_DIRECTORY}
-        ARCHIVE EXCLUDE_FROM_ALL
-        LIBRARY EXCLUDE_FROM_ALL
-        PUBLIC_HEADER EXCLUDE_FROM_ALL
-        PRIVATE_HEADER EXCLUDE_FROM_ALL
-)
-# <build-root>/*.dll -> <install-root>/
-# an issue is that this command also include empty directories.
-# this can be cleaned up by a python script that compiles the final installation file
-install(
-        DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-        ${ASY_NSIS_INSTALL_ARGUMENT}
-        FILES_MATCHING PATTERN "*.dll"
-)
-
-# <build-root>/base -> <install-root>/
-install(
-        DIRECTORY ${ASY_BUILD_BASE_DIR}/
+        RUNTIME_DEPENDENCIES
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
 
+# <build-root>/base/*, <build-root>/examples -> <install-root>/
 install(
-        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/examples
+        DIRECTORY ${ASY_BUILD_BASE_DIR}/ ${CMAKE_CURRENT_SOURCE_DIR}/examples
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
 
-if (ASY_TEX_BUILD_ROOT)
+# resources files for installer + nsi files
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+        ${ASY_WIN_RESOURCE_DIR}/asy.ico
+        ${ASY_WIN_RESOURCE_DIR}/asymptote.nsi
+        ${ASYMPTOTE_NSI_CONFIGURATION_DIR}/AsymptoteInstallInfo.nsi
+        ${ASYMPTOTE_NSI_CONFIGURATION_DIR}/build-asy-installer.ps1
+        ${ASY_NSIS_INSTALL_RESOURCES_ARGUMENT}
+)
+
+install(
+        DIRECTORY ${ASY_WIN_RESOURCE_DIR}/
+        ${ASY_NSIS_INSTALL_RESOURCES_ARGUMENT}
+        FILES_MATCHING PATTERN "*.nsh"
+)
+
 install(
         DIRECTORY ${ASY_TEX_BUILD_ROOT}/
         ${ASY_NSIS_INSTALL_ARGUMENT}
         FILES_MATCHING PATTERN "*.pdf"
+)
+
+if (ASY_TEX_BUILD_ROOT)
+    install(
+            DIRECTORY ${ASY_TEX_BUILD_ROOT}/
+            ${ASY_NSIS_INSTALL_ARGUMENT}
+            FILES_MATCHING PATTERN "*.pdf"
     )
 endif()
