@@ -148,24 +148,32 @@ option(
 
 # documentation
 
+set(
+        EXTERNAL_ASYMPTOTE_PDF_FILE "" CACHE STRING
+        "If specified, will use the following file as asymptote.pdf in packaging
+instead of building. This is because the requirements for building asymptote.pdf on
+windows can be complex (at the moment requiring WSL) due to the lack of native
+texindex on windows."
+)
+
 set(WIN32_TEXINDEX "WSL" CACHE STRING
         "Location to texindex for windows, or WSL to use internal WSL wrapper.
 Inert for non-windows systems.")
 
-function(determine_docgen_possible_win32)
+function(determine_asymptote_pdf_gen_possible_win32)
     # windows doesn't have an up-to-date
     # texi2dvi release in multiple years, so
     # we are using MikTeX's texify
     find_program(TEXIFY texify)
     if (NOT TEXIFY)
         message(STATUS "texify not found; will not enable docgen by default")
-        set(ENABLE_DOCGEN_POSSIBLE false PARENT_SCOPE)
+        set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE false PARENT_SCOPE)
         return()
     endif()
 
     if (NOT WIN32_TEXINDEX)
         message(STATUS "texindex for windows not given; will not enable docgen by default")
-        set(ENABLE_DOCGEN_POSSIBLE false PARENT_SCOPE)
+        set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE false PARENT_SCOPE)
         return()
     endif()
 
@@ -178,23 +186,28 @@ function(determine_docgen_possible_win32)
         )
         if (NOT TEXINDEX_RESULT STREQUAL "OK")
             message(STATUS "Cannot execute texindex on wsl; will not enable docgen by default")
-            set(ENABLE_DOCGEN_POSSIBLE false PARENT_SCOPE)
+            set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE false PARENT_SCOPE)
             return()
         endif()
     endif()
-    set(ENABLE_DOCGEN_POSSIBLE true PARENT_SCOPE)
+    set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE true PARENT_SCOPE)
 endfunction()
 
-set(ENABLE_DOCGEN_POSSIBLE false)
+set(ENABLE_BASE_DOCGEN_POSSIBLE false)
+set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE false)
 find_package(LATEX COMPONENTS PDFLATEX)
 if (LATEX_PDFLATEX_FOUND)
+    set(ENABLE_BASE_DOCGEN_POSSIBLE true)
+
+    if (NOT EXTERNAL_ASYMPTOTE_PDF_FILE)
     if (WIN32)
-        determine_docgen_possible_win32()
+        determine_asymptote_pdf_gen_possible_win32()
     elseif(UNIX)
         find_program(TEXI2DVI texi2dvi)
         if (TEXI2DVI)
-            set(ENABLE_DOCGEN_POSSIBLE true)
+            set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE true)
         endif()
+    endif()
     endif()
 endif()
 
@@ -202,12 +215,24 @@ if (NOT ENABLE_DOCGEN_POSSIBLE)
     message(STATUS "System does not have the preqrequisites for building documentation")
 endif()
 
+if (NOT (EXTERNAL_ASYMPTOTE_PDF_FILE OR ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE))
+    message(STATUS "Build is without asymptote.pdf; system cannot generate asymptote.pdf.")
+endif()
+
 cmake_dependent_option(
     ENABLE_DOCGEN
-    "Enable document generation. Requires pdflatex and "
+    "Enable basic document generation. Requires pdflatex"
     true
-    "ENABLE_DOCGEN_POSSIBLE"
+    "ENABLE_BASE_DOCGEN_POSSIBLE"
     false
+)
+
+cmake_dependent_option(
+        ENABLE_ASYMPTOTE_PDF_DOCGEN
+        "Enable asymptote.pdf document generation. Requires texinfo, and additionally WSL + texindex on windows."
+        true
+        "ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE"
+        false
 )
 
 
