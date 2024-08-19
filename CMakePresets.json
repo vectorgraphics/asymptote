@@ -91,7 +91,18 @@
       "inherits": [
         "base/buildBaseWithVcpkg", "base/release", "base/gccCompatCacheVar",
         "base/windows-only", "base/ensure-cl-compiler"
-      ]
+      ],
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-install-w32-nsis-release"
+      }
+    },
+    {
+      "name": "msvc/release-with-existing-asymptote-pdf",
+      "displayName": "[MSVC-x86/64] Release (with external asymptote.pdf)",
+      "inherits": ["msvc/release"],
+      "cacheVariables": {
+        "EXTERNAL_ASYMPTOTE_PDF_FILE": "${sourceDir}/extfiles/asymptote.pdf"
+      }
     },
     {
       "name": "msvc/releaseWithDebugInfo",
@@ -100,7 +111,10 @@
       "inherits": [
         "base/buildBaseWithVcpkg", "base/relWithDebInfo", "base/gccCompatCacheVar",
         "base/windows-only", "base/ensure-cl-compiler"
-      ]
+      ],
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-install-w32-nsis-reldbg"
+      }
     }
   ],
 
