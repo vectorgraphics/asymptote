@@ -43,6 +43,15 @@ add_custom_command(
         BYPRODUCTS ${ASY_TEX_BUILD_ROOT}/latexusage.log
 )
 
+set(
+        BASE_ASYMPTOTE_DOC_AND_TEX_FILES
+        ${ASY_TEX_BUILD_ROOT}/asy-latex.pdf
+        ${ASY_TEX_BUILD_ROOT}/asymptote.sty
+        ${ASY_TEX_BUILD_ROOT}/latexusage.pdf
+)
+
+add_custom_target(docgen DEPENDS ${BASE_ASYMPTOTE_DOC_AND_TEX_FILES})
+
 if (ENABLE_ASYMPTOTE_PDF_DOCGEN)
 # asy files
 set(ASY_DOC_FILE_PREFIXES
@@ -209,6 +218,6 @@ add_custom_command(
         BYPRODUCTS ${ASYMPTOTE_PDF_EXTRA_ARTIFACTS}
 )
 endif()
+add_custom_target(asymptote_pdf_file DEPENDS ${ASY_TEX_BUILD_ROOT}/asymptote.pdf)
+add_dependencies(docgen asymptote_pdf_file)
 endif() # ENABLE_ASYMPTOTE_PDF_DOCGEN
-
-add_custom_target(docgen DEPENDS ${ASY_TEX_BUILD_ROOT}/asymptote.pdf)
