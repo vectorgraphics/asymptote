@@ -29,16 +29,20 @@ configure_file(${ASY_RESOURCE_DIR}/versionTemplate.asy.in ${ASY_BUILD_BASE_DIR}/
 list(APPEND ASY_OUTPUT_BASE_FILES ${ASY_BUILD_BASE_DIR}/version.asy)
 
 # copy base files to build dir
-macro (copy_base_file base_file_name)
+macro (copy_base_file_with_custom_output_name base_file_name output_file_name)
     add_custom_command(
             COMMAND ${CMAKE_COMMAND} -E copy
             ${ASY_SOURCE_BASE_DIR}/${base_file_name}
-            ${ASY_BUILD_BASE_DIR}/${base_file_name}
-            OUTPUT ${ASY_BUILD_BASE_DIR}/${base_file_name}
+            ${ASY_BUILD_BASE_DIR}/${output_file_name}
+            OUTPUT ${ASY_BUILD_BASE_DIR}/${output_file_name}
             MAIN_DEPENDENCY ${ASY_SOURCE_BASE_DIR}/${base_file_name}
     )
 
-    list(APPEND ASY_OUTPUT_BASE_FILES ${ASY_BUILD_BASE_DIR}/${base_file_name})
+    list(APPEND ASY_OUTPUT_BASE_FILES ${ASY_BUILD_BASE_DIR}/${output_file_name})
+endmacro()
+
+macro (copy_base_file base_file_name)
+    copy_base_file_with_custom_output_name(${base_file_name} ${base_file_name})
 endmacro()
 
 foreach(ASY_STATIC_BASE_FILE ${ASY_STATIC_BASE_FILES})
@@ -68,3 +72,7 @@ foreach(csv_enum_file ${ASY_CSV_ENUM_FILES})
 
     list(APPEND ASY_OUTPUT_BASE_FILES ${ASY_BUILD_BASE_DIR}/${csv_enum_file}.asy)
 endforeach ()
+
+# asygl
+file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR}/webgl)
+copy_base_file_with_custom_output_name(webgl/asygl-${ASY_GL_VERSION}.js webgl/asygl.js)
