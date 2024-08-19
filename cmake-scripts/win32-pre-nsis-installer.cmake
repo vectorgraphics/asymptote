@@ -24,6 +24,14 @@ if (NOT ASY_TEX_BUILD_ROOT)
     action_if_component_not_buildable("Documentation is not buildable")
 endif()
 
+if (NOT (EXTERNAL_ASYMPTOTE_PDF_FILE OR ENABLE_ASYMPTOTE_PDF_DOCGEN))
+    action_if_component_not_buildable("asymptote.pdf is not buildable")
+endif()
+
+# helper target for files needed
+add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-basefiles docgen)
+
+# check done, start configuration
 set(ASYMPTOTE_NSI_CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}/nsifiles)
 file(MAKE_DIRECTORY ${ASYMPTOTE_NSI_CONFIGURATION_DIR})
 
@@ -82,16 +90,26 @@ install(
         FILES_MATCHING PATTERN "*.nsh"
 )
 
-install(
-        DIRECTORY ${ASY_TEX_BUILD_ROOT}/
-        ${ASY_NSIS_INSTALL_ARGUMENT}
-        FILES_MATCHING PATTERN "*.pdf"
-)
+# unfortuantely, we have to first call the "docgen" target manually
+# this can also be called from asy-pre-nsis-targets, which includes asy-with-basefiles alongside docgen.
+# this is a limitation of cmake currently (https://discourse.cmake.org/t/install-file-with-custom-target/2984/2)
 
-if (ASY_TEX_BUILD_ROOT)
+if (ASY_TEX_BUILD_ROOT)  # basic docgen possible
     install(
-            DIRECTORY ${ASY_TEX_BUILD_ROOT}/
+            FILES ${BASE_ASYMPTOTE_DOC_AND_TEX_FILES}
             ${ASY_NSIS_INSTALL_ARGUMENT}
-            FILES_MATCHING PATTERN "*.pdf"
+    )
+endif()
+
+if (EXTERNAL_ASYMPTOTE_PDF_FILE)
+    install(
+            FILES ${EXTERNAL_ASYMPTOTE_PDF_FILE}
+            ${ASY_NSIS_INSTALL_ARGUMENT}
+            RENAME asymptote.pdf
+    )
+elseif(ENABLE_ASYMPTOTE_PDF_DOCGEN)
+    install(
+            FILES ${ASY_TEX_BUILD_ROOT}/asymptote.pdf
+            ${ASY_NSIS_INSTALL_ARGUMENT}
     )
 endif()
