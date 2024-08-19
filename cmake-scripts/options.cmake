@@ -195,8 +195,26 @@ endfunction()
 
 set(ENABLE_BASE_DOCGEN_POSSIBLE false)
 set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE false)
+
+# finding latex and other programs needed
+# pdflatex
 find_package(LATEX COMPONENTS PDFLATEX)
-if (LATEX_PDFLATEX_FOUND)
+
+# pdftex
+set(PDFTEX_EXEC "" CACHE STRING "pdftex. If left empty, will try to determine interpreter automatically")
+if (NOT PDFTEX)
+    message(STATUS "No pdftex specified, attempting to find pdftex")
+    find_program(
+            PDFTEX_EXEC_FOUND
+            pdftex
+    )
+    if (PDFTEX_EXEC_FOUND)
+        message(STATUS "Found pdftex at ${PDFTEX_EXEC_FOUND}")
+        set(PDFTEX_EXEC ${PDFTEX_EXEC_FOUND} CACHE STRING "" FORCE)
+    endif()
+endif()
+
+if (LATEX_PDFLATEX_FOUND AND PDFTEX_EXEC)
     set(ENABLE_BASE_DOCGEN_POSSIBLE true)
 
     if (NOT EXTERNAL_ASYMPTOTE_PDF_FILE)
@@ -211,7 +229,7 @@ if (LATEX_PDFLATEX_FOUND)
     endif()
 endif()
 
-if (NOT ENABLE_DOCGEN_POSSIBLE)
+if (NOT ENABLE_BASE_DOCGEN_POSSIBLE)
     message(STATUS "System does not have the preqrequisites for building documentation")
 endif()
 
