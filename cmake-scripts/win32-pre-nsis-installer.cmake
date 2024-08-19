@@ -14,9 +14,9 @@ endif()
 # if a component is not buildable
 macro(action_if_component_not_buildable message)
     if (ALLOW_PARTIAL_INSTALLATION)
-        message(WARNING ${message})
+        install(CODE "message(WARNING ${message})")
     else()
-        message(FATAL_ERROR ${message})
+        install(CODE "message(FATAL_ERROR ${message})")
     endif()
 endmacro()
 
