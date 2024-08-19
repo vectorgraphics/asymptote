@@ -43,6 +43,7 @@ add_custom_command(
         BYPRODUCTS ${ASY_TEX_BUILD_ROOT}/latexusage.log
 )
 
+if (ENABLE_ASYMPTOTE_PDF_DOCGEN)
 # asy files
 set(ASY_DOC_FILE_PREFIXES
         axis3 basealign bezier bezier2 beziercurve bigdiagonal binarytreetest Bode brokenaxis
@@ -208,5 +209,6 @@ add_custom_command(
         BYPRODUCTS ${ASYMPTOTE_PDF_EXTRA_ARTIFACTS}
 )
 endif()
+endif() # ENABLE_ASYMPTOTE_PDF_DOCGEN
 
 add_custom_target(docgen DEPENDS ${ASY_TEX_BUILD_ROOT}/asymptote.pdf)
