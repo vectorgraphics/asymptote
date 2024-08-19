@@ -113,3 +113,13 @@ elseif(ENABLE_ASYMPTOTE_PDF_DOCGEN)
             ${ASY_NSIS_INSTALL_ARGUMENT}
     )
 endif()
+
+# README files
+install(
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.LESSER
+            ${CMAKE_CURRENT_SOURCE_DIR}/README
+            ${ASY_WIN_RESOURCE_DIR}/asy.ico
+        ${ASY_NSIS_INSTALL_ARGUMENT}
+)
