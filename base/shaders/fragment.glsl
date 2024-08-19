@@ -344,7 +344,6 @@ int windingnumber(vec3 v) {
   while (check) {
     check = false;
     for(uint i=0; i<n; i += 3) {
-      const vec3[3] face = vec3[3](tpoly[i], tpoly[i+1], tpoly[i+2]);
       // check each face
       vec3 u = tpoly[i];
       vec3 w = tpoly[i+1];
@@ -390,7 +389,7 @@ int windingnumber(vec3 v) {
     // sign's return type is the same as its input type (float)
     float s1 = sign(orient(v,t1,t2,t3));
     if (s1 == 0) {
-      const vec3 face[3] = vec3[3](t1,t2,t3);
+      vec3 face[3] = vec3[3](t1,t2,t3);
       if (windingnumberPolygon(face, v) != 0) {
         return 9; // TEMPORARY: Replace with "Undefined"
       }
