@@ -19,7 +19,6 @@ uniform MaterialBuffer {
 
 flat in int materialIndex;
 out vec4 outColor;
-
 // PBR material parameters
 vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
 vec3 Specular; // Specular tint for nonmetals
@@ -202,8 +201,231 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 in vec4 Color;
 #endif
 
+
+
+float orient(vec3 a, vec3 b, vec3 c, vec3 d) {
+  return dot(cross(a-d,b-d), c-d);
+}
+
+int windingnumberPolygon(vec3 p[3], vec3 v) {
+  vec3 M = max(max(p[0],p[1]), p[2]);
+  vec3 m = min(min(p[0],p[1]), p[2]);
+  vec3 outside = 2*M-m;
+  float epsilon = 0.0000001;
+  float norm = length(M-m);
+  float Epsilon=norm*epsilon;
+
+  // equivalent to normal(p) in asy
+  vec3 n = normalize(cross(p[2]-p[0],p[1]-p[0]));
+  vec3 normal = norm*n;
+  vec3 H = v+normal;
+
+  outside -= dot(outside,n) * n;
+
+  bool check=true;
+  while(check) {
+    check=false;
+    for(uint i=0;i<3;++i) {
+      vec3 u = p[i];
+      if (u != v && orient(u,v,outside,H)==0) {
+        vec3 otherNormal = normalize(cross(v-u,H-u));
+        outside += otherNormal * Epsilon;
+        outside -= dot(outside,n)*n;
+        check = true;
+      }
+    }
+  }
+
+  // now outside point should be okay, do StraightContribution
+  int count = 0;
+
+  vec3 z0 = p[p.length()-1]; // prevpoint
+  vec3 z = v;
+  for (int i=0; i<3; ++i){
+    vec3 z1 = p[i];
+    float s1 = sign(orient(z,z0,z1,H));
+    if (s1 == 0) {
+      // insidesegment in 3d
+      // return 999 means onboundary, continue means not onboundary
+      if (z == z1 || z == z0) return 999;
+      if (z0 == z1) continue;
+
+      vec3 h = cross(z1-z0,normal);
+      float s1_ = sign(orient(z0,z,h,H));
+      float s2_ = sign(orient(z1,z,h,H));
+
+      if (s1_ != s2_) {
+        return 999;
+      }
+      continue;
+    }
+    float s2 = sign(orient(outside,z0,z1,H));
+
+    if (s1 == s2) {
+      continue;
+    }
+
+    float s3 = sign(orient(z,outside,z0,H));
+    float s4 = sign(orient(z,outside,z1,H));
+    if (s3 != s4) {
+      count += int(s3);
+    }
+
+    z0=z1;
+  }
+
+  return 100;
+}
+
+vec3 tpoly[36] = vec3[36](
+  vec3(0,0,-3.031),
+  vec3(-0.7071,-0.4082,-2.454),
+  vec3(-0.7071,0.4082,-1.876),
+  vec3(0,0,-3.031),
+  vec3(-0.7071,0.4082,-1.876),
+  vec3(0,0.8165,-2.454),
+  vec3(0,0,-3.031),
+  vec3(0,0.8165,-2.454),
+  vec3(0.7071,0.4082,-1.876),
+  vec3(0,0,-3.031),
+  vec3(0.7071,0.4082,-1.876),
+  vec3(0.7071,-0.4082,-2.454),
+  vec3(0,0,-3.031),
+  vec3(0.7071,-0.4082,-2.454),
+  vec3(0,-0.8165,-1.876),
+  vec3(0,0,-3.031),
+  vec3(0,-0.8165,-1.876),
+  vec3(-0.7071,-0.4082,-2.454),
+  vec3(0,0,-1.299),
+  vec3(0.7071,0.4082,-1.876),
+  vec3(0,0.8165,-2.454),
+  vec3(0,0,-1.299),
+  vec3(0,0.8165,-2.454),
+  vec3(-0.7071,0.4082,-1.876),
+  vec3(0,0,-1.299),
+  vec3(-0.7071,0.4082,-1.876),
+  vec3(-0.7071,-0.4082,-2.454),
+  vec3(0,0,-1.299),
+  vec3(-0.7071,-0.4082,-2.454),
+  vec3(0,-0.8165,-1.876),
+  vec3(0,0,-1.299),
+  vec3(0.7071,-0.4082,-2.454),
+  vec3(0.7071,0.4082,-1.876),
+  vec3(0,0,-1.299),
+  vec3(0,-0.8165,-1.876),
+  vec3(0.7071,-0.4082,-2.454)
+);
+
+int windingnumber(vec3 v) {
+  uint n = tpoly.length();
+  vec3 M = tpoly[0];
+  for (int i=1; i<n; ++i) {
+    M=max(M,tpoly[i]);
+  }
+  vec3 m = tpoly[0];
+  for (int i=1; i<n; ++i) {
+    m=min(m,tpoly[i]);
+  }
+
+/*
+  if (m.x < v.x && v.x <= M.x &&
+      m.y < v.y && v.y <= M.y &&
+      m.z < v.z && v.z <= M.z) {
+    discard;
+  }
+*/
+
+  vec3 outside = 2*M-m;
+  float epsilon = 0.0000001;
+
+  float norm = length(M-m); // abs(M-m)
+  float Epsilon = norm*epsilon;
+  bool check=true;
+  while (check) {
+    check = false;
+    for(uint i=0; i<n; i += 3) {
+      const vec3[3] face = vec3[3](tpoly[i], tpoly[i+1], tpoly[i+2]);
+      // check each face
+      vec3 u = tpoly[i];
+      vec3 w = tpoly[i+1];
+      {
+        vec3 normal = normalize(cross(v-u,w-u));
+        vec3 H = v+normal;
+        if (orient(u,v,w,H) != 0 && orient(u,v,w,outside) == 0) {
+          outside += normal*Epsilon;
+          check = true;
+        }
+      }
+      u = tpoly[i+1];
+      w = tpoly[i+2];
+      {
+        vec3 normal = normalize(cross(v-u,w-u));
+        vec3 H = v+normal;
+        if (orient(u,v,w,H) != 0 && orient(u,v,w,outside) == 0) {
+          outside += normal*Epsilon;
+          check = true;
+        }
+      }
+      u = tpoly[i+2];
+      w = tpoly[i];
+      {
+        vec3 normal = normalize(cross(v-u,w-u));
+        vec3 H = v+normal;
+        if (orient(u,v,w,H) != 0 && orient(u,v,w,outside) == 0) {
+          outside += normal*Epsilon;
+          check = true;
+        }
+      }
+    }
+  }
+
+
+  int count = 0;
+  // now outside shouldn't be coplanar with any of the faces
+  for (uint i=0; i<n; i += 3) {
+    vec3 t1 = tpoly[i];
+    vec3 t2 = tpoly[i+1];
+    vec3 t3 = tpoly[i+2];
+    // straightContribution3
+    // sign's return type is the same as its input type (float)
+    float s1 = sign(orient(v,t1,t2,t3));
+    if (s1 == 0) {
+      const vec3 face[3] = vec3[3](t1,t2,t3);
+      if (windingnumberPolygon(face, v) != 0) {
+        return 9; // TEMPORARY: Replace with "Undefined"
+      }
+      continue;
+    }
+    float s2 = sign(orient(outside, t1, t2, t3));
+    if (s1 == s2) {
+      continue;
+    }
+
+    float s3 = sign(orient(v,outside,t1,t2));
+    float s4 = sign(orient(v,outside,t2,t3));
+    float s5 = sign(orient(v,outside,t3,t1));
+
+    if (s3 == s4 && s4 == s5) {
+      count += int(s3);
+    }
+
+  }
+
+  return count;
+}
+
+in vec4 V;
+
 void main()
 {
+  int n = 36;
+
+  vec3 v=V.xyz/V.w;
+  int winding = windingnumber(v);
+  if (winding != 0) {
+     discard;
+   };
+
   vec4 diffuse;
   vec4 emissive;
 

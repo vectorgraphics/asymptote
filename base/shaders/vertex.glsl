@@ -29,10 +29,13 @@ in float width;
 
 uniform mat4 projViewMat;
 
+out vec4 V;
+
 void main()
 {
   vec4 v=vec4(position,1.0);
   gl_Position=projViewMat*v;
+  V=v;
 #ifdef NORMAL
 #ifndef ORTHOGRAPHIC
   ViewPosition=(viewMat*v).xyz;
