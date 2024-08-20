@@ -97,10 +97,126 @@ $vsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
 
 This prompt should put you in to 64-bit Visual Studio Developer Powershell.
 
-After that, run cmake with 
+##### Building asymptote with base files only
+
+If you do not intend to generate a setup file, run cmake with 
 ```powershell
 cmake --preset msvc/release 
 cmake --build --preset msvc/release --target asy-with-basefiles
 ```
 
 The Asymptote binary is available at `cmake-build-msvc/release/asy.exe`.
+Instructions for generating a setup file is in the next section
+
+### Documentation generation
+
+#### Prerequisites for documentation generation
+
+Make sure [MikTeX](https://miktex.org/) is installed in the system.
+[TeX Live](https://tug.org/texlive/windows.html) is an acceptable subsitute if you are not building `asymptote.pdf`,
+which requries extra steps which will be discussed further.
+
+##### Extra considerations for `asymptote.pdf`
+
+On Windows, `asymptote.pdf` is built using MikTeX's `texify` program, hence why TeX Live cannot be used here.
+Additionally, ensure that a replacement for `texindex` is available in the system.
+As of the moment, I have only tested using WSL's `texindex`.
+
+- If you have a WSL distribution with `texindex` installed,
+that may be used as a subsitute for `texindex` on windows. In this case, ensure the cache variable
+`WIN32_TEXINDEX` is set to `WSL`. This is the default option.
+- If you have a replacement `texindex` program, ensure `WIN32_TEXINDEX` points to that file.
+
+The target `docgen` should build all relevant documentation files. To do this, run
+```powershell
+cmake --build --preset msvc/release --target docgen
+```
+
+### Installation file generation 
+
+#### Prerequisites for insallation file generation
+
+Ensure that
+- Requirements for building asymptote executable
+- Requirements for building documentation (excluding `asymptote.pdf`)
+- At least one of the following:
+  - A pre-built `asymptote.pdf` file
+  - Requirements for building `asymptote.pdf` file
+- NSIS installer. This can be found [here](https://nsis.sourceforge.io/Download).
+- Powershell. This should come pre-installed on windows.
+  - Ensure that the ability to execute unsigned scripts is enabled
+- Python 3 with relevant dependencies for building GUI files (This will be discussed in a separate section)
+
+are present in the system.
+
+##### If using a pre-built `asymptote.pdf`
+
+Place `asymptote.pdf` in the directory `<asymptote-repo>/extfiles/`.
+That is, the file `<asymptote-repo>/extfiles/asymptote.pdf` is present.
+After that, configure cmake with the preset `msvc/release-with-existing-asymptote-pdf` - that is,
+
+```powershell
+cmake --preset msvc/release-with-existing-asymptote-pdf
+```
+
+##### If generating `asymptote.pdf` as part of build processs
+
+Use the `msvc/release` build preset for cmake.
+
+##### Dependencies for GUI files
+
+All required dependencies for building GUI are present in `GUI/requirements.txt` and `GUI/requirements.dev.txt`.
+We recommend using a virtual envioronment, for example
+
+```powershell
+python.exe -m virtualenv asyguibuild
+./asyguibuild/Scripts/activate.ps1
+
+cd <asymptote-repo>/GUI
+pip install -r requirements.txt
+pip install -r requirements.dev.txt
+```
+.
+
+However, against our recommendations, the dependencies can be also installed into the system interpreter.
+
+#### Building Asymptote install files
+
+The cmake target `asy-pre-nsis-targets` should build everything on the `C++` side needed
+for asymptote installation. 
+
+#### Building the GUI files
+
+The python script `GUI/buildtool.py` is used for building required files. To do this, run
+
+```powershell
+cd <asymptote-repo>/GUI
+python.exe buildtool.py build
+```
+
+This should build all needed GUI files.
+
+#### Generating the installer file
+
+After building `asy-pre-nsis-targets`, install using CMake.
+Note that this does not install into 
+the program files directory, but rather, to a "local install root"
+at `<asymptote-repo>/cmake-install-w32-nsis-release/`.
+
+Due to how google test build files are written (as of currently), installing 
+every components may result in an error (in particular, with `gmock.lib`).
+This can be remedied by installing only the component needed for installer generation: `asy-pre-nsis`
+To do this, run 
+
+```powershell
+cmake --install cmake-build-msvc/release --component asy-pre-nsis
+```
+
+After building all the needed dependencies,
+navigate to the directory `<asymptote-repo>/cmake-install-w32-nsis-release/`.
+There, a script called `build-asy-installer.ps1` script is present.
+Run that script and it will prompt for the location of `makensis.exe` from the NSIS.
+Specify the path to `makensis.exe`.
+
+After this, the script should generate the installer file with the name `asymptote-<version>-setup.exe`.
+This is the setup file ready for distribution.
