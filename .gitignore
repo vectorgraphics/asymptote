@@ -231,3 +231,5 @@ extbuilds
 
 # generated files from
 *.raw.i
+
+extfiles/
