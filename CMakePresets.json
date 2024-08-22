@@ -51,6 +51,14 @@
       "hidden": true
     },
     {
+      "name": "base/linuxCcache",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+      },
+      "hidden": true
+    },
+    {
       "name": "base/gccCompatCacheVar",
       "cacheVariables": {
         "GCCCOMPAT_CXX_COMPILER_FOR_MSVC": "$env{GCCCOMPAT_CXX_COMPILER_FOR_MSVC}"
@@ -77,6 +85,12 @@
       "displayName": "[linux-x86/64] Release",
       "binaryDir": "${sourceDir}/cmake-build-linux/release",
       "inherits": ["base/buildBaseWithVcpkg", "base/release"]
+    },
+    {
+      "name": "linux/release-ccache",
+      "displayName": "[linux-x86/64] Release (with ccache)",
+      "binaryDir": "${sourceDir}/cmake-build-linux/release",
+      "inherits": ["base/buildBaseWithVcpkg", "base/release", "base/linuxCcache"]
     },
     {
       "name": "linux/releaseWithDebugInfo",
@@ -139,6 +153,11 @@
       "name": "linux/release",
       "displayName": "[linux-x86/64] Release",
       "configurePreset": "linux/release"
+    },
+    {
+      "name": "linux/release-ccache",
+      "displayName": "[linux-x86/64] Release (with ccache)",
+      "configurePreset": "linux/release-ccache"
     }
   ]
 }
