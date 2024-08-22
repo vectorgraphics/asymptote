@@ -135,7 +135,7 @@ add_custom_target(docgen DEPENDS ${BASE_ASYMPTOTE_DOC_AND_TEX_FILES})
 if (ENABLE_ASYMPTOTE_PDF_DOCGEN)
 # asy files
 set(ASY_DOC_FILE_PREFIXES
-        axis3 basealign bezier bezier2 beziercurve bigdiagonal binarytreetest Bode brokenaxis
+        axis3 basealign bezier bigdiagonal binarytreetest Bode brokenaxis
         colons colors cube cylinderskeleton datagraph diagonal dots
         eetomumu elliptic errorbars exp  fillcontour flow flowchartdemo
         GaussianSurface generalaxis generalaxis3 graphmarkers graphwithderiv grid3xyz
@@ -189,39 +189,67 @@ endforeach()
 
 
 # handle CDlabel and logo separately
+macro(copy_doc_asy_file_to_docbuild_root asyfile)
+    add_custom_command(
+            OUTPUT ${ASY_TEX_BUILD_ROOT}/${asyfile}.asy
+            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS}
+            ${ASY_DOC_ROOT}/${asyfile}.asy
+            DEPENDS ${ASY_DOC_ROOT}/${asyfile}.asy
+    )
+endmacro()
 
-# <doc-root>/logo.asy -> <build-root>/logo.asy
-add_custom_command(
-        OUTPUT ${ASY_TEX_BUILD_ROOT}/logo.asy
-        COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS}
-            ${ASY_DOC_ROOT}/logo.asy
-        DEPENDS ${ASY_DOC_ROOT}/logo.asy
+function(add_asy_file_with_asy_dependency asyfile) # <asydep1> [asydep2] ...
+    list(
+            TRANSFORM ARGN
+            PREPEND ${ASY_TEX_BUILD_ROOT}/
+            OUTPUT_VARIABLE ASY_REQUIRED_DEPS
+    )
+    list(
+            TRANSFORM ASY_REQUIRED_DEPS
+            APPEND .asy
+    )
+
+    add_custom_command(
+            OUTPUT ${ASY_TEX_BUILD_ROOT}/${asyfile}.pdf
+            DEPENDS ${ASY_DOC_ROOT}/${asyfile}.asy asy ${ASY_OUTPUT_BASE_FILES} ${ASY_REQUIRED_DEPS}
+            # copy <docroot>/file.asy -> <buildroot>/file.asy
+            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/${asyfile}.asy
+            COMMAND ${ASY_BASE_ARGUMENTS} -fpdf ${asyfile}.asy
+            # cleanup <buildroot>/file.asy
+            COMMAND ${CMAKE_RM_BASE_ARGUMENTS} ${ASY_TEX_BUILD_ROOT}/${asyfile}.asy
+            # cleanup tex artifacts, if exist
+            COMMAND ${CMAKE_RM_BASE_ARGUMENTS} -f ${ASY_TEX_BUILD_ROOT}/${asyfile}_.tex
+            WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
+    )
+endfunction()
+
+macro(add_asy_file_from_docbuild_root asyfile)
+    # does not copy from doc root to docbuild root; have to do manually
+    add_custom_command(
+            OUTPUT ${ASY_TEX_BUILD_ROOT}/${asyfile}.pdf
+            COMMAND ${ASY_BASE_ARGUMENTS} -fpdf ${asyfile}.asy
+            DEPENDS ${ASY_TEX_BUILD_ROOT}/${asyfile}.asy
+            BYPRODUCTS ${ASY_TEX_BUILD_ROOT}/${asyfile}_.tex ${ASY_TEX_BUILD_ROOT}/${asyfile}_.eps
+            WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
+    )
+endmacro()
+
+# CDlabel + logo
+copy_doc_asy_file_to_docbuild_root(logo)
+add_asy_file_from_docbuild_root(logo)
+add_asy_file_with_asy_dependency(CDlabel logo)
+
+# bezier2 & beziercurve
+copy_doc_asy_file_to_docbuild_root(beziercurve)
+add_asy_file_from_docbuild_root(beziercurve)
+add_asy_file_with_asy_dependency(bezier2 beziercurve)
+
+list(APPEND ASY_DOC_PDF_FILES
+        ${ASY_TEX_BUILD_ROOT}/logo.pdf
+        ${ASY_TEX_BUILD_ROOT}/CDlabel.pdf
+        ${ASY_TEX_BUILD_ROOT}/beziercurve.pdf
+        ${ASY_TEX_BUILD_ROOT}/bezier2.pdf
 )
-
-# <build-root>/logo.asy -> <build-root>/logo.pdf [+ artifacts]
-add_custom_command(
-        OUTPUT ${ASY_TEX_BUILD_ROOT}/logo.pdf
-        COMMAND ${ASY_BASE_ARGUMENTS} -fpdf logo.asy
-        DEPENDS ${ASY_TEX_BUILD_ROOT}/logo.asy
-        BYPRODUCTS ${ASY_TEX_BUILD_ROOT}/logo_.tex ${ASY_TEX_BUILD_ROOT}/logo_.eps
-        WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
-)
-
-# <build-root>/logo.asy + <doc-root>/CDlabel.asy -> <build-root>/CDlabel.pdf
-add_custom_command(
-        OUTPUT ${ASY_TEX_BUILD_ROOT}/CDlabel.pdf
-        DEPENDS ${ASY_DOC_ROOT}/CDlabel.asy asy ${ASY_OUTPUT_BASE_FILES} ${ASY_TEX_BUILD_ROOT}/logo.asy
-        # copy <docroot>/file.asy -> <buildroot>/file.asy
-        COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/CDlabel.asy
-        COMMAND ${ASY_BASE_ARGUMENTS} -fpdf CDlabel.asy
-        # cleanup <buildroot>/file.asy
-        COMMAND ${CMAKE_RM_BASE_ARGUMENTS} ${ASY_TEX_BUILD_ROOT}/CDlabel.asy
-        # cleanup tex artifacts, if exist
-        COMMAND ${CMAKE_RM_BASE_ARGUMENTS} -f ${ASY_TEX_BUILD_ROOT}/CDlabel_.tex
-        WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
-)
-
-list(APPEND ASY_DOC_PDF_FILES ${ASY_TEX_BUILD_ROOT}/logo.pdf ${ASY_TEX_BUILD_ROOT}/CDlabel.pdf )
 
 # options file
 add_custom_command(
