@@ -18,7 +18,7 @@ jobs:
   configure-windows-msvc-x64:
     runs-on: "windows-2022"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
@@ -41,7 +41,7 @@ jobs:
             $true`
           )
       - name: Upload configuration artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cmake-msvc-x64-release-cfg-zip
           path: cmake-msvc-x64-release-cfg.zip
@@ -49,12 +49,12 @@ jobs:
     needs: configure-windows-msvc-x64
     runs-on: "windows-2022"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
       - name: Download configuration artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cmake-msvc-x64-release-cfg-zip
       - name: Unzip configuration artifact
@@ -70,7 +70,7 @@ jobs:
           ${{ env.pwsh_initialize_devenv }}
           cmake --build --preset msvc/release --target asy-with-basefiles -j
       - name: Archive Asymptote build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asy-win-x64-buildfiles
           path: |
@@ -82,7 +82,7 @@ jobs:
           ${{ env.pwsh_initialize_devenv }}
           cmake --build --preset msvc/release --target asyCxxTests -j
       - name: Archive Asymptote gtest files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asy-win-x64-gtest-files
           path: |
@@ -90,7 +90,7 @@ jobs:
             cmake-build-msvc/release/cxxtests/*.cmake
             cmake-build-msvc/release/cxxtests/*.dll
       - name: Archive Asymptote test files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asy-win-x64-testfiles
           path: |
@@ -99,17 +99,17 @@ jobs:
     needs: build-windows-msvc-x64
     runs-on: "windows-2022"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
       - name: Download test artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-win-x64-testfiles
           path: cmake-build-msvc/release/
       - name: Download artifacts for gtest
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-win-x64-gtest-files
           path: cmake-build-msvc/release/cxxtests
@@ -119,17 +119,17 @@ jobs:
     needs: build-windows-msvc-x64
     runs-on: "windows-2022"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-win-x64-buildfiles
           path: cmake-build-msvc/release/
       - name: Download test artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-win-x64-testfiles
           path: cmake-build-msvc/release/
@@ -139,18 +139,18 @@ jobs:
     needs: [ test-windows-msvc-x64-cxxtests, test-windows-msvc-x64-asy-tests ]
     runs-on: "windows-2022"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-win-x64-buildfiles
           path: zip-stage
       - name: Copy examples to zip-stage
         run: Copy-Item -Recurse -Path examples -Destination zip-stage/examples
       - name: Archive Asymptote test files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asymptote-build-windows
           path: |

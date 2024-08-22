@@ -12,7 +12,7 @@ jobs:
   configure-linux-release-x64:
     runs-on: "ubuntu-22.04"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
@@ -20,7 +20,7 @@ jobs:
       - name: tar+gz cmake configuration
         run: tar -czf cmake-linux-cfg-artifact.tar.gz --exclude='vcpkg_installed' cmake-build-linux/release
       - name: Upload configuration artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cmake-linux-x64-release-cfg-tgz
           path: cmake-linux-cfg-artifact.tar.gz
@@ -28,12 +28,12 @@ jobs:
     needs: configure-linux-release-x64
     runs-on: "ubuntu-22.04"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
       - name: Download configuration artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cmake-linux-x64-release-cfg-tgz
       - name: Untar configuration artifact
@@ -45,7 +45,7 @@ jobs:
           echo set\(ASY_VERSION_SUFFIX \"/github-ci/ref=${{ github.sha }}\"\) > asy-pkg-version-suffix.cmake
       - run: cmake --build --preset linux/release --target asy-with-basefiles -j
       - name: Archive build files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asy-buildfiles
           path: |
@@ -54,14 +54,14 @@ jobs:
       - name: Build Asymptote google test files
         run: cmake --build --preset linux/release --target asyCxxTests -j
       - name: Archive Asymptote gtest files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asy-gtest-files
           path: |
             cmake-build-linux/release/cxxtests/asyCxxTests
             cmake-build-linux/release/cxxtests/*.cmake
       - name: Archive Asymptote test files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asy-testfiles
           path: cmake-build-linux/release/CTest*.cmake
@@ -69,17 +69,17 @@ jobs:
     needs: build-linux-release-x64
     runs-on: "ubuntu-22.04"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
       - name: Download test artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-testfiles
           path: cmake-build-linux/release/
       - name: Download artifacts for gtest
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-gtest-files
           path: cmake-build-linux/release/cxxtests
@@ -90,17 +90,17 @@ jobs:
     needs: build-linux-release-x64
     runs-on: "ubuntu-22.04"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-buildfiles
           path: cmake-build-linux/release/
       - name: Download test artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-testfiles
           path: cmake-build-linux/release/
@@ -111,14 +111,14 @@ jobs:
     runs-on: "ubuntu-22.04"
     needs: build-linux-release-x64
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
       - name: install dependencies
         run: sudo apt-get install texlive texlive-latex-extra texinfo ghostscript
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: asy-buildfiles
           path: cmake-build-linux/release/
@@ -136,7 +136,7 @@ jobs:
           name: asy-pdf-file
           path: cmake-build-linux/release/docbuild/asymptote.pdf
       - name: Archive remaining asymptote documentation
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asy-misc-docs
           path: |
@@ -150,11 +150,11 @@ jobs:
     needs: [test-x64-cxxtests, test-x64-asy-tests, linux-asy-docgen]
     runs-on: "ubuntu-22.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: asy-buildfiles
         path: tar-stage
@@ -175,7 +175,7 @@ jobs:
     - name: tar package
       run: tar -C tar-stage -cvhf asymptote-build-linux.tar asy base examples doc
     - name: Archive Asymptote test files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: asymptote-build-linux
         path: asymptote-build-linux.tar
