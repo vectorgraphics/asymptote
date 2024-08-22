@@ -16,9 +16,7 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
-      - run: |
-          VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" \
-          cmake --preset linux/release
+      - run: cmake --preset linux/release-ccache
       - name: tar+gz cmake configuration
         run: tar -czf cmake-linux-cfg-artifact.tar.gz --exclude='vcpkg_installed' cmake-build-linux/release
       - name: Upload configuration artifacts
@@ -127,11 +125,11 @@ jobs:
       - name: delete cache file
         run: rm -f cmake-build-linux/release/CMakeCache.txt
       - name: reconfigure with documentation
-        run: VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" cmake --preset linux/release
+        run: cmake --preset linux/release-ccache
       - name: touch asymptote binary (to avoid need for rebuilding)
         run: touch cmake-build-linux/release/asy
       - name: build documentation
-        run: cmake --build --preset linux/release --target docgen -j
+        run: cmake --build --preset linux/release-ccache --target docgen -j
       - name: Archive asymptote.pdf
         uses: actions/upload-artifact@v4
         with:
