@@ -3,13 +3,12 @@ description: Initialize environment
 runs:
   using: 'composite'
   steps:
-    - name: Setup Ninja
-      uses: ashutoshvarma/setup-ninja@v1.1
-      with:
-        version: 1.10.0
     - name: Update apt
       shell: bash
       run: sudo apt-get update
+    - name: Install ninja
+      shell: bash
+      run: sudo apt-get install ninja-build
     - name: Setup OpenGL
       shell: bash
       run: |
